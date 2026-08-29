@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>DtHub.Infrastructure</RootNamespace>
+    <AssemblyName>DtHub.Infrastructure</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DtHub.Core\DtHub.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,26 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+
+[*.{json,yml,yaml,xml,csproj,props,targets,slnx}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.cs]
+dotnet_sort_system_directives_first = true
+csharp_using_directive_placement = outside_namespace:suggestion
+csharp_style_namespace_declarations = file_scoped:suggestion
+dotnet_diagnostic.CA1416.severity = none
+
+# Les noms de tests décrivent un comportement en français : les underscores
+# sont volontaires et lisibles, on désactive donc CA1707 sur ce projet.
+[tests/**/*.cs]
+dotnet_diagnostic.CA1707.severity = none

@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DtHub.App/DtHub.App.csproj" />
+    <Project Path="src/DtHub.Core/DtHub.Core.csproj" />
+    <Project Path="src/DtHub.Infrastructure/DtHub.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DtHub.Tests/DtHub.Tests.csproj" />
+  </Folder>
+</Solution>

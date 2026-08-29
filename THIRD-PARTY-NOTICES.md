@@ -1,0 +1,103 @@
+# Composants tiers
+
+DT Hub est publié sous licence MIT. Il s'appuie sur des composants tiers qui
+conservent leur propre licence. Ce fichier recense ces composants, la manière
+dont ils arrivent chez l'utilisateur et les obligations qui en découlent.
+
+Aucune notice de copyright ni aucun texte de licence tiers ne doit être retiré.
+
+## Vue d'ensemble
+
+| Composant | Licence | Mode de distribution |
+|---|---|---|
+| scrcpy | Apache License 2.0 | Redistribué avec l'installateur |
+| Android SDK Platform Tools (adb) | Android SDK License Agreement | Téléchargé depuis Google au premier lancement |
+| .NET runtime | MIT | Inclus par la publication self-contained |
+| Velopack | MIT | Paquet NuGet |
+| CommunityToolkit.Mvvm | MIT | Paquet NuGet |
+| xUnit | Apache License 2.0 | Dépendance de test, non distribuée |
+
+## scrcpy
+
+- Projet : https://github.com/Genymobile/scrcpy
+- Copyright : Copyright (C) 2018 Genymobile, Copyright (C) 2018-2026 Romain Vimont
+- Licence : Apache License 2.0
+
+scrcpy est redistribué avec l'installateur, ce que la licence Apache 2.0
+autorise. Les obligations correspondantes sont remplies ainsi :
+
+- le texte intégral de la licence est conservé dans
+  `third_party/scrcpy/LICENSE` ;
+- le fichier `NOTICE` amont, s'il existe, est conservé à l'identique ;
+- toute modification apportée aux fichiers scrcpy est signalée dans
+  `third_party/scrcpy/MODIFICATIONS.md`, avec le patch reproductible
+  correspondant.
+
+DT Hub n'est pas affilié à Genymobile ni aux auteurs de scrcpy et n'utilise
+pas leur nom ni leurs logos comme élément de sa propre identité.
+
+## Android SDK Platform Tools (adb)
+
+- Éditeur : Google LLC
+- Licence : Android Software Development Kit License Agreement
+- Source officielle :
+  https://dl.google.com/android/repository/platform-tools-latest-windows.zip
+
+Le contrat de licence du SDK Android n'autorise pas la redistribution des
+binaires. Les platform tools ne sont donc **pas** inclus dans le dépôt ni dans
+l'installateur. DT Hub les télécharge depuis l'URL officielle ci-dessus, au
+premier lancement, dans le dossier de données de l'utilisateur, et vérifie
+l'archive avant de l'extraire.
+
+L'utilisateur est informé de ce téléchargement et l'accepte explicitement.
+Aucune autre source n'est utilisée.
+
+## .NET
+
+- Éditeur : Microsoft Corporation
+- Licence : MIT
+- https://github.com/dotnet/runtime
+
+DT Hub est publié en self-contained : le runtime .NET est inclus dans
+l'application, ce que la licence MIT autorise.
+
+## Velopack
+
+- Projet : https://github.com/velopack/velopack
+- Licence : MIT
+
+Utilisé pour l'installation et les mises à jour.
+
+## CommunityToolkit.Mvvm
+
+- Projet : https://github.com/CommunityToolkit/dotnet
+- Licence : MIT
+
+## xUnit
+
+- Projet : https://github.com/xunit/xunit
+- Licence : Apache License 2.0
+
+Dépendance de test uniquement, absente de l'application distribuée.
+
+## Marques et contenus des applications mirrorées
+
+Les icônes et les noms des applications installées sur le téléphone sont lus
+sur l'appareil et affichés localement dans le sélecteur, uniquement pour
+permettre à l'utilisateur de reconnaître ses propres applications. Ils ne sont
+ni redistribués, ni stockés hors de la machine de l'utilisateur, ni utilisés
+comme éléments de communication de DT Hub.
+
+DT Hub n'embarque aucun logo ni aucune ressource appartenant à un éditeur
+d'application tiers.
+
+## Ajouter une dépendance
+
+Avant d'ajouter un composant tiers :
+
+1. vérifier que sa licence autorise l'usage envisagé, redistribution comprise ;
+2. si la redistribution n'est pas autorisée, préférer un téléchargement depuis
+   la source officielle, avec vérification ;
+3. ajouter une entrée dans ce fichier, avec le lien, la licence et le mode de
+   distribution ;
+4. conserver les fichiers de licence et de notice fournis en amont.
