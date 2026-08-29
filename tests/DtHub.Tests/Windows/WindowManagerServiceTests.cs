@@ -645,28 +645,60 @@ public class WindowManagerServiceTests
     }
 
     [Fact]
-    public async Task La_hauteur_ne_depasse_pas_celle_de_la_naissance_du_jeu()
+    public async Task Une_fenetre_agrandie_a_la_main_n_est_jamais_rapetissee()
     {
-        // Au-delà, le jeu laisserait une bande noire de la hauteur ajoutée.
-        // La fenêtre s'arrête là plutôt que de recharger le jeu.
+        // Au-delà de ce que le jeu dessine il reste une bande, mais la
+        // rapetisser reviendrait à défaire le geste en cours : redimensionner
+        // doit rester libre dans les deux sens.
         var (manager, sessions, desktop) = await OpenSessionsAsync(1);
         await using var _ = manager;
 
         var service = new WindowManagerService(desktop, NoDelay);
         await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
 
+        var tall = new ScreenRect(0, 0, 2600, sessions[0].MaxClientHeight + 400);
+
+        desktop.MoveWindow(sessions[0].WindowHandle, tall);
+
+        service.EnforceAspect(sessions);
+
+        Assert.Equal(0, service.EnforceAspect(sessions));
+        Assert.Equal(tall, desktop.GetWindowRect(sessions[0].WindowHandle));
+    }
+
+    [Fact]
+    public async Task Une_geometrie_memorisee_trop_haute_est_ramenee_des_l_ouverture()
+    {
+        // Sans cela la fenêtre s'ouvrirait trop haute puis serait rapetissée :
+        // elle grandit et rétrécit sous les yeux à chaque lancement.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        // Le plafond dépasse un écran 1920x1080 : sans un grand écran, la
+        // géométrie mémorisée serait écartée pour débordement.
+        desktop.Monitors[0] = new MonitorInfo
+        {
+            DeviceName = @"\\.\DISPLAY1",
+            Bounds = new ScreenRect(0, 0, 3840, 2160),
+            WorkArea = new ScreenRect(0, 0, 3840, 2088),
+            IsPrimary = true,
+        };
+
+        var service = new WindowManagerService(desktop, NoDelay);
         var ceiling = sessions[0].MaxClientHeight;
 
-        desktop.MoveWindow(sessions[0].WindowHandle, new ScreenRect(0, 0, 2600, ceiling + 400));
+        var remembered = new Dictionary<string, StoredWindowRect>(StringComparer.Ordinal)
+        {
+            [sessions[0].Target.Key] = StoredWindowRect.From(
+                new ScreenRect(40, 20, 2600, ceiling + 300),
+                desktop.GetMonitors()[0]),
+        };
 
-        // Le premier passage constate, le second corrige : on ne lutte pas
-        // contre un geste en cours.
-        service.EnforceAspect(sessions);
-        var corrected = service.EnforceAspect(sessions);
+        await service.RestoreAsync(sessions, remembered, CancellationToken.None);
 
         var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
 
-        Assert.Equal(1, corrected);
+        Assert.Equal(40, rect.X);
         Assert.Equal(2600, rect.Width);
         Assert.Equal(ceiling, rect.Height);
     }

@@ -204,13 +204,11 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Ramène la hauteur des fenêtres à celle que le jeu sait remplir.
+    /// Ramène les fenêtres à la forme de leur afficheur, au rapport verrouillé.
     ///
-    /// La largeur reste libre : le jeu s'y remet en page sans faute. La
-    /// hauteur, elle, ne dépasse jamais celle qu'il avait à sa naissance, et
-    /// tout dépassement laisse une bande noire de la hauteur ajoutée. Plutôt
-    /// que de recharger le jeu pour lui donner cette hauteur, ce qui
-    /// déconnecterait en pleine partie, la fenêtre s'arrête là.
+    /// Ce mode met l'image à l'échelle : elle ne remplit la fenêtre qu'à cette
+    /// forme, et s'en écarter laisse une bande. En largeur libre, rien n'est
+    /// corrigé : redimensionner y est libre dans les deux sens.
     /// </summary>
     /// <returns>Nombre de fenêtres corrigées.</returns>
     public int EnforceAspect(IReadOnlyList<ScrcpySession> sessions)
@@ -226,7 +224,7 @@ public sealed class WindowManagerService
 
         foreach (var session in sessions.Where(s => s.IsAlive && s.WindowHandle != 0))
         {
-            if ((session.MaxClientHeight <= 0 && session.SourceAspectRatio <= 0)
+            if (session.SourceAspectRatio <= 0
                 || _controller.GetWindowRect(session.WindowHandle) is not { } outer
                 || outer.IsEmpty)
             {
@@ -243,31 +241,15 @@ public sealed class WindowManagerService
 
             var chrome = MeasureChrome(session.WindowHandle);
 
-            int wanted;
+            // Rapport verrouillé : l'image est mise à l'échelle, elle ne
+            // remplit la fenêtre qu'à la forme de l'afficheur. S'en écarter
+            // laisse une bande, au-dessus comme en dessous.
+            var wanted = (int)Math.Round(
+                (outer.Width - chrome.Width) / session.SourceAspectRatio) + chrome.Height;
 
-            if (session.MaxClientHeight > 0)
+            if (Math.Abs(outer.Height - wanted) <= 2)
             {
-                // Largeur libre : l'afficheur épouse la fenêtre, seul le
-                // plafond de hauteur du jeu compte. Être plus bas est permis.
-                wanted = session.MaxClientHeight + chrome.Height;
-
-                if (outer.Height <= wanted + 2)
-                {
-                    continue;
-                }
-            }
-            else
-            {
-                // Rapport verrouillé : l'image est mise à l'échelle, elle ne
-                // remplit la fenêtre qu'à la forme de l'afficheur. S'en écarter
-                // laisse une bande, au-dessus comme en dessous.
-                wanted = (int)Math.Round(
-                    (outer.Width - chrome.Width) / session.SourceAspectRatio) + chrome.Height;
-
-                if (Math.Abs(outer.Height - wanted) <= 2)
-                {
-                    continue;
-                }
+                continue;
             }
 
             var target = outer with { Height = wanted };
@@ -515,10 +497,31 @@ public sealed class WindowManagerService
             && WindowLayoutCalculator.RestoreRemembered(
                 stored.Bounds, stored.MonitorDeviceName, stored.Monitor, monitors) is { } restored)
         {
-            return restored;
+            return Fit(session, restored, chrome);
         }
 
-        return Compute(monitor, session.SourceAspectRatio, chrome);
+        return Fit(session, Compute(monitor, session.SourceAspectRatio, chrome), chrome);
+    }
+
+    /// <summary>
+    /// Ramène un rectangle que nous calculons à la hauteur que le jeu sait
+    /// dessiner.
+    ///
+    /// La retenir ici, et là seulement, évite d'ouvrir la fenêtre trop haute
+    /// pour la rapetisser aussitôt. Une fenêtre agrandie à la main n'y passe
+    /// pas : ce que l'utilisateur a fait de ses mains n'est jamais défait.
+    /// </summary>
+    private static ScreenRect Fit(
+        ScrcpySession session, ScreenRect rect, (int Width, int Height) chrome)
+    {
+        if (session.MaxClientHeight <= 0)
+        {
+            return rect;
+        }
+
+        var ceiling = session.MaxClientHeight + chrome.Height;
+
+        return rect.Height <= ceiling ? rect : rect with { Height = ceiling };
     }
 
     /// <summary>
