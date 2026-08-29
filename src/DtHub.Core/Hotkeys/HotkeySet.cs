@@ -27,7 +27,7 @@ public sealed class HotkeySet
         [HotkeyAction.Size3] = Bind(HotkeyAction.Size3, VirtualKeys.D3, HotkeyModifiers.Control),
         [HotkeyAction.Size4] = Bind(HotkeyAction.Size4, VirtualKeys.D4, HotkeyModifiers.Control),
         [HotkeyAction.Fullscreen] = Bind(HotkeyAction.Fullscreen, VirtualKeys.D5, HotkeyModifiers.Control),
-        [HotkeyAction.CloseAll] = Bind(HotkeyAction.CloseAll, VirtualKeys.D0, HotkeyModifiers.Control),
+        [HotkeyAction.Quit] = Bind(HotkeyAction.Quit, VirtualKeys.D0, HotkeyModifiers.Control),
     });
 
     /// <summary>Tous les raccourcis, triés dans l'ordre d'affichage de l'éditeur.</summary>

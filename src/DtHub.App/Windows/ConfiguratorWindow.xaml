@@ -52,8 +52,11 @@
           </Grid.ColumnDefinitions>
 
           <!-- Les outils viendront s'ajouter ici, chacun avec son raccourci. -->
+          <!-- Le raccourci passe sous son bouton : d'autres outils viendront se
+               ranger à sa droite, sur la même ligne. -->
           <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-            <Button Padding="8,5" Style="{StaticResource QuietButton}"
+            <StackPanel>
+            <Button Padding="8,5" Style="{StaticResource QuietButton}" HorizontalAlignment="Center"
                     ToolTip="Remettre toutes les fenêtres de jeu au même endroit, à la taille choisie"
                     Command="{Binding RearrangeCommand}">
               <!-- Deux fenêtres superposées : c'est exactement ce que fait
@@ -70,14 +73,22 @@
             </Button>
 
             <TextBlock Text="{Binding RearrangeShortcutText}" Style="{StaticResource Muted}"
-                       FontSize="10" VerticalAlignment="Center" Margin="2,0,0,0"
+                       FontSize="9" HorizontalAlignment="Center" Margin="0,1,0,0"
                        Visibility="{Binding RearrangeShortcutText,
                                             Converter={StaticResource EmptyToVisibility},
                                             ConverterParameter=inverse}" />
+            </StackPanel>
           </StackPanel>
 
-          <Button Grid.Column="1" Content="Quitter" Click="OnQuit"
-                  ToolTip="Fermer l'application et les fenêtres de jeu" />
+          <StackPanel Grid.Column="1">
+            <Button Content="Quitter" Click="OnQuit"
+                    ToolTip="Fermer l'application et les fenêtres de jeu" />
+            <TextBlock Text="{Binding QuitShortcutText}" Style="{StaticResource Muted}"
+                       FontSize="9" HorizontalAlignment="Center" Margin="0,1,0,0"
+                       Visibility="{Binding QuitShortcutText,
+                                            Converter={StaticResource EmptyToVisibility},
+                                            ConverterParameter=inverse}" />
+          </StackPanel>
         </Grid>
       </Border>
 

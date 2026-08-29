@@ -221,9 +221,11 @@ public class WindowManagerServiceTests
     public async Task En_mode_flexible_la_fenetre_occupe_toute_la_part_demandee()
     {
         // L'afficheur virtuel épouse la fenêtre, donc aucun rapport ne
-        // contraint celle-ci : elle prend exactement la part d'écran voulue,
-        // et l'image la remplit quelle que soit sa forme.
-        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        // contraint celle-ci. Ce mode n'est plus celui par défaut : le jeu ne
+        // se remet pas toujours en page quand son afficheur change de forme
+        // sous lui, et laisse alors une bande noire.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(
+            1, ScrcpyOptions.Default with { FlexDisplay = true });
         await using var _ = manager;
 
         desktop.Chrome = (16, 48);
@@ -512,5 +514,24 @@ public class WindowManagerServiceTests
         await service.ApplySizeAsync(sessions, service.Presets.FullscreenIndex, CancellationToken.None);
 
         Assert.Empty(service.CaptureGeometries(sessions));
+    }
+
+    [Fact]
+    public async Task Par_defaut_la_fenetre_respecte_le_rapport_de_l_afficheur()
+    {
+        // C'est ce qui garantit qu'aucune bande n'apparaît : la fenêtre ne peut
+        // pas prendre une forme que l'afficheur virtuel ne remplit pas.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        desktop.Chrome = (16, 48);
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.ArrangeAsync(sessions, CancellationToken.None);
+
+        var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+        var client = new ScreenRect(0, 0, rect.Width - 16, rect.Height - 48);
+
+        Assert.Equal(16.0 / 9.0, client.AspectRatio, 2);
     }
 }

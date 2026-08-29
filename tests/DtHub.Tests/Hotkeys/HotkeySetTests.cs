@@ -13,7 +13,7 @@ public class HotkeySetTests
         Assert.Equal("Ctrl + Tab", set.For(HotkeyAction.NextInstance)!.DisplayText);
         Assert.Equal("Ctrl + Maj + Tab", set.For(HotkeyAction.PreviousInstance)!.DisplayText);
         Assert.Equal("Ctrl + R", set.For(HotkeyAction.Rearrange)!.DisplayText);
-        Assert.Equal("Ctrl + 0", set.For(HotkeyAction.CloseAll)!.DisplayText);
+        Assert.Equal("Ctrl + 0", set.For(HotkeyAction.Quit)!.DisplayText);
     }
 
     [Fact]
@@ -146,10 +146,10 @@ public class HotkeySetTests
     [Fact]
     public void Une_action_peut_etre_privee_de_raccourci()
     {
-        var set = HotkeySet.Default.Without(HotkeyAction.CloseAll);
+        var set = HotkeySet.Default.Without(HotkeyAction.Quit);
 
-        Assert.False(set.For(HotkeyAction.CloseAll)!.IsAssigned);
-        Assert.Equal("Non attribué", set.For(HotkeyAction.CloseAll)!.DisplayText);
+        Assert.False(set.For(HotkeyAction.Quit)!.IsAssigned);
+        Assert.Equal("Non attribué", set.For(HotkeyAction.Quit)!.DisplayText);
         Assert.Null(set.Resolve(VirtualKeys.D0, HotkeyModifiers.Control));
     }
 
@@ -206,10 +206,10 @@ public class HotkeySetTests
     {
         var bindings = new[]
         {
-            new HotkeyBinding { Action = HotkeyAction.CloseAll, VirtualKey = 0 },
+            new HotkeyBinding { Action = HotkeyAction.Quit, VirtualKey = 0 },
         };
 
-        Assert.False(HotkeySet.FromBindings(bindings).For(HotkeyAction.CloseAll)!.IsAssigned);
+        Assert.False(HotkeySet.FromBindings(bindings).For(HotkeyAction.Quit)!.IsAssigned);
     }
 
     [Fact]
@@ -233,7 +233,7 @@ public class HotkeySetTests
     {
         Assert.Equal("Instance suivante", HotkeyBinding.DescribeAction(HotkeyAction.NextInstance));
         Assert.Equal("Remettre les fenêtres en place", HotkeyBinding.DescribeAction(HotkeyAction.Rearrange));
-        Assert.Equal("Tout fermer", HotkeyBinding.DescribeAction(HotkeyAction.CloseAll));
+        Assert.Equal("Quitter", HotkeyBinding.DescribeAction(HotkeyAction.Quit));
     }
 
     [Theory]

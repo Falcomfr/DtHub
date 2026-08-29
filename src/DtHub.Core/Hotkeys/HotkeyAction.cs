@@ -34,8 +34,12 @@ public enum HotkeyAction
     /// <summary>Plein écran sans bordure.</summary>
     Fullscreen,
 
-    /// <summary>Fermer toutes les fenêtres de jeu ouvertes par l'application.</summary>
-    CloseAll,
+    /// <summary>
+    /// Quitter l'application, fenêtres de jeu comprises. Fermer les fenêtres
+    /// sans quitter n'avait pas d'usage propre : les laisser fermées revenait
+    /// à quitter, sans en retenir l'état.
+    /// </summary>
+    Quit,
 }
 
 /// <summary>Touches de modification, combinables.</summary>

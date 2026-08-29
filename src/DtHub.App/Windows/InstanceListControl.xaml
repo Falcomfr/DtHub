@@ -78,7 +78,7 @@
                                                     RelativeSource={RelativeSource AncestorType=UserControl},
                                                     Converter={StaticResource BoolToVisibility}}" />
 
-                      <CheckBox Grid.Column="0" IsChecked="{Binding IsEnabled}" Margin="0,0,10,0"
+                      <CheckBox Grid.Column="0" IsChecked="{Binding IsEnabled}" AllowDrop="False" Margin="0,0,10,0"
                                 VerticalAlignment="Center"
                                 ToolTip="Ouvrir cette instance au démarrage de l'application"
                                 Visibility="{Binding ShowSelection,
@@ -86,7 +86,7 @@
                                                      Converter={StaticResource BoolToVisibility}}" />
 
                       <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                        <TextBox Text="{Binding Name, UpdateSourceTrigger=LostFocus}"
+                        <TextBox Text="{Binding Name, UpdateSourceTrigger=LostFocus}" AllowDrop="False"
                                  ToolTip="Ce texte devient le titre de la fenêtre du jeu"
                                  Padding="6,4" />
                         <TextBlock Text="{Binding UserLabel}" Style="{StaticResource Muted}"
@@ -111,21 +111,21 @@
                                     Margin="10,0,0,0"
                                     Visibility="{Binding IsWorking,
                                                          Converter={StaticResource InverseBoolToVisibility}}">
-                        <Button Content="Lancer" Style="{StaticResource QuietButton}"
+                        <Button Content="Lancer" Style="{StaticResource QuietButton}" AllowDrop="False"
                                 ToolTip="Ouvrir cette instance maintenant"
                                 Visibility="{Binding IsRunning, Converter={StaticResource InverseBoolToVisibility}}"
                                 Command="{Binding DataContext.LaunchInstanceCommand,
                                                   RelativeSource={RelativeSource AncestorType=UserControl}}"
                                 CommandParameter="{Binding}" />
 
-                        <Button Content="Relancer" Style="{StaticResource QuietButton}"
+                        <Button Content="Relancer" Style="{StaticResource QuietButton}" AllowDrop="False"
                                 ToolTip="Fermer le jeu sur l'appareil, puis le rouvrir"
                                 Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"
                                 Command="{Binding DataContext.RestartCommand,
                                                   RelativeSource={RelativeSource AncestorType=UserControl}}"
                                 CommandParameter="{Binding}" />
 
-                        <Button Content="Fermer" Style="{StaticResource QuietButton}"
+                        <Button Content="Fermer" Style="{StaticResource QuietButton}" AllowDrop="False"
                                 ToolTip="Fermer cette fenêtre de jeu"
                                 Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"
                                 Command="{Binding DataContext.StopCommand,

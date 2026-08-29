@@ -93,7 +93,7 @@ public sealed record HotkeyBinding
         HotkeyAction.Size3 => "Taille 3",
         HotkeyAction.Size4 => "Taille 4",
         HotkeyAction.Fullscreen => "Plein écran",
-        HotkeyAction.CloseAll => "Tout fermer",
+        HotkeyAction.Quit => "Quitter",
         _ => action.ToString(),
     };
 }

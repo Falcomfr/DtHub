@@ -26,6 +26,13 @@ public partial class App : Application
     private IHost? _host;
     private ConfiguratorWindow? _configurator;
 
+    /// <summary>
+    /// Surveille la forme des fenêtres de jeu. Un intervalle court, mais la
+    /// correction n'a lieu qu'une fois la taille stable : on ne lutte pas
+    /// contre un redimensionnement en cours.
+    /// </summary>
+    private readonly DispatcherTimer _shape = new() { Interval = TimeSpan.FromMilliseconds(500) };
+
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -88,8 +95,12 @@ public partial class App : Application
         _configurator = services.GetRequiredService<ConfiguratorWindow>();
         launcher.OwnsWindow = handle => _configurator is not null && handle == _configurator.Handle;
         launcher.ConfiguratorToggleRequested += (_, _) => Dispatcher.Invoke(ToggleConfigurator);
+        launcher.QuitRequested += (_, _) => Dispatcher.Invoke(async () => await RequestQuitAsync().ConfigureAwait(true));
 
         var report = await launcher.LaunchEnabledAsync().ConfigureAwait(true);
+
+        _shape.Tick += (_, _) => launcher.SnapToAspect();
+        _shape.Start();
 
         var document = await settings.GetAsync().ConfigureAwait(true);
 

@@ -235,4 +235,20 @@ public class ScrcpyCommandBuilderTests
         Assert.Equal(["--serial=USB0001", "--list-apps"], arguments);
         Assert.DoesNotContain("--new-display", Line(arguments), StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void Le_titre_rappelle_le_raccourci_de_changement_de_compte()
+    {
+        // Les fenêtres se superposent et se ressemblent : le rappel se lit
+        // au-dessus de l'image, sans rien ouvrir.
+        Assert.Equal(
+            $"{ProductInfo.Name} XSpace  (Ctrl + Tab : compte suivant)",
+            ScrcpyCommandBuilder.BuildWindowTitle("XSpace", "Ctrl + Tab : compte suivant"));
+    }
+
+    [Fact]
+    public void Sans_raccourci_le_titre_reste_le_nom_seul()
+    {
+        Assert.Equal($"{ProductInfo.Name} XSpace", ScrcpyCommandBuilder.BuildWindowTitle("XSpace", "   "));
+    }
 }

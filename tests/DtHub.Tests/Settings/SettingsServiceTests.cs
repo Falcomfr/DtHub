@@ -478,4 +478,26 @@ public sealed class SettingsServiceTests : IDisposable
 
         Assert.False((await _service.GetAsync(CancellationToken.None)).ConfiguratorVisible);
     }
+
+    [Fact]
+    public async Task Un_ancien_nom_d_action_garde_sa_combinaison()
+    {
+        // « Tout fermer » est devenu « Quitter ». Un fichier écrit avant le
+        // renommage ne doit pas perdre le raccourci choisi.
+        Directory.CreateDirectory(_directory);
+
+        await File.WriteAllTextAsync(
+            _store.FilePath,
+            """
+            { "schemaVersion": 4,
+              "hotkeys": [ { "action": "CloseAll", "virtualKey": 75, "modifiers": "Control" } ] }
+            """,
+            CancellationToken.None);
+
+        _service.Invalidate();
+
+        var hotkeys = await _service.GetHotkeysAsync(CancellationToken.None);
+
+        Assert.Equal("Ctrl + K", hotkeys.For(HotkeyAction.Quit)!.DisplayText);
+    }
 }

@@ -14,10 +14,14 @@ public static class ScrcpyCommandBuilder
     /// l'utilisateur. Aucun identifiant technique n'y figure, la fenêtre étant
     /// retrouvée par son processus.
     /// </summary>
-    public static string BuildWindowTitle(string? name) =>
-        string.IsNullOrWhiteSpace(name)
+    public static string BuildWindowTitle(string? name, string? hint = null)
+    {
+        var title = string.IsNullOrWhiteSpace(name)
             ? DtHub.Core.ProductInfo.Name
             : $"{DtHub.Core.ProductInfo.Name} {name.Trim()}";
+
+        return string.IsNullOrWhiteSpace(hint) ? title : $"{title}  ({hint.Trim()})";
+    }
 
     /// <summary>Arguments de lancement d'une session de mirroring.</summary>
     /// <param name="serial">Numéro de série ADB de l'appareil visé.</param>

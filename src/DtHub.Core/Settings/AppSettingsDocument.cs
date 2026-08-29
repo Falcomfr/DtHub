@@ -203,8 +203,16 @@ public sealed class StoredHotkey
     /// plus. Un fichier écrit par une autre version ne doit pas faire échouer
     /// la lecture.
     /// </summary>
-    public HotkeyBinding? ToBinding() =>
-        Enum.TryParse<HotkeyAction>(Action, ignoreCase: true, out var action)
+    public HotkeyBinding? ToBinding()
+    {
+        // « CloseAll » est l'ancien nom de « Quit ». Sans cette équivalence, la
+        // combinaison choisie par l'utilisateur serait perdue au renommage.
+        var name = string.Equals(Action, "CloseAll", StringComparison.OrdinalIgnoreCase)
+            ? nameof(HotkeyAction.Quit)
+            : Action;
+
+        return Enum.TryParse<HotkeyAction>(name, ignoreCase: true, out var action)
             ? new HotkeyBinding { Action = action, VirtualKey = VirtualKey, Modifiers = Modifiers }
             : null;
+    }
 }

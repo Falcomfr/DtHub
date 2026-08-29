@@ -86,8 +86,12 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [ObservableProperty]
     private string _rearrangeShortcutText = string.Empty;
 
+    /// <summary>Raccourci de sortie, affiché sous le bouton Quitter.</summary>
+    [ObservableProperty]
+    private string _quitShortcutText = string.Empty;
+
     public string Disclaimer =>
-        "Projet indépendant, sans lien avec Ankama, Genymobile, Google ni les fabricants d'appareils.";
+        "Projet indépendant, sans lien avec Ankama.";
 
     /// <summary>Charge l'état des réglages dans la fenêtre.</summary>
     public async Task LoadAsync(CancellationToken cancellationToken = default)
@@ -143,6 +147,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         // Les actions de la barre du bas rappellent leur raccourci, et le
         // suivent quand il est modifié dans l'éditeur.
         RearrangeShortcutText = hotkeys.For(HotkeyAction.Rearrange)?.DisplayText ?? string.Empty;
+        QuitShortcutText = hotkeys.For(HotkeyAction.Quit)?.DisplayText ?? string.Empty;
     }
 
     /// <summary>Rafraîchit ce qui change tout seul : appareils et états.</summary>

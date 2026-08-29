@@ -63,18 +63,26 @@ public sealed record ScrcpyOptions
     /// <summary>
     /// Redimensionner l'afficheur virtuel en continu pour suivre la fenêtre.
     ///
-    /// C'est la seule façon d'avoir une image qui remplit la fenêtre quel que
-    /// soit le rapport de celle-ci, y compris quand l'utilisateur l'étire à la
-    /// souris : l'afficheur prend la taille de la zone client, donc il n'y a
-    /// jamais de bande noire. Sans ce mode, l'afficheur garde une définition
-    /// fixe et toute fenêtre d'un autre rapport laisse des bandes.
+    /// Désactivé, et ce n'est pas un détail de réglage. Dans ce mode
+    /// l'afficheur épouse bien la fenêtre, mais le jeu ne se remet pas
+    /// toujours en page quand son afficheur change de forme sous lui : il
+    /// reste alors cantonné à un rapport d'environ 2,49 et laisse le reste en
+    /// noir. Mesuré sur un Xiaomi 13T : passer de 1512x776 à 1176x944 laisse
+    /// une bande noire de 472 pixels, qui ne disparaît pas d'elle-même.
     ///
-    /// Mesuré sur un Xiaomi 13T : deux sessions simultanées en 2040x1144
-    /// démarrent sans que l'encodeur bronche, et après redimensionnement d'une
-    /// fenêtre à 900x900 l'afficheur suit à 872x840. L'encodeur n'est donc pas
-    /// le facteur limitant que l'on avait supposé.
+    /// Sans ce mode, scrcpy verrouille le rapport de la fenêtre, comme
+    /// l'atteste son option --no-window-aspect-ratio-lock, active par défaut
+    /// hors mode flexible. La fenêtre ne peut donc plus prendre une forme que
+    /// le jeu refuse, et l'image remplit toujours la zone client.
     /// </summary>
-    public bool FlexDisplay { get; init; } = true;
+    public bool FlexDisplay { get; init; }
+
+    /// <summary>
+    /// Rappel ajouté au titre de chaque fenêtre de jeu, entre parenthèses.
+    /// Les fenêtres se ressemblent et se superposent : le joueur doit pouvoir
+    /// lire au-dessus de l'image comment passer à la suivante.
+    /// </summary>
+    public string? WindowTitleHint { get; init; }
 
     public ScrcpyKeyboardMode KeyboardMode { get; init; } = ScrcpyKeyboardMode.Sdk;
 

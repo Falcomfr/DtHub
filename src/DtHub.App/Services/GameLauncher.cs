@@ -102,6 +102,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
     public event EventHandler? ConfiguratorToggleRequested;
 
     /// <summary>
+    /// Demandé par le raccourci de sortie. L'arrêt lui-même appartient à
+    /// l'application, qui doit d'abord retenir l'état de la session.
+    /// </summary>
+    public event EventHandler? QuitRequested;
+
+    /// <summary>
     /// Balaye les téléphones et rend les instances connues, à jour. Les
     /// instances dont le téléphone est absent restent listées, hors ligne.
     /// </summary>
@@ -245,6 +251,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         await ApplyWindowSettingsAsync(cancellationToken).ConfigureAwait(false);
 
         var options = await _settings.GetScrcpyOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+        options = options with
+        {
+            WindowTitleHint = await BuildTitleHintAsync(cancellationToken).ConfigureAwait(false),
+        };
         var serials = await ResolveSerialsAsync(cancellationToken).ConfigureAwait(false);
 
         // La position est donnée à scrcpy dès le lancement. Le faire après
@@ -401,6 +412,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
             cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Ramène les fenêtres au rapport de leur afficheur, une fois leur taille
+    /// stabilisée. Appelée régulièrement : c'est ce qui garantit qu'aucune
+    /// bande n'apparaît, quel que soit le chemin par lequel la fenêtre a été
+    /// redimensionnée.
+    /// </summary>
+    public int SnapToAspect() => _windows.SnapToAspect(_sessions.ActiveSessions);
+
     /// <summary>Remet toutes les fenêtres en place, à la taille en cours.</summary>
     public async Task<int> ArrangeAsync(CancellationToken cancellationToken = default)
     {
@@ -544,6 +563,18 @@ public sealed partial class GameLauncher : IAsyncDisposable
             ranks.TryGetValue(session.Target.Key, out var rank) ? rank : int.MaxValue;
     }
 
+    /// <summary>
+    /// Rappel du raccourci de changement de compte, tel qu'il est configuré au
+    /// moment du lancement. Vide si l'utilisateur l'a retiré.
+    /// </summary>
+    private async Task<string?> BuildTitleHintAsync(CancellationToken cancellationToken)
+    {
+        var hotkeys = await _settings.GetHotkeysAsync(cancellationToken).ConfigureAwait(false);
+        var next = hotkeys.For(HotkeyAction.NextInstance);
+
+        return next is { IsAssigned: true } ? $"{next.DisplayText} : compte suivant" : null;
+    }
+
     private static LaunchTarget ToTarget(DofusInstance instance, string serial) => new()
     {
         DeviceId = instance.DeviceId,
@@ -668,8 +699,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     await ApplySizeAsync(_windows.Presets.FullscreenIndex).ConfigureAwait(false);
                     break;
 
-                case HotkeyAction.CloseAll:
-                    await CloseAllAsync().ConfigureAwait(false);
+                case HotkeyAction.Quit:
+                    QuitRequested?.Invoke(this, EventArgs.Empty);
                     break;
 
                 default:
