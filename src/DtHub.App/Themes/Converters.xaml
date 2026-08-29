@@ -21,4 +21,6 @@
 
   <conv:AllTrueToVisibilityConverter x:Key="AllTrue" />
 
+  <conv:BoolToOpacityConverter x:Key="BoolToOpacity" />
+
 </ResourceDictionary>

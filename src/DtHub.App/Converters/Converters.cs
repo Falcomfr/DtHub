@@ -179,3 +179,17 @@ public sealed class AllTrueToVisibilityConverter : IMultiValueConverter
         throw new NotSupportedException();
 }
 
+/// <summary>
+/// Rend un élément visible sans jamais changer la mise en page. Un repère qui
+/// apparaît et disparaît déplacerait ce qui l'entoure, donc le milieu de
+/// l'élément survolé, donc le repère lui-même.
+/// </summary>
+public sealed class BoolToOpacityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
+        value is true ? 1.0 : 0.0;
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+

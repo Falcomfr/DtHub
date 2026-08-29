@@ -133,13 +133,21 @@ public partial class InstanceListControl : UserControl
 
         e.Effects = DragDropEffects.Move;
 
-        // Le repère suit le curseur même au-dessus de l'élément déplacé.
-        // S'abstenir dans ce cas laissait le trait figé à sa dernière place,
-        // souvent au mauvais endroit après un aller-retour.
-        if (Hovered(sender, e) is { } onto && ViewModel is { } model)
+        if (Hovered(sender, e) is not { } onto || ViewModel is not { } model)
         {
-            model.ShowDropHint(onto, IsUpperHalf(sender, e));
+            return;
         }
+
+        // Au-dessus de l'élément déplacé lui-même, aucun repère : le poser là
+        // n'aurait pas de sens, et l'omettre laisserait le précédent figé au
+        // mauvais endroit après un aller-retour.
+        if (ReferenceEquals(onto, Dragged(e)))
+        {
+            model.ClearDropHints();
+            return;
+        }
+
+        model.ShowDropHint(onto, IsUpperHalf(sender, e));
     }
 
     /// <summary>
@@ -168,6 +176,7 @@ public partial class InstanceListControl : UserControl
         e.Handled = true;
 
         var above = IsUpperHalf(sender, e);
+
 
         if (Resolve(sender, e) is not { } move || ViewModel is not { } model)
         {
