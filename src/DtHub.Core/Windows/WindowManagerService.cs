@@ -164,6 +164,7 @@ public sealed class WindowManagerService
         }
 
         var resized = 0;
+        List<ScrcpySession> outgrown = [];
 
         foreach (var session in sessions.Where(s => s.IsAlive))
         {
@@ -182,13 +183,24 @@ public sealed class WindowManagerService
             }
 
             var monitor = WindowLayoutCalculator.ChooseMonitor(monitors, current.CenterX, current.CenterY);
+            var chrome = MeasureChrome(handle);
+
+            var width = Math.Max(120, (int)Math.Round(current.Width * factor));
+            var wanted = Math.Max(80, (int)Math.Round(current.Height * factor));
+            var allowed = AllowedHeight(session, chrome);
+
+            // La fenêtre ne montre jamais l'état trop grand : elle s'arrête à
+            // ce que le jeu sait dessiner, et c'est la réouverture qui lui
+            // donnera la taille demandée. Grandir puis rétrécir sous les yeux
+            // de l'utilisateur n'apprend rien et se voit.
+            if (wanted > allowed)
+            {
+                outgrown.Add(session);
+                wanted = allowed;
+            }
 
             var target = WindowLayoutCalculator.ClampInto(
-                current with
-                {
-                    Width = Math.Max(120, (int)Math.Round(current.Width * factor)),
-                    Height = Math.Max(80, (int)Math.Round(current.Height * factor)),
-                },
+                current with { Width = width, Height = wanted },
                 UsableArea(monitor));
 
             if (target == current)
@@ -197,10 +209,68 @@ public sealed class WindowManagerService
             }
 
             _controller.MoveWindow(handle, target);
+            _lastSeen[session.Id] = target;
             resized++;
         }
 
+        LastOutgrown = outgrown;
+
         return resized;
+    }
+
+    /// <summary>
+    /// Sessions dont la dernière mise à l'échelle a été retenue, faute de
+    /// pouvoir grandir davantage. Seule une réouverture leur donnera la taille
+    /// demandée.
+    /// </summary>
+    public IReadOnlyList<ScrcpySession> LastOutgrown { get; private set; } = [];
+
+    /// <summary>
+    /// Hauteur de fenêtre que le jeu saura remplir.
+    ///
+    /// Une seule limite, et elle ne vaut que pour le redimensionnement à
+    /// chaud : le jeu ne se remet pas en page au-delà de la hauteur qu'il
+    /// avait à sa naissance. À la naissance, toutes les formes conviennent, y
+    /// compris presque carrées. Mesuré sur un Xiaomi 13T : un afficheur créé
+    /// en 1176x944 puis en 944x896 est rempli sans la moindre bande. Il n'y a
+    /// donc aucune forme à interdire, seulement des tailles à obtenir en
+    /// rouvrant la fenêtre.
+    /// </summary>
+    private static int AllowedHeight(ScrcpySession session, (int Width, int Height) chrome) =>
+        session.MaxClientHeight > 0 ? session.MaxClientHeight + chrome.Height : int.MaxValue;
+
+    /// <summary>
+    /// Sessions dont la fenêtre a été étirée plus haut que ce que le jeu sait
+    /// dessiner, une fois la taille stabilisée. Rien n'est corrigé ici :
+    /// réduire la fenêtre sous les yeux de l'utilisateur reviendrait à refuser
+    /// son geste. Les rouvrir à cette taille est la seule façon de la leur
+    /// donner.
+    /// </summary>
+    public IReadOnlyList<ScrcpySession> Overgrown(IReadOnlyList<ScrcpySession> sessions)
+    {
+        ArgumentNullException.ThrowIfNull(sessions);
+
+        List<ScrcpySession> overgrown = [];
+
+        foreach (var session in sessions.Where(s => s.IsAlive && s.WindowHandle != 0 && s.MaxClientHeight > 0))
+        {
+            if (_controller.GetWindowRect(session.WindowHandle) is not { } outer || outer.IsEmpty)
+            {
+                continue;
+            }
+
+            var settled = _lastSeen.TryGetValue(session.Id, out var previous) && previous == outer;
+            _lastSeen[session.Id] = outer;
+
+            // Quelques pixels de tolérance : l'arrondi ne doit pas provoquer
+            // une réouverture pour rien.
+            if (settled && outer.Height > AllowedHeight(session, MeasureChrome(session.WindowHandle)) + 4)
+            {
+                overgrown.Add(session);
+            }
+        }
+
+        return overgrown;
     }
 
     /// <summary>
@@ -487,114 +557,6 @@ public sealed class WindowManagerService
         }
 
         return renamed;
-    }
-
-    /// <summary>
-    /// Sessions dont la fenêtre voudrait être plus haute que ce que le jeu
-    /// sait dessiner. Seule une réouverture peut leur donner cette hauteur :
-    /// le jeu fixe la sienne à sa naissance.
-    /// </summary>
-    public IReadOnlyList<ScrcpySession> Outgrown(IReadOnlyList<ScrcpySession> sessions)
-    {
-        ArgumentNullException.ThrowIfNull(sessions);
-
-        if (IsFullscreen)
-        {
-            return [];
-        }
-
-        List<ScrcpySession> outgrown = [];
-
-        foreach (var session in sessions.Where(s => s.IsAlive && s.WindowHandle != 0 && s.MaxClientHeight > 0))
-        {
-            if (_controller.GetWindowRect(session.WindowHandle) is not { } outer || outer.IsEmpty)
-            {
-                continue;
-            }
-
-            var chrome = MeasureChrome(session.WindowHandle);
-
-            // Quelques pixels de tolérance : l'arrondi ne doit pas déclencher
-            // une réouverture pour rien.
-            if (outer.Height - chrome.Height > session.MaxClientHeight + 4)
-            {
-                outgrown.Add(session);
-            }
-        }
-
-        return outgrown;
-    }
-
-    /// <summary>
-    /// Rapport minimal de la zone client. En dessous, le jeu cesse de se
-    /// remettre en page et laisse une bande noire en bas.
-    ///
-    /// Mesuré sur un Xiaomi 13T, à largeur constante : propre jusqu'à 1,25 ;
-    /// dix pixels de bande à 1,196 ; soixante-quinze à 1,142. La valeur retenue
-    /// garde une marge. Vers le large il n'y a pas de limite : le jeu suit
-    /// jusqu'à 2,82 au moins, et une fenêtre large montre davantage de jeu.
-    /// </summary>
-    public double MinimumClientAspect { get; set; } = 1.25;
-
-    /// <summary>
-    /// Réduit la hauteur des fenêtres que le jeu ne saurait pas remplir.
-    ///
-    /// Deux limites, toutes deux sur la hauteur seule : le rapport minimal, et
-    /// la hauteur à laquelle l'afficheur est né, que le jeu ne dépasse jamais.
-    /// Élargir reste libre dans les deux cas. La correction attend que la
-    /// taille se stabilise, pour ne pas lutter contre le geste en cours.
-    /// </summary>
-    /// <returns>Nombre de fenêtres corrigées.</returns>
-    public int EnforceMinimumAspect(IReadOnlyList<ScrcpySession> sessions)
-    {
-        ArgumentNullException.ThrowIfNull(sessions);
-
-        if (IsFullscreen || MinimumClientAspect <= 0)
-        {
-            return 0;
-        }
-
-        var corrected = 0;
-
-        foreach (var session in sessions.Where(s => s.IsAlive && s.WindowHandle != 0))
-        {
-            if (_controller.GetWindowRect(session.WindowHandle) is not { } outer || outer.IsEmpty)
-            {
-                continue;
-            }
-
-            var settled = _lastSeen.TryGetValue(session.Id, out var previous) && previous == outer;
-            _lastSeen[session.Id] = outer;
-
-            if (!settled)
-            {
-                continue;
-            }
-
-            var chrome = MeasureChrome(session.WindowHandle);
-            var clientWidth = Math.Max(1, outer.Width - chrome.Width);
-            var clientHeight = Math.Max(1, outer.Height - chrome.Height);
-
-            var allowed = (int)Math.Round(clientWidth / MinimumClientAspect);
-
-            if (session.MaxClientHeight > 0)
-            {
-                allowed = Math.Min(allowed, session.MaxClientHeight);
-            }
-
-            if (clientHeight <= allowed)
-            {
-                continue;
-            }
-
-            var target = outer with { Height = allowed + chrome.Height };
-
-            _controller.MoveWindow(session.WindowHandle, target);
-            _lastSeen[session.Id] = target;
-            corrected++;
-        }
-
-        return corrected;
     }
 
 

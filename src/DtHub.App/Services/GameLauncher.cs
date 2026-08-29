@@ -454,10 +454,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Empêche les fenêtres de devenir trop hautes pour leur largeur, une fois
-    /// leur taille stabilisée. C'est la seule forme que le jeu refuse.
+    /// Rouvre les fenêtres étirées plus haut que ce que le jeu sait dessiner.
+    /// Appelée régulièrement, elle n'agit qu'une fois la taille stabilisée.
     /// </summary>
-    public int EnforceMinimumAspect() => _windows.EnforceMinimumAspect(_sessions.ActiveSessions);
+    public Task ReopenOvergrownAsync(CancellationToken cancellationToken = default) =>
+        ReopenAsync(_windows.Overgrown(_sessions.ActiveSessions), cancellationToken);
 
     /// <summary>Remet toutes les fenêtres en place, à la taille en cours.</summary>
     public async Task<int> ArrangeAsync(CancellationToken cancellationToken = default)
@@ -495,8 +496,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
         {
             await _settings.SaveCustomSizePercentAsync(percent, cancellationToken).ConfigureAwait(false);
 
-            // La géométrie est retenue avant la réouverture : c'est elle qui
-            // donnera sa taille au nouvel afficheur.
             await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
             await ReopenOutgrownAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -512,18 +511,32 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// lui donner cette hauteur est de le rouvrir dessus. Cela n'arrive que
     /// sur une demande explicite d'agrandissement, jamais pendant un geste.
     /// </summary>
-    private async Task ReopenOutgrownAsync(CancellationToken cancellationToken)
-    {
-        var outgrown = _windows.Outgrown(_sessions.ActiveSessions);
+    private Task ReopenOutgrownAsync(CancellationToken cancellationToken) =>
+        ReopenAsync(_windows.LastOutgrown, cancellationToken);
 
-        if (outgrown.Count == 0)
+    /// <summary>
+    /// Rouvre des fenêtres à la taille voulue.
+    ///
+    /// Le jeu ne se remet pas en page au-delà de la hauteur qu'il avait à son
+    /// ouverture, mais il accepte n'importe quelle taille à la naissance : la
+    /// rouvrir est donc la seule façon de l'agrandir, et elle suffit toujours.
+    /// La géométrie est retenue avant, car c'est elle qui donnera sa taille au
+    /// nouvel afficheur.
+    /// </summary>
+    private async Task ReopenAsync(
+        IReadOnlyList<ScrcpySession> sessions,
+        CancellationToken cancellationToken)
+    {
+        if (sessions.Count == 0)
         {
             return;
         }
 
+        await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+
         var instances = await RefreshInstancesAsync(cancellationToken).ConfigureAwait(false);
 
-        foreach (var session in outgrown)
+        foreach (var session in sessions)
         {
             var instance = instances.FirstOrDefault(
                 i => string.Equals(i.Key, session.Target.Key, StringComparison.Ordinal));

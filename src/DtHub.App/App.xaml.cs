@@ -125,7 +125,7 @@ public partial class App : Application, IDisposable
 
         var report = await launcher.LaunchEnabledAsync().ConfigureAwait(true);
 
-        _shape.Tick += (_, _) => launcher.EnforceMinimumAspect();
+        _shape.Tick += async (_, _) => await launcher.ReopenOvergrownAsync().ConfigureAwait(true);
         _shape.Start();
 
         var document = await settings.GetAsync().ConfigureAwait(true);

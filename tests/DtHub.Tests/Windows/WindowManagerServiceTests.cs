@@ -603,79 +603,66 @@ public class WindowManagerServiceTests
     }
 
     [Fact]
-    public async Task Une_fenetre_trop_haute_pour_sa_largeur_est_ramenee_au_rapport_minimal()
+    public async Task Une_fenetre_etiree_trop_haut_est_signalee_pour_reouverture()
     {
-        // En dessous de ce rapport, le jeu cesse de se remettre en page et
-        // laisse une bande noire. C'est la seule forme interdite.
+        // Le jeu ne se remet pas en page au-delà de sa hauteur de naissance.
+        // Rien n'est corrigé : réduire la fenêtre reviendrait à refuser le
+        // geste. C'est une réouverture qui donnera cette taille.
         var (manager, sessions, desktop) = await OpenSessionsAsync(1);
         await using var _ = manager;
 
         var service = new WindowManagerService(desktop, NoDelay);
         await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
 
-        // Assez large pour que seul le rapport contraigne, et non le plafond
-        // de hauteur posé au premier placement.
-        var width = (int)Math.Ceiling(sessions[0].MaxClientHeight * service.MinimumClientAspect) + 200;
-
-        desktop.MoveWindow(sessions[0].WindowHandle, new ScreenRect(0, 0, width, width));
-
-        // Le premier passage constate, le second corrige : on ne lutte pas
-        // contre un geste en cours.
-        service.EnforceMinimumAspect(sessions);
-        var corrected = service.EnforceMinimumAspect(sessions);
-
-        var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
-
-        Assert.Equal(1, corrected);
-        Assert.Equal(width, rect.Width);
-        Assert.Equal(sessions[0].MaxClientHeight, rect.Height);
-    }
-
-    [Fact]
-    public async Task Une_fenetre_large_n_est_jamais_contrainte()
-    {
-        // Élargir reste libre : le jeu suit, et montre davantage.
-        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
-        await using var _ = manager;
-
-        var service = new WindowManagerService(desktop, NoDelay);
-        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
-
-        var height = sessions[0].MaxClientHeight;
-
-        desktop.MoveWindow(sessions[0].WindowHandle, new ScreenRect(0, 0, 2600, height));
-
-        service.EnforceMinimumAspect(sessions);
-        service.EnforceMinimumAspect(sessions);
-
-        Assert.Equal(
-            new ScreenRect(0, 0, 2600, height),
-            desktop.GetWindowRect(sessions[0].WindowHandle));
-    }
-
-    [Fact]
-    public async Task Une_fenetre_ne_depasse_pas_la_hauteur_de_naissance_de_son_afficheur()
-    {
-        // Le jeu ne se remet pas en page au-delà : agrandir davantage
-        // laisserait une bande noire de la hauteur ajoutée.
-        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
-        await using var _ = manager;
-
-        var service = new WindowManagerService(desktop, NoDelay);
-        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
-
-        // Le plafond est la hauteur de zone client du premier placement.
         var ceiling = sessions[0].MaxClientHeight;
+        var stretched = new ScreenRect(0, 0, 2400, ceiling + 300);
 
-        desktop.MoveWindow(sessions[0].WindowHandle, new ScreenRect(0, 0, 2400, ceiling + 300));
+        desktop.MoveWindow(sessions[0].WindowHandle, stretched);
 
-        service.EnforceMinimumAspect(sessions);
-        var corrected = service.EnforceMinimumAspect(sessions);
+        // Le premier passage constate, le second confirme la stabilité.
+        service.Overgrown(sessions);
+        var overgrown = service.Overgrown(sessions);
 
-        var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+        Assert.Single(overgrown);
+        Assert.Equal(stretched, desktop.GetWindowRect(sessions[0].WindowHandle));
+    }
 
-        Assert.Equal(1, corrected);
-        Assert.Equal(2400, rect.Width);
-        Assert.Equal(ceiling, rect.Height);
+    [Fact]
+    public async Task Une_fenetre_elargie_seule_ne_demande_aucune_reouverture()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
+
+        desktop.MoveWindow(
+            sessions[0].WindowHandle, new ScreenRect(0, 0, 2600, sessions[0].MaxClientHeight));
+
+        service.Overgrown(sessions);
+
+        Assert.Empty(service.Overgrown(sessions));
+    }
+
+    [Fact]
+    public async Task Une_mise_a_l_echelle_qui_depasse_le_plafond_ne_grandit_pas_la_fenetre()
+    {
+        // Grandir puis rétrécir sous les yeux de l'utilisateur se voit et
+        // n'apprend rien : la fenêtre s'arrête, et la session est signalée.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
+
+        var before = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+
+        await service.ScaleInPlaceAsync(sessions, 2.0, CancellationToken.None);
+
+        var after = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+
+        Assert.Single(service.LastOutgrown);
+        Assert.Equal(before.Height, after.Height);
+        Assert.True(after.Width > before.Width);
     }
 }
