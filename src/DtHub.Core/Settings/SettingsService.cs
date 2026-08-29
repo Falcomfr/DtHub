@@ -12,6 +12,9 @@ namespace DtHub.Core.Settings;
 /// </summary>
 public sealed class SettingsService : IDisposable
 {
+    /// <summary>Tailles livrées jusqu'au schéma 3. La première était trop grande.</summary>
+    private static readonly int[] LegacySizePercentages = [55, 70, 85, 100];
+
     private readonly IDocumentStore<AppSettingsDocument> _store;
     private readonly SemaphoreSlim _gate = new(1, 1);
 
@@ -32,22 +35,36 @@ public sealed class SettingsService : IDisposable
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            if (_current is null)
-            {
-                _current = await _store.LoadAsync(cancellationToken).ConfigureAwait(false);
-
-                if (Migrate(_current))
-                {
-                    await _store.SaveAsync(_current, cancellationToken).ConfigureAwait(false);
-                }
-            }
-
-            return _current;
+            return await LoadOrMigrateAsync(cancellationToken).ConfigureAwait(false);
         }
         finally
         {
             _gate.Release();
         }
+    }
+
+    /// <summary>
+    /// Charge le document en le migrant si besoin. À appeler sous verrou.
+    ///
+    /// C'est le seul chemin de chargement : une écriture qui contournerait la
+    /// migration estamperait le fichier à la version courante sans l'avoir
+    /// converti, et la migration serait alors perdue pour toujours.
+    /// </summary>
+    private async Task<AppSettingsDocument> LoadOrMigrateAsync(CancellationToken cancellationToken)
+    {
+        if (_current is not null)
+        {
+            return _current;
+        }
+
+        _current = await _store.LoadAsync(cancellationToken).ConfigureAwait(false);
+
+        if (Migrate(_current))
+        {
+            await _store.SaveAsync(_current, cancellationToken).ConfigureAwait(false);
+        }
+
+        return _current;
     }
 
     /// <summary>
@@ -59,6 +76,13 @@ public sealed class SettingsService : IDisposable
     /// paysage, et un écran vertical le réduisait à une bande au milieu de la
     /// fenêtre. Seule la définition d'origine est corrigée : un réglage
     /// choisi par l'utilisateur est respecté.
+    ///
+    /// Version 4 : la première taille rapetisse, l'ordre des appareils est
+    /// déduit de celui des instances, et les rangs sont resserrés. Ils étaient
+    /// creux, faute d'avoir jamais été renumérotés après un oubli d'appareil,
+    /// et deux instances pouvaient porter le même. Les cases cochées ne sont
+    /// pas touchées : elles restent l'ensemble de démarrage jusqu'à la
+    /// première sortie par le bouton Quitter, qui le réécrira.
     /// </remarks>
     private static bool Migrate(AppSettingsDocument settings)
     {
@@ -70,6 +94,17 @@ public sealed class SettingsService : IDisposable
             settings.VirtualDisplayWidth = 1920;
             settings.VirtualDisplayHeight = 1080;
             settings.VirtualDisplayDpi = 240;
+            changed = true;
+        }
+
+        if (settings.SchemaVersion < 4)
+        {
+            if (settings.SizePercentages.SequenceEqual(LegacySizePercentages))
+            {
+                settings.SizePercentages = [.. AppSettingsDocument.DefaultSizePercentages];
+            }
+
+            InstanceOrdering.Normalize(settings);
             changed = true;
         }
 
@@ -94,12 +129,12 @@ public sealed class SettingsService : IDisposable
 
         try
         {
-            _current ??= await _store.LoadAsync(cancellationToken).ConfigureAwait(false);
-            mutate(_current);
-            _current.SchemaVersion = AppSettingsDocument.CurrentSchemaVersion;
+            document = await LoadOrMigrateAsync(cancellationToken).ConfigureAwait(false);
+            mutate(document);
 
-            await _store.SaveAsync(_current, cancellationToken).ConfigureAwait(false);
-            document = _current;
+            // L'estampille est posée par la migration, et par elle seule : la
+            // poser ici marquerait à jour un document qui ne l'est pas.
+            await _store.SaveAsync(document, cancellationToken).ConfigureAwait(false);
         }
         finally
         {

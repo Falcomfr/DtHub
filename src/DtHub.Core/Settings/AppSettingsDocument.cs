@@ -10,7 +10,10 @@ namespace DtHub.Core.Settings;
 /// </summary>
 public sealed class AppSettingsDocument
 {
-    public const int CurrentSchemaVersion = 3;
+    public const int CurrentSchemaVersion = 4;
+
+    /// <summary>Tailles livrées d'origine, en pourcentage de la zone utilisable.</summary>
+    public static readonly int[] DefaultSizePercentages = [40, 60, 80, 100];
 
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 
@@ -32,13 +35,26 @@ public sealed class AppSettingsDocument
     /// Tailles proposées, en pourcentage de la zone utilisable de l'écran.
     /// Elles sont donc proportionnelles à l'écran employé.
     /// </summary>
-    public List<int> SizePercentages { get; set; } = [40, 60, 80, 100];
+    public List<int> SizePercentages { get; set; } = [.. DefaultSizePercentages];
 
     /// <summary>Taille retenue, par son indice. La dernière est le plein écran.</summary>
     public int SizeIndex { get; set; } = 1;
 
     /// <summary>Écran Windows utilisé, <c>null</c> pour l'écran principal.</summary>
     public string? PreferredMonitorDeviceName { get; set; }
+
+    /// <summary>
+    /// Ordre des appareils, par identifiant. Un appareil absent de cette liste
+    /// passe à la fin. Cet ordre commande l'affichage, l'ouverture et le
+    /// parcours au clavier.
+    /// </summary>
+    public List<string> DeviceOrder { get; set; } = [];
+
+    /// <summary>
+    /// Vrai si le configurateur était affiché à la sortie. Il retrouve cet
+    /// état au lancement suivant.
+    /// </summary>
+    public bool ConfiguratorVisible { get; set; } = true;
 
     // Mirroring
 
@@ -79,10 +95,72 @@ public sealed class StoredInstance
     /// <summary>Vrai si l'instance fait partie du lancement automatique.</summary>
     public bool IsEnabled { get; set; }
 
-    /// <summary>Rang d'affichage et d'ouverture.</summary>
+    /// <summary>
+    /// Rang global, dense, de 0 à n-1 : les appareils dans l'ordre de
+    /// <see cref="AppSettingsDocument.DeviceOrder"/>, et les instances dans
+    /// leur ordre à l'intérieur de chaque appareil. Trier là-dessus suffit
+    /// donc à obtenir l'ordre d'affichage, d'ouverture et de parcours au
+    /// clavier. C'est <see cref="InstanceOrdering.Normalize"/> qui maintient
+    /// cette propriété.
+    /// </summary>
     public int Order { get; set; }
 
+    /// <summary>
+    /// Où la fenêtre a été laissée. <c>null</c> tant qu'elle n'a jamais été
+    /// ouverte : le placement retombe alors sur l'ancrage et la taille.
+    /// </summary>
+    public StoredWindowRect? Window { get; set; }
+
     public string Key => $"{DeviceId}|{UserId}|{PackageName}";
+}
+
+/// <summary>
+/// Géométrie retenue d'une fenêtre de jeu. L'écran est mémorisé avec elle :
+/// un rectangle valable hier peut se retrouver hors de tout écran aujourd'hui,
+/// et il ne faut pas y rouvrir une fenêtre invisible.
+/// </summary>
+public sealed class StoredWindowRect
+{
+    public int X { get; set; }
+    public int Y { get; set; }
+    public int Width { get; set; }
+    public int Height { get; set; }
+
+    /// <summary>
+    /// Écran sur lequel la fenêtre se trouvait. Ce nom est positionnel :
+    /// débrancher un écran renumérote les suivants. Il ne suffit donc pas, et
+    /// les bornes sont mémorisées avec lui.
+    /// </summary>
+    public string? MonitorDeviceName { get; set; }
+
+    public int MonitorX { get; set; }
+    public int MonitorY { get; set; }
+    public int MonitorWidth { get; set; }
+    public int MonitorHeight { get; set; }
+
+    /// <summary>Rectangle extérieur de la fenêtre.</summary>
+    public Windows.ScreenRect Bounds => new(X, Y, Width, Height);
+
+    /// <summary>Bornes de l'écran au moment de la capture.</summary>
+    public Windows.ScreenRect Monitor => new(MonitorX, MonitorY, MonitorWidth, MonitorHeight);
+
+    public static StoredWindowRect From(Windows.ScreenRect rect, Windows.MonitorInfo monitor)
+    {
+        ArgumentNullException.ThrowIfNull(monitor);
+
+        return new StoredWindowRect
+        {
+            X = rect.X,
+            Y = rect.Y,
+            Width = rect.Width,
+            Height = rect.Height,
+            MonitorDeviceName = monitor.DeviceName,
+            MonitorX = monitor.Bounds.X,
+            MonitorY = monitor.Bounds.Y,
+            MonitorWidth = monitor.Bounds.Width,
+            MonitorHeight = monitor.Bounds.Height,
+        };
+    }
 }
 
 /// <summary>Forme persistée d'un raccourci.</summary>
