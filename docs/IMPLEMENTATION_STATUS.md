@@ -77,8 +77,11 @@ Dernière mise à jour : 2026-08-29
 
 | Élément | État |
 |---|---|
-| `LaunchProfile` / `LaunchTarget` | TODO |
-| `ProfileService` + persistance | TODO |
+| `LaunchProfile` / `LaunchTarget` | DONE |
+| `ProfileService` : créer, renommer, dupliquer, supprimer | DONE |
+| Ordre des sessions modifiable | DONE |
+| Profil par défaut et dernier utilisé | DONE |
+| Nettoyage des sessions d'un appareil oublié | DONE |
 
 ## Phase 8 - scrcpy
 
