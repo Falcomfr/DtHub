@@ -129,6 +129,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         try
         {
+            // Ménage d'abord : une connexion morte fausse la liste et peut
+            // masquer le téléphone réellement joignable.
+            await _devices.PruneStaleWirelessTransportsAsync(cancellationToken).ConfigureAwait(false);
+
             var live = await _devices.RefreshAsync(cancellationToken).ConfigureAwait(false);
 
             var addresses = live.Devices

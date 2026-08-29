@@ -233,6 +233,58 @@ public class DeviceDiscoveryServiceTests
     }
 
     [Fact]
+    public async Task Une_connexion_sans_fil_morte_est_coupee()
+    {
+        // Cas réel : le port du débogage sans fil change au redémarrage du
+        // téléphone, et l'ancienne connexion reste listée hors ligne.
+        var adb = new FakeAdbClient
+        {
+            DevicesOutput = """
+                List of devices attached
+                192.168.1.16:33055  device product:corot_global model:23078PND5G
+                192.168.1.16:33805  offline product:corot_global model:23078PND5G
+                """,
+        };
+
+        using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry());
+
+        Assert.Equal(1, await service.PruneStaleWirelessTransportsAsync(CancellationToken.None));
+        Assert.Equal(["192.168.1.16:33805"], adb.Disconnected);
+    }
+
+    [Fact]
+    public async Task Une_connexion_vivante_ou_usb_n_est_jamais_coupee()
+    {
+        var adb = new FakeAdbClient
+        {
+            DevicesOutput = """
+                List of devices attached
+                192.168.1.16:33055  device product:corot_global
+                USB0001             offline usb:1-2
+                """,
+        };
+
+        using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry());
+
+        Assert.Equal(0, await service.PruneStaleWirelessTransportsAsync(CancellationToken.None));
+        Assert.Empty(adb.Disconnected);
+    }
+
+    [Fact]
+    public async Task Un_adb_indisponible_ne_fait_pas_echouer_le_menage()
+    {
+        var adb = new FakeAdbClient
+        {
+            DevicesError = new AdbException(
+                AdbErrorKind.AdbUnavailable, AdbErrorInterpreter.Describe(AdbErrorKind.AdbUnavailable)),
+        };
+
+        using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry());
+
+        Assert.Equal(0, await service.PruneStaleWirelessTransportsAsync(CancellationToken.None));
+    }
+
+    [Fact]
     public async Task Le_registre_est_mis_a_jour_a_chaque_balayage()
     {
         var adb = new FakeAdbClient

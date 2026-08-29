@@ -60,49 +60,30 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
             Problem = discovery.Warnings.Count > 0 ? string.Join(" ", discovery.Warnings) : null;
 
-            var devicesById = discovery.Devices.ToDictionary(d => d.Id, StringComparer.Ordinal);
+            // Seuls les téléphones joignables sont montrés. Afficher un
+            // appareil absent avec ses instances grisées n'apprend rien et
+            // laisse croire à une panne.
+            var connected = discovery.Devices
+                .Where(d => d.IsConnected)
+                .ToDictionary(d => d.Id, StringComparer.Ordinal);
 
-            foreach (var group in instances.GroupBy(i => i.DeviceId, StringComparer.Ordinal))
+            foreach (var (id, device) in connected)
             {
-                var name = devicesById.TryGetValue(group.Key, out var device)
-                    ? device.DisplayName
-                    : group.First().DeviceName;
-
-                var view = Devices.FirstOrDefault(d => d.DeviceId == group.Key);
+                var view = Devices.FirstOrDefault(d => d.DeviceId == id);
                 if (view is null)
                 {
-                    view = new DeviceGroupViewModel(group.Key, name);
+                    view = new DeviceGroupViewModel(id, device.DisplayName);
                     Devices.Add(view);
                 }
 
-                if (device is not null)
-                {
-                    view.Update(device);
-                }
-                else
-                {
-                    view.MarkOffline();
-                }
+                view.Update(device);
 
-                SyncInstances(view, [.. group]);
+                SyncInstances(view, [.. instances.Where(i => i.DeviceId == id)]);
             }
 
-            // Un téléphone dont plus aucune instance n'est connue disparaît.
-            foreach (var stale in Devices
-                .Where(d => !instances.Any(i => i.DeviceId == d.DeviceId))
-                .ToList())
+            foreach (var stale in Devices.Where(d => !connected.ContainsKey(d.DeviceId)).ToList())
             {
                 Devices.Remove(stale);
-            }
-
-            // Un téléphone branché mais sans le jeu installé mérite d'être vu :
-            // sinon l'utilisateur ne comprend pas pourquoi rien n'apparaît.
-            foreach (var device in discovery.Devices.Where(
-                d => d.IsConnected && !Devices.Any(g => g.DeviceId == d.Id)))
-            {
-                var view = new DeviceGroupViewModel(device.Id, device.DisplayName);
-                view.Update(device);
-                Devices.Add(view);
             }
 
             OnPropertyChanged(nameof(HasNoConnectedDevice));

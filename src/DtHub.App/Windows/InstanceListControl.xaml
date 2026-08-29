@@ -79,6 +79,17 @@
       </ItemsControl.ItemTemplate>
     </ItemsControl>
 
+    <!-- Aucun téléphone joignable : les appareils absents ne sont pas
+         affichés, il faut donc dire pourquoi la liste est vide. -->
+    <Border Style="{StaticResource Card}"
+            Visibility="{Binding Devices.Count, Converter={StaticResource EmptyToVisibility}}">
+      <StackPanel>
+        <TextBlock Text="AUCUN TÉLÉPHONE DÉTECTÉ" Style="{StaticResource SectionLabel}" />
+        <TextBlock Style="{StaticResource Muted}"
+                   Text="Branchez un câble USB avec le débogage activé : le téléphone apparaîtra tout seul. Un téléphone déjà associé en Wi-Fi se reconnecte de lui-même dès qu'il est de nouveau sur le réseau." />
+      </StackPanel>
+    </Border>
+
     <TextBlock Text="{Binding Problem}" Style="{StaticResource Muted}"
                Foreground="{DynamicResource WarningBrush}" Margin="2,0,0,6"
                Visibility="{Binding Problem, Converter={StaticResource EmptyToVisibility},

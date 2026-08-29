@@ -30,6 +30,52 @@ public sealed class DeviceDiscoveryService : IDisposable
     /// <summary>Nombre de lectures de propriétés menées de front.</summary>
     public int MaxParallelism { get; init; } = 4;
 
+    /// <summary>
+    /// Coupe les connexions sans fil mortes. Le port du débogage sans fil
+    /// change à chaque redémarrage du téléphone, et l'ancienne connexion reste
+    /// indéfiniment listée comme hors ligne. Sans ce ménage, un même téléphone
+    /// finit par occuper plusieurs entrées dont une éteinte, et c'est parfois
+    /// elle qui s'affiche.
+    /// </summary>
+    /// <returns>Nombre de connexions coupées.</returns>
+    public async Task<int> PruneStaleWirelessTransportsAsync(CancellationToken cancellationToken = default)
+    {
+        IReadOnlyList<AdbDeviceEntry> entries;
+
+        try
+        {
+            entries = await _adb.ListDevicesAsync(detailed: true, cancellationToken).ConfigureAwait(false);
+        }
+        catch (AdbException)
+        {
+            return 0;
+        }
+
+        var stale = entries
+            .Where(e => e.ConnectionKind == AdbConnectionKind.Wireless
+                        && e.State == AdbDeviceState.Offline
+                        && e.Host is { Length: > 0 }
+                        && e.Port is > 0)
+            .ToList();
+
+        foreach (var entry in stale)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                await _adb.DisconnectAsync(entry.Serial, cancellationToken).ConfigureAwait(false);
+                InvalidatePropertyCache(entry.Serial);
+            }
+            catch (AdbException)
+            {
+                // La connexion a peut-être disparu d'elle-même.
+            }
+        }
+
+        return stale.Count;
+    }
+
     /// <summary>Balaye les appareils et met le registre à jour.</summary>
     public async Task<DeviceDiscoveryResult> RefreshAsync(CancellationToken cancellationToken = default)
     {

@@ -166,8 +166,18 @@ public sealed class FakeAdbClient : IAdbClient
             : AdbConnectResult.Failure($"failed to connect to '{address}'"));
     }
 
-    public Task DisconnectAsync(string? address = null, CancellationToken cancellationToken = default) =>
-        Task.CompletedTask;
+    /// <summary>Adresses déconnectées, dans l'ordre.</summary>
+    public List<string> Disconnected { get; } = [];
+
+    public Task DisconnectAsync(string? address = null, CancellationToken cancellationToken = default)
+    {
+        if (address is { Length: > 0 })
+        {
+            Disconnected.Add(address);
+        }
+
+        return Task.CompletedTask;
+    }
 
     public Task<IReadOnlyList<MdnsService>> ListMdnsServicesAsync(CancellationToken cancellationToken = default)
     {

@@ -25,6 +25,8 @@ public partial class AddDeviceWindow : Window
         InitializeComponent();
         DataContext = viewModel;
 
+        _viewModel.DevicePaired += OnDevicePaired;
+
         Loaded += async (_, _) =>
         {
             await _viewModel.ScanAsync(CancellationToken.None).ConfigureAwait(true);
@@ -35,6 +37,25 @@ public partial class AddDeviceWindow : Window
     }
 
     private void OnClose(object sender, RoutedEventArgs e) => Close();
+
+    /// <summary>
+    /// L'association a réussi : la fenêtre n'a plus de raison d'être. Le court
+    /// délai laisse voir le message de confirmation avant qu'elle disparaisse.
+    /// </summary>
+    private void OnDevicePaired(object? sender, EventArgs e)
+    {
+        _poll.Stop();
+
+        var closing = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1200) };
+
+        closing.Tick += (_, _) =>
+        {
+            closing.Stop();
+            Close();
+        };
+
+        closing.Start();
+    }
 
     /// <summary>Ouvre l'aide, où la marche à suivre s'adapte à la marque.</summary>
     private void OnHelp(object sender, RoutedEventArgs e)
@@ -59,6 +80,8 @@ public partial class AddDeviceWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         _poll.Stop();
+        _viewModel.DevicePaired -= OnDevicePaired;
+
         base.OnClosed(e);
     }
 }
