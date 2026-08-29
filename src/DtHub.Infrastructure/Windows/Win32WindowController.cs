@@ -83,6 +83,16 @@ public sealed partial class Win32WindowController : IWindowController
         return ToRect(rect);
     }
 
+    public ScreenRect? GetClientRect(nint handle)
+    {
+        if (handle == 0 || !GetClientRectCore(handle, out var rect))
+        {
+            return null;
+        }
+
+        return ToRect(rect);
+    }
+
     public void MoveWindow(nint handle, ScreenRect rect, bool bringToFront = false)
     {
         if (handle == 0)
@@ -228,6 +238,10 @@ public sealed partial class Win32WindowController : IWindowController
     [DllImport("user32.dll", EntryPoint = "GetWindowRect")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool GetWindowRectCore(nint handle, out Rect rect);
+
+    [DllImport("user32.dll", EntryPoint = "GetClientRect")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetClientRectCore(nint handle, out Rect rect);
 
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]

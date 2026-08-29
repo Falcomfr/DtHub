@@ -62,8 +62,17 @@ public sealed record ScrcpyOptions
 
     /// <summary>
     /// Redimensionner l'afficheur virtuel en continu pour suivre la fenêtre.
-    /// Sans cela, l'image garde le rapport de l'afficheur et laisse des bandes
-    /// noires dès que la fenêtre n'a pas exactement la même forme.
+    ///
+    /// C'est la seule façon d'avoir une image qui remplit la fenêtre quel que
+    /// soit le rapport de celle-ci, y compris quand l'utilisateur l'étire à la
+    /// souris : l'afficheur prend la taille de la zone client, donc il n'y a
+    /// jamais de bande noire. Sans ce mode, l'afficheur garde une définition
+    /// fixe et toute fenêtre d'un autre rapport laisse des bandes.
+    ///
+    /// Mesuré sur un Xiaomi 13T : deux sessions simultanées en 2040x1144
+    /// démarrent sans que l'encodeur bronche, et après redimensionnement d'une
+    /// fenêtre à 900x900 l'afficheur suit à 872x840. L'encodeur n'est donc pas
+    /// le facteur limitant que l'on avait supposé.
     /// </summary>
     public bool FlexDisplay { get; init; } = true;
 

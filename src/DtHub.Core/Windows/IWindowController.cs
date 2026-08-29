@@ -21,6 +21,13 @@ public interface IWindowController
     /// <summary>Position et taille actuelles, ou <c>null</c> si la fenêtre a disparu.</summary>
     ScreenRect? GetWindowRect(nint handle);
 
+    /// <summary>
+    /// Taille de la zone client, hors barre de titre et bordures. C'est elle
+    /// que scrcpy remplit : calculer le rapport sur le rectangle extérieur
+    /// laisserait des bandes noires.
+    /// </summary>
+    ScreenRect? GetClientRect(nint handle);
+
     /// <summary>Déplace et redimensionne une fenêtre.</summary>
     void MoveWindow(nint handle, ScreenRect rect, bool bringToFront = false);
 

@@ -105,7 +105,9 @@ public class ScrcpyCommandBuilderTests
         // taille se règle par la définition de l'afficheur, et les deux
         // coïncident donc exactement.
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
-            "USB0001", "T", ScrcpyOptions.Default, new ScrcpyWindowPlacement(100, 50, 1280, 720));
+            "USB0001", "T",
+            ScrcpyOptions.Default with { FlexDisplay = true },
+            new ScrcpyWindowPlacement(100, 50, 1280, 720));
 
         Assert.Equal("100", ValueOf(arguments, "--window-x"));
         Assert.Equal("50", ValueOf(arguments, "--window-y"));
@@ -120,7 +122,9 @@ public class ScrcpyCommandBuilderTests
     {
         // Les encodeurs vidéo refusent les côtés impairs.
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
-            "USB0001", "T", ScrcpyOptions.Default, new ScrcpyWindowPlacement(0, 0, 2599, 1461));
+            "USB0001", "T",
+            ScrcpyOptions.Default with { FlexDisplay = true },
+            new ScrcpyWindowPlacement(0, 0, 2599, 1461));
 
         Assert.Equal("2598x1460/240", ValueOf(arguments, "--new-display"));
     }
@@ -154,7 +158,9 @@ public class ScrcpyCommandBuilderTests
         // --new-display. Pour celles-là, une valeur séparée par une espace est
         // prise pour un argument parasite et scrcpy refuse de démarrer.
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
-            "USB0001", "Titre", ScrcpyOptions.Default, new ScrcpyWindowPlacement(1, 2, 3, 4));
+            "USB0001", "Titre",
+            ScrcpyOptions.Default with { FlexDisplay = true },
+            new ScrcpyWindowPlacement(1, 2, 3, 4));
 
         // Les côtés impairs sont ramenés à des nombres pairs.
         Assert.Contains("--new-display=2x4/240", arguments);

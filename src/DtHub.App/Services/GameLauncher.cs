@@ -364,7 +364,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
     public ScreenRect? GameArea()
     {
         var sessions = _sessions.ActiveSessions;
-        var aspect = sessions.Count > 0 ? sessions[0].SourceAspectRatio : 1080.0 / 1920.0;
+        // Zéro signifie « aucune contrainte de rapport » : c'est le cas en
+        // mode flexible, où l'afficheur épouse la fenêtre.
+        var aspect = sessions.Count > 0 ? sessions[0].SourceAspectRatio : 0;
 
         return _windows.PreviewGameArea(aspect);
     }

@@ -26,7 +26,7 @@ public class WindowManagerServiceTests
     /// fenêtre déclarée dans le bureau simulé.
     /// </summary>
     private static async Task<(ScrcpySessionManager Manager, List<ScrcpySession> Sessions, FakeWindowController Desktop)>
-        OpenSessionsAsync(int count)
+        OpenSessionsAsync(int count, ScrcpyOptions? options = null)
     {
         var launcher = new FakeProcessLauncher();
         var desktop = new FakeWindowController();
@@ -44,7 +44,10 @@ public class WindowManagerServiceTests
         for (var i = 0; i < count; i++)
         {
             var session = await manager.StartAsync(
-                Target(i * 10), ScrcpyOptions.Default, null, CancellationToken.None);
+                Target(i * 10),
+                options ?? ScrcpyOptions.Default,
+                null,
+                CancellationToken.None);
 
             sessions.Add(session);
             desktop.AddWindow(1000 + i, session.ProcessId, $"Instance - DtHub [{session.Id}]");
@@ -192,12 +195,56 @@ public class WindowManagerServiceTests
     }
 
     [Fact]
-    public async Task Avec_l_ajustement_continu_la_fenetre_n_impose_aucune_forme()
+    public async Task Le_rapport_s_applique_a_la_zone_client_et_non_au_cadre()
     {
-        // L'afficheur suit la fenêtre : celle-ci occupe exactement la part
-        // d'écran demandée, sans bande noire ni rapport imposé.
+        // C'est la zone client que scrcpy remplit. Appliquer le rapport au
+        // rectangle extérieur laisse des bandes noires sur les côtés, de la
+        // largeur exacte de la barre de titre.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(
+            1, ScrcpyOptions.Default with { FlexDisplay = false });
+
+        await using var _ = manager;
+
+        desktop.Chrome = (16, 48);
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.ApplySizeAsync(sessions, 1, CancellationToken.None);
+
+        var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+        var client = new ScreenRect(0, 0, rect.Width - 16, rect.Height - 48);
+
+        Assert.Equal(16.0 / 9.0, client.AspectRatio, 2);
+    }
+
+    [Fact]
+    public async Task En_mode_flexible_la_fenetre_occupe_toute_la_part_demandee()
+    {
+        // L'afficheur virtuel épouse la fenêtre, donc aucun rapport ne
+        // contraint celle-ci : elle prend exactement la part d'écran voulue,
+        // et l'image la remplit quelle que soit sa forme.
         var (manager, sessions, desktop) = await OpenSessionsAsync(1);
         await using var _ = manager;
+
+        desktop.Chrome = (16, 48);
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.ApplySizeAsync(sessions, 1, CancellationToken.None);
+
+        var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+        var work = FakeWindowController.PrimaryMonitor.WorkArea;
+        var fraction = WindowSizePresets.Default.PercentageAt(1) / 100.0;
+
+        Assert.Equal((int)Math.Round(work.Width * fraction), rect.Width);
+        Assert.Equal((int)Math.Round(work.Height * fraction), rect.Height);
+    }
+
+    [Fact]
+    public async Task La_fenetre_tient_dans_la_part_d_ecran_demandee_cadre_compris()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        desktop.Chrome = (16, 48);
 
         var service = new WindowManagerService(desktop, NoDelay);
         await service.ApplySizeAsync(sessions, 1, CancellationToken.None);
@@ -205,8 +252,8 @@ public class WindowManagerServiceTests
         var work = FakeWindowController.PrimaryMonitor.WorkArea;
         var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
 
-        Assert.Equal((int)Math.Round(work.Width * 0.70), rect.Width);
-        Assert.Equal((int)Math.Round(work.Height * 0.70), rect.Height);
+        Assert.True(rect.Width <= (int)Math.Round(work.Width * 0.70));
+        Assert.True(rect.Height <= (int)Math.Round(work.Height * 0.70));
     }
 
     [Fact]

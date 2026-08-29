@@ -65,17 +65,61 @@ public sealed class WindowManagerService
 
         var monitor = WindowLayoutCalculator.ChooseMonitor(monitors, PreferredMonitorDeviceName);
 
-        return Compute(monitor, sourceAspectRatio);
+        return Compute(monitor, sourceAspectRatio, (0, 0));
     }
 
     /// <summary>
     /// Rectangle d'une fenêtre sur un écran donné. Le plein écran couvre
     /// l'écran entier, barre des tâches comprise.
     /// </summary>
-    private ScreenRect Compute(MonitorInfo monitor, double sourceAspectRatio) =>
-        IsFullscreen
-            ? monitor.Bounds
-            : WindowLayoutCalculator.Calculate(monitor, SizePercent, sourceAspectRatio, Anchor);
+    /// <param name="chrome">
+    /// Encombrement de la barre de titre et des bordures, mesuré sur la
+    /// fenêtre. Le rapport d'affichage s'applique à la zone client, celle que
+    /// scrcpy remplit : l'ignorer laisse des bandes noires sur les côtés.
+    /// </param>
+    private ScreenRect Compute(MonitorInfo monitor, double sourceAspectRatio, (int Width, int Height) chrome)
+    {
+        if (IsFullscreen)
+        {
+            return monitor.Bounds;
+        }
+
+        var work = monitor.WorkArea.IsEmpty ? monitor.Bounds : monitor.WorkArea;
+        var fraction = Math.Clamp(SizePercent, 20, 100) / 100.0;
+
+        var availableWidth = Math.Max(1, (int)Math.Round(work.Width * fraction));
+        var availableHeight = Math.Max(1, (int)Math.Round(work.Height * fraction));
+
+        if (sourceAspectRatio <= 0)
+        {
+            return WindowLayoutCalculator.Place(work, availableWidth, availableHeight, Anchor);
+        }
+
+        var (clientWidth, clientHeight) = WindowLayoutCalculator.FitToAspect(
+            Math.Max(1, availableWidth - chrome.Width),
+            Math.Max(1, availableHeight - chrome.Height),
+            sourceAspectRatio);
+
+        return WindowLayoutCalculator.Place(
+            work, clientWidth + chrome.Width, clientHeight + chrome.Height, Anchor);
+    }
+
+    /// <summary>
+    /// Différence entre le rectangle extérieur d'une fenêtre et sa zone
+    /// client. Nulle si la mesure échoue, auquel cas le calcul retombe sur le
+    /// comportement d'avant.
+    /// </summary>
+    private (int Width, int Height) MeasureChrome(nint handle)
+    {
+        if (_controller.GetWindowRect(handle) is not { } outer
+            || _controller.GetClientRect(handle) is not { } client
+            || client.Width <= 0 || client.Height <= 0)
+        {
+            return (0, 0);
+        }
+
+        return (Math.Max(0, outer.Width - client.Width), Math.Max(0, outer.Height - client.Height));
+    }
 
     /// <summary>
     /// Applique une taille à toutes les fenêtres et les replace. L'indice hors
@@ -186,7 +230,9 @@ public sealed class WindowManagerService
 
             // La bordure ne disparaît qu'en plein écran, et revient en sortant.
             _controller.SetBorderless(handle, IsFullscreen);
-            _controller.MoveWindow(handle, Compute(monitor, session.SourceAspectRatio));
+
+            var chrome = IsFullscreen ? (0, 0) : MeasureChrome(handle);
+            _controller.MoveWindow(handle, Compute(monitor, session.SourceAspectRatio, chrome));
             moved++;
         }
 

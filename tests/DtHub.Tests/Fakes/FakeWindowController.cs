@@ -56,8 +56,16 @@ public sealed class FakeWindowController : IWindowController
 
     public bool IsWindow(nint handle) => _windows.Exists(w => w.Handle == handle);
 
+    /// <summary>Encombrement simulé de la barre de titre et des bordures.</summary>
+    public (int Width, int Height) Chrome { get; set; }
+
     public ScreenRect? GetWindowRect(nint handle) =>
         _rects.TryGetValue(handle, out var rect) ? rect : null;
+
+    public ScreenRect? GetClientRect(nint handle) =>
+        _rects.TryGetValue(handle, out var rect)
+            ? new ScreenRect(0, 0, rect.Width - Chrome.Width, rect.Height - Chrome.Height)
+            : null;
 
     public void MoveWindow(nint handle, ScreenRect rect, bool bringToFront = false)
     {

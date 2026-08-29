@@ -109,9 +109,8 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
         var session = new ScrcpySession(sessionId, target, windowTitle, process)
         {
-            // Avec l'ajustement continu, l'afficheur suit la fenêtre : aucune
-            // forme n'est imposée, et la fenêtre remplit exactement la part
-            // d'écran demandée.
+            // L'afficheur garde une définition fixe : la fenêtre est calculée
+            // à son rapport, sur sa zone client.
             SourceAspectRatio = options is { UseVirtualDisplay: true, FlexDisplay: false, VirtualDisplayHeight: > 0 }
                 ? (double)options.VirtualDisplayWidth / options.VirtualDisplayHeight
                 : 0,
