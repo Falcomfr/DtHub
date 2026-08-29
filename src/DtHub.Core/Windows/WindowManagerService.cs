@@ -132,13 +132,18 @@ public sealed class WindowManagerService
         monitor.WorkArea.IsEmpty ? monitor.Bounds : monitor.WorkArea;
 
     /// <summary>
-    /// Change la taille des fenêtres sans les déplacer. Un raccourci de taille
-    /// ou le curseur ne demandent qu'à agrandir ou réduire : ramener la
-    /// fenêtre à son ancrage au passage serait une décision qu'on n'a pas
-    /// demandée. Seul le plein écran couvre l'écran entier.
+    /// Change la taille des fenêtres sans les déplacer, en multipliant la
+    /// taille de chacune par le même facteur.
+    ///
+    /// Leur donner à toutes la même taille effacerait les écarts voulus : une
+    /// fenêtre volontairement plus petite qu'une autre doit le rester. Un
+    /// raccourci de taille ou le curseur ne demandent qu'à agrandir ou
+    /// réduire, pas à uniformiser ni à replacer. Seul le plein écran couvre
+    /// l'écran entier.
     /// </summary>
-    public async Task<int> ResizeInPlaceAsync(
+    public async Task<int> ScaleInPlaceAsync(
         IReadOnlyList<ScrcpySession> sessions,
+        double factor,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(sessions);
@@ -174,11 +179,19 @@ public sealed class WindowManagerService
             }
 
             var monitor = WindowLayoutCalculator.ChooseMonitor(monitors, current.CenterX, current.CenterY);
-            var chrome = MeasureChrome(handle);
-            var (width, height) = ComputeSize(monitor, session.SourceAspectRatio, chrome);
 
             var target = WindowLayoutCalculator.ClampInto(
-                current with { Width = width, Height = height }, UsableArea(monitor));
+                current with
+                {
+                    Width = Math.Max(120, (int)Math.Round(current.Width * factor)),
+                    Height = Math.Max(80, (int)Math.Round(current.Height * factor)),
+                },
+                UsableArea(monitor));
+
+            if (target == current)
+            {
+                continue;
+            }
 
             _controller.MoveWindow(handle, target);
             resized++;
@@ -213,12 +226,14 @@ public sealed class WindowManagerService
         int sizeIndex,
         CancellationToken cancellationToken = default)
     {
+        var previous = SizePercent;
+
         SizeIndex = Math.Clamp(sizeIndex, 0, Math.Max(0, Presets.Count - 1));
 
         // Un raccourci de taille reprend la main sur le curseur.
         CustomSizePercent = null;
 
-        return ResizeInPlaceAsync(sessions, cancellationToken);
+        return ScaleInPlaceAsync(sessions, (double)SizePercent / previous, cancellationToken);
     }
 
     /// <summary>Zone utilisable de l'écran retenu.</summary>
@@ -433,9 +448,11 @@ public sealed class WindowManagerService
         int percent,
         CancellationToken cancellationToken = default)
     {
+        var previous = SizePercent;
+
         CustomSizePercent = Math.Clamp(percent, 20, 100);
 
-        return ResizeInPlaceAsync(sessions, cancellationToken);
+        return ScaleInPlaceAsync(sessions, (double)SizePercent / previous, cancellationToken);
     }
 
     /// <summary>

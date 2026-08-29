@@ -251,4 +251,15 @@ public class ScrcpyCommandBuilderTests
     {
         Assert.Equal($"{ProductInfo.Name} XSpace", ScrcpyCommandBuilder.BuildWindowTitle("XSpace", "   "));
     }
+
+    [Fact]
+    public void Les_clics_secondaires_ne_declenchent_rien_par_defaut()
+    {
+        // scrcpy associe sinon le clic droit à RETOUR, ce qui quitte le jeu et
+        // laisse un écran noir. Maj rétablit les quatre actions.
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001", "DT Hub", ScrcpyOptions.Default, null);
+
+        Assert.Equal("----:bhsn", ValueOf(arguments, "--mouse-bind"));
+    }
 }

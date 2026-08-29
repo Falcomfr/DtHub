@@ -24,6 +24,23 @@ public sealed partial class InstanceListViewModel : ObservableObject
     {
         _launcher = launcher;
         _settings = settings;
+
+        // Fermer une fenêtre de jeu doit se voir tout de suite. Attendre le
+        // balayage laissait jusqu'à trois secondes pendant lesquelles la liste
+        // annonçait une fenêtre qui n'existait plus.
+        _launcher.SessionChanged += OnSessionChanged;
+    }
+
+    private void OnSessionChanged(object? sender, Core.Scrcpy.ScrcpySession session)
+    {
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+
+        if (dispatcher is null)
+        {
+            return;
+        }
+
+        _ = dispatcher.BeginInvoke(RefreshRunningState);
     }
 
     /// <summary>Téléphones connus, chacun avec ses instances.</summary>

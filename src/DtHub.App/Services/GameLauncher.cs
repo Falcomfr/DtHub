@@ -536,6 +536,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         var hotkeys = await _settings.GetHotkeysAsync(cancellationToken).ConfigureAwait(false);
 
+        // Le rappel inscrit dans le titre des fenêtres suit la combinaison.
+        // C'est ici qu'il faut le faire : l'éditeur recharge par ce chemin,
+        // quelle que soit la fenêtre qui l'a ouvert.
+        await RefreshWindowTitlesAsync(cancellationToken).ConfigureAwait(false);
+
         return await _hotkeys.ApplyAsync(hotkeys).ConfigureAwait(false);
     }
 

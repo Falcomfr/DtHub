@@ -152,10 +152,6 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         RearrangeShortcutText = hotkeys.For(HotkeyAction.Rearrange)?.DisplayText ?? string.Empty;
         QuitShortcutText = hotkeys.For(HotkeyAction.Quit)?.DisplayText ?? string.Empty;
 
-        // Le titre des fenêtres de jeu porte le rappel du raccourci : il doit
-        // suivre une modification faite dans l'éditeur, sans attendre une
-        // réouverture.
-        await _launcher.RefreshWindowTitlesAsync(cancellationToken).ConfigureAwait(true);
     }
 
     /// <summary>Rafraîchit ce qui change tout seul : appareils et états.</summary>

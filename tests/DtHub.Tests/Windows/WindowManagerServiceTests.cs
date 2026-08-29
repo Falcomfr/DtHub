@@ -209,7 +209,8 @@ public class WindowManagerServiceTests
         desktop.Chrome = (16, 48);
 
         var service = new WindowManagerService(desktop, NoDelay);
-        await service.ApplySizeAsync(sessions, 1, CancellationToken.None);
+        await service.ApplySizeAsync([], 1, CancellationToken.None);
+        await service.ArrangeAsync(sessions, CancellationToken.None);
 
         var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
         var client = new ScreenRect(0, 0, rect.Width - 16, rect.Height - 48);
@@ -231,7 +232,8 @@ public class WindowManagerServiceTests
         desktop.Chrome = (16, 48);
 
         var service = new WindowManagerService(desktop, NoDelay);
-        await service.ApplySizeAsync(sessions, 1, CancellationToken.None);
+        await service.ApplySizeAsync([], 1, CancellationToken.None);
+        await service.ArrangeAsync(sessions, CancellationToken.None);
 
         var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
         var work = FakeWindowController.PrimaryMonitor.WorkArea;
@@ -555,5 +557,48 @@ public class WindowManagerServiceTests
         Assert.Equal(2, renamed);
         Assert.Equal("DT Hub 0 (Ctrl + N)", desktop.Titles[sessions[0].WindowHandle]);
         Assert.Equal("DT Hub 10 (Ctrl + N)", desktop.Titles[sessions[1].WindowHandle]);
+    }
+
+    [Fact]
+    public async Task Changer_la_taille_conserve_les_ecarts_entre_fenetres()
+    {
+        // Une fenêtre volontairement plus petite qu'une autre doit le rester :
+        // leur donner la même taille effacerait un choix de l'utilisateur.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(2);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
+
+        desktop.MoveWindow(sessions[0].WindowHandle, new ScreenRect(100, 100, 1200, 700));
+        desktop.MoveWindow(sessions[1].WindowHandle, new ScreenRect(100, 100, 600, 350));
+
+        await service.ScaleInPlaceAsync(sessions, 0.5, CancellationToken.None);
+
+        var big = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+        var small = desktop.GetWindowRect(sessions[1].WindowHandle)!.Value;
+
+        Assert.Equal(600, big.Width);
+        Assert.Equal(300, small.Width);
+        Assert.Equal(2.0, (double)big.Width / small.Width, 2);
+    }
+
+    [Fact]
+    public async Task Changer_la_taille_ne_deplace_pas_les_fenetres()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
+
+        desktop.MoveWindow(sessions[0].WindowHandle, new ScreenRect(400, 250, 1000, 600));
+
+        await service.ScaleInPlaceAsync(sessions, 0.8, CancellationToken.None);
+
+        var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+
+        Assert.Equal(400, rect.X);
+        Assert.Equal(250, rect.Y);
     }
 }
