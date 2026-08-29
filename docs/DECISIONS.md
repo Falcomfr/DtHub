@@ -118,3 +118,32 @@ Le service de lancement reste conçu avec des stratégies interchangeables, de
 sorte qu'un repli par patch du serveur scrcpy demeure possible. La procédure
 qu'imposerait un tel patch est écrite dans
 `third_party/scrcpy/MODIFICATIONS.md`.
+
+---
+
+## D6 - Pas d'icônes réelles d'applications dans le cycle 0.x
+
+**2026-08-29 - Acceptée, à rouvrir**
+
+Le sélecteur d'applications gagnerait à montrer les vraies icônes. Aucune voie
+raisonnable ne le permet aujourd'hui :
+
+- ADB n'expose pas les icônes. `dumpsys package` et `cmd package
+  resolve-activity` ne rendent que des identifiants de ressource, pas les
+  images.
+- `scrcpy --list-apps` donne les noms mais pas les icônes.
+- Extraire l'icône de l'APK supposerait de récupérer le fichier, qui pèse
+  souvent des centaines de mégaoctets, puis de décoder les ressources
+  Android. Le coût est sans rapport avec le bénéfice.
+- Un assistant installé sur le téléphone est exclu : DT Hub ne modifie pas
+  l'appareil au-delà de ce que fait scrcpy.
+
+Le sélecteur affiche donc une pastille portant l'initiale du nom, colorée de
+façon déterministe à partir du nom de paquet. Deux applications se
+distinguent, ce qui est l'usage réel de l'icône dans une liste.
+
+Ce que la décision préserve : les vrais noms d'applications, qui portent
+l'essentiel de la reconnaissance, sont bien récupérés.
+
+À rouvrir si scrcpy publie les icônes, ou si une extraction ciblée d'entrée
+d'APK devient possible sans transférer le fichier entier.

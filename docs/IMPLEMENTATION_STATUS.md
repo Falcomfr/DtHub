@@ -65,9 +65,13 @@ Dernière mise à jour : 2026-08-29
 
 | Élément | État |
 |---|---|
-| `AppDiscoveryService` | TODO |
-| Icônes, labels, repli sur le package | TODO |
-| Cache + favoris + recherche | TODO |
+| `AppDiscoveryService` par appareil et par profil | DONE |
+| Repli paquet par paquet si l'interrogation groupée manque | DONE |
+| Vrais noms via scrcpy, repli lisible sur le paquet | DONE |
+| Marquage des applications système | DONE |
+| Cache disque du catalogue | DONE |
+| Icônes réelles des applications | BLOCKED (voir docs/DECISIONS.md, D6) |
+| Favoris, recherche, filtres | TODO (portés par les réglages, phase 11) |
 
 ## Phase 7 - Profils de lancement
 
