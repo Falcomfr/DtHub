@@ -63,21 +63,18 @@ public sealed record ScrcpyOptions
     /// <summary>
     /// Redimensionner l'afficheur virtuel en continu pour suivre la fenêtre.
     ///
-    /// Activé. C'est ce qui donne une image qui remplit toujours la fenêtre,
-    /// et surtout un jeu qui se remet en page : une fenêtre large montre
-    /// davantage, elle n'affiche pas la même image étirée.
+    /// Désactivé, après l'avoir essayé. Dans ce mode l'image n'est pas mise à
+    /// l'échelle : la fenêtre montre l'afficheur pixel pour pixel, et une
+    /// fenêtre plus large montre donc davantage de jeu. Séduisant, mais le jeu
+    /// ne se remet pas en page au-delà de la hauteur qu'il avait à sa
+    /// naissance, et agrandir demandait alors de le recharger.
     ///
-    /// Mesuré sur un Xiaomi 13T, en faisant varier la largeur seule : de 1,04
-    /// à 2,82 de rapport, aucune bande, et la mise en page suit. Le seul
-    /// défaut observé demande un saut brutal des deux dimensions à la fois,
-    /// que la souris ne produit pas, et il se corrige au redimensionnement
-    /// suivant.
-    ///
-    /// Contraindre la fenêtre à un rapport fixe avait été essayé : cela
-    /// supprimait les bandes, mais en interdisant les formes qui fonctionnent,
-    /// donc en privant d'une vue plus large.
+    /// Sans ce mode, l'afficheur garde sa définition et scrcpy met l'image à
+    /// l'échelle de la fenêtre, en verrouillant lui-même son rapport quand on
+    /// la tire à la souris. Redimensionner devient instantané, l'image remplit
+    /// toujours, et rien n'est jamais rechargé.
     /// </summary>
-    public bool FlexDisplay { get; init; } = true;
+    public bool FlexDisplay { get; init; }
 
     /// <summary>
     /// Rappel ajouté au titre de chaque fenêtre de jeu, entre parenthèses.
