@@ -87,10 +87,14 @@ Dernière mise à jour : 2026-08-29
 
 | Élément | État |
 |---|---|
-| `ScrcpyService` | TODO |
-| Sessions indépendantes | TODO |
-| Lancement sur profil Android secondaire | TODO |
-| Patch documenté du serveur scrcpy | TODO |
+| Options scrcpy et construction de la ligne de commande | DONE |
+| Processus durable avec lecture de sortie au fil de l'eau | DONE |
+| `ScrcpySessionManager`, sessions indépendantes | DONE |
+| Lancement sur n'importe quel profil Android | DONE |
+| Revalidation du composant après mise à jour d'application | DONE |
+| Vrais noms d'applications via `scrcpy --list-apps` | DONE |
+| Aucune modification de scrcpy, procédure documentée | DONE |
+| Vérification sur matériel réel | BLOCKED (phase 13) |
 
 ## Phase 9 - Fenêtres
 
