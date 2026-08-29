@@ -142,6 +142,15 @@ public sealed partial class InstanceListViewModel : ObservableObject
     private object? _hinted;
     private bool _hintedAbove;
 
+    /// <summary>Vrai quand c'est une instance que l'on déplace, et non un appareil.</summary>
+    public bool IsDraggingInstance
+    {
+        get => _draggingInstance;
+        set => _draggingInstance = value;
+    }
+
+    private bool _draggingInstance;
+
     /// <summary>Efface tous les repères de dépôt.</summary>
     public void ClearDropHints()
     {
@@ -189,6 +198,14 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 row.DropBelow = !above;
                 break;
 
+            case DeviceGroupViewModel group when _draggingInstance && group.Instances.Count > 0:
+                // Le repère se pose sur la première ou la dernière instance,
+                // là où l'élément atterrira, et non sur la carte entière.
+                var edge = above ? group.Instances[0] : group.Instances[^1];
+                edge.DropAbove = above;
+                edge.DropBelow = !above;
+                break;
+
             case DeviceGroupViewModel group:
                 group.DropAbove = above;
                 group.DropBelow = !above;
@@ -211,6 +228,13 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
         (DeviceGroupViewModel source, DeviceGroupViewModel target) =>
             MoveDeviceAsync(source, Offset(Devices.IndexOf(source), Devices.IndexOf(target), above)),
+
+        // Déposé sur la carte de son appareil : en tête, ou en queue selon la
+        // moitié survolée.
+        (InstanceRowViewModel source, DeviceGroupViewModel group) =>
+            MoveInstanceAsync(
+                source,
+                (above ? 0 : group.Instances.Count - 1) - group.Instances.IndexOf(source)),
 
         _ => Task.CompletedTask,
     };

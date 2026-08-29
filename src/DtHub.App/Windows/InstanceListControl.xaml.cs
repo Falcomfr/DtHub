@@ -110,6 +110,7 @@ public partial class InstanceListControl : UserControl
         // Le balayage périodique reconstruit la liste : le suspendre évite
         // qu'une carte disparaisse sous le curseur en plein glissé.
         model.IsReordering = true;
+        model.IsDraggingInstance = payload is InstanceRowViewModel;
         Mark(payload, dragging: true);
 
         try
@@ -200,14 +201,26 @@ public partial class InstanceListControl : UserControl
     /// </summary>
     private static object? Hovered(object sender, DragEventArgs e)
     {
-        if (sender is not FrameworkElement target || target.DataContext is not { } onto)
+        if (sender is not FrameworkElement target
+            || target.DataContext is not { } onto
+            || Dragged(e) is not { } dragged)
         {
             return null;
         }
 
-        var dragged = Dragged(e);
+        if (dragged.GetType() == onto.GetType())
+        {
+            return onto;
+        }
 
-        return dragged is not null && dragged.GetType() == onto.GetType() ? onto : null;
+        // Au-dessus de la première instance il n'y a plus de ligne, mais la
+        // carte de l'appareil. Y déposer une de ses instances doit la placer
+        // en tête, sans quoi le geste le plus naturel ne fait rien.
+        return dragged is InstanceRowViewModel row
+               && onto is DeviceGroupViewModel group
+               && group.Instances.Contains(row)
+            ? group
+            : null;
     }
 
     /// <summary>
