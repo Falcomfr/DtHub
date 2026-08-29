@@ -27,10 +27,16 @@
                         Background="{Binding StatusBrushKey, Converter={StaticResource KeyToBrush}}" />
               </Grid>
 
-              <TextBlock Text="Cochez les instances à ouvrir au démarrage."
-                         Style="{StaticResource Muted}" FontSize="11" Margin="0,10,0,2"
-                         Visibility="{Binding Instances.Count, Converter={StaticResource EmptyToVisibility},
-                                              ConverterParameter=inverse}" />
+              <!-- La consigne n'a de sens que là où les cases existent, donc
+                   à la mise en route seulement. -->
+              <StackPanel Visibility="{Binding ShowSelection,
+                                               RelativeSource={RelativeSource AncestorType=UserControl},
+                                               Converter={StaticResource BoolToVisibility}}">
+                <TextBlock Text="Cochez les instances à ouvrir au démarrage."
+                           Style="{StaticResource Muted}" FontSize="11" Margin="0,10,0,2"
+                           Visibility="{Binding Instances.Count, Converter={StaticResource EmptyToVisibility},
+                                                ConverterParameter=inverse}" />
+              </StackPanel>
 
               <ItemsControl ItemsSource="{Binding Instances}" Margin="0,4,0,0">
                 <ItemsControl.ItemTemplate>
@@ -44,7 +50,10 @@
 
                       <CheckBox Grid.Column="0" IsChecked="{Binding IsEnabled}" Margin="0,0,10,0"
                                 VerticalAlignment="Center"
-                                ToolTip="Ouvrir cette instance au démarrage de l'application" />
+                                ToolTip="Ouvrir cette instance au démarrage de l'application"
+                                Visibility="{Binding ShowSelection,
+                                                     RelativeSource={RelativeSource AncestorType=UserControl},
+                                                     Converter={StaticResource BoolToVisibility}}" />
 
                       <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBox Text="{Binding Name, UpdateSourceTrigger=LostFocus}"
@@ -58,11 +67,20 @@
                            « Lancer » quand elle est fermée, « Relancer » et
                            « Fermer » quand elle est ouverte. Un badge en plus
                            n'apprendrait rien. -->
-                      <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
-                                  Margin="10,0,0,0"
-                                  Visibility="{Binding ShowActions,
-                                                       RelativeSource={RelativeSource AncestorType=UserControl},
-                                                       Converter={StaticResource BoolToVisibility}}">
+                      <Grid Grid.Column="2"
+                            Visibility="{Binding ShowActions,
+                                                 RelativeSource={RelativeSource AncestorType=UserControl},
+                                                 Converter={StaticResource BoolToVisibility}}">
+
+                        <!-- L'indicateur prend la place des boutons pendant l'action. -->
+                        <Control Style="{StaticResource BusyIndicator}"
+                                 Margin="10,0,10,0" VerticalAlignment="Center" HorizontalAlignment="Right"
+                                 Visibility="{Binding IsWorking, Converter={StaticResource BoolToVisibility}}" />
+
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                                    Margin="10,0,0,0"
+                                    Visibility="{Binding IsWorking,
+                                                         Converter={StaticResource InverseBoolToVisibility}}">
                         <Button Content="Lancer" Style="{StaticResource QuietButton}"
                                 ToolTip="Ouvrir cette instance maintenant"
                                 Visibility="{Binding IsRunning, Converter={StaticResource InverseBoolToVisibility}}"
@@ -83,7 +101,8 @@
                                 Command="{Binding DataContext.StopCommand,
                                                   RelativeSource={RelativeSource AncestorType=UserControl}}"
                                 CommandParameter="{Binding}" />
-                      </StackPanel>
+                        </StackPanel>
+                      </Grid>
                     </Grid>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>

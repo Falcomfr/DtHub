@@ -45,7 +45,8 @@
                 ToolTip="À faire une seule fois par appareil. Les appareils déjà associés se connectent tout seuls."
                 Click="OnAddDevice" />
 
-        <w:InstanceListControl DataContext="{Binding Instances}" ShowActions="False" />
+        <w:InstanceListControl DataContext="{Binding Instances}"
+                               ShowActions="False" ShowSelection="True" ShowOrdering="False" />
 
       </StackPanel>
     </ScrollViewer>

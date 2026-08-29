@@ -68,7 +68,10 @@ public partial class App : Application
 
         var current = await settings.GetAsync().ConfigureAwait(true);
 
-        if (!current.SetupCompleted || !current.Instances.Any(i => i.IsEnabled))
+        // La question n'est posée qu'au premier lancement. Ne plus rien avoir
+        // à ouvrir est un état normal depuis que l'ensemble de démarrage est
+        // celui des fenêtres ouvertes à la sortie.
+        if (!current.SetupCompleted)
         {
             var setup = services.GetRequiredService<SetupWindow>();
             MainWindow = setup;
@@ -88,14 +91,71 @@ public partial class App : Application
 
         var report = await launcher.LaunchEnabledAsync().ConfigureAwait(true);
 
-        var placement = (await settings.GetAsync().ConfigureAwait(true)).GameAnchor;
-        _configurator.Show();
-        _configurator.PlaceAwayFrom(placement);
+        var document = await settings.GetAsync().ConfigureAwait(true);
 
-        if (!report.AnyOpened && report.Problems.Count > 0)
+        // La fenêtre doit être affichée une fois pour que son chargement se
+        // fasse et que sa mise à l'échelle soit connue : PlaceAwayFrom mesure
+        // le rapport de la fenêtre elle-même. L'opacité évite le clignotement
+        // quand elle doit finalement rester masquée.
+        _configurator.Opacity = 0;
+        _configurator.Show();
+        _configurator.PlaceAwayFrom(document.GameAnchor);
+        _configurator.Opacity = 1;
+
+        // Un problème doit rester visible : masquer le configurateur au moment
+        // précis où il porte le seul message laisserait un écran vide.
+        var mustShow = !report.AnyOpened && report.Problems.Count > 0;
+
+        if (!document.ConfiguratorVisible && !mustShow)
+        {
+            _configurator.Hide();
+        }
+
+        if (mustShow)
         {
             Log.Warning("Aucune fenêtre ouverte : {Problems}", string.Join(" ", report.Problems));
         }
+    }
+
+    /// <summary>
+    /// Sortie volontaire, par le bouton « Quitter ». C'est le seul moment où
+    /// l'état de la session est retenu pour le prochain lancement : où sont
+    /// les fenêtres, lesquelles étaient ouvertes, et si le configurateur était
+    /// affiché.
+    ///
+    /// Fermer une fenêtre de jeu à la main ne change donc rien : elle revient
+    /// au lancement suivant. C'est le geste de quitter qui fait foi.
+    /// </summary>
+    internal async Task RequestQuitAsync()
+    {
+        var services = _host?.Services;
+
+        if (services is not null)
+        {
+            var launcher = services.GetRequiredService<GameLauncher>();
+            var settings = services.GetRequiredService<SettingsService>();
+
+            try
+            {
+                await launcher.CaptureGeometriesAsync().ConfigureAwait(true);
+
+                await settings.SaveStartupSetAsync(
+                    [.. launcher.ActiveSessions.Select(s => s.Target.Key)]).ConfigureAwait(true);
+
+                await settings.SetConfiguratorVisibleAsync(
+                    _configurator?.IsVisible == true).ConfigureAwait(true);
+            }
+            catch (IOException exception)
+            {
+                Log.Warning(exception, "L'état de la session n'a pas pu être enregistré.");
+            }
+            catch (UnauthorizedAccessException exception)
+            {
+                Log.Warning(exception, "L'état de la session n'a pas pu être enregistré.");
+            }
+        }
+
+        Shutdown();
     }
 
     private void ToggleConfigurator()

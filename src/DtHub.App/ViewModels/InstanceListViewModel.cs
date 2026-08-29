@@ -145,6 +145,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         }
 
         IsBusy = true;
+        row.IsWorking = true;
 
         try
         {
@@ -158,6 +159,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         }
         finally
         {
+            row.IsWorking = false;
             IsBusy = false;
 
             // L'état est relu plutôt que déduit de l'action : une session peut

@@ -86,10 +86,15 @@ public partial class ConfiguratorWindow : Window
     }
 
     /// <summary>Ferme réellement l'application.</summary>
-    private void OnQuit(object sender, RoutedEventArgs e)
+    /// <summary>
+    /// Quitte l'application. L'état de la session est enregistré avant, et
+    /// l'attente est nécessaire : l'arrêt courrait sinon contre l'écriture.
+    /// </summary>
+    private async void OnQuit(object sender, RoutedEventArgs e)
     {
         _quitting = true;
-        Application.Current.Shutdown();
+
+        await ((App)Application.Current).RequestQuitAsync().ConfigureAwait(true);
     }
 
     private void OnHide(object sender, RoutedEventArgs e) => Hide();

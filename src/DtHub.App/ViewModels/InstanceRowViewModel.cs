@@ -29,6 +29,15 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     [ObservableProperty]
     private bool _isRunning;
 
+    /// <summary>
+    /// Vrai pendant qu'une action est en cours sur cette instance. Une relance
+    /// enchaîne l'arrêt de la session, l'arrêt forcé côté Android et le
+    /// redémarrage de scrcpy : plusieurs secondes, pendant lesquelles un
+    /// bouton grisé ne dit pas qu'il se passe quelque chose.
+    /// </summary>
+    [ObservableProperty]
+    private bool _isWorking;
+
     public string Key => Instance.Key;
 
     public string DeviceId => Instance.DeviceId;
