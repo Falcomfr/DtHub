@@ -517,10 +517,12 @@ public class WindowManagerServiceTests
     }
 
     [Fact]
-    public async Task Par_defaut_la_fenetre_respecte_le_rapport_de_l_afficheur()
+    public async Task Par_defaut_aucun_rapport_ne_contraint_la_fenetre()
     {
-        // C'est ce qui garantit qu'aucune bande n'apparaît : la fenêtre ne peut
-        // pas prendre une forme que l'afficheur virtuel ne remplit pas.
+        // L'afficheur virtuel épouse la fenêtre, donc toute forme convient et
+        // la fenêtre prend exactement la part d'écran demandée. Mesuré sur
+        // l'appareil : de 1,04 à 2,82 de rapport, l'image remplit et le jeu se
+        // remet en page.
         var (manager, sessions, desktop) = await OpenSessionsAsync(1);
         await using var _ = manager;
 
@@ -530,8 +532,28 @@ public class WindowManagerServiceTests
         await service.ArrangeAsync(sessions, CancellationToken.None);
 
         var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
-        var client = new ScreenRect(0, 0, rect.Width - 16, rect.Height - 48);
+        var work = FakeWindowController.PrimaryMonitor.WorkArea;
+        var fraction = WindowSizePresets.Default.PercentageAt(service.SizeIndex) / 100.0;
 
-        Assert.Equal(16.0 / 9.0, client.AspectRatio, 2);
+        Assert.Equal((int)Math.Round(work.Width * fraction), rect.Width);
+        Assert.Equal((int)Math.Round(work.Height * fraction), rect.Height);
+    }
+
+    [Fact]
+    public async Task Le_titre_des_fenetres_ouvertes_peut_etre_reecrit()
+    {
+        // scrcpy ne fixe son titre qu'au démarrage : sans réécriture, le
+        // rappel du raccourci resterait périmé jusqu'à la prochaine ouverture.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(2);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
+
+        var renamed = service.Retitle(sessions, s => $"DT Hub {s.Target.UserId} (Ctrl + N)");
+
+        Assert.Equal(2, renamed);
+        Assert.Equal("DT Hub 0 (Ctrl + N)", desktop.Titles[sessions[0].WindowHandle]);
+        Assert.Equal("DT Hub 10 (Ctrl + N)", desktop.Titles[sessions[1].WindowHandle]);
     }
 }

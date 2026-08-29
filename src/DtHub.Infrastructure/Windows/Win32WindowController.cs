@@ -119,6 +119,14 @@ public sealed partial class Win32WindowController : IWindowController
         _ = SetWindowPos(handle, bringToFront ? HwndTop : 0, rect.X, rect.Y, rect.Width, rect.Height, flags);
     }
 
+    public void SetTitle(nint handle, string title)
+    {
+        if (handle != 0 && !string.IsNullOrEmpty(title))
+        {
+            _ = SetWindowTextW(handle, title);
+        }
+    }
+
     public void Focus(nint handle)
     {
         if (handle == 0)
@@ -237,6 +245,10 @@ public sealed partial class Win32WindowController : IWindowController
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode, EntryPoint = "GetWindowTextW")]
     private static extern int GetWindowText(nint handle, [Out] char[] text, int maxCount);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetWindowTextW(nint handle, string title);
 
     [DllImport("user32.dll", EntryPoint = "GetWindowRect")]
     [return: MarshalAs(UnmanagedType.Bool)]

@@ -63,19 +63,21 @@ public sealed record ScrcpyOptions
     /// <summary>
     /// Redimensionner l'afficheur virtuel en continu pour suivre la fenêtre.
     ///
-    /// Désactivé, et ce n'est pas un détail de réglage. Dans ce mode
-    /// l'afficheur épouse bien la fenêtre, mais le jeu ne se remet pas
-    /// toujours en page quand son afficheur change de forme sous lui : il
-    /// reste alors cantonné à un rapport d'environ 2,49 et laisse le reste en
-    /// noir. Mesuré sur un Xiaomi 13T : passer de 1512x776 à 1176x944 laisse
-    /// une bande noire de 472 pixels, qui ne disparaît pas d'elle-même.
+    /// Activé. C'est ce qui donne une image qui remplit toujours la fenêtre,
+    /// et surtout un jeu qui se remet en page : une fenêtre large montre
+    /// davantage, elle n'affiche pas la même image étirée.
     ///
-    /// Sans ce mode, scrcpy verrouille le rapport de la fenêtre, comme
-    /// l'atteste son option --no-window-aspect-ratio-lock, active par défaut
-    /// hors mode flexible. La fenêtre ne peut donc plus prendre une forme que
-    /// le jeu refuse, et l'image remplit toujours la zone client.
+    /// Mesuré sur un Xiaomi 13T, en faisant varier la largeur seule : de 1,04
+    /// à 2,82 de rapport, aucune bande, et la mise en page suit. Le seul
+    /// défaut observé demande un saut brutal des deux dimensions à la fois,
+    /// que la souris ne produit pas, et il se corrige au redimensionnement
+    /// suivant.
+    ///
+    /// Contraindre la fenêtre à un rapport fixe avait été essayé : cela
+    /// supprimait les bandes, mais en interdisant les formes qui fonctionnent,
+    /// donc en privant d'une vue plus large.
     /// </summary>
-    public bool FlexDisplay { get; init; }
+    public bool FlexDisplay { get; init; } = true;
 
     /// <summary>
     /// Rappel ajouté au titre de chaque fenêtre de jeu, entre parenthèses.

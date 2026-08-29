@@ -440,14 +440,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
             cancellationToken).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Ramène les fenêtres au rapport de leur afficheur, une fois leur taille
-    /// stabilisée. Appelée régulièrement : c'est ce qui garantit qu'aucune
-    /// bande n'apparaît, quel que soit le chemin par lequel la fenêtre a été
-    /// redimensionnée.
-    /// </summary>
-    public int SnapToAspect() => _windows.SnapToAspect(_sessions.ActiveSessions);
-
     /// <summary>Remet toutes les fenêtres en place, à la taille en cours.</summary>
     public async Task<int> ArrangeAsync(CancellationToken cancellationToken = default)
     {
@@ -545,6 +537,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
         var hotkeys = await _settings.GetHotkeysAsync(cancellationToken).ConfigureAwait(false);
 
         return await _hotkeys.ApplyAsync(hotkeys).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Met à jour le rappel du raccourci dans le titre des fenêtres ouvertes.
+    /// Appelé après une modification dans l'éditeur.
+    /// </summary>
+    public async Task<int> RefreshWindowTitlesAsync(CancellationToken cancellationToken = default)
+    {
+        var hint = await BuildTitleHintAsync(cancellationToken).ConfigureAwait(false);
+
+        return _windows.Retitle(
+            _sessions.ActiveSessions,
+            session => ScrcpyCommandBuilder.BuildWindowTitle(session.Target.DisplayName, hint));
     }
 
     public async ValueTask DisposeAsync()

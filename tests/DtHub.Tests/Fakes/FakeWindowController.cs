@@ -75,6 +75,11 @@ public sealed class FakeWindowController : IWindowController
         }
     }
 
+    /// <summary>Titres réécrits, pour vérifier le rappel du raccourci.</summary>
+    public Dictionary<nint, string> Titles { get; } = [];
+
+    public void SetTitle(nint handle, string title) => Titles[handle] = title;
+
     public void Focus(nint handle)
     {
         FocusCalls.Add(handle);

@@ -15,8 +15,6 @@ public sealed class WindowManagerService
 
     private int _focusIndex = -1;
 
-    /// <summary>Dernière taille vue par session, pour ne corriger qu'une fois le geste fini.</summary>
-    private readonly Dictionary<string, ScreenRect> _lastSeen = new(StringComparer.Ordinal);
 
     public WindowManagerService(
         IWindowController controller,
@@ -183,7 +181,6 @@ public sealed class WindowManagerService
                 current with { Width = width, Height = height }, UsableArea(monitor));
 
             _controller.MoveWindow(handle, target);
-            _lastSeen[session.Id] = target;
             resized++;
         }
 
@@ -442,63 +439,25 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Ramène chaque fenêtre au rapport de son afficheur, en ajustant la
-    /// hauteur et en gardant la largeur.
-    ///
-    /// L'afficheur virtuel garde une définition fixe, donc une fenêtre d'un
-    /// autre rapport laisse des bandes sur les côtés. scrcpy verrouille bien
-    /// le rapport quand on tire la fenêtre à la souris, mais rien ne le
-    /// garantit pour les autres chemins. La correction n'est appliquée qu'une
-    /// fois la taille stabilisée, pour ne pas lutter contre le geste en cours.
+    /// Réécrit le titre de chaque fenêtre ouverte. scrcpy ne fixe le sien
+    /// qu'au démarrage : sans cela, le rappel du raccourci resterait périmé
+    /// jusqu'à la prochaine ouverture.
     /// </summary>
-    /// <returns>Nombre de fenêtres corrigées.</returns>
-    public int SnapToAspect(IReadOnlyList<ScrcpySession> sessions)
+    /// <returns>Nombre de fenêtres renommées.</returns>
+    public int Retitle(IReadOnlyList<ScrcpySession> sessions, Func<ScrcpySession, string> title)
     {
         ArgumentNullException.ThrowIfNull(sessions);
+        ArgumentNullException.ThrowIfNull(title);
 
-        if (IsFullscreen)
-        {
-            return 0;
-        }
-
-        var corrected = 0;
+        var renamed = 0;
 
         foreach (var session in sessions.Where(s => s.IsAlive && s.WindowHandle != 0))
         {
-            if (session.SourceAspectRatio <= 0
-                || _controller.GetWindowRect(session.WindowHandle) is not { } outer
-                || outer.IsEmpty)
-            {
-                continue;
-            }
-
-            var settled = _lastSeen.TryGetValue(session.Id, out var previous) && previous == outer;
-            _lastSeen[session.Id] = outer;
-
-            if (!settled)
-            {
-                continue;
-            }
-
-            var chrome = MeasureChrome(session.WindowHandle);
-            var clientWidth = Math.Max(1, outer.Width - chrome.Width);
-            var wanted = Math.Max(1, (int)Math.Round(clientWidth / session.SourceAspectRatio)) + chrome.Height;
-
-            // Deux pixels de tolérance : l'arrondi du rapport ne doit pas
-            // provoquer une correction perpétuelle.
-            if (Math.Abs(wanted - outer.Height) <= 2)
-            {
-                continue;
-            }
-
-            var target = outer with { Height = wanted };
-
-            _controller.MoveWindow(session.WindowHandle, target);
-            _lastSeen[session.Id] = target;
-            corrected++;
+            _controller.SetTitle(session.WindowHandle, title(session));
+            renamed++;
         }
 
-        return corrected;
+        return renamed;
     }
 
     /// <summary>Passe à l'instance suivante, en boucle.</summary>

@@ -34,6 +34,13 @@ public interface IWindowController
     /// <summary>Met une fenêtre au premier plan et lui donne le focus clavier.</summary>
     void Focus(nint handle);
 
+    /// <summary>
+    /// Change le titre d'une fenêtre. Le rappel du raccourci y figure, et doit
+    /// suivre une modification faite dans l'éditeur : scrcpy ne fixe son titre
+    /// qu'au démarrage.
+    /// </summary>
+    void SetTitle(nint handle, string title);
+
     /// <summary>Retire ou rétablit la bordure, pour le mode plein écran sans bordure.</summary>
     void SetBorderless(nint handle, bool borderless);
 

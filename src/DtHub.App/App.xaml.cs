@@ -41,12 +41,6 @@ public partial class App : Application, IDisposable
     private EventWaitHandle? _wake;
     private RegisteredWaitHandle? _wakeRegistration;
 
-    /// <summary>
-    /// Surveille la forme des fenêtres de jeu. Un intervalle court, mais la
-    /// correction n'a lieu qu'une fois la taille stable : on ne lutte pas
-    /// contre un redimensionnement en cours.
-    /// </summary>
-    private readonly DispatcherTimer _shape = new() { Interval = TimeSpan.FromMilliseconds(500) };
 
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -124,9 +118,6 @@ public partial class App : Application, IDisposable
         launcher.LastWindowClosed += (_, _) => Dispatcher.Invoke(OnLastWindowClosed);
 
         var report = await launcher.LaunchEnabledAsync().ConfigureAwait(true);
-
-        _shape.Tick += (_, _) => launcher.SnapToAspect();
-        _shape.Start();
 
         var document = await settings.GetAsync().ConfigureAwait(true);
 
