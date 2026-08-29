@@ -18,8 +18,11 @@ Xiaomi 13T, Android 16, profil principal « Alice Martin » et profil cloné
 | Détection du jeu sur les deux profils, activité résolue | DONE |
 | Reconnexion automatique après coupure | DONE |
 | Affichage des instances dans la fenêtre de mise en route | DONE |
-| Ouverture effective des fenêtres de jeu | IN PROGRESS (à essayer) |
-| Empilement, `Ctrl+Tab`, `Ctrl+P` en conditions réelles | TODO |
+| Ouverture effective des deux fenêtres de jeu | DONE |
+| Jeu affiché en plein écran virtuel, sans bande noire | DONE |
+| Superposition exacte, même position et même taille | DONE |
+| Ancrage du bloc de jeu et placement du configurateur | DONE |
+| `Ctrl+Tab` et `Ctrl+P` en conditions réelles | TODO |
 
 ## Noyau
 

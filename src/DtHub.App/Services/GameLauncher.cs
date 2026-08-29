@@ -222,6 +222,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         var options = await _settings.GetScrcpyOptionsAsync(cancellationToken).ConfigureAwait(false);
         var serials = await ResolveSerialsAsync(cancellationToken).ConfigureAwait(false);
 
+        // La position est donnée à scrcpy dès le lancement. Le faire après
+        // coup ne suffit pas : scrcpy recentre sa fenêtre quand il reçoit la
+        // première image, donc après notre placement.
+        var placement = ComputePlacement(options);
+
         List<string> problems = [];
         var opened = 0;
 
@@ -241,7 +246,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             }
 
             var session = await _sessions.StartAsync(
-                ToTarget(instance, serial), options, null, cancellationToken).ConfigureAwait(false);
+                ToTarget(instance, serial), options, placement, cancellationToken).ConfigureAwait(false);
 
             if (session.State == ScrcpySessionState.Failed)
             {
@@ -368,6 +373,29 @@ public sealed partial class GameLauncher : IAsyncDisposable
         await _sessions.DisposeAsync().ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Rectangle que toutes les fenêtres partageront. Calculé une fois : c'est
+    /// ce qui garantit leur superposition exacte.
+    /// </summary>
+    private ScrcpyWindowPlacement? ComputePlacement(ScrcpyOptions options)
+    {
+        var aspect = options.UseVirtualDisplay && options.VirtualDisplayHeight > 0
+            ? (double)options.VirtualDisplayWidth / options.VirtualDisplayHeight
+            : 0;
+
+        var rect = _windows.PreviewGameArea(aspect);
+
+        // Journalisé : la disposition dépend de l'écran et de sa mise à
+        // l'échelle, et un chiffre inattendu se voit tout de suite ici.
+        LogPlacement(
+            string.Join(", ", _windows.GetMonitors().Select(m => $"{m.DeviceName} {m.Bounds} utile {m.WorkArea}")),
+            rect?.ToString() ?? "aucun");
+
+        return rect is { } value
+            ? new ScrcpyWindowPlacement(value.X, value.Y, value.Width, value.Height)
+            : null;
+    }
+
     private static LaunchTarget ToTarget(DofusInstance instance, string serial) => new()
     {
         DeviceId = instance.DeviceId,
@@ -486,6 +514,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "Ouverture de {instance} refusée.{newLine}Commande : {commandLine}{newLine}Sortie de scrcpy :{newLine}{output}")]
     private partial void LogSessionFailure(string instance, string commandLine, string output, string newLine = "\n");
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Écrans : {monitors}. Fenêtres de jeu : {placement}.")]
+    private partial void LogPlacement(string monitors, string placement);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Un raccourci n'a pas pu être traité.")]
     private partial void LogHotkeyFailure(Exception exception);
