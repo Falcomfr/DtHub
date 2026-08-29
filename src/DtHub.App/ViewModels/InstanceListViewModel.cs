@@ -116,8 +116,6 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 Devices.Remove(stale);
             }
 
-            RefreshMoveFlags();
-
             OnPropertyChanged(nameof(HasNoConnectedDevice));
             OnPropertyChanged(nameof(HasConnectedDevice));
             OnPropertyChanged(nameof(EnabledCount));
@@ -132,53 +130,86 @@ public sealed partial class InstanceListViewModel : ObservableObject
         }
     }
 
-    /// <summary>
-    /// Recalcule quelles flèches ont encore un sens : rien à monter en tête de
-    /// liste, rien à descendre en queue.
-    /// </summary>
-    private void RefreshMoveFlags()
+    /// <summary>Efface tous les repères de dépôt.</summary>
+    public void ClearDropHints()
     {
-        for (var i = 0; i < Devices.Count; i++)
+        foreach (var device in Devices)
         {
-            Devices[i].CanMoveUp = i > 0;
-            Devices[i].CanMoveDown = i < Devices.Count - 1;
+            device.IsDragging = false;
+            device.DropAbove = false;
+            device.DropBelow = false;
 
-            for (var j = 0; j < Devices[i].Instances.Count; j++)
+            foreach (var row in device.Instances)
             {
-                Devices[i].Instances[j].CanMoveUp = j > 0;
-                Devices[i].Instances[j].CanMoveDown = j < Devices[i].Instances.Count - 1;
+                row.IsDragging = false;
+                row.DropAbove = false;
+                row.DropBelow = false;
             }
         }
     }
 
-    /// <summary>Déplace une instance dans son appareil et retient l'ordre.</summary>
-    [RelayCommand]
-    private Task MoveInstanceUpAsync(InstanceRowViewModel? row) => MoveInstanceAsync(row, -1);
+    /// <summary>
+    /// Marque l'endroit où le dépôt insérerait, au-dessus ou en dessous de
+    /// l'élément survolé. Un seul repère est visible à la fois.
+    /// </summary>
+    public void ShowDropHint(object onto, bool above)
+    {
+        ClearDropHints();
 
-    [RelayCommand]
-    private Task MoveInstanceDownAsync(InstanceRowViewModel? row) => MoveInstanceAsync(row, 1);
+        switch (onto)
+        {
+            case InstanceRowViewModel row:
+                row.DropAbove = above;
+                row.DropBelow = !above;
+                break;
 
-    [RelayCommand]
-    private Task MoveDeviceUpAsync(DeviceGroupViewModel? group) => MoveDeviceAsync(group, -1);
+            case DeviceGroupViewModel group:
+                group.DropAbove = above;
+                group.DropBelow = !above;
+                break;
 
-    [RelayCommand]
-    private Task MoveDeviceDownAsync(DeviceGroupViewModel? group) => MoveDeviceAsync(group, 1);
+            default:
+                break;
+        }
+    }
 
     /// <summary>
     /// Dépose un élément sur un autre. L'écart entre les deux positions donne
     /// le déplacement, ce qui couvre aussi bien le voisin immédiat qu'un saut
     /// de plusieurs rangs.
     /// </summary>
-    public Task ReorderAsync(object dragged, object onto) => (dragged, onto) switch
+    public Task ReorderAsync(object dragged, object onto, bool above) => (dragged, onto) switch
     {
         (InstanceRowViewModel source, InstanceRowViewModel target) =>
-            MoveInstanceAsync(source, IndexOf(target) - IndexOf(source)),
+            MoveInstanceAsync(source, Offset(IndexOf(source), IndexOf(target), above)),
 
         (DeviceGroupViewModel source, DeviceGroupViewModel target) =>
-            MoveDeviceAsync(source, Devices.IndexOf(target) - Devices.IndexOf(source)),
+            MoveDeviceAsync(source, Offset(Devices.IndexOf(source), Devices.IndexOf(target), above)),
 
         _ => Task.CompletedTask,
     };
+
+    /// <summary>
+    /// Déplacement à appliquer pour insérer juste avant ou juste après la
+    /// cible. Retirer l'élément de sa place décale d'un rang tout ce qui le
+    /// suivait, d'où la correction.
+    /// </summary>
+    private static int Offset(int from, int onto, bool above)
+    {
+        if (from < 0 || onto < 0)
+        {
+            return 0;
+        }
+
+        var destination = above ? onto : onto + 1;
+
+        if (from < destination)
+        {
+            destination--;
+        }
+
+        return destination - from;
+    }
 
     /// <summary>Position d'une instance dans son appareil, ou -1.</summary>
     private int IndexOf(InstanceRowViewModel row) =>
@@ -293,6 +324,20 @@ public sealed partial class InstanceListViewModel : ObservableObject
             }
 
             row.Update(instance, _launcher.IsOpen(instance));
+        }
+
+        // Les lignes déjà présentes ne bougeaient pas : l'ordre enregistré ne
+        // se voyait donc qu'au prochain démarrage.
+        for (var position = 0; position < instances.Count; position++)
+        {
+            var row = group.Instances.FirstOrDefault(
+                r => string.Equals(r.Key, instances[position].Key, StringComparison.Ordinal));
+
+            if (row is not null && group.Instances.IndexOf(row) is var current
+                && current != position && position < group.Instances.Count)
+            {
+                group.Instances.Move(current, position);
+            }
         }
 
         foreach (var stale in group.Instances

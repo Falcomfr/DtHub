@@ -17,4 +17,6 @@
   <conv:SameValueConverter x:Key="SameValue" />
   <conv:AnchorLabelConverter x:Key="AnchorLabel" />
 
+  <conv:DraggedOpacityConverter x:Key="DraggedOpacity" />
+
 </ResourceDictionary>

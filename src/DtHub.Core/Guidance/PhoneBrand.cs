@@ -27,6 +27,19 @@ public sealed record PhoneBrand
 
     /// <summary>Particularité de la marque, quand il y en a une.</summary>
     public string? Warning { get; init; }
+
+    /// <summary>
+    /// Nom que porte, sur cette surcouche, la fonction qui installe une
+    /// seconde copie d'une application. Chaque constructeur l'a nommée
+    /// autrement, et c'est ce nom qu'il faut chercher dans les menus.
+    /// </summary>
+    public required string CloneFeature { get; init; }
+
+    /// <summary>Chemin de menu menant à cette fonction.</summary>
+    public required string ClonePath { get; init; }
+
+    /// <summary>Ce qu'il faut savoir avant de s'y prendre sur cette marque.</summary>
+    public string? CloneNote { get; init; }
 }
 
 /// <summary>Marques connues, avec leurs chemins de menu.</summary>
@@ -40,6 +53,10 @@ public static class PhoneBrands
     public static readonly PhoneBrand Standard = new()
     {
         Name = "Google Pixel, Motorola, Nothing, Sony, autre",
+        CloneFeature = "Utilisateurs multiples",
+        ClonePath = "Paramètres  ›  Système  ›  Utilisateurs multiples",
+        CloneNote =
+            "Android sans surcouche n'a pas de fonction de duplication. La voie est d'ajouter un second utilisateur, puis d'y installer le jeu depuis le Play Store. DT Hub ouvre chaque profil sur son propre affichage, sans avoir à basculer de l'un à l'autre.",
         Manufacturers = ["google", "motorola", "lenovo", "nothing", "sony"],
         BuildNumberPath = "Paramètres  ›  À propos du téléphone",
         BuildNumberLabel = "Numéro de build",
@@ -55,6 +72,10 @@ public static class PhoneBrands
         new()
         {
             Name = "Xiaomi, Redmi, POCO",
+            CloneFeature = "Applications doubles",
+            ClonePath = "Paramètres  ›  Applications  ›  Applications doubles",
+            CloneNote =
+                "Cette marque propose aussi « Second espace », qui crée un espace complet plutôt qu'une simple copie. Les deux conviennent : DT Hub voit les instances dans les deux cas.",
             Manufacturers = ["xiaomi", "redmi", "poco"],
             BuildNumberPath = "Paramètres  ›  À propos du téléphone",
             BuildNumberLabel = "Version HyperOS, ou Version MIUI sur les modèles plus anciens",
@@ -68,6 +89,10 @@ public static class PhoneBrands
         new()
         {
             Name = "Samsung",
+            CloneFeature = "Dossier sécurisé",
+            ClonePath = "Paramètres  ›  Sécurité et confidentialité  ›  Dossier sécurisé",
+            CloneNote =
+                "« Dual Messenger » ne duplique que les applications de messagerie et ne convient donc pas pour un jeu. Le dossier sécurisé accepte n'importe quelle application, et demande un compte Samsung.",
             Manufacturers = ["samsung"],
             BuildNumberPath = "Paramètres  ›  À propos du téléphone  ›  Informations sur le logiciel",
             BuildNumberLabel = "Numéro de version",
@@ -76,6 +101,8 @@ public static class PhoneBrands
         new()
         {
             Name = "OnePlus, OPPO, realme",
+            CloneFeature = "Clonage d'applications",
+            ClonePath = "Paramètres  ›  Applications  ›  Clonage d'applications",
             Manufacturers = ["oneplus", "oppo", "realme"],
             BuildNumberPath = "Paramètres  ›  À propos de l'appareil  ›  Version",
             BuildNumberLabel = "Numéro de build, ou Numéro de version selon la version installée",
@@ -85,6 +112,10 @@ public static class PhoneBrands
         new()
         {
             Name = "Honor, Huawei",
+            CloneFeature = "Double instance d'application",
+            ClonePath = "Paramètres  ›  Applications  ›  Double instance d'application",
+            CloneNote =
+                "Sur les versions sans services Google, l'installation de la seconde copie peut demander de passer par la boutique du constructeur.",
             Manufacturers = ["honor", "huawei"],
             BuildNumberPath = "Paramètres  ›  À propos du téléphone",
             BuildNumberLabel = "Numéro de build",

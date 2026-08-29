@@ -40,13 +40,17 @@ public sealed partial class InstanceRowViewModel : ObservableObject
 
     public string Key => Instance.Key;
 
-    /// <summary>Faux pour la première instance de son appareil.</summary>
+    /// <summary>Vrai pour la ligne que l'on est en train de déplacer.</summary>
     [ObservableProperty]
-    private bool _canMoveUp;
+    private bool _isDragging;
 
-    /// <summary>Faux pour la dernière instance de son appareil.</summary>
+    /// <summary>Vrai quand un dépôt ici insérerait juste au-dessus.</summary>
     [ObservableProperty]
-    private bool _canMoveDown;
+    private bool _dropAbove;
+
+    /// <summary>Vrai quand un dépôt ici insérerait juste en dessous.</summary>
+    [ObservableProperty]
+    private bool _dropBelow;
 
     public string DeviceId => Instance.DeviceId;
 

@@ -27,13 +27,17 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
 
     public bool IsConnected => State == AdbDeviceState.Device;
 
-    /// <summary>Faux pour le premier appareil de la liste.</summary>
+    /// <summary>Vrai pour l'appareil que l'on est en train de déplacer.</summary>
     [ObservableProperty]
-    private bool _canMoveUp;
+    private bool _isDragging;
 
-    /// <summary>Faux pour le dernier appareil de la liste.</summary>
+    /// <summary>Vrai quand un dépôt ici insérerait juste au-dessus.</summary>
     [ObservableProperty]
-    private bool _canMoveDown;
+    private bool _dropAbove;
+
+    /// <summary>Vrai quand un dépôt ici insérerait juste en dessous.</summary>
+    [ObservableProperty]
+    private bool _dropBelow;
 
     public string StatusText => State switch
     {

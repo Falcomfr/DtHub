@@ -54,7 +54,7 @@ public partial class InstanceListControl : UserControl
             new PropertyMetadata(true));
 
     private Point _origin;
-    private object? _dragged;
+    private object? _pending;
 
     public InstanceListControl() => InitializeComponent();
 
@@ -79,25 +79,19 @@ public partial class InstanceListControl : UserControl
     private InstanceListViewModel? ViewModel => DataContext as InstanceListViewModel;
 
     /// <summary>
-    /// Retient le point de départ d'un éventuel glissé. Un appui dans une zone
-    /// de saisie ou sur un bouton n'en est pas un : renommer une instance doit
-    /// rester possible.
+    /// Retient le point de départ. Seule la poignée déclenche un glissé : une
+    /// ligne entière rendrait impossible la sélection de texte dans le champ
+    /// de renommage.
     /// </summary>
     private void OnDragSourcePressed(object sender, MouseButtonEventArgs e)
     {
-        if (!ShowOrdering || sender is not FrameworkElement source || IsInteractive(e.OriginalSource))
-        {
-            _dragged = null;
-            return;
-        }
-
+        _pending = ShowOrdering && sender is FrameworkElement handle ? handle.DataContext : null;
         _origin = e.GetPosition(this);
-        _dragged = source.DataContext;
     }
 
     private void OnDragSourceMoved(object sender, MouseEventArgs e)
     {
-        if (_dragged is null || e.LeftButton != MouseButtonState.Pressed)
+        if (_pending is null || e.LeftButton != MouseButtonState.Pressed || ViewModel is not { } model)
         {
             return;
         }
@@ -110,17 +104,13 @@ public partial class InstanceListControl : UserControl
             return;
         }
 
-        var payload = _dragged;
-        _dragged = null;
-
-        if (ViewModel is not { } model)
-        {
-            return;
-        }
+        var payload = _pending;
+        _pending = null;
 
         // Le balayage périodique reconstruit la liste : le suspendre évite
         // qu'une carte disparaisse sous le curseur en plein glissé.
         model.IsReordering = true;
+        Mark(payload, dragging: true);
 
         try
         {
@@ -129,32 +119,60 @@ public partial class InstanceListControl : UserControl
         finally
         {
             model.IsReordering = false;
+            model.ClearDropHints();
         }
     }
 
+    /// <summary>
+    /// Montre où l'élément se posera : un trait au-dessus ou en dessous de
+    /// celui que l'on survole, selon la moitié où se trouve le curseur.
+    /// </summary>
     private void OnDragOver(object sender, DragEventArgs e)
     {
-        e.Effects = Target(sender, e) is null ? DragDropEffects.None : DragDropEffects.Move;
         e.Handled = true;
+
+        if (Resolve(sender, e) is not { } move || ViewModel is not { } model)
+        {
+            e.Effects = DragDropEffects.None;
+            return;
+        }
+
+        e.Effects = DragDropEffects.Move;
+        model.ShowDropHint(move.Onto, IsUpperHalf(sender, e));
+    }
+
+    private void OnDragLeave(object sender, DragEventArgs e)
+    {
+        e.Handled = true;
+        ViewModel?.ClearDropHints();
     }
 
     private async void OnDrop(object sender, DragEventArgs e)
     {
         e.Handled = true;
 
-        if (Target(sender, e) is not { } move || ViewModel is not { } model)
+        var above = IsUpperHalf(sender, e);
+
+        if (Resolve(sender, e) is not { } move || ViewModel is not { } model)
         {
             return;
         }
 
-        await model.ReorderAsync(move.Dragged, move.Onto).ConfigureAwait(true);
+        model.ClearDropHints();
+
+        await model.ReorderAsync(move.Dragged, move.Onto, above).ConfigureAwait(true);
     }
+
+    /// <summary>Vrai si le curseur est dans la moitié haute de la cible.</summary>
+    private static bool IsUpperHalf(object sender, DragEventArgs e) =>
+        sender is FrameworkElement target
+        && e.GetPosition(target).Y < target.ActualHeight / 2;
 
     /// <summary>
     /// Couple valide de déplacement, ou <c>null</c> si le dépôt n'a pas de
     /// sens : une instance sur un appareil, ou un élément sur lui-même.
     /// </summary>
-    private static (object Dragged, object Onto)? Target(object sender, DragEventArgs e)
+    private static (object Dragged, object Onto)? Resolve(object sender, DragEventArgs e)
     {
         if (sender is not FrameworkElement target || target.DataContext is not { } onto)
         {
@@ -171,20 +189,20 @@ public partial class InstanceListControl : UserControl
             : null;
     }
 
-    /// <summary>
-    /// Vrai si l'élément visé réagit lui-même à la souris. Partir d'un champ
-    /// de texte doit sélectionner du texte, pas déplacer la ligne.
-    /// </summary>
-    private static bool IsInteractive(object? source)
+    private static void Mark(object item, bool dragging)
     {
-        for (var node = source as DependencyObject; node is not null; node = VisualTreeHelper.GetParent(node))
+        switch (item)
         {
-            if (node is TextBoxBase or ButtonBase or ToggleButton)
-            {
-                return true;
-            }
-        }
+            case InstanceRowViewModel row:
+                row.IsDragging = dragging;
+                break;
 
-        return false;
+            case DeviceGroupViewModel group:
+                group.IsDragging = dragging;
+                break;
+
+            default:
+                break;
+        }
     }
 }

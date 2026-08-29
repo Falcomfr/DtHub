@@ -99,6 +99,14 @@ public partial class ConfiguratorWindow : Window
 
     private void OnHide(object sender, RoutedEventArgs e) => Hide();
 
+    /// <summary>Explique comment obtenir une seconde installation du jeu.</summary>
+    private void OnCloneHelp(object sender, RoutedEventArgs e)
+    {
+        var help = AppHost.Services.GetRequiredService<CloneHelpWindow>();
+        help.Owner = this;
+        help.ShowDialog();
+    }
+
     /// <summary>Ouvre l'éditeur de raccourcis, puis relit ce qui a changé.</summary>
     private async void OnEditHotkeys(object sender, RoutedEventArgs e)
     {

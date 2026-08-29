@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 using DtHub.Core.Hotkeys;
 using DtHub.Core.Windows;
 
@@ -117,6 +119,12 @@ public sealed class StoredInstance
     /// </summary>
     public StoredWindowRect? Window { get; set; }
 
+    /// <summary>
+    /// Clé stable de l'instance. Exclue du fichier : elle se déduit des trois
+    /// champs qui la composent, et l'écrire n'ajouterait qu'une redondance
+    /// qu'une modification à la main pourrait contredire.
+    /// </summary>
+    [JsonIgnore]
     public string Key => $"{DeviceId}|{UserId}|{PackageName}";
 }
 
@@ -145,9 +153,11 @@ public sealed class StoredWindowRect
     public int MonitorHeight { get; set; }
 
     /// <summary>Rectangle extérieur de la fenêtre.</summary>
+    [JsonIgnore]
     public Windows.ScreenRect Bounds => new(X, Y, Width, Height);
 
     /// <summary>Bornes de l'écran au moment de la capture.</summary>
+    [JsonIgnore]
     public Windows.ScreenRect Monitor => new(MonitorX, MonitorY, MonitorWidth, MonitorHeight);
 
     public static StoredWindowRect From(Windows.ScreenRect rect, Windows.MonitorInfo monitor)

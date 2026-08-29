@@ -94,6 +94,8 @@ public static class AppServices
         services.AddTransient<AddDeviceWindow>();
         services.AddTransient<HelpViewModel>();
         services.AddTransient<HelpWindow>();
+        services.AddTransient<CloneHelpViewModel>();
+        services.AddTransient<CloneHelpWindow>();
         services.AddTransient<HotkeyEditorViewModel>();
         services.AddTransient<HotkeyEditorWindow>();
         services.AddSingleton<ConfiguratorViewModel>();

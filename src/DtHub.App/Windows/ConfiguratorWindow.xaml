@@ -142,25 +142,15 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>
-                        <RadioButton Style="{StaticResource AnchorCell}" GroupName="Anchor"
-                                     ToolTip="{Binding Converter={StaticResource AnchorLabel}}"
-                                     Command="{Binding DataContext.SetAnchorCommand,
-                                                       RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                     CommandParameter="{Binding}">
-                          <RadioButton.IsChecked>
-                            <MultiBinding Converter="{StaticResource SameValue}" Mode="OneWay">
-                              <Binding Path="DataContext.GameAnchor"
-                                       RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
-                              <Binding />
-                            </MultiBinding>
-                          </RadioButton.IsChecked>
-                        </RadioButton>
+                        <Button Style="{StaticResource AnchorCell}"
+                                ToolTip="{Binding Converter={StaticResource AnchorLabel}}"
+                                Command="{Binding DataContext.SetAnchorCommand,
+                                                  RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                CommandParameter="{Binding}" />
                       </DataTemplate>
                     </ItemsControl.ItemTemplate>
                   </ItemsControl>
 
-                  <TextBlock Style="{StaticResource Muted}" Margin="2,8,0,0"
-                             Text="{Binding GameAnchor, Converter={StaticResource AnchorLabel}}" />
                 </StackPanel>
               </Border>
 
@@ -223,6 +213,11 @@
                       Click="OnAddDevice" />
 
               <w:InstanceListControl DataContext="{Binding Instances}" />
+
+              <!-- Une seule ligne : le détail est dans la fenêtre d'aide. -->
+              <Button Content="Plusieurs comptes sur un même appareil ?"
+                      Style="{StaticResource QuietButton}" HorizontalAlignment="Left"
+                      Margin="-8,2,0,0" Click="OnCloneHelp" />
 
             </StackPanel>
 
