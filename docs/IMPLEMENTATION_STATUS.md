@@ -35,9 +35,11 @@ Dernière mise à jour : 2026-08-29
 
 | Élément | État |
 |---|---|
-| Modèles `AndroidDevice` | TODO |
-| `DeviceDiscoveryService` | TODO |
-| `getprop` (constructeur, modèle, version Android, SDK) | TODO |
+| Modèle `AndroidDevice` avec identité stable USB / Wi-Fi | DONE |
+| `DeviceDiscoveryService` (cache, déduplication, hors ligne) | DONE |
+| `getprop` avec replis par constructeur | DONE |
+| `DeviceRegistry` sur `devices.json` | DONE |
+| Persistance JSON tolérante à la corruption | DONE |
 
 ## Phase 4 - Appairage Wi-Fi
 
