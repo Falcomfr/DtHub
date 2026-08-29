@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 using DtHub.App.Services;
 using DtHub.Core.Adb;
@@ -106,6 +107,62 @@ public sealed partial class InstanceListViewModel : ObservableObject
         foreach (var row in Devices.SelectMany(d => d.Instances))
         {
             row.IsRunning = _launcher.IsOpen(row.Instance);
+        }
+    }
+
+    /// <summary>Ouvre une instance qui ne l'est pas encore.</summary>
+    [RelayCommand]
+    private Task LaunchInstanceAsync(InstanceRowViewModel? row) =>
+        ActOnAsync(row, instance => _launcher.LaunchAsync([instance]));
+
+    /// <summary>Ferme le jeu sur l'appareil puis le rouvre.</summary>
+    [RelayCommand]
+    private Task RestartAsync(InstanceRowViewModel? row) =>
+        ActOnAsync(row, instance => _launcher.RestartAsync(instance));
+
+    /// <summary>Ferme la fenêtre d'une instance.</summary>
+    [RelayCommand]
+    private Task StopAsync(InstanceRowViewModel? row) =>
+        ActOnAsync(row, async instance =>
+        {
+            await _launcher.StopAsync(instance).ConfigureAwait(true);
+            return new LaunchReport(0, []);
+        });
+
+    /// <summary>
+    /// Exécute une action sur une instance et en répercute le résultat sur la
+    /// liste. Le garde-fou est le même pour les trois boutons : ils parlent à
+    /// l'appareil, et deux actions concurrentes laisseraient l'état affiché en
+    /// désaccord avec les fenêtres réellement ouvertes.
+    /// </summary>
+    private async Task ActOnAsync(
+        InstanceRowViewModel? row,
+        Func<Core.Dofus.DofusInstance, Task<LaunchReport>> action)
+    {
+        if (row is null || IsBusy)
+        {
+            return;
+        }
+
+        IsBusy = true;
+
+        try
+        {
+            var report = await action(row.Instance).ConfigureAwait(true);
+
+            Problem = report.Problems.Count > 0 ? string.Join(" ", report.Problems) : null;
+        }
+        catch (AdbException exception)
+        {
+            Problem = exception.UserMessage;
+        }
+        finally
+        {
+            IsBusy = false;
+
+            // L'état est relu plutôt que déduit de l'action : une session peut
+            // s'être arrêtée d'elle-même entre-temps.
+            RefreshRunningState();
         }
     }
 

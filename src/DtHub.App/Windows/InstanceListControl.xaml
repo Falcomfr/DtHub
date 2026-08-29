@@ -54,15 +54,15 @@
                                    FontSize="11" Margin="2,3,0,0" />
                       </StackPanel>
 
+                      <!-- Les boutons disent à eux seuls l'état de l'instance :
+                           « Lancer » quand elle est fermée, « Relancer » et
+                           « Fermer » quand elle est ouverte. Un badge en plus
+                           n'apprendrait rien. -->
                       <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
-                                  Margin="10,0,0,0">
-                        <Border Style="{StaticResource StatusPill}" Margin="0,0,6,0"
-                                Background="{DynamicResource SuccessBrush}"
-                                Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}">
-                          <TextBlock Text="{Binding StatusText}" Foreground="White"
-                                     FontSize="10" FontWeight="SemiBold" />
-                        </Border>
-
+                                  Margin="10,0,0,0"
+                                  Visibility="{Binding ShowActions,
+                                                       RelativeSource={RelativeSource AncestorType=UserControl},
+                                                       Converter={StaticResource BoolToVisibility}}">
                         <Button Content="Lancer" Style="{StaticResource QuietButton}"
                                 ToolTip="Ouvrir cette instance maintenant"
                                 Visibility="{Binding IsRunning, Converter={StaticResource InverseBoolToVisibility}}"
