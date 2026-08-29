@@ -27,6 +27,14 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
 
     public bool IsConnected => State == AdbDeviceState.Device;
 
+    /// <summary>Faux pour le premier appareil de la liste.</summary>
+    [ObservableProperty]
+    private bool _canMoveUp;
+
+    /// <summary>Faux pour le dernier appareil de la liste.</summary>
+    [ObservableProperty]
+    private bool _canMoveDown;
+
     public string StatusText => State switch
     {
         AdbDeviceState.Device => Connection == AdbConnectionKind.Usb ? "Connecté en USB" : "Connecté en Wi-Fi",

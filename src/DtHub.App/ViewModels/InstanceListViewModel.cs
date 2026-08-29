@@ -35,6 +35,13 @@ public sealed partial class InstanceListViewModel : ObservableObject
     [ObservableProperty]
     private string? _problem;
 
+    /// <summary>
+    /// Vrai pendant un glisser-déposer. Le balayage périodique s'abstient
+    /// alors de reconstruire la liste, faute de quoi une carte disparaîtrait
+    /// sous le curseur.
+    /// </summary>
+    public bool IsReordering { get; set; }
+
     /// <summary>Vrai tant qu'aucun téléphone n'est joignable.</summary>
     public bool HasNoConnectedDevice => !Devices.Any(d => d.IsConnected);
 
@@ -47,7 +54,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// <summary>Balaye les téléphones et reconstruit la liste.</summary>
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
     {
-        if (IsBusy)
+        if (IsBusy || IsReordering)
         {
             return;
         }
@@ -68,13 +75,35 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 .Where(d => d.IsConnected)
                 .ToDictionary(d => d.Id, StringComparer.Ordinal);
 
-            foreach (var (id, device) in connected)
+            // L'ordre vient de la liste fusionnée, qui porte celui choisi par
+            // l'utilisateur. Parcourir le dictionnaire rendrait l'ordre
+            // indéterminé, et le réordonnancement invisible.
+            var ordered = instances
+                .Select(i => i.DeviceId)
+                .Where(connected.ContainsKey)
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+
+            ordered.AddRange(connected.Keys.Where(id => !ordered.Contains(id, StringComparer.Ordinal)));
+
+            for (var position = 0; position < ordered.Count; position++)
             {
+                var id = ordered[position];
+                var device = connected[id];
+
                 var view = Devices.FirstOrDefault(d => d.DeviceId == id);
                 if (view is null)
                 {
                     view = new DeviceGroupViewModel(id, device.DisplayName);
                     Devices.Add(view);
+                }
+
+                var current = Devices.IndexOf(view);
+                if (current != position && position < Devices.Count)
+                {
+                    // Déplacer plutôt que vider et reconstruire : un Clear
+                    // casserait un glisser-déposer en cours.
+                    Devices.Move(current, position);
                 }
 
                 view.Update(device);
@@ -87,6 +116,8 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 Devices.Remove(stale);
             }
 
+            RefreshMoveFlags();
+
             OnPropertyChanged(nameof(HasNoConnectedDevice));
             OnPropertyChanged(nameof(HasConnectedDevice));
             OnPropertyChanged(nameof(EnabledCount));
@@ -98,6 +129,84 @@ public sealed partial class InstanceListViewModel : ObservableObject
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    /// <summary>
+    /// Recalcule quelles flèches ont encore un sens : rien à monter en tête de
+    /// liste, rien à descendre en queue.
+    /// </summary>
+    private void RefreshMoveFlags()
+    {
+        for (var i = 0; i < Devices.Count; i++)
+        {
+            Devices[i].CanMoveUp = i > 0;
+            Devices[i].CanMoveDown = i < Devices.Count - 1;
+
+            for (var j = 0; j < Devices[i].Instances.Count; j++)
+            {
+                Devices[i].Instances[j].CanMoveUp = j > 0;
+                Devices[i].Instances[j].CanMoveDown = j < Devices[i].Instances.Count - 1;
+            }
+        }
+    }
+
+    /// <summary>Déplace une instance dans son appareil et retient l'ordre.</summary>
+    [RelayCommand]
+    private Task MoveInstanceUpAsync(InstanceRowViewModel? row) => MoveInstanceAsync(row, -1);
+
+    [RelayCommand]
+    private Task MoveInstanceDownAsync(InstanceRowViewModel? row) => MoveInstanceAsync(row, 1);
+
+    [RelayCommand]
+    private Task MoveDeviceUpAsync(DeviceGroupViewModel? group) => MoveDeviceAsync(group, -1);
+
+    [RelayCommand]
+    private Task MoveDeviceDownAsync(DeviceGroupViewModel? group) => MoveDeviceAsync(group, 1);
+
+    /// <summary>
+    /// Dépose un élément sur un autre. L'écart entre les deux positions donne
+    /// le déplacement, ce qui couvre aussi bien le voisin immédiat qu'un saut
+    /// de plusieurs rangs.
+    /// </summary>
+    public Task ReorderAsync(object dragged, object onto) => (dragged, onto) switch
+    {
+        (InstanceRowViewModel source, InstanceRowViewModel target) =>
+            MoveInstanceAsync(source, IndexOf(target) - IndexOf(source)),
+
+        (DeviceGroupViewModel source, DeviceGroupViewModel target) =>
+            MoveDeviceAsync(source, Devices.IndexOf(target) - Devices.IndexOf(source)),
+
+        _ => Task.CompletedTask,
+    };
+
+    /// <summary>Position d'une instance dans son appareil, ou -1.</summary>
+    private int IndexOf(InstanceRowViewModel row) =>
+        Devices.FirstOrDefault(d => d.Instances.Contains(row))?.Instances.IndexOf(row) ?? -1;
+
+    private async Task MoveInstanceAsync(InstanceRowViewModel? row, int offset)
+    {
+        if (row is null)
+        {
+            return;
+        }
+
+        if (await _settings.MoveInstanceAsync(row.Key, offset).ConfigureAwait(true))
+        {
+            await RefreshAsync().ConfigureAwait(true);
+        }
+    }
+
+    private async Task MoveDeviceAsync(DeviceGroupViewModel? group, int offset)
+    {
+        if (group is null)
+        {
+            return;
+        }
+
+        if (await _settings.MoveDeviceAsync(group.DeviceId, offset).ConfigureAwait(true))
+        {
+            await RefreshAsync().ConfigureAwait(true);
         }
     }
 

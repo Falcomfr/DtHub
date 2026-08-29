@@ -40,6 +40,14 @@ public sealed partial class InstanceRowViewModel : ObservableObject
 
     public string Key => Instance.Key;
 
+    /// <summary>Faux pour la première instance de son appareil.</summary>
+    [ObservableProperty]
+    private bool _canMoveUp;
+
+    /// <summary>Faux pour la dernière instance de son appareil.</summary>
+    [ObservableProperty]
+    private bool _canMoveDown;
+
     public string DeviceId => Instance.DeviceId;
 
     public bool IsDeviceConnected => Instance.IsDeviceConnected;

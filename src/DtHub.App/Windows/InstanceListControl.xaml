@@ -8,7 +8,10 @@
     <ItemsControl ItemsSource="{Binding Devices}">
       <ItemsControl.ItemTemplate>
         <DataTemplate>
-          <Border Style="{StaticResource Card}">
+          <Border Style="{StaticResource Card}" AllowDrop="True"
+                  PreviewMouseLeftButtonDown="OnDragSourcePressed"
+                  MouseMove="OnDragSourceMoved"
+                  DragOver="OnDragOver" Drop="OnDrop">
             <StackPanel>
 
               <Grid>
@@ -22,9 +25,32 @@
                   <TextBlock Text="{Binding StatusText}" Style="{StaticResource Muted}" />
                 </StackPanel>
 
-                <Border Grid.Column="1" Width="8" Height="8" CornerRadius="4" VerticalAlignment="Top"
-                        Margin="0,6,0,0"
-                        Background="{Binding StatusBrushKey, Converter={StaticResource KeyToBrush}}" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+                  <StackPanel Orientation="Horizontal" Margin="0,0,8,0"
+                              Visibility="{Binding ShowOrdering,
+                                                   RelativeSource={RelativeSource AncestorType=UserControl},
+                                                   Converter={StaticResource BoolToVisibility}}">
+                    <Button Style="{StaticResource MoveButton}" ToolTip="Placer cet appareil au-dessus"
+                            IsEnabled="{Binding CanMoveUp}"
+                            Command="{Binding DataContext.MoveDeviceUpCommand,
+                                              RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            CommandParameter="{Binding}">
+                      <Path Data="{StaticResource ChevronUp}" Stroke="{DynamicResource TextMutedBrush}"
+                            StrokeThickness="1.4" />
+                    </Button>
+                    <Button Style="{StaticResource MoveButton}" ToolTip="Placer cet appareil en dessous"
+                            IsEnabled="{Binding CanMoveDown}"
+                            Command="{Binding DataContext.MoveDeviceDownCommand,
+                                              RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            CommandParameter="{Binding}">
+                      <Path Data="{StaticResource ChevronDown}" Stroke="{DynamicResource TextMutedBrush}"
+                            StrokeThickness="1.4" />
+                    </Button>
+                  </StackPanel>
+
+                  <Border Width="8" Height="8" CornerRadius="4" Margin="0,6,0,0"
+                          Background="{Binding StatusBrushKey, Converter={StaticResource KeyToBrush}}" />
+                </StackPanel>
               </Grid>
 
               <!-- La consigne n'a de sens que là où les cases existent, donc
@@ -41,10 +67,14 @@
               <ItemsControl ItemsSource="{Binding Instances}" Margin="0,4,0,0">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
-                    <Grid Margin="0,5">
+                    <Grid Margin="0,5" Background="Transparent" AllowDrop="True"
+                          PreviewMouseLeftButtonDown="OnDragSourcePressed"
+                          MouseMove="OnDragSourceMoved"
+                          DragOver="OnDragOver" Drop="OnDrop">
                       <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                       </Grid.ColumnDefinitions>
 
@@ -67,7 +97,29 @@
                            « Lancer » quand elle est fermée, « Relancer » et
                            « Fermer » quand elle est ouverte. Un badge en plus
                            n'apprendrait rien. -->
-                      <Grid Grid.Column="2"
+                      <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
+                                  Visibility="{Binding ShowOrdering,
+                                                       RelativeSource={RelativeSource AncestorType=UserControl},
+                                                       Converter={StaticResource BoolToVisibility}}">
+                        <Button Style="{StaticResource MoveButton}" ToolTip="Placer cette instance au-dessus"
+                                IsEnabled="{Binding CanMoveUp}"
+                                Command="{Binding DataContext.MoveInstanceUpCommand,
+                                                  RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding}">
+                          <Path Data="{StaticResource ChevronUp}" Stroke="{DynamicResource TextMutedBrush}"
+                                StrokeThickness="1.4" />
+                        </Button>
+                        <Button Style="{StaticResource MoveButton}" ToolTip="Placer cette instance en dessous"
+                                IsEnabled="{Binding CanMoveDown}"
+                                Command="{Binding DataContext.MoveInstanceDownCommand,
+                                                  RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding}">
+                          <Path Data="{StaticResource ChevronDown}" Stroke="{DynamicResource TextMutedBrush}"
+                                StrokeThickness="1.4" />
+                        </Button>
+                      </StackPanel>
+
+                      <Grid Grid.Column="3"
                             Visibility="{Binding ShowActions,
                                                  RelativeSource={RelativeSource AncestorType=UserControl},
                                                  Converter={StaticResource BoolToVisibility}}">

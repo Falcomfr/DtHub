@@ -211,6 +211,16 @@
     <Setter Property="Margin" Value="0,10" />
   </Style>
 
+  <!-- Chevrons de réordonnancement. Dessinés, comme le reste : aucune police
+       d'icônes n'est employée dans ce dépôt. -->
+  <Geometry x:Key="ChevronUp">M 0 4 L 4 0 L 8 4</Geometry>
+  <Geometry x:Key="ChevronDown">M 0 0 L 4 4 L 8 0</Geometry>
+
+  <Style x:Key="MoveButton" TargetType="Button" BasedOn="{StaticResource QuietButton}">
+    <Setter Property="Padding" Value="5,3" />
+    <Setter Property="MinWidth" Value="0" />
+  </Style>
+
   <!-- Indicateur d'activité : un arc qui tourne. C'est la seule animation
        du dépôt, volontairement discrète, pour les quelques secondes que dure
        l'ouverture ou la relance d'une instance. -->
