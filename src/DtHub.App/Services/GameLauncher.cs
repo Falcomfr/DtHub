@@ -27,6 +27,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private readonly WindowManagerService _windows;
     private readonly DeviceDiscoveryService _devices;
     private readonly DeviceReconnectService _reconnect;
+    private readonly DevicePairingService _pairing;
     private readonly IDeviceRegistry _registry;
     private readonly DofusInstanceService _instances;
     private readonly SettingsService _settings;
@@ -41,6 +42,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         WindowManagerService windows,
         DeviceDiscoveryService devices,
         DeviceReconnectService reconnect,
+        DevicePairingService pairing,
         IDeviceRegistry registry,
         DofusInstanceService instances,
         SettingsService settings,
@@ -52,6 +54,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _windows = windows;
         _devices = devices;
         _reconnect = reconnect;
+        _pairing = pairing;
         _registry = registry;
         _instances = instances;
         _settings = settings;
@@ -104,7 +107,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Tente de reconnecter les téléphones déjà associés qui ne répondent pas.
+    /// Reconnecte tout ce qui peut l'être, sans intervention.
+    ///
+    /// Deux voies complémentaires. D'abord, tout ce qui s'annonce sur le
+    /// réseau : l'annonce porte le numéro de série et l'adresse du moment, et
+    /// ADB conserve la clé d'association, donc un changement d'adresse ou de
+    /// port ne gêne pas. Ensuite, les appareils mémorisés qui ne répondent
+    /// toujours pas, via leur dernière adresse connue.
+    ///
     /// Espacé dans le temps : inutile de sonder le réseau à chaque
     /// rafraîchissement de la liste.
     /// </summary>
@@ -119,26 +129,45 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         try
         {
-            var known = await _registry.GetKnownAsync(cancellationToken).ConfigureAwait(false);
-            if (known.Count == 0)
-            {
-                return;
-            }
-
             var live = await _devices.RefreshAsync(cancellationToken).ConfigureAwait(false);
-            var connected = live.Devices.Where(d => d.IsConnected).Select(d => d.Id).ToHashSet(StringComparer.Ordinal);
 
-            var missing = known.Where(d => !connected.Contains(d.Id)).ToList();
-            if (missing.Count == 0)
-            {
-                return;
-            }
+            var addresses = live.Devices
+                .Where(d => d.IsConnected)
+                .Select(d => d.Serial)
+                .ToHashSet(StringComparer.Ordinal);
 
-            var outcomes = await _reconnect.TryReconnectAllAsync(missing, cancellationToken)
+            // Une tentative sur une annonce n'aboutit que pour un téléphone
+            // déjà associé à ce PC : ADB refuse les autres.
+            var opened = await _pairing.ConnectAnnouncedAsync(addresses, cancellationToken)
                 .ConfigureAwait(false);
 
-            var recovered = outcomes.Count(o => o.Value is ReconnectOutcome.ReconnectedToLastAddress
-                                                or ReconnectOutcome.ReconnectedByDiscovery);
+            var recovered = opened.Count;
+
+            var known = await _registry.GetKnownAsync(cancellationToken).ConfigureAwait(false);
+
+            if (known.Count > 0)
+            {
+                if (recovered > 0)
+                {
+                    live = await _devices.RefreshAsync(cancellationToken).ConfigureAwait(false);
+                }
+
+                var connected = live.Devices
+                    .Where(d => d.IsConnected)
+                    .Select(d => d.Id)
+                    .ToHashSet(StringComparer.Ordinal);
+
+                var missing = known.Where(d => !connected.Contains(d.Id)).ToList();
+
+                if (missing.Count > 0)
+                {
+                    var outcomes = await _reconnect.TryReconnectAllAsync(missing, cancellationToken)
+                        .ConfigureAwait(false);
+
+                    recovered += outcomes.Count(o => o.Value is ReconnectOutcome.ReconnectedToLastAddress
+                                                     or ReconnectOutcome.ReconnectedByDiscovery);
+                }
+            }
 
             if (recovered > 0)
             {
@@ -152,7 +181,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
     }
 
-    private static readonly TimeSpan ReconnectInterval = TimeSpan.FromSeconds(8);
+    private static readonly TimeSpan ReconnectInterval = TimeSpan.FromSeconds(5);
 
     private DateTimeOffset _lastReconnectAttempt = DateTimeOffset.MinValue;
 

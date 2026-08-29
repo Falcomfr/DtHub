@@ -41,8 +41,8 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
       <StackPanel>
 
-        <Button Content="+  Ajouter un appareil" HorizontalAlignment="Left" Margin="0,0,0,12"
-                ToolTip="Connecter un téléphone, ou voir la marche à suivre"
+        <Button Content="+  Associer un nouveau téléphone" HorizontalAlignment="Left" Margin="0,0,0,12"
+                ToolTip="À faire une seule fois par téléphone. Les téléphones déjà associés se connectent tout seuls."
                 Click="OnAddDevice" />
 
         <w:InstanceListControl DataContext="{Binding Instances}" />

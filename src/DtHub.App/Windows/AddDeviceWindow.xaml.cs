@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Threading;
 
 using DtHub.App.ViewModels;
@@ -6,14 +7,14 @@ using DtHub.App.ViewModels;
 namespace DtHub.App.Windows;
 
 /// <summary>
-/// Fenêtre d'ajout d'un appareil. Elle se rafraîchit toute seule et tente les
-/// connexions d'office : dans le cas courant, l'utilisateur n'a rien à faire
-/// d'autre que la regarder trouver son téléphone.
+/// Fenêtre d'association d'un téléphone neuf. Elle surveille le réseau : le
+/// téléphone apparaît dès que l'écran d'association est ouvert, sans rien
+/// saisir d'autre que le code.
 /// </summary>
 public partial class AddDeviceWindow : Window
 {
     private readonly AddDeviceViewModel _viewModel;
-    private readonly DispatcherTimer _poll = new() { Interval = TimeSpan.FromSeconds(3) };
+    private readonly DispatcherTimer _poll = new() { Interval = TimeSpan.FromSeconds(2) };
 
     public AddDeviceWindow(AddDeviceViewModel viewModel)
     {
@@ -24,6 +25,7 @@ public partial class AddDeviceWindow : Window
 
         Loaded += async (_, _) =>
         {
+            await _viewModel.InitializeAsync(CancellationToken.None).ConfigureAwait(true);
             await _viewModel.ScanAsync(CancellationToken.None).ConfigureAwait(true);
             _poll.Start();
         };
@@ -34,14 +36,14 @@ public partial class AddDeviceWindow : Window
     private void OnClose(object sender, RoutedEventArgs e) => Close();
 
     /// <summary>
-    /// Retient le téléphone choisi pour l'association. Un bouton radio dans un
-    /// modèle de données n'expose pas directement son élément à la vue-modèle.
+    /// Retient le téléphone choisi. Un bouton radio dans un modèle de données
+    /// n'expose pas directement son élément à la vue-modèle.
     /// </summary>
-    private void OnPairableChecked(object sender, RoutedEventArgs e)
+    private void OnCandidateChecked(object sender, RoutedEventArgs e)
     {
-        if (sender is System.Windows.Controls.RadioButton { DataContext: DeviceEntryViewModel entry })
+        if (sender is RadioButton { DataContext: PairingCandidateViewModel candidate })
         {
-            _viewModel.SelectedPairable = entry;
+            _viewModel.SelectedCandidate = candidate;
         }
     }
 

@@ -1,8 +1,8 @@
 <Window x:Class="DtHub.App.Windows.AddDeviceWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Ajouter un appareil"
-        Width="580" Height="640" MinWidth="520" MinHeight="440"
+        Title="Associer un nouveau téléphone"
+        Width="600" Height="680" MinWidth="540" MinHeight="460"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource SurfaceAltBrush}"
         TextOptions.TextFormattingMode="Display">
@@ -10,9 +10,11 @@
   <DockPanel Margin="20">
 
     <StackPanel DockPanel.Dock="Top" Margin="0,0,0,14">
-      <TextBlock Text="Ajouter un appareil" Style="{StaticResource Title}" />
+      <TextBlock Text="Associer un nouveau téléphone" Style="{StaticResource Title}" />
       <TextBlock Style="{StaticResource Muted}" Margin="0,6,0,0"
-                 Text="Seuls les téléphones Android conviennent. Un iPhone ne peut pas être utilisé : iOS ne permet ni d'ouvrir un écran supplémentaire, ni d'y installer deux fois la même application." />
+                 Text="À faire une seule fois par téléphone. Ensuite il se connectera tout seul, même si son adresse change." />
+      <TextBlock Style="{StaticResource Muted}" Margin="0,4,0,0"
+                 Text="Seuls les téléphones Android conviennent : iOS ne permet ni d'ouvrir un écran supplémentaire, ni d'installer deux fois la même application." />
     </StackPanel>
 
     <Border DockPanel.Dock="Bottom" Margin="0,14,0,0">
@@ -22,80 +24,68 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
       <StackPanel>
 
-        <!-- Tous les appareils, connectés ou non, en un clic -->
+        <!-- Marque : elle change les chemins de menu -->
         <Border Style="{StaticResource Card}">
           <StackPanel>
-            <TextBlock Text="APPAREILS" Style="{StaticResource SectionLabel}" />
-
+            <TextBlock Text="MARQUE DU TÉLÉPHONE" Style="{StaticResource SectionLabel}" />
             <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,10"
-                       Text="Branchez un câble USB et le téléphone apparaît tout seul. Un téléphone déjà associé se reconnecte sans rien saisir." />
-
-            <ItemsControl ItemsSource="{Binding Devices}">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <Grid Margin="0,5">
-                    <Grid.ColumnDefinitions>
-                      <ColumnDefinition Width="Auto" />
-                      <ColumnDefinition Width="*" />
-                      <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-
-                    <Border Grid.Column="0" Width="8" Height="8" CornerRadius="4" Margin="0,0,10,0"
-                            VerticalAlignment="Center">
-                      <Border.Style>
-                        <Style TargetType="Border">
-                          <Setter Property="Background" Value="{DynamicResource TextMutedBrush}" />
-                          <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsConnected}" Value="True">
-                              <Setter Property="Background" Value="{DynamicResource SuccessBrush}" />
-                            </DataTrigger>
-                          </Style.Triggers>
-                        </Style>
-                      </Border.Style>
-                    </Border>
-
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
-                      <TextBlock Style="{StaticResource Muted}" FontSize="11">
-                        <Run Text="{Binding StatusText, Mode=OneWay}" />
-                        <Run Text="  ·  " />
-                        <Run Text="{Binding Detail, Mode=OneWay}" />
-                      </TextBlock>
-                    </StackPanel>
-
-                    <Button Grid.Column="2" Content="Connecter" Style="{StaticResource PrimaryButton}"
-                            IsEnabled="{Binding CanConnect}"
-                            Visibility="{Binding IsConnected, Converter={StaticResource InverseBoolToVisibility}}"
-                            Command="{Binding DataContext.ConnectCommand,
-                                              RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                            CommandParameter="{Binding}" />
-                  </Grid>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-
-            <TextBlock Style="{StaticResource Muted}"
-                       Text="Aucun appareil pour l'instant. Branchez un câble, ou associez un téléphone en Wi-Fi ci-dessous."
-                       Visibility="{Binding Devices.Count, Converter={StaticResource EmptyToVisibility}}" />
+                       Text="Les menus ne portent pas le même nom d'une marque à l'autre. Choisissez la vôtre pour avoir le bon chemin." />
+            <ComboBox ItemsSource="{Binding Brands}" SelectedItem="{Binding Brand}"
+                      DisplayMemberPath="Name" />
           </StackPanel>
         </Border>
 
-        <!-- Première association sans fil -->
+        <!-- Marche à suivre, adaptée -->
         <Border Style="{StaticResource Card}">
           <StackPanel>
-            <TextBlock Text="PREMIÈRE ASSOCIATION SANS FIL" Style="{StaticResource SectionLabel}" />
+            <TextBlock Text="SUR LE TÉLÉPHONE" Style="{StaticResource SectionLabel}" />
 
-            <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,10"
-                       Text="À faire une seule fois par téléphone. Ensuite il se reconnecte tout seul." />
+            <TextBlock FontWeight="SemiBold" Margin="0,0,0,4"
+                       Text="1. Débloquer les options pour les développeurs" />
+            <TextBlock Text="{Binding Brand.BuildNumberPath}" Style="{StaticResource Muted}" Margin="0,0,0,3" />
+            <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,12" TextWrapping="Wrap">
+              <Run Text="Appuyez sept fois de suite sur «" />
+              <Run Text="{Binding Brand.BuildNumberLabel, Mode=OneWay}" FontWeight="SemiBold" />
+              <Run Text="». Un message confirme que vous êtes développeur." />
+            </TextBlock>
 
-            <ItemsControl ItemsSource="{Binding Pairable}" Margin="0,0,0,10">
+            <TextBlock FontWeight="SemiBold" Margin="0,0,0,4"
+                       Text="2. Ouvrir les options pour les développeurs" />
+            <TextBlock Text="{Binding Brand.DeveloperOptionsPath}" Style="{StaticResource Muted}" Margin="0,0,0,3" />
+            <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,12"
+                       Text="Activez « Débogage USB » et « Débogage sans fil »." />
+
+            <Border Background="{DynamicResource SurfaceAltBrush}" CornerRadius="6" Padding="10" Margin="0,0,0,12"
+                    Visibility="{Binding HasWarning, Converter={StaticResource BoolToVisibility}}">
+              <TextBlock Text="{Binding Brand.Warning}" Style="{StaticResource Muted}"
+                         Foreground="{DynamicResource WarningBrush}" />
+            </Border>
+
+            <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="3. Par câble, le plus simple" />
+            <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,12"
+                       Text="Branchez le câble et acceptez la demande affichée sur le téléphone. Il apparaît dans la fenêtre précédente tout seul, il n'y a rien à faire ici." />
+
+            <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="4. Sans fil, la première fois" />
+            <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,3"
+                       Text="Débogage sans fil  ›  Associer l'appareil avec un code d'association" />
+            <TextBlock Style="{StaticResource Muted}"
+                       Text="Le téléphone affiche un code à six chiffres et apparaît ci-dessous. Le téléphone et le PC doivent être sur le même réseau Wi-Fi, et Android 11 au minimum." />
+          </StackPanel>
+        </Border>
+
+        <!-- Association -->
+        <Border Style="{StaticResource Card}">
+          <StackPanel>
+            <TextBlock Text="TÉLÉPHONE À ASSOCIER" Style="{StaticResource SectionLabel}" />
+
+            <ItemsControl ItemsSource="{Binding Candidates}" Margin="0,0,0,10">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <RadioButton GroupName="Pairable" Margin="0,3" Foreground="{DynamicResource TextBrush}"
-                               Checked="OnPairableChecked">
+                  <RadioButton GroupName="Candidate" Margin="0,3" Foreground="{DynamicResource TextBrush}"
+                               Checked="OnCandidateChecked">
                     <StackPanel>
-                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
-                      <TextBlock Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="11" />
+                      <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                      <TextBlock Text="{Binding Address}" Style="{StaticResource Muted}" FontSize="11" />
                     </StackPanel>
                   </RadioButton>
                 </DataTemplate>
@@ -103,14 +93,14 @@
             </ItemsControl>
 
             <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,10"
-                       Text="Aucun téléphone n'affiche de code. Sur le téléphone, ouvrez « Associer l'appareil avec un code d'association » : il apparaîtra ici tout seul."
-                       Visibility="{Binding Pairable.Count, Converter={StaticResource EmptyToVisibility}}" />
+                       Text="En attente. Ouvrez « Associer l'appareil avec un code d'association » sur le téléphone : il apparaîtra ici tout seul, sans rien saisir."
+                       Visibility="{Binding Candidates.Count, Converter={StaticResource EmptyToVisibility}}" />
 
             <StackPanel Orientation="Horizontal"
-                        Visibility="{Binding Pairable.Count, Converter={StaticResource EmptyToVisibility},
+                        Visibility="{Binding Candidates.Count, Converter={StaticResource EmptyToVisibility},
                                              ConverterParameter=inverse}">
               <TextBox Text="{Binding PairingCode, UpdateSourceTrigger=PropertyChanged}"
-                       Width="140" Margin="0,0,8,0"
+                       Width="150" Margin="0,0,8,0" FontSize="15"
                        ToolTip="Le code à six chiffres affiché sur le téléphone" />
               <Button Content="Associer" Style="{StaticResource PrimaryButton}"
                       Command="{Binding PairCommand}" IsEnabled="{Binding CanPair}" />
@@ -119,48 +109,6 @@
             <TextBlock Text="{Binding Status}" Style="{StaticResource Muted}" Margin="0,10,0,0"
                        Visibility="{Binding Status, Converter={StaticResource EmptyToVisibility},
                                             ConverterParameter=inverse}" />
-          </StackPanel>
-        </Border>
-
-        <!-- Marche à suivre, à la demande -->
-        <Button HorizontalAlignment="Left" Margin="0,0,0,10"
-                Content="Je ne sais pas où trouver ces réglages"
-                Command="{Binding ToggleStepsCommand}" />
-
-        <Border Style="{StaticResource Card}"
-                Visibility="{Binding ShowSteps, Converter={StaticResource BoolToVisibility}}">
-          <StackPanel>
-            <TextBlock Text="MARCHE À SUIVRE SUR LE TÉLÉPHONE" Style="{StaticResource SectionLabel}" />
-
-            <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="1. Débloquer les options pour les développeurs" />
-            <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,3"
-                       Text="Paramètres  ›  À propos du téléphone" />
-            <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,3"
-                       Text="Appuyez sept fois de suite sur « Numéro de build ». Sur Xiaomi et HyperOS, la ligne s'appelle « Version HyperOS » ou « Version MIUI »." />
-            <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,12"
-                       Text="Un message confirme que vous êtes développeur." />
-
-            <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="2. Ouvrir les options pour les développeurs" />
-            <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,3"
-                       Text="Android standard :  Paramètres  ›  Système  ›  Options pour les développeurs" />
-            <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,3"
-                       Text="Xiaomi et HyperOS :  Paramètres  ›  Paramètres supplémentaires  ›  Options pour les développeurs" />
-            <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,3"
-                       Text="Samsung :  Paramètres  ›  Options de développement" />
-            <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,12"
-                       Text="Activez « Débogage USB » et « Débogage sans fil »." />
-
-            <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="3. Par câble, le plus simple" />
-            <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,12"
-                       Text="Branchez le câble et acceptez la demande affichée sur le téléphone. Il apparaît ici tout seul, il n'y a rien d'autre à faire." />
-
-            <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="4. Sans fil, la première fois" />
-            <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,3"
-                       Text="Options pour les développeurs  ›  Débogage sans fil  ›  Associer l'appareil avec un code d'association" />
-            <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,3"
-                       Text="Le téléphone affiche un code à six chiffres et apparaît ci-dessus. Choisissez-le, saisissez le code, c'est fini." />
-            <TextBlock Style="{StaticResource Muted}"
-                       Text="Le téléphone et le PC doivent être sur le même réseau Wi-Fi. Le débogage sans fil demande Android 11 ou plus récent." />
           </StackPanel>
         </Border>
 
