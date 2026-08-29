@@ -16,17 +16,20 @@ Dernière mise à jour : 2026-08-29
 | `.editorconfig` / `.gitattributes` | DONE | |
 | Build vert | DONE | 0 avertissement, 0 erreur |
 | Tests verts | DONE | 2 tests |
-| Git initialisé + premier commit | IN PROGRESS | |
-| AGENTS.md / README.md | IN PROGRESS | |
+| Git initialisé + premier commit | DONE | |
+| AGENTS.md / README.md | DONE | + DECISIONS.md, ROADMAP.md, notices tierces |
 
 ## Phase 2 - Exécution de processus et ADB
 
 | Élément | État |
 |---|---|
-| `IProcessRunner` + implémentation | TODO |
-| `AdbService` (start, devices, shell, timeout, annulation) | TODO |
-| Parseurs `adb devices` / `devices -l` | TODO |
-| Tests de parsing | TODO |
+| `IProcessRunner` + implémentation | DONE |
+| `AdbClient` (start, devices, shell, timeout, annulation) | DONE |
+| Parseurs `adb devices` / `devices -l` / `getprop` | DONE |
+| Classification et traduction des erreurs ADB | DONE |
+| Manifeste de dépendances + téléchargement vérifié d'ADB | DONE |
+| `AppPaths` sous `%LOCALAPPDATA%` | DONE |
+| Tests (76 au total, aucun ne requiert de téléphone) | DONE |
 
 ## Phase 3 - Découverte des appareils
 

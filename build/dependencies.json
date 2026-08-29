@@ -1,0 +1,25 @@
+{
+  "comment": [
+    "Source de vérité unique des composants tiers téléchargés par DT Hub.",
+    "Toute URL utilisée à l'exécution ou par la CI doit figurer ici.",
+    "Les empreintes sont vérifiées avant extraction ; une URL versionnée est",
+    "immuable, ce qui rend l'empreinte stable.",
+    "Voir THIRD-PARTY-NOTICES.md pour les licences et le mode de distribution."
+  ],
+  "dependencies": {
+    "platform-tools": {
+      "displayName": "Android SDK Platform-Tools",
+      "version": "37.0.1",
+      "url": "https://dl.google.com/android/repository/platform-tools_r37.0.1-win.zip",
+      "sizeBytes": 8044989,
+      "sha256": "45f4d63113e895ebde0c90f194099a4676b6ac653bd28d54314a9e022bbc1a99",
+      "sha1": "e03e78b1d80b396f1c3358e31251cb31740e1110",
+      "archiveRootDirectory": "platform-tools",
+      "executable": "adb.exe",
+      "license": "Android Software Development Kit License Agreement",
+      "licenseUrl": "https://developer.android.com/studio/terms",
+      "redistributable": false,
+      "redistributionNote": "Le contrat de licence du SDK Android interdit la redistribution. Le composant est téléchargé chez l'utilisateur depuis l'URL officielle Google, jamais embarqué dans l'installateur."
+    }
+  }
+}

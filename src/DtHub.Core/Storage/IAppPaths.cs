@@ -1,0 +1,27 @@
+namespace DtHub.Core.Storage;
+
+/// <summary>
+/// Emplacements des données de l'utilisateur. Tout est regroupé sous un seul
+/// dossier pour qu'une désinstallation propre reste simple à expliquer.
+/// </summary>
+public interface IAppPaths
+{
+    /// <summary><c>%LOCALAPPDATA%\&lt;Slug&gt;</c>.</summary>
+    string Root { get; }
+
+    string SettingsFile { get; }
+    string DevicesFile { get; }
+    string ProfilesFile { get; }
+
+    /// <summary>Métadonnées et icônes d'applications mises en cache.</summary>
+    string CacheDirectory { get; }
+
+    /// <summary>Journaux avec rotation.</summary>
+    string LogsDirectory { get; }
+
+    /// <summary>Composants tiers téléchargés, un sous-dossier par version.</summary>
+    string ToolsDirectory { get; }
+
+    /// <summary>Crée les dossiers manquants. Idempotent.</summary>
+    void EnsureCreated();
+}

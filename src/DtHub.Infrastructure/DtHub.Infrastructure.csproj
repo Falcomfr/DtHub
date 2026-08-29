@@ -14,4 +14,10 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Le manifeste de dépendances est embarqué : la CI et l'exécution
+         partagent exactement le même fichier. -->
+    <EmbeddedResource Include="..\..\build\dependencies.json" LogicalName="DtHub.Infrastructure.dependencies.json" />
+  </ItemGroup>
+
 </Project>
