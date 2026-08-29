@@ -27,6 +27,7 @@ public partial class App : Application
 {
     private IHost? _host;
     private ConfiguratorWindow? _configurator;
+    private bool _quitting;
 
     /// <summary>
     /// Surveille la forme des fenêtres de jeu. Un intervalle court, mais la
@@ -100,6 +101,7 @@ public partial class App : Application
         launcher.OwnsWindow = handle => _configurator is not null && handle == _configurator.Handle;
         launcher.ConfiguratorToggleRequested += (_, _) => Dispatcher.Invoke(ToggleConfigurator);
         launcher.QuitRequested += (_, _) => Dispatcher.Invoke(async () => await RequestQuitAsync().ConfigureAwait(true));
+        launcher.LastWindowClosed += (_, _) => Dispatcher.Invoke(OnLastWindowClosed);
 
         var report = await launcher.LaunchEnabledAsync().ConfigureAwait(true);
 
@@ -197,6 +199,30 @@ public partial class App : Application
             // Un ramassage impossible ne doit pas empêcher de démarrer.
             Log.Warning(exception, "Le ménage des fenêtres restantes a échoué.");
         }
+    }
+
+    /// <summary>
+    /// Ferme l'application quand la dernière fenêtre de jeu disparaît sans que
+    /// le configurateur soit à l'écran.
+    ///
+    /// Il ne resterait sinon rien de visible, et les raccourcis ne répondent
+    /// pas quand aucune de nos fenêtres n'est au premier plan : l'application
+    /// serait injoignable autrement que par le gestionnaire des tâches. Rien
+    /// n'est enregistré au passage : fermer une fenêtre à la main ne change
+    /// pas ce qui doit rouvrir au lancement suivant.
+    /// </summary>
+    private void OnLastWindowClosed()
+    {
+        // Deux sessions qui meurent ensemble signalent chacune la dernière.
+        if (_quitting || _configurator?.IsVisible == true)
+        {
+            return;
+        }
+
+        _quitting = true;
+
+        Log.Information("Dernière fenêtre de jeu fermée, configurateur masqué : arrêt.");
+        Shutdown();
     }
 
     private void ToggleConfigurator()

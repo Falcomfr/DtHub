@@ -86,6 +86,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
             session.State.ToString(),
             session.FailureMessage ?? "aucun message",
             string.Join(Environment.NewLine, session.RecentOutput));
+
+        if (_sessions.ActiveSessions.Count == 0)
+        {
+            LastWindowClosed?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     /// <summary>Sessions actuellement ouvertes.</summary>
@@ -106,6 +111,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// l'application, qui doit d'abord retenir l'état de la session.
     /// </summary>
     public event EventHandler? QuitRequested;
+
+    /// <summary>
+    /// Signalé quand la dernière fenêtre de jeu se ferme d'elle-même. Les
+    /// fermetures voulues par l'application n'en font pas partie.
+    /// </summary>
+    public event EventHandler? LastWindowClosed;
 
     /// <summary>
     /// Balaye les téléphones et rend les instances connues, à jour. Les
@@ -333,8 +344,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
         var existing = FindSession(instance);
         if (existing is not null)
         {
-            await _sessions.StopAsync(existing.Id, cancellationToken).ConfigureAwait(false);
-            _sessions.PruneFinished();
+            // Une relance repasse par zéro session ouverte : sans ce drapeau,
+            // relancer le dernier compte fermerait l'application.
+            _closing = true;
+
+            try
+            {
+                await _sessions.StopAsync(existing.Id, cancellationToken).ConfigureAwait(false);
+                _sessions.PruneFinished();
+            }
+            finally
+            {
+                _closing = false;
+            }
         }
 
         var serials = await ResolveSerialsAsync(cancellationToken).ConfigureAwait(false);
