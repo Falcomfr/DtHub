@@ -374,11 +374,33 @@ public sealed partial class GameLauncher : IAsyncDisposable
         return moved;
     }
 
+    /// <summary>Applique la taille posée au curseur et la retient.</summary>
+    public async Task<int> ApplyPercentAsync(int percent, CancellationToken cancellationToken = default)
+    {
+        await ApplyWindowSettingsAsync(cancellationToken).ConfigureAwait(false);
+        await _settings.SaveCustomSizePercentAsync(percent, cancellationToken).ConfigureAwait(false);
+
+        var moved = await _windows
+            .ApplyPercentAsync(_sessions.ActiveSessions, percent, cancellationToken)
+            .ConfigureAwait(false);
+
+        await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+
+        return moved;
+    }
+
     /// <summary>Applique une taille à toutes les fenêtres et la retient.</summary>
     public async Task<int> ApplySizeAsync(int sizeIndex, CancellationToken cancellationToken = default)
     {
         await ApplyWindowSettingsAsync(cancellationToken).ConfigureAwait(false);
-        await _settings.UpdateAsync(s => s.SizeIndex = sizeIndex, cancellationToken).ConfigureAwait(false);
+
+        await _settings.UpdateAsync(
+            s =>
+            {
+                s.SizeIndex = sizeIndex;
+                s.CustomSizePercent = 0;
+            },
+            cancellationToken).ConfigureAwait(false);
 
         var moved = await _windows
             .ApplySizeAsync(_sessions.ActiveSessions, sizeIndex, cancellationToken)
@@ -509,7 +531,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _windows.Presets = await _settings.GetSizePresetsAsync(cancellationToken).ConfigureAwait(false);
         _windows.PreferredMonitorDeviceName = settings.PreferredMonitorDeviceName;
 
+        // La liste vide ne sert qu'à replacer l'état de taille sans toucher
+        // aux fenêtres, qui seront placées ensuite.
         await _windows.ApplySizeAsync([], settings.SizeIndex, cancellationToken).ConfigureAwait(false);
+
+        if (settings.CustomSizePercent > 0)
+        {
+            await _windows.ApplyPercentAsync([], settings.CustomSizePercent, cancellationToken)
+                .ConfigureAwait(false);
+        }
     }
 
     private async Task EnsureHotkeysAsync(CancellationToken cancellationToken)

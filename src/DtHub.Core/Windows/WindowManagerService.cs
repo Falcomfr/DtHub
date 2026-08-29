@@ -32,11 +32,19 @@ public sealed class WindowManagerService
     /// <summary>Taille en cours, par son indice dans les tailles configurées.</summary>
     public int SizeIndex { get; private set; } = 1;
 
+    /// <summary>
+    /// Taille choisie librement au curseur, en pourcentage de la zone
+    /// utilisable. Elle l'emporte sur l'indice tant qu'un raccourci de taille
+    /// n'a pas été employé : le curseur est une valeur continue, les
+    /// raccourcis quatre repères sur cette même échelle.
+    /// </summary>
+    public int? CustomSizePercent { get; private set; }
+
     /// <summary>Taille en cours, en pourcentage de la zone utilisable.</summary>
-    public int SizePercent => Presets.PercentageAt(SizeIndex);
+    public int SizePercent => CustomSizePercent ?? Presets.PercentageAt(SizeIndex);
 
     /// <summary>Vrai si la taille en cours est le plein écran sans bordure.</summary>
-    public bool IsFullscreen => Presets.IsFullscreen(SizeIndex);
+    public bool IsFullscreen => CustomSizePercent is null && Presets.IsFullscreen(SizeIndex);
 
     /// <summary>Écran choisi dans les réglages, <c>null</c> pour l'écran principal.</summary>
     public string? PreferredMonitorDeviceName { get; set; }
@@ -132,6 +140,9 @@ public sealed class WindowManagerService
         CancellationToken cancellationToken = default)
     {
         SizeIndex = Math.Clamp(sizeIndex, 0, Math.Max(0, Presets.Count - 1));
+
+        // Un raccourci de taille reprend la main sur le curseur.
+        CustomSizePercent = null;
 
         return ArrangeAsync(sessions, cancellationToken);
     }
@@ -338,6 +349,19 @@ public sealed class WindowManagerService
         }
 
         return Compute(monitor, session.SourceAspectRatio, chrome);
+    }
+
+    /// <summary>
+    /// Applique une taille libre, celle du curseur, et replace les fenêtres.
+    /// </summary>
+    public Task<int> ApplyPercentAsync(
+        IReadOnlyList<ScrcpySession> sessions,
+        int percent,
+        CancellationToken cancellationToken = default)
+    {
+        CustomSizePercent = Math.Clamp(percent, 20, 100);
+
+        return ArrangeAsync(sessions, cancellationToken);
     }
 
     /// <summary>Passe à l'instance suivante, en boucle.</summary>

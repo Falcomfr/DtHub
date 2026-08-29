@@ -50,11 +50,12 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [ObservableProperty]
     private WindowAnchor _gameAnchor = WindowAnchor.MiddleLeft;
 
-    /// <summary>Tailles proposées, proportionnelles à l'écran.</summary>
-    public ObservableCollection<SizeChoiceViewModel> Sizes { get; } = [];
-
+    /// <summary>
+    /// Taille des fenêtres, en pourcentage de la zone utilisable de l'écran.
+    /// Elle est donc proportionnelle à l'écran employé.
+    /// </summary>
     [ObservableProperty]
-    private SizeChoiceViewModel? _selectedSize;
+    private int _sizePercent = 60;
 
     public ObservableCollection<MonitorInfo> Monitors { get; } = [];
 
@@ -94,13 +95,9 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
             var presets = await _settings.GetSizePresetsAsync(cancellationToken).ConfigureAwait(true);
 
-            Sizes.Clear();
-            foreach (var choice in SizeChoiceViewModel.From(presets))
-            {
-                Sizes.Add(choice);
-            }
-
-            SelectedSize = Sizes.FirstOrDefault(s => s.Index == settings.SizeIndex) ?? Sizes.FirstOrDefault();
+            SizePercent = settings.CustomSizePercent > 0
+                ? settings.CustomSizePercent
+                : presets.PercentageAt(settings.SizeIndex);
 
             Monitors.Clear();
             foreach (var monitor in _launcher.Monitors)
@@ -147,14 +144,9 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [RelayCommand]
     private void SetAnchor(WindowAnchor anchor) => GameAnchor = anchor;
 
+    /// <summary>Replace toutes les fenêtres sans changer leur taille.</summary>
     [RelayCommand]
-    private void SetSize(SizeChoiceViewModel? size)
-    {
-        if (size is not null)
-        {
-            SelectedSize = size;
-        }
-    }
+    private async Task RearrangeAsync() => await _launcher.ArrangeAsync().ConfigureAwait(true);
 
     /// <summary>Ouvre l'instance choisie, sans toucher aux autres.</summary>
     [RelayCommand]
@@ -243,14 +235,14 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         _ = _launcher.ArrangeAsync();
     }
 
-    partial void OnSelectedSizeChanged(SizeChoiceViewModel? value)
+    partial void OnSizePercentChanged(int value)
     {
-        if (_loading || value is null)
+        if (_loading)
         {
             return;
         }
 
-        _ = _launcher.ApplySizeAsync(value.Index);
+        _ = _launcher.ApplyPercentAsync(value);
     }
 
     partial void OnPreferredMonitorChanged(MonitorInfo? value)

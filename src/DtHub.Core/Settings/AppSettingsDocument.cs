@@ -40,6 +40,12 @@ public sealed class AppSettingsDocument
     /// <summary>Taille retenue, par son indice. La dernière est le plein écran.</summary>
     public int SizeIndex { get; set; } = 1;
 
+    /// <summary>
+    /// Taille posée au curseur, en pourcentage. Zéro quand c'est un raccourci
+    /// qui a décidé, et que l'indice fait donc foi.
+    /// </summary>
+    public int CustomSizePercent { get; set; }
+
     /// <summary>Écran Windows utilisé, <c>null</c> pour l'écran principal.</summary>
     public string? PreferredMonitorDeviceName { get; set; }
 

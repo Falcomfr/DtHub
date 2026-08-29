@@ -85,7 +85,7 @@
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
           <RadioButton x:Name="TabHotkeys" Style="{StaticResource Tab}" Content="Raccourcis"
                        GroupName="Tabs" IsChecked="True" />
-          <RadioButton x:Name="TabGeneral" Style="{StaticResource Tab}" Content="Général" GroupName="Tabs" />
+          <RadioButton x:Name="TabGeneral" Style="{StaticResource Tab}" Content="Fenêtres" GroupName="Tabs" />
           <RadioButton x:Name="TabDevices" Style="{StaticResource Tab}" Content="Appareils" GroupName="Tabs" />
         </StackPanel>
 
@@ -124,15 +124,15 @@
               </Border>
             </StackPanel>
 
-            <!-- Onglet Général -->
+            <!-- Onglet Fenêtres : replacement rapide et taille -->
             <StackPanel Visibility="{Binding IsChecked, ElementName=TabGeneral,
                                              Converter={StaticResource BoolToVisibility}}">
 
               <Border Style="{StaticResource Card}">
                 <StackPanel>
-                  <TextBlock Text="POSITION DES FENÊTRES DE JEU" Style="{StaticResource SectionLabel}" />
+                  <TextBlock Text="REPLACER LES FENÊTRES" Style="{StaticResource SectionLabel}" />
                   <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,10"
-                             Text="Toutes les fenêtres se superposent exactement à cet endroit." />
+                             Text="Chaque fenêtre garde l'endroit où vous l'avez laissée. Cliquez ici pour toutes les remettre au même endroit." />
 
                   <ItemsControl ItemsSource="{Binding Anchors}" HorizontalAlignment="Left">
                     <ItemsControl.ItemsPanel>
@@ -167,40 +167,24 @@
               <Border Style="{StaticResource Card}">
                 <StackPanel>
                   <TextBlock Text="TAILLE DES FENÊTRES" Style="{StaticResource SectionLabel}" />
-                  <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,10"
-                             Text="Proportionnelle à votre écran. Les raccourcis Ctrl+1 à Ctrl+5 font la même chose." />
+                  <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,6"
+                             Text="Proportionnelle à votre écran. Ctrl+1 à Ctrl+4 posent quatre repères sur cette échelle, Ctrl+5 met en plein écran." />
 
-                  <ItemsControl ItemsSource="{Binding Sizes}" HorizontalAlignment="Left">
-                    <ItemsControl.ItemsPanel>
-                      <ItemsPanelTemplate>
-                        <StackPanel Orientation="Horizontal" />
-                      </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                      <DataTemplate>
-                        <RadioButton Style="{StaticResource AnchorCell}" GroupName="Size"
-                                     Width="44" Height="34" ToolTip="{Binding Detail}"
-                                     Command="{Binding DataContext.SetSizeCommand,
-                                                       RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                     CommandParameter="{Binding}">
-                          <RadioButton.IsChecked>
-                            <MultiBinding Converter="{StaticResource SameValue}" Mode="OneWay">
-                              <Binding Path="DataContext.SelectedSize"
-                                       RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
-                              <Binding />
-                            </MultiBinding>
-                          </RadioButton.IsChecked>
-                          <RadioButton.Content>
-                            <TextBlock Text="{Binding Label}" HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" FontWeight="SemiBold" />
-                          </RadioButton.Content>
-                        </RadioButton>
-                      </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                  </ItemsControl>
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*" />
+                      <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-                  <TextBlock Style="{StaticResource Muted}" Margin="2,8,0,0"
-                             Text="{Binding SelectedSize.Detail}" />
+                    <Slider Grid.Column="0" Minimum="20" Maximum="100" TickFrequency="5"
+                            SmallChange="5" LargeChange="10"
+                            Value="{Binding SizePercent, Delay=200}" />
+
+                    <TextBlock Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0"
+                               MinWidth="42" TextAlignment="Right" FontWeight="SemiBold">
+                      <Run Text="{Binding SizePercent, Mode=OneWay}" /><Run Text=" %" />
+                    </TextBlock>
+                  </Grid>
                 </StackPanel>
               </Border>
 

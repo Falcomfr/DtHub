@@ -427,6 +427,10 @@ public sealed class SettingsService : IDisposable
         }, cancellationToken);
     }
 
+    /// <summary>Retient la taille posée au curseur.</summary>
+    public Task SaveCustomSizePercentAsync(int percent, CancellationToken cancellationToken = default) =>
+        UpdateAsync(settings => settings.CustomSizePercent = Math.Clamp(percent, 0, 100), cancellationToken);
+
     /// <summary>Retient si le configurateur était affiché à la sortie.</summary>
     public Task SetConfiguratorVisibleAsync(bool visible, CancellationToken cancellationToken = default) =>
         UpdateAsync(settings => settings.ConfiguratorVisible = visible, cancellationToken);
