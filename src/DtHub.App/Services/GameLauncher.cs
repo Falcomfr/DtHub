@@ -37,6 +37,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     private bool _hotkeysWired;
 
+    /// <summary>Dossier de l'icône des fenêtres de jeu, posé par l'application.</summary>
+    public string? IconDirectory { get => _iconDirectory; set => _iconDirectory = value; }
+
+    private string? _iconDirectory;
+
     /// <summary>Vrai pendant une fermeture voulue : inutile d'en journaliser le détail.</summary>
     private bool _closing;
 
@@ -266,6 +271,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         options = options with
         {
             WindowTitleHint = await BuildTitleHintAsync(cancellationToken).ConfigureAwait(false),
+            IconDirectory = _iconDirectory,
         };
         var serials = await ResolveSerialsAsync(cancellationToken).ConfigureAwait(false);
 

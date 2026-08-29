@@ -84,6 +84,13 @@ public sealed record ScrcpyOptions
     /// </summary>
     public string? WindowTitleHint { get; init; }
 
+    /// <summary>
+    /// Dossier où scrcpy va chercher l'icône de ses fenêtres. Elles portent
+    /// sinon celle de scrcpy, qui n'a rien à voir avec l'application. Le
+    /// dossier doit contenir un <c>scrcpy.png</c>.
+    /// </summary>
+    public string? IconDirectory { get; init; }
+
     public ScrcpyKeyboardMode KeyboardMode { get; init; } = ScrcpyKeyboardMode.Sdk;
 
     /// <summary>Privilégier la saisie de texte à l'injection de codes touches.</summary>

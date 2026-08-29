@@ -106,7 +106,14 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
             // scrcpy honore cette variable : il utilisera notre copie d'ADB
             // plutôt que celle livrée dans sa propre archive.
-            Environment = new Dictionary<string, string?> { ["ADB"] = adbPath },
+            Environment = new Dictionary<string, string?>
+            {
+                ["ADB"] = adbPath,
+
+                // Les fenêtres de jeu portent l'icône de l'application, et non
+                // celle de scrcpy.
+                ["SCRCPY_ICON_DIR"] = options.IconDirectory,
+            },
         };
 
         IProcessSession process;

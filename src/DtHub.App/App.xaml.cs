@@ -23,11 +23,23 @@ namespace DtHub.App;
 /// Point d'entrée. Deux cas seulement : premier lancement, on demande quelles
 /// instances ouvrir ; ensuite, on ouvre directement celles qui sont cochées.
 /// </summary>
-public partial class App : Application
+public partial class App : Application, IDisposable
 {
+    /// <summary>
+    /// Marque l'exécution en cours. Un second lancement, par le raccourci du
+    /// bureau ou autrement, ne doit pas ouvrir un deuxième jeu de fenêtres :
+    /// il réveille celui qui tourne déjà et s'efface.
+    /// </summary>
+    private const string InstanceName = @"Local\DtHub.Instance";
+
+    private const string WakeName = @"Local\DtHub.Wake";
+
     private IHost? _host;
     private ConfiguratorWindow? _configurator;
     private bool _quitting;
+    private Mutex? _instance;
+    private EventWaitHandle? _wake;
+    private RegisteredWaitHandle? _wakeRegistration;
 
     /// <summary>
     /// Surveille la forme des fenêtres de jeu. Un intervalle court, mais la
@@ -43,6 +55,12 @@ public partial class App : Application
         // Les fenêtres de jeu ne sont pas des fenêtres WPF : l'application ne
         // doit pas se fermer quand le configurateur est masqué.
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
+        if (!ClaimSingleInstance())
+        {
+            Shutdown();
+            return;
+        }
 
         AppDomain.CurrentDomain.UnhandledException += OnDomainException;
         DispatcherUnhandledException += OnDispatcherException;
@@ -77,6 +95,8 @@ public partial class App : Application
         var launcher = services.GetRequiredService<GameLauncher>();
 
         await KillOrphansAsync(services).ConfigureAwait(true);
+
+        launcher.IconDirectory = WindowIcons.EnsureDirectory(services.GetRequiredService<IAppPaths>());
 
         var current = await settings.GetAsync().ConfigureAwait(true);
 
@@ -225,6 +245,62 @@ public partial class App : Application
         Shutdown();
     }
 
+    /// <summary>
+    /// Prend la place unique, ou réveille l'exécution déjà en cours et rend
+    /// faux. Sans cela, un second lancement ouvrirait un deuxième jeu de
+    /// fenêtres de jeu par-dessus le premier.
+    /// </summary>
+    private bool ClaimSingleInstance()
+    {
+        _instance = new Mutex(initiallyOwned: true, InstanceName, out var mine);
+
+        if (!mine)
+        {
+            if (EventWaitHandle.TryOpenExisting(WakeName, out var running))
+            {
+                using (running)
+                {
+                    running.Set();
+                }
+            }
+
+            return false;
+        }
+
+        _wake = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, WakeName);
+
+        _wakeRegistration = ThreadPool.RegisterWaitForSingleObject(
+            _wake,
+            (_, _) => Dispatcher.Invoke(RevealConfigurator),
+            state: null,
+            millisecondsTimeOutInterval: Timeout.Infinite,
+            executeOnlyOnce: false);
+
+        return true;
+    }
+
+    /// <summary>Libère la place unique et son signal de réveil.</summary>
+    public void Dispose()
+    {
+        _wakeRegistration?.Unregister(null);
+        _wake?.Dispose();
+        _instance?.Dispose();
+
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>Ramène le configurateur à l'écran, sur un second lancement.</summary>
+    private void RevealConfigurator()
+    {
+        if (_configurator is null)
+        {
+            return;
+        }
+
+        _configurator.Show();
+        _configurator.Activate();
+    }
+
     private void ToggleConfigurator()
     {
         if (_configurator is null)
@@ -253,6 +329,8 @@ public partial class App : Application
 
             _host.Dispose();
         }
+
+        Dispose();
 
         await Log.CloseAndFlushAsync().ConfigureAwait(true);
 
