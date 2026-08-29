@@ -642,4 +642,46 @@ public class WindowManagerServiceTests
 
         Assert.Equal(0, service.EnforceAspect(sessions));
     }
+
+    [Fact]
+    public async Task Le_replacement_empile_les_autres_sur_la_fenetre_active()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(3);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
+
+        // La deuxième est placée à part, puis rendue active.
+        var chosen = new ScreenRect(300, 200, 1600, 900);
+        desktop.MoveWindow(sessions[1].WindowHandle, chosen);
+        desktop.Focus(sessions[1].WindowHandle);
+
+        var moved = await service.StackOnActiveAsync(sessions, CancellationToken.None);
+
+        Assert.Equal(2, moved);
+        Assert.Equal(chosen, desktop.GetWindowRect(sessions[0].WindowHandle));
+        Assert.Equal(chosen, desktop.GetWindowRect(sessions[1].WindowHandle));
+        Assert.Equal(chosen, desktop.GetWindowRect(sessions[2].WindowHandle));
+    }
+
+    [Fact]
+    public async Task Sans_fenetre_active_le_replacement_prend_la_premiere()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(2);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
+
+        var first = new ScreenRect(40, 60, 1200, 700);
+        desktop.MoveWindow(sessions[0].WindowHandle, first);
+        desktop.MoveWindow(sessions[1].WindowHandle, new ScreenRect(900, 500, 800, 450));
+        desktop.Focus(0);
+
+        var moved = await service.StackOnActiveAsync(sessions, CancellationToken.None);
+
+        Assert.Equal(1, moved);
+        Assert.Equal(first, desktop.GetWindowRect(sessions[1].WindowHandle));
+    }
 }

@@ -541,6 +541,60 @@ public sealed class WindowManagerService
     }
 
 
+    /// <summary>
+    /// Empile les fenêtres sur l'une d'elles, prise comme référence.
+    ///
+    /// La référence est la fenêtre de jeu active, ou la première dans l'ordre
+    /// configuré s'il n'y en a pas. C'est ce qu'on attend en pratique : on
+    /// place une fenêtre là où on la veut, et les autres viennent dessus, à
+    /// la même taille. Le replacement par ancrage garde son rôle, dans la
+    /// grille des neuf positions.
+    /// </summary>
+    /// <returns>Nombre de fenêtres déplacées.</returns>
+    public async Task<int> StackOnActiveAsync(
+        IReadOnlyList<ScrcpySession> sessions,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(sessions);
+
+        var alive = sessions.Where(s => s.IsAlive).ToList();
+
+        if (alive.Count == 0)
+        {
+            return 0;
+        }
+
+        var foreground = _controller.GetForegroundWindow();
+
+        var reference = alive.Find(s => s.WindowHandle != 0 && s.WindowHandle == foreground) ?? alive[0];
+
+        var handle = await ResolveWindowAsync(reference, cancellationToken).ConfigureAwait(false);
+
+        if (handle == 0 || _controller.GetWindowRect(handle) is not { } rect || rect.IsEmpty)
+        {
+            return 0;
+        }
+
+        var moved = 0;
+
+        foreach (var session in alive.Where(s => !ReferenceEquals(s, reference)))
+        {
+            var other = await ResolveWindowAsync(session, cancellationToken).ConfigureAwait(false);
+
+            if (other == 0)
+            {
+                continue;
+            }
+
+            _controller.SetBorderless(other, IsFullscreen);
+            _controller.MoveWindow(other, rect);
+            _lastSeen[session.Id] = rect;
+            moved++;
+        }
+
+        return moved;
+    }
+
     /// <summary>Passe à l'instance suivante, en boucle.</summary>
     public ScrcpySession? FocusNext(IReadOnlyList<ScrcpySession> sessions) => Cycle(sessions, forward: true);
 

@@ -164,9 +164,11 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [RelayCommand]
     private void SetAnchor(WindowAnchor anchor) => GameAnchor = anchor;
 
-    /// <summary>Replace toutes les fenêtres sans changer leur taille.</summary>
+    /// <summary>
+    /// Empile les fenêtres sur celle qui est active, ou sur la première.
+    /// </summary>
     [RelayCommand]
-    private async Task RearrangeAsync() => await _launcher.ArrangeAsync().ConfigureAwait(true);
+    private async Task RearrangeAsync() => await _launcher.StackOnActiveAsync().ConfigureAwait(true);
 
     /// <summary>Ouvre l'instance choisie, sans toucher aux autres.</summary>
     [RelayCommand]

@@ -459,6 +459,22 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     public int EnforceAspect() => _windows.EnforceAspect(_sessions.ActiveSessions);
 
+    /// <summary>
+    /// Empile les fenêtres sur celle qui est active, ou sur la première.
+    /// C'est ce que fait le raccourci de replacement, et le bouton de la barre
+    /// du bas : on place une fenêtre où on la veut, les autres la rejoignent.
+    /// </summary>
+    public async Task<int> StackOnActiveAsync(CancellationToken cancellationToken = default)
+    {
+        var moved = await _windows
+            .StackOnActiveAsync(_sessions.ActiveSessions, cancellationToken)
+            .ConfigureAwait(false);
+
+        await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+
+        return moved;
+    }
+
     /// <summary>Remet toutes les fenêtres en place, à la taille en cours.</summary>
     public async Task<int> ArrangeAsync(CancellationToken cancellationToken = default)
     {
@@ -754,7 +770,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     break;
 
                 case HotkeyAction.Rearrange:
-                    await ArrangeAsync().ConfigureAwait(false);
+                    await StackOnActiveAsync().ConfigureAwait(false);
                     break;
 
                 case HotkeyAction.Size1:
