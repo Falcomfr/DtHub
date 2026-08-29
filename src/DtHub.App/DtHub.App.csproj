@@ -13,8 +13,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- L'image de marque est embarquée comme ressource pour être adressable
+         par URI depuis le XAML. -->
+    <Resource Include="..\..\assets\app.png" Link="assets\app.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\DtHub.Core\DtHub.Core.csproj" />
     <ProjectReference Include="..\DtHub.Infrastructure\DtHub.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Serilog.Extensions.Hosting" />
+    <PackageReference Include="Serilog.Sinks.Debug" />
+    <PackageReference Include="Serilog.Sinks.File" />
   </ItemGroup>
 
 </Project>

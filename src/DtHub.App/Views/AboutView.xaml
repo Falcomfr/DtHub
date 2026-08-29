@@ -1,0 +1,55 @@
+<UserControl x:Class="DtHub.App.Views.AboutView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+              Padding="28,26,28,26">
+    <StackPanel MaxWidth="700">
+
+      <TextBlock Text="{Binding Title}" Style="{StaticResource PageTitle}" />
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel Orientation="Horizontal">
+          <Image Source="/assets/app.png" Width="56" Height="56" VerticalAlignment="Top" />
+          <StackPanel Margin="16,0,0,0">
+            <TextBlock Text="{Binding ProductName}" FontSize="19" FontWeight="SemiBold" />
+            <TextBlock Style="{StaticResource Muted}" Margin="0,2,0,0">
+              <Run Text="Version " /><Run Text="{Binding Version, Mode=OneWay}" />
+            </TextBlock>
+            <TextBlock Style="{StaticResource Muted}">
+              <Run Text="scrcpy " /><Run Text="{Binding ScrcpyVersion, Mode=OneWay}" />
+            </TextBlock>
+            <Button Content="Ouvrir le dépôt du projet" Style="{StaticResource LinkButton}"
+                    HorizontalAlignment="Left" Margin="0,8,0,0"
+                    Command="{Binding OpenRepositoryCommand}" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="LICENCES" Style="{StaticResource SectionTitle}" />
+          <TextBlock Text="{Binding LicenseSummary}" TextWrapping="Wrap" />
+          <Button Content="Voir le projet scrcpy" Style="{StaticResource LinkButton}"
+                  HorizontalAlignment="Left" Margin="0,8,0,0"
+                  Command="{Binding OpenScrcpyCommand}" />
+        </StackPanel>
+      </Border>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="INDÉPENDANCE" Style="{StaticResource SectionTitle}" />
+          <TextBlock Text="{Binding Disclaimer}" TextWrapping="Wrap" />
+        </StackPanel>
+      </Border>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="CE QUE DT HUB NE FAIT PAS" Style="{StaticResource SectionTitle}" />
+          <TextBlock TextWrapping="Wrap"
+                     Text="DT Hub affiche, lance et organise. Il ne contient ni robot, ni macro, ni répétition automatique d'actions, ni reconnaissance d'écran destinée à jouer, ni synchronisation d'entrées entre sessions. Une action de votre part correspond à une action, et une seule." />
+        </StackPanel>
+      </Border>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

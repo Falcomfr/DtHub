@@ -177,3 +177,21 @@ Conséquences assumées :
   silence ;
 - les raccourcis ne fonctionnent pas depuis une autre application, ce qui est
   précisément l'effet recherché.
+
+---
+
+## D8 - Pas de mode de globalisation invariant
+
+**2026-08-29 - Acceptée**
+
+`InvariantGlobalization` avait été activé par réflexe, pour réduire la taille
+de la publication. C'est incompatible avec WPF : la liaison de données appelle
+`XmlLanguage.GetSpecificCulture()`, qui échoue sans données de culture, et
+chaque liaison lève alors une exception. Constaté au premier lancement réel.
+
+Le réglage est retiré. L'interface est en français et affichera des dates et
+des nombres localisés : les données de culture sont de toute façon
+nécessaires.
+
+Enseignement retenu : un réglage de publication ne se valide pas à la
+compilation. Il faut lancer l'application.

@@ -30,3 +30,9 @@ dotnet_diagnostic.CA1707.severity = none
 # généré à la source par [LoggerMessage]. Les appels concernés sont gardés
 # explicitement dans le code ; la règle produirait donc uniquement du bruit.
 dotnet_diagnostic.CA1873.severity = none
+
+# Les vues-modèles exposent des propriétés liées par XAML. Les rendre statiques
+# casserait la liaison de données, et les services injectés doivent rester des
+# instances pour l'injection de dépendances. CA1822 n'a donc pas de sens ici.
+[src/DtHub.App/**/*.cs]
+dotnet_diagnostic.CA1822.severity = none

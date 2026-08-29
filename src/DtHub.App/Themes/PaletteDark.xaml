@@ -1,0 +1,21 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Thème sombre. Mêmes clés que la palette claire, mêmes rôles : les
+       styles sont communs et ne connaissent que les noms. -->
+
+  <SolidColorBrush x:Key="SurfaceBrush" Color="#FF15171C" />
+  <SolidColorBrush x:Key="SurfaceAltBrush" Color="#FF1C1F26" />
+  <SolidColorBrush x:Key="SidebarBrush" Color="#FF101216" />
+  <SolidColorBrush x:Key="BorderBrush" Color="#FF2B2F38" />
+  <SolidColorBrush x:Key="TextBrush" Color="#FFECEEF2" />
+  <SolidColorBrush x:Key="TextMutedBrush" Color="#FF9AA2B0" />
+  <SolidColorBrush x:Key="AccentBrush" Color="#FF5C8BFF" />
+  <SolidColorBrush x:Key="AccentHoverBrush" Color="#FF7AA0FF" />
+  <SolidColorBrush x:Key="AccentSoftBrush" Color="#FF1E2A45" />
+  <SolidColorBrush x:Key="SuccessBrush" Color="#FF3FBE83" />
+  <SolidColorBrush x:Key="WarningBrush" Color="#FFE2A03C" />
+  <SolidColorBrush x:Key="DangerBrush" Color="#FFF06767" />
+  <SolidColorBrush x:Key="OverlayBrush" Color="#66000000" />
+
+</ResourceDictionary>

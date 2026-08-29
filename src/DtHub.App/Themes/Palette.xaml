@@ -1,0 +1,28 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Palette claire.
+
+       Les couleurs sont écrites littéralement dans chaque pinceau, sans
+       référence dynamique intermédiaire : un SolidColorBrush placé dans un
+       dictionnaire de ressources est gelé, et un DynamicResource sur sa
+       couleur ne se résout jamais, ce qui rendait toute l'interface noire.
+
+       Le changement de thème remplace ce dictionnaire en entier ; les vues
+       référencent les pinceaux par DynamicResource et suivent donc. -->
+
+  <SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFFFF" />
+  <SolidColorBrush x:Key="SurfaceAltBrush" Color="#FFF6F7F9" />
+  <SolidColorBrush x:Key="SidebarBrush" Color="#FFF1F3F6" />
+  <SolidColorBrush x:Key="BorderBrush" Color="#FFDDE1E8" />
+  <SolidColorBrush x:Key="TextBrush" Color="#FF16181D" />
+  <SolidColorBrush x:Key="TextMutedBrush" Color="#FF6A7280" />
+  <SolidColorBrush x:Key="AccentBrush" Color="#FF3B6FF6" />
+  <SolidColorBrush x:Key="AccentHoverBrush" Color="#FF2F5CE0" />
+  <SolidColorBrush x:Key="AccentSoftBrush" Color="#FFE6EDFE" />
+  <SolidColorBrush x:Key="SuccessBrush" Color="#FF1E9E62" />
+  <SolidColorBrush x:Key="WarningBrush" Color="#FFC77A17" />
+  <SolidColorBrush x:Key="DangerBrush" Color="#FFD03A3A" />
+  <SolidColorBrush x:Key="OverlayBrush" Color="#33000000" />
+
+</ResourceDictionary>
