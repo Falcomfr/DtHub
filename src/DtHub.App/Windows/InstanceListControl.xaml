@@ -43,7 +43,7 @@
 
                       <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBox Text="{Binding Name, UpdateSourceTrigger=LostFocus}"
-                                 ToolTip="Nom affiché dans le titre de la fenêtre"
+                                 ToolTip="Ce texte devient le titre de la fenêtre du jeu"
                                  Padding="6,4" />
                         <TextBlock Text="{Binding UserLabel}" Style="{StaticResource Muted}"
                                    FontSize="11" Margin="2,3,0,0" />
@@ -71,7 +71,7 @@
 
               <TextBlock Style="{StaticResource Muted}" Margin="0,8,0,0"
                          Text="Le jeu n'est installé sur aucun profil de ce téléphone."
-                         Visibility="{Binding Instances, Converter={StaticResource EmptyToVisibility}}" />
+                         Visibility="{Binding Instances.Count, Converter={StaticResource EmptyToVisibility}}" />
 
             </StackPanel>
           </Border>
@@ -82,6 +82,11 @@
     <TextBlock Text="{Binding Problem}" Style="{StaticResource Muted}"
                Foreground="{DynamicResource WarningBrush}" Margin="2,0,0,6"
                Visibility="{Binding Problem, Converter={StaticResource EmptyToVisibility},
+                                    ConverterParameter=inverse}" />
+
+    <TextBlock Style="{StaticResource Muted}" Margin="2,0,0,4"
+               Text="Le texte modifiable devient le titre de la fenêtre du jeu, dans la barre des tâches."
+               Visibility="{Binding Devices.Count, Converter={StaticResource EmptyToVisibility},
                                     ConverterParameter=inverse}" />
 
   </StackPanel>

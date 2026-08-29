@@ -140,4 +140,53 @@ public sealed class DevicePairingService
 
         return [.. services.Where(s => s.IsPairing)];
     }
+
+    /// <summary>
+    /// Téléphones qui annoncent être joignables sur le réseau. Un téléphone
+    /// déjà associé à ce PC s'y connectera sans code : c'est ce qui permet de
+    /// proposer une connexion en un clic, voire de la tenter d'office.
+    /// </summary>
+    public async Task<IReadOnlyList<MdnsService>> FindConnectableAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var services = await _adb.ListMdnsServicesAsync(cancellationToken).ConfigureAwait(false);
+
+        return [.. services.Where(s => s.IsConnect)];
+    }
+
+    /// <summary>
+    /// Tente de connecter tout ce qui s'annonce sur le réseau. La tentative
+    /// n'aboutit que pour les téléphones déjà associés à ce PC : ADB conserve
+    /// la clé d'association, et refuse les autres. Il n'y a donc aucun risque
+    /// de se connecter au téléphone d'un voisin.
+    /// </summary>
+    /// <returns>Adresses effectivement connectées.</returns>
+    public async Task<IReadOnlyList<string>> ConnectAnnouncedAsync(
+        IReadOnlyCollection<string> alreadyConnected,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(alreadyConnected);
+
+        List<string> connected = [];
+
+        foreach (var service in await FindConnectableAsync(cancellationToken).ConfigureAwait(false))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (alreadyConnected.Contains(service.Address))
+            {
+                continue;
+            }
+
+            var result = await _adb.ConnectAsync(service.Host, service.Port, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (result.Succeeded)
+            {
+                connected.Add(service.Address);
+            }
+        }
+
+        return connected;
+    }
 }

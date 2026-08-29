@@ -150,14 +150,19 @@ public class ScrcpyCommandBuilderTests
     }
 
     [Fact]
-    public void Le_titre_de_fenetre_porte_l_identifiant_de_session()
+    public void Le_titre_de_fenetre_prefixe_le_nom_choisi_par_celui_du_produit()
     {
-        var withName = ScrcpyCommandBuilder.BuildWindowTitle("abc123", "DOFUS Touch - Clone");
-        var withoutName = ScrcpyCommandBuilder.BuildWindowTitle("abc123");
+        // Le nom du produit n'apparaît que là : dans la barre des tâches, pour
+        // reconnaître les fenêtres du jeu parmi les autres.
+        Assert.Equal("DT Hub XSpace", ScrcpyCommandBuilder.BuildWindowTitle("XSpace"));
+        Assert.Equal("DT Hub Enutrof", ScrcpyCommandBuilder.BuildWindowTitle("  Enutrof  "));
+    }
 
-        Assert.Equal("DOFUS Touch - Clone - DtHub [abc123]", withName);
-        Assert.Equal("DtHub [abc123]", withoutName);
-        Assert.Contains("abc123", withName, StringComparison.Ordinal);
+    [Fact]
+    public void Un_nom_vide_retombe_sur_le_nom_du_produit()
+    {
+        Assert.Equal("DT Hub", ScrcpyCommandBuilder.BuildWindowTitle(null));
+        Assert.Equal("DT Hub", ScrcpyCommandBuilder.BuildWindowTitle("   "));
     }
 
     [Fact]

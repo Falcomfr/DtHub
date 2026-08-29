@@ -65,7 +65,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         var serial = target.Serial;
 
         var sessionId = Guid.NewGuid().ToString("N")[..8];
-        var windowTitle = ScrcpyCommandBuilder.BuildWindowTitle(sessionId, target.DisplayName);
+        var windowTitle = ScrcpyCommandBuilder.BuildWindowTitle(target.DisplayName);
 
         string scrcpyPath;
         string adbPath;

@@ -28,25 +28,20 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
     public ConfiguratorViewModel(
         InstanceListViewModel instances,
-        PairingViewModel pairing,
         SettingsService settings,
         GameLauncher launcher,
         IDialogService dialogs,
         IAppPaths paths)
     {
         Instances = instances;
-        Pairing = pairing;
         _settings = settings;
         _launcher = launcher;
         _dialogs = dialogs;
         _paths = paths;
 
-        Pairing.Paired += async (_, _) => await Instances.RefreshAsync().ConfigureAwait(true);
     }
 
     public InstanceListViewModel Instances { get; }
-
-    public PairingViewModel Pairing { get; }
 
     // Onglet Général
 
@@ -129,11 +124,6 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     {
         await Instances.RefreshAsync(cancellationToken).ConfigureAwait(true);
         Instances.RefreshRunningState();
-
-        if (Instances.HasNoConnectedDevice)
-        {
-            await Pairing.ScanAsync(cancellationToken).ConfigureAwait(true);
-        }
     }
 
     [RelayCommand]

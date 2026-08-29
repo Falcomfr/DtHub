@@ -3,6 +3,8 @@ using System.Windows.Threading;
 
 using DtHub.App.ViewModels;
 
+using Microsoft.Extensions.DependencyInjection;
+
 namespace DtHub.App.Windows;
 
 /// <summary>
@@ -35,6 +37,16 @@ public partial class SetupWindow : Window
 
     /// <summary>Vrai si l'utilisateur a validé son choix.</summary>
     public bool Confirmed => _viewModel.IsConfirmed;
+
+    /// <summary>Ouvre la fenêtre d'ajout, puis rafraîchit la liste.</summary>
+    private async void OnAddDevice(object sender, RoutedEventArgs e)
+    {
+        var dialog = AppHost.Services.GetRequiredService<AddDeviceWindow>();
+        dialog.Owner = this;
+        dialog.ShowDialog();
+
+        await _viewModel.PollAsync(CancellationToken.None).ConfigureAwait(true);
+    }
 
     private void OnCloseRequested(object? sender, bool confirmed)
     {

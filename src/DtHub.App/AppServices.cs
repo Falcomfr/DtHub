@@ -89,8 +89,9 @@ public static class AppServices
         services.AddSingleton<GameLauncher>();
 
         services.AddSingleton<InstanceListViewModel>();
-        services.AddSingleton<PairingViewModel>();
         services.AddSingleton<SetupViewModel>();
+        services.AddTransient<AddDeviceViewModel>();
+        services.AddTransient<AddDeviceWindow>();
         services.AddSingleton<ConfiguratorViewModel>();
         services.AddSingleton<ConfiguratorWindow>();
         services.AddTransient<SetupWindow>();

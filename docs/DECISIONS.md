@@ -266,3 +266,46 @@ ne pas le recouvrir.
 Fermer le configurateur ne quitte pas l'application : le jeu continue. Le
 mode d'arrêt de WPF est donc explicite, et un bouton Quitter existe dans le
 configurateur.
+
+---
+
+## D12 - Android seulement, iOS est hors d'atteinte
+
+**2026-08-29 - Acceptée**
+
+La question a été posée : peut-on ajouter un iPhone ? Non, et ce n'est pas un
+manque d'effort.
+
+Le fonctionnement de DT Hub repose sur trois briques : créer un écran virtuel
+supplémentaire sur l'appareil, y lancer une application, et lui transmettre
+clavier et souris. Android les expose au compte `shell` via ADB, ce dont
+scrcpy se sert.
+
+iOS n'en expose aucune. Il n'y a pas d'écran secondaire créable, l'injection
+d'entrées demande un outil de test signé à réinstaller régulièrement, et
+surtout une même application ne peut pas être installée deux fois sur un
+iPhone. Or c'est précisément ce qui donne son intérêt à l'outil : plusieurs
+comptes sur un même téléphone.
+
+Même en réussissant le mirroring d'écran, qui est partiellement faisable, il
+n'y aurait qu'un compte par iPhone. L'onglet de choix de plateforme a donc été
+retiré ; une phrase l'explique dans la fenêtre d'ajout.
+
+---
+
+## D13 - Ne pas construire une liste d'appareils à partir des seules annonces réseau
+
+**2026-08-29 - Acceptée, tirée d'une observation sur matériel**
+
+La fenêtre d'ajout listait les téléphones à partir des annonces mDNS. Elle
+restait désespérément vide alors qu'un téléphone était connecté.
+
+Vérification faite avec ADB : **un téléphone cesse d'annoncer
+`_adb-tls-connect._tcp` dès qu'une connexion est établie**. Une liste bâtie
+sur les seules annonces se vide donc exactement quand tout fonctionne, ce qui
+est le pire moment pour paraître vide.
+
+La liste est désormais construite à partir des appareils connus d'ADB,
+connectés ou non, complétée par les annonces qui ne correspondent à aucun
+d'eux. Le bouton de connexion agit selon l'origine de la ligne : connexion
+directe pour une annonce, reconnexion complète pour un appareil mémorisé.

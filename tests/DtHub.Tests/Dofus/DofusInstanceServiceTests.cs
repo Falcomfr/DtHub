@@ -54,6 +54,8 @@ public class DofusInstanceServiceTests
 
         var instances = await Service(adb).DiscoverOnDeviceAsync(Device(), CancellationToken.None);
 
+        // Le nom modifiable ne porte que le profil Android ; le nom du produit
+        // est ajouté au titre de la fenêtre, pas ici.
         Assert.Equal("Principal", instances.Single(i => i.UserId == 0).DisplayName);
         Assert.Equal("XSpace", instances.Single(i => i.UserId == 999).DisplayName);
     }

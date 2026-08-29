@@ -9,17 +9,15 @@ namespace DtHub.Core.Scrcpy;
 /// </summary>
 public static class ScrcpyCommandBuilder
 {
-    /// <summary>Préfixe des titres de fenêtre, qui sert aussi à les retrouver.</summary>
-    public const string WindowTitlePrefix = "DtHub";
-
     /// <summary>
-    /// Titre unique d'une session. Il porte l'identifiant de session, ce qui
-    /// permet de retrouver la fenêtre sans se tromper de voisine.
+    /// Titre de la fenêtre de jeu : le nom du produit suivi du nom choisi par
+    /// l'utilisateur. Aucun identifiant technique n'y figure, la fenêtre étant
+    /// retrouvée par son processus.
     /// </summary>
-    public static string BuildWindowTitle(string sessionId, string? friendlyName = null) =>
-        string.IsNullOrWhiteSpace(friendlyName)
-            ? $"{WindowTitlePrefix} [{sessionId}]"
-            : $"{friendlyName} - {WindowTitlePrefix} [{sessionId}]";
+    public static string BuildWindowTitle(string? name) =>
+        string.IsNullOrWhiteSpace(name)
+            ? DtHub.Core.ProductInfo.Name
+            : $"{DtHub.Core.ProductInfo.Name} {name.Trim()}";
 
     /// <summary>Arguments de lancement d'une session de mirroring.</summary>
     /// <param name="serial">Numéro de série ADB de l'appareil visé.</param>

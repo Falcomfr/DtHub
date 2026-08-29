@@ -132,6 +132,11 @@ public sealed class EmptyToVisibilityConverter : IValueConverter
         {
             null => true,
             string text => string.IsNullOrWhiteSpace(text),
+
+            // Lier directement une collection ne fonctionne pas : sa référence
+            // ne change jamais, donc la liaison ne se réévalue pas quand on y
+            // ajoute un élément. On lie son compteur, qui lui est notifié.
+            int count => count == 0,
             System.Collections.ICollection collection => collection.Count == 0,
             _ => false,
         };

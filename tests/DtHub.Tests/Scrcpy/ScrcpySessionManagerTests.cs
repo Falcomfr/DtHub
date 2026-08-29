@@ -83,7 +83,7 @@ public class ScrcpySessionManagerTests
     }
 
     [Fact]
-    public async Task Le_titre_de_fenetre_est_unique_par_session()
+    public async Task Le_titre_de_fenetre_est_le_nom_de_l_instance()
     {
         var launcher = new FakeProcessLauncher()
             .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
@@ -94,9 +94,11 @@ public class ScrcpySessionManagerTests
         var first = await manager.StartAsync(Target(0), ScrcpyOptions.Default, null, CancellationToken.None);
         var second = await manager.StartAsync(Target(999), ScrcpyOptions.Default, null, CancellationToken.None);
 
-        Assert.NotEqual(first.WindowTitle, second.WindowTitle);
-        Assert.Contains(first.Id, first.WindowTitle, StringComparison.Ordinal);
-        Assert.Contains(second.Id, second.WindowTitle, StringComparison.Ordinal);
+        // Aucun identifiant technique dans le titre : c'est ce que
+        // l'utilisateur lira dans sa barre des tâches.
+        Assert.Equal("DT Hub Principal", first.WindowTitle);
+        Assert.Equal("DT Hub XSpace", second.WindowTitle);
+        Assert.DoesNotContain(first.Id, first.WindowTitle, StringComparison.Ordinal);
     }
 
     [Fact]

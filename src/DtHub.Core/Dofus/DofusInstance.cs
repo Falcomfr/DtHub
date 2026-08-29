@@ -40,9 +40,12 @@ public sealed record DofusInstance
     public string Key => $"{DeviceId}|{UserId}|{PackageName}";
 
     /// <summary>
-    /// Nom affiché. Le choix de l'utilisateur prime, sinon le nom du profil
-    /// Android, qui distingue déjà les instances d'un même téléphone.
+    /// Nom modifiable de l'instance. Le choix de l'utilisateur prime ; à
+    /// défaut, le nom du profil Android, qui distingue déjà les instances d'un
+    /// même téléphone. Le nom du produit n'y figure pas : il est ajouté au
+    /// titre de la fenêtre de jeu, pas ici.
     /// </summary>
-    public string DisplayName =>
-        string.IsNullOrWhiteSpace(CustomName) ? UserName : CustomName.Trim();
+    public string DisplayName => string.IsNullOrWhiteSpace(CustomName)
+        ? UserName
+        : CustomName.Trim();
 }

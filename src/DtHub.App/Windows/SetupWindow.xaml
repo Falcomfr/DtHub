@@ -32,8 +32,8 @@
           <Run Text=" instance(s) sélectionnée(s)" />
         </TextBlock>
 
-        <Button Grid.Column="1" Content="Lancer" Style="{StaticResource PrimaryButton}"
-                Padding="26,9" FontSize="14"
+        <Button Grid.Column="1" Content="Enregistrer et lancer" Style="{StaticResource PrimaryButton}"
+                Padding="22,9" FontSize="14"
                 Command="{Binding LaunchCommand}" IsEnabled="{Binding CanLaunch}" />
       </Grid>
     </Border>
@@ -41,10 +41,9 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
       <StackPanel>
 
-        <w:PairingPanel DataContext="{Binding Pairing}"
-                        Visibility="{Binding DataContext.Instances.HasNoConnectedDevice,
-                                             RelativeSource={RelativeSource AncestorType=Window},
-                                             Converter={StaticResource BoolToVisibility}}" />
+        <Button Content="+  Ajouter un appareil" HorizontalAlignment="Left" Margin="0,0,0,12"
+                ToolTip="Connecter un téléphone, ou voir la marche à suivre"
+                Click="OnAddDevice" />
 
         <w:InstanceListControl DataContext="{Binding Instances}" />
 

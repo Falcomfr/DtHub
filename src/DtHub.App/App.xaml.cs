@@ -41,6 +41,7 @@ public partial class App : Application
         try
         {
             _host = BuildHost();
+            AppHost.Initialize(_host.Services);
             await _host.StartAsync().ConfigureAwait(true);
 
             _host.Services.GetRequiredService<ThemeManager>().ApplySystemTheme();

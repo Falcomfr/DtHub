@@ -65,10 +65,10 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
-          <RadioButton x:Name="TabGeneral" Style="{StaticResource Tab}" Content="Général"
+          <RadioButton x:Name="TabHotkeys" Style="{StaticResource Tab}" Content="Raccourcis"
                        GroupName="Tabs" IsChecked="True" />
+          <RadioButton x:Name="TabGeneral" Style="{StaticResource Tab}" Content="Général" GroupName="Tabs" />
           <RadioButton x:Name="TabDevices" Style="{StaticResource Tab}" Content="Appareils" GroupName="Tabs" />
-          <RadioButton x:Name="TabHotkeys" Style="{StaticResource Tab}" Content="Raccourcis" GroupName="Tabs" />
         </StackPanel>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -155,10 +155,9 @@
             <StackPanel Visibility="{Binding IsChecked, ElementName=TabDevices,
                                              Converter={StaticResource BoolToVisibility}}">
 
-              <w:PairingPanel DataContext="{Binding Pairing}"
-                              Visibility="{Binding DataContext.Instances.HasNoConnectedDevice,
-                                                   RelativeSource={RelativeSource AncestorType=Window},
-                                                   Converter={StaticResource BoolToVisibility}}" />
+              <Button Content="+  Ajouter un appareil" HorizontalAlignment="Left" Margin="0,0,0,12"
+                      ToolTip="Connecter un téléphone, ou voir la marche à suivre"
+                      Click="OnAddDevice" />
 
               <w:InstanceListControl DataContext="{Binding Instances}" />
 
@@ -170,8 +169,9 @@
 
               <Border Style="{StaticResource Card}">
                 <StackPanel>
+                  <TextBlock Text="VOS RACCOURCIS" Style="{StaticResource SectionLabel}" />
                   <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,10"
-                             Text="Les raccourcis n'agissent que pendant qu'une fenêtre de DT Hub est active. Ctrl+Tab reste donc disponible ailleurs." />
+                             Text="Ils n'agissent que pendant qu'une fenêtre de DT Hub est active : Ctrl+Tab reste donc disponible dans vos autres logiciels." />
 
                   <ItemsControl ItemsSource="{Binding Hotkeys}">
                     <ItemsControl.ItemTemplate>

@@ -74,9 +74,10 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Retrouve la fenêtre d'une session. L'identifiant de session figure dans
-    /// le titre, et le processus est vérifié : deux critères valent mieux
-    /// qu'un pour ne pas déplacer la fenêtre d'un autre logiciel.
+    /// Retrouve la fenêtre d'une session par son processus. Chaque processus
+    /// scrcpy n'ouvre qu'une fenêtre visible, ce qui suffit à l'identifier et
+    /// laisse le titre entièrement au nom choisi par l'utilisateur. Le titre
+    /// ne sert que de départage si plusieurs fenêtres apparaissaient.
     /// </summary>
     public async Task<nint> ResolveWindowAsync(
         ScrcpySession session,
@@ -95,8 +96,18 @@ public sealed class WindowManagerService
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var match = _controller.FindWindows(session.ProcessId)
-                .FirstOrDefault(w => w.Title.Contains(session.Id, StringComparison.Ordinal));
+            var windows = _controller.FindWindows(session.ProcessId);
+
+            var match = windows.Count switch
+            {
+                0 => default,
+                1 => windows[0],
+                _ => windows.FirstOrDefault(
+                         w => string.Equals(w.Title, session.WindowTitle, StringComparison.Ordinal)) is
+                     { Handle: not 0 } titled
+                    ? titled
+                    : windows[0],
+            };
 
             if (match.Handle != 0)
             {

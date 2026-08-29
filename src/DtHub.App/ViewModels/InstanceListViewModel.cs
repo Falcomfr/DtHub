@@ -37,6 +37,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// <summary>Vrai tant qu'aucun téléphone n'est joignable.</summary>
     public bool HasNoConnectedDevice => !Devices.Any(d => d.IsConnected);
 
+    /// <summary>Vrai si au moins un téléphone répond.</summary>
+    public bool HasConnectedDevice => !HasNoConnectedDevice;
+
     /// <summary>Nombre d'instances cochées pour le lancement.</summary>
     public int EnabledCount => Devices.SelectMany(d => d.Instances).Count(i => i.IsEnabled);
 
@@ -103,6 +106,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
             }
 
             OnPropertyChanged(nameof(HasNoConnectedDevice));
+            OnPropertyChanged(nameof(HasConnectedDevice));
             OnPropertyChanged(nameof(EnabledCount));
         }
         catch (AdbException exception)

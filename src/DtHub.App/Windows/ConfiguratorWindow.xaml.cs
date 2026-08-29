@@ -9,6 +9,8 @@ using DtHub.App.ViewModels;
 using DtHub.Core.Hotkeys;
 using DtHub.Core.Windows;
 
+using Microsoft.Extensions.DependencyInjection;
+
 namespace DtHub.App.Windows;
 
 /// <summary>
@@ -93,6 +95,16 @@ public partial class ConfiguratorWindow : Window
     }
 
     private void OnHide(object sender, RoutedEventArgs e) => Hide();
+
+    /// <summary>Ouvre la fenêtre d'ajout, puis rafraîchit la liste.</summary>
+    private async void OnAddDevice(object sender, RoutedEventArgs e)
+    {
+        var dialog = AppHost.Services.GetRequiredService<AddDeviceWindow>();
+        dialog.Owner = this;
+        dialog.ShowDialog();
+
+        await _viewModel.PollAsync(CancellationToken.None).ConfigureAwait(true);
+    }
 
     private void OnHeaderDrag(object sender, MouseButtonEventArgs e)
     {

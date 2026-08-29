@@ -18,21 +18,15 @@ public sealed partial class SetupViewModel : ObservableObject
 
     public SetupViewModel(
         InstanceListViewModel instances,
-        PairingViewModel pairing,
         SettingsService settings,
         GameLauncher launcher)
     {
         Instances = instances;
-        Pairing = pairing;
         _settings = settings;
         _launcher = launcher;
-
-        Pairing.Paired += async (_, _) => await Instances.RefreshAsync().ConfigureAwait(true);
     }
 
     public InstanceListViewModel Instances { get; }
-
-    public PairingViewModel Pairing { get; }
 
     /// <summary>Vrai quand l'utilisateur a validé et que le lancement peut suivre.</summary>
     [ObservableProperty]
@@ -47,11 +41,6 @@ public sealed partial class SetupViewModel : ObservableObject
     public async Task PollAsync(CancellationToken cancellationToken)
     {
         await Instances.RefreshAsync(cancellationToken).ConfigureAwait(true);
-
-        if (Instances.HasNoConnectedDevice)
-        {
-            await Pairing.ScanAsync(cancellationToken).ConfigureAwait(true);
-        }
 
         OnPropertyChanged(nameof(CanLaunch));
     }
