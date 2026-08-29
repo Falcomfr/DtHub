@@ -45,9 +45,11 @@ Dernière mise à jour : 2026-08-29
 
 | Élément | État |
 |---|---|
-| `DevicePairingService` (`adb pair`) | TODO |
-| Découverte mDNS (`adb mdns services`) | TODO |
-| Reconnexion automatique au démarrage | TODO |
+| `DevicePairingService` (`adb pair` puis connexion) | DONE |
+| Découverte mDNS (`adb mdns services`) | DONE |
+| Reconnexion automatique en trois temps | DONE |
+| Code d'appairage masqué dans les journaux | DONE |
+| Repli sur saisie manuelle du port si le mDNS est bloqué | DONE |
 
 ## Phase 5 - Utilisateurs Android
 

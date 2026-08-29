@@ -230,6 +230,134 @@ public static class AdbOutputParser
         return properties;
     }
 
+
+    /// <summary>
+    /// Lit la sortie de <c>adb mdns services</c>. Les colonnes sont séparées
+    /// par des tabulations ou par des espaces selon les versions d'ADB, d'où
+    /// un découpage sur tout blanc.
+    /// </summary>
+    public static IReadOnlyList<MdnsService> ParseMdnsServices(string? output)
+    {
+        var services = new List<MdnsService>();
+        if (string.IsNullOrWhiteSpace(output))
+        {
+            return services;
+        }
+
+        foreach (var rawLine in SplitLines(output))
+        {
+            var line = rawLine.Trim();
+
+            if (line.Length == 0
+                || line.StartsWith('*')
+                || line.StartsWith("List of discovered mdns services", StringComparison.Ordinal)
+                || line.StartsWith("mdns daemon version", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var tokens = line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+            if (tokens.Length < 3)
+            {
+                continue;
+            }
+
+            var (host, port) = SplitNetworkSerial(tokens[2]);
+            if (host is null || port is null)
+            {
+                continue;
+            }
+
+            services.Add(new MdnsService(tokens[0], tokens[1], host, port.Value));
+        }
+
+        return services;
+    }
+
+    /// <summary>
+    /// Lit la sortie de <c>adb pair</c>. Le code d'appairage n'apparaît jamais
+    /// dans la sortie, et ne doit jamais être recopié dans un journal.
+    /// </summary>
+    public static AdbPairResult ParsePairResult(string? output)
+    {
+        if (string.IsNullOrWhiteSpace(output))
+        {
+            return AdbPairResult.Failure(null);
+        }
+
+        foreach (var rawLine in SplitLines(output))
+        {
+            var line = rawLine.Trim();
+
+            if (line.StartsWith("Successfully paired", StringComparison.OrdinalIgnoreCase))
+            {
+                return AdbPairResult.Success(ExtractGuid(line));
+            }
+
+            if (line.StartsWith("Failed", StringComparison.OrdinalIgnoreCase)
+                || line.StartsWith("adb: error", StringComparison.OrdinalIgnoreCase))
+            {
+                return AdbPairResult.Failure(line);
+            }
+        }
+
+        return AdbPairResult.Failure(output.Trim());
+    }
+
+    /// <summary>Lit la sortie de <c>adb connect</c>.</summary>
+    public static AdbConnectResult ParseConnectResult(string? output)
+    {
+        if (string.IsNullOrWhiteSpace(output))
+        {
+            return AdbConnectResult.Failure(null);
+        }
+
+        foreach (var rawLine in SplitLines(output))
+        {
+            var line = rawLine.Trim();
+            if (line.Length == 0)
+            {
+                continue;
+            }
+
+            if (line.StartsWith("already connected", StringComparison.OrdinalIgnoreCase))
+            {
+                return AdbConnectResult.Already;
+            }
+
+            if (line.StartsWith("connected to", StringComparison.OrdinalIgnoreCase))
+            {
+                return AdbConnectResult.Connected;
+            }
+
+            if (line.StartsWith("failed to connect", StringComparison.OrdinalIgnoreCase)
+                || line.StartsWith("cannot connect", StringComparison.OrdinalIgnoreCase)
+                || line.StartsWith("unable to connect", StringComparison.OrdinalIgnoreCase))
+            {
+                return AdbConnectResult.Failure(line);
+            }
+        }
+
+        return AdbConnectResult.Failure(output.Trim());
+    }
+
+    /// <summary>Extrait <c>guid=...</c> d'une ligne d'appairage réussi.</summary>
+    private static string? ExtractGuid(string line)
+    {
+        const string marker = "guid=";
+
+        var start = line.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+        if (start < 0)
+        {
+            return null;
+        }
+
+        start += marker.Length;
+        var end = line.IndexOfAny([']', ' '], start);
+
+        return end < 0 ? line[start..] : line[start..end];
+    }
+
     private static IEnumerable<string> SplitLines(string text) =>
         text.Split('\n').Select(line => line.TrimEnd('\r'));
 }

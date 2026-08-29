@@ -39,7 +39,7 @@ public class AdbClientTests
     {
         var (client, runner) = Build(new FakeProcessRunner().Respond("reconnect", "done\n"));
 
-        await client.ExecuteAsync("192.168.1.25:5555", ["reconnect"], null, CancellationToken.None);
+        await client.ExecuteAsync("192.168.1.25:5555", ["reconnect"], null, null, CancellationToken.None);
 
         Assert.Equal("-s 192.168.1.25:5555 reconnect", runner.LastArguments);
         Assert.Equal(@"C:\Dev\DTHub\adb\adb.exe", runner.Calls[^1].FileName);
@@ -167,6 +167,68 @@ public class AdbClientTests
             .Respond("wait-for-device", exitCode: -1, timedOut: true));
 
         Assert.False(await client.WaitForDeviceAsync("0123", TimeSpan.FromSeconds(1), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Le_code_d_appairage_n_apparait_jamais_dans_la_ligne_de_commande_journalisee()
+    {
+        var (client, runner) = Build(new FakeProcessRunner()
+            .Respond("pair", "Successfully paired to 192.168.1.25:37123 [guid=adb-MATERIEL123-nJyLWZ]"));
+
+        await client.PairAsync("192.168.1.25", 37123, "654321", CancellationToken.None);
+
+        var request = runner.Calls[^1];
+
+        // L'argument est bien transmis au processus...
+        Assert.Contains("654321", request.Arguments);
+
+        // ...mais la ligne destinée aux journaux le masque.
+        Assert.DoesNotContain("654321", request.ToDisplayString(), StringComparison.Ordinal);
+        Assert.Contains("***", request.ToDisplayString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Un_appairage_reussi_rend_l_identifiant_renvoye_par_adb()
+    {
+        var (client, _) = Build(new FakeProcessRunner()
+            .Respond("pair", "Successfully paired to 192.168.1.25:37123 [guid=adb-MATERIEL123-nJyLWZ]"));
+
+        var result = await client.PairAsync("192.168.1.25", 37123, "654321", CancellationToken.None);
+
+        Assert.True(result.Succeeded);
+        Assert.Equal("adb-MATERIEL123-nJyLWZ", result.DeviceGuid);
+    }
+
+    [Fact]
+    public async Task Un_appairage_expire_est_traite_comme_un_echec_et_non_comme_un_succes()
+    {
+        var (client, _) = Build(new FakeProcessRunner().Respond("pair", exitCode: -1, timedOut: true));
+
+        var result = await client.PairAsync("192.168.1.25", 37123, "654321", CancellationToken.None);
+
+        Assert.False(result.Succeeded);
+    }
+
+    [Fact]
+    public async Task Un_mdns_en_echec_rend_une_liste_vide_plutot_qu_une_exception()
+    {
+        // Le mDNS est souvent bloqué par le réseau : ce n'est pas une panne.
+        var (client, _) = Build(new FakeProcessRunner()
+            .Respond("mdns services", standardError: "ERROR: mdns daemon unavailable", exitCode: 1));
+
+        Assert.Empty(await client.ListMdnsServicesAsync(CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Une_connexion_deja_etablie_n_est_pas_traitee_comme_une_erreur()
+    {
+        var (client, _) = Build(new FakeProcessRunner()
+            .Respond("connect", "already connected to 192.168.1.25:37845"));
+
+        var result = await client.ConnectAsync("192.168.1.25", 37845, CancellationToken.None);
+
+        Assert.True(result.Succeeded);
+        Assert.True(result.AlreadyConnected);
     }
 
     [Fact]

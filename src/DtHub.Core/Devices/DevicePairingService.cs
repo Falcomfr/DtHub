@@ -1,0 +1,143 @@
+using DtHub.Core.Adb;
+
+namespace DtHub.Core.Devices;
+
+/// <summary>
+/// Conduit l'appairage du débogage sans fil de bout en bout : appairage avec
+/// le code affiché par le téléphone, découverte du port de connexion par mDNS,
+/// puis connexion. L'utilisateur ne tape jamais de commande ADB.
+/// </summary>
+public sealed class DevicePairingService
+{
+    private readonly IAdbClient _adb;
+    private readonly Func<TimeSpan, CancellationToken, Task> _delay;
+
+    /// <param name="delay">
+    /// Attente entre deux sondages mDNS. Injectable pour que les tests
+    /// n'attendent pas réellement.
+    /// </param>
+    public DevicePairingService(IAdbClient adb, Func<TimeSpan, CancellationToken, Task>? delay = null)
+    {
+        _adb = adb;
+        _delay = delay ?? ((duration, token) => Task.Delay(duration, token));
+    }
+
+    /// <summary>
+    /// Durée pendant laquelle on attend l'annonce mDNS du port de connexion.
+    /// Le téléphone met quelques secondes à la publier après l'appairage.
+    /// </summary>
+    public TimeSpan ConnectDiscoveryTimeout { get; init; } = TimeSpan.FromSeconds(12);
+
+    public TimeSpan DiscoveryPollInterval { get; init; } = TimeSpan.FromSeconds(1);
+
+    /// <summary>
+    /// Appaire puis connecte. Le code d'appairage n'est ni journalisé, ni
+    /// conservé au-delà de l'appel.
+    /// </summary>
+    public async Task<WirelessPairingResult> PairAndConnectAsync(
+        string host,
+        int pairingPort,
+        string pairingCode,
+        CancellationToken cancellationToken = default)
+    {
+        var pairing = await _adb.PairAsync(host, pairingPort, pairingCode, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!pairing.Succeeded)
+        {
+            return new WirelessPairingResult(
+                WirelessPairingStatus.PairingFailed,
+                AdbErrorInterpreter.Describe(AdbErrorKind.PairingFailed));
+        }
+
+        var service = await WaitForConnectServiceAsync(host, cancellationToken).ConfigureAwait(false);
+
+        if (service is null)
+        {
+            return new WirelessPairingResult(
+                WirelessPairingStatus.ConnectPortNotFound,
+                "Le téléphone est appairé, mais son port de connexion n'a pas été trouvé sur le réseau. "
+                + "Saisissez le port affiché sous « Débogage sans fil » sur le téléphone.",
+                DeviceGuid: pairing.DeviceGuid);
+        }
+
+        var connect = await _adb.ConnectAsync(service.Host, service.Port, cancellationToken)
+            .ConfigureAwait(false);
+
+        return connect.Succeeded
+            ? new WirelessPairingResult(
+                WirelessPairingStatus.Connected,
+                "Téléphone appairé et connecté.",
+                service.Address,
+                pairing.DeviceGuid)
+            : new WirelessPairingResult(
+                WirelessPairingStatus.ConnectFailed,
+                AdbErrorInterpreter.Describe(AdbErrorKind.ConnectionFailed),
+                service.Address,
+                pairing.DeviceGuid);
+    }
+
+    /// <summary>
+    /// Connexion directe à une adresse, pour le cas où l'utilisateur saisit
+    /// lui-même le port parce que le mDNS est bloqué.
+    /// </summary>
+    public async Task<WirelessPairingResult> ConnectAsync(
+        string host,
+        int port,
+        CancellationToken cancellationToken = default)
+    {
+        var connect = await _adb.ConnectAsync(host, port, cancellationToken).ConfigureAwait(false);
+
+        return connect.Succeeded
+            ? new WirelessPairingResult(WirelessPairingStatus.Connected, "Téléphone connecté.", $"{host}:{port}")
+            : new WirelessPairingResult(
+                WirelessPairingStatus.ConnectFailed,
+                AdbErrorInterpreter.Describe(AdbErrorKind.ConnectionFailed),
+                $"{host}:{port}");
+    }
+
+    /// <summary>
+    /// Sonde le mDNS jusqu'à voir le service de connexion annoncé par l'hôte
+    /// donné, ou jusqu'à expiration du délai.
+    /// </summary>
+    public async Task<MdnsService?> WaitForConnectServiceAsync(
+        string host,
+        CancellationToken cancellationToken = default)
+    {
+        var deadline = DateTimeOffset.UtcNow + ConnectDiscoveryTimeout;
+
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var services = await _adb.ListMdnsServicesAsync(cancellationToken).ConfigureAwait(false);
+
+            var match = services.FirstOrDefault(
+                s => s.IsConnect && string.Equals(s.Host, host, StringComparison.Ordinal));
+
+            if (match is not null)
+            {
+                return match;
+            }
+
+            if (DateTimeOffset.UtcNow >= deadline)
+            {
+                return null;
+            }
+
+            await _delay(DiscoveryPollInterval, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Cherche les téléphones en attente d'appairage sur le réseau, pour
+    /// pré-remplir l'assistant plutôt que de faire recopier une adresse.
+    /// </summary>
+    public async Task<IReadOnlyList<MdnsService>> FindPairingCandidatesAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var services = await _adb.ListMdnsServicesAsync(cancellationToken).ConfigureAwait(false);
+
+        return [.. services.Where(s => s.IsPairing)];
+    }
+}

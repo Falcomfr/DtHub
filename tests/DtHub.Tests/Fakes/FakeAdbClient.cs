@@ -59,6 +59,7 @@ public sealed class FakeAdbClient : IAdbClient
         string? serial,
         IReadOnlyList<string> arguments,
         TimeSpan? timeout = null,
+        IReadOnlyCollection<string>? sensitiveValues = null,
         CancellationToken cancellationToken = default) =>
         Task.FromResult(new ProcessResult
         {
@@ -92,6 +93,53 @@ public sealed class FakeAdbClient : IAdbClient
         return Task.FromResult(_properties.TryGetValue(serial, out var output)
             ? AdbOutputParser.ParseGetProp(output)
             : (IReadOnlyDictionary<string, string>)new Dictionary<string, string>(StringComparer.Ordinal));
+    }
+
+    /// <summary>Sorties de <c>adb mdns services</c> renvoyées successivement.</summary>
+    public Queue<string> MdnsOutputs { get; } = new();
+
+    /// <summary>Résultat renvoyé par l'appairage.</summary>
+    public AdbPairResult PairOutcome { get; set; } = AdbPairResult.Success("adb-MATERIEL123-nJyLWZ");
+
+    /// <summary>Adresses pour lesquelles <c>adb connect</c> réussit.</summary>
+    public HashSet<string> ConnectableAddresses { get; } = new(StringComparer.Ordinal);
+
+    /// <summary>Adresses effectivement demandées à <c>adb connect</c>, dans l'ordre.</summary>
+    public List<string> ConnectAttempts { get; } = [];
+
+    /// <summary>Codes d'appairage vus, pour vérifier qu'ils ne fuitent pas.</summary>
+    public List<string> PairingCodesSeen { get; } = [];
+
+    public Task<AdbPairResult> PairAsync(
+        string host,
+        int pairingPort,
+        string pairingCode,
+        CancellationToken cancellationToken = default)
+    {
+        PairingCodesSeen.Add(pairingCode);
+        return Task.FromResult(PairOutcome);
+    }
+
+    public Task<AdbConnectResult> ConnectAsync(
+        string host,
+        int port,
+        CancellationToken cancellationToken = default)
+    {
+        var address = $"{host}:{port}";
+        ConnectAttempts.Add(address);
+
+        return Task.FromResult(ConnectableAddresses.Contains(address)
+            ? AdbConnectResult.Connected
+            : AdbConnectResult.Failure($"failed to connect to '{address}'"));
+    }
+
+    public Task DisconnectAsync(string? address = null, CancellationToken cancellationToken = default) =>
+        Task.CompletedTask;
+
+    public Task<IReadOnlyList<MdnsService>> ListMdnsServicesAsync(CancellationToken cancellationToken = default)
+    {
+        var output = MdnsOutputs.Count > 0 ? MdnsOutputs.Dequeue() : string.Empty;
+        return Task.FromResult(AdbOutputParser.ParseMdnsServices(output));
     }
 
     public Task<bool> WaitForDeviceAsync(

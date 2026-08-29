@@ -22,6 +22,12 @@ public sealed record ProcessRequest
     public IReadOnlyDictionary<string, string?> Environment { get; init; }
         = new Dictionary<string, string?>();
 
+    /// <summary>
+    /// Valeurs à masquer dans <see cref="ToDisplayString"/>. Un code
+    /// d'appairage ne doit jamais atteindre un fichier de journal.
+    /// </summary>
+    public IReadOnlyCollection<string> SensitiveValues { get; init; } = [];
+
     public ProcessRequest() { }
 
     [SetsRequiredMembers]
@@ -31,9 +37,15 @@ public sealed record ProcessRequest
         Arguments = arguments;
     }
 
-    /// <summary>Ligne de commande lisible, pour les logs et le diagnostic.</summary>
+    /// <summary>
+    /// Ligne de commande lisible, pour les journaux et le diagnostic. Les
+    /// valeurs déclarées sensibles y sont remplacées par des astérisques.
+    /// </summary>
     public string ToDisplayString() =>
-        string.Join(' ', [Quote(FileName), .. Arguments.Select(Quote)]);
+        string.Join(' ', [Quote(FileName), .. Arguments.Select(argument => Quote(Redact(argument)))]);
+
+    private string Redact(string argument) =>
+        SensitiveValues.Count > 0 && SensitiveValues.Contains(argument) ? "***" : argument;
 
     private static string Quote(string value) =>
         value.Length > 0 && !value.Any(char.IsWhiteSpace) ? value : $"\"{value}\"";

@@ -31,10 +31,14 @@ public interface IAdbClient
     /// Exécute une commande ADB brute. <paramref name="serial"/> cible un
     /// appareil précis ; <c>null</c> vise le serveur.
     /// </summary>
+    /// <param name="sensitiveValues">
+    /// Valeurs à masquer dans les journaux, par exemple un code d'appairage.
+    /// </param>
     Task<ProcessResult> ExecuteAsync(
         string? serial,
         IReadOnlyList<string> arguments,
         TimeSpan? timeout = null,
+        IReadOnlyCollection<string>? sensitiveValues = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -51,6 +55,31 @@ public interface IAdbClient
     Task<IReadOnlyDictionary<string, string>> GetPropertiesAsync(
         string serial,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Appaire le PC avec un téléphone en débogage sans fil. Le code n'est ni
+    /// journalisé, ni conservé après l'appel.
+    /// </summary>
+    Task<AdbPairResult> PairAsync(
+        string host,
+        int pairingPort,
+        string pairingCode,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Établit une connexion ADB sans fil vers une adresse.</summary>
+    Task<AdbConnectResult> ConnectAsync(
+        string host,
+        int port,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Coupe une connexion sans fil. <paramref name="address"/> à <c>null</c>
+    /// coupe toutes les connexions sans fil du serveur ADB.
+    /// </summary>
+    Task DisconnectAsync(string? address = null, CancellationToken cancellationToken = default);
+
+    /// <summary>Liste les annonces de débogage sans fil vues sur le réseau local.</summary>
+    Task<IReadOnlyList<MdnsService>> ListMdnsServicesAsync(CancellationToken cancellationToken = default);
 
     /// <summary>Attend qu'un appareil passe à l'état prêt.</summary>
     /// <returns>Vrai si l'appareil est prêt avant l'expiration du délai.</returns>

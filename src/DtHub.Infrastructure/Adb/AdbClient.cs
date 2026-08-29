@@ -20,6 +20,11 @@ public sealed partial class AdbClient : IAdbClient
 
     private static readonly TimeSpan ServerTimeout = TimeSpan.FromSeconds(45);
 
+    /// <summary>L'appairage négocie du TLS avec le téléphone, ce qui peut traîner.</summary>
+    private static readonly TimeSpan PairingTimeout = TimeSpan.FromSeconds(30);
+
+    private static readonly TimeSpan ConnectTimeout = TimeSpan.FromSeconds(15);
+
     private readonly IProcessRunner _runner;
     private readonly IAdbLocator _locator;
     private readonly ILogger<AdbClient> _logger;
@@ -33,7 +38,7 @@ public sealed partial class AdbClient : IAdbClient
 
     public async Task StartServerAsync(CancellationToken cancellationToken = default)
     {
-        var result = await ExecuteAsync(null, ["start-server"], ServerTimeout, cancellationToken)
+        var result = await ExecuteAsync(null, ["start-server"], ServerTimeout, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
         if (!result.Succeeded)
@@ -51,12 +56,12 @@ public sealed partial class AdbClient : IAdbClient
         // sur action explicite de l'utilisateur.
         LogServerStopRequested();
 
-        await ExecuteAsync(null, ["kill-server"], ServerTimeout, cancellationToken).ConfigureAwait(false);
+        await ExecuteAsync(null, ["kill-server"], ServerTimeout, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<string> GetVersionAsync(CancellationToken cancellationToken = default)
     {
-        var result = await ExecuteAsync(null, ["version"], DefaultTimeout, cancellationToken)
+        var result = await ExecuteAsync(null, ["version"], DefaultTimeout, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
         if (!result.Succeeded)
@@ -79,7 +84,7 @@ public sealed partial class AdbClient : IAdbClient
     {
         string[] arguments = detailed ? ["devices", "-l"] : ["devices"];
 
-        var result = await ExecuteAsync(null, arguments, DefaultTimeout, cancellationToken)
+        var result = await ExecuteAsync(null, arguments, DefaultTimeout, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
         if (!result.Succeeded)
@@ -94,6 +99,7 @@ public sealed partial class AdbClient : IAdbClient
         string? serial,
         IReadOnlyList<string> arguments,
         TimeSpan? timeout = null,
+        IReadOnlyCollection<string>? sensitiveValues = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(arguments);
@@ -114,6 +120,7 @@ public sealed partial class AdbClient : IAdbClient
             FileName = adbPath,
             Arguments = fullArguments,
             Timeout = timeout ?? DefaultTimeout,
+            SensitiveValues = sensitiveValues ?? [],
         };
 
         if (_logger.IsEnabled(LogLevel.Debug))
@@ -151,7 +158,7 @@ public sealed partial class AdbClient : IAdbClient
         ArgumentException.ThrowIfNullOrWhiteSpace(serial);
         ArgumentNullException.ThrowIfNull(arguments);
 
-        var result = await ExecuteAsync(serial, ["shell", .. arguments], timeout, cancellationToken)
+        var result = await ExecuteAsync(serial, ["shell", .. arguments], timeout, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
         if (!result.Succeeded)
@@ -182,6 +189,80 @@ public sealed partial class AdbClient : IAdbClient
         return AdbOutputParser.ParseGetProp(output);
     }
 
+    public async Task<AdbPairResult> PairAsync(
+        string host,
+        int pairingPort,
+        string pairingCode,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(host);
+        ArgumentException.ThrowIfNullOrWhiteSpace(pairingCode);
+
+        // Le code est passé en argument plutôt que sur l'entrée standard, ce
+        // qui évite la question interactive d'ADB, et il est déclaré sensible
+        // pour ne jamais apparaître dans les journaux.
+        var result = await ExecuteAsync(
+            null,
+            ["pair", $"{host}:{pairingPort}", pairingCode],
+            PairingTimeout,
+            sensitiveValues: [pairingCode],
+            cancellationToken).ConfigureAwait(false);
+
+        if (result.TimedOut)
+        {
+            return AdbPairResult.Failure(AdbErrorInterpreter.Describe(AdbErrorKind.Timeout));
+        }
+
+        var parsed = AdbOutputParser.ParsePairResult(result.OutputOrError);
+
+        if (parsed.Succeeded)
+        {
+            LogPaired(host);
+        }
+        else
+        {
+            LogPairingFailed(host, parsed.FailureReason ?? "raison inconnue");
+        }
+
+        return parsed;
+    }
+
+    public async Task<AdbConnectResult> ConnectAsync(
+        string host,
+        int port,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(host);
+
+        var result = await ExecuteAsync(null, ["connect", $"{host}:{port}"], ConnectTimeout, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+
+        return result.TimedOut
+            ? AdbConnectResult.Failure(AdbErrorInterpreter.Describe(AdbErrorKind.Timeout))
+            : AdbOutputParser.ParseConnectResult(result.OutputOrError);
+    }
+
+    public async Task DisconnectAsync(string? address = null, CancellationToken cancellationToken = default)
+    {
+        string[] arguments = string.IsNullOrWhiteSpace(address) ? ["disconnect"] : ["disconnect", address];
+
+        await ExecuteAsync(null, arguments, ConnectTimeout, cancellationToken: cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<IReadOnlyList<MdnsService>> ListMdnsServicesAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var result = await ExecuteAsync(null, ["mdns", "services"], DefaultTimeout, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+
+        // La découverte mDNS peut être bloquée par le réseau ou le pare-feu.
+        // Ce n'est pas une erreur : l'appelant a d'autres moyens de retrouver
+        // le téléphone, et une liste vide se lit sans ambiguïté.
+        return result.Succeeded
+            ? AdbOutputParser.ParseMdnsServices(result.StandardOutput)
+            : [];
+    }
+
     public async Task<bool> WaitForDeviceAsync(
         string serial,
         TimeSpan timeout,
@@ -189,7 +270,7 @@ public sealed partial class AdbClient : IAdbClient
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(serial);
 
-        var result = await ExecuteAsync(serial, ["wait-for-device"], timeout, cancellationToken)
+        var result = await ExecuteAsync(serial, ["wait-for-device"], timeout, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
         return result.Succeeded;
@@ -219,6 +300,12 @@ public sealed partial class AdbClient : IAdbClient
         Level = LogLevel.Warning,
         Message = "Arrêt du serveur ADB demandé : les autres outils ADB de la machine seront coupés.")]
     private partial void LogServerStopRequested();
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Appairage réussi avec {host}.")]
+    private partial void LogPaired(string host);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Appairage refusé par {host} : {reason}")]
+    private partial void LogPairingFailed(string host, string reason);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "ADB > {commandLine}")]
     private partial void LogCommand(string commandLine);
