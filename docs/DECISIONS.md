@@ -147,3 +147,33 @@ l'essentiel de la reconnaissance, sont bien récupérés.
 
 À rouvrir si scrcpy publie les icônes, ou si une extraction ciblée d'entrée
 d'APK devient possible sans transférer le fichier entier.
+
+---
+
+## D7 - Raccourcis par RegisterHotKey, activés seulement sur nos fenêtres
+
+**2026-08-29 - Acceptée**
+
+Le cahier des charges demande que Ctrl+Tab reste disponible dans les autres
+logiciels. Deux voies existaient :
+
+- un crochet clavier de bas niveau, qui voit toutes les frappes du système et
+  décide au cas par cas de les avaler. Techniquement souple, mais
+  disproportionné : le programme observerait tout ce que l'utilisateur tape,
+  et un tel crochet est indiscernable d'un enregistreur de frappe, pour un
+  antivirus comme pour un lecteur du code ;
+- `RegisterHotKey`, qui ne capte que les combinaisons déclarées, associé à un
+  enregistrement conditionnel.
+
+C'est la seconde qui est retenue. Un crochet d'événement système signale les
+changements de fenêtre active ; aucune frappe n'y transite. Quand une fenêtre
+de DT Hub prend le focus, les raccourcis sont enregistrés ; quand elle le
+perd, ils sont retirés et les combinaisons reviennent aux autres logiciels.
+
+Conséquences assumées :
+
+- un raccourci déjà pris par un autre logiciel est refusé par Windows. Le
+  refus est détecté et remonté à l'utilisateur plutôt que d'échouer en
+  silence ;
+- les raccourcis ne fonctionnent pas depuis une autre application, ce qui est
+  précisément l'effet recherché.

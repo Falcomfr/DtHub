@@ -112,8 +112,11 @@ Dernière mise à jour : 2026-08-29
 
 | Élément | État |
 |---|---|
-| `HotkeyService` | TODO |
-| Éditeur graphique + détection de conflits | TODO |
+| Modèle de raccourcis et validation | DONE |
+| Détection des doublons et des combinaisons réservées | DONE |
+| Réparation d'un fichier de raccourcis incohérent | DONE |
+| Enregistrement Win32 conditionnel au focus | DONE |
+| Éditeur graphique | TODO (phase 11, avec l'interface) |
 
 ## Phase 11 - Paramètres et interface
 
