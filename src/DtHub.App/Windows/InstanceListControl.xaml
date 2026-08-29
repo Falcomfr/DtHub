@@ -146,6 +146,9 @@
                          Text="Le jeu n'est installé sur aucun profil de cet appareil."
                          Visibility="{Binding Instances.Count, Converter={StaticResource EmptyToVisibility}}" />
 
+              <Border Style="{StaticResource DropLine}"
+                      Visibility="{Binding DropBelow, Converter={StaticResource BoolToVisibility}}" />
+
             </StackPanel>
           </Border>
         </DataTemplate>

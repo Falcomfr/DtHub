@@ -14,6 +14,8 @@ public sealed partial class InstanceRowViewModel : ObservableObject
         _name = instance.DisplayName;
     }
 
+    private bool _applying;
+
     [ObservableProperty]
     private DofusInstance _instance;
 
@@ -64,14 +66,33 @@ public sealed partial class InstanceRowViewModel : ObservableObject
 
     public event EventHandler<InstanceRowViewModel>? NameChanged;
 
+    /// <summary>
+    /// Vrai tant que le nom saisi n'est pas écrit. Le balayage périodique ne
+    /// doit pas le remplacer entre-temps par l'ancien : la saisie semblerait
+    /// s'annuler toute seule.
+    /// </summary>
+    public bool IsRenaming { get; set; }
+
     public void Update(DofusInstance instance, bool isRunning)
     {
         Instance = instance;
         IsRunning = isRunning;
 
-        if (!string.Equals(Name, instance.DisplayName, StringComparison.Ordinal))
+        if (!IsRenaming && !string.Equals(Name, instance.DisplayName, StringComparison.Ordinal))
         {
-            Name = instance.DisplayName;
+            // Écriture venue des réglages, pas de l'utilisateur : la
+            // répercuter comme un renommage relancerait une écriture à
+            // chaque balayage.
+            _applying = true;
+
+            try
+            {
+                Name = instance.DisplayName;
+            }
+            finally
+            {
+                _applying = false;
+            }
         }
 
         OnPropertyChanged(nameof(IsDeviceConnected));
@@ -80,5 +101,14 @@ public sealed partial class InstanceRowViewModel : ObservableObject
 
     partial void OnIsEnabledChanged(bool value) => EnabledChanged?.Invoke(this, this);
 
-    partial void OnNameChanged(string value) => NameChanged?.Invoke(this, this);
+    partial void OnNameChanged(string value)
+    {
+        if (_applying)
+        {
+            return;
+        }
+
+        IsRenaming = true;
+        NameChanged?.Invoke(this, this);
+    }
 }

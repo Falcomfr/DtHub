@@ -130,9 +130,14 @@ public sealed partial class InstanceListViewModel : ObservableObject
         }
     }
 
+    private object? _hinted;
+    private bool _hintedAbove;
+
     /// <summary>Efface tous les repères de dépôt.</summary>
     public void ClearDropHints()
     {
+        _hinted = null;
+
         foreach (var device in Devices)
         {
             device.IsDragging = false;
@@ -151,10 +156,22 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// <summary>
     /// Marque l'endroit où le dépôt insérerait, au-dessus ou en dessous de
     /// l'élément survolé. Un seul repère est visible à la fois.
+    ///
+    /// Rien n'est touché quand le repère n'a pas changé de place : le
+    /// survol déclenche des dizaines d'événements par seconde, et tout
+    /// remettre à zéro à chacun faisait clignoter le trait.
     /// </summary>
     public void ShowDropHint(object onto, bool above)
     {
+        if (ReferenceEquals(_hinted, onto) && _hintedAbove == above)
+        {
+            return;
+        }
+
         ClearDropHints();
+
+        _hinted = onto;
+        _hintedAbove = above;
 
         switch (onto)
         {
@@ -354,6 +371,16 @@ public sealed partial class InstanceListViewModel : ObservableObject
         OnPropertyChanged(nameof(EnabledCount));
     }
 
-    private async void OnNameChanged(object? sender, InstanceRowViewModel row) =>
-        await _settings.RenameInstanceAsync(row.Key, row.Name).ConfigureAwait(true);
+    private async void OnNameChanged(object? sender, InstanceRowViewModel row)
+    {
+        try
+        {
+            await _settings.RenameInstanceAsync(row.Key, row.Name).ConfigureAwait(true);
+        }
+        finally
+        {
+            // Le nom est écrit : le balayage peut de nouveau faire foi.
+            row.IsRenaming = false;
+        }
+    }
 }

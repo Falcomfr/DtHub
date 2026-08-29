@@ -37,6 +37,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     private bool _hotkeysWired;
 
+    /// <summary>Vrai pendant une fermeture voulue : inutile d'en journaliser le détail.</summary>
+    private bool _closing;
+
     public GameLauncher(
         ScrcpySessionManager sessions,
         WindowManagerService windows,
@@ -61,6 +64,28 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _hotkeys = hotkeys;
         _apps = apps;
         _logger = logger;
+
+        // Une session qui meurt après son ouverture ne laissait aucune trace :
+        // la fenêtre disparaissait et le journal restait muet.
+        _sessions.SessionChanged += OnSessionChanged;
+    }
+
+    /// <summary>
+    /// Journalise la mort d'une session, avec la sortie de scrcpy. Sans cela,
+    /// une fenêtre qui se ferme d'elle-même est indiagnosticable.
+    /// </summary>
+    private void OnSessionChanged(object? sender, ScrcpySession session)
+    {
+        if (session.IsAlive || _closing)
+        {
+            return;
+        }
+
+        LogSessionEnded(
+            session.Target.DisplayName,
+            session.State.ToString(),
+            session.FailureMessage ?? "aucun message",
+            string.Join(Environment.NewLine, session.RecentOutput));
     }
 
     /// <summary>Sessions actuellement ouvertes.</summary>
@@ -323,8 +348,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         if (FindSession(instance) is { } session)
         {
-            await _sessions.StopAsync(session.Id, cancellationToken).ConfigureAwait(false);
-            _sessions.PruneFinished();
+            _closing = true;
+            try
+            {
+                await _sessions.StopAsync(session.Id, cancellationToken).ConfigureAwait(false);
+                _sessions.PruneFinished();
+            }
+            finally
+            {
+                _closing = false;
+            }
         }
     }
 
@@ -334,8 +367,17 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // La géométrie est relevée tant que les fenêtres existent encore.
         await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
 
-        await _sessions.StopAllAsync(cancellationToken).ConfigureAwait(false);
-        _sessions.PruneFinished();
+        _closing = true;
+
+        try
+        {
+            await _sessions.StopAllAsync(cancellationToken).ConfigureAwait(false);
+            _sessions.PruneFinished();
+        }
+        finally
+        {
+            _closing = false;
+        }
 
         await _hotkeys.SetEnabledAsync(false).ConfigureAwait(false);
     }
@@ -658,4 +700,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Un raccourci n'a pas pu être traité.")]
     private partial void LogHotkeyFailure(Exception exception);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "La session {instance} s'est terminée seule ({state}) : {message}\n{output}")]
+    private partial void LogSessionEnded(string instance, string state, string message, string output);
 }

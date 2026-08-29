@@ -246,10 +246,10 @@
 
   <!-- Trait d'insertion montré pendant un glissé. -->
   <Style x:Key="DropLine" TargetType="Border">
-    <Setter Property="Height" Value="2" />
-    <Setter Property="CornerRadius" Value="1" />
+    <Setter Property="Height" Value="3" />
+    <Setter Property="CornerRadius" Value="2" />
     <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
-    <Setter Property="Margin" Value="0,1" />
+    <Setter Property="Margin" Value="0,2" />
   </Style>
 
   <!-- Indicateur d'activité : un arc qui tourne. C'est la seule animation
@@ -258,29 +258,35 @@
   <Style x:Key="BusyIndicator" TargetType="Control">
     <Setter Property="Width" Value="16" />
     <Setter Property="Height" Value="16" />
+    <Setter Property="Focusable" Value="False" />
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="Control">
-          <Grid RenderTransformOrigin="0.5,0.5">
+          <!-- L'animation vise l'élément qui porte le déclencheur, sans nom :
+               un Storyboard déclenché depuis un gabarit ne voit pas l'étendue
+               de noms de ce gabarit, et échouait à chaque affichage d'une
+               ligne. -->
+          <Grid Background="Transparent" RenderTransformOrigin="0.5,0.5">
             <Grid.RenderTransform>
-              <RotateTransform x:Name="Spin" Angle="0" />
+              <RotateTransform Angle="0" />
             </Grid.RenderTransform>
+
+            <Grid.Triggers>
+              <EventTrigger RoutedEvent="Loaded">
+                <BeginStoryboard>
+                  <Storyboard>
+                    <DoubleAnimation
+                        Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                        From="0" To="360" Duration="0:0:1" RepeatBehavior="Forever" />
+                  </Storyboard>
+                </BeginStoryboard>
+              </EventTrigger>
+            </Grid.Triggers>
+
             <Ellipse Stroke="{DynamicResource BorderBrush}" StrokeThickness="2" />
             <Path Stroke="{DynamicResource AccentBrush}" StrokeThickness="2" StrokeStartLineCap="Round"
                   Data="M 8 1 A 7 7 0 0 1 15 8" />
           </Grid>
-          <ControlTemplate.Triggers>
-            <EventTrigger RoutedEvent="Loaded">
-              <BeginStoryboard>
-                <Storyboard>
-                  <DoubleAnimation Storyboard.TargetName="Spin"
-                                   Storyboard.TargetProperty="Angle"
-                                   From="0" To="360" Duration="0:0:1"
-                                   RepeatBehavior="Forever" />
-                </Storyboard>
-              </BeginStoryboard>
-            </EventTrigger>
-          </ControlTemplate.Triggers>
         </ControlTemplate>
       </Setter.Value>
     </Setter>
