@@ -108,7 +108,13 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                 exception.Message);
         }
 
-        var session = new ScrcpySession(sessionId, target, serial, windowTitle, process);
+        var session = new ScrcpySession(sessionId, target, serial, windowTitle, process)
+        {
+            SourceAspectRatio = options.UseVirtualDisplay && options.VirtualDisplayHeight > 0
+                ? (double)options.VirtualDisplayWidth / options.VirtualDisplayHeight
+                : 0,
+        };
+
         _sessions[sessionId] = session;
 
         var displayReady = new TaskCompletionSource<int?>(TaskCreationOptions.RunContinuationsAsynchronously);

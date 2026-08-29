@@ -100,8 +100,13 @@ Dernière mise à jour : 2026-08-29
 
 | Élément | État |
 |---|---|
-| `WindowManagerService` | TODO |
-| Mode STACK, centrage, tailles 60/70/80/90/plein écran | TODO |
+| Calcul de disposition, pur et testé | DONE |
+| `WindowManagerService`, mode STACK | DONE |
+| Tailles 60/70/80/90 personnalisables, plein écran sans bordure | DONE |
+| Centrage et commande Recentrer | DONE |
+| Parcours circulaire des sessions | DONE |
+| Choix de l'écran Windows | DONE |
+| Contrôleur Win32 réel | DONE (à éprouver en phase 13) |
 
 ## Phase 10 - Raccourcis
 

@@ -55,6 +55,19 @@ public sealed class ScrcpySession
     /// <summary>Afficheur virtuel créé par scrcpy, quand il y en a un.</summary>
     public int? VirtualDisplayId { get; internal set; }
 
+    /// <summary>
+    /// Rapport largeur sur hauteur de la source, repris des réglages de la
+    /// session. Le gestionnaire de fenêtres s'en sert pour ne pas déformer
+    /// l'image : un téléphone est en portrait, une tablette en paysage.
+    /// </summary>
+    public double SourceAspectRatio { get; internal set; }
+
+    /// <summary>
+    /// Fenêtre scrcpy correspondante, une fois retrouvée. Vaut zéro tant que
+    /// la fenêtre n'est pas apparue.
+    /// </summary>
+    public nint WindowHandle { get; internal set; }
+
     public ScrcpySessionState State { get; internal set; } = ScrcpySessionState.Starting;
 
     /// <summary>Message affichable expliquant l'échec, le cas échéant.</summary>
