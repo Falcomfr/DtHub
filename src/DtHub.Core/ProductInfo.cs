@@ -7,7 +7,7 @@ namespace DtHub.Core;
 public static class ProductInfo
 {
     /// <summary>Nom affiché dans l'interface, l'installateur et les fenêtres.</summary>
-    public const string Name = "DT Touch";
+    public const string Name = "DT Hub";
 
     /// <summary>
     /// Identifiant technique sans espace : nom du dossier de données et de

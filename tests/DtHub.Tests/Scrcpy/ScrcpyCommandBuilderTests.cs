@@ -1,3 +1,4 @@
+using DtHub.Core;
 using DtHub.Core.Scrcpy;
 
 namespace DtHub.Tests.Scrcpy;
@@ -215,15 +216,15 @@ public class ScrcpyCommandBuilderTests
     {
         // Le nom du produit n'apparaît que là : dans la barre des tâches, pour
         // reconnaître les fenêtres du jeu parmi les autres.
-        Assert.Equal("DT Touch XSpace", ScrcpyCommandBuilder.BuildWindowTitle("XSpace"));
-        Assert.Equal("DT Touch Enutrof", ScrcpyCommandBuilder.BuildWindowTitle("  Enutrof  "));
+        Assert.Equal($"{ProductInfo.Name} XSpace", ScrcpyCommandBuilder.BuildWindowTitle("XSpace"));
+        Assert.Equal($"{ProductInfo.Name} Enutrof", ScrcpyCommandBuilder.BuildWindowTitle("  Enutrof  "));
     }
 
     [Fact]
     public void Un_nom_vide_retombe_sur_le_nom_du_produit()
     {
-        Assert.Equal("DT Touch", ScrcpyCommandBuilder.BuildWindowTitle(null));
-        Assert.Equal("DT Touch", ScrcpyCommandBuilder.BuildWindowTitle("   "));
+        Assert.Equal(ProductInfo.Name, ScrcpyCommandBuilder.BuildWindowTitle(null));
+        Assert.Equal(ProductInfo.Name, ScrcpyCommandBuilder.BuildWindowTitle("   "));
     }
 
     [Fact]

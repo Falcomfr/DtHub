@@ -54,7 +54,7 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.False(settings.SetupCompleted);
         Assert.Empty(settings.Instances);
         Assert.Equal(WindowAnchor.MiddleLeft, settings.GameAnchor);
-        Assert.Equal([55, 70, 85, 100], settings.SizePercentages);
+        Assert.Equal([40, 60, 80, 100], settings.SizePercentages);
         Assert.Equal(1, settings.SizeIndex);
         Assert.Equal(45, settings.MaxFps);
         Assert.False(settings.AudioEnabled);
@@ -308,7 +308,7 @@ public sealed class SettingsServiceTests : IDisposable
 
         Assert.Equal(24, settings.MaxFps);
         Assert.Equal(4000, settings.VideoBitrateKbps);
-        Assert.Equal([55, 70, 85, 100], settings.SizePercentages);
+        Assert.Equal([40, 60, 80, 100], settings.SizePercentages);
     }
 
     [Fact]

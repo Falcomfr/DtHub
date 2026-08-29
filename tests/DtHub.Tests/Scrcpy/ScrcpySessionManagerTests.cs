@@ -1,5 +1,6 @@
 using DtHub.Core.Processes;
 using DtHub.Core.Sessions;
+using DtHub.Core;
 using DtHub.Core.Scrcpy;
 using DtHub.Tests.Fakes;
 
@@ -96,8 +97,8 @@ public class ScrcpySessionManagerTests
 
         // Aucun identifiant technique dans le titre : c'est ce que
         // l'utilisateur lira dans sa barre des tâches.
-        Assert.Equal("DT Touch Principal", first.WindowTitle);
-        Assert.Equal("DT Touch XSpace", second.WindowTitle);
+        Assert.Equal($"{ProductInfo.Name} Principal", first.WindowTitle);
+        Assert.Equal($"{ProductInfo.Name} XSpace", second.WindowTitle);
         Assert.DoesNotContain(first.Id, first.WindowTitle, StringComparison.Ordinal);
     }
 

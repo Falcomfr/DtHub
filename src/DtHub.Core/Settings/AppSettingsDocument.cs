@@ -32,7 +32,7 @@ public sealed class AppSettingsDocument
     /// Tailles proposées, en pourcentage de la zone utilisable de l'écran.
     /// Elles sont donc proportionnelles à l'écran employé.
     /// </summary>
-    public List<int> SizePercentages { get; set; } = [55, 70, 85, 100];
+    public List<int> SizePercentages { get; set; } = [40, 60, 80, 100];
 
     /// <summary>Taille retenue, par son indice. La dernière est le plein écran.</summary>
     public int SizeIndex { get; set; } = 1;

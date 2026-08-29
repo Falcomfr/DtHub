@@ -12,7 +12,7 @@ public sealed record WindowSizePresets
     public static readonly WindowSizePresets Default = new();
 
     /// <summary>Pourcentages des quatre premières tailles, dans l'ordre.</summary>
-    public IReadOnlyList<int> Percentages { get; init; } = [55, 70, 85, 100];
+    public IReadOnlyList<int> Percentages { get; init; } = [40, 60, 80, 100];
 
     /// <summary>Nombre total de tailles, plein écran compris.</summary>
     public int Count => Percentages.Count + 1;
