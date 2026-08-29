@@ -475,6 +475,29 @@ public sealed partial class GameLauncher : IAsyncDisposable
         return moved;
     }
 
+    /// <summary>
+    /// Rouvre toutes les fenêtres ouvertes, à leur taille actuelle. Sert quand
+    /// un réglage ne prend effet qu'à l'ouverture d'une session.
+    /// </summary>
+    public async Task ReopenAllAsync(CancellationToken cancellationToken = default)
+    {
+        await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+
+        var open = _sessions.ActiveSessions.Select(s => s.Target.Key).ToHashSet(StringComparer.Ordinal);
+
+        if (open.Count == 0)
+        {
+            return;
+        }
+
+        var instances = await RefreshInstancesAsync(cancellationToken).ConfigureAwait(false);
+
+        foreach (var instance in instances.Where(i => open.Contains(i.Key)))
+        {
+            await RestartAsync(instance, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
     /// <summary>Remet toutes les fenêtres en place, à la taille en cours.</summary>
     public async Task<int> ArrangeAsync(CancellationToken cancellationToken = default)
     {

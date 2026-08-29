@@ -195,6 +195,26 @@
                 </StackPanel>
               </Border>
 
+              <Border Style="{StaticResource Card}">
+                <StackPanel>
+                  <TextBlock Text="REDIMENSIONNEMENT À LA SOURIS" Style="{StaticResource SectionLabel}" />
+                  <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,10"
+                             Text="Les deux remplissent toujours la fenêtre et n'interrompent jamais le jeu. Changer rouvre les fenêtres ouvertes." />
+
+                  <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                    <RadioButton Style="{StaticResource Tab}" GroupName="Resize" Content="Largeur libre"
+                                 IsChecked="{Binding FreeWidthResize}" Margin="0,0,6,0" />
+                    <RadioButton Style="{StaticResource Tab}" GroupName="Resize" Content="Rapport verrouillé"
+                                 IsChecked="{Binding FreeWidthResize, Converter={StaticResource InverseBool}}" />
+                  </StackPanel>
+
+                  <TextBlock Style="{StaticResource Muted}" FontSize="11"
+                             Text="Largeur libre : élargir montre davantage de jeu, la hauteur s'arrête à celle de l'ouverture." />
+                  <TextBlock Style="{StaticResource Muted}" FontSize="11"
+                             Text="Rapport verrouillé : toutes les tailles sont acceptées, la fenêtre garde son format et l'image est agrandie." />
+                </StackPanel>
+              </Border>
+
               <Border Style="{StaticResource Card}"
                       Visibility="{Binding HasSeveralMonitors, Converter={StaticResource BoolToVisibility}}">
                 <StackPanel>

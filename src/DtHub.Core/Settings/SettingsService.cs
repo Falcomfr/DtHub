@@ -161,6 +161,7 @@ public sealed class SettingsService : IDisposable
             VirtualDisplayWidth = settings.VirtualDisplayWidth,
             VirtualDisplayHeight = settings.VirtualDisplayHeight,
             VirtualDisplayDpi = settings.VirtualDisplayDpi,
+            FlexDisplay = settings.FreeWidthResize,
         }.Sanitized();
     }
 
@@ -426,6 +427,10 @@ public sealed class SettingsService : IDisposable
             }
         }, cancellationToken);
     }
+
+    /// <summary>Retient le mode de redimensionnement.</summary>
+    public Task SetFreeWidthResizeAsync(bool free, CancellationToken cancellationToken = default) =>
+        UpdateAsync(settings => settings.FreeWidthResize = free, cancellationToken);
 
     /// <summary>Retient la taille posée au curseur.</summary>
     public Task SaveCustomSizePercentAsync(int percent, CancellationToken cancellationToken = default) =>

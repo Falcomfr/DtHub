@@ -60,6 +60,13 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [ObservableProperty]
     private int _sizePercent = 60;
 
+    /// <summary>
+    /// Vrai pour laisser la largeur libre, faux pour verrouiller le rapport.
+    /// Les deux remplissent toujours la fenêtre et ne rechargent jamais.
+    /// </summary>
+    [ObservableProperty]
+    private bool _freeWidthResize = true;
+
     public ObservableCollection<MonitorInfo> Monitors { get; } = [];
 
     [ObservableProperty]
@@ -112,6 +119,8 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             SizePercent = settings.CustomSizePercent > 0
                 ? settings.CustomSizePercent
                 : presets.PercentageAt(settings.SizeIndex);
+
+            FreeWidthResize = settings.FreeWidthResize;
 
             Monitors.Clear();
             foreach (var monitor in _launcher.Monitors)
@@ -330,6 +339,33 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             // Le curseur a bougé de nouveau : c'est la valeur suivante qui compte.
         }
     }
+
+    partial void OnFreeWidthResizeChanged(bool value)
+    {
+        if (_loading)
+        {
+            return;
+        }
+
+        // Le mode est fixé à l'ouverture de chaque fenêtre : le changer
+        // demande de les rouvrir, ce que l'utilisateur vient de demander
+        // explicitement.
+        _ = ApplyResizeModeAsync(value);
+    }
+
+    private async Task ApplyResizeModeAsync(bool free)
+    {
+        await _settings.SetFreeWidthResizeAsync(free).ConfigureAwait(true);
+        await _launcher.ReopenAllAsync().ConfigureAwait(true);
+    }
+
+    /// <summary>Choisit la largeur libre.</summary>
+    [RelayCommand]
+    private void UseFreeWidth() => FreeWidthResize = true;
+
+    /// <summary>Choisit le rapport verrouillé.</summary>
+    [RelayCommand]
+    private void UseLockedAspect() => FreeWidthResize = false;
 
     partial void OnPreferredMonitorChanged(MonitorInfo? value)
     {
