@@ -24,3 +24,9 @@ dotnet_diagnostic.CA1416.severity = none
 # sont volontaires et lisibles, on désactive donc CA1707 sur ce projet.
 [tests/**/*.cs]
 dotnet_diagnostic.CA1707.severity = none
+
+[*.cs]
+# CA1873 ne suit pas les gardes IsEnabled lorsque l'appel de journalisation est
+# généré à la source par [LoggerMessage]. Les appels concernés sont gardés
+# explicitement dans le code ; la règle produirait donc uniquement du bruit.
+dotnet_diagnostic.CA1873.severity = none
