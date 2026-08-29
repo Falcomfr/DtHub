@@ -109,6 +109,10 @@ public sealed class ProcessSession : IProcessSession
 
         session.ProcessId = process.Id;
 
+        // Rattaché tout de suite : si l'application meurt sans passer par sa
+        // fermeture propre, Windows arrêtera ce processus avec elle.
+        ChildProcessJob.Adopt(process.Handle);
+
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
 

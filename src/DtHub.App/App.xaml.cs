@@ -8,6 +8,8 @@ using DtHub.App.Windows;
 using DtHub.Core;
 using DtHub.Core.Settings;
 using DtHub.Core.Storage;
+using DtHub.Infrastructure.Processes;
+using DtHub.Core.Scrcpy;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -72,6 +74,8 @@ public partial class App : Application
         var services = _host!.Services;
         var settings = services.GetRequiredService<SettingsService>();
         var launcher = services.GetRequiredService<GameLauncher>();
+
+        await KillOrphansAsync(services).ConfigureAwait(true);
 
         var current = await settings.GetAsync().ConfigureAwait(true);
 
@@ -167,6 +171,32 @@ public partial class App : Application
         }
 
         Shutdown();
+    }
+
+    /// <summary>
+    /// Ferme les fenêtres de mirroring laissées par une exécution précédente
+    /// qui ne s'est pas terminée proprement. Sans cela, elles resteraient à
+    /// l'écran et de nouvelles viendraient s'y ajouter.
+    /// </summary>
+    private static async Task KillOrphansAsync(IServiceProvider services)
+    {
+        try
+        {
+            var path = await services.GetRequiredService<IScrcpyLocator>()
+                .GetScrcpyPathAsync().ConfigureAwait(true);
+
+            var killed = OrphanProcesses.KillFrom(path);
+
+            if (killed > 0)
+            {
+                Log.Information("{Count} fenêtre(s) restée(s) d'une exécution précédente fermée(s).", killed);
+            }
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // Un ramassage impossible ne doit pas empêcher de démarrer.
+            Log.Warning(exception, "Le ménage des fenêtres restantes a échoué.");
+        }
     }
 
     private void ToggleConfigurator()

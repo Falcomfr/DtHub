@@ -309,3 +309,27 @@ La liste est désormais construite à partir des appareils connus d'ADB,
 connectés ou non, complétée par les annonces qui ne correspondent à aucun
 d'eux. Le bouton de connexion agit selon l'origine de la ligne : connexion
 directe pour une annonce, reconnexion complète pour un appareil mémorisé.
+
+## D14 - Les fenêtres de mirroring vivent et meurent avec l'application
+
+Une fin anormale de DT Hub, un plantage ou un arrêt par le gestionnaire des
+tâches laissaient les processus scrcpy en vie. Au lancement suivant, ces
+fenêtres n'étaient pas reconnues et de nouvelles venaient s'y ajouter : après
+quelques incidents, l'écran portait plusieurs jeux de fenêtres identiques. Le
+cas a été observé avec huit fenêtres pour deux comptes.
+
+Deux garde-fous, complémentaires.
+
+Chaque processus lancé est rattaché à un objet de travail Windows portant
+l'option de terminaison à la fermeture. Quand le dernier descripteur se ferme,
+ce qui arrive même si le processus est tué, Windows arrête les enfants. Aucune
+élévation n'est nécessaire, et rien n'est demandé à l'utilisateur.
+
+Au démarrage, les processus issus de notre propre copie de scrcpy sont arrêtés
+avant tout lancement. Ce second filet couvre ce que le premier ne peut pas :
+les orphelins laissés par une version antérieure, et le cas où le rattachement
+échoue. La comparaison porte sur le chemin complet de l'exécutable : une copie
+de scrcpy installée par l'utilisateur n'est jamais touchée.
+
+Vérifié : huit orphelins ramassés au démarrage, et zéro survivant après un
+arrêt brutal de l'application.
