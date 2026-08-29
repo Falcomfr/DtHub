@@ -490,6 +490,42 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
+    /// Sessions dont la fenêtre voudrait être plus haute que ce que le jeu
+    /// sait dessiner. Seule une réouverture peut leur donner cette hauteur :
+    /// le jeu fixe la sienne à sa naissance.
+    /// </summary>
+    public IReadOnlyList<ScrcpySession> Outgrown(IReadOnlyList<ScrcpySession> sessions)
+    {
+        ArgumentNullException.ThrowIfNull(sessions);
+
+        if (IsFullscreen)
+        {
+            return [];
+        }
+
+        List<ScrcpySession> outgrown = [];
+
+        foreach (var session in sessions.Where(s => s.IsAlive && s.WindowHandle != 0 && s.MaxClientHeight > 0))
+        {
+            if (_controller.GetWindowRect(session.WindowHandle) is not { } outer || outer.IsEmpty)
+            {
+                continue;
+            }
+
+            var chrome = MeasureChrome(session.WindowHandle);
+
+            // Quelques pixels de tolérance : l'arrondi ne doit pas déclencher
+            // une réouverture pour rien.
+            if (outer.Height - chrome.Height > session.MaxClientHeight + 4)
+            {
+                outgrown.Add(session);
+            }
+        }
+
+        return outgrown;
+    }
+
+    /// <summary>
     /// Rapport minimal de la zone client. En dessous, le jeu cesse de se
     /// remettre en page et laisse une bande noire en bas.
     ///

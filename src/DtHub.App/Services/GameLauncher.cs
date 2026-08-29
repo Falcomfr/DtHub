@@ -494,10 +494,45 @@ public sealed partial class GameLauncher : IAsyncDisposable
         if (persist)
         {
             await _settings.SaveCustomSizePercentAsync(percent, cancellationToken).ConfigureAwait(false);
+
+            // La géométrie est retenue avant la réouverture : c'est elle qui
+            // donnera sa taille au nouvel afficheur.
             await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+            await ReopenOutgrownAsync(cancellationToken).ConfigureAwait(false);
         }
 
         return moved;
+    }
+
+    /// <summary>
+    /// Rouvre les fenêtres devenues trop petites pour la taille demandée.
+    ///
+    /// Le jeu ne se remet pas en page au-delà de la hauteur qu'il avait à son
+    /// ouverture : agrandir davantage laisserait une bande. La seule façon de
+    /// lui donner cette hauteur est de le rouvrir dessus. Cela n'arrive que
+    /// sur une demande explicite d'agrandissement, jamais pendant un geste.
+    /// </summary>
+    private async Task ReopenOutgrownAsync(CancellationToken cancellationToken)
+    {
+        var outgrown = _windows.Outgrown(_sessions.ActiveSessions);
+
+        if (outgrown.Count == 0)
+        {
+            return;
+        }
+
+        var instances = await RefreshInstancesAsync(cancellationToken).ConfigureAwait(false);
+
+        foreach (var session in outgrown)
+        {
+            var instance = instances.FirstOrDefault(
+                i => string.Equals(i.Key, session.Target.Key, StringComparison.Ordinal));
+
+            if (instance is not null)
+            {
+                await RestartAsync(instance, cancellationToken).ConfigureAwait(false);
+            }
+        }
     }
 
     /// <summary>Applique une taille à toutes les fenêtres et la retient.</summary>
@@ -513,11 +548,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
             },
             cancellationToken).ConfigureAwait(false);
 
+
         var moved = await _windows
             .ApplySizeAsync(_sessions.ActiveSessions, sizeIndex, cancellationToken)
             .ConfigureAwait(false);
 
         await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+        await ReopenOutgrownAsync(cancellationToken).ConfigureAwait(false);
 
         return moved;
     }
