@@ -31,11 +31,8 @@ public static class WindowIcons
             var directory = Path.Combine(paths.CacheDirectory, "icons");
             var target = Path.Combine(directory, IconFile);
 
-            if (File.Exists(target))
-            {
-                return directory;
-            }
-
+            // Réécrit à chaque démarrage : garder la première copie figerait
+            // l'ancienne image après un changement de marque.
             var source = Application.GetResourceStream(new Uri("assets/app.png", UriKind.Relative));
 
             if (source is null)

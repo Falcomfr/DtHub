@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """Genere assets/app.ico et assets/app.png.
 
-Marque : un oeuf unique, grand et centre, sur fond bleu nuit.
+Marque : un telephone a gauche, et deux cadres de fenetre qui en sortent vers
+la droite. C'est litteralement ce que fait l'application : un telephone qui
+alimente plusieurs fenetres sur le PC.
 
-La composition est produite par ce script, a partir de formes geometriques et
-d'une couleur choisie ici. Elle ne reprend aucune illustration existante :
-ni motif, ni relief, ni ornement, ni teinte copiee. Un oeuf est une forme
-generique ; c'est le dessin qui appartient a son auteur, et celui-ci est
-entierement calcule ci-dessous.
+Aucune reference au jeu. Un oeuf serait l'embleme de DOFUS, donc le motif le
+plus expose : le dessin ne doit rien evoquer d'officiel. Ici il n'y a que des
+rectangles arrondis, calcules ci-dessous, et une teinte choisie ici.
 
-Un seul oeuf plutot que six : l'icone reste lisible a seize pixels, dans la
-barre des taches comme dans le menu Demarrer.
+Le dessin reste lisible a seize pixels : trois formes seulement, bien
+separees, sans detail interieur.
 
 Aucune dependance externe : PNG ecrit a la main via zlib.
 Executer depuis la racine du depot :  python3 build/make-icon.py
@@ -22,14 +22,26 @@ import zlib
 
 SS = 4  # supersampling
 
-# L'oeuf occupe l'essentiel de l'image : c'est ce qui le rend reconnaissable
-# une fois reduit a seize pixels.
-EGG_CENTER = (0.5, 0.52)
-EGG_HALF_WIDTH = 0.215
-EGG_HALF_HEIGHT = 0.315
-OUTLINE = 0.014
+# Le telephone occupe le tiers gauche, les fenetres les deux tiers droits.
+# Les proportions sont genereuses : a seize pixels, un trait fin disparait.
+PHONE = (0.285, 0.500, 0.105, 0.255)   # centre x, centre y, demi-largeur, demi-hauteur
+PHONE_RADIUS = 0.045
+PHONE_BORDER = 0.030
 
-EGG_HUE = (0.10, 0.76, 0.70)  # turquoise
+# L'ecouteur : sans lui, le telephone se lit comme une troisieme fenetre.
+# Il disparait proprement a seize pixels, ou il ne resterait qu'une tache.
+SPEAKER = (0.285, 0.318, 0.038, 0.010)
+SPEAKER_RADIUS = 0.010
+
+WINDOWS = (
+    (0.660, 0.335, 0.150, 0.115),      # fenetre du haut
+    (0.660, 0.665, 0.150, 0.115),      # fenetre du bas
+)
+WINDOW_RADIUS = 0.032
+WINDOW_BORDER = 0.028
+
+ACCENT = (0.10, 0.76, 0.70)            # turquoise
+MUTED = (0.42, 0.52, 0.62)             # gris bleute, pour la fenetre d'arriere-plan
 
 
 def rounded_rect_sdf(x, y, cx, cy, hw, hh, r):
@@ -90,42 +102,51 @@ def egg_color(hue, local_y):
     return tuple(top[i] + (bottom[i] - top[i]) * t for i in range(3))
 
 
+def frame(px, u, v, cx, cy, hw, hh, radius, border, color):
+    """Cadre arrondi : un contour plein, un interieur vide."""
+    outer = rounded_rect_sdf(u, v, cx, cy, hw, hh, radius)
+    inner = rounded_rect_sdf(u, v, cx, cy, hw - border, hh - border, max(0.004, radius - border))
+
+    # L'anneau est la ou l'on est dans le contour exterieur mais hors du vide.
+    ring = min(coverage(outer), 1.0 - coverage(inner))
+
+    if ring <= 0.0:
+        return px
+
+    return over(px, (color[0], color[1], color[2], ring))
+
+
 def shade(u, v):
     """Couleur RGBA du pixel en coordonnees normalisees [0,1]."""
     px = (0.0, 0.0, 0.0, 0.0)
 
-    # Fond : carre arrondi, degrade indigo vers bleu en diagonale.
+    # Fond : carre arrondi, degrade sombre en diagonale.
     d = rounded_rect_sdf(u, v, 0.5, 0.5, 0.5, 0.5, 0.235)
     if d >= 0.5:
         return px
 
-    # Fond sombre et neutre : ce sont les oeufs qui portent la couleur.
     t = max(0.0, min(1.0, (u + v) / 2))
     r = 0.10 + (0.16 - 0.10) * t
     g = 0.12 + (0.20 - 0.12) * t
     b = 0.21 + (0.35 - 0.21) * t
     px = over(px, (r, g, b, coverage(d)))
 
-    cx, cy = EGG_CENTER
-    de = egg_sdf(u, v, cx, cy, 0.0, EGG_HALF_WIDTH, EGG_HALF_HEIGHT)
+    # La fenetre du bas passe derriere, en gris : elle donne la profondeur
+    # sans encombrer le dessin.
+    cx, cy, hw, hh = WINDOWS[1]
+    px = frame(px, u, v, cx, cy, hw, hh, WINDOW_RADIUS, WINDOW_BORDER, MUTED)
 
-    if de > OUTLINE:
-        return px
+    # La fenetre du haut est celle qui compte, donc en couleur d'accent.
+    cx, cy, hw, hh = WINDOWS[0]
+    px = frame(px, u, v, cx, cy, hw, hh, WINDOW_RADIUS, WINDOW_BORDER, ACCENT)
 
-    # Contour sombre : il detache l'oeuf du fond, y compris en tres petit.
-    if de > -OUTLINE * 0.30:
-        return over(px, (0.07, 0.09, 0.16, coverage(de - OUTLINE, 340.0)))
+    # Le telephone, devant tout le reste.
+    cx, cy, hw, hh = PHONE
+    px = frame(px, u, v, cx, cy, hw, hh, PHONE_RADIUS, PHONE_BORDER, ACCENT)
 
-    local_x = (u - cx) / EGG_HALF_WIDTH
-    local_y = (v - cy) / EGG_HALF_HEIGHT
-
-    cr, cg, cb = egg_color(EGG_HUE, (local_y + 1) / 2)
-    px = over(px, (cr, cg, cb, coverage(de, 340.0)))
-
-    # Reflet : une tache claire en haut a gauche donne le poli d'une coquille.
-    gloss = math.hypot((local_x + 0.34) / 0.34, (local_y + 0.42) / 0.30) - 1.0
-    if gloss < 0:
-        px = over(px, (1.0, 1.0, 1.0, 0.45 * min(1.0, -gloss * 2.4)))
+    cx, cy, hw, hh = SPEAKER
+    d = rounded_rect_sdf(u, v, cx, cy, hw, hh, SPEAKER_RADIUS)
+    px = over(px, (ACCENT[0], ACCENT[1], ACCENT[2], coverage(d)))
 
     return px
 
