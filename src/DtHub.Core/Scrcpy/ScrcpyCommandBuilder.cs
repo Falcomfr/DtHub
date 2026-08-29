@@ -35,13 +35,18 @@ public static class ScrcpyCommandBuilder
 
         var sanitized = options.Sanitized();
 
+        // Toutes les valeurs sont accolées par « = ». Trois options de scrcpy
+        // acceptent une valeur facultative, dont --new-display : pour
+        // celles-là, getopt n'accepte la valeur qu'accolée, et une valeur
+        // séparée par une espace est prise pour un argument parasite. La forme
+        // accolée fonctionne dans les deux cas, on l'emploie partout.
         List<string> arguments =
         [
-            "--serial", serial,
-            "--window-title", windowTitle,
-            "--max-fps", sanitized.MaxFps.ToString(CultureInfo.InvariantCulture),
-            "--video-bit-rate", sanitized.VideoBitrateArgument,
-            "--keyboard", sanitized.KeyboardMode == ScrcpyKeyboardMode.Uhid ? "uhid" : "sdk",
+            Option("serial", serial),
+            Option("window-title", windowTitle),
+            Option("max-fps", sanitized.MaxFps.ToString(CultureInfo.InvariantCulture)),
+            Option("video-bit-rate", sanitized.VideoBitrateArgument),
+            Option("keyboard", sanitized.KeyboardMode == ScrcpyKeyboardMode.Uhid ? "uhid" : "sdk"),
         ];
 
         if (sanitized.PreferText)
@@ -66,14 +71,12 @@ public static class ScrcpyCommandBuilder
 
         if (!string.IsNullOrWhiteSpace(sanitized.VideoCodec))
         {
-            arguments.Add("--video-codec");
-            arguments.Add(sanitized.VideoCodec);
+            arguments.Add(Option("video-codec", sanitized.VideoCodec));
         }
 
         if (sanitized.UseVirtualDisplay)
         {
-            arguments.Add("--new-display");
-            arguments.Add(sanitized.VirtualDisplayArgument);
+            arguments.Add(Option("new-display", sanitized.VirtualDisplayArgument));
 
             if (sanitized.DisableVirtualDisplayDecorations)
             {
@@ -85,10 +88,10 @@ public static class ScrcpyCommandBuilder
         {
             arguments.AddRange(
             [
-                "--window-x", placement.X.ToString(CultureInfo.InvariantCulture),
-                "--window-y", placement.Y.ToString(CultureInfo.InvariantCulture),
-                "--window-width", placement.Width.ToString(CultureInfo.InvariantCulture),
-                "--window-height", placement.Height.ToString(CultureInfo.InvariantCulture),
+                Option("window-x", placement.X.ToString(CultureInfo.InvariantCulture)),
+                Option("window-y", placement.Y.ToString(CultureInfo.InvariantCulture)),
+                Option("window-width", placement.Width.ToString(CultureInfo.InvariantCulture)),
+                Option("window-height", placement.Height.ToString(CultureInfo.InvariantCulture)),
             ]);
         }
 
@@ -103,8 +106,11 @@ public static class ScrcpyCommandBuilder
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(serial);
 
-        return ["--serial", serial, "--list-apps"];
+        return [Option("serial", serial), "--list-apps"];
     }
+
+    /// <summary>Une option longue et sa valeur, accolées.</summary>
+    private static string Option(string name, string value) => $"--{name}={value}";
 }
 
 /// <summary>Position et taille d'une fenêtre, en pixels écran.</summary>

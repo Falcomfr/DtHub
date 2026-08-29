@@ -6,10 +6,13 @@ public class ScrcpyCommandBuilderTests
 {
     private static string Line(IReadOnlyList<string> arguments) => string.Join(' ', arguments);
 
-    private static string? ValueAfter(IReadOnlyList<string> arguments, string option)
+    /// <summary>Valeur d'une option, écrite accolée par un signe égal.</summary>
+    private static string? ValueOf(IReadOnlyList<string> arguments, string option)
     {
-        var index = arguments.ToList().IndexOf(option);
-        return index >= 0 && index + 1 < arguments.Count ? arguments[index + 1] : null;
+        var prefix = option + "=";
+
+        return arguments.FirstOrDefault(a => a.StartsWith(prefix, StringComparison.Ordinal))
+            ?[prefix.Length..];
     }
 
     [Fact]
@@ -29,10 +32,10 @@ public class ScrcpyCommandBuilderTests
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "Titre", ScrcpyOptions.Default);
 
-        Assert.Equal("USB0001", ValueAfter(arguments, "--serial"));
-        Assert.Equal("Titre", ValueAfter(arguments, "--window-title"));
-        Assert.Equal("45", ValueAfter(arguments, "--max-fps"));
-        Assert.Equal("4000K", ValueAfter(arguments, "--video-bit-rate"));
+        Assert.Equal("USB0001", ValueOf(arguments, "--serial"));
+        Assert.Equal("Titre", ValueOf(arguments, "--window-title"));
+        Assert.Equal("45", ValueOf(arguments, "--max-fps"));
+        Assert.Equal("4000K", ValueOf(arguments, "--video-bit-rate"));
     }
 
     [Fact]
@@ -41,7 +44,7 @@ public class ScrcpyCommandBuilderTests
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "Titre", ScrcpyOptions.Default);
 
-        Assert.Equal("sdk", ValueAfter(arguments, "--keyboard"));
+        Assert.Equal("sdk", ValueOf(arguments, "--keyboard"));
         Assert.Contains("--prefer-text", arguments);
     }
 
@@ -51,7 +54,7 @@ public class ScrcpyCommandBuilderTests
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "Titre", ScrcpyOptions.Default with { KeyboardMode = ScrcpyKeyboardMode.Uhid });
 
-        Assert.Equal("uhid", ValueAfter(arguments, "--keyboard"));
+        Assert.Equal("uhid", ValueOf(arguments, "--keyboard"));
     }
 
     [Fact]
@@ -81,7 +84,7 @@ public class ScrcpyCommandBuilderTests
     {
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments("USB0001", "T", ScrcpyOptions.Default);
 
-        Assert.Equal("1080x1920/320", ValueAfter(arguments, "--new-display"));
+        Assert.Equal("1080x1920/320", ValueOf(arguments, "--new-display"));
         Assert.Contains("--no-vd-system-decorations", arguments);
     }
 
@@ -101,10 +104,10 @@ public class ScrcpyCommandBuilderTests
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "T", ScrcpyOptions.Default, new ScrcpyWindowPlacement(100, 50, 1280, 720));
 
-        Assert.Equal("100", ValueAfter(arguments, "--window-x"));
-        Assert.Equal("50", ValueAfter(arguments, "--window-y"));
-        Assert.Equal("1280", ValueAfter(arguments, "--window-width"));
-        Assert.Equal("720", ValueAfter(arguments, "--window-height"));
+        Assert.Equal("100", ValueOf(arguments, "--window-x"));
+        Assert.Equal("50", ValueOf(arguments, "--window-y"));
+        Assert.Equal("1280", ValueOf(arguments, "--window-width"));
+        Assert.Equal("720", ValueOf(arguments, "--window-height"));
     }
 
     [Fact]
@@ -113,6 +116,28 @@ public class ScrcpyCommandBuilderTests
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments("USB0001", "T", ScrcpyOptions.Default);
 
         Assert.DoesNotContain("--window-x", arguments);
+    }
+
+    [Fact]
+    public void Chaque_valeur_est_accolee_a_son_option()
+    {
+        // Trois options de scrcpy acceptent une valeur facultative, dont
+        // --new-display. Pour celles-là, une valeur séparée par une espace est
+        // prise pour un argument parasite et scrcpy refuse de démarrer.
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001", "Titre", ScrcpyOptions.Default, new ScrcpyWindowPlacement(1, 2, 3, 4));
+
+        Assert.Contains("--new-display=1080x1920/320", arguments);
+
+        foreach (var argument in arguments.Where(a => a.StartsWith("--", StringComparison.Ordinal)))
+        {
+            // Une option porte sa valeur, ou n'en a pas ; jamais de valeur
+            // détachée dans la liste.
+            Assert.DoesNotContain(' ', argument.Split('=')[0]);
+        }
+
+        // Aucun jeton ne doit être une valeur orpheline.
+        Assert.All(arguments, a => Assert.StartsWith("--", a, StringComparison.Ordinal));
     }
 
     [Fact]
@@ -137,9 +162,9 @@ public class ScrcpyCommandBuilderTests
 
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments("USB0001", "T", options);
 
-        Assert.Equal("1", ValueAfter(arguments, "--max-fps"));
-        Assert.Equal("200K", ValueAfter(arguments, "--video-bit-rate"));
-        Assert.Equal("240x1920/640", ValueAfter(arguments, "--new-display"));
+        Assert.Equal("1", ValueOf(arguments, "--max-fps"));
+        Assert.Equal("200K", ValueOf(arguments, "--video-bit-rate"));
+        Assert.Equal("240x1920/640", ValueOf(arguments, "--new-display"));
     }
 
     [Fact]
@@ -170,7 +195,7 @@ public class ScrcpyCommandBuilderTests
     {
         var arguments = ScrcpyCommandBuilder.BuildListAppsArguments("USB0001");
 
-        Assert.Equal(["--serial", "USB0001", "--list-apps"], arguments);
+        Assert.Equal(["--serial=USB0001", "--list-apps"], arguments);
         Assert.DoesNotContain("--new-display", Line(arguments), StringComparison.Ordinal);
     }
 }

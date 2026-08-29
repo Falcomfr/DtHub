@@ -31,13 +31,54 @@ public sealed class SettingsService : IDisposable
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            _current ??= await _store.LoadAsync(cancellationToken).ConfigureAwait(false);
+            if (_current is null)
+            {
+                _current = await _store.LoadAsync(cancellationToken).ConfigureAwait(false);
+
+                if (Migrate(_current))
+                {
+                    await _store.SaveAsync(_current, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
             return _current;
         }
         finally
         {
             _gate.Release();
         }
+    }
+
+    /// <summary>
+    /// Met à jour un fichier écrit par une version antérieure. Rend vrai s'il
+    /// a été modifié et doit être réécrit.
+    /// </summary>
+    /// <remarks>
+    /// Version 3 : l'écran virtuel passe en paysage. Le jeu s'affiche en
+    /// paysage, et un écran vertical le réduisait à une bande au milieu de la
+    /// fenêtre. Seule la définition d'origine est corrigée : un réglage
+    /// choisi par l'utilisateur est respecté.
+    /// </remarks>
+    private static bool Migrate(AppSettingsDocument settings)
+    {
+        var changed = false;
+
+        if (settings.SchemaVersion < 3
+            && settings is { VirtualDisplayWidth: 1080, VirtualDisplayHeight: 1920, VirtualDisplayDpi: 320 })
+        {
+            settings.VirtualDisplayWidth = 1920;
+            settings.VirtualDisplayHeight = 1080;
+            settings.VirtualDisplayDpi = 240;
+            changed = true;
+        }
+
+        if (settings.SchemaVersion != AppSettingsDocument.CurrentSchemaVersion)
+        {
+            settings.SchemaVersion = AppSettingsDocument.CurrentSchemaVersion;
+            changed = true;
+        }
+
+        return changed;
     }
 
     /// <summary>Modifie les réglages et les écrit.</summary>

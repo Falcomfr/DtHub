@@ -246,6 +246,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
             if (session.State == ScrcpySessionState.Failed)
             {
                 problems.Add($"{instance.DisplayName} : {session.FailureMessage}");
+
+                // Sans la sortie de scrcpy, un refus se résume à « la session
+                // n'a pas pu s'ouvrir », ce qui n'aide personne.
+                LogSessionFailure(
+                    instance.DisplayName,
+                    session.CommandLine,
+                    string.Join(Environment.NewLine, session.RecentOutput));
+
                 continue;
             }
 
@@ -473,6 +481,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     [LoggerMessage(Level = LogLevel.Information, Message = "{count} téléphone(s) reconnecté(s) automatiquement.")]
     private partial void LogReconnected(int count);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "Ouverture de {instance} refusée.{newLine}Commande : {commandLine}{newLine}Sortie de scrcpy :{newLine}{output}")]
+    private partial void LogSessionFailure(string instance, string commandLine, string output, string newLine = "\n");
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Un raccourci n'a pas pu être traité.")]
     private partial void LogHotkeyFailure(Exception exception);

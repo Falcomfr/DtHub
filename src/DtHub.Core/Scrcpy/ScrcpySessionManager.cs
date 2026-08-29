@@ -114,6 +114,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                 : 0,
         };
 
+        session.CommandLine = request.ToDisplayString();
         _sessions[sessionId] = session;
 
         var displayReady = new TaskCompletionSource<int?>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -251,6 +252,8 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         {
             await foreach (var line in session.Process.Output.ReadAllAsync().ConfigureAwait(false))
             {
+                session.Record(line.Text);
+
                 if (expectVirtualDisplay
                     && !displayReady.Task.IsCompleted
                     && ScrcpyOutputParser.TryParseVirtualDisplayId(line.Text) is { } displayId)

@@ -38,11 +38,12 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     /// <summary>Profil Android d'origine, affiché en second plan.</summary>
     public string UserLabel => $"profil {Instance.UserId} · {Instance.UserName}";
 
-    public string StatusText => !IsDeviceConnected ? "Téléphone absent" : IsRunning ? "Ouverte" : "Fermée";
-
-    public string StatusBrushKey => !IsDeviceConnected
-        ? "TextMutedBrush"
-        : IsRunning ? "SuccessBrush" : "TextMutedBrush";
+    /// <summary>
+    /// Libellé affiché uniquement quand l'instance est ouverte. Signaler
+    /// qu'elle est fermée n'apprend rien : c'est l'état de départ, et la
+    /// fenêtre de mise en route montrerait ce badge sur tout, sans raison.
+    /// </summary>
+    public string StatusText => "Ouverte";
 
     /// <summary>Signalé quand une case est cochée ou un nom modifié.</summary>
     public event EventHandler<InstanceRowViewModel>? EnabledChanged;
@@ -64,11 +65,7 @@ public sealed partial class InstanceRowViewModel : ObservableObject
         Refresh();
     }
 
-    public void Refresh()
-    {
-        OnPropertyChanged(nameof(StatusText));
-        OnPropertyChanged(nameof(StatusBrushKey));
-    }
+    public void Refresh() => OnPropertyChanged(nameof(StatusText));
 
     partial void OnIsEnabledChanged(bool value) => EnabledChanged?.Invoke(this, this);
 

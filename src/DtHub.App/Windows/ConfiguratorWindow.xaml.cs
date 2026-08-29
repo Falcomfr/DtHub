@@ -46,8 +46,11 @@ public partial class ConfiguratorWindow : Window
         _poll.Tick += async (_, _) => await _viewModel.PollAsync(CancellationToken.None).ConfigureAwait(true);
     }
 
-    /// <summary>Handle natif de la fenêtre, pour que les raccourcis restent actifs dessus.</summary>
-    public nint Handle => new WindowInteropHelper(this).Handle;
+    /// <summary>
+    /// Handle natif, retenu une fois pour toutes. Il est consulté depuis le
+    /// fil des raccourcis, qui n'a pas le droit d'interroger une fenêtre WPF.
+    /// </summary>
+    public nint Handle { get; private set; }
 
     /// <summary>Affiche ou masque la fenêtre, selon son état.</summary>
     public void Toggle()
@@ -112,6 +115,13 @@ public partial class ConfiguratorWindow : Window
         {
             DragMove();
         }
+    }
+
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+
+        Handle = new WindowInteropHelper(this).Handle;
     }
 
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)

@@ -79,5 +79,41 @@ public sealed class ScrcpySession
 
     public bool IsAlive => State is ScrcpySessionState.Starting or ScrcpySessionState.Running;
 
+    /// <summary>
+    /// Dernières lignes écrites par scrcpy. Conservées pour que l'appelant
+    /// puisse les journaliser en cas d'échec : sans elles, un refus de scrcpy
+    /// se résume à « la session n'a pas pu s'ouvrir ».
+    /// </summary>
+    public IReadOnlyList<string> RecentOutput
+    {
+        get
+        {
+            lock (_output)
+            {
+                return [.. _output];
+            }
+        }
+    }
+
+    /// <summary>Ligne de commande employée, pour le diagnostic.</summary>
+    public string CommandLine { get; internal set; } = string.Empty;
+
+    private const int MaxRetainedLines = 60;
+
+    private readonly Queue<string> _output = new();
+
+    internal void Record(string line)
+    {
+        lock (_output)
+        {
+            _output.Enqueue(line);
+
+            while (_output.Count > MaxRetainedLines)
+            {
+                _output.Dequeue();
+            }
+        }
+    }
+
     internal IProcessSession Process { get; }
 }

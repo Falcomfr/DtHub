@@ -62,6 +62,51 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task L_ecran_virtuel_par_defaut_est_en_paysage()
+    {
+        // Le jeu s'affiche en paysage : un écran vertical le réduirait à une
+        // bande au milieu de la fenêtre.
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.True(settings.VirtualDisplayWidth > settings.VirtualDisplayHeight);
+        Assert.Equal(1920, settings.VirtualDisplayWidth);
+        Assert.Equal(1080, settings.VirtualDisplayHeight);
+    }
+
+    [Fact]
+    public async Task Un_fichier_d_une_version_anterieure_bascule_en_paysage()
+    {
+        Directory.CreateDirectory(_directory);
+        await File.WriteAllTextAsync(
+            _store.FilePath,
+            """{ "schemaVersion": 2, "virtualDisplayWidth": 1080, "virtualDisplayHeight": 1920, "virtualDisplayDpi": 320 }""",
+            CancellationToken.None);
+
+        _service.Invalidate();
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.Equal(1920, settings.VirtualDisplayWidth);
+        Assert.Equal(1080, settings.VirtualDisplayHeight);
+        Assert.Equal(AppSettingsDocument.CurrentSchemaVersion, settings.SchemaVersion);
+    }
+
+    [Fact]
+    public async Task Une_definition_choisie_par_l_utilisateur_n_est_pas_ecrasee()
+    {
+        Directory.CreateDirectory(_directory);
+        await File.WriteAllTextAsync(
+            _store.FilePath,
+            """{ "schemaVersion": 2, "virtualDisplayWidth": 1440, "virtualDisplayHeight": 2560, "virtualDisplayDpi": 400 }""",
+            CancellationToken.None);
+
+        _service.Invalidate();
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.Equal(1440, settings.VirtualDisplayWidth);
+        Assert.Equal(2560, settings.VirtualDisplayHeight);
+    }
+
+    [Fact]
     public async Task Une_modification_est_ecrite_immediatement()
     {
         await _service.UpdateAsync(s => s.GameSizePercent = 90, CancellationToken.None);

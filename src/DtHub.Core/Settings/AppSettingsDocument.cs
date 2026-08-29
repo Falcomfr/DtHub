@@ -10,7 +10,7 @@ namespace DtHub.Core.Settings;
 /// </summary>
 public sealed class AppSettingsDocument
 {
-    public const int CurrentSchemaVersion = 2;
+    public const int CurrentSchemaVersion = 3;
 
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 
@@ -40,9 +40,11 @@ public sealed class AppSettingsDocument
     public int VideoBitrateKbps { get; set; } = 4000;
     public bool AudioEnabled { get; set; }
     public bool ClipboardSyncEnabled { get; set; } = true;
-    public int VirtualDisplayWidth { get; set; } = 1080;
-    public int VirtualDisplayHeight { get; set; } = 1920;
-    public int VirtualDisplayDpi { get; set; } = 320;
+    // Le jeu s'affiche en paysage : un écran virtuel vertical le centrerait
+    // en 16:9 au milieu d'une fenêtre haute, avec deux larges bandes noires.
+    public int VirtualDisplayWidth { get; set; } = 1920;
+    public int VirtualDisplayHeight { get; set; } = 1080;
+    public int VirtualDisplayDpi { get; set; } = 240;
 
     /// <summary>Paquet du jeu. Réglable pour survivre à un changement amont.</summary>
     public string PackageName { get; set; } = Dofus.DofusPackages.DofusTouch;
