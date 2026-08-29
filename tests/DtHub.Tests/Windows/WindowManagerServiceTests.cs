@@ -601,4 +601,49 @@ public class WindowManagerServiceTests
         Assert.Equal(400, rect.X);
         Assert.Equal(250, rect.Y);
     }
+
+    [Fact]
+    public async Task Une_fenetre_trop_haute_pour_sa_largeur_est_ramenee_au_rapport_minimal()
+    {
+        // En dessous de ce rapport, le jeu cesse de se remettre en page et
+        // laisse une bande noire. C'est la seule forme interdite.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
+
+        desktop.MoveWindow(sessions[0].WindowHandle, new ScreenRect(0, 0, 1000, 1400));
+
+        // Le premier passage constate, le second corrige : on ne lutte pas
+        // contre un geste en cours.
+        service.EnforceMinimumAspect(sessions);
+        var corrected = service.EnforceMinimumAspect(sessions);
+
+        var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+
+        Assert.Equal(1, corrected);
+        Assert.Equal(1000, rect.Width);
+        Assert.Equal(800, rect.Height);
+    }
+
+    [Fact]
+    public async Task Une_fenetre_large_n_est_jamais_contrainte()
+    {
+        // Élargir reste libre : le jeu suit, et montre davantage.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
+
+        desktop.MoveWindow(sessions[0].WindowHandle, new ScreenRect(0, 0, 2600, 900));
+
+        service.EnforceMinimumAspect(sessions);
+        service.EnforceMinimumAspect(sessions);
+
+        Assert.Equal(
+            new ScreenRect(0, 0, 2600, 900),
+            desktop.GetWindowRect(sessions[0].WindowHandle));
+    }
 }

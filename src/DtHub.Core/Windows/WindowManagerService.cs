@@ -15,6 +15,9 @@ public sealed class WindowManagerService
 
     private int _focusIndex = -1;
 
+    /// <summary>Dernière taille vue par session, pour ne corriger qu'une fois le geste fini.</summary>
+    private readonly Dictionary<string, ScreenRect> _lastSeen = new(StringComparer.Ordinal);
+
 
     public WindowManagerService(
         IWindowController controller,
@@ -475,6 +478,71 @@ public sealed class WindowManagerService
         }
 
         return renamed;
+    }
+
+    /// <summary>
+    /// Rapport minimal de la zone client. En dessous, le jeu cesse de se
+    /// remettre en page et laisse une bande noire en bas.
+    ///
+    /// Mesuré sur un Xiaomi 13T, à largeur constante : propre jusqu'à 1,25 ;
+    /// dix pixels de bande à 1,196 ; soixante-quinze à 1,142. La valeur retenue
+    /// garde une marge. Vers le large il n'y a pas de limite : le jeu suit
+    /// jusqu'à 2,82 au moins, et une fenêtre large montre davantage de jeu.
+    /// </summary>
+    public double MinimumClientAspect { get; set; } = 1.25;
+
+    /// <summary>
+    /// Réduit la hauteur des fenêtres devenues trop hautes pour leur largeur.
+    ///
+    /// C'est la seule contrainte imposée, et elle ne joue que dans un sens :
+    /// élargir reste libre. La correction attend que la taille se stabilise,
+    /// pour ne pas lutter contre le geste en cours.
+    /// </summary>
+    /// <returns>Nombre de fenêtres corrigées.</returns>
+    public int EnforceMinimumAspect(IReadOnlyList<ScrcpySession> sessions)
+    {
+        ArgumentNullException.ThrowIfNull(sessions);
+
+        if (IsFullscreen || MinimumClientAspect <= 0)
+        {
+            return 0;
+        }
+
+        var corrected = 0;
+
+        foreach (var session in sessions.Where(s => s.IsAlive && s.WindowHandle != 0))
+        {
+            if (_controller.GetWindowRect(session.WindowHandle) is not { } outer || outer.IsEmpty)
+            {
+                continue;
+            }
+
+            var settled = _lastSeen.TryGetValue(session.Id, out var previous) && previous == outer;
+            _lastSeen[session.Id] = outer;
+
+            if (!settled)
+            {
+                continue;
+            }
+
+            var chrome = MeasureChrome(session.WindowHandle);
+            var clientWidth = Math.Max(1, outer.Width - chrome.Width);
+            var clientHeight = Math.Max(1, outer.Height - chrome.Height);
+
+            if ((double)clientWidth / clientHeight >= MinimumClientAspect)
+            {
+                continue;
+            }
+
+            var wanted = (int)Math.Round(clientWidth / MinimumClientAspect) + chrome.Height;
+            var target = outer with { Height = wanted };
+
+            _controller.MoveWindow(session.WindowHandle, target);
+            _lastSeen[session.Id] = target;
+            corrected++;
+        }
+
+        return corrected;
     }
 
     /// <summary>Passe à l'instance suivante, en boucle.</summary>

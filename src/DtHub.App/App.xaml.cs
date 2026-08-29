@@ -34,6 +34,12 @@ public partial class App : Application, IDisposable
 
     private const string WakeName = @"Local\DtHub.Wake";
 
+    /// <summary>
+    /// Surveille la forme des fenêtres de jeu. La correction n'a lieu qu'une
+    /// fois la taille stable : on ne lutte pas contre un geste en cours.
+    /// </summary>
+    private readonly DispatcherTimer _shape = new() { Interval = TimeSpan.FromMilliseconds(500) };
+
     private IHost? _host;
     private ConfiguratorWindow? _configurator;
     private bool _quitting;
@@ -118,6 +124,9 @@ public partial class App : Application, IDisposable
         launcher.LastWindowClosed += (_, _) => Dispatcher.Invoke(OnLastWindowClosed);
 
         var report = await launcher.LaunchEnabledAsync().ConfigureAwait(true);
+
+        _shape.Tick += (_, _) => launcher.EnforceMinimumAspect();
+        _shape.Start();
 
         var document = await settings.GetAsync().ConfigureAwait(true);
 

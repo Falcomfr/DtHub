@@ -90,12 +90,17 @@ public static class ScrcpyCommandBuilder
         {
             // Avec l'ajustement continu, la taille de la fenêtre se règle par
             // la définition de l'afficheur : scrcpy refuse --window-width et
-            // --window-height dans ce mode. Les deux coïncident donc
-            // exactement, et il n'y a jamais de bande noire.
+            // --window-height dans ce mode.
+            //
+            // L'afficheur est créé à la hauteur configurée, et non à celle de
+            // la fenêtre. Mesuré sur un Xiaomi 13T : le jeu ne se remet jamais
+            // en page au-delà de la hauteur qu'il avait à sa création, et
+            // laisse une bande noire de la hauteur ajoutée. Créé haut, il
+            // accepte ensuite toutes les hauteurs inférieures.
             arguments.Add(Option(
                 "new-display",
-                flex && windowPosition is { } size
-                    ? DisplayArgument(size.Width, size.Height, sanitized.VirtualDisplayDpi)
+                flex && windowPosition is { Width: > 0 } size
+                    ? DisplayArgument(size.Width, sanitized.VirtualDisplayHeight, sanitized.VirtualDisplayDpi)
                     : sanitized.VirtualDisplayArgument));
 
             if (sanitized.DisableVirtualDisplayDecorations)

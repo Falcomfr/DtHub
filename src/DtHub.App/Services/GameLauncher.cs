@@ -273,6 +273,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
             WindowTitleHint = await BuildTitleHintAsync(cancellationToken).ConfigureAwait(false),
             IconDirectory = _iconDirectory,
         };
+
+        // L'afficheur naît à la hauteur de l'écran : c'est un plafond que le
+        // jeu ne dépasse jamais, et le fixer plus bas ferait apparaître une
+        // bande dès que la fenêtre grandit.
+        if (options.FlexDisplay && _windows.WorkArea() is { Height: > 0 } work)
+        {
+            options = options with { VirtualDisplayHeight = work.Height };
+        }
         var serials = await ResolveSerialsAsync(cancellationToken).ConfigureAwait(false);
 
         // La position est donnée à scrcpy dès le lancement. Le faire après
@@ -439,6 +447,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
             captured.ToDictionary(c => c.Key, c => c.Rect, StringComparer.Ordinal),
             cancellationToken).ConfigureAwait(false);
     }
+
+    /// <summary>
+    /// Empêche les fenêtres de devenir trop hautes pour leur largeur, une fois
+    /// leur taille stabilisée. C'est la seule forme que le jeu refuse.
+    /// </summary>
+    public int EnforceMinimumAspect() => _windows.EnforceMinimumAspect(_sessions.ActiveSessions);
 
     /// <summary>Remet toutes les fenêtres en place, à la taille en cours.</summary>
     public async Task<int> ArrangeAsync(CancellationToken cancellationToken = default)
