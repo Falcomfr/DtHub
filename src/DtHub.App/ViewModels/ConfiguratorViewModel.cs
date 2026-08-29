@@ -79,6 +79,13 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [ObservableProperty]
     private string _toggleShortcutText = "Ctrl + P";
 
+    /// <summary>
+    /// Raccourci du replacement, affiché à côté du bouton. Vide quand aucun
+    /// raccourci n'est associé à l'action.
+    /// </summary>
+    [ObservableProperty]
+    private string _rearrangeShortcutText = string.Empty;
+
     public string Disclaimer =>
         "Projet indépendant, sans lien avec Ankama, Genymobile, Google ni les fabricants d'appareils.";
 
@@ -132,6 +139,10 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         }
 
         ToggleShortcutText = hotkeys.For(HotkeyAction.ToggleConfigurator)?.DisplayText ?? "Ctrl + P";
+
+        // Les actions de la barre du bas rappellent leur raccourci, et le
+        // suivent quand il est modifié dans l'éditeur.
+        RearrangeShortcutText = hotkeys.For(HotkeyAction.Rearrange)?.DisplayText ?? string.Empty;
     }
 
     /// <summary>Rafraîchit ce qui change tout seul : appareils et états.</summary>

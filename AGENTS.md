@@ -148,6 +148,15 @@ Ils ont tous coûté du temps une fois. Ne pas les réintroduire.
 - **Les convertisseurs doivent vivre au niveau application.** Une vue chargée
   par modèle de données n'a pas de parent quand son XAML est analysé, et ne
   verrait pas les ressources de la fenêtre.
+- **`dotnet test` ne reconstruit pas le projet d'interface.** Le projet de
+  tests ne référence que `DtHub.Core` et `DtHub.Infrastructure`. Lancer
+  l'exécutable après un `dotnet test` fait tourner un binaire périmé, et on
+  vérifie alors autre chose que ce qu'on vient d'écrire. Compiler
+  explicitement `src/DtHub.App/DtHub.App.csproj` avant de lancer.
+- **Un `Storyboard` déclenché depuis un gabarit ne voit pas son étendue de
+  noms.** Un `Storyboard.TargetName` désignant un élément du `ControlTemplate`
+  lève une exception à chaque affichage, pendant le `Loaded`, ce qui
+  interrompt le rendu. Viser l'élément qui porte le déclencheur, sans nom.
 - **Le `ComboBox` par défaut ignore le thème sombre.** Son gabarit est
   remplacé dans `Themes/Controls.xaml`.
 
