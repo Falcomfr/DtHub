@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """Genere assets/app.ico et assets/app.png.
 
-Marque : un eventail de six oeufs colores, chacun d'une teinte differente.
+Marque : un oeuf unique, grand et centre, sur fond bleu nuit.
 
 La composition est produite par ce script, a partir de formes geometriques et
-d'une palette choisie ici. Elle ne reprend aucune illustration existante :
-ni motif, ni relief, ni ornement, ni teinte copiee. Six oeufs disposes en
-eventail est une idee generique ; c'est le dessin qui appartient a son auteur,
-et celui-ci est entierement calcule ci-dessous.
+d'une couleur choisie ici. Elle ne reprend aucune illustration existante :
+ni motif, ni relief, ni ornement, ni teinte copiee. Un oeuf est une forme
+generique ; c'est le dessin qui appartient a son auteur, et celui-ci est
+entierement calcule ci-dessous.
+
+Un seul oeuf plutot que six : l'icone reste lisible a seize pixels, dans la
+barre des taches comme dans le menu Demarrer.
 
 Aucune dependance externe : PNG ecrit a la main via zlib.
 Executer depuis la racine du depot :  python3 build/make-icon.py
@@ -19,27 +22,14 @@ import zlib
 
 SS = 4  # supersampling
 
-# Disposition de l'eventail : les oeufs rayonnent depuis un point situe sous
-# l'image, chacun incline le long de son rayon. C'est cette inclinaison qui
-# fait lire un eventail plutot qu'une rangee.
-EGG_COUNT = 6
-PIVOT = (0.5, 0.795)
-RADIUS = 0.400
-SPREAD_DEGREES = 52.0
-EGG_HALF_WIDTH = 0.079
-EGG_HALF_HEIGHT = 0.130
-OUTLINE = 0.010
+# L'oeuf occupe l'essentiel de l'image : c'est ce qui le rend reconnaissable
+# une fois reduit a seize pixels.
+EGG_CENTER = (0.5, 0.52)
+EGG_HALF_WIDTH = 0.215
+EGG_HALF_HEIGHT = 0.315
+OUTLINE = 0.014
 
-# Une teinte par oeuf, chaudes et froides alternees pour equilibrer
-# l'eventail. Palette propre a ce projet.
-EGG_HUES = (
-    (0.94, 0.30, 0.28),  # corail
-    (0.98, 0.64, 0.13),  # ambre
-    (0.33, 0.80, 0.31),  # jade
-    (0.10, 0.76, 0.70),  # turquoise
-    (0.27, 0.45, 0.99),  # indigo
-    (0.63, 0.33, 0.92),  # violet
-)
+EGG_HUE = (0.10, 0.76, 0.70)  # turquoise
 
 
 def rounded_rect_sdf(x, y, cx, cy, hw, hh, r):
@@ -91,42 +81,13 @@ def coverage(d, softness=220.0):
     return max(0.0, min(1.0, 0.5 - d * softness))
 
 
-def eggs():
-    """Position, angle et teinte de chaque oeuf, du fond vers l'avant."""
-    items = []
-    half = (EGG_COUNT - 1) / 2.0
-
-    for i in range(EGG_COUNT):
-        # Angles repartis symetriquement de part et d'autre de la verticale.
-        t = (i - half) / half
-        angle = math.radians(SPREAD_DEGREES) * t
-
-        cx = PIVOT[0] + RADIUS * math.sin(angle)
-        cy = PIVOT[1] - RADIUS * math.cos(angle)
-
-        # Les oeufs exterieurs sont legerement plus sombres : cela creuse
-        # l'eventail sans avoir besoin d'ombre portee.
-        depth = abs(t)
-        items.append((cx, cy, angle, depth, EGG_HUES[i]))
-
-    # Dessiner de l'exterieur vers le centre : l'oeuf central passe devant.
-    items.sort(key=lambda e: -e[3])
-    return items
-
-
-def egg_color(hue, depth, local_y):
-    """Teinte claire au sommet, pleine a la base, assombrie vers les bords."""
+def egg_color(hue, local_y):
+    """Teinte claire au sommet, pleine a la base."""
     top = tuple(hue[i] + (1.0 - hue[i]) * 0.34 for i in range(3))
     bottom = tuple(c * 0.78 for c in hue)
 
     t = max(0.0, min(1.0, local_y))
-    base = tuple(top[i] + (bottom[i] - top[i]) * t for i in range(3))
-
-    shade = 1.0 - 0.13 * depth
-    return tuple(min(1.0, c * shade) for c in base)
-
-
-EGGS = eggs()
+    return tuple(top[i] + (bottom[i] - top[i]) * t for i in range(3))
 
 
 def shade(u, v):
@@ -145,32 +106,26 @@ def shade(u, v):
     b = 0.21 + (0.35 - 0.21) * t
     px = over(px, (r, g, b, coverage(d)))
 
-    for (cx, cy, angle, depth, hue) in EGGS:
-        de = egg_sdf(u, v, cx, cy, angle, EGG_HALF_WIDTH, EGG_HALF_HEIGHT)
+    cx, cy = EGG_CENTER
+    de = egg_sdf(u, v, cx, cy, 0.0, EGG_HALF_WIDTH, EGG_HALF_HEIGHT)
 
-        if de > OUTLINE:
-            continue
+    if de > OUTLINE:
+        return px
 
-        # Contour sombre : il separe les oeufs qui se chevauchent.
-        if de > -OUTLINE * 0.30:
-            px = over(px, (0.07, 0.09, 0.16, coverage(de - OUTLINE, 340.0)))
-            continue
+    # Contour sombre : il detache l'oeuf du fond, y compris en tres petit.
+    if de > -OUTLINE * 0.30:
+        return over(px, (0.07, 0.09, 0.16, coverage(de - OUTLINE, 340.0)))
 
-        # Coordonnees locales, pour le degrade et le reflet.
-        ca, sa = math.cos(-angle), math.sin(-angle)
-        local_x = ((u - cx) * ca - (v - cy) * sa) / EGG_HALF_WIDTH
-        local_y = ((u - cx) * sa + (v - cy) * ca) / EGG_HALF_HEIGHT
+    local_x = (u - cx) / EGG_HALF_WIDTH
+    local_y = (v - cy) / EGG_HALF_HEIGHT
 
-        cr, cg, cb = egg_color(hue, depth, (local_y + 1) / 2)
-        px = over(px, (cr, cg, cb, coverage(de, 340.0)))
+    cr, cg, cb = egg_color(EGG_HUE, (local_y + 1) / 2)
+    px = over(px, (cr, cg, cb, coverage(de, 340.0)))
 
-        # Reflet : une petite tache claire en haut a gauche suffit a donner
-        # le poli d'une coquille.
-        gx = (local_x + 0.34) / 0.34
-        gy = (local_y + 0.42) / 0.30
-        gloss = math.hypot(gx, gy) - 1.0
-        if gloss < 0:
-            px = over(px, (1.0, 1.0, 1.0, 0.42 * min(1.0, -gloss * 2.4)))
+    # Reflet : une tache claire en haut a gauche donne le poli d'une coquille.
+    gloss = math.hypot((local_x + 0.34) / 0.34, (local_y + 0.42) / 0.30) - 1.0
+    if gloss < 0:
+        px = over(px, (1.0, 1.0, 1.0, 0.45 * min(1.0, -gloss * 2.4)))
 
     return px
 
