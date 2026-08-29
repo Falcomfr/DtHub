@@ -4,130 +4,106 @@
 
 # DT Hub
 
-**A graphical hub for mirroring several Android devices at once, on Windows.**
+**Play several DOFUS Touch accounts side by side on Windows, from your own phones.**
 
 Built on [ADB](https://developer.android.com/tools/adb) and
-[scrcpy](https://github.com/Genymobile/scrcpy). Not an emulator: your apps keep
-running on your real phones.
+[scrcpy](https://github.com/Genymobile/scrcpy). Not an emulator: the game runs
+on your real phone, DT Hub only mirrors it and arranges the windows.
 
-[![Build](https://github.com/Falcomfr/DtHub/actions/workflows/ci.yml/badge.svg)](https://github.com/Falcomfr/DtHub/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 </div>
 
 ---
 
-> **Status: early development (v0.1).** The feature list below describes the
-> target of the 0.x cycle. See [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)
-> for what actually works today, and [docs/ROADMAP.md](docs/ROADMAP.md) for the plan.
+> **Status: early development (v0.1).** Usable, but rough edges remain. See
+> [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).
 
 ## What it does
 
-DT Hub turns a pile of ADB and scrcpy command lines into a normal Windows
-application. You pair your phones once, pick the apps you want, save the
-selection as a profile, and press one button.
+You install DOFUS Touch once on your phone's main profile, and again on a
+cloned profile such as Xiaomi's Second Space or Dual Apps. Each profile holds
+its own account. DT Hub finds every one of them and opens each in its own
+window on your PC.
 
-- **Several phones at once**, over USB or wireless debugging.
-- **Several apps per phone**, including apps installed under a secondary
-  Android user: work profile, second space, cloned app. Any user id works,
-  not just the usual ones.
-- **Launch profiles.** A profile is a named list of sessions to open together.
-- **Stacked windows.** Every session opens at the same position and size, so
+- **One file to run.** `DtHub.exe`, no installer, no administrator rights,
+  no .NET to install. It downloads ADB and scrcpy on first launch.
+- **First launch asks one question**: which instances to open. After that it
+  just opens them.
+- **Any Android profile id works.** A cloned profile is not always 999, and
+  DT Hub never assumes it is.
+- **Stacked windows.** Every instance opens at the same place and size, so
   they overlay exactly. `Ctrl+Tab` cycles through them.
-- **Adaptive sizing.** Presets at 60 / 70 / 80 / 90 percent of the active
-  monitor, plus borderless fullscreen. All percentages are configurable.
-- **Configurable shortcuts** with a real editor and conflict detection.
-- **Clipboard sync** both ways, using scrcpy's native mechanism.
-- **Nothing to install beforehand.** No Android Studio, no ADB, no Java,
-  no .NET runtime.
+- **A floating configurator**, shown or hidden with `Ctrl+P`, holding the
+  window position, the device list and the shortcuts.
+- **Clipboard sync** both ways, through scrcpy's own mechanism.
 
 ## What it deliberately does not do
 
 DT Hub displays, launches, arranges and forwards your own input. It contains
 no bot, no macro, no input replay, no screen recognition for playing, and no
-way to synchronise actions across sessions. One user gesture is one action.
+way to mirror one action across several accounts. One gesture is one action,
+on one account.
 
-## Screenshots
+## How it works
 
-_Placeholder. Screenshots will be added once the main window is complete._
+Each instance gets its own Android virtual display, created by scrcpy. The
+game is then started on that display, for that Android profile, through ADB.
+Nothing on the phone is modified, and scrcpy itself is used unchanged. The
+reasoning is in [docs/DECISIONS.md](docs/DECISIONS.md).
 
-<!--
-| Home | Devices | Apps |
-|---|---|---|
-| ![Home](docs/images/home.png) | ![Devices](docs/images/devices.png) | ![Apps](docs/images/apps.png) |
--->
+## First launch
 
-## Install
-
-Download `DtHub-Setup.exe` from the
-[latest release](https://github.com/Falcomfr/DtHub/releases/latest) and run it.
-It installs per user, adds a Start menu entry, and updates itself from GitHub
-releases. No administrator rights are required.
-
-Requirements: Windows 10 version 1809 or later, x64.
-
-## First run
-
-### Connect over USB
+### Over USB
 
 1. On the phone, open **Settings > About phone** and tap **Build number**
-   seven times to unlock developer options.
+   seven times.
 2. In **Developer options**, enable **USB debugging**.
-3. Plug the phone in and accept the authorisation prompt on the phone screen.
+3. Plug the phone in and accept the prompt on its screen.
 
-DT Hub picks it up automatically.
+The phone appears on its own, there is no button to press.
 
-### Connect over Wi-Fi
+### Over Wi-Fi
 
-Android 11 and later. Phone and PC must be on the same network.
+Android 11 and later, phone and PC on the same network.
 
 1. In **Developer options**, enable **Wireless debugging**.
-2. Tap **Pair device with pairing code**. The phone shows an IP address,
-   a pairing port and a six digit code.
-3. In DT Hub, choose **Add a phone > Wi-Fi** and type those three values.
+2. Tap **Pair device with pairing code**.
+3. DT Hub finds the phone on the network and fills in its address and port.
+   Type the six digit code and press **Associer**.
 
-DT Hub pairs, discovers the connection port over mDNS and connects. On later
-launches it reconnects on its own: already connected devices first, then the
-last known address, then mDNS discovery.
+Afterwards it reconnects on its own at every launch, even when the phone's
+port changes after a reboot.
 
-You never have to type an ADB command.
-
-### Then
-
-Pick the apps you want on each phone, in the **Apps** page. Cloned apps and
-work profiles appear as separate entries with their Android user shown next to
-them. Save the selection as a profile, go back home, press **Launch**.
-
-## Default shortcuts
+## Shortcuts
 
 | Shortcut | Action |
 |---|---|
-| `Ctrl+Tab` | Next session |
-| `Ctrl+1` to `Ctrl+4` | Size presets, 60 / 70 / 80 / 90 percent |
-| `Ctrl+5` | Borderless fullscreen |
-| `Ctrl+R` | Re-centre and re-stack every window |
-| `Ctrl+0` | Close every session |
+| `Ctrl+P` | Show or hide the configurator |
+| `Ctrl+Tab` | Next instance |
+| `Ctrl+Shift+Tab` | Previous instance |
+| `Ctrl+R` | Put every window back in place |
+| `Ctrl+0` | Close every window |
 
-Shortcuts only apply while a window managed by DT Hub is focused, so
-`Ctrl+Tab` keeps working normally in your browser. All of them can be
-reassigned in **Settings > Shortcuts**.
+Shortcuts only apply while a DT Hub window is focused, so `Ctrl+Tab` keeps
+working normally in your browser. All of them can be changed in the
+configurator.
 
 ## Where your data lives
 
-`%LOCALAPPDATA%\DtHub\` holds `settings.json`, `devices.json`,
-`profiles.json`, a metadata `cache/` and rotating `logs/`. Pairing codes and
-secrets are never written to the logs. Uninstalling removes the application;
-delete that folder to remove the settings too.
+`%LOCALAPPDATA%\DtHub\` holds `settings.json`, `devices.json`, the downloaded
+tools and rotating logs. Pairing codes are never written to the logs. Delete
+that folder to reset everything.
 
 ## Limitations
 
 - Windows only, x64 only.
-- Wireless pairing requires Android 11 or later. USB works further back.
-- Launching an app under a secondary Android user requires that user to be
-  running on the phone.
-- Some apps refuse to run on a secondary display or block mirroring
-  altogether. That is the app's choice and DT Hub does not work around it.
-- Performance depends on your network and on the phone's encoder.
+- Wireless pairing needs Android 11 or later. USB works further back.
+- Virtual displays need Android 11 or later.
+- A cloned Android profile must exist on the phone; DT Hub does not create one.
+- Real app icons are not shown, and cannot be with the tools available. See
+  decision D6 in [docs/DECISIONS.md](docs/DECISIONS.md).
+- The first launch needs an internet connection, once.
 
 ## Build from source
 
@@ -141,24 +117,26 @@ dotnet test  DtHub.slnx
 dotnet run --project src/DtHub.App
 ```
 
-Contributors and AI agents should read [AGENTS.md](AGENTS.md) first: it
-documents the architecture, the conventions and the hard rules.
+Contributors and AI agents should read [AGENTS.md](AGENTS.md) first.
 
 ## Security
 
 DT Hub never disables your antivirus, never adds exclusions and never asks for
-administrator rights during normal use. Third party tools are downloaded from
-their official sources and verified. Every dependency URL is listed in
-[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+administrator rights. Third party tools are downloaded from their official
+sources and their checksum is verified before anything is extracted. Every
+dependency URL is listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
+Shortcuts use `RegisterHotKey`, not a keyboard hook: only the combinations you
+configured are ever intercepted, and only while a DT Hub window is focused.
 
 ## Licences
 
 DT Hub is released under the [MIT licence](LICENSE). Third party components
-keep their own licences, listed in
-[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+keep their own, listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 ## Not affiliated
 
-DT Hub is an independent open-source project and is not affiliated with
-Genymobile, Google, device manufacturers, or applications mirrored through it.
-All trademarks belong to their respective owners.
+DT Hub is an independent open-source project. It is not affiliated with,
+endorsed by, or connected to Ankama, Genymobile, Google, or any device
+manufacturer. DOFUS and DOFUS Touch are trademarks of Ankama. DT Hub contains
+no Ankama artwork, code or assets, and does not modify the game in any way.

@@ -195,3 +195,74 @@ nécessaires.
 
 Enseignement retenu : un réglage de publication ne se valide pas à la
 compilation. Il faut lancer l'application.
+
+---
+
+## D9 - Une application dédiée à DOFUS Touch, pas un outil générique
+
+**2026-08-29 - Acceptée, remplace le cadrage initial**
+
+Le cahier des charges de départ demandait un outil générique, capable de
+lancer n'importe quelle application Android. À l'usage, cette généralité ne
+servait personne : elle imposait un catalogue d'applications, un sélecteur, des
+profils de lancement et une navigation à six pages, pour un besoin qui tient
+en une phrase, ouvrir plusieurs comptes du même jeu.
+
+L'application est donc recentrée. La découverte ne cherche qu'un paquet, celui
+du jeu, et rend une instance par profil Android où il est installé. Le paquet
+reste un réglage, pour survivre à un changement côté éditeur, mais rien dans
+l'interface ne propose de choisir une autre application.
+
+Ce que la décision supprime : profils de lancement, catalogue d'applications,
+fournisseur de noms d'applications, favoris, vues Favoris et Système, barre de
+navigation, presets de taille et leurs raccourcis.
+
+Ce qu'elle garde intact : tout le noyau technique, qui n'a jamais rien su du
+jeu. ADB, l'appairage, les profils Android, les sessions scrcpy et la gestion
+des fenêtres sont inchangés.
+
+Limite non négociable, indépendante de cette décision : aucune automatisation
+de jeu. Une entrée utilisateur correspond à une action, sur un compte, et à
+une seule.
+
+---
+
+## D10 - Un fichier unique, pas d'installateur
+
+**2026-08-29 - Acceptée, remplace la décision d'empaqueter avec Velopack**
+
+L'usage visé est personnel : un fichier qu'on lance. Mesuré sur cette base de
+code, la publication autonome en fichier unique donne un `DtHub.exe` de 60 Mo,
+runtime .NET compris, qui démarre sans installation ni droits administrateur.
+
+Velopack et l'installateur sont abandonnés. Mettre à jour revient à remplacer
+le fichier.
+
+Deux conséquences assumées :
+
+- le premier lancement nécessite une connexion internet, le temps de
+  télécharger ADB et scrcpy. La licence du SDK Android interdit d'embarquer
+  ADB, donc ce téléchargement ne peut pas disparaître ;
+- Windows affiche un avertissement SmartScreen au premier lancement, le
+  fichier n'étant pas signé. Un certificat Authenticode le supprimerait, pour
+  un coût annuel qui ne se justifie que si le programme est distribué
+  largement.
+
+---
+
+## D11 - Deux fenêtres, et un configurateur qui se cache
+
+**2026-08-29 - Acceptée**
+
+L'application n'a pas d'écran d'accueil permanent. Une fenêtre de mise en
+route apparaît une seule fois, à la première utilisation, pour demander
+quelles instances ouvrir. Ensuite il ne reste qu'un configurateur flottant,
+masqué et rappelé par un raccourci affiché dans son propre bandeau.
+
+Les fenêtres de jeu se superposent exactement, ancrées sur une des neuf
+positions d'une grille. Le configurateur se pose à l'opposé de ce bloc, pour
+ne pas le recouvrir.
+
+Fermer le configurateur ne quitte pas l'application : le jeu continue. Le
+mode d'arrêt de WPF est donc explicite, et un bouton Quitter existe dans le
+configurateur.
