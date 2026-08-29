@@ -226,7 +226,7 @@ public sealed class WindowManagerService
 
         foreach (var session in sessions.Where(s => s.IsAlive && s.WindowHandle != 0))
         {
-            if (session.MaxClientHeight <= 0
+            if ((session.MaxClientHeight <= 0 && session.SourceAspectRatio <= 0)
                 || _controller.GetWindowRect(session.WindowHandle) is not { } outer
                 || outer.IsEmpty)
             {
@@ -242,13 +242,32 @@ public sealed class WindowManagerService
             }
 
             var chrome = MeasureChrome(session.WindowHandle);
-            var wanted = session.MaxClientHeight + chrome.Height;
 
-            // La fenêtre peut être plus basse que le plafond : seule la
-            // dépasser pose problème.
-            if (outer.Height <= wanted + 2)
+            int wanted;
+
+            if (session.MaxClientHeight > 0)
             {
-                continue;
+                // Largeur libre : l'afficheur épouse la fenêtre, seul le
+                // plafond de hauteur du jeu compte. Être plus bas est permis.
+                wanted = session.MaxClientHeight + chrome.Height;
+
+                if (outer.Height <= wanted + 2)
+                {
+                    continue;
+                }
+            }
+            else
+            {
+                // Rapport verrouillé : l'image est mise à l'échelle, elle ne
+                // remplit la fenêtre qu'à la forme de l'afficheur. S'en écarter
+                // laisse une bande, au-dessus comme en dessous.
+                wanted = (int)Math.Round(
+                    (outer.Width - chrome.Width) / session.SourceAspectRatio) + chrome.Height;
+
+                if (Math.Abs(outer.Height - wanted) <= 2)
+                {
+                    continue;
+                }
             }
 
             var target = outer with { Height = wanted };
@@ -472,14 +491,6 @@ public sealed class WindowManagerService
 
             _controller.MoveWindow(handle, rect);
 
-            // Le premier placement précède l'ouverture du jeu : c'est à cette
-            // hauteur de zone client qu'il naît, et il ne se remet pas en page
-            // au-delà.
-            if (session.MaxClientHeight == 0)
-            {
-                session.MaxClientHeight = Math.Max(1, rect.Height - chrome.Height);
-            }
-
             applied.Add((session.Target.Key, rect));
         }
 
@@ -600,6 +611,31 @@ public sealed class WindowManagerService
         }
 
         return moved;
+    }
+
+    /// <summary>
+    /// Place une fenêtre sans toucher à sa taille.
+    ///
+    /// Sert avant l'ouverture du jeu : l'afficheur est alors à sa hauteur
+    /// maximale, et le réduire tout de suite ferait naître le jeu petit, sans
+    /// possibilité de grandir ensuite.
+    /// </summary>
+    public async Task MoveOnlyAsync(
+        ScrcpySession session,
+        int x,
+        int y,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+
+        var handle = await ResolveWindowAsync(session, cancellationToken).ConfigureAwait(false);
+
+        if (handle == 0 || _controller.GetWindowRect(handle) is not { } rect || rect.IsEmpty)
+        {
+            return;
+        }
+
+        _controller.MoveWindow(handle, rect with { X = x, Y = y });
     }
 
     /// <summary>Passe à l'instance suivante, en boucle.</summary>

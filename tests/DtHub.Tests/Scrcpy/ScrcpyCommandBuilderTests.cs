@@ -100,12 +100,12 @@ public class ScrcpyCommandBuilderTests
     }
 
     [Fact]
-    public void Avec_l_ajustement_continu_l_afficheur_nait_a_la_taille_de_la_fenetre()
+    public void Avec_l_ajustement_continu_l_afficheur_nait_a_la_hauteur_maximale()
     {
         // scrcpy refuse --window-width et --window-height dans ce mode : la
-        // taille se règle par la définition de l'afficheur. Le créer plus haut
-        // a été essayé et écarté : le jeu y fixe aussi son échelle, et l'image
-        // se retrouve coupée.
+        // taille se règle par la définition de l'afficheur. Seule la largeur
+        // vient de la fenêtre ; la hauteur est celle que le jeu sait dessiner,
+        // pour qu'il naisse à sa pleine échelle et puisse ensuite grandir.
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "T",
             ScrcpyOptions.Default with { FlexDisplay = true },
@@ -113,7 +113,8 @@ public class ScrcpyCommandBuilderTests
 
         Assert.Equal("100", ValueOf(arguments, "--window-x"));
         Assert.Equal("50", ValueOf(arguments, "--window-y"));
-        Assert.Equal("1280x720/240", ValueOf(arguments, "--new-display"));
+        Assert.Equal(
+            $"1280x{ScrcpyOptions.MaximumDrawnHeight}/240", ValueOf(arguments, "--new-display"));
         Assert.DoesNotContain(arguments, a => a.StartsWith("--window-width", StringComparison.Ordinal));
         Assert.DoesNotContain(arguments, a => a.StartsWith("--window-height", StringComparison.Ordinal));
         Assert.Contains("--flex-display", arguments);
@@ -128,7 +129,8 @@ public class ScrcpyCommandBuilderTests
             ScrcpyOptions.Default with { FlexDisplay = true },
             new ScrcpyWindowPlacement(0, 0, 2599, 1461));
 
-        Assert.Equal("2598x1460/240", ValueOf(arguments, "--new-display"));
+        Assert.Equal(
+            $"2598x{ScrcpyOptions.MaximumDrawnHeight}/240", ValueOf(arguments, "--new-display"));
     }
 
     [Fact]
@@ -165,7 +167,7 @@ public class ScrcpyCommandBuilderTests
             new ScrcpyWindowPlacement(1, 2, 3, 4));
 
         // Les côtés impairs sont ramenés à des nombres pairs.
-        Assert.Contains("--new-display=2x4/240", arguments);
+        Assert.Contains($"--new-display=2x{ScrcpyOptions.MaximumDrawnHeight}/240", arguments);
 
         foreach (var argument in arguments.Where(a => a.StartsWith("--", StringComparison.Ordinal)))
         {

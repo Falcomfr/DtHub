@@ -183,3 +183,16 @@ structurante dans `docs/DECISIONS.md`.
 Compiler ne prouve rien sur le rendu ni sur le comportement. Lancer
 l'application et capturer sa fenêtre fait partie de la vérification, pas des
 finitions.
+
+### Lancer l'application depuis WSL
+
+`Start-Process` doit recevoir un répertoire de travail Windows :
+
+```
+powershell.exe -NoProfile -Command "Start-Process -FilePath 'C:\Dev\DTHub\build\publish\DtHub.exe' -WorkingDirectory 'C:\Dev\DTHub\build\publish'"
+```
+
+Lancé depuis un chemin WSL, le processus hérite d'un répertoire courant UNC
+`\\wsl.localhost\...`. Il démarre, reste vivant et répond, mais se fige avant
+la première ligne de journal : la construction de l'hôte sonde ce chemin. Le
+symptôme trompe, car il ressemble à un plantage de l'application.

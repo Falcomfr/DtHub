@@ -689,4 +689,39 @@ public class WindowManagerServiceTests
         Assert.Equal(0, service.EnforceAspect(sessions));
         Assert.Equal(small, desktop.GetWindowRect(sessions[0].WindowHandle));
     }
+
+    [Fact]
+    public async Task Au_rapport_verrouille_la_hauteur_suit_la_forme_de_l_afficheur()
+    {
+        // Dans ce mode l'image est mise à l'échelle : elle ne remplit la
+        // fenêtre qu'à la forme de l'afficheur, et s'en écarter laisse une
+        // bande. Le plafond de hauteur, lui, ne s'applique pas.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(
+            1,
+            ScrcpyOptions.Default with
+            {
+                FlexDisplay = false,
+                VirtualDisplayWidth = 2604,
+                VirtualDisplayHeight = 1416,
+            });
+
+        await using var _ = manager;
+
+        Assert.Equal(0, sessions[0].MaxClientHeight);
+
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        await service.ResolveWindowAsync(sessions[0], CancellationToken.None);
+
+        desktop.MoveWindow(sessions[0].WindowHandle, new ScreenRect(0, 0, 2604, 2000));
+
+        service.EnforceAspect(sessions);
+        var corrected = service.EnforceAspect(sessions);
+
+        var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+
+        Assert.Equal(1, corrected);
+        Assert.Equal(2604, rect.Width);
+        Assert.Equal(1416, rect.Height);
+    }
 }

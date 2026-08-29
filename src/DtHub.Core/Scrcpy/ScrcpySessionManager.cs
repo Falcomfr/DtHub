@@ -147,6 +147,12 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                 ? (double)options.VirtualDisplayWidth / options.VirtualDisplayHeight
                 : 0,
 
+            // L'afficheur naît à cette hauteur : c'est donc jusque-là que la
+            // fenêtre pourra grandir sans laisser de bande.
+            MaxClientHeight = options is { UseVirtualDisplay: true, FlexDisplay: true }
+                ? ScrcpyOptions.MaximumDrawnHeight
+                : 0,
+
         };
 
         session.CommandLine = request.ToDisplayString();

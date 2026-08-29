@@ -21,6 +21,17 @@ public sealed record ScrcpyOptions
 {
     public static readonly ScrcpyOptions Default = new();
 
+    /// <summary>
+    /// Hauteur maximale que le jeu sait dessiner, en pixels.
+    ///
+    /// Mesurée sur un Xiaomi 13T : sur un afficheur de 2000 pixels de haut il
+    /// n'en remplit que 1416, et sur un afficheur de 2104 il en remplit encore
+    /// 1416. Ce n'est donc pas une question de forme mais une limite absolue.
+    /// L'afficheur naît à cette hauteur : au-dessus il resterait une bande, en
+    /// dessous la fenêtre ne pourrait plus grandir.
+    /// </summary>
+    public const int MaximumDrawnHeight = 1416;
+
     /// <summary>Images par seconde. Au-delà, plusieurs sessions saturent l'encodeur.</summary>
     public int MaxFps { get; init; } = 45;
 

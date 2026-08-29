@@ -77,13 +77,20 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // La fenêtre est placée avant l'ouverture du jeu, pour qu'il naisse à
         // la taille définitive.
         _sessions.PrepareWindow = async (session, cancellationToken) =>
-            await _windows.RestoreAsync([session], _pendingGeometry, cancellationToken)
-                .ConfigureAwait(false);
+        {
+            // Seule la position est posée avant l'ouverture du jeu : réduire
+            // la fenêtre maintenant le ferait naître petit, et il ne saurait
+            // plus grandir.
+            if (_pendingPlacement is { } placement)
+            {
+                await _windows.MoveOnlyAsync(session, placement.X, placement.Y, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+        };
     }
 
-    /// <summary>Géométries à restaurer, connues du placement préalable.</summary>
-    private IReadOnlyDictionary<string, StoredWindowRect> _pendingGeometry =
-        new Dictionary<string, StoredWindowRect>(StringComparer.Ordinal);
+    /// <summary>Position à poser avant l'ouverture du jeu.</summary>
+    private ScrcpyWindowPlacement? _pendingPlacement;
 
     /// <summary>
     /// Journalise la mort d'une session, avec la sortie de scrcpy. Sans cela,
@@ -284,14 +291,27 @@ public sealed partial class GameLauncher : IAsyncDisposable
             IconDirectory = _iconDirectory,
         };
 
+        // Rapport verrouillé : l'image est mise à l'échelle de la fenêtre,
+        // c'est ce qui permet le plein écran. L'afficheur naît donc à la plus
+        // grande définition que le jeu sache dessiner, et au rapport de
+        // l'écran : l'agrandissement reste net et ne laisse aucune bande.
+        if (!options.FlexDisplay && _windows.WorkArea() is { Height: > 0 } work)
+        {
+            var width = (int)Math.Round(ScrcpyOptions.MaximumDrawnHeight * ((double)work.Width / work.Height));
+
+            options = options with
+            {
+                VirtualDisplayWidth = width,
+                VirtualDisplayHeight = ScrcpyOptions.MaximumDrawnHeight,
+            };
+        }
+
         var serials = await ResolveSerialsAsync(cancellationToken).ConfigureAwait(false);
 
         // La position est donnée à scrcpy dès le lancement. Le faire après
         // coup ne suffit pas : scrcpy recentre sa fenêtre quand il reçoit la
         // première image, donc après notre placement.
         var remembered = await _settings.GetWindowRectsAsync(cancellationToken).ConfigureAwait(false);
-
-        _pendingGeometry = remembered;
 
         List<string> problems = [];
         List<ScrcpySession> started = [];
@@ -313,10 +333,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             remembered.TryGetValue(instance.Key, out var stored);
 
+            var placement = ComputePlacement(options, stored);
+            _pendingPlacement = placement;
+
             var session = await _sessions.StartAsync(
                 ToTarget(instance, serial),
                 options,
-                ComputePlacement(options, stored),
+                placement,
                 cancellationToken).ConfigureAwait(false);
 
             if (session.State == ScrcpySessionState.Failed)
@@ -341,6 +364,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // ferait recréer leur afficheur virtuel côté Android.
         if (started.Count > 0)
         {
+            // Le jeu vient d'ouvrir sur un afficheur à sa hauteur maximale. On
+            // lui laisse le temps de s'installer avant de ramener la fenêtre à
+            // sa taille : réduire trop tôt le laisse mal mis en page.
+            await Task.Delay(TimeSpan.FromSeconds(3), cancellationToken).ConfigureAwait(false);
+
             await _windows.RestoreAsync(started, remembered, cancellationToken).ConfigureAwait(false);
         }
 
