@@ -331,4 +331,151 @@ public sealed class SettingsServiceTests : IDisposable
 
         Assert.Contains("\"gameAnchor\": \"BottomRight\"", json, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public async Task L_ordre_choisi_survit_a_une_redecouverte()
+    {
+        await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
+
+        Assert.True(await _service.MoveInstanceAsync(
+            "MATERIEL123|0|" + DofusPackages.DofusTouch, 1, CancellationToken.None));
+
+        var merged = await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
+
+        Assert.Equal([999, 0], [.. merged.Select(i => i.UserId)]);
+    }
+
+    [Fact]
+    public async Task Une_instance_nouvellement_decouverte_se_place_en_fin_de_son_appareil()
+    {
+        await _service.MergeInstancesAsync(
+            [Instance(0, "PHONE-A"), Instance(0, "PHONE-B")], CancellationToken.None);
+
+        var merged = await _service.MergeInstancesAsync(
+            [Instance(0, "PHONE-A"), Instance(999, "PHONE-A"), Instance(0, "PHONE-B")],
+            CancellationToken.None);
+
+        Assert.Equal(
+            ["PHONE-A/0", "PHONE-A/999", "PHONE-B/0"],
+            [.. merged.Select(i => $"{i.DeviceId}/{i.UserId}")]);
+    }
+
+    [Fact]
+    public async Task Oublier_un_appareil_le_retire_aussi_de_l_ordre_des_appareils()
+    {
+        await _service.MergeInstancesAsync(
+            [Instance(0, "PHONE-A"), Instance(0, "PHONE-B")], CancellationToken.None);
+
+        await _service.ForgetDeviceAsync("PHONE-A", CancellationToken.None);
+
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.Equal(["PHONE-B"], settings.DeviceOrder);
+        Assert.Equal([0], [.. settings.Instances.Select(i => i.Order)]);
+    }
+
+    [Fact]
+    public async Task Une_geometrie_enregistree_est_relue_a_l_identique()
+    {
+        await _service.MergeInstancesAsync([Instance(0)], CancellationToken.None);
+
+        var key = "MATERIEL123|0|" + DofusPackages.DofusTouch;
+        var monitor = new MonitorInfo
+        {
+            DeviceName = @"\\.\DISPLAY1",
+            Bounds = new ScreenRect(0, 0, 3840, 2160),
+            WorkArea = new ScreenRect(0, 0, 3840, 2088),
+            IsPrimary = true,
+        };
+
+        await _service.SaveWindowRectsAsync(
+            new Dictionary<string, StoredWindowRect>
+            {
+                [key] = StoredWindowRect.From(new ScreenRect(300, 200, 900, 900), monitor),
+            },
+            CancellationToken.None);
+
+        var rects = await _service.GetWindowRectsAsync(CancellationToken.None);
+
+        Assert.Equal(new ScreenRect(300, 200, 900, 900), rects[key].Bounds);
+        Assert.Equal(new ScreenRect(0, 0, 3840, 2160), rects[key].Monitor);
+    }
+
+    [Fact]
+    public async Task Enregistrer_une_geometrie_n_efface_pas_celle_des_autres_instances()
+    {
+        await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
+
+        var monitor = new MonitorInfo
+        {
+            DeviceName = @"\\.\DISPLAY1",
+            Bounds = new ScreenRect(0, 0, 1920, 1080),
+            WorkArea = new ScreenRect(0, 0, 1920, 1040),
+            IsPrimary = true,
+        };
+
+        var principal = "MATERIEL123|0|" + DofusPackages.DofusTouch;
+        var clone = "MATERIEL123|999|" + DofusPackages.DofusTouch;
+
+        await _service.SaveWindowRectsAsync(
+            new Dictionary<string, StoredWindowRect>
+            {
+                [principal] = StoredWindowRect.From(new ScreenRect(0, 0, 800, 600), monitor),
+            },
+            CancellationToken.None);
+
+        await _service.SaveWindowRectsAsync(
+            new Dictionary<string, StoredWindowRect>
+            {
+                [clone] = StoredWindowRect.From(new ScreenRect(10, 10, 400, 300), monitor),
+            },
+            CancellationToken.None);
+
+        var rects = await _service.GetWindowRectsAsync(CancellationToken.None);
+
+        Assert.Equal(2, rects.Count);
+        Assert.Equal(new ScreenRect(0, 0, 800, 600), rects[principal].Bounds);
+    }
+
+    [Fact]
+    public async Task L_ensemble_de_demarrage_enregistre_remplace_les_cases_precedentes()
+    {
+        await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
+
+        var principal = "MATERIEL123|0|" + DofusPackages.DofusTouch;
+        await _service.SetInstanceEnabledAsync(principal, enabled: true, CancellationToken.None);
+
+        var clone = "MATERIEL123|999|" + DofusPackages.DofusTouch;
+        await _service.SaveStartupSetAsync([clone], CancellationToken.None);
+
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.False(settings.Instances.Find(i => i.Key == principal)!.IsEnabled);
+        Assert.True(settings.Instances.Find(i => i.Key == clone)!.IsEnabled);
+    }
+
+    [Fact]
+    public async Task Un_ensemble_de_demarrage_vide_decoche_tout()
+    {
+        await _service.MergeInstancesAsync([Instance(0)], CancellationToken.None);
+
+        var key = "MATERIEL123|0|" + DofusPackages.DofusTouch;
+        await _service.SetInstanceEnabledAsync(key, enabled: true, CancellationToken.None);
+
+        await _service.SaveStartupSetAsync([], CancellationToken.None);
+
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.All(settings.Instances, i => Assert.False(i.IsEnabled));
+    }
+
+    [Fact]
+    public async Task La_visibilite_du_configurateur_est_relue_a_l_identique()
+    {
+        await _service.SetConfiguratorVisibleAsync(visible: false, CancellationToken.None);
+
+        _service.Invalidate();
+
+        Assert.False((await _service.GetAsync(CancellationToken.None)).ConfiguratorVisible);
+    }
 }

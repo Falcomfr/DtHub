@@ -238,6 +238,11 @@ public sealed class SettingsService : IDisposable
                 stored[entry.Key] = entry;
             }
 
+            // Une instance neuve doit se poser en fin de son propre appareil,
+            // pas en fin de la liste entière, sans quoi elle s'intercalerait
+            // entre deux téléphones.
+            InstanceOrdering.Normalize(settings);
+
             var live = discovered.Select(i => i.Key).ToHashSet(StringComparer.Ordinal);
 
             merged = [.. settings.Instances
@@ -281,11 +286,150 @@ public sealed class SettingsService : IDisposable
             }
         }, cancellationToken);
 
-    /// <summary>Oublie les instances d'un téléphone retiré.</summary>
+    /// <summary>Oublie les instances d'un téléphone retiré, et son rang.</summary>
     public Task ForgetDeviceAsync(string deviceId, CancellationToken cancellationToken = default) =>
         UpdateAsync(settings =>
-            settings.Instances.RemoveAll(i => string.Equals(i.DeviceId, deviceId, StringComparison.Ordinal)),
+        {
+            settings.Instances.RemoveAll(i => string.Equals(i.DeviceId, deviceId, StringComparison.Ordinal));
+
+            // La géométrie mémorisée part avec les instances : elle y est
+            // imbriquée. Restent les rangs, qu'il faut resserrer.
+            InstanceOrdering.Normalize(settings);
+        }, cancellationToken);
+
+    // Géométrie des fenêtres
+
+    /// <summary>Géométries mémorisées, par clé d'instance.</summary>
+    public async Task<IReadOnlyDictionary<string, StoredWindowRect>> GetWindowRectsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
+
+        return settings.Instances
+            .Where(i => i.Window is not null)
+            .ToDictionary(i => i.Key, i => i.Window!, StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// Enregistre plusieurs géométries en une seule écriture. Les instances
+    /// absentes du dictionnaire gardent la leur : une fenêtre qui n'était pas
+    /// ouverte ne doit pas perdre l'endroit où elle avait été laissée.
+    /// </summary>
+    public Task SaveWindowRectsAsync(
+        IReadOnlyDictionary<string, StoredWindowRect> rects,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(rects);
+
+        return UpdateAsync(settings =>
+        {
+            foreach (var (key, rect) in rects)
+            {
+                var instance = settings.Instances.Find(
+                    i => string.Equals(i.Key, key, StringComparison.Ordinal));
+
+                if (instance is not null)
+                {
+                    instance.Window = rect;
+                }
+            }
+        }, cancellationToken);
+    }
+
+    /// <summary>Oublie la géométrie d'une instance : elle repartira de l'ancrage.</summary>
+    public Task ClearWindowRectAsync(string key, CancellationToken cancellationToken = default) =>
+        UpdateAsync(settings =>
+        {
+            var instance = settings.Instances.Find(i => string.Equals(i.Key, key, StringComparison.Ordinal));
+            if (instance is not null)
+            {
+                instance.Window = null;
+            }
+        }, cancellationToken);
+
+    // Ordre
+
+    /// <summary>Rang de chaque instance, par sa clé, pour trier des sessions.</summary>
+    public async Task<IReadOnlyDictionary<string, int>> GetInstanceRanksAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
+
+        return settings.Instances.ToDictionary(i => i.Key, i => i.Order, StringComparer.Ordinal);
+    }
+
+    /// <summary>Décale un appareil. Rend faux s'il est déjà à l'extrémité.</summary>
+    public async Task<bool> MoveDeviceAsync(
+        string deviceId,
+        int offset,
+        CancellationToken cancellationToken = default)
+    {
+        var moved = false;
+
+        await UpdateAsync(
+            settings => moved = InstanceOrdering.MoveDevice(settings, deviceId, offset),
+            cancellationToken).ConfigureAwait(false);
+
+        return moved;
+    }
+
+    /// <summary>Décale une instance dans son appareil, dont elle ne sort pas.</summary>
+    public async Task<bool> MoveInstanceAsync(
+        string key,
+        int offset,
+        CancellationToken cancellationToken = default)
+    {
+        var moved = false;
+
+        await UpdateAsync(
+            settings => moved = InstanceOrdering.MoveInstance(settings, key, offset),
+            cancellationToken).ConfigureAwait(false);
+
+        return moved;
+    }
+
+    /// <summary>Fixe l'ordre des appareils.</summary>
+    public Task ReorderDevicesAsync(
+        IReadOnlyList<string> orderedDeviceIds,
+        CancellationToken cancellationToken = default) =>
+        UpdateAsync(settings => InstanceOrdering.ReorderDevices(settings, orderedDeviceIds), cancellationToken);
+
+    /// <summary>Fixe l'ordre des instances d'un appareil.</summary>
+    public Task ReorderInstancesAsync(
+        string deviceId,
+        IReadOnlyList<string> orderedKeys,
+        CancellationToken cancellationToken = default) =>
+        UpdateAsync(
+            settings => InstanceOrdering.ReorderInstances(settings, deviceId, orderedKeys),
             cancellationToken);
+
+    // Démarrage
+
+    /// <summary>
+    /// Remplace l'ensemble des instances ouvertes au démarrage par celles qui
+    /// étaient ouvertes au moment de quitter. C'est un remplacement : toute
+    /// instance absente de la liste en sort.
+    /// </summary>
+    public Task SaveStartupSetAsync(
+        IReadOnlyCollection<string> openKeys,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(openKeys);
+
+        var wanted = openKeys.ToHashSet(StringComparer.Ordinal);
+
+        return UpdateAsync(settings =>
+        {
+            foreach (var instance in settings.Instances)
+            {
+                instance.IsEnabled = wanted.Contains(instance.Key);
+            }
+        }, cancellationToken);
+    }
+
+    /// <summary>Retient si le configurateur était affiché à la sortie.</summary>
+    public Task SetConfiguratorVisibleAsync(bool visible, CancellationToken cancellationToken = default) =>
+        UpdateAsync(settings => settings.ConfiguratorVisible = visible, cancellationToken);
 
     public void Dispose() => _gate.Dispose();
 }
