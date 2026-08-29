@@ -13,8 +13,9 @@ using DtHub.Core.Windows;
 namespace DtHub.App.ViewModels;
 
 /// <summary>
-/// Le configurateur : trois onglets, rien de plus. Chaque modification est
-/// enregistrée immédiatement et appliquée aux fenêtres déjà ouvertes.
+/// La fenêtre principale une fois le jeu lancé. Trois onglets, rien de plus.
+/// Chaque modification est enregistrée immédiatement et appliquée aux fenêtres
+/// déjà ouvertes.
 /// </summary>
 public sealed partial class ConfiguratorViewModel : ObservableObject
 {
@@ -23,7 +24,6 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     private readonly IDialogService _dialogs;
     private readonly IAppPaths _paths;
 
-    private HotkeySet _hotkeys = HotkeySet.Default;
     private bool _loading;
 
     public ConfiguratorViewModel(
@@ -38,7 +38,6 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         _launcher = launcher;
         _dialogs = dialogs;
         _paths = paths;
-
     }
 
     public InstanceListViewModel Instances { get; }
@@ -51,8 +50,11 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [ObservableProperty]
     private WindowAnchor _gameAnchor = WindowAnchor.MiddleLeft;
 
+    /// <summary>Tailles proposées, proportionnelles à l'écran.</summary>
+    public ObservableCollection<SizeChoiceViewModel> Sizes { get; } = [];
+
     [ObservableProperty]
-    private int _gameSizePercent = 70;
+    private SizeChoiceViewModel? _selectedSize;
 
     public ObservableCollection<MonitorInfo> Monitors { get; } = [];
 
@@ -62,15 +64,9 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// <summary>Vrai s'il y a plus d'un écran : sinon le réglage est inutile.</summary>
     public bool HasSeveralMonitors => Monitors.Count > 1;
 
-    // Onglet Raccourcis
+    // Onglet Raccourcis, en lecture seule
 
     public ObservableCollection<HotkeyRowViewModel> Hotkeys { get; } = [];
-
-    [ObservableProperty]
-    private HotkeyRowViewModel? _capturingRow;
-
-    [ObservableProperty]
-    private string? _hotkeyProblem;
 
     // Divers
 
@@ -79,11 +75,11 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     public string Version => ProductInfo.Version;
 
     /// <summary>Raccourci d'affichage, rappelé en clair dans la fenêtre.</summary>
-    public string ToggleShortcutText =>
-        _hotkeys.For(HotkeyAction.ToggleConfigurator)?.DisplayText ?? "Ctrl + P";
+    [ObservableProperty]
+    private string _toggleShortcutText = "Ctrl + P";
 
     public string Disclaimer =>
-        "Projet indépendant, sans lien avec Ankama, Genymobile, Google ni Xiaomi.";
+        "Projet indépendant, sans lien avec Ankama, Genymobile, Google ni les fabricants d'appareils.";
 
     /// <summary>Charge l'état des réglages dans la fenêtre.</summary>
     public async Task LoadAsync(CancellationToken cancellationToken = default)
@@ -95,7 +91,16 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             var settings = await _settings.GetAsync(cancellationToken).ConfigureAwait(true);
 
             GameAnchor = settings.GameAnchor;
-            GameSizePercent = settings.GameSizePercent;
+
+            var presets = await _settings.GetSizePresetsAsync(cancellationToken).ConfigureAwait(true);
+
+            Sizes.Clear();
+            foreach (var choice in SizeChoiceViewModel.From(presets))
+            {
+                Sizes.Add(choice);
+            }
+
+            SelectedSize = Sizes.FirstOrDefault(s => s.Index == settings.SizeIndex) ?? Sizes.FirstOrDefault();
 
             Monitors.Clear();
             foreach (var monitor in _launcher.Monitors)
@@ -108,8 +113,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
             OnPropertyChanged(nameof(HasSeveralMonitors));
 
-            _hotkeys = await _settings.GetHotkeysAsync(cancellationToken).ConfigureAwait(true);
-            RebuildHotkeys();
+            await RefreshHotkeysAsync(cancellationToken).ConfigureAwait(true);
         }
         finally
         {
@@ -117,6 +121,20 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         }
 
         await Instances.RefreshAsync(cancellationToken).ConfigureAwait(true);
+    }
+
+    /// <summary>Relit les raccourcis, après une modification dans l'éditeur.</summary>
+    public async Task RefreshHotkeysAsync(CancellationToken cancellationToken = default)
+    {
+        var hotkeys = await _settings.GetHotkeysAsync(cancellationToken).ConfigureAwait(true);
+
+        Hotkeys.Clear();
+        foreach (var binding in hotkeys.Bindings)
+        {
+            Hotkeys.Add(new HotkeyRowViewModel(binding));
+        }
+
+        ToggleShortcutText = hotkeys.For(HotkeyAction.ToggleConfigurator)?.DisplayText ?? "Ctrl + P";
     }
 
     /// <summary>Rafraîchit ce qui change tout seul : appareils et états.</summary>
@@ -130,6 +148,31 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     private void SetAnchor(WindowAnchor anchor) => GameAnchor = anchor;
 
     [RelayCommand]
+    private void SetSize(SizeChoiceViewModel? size)
+    {
+        if (size is not null)
+        {
+            SelectedSize = size;
+        }
+    }
+
+    /// <summary>Ouvre l'instance choisie, sans toucher aux autres.</summary>
+    [RelayCommand]
+    private async Task LaunchInstanceAsync(InstanceRowViewModel? row)
+    {
+        if (row is null)
+        {
+            return;
+        }
+
+        var report = await _launcher.LaunchAsync([row.Instance]).ConfigureAwait(true);
+        Instances.RefreshRunningState();
+
+        Instances.Problem = report.Problems.Count > 0 ? string.Join(" ", report.Problems) : null;
+    }
+
+    /// <summary>Ferme puis rouvre l'instance, jeu compris.</summary>
+    [RelayCommand]
     private async Task RestartAsync(InstanceRowViewModel? row)
     {
         if (row is null)
@@ -140,10 +183,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         var report = await _launcher.RestartAsync(row.Instance).ConfigureAwait(true);
         Instances.RefreshRunningState();
 
-        if (report.Problems.Count > 0)
-        {
-            Instances.Problem = string.Join(" ", report.Problems);
-        }
+        Instances.Problem = report.Problems.Count > 0 ? string.Join(" ", report.Problems) : null;
     }
 
     [RelayCommand]
@@ -159,15 +199,6 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task LaunchEnabledAsync(CancellationToken cancellationToken)
-    {
-        var report = await _launcher.LaunchEnabledAsync(cancellationToken).ConfigureAwait(true);
-        Instances.RefreshRunningState();
-
-        Instances.Problem = report.Problems.Count > 0 ? string.Join(" ", report.Problems) : null;
-    }
-
-    [RelayCommand]
     private async Task ArrangeAsync(CancellationToken cancellationToken)
     {
         var moved = await _launcher.ArrangeAsync(cancellationToken).ConfigureAwait(true);
@@ -179,19 +210,12 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task CloseAllAsync(CancellationToken cancellationToken)
-    {
-        await _launcher.CloseAllAsync(cancellationToken).ConfigureAwait(true);
-        Instances.RefreshRunningState();
-    }
-
-    [RelayCommand]
     private async Task ForgetDeviceAsync(DeviceGroupViewModel? group)
     {
         if (group is null
             || !_dialogs.Confirm(
                 $"Oublier {group.Name} ?\n\nSes instances et leurs réglages seront effacés.",
-                "Oublier le téléphone"))
+                "Oublier l'appareil"))
         {
             return;
         }
@@ -202,114 +226,6 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
     [RelayCommand]
     private void OpenLogs() => _dialogs.OpenFolder(_paths.LogsDirectory);
-
-    // Raccourcis
-
-    [RelayCommand]
-    private void BeginCapture(HotkeyRowViewModel? row)
-    {
-        if (row is null)
-        {
-            return;
-        }
-
-        if (CapturingRow is not null)
-        {
-            CapturingRow.IsCapturing = false;
-        }
-
-        row.Error = null;
-        row.IsCapturing = true;
-        CapturingRow = row;
-    }
-
-    [RelayCommand]
-    private void CancelCapture()
-    {
-        if (CapturingRow is not null)
-        {
-            CapturingRow.IsCapturing = false;
-        }
-
-        CapturingRow = null;
-    }
-
-    [RelayCommand]
-    private async Task RestoreDefaultHotkeysAsync(CancellationToken cancellationToken)
-    {
-        _hotkeys = HotkeySet.Default;
-        RebuildHotkeys();
-
-        await _settings.SaveHotkeysAsync(_hotkeys, cancellationToken).ConfigureAwait(true);
-        await ReportRefusedAsync().ConfigureAwait(true);
-    }
-
-    /// <summary>
-    /// Enregistre la combinaison capturée par la vue. Le refus est expliqué à
-    /// l'endroit exact où l'utilisateur vient de taper.
-    /// </summary>
-    public async Task<bool> ApplyCapturedHotkeyAsync(int virtualKey, HotkeyModifiers modifiers)
-    {
-        if (CapturingRow is not { } row)
-        {
-            return false;
-        }
-
-        var validation = _hotkeys.Validate(row.Action, virtualKey, modifiers);
-
-        if (validation != HotkeyValidationResult.Valid)
-        {
-            row.Error = Describe(validation, _hotkeys.FindConflict(row.Action, virtualKey, modifiers));
-            return false;
-        }
-
-        _hotkeys = _hotkeys.With(row.Action, virtualKey, modifiers);
-
-        row.IsCapturing = false;
-        row.Error = null;
-        CapturingRow = null;
-
-        RebuildHotkeys();
-
-        await _settings.SaveHotkeysAsync(_hotkeys).ConfigureAwait(true);
-        await ReportRefusedAsync().ConfigureAwait(true);
-
-        return true;
-    }
-
-    private void RebuildHotkeys()
-    {
-        Hotkeys.Clear();
-        foreach (var binding in _hotkeys.Bindings)
-        {
-            Hotkeys.Add(new HotkeyRowViewModel(binding));
-        }
-
-        OnPropertyChanged(nameof(ToggleShortcutText));
-    }
-
-    private async Task ReportRefusedAsync()
-    {
-        var refused = await _launcher.ReloadHotkeysAsync().ConfigureAwait(true);
-
-        HotkeyProblem = refused.Count == 0
-            ? null
-            : "Refusé par Windows, probablement pris par un autre logiciel : "
-              + string.Join(", ", refused.Select(HotkeyBinding.DescribeAction));
-    }
-
-    private static string Describe(HotkeyValidationResult result, HotkeyAction? conflict) => result switch
-    {
-        HotkeyValidationResult.NoKey => "Aucune touche saisie.",
-        HotkeyValidationResult.ModifierOnly => "Ajoutez une touche en plus du modificateur.",
-        HotkeyValidationResult.MissingModifier =>
-            "Ajoutez Ctrl, Alt ou Maj, sinon la touche serait interceptée pendant que vous jouez.",
-        HotkeyValidationResult.ReservedBySystem => "Cette combinaison est réservée par Windows.",
-        HotkeyValidationResult.Duplicate when conflict is { } action =>
-            $"Déjà utilisée par « {HotkeyBinding.DescribeAction(action)} ».",
-        HotkeyValidationResult.Duplicate => "Cette combinaison est déjà utilisée.",
-        _ => "Combinaison refusée.",
-    };
 
     private void Save(Action<AppSettingsDocument> mutate)
     {
@@ -327,10 +243,14 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         _ = _launcher.ArrangeAsync();
     }
 
-    partial void OnGameSizePercentChanged(int value)
+    partial void OnSelectedSizeChanged(SizeChoiceViewModel? value)
     {
-        Save(s => s.GameSizePercent = value);
-        _ = _launcher.ArrangeAsync();
+        if (_loading || value is null)
+        {
+            return;
+        }
+
+        _ = _launcher.ApplySizeAsync(value.Index);
     }
 
     partial void OnPreferredMonitorChanged(MonitorInfo? value)

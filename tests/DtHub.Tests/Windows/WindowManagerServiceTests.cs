@@ -120,6 +120,62 @@ public class WindowManagerServiceTests
     }
 
     [Fact]
+    public async Task Chaque_taille_est_une_part_de_l_ecran_et_croit_avec_l_indice()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        List<int> heights = [];
+
+        for (var index = 0; index < service.Presets.Percentages.Count; index++)
+        {
+            await service.ApplySizeAsync(sessions, index, CancellationToken.None);
+            heights.Add(desktop.GetWindowRect(sessions[0].WindowHandle)!.Value.Height);
+        }
+
+        Assert.Equal(heights.OrderBy(h => h), heights);
+        Assert.Equal(heights.Count, heights.Distinct().Count());
+    }
+
+    [Fact]
+    public async Task Le_plein_ecran_couvre_l_ecran_entier_et_retire_la_bordure()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(2);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        await service.ApplySizeAsync(sessions, service.Presets.FullscreenIndex, CancellationToken.None);
+
+        foreach (var session in sessions)
+        {
+            Assert.Equal(FakeWindowController.PrimaryMonitor.Bounds, desktop.GetWindowRect(session.WindowHandle));
+            Assert.Contains(session.WindowHandle, desktop.Borderless);
+        }
+
+        // En sortir rétablit la bordure.
+        await service.ApplySizeAsync(sessions, 0, CancellationToken.None);
+        Assert.Empty(desktop.Borderless);
+    }
+
+    [Fact]
+    public async Task Un_indice_de_taille_hors_bornes_est_ramene_dans_les_limites()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        await service.ApplySizeAsync(sessions, -5, CancellationToken.None);
+        Assert.Equal(0, service.SizeIndex);
+
+        await service.ApplySizeAsync(sessions, 99, CancellationToken.None);
+        Assert.Equal(service.Presets.FullscreenIndex, service.SizeIndex);
+    }
+
+    [Fact]
     public async Task La_position_choisie_est_appliquee()
     {
         var (manager, sessions, desktop) = await OpenSessionsAsync(2);
@@ -257,11 +313,7 @@ public class WindowManagerServiceTests
     public void La_zone_de_jeu_est_previsible_sans_deplacer_aucune_fenetre()
     {
         var desktop = new FakeWindowController();
-        var service = new WindowManagerService(desktop, NoDelay)
-        {
-            Anchor = WindowAnchor.MiddleLeft,
-            SizePercent = 70,
-        };
+        var service = new WindowManagerService(desktop, NoDelay) { Anchor = WindowAnchor.MiddleLeft };
 
         var area = service.PreviewGameArea(1080.0 / 1920.0);
 

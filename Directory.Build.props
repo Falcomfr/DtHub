@@ -6,7 +6,7 @@
     et src/DtHub.Core/ProductInfo.cs (voir AGENTS.md, section "Renommer le produit").
   -->
   <PropertyGroup Label="Product">
-    <Product>DT Hub</Product>
+    <Product>DT Touch</Product>
     <ProductSlug>DtHub</ProductSlug>
     <Company>Falcomfr</Company>
     <Authors>Falcomfr</Authors>

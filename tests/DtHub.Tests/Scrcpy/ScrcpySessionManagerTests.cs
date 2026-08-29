@@ -96,8 +96,8 @@ public class ScrcpySessionManagerTests
 
         // Aucun identifiant technique dans le titre : c'est ce que
         // l'utilisateur lira dans sa barre des tâches.
-        Assert.Equal("DT Hub Principal", first.WindowTitle);
-        Assert.Equal("DT Hub XSpace", second.WindowTitle);
+        Assert.Equal("DT Touch Principal", first.WindowTitle);
+        Assert.Equal("DT Touch XSpace", second.WindowTitle);
         Assert.DoesNotContain(first.Id, first.WindowTitle, StringComparison.Ordinal);
     }
 

@@ -6,7 +6,6 @@ using System.Windows.Threading;
 
 using DtHub.App.Services;
 using DtHub.App.ViewModels;
-using DtHub.Core.Hotkeys;
 using DtHub.Core.Windows;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -32,10 +31,6 @@ public partial class ConfiguratorWindow : Window
 
         InitializeComponent();
         DataContext = viewModel;
-
-        // La capture doit voir les touches avant que WPF ne les interprète,
-        // sinon Tab changerait le focus au lieu d'être enregistrée.
-        PreviewKeyDown += OnPreviewKeyDown;
 
         Loaded += async (_, _) =>
         {
@@ -99,6 +94,16 @@ public partial class ConfiguratorWindow : Window
 
     private void OnHide(object sender, RoutedEventArgs e) => Hide();
 
+    /// <summary>Ouvre l'éditeur de raccourcis, puis relit ce qui a changé.</summary>
+    private async void OnEditHotkeys(object sender, RoutedEventArgs e)
+    {
+        var editor = AppHost.Services.GetRequiredService<HotkeyEditorWindow>();
+        editor.Owner = this;
+        editor.ShowDialog();
+
+        await _viewModel.RefreshHotkeysAsync(CancellationToken.None).ConfigureAwait(true);
+    }
+
     /// <summary>Ouvre la fenêtre d'ajout, puis rafraîchit la liste.</summary>
     private async void OnAddDevice(object sender, RoutedEventArgs e)
     {
@@ -136,56 +141,5 @@ public partial class ConfiguratorWindow : Window
 
         _poll.Stop();
         base.OnClosing(e);
-    }
-
-    private async void OnPreviewKeyDown(object sender, KeyEventArgs e)
-    {
-        if (_viewModel.CapturingRow is null)
-        {
-            return;
-        }
-
-        e.Handled = true;
-
-        var key = e.Key == Key.System ? e.SystemKey : e.Key;
-
-        if (key == Key.Escape)
-        {
-            _viewModel.CancelCaptureCommand.Execute(null);
-            return;
-        }
-
-        // Tant que seule une touche de modification est enfoncée, on attend la
-        // suite plutôt que de refuser la saisie.
-        if (key is Key.LeftCtrl or Key.RightCtrl or Key.LeftShift or Key.RightShift
-            or Key.LeftAlt or Key.RightAlt or Key.LWin or Key.RWin or Key.System)
-        {
-            return;
-        }
-
-        var modifiers = HotkeyModifiers.None;
-
-        if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
-        {
-            modifiers |= HotkeyModifiers.Control;
-        }
-
-        if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
-        {
-            modifiers |= HotkeyModifiers.Alt;
-        }
-
-        if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
-        {
-            modifiers |= HotkeyModifiers.Shift;
-        }
-
-        if (Keyboard.Modifiers.HasFlag(ModifierKeys.Windows))
-        {
-            modifiers |= HotkeyModifiers.Windows;
-        }
-
-        await _viewModel.ApplyCapturedHotkeyAsync(KeyInterop.VirtualKeyFromKey(key), modifiers)
-            .ConfigureAwait(true);
     }
 }

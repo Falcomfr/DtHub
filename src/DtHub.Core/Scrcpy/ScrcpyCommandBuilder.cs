@@ -82,6 +82,11 @@ public static class ScrcpyCommandBuilder
             {
                 arguments.Add("--no-vd-system-decorations");
             }
+
+            if (sanitized.FlexDisplay)
+            {
+                arguments.Add("--flex-display");
+            }
         }
 
         if (windowPosition is { } placement)

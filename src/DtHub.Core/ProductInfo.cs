@@ -7,11 +7,12 @@ namespace DtHub.Core;
 public static class ProductInfo
 {
     /// <summary>Nom affiché dans l'interface, l'installateur et les fenêtres.</summary>
-    public const string Name = "DT Hub";
+    public const string Name = "DT Touch";
 
     /// <summary>
-    /// Identifiant technique sans espace : nom du dossier de données,
-    /// identifiant de package Velopack, nom de l'exécutable.
+    /// Identifiant technique sans espace : nom du dossier de données et de
+    /// l'exécutable. Volontairement dissocié du nom affiché, pour qu'un
+    /// changement de nom ne déplace pas les réglages de l'utilisateur.
     /// </summary>
     public const string Slug = "DtHub";
 

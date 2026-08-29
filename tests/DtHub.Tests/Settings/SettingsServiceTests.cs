@@ -54,7 +54,8 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.False(settings.SetupCompleted);
         Assert.Empty(settings.Instances);
         Assert.Equal(WindowAnchor.MiddleLeft, settings.GameAnchor);
-        Assert.Equal(70, settings.GameSizePercent);
+        Assert.Equal([55, 70, 85, 100], settings.SizePercentages);
+        Assert.Equal(1, settings.SizeIndex);
         Assert.Equal(45, settings.MaxFps);
         Assert.False(settings.AudioEnabled);
         Assert.True(settings.ClipboardSyncEnabled);
@@ -109,10 +110,10 @@ public sealed class SettingsServiceTests : IDisposable
     [Fact]
     public async Task Une_modification_est_ecrite_immediatement()
     {
-        await _service.UpdateAsync(s => s.GameSizePercent = 90, CancellationToken.None);
+        await _service.UpdateAsync(s => s.SizeIndex = 3, CancellationToken.None);
         _service.Invalidate();
 
-        Assert.Equal(90, (await _service.GetAsync(CancellationToken.None)).GameSizePercent);
+        Assert.Equal(3, (await _service.GetAsync(CancellationToken.None)).SizeIndex);
     }
 
     [Fact]
@@ -307,7 +308,18 @@ public sealed class SettingsServiceTests : IDisposable
 
         Assert.Equal(24, settings.MaxFps);
         Assert.Equal(4000, settings.VideoBitrateKbps);
-        Assert.Equal(70, settings.GameSizePercent);
+        Assert.Equal([55, 70, 85, 100], settings.SizePercentages);
+    }
+
+    [Fact]
+    public async Task Les_tailles_sont_proportionnelles_a_l_ecran_et_assainies()
+    {
+        await _service.UpdateAsync(s => s.SizePercentages = [95, 50, 50, 500], CancellationToken.None);
+
+        var presets = await _service.GetSizePresetsAsync(CancellationToken.None);
+
+        Assert.Equal([50, 95, 100], presets.Percentages);
+        Assert.True(presets.IsFullscreen(presets.FullscreenIndex));
     }
 
     [Fact]

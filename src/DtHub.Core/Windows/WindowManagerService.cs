@@ -25,8 +25,17 @@ public sealed class WindowManagerService
     /// <summary>Position du bloc de fenêtres dans l'écran.</summary>
     public WindowAnchor Anchor { get; set; } = WindowAnchor.MiddleLeft;
 
-    /// <summary>Taille des fenêtres, en pourcentage de la zone utilisable.</summary>
-    public int SizePercent { get; set; } = 70;
+    /// <summary>Tailles configurées, proportionnelles à l'écran.</summary>
+    public WindowSizePresets Presets { get; set; } = WindowSizePresets.Default;
+
+    /// <summary>Taille en cours, par son indice dans les tailles configurées.</summary>
+    public int SizeIndex { get; private set; } = 1;
+
+    /// <summary>Taille en cours, en pourcentage de la zone utilisable.</summary>
+    public int SizePercent => Presets.PercentageAt(SizeIndex);
+
+    /// <summary>Vrai si la taille en cours est le plein écran sans bordure.</summary>
+    public bool IsFullscreen => Presets.IsFullscreen(SizeIndex);
 
     /// <summary>Écran choisi dans les réglages, <c>null</c> pour l'écran principal.</summary>
     public string? PreferredMonitorDeviceName { get; set; }
@@ -56,7 +65,30 @@ public sealed class WindowManagerService
 
         var monitor = WindowLayoutCalculator.ChooseMonitor(monitors, PreferredMonitorDeviceName);
 
-        return WindowLayoutCalculator.Calculate(monitor, SizePercent, sourceAspectRatio, Anchor);
+        return Compute(monitor, sourceAspectRatio);
+    }
+
+    /// <summary>
+    /// Rectangle d'une fenêtre sur un écran donné. Le plein écran couvre
+    /// l'écran entier, barre des tâches comprise.
+    /// </summary>
+    private ScreenRect Compute(MonitorInfo monitor, double sourceAspectRatio) =>
+        IsFullscreen
+            ? monitor.Bounds
+            : WindowLayoutCalculator.Calculate(monitor, SizePercent, sourceAspectRatio, Anchor);
+
+    /// <summary>
+    /// Applique une taille à toutes les fenêtres et les replace. L'indice hors
+    /// bornes est ramené dans les limites plutôt que refusé.
+    /// </summary>
+    public Task<int> ApplySizeAsync(
+        IReadOnlyList<ScrcpySession> sessions,
+        int sizeIndex,
+        CancellationToken cancellationToken = default)
+    {
+        SizeIndex = Math.Clamp(sizeIndex, 0, Math.Max(0, Presets.Count - 1));
+
+        return ArrangeAsync(sessions, cancellationToken);
     }
 
     /// <summary>Zone utilisable de l'écran retenu.</summary>
@@ -152,10 +184,9 @@ public sealed class WindowManagerService
                 continue;
             }
 
-            var rect = WindowLayoutCalculator.Calculate(
-                monitor, SizePercent, session.SourceAspectRatio, Anchor);
-
-            _controller.MoveWindow(handle, rect);
+            // La bordure ne disparaît qu'en plein écran, et revient en sortant.
+            _controller.SetBorderless(handle, IsFullscreen);
+            _controller.MoveWindow(handle, Compute(monitor, session.SourceAspectRatio));
             moved++;
         }
 

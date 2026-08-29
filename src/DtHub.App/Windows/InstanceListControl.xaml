@@ -27,7 +27,12 @@
                         Background="{Binding StatusBrushKey, Converter={StaticResource KeyToBrush}}" />
               </Grid>
 
-              <ItemsControl ItemsSource="{Binding Instances}" Margin="0,10,0,0">
+              <TextBlock Text="Cochez les instances à ouvrir au démarrage."
+                         Style="{StaticResource Muted}" FontSize="11" Margin="0,10,0,2"
+                         Visibility="{Binding Instances.Count, Converter={StaticResource EmptyToVisibility},
+                                              ConverterParameter=inverse}" />
+
+              <ItemsControl ItemsSource="{Binding Instances}" Margin="0,4,0,0">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
                     <Grid Margin="0,5">
@@ -39,7 +44,7 @@
 
                       <CheckBox Grid.Column="0" IsChecked="{Binding IsEnabled}" Margin="0,0,10,0"
                                 VerticalAlignment="Center"
-                                ToolTip="Lancer cette instance au démarrage" />
+                                ToolTip="Ouvrir cette instance au démarrage de l'application" />
 
                       <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBox Text="{Binding Name, UpdateSourceTrigger=LostFocus}"
@@ -58,10 +63,24 @@
                                      FontSize="10" FontWeight="SemiBold" />
                         </Border>
 
+                        <Button Content="Lancer" Style="{StaticResource QuietButton}"
+                                ToolTip="Ouvrir cette instance maintenant"
+                                Visibility="{Binding IsRunning, Converter={StaticResource InverseBoolToVisibility}}"
+                                Command="{Binding DataContext.LaunchInstanceCommand,
+                                                  RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding}" />
+
                         <Button Content="Relancer" Style="{StaticResource QuietButton}"
-                                ToolTip="Fermer puis rouvrir cette instance"
+                                ToolTip="Fermer le jeu sur l'appareil, puis le rouvrir"
                                 Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"
                                 Command="{Binding DataContext.RestartCommand,
+                                                  RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding}" />
+
+                        <Button Content="Fermer" Style="{StaticResource QuietButton}"
+                                ToolTip="Fermer cette fenêtre de jeu"
+                                Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"
+                                Command="{Binding DataContext.StopCommand,
                                                   RelativeSource={RelativeSource AncestorType=UserControl}}"
                                 CommandParameter="{Binding}" />
                       </StackPanel>
@@ -71,7 +90,7 @@
               </ItemsControl>
 
               <TextBlock Style="{StaticResource Muted}" Margin="0,8,0,0"
-                         Text="Le jeu n'est installé sur aucun profil de ce téléphone."
+                         Text="Le jeu n'est installé sur aucun profil de cet appareil."
                          Visibility="{Binding Instances.Count, Converter={StaticResource EmptyToVisibility}}" />
 
             </StackPanel>
@@ -80,14 +99,14 @@
       </ItemsControl.ItemTemplate>
     </ItemsControl>
 
-    <!-- Aucun téléphone joignable : les appareils absents ne sont pas
+    <!-- Aucun appareil joignable : les appareils absents ne sont pas
          affichés, il faut donc dire pourquoi la liste est vide. -->
     <Border Style="{StaticResource Card}"
             Visibility="{Binding Devices.Count, Converter={StaticResource EmptyToVisibility}}">
       <StackPanel>
-        <TextBlock Text="AUCUN TÉLÉPHONE DÉTECTÉ" Style="{StaticResource SectionLabel}" />
+        <TextBlock Text="AUCUN APPAREIL DÉTECTÉ" Style="{StaticResource SectionLabel}" />
         <TextBlock Style="{StaticResource Muted}"
-                   Text="Branchez un câble USB avec le débogage activé : le téléphone apparaîtra tout seul. Un téléphone déjà associé en Wi-Fi se reconnecte de lui-même dès qu'il est de nouveau sur le réseau." />
+                   Text="Branchez un câble USB avec le débogage activé : l'appareil apparaîtra tout seul. Un téléphone déjà associé en Wi-Fi se reconnecte de lui-même dès qu'il est de nouveau sur le réseau." />
       </StackPanel>
     </Border>
 

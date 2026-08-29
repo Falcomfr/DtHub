@@ -22,6 +22,18 @@ public enum HotkeyAction
     /// <summary>Remettre toutes les fenêtres en place.</summary>
     Rearrange,
 
+    /// <summary>Première taille, la plus petite.</summary>
+    Size1,
+
+    Size2,
+
+    Size3,
+
+    Size4,
+
+    /// <summary>Plein écran sans bordure.</summary>
+    Fullscreen,
+
     /// <summary>Fermer toutes les fenêtres de jeu ouvertes par l'application.</summary>
     CloseAll,
 }

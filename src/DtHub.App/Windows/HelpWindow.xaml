@@ -10,7 +10,7 @@
   <DockPanel Margin="20">
 
     <StackPanel DockPanel.Dock="Top" Margin="0,0,0,14">
-      <TextBlock Text="Préparer le téléphone" Style="{StaticResource Title}" />
+      <TextBlock Text="Préparer l'appareil" Style="{StaticResource Title}" />
       <TextBlock Style="{StaticResource Muted}" Margin="0,6,0,0"
                  Text="Les menus ne portent pas le même nom d'une marque à l'autre. Choisissez la vôtre." />
     </StackPanel>
@@ -63,7 +63,7 @@
           <StackPanel>
             <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="3. Par câble, le plus simple" />
             <TextBlock Style="{StaticResource Muted}"
-                       Text="Branchez le câble et acceptez la demande affichée sur le téléphone. Il apparaît tout seul dans la fenêtre principale, il n'y a rien d'autre à faire." />
+                       Text="Branchez le câble et acceptez la demande affichée sur l'appareil. Il apparaît tout seul dans la fenêtre principale, il n'y a rien d'autre à faire." />
           </StackPanel>
         </Border>
 
@@ -73,14 +73,14 @@
             <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,3"
                        Text="Débogage sans fil  ›  Associer l'appareil avec un code d'association" />
             <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,3"
-                       Text="Le téléphone affiche un code à six chiffres et apparaît dans la fenêtre d'association." />
+                       Text="L'appareil affiche un code à six chiffres et apparaît dans la fenêtre d'association." />
             <TextBlock Style="{StaticResource Muted}"
-                       Text="Le téléphone et le PC doivent être sur le même réseau Wi-Fi, et Android 11 au minimum. Ensuite, la connexion se refait toute seule à chaque lancement." />
+                       Text="L'appareil et le PC doivent être sur le même réseau Wi-Fi, et Android 11 au minimum. Ensuite, la connexion se refait toute seule à chaque lancement." />
           </StackPanel>
         </Border>
 
         <TextBlock Style="{StaticResource Muted}" FontSize="11" Margin="2,0,0,4"
-                   Text="Seuls les téléphones Android conviennent. iOS ne permet ni d'ouvrir un écran supplémentaire, ni d'y installer deux fois la même application." />
+                   Text="Seuls les appareils Android conviennent. iOS ne permet ni d'ouvrir un écran supplémentaire, ni d'y installer deux fois la même application." />
 
       </StackPanel>
     </ScrollViewer>

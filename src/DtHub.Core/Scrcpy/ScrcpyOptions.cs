@@ -52,10 +52,17 @@ public sealed record ScrcpyOptions
     public int VirtualDisplayDpi { get; init; } = 320;
 
     /// <summary>
-    /// Partir d'un afficheur vide plutôt que du lanceur du téléphone : c'est
+    /// Partir d'un afficheur vide plutôt que du lanceur de l'appareil : c'est
     /// nous qui ouvrons l'application voulue, sur le bon profil.
     /// </summary>
     public bool DisableVirtualDisplayDecorations { get; init; } = true;
+
+    /// <summary>
+    /// Redimensionner l'afficheur virtuel en continu pour suivre la fenêtre.
+    /// Sans cela, l'image garde le rapport de l'afficheur et laisse des bandes
+    /// noires dès que la fenêtre n'a pas exactement la même forme.
+    /// </summary>
+    public bool FlexDisplay { get; init; } = true;
 
     public ScrcpyKeyboardMode KeyboardMode { get; init; } = ScrcpyKeyboardMode.Sdk;
 

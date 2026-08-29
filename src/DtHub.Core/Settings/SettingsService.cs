@@ -2,6 +2,7 @@ using DtHub.Core.Dofus;
 using DtHub.Core.Hotkeys;
 using DtHub.Core.Scrcpy;
 using DtHub.Core.Storage;
+using DtHub.Core.Windows;
 
 namespace DtHub.Core.Settings;
 
@@ -126,6 +127,14 @@ public sealed class SettingsService : IDisposable
             VirtualDisplayHeight = settings.VirtualDisplayHeight,
             VirtualDisplayDpi = settings.VirtualDisplayDpi,
         }.Sanitized();
+    }
+
+    /// <summary>Tailles configurées, corrigées si le fichier est incohérent.</summary>
+    public async Task<WindowSizePresets> GetSizePresetsAsync(CancellationToken cancellationToken = default)
+    {
+        var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
+
+        return new WindowSizePresets { Percentages = settings.SizePercentages }.Sanitized();
     }
 
     /// <summary>Raccourcis configurés, réparés si le fichier est incohérent.</summary>

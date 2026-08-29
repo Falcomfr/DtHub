@@ -28,8 +28,14 @@ public sealed class AppSettingsDocument
     /// <summary>Position du bloc de fenêtres de jeu dans l'écran.</summary>
     public WindowAnchor GameAnchor { get; set; } = WindowAnchor.MiddleLeft;
 
-    /// <summary>Taille des fenêtres de jeu, en pourcentage de la zone utilisable.</summary>
-    public int GameSizePercent { get; set; } = 70;
+    /// <summary>
+    /// Tailles proposées, en pourcentage de la zone utilisable de l'écran.
+    /// Elles sont donc proportionnelles à l'écran employé.
+    /// </summary>
+    public List<int> SizePercentages { get; set; } = [55, 70, 85, 100];
+
+    /// <summary>Taille retenue, par son indice. La dernière est le plein écran.</summary>
+    public int SizeIndex { get; set; } = 1;
 
     /// <summary>Écran Windows utilisé, <c>null</c> pour l'écran principal.</summary>
     public string? PreferredMonitorDeviceName { get; set; }

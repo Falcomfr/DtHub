@@ -275,7 +275,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         return new LaunchReport(opened, problems);
     }
 
-    /// <summary>Ferme puis rouvre une instance, sans toucher aux autres.</summary>
+    /// <summary>
+    /// Ferme puis rouvre une instance, sans toucher aux autres. Le jeu est
+    /// arrêté franchement sur l'appareil : sans cela il reprendrait dans
+    /// l'état où il était, et la relance n'aurait servi à rien.
+    /// </summary>
     public async Task<LaunchReport> RestartAsync(
         DofusInstance instance,
         CancellationToken cancellationToken = default)
@@ -293,10 +297,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         if (serials.TryGetValue(instance.DeviceId, out var serial))
         {
-            // Le jeu garde son état côté téléphone : on l'arrête franchement
-            // pour que la relance parte d'un écran propre.
             await _apps.ForceStopAsync(serial, instance.UserId, instance.PackageName, cancellationToken)
                 .ConfigureAwait(false);
+
+            // L'arrêt côté Android n'est pas instantané : relancer trop vite
+            // rouvrirait l'ancienne instance.
+            await Task.Delay(TimeSpan.FromMilliseconds(600), cancellationToken).ConfigureAwait(false);
         }
 
         return await LaunchAsync([instance], cancellationToken).ConfigureAwait(false);
@@ -323,12 +329,23 @@ public sealed partial class GameLauncher : IAsyncDisposable
         await _hotkeys.SetEnabledAsync(false).ConfigureAwait(false);
     }
 
-    /// <summary>Remet toutes les fenêtres en place.</summary>
+    /// <summary>Remet toutes les fenêtres en place, à la taille en cours.</summary>
     public async Task<int> ArrangeAsync(CancellationToken cancellationToken = default)
     {
         await ApplyWindowSettingsAsync(cancellationToken).ConfigureAwait(false);
 
         return await _windows.ArrangeAsync(_sessions.ActiveSessions, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>Applique une taille à toutes les fenêtres et la retient.</summary>
+    public async Task<int> ApplySizeAsync(int sizeIndex, CancellationToken cancellationToken = default)
+    {
+        await ApplyWindowSettingsAsync(cancellationToken).ConfigureAwait(false);
+        await _settings.UpdateAsync(s => s.SizeIndex = sizeIndex, cancellationToken).ConfigureAwait(false);
+
+        return await _windows
+            .ApplySizeAsync(_sessions.ActiveSessions, sizeIndex, cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>Session ouverte correspondant à une instance, s'il y en a une.</summary>
@@ -420,8 +437,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
         var settings = await _settings.GetAsync(cancellationToken).ConfigureAwait(false);
 
         _windows.Anchor = settings.GameAnchor;
-        _windows.SizePercent = settings.GameSizePercent;
+        _windows.Presets = await _settings.GetSizePresetsAsync(cancellationToken).ConfigureAwait(false);
         _windows.PreferredMonitorDeviceName = settings.PreferredMonitorDeviceName;
+
+        await _windows.ApplySizeAsync([], settings.SizeIndex, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task EnsureHotkeysAsync(CancellationToken cancellationToken)
@@ -486,6 +505,26 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
                 case HotkeyAction.Rearrange:
                     await ArrangeAsync().ConfigureAwait(false);
+                    break;
+
+                case HotkeyAction.Size1:
+                    await ApplySizeAsync(0).ConfigureAwait(false);
+                    break;
+
+                case HotkeyAction.Size2:
+                    await ApplySizeAsync(1).ConfigureAwait(false);
+                    break;
+
+                case HotkeyAction.Size3:
+                    await ApplySizeAsync(2).ConfigureAwait(false);
+                    break;
+
+                case HotkeyAction.Size4:
+                    await ApplySizeAsync(3).ConfigureAwait(false);
+                    break;
+
+                case HotkeyAction.Fullscreen:
+                    await ApplySizeAsync(_windows.Presets.FullscreenIndex).ConfigureAwait(false);
                     break;
 
                 case HotkeyAction.CloseAll:

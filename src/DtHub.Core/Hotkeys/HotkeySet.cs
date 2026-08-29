@@ -22,6 +22,11 @@ public sealed class HotkeySet
         [HotkeyAction.PreviousInstance] = Bind(
             HotkeyAction.PreviousInstance, VirtualKeys.Tab, HotkeyModifiers.Control | HotkeyModifiers.Shift),
         [HotkeyAction.Rearrange] = Bind(HotkeyAction.Rearrange, VirtualKeys.R, HotkeyModifiers.Control),
+        [HotkeyAction.Size1] = Bind(HotkeyAction.Size1, VirtualKeys.D1, HotkeyModifiers.Control),
+        [HotkeyAction.Size2] = Bind(HotkeyAction.Size2, VirtualKeys.D2, HotkeyModifiers.Control),
+        [HotkeyAction.Size3] = Bind(HotkeyAction.Size3, VirtualKeys.D3, HotkeyModifiers.Control),
+        [HotkeyAction.Size4] = Bind(HotkeyAction.Size4, VirtualKeys.D4, HotkeyModifiers.Control),
+        [HotkeyAction.Fullscreen] = Bind(HotkeyAction.Fullscreen, VirtualKeys.D5, HotkeyModifiers.Control),
         [HotkeyAction.CloseAll] = Bind(HotkeyAction.CloseAll, VirtualKeys.D0, HotkeyModifiers.Control),
     });
 

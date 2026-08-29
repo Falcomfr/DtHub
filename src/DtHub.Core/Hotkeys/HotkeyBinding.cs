@@ -88,6 +88,11 @@ public sealed record HotkeyBinding
         HotkeyAction.NextInstance => "Instance suivante",
         HotkeyAction.PreviousInstance => "Instance précédente",
         HotkeyAction.Rearrange => "Remettre les fenêtres en place",
+        HotkeyAction.Size1 => "Taille 1",
+        HotkeyAction.Size2 => "Taille 2",
+        HotkeyAction.Size3 => "Taille 3",
+        HotkeyAction.Size4 => "Taille 4",
+        HotkeyAction.Fullscreen => "Plein écran",
         HotkeyAction.CloseAll => "Tout fermer",
         _ => action.ToString(),
     };
