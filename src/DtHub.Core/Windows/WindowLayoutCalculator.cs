@@ -133,6 +133,101 @@ public static class WindowLayoutCalculator
                ?? monitors[0];
     }
 
+    /// <summary>Rectangle transposé d'un écran à un autre, proportionnellement.</summary>
+    public static ScreenRect Rescale(ScreenRect rect, ScreenRect from, ScreenRect to)
+    {
+        if (from.IsEmpty || to.IsEmpty)
+        {
+            return rect;
+        }
+
+        var scaleX = (double)to.Width / from.Width;
+        var scaleY = (double)to.Height / from.Height;
+
+        return new ScreenRect(
+            to.X + (int)Math.Round((rect.X - from.X) * scaleX),
+            to.Y + (int)Math.Round((rect.Y - from.Y) * scaleY),
+            Math.Max(1, (int)Math.Round(rect.Width * scaleX)),
+            Math.Max(1, (int)Math.Round(rect.Height * scaleY)));
+    }
+
+    /// <summary>
+    /// Ramène un rectangle entièrement dans une zone, en le rétrécissant s'il
+    /// est trop grand pour y tenir.
+    /// </summary>
+    public static ScreenRect ClampInto(ScreenRect rect, ScreenRect area)
+    {
+        if (area.IsEmpty)
+        {
+            return rect;
+        }
+
+        var width = Math.Min(Math.Max(1, rect.Width), area.Width);
+        var height = Math.Min(Math.Max(1, rect.Height), area.Height);
+
+        return new ScreenRect(
+            Math.Clamp(rect.X, area.X, area.Right - width),
+            Math.Clamp(rect.Y, area.Y, area.Bottom - height),
+            width,
+            height);
+    }
+
+    /// <summary>
+    /// Rectangle utilisable pour une géométrie mémorisée, ou <c>null</c> quand
+    /// rien de sensé ne peut en être tiré : l'appelant retombe alors sur le
+    /// placement calculé depuis l'ancrage.
+    ///
+    /// L'écran est reconnu par ses bornes autant que par son nom, car ce nom
+    /// est positionnel : débrancher un écran renumérote les suivants, et une
+    /// fenêtre se retrouverait restaurée sur le mauvais.
+    /// </summary>
+    public static ScreenRect? RestoreRemembered(
+        ScreenRect remembered,
+        string? monitorDeviceName,
+        ScreenRect monitorBounds,
+        IReadOnlyList<MonitorInfo> monitors)
+    {
+        ArgumentNullException.ThrowIfNull(monitors);
+
+        if (remembered.IsEmpty || monitors.Count == 0)
+        {
+            return null;
+        }
+
+        var named = monitors.FirstOrDefault(
+            m => string.Equals(m.DeviceName, monitorDeviceName, StringComparison.Ordinal));
+
+        // Même écran, mêmes bornes : le rectangle vaut encore, à condition de
+        // tomber réellement dessus. Une fenêtre qui était réduite au moment de
+        // la capture rend un rectangle en (-32000, -32000), qu'il ne faut
+        // surtout pas restaurer.
+        if (named is not null && named.Bounds == monitorBounds && IsMostlyOn(remembered, named))
+        {
+            return remembered;
+        }
+
+        // Définition ou disposition changée : on transpose proportionnellement.
+        if (named is not null && named.Bounds != monitorBounds && !monitorBounds.IsEmpty)
+        {
+            return ClampInto(Rescale(remembered, monitorBounds, named.Bounds), UsableArea(named));
+        }
+
+        // L'écran d'origine a disparu ou changé de rang. Si un écran porte
+        // encore l'essentiel de la fenêtre, elle y reste.
+        var host = monitors
+            .OrderByDescending(m => m.Bounds.Intersect(remembered).Area)
+            .First();
+
+        return IsMostlyOn(remembered, host) ? ClampInto(remembered, UsableArea(host)) : null;
+    }
+
+    /// <summary>Vrai si au moins la moitié du rectangle tombe sur cet écran.</summary>
+    private static bool IsMostlyOn(ScreenRect rect, MonitorInfo monitor) =>
+        monitor.Bounds.Intersect(rect).Area * 2 >= rect.Area;
+
+    private static ScreenRect UsableArea(MonitorInfo monitor) =>
+        monitor.WorkArea.IsEmpty ? monitor.Bounds : monitor.WorkArea;
+
     /// <summary>
     /// Indice de la session suivante, en boucle. Fonctionne pour deux
     /// instances comme pour dix, et repart du début quand la session courante
