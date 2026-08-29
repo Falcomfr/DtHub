@@ -92,6 +92,8 @@ public static class AppServices
         services.AddSingleton<SetupViewModel>();
         services.AddTransient<AddDeviceViewModel>();
         services.AddTransient<AddDeviceWindow>();
+        services.AddTransient<HelpViewModel>();
+        services.AddTransient<HelpWindow>();
         services.AddSingleton<ConfiguratorViewModel>();
         services.AddSingleton<ConfiguratorWindow>();
         services.AddTransient<SetupWindow>();

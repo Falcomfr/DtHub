@@ -4,6 +4,8 @@ using System.Windows.Threading;
 
 using DtHub.App.ViewModels;
 
+using Microsoft.Extensions.DependencyInjection;
+
 namespace DtHub.App.Windows;
 
 /// <summary>
@@ -25,7 +27,6 @@ public partial class AddDeviceWindow : Window
 
         Loaded += async (_, _) =>
         {
-            await _viewModel.InitializeAsync(CancellationToken.None).ConfigureAwait(true);
             await _viewModel.ScanAsync(CancellationToken.None).ConfigureAwait(true);
             _poll.Start();
         };
@@ -34,6 +35,14 @@ public partial class AddDeviceWindow : Window
     }
 
     private void OnClose(object sender, RoutedEventArgs e) => Close();
+
+    /// <summary>Ouvre l'aide, où la marche à suivre s'adapte à la marque.</summary>
+    private void OnHelp(object sender, RoutedEventArgs e)
+    {
+        var help = AppHost.Services.GetRequiredService<HelpWindow>();
+        help.Owner = this;
+        help.ShowDialog();
+    }
 
     /// <summary>
     /// Retient le téléphone choisi. Un bouton radio dans un modèle de données

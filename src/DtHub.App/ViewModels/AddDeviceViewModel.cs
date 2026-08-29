@@ -5,7 +5,6 @@ using CommunityToolkit.Mvvm.Input;
 
 using DtHub.Core.Adb;
 using DtHub.Core.Devices;
-using DtHub.Core.Guidance;
 
 namespace DtHub.App.ViewModels;
 
@@ -40,20 +39,8 @@ public sealed partial class PairingCandidateViewModel : ObservableObject
 public sealed partial class AddDeviceViewModel : ObservableObject
 {
     private readonly DevicePairingService _pairing;
-    private readonly DeviceDiscoveryService _devices;
 
-    public AddDeviceViewModel(DevicePairingService pairing, DeviceDiscoveryService devices)
-    {
-        _pairing = pairing;
-        _devices = devices;
-        _brand = PhoneBrands.Standard;
-    }
-
-    /// <summary>Marques proposées, pour adapter les chemins de menu.</summary>
-    public IReadOnlyList<PhoneBrand> Brands { get; } = PhoneBrands.All;
-
-    [ObservableProperty]
-    private PhoneBrand _brand;
+    public AddDeviceViewModel(DevicePairingService pairing) => _pairing = pairing;
 
     /// <summary>Téléphones qui affichent un code d'association.</summary>
     public ObservableCollection<PairingCandidateViewModel> Candidates { get; } = [];
@@ -74,33 +61,6 @@ public sealed partial class AddDeviceViewModel : ObservableObject
     public event EventHandler? DevicePaired;
 
     public bool CanPair => SelectedCandidate is not null && PairingCode.Trim().Length > 0 && !IsBusy;
-
-    public bool HasWarning => !string.IsNullOrWhiteSpace(Brand.Warning);
-
-    /// <summary>
-    /// Présélectionne la marque du téléphone déjà connu, quand il y en a un :
-    /// on ajoute souvent un second téléphone de la même marque.
-    /// </summary>
-    public async Task InitializeAsync(CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var discovery = await _devices.RefreshAsync(cancellationToken).ConfigureAwait(true);
-
-            var manufacturer = discovery.Devices
-                .Select(d => d.Manufacturer)
-                .FirstOrDefault(m => !string.IsNullOrWhiteSpace(m));
-
-            if (manufacturer is not null)
-            {
-                Brand = PhoneBrands.FromManufacturer(manufacturer);
-            }
-        }
-        catch (AdbException)
-        {
-            // Sans appareil connu, la marque par défaut convient.
-        }
-    }
 
     /// <summary>
     /// Cherche les téléphones qui affichent un code. Appelée en boucle : le
@@ -187,17 +147,6 @@ public sealed partial class AddDeviceViewModel : ObservableObject
             OnPropertyChanged(nameof(CanPair));
         }
     }
-
-    [RelayCommand]
-    private void SelectBrand(PhoneBrand? brand)
-    {
-        if (brand is not null)
-        {
-            Brand = brand;
-        }
-    }
-
-    partial void OnBrandChanged(PhoneBrand value) => OnPropertyChanged(nameof(HasWarning));
 
     partial void OnPairingCodeChanged(string value) => OnPropertyChanged(nameof(CanPair));
 

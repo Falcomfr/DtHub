@@ -32,16 +32,24 @@ public sealed record PhoneBrand
 /// <summary>Marques connues, avec leurs chemins de menu.</summary>
 public static class PhoneBrands
 {
-    /// <summary>Repli quand la marque n'est pas reconnue.</summary>
+    /// <summary>
+    /// Procédure d'Android sans surcouche. Sert aussi de repli, et couvre
+    /// Google Pixel, Motorola, Nothing et Sony, dont les chemins sont les
+    /// mêmes.
+    /// </summary>
     public static readonly PhoneBrand Standard = new()
     {
-        Name = "Android standard",
+        Name = "Google Pixel, Motorola, Nothing, Sony, autre",
+        Manufacturers = ["google", "motorola", "lenovo", "nothing", "sony"],
         BuildNumberPath = "Paramètres  ›  À propos du téléphone",
         BuildNumberLabel = "Numéro de build",
         DeveloperOptionsPath = "Paramètres  ›  Système  ›  Options pour les développeurs",
     };
 
-    /// <summary>Toutes les marques, dans l'ordre d'affichage.</summary>
+    /// <summary>
+    /// Marques regroupées par procédure. Les distinguer quand les chemins de
+    /// menu sont identiques n'apporterait rien et allongerait la liste.
+    /// </summary>
     public static readonly IReadOnlyList<PhoneBrand> All =
     [
         new()
@@ -67,27 +75,10 @@ public static class PhoneBrands
         },
         new()
         {
-            Name = "Google Pixel",
-            Manufacturers = ["google"],
-            BuildNumberPath = "Paramètres  ›  À propos du téléphone",
-            BuildNumberLabel = "Numéro de build",
-            DeveloperOptionsPath = "Paramètres  ›  Système  ›  Options pour les développeurs",
-        },
-        new()
-        {
-            Name = "OnePlus",
-            Manufacturers = ["oneplus"],
+            Name = "OnePlus, OPPO, realme",
+            Manufacturers = ["oneplus", "oppo", "realme"],
             BuildNumberPath = "Paramètres  ›  À propos de l'appareil  ›  Version",
-            BuildNumberLabel = "Numéro de build",
-            DeveloperOptionsPath =
-                "Paramètres  ›  Paramètres supplémentaires  ›  Options pour les développeurs",
-        },
-        new()
-        {
-            Name = "OPPO, realme",
-            Manufacturers = ["oppo", "realme"],
-            BuildNumberPath = "Paramètres  ›  À propos de l'appareil  ›  Version",
-            BuildNumberLabel = "Numéro de version",
+            BuildNumberLabel = "Numéro de build, ou Numéro de version selon la version installée",
             DeveloperOptionsPath =
                 "Paramètres  ›  Paramètres supplémentaires  ›  Options pour les développeurs",
         },
@@ -102,22 +93,6 @@ public static class PhoneBrands
             Warning =
                 "Sur les versions sans services Google, le débogage sans fil est parfois absent. "
                 + "Le câble USB reste alors la seule voie.",
-        },
-        new()
-        {
-            Name = "Motorola",
-            Manufacturers = ["motorola", "lenovo"],
-            BuildNumberPath = "Paramètres  ›  À propos du téléphone",
-            BuildNumberLabel = "Numéro de build",
-            DeveloperOptionsPath = "Paramètres  ›  Système  ›  Options pour les développeurs",
-        },
-        new()
-        {
-            Name = "Nothing",
-            Manufacturers = ["nothing"],
-            BuildNumberPath = "Paramètres  ›  À propos du téléphone",
-            BuildNumberLabel = "Numéro de build",
-            DeveloperOptionsPath = "Paramètres  ›  Système  ›  Options pour les développeurs",
         },
         Standard,
     ];

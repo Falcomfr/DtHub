@@ -134,8 +134,13 @@
                       Visibility="{Binding HasSeveralMonitors, Converter={StaticResource BoolToVisibility}}">
                 <StackPanel>
                   <TextBlock Text="ÉCRAN" Style="{StaticResource SectionLabel}" />
-                  <ComboBox ItemsSource="{Binding Monitors}" SelectedItem="{Binding PreferredMonitor}"
-                            DisplayMemberPath="DisplayName" />
+                  <ComboBox ItemsSource="{Binding Monitors}" SelectedItem="{Binding PreferredMonitor}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding DisplayName}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
                 </StackPanel>
               </Border>
 

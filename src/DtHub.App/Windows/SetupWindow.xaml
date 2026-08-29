@@ -17,7 +17,7 @@
         <TextBlock Text="DT Hub" Style="{StaticResource Title}" Margin="12,0,0,0" VerticalAlignment="Center" />
       </StackPanel>
       <TextBlock Style="{StaticResource Muted}" Margin="0,10,0,0"
-                 Text="Cochez les instances de DOFUS Touch à ouvrir. Ce choix devient le lancement par défaut, la question ne sera plus posée." />
+                 Text="Cochez les instances de DOFUS Touch à ouvrir." />
     </StackPanel>
 
     <Border DockPanel.Dock="Bottom" Margin="0,14,0,0">

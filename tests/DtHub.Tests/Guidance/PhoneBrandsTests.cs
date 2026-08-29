@@ -28,11 +28,9 @@ public class PhoneBrandsTests
     [InlineData("xiaomi", "Xiaomi, Redmi, POCO")]
     [InlineData("Redmi", "Xiaomi, Redmi, POCO")]
     [InlineData("samsung", "Samsung")]
-    [InlineData("Google", "Google Pixel")]
-    [InlineData("OnePlus", "OnePlus")]
-    [InlineData("realme", "OPPO, realme")]
+    [InlineData("OnePlus", "OnePlus, OPPO, realme")]
+    [InlineData("realme", "OnePlus, OPPO, realme")]
     [InlineData("HONOR", "Honor, Huawei")]
-    [InlineData("Nothing", "Nothing")]
     public void La_marque_est_devinee_a_partir_du_constructeur(string manufacturer, string expected)
     {
         Assert.Equal(expected, PhoneBrands.FromManufacturer(manufacturer).Name);
@@ -43,9 +41,24 @@ public class PhoneBrandsTests
     [InlineData("")]
     [InlineData("   ")]
     [InlineData("ConstructeurInconnu")]
-    public void Un_constructeur_inconnu_retombe_sur_android_standard(string? manufacturer)
+    [InlineData("Google")]
+    [InlineData("Motorola")]
+    [InlineData("Nothing")]
+    public void Un_constructeur_sans_surcouche_ou_inconnu_utilise_la_procedure_standard(string? manufacturer)
     {
         Assert.Same(PhoneBrands.Standard, PhoneBrands.FromManufacturer(manufacturer));
+    }
+
+    [Fact]
+    public void Deux_entrees_ne_decrivent_jamais_la_meme_procedure()
+    {
+        // Distinguer des marques dont les chemins sont identiques ne ferait
+        // qu'allonger la liste sans rien apprendre.
+        var procedures = PhoneBrands.All
+            .Select(b => $"{b.BuildNumberPath}|{b.BuildNumberLabel}|{b.DeveloperOptionsPath}")
+            .ToList();
+
+        Assert.Equal(procedures.Count, procedures.Distinct(StringComparer.Ordinal).Count());
     }
 
     [Fact]
