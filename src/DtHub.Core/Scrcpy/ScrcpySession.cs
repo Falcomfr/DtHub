@@ -62,6 +62,13 @@ public sealed class ScrcpySession
     public double SourceAspectRatio { get; internal set; }
 
     /// <summary>
+    /// Hauteur de zone client à laquelle l'afficheur a été créé. Le jeu ne se
+    /// remet pas en page au-delà : agrandir davantage laisserait une bande.
+    /// Zéro quand la contrainte ne s'applique pas.
+    /// </summary>
+    public int MaxClientHeight { get; internal set; }
+
+    /// <summary>
     /// Fenêtre scrcpy correspondante, une fois retrouvée. Vaut zéro tant que
     /// la fenêtre n'est pas apparue.
     /// </summary>

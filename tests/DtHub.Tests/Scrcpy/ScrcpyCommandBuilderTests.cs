@@ -100,20 +100,20 @@ public class ScrcpyCommandBuilderTests
     }
 
     [Fact]
-    public void Avec_l_ajustement_continu_l_afficheur_nait_a_la_hauteur_configuree()
+    public void Avec_l_ajustement_continu_l_afficheur_nait_a_la_taille_de_la_fenetre()
     {
-        // La largeur vient de la fenêtre, mais la hauteur de la configuration.
-        // Le jeu ne se remet jamais en page au-delà de la hauteur qu'il avait
-        // à sa création : la fixer à celle de la fenêtre ferait apparaître une
-        // bande dès qu'on l'agrandit.
+        // scrcpy refuse --window-width et --window-height dans ce mode : la
+        // taille se règle par la définition de l'afficheur. Le créer plus haut
+        // a été essayé et écarté : le jeu y fixe aussi son échelle, et l'image
+        // se retrouve coupée.
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "T",
-            ScrcpyOptions.Default with { FlexDisplay = true, VirtualDisplayHeight = 2088 },
+            ScrcpyOptions.Default with { FlexDisplay = true },
             new ScrcpyWindowPlacement(100, 50, 1280, 720));
 
         Assert.Equal("100", ValueOf(arguments, "--window-x"));
         Assert.Equal("50", ValueOf(arguments, "--window-y"));
-        Assert.Equal("1280x2088/240", ValueOf(arguments, "--new-display"));
+        Assert.Equal("1280x720/240", ValueOf(arguments, "--new-display"));
         Assert.DoesNotContain(arguments, a => a.StartsWith("--window-width", StringComparison.Ordinal));
         Assert.DoesNotContain(arguments, a => a.StartsWith("--window-height", StringComparison.Ordinal));
         Assert.Contains("--flex-display", arguments);
@@ -125,7 +125,7 @@ public class ScrcpyCommandBuilderTests
         // Les encodeurs vidéo refusent les côtés impairs.
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "T",
-            ScrcpyOptions.Default with { FlexDisplay = true, VirtualDisplayHeight = 1461 },
+            ScrcpyOptions.Default with { FlexDisplay = true },
             new ScrcpyWindowPlacement(0, 0, 2599, 1461));
 
         Assert.Equal("2598x1460/240", ValueOf(arguments, "--new-display"));
@@ -164,9 +164,8 @@ public class ScrcpyCommandBuilderTests
             ScrcpyOptions.Default with { FlexDisplay = true },
             new ScrcpyWindowPlacement(1, 2, 3, 4));
 
-        // La largeur impaire est ramenée à un nombre pair ; la hauteur vient
-        // de la configuration, pas de la fenêtre.
-        Assert.Contains("--new-display=2x1080/240", arguments);
+        // Les côtés impairs sont ramenés à des nombres pairs.
+        Assert.Contains("--new-display=2x4/240", arguments);
 
         foreach (var argument in arguments.Where(a => a.StartsWith("--", StringComparison.Ordinal)))
         {

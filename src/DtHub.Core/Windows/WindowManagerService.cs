@@ -409,10 +409,19 @@ public sealed class WindowManagerService
             // La bordure ne disparaît qu'en plein écran, et revient en sortant.
             _controller.SetBorderless(handle, IsFullscreen);
 
-            var chrome = IsFullscreen ? (0, 0) : MeasureChrome(handle);
+            (int Width, int Height) chrome = IsFullscreen ? (0, 0) : MeasureChrome(handle);
             var rect = Resolve(session, monitor, monitors, chrome, remembered);
 
             _controller.MoveWindow(handle, rect);
+
+            // Le premier placement précède l'ouverture du jeu : c'est à cette
+            // hauteur de zone client qu'il naît, et il ne se remet pas en page
+            // au-delà. Les placements suivants ne relèvent pas ce plafond.
+            if (session.MaxClientHeight == 0)
+            {
+                session.MaxClientHeight = Math.Max(1, rect.Height - chrome.Height);
+            }
+
             applied.Add((session.Target.Key, rect));
         }
 
@@ -492,11 +501,12 @@ public sealed class WindowManagerService
     public double MinimumClientAspect { get; set; } = 1.25;
 
     /// <summary>
-    /// Réduit la hauteur des fenêtres devenues trop hautes pour leur largeur.
+    /// Réduit la hauteur des fenêtres que le jeu ne saurait pas remplir.
     ///
-    /// C'est la seule contrainte imposée, et elle ne joue que dans un sens :
-    /// élargir reste libre. La correction attend que la taille se stabilise,
-    /// pour ne pas lutter contre le geste en cours.
+    /// Deux limites, toutes deux sur la hauteur seule : le rapport minimal, et
+    /// la hauteur à laquelle l'afficheur est né, que le jeu ne dépasse jamais.
+    /// Élargir reste libre dans les deux cas. La correction attend que la
+    /// taille se stabilise, pour ne pas lutter contre le geste en cours.
     /// </summary>
     /// <returns>Nombre de fenêtres corrigées.</returns>
     public int EnforceMinimumAspect(IReadOnlyList<ScrcpySession> sessions)
@@ -529,13 +539,19 @@ public sealed class WindowManagerService
             var clientWidth = Math.Max(1, outer.Width - chrome.Width);
             var clientHeight = Math.Max(1, outer.Height - chrome.Height);
 
-            if ((double)clientWidth / clientHeight >= MinimumClientAspect)
+            var allowed = (int)Math.Round(clientWidth / MinimumClientAspect);
+
+            if (session.MaxClientHeight > 0)
+            {
+                allowed = Math.Min(allowed, session.MaxClientHeight);
+            }
+
+            if (clientHeight <= allowed)
             {
                 continue;
             }
 
-            var wanted = (int)Math.Round(clientWidth / MinimumClientAspect) + chrome.Height;
-            var target = outer with { Height = wanted };
+            var target = outer with { Height = allowed + chrome.Height };
 
             _controller.MoveWindow(session.WindowHandle, target);
             _lastSeen[session.Id] = target;
@@ -544,6 +560,7 @@ public sealed class WindowManagerService
 
         return corrected;
     }
+
 
     /// <summary>Passe à l'instance suivante, en boucle.</summary>
     public ScrcpySession? FocusNext(IReadOnlyList<ScrcpySession> sessions) => Cycle(sessions, forward: true);

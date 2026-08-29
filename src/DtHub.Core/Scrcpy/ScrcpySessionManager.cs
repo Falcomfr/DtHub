@@ -48,6 +48,16 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     public Func<ScrcpySession, int>? OrderKey { get; set; }
 
     /// <summary>
+    /// Appelé quand l'afficheur existe, juste avant d'ouvrir l'application.
+    ///
+    /// C'est le moment de donner à la fenêtre sa taille définitive : le jeu
+    /// fixe son échelle et sa mise en page à son ouverture, et ne les revoit
+    /// pas toujours si on redimensionne pendant qu'il démarre. L'image se
+    /// retrouve alors coupée.
+    /// </summary>
+    public Func<ScrcpySession, CancellationToken, Task>? PrepareWindow { get; set; }
+
+    /// <summary>
     /// Sessions encore ouvertes, dans l'ordre configuré, ou dans leur ordre de
     /// démarrage à défaut.
     ///
@@ -136,6 +146,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             SourceAspectRatio = options is { UseVirtualDisplay: true, FlexDisplay: false, VirtualDisplayHeight: > 0 }
                 ? (double)options.VirtualDisplayWidth / options.VirtualDisplayHeight
                 : 0,
+
         };
 
         session.CommandLine = request.ToDisplayString();
@@ -242,6 +253,25 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         }
 
         session.VirtualDisplayId = displayId;
+
+        // La fenêtre prend sa taille définitive avant que le jeu n'arrive :
+        // il fixe son échelle à l'ouverture et ne la revoit pas toujours si on
+        // redimensionne pendant son démarrage.
+        if (PrepareWindow is { } prepare)
+        {
+            try
+            {
+                await prepare(session, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                session.Record($"Placement préalable impossible : {exception.Message}");
+            }
+        }
 
         var launch = await _appLauncher.LaunchAsync(
             session.Serial,

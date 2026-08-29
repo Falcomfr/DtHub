@@ -73,7 +73,17 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // Une session qui meurt après son ouverture ne laissait aucune trace :
         // la fenêtre disparaissait et le journal restait muet.
         _sessions.SessionChanged += OnSessionChanged;
+
+        // La fenêtre est placée avant l'ouverture du jeu, pour qu'il naisse à
+        // la taille définitive.
+        _sessions.PrepareWindow = async (session, cancellationToken) =>
+            await _windows.RestoreAsync([session], _pendingGeometry, cancellationToken)
+                .ConfigureAwait(false);
     }
+
+    /// <summary>Géométries à restaurer, connues du placement préalable.</summary>
+    private IReadOnlyDictionary<string, StoredWindowRect> _pendingGeometry =
+        new Dictionary<string, StoredWindowRect>(StringComparer.Ordinal);
 
     /// <summary>
     /// Journalise la mort d'une session, avec la sortie de scrcpy. Sans cela,
@@ -274,19 +284,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
             IconDirectory = _iconDirectory,
         };
 
-        // L'afficheur naît à la hauteur de l'écran : c'est un plafond que le
-        // jeu ne dépasse jamais, et le fixer plus bas ferait apparaître une
-        // bande dès que la fenêtre grandit.
-        if (options.FlexDisplay && _windows.WorkArea() is { Height: > 0 } work)
-        {
-            options = options with { VirtualDisplayHeight = work.Height };
-        }
         var serials = await ResolveSerialsAsync(cancellationToken).ConfigureAwait(false);
 
         // La position est donnée à scrcpy dès le lancement. Le faire après
         // coup ne suffit pas : scrcpy recentre sa fenêtre quand il reçoit la
         // première image, donc après notre placement.
         var remembered = await _settings.GetWindowRectsAsync(cancellationToken).ConfigureAwait(false);
+
+        _pendingGeometry = remembered;
 
         List<string> problems = [];
         List<ScrcpySession> started = [];
