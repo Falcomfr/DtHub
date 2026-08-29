@@ -55,8 +55,11 @@ Dernière mise à jour : 2026-08-29
 
 | Élément | État |
 |---|---|
-| `AndroidUserService` (`pm list users`) | TODO |
-| Support de tout `userId` entier | TODO |
+| `AndroidUserService` (`pm list users`) | DONE |
+| Support de tout `userId` entier, aucune valeur câblée | DONE |
+| Affinage des types par `dumpsys user` | DONE |
+| Démarrage d'un profil arrêté | DONE |
+| Repli sur l'utilisateur principal si la commande échoue | DONE |
 
 ## Phase 6 - Applications
 

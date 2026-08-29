@@ -69,12 +69,45 @@ public sealed class FakeAdbClient : IAdbClient
             Duration = TimeSpan.Zero,
         });
 
+    private readonly List<(string Match, Func<string> Respond)> _shellRules = [];
+
+    /// <summary>Commandes shell reçues, jointes par des espaces.</summary>
+    public List<string> ShellCalls { get; } = [];
+
+    /// <summary>Déclare une sortie shell pour une commande contenant le motif donné.</summary>
+    public FakeAdbClient WithShell(string argumentsContain, string output)
+    {
+        _shellRules.Add((argumentsContain, () => output));
+        return this;
+    }
+
+    /// <summary>Fait échouer une commande shell contenant le motif donné.</summary>
+    public FakeAdbClient FailShell(string argumentsContain, AdbErrorKind kind = AdbErrorKind.DeviceOffline)
+    {
+        _shellRules.Add((argumentsContain, () => throw new AdbException(kind, AdbErrorInterpreter.Describe(kind))));
+        return this;
+    }
+
     public Task<string> ShellAsync(
         string serial,
         IReadOnlyList<string> arguments,
         TimeSpan? timeout = null,
-        CancellationToken cancellationToken = default) =>
-        Task.FromResult(string.Empty);
+        CancellationToken cancellationToken = default)
+    {
+        var joined = string.Join(' ', arguments);
+        ShellCalls.Add(joined);
+
+        var rule = _shellRules.FirstOrDefault(r => joined.Contains(r.Match, StringComparison.Ordinal));
+
+        try
+        {
+            return Task.FromResult(rule.Respond?.Invoke() ?? string.Empty);
+        }
+        catch (AdbException exception)
+        {
+            return Task.FromException<string>(exception);
+        }
+    }
 
     public Task<IReadOnlyDictionary<string, string>> GetPropertiesAsync(
         string serial,
