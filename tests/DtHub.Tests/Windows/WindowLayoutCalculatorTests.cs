@@ -13,7 +13,6 @@ public class WindowLayoutCalculatorTests
         IsPrimary = true,
     };
 
-    /// <summary>Second écran, placé à droite du principal.</summary>
     private static readonly MonitorInfo Secondary = new()
     {
         DeviceName = @"\\.\DISPLAY2",
@@ -24,166 +23,114 @@ public class WindowLayoutCalculatorTests
     /// <summary>Rapport d'un écran virtuel de téléphone, en portrait.</summary>
     private const double Portrait = 1080.0 / 1920.0;
 
-    private static readonly WindowSizePresets Presets = WindowSizePresets.Default;
-
     [Fact]
-    public void Les_quatre_pourcentages_par_defaut_sont_ceux_annonces()
+    public void La_taille_demandee_est_une_part_de_la_zone_utilisable()
     {
-        Assert.Equal([60, 70, 80, 90], WindowSizePresets.Default.Percentages);
-        Assert.Equal(5, WindowSizePresets.Default.Count);
-        Assert.True(WindowSizePresets.Default.IsFullscreen(4));
-    }
+        var rect = WindowLayoutCalculator.Calculate(FullHd, 70, Portrait, WindowAnchor.Center);
 
-    [Fact]
-    public void Une_taille_en_pourcentage_tient_dans_la_zone_utilisable()
-    {
-        var rect = WindowLayoutCalculator.Calculate(FullHd, Presets, 0, Portrait);
-
-        // 60 % de 1040 pixels de haut, la largeur suit le rapport portrait.
-        Assert.Equal(624, rect.Height);
-        Assert.Equal(351, rect.Width);
+        Assert.Equal(728, rect.Height);
         Assert.True(rect.Height <= FullHd.WorkArea.Height);
-    }
-
-    [Fact]
-    public void Une_fenetre_est_centree_dans_la_zone_utilisable()
-    {
-        var rect = WindowLayoutCalculator.Calculate(FullHd, Presets, 2, Portrait);
-
-        Assert.Equal(FullHd.WorkArea.CenterX, rect.CenterX);
-        Assert.Equal(FullHd.WorkArea.CenterY, rect.CenterY);
-    }
-
-    [Fact]
-    public void La_barre_des_taches_n_est_jamais_recouverte_hors_plein_ecran()
-    {
-        var rect = WindowLayoutCalculator.Calculate(FullHd, Presets, 3, Portrait);
-
-        Assert.True(rect.Bottom <= FullHd.WorkArea.Bottom, $"Bas de fenêtre : {rect.Bottom}");
-    }
-
-    [Fact]
-    public void Le_plein_ecran_couvre_l_ecran_entier_barre_des_taches_comprise()
-    {
-        var rect = WindowLayoutCalculator.Calculate(FullHd, Presets, Presets.FullscreenIndex, Portrait);
-
-        Assert.Equal(FullHd.Bounds, rect);
     }
 
     [Fact]
     public void Le_rapport_d_affichage_de_la_source_est_conserve()
     {
-        var rect = WindowLayoutCalculator.Calculate(FullHd, Presets, 3, Portrait);
+        var portrait = WindowLayoutCalculator.Calculate(FullHd, 80, Portrait, WindowAnchor.Center);
+        var landscape = WindowLayoutCalculator.Calculate(FullHd, 80, 16.0 / 9.0, WindowAnchor.Center);
 
-        Assert.Equal(Portrait, rect.AspectRatio, 2);
+        Assert.Equal(Portrait, portrait.AspectRatio, 2);
+        Assert.Equal(16.0 / 9.0, landscape.AspectRatio, 2);
+        Assert.True(landscape.Width > landscape.Height);
     }
 
     [Fact]
-    public void Une_source_en_paysage_donne_une_fenetre_en_paysage()
+    public void Une_source_tres_large_est_bornee_par_la_largeur_disponible()
     {
-        const double landscape = 16.0 / 9.0;
-
-        var rect = WindowLayoutCalculator.Calculate(FullHd, Presets, 1, landscape);
-
-        Assert.Equal(landscape, rect.AspectRatio, 2);
-        Assert.True(rect.Width > rect.Height);
-    }
-
-    [Fact]
-    public void Une_source_paysage_large_est_bornee_par_la_largeur_disponible()
-    {
-        // À 90 %, une source 21:9 déborderait en largeur si seule la hauteur
-        // était prise en compte.
-        var rect = WindowLayoutCalculator.Calculate(FullHd, Presets, 3, 21.0 / 9.0);
+        var rect = WindowLayoutCalculator.Calculate(FullHd, 90, 21.0 / 9.0, WindowAnchor.Center);
 
         Assert.True(rect.Width <= (int)Math.Round(FullHd.WorkArea.Width * 0.9));
         Assert.True(rect.Height <= (int)Math.Round(FullHd.WorkArea.Height * 0.9));
     }
 
     [Fact]
-    public void Sans_rapport_impose_la_fenetre_remplit_le_pourcentage_demande()
+    public void Une_taille_aberrante_est_ramenee_dans_les_bornes()
     {
-        var rect = WindowLayoutCalculator.Calculate(FullHd, Presets, 3, 0);
+        var tooSmall = WindowLayoutCalculator.Calculate(FullHd, 0, 0, WindowAnchor.Center);
+        var tooLarge = WindowLayoutCalculator.Calculate(FullHd, 500, 0, WindowAnchor.Center);
 
-        Assert.Equal(1728, rect.Width);
-        Assert.Equal(936, rect.Height);
+        Assert.Equal((int)Math.Round(FullHd.WorkArea.Height * 0.2), tooSmall.Height);
+        Assert.Equal(FullHd.WorkArea.Height, tooLarge.Height);
+    }
+
+    [Theory]
+    [InlineData(WindowAnchor.TopLeft, 0, 0)]
+    [InlineData(WindowAnchor.TopCenter, 460, 0)]
+    [InlineData(WindowAnchor.TopRight, 920, 0)]
+    [InlineData(WindowAnchor.MiddleLeft, 0, 220)]
+    [InlineData(WindowAnchor.Center, 460, 220)]
+    [InlineData(WindowAnchor.MiddleRight, 920, 220)]
+    [InlineData(WindowAnchor.BottomLeft, 0, 440)]
+    [InlineData(WindowAnchor.BottomCenter, 460, 440)]
+    [InlineData(WindowAnchor.BottomRight, 920, 440)]
+    public void Chaque_position_de_la_grille_colle_la_fenetre_au_bon_endroit(
+        WindowAnchor anchor, int expectedX, int expectedY)
+    {
+        var area = new ScreenRect(0, 0, 1920, 1080);
+
+        var rect = WindowLayoutCalculator.Place(area, 1000, 640, anchor);
+
+        Assert.Equal(expectedX, rect.X);
+        Assert.Equal(expectedY, rect.Y);
     }
 
     [Fact]
-    public void Les_tailles_croissent_avec_le_pourcentage()
+    public void Une_fenetre_ancree_reste_dans_la_zone_utilisable()
     {
-        var heights = Enumerable.Range(0, 4)
-            .Select(i => WindowLayoutCalculator.Calculate(FullHd, Presets, i, Portrait).Height)
-            .ToList();
+        foreach (var anchor in WindowAnchors.All)
+        {
+            var rect = WindowLayoutCalculator.Calculate(FullHd, 90, Portrait, anchor);
 
-        Assert.Equal(heights.OrderBy(h => h), heights);
-        Assert.Equal(4, heights.Distinct().Count());
+            Assert.True(rect.X >= FullHd.WorkArea.X, $"{anchor} déborde à gauche");
+            Assert.True(rect.Y >= FullHd.WorkArea.Y, $"{anchor} déborde en haut");
+            Assert.True(rect.Right <= FullHd.WorkArea.Right, $"{anchor} déborde à droite");
+            Assert.True(rect.Bottom <= FullHd.WorkArea.Bottom, $"{anchor} déborde en bas");
+        }
     }
 
     [Fact]
-    public void Un_indice_de_taille_hors_bornes_retombe_sur_la_valeur_la_plus_proche()
+    public void La_barre_des_taches_n_est_jamais_recouverte()
     {
-        var tooLow = WindowLayoutCalculator.Calculate(FullHd, Presets, -5, Portrait);
-        var first = WindowLayoutCalculator.Calculate(FullHd, Presets, 0, Portrait);
+        var rect = WindowLayoutCalculator.Calculate(FullHd, 100, 0, WindowAnchor.BottomCenter);
 
-        Assert.Equal(first, tooLow);
+        Assert.Equal(FullHd.WorkArea.Bottom, rect.Bottom);
+        Assert.True(rect.Bottom < FullHd.Bounds.Bottom);
     }
 
     [Fact]
-    public void Les_pourcentages_sont_personnalisables()
+    public void Une_fenetre_plus_grande_que_la_zone_est_ramenee_a_sa_taille()
     {
-        var custom = new WindowSizePresets { Percentages = [50, 75, 100] };
+        var rect = WindowLayoutCalculator.Place(new ScreenRect(0, 0, 800, 600), 5000, 5000, WindowAnchor.TopLeft);
 
-        var rect = WindowLayoutCalculator.Calculate(FullHd, custom, 0, Portrait);
-
-        Assert.Equal(520, rect.Height);
-        Assert.Equal(4, custom.Count);
-        Assert.True(custom.IsFullscreen(3));
+        Assert.Equal(new ScreenRect(0, 0, 800, 600), rect);
     }
 
     [Fact]
-    public void Des_pourcentages_aberrants_sont_corriges_plutot_que_refuses()
+    public void Le_configurateur_se_pose_a_l_oppose_du_bloc_de_jeu()
     {
-        var messy = new WindowSizePresets { Percentages = [500, 0, 80, 80, -3] };
-
-        var cleaned = messy.Sanitized();
-
-        Assert.Equal([20, 80, 100], cleaned.Percentages);
+        Assert.Equal(WindowAnchor.TopRight, WindowAnchors.Opposite(WindowAnchor.MiddleLeft));
+        Assert.Equal(WindowAnchor.TopLeft, WindowAnchors.Opposite(WindowAnchor.MiddleRight));
+        Assert.Equal(WindowAnchor.TopLeft, WindowAnchors.Opposite(WindowAnchor.TopRight));
     }
 
     [Fact]
-    public void Une_liste_de_pourcentages_vide_retombe_sur_les_valeurs_par_defaut()
+    public void Toutes_les_positions_ont_un_libelle()
     {
-        Assert.Equal(
-            WindowSizePresets.Default.Percentages,
-            new WindowSizePresets { Percentages = [] }.Sanitized().Percentages);
-    }
+        foreach (var anchor in WindowAnchors.All)
+        {
+            Assert.False(string.IsNullOrWhiteSpace(WindowAnchors.Describe(anchor)));
+        }
 
-    [Fact]
-    public void Un_ecran_sans_zone_utilisable_declaree_utilise_ses_dimensions_completes()
-    {
-        var monitor = FullHd with { WorkArea = new ScreenRect(0, 0, 0, 0) };
-
-        var rect = WindowLayoutCalculator.Calculate(monitor, Presets, 3, 0);
-
-        Assert.Equal(972, rect.Height);
-    }
-
-    [Fact]
-    public void L_ecran_est_choisi_d_apres_la_position_de_la_fenetre()
-    {
-        var monitors = new[] { FullHd, Secondary };
-
-        Assert.Equal(FullHd, WindowLayoutCalculator.ChooseMonitor(monitors, 100, 100));
-        Assert.Equal(Secondary, WindowLayoutCalculator.ChooseMonitor(monitors, 2500, 700));
-    }
-
-    [Fact]
-    public void Une_position_hors_de_tout_ecran_retombe_sur_l_ecran_principal()
-    {
-        var monitors = new[] { FullHd, Secondary };
-
-        Assert.Equal(FullHd, WindowLayoutCalculator.ChooseMonitor(monitors, -9000, -9000));
+        Assert.Equal(9, WindowAnchors.All.Count);
     }
 
     [Fact]
@@ -193,48 +140,58 @@ public class WindowLayoutCalculatorTests
 
         Assert.Equal(Secondary, WindowLayoutCalculator.ChooseMonitor(monitors, @"\\.\DISPLAY2"));
         Assert.Equal(FullHd, WindowLayoutCalculator.ChooseMonitor(monitors, @"\\.\ECRAN_DEBRANCHE"));
-        Assert.Equal(FullHd, WindowLayoutCalculator.ChooseMonitor(monitors, null));
+        Assert.Equal(FullHd, WindowLayoutCalculator.ChooseMonitor(monitors, (string?)null));
+    }
+
+    [Fact]
+    public void L_ecran_est_aussi_choisi_d_apres_une_position()
+    {
+        var monitors = new[] { FullHd, Secondary };
+
+        Assert.Equal(Secondary, WindowLayoutCalculator.ChooseMonitor(monitors, 2500, 700));
+        Assert.Equal(FullHd, WindowLayoutCalculator.ChooseMonitor(monitors, -9000, -9000));
     }
 
     [Fact]
     public void Sans_aucun_ecran_le_calcul_echoue_explicitement()
     {
         Assert.Throws<InvalidOperationException>(
-            () => WindowLayoutCalculator.ChooseMonitor([], 0, 0));
+            () => WindowLayoutCalculator.ChooseMonitor([], (string?)null));
     }
 
     [Theory]
     [InlineData(2, 0, 1)]
     [InlineData(2, 1, 0)]
-    [InlineData(4, 2, 3)]
     [InlineData(4, 3, 0)]
     [InlineData(7, 6, 0)]
-    public void Le_parcours_des_sessions_est_circulaire_quel_que_soit_leur_nombre(
-        int count, int current, int expected)
+    public void Le_parcours_avant_est_circulaire(int count, int current, int expected)
     {
         Assert.Equal(expected, WindowLayoutCalculator.NextIndex(count, current));
     }
 
+    [Theory]
+    [InlineData(2, 0, 1)]
+    [InlineData(2, 1, 0)]
+    [InlineData(4, 0, 3)]
+    [InlineData(4, 2, 1)]
+    public void Le_parcours_arriere_est_circulaire(int count, int current, int expected)
+    {
+        Assert.Equal(expected, WindowLayoutCalculator.PreviousIndex(count, current));
+    }
+
     [Fact]
-    public void Un_parcours_sans_session_ne_designe_rien()
+    public void Un_parcours_sans_instance_ne_designe_rien()
     {
         Assert.Equal(-1, WindowLayoutCalculator.NextIndex(0, 0));
+        Assert.Equal(-1, WindowLayoutCalculator.PreviousIndex(0, 0));
     }
 
     [Fact]
-    public void Une_session_courante_disparue_ramene_a_la_premiere()
+    public void Toutes_les_fenetres_recoivent_exactement_le_meme_rectangle()
     {
-        Assert.Equal(0, WindowLayoutCalculator.NextIndex(3, -1));
-        Assert.Equal(0, WindowLayoutCalculator.NextIndex(3, 99));
-    }
-
-    [Fact]
-    public void Toutes_les_fenetres_empilees_recoivent_exactement_le_meme_rectangle()
-    {
-        // Le mode STACK repose entièrement là-dessus : un seul calcul, appliqué
-        // à toutes les sessions.
+        // C'est ce qui garantit la superposition parfaite.
         var rects = Enumerable.Range(0, 5)
-            .Select(_ => WindowLayoutCalculator.Calculate(FullHd, Presets, 2, Portrait))
+            .Select(_ => WindowLayoutCalculator.Calculate(FullHd, 70, Portrait, WindowAnchor.MiddleLeft))
             .Distinct()
             .ToList();
 

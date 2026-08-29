@@ -1,34 +1,29 @@
 namespace DtHub.Core.Hotkeys;
 
 /// <summary>
-/// Actions auxquelles un raccourci peut être associé. L'énumération est
-/// persistée par son nom : ne jamais renommer un membre existant sans prévoir
-/// une migration.
+/// Les actions auxquelles un raccourci peut être associé. Volontairement peu
+/// nombreuses : tout ce qui se règle une fois vit dans le configurateur, pas
+/// dans un raccourci.
+///
+/// L'énumération est persistée par son nom : ne jamais renommer un membre
+/// existant sans prévoir une migration.
 /// </summary>
 public enum HotkeyAction
 {
-    /// <summary>Passer à la session suivante du profil.</summary>
-    NextSession,
+    /// <summary>Afficher ou masquer le configurateur.</summary>
+    ToggleConfigurator,
 
-    /// <summary>Session précédente. Complément naturel de la précédente.</summary>
-    PreviousSession,
+    /// <summary>Passer à l'instance suivante.</summary>
+    NextInstance,
 
-    Size1,
-    Size2,
-    Size3,
-    Size4,
+    /// <summary>Revenir à l'instance précédente.</summary>
+    PreviousInstance,
 
-    /// <summary>Plein écran sans bordure.</summary>
-    Fullscreen,
+    /// <summary>Remettre toutes les fenêtres en place.</summary>
+    Rearrange,
 
-    /// <summary>Remettre toutes les fenêtres ensemble.</summary>
-    Recenter,
-
-    /// <summary>Fermer toutes les sessions ouvertes par DT Hub.</summary>
-    CloseAllSessions,
-
-    /// <summary>Ouvrir la page des paramètres.</summary>
-    OpenSettings,
+    /// <summary>Fermer toutes les fenêtres de jeu ouvertes par l'application.</summary>
+    CloseAll,
 }
 
 /// <summary>Touches de modification, combinables.</summary>

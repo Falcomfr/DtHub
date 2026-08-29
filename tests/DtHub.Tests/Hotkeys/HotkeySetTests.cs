@@ -9,14 +9,11 @@ public class HotkeySetTests
     {
         var set = HotkeySet.Default;
 
-        Assert.Equal("Ctrl + Tab", set.For(HotkeyAction.NextSession)!.DisplayText);
-        Assert.Equal("Ctrl + 1", set.For(HotkeyAction.Size1)!.DisplayText);
-        Assert.Equal("Ctrl + 2", set.For(HotkeyAction.Size2)!.DisplayText);
-        Assert.Equal("Ctrl + 3", set.For(HotkeyAction.Size3)!.DisplayText);
-        Assert.Equal("Ctrl + 4", set.For(HotkeyAction.Size4)!.DisplayText);
-        Assert.Equal("Ctrl + 5", set.For(HotkeyAction.Fullscreen)!.DisplayText);
-        Assert.Equal("Ctrl + R", set.For(HotkeyAction.Recenter)!.DisplayText);
-        Assert.Equal("Ctrl + 0", set.For(HotkeyAction.CloseAllSessions)!.DisplayText);
+        Assert.Equal("Ctrl + P", set.For(HotkeyAction.ToggleConfigurator)!.DisplayText);
+        Assert.Equal("Ctrl + Tab", set.For(HotkeyAction.NextInstance)!.DisplayText);
+        Assert.Equal("Ctrl + Maj + Tab", set.For(HotkeyAction.PreviousInstance)!.DisplayText);
+        Assert.Equal("Ctrl + R", set.For(HotkeyAction.Rearrange)!.DisplayText);
+        Assert.Equal("Ctrl + 0", set.For(HotkeyAction.CloseAll)!.DisplayText);
     }
 
     [Fact]
@@ -44,9 +41,9 @@ public class HotkeySetTests
     {
         var set = HotkeySet.Default;
 
-        Assert.Equal(HotkeyAction.NextSession, set.Resolve(VirtualKeys.Tab, HotkeyModifiers.Control));
+        Assert.Equal(HotkeyAction.NextInstance, set.Resolve(VirtualKeys.Tab, HotkeyModifiers.Control));
         Assert.Equal(
-            HotkeyAction.PreviousSession,
+            HotkeyAction.PreviousInstance,
             set.Resolve(VirtualKeys.Tab, HotkeyModifiers.Control | HotkeyModifiers.Shift));
         Assert.Null(set.Resolve(VirtualKeys.Tab, HotkeyModifiers.Alt));
     }
@@ -56,12 +53,12 @@ public class HotkeySetTests
     {
         var set = HotkeySet.Default;
 
-        var result = set.Validate(HotkeyAction.Recenter, VirtualKeys.D1, HotkeyModifiers.Control);
+        var result = set.Validate(HotkeyAction.Rearrange, VirtualKeys.P, HotkeyModifiers.Control);
 
         Assert.Equal(HotkeyValidationResult.Duplicate, result);
         Assert.Equal(
-            HotkeyAction.Size1,
-            set.FindConflict(HotkeyAction.Recenter, VirtualKeys.D1, HotkeyModifiers.Control));
+            HotkeyAction.ToggleConfigurator,
+            set.FindConflict(HotkeyAction.Rearrange, VirtualKeys.P, HotkeyModifiers.Control));
     }
 
     [Fact]
@@ -71,7 +68,7 @@ public class HotkeySetTests
 
         Assert.Equal(
             HotkeyValidationResult.Valid,
-            set.Validate(HotkeyAction.Size1, VirtualKeys.D1, HotkeyModifiers.Control));
+            set.Validate(HotkeyAction.ToggleConfigurator, VirtualKeys.P, HotkeyModifiers.Control));
     }
 
     [Fact]
@@ -81,11 +78,11 @@ public class HotkeySetTests
 
         Assert.Equal(
             HotkeyValidationResult.ModifierOnly,
-            set.Validate(HotkeyAction.Recenter, VirtualKeys.Control, HotkeyModifiers.Control));
+            set.Validate(HotkeyAction.Rearrange, VirtualKeys.Control, HotkeyModifiers.Control));
 
         Assert.Equal(
             HotkeyValidationResult.ModifierOnly,
-            set.Validate(HotkeyAction.Recenter, VirtualKeys.Shift, HotkeyModifiers.Shift));
+            set.Validate(HotkeyAction.Rearrange, VirtualKeys.Shift, HotkeyModifiers.Shift));
     }
 
     [Fact]
@@ -94,7 +91,7 @@ public class HotkeySetTests
         // Sinon le raccourci se déclencherait à chaque frappe dans le jeu.
         Assert.Equal(
             HotkeyValidationResult.MissingModifier,
-            HotkeySet.Default.Validate(HotkeyAction.Recenter, VirtualKeys.A, HotkeyModifiers.None));
+            HotkeySet.Default.Validate(HotkeyAction.Rearrange, VirtualKeys.A, HotkeyModifiers.None));
     }
 
     [Fact]
@@ -102,7 +99,7 @@ public class HotkeySetTests
     {
         Assert.Equal(
             HotkeyValidationResult.Valid,
-            HotkeySet.Default.Validate(HotkeyAction.Recenter, VirtualKeys.F12, HotkeyModifiers.None));
+            HotkeySet.Default.Validate(HotkeyAction.Rearrange, VirtualKeys.F12, HotkeyModifiers.None));
     }
 
     [Fact]
@@ -110,7 +107,7 @@ public class HotkeySetTests
     {
         Assert.Equal(
             HotkeyValidationResult.NoKey,
-            HotkeySet.Default.Validate(HotkeyAction.Recenter, 0, HotkeyModifiers.Control));
+            HotkeySet.Default.Validate(HotkeyAction.Rearrange, 0, HotkeyModifiers.Control));
     }
 
     [Theory]
@@ -122,16 +119,16 @@ public class HotkeySetTests
     {
         Assert.Equal(
             HotkeyValidationResult.ReservedBySystem,
-            HotkeySet.Default.Validate(HotkeyAction.Recenter, key, modifiers));
+            HotkeySet.Default.Validate(HotkeyAction.Rearrange, key, modifiers));
     }
 
     [Fact]
     public void Un_raccourci_valide_remplace_l_ancien()
     {
         var set = HotkeySet.Default.With(
-            HotkeyAction.Recenter, VirtualKeys.F5, HotkeyModifiers.Control | HotkeyModifiers.Shift);
+            HotkeyAction.Rearrange, VirtualKeys.F5, HotkeyModifiers.Control | HotkeyModifiers.Shift);
 
-        Assert.Equal("Ctrl + Maj + F5", set.For(HotkeyAction.Recenter)!.DisplayText);
+        Assert.Equal("Ctrl + Maj + F5", set.For(HotkeyAction.Rearrange)!.DisplayText);
         Assert.Null(set.Resolve(VirtualKeys.R, HotkeyModifiers.Control));
     }
 
@@ -140,19 +137,19 @@ public class HotkeySetTests
     {
         var original = HotkeySet.Default;
 
-        var unchanged = original.With(HotkeyAction.Recenter, VirtualKeys.D1, HotkeyModifiers.Control);
+        var unchanged = original.With(HotkeyAction.Rearrange, VirtualKeys.P, HotkeyModifiers.Control);
 
-        Assert.Equal("Ctrl + R", unchanged.For(HotkeyAction.Recenter)!.DisplayText);
-        Assert.Equal(HotkeyAction.Size1, unchanged.Resolve(VirtualKeys.D1, HotkeyModifiers.Control));
+        Assert.Equal("Ctrl + R", unchanged.For(HotkeyAction.Rearrange)!.DisplayText);
+        Assert.Equal(HotkeyAction.ToggleConfigurator, unchanged.Resolve(VirtualKeys.P, HotkeyModifiers.Control));
     }
 
     [Fact]
     public void Une_action_peut_etre_privee_de_raccourci()
     {
-        var set = HotkeySet.Default.Without(HotkeyAction.CloseAllSessions);
+        var set = HotkeySet.Default.Without(HotkeyAction.CloseAll);
 
-        Assert.False(set.For(HotkeyAction.CloseAllSessions)!.IsAssigned);
-        Assert.Equal("Non attribué", set.For(HotkeyAction.CloseAllSessions)!.DisplayText);
+        Assert.False(set.For(HotkeyAction.CloseAll)!.IsAssigned);
+        Assert.Equal("Non attribué", set.For(HotkeyAction.CloseAll)!.DisplayText);
         Assert.Null(set.Resolve(VirtualKeys.D0, HotkeyModifiers.Control));
     }
 
@@ -160,11 +157,11 @@ public class HotkeySetTests
     public void Restaurer_les_valeurs_par_defaut_reprend_tout_l_ensemble()
     {
         var modified = HotkeySet.Default
-            .Without(HotkeyAction.Recenter)
-            .With(HotkeyAction.NextSession, VirtualKeys.F9, HotkeyModifiers.Control);
+            .Without(HotkeyAction.Rearrange)
+            .With(HotkeyAction.NextInstance, VirtualKeys.F9, HotkeyModifiers.Control);
 
-        Assert.Equal("Ctrl + F9", modified.For(HotkeyAction.NextSession)!.DisplayText);
-        Assert.Equal("Ctrl + Tab", HotkeySet.Default.For(HotkeyAction.NextSession)!.DisplayText);
+        Assert.Equal("Ctrl + F9", modified.For(HotkeyAction.NextInstance)!.DisplayText);
+        Assert.Equal("Ctrl + Tab", HotkeySet.Default.For(HotkeyAction.NextInstance)!.DisplayText);
     }
 
     [Fact]
@@ -174,14 +171,14 @@ public class HotkeySetTests
         // l'action concernée reprend sa valeur par défaut.
         var bindings = new[]
         {
-            new HotkeyBinding { Action = HotkeyAction.Size1, VirtualKey = VirtualKeys.D1, Modifiers = HotkeyModifiers.Control },
-            new HotkeyBinding { Action = HotkeyAction.Recenter, VirtualKey = VirtualKeys.D1, Modifiers = HotkeyModifiers.Control },
+            new HotkeyBinding { Action = HotkeyAction.ToggleConfigurator, VirtualKey = VirtualKeys.P, Modifiers = HotkeyModifiers.Control },
+            new HotkeyBinding { Action = HotkeyAction.Rearrange, VirtualKey = VirtualKeys.P, Modifiers = HotkeyModifiers.Control },
         };
 
         var set = HotkeySet.FromBindings(bindings);
 
-        Assert.Equal(HotkeyAction.Size1, set.Resolve(VirtualKeys.D1, HotkeyModifiers.Control));
-        Assert.Equal("Ctrl + R", set.For(HotkeyAction.Recenter)!.DisplayText);
+        Assert.Equal(HotkeyAction.ToggleConfigurator, set.Resolve(VirtualKeys.P, HotkeyModifiers.Control));
+        Assert.Equal("Ctrl + R", set.For(HotkeyAction.Rearrange)!.DisplayText);
     }
 
     [Fact]
@@ -189,10 +186,10 @@ public class HotkeySetTests
     {
         var bindings = new[]
         {
-            new HotkeyBinding { Action = HotkeyAction.Recenter, VirtualKey = VirtualKeys.A, Modifiers = HotkeyModifiers.None },
+            new HotkeyBinding { Action = HotkeyAction.Rearrange, VirtualKey = VirtualKeys.A, Modifiers = HotkeyModifiers.None },
         };
 
-        Assert.Equal("Ctrl + R", HotkeySet.FromBindings(bindings).For(HotkeyAction.Recenter)!.DisplayText);
+        Assert.Equal("Ctrl + R", HotkeySet.FromBindings(bindings).For(HotkeyAction.Rearrange)!.DisplayText);
     }
 
     [Fact]
@@ -200,7 +197,7 @@ public class HotkeySetTests
     {
         var set = HotkeySet.FromBindings(null);
 
-        Assert.Equal("Ctrl + Tab", set.For(HotkeyAction.NextSession)!.DisplayText);
+        Assert.Equal("Ctrl + Tab", set.For(HotkeyAction.NextInstance)!.DisplayText);
         Assert.Equal(Enum.GetValues<HotkeyAction>().Length, set.Bindings.Count);
     }
 
@@ -209,10 +206,10 @@ public class HotkeySetTests
     {
         var bindings = new[]
         {
-            new HotkeyBinding { Action = HotkeyAction.CloseAllSessions, VirtualKey = 0 },
+            new HotkeyBinding { Action = HotkeyAction.CloseAll, VirtualKey = 0 },
         };
 
-        Assert.False(HotkeySet.FromBindings(bindings).For(HotkeyAction.CloseAllSessions)!.IsAssigned);
+        Assert.False(HotkeySet.FromBindings(bindings).For(HotkeyAction.CloseAll)!.IsAssigned);
     }
 
     [Fact]
@@ -222,21 +219,21 @@ public class HotkeySetTests
         // doit pas le reprendre au chargement.
         var bindings = new[]
         {
-            new HotkeyBinding { Action = HotkeyAction.NextSession, VirtualKey = VirtualKeys.R, Modifiers = HotkeyModifiers.Control },
+            new HotkeyBinding { Action = HotkeyAction.NextInstance, VirtualKey = VirtualKeys.R, Modifiers = HotkeyModifiers.Control },
         };
 
         var set = HotkeySet.FromBindings(bindings);
 
-        Assert.Equal(HotkeyAction.NextSession, set.Resolve(VirtualKeys.R, HotkeyModifiers.Control));
-        Assert.False(set.For(HotkeyAction.Recenter)!.IsAssigned);
+        Assert.Equal(HotkeyAction.NextInstance, set.Resolve(VirtualKeys.R, HotkeyModifiers.Control));
+        Assert.False(set.For(HotkeyAction.Rearrange)!.IsAssigned);
     }
 
     [Fact]
     public void Les_libelles_d_action_sont_lisibles()
     {
-        Assert.Equal("Session suivante", HotkeyBinding.DescribeAction(HotkeyAction.NextSession));
-        Assert.Equal("Recentrer les fenêtres", HotkeyBinding.DescribeAction(HotkeyAction.Recenter));
-        Assert.Equal("Fermer toutes les sessions", HotkeyBinding.DescribeAction(HotkeyAction.CloseAllSessions));
+        Assert.Equal("Instance suivante", HotkeyBinding.DescribeAction(HotkeyAction.NextInstance));
+        Assert.Equal("Remettre les fenêtres en place", HotkeyBinding.DescribeAction(HotkeyAction.Rearrange));
+        Assert.Equal("Tout fermer", HotkeyBinding.DescribeAction(HotkeyAction.CloseAll));
     }
 
     [Theory]
@@ -264,7 +261,7 @@ public class HotkeySetTests
     {
         var binding = new HotkeyBinding
         {
-            Action = HotkeyAction.Recenter,
+            Action = HotkeyAction.Rearrange,
             VirtualKey = VirtualKeys.A,
             Modifiers = HotkeyModifiers.Shift | HotkeyModifiers.Control | HotkeyModifiers.Alt,
         };

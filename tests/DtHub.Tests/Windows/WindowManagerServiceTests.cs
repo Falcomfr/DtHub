@@ -1,5 +1,5 @@
-using DtHub.Core.Profiles;
 using DtHub.Core.Scrcpy;
+using DtHub.Core.Sessions;
 using DtHub.Core.Windows;
 using DtHub.Tests.Fakes;
 
@@ -11,12 +11,14 @@ public class WindowManagerServiceTests
 
     private static Task NoDelay(TimeSpan _, CancellationToken __) => Task.CompletedTask;
 
-    private static LaunchTarget Target(int userId, string package = "com.exemple.app") => new()
+    private static LaunchTarget Target(int userId) => new()
     {
         DeviceId = "MATERIEL123",
+        Serial = "USB0001",
         UserId = userId,
-        PackageName = package,
-        LaunchComponent = $"{package}/.Main",
+        PackageName = "com.ankama.dofustouch",
+        LaunchComponent = "com.ankama.dofustouch/.MainActivity",
+        DisplayName = userId == 0 ? "Principal" : $"Profil {userId}",
     };
 
     /// <summary>
@@ -42,10 +44,10 @@ public class WindowManagerServiceTests
         for (var i = 0; i < count; i++)
         {
             var session = await manager.StartAsync(
-                Target(i * 10), "USB0001", ScrcpyOptions.Default, null, CancellationToken.None);
+                Target(i * 10), ScrcpyOptions.Default, null, CancellationToken.None);
 
             sessions.Add(session);
-            desktop.AddWindow(1000 + i, session.ProcessId, $"App - DtHub [{session.Id}]");
+            desktop.AddWindow(1000 + i, session.ProcessId, $"Instance - DtHub [{session.Id}]");
         }
 
         return (manager, sessions, desktop);
@@ -68,9 +70,7 @@ public class WindowManagerServiceTests
         var (manager, sessions, desktop) = await OpenSessionsAsync(1);
         await using var _ = manager;
 
-        // Même titre, autre processus : c'est le cas d'un second DT Hub lancé
-        // par erreur, ou d'un logiciel qui imite le titre.
-        desktop.AddWindow(9999, 55555, $"App - DtHub [{sessions[0].Id}]");
+        desktop.AddWindow(9999, 55555, $"Instance - DtHub [{sessions[0].Id}]");
 
         var service = new WindowManagerService(desktop, NoDelay);
 
@@ -83,8 +83,7 @@ public class WindowManagerServiceTests
         var (manager, sessions, _) = await OpenSessionsAsync(1);
         await using var __ = manager;
 
-        var emptyDesktop = new FakeWindowController();
-        var service = new WindowManagerService(emptyDesktop, NoDelay)
+        var service = new WindowManagerService(new FakeWindowController(), NoDelay)
         {
             WindowAppearanceTimeout = TimeSpan.FromMilliseconds(50),
             WindowPollInterval = TimeSpan.Zero,
@@ -94,23 +93,19 @@ public class WindowManagerServiceTests
     }
 
     [Fact]
-    public async Task Toutes_les_fenetres_recoivent_exactement_la_meme_position_et_la_meme_taille()
+    public async Task Toutes_les_fenetres_se_superposent_exactement()
     {
         var (manager, sessions, desktop) = await OpenSessionsAsync(4);
         await using var _ = manager;
 
         var service = new WindowManagerService(desktop, NoDelay);
 
-        var moved = await service.ApplySizeAsync(sessions, 2, CancellationToken.None);
-
-        Assert.Equal(4, moved);
-
-        var rects = sessions.Select(s => desktop.GetWindowRect(s.WindowHandle)).Distinct().ToList();
-        Assert.Single(rects);
+        Assert.Equal(4, await service.ArrangeAsync(sessions, CancellationToken.None));
+        Assert.Single(sessions.Select(s => desktop.GetWindowRect(s.WindowHandle)).Distinct());
     }
 
     [Fact]
-    public async Task L_empilement_fonctionne_avec_deux_comme_avec_sept_sessions()
+    public async Task La_superposition_vaut_pour_deux_comme_pour_sept_instances()
     {
         foreach (var count in new[] { 2, 3, 4, 7 })
         {
@@ -119,24 +114,25 @@ public class WindowManagerServiceTests
 
             var service = new WindowManagerService(desktop, NoDelay);
 
-            Assert.Equal(count, await service.ApplySizeAsync(sessions, 1, CancellationToken.None));
+            Assert.Equal(count, await service.ArrangeAsync(sessions, CancellationToken.None));
             Assert.Single(sessions.Select(s => desktop.GetWindowRect(s.WindowHandle)).Distinct());
         }
     }
 
     [Fact]
-    public async Task Les_fenetres_sont_centrees_sur_la_zone_utilisable()
+    public async Task La_position_choisie_est_appliquee()
     {
         var (manager, sessions, desktop) = await OpenSessionsAsync(2);
         await using var _ = manager;
 
-        var service = new WindowManagerService(desktop, NoDelay);
-        await service.ApplySizeAsync(sessions, 3, CancellationToken.None);
+        var service = new WindowManagerService(desktop, NoDelay) { Anchor = WindowAnchor.BottomRight };
+        await service.ArrangeAsync(sessions, CancellationToken.None);
 
         var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+        var work = FakeWindowController.PrimaryMonitor.WorkArea;
 
-        Assert.Equal(FakeWindowController.PrimaryMonitor.WorkArea.CenterX, rect.CenterX);
-        Assert.Equal(FakeWindowController.PrimaryMonitor.WorkArea.CenterY, rect.CenterY);
+        Assert.Equal(work.Right, rect.Right);
+        Assert.Equal(work.Bottom, rect.Bottom);
     }
 
     [Fact]
@@ -146,95 +142,57 @@ public class WindowManagerServiceTests
         await using var _ = manager;
 
         var service = new WindowManagerService(desktop, NoDelay);
-        await service.ApplySizeAsync(sessions, 3, CancellationToken.None);
+        await service.ArrangeAsync(sessions, CancellationToken.None);
 
-        var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
-
-        Assert.Equal(1080.0 / 1920.0, rect.AspectRatio, 2);
+        Assert.Equal(1080.0 / 1920.0, desktop.GetWindowRect(sessions[0].WindowHandle)!.Value.AspectRatio, 2);
     }
 
     [Fact]
-    public async Task Le_plein_ecran_couvre_l_ecran_et_retire_la_bordure()
-    {
-        var (manager, sessions, desktop) = await OpenSessionsAsync(2);
-        await using var _ = manager;
-
-        var service = new WindowManagerService(desktop, NoDelay);
-        await service.ApplySizeAsync(sessions, WindowSizePresets.Default.FullscreenIndex, CancellationToken.None);
-
-        foreach (var session in sessions)
-        {
-            Assert.Equal(FakeWindowController.PrimaryMonitor.Bounds, desktop.GetWindowRect(session.WindowHandle));
-            Assert.Contains(session.WindowHandle, desktop.Borderless);
-        }
-    }
-
-    [Fact]
-    public async Task Sortir_du_plein_ecran_retablit_la_bordure()
-    {
-        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
-        await using var _ = manager;
-
-        var service = new WindowManagerService(desktop, NoDelay);
-
-        await service.ApplySizeAsync(sessions, WindowSizePresets.Default.FullscreenIndex, CancellationToken.None);
-        await service.ApplySizeAsync(sessions, 1, CancellationToken.None);
-
-        Assert.Empty(desktop.Borderless);
-    }
-
-    [Fact]
-    public async Task Recentrer_remet_ensemble_des_fenetres_deplacees_a_la_main()
+    public async Task Remettre_en_place_rassemble_des_fenetres_deplacees_a_la_main()
     {
         var (manager, sessions, desktop) = await OpenSessionsAsync(3);
         await using var _ = manager;
 
         var service = new WindowManagerService(desktop, NoDelay);
-        await service.ApplySizeAsync(sessions, 2, CancellationToken.None);
+        await service.ArrangeAsync(sessions, CancellationToken.None);
 
-        // L'utilisateur éparpille les fenêtres.
+        var expected = desktop.GetWindowRect(sessions[0].WindowHandle);
+
         desktop.MoveWindow(sessions[0].WindowHandle, new ScreenRect(10, 10, 300, 300));
         desktop.MoveWindow(sessions[1].WindowHandle, new ScreenRect(900, 500, 200, 800));
 
-        await service.RecenterAsync(sessions, CancellationToken.None);
+        await service.ArrangeAsync(sessions, CancellationToken.None);
 
-        Assert.Single(sessions.Select(s => desktop.GetWindowRect(s.WindowHandle)).Distinct());
+        Assert.All(sessions, s => Assert.Equal(expected, desktop.GetWindowRect(s.WindowHandle)));
     }
 
     [Fact]
-    public async Task Recentrer_conserve_la_taille_courante()
-    {
-        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
-        await using var _ = manager;
-
-        var service = new WindowManagerService(desktop, NoDelay);
-        await service.ApplySizeAsync(sessions, 0, CancellationToken.None);
-
-        var before = desktop.GetWindowRect(sessions[0].WindowHandle);
-
-        desktop.MoveWindow(sessions[0].WindowHandle, new ScreenRect(0, 0, 100, 100));
-        await service.RecenterAsync(sessions, CancellationToken.None);
-
-        Assert.Equal(before, desktop.GetWindowRect(sessions[0].WindowHandle));
-        Assert.Equal(0, service.CurrentSizeIndex);
-    }
-
-    [Fact]
-    public async Task Le_parcours_des_sessions_est_circulaire()
+    public async Task Le_parcours_avant_est_circulaire()
     {
         var (manager, sessions, desktop) = await OpenSessionsAsync(3);
         await using var _ = manager;
 
         var service = new WindowManagerService(desktop, NoDelay);
-        await service.ApplySizeAsync(sessions, 2, CancellationToken.None);
+        await service.ArrangeAsync(sessions, CancellationToken.None);
 
-        var visited = new List<nint>();
-        for (var i = 0; i < 4; i++)
-        {
-            visited.Add(service.FocusNext(sessions)!.WindowHandle);
-        }
+        var visited = Enumerable.Range(0, 4).Select(_ => service.FocusNext(sessions)!.WindowHandle).ToList();
 
         Assert.Equal([1000, 1001, 1002, 1000], visited);
+    }
+
+    [Fact]
+    public async Task Le_parcours_arriere_remonte_la_liste()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(3);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.ArrangeAsync(sessions, CancellationToken.None);
+
+        desktop.Foreground = 1000;
+
+        Assert.Equal(1002, service.FocusPrevious(sessions)!.WindowHandle);
+        Assert.Equal(1001, service.FocusPrevious(sessions)!.WindowHandle);
     }
 
     [Fact]
@@ -244,7 +202,7 @@ public class WindowManagerServiceTests
         await using var _ = manager;
 
         var service = new WindowManagerService(desktop, NoDelay);
-        await service.ApplySizeAsync(sessions, 2, CancellationToken.None);
+        await service.ArrangeAsync(sessions, CancellationToken.None);
 
         // L'utilisateur clique sur la troisième fenêtre.
         desktop.Foreground = 1002;
@@ -259,27 +217,23 @@ public class WindowManagerServiceTests
         await using var _ = manager;
 
         var service = new WindowManagerService(desktop, NoDelay);
-        await service.ApplySizeAsync(sessions, 2, CancellationToken.None);
+        await service.ArrangeAsync(sessions, CancellationToken.None);
 
         await manager.StopAsync(sessions[1].Id, CancellationToken.None);
         desktop.RemoveWindow(sessions[1].WindowHandle);
 
-        var visited = new List<nint>();
-        for (var i = 0; i < 3; i++)
-        {
-            visited.Add(service.FocusNext(sessions)!.WindowHandle);
-        }
+        var visited = Enumerable.Range(0, 3).Select(_ => service.FocusNext(sessions)!.WindowHandle).ToList();
 
         Assert.DoesNotContain((nint)1001, visited);
     }
 
     [Fact]
-    public async Task Sans_aucune_session_le_parcours_ne_designe_rien()
+    public void Sans_aucune_session_le_parcours_ne_designe_rien()
     {
-        var (manager, _, desktop) = await OpenSessionsAsync(0);
-        await using var __ = manager;
+        var service = new WindowManagerService(new FakeWindowController(), NoDelay);
 
-        Assert.Null(new WindowManagerService(desktop, NoDelay).FocusNext([]));
+        Assert.Null(service.FocusNext([]));
+        Assert.Null(service.FocusPrevious([]));
     }
 
     [Fact]
@@ -289,7 +243,7 @@ public class WindowManagerServiceTests
         await using var _ = manager;
 
         var service = new WindowManagerService(desktop, NoDelay);
-        await service.ApplySizeAsync(sessions, 2, CancellationToken.None);
+        await service.ArrangeAsync(sessions, CancellationToken.None);
 
         desktop.Foreground = 1001;
         Assert.True(service.IsManagedWindowFocused(sessions));
@@ -297,35 +251,21 @@ public class WindowManagerServiceTests
         // L'utilisateur bascule sur son navigateur : Ctrl+Tab doit lui revenir.
         desktop.Foreground = 424242;
         Assert.False(service.IsManagedWindowFocused(sessions));
-
-        desktop.Foreground = 0;
-        Assert.False(service.IsManagedWindowFocused(sessions));
     }
 
     [Fact]
-    public async Task L_ecran_prefere_est_utilise_quand_il_est_present()
+    public void La_zone_de_jeu_est_previsible_sans_deplacer_aucune_fenetre()
     {
-        var secondary = new MonitorInfo
-        {
-            DeviceName = @"\\.\DISPLAY2",
-            Bounds = new ScreenRect(1920, 0, 2560, 1440),
-            WorkArea = new ScreenRect(1920, 0, 2560, 1400),
-        };
-
-        var (manager, sessions, _) = await OpenSessionsAsync(1);
-        await using var __ = manager;
-
-        var desktop = new FakeWindowController(FakeWindowController.PrimaryMonitor, secondary);
-        desktop.AddWindow(1000, sessions[0].ProcessId, $"App - DtHub [{sessions[0].Id}]");
-
+        var desktop = new FakeWindowController();
         var service = new WindowManagerService(desktop, NoDelay)
         {
-            PreferredMonitorDeviceName = @"\\.\DISPLAY2",
+            Anchor = WindowAnchor.MiddleLeft,
+            SizePercent = 70,
         };
 
-        await service.ApplySizeAsync(sessions, 2, CancellationToken.None);
+        var area = service.PreviewGameArea(1080.0 / 1920.0);
 
-        var rect = desktop.GetWindowRect(1000)!.Value;
-        Assert.True(rect.X >= 1920, $"La fenêtre devrait être sur le second écran : {rect}");
+        Assert.NotNull(area);
+        Assert.Equal(FakeWindowController.PrimaryMonitor.WorkArea.X, area.Value.X);
     }
 }

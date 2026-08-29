@@ -71,6 +71,11 @@ public sealed class DeviceReconnectService
     /// Tente de retrouver plusieurs appareils. Les tentatives sont
     /// séquentielles : ADB sérialise de toute façon les connexions, et cela
     /// évite d'empiler les balayages mDNS.
+    ///
+    /// Tous les appareils connus sont tentés, sans filtre préalable : la
+    /// sûreté vient de la correspondance entre le numéro de série et le nom du
+    /// service annoncé, pas d'un drapeau qui peut manquer sur un appareil
+    /// mémorisé par une version antérieure.
     /// </summary>
     public async Task<IReadOnlyDictionary<string, ReconnectOutcome>> TryReconnectAllAsync(
         IEnumerable<AndroidDevice> devices,
@@ -80,7 +85,7 @@ public sealed class DeviceReconnectService
 
         var outcomes = new Dictionary<string, ReconnectOutcome>(StringComparer.Ordinal);
 
-        foreach (var device in devices.Where(d => d.IsPaired || d.LastKnownAddress is { Length: > 0 }))
+        foreach (var device in devices)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

@@ -1,4 +1,4 @@
-using DtHub.Core.Apps;
+using DtHub.Core.Sessions;
 using DtHub.Core.Scrcpy;
 
 namespace DtHub.Tests.Fakes;
@@ -24,6 +24,9 @@ public sealed class FakeAppLauncher : IAppLauncher
     /// <summary>Résultat rendu à chaque appel.</summary>
     public AppLaunchResult Outcome { get; set; } = AppLaunchResult.Success;
 
+    /// <summary>Arrêts forcés demandés, dans l'ordre.</summary>
+    public List<string> ForceStops { get; } = [];
+
     public Task<AppLaunchResult> LaunchAsync(
         string serial,
         int userId,
@@ -34,5 +37,15 @@ public sealed class FakeAppLauncher : IAppLauncher
     {
         Calls.Add(new LaunchCall(serial, userId, packageName, knownComponent, displayId));
         return Task.FromResult(Outcome);
+    }
+
+    public Task ForceStopAsync(
+        string serial,
+        int userId,
+        string packageName,
+        CancellationToken cancellationToken = default)
+    {
+        ForceStops.Add($"{serial}|{userId}|{packageName}");
+        return Task.CompletedTask;
     }
 }

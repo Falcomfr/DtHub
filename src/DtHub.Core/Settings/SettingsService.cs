@@ -1,14 +1,13 @@
+using DtHub.Core.Dofus;
 using DtHub.Core.Hotkeys;
 using DtHub.Core.Scrcpy;
 using DtHub.Core.Storage;
-using DtHub.Core.Windows;
 
 namespace DtHub.Core.Settings;
 
 /// <summary>
-/// Point d'accès unique aux réglages. Les valeurs sont chargées une fois puis
-/// tenues en mémoire ; chaque modification est écrite immédiatement, il n'y a
-/// pas de bouton Enregistrer à oublier.
+/// Point d'accès unique aux réglages. Chargés une fois, tenus en mémoire, et
+/// écrits à chaque modification : il n'y a pas de bouton Enregistrer à oublier.
 /// </summary>
 public sealed class SettingsService : IDisposable
 {
@@ -22,7 +21,6 @@ public sealed class SettingsService : IDisposable
     /// <summary>Déclenché après chaque écriture réussie.</summary>
     public event EventHandler<AppSettingsDocument>? Changed;
 
-    /// <summary>Réglages courants, chargés à la demande.</summary>
     public async Task<AppSettingsDocument> GetAsync(CancellationToken cancellationToken = default)
     {
         if (_current is not null)
@@ -72,7 +70,7 @@ public sealed class SettingsService : IDisposable
     /// <summary>Force la relecture depuis le disque au prochain accès.</summary>
     public void Invalidate() => _current = null;
 
-    /// <summary>Réglages scrcpy dérivés des préférences.</summary>
+    /// <summary>Réglages de mirroring dérivés des préférences.</summary>
     public async Task<ScrcpyOptions> GetScrcpyOptionsAsync(CancellationToken cancellationToken = default)
     {
         var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
@@ -86,18 +84,7 @@ public sealed class SettingsService : IDisposable
             VirtualDisplayWidth = settings.VirtualDisplayWidth,
             VirtualDisplayHeight = settings.VirtualDisplayHeight,
             VirtualDisplayDpi = settings.VirtualDisplayDpi,
-            KeyboardMode = settings.KeyboardMode == ScrcpyKeyboardModeSetting.Uhid
-                ? ScrcpyKeyboardMode.Uhid
-                : ScrcpyKeyboardMode.Sdk,
         }.Sanitized();
-    }
-
-    /// <summary>Tailles de fenêtre configurées, corrigées si nécessaire.</summary>
-    public async Task<WindowSizePresets> GetWindowPresetsAsync(CancellationToken cancellationToken = default)
-    {
-        var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
-
-        return new WindowSizePresets { Percentages = settings.SizePercentages }.Sanitized();
     }
 
     /// <summary>Raccourcis configurés, réparés si le fichier est incohérent.</summary>
@@ -114,7 +101,6 @@ public sealed class SettingsService : IDisposable
         return HotkeySet.FromBindings(bindings.Count == 0 ? null : bindings);
     }
 
-    /// <summary>Enregistre l'ensemble des raccourcis.</summary>
     public Task SaveHotkeysAsync(HotkeySet hotkeys, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(hotkeys);
@@ -124,45 +110,97 @@ public sealed class SettingsService : IDisposable
             cancellationToken);
     }
 
-    /// <summary>Clé de favori d'une application, stable entre deux lancements.</summary>
-    public static string FavoriteKey(string deviceId, int userId, string packageName) =>
-        $"{deviceId}|{userId.ToString(System.Globalization.CultureInfo.InvariantCulture)}|{packageName}";
-
-    /// <summary>Bascule le statut de favori d'une application.</summary>
-    public async Task<bool> ToggleFavoriteAsync(
-        string deviceId,
-        int userId,
-        string packageName,
+    /// <summary>
+    /// Fusionne les instances découvertes avec celles qui étaient mémorisées.
+    /// Le nom choisi par l'utilisateur et la case de lancement lui
+    /// appartiennent : une redécouverte ne les écrase jamais.
+    /// </summary>
+    public async Task<IReadOnlyList<DofusInstance>> MergeInstancesAsync(
+        IReadOnlyList<DofusInstance> discovered,
         CancellationToken cancellationToken = default)
     {
-        var key = FavoriteKey(deviceId, userId, packageName);
-        var added = false;
+        ArgumentNullException.ThrowIfNull(discovered);
+
+        IReadOnlyList<DofusInstance> merged = [];
 
         await UpdateAsync(settings =>
         {
-            if (settings.FavoriteApps.Remove(key))
+            var stored = settings.Instances.ToDictionary(i => i.Key, StringComparer.Ordinal);
+
+            foreach (var instance in discovered)
             {
-                return;
+                if (stored.TryGetValue(instance.Key, out var existing))
+                {
+                    existing.DeviceName = instance.DeviceName;
+                    existing.UserName = instance.UserName;
+                    existing.LaunchComponent = instance.LaunchComponent ?? existing.LaunchComponent;
+                    continue;
+                }
+
+                var entry = new StoredInstance
+                {
+                    DeviceId = instance.DeviceId,
+                    UserId = instance.UserId,
+                    PackageName = instance.PackageName,
+                    DeviceName = instance.DeviceName,
+                    UserName = instance.UserName,
+                    LaunchComponent = instance.LaunchComponent,
+                    IsEnabled = false,
+                    Order = settings.Instances.Count,
+                };
+
+                settings.Instances.Add(entry);
+                stored[entry.Key] = entry;
             }
 
-            settings.FavoriteApps.Add(key);
-            added = true;
+            var live = discovered.Select(i => i.Key).ToHashSet(StringComparer.Ordinal);
+
+            merged = [.. settings.Instances
+                .OrderBy(i => i.Order)
+                .Select(i => new DofusInstance
+                {
+                    DeviceId = i.DeviceId,
+                    DeviceName = i.DeviceName,
+                    UserId = i.UserId,
+                    UserName = i.UserName,
+                    PackageName = i.PackageName,
+                    LaunchComponent = i.LaunchComponent,
+                    CustomName = i.CustomName,
+                    IsEnabled = i.IsEnabled,
+                    IsDeviceConnected = live.Contains(i.Key),
+                })];
         }, cancellationToken).ConfigureAwait(false);
 
-        return added;
+        return merged;
     }
 
-    /// <summary>Vrai si l'application est marquée comme favorite.</summary>
-    public async Task<bool> IsFavoriteAsync(
-        string deviceId,
-        int userId,
-        string packageName,
-        CancellationToken cancellationToken = default)
-    {
-        var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
+    /// <summary>Coche ou décoche une instance pour le lancement automatique.</summary>
+    public Task SetInstanceEnabledAsync(string key, bool enabled, CancellationToken cancellationToken = default) =>
+        UpdateAsync(settings =>
+        {
+            var instance = settings.Instances.Find(i => string.Equals(i.Key, key, StringComparison.Ordinal));
+            if (instance is not null)
+            {
+                instance.IsEnabled = enabled;
+            }
+        }, cancellationToken);
 
-        return settings.FavoriteApps.Contains(FavoriteKey(deviceId, userId, packageName));
-    }
+    /// <summary>Renomme une instance. Un nom vide rétablit le nom du profil Android.</summary>
+    public Task RenameInstanceAsync(string key, string? name, CancellationToken cancellationToken = default) =>
+        UpdateAsync(settings =>
+        {
+            var instance = settings.Instances.Find(i => string.Equals(i.Key, key, StringComparison.Ordinal));
+            if (instance is not null)
+            {
+                instance.CustomName = string.IsNullOrWhiteSpace(name) ? null : name.Trim();
+            }
+        }, cancellationToken);
+
+    /// <summary>Oublie les instances d'un téléphone retiré.</summary>
+    public Task ForgetDeviceAsync(string deviceId, CancellationToken cancellationToken = default) =>
+        UpdateAsync(settings =>
+            settings.Instances.RemoveAll(i => string.Equals(i.DeviceId, deviceId, StringComparison.Ordinal)),
+            cancellationToken);
 
     public void Dispose() => _gate.Dispose();
 }

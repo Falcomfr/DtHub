@@ -14,21 +14,15 @@ public sealed class HotkeySet
     /// <summary>Raccourcis livrés par défaut.</summary>
     public static HotkeySet Default => new(new Dictionary<HotkeyAction, HotkeyBinding>
     {
-        [HotkeyAction.NextSession] = Bind(HotkeyAction.NextSession, VirtualKeys.Tab, HotkeyModifiers.Control),
-        [HotkeyAction.PreviousSession] = Bind(
-            HotkeyAction.PreviousSession, VirtualKeys.Tab, HotkeyModifiers.Control | HotkeyModifiers.Shift),
-        [HotkeyAction.Size1] = Bind(HotkeyAction.Size1, VirtualKeys.D1, HotkeyModifiers.Control),
-        [HotkeyAction.Size2] = Bind(HotkeyAction.Size2, VirtualKeys.D2, HotkeyModifiers.Control),
-        [HotkeyAction.Size3] = Bind(HotkeyAction.Size3, VirtualKeys.D3, HotkeyModifiers.Control),
-        [HotkeyAction.Size4] = Bind(HotkeyAction.Size4, VirtualKeys.D4, HotkeyModifiers.Control),
-        [HotkeyAction.Fullscreen] = Bind(HotkeyAction.Fullscreen, VirtualKeys.D5, HotkeyModifiers.Control),
-        [HotkeyAction.Recenter] = Bind(HotkeyAction.Recenter, VirtualKeys.R, HotkeyModifiers.Control),
-        [HotkeyAction.CloseAllSessions] = Bind(HotkeyAction.CloseAllSessions, VirtualKeys.D0, HotkeyModifiers.Control),
-
-        // Ctrl+Maj+P n'entre en conflit ni avec les tailles, ni avec les
-        // raccourcis de scrcpy, qui utilisent Alt par défaut.
-        [HotkeyAction.OpenSettings] = Bind(
-            HotkeyAction.OpenSettings, 0x50, HotkeyModifiers.Control | HotkeyModifiers.Shift),
+        // scrcpy réserve Alt pour ses propres raccourcis : on reste sur Ctrl.
+        [HotkeyAction.ToggleConfigurator] = Bind(
+            HotkeyAction.ToggleConfigurator, VirtualKeys.P, HotkeyModifiers.Control),
+        [HotkeyAction.NextInstance] = Bind(
+            HotkeyAction.NextInstance, VirtualKeys.Tab, HotkeyModifiers.Control),
+        [HotkeyAction.PreviousInstance] = Bind(
+            HotkeyAction.PreviousInstance, VirtualKeys.Tab, HotkeyModifiers.Control | HotkeyModifiers.Shift),
+        [HotkeyAction.Rearrange] = Bind(HotkeyAction.Rearrange, VirtualKeys.R, HotkeyModifiers.Control),
+        [HotkeyAction.CloseAll] = Bind(HotkeyAction.CloseAll, VirtualKeys.D0, HotkeyModifiers.Control),
     });
 
     /// <summary>Tous les raccourcis, triés dans l'ordre d'affichage de l'éditeur.</summary>

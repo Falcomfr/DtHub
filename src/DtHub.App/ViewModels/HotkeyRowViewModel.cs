@@ -24,15 +24,11 @@ public sealed partial class HotkeyRowViewModel : ObservableObject
 
     public string ActionLabel => HotkeyBinding.DescribeAction(Binding.Action);
 
-    public string ShortcutText => IsCapturing ? "Appuyez sur le nouveau raccourci…" : Binding.DisplayText;
+    public string ShortcutText => IsCapturing ? "Appuyez sur la nouvelle combinaison…" : Binding.DisplayText;
 
     public bool HasError => !string.IsNullOrWhiteSpace(Error);
 
-    public void Update(HotkeyBinding binding)
-    {
-        Binding = binding;
-        OnPropertyChanged(nameof(ShortcutText));
-    }
+    partial void OnBindingChanged(HotkeyBinding value) => OnPropertyChanged(nameof(ShortcutText));
 
     partial void OnIsCapturingChanged(bool value) => OnPropertyChanged(nameof(ShortcutText));
 

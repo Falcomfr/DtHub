@@ -2,41 +2,32 @@ namespace DtHub.Core.Windows;
 
 /// <summary>
 /// Calcule la position et la taille des fenêtres. Fonctions pures : la
-/// disposition se vérifie entièrement sans écran ni fenêtre réelle, ce qui
-/// évite d'avoir à déplacer des fenêtres pour tester un calcul.
+/// disposition se vérifie entièrement sans écran ni fenêtre réelle.
 /// </summary>
 public static class WindowLayoutCalculator
 {
     /// <summary>
-    /// Calcule le rectangle d'une fenêtre pour une taille donnée. Le rapport
-    /// d'affichage vient de l'écran virtuel Android, pas d'une valeur figée :
-    /// un téléphone est en portrait, une tablette en paysage.
+    /// Rectangle d'une fenêtre de jeu : une part de la zone utilisable,
+    /// au rapport d'affichage de l'écran virtuel Android, collée à la
+    /// position demandée.
     /// </summary>
     /// <param name="monitor">Écran visé.</param>
-    /// <param name="presets">Tailles configurées.</param>
-    /// <param name="index">Indice de taille demandé.</param>
+    /// <param name="sizePercent">Part de la zone utilisable, en pourcentage.</param>
     /// <param name="sourceAspectRatio">
-    /// Rapport largeur sur hauteur de la source. Une valeur nulle ou négative
-    /// fait remplir la zone disponible sans contrainte de forme.
+    /// Rapport largeur sur hauteur de la source. Zéro remplit sans contrainte
+    /// de forme.
     /// </param>
+    /// <param name="anchor">Position dans la grille.</param>
     public static ScreenRect Calculate(
         MonitorInfo monitor,
-        WindowSizePresets presets,
-        int index,
-        double sourceAspectRatio)
+        int sizePercent,
+        double sourceAspectRatio,
+        WindowAnchor anchor)
     {
         ArgumentNullException.ThrowIfNull(monitor);
-        ArgumentNullException.ThrowIfNull(presets);
-
-        if (presets.IsFullscreen(index))
-        {
-            // Plein écran sans bordure : l'écran entier, barre des tâches
-            // comprise, sinon ce ne serait pas du plein écran.
-            return monitor.Bounds;
-        }
 
         var work = monitor.WorkArea.IsEmpty ? monitor.Bounds : monitor.WorkArea;
-        var fraction = presets.PercentageAt(index) / 100.0;
+        var fraction = Math.Clamp(sizePercent, 20, 100) / 100.0;
 
         var maxWidth = Math.Max(1, (int)Math.Round(work.Width * fraction));
         var maxHeight = Math.Max(1, (int)Math.Round(work.Height * fraction));
@@ -45,24 +36,41 @@ public static class WindowLayoutCalculator
             ? FitToAspect(maxWidth, maxHeight, sourceAspectRatio)
             : (maxWidth, maxHeight);
 
-        return Center(work, width, height);
+        return Place(work, width, height, anchor);
     }
 
     /// <summary>
-    /// Centre un rectangle de taille donnée dans une zone. Utilisé par la
-    /// commande Recentrer, qui remet ensemble des fenêtres déplacées à la
-    /// main.
+    /// Colle un rectangle de taille donnée à une position de la grille, à
+    /// l'intérieur d'une zone.
     /// </summary>
-    public static ScreenRect Center(ScreenRect area, int width, int height)
+    public static ScreenRect Place(ScreenRect area, int width, int height, WindowAnchor anchor)
     {
-        var clampedWidth = Math.Clamp(width, 1, Math.Max(1, area.Width));
-        var clampedHeight = Math.Clamp(height, 1, Math.Max(1, area.Height));
+        var w = Math.Clamp(width, 1, Math.Max(1, area.Width));
+        var h = Math.Clamp(height, 1, Math.Max(1, area.Height));
 
-        return new ScreenRect(
-            area.X + ((area.Width - clampedWidth) / 2),
-            area.Y + ((area.Height - clampedHeight) / 2),
-            clampedWidth,
-            clampedHeight);
+        var left = area.X;
+        var centerX = area.X + ((area.Width - w) / 2);
+        var right = area.Right - w;
+
+        var top = area.Y;
+        var middleY = area.Y + ((area.Height - h) / 2);
+        var bottom = area.Bottom - h;
+
+        var (x, y) = anchor switch
+        {
+            WindowAnchor.TopLeft => (left, top),
+            WindowAnchor.TopCenter => (centerX, top),
+            WindowAnchor.TopRight => (right, top),
+            WindowAnchor.MiddleLeft => (left, middleY),
+            WindowAnchor.Center => (centerX, middleY),
+            WindowAnchor.MiddleRight => (right, middleY),
+            WindowAnchor.BottomLeft => (left, bottom),
+            WindowAnchor.BottomCenter => (centerX, bottom),
+            WindowAnchor.BottomRight => (right, bottom),
+            _ => (centerX, middleY),
+        };
+
+        return new ScreenRect(x, y, w, h);
     }
 
     /// <summary>
@@ -84,28 +92,7 @@ public static class WindowLayoutCalculator
     }
 
     /// <summary>
-    /// Écran contenant le point donné, ou l'écran principal à défaut. Sert à
-    /// suivre la fenêtre que l'utilisateur vient de déplacer.
-    /// </summary>
-    public static MonitorInfo ChooseMonitor(
-        IReadOnlyList<MonitorInfo> monitors,
-        int x,
-        int y)
-    {
-        ArgumentNullException.ThrowIfNull(monitors);
-
-        if (monitors.Count == 0)
-        {
-            throw new InvalidOperationException("Aucun écran n'a été détecté.");
-        }
-
-        return monitors.FirstOrDefault(m => m.Bounds.Contains(x, y))
-               ?? monitors.FirstOrDefault(m => m.IsPrimary)
-               ?? monitors[0];
-    }
-
-    /// <summary>
-    /// Écran désigné par son nom dans les paramètres, avec repli sur l'écran
+    /// Écran désigné par son nom dans les réglages, avec repli sur l'écran
     /// principal si celui qui était choisi a été débranché.
     /// </summary>
     public static MonitorInfo ChooseMonitor(IReadOnlyList<MonitorInfo> monitors, string? preferredDeviceName)
@@ -131,10 +118,25 @@ public static class WindowLayoutCalculator
         return monitors.FirstOrDefault(m => m.IsPrimary) ?? monitors[0];
     }
 
+    /// <summary>Écran contenant le point donné, ou l'écran principal à défaut.</summary>
+    public static MonitorInfo ChooseMonitor(IReadOnlyList<MonitorInfo> monitors, int x, int y)
+    {
+        ArgumentNullException.ThrowIfNull(monitors);
+
+        if (monitors.Count == 0)
+        {
+            throw new InvalidOperationException("Aucun écran n'a été détecté.");
+        }
+
+        return monitors.FirstOrDefault(m => m.Bounds.Contains(x, y))
+               ?? monitors.FirstOrDefault(m => m.IsPrimary)
+               ?? monitors[0];
+    }
+
     /// <summary>
-    /// Indice de la session suivante dans un parcours circulaire. Fonctionne
-    /// pour deux sessions comme pour dix, et repart du début quand la session
-    /// courante n'est plus dans la liste.
+    /// Indice de la session suivante, en boucle. Fonctionne pour deux
+    /// instances comme pour dix, et repart du début quand la session courante
+    /// n'est plus dans la liste.
     /// </summary>
     public static int NextIndex(int count, int currentIndex)
     {
@@ -146,5 +148,16 @@ public static class WindowLayoutCalculator
         return currentIndex is < 0 or int.MaxValue || currentIndex >= count - 1
             ? 0
             : currentIndex + 1;
+    }
+
+    /// <summary>Indice de la session précédente, en boucle.</summary>
+    public static int PreviousIndex(int count, int currentIndex)
+    {
+        if (count <= 0)
+        {
+            return -1;
+        }
+
+        return currentIndex <= 0 ? count - 1 : currentIndex - 1;
     }
 }

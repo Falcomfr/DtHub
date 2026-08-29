@@ -1,15 +1,13 @@
 using System.Windows;
 
-using DtHub.Core.Settings;
-
 using Microsoft.Win32;
 
 namespace DtHub.App.Services;
 
 /// <summary>
-/// Applique le thème clair ou sombre. Seules les couleurs changent : les
-/// styles sont communs aux deux thèmes, ce qui évite de les maintenir en
-/// double.
+/// Applique le thème clair ou sombre en suivant Windows. Il n'y a pas de
+/// réglage : suivre le système donne toujours le bon résultat et fait un
+/// réglage de moins.
 /// </summary>
 public sealed class ThemeManager
 {
@@ -19,16 +17,9 @@ public sealed class ThemeManager
     private static readonly Uri LightPalette = new("Themes/Palette.xaml", UriKind.Relative);
     private static readonly Uri DarkPalette = new("Themes/PaletteDark.xaml", UriKind.Relative);
 
-    /// <summary>Applique un thème à l'application entière.</summary>
-    public void Apply(AppTheme theme)
+    /// <summary>Applique le thème du système à l'application entière.</summary>
+    public void ApplySystemTheme()
     {
-        var dark = theme switch
-        {
-            AppTheme.Dark => true,
-            AppTheme.Light => false,
-            _ => IsSystemDark(),
-        };
-
         var dictionaries = Application.Current?.Resources.MergedDictionaries;
         if (dictionaries is null || dictionaries.Count == 0)
         {
@@ -37,7 +28,10 @@ public sealed class ThemeManager
 
         // La palette est toujours le premier dictionnaire fusionné : on la
         // remplace en place pour que les références dynamiques suivent.
-        dictionaries[0] = new ResourceDictionary { Source = dark ? DarkPalette : LightPalette };
+        dictionaries[0] = new ResourceDictionary
+        {
+            Source = IsSystemDark() ? DarkPalette : LightPalette,
+        };
     }
 
     /// <summary>

@@ -1,5 +1,7 @@
+using DtHub.Core.Dofus;
 using DtHub.Core.Hotkeys;
 using DtHub.Core.Settings;
+using DtHub.Core.Windows;
 using DtHub.Infrastructure.Storage;
 
 using Microsoft.Extensions.Logging.Abstractions;
@@ -33,29 +35,39 @@ public sealed class SettingsServiceTests : IDisposable
         }
     }
 
+    private static DofusInstance Instance(int userId, string deviceId = "MATERIEL123") => new()
+    {
+        DeviceId = deviceId,
+        DeviceName = "Xiaomi 13T",
+        UserId = userId,
+        UserName = userId == 0 ? "Alice Martin" : "XSpace",
+        PackageName = DofusPackages.DofusTouch,
+        LaunchComponent = "com.ankama.dofustouch/.MainActivity",
+        IsDeviceConnected = true,
+    };
+
     [Fact]
     public async Task Les_valeurs_par_defaut_correspondent_a_ce_qui_est_annonce()
     {
         var settings = await _service.GetAsync(CancellationToken.None);
 
+        Assert.False(settings.SetupCompleted);
+        Assert.Empty(settings.Instances);
+        Assert.Equal(WindowAnchor.MiddleLeft, settings.GameAnchor);
+        Assert.Equal(70, settings.GameSizePercent);
         Assert.Equal(45, settings.MaxFps);
-        Assert.Equal(4000, settings.VideoBitrateKbps);
         Assert.False(settings.AudioEnabled);
         Assert.True(settings.ClipboardSyncEnabled);
-        Assert.Equal([60, 70, 80, 90], settings.SizePercentages);
-        Assert.True(settings.CheckUpdatesAutomatically);
-        Assert.True(settings.ReconnectOnStartup);
-        Assert.False(settings.ShowSystemApps);
+        Assert.Equal("com.ankama.dofustouch", settings.PackageName);
     }
 
     [Fact]
     public async Task Une_modification_est_ecrite_immediatement()
     {
-        await _service.UpdateAsync(s => s.MaxFps = 60, CancellationToken.None);
-
+        await _service.UpdateAsync(s => s.GameSizePercent = 90, CancellationToken.None);
         _service.Invalidate();
 
-        Assert.Equal(60, (await _service.GetAsync(CancellationToken.None)).MaxFps);
+        Assert.Equal(90, (await _service.GetAsync(CancellationToken.None)).GameSizePercent);
     }
 
     [Fact]
@@ -71,7 +83,94 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Les_reglages_scrcpy_derivent_des_preferences()
+    public async Task Les_instances_decouvertes_sont_memorisees_decochees()
+    {
+        var merged = await _service.MergeInstancesAsync(
+            [Instance(0), Instance(999)], CancellationToken.None);
+
+        Assert.Equal(2, merged.Count);
+        Assert.All(merged, i => Assert.False(i.IsEnabled));
+        Assert.All(merged, i => Assert.True(i.IsDeviceConnected));
+    }
+
+    [Fact]
+    public async Task Une_instance_cochee_le_reste_apres_redecouverte()
+    {
+        await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
+
+        var key = Instance(999).Key;
+        await _service.SetInstanceEnabledAsync(key, true, CancellationToken.None);
+
+        var merged = await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
+
+        Assert.True(merged.Single(i => i.Key == key).IsEnabled);
+    }
+
+    [Fact]
+    public async Task Le_nom_choisi_survit_a_une_redecouverte()
+    {
+        await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
+
+        var key = Instance(999).Key;
+        await _service.RenameInstanceAsync(key, "Enutrof", CancellationToken.None);
+
+        var merged = await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
+
+        Assert.Equal("Enutrof", merged.Single().CustomName);
+        Assert.Equal("Enutrof", merged.Single().DisplayName);
+    }
+
+    [Fact]
+    public async Task Un_nom_vide_retablit_le_nom_du_profil_android()
+    {
+        await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
+
+        var key = Instance(999).Key;
+        await _service.RenameInstanceAsync(key, "Enutrof", CancellationToken.None);
+        await _service.RenameInstanceAsync(key, "   ", CancellationToken.None);
+
+        var merged = await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
+
+        Assert.Null(merged.Single().CustomName);
+        Assert.Equal("XSpace", merged.Single().DisplayName);
+    }
+
+    [Fact]
+    public async Task Une_instance_dont_le_telephone_est_absent_reste_listee_hors_ligne()
+    {
+        await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
+
+        // Au balayage suivant, le téléphone n'est plus là.
+        var merged = await _service.MergeInstancesAsync([], CancellationToken.None);
+
+        Assert.Equal(2, merged.Count);
+        Assert.All(merged, i => Assert.False(i.IsDeviceConnected));
+    }
+
+    [Fact]
+    public async Task L_ordre_de_decouverte_est_conserve()
+    {
+        await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
+        var merged = await _service.MergeInstancesAsync([Instance(999), Instance(0)], CancellationToken.None);
+
+        Assert.Equal([0, 999], merged.Select(i => i.UserId));
+    }
+
+    [Fact]
+    public async Task Oublier_un_telephone_retire_toutes_ses_instances()
+    {
+        await _service.MergeInstancesAsync(
+            [Instance(0), Instance(999), Instance(0, "AUTRE")], CancellationToken.None);
+
+        await _service.ForgetDeviceAsync("MATERIEL123", CancellationToken.None);
+
+        var merged = await _service.MergeInstancesAsync([], CancellationToken.None);
+
+        Assert.Equal("AUTRE", Assert.Single(merged).DeviceId);
+    }
+
+    [Fact]
+    public async Task Les_reglages_de_mirroring_derivent_des_preferences()
     {
         await _service.UpdateAsync(s =>
         {
@@ -79,7 +178,6 @@ public sealed class SettingsServiceTests : IDisposable
             s.VideoBitrateKbps = 8000;
             s.AudioEnabled = true;
             s.ClipboardSyncEnabled = false;
-            s.KeyboardMode = ScrcpyKeyboardModeSetting.Uhid;
         }, CancellationToken.None);
 
         var options = await _service.GetScrcpyOptionsAsync(CancellationToken.None);
@@ -88,11 +186,10 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.Equal("8000K", options.VideoBitrateArgument);
         Assert.True(options.AudioEnabled);
         Assert.False(options.ClipboardSyncEnabled);
-        Assert.Equal(Core.Scrcpy.ScrcpyKeyboardMode.Uhid, options.KeyboardMode);
     }
 
     [Fact]
-    public async Task Des_reglages_scrcpy_aberrants_sont_corriges_a_la_lecture()
+    public async Task Des_reglages_de_mirroring_aberrants_sont_corriges()
     {
         await _service.UpdateAsync(s =>
         {
@@ -107,35 +204,25 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Les_pourcentages_de_taille_sont_personnalisables_et_assainis()
-    {
-        await _service.UpdateAsync(s => s.SizePercentages = [95, 50, 50, 500], CancellationToken.None);
-
-        var presets = await _service.GetWindowPresetsAsync(CancellationToken.None);
-
-        Assert.Equal([50, 95, 100], presets.Percentages);
-    }
-
-    [Fact]
     public async Task Sans_raccourci_enregistre_les_valeurs_par_defaut_sont_rendues()
     {
         var hotkeys = await _service.GetHotkeysAsync(CancellationToken.None);
 
-        Assert.Equal("Ctrl + Tab", hotkeys.For(HotkeyAction.NextSession)!.DisplayText);
+        Assert.Equal("Ctrl + P", hotkeys.For(HotkeyAction.ToggleConfigurator)!.DisplayText);
     }
 
     [Fact]
     public async Task Les_raccourcis_modifies_sont_relus_a_l_identique()
     {
-        var modified = HotkeySet.Default.With(HotkeyAction.Recenter, VirtualKeys.F9, HotkeyModifiers.Control);
+        var modified = HotkeySet.Default.With(HotkeyAction.Rearrange, VirtualKeys.F9, HotkeyModifiers.Control);
 
         await _service.SaveHotkeysAsync(modified, CancellationToken.None);
         _service.Invalidate();
 
         var reloaded = await _service.GetHotkeysAsync(CancellationToken.None);
 
-        Assert.Equal("Ctrl + F9", reloaded.For(HotkeyAction.Recenter)!.DisplayText);
-        Assert.Equal("Ctrl + Tab", reloaded.For(HotkeyAction.NextSession)!.DisplayText);
+        Assert.Equal("Ctrl + F9", reloaded.For(HotkeyAction.Rearrange)!.DisplayText);
+        Assert.Equal("Ctrl + Tab", reloaded.For(HotkeyAction.NextInstance)!.DisplayText);
     }
 
     [Fact]
@@ -143,33 +230,14 @@ public sealed class SettingsServiceTests : IDisposable
     {
         await _service.UpdateAsync(s => s.Hotkeys =
         [
-            new StoredHotkey { Action = "ActionDUneVersionFuture", VirtualKey = 0x41, Modifiers = HotkeyModifiers.Control },
-            new StoredHotkey { Action = "Recenter", VirtualKey = VirtualKeys.F9, Modifiers = HotkeyModifiers.Control },
+            new StoredHotkey { Action = "ActionDUneAutreVersion", VirtualKey = 0x41, Modifiers = HotkeyModifiers.Control },
+            new StoredHotkey { Action = "Rearrange", VirtualKey = VirtualKeys.F9, Modifiers = HotkeyModifiers.Control },
         ], CancellationToken.None);
 
         var hotkeys = await _service.GetHotkeysAsync(CancellationToken.None);
 
-        Assert.Equal("Ctrl + F9", hotkeys.For(HotkeyAction.Recenter)!.DisplayText);
-        Assert.Equal("Ctrl + Tab", hotkeys.For(HotkeyAction.NextSession)!.DisplayText);
-    }
-
-    [Fact]
-    public async Task Un_favori_se_bascule_dans_les_deux_sens()
-    {
-        Assert.True(await _service.ToggleFavoriteAsync("MATERIEL123", 999, "com.exemple.app", CancellationToken.None));
-        Assert.True(await _service.IsFavoriteAsync("MATERIEL123", 999, "com.exemple.app", CancellationToken.None));
-
-        Assert.False(await _service.ToggleFavoriteAsync("MATERIEL123", 999, "com.exemple.app", CancellationToken.None));
-        Assert.False(await _service.IsFavoriteAsync("MATERIEL123", 999, "com.exemple.app", CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task Le_meme_paquet_sur_deux_profils_a_deux_favoris_distincts()
-    {
-        await _service.ToggleFavoriteAsync("MATERIEL123", 0, "com.exemple.app", CancellationToken.None);
-
-        Assert.True(await _service.IsFavoriteAsync("MATERIEL123", 0, "com.exemple.app", CancellationToken.None));
-        Assert.False(await _service.IsFavoriteAsync("MATERIEL123", 999, "com.exemple.app", CancellationToken.None));
+        Assert.Equal("Ctrl + F9", hotkeys.For(HotkeyAction.Rearrange)!.DisplayText);
+        Assert.Equal("Ctrl + Tab", hotkeys.For(HotkeyAction.NextInstance)!.DisplayText);
     }
 
     [Fact]
@@ -194,16 +262,16 @@ public sealed class SettingsServiceTests : IDisposable
 
         Assert.Equal(24, settings.MaxFps);
         Assert.Equal(4000, settings.VideoBitrateKbps);
-        Assert.Equal([60, 70, 80, 90], settings.SizePercentages);
+        Assert.Equal(70, settings.GameSizePercent);
     }
 
     [Fact]
     public async Task Les_enumerations_sont_ecrites_en_clair_dans_le_fichier()
     {
-        await _service.UpdateAsync(s => s.Theme = AppTheme.Dark, CancellationToken.None);
+        await _service.UpdateAsync(s => s.GameAnchor = WindowAnchor.BottomRight, CancellationToken.None);
 
         var json = await File.ReadAllTextAsync(_store.FilePath, CancellationToken.None);
 
-        Assert.Contains("\"theme\": \"Dark\"", json, StringComparison.Ordinal);
+        Assert.Contains("\"gameAnchor\": \"BottomRight\"", json, StringComparison.Ordinal);
     }
 }

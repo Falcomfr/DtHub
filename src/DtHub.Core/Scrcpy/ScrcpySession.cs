@@ -1,5 +1,5 @@
 using DtHub.Core.Processes;
-using DtHub.Core.Profiles;
+using DtHub.Core.Sessions;
 
 namespace DtHub.Core.Scrcpy;
 
@@ -26,11 +26,10 @@ public enum ScrcpySessionState
 /// </summary>
 public sealed class ScrcpySession
 {
-    internal ScrcpySession(string id, LaunchTarget target, string serial, string windowTitle, IProcessSession process)
+    internal ScrcpySession(string id, LaunchTarget target, string windowTitle, IProcessSession process)
     {
         Id = id;
         Target = target;
-        Serial = serial;
         WindowTitle = windowTitle;
         Process = process;
         StartedUtc = DateTimeOffset.UtcNow;
@@ -42,7 +41,7 @@ public sealed class ScrcpySession
     public LaunchTarget Target { get; }
 
     /// <summary>Numéro de série ADB employé au lancement.</summary>
-    public string Serial { get; }
+    public string Serial => Target.Serial;
 
     /// <summary>
     /// Titre exact de la fenêtre scrcpy. C'est par lui que le gestionnaire de

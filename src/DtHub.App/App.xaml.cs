@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Threading;
 
 using DtHub.App.Services;
+using DtHub.App.Windows;
 using DtHub.Core;
 using DtHub.Core.Settings;
 using DtHub.Core.Storage;
@@ -17,17 +18,21 @@ using Serilog;
 namespace DtHub.App;
 
 /// <summary>
-/// Point d'entrée. Monte l'hôte, la journalisation et le thème, puis ouvre la
-/// fenêtre principale. Toute exception non interceptée est journalisée et
-/// présentée à l'utilisateur : l'application ne disparaît jamais sans un mot.
+/// Point d'entrée. Deux cas seulement : premier lancement, on demande quelles
+/// instances ouvrir ; ensuite, on ouvre directement celles qui sont cochées.
 /// </summary>
 public partial class App : Application
 {
     private IHost? _host;
+    private ConfiguratorWindow? _configurator;
 
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        // Les fenêtres de jeu ne sont pas des fenêtres WPF : l'application ne
+        // doit pas se fermer quand le configurateur est masqué.
+        ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
         AppDomain.CurrentDomain.UnhandledException += OnDomainException;
         DispatcherUnhandledException += OnDispatcherException;
@@ -38,20 +43,68 @@ public partial class App : Application
             _host = BuildHost();
             await _host.StartAsync().ConfigureAwait(true);
 
-            var settings = await _host.Services.GetRequiredService<SettingsService>()
-                .GetAsync().ConfigureAwait(true);
+            _host.Services.GetRequiredService<ThemeManager>().ApplySystemTheme();
 
-            _host.Services.GetRequiredService<ThemeManager>().Apply(settings.Theme);
+            // Une trace de démarrage garantit qu'un fichier de journal existe
+            // toujours, même quand la session se passe sans incident.
+            Log.Information("{Product} {Version} démarre.", ProductInfo.Name, ProductInfo.Version);
 
-            var window = _host.Services.GetRequiredService<MainWindow>();
-            MainWindow = window;
-            window.Show();
+            await RunAsync().ConfigureAwait(true);
         }
         catch (Exception exception)
         {
-            ReportFatal(exception, "Le démarrage a échoué.");
+            Report(exception, "Le démarrage a échoué.");
             Shutdown(1);
         }
+    }
+
+    /// <summary>Enchaîne mise en route éventuelle, lancement, puis configurateur.</summary>
+    private async Task RunAsync()
+    {
+        var services = _host!.Services;
+        var settings = services.GetRequiredService<SettingsService>();
+        var launcher = services.GetRequiredService<GameLauncher>();
+
+        var current = await settings.GetAsync().ConfigureAwait(true);
+
+        if (!current.SetupCompleted || !current.Instances.Any(i => i.IsEnabled))
+        {
+            var setup = services.GetRequiredService<SetupWindow>();
+            MainWindow = setup;
+
+            if (setup.ShowDialog() != true)
+            {
+                Shutdown();
+                return;
+            }
+        }
+
+        // Le configurateur existe avant le lancement : c'est lui qui affichera
+        // les problèmes s'il y en a.
+        _configurator = services.GetRequiredService<ConfiguratorWindow>();
+        launcher.OwnsWindow = handle => _configurator is not null && handle == _configurator.Handle;
+        launcher.ConfiguratorToggleRequested += (_, _) => Dispatcher.Invoke(ToggleConfigurator);
+
+        var report = await launcher.LaunchEnabledAsync().ConfigureAwait(true);
+
+        var placement = (await settings.GetAsync().ConfigureAwait(true)).GameAnchor;
+        _configurator.Show();
+        _configurator.PlaceAwayFrom(placement);
+
+        if (!report.AnyOpened && report.Problems.Count > 0)
+        {
+            Log.Warning("Aucune fenêtre ouverte : {Problems}", string.Join(" ", report.Problems));
+        }
+    }
+
+    private void ToggleConfigurator()
+    {
+        if (_configurator is null)
+        {
+            return;
+        }
+
+        _configurator.Toggle();
     }
 
     protected override async void OnExit(ExitEventArgs e)
@@ -60,11 +113,14 @@ public partial class App : Application
         {
             try
             {
+                // Les fenêtres de jeu sont fermées avec l'application : les
+                // laisser ouvertes sans configurateur n'aurait pas de sens.
+                await _host.Services.GetRequiredService<GameLauncher>().CloseAllAsync().ConfigureAwait(true);
                 await _host.StopAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(true);
             }
             catch (Exception exception)
             {
-                Log.Warning(exception, "Arrêt de l'hôte incomplet.");
+                Log.Warning(exception, "Arrêt incomplet.");
             }
 
             _host.Dispose();
@@ -76,9 +132,8 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// Construit l'hôte. Les journaux vont dans le dossier de données de
-    /// l'utilisateur, avec rotation quotidienne et un plafond en nombre de
-    /// fichiers pour ne pas grossir indéfiniment.
+    /// Construit l'hôte. Les journaux vont dans le dossier de données, avec
+    /// rotation quotidienne et un plafond en nombre de fichiers.
     /// </summary>
     private static IHost BuildHost()
     {
@@ -112,10 +167,10 @@ public partial class App : Application
 
     private void OnDispatcherException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        // L'interface reste vivante : une erreur dans une page ne doit pas
-        // faire disparaître l'application.
+        // L'interface reste vivante : une erreur d'affichage ne doit pas
+        // fermer les fenêtres de jeu.
         e.Handled = true;
-        ReportFatal(e.Exception, "Une erreur inattendue s'est produite.");
+        Report(e.Exception, "Une erreur inattendue s'est produite.");
     }
 
     private static void OnDomainException(object sender, UnhandledExceptionEventArgs e)
@@ -133,10 +188,10 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// Journalise le détail technique et n'affiche à l'utilisateur qu'un
-    /// message compréhensible, avec le chemin des journaux.
+    /// Journalise le détail technique et n'affiche qu'un message
+    /// compréhensible, avec le chemin des journaux.
     /// </summary>
-    private void ReportFatal(Exception exception, string headline)
+    private void Report(Exception exception, string headline)
     {
         Log.Fatal(exception, "{Headline}", headline);
 

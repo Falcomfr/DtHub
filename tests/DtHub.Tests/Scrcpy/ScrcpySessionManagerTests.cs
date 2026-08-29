@@ -1,6 +1,5 @@
-using DtHub.Core.Apps;
 using DtHub.Core.Processes;
-using DtHub.Core.Profiles;
+using DtHub.Core.Sessions;
 using DtHub.Core.Scrcpy;
 using DtHub.Tests.Fakes;
 
@@ -10,15 +9,14 @@ public class ScrcpySessionManagerTests
 {
     private const string NewDisplayLine = "[server] INFO: New display: 1080x1920/320 (id=7)";
 
-    private static LaunchTarget Target(int userId = 999) => new()
+    private static LaunchTarget Target(int userId = 999, string serial = "USB0001") => new()
     {
         DeviceId = "MATERIEL123",
+        Serial = serial,
         UserId = userId,
         PackageName = "com.ankama.dofustouch",
         LaunchComponent = "com.ankama.dofustouch/.MainActivity",
-        AppLabel = "DOFUS Touch",
-        DeviceLabel = "Xiaomi 13T Pro",
-        UserLabel = "Clone",
+        DisplayName = userId == 0 ? "Principal" : "XSpace",
     };
 
     private static ScrcpySessionManager Manager(
@@ -40,7 +38,7 @@ public class ScrcpySessionManagerTests
         await using var manager = Manager(launcher, appLauncher);
 
         var session = await manager.StartAsync(
-            Target(), "USB0001", ScrcpyOptions.Default, null, CancellationToken.None);
+            Target(), ScrcpyOptions.Default, null, CancellationToken.None);
 
         Assert.Equal(ScrcpySessionState.Running, session.State);
         Assert.Equal(7, session.VirtualDisplayId);
@@ -64,7 +62,7 @@ public class ScrcpySessionManagerTests
             await using var manager = Manager(launcher, appLauncher);
 
             await manager.StartAsync(
-                Target(userId), "USB0001", ScrcpyOptions.Default, null, CancellationToken.None);
+                Target(userId), ScrcpyOptions.Default, null, CancellationToken.None);
 
             Assert.Equal(userId, Assert.Single(appLauncher.Calls).UserId);
         }
@@ -77,7 +75,7 @@ public class ScrcpySessionManagerTests
 
         await using var manager = Manager(launcher, new FakeAppLauncher());
 
-        await manager.StartAsync(Target(), "USB0001", ScrcpyOptions.Default, null, CancellationToken.None);
+        await manager.StartAsync(Target(), ScrcpyOptions.Default, null, CancellationToken.None);
 
         var request = Assert.Single(launcher.Requests);
         Assert.Equal(@"C:\Dev\DTHub\adb\adb.exe", request.Environment["ADB"]);
@@ -93,8 +91,8 @@ public class ScrcpySessionManagerTests
 
         await using var manager = Manager(launcher, new FakeAppLauncher());
 
-        var first = await manager.StartAsync(Target(0), "USB0001", ScrcpyOptions.Default, null, CancellationToken.None);
-        var second = await manager.StartAsync(Target(999), "USB0001", ScrcpyOptions.Default, null, CancellationToken.None);
+        var first = await manager.StartAsync(Target(0), ScrcpyOptions.Default, null, CancellationToken.None);
+        var second = await manager.StartAsync(Target(999), ScrcpyOptions.Default, null, CancellationToken.None);
 
         Assert.NotEqual(first.WindowTitle, second.WindowTitle);
         Assert.Contains(first.Id, first.WindowTitle, StringComparison.Ordinal);
@@ -110,7 +108,7 @@ public class ScrcpySessionManagerTests
         await using var manager = Manager(launcher, appLauncher);
 
         var session = await manager.StartAsync(
-            Target(), "USB0001",
+            Target(),
             ScrcpyOptions.Default with { UseVirtualDisplay = false },
             null, CancellationToken.None);
 
@@ -130,7 +128,7 @@ public class ScrcpySessionManagerTests
         await using var manager = Manager(launcher, new FakeAppLauncher());
 
         var session = await manager.StartAsync(
-            Target(), "USB0001", ScrcpyOptions.Default, null, CancellationToken.None);
+            Target(), ScrcpyOptions.Default, null, CancellationToken.None);
 
         Assert.Equal(ScrcpySessionState.Failed, session.State);
         Assert.Contains("câble", session.FailureMessage, StringComparison.OrdinalIgnoreCase);
@@ -144,7 +142,7 @@ public class ScrcpySessionManagerTests
         await using var manager = Manager(launcher, new FakeAppLauncher(), TimeSpan.FromMilliseconds(200));
 
         var session = await manager.StartAsync(
-            Target(), "USB0001", ScrcpyOptions.Default, null, CancellationToken.None);
+            Target(), ScrcpyOptions.Default, null, CancellationToken.None);
 
         Assert.Equal(ScrcpySessionState.Failed, session.State);
         Assert.Contains("à temps", session.FailureMessage, StringComparison.OrdinalIgnoreCase);
@@ -163,7 +161,7 @@ public class ScrcpySessionManagerTests
         await using var manager = Manager(launcher, appLauncher);
 
         var session = await manager.StartAsync(
-            Target(), "USB0001", ScrcpyOptions.Default, null, CancellationToken.None);
+            Target(), ScrcpyOptions.Default, null, CancellationToken.None);
 
         Assert.Equal(ScrcpySessionState.Failed, session.State);
         Assert.Contains("plus installée", session.FailureMessage, StringComparison.Ordinal);
@@ -181,10 +179,10 @@ public class ScrcpySessionManagerTests
         await using var manager = Manager(launcher, new FakeAppLauncher());
 
         var session = await manager.StartAsync(
-            Target(), "USB0001", ScrcpyOptions.Default, null, CancellationToken.None);
+            Target(), ScrcpyOptions.Default, null, CancellationToken.None);
 
         Assert.Equal(ScrcpySessionState.Failed, session.State);
-        Assert.Contains("diagnostic", session.FailureMessage, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("journaux", session.FailureMessage, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -197,9 +195,9 @@ public class ScrcpySessionManagerTests
 
         await using var manager = Manager(launcher, new FakeAppLauncher());
 
-        await manager.StartAsync(Target(0), "USB0001", ScrcpyOptions.Default, null, CancellationToken.None);
-        await manager.StartAsync(Target(999), "USB0001", ScrcpyOptions.Default, null, CancellationToken.None);
-        await manager.StartAsync(Target(0), "USB0002", ScrcpyOptions.Default, null, CancellationToken.None);
+        await manager.StartAsync(Target(0), ScrcpyOptions.Default, null, CancellationToken.None);
+        await manager.StartAsync(Target(999), ScrcpyOptions.Default, null, CancellationToken.None);
+        await manager.StartAsync(Target(0, "USB0002"), ScrcpyOptions.Default, null, CancellationToken.None);
 
         Assert.Equal(3, manager.ActiveSessions.Count);
     }
@@ -217,8 +215,8 @@ public class ScrcpySessionManagerTests
 
         await using var manager = Manager(launcher, new FakeAppLauncher());
 
-        await manager.StartAsync(Target(0), "USB0001", ScrcpyOptions.Default, null, CancellationToken.None);
-        await manager.StartAsync(Target(999), "USB0001", ScrcpyOptions.Default, null, CancellationToken.None);
+        await manager.StartAsync(Target(0), ScrcpyOptions.Default, null, CancellationToken.None);
+        await manager.StartAsync(Target(999), ScrcpyOptions.Default, null, CancellationToken.None);
 
         await manager.StopAllAsync(CancellationToken.None);
 
@@ -238,8 +236,8 @@ public class ScrcpySessionManagerTests
 
         await using var manager = Manager(launcher, new FakeAppLauncher());
 
-        var a = await manager.StartAsync(Target(0), "USB0001", ScrcpyOptions.Default, null, CancellationToken.None);
-        await manager.StartAsync(Target(999), "USB0001", ScrcpyOptions.Default, null, CancellationToken.None);
+        var a = await manager.StartAsync(Target(0), ScrcpyOptions.Default, null, CancellationToken.None);
+        await manager.StartAsync(Target(999), ScrcpyOptions.Default, null, CancellationToken.None);
 
         await manager.StopAsync(a.Id, CancellationToken.None);
 
@@ -256,7 +254,7 @@ public class ScrcpySessionManagerTests
         await using var manager = Manager(launcher, new FakeAppLauncher());
 
         var session = await manager.StartAsync(
-            Target(), "USB0001", ScrcpyOptions.Default, null, CancellationToken.None);
+            Target(), ScrcpyOptions.Default, null, CancellationToken.None);
 
         await manager.StopAsync(session.Id, CancellationToken.None);
         manager.PruneFinished();
@@ -275,7 +273,7 @@ public class ScrcpySessionManagerTests
         manager.SessionChanged += (_, session) => states.Add(session.State);
 
         var started = await manager.StartAsync(
-            Target(), "USB0001", ScrcpyOptions.Default, null, CancellationToken.None);
+            Target(), ScrcpyOptions.Default, null, CancellationToken.None);
 
         await manager.StopAsync(started.Id, CancellationToken.None);
 

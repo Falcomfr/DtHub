@@ -109,6 +109,26 @@ public class DeviceFactoryTests
     }
 
     [Fact]
+    public void Une_connexion_sans_fil_implique_que_l_appareil_est_appaire()
+    {
+        // On ne peut pas être connecté sans fil sans avoir associé l'appareil :
+        // le constater autorise la reconnexion automatique par la suite.
+        var wireless = DeviceFactory.Create(Wireless(), XiaomiProperties);
+        var usb = DeviceFactory.Create(Usb(), XiaomiProperties);
+
+        Assert.True(wireless.IsPaired);
+        Assert.False(usb.IsPaired);
+    }
+
+    [Fact]
+    public void L_appairage_constate_survit_a_un_branchement_usb()
+    {
+        var known = DeviceFactory.Create(Wireless(), XiaomiProperties);
+
+        Assert.True(DeviceFactory.Create(Usb(), XiaomiProperties, known).IsPaired);
+    }
+
+    [Fact]
     public void L_adresse_de_reconnexion_est_memorisee_en_sans_fil()
     {
         var device = DeviceFactory.Create(Wireless("192.168.1.25:37845"), XiaomiProperties);

@@ -1,9 +1,8 @@
 using System.Collections.Concurrent;
 
-using DtHub.Core.Apps;
+using DtHub.Core.Sessions;
 using DtHub.Core.Dependencies;
 using DtHub.Core.Processes;
-using DtHub.Core.Profiles;
 
 namespace DtHub.Core.Scrcpy;
 
@@ -56,14 +55,14 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     /// </summary>
     public async Task<ScrcpySession> StartAsync(
         LaunchTarget target,
-        string serial,
         ScrcpyOptions options,
         ScrcpyWindowPlacement? placement = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(target);
-        ArgumentException.ThrowIfNullOrWhiteSpace(serial);
         ArgumentNullException.ThrowIfNull(options);
+
+        var serial = target.Serial;
 
         var sessionId = Guid.NewGuid().ToString("N")[..8];
         var windowTitle = ScrcpyCommandBuilder.BuildWindowTitle(sessionId, target.DisplayName);
@@ -78,11 +77,11 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         }
         catch (DependencyProvisioningException exception)
         {
-            return FailedSession(sessionId, target, serial, windowTitle, exception.Message);
+            return FailedSession(sessionId, target, windowTitle, exception.Message);
         }
         catch (Adb.AdbException exception)
         {
-            return FailedSession(sessionId, target, serial, windowTitle, exception.UserMessage);
+            return FailedSession(sessionId, target, windowTitle, exception.UserMessage);
         }
 
         var request = new ProcessRequest
@@ -103,12 +102,12 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         catch (ProcessLaunchException exception)
         {
             return FailedSession(
-                sessionId, target, serial, windowTitle,
-                "scrcpy n'a pas pu démarrer. Consultez le diagnostic dans les paramètres.",
+                sessionId, target, windowTitle,
+                "scrcpy n'a pas pu démarrer. Le détail est dans les journaux.",
                 exception.Message);
         }
 
-        var session = new ScrcpySession(sessionId, target, serial, windowTitle, process)
+        var session = new ScrcpySession(sessionId, target, windowTitle, process)
         {
             SourceAspectRatio = options.UseVirtualDisplay && options.VirtualDisplayHeight > 0
                 ? (double)options.VirtualDisplayWidth / options.VirtualDisplayHeight
@@ -295,12 +294,11 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     private ScrcpySession FailedSession(
         string sessionId,
         LaunchTarget target,
-        string serial,
         string windowTitle,
         string message,
         string? details = null)
     {
-        var session = new ScrcpySession(sessionId, target, serial, windowTitle, NullProcessSession.Instance)
+        var session = new ScrcpySession(sessionId, target, windowTitle, NullProcessSession.Instance)
         {
             State = ScrcpySessionState.Failed,
             FailureMessage = details is null ? message : $"{message} ({details})",

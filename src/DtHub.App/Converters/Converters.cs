@@ -97,6 +97,32 @@ public sealed class SameInstanceConverter : IMultiValueConverter
         throw new NotSupportedException();
 }
 
+/// <summary>Libellé d'une position de la grille.</summary>
+public sealed class AnchorLabelConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
+        value is DtHub.Core.Windows.WindowAnchor anchor
+            ? DtHub.Core.Windows.WindowAnchors.Describe(anchor)
+            : string.Empty;
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>
+/// Vrai si les deux valeurs sont égales. Sert à cocher la case de la grille
+/// qui correspond à la position retenue, ce qu'un paramètre de convertisseur
+/// ne permet pas d'exprimer.
+/// </summary>
+public sealed class SameValueConverter : IMultiValueConverter
+{
+    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture) =>
+        values is { Length: 2 } && Equals(values[0], values[1]);
+
+    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
 /// <summary>Rend Visible si la collection ou la chaîne est vide.</summary>
 public sealed class EmptyToVisibilityConverter : IValueConverter
 {

@@ -3,17 +3,18 @@ using System.Net.Http;
 
 using DtHub.App.Services;
 using DtHub.App.ViewModels;
-using DtHub.Core;
+using DtHub.App.Windows;
 using DtHub.Core.Adb;
-using DtHub.Core.Apps;
 using DtHub.Core.Dependencies;
 using DtHub.Core.Devices;
+using DtHub.Core.Dofus;
 using DtHub.Core.Hotkeys;
 using DtHub.Core.Processes;
-using DtHub.Core.Profiles;
 using DtHub.Core.Scrcpy;
+using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
 using DtHub.Core.Storage;
+using DtHub.Core.Users;
 using DtHub.Core.Windows;
 using DtHub.Infrastructure.Adb;
 using DtHub.Infrastructure.Dependencies;
@@ -31,7 +32,7 @@ namespace DtHub.App;
 
 /// <summary>
 /// Composition des services. Un seul endroit décrit comment les pièces
-/// s'assemblent, ce qui rend la structure du programme lisible d'un coup.
+/// s'assemblent.
 /// </summary>
 public static class AppServices
 {
@@ -49,8 +50,6 @@ public static class AppServices
 
         services.AddSingleton(CreateStore<AppSettingsDocument>(p => p.SettingsFile));
         services.AddSingleton(CreateStore<DeviceRegistryDocument>(p => p.DevicesFile));
-        services.AddSingleton(CreateStore<ProfileDocument>(p => p.ProfilesFile));
-        services.AddSingleton(CreateStore<AppCatalogDocument>(p => Path.Combine(p.CacheDirectory, "apps.json")));
 
         services.AddSingleton<SettingsService>();
 
@@ -61,31 +60,25 @@ public static class AppServices
         // Composants tiers.
         services.AddSingleton(_ => new HttpClient { Timeout = TimeSpan.FromMinutes(10) });
         services.AddSingleton<IDependencyProvisioner, ArchiveDependencyProvisioner>();
-
         services.AddSingleton<IAdbLocator>(provider => new AdbLocator(
             provider.GetRequiredService<IDependencyProvisioner>(),
-            provider.GetRequiredService<ILogger<AdbLocator>>(),
-            () => provider.GetRequiredService<SettingsService>()
-                .GetAsync(CancellationToken.None).GetAwaiter().GetResult().CustomAdbPath));
-
+            provider.GetRequiredService<ILogger<AdbLocator>>()));
         services.AddSingleton<IScrcpyLocator, ScrcpyLocator>();
 
-        // ADB et appareils.
+        // Téléphones.
         services.AddSingleton<IAdbClient, AdbClient>();
         services.AddSingleton<IDeviceRegistry, DeviceRegistry>();
         services.AddSingleton<DeviceDiscoveryService>();
         services.AddSingleton<DevicePairingService>();
         services.AddSingleton<DeviceReconnectService>();
-        services.AddSingleton<Core.Users.AndroidUserService>();
+        services.AddSingleton<AndroidUserService>();
 
-        // Applications.
-        services.AddSingleton<IAppLabelProvider, ScrcpyAppLabelProvider>();
-        services.AddSingleton<AppDiscoveryService>();
+        // Jeu.
+        services.AddSingleton<DofusInstanceService>();
         services.AddSingleton<IAppLauncher, AndroidAppLauncher>();
-
-        // Profils, sessions, fenêtres, raccourcis.
-        services.AddSingleton<ProfileService>();
         services.AddSingleton<ScrcpySessionManager>();
+
+        // Fenêtres et raccourcis.
         services.AddSingleton<IWindowController, Win32WindowController>();
         services.AddSingleton<WindowManagerService>();
         services.AddSingleton<IHotkeyRegistrar, Win32HotkeyRegistrar>();
@@ -93,31 +86,26 @@ public static class AppServices
         // Interface.
         services.AddSingleton<ThemeManager>();
         services.AddSingleton<IDialogService, DialogService>();
-        services.AddSingleton<DiagnosticsService>();
-        services.AddSingleton<SessionOrchestrator>();
+        services.AddSingleton<GameLauncher>();
 
-        services.AddSingleton<ShellViewModel>();
-        services.AddSingleton<HomeViewModel>();
-        services.AddSingleton<DevicesViewModel>();
-        services.AddSingleton<AppsViewModel>();
-        services.AddSingleton<ProfilesViewModel>();
-        services.AddSingleton<SettingsViewModel>();
-        services.AddSingleton<AboutViewModel>();
-        services.AddSingleton<MainWindow>();
+        services.AddSingleton<InstanceListViewModel>();
+        services.AddSingleton<PairingViewModel>();
+        services.AddSingleton<SetupViewModel>();
+        services.AddSingleton<ConfiguratorViewModel>();
+        services.AddSingleton<ConfiguratorWindow>();
+        services.AddTransient<SetupWindow>();
 
         return services;
     }
 
-    /// <summary>
-    /// Construit un dépôt JSON pour un document donné. Le chemin est résolu à
-    /// partir des emplacements de l'application.
-    /// </summary>
+    /// <summary>Construit un dépôt JSON pour un document donné.</summary>
     private static Func<IServiceProvider, IDocumentStore<T>> CreateStore<T>(Func<IAppPaths, string> path)
         where T : class, new() =>
         provider => new JsonDocumentStore<T>(
             path(provider.GetRequiredService<IAppPaths>()),
             provider.GetRequiredService<ILoggerFactory>().CreateLogger($"Store.{typeof(T).Name}"));
 
-    /// <summary>Nom de produit exposé à l'interface.</summary>
-    public static string ProductName => ProductInfo.Name;
+    /// <summary>Chemin d'un fichier du cache, pour les composants qui en veulent un.</summary>
+    public static string CacheFile(IAppPaths paths, string name) =>
+        Path.Combine(paths.CacheDirectory, name);
 }

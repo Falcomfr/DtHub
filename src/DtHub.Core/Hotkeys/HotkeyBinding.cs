@@ -84,16 +84,11 @@ public sealed record HotkeyBinding
     /// <summary>Libellé de l'action, pour l'éditeur de raccourcis.</summary>
     public static string DescribeAction(HotkeyAction action) => action switch
     {
-        HotkeyAction.NextSession => "Session suivante",
-        HotkeyAction.PreviousSession => "Session précédente",
-        HotkeyAction.Size1 => "Taille 1",
-        HotkeyAction.Size2 => "Taille 2",
-        HotkeyAction.Size3 => "Taille 3",
-        HotkeyAction.Size4 => "Taille 4",
-        HotkeyAction.Fullscreen => "Plein écran",
-        HotkeyAction.Recenter => "Recentrer les fenêtres",
-        HotkeyAction.CloseAllSessions => "Fermer toutes les sessions",
-        HotkeyAction.OpenSettings => "Ouvrir les paramètres",
+        HotkeyAction.ToggleConfigurator => "Afficher ou masquer le configurateur",
+        HotkeyAction.NextInstance => "Instance suivante",
+        HotkeyAction.PreviousInstance => "Instance précédente",
+        HotkeyAction.Rearrange => "Remettre les fenêtres en place",
+        HotkeyAction.CloseAll => "Tout fermer",
         _ => action.ToString(),
     };
 }

@@ -1,0 +1,55 @@
+<Window x:Class="DtHub.App.Windows.SetupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:w="clr-namespace:DtHub.App.Windows"
+        Title="DT Hub"
+        Width="560" MinWidth="480"
+        Height="620" MinHeight="420"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource SurfaceAltBrush}"
+        TextOptions.TextFormattingMode="Display">
+
+  <DockPanel Margin="20">
+
+    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,16">
+      <StackPanel Orientation="Horizontal">
+        <Image Source="/assets/app.png" Width="32" Height="32" VerticalAlignment="Center" />
+        <TextBlock Text="DT Hub" Style="{StaticResource Title}" Margin="12,0,0,0" VerticalAlignment="Center" />
+      </StackPanel>
+      <TextBlock Style="{StaticResource Muted}" Margin="0,10,0,0"
+                 Text="Cochez les instances de DOFUS Touch à ouvrir. Ce choix devient le lancement par défaut, la question ne sera plus posée." />
+    </StackPanel>
+
+    <Border DockPanel.Dock="Bottom" Margin="0,14,0,0">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Column="0" VerticalAlignment="Center" Style="{StaticResource Muted}">
+          <Run Text="{Binding Instances.EnabledCount, Mode=OneWay}" FontWeight="SemiBold" />
+          <Run Text=" instance(s) sélectionnée(s)" />
+        </TextBlock>
+
+        <Button Grid.Column="1" Content="Lancer" Style="{StaticResource PrimaryButton}"
+                Padding="26,9" FontSize="14"
+                Command="{Binding LaunchCommand}" IsEnabled="{Binding CanLaunch}" />
+      </Grid>
+    </Border>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel>
+
+        <w:PairingPanel DataContext="{Binding Pairing}"
+                        Visibility="{Binding DataContext.Instances.HasNoConnectedDevice,
+                                             RelativeSource={RelativeSource AncestorType=Window},
+                                             Converter={StaticResource BoolToVisibility}}" />
+
+        <w:InstanceListControl DataContext="{Binding Instances}" />
+
+      </StackPanel>
+    </ScrollViewer>
+
+  </DockPanel>
+</Window>

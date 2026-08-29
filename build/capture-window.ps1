@@ -12,11 +12,16 @@ Add-Type @"
 using System;
 using System.Runtime.InteropServices;
 public class Win {
+    // Sans cela, un processus non conscient de la mise a l'echelle recoit des
+    // coordonnees virtualisees et la capture est rognee.
+    [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
     [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr hWnd, IntPtr hdcBlt, uint nFlags);
     [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
     [StructLayout(LayoutKind.Sequential)] public struct RECT { public int L, T, R, B; }
 }
 "@
+
+[void][Win]::SetProcessDPIAware()
 
 $proc = Get-Process -Name $ProcessName -ErrorAction SilentlyContinue |
         Where-Object { $_.MainWindowHandle -ne 0 } | Select-Object -First 1

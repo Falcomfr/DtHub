@@ -87,18 +87,45 @@ public class DeviceReconnectServiceTests
     }
 
     [Fact]
-    public async Task Seuls_les_appareils_appaires_ou_a_adresse_connue_sont_tentes()
+    public async Task Tous_les_appareils_connus_sont_tentes()
     {
+        // Le filtre par drapeau était trop strict : un appareil mémorisé par
+        // une version antérieure n'a pas forcément l'information, alors qu'il
+        // est parfaitement joignable.
         var adb = new FakeAdbClient();
         adb.ConnectableAddresses.Add("192.168.1.25:37845");
 
-        var usbOnly = new AndroidDevice { Id = "USB0001", Serial = "USB0001" };
+        var withoutHistory = new AndroidDevice { Id = "AUTRE", Serial = "AUTRE" };
 
         var outcomes = await new DeviceReconnectService(adb)
-            .TryReconnectAllAsync([Known(), usbOnly], CancellationToken.None);
+            .TryReconnectAllAsync([Known(), withoutHistory], CancellationToken.None);
 
-        Assert.Single(outcomes);
+        Assert.Equal(2, outcomes.Count);
         Assert.Equal(ReconnectOutcome.ReconnectedToLastAddress, outcomes["MATERIEL123"]);
+        Assert.Equal(ReconnectOutcome.NotFound, outcomes["AUTRE"]);
+    }
+
+    [Fact]
+    public async Task Un_appareil_sans_adresse_memorisee_est_retrouve_par_son_annonce_reseau()
+    {
+        // Cas réel : le téléphone était connecté sous son nom de service mDNS,
+        // sans adresse exploitable, et se réannonce après une coupure.
+        var adb = new FakeAdbClient();
+        adb.MdnsOutputs.Enqueue("""
+            List of discovered mdns services
+            adb-SERIAL0123456789-1V3FXQ	_adb-tls-connect._tcp	192.168.1.16:33805
+            """);
+        adb.ConnectableAddresses.Add("192.168.1.16:33805");
+
+        var device = new AndroidDevice
+        {
+            Id = "SERIAL0123456789",
+            Serial = "adb-SERIAL0123456789-1V3FXQ._adb-tls-connect._tcp",
+        };
+
+        var outcome = await new DeviceReconnectService(adb).TryReconnectAsync(device, CancellationToken.None);
+
+        Assert.Equal(ReconnectOutcome.ReconnectedByDiscovery, outcome);
     }
 
     [Fact]

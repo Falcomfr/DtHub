@@ -14,5 +14,7 @@
   <conv:EqualityConverter x:Key="Equality" />
   <conv:EmptyToVisibilityConverter x:Key="EmptyToVisibility" />
   <conv:SameInstanceConverter x:Key="SameInstance" />
+  <conv:SameValueConverter x:Key="SameValue" />
+  <conv:AnchorLabelConverter x:Key="AnchorLabel" />
 
 </ResourceDictionary>

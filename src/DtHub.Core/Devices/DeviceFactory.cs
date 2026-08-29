@@ -48,7 +48,11 @@ public static class DeviceFactory
 
             CustomName = known?.CustomName,
             IsPrimary = known?.IsPrimary ?? false,
-            IsPaired = known?.IsPaired ?? false,
+
+            // Une connexion sans fil n'existe pas sans association préalable :
+            // la constater suffit à savoir que l'appareil est appairé, et
+            // c'est ce qui autorise la reconnexion automatique ensuite.
+            IsPaired = (known?.IsPaired ?? false) || entry.ConnectionKind == AdbConnectionKind.Wireless,
 
             // L'adresse mémorisée ne se met à jour que sur une connexion sans
             // fil active, sinon un branchement USB effacerait le seul moyen de

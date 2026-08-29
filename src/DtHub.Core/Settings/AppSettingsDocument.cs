@@ -1,54 +1,41 @@
 using DtHub.Core.Hotkeys;
+using DtHub.Core.Windows;
 
 namespace DtHub.Core.Settings;
 
-/// <summary>Politique appliquée aux sessions encore ouvertes à la fermeture.</summary>
-public enum ExitPolicy
-{
-    /// <summary>Demander à l'utilisateur.</summary>
-    Ask,
-
-    /// <summary>Fermer les sessions avec l'application.</summary>
-    CloseSessions,
-
-    /// <summary>Laisser les sessions ouvertes.</summary>
-    KeepSessions,
-}
-
-/// <summary>Thème de l'interface.</summary>
-public enum AppTheme
-{
-    System,
-    Light,
-    Dark,
-}
-
 /// <summary>
-/// Forme persistée de <c>settings.json</c>. Les propriétés sont mutables et
-/// portent des valeurs par défaut viables : un fichier absent, partiel ou
-/// modifié à la main doit donner une configuration utilisable.
+/// Forme persistée de <c>settings.json</c>. Les valeurs par défaut sont
+/// viables : un fichier absent, partiel ou modifié à la main doit donner une
+/// configuration utilisable.
 /// </summary>
 public sealed class AppSettingsDocument
 {
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 2;
 
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 
-    // Général
-    public string? DefaultProfileId { get; set; }
-    public string? DefaultDeviceId { get; set; }
-    public AppTheme Theme { get; set; } = AppTheme.System;
-    public ExitPolicy ExitPolicy { get; set; } = ExitPolicy.Ask;
+    /// <summary>
+    /// Vrai une fois la mise en route faite. C'est ce qui distingue le premier
+    /// lancement, qui pose la question, des suivants, qui lancent directement.
+    /// </summary>
+    public bool SetupCompleted { get; set; }
 
-    /// <summary>Reconnecter les appareils mémorisés au démarrage.</summary>
-    public bool ReconnectOnStartup { get; set; } = true;
+    /// <summary>Instances mémorisées, y compris celles qui ne sont pas cochées.</summary>
+    public List<StoredInstance> Instances { get; set; } = [];
 
     // Fenêtres
-    public int DefaultSizeIndex { get; set; } = 2;
-    public List<int> SizePercentages { get; set; } = [60, 70, 80, 90];
+
+    /// <summary>Position du bloc de fenêtres de jeu dans l'écran.</summary>
+    public WindowAnchor GameAnchor { get; set; } = WindowAnchor.MiddleLeft;
+
+    /// <summary>Taille des fenêtres de jeu, en pourcentage de la zone utilisable.</summary>
+    public int GameSizePercent { get; set; } = 70;
+
+    /// <summary>Écran Windows utilisé, <c>null</c> pour l'écran principal.</summary>
     public string? PreferredMonitorDeviceName { get; set; }
 
-    // scrcpy
+    // Mirroring
+
     public int MaxFps { get; set; } = 45;
     public int VideoBitrateKbps { get; set; } = 4000;
     public bool AudioEnabled { get; set; }
@@ -56,30 +43,38 @@ public sealed class AppSettingsDocument
     public int VirtualDisplayWidth { get; set; } = 1080;
     public int VirtualDisplayHeight { get; set; } = 1920;
     public int VirtualDisplayDpi { get; set; } = 320;
-    public ScrcpyKeyboardModeSetting KeyboardMode { get; set; } = ScrcpyKeyboardModeSetting.Sdk;
 
-    // Applications
-    public bool ShowSystemApps { get; set; }
-
-    /// <summary>Clés de favoris, au format <c>appareil|utilisateur|paquet</c>.</summary>
-    public List<string> FavoriteApps { get; set; } = [];
-
-    // Appareils
-    /// <summary>Chemin ADB imposé par l'utilisateur, sinon celui de DT Hub.</summary>
-    public string? CustomAdbPath { get; set; }
-
-    // Mises à jour
-    public bool CheckUpdatesAutomatically { get; set; } = true;
+    /// <summary>Paquet du jeu. Réglable pour survivre à un changement amont.</summary>
+    public string PackageName { get; set; } = Dofus.DofusPackages.DofusTouch;
 
     // Raccourcis
     public List<StoredHotkey> Hotkeys { get; set; } = [];
 }
 
-/// <summary>Mode clavier, dupliqué ici pour ne pas persister un type du moteur scrcpy.</summary>
-public enum ScrcpyKeyboardModeSetting
+/// <summary>Une instance mémorisée entre deux lancements.</summary>
+public sealed class StoredInstance
 {
-    Sdk,
-    Uhid,
+    public string DeviceId { get; set; } = string.Empty;
+    public int UserId { get; set; }
+    public string PackageName { get; set; } = string.Empty;
+
+    /// <summary>Nom du profil Android au moment de la découverte, pour l'affichage hors ligne.</summary>
+    public string UserName { get; set; } = string.Empty;
+
+    public string DeviceName { get; set; } = string.Empty;
+
+    /// <summary>Nom choisi par l'utilisateur.</summary>
+    public string? CustomName { get; set; }
+
+    public string? LaunchComponent { get; set; }
+
+    /// <summary>Vrai si l'instance fait partie du lancement automatique.</summary>
+    public bool IsEnabled { get; set; }
+
+    /// <summary>Rang d'affichage et d'ouverture.</summary>
+    public int Order { get; set; }
+
+    public string Key => $"{DeviceId}|{UserId}|{PackageName}";
 }
 
 /// <summary>Forme persistée d'un raccourci.</summary>
@@ -103,8 +98,8 @@ public sealed class StoredHotkey
 
     /// <summary>
     /// Reconstruit un raccourci, ou rend <c>null</c> si l'action n'existe
-    /// plus. Un fichier écrit par une version ultérieure ne doit pas faire
-    /// échouer la lecture.
+    /// plus. Un fichier écrit par une autre version ne doit pas faire échouer
+    /// la lecture.
     /// </summary>
     public HotkeyBinding? ToBinding() =>
         Enum.TryParse<HotkeyAction>(Action, ignoreCase: true, out var action)
