@@ -41,9 +41,24 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     /// <summary>Sessions connues, vivantes ou terminées.</summary>
     public IReadOnlyCollection<ScrcpySession> Sessions => [.. _sessions.Values];
 
-    /// <summary>Sessions encore ouvertes, dans leur ordre de démarrage.</summary>
+    /// <summary>
+    /// Rang d'une session dans l'ordre voulu par l'utilisateur. Tant qu'il
+    /// n'est pas fourni, les sessions restent dans leur ordre de démarrage.
+    /// </summary>
+    public Func<ScrcpySession, int>? OrderKey { get; set; }
+
+    /// <summary>
+    /// Sessions encore ouvertes, dans l'ordre configuré, ou dans leur ordre de
+    /// démarrage à défaut.
+    ///
+    /// L'ordre de démarrage ne convenait pas seul : relancer une instance lui
+    /// donnait un nouvel horodatage et la renvoyait en fin de cycle clavier,
+    /// alors qu'elle n'avait pas changé de place à l'écran.
+    /// </summary>
     public IReadOnlyList<ScrcpySession> ActiveSessions =>
-        [.. _sessions.Values.Where(s => s.IsAlive).OrderBy(s => s.StartedUtc)];
+        OrderKey is { } rank
+            ? [.. _sessions.Values.Where(s => s.IsAlive).OrderBy(rank).ThenBy(s => s.StartedUtc)]
+            : [.. _sessions.Values.Where(s => s.IsAlive).OrderBy(s => s.StartedUtc)];
 
     /// <summary>Signalé à chaque changement d'état d'une session.</summary>
     public event EventHandler<ScrcpySession>? SessionChanged;

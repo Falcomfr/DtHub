@@ -1,4 +1,5 @@
 using DtHub.Core.Scrcpy;
+using DtHub.Core.Settings;
 using DtHub.Core.Sessions;
 using DtHub.Core.Windows;
 using DtHub.Tests.Fakes;
@@ -372,5 +373,144 @@ public class WindowManagerServiceTests
 
         Assert.NotNull(area);
         Assert.Equal(FakeWindowController.PrimaryMonitor.WorkArea.X, area.Value.X);
+    }
+
+    private static StoredWindowRect Remembered(ScreenRect rect) =>
+        StoredWindowRect.From(rect, FakeWindowController.PrimaryMonitor);
+
+    [Fact]
+    public async Task Une_instance_deja_placee_retrouve_exactement_son_rectangle()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        await service.RestoreAsync(
+            sessions,
+            new Dictionary<string, StoredWindowRect>
+            {
+                [sessions[0].Target.Key] = Remembered(new ScreenRect(300, 200, 900, 900)),
+            },
+            CancellationToken.None);
+
+        Assert.Equal(
+            new ScreenRect(300, 200, 900, 900),
+            desktop.GetWindowRect(sessions[0].WindowHandle));
+    }
+
+    [Fact]
+    public async Task Une_instance_jamais_placee_prend_le_rectangle_calcule_depuis_l_ancrage()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay) { Anchor = WindowAnchor.TopLeft };
+
+        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
+
+        var work = FakeWindowController.PrimaryMonitor.WorkArea;
+        var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+
+        Assert.Equal(work.X, rect.X);
+        Assert.Equal(work.Y, rect.Y);
+    }
+
+    [Fact]
+    public async Task Deux_instances_peuvent_avoir_des_geometries_differentes()
+    {
+        // C'est la rupture avec la superposition systématique : chaque fenêtre
+        // retrouve l'endroit où elle a été laissée.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(2);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        await service.RestoreAsync(
+            sessions,
+            new Dictionary<string, StoredWindowRect>
+            {
+                [sessions[0].Target.Key] = Remembered(new ScreenRect(0, 0, 800, 600)),
+                [sessions[1].Target.Key] = Remembered(new ScreenRect(900, 100, 640, 480)),
+            },
+            CancellationToken.None);
+
+        Assert.Equal(new ScreenRect(0, 0, 800, 600), desktop.GetWindowRect(sessions[0].WindowHandle));
+        Assert.Equal(new ScreenRect(900, 100, 640, 480), desktop.GetWindowRect(sessions[1].WindowHandle));
+    }
+
+    [Fact]
+    public async Task Ouvrir_une_instance_ne_deplace_pas_les_fenetres_deja_ouvertes()
+    {
+        // Relancer un compte ne doit pas arracher les autres fenêtres à
+        // l'endroit où l'utilisateur les a mises.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(2);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
+
+        var untouched = new ScreenRect(1234, 567, 700, 500);
+        desktop.MoveWindow(sessions[1].WindowHandle, untouched);
+
+        await service.RestoreAsync(
+            [sessions[0]], new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
+
+        Assert.Equal(untouched, desktop.GetWindowRect(sessions[1].WindowHandle));
+    }
+
+    [Fact]
+    public async Task Le_plein_ecran_l_emporte_sur_la_geometrie_memorisee()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.ApplySizeAsync([], service.Presets.FullscreenIndex, CancellationToken.None);
+
+        await service.RestoreAsync(
+            sessions,
+            new Dictionary<string, StoredWindowRect>
+            {
+                [sessions[0].Target.Key] = Remembered(new ScreenRect(300, 200, 400, 300)),
+            },
+            CancellationToken.None);
+
+        Assert.Equal(
+            FakeWindowController.PrimaryMonitor.Bounds,
+            desktop.GetWindowRect(sessions[0].WindowHandle));
+    }
+
+    [Fact]
+    public async Task La_geometrie_capturee_est_le_rectangle_exterieur_de_la_fenetre()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
+
+        desktop.MoveWindow(sessions[0].WindowHandle, new ScreenRect(120, 340, 560, 420));
+
+        var captured = service.CaptureGeometries(sessions);
+
+        Assert.Equal(sessions[0].Target.Key, captured[0].Key);
+        Assert.Equal(new ScreenRect(120, 340, 560, 420), captured[0].Rect.Bounds);
+    }
+
+    [Fact]
+    public async Task Rien_n_est_capture_en_plein_ecran()
+    {
+        // Le rectangle vaudrait l'écran entier, et la fenêtre y est sans
+        // bordure : le restaurer en taille normale donnerait une fenêtre
+        // bordée débordant sous la barre des tâches.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.ApplySizeAsync(sessions, service.Presets.FullscreenIndex, CancellationToken.None);
+
+        Assert.Empty(service.CaptureGeometries(sessions));
     }
 }

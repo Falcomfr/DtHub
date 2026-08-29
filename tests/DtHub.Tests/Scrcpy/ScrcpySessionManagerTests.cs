@@ -283,4 +283,54 @@ public class ScrcpySessionManagerTests
         Assert.Contains(ScrcpySessionState.Running, states);
         Assert.Contains(ScrcpySessionState.Stopped, states);
     }
+
+    [Fact]
+    public async Task Les_sessions_actives_suivent_l_ordre_configure()
+    {
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(100).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(101).Emit(NewDisplayLine));
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var first = await manager.StartAsync(Target(0), ScrcpyOptions.Default, null, CancellationToken.None);
+        var second = await manager.StartAsync(Target(999), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        // L'utilisateur a mis le profil cloné en premier.
+        manager.OrderKey = s => s.Target.UserId == 999 ? 0 : 1;
+
+        Assert.Equal([second.Id, first.Id], [.. manager.ActiveSessions.Select(s => s.Id)]);
+    }
+
+    [Fact]
+    public async Task Sans_ordre_configure_les_sessions_restent_dans_leur_ordre_de_demarrage()
+    {
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(100).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(101).Emit(NewDisplayLine));
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var first = await manager.StartAsync(Target(0), ScrcpyOptions.Default, null, CancellationToken.None);
+        var second = await manager.StartAsync(Target(999), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        Assert.Equal([first.Id, second.Id], [.. manager.ActiveSessions.Select(s => s.Id)]);
+    }
+
+    [Fact]
+    public async Task Une_instance_hors_du_classement_passe_en_dernier()
+    {
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(100).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(101).Emit(NewDisplayLine));
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var known = await manager.StartAsync(Target(0), ScrcpyOptions.Default, null, CancellationToken.None);
+        var unknown = await manager.StartAsync(Target(999), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        manager.OrderKey = s => s.Target.UserId == 0 ? 3 : int.MaxValue;
+
+        Assert.Equal([known.Id, unknown.Id], [.. manager.ActiveSessions.Select(s => s.Id)]);
+    }
 }

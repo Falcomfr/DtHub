@@ -225,10 +225,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // La position est donnée à scrcpy dès le lancement. Le faire après
         // coup ne suffit pas : scrcpy recentre sa fenêtre quand il reçoit la
         // première image, donc après notre placement.
-        var placement = ComputePlacement(options);
+        var remembered = await _settings.GetWindowRectsAsync(cancellationToken).ConfigureAwait(false);
 
         List<string> problems = [];
-        var opened = 0;
+        List<ScrcpySession> started = [];
 
         foreach (var instance in instances)
         {
@@ -245,8 +245,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 continue;
             }
 
+            remembered.TryGetValue(instance.Key, out var stored);
+
             var session = await _sessions.StartAsync(
-                ToTarget(instance, serial), options, placement, cancellationToken).ConfigureAwait(false);
+                ToTarget(instance, serial),
+                options,
+                ComputePlacement(options, stored),
+                cancellationToken).ConfigureAwait(false);
 
             if (session.State == ScrcpySessionState.Failed)
             {
@@ -262,17 +267,20 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 continue;
             }
 
-            opened++;
+            started.Add(session);
         }
 
-        if (opened > 0)
+        // Seules les fenêtres qui viennent d'ouvrir sont placées. Replacer les
+        // autres les arracherait à l'endroit où l'utilisateur les a mises, et
+        // ferait recréer leur afficheur virtuel côté Android.
+        if (started.Count > 0)
         {
-            await _windows.ArrangeAsync(_sessions.ActiveSessions, cancellationToken).ConfigureAwait(false);
+            await _windows.RestoreAsync(started, remembered, cancellationToken).ConfigureAwait(false);
         }
 
-        LogLaunch(opened, problems.Count);
+        LogLaunch(started.Count, problems.Count);
 
-        return new LaunchReport(opened, problems);
+        return new LaunchReport(started.Count, problems);
     }
 
     /// <summary>
@@ -323,10 +331,32 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// <summary>Ferme toutes les fenêtres ouvertes par l'application.</summary>
     public async Task CloseAllAsync(CancellationToken cancellationToken = default)
     {
+        // La géométrie est relevée tant que les fenêtres existent encore.
+        await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+
         await _sessions.StopAllAsync(cancellationToken).ConfigureAwait(false);
         _sessions.PruneFinished();
 
         await _hotkeys.SetEnabledAsync(false).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Relève où chaque fenêtre a été laissée et l'enregistre. Appelée avant
+    /// toute fermeture, et à la sortie : c'est ce qui permet à une fenêtre
+    /// déplacée à la souris de revenir au même endroit.
+    /// </summary>
+    public async Task CaptureGeometriesAsync(CancellationToken cancellationToken = default)
+    {
+        var captured = _windows.CaptureGeometries(_sessions.ActiveSessions);
+
+        if (captured.Count == 0)
+        {
+            return;
+        }
+
+        await _settings.SaveWindowRectsAsync(
+            captured.ToDictionary(c => c.Key, c => c.Rect, StringComparer.Ordinal),
+            cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>Remet toutes les fenêtres en place, à la taille en cours.</summary>
@@ -334,7 +364,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         await ApplyWindowSettingsAsync(cancellationToken).ConfigureAwait(false);
 
-        return await _windows.ArrangeAsync(_sessions.ActiveSessions, cancellationToken).ConfigureAwait(false);
+        var moved = await _windows.ArrangeAsync(_sessions.ActiveSessions, cancellationToken)
+            .ConfigureAwait(false);
+
+        // Le replacement rapide devient la nouvelle géométrie de référence,
+        // sans quoi la mémoire divergerait de ce qui est à l'écran.
+        await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+
+        return moved;
     }
 
     /// <summary>Applique une taille à toutes les fenêtres et la retient.</summary>
@@ -343,9 +380,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
         await ApplyWindowSettingsAsync(cancellationToken).ConfigureAwait(false);
         await _settings.UpdateAsync(s => s.SizeIndex = sizeIndex, cancellationToken).ConfigureAwait(false);
 
-        return await _windows
+        var moved = await _windows
             .ApplySizeAsync(_sessions.ActiveSessions, sizeIndex, cancellationToken)
             .ConfigureAwait(false);
+
+        await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+
+        return moved;
     }
 
     /// <summary>Session ouverte correspondant à une instance, s'il y en a une.</summary>
@@ -396,23 +437,47 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// Rectangle que toutes les fenêtres partageront. Calculé une fois : c'est
     /// ce qui garantit leur superposition exacte.
     /// </summary>
-    private ScrcpyWindowPlacement? ComputePlacement(ScrcpyOptions options)
+    private ScrcpyWindowPlacement? ComputePlacement(ScrcpyOptions options, StoredWindowRect? remembered)
     {
-        var aspect = options.UseVirtualDisplay && options.VirtualDisplayHeight > 0
+        // Le rapport ne contraint la fenêtre que hors mode flexible, où
+        // l'afficheur garde une définition fixe. En mode flexible il épouse la
+        // fenêtre, et l'imposer ici donnerait un rectangle de lancement
+        // différent de celui appliqué juste après : la fenêtre s'ouvrirait
+        // pour être aussitôt redimensionnée.
+        var aspect = options is { UseVirtualDisplay: true, FlexDisplay: false, VirtualDisplayHeight: > 0 }
             ? (double)options.VirtualDisplayWidth / options.VirtualDisplayHeight
             : 0;
 
-        var rect = _windows.PreviewGameArea(aspect);
+        var monitors = _windows.GetMonitors();
+
+        var rect = remembered is not null
+            ? WindowLayoutCalculator.RestoreRemembered(
+                  remembered.Bounds, remembered.MonitorDeviceName, remembered.Monitor, monitors)
+              ?? _windows.PreviewGameArea(aspect)
+            : _windows.PreviewGameArea(aspect);
 
         // Journalisé : la disposition dépend de l'écran et de sa mise à
         // l'échelle, et un chiffre inattendu se voit tout de suite ici.
         LogPlacement(
-            string.Join(", ", _windows.GetMonitors().Select(m => $"{m.DeviceName} {m.Bounds} utile {m.WorkArea}")),
+            string.Join(", ", monitors.Select(m => $"{m.DeviceName} {m.Bounds} utile {m.WorkArea}")),
             rect?.ToString() ?? "aucun");
 
         return rect is { } value
             ? new ScrcpyWindowPlacement(value.X, value.Y, value.Width, value.Height)
             : null;
+    }
+
+    /// <summary>
+    /// Relit l'ordre voulu et le donne au gestionnaire de sessions. Tout ce
+    /// qui parcourt les sessions en hérite : l'ouverture, le placement et le
+    /// cycle clavier.
+    /// </summary>
+    private async Task RefreshRanksAsync(CancellationToken cancellationToken)
+    {
+        var ranks = await _settings.GetInstanceRanksAsync(cancellationToken).ConfigureAwait(false);
+
+        _sessions.OrderKey = session =>
+            ranks.TryGetValue(session.Target.Key, out var rank) ? rank : int.MaxValue;
     }
 
     private static LaunchTarget ToTarget(DofusInstance instance, string serial) => new()
@@ -437,6 +502,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private async Task ApplyWindowSettingsAsync(CancellationToken cancellationToken)
     {
         var settings = await _settings.GetAsync(cancellationToken).ConfigureAwait(false);
+
+        await RefreshRanksAsync(cancellationToken).ConfigureAwait(false);
 
         _windows.Anchor = settings.GameAnchor;
         _windows.Presets = await _settings.GetSizePresetsAsync(cancellationToken).ConfigureAwait(false);

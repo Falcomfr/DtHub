@@ -1,4 +1,5 @@
 using DtHub.Core.Scrcpy;
+using DtHub.Core.Settings;
 
 namespace DtHub.Core.Windows;
 
@@ -202,23 +203,97 @@ public sealed class WindowManagerService
 
     /// <summary>
     /// Place toutes les fenêtres au même endroit, à la position et à la taille
-    /// configurées.
+    /// configurées. C'est le replacement rapide : il écrase délibérément la
+    /// géométrie que l'utilisateur avait donnée à chaque fenêtre.
     /// </summary>
     /// <returns>Nombre de fenêtres effectivement déplacées.</returns>
     public async Task<int> ArrangeAsync(
         IReadOnlyList<ScrcpySession> sessions,
         CancellationToken cancellationToken = default)
     {
+        var applied = await ApplyLayoutAsync(sessions, remembered: null, cancellationToken)
+            .ConfigureAwait(false);
+
+        return applied.Count;
+    }
+
+    /// <summary>
+    /// Place chaque fenêtre là où elle avait été laissée, et retombe sur le
+    /// placement calculé pour celles qui n'ont pas encore de géométrie.
+    /// </summary>
+    /// <returns>Les rectangles réellement appliqués, par clé d'instance.</returns>
+    public Task<IReadOnlyList<(string Key, ScreenRect Rect)>> RestoreAsync(
+        IReadOnlyList<ScrcpySession> sessions,
+        IReadOnlyDictionary<string, StoredWindowRect> remembered,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(remembered);
+
+        return ApplyLayoutAsync(sessions, remembered, cancellationToken);
+    }
+
+    /// <summary>
+    /// Géométrie actuelle de chaque fenêtre vivante, par clé d'instance.
+    ///
+    /// Le plein écran est écarté : son rectangle vaut l'écran entier et la
+    /// fenêtre y est sans bordure. Le mémoriser puis le restaurer en taille
+    /// normale donnerait une fenêtre bordée débordant sous la barre des
+    /// tâches. Une fenêtre réduite est écartée aussi, son rectangle ne voulant
+    /// rien dire.
+    /// </summary>
+    public IReadOnlyList<(string Key, StoredWindowRect Rect)> CaptureGeometries(
+        IReadOnlyList<ScrcpySession> sessions)
+    {
+        ArgumentNullException.ThrowIfNull(sessions);
+
+        if (IsFullscreen)
+        {
+            return [];
+        }
+
+        var monitors = _controller.GetMonitors();
+
+        if (monitors.Count == 0)
+        {
+            return [];
+        }
+
+        List<(string, StoredWindowRect)> captured = [];
+
+        foreach (var session in sessions.Where(s => s.IsAlive && s.WindowHandle != 0))
+        {
+            if (_controller.GetWindowRect(session.WindowHandle) is not { } rect || rect.IsEmpty)
+            {
+                continue;
+            }
+
+            var monitor = WindowLayoutCalculator.ChooseMonitor(monitors, rect.CenterX, rect.CenterY);
+
+            captured.Add((session.Target.Key, StoredWindowRect.From(rect, monitor)));
+        }
+
+        return captured;
+    }
+
+    /// <summary>
+    /// Applique une disposition. Sans géométries mémorisées, toutes les
+    /// fenêtres reçoivent le rectangle calculé depuis l'ancrage.
+    /// </summary>
+    private async Task<IReadOnlyList<(string Key, ScreenRect Rect)>> ApplyLayoutAsync(
+        IReadOnlyList<ScrcpySession> sessions,
+        IReadOnlyDictionary<string, StoredWindowRect>? remembered,
+        CancellationToken cancellationToken)
+    {
         ArgumentNullException.ThrowIfNull(sessions);
 
         var monitors = _controller.GetMonitors();
         if (monitors.Count == 0)
         {
-            return 0;
+            return [];
         }
 
         var monitor = WindowLayoutCalculator.ChooseMonitor(monitors, PreferredMonitorDeviceName);
-        var moved = 0;
+        List<(string, ScreenRect)> applied = [];
 
         foreach (var session in sessions.Where(s => s.IsAlive))
         {
@@ -232,11 +307,37 @@ public sealed class WindowManagerService
             _controller.SetBorderless(handle, IsFullscreen);
 
             var chrome = IsFullscreen ? (0, 0) : MeasureChrome(handle);
-            _controller.MoveWindow(handle, Compute(monitor, session.SourceAspectRatio, chrome));
-            moved++;
+            var rect = Resolve(session, monitor, monitors, chrome, remembered);
+
+            _controller.MoveWindow(handle, rect);
+            applied.Add((session.Target.Key, rect));
         }
 
-        return moved;
+        return applied;
+    }
+
+    /// <summary>
+    /// Rectangle d'une fenêtre : celui qu'elle avait quand il vaut encore, le
+    /// calcul par ancrage sinon. Le plein écran l'emporte toujours sur une
+    /// géométrie mémorisée.
+    /// </summary>
+    private ScreenRect Resolve(
+        ScrcpySession session,
+        MonitorInfo monitor,
+        IReadOnlyList<MonitorInfo> monitors,
+        (int Width, int Height) chrome,
+        IReadOnlyDictionary<string, StoredWindowRect>? remembered)
+    {
+        if (!IsFullscreen
+            && remembered is not null
+            && remembered.TryGetValue(session.Target.Key, out var stored)
+            && WindowLayoutCalculator.RestoreRemembered(
+                stored.Bounds, stored.MonitorDeviceName, stored.Monitor, monitors) is { } restored)
+        {
+            return restored;
+        }
+
+        return Compute(monitor, session.SourceAspectRatio, chrome);
     }
 
     /// <summary>Passe à l'instance suivante, en boucle.</summary>

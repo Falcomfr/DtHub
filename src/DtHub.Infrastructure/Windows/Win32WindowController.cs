@@ -75,7 +75,10 @@ public sealed partial class Win32WindowController : IWindowController
 
     public ScreenRect? GetWindowRect(nint handle)
     {
-        if (handle == 0 || !GetWindowRectCore(handle, out var rect))
+        // Une fenêtre réduite rend un rectangle en (-32000, -32000). Le
+        // mémoriser détruirait la géométrie retenue, et le restaurer placerait
+        // la fenêtre hors de tout écran.
+        if (handle == 0 || IsIconic(handle) || !GetWindowRectCore(handle, out var rect))
         {
             return null;
         }
