@@ -48,6 +48,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// <summary>Vrai si au moins un téléphone répond.</summary>
     public bool HasConnectedDevice => !HasNoConnectedDevice;
 
+    /// <summary>Vrai s'il y a plus d'un appareil à ordonner.</summary>
+    public bool CanReorderDevices => Devices.Count > 1;
+
     /// <summary>Nombre d'instances cochées pour le lancement.</summary>
     public int EnabledCount => Devices.SelectMany(d => d.Instances).Count(i => i.IsEnabled);
 
@@ -116,6 +119,12 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 Devices.Remove(stale);
             }
 
+            foreach (var device in Devices)
+            {
+                device.CanReorder = device.Instances.Count > 1;
+            }
+
+            OnPropertyChanged(nameof(CanReorderDevices));
             OnPropertyChanged(nameof(HasNoConnectedDevice));
             OnPropertyChanged(nameof(HasConnectedDevice));
             OnPropertyChanged(nameof(EnabledCount));

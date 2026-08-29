@@ -27,6 +27,13 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
 
     public bool IsConnected => State == AdbDeviceState.Device;
 
+    /// <summary>
+    /// Vrai s'il y a plus d'une instance : une poignée sur une liste d'un seul
+    /// élément ne mène nulle part.
+    /// </summary>
+    [ObservableProperty]
+    private bool _canReorder;
+
     /// <summary>Vrai pour l'appareil que l'on est en train de déplacer.</summary>
     [ObservableProperty]
     private bool _isDragging;

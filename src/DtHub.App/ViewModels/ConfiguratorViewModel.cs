@@ -25,6 +25,9 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     private readonly IAppPaths _paths;
 
     private bool _loading;
+    private bool _movingWindows;
+    private int? _pendingPercent;
+    private CancellationTokenSource? _persistSize;
 
     public ConfiguratorViewModel(
         InstanceListViewModel instances,
@@ -258,7 +261,71 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             return;
         }
 
-        _ = _launcher.ApplyPercentAsync(value);
+        _ = FollowSliderAsync(value);
+        _ = PersistSizeSoonAsync(value);
+    }
+
+    /// <summary>
+    /// Suit le curseur au plus près. Un seul déplacement à la fois : les crans
+    /// arrivent plus vite que les fenêtres ne bougent, et les empiler ferait
+    /// traîner la taille derrière le curseur. Seule la dernière valeur reçue
+    /// pendant un déplacement est appliquée ensuite.
+    /// </summary>
+    private async Task FollowSliderAsync(int percent)
+    {
+        if (_movingWindows)
+        {
+            _pendingPercent = percent;
+            return;
+        }
+
+        _movingWindows = true;
+
+        try
+        {
+            var next = percent;
+
+            while (true)
+            {
+                await _launcher.ApplyPercentAsync(next, persist: false).ConfigureAwait(true);
+
+                if (_pendingPercent is not { } queued)
+                {
+                    break;
+                }
+
+                _pendingPercent = null;
+                next = queued;
+            }
+        }
+        finally
+        {
+            _movingWindows = false;
+        }
+    }
+
+    /// <summary>
+    /// Écrit la taille une fois le curseur reposé. Chaque cran déclencherait
+    /// sinon une réécriture complète du fichier de réglages.
+    /// </summary>
+    private async Task PersistSizeSoonAsync(int percent)
+    {
+        _persistSize?.Cancel();
+        _persistSize?.Dispose();
+
+        var cancellation = new CancellationTokenSource();
+        _persistSize = cancellation;
+
+        try
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(400), cancellation.Token).ConfigureAwait(true);
+
+            await _launcher.ApplyPercentAsync(percent, persist: true, cancellation.Token).ConfigureAwait(true);
+        }
+        catch (OperationCanceledException)
+        {
+            // Le curseur a bougé de nouveau : c'est la valeur suivante qui compte.
+        }
     }
 
     partial void OnPreferredMonitorChanged(MonitorInfo? value)

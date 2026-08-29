@@ -435,17 +435,28 @@ public sealed partial class GameLauncher : IAsyncDisposable
         return moved;
     }
 
-    /// <summary>Applique la taille posée au curseur et la retient.</summary>
-    public async Task<int> ApplyPercentAsync(int percent, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Applique la taille posée au curseur.
+    ///
+    /// Deux usages, volontairement distincts. Pendant que le curseur bouge on
+    /// ne fait que déplacer les fenêtres : relire les réglages et écrire le
+    /// fichier à chaque cran rendait le geste saccadé. L'enregistrement n'a
+    /// lieu qu'une fois, quand le curseur est reposé.
+    /// </summary>
+    public async Task<int> ApplyPercentAsync(
+        int percent,
+        bool persist = true,
+        CancellationToken cancellationToken = default)
     {
-        await ApplyWindowSettingsAsync(cancellationToken).ConfigureAwait(false);
-        await _settings.SaveCustomSizePercentAsync(percent, cancellationToken).ConfigureAwait(false);
-
         var moved = await _windows
             .ApplyPercentAsync(_sessions.ActiveSessions, percent, cancellationToken)
             .ConfigureAwait(false);
 
-        await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+        if (persist)
+        {
+            await _settings.SaveCustomSizePercentAsync(percent, cancellationToken).ConfigureAwait(false);
+            await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+        }
 
         return moved;
     }

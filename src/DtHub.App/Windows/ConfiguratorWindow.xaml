@@ -183,9 +183,9 @@
                       <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <Slider Grid.Column="0" Minimum="20" Maximum="100" TickFrequency="5"
-                            SmallChange="5" LargeChange="10"
-                            Value="{Binding SizePercent, Delay=200}" />
+                    <Slider Grid.Column="0" Minimum="20" Maximum="100" TickFrequency="1"
+                            SmallChange="1" LargeChange="5"
+                            Value="{Binding SizePercent}" />
 
                     <TextBlock Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0"
                                MinWidth="42" TextAlignment="Right" FontWeight="SemiBold">

@@ -131,20 +131,36 @@ public partial class InstanceListControl : UserControl
     {
         e.Handled = true;
 
-        if (Resolve(sender, e) is not { } move || ViewModel is not { } model)
-        {
-            e.Effects = DragDropEffects.None;
-            return;
-        }
-
         e.Effects = DragDropEffects.Move;
-        model.ShowDropHint(move.Onto, IsUpperHalf(sender, e));
+
+        // Le repère suit le curseur même au-dessus de l'élément déplacé.
+        // S'abstenir dans ce cas laissait le trait figé à sa dernière place,
+        // souvent au mauvais endroit après un aller-retour.
+        if (Hovered(sender, e) is { } onto && ViewModel is { } model)
+        {
+            model.ShowDropHint(onto, IsUpperHalf(sender, e));
+        }
     }
 
-    private void OnDragLeave(object sender, DragEventArgs e)
+    /// <summary>
+    /// Le repère n'est pas effacé en quittant un élément. Passer d'une ligne à
+    /// sa voisine, ou simplement survoler un champ de saisie, fait sortir puis
+    /// entrer : effacer à chaque fois faisait clignoter le trait. Il n'est
+    /// retiré qu'à la fin du glissé.
+    /// </summary>
+    private void OnDragLeave(object sender, DragEventArgs e) => e.Handled = true;
+
+    /// <summary>
+    /// Garde le curseur habituel pendant le glissé. Les curseurs de
+    /// glisser-déposer de Windows changent au passage de chaque élément, ce
+    /// qui donne l'impression que quelque chose ne va pas, alors que seul le
+    /// trait de position compte ici.
+    /// </summary>
+    private void OnGiveFeedback(object sender, GiveFeedbackEventArgs e)
     {
+        e.UseDefaultCursors = false;
+        Mouse.SetCursor(Cursors.SizeNS);
         e.Handled = true;
-        ViewModel?.ClearDropHints();
     }
 
     private async void OnDrop(object sender, DragEventArgs e)
@@ -169,25 +185,39 @@ public partial class InstanceListControl : UserControl
         && e.GetPosition(target).Y < target.ActualHeight / 2;
 
     /// <summary>
-    /// Couple valide de déplacement, ou <c>null</c> si le dépôt n'a pas de
-    /// sens : une instance sur un appareil, ou un élément sur lui-même.
+    /// Élément survolé, de même nature que celui déplacé. Rend aussi
+    /// l'élément déplacé lui-même : le repère doit suivre le curseur partout,
+    /// c'est le dépôt qui refusera.
     /// </summary>
-    private static (object Dragged, object Onto)? Resolve(object sender, DragEventArgs e)
+    private static object? Hovered(object sender, DragEventArgs e)
     {
         if (sender is not FrameworkElement target || target.DataContext is not { } onto)
         {
             return null;
         }
 
-        var dragged = e.Data.GetData(typeof(InstanceRowViewModel))
-                      ?? e.Data.GetData(typeof(DeviceGroupViewModel));
+        var dragged = Dragged(e);
 
-        return dragged is not null
-               && !ReferenceEquals(dragged, onto)
-               && dragged.GetType() == onto.GetType()
-            ? (dragged, onto)
-            : null;
+        return dragged is not null && dragged.GetType() == onto.GetType() ? onto : null;
     }
+
+    /// <summary>
+    /// Couple valide de déplacement, ou <c>null</c> si le dépôt n'a pas de
+    /// sens : une instance sur un appareil, ou un élément sur lui-même.
+    /// </summary>
+    private static (object Dragged, object Onto)? Resolve(object sender, DragEventArgs e)
+    {
+        if (Hovered(sender, e) is not { } onto || Dragged(e) is not { } dragged)
+        {
+            return null;
+        }
+
+        return ReferenceEquals(dragged, onto) ? null : (dragged, onto);
+    }
+
+    private static object? Dragged(DragEventArgs e) =>
+        e.Data.GetData(typeof(InstanceRowViewModel))
+        ?? e.Data.GetData(typeof(DeviceGroupViewModel));
 
     private static void Mark(object item, bool dragging)
     {

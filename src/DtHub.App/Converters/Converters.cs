@@ -164,3 +164,18 @@ public sealed class DraggedOpacityConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
         throw new NotSupportedException();
 }
+
+/// <summary>
+/// Visible seulement si toutes les conditions sont vraies. Sert là où une
+/// visibilité dépend à la fois d'un réglage de la vue et de l'état des
+/// données, sans avoir à mélanger les deux dans le modèle de vue.
+/// </summary>
+public sealed class AllTrueToVisibilityConverter : IMultiValueConverter
+{
+    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture) =>
+        values is not null && values.All(v => v is true) ? Visibility.Visible : Visibility.Collapsed;
+
+    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+

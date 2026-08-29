@@ -19,4 +19,6 @@
 
   <conv:DraggedOpacityConverter x:Key="DraggedOpacity" />
 
+  <conv:AllTrueToVisibilityConverter x:Key="AllTrue" />
+
 </ResourceDictionary>

@@ -96,7 +96,22 @@ public sealed class WindowManagerService
             return monitor.Bounds;
         }
 
-        var work = monitor.WorkArea.IsEmpty ? monitor.Bounds : monitor.WorkArea;
+        var work = UsableArea(monitor);
+        var (width, height) = ComputeSize(monitor, sourceAspectRatio, chrome);
+
+        return WindowLayoutCalculator.Place(work, width, height, Anchor);
+    }
+
+    /// <summary>
+    /// Taille d'une fenêtre, sans décider de sa place. Le rapport s'applique à
+    /// la zone client, celle que scrcpy remplit.
+    /// </summary>
+    private (int Width, int Height) ComputeSize(
+        MonitorInfo monitor,
+        double sourceAspectRatio,
+        (int Width, int Height) chrome)
+    {
+        var work = UsableArea(monitor);
         var fraction = Math.Clamp(SizePercent, 20, 100) / 100.0;
 
         var availableWidth = Math.Max(1, (int)Math.Round(work.Width * fraction));
@@ -104,7 +119,7 @@ public sealed class WindowManagerService
 
         if (sourceAspectRatio <= 0)
         {
-            return WindowLayoutCalculator.Place(work, availableWidth, availableHeight, Anchor);
+            return (availableWidth, availableHeight);
         }
 
         var (clientWidth, clientHeight) = WindowLayoutCalculator.FitToAspect(
@@ -112,8 +127,67 @@ public sealed class WindowManagerService
             Math.Max(1, availableHeight - chrome.Height),
             sourceAspectRatio);
 
-        return WindowLayoutCalculator.Place(
-            work, clientWidth + chrome.Width, clientHeight + chrome.Height, Anchor);
+        return (clientWidth + chrome.Width, clientHeight + chrome.Height);
+    }
+
+    private static ScreenRect UsableArea(MonitorInfo monitor) =>
+        monitor.WorkArea.IsEmpty ? monitor.Bounds : monitor.WorkArea;
+
+    /// <summary>
+    /// Change la taille des fenêtres sans les déplacer. Un raccourci de taille
+    /// ou le curseur ne demandent qu'à agrandir ou réduire : ramener la
+    /// fenêtre à son ancrage au passage serait une décision qu'on n'a pas
+    /// demandée. Seul le plein écran couvre l'écran entier.
+    /// </summary>
+    public async Task<int> ResizeInPlaceAsync(
+        IReadOnlyList<ScrcpySession> sessions,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(sessions);
+
+        if (IsFullscreen)
+        {
+            return await ArrangeAsync(sessions, cancellationToken).ConfigureAwait(false);
+        }
+
+        var monitors = _controller.GetMonitors();
+
+        if (monitors.Count == 0)
+        {
+            return 0;
+        }
+
+        var resized = 0;
+
+        foreach (var session in sessions.Where(s => s.IsAlive))
+        {
+            var handle = await ResolveWindowAsync(session, cancellationToken).ConfigureAwait(false);
+
+            if (handle == 0)
+            {
+                continue;
+            }
+
+            _controller.SetBorderless(handle, borderless: false);
+
+            if (_controller.GetWindowRect(handle) is not { } current || current.IsEmpty)
+            {
+                continue;
+            }
+
+            var monitor = WindowLayoutCalculator.ChooseMonitor(monitors, current.CenterX, current.CenterY);
+            var chrome = MeasureChrome(handle);
+            var (width, height) = ComputeSize(monitor, session.SourceAspectRatio, chrome);
+
+            var target = WindowLayoutCalculator.ClampInto(
+                current with { Width = width, Height = height }, UsableArea(monitor));
+
+            _controller.MoveWindow(handle, target);
+            _lastSeen[session.Id] = target;
+            resized++;
+        }
+
+        return resized;
     }
 
     /// <summary>
@@ -147,7 +221,7 @@ public sealed class WindowManagerService
         // Un raccourci de taille reprend la main sur le curseur.
         CustomSizePercent = null;
 
-        return ArrangeAsync(sessions, cancellationToken);
+        return ResizeInPlaceAsync(sessions, cancellationToken);
     }
 
     /// <summary>Zone utilisable de l'écran retenu.</summary>
@@ -355,7 +429,7 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Applique une taille libre, celle du curseur, et replace les fenêtres.
+    /// Applique la taille libre du curseur, sans déplacer les fenêtres.
     /// </summary>
     public Task<int> ApplyPercentAsync(
         IReadOnlyList<ScrcpySession> sessions,
@@ -364,7 +438,7 @@ public sealed class WindowManagerService
     {
         CustomSizePercent = Math.Clamp(percent, 20, 100);
 
-        return ArrangeAsync(sessions, cancellationToken);
+        return ResizeInPlaceAsync(sessions, cancellationToken);
     }
 
     /// <summary>
