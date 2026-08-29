@@ -10,7 +10,7 @@ Aucune notice de copyright ni aucun texte de licence tiers ne doit être retiré
 
 | Composant | Licence | Mode de distribution |
 |---|---|---|
-| scrcpy | Apache License 2.0 | Redistribué avec l'installateur |
+| scrcpy | Apache License 2.0 | Téléchargé depuis GitHub au premier lancement |
 | Android SDK Platform Tools (adb) | Android SDK License Agreement | Téléchargé depuis Google au premier lancement |
 | .NET runtime | MIT | Inclus par la publication self-contained |
 | Velopack | MIT | Paquet NuGet |
@@ -23,15 +23,27 @@ Aucune notice de copyright ni aucun texte de licence tiers ne doit être retiré
 - Copyright : Copyright (C) 2018 Genymobile, Copyright (C) 2018-2026 Romain Vimont
 - Licence : Apache License 2.0
 
-scrcpy est redistribué avec l'installateur, ce que la licence Apache 2.0
-autorise. Les obligations correspondantes sont remplies ainsi :
+La licence Apache 2.0 autorise la redistribution. DT Hub télécharge tout de
+même scrcpy chez l'utilisateur, depuis l'archive officielle publiée par le
+projet sur GitHub, par le même mécanisme vérifié que pour ADB. Deux raisons :
+l'installateur reste léger, et il n'y a qu'un seul chemin de mise en place à
+maintenir et à tester.
 
-- le texte intégral de la licence est conservé dans
-  `third_party/scrcpy/LICENSE` ;
-- le fichier `NOTICE` amont, s'il existe, est conservé à l'identique ;
-- toute modification apportée aux fichiers scrcpy est signalée dans
-  `third_party/scrcpy/MODIFICATIONS.md`, avec le patch reproductible
-  correspondant.
+Les obligations correspondantes sont remplies ainsi :
+
+- l'archive amont contient son propre `LICENSE.txt`, extrait tel quel et
+  conservé à côté de l'exécutable ;
+- DT Hub ne modifie aucun fichier de scrcpy. Le fonctionnement retenu pour
+  lancer une application sur un utilisateur Android secondaire n'exige aucune
+  modification, comme expliqué dans `docs/DECISIONS.md` et
+  `third_party/scrcpy/MODIFICATIONS.md` ;
+- si une modification devenait nécessaire, elle serait signalée dans ce même
+  fichier, accompagnée du patch reproductible.
+
+L'archive Windows de scrcpy contient elle-même une copie d'`adb.exe`. DT Hub
+ne s'en sert pas : il utilise la sienne, obtenue directement chez Google, dont
+il maîtrise la version. Le chemin lui en est indiqué par la variable
+d'environnement `ADB`, que scrcpy honore.
 
 DT Hub n'est pas affilié à Genymobile ni aux auteurs de scrcpy et n'utilise
 pas leur nom ni leurs logos comme élément de sa propre identité.

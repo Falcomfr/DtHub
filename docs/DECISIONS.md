@@ -53,7 +53,7 @@ pas les changements de nom commercial.
 
 ---
 
-## D4 - ADB téléchargé, scrcpy redistribué
+## D4 - ADB et scrcpy téléchargés depuis leurs sources officielles
 
 **2026-08-29 - Acceptée**
 
@@ -64,8 +64,14 @@ de données de l'utilisateur. Il est ensuite toujours invoqué par chemin
 absolu, jamais via le `PATH`, pour ne pas dépendre d'une installation tierce
 ni entrer en conflit avec elle.
 
-scrcpy est sous Apache 2.0 : il est redistribué avec l'installateur, licence
-et notice conservées.
+scrcpy est sous Apache 2.0 et pourrait être embarqué. Il est tout de même
+téléchargé, par le même mécanisme : l'installateur reste léger et il n'y a
+qu'un seul chemin de mise en place à maintenir et à tester. Le `LICENSE.txt`
+fourni dans l'archive amont est extrait tel quel.
+
+L'archive Windows de scrcpy contient sa propre copie d'`adb.exe`. Elle n'est
+pas utilisée : DT Hub garde celle de Google, dont il maîtrise la version, et
+l'indique à scrcpy par la variable d'environnement `ADB`.
 
 Conséquence : le premier lancement nécessite une connexion internet. C'est
 annoncé à l'utilisateur.
@@ -74,7 +80,7 @@ annoncé à l'utilisateur.
 
 ## D5 - Lancer sur un utilisateur Android secondaire sans forker scrcpy
 
-**2026-08-29 - Provisoire, à confirmer en phase 8**
+**2026-08-29 - Acceptée, vérifiée sur scrcpy v4.1**
 
 Le besoin : ouvrir une application sur l'utilisateur Android 0, 10, 999 ou
 n'importe quel autre identifiant valide, chacun dans sa propre fenêtre.
@@ -92,13 +98,23 @@ stratégie retenue est :
 Cette voie ne modifie ni scrcpy ni l'application Android ciblée, et accepte
 n'importe quel identifiant d'utilisateur entier.
 
-Le service de lancement est conçu avec plusieurs stratégies interchangeables,
-de sorte qu'un repli par patch du serveur scrcpy reste possible si la
-vérification en phase 8 invalide cette approche. Le cas échéant, le patch sera
-fourni sous forme reproductible dans `third_party/scrcpy/`, comme l'exige la
-licence Apache 2.0.
+Vérifications effectuées sur scrcpy v4.1 :
 
-À vérifier avant de figer cette décision : présence et comportement de
-`--new-display` dans la version de scrcpy retenue, format exact de la sortie
-donnant l'identifiant d'afficheur, comportement sur un utilisateur secondaire
-non démarré.
+- `--new-display=<taille>/<densité>` est documenté et crée bien un afficheur
+  virtuel détruit à la fermeture ;
+- `NewDisplayCapture.java` journalise `New display: <taille>/<densité>
+  (id=<identifiant>)`, relayé au client, donc lisible sur la sortie du
+  processus ;
+- `--start-app` ne prend aucun identifiant d'utilisateur, ce qui confirme
+  qu'il ne peut pas répondre au besoin seul ;
+- `--no-vd-system-decorations` permet de partir d'un afficheur vide plutôt que
+  du lanceur du téléphone.
+
+Reste à vérifier sur matériel réel, en phase 13 : le comportement sur un
+utilisateur secondaire arrêté, et les applications qui refusent de s'ouvrir
+sur un afficheur secondaire.
+
+Le service de lancement reste conçu avec des stratégies interchangeables, de
+sorte qu'un repli par patch du serveur scrcpy demeure possible. La procédure
+qu'imposerait un tel patch est écrite dans
+`third_party/scrcpy/MODIFICATIONS.md`.

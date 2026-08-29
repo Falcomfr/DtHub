@@ -20,6 +20,19 @@
       "licenseUrl": "https://developer.android.com/studio/terms",
       "redistributable": false,
       "redistributionNote": "Le contrat de licence du SDK Android interdit la redistribution. Le composant est téléchargé chez l'utilisateur depuis l'URL officielle Google, jamais embarqué dans l'installateur."
+    },
+    "scrcpy": {
+      "displayName": "scrcpy",
+      "version": "4.1.0",
+      "url": "https://github.com/Genymobile/scrcpy/releases/download/v4.1/scrcpy-win64-v4.1.zip",
+      "sizeBytes": 11305298,
+      "sha256": "5b12172b3264b2889f4583ee64752ce832e29bc8b1089dca81093459697165db",
+      "archiveRootDirectory": "scrcpy-win64-v4.1",
+      "executable": "scrcpy.exe",
+      "license": "Apache License 2.0",
+      "licenseUrl": "https://github.com/Genymobile/scrcpy/blob/master/LICENSE",
+      "redistributable": true,
+      "redistributionNote": "Apache 2.0 autorise la redistribution. Le composant est tout de même téléchargé chez l'utilisateur, par le même mécanisme vérifié qu'ADB : l'installateur reste léger et il n'y a qu'un seul chemin de mise en place à maintenir et à tester. L'archive amont contient son propre LICENSE.txt, conservé tel quel à l'extraction."
     }
   }
 }
