@@ -1,4 +1,4 @@
-* text=auto eol=crlf
+* text=auto
 *.sh text eol=lf
 *.py text eol=lf
 *.ico binary
