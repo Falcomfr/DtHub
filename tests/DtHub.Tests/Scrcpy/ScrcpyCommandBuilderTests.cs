@@ -84,7 +84,7 @@ public class ScrcpyCommandBuilderTests
     {
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments("USB0001", "T", ScrcpyOptions.Default);
 
-        Assert.Equal("1080x1920/320", ValueOf(arguments, "--new-display"));
+        Assert.Equal("1920x1080/240", ValueOf(arguments, "--new-display"));
         Assert.Contains("--no-vd-system-decorations", arguments);
     }
 
@@ -99,15 +99,44 @@ public class ScrcpyCommandBuilderTests
     }
 
     [Fact]
-    public void La_position_initiale_de_la_fenetre_est_transmise_quand_elle_est_connue()
+    public void Avec_l_ajustement_continu_la_taille_passe_par_l_afficheur()
     {
+        // scrcpy refuse --window-width et --window-height dans ce mode : la
+        // taille se règle par la définition de l'afficheur, et les deux
+        // coïncident donc exactement.
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "T", ScrcpyOptions.Default, new ScrcpyWindowPlacement(100, 50, 1280, 720));
 
         Assert.Equal("100", ValueOf(arguments, "--window-x"));
         Assert.Equal("50", ValueOf(arguments, "--window-y"));
+        Assert.Equal("1280x720/240", ValueOf(arguments, "--new-display"));
+        Assert.DoesNotContain(arguments, a => a.StartsWith("--window-width", StringComparison.Ordinal));
+        Assert.DoesNotContain(arguments, a => a.StartsWith("--window-height", StringComparison.Ordinal));
+        Assert.Contains("--flex-display", arguments);
+    }
+
+    [Fact]
+    public void Les_cotes_impairs_sont_ramenes_a_des_nombres_pairs()
+    {
+        // Les encodeurs vidéo refusent les côtés impairs.
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001", "T", ScrcpyOptions.Default, new ScrcpyWindowPlacement(0, 0, 2599, 1461));
+
+        Assert.Equal("2598x1460/240", ValueOf(arguments, "--new-display"));
+    }
+
+    [Fact]
+    public void Sans_ajustement_continu_la_taille_de_fenetre_est_transmise_directement()
+    {
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001", "T",
+            ScrcpyOptions.Default with { FlexDisplay = false },
+            new ScrcpyWindowPlacement(100, 50, 1280, 720));
+
         Assert.Equal("1280", ValueOf(arguments, "--window-width"));
         Assert.Equal("720", ValueOf(arguments, "--window-height"));
+        Assert.Equal("1920x1080/240", ValueOf(arguments, "--new-display"));
+        Assert.DoesNotContain("--flex-display", arguments);
     }
 
     [Fact]
@@ -127,7 +156,8 @@ public class ScrcpyCommandBuilderTests
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "Titre", ScrcpyOptions.Default, new ScrcpyWindowPlacement(1, 2, 3, 4));
 
-        Assert.Contains("--new-display=1080x1920/320", arguments);
+        // Les côtés impairs sont ramenés à des nombres pairs.
+        Assert.Contains("--new-display=2x4/240", arguments);
 
         foreach (var argument in arguments.Where(a => a.StartsWith("--", StringComparison.Ordinal)))
         {
@@ -164,7 +194,7 @@ public class ScrcpyCommandBuilderTests
 
         Assert.Equal("1", ValueOf(arguments, "--max-fps"));
         Assert.Equal("200K", ValueOf(arguments, "--video-bit-rate"));
-        Assert.Equal("240x1920/640", ValueOf(arguments, "--new-display"));
+        Assert.Equal("240x1080/640", ValueOf(arguments, "--new-display"));
     }
 
     [Fact]

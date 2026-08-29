@@ -264,6 +264,27 @@
     </Setter>
   </Style>
 
+  <!-- Infobulle : le gabarit par défaut de Windows ignore le thème et donne
+       du texte clair sur fond clair, illisible. -->
+  <Style TargetType="ToolTip">
+    <Setter Property="HasDropShadow" Value="False" />
+    <Setter Property="Placement" Value="Bottom" />
+    <Setter Property="VerticalOffset" Value="4" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ToolTip">
+          <Border Background="{DynamicResource SurfaceBrush}"
+                  BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                  CornerRadius="6" Padding="10,7">
+            <TextBlock Text="{TemplateBinding Content}" TextWrapping="Wrap" MaxWidth="320"
+                       FontFamily="{StaticResource UiFont}" FontSize="12"
+                       Foreground="{DynamicResource TextBrush}" />
+          </Border>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
   <Style x:Key="StatusPill" TargetType="Border">
     <Setter Property="CornerRadius" Value="9" />
     <Setter Property="Padding" Value="7,2" />

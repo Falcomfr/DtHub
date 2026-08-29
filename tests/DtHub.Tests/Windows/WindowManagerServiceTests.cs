@@ -192,15 +192,21 @@ public class WindowManagerServiceTests
     }
 
     [Fact]
-    public async Task Le_rapport_d_affichage_de_l_ecran_virtuel_est_respecte()
+    public async Task Avec_l_ajustement_continu_la_fenetre_n_impose_aucune_forme()
     {
+        // L'afficheur suit la fenêtre : celle-ci occupe exactement la part
+        // d'écran demandée, sans bande noire ni rapport imposé.
         var (manager, sessions, desktop) = await OpenSessionsAsync(1);
         await using var _ = manager;
 
         var service = new WindowManagerService(desktop, NoDelay);
-        await service.ArrangeAsync(sessions, CancellationToken.None);
+        await service.ApplySizeAsync(sessions, 1, CancellationToken.None);
 
-        Assert.Equal(1080.0 / 1920.0, desktop.GetWindowRect(sessions[0].WindowHandle)!.Value.AspectRatio, 2);
+        var work = FakeWindowController.PrimaryMonitor.WorkArea;
+        var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+
+        Assert.Equal((int)Math.Round(work.Width * 0.70), rect.Width);
+        Assert.Equal((int)Math.Round(work.Height * 0.70), rect.Height);
     }
 
     [Fact]

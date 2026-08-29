@@ -74,16 +74,26 @@ public static class ScrcpyCommandBuilder
             arguments.Add(Option("video-codec", sanitized.VideoCodec));
         }
 
+        var flex = sanitized is { UseVirtualDisplay: true, FlexDisplay: true };
+
         if (sanitized.UseVirtualDisplay)
         {
-            arguments.Add(Option("new-display", sanitized.VirtualDisplayArgument));
+            // Avec l'ajustement continu, la taille de la fenêtre se règle par
+            // la définition de l'afficheur : scrcpy refuse --window-width et
+            // --window-height dans ce mode. Les deux coïncident donc
+            // exactement, et il n'y a jamais de bande noire.
+            arguments.Add(Option(
+                "new-display",
+                flex && windowPosition is { } size
+                    ? DisplayArgument(size.Width, size.Height, sanitized.VirtualDisplayDpi)
+                    : sanitized.VirtualDisplayArgument));
 
             if (sanitized.DisableVirtualDisplayDecorations)
             {
                 arguments.Add("--no-vd-system-decorations");
             }
 
-            if (sanitized.FlexDisplay)
+            if (flex)
             {
                 arguments.Add("--flex-display");
             }
@@ -95,9 +105,16 @@ public static class ScrcpyCommandBuilder
             [
                 Option("window-x", placement.X.ToString(CultureInfo.InvariantCulture)),
                 Option("window-y", placement.Y.ToString(CultureInfo.InvariantCulture)),
-                Option("window-width", placement.Width.ToString(CultureInfo.InvariantCulture)),
-                Option("window-height", placement.Height.ToString(CultureInfo.InvariantCulture)),
             ]);
+
+            if (!flex)
+            {
+                arguments.AddRange(
+                [
+                    Option("window-width", placement.Width.ToString(CultureInfo.InvariantCulture)),
+                    Option("window-height", placement.Height.ToString(CultureInfo.InvariantCulture)),
+                ]);
+            }
         }
 
         // Volontairement absent : --kill-adb-on-close. Le serveur ADB est
@@ -116,6 +133,14 @@ public static class ScrcpyCommandBuilder
 
     /// <summary>Une option longue et sa valeur, accolées.</summary>
     private static string Option(string name, string value) => $"--{name}={value}";
+
+    /// <summary>
+    /// Définition d'afficheur au format attendu. Les dimensions sont ramenées
+    /// à des nombres pairs : les encodeurs vidéo refusent les côtés impairs.
+    /// </summary>
+    private static string DisplayArgument(int width, int height, int dpi) => string.Create(
+        CultureInfo.InvariantCulture,
+        $"{Math.Max(2, width - (width % 2))}x{Math.Max(2, height - (height % 2))}/{dpi}");
 }
 
 /// <summary>Position et taille d'une fenêtre, en pixels écran.</summary>

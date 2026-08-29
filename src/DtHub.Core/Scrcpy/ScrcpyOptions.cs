@@ -43,13 +43,16 @@ public sealed record ScrcpyOptions
     /// </summary>
     public bool UseVirtualDisplay { get; init; } = true;
 
-    /// <summary>Largeur de l'afficheur virtuel, en pixels.</summary>
-    public int VirtualDisplayWidth { get; init; } = 1080;
+    /// <summary>
+    /// Largeur de l'afficheur virtuel, en pixels. Paysage par défaut : le jeu
+    /// s'affiche ainsi, et un afficheur vertical le réduirait à une bande.
+    /// </summary>
+    public int VirtualDisplayWidth { get; init; } = 1920;
 
-    public int VirtualDisplayHeight { get; init; } = 1920;
+    public int VirtualDisplayHeight { get; init; } = 1080;
 
     /// <summary>Densité de l'afficheur virtuel. Trop basse, l'interface Android devient minuscule.</summary>
-    public int VirtualDisplayDpi { get; init; } = 320;
+    public int VirtualDisplayDpi { get; init; } = 240;
 
     /// <summary>
     /// Partir d'un afficheur vide plutôt que du lanceur de l'appareil : c'est

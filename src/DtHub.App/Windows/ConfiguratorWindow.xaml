@@ -53,9 +53,21 @@
 
           <!-- Les outils viendront s'ajouter ici, chacun avec son raccourci. -->
           <StackPanel Grid.Column="0" Orientation="Horizontal">
-            <Button Content="⛶" FontSize="15" Padding="9,4" Style="{StaticResource QuietButton}"
-                    ToolTip="Replacer toutes les fenêtres de jeu"
-                    Command="{Binding ArrangeCommand}" />
+            <Button Padding="8,5" Style="{StaticResource QuietButton}"
+                    ToolTip="Remettre toutes les fenêtres de jeu au même endroit, à la taille choisie"
+                    Command="{Binding ArrangeCommand}">
+              <!-- Deux fenêtres superposées : c'est exactement ce que fait
+                   l'action, et aucun glyphe ne le dit clairement. -->
+              <Grid Width="20" Height="16">
+                <Border Width="14" Height="11" CornerRadius="2"
+                        HorizontalAlignment="Left" VerticalAlignment="Top"
+                        BorderThickness="1.4" BorderBrush="{DynamicResource TextMutedBrush}" />
+                <Border Width="14" Height="11" CornerRadius="2"
+                        HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                        Background="{DynamicResource SurfaceAltBrush}"
+                        BorderThickness="1.4" BorderBrush="{DynamicResource AccentBrush}" />
+              </Grid>
+            </Button>
           </StackPanel>
 
           <Button Grid.Column="1" Content="Quitter" Click="OnQuit"
