@@ -63,18 +63,17 @@ public sealed record ScrcpyOptions
     /// <summary>
     /// Redimensionner l'afficheur virtuel en continu pour suivre la fenêtre.
     ///
-    /// Désactivé, après l'avoir essayé. Dans ce mode l'image n'est pas mise à
-    /// l'échelle : la fenêtre montre l'afficheur pixel pour pixel, et une
-    /// fenêtre plus large montre donc davantage de jeu. Séduisant, mais le jeu
-    /// ne se remet pas en page au-delà de la hauteur qu'il avait à sa
-    /// naissance, et agrandir demandait alors de le recharger.
+    /// Activé. L'image n'est pas mise à l'échelle : la fenêtre montre
+    /// l'afficheur pixel pour pixel, donc une fenêtre plus large montre
+    /// davantage de jeu au lieu de l'agrandir.
     ///
-    /// Sans ce mode, l'afficheur garde sa définition et scrcpy met l'image à
-    /// l'échelle de la fenêtre, en verrouillant lui-même son rapport quand on
-    /// la tire à la souris. Redimensionner devient instantané, l'image remplit
-    /// toujours, et rien n'est jamais rechargé.
+    /// Mesuré sur un Xiaomi 13T, les deux mouvements ne se valent pas. En
+    /// largeur, le jeu se remet en page de 1,04 à 2,82 de rapport, sans une
+    /// bande. En hauteur, il ne dépasse jamais celle de sa naissance et laisse
+    /// une bande de la hauteur ajoutée : 61 pixels pour cent de plus, 461 pour
+    /// cinq cents. La hauteur est donc plafonnée, la largeur reste libre.
     /// </summary>
-    public bool FlexDisplay { get; init; }
+    public bool FlexDisplay { get; init; } = true;
 
     /// <summary>
     /// Rappel ajouté au titre de chaque fenêtre de jeu, entre parenthèses.

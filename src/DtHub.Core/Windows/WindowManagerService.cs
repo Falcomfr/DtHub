@@ -204,13 +204,13 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Ramène les fenêtres au rapport de leur afficheur, une fois leur taille
-    /// stabilisée.
+    /// Ramène la hauteur des fenêtres à celle que le jeu sait remplir.
     ///
-    /// scrcpy verrouille déjà ce rapport quand on tire la fenêtre à la souris,
-    /// mais rien ne le garantit par les autres chemins : l'ancrage automatique
-    /// de Windows, par exemple, impose une demi-largeur d'écran. L'image
-    /// serait alors bordée.
+    /// La largeur reste libre : le jeu s'y remet en page sans faute. La
+    /// hauteur, elle, ne dépasse jamais celle qu'il avait à sa naissance, et
+    /// tout dépassement laisse une bande noire de la hauteur ajoutée. Plutôt
+    /// que de recharger le jeu pour lui donner cette hauteur, ce qui
+    /// déconnecterait en pleine partie, la fenêtre s'arrête là.
     /// </summary>
     /// <returns>Nombre de fenêtres corrigées.</returns>
     public int EnforceAspect(IReadOnlyList<ScrcpySession> sessions)
@@ -226,7 +226,7 @@ public sealed class WindowManagerService
 
         foreach (var session in sessions.Where(s => s.IsAlive && s.WindowHandle != 0))
         {
-            if (session.SourceAspectRatio <= 0
+            if (session.MaxClientHeight <= 0
                 || _controller.GetWindowRect(session.WindowHandle) is not { } outer
                 || outer.IsEmpty)
             {
@@ -242,12 +242,11 @@ public sealed class WindowManagerService
             }
 
             var chrome = MeasureChrome(session.WindowHandle);
-            var clientWidth = Math.Max(1, outer.Width - chrome.Width);
-            var wanted = (int)Math.Round(clientWidth / session.SourceAspectRatio) + chrome.Height;
+            var wanted = session.MaxClientHeight + chrome.Height;
 
-            // Deux pixels de tolérance : l'arrondi ne doit pas provoquer une
-            // correction perpétuelle.
-            if (Math.Abs(wanted - outer.Height) <= 2)
+            // La fenêtre peut être plus basse que le plafond : seule la
+            // dépasser pose problème.
+            if (outer.Height <= wanted + 2)
             {
                 continue;
             }
@@ -472,6 +471,14 @@ public sealed class WindowManagerService
             var rect = Resolve(session, monitor, monitors, chrome, remembered);
 
             _controller.MoveWindow(handle, rect);
+
+            // Le premier placement précède l'ouverture du jeu : c'est à cette
+            // hauteur de zone client qu'il naît, et il ne se remet pas en page
+            // au-delà.
+            if (session.MaxClientHeight == 0)
+            {
+                session.MaxClientHeight = Math.Max(1, rect.Height - chrome.Height);
+            }
 
             applied.Add((session.Target.Key, rect));
         }

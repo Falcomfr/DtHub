@@ -318,17 +318,17 @@ public sealed partial class InstanceListViewModel : ObservableObject
     }
 
     /// <summary>Ouvre une instance qui ne l'est pas encore.</summary>
-    [RelayCommand]
+    [RelayCommand(AllowConcurrentExecutions = true)]
     private Task LaunchInstanceAsync(InstanceRowViewModel? row) =>
         ActOnAsync(row, instance => _launcher.LaunchAsync([instance]));
 
     /// <summary>Ferme le jeu sur l'appareil puis le rouvre.</summary>
-    [RelayCommand]
+    [RelayCommand(AllowConcurrentExecutions = true)]
     private Task RestartAsync(InstanceRowViewModel? row) =>
         ActOnAsync(row, instance => _launcher.RestartAsync(instance));
 
     /// <summary>Ferme la fenêtre d'une instance.</summary>
-    [RelayCommand]
+    [RelayCommand(AllowConcurrentExecutions = true)]
     private Task StopAsync(InstanceRowViewModel? row) =>
         ActOnAsync(row, async instance =>
         {
@@ -346,12 +346,15 @@ public sealed partial class InstanceListViewModel : ObservableObject
         InstanceRowViewModel? row,
         Func<Core.Dofus.DofusInstance, Task<LaunchReport>> action)
     {
-        if (row is null || IsBusy)
+        // Le garde-fou est propre à la ligne, et non à la liste entière. Un
+        // verrou global avalait le clic quand une autre instance travaillait,
+        // ou simplement pendant le balayage périodique : il fallait alors
+        // cliquer une seconde fois.
+        if (row is null || row.IsWorking)
         {
             return;
         }
 
-        IsBusy = true;
         row.IsWorking = true;
 
         try
@@ -367,7 +370,6 @@ public sealed partial class InstanceListViewModel : ObservableObject
         finally
         {
             row.IsWorking = false;
-            IsBusy = false;
 
             // L'état est relu plutôt que déduit de l'action : une session peut
             // s'être arrêtée d'elle-même entre-temps.
