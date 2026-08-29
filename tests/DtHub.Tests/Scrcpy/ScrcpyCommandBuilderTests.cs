@@ -242,8 +242,8 @@ public class ScrcpyCommandBuilderTests
         // Les fenêtres se superposent et se ressemblent : le rappel se lit
         // au-dessus de l'image, sans rien ouvrir.
         Assert.Equal(
-            $"{ProductInfo.Name} XSpace  (Ctrl + Tab : compte suivant)",
-            ScrcpyCommandBuilder.BuildWindowTitle("XSpace", "Ctrl + Tab : compte suivant"));
+            $"{ProductInfo.Name} XSpace  (Ctrl + Tab : fenêtre suivante)",
+            ScrcpyCommandBuilder.BuildWindowTitle("XSpace", "Ctrl + Tab : fenêtre suivante"));
     }
 
     [Fact]

@@ -611,7 +611,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         var hotkeys = await _settings.GetHotkeysAsync(cancellationToken).ConfigureAwait(false);
         var next = hotkeys.For(HotkeyAction.NextInstance);
 
-        return next is { IsAssigned: true } ? $"{next.DisplayText} : compte suivant" : null;
+        return next is { IsAssigned: true } ? $"{next.DisplayText} : fenêtre suivante" : null;
     }
 
     private static LaunchTarget ToTarget(DofusInstance instance, string serial) => new()

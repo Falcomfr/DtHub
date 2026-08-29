@@ -85,8 +85,8 @@ public sealed record HotkeyBinding
     public static string DescribeAction(HotkeyAction action) => action switch
     {
         HotkeyAction.ToggleConfigurator => "Afficher ou masquer le configurateur",
-        HotkeyAction.NextInstance => "Instance suivante",
-        HotkeyAction.PreviousInstance => "Instance précédente",
+        HotkeyAction.NextInstance => "Fenêtre suivante",
+        HotkeyAction.PreviousInstance => "Fenêtre précédente",
         HotkeyAction.Rearrange => "Remettre les fenêtres en place",
         HotkeyAction.Size1 => "Taille 1",
         HotkeyAction.Size2 => "Taille 2",

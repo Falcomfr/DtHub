@@ -231,7 +231,7 @@ public class HotkeySetTests
     [Fact]
     public void Les_libelles_d_action_sont_lisibles()
     {
-        Assert.Equal("Instance suivante", HotkeyBinding.DescribeAction(HotkeyAction.NextInstance));
+        Assert.Equal("Fenêtre suivante", HotkeyBinding.DescribeAction(HotkeyAction.NextInstance));
         Assert.Equal("Remettre les fenêtres en place", HotkeyBinding.DescribeAction(HotkeyAction.Rearrange));
         Assert.Equal("Quitter", HotkeyBinding.DescribeAction(HotkeyAction.Quit));
     }
