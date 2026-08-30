@@ -39,17 +39,91 @@
       </Grid>
     </Border>
 
-    <!-- Barre d'étape, masquée tant qu'aucune quête n'est ouverte -->
+    <!-- Bandeau de la quête ouverte : son nom, sa place dans le succès, et
+         les flèches d'étape. -->
     <Border DockPanel.Dock="Top" Padding="10,6"
             BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1"
             Visibility="{Binding HasQuest, Converter={StaticResource BoolToVisibility}}">
       <StackPanel>
-        <TextBlock Text="{Binding ChainText}" Style="{StaticResource Muted}" FontSize="11" />
+        <TextBlock Text="{Binding ChainText}" Style="{StaticResource Muted}" FontSize="11"
+                   Visibility="{Binding ChainText, Converter={StaticResource EmptyToVisibility},
+                                        ConverterParameter=inverse}" />
+
         <TextBlock Text="{Binding QuestTitle}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+
+        <!-- Les étapes : deux flèches, le rang, et ce qu'il y a à faire. -->
+        <Grid Margin="0,6,0,0"
+              Visibility="{Binding HasSteps, Converter={StaticResource BoolToVisibility}}">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+
+          <Button Grid.Column="0" Style="{StaticResource IconButton}"
+                  IsEnabled="{Binding CanGoPreviousStep}" Click="OnPreviousStep"
+                  ToolTip="Étape précédente. La page se replace dessus.">
+            <Path Style="{StaticResource RowGlyph}" Data="M 9,3 L 5,7.5 L 9,12" />
+          </Button>
+
+          <Button Grid.Column="1" Style="{StaticResource IconButton}"
+                  IsEnabled="{Binding CanGoNextStep}" Click="OnNextStep"
+                  ToolTip="Étape suivante. La page se replace dessus.">
+            <Path Style="{StaticResource RowGlyph}" Data="M 6,3 L 10,7.5 L 6,12" />
+          </Button>
+
+          <TextBlock Grid.Column="2" Text="{Binding StepText}" VerticalAlignment="Center"
+                     Margin="4,0,10,0" FontFamily="{StaticResource MonoFont}" FontSize="11"
+                     Foreground="{DynamicResource AccentBrush}" />
+
+          <TextBlock Grid.Column="3" Text="{Binding StepDetail}" VerticalAlignment="Center"
+                     Style="{StaticResource Muted}" FontSize="11"
+                     TextTrimming="CharacterEllipsis"
+                     ToolTip="{Binding StepDetail}" />
+        </Grid>
       </StackPanel>
     </Border>
 
-    <!-- Pied : la source, toujours citée, et un accès au vrai navigateur -->
+    <!-- La chaîne du succès : d'où l'on vient, où l'on va. -->
+    <Border DockPanel.Dock="Bottom" Padding="10,6"
+            BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,1,0,0"
+            Visibility="{Binding HasQuest, Converter={StaticResource BoolToVisibility}}">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Button Grid.Column="0" Style="{StaticResource QuietButton}"
+                HorizontalAlignment="Left" HorizontalContentAlignment="Left"
+                Tag="{Binding PreviousQuest}" Click="OnFollowChain"
+                ToolTip="Revenir à la quête précédente du succès"
+                Visibility="{Binding PreviousQuest, Converter={StaticResource EmptyToVisibility},
+                                     ConverterParameter=inverse}">
+          <StackPanel Orientation="Horizontal">
+            <Path Style="{StaticResource RowGlyph}" Data="M 9,3 L 5,7.5 L 9,12" Margin="0,0,4,0" />
+            <TextBlock Text="{Binding PreviousQuest.Title}" MaxWidth="180"
+                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+
+        <Button Grid.Column="1" Style="{StaticResource QuietButton}"
+                HorizontalAlignment="Right" HorizontalContentAlignment="Right"
+                Tag="{Binding NextQuest}" Click="OnFollowChain"
+                ToolTip="Passer à la quête suivante du succès"
+                Visibility="{Binding NextQuest, Converter={StaticResource EmptyToVisibility},
+                                     ConverterParameter=inverse}">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="{Binding NextQuest.Title}" MaxWidth="180"
+                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+            <Path Style="{StaticResource RowGlyph}" Data="M 6,3 L 10,7.5 L 6,12" Margin="4,0,0,0" />
+          </StackPanel>
+        </Button>
+      </Grid>
+    </Border>
+
+    <!-- La source, toujours citée, et un accès au vrai navigateur -->
     <Border DockPanel.Dock="Bottom" Padding="10,6"
             Background="{StaticResource BrushedPanelBrush}"
             BorderBrush="{DynamicResource BevelBrush}" BorderThickness="0,1,0,0">

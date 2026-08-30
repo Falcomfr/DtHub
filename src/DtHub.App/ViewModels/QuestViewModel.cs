@@ -277,17 +277,124 @@ public sealed partial class QuestViewModel : ObservableObject
         QuestTitle = quest.Title;
         ChainText = string.Empty;
         HasQuest = true;
+
+        // La page suivante n'est pas encore chargée : garder les étapes de la
+        // précédente afficherait un objectif qui n'a plus rien à voir.
+        _steps = [];
+        HasSteps = false;
+        PreviousQuest = null;
+        NextQuest = null;
+        SetStep(-1);
     }
 
-    /// <summary>Complète le titre avec ce que la page annonce, une fois chargée.</summary>
-    public void SetFacts(QuestFacts facts)
-    {
-        ArgumentNullException.ThrowIfNull(facts);
+    /// <summary>Étapes repérées dans la page ouverte.</summary>
+    private IReadOnlyList<string> _steps = [];
 
+    [ObservableProperty]
+    private int _stepIndex = -1;
+
+    /// <summary>« Étape 3 / 7 », ou rien quand la page n'a pas d'étape.</summary>
+    [ObservableProperty]
+    private string _stepText = string.Empty;
+
+    /// <summary>Ce qu'il y a à faire à cette étape, en une ligne.</summary>
+    [ObservableProperty]
+    private string _stepDetail = string.Empty;
+
+    [ObservableProperty]
+    private bool _hasSteps;
+
+    [ObservableProperty]
+    private bool _canGoPreviousStep;
+
+    [ObservableProperty]
+    private bool _canGoNextStep;
+
+    /// <summary>Quête suivante de la chaîne, quand la page en annonce une.</summary>
+    [ObservableProperty]
+    private QuestLink? _nextQuest;
+
+    /// <summary>Quête précédente de la chaîne.</summary>
+    [ObservableProperty]
+    private QuestLink? _previousQuest;
+
+    /// <summary>
+    /// Ce que la page vient de livrer : ses blocs structurés et ses étapes.
+    /// </summary>
+    public void SetPage(string? introHtml, string? chainHtml, IReadOnlyList<string> steps)
+    {
+        ArgumentNullException.ThrowIfNull(steps);
+
+        var facts = QuestPageParser.ParseFacts(introHtml);
+        var chain = QuestPageParser.ParseChain(chainHtml);
+
+        // Le site nomme « étape » la place d'une quête dans son succès, et
+        // nous nommons « étape » un objectif dans la page. Afficher les deux
+        // mots côte à côte rendait le bandeau illisible : celui de la chaîne
+        // parle donc de quête.
         ChainText = string.Join(
             "  ·  ",
-            new[] { facts.StepText, facts.Success }
-                .Where(s => !string.IsNullOrWhiteSpace(s)));
+            new[]
+            {
+                facts.HasChain ? $"Quête {facts.StepNumber} / {facts.StepCount}" : null,
+                facts.Success,
+            }
+            .Where(s => !string.IsNullOrWhiteSpace(s)));
+
+        PreviousQuest = chain.PreviousQuest;
+        NextQuest = chain.NextQuest;
+
+        _steps = steps;
+        HasSteps = steps.Count > 0;
+
+        SetStep(steps.Count > 0 ? 0 : -1);
+    }
+
+    /// <summary>Le défilement a changé d'étape, ou l'utilisateur en a choisi une.</summary>
+    public void SetStep(int index)
+    {
+        StepIndex = index;
+
+        var total = _steps.Count;
+
+        StepText = index >= 0 && total > 0
+            ? $"Étape {index + 1} / {total}"
+            : string.Empty;
+
+        StepDetail = index >= 0 && index < total ? _steps[index] : string.Empty;
+
+        CanGoPreviousStep = index > 0;
+        CanGoNextStep = index >= 0 && index < total - 1;
+    }
+
+    /// <summary>
+    /// On suit un lien de chaîne. Le titre est repris tout de suite : la page
+    /// met une seconde à répondre, et un bandeau qui garde l'ancien nom pendant
+    /// ce temps laisse croire que le clic n'a rien fait.
+    /// </summary>
+    public void Follow(QuestLink link)
+    {
+        ArgumentNullException.ThrowIfNull(link);
+
+        CurrentUrl = link.Url;
+        QuestTitle = link.Title;
+        ChainText = string.Empty;
+        HasQuest = true;
+        IsListOpen = false;
+
+        _steps = [];
+        HasSteps = false;
+        PreviousQuest = null;
+        NextQuest = null;
+        SetStep(-1);
+    }
+
+    /// <summary>Étape visée par une flèche, ou -1 s'il n'y a nulle part où aller.</summary>
+    public int StepTarget(int direction)
+    {
+        var target = StepIndex + direction;
+
+        return target >= 0 && target < _steps.Count ? target : -1;
     }
 
     /// <summary>

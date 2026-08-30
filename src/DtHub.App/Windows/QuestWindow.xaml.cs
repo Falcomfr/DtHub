@@ -1,3 +1,7 @@
+using System.Globalization;
+using System.IO;
+using System.Reflection;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
 
@@ -113,12 +117,14 @@ public partial class QuestWindow : Window
         }
     }
 
+    private bool _bridgeReady;
+
     /// <summary>Charge la page d'une quête, en s'assurant que le moteur est prêt.</summary>
     private async void Open(QuestSummary quest)
     {
         try
         {
-            await View.EnsureCoreWebView2Async().ConfigureAwait(true);
+            await PrepareAsync().ConfigureAwait(true);
 
             View.CoreWebView2.Navigate(quest.Url);
         }
@@ -127,6 +133,124 @@ public partial class QuestWindow : Window
             // Sans moteur d'exécution, la fenêtre ne peut rien montrer : le
             // dire vaut mieux que laisser une zone vide.
             _viewModel.ReportViewFailure(exception);
+        }
+    }
+
+    /// <summary>
+    /// Met le moteur en route et y installe le pont, une seule fois.
+    ///
+    /// Le script est posé avant tout chargement de document : posé après, il
+    /// laisserait voir le décor du site le temps d'une image.
+    /// </summary>
+    private async Task PrepareAsync()
+    {
+        await View.EnsureCoreWebView2Async().ConfigureAwait(true);
+
+        if (_bridgeReady)
+        {
+            return;
+        }
+
+        _bridgeReady = true;
+
+        View.CoreWebView2.WebMessageReceived += OnBridgeMessage;
+
+        await View.CoreWebView2
+            .AddScriptToExecuteOnDocumentCreatedAsync(BridgeScript())
+            .ConfigureAwait(true);
+    }
+
+    /// <summary>Lit le pont depuis les ressources de l'assembly.</summary>
+    private static string BridgeScript()
+    {
+        using var stream = Assembly.GetExecutingAssembly()
+            .GetManifestResourceStream("DtHub.App.quest-bridge.js")
+            ?? throw new InvalidOperationException("Le pont de la fenêtre de quêtes est absent de l'assembly.");
+
+        using var reader = new StreamReader(stream);
+
+        return reader.ReadToEnd();
+    }
+
+    private void OnBridgeMessage(object? sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs e)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(e.TryGetWebMessageAsString());
+
+            var root = document.RootElement;
+
+            switch (root.GetProperty("kind").GetString())
+            {
+                case "loaded":
+                    _viewModel.SetPage(
+                        Text(root, "intro"),
+                        Text(root, "chain"),
+                        Steps(root));
+                    break;
+
+                case "step":
+                    _viewModel.SetStep(root.GetProperty("index").GetInt32());
+                    break;
+
+                default:
+                    break;
+            }
+        }
+        catch (JsonException)
+        {
+            // Un message qui ne vient pas du pont, ou une page qui en aurait
+            // posté un autre : on l'ignore plutôt que de faire tomber la
+            // fenêtre.
+        }
+    }
+
+    private static string? Text(JsonElement root, string name) =>
+        root.TryGetProperty(name, out var value) ? value.GetString() : null;
+
+    private static IReadOnlyList<string> Steps(JsonElement root)
+    {
+        if (!root.TryGetProperty("steps", out var steps) || steps.ValueKind != JsonValueKind.Array)
+        {
+            return [];
+        }
+
+        return [.. steps.EnumerateArray().Select(s => s.GetString() ?? string.Empty)];
+    }
+
+    /// <summary>Fait défiler la page jusqu'à une étape.</summary>
+    private async void GoToStep(int index)
+    {
+        if (index < 0)
+        {
+            return;
+        }
+
+        try
+        {
+            await View.CoreWebView2
+                .ExecuteScriptAsync($"window.__dtHubGoToStep({index.ToString(CultureInfo.InvariantCulture)})")
+                .ConfigureAwait(true);
+
+            _viewModel.SetStep(index);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            _viewModel.ReportViewFailure(exception);
+        }
+    }
+
+    private void OnPreviousStep(object sender, RoutedEventArgs e) => GoToStep(_viewModel.StepTarget(-1));
+
+    private void OnNextStep(object sender, RoutedEventArgs e) => GoToStep(_viewModel.StepTarget(1));
+
+    /// <summary>Suit un lien de chaîne : la quête précédente ou la suivante.</summary>
+    private void OnFollowChain(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is QuestLink link)
+        {
+            _viewModel.Follow(link);
+            View.CoreWebView2?.Navigate(link.Url);
         }
     }
 

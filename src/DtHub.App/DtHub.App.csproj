@@ -19,6 +19,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Le pont est embarqué : il doit suivre l'exécutable, pas traîner à côté. -->
+    <EmbeddedResource Include="Assets\quest-bridge.js" LogicalName="DtHub.App.quest-bridge.js" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\DtHub.Core\DtHub.Core.csproj" />
     <ProjectReference Include="..\DtHub.Infrastructure\DtHub.Infrastructure.csproj" />
   </ItemGroup>
