@@ -22,8 +22,17 @@ public sealed partial class QuestViewModel : ObservableObject
         _dialogs = dialogs;
     }
 
-    /// <summary>Résultats de la recherche, au fil de la frappe.</summary>
-    public ObservableCollection<QuestSummary> Results { get; } = [];
+    /// <summary>
+    /// Ce que la liste déroulante montre à cet instant : les branches, les
+    /// quêtes d'une rubrique, ou les résultats d'une recherche.
+    /// </summary>
+    public ObservableCollection<QuestNode> Nodes { get; } = [];
+
+    /// <summary>Nombre de quêtes du catalogue rangées dans chaque rubrique.</summary>
+    private readonly Dictionary<int, int> _sectionCounts = [];
+
+    /// <summary>Rubrique ouverte, ou zéro à la racine.</summary>
+    private int _section;
 
     [ObservableProperty]
     private string _query = string.Empty;
@@ -42,7 +51,15 @@ public sealed partial class QuestViewModel : ObservableObject
 
     /// <summary>Ce qu'on lit tant qu'aucune quête n'est ouverte.</summary>
     [ObservableProperty]
-    private string _placeholder = "Cherchez une quête par son nom.";
+    private string _placeholder = "Cherchez une quête, ou dépliez la liste.";
+
+    /// <summary>Vrai quand la liste déroulante est ouverte.</summary>
+    [ObservableProperty]
+    private bool _isListOpen;
+
+    /// <summary>Où l'on se trouve dans l'arbre, affiché au-dessus de la liste.</summary>
+    [ObservableProperty]
+    private string _breadcrumb = string.Empty;
 
     /// <summary>Adresse de la page ouverte, pour la rouvrir dans le navigateur.</summary>
     public string? CurrentUrl { get; private set; }
@@ -69,18 +86,185 @@ public sealed partial class QuestViewModel : ObservableObject
             StatusText += " (liste en cache)";
         }
 
-        Refresh();
+        CountSections();
+        ShowRoot();
     }
 
-    partial void OnQueryChanged(string value) => Refresh();
-
-    private void Refresh()
+    /// <summary>
+    /// Compte les quêtes par rubrique à partir du catalogue, et non des
+    /// nombres du site : celui-ci compte aussi ce qui n'est pas une quête, et
+    /// proposerait des rubriques qui s'ouvriraient sur rien.
+    /// </summary>
+    private void CountSections()
     {
-        Results.Clear();
+        _sectionCounts.Clear();
 
-        foreach (var quest in _catalog.Search(Query, limit: 40))
+        foreach (var quest in _catalog.Catalog.Quests)
         {
-            Results.Add(quest);
+            foreach (var section in quest.Categories)
+            {
+                _sectionCounts[section] = _sectionCounts.GetValueOrDefault(section) + 1;
+            }
+        }
+    }
+
+    partial void OnQueryChanged(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            // Effacer la recherche ramène là où l'on était, plutôt qu'à la
+            // racine : on efface souvent pour corriger une faute de frappe.
+            ShowSection(_section);
+            return;
+        }
+
+        ShowSearch(value);
+    }
+
+    /// <summary>Ouvre la liste sur ce qui était affiché.</summary>
+    public void OpenList()
+    {
+        if (Nodes.Count == 0)
+        {
+            ShowRoot();
+        }
+
+        IsListOpen = true;
+    }
+
+    /// <summary>Le premier niveau : les grandes branches.</summary>
+    public void ShowRoot()
+    {
+        _section = 0;
+        Breadcrumb = string.Empty;
+
+        Nodes.Clear();
+        Nodes.Add(new QuestNode(
+            QuestNodeKind.Branch,
+            "Quêtes",
+            Nombre(_catalog.Catalog.Quests.Count),
+            Id: RootSection));
+        Nodes.Add(new QuestNode(
+            QuestNodeKind.Pending,
+            "Donjons",
+            "bientôt"));
+    }
+
+    /// <summary>
+    /// Le contenu d'une rubrique. À la racine des quêtes, ce sont les autres
+    /// rubriques ; plus bas, ce sont les quêtes elles-mêmes.
+    /// </summary>
+    public void ShowSection(int section)
+    {
+        _section = section;
+
+        if (section == 0)
+        {
+            ShowRoot();
+            return;
+        }
+
+        Nodes.Clear();
+
+        if (section == RootSection)
+        {
+            Breadcrumb = "Quêtes";
+            Nodes.Add(new QuestNode(QuestNodeKind.Back, "Retour", Id: 0));
+
+            foreach (var branch in Branches())
+            {
+                Nodes.Add(branch);
+            }
+
+            return;
+        }
+
+        Breadcrumb = $"Quêtes  ›  {NameOf(section)}";
+        Nodes.Add(new QuestNode(QuestNodeKind.Back, "Retour", Id: RootSection));
+
+        foreach (var quest in _catalog.InSection(section))
+        {
+            Nodes.Add(ToNode(quest));
+        }
+    }
+
+    /// <summary>
+    /// Résultats d'une recherche. Elle porte sur toutes les quêtes, quelle que
+    /// soit la rubrique ouverte : on cherche un nom, pas un rangement.
+    /// </summary>
+    private void ShowSearch(string query)
+    {
+        Breadcrumb = "Recherche";
+
+        Nodes.Clear();
+
+        foreach (var quest in _catalog.Search(query, limit: 40))
+        {
+            Nodes.Add(ToNode(quest));
+        }
+
+        if (Nodes.Count == 0)
+        {
+            Nodes.Add(new QuestNode(QuestNodeKind.Pending, "Aucune quête de ce nom"));
+        }
+    }
+
+    /// <summary>Rubriques qui contiennent au moins une quête, la plus fournie d'abord.</summary>
+    private IEnumerable<QuestNode> Branches() =>
+        _catalog.Catalog.Sections
+            .Where(s => s.Id != RootSection && _sectionCounts.GetValueOrDefault(s.Id) > 0)
+            .OrderByDescending(s => _sectionCounts[s.Id])
+            .ThenBy(s => s.Name, StringComparer.CurrentCulture)
+            .Select(s => new QuestNode(
+                QuestNodeKind.Branch,
+                s.Name,
+                Nombre(_sectionCounts[s.Id]),
+                Id: s.Id));
+
+    private QuestNode ToNode(QuestSummary quest) => new(
+        QuestNodeKind.Quest,
+        quest.Title,
+        quest.Level > 0 ? $"niveau {quest.Level}" : null,
+        Quest: quest);
+
+    private string NameOf(int section) =>
+        _catalog.Catalog.Sections.FirstOrDefault(s => s.Id == section)?.Name ?? "Rubrique";
+
+    private static string Nombre(int count) => count == 1 ? "1 quête" : $"{count} quêtes";
+
+    /// <summary>Catégorie qui range toutes les quêtes du site.</summary>
+    private const int RootSection = 7;
+
+    /// <summary>
+    /// Donne suite à un clic dans la liste. Rend la quête à ouvrir, ou null
+    /// quand le clic ne fait que déplier une branche.
+    /// </summary>
+    public QuestSummary? Activate(QuestNode? node)
+    {
+        if (node is null || !node.IsEnabled)
+        {
+            return null;
+        }
+
+        switch (node.Kind)
+        {
+            case QuestNodeKind.Back:
+                Query = string.Empty;
+                ShowSection(node.Id);
+                return null;
+
+            case QuestNodeKind.Branch:
+                Query = string.Empty;
+                ShowSection(node.Id);
+                return null;
+
+            case QuestNodeKind.Quest when node.Quest is { } quest:
+                SetCurrent(quest);
+                IsListOpen = false;
+                return quest;
+
+            default:
+                return null;
         }
     }
 
@@ -104,6 +288,22 @@ public sealed partial class QuestViewModel : ObservableObject
             "  ·  ",
             new[] { facts.StepText, facts.Success }
                 .Where(s => !string.IsNullOrWhiteSpace(s)));
+    }
+
+    /// <summary>
+    /// Le navigateur embarqué n'a pas pu se mettre en route. Le cas le plus
+    /// probable est un moteur WebView2 absent, sur un Windows qui n'a pas été
+    /// mis à jour depuis longtemps.
+    /// </summary>
+    public void ReportViewFailure(Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+
+        HasQuest = false;
+        Placeholder =
+            "Le composant d'affichage web de Windows n'a pas pu démarrer.\n"
+            + "Ouvrez la page dans votre navigateur avec le bouton en bas.\n\n"
+            + exception.Message;
     }
 
     /// <summary>Rouvre la page courante sur le site, dans le vrai navigateur.</summary>

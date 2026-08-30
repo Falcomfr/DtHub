@@ -28,7 +28,10 @@
 
         <TextBox Grid.Column="0" x:Name="SearchBox"
                  Text="{Binding Query, UpdateSourceTrigger=PropertyChanged, Delay=150}"
-                 ToolTip="Chercher une quête par son nom. Les accents ne comptent pas." />
+                 GotKeyboardFocus="OnSearchFocused"
+                 PreviewMouseLeftButtonDown="OnSearchClicked"
+                 PreviewKeyDown="OnSearchKey"
+                 ToolTip="Cliquez pour dérouler la liste, ou tapez un nom. Les accents ne comptent pas." />
 
         <TextBlock Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center"
                    Style="{StaticResource Muted}" FontSize="11"
@@ -67,7 +70,7 @@
       </Grid>
     </Border>
 
-    <!-- La page elle-même -->
+    <!-- La page, et la liste déroulante par-dessus -->
     <Grid>
       <wv:WebView2 x:Name="View" />
 
@@ -76,6 +79,47 @@
                  TextAlignment="Center"
                  Text="{Binding Placeholder}"
                  Visibility="{Binding HasQuest, Converter={StaticResource InverseBoolToVisibility}}" />
+
+      <!-- Elle recouvre la page : la liste est un choix en cours, pas un
+           panneau permanent qui volerait de la place au guide. -->
+      <Border VerticalAlignment="Stretch"
+              Background="{DynamicResource SurfaceBrush}"
+              BorderBrush="{StaticResource BevelPressedBrush}" BorderThickness="0,0,0,1"
+              Visibility="{Binding IsListOpen, Converter={StaticResource BoolToVisibility}}">
+        <DockPanel>
+          <TextBlock DockPanel.Dock="Top" Margin="10,8,10,4"
+                     Style="{StaticResource Muted}" FontSize="11"
+                     Text="{Binding Breadcrumb}"
+                     Visibility="{Binding Breadcrumb,
+                                          Converter={StaticResource EmptyToVisibility},
+                                          ConverterParameter=inverse}" />
+
+          <ListBox x:Name="NodeList" ItemsSource="{Binding Nodes}"
+                   Background="Transparent" BorderThickness="0"
+                   HorizontalContentAlignment="Stretch"
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                   MouseLeftButtonUp="OnNodeChosen"
+                   KeyDown="OnNodeKey">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <Grid Margin="0,3" Background="Transparent" IsEnabled="{Binding IsEnabled}">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                  </Grid.ColumnDefinitions>
+
+                  <TextBlock Grid.Column="0" Text="{Binding Label}"
+                             TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+
+                  <TextBlock Grid.Column="1" Text="{Binding Detail}" Margin="10,0,0,0"
+                             VerticalAlignment="Center"
+                             Style="{StaticResource Muted}" FontSize="11" />
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </DockPanel>
+      </Border>
     </Grid>
 
   </DockPanel>
