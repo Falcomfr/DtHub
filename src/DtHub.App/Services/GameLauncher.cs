@@ -37,6 +37,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     private bool _hotkeysWired;
 
+    /// <summary>Un seul rouvrement à la fois : deux qui se chevauchent se volent leurs sessions.</summary>
+    private readonly SemaphoreSlim _reopening = new(1, 1);
+
     /// <summary>Dossier de l'icône des fenêtres de jeu, posé par l'application.</summary>
     public string? IconDirectory { get => _iconDirectory; set => _iconDirectory = value; }
 
@@ -305,8 +308,18 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>Ouvre une liste d'instances précise.</summary>
-    public async Task<LaunchReport> LaunchAsync(
+    public Task<LaunchReport> LaunchAsync(
         IReadOnlyList<DofusInstance> instances,
+        CancellationToken cancellationToken = default) =>
+        LaunchAsync(instances, remembered: null, cancellationToken);
+
+    /// <summary>
+    /// Ouvre une liste d'instances, éventuellement avec une géométrie relevée
+    /// à l'instant plutôt que celle des réglages.
+    /// </summary>
+    private async Task<LaunchReport> LaunchAsync(
+        IReadOnlyList<DofusInstance> instances,
+        IReadOnlyDictionary<string, StoredWindowRect>? remembered,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(instances);
@@ -327,7 +340,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // La position est donnée à scrcpy dès le lancement. Le faire après
         // coup ne suffit pas : scrcpy recentre sa fenêtre quand il reçoit la
         // première image, donc après notre placement.
-        var remembered = await _settings.GetWindowRectsAsync(cancellationToken).ConfigureAwait(false);
+        remembered ??= await _settings.GetWindowRectsAsync(cancellationToken).ConfigureAwait(false);
 
         List<string> problems = [];
         List<ScrcpySession> started = [];
@@ -524,38 +537,68 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     public async Task<LaunchReport> ReopenAsync(CancellationToken cancellationToken = default)
     {
-        var instances = _sessions.ActiveSessions
-            .Select(s => s.Target)
-            .ToList();
-
-        if (instances.Count == 0)
-        {
-            return new LaunchReport(0, []);
-        }
-
-        await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
-
-        _closing = true;
+        // Deux rouvrements qui se chevauchent se volaient leurs sessions : le
+        // second n'en voyait plus qu'une, refermait celle-là, et rouvrait tout
+        // au coin par défaut faute d'avoir relevé quoi que ce soit.
+        await _reopening.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
-            await _sessions.StopAllAsync(cancellationToken).ConfigureAwait(false);
-            _sessions.PruneFinished();
+            var instances = _sessions.ActiveSessions
+                .Select(s => s.Target)
+                .ToList();
+
+            if (instances.Count == 0)
+            {
+                return new LaunchReport(0, []);
+            }
+
+            // La géométrie est gardée sous la main et passée telle quelle au
+            // lancement, plutôt que relue depuis les réglages : un relevé
+            // vide retombait sinon en silence sur le placement par défaut, et
+            // toutes les fenêtres se retrouvaient empilées au même endroit.
+            await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+
+            var remembered = await _settings.GetWindowRectsAsync(cancellationToken).ConfigureAwait(false);
+
+            _closing = true;
+
+            try
+            {
+                await _sessions.StopAllAsync(cancellationToken).ConfigureAwait(false);
+                _sessions.PruneFinished();
+            }
+            finally
+            {
+                _closing = false;
+            }
+
+            // Les cibles portent l'identité d'une session, pas d'une instance :
+            // c'est la liste à jour des instances qui sait ce qu'il faut rouvrir.
+            var known = await RefreshInstancesAsync(cancellationToken).ConfigureAwait(false);
+
+            var reopen = known
+                .Where(i => instances.Any(t => string.Equals(t.Key, i.Key, StringComparison.Ordinal)))
+                .ToList();
+
+            var missing = reopen
+                .Where(i => !remembered.ContainsKey(i.Key))
+                .Select(i => i.DisplayName)
+                .ToList();
+
+            if (missing.Count > 0)
+            {
+                // Sans ce relevé, la fenêtre rouvre au coin par défaut : autant
+                // le dire au journal plutôt que de laisser chercher.
+                LogMissingGeometry(string.Join(", ", missing));
+            }
+
+            return await LaunchAsync(reopen, remembered, cancellationToken).ConfigureAwait(false);
         }
         finally
         {
-            _closing = false;
+            _reopening.Release();
         }
-
-        // Les cibles portent l'identité d'une session, pas d'une instance :
-        // c'est la liste à jour des instances qui sait ce qu'il faut rouvrir.
-        var known = await RefreshInstancesAsync(cancellationToken).ConfigureAwait(false);
-
-        var reopen = known
-            .Where(i => instances.Any(t => string.Equals(t.Key, i.Key, StringComparison.Ordinal)))
-            .ToList();
-
-        return await LaunchAsync(reopen, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>Ferme toutes les fenêtres ouvertes par l'application.</summary>
@@ -963,7 +1006,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         try
         {
-            var mine = _sessions.ActiveSessions.Any(s => s.WindowHandle == window)
+            // Reconnue par son processus, et non par le handle que nous avons
+            // retenu : celui d'une session fraîchement rouverte n'est pas
+            // encore résolu, et les raccourcis se croyaient alors hors de chez
+            // eux. Ils restaient éteints tant qu'on ne cliquait pas ailleurs
+            // puis de nouveau sur une fenêtre de jeu.
+            var owner = _windows.GetWindowProcessId(window);
+
+            var mine = _sessions.ActiveSessions.Any(
+                           s => s.WindowHandle == window || (owner != 0 && s.ProcessId == owner))
                        || OwnsWindow?.Invoke(window) == true;
 
             await _hotkeys.SetEnabledAsync(mine).ConfigureAwait(false);
@@ -1044,6 +1095,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Information,
         Message = "Lancement terminé : {opened} fenêtre(s) ouverte(s), {problems} problème(s).")]
     private partial void LogLaunch(int opened, int problems);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "Aucune géométrie mémorisée pour {instances} : la fenêtre rouvre au coin par défaut.")]
+    private partial void LogMissingGeometry(string instances);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "{count} téléphone(s) reconnecté(s) automatiquement.")]
     private partial void LogReconnected(int count);

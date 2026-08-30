@@ -18,6 +18,15 @@ public interface IWindowController
     /// <summary>Vrai si le handle désigne encore une fenêtre existante.</summary>
     bool IsWindow(nint handle);
 
+    /// <summary>
+    /// Processus propriétaire d'une fenêtre, ou zéro si elle a disparu.
+    ///
+    /// Sert à reconnaître nos fenêtres sans dépendre du handle que nous avons
+    /// retenu : celui d'une session fraîchement rouverte n'est pas encore
+    /// résolu, et les raccourcis se croyaient alors hors de chez eux.
+    /// </summary>
+    int GetWindowProcessId(nint handle);
+
     /// <summary>Position et taille actuelles, ou <c>null</c> si la fenêtre a disparu.</summary>
     ScreenRect? GetWindowRect(nint handle);
 

@@ -140,12 +140,18 @@
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
                                 Visibility="{Binding IsBusy,
                                                      Converter={StaticResource InverseBoolToVisibility}}">
-                      <Button Content="Lancer" Style="{StaticResource RowButton}" AllowDrop="False"
-                              ToolTip="Ouvrir cette instance maintenant"
+                      <!-- Un triangle plein : la seule icône que personne
+                           n'a besoin d'apprendre. -->
+                      <Button Style="{StaticResource IconButton}" AllowDrop="False"
+                              ToolTip="Ouvrir cette instance maintenant. Sa fenêtre revient à la place et à la taille qu'elle avait la dernière fois."
                               Visibility="{Binding IsRunning, Converter={StaticResource InverseBoolToVisibility}}"
                               Command="{Binding DataContext.LaunchInstanceCommand,
                                                 RelativeSource={RelativeSource AncestorType=UserControl}}"
-                              CommandParameter="{Binding}" />
+                              CommandParameter="{Binding}">
+                        <Path Data="M 4,2.5 L 12.5,7.5 L 4,12.5 Z"
+                              Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              Width="15" Height="15" Stretch="None" />
+                      </Button>
 
                       <!-- Une flèche qui reboucle : le jeu redémarre, la
                            fenêtre reste. -->

@@ -291,15 +291,8 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [RelayCommand]
     private void OpenLogs() => _dialogs.OpenFolder(_paths.LogsDirectory);
 
-    private void Save(Action<AppSettingsDocument> mutate)
-    {
-        if (_loading)
-        {
-            return;
-        }
-
-        _ = _settings.UpdateAsync(mutate);
-    }
+    private Task SaveAsync(Action<AppSettingsDocument> mutate) =>
+        _loading ? Task.CompletedTask : _settings.UpdateAsync(mutate);
 
     partial void OnGameAnchorChanged(WindowAnchor value)
     {
@@ -312,8 +305,20 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             return;
         }
 
-        Save(s => s.GameAnchor = value);
-        _ = _launcher.ArrangeAsync();
+        _ = ApplyAnchorAsync(value);
+    }
+
+    /// <summary>
+    /// Enregistre le coin choisi, puis replace les fenêtres.
+    ///
+    /// L'écriture est attendue : le replacement relit les réglages pour en
+    /// tirer le coin, et lancer les deux de front faisait relire l'ancienne
+    /// valeur. Cliquer une case ne faisait alors rien de visible.
+    /// </summary>
+    private async Task ApplyAnchorAsync(WindowAnchor value)
+    {
+        await SaveAsync(s => s.GameAnchor = value).ConfigureAwait(true);
+        await _launcher.ArrangeAsync().ConfigureAwait(true);
     }
 
     partial void OnSizePercentChanged(int value)
@@ -397,7 +402,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             return;
         }
 
-        _ = ApplyStartupSettingAsync(_settings.SetQualityAsync(value));
+        _ = ApplyStartupSettingAsync(() => _settings.SetQualityAsync(value));
     }
 
     partial void OnZoomChanged(GameZoom value)
@@ -407,7 +412,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             return;
         }
 
-        _ = ApplyStartupSettingAsync(_settings.SetZoomAsync(value));
+        _ = ApplyStartupSettingAsync(() => _settings.SetZoomAsync(value));
     }
 
     /// <summary>
@@ -419,10 +424,8 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// choix de rouvrir plutôt que d'attendre la prochaine fois est celui de
     /// l'utilisateur, qui ne comprenait pas pourquoi le réglage semblait mort.
     /// </summary>
-    private async Task ApplyStartupSettingAsync(Task write)
+    private async Task ApplyStartupSettingAsync(Func<Task> write)
     {
-        await write.ConfigureAwait(true);
-
         if (IsReopening)
         {
             return;
@@ -432,6 +435,8 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
         try
         {
+            await write().ConfigureAwait(true);
+
             var report = await _launcher.ReopenAsync().ConfigureAwait(true);
 
             if (report.Problems.Count > 0)

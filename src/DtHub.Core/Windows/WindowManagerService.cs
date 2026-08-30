@@ -1037,6 +1037,9 @@ public sealed class WindowManagerService
         }
     }
 
+    /// <summary>Processus propriétaire d'une fenêtre, ou zéro.</summary>
+    public int GetWindowProcessId(nint handle) => _controller.GetWindowProcessId(handle);
+
     /// <summary>Passe à l'instance suivante, en boucle.</summary>
     public ScrcpySession? FocusNext(IReadOnlyList<ScrcpySession> sessions) => Cycle(sessions, forward: true);
 

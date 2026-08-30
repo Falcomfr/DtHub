@@ -73,6 +73,18 @@ public sealed partial class Win32WindowController : IWindowController
 
     public bool IsWindow(nint handle) => handle != 0 && IsWindowCore(handle);
 
+    public int GetWindowProcessId(nint handle)
+    {
+        if (handle == 0)
+        {
+            return 0;
+        }
+
+        _ = GetWindowThreadProcessId(handle, out var processId);
+
+        return (int)processId;
+    }
+
     public ScreenRect? GetWindowRect(nint handle)
     {
         // Une fenêtre réduite rend un rectangle en (-32000, -32000). Le
@@ -340,9 +352,6 @@ public sealed partial class Win32WindowController : IWindowController
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool IsIconic(nint handle);
 
-    [DllImport("user32.dll")]
-    private static extern uint GetWindowThreadProcessId(nint handle, out uint processId);
-
     [DllImport("user32.dll", CharSet = CharSet.Unicode, EntryPoint = "GetWindowTextLengthW")]
     private static extern int GetWindowTextLength(nint handle);
 
@@ -364,6 +373,9 @@ public sealed partial class Win32WindowController : IWindowController
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool PostMessage(nint hWnd, uint message, nint wParam, nint lParam);
+
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(nint handle, out uint processId);
 
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]

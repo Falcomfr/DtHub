@@ -102,6 +102,9 @@ public sealed class FakeWindowController : IWindowController
 
     public void RequestClose(nint handle) => CloseRequests.Add(handle);
 
+    public int GetWindowProcessId(nint handle) =>
+        _windows.FirstOrDefault(w => w.Handle == handle).ProcessId;
+
     public void SetBorderless(nint handle, bool borderless)
     {
         if (borderless)

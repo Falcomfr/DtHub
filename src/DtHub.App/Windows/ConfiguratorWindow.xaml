@@ -232,14 +232,9 @@
                                                      ConverterParameter=Low}" />
                     <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="Moyenne"
                                  Margin="0,0,5,0"
-                                 ToolTip="Image en 1080 au plus, 45 images par seconde. Le réglage d'origine, qui convient à la plupart des machines."
+                                 ToolTip="Image en 1080 au plus, 60 images par seconde. Le réglage d'origine, qui convient à la plupart des machines."
                                  IsChecked="{Binding Quality, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Medium}" />
-                    <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="Haute"
-                                 Margin="0,0,5,0"
-                                 ToolTip="Image en 1440 au plus, 60 images par seconde, débit doublé. Demande un téléphone récent et une bonne liaison."
-                                 IsChecked="{Binding Quality, Converter={StaticResource EnumMatch},
-                                                     ConverterParameter=High}" />
                     <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="Maximale"
                                  ToolTip="Image à la définition de la fenêtre, sans aucune borne, 120 images par seconde et débit doublé encore. Sans ménagement pour le téléphone : à réserver à un appareil récent, et en Wi-Fi à un réseau qui suit."
                                  IsChecked="{Binding Quality, Converter={StaticResource EnumMatch},

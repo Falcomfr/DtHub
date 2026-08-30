@@ -138,6 +138,16 @@ public sealed class SettingsService : IDisposable
             changed = true;
         }
 
+        if (settings.SchemaVersion < 8 && !Enum.IsDefined(settings.Quality))
+        {
+            // La qualité « Haute » est fondue dans la maximale : quatre paliers
+            // dont deux voisins indiscernables ne servaient à personne. Une
+            // valeur devenue inconnue retombe sur le palier du dessus, jamais
+            // du dessous, pour ne pas dégrader l'image sans prévenir.
+            settings.Quality = StreamQuality.Maximum;
+            changed = true;
+        }
+
         if (settings.SchemaVersion != AppSettingsDocument.CurrentSchemaVersion)
         {
             settings.SchemaVersion = AppSettingsDocument.CurrentSchemaVersion;

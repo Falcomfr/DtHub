@@ -9,13 +9,13 @@ public enum StreamQuality
     /// <summary>Réglage d'origine.</summary>
     Medium,
 
-    /// <summary>Le plus fin, et le plus exigeant.</summary>
-    High,
-
     /// <summary>
-    /// Sans ménagement pour le téléphone : définition et débit au maximum,
-    /// et interrogation la plus fréquente. Demande un appareil récent et,
-    /// en Wi-Fi, un réseau qui suit.
+    /// Sans ménagement pour le téléphone : définition sans borne, débit et
+    /// images par seconde au maximum. Demande un appareil récent et, en
+    /// Wi-Fi, un réseau qui suit.
+    ///
+    /// Trois paliers, pas quatre : entre deux voisins trop proches, personne
+    /// ne sait lequel choisir, et l'écart ne se voit pas.
     /// </summary>
     Maximum,
 }
@@ -52,14 +52,6 @@ public sealed record QualityProfile(
             InstanceRediscovery: TimeSpan.FromSeconds(60),
             WindowWatch: TimeSpan.FromSeconds(1)),
 
-        StreamQuality.High => new QualityProfile(
-            MaxFps: 60,
-            VideoBitrateKbps: 8000,
-            MaximumDisplayHeight: 1440,
-            DevicePoll: TimeSpan.FromSeconds(2),
-            InstanceRediscovery: TimeSpan.FromSeconds(15),
-            WindowWatch: TimeSpan.FromMilliseconds(500)),
-
         StreamQuality.Maximum => new QualityProfile(
             MaxFps: 120,
             VideoBitrateKbps: 16000,
@@ -69,8 +61,8 @@ public sealed record QualityProfile(
             WindowWatch: TimeSpan.FromMilliseconds(500)),
 
         _ => new QualityProfile(
-            MaxFps: 45,
-            VideoBitrateKbps: 4000,
+            MaxFps: 60,
+            VideoBitrateKbps: 6000,
             MaximumDisplayHeight: 1080,
             DevicePoll: TimeSpan.FromSeconds(3),
             InstanceRediscovery: TimeSpan.FromSeconds(30),

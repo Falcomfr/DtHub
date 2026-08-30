@@ -12,7 +12,7 @@ namespace DtHub.Core.Settings;
 /// </summary>
 public sealed class AppSettingsDocument
 {
-    public const int CurrentSchemaVersion = 7;
+    public const int CurrentSchemaVersion = 8;
 
     /// <summary>Tailles livrées d'origine, en pourcentage de la zone utilisable.</summary>
     public static readonly int[] DefaultSizePercentages = [40, 60, 80, 100];

@@ -235,12 +235,12 @@ public sealed class SettingsServiceTests : IDisposable
     {
         // Deux sources pour un même réglage auraient fini par diverger : la
         // qualité est la seule.
-        await _service.SetQualityAsync(StreamQuality.High, CancellationToken.None);
+        await _service.SetQualityAsync(StreamQuality.Maximum, CancellationToken.None);
 
         var options = await _service.GetScrcpyOptionsAsync(CancellationToken.None);
 
-        Assert.Equal(60, options.MaxFps);
-        Assert.Equal("8000K", options.VideoBitrateArgument);
+        Assert.Equal(120, options.MaxFps);
+        Assert.Equal("16000K", options.VideoBitrateArgument);
     }
 
     [Fact]
