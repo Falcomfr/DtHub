@@ -6,6 +6,7 @@ using System.Windows.Threading;
 using DtHub.App.Services;
 using DtHub.App.Windows;
 using DtHub.Core;
+using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
 using DtHub.Core.Storage;
 using DtHub.Infrastructure.Processes;
@@ -140,18 +141,18 @@ public partial class App : Application, IDisposable
         _configurator.PlaceAwayFrom(document.GameAnchor);
         _configurator.Opacity = 1;
 
-        // Un problème doit rester visible : masquer le configurateur au moment
-        // précis où il porte le seul message laisserait un écran vide.
-        var mustShow = !report.AnyOpened && report.Problems.Count > 0;
-
-        if (!document.ConfiguratorVisible && !mustShow)
+        if (!StartupPresence.ShowConfigurator(document.ConfiguratorVisible, report.Opened))
         {
             _configurator.Hide();
         }
 
-        if (mustShow)
+        if (!report.AnyOpened)
         {
-            Log.Warning("Aucune fenêtre ouverte : {Problems}", string.Join(" ", report.Problems));
+            Log.Warning(
+                "Aucune fenêtre ouverte, le configurateur reste affiché : {Problems}",
+                report.Problems.Count > 0
+                    ? string.Join(" ", report.Problems)
+                    : "aucune instance à ouvrir.");
         }
     }
 
@@ -166,34 +167,50 @@ public partial class App : Application, IDisposable
     /// </summary>
     internal async Task RequestQuitAsync()
     {
-        var services = _host?.Services;
-
-        if (services is not null)
-        {
-            var launcher = services.GetRequiredService<GameLauncher>();
-            var settings = services.GetRequiredService<SettingsService>();
-
-            try
-            {
-                // Ce qui rouvrira au lancement suivant n'est pas décidé ici :
-                // il suit les lancements et les fermetures explicites, pas
-                // l'état du moment où l'on quitte.
-                await launcher.CaptureGeometriesAsync().ConfigureAwait(true);
-
-                await settings.SetConfiguratorVisibleAsync(
-                    _configurator?.IsVisible == true).ConfigureAwait(true);
-            }
-            catch (IOException exception)
-            {
-                Log.Warning(exception, "L'état de la session n'a pas pu être enregistré.");
-            }
-            catch (UnauthorizedAccessException exception)
-            {
-                Log.Warning(exception, "L'état de la session n'a pas pu être enregistré.");
-            }
-        }
+        await SaveSessionStateAsync().ConfigureAwait(true);
 
         Shutdown();
+    }
+
+    /// <summary>
+    /// Retient où sont les fenêtres et si le configurateur était affiché.
+    ///
+    /// Appelée par toutes les sorties, et non par le seul bouton « Quitter » :
+    /// fermer les dernières fenêtres de jeu à la main arrête aussi
+    /// l'application, et ce chemin oubliait d'enregistrer quoi que ce soit. Le
+    /// configurateur masqué se rouvrait alors au lancement suivant, et les
+    /// fenêtres revenaient à leur place d'avant-dernière fois.
+    /// </summary>
+    private async Task SaveSessionStateAsync()
+    {
+        var services = _host?.Services;
+
+        if (services is null)
+        {
+            return;
+        }
+
+        var launcher = services.GetRequiredService<GameLauncher>();
+        var settings = services.GetRequiredService<SettingsService>();
+
+        try
+        {
+            // Ce qui rouvrira au lancement suivant n'est pas décidé ici :
+            // il suit les lancements et les fermetures explicites, pas
+            // l'état du moment où l'on quitte.
+            await launcher.CaptureGeometriesAsync().ConfigureAwait(true);
+
+            await settings.SetConfiguratorVisibleAsync(
+                _configurator?.IsVisible == true).ConfigureAwait(true);
+        }
+        catch (IOException exception)
+        {
+            Log.Warning(exception, "L'état de la session n'a pas pu être enregistré.");
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            Log.Warning(exception, "L'état de la session n'a pas pu être enregistré.");
+        }
     }
 
     /// <summary>
@@ -243,7 +260,13 @@ public partial class App : Application, IDisposable
         _quitting = true;
 
         Log.Information("Dernière fenêtre de jeu fermée, configurateur masqué : arrêt.");
-        Shutdown();
+
+        // La géométrie des fenêtres vient d'être perdue avec elles : il ne
+        // reste rien à relever. Le reste de l'état, lui, doit être retenu,
+        // sans quoi le configurateur masqué se rouvrirait au lancement suivant.
+        _ = SaveSessionStateAsync().ContinueWith(
+            _ => Shutdown(),
+            TaskScheduler.FromCurrentSynchronizationContext());
     }
 
     /// <summary>
