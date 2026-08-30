@@ -69,6 +69,15 @@ public sealed class DisplayLadderTests
     }
 
     [Fact]
+    public void La_definition_de_repli_est_celle_qu_aucun_encodeur_ne_refuse()
+    {
+        // Les encodeurs vidéo plafonnent, et pas tous au même endroit. Le
+        // repli doit passer partout, y compris sur une tablette modeste.
+        Assert.Equal(1920, DisplayLadder.FallbackWidth);
+        Assert.Equal(1080, DisplayLadder.FallbackHeight);
+    }
+
+    [Fact]
     public void Sans_ecran_connu_une_definition_de_repli_est_rendue()
     {
         var (width, height) = DisplayLadder.For(900, 0, 0);

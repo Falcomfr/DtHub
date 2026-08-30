@@ -472,3 +472,22 @@ soit.
 
 C'est ce qui faisait revenir les fenêtres empilées au même endroit à chaque
 lancement, quoi qu'on ait fait de leur position la veille.
+
+## D20 - Une définition de repli quand l'encodeur de l'appareil plafonne
+
+Rien du mécanisme d'affichage ne dépend de l'appareil : l'afficheur virtuel est
+créé à la définition et à la densité que nous demandons, sans aucun rapport
+avec l'écran du téléphone ou de la tablette. Un appareil en 1220x2712 peut
+parfaitement porter un afficheur 3840x2160 en paysage.
+
+Une seule dépendance au matériel subsiste : **l'encodeur vidéo annonce une
+définition maximale**, et elle varie beaucoup. Relevée dans
+`/vendor/etc/media_codecs_c2.xml` du Xiaomi 13T, elle vaut 160x128 à 7680x4320
+pour l'encodeur AVC matériel. Beaucoup d'appareils d'entrée de gamme ou plus
+anciens s'arrêtent à 1920x1088, et une tablette modeste refuserait alors la
+définition demandée sur un grand écran.
+
+Plutôt que de renoncer, une session refusée est retentée une fois en 1920x1080,
+définition qu'aucun appareil capable de faire tourner scrcpy ne refuse. Le
+journal en garde trace. L'affichage y perd en finesse sur un grand écran, rien
+d'autre.

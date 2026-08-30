@@ -334,11 +334,31 @@ public sealed partial class GameLauncher : IAsyncDisposable
             var placement = ComputePlacement(options, stored);
             _pendingPlacement = placement;
 
+            var target = ToTarget(instance, serial);
+            var display = WithDisplayFor(options, placement);
+
             var session = await _sessions.StartAsync(
-                ToTarget(instance, serial),
-                WithDisplayFor(options, placement),
-                placement,
-                cancellationToken).ConfigureAwait(false);
+                target, display, placement, cancellationToken).ConfigureAwait(false);
+
+            // Les encodeurs vidéo annoncent une définition maximale, variable
+            // d'un appareil à l'autre : une tablette modeste peut plafonner là
+            // où un téléphone récent monte en 8K. Plutôt que de renoncer, on
+            // retente une fois à une définition qu'aucun encodeur ne refuse.
+            if (session.State == ScrcpySessionState.Failed
+                && display.VirtualDisplayHeight > DisplayLadder.FallbackHeight)
+            {
+                LogDisplayFallback(instance.DisplayName, display.VirtualDisplayHeight);
+
+                session = await _sessions.StartAsync(
+                    target,
+                    display with
+                    {
+                        VirtualDisplayWidth = DisplayLadder.FallbackWidth,
+                        VirtualDisplayHeight = DisplayLadder.FallbackHeight,
+                    },
+                    placement,
+                    cancellationToken).ConfigureAwait(false);
+            }
 
             if (session.State == ScrcpySessionState.Failed)
             {
@@ -873,6 +893,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "Ouverture de {instance} refusée.{newLine}Commande : {commandLine}{newLine}Sortie de scrcpy :{newLine}{output}")]
     private partial void LogSessionFailure(string instance, string commandLine, string output, string newLine = "\n");
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "{instance} refusée en {height} de haut : nouvel essai à la définition de repli.")]
+    private partial void LogDisplayFallback(string instance, int height);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Écrans : {monitors}. Fenêtres de jeu : {placement}.")]
     private partial void LogPlacement(string monitors, string placement);

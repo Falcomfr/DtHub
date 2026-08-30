@@ -23,9 +23,18 @@ public static class DisplayLadder
         [540, 720, 900, 1080, 1260, 1440, 1620, 1800, 1980, 2160];
 
     /// <summary>Définition de repli quand l'écran n'est pas connu.</summary>
-    private const int FallbackWidth = 1920;
+    public const int FallbackWidth = 1920;
 
-    private const int FallbackHeight = 1080;
+    /// <summary>
+    /// Hauteur qu'aucun encodeur ne refuse.
+    ///
+    /// Les encodeurs vidéo annoncent une définition maximale, et elle varie
+    /// d'un appareil à l'autre : 7680x4320 sur un Xiaomi 13T, mais seulement
+    /// 1920x1088 sur bien des appareils d'entrée de gamme ou plus anciens.
+    /// Au-delà, la session est refusée. C'est la seule dépendance au matériel
+    /// de tout le mécanisme, et elle sert de repli.
+    /// </summary>
+    public const int FallbackHeight = 1080;
 
     /// <summary>
     /// Définition à demander pour une fenêtre dont la zone client fait la

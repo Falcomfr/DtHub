@@ -52,14 +52,14 @@ public sealed record ScrcpyOptions
     /// <summary>
     /// Hauteur de l'afficheur virtuel, en pixels.
     ///
-    /// C'est elle, et rien d'autre, qui fixe la hauteur que le jeu acceptera
-    /// de dessiner. Mesuré sur un Xiaomi 13T : né sur 1416 pixels de haut, le
-    /// jeu s'arrête à 1416 et laisse une bande au-delà ; né sur 2160, il
-    /// remplit 2076 sans la moindre bande, jusqu'au plein écran. Descendre
-    /// ensuite ne pose aucun problème, remonter non plus tant qu'on reste
-    /// sous la hauteur de naissance.
+    /// L'image est mise à l'échelle de la fenêtre : cette définition ne fixe
+    /// donc pas la taille de l'affichage, mais sa finesse et l'échelle de
+    /// l'interface du jeu. Elle est choisie au lancement par
+    /// <see cref="DisplayLadder"/>, d'après la taille de la fenêtre.
     ///
-    /// Elle est donc calée sur le plus haut des écrans au lancement.
+    /// Rien ici ne dépend de l'appareil : l'afficheur virtuel n'a aucun
+    /// rapport avec l'écran du téléphone ou de la tablette. Seul l'encodeur
+    /// vidéo pose une limite, variable, d'où la définition de repli.
     /// </summary>
     public int VirtualDisplayHeight { get; init; } = 1080;
 
