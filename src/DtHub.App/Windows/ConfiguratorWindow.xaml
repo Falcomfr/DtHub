@@ -148,8 +148,14 @@
               <Border Style="{StaticResource Card}">
                 <StackPanel>
                   <TextBlock Text="REPLACER LES FENÊTRES" Style="{StaticResource SectionLabel}" />
-                  <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,10"
-                             Text="Cliquez une case pour regrouper toutes les fenêtres à cet endroit." />
+
+                  <Button Content="Côte à côte" Style="{StaticResource QuietButton}"
+                          HorizontalAlignment="Left" Margin="-7,0,0,4"
+                          ToolTip="Deux fenêtres, chacune sur une moitié de l'écran. La fenêtre active va à droite."
+                          Command="{Binding TileCommand}" />
+
+                  <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,8"
+                             Text="Ou cliquez une case pour regrouper toutes les fenêtres à cet endroit." />
 
                   <ItemsControl ItemsSource="{Binding Anchors}" HorizontalAlignment="Left">
                     <ItemsControl.ItemsPanel>

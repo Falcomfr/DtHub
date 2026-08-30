@@ -269,6 +269,7 @@ public sealed class WindowManagerService
         foreach (var session in sessions.Where(s => s.IsAlive && s.WindowHandle != 0))
         {
             if (session.SourceAspectRatio <= 0
+                || _controller.GetMonitors().Count == 0
                 || _controller.GetWindowRect(session.WindowHandle) is not { } outer
                 || outer.IsEmpty)
             {
@@ -296,7 +297,18 @@ public sealed class WindowManagerService
                 continue;
             }
 
-            var target = outer with { Height = wanted };
+            // La hauteur corrigée pousse vers l'espace disponible plutôt que
+            // toujours vers le bas : une fenêtre posée en bas de l'écran
+            // sortirait sinon dessous dès qu'on l'élargit.
+            var work = UsableArea(
+                WindowLayoutCalculator.ChooseMonitor(
+                    _controller.GetMonitors(), outer.CenterX, outer.CenterY));
+
+            var target = outer with
+            {
+                Y = Slide(outer.Y, outer.Height, wanted, work.Y, work.Height),
+                Height = wanted,
+            };
 
             _controller.MoveWindow(session.WindowHandle, target);
             _lastSeen[session.Id] = target;
@@ -793,6 +805,83 @@ public sealed class WindowManagerService
         }
 
         return moved;
+    }
+
+    /// <summary>
+    /// Pose deux fenêtres côte à côte, chacune sur une moitié de l'écran.
+    ///
+    /// La fenêtre active va à droite, celle qui la suit dans l'ordre à gauche.
+    /// Les suivantes se rangent derrière celle de gauche : au-delà de deux,
+    /// l'écran ne se partage plus utilement.
+    ///
+    /// La hauteur suit le rapport de l'afficheur : la remplir davantage
+    /// laisserait une bande, l'image étant mise à l'échelle.
+    /// </summary>
+    /// <returns>Nombre de fenêtres placées.</returns>
+    public async Task<int> TileAsync(
+        IReadOnlyList<ScrcpySession> sessions,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(sessions);
+
+        var alive = sessions.Where(s => s.IsAlive).ToList();
+        var monitors = _controller.GetMonitors();
+
+        if (alive.Count == 0 || monitors.Count == 0)
+        {
+            return 0;
+        }
+
+        var foreground = _controller.GetForegroundWindow();
+
+        var right = alive.Find(s => s.WindowHandle != 0 && s.WindowHandle == foreground)
+            ?? alive.Find(s => string.Equals(s.Id, _lastActive, StringComparison.Ordinal))
+            ?? alive[0];
+
+        var rightHandle = await ResolveWindowAsync(right, cancellationToken).ConfigureAwait(false);
+
+        var reference = rightHandle != 0 && _controller.GetWindowRect(rightHandle) is { } known && !known.IsEmpty
+            ? WindowLayoutCalculator.ChooseMonitor(monitors, known.CenterX, known.CenterY)
+            : WindowLayoutCalculator.ChooseMonitor(monitors, preferredDeviceName: null);
+
+        var work = UsableArea(reference);
+        var half = work.Width / 2;
+
+        var placed = 0;
+
+        foreach (var session in alive)
+        {
+            var handle = ReferenceEquals(session, right)
+                ? rightHandle
+                : await ResolveWindowAsync(session, cancellationToken).ConfigureAwait(false);
+
+            if (handle == 0)
+            {
+                continue;
+            }
+
+            _controller.SetBorderless(handle, borderless: false);
+
+            var chrome = MeasureChrome(handle);
+
+            var height = session.SourceAspectRatio > 0
+                ? Math.Min(
+                      work.Height,
+                      (int)Math.Round((half - chrome.Width) / session.SourceAspectRatio) + chrome.Height)
+                : work.Height;
+
+            var rect = new ScreenRect(
+                ReferenceEquals(session, right) ? work.X + half : work.X,
+                work.Y + ((work.Height - height) / 2),
+                half,
+                height);
+
+            _controller.MoveWindow(handle, rect);
+            _lastSeen[session.Id] = rect;
+            placed++;
+        }
+
+        return placed;
     }
 
     /// <summary>

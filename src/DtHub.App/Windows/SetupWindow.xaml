@@ -38,7 +38,8 @@
       </Grid>
     </Border>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                      Padding="0,0,10,0">
       <StackPanel>
 
         <Button Content="+  Associer un nouvel appareil" HorizontalAlignment="Left" Margin="0,0,0,12"

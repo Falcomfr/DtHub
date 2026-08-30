@@ -214,6 +214,18 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         }
     }
 
+    /// <summary>Range les fenêtres côte à côte, l'active à droite.</summary>
+    [RelayCommand]
+    private async Task TileAsync()
+    {
+        var placed = await _launcher.TileAsync().ConfigureAwait(true);
+
+        if (placed == 0)
+        {
+            Instances.Problem = "Aucune fenêtre de jeu à ranger.";
+        }
+    }
+
     [RelayCommand]
     private void OpenLogs() => _dialogs.OpenFolder(_paths.LogsDirectory);
 

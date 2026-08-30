@@ -551,6 +551,20 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// C'est ce que fait le raccourci de replacement, et le bouton de la barre
     /// du bas : on place une fenêtre où on la veut, les autres la rejoignent.
     /// </summary>
+    /// <summary>
+    /// Range les fenêtres côte à côte, la fenêtre active à droite.
+    /// </summary>
+    public async Task<int> TileAsync(CancellationToken cancellationToken = default)
+    {
+        var placed = await _windows
+            .TileAsync(_sessions.ActiveSessions, cancellationToken)
+            .ConfigureAwait(false);
+
+        await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+
+        return placed;
+    }
+
     public async Task<int> StackOnActiveAsync(CancellationToken cancellationToken = default)
     {
         var moved = await _windows

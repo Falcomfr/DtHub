@@ -641,6 +641,50 @@ public class WindowManagerServiceTests
     }
 
     [Fact]
+    public async Task Le_cote_a_cote_partage_l_ecran_et_met_l_active_a_droite()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(2);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
+
+        desktop.Foreground = sessions[1].WindowHandle;
+        service.TrackActiveWindow(sessions);
+        desktop.Foreground = 0;
+
+        Assert.Equal(2, await service.TileAsync(sessions, CancellationToken.None));
+
+        var work = FakeWindowController.PrimaryMonitor.WorkArea;
+        var half = work.Width / 2;
+
+        var left = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+        var right = desktop.GetWindowRect(sessions[1].WindowHandle)!.Value;
+
+        Assert.Equal(work.X, left.X);
+        Assert.Equal(work.X + half, right.X);
+        Assert.Equal(half, left.Width);
+        Assert.Equal(half, right.Width);
+    }
+
+    [Fact]
+    public async Task Au_dela_de_deux_les_fenetres_se_rangent_derriere_celle_de_gauche()
+    {
+        // L'écran ne se partage plus utilement au-delà de deux.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(3);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
+
+        await service.TileAsync(sessions, CancellationToken.None);
+
+        Assert.Equal(
+            desktop.GetWindowRect(sessions[1].WindowHandle),
+            desktop.GetWindowRect(sessions[2].WindowHandle));
+    }
+
+    [Fact]
     public async Task Le_replacement_reprend_la_derniere_fenetre_utilisee()
     {
         // Cliquer le bouton met le configurateur au premier plan : plus aucune

@@ -20,7 +20,7 @@
     </Border>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-      <StackPanel>
+      <StackPanel Margin="0,0,12,0">
 
         <ComboBox ItemsSource="{Binding Brands}" SelectedItem="{Binding Brand}" Margin="0,0,0,14">
           <ComboBox.ItemTemplate>
@@ -76,6 +76,19 @@
                        Text="L'appareil affiche un code à six chiffres et apparaît dans la fenêtre d'association." />
             <TextBlock Style="{StaticResource Muted}"
                        Text="L'appareil et le PC doivent être sur le même réseau Wi-Fi, et Android 11 au minimum. Ensuite, la connexion se refait toute seule à chaque lancement." />
+          </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource Card}">
+          <StackPanel>
+            <TextBlock FontWeight="SemiBold" Margin="0,0,0,4"
+                       Text="5. Empêcher la mise en veille du jeu" />
+            <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,3"
+                       Text="Applications  ›  le jeu  ›  Batterie  ›  Sans restriction" />
+            <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,3"
+                       Text="À refaire pour chaque copie du jeu : une application clonée est traitée à part par Android." />
+            <TextBlock Style="{StaticResource Muted}"
+                       Text="L'écran de l'appareil est déjà maintenu allumé par DT Hub, mais Android endort les applications qu'il juge inactives, et les fenêtres se figent alors une à une. Le retirer des restrictions de batterie est la seule manipulation à faire, et elle tient." />
           </StackPanel>
         </Border>
 

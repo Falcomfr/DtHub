@@ -34,10 +34,28 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     /// Vrai quand l'appareil répond mais qu'aucun profil ne porte le jeu.
     /// Il n'a alors aucune ligne dans la liste, et disparaîtrait sans un mot.
     /// </summary>
-    [ObservableProperty]
     private bool _hasNoGame;
 
-    public string StatusText => HasNoGame && IsConnected
+    /// <summary>Vrai seulement pour un appareil joignable sans le jeu.</summary>
+    public bool HasNoGame
+    {
+        get => _hasNoGame && IsConnected;
+        set
+        {
+            if (_hasNoGame == value)
+            {
+                return;
+            }
+
+            _hasNoGame = value;
+
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(StatusText));
+            OnPropertyChanged(nameof(StatusBrushKey));
+        }
+    }
+
+    public string StatusText => HasNoGame
         ? "Jeu non installé"
         : State switch
     {
@@ -48,7 +66,7 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
         _ => "Inconnu",
     };
 
-    public string StatusBrushKey => HasNoGame && IsConnected ? "WarningBrush" : State switch
+    public string StatusBrushKey => HasNoGame ? "WarningBrush" : State switch
     {
         AdbDeviceState.Device => "SuccessBrush",
         AdbDeviceState.Unauthorized => "WarningBrush",
@@ -65,13 +83,9 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
         Connection = device.ConnectionKind;
 
         OnPropertyChanged(nameof(IsConnected));
+        OnPropertyChanged(nameof(HasNoGame));
         OnPropertyChanged(nameof(StatusText));
         OnPropertyChanged(nameof(StatusBrushKey));
     }
 
-    partial void OnHasNoGameChanged(bool value)
-    {
-        OnPropertyChanged(nameof(StatusText));
-        OnPropertyChanged(nameof(StatusBrushKey));
-    }
 }
