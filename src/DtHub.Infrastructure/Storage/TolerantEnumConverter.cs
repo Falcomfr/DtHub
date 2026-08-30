@@ -18,7 +18,7 @@ public sealed class TolerantEnumConverter<TEnum> : JsonConverter<TEnum>
             ? (TEnum)declared.Value
             : default;
 
-    public override TEnum Read(ref Utf8JsonReader reader, Type type, JsonSerializerOptions options)
+    public override TEnum Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         // Les nombres restent acceptés : d'anciens fichiers en portent, et un
         // fichier modifié à la main aussi.
@@ -43,9 +43,9 @@ public sealed class TolerantEnumConverter<TEnum> : JsonConverter<TEnum>
 /// <summary>Fabrique le convertisseur pour n'importe quelle énumération.</summary>
 public sealed class TolerantEnumConverterFactory : JsonConverterFactory
 {
-    public override bool CanConvert(Type type) => type.IsEnum;
+    public override bool CanConvert(Type typeToConvert) => typeToConvert.IsEnum;
 
-    public override JsonConverter CreateConverter(Type type, JsonSerializerOptions options) =>
+    public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options) =>
         (JsonConverter)Activator.CreateInstance(
-            typeof(TolerantEnumConverter<>).MakeGenericType(type))!;
+            typeof(TolerantEnumConverter<>).MakeGenericType(typeToConvert))!;
 }
