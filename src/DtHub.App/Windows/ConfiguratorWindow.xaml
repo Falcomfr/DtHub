@@ -57,7 +57,7 @@
           <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
             <StackPanel>
             <Button Padding="8,5" Style="{StaticResource QuietButton}" HorizontalAlignment="Center"
-                    ToolTip="Remettre toutes les fenêtres de jeu au même endroit, à la taille choisie"
+                    ToolTip="Empiler toutes les fenêtres de jeu sur la dernière que vous avez utilisée, à sa position et à sa taille"
                     Command="{Binding RearrangeCommand}">
               <!-- Deux fenêtres superposées : c'est exactement ce que fait
                    l'action, et aucun glyphe ne le dit clairement. -->
@@ -117,15 +117,17 @@
                   <ItemsControl ItemsSource="{Binding Hotkeys}">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>
-                        <Grid Margin="0,4">
+                        <Grid Margin="0,2" Background="Transparent"
+                              ToolTip="{Binding ActionDetail}">
                           <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                           </Grid.ColumnDefinitions>
 
-                          <TextBlock Grid.Column="0" Text="{Binding ActionLabel}" VerticalAlignment="Center" />
+                          <TextBlock Grid.Column="0" Text="{Binding ActionLabel}" VerticalAlignment="Center"
+                                     TextTrimming="CharacterEllipsis" Margin="0,0,8,0" />
 
-                          <Border Grid.Column="1" CornerRadius="5" Padding="8,3"
+                          <Border Grid.Column="1" CornerRadius="5" Padding="7,2"
                                   Background="{DynamicResource SurfaceAltBrush}"
                                   BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}">
                             <TextBlock Text="{Binding ShortcutText}" FontSize="12" />
@@ -135,7 +137,7 @@
                     </ItemsControl.ItemTemplate>
                   </ItemsControl>
 
-                  <Button Content="Modifier les raccourcis" HorizontalAlignment="Left" Margin="0,12,0,0"
+                  <Button Content="Modifier les raccourcis" HorizontalAlignment="Left" Margin="0,8,0,0"
                           Click="OnEditHotkeys" />
                 </StackPanel>
               </Border>
@@ -208,19 +210,19 @@
                   <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
                     <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="Basse"
                                  Margin="0,0,5,0"
+                                 ToolTip="Image en 720 au plus, 30 images par seconde, débit réduit, et le téléphone est interrogé deux fois moins souvent. Pour les machines et les téléphones modestes, ou beaucoup de comptes à la fois."
                                  IsChecked="{Binding Quality, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Low}" />
                     <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="Moyenne"
                                  Margin="0,0,5,0"
+                                 ToolTip="Image en 1080 au plus, 45 images par seconde. Le réglage d'origine, qui convient à la plupart des machines."
                                  IsChecked="{Binding Quality, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Medium}" />
                     <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="Haute"
+                                 ToolTip="Image à la définition de la fenêtre, sans borne, 60 images par seconde et débit doublé. Demande un téléphone récent et une bonne liaison."
                                  IsChecked="{Binding Quality, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=High}" />
                   </StackPanel>
-
-                  <TextBlock Style="{StaticResource Muted}" FontSize="10"
-                             Text="Basse allège tout : image moins fine, moins d'images par seconde, et l'application interroge le téléphone moins souvent. L'image ne change qu'à la réouverture des fenêtres." />
                 </StackPanel>
               </Border>
 

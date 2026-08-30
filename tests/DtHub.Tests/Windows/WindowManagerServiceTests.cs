@@ -805,6 +805,64 @@ public class WindowManagerServiceTests
     }
 
     [Fact]
+    public async Task Une_fenetre_qui_deborde_apres_un_geste_est_ramenee_a_l_interieur()
+    {
+        // Un redimensionnement à la souris est fait par Windows, qui garde le
+        // bord opposé, et par scrcpy, qui verrouille le rapport en faisant
+        // grandir vers le bas : une fenêtre posée en bas de l'écran en sort.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(
+            1,
+            ScrcpyOptions.Default with { VirtualDisplayWidth = 1600, VirtualDisplayHeight = 900 });
+
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.ResolveWindowAsync(sessions[0], CancellationToken.None);
+
+        var work = FakeWindowController.PrimaryMonitor.WorkArea;
+        var chrome = desktop.Chrome;
+
+        // Au bon rapport, mais débordant de deux cents pixels sous l'écran.
+        var height = (int)Math.Round(800d / (1600d / 900)) + chrome.Height;
+
+        desktop.MoveWindow(
+            sessions[0].WindowHandle,
+            new ScreenRect(0, work.Height - height + 200, 800 + chrome.Width, height));
+
+        service.EnforceAspect(sessions);
+        service.EnforceAspect(sessions);
+
+        var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+
+        Assert.Equal(work.Height - height, rect.Y);
+        Assert.Equal(height, rect.Height);
+    }
+
+    [Fact]
+    public async Task Une_fenetre_entierement_visible_n_est_jamais_deplacee()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(
+            1,
+            ScrcpyOptions.Default with { VirtualDisplayWidth = 1600, VirtualDisplayHeight = 900 });
+
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.ResolveWindowAsync(sessions[0], CancellationToken.None);
+
+        var chrome = desktop.Chrome;
+        var height = (int)Math.Round(800d / (1600d / 900)) + chrome.Height;
+        var placed = new ScreenRect(100, 80, 800 + chrome.Width, height);
+
+        desktop.MoveWindow(sessions[0].WindowHandle, placed);
+
+        service.EnforceAspect(sessions);
+
+        Assert.Equal(0, service.EnforceAspect(sessions));
+        Assert.Equal(placed, desktop.GetWindowRect(sessions[0].WindowHandle));
+    }
+
+    [Fact]
     public async Task Au_rapport_verrouille_la_hauteur_suit_la_forme_de_l_afficheur()
     {
         // Dans ce mode l'image est mise à l'échelle : elle ne remplit la

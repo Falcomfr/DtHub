@@ -24,6 +24,9 @@ public sealed partial class HotkeyRowViewModel : ObservableObject
 
     public string ActionLabel => HotkeyBinding.DescribeAction(Binding.Action);
 
+    /// <summary>Ce que l'action fait vraiment, pour l'infobulle.</summary>
+    public string ActionDetail => HotkeyBinding.DetailAction(Binding.Action);
+
     public string ShortcutText => IsCapturing ? "Appuyez sur la nouvelle combinaison…" : Binding.DisplayText;
 
     public bool HasError => !string.IsNullOrWhiteSpace(Error);

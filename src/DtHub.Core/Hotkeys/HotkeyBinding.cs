@@ -82,12 +82,16 @@ public sealed record HotkeyBinding
     public (int Key, HotkeyModifiers Modifiers) Combination => (VirtualKey, Modifiers);
 
     /// <summary>Libellé de l'action, pour l'éditeur de raccourcis.</summary>
+    /// <summary>
+    /// Ce que fait l'action, en une ligne. Le libellé doit nommer sa référence
+    /// quand elle en a une : « remettre en place » ne disait pas sur quoi.
+    /// </summary>
     public static string DescribeAction(HotkeyAction action) => action switch
     {
         HotkeyAction.ToggleConfigurator => "Afficher ou masquer le configurateur",
         HotkeyAction.NextInstance => "Fenêtre suivante",
         HotkeyAction.PreviousInstance => "Fenêtre précédente",
-        HotkeyAction.Rearrange => "Remettre les fenêtres en place",
+        HotkeyAction.Rearrange => "Empiler sur la dernière fenêtre utilisée",
         HotkeyAction.Size1 => "Taille 1",
         HotkeyAction.Size2 => "Taille 2",
         HotkeyAction.Size3 => "Taille 3",
@@ -95,5 +99,43 @@ public sealed record HotkeyBinding
         HotkeyAction.Fullscreen => "Plein écran",
         HotkeyAction.Quit => "Quitter",
         _ => action.ToString(),
+    };
+
+    /// <summary>
+    /// Ce que l'action fait vraiment, pour l'infobulle. Le libellé tient sur
+    /// une ligne et ne peut pas tout dire ; ce qu'il tait se lit ici.
+    /// </summary>
+    public static string DetailAction(HotkeyAction action) => action switch
+    {
+        HotkeyAction.ToggleConfigurator =>
+            "Montre ou cache cette fenêtre. Les fenêtres de jeu restent ouvertes.",
+
+        HotkeyAction.NextInstance =>
+            "Passe à la fenêtre suivante, dans l'ordre de la liste des appareils. "
+            + "Les fenêtres mises de côté sont sautées.",
+
+        HotkeyAction.PreviousInstance =>
+            "Passe à la fenêtre précédente, dans l'ordre de la liste des appareils. "
+            + "Les fenêtres mises de côté sont sautées.",
+
+        HotkeyAction.Rearrange =>
+            "Empile toutes les fenêtres sur la dernière que vous avez utilisée, "
+            + "à sa position et à sa taille.",
+
+        HotkeyAction.Size1 => "La plus petite des quatre tailles, réglables au curseur.",
+        HotkeyAction.Size2 => "La deuxième des quatre tailles, réglables au curseur.",
+        HotkeyAction.Size3 => "La troisième des quatre tailles, réglables au curseur.",
+
+        HotkeyAction.Size4 =>
+            "La plus grande des quatre tailles. Elle couvre la zone utile de l'écran, "
+            + "barre des tâches exclue : ce n'est pas le plein écran.",
+
+        HotkeyAction.Fullscreen =>
+            "Couvre l'écran entier, sans bordure. Y revenir rend à chaque fenêtre "
+            + "la place qu'elle avait.",
+
+        HotkeyAction.Quit => "Ferme l'application et toutes les fenêtres de jeu.",
+
+        _ => string.Empty,
     };
 }

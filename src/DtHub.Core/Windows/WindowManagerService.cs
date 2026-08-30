@@ -236,6 +236,26 @@ public sealed class WindowManagerService
             height);
     }
 
+    /// <summary>
+    /// Ramène une fenêtre à l'intérieur de la zone utile sans la redimensionner.
+    ///
+    /// Seul le débordement est corrigé, et par le plus petit déplacement
+    /// possible : une fenêtre entièrement visible n'est jamais touchée.
+    /// </summary>
+    private static ScreenRect KeepInside(ScreenRect rect, ScreenRect work)
+    {
+        if (rect.Width > work.Width || rect.Height > work.Height)
+        {
+            return rect;
+        }
+
+        return rect with
+        {
+            X = Math.Clamp(rect.X, work.X, work.X + work.Width - rect.Width),
+            Y = Math.Clamp(rect.Y, work.Y, work.Y + work.Height - rect.Height),
+        };
+    }
+
     /// <summary>Nouvelle abscisse ou ordonnée, à part d'espace libre constante.</summary>
     private static int Slide(int position, int before, int after, int origin, int span)
     {
@@ -265,11 +285,16 @@ public sealed class WindowManagerService
         }
 
         var corrected = 0;
+        var monitors = _controller.GetMonitors();
+
+        if (monitors.Count == 0)
+        {
+            return 0;
+        }
 
         foreach (var session in sessions.Where(s => s.IsAlive && s.WindowHandle != 0))
         {
             if (session.SourceAspectRatio <= 0
-                || _controller.GetMonitors().Count == 0
                 || _controller.GetWindowRect(session.WindowHandle) is not { } outer
                 || outer.IsEmpty)
             {
@@ -282,6 +307,23 @@ public sealed class WindowManagerService
             if (!settled)
             {
                 continue;
+            }
+
+            // Un redimensionnement à la souris est fait par Windows, qui garde
+            // le bord opposé, et par scrcpy, qui verrouille le rapport en
+            // faisant grandir vers le bas. Une fenêtre posée en bas de l'écran
+            // en sort donc dès qu'on l'élargit. On la ramène à l'intérieur,
+            // sans changer sa taille : c'est le seul cas où l'on touche à ce
+            // que l'utilisateur vient de faire de ses mains.
+            var work = UsableArea(
+                WindowLayoutCalculator.ChooseMonitor(monitors, outer.CenterX, outer.CenterY));
+
+            if (KeepInside(outer, work) is var inside && inside != outer)
+            {
+                _controller.MoveWindow(session.WindowHandle, inside);
+                _lastSeen[session.Id] = inside;
+                outer = inside;
+                corrected++;
             }
 
             var chrome = MeasureChrome(session.WindowHandle);
@@ -298,17 +340,14 @@ public sealed class WindowManagerService
             }
 
             // La hauteur corrigée pousse vers l'espace disponible plutôt que
-            // toujours vers le bas : une fenêtre posée en bas de l'écran
-            // sortirait sinon dessous dès qu'on l'élargit.
-            var work = UsableArea(
-                WindowLayoutCalculator.ChooseMonitor(
-                    _controller.GetMonitors(), outer.CenterX, outer.CenterY));
-
-            var target = outer with
-            {
-                Y = Slide(outer.Y, outer.Height, wanted, work.Y, work.Height),
-                Height = wanted,
-            };
+            // toujours vers le bas.
+            var target = KeepInside(
+                outer with
+                {
+                    Y = Slide(outer.Y, outer.Height, wanted, work.Y, work.Height),
+                    Height = wanted,
+                },
+                work);
 
             _controller.MoveWindow(session.WindowHandle, target);
             _lastSeen[session.Id] = target;

@@ -229,10 +229,23 @@ public class HotkeySetTests
     }
 
     [Fact]
+    public void Chaque_action_dit_ce_qu_elle_fait_vraiment()
+    {
+        // Le libellé tient sur une ligne et ne peut pas tout dire : le détail
+        // nomme la référence de l'action, ce que « remettre en place » taisait.
+        foreach (var action in Enum.GetValues<HotkeyAction>())
+        {
+            Assert.False(
+                string.IsNullOrWhiteSpace(HotkeyBinding.DetailAction(action)),
+                $"aucun détail pour {action}");
+        }
+    }
+
+    [Fact]
     public void Les_libelles_d_action_sont_lisibles()
     {
         Assert.Equal("Fenêtre suivante", HotkeyBinding.DescribeAction(HotkeyAction.NextInstance));
-        Assert.Equal("Remettre les fenêtres en place", HotkeyBinding.DescribeAction(HotkeyAction.Rearrange));
+        Assert.Equal("Empiler sur la dernière fenêtre utilisée", HotkeyBinding.DescribeAction(HotkeyAction.Rearrange));
         Assert.Equal("Quitter", HotkeyBinding.DescribeAction(HotkeyAction.Quit));
     }
 
