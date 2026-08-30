@@ -84,31 +84,22 @@ public static class ScrcpyCommandBuilder
             arguments.Add(Option("video-codec", sanitized.VideoCodec));
         }
 
-        var flex = sanitized is { UseVirtualDisplay: true, FlexDisplay: true };
-
         if (sanitized.UseVirtualDisplay)
         {
-            // Avec l'ajustement continu, la taille de la fenêtre se règle par
-            // la définition de l'afficheur : scrcpy refuse --window-width et
-            // --window-height dans ce mode.
-            //
-            // L'afficheur naît à la taille de la fenêtre : le jeu fige la
-            // hauteur de sa mise en page à son initialisation, et il faut
-            // qu'elle soit la bonne dès cet instant.
+            // L'afficheur garde une définition fixe et l'image est mise à
+            // l'échelle de la fenêtre. C'est la seule façon d'accepter toute
+            // taille sans rien perdre : le jeu fige la hauteur de sa mise en
+            // page à son initialisation et ne la reprend jamais.
             arguments.Add(Option(
                 "new-display",
-                flex && windowPosition is { Width: > 0, Height: > 0 } size
-                    ? DisplayArgument(size.Width, size.Height, sanitized.VirtualDisplayDpi)
-                    : sanitized.VirtualDisplayArgument));
+                DisplayArgument(
+                    sanitized.VirtualDisplayWidth,
+                    sanitized.VirtualDisplayHeight,
+                    sanitized.VirtualDisplayDpi)));
 
             if (sanitized.DisableVirtualDisplayDecorations)
             {
                 arguments.Add("--no-vd-system-decorations");
-            }
-
-            if (flex)
-            {
-                arguments.Add("--flex-display");
             }
         }
 
@@ -120,14 +111,11 @@ public static class ScrcpyCommandBuilder
                 Option("window-y", placement.Y.ToString(CultureInfo.InvariantCulture)),
             ]);
 
-            if (!flex)
-            {
-                arguments.AddRange(
-                [
-                    Option("window-width", placement.Width.ToString(CultureInfo.InvariantCulture)),
-                    Option("window-height", placement.Height.ToString(CultureInfo.InvariantCulture)),
-                ]);
-            }
+            arguments.AddRange(
+            [
+                Option("window-width", placement.Width.ToString(CultureInfo.InvariantCulture)),
+                Option("window-height", placement.Height.ToString(CultureInfo.InvariantCulture)),
+            ]);
         }
 
         // Volontairement absent : --kill-adb-on-close. Le serveur ADB est

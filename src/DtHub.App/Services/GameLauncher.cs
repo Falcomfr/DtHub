@@ -292,11 +292,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
             IconDirectory = _iconDirectory,
         };
 
-        // Au rapport verrouillé, l'afficheur garde une définition fixe et
-        // l'image est mise à l'échelle : la prendre égale à celle de l'écran
-        // rend le plein écran net. En largeur libre, la définition vient de
-        // la fenêtre elle-même, instance par instance.
-        if (!options.FlexDisplay && _windows.MonitorBounds() is { Width: > 0, Height: > 0 } screen)
+        // L'afficheur prend la définition entière de l'écran : l'image étant
+        // mise à l'échelle de la fenêtre, c'est ce qui rend le plein écran net
+        // et toute taille intermédiaire propre.
+        if (_windows.MonitorBounds() is { Width: > 0, Height: > 0 } screen)
         {
             options = options with
             {
@@ -363,11 +362,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // ferait recréer leur afficheur virtuel côté Android.
         if (started.Count > 0)
         {
-            // Le jeu vient d'ouvrir sur un afficheur à sa hauteur maximale. On
-            // lui laisse le temps de s'installer avant de ramener la fenêtre à
-            // sa taille : réduire trop tôt le laisse mal mis en page.
-            await Task.Delay(TimeSpan.FromSeconds(3), cancellationToken).ConfigureAwait(false);
-
             await _windows.RestoreAsync(started, remembered, cancellationToken).ConfigureAwait(false);
 
         }
@@ -504,28 +498,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
         return moved;
     }
 
-    /// <summary>
-    /// Rouvre toutes les fenêtres ouvertes, à leur taille actuelle. Sert quand
-    /// un réglage ne prend effet qu'à l'ouverture d'une session.
-    /// </summary>
-    public async Task ReopenAllAsync(CancellationToken cancellationToken = default)
-    {
-        await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
-
-        var open = _sessions.ActiveSessions.Select(s => s.Target.Key).ToHashSet(StringComparer.Ordinal);
-
-        if (open.Count == 0)
-        {
-            return;
-        }
-
-        var instances = await RefreshInstancesAsync(cancellationToken).ConfigureAwait(false);
-
-        foreach (var instance in instances.Where(i => open.Contains(i.Key)))
-        {
-            await RestartAsync(instance, cancellationToken).ConfigureAwait(false);
-        }
-    }
 
     /// <summary>Remet toutes les fenêtres en place, à la taille en cours.</summary>
     public async Task<int> ArrangeAsync(CancellationToken cancellationToken = default)
@@ -668,12 +640,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private ScrcpyWindowPlacement? ComputePlacement(ScrcpyOptions options, StoredWindowRect? remembered)
     {
-        // Le rapport ne contraint la fenêtre que hors mode flexible, où
-        // l'afficheur garde une définition fixe. En mode flexible il épouse la
-        // fenêtre, et l'imposer ici donnerait un rectangle de lancement
-        // différent de celui appliqué juste après : la fenêtre s'ouvrirait
-        // pour être aussitôt redimensionnée.
-        var aspect = options is { UseVirtualDisplay: true, FlexDisplay: false, VirtualDisplayHeight: > 0 }
+        // La fenêtre garde le rapport de l'afficheur : l'image y est mise à
+        // l'échelle, et s'en écarter laisserait une bande.
+        var aspect = options is { UseVirtualDisplay: true, VirtualDisplayHeight: > 0 }
             ? (double)options.VirtualDisplayWidth / options.VirtualDisplayHeight
             : 0;
 
@@ -691,21 +660,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
             string.Join(", ", monitors.Select(m => $"{m.DeviceName} {m.Bounds} utile {m.WorkArea}")),
             rect?.ToString() ?? "aucun");
 
-        // La fenêtre naît garée hors écran, le temps que le jeu ouvre.
-        //
-        // La taille transmise est celle de la zone client, cadre déduit : en
-        // largeur libre, c'est elle que scrcpy donne à l'afficheur, et le jeu
-        // fige la hauteur de sa mise en page sur elle à son initialisation.
-        // La corriger après coup rognerait l'image ou laisserait une bande.
         if (rect is not { } value)
         {
             return null;
         }
 
+        // La taille transmise est celle de la zone client, cadre déduit :
+        // scrcpy dimensionne sa fenêtre par l'intérieur, et lui donner le
+        // rectangle extérieur la ferait naître trop grande d'une barre de
+        // titre.
         var chrome = _windows.WindowChrome();
 
         return new ScrcpyWindowPlacement(
-            _windows.ParkingX(),
+            value.X,
             value.Y,
             Math.Max(1, value.Width - chrome.Width),
             Math.Max(1, value.Height - chrome.Height));

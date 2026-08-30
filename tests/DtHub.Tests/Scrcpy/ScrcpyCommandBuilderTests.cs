@@ -100,69 +100,27 @@ public class ScrcpyCommandBuilderTests
     }
 
     [Fact]
-    public void Avec_l_ajustement_continu_l_afficheur_nait_a_la_taille_de_la_fenetre()
-    {
-        // scrcpy refuse --window-width et --window-height dans ce mode : la
-        // taille se règle par la définition de l'afficheur. Les deux côtés
-        // viennent donc de la fenêtre, et la hauteur surtout : le jeu fige la
-        // hauteur de sa mise en page à son initialisation.
-        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
-            "USB0001", "T",
-            ScrcpyOptions.Default with { FlexDisplay = true, VirtualDisplayHeight = 2160 },
-            new ScrcpyWindowPlacement(100, 50, 1280, 720));
-
-        Assert.Equal("100", ValueOf(arguments, "--window-x"));
-        Assert.Equal("50", ValueOf(arguments, "--window-y"));
-        Assert.Equal("1280x720/240", ValueOf(arguments, "--new-display"));
-        Assert.DoesNotContain(arguments, a => a.StartsWith("--window-width", StringComparison.Ordinal));
-        Assert.DoesNotContain(arguments, a => a.StartsWith("--window-height", StringComparison.Ordinal));
-        Assert.Contains("--flex-display", arguments);
-    }
-
-    [Fact]
     public void Les_cotes_impairs_sont_ramenes_a_des_nombres_pairs()
     {
         // Les encodeurs vidéo refusent les côtés impairs.
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "T",
-            ScrcpyOptions.Default with { FlexDisplay = true },
-            new ScrcpyWindowPlacement(0, 0, 2599, 1461));
+            ScrcpyOptions.Default with { VirtualDisplayWidth = 2599, VirtualDisplayHeight = 1461 });
 
         Assert.Equal("2598x1460/240", ValueOf(arguments, "--new-display"));
     }
 
     [Fact]
-    public void La_hauteur_de_naissance_suit_la_fenetre_et_non_les_reglages()
-    {
-        // Le jeu fige la hauteur de sa mise en page quand il s'initialise :
-        // elle doit donc être la bonne dès la naissance de l'afficheur. Les
-        // réglages, eux, ne valent que pour la définition fixe.
-        var basse = ScrcpyCommandBuilder.BuildMirrorArguments(
-            "USB0001", "T",
-            ScrcpyOptions.Default with { FlexDisplay = true, VirtualDisplayHeight = 2160 },
-            new ScrcpyWindowPlacement(0, 0, 1600, 900));
-
-        var haute = ScrcpyCommandBuilder.BuildMirrorArguments(
-            "USB0001", "T",
-            ScrcpyOptions.Default with { FlexDisplay = true, VirtualDisplayHeight = 2160 },
-            new ScrcpyWindowPlacement(0, 0, 1600, 1400));
-
-        Assert.Equal("1600x900/240", ValueOf(basse, "--new-display"));
-        Assert.Equal("1600x1400/240", ValueOf(haute, "--new-display"));
-    }
-
-    [Fact]
-    public void Sans_ajustement_continu_la_taille_de_fenetre_est_transmise_directement()
+    public void La_taille_de_fenetre_est_transmise_directement()
     {
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "T",
-            ScrcpyOptions.Default with { FlexDisplay = false },
+            ScrcpyOptions.Default,
             new ScrcpyWindowPlacement(100, 50, 1280, 720));
 
         Assert.Equal("1280", ValueOf(arguments, "--window-width"));
         Assert.Equal("720", ValueOf(arguments, "--window-height"));
         Assert.Equal("1920x1080/240", ValueOf(arguments, "--new-display"));
-        Assert.DoesNotContain("--flex-display", arguments);
     }
 
     [Fact]
@@ -181,11 +139,10 @@ public class ScrcpyCommandBuilderTests
         // prise pour un argument parasite et scrcpy refuse de démarrer.
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "Titre",
-            ScrcpyOptions.Default with { FlexDisplay = true },
+            ScrcpyOptions.Default,
             new ScrcpyWindowPlacement(1, 2, 3, 4));
 
-        // Les côtés impairs sont ramenés à des nombres pairs.
-        Assert.Contains("--new-display=2x4/240", arguments);
+        Assert.Contains("--new-display=1920x1080/240", arguments);
 
         foreach (var argument in arguments.Where(a => a.StartsWith("--", StringComparison.Ordinal)))
         {

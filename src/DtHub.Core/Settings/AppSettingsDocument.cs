@@ -12,7 +12,7 @@ namespace DtHub.Core.Settings;
 /// </summary>
 public sealed class AppSettingsDocument
 {
-    public const int CurrentSchemaVersion = 4;
+    public const int CurrentSchemaVersion = 5;
 
     /// <summary>Tailles livrées d'origine, en pourcentage de la zone utilisable.</summary>
     public static readonly int[] DefaultSizePercentages = [40, 60, 80, 100];
@@ -75,15 +75,6 @@ public sealed class AppSettingsDocument
     public int VirtualDisplayWidth { get; set; } = 1920;
     public int VirtualDisplayHeight { get; set; } = 1080;
     public int VirtualDisplayDpi { get; set; } = 240;
-
-    /// <summary>
-    /// Vrai pour laisser la largeur des fenêtres libre, la hauteur restant
-    /// plafonnée à celle de l'ouverture. Faux pour verrouiller le rapport :
-    /// la fenêtre garde alors le format de l'afficheur et l'image y est mise
-    /// à l'échelle. Les deux remplissent toujours et ne rechargent jamais ;
-    /// ils diffèrent par ce que montre une fenêtre élargie.
-    /// </summary>
-    public bool FreeWidthResize { get; set; } = true;
 
     /// <summary>Paquet du jeu. Réglable pour survivre à un changement amont.</summary>
     public string PackageName { get; set; } = Dofus.DofusPackages.DofusTouch;

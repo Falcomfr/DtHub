@@ -108,6 +108,16 @@ public sealed class SettingsService : IDisposable
             changed = true;
         }
 
+        if (settings.SchemaVersion < 5)
+        {
+            // Le mode « largeur libre » est retiré. Il ne pouvait pas tenir sa
+            // promesse : le jeu fige la hauteur de sa mise en page à son
+            // initialisation, donc changer la hauteur d'une fenêtre rognait
+            // l'image ou laissait une bande. Le réglage disparaît du fichier
+            // à la réécriture, sans que rien ne soit à décider.
+            changed = true;
+        }
+
         if (settings.SchemaVersion != AppSettingsDocument.CurrentSchemaVersion)
         {
             settings.SchemaVersion = AppSettingsDocument.CurrentSchemaVersion;
@@ -161,7 +171,6 @@ public sealed class SettingsService : IDisposable
             VirtualDisplayWidth = settings.VirtualDisplayWidth,
             VirtualDisplayHeight = settings.VirtualDisplayHeight,
             VirtualDisplayDpi = settings.VirtualDisplayDpi,
-            FlexDisplay = settings.FreeWidthResize,
         }.Sanitized();
     }
 
@@ -427,10 +436,6 @@ public sealed class SettingsService : IDisposable
             }
         }, cancellationToken);
     }
-
-    /// <summary>Retient le mode de redimensionnement.</summary>
-    public Task SetFreeWidthResizeAsync(bool free, CancellationToken cancellationToken = default) =>
-        UpdateAsync(settings => settings.FreeWidthResize = free, cancellationToken);
 
     /// <summary>Retient la taille posée au curseur.</summary>
     public Task SaveCustomSizePercentAsync(int percent, CancellationToken cancellationToken = default) =>

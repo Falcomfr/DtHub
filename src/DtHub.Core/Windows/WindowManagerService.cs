@@ -307,22 +307,6 @@ public sealed class WindowManagerService
         _controller.GetWindowChrome(PreferredMonitorDeviceName);
 
     /// <summary>
-    /// Abscisse hors de tout écran, où garer une fenêtre le temps qu'elle
-    /// s'ouvre.
-    ///
-    /// L'afficheur naît à la hauteur du plus grand écran, donc la fenêtre
-    /// aussi : la laisser paraître là serait un clignotement, elle serait
-    /// aussitôt ramenée à sa taille. Garée, elle n'apparaît qu'une fois, à la
-    /// bonne taille et au bon endroit.
-    /// </summary>
-    public int ParkingX()
-    {
-        var monitors = _controller.GetMonitors();
-
-        return monitors.Count == 0 ? 0 : monitors.Max(m => m.Bounds.X + m.Bounds.Width) + 100;
-    }
-
-    /// <summary>
     /// Bornes complètes de l'écran retenu, barre des tâches comprise : c'est
     /// ce que couvre le plein écran.
     /// </summary>
@@ -534,31 +518,10 @@ public sealed class WindowManagerService
             && WindowLayoutCalculator.RestoreRemembered(
                 stored.Bounds, stored.MonitorDeviceName, stored.Monitor, monitors) is { } restored)
         {
-            return Fit(session, restored, chrome);
+            return restored;
         }
 
-        return Fit(session, Compute(monitor, session.SourceAspectRatio, chrome), chrome);
-    }
-
-    /// <summary>
-    /// Ramène un rectangle que nous calculons à la hauteur que le jeu sait
-    /// dessiner.
-    ///
-    /// La retenir ici, et là seulement, évite d'ouvrir la fenêtre trop haute
-    /// pour la rapetisser aussitôt. Une fenêtre agrandie à la main n'y passe
-    /// pas : ce que l'utilisateur a fait de ses mains n'est jamais défait.
-    /// </summary>
-    private static ScreenRect Fit(
-        ScrcpySession session, ScreenRect rect, (int Width, int Height) chrome)
-    {
-        if (session.MaxClientHeight <= 0)
-        {
-            return rect;
-        }
-
-        var ceiling = session.MaxClientHeight + chrome.Height;
-
-        return rect.Height <= ceiling ? rect : rect with { Height = ceiling };
+        return Compute(monitor, session.SourceAspectRatio, chrome);
     }
 
     /// <summary>

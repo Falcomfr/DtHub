@@ -202,7 +202,7 @@ public class WindowManagerServiceTests
         // rectangle extérieur laisse des bandes noires sur les côtés, de la
         // largeur exacte de la barre de titre.
         var (manager, sessions, desktop) = await OpenSessionsAsync(
-            1, ScrcpyOptions.Default with { FlexDisplay = false });
+            1, ScrcpyOptions.Default);
 
         await using var _ = manager;
 
@@ -216,31 +216,6 @@ public class WindowManagerServiceTests
         var client = new ScreenRect(0, 0, rect.Width - 16, rect.Height - 48);
 
         Assert.Equal(16.0 / 9.0, client.AspectRatio, 2);
-    }
-
-    [Fact]
-    public async Task En_mode_flexible_la_fenetre_occupe_toute_la_part_demandee()
-    {
-        // L'afficheur virtuel épouse la fenêtre, donc aucun rapport ne
-        // contraint celle-ci. Ce mode n'est plus celui par défaut : le jeu ne
-        // se remet pas toujours en page quand son afficheur change de forme
-        // sous lui, et laisse alors une bande noire.
-        var (manager, sessions, desktop) = await OpenSessionsAsync(
-            1, ScrcpyOptions.Default with { FlexDisplay = true });
-        await using var _ = manager;
-
-        desktop.Chrome = (16, 48);
-
-        var service = new WindowManagerService(desktop, NoDelay);
-        await service.ApplySizeAsync([], 1, CancellationToken.None);
-        await service.ArrangeAsync(sessions, CancellationToken.None);
-
-        var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
-        var work = FakeWindowController.PrimaryMonitor.WorkArea;
-        var fraction = WindowSizePresets.Default.PercentageAt(1) / 100.0;
-
-        Assert.Equal((int)Math.Round(work.Width * fraction), rect.Width);
-        Assert.Equal((int)Math.Round(work.Height * fraction), rect.Height);
     }
 
     [Fact]
@@ -625,52 +600,10 @@ public class WindowManagerServiceTests
     }
 
     [Fact]
-    public async Task Elargir_une_fenetre_ne_la_contraint_jamais()
+    public async Task Une_geometrie_memorisee_est_rendue_telle_quelle()
     {
-        // Le jeu se remet en page en largeur sans faute : rien à corriger.
-        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
-        await using var _ = manager;
-
-        var service = new WindowManagerService(desktop, NoDelay);
-        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
-
-        var wide = new ScreenRect(0, 0, 2600, sessions[0].MaxClientHeight);
-
-        desktop.MoveWindow(sessions[0].WindowHandle, wide);
-
-        service.EnforceAspect(sessions);
-        service.EnforceAspect(sessions);
-
-        Assert.Equal(wide, desktop.GetWindowRect(sessions[0].WindowHandle));
-    }
-
-    [Fact]
-    public async Task Une_fenetre_agrandie_a_la_main_n_est_jamais_rapetissee()
-    {
-        // Au-delà de ce que le jeu dessine il reste une bande, mais la
-        // rapetisser reviendrait à défaire le geste en cours : redimensionner
-        // doit rester libre dans les deux sens.
-        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
-        await using var _ = manager;
-
-        var service = new WindowManagerService(desktop, NoDelay);
-        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
-
-        var tall = new ScreenRect(0, 0, 2600, sessions[0].MaxClientHeight + 400);
-
-        desktop.MoveWindow(sessions[0].WindowHandle, tall);
-
-        service.EnforceAspect(sessions);
-
-        Assert.Equal(0, service.EnforceAspect(sessions));
-        Assert.Equal(tall, desktop.GetWindowRect(sessions[0].WindowHandle));
-    }
-
-    [Fact]
-    public async Task En_largeur_libre_une_geometrie_memorisee_est_rendue_telle_quelle()
-    {
-        // Aucun plafond de hauteur : l'afficheur naît à la taille de la
-        // fenêtre, donc toute hauteur mémorisée est bonne à reprendre.
+        // L'image étant mise à l'échelle de la fenêtre, toute taille mémorisée
+        // est bonne à reprendre : rien n'est plafonné.
         var (manager, sessions, desktop) = await OpenSessionsAsync(1);
         await using var _ = manager;
 
@@ -692,27 +625,7 @@ public class WindowManagerServiceTests
 
         await service.RestoreAsync(sessions, remembered, CancellationToken.None);
 
-        Assert.Equal(0, sessions[0].MaxClientHeight);
         Assert.Equal(wanted, desktop.GetWindowRect(sessions[0].WindowHandle));
-    }
-
-    [Fact]
-    public async Task Une_fenetre_plus_basse_que_le_plafond_est_laissee_telle_quelle()
-    {
-        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
-        await using var _ = manager;
-
-        var service = new WindowManagerService(desktop, NoDelay);
-        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
-
-        var small = new ScreenRect(10, 10, 900, sessions[0].MaxClientHeight - 200);
-
-        desktop.MoveWindow(sessions[0].WindowHandle, small);
-
-        service.EnforceAspect(sessions);
-
-        Assert.Equal(0, service.EnforceAspect(sessions));
-        Assert.Equal(small, desktop.GetWindowRect(sessions[0].WindowHandle));
     }
 
     [Fact]
@@ -737,14 +650,11 @@ public class WindowManagerServiceTests
             1,
             ScrcpyOptions.Default with
             {
-                FlexDisplay = false,
                 VirtualDisplayWidth = 2604,
                 VirtualDisplayHeight = 1416,
             });
 
         await using var _ = manager;
-
-        Assert.Equal(0, sessions[0].MaxClientHeight);
 
         var service = new WindowManagerService(desktop, NoDelay);
 

@@ -143,13 +143,9 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         {
             // L'afficheur garde une définition fixe : la fenêtre est calculée
             // à son rapport, sur sa zone client.
-            SourceAspectRatio = options is { UseVirtualDisplay: true, FlexDisplay: false, VirtualDisplayHeight: > 0 }
+            SourceAspectRatio = options is { UseVirtualDisplay: true, VirtualDisplayHeight: > 0 }
                 ? (double)options.VirtualDisplayWidth / options.VirtualDisplayHeight
                 : 0,
-
-            // En largeur libre, aucun plafond : l'afficheur naît à la taille de
-            // la fenêtre, quelle qu'elle soit.
-            MaxClientHeight = 0,
 
         };
 

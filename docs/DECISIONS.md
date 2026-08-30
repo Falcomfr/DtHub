@@ -410,3 +410,31 @@ Reste donc une limite assumée : **changer la hauteur d'une fenêtre en cours de
 partie dégrade l'image**, en bande si on l'agrandit, en rognage si on la
 réduit. La largeur reste libre, d'où le nom du mode. Seul le mode à définition
 fixe, où l'image est mise à l'échelle, accepte toute hauteur sans rien perdre.
+
+## D17 - Un seul mode d'affichage : l'image mise à l'échelle de la fenêtre
+
+D16 établit que le jeu fige la hauteur de sa mise en page à son initialisation.
+Le mode « largeur libre », qui faisait épouser la fenêtre par l'afficheur, ne
+pouvait donc pas tenir sa promesse : élargir marchait, mais changer la hauteur
+rognait l'image ou laissait une bande, et il n'existe aucun moyen de le
+rattraper sans recharger le jeu, ce qui déconnecterait le compte en pleine
+partie.
+
+Le réglage est retiré, et avec lui toute la branche flexible : plus de
+`--flex-display`, plus de plafond de hauteur, plus de fenêtre garée hors écran
+le temps de l'ouverture.
+
+L'afficheur virtuel prend désormais la définition entière de l'écran retenu, et
+l'image est mise à l'échelle de la fenêtre. Toute taille est alors acceptée,
+l'image reste complète et juste, et le plein écran est net. La fenêtre garde le
+rapport de l'écran : tirer un bord ajuste l'autre, ce qui est le prix, et le
+seul.
+
+La taille transmise à scrcpy est celle de la zone client, cadre déduit :
+scrcpy dimensionne sa fenêtre par l'intérieur.
+
+Vérifié sur un Xiaomi 13T, image complète et sans bande à 978x550, 1378x775,
+1578x888, 2378x1338 et 3818x2130.
+
+Le fichier de réglages passe en version 5 : `freeWidthResize` disparaît, sans
+que rien ne soit à décider pour l'utilisateur.

@@ -73,21 +73,6 @@ public sealed record ScrcpyOptions
     public bool DisableVirtualDisplayDecorations { get; init; } = true;
 
     /// <summary>
-    /// Redimensionner l'afficheur virtuel en continu pour suivre la fenêtre.
-    ///
-    /// Activé. L'image n'est pas mise à l'échelle : la fenêtre montre
-    /// l'afficheur pixel pour pixel, donc une fenêtre plus large montre
-    /// davantage de jeu au lieu de l'agrandir.
-    ///
-    /// Mesuré sur un Xiaomi 13T, les deux mouvements ne se valent pas. En
-    /// largeur, le jeu se remet en page de 1,04 à 2,82 de rapport, sans une
-    /// bande. En hauteur, il ne dépasse jamais celle de sa naissance et laisse
-    /// une bande de la hauteur ajoutée : 61 pixels pour cent de plus, 461 pour
-    /// cinq cents. La hauteur est donc plafonnée, la largeur reste libre.
-    /// </summary>
-    public bool FlexDisplay { get; init; } = true;
-
-    /// <summary>
     /// Rappel ajouté au titre de chaque fenêtre de jeu, entre parenthèses.
     /// Les fenêtres se ressemblent et se superposent : le joueur doit pouvoir
     /// lire au-dessus de l'image comment passer à la suivante.
@@ -115,11 +100,6 @@ public sealed record ScrcpyOptions
     /// <summary>Débit vidéo au format attendu par scrcpy.</summary>
     public string VideoBitrateArgument =>
         VideoBitrateKbps.ToString(CultureInfo.InvariantCulture) + "K";
-
-    /// <summary>Définition de l'afficheur virtuel au format attendu par scrcpy.</summary>
-    public string VirtualDisplayArgument => string.Create(
-        CultureInfo.InvariantCulture,
-        $"{VirtualDisplayWidth}x{VirtualDisplayHeight}/{VirtualDisplayDpi}");
 
     /// <summary>
     /// Rend une copie corrigée si des valeurs aberrantes ont été saisies dans
