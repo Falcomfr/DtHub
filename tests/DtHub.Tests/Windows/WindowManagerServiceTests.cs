@@ -723,6 +723,41 @@ public class WindowManagerServiceTests
     }
 
     [Fact]
+    public void La_hauteur_visee_est_celle_du_plus_haut_ecran_barre_des_taches_comprise()
+    {
+        // C'est sur elle que l'afficheur naît, et le plein écran couvre
+        // l'écran entier : la zone utilisable serait trop basse de la hauteur
+        // de la barre des tâches, et laisserait une bande en plein écran.
+        var petit = FakeWindowController.PrimaryMonitor;
+        var grand = new MonitorInfo
+        {
+            DeviceName = @"\\.\DISPLAY2",
+            Bounds = new ScreenRect(1920, 0, 3840, 2160),
+            WorkArea = new ScreenRect(1920, 0, 3840, 2088),
+        };
+
+        var desktop = new FakeWindowController(petit, grand);
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        Assert.Equal(2160, service.TallestReachableHeight());
+    }
+
+    [Fact]
+    public async Task Le_plafond_d_une_session_est_la_hauteur_de_naissance_de_son_afficheur()
+    {
+        // Le jeu ne dessine jamais au-delà de la hauteur où son afficheur est
+        // né. Aucune constante ne vaut ici : la session retient ce qui a été
+        // réellement demandé.
+        var (manager, sessions, _) = await OpenSessionsAsync(
+            1,
+            ScrcpyOptions.Default with { FlexDisplay = true, VirtualDisplayHeight = 2160 });
+
+        await using var _ = manager;
+
+        Assert.Equal(2160, sessions[0].MaxClientHeight);
+    }
+
+    [Fact]
     public async Task Au_rapport_verrouille_la_hauteur_suit_la_forme_de_l_afficheur()
     {
         // Dans ce mode l'image est mise à l'échelle : elle ne remplit la

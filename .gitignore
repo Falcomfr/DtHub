@@ -487,3 +487,8 @@ installer/out/
 third_party/**/build/
 third_party/**/*.jar
 *.received.*
+build/*.log
+build/*.log.err
+build/app-*.png
+build/dpi-*.png
+build/ingame-*.png

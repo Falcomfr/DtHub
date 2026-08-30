@@ -100,21 +100,20 @@ public class ScrcpyCommandBuilderTests
     }
 
     [Fact]
-    public void Avec_l_ajustement_continu_l_afficheur_nait_a_la_hauteur_maximale()
+    public void Avec_l_ajustement_continu_l_afficheur_nait_a_la_hauteur_demandee()
     {
         // scrcpy refuse --window-width et --window-height dans ce mode : la
         // taille se règle par la définition de l'afficheur. Seule la largeur
-        // vient de la fenêtre ; la hauteur est celle que le jeu sait dessiner,
-        // pour qu'il naisse à sa pleine échelle et puisse ensuite grandir.
+        // vient de la fenêtre ; la hauteur vient des réglages, parce que le
+        // jeu ne dessine jamais au-delà de sa hauteur de naissance.
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "T",
-            ScrcpyOptions.Default with { FlexDisplay = true },
+            ScrcpyOptions.Default with { FlexDisplay = true, VirtualDisplayHeight = 2160 },
             new ScrcpyWindowPlacement(100, 50, 1280, 720));
 
         Assert.Equal("100", ValueOf(arguments, "--window-x"));
         Assert.Equal("50", ValueOf(arguments, "--window-y"));
-        Assert.Equal(
-            $"1280x{ScrcpyOptions.MaximumDrawnHeight}/240", ValueOf(arguments, "--new-display"));
+        Assert.Equal("1280x2160/240", ValueOf(arguments, "--new-display"));
         Assert.DoesNotContain(arguments, a => a.StartsWith("--window-width", StringComparison.Ordinal));
         Assert.DoesNotContain(arguments, a => a.StartsWith("--window-height", StringComparison.Ordinal));
         Assert.Contains("--flex-display", arguments);
@@ -126,11 +125,32 @@ public class ScrcpyCommandBuilderTests
         // Les encodeurs vidéo refusent les côtés impairs.
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "T",
-            ScrcpyOptions.Default with { FlexDisplay = true },
+            ScrcpyOptions.Default with { FlexDisplay = true, VirtualDisplayHeight = 2159 },
             new ScrcpyWindowPlacement(0, 0, 2599, 1461));
 
-        Assert.Equal(
-            $"2598x{ScrcpyOptions.MaximumDrawnHeight}/240", ValueOf(arguments, "--new-display"));
+        Assert.Equal("2598x2158/240", ValueOf(arguments, "--new-display"));
+    }
+
+    [Fact]
+    public void La_hauteur_de_naissance_vient_des_reglages_et_non_d_une_constante()
+    {
+        // C'est la hauteur de naissance, et elle seule, qui fixe ce que le jeu
+        // acceptera de dessiner. La décider ici la figerait pour tous les
+        // écrans ; elle est calée au lancement sur le plus haut d'entre eux.
+        var placement = new ScrcpyWindowPlacement(0, 0, 1600, 900);
+
+        var basse = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001", "T",
+            ScrcpyOptions.Default with { FlexDisplay = true, VirtualDisplayHeight = 1080 },
+            placement);
+
+        var haute = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001", "T",
+            ScrcpyOptions.Default with { FlexDisplay = true, VirtualDisplayHeight = 2160 },
+            placement);
+
+        Assert.Equal("1600x1080/240", ValueOf(basse, "--new-display"));
+        Assert.Equal("1600x2160/240", ValueOf(haute, "--new-display"));
     }
 
     [Fact]
@@ -167,7 +187,7 @@ public class ScrcpyCommandBuilderTests
             new ScrcpyWindowPlacement(1, 2, 3, 4));
 
         // Les côtés impairs sont ramenés à des nombres pairs.
-        Assert.Contains($"--new-display=2x{ScrcpyOptions.MaximumDrawnHeight}/240", arguments);
+        Assert.Contains("--new-display=2x1080/240", arguments);
 
         foreach (var argument in arguments.Where(a => a.StartsWith("--", StringComparison.Ordinal)))
         {

@@ -78,9 +78,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // la taille définitive.
         _sessions.PrepareWindow = async (session, cancellationToken) =>
         {
-            // Seule la position est posée avant l'ouverture du jeu : réduire
-            // la fenêtre maintenant le ferait naître petit, et il ne saurait
-            // plus grandir.
+            // La fenêtre est maintenue garée hors écran : scrcpy recentre la
+            // sienne à la première image. La redimensionner ici serait pire
+            // encore, le jeu naîtrait petit et ne saurait plus grandir.
             if (_pendingPlacement is { } placement)
             {
                 await _windows.MoveOnlyAsync(session, placement.X, placement.Y, cancellationToken)
@@ -291,19 +291,23 @@ public sealed partial class GameLauncher : IAsyncDisposable
             IconDirectory = _iconDirectory,
         };
 
-        // Rapport verrouillé : l'image est mise à l'échelle de la fenêtre,
-        // c'est ce qui permet le plein écran. L'afficheur naît donc à la plus
-        // grande définition que le jeu sache dessiner, et au rapport de
-        // l'écran : l'agrandissement reste net et ne laisse aucune bande.
-        if (!options.FlexDisplay && _windows.WorkArea() is { Height: > 0 } work)
+        // L'afficheur naît à la hauteur du plus haut des écrans. Le jeu ne
+        // dessine jamais au-delà de sa hauteur de naissance : la lui donner
+        // d'emblée est ce qui rend le redimensionnement libre, du plus petit
+        // au plein écran, sans bande et sans jamais recharger. Descendre
+        // ensuite ne lui pose aucun problème.
+        //
+        // En largeur libre, seule la hauteur compte : la largeur vient de la
+        // fenêtre. Au rapport verrouillé, l'afficheur prend la définition
+        // entière de l'écran, ce qui rend le plein écran net.
+        if (_windows.TallestReachableHeight() is > 0 and var tallest)
         {
-            var width = (int)Math.Round(ScrcpyOptions.MaximumDrawnHeight * ((double)work.Width / work.Height));
+            options = options with { VirtualDisplayHeight = tallest };
 
-            options = options with
+            if (!options.FlexDisplay && _windows.MonitorBounds() is { Width: > 0 } screen)
             {
-                VirtualDisplayWidth = width,
-                VirtualDisplayHeight = ScrcpyOptions.MaximumDrawnHeight,
-            };
+                options = options with { VirtualDisplayWidth = screen.Width };
+            }
         }
 
         var serials = await ResolveSerialsAsync(cancellationToken).ConfigureAwait(false);
@@ -690,8 +694,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
             string.Join(", ", monitors.Select(m => $"{m.DeviceName} {m.Bounds} utile {m.WorkArea}")),
             rect?.ToString() ?? "aucun");
 
+        // La fenêtre naît garée hors écran : l'afficheur naît à la hauteur du
+        // plus grand écran, donc elle aussi, et la voir paraître à cette
+        // taille pour être aussitôt ramenée serait un clignotement. Seule la
+        // largeur compte à la naissance, c'est elle que scrcpy donne à
+        // l'afficheur.
         return rect is { } value
-            ? new ScrcpyWindowPlacement(value.X, value.Y, value.Width, value.Height)
+            ? new ScrcpyWindowPlacement(_windows.ParkingX(), value.Y, value.Width, value.Height)
             : null;
     }
 

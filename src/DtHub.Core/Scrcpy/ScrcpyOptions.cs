@@ -21,17 +21,6 @@ public sealed record ScrcpyOptions
 {
     public static readonly ScrcpyOptions Default = new();
 
-    /// <summary>
-    /// Hauteur maximale que le jeu sait dessiner, en pixels.
-    ///
-    /// Mesurée sur un Xiaomi 13T : sur un afficheur de 2000 pixels de haut il
-    /// n'en remplit que 1416, et sur un afficheur de 2104 il en remplit encore
-    /// 1416. Ce n'est donc pas une question de forme mais une limite absolue.
-    /// L'afficheur naît à cette hauteur : au-dessus il resterait une bande, en
-    /// dessous la fenêtre ne pourrait plus grandir.
-    /// </summary>
-    public const int MaximumDrawnHeight = 1416;
-
     /// <summary>Images par seconde. Au-delà, plusieurs sessions saturent l'encodeur.</summary>
     public int MaxFps { get; init; } = 45;
 
@@ -60,6 +49,18 @@ public sealed record ScrcpyOptions
     /// </summary>
     public int VirtualDisplayWidth { get; init; } = 1920;
 
+    /// <summary>
+    /// Hauteur de l'afficheur virtuel, en pixels.
+    ///
+    /// C'est elle, et rien d'autre, qui fixe la hauteur que le jeu acceptera
+    /// de dessiner. Mesuré sur un Xiaomi 13T : né sur 1416 pixels de haut, le
+    /// jeu s'arrête à 1416 et laisse une bande au-delà ; né sur 2160, il
+    /// remplit 2076 sans la moindre bande, jusqu'au plein écran. Descendre
+    /// ensuite ne pose aucun problème, remonter non plus tant qu'on reste
+    /// sous la hauteur de naissance.
+    ///
+    /// Elle est donc calée sur le plus haut des écrans au lancement.
+    /// </summary>
     public int VirtualDisplayHeight { get; init; } = 1080;
 
     /// <summary>Densité de l'afficheur virtuel. Trop basse, l'interface Android devient minuscule.</summary>

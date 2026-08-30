@@ -333,3 +333,38 @@ de scrcpy installée par l'utilisateur n'est jamais touchée.
 
 Vérifié : huit orphelins ramassés au démarrage, et zéro survivant après un
 arrêt brutal de l'application.
+
+## D15 - L'afficheur naît à la hauteur du plus grand écran
+
+Le jeu laissait une bande noire dès qu'une fenêtre dépassait 1416 pixels de
+haut. Ce chiffre a été pris pendant des semaines pour une limite du jeu, et
+tout a été bâti autour : plafonner la fenêtre, verrouiller son rapport, mettre
+l'image à l'échelle. Aucun de ces contournements n'était satisfaisant, et
+chacun retirait quelque chose à l'utilisateur.
+
+La mesure a montré que ce n'en était pas une. Sur un afficheur né en 2760x2000,
+le jeu remplit les 2000 pixels. Né en 2820x2160, il remplit 2076 en plein
+écran. La règle réelle est ailleurs : **le jeu ne dessine jamais au-delà de la
+hauteur qu'avait son afficheur quand son activité a démarré.** Descendre
+ensuite ne lui pose aucun problème, remonter non plus tant qu'on reste sous
+cette hauteur. Nous lui donnions nous-mêmes 1416, et il s'y tenait.
+
+Trois mesures ont écarté les explications concurrentes. Rétrécir puis
+réagrandir remplit toujours : ce n'est pas le redimensionnement qui abîme.
+Toucher l'écran après une naissance à 1416 fait réapparaître la bande, alors
+que la même manipulation après une naissance à 2160 ne la fait pas : c'est
+bien la hauteur de naissance qui compte, et une interaction suffit à révéler
+le plafond. Trois secondes suffisent entre le démarrage de l'activité et le
+premier redimensionnement.
+
+L'afficheur naît donc à la hauteur du plus haut des écrans, et la fenêtre est
+garée hors écran le temps de sa naissance, pour ne pas paraître à cette taille
+avant d'être ramenée à la sienne. La largeur reste libre, elle l'a toujours
+été.
+
+Vérifié sur un Xiaomi 13T, sans aucune bande et sans rechargement : 978x644,
+1178x744, 1578x944, 2378x1144, 2820x1844 et 3818x2032.
+
+La densité de l'afficheur, restée à 240 pour toutes ces mesures, n'entre pas
+en jeu. L'hypothèse d'un plafond exprimé en points d'interface, 1416 pixels à
+240 ppp valant exactement 944 dp, était séduisante et fausse.

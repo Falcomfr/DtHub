@@ -298,6 +298,49 @@ public sealed class WindowManagerService
         return ScaleInPlaceAsync(sessions, (double)SizePercent / previous, cancellationToken);
     }
 
+    /// <summary>
+    /// Plus grande hauteur qu'une fenêtre de jeu pourra atteindre, tous écrans
+    /// confondus, barre des tâches comprise puisque le plein écran la couvre.
+    ///
+    /// C'est sur elle que l'afficheur naît : le jeu ne dessine jamais plus
+    /// haut que sa hauteur de naissance, et celle-ci est figée pour la session.
+    /// </summary>
+    public int TallestReachableHeight()
+    {
+        var monitors = _controller.GetMonitors();
+
+        return monitors.Count == 0 ? 0 : monitors.Max(m => m.Bounds.Height);
+    }
+
+    /// <summary>
+    /// Abscisse hors de tout écran, où garer une fenêtre le temps qu'elle
+    /// s'ouvre.
+    ///
+    /// L'afficheur naît à la hauteur du plus grand écran, donc la fenêtre
+    /// aussi : la laisser paraître là serait un clignotement, elle serait
+    /// aussitôt ramenée à sa taille. Garée, elle n'apparaît qu'une fois, à la
+    /// bonne taille et au bon endroit.
+    /// </summary>
+    public int ParkingX()
+    {
+        var monitors = _controller.GetMonitors();
+
+        return monitors.Count == 0 ? 0 : monitors.Max(m => m.Bounds.X + m.Bounds.Width) + 100;
+    }
+
+    /// <summary>
+    /// Bornes complètes de l'écran retenu, barre des tâches comprise : c'est
+    /// ce que couvre le plein écran.
+    /// </summary>
+    public ScreenRect? MonitorBounds()
+    {
+        var monitors = _controller.GetMonitors();
+
+        return monitors.Count == 0
+            ? null
+            : WindowLayoutCalculator.ChooseMonitor(monitors, PreferredMonitorDeviceName).Bounds;
+    }
+
     /// <summary>Zone utilisable de l'écran retenu.</summary>
     public ScreenRect? WorkArea()
     {
@@ -619,9 +662,9 @@ public sealed class WindowManagerService
     /// <summary>
     /// Place une fenêtre sans toucher à sa taille.
     ///
-    /// Sert avant l'ouverture du jeu : l'afficheur est alors à sa hauteur
-    /// maximale, et le réduire tout de suite ferait naître le jeu petit, sans
-    /// possibilité de grandir ensuite.
+    /// Sert à la garer hors écran avant l'ouverture du jeu : la redimensionner
+    /// à cet instant le ferait naître petit, et il ne dessinerait plus jamais
+    /// au-delà.
     /// </summary>
     public async Task MoveOnlyAsync(
         ScrcpySession session,

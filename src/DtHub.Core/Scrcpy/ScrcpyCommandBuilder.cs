@@ -92,23 +92,14 @@ public static class ScrcpyCommandBuilder
             // la définition de l'afficheur : scrcpy refuse --window-width et
             // --window-height dans ce mode.
             //
-            // La largeur vient de la fenêtre, la hauteur est celle que le jeu
-            // sait dessiner au plus. Naître à cette hauteur est ce qui rend le
-            // redimensionnement libre ensuite : le jeu ne se remet pas en page
-            // au-delà de sa hauteur de naissance, mais il descend sans peine.
-            //
-            // Le créer plus haut, pour repousser le plafond de hauteur, a été
-            // essayé et écarté : mesuré sur un Xiaomi 13T, le jeu fixe aussi
-            // son échelle d'affichage à la création. Né sur 2088 pixels de
-            // haut puis ramené à 880, il dessine tout en grand et l'image se
-            // retrouve coupée en bas, le mode flexible rendant sans mise à
-            // l'échelle. Hauteur de création, plafond et échelle sont une
-            // seule et même chose.
+            // La largeur vient de la fenêtre, la hauteur des réglages : c'est
+            // elle qui fixe la hauteur que le jeu acceptera de dessiner, et
+            // elle est calée sur l'écran au lancement. Rien ne se décide ici.
             arguments.Add(Option(
                 "new-display",
                 flex && windowPosition is { Width: > 0 } size
                     ? DisplayArgument(
-                          size.Width, ScrcpyOptions.MaximumDrawnHeight, sanitized.VirtualDisplayDpi)
+                          size.Width, sanitized.VirtualDisplayHeight, sanitized.VirtualDisplayDpi)
                     : sanitized.VirtualDisplayArgument));
 
             if (sanitized.DisableVirtualDisplayDecorations)
