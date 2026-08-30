@@ -479,16 +479,40 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
     private async void OnEnabledChanged(object? sender, InstanceRowViewModel row)
     {
-        await _settings.SetInstanceEnabledAsync(row.Key, row.IsEnabled).ConfigureAwait(true);
+        try
+        {
+            await _settings.SetInstanceEnabledAsync(row.Key, row.IsEnabled).ConfigureAwait(true);
+
+            // Le cache de découverte porte l'ancienne valeur : le garder ferait
+            // revenir la case à son état d'avant au prochain balayage.
+            _instances = null;
+        }
+        finally
+        {
+            row.IsEnabledPending = false;
+        }
+
         OnPropertyChanged(nameof(EnabledCount));
     }
 
     private async void OnManagedChanged(object? sender, InstanceRowViewModel row)
     {
-        await _settings.SetInstanceManagedAsync(row.Key, row.IsManaged).ConfigureAwait(true);
+        try
+        {
+            await _settings.SetInstanceManagedAsync(row.Key, row.IsManaged).ConfigureAwait(true);
 
-        // Le lanceur relit la liste des mises de côté au prochain placement.
-        await _launcher.RefreshRanksAsync().ConfigureAwait(true);
+            // Même piège que pour le tri et pour les cases : toute écriture dans
+            // les réglages doit invalider le cache, sans quoi le verrou se
+            // rouvre tout seul au balayage suivant.
+            _instances = null;
+
+            // Le lanceur relit la liste des mises de côté au prochain placement.
+            await _launcher.RefreshRanksAsync().ConfigureAwait(true);
+        }
+        finally
+        {
+            row.IsManagedPending = false;
+        }
     }
 
     private async void OnNameChanged(object? sender, InstanceRowViewModel row)

@@ -120,6 +120,7 @@
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto" />
           <RowDefinition Height="*" />
+          <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
@@ -129,7 +130,7 @@
           <RadioButton x:Name="TabDevices" Style="{StaticResource Tab}" Content="Appareils" GroupName="Tabs" />
         </StackPanel>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,10,0">
           <Grid>
 
             <!-- Onglet Raccourcis, en lecture seule -->
@@ -235,9 +236,14 @@
                                  IsChecked="{Binding Quality, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Medium}" />
                     <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="Haute"
-                                 ToolTip="Image à la définition de la fenêtre, sans borne, 60 images par seconde et débit doublé. Demande un téléphone récent et une bonne liaison."
+                                 Margin="0,0,5,0"
+                                 ToolTip="Image en 1440 au plus, 60 images par seconde, débit doublé. Demande un téléphone récent et une bonne liaison."
                                  IsChecked="{Binding Quality, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=High}" />
+                    <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="Maximale"
+                                 ToolTip="Image à la définition de la fenêtre, sans aucune borne, 120 images par seconde et débit doublé encore. Sans ménagement pour le téléphone : à réserver à un appareil récent, et en Wi-Fi à un réseau qui suit."
+                                 IsChecked="{Binding Quality, Converter={StaticResource EnumMatch},
+                                                     ConverterParameter=Maximum}" />
                   </StackPanel>
                 </StackPanel>
               </Border>
@@ -248,9 +254,14 @@
                              ToolTip="Agit sur la densité de l'écran vu par Android, et non sur la finesse de l'image : à taille de fenêtre égale, le jeu montre plus ou moins de terrain." />
 
                   <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                    <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="Très éloignée"
+                                 Margin="0,0,5,0"
+                                 ToolTip="Le plus de terrain qu'il soit possible d'afficher. L'interface du jeu devient petite : sur une fenêtre modeste, elle sera à la limite du lisible."
+                                 IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch},
+                                                     ConverterParameter=Widest}" />
                     <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="Éloignée"
                                  Margin="0,0,5,0"
-                                 ToolTip="Le plus de terrain visible, l'interface du jeu la plus petite. Pratique pour suivre plusieurs comptes d'un coup d'oeil, moins confortable pour viser."
+                                 ToolTip="Beaucoup de terrain visible, l'interface du jeu petite. Pratique pour suivre plusieurs comptes d'un coup d'oeil, moins confortable pour viser."
                                  IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Wide}" />
                     <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="Normale"
@@ -292,22 +303,27 @@
 
               <w:InstanceListControl DataContext="{Binding Instances}" />
 
-              <!-- Une seule ligne chacune : le détail est dans la fenêtre
-                   d'aide. La marge négative annule le remplissage et la bordure
-                   du bouton, neuf pixels, pour que le texte parte du même bord
-                   que la liste au-dessus. -->
-              <Button Content="Plusieurs comptes sur un même appareil ?"
-                      Style="{StaticResource QuietButton}" HorizontalAlignment="Left"
-                      Margin="-9,6,0,0" Click="OnCloneHelp" />
-
-              <Button Content="Une fenêtre se fige au bout d'un moment ?"
-                      Style="{StaticResource QuietButton}" HorizontalAlignment="Left"
-                      Margin="-9,0,0,0" Click="OnSleepHelp" />
-
             </StackPanel>
 
           </Grid>
         </ScrollViewer>
+
+        <!-- Astuces de l'onglet Appareils, hors du contenu défilant : elles
+             restent collées en bas de la page quelle que soit la longueur de
+             la liste. La marge négative annule le remplissage et la bordure du
+             bouton, neuf pixels, pour que le texte parte du même bord que la
+             liste au-dessus. -->
+        <StackPanel Grid.Row="2" Margin="0,6,0,0"
+                    Visibility="{Binding IsChecked, ElementName=TabDevices,
+                                         Converter={StaticResource BoolToVisibility}}">
+          <Button Content="Plusieurs comptes sur un même appareil ?"
+                  Style="{StaticResource QuietButton}" HorizontalAlignment="Left"
+                  Margin="-9,0,0,0" Click="OnCloneHelp" />
+
+          <Button Content="Une fenêtre se fige au bout d'un moment ?"
+                  Style="{StaticResource QuietButton}" HorizontalAlignment="Left"
+                  Margin="-9,0,0,0" Click="OnSleepHelp" />
+        </StackPanel>
       </Grid>
 
     </DockPanel>

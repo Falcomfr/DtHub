@@ -88,6 +88,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     .ConfigureAwait(false);
             }
         };
+
+        _sessions.RequestClose = session => _windows.RequestClose(session);
     }
 
     /// <summary>Instances laissées de côté par les placements automatiques.</summary>

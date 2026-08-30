@@ -145,12 +145,25 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     /// </summary>
     public bool IsRenaming { get; set; }
 
+    /// <summary>
+    /// Vrai entre le clic de l'utilisateur et la fin de l'écriture.
+    ///
+    /// Le balayage périodique reconstruit la liste à partir des réglages, et
+    /// écrasait le choix tant qu'il n'était pas enregistré : le verrou se
+    /// rouvrait tout seul quelques secondes après avoir été fermé. Même
+    /// mécanisme que pour le renommage, et pour la même raison.
+    /// </summary>
+    public bool IsManagedPending { get; set; }
+
+    /// <inheritdoc cref="IsManagedPending" />
+    public bool IsEnabledPending { get; set; }
+
     public void Update(DofusInstance instance, bool isRunning)
     {
         Instance = instance;
         IsRunning = isRunning;
 
-        if (IsManaged != instance.IsManaged)
+        if (!IsManagedPending && IsManaged != instance.IsManaged)
         {
             // Écriture venue des réglages : la répercuter comme un choix de
             // l'utilisateur relancerait une écriture à chaque balayage.
@@ -188,7 +201,16 @@ public sealed partial class InstanceRowViewModel : ObservableObject
         OnPropertyChanged(nameof(ShowUserLabel));
     }
 
-    partial void OnIsEnabledChanged(bool value) => EnabledChanged?.Invoke(this, this);
+    partial void OnIsEnabledChanged(bool value)
+    {
+        if (_applying)
+        {
+            return;
+        }
+
+        IsEnabledPending = true;
+        EnabledChanged?.Invoke(this, this);
+    }
 
     partial void OnIsManagedChanged(bool value)
     {
@@ -196,6 +218,7 @@ public sealed partial class InstanceRowViewModel : ObservableObject
 
         if (!_applying)
         {
+            IsManagedPending = true;
             ManagedChanged?.Invoke(this, this);
         }
     }

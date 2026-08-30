@@ -76,7 +76,8 @@ public sealed class DisplayLadderTests
         // ne se voit pas sur une image presque fixe.
         Assert.Equal(720, QualityProfile.For(StreamQuality.Low).MaximumDisplayHeight);
         Assert.Equal(1080, QualityProfile.For(StreamQuality.Medium).MaximumDisplayHeight);
-        Assert.Equal(int.MaxValue, QualityProfile.For(StreamQuality.High).MaximumDisplayHeight);
+        Assert.Equal(1440, QualityProfile.For(StreamQuality.High).MaximumDisplayHeight);
+        Assert.Equal(int.MaxValue, QualityProfile.For(StreamQuality.Maximum).MaximumDisplayHeight);
     }
 
     [Fact]

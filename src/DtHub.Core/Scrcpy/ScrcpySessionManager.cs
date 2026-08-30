@@ -57,6 +57,21 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     /// </summary>
     public Func<ScrcpySession, ScrcpyWindowPlacement?, CancellationToken, Task>? PrepareWindow { get; set; }
 
+    /// <summary>
+    /// Demande à une fenêtre de scrcpy de se fermer d'elle-même. Tant qu'il
+    /// n'est pas fourni, l'arrêt se fait à coups de <c>Kill</c>.
+    /// </summary>
+    public Action<ScrcpySession>? RequestClose { get; set; }
+
+    /// <summary>
+    /// Temps laissé à scrcpy pour partir de lui-même avant d'être tué.
+    ///
+    /// Il doit prévenir son serveur sur le téléphone, ce qui demande un aller
+    /// simple sur la liaison. Une seconde et demie couvre largement une
+    /// liaison Wi-Fi ordinaire, sans faire attendre à la fermeture.
+    /// </summary>
+    public TimeSpan CloseTimeout { get; init; } = TimeSpan.FromMilliseconds(1500);
+
     /// <summary>Une seule ouverture à la fois par téléphone.</summary>
     private readonly DeviceStartupGate _gate = new();
 
@@ -201,15 +216,25 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             return;
         }
 
-        session.Process.Kill();
+        // scrcpy est prié de partir avant d'être tué : c'est lui qui prévient
+        // son serveur, et le serveur qui rend l'afficheur virtuel. Un client
+        // tué net sur une liaison Wi-Fi laissait le serveur en vie sur le
+        // téléphone, avec son afficheur ; la fenêtre suivante s'ouvrait alors
+        // sur un écran gris, le jeu étant resté sur l'afficheur abandonné.
+        await RequestCloseAsync(session, cancellationToken).ConfigureAwait(false);
 
-        try
+        if (!session.Process.HasExited)
         {
-            await session.Process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
-        }
-        catch (OperationCanceledException)
-        {
-            // L'appelant renonce à attendre ; le processus a reçu l'ordre.
+            session.Process.Kill();
+
+            try
+            {
+                await session.Process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // L'appelant renonce à attendre ; le processus a reçu l'ordre.
+            }
         }
 
         Transition(session, ScrcpySessionState.Stopped);
@@ -226,6 +251,32 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         foreach (var id in running)
         {
             await StopAsync(id, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Demande la fermeture et attend, sans dépasser le délai. Rend la main
+    /// dès que le processus est parti, pour ne pas ralentir la fermeture.
+    /// </summary>
+    private async Task RequestCloseAsync(ScrcpySession session, CancellationToken cancellationToken)
+    {
+        if (RequestClose is null || session.WindowHandle == 0 || session.Process.HasExited)
+        {
+            return;
+        }
+
+        RequestClose(session);
+
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(CloseTimeout);
+
+        try
+        {
+            await session.Process.WaitForExitAsync(deadline.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            // Parti trop lentement, ou l'appelant renonce : le Kill suit.
         }
     }
 
@@ -307,6 +358,19 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                 session.Record($"Placement préalable impossible : {exception.Message}");
             }
         }
+
+        // Le jeu est arrêté avant d'être rouvert sur le nouvel afficheur.
+        //
+        // « am start --display » ne déplace pas une tâche existante : si le jeu
+        // tourne déjà, Android le ramène simplement au premier plan là où il
+        // est, et le nouvel afficheur reste vide, donc la fenêtre grise. Arrêter
+        // la tâche est le seul moyen sûr de la faire renaître au bon endroit ;
+        // ouvrir une fenêtre redémarre le jeu de toute façon.
+        await _appLauncher.ForceStopAsync(
+            session.Serial,
+            session.Target.UserId,
+            session.Target.PackageName,
+            cancellationToken).ConfigureAwait(false);
 
         var launch = await _appLauncher.LaunchAsync(
             session.Serial,

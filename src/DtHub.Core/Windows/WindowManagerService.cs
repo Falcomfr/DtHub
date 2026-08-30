@@ -887,6 +887,7 @@ public sealed class WindowManagerService
         var half = work.Width / 2;
 
         var placed = 0;
+        nint left = 0;
 
         foreach (var session in alive)
         {
@@ -918,6 +919,19 @@ public sealed class WindowManagerService
             _controller.MoveWindow(handle, rect);
             _lastSeen[session.Id] = rect;
             placed++;
+
+            if (!ReferenceEquals(session, right))
+            {
+                left = handle;
+            }
+        }
+
+        // Le clavier revient à la fenêtre de gauche : celle de droite était
+        // déjà celle qu'on venait de quitter, et la ranger pour aussitôt y
+        // rester ne servait à rien.
+        if (left != 0)
+        {
+            _controller.Focus(left);
         }
 
         return placed;
@@ -1007,6 +1021,20 @@ public sealed class WindowManagerService
         }
 
         return handles.Count;
+    }
+
+    /// <summary>
+    /// Demande à la fenêtre d'une session de se fermer d'elle-même, sans
+    /// attendre. Rien ne se passe si la fenêtre n'a jamais été trouvée.
+    /// </summary>
+    public void RequestClose(ScrcpySession session)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+
+        if (session.WindowHandle != 0)
+        {
+            _controller.RequestClose(session.WindowHandle);
+        }
     }
 
     /// <summary>Passe à l'instance suivante, en boucle.</summary>

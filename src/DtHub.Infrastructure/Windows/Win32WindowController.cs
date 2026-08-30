@@ -186,6 +186,16 @@ public sealed partial class Win32WindowController : IWindowController
         _ = SetWindowPos(handle, HwndTop, 0, 0, 0, 0, SwpNoMove | SwpNoSize | SwpNoActivate);
     }
 
+    public void RequestClose(nint handle)
+    {
+        if (handle == 0 || !IsWindowCore(handle))
+        {
+            return;
+        }
+
+        _ = PostMessage(handle, WmClose, 0, 0);
+    }
+
     public void Focus(nint handle)
     {
         if (handle == 0)
@@ -246,6 +256,7 @@ public sealed partial class Win32WindowController : IWindowController
     private const uint SwpFrameChanged = 0x0020;
     private const uint SwpNoActivate = 0x0010;
     private const nint HwndTop = 0;
+    private const uint WmClose = 0x0010;
 
     [StructLayout(LayoutKind.Sequential)]
     private struct Rect
@@ -349,6 +360,10 @@ public sealed partial class Win32WindowController : IWindowController
     [DllImport("user32.dll", EntryPoint = "GetClientRect")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool GetClientRectCore(nint handle, out Rect rect);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool PostMessage(nint hWnd, uint message, nint wParam, nint lParam);
 
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]

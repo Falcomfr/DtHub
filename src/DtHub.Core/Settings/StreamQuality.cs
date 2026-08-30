@@ -11,6 +11,13 @@ public enum StreamQuality
 
     /// <summary>Le plus fin, et le plus exigeant.</summary>
     High,
+
+    /// <summary>
+    /// Sans ménagement pour le téléphone : définition et débit au maximum,
+    /// et interrogation la plus fréquente. Demande un appareil récent et,
+    /// en Wi-Fi, un réseau qui suit.
+    /// </summary>
+    Maximum,
 }
 
 /// <summary>
@@ -48,6 +55,14 @@ public sealed record QualityProfile(
         StreamQuality.High => new QualityProfile(
             MaxFps: 60,
             VideoBitrateKbps: 8000,
+            MaximumDisplayHeight: 1440,
+            DevicePoll: TimeSpan.FromSeconds(2),
+            InstanceRediscovery: TimeSpan.FromSeconds(15),
+            WindowWatch: TimeSpan.FromMilliseconds(500)),
+
+        StreamQuality.Maximum => new QualityProfile(
+            MaxFps: 120,
+            VideoBitrateKbps: 16000,
             MaximumDisplayHeight: int.MaxValue,
             DevicePoll: TimeSpan.FromSeconds(2),
             InstanceRediscovery: TimeSpan.FromSeconds(15),

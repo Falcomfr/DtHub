@@ -97,6 +97,11 @@ public sealed class FakeWindowController : IWindowController
 
     public void Raise(nint handle) => RaiseCalls.Add(handle);
 
+    /// <summary>Fenêtres à qui l'on a demandé de se fermer.</summary>
+    public List<nint> CloseRequests { get; } = [];
+
+    public void RequestClose(nint handle) => CloseRequests.Add(handle);
+
     public void SetBorderless(nint handle, bool borderless)
     {
         if (borderless)

@@ -60,12 +60,6 @@
           </StackPanel>
         </Border>
 
-        <Border Style="{StaticResource Card}"
-                Visibility="{Binding HasNote, Converter={StaticResource BoolToVisibility}}">
-          <TextBlock Text="{Binding Brand.BatteryNote}" Style="{StaticResource Muted}"
-                     Foreground="{DynamicResource WarningBrush}" TextWrapping="Wrap" />
-        </Border>
-
         <TextBlock Style="{StaticResource Muted}" FontSize="11" Margin="2,0,0,4" TextWrapping="Wrap"
                    Text="Une fenêtre déjà figée se répare en la relançant : le bouton « Relancer » de sa ligne redémarre le jeu sans refermer la fenêtre." />
 

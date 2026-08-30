@@ -37,7 +37,10 @@ public sealed class AppRestartServiceTests
         var session = await manager.StartAsync(
             Target(), ScrcpyOptions.Default, null, CancellationToken.None);
 
+        // L'ouverture d'une session arrête déjà le jeu, pour qu'il renaisse
+        // sur le bon afficheur : seule la relance est observée ici.
         apps.Calls.Clear();
+        apps.ForceStops.Clear();
 
         return (manager, session, apps);
     }

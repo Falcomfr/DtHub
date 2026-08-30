@@ -6,7 +6,10 @@ namespace DtHub.Core.Settings;
 /// </summary>
 public enum GameZoom
 {
-    /// <summary>Le plus de terrain, l'interface la plus petite.</summary>
+    /// <summary>Le plus de terrain possible, à la limite du lisible.</summary>
+    Widest,
+
+    /// <summary>Beaucoup de terrain, l'interface petite.</summary>
     Wide,
 
     /// <summary>Réglage d'origine.</summary>
@@ -42,6 +45,7 @@ public static class ZoomProfile
     /// </summary>
     public static int LayoutHeightFor(GameZoom zoom) => zoom switch
     {
+        GameZoom.Widest => 1120,
         GameZoom.Wide => 900,
         GameZoom.Close => 576,
         _ => 720,

@@ -929,4 +929,53 @@ public class WindowManagerServiceTests
 
         Assert.Empty(desktop.FocusCalls);
     }
+
+    [Fact]
+    public async Task Le_cote_a_cote_rend_le_clavier_a_la_fenetre_de_gauche()
+    {
+        // Celle de droite est celle qu'on venait de quitter : la ranger pour
+        // aussitôt y rester ne servirait à rien.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(2);
+
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        foreach (var session in sessions)
+        {
+            await service.ResolveWindowAsync(session, CancellationToken.None);
+        }
+
+        desktop.Foreground = sessions[0].WindowHandle;
+        service.TrackActiveWindow(sessions);
+
+        var placed = await service.TileAsync(sessions, CancellationToken.None);
+
+        Assert.Equal(2, placed);
+        Assert.Equal(sessions[1].WindowHandle, desktop.FocusCalls[^1]);
+
+        var gauche = desktop.GetWindowRect(sessions[1].WindowHandle)!.Value;
+        var droite = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+
+        Assert.True(gauche.X < droite.X);
+    }
+
+    [Fact]
+    public async Task L_arret_demande_la_fermeture_avant_de_tuer()
+    {
+        // Un client tué net sur une liaison Wi-Fi laisse son serveur en vie sur
+        // le téléphone, avec l'afficheur virtuel qu'il a créé.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        await service.ResolveWindowAsync(sessions[0], CancellationToken.None);
+
+        manager.RequestClose = session => service.RequestClose(session);
+
+        await manager.StopAsync(sessions[0].Id, CancellationToken.None);
+        await manager.DisposeAsync();
+
+        Assert.Equal([sessions[0].WindowHandle], desktop.CloseRequests);
+    }
 }

@@ -19,7 +19,7 @@
       <Button Content="Fermer" HorizontalAlignment="Right" MinWidth="110" Click="OnClose" />
     </Border>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,10,0">
       <StackPanel Margin="0,0,12,0">
 
         <ComboBox ItemsSource="{Binding Brands}" SelectedItem="{Binding Brand}" Margin="0,0,0,14">

@@ -46,6 +46,17 @@ public interface IWindowController
     void Focus(nint handle);
 
     /// <summary>
+    /// Demande poliment la fermeture d'une fenêtre, comme le ferait un clic
+    /// sur sa croix.
+    ///
+    /// C'est ce qui permet à scrcpy de prévenir son serveur avant de partir.
+    /// Tuer le client suffisait tant que la liaison était en USB ; sur une
+    /// liaison Wi-Fi, le serveur ne voit pas tout de suite la socket rompue,
+    /// survit sur le téléphone et garde son afficheur virtuel ouvert.
+    /// </summary>
+    void RequestClose(nint handle);
+
+    /// <summary>
     /// Remonte une fenêtre au sommet de la pile sans lui donner le focus.
     ///
     /// C'est ce qui permet de faire suivre l'ordre de la liste à l'ordre des
