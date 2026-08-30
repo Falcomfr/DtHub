@@ -182,10 +182,7 @@ public sealed partial class QuestViewModel : ObservableObject
         Breadcrumb = $"Quêtes  ›  {NameOf(section)}";
         Nodes.Add(new QuestNode(QuestNodeKind.Back, "Retour", Id: RootSection));
 
-        foreach (var quest in _catalog.InSection(section))
-        {
-            Nodes.Add(ToNode(quest));
-        }
+        AddGrouped(_catalog.InSection(section), skipHeaders: true);
     }
 
     /// <summary>
@@ -198,10 +195,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
         Nodes.Clear();
 
-        foreach (var quest in _catalog.Search(query, limit: 40))
-        {
-            Nodes.Add(ToNode(quest));
-        }
+        AddGrouped(_catalog.Search(query, limit: 60));
 
         if (Nodes.Count == 0)
         {
@@ -220,6 +214,45 @@ public sealed partial class QuestViewModel : ObservableObject
                 s.Name,
                 Nombre(_sectionCounts[s.Id]),
                 Id: s.Id));
+
+    /// <summary>
+    /// Ajoute les quêtes en les rangeant sous leur rubrique, dans l'ordre du
+    /// site.
+    ///
+    /// Une liste de soixante titres sans repère ne se lit pas : l'intertitre
+    /// dit d'où vient ce qu'on voit. Il est inutile dans une rubrique déjà
+    /// ouverte, où il répéterait le fil d'Ariane à chaque ligne.
+    /// </summary>
+    private void AddGrouped(IReadOnlyList<QuestSummary> quests, bool skipHeaders = false)
+    {
+        if (skipHeaders)
+        {
+            foreach (var quest in quests)
+            {
+                Nodes.Add(ToNode(quest));
+            }
+
+            return;
+        }
+
+        var rank = _catalog.Catalog.Sections
+            .Select((s, i) => (s.Id, Index: i))
+            .ToDictionary(x => x.Id, x => x.Index);
+
+        var groups = quests
+            .GroupBy(q => q.SectionId)
+            .OrderBy(g => rank.GetValueOrDefault(g.Key, int.MaxValue));
+
+        foreach (var group in groups)
+        {
+            Nodes.Add(new QuestNode(QuestNodeKind.Header, NameOf(group.Key), Nombre(group.Count())));
+
+            foreach (var quest in group)
+            {
+                Nodes.Add(ToNode(quest));
+            }
+        }
+    }
 
     private QuestNode ToNode(QuestSummary quest) => new(
         QuestNodeKind.Quest,

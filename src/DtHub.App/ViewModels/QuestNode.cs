@@ -16,6 +16,9 @@ public enum QuestNodeKind
 
     /// <summary>Une branche annoncée mais pas encore faite.</summary>
     Pending,
+
+    /// <summary>Un intertitre de rubrique, qui ne se clique pas.</summary>
+    Header,
 }
 
 /// <summary>
@@ -33,6 +36,6 @@ public sealed record QuestNode(
     int Id = 0,
     QuestSummary? Quest = null)
 {
-    /// <summary>Les branches non faites ne se cliquent pas.</summary>
-    public bool IsEnabled => Kind != QuestNodeKind.Pending;
+    /// <summary>Ni les branches non faites, ni les intertitres ne se cliquent.</summary>
+    public bool IsEnabled => Kind is not (QuestNodeKind.Pending or QuestNodeKind.Header);
 }

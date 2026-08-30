@@ -62,4 +62,10 @@ public sealed class FakePapychaClient : IPapychaClient
 
     public Task<IReadOnlyList<QuestSection>> GetSectionsAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult<IReadOnlyList<QuestSection>>(_sections);
+
+    /// <summary>Ordre annoncé par le site, vide par défaut.</summary>
+    public List<string> Order { get; } = [];
+
+    public Task<IReadOnlyList<string>> GetSectionOrderAsync(CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<string>>(Order);
 }

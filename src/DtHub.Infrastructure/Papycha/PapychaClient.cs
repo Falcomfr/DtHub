@@ -168,6 +168,44 @@ public sealed partial class PapychaClient : IPapychaClient
         return sections;
     }
 
+    /// <summary>
+    /// L'ordre du site, lu dans le menu que porte chacune de ses pages. Une
+    /// seule page suffit, et on prend celle des quêtes.
+    ///
+    /// Un échec ici n'est pas grave : sans cet ordre, les rubriques se rangent
+    /// par nombre de quêtes. On rend donc une liste vide plutôt que de faire
+    /// échouer toute l'indexation pour une question de présentation.
+    /// </summary>
+    public async Task<IReadOnlyList<string>> GetSectionOrderAsync(
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var response = await _http
+                .GetAsync(new Uri("https://papycha.fr/quetes/"), cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return [];
+            }
+
+            var html = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+            return QuestMenuParser.ParseOrder(html);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (HttpRequestException exception)
+        {
+            LogOrderUnavailable(exception.Message);
+
+            return [];
+        }
+    }
+
     private static QuestSummary ToSummary(PostPayload post)
     {
         var title = Decode(post.Title?.Rendered);
@@ -231,4 +269,9 @@ public sealed partial class PapychaClient : IPapychaClient
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Catalogue papycha indexé : {count} quête(s).")]
     private partial void LogIndexed(int count);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "L'ordre des rubriques n'a pas pu être lu ({reason}) ; classement par nombre de quêtes.")]
+    private partial void LogOrderUnavailable(string reason);
 }

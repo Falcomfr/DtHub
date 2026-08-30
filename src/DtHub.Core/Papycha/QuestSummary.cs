@@ -39,6 +39,15 @@ public sealed record QuestSummary
     /// cherche un endroit autant qu'un nom.
     /// </summary>
     public string SectionKey { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Rubrique sous laquelle ranger la quête dans la liste.
+    ///
+    /// Une quête en porte souvent plusieurs, de la plus large à la plus
+    /// précise : on retient la moins fournie, qui est aussi la plus parlante.
+    /// « Astrub » situe mieux que « Quêtes ».
+    /// </summary>
+    public int SectionId { get; init; }
 }
 
 /// <summary>Une rubrique de l'arbre : une catégorie ou un type du site.</summary>

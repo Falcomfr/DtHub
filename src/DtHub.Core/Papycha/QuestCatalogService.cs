@@ -110,17 +110,43 @@ public sealed class QuestCatalogService : IDisposable
         IEnumerable<QuestSummary> quests,
         IEnumerable<QuestSection> sections)
     {
-        var names = sections.ToDictionary(s => s.Id, s => s.SearchKey);
+        var known = sections.ToDictionary(s => s.Id, s => s);
 
         return quests.Select(q => q with
         {
             SectionKey = string.Join(
                 ' ',
                 q.Categories
-                    .Select(c => names.GetValueOrDefault(c, string.Empty))
+                    .Select(c => known.TryGetValue(c, out var s) ? s.SearchKey : string.Empty)
                     .Where(n => n.Length > 0)),
+            SectionId = PrimarySection(q, known),
         });
     }
+
+    /// <summary>
+    /// Range les rubriques dans l'ordre du site, celles qu'il ne nomme pas
+    /// venant ensuite, de la plus fournie à la moins fournie.
+    /// </summary>
+    private static IReadOnlyList<QuestSection> Order(
+        IReadOnlyList<QuestSection> sections,
+        IReadOnlyList<string> order) =>
+    [
+        .. sections
+            .OrderBy(s => QuestMenuParser.RankOf(order, s.SearchKey))
+            .ThenByDescending(s => s.Count)
+            .ThenBy(s => s.Name, StringComparer.CurrentCulture),
+    ];
+
+    /// <summary>
+    /// La rubrique la moins fournie parmi celles de la quête : c'est la plus
+    /// précise, donc celle qui situe. « Astrub » plutôt que « Quêtes ».
+    /// </summary>
+    private static int PrimarySection(QuestSummary quest, Dictionary<int, QuestSection> known) =>
+        quest.Categories
+            .Where(known.ContainsKey)
+            .OrderBy(c => known[c].Count)
+            .Select(c => (int?)c)
+            .FirstOrDefault() ?? 0;
 
     private bool IsStale(QuestCatalogDocument document) =>
         document.NeedsRebuild
@@ -151,12 +177,16 @@ public sealed class QuestCatalogService : IDisposable
             }
 
             var sections = await _client.GetSectionsAsync(cancellationToken).ConfigureAwait(false);
+            var order = await _client.GetSectionOrderAsync(cancellationToken).ConfigureAwait(false);
+
+            var ordered = Order(sections, order);
 
             var document = new QuestCatalogDocument
             {
                 IndexedUtc = DateTimeOffset.UtcNow,
-                Quests = [.. WithSectionKeys(quests, sections)],
-                Sections = [.. sections],
+                Quests = [.. WithSectionKeys(quests, ordered)],
+                Sections = [.. ordered],
+                SectionOrder = [.. order],
             };
 
             await _store.SaveAsync(document, cancellationToken).ConfigureAwait(false);

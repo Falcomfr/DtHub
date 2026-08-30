@@ -182,13 +182,25 @@
                     <ColumnDefinition Width="Auto" />
                   </Grid.ColumnDefinitions>
 
-                  <TextBlock Grid.Column="0" Text="{Binding Label}"
+                  <TextBlock x:Name="Libelle" Grid.Column="0" Text="{Binding Label}"
                              TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
 
                   <TextBlock Grid.Column="1" Text="{Binding Detail}" Margin="10,0,0,0"
                              VerticalAlignment="Center"
                              Style="{StaticResource Muted}" FontSize="11" />
                 </Grid>
+
+                <DataTemplate.Triggers>
+                  <!-- L'intertitre se distingue de ce qu'il coiffe : sans cela,
+                       une rubrique se lirait comme une quête de plus. -->
+                  <DataTrigger Binding="{Binding Kind}" Value="Header">
+                    <Setter TargetName="Libelle" Property="FontWeight" Value="SemiBold" />
+                    <Setter TargetName="Libelle" Property="Foreground"
+                            Value="{DynamicResource AccentBrush}" />
+                    <Setter TargetName="Libelle" Property="FontSize" Value="11" />
+                    <Setter TargetName="Libelle" Property="Margin" Value="0,8,0,0" />
+                  </DataTrigger>
+                </DataTemplate.Triggers>
               </DataTemplate>
             </ListBox.ItemTemplate>
           </ListBox>

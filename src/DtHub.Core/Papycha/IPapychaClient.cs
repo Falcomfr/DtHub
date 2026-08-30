@@ -20,6 +20,14 @@ public interface IPapychaClient
 
     /// <summary>Récupère les rubriques qui rangent les quêtes.</summary>
     Task<IReadOnlyList<QuestSection>> GetSectionsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Récupère l'ordre dans lequel le site présente ses rubriques.
+    ///
+    /// L'API ne le donne pas : elle range les catégories par ordre
+    /// alphabétique. Cet ordre-là ne vit que dans le menu du site.
+    /// </summary>
+    Task<IReadOnlyList<string>> GetSectionOrderAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>Avancement d'une indexation.</summary>

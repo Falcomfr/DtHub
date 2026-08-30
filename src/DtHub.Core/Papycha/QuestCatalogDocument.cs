@@ -14,8 +14,11 @@ public sealed class QuestCatalogDocument
     /// Version 2 : chaque quête porte le nom de ses rubriques, pour que
     /// chercher « frigost » rende les quêtes de Frigost et pas seulement
     /// celles dont le titre porte le mot.
+    ///
+    /// Version 3 : la rubrique principale de chaque quête, et l'ordre dans
+    /// lequel le site range ses rubriques.
     /// </summary>
-    public const int CurrentSchemaVersion = 2;
+    public const int CurrentSchemaVersion = 3;
 
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 
@@ -25,6 +28,13 @@ public sealed class QuestCatalogDocument
     public List<QuestSummary> Quests { get; set; } = [];
 
     public List<QuestSection> Sections { get; set; } = [];
+
+    /// <summary>
+    /// Intitulés des rubriques dans l'ordre du site, réduits à une forme
+    /// comparable. Vide si le menu n'a pas pu être lu : on retombe alors sur un
+    /// classement par nombre de quêtes.
+    /// </summary>
+    public List<string> SectionOrder { get; set; } = [];
 
     /// <summary>
     /// Vrai si le catalogue est inutilisable en l'état et doit être reconstruit.
