@@ -4,7 +4,9 @@ namespace DtHub.Tests.Settings;
 
 /// <summary>
 /// L'ordre voulu par l'utilisateur, tel qu'il est tenu dans les réglages.
-/// Ces fonctions sont pures : aucun disque, aucun téléphone.
+/// Il est global et libre : une instance peut se placer entre deux instances
+/// d'un autre appareil. Ces fonctions sont pures : aucun disque, aucun
+/// téléphone.
 /// </summary>
 public sealed class InstanceOrderingTests
 {
@@ -29,7 +31,10 @@ public sealed class InstanceOrderingTests
         ],
     };
 
-    private static IReadOnlyList<string> Keys(AppSettingsDocument settings) =>
+    private static string Key(string deviceId, int userId) =>
+        $"{deviceId}|{userId}|com.ankama.dofustouch";
+
+    private static IReadOnlyList<string> Names(AppSettingsDocument settings) =>
         [.. settings.Instances.OrderBy(i => i.Order).Select(i => $"{i.DeviceId}/{i.UserId}")];
 
     [Fact]
@@ -43,112 +48,153 @@ public sealed class InstanceOrderingTests
     }
 
     [Fact]
-    public void Deux_instances_ne_partagent_jamais_un_rang()
+    public void La_normalisation_conserve_l_ordre_courant()
     {
         var settings = TwoDevices();
-        settings.Instances[2].Order = 7;
 
         InstanceOrdering.Normalize(settings);
 
         Assert.Equal(
-            settings.Instances.Count,
-            settings.Instances.Select(i => i.Order).Distinct().Count());
+            ["PHONE-A/0", "PHONE-A/999", "PHONE-B/0", "PHONE-B/999"],
+            Names(settings));
     }
 
     [Fact]
-    public void Les_instances_restent_groupees_par_appareil()
+    public void Deux_instances_ne_partagent_jamais_un_rang()
     {
-        var settings = TwoDevices();
+        // Les rangs étaient attribués une fois pour toutes à la découverte :
+        // deux instances de même rang laissaient l'ordre dépendre de l'ordre
+        // d'insertion.
+        var settings = new AppSettingsDocument
+        {
+            Instances = [Entry("PHONE-A", 0, 3), Entry("PHONE-B", 0, 3)],
+        };
 
         InstanceOrdering.Normalize(settings);
 
-        Assert.Equal(["PHONE-A/0", "PHONE-A/999", "PHONE-B/0", "PHONE-B/999"], Keys(settings));
+        Assert.Equal(["PHONE-A/0", "PHONE-B/0"], Names(settings));
+        Assert.Equal([0, 1], [.. settings.Instances.Select(i => i.Order).Order()]);
     }
 
     [Fact]
-    public void L_ordre_des_appareils_est_deduit_quand_il_n_a_jamais_ete_enregistre()
+    public void Une_instance_se_glisse_entre_celles_d_un_autre_appareil()
     {
-        var settings = TwoDevices();
-
-        InstanceOrdering.Normalize(settings);
-
-        Assert.Equal(["PHONE-A", "PHONE-B"], settings.DeviceOrder);
-    }
-
-    [Fact]
-    public void Descendre_une_instance_l_echange_avec_la_suivante_du_meme_appareil()
-    {
+        // C'est tout l'objet du changement : l'ordre ne connaît plus la
+        // frontière des appareils.
         var settings = TwoDevices();
         InstanceOrdering.Normalize(settings);
 
-        Assert.True(InstanceOrdering.MoveInstance(settings, "PHONE-A|0|com.ankama.dofustouch", 1));
+        var moved = InstanceOrdering.MoveInstance(
+            settings, Key("PHONE-B", 0), Key("PHONE-A", 999), above: true);
 
-        Assert.Equal(["PHONE-A/999", "PHONE-A/0", "PHONE-B/0", "PHONE-B/999"], Keys(settings));
+        Assert.True(moved);
+        Assert.Equal(
+            ["PHONE-A/0", "PHONE-B/0", "PHONE-A/999", "PHONE-B/999"],
+            Names(settings));
     }
 
     [Fact]
-    public void Une_instance_ne_franchit_jamais_la_frontiere_de_son_appareil()
+    public void Les_rangs_restent_denses_apres_un_deplacement()
     {
         var settings = TwoDevices();
-        InstanceOrdering.Normalize(settings);
 
-        // La dernière du premier téléphone : la descendre la ferait entrer
-        // dans le second, ce qui n'aurait pas de sens à l'écran.
-        Assert.False(InstanceOrdering.MoveInstance(settings, "PHONE-A|999|com.ankama.dofustouch", 1));
-        Assert.Equal(["PHONE-A/0", "PHONE-A/999", "PHONE-B/0", "PHONE-B/999"], Keys(settings));
+        InstanceOrdering.MoveInstance(settings, Key("PHONE-B", 999), Key("PHONE-A", 0), above: true);
+
+        Assert.Equal([0, 1, 2, 3], [.. settings.Instances.Select(i => i.Order).Order()]);
     }
 
     [Fact]
-    public void Monter_un_appareil_deplace_toutes_ses_instances_en_bloc()
-    {
-        var settings = TwoDevices();
-        InstanceOrdering.Normalize(settings);
-
-        Assert.True(InstanceOrdering.MoveDevice(settings, "PHONE-B", -1));
-
-        Assert.Equal(["PHONE-B/0", "PHONE-B/999", "PHONE-A/0", "PHONE-A/999"], Keys(settings));
-        Assert.Equal(["PHONE-B", "PHONE-A"], settings.DeviceOrder);
-    }
-
-    [Fact]
-    public void Un_appareil_deja_en_tete_ne_monte_pas()
+    public void Deposer_au_dessus_du_voisin_du_dessus_echange_les_deux()
     {
         var settings = TwoDevices();
         InstanceOrdering.Normalize(settings);
 
-        Assert.False(InstanceOrdering.MoveDevice(settings, "PHONE-A", -1));
+        InstanceOrdering.MoveInstance(settings, Key("PHONE-A", 999), Key("PHONE-A", 0), above: true);
+
+        Assert.Equal(
+            ["PHONE-A/999", "PHONE-A/0", "PHONE-B/0", "PHONE-B/999"],
+            Names(settings));
     }
 
     [Fact]
-    public void Un_appareil_absent_de_l_ordre_memorise_passe_en_dernier()
+    public void Deposer_en_dessous_de_la_derniere_place_l_instance_en_fin()
     {
         var settings = TwoDevices();
-        settings.DeviceOrder = ["PHONE-B"];
-
         InstanceOrdering.Normalize(settings);
 
-        Assert.Equal(["PHONE-B", "PHONE-A"], settings.DeviceOrder);
+        InstanceOrdering.MoveInstance(settings, Key("PHONE-A", 0), Key("PHONE-B", 999), above: false);
+
+        Assert.Equal(
+            ["PHONE-A/999", "PHONE-B/0", "PHONE-B/999", "PHONE-A/0"],
+            Names(settings));
     }
 
     [Fact]
-    public void Un_appareil_sans_instance_disparait_de_l_ordre()
+    public void Un_deplacement_sur_soi_meme_ne_change_rien()
     {
         var settings = TwoDevices();
-        settings.DeviceOrder = ["PHONE-A", "PHONE-DISPARU", "PHONE-B"];
 
+        Assert.False(InstanceOrdering.MoveInstance(
+            settings, Key("PHONE-A", 0), Key("PHONE-A", 0), above: true));
+    }
+
+    [Fact]
+    public void Une_cle_inconnue_ne_deplace_rien()
+    {
+        var settings = TwoDevices();
+
+        Assert.False(InstanceOrdering.MoveInstance(
+            settings, Key("PHONE-Z", 0), Key("PHONE-A", 0), above: true));
+    }
+
+    [Fact]
+    public void Un_deplacement_ne_derange_pas_les_instances_d_un_appareil_absent()
+    {
+        // La liste affichée ne montre que les appareils joignables, alors que
+        // les réglages portent tout : un déplacement compté en positions
+        // visibles aurait déplacé la mauvaise instance.
+        var settings = new AppSettingsDocument
+        {
+            Instances = [Entry("PHONE-A", 0, 0), Entry("ABSENT", 0, 1), Entry("PHONE-A", 999, 2)],
+        };
+
+        InstanceOrdering.MoveInstance(settings, Key("PHONE-A", 999), Key("PHONE-A", 0), above: true);
+
+        Assert.Equal(["PHONE-A/999", "PHONE-A/0", "ABSENT/0"], Names(settings));
+    }
+
+    [Fact]
+    public void Une_instance_neuve_se_place_a_la_suite_de_celles_de_son_appareil()
+    {
+        var settings = TwoDevices();
         InstanceOrdering.Normalize(settings);
 
-        Assert.Equal(["PHONE-A", "PHONE-B"], settings.DeviceOrder);
+        InstanceOrdering.Add(settings, Entry("PHONE-A", 42, 0));
+
+        Assert.Equal(
+            ["PHONE-A/0", "PHONE-A/999", "PHONE-A/42", "PHONE-B/0", "PHONE-B/999"],
+            Names(settings));
+    }
+
+    [Fact]
+    public void Une_instance_neuve_d_un_appareil_inconnu_se_place_en_fin()
+    {
+        var settings = TwoDevices();
+        InstanceOrdering.Normalize(settings);
+
+        InstanceOrdering.Add(settings, Entry("PHONE-C", 0, 0));
+
+        Assert.Equal("PHONE-C/0", Names(settings)[^1]);
     }
 
     [Fact]
     public void Une_cle_oubliee_dans_un_reordonnancement_ne_perd_pas_son_instance()
     {
         var settings = TwoDevices();
-        InstanceOrdering.Normalize(settings);
 
-        InstanceOrdering.ReorderInstances(settings, "PHONE-A", ["PHONE-A|999|com.ankama.dofustouch"]);
+        InstanceOrdering.ReorderInstances(settings, [Key("PHONE-B", 999), Key("PHONE-A", 0)]);
 
-        Assert.Equal(["PHONE-A/999", "PHONE-A/0", "PHONE-B/0", "PHONE-B/999"], Keys(settings));
+        Assert.Equal(4, settings.Instances.Count);
+        Assert.Equal(["PHONE-B/999", "PHONE-A/0"], [.. Names(settings).Take(2)]);
     }
 }

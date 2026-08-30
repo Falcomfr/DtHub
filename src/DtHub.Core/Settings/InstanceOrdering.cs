@@ -1,48 +1,26 @@
 namespace DtHub.Core.Settings;
 
 /// <summary>
-/// Tient l'ordre des appareils et des instances dans les réglages.
+/// Tient l'ordre des instances dans les réglages.
 ///
-/// L'ordre est porté par deux données complémentaires : la liste des appareils
-/// dans <see cref="AppSettingsDocument.DeviceOrder"/>, et le rang global de
-/// chaque instance dans <see cref="StoredInstance.Order"/>. La seconde est
-/// dérivée de la première, ce qui permet à un simple tri sur le rang de rendre
-/// l'ordre voulu sans avoir à consulter la liste des appareils.
+/// L'ordre est global et libre : une instance peut se placer entre deux
+/// instances d'un autre appareil. Il tient tout entier dans
+/// <see cref="StoredInstance.Order"/>, rang dense de 0 à n-1, si bien qu'un
+/// simple tri sur ce rang rend l'ordre voulu.
+///
+/// Les déplacements se disent par clés et non par décalage : la liste affichée
+/// ne montre que les appareils joignables, alors que les réglages portent
+/// toutes les instances. Un décalage compté sur les positions visibles
+/// désignerait la mauvaise destination dès qu'une instance cachée s'intercale.
 ///
 /// Toutes les fonctions sont pures : elles ne touchent qu'au document reçu.
 /// </summary>
 public static class InstanceOrdering
 {
     /// <summary>
-    /// Ordre des appareils, complété par ceux que la liste mémorisée ignore.
-    /// Un appareil découvert depuis le dernier enregistrement passe à la fin,
-    /// dans l'ordre de ses instances.
-    /// </summary>
-    public static IReadOnlyList<string> ResolveDeviceOrder(AppSettingsDocument settings)
-    {
-        ArgumentNullException.ThrowIfNull(settings);
-
-        var present = settings.Instances
-            .OrderBy(i => i.Order)
-            .Select(i => i.DeviceId)
-            .Distinct(StringComparer.Ordinal)
-            .ToList();
-
-        var ordered = settings.DeviceOrder
-            .Where(id => present.Contains(id, StringComparer.Ordinal))
-            .Distinct(StringComparer.Ordinal)
-            .ToList();
-
-        ordered.AddRange(present.Where(id => !ordered.Contains(id, StringComparer.Ordinal)));
-
-        return ordered;
-    }
-
-    /// <summary>
-    /// Resserre les rangs en 0 à n-1 et met la liste des appareils en accord
-    /// avec ce qui existe réellement.
+    /// Resserre les rangs en 0 à n-1, dans l'ordre courant.
     ///
-    /// Les rangs devenaient creux, et pouvaient entrer en collision : ils
+    /// Les rangs devenaient creux et pouvaient entrer en collision : ils
     /// étaient attribués une fois pour toutes à la découverte, sans jamais
     /// être renumérotés après l'oubli d'un appareil. Deux instances de même
     /// rang laissaient l'ordre dépendre de l'ordre d'insertion.
@@ -51,142 +29,104 @@ public static class InstanceOrdering
     {
         ArgumentNullException.ThrowIfNull(settings);
 
-        var devices = ResolveDeviceOrder(settings);
-        var rank = 0;
-
-        foreach (var deviceId in devices)
-        {
-            foreach (var instance in InstancesOf(settings, deviceId))
-            {
-                instance.Order = rank++;
-            }
-        }
-
-        settings.DeviceOrder = [.. devices];
+        Reseat([.. settings.Instances.OrderBy(i => i.Order)]);
     }
 
     /// <summary>
-    /// Décale une instance à l'intérieur de son appareil. Elle n'en sort
-    /// jamais : mélanger les instances de deux téléphones dans une même liste
-    /// n'aurait pas de sens à l'écran, où elles sont groupées par appareil.
-    /// Rend faux si rien n'a bougé.
+    /// Place une instance juste avant ou juste après une autre, quel que soit
+    /// leur appareil.
     /// </summary>
-    public static bool MoveInstance(AppSettingsDocument settings, string key, int offset)
-    {
-        ArgumentNullException.ThrowIfNull(settings);
-
-        var instance = settings.Instances.Find(i => string.Equals(i.Key, key, StringComparison.Ordinal));
-
-        if (instance is null || offset == 0)
-        {
-            return false;
-        }
-
-        var siblings = InstancesOf(settings, instance.DeviceId).ToList();
-        var from = siblings.IndexOf(instance);
-        var to = from + offset;
-
-        if (to < 0 || to >= siblings.Count)
-        {
-            return false;
-        }
-
-        siblings.RemoveAt(from);
-        siblings.Insert(to, instance);
-
-        Reseat(settings, instance.DeviceId, siblings);
-        Normalize(settings);
-
-        return true;
-    }
-
-    /// <summary>
-    /// Décale un appareil, ses instances suivant en bloc. Rend faux s'il est
-    /// déjà à l'extrémité.
-    /// </summary>
-    public static bool MoveDevice(AppSettingsDocument settings, string deviceId, int offset)
-    {
-        ArgumentNullException.ThrowIfNull(settings);
-
-        var devices = ResolveDeviceOrder(settings).ToList();
-        var from = devices.FindIndex(id => string.Equals(id, deviceId, StringComparison.Ordinal));
-
-        if (from < 0 || offset == 0)
-        {
-            return false;
-        }
-
-        var to = from + offset;
-
-        if (to < 0 || to >= devices.Count)
-        {
-            return false;
-        }
-
-        devices.RemoveAt(from);
-        devices.Insert(to, deviceId);
-
-        settings.DeviceOrder = devices;
-        Normalize(settings);
-
-        return true;
-    }
-
-    /// <summary>Fixe l'ordre des instances d'un appareil, par leurs clés.</summary>
-    public static void ReorderInstances(
+    /// <returns>Faux si une clé est inconnue ou si rien ne bouge.</returns>
+    public static bool MoveInstance(
         AppSettingsDocument settings,
-        string deviceId,
-        IReadOnlyList<string> orderedKeys)
+        string key,
+        string targetKey,
+        bool above)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+
+        var ordered = settings.Instances.OrderBy(i => i.Order).ToList();
+
+        var from = ordered.FindIndex(i => string.Equals(i.Key, key, StringComparison.Ordinal));
+        var onto = ordered.FindIndex(i => string.Equals(i.Key, targetKey, StringComparison.Ordinal));
+
+        if (from < 0 || onto < 0 || from == onto)
+        {
+            return false;
+        }
+
+        var destination = above ? onto : onto + 1;
+
+        // Retirer l'instance décale d'un rang tout ce qui la suivait.
+        if (from < destination)
+        {
+            destination--;
+        }
+
+        if (destination == from)
+        {
+            return false;
+        }
+
+        var moved = ordered[from];
+        ordered.RemoveAt(from);
+        ordered.Insert(destination, moved);
+
+        Reseat(ordered);
+
+        return true;
+    }
+
+    /// <summary>
+    /// Ajoute une instance découverte : à la suite de celles de son appareil
+    /// s'il en a déjà, sinon en fin de liste.
+    ///
+    /// Une instance neuve doit apparaître près de ses sœurs plutôt qu'au bout
+    /// d'une longue liste, où on ne la verrait pas.
+    /// </summary>
+    public static void Add(AppSettingsDocument settings, StoredInstance instance)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        ArgumentNullException.ThrowIfNull(instance);
+
+        var ordered = settings.Instances.OrderBy(i => i.Order).ToList();
+
+        var last = ordered.FindLastIndex(
+            i => string.Equals(i.DeviceId, instance.DeviceId, StringComparison.Ordinal));
+
+        ordered.Insert(last < 0 ? ordered.Count : last + 1, instance);
+        settings.Instances.Add(instance);
+
+        Reseat(ordered);
+    }
+
+    /// <summary>
+    /// Fixe l'ordre complet par les clés. Une clé oubliée par l'appelant garde
+    /// son instance, qui reprend sa place à la suite.
+    /// </summary>
+    public static void ReorderInstances(AppSettingsDocument settings, IReadOnlyList<string> orderedKeys)
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(orderedKeys);
 
-        var siblings = InstancesOf(settings, deviceId).ToList();
+        var remaining = settings.Instances.OrderBy(i => i.Order).ToList();
 
         var reordered = orderedKeys
-            .Select(k => siblings.Find(i => string.Equals(i.Key, k, StringComparison.Ordinal)))
+            .Select(k => remaining.Find(i => string.Equals(i.Key, k, StringComparison.Ordinal)))
             .Where(i => i is not null)
             .Select(i => i!)
             .ToList();
 
-        // Une clé oubliée par l'appelant ne doit pas faire disparaître son
-        // instance : elle reprend sa place à la suite.
-        reordered.AddRange(siblings.Where(i => !reordered.Contains(i)));
+        reordered.AddRange(remaining.Where(i => !reordered.Contains(i)));
 
-        Reseat(settings, deviceId, reordered);
-        Normalize(settings);
+        Reseat(reordered);
     }
 
-    /// <summary>Fixe l'ordre des appareils. Les inconnus sont ignorés.</summary>
-    public static void ReorderDevices(AppSettingsDocument settings, IReadOnlyList<string> orderedDeviceIds)
+    private static void Reseat(List<StoredInstance> ordered)
     {
-        ArgumentNullException.ThrowIfNull(settings);
-        ArgumentNullException.ThrowIfNull(orderedDeviceIds);
-
-        settings.DeviceOrder = [.. orderedDeviceIds];
-        Normalize(settings);
-    }
-
-    private static IEnumerable<StoredInstance> InstancesOf(AppSettingsDocument settings, string deviceId) =>
-        settings.Instances
-            .Where(i => string.Equals(i.DeviceId, deviceId, StringComparison.Ordinal))
-            .OrderBy(i => i.Order);
-
-    /// <summary>
-    /// Réécrit les rangs des instances d'un appareil dans l'ordre donné, en
-    /// réutilisant les rangs qu'elles occupaient déjà. La renumérotation
-    /// générale qui suit remet tout au propre.
-    /// </summary>
-    private static void Reseat(
-        AppSettingsDocument settings,
-        string deviceId,
-        List<StoredInstance> ordered)
-    {
-        var seats = InstancesOf(settings, deviceId).Select(i => i.Order).ToList();
-
-        for (var i = 0; i < ordered.Count && i < seats.Count; i++)
+        for (var i = 0; i < ordered.Count; i++)
         {
-            ordered[i].Order = seats[i];
+            ordered[i].Order = i;
         }
     }
 }

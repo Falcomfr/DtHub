@@ -109,16 +109,6 @@ public sealed class SettingsMigrationTests : IDisposable
     }
 
     [Fact]
-    public async Task L_ordre_des_appareils_est_deduit_de_celui_des_instances()
-    {
-        await WriteAsync(VersionTrois);
-
-        var settings = await _service.GetAsync(CancellationToken.None);
-
-        Assert.Equal(["PHONE-A"], settings.DeviceOrder);
-    }
-
-    [Fact]
     public async Task Aucune_geometrie_n_est_inventee_pour_un_fichier_v3()
     {
         // Les fenêtres se placeront comme avant à la première session, puis
@@ -154,6 +144,8 @@ public sealed class SettingsMigrationTests : IDisposable
 
         Assert.Equal(AppSettingsDocument.CurrentSchemaVersion, settings.SchemaVersion);
         Assert.Equal([40, 60, 80, 100], settings.SizePercentages);
-        Assert.Equal(["PHONE-A"], settings.DeviceOrder);
+        Assert.Equal(
+            Enumerable.Range(0, settings.Instances.Count),
+            settings.Instances.Select(i => i.Order).Order());
     }
 }

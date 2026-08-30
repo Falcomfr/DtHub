@@ -118,6 +118,16 @@ public sealed class SettingsService : IDisposable
             changed = true;
         }
 
+        if (settings.SchemaVersion < 6)
+        {
+            // Les appareils ne se trient plus : l'ordre est global et libre,
+            // porté par le seul rang de chaque instance. La liste des appareils
+            // disparaît du fichier à la réécriture, sans rien à décider, les
+            // rangs portant déjà l'ordre voulu.
+            InstanceOrdering.Normalize(settings);
+            changed = true;
+        }
+
         if (settings.SchemaVersion != AppSettingsDocument.CurrentSchemaVersion)
         {
             settings.SchemaVersion = AppSettingsDocument.CurrentSchemaVersion;
@@ -278,16 +288,15 @@ public sealed class SettingsService : IDisposable
                     UserName = instance.UserName,
                     LaunchComponent = instance.LaunchComponent,
                     IsEnabled = false,
-                    Order = settings.Instances.Count,
                 };
 
-                settings.Instances.Add(entry);
+                // À la suite de celles de son appareil : une instance neuve
+                // doit apparaître près de ses sœurs, pas au bout d'une longue
+                // liste où on ne la verrait pas.
+                InstanceOrdering.Add(settings, entry);
                 stored[entry.Key] = entry;
             }
 
-            // Une instance neuve doit se poser en fin de son propre appareil,
-            // pas en fin de la liste entière, sans quoi elle s'intercalerait
-            // entre deux téléphones.
             InstanceOrdering.Normalize(settings);
 
             var live = discovered.Select(i => i.Key).ToHashSet(StringComparer.Ordinal);
@@ -405,49 +414,31 @@ public sealed class SettingsService : IDisposable
         return settings.Instances.ToDictionary(i => i.Key, i => i.Order, StringComparer.Ordinal);
     }
 
-    /// <summary>Décale un appareil. Rend faux s'il est déjà à l'extrémité.</summary>
-    public async Task<bool> MoveDeviceAsync(
-        string deviceId,
-        int offset,
-        CancellationToken cancellationToken = default)
-    {
-        var moved = false;
-
-        await UpdateAsync(
-            settings => moved = InstanceOrdering.MoveDevice(settings, deviceId, offset),
-            cancellationToken).ConfigureAwait(false);
-
-        return moved;
-    }
-
-    /// <summary>Décale une instance dans son appareil, dont elle ne sort pas.</summary>
+    /// <summary>
+    /// Place une instance juste avant ou juste après une autre, quel que soit
+    /// leur appareil. Rend faux si rien ne bouge.
+    /// </summary>
     public async Task<bool> MoveInstanceAsync(
         string key,
-        int offset,
+        string targetKey,
+        bool above,
         CancellationToken cancellationToken = default)
     {
         var moved = false;
 
         await UpdateAsync(
-            settings => moved = InstanceOrdering.MoveInstance(settings, key, offset),
+            settings => moved = InstanceOrdering.MoveInstance(settings, key, targetKey, above),
             cancellationToken).ConfigureAwait(false);
 
         return moved;
     }
 
-    /// <summary>Fixe l'ordre des appareils.</summary>
-    public Task ReorderDevicesAsync(
-        IReadOnlyList<string> orderedDeviceIds,
-        CancellationToken cancellationToken = default) =>
-        UpdateAsync(settings => InstanceOrdering.ReorderDevices(settings, orderedDeviceIds), cancellationToken);
-
-    /// <summary>Fixe l'ordre des instances d'un appareil.</summary>
+    /// <summary>Fixe l'ordre complet des instances, par leurs clés.</summary>
     public Task ReorderInstancesAsync(
-        string deviceId,
         IReadOnlyList<string> orderedKeys,
         CancellationToken cancellationToken = default) =>
         UpdateAsync(
-            settings => InstanceOrdering.ReorderInstances(settings, deviceId, orderedKeys),
+            settings => InstanceOrdering.ReorderInstances(settings, orderedKeys),
             cancellationToken);
 
     // Démarrage

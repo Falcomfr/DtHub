@@ -338,7 +338,10 @@ public sealed class SettingsServiceTests : IDisposable
         await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
 
         Assert.True(await _service.MoveInstanceAsync(
-            "MATERIEL123|0|" + DofusPackages.DofusTouch, 1, CancellationToken.None));
+            "MATERIEL123|0|" + DofusPackages.DofusTouch,
+            "MATERIEL123|999|" + DofusPackages.DofusTouch,
+            above: false,
+            CancellationToken.None));
 
         var merged = await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
 
@@ -361,7 +364,7 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Oublier_un_appareil_le_retire_aussi_de_l_ordre_des_appareils()
+    public async Task Oublier_un_appareil_resserre_les_rangs_restants()
     {
         await _service.MergeInstancesAsync(
             [Instance(0, "PHONE-A"), Instance(0, "PHONE-B")], CancellationToken.None);
@@ -370,8 +373,32 @@ public sealed class SettingsServiceTests : IDisposable
 
         var settings = await _service.GetAsync(CancellationToken.None);
 
-        Assert.Equal(["PHONE-B"], settings.DeviceOrder);
+        Assert.Equal(["PHONE-B"], [.. settings.Instances.Select(i => i.DeviceId)]);
         Assert.Equal([0], [.. settings.Instances.Select(i => i.Order)]);
+    }
+
+    [Fact]
+    public async Task Une_instance_deplacee_entre_deux_appareils_garde_sa_place()
+    {
+        // L'ordre est global : il doit survivre à une redécouverte, qui
+        // refusionne toutes les instances.
+        await _service.MergeInstancesAsync(
+            [Instance(0, "PHONE-A"), Instance(999, "PHONE-A"), Instance(0, "PHONE-B")],
+            CancellationToken.None);
+
+        await _service.MoveInstanceAsync(
+            "PHONE-B|0|" + DofusPackages.DofusTouch,
+            "PHONE-A|999|" + DofusPackages.DofusTouch,
+            above: true,
+            CancellationToken.None);
+
+        var merged = await _service.MergeInstancesAsync(
+            [Instance(0, "PHONE-A"), Instance(999, "PHONE-A"), Instance(0, "PHONE-B")],
+            CancellationToken.None);
+
+        Assert.Equal(
+            ["PHONE-A/0", "PHONE-B/0", "PHONE-A/999"],
+            [.. merged.Select(i => $"{i.DeviceId}/{i.UserId}")]);
     }
 
     [Fact]

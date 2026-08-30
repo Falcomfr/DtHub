@@ -12,7 +12,7 @@ namespace DtHub.Core.Settings;
 /// </summary>
 public sealed class AppSettingsDocument
 {
-    public const int CurrentSchemaVersion = 5;
+    public const int CurrentSchemaVersion = 6;
 
     /// <summary>Tailles livrées d'origine, en pourcentage de la zone utilisable.</summary>
     public static readonly int[] DefaultSizePercentages = [40, 60, 80, 100];
@@ -51,12 +51,6 @@ public sealed class AppSettingsDocument
     /// <summary>Écran Windows utilisé, <c>null</c> pour l'écran principal.</summary>
     public string? PreferredMonitorDeviceName { get; set; }
 
-    /// <summary>
-    /// Ordre des appareils, par identifiant. Un appareil absent de cette liste
-    /// passe à la fin. Cet ordre commande l'affichage, l'ouverture et le
-    /// parcours au clavier.
-    /// </summary>
-    public List<string> DeviceOrder { get; set; } = [];
 
     /// <summary>
     /// Vrai si le configurateur était affiché à la sortie. Il retrouve cet
@@ -104,12 +98,12 @@ public sealed class StoredInstance
     public bool IsEnabled { get; set; }
 
     /// <summary>
-    /// Rang global, dense, de 0 à n-1 : les appareils dans l'ordre de
-    /// <see cref="AppSettingsDocument.DeviceOrder"/>, et les instances dans
-    /// leur ordre à l'intérieur de chaque appareil. Trier là-dessus suffit
-    /// donc à obtenir l'ordre d'affichage, d'ouverture et de parcours au
-    /// clavier. C'est <see cref="InstanceOrdering.Normalize"/> qui maintient
-    /// cette propriété.
+    /// Rang de l'instance dans la liste unique, dense de 0 à n-1.
+    ///
+    /// C'est la seule donnée d'ordre : les instances se trient librement entre
+    /// elles, quel que soit leur appareil. Trier là-dessus suffit donc à
+    /// obtenir l'ordre d'affichage, d'ouverture et de parcours au clavier.
+    /// C'est <see cref="InstanceOrdering.Normalize"/> qui maintient la densité.
     /// </summary>
     public int Order { get; set; }
 
