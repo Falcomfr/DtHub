@@ -134,4 +134,20 @@ public class QuestCatalogServiceTests
 
         Assert.Equal(2, catalog.Quests.Count);
     }
+
+    [Fact]
+    public async Task L_indexation_recopie_le_nom_des_rubriques_dans_les_quetes()
+    {
+        var (service, _, _) = Build();
+        using var _2 = service;
+
+        var catalog = await service.GetAsync(cancellationToken: CancellationToken.None);
+
+        var givre = catalog.Quests.Single(q => q.Title == "Complètement givré");
+
+        Assert.Contains("frigost", givre.SectionKey, StringComparison.Ordinal);
+
+        // Et la recherche s'en sert : c'était tout l'objet de l'opération.
+        Assert.Single(service.Search("frigost"));
+    }
 }

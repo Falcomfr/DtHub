@@ -98,6 +98,30 @@ public sealed class QuestCatalogService : IDisposable
             .OrderBy(q => q.Title, StringComparer.CurrentCulture),
     ];
 
+    /// <summary>
+    /// Recopie dans chaque quête les noms de ses rubriques, sous forme
+    /// comparable.
+    ///
+    /// C'est ici et nulle part ailleurs : le client lit les quêtes et les
+    /// rubriques par deux appels séparés, et personne d'autre ne tient les deux
+    /// à la fois.
+    /// </summary>
+    private static IEnumerable<QuestSummary> WithSectionKeys(
+        IEnumerable<QuestSummary> quests,
+        IEnumerable<QuestSection> sections)
+    {
+        var names = sections.ToDictionary(s => s.Id, s => s.SearchKey);
+
+        return quests.Select(q => q with
+        {
+            SectionKey = string.Join(
+                ' ',
+                q.Categories
+                    .Select(c => names.GetValueOrDefault(c, string.Empty))
+                    .Where(n => n.Length > 0)),
+        });
+    }
+
     private bool IsStale(QuestCatalogDocument document) =>
         document.NeedsRebuild
         || document.IndexedUtc is not { } indexed
@@ -131,7 +155,7 @@ public sealed class QuestCatalogService : IDisposable
             var document = new QuestCatalogDocument
             {
                 IndexedUtc = DateTimeOffset.UtcNow,
-                Quests = [.. quests],
+                Quests = [.. WithSectionKeys(quests, sections)],
                 Sections = [.. sections],
             };
 

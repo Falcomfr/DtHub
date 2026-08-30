@@ -82,6 +82,50 @@ public static class QuestSearch
         return true;
     }
 
+    /// <summary>
+    /// Vrai si chaque mot se trouve dans le titre ou dans une rubrique de la
+    /// quête. Les deux sont acceptés mot à mot : « frigost givre » retient une
+    /// quête nommée « Complètement givré » qui se déroule à Frigost.
+    /// </summary>
+    public static bool Matches(QuestSummary quest, IReadOnlyList<string> terms)
+    {
+        ArgumentNullException.ThrowIfNull(quest);
+        ArgumentNullException.ThrowIfNull(terms);
+
+        foreach (var term in terms)
+        {
+            if (!quest.SearchKey.Contains(term, StringComparison.Ordinal)
+                && !quest.SectionKey.Contains(term, StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Rang d'un résultat : le titre passe avant la rubrique.
+    ///
+    /// Chercher « astrub » doit proposer « Le dragon d'Astrub » avant les
+    /// cinquante-six quêtes qui s'y déroulent, sans quoi le résultat qu'on
+    /// visait se perdrait au milieu.
+    /// </summary>
+    private static int Rank(QuestSummary quest, IReadOnlyList<string> terms)
+    {
+        if (terms.Count == 0)
+        {
+            return 1;
+        }
+
+        if (quest.SearchKey.StartsWith(terms[0], StringComparison.Ordinal))
+        {
+            return 0;
+        }
+
+        return Matches(quest.SearchKey, terms) ? 1 : 2;
+    }
+
     /// <summary>Découpe une saisie en mots comparables.</summary>
     public static IReadOnlyList<string> Terms(string? query)
     {
@@ -108,13 +152,12 @@ public static class QuestSearch
         ArgumentNullException.ThrowIfNull(quests);
 
         var terms = Terms(query);
-        var first = terms.Count > 0 ? terms[0] : string.Empty;
 
         return
         [
             .. quests
-                .Where(q => Matches(q.SearchKey, terms))
-                .OrderBy(q => q.SearchKey.StartsWith(first, StringComparison.Ordinal) ? 0 : 1)
+                .Where(q => Matches(q, terms))
+                .OrderBy(q => Rank(q, terms))
                 .ThenBy(q => q.Title, StringComparer.CurrentCulture)
                 .Take(limit),
         ];

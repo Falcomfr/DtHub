@@ -67,4 +67,52 @@ public class QuestSearchTests
 
         Assert.Equal(10, QuestSearch.Filter(quetes, "quete", limit: 10).Count);
     }
+
+    [Fact]
+    public void Une_quete_se_trouve_aussi_par_le_nom_de_sa_rubrique()
+    {
+        // Chercher « frigost » ne rendait que les quatre quêtes dont le titre
+        // porte le mot, alors que cent quatre-vingt-quatre s'y déroulent. On
+        // cherche un endroit autant qu'un nom.
+        var quete = new QuestSummary
+        {
+            Title = "Complètement givré",
+            SearchKey = QuestSearch.Normalize("Complètement givré"),
+            SectionKey = QuestSearch.Normalize("Île de Frigost"),
+        };
+
+        Assert.Single(QuestSearch.Filter([quete], "frigost"));
+        Assert.Single(QuestSearch.Filter([quete], "givre"));
+
+        // Les deux ensemble valent aussi, chaque mot pouvant venir de l'un ou
+        // de l'autre.
+        Assert.Single(QuestSearch.Filter([quete], "frigost givre"));
+        Assert.Empty(QuestSearch.Filter([quete], "frigost bouftou"));
+    }
+
+    [Fact]
+    public void Le_titre_passe_avant_la_rubrique()
+    {
+        // Sans cet ordre, « Le dragon d'Astrub » se perdrait au milieu des
+        // cinquante-six quêtes qui se déroulent à Astrub.
+        QuestSummary Quete(string title, string section) => new()
+        {
+            Title = title,
+            SearchKey = QuestSearch.Normalize(title),
+            SectionKey = QuestSearch.Normalize(section),
+        };
+
+        var resultats = QuestSearch.Filter(
+            [
+                Quete("Une affaire de famille", "Astrub"),
+                Quete("Astrub sous la neige", "Amakna"),
+                Quete("Le dragon d'Astrub", "Astrub"),
+            ],
+            "astrub");
+
+        Assert.Equal(3, resultats.Count);
+        Assert.Equal("Astrub sous la neige", resultats[0].Title);
+        Assert.Equal("Le dragon d'Astrub", resultats[1].Title);
+        Assert.Equal("Une affaire de famille", resultats[2].Title);
+    }
 }

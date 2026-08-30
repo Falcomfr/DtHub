@@ -30,6 +30,15 @@ public sealed record QuestSummary
 
     /// <summary>Titre réduit à une forme comparable, calculé une fois.</summary>
     public string SearchKey { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Noms des rubriques de la quête, sous la même forme réduite.
+    ///
+    /// Chercher « frigost » ne rendait que quatre quêtes, celles dont le titre
+    /// porte le mot, alors que cent quatre-vingt-quatre s'y déroulent. On
+    /// cherche un endroit autant qu'un nom.
+    /// </summary>
+    public string SectionKey { get; init; } = string.Empty;
 }
 
 /// <summary>Une rubrique de l'arbre : une catégorie ou un type du site.</summary>

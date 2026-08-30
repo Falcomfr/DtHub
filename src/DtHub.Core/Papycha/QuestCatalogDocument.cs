@@ -10,7 +10,12 @@ namespace DtHub.Core.Papycha;
 /// </summary>
 public sealed class QuestCatalogDocument
 {
-    public const int CurrentSchemaVersion = 1;
+    /// <summary>
+    /// Version 2 : chaque quête porte le nom de ses rubriques, pour que
+    /// chercher « frigost » rende les quêtes de Frigost et pas seulement
+    /// celles dont le titre porte le mot.
+    /// </summary>
+    public const int CurrentSchemaVersion = 2;
 
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 
