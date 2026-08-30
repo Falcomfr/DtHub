@@ -27,15 +27,14 @@
   <SolidColorBrush x:Key="TextBrush" Color="#FFE8EAEE" />
   <SolidColorBrush x:Key="TextMutedBrush" Color="#FF939BA8" />
 
-  <!-- Cuivre mat : la couleur de ce qu'on choisit et de ce qu'on touche.
-       Volontairement sombre et peu saturée, pour ne pas se confondre avec
-       l'ambre vif des avertissements. -->
-  <SolidColorBrush x:Key="AccentBrush" Color="#FFC8863C" />
-  <SolidColorBrush x:Key="AccentHoverBrush" Color="#FFDB9A4E" />
-  <SolidColorBrush x:Key="AccentSoftBrush" Color="#FF2A2118" />
+  <!-- Bleu d'acier : la couleur de ce qu'on choisit et de ce qu'on touche.
+       Plus froid et plus profond que l'ancien, qui tirait sur le violet, et
+       assez loin du bleu de Windows pour ne pas s'y confondre. -->
+  <SolidColorBrush x:Key="AccentBrush" Color="#FF3D82BE" />
+  <SolidColorBrush x:Key="AccentHoverBrush" Color="#FF5098D6" />
+  <SolidColorBrush x:Key="AccentSoftBrush" Color="#FF16222E" />
 
-  <!-- Les trois diodes d'état. L'ambre est plus clair et plus saturé que le
-       cuivre : l'écart tient à la clarté autant qu'à la teinte. -->
+  <!-- Les trois diodes d'état. -->
   <SolidColorBrush x:Key="SuccessBrush" Color="#FF46B478" />
   <SolidColorBrush x:Key="WarningBrush" Color="#FFE8C24A" />
   <SolidColorBrush x:Key="DangerBrush" Color="#FFE06A6A" />
