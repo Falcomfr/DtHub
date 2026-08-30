@@ -45,10 +45,10 @@
 
                   <TextBlock Grid.Column="0" Text="{Binding ActionLabel}" VerticalAlignment="Center" />
 
-                  <Border Grid.Column="1" CornerRadius="6" Padding="9,6" Margin="8,0"
+                  <Border Grid.Column="1" CornerRadius="{StaticResource Radius}" Padding="9,6" Margin="8,0"
                           Background="{DynamicResource SurfaceAltBrush}"
                           BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}">
-                    <TextBlock Text="{Binding ShortcutText}" TextAlignment="Center" />
+                    <TextBlock Text="{Binding ShortcutText}" FontFamily="{StaticResource MonoFont}" TextAlignment="Center" />
                   </Border>
 
                   <Button Grid.Column="2" Content="Modifier"

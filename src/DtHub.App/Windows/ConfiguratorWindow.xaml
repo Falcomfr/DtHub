@@ -13,12 +13,15 @@
         TextOptions.TextFormattingMode="Display">
 
   <Border Background="{DynamicResource SurfaceAltBrush}"
-          BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10">
+          BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
+          CornerRadius="{StaticResource Radius}">
     <DockPanel>
 
       <!-- Bandeau : sert aussi de poignée de déplacement. -->
-      <Border DockPanel.Dock="Top" Background="{DynamicResource SidebarBrush}"
-              CornerRadius="9,9,0,0" Padding="12,8" MouseLeftButtonDown="OnHeaderDrag">
+      <Border DockPanel.Dock="Top" Background="{StaticResource BrushedPanelBrush}"
+              CornerRadius="{StaticResource RadiusTop}" Padding="12,8"
+              BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1"
+              MouseLeftButtonDown="OnHeaderDrag">
         <Grid>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
@@ -29,9 +32,11 @@
           <Image Grid.Column="0" Source="/assets/app.png" Width="26" Height="26" VerticalAlignment="Center" />
 
           <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
-            <TextBlock Text="{Binding ProductName}" FontSize="17" FontWeight="SemiBold" />
+            <TextBlock Text="{Binding ProductName}" FontSize="18" FontWeight="SemiBold"
+                       FontFamily="{StaticResource LabelFont}" FontStretch="SemiCondensed" />
             <TextBlock Style="{StaticResource Muted}" FontSize="11">
-              <Run Text="{Binding ToggleShortcutText, Mode=OneWay}" FontWeight="SemiBold" />
+              <Run Text="{Binding ToggleShortcutText, Mode=OneWay}" FontWeight="SemiBold"
+                   FontFamily="{StaticResource MonoFont}" />
               <Run Text=" pour afficher ou masquer" />
             </TextBlock>
           </StackPanel>
@@ -44,7 +49,8 @@
 
       <!-- Barre du bas : outils à gauche, quitter à droite. -->
       <Border DockPanel.Dock="Bottom" Padding="10,8"
-              BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
+              Background="{StaticResource BrushedPanelBrush}"
+              BorderBrush="{DynamicResource BevelBrush}" BorderThickness="0,1,0,0">
         <Grid>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
@@ -55,7 +61,7 @@
           <!-- Le raccourci passe sous son bouton : d'autres outils viendront se
                ranger à sa droite, sur la même ligne. -->
           <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-            <StackPanel>
+            <StackPanel MinWidth="54">
             <Button Padding="8,5" Style="{StaticResource QuietButton}" HorizontalAlignment="Center"
                     ToolTip="Empiler toutes les fenêtres de jeu sur la dernière que vous avez utilisée, à sa position et à sa taille"
                     Command="{Binding RearrangeCommand}">
@@ -72,14 +78,14 @@
               </Grid>
             </Button>
 
-            <TextBlock Text="{Binding RearrangeShortcutText}" Style="{StaticResource Muted}"
-                       FontSize="9" HorizontalAlignment="Center" Margin="0,1,0,0"
+            <TextBlock Text="{Binding RearrangeShortcutText}" Style="{StaticResource Muted}" FontFamily="{StaticResource MonoFont}"
+                       FontSize="10" HorizontalAlignment="Center" Margin="0,1,0,0"
                        Visibility="{Binding RearrangeShortcutText,
                                             Converter={StaticResource EmptyToVisibility},
                                             ConverterParameter=inverse}" />
             </StackPanel>
 
-            <StackPanel Margin="4,0,0,0">
+            <StackPanel MinWidth="54" Margin="14,0,0,0">
               <Button Padding="8,5" Style="{StaticResource QuietButton}" HorizontalAlignment="Center"
                       ToolTip="Ranger deux fenêtres côte à côte, chacune sur une moitié de l'écran. La fenêtre active va à droite."
                       Command="{Binding TileCommand}">
@@ -95,8 +101,8 @@
                 </Grid>
               </Button>
 
-              <TextBlock Text="{Binding TileShortcutText}" Style="{StaticResource Muted}"
-                         FontSize="9" HorizontalAlignment="Center" Margin="0,1,0,0"
+              <TextBlock Text="{Binding TileShortcutText}" Style="{StaticResource Muted}" FontFamily="{StaticResource MonoFont}"
+                         FontSize="10" HorizontalAlignment="Center" Margin="0,1,0,0"
                          Visibility="{Binding TileShortcutText,
                                               Converter={StaticResource EmptyToVisibility},
                                               ConverterParameter=inverse}" />
@@ -106,8 +112,8 @@
           <StackPanel Grid.Column="1">
             <Button Content="Quitter" Click="OnQuit"
                     ToolTip="Fermer l'application et les fenêtres de jeu" />
-            <TextBlock Text="{Binding QuitShortcutText}" Style="{StaticResource Muted}"
-                       FontSize="9" HorizontalAlignment="Center" Margin="0,1,0,0"
+            <TextBlock Text="{Binding QuitShortcutText}" Style="{StaticResource Muted}" FontFamily="{StaticResource MonoFont}"
+                       FontSize="10" HorizontalAlignment="Center" Margin="0,1,0,0"
                        Visibility="{Binding QuitShortcutText,
                                             Converter={StaticResource EmptyToVisibility},
                                             ConverterParameter=inverse}" />
@@ -151,10 +157,11 @@
                           <TextBlock Grid.Column="0" Text="{Binding ActionLabel}" VerticalAlignment="Center"
                                      TextTrimming="CharacterEllipsis" Margin="0,0,8,0" />
 
-                          <Border Grid.Column="1" CornerRadius="5" Padding="7,2"
+                          <Border Grid.Column="1" CornerRadius="{StaticResource Radius}" Padding="7,2"
                                   Background="{DynamicResource SurfaceAltBrush}"
                                   BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}">
-                            <TextBlock Text="{Binding ShortcutText}" FontSize="12" />
+                            <TextBlock Text="{Binding ShortcutText}" FontSize="12"
+                       FontFamily="{StaticResource MonoFont}" />
                           </Border>
                         </Grid>
                       </DataTemplate>
@@ -185,11 +192,22 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>
-                        <Button Style="{StaticResource AnchorCell}"
-                                ToolTip="{Binding Converter={StaticResource AnchorLabel}}"
-                                Command="{Binding DataContext.SetAnchorCommand,
-                                                  RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                CommandParameter="{Binding}" />
+                        <!-- Cochée quand elle est le coin en vigueur : la
+                             comparaison se fait entre la valeur de la case et
+                             celle du réglage, sans rien ajouter au modèle. -->
+                        <RadioButton Style="{StaticResource AnchorCell}" GroupName="Anchor"
+                                     ToolTip="{Binding Converter={StaticResource AnchorLabel}}"
+                                     Command="{Binding DataContext.SetAnchorCommand,
+                                                       RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                     CommandParameter="{Binding}">
+                          <RadioButton.IsChecked>
+                            <MultiBinding Converter="{StaticResource SameValue}" Mode="OneWay">
+                              <Binding />
+                              <Binding Path="DataContext.GameAnchor"
+                                       RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                            </MultiBinding>
+                          </RadioButton.IsChecked>
+                        </RadioButton>
                       </DataTemplate>
                     </ItemsControl.ItemTemplate>
                   </ItemsControl>
@@ -212,8 +230,12 @@
                             SmallChange="1" LargeChange="5"
                             Value="{Binding SizePercent}" />
 
+                    <!-- En chasse fixe : le nombre ne danse plus d'un pixel à
+                         l'autre quand il change de chiffre. -->
                     <TextBlock Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0"
-                               MinWidth="42" TextAlignment="Right" FontWeight="SemiBold">
+                               MinWidth="46" TextAlignment="Right" FontWeight="SemiBold"
+                               FontFamily="{StaticResource MonoFont}"
+                               Foreground="{DynamicResource AccentBrush}">
                       <Run Text="{Binding SizePercent, Mode=OneWay}" /><Run Text=" %" />
                     </TextBlock>
                   </Grid>

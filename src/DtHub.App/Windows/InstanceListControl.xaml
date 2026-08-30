@@ -25,8 +25,9 @@
                   <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Width="6" Height="6" CornerRadius="3" Margin="0,0,6,0"
+                <Border Grid.Column="0" Width="8" Height="8" CornerRadius="4" Margin="0,0,6,0"
                         VerticalAlignment="Center"
+                        BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="1"
                         Background="{Binding Device.StatusBrushKey, Converter={StaticResource KeyToBrush}}" />
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -203,8 +204,9 @@
                 <ColumnDefinition Width="Auto" />
               </Grid.ColumnDefinitions>
 
-              <Border Grid.Column="0" Width="6" Height="6" CornerRadius="3" Margin="0,0,6,0"
+              <Border Grid.Column="0" Width="8" Height="8" CornerRadius="4" Margin="0,0,6,0"
                       VerticalAlignment="Center"
+                      BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="1"
                       Background="{Binding StatusBrushKey, Converter={StaticResource KeyToBrush}}" />
 
               <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">

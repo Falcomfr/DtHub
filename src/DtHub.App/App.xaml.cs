@@ -74,8 +74,6 @@ public partial class App : Application, IDisposable
             AppHost.Initialize(_host.Services);
             await _host.StartAsync().ConfigureAwait(true);
 
-            _host.Services.GetRequiredService<ThemeManager>().ApplySystemTheme();
-
             // Une trace de démarrage garantit qu'un fichier de journal existe
             // toujours, même quand la session se passe sans incident.
             Log.Information("{Product} {Version} démarre.", ProductInfo.Name, ProductInfo.Version);

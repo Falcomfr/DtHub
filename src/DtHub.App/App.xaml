@@ -4,7 +4,7 @@
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="Themes/Palette.xaml" />
+        <ResourceDictionary Source="Themes/PaletteDark.xaml" />
         <ResourceDictionary Source="Themes/Controls.xaml" />
         <ResourceDictionary Source="Themes/Converters.xaml" />
       </ResourceDictionary.MergedDictionaries>

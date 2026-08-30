@@ -85,7 +85,6 @@ public static class AppServices
         services.AddSingleton<IHotkeyRegistrar, Win32HotkeyRegistrar>();
 
         // Interface.
-        services.AddSingleton<ThemeManager>();
         services.AddSingleton<IDialogService, DialogService>();
         services.AddSingleton<GameLauncher>();
 
