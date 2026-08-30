@@ -211,15 +211,26 @@ public sealed class SettingsService : IDisposable
 
         return new ScrcpyOptions
         {
-            MaxFps = settings.MaxFps,
-            VideoBitrateKbps = settings.VideoBitrateKbps,
             AudioEnabled = settings.AudioEnabled,
             ClipboardSyncEnabled = settings.ClipboardSyncEnabled,
             VirtualDisplayWidth = settings.VirtualDisplayWidth,
             VirtualDisplayHeight = settings.VirtualDisplayHeight,
             VirtualDisplayDpi = settings.VirtualDisplayDpi,
+            // Les images par seconde et le débit ne viennent que de la
+            // qualité choisie : deux sources pour un même réglage auraient
+            // fini par diverger.
+            MaxFps = QualityProfile.For(settings.Quality).MaxFps,
+            VideoBitrateKbps = QualityProfile.For(settings.Quality).VideoBitrateKbps,
         }.Sanitized();
     }
+
+    /// <summary>Profil de qualité en vigueur.</summary>
+    public async Task<QualityProfile> GetQualityAsync(CancellationToken cancellationToken = default) =>
+        QualityProfile.For((await GetAsync(cancellationToken).ConfigureAwait(false)).Quality);
+
+    /// <summary>Retient la qualité choisie.</summary>
+    public Task SetQualityAsync(StreamQuality quality, CancellationToken cancellationToken = default) =>
+        UpdateAsync(settings => settings.Quality = quality, cancellationToken);
 
     /// <summary>Tailles configurées, corrigées si le fichier est incohérent.</summary>
     public async Task<WindowSizePresets> GetSizePresetsAsync(CancellationToken cancellationToken = default)

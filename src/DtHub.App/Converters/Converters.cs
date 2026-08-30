@@ -16,6 +16,22 @@ public sealed class BoolToVisibilityConverter : IValueConverter
 }
 
 /// <summary>Inverse un booléen. Sert à griser ce qui doit l'être pendant un chargement.</summary>
+/// <summary>
+/// Vrai si la valeur correspond au nom passé en paramètre, et repose ce nom
+/// quand la case est cochée. Sert aux boutons radio d'une énumération, qu'un
+/// simple test d'égalité ne saurait pas rendre bidirectionnel.
+/// </summary>
+public sealed class EnumMatchConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
+        string.Equals(value?.ToString(), parameter?.ToString(), StringComparison.Ordinal);
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
+        value is true && parameter is string name && Enum.TryParse(targetType, name, out var parsed)
+            ? parsed
+            : Binding.DoNothing;
+}
+
 public sealed class InverseBoolConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>

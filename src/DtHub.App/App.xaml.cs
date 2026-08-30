@@ -126,6 +126,7 @@ public partial class App : Application, IDisposable
         var report = await launcher.LaunchEnabledAsync().ConfigureAwait(true);
 
         _shape.Tick += (_, _) => launcher.Watch();
+        _shape.Interval = launcher.Quality.WindowWatch;
         _shape.Start();
 
         var document = await settings.GetAsync().ConfigureAwait(true);

@@ -78,6 +78,16 @@ public sealed class DisplayLadderTests
     }
 
     [Fact]
+    public void La_qualite_basse_borne_la_definition()
+    {
+        // C'est le principal levier : l'encodeur du téléphone travaille alors
+        // sur quatre fois moins de pixels.
+        var (_, height) = DisplayLadder.For(2130, 3840, 2160, maximumHeight: 720);
+
+        Assert.Equal(720, height);
+    }
+
+    [Fact]
     public void Sans_ecran_connu_une_definition_de_repli_est_rendue()
     {
         var (width, height) = DisplayLadder.For(900, 0, 0);

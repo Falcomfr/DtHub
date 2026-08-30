@@ -38,6 +38,7 @@ public partial class ConfiguratorWindow : Window
             _poll.Start();
         };
 
+        _poll.Interval = _viewModel.Instances.PollInterval;
         _poll.Tick += async (_, _) => await _viewModel.PollAsync(CancellationToken.None).ConfigureAwait(true);
     }
 

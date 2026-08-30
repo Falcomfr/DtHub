@@ -90,6 +90,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
         };
     }
 
+    /// <summary>Réglages dérivés de la qualité choisie, relus à chaque lancement.</summary>
+    private QualityProfile _quality = QualityProfile.For(StreamQuality.Medium);
+
+    /// <summary>Rythme des contrôles et des sondages, selon la qualité.</summary>
+    public QualityProfile Quality => _quality;
+
     /// <summary>Position à poser avant l'ouverture du jeu.</summary>
     private ScrcpyWindowPlacement? _pendingPlacement;
 
@@ -763,7 +769,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             return options;
         }
 
-        var (width, height) = DisplayLadder.For(window.Height, screen.Width, screen.Height);
+        var (width, height) = DisplayLadder.For(
+            window.Height, screen.Width, screen.Height, _quality.MaximumDisplayHeight);
 
         return options with { VirtualDisplayWidth = width, VirtualDisplayHeight = height };
     }
@@ -818,6 +825,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         await RefreshRanksAsync(cancellationToken).ConfigureAwait(false);
 
+        _quality = QualityProfile.For(settings.Quality);
         _windows.Anchor = settings.GameAnchor;
         _windows.Presets = await _settings.GetSizePresetsAsync(cancellationToken).ConfigureAwait(false);
         _windows.PreferredMonitorDeviceName = settings.PreferredMonitorDeviceName;

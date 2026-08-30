@@ -60,8 +60,6 @@ public sealed class AppSettingsDocument
 
     // Mirroring
 
-    public int MaxFps { get; set; } = 45;
-    public int VideoBitrateKbps { get; set; } = 4000;
     public bool AudioEnabled { get; set; }
     public bool ClipboardSyncEnabled { get; set; } = true;
     // Le jeu s'affiche en paysage : un écran virtuel vertical le centrerait
@@ -69,6 +67,12 @@ public sealed class AppSettingsDocument
     public int VirtualDisplayWidth { get; set; } = 1920;
     public int VirtualDisplayHeight { get; set; } = 1080;
     public int VirtualDisplayDpi { get; set; } = 240;
+
+    /// <summary>
+    /// Compromis entre finesse de l'image et charge de la machine. La valeur
+    /// moyenne est celle d'origine : rien ne change tant qu'on n'y touche pas.
+    /// </summary>
+    public StreamQuality Quality { get; set; } = StreamQuality.Medium;
 
     /// <summary>Paquet du jeu. Réglable pour survivre à un changement amont.</summary>
     public string PackageName { get; set; } = Dofus.DofusPackages.DofusTouch;

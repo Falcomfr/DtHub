@@ -60,6 +60,14 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [ObservableProperty]
     private int _sizePercent = 60;
 
+    /// <summary>
+    /// Compromis entre finesse de l'image et charge de la machine. L'image ne
+    /// change qu'à la réouverture des fenêtres : les options sont figées au
+    /// lancement de scrcpy.
+    /// </summary>
+    [ObservableProperty]
+    private StreamQuality _quality = StreamQuality.Medium;
+
     public ObservableCollection<MonitorInfo> Monitors { get; } = [];
 
     [ObservableProperty]
@@ -108,6 +116,8 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             GameAnchor = settings.GameAnchor;
 
             var presets = await _settings.GetSizePresetsAsync(cancellationToken).ConfigureAwait(true);
+
+            Quality = settings.Quality;
 
             SizePercent = settings.CustomSizePercent > 0
                 ? settings.CustomSizePercent
@@ -323,6 +333,16 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         {
             // Le curseur a bougé de nouveau : c'est la valeur suivante qui compte.
         }
+    }
+
+    partial void OnQualityChanged(StreamQuality value)
+    {
+        if (_loading)
+        {
+            return;
+        }
+
+        _ = _settings.SetQualityAsync(value);
     }
 
     partial void OnPreferredMonitorChanged(MonitorInfo? value)

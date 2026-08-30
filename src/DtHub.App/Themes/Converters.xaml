@@ -9,6 +9,7 @@
   <conv:BoolToVisibilityConverter x:Key="BoolToVisibility" />
   <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility" />
   <conv:InverseBoolConverter x:Key="InverseBool" />
+  <conv:EnumMatchConverter x:Key="EnumMatch" />
   <conv:ResourceKeyToBrushConverter x:Key="KeyToBrush" />
   <conv:HexToBrushConverter x:Key="HexToBrush" />
   <conv:EqualityConverter x:Key="Equality" />

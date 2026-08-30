@@ -63,6 +63,14 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// <summary>Appareils vus, par identifiant. Chacun est partagé par ses lignes.</summary>
     private readonly Dictionary<string, DeviceGroupViewModel> _devices = new(StringComparer.Ordinal);
 
+    /// <summary>Dernière découverte d'instances, réutilisée entre deux balayages.</summary>
+    private IReadOnlyList<Core.Dofus.DofusInstance>? _instances;
+
+    /// <summary>Empreinte des appareils vus, pour savoir quand redécouvrir.</summary>
+    private string? _signature;
+
+    private DateTimeOffset _discoveredAt;
+
     [ObservableProperty]
     private bool _isBusy;
 
@@ -75,6 +83,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// sous le curseur.
     /// </summary>
     public bool IsReordering { get; set; }
+
+    /// <summary>Rythme du balayage des appareils, selon la qualité choisie.</summary>
+    public TimeSpan PollInterval => _launcher.Quality.DevicePoll;
 
     /// <summary>Vrai tant qu'aucun téléphone n'est joignable.</summary>
     public bool HasNoConnectedDevice => !_devices.Values.Any(d => d.IsConnected);
@@ -107,7 +118,25 @@ public sealed partial class InstanceListViewModel : ObservableObject
         try
         {
             var discovery = await _launcher.RefreshDevicesAsync(cancellationToken).ConfigureAwait(true);
-            var instances = await _launcher.RefreshInstancesAsync(cancellationToken).ConfigureAwait(true);
+
+            // Lister les appareils est bon marché ; redécouvrir les instances
+            // ne l'est pas, chaque profil de chaque appareil demandant deux
+            // commandes au téléphone. On ne le refait donc que si l'ensemble
+            // des appareils a changé, ou après un long moment.
+            var signature = string.Join(
+                "|",
+                discovery.Devices.Select(d => $"{d.Id}:{d.State}").Order(StringComparer.Ordinal));
+
+            if (_instances is null
+                || !string.Equals(signature, _signature, StringComparison.Ordinal)
+                || DateTimeOffset.UtcNow - _discoveredAt >= _launcher.Quality.InstanceRediscovery)
+            {
+                _instances = await _launcher.RefreshInstancesAsync(cancellationToken).ConfigureAwait(true);
+                _signature = signature;
+                _discoveredAt = DateTimeOffset.UtcNow;
+            }
+
+            var instances = _instances;
 
             Problem = discovery.Warnings.Count > 0 ? string.Join(" ", discovery.Warnings) : null;
 
@@ -282,6 +311,10 @@ public sealed partial class InstanceListViewModel : ObservableObject
             // L'état est relu plutôt que déduit de l'action : une session peut
             // s'être arrêtée d'elle-même entre-temps.
             RefreshRunningState();
+
+            // Une action a pu changer ce que porte l'appareil : le prochain
+            // balayage redécouvre plutôt que de reprendre le cache.
+            _instances = null;
         }
     }
 

@@ -56,7 +56,7 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.Equal(WindowAnchor.MiddleLeft, settings.GameAnchor);
         Assert.Equal([40, 60, 80, 100], settings.SizePercentages);
         Assert.Equal(1, settings.SizeIndex);
-        Assert.Equal(45, settings.MaxFps);
+        Assert.Equal(StreamQuality.Medium, settings.Quality);
         Assert.False(settings.AudioEnabled);
         Assert.True(settings.ClipboardSyncEnabled);
         Assert.Equal("com.ankama.dofustouch", settings.PackageName);
@@ -122,7 +122,7 @@ public sealed class SettingsServiceTests : IDisposable
         var notifications = 0;
         _service.Changed += (_, _) => notifications++;
 
-        await _service.UpdateAsync(s => s.MaxFps = 30, CancellationToken.None);
+        await _service.UpdateAsync(s => s.PackageName = "com.exemple", CancellationToken.None);
         await _service.UpdateAsync(s => s.AudioEnabled = true, CancellationToken.None);
 
         Assert.Equal(2, notifications);
@@ -220,33 +220,27 @@ public sealed class SettingsServiceTests : IDisposable
     {
         await _service.UpdateAsync(s =>
         {
-            s.MaxFps = 30;
-            s.VideoBitrateKbps = 8000;
             s.AudioEnabled = true;
             s.ClipboardSyncEnabled = false;
         }, CancellationToken.None);
 
         var options = await _service.GetScrcpyOptionsAsync(CancellationToken.None);
 
-        Assert.Equal(30, options.MaxFps);
-        Assert.Equal("8000K", options.VideoBitrateArgument);
         Assert.True(options.AudioEnabled);
         Assert.False(options.ClipboardSyncEnabled);
     }
 
     [Fact]
-    public async Task Des_reglages_de_mirroring_aberrants_sont_corriges()
+    public async Task Les_images_par_seconde_et_le_debit_viennent_de_la_qualite()
     {
-        await _service.UpdateAsync(s =>
-        {
-            s.MaxFps = 10000;
-            s.VideoBitrateKbps = 0;
-        }, CancellationToken.None);
+        // Deux sources pour un même réglage auraient fini par diverger : la
+        // qualité est la seule.
+        await _service.SetQualityAsync(StreamQuality.High, CancellationToken.None);
 
         var options = await _service.GetScrcpyOptionsAsync(CancellationToken.None);
 
-        Assert.Equal(240, options.MaxFps);
-        Assert.Equal(200, options.VideoBitrateKbps);
+        Assert.Equal(60, options.MaxFps);
+        Assert.Equal("8000K", options.VideoBitrateArgument);
     }
 
     [Fact]
@@ -289,25 +283,26 @@ public sealed class SettingsServiceTests : IDisposable
     [Fact]
     public async Task Un_fichier_de_reglages_corrompu_donne_une_configuration_valide()
     {
-        await _service.UpdateAsync(s => s.MaxFps = 30, CancellationToken.None);
+        await _service.UpdateAsync(s => s.PackageName = "com.exemple", CancellationToken.None);
         await File.WriteAllTextAsync(_store.FilePath, "{ pas du json", CancellationToken.None);
 
         _service.Invalidate();
 
-        Assert.Equal(45, (await _service.GetAsync(CancellationToken.None)).MaxFps);
+        Assert.Equal("com.ankama.dofustouch", (await _service.GetAsync(CancellationToken.None)).PackageName);
     }
 
     [Fact]
     public async Task Un_fichier_partiel_complete_les_valeurs_manquantes()
     {
         Directory.CreateDirectory(_directory);
-        await File.WriteAllTextAsync(_store.FilePath, """{ "maxFps": 24 }""", CancellationToken.None);
+        await File.WriteAllTextAsync(
+            _store.FilePath, """{ "virtualDisplayDpi": 320 }""", CancellationToken.None);
 
         _service.Invalidate();
         var settings = await _service.GetAsync(CancellationToken.None);
 
-        Assert.Equal(24, settings.MaxFps);
-        Assert.Equal(4000, settings.VideoBitrateKbps);
+        Assert.Equal(320, settings.VirtualDisplayDpi);
+        Assert.Equal(StreamQuality.Medium, settings.Quality);
         Assert.Equal([40, 60, 80, 100], settings.SizePercentages);
     }
 
@@ -399,6 +394,17 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.Equal(
             ["PHONE-A/0", "PHONE-B/0", "PHONE-A/999"],
             [.. merged.Select(i => $"{i.DeviceId}/{i.UserId}")]);
+    }
+
+    [Fact]
+    public async Task La_qualite_basse_allege_l_image()
+    {
+        await _service.SetQualityAsync(StreamQuality.Low, CancellationToken.None);
+
+        var options = await _service.GetScrcpyOptionsAsync(CancellationToken.None);
+
+        Assert.Equal(30, options.MaxFps);
+        Assert.Equal(2500, options.VideoBitrateKbps);
     }
 
     [Fact]

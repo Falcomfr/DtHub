@@ -41,9 +41,14 @@ public static class DisplayLadder
     /// hauteur donnée, sur un écran donné.
     ///
     /// Le rapport est celui de l'écran : c'est lui que la fenêtre garde, et
-    /// s'en écarter laisserait une bande.
+    /// s'en écarter laisserait une bande. La qualité choisie peut borner la
+    /// hauteur, ce qui allège l'encodeur du téléphone.
     /// </summary>
-    public static (int Width, int Height) For(int clientHeight, int screenWidth, int screenHeight)
+    public static (int Width, int Height) For(
+        int clientHeight,
+        int screenWidth,
+        int screenHeight,
+        int maximumHeight = int.MaxValue)
     {
         if (screenWidth <= 0 || screenHeight <= 0)
         {
@@ -51,7 +56,7 @@ public static class DisplayLadder
         }
 
         var aspect = (double)screenWidth / screenHeight;
-        var height = Choose(clientHeight, screenHeight);
+        var height = Math.Min(Choose(clientHeight, screenHeight), Math.Max(360, maximumHeight));
 
         return (Even((int)Math.Round(height * aspect)), Even(height));
     }
