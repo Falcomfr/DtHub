@@ -324,6 +324,7 @@ public sealed class SettingsService : IDisposable
                     LaunchComponent = i.LaunchComponent,
                     CustomName = i.CustomName,
                     IsEnabled = i.IsEnabled,
+                    IsManaged = i.IsManaged,
                     IsDeviceConnected = live.Contains(i.Key),
                 })];
         }, cancellationToken).ConfigureAwait(false);
@@ -493,6 +494,42 @@ public sealed class SettingsService : IDisposable
                 return changed;
             },
             cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Retient si une fenêtre suit les placements automatiques.
+    /// </summary>
+    public Task SetInstanceManagedAsync(
+        string key,
+        bool managed,
+        CancellationToken cancellationToken = default) =>
+        UpdateIfChangedAsync(
+            settings =>
+            {
+                var instance = settings.Instances.Find(
+                    i => string.Equals(i.Key, key, StringComparison.Ordinal));
+
+                if (instance is null || instance.IsManaged == managed)
+                {
+                    return false;
+                }
+
+                instance.IsManaged = managed;
+
+                return true;
+            },
+            cancellationToken);
+
+    /// <summary>Instances laissées de côté par les placements automatiques.</summary>
+    public async Task<IReadOnlySet<string>> GetUnmanagedKeysAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
+
+        return settings.Instances
+            .Where(i => !i.IsManaged)
+            .Select(i => i.Key)
+            .ToHashSet(StringComparer.Ordinal);
     }
 
     /// <summary>Retient la taille posée au curseur.</summary>

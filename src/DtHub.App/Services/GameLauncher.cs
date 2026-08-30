@@ -90,6 +90,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
         };
     }
 
+    /// <summary>Instances laissées de côté par les placements automatiques.</summary>
+    private IReadOnlySet<string> _unmanaged = new HashSet<string>(StringComparer.Ordinal);
+
     /// <summary>Réglages dérivés de la qualité choisie, relus à chaque lancement.</summary>
     private QualityProfile _quality = QualityProfile.For(StreamQuality.Medium);
 
@@ -124,6 +127,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     /// <summary>Sessions actuellement ouvertes.</summary>
     public IReadOnlyList<ScrcpySession> ActiveSessions => _sessions.ActiveSessions;
+
+    /// <summary>
+    /// Fenêtres qui suivent les placements automatiques.
+    ///
+    /// Une fenêtre décochée dans la liste reste où elle est : le parcours au
+    /// clavier, le replacement, le côte à côte et les tailles l'ignorent. Elle
+    /// s'ouvre, se ferme et se souvient de sa place comme les autres.
+    /// </summary>
+    public IReadOnlyList<ScrcpySession> ManagedSessions =>
+        [.. _sessions.ActiveSessions.Where(s => !_unmanaged.Contains(s.Target.Key))];
 
     /// <summary>Signalé à chaque changement d'état d'une session.</summary>
     public event EventHandler<ScrcpySession>? SessionChanged
@@ -557,7 +570,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     public async Task<int> TileAsync(CancellationToken cancellationToken = default)
     {
         var placed = await _windows
-            .TileAsync(_sessions.ActiveSessions, cancellationToken)
+            .TileAsync(ManagedSessions, cancellationToken)
             .ConfigureAwait(false);
 
         await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
@@ -568,7 +581,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     public async Task<int> StackOnActiveAsync(CancellationToken cancellationToken = default)
     {
         var moved = await _windows
-            .StackOnActiveAsync(_sessions.ActiveSessions, cancellationToken)
+            .StackOnActiveAsync(ManagedSessions, cancellationToken)
             .ConfigureAwait(false);
 
         await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
@@ -582,7 +595,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         await ApplyWindowSettingsAsync(cancellationToken).ConfigureAwait(false);
 
-        var moved = await _windows.ArrangeAsync(_sessions.ActiveSessions, cancellationToken)
+        var moved = await _windows.ArrangeAsync(ManagedSessions, cancellationToken)
             .ConfigureAwait(false);
 
         // Le replacement rapide devient la nouvelle géométrie de référence,
@@ -606,7 +619,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         CancellationToken cancellationToken = default)
     {
         var moved = await _windows
-            .ApplyPercentAsync(_sessions.ActiveSessions, percent, cancellationToken)
+            .ApplyPercentAsync(ManagedSessions, percent, cancellationToken)
             .ConfigureAwait(false);
 
         if (persist)
@@ -642,7 +655,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
 
         var moved = await _windows
-            .ApplySizeAsync(_sessions.ActiveSessions, sizeIndex, cancellationToken)
+            .ApplySizeAsync(ManagedSessions, sizeIndex, cancellationToken)
             .ConfigureAwait(false);
 
         await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
@@ -789,8 +802,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// qui parcourt les sessions en hérite : l'ouverture, le placement et le
     /// cycle clavier.
     /// </summary>
-    private async Task RefreshRanksAsync(CancellationToken cancellationToken)
+    public async Task RefreshRanksAsync(CancellationToken cancellationToken = default)
     {
+        _unmanaged = await _settings.GetUnmanagedKeysAsync(cancellationToken).ConfigureAwait(false);
+
         var ranks = await _settings.GetInstanceRanksAsync(cancellationToken).ConfigureAwait(false);
 
         _sessions.OrderKey = session =>
@@ -902,11 +917,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     break;
 
                 case HotkeyAction.NextInstance:
-                    _windows.FocusNext(_sessions.ActiveSessions);
+                    _windows.FocusNext(ManagedSessions);
                     break;
 
                 case HotkeyAction.PreviousInstance:
-                    _windows.FocusPrevious(_sessions.ActiveSessions);
+                    _windows.FocusPrevious(ManagedSessions);
                     break;
 
                 case HotkeyAction.Rearrange:

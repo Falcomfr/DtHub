@@ -579,3 +579,29 @@ fenêtre va réellement s'ouvrir, instance par instance.
 
 L'ancrage reste, pour une fenêtre sans géométrie mémorisée et pour la grille
 3x3 qui regroupe volontairement toutes les fenêtres.
+
+## D27 - Une fenêtre peut sortir des placements automatiques
+
+Demande initiale : un petit bouton sur la barre de titre de la fenêtre de jeu.
+Impossible tel quel, cette barre appartenant à scrcpy. Deux replis ont été
+proposés, une pastille flottante posée par-dessus et une marque dans le titre ;
+l'utilisateur a retenu le plus simple, une case sur la ligne de l'instance,
+cochée par défaut.
+
+Décochée, la fenêtre est ignorée par le parcours au clavier, le replacement, le
+côte à côte et les changements de taille. Elle s'ouvre, se ferme et se souvient
+de sa place comme les autres : c'est un retrait des placements, pas une mise à
+l'écart.
+
+## D28 - Un rangement côte à côte
+
+Le replacement empile toutes les fenêtres au même endroit, ce qui sert à en
+consulter une à la fois. Le rangement côte à côte partage l'écran en deux
+moitiés, la fenêtre active à droite, ce qui sert à en suivre deux.
+
+Au-delà de deux, les suivantes se rangent derrière celle de gauche : l'écran ne
+se partage plus utilement, et un empilement reste préférable à des fenêtres
+devenues trop étroites.
+
+La hauteur suit le rapport de l'afficheur. La remplir davantage laisserait une
+bande, l'image étant mise à l'échelle.

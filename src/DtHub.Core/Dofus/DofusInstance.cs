@@ -30,6 +30,12 @@ public sealed record DofusInstance
     /// <summary>Vrai si l'instance fait partie du lancement automatique.</summary>
     public bool IsEnabled { get; init; }
 
+    /// <summary>
+    /// Vrai si la fenêtre suit les placements automatiques. Décochée, elle
+    /// reste où elle est et le reste s'arrange sans elle.
+    /// </summary>
+    public bool IsManaged { get; init; } = true;
+
     /// <summary>Vrai si le téléphone est joignable maintenant.</summary>
     public bool IsDeviceConnected { get; init; }
 

@@ -408,6 +408,28 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Une_fenetre_mise_de_cote_sort_des_placements_automatiques()
+    {
+        await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
+
+        var principal = "MATERIEL123|0|" + DofusPackages.DofusTouch;
+
+        await _service.SetInstanceManagedAsync(principal, managed: false, CancellationToken.None);
+
+        var unmanaged = await _service.GetUnmanagedKeysAsync(CancellationToken.None);
+
+        Assert.Equal([principal], unmanaged);
+    }
+
+    [Fact]
+    public async Task Une_fenetre_suit_les_placements_par_defaut()
+    {
+        await _service.MergeInstancesAsync([Instance(0)], CancellationToken.None);
+
+        Assert.Empty(await _service.GetUnmanagedKeysAsync(CancellationToken.None));
+    }
+
+    [Fact]
     public async Task Une_geometrie_enregistree_est_relue_a_l_identique()
     {
         await _service.MergeInstancesAsync([Instance(0)], CancellationToken.None);

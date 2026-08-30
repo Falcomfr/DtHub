@@ -90,6 +90,16 @@
                                                  RelativeSource={RelativeSource AncestorType=UserControl},
                                                  Converter={StaticResource BoolToVisibility}}" />
 
+                  <!-- Décochée, la fenêtre est laissée où elle est : le
+                       parcours au clavier, le replacement, le côte à côte et
+                       les tailles l'ignorent. -->
+                  <CheckBox Grid.Column="0" IsChecked="{Binding IsManaged}" AllowDrop="False"
+                            Margin="0,0,8,0" VerticalAlignment="Center"
+                            ToolTip="Suivre les placements automatiques : Ctrl+Tab, replacement, côte à côte et tailles. Décochez pour laisser cette fenêtre où elle est."
+                            Visibility="{Binding ShowActions,
+                                                 RelativeSource={RelativeSource AncestorType=UserControl},
+                                                 Converter={StaticResource BoolToVisibility}}" />
+
                   <Control Grid.Column="1" Style="{StaticResource DragHandle}" Margin="0,0,6,0"
                            VerticalAlignment="Center"
                            PreviewMouseLeftButtonDown="OnDragSourcePressed">

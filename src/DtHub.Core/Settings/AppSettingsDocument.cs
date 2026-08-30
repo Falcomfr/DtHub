@@ -100,6 +100,15 @@ public sealed class StoredInstance
     public bool IsEnabled { get; set; }
 
     /// <summary>
+    /// Vrai si la fenêtre suit les placements automatiques : parcours au
+    /// clavier, replacement, côte à côte, changements de taille.
+    ///
+    /// Décochée, la fenêtre est laissée où elle est et le reste s'arrange sans
+    /// elle. Elle s'ouvre et se ferme comme les autres.
+    /// </summary>
+    public bool IsManaged { get; set; } = true;
+
+    /// <summary>
     /// Rang de l'instance dans la liste unique, dense de 0 à n-1.
     ///
     /// C'est la seule donnée d'ordre : les instances se trient librement entre

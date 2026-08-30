@@ -11,6 +11,7 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     {
         _instance = instance;
         _isEnabled = instance.IsEnabled;
+        _isManaged = instance.IsManaged;
         _name = instance.DisplayName;
     }
 
@@ -22,6 +23,14 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     /// <summary>Cochée pour le lancement automatique.</summary>
     [ObservableProperty]
     private bool _isEnabled;
+
+    /// <summary>
+    /// Cochée si la fenêtre suit les placements automatiques : parcours au
+    /// clavier, replacement, côte à côte, changements de taille. Décochée,
+    /// elle reste où elle est et le reste s'arrange sans elle.
+    /// </summary>
+    [ObservableProperty]
+    private bool _isManaged = true;
 
     /// <summary>Nom affiché, modifiable.</summary>
     [ObservableProperty]
@@ -91,6 +100,9 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     /// <summary>Signalé quand une case est cochée ou un nom modifié.</summary>
     public event EventHandler<InstanceRowViewModel>? EnabledChanged;
 
+    /// <summary>Signalé quand la fenêtre entre ou sort des placements automatiques.</summary>
+    public event EventHandler<InstanceRowViewModel>? ManagedChanged;
+
     public event EventHandler<InstanceRowViewModel>? NameChanged;
 
     /// <summary>
@@ -104,6 +116,22 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     {
         Instance = instance;
         IsRunning = isRunning;
+
+        if (IsManaged != instance.IsManaged)
+        {
+            // Écriture venue des réglages : la répercuter comme un choix de
+            // l'utilisateur relancerait une écriture à chaque balayage.
+            _applying = true;
+
+            try
+            {
+                IsManaged = instance.IsManaged;
+            }
+            finally
+            {
+                _applying = false;
+            }
+        }
 
         if (!IsRenaming && !string.Equals(Name, instance.DisplayName, StringComparison.Ordinal))
         {
@@ -128,6 +156,14 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     }
 
     partial void OnIsEnabledChanged(bool value) => EnabledChanged?.Invoke(this, this);
+
+    partial void OnIsManagedChanged(bool value)
+    {
+        if (!_applying)
+        {
+            ManagedChanged?.Invoke(this, this);
+        }
+    }
 
     partial void OnNameChanged(string value)
     {

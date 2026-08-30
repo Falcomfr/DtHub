@@ -328,6 +328,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
             {
                 row = new InstanceRowViewModel(instance) { IsRunning = _launcher.IsOpen(instance) };
                 row.EnabledChanged += OnEnabledChanged;
+                row.ManagedChanged += OnManagedChanged;
                 row.NameChanged += OnNameChanged;
                 Rows.Add(row);
             }
@@ -439,6 +440,14 @@ public sealed partial class InstanceListViewModel : ObservableObject
     {
         await _settings.SetInstanceEnabledAsync(row.Key, row.IsEnabled).ConfigureAwait(true);
         OnPropertyChanged(nameof(EnabledCount));
+    }
+
+    private async void OnManagedChanged(object? sender, InstanceRowViewModel row)
+    {
+        await _settings.SetInstanceManagedAsync(row.Key, row.IsManaged).ConfigureAwait(true);
+
+        // Le lanceur relit la liste des mises de côté au prochain placement.
+        await _launcher.RefreshRanksAsync().ConfigureAwait(true);
     }
 
     private async void OnNameChanged(object? sender, InstanceRowViewModel row)
