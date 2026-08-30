@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Threading;
 
 using DtHub.App.Services;
+using DtHub.App.ViewModels;
 using DtHub.App.Windows;
 using DtHub.Core;
 using DtHub.Core.Sessions;
@@ -43,6 +44,7 @@ public partial class App : Application, IDisposable
 
     private IHost? _host;
     private ConfiguratorWindow? _configurator;
+    private QuestWindow? _quests;
     private bool _quitting;
     private bool _started;
     private Mutex? _instance;
@@ -118,8 +120,18 @@ public partial class App : Application, IDisposable
         // Le configurateur existe avant le lancement : c'est lui qui affichera
         // les problèmes s'il y en a.
         _configurator = services.GetRequiredService<ConfiguratorWindow>();
-        launcher.OwnsWindow = handle => _configurator is not null && handle == _configurator.Handle;
+
+        // Les raccourcis ne sont actifs que si une fenêtre à nous est au
+        // premier plan. Sans y ajouter le suivi de quêtes, ils mourraient dès
+        // qu'on lui donne le focus, ce qui est précisément ce qu'on fait pour
+        // lire un guide.
+        launcher.OwnsWindow = OwnsWindow;
         launcher.ConfiguratorToggleRequested += (_, _) => Dispatcher.Invoke(ToggleConfigurator);
+        launcher.QuestsToggleRequested += (_, _) => Dispatcher.Invoke(ToggleQuests);
+
+        // Le bouton d'outil passe par le même chemin que le raccourci.
+        services.GetRequiredService<ConfiguratorViewModel>().QuestsRequested +=
+            (_, _) => Dispatcher.Invoke(ToggleQuests);
         launcher.QuitRequested += (_, _) => Dispatcher.Invoke(async () => await RequestQuitAsync().ConfigureAwait(true));
         // Le panneau était déjà masqué : c'est bien qu'on le veut masqué.
         launcher.LastWindowClosed += (_, _) => Dispatcher.Invoke(
@@ -403,6 +415,30 @@ public partial class App : Application, IDisposable
         {
             Log.Warning(exception, "La reprise de la session a échoué.");
         }
+    }
+
+    /// <summary>Vrai si la fenêtre appartient à l'application.</summary>
+    private bool OwnsWindow(nint handle)
+    {
+        if (_configurator is not null && handle == _configurator.Handle)
+        {
+            return true;
+        }
+
+        return _quests is not null
+            && new System.Windows.Interop.WindowInteropHelper(_quests).Handle == handle;
+    }
+
+    /// <summary>
+    /// Montre ou cache le suivi de quêtes. La fenêtre est construite au premier
+    /// appel seulement : elle porte un navigateur, qu'il serait inutile de
+    /// mettre en route pour quelqu'un qui ne s'en sert pas.
+    /// </summary>
+    private void ToggleQuests()
+    {
+        _quests ??= _host?.Services.GetRequiredService<QuestWindow>();
+
+        _quests?.Toggle();
     }
 
     private void ToggleConfigurator()

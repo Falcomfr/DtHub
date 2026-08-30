@@ -93,6 +93,7 @@ public sealed record HotkeyBinding
         HotkeyAction.PreviousInstance => "Fenêtre précédente",
         HotkeyAction.Rearrange => "Empiler les fenêtres",
         HotkeyAction.Tile => "Côte à côte",
+        HotkeyAction.Quests => "Afficher ou masquer les quêtes",
         HotkeyAction.Size1 => "Taille 1",
         HotkeyAction.Size2 => "Taille 2",
         HotkeyAction.Size3 => "Taille 3",
@@ -127,6 +128,10 @@ public sealed record HotkeyBinding
         HotkeyAction.Tile =>
             "Range deux fenêtres côte à côte, chacune sur une moitié de l'écran. "
             + "La fenêtre active va à droite.",
+
+        HotkeyAction.Quests =>
+            "Montre ou cache le suivi de quêtes, qui reste au-dessus des fenêtres "
+            + "de jeu. Les guides viennent de papycha.fr.",
 
         HotkeyAction.Size1 => "La plus petite des quatre tailles, réglables au curseur.",
         HotkeyAction.Size2 => "La deuxième des quatre tailles, réglables au curseur.",

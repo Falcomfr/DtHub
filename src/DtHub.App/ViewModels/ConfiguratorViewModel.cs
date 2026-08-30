@@ -147,6 +147,10 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [ObservableProperty]
     private string _tileShortcutText = string.Empty;
 
+    /// <summary>Raccourci du suivi de quêtes, affiché à côté du bouton.</summary>
+    [ObservableProperty]
+    private string _questsShortcutText = string.Empty;
+
     /// <summary>Raccourci de sortie, affiché sous le bouton Quitter.</summary>
     [ObservableProperty]
     private string _quitShortcutText = string.Empty;
@@ -209,6 +213,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         // suivent quand il est modifié dans l'éditeur.
         RearrangeShortcutText = hotkeys.For(HotkeyAction.Rearrange)?.DisplayText ?? string.Empty;
         TileShortcutText = hotkeys.For(HotkeyAction.Tile)?.DisplayText ?? string.Empty;
+        QuestsShortcutText = hotkeys.For(HotkeyAction.Quests)?.DisplayText ?? string.Empty;
         QuitShortcutText = hotkeys.For(HotkeyAction.Quit)?.DisplayText ?? string.Empty;
 
     }
@@ -293,6 +298,16 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             Instances.Problem = "Aucune fenêtre de jeu à ranger.";
         }
     }
+
+    /// <summary>Ouvre le suivi de quêtes, ou le referme s'il est déjà là.</summary>
+    [RelayCommand]
+    private void Quests() => QuestsRequested?.Invoke(this, EventArgs.Empty);
+
+    /// <summary>
+    /// Demandé depuis le bouton d'outil. La fenêtre est construite par
+    /// l'application, pas par ce modèle : il n'a pas à connaître les fenêtres.
+    /// </summary>
+    public event EventHandler? QuestsRequested;
 
     [RelayCommand]
     private void OpenLogs() => _dialogs.OpenFolder(_paths.LogsDirectory);

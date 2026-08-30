@@ -106,6 +106,35 @@
                                               Converter={StaticResource EmptyToVisibility},
                                               ConverterParameter=inverse}" />
             </StackPanel>
+
+            <StackPanel MinWidth="54" Margin="14,0,0,0">
+              <Button Padding="8,5" Style="{StaticResource QuietButton}" HorizontalAlignment="Center"
+                      ToolTip="Ouvrir le suivi de quêtes, qui reste au-dessus des fenêtres de jeu. Les guides viennent de papycha.fr."
+                      Command="{Binding QuestsCommand}">
+                <!-- Un parchemin déroulé : deux rouleaux et des lignes de
+                     texte. L'icône est à nous ; celle du site ne sera reprise
+                     que s'ils l'accordent. -->
+                <Grid Width="20" Height="16">
+                  <Border Width="3" Height="14" CornerRadius="{StaticResource Radius}"
+                          HorizontalAlignment="Left" VerticalAlignment="Center"
+                          BorderThickness="1.4" BorderBrush="{DynamicResource TextMutedBrush}" />
+                  <Border Width="3" Height="14" CornerRadius="{StaticResource Radius}"
+                          HorizontalAlignment="Right" VerticalAlignment="Center"
+                          BorderThickness="1.4" BorderBrush="{DynamicResource TextMutedBrush}" />
+                  <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="9">
+                    <Border Height="1.4" Margin="0,0,0,3" Background="{DynamicResource AccentBrush}" />
+                    <Border Height="1.4" Margin="0,0,0,3" Background="{DynamicResource TextMutedBrush}" />
+                    <Border Height="1.4" Background="{DynamicResource TextMutedBrush}" />
+                  </StackPanel>
+                </Grid>
+              </Button>
+
+              <TextBlock Text="{Binding QuestsShortcutText}" Style="{StaticResource Muted}" FontFamily="{StaticResource MonoFont}"
+                         FontSize="10" HorizontalAlignment="Center" Margin="0,1,0,0"
+                         Visibility="{Binding QuestsShortcutText,
+                                              Converter={StaticResource EmptyToVisibility},
+                                              ConverterParameter=inverse}" />
+            </StackPanel>
           </StackPanel>
 
           <StackPanel Grid.Column="1">

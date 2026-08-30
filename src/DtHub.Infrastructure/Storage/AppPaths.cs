@@ -19,6 +19,7 @@ public sealed class AppPaths : IAppPaths
         DevicesFile = Path.Combine(Root, "devices.json");
         ProfilesFile = Path.Combine(Root, "profiles.json");
         CacheDirectory = Path.Combine(Root, "cache");
+        QuestCatalogFile = Path.Combine(CacheDirectory, "papycha-quetes.json");
         LogsDirectory = Path.Combine(Root, "logs");
         ToolsDirectory = Path.Combine(Root, "tools");
     }
@@ -28,6 +29,8 @@ public sealed class AppPaths : IAppPaths
     public string DevicesFile { get; }
     public string ProfilesFile { get; }
     public string CacheDirectory { get; }
+
+    public string QuestCatalogFile { get; }
     public string LogsDirectory { get; }
     public string ToolsDirectory { get; }
 

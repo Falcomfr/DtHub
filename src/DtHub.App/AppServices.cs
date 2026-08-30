@@ -12,6 +12,7 @@ using DtHub.Core.Hotkeys;
 using DtHub.Core.Processes;
 using DtHub.Core.Scrcpy;
 using DtHub.Core.Sessions;
+using DtHub.Core.Papycha;
 using DtHub.Core.Settings;
 using DtHub.Core.Storage;
 using DtHub.Core.Users;
@@ -20,6 +21,7 @@ using DtHub.Infrastructure.Adb;
 using DtHub.Infrastructure.Dependencies;
 using DtHub.Infrastructure.Devices;
 using DtHub.Infrastructure.Hotkeys;
+using DtHub.Infrastructure.Papycha;
 using DtHub.Infrastructure.Processes;
 using DtHub.Infrastructure.Scrcpy;
 using DtHub.Infrastructure.Storage;
@@ -50,6 +52,7 @@ public static class AppServices
 
         services.AddSingleton(CreateStore<AppSettingsDocument>(p => p.SettingsFile));
         services.AddSingleton(CreateStore<DeviceRegistryDocument>(p => p.DevicesFile));
+        services.AddSingleton(CreateStore<QuestCatalogDocument>(p => p.QuestCatalogFile));
 
         services.AddSingleton<SettingsService>();
 
@@ -60,6 +63,14 @@ public static class AppServices
         // Composants tiers.
         services.AddSingleton(_ => new HttpClient { Timeout = TimeSpan.FromMinutes(10) });
         services.AddSingleton<IDependencyProvisioner, ArchiveDependencyProvisioner>();
+
+        // Guides de quêtes. Son propre client : celui du dessus attend dix
+        // minutes, taillé pour une archive de onze mégaoctets, ce qui ferait
+        // paraître l'application figée si le site ne répondait pas.
+        services.AddSingleton<IPapychaClient>(provider => new PapychaClient(
+            new HttpClient { Timeout = TimeSpan.FromSeconds(30) },
+            provider.GetRequiredService<ILogger<PapychaClient>>()));
+        services.AddSingleton<QuestCatalogService>();
         services.AddSingleton<IAdbLocator>(provider => new AdbLocator(
             provider.GetRequiredService<IDependencyProvisioner>(),
             provider.GetRequiredService<ILogger<AdbLocator>>()));
@@ -98,6 +109,8 @@ public static class AppServices
         services.AddTransient<CloneHelpWindow>();
         services.AddTransient<SleepHelpViewModel>();
         services.AddTransient<SleepHelpWindow>();
+        services.AddSingleton<QuestViewModel>();
+        services.AddSingleton<QuestWindow>();
         services.AddTransient<HotkeyEditorViewModel>();
         services.AddTransient<HotkeyEditorWindow>();
         services.AddSingleton<ConfiguratorViewModel>();

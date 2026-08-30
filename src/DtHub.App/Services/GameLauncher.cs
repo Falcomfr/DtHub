@@ -162,6 +162,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// <summary>Demandé par le raccourci d'affichage du configurateur.</summary>
     public event EventHandler? ConfiguratorToggleRequested;
 
+    /// <summary>Le raccourci du suivi de quêtes a été pressé.</summary>
+    public event EventHandler? QuestsToggleRequested;
+
     /// <summary>
     /// Demandé par le raccourci de sortie. L'arrêt lui-même appartient à
     /// l'application, qui doit d'abord retenir l'état de la session.
@@ -1070,6 +1073,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
                 case HotkeyAction.Tile:
                     await TileAsync().ConfigureAwait(false);
+                    break;
+
+                case HotkeyAction.Quests:
+                    QuestsToggleRequested?.Invoke(this, EventArgs.Empty);
                     break;
 
                 case HotkeyAction.Size1:

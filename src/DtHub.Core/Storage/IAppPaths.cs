@@ -16,6 +16,13 @@ public interface IAppPaths
     /// <summary>Métadonnées et icônes d'applications mises en cache.</summary>
     string CacheDirectory { get; }
 
+    /// <summary>
+    /// Catalogue des quêtes de papycha. Rangé dans le cache et non près des
+    /// réglages : ce n'est pas un choix de l'utilisateur, et le perdre ne coûte
+    /// qu'une réindexation.
+    /// </summary>
+    string QuestCatalogFile { get; }
+
     /// <summary>Journaux avec rotation.</summary>
     string LogsDirectory { get; }
 

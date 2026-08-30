@@ -25,6 +25,9 @@ public enum HotkeyAction
     /// <summary>Deux fenêtres, chacune sur une moitié de l'écran.</summary>
     Tile,
 
+    /// <summary>Afficher ou masquer le suivi de quêtes.</summary>
+    Quests,
+
     /// <summary>Première taille, la plus petite.</summary>
     Size1,
 
