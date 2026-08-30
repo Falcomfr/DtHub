@@ -336,7 +336,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             var session = await _sessions.StartAsync(
                 ToTarget(instance, serial),
-                options,
+                WithDisplayFor(options, placement),
                 placement,
                 cancellationToken).ConfigureAwait(false);
 
@@ -676,6 +676,26 @@ public sealed partial class GameLauncher : IAsyncDisposable
             value.Y,
             Math.Max(1, value.Width - chrome.Width),
             Math.Max(1, value.Height - chrome.Height));
+    }
+
+    /// <summary>
+    /// Adapte la définition de l'afficheur à la fenêtre de cette instance.
+    ///
+    /// L'image est mise à l'échelle de la fenêtre : un afficheur toujours pris
+    /// à la définition de l'écran rendrait l'interface du jeu minuscule dans
+    /// une petite fenêtre. La définition suit donc la fenêtre, par paliers,
+    /// puisqu'elle est figée pour toute la session.
+    /// </summary>
+    private ScrcpyOptions WithDisplayFor(ScrcpyOptions options, ScrcpyWindowPlacement? placement)
+    {
+        if (placement is not { Height: > 0 } window || _windows.MonitorBounds() is not { } screen)
+        {
+            return options;
+        }
+
+        var (width, height) = DisplayLadder.For(window.Height, screen.Width, screen.Height);
+
+        return options with { VirtualDisplayWidth = width, VirtualDisplayHeight = height };
     }
 
     /// <summary>

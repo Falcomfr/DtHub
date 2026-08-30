@@ -253,6 +253,15 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
     partial void OnGameAnchorChanged(WindowAnchor value)
     {
+        // Le replacement suit le garde-fou de chargement, comme
+        // l'enregistrement : sans cela, relire les réglages au démarrage
+        // replacerait toutes les fenêtres et effacerait leur géométrie
+        // mémorisée avant même que l'utilisateur ait touché à quoi que ce soit.
+        if (_loading)
+        {
+            return;
+        }
+
         Save(s => s.GameAnchor = value);
         _ = _launcher.ArrangeAsync();
     }
@@ -333,6 +342,11 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
     partial void OnPreferredMonitorChanged(MonitorInfo? value)
     {
+        if (_loading)
+        {
+            return;
+        }
+
         Save(s => s.PreferredMonitorDeviceName = value?.DeviceName);
         _ = _launcher.ArrangeAsync();
     }

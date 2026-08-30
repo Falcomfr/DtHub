@@ -438,3 +438,37 @@ Vérifié sur un Xiaomi 13T, image complète et sans bande à 978x550, 1378x775,
 
 Le fichier de réglages passe en version 5 : `freeWidthResize` disparaît, sans
 que rien ne soit à décider pour l'utilisateur.
+
+## D18 - La définition de l'afficheur suit la taille de la fenêtre, par paliers
+
+L'image étant mise à l'échelle de la fenêtre (D17), un afficheur toujours pris
+à la définition de l'écran rendait l'interface du jeu minuscule dans une petite
+fenêtre : sur un écran 4K, une fenêtre de 550 pixels de haut réduisait l'image
+d'un facteur quatre. À l'inverse, un afficheur toujours petit l'aurait rendue
+énorme et floue en plein écran.
+
+La définition suit donc la fenêtre, mais par paliers de 180 pixels de haut,
+`DisplayLadder` retenant le premier palier au-dessus d'elle. Deux raisons de ne
+pas coller au pixel près : la définition est figée pour toute la session, et
+une échelle qui changerait à chaque relance serait déroutante. Le palier étant
+toujours au-dessus, l'image est réduite et jamais agrandie, donc nette.
+
+Mesuré sur un écran 3840x2160 : une fenêtre de 700 de haut ouvre un afficheur
+1280x720 et l'interface reste parfaitement lisible ; une fenêtre plein écran
+ouvre un afficheur 3840x2160 et montre le maximum de terrain.
+
+La définition ne change qu'à l'ouverture d'une session. Redimensionner
+longuement une fenêtre puis relancer l'instance la fait passer au palier
+correspondant.
+
+## D19 - Le configurateur ne replace plus les fenêtres en relisant ses réglages
+
+Défaut ancien, trouvé en instrumentant le placement. `OnGameAnchorChanged` et
+`OnPreferredMonitorChanged` déclenchaient un replacement sans passer par le
+garde-fou de chargement, contrairement à l'enregistrement. Relire les réglages
+au démarrage replaçait donc toutes les fenêtres sur l'ancrage et effaçait leur
+géométrie mémorisée, avant même que l'utilisateur ait touché à quoi que ce
+soit.
+
+C'est ce qui faisait revenir les fenêtres empilées au même endroit à chaque
+lancement, quoi qu'on ait fait de leur position la veille.

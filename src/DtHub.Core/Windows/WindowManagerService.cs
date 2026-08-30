@@ -492,6 +492,7 @@ public sealed class WindowManagerService
             (int Width, int Height) chrome = IsFullscreen ? (0, 0) : MeasureChrome(handle);
             var rect = Resolve(session, monitor, monitors, chrome, remembered);
 
+
             _controller.MoveWindow(handle, rect);
 
             applied.Add((session.Target.Key, rect));
