@@ -55,7 +55,30 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     /// pas toujours si on redimensionne pendant qu'il démarre. L'image se
     /// retrouve alors coupée.
     /// </summary>
-    public Func<ScrcpySession, CancellationToken, Task>? PrepareWindow { get; set; }
+    public Func<ScrcpySession, ScrcpyWindowPlacement?, CancellationToken, Task>? PrepareWindow { get; set; }
+
+    /// <summary>Une seule ouverture à la fois par téléphone.</summary>
+    private readonly DeviceStartupGate _gate = new();
+
+    /// <summary>
+    /// Repos laissé sur un appareil après une ouverture. Nul par défaut : le
+    /// verrou impose déjà l'espacement d'une ouverture complète.
+    /// </summary>
+    public TimeSpan StartupCooldown
+    {
+        get => _gate.Cooldown;
+        init => _gate.Cooldown = value;
+    }
+
+    /// <summary>Vrai si une ouverture est en cours sur cet appareil.</summary>
+    public bool IsDeviceBusy(string deviceId) => _gate.IsBusy(deviceId);
+
+    /// <summary>Signalé quand un appareil devient occupé, ou cesse de l'être.</summary>
+    public event EventHandler<DeviceBusyChangedEventArgs>? DeviceBusyChanged
+    {
+        add => _gate.BusyChanged += value;
+        remove => _gate.BusyChanged -= value;
+    }
 
     /// <summary>
     /// Sessions encore ouvertes, dans l'ordre configuré, ou dans leur ordre de
@@ -126,6 +149,15 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             },
         };
 
+        // Une seule ouverture à la fois par téléphone : deux qui se chevauchent
+        // se cassent, la première mourant sur une connexion au serveur qu'elle
+        // avait pourtant déjà poussé. Le verrou couvre la poussée, la connexion,
+        // la création de l'afficheur et l'ouverture du jeu. Un clic pendant
+        // l'attente prend la file : le refuser obligerait à recliquer.
+        await using var lease = await _gate
+            .EnterAsync(target.DeviceId, cancellationToken)
+            .ConfigureAwait(false);
+
         IProcessSession process;
         try
         {
@@ -155,7 +187,8 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         var displayReady = new TaskCompletionSource<int?>(TaskCreationOptions.RunContinuationsAsynchronously);
         _ = Task.Run(() => PumpAsync(session, displayReady, options.UseVirtualDisplay), CancellationToken.None);
 
-        await CompleteStartupAsync(session, options, displayReady, cancellationToken).ConfigureAwait(false);
+        await CompleteStartupAsync(session, options, placement, displayReady, cancellationToken)
+            .ConfigureAwait(false);
 
         return session;
     }
@@ -213,6 +246,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         }
 
         _sessions.Clear();
+        _gate.Dispose();
     }
 
     /// <summary>
@@ -223,6 +257,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     private async Task CompleteStartupAsync(
         ScrcpySession session,
         ScrcpyOptions options,
+        ScrcpyWindowPlacement? placement,
         TaskCompletionSource<int?> displayReady,
         CancellationToken cancellationToken)
     {
@@ -261,7 +296,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         {
             try
             {
-                await prepare(session, cancellationToken).ConfigureAwait(false);
+                await prepare(session, placement, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {

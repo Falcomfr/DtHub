@@ -136,10 +136,10 @@
 
                     <Control Style="{StaticResource BusyIndicator}"
                              Margin="8,0,8,0" VerticalAlignment="Center" HorizontalAlignment="Right"
-                             Visibility="{Binding IsWorking, Converter={StaticResource BoolToVisibility}}" />
+                             Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
 
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
-                                Visibility="{Binding IsWorking,
+                                Visibility="{Binding IsBusy,
                                                      Converter={StaticResource InverseBoolToVisibility}}">
                       <Button Content="Lancer" Style="{StaticResource RowButton}" AllowDrop="False"
                               ToolTip="Ouvrir cette instance maintenant"

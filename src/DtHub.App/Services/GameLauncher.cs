@@ -76,15 +76,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         // La fenêtre est placée avant l'ouverture du jeu, pour qu'il naisse à
         // la taille définitive.
-        _sessions.PrepareWindow = async (session, cancellationToken) =>
+        _sessions.PrepareWindow = async (session, placement, cancellationToken) =>
         {
             // La fenêtre est maintenue garée hors écran : scrcpy recentre la
             // sienne à la première image. Sa taille, elle, n'est pas touchée :
             // l'afficheur est déjà né à la bonne, et le jeu fige la hauteur de
             // sa mise en page à son initialisation.
-            if (_pendingPlacement is { } placement)
+            if (placement is { } wanted)
             {
-                await _windows.MoveOnlyAsync(session, placement.X, placement.Y, cancellationToken)
+                await _windows.MoveOnlyAsync(session, wanted.X, wanted.Y, cancellationToken)
                     .ConfigureAwait(false);
             }
         };
@@ -99,8 +99,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// <summary>Rythme des contrôles et des sondages, selon la qualité.</summary>
     public QualityProfile Quality => _quality;
 
-    /// <summary>Position à poser avant l'ouverture du jeu.</summary>
-    private ScrcpyWindowPlacement? _pendingPlacement;
 
     /// <summary>
     /// Journalise la mort d'une session, avec la sortie de scrcpy. Sans cela,
@@ -127,6 +125,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     /// <summary>Sessions actuellement ouvertes.</summary>
     public IReadOnlyList<ScrcpySession> ActiveSessions => _sessions.ActiveSessions;
+
+    /// <summary>Vrai si une ouverture est en cours sur ce téléphone.</summary>
+    public bool IsDeviceBusy(string deviceId) => _sessions.IsDeviceBusy(deviceId);
+
+    /// <summary>Signalé quand un appareil devient occupé, ou cesse de l'être.</summary>
+    public event EventHandler<DeviceBusyChangedEventArgs>? DeviceBusyChanged
+    {
+        add => _sessions.DeviceBusyChanged += value;
+        remove => _sessions.DeviceBusyChanged -= value;
+    }
 
     /// <summary>
     /// Fenêtres qui suivent les placements automatiques.
@@ -339,7 +347,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
             remembered.TryGetValue(instance.Key, out var stored);
 
             var placement = ComputePlacement(options, stored);
-            _pendingPlacement = placement;
 
             var target = ToTarget(instance, serial);
             var display = WithDisplayFor(options, placement, stored);

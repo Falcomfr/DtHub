@@ -31,6 +31,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         // balayage laissait jusqu'à trois secondes pendant lesquelles la liste
         // annonçait une fenêtre qui n'existait plus.
         _launcher.SessionChanged += OnSessionChanged;
+        _launcher.DeviceBusyChanged += OnDeviceBusyChanged;
     }
 
     private void OnSessionChanged(object? sender, Core.Scrcpy.ScrcpySession session)
@@ -166,6 +167,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
             }
 
             SyncRows([.. instances.Where(i => connected.ContainsKey(i.DeviceId))]);
+            RefreshBusyState();
             SyncInactiveDevices(discovery.Devices, instances);
             RefreshDeviceHeaders();
 
@@ -241,7 +243,39 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
         if (await _settings.MoveInstanceAsync(dragged.Key, onto.Key, above).ConfigureAwait(true))
         {
+            // Le cache de découverte porte l'ancien ordre : le garder ferait
+            // revenir la ligne à sa place sous le curseur. Toute écriture dans
+            // les réglages doit l'invalider.
+            _instances = null;
+
             await RefreshAsync().ConfigureAwait(true);
+        }
+    }
+
+    private void OnDeviceBusyChanged(object? sender, Core.Scrcpy.DeviceBusyChangedEventArgs args)
+    {
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+
+        if (dispatcher is null)
+        {
+            return;
+        }
+
+        _ = dispatcher.BeginInvoke(RefreshBusyState);
+    }
+
+    /// <summary>
+    /// Rallume l'indicateur des lignes dont le téléphone est occupé.
+    ///
+    /// L'état est relu du lanceur à chaque passage, jamais mémorisé ici : la
+    /// liste se reconstruit toutes les quelques secondes, et une ligne neuve
+    /// doit naître dans le bon état.
+    /// </summary>
+    public void RefreshBusyState()
+    {
+        foreach (var row in Rows)
+        {
+            row.IsDeviceBusy = _launcher.IsDeviceBusy(row.DeviceId);
         }
     }
 
@@ -311,6 +345,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
             // L'état est relu plutôt que déduit de l'action : une session peut
             // s'être arrêtée d'elle-même entre-temps.
             RefreshRunningState();
+            RefreshBusyState();
 
             // Une action a pu changer ce que porte l'appareil : le prochain
             // balayage redécouvre plutôt que de reprendre le cache.

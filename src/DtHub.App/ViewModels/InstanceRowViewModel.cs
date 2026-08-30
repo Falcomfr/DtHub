@@ -47,7 +47,27 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     /// bouton grisé ne dit pas qu'il se passe quelque chose.
     /// </summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsBusy))]
     private bool _isWorking;
+
+    /// <summary>
+    /// Vrai quand le téléphone qui porte cette instance est occupé par une
+    /// autre ouverture. La ligne n'a pas été cliquée : elle attend son tour.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsBusy))]
+    private bool _isDeviceBusy;
+
+    /// <summary>
+    /// Vrai quand la ligne doit montrer l'indicateur plutôt que ses boutons,
+    /// que ce soit pour son propre travail ou celui d'une voisine du même
+    /// téléphone.
+    ///
+    /// Deux champs et non un : <see cref="IsWorking"/> sert aussi de garde-fou
+    /// de réentrance et est remis à faux dans un finally, qui éteindrait sinon
+    /// l'indicateur d'une voisine.
+    /// </summary>
+    public bool IsBusy => IsWorking || IsDeviceBusy;
 
     public string Key => Instance.Key;
 
