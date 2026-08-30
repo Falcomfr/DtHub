@@ -173,7 +173,7 @@ public partial class App : Application, IDisposable
         if (!report.AnyOpened)
         {
             Log.Warning(
-                "Aucune fenêtre ouverte, le configurateur reste affiché : {Problems}",
+                "Aucune fenêtre ouverte, les réglages restent affichés : {Problems}",
                 report.Problems.Count > 0
                     ? string.Join(" ", report.Problems)
                     : "aucune instance à ouvrir.");

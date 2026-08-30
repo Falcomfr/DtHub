@@ -88,7 +88,7 @@ public sealed record HotkeyBinding
     /// </summary>
     public static string DescribeAction(HotkeyAction action) => action switch
     {
-        HotkeyAction.ToggleConfigurator => "Afficher ou masquer le configurateur",
+        HotkeyAction.ToggleConfigurator => "Afficher ou masquer les réglages",
         HotkeyAction.NextInstance => "Fenêtre suivante",
         HotkeyAction.PreviousInstance => "Fenêtre précédente",
         HotkeyAction.Rearrange => "Empiler les fenêtres",
@@ -109,7 +109,8 @@ public sealed record HotkeyBinding
     public static string DetailAction(HotkeyAction action) => action switch
     {
         HotkeyAction.ToggleConfigurator =>
-            "Montre ou cache cette fenêtre. Les fenêtres de jeu restent ouvertes.",
+            "Montre ou cache cette fenêtre. Les fenêtres de jeu restent ouvertes, "
+            + "et le rappel de cette combinaison figure dans leur titre.",
 
         HotkeyAction.NextInstance =>
             "Passe à la fenêtre suivante, dans l'ordre de la liste des appareils. "

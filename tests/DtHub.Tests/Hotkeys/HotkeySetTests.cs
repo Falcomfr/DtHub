@@ -244,6 +244,9 @@ public class HotkeySetTests
     [Fact]
     public void Les_libelles_d_action_sont_lisibles()
     {
+        Assert.Equal(
+            "Afficher ou masquer les réglages",
+            HotkeyBinding.DescribeAction(HotkeyAction.ToggleConfigurator));
         Assert.Equal("Fenêtre suivante", HotkeyBinding.DescribeAction(HotkeyAction.NextInstance));
         Assert.Equal("Empiler les fenêtres", HotkeyBinding.DescribeAction(HotkeyAction.Rearrange));
         Assert.Equal("Côte à côte", HotkeyBinding.DescribeAction(HotkeyAction.Tile));
