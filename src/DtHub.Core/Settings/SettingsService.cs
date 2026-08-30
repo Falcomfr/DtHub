@@ -154,6 +154,43 @@ public sealed class SettingsService : IDisposable
         Changed?.Invoke(this, document);
     }
 
+    /// <summary>
+    /// Modifie les réglages et ne les écrit que si quelque chose a changé.
+    ///
+    /// Réaffirmer un état déjà en place, ce que fait chaque lancement,
+    /// réécrivait le fichier et prévenait tout le monde pour rien.
+    /// </summary>
+    /// <returns>Vrai si le fichier a été réécrit.</returns>
+    public async Task<bool> UpdateIfChangedAsync(
+        Func<AppSettingsDocument, bool> mutate,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(mutate);
+
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        AppSettingsDocument document;
+
+        try
+        {
+            document = await LoadOrMigrateAsync(cancellationToken).ConfigureAwait(false);
+
+            if (!mutate(document))
+            {
+                return false;
+            }
+
+            await _store.SaveAsync(document, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _gate.Release();
+        }
+
+        Changed?.Invoke(this, document);
+
+        return true;
+    }
+
     /// <summary>Force la relecture depuis le disque au prochain accès.</summary>
     public void Invalidate() => _current = null;
 
@@ -416,25 +453,44 @@ public sealed class SettingsService : IDisposable
     // Démarrage
 
     /// <summary>
-    /// Remplace l'ensemble des instances ouvertes au démarrage par celles qui
-    /// étaient ouvertes au moment de quitter. C'est un remplacement : toute
-    /// instance absente de la liste en sort.
+    /// Marque des instances comme faisant partie du lancement suivant, ou les
+    /// en retire.
+    ///
+    /// Lancer une instance l'y met, la fermer par le bouton l'en retire, et
+    /// rien d'autre n'y touche : fermer une fenêtre de jeu à la main, quitter
+    /// l'application ou perdre le téléphone laissent l'ensemble intact.
     /// </summary>
-    public Task SaveStartupSetAsync(
-        IReadOnlyCollection<string> openKeys,
+    public async Task SetInstancesEnabledAsync(
+        IReadOnlyCollection<string> keys,
+        bool enabled,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(openKeys);
+        ArgumentNullException.ThrowIfNull(keys);
 
-        var wanted = openKeys.ToHashSet(StringComparer.Ordinal);
-
-        return UpdateAsync(settings =>
+        if (keys.Count == 0)
         {
-            foreach (var instance in settings.Instances)
+            return;
+        }
+
+        var wanted = keys.ToHashSet(StringComparer.Ordinal);
+
+        await UpdateIfChangedAsync(
+            settings =>
             {
-                instance.IsEnabled = wanted.Contains(instance.Key);
-            }
-        }, cancellationToken);
+                var changed = false;
+
+                foreach (var instance in settings.Instances.Where(i => wanted.Contains(i.Key)))
+                {
+                    if (instance.IsEnabled != enabled)
+                    {
+                        instance.IsEnabled = enabled;
+                        changed = true;
+                    }
+                }
+
+                return changed;
+            },
+            cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>Retient la taille posée au curseur.</summary>

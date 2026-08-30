@@ -438,35 +438,54 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task L_ensemble_de_demarrage_enregistre_remplace_les_cases_precedentes()
+    public async Task Une_instance_lancee_est_cochee_pour_le_lancement_suivant()
     {
         await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
 
         var principal = "MATERIEL123|0|" + DofusPackages.DofusTouch;
-        await _service.SetInstanceEnabledAsync(principal, enabled: true, CancellationToken.None);
 
-        var clone = "MATERIEL123|999|" + DofusPackages.DofusTouch;
-        await _service.SaveStartupSetAsync([clone], CancellationToken.None);
+        await _service.SetInstancesEnabledAsync([principal], enabled: true, CancellationToken.None);
 
         var settings = await _service.GetAsync(CancellationToken.None);
 
-        Assert.False(settings.Instances.Find(i => i.Key == principal)!.IsEnabled);
-        Assert.True(settings.Instances.Find(i => i.Key == clone)!.IsEnabled);
+        Assert.True(settings.Instances.Find(i => i.Key == principal)!.IsEnabled);
+        Assert.False(settings.Instances.Find(i => i.Key != principal)!.IsEnabled);
     }
 
     [Fact]
-    public async Task Un_ensemble_de_demarrage_vide_decoche_tout()
+    public async Task Fermer_une_instance_la_retire_du_lancement_suivant()
     {
+        // C'est le seul geste qui l'en retire : fermer la fenêtre de jeu à la
+        // main la laisse dans l'ensemble et elle rouvrira.
         await _service.MergeInstancesAsync([Instance(0)], CancellationToken.None);
 
         var key = "MATERIEL123|0|" + DofusPackages.DofusTouch;
-        await _service.SetInstanceEnabledAsync(key, enabled: true, CancellationToken.None);
 
-        await _service.SaveStartupSetAsync([], CancellationToken.None);
+        await _service.SetInstancesEnabledAsync([key], enabled: true, CancellationToken.None);
+        await _service.SetInstancesEnabledAsync([key], enabled: false, CancellationToken.None);
 
         var settings = await _service.GetAsync(CancellationToken.None);
 
-        Assert.All(settings.Instances, i => Assert.False(i.IsEnabled));
+        Assert.False(settings.Instances.Find(i => i.Key == key)!.IsEnabled);
+    }
+
+    [Fact]
+    public async Task Cocher_une_instance_deja_cochee_n_ecrit_pas_le_fichier()
+    {
+        // Chaque lancement réaffirme l'état : sans ce garde-fou, le fichier
+        // serait réécrit et tout le monde prévenu pour rien.
+        await _service.MergeInstancesAsync([Instance(0)], CancellationToken.None);
+
+        var key = "MATERIEL123|0|" + DofusPackages.DofusTouch;
+
+        await _service.SetInstancesEnabledAsync([key], enabled: true, CancellationToken.None);
+
+        var writes = 0;
+        _service.Changed += (_, _) => writes++;
+
+        await _service.SetInstancesEnabledAsync([key], enabled: true, CancellationToken.None);
+
+        Assert.Equal(0, writes);
     }
 
     [Fact]

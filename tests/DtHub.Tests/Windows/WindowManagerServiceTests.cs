@@ -580,6 +580,32 @@ public class WindowManagerServiceTests
     }
 
     [Fact]
+    public async Task Le_replacement_reprend_la_derniere_fenetre_utilisee()
+    {
+        // Cliquer le bouton met le configurateur au premier plan : plus aucune
+        // fenêtre de jeu n'y est, et lire le premier plan à cet instant
+        // ramènerait toujours à la première de la liste.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(3);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
+
+        var wanted = new ScreenRect(120, 60, 900, 520);
+        desktop.MoveWindow(sessions[2].WindowHandle, wanted);
+
+        // La troisième passe au premier plan, puis le configurateur le prend.
+        desktop.Foreground = sessions[2].WindowHandle;
+        service.TrackActiveWindow(sessions);
+        desktop.Foreground = 0;
+
+        await service.StackOnActiveAsync(sessions, CancellationToken.None);
+
+        Assert.Equal(wanted, desktop.GetWindowRect(sessions[0].WindowHandle));
+        Assert.Equal(wanted, desktop.GetWindowRect(sessions[1].WindowHandle));
+    }
+
+    [Fact]
     public async Task Sans_fenetre_active_le_replacement_prend_la_premiere()
     {
         var (manager, sessions, desktop) = await OpenSessionsAsync(2);

@@ -32,7 +32,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private readonly DofusInstanceService _instances;
     private readonly SettingsService _settings;
     private readonly IHotkeyRegistrar _hotkeys;
-    private readonly IAppLauncher _apps;
+    private readonly AppRestartService _restarts;
     private readonly ILogger<GameLauncher> _logger;
 
     private bool _hotkeysWired;
@@ -55,7 +55,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         DofusInstanceService instances,
         SettingsService settings,
         IHotkeyRegistrar hotkeys,
-        IAppLauncher apps,
+        AppRestartService restarts,
         ILogger<GameLauncher> logger)
     {
         _sessions = sessions;
@@ -67,7 +67,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _instances = instances;
         _settings = settings;
         _hotkeys = hotkeys;
-        _apps = apps;
+        _restarts = restarts;
         _logger = logger;
 
         // Une session qui meurt après son ouverture ne laissait aucune trace :
@@ -386,6 +386,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         }
 
+        // Ce qui vient d'être ouvert rouvrira au lancement suivant. Seul le
+        // bouton « Fermer » retire une instance de cet ensemble : fermer une
+        // fenêtre de jeu à la main ne doit rien y changer.
+        if (started.Count > 0)
+        {
+            await _settings.SetInstancesEnabledAsync(
+                [.. started.Select(s => s.Target.Key)], enabled: true, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
         LogLaunch(started.Count, problems.Count);
 
         return new LaunchReport(started.Count, problems);
@@ -402,56 +412,70 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(instance);
 
-        var existing = FindSession(instance);
-        if (existing is not null)
+        if (FindSession(instance) is not { } session)
         {
-            // Une relance repasse par zéro session ouverte : sans ce drapeau,
-            // relancer le dernier compte fermerait l'application.
-            _closing = true;
-
-            try
-            {
-                await _sessions.StopAsync(existing.Id, cancellationToken).ConfigureAwait(false);
-                _sessions.PruneFinished();
-            }
-            finally
-            {
-                _closing = false;
-            }
+            return await LaunchAsync([instance], cancellationToken).ConfigureAwait(false);
         }
 
-        var serials = await ResolveSerialsAsync(cancellationToken).ConfigureAwait(false);
+        // Seul le jeu repart : la session scrcpy et sa fenêtre sont conservées,
+        // et l'utilisateur ne voit rien clignoter.
+        var restart = await _restarts.RestartAsync(session, cancellationToken).ConfigureAwait(false);
 
-        if (serials.TryGetValue(instance.DeviceId, out var serial))
+        if (restart.Outcome == AppRestartOutcome.Restarted)
         {
-            await _apps.ForceStopAsync(serial, instance.UserId, instance.PackageName, cancellationToken)
-                .ConfigureAwait(false);
-
-            // L'arrêt côté Android n'est pas instantané : relancer trop vite
-            // rouvrirait l'ancienne instance.
-            await Task.Delay(TimeSpan.FromMilliseconds(600), cancellationToken).ConfigureAwait(false);
+            return new LaunchReport(1, []);
         }
+
+        // Le redémarrage court a échoué : on ferme et on rouvre tout, ce qui
+        // reste le dernier recours utile.
+        LogRestartFallback(instance.DisplayName, restart.UserMessage ?? "afficheur inconnu");
+
+        await StopSessionAsync(session, cancellationToken).ConfigureAwait(false);
 
         return await LaunchAsync([instance], cancellationToken).ConfigureAwait(false);
     }
 
-    /// <summary>Ferme une instance.</summary>
+    /// <summary>
+    /// Ferme une instance, et la retire du lancement suivant.
+    ///
+    /// C'est le seul geste qui l'en retire : fermer la fenêtre de jeu à la
+    /// main la laisse dans l'ensemble et elle rouvrira.
+    /// </summary>
     public async Task StopAsync(DofusInstance instance, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(instance);
 
         if (FindSession(instance) is { } session)
         {
-            _closing = true;
-            try
-            {
-                await _sessions.StopAsync(session.Id, cancellationToken).ConfigureAwait(false);
-                _sessions.PruneFinished();
-            }
-            finally
-            {
-                _closing = false;
-            }
+            // La géométrie est relevée avant la fermeture : sans quoi la
+            // fenêtre rouvrirait ailleurs le jour où on la relance.
+            await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+
+            await StopSessionAsync(session, cancellationToken).ConfigureAwait(false);
+        }
+
+        await _settings.SetInstancesEnabledAsync([instance.Key], enabled: false, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Arrête une session sans toucher au lancement suivant.
+    ///
+    /// Le drapeau évite que fermer la dernière session ne referme
+    /// l'application : c'est nous qui fermons, pas le jeu qui meurt.
+    /// </summary>
+    private async Task StopSessionAsync(ScrcpySession session, CancellationToken cancellationToken)
+    {
+        _closing = true;
+
+        try
+        {
+            await _sessions.StopAsync(session.Id, cancellationToken).ConfigureAwait(false);
+            _sessions.PruneFinished();
+        }
+        finally
+        {
+            _closing = false;
         }
     }
 
@@ -499,7 +523,17 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// Ramène les fenêtres au rapport de leur afficheur, une fois leur taille
     /// stabilisée. Appelée régulièrement.
     /// </summary>
-    public int EnforceAspect() => _windows.EnforceAspect(_sessions.ActiveSessions);
+    /// <summary>
+    /// Entretien périodique : corrige la forme des fenêtres et retient
+    /// laquelle est au premier plan.
+    /// </summary>
+    public void Watch()
+    {
+        var sessions = _sessions.ActiveSessions;
+
+        _windows.TrackActiveWindow(sessions);
+        _windows.EnforceAspect(sessions);
+    }
 
 
     /// <summary>
@@ -901,6 +935,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Écrans : {monitors}. Fenêtres de jeu : {placement}.")]
     private partial void LogPlacement(string monitors, string placement);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "Relance courte de {instance} impossible ({reason}) : la fenêtre est rouverte.")]
+    private partial void LogRestartFallback(string instance, string reason);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Un raccourci n'a pas pu être traité.")]
     private partial void LogHotkeyFailure(Exception exception);

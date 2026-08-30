@@ -18,6 +18,15 @@ public sealed class WindowManagerService
     /// <summary>Dernière taille vue par session, pour ne corriger qu'une fois le geste fini.</summary>
     private readonly Dictionary<string, ScreenRect> _lastSeen = new(StringComparer.Ordinal);
 
+    /// <summary>
+    /// Dernière fenêtre de jeu à avoir été au premier plan.
+    ///
+    /// Elle ne peut pas se lire au moment du replacement : cliquer le bouton
+    /// met le configurateur au premier plan, et plus aucune fenêtre de jeu n'y
+    /// est. Il faut donc l'avoir suivie avant.
+    /// </summary>
+    private string? _lastActive;
+
 
     public WindowManagerService(
         IWindowController controller,
@@ -588,7 +597,11 @@ public sealed class WindowManagerService
 
         var foreground = _controller.GetForegroundWindow();
 
-        var reference = alive.Find(s => s.WindowHandle != 0 && s.WindowHandle == foreground) ?? alive[0];
+        // Celle qui est au premier plan, sinon la dernière à l'avoir été,
+        // sinon la première de la liste, dans l'ordre choisi par l'utilisateur.
+        var reference = alive.Find(s => s.WindowHandle != 0 && s.WindowHandle == foreground)
+            ?? alive.Find(s => string.Equals(s.Id, _lastActive, StringComparison.Ordinal))
+            ?? alive[0];
 
         var handle = await ResolveWindowAsync(reference, cancellationToken).ConfigureAwait(false);
 
@@ -615,6 +628,29 @@ public sealed class WindowManagerService
         }
 
         return moved;
+    }
+
+    /// <summary>
+    /// Retient laquelle des fenêtres de jeu est au premier plan.
+    ///
+    /// Appelé au fil de l'eau : au moment du replacement il est trop tard, le
+    /// configurateur ayant pris le premier plan.
+    /// </summary>
+    public void TrackActiveWindow(IReadOnlyList<ScrcpySession> sessions)
+    {
+        ArgumentNullException.ThrowIfNull(sessions);
+
+        var foreground = _controller.GetForegroundWindow();
+
+        if (foreground == 0)
+        {
+            return;
+        }
+
+        if (sessions.FirstOrDefault(s => s.IsAlive && s.WindowHandle == foreground) is { } active)
+        {
+            _lastActive = active.Id;
+        }
     }
 
     /// <summary>

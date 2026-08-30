@@ -125,7 +125,7 @@ public partial class App : Application, IDisposable
 
         var report = await launcher.LaunchEnabledAsync().ConfigureAwait(true);
 
-        _shape.Tick += (_, _) => launcher.EnforceAspect();
+        _shape.Tick += (_, _) => launcher.Watch();
         _shape.Start();
 
         var document = await settings.GetAsync().ConfigureAwait(true);
@@ -174,10 +174,10 @@ public partial class App : Application, IDisposable
 
             try
             {
+                // Ce qui rouvrira au lancement suivant n'est pas décidé ici :
+                // il suit les lancements et les fermetures explicites, pas
+                // l'état du moment où l'on quitte.
                 await launcher.CaptureGeometriesAsync().ConfigureAwait(true);
-
-                await settings.SaveStartupSetAsync(
-                    [.. launcher.ActiveSessions.Select(s => s.Target.Key)]).ConfigureAwait(true);
 
                 await settings.SetConfiguratorVisibleAsync(
                     _configurator?.IsVisible == true).ConfigureAwait(true);

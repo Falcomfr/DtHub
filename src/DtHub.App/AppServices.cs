@@ -76,6 +76,7 @@ public static class AppServices
         // Jeu.
         services.AddSingleton<DofusInstanceService>();
         services.AddSingleton<IAppLauncher, AndroidAppLauncher>();
+        services.AddSingleton<AppRestartService>();
         services.AddSingleton<ScrcpySessionManager>();
 
         // Fenêtres et raccourcis.
