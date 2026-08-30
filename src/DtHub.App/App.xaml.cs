@@ -123,7 +123,9 @@ public partial class App : Application, IDisposable
         launcher.OwnsWindow = handle => _configurator is not null && handle == _configurator.Handle;
         launcher.ConfiguratorToggleRequested += (_, _) => Dispatcher.Invoke(ToggleConfigurator);
         launcher.QuitRequested += (_, _) => Dispatcher.Invoke(async () => await RequestQuitAsync().ConfigureAwait(true));
-        launcher.LastWindowClosed += (_, _) => Dispatcher.Invoke(OnLastWindowClosed);
+        // Le panneau était déjà masqué : c'est bien qu'on le veut masqué.
+        launcher.LastWindowClosed += (_, _) => Dispatcher.Invoke(
+            () => OnNothingLeft(rememberConfigurator: false));
 
         // Masquer le panneau alors qu'il ne reste aucune fenêtre de jeu
         // revient au même que fermer la dernière fenêtre panneau masqué : dans
@@ -131,11 +133,16 @@ public partial class App : Application, IDisposable
         // invisible. Sans cela, elle restait en vie sans rien à l'écran, et la
         // relancer ne faisait que redonner le panneau, sans rouvrir les
         // instances.
+        //
+        // Le panneau, lui, est retenu comme affiché : le masquer en dernier
+        // n'est pas dire qu'on le veut masqué, c'est la façon de refermer ce
+        // qui restait. Seul un panneau déjà masqué avant de fermer les fenêtres
+        // de jeu vaut ce choix.
         _configurator.IsVisibleChanged += (_, _) =>
         {
             if (_started && _configurator?.IsVisible == false)
             {
-                OnLastWindowClosed();
+                OnNothingLeft(rememberConfigurator: true);
             }
         };
 
@@ -186,7 +193,9 @@ public partial class App : Application, IDisposable
     /// </summary>
     internal async Task RequestQuitAsync()
     {
-        await SaveSessionStateAsync().ConfigureAwait(true);
+        // Quitter depuis le panneau ou par le raccourci : c'est son état du
+        // moment qui fait foi.
+        await SaveSessionStateAsync(_configurator?.IsVisible == true).ConfigureAwait(true);
 
         Shutdown();
     }
@@ -200,7 +209,7 @@ public partial class App : Application, IDisposable
     /// configurateur masqué se rouvrait alors au lancement suivant, et les
     /// fenêtres revenaient à leur place d'avant-dernière fois.
     /// </summary>
-    private async Task SaveSessionStateAsync()
+    private async Task SaveSessionStateAsync(bool configuratorVisible)
     {
         var services = _host?.Services;
 
@@ -219,8 +228,7 @@ public partial class App : Application, IDisposable
             // l'état du moment où l'on quitte.
             await launcher.CaptureGeometriesAsync().ConfigureAwait(true);
 
-            await settings.SetConfiguratorVisibleAsync(
-                _configurator?.IsVisible == true).ConfigureAwait(true);
+            await settings.SetConfiguratorVisibleAsync(configuratorVisible).ConfigureAwait(true);
         }
         catch (IOException exception)
         {
@@ -268,7 +276,15 @@ public partial class App : Application, IDisposable
     /// n'est enregistré au passage : fermer une fenêtre à la main ne change
     /// pas ce qui doit rouvrir au lancement suivant.
     /// </summary>
-    private void OnLastWindowClosed()
+    /// <summary>
+    /// Il ne reste ni fenêtre de jeu ni panneau : l'application s'arrête.
+    /// </summary>
+    /// <param name="rememberConfigurator">
+    /// Ce qu'il faut retenir de la présence du panneau au prochain démarrage.
+    /// Vrai quand c'est lui qu'on vient de masquer en dernier, faux quand il
+    /// était déjà masqué avant que les fenêtres de jeu ne se ferment.
+    /// </param>
+    private void OnNothingLeft(bool rememberConfigurator)
     {
         // Deux sessions qui meurent ensemble signalent chacune la dernière.
         if (_quitting || _configurator?.IsVisible == true)
@@ -285,12 +301,12 @@ public partial class App : Application, IDisposable
 
         _quitting = true;
 
-        Log.Information("Dernière fenêtre de jeu fermée, configurateur masqué : arrêt.");
+        Log.Information("Plus aucune fenêtre ni panneau : arrêt.");
 
         // La géométrie des fenêtres vient d'être perdue avec elles : il ne
         // reste rien à relever. Le reste de l'état, lui, doit être retenu,
         // sans quoi le configurateur masqué se rouvrirait au lancement suivant.
-        _ = SaveSessionStateAsync().ContinueWith(
+        _ = SaveSessionStateAsync(rememberConfigurator).ContinueWith(
             _ => Shutdown(),
             TaskScheduler.FromCurrentSynchronizationContext());
     }
