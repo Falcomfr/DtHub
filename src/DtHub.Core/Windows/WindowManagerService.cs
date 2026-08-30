@@ -27,6 +27,17 @@ public sealed class WindowManagerService
     /// </summary>
     private string? _lastActive;
 
+    /// <summary>
+    /// Géométrie de chaque fenêtre juste avant le passage en plein écran.
+    ///
+    /// En sortir doit rendre à chacune sa place. Sans cette mémoire, le retour
+    /// partait du rectangle plein écran et les empilait toutes au même endroit.
+    /// </summary>
+    private readonly Dictionary<string, ScreenRect> _beforeFullscreen = new(StringComparer.Ordinal);
+
+    /// <summary>Taille en vigueur avant le passage en plein écran.</summary>
+    private int _percentBeforeFullscreen = 100;
+
 
     public WindowManagerService(
         IWindowController controller,
@@ -191,13 +202,7 @@ public sealed class WindowManagerService
             }
 
             var monitor = WindowLayoutCalculator.ChooseMonitor(monitors, current.CenterX, current.CenterY);
-            var target = WindowLayoutCalculator.ClampInto(
-                current with
-                {
-                    Width = Math.Max(120, (int)Math.Round(current.Width * factor)),
-                    Height = Math.Max(80, (int)Math.Round(current.Height * factor)),
-                },
-                UsableArea(monitor));
+            var target = Rescale(current, factor, UsableArea(monitor));
 
             if (target == current)
             {
@@ -210,6 +215,38 @@ public sealed class WindowManagerService
         }
 
         return resized;
+    }
+
+    /// <summary>
+    /// Redimensionne un rectangle en lui gardant sa position relative dans la
+    /// zone utile.
+    ///
+    /// La part d'espace libre à sa gauche reste la même : collée à gauche elle
+    /// reste collée à gauche, au milieu elle reste centrée, dans un coin elle
+    /// grandit depuis ce coin. Garder le coin haut-gauche puis reprendre la
+    /// fenêtre dans l'écran la poussait dès qu'elle grandissait près d'un bord.
+    /// </summary>
+    private static ScreenRect Rescale(ScreenRect current, double factor, ScreenRect work)
+    {
+        var width = Math.Clamp((int)Math.Round(current.Width * factor), 120, Math.Max(120, work.Width));
+        var height = Math.Clamp((int)Math.Round(current.Height * factor), 80, Math.Max(80, work.Height));
+
+        return new ScreenRect(
+            Slide(current.X, current.Width, width, work.X, work.Width),
+            Slide(current.Y, current.Height, height, work.Y, work.Height),
+            width,
+            height);
+    }
+
+    /// <summary>Nouvelle abscisse ou ordonnée, à part d'espace libre constante.</summary>
+    private static int Slide(int position, int before, int after, int origin, int span)
+    {
+        var freeBefore = span - before;
+        var freeAfter = span - after;
+
+        var share = freeBefore > 0 ? Math.Clamp((position - origin) / (double)freeBefore, 0, 1) : 0.5;
+
+        return origin + (int)Math.Round(share * freeAfter);
     }
 
     /// <summary>
@@ -297,6 +334,7 @@ public sealed class WindowManagerService
         int sizeIndex,
         CancellationToken cancellationToken = default)
     {
+        var wasFullscreen = IsFullscreen;
         var previous = SizePercent;
 
         SizeIndex = Math.Clamp(sizeIndex, 0, Math.Max(0, Presets.Count - 1));
@@ -304,7 +342,120 @@ public sealed class WindowManagerService
         // Un raccourci de taille reprend la main sur le curseur.
         CustomSizePercent = null;
 
-        return ScaleInPlaceAsync(sessions, (double)SizePercent / previous, cancellationToken);
+        return ResizeAsync(sessions, wasFullscreen, previous, cancellationToken);
+    }
+
+    /// <summary>
+    /// Applique la nouvelle taille, en traitant à part l'entrée et la sortie
+    /// du plein écran.
+    /// </summary>
+    private Task<int> ResizeAsync(
+        IReadOnlyList<ScrcpySession> sessions,
+        bool wasFullscreen,
+        int previousPercent,
+        CancellationToken cancellationToken) => (wasFullscreen, IsFullscreen) switch
+        {
+            (false, true) => EnterFullscreenAsync(sessions, previousPercent, cancellationToken),
+            (true, false) => LeaveFullscreenAsync(sessions, cancellationToken),
+            (true, true) => Task.FromResult(0),
+            _ => ScaleInPlaceAsync(sessions, (double)SizePercent / previousPercent, cancellationToken),
+        };
+
+    /// <summary>
+    /// Passe en plein écran, chaque fenêtre couvrant l'écran qui la porte, et
+    /// retient d'où elle vient.
+    /// </summary>
+    private async Task<int> EnterFullscreenAsync(
+        IReadOnlyList<ScrcpySession> sessions,
+        int previousPercent,
+        CancellationToken cancellationToken)
+    {
+        var monitors = _controller.GetMonitors();
+
+        if (sessions.Count == 0 || monitors.Count == 0)
+        {
+            return 0;
+        }
+
+        _beforeFullscreen.Clear();
+        _percentBeforeFullscreen = previousPercent;
+
+        var moved = 0;
+
+        foreach (var session in sessions.Where(s => s.IsAlive))
+        {
+            var handle = await ResolveWindowAsync(session, cancellationToken).ConfigureAwait(false);
+
+            if (handle == 0 || _controller.GetWindowRect(handle) is not { } rect || rect.IsEmpty)
+            {
+                continue;
+            }
+
+            _beforeFullscreen[session.Target.Key] = rect;
+
+            var monitor = WindowLayoutCalculator.ChooseMonitor(monitors, rect.CenterX, rect.CenterY);
+
+            _controller.SetBorderless(handle, borderless: true);
+            _controller.MoveWindow(handle, monitor.Bounds);
+            _lastSeen[session.Id] = monitor.Bounds;
+            moved++;
+        }
+
+        return moved;
+    }
+
+    /// <summary>
+    /// Quitte le plein écran et rend à chaque fenêtre la place qu'elle avait,
+    /// mise à l'échelle si la taille demandée n'est pas celle d'avant.
+    /// </summary>
+    private async Task<int> LeaveFullscreenAsync(
+        IReadOnlyList<ScrcpySession> sessions,
+        CancellationToken cancellationToken)
+    {
+        var monitors = _controller.GetMonitors();
+
+        if (sessions.Count == 0 || monitors.Count == 0)
+        {
+            return 0;
+        }
+
+        var factor = _percentBeforeFullscreen > 0
+            ? (double)SizePercent / _percentBeforeFullscreen
+            : 1;
+
+        var moved = 0;
+
+        foreach (var session in sessions.Where(s => s.IsAlive))
+        {
+            var handle = await ResolveWindowAsync(session, cancellationToken).ConfigureAwait(false);
+
+            if (handle == 0)
+            {
+                continue;
+            }
+
+            _controller.SetBorderless(handle, borderless: false);
+
+            var chrome = MeasureChrome(handle);
+
+            var rect = _beforeFullscreen.TryGetValue(session.Target.Key, out var before)
+                ? Rescale(
+                      before,
+                      factor,
+                      UsableArea(WindowLayoutCalculator.ChooseMonitor(monitors, before.CenterX, before.CenterY)))
+                : Compute(
+                      WindowLayoutCalculator.ChooseMonitor(monitors, PreferredMonitorDeviceName),
+                      session.SourceAspectRatio,
+                      chrome);
+
+            _controller.MoveWindow(handle, rect);
+            _lastSeen[session.Id] = rect;
+            moved++;
+        }
+
+        _beforeFullscreen.Clear();
+
+        return moved;
     }
 
     /// <summary>
@@ -542,11 +693,12 @@ public sealed class WindowManagerService
         int percent,
         CancellationToken cancellationToken = default)
     {
+        var wasFullscreen = IsFullscreen;
         var previous = SizePercent;
 
         CustomSizePercent = Math.Clamp(percent, 20, 100);
 
-        return ScaleInPlaceAsync(sessions, (double)SizePercent / previous, cancellationToken);
+        return ResizeAsync(sessions, wasFullscreen, previous, cancellationToken);
     }
 
     /// <summary>

@@ -537,27 +537,6 @@ public class WindowManagerServiceTests
     }
 
     [Fact]
-    public async Task Changer_la_taille_ne_deplace_pas_les_fenetres()
-    {
-        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
-        await using var _ = manager;
-
-        var service = new WindowManagerService(desktop, NoDelay);
-        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
-
-        desktop.MoveWindow(sessions[0].WindowHandle, new ScreenRect(400, 250, 1000, 600));
-
-        await service.ScaleInPlaceAsync(sessions, 0.8, CancellationToken.None);
-
-        var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
-
-        Assert.Equal(400, rect.X);
-        Assert.Equal(250, rect.Y);
-    }
-
-
-
-    [Fact]
     public async Task Le_replacement_empile_les_autres_sur_la_fenetre_active()
     {
         var (manager, sessions, desktop) = await OpenSessionsAsync(3);
@@ -577,6 +556,88 @@ public class WindowManagerServiceTests
         Assert.Equal(chosen, desktop.GetWindowRect(sessions[0].WindowHandle));
         Assert.Equal(chosen, desktop.GetWindowRect(sessions[1].WindowHandle));
         Assert.Equal(chosen, desktop.GetWindowRect(sessions[2].WindowHandle));
+    }
+
+    [Fact]
+    public async Task Changer_la_taille_garde_la_position_relative_dans_l_ecran()
+    {
+        // Une fenêtre collée en haut à gauche grandit depuis ce coin, une
+        // fenêtre centrée grandit autour de son centre. Garder le coin puis
+        // reprendre la fenêtre dans l'écran la poussait dès qu'elle
+        // grandissait près d'un bord.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(2);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
+
+        var work = FakeWindowController.PrimaryMonitor.WorkArea;
+
+        desktop.MoveWindow(sessions[0].WindowHandle, new ScreenRect(0, 0, 400, 300));
+        desktop.MoveWindow(
+            sessions[1].WindowHandle,
+            new ScreenRect((work.Width - 400) / 2, (work.Height - 300) / 2, 400, 300));
+
+        await service.ScaleInPlaceAsync(sessions, 1.5, CancellationToken.None);
+
+        var corner = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+        var middle = desktop.GetWindowRect(sessions[1].WindowHandle)!.Value;
+
+        Assert.Equal(0, corner.X);
+        Assert.Equal(0, corner.Y);
+        Assert.Equal(600, corner.Width);
+
+        Assert.Equal((work.Width - 600) / 2, middle.X);
+        Assert.Equal((work.Height - 450) / 2, middle.Y);
+    }
+
+    [Fact]
+    public async Task Une_fenetre_au_bord_droit_reste_au_bord_droit()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
+
+        var work = FakeWindowController.PrimaryMonitor.WorkArea;
+
+        desktop.MoveWindow(sessions[0].WindowHandle, new ScreenRect(work.Width - 400, 0, 400, 300));
+
+        await service.ScaleInPlaceAsync(sessions, 1.5, CancellationToken.None);
+
+        var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+
+        Assert.Equal(work.Width - 600, rect.X);
+    }
+
+    [Fact]
+    public async Task Le_retour_du_plein_ecran_rend_a_chaque_fenetre_sa_geometrie()
+    {
+        // Le retour partait du rectangle plein écran et empilait toutes les
+        // fenêtres au même endroit.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(2);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
+
+        var first = new ScreenRect(10, 20, 500, 300);
+        var second = new ScreenRect(600, 400, 700, 400);
+
+        desktop.MoveWindow(sessions[0].WindowHandle, first);
+        desktop.MoveWindow(sessions[1].WindowHandle, second);
+
+        await service.ApplySizeAsync(sessions, service.Presets.FullscreenIndex, CancellationToken.None);
+
+        Assert.Equal(
+            FakeWindowController.PrimaryMonitor.Bounds,
+            desktop.GetWindowRect(sessions[0].WindowHandle));
+
+        await service.ApplySizeAsync(sessions, 1, CancellationToken.None);
+
+        Assert.Equal(first, desktop.GetWindowRect(sessions[0].WindowHandle));
+        Assert.Equal(second, desktop.GetWindowRect(sessions[1].WindowHandle));
     }
 
     [Fact]
