@@ -44,6 +44,7 @@ public partial class App : Application, IDisposable
     private IHost? _host;
     private ConfiguratorWindow? _configurator;
     private bool _quitting;
+    private bool _started;
     private Mutex? _instance;
     private EventWaitHandle? _wake;
     private RegisteredWaitHandle? _wakeRegistration;
@@ -124,6 +125,20 @@ public partial class App : Application, IDisposable
         launcher.QuitRequested += (_, _) => Dispatcher.Invoke(async () => await RequestQuitAsync().ConfigureAwait(true));
         launcher.LastWindowClosed += (_, _) => Dispatcher.Invoke(OnLastWindowClosed);
 
+        // Masquer le panneau alors qu'il ne reste aucune fenêtre de jeu
+        // revient au même que fermer la dernière fenêtre panneau masqué : dans
+        // les deux cas il ne reste rien, et l'application ne doit pas survivre
+        // invisible. Sans cela, elle restait en vie sans rien à l'écran, et la
+        // relancer ne faisait que redonner le panneau, sans rouvrir les
+        // instances.
+        _configurator.IsVisibleChanged += (_, _) =>
+        {
+            if (_started && _configurator?.IsVisible == false)
+            {
+                OnLastWindowClosed();
+            }
+        };
+
         var report = await launcher.LaunchEnabledAsync().ConfigureAwait(true);
 
         _shape.Tick += (_, _) => launcher.Watch();
@@ -145,6 +160,10 @@ public partial class App : Application, IDisposable
         {
             _configurator.Hide();
         }
+
+        // À partir d'ici seulement, masquer le panneau vaut décision de
+        // l'utilisateur : le masquage de démarrage, lui, suit les réglages.
+        _started = true;
 
         if (!report.AnyOpened)
         {
@@ -257,6 +276,13 @@ public partial class App : Application, IDisposable
             return;
         }
 
+        // Appelée aussi quand le panneau se masque : il peut alors rester des
+        // fenêtres de jeu, et l'application doit continuer.
+        if (_host?.Services.GetRequiredService<GameLauncher>().ActiveSessions.Count > 0)
+        {
+            return;
+        }
+
         _quitting = true;
 
         Log.Information("Dernière fenêtre de jeu fermée, configurateur masqué : arrêt.");
@@ -314,6 +340,18 @@ public partial class App : Application, IDisposable
     }
 
     /// <summary>Ramène le configurateur à l'écran, sur un second lancement.</summary>
+    /// <summary>
+    /// Réveille l'exécution déjà en cours, parce qu'on a relancé l'application
+    /// alors qu'elle tournait encore.
+    ///
+    /// Elle peut n'avoir plus rien à l'écran : fermer les fenêtres de jeu à la
+    /// main ne l'arrête pas tant que le panneau est affiché, et masquer le
+    /// panneau ensuite la laisse vivante et invisible. Relancer redonnait alors
+    /// le panneau sans rouvrir les instances, ce qui n'est pas ce qu'on attend
+    /// d'un relancement. Elles reviennent donc, comme au démarrage, et les
+    /// fenêtres fermées depuis le panneau restent fermées puisqu'elles ne sont
+    /// plus dans l'ensemble de démarrage.
+    /// </summary>
     private void RevealConfigurator()
     {
         if (_configurator is null)
@@ -323,6 +361,34 @@ public partial class App : Application, IDisposable
 
         _configurator.Show();
         _configurator.Activate();
+
+        _ = ReopenIfNothingIsRunningAsync();
+    }
+
+    private async Task ReopenIfNothingIsRunningAsync()
+    {
+        var services = _host?.Services;
+
+        if (services is null)
+        {
+            return;
+        }
+
+        var launcher = services.GetRequiredService<GameLauncher>();
+
+        if (launcher.ActiveSessions.Count > 0)
+        {
+            return;
+        }
+
+        try
+        {
+            await launcher.LaunchEnabledAsync().ConfigureAwait(true);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Log.Warning(exception, "La reprise de la session a échoué.");
+        }
     }
 
     private void ToggleConfigurator()
