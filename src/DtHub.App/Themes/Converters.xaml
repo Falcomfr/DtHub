@@ -21,6 +21,7 @@
   <conv:DraggedOpacityConverter x:Key="DraggedOpacity" />
 
   <conv:AllTrueToVisibilityConverter x:Key="AllTrue" />
+  <conv:AnyTrueToVisibilityConverter x:Key="AnyTrue" />
 
   <conv:BoolToOpacityConverter x:Key="BoolToOpacity" />
 

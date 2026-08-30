@@ -57,4 +57,18 @@ public class ZoomProfileTests
         Assert.Equal(240, ZoomProfile.DpiFor(0, GameZoom.Normal));
         Assert.Equal(240, ZoomProfile.DpiFor(-10, GameZoom.Close));
     }
+
+    [Fact]
+    public void Les_deux_bouts_vont_aussi_loin_que_le_mecanisme_le_permet()
+    {
+        // Quatre paliers dont les deux extrémités sont utiles valent mieux que
+        // cinq dont deux se ressemblent : le plus proche prend la valeur qui
+        // était celle d'un cinquième palier.
+        Assert.Equal(4, Enum.GetValues<GameZoom>().Length);
+        Assert.Equal(1120, ZoomProfile.LayoutHeightFor(GameZoom.Widest));
+        Assert.Equal(460, ZoomProfile.LayoutHeightFor(GameZoom.Close));
+
+        // La normale reste la référence d'origine : 1080 pixels à 240 ppp.
+        Assert.Equal(720, ZoomProfile.LayoutHeightFor(GameZoom.Normal));
+    }
 }

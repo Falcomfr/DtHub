@@ -196,6 +196,19 @@ public sealed class AllTrueToVisibilityConverter : IMultiValueConverter
 }
 
 /// <summary>
+/// Visible dès qu'une des conditions est vraie. Pendant du précédent, pour les
+/// cas où deux raisons distinctes justifient chacune l'affichage.
+/// </summary>
+public sealed class AnyTrueToVisibilityConverter : IMultiValueConverter
+{
+    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture) =>
+        values is not null && values.Any(v => v is true) ? Visibility.Visible : Visibility.Collapsed;
+
+    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>
 /// Rend un élément visible sans jamais changer la mise en page. Un repère qui
 /// apparaît et disparaît déplacerait ce qui l'entoure, donc le milieu de
 /// l'élément survolé, donc le repère lui-même.

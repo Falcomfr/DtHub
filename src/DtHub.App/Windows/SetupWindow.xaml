@@ -47,7 +47,8 @@
                 Click="OnAddDevice" />
 
         <w:InstanceListControl DataContext="{Binding Instances}"
-                               ShowActions="False" ShowSelection="True" ShowOrdering="False" />
+                               ShowActions="False" ShowSelection="True" ShowOrdering="False"
+                               ShowDeviceStatus="True" />
 
       </StackPanel>
     </ScrollViewer>

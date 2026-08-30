@@ -41,9 +41,19 @@
                         VerticalAlignment="Center"
                         Background="{Binding Device.StatusBrushKey, Converter={StaticResource KeyToBrush}}" />
 
-                <TextBlock Grid.Column="1" Text="{Binding Device.Name}"
-                           Style="{StaticResource DeviceHeader}" VerticalAlignment="Center"
-                           ToolTip="{Binding Device.StatusText}" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding Device.Name}"
+                             Style="{StaticResource DeviceHeader}" VerticalAlignment="Center"
+                             ToolTip="{Binding Device.StatusText}" />
+
+                  <!-- En toutes lettres seulement là où on choisit ce qu'on
+                       lance : ailleurs le point de couleur suffit. -->
+                  <TextBlock Text="{Binding Device.StatusText}" Style="{StaticResource Muted}"
+                             FontSize="10" Margin="8,1,0,0" VerticalAlignment="Center"
+                             Visibility="{Binding ShowDeviceStatus,
+                                                  RelativeSource={RelativeSource AncestorType=UserControl},
+                                                  Converter={StaticResource BoolToVisibility}}" />
+                </StackPanel>
 
                 <!-- Rompre l'association ne vaut que pour l'appareil : sur son
                      premier morceau seulement, sans quoi le bouton paraîtrait
@@ -109,7 +119,10 @@
                   <ToggleButton Grid.Column="2" Style="{StaticResource LockToggle}"
                                 IsChecked="{Binding IsLocked}" AllowDrop="False"
                                 Margin="0,0,4,0" VerticalAlignment="Center"
-                                ToolTip="Verrouiller cette fenêtre à sa place. Elle ne bougera plus lors d'un empilement, d'une mise côte à côte ou d'un changement de taille, et le parcours au clavier ne s'y arrêtera pas. Les autres fenêtres se placent sans elle." />
+                                ToolTip="Verrouiller cette fenêtre à sa place. Elle ne bougera plus lors d'un empilement, d'une mise côte à côte ou d'un changement de taille, et le parcours au clavier ne s'y arrêtera pas. Les autres fenêtres se placent sans elle."
+                                Visibility="{Binding ShowActions,
+                                                     RelativeSource={RelativeSource AncestorType=UserControl},
+                                                     Converter={StaticResource BoolToVisibility}}" />
 
                   <StackPanel Grid.Column="3" VerticalAlignment="Center">
                     <TextBox Text="{Binding Name, UpdateSourceTrigger=LostFocus}" AllowDrop="False"
@@ -209,11 +222,19 @@
               <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock Text="{Binding Name}" Style="{StaticResource DeviceHeader}" />
 
-                <!-- Hors ligne, le point gris suffit. Un jeu manquant, lui,
-                     ne se devine pas. -->
+                <!-- Hors ligne, le point gris suffit dans la liste ordinaire.
+                     Un jeu manquant, lui, ne se devine pas. Et là où l'on
+                     choisit ce qu'on lance, les deux cas se disent. -->
                 <TextBlock Text="{Binding StatusText}" Style="{StaticResource Muted}"
-                           FontSize="10" Margin="8,1,0,0"
-                           Visibility="{Binding HasNoGame, Converter={StaticResource BoolToVisibility}}" />
+                           FontSize="10" Margin="8,1,0,0">
+                  <TextBlock.Visibility>
+                    <MultiBinding Converter="{StaticResource AnyTrue}">
+                      <Binding Path="HasNoGame" />
+                      <Binding Path="ShowDeviceStatus"
+                               RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                    </MultiBinding>
+                  </TextBlock.Visibility>
+                </TextBlock>
               </StackPanel>
 
               <Button Grid.Column="2" Style="{StaticResource DangerIconButton}"

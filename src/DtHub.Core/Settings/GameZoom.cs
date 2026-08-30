@@ -1,9 +1,12 @@
+using DtHub.Core.Storage;
+
 namespace DtHub.Core.Settings;
 
 /// <summary>
 /// Distance apparente dans le jeu : plus ou moins de terrain visible, à taille
 /// de fenêtre égale.
 /// </summary>
+[JsonFallback(Normal)]
 public enum GameZoom
 {
     /// <summary>Le plus de terrain possible, à la limite du lisible.</summary>
@@ -15,11 +18,8 @@ public enum GameZoom
     /// <summary>Réglage d'origine.</summary>
     Normal,
 
-    /// <summary>Peu de terrain, l'interface grande.</summary>
-    Close,
-
     /// <summary>Le moins de terrain possible, l'interface la plus grande.</summary>
-    Closest,
+    Close,
 }
 
 /// <summary>
@@ -44,14 +44,18 @@ public static class ZoomProfile
     ///
     /// La valeur normale, 720 points, est celle qu'un afficheur de 1080 pixels
     /// à 240 ppp donnait jusqu'ici : le réglage d'origine reste le réglage
-    /// d'origine.
+    /// d'origine, et c'est autour de lui que les autres se placent.
+    ///
+    /// Les deux extrémités vont aussi loin que le mécanisme le permet, si bien
+    /// que le dernier écart, de « normale » à « proche », est plus large que
+    /// les autres. Quatre paliers dont les deux bouts sont utiles valent mieux
+    /// que cinq dont deux se ressemblent.
     /// </summary>
     public static int LayoutHeightFor(GameZoom zoom) => zoom switch
     {
         GameZoom.Widest => 1120,
         GameZoom.Wide => 900,
-        GameZoom.Close => 576,
-        GameZoom.Closest => 460,
+        GameZoom.Close => 460,
         _ => 720,
     };
 

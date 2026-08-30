@@ -148,6 +148,14 @@ public sealed class SettingsService : IDisposable
             changed = true;
         }
 
+        if (settings.SchemaVersion < 9 && !Enum.IsDefined(settings.GameZoom))
+        {
+            // « Très proche » est fondu dans « proche », qui prend sa valeur :
+            // les deux ne se distinguaient plus une fois la densité plafonnée.
+            settings.GameZoom = GameZoom.Close;
+            changed = true;
+        }
+
         if (settings.SchemaVersion != AppSettingsDocument.CurrentSchemaVersion)
         {
             settings.SchemaVersion = AppSettingsDocument.CurrentSchemaVersion;

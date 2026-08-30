@@ -249,12 +249,20 @@ public sealed partial class InstanceListViewModel : ObservableObject
             _instances = null;
 
             // L'ordre de la liste commande l'ordre des fenêtres : sans cela,
-            // déplacer une ligne ne changeait que le parcours au clavier, et
-            // Alt+Tab gardait l'ordre d'ouverture.
+            // déplacer une ligne ne changeait que le parcours au clavier.
             await _launcher.RefreshRanksAsync().ConfigureAwait(true);
-            await _launcher.ApplyWindowOrderAsync().ConfigureAwait(true);
 
             await RefreshAsync().ConfigureAwait(true);
+
+            // Les fenêtres ouvertes sont rouvertes dans le nouvel ordre.
+            //
+            // Remonter la pile suffisait pour Alt+Tab, mais pas pour les
+            // vignettes de la barre des tâches : Windows les range dans
+            // l'ordre de création et n'expose rien pour le changer. Les
+            // recréer est le seul moyen, et c'est ce que l'utilisateur a
+            // demandé en connaissance de cause.
+            await _launcher.ReopenAsync().ConfigureAwait(true);
+            await _launcher.ApplyWindowOrderAsync().ConfigureAwait(true);
         }
     }
 

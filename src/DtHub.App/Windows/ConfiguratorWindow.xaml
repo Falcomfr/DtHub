@@ -268,14 +268,9 @@
                                  IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Normal}" />
                     <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="Proche"
-                                 Margin="0,0,5,0"
-                                 ToolTip="Peu de terrain visible, l'interface du jeu grande. Confortable sur une petite fenêtre."
+                                 ToolTip="Le moins de terrain possible, l'interface du jeu la plus grande. Confortable sur une petite fenêtre. Sur une fenêtre de plus de 2300 pixels de haut, ce palier se rapproche du précédent : la densité demandée y touche son plafond."
                                  IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Close}" />
-                    <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="Très proche"
-                                 ToolTip="Le moins de terrain possible, l'interface du jeu la plus grande. Sur une fenêtre très haute, ce palier se rapproche du précédent : la densité demandée y touche son plafond."
-                                 IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch},
-                                                     ConverterParameter=Closest}" />
                   </WrapPanel>
 
                   <TextBlock Style="{StaticResource Muted}" FontSize="11"

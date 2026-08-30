@@ -1,6 +1,12 @@
+using DtHub.Core.Storage;
+
 namespace DtHub.Core.Settings;
 
 /// <summary>Compromis entre finesse de l'image et charge de la machine.</summary>
+///
+/// Un palier retiré du code retombe sur le suivant vers le haut, jamais vers
+/// le bas : personne ne doit voir son image se dégrader sans l'avoir demandé.
+[JsonFallback(Maximum)]
 public enum StreamQuality
 {
     /// <summary>Le plus léger : pour les machines et les téléphones modestes.</summary>

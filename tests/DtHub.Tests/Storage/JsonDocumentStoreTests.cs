@@ -1,3 +1,4 @@
+using DtHub.Core.Settings;
 using DtHub.Infrastructure.Storage;
 
 using Microsoft.Extensions.Logging.Abstractions;
@@ -156,5 +157,45 @@ public sealed class JsonDocumentStoreTests : IDisposable
         using var store = Store();
 
         Assert.Equal("Jeux", (await store.LoadAsync(CancellationToken.None)).Nom);
+    }
+
+    [Fact]
+    public async Task Un_palier_retire_du_code_ne_fait_pas_perdre_le_reste_du_fichier()
+    {
+        // Le convertisseur standard refusait le fichier entier sur ce seul
+        // mot : retirer un palier de qualité effaçait les instances, les
+        // raccourcis et la géométrie des fenêtres de tous ceux qui l'avaient
+        // choisi. C'est arrivé, et le fichier ne doit plus jamais partir pour
+        // si peu.
+        Directory.CreateDirectory(_directory);
+
+        var path = System.IO.Path.Combine(_directory, "vieux.json");
+
+        await File.WriteAllTextAsync(
+            path,
+            """
+            {
+              "schemaVersion": 9,
+              "setupCompleted": true,
+              "quality": "Haute",
+              "gameZoom": "TresProche",
+              "customSizePercent": 62
+            }
+            """);
+
+        var store = new JsonDocumentStore<AppSettingsDocument>(path, NullLogger.Instance);
+
+        var document = await store.LoadAsync(CancellationToken.None);
+
+        // Le reste du fichier est intact...
+        Assert.True(document.SetupCompleted);
+        Assert.Equal(62, document.CustomSizePercent);
+
+        // ... et les deux valeurs inconnues retombent sur leur repli déclaré.
+        Assert.Equal(StreamQuality.Maximum, document.Quality);
+        Assert.Equal(GameZoom.Normal, document.GameZoom);
+
+        // Le fichier n'a pas été mis en quarantaine : il n'était pas corrompu.
+        Assert.Empty(Directory.GetFiles(_directory, "*.corrompu-*"));
     }
 }

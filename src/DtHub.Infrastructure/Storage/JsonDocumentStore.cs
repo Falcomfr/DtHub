@@ -20,6 +20,12 @@ public sealed partial class JsonDocumentStore<T> : IDocumentStore<T>, IDisposabl
     /// <summary>
     /// Options partagées. Les fichiers sont indentés et les énumérations
     /// écrites en clair : ils restent lisibles et modifiables à la main.
+    ///
+    /// Un nom d'énumération inconnu ne fait pas échouer la lecture. Le
+    /// convertisseur standard, lui, refusait le fichier entier sur ce seul
+    /// mot : retirer un palier de qualité effaçait les instances, les
+    /// raccourcis et la géométrie des fenêtres de tous ceux qui l'avaient
+    /// choisi.
     /// </summary>
     public static readonly JsonSerializerOptions SerializerOptions = new()
     {
@@ -27,7 +33,7 @@ public sealed partial class JsonDocumentStore<T> : IDocumentStore<T>, IDisposabl
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Converters = { new JsonStringEnumConverter() },
+        Converters = { new TolerantEnumConverterFactory() },
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         AllowTrailingCommas = true,
         ReadCommentHandling = JsonCommentHandling.Skip,

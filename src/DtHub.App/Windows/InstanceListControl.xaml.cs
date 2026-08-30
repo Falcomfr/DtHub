@@ -47,6 +47,20 @@ public partial class InstanceListControl : UserControl
     /// de mise en route : on y coche ce qui doit s'ouvrir, et c'est le bouton
     /// « Enregistrer et lancer » qui décide, pas un bouton par ligne.
     /// </summary>
+    /// <summary>
+    /// Montre l'état de chaque appareil en toutes lettres, et non par le seul
+    /// point de couleur.
+    ///
+    /// Vrai dans la fenêtre de démarrage : on y choisit ce qu'on lance, et
+    /// savoir pourquoi une ligne manque compte plus qu'une liste sobre.
+    /// </summary>
+    public static readonly DependencyProperty ShowDeviceStatusProperty =
+        DependencyProperty.Register(
+            nameof(ShowDeviceStatus),
+            typeof(bool),
+            typeof(InstanceListControl),
+            new PropertyMetadata(false));
+
     public static readonly DependencyProperty ShowActionsProperty =
         DependencyProperty.Register(
             nameof(ShowActions),
@@ -63,6 +77,12 @@ public partial class InstanceListControl : UserControl
     {
         get => (bool)GetValue(ShowSelectionProperty);
         set => SetValue(ShowSelectionProperty, value);
+    }
+
+    public bool ShowDeviceStatus
+    {
+        get => (bool)GetValue(ShowDeviceStatusProperty);
+        set => SetValue(ShowDeviceStatusProperty, value);
     }
 
     public bool ShowOrdering
