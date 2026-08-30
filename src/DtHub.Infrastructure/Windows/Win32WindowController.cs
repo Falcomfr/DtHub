@@ -176,6 +176,16 @@ public sealed partial class Win32WindowController : IWindowController
         }
     }
 
+    public void Raise(nint handle)
+    {
+        if (handle == 0 || !IsWindowCore(handle))
+        {
+            return;
+        }
+
+        _ = SetWindowPos(handle, HwndTop, 0, 0, 0, 0, SwpNoMove | SwpNoSize | SwpNoActivate);
+    }
+
     public void Focus(nint handle)
     {
         if (handle == 0)

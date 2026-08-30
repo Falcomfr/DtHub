@@ -22,6 +22,9 @@ public enum HotkeyAction
     /// <summary>Remettre toutes les fenêtres en place.</summary>
     Rearrange,
 
+    /// <summary>Deux fenêtres, chacune sur une moitié de l'écran.</summary>
+    Tile,
+
     /// <summary>Première taille, la plus petite.</summary>
     Size1,
 

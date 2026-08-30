@@ -22,6 +22,7 @@ public sealed class HotkeySet
         [HotkeyAction.PreviousInstance] = Bind(
             HotkeyAction.PreviousInstance, VirtualKeys.Tab, HotkeyModifiers.Control | HotkeyModifiers.Shift),
         [HotkeyAction.Rearrange] = Bind(HotkeyAction.Rearrange, VirtualKeys.R, HotkeyModifiers.Control),
+        [HotkeyAction.Tile] = Bind(HotkeyAction.Tile, VirtualKeys.T, HotkeyModifiers.Control),
         [HotkeyAction.Size1] = Bind(HotkeyAction.Size1, VirtualKeys.D1, HotkeyModifiers.Control),
         [HotkeyAction.Size2] = Bind(HotkeyAction.Size2, VirtualKeys.D2, HotkeyModifiers.Control),
         [HotkeyAction.Size3] = Bind(HotkeyAction.Size3, VirtualKeys.D3, HotkeyModifiers.Control),

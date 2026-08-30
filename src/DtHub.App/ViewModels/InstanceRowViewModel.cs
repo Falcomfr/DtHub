@@ -32,6 +32,19 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     [ObservableProperty]
     private bool _isManaged = true;
 
+    /// <summary>
+    /// L'inverse, tel que la ligne le présente : un verrou, éteint par défaut.
+    ///
+    /// Le réglage enregistré dit ce que la fenêtre suit, ce qui est le bon sens
+    /// pour du code ; l'interface dit ce que l'utilisateur décide, et il décide
+    /// d'immobiliser une fenêtre, pas d'en libérer huit.
+    /// </summary>
+    public bool IsLocked
+    {
+        get => !IsManaged;
+        set => IsManaged = !value;
+    }
+
     /// <summary>Nom affiché, modifiable.</summary>
     [ObservableProperty]
     private string _name;
@@ -179,6 +192,8 @@ public sealed partial class InstanceRowViewModel : ObservableObject
 
     partial void OnIsManagedChanged(bool value)
     {
+        OnPropertyChanged(nameof(IsLocked));
+
         if (!_applying)
         {
             ManagedChanged?.Invoke(this, this);

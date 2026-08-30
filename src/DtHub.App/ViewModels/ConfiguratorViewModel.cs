@@ -79,6 +79,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             {
                 GameAnchor = document.GameAnchor;
                 Quality = document.Quality;
+                Zoom = document.GameZoom;
                 SizePercent = document.CustomSizePercent > 0
                     ? document.CustomSizePercent
                     : presets.PercentageAt(document.SizeIndex);
@@ -136,9 +137,21 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [ObservableProperty]
     private string _rearrangeShortcutText = string.Empty;
 
+    /// <summary>Raccourci du côte à côte, affiché à côté du bouton.</summary>
+    [ObservableProperty]
+    private string _tileShortcutText = string.Empty;
+
     /// <summary>Raccourci de sortie, affiché sous le bouton Quitter.</summary>
     [ObservableProperty]
     private string _quitShortcutText = string.Empty;
+
+    /// <summary>Distance apparente dans le jeu, figée à l'ouverture d'une session.</summary>
+    [ObservableProperty]
+    private GameZoom _zoom = GameZoom.Normal;
+
+    /// <summary>Vrai le temps que les fenêtres se referment et rouvrent.</summary>
+    [ObservableProperty]
+    private bool _isReopening;
 
     public string Disclaimer =>
         "Projet indépendant, sans lien avec Ankama.";
@@ -157,6 +170,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             var presets = await _settings.GetSizePresetsAsync(cancellationToken).ConfigureAwait(true);
 
             Quality = settings.Quality;
+            Zoom = settings.GameZoom;
 
             SizePercent = settings.CustomSizePercent > 0
                 ? settings.CustomSizePercent
@@ -188,6 +202,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         // Les actions de la barre du bas rappellent leur raccourci, et le
         // suivent quand il est modifié dans l'éditeur.
         RearrangeShortcutText = hotkeys.For(HotkeyAction.Rearrange)?.DisplayText ?? string.Empty;
+        TileShortcutText = hotkeys.For(HotkeyAction.Tile)?.DisplayText ?? string.Empty;
         QuitShortcutText = hotkeys.For(HotkeyAction.Quit)?.DisplayText ?? string.Empty;
 
     }
@@ -382,7 +397,52 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             return;
         }
 
-        _ = _settings.SetQualityAsync(value);
+        _ = ApplyStartupSettingAsync(_settings.SetQualityAsync(value));
+    }
+
+    partial void OnZoomChanged(GameZoom value)
+    {
+        if (_loading)
+        {
+            return;
+        }
+
+        _ = ApplyStartupSettingAsync(_settings.SetZoomAsync(value));
+    }
+
+    /// <summary>
+    /// Enregistre un réglage qui n'agit qu'à l'ouverture d'une session, puis
+    /// rouvre les fenêtres pour qu'il se voie.
+    ///
+    /// Sans cela, changer la qualité ou la distance ne montrait rien : ce sont
+    /// des arguments de démarrage de scrcpy, figés pour toute la session. Le
+    /// choix de rouvrir plutôt que d'attendre la prochaine fois est celui de
+    /// l'utilisateur, qui ne comprenait pas pourquoi le réglage semblait mort.
+    /// </summary>
+    private async Task ApplyStartupSettingAsync(Task write)
+    {
+        await write.ConfigureAwait(true);
+
+        if (IsReopening)
+        {
+            return;
+        }
+
+        IsReopening = true;
+
+        try
+        {
+            var report = await _launcher.ReopenAsync().ConfigureAwait(true);
+
+            if (report.Problems.Count > 0)
+            {
+                _dialogs.ShowWarning(string.Join(Environment.NewLine, report.Problems));
+            }
+        }
+        finally
+        {
+            IsReopening = false;
+        }
     }
 
 

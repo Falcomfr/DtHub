@@ -92,6 +92,11 @@ public sealed class FakeWindowController : IWindowController
         Foreground = handle;
     }
 
+    /// <summary>Ordre d'empilement, du plus récent remonté au plus ancien.</summary>
+    public List<nint> RaiseCalls { get; } = [];
+
+    public void Raise(nint handle) => RaiseCalls.Add(handle);
+
     public void SetBorderless(nint handle, bool borderless)
     {
         if (borderless)

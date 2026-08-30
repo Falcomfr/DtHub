@@ -46,6 +46,15 @@ public interface IWindowController
     void Focus(nint handle);
 
     /// <summary>
+    /// Remonte une fenêtre au sommet de la pile sans lui donner le focus.
+    ///
+    /// C'est ce qui permet de faire suivre l'ordre de la liste à l'ordre des
+    /// fenêtres, donc à celui d'Alt+Tab, sans arracher le clavier à la fenêtre
+    /// où l'utilisateur est en train de jouer.
+    /// </summary>
+    void Raise(nint handle);
+
+    /// <summary>
     /// Change le titre d'une fenêtre. Le rappel du raccourci y figure, et doit
     /// suivre une modification faite dans l'éditeur : scrcpy ne fixe son titre
     /// qu'au démarrage.

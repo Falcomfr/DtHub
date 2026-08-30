@@ -248,6 +248,12 @@ public sealed partial class InstanceListViewModel : ObservableObject
             // les réglages doit l'invalider.
             _instances = null;
 
+            // L'ordre de la liste commande l'ordre des fenêtres : sans cela,
+            // déplacer une ligne ne changeait que le parcours au clavier, et
+            // Alt+Tab gardait l'ordre d'ouverture.
+            await _launcher.RefreshRanksAsync().ConfigureAwait(true);
+            await _launcher.ApplyWindowOrderAsync().ConfigureAwait(true);
+
             await RefreshAsync().ConfigureAwait(true);
         }
     }

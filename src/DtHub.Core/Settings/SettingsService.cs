@@ -128,6 +128,16 @@ public sealed class SettingsService : IDisposable
             changed = true;
         }
 
+        if (settings.SchemaVersion < 7)
+        {
+            // La densité de l'afficheur devient un réglage de zoom, calculé à
+            // partir de la définition retenue. La valeur fixe du fichier n'a
+            // plus d'effet et disparaît à la réécriture ; le zoom démarre au
+            // réglage d'origine, qui donne la même chose qu'avant.
+            settings.GameZoom = GameZoom.Normal;
+            changed = true;
+        }
+
         if (settings.SchemaVersion != AppSettingsDocument.CurrentSchemaVersion)
         {
             settings.SchemaVersion = AppSettingsDocument.CurrentSchemaVersion;
@@ -231,6 +241,14 @@ public sealed class SettingsService : IDisposable
     /// <summary>Retient la qualité choisie.</summary>
     public Task SetQualityAsync(StreamQuality quality, CancellationToken cancellationToken = default) =>
         UpdateAsync(settings => settings.Quality = quality, cancellationToken);
+
+    /// <summary>Distance apparente en vigueur.</summary>
+    public async Task<GameZoom> GetZoomAsync(CancellationToken cancellationToken = default) =>
+        (await GetAsync(cancellationToken).ConfigureAwait(false)).GameZoom;
+
+    /// <summary>Retient la distance apparente choisie.</summary>
+    public Task SetZoomAsync(GameZoom zoom, CancellationToken cancellationToken = default) =>
+        UpdateAsync(settings => settings.GameZoom = zoom, cancellationToken);
 
     /// <summary>Tailles configurées, corrigées si le fichier est incohérent.</summary>
     public async Task<WindowSizePresets> GetSizePresetsAsync(CancellationToken cancellationToken = default)

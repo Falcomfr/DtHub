@@ -95,6 +95,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     /// <summary>Réglages dérivés de la qualité choisie, relus à chaque lancement.</summary>
     private QualityProfile _quality = QualityProfile.For(StreamQuality.Medium);
+    private GameZoom _zoom = GameZoom.Normal;
 
     /// <summary>Rythme des contrôles et des sondages, selon la qualité.</summary>
     public QualityProfile Quality => _quality;
@@ -369,6 +370,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     {
                         VirtualDisplayWidth = DisplayLadder.FallbackWidth,
                         VirtualDisplayHeight = DisplayLadder.FallbackHeight,
+                        VirtualDisplayDpi = ZoomProfile.DpiFor(DisplayLadder.FallbackHeight, _zoom),
                     },
                     placement,
                     cancellationToken).ConfigureAwait(false);
@@ -507,6 +509,51 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
 
         await _registry.ForgetAsync(deviceId, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Referme puis rouvre les fenêtres ouvertes, à leur place et à leur
+    /// taille.
+    ///
+    /// La qualité et le zoom sont des arguments de démarrage de scrcpy, figés
+    /// pour toute la durée d'une session : les changer ne se voyait nulle part
+    /// tant qu'on n'avait pas tout refermé à la main. La géométrie est relevée
+    /// avant la fermeture, si bien que chaque fenêtre revient là où elle était.
+    /// </summary>
+    public async Task<LaunchReport> ReopenAsync(CancellationToken cancellationToken = default)
+    {
+        var instances = _sessions.ActiveSessions
+            .Select(s => s.Target)
+            .ToList();
+
+        if (instances.Count == 0)
+        {
+            return new LaunchReport(0, []);
+        }
+
+        await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+
+        _closing = true;
+
+        try
+        {
+            await _sessions.StopAllAsync(cancellationToken).ConfigureAwait(false);
+            _sessions.PruneFinished();
+        }
+        finally
+        {
+            _closing = false;
+        }
+
+        // Les cibles portent l'identité d'une session, pas d'une instance :
+        // c'est la liste à jour des instances qui sait ce qu'il faut rouvrir.
+        var known = await RefreshInstancesAsync(cancellationToken).ConfigureAwait(false);
+
+        var reopen = known
+            .Where(i => instances.Any(t => string.Equals(t.Key, i.Key, StringComparison.Ordinal)))
+            .ToList();
+
+        return await LaunchAsync(reopen, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>Ferme toutes les fenêtres ouvertes par l'application.</summary>
@@ -801,8 +848,25 @@ public sealed partial class GameLauncher : IAsyncDisposable
         var (width, height) = DisplayLadder.For(
             window.Height, screen.Width, screen.Height, _quality.MaximumDisplayHeight);
 
-        return options with { VirtualDisplayWidth = width, VirtualDisplayHeight = height };
+        // La densité se déduit de la définition retenue : la laisser fixe
+        // faisait varier le zoom du jeu avec la taille de la fenêtre, puisque
+        // la définition, elle, la suit.
+        return options with
+        {
+            VirtualDisplayWidth = width,
+            VirtualDisplayHeight = height,
+            VirtualDisplayDpi = ZoomProfile.DpiFor(height, _zoom),
+        };
     }
+
+    /// <summary>
+    /// Fait suivre l'ordre de la liste à l'ordre des fenêtres, Alt+Tab compris.
+    ///
+    /// Toutes les fenêtres y passent, verrouillées comprises : le verrou porte
+    /// sur la position, pas sur le rang.
+    /// </summary>
+    public Task<int> ApplyWindowOrderAsync(CancellationToken cancellationToken = default) =>
+        _windows.ApplyOrderAsync(_sessions.ActiveSessions, cancellationToken);
 
     /// <summary>
     /// Relit l'ordre voulu et le donne au gestionnaire de sessions. Tout ce
@@ -857,6 +921,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         await RefreshRanksAsync(cancellationToken).ConfigureAwait(false);
 
         _quality = QualityProfile.For(settings.Quality);
+        _zoom = settings.GameZoom;
         _windows.Anchor = settings.GameAnchor;
         _windows.Presets = await _settings.GetSizePresetsAsync(cancellationToken).ConfigureAwait(false);
 
@@ -933,6 +998,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
                 case HotkeyAction.Rearrange:
                     await StackOnActiveAsync().ConfigureAwait(false);
+                    break;
+
+                case HotkeyAction.Tile:
+                    await TileAsync().ConfigureAwait(false);
                     break;
 
                 case HotkeyAction.Size1:

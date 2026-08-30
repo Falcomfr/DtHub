@@ -971,6 +971,44 @@ public sealed class WindowManagerService
         _controller.MoveWindow(handle, rect with { X = x, Y = y });
     }
 
+    /// <summary>
+    /// Fait suivre l'ordre de la liste à l'ordre des fenêtres, donc à celui
+    /// d'Alt+Tab.
+    ///
+    /// Les fenêtres sont remontées de la dernière à la première : chacune passe
+    /// au-dessus des précédentes, si bien que la première de la liste finit au
+    /// sommet. Aucune ne prend le focus, la fenêtre où l'on joue reste celle où
+    /// l'on joue.
+    ///
+    /// L'ordre des vignettes de la barre des tâches, lui, suit l'ordre de
+    /// création et ne bouge pas : Windows ne l'expose pas.
+    /// </summary>
+    public async Task<int> ApplyOrderAsync(
+        IReadOnlyList<ScrcpySession> sessions,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(sessions);
+
+        var handles = new List<nint>(sessions.Count);
+
+        foreach (var session in sessions)
+        {
+            var handle = await ResolveWindowAsync(session, cancellationToken).ConfigureAwait(false);
+
+            if (handle != 0)
+            {
+                handles.Add(handle);
+            }
+        }
+
+        for (var i = handles.Count - 1; i >= 0; i--)
+        {
+            _controller.Raise(handles[i]);
+        }
+
+        return handles.Count;
+    }
+
     /// <summary>Passe à l'instance suivante, en boucle.</summary>
     public ScrcpySession? FocusNext(IReadOnlyList<ScrcpySession> sessions) => Cycle(sessions, forward: true);
 

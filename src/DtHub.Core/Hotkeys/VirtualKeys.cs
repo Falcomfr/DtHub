@@ -38,6 +38,7 @@ public static class VirtualKeys
     public const int A = 0x41;
     public const int P = 0x50;
     public const int R = 0x52;
+    public const int T = 0x54;
     public const int LeftWindows = 0x5B;
     public const int RightWindows = 0x5C;
     public const int NumPad0 = 0x60;

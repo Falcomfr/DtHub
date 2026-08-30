@@ -91,7 +91,8 @@ public sealed record HotkeyBinding
         HotkeyAction.ToggleConfigurator => "Afficher ou masquer le configurateur",
         HotkeyAction.NextInstance => "Fenêtre suivante",
         HotkeyAction.PreviousInstance => "Fenêtre précédente",
-        HotkeyAction.Rearrange => "Empiler sur la dernière fenêtre utilisée",
+        HotkeyAction.Rearrange => "Empiler les fenêtres",
+        HotkeyAction.Tile => "Côte à côte",
         HotkeyAction.Size1 => "Taille 1",
         HotkeyAction.Size2 => "Taille 2",
         HotkeyAction.Size3 => "Taille 3",
@@ -120,7 +121,11 @@ public sealed record HotkeyBinding
 
         HotkeyAction.Rearrange =>
             "Empile toutes les fenêtres sur la dernière que vous avez utilisée, "
-            + "à sa position et à sa taille.",
+            + "à sa position et à sa taille. Les fenêtres verrouillées ne bougent pas.",
+
+        HotkeyAction.Tile =>
+            "Range deux fenêtres côte à côte, chacune sur une moitié de l'écran. "
+            + "La fenêtre active va à droite.",
 
         HotkeyAction.Size1 => "La plus petite des quatre tailles, réglables au curseur.",
         HotkeyAction.Size2 => "La deuxième des quatre tailles, réglables au curseur.",

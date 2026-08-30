@@ -78,6 +78,29 @@
                                             Converter={StaticResource EmptyToVisibility},
                                             ConverterParameter=inverse}" />
             </StackPanel>
+
+            <StackPanel Margin="4,0,0,0">
+              <Button Padding="8,5" Style="{StaticResource QuietButton}" HorizontalAlignment="Center"
+                      ToolTip="Ranger deux fenêtres côte à côte, chacune sur une moitié de l'écran. La fenêtre active va à droite."
+                      Command="{Binding TileCommand}">
+                <!-- Deux fenêtres accolées, l'active en couleur à droite. -->
+                <Grid Width="20" Height="16">
+                  <Border Width="9" Height="13" CornerRadius="2"
+                          HorizontalAlignment="Left" VerticalAlignment="Center"
+                          BorderThickness="1.4" BorderBrush="{DynamicResource TextMutedBrush}" />
+                  <Border Width="9" Height="13" CornerRadius="2"
+                          HorizontalAlignment="Right" VerticalAlignment="Center"
+                          Background="{DynamicResource SurfaceAltBrush}"
+                          BorderThickness="1.4" BorderBrush="{DynamicResource AccentBrush}" />
+                </Grid>
+              </Button>
+
+              <TextBlock Text="{Binding TileShortcutText}" Style="{StaticResource Muted}"
+                         FontSize="9" HorizontalAlignment="Center" Margin="0,1,0,0"
+                         Visibility="{Binding TileShortcutText,
+                                              Converter={StaticResource EmptyToVisibility},
+                                              ConverterParameter=inverse}" />
+            </StackPanel>
           </StackPanel>
 
           <StackPanel Grid.Column="1">
@@ -151,15 +174,9 @@
                 <StackPanel>
                   <TextBlock Text="REPLACER LES FENÊTRES" Style="{StaticResource SectionLabel}" />
 
-                  <Button Content="Côte à côte" Style="{StaticResource QuietButton}"
-                          HorizontalAlignment="Left" Margin="-7,0,0,4"
-                          ToolTip="Deux fenêtres, chacune sur une moitié de l'écran. La fenêtre active va à droite."
-                          Command="{Binding TileCommand}" />
-
-                  <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,8"
-                             Text="Ou cliquez une case pour regrouper toutes les fenêtres à cet endroit." />
-
-                  <ItemsControl ItemsSource="{Binding Anchors}" HorizontalAlignment="Left">
+                  <ItemsControl ItemsSource="{Binding Anchors}" HorizontalAlignment="Left"
+                                Margin="0,4,0,0"
+                                ToolTip="Cliquez une case pour regrouper toutes les fenêtres à cet endroit de l'écran. C'est aussi le coin où s'ouvrent les fenêtres qui n'ont pas encore de place retenue.">
                     <ItemsControl.ItemsPanel>
                       <ItemsPanelTemplate>
                         <UniformGrid Columns="3" Rows="3" />
@@ -181,9 +198,8 @@
 
               <Border Style="{StaticResource Card}">
                 <StackPanel>
-                  <TextBlock Text="TAILLE DES FENÊTRES" Style="{StaticResource SectionLabel}" />
-                  <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,6"
-                             Text="Proportionnelle à l'écran. Ctrl+1 à Ctrl+5 posent cinq repères." />
+                  <TextBlock Text="TAILLE DES FENÊTRES" Style="{StaticResource SectionLabel}"
+                             ToolTip="Proportionnelle à la zone utilisable de l'écran, et non à ses pixels : la même valeur donne la même part d'écran partout. Les raccourcis Ctrl+1 à Ctrl+5 posent cinq repères sur ce curseur." />
 
                   <Grid>
                     <Grid.ColumnDefinitions>
@@ -226,6 +242,34 @@
                 </StackPanel>
               </Border>
 
+              <Border Style="{StaticResource Card}">
+                <StackPanel>
+                  <TextBlock Text="DISTANCE DANS LE JEU" Style="{StaticResource SectionLabel}"
+                             ToolTip="Agit sur la densité de l'écran vu par Android, et non sur la finesse de l'image : à taille de fenêtre égale, le jeu montre plus ou moins de terrain." />
+
+                  <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                    <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="Éloignée"
+                                 Margin="0,0,5,0"
+                                 ToolTip="Le plus de terrain visible, l'interface du jeu la plus petite. Pratique pour suivre plusieurs comptes d'un coup d'oeil, moins confortable pour viser."
+                                 IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch},
+                                                     ConverterParameter=Wide}" />
+                    <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="Normale"
+                                 Margin="0,0,5,0"
+                                 ToolTip="Le réglage d'origine, celui d'un affichage de 1080 pixels à 240 ppp."
+                                 IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch},
+                                                     ConverterParameter=Normal}" />
+                    <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="Proche"
+                                 ToolTip="Le moins de terrain visible, l'interface du jeu la plus grande. Confortable sur une petite fenêtre."
+                                 IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch},
+                                                     ConverterParameter=Close}" />
+                  </StackPanel>
+
+                  <TextBlock Style="{StaticResource Muted}" FontSize="11"
+                             Visibility="{Binding IsReopening, Converter={StaticResource BoolToVisibility}}"
+                             Text="Les fenêtres ouvertes se rouvrent pour prendre le changement." />
+                </StackPanel>
+              </Border>
+
               <StackPanel Margin="2,4,0,10">
                 <TextBlock Style="{StaticResource Muted}" FontSize="11">
                   <Run Text="{Binding ProductName, Mode=OneWay}" />
@@ -233,7 +277,7 @@
                 </TextBlock>
                 <TextBlock Text="{Binding Disclaimer}" Style="{StaticResource Muted}" FontSize="11" />
                 <Button Content="Ouvrir le dossier des journaux" Style="{StaticResource QuietButton}"
-                        HorizontalAlignment="Left" Margin="-8,4,0,0" Command="{Binding OpenLogsCommand}" />
+                        HorizontalAlignment="Left" Margin="-9,4,0,0" Command="{Binding OpenLogsCommand}" />
               </StackPanel>
 
             </StackPanel>
@@ -248,14 +292,17 @@
 
               <w:InstanceListControl DataContext="{Binding Instances}" />
 
-              <!-- Une seule ligne chacune : le détail est dans la fenêtre d'aide. -->
+              <!-- Une seule ligne chacune : le détail est dans la fenêtre
+                   d'aide. La marge négative annule le remplissage et la bordure
+                   du bouton, neuf pixels, pour que le texte parte du même bord
+                   que la liste au-dessus. -->
               <Button Content="Plusieurs comptes sur un même appareil ?"
                       Style="{StaticResource QuietButton}" HorizontalAlignment="Left"
-                      Margin="-8,2,0,0" Click="OnCloneHelp" />
+                      Margin="-9,6,0,0" Click="OnCloneHelp" />
 
               <Button Content="Une fenêtre se fige au bout d'un moment ?"
                       Style="{StaticResource QuietButton}" HorizontalAlignment="Left"
-                      Margin="-8,0,0,0" Click="OnSleepHelp" />
+                      Margin="-9,0,0,0" Click="OnSleepHelp" />
 
             </StackPanel>
 

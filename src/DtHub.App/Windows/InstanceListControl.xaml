@@ -48,12 +48,15 @@
                 <!-- Rompre l'association ne vaut que pour l'appareil : sur son
                      premier morceau seulement, sans quoi le bouton paraîtrait
                      deux fois pour le même téléphone. -->
-                <Button Grid.Column="2" Content="Dissocier" Style="{StaticResource RowButton}"
+                <!-- Un maillon rompu, dessiné comme deux anneaux écartés. -->
+                <Button Grid.Column="2" Style="{StaticResource DangerIconButton}"
                         AllowDrop="False"
-                        ToolTip="Rompre l'association avec cet appareil et effacer ses instances"
+                        ToolTip="Rompre l'association avec cet appareil. Ses fenêtres se ferment, et ses instances comme leurs réglages sont effacés. Une confirmation est demandée."
                         Command="{Binding DataContext.ForgetDeviceCommand,
                                           RelativeSource={RelativeSource AncestorType=UserControl}}"
                         CommandParameter="{Binding Device}">
+                  <Control Style="{StaticResource UnlinkGlyph}" />
+
                   <Button.Visibility>
                     <MultiBinding Converter="{StaticResource AllTrue}">
                       <Binding Path="ShowActions" RelativeSource="{RelativeSource AncestorType=UserControl}" />
@@ -100,16 +103,13 @@
                     </Control.Visibility>
                   </Control>
 
-                  <!-- Éteint, la fenêtre est laissée où elle est : le parcours
-                       au clavier, le replacement, le côte à côte et les
+                  <!-- Verrouillée, la fenêtre est laissée où elle est : le
+                       parcours au clavier, l'empilement, le côte à côte et les
                        tailles l'ignorent. -->
-                  <ToggleButton Grid.Column="2" Style="{StaticResource PlacementToggle}"
-                                IsChecked="{Binding IsManaged}" AllowDrop="False"
+                  <ToggleButton Grid.Column="2" Style="{StaticResource LockToggle}"
+                                IsChecked="{Binding IsLocked}" AllowDrop="False"
                                 Margin="0,0,4,0" VerticalAlignment="Center"
-                                ToolTip="Suivre les placements automatiques : passage d'une fenêtre à l'autre, empilement, côte à côte et changements de taille. Éteignez pour laisser cette fenêtre exactement où elle est."
-                                Visibility="{Binding ShowActions,
-                                                     RelativeSource={RelativeSource AncestorType=UserControl},
-                                                     Converter={StaticResource BoolToVisibility}}" />
+                                ToolTip="Verrouiller cette fenêtre à sa place. Elle ne bougera plus lors d'un empilement, d'une mise côte à côte ou d'un changement de taille, et le parcours au clavier ne s'y arrêtera pas. Les autres fenêtres se placent sans elle." />
 
                   <StackPanel Grid.Column="3" VerticalAlignment="Center">
                     <TextBox Text="{Binding Name, UpdateSourceTrigger=LostFocus}" AllowDrop="False"
@@ -147,19 +147,26 @@
                                                 RelativeSource={RelativeSource AncestorType=UserControl}}"
                               CommandParameter="{Binding}" />
 
-                      <Button Content="Relancer" Style="{StaticResource RowButton}" AllowDrop="False"
-                              ToolTip="Redémarrer le jeu sans fermer la fenêtre. S'il ne revient pas, fermez puis rouvrez."
+                      <!-- Une flèche qui reboucle : le jeu redémarre, la
+                           fenêtre reste. -->
+                      <Button Style="{StaticResource IconButton}" AllowDrop="False"
+                              ToolTip="Relancer le jeu sans fermer la fenêtre. Utile quand une fenêtre s'est figée : elle repart à l'écran de connexion, à sa place et à sa taille."
                               Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"
                               Command="{Binding DataContext.RestartCommand,
                                                 RelativeSource={RelativeSource AncestorType=UserControl}}"
-                              CommandParameter="{Binding}" />
+                              CommandParameter="{Binding}">
+                        <Path Style="{StaticResource RowGlyph}"
+                              Data="M 13,7.5 A 5.5,5.5 0 1 1 11.1,3.3 M 13,1.5 V 4.2 H 10.3" />
+                      </Button>
 
-                      <Button Content="Fermer" Style="{StaticResource RowButton}" AllowDrop="False"
-                              ToolTip="Fermer cette fenêtre, et ne plus la rouvrir au lancement suivant"
+                      <Button Style="{StaticResource IconButton}" AllowDrop="False"
+                              ToolTip="Fermer cette fenêtre. Sa position est retenue, mais elle ne rouvrira pas au prochain lancement tant que vous ne la recochez pas."
                               Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"
                               Command="{Binding DataContext.StopCommand,
                                                 RelativeSource={RelativeSource AncestorType=UserControl}}"
-                              CommandParameter="{Binding}" />
+                              CommandParameter="{Binding}">
+                        <Path Style="{StaticResource RowGlyph}" Data="M 4,4 L 11,11 M 11,4 L 4,11" />
+                      </Button>
                     </StackPanel>
                   </Grid>
                 </Grid>
@@ -203,14 +210,16 @@
                            Visibility="{Binding HasNoGame, Converter={StaticResource BoolToVisibility}}" />
               </StackPanel>
 
-              <Button Grid.Column="2" Content="Dissocier" Style="{StaticResource RowButton}"
-                      ToolTip="Rompre l'association avec cet appareil et effacer ses instances"
+              <Button Grid.Column="2" Style="{StaticResource DangerIconButton}"
+                      ToolTip="Rompre l'association avec cet appareil. Ses instances comme leurs réglages sont effacés. Une confirmation est demandée."
                       Visibility="{Binding ShowActions,
                                            RelativeSource={RelativeSource AncestorType=UserControl},
                                            Converter={StaticResource BoolToVisibility}}"
                       Command="{Binding DataContext.ForgetDeviceCommand,
                                         RelativeSource={RelativeSource AncestorType=UserControl}}"
-                      CommandParameter="{Binding}" />
+                      CommandParameter="{Binding}">
+                <Control Style="{StaticResource UnlinkGlyph}" />
+              </Button>
             </Grid>
           </DataTemplate>
         </ItemsControl.ItemTemplate>

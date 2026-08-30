@@ -893,4 +893,40 @@ public class WindowManagerServiceTests
         Assert.Equal(2604, rect.Width);
         Assert.Equal(1416, rect.Height);
     }
+
+    [Fact]
+    public async Task L_ordre_de_la_liste_devient_l_ordre_des_fenetres()
+    {
+        // Les fenêtres sont remontées de la dernière à la première : chacune
+        // passe au-dessus des précédentes, donc la première de la liste finit
+        // au sommet, et c'est elle qu'Alt+Tab propose en premier.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(3);
+
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        var ordered = await service.ApplyOrderAsync(sessions, CancellationToken.None);
+
+        Assert.Equal(3, ordered);
+        Assert.Equal(
+            [sessions[2].WindowHandle, sessions[1].WindowHandle, sessions[0].WindowHandle],
+            desktop.RaiseCalls);
+    }
+
+    [Fact]
+    public async Task Remettre_les_fenetres_dans_l_ordre_ne_vole_le_clavier_a_personne()
+    {
+        // Le rangement se fait pendant qu'on joue : donner le focus au passage
+        // arracherait la fenêtre active sous les doigts de l'utilisateur.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(2);
+
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        await service.ApplyOrderAsync(sessions, CancellationToken.None);
+
+        Assert.Empty(desktop.FocusCalls);
+    }
 }

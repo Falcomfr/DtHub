@@ -245,8 +245,26 @@ public class HotkeySetTests
     public void Les_libelles_d_action_sont_lisibles()
     {
         Assert.Equal("Fenêtre suivante", HotkeyBinding.DescribeAction(HotkeyAction.NextInstance));
-        Assert.Equal("Empiler sur la dernière fenêtre utilisée", HotkeyBinding.DescribeAction(HotkeyAction.Rearrange));
+        Assert.Equal("Empiler les fenêtres", HotkeyBinding.DescribeAction(HotkeyAction.Rearrange));
+        Assert.Equal("Côte à côte", HotkeyBinding.DescribeAction(HotkeyAction.Tile));
         Assert.Equal("Quitter", HotkeyBinding.DescribeAction(HotkeyAction.Quit));
+    }
+
+    [Fact]
+    public void Le_libelle_tient_sur_une_ligne_et_le_detail_dit_le_reste()
+    {
+        // Le libellé s'affiche en clair dans la liste des raccourcis, où la
+        // place est comptée ; ce qu'il tait appartient à l'infobulle, et non à
+        // une seconde ligne de texte sous le nom.
+        foreach (var action in Enum.GetValues<HotkeyAction>())
+        {
+            var label = HotkeyBinding.DescribeAction(action);
+
+            Assert.True(label.Length <= 36, $"libellé trop long pour {action} : {label}");
+            Assert.True(
+                HotkeyBinding.DetailAction(action).Length > label.Length,
+                $"le détail de {action} n'apprend rien de plus que le libellé");
+        }
     }
 
     [Theory]

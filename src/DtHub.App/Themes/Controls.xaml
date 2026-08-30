@@ -244,13 +244,15 @@
     </Setter>
   </Style>
 
-  <!-- Interrupteur de placement, en icône plutôt qu'en case à cocher : la
-       ligne d'une instance porte déjà une case, et deux cases côte à côte se
-       confondent. Quatre carrés, l'image même de fenêtres rangées.
+  <!-- Verrou de position, en icône plutôt qu'en case à cocher : la ligne
+       d'une instance porte déjà une case, et deux cases côte à côte se
+       confondent.
 
-       Éteint, l'icône est barrée : une icône seulement pâlie se lit comme
-       « désactivée » et non comme « décochée ». -->
-  <Style x:Key="PlacementToggle" TargetType="ToggleButton">
+       Éteint par défaut, et fermé quand il est allumé : le geste que
+       l'utilisateur fait est d'immobiliser une fenêtre, pas d'en libérer les
+       autres. Le dessin change, pas seulement la couleur, une icône seulement
+       pâlie se lisant « désactivée » et non « décochée ». -->
+  <Style x:Key="LockToggle" TargetType="ToggleButton">
     <Setter Property="Width" Value="20" />
     <Setter Property="Height" Value="20" />
     <Setter Property="Cursor" Value="Hand" />
@@ -259,20 +261,24 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="ToggleButton">
-          <Border x:Name="Root" Background="Transparent" CornerRadius="4" Padding="2">
-            <Grid Width="14" Height="14">
-              <Path x:Name="Tiles" Fill="{DynamicResource TextMutedBrush}" Opacity="0.45"
-                    Data="M 0,0 H 6 V 6 H 0 Z M 8,0 H 14 V 6 H 8 Z M 0,8 H 6 V 14 H 0 Z M 8,8 H 14 V 14 H 8 Z" />
-              <Path x:Name="Slash" Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.6"
-                    StrokeStartLineCap="Round" StrokeEndLineCap="Round" Opacity="0.9"
-                    Data="M 1,13 L 13,1" />
+          <Border x:Name="Root" Background="Transparent" CornerRadius="4" Padding="3">
+            <Grid Width="14" Height="14" Opacity="0.5">
+              <!-- Anse ouverte : la branche gauche est en l'air. -->
+              <Path x:Name="Shackle" Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.5"
+                    StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                    Data="M 10,6.5 V 4.2 A 3,3 0 0 0 4,4.2" />
+              <Path x:Name="Body" Fill="{DynamicResource TextMutedBrush}"
+                    Data="M 3,6.5 H 11 A 1.2,1.2 0 0 1 12.2,7.7 V 12.3 A 1.2,1.2 0 0 1 11,13.5 H 3 A 1.2,1.2 0 0 1 1.8,12.3 V 7.7 A 1.2,1.2 0 0 1 3,6.5 Z" />
             </Grid>
           </Border>
           <ControlTemplate.Triggers>
             <Trigger Property="IsChecked" Value="True">
-              <Setter TargetName="Tiles" Property="Fill" Value="{DynamicResource AccentBrush}" />
-              <Setter TargetName="Tiles" Property="Opacity" Value="1" />
-              <Setter TargetName="Slash" Property="Visibility" Value="Collapsed" />
+              <!-- Anse fermée : la branche gauche redescend sur le corps. -->
+              <Setter TargetName="Shackle" Property="Data"
+                      Value="M 10,6.5 V 4.2 A 3,3 0 0 0 4,4.2 V 6.5" />
+              <Setter TargetName="Shackle" Property="Stroke" Value="{DynamicResource AccentBrush}" />
+              <Setter TargetName="Body" Property="Fill" Value="{DynamicResource AccentBrush}" />
+              <Setter TargetName="Shackle" Property="Opacity" Value="1" />
             </Trigger>
             <Trigger Property="IsMouseOver" Value="True">
               <Setter TargetName="Root" Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
@@ -320,6 +326,107 @@
   <Style x:Key="RowButton" TargetType="Button" BasedOn="{StaticResource QuietButton}">
     <Setter Property="Padding" Value="7,2" />
     <Setter Property="FontSize" Value="11" />
+  </Style>
+
+  <!-- Bouton d'action réduit à son dessin. Trois par ligne, ils tenaient en
+       toutes lettres sur 400 de large mais mangeaient la place du nom, qui est
+       la seule chose qu'on lise vraiment dans cette liste. L'infobulle porte
+       ce que le libellé disait, en plus complet. -->
+  <Style x:Key="IconButton" TargetType="Button">
+    <Setter Property="Width" Value="26" />
+    <Setter Property="Height" Value="24" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Border x:Name="Root" Background="{TemplateBinding Background}" CornerRadius="5">
+            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                              TextElement.Foreground="{TemplateBinding Foreground}" />
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Root" Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+              <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter Property="Opacity" Value="0.35" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- Rompre une association efface des réglages : le survol le dit en rouge. -->
+  <Style x:Key="DangerIconButton" TargetType="Button" BasedOn="{StaticResource IconButton}">
+    <Style.Triggers>
+      <Trigger Property="IsMouseOver" Value="True">
+        <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+
+  <!-- Maillon rompu : deux anneaux sur la même diagonale, écartés. Employé
+       par les deux listes d'appareils, celle qui porte des instances et celle
+       des appareils qui n'en ont pas. -->
+  <Style x:Key="UnlinkGlyph" TargetType="Control">
+    <Setter Property="Width" Value="15" />
+    <Setter Property="Height" Value="15" />
+    <Setter Property="Focusable" Value="False" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Control">
+          <Grid Width="15" Height="15">
+            <Grid.Resources>
+              <Style TargetType="Rectangle">
+                <Setter Property="Stroke" Value="{Binding Foreground,
+                                                         RelativeSource={RelativeSource AncestorType=Button}}" />
+                <Setter Property="StrokeThickness" Value="1.5" />
+                <Setter Property="RadiusX" Value="2.6" />
+                <Setter Property="RadiusY" Value="2.6" />
+                <Setter Property="Width" Value="8.4" />
+                <Setter Property="Height" Value="5.2" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+              </Style>
+            </Grid.Resources>
+            <Rectangle>
+              <Rectangle.RenderTransform>
+                <TransformGroup>
+                  <RotateTransform Angle="-45" />
+                  <TranslateTransform X="-3.3" Y="3.3" />
+                </TransformGroup>
+              </Rectangle.RenderTransform>
+            </Rectangle>
+            <Rectangle>
+              <Rectangle.RenderTransform>
+                <TransformGroup>
+                  <RotateTransform Angle="-45" />
+                  <TranslateTransform X="3.3" Y="-3.3" />
+                </TransformGroup>
+              </Rectangle.RenderTransform>
+            </Rectangle>
+          </Grid>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- Les trois dessins. Tracés, jamais remplis : à cette taille un aplat
+       devient une tache. -->
+  <Style x:Key="RowGlyph" TargetType="Path">
+    <Setter Property="Stroke" Value="{Binding Foreground,
+                                              RelativeSource={RelativeSource AncestorType=Button}}" />
+    <Setter Property="StrokeThickness" Value="1.5" />
+    <Setter Property="StrokeStartLineCap" Value="Round" />
+    <Setter Property="StrokeEndLineCap" Value="Round" />
+    <Setter Property="StrokeLineJoin" Value="Round" />
+    <Setter Property="Width" Value="15" />
+    <Setter Property="Height" Value="15" />
+    <Setter Property="Stretch" Value="None" />
   </Style>
 
   <!-- Nom d'appareil au-dessus d'une suite d'instances. Volontairement

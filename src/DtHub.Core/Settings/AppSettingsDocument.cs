@@ -12,7 +12,7 @@ namespace DtHub.Core.Settings;
 /// </summary>
 public sealed class AppSettingsDocument
 {
-    public const int CurrentSchemaVersion = 6;
+    public const int CurrentSchemaVersion = 7;
 
     /// <summary>Tailles livrées d'origine, en pourcentage de la zone utilisable.</summary>
     public static readonly int[] DefaultSizePercentages = [40, 60, 80, 100];
@@ -71,6 +71,12 @@ public sealed class AppSettingsDocument
     /// moyenne est celle d'origine : rien ne change tant qu'on n'y touche pas.
     /// </summary>
     public StreamQuality Quality { get; set; } = StreamQuality.Medium;
+
+    /// <summary>
+    /// Distance apparente dans le jeu. Comme la qualité, elle est figée à
+    /// l'ouverture d'une session : la changer rouvre les fenêtres.
+    /// </summary>
+    public GameZoom GameZoom { get; set; } = GameZoom.Normal;
 
     /// <summary>Paquet du jeu. Réglable pour survivre à un changement amont.</summary>
     public string PackageName { get; set; } = Dofus.DofusPackages.DofusTouch;
