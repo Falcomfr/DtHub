@@ -68,14 +68,6 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [ObservableProperty]
     private StreamQuality _quality = StreamQuality.Medium;
 
-    public ObservableCollection<MonitorInfo> Monitors { get; } = [];
-
-    [ObservableProperty]
-    private MonitorInfo? _preferredMonitor;
-
-    /// <summary>Vrai s'il y a plus d'un écran : sinon le réglage est inutile.</summary>
-    public bool HasSeveralMonitors => Monitors.Count > 1;
-
     // Onglet Raccourcis, en lecture seule
 
     public ObservableCollection<HotkeyRowViewModel> Hotkeys { get; } = [];
@@ -122,17 +114,6 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             SizePercent = settings.CustomSizePercent > 0
                 ? settings.CustomSizePercent
                 : presets.PercentageAt(settings.SizeIndex);
-
-            Monitors.Clear();
-            foreach (var monitor in _launcher.Monitors)
-            {
-                Monitors.Add(monitor);
-            }
-
-            PreferredMonitor = Monitors.FirstOrDefault(
-                m => m.DeviceName == settings.PreferredMonitorDeviceName);
-
-            OnPropertyChanged(nameof(HasSeveralMonitors));
 
             await RefreshHotkeysAsync(cancellationToken).ConfigureAwait(true);
         }
@@ -345,14 +326,5 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         _ = _settings.SetQualityAsync(value);
     }
 
-    partial void OnPreferredMonitorChanged(MonitorInfo? value)
-    {
-        if (_loading)
-        {
-            return;
-        }
 
-        Save(s => s.PreferredMonitorDeviceName = value?.DeviceName);
-        _ = _launcher.ArrangeAsync();
-    }
 }

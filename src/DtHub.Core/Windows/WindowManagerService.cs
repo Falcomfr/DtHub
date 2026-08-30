@@ -70,8 +70,6 @@ public sealed class WindowManagerService
     /// <summary>Vrai si la taille en cours est le plein écran sans bordure.</summary>
     public bool IsFullscreen => CustomSizePercent is null && Presets.IsFullscreen(SizeIndex);
 
-    /// <summary>Écran choisi dans les réglages, <c>null</c> pour l'écran principal.</summary>
-    public string? PreferredMonitorDeviceName { get; set; }
 
     /// <summary>
     /// Délai maximal d'attente de la fenêtre scrcpy. Elle n'apparaît qu'une
@@ -96,7 +94,7 @@ public sealed class WindowManagerService
             return null;
         }
 
-        var monitor = WindowLayoutCalculator.ChooseMonitor(monitors, PreferredMonitorDeviceName);
+        var monitor = WindowLayoutCalculator.ChooseMonitor(monitors, preferredDeviceName: null);
 
         return Compute(monitor, sourceAspectRatio, (0, 0));
     }
@@ -444,7 +442,7 @@ public sealed class WindowManagerService
                       factor,
                       UsableArea(WindowLayoutCalculator.ChooseMonitor(monitors, before.CenterX, before.CenterY)))
                 : Compute(
-                      WindowLayoutCalculator.ChooseMonitor(monitors, PreferredMonitorDeviceName),
+                      WindowLayoutCalculator.ChooseMonitor(monitors, preferredDeviceName: null),
                       session.SourceAspectRatio,
                       chrome);
 
@@ -464,19 +462,34 @@ public sealed class WindowManagerService
     /// taille exacte de la zone client.
     /// </summary>
     public (int Width, int Height) WindowChrome() =>
-        _controller.GetWindowChrome(PreferredMonitorDeviceName);
+        _controller.GetWindowChrome(monitorDeviceName: null);
 
     /// <summary>
-    /// Bornes complètes de l'écran retenu, barre des tâches comprise : c'est
-    /// ce que couvre le plein écran.
+    /// Bornes complètes de l'écran où une fenêtre va s'ouvrir, barre des
+    /// tâches comprise.
+    ///
+    /// C'est l'écran de sa géométrie mémorisée, et l'écran principal à défaut.
+    /// Prendre un écran de référence unique donnerait le mauvais rapport à
+    /// l'afficheur d'une fenêtre laissée sur un second écran de forme
+    /// différente, et elle naîtrait mal formée.
     /// </summary>
-    public ScreenRect? MonitorBounds()
+    public ScreenRect? MonitorBoundsFor(StoredWindowRect? remembered)
     {
         var monitors = _controller.GetMonitors();
 
-        return monitors.Count == 0
+        if (monitors.Count == 0)
+        {
+            return null;
+        }
+
+        var restored = remembered is null
             ? null
-            : WindowLayoutCalculator.ChooseMonitor(monitors, PreferredMonitorDeviceName).Bounds;
+            : WindowLayoutCalculator.RestoreRemembered(
+                  remembered.Bounds, remembered.MonitorDeviceName, remembered.Monitor, monitors);
+
+        return restored is { } rect
+            ? WindowLayoutCalculator.ChooseMonitor(monitors, rect.CenterX, rect.CenterY).Bounds
+            : WindowLayoutCalculator.ChooseMonitor(monitors, preferredDeviceName: null).Bounds;
     }
 
     /// <summary>Zone utilisable de l'écran retenu.</summary>
@@ -488,7 +501,7 @@ public sealed class WindowManagerService
             return null;
         }
 
-        var monitor = WindowLayoutCalculator.ChooseMonitor(monitors, PreferredMonitorDeviceName);
+        var monitor = WindowLayoutCalculator.ChooseMonitor(monitors, preferredDeviceName: null);
 
         return monitor.WorkArea.IsEmpty ? monitor.Bounds : monitor.WorkArea;
     }
@@ -635,7 +648,7 @@ public sealed class WindowManagerService
             return [];
         }
 
-        var monitor = WindowLayoutCalculator.ChooseMonitor(monitors, PreferredMonitorDeviceName);
+        var monitor = WindowLayoutCalculator.ChooseMonitor(monitors, preferredDeviceName: null);
         List<(string, ScreenRect)> applied = [];
 
         foreach (var session in sessions.Where(s => s.IsAlive))

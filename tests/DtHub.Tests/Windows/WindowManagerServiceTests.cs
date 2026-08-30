@@ -716,6 +716,39 @@ public class WindowManagerServiceTests
     }
 
     [Fact]
+    public void L_afficheur_prend_la_forme_de_l_ecran_ou_la_fenetre_rouvre()
+    {
+        // Une fenêtre laissée sur un second écran de forme différente naîtrait
+        // mal formée si l'afficheur suivait un écran de référence unique.
+        var principal = FakeWindowController.PrimaryMonitor;
+        var second = new MonitorInfo
+        {
+            DeviceName = @"\\.\DISPLAY2",
+            Bounds = new ScreenRect(1920, 0, 2560, 1600),
+            WorkArea = new ScreenRect(1920, 0, 2560, 1560),
+        };
+
+        var desktop = new FakeWindowController(principal, second);
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        var remembered = StoredWindowRect.From(new ScreenRect(2000, 100, 1200, 750), second);
+
+        var bounds = service.MonitorBoundsFor(remembered);
+
+        Assert.Equal(2560, bounds!.Value.Width);
+        Assert.Equal(1600, bounds.Value.Height);
+    }
+
+    [Fact]
+    public void Sans_geometrie_memorisee_l_afficheur_suit_l_ecran_principal()
+    {
+        var desktop = new FakeWindowController();
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        Assert.Equal(FakeWindowController.PrimaryMonitor.Bounds, service.MonitorBoundsFor(null));
+    }
+
+    [Fact]
     public void La_taille_transmise_a_scrcpy_est_celle_de_la_zone_client()
     {
         // C'est elle que scrcpy donne à l'afficheur, et le jeu fige la hauteur

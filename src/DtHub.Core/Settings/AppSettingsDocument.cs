@@ -48,8 +48,6 @@ public sealed class AppSettingsDocument
     /// </summary>
     public int CustomSizePercent { get; set; }
 
-    /// <summary>Écran Windows utilisé, <c>null</c> pour l'écran principal.</summary>
-    public string? PreferredMonitorDeviceName { get; set; }
 
 
     /// <summary>

@@ -18,7 +18,7 @@
 
       <!-- Bandeau : sert aussi de poignée de déplacement. -->
       <Border DockPanel.Dock="Top" Background="{DynamicResource SidebarBrush}"
-              CornerRadius="9,9,0,0" Padding="14,12" MouseLeftButtonDown="OnHeaderDrag">
+              CornerRadius="9,9,0,0" Padding="12,8" MouseLeftButtonDown="OnHeaderDrag">
         <Grid>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
@@ -93,7 +93,7 @@
       </Border>
 
       <!-- Onglets -->
-      <Grid Margin="12,12,12,0">
+      <Grid Margin="10,8,10,0">
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto" />
           <RowDefinition Height="*" />
@@ -149,7 +149,7 @@
                 <StackPanel>
                   <TextBlock Text="REPLACER LES FENÊTRES" Style="{StaticResource SectionLabel}" />
                   <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,10"
-                             Text="Chaque fenêtre garde l'endroit où vous l'avez laissée. Cliquez ici pour toutes les remettre au même endroit." />
+                             Text="Cliquez une case pour regrouper toutes les fenêtres à cet endroit." />
 
                   <ItemsControl ItemsSource="{Binding Anchors}" HorizontalAlignment="Left">
                     <ItemsControl.ItemsPanel>
@@ -175,7 +175,7 @@
                 <StackPanel>
                   <TextBlock Text="TAILLE DES FENÊTRES" Style="{StaticResource SectionLabel}" />
                   <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,6"
-                             Text="Proportionnelle à votre écran. Ctrl+1 à Ctrl+4 posent quatre repères sur cette échelle, Ctrl+5 met en plein écran." />
+                             Text="Proportionnelle à l'écran. Ctrl+1 à Ctrl+5 posent cinq repères." />
 
                   <Grid>
                     <Grid.ColumnDefinitions>

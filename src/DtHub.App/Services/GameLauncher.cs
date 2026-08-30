@@ -298,18 +298,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
             IconDirectory = _iconDirectory,
         };
 
-        // L'afficheur prend la définition entière de l'écran : l'image étant
-        // mise à l'échelle de la fenêtre, c'est ce qui rend le plein écran net
-        // et toute taille intermédiaire propre.
-        if (_windows.MonitorBounds() is { Width: > 0, Height: > 0 } screen)
-        {
-            options = options with
-            {
-                VirtualDisplayWidth = screen.Width,
-                VirtualDisplayHeight = screen.Height,
-            };
-        }
-
         var serials = await ResolveSerialsAsync(cancellationToken).ConfigureAwait(false);
 
         // La position est donnée à scrcpy dès le lancement. Le faire après
@@ -341,7 +329,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             _pendingPlacement = placement;
 
             var target = ToTarget(instance, serial);
-            var display = WithDisplayFor(options, placement);
+            var display = WithDisplayFor(options, placement, stored);
 
             var session = await _sessions.StartAsync(
                 target, display, placement, cancellationToken).ConfigureAwait(false);
@@ -673,7 +661,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     public ScreenRect? WorkArea() => _windows.WorkArea();
 
-    public IReadOnlyList<MonitorInfo> Monitors => _windows.GetMonitors();
 
     /// <summary>Recharge les raccourcis après une modification.</summary>
     public async Task<IReadOnlyList<HotkeyAction>> ReloadHotkeysAsync(
@@ -761,10 +748,18 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// à la définition de l'écran rendrait l'interface du jeu minuscule dans
     /// une petite fenêtre. La définition suit donc la fenêtre, par paliers,
     /// puisqu'elle est figée pour toute la session.
+    ///
+    /// L'écran est celui où la fenêtre va réellement s'ouvrir, et non un écran
+    /// de référence : une fenêtre laissée sur un second écran de forme
+    /// différente naîtrait sinon mal formée.
     /// </summary>
-    private ScrcpyOptions WithDisplayFor(ScrcpyOptions options, ScrcpyWindowPlacement? placement)
+    private ScrcpyOptions WithDisplayFor(
+        ScrcpyOptions options,
+        ScrcpyWindowPlacement? placement,
+        StoredWindowRect? remembered)
     {
-        if (placement is not { Height: > 0 } window || _windows.MonitorBounds() is not { } screen)
+        if (placement is not { Height: > 0 } window
+            || _windows.MonitorBoundsFor(remembered) is not { } screen)
         {
             return options;
         }
@@ -828,7 +823,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _quality = QualityProfile.For(settings.Quality);
         _windows.Anchor = settings.GameAnchor;
         _windows.Presets = await _settings.GetSizePresetsAsync(cancellationToken).ConfigureAwait(false);
-        _windows.PreferredMonitorDeviceName = settings.PreferredMonitorDeviceName;
 
         // La liste vide ne sert qu'à replacer l'état de taille sans toucher
         // aux fenêtres, qui seront placées ensuite.

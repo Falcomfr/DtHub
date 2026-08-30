@@ -491,3 +491,91 @@ Plutôt que de renoncer, une session refusée est retentée une fois en 1920x108
 définition qu'aucun appareil capable de faire tourner scrcpy ne refuse. Le
 journal en garde trace. L'affichage y perd en finesse sur un grand écran, rien
 d'autre.
+
+## D21 - L'ordre des instances est global, les appareils ne se trient plus
+
+Les instances étaient groupées par appareil et ne franchissaient jamais cette
+frontière. Elles se trient désormais librement entre elles, et le nom du
+téléphone n'apparaît qu'aux endroits où il change : deux instances qui se
+suivent n'en portent qu'un, un téléphone coupé en deux morceaux en reçoit un
+par morceau. Ce qui vaut pour l'appareil lui-même, comme rompre l'association,
+ne paraît que sur son premier morceau.
+
+`DeviceOrder` disparaît des réglages : le rang de chaque instance porte tout
+l'ordre, et une liste d'identifiants d'appareils ne saurait pas exprimer un
+ordre entrelacé. Deux sources dont l'une ne peut pas représenter l'autre, c'est
+la garantie d'une dérive.
+
+Les déplacements se disent par clés et non plus par décalage. La liste affichée
+ne montre que les appareils joignables alors que les réglages portent toutes
+les instances : un décalage compté sur les positions visibles désignait la
+mauvaise destination dès qu'une instance cachée s'intercalait.
+
+Conséquence assumée : le parcours au clavier suit ce nouvel ordre, entrelacé
+compris.
+
+## D22 - Ce qui rouvre est un état explicite, pas l'état du moment où l'on quitte
+
+L'ensemble des instances à rouvrir était recalculé à la sortie, à partir des
+sessions vivantes à cet instant. Fermer une fenêtre à la main la retirait donc
+de l'ensemble, ce qui est l'inverse de ce qu'on attend d'un geste banal.
+
+Trois écritures, et trois seulement : lancer une instance l'y met, le bouton
+« Fermer » l'en retire, et la case de la fenêtre de mise en route en décide au
+premier lancement. Quitter l'application, fermer une fenêtre de jeu ou perdre
+le téléphone n'y touchent pas.
+
+## D23 - Relancer redémarre le jeu, pas la fenêtre
+
+La relance fermait la session scrcpy et la rouvrait : la fenêtre disparaissait
+et revenait. Elle se contente maintenant d'arrêter le jeu côté Android et de le
+redémarrer sur le même afficheur, la session et sa fenêtre étant conservées. Un
+repli ferme et rouvre tout si le redémarrage court échoue.
+
+Un cas reste indétectable et figure dans l'infobulle du bouton : si le
+démarrage réussit mais que le jeu se ferme juste après, la fenêtre reste
+ouverte sur un afficheur vide.
+
+L'afficheur étant conservé, changer de palier de définition passe désormais par
+« Fermer » puis « Lancer », et non plus par « Relancer ». Cela corrige la
+dernière phrase de D18.
+
+## D24 - Redimensionner garde la position relative dans l'écran
+
+Les raccourcis de taille et le curseur gardaient le coin haut-gauche puis
+reprenaient la fenêtre dans l'écran : elle était poussée dès qu'elle
+grandissait près d'un bord. La part d'espace libre à gauche et au-dessus reste
+maintenant constante, si bien qu'une fenêtre collée à un bord y reste, une
+fenêtre au milieu grandit autour de son centre, et une fenêtre dans un coin
+grandit depuis ce coin.
+
+Le plein écran retient d'où vient chaque fenêtre et le lui rend en sortant, au
+lieu de les empiler sur l'ancrage, et il couvre l'écran qui porte la fenêtre.
+
+## D25 - Un réglage de qualité, et le vrai coût qui n'était pas l'image
+
+Trois valeurs, moyenne par défaut et identique au comportement d'avant. Basse
+allège tout : trente images par seconde, débit réduit, définition d'afficheur
+bornée à 720, et sondages espacés.
+
+Le poste le plus lourd n'était pas l'image mais la redécouverte des instances,
+qui demandait deux commandes par profil et par appareil toutes les trois
+secondes, dès que le configurateur était visible. Elle ne se refait plus que si
+l'ensemble des appareils a changé, ou après un long moment ; lister les
+appareils, bon marché, garde son rythme.
+
+Les images par seconde et le débit ne viennent plus que de la qualité : deux
+sources pour un même réglage auraient fini par diverger.
+
+## D26 - Le réglage d'écran disparaît, l'afficheur suit la fenêtre
+
+Chaque fenêtre retrouve la place où elle a été laissée, second écran compris :
+désigner un écran de référence ne servait plus.
+
+Un piège allait avec : la définition de l'afficheur se calculait sur cet écran
+unique, si bien qu'une fenêtre mémorisée sur un second écran de forme
+différente naissait mal formée. Elle se calcule désormais sur l'écran où la
+fenêtre va réellement s'ouvrir, instance par instance.
+
+L'ancrage reste, pour une fenêtre sans géométrie mémorisée et pour la grille
+3x3 qui regroupe volontairement toutes les fenêtres.
