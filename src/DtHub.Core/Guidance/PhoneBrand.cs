@@ -40,6 +40,19 @@ public sealed record PhoneBrand
 
     /// <summary>Ce qu'il faut savoir avant de s'y prendre sur cette marque.</summary>
     public string? CloneNote { get; init; }
+
+    /// <summary>
+    /// Nom que porte, sur cette surcouche, le réglage qui dispense une
+    /// application des économies de batterie. Sans lui, Android suspend le jeu
+    /// dès qu'il cesse d'être au premier plan, et la fenêtre se fige.
+    /// </summary>
+    public required string BatteryFeature { get; init; }
+
+    /// <summary>Chemin de menu menant à ce réglage.</summary>
+    public required string BatteryPath { get; init; }
+
+    /// <summary>Second réglage à désactiver, quand la marque en ajoute un.</summary>
+    public string? BatteryNote { get; init; }
 }
 
 /// <summary>Marques connues, avec leurs chemins de menu.</summary>
@@ -58,6 +71,8 @@ public static class PhoneBrands
         CloneNote =
             "Android sans surcouche n'a pas de fonction de duplication. La voie est d'ajouter un second utilisateur, puis d'y installer le jeu depuis le Play Store. DT Hub ouvre chaque profil sur son propre affichage, sans avoir à basculer de l'un à l'autre.",
         Manufacturers = ["google", "motorola", "lenovo", "nothing", "sony"],
+        BatteryFeature = "Sans restriction",
+        BatteryPath = "Paramètres  ›  Applications  ›  DOFUS Touch  ›  Batterie",
         BuildNumberPath = "Paramètres  ›  À propos du téléphone",
         BuildNumberLabel = "Numéro de build",
         DeveloperOptionsPath = "Paramètres  ›  Système  ›  Options pour les développeurs",
@@ -77,6 +92,10 @@ public static class PhoneBrands
             CloneNote =
                 "Cette marque propose aussi « Second espace », qui crée un espace complet plutôt qu'une simple copie. Les deux conviennent : DT Hub voit les instances dans les deux cas.",
             Manufacturers = ["xiaomi", "redmi", "poco"],
+            BatteryFeature = "Aucune restriction, et Démarrage automatique",
+            BatteryPath = "Paramètres  ›  Applications  ›  Gérer les applications  ›  DOFUS Touch  ›  Économiseur de batterie",
+            BatteryNote =
+                "Cette marque est la plus agressive du lot. Verrouillez aussi le jeu dans la vue des applications récentes, en tirant sa vignette vers le bas : sans ce verrou, HyperOS la ferme au bout de quelques minutes malgré le réglage de batterie.",
             BuildNumberPath = "Paramètres  ›  À propos du téléphone",
             BuildNumberLabel = "Version HyperOS, ou Version MIUI sur les modèles plus anciens",
             DeveloperOptionsPath =
@@ -94,6 +113,10 @@ public static class PhoneBrands
             CloneNote =
                 "« Dual Messenger » ne duplique que les applications de messagerie et ne convient donc pas pour un jeu. Le dossier sécurisé accepte n'importe quelle application, et demande un compte Samsung.",
             Manufacturers = ["samsung"],
+            BatteryFeature = "Autoriser l'activité en arrière-plan",
+            BatteryPath = "Paramètres  ›  Batterie  ›  Limites d'utilisation en arrière-plan  ›  Applications jamais mises en veille",
+            BatteryNote =
+                "Désactivez aussi « Optimiser les paramètres » dans Paramètres › Maintenance de l'appareil : réactivé, il remet le jeu en veille au bout de quelques jours.",
             BuildNumberPath = "Paramètres  ›  À propos du téléphone  ›  Informations sur le logiciel",
             BuildNumberLabel = "Numéro de version",
             DeveloperOptionsPath = "Paramètres  ›  Options de développement",
@@ -104,6 +127,10 @@ public static class PhoneBrands
             CloneFeature = "Clonage d'applications",
             ClonePath = "Paramètres  ›  Applications  ›  Clonage d'applications",
             Manufacturers = ["oneplus", "oppo", "realme"],
+            BatteryFeature = "Autoriser l'activité en arrière-plan, réglée sur Sans restriction",
+            BatteryPath = "Paramètres  ›  Batterie  ›  Utilisation de la batterie  ›  DOFUS Touch",
+            BatteryNote =
+                "Sur ces surcouches, un « nettoyage automatique » séparé peut fermer les applications à l'extinction de l'écran. Il se désactive dans Paramètres › Batterie › Autres réglages.",
             BuildNumberPath = "Paramètres  ›  À propos de l'appareil  ›  Version",
             BuildNumberLabel = "Numéro de build, ou Numéro de version selon la version installée",
             DeveloperOptionsPath =
@@ -117,6 +144,10 @@ public static class PhoneBrands
             CloneNote =
                 "Sur les versions sans services Google, l'installation de la seconde copie peut demander de passer par la boutique du constructeur.",
             Manufacturers = ["honor", "huawei"],
+            BatteryFeature = "Lancement d'applications, en mode manuel",
+            BatteryPath = "Paramètres  ›  Batterie  ›  Lancement d'applications  ›  DOFUS Touch",
+            BatteryNote =
+                "Passez le jeu en gestion manuelle, puis activez les trois interrupteurs proposés, dont « Exécution en arrière-plan ». La gestion automatique referme le jeu quoi qu'on règle ailleurs.",
             BuildNumberPath = "Paramètres  ›  À propos du téléphone",
             BuildNumberLabel = "Numéro de build",
             DeveloperOptionsPath =

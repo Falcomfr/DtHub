@@ -79,19 +79,6 @@
           </StackPanel>
         </Border>
 
-        <Border Style="{StaticResource Card}">
-          <StackPanel>
-            <TextBlock FontWeight="SemiBold" Margin="0,0,0,4"
-                       Text="5. Empêcher la mise en veille du jeu" />
-            <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,3"
-                       Text="Applications  ›  le jeu  ›  Batterie  ›  Sans restriction" />
-            <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,3"
-                       Text="À refaire pour chaque copie du jeu : une application clonée est traitée à part par Android." />
-            <TextBlock Style="{StaticResource Muted}"
-                       Text="L'écran de l'appareil est déjà maintenu allumé par DT Hub, mais Android endort les applications qu'il juge inactives, et les fenêtres se figent alors une à une. Le retirer des restrictions de batterie est la seule manipulation à faire, et elle tient." />
-          </StackPanel>
-        </Border>
-
         <TextBlock Style="{StaticResource Muted}" FontSize="11" Margin="2,0,0,4"
                    Text="Seuls les appareils Android conviennent. iOS ne permet ni d'ouvrir un écran supplémentaire, ni d'y installer deux fois la même application." />
 

@@ -41,6 +41,53 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         _launcher = launcher;
         _dialogs = dialogs;
         _paths = paths;
+
+        // Les raccourcis écrivent la taille et l'ancrage sans passer par ici :
+        // sans cet abonnement, le curseur et la grille gardaient la valeur
+        // qu'ils avaient à l'ouverture et mentaient jusqu'au redémarrage.
+        _settings.Changed += OnSettingsChanged;
+    }
+
+    /// <summary>
+    /// Reflète une écriture venue d'ailleurs, raccourci clavier compris.
+    ///
+    /// Le garde-fou de chargement est indispensable : sans lui, le curseur qui
+    /// se remet à la bonne valeur redéclencherait un redimensionnement, et la
+    /// grille un replacement, chacun réécrivant les réglages en boucle.
+    /// </summary>
+    private void OnSettingsChanged(object? sender, AppSettingsDocument document)
+    {
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+
+        if (dispatcher is null)
+        {
+            return;
+        }
+
+        dispatcher.InvokeAsync(async () =>
+        {
+            if (_loading || _movingWindows)
+            {
+                return;
+            }
+
+            var presets = await _settings.GetSizePresetsAsync().ConfigureAwait(true);
+
+            _loading = true;
+
+            try
+            {
+                GameAnchor = document.GameAnchor;
+                Quality = document.Quality;
+                SizePercent = document.CustomSizePercent > 0
+                    ? document.CustomSizePercent
+                    : presets.PercentageAt(document.SizeIndex);
+            }
+            finally
+            {
+                _loading = false;
+            }
+        });
     }
 
     public InstanceListViewModel Instances { get; }

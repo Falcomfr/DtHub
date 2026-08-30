@@ -244,6 +244,76 @@
     </Setter>
   </Style>
 
+  <!-- Interrupteur de placement, en icône plutôt qu'en case à cocher : la
+       ligne d'une instance porte déjà une case, et deux cases côte à côte se
+       confondent. Quatre carrés, l'image même de fenêtres rangées.
+
+       Éteint, l'icône est barrée : une icône seulement pâlie se lit comme
+       « désactivée » et non comme « décochée ». -->
+  <Style x:Key="PlacementToggle" TargetType="ToggleButton">
+    <Setter Property="Width" Value="20" />
+    <Setter Property="Height" Value="20" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Focusable" Value="False" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ToggleButton">
+          <Border x:Name="Root" Background="Transparent" CornerRadius="4" Padding="2">
+            <Grid Width="14" Height="14">
+              <Path x:Name="Tiles" Fill="{DynamicResource TextMutedBrush}" Opacity="0.45"
+                    Data="M 0,0 H 6 V 6 H 0 Z M 8,0 H 14 V 6 H 8 Z M 0,8 H 6 V 14 H 0 Z M 8,8 H 14 V 14 H 8 Z" />
+              <Path x:Name="Slash" Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.6"
+                    StrokeStartLineCap="Round" StrokeEndLineCap="Round" Opacity="0.9"
+                    Data="M 1,13 L 13,1" />
+            </Grid>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+              <Setter TargetName="Tiles" Property="Fill" Value="{DynamicResource AccentBrush}" />
+              <Setter TargetName="Tiles" Property="Opacity" Value="1" />
+              <Setter TargetName="Slash" Property="Visibility" Value="Collapsed" />
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Root" Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- Nom d'instance : du texte, qui se modifie au clic.
+       Un champ encadré par ligne remplissait la liste de boîtes et coûtait une
+       douzaine de pixels de hauteur chacune. Le cadre n'apparaît qu'au survol
+       et à la saisie, là où il sert vraiment. -->
+  <Style x:Key="InlineEdit" TargetType="TextBox">
+    <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+    <Setter Property="CaretBrush" Value="{DynamicResource TextBrush}" />
+    <Setter Property="Padding" Value="4,2" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="TextBox">
+          <Border x:Name="Root" Background="Transparent" CornerRadius="4"
+                  BorderThickness="1" BorderBrush="Transparent">
+            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" />
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            </Trigger>
+            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+              <Setter TargetName="Root" Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+              <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
   <!-- Trait d'insertion montré pendant un glissé. -->
   <!-- Bouton d'une ligne d'instance : trois par ligne sur 400 de large, ils
        doivent s'effacer devant le nom. -->

@@ -3,7 +3,14 @@ using System.Collections.Concurrent;
 namespace DtHub.Core.Scrcpy;
 
 /// <summary>Un appareil vient de changer d'état d'occupation.</summary>
-public sealed record DeviceBusyChangedEventArgs(string DeviceId, bool IsBusy);
+public sealed class DeviceBusyChangedEventArgs(string deviceId, bool isBusy) : EventArgs
+{
+    /// <summary>Appareil dont l'état vient de changer.</summary>
+    public string DeviceId { get; } = deviceId;
+
+    /// <summary>Vrai tant qu'une ouverture est en cours sur cet appareil.</summary>
+    public bool IsBusy { get; } = isBusy;
+}
 
 /// <summary>
 /// Sérialise les ouvertures de session appareil par appareil, et annonce

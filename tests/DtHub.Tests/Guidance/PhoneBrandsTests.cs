@@ -13,7 +13,21 @@ public class PhoneBrandsTests
             Assert.False(string.IsNullOrWhiteSpace(brand.BuildNumberPath));
             Assert.False(string.IsNullOrWhiteSpace(brand.BuildNumberLabel));
             Assert.False(string.IsNullOrWhiteSpace(brand.DeveloperOptionsPath));
+            Assert.False(string.IsNullOrWhiteSpace(brand.CloneFeature));
+            Assert.False(string.IsNullOrWhiteSpace(brand.ClonePath));
+            Assert.False(string.IsNullOrWhiteSpace(brand.BatteryFeature));
+            Assert.False(string.IsNullOrWhiteSpace(brand.BatteryPath));
         }
+    }
+
+    [Fact]
+    public void Chaque_marque_nomme_son_propre_reglage_de_batterie()
+    {
+        // Le réglage existe partout, mais aucun constructeur ne l'a nommé
+        // comme son voisin : une explication générique laisserait chercher.
+        var settings = PhoneBrands.All.Select(b => b.BatteryPath).ToList();
+
+        Assert.Equal(settings.Count, settings.Distinct(StringComparer.Ordinal).Count());
     }
 
     [Fact]

@@ -1,4 +1,5 @@
 using DtHub.Core.Scrcpy;
+using DtHub.Core.Settings;
 
 namespace DtHub.Tests.Scrcpy;
 
@@ -66,6 +67,16 @@ public sealed class DisplayLadderTests
 
         Assert.Equal(0, width % 2);
         Assert.Equal(0, height % 2);
+    }
+
+    [Fact]
+    public void Chaque_qualite_borne_la_definition_differemment()
+    {
+        // Sans borne, moyenne et haute auraient été indiscernables : le débit
+        // ne se voit pas sur une image presque fixe.
+        Assert.Equal(720, QualityProfile.For(StreamQuality.Low).MaximumDisplayHeight);
+        Assert.Equal(1080, QualityProfile.For(StreamQuality.Medium).MaximumDisplayHeight);
+        Assert.Equal(int.MaxValue, QualityProfile.For(StreamQuality.High).MaximumDisplayHeight);
     }
 
     [Fact]

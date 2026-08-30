@@ -108,6 +108,13 @@ public partial class ConfiguratorWindow : Window
         help.ShowDialog();
     }
 
+    private void OnSleepHelp(object sender, RoutedEventArgs e)
+    {
+        var help = AppHost.Services.GetRequiredService<SleepHelpWindow>();
+        help.Owner = this;
+        help.ShowDialog();
+    }
+
     /// <summary>Ouvre l'éditeur de raccourcis, puis relit ce qui a changé.</summary>
     private async void OnEditHotkeys(object sender, RoutedEventArgs e)
     {

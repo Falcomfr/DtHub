@@ -248,10 +248,14 @@
 
               <w:InstanceListControl DataContext="{Binding Instances}" />
 
-              <!-- Une seule ligne : le détail est dans la fenêtre d'aide. -->
+              <!-- Une seule ligne chacune : le détail est dans la fenêtre d'aide. -->
               <Button Content="Plusieurs comptes sur un même appareil ?"
                       Style="{StaticResource QuietButton}" HorizontalAlignment="Left"
                       Margin="-8,2,0,0" Click="OnCloneHelp" />
+
+              <Button Content="Une fenêtre se fige au bout d'un moment ?"
+                      Style="{StaticResource QuietButton}" HorizontalAlignment="Left"
+                      Margin="-8,0,0,0" Click="OnSleepHelp" />
 
             </StackPanel>
 

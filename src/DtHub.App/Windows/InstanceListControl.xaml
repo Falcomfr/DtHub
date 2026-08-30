@@ -75,6 +75,7 @@
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                   </Grid.ColumnDefinitions>
@@ -86,17 +87,7 @@
                                                  RelativeSource={RelativeSource AncestorType=UserControl},
                                                  Converter={StaticResource BoolToVisibility}}" />
 
-                  <!-- Décochée, la fenêtre est laissée où elle est : le
-                       parcours au clavier, le replacement, le côte à côte et
-                       les tailles l'ignorent. -->
-                  <CheckBox Grid.Column="0" IsChecked="{Binding IsManaged}" AllowDrop="False"
-                            Margin="0,0,8,0" VerticalAlignment="Center"
-                            ToolTip="Suivre les placements automatiques : passage d'une fenêtre à l'autre, replacement, côte à côte et changements de taille. Décochez pour laisser cette fenêtre exactement où elle est."
-                            Visibility="{Binding ShowActions,
-                                                 RelativeSource={RelativeSource AncestorType=UserControl},
-                                                 Converter={StaticResource BoolToVisibility}}" />
-
-                  <Control Grid.Column="1" Style="{StaticResource DragHandle}" Margin="0,0,6,0"
+                  <Control Grid.Column="1" Style="{StaticResource DragHandle}" Margin="0,0,2,0"
                            VerticalAlignment="Center"
                            ToolTip="Glissez pour changer l'ordre. Une instance peut se placer entre celles d'un autre appareil, et cet ordre est aussi celui du parcours au clavier."
                            PreviewMouseLeftButtonDown="OnDragSourcePressed">
@@ -109,10 +100,21 @@
                     </Control.Visibility>
                   </Control>
 
-                  <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                  <!-- Éteint, la fenêtre est laissée où elle est : le parcours
+                       au clavier, le replacement, le côte à côte et les
+                       tailles l'ignorent. -->
+                  <ToggleButton Grid.Column="2" Style="{StaticResource PlacementToggle}"
+                                IsChecked="{Binding IsManaged}" AllowDrop="False"
+                                Margin="0,0,4,0" VerticalAlignment="Center"
+                                ToolTip="Suivre les placements automatiques : passage d'une fenêtre à l'autre, empilement, côte à côte et changements de taille. Éteignez pour laisser cette fenêtre exactement où elle est."
+                                Visibility="{Binding ShowActions,
+                                                     RelativeSource={RelativeSource AncestorType=UserControl},
+                                                     Converter={StaticResource BoolToVisibility}}" />
+
+                  <StackPanel Grid.Column="3" VerticalAlignment="Center">
                     <TextBox Text="{Binding Name, UpdateSourceTrigger=LostFocus}" AllowDrop="False"
-                             ToolTip="Ce texte devient le titre de la fenêtre du jeu, visible dans la barre des tâches"
-                             Padding="7,3" />
+                             Style="{StaticResource InlineEdit}"
+                             ToolTip="Cliquez pour renommer. Ce texte devient le titre de la fenêtre du jeu, visible dans la barre des tâches." />
 
                     <!-- Le profil ne s'affiche qu'après un renommage : c'est
                          alors le seul moyen de savoir lequel est lequel. Sans
@@ -126,7 +128,7 @@
                   <!-- Les boutons disent à eux seuls l'état de l'instance :
                        « Lancer » quand elle est fermée, « Relancer » et
                        « Fermer » quand elle est ouverte. -->
-                  <Grid Grid.Column="3" Margin="8,0,0,0"
+                  <Grid Grid.Column="4" Margin="8,0,0,0"
                         Visibility="{Binding ShowActions,
                                              RelativeSource={RelativeSource AncestorType=UserControl},
                                              Converter={StaticResource BoolToVisibility}}">

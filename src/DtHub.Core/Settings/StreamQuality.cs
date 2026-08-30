@@ -20,6 +20,11 @@ public enum StreamQuality
 /// téléphone, qui liste les profils et les paquets installés. La qualité basse
 /// allège donc les deux, sans quoi elle ne soulagerait que la moitié du
 /// problème.
+///
+/// Les trois paliers bornent la définition, et pas seulement le plus bas. Le
+/// débit et les images par seconde ne se voient pas sur une image presque fixe,
+/// l'encodeur n'utilisant que ce dont il a besoin : sans borne de définition,
+/// moyenne et haute auraient été indiscernables.
 /// </summary>
 public sealed record QualityProfile(
     int MaxFps,
@@ -51,7 +56,7 @@ public sealed record QualityProfile(
         _ => new QualityProfile(
             MaxFps: 45,
             VideoBitrateKbps: 4000,
-            MaximumDisplayHeight: int.MaxValue,
+            MaximumDisplayHeight: 1080,
             DevicePoll: TimeSpan.FromSeconds(3),
             InstanceRediscovery: TimeSpan.FromSeconds(30),
             WindowWatch: TimeSpan.FromMilliseconds(500)),
