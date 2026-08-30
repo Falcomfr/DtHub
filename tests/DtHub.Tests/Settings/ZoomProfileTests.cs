@@ -26,14 +26,16 @@ public class ZoomProfileTests
     }
 
     [Fact]
-    public void Plus_c_est_eloigne_plus_la_densite_baisse()
+    public void Les_paliers_se_suivent_du_plus_loin_au_plus_proche()
     {
-        var eloignee = ZoomProfile.DpiFor(1080, GameZoom.Wide);
-        var normale = ZoomProfile.DpiFor(1080, GameZoom.Normal);
-        var proche = ZoomProfile.DpiFor(1080, GameZoom.Close);
+        // Deux paliers voisins qui donneraient la même densité ne serviraient
+        // qu'à faire hésiter : chacun doit se voir.
+        var densites = Enum.GetValues<GameZoom>()
+            .Select(z => ZoomProfile.DpiFor(1080, z))
+            .ToList();
 
-        Assert.True(eloignee < normale);
-        Assert.True(normale < proche);
+        Assert.Equal(densites.OrderBy(d => d), densites);
+        Assert.Equal(densites.Count, densites.Distinct().Count());
     }
 
     [Theory]
@@ -45,7 +47,7 @@ public class ZoomProfileTests
         {
             var dpi = ZoomProfile.DpiFor(height, zoom);
 
-            Assert.InRange(dpi, 60, 640);
+            Assert.InRange(dpi, 60, 800);
         }
     }
 

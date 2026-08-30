@@ -248,7 +248,10 @@
                   <TextBlock Text="DISTANCE DANS LE JEU" Style="{StaticResource SectionLabel}"
                              ToolTip="Agit sur la densité de l'écran vu par Android, et non sur la finesse de l'image : à taille de fenêtre égale, le jeu montre plus ou moins de terrain." />
 
-                  <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                  <!-- Repliés plutôt qu'alignés : cinq paliers ne tiennent
+                       plus sur la largeur de la fenêtre, et rogner un libellé
+                       le rendrait indéchiffrable. -->
+                  <WrapPanel Margin="0,0,0,5">
                     <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="Très éloignée"
                                  Margin="0,0,5,0"
                                  ToolTip="Le plus de terrain qu'il soit possible d'afficher. L'interface du jeu devient petite : sur une fenêtre modeste, elle sera à la limite du lisible."
@@ -265,10 +268,15 @@
                                  IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Normal}" />
                     <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="Proche"
-                                 ToolTip="Le moins de terrain visible, l'interface du jeu la plus grande. Confortable sur une petite fenêtre."
+                                 Margin="0,0,5,0"
+                                 ToolTip="Peu de terrain visible, l'interface du jeu grande. Confortable sur une petite fenêtre."
                                  IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Close}" />
-                  </StackPanel>
+                    <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="Très proche"
+                                 ToolTip="Le moins de terrain possible, l'interface du jeu la plus grande. Sur une fenêtre très haute, ce palier se rapproche du précédent : la densité demandée y touche son plafond."
+                                 IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch},
+                                                     ConverterParameter=Closest}" />
+                  </WrapPanel>
 
                   <TextBlock Style="{StaticResource Muted}" FontSize="11"
                              Visibility="{Binding IsReopening, Converter={StaticResource BoolToVisibility}}"

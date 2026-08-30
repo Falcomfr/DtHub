@@ -64,14 +64,20 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             return;
         }
 
-        dispatcher.InvokeAsync(async () =>
+        // Volontairement sans await à l'intérieur : deux rappels qui
+        // s'entrelaçaient sur le fil d'interface se rendaient le garde-fou
+        // l'un à l'autre, et le second le rabaissait pendant que le premier
+        // écrivait encore. Le curseur et la qualité partaient alors tout
+        // seuls, chaque écriture en déclenchant une autre. Les paliers
+        // viennent du document lui-même, il n'y a donc rien à attendre.
+        dispatcher.InvokeAsync(() =>
         {
             if (_loading || _movingWindows)
             {
                 return;
             }
 
-            var presets = await _settings.GetSizePresetsAsync().ConfigureAwait(true);
+            var presets = new WindowSizePresets { Percentages = document.SizePercentages }.Sanitized();
 
             _loading = true;
 

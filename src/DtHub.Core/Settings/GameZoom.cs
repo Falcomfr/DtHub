@@ -15,8 +15,11 @@ public enum GameZoom
     /// <summary>Réglage d'origine.</summary>
     Normal,
 
-    /// <summary>Le moins de terrain, l'interface la plus grande.</summary>
+    /// <summary>Peu de terrain, l'interface grande.</summary>
     Close,
+
+    /// <summary>Le moins de terrain possible, l'interface la plus grande.</summary>
+    Closest,
 }
 
 /// <summary>
@@ -48,6 +51,7 @@ public static class ZoomProfile
         GameZoom.Widest => 1120,
         GameZoom.Wide => 900,
         GameZoom.Close => 576,
+        GameZoom.Closest => 460,
         _ => 720,
     };
 
@@ -66,6 +70,11 @@ public static class ZoomProfile
 
         // 160 ppp est, par définition d'Android, la densité où un point vaut
         // un pixel.
-        return Math.Clamp((int)Math.Round(displayHeight * 160.0 / layout), 60, 640);
+        //
+        // Le plafond n'est pas une limite d'Android mais une prudence : une
+        // densité absurde ferait refuser l'afficheur. 800 laisse le palier le
+        // plus proche tenir sa promesse jusqu'à une fenêtre de 2300 pixels de
+        // haut, au-delà de quoi il se rapproche du palier voisin.
+        return Math.Clamp((int)Math.Round(displayHeight * 160.0 / layout), 60, 800);
     }
 }
