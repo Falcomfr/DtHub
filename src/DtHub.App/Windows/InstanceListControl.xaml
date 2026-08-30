@@ -7,18 +7,6 @@
        fenêtre de mise en route et par l'onglet Appareils. -->
   <StackPanel>
 
-    <!-- La consigne n'a de sens que là où les cases existent, donc à la mise
-         en route seulement. -->
-    <TextBlock Text="Cochez les instances à ouvrir au démarrage."
-               Style="{StaticResource Muted}" FontSize="11" Margin="2,0,0,6">
-      <TextBlock.Visibility>
-        <MultiBinding Converter="{StaticResource AllTrue}">
-          <Binding Path="ShowSelection" RelativeSource="{RelativeSource AncestorType=UserControl}" />
-          <Binding Path="HasRows" />
-        </MultiBinding>
-      </TextBlock.Visibility>
-    </TextBlock>
-
     <StackPanel Visibility="{Binding HasRows, Converter={StaticResource BoolToVisibility}}">
       <ItemsControl ItemsSource="{Binding Rows}">
         <ItemsControl.ItemTemplate>

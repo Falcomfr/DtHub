@@ -935,9 +935,24 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private async Task<string?> BuildTitleHintAsync(CancellationToken cancellationToken)
     {
         var hotkeys = await _settings.GetHotkeysAsync(cancellationToken).ConfigureAwait(false);
-        var next = hotkeys.For(HotkeyAction.NextInstance);
 
-        return next is { IsAssigned: true } ? $"{next.DisplayText} : fenêtre suivante" : null;
+        // Le configurateur d'abord : c'est le seul rappel dont on a besoin
+        // quand on ne sait plus comment revenir à l'application. Il n'a pas
+        // d'icône dans la barre des tâches une fois masqué, et sans ce rappel
+        // la combinaison ne s'apprend nulle part.
+        List<string> parts = [];
+
+        if (hotkeys.For(HotkeyAction.ToggleConfigurator) is { IsAssigned: true } toggle)
+        {
+            parts.Add($"{toggle.DisplayText} : réglages");
+        }
+
+        if (hotkeys.For(HotkeyAction.NextInstance) is { IsAssigned: true } next)
+        {
+            parts.Add($"{next.DisplayText} : fenêtre suivante");
+        }
+
+        return parts.Count > 0 ? string.Join("  ·  ", parts) : null;
     }
 
     private static LaunchTarget ToTarget(DofusInstance instance, string serial) => new()
