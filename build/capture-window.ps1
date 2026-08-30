@@ -5,6 +5,7 @@
 # Le processus se declare conscient de la mise a l'echelle : sans cela, il
 # mesure la fenetre trop petite et la capture est rognee.
 param(
+    [int]$ProcessId = 0,
     [string]$ProcessName = "DtHub",
     [string]$Output = "C:\Dev\DTHub\build\capture.png",
     [string]$WindowTitle = ""
@@ -50,7 +51,13 @@ public class Win {
 
 [void][Win]::SetProcessDPIAware()
 
-$proc = Get-Process -Name $ProcessName -ErrorAction SilentlyContinue | Select-Object -First 1
+# Un identifiant de processus permet de viser une fenetre precise quand
+# plusieurs instances du meme programme tournent.
+$proc = if ($ProcessId -gt 0) {
+    Get-Process -Id $ProcessId -ErrorAction SilentlyContinue
+} else {
+    Get-Process -Name $ProcessName -ErrorAction SilentlyContinue | Select-Object -First 1
+}
 if (-not $proc) { Write-Output "PROCESSUS INTROUVABLE"; exit 1 }
 
 $windows = [Win]::WindowsOf([uint32]$proc.Id)

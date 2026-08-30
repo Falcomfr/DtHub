@@ -88,8 +88,26 @@ public sealed record ScrcpyOptions
 
     public ScrcpyKeyboardMode KeyboardMode { get; init; } = ScrcpyKeyboardMode.Sdk;
 
-    /// <summary>Privilégier la saisie de texte à l'injection de codes touches.</summary>
-    public bool PreferText { get; init; } = true;
+    /// <summary>
+    /// Privilégier la saisie de texte à l'injection de codes touches.
+    ///
+    /// Éteint : cette option avale les modificateurs. Ctrl+V tapait un « v »
+    /// dans le champ au lieu de coller, mesuré, et scrcpy la déconseille
+    /// lui-même pour les jeux, où elle casse aussi les touches de
+    /// déplacement.
+    /// </summary>
+    public bool PreferText { get; init; }
+
+    /// <summary>
+    /// Colle le presse-papiers de Windows en tapant son contenu, plutôt qu'en
+    /// demandant à Android de coller le sien.
+    ///
+    /// Mesuré : le collage ordinaire ne fait rien. scrcpy pose bien le texte
+    /// dans le presse-papiers du téléphone, la trace le dit, mais la touche
+    /// COLLER qu'il envoie ensuite n'insère rien dans l'application. Taper le
+    /// texte contourne le presse-papiers d'Android en entier.
+    /// </summary>
+    public bool LegacyPaste { get; init; } = true;
 
     /// <summary>Empêcher l'écran du téléphone de s'éteindre pendant la session.</summary>
     public bool KeepDeviceAwake { get; init; } = true;

@@ -59,9 +59,19 @@ public static class ScrcpyCommandBuilder
             Option("mouse-bind", "----:bhsn"),
         ];
 
+        // --prefer-text avale les modificateurs : les touches alphabétiques
+        // partent en événements de texte, si bien que Ctrl+V tapait un « v »
+        // dans le champ au lieu de coller. Mesuré, et scrcpy le déconseille
+        // lui-même pour les jeux, où il casse aussi les touches de
+        // déplacement.
         if (sanitized.PreferText)
         {
             arguments.Add("--prefer-text");
+        }
+
+        if (sanitized.LegacyPaste)
+        {
+            arguments.Add("--legacy-paste");
         }
 
         if (!sanitized.AudioEnabled)

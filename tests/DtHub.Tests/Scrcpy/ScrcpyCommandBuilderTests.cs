@@ -40,12 +40,21 @@ public class ScrcpyCommandBuilderTests
     }
 
     [Fact]
-    public void Le_clavier_est_en_mode_sdk_avec_saisie_de_texte_privilegiee()
+    public void Le_clavier_est_en_mode_sdk()
     {
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "Titre", ScrcpyOptions.Default);
 
         Assert.Equal("sdk", ValueOf(arguments, "--keyboard"));
+    }
+
+    [Fact]
+    public void La_saisie_de_texte_privilegiee_reste_disponible_mais_eteinte()
+    {
+        // Elle avale les modificateurs : c'est un réglage, pas un défaut.
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001", "Titre", ScrcpyOptions.Default with { PreferText = true });
+
         Assert.Contains("--prefer-text", arguments);
     }
 
@@ -239,5 +248,20 @@ public class ScrcpyCommandBuilderTests
             "USB0001", "DT Hub", ScrcpyOptions.Default, null);
 
         Assert.Equal("----:bhsn", ValueOf(arguments, "--mouse-bind"));
+    }
+
+    [Fact]
+    public void Le_collage_tape_le_texte_et_les_modificateurs_sont_respectes()
+    {
+        // Mesuré sur le téléphone : avec --prefer-text, Ctrl+V tapait un « v »
+        // dans le champ au lieu de coller, les touches alphabétiques partant
+        // en événements de texte. Et sans --legacy-paste, le collage ordinaire
+        // n'insérait rien : scrcpy posait bien le texte dans le presse-papiers
+        // d'Android, sa trace le dit, mais la touche COLLER n'y puisait rien.
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001", "Titre", ScrcpyOptions.Default);
+
+        Assert.DoesNotContain("--prefer-text", arguments);
+        Assert.Contains("--legacy-paste", arguments);
     }
 }
