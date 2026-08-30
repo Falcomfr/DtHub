@@ -667,15 +667,13 @@ public class WindowManagerServiceTests
     }
 
     [Fact]
-    public async Task Une_geometrie_memorisee_trop_haute_est_ramenee_des_l_ouverture()
+    public async Task En_largeur_libre_une_geometrie_memorisee_est_rendue_telle_quelle()
     {
-        // Sans cela la fenêtre s'ouvrirait trop haute puis serait rapetissée :
-        // elle grandit et rétrécit sous les yeux à chaque lancement.
+        // Aucun plafond de hauteur : l'afficheur naît à la taille de la
+        // fenêtre, donc toute hauteur mémorisée est bonne à reprendre.
         var (manager, sessions, desktop) = await OpenSessionsAsync(1);
         await using var _ = manager;
 
-        // Le plafond dépasse un écran 1920x1080 : sans un grand écran, la
-        // géométrie mémorisée serait écartée pour débordement.
         desktop.Monitors[0] = new MonitorInfo
         {
             DeviceName = @"\\.\DISPLAY1",
@@ -685,22 +683,17 @@ public class WindowManagerServiceTests
         };
 
         var service = new WindowManagerService(desktop, NoDelay);
-        var ceiling = sessions[0].MaxClientHeight;
+        var wanted = new ScreenRect(40, 20, 2600, 1900);
 
         var remembered = new Dictionary<string, StoredWindowRect>(StringComparer.Ordinal)
         {
-            [sessions[0].Target.Key] = StoredWindowRect.From(
-                new ScreenRect(40, 20, 2600, ceiling + 300),
-                desktop.GetMonitors()[0]),
+            [sessions[0].Target.Key] = StoredWindowRect.From(wanted, desktop.GetMonitors()[0]),
         };
 
         await service.RestoreAsync(sessions, remembered, CancellationToken.None);
 
-        var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
-
-        Assert.Equal(40, rect.X);
-        Assert.Equal(2600, rect.Width);
-        Assert.Equal(ceiling, rect.Height);
+        Assert.Equal(0, sessions[0].MaxClientHeight);
+        Assert.Equal(wanted, desktop.GetWindowRect(sessions[0].WindowHandle));
     }
 
     [Fact]
@@ -723,38 +716,15 @@ public class WindowManagerServiceTests
     }
 
     [Fact]
-    public void La_hauteur_visee_est_celle_du_plus_haut_ecran_barre_des_taches_comprise()
+    public void La_taille_transmise_a_scrcpy_est_celle_de_la_zone_client()
     {
-        // C'est sur elle que l'afficheur naît, et le plein écran couvre
-        // l'écran entier : la zone utilisable serait trop basse de la hauteur
-        // de la barre des tâches, et laisserait une bande en plein écran.
-        var petit = FakeWindowController.PrimaryMonitor;
-        var grand = new MonitorInfo
-        {
-            DeviceName = @"\\.\DISPLAY2",
-            Bounds = new ScreenRect(1920, 0, 3840, 2160),
-            WorkArea = new ScreenRect(1920, 0, 3840, 2088),
-        };
-
-        var desktop = new FakeWindowController(petit, grand);
+        // C'est elle que scrcpy donne à l'afficheur, et le jeu fige la hauteur
+        // de sa mise en page dessus. Compter le cadre la rendrait trop haute
+        // d'une barre de titre, et l'image serait rognée d'autant.
+        var desktop = new FakeWindowController { Chrome = (22, 56) };
         var service = new WindowManagerService(desktop, NoDelay);
 
-        Assert.Equal(2160, service.TallestReachableHeight());
-    }
-
-    [Fact]
-    public async Task Le_plafond_d_une_session_est_la_hauteur_de_naissance_de_son_afficheur()
-    {
-        // Le jeu ne dessine jamais au-delà de la hauteur où son afficheur est
-        // né. Aucune constante ne vaut ici : la session retient ce qui a été
-        // réellement demandé.
-        var (manager, sessions, _) = await OpenSessionsAsync(
-            1,
-            ScrcpyOptions.Default with { FlexDisplay = true, VirtualDisplayHeight = 2160 });
-
-        await using var _ = manager;
-
-        Assert.Equal(2160, sessions[0].MaxClientHeight);
+        Assert.Equal((22, 56), service.WindowChrome());
     }
 
     [Fact]

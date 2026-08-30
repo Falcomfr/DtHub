@@ -59,6 +59,8 @@ public sealed class FakeWindowController : IWindowController
     /// <summary>Encombrement simulé de la barre de titre et des bordures.</summary>
     public (int Width, int Height) Chrome { get; set; }
 
+    public (int Width, int Height) GetWindowChrome(string? monitorDeviceName) => Chrome;
+
     public ScreenRect? GetWindowRect(nint handle) =>
         _rects.TryGetValue(handle, out var rect) ? rect : null;
 
@@ -67,11 +69,15 @@ public sealed class FakeWindowController : IWindowController
             ? new ScreenRect(0, 0, rect.Width - Chrome.Width, rect.Height - Chrome.Height)
             : null;
 
+    /// <summary>Rectangles posés, dans l'ordre, pour vérifier les remises en page.</summary>
+    public List<(nint Handle, ScreenRect Rect)> Moves { get; } = [];
+
     public void MoveWindow(nint handle, ScreenRect rect, bool bringToFront = false)
     {
         if (IsWindow(handle))
         {
             _rects[handle] = rect;
+            Moves.Add((handle, rect));
         }
     }
 

@@ -96,6 +96,55 @@ public sealed partial class Win32WindowController : IWindowController
         return ToRect(rect);
     }
 
+    /// <summary>
+    /// Encombrement du cadre d'une fenêtre ordinaire, mesuré sans qu'aucune
+    /// fenêtre n'existe.
+    ///
+    /// scrcpy ouvre une fenêtre redimensionnable avec barre de titre, donc le
+    /// style le plus courant. La mise à l'échelle de l'écran visé est prise en
+    /// compte : sur un écran à 150 pour cent, le cadre est une fois et demie
+    /// plus épais.
+    /// </summary>
+    public (int Width, int Height) GetWindowChrome(string? monitorDeviceName)
+    {
+        var dpi = DpiOf(monitorDeviceName);
+
+        var frame = new Rect { Left = 0, Top = 0, Right = 1000, Bottom = 1000 };
+
+        if (!AdjustWindowRectExForDpi(ref frame, OverlappedWindow, bMenu: false, 0, dpi))
+        {
+            return (0, 0);
+        }
+
+        return (frame.Right - frame.Left - 1000, frame.Bottom - frame.Top - 1000);
+    }
+
+    /// <summary>Points par pouce de l'écran visé, ou ceux du système à défaut.</summary>
+    private uint DpiOf(string? monitorDeviceName)
+    {
+        var monitors = GetMonitors();
+
+        var monitor = monitors.FirstOrDefault(
+            m => string.Equals(m.DeviceName, monitorDeviceName, StringComparison.Ordinal));
+
+        if (monitor is null && monitors.Count > 0)
+        {
+            monitor = monitors.FirstOrDefault(m => m.IsPrimary) ?? monitors[0];
+        }
+
+        if (monitor is null)
+        {
+            return DefaultDpi;
+        }
+
+        var handle = MonitorFromPoint(
+            new Point { X = monitor.Bounds.CenterX, Y = monitor.Bounds.CenterY }, MonitorDefaultToNearest);
+
+        return handle != 0 && GetDpiForMonitor(handle, MonitorDpiEffective, out var x, out _) == 0
+            ? x
+            : DefaultDpi;
+    }
+
     public void MoveWindow(nint handle, ScreenRect rect, bool bringToFront = false)
     {
         if (handle == 0)
@@ -220,6 +269,39 @@ public sealed partial class Win32WindowController : IWindowController
     [DllImport("user32.dll", CharSet = CharSet.Unicode, EntryPoint = "GetMonitorInfoW")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool GetMonitorInfo(nint monitor, ref MonitorInfoEx info);
+
+    /// <summary>Style d'une fenêtre ordinaire redimensionnable : WS_OVERLAPPEDWINDOW.</summary>
+    private const uint OverlappedWindow = 0x00CF0000;
+
+    /// <summary>Densité de référence de Windows, cent pour cent.</summary>
+    private const uint DefaultDpi = 96;
+
+    private const uint MonitorDefaultToNearest = 2;
+
+    /// <summary>MDT_EFFECTIVE_DPI : la densité telle que la voit l'application.</summary>
+    private const int MonitorDpiEffective = 0;
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct Point
+    {
+        public int X;
+        public int Y;
+    }
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool AdjustWindowRectExForDpi(
+        ref Rect rect,
+        uint style,
+        [MarshalAs(UnmanagedType.Bool)] bool bMenu,
+        uint exStyle,
+        uint dpi);
+
+    [DllImport("user32.dll")]
+    private static extern nint MonitorFromPoint(Point point, uint flags);
+
+    [DllImport("shcore.dll")]
+    private static extern int GetDpiForMonitor(nint monitor, int type, out uint dpiX, out uint dpiY);
 
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]

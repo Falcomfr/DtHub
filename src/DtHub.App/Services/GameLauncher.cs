@@ -79,8 +79,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _sessions.PrepareWindow = async (session, cancellationToken) =>
         {
             // La fenêtre est maintenue garée hors écran : scrcpy recentre la
-            // sienne à la première image. La redimensionner ici serait pire
-            // encore, le jeu naîtrait petit et ne saurait plus grandir.
+            // sienne à la première image. Sa taille, elle, n'est pas touchée :
+            // l'afficheur est déjà né à la bonne, et le jeu fige la hauteur de
+            // sa mise en page à son initialisation.
             if (_pendingPlacement is { } placement)
             {
                 await _windows.MoveOnlyAsync(session, placement.X, placement.Y, cancellationToken)
@@ -291,23 +292,17 @@ public sealed partial class GameLauncher : IAsyncDisposable
             IconDirectory = _iconDirectory,
         };
 
-        // L'afficheur naît à la hauteur du plus haut des écrans. Le jeu ne
-        // dessine jamais au-delà de sa hauteur de naissance : la lui donner
-        // d'emblée est ce qui rend le redimensionnement libre, du plus petit
-        // au plein écran, sans bande et sans jamais recharger. Descendre
-        // ensuite ne lui pose aucun problème.
-        //
-        // En largeur libre, seule la hauteur compte : la largeur vient de la
-        // fenêtre. Au rapport verrouillé, l'afficheur prend la définition
-        // entière de l'écran, ce qui rend le plein écran net.
-        if (_windows.TallestReachableHeight() is > 0 and var tallest)
+        // Au rapport verrouillé, l'afficheur garde une définition fixe et
+        // l'image est mise à l'échelle : la prendre égale à celle de l'écran
+        // rend le plein écran net. En largeur libre, la définition vient de
+        // la fenêtre elle-même, instance par instance.
+        if (!options.FlexDisplay && _windows.MonitorBounds() is { Width: > 0, Height: > 0 } screen)
         {
-            options = options with { VirtualDisplayHeight = tallest };
-
-            if (!options.FlexDisplay && _windows.MonitorBounds() is { Width: > 0 } screen)
+            options = options with
             {
-                options = options with { VirtualDisplayWidth = screen.Width };
-            }
+                VirtualDisplayWidth = screen.Width,
+                VirtualDisplayHeight = screen.Height,
+            };
         }
 
         var serials = await ResolveSerialsAsync(cancellationToken).ConfigureAwait(false);
@@ -374,6 +369,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             await Task.Delay(TimeSpan.FromSeconds(3), cancellationToken).ConfigureAwait(false);
 
             await _windows.RestoreAsync(started, remembered, cancellationToken).ConfigureAwait(false);
+
         }
 
         LogLaunch(started.Count, problems.Count);
@@ -490,6 +486,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// stabilisée. Appelée régulièrement.
     /// </summary>
     public int EnforceAspect() => _windows.EnforceAspect(_sessions.ActiveSessions);
+
 
     /// <summary>
     /// Empile les fenêtres sur celle qui est active, ou sur la première.
@@ -694,14 +691,24 @@ public sealed partial class GameLauncher : IAsyncDisposable
             string.Join(", ", monitors.Select(m => $"{m.DeviceName} {m.Bounds} utile {m.WorkArea}")),
             rect?.ToString() ?? "aucun");
 
-        // La fenêtre naît garée hors écran : l'afficheur naît à la hauteur du
-        // plus grand écran, donc elle aussi, et la voir paraître à cette
-        // taille pour être aussitôt ramenée serait un clignotement. Seule la
-        // largeur compte à la naissance, c'est elle que scrcpy donne à
-        // l'afficheur.
-        return rect is { } value
-            ? new ScrcpyWindowPlacement(_windows.ParkingX(), value.Y, value.Width, value.Height)
-            : null;
+        // La fenêtre naît garée hors écran, le temps que le jeu ouvre.
+        //
+        // La taille transmise est celle de la zone client, cadre déduit : en
+        // largeur libre, c'est elle que scrcpy donne à l'afficheur, et le jeu
+        // fige la hauteur de sa mise en page sur elle à son initialisation.
+        // La corriger après coup rognerait l'image ou laisserait une bande.
+        if (rect is not { } value)
+        {
+            return null;
+        }
+
+        var chrome = _windows.WindowChrome();
+
+        return new ScrcpyWindowPlacement(
+            _windows.ParkingX(),
+            value.Y,
+            Math.Max(1, value.Width - chrome.Width),
+            Math.Max(1, value.Height - chrome.Height));
     }
 
     /// <summary>
@@ -885,6 +892,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Un raccourci n'a pas pu être traité.")]
     private partial void LogHotkeyFailure(Exception exception);
+
 
     [LoggerMessage(
         Level = LogLevel.Warning,

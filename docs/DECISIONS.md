@@ -334,7 +334,7 @@ de scrcpy installée par l'utilisateur n'est jamais touchée.
 Vérifié : huit orphelins ramassés au démarrage, et zéro survivant après un
 arrêt brutal de l'application.
 
-## D15 - L'afficheur naît à la hauteur du plus grand écran
+## D15 - L'afficheur naît à la hauteur du plus grand écran (corrigée par D16)
 
 Le jeu laissait une bande noire dès qu'une fenêtre dépassait 1416 pixels de
 haut. Ce chiffre a été pris pendant des semaines pour une limite du jeu, et
@@ -368,3 +368,45 @@ Vérifié sur un Xiaomi 13T, sans aucune bande et sans rechargement : 978x644,
 La densité de l'afficheur, restée à 240 pour toutes ces mesures, n'entre pas
 en jeu. L'hypothèse d'un plafond exprimé en points d'interface, 1416 pixels à
 240 ppp valant exactement 944 dp, était séduisante et fausse.
+
+## D16 - Le jeu fige la hauteur de sa mise en page à son initialisation
+
+D15 concluait que le jeu ne dessine jamais au-delà de la hauteur de naissance
+de son afficheur, et faisait naître celui-ci à la hauteur du plus grand écran.
+La mesure était juste, la conclusion trop étroite, et le remède a rendu les
+choses pires : né en 2160 puis ramené à 1192, le jeu dessinait toujours sa
+mise en page de 2160 et l'image se retrouvait **rognée**, on perdait le bas et
+la droite.
+
+La règle exacte est plus simple. **Le jeu fige la hauteur de sa mise en page
+quand il s'initialise, sur la hauteur qu'a l'afficheur à cet instant. La
+largeur, elle, se recalcule à tout moment.** Trois mesures sur un Xiaomi 13T,
+jeu arrêté avant chaque essai pour qu'il s'initialise vraiment :
+
+| Afficheur à la naissance | Fenêtre ensuite | Résultat |
+|---|---|---|
+| 2280x1192 | inchangée | mise en page complète, pied de page compris |
+| 2280x1192 | 1378x844 | mise en page refaite en largeur, rognée en bas |
+| 1378x844 | 2280x1192 | mise en page refaite en largeur, bande noire en bas |
+
+Ce que D15 prenait pour un plafond de 1416 pixels n'était que la hauteur que
+nous donnions nous-mêmes à l'afficheur.
+
+Deux conséquences.
+
+L'afficheur naît à la taille **exacte de la zone client** de la fenêtre, cadre
+déduit. Le cadre est mesuré par `AdjustWindowRectExForDpi` avant qu'aucune
+fenêtre n'existe : compter le rectangle extérieur rendrait l'afficheur trop
+haut d'une barre de titre, et l'image serait rognée d'autant. Redimensionner
+la fenêtre après coup pour corriger ne rattrape rien : mesuré, le jeu s'était
+déjà initialisé.
+
+Aucun rattrapage n'est possible sans recharger le jeu. Une variation de deux
+pixels, essayée et mesurée, ne provoque aucune remise en page : la fenêtre
+Android du jeu suit pourtant parfaitement l'afficheur, `dumpsys window` le
+montre, et c'est bien la mise en page interne du jeu qui ne bouge plus.
+
+Reste donc une limite assumée : **changer la hauteur d'une fenêtre en cours de
+partie dégrade l'image**, en bande si on l'agrandit, en rognage si on la
+réduit. La largeur reste libre, d'où le nom du mode. Seul le mode à définition
+fixe, où l'image est mise à l'échelle, accepte toute hauteur sans rien perdre.

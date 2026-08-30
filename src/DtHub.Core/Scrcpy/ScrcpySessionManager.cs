@@ -147,11 +147,9 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                 ? (double)options.VirtualDisplayWidth / options.VirtualDisplayHeight
                 : 0,
 
-            // L'afficheur naît à cette hauteur : c'est donc jusque-là que la
-            // fenêtre pourra grandir sans laisser de bande.
-            MaxClientHeight = options is { UseVirtualDisplay: true, FlexDisplay: true }
-                ? options.Sanitized().VirtualDisplayHeight
-                : 0,
+            // En largeur libre, aucun plafond : l'afficheur naît à la taille de
+            // la fenêtre, quelle qu'elle soit.
+            MaxClientHeight = 0,
 
         };
 

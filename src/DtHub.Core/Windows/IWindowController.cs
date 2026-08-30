@@ -31,6 +31,17 @@ public interface IWindowController
     /// <summary>Déplace et redimensionne une fenêtre.</summary>
     void MoveWindow(nint handle, ScreenRect rect, bool bringToFront = false);
 
+    /// <summary>
+    /// Encombrement du cadre d'une fenêtre ordinaire sur l'écran donné :
+    /// bordures et barre de titre.
+    ///
+    /// Il faut le connaître avant qu'aucune fenêtre n'existe, pour demander à
+    /// scrcpy un afficheur de la taille exacte de la zone client. Le jeu fige
+    /// la hauteur de sa mise en page à son initialisation : la corriger après
+    /// coup ne rattrape rien.
+    /// </summary>
+    (int Width, int Height) GetWindowChrome(string? monitorDeviceName);
+
     /// <summary>Met une fenêtre au premier plan et lui donne le focus clavier.</summary>
     void Focus(nint handle);
 

@@ -299,18 +299,12 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Plus grande hauteur qu'une fenêtre de jeu pourra atteindre, tous écrans
-    /// confondus, barre des tâches comprise puisque le plein écran la couvre.
-    ///
-    /// C'est sur elle que l'afficheur naît : le jeu ne dessine jamais plus
-    /// haut que sa hauteur de naissance, et celle-ci est figée pour la session.
+    /// Encombrement du cadre d'une fenêtre sur l'écran retenu. Connu avant
+    /// qu'aucune fenêtre n'existe, pour demander à scrcpy un afficheur de la
+    /// taille exacte de la zone client.
     /// </summary>
-    public int TallestReachableHeight()
-    {
-        var monitors = _controller.GetMonitors();
-
-        return monitors.Count == 0 ? 0 : monitors.Max(m => m.Bounds.Height);
-    }
+    public (int Width, int Height) WindowChrome() =>
+        _controller.GetWindowChrome(PreferredMonitorDeviceName);
 
     /// <summary>
     /// Abscisse hors de tout écran, où garer une fenêtre le temps qu'elle

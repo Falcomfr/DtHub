@@ -92,14 +92,13 @@ public static class ScrcpyCommandBuilder
             // la définition de l'afficheur : scrcpy refuse --window-width et
             // --window-height dans ce mode.
             //
-            // La largeur vient de la fenêtre, la hauteur des réglages : c'est
-            // elle qui fixe la hauteur que le jeu acceptera de dessiner, et
-            // elle est calée sur l'écran au lancement. Rien ne se décide ici.
+            // L'afficheur naît à la taille de la fenêtre : le jeu fige la
+            // hauteur de sa mise en page à son initialisation, et il faut
+            // qu'elle soit la bonne dès cet instant.
             arguments.Add(Option(
                 "new-display",
-                flex && windowPosition is { Width: > 0 } size
-                    ? DisplayArgument(
-                          size.Width, sanitized.VirtualDisplayHeight, sanitized.VirtualDisplayDpi)
+                flex && windowPosition is { Width: > 0, Height: > 0 } size
+                    ? DisplayArgument(size.Width, size.Height, sanitized.VirtualDisplayDpi)
                     : sanitized.VirtualDisplayArgument));
 
             if (sanitized.DisableVirtualDisplayDecorations)
