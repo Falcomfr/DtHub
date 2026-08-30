@@ -56,10 +56,37 @@ public sealed partial class InstanceRowViewModel : ObservableObject
 
     public string DeviceId => Instance.DeviceId;
 
+    /// <summary>Appareil qui porte cette instance. Il peint l'en-tête, quand il y en a un.</summary>
+    [ObservableProperty]
+    private DeviceGroupViewModel? _device;
+
+    /// <summary>
+    /// Vrai quand cette ligne ouvre une suite d'instances du même appareil, et
+    /// doit donc en porter le nom.
+    /// </summary>
+    [ObservableProperty]
+    private bool _showDeviceHeader;
+
+    /// <summary>
+    /// Vrai quand cette ligne est le premier morceau de son appareil. Ce qui
+    /// vaut pour l'appareil lui-même, comme rompre l'association, ne s'affiche
+    /// que là : il n'y a aucune raison de le proposer deux fois.
+    /// </summary>
+    [ObservableProperty]
+    private bool _isFirstOfDevice;
+
     public bool IsDeviceConnected => Instance.IsDeviceConnected;
 
     /// <summary>Profil Android d'origine, affiché en second plan.</summary>
     public string UserLabel => $"profil {Instance.UserId} · {Instance.UserName}";
+
+    /// <summary>
+    /// Vrai quand le nom affiché ne dit plus de quel profil il s'agit, donc
+    /// quand l'utilisateur l'a renommé. Sans renommage, le rappel répéterait
+    /// le nom juste au-dessus et coûterait une ligne pour rien.
+    /// </summary>
+    public bool ShowUserLabel =>
+        !string.Equals(Name, Instance.UserName, StringComparison.Ordinal);
 
     /// <summary>Signalé quand une case est cochée ou un nom modifié.</summary>
     public event EventHandler<InstanceRowViewModel>? EnabledChanged;
@@ -97,12 +124,15 @@ public sealed partial class InstanceRowViewModel : ObservableObject
 
         OnPropertyChanged(nameof(IsDeviceConnected));
         OnPropertyChanged(nameof(UserLabel));
+        OnPropertyChanged(nameof(ShowUserLabel));
     }
 
     partial void OnIsEnabledChanged(bool value) => EnabledChanged?.Invoke(this, this);
 
     partial void OnNameChanged(string value)
     {
+        OnPropertyChanged(nameof(ShowUserLabel));
+
         if (_applying)
         {
             return;

@@ -224,21 +224,6 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task ForgetDeviceAsync(DeviceGroupViewModel? group)
-    {
-        if (group is null
-            || !_dialogs.Confirm(
-                $"Oublier {group.Name} ?\n\nSes instances et leurs réglages seront effacés.",
-                "Oublier l'appareil"))
-        {
-            return;
-        }
-
-        await _settings.ForgetDeviceAsync(group.DeviceId).ConfigureAwait(true);
-        await Instances.RefreshAsync().ConfigureAwait(true);
-    }
-
-    [RelayCommand]
     private void OpenLogs() => _dialogs.OpenFolder(_paths.LogsDirectory);
 
     private void Save(Action<AppSettingsDocument> mutate)

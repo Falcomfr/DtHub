@@ -1,5 +1,3 @@
-using System.Collections.ObjectModel;
-
 using CommunityToolkit.Mvvm.ComponentModel;
 
 using DtHub.Core.Adb;
@@ -7,7 +5,14 @@ using DtHub.Core.Devices;
 
 namespace DtHub.App.ViewModels;
 
-/// <summary>Un téléphone et les instances du jeu qu'il porte.</summary>
+/// <summary>
+/// Un téléphone, tel qu'il paraît au-dessus de ses instances.
+///
+/// Les instances ne lui appartiennent plus : elles vivent dans une liste
+/// unique où elles se trient librement. Cet objet est partagé par toutes les
+/// lignes du même téléphone, si bien qu'une seule mise à jour d'état les
+/// prévient toutes.
+/// </summary>
 public sealed partial class DeviceGroupViewModel : ObservableObject
 {
     public DeviceGroupViewModel(string deviceId, string name) => (DeviceId, _name) = (deviceId, name);
@@ -23,30 +28,18 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     [ObservableProperty]
     private AdbConnectionKind _connection = AdbConnectionKind.Unknown;
 
-    public ObservableCollection<InstanceRowViewModel> Instances { get; } = [];
-
     public bool IsConnected => State == AdbDeviceState.Device;
 
     /// <summary>
-    /// Vrai s'il y a plus d'une instance : une poignée sur une liste d'un seul
-    /// élément ne mène nulle part.
+    /// Vrai quand l'appareil répond mais qu'aucun profil ne porte le jeu.
+    /// Il n'a alors aucune ligne dans la liste, et disparaîtrait sans un mot.
     /// </summary>
     [ObservableProperty]
-    private bool _canReorder;
+    private bool _hasNoGame;
 
-    /// <summary>Vrai pour l'appareil que l'on est en train de déplacer.</summary>
-    [ObservableProperty]
-    private bool _isDragging;
-
-    /// <summary>Vrai quand un dépôt ici insérerait juste au-dessus.</summary>
-    [ObservableProperty]
-    private bool _dropAbove;
-
-    /// <summary>Vrai quand un dépôt ici insérerait juste en dessous.</summary>
-    [ObservableProperty]
-    private bool _dropBelow;
-
-    public string StatusText => State switch
+    public string StatusText => HasNoGame && IsConnected
+        ? "Jeu non installé"
+        : State switch
     {
         AdbDeviceState.Device => Connection == AdbConnectionKind.Usb ? "Connecté en USB" : "Connecté en Wi-Fi",
         AdbDeviceState.Unauthorized => "À autoriser sur le téléphone",
@@ -55,7 +48,7 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
         _ => "Inconnu",
     };
 
-    public string StatusBrushKey => State switch
+    public string StatusBrushKey => HasNoGame && IsConnected ? "WarningBrush" : State switch
     {
         AdbDeviceState.Device => "SuccessBrush",
         AdbDeviceState.Unauthorized => "WarningBrush",
@@ -76,12 +69,8 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
         OnPropertyChanged(nameof(StatusBrushKey));
     }
 
-    /// <summary>Marque le téléphone comme absent, ses instances restant listées.</summary>
-    public void MarkOffline()
+    partial void OnHasNoGameChanged(bool value)
     {
-        State = AdbDeviceState.Offline;
-
-        OnPropertyChanged(nameof(IsConnected));
         OnPropertyChanged(nameof(StatusText));
         OnPropertyChanged(nameof(StatusBrushKey));
     }

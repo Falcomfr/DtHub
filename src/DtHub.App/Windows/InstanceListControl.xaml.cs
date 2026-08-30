@@ -13,8 +13,9 @@ namespace DtHub.App.Windows;
 /// est un <see cref="InstanceListViewModel"/>.
 ///
 /// Le glisser-déposer vit ici, et non dans le modèle de vue : XAML ne sait pas
-/// l'exprimer, et il n'existe aucun conteneur sélectionnable dans ces listes,
-/// qui sont de simples <c>ItemsControl</c>.
+/// l'exprimer, et il n'existe aucun conteneur sélectionnable dans cette liste,
+/// qui est un simple <c>ItemsControl</c>. Une seule nature d'objet s'y
+/// déplace, l'instance : les appareils ne se trient plus.
 /// </summary>
 public partial class InstanceListControl : UserControl
 {
@@ -54,7 +55,7 @@ public partial class InstanceListControl : UserControl
             new PropertyMetadata(true));
 
     private Point _origin;
-    private object? _pending;
+    private InstanceRowViewModel? _pending;
 
     public InstanceListControl() => InitializeComponent();
 
@@ -85,7 +86,9 @@ public partial class InstanceListControl : UserControl
     /// </summary>
     private void OnDragSourcePressed(object sender, MouseButtonEventArgs e)
     {
-        _pending = ShowOrdering && sender is FrameworkElement handle ? handle.DataContext : null;
+        _pending = ShowOrdering && sender is FrameworkElement { DataContext: InstanceRowViewModel row }
+            ? row
+            : null;
         _origin = e.GetPosition(this);
     }
 
@@ -110,8 +113,7 @@ public partial class InstanceListControl : UserControl
         // Le balayage périodique reconstruit la liste : le suspendre évite
         // qu'une carte disparaisse sous le curseur en plein glissé.
         model.IsReordering = true;
-        model.IsDraggingInstance = payload is InstanceRowViewModel;
-        Mark(payload, dragging: true);
+        payload.IsDragging = true;
 
         try
         {
@@ -134,7 +136,7 @@ public partial class InstanceListControl : UserControl
 
         e.Effects = DragDropEffects.Move;
 
-        if (Hovered(sender, e) is not { } onto || ViewModel is not { } model)
+        if (Hovered(sender) is not { } onto || ViewModel is not { } model)
         {
             return;
         }
@@ -178,15 +180,17 @@ public partial class InstanceListControl : UserControl
 
         var above = IsUpperHalf(sender, e);
 
-
-        if (Resolve(sender, e) is not { } move || ViewModel is not { } model)
+        if (Hovered(sender) is not { } onto
+            || Dragged(e) is not { } dragged
+            || ReferenceEquals(dragged, onto)
+            || ViewModel is not { } model)
         {
             return;
         }
 
         model.ClearDropHints();
 
-        await model.ReorderAsync(move.Dragged, move.Onto, above).ConfigureAwait(true);
+        await model.ReorderAsync(dragged, onto, above).ConfigureAwait(true);
     }
 
     /// <summary>Vrai si le curseur est dans la moitié haute de la cible.</summary>
@@ -194,67 +198,10 @@ public partial class InstanceListControl : UserControl
         sender is FrameworkElement target
         && e.GetPosition(target).Y < target.ActualHeight / 2;
 
-    /// <summary>
-    /// Élément survolé, de même nature que celui déplacé. Rend aussi
-    /// l'élément déplacé lui-même : le repère doit suivre le curseur partout,
-    /// c'est le dépôt qui refusera.
-    /// </summary>
-    private static object? Hovered(object sender, DragEventArgs e)
-    {
-        if (sender is not FrameworkElement target
-            || target.DataContext is not { } onto
-            || Dragged(e) is not { } dragged)
-        {
-            return null;
-        }
+    /// <summary>Ligne survolée, ou <c>null</c> si le curseur n'est sur aucune.</summary>
+    private static InstanceRowViewModel? Hovered(object sender) =>
+        sender is FrameworkElement { DataContext: InstanceRowViewModel row } ? row : null;
 
-        if (dragged.GetType() == onto.GetType())
-        {
-            return onto;
-        }
-
-        // Au-dessus de la première instance il n'y a plus de ligne, mais la
-        // carte de l'appareil. Y déposer une de ses instances doit la placer
-        // en tête, sans quoi le geste le plus naturel ne fait rien.
-        return dragged is InstanceRowViewModel row
-               && onto is DeviceGroupViewModel group
-               && group.Instances.Contains(row)
-            ? group
-            : null;
-    }
-
-    /// <summary>
-    /// Couple valide de déplacement, ou <c>null</c> si le dépôt n'a pas de
-    /// sens : une instance sur un appareil, ou un élément sur lui-même.
-    /// </summary>
-    private static (object Dragged, object Onto)? Resolve(object sender, DragEventArgs e)
-    {
-        if (Hovered(sender, e) is not { } onto || Dragged(e) is not { } dragged)
-        {
-            return null;
-        }
-
-        return ReferenceEquals(dragged, onto) ? null : (dragged, onto);
-    }
-
-    private static object? Dragged(DragEventArgs e) =>
-        e.Data.GetData(typeof(InstanceRowViewModel))
-        ?? e.Data.GetData(typeof(DeviceGroupViewModel));
-
-    private static void Mark(object item, bool dragging)
-    {
-        switch (item)
-        {
-            case InstanceRowViewModel row:
-                row.IsDragging = dragging;
-                break;
-
-            case DeviceGroupViewModel group:
-                group.IsDragging = dragging;
-                break;
-
-            default:
-                break;
-        }
-    }
+    private static InstanceRowViewModel? Dragged(DragEventArgs e) =>
+        e.Data.GetData(typeof(InstanceRowViewModel)) as InstanceRowViewModel;
 }

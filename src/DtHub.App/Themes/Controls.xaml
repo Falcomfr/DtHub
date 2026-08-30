@@ -245,6 +245,22 @@
   </Style>
 
   <!-- Trait d'insertion montré pendant un glissé. -->
+  <!-- Bouton d'une ligne d'instance : trois par ligne sur 400 de large, ils
+       doivent s'effacer devant le nom. -->
+  <Style x:Key="RowButton" TargetType="Button" BasedOn="{StaticResource QuietButton}">
+    <Setter Property="Padding" Value="7,2" />
+    <Setter Property="FontSize" Value="11" />
+  </Style>
+
+  <!-- Nom d'appareil au-dessus d'une suite d'instances. Volontairement
+       discret : il situe, il ne se lit pas. -->
+  <Style x:Key="DeviceHeader" TargetType="TextBlock">
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+
   <Style x:Key="DropLine" TargetType="Border">
     <Setter Property="Height" Value="3" />
     <Setter Property="CornerRadius" Value="2" />

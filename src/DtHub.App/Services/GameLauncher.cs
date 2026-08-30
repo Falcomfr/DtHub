@@ -479,6 +479,22 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// Rompt l'association d'un appareil : ses fenêtres se ferment et il sort
+    /// de la mémoire, code d'appairage compris.
+    /// </summary>
+    public async Task ForgetDeviceAsync(string deviceId, CancellationToken cancellationToken = default)
+    {
+        foreach (var session in _sessions.ActiveSessions
+            .Where(s => string.Equals(s.Target.DeviceId, deviceId, StringComparison.Ordinal))
+            .ToList())
+        {
+            await StopSessionAsync(session, cancellationToken).ConfigureAwait(false);
+        }
+
+        await _registry.ForgetAsync(deviceId, cancellationToken).ConfigureAwait(false);
+    }
+
     /// <summary>Ferme toutes les fenêtres ouvertes par l'application.</summary>
     public async Task CloseAllAsync(CancellationToken cancellationToken = default)
     {
