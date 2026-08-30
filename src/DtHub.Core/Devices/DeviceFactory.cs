@@ -88,6 +88,15 @@ public static class DeviceFactory
             return known.Id;
         }
 
+        // Un appareil injoignable ne répond pas à getprop, mais le nom mDNS
+        // sous lequel il s'annonce porte son numéro de série. Sans cela, le
+        // même téléphone figurait deux fois dans la liste : une fois sous son
+        // adresse, une fois sous ce nom.
+        if (MdnsDeviceName.HardwareSerialFrom(entry.Serial) is { } announced)
+        {
+            return announced;
+        }
+
         return entry.ConnectionKind == AdbConnectionKind.Wireless
             ? FallbackIdPrefix + entry.Serial
             : entry.Serial;
@@ -106,10 +115,15 @@ public static class DeviceFactory
 
         var candidates = known as IReadOnlyCollection<AndroidDevice> ?? [.. known];
 
-        if (!string.IsNullOrWhiteSpace(hardwareSerial))
+        // Le numéro matériel prime, qu'il vienne de getprop ou du nom mDNS.
+        var identity = string.IsNullOrWhiteSpace(hardwareSerial)
+            ? MdnsDeviceName.HardwareSerialFrom(entry.Serial)
+            : hardwareSerial;
+
+        if (!string.IsNullOrWhiteSpace(identity))
         {
             var byHardware = candidates.FirstOrDefault(
-                d => string.Equals(d.Id, hardwareSerial, StringComparison.Ordinal));
+                d => string.Equals(d.Id, identity, StringComparison.Ordinal));
 
             if (byHardware is not null)
             {

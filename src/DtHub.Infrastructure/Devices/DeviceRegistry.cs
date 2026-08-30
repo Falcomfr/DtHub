@@ -19,6 +19,18 @@ public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
     {
         var document = await _store.LoadAsync(cancellationToken).ConfigureAwait(false);
 
+        // Un fichier écrit par la version 1 peut porter le même téléphone deux
+        // fois, sous son numéro de série et sous son nom mDNS. La réunion est
+        // écrite tout de suite : la laisser en mémoire ferait réapparaître le
+        // doublon au prochain démarrage.
+        if (document.SchemaVersion < DeviceRegistryDocument.CurrentSchemaVersion
+            && document.MergeDuplicates())
+        {
+            document.SchemaVersion = DeviceRegistryDocument.CurrentSchemaVersion;
+
+            await _store.SaveAsync(document, cancellationToken).ConfigureAwait(false);
+        }
+
         return [.. document.Devices.Where(d => !string.IsNullOrEmpty(d.Id)).Select(d => d.ToDevice())];
     }
 

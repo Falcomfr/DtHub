@@ -7,11 +7,58 @@ namespace DtHub.Core.Devices;
 /// </summary>
 public sealed class DeviceRegistryDocument
 {
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 2;
 
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 
     public List<StoredDevice> Devices { get; set; } = [];
+
+    /// <summary>
+    /// Réunit les doublons laissés par la version 1, et rend vrai si le fichier
+    /// a changé.
+    ///
+    /// Un téléphone joignable était retenu sous son numéro de série, et le même
+    /// téléphone injoignable sous le nom mDNS de son débogage sans fil : deux
+    /// entrées pour un seul appareil, dont l'une éternellement hors ligne. Le
+    /// nom mDNS porte pourtant ce numéro de série, et il est désormais lu.
+    ///
+    /// La plus récemment vue l'emporte, mais ce que l'utilisateur a nommé ou
+    /// appairé est repris de l'autre : ce sont des choix, pas des découvertes.
+    /// </summary>
+    public bool MergeDuplicates()
+    {
+        var byIdentity = new Dictionary<string, StoredDevice>(StringComparer.Ordinal);
+        var merged = new List<StoredDevice>(Devices.Count);
+
+        foreach (var device in Devices.OrderByDescending(d => d.LastSeenUtc ?? DateTimeOffset.MinValue))
+        {
+            var identity = MdnsDeviceName.HardwareSerialFrom(device.Serial)
+                ?? MdnsDeviceName.HardwareSerialFrom(device.Id)
+                ?? device.Id;
+
+            if (byIdentity.TryGetValue(identity, out var kept))
+            {
+                kept.CustomName ??= device.CustomName;
+                kept.IsPaired |= device.IsPaired;
+                kept.IsPrimary |= device.IsPrimary;
+                kept.LastKnownAddress ??= device.LastKnownAddress;
+                kept.LastKnownPort ??= device.LastKnownPort;
+                continue;
+            }
+
+            device.Id = identity;
+            byIdentity[identity] = device;
+            merged.Add(device);
+        }
+
+        if (merged.Count == Devices.Count)
+        {
+            return false;
+        }
+
+        Devices = merged;
+        return true;
+    }
 }
 
 /// <summary>Un appareil mémorisé entre deux lancements.</summary>

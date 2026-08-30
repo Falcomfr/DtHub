@@ -158,6 +158,90 @@ public sealed class DeviceRegistryTests : IDisposable
 
         var json = await File.ReadAllTextAsync(_store.FilePath, CancellationToken.None);
 
-        Assert.Contains("\"schemaVersion\": 1", json, StringComparison.Ordinal);
+        Assert.Contains(
+            $"\"schemaVersion\": {DeviceRegistryDocument.CurrentSchemaVersion}",
+            json,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Un_meme_telephone_vu_sous_deux_transports_ne_fait_qu_une_ligne()
+    {
+        // C'est ce qui affichait deux appareils pour un seul : le téléphone
+        // joignable était retenu sous son numéro de série, et le même
+        // téléphone injoignable sous le nom mDNS de son débogage sans fil.
+        Directory.CreateDirectory(Path.GetDirectoryName(_store.FilePath)!);
+
+        await File.WriteAllTextAsync(
+            _store.FilePath,
+            """
+            {
+              "schemaVersion": 1,
+              "devices": [
+                {
+                  "id": "SERIAL0123456789",
+                  "serial": "192.168.1.16:38407",
+                  "marketName": "Xiaomi 13T Pro",
+                  "isPaired": true,
+                  "lastSeenUtc": "2026-08-30T15:47:58+00:00"
+                },
+                {
+                  "id": "adb:adb-SERIAL0123456789-1V3FXQ._adb-tls-connect._tcp",
+                  "serial": "adb-SERIAL0123456789-1V3FXQ._adb-tls-connect._tcp",
+                  "customName": "Mon téléphone",
+                  "isPaired": true,
+                  "lastSeenUtc": "2026-08-30T11:57:34+00:00"
+                }
+              ]
+            }
+            """,
+            CancellationToken.None);
+
+        var known = await _registry.GetKnownAsync(CancellationToken.None);
+
+        var seul = Assert.Single(known);
+
+        // La plus récemment vue l'emporte...
+        Assert.Equal("SERIAL0123456789", seul.Id);
+        Assert.Equal("192.168.1.16:38407", seul.Serial);
+        Assert.Equal("Xiaomi 13T Pro", seul.MarketName);
+
+        // ... mais ce que l'utilisateur avait nommé n'est pas perdu.
+        Assert.Equal("Mon téléphone", seul.CustomName);
+        Assert.True(seul.IsPaired);
+    }
+
+    [Fact]
+    public async Task La_reunion_est_ecrite_et_ne_se_refait_pas()
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(_store.FilePath)!);
+
+        await File.WriteAllTextAsync(
+            _store.FilePath,
+            """
+            {
+              "schemaVersion": 1,
+              "devices": [
+                { "id": "SERIAL0123456789", "serial": "192.168.1.16:38407" },
+                {
+                  "id": "adb:adb-SERIAL0123456789-1V3FXQ._adb-tls-connect._tcp",
+                  "serial": "adb-SERIAL0123456789-1V3FXQ._adb-tls-connect._tcp"
+                }
+              ]
+            }
+            """,
+            CancellationToken.None);
+
+        await _registry.GetKnownAsync(CancellationToken.None);
+
+        var json = await File.ReadAllTextAsync(_store.FilePath, CancellationToken.None);
+
+        // Laissée en mémoire, la réunion aurait été à refaire à chaque
+        // démarrage, et le doublon serait revenu à la première écriture.
+        Assert.DoesNotContain("_adb-tls-connect", json, StringComparison.Ordinal);
+        Assert.Contains(
+            $"\"schemaVersion\": {DeviceRegistryDocument.CurrentSchemaVersion}",
+            json,
+            StringComparison.Ordinal);
     }
 }
