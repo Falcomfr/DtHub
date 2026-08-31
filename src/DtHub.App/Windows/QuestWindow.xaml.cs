@@ -82,9 +82,19 @@ public partial class QuestWindow : Window
 
         _viewModel.OpenList();
 
-        NodeList.SelectedIndex = 0;
+        // La première ligne peut être un intertitre : on descend jusqu'à la
+        // première qui se choisit vraiment.
+        var index = _viewModel.FirstSelectable();
 
-        if (NodeList.ItemContainerGenerator.ContainerFromIndex(0) is System.Windows.Controls.ListBoxItem first)
+        if (index < 0)
+        {
+            return;
+        }
+
+        NodeList.SelectedIndex = index;
+        NodeList.UpdateLayout();
+
+        if (NodeList.ItemContainerGenerator.ContainerFromIndex(index) is System.Windows.Controls.ListBoxItem first)
         {
             first.Focus();
         }

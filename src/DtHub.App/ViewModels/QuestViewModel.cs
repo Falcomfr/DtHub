@@ -422,6 +422,23 @@ public sealed partial class QuestViewModel : ObservableObject
         SetStep(-1);
     }
 
+    /// <summary>
+    /// Rang de la première ligne qui se choisit, en enjambant les intertitres.
+    /// Rend -1 si la liste n'offre rien.
+    /// </summary>
+    public int FirstSelectable()
+    {
+        for (var i = 0; i < Nodes.Count; i++)
+        {
+            if (Nodes[i].IsEnabled)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
     /// <summary>Étape visée par une flèche, ou -1 s'il n'y a nulle part où aller.</summary>
     public int StepTarget(int direction)
     {
