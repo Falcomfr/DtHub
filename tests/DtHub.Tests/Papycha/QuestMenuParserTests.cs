@@ -1,4 +1,4 @@
-using DtHub.Core.Papycha;
+﻿using DtHub.Core.Papycha;
 
 namespace DtHub.Tests.Papycha;
 
@@ -74,5 +74,21 @@ public class QuestMenuParserTests
     public void Un_intitule_manquant_ne_rapproche_rien(string? first, string? second)
     {
         Assert.Equal(0, QuestMenuParser.Kinship(first, second));
+    }
+
+    [Fact]
+    public void Le_surplus_departage_deux_rubriques_que_le_meme_mot_rapproche()
+    {
+        // « Quêtes d'Amakna » partage « amakna » avec « Amakna » comme avec
+        // « Château d'Amakna » : le nombre de mots partagés ne tranche pas.
+        // Celui qui en ajoute le moins est le plus proche.
+        var page = QuestSearch.Normalize("Quêtes d'Amakna");
+
+        Assert.Equal(
+            QuestMenuParser.Kinship(page, QuestSearch.Normalize("Amakna")),
+            QuestMenuParser.Kinship(page, QuestSearch.Normalize("Château d'Amakna")));
+
+        Assert.Equal(0, QuestMenuParser.Surplus(page, QuestSearch.Normalize("Amakna")));
+        Assert.Equal(1, QuestMenuParser.Surplus(page, QuestSearch.Normalize("Château d'Amakna")));
     }
 }

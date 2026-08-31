@@ -41,13 +41,24 @@ public sealed record QuestSummary
     public string SectionKey { get; init; } = string.Empty;
 
     /// <summary>
-    /// Rubrique sous laquelle ranger la quête dans la liste.
+    /// Rubrique retenue pour situer la quête dans une liste de recherche.
     ///
-    /// Une quête en porte souvent plusieurs, de la plus large à la plus
-    /// précise : on retient la moins fournie, qui est aussi la plus parlante.
-    /// « Astrub » situe mieux que « Quêtes ».
+    /// La plus petite de celles auxquelles elle appartient : c'est la plus
+    /// précise, donc celle qui situe. « Astrub » situe mieux que « Quêtes ».
     /// </summary>
     public int SectionId { get; init; }
+
+    /// <summary>
+    /// Toutes les rubriques auxquelles la quête appartient.
+    ///
+    /// Une seule ne suffisait pas. Le site range « Le dragon d'Astrub » à la
+    /// fois dans ses quêtes principales et dans celles d'Astrub : une quête est
+    /// un lieu et un cheminement, et forcer un choix vidait les rubriques
+    /// transversales. Mesuré : la page des quêtes principales en énumère
+    /// soixante-treize, dont douze seulement n'avaient pas de zone et étaient
+    /// donc les seules à y rester.
+    /// </summary>
+    public IReadOnlyList<int> SectionIds { get; init; } = [];
 
     /// <summary>
     /// Succès dont la quête fait partie, vide quand le site ne le dit pas.

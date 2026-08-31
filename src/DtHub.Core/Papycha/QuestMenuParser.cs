@@ -54,6 +54,23 @@ public static class QuestMenuParser
     }
 
     /// <summary>
+    /// Mots distinctifs que le second intitulé porte en plus du premier.
+    ///
+    /// Départage deux rubriques que le même mot rapproche. « Quêtes d'Amakna »
+    /// partage « amakna » avec la catégorie « Amakna » comme avec « Château
+    /// d'Amakna », et le nombre de mots partagés ne tranche pas. Celui qui en
+    /// ajoute le moins est le plus proche : « Amakna » n'ajoute rien, « Château
+    /// d'Amakna » ajoute un mot.
+    /// </summary>
+    public static int Surplus(string? firstKey, string? secondKey)
+    {
+        var first = Distinctive(firstKey);
+        var second = Distinctive(secondKey);
+
+        return second.Count(w => !first.Contains(w, StringComparer.Ordinal));
+    }
+
+    /// <summary>
     /// Mots d'un nom de rubrique qui la distinguent vraiment.
     ///
     /// « Île », « quêtes », « de » se retrouvent partout et rapprocheraient

@@ -90,14 +90,14 @@ public sealed class QuestCatalogService : IDisposable
     /// <summary>
     /// Quêtes d'une rubrique, triées par titre.
     ///
-    /// Sur la rubrique retenue pour la quête, et non sur toutes celles qu'elle
-    /// porte : une quête d'Astrub porte aussi « Amakna », et la lister sous les
-    /// deux la ferait compter deux fois et apparaître deux fois.
+    /// Sur toutes les rubriques auxquelles la quête appartient : le site range
+    /// « Le dragon d'Astrub » dans ses quêtes principales comme dans celles
+    /// d'Astrub, et n'en retenir qu'une vidait les rubriques transversales.
     /// </summary>
     public IReadOnlyList<QuestSummary> InSection(int sectionId) =>
     [
         .. Catalog.Quests
-            .Where(q => q.SectionId == sectionId)
+            .Where(q => q.SectionIds.Contains(sectionId))
             .OrderBy(q => q.Title, StringComparer.CurrentCulture),
     ];
 
@@ -111,14 +111,21 @@ public sealed class QuestCatalogService : IDisposable
     private const int RootCategory = 7;
 
     /// <summary>
-    /// Range chaque quête sous une rubrique et une seule, et rend la liste des
-    /// rubriques qui en portent au moins une.
+    /// Range les quêtes sous leurs rubriques et rend celles qui en portent au
+    /// moins une.
     ///
     /// Deux sources, et il en faut deux. Les catégories du site sont précises
     /// mais incomplètes : mesuré sur les 782 quêtes, elles en laissent 150 sans
     /// rubrique, atteignables par la seule recherche. Les pages que le site
-    /// tient à la main en réclament 120 de plus et nomment des ensembles
-    /// qu'aucune catégorie ne porte.
+    /// tient à la main nomment en plus des ensembles qu'aucune catégorie ne
+    /// porte, du Krosmoz aux Bulles Temporelles.
+    ///
+    /// Une quête appartient à toutes les rubriques qui la réclament, et non à
+    /// une seule. Le site range « Le dragon d'Astrub » dans ses quêtes
+    /// principales comme dans celles d'Astrub : une quête est un lieu et un
+    /// cheminement. Forcer un choix vidait les rubriques transversales, la page
+    /// des quêtes principales en énumérant soixante-treize dont douze
+    /// seulement, faute de zone, y restaient.
     ///
     /// Une page qui désigne le même endroit qu'une catégorie ne devient pas une
     /// rubrique de plus : ses quêtes rejoignent la catégorie. Sans quoi la
@@ -144,34 +151,57 @@ public sealed class QuestCatalogService : IDisposable
         // la liste sur un classement par nombre de quêtes.
         List<string> ranking = [.. pages.Select(p => QuestSearch.Normalize(p.Name))];
 
+        Dictionary<string, HashSet<int>> membership = new(StringComparer.Ordinal);
+        Dictionary<string, string> names = new(StringComparer.Ordinal);
+
+        foreach (var quest in quests)
+        {
+            var key = QuestSectionPageParser.Key(quest.Url);
+            HashSet<int> mine = [];
+            var category = PrimarySection(quest, known);
+
+            if (category != 0)
+            {
+                mine.Add(category);
+            }
+
+            if (claimed.TryGetValue(key, out var pageSections))
+            {
+                mine.UnionWith(pageSections);
+            }
+
+            if (mine.Count == 0)
+            {
+                mine.Add(OtherSectionId);
+            }
+
+            membership[key] = mine;
+            names[key] = successes.GetValueOrDefault(key, string.Empty);
+        }
+
+        Widen(membership, names);
+
         List<QuestSummary> arranged = new(quests.Count);
 
         foreach (var quest in quests)
         {
             var key = QuestSectionPageParser.Key(quest.Url);
-            var section = PrimarySection(quest, known);
-
-            if (section == 0)
-            {
-                claimed.TryGetValue(key, out section);
-            }
 
             arranged.Add(quest with
             {
-                SuccessName = successes.GetValueOrDefault(key, string.Empty),
+                SuccessName = names[key],
                 SectionKey = string.Join(
                     ' ',
                     quest.Categories
                         .Select(c => known.TryGetValue(c, out var s) ? s.SearchKey : string.Empty)
                         .Where(n => n.Length > 0)),
-                SectionId = section == 0 ? OtherSectionId : section,
+                SectionIds = [.. membership[key]],
             });
         }
 
-        arranged = [.. Reunite(arranged, ranking, sections, extra)];
-
         var counts = arranged
-            .GroupBy(q => q.SectionId)
+            .SelectMany(q => q.SectionIds)
+            .GroupBy(id => id)
             .ToDictionary(g => g.Key, g => g.Count());
 
         List<QuestSection> kept =
@@ -193,7 +223,89 @@ public sealed class QuestCatalogService : IDisposable
             });
         }
 
-        return (arranged, Order(kept, ranking), ranking);
+        // La rubrique qui situe une quête dans une recherche est la plus petite
+        // de celles qui la réclament : « Astrub » en dit plus que « Quêtes
+        // principales ».
+        var size = kept.ToDictionary(s => s.Id, s => s.Count);
+
+        return (
+            [
+                .. arranged.Select(q => q with
+                {
+                    SectionId = q.SectionIds
+                        .OrderBy(id => size.GetValueOrDefault(id, int.MaxValue))
+                        .ThenBy(id => id)
+                        .First(),
+                }),
+            ],
+            Order(kept, ranking),
+            ranking);
+    }
+
+    /// <summary>
+    /// Intitulés des succès dans l'ordre où les pages les présentent, chacun
+    /// pris à sa première apparition.
+    /// </summary>
+    private static List<string> SuccessOrder(IReadOnlyList<QuestPageSection> pages)
+    {
+        List<string> order = [];
+
+        foreach (var group in pages.SelectMany(p => p.Groups).Where(g => g.IsSuccess))
+        {
+            if (!order.Contains(group.Name, StringComparer.Ordinal))
+            {
+                order.Add(group.Name);
+            }
+        }
+
+        return order;
+    }
+
+    /// <summary>
+    /// Étend chaque rubrique aux succès qu'elle a entamés.
+    ///
+    /// Un succès traverse parfois deux zones : « Se mettre au ver » compte
+    /// quatre quêtes, trois sous Amakna et une ailleurs, si bien qu'Amakna
+    /// l'annonçait avec trois. Un succès se joue d'un tenant, il se lit d'un
+    /// tenant : la rubrique qui en réclame une quête les réclame toutes.
+    /// </summary>
+    private static void Widen(
+        Dictionary<string, HashSet<int>> membership,
+        Dictionary<string, string> names)
+    {
+        Dictionary<string, HashSet<int>> whole = new(StringComparer.Ordinal);
+
+        foreach (var (key, success) in names)
+        {
+            if (success.Length == 0)
+            {
+                continue;
+            }
+
+            if (!whole.TryGetValue(success, out var all))
+            {
+                whole[success] = all = [];
+            }
+
+            all.UnionWith(membership[key]);
+        }
+
+        foreach (var (key, success) in names)
+        {
+            if (success.Length == 0 || !whole.TryGetValue(success, out var all))
+            {
+                continue;
+            }
+
+            membership[key].UnionWith(all);
+
+            // La rubrique de recueil n'a plus lieu d'être dès qu'une vraie
+            // rubrique réclame le succès.
+            if (membership[key].Count > 1)
+            {
+                membership[key].Remove(OtherSectionId);
+            }
+        }
     }
 
     /// <summary>
@@ -228,9 +340,14 @@ public sealed class QuestCatalogService : IDisposable
 
     /// <summary>
     /// Catégorie que cette page désigne, ou <c>null</c> si elle nomme un
-    /// ensemble à elle. On retient celle qui partage le plus de mots
-    /// distinctifs : « Quêtes du Château d'Amakna » en partage deux avec
-    /// « Château d'Amakna » et un seul avec « Amakna ».
+    /// ensemble à elle.
+    ///
+    /// On retient celle qui partage le plus de mots distinctifs : « Quêtes du
+    /// Château d'Amakna » en partage deux avec « Château d'Amakna » et un seul
+    /// avec « Amakna ». À égalité, celle qui en ajoute le moins : « Quêtes
+    /// d'Amakna » partage un mot avec les deux, mais « Amakna » n'ajoute rien
+    /// là où « Château d'Amakna » ajoute un mot. Sans ce second critère, le
+    /// choix tenait au nombre de quêtes des catégories, donc au hasard.
     /// </summary>
     private static QuestSection? MatchingCategory(
         QuestPageSection page,
@@ -243,61 +360,13 @@ public sealed class QuestCatalogService : IDisposable
             .Select(s => (Section: s, Score: QuestMenuParser.Kinship(key, s.SearchKey)))
             .Where(p => p.Score > 0)
             .OrderByDescending(p => p.Score)
+            .ThenBy(p => QuestMenuParser.Surplus(key, p.Section.SearchKey))
             .ThenByDescending(p => p.Section.Count)
             .Select(p => (QuestSection?)p.Section)
             .FirstOrDefault();
     }
 
     /// <summary>
-    /// Rubrique à donner à chaque quête que les pages énumèrent.
-    ///
-    /// Les pages se recoupent largement : dix-sept des dix-huit quêtes des
-    /// Bulles Temporelles figurent aussi sur la page du Krosmoz, qui les
-    /// englobe. La plus petite l'emporte donc, comme pour les catégories : elle
-    /// est la plus précise, donc celle qui situe. Prendre la première dans
-    /// l'ordre du site laissait « Quêtes des Bulles Temporelles » avec une
-    /// seule quête.
-    /// </summary>
-    /// <summary>
-    /// Remet ensemble les quêtes d'un même succès, dans une seule rubrique.
-    ///
-    /// Un succès traverse parfois deux zones. « Se mettre au ver » en compte
-    /// quatre, trois rangées sous Amakna et une sous les quêtes principales :
-    /// la rubrique des principales affichait donc ce succès avec une seule
-    /// quête, alors qu'il en a quatre. Un succès se joue d'un tenant, il se lit
-    /// d'un tenant.
-    ///
-    /// La rubrique retenue est celle qui en porte déjà le plus ; à égalité,
-    /// celle que le site nomme en premier. Aucune quête n'est dupliquée : elle
-    /// change de rubrique, elle ne s'ajoute pas à une seconde.
-    /// </summary>
-    private static IEnumerable<QuestSummary> Reunite(
-        IReadOnlyList<QuestSummary> quests,
-        IReadOnlyList<string> ranking,
-        IReadOnlyList<QuestSection> sections,
-        Dictionary<string, QuestSection> extra)
-    {
-        var rank = sections
-            .Concat(extra.Values)
-            .ToDictionary(s => s.Id, s => QuestMenuParser.RankOf(ranking, s.SearchKey));
-
-        var home = quests
-            .Where(q => q.SuccessName.Length > 0)
-            .GroupBy(q => q.SuccessName, StringComparer.Ordinal)
-            .ToDictionary(
-                g => g.Key,
-                g => g.GroupBy(q => q.SectionId)
-                    .OrderByDescending(s => s.Count())
-                    .ThenBy(s => rank.GetValueOrDefault(s.Key, int.MaxValue))
-                    .First().Key,
-                StringComparer.Ordinal);
-
-        return quests.Select(q =>
-            q.SuccessName.Length > 0 && home.TryGetValue(q.SuccessName, out var section)
-                ? q with { SectionId = section }
-                : q);
-    }
-
     /// <summary>
     /// Succès de chaque quête, lu sur les intertitres des pages de rubrique.
     ///
@@ -319,14 +388,22 @@ public sealed class QuestCatalogService : IDisposable
         return successes;
     }
 
-    private static Dictionary<string, int> Claims(
+    /// <summary>
+    /// Rubriques que les pages du site donnent à chaque quête.
+    ///
+    /// Toutes celles qui la nomment, et non la première : les pages se
+    /// recoupent largement, dix-sept des dix-huit quêtes des Bulles Temporelles
+    /// figurant aussi sur la page du Krosmoz. N'en garder qu'une laissait
+    /// certaines rubriques presque vides.
+    /// </summary>
+    private static Dictionary<string, HashSet<int>> Claims(
         IReadOnlyList<QuestPageSection> pages,
         Dictionary<string, QuestSection> extra,
         IReadOnlyList<QuestSection> sections)
     {
-        Dictionary<string, int> claims = new(StringComparer.Ordinal);
+        Dictionary<string, HashSet<int>> claims = new(StringComparer.Ordinal);
 
-        foreach (var page in pages.OrderBy(p => p.QuestUrls.Count))
+        foreach (var page in pages)
         {
             // Une page qui désigne une catégorie lui remet ses quêtes plutôt
             // que d'ouvrir une rubrique jumelle : la page « Quêtes de Cania »
@@ -342,10 +419,17 @@ public sealed class QuestCatalogService : IDisposable
 
             foreach (var url in page.QuestUrls)
             {
-                if (url.Length > 0)
+                if (url.Length == 0)
                 {
-                    claims.TryAdd(url, section.Id);
+                    continue;
                 }
+
+                if (!claims.TryGetValue(url, out var mine))
+                {
+                    claims[url] = mine = [];
+                }
+
+                mine.Add(section.Id);
             }
         }
 
@@ -419,6 +503,7 @@ public sealed class QuestCatalogService : IDisposable
                 Quests = [.. arranged],
                 Sections = [.. ordered],
                 SectionOrder = [.. ranking],
+                SuccessOrder = SuccessOrder(pages),
             };
 
             await _store.SaveAsync(document, cancellationToken).ConfigureAwait(false);

@@ -246,11 +246,12 @@ public class QuestCatalogServiceTests
     }
 
     [Fact]
-    public async Task Une_quete_nommee_par_deux_pages_va_a_la_plus_precise()
+    public async Task Une_quete_nommee_par_deux_pages_figure_dans_les_deux()
     {
         // Relevé sur le site : dix-sept des dix-huit quêtes des Bulles
         // Temporelles figurent aussi sur la page du Krosmoz, qui les englobe.
-        // Prendre la page la plus large laissait la plus précise presque vide.
+        // N'en retenir qu'une laissait l'autre presque vide, alors que le site
+        // les range bel et bien aux deux endroits.
         var client = new FakePapychaClient()
             .WithQuest(1, "Une quête sans rubrique")
             .WithQuest(2, "Une autre sans rubrique")
@@ -264,7 +265,10 @@ public class QuestCatalogServiceTests
         var krosmoz = Assert.Single(catalog.Sections, s => s.Name == "Quêtes du Krosmoz");
 
         Assert.Equal(1, bulles.Count);
-        Assert.Equal(1, krosmoz.Count);
+        Assert.Equal(2, krosmoz.Count);
+
+        // La rubrique qui situe la quête dans une recherche est la plus petite.
+        Assert.Equal(bulles.Id, catalog.Quests[0].SectionId);
     }
 
     [Fact]
@@ -290,7 +294,7 @@ public class QuestCatalogServiceTests
     }
 
     [Fact]
-    public async Task Un_succes_a_cheval_sur_deux_rubriques_est_reuni()
+    public async Task Un_succes_entame_par_une_rubrique_y_figure_en_entier()
     {
         // Relevé sur le site : « Se mettre au ver » compte quatre quêtes, trois
         // rangées sous Amakna et une sous les quêtes principales. La rubrique
@@ -308,18 +312,23 @@ public class QuestCatalogServiceTests
         var (service, _, _) = Build(client);
         await service.GetAsync(cancellationToken: CancellationToken.None);
 
+        // Trois quêtes seulement portaient la catégorie Amakna, mais un succès
+        // se joue d'un tenant : la rubrique qui en réclame une les réclame
+        // toutes.
         var amakna = service.InSection(25);
 
         Assert.Equal(4, amakna.Count);
         Assert.All(amakna, q => Assert.Equal("Se mettre au ver", q.SuccessName));
 
-        // Réuni, pas dupliqué : la quête change de rubrique, elle ne s'ajoute
-        // pas à une seconde.
-        Assert.Empty(service.Catalog.Sections.Where(s => s.Name == "Quêtes principales"));
+        // Et la page des principales garde les siennes, entières elle aussi.
+        var principales = Assert.Single(
+            service.Catalog.Sections, s => s.Name == "Quêtes principales");
+
+        Assert.Equal(4, service.InSection(principales.Id).Count);
     }
 
     [Fact]
-    public async Task Le_succes_reste_dans_la_rubrique_qui_en_porte_le_plus()
+    public async Task Un_succes_est_entier_dans_chaque_rubrique_qui_le_reclame()
     {
         var client = new FakePapychaClient()
             .WithQuest(1, "Une de Frigost", 135)
@@ -335,6 +344,6 @@ public class QuestCatalogServiceTests
         await service.GetAsync(cancellationToken: CancellationToken.None);
 
         Assert.Equal(3, service.InSection(135).Count);
-        Assert.Empty(service.InSection(18));
+        Assert.Equal(3, service.InSection(18).Count);
     }
 }

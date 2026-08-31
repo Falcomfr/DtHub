@@ -25,8 +25,13 @@ public sealed class QuestCatalogDocument
     ///
     /// Version 6 : les quêtes d'un même succès sont réunies sous une seule
     /// rubrique.
+    ///
+    /// Version 7 : une quête appartient à toutes les rubriques qui la
+    /// réclament, le site la rangeant lui-même à plusieurs endroits.
+    ///
+    /// Version 8 : l'ordre dans lequel le site présente ses succès.
     /// </summary>
-    public const int CurrentSchemaVersion = 6;
+    public const int CurrentSchemaVersion = 8;
 
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 
@@ -43,6 +48,15 @@ public sealed class QuestCatalogDocument
     /// classement par nombre de quêtes.
     /// </summary>
     public List<string> SectionOrder { get; set; } = [];
+
+    /// <summary>
+    /// Intitulés des succès dans l'ordre où les pages du site les présentent.
+    ///
+    /// Cet ordre est celui d'une progression, et il ne se retrouve nulle part
+    /// ailleurs : les ranger par ordre alphabétique, comme on le faisait,
+    /// mettait « Épilogue hivernal » avant « L'hiver arrive ».
+    /// </summary>
+    public List<string> SuccessOrder { get; set; } = [];
 
     /// <summary>
     /// Vrai si le catalogue est inutilisable en l'état et doit être reconstruit.

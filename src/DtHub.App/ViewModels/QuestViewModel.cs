@@ -95,9 +95,9 @@ public sealed partial class QuestViewModel : ObservableObject
     /// nombres du site : celui-ci compte aussi ce qui n'est pas une quête, et
     /// proposerait des rubriques qui s'ouvriraient sur rien.
     ///
-    /// Sur la rubrique retenue pour la quête, et non sur toutes celles qu'elle
-    /// porte : compter une quête d'Astrub sous Astrub et sous Amakna gonflait
-    /// les nombres et la faisait apparaître deux fois.
+    /// Sur toutes les rubriques auxquelles la quête appartient, comme la liste
+    /// les montre : le site range « Le dragon d'Astrub » dans ses quêtes
+    /// principales comme dans celles d'Astrub.
     /// </summary>
     private void CountSections()
     {
@@ -105,7 +105,10 @@ public sealed partial class QuestViewModel : ObservableObject
 
         foreach (var quest in _catalog.Catalog.Quests)
         {
-            _sectionCounts[quest.SectionId] = _sectionCounts.GetValueOrDefault(quest.SectionId) + 1;
+            foreach (var section in quest.SectionIds)
+            {
+                _sectionCounts[section] = _sectionCounts.GetValueOrDefault(section) + 1;
+            }
         }
     }
 
@@ -301,10 +304,17 @@ public sealed partial class QuestViewModel : ObservableObject
     /// </summary>
     private void AddBySuccess(IReadOnlyList<QuestSummary> quests)
     {
+        // Dans l'ordre du site, qui est celui d'une progression. L'ordre
+        // alphabétique mettait « Épilogue hivernal » avant « L'hiver arrive ».
+        var rank = _catalog.Catalog.SuccessOrder
+            .Select((name, index) => (name, index))
+            .ToDictionary(x => x.name, x => x.index, StringComparer.Ordinal);
+
         var groups = quests
             .Where(q => q.SuccessName.Length > 0)
             .GroupBy(q => q.SuccessName, StringComparer.Ordinal)
-            .OrderBy(g => g.Key, StringComparer.CurrentCulture);
+            .OrderBy(g => rank.GetValueOrDefault(g.Key, int.MaxValue))
+            .ThenBy(g => g.Key, StringComparer.CurrentCulture);
 
         foreach (var group in groups)
         {
