@@ -1,4 +1,4 @@
-namespace DtHub.Core.Guidance;
+﻿namespace DtHub.Core.Guidance;
 
 /// <summary>
 /// Marche à suivre pour activer le débogage, propre à une marque. Les chemins
@@ -59,21 +59,31 @@ public sealed record PhoneBrand
 public static class PhoneBrands
 {
     /// <summary>
-    /// Procédure d'Android sans surcouche. Sert aussi de repli, et couvre
-    /// Google Pixel, Motorola, Nothing et Sony, dont les chemins sont les
-    /// mêmes.
+    /// Procédure d'Android sans surcouche. Sert aussi de repli.
+    ///
+    /// La liste de constructeurs n'est pas décorative : elle évite que des
+    /// marques dont les chemins sont bel et bien ceux d'AOSP soient traitées
+    /// comme des inconnues. TCL, ZTE, HMD, Fairphone, ASUS et les marques du
+    /// groupe Transsion s'écartent peu d'Android nu, et les fabricants de
+    /// tablettes d'entrée de gamme encore moins.
     /// </summary>
     public static readonly PhoneBrand Standard = new()
     {
-        Name = "Google Pixel, Motorola, Nothing, Sony, autre",
+        Name = "Android sans surcouche : Pixel, Motorola, ASUS, TCL, autre",
         CloneFeature = "Utilisateurs multiples",
         ClonePath = "Paramètres  ›  Système  ›  Utilisateurs multiples",
         CloneNote =
             "Android sans surcouche n'a pas de fonction de duplication. La voie est d'ajouter un second utilisateur, puis d'y installer le jeu depuis le Play Store. DT Hub ouvre chaque profil sur son propre affichage, sans avoir à basculer de l'un à l'autre.",
-        Manufacturers = ["google", "motorola", "lenovo", "nothing", "sony"],
+        Manufacturers =
+        [
+            "google", "motorola", "lenovo", "nothing", "sony", "asus", "tcl",
+            "alcatel", "zte", "nubia", "hmd", "nokia", "fairphone", "infinix",
+            "tecno", "itel", "transsion", "blackview", "doogee", "ulefone",
+            "oukitel", "umidigi", "sharp", "crosscall", "wiko",
+        ],
         BatteryFeature = "Sans restriction",
         BatteryPath = "Paramètres  ›  Applications  ›  DOFUS Touch  ›  Batterie",
-        BuildNumberPath = "Paramètres  ›  À propos du téléphone",
+        BuildNumberPath = "Paramètres  ›  À propos du téléphone, ou de la tablette",
         BuildNumberLabel = "Numéro de build",
         DeveloperOptionsPath = "Paramètres  ›  Système  ›  Options pour les développeurs",
     };
@@ -96,7 +106,7 @@ public static class PhoneBrands
             BatteryPath = "Paramètres  ›  Applications  ›  Gérer les applications  ›  DOFUS Touch  ›  Économiseur de batterie",
             BatteryNote =
                 "Cette marque est la plus agressive du lot. Verrouillez aussi le jeu dans la vue des applications récentes, en tirant sa vignette vers le bas : sans ce verrou, HyperOS la ferme au bout de quelques minutes malgré le réglage de batterie.",
-            BuildNumberPath = "Paramètres  ›  À propos du téléphone",
+            BuildNumberPath = "Paramètres  ›  À propos du téléphone, ou de la tablette",
             BuildNumberLabel = "Version HyperOS, ou Version MIUI sur les modèles plus anciens",
             DeveloperOptionsPath =
                 "Paramètres  ›  Paramètres supplémentaires  ›  Options pour les développeurs",
@@ -117,7 +127,7 @@ public static class PhoneBrands
             BatteryPath = "Paramètres  ›  Batterie  ›  Limites d'utilisation en arrière-plan  ›  Applications jamais mises en veille",
             BatteryNote =
                 "Désactivez aussi « Optimiser les paramètres » dans Paramètres › Maintenance de l'appareil : réactivé, il remet le jeu en veille au bout de quelques jours.",
-            BuildNumberPath = "Paramètres  ›  À propos du téléphone  ›  Informations sur le logiciel",
+            BuildNumberPath = "Paramètres  ›  À propos du téléphone, ou de la tablette  ›  Informations sur le logiciel",
             BuildNumberLabel = "Numéro de version",
             DeveloperOptionsPath = "Paramètres  ›  Options de développement",
         },
@@ -148,13 +158,48 @@ public static class PhoneBrands
             BatteryPath = "Paramètres  ›  Batterie  ›  Lancement d'applications  ›  DOFUS Touch",
             BatteryNote =
                 "Passez le jeu en gestion manuelle, puis activez les trois interrupteurs proposés, dont « Exécution en arrière-plan ». La gestion automatique referme le jeu quoi qu'on règle ailleurs.",
-            BuildNumberPath = "Paramètres  ›  À propos du téléphone",
+            BuildNumberPath = "Paramètres  ›  À propos du téléphone, ou de la tablette",
             BuildNumberLabel = "Numéro de build",
             DeveloperOptionsPath =
                 "Paramètres  ›  Système et mises à jour  ›  Options pour les développeurs",
             Warning =
                 "Sur les versions sans services Google, le débogage sans fil est parfois absent. "
                 + "Le câble USB reste alors la seule voie.",
+        },
+        new()
+        {
+            Name = "vivo, iQOO",
+            CloneFeature = "Clonage d'applications",
+            ClonePath = "Paramètres  ›  Applications  ›  Clonage d'applications",
+            CloneNote =
+                "Selon la version de Funtouch ou d'OriginOS, la fonction se trouve sous Applications, ou sous « Applications et autorisations ».",
+            Manufacturers = ["vivo", "iqoo"],
+            BatteryFeature = "Consommation en arrière-plan, réglée sur Autoriser",
+            BatteryPath = "Paramètres  ›  Batterie  ›  Gestion de la consommation en arrière-plan  ›  DOFUS Touch",
+            BatteryNote =
+                "Activez aussi « Démarrage automatique » pour le jeu. Ces surcouches comptent parmi les plus promptes à fermer une application dès qu'elle quitte le premier plan.",
+            BuildNumberPath = "Paramètres  ›  À propos du téléphone, ou de la tablette  ›  Infos logiciel",
+            BuildNumberLabel = "Numéro de version, ou Numéro de build selon la version installée",
+            DeveloperOptionsPath =
+                "Paramètres  ›  Autres paramètres  ›  Options pour les développeurs",
+        },
+        new()
+        {
+            Name = "Amazon Fire",
+            CloneFeature = "Profils",
+            ClonePath = "Paramètres  ›  Profils et sécurité familiale",
+            CloneNote =
+                "Fire OS n'a pas de fonction de duplication et ses profils ne sont pas ceux d'Android : DT Hub n'y verra vraisemblablement qu'une seule instance. À réserver aux essais.",
+            Manufacturers = ["amazon"],
+            BatteryFeature = "Optimisation de la batterie, à désactiver",
+            BatteryPath = "Paramètres  ›  Batterie  ›  Optimisation de la batterie",
+            BuildNumberPath = "Paramètres  ›  Options de l'appareil",
+            BuildNumberLabel = "Numéro de série",
+            DeveloperOptionsPath = "Paramètres  ›  Options de l'appareil  ›  Options pour les développeurs",
+            Warning =
+                "Fire OS n'a pas le Play Store : DOFUS Touch n'y est pas distribué, et l'installer "
+                + "demande de passer par un fichier APK. Cette fiche décrit la marche à suivre, elle "
+                + "ne promet pas que le jeu s'y lance.",
         },
         Standard,
     ];

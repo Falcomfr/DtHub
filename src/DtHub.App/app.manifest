@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
+
+  <!--
+    Conscience de la mise à l'échelle, écran par écran.
+
+    Sans ce manifeste, Windows tient l'application pour consciente du seul
+    facteur du moniteur principal : sur un poste à deux écrans réglés à des
+    facteurs différents, il redimensionne d'office les fenêtres déplacées vers
+    le second, qui deviennent floues. Le placement des fenêtres de jeu, lui,
+    interroge déjà GetDpiForMonitor et restait juste ; c'est le dessin de nos
+    propres fenêtres qui souffrait.
+
+    PerMonitorV2 plutôt que PerMonitor : c'est lui qui étend la mise à l'échelle
+    aux boîtes de dialogue et aux cadres non clients.
+  -->
+  <application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings>
+      <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2</dpiAwareness>
+      <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true/pm</dpiAware>
+    </windowsSettings>
+  </application>
+
+  <!--
+    Versions de Windows déclarées compatibles. Le socle réel est Windows 10
+    1809, imposé par WebView2 et par .NET 10 ; les déclarer évite que Windows
+    applique des compatibilités d'anciennes versions.
+  -->
+  <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
+    <application>
+      <!-- Windows 10 et Windows 11 -->
+      <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}" />
+    </application>
+  </compatibility>
+
+</assembly>

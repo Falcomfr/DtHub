@@ -1,4 +1,4 @@
-using DtHub.Core.Guidance;
+﻿using DtHub.Core.Guidance;
 
 namespace DtHub.Tests.Guidance;
 
@@ -45,6 +45,9 @@ public class PhoneBrandsTests
     [InlineData("OnePlus", "OnePlus, OPPO, realme")]
     [InlineData("realme", "OnePlus, OPPO, realme")]
     [InlineData("HONOR", "Honor, Huawei")]
+    [InlineData("vivo", "vivo, iQOO")]
+    [InlineData("iQOO", "vivo, iQOO")]
+    [InlineData("Amazon", "Amazon Fire")]
     public void La_marque_est_devinee_a_partir_du_constructeur(string manufacturer, string expected)
     {
         Assert.Equal(expected, PhoneBrands.FromManufacturer(manufacturer).Name);
@@ -58,6 +61,13 @@ public class PhoneBrandsTests
     [InlineData("Google")]
     [InlineData("Motorola")]
     [InlineData("Nothing")]
+    [InlineData("asus")]
+    [InlineData("TCL")]
+    [InlineData("ZTE")]
+    [InlineData("HMD Global")]
+    [InlineData("Fairphone")]
+    [InlineData("Infinix")]
+    [InlineData("TECNO")]
     public void Un_constructeur_sans_surcouche_ou_inconnu_utilise_la_procedure_standard(string? manufacturer)
     {
         Assert.Same(PhoneBrands.Standard, PhoneBrands.FromManufacturer(manufacturer));
@@ -84,5 +94,30 @@ public class PhoneBrandsTests
         Assert.Contains("HyperOS", brand.BuildNumberLabel, StringComparison.Ordinal);
         Assert.Contains("Paramètres supplémentaires", brand.DeveloperOptionsPath, StringComparison.Ordinal);
         Assert.NotNull(brand.Warning);
+    }
+
+    [Fact]
+    public void Les_chemins_de_menu_valent_aussi_pour_une_tablette()
+    {
+        // Une Galaxy Tab n'a pas de ligne « À propos du téléphone ». Le mot
+        // manquant suffisait à rendre le chemin introuvable.
+        foreach (var brand in PhoneBrands.All)
+        {
+            if (brand.BuildNumberPath.Contains("téléphone", StringComparison.Ordinal))
+            {
+                Assert.Contains("tablette", brand.BuildNumberPath, StringComparison.Ordinal);
+            }
+        }
+    }
+
+    [Fact]
+    public void Une_marche_a_suivre_qui_ne_promet_pas_le_resultat_le_dit()
+    {
+        // Fire OS n'a pas le Play Store. Donner les menus sans le dire
+        // enverrait l'utilisateur au bout d'une procédure pour rien.
+        var fire = PhoneBrands.FromManufacturer("Amazon");
+
+        Assert.NotNull(fire.Warning);
+        Assert.Contains("Play Store", fire.Warning, StringComparison.Ordinal);
     }
 }
