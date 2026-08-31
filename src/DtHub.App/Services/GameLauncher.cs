@@ -196,6 +196,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
+    /// Incidents non bloquants du dernier balayage d'instances, à joindre à
+    /// ceux de la découverte d'appareils.
+    /// </summary>
+    public IReadOnlyList<string> InstanceWarnings => _instances.Warnings;
+
+    /// <summary>
     /// Téléphones vus maintenant. Les appareils déjà associés sont reconnectés
     /// au passage : un téléphone qui s'annonce sur le réseau n'a pas à être
     /// réassocié à la main.

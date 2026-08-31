@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 
 using DtHub.Core.Adb;
 using DtHub.Core.Dofus;
@@ -45,7 +45,10 @@ public sealed class AndroidAppLauncher : IAppLauncher
             return first;
         }
 
-        var resolved = await _instances.ResolveComponentAsync(serial, userId, cancellationToken)
+        // Sous le nom du paquet de cette instance, et non celui de référence :
+        // une copie renommée par la surcouche ne se résout pas sous l'autre.
+        var resolved = await _instances
+            .ResolveComponentAsync(serial, userId, packageName, cancellationToken)
             .ConfigureAwait(false);
 
         if (resolved is null)

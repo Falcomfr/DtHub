@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 
 using DtHub.Core.Adb;
 using DtHub.Core.Android;
@@ -32,6 +32,17 @@ public sealed class DofusInstanceService
     /// <summary>Un balayage de paquets peut traîner sur un téléphone chargé.</summary>
     public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(45);
 
+    private readonly List<string> _warnings = [];
+
+    /// <summary>
+    /// Incidents non bloquants du dernier balayage. Un appareil dont la liste
+    /// de profils n'a pas pu être lue rend quand même une instance, celle du
+    /// profil principal : sans un mot, rien ne distingue ce cas d'un appareil
+    /// qui n'a réellement qu'un profil, et le second compte semble avoir
+    /// disparu.
+    /// </summary>
+    public IReadOnlyList<string> Warnings => _warnings;
+
     /// <summary>
     /// Instances présentes sur les téléphones donnés. Un téléphone hors ligne
     /// n'est pas interrogé : ses instances mémorisées sont réinjectées par
@@ -44,6 +55,7 @@ public sealed class DofusInstanceService
         ArgumentNullException.ThrowIfNull(devices);
 
         List<DofusInstance> instances = [];
+        _warnings.Clear();
 
         foreach (var device in devices.Where(d => d.IsConnected))
         {
@@ -68,28 +80,37 @@ public sealed class DofusInstanceService
         var users = await _users.GetUsersAsync(device.Serial, refresh: false, cancellationToken)
             .ConfigureAwait(false);
 
+        if (AndroidUserService.IsFallback(users))
+        {
+            _warnings.Add(
+                $"{device.DisplayName} : la liste des profils Android n'a pas pu être lue. "
+                + "Seul le profil principal est visible ; un jeu installé dans un second "
+                + "espace n'apparaîtra pas.");
+        }
+
         foreach (var user in users)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!await IsInstalledAsync(device.Serial, user.Id, cancellationToken).ConfigureAwait(false))
-            {
-                continue;
-            }
-
-            var component = await ResolveComponentAsync(device.Serial, user.Id, cancellationToken)
+            var packages = await ListInstalledAsync(device.Serial, user.Id, cancellationToken)
                 .ConfigureAwait(false);
 
-            instances.Add(new DofusInstance
+            foreach (var package in packages)
             {
-                DeviceId = device.Id,
-                DeviceName = device.DisplayName,
-                UserId = user.Id,
-                UserName = user.DisplayName,
-                PackageName = PackageName,
-                LaunchComponent = component?.Value,
-                IsDeviceConnected = true,
-            });
+                var component = await ResolveComponentAsync(
+                    device.Serial, user.Id, package, cancellationToken).ConfigureAwait(false);
+
+                instances.Add(new DofusInstance
+                {
+                    DeviceId = device.Id,
+                    DeviceName = device.DisplayName,
+                    UserId = user.Id,
+                    UserName = user.DisplayName,
+                    PackageName = package,
+                    LaunchComponent = component?.Value,
+                    IsDeviceConnected = true,
+                });
+            }
         }
 
         return instances;
@@ -99,33 +120,78 @@ public sealed class DofusInstanceService
     public async Task<bool> IsInstalledAsync(
         string serial,
         int userId,
+        CancellationToken cancellationToken = default) =>
+        (await ListInstalledAsync(serial, userId, cancellationToken).ConfigureAwait(false)).Count > 0;
+
+    /// <summary>
+    /// Paquets du jeu présents pour ce profil Android.
+    ///
+    /// Le nom exact d'abord, qui est le cas de très loin le plus courant : le
+    /// clonage par profil, celui que l'application vise, garde le nom du paquet
+    /// intact. Mais certaines surcouches installent leur copie sous un nom
+    /// dérivé, et la comparaison stricte les rendait invisibles alors que la
+    /// commande les avait bien rapportées. On les accepte donc en second, à
+    /// condition que le nom contienne le paquet cherché ou son dernier segment.
+    /// </summary>
+    public async Task<IReadOnlyList<string>> ListInstalledAsync(
+        string serial,
+        int userId,
         CancellationToken cancellationToken = default)
     {
+        IReadOnlyList<string> found;
+
         try
         {
+            // « pm list packages » filtre par sous-chaîne : le dernier segment
+            // ramène aussi bien le paquet officiel que ses copies renommées.
             var output = await _adb.ShellAsync(
                 serial,
-                ["pm", "list", "packages", "--user", Text(userId), PackageName],
+                ["pm", "list", "packages", "--user", Text(userId), BaseToken],
                 Timeout,
                 cancellationToken).ConfigureAwait(false);
 
-            return PackageParser.ParsePackageList(output)
-                .Contains(PackageName, StringComparer.Ordinal);
+            found = PackageParser.ParsePackageList(output);
         }
         catch (AdbException)
         {
             // Un profil qui refuse la question est simplement considéré comme
             // dépourvu du jeu : rien ne justifie de faire échouer le balayage.
-            return false;
+            return [];
         }
+
+        List<string> matches = [];
+
+        if (found.Contains(PackageName, StringComparer.Ordinal))
+        {
+            matches.Add(PackageName);
+        }
+
+        matches.AddRange(found.Where(IsDerived).Order(StringComparer.Ordinal));
+
+        return matches;
     }
 
     /// <summary>Résout l'activité à lancer pour un profil Android.</summary>
     public async Task<AppComponent?> ResolveComponentAsync(
         string serial,
         int userId,
+        CancellationToken cancellationToken = default) =>
+        await ResolveComponentAsync(serial, userId, PackageName, cancellationToken)
+            .ConfigureAwait(false);
+
+    /// <summary>
+    /// Résout l'activité à lancer pour un profil Android et un paquet précis.
+    /// Une copie renommée n'a pas le nom du paquet de référence : la résoudre
+    /// sous ce nom-là ne donnerait rien.
+    /// </summary>
+    public async Task<AppComponent?> ResolveComponentAsync(
+        string serial,
+        int userId,
+        string packageName,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(packageName);
+
         try
         {
             var output = await _adb.ShellAsync(
@@ -134,19 +200,41 @@ public sealed class DofusInstanceService
                     "cmd", "package", "resolve-activity", "--brief",
                     "--user", Text(userId),
                     "-c", "android.intent.category.LAUNCHER",
-                    PackageName,
+                    packageName,
                 ],
                 Timeout,
                 cancellationToken).ConfigureAwait(false);
 
             return PackageParser.ParseComponents(output)
-                .FirstOrDefault(c => string.Equals(c.PackageName, PackageName, StringComparison.Ordinal));
+                .FirstOrDefault(c => string.Equals(c.PackageName, packageName, StringComparison.Ordinal));
         }
         catch (AdbException)
         {
             return null;
         }
     }
+
+    /// <summary>
+    /// Dernier segment du nom de paquet, celui qui identifie le jeu sans
+    /// l'éditeur. Sert de filtre à la commande et de marque des copies.
+    /// </summary>
+    private string BaseToken
+    {
+        get
+        {
+            var index = PackageName.LastIndexOf('.');
+
+            return index >= 0 && index < PackageName.Length - 1
+                ? PackageName[(index + 1)..]
+                : PackageName;
+        }
+    }
+
+    /// <summary>Vrai pour une copie du jeu installée sous un nom dérivé.</summary>
+    private bool IsDerived(string package) =>
+        !string.Equals(package, PackageName, StringComparison.Ordinal)
+        && (package.Contains(PackageName, StringComparison.Ordinal)
+            || package.Contains(BaseToken, StringComparison.Ordinal));
 
     private static string Text(int value) => value.ToString(CultureInfo.InvariantCulture);
 }

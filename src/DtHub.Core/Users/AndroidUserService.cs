@@ -1,4 +1,4 @@
-using DtHub.Core.Adb;
+﻿using DtHub.Core.Adb;
 
 namespace DtHub.Core.Users;
 
@@ -16,6 +16,18 @@ public sealed class AndroidUserService
         Type = AndroidUserType.Primary,
         IsRunning = true,
     };
+
+    /// <summary>
+    /// Vrai si cette liste est le repli, faute d'avoir pu interroger l'appareil,
+    /// et non une liste réellement lue.
+    ///
+    /// La distinction compte : un appareil dont la surcouche bride
+    /// <c>pm list users</c> et un appareil qui n'a vraiment qu'un profil
+    /// donnaient jusqu'ici exactement la même chose à l'écran, une seule
+    /// instance et aucune explication.
+    /// </summary>
+    public static bool IsFallback(IReadOnlyList<AndroidUser> users) =>
+        users is { Count: 1 } && ReferenceEquals(users[0], PrimaryFallback);
 
     private readonly Dictionary<string, IReadOnlyList<AndroidUser>> _cache = new(StringComparer.Ordinal);
     private readonly IAdbClient _adb;

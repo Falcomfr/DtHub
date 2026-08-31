@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -139,7 +139,12 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
             var instances = _instances;
 
-            Problem = discovery.Warnings.Count > 0 ? string.Join(" ", discovery.Warnings) : null;
+            // Les incidents de la découverte d'appareils et ceux du balayage
+            // d'instances partagent le même bandeau : un profil illisible est
+            // aussi utile à savoir qu'un appareil injoignable.
+            var warnings = discovery.Warnings.Concat(_launcher.InstanceWarnings).ToList();
+
+            Problem = warnings.Count > 0 ? string.Join(" ", warnings) : null;
 
             // Seules les instances des téléphones joignables ont une ligne.
             // Les autres appareils ne disparaissent pas pour autant : ils

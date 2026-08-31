@@ -1,4 +1,4 @@
-using DtHub.Core.Adb;
+﻿using DtHub.Core.Adb;
 using DtHub.Core.Devices;
 using DtHub.Core.Dofus;
 using DtHub.Core.Users;
@@ -164,5 +164,77 @@ public class DofusInstanceServiceTests
                 "com.ankama.dofustouch/.MainActivity",
             _ => string.Empty,
         };
+    }
+
+    [Fact]
+    public async Task Une_copie_installee_sous_un_nom_derive_est_trouvee_aussi()
+    {
+        // Le clonage par profil, celui que l'application vise, garde le nom du
+        // paquet intact. Certaines surcouches installent leur copie sous un nom
+        // dérivé, que la comparaison stricte rendait invisible alors que la
+        // commande l'avait bien rapportée.
+        var adb = new FakeAdbClient()
+            .WithShell("pm list users", RealUsers)
+            .WithShell(
+                "pm list packages",
+                "package:com.ankama.dofustouch\npackage:com.ankama.dofustouch.clone2")
+            .WithShell("resolve-activity", "com.ankama.dofustouch/.MainActivity");
+
+        var instances = await Service(adb).DiscoverOnDeviceAsync(Device(), CancellationToken.None);
+
+        Assert.Equal(4, instances.Count);
+        Assert.Contains(instances, i => i.PackageName == "com.ankama.dofustouch.clone2");
+
+        // Le paquet de référence reste en tête : c'est le cas courant.
+        Assert.Equal("com.ankama.dofustouch", instances[0].PackageName);
+    }
+
+    [Fact]
+    public async Task Un_paquet_sans_rapport_n_est_pas_pris_pour_une_copie()
+    {
+        var adb = new FakeAdbClient()
+            .WithShell("pm list users", RealUsers)
+            .WithShell(
+                "pm list packages",
+                "package:com.ankama.dofustouch\npackage:com.example.autrejeu")
+            .WithShell("resolve-activity", "com.ankama.dofustouch/.MainActivity");
+
+        var instances = await Service(adb).DiscoverOnDeviceAsync(Device(), CancellationToken.None);
+
+        Assert.Equal(2, instances.Count);
+        Assert.All(instances, i => Assert.Equal("com.ankama.dofustouch", i.PackageName));
+    }
+
+    [Fact]
+    public async Task Une_liste_de_profils_illisible_est_dite_et_non_tue()
+    {
+        // Sans ce mot, un appareil dont la surcouche bride « pm list users »
+        // rend une seule instance et ressemble trait pour trait à un appareil
+        // qui n'a réellement qu'un profil. Le second compte semble disparu.
+        var adb = new FakeAdbClient()
+            .FailShell("pm list users")
+            .WithShell("pm list packages", "package:com.ankama.dofustouch")
+            .WithShell("resolve-activity", "com.ankama.dofustouch/.MainActivity");
+
+        var service = Service(adb);
+        var instances = await service.DiscoverAsync([Device()], CancellationToken.None);
+
+        Assert.Single(instances);
+        Assert.Single(service.Warnings);
+        Assert.Contains("profils", service.Warnings[0], StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Une_liste_de_profils_lue_ne_produit_aucun_avertissement()
+    {
+        var adb = new FakeAdbClient()
+            .WithShell("pm list users", RealUsers)
+            .WithShell("pm list packages", "package:com.ankama.dofustouch")
+            .WithShell("resolve-activity", "com.ankama.dofustouch/.MainActivity");
+
+        var service = Service(adb);
+        await service.DiscoverAsync([Device()], CancellationToken.None);
+
+        Assert.Empty(service.Warnings);
     }
 }
