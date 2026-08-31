@@ -42,6 +42,9 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   pour six cent treize quêtes contre cent dix-sept pour le niveau.
 - Un lien vers une quête du catalogue est suivi dans la fenêtre plutôt que dans
   une seconde, comme le bouton « précédente » qui mène au même endroit.
+- Le bloc « Quêtes précédentes » du site disparaît des guides : le pied de la
+  fenêtre y mène déjà. Le bandeau d'intro entier part avec lui quand il ne lui
+  reste rien à dire, ce qui est le cas hors des quêtes répétables.
 
 ### Corrigé
 

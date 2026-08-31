@@ -737,9 +737,12 @@ masquer tout ce qui est fixe ôterait à la carte ses propres commandes.
 le cadrage : un nombre fini de passes ne suffit pas quand le site pose des blocs
 quand il veut.
 
-Deux emplois en découlent. La fenêtre de quêtes masque le titre de l'article et
-les deux blocs du bandeau d'intro qu'elle reprend dans le sien ; elle garde le
-reste de ce bandeau, dont les quêtes précédentes, seuls liens de quête qui
-subsistent une fois la barre de progression du site retirée. La fenêtre des
-pages liées ne prend que le cadrage, sans le suivi d'étapes qui n'aurait aucun
-sens sur une carte, et garde le titre, qui y est le seul repère.
+Deux emplois en découlent. La fenêtre de quêtes retire ce qu'elle refait
+elle-même : le titre, repris dans son bandeau ; le succès, l'étape et la phrase
+de départ, que ce bandeau donne en plus court ; et les quêtes précédentes, que
+son pied donne en boutons. Il ne reste alors du bandeau d'intro que la
+récurrence, et seulement sur les quêtes qui en ont une ; quand il ne reste rien,
+c'est le bandeau entier qui part, sans quoi sa seule bordure ouvrirait le guide
+sur une bande vide. La fenêtre des pages liées, elle, ne prend que le cadrage,
+sans le suivi d'étapes qui n'aurait aucun sens sur une carte, et garde le titre,
+qui y est le seul repère.

@@ -21,10 +21,7 @@
     // le reprend à son compte : le titre, la chaîne des quêtes, les crédits.
     var HIDDEN = [
         // Du bandeau à liseré vert, les deux blocs que notre propre bandeau
-        // reprend déjà : le succès avec l'étape, et la phrase de départ. Le
-        // reste du bandeau tient, car il ne se lit nulle part ailleurs : la
-        // récurrence, et surtout les quêtes précédentes, qui sont les seuls
-        // liens de quête qui restent une fois masquée la barre du site.
+        // reprend déjà : le succès avec l'étape, et la phrase de départ.
         '.pqa-quest-intro__facts',
         '.pqa-quest-intro__start',
 
@@ -33,10 +30,19 @@
         'footer.entry-footer'
     ];
 
-    // Le titre de l'article. Masqué dans la fenêtre de quêtes, qui le réaffiche
-    // dans son bandeau ; gardé dans la fenêtre des pages liées, qui n'en
-    // réaffiche aucun et où c'est le seul repère.
+    // Le titre de l'article, repris par le bandeau de la fenêtre de quêtes.
+    // Gardé dans la fenêtre des pages liées, qui n'en réaffiche aucun et où
+    // c'est le seul repère.
     var TITLE = '.entry-header';
+
+    // Ce que la seule fenêtre de quêtes masque, parce qu'elle le refait à sa
+    // manière : le titre, et les quêtes précédentes, que son pied donne déjà
+    // sous forme de boutons. Les afficher deux fois n'aidait pas et coûtait de
+    // la place en tête de guide.
+    var HIDDEN_IN_QUEST = [
+        TITLE,
+        '.pqa-quest-intro__requirements'
+    ];
 
     // Marque posée sur ce qui n'appartient pas au guide.
     //
@@ -79,7 +85,7 @@
             document.head.appendChild(style);
         }
 
-        var hidden = framingOnly ? HIDDEN : HIDDEN.concat([TITLE]);
+        var hidden = framingOnly ? HIDDEN : HIDDEN.concat(HIDDEN_IN_QUEST);
 
         style.textContent =
             hidden.join(',') + '{display:none !important}' +
@@ -300,10 +306,34 @@
         window.scrollTo({ top: Math.max(0, top - 16), behavior: 'smooth' });
     };
 
+    // Le bandeau d'intro n'a plus rien à montrer une fois retirés les blocs que
+    // la fenêtre refait : sur la plupart des quêtes il ne reste que sa bordure,
+    // une bande vide en tête de page. Mesuré sur quatre guides, seuls ceux dont
+    // la quête est répétable gardent un bloc, celui de la récurrence. Le
+    // bandeau n'est donc conservé que s'il lui reste quelque chose à dire.
+    function trimIntro() {
+        var intro = document.querySelector('section.pqa-quest-intro');
+
+        if (!intro) {
+            return;
+        }
+
+        for (var i = 0; i < intro.children.length; i++) {
+            // Un élément masqué n'a pas de rectangle : la question ne demande
+            // ni de savoir lequel, ni pourquoi il l'est.
+            if (intro.children[i].getClientRects().length > 0) {
+                return;
+            }
+        }
+
+        intro.setAttribute(MARK, '');
+    }
+
     function frame() {
         applyFraming();
         keepOnlyArticle();
         hideFloating();
+        trimIntro();
     }
 
     function start() {
