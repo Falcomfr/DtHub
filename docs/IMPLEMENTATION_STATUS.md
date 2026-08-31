@@ -1,9 +1,9 @@
-# État d'avancement
+﻿# État d'avancement
 
 Légende : **DONE** terminé et vérifié, **IN PROGRESS** en cours,
 **TODO** pas commencé, **BLOCKED** nécessite une action externe.
 
-Dernière mise à jour : 2026-08-29
+Dernière mise à jour : 2026-08-31
 
 ## Vérifié sur matériel réel
 
@@ -67,6 +67,28 @@ Xiaomi 13T, Android 16, profil principal « Alice Martin » et profil cloné
 | Signature Authenticode | TODO (non nécessaire pour un usage personnel) |
 | Dépôt GitHub public | TODO |
 | GitHub Actions build et tests | TODO |
+
+## Compatibilité
+
+Audité le 2026-08-31, appareil par appareil et poste par poste.
+
+| Élément | État |
+|---|---|
+| Aucun chemin, adresse IP ni numéro de série en dur | DONE |
+| Lecture des propriétés par listes de clés alternatives | DONE |
+| Définition de l'afficheur calculée sur le moniteur du PC, non sur l'appareil | DONE |
+| Aucun identifiant de profil Android déduit ou supposé | DONE |
+| Analyse numérique en culture invariante | DONE |
+| Version d'Android contrôlée avant le lancement | DONE |
+| Repli de définition descendant les paliers, jusqu'à 720 | DONE |
+| Refus de scrcpy rangés en catégories avant de retenter | DONE |
+| Copies du jeu à nom de paquet dérivé détectées | DONE |
+| Liste de profils illisible signalée | DONE |
+| Conscience de la mise à l'échelle écran par écran | DONE |
+| Chemins de menu valables pour une tablette | DONE |
+| Windows sur ARM | BLOCKED (scrcpy n'y est pas distribué) |
+| Fiches de marques vérifiées ailleurs que sur Xiaomi | TODO |
+| Lancement sur profil secondaire vérifié sur un second appareil | TODO |
 
 ## Reste à faire
 

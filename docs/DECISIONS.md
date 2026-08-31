@@ -605,3 +605,63 @@ devenues trop étroites.
 
 La hauteur suit le rapport de l'afficheur. La remplir davantage laisserait une
 bande, l'image étant mise à l'échelle.
+
+## D29 - Un suivi de quêtes adossé à papycha.fr
+
+Jouer plusieurs comptes suppose de suivre plusieurs quêtes, et le guide de
+référence est papycha.fr. Une fenêtre de plus, toujours au-dessus, ouverte par
+Ctrl+Q, affiche leur page telle quelle dans un navigateur embarqué.
+
+C'est un ajout d'affichage. Rien n'automatise le jeu : la limite du projet
+n'est pas approchée.
+
+Leur page n'est pas découpée, elle est cadrée : la vue est fixée sur l'article
+et ne peut pas remonter au-dessus, mais rien n'est retiré, ni bandeau ni
+signature. La source est citée en clair, avec un bouton qui ouvre la page dans
+le vrai navigateur. Leur logo seulement s'ils l'accordent.
+
+Le catalogue est bâti en huit requêtes sur leur API REST, mises en cache sept
+jours. Les champs sont demandés nommément, sans le corps des articles : 650 Ko
+au lieu de 22 Mo.
+
+La fenêtre n'emploie pas AllowsTransparency. Un WebView2 est une surface native
+et ne se dessine pas dans une fenêtre transparente.
+
+## D30 - La compatibilité est vérifiée, non supposée
+
+L'application était bâtie et éprouvée sur un seul appareil. Rien n'y était
+faux, mais plusieurs exigences n'étaient écrites nulle part dans le code : le
+code les supposait, et l'utilisateur d'un autre appareil découvrait l'écart
+sous la forme d'une attente de trente secondes suivie d'un message deviné.
+
+Trois principes en sont sortis.
+
+**Ce qu'on sait déjà, on ne le redécouvre pas par l'échec.** Le niveau d'API
+était lu à la découverte et comparé nulle part. Un appareil trop ancien va
+maintenant au refus immédiat, en disant sa version.
+
+**Un repli sait ce qu'il répare.** Le repli de définition se déclenchait sur
+n'importe quel échec et ne connaissait qu'une marche. Les refus sont rangés en
+catégories et seuls ceux qu'une définition plus modeste peut réparer sont
+retentés, en descendant les paliers.
+
+**Un repli silencieux ment par omission.** Quand la liste des profils Android
+n'est pas lisible, l'appareil rendait une instance et ressemblait trait pour
+trait à un appareil qui n'en a qu'une. Le repli est dit.
+
+Ce qui reste supposé est dit ici plutôt que caché : que « am start --user N
+--display D » soit autorisé sur un profil secondaire n'est vérifié que sur le
+Xiaomi 13T, et les chemins de menu des fiches de marques ne sont vérifiés que
+pour Xiaomi.
+
+## D31 - Windows x64 seulement, et pourquoi
+
+La publication vise win-x64. Windows sur ARM n'est pas visé, non par choix mais
+parce que scrcpy n'y est pas distribué : porter DT Hub sans lui ne donnerait
+rien à ouvrir.
+
+Le socle est Windows 10 version 1809, imposé par WebView2 et par .NET 10, et
+déclaré dans le manifeste de l'application. Ce manifeste déclare aussi la
+conscience de la mise à l'échelle écran par écran : sans elle, Windows livre
+les coordonnées virtualisées du moniteur principal, et les fenêtres déplacées
+vers un écran d'un autre facteur sont redimensionnées d'office.
