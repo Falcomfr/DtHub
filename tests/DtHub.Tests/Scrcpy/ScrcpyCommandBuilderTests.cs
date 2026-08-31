@@ -264,4 +264,29 @@ public class ScrcpyCommandBuilderTests
         Assert.DoesNotContain("--prefer-text", arguments);
         Assert.Contains("--legacy-paste", arguments);
     }
+
+    [Theory]
+    [InlineData("h265", "h265")]
+    [InlineData("  AV1  ", "av1")]
+    public void Un_codec_connu_de_scrcpy_est_transmis(string configured, string expected)
+    {
+        var options = ScrcpyOptions.Default with { VideoCodec = configured };
+
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments("USB0001", "T", options);
+
+        Assert.Equal(expected, ValueOf(arguments, "--video-codec"));
+    }
+
+    [Fact]
+    public void Un_codec_inconnu_est_ecarte_plutot_que_transmis()
+    {
+        // Un nom que scrcpy ne connaît pas le fait sortir aussitôt, sous une
+        // forme que rien ne sait traduire : l'utilisateur recevrait le message
+        // générique au bout du délai complet, pour une faute de frappe.
+        var options = ScrcpyOptions.Default with { VideoCodec = "h266" };
+
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments("USB0001", "T", options);
+
+        Assert.DoesNotContain(arguments, a => a.StartsWith("--video-codec", StringComparison.Ordinal));
+    }
 }

@@ -115,6 +115,18 @@ public sealed record ScrcpyOptions
     /// <summary>Codec vidéo, <c>null</c> pour laisser scrcpy décider.</summary>
     public string? VideoCodec { get; init; }
 
+    /// <summary>
+    /// Codecs que scrcpy 4.1 accepte. Un nom hors de cette liste le fait sortir
+    /// aussitôt, et le refus arrive sous une forme que rien ne sait traduire :
+    /// l'utilisateur reçoit alors le message générique après le délai complet,
+    /// pour une simple faute de frappe dans le fichier de réglages.
+    ///
+    /// La liste n'est pas une restriction de notre part : c'est celle de
+    /// « scrcpy --help ». Que l'appareil sache encoder dans le codec demandé
+    /// reste une autre question, et celle-là se lit dans la sortie.
+    /// </summary>
+    private static readonly string[] KnownCodecs = ["h264", "h265", "av1", "vp8", "vp9"];
+
     /// <summary>Débit vidéo au format attendu par scrcpy.</summary>
     public string VideoBitrateArgument =>
         VideoBitrateKbps.ToString(CultureInfo.InvariantCulture) + "K";
@@ -145,5 +157,22 @@ public sealed record ScrcpyOptions
         VirtualDisplayWidth = Math.Clamp(VirtualDisplayWidth, 240, 7680),
         VirtualDisplayHeight = Math.Clamp(VirtualDisplayHeight, 240, 7680),
         VirtualDisplayDpi = Math.Clamp(VirtualDisplayDpi, MinDisplayDpi, MaxDisplayDpi),
+        VideoCodec = SanitizedCodec(),
     };
+
+    /// <summary>
+    /// Nom du codec s'il est connu de scrcpy, <c>null</c> sinon : mieux vaut
+    /// laisser scrcpy choisir que le faire échouer.
+    /// </summary>
+    private string? SanitizedCodec()
+    {
+        if (string.IsNullOrWhiteSpace(VideoCodec))
+        {
+            return null;
+        }
+
+        var value = VideoCodec.Trim().ToLowerInvariant();
+
+        return KnownCodecs.Contains(value, StringComparer.Ordinal) ? value : null;
+    }
 }
