@@ -166,10 +166,19 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
         // Une seule ouverture à la fois par téléphone : deux qui se chevauchent
         // se cassent, la première mourant sur une connexion au serveur qu'elle
-        // avait pourtant déjà poussé. Le verrou couvre la poussée, la connexion,
-        // la création de l'afficheur et l'ouverture du jeu. Un clic pendant
-        // l'attente prend la file : le refuser obligerait à recliquer.
-        await using var lease = await _gate
+        // avait pourtant déjà poussé.
+        //
+        // Le verrou ne couvre que la poussée, la connexion et la création de
+        // l'afficheur. Il couvrait aussi l'ouverture du jeu, ce qui bloquait
+        // les autres lignes pour rien : « am force-stop » et « am start » sont
+        // des commandes ordinaires, propres à un profil Android, qui ne
+        // touchent pas au serveur poussé par scrcpy. Mesuré sur le téléphone de
+        // référence, cela retenait le verrou 1148 ms au lieu de 683, et 2094 au
+        // lieu de 1310.
+        //
+        // Un clic pendant l'attente prend la file : le refuser obligerait à
+        // recliquer.
+        var lease = await _gate
             .EnterAsync(target.DeviceId, cancellationToken)
             .ConfigureAwait(false);
 
@@ -180,6 +189,8 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         }
         catch (ProcessLaunchException exception)
         {
+            await lease.DisposeAsync().ConfigureAwait(false);
+
             return FailedSession(
                 sessionId, target, windowTitle,
                 "scrcpy n'a pas pu démarrer. Le détail est dans les journaux.",
@@ -202,8 +213,28 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         var displayReady = new TaskCompletionSource<int?>(TaskCreationOptions.RunContinuationsAsynchronously);
         _ = Task.Run(() => PumpAsync(session, displayReady, options.UseVirtualDisplay), CancellationToken.None);
 
-        await CompleteStartupAsync(session, options, placement, displayReady, cancellationToken)
-            .ConfigureAwait(false);
+        var chrono = System.Diagnostics.Stopwatch.StartNew();
+
+        int? displayId;
+        try
+        {
+            displayId = await AwaitDisplayAsync(session, options, displayReady, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        finally
+        {
+            // Rendu ici et pas plus tard : l'afficheur existe, la prochaine
+            // ouverture peut pousser son serveur sans risque.
+            await lease.DisposeAsync().ConfigureAwait(false);
+        }
+
+        if (displayId is not null)
+        {
+            await LaunchGameAsync(session, placement, displayId.Value, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        session.StartupMs = chrono.ElapsedMilliseconds;
 
         return session;
     }
@@ -305,17 +336,21 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     /// ouverte, ou échec. Sans afficheur virtuel, scrcpy montre l'écran du
     /// téléphone et il n'y a rien à lancer.
     /// </summary>
-    private async Task CompleteStartupAsync(
+    /// <summary>
+    /// Attend que le téléphone ouvre l'afficheur virtuel. C'est la seule partie
+    /// du démarrage qui doive être sérialisée entre deux ouvertures.
+    /// </summary>
+    /// <returns>L'afficheur ouvert, ou null si la session a échoué.</returns>
+    private async Task<int?> AwaitDisplayAsync(
         ScrcpySession session,
         ScrcpyOptions options,
-        ScrcpyWindowPlacement? placement,
         TaskCompletionSource<int?> displayReady,
         CancellationToken cancellationToken)
     {
         if (!options.UseVirtualDisplay)
         {
             Transition(session, ScrcpySessionState.Running);
-            return;
+            return null;
         }
 
         int? displayId;
@@ -329,17 +364,32 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         {
             Fail(session, "Le téléphone n'a pas ouvert d'écran virtuel à temps.");
             session.Process.Kill();
-            return;
+            return null;
         }
 
         if (displayId is null)
         {
             Fail(session, session.FailureMessage ?? "La session de mirroring n'a pas pu s'ouvrir.");
-            return;
+            return null;
         }
 
         session.VirtualDisplayId = displayId;
+        session.DisplayReadyMs = (long)(DateTimeOffset.UtcNow - session.StartedUtc).TotalMilliseconds;
 
+        return displayId;
+    }
+
+    /// <summary>
+    /// Place la fenêtre puis ouvre le jeu sur l'afficheur. Hors verrou : ces
+    /// commandes sont propres à un profil Android et ne touchent pas au serveur
+    /// poussé par scrcpy.
+    /// </summary>
+    private async Task LaunchGameAsync(
+        ScrcpySession session,
+        ScrcpyWindowPlacement? placement,
+        int displayId,
+        CancellationToken cancellationToken)
+    {
         // La fenêtre prend sa taille définitive avant que le jeu n'arrive :
         // il fixe son échelle à l'ouverture et ne la revoit pas toujours si on
         // redimensionne pendant son démarrage.

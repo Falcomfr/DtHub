@@ -408,6 +408,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 continue;
             }
 
+            LogStartupTiming(instance.DisplayName, session.DisplayReadyMs, session.StartupMs);
+
             started.Add(session);
         }
 
@@ -1122,6 +1124,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "Aucune géométrie mémorisée pour {instances} : la fenêtre rouvre au coin par défaut.")]
     private partial void LogMissingGeometry(string instances);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "{instance} : afficheur prêt en {displayMs} ms, démarrage complet en {totalMs} ms.")]
+    private partial void LogStartupTiming(string instance, long displayMs, long totalMs);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "{count} téléphone(s) reconnecté(s) automatiquement.")]
     private partial void LogReconnected(int count);

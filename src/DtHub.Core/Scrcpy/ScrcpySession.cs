@@ -74,6 +74,16 @@ public sealed class ScrcpySession
 
     public DateTimeOffset StartedUtc { get; }
 
+    /// <summary>
+    /// Temps mis par le téléphone à ouvrir l'afficheur virtuel, en
+    /// millisecondes. C'est la seule partie du démarrage qui doive être
+    /// sérialisée : la mesurer dit combien coûte vraiment l'attente.
+    /// </summary>
+    public long DisplayReadyMs { get; set; }
+
+    /// <summary>Temps total du démarrage, afficheur et ouverture du jeu.</summary>
+    public long StartupMs { get; set; }
+
     /// <summary>Nom affiché dans la liste des sessions.</summary>
     public string DisplayName => Target.DisplayName;
 
