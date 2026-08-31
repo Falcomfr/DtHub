@@ -22,8 +22,11 @@ public sealed class QuestCatalogDocument
     /// rubriques que le site tient à la main viennent compléter ses catégories.
     ///
     /// Version 5 : le succès dont chaque quête fait partie.
+    ///
+    /// Version 6 : les quêtes d'un même succès sont réunies sous une seule
+    /// rubrique.
     /// </summary>
-    public const int CurrentSchemaVersion = 5;
+    public const int CurrentSchemaVersion = 6;
 
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 

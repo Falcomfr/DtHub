@@ -288,4 +288,53 @@ public class QuestCatalogServiceTests
         // portent un : à celles qui n'en ont pas, on n'en invente pas.
         Assert.Equal(string.Empty, catalog.Quests[2].SuccessName);
     }
+
+    [Fact]
+    public async Task Un_succes_a_cheval_sur_deux_rubriques_est_reuni()
+    {
+        // Relevé sur le site : « Se mettre au ver » compte quatre quêtes, trois
+        // rangées sous Amakna et une sous les quêtes principales. La rubrique
+        // des principales affichait donc ce succès avec une seule quête.
+        var client = new FakePapychaClient()
+            .WithQuest(1, "Brêche Mais Intense", 25)
+            .WithQuest(2, "Le ver de trop", 25)
+            .WithQuest(3, "Le ver itay sort de la bouche des enfers", 25)
+            .WithQuest(4, "Sauter le pas du trépas")
+            .WithSection(25, "Amakna", count: 30)
+            .WithPage("Quêtes principales", "https://papycha.fr/quetes-principales/", 4)
+            .WithPage("Quêtes d'Amakna", "https://papycha.fr/quetes-damakna/")
+            .WithSuccess("Se mettre au ver", 1, 2, 3, 4);
+
+        var (service, _, _) = Build(client);
+        await service.GetAsync(cancellationToken: CancellationToken.None);
+
+        var amakna = service.InSection(25);
+
+        Assert.Equal(4, amakna.Count);
+        Assert.All(amakna, q => Assert.Equal("Se mettre au ver", q.SuccessName));
+
+        // Réuni, pas dupliqué : la quête change de rubrique, elle ne s'ajoute
+        // pas à une seconde.
+        Assert.Empty(service.Catalog.Sections.Where(s => s.Name == "Quêtes principales"));
+    }
+
+    [Fact]
+    public async Task Le_succes_reste_dans_la_rubrique_qui_en_porte_le_plus()
+    {
+        var client = new FakePapychaClient()
+            .WithQuest(1, "Une de Frigost", 135)
+            .WithQuest(2, "Une autre de Frigost", 135)
+            .WithQuest(3, "Une d'Astrub", 18)
+            .WithSection(18, "Astrub", count: 56)
+            .WithSection(135, "Île de Frigost", count: 184)
+            .WithPage("Quêtes d'Astrub", "https://papycha.fr/quetes-dastrub/")
+            .WithPage("Quêtes de Frigost", "https://papycha.fr/quetes-de-frigost/")
+            .WithSuccess("Les survivants de Frigost", 1, 2, 3);
+
+        var (service, _, _) = Build(client);
+        await service.GetAsync(cancellationToken: CancellationToken.None);
+
+        Assert.Equal(3, service.InSection(135).Count);
+        Assert.Empty(service.InSection(18));
+    }
 }

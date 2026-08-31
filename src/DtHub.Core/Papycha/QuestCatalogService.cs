@@ -168,6 +168,8 @@ public sealed class QuestCatalogService : IDisposable
             });
         }
 
+        arranged = [.. Reunite(arranged, ranking, sections, extra)];
+
         var counts = arranged
             .GroupBy(q => q.SectionId)
             .ToDictionary(g => g.Key, g => g.Count());
@@ -256,6 +258,46 @@ public sealed class QuestCatalogService : IDisposable
     /// l'ordre du site laissait « Quêtes des Bulles Temporelles » avec une
     /// seule quête.
     /// </summary>
+    /// <summary>
+    /// Remet ensemble les quêtes d'un même succès, dans une seule rubrique.
+    ///
+    /// Un succès traverse parfois deux zones. « Se mettre au ver » en compte
+    /// quatre, trois rangées sous Amakna et une sous les quêtes principales :
+    /// la rubrique des principales affichait donc ce succès avec une seule
+    /// quête, alors qu'il en a quatre. Un succès se joue d'un tenant, il se lit
+    /// d'un tenant.
+    ///
+    /// La rubrique retenue est celle qui en porte déjà le plus ; à égalité,
+    /// celle que le site nomme en premier. Aucune quête n'est dupliquée : elle
+    /// change de rubrique, elle ne s'ajoute pas à une seconde.
+    /// </summary>
+    private static IEnumerable<QuestSummary> Reunite(
+        IReadOnlyList<QuestSummary> quests,
+        IReadOnlyList<string> ranking,
+        IReadOnlyList<QuestSection> sections,
+        Dictionary<string, QuestSection> extra)
+    {
+        var rank = sections
+            .Concat(extra.Values)
+            .ToDictionary(s => s.Id, s => QuestMenuParser.RankOf(ranking, s.SearchKey));
+
+        var home = quests
+            .Where(q => q.SuccessName.Length > 0)
+            .GroupBy(q => q.SuccessName, StringComparer.Ordinal)
+            .ToDictionary(
+                g => g.Key,
+                g => g.GroupBy(q => q.SectionId)
+                    .OrderByDescending(s => s.Count())
+                    .ThenBy(s => rank.GetValueOrDefault(s.Key, int.MaxValue))
+                    .First().Key,
+                StringComparer.Ordinal);
+
+        return quests.Select(q =>
+            q.SuccessName.Length > 0 && home.TryGetValue(q.SuccessName, out var section)
+                ? q with { SectionId = section }
+                : q);
+    }
+
     /// <summary>
     /// Succès de chaque quête, lu sur les intertitres des pages de rubrique.
     ///

@@ -453,13 +453,19 @@ public sealed partial class QuestViewModel : ObservableObject
 
         // Le site nomme « étape » la place d'une quête dans son succès, et
         // nous nommons « étape » un objectif dans la page. Afficher les deux
-        // mots côte à côte rendait le bandeau illisible : celui de la chaîne
-        // parle donc de quête.
+        // mots côte à côte rendait le bandeau illisible.
+        //
+        // Ce n'est pas non plus un compte de quêtes, et le dire ainsi trompait :
+        // « Sauter le pas du trépas » annonce 3/6 alors que son succès n'a que
+        // quatre quêtes documentées, chiffre que la page de succès du site
+        // confirme. Le dénominateur compte les étapes du succès en jeu, dont
+        // toutes ne font pas l'objet d'un article. Vérifié sur douze succès :
+        // les deux nombres diffèrent à chaque fois, dans les deux sens.
         ChainText = string.Join(
             "  ·  ",
             new[]
             {
-                facts.HasChain ? $"Quête {facts.StepNumber} / {facts.StepCount}" : null,
+                facts.HasChain ? $"Progression {facts.StepNumber} / {facts.StepCount}" : null,
                 facts.Success,
             }
             .Where(s => !string.IsNullOrWhiteSpace(s)));
