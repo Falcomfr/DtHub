@@ -7,6 +7,17 @@
 # n'a changé.
 #
 #   powershell -ExecutionPolicy Bypass -File build\create-shortcut.ps1
+#
+# Si le bureau continue d'afficher l'ancienne icône, ce n'est pas ce script :
+# Windows garde une copie de l'icône dans son propre cache, indexée sur le
+# chemin du fichier. Le contenu de assets\app.ico a changé, le chemin non, donc
+# le cache n'a rien vu passer. Mesuré : réécrire le raccourci ne suffit pas, et
+# « ie4uinit.exe -show » non plus, alors que l'API du shell rendait déjà la
+# bonne icône. Seul le redémarrage de l'explorateur l'a emporté :
+#
+#   Stop-Process -Name explorer -Force ; Start-Process explorer.exe
+#
+# Les fenêtres de dossiers se ferment, rien d'autre n'est touché.
 
 param(
     [string]$Target = (Join-Path $PSScriptRoot 'lancer.cmd'),
