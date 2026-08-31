@@ -266,4 +266,26 @@ public class QuestCatalogServiceTests
         Assert.Equal(1, bulles.Count);
         Assert.Equal(1, krosmoz.Count);
     }
+
+    [Fact]
+    public async Task Chaque_quete_porte_le_succes_que_sa_page_de_rubrique_lui_donne()
+    {
+        var client = new FakePapychaClient()
+            .WithQuest(1, "Rencontre du ratième type", 18)
+            .WithQuest(2, "L'Astrub d'en bas", 18)
+            .WithQuest(3, "Une quête sans succès", 18)
+            .WithSection(18, "Astrub", count: 56)
+            .WithPage("Quêtes d'Astrub", "https://papycha.fr/quetes-dastrub/")
+            .WithSuccess("Quand on arrive en ville", 1, 2);
+
+        var (service, _, _) = Build(client);
+        var catalog = await service.GetAsync(cancellationToken: CancellationToken.None);
+
+        Assert.Equal("Quand on arrive en ville", catalog.Quests[0].SuccessName);
+        Assert.Equal("Quand on arrive en ville", catalog.Quests[1].SuccessName);
+
+        // Trois cent soixante-treize quêtes sur sept cent quatre-vingt-deux en
+        // portent un : à celles qui n'en ont pas, on n'en invente pas.
+        Assert.Equal(string.Empty, catalog.Quests[2].SuccessName);
+    }
 }

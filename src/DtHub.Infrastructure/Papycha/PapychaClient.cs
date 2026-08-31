@@ -213,6 +213,7 @@ public sealed partial class PapychaClient : IPapychaClient
             sections.Add(section with
             {
                 QuestUrls = QuestSectionPageParser.ParseQuestLinks(content),
+                Groups = QuestSectionPageParser.ParseGroups(content),
             });
         }
 

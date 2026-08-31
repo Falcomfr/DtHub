@@ -90,6 +90,66 @@ public static partial class QuestSectionPageParser
     }
 
     /// <summary>
+    /// Groupes d'une page de rubrique : un intertitre en gras, puis les quêtes
+    /// qu'il coiffe jusqu'à l'intertitre suivant.
+    ///
+    /// Mesuré sur les vingt-deux pages : quatre-vingt-dix-neuf succès, qui
+    /// rattachent trois cent soixante-treize quêtes sur sept cent quatre-vingt-
+    /// deux. Le reste des quêtes n'est coiffé par aucun intertitre, et rien ne
+    /// doit prétendre le contraire.
+    /// </summary>
+    public static IReadOnlyList<QuestPageGroup> ParseGroups(string? content)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return [];
+        }
+
+        var parts = HeadingPattern().Split(content);
+
+        List<QuestPageGroup> groups = [];
+
+        // Le premier morceau précède le premier intertitre : il ne relève
+        // d'aucun groupe. Ensuite les morceaux vont par deux, l'intitulé puis
+        // ce qu'il coiffe.
+        for (var i = 1; i + 1 < parts.Length; i += 2)
+        {
+            var raw = Text(parts[i]).TrimEnd(':', ' ', ' ').Trim();
+            var success = SuccessPattern().Match(raw);
+            var name = success.Success ? success.Groups["name"].Value.Trim() : raw;
+
+            if (name.Length == 0)
+            {
+                continue;
+            }
+
+            List<string> urls = [];
+
+            foreach (Match link in LinkPattern().Matches(parts[i + 1]))
+            {
+                var url = Internal(link.Groups["url"].Value);
+
+                if (url.Length > 0 && !urls.Contains(url, StringComparer.Ordinal))
+                {
+                    urls.Add(url);
+                }
+            }
+
+            if (urls.Count > 0)
+            {
+                groups.Add(new QuestPageGroup
+                {
+                    Name = name,
+                    IsSuccess = success.Success,
+                    QuestUrls = urls,
+                });
+            }
+        }
+
+        return groups;
+    }
+
+    /// <summary>
     /// Adresse ramenée à une forme comparable. Ni l'ancre ni la barre finale ne
     /// doivent décider si deux liens désignent la même page.
     ///
@@ -147,4 +207,12 @@ public static partial class QuestSectionPageParser
 
     [GeneratedRegex("<[^>]+>")]
     private static partial Regex TagPattern();
+
+    [GeneratedRegex(
+        @"<p[^>]*>\s*<strong>(.*?)</strong>\s*</p>",
+        RegexOptions.Singleline | RegexOptions.IgnoreCase)]
+    private static partial Regex HeadingPattern();
+
+    [GeneratedRegex(@"^\[\s*Succ[eè]s\s*\]\s*(?<name>.+)$", RegexOptions.IgnoreCase)]
+    private static partial Regex SuccessPattern();
 }

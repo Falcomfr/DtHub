@@ -136,6 +136,7 @@ public sealed class QuestCatalogService : IDisposable
         var known = sections.ToDictionary(s => s.Id, s => s);
         var extra = ExtraSections(pages, sections);
         var claimed = Claims(pages, extra, sections);
+        var successes = Successes(pages);
 
         // Le tableau de la page « Quêtes » est le seul endroit où le site
         // publie son propre classement, et il le publie en clair. Le menu, qui
@@ -147,16 +148,17 @@ public sealed class QuestCatalogService : IDisposable
 
         foreach (var quest in quests)
         {
+            var key = QuestSectionPageParser.Key(quest.Url);
             var section = PrimarySection(quest, known);
 
             if (section == 0)
             {
-                claimed.TryGetValue(
-                    QuestSectionPageParser.Key(quest.Url), out section);
+                claimed.TryGetValue(key, out section);
             }
 
             arranged.Add(quest with
             {
+                SuccessName = successes.GetValueOrDefault(key, string.Empty),
                 SectionKey = string.Join(
                     ' ',
                     quest.Categories
@@ -254,6 +256,27 @@ public sealed class QuestCatalogService : IDisposable
     /// l'ordre du site laissait « Quêtes des Bulles Temporelles » avec une
     /// seule quête.
     /// </summary>
+    /// <summary>
+    /// Succès de chaque quête, lu sur les intertitres des pages de rubrique.
+    ///
+    /// Le premier qui la nomme l'emporte : une quête n'appartient qu'à un
+    /// succès, et les pages ne se contredisent pas sur ce point.
+    /// </summary>
+    private static Dictionary<string, string> Successes(IReadOnlyList<QuestPageSection> pages)
+    {
+        Dictionary<string, string> successes = new(StringComparer.Ordinal);
+
+        foreach (var group in pages.SelectMany(p => p.Groups).Where(g => g.IsSuccess))
+        {
+            foreach (var url in group.QuestUrls)
+            {
+                successes.TryAdd(url, group.Name);
+            }
+        }
+
+        return successes;
+    }
+
     private static Dictionary<string, int> Claims(
         IReadOnlyList<QuestPageSection> pages,
         Dictionary<string, QuestSection> extra,

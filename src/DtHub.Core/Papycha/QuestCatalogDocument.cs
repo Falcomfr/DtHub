@@ -20,8 +20,10 @@ public sealed class QuestCatalogDocument
     ///
     /// Version 4 : une quête est rangée sous une rubrique et une seule, et les
     /// rubriques que le site tient à la main viennent compléter ses catégories.
+    ///
+    /// Version 5 : le succès dont chaque quête fait partie.
     /// </summary>
-    public const int CurrentSchemaVersion = 4;
+    public const int CurrentSchemaVersion = 5;
 
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 

@@ -31,6 +31,14 @@ public sealed class FakePapychaClient : IPapychaClient
         return this;
     }
 
+    /// <summary>Donne un niveau à la dernière quête ajoutée.</summary>
+    public FakePapychaClient AtLevel(int level)
+    {
+        _quests[^1] = _quests[^1] with { Level = level };
+
+        return this;
+    }
+
     public FakePapychaClient WithSection(int id, string name, int count = 1)
     {
         _sections.Add(new QuestSection
@@ -73,11 +81,36 @@ public sealed class FakePapychaClient : IPapychaClient
         {
             Name = name,
             Url = url,
-            QuestUrls = [.. questIds.Select(id => $"https://exemple.invalid/quete-{id}")],
+            QuestUrls = [.. questIds.Select(Address)],
         });
 
         return this;
     }
+
+    /// <summary>Succès annoncé par un intertitre de la dernière rubrique ajoutée.</summary>
+    public FakePapychaClient WithSuccess(string name, params int[] questIds)
+    {
+        var page = _pages[^1];
+
+        _pages[^1] = page with
+        {
+            QuestUrls = [.. page.QuestUrls.Union(questIds.Select(Address), StringComparer.Ordinal)],
+            Groups =
+            [
+                .. page.Groups,
+                new QuestPageGroup
+                {
+                    Name = name,
+                    IsSuccess = true,
+                    QuestUrls = [.. questIds.Select(Address)],
+                },
+            ],
+        };
+
+        return this;
+    }
+
+    private static string Address(int id) => $"https://exemple.invalid/quete-{id}";
 
     public Task<IReadOnlyList<QuestPageSection>> GetPageSectionsAsync(
         CancellationToken cancellationToken = default) =>

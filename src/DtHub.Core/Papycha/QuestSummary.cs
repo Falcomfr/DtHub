@@ -1,4 +1,4 @@
-namespace DtHub.Core.Papycha;
+﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
 /// Une quête, telle que le catalogue la retient.
@@ -48,6 +48,16 @@ public sealed record QuestSummary
     /// « Astrub » situe mieux que « Quêtes ».
     /// </summary>
     public int SectionId { get; init; }
+
+    /// <summary>
+    /// Succès dont la quête fait partie, vide quand le site ne le dit pas.
+    ///
+    /// Le rattachement se lit sur les pages de rubrique, qui groupent leurs
+    /// quêtes sous des intertitres. Mesuré : trois cent soixante-treize quêtes
+    /// sur sept cent quatre-vingt-deux en portent un. Les autres n'en portent
+    /// pas, et rien ne doit leur en inventer.
+    /// </summary>
+    public string SuccessName { get; init; } = string.Empty;
 }
 
 /// <summary>Une rubrique de l'arbre : une catégorie ou un type du site.</summary>

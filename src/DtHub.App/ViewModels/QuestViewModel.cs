@@ -183,7 +183,7 @@ public sealed partial class QuestViewModel : ObservableObject
         Breadcrumb = $"Quêtes  ›  {NameOf(section)}";
         Nodes.Add(new QuestNode(QuestNodeKind.Back, "Retour", Id: RootSection));
 
-        AddGrouped(_catalog.InSection(section), skipHeaders: true);
+        AddBySuccess(_catalog.InSection(section));
     }
 
     /// <summary>
@@ -217,9 +217,40 @@ public sealed partial class QuestViewModel : ObservableObject
             .Where(s => s.Id != RootSection && _sectionCounts.GetValueOrDefault(s.Id) > 0)
             .Select(s => new QuestNode(
                 QuestNodeKind.Branch,
-                s.Name,
-                Nombre(_sectionCounts[s.Id]),
+                $"{s.Name} ({_sectionCounts[s.Id]})",
+                LevelRange(_catalog.InSection(s.Id)),
                 Id: s.Id));
+
+    /// <summary>
+    /// Plage de niveaux d'un ensemble de quêtes, ou <c>null</c> quand aucune
+    /// n'en porte.
+    ///
+    /// Le site ne renseigne le niveau que sur cent dix-sept quêtes sur sept
+    /// cent quatre-vingt-deux, et sur plusieurs zones aucune. Afficher une
+    /// plage tirée d'une seule quête sur vingt-trois la ferait passer pour la
+    /// plage de la zone : quand rien n'est connu, on ne dit rien, et le nombre
+    /// de quêtes sur lequel elle repose est rappelé dès qu'il est partiel.
+    /// </summary>
+    private static string? LevelRange(IReadOnlyList<QuestSummary> quests)
+    {
+        List<int> levels = [.. quests.Where(q => q.Level > 0).Select(q => q.Level)];
+
+        if (levels.Count == 0)
+        {
+            return null;
+        }
+
+        var span = levels.Min() == levels.Max()
+            ? Text(levels.Min())
+            : $"{Text(levels.Min())} - {Text(levels.Max())}";
+
+        return levels.Count == quests.Count
+            ? $"niveau {span}"
+            : $"niveau {span} (sur {Text(levels.Count)})";
+    }
+
+    private static string Text(int value) =>
+        value.ToString(System.Globalization.CultureInfo.CurrentCulture);
 
     /// <summary>
     /// Ajoute les quêtes en les rangeant sous leur rubrique, dans l'ordre du
@@ -257,6 +288,59 @@ public sealed partial class QuestViewModel : ObservableObject
             {
                 Nodes.Add(ToNode(quest));
             }
+        }
+    }
+
+    /// <summary>
+    /// Ajoute les quêtes d'une rubrique en les rangeant sous leur succès.
+    ///
+    /// C'est ainsi que le site les présente, et c'est ainsi qu'on les joue :
+    /// une quête isolée dit rarement à quoi elle sert. Les quêtes qu'aucun
+    /// succès ne réclame viennent ensuite, sous un intertitre qui ne prétend
+    /// pas en être un.
+    /// </summary>
+    private void AddBySuccess(IReadOnlyList<QuestSummary> quests)
+    {
+        var groups = quests
+            .Where(q => q.SuccessName.Length > 0)
+            .GroupBy(q => q.SuccessName, StringComparer.Ordinal)
+            .OrderBy(g => g.Key, StringComparer.CurrentCulture);
+
+        foreach (var group in groups)
+        {
+            List<QuestSummary> ordered = [.. group];
+
+            Nodes.Add(new QuestNode(
+                QuestNodeKind.Header,
+                $"{group.Key} ({ordered.Count})",
+                LevelRange(ordered)));
+
+            foreach (var quest in ordered)
+            {
+                Nodes.Add(ToNode(quest));
+            }
+        }
+
+        List<QuestSummary> loose = [.. quests.Where(q => q.SuccessName.Length == 0)];
+
+        if (loose.Count == 0)
+        {
+            return;
+        }
+
+        // L'intertitre ne s'affiche que s'il sépare de quelque chose : dans une
+        // rubrique dont aucune quête n'a de succès, il ne coifferait rien.
+        if (Nodes.Any(n => n.Kind == QuestNodeKind.Header))
+        {
+            Nodes.Add(new QuestNode(
+                QuestNodeKind.Header,
+                $"Hors succès ({loose.Count})",
+                LevelRange(loose)));
+        }
+
+        foreach (var quest in loose)
+        {
+            Nodes.Add(ToNode(quest));
         }
     }
 

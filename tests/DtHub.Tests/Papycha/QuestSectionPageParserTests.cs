@@ -1,4 +1,4 @@
-using DtHub.Core.Papycha;
+﻿using DtHub.Core.Papycha;
 
 namespace DtHub.Tests.Papycha;
 
@@ -92,5 +92,68 @@ public class QuestSectionPageParserTests
     public void Deux_ecritures_d_une_meme_adresse_se_valent(string? url, string expected)
     {
         Assert.Equal(expected, QuestSectionPageParser.Key(url));
+    }
+
+    /// <summary>Forme relevée sur la page « Quêtes d'Astrub ».</summary>
+    private const string Zone = """
+        <div class="wp-block-image"><figure><img src="x.png" /></figure></div>
+        <p class="wp-block-paragraph"><strong>[Succès] Quand on arrive en ville :</strong></p>
+        <ul class="wp-block-list">
+        <li><a href="https://papycha.fr/quete-rencontre-du-ratieme-type/">Rencontre du ratième type</a></li>
+        <li><a href="https://papycha.fr/quete-lastrub-den-bas/">L&rsquo;Astrub d&rsquo;en bas</a></li>
+        </ul>
+        <p class="wp-block-paragraph"><strong>[Succès] Un piou, c&rsquo;est tout ! :</strong></p>
+        <ul class="wp-block-list">
+        <li><a href="https://papycha.fr/quete-origine-inpiounnue/">Origine Inpiounnue</a></li>
+        </ul>
+        <p class="wp-block-paragraph"><strong>Divers :</strong></p>
+        <ul class="wp-block-list">
+        <li><a href="https://papycha.fr/quete-un-truc-a-part/">Un truc à part</a></li>
+        </ul>
+        """;
+
+    [Fact]
+    public void Les_intertitres_d_une_page_de_zone_donnent_ses_succes()
+    {
+        var groups = QuestSectionPageParser.ParseGroups(Zone);
+
+        Assert.Equal(3, groups.Count);
+        Assert.Equal("Quand on arrive en ville", groups[0].Name);
+        Assert.Equal(2, groups[0].QuestUrls.Count);
+        Assert.Equal("Un piou, c’est tout !", groups[1].Name);
+    }
+
+    [Fact]
+    public void Un_intertitre_qui_n_annonce_pas_un_succes_ne_pretend_pas_en_etre_un()
+    {
+        // Une page dit aussi « Divers » ou « Quêtes des Calanques d'Astrub » :
+        // les prendre pour des succès en inventerait.
+        var groups = QuestSectionPageParser.ParseGroups(Zone);
+
+        Assert.True(groups[0].IsSuccess);
+        Assert.True(groups[1].IsSuccess);
+
+        Assert.False(groups[2].IsSuccess);
+        Assert.Equal("Divers", groups[2].Name);
+    }
+
+    [Fact]
+    public void Un_intertitre_qui_ne_coiffe_aucune_quete_est_ecarte()
+    {
+        const string content = """
+            <p><strong>[Succès] Un succès sans lien :</strong></p>
+            <p>Rien ici.</p>
+            """;
+
+        Assert.Empty(QuestSectionPageParser.ParseGroups(content));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("<p>une page sans intertitre</p>")]
+    public void Une_page_sans_intertitre_ne_donne_aucun_groupe(string? content)
+    {
+        Assert.Empty(QuestSectionPageParser.ParseGroups(content));
     }
 }
