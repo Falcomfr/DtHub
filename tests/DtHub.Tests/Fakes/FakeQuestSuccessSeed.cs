@@ -1,4 +1,4 @@
-using DtHub.Core.Papycha;
+﻿using DtHub.Core.Papycha;
 
 namespace DtHub.Tests.Fakes;
 
@@ -11,10 +11,14 @@ public sealed class FakeQuestSuccessSeed : IQuestSuccessSeed
     private readonly Dictionary<string, QuestSeedEntry> _entries = new(StringComparer.Ordinal);
 
     /// <summary>Rattache une quête à un succès, avec sa place dans la chaîne.</summary>
-    public FakeQuestSuccessSeed With(int questId, string success, int chainStep = 0)
+    public FakeQuestSuccessSeed With(
+        int questId,
+        string success,
+        int chainStep = 0,
+        int playOrder = 0)
     {
         _entries[$"https://exemple.invalid/quete-{questId}"] =
-            new QuestSeedEntry(success, chainStep);
+            new QuestSeedEntry(success, chainStep, playOrder);
 
         return this;
     }

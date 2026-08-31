@@ -30,4 +30,10 @@ public interface IQuestSuccessSeed
 /// Sa place dans sa chaîne de prérequis, zéro si le site ne la donne pas. Sert
 /// à présenter les quêtes d'un succès dans l'ordre où l'on y joue.
 /// </param>
-public readonly record struct QuestSeedEntry(string Success, int ChainStep);
+/// <param name="PlayOrder">
+/// Sa place dans son succès, calculée à l'extraction à partir des prérequis que
+/// le site publie. Le site ne donne cet ordre nulle part ailleurs : sans lui,
+/// « Les rescapés de Frigost » précédait « L'essentiel est dans le Lac gelé »
+/// qu'elle exige pourtant.
+/// </param>
+public readonly record struct QuestSeedEntry(string Success, int ChainStep, int PlayOrder);

@@ -33,8 +33,10 @@ public sealed class QuestCatalogDocument
     ///
     /// Version 9 : les succès viennent aussi de la carte embarquée, tirée du
     /// bloc d'intro de chaque quête.
+    ///
+    /// Version 10 : la place de chaque quête dans son succès.
     /// </summary>
-    public const int CurrentSchemaVersion = 9;
+    public const int CurrentSchemaVersion = 10;
 
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 

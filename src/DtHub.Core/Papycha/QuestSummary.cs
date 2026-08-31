@@ -81,6 +81,16 @@ public sealed record QuestSummary
     /// alphabétique pour présenter les quêtes d'un succès.
     /// </summary>
     public int ChainStep { get; init; }
+
+    /// <summary>
+    /// Place de la quête dans son succès, zéro si on ne la connaît pas.
+    ///
+    /// Calculée à partir des prérequis que le site publie, qui donnent un ordre
+    /// partiel : « Les rescapés de Frigost » exige « [FIN] L'essentiel est dans
+    /// le Lac gelé », donc celle-ci vient avant. Le site ne publie cet ordre
+    /// nulle part ailleurs pour la plupart des succès.
+    /// </summary>
+    public int PlayOrder { get; init; }
 }
 
 /// <summary>Une rubrique de l'arbre : une catégorie ou un type du site.</summary>

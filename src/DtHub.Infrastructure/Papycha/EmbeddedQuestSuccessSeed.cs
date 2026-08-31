@@ -59,7 +59,7 @@ public sealed partial class EmbeddedQuestSuccessSeed : IQuestSuccessSeed
                 .Where(pair => !string.IsNullOrWhiteSpace(pair.Value.S))
                 .ToDictionary(
                     pair => pair.Key,
-                    pair => new QuestSeedEntry(pair.Value.S!, pair.Value.N),
+                    pair => new QuestSeedEntry(pair.Value.S!, pair.Value.N, pair.Value.O),
                     StringComparer.Ordinal);
 
             if (map.Count == 0 && raw.Count > 0)
@@ -85,12 +85,17 @@ public sealed partial class EmbeddedQuestSuccessSeed : IQuestSuccessSeed
         }
     }
 
-    /// <summary>Forme du fichier : « s » le succès, « n » le rang de chaîne.</summary>
+    /// <summary>
+    /// Forme du fichier : « s » le succès, « n » le rang de chaîne, « o » la
+    /// place dans le succès.
+    /// </summary>
     private sealed class Entry
     {
         public string? S { get; set; }
 
         public int N { get; set; }
+
+        public int O { get; set; }
     }
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Carte des succès embarquée : {count} quête(s).")]

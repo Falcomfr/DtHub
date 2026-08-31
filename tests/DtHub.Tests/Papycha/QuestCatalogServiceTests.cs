@@ -429,4 +429,28 @@ public class QuestCatalogServiceTests
         Assert.Equal(6, catalog.Quests[0].ChainStep);
         Assert.Equal(1, catalog.Quests[1].ChainStep);
     }
+
+    [Fact]
+    public async Task La_place_dans_le_succes_suit_la_quete()
+    {
+        // Elle vient des prérequis que le site publie : « Les rescapés de
+        // Frigost » exige « [FIN] L'essentiel est dans le Lac gelé », donc
+        // celle-ci vient avant, ce qu'aucun autre champ du site ne dit.
+        var client = new FakePapychaClient()
+            .WithQuest(1, "Les rescapés de Frigost")
+            .WithQuest(2, "L'essentiel est dans le Lac gelé")
+            .WithPage("Quêtes de Frigost", "https://papycha.fr/quetes-de-frigost/", 1, 2);
+
+        var seed = new FakeQuestSuccessSeed()
+            .With(1, "La maire dénie", chainStep: 2, playOrder: 3)
+            .With(2, "La maire dénie", chainStep: 2, playOrder: 2);
+
+        var store = new InMemoryDocumentStore<QuestCatalogDocument>();
+        var service = new QuestCatalogService(client, store, seed);
+
+        var catalog = await service.GetAsync(cancellationToken: CancellationToken.None);
+
+        Assert.Equal(3, catalog.Quests[0].PlayOrder);
+        Assert.Equal(2, catalog.Quests[1].PlayOrder);
+    }
 }

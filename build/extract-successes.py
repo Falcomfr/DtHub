@@ -131,14 +131,54 @@ def succes_officiels() -> dict[str, str]:
     return officiels
 
 
-def depuis_les_quetes(connus: dict[str, str]) -> dict[str, tuple[str, int]]:
-    """Succès et rang de chaîne, lus dans le bloc d'intro de chaque quête."""
+def prerequis(contenu: str) -> list[str]:
+    """Intitulés des quêtes et jalons dont celle-ci dépend.
+
+    Le site les publie dans la colonne « précédents » de son bloc de
+    progression. Un jalon n'est pas une quête mais l'état qu'elle laisse :
+    « [FIN] L'essentiel est dans le Lac gelé » désigne la quête du même nom, à
+    sa marque près. C'est le seul ordre de jeu que le site donne pour un succès
+    dont aucune page ne publie la liste.
+    """
+    bloc = re.search(
+        r'pqt-progress__column--previous\b(?P<corps>.*?)</section>', contenu, re.S
+    )
+
+    if not bloc:
+        return []
+
+    titres = []
+
+    for ancre in re.finditer(r"<a[^>]*>(?P<inner>.*?)</a>", bloc.group("corps"), re.S):
+        fort = re.search(r"<strong[^>]*>(?P<t>.*?)</strong>", ancre.group("inner"), re.S)
+        titre = texte(fort.group("t") if fort else ancre.group("inner"))
+
+        # « [FIN] » et consorts marquent un jalon ; le reste nomme la quête.
+        titre = re.sub(r"^\[[^\]]*\]\s*", "", titre).strip()
+
+        if titre:
+            titres.append(titre)
+
+    return titres
+
+
+def depuis_les_quetes(
+    connus: dict[str, str],
+    titres: dict[str, str],
+    avant: dict[str, list[str]],
+) -> dict[str, tuple[str, int]]:
+    """Succès et rang de chaîne, lus dans le bloc d'intro de chaque quête.
+
+    Remplit au passage <paramref name="titres"/> et <paramref name="avant"/> :
+    le titre de chaque quête et les intitulés dont elle dépend, qui servent à
+    ordonner les quêtes d'un succès.
+    """
     carte: dict[str, tuple[str, int]] = {}
 
     for page in range(1, 20):
         adresse = (
             f"{API}/posts?categories={CATEGORIE_QUETES}&per_page=100&page={page}"
-            "&_fields=link,content"
+            "&_fields=link,title,content"
         )
 
         try:
@@ -172,6 +212,9 @@ def depuis_les_quetes(connus: dict[str, str]) -> dict[str, tuple[str, int]]:
                             rang = int(chiffre.group(1))
 
                     carte[cle(article["link"])] = (noms[0], rang)
+
+            titres[cle(article["link"])] = texte(article["title"]["rendered"])
+            avant[cle(article["link"])] = prerequis(contenu)
 
         print(f"  page {page} : {len(carte)} quêtes rattachées", file=sys.stderr)
         time.sleep(0.3)
@@ -229,13 +272,75 @@ def depuis_les_rubriques() -> dict[str, str]:
     return carte
 
 
+def ordonner(
+    carte: dict[str, dict],
+    titres: dict[str, str],
+    avant: dict[str, list[str]],
+) -> dict[str, int]:
+    """Range les quêtes de chaque succès dans l'ordre où on les joue.
+
+    Le site ne publie cet ordre nulle part pour la plupart des succès : ni la
+    liste officielle, ni les pages de rubrique quand elles ne les coiffent pas.
+    Ne restent que les prérequis, qui donnent un ordre partiel : « Les rescapés
+    de Frigost » exige « [FIN] L'essentiel est dans le Lac gelé », donc celle-ci
+    vient avant. On complète par le rang de chaîne, puis par le titre, pour que
+    l'ordre soit total et toujours le même.
+    """
+    par_titre = {reduire(t): url for url, t in titres.items()}
+    rangs: dict[str, int] = {}
+
+    groupes: dict[str, list[str]] = {}
+
+    for url, entree in carte.items():
+        groupes.setdefault(entree["s"], []).append(url)
+
+    for membres in groupes.values():
+        dedans = set(membres)
+
+        # Arêtes du graphe, restreintes au succès : un prérequis extérieur ne
+        # dit rien de l'ordre interne.
+        requis = {
+            url: {
+                par_titre[reduire(t)]
+                for t in avant.get(url, [])
+                if reduire(t) in par_titre and par_titre[reduire(t)] in dedans
+            }
+            for url in membres
+        }
+
+        defaut = {
+            url: (carte[url].get("n") or 10**6, titres.get(url, url))
+            for url in membres
+        }
+
+        reste = set(membres)
+        rang = 0
+
+        while reste:
+            # Les quêtes dont tous les prérequis internes sont déjà placés.
+            prets = [u for u in reste if not (requis[u] & reste)]
+
+            # Un cycle ne doit pas bloquer : on prend alors le meilleur restant.
+            if not prets:
+                prets = list(reste)
+
+            for url in sorted(prets, key=lambda u: defaut[u]):
+                rang += 1
+                rangs[url] = rang
+                reste.discard(url)
+
+    return rangs
+
+
 def main() -> int:
     print("Orthographe officielle des succès…", file=sys.stderr)
     officiels = succes_officiels()
     print(f"  {len(officiels)} succès nommés", file=sys.stderr)
 
     print("Blocs d'intro des quêtes…", file=sys.stderr)
-    par_quete = depuis_les_quetes(officiels)
+    titres: dict[str, str] = {}
+    avant: dict[str, list[str]] = {}
+    par_quete = depuis_les_quetes(officiels, titres, avant)
 
     print("Intertitres des pages de rubrique…", file=sys.stderr)
     par_rubrique = depuis_les_rubriques()
@@ -270,6 +375,9 @@ def main() -> int:
         url: {"s": retenue(nom), "n": rang}
         for url, (nom, rang) in sorted(union.items())
     }
+
+    for url, rang in ordonner(carte, titres, avant).items():
+        carte[url]["o"] = rang
 
     SORTIE.parent.mkdir(parents=True, exist_ok=True)
     SORTIE.write_text(

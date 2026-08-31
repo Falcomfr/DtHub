@@ -197,6 +197,9 @@ public sealed class QuestCatalogService : IDisposable
                 ChainStep = seed is not null && seed.TryGetValue(key, out var entry)
                     ? entry.ChainStep
                     : 0,
+                PlayOrder = seed is not null && seed.TryGetValue(key, out var place)
+                    ? place.PlayOrder
+                    : 0,
                 SectionKey = string.Join(
                     ' ',
                     quest.Categories

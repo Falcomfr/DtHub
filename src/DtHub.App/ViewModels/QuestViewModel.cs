@@ -54,6 +54,7 @@ public sealed partial class QuestViewModel : ObservableObject
     [ObservableProperty]
     private string _chainStep = string.Empty;
 
+
     [ObservableProperty]
     private bool _hasQuest;
 
@@ -326,16 +327,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
         foreach (var group in groups)
         {
-            // Dans l'ordre où l'on y joue, que le site publie sous la forme
-            // « Étape 6/7 ». Ce rang situe la quête dans sa chaîne de
-            // prérequis et non dans son succès, mais c'est le seul ordre de jeu
-            // disponible, et l'ordre alphabétique n'en est pas un.
-            List<QuestSummary> ordered =
-            [
-                .. group
-                    .OrderBy(q => q.ChainStep == 0 ? int.MaxValue : q.ChainStep)
-                    .ThenBy(q => q.Title, StringComparer.CurrentCulture),
-            ];
+            List<QuestSummary> ordered = [.. InPlayOrder(group)];
 
             Nodes.Add(new QuestNode(
                 QuestNodeKind.Header,
@@ -370,6 +362,23 @@ public sealed partial class QuestViewModel : ObservableObject
             Nodes.Add(ToNode(quest));
         }
     }
+
+    /// <summary>
+    /// Ordre de jeu d'un ensemble de quêtes.
+    ///
+    /// La place dans le succès d'abord, calculée à l'indexation à partir des
+    /// prérequis du site ; le rang de chaîne ensuite, pour les quêtes que la
+    /// carte ne connaît pas ; le titre en dernier, pour que l'ordre soit total
+    /// et toujours le même.
+    ///
+    /// Un seul et même ordre pour la liste et pour la navigation d'une quête à
+    /// l'autre : la suivante doit être celle qu'on voit juste en dessous.
+    /// </summary>
+    private static IEnumerable<QuestSummary> InPlayOrder(IEnumerable<QuestSummary> quests) =>
+        quests
+            .OrderBy(q => q.PlayOrder == 0 ? int.MaxValue : q.PlayOrder)
+            .ThenBy(q => q.ChainStep == 0 ? int.MaxValue : q.ChainStep)
+            .ThenBy(q => q.Title, StringComparer.CurrentCulture);
 
     private QuestNode ToNode(QuestSummary quest) => new(
         QuestNodeKind.Quest,
@@ -425,18 +434,71 @@ public sealed partial class QuestViewModel : ObservableObject
 
         CurrentUrl = quest.Url;
         QuestTitle = quest.Title;
-        ChainText = string.Empty;
-        ChainStep = string.Empty;
         HasQuest = true;
+
+        SetNeighbours(quest);
 
         // La page suivante n'est pas encore chargée : garder les étapes de la
         // précédente afficherait un objectif qui n'a plus rien à voir.
         _steps = [];
         HasSteps = false;
-        PreviousQuest = null;
-        NextQuest = null;
         SetStep(-1);
     }
+
+    /// <summary>
+    /// Établit le succès de la quête ouverte, sa place et ses voisines.
+    ///
+    /// Ce sont les voisines de la liste du succès, dans l'ordre du site, et non
+    /// celles de la chaîne publiée en pied de page : cette chaîne-là relie les
+    /// prérequis, saute d'un succès à l'autre et se ramifie. La première quête
+    /// d'un succès n'a pas de précédente, la dernière pas de suivante, et c'est
+    /// ce qu'on attend en parcourant une liste.
+    ///
+    /// Une quête sans succès n'a pas de voisines : les autres quêtes de sa
+    /// rubrique ne forment pas une suite.
+    /// </summary>
+    private void SetNeighbours(QuestSummary quest)
+    {
+        ChainText = quest.SuccessName;
+        ChainStep = string.Empty;
+        PreviousQuest = null;
+        NextQuest = null;
+
+        if (quest.SuccessName.Length == 0)
+        {
+            return;
+        }
+
+        List<QuestSummary> group =
+        [
+            .. InPlayOrder(
+                _catalog.Catalog.Quests.Where(q =>
+                    string.Equals(q.SuccessName, quest.SuccessName, StringComparison.Ordinal))),
+        ];
+
+        var index = group.FindIndex(q =>
+            string.Equals(q.Url, quest.Url, StringComparison.Ordinal));
+
+        if (index < 0)
+        {
+            return;
+        }
+
+        ChainStep = $"{Text(index + 1)} / {Text(group.Count)}";
+
+        if (index > 0)
+        {
+            PreviousQuest = ToLink(group[index - 1]);
+        }
+
+        if (index < group.Count - 1)
+        {
+            NextQuest = ToLink(group[index + 1]);
+        }
+    }
+
+    private static QuestLink ToLink(QuestSummary quest) =>
+        new(quest.Title, quest.Url, QuestLinkKind.Quest);
 
     /// <summary>Étapes repérées dans la page ouverte.</summary>
     private IReadOnlyList<string> _steps = [];
@@ -461,11 +523,11 @@ public sealed partial class QuestViewModel : ObservableObject
     [ObservableProperty]
     private bool _canGoNextStep;
 
-    /// <summary>Quête suivante de la chaîne, quand la page en annonce une.</summary>
+    /// <summary>Quête suivante du succès, s'il y en a une après celle-ci.</summary>
     [ObservableProperty]
     private QuestLink? _nextQuest;
 
-    /// <summary>Quête précédente de la chaîne.</summary>
+    /// <summary>Quête précédente du succès, s'il y en a une avant celle-ci.</summary>
     [ObservableProperty]
     private QuestLink? _previousQuest;
 
@@ -479,23 +541,20 @@ public sealed partial class QuestViewModel : ObservableObject
         var facts = QuestPageParser.ParseFacts(introHtml);
         var chain = QuestPageParser.ParseChain(chainHtml);
 
-        // Le site nomme « étape » la place d'une quête dans son succès, et
-        // nous nommons « étape » un objectif dans la page. Afficher les deux
-        // mots côte à côte rendait le bandeau illisible.
+        // La chaîne publiée en pied de page relie les prérequis : elle saute
+        // d'un succès à l'autre et se ramifie. « Les rescapés de Frigost » y a
+        // deux suites et pour seul précédent un jalon. Ce n'est pas ce qu'on
+        // parcourt : les voisines sont celles de la liste du succès, et
+        // SetCurrent les a déjà posées avant même que la page arrive.
         //
-        // Ce nombre ne compte pas non plus les quêtes du succès, et le coller
-        // au nom du succès le laissait croire. « Nettoyage express » annonce
-        // 6/7 alors que « De la caillasse plein les poches » n'a que trois
-        // quêtes, ce que confirme la liste du site ; et sa quête précédente,
-        // « La chasse aux sorcières », relève d'un autre succès. Le rang situe
-        // la quête dans sa chaîne de prérequis, laquelle traverse plusieurs
-        // succès. Il part donc au pied, entre les deux quêtes de la chaîne, où
-        // il ne prête plus à confusion.
-        ChainText = facts.Success ?? string.Empty;
-        ChainStep = facts.HasChain ? $"{facts.StepNumber} / {facts.StepCount}" : string.Empty;
+        // Le nom du succès vient du catalogue pour la même raison, afin que la
+        // liste et la page s'accordent. On ne retombe sur celui de la page que
+        // pour une quête que le catalogue ne rattache à rien.
+        if (ChainText.Length == 0)
+        {
+            ChainText = facts.Success ?? string.Empty;
+        }
 
-        PreviousQuest = chain.PreviousQuest;
-        NextQuest = chain.NextQuest;
 
         _steps = steps;
         HasSteps = steps.Count > 0;
