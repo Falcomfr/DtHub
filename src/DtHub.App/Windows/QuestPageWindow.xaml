@@ -1,0 +1,43 @@
+<Window x:Class="DtHub.App.Windows.QuestPageWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wv="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        Title="Page liée"
+        Width="620" Height="820" MinWidth="380" MinHeight="360"
+        Topmost="True" ShowInTaskbar="True"
+        Background="{DynamicResource SurfaceBrush}"
+        Foreground="{DynamicResource TextBrush}">
+
+  <!-- Une page ouverte depuis un guide, hors du suivi de quêtes : ni recherche,
+       ni étapes, ni succès. Elle ne se rattache à rien de ce que la fenêtre de
+       quêtes affiche, et lui emprunter son cadre le laisserait croire.
+
+       Pas de WindowStyle="None" ni d'AllowsTransparency : un WebView2 est une
+       surface native et ne se dessine pas dans une fenêtre transparente. -->
+  <DockPanel>
+
+    <Border DockPanel.Dock="Bottom" Padding="10,6"
+            Background="{StaticResource BrushedPanelBrush}"
+            BorderBrush="{DynamicResource BevelBrush}" BorderThickness="0,1,0,0">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                   Style="{StaticResource Muted}" FontSize="11"
+                   TextTrimming="CharacterEllipsis"
+                   Text="Guides de papycha.fr" />
+
+        <Button Grid.Column="1" Content="Ouvrir dans le navigateur"
+                Style="{StaticResource QuietButton}"
+                ToolTip="Ouvrir cette page dans votre navigateur habituel, sur le site d'origine"
+                Click="OnOpenInBrowser" />
+      </Grid>
+    </Border>
+
+    <wv:WebView2 x:Name="View" />
+
+  </DockPanel>
+</Window>

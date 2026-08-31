@@ -56,15 +56,38 @@ public sealed partial class QuestViewModel : ObservableObject
 
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsQuestChrome))]
     private bool _hasQuest;
 
     /// <summary>Ce qu'on lit tant qu'aucune quête n'est ouverte.</summary>
     [ObservableProperty]
     private string _placeholder = "Cherchez une quête, ou dépliez la liste.";
 
+    /// <summary>
+    /// Ligne à mettre en évidence quand le panneau s'ouvre : celle de la quête
+    /// affichée. La sélection n'était posée qu'à la flèche du bas depuis la
+    /// recherche, si bien que rouvrir la liste surlignait une quête qu'on avait
+    /// quittée depuis longtemps.
+    /// </summary>
+    [ObservableProperty]
+    private QuestNode? _selectedNode;
+
     /// <summary>Vrai quand la liste déroulante est ouverte.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsQuestChrome))]
     private bool _isListOpen;
+
+    /// <summary>Vrai pendant l'indexation, pour montrer que ça travaille.</summary>
+    [ObservableProperty]
+    private bool _isBusy;
+
+    /// <summary>
+    /// Vrai quand le bandeau d'étape et le pied de succès doivent se voir.
+    ///
+    /// Ils s'effacent tant que la liste est ouverte : elle prend alors toute la
+    /// hauteur, et on ne consulte pas une étape et une liste en même temps.
+    /// </summary>
+    public bool ShowsQuestChrome => HasQuest && !IsListOpen;
 
     /// <summary>Où l'on se trouve dans l'arbre, affiché au-dessus de la liste.</summary>
     [ObservableProperty]
@@ -79,21 +102,24 @@ public sealed partial class QuestViewModel : ObservableObject
     /// </summary>
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
+        IsBusy = true;
+
         var progress = new Progress<QuestIndexingProgress>(
             p => StatusText = p.Total > 0
-                ? $"Indexation {p.Loaded}/{p.Total}"
-                : "Indexation...");
+                ? $"Indexation {p.Loaded} / {p.Total}"
+                : "Indexation…");
 
         var catalog = await _catalog.GetAsync(progress, cancellationToken).ConfigureAwait(true);
 
-        StatusText = catalog.Quests.Count > 0
-            ? $"{catalog.Quests.Count} quêtes"
-            : "Aucune quête : le site n'a pas répondu.";
+        IsBusy = false;
 
-        if (_catalog.LastFailure is not null && catalog.Quests.Count > 0)
-        {
-            StatusText += " (liste en cache)";
-        }
+        // Une fois l'indexation faite, le compte n'apprend rien : on ne garde
+        // un mot que lorsqu'il y a un incident à signaler.
+        StatusText = catalog.Quests.Count == 0
+            ? "Aucune quête : le site n'a pas répondu."
+            : _catalog.LastFailure is not null
+                ? "Le site n'a pas répondu ; liste en cache."
+                : string.Empty;
 
         CountSections();
         ShowRoot();
@@ -132,6 +158,10 @@ public sealed partial class QuestViewModel : ObservableObject
         }
 
         ShowSearch(value);
+
+        // Chercher sans voir les résultats n'a pas de sens : jusqu'ici taper du
+        // texte reconstruisait la liste sans la déployer.
+        IsListOpen = true;
     }
 
     /// <summary>Ouvre la liste sur ce qui était affiché.</summary>
@@ -142,7 +172,28 @@ public sealed partial class QuestViewModel : ObservableObject
             ShowRoot();
         }
 
+        // Sans reconstruire la liste : elle garde ses succès dépliés et ce
+        // qu'on y avait déroulé, on y retrouve seulement où l'on en est.
+        SelectCurrent();
+
         IsListOpen = true;
+    }
+
+    /// <summary>
+    /// Pose la sélection sur la quête affichée, si elle est dans la liste.
+    /// Ne touche à rien quand elle n'y est pas : la liste montre peut-être une
+    /// autre rubrique, et la vider serait pire que de ne rien surligner.
+    /// </summary>
+    public void SelectCurrent()
+    {
+        if (string.IsNullOrEmpty(CurrentUrl))
+        {
+            return;
+        }
+
+        SelectedNode = Nodes.FirstOrDefault(n =>
+            n.Quest is { } quest
+            && string.Equals(quest.Url, CurrentUrl, StringComparison.Ordinal));
     }
 
     /// <summary>Le premier niveau : les grandes branches.</summary>
@@ -150,6 +201,7 @@ public sealed partial class QuestViewModel : ObservableObject
     {
         _section = 0;
         Breadcrumb = string.Empty;
+        ClearBack();
 
         Nodes.Clear();
         Nodes.Add(new QuestNode(
@@ -181,8 +233,8 @@ public sealed partial class QuestViewModel : ObservableObject
 
         if (section == RootSection)
         {
-            Breadcrumb = "Quêtes";
-            Nodes.Add(new QuestNode(QuestNodeKind.Back, "Retour", Id: 0));
+            Breadcrumb = "Zone de Quêtes";
+            SetBack(target: 0);
 
             foreach (var branch in Branches())
             {
@@ -192,10 +244,42 @@ public sealed partial class QuestViewModel : ObservableObject
             return;
         }
 
-        Breadcrumb = $"Quêtes  ›  {NameOf(section)}";
-        Nodes.Add(new QuestNode(QuestNodeKind.Back, "Retour", Id: RootSection));
+        Breadcrumb = $"Zone de Quêtes  ›  {NameOf(section)}";
+        SetBack(target: RootSection);
 
         AddBySuccess(_catalog.InSection(section));
+    }
+
+    /// <summary>
+    /// Rubrique où le retour ramène, quand il y a un cran au-dessus.
+    ///
+    /// Le retour était une ligne de la liste comme une autre : il défilait avec
+    /// elle et disparaissait dès qu'on descendait dans une rubrique de soixante
+    /// quêtes. Il est maintenant fixe, au-dessus de la liste.
+    /// </summary>
+    [ObservableProperty]
+    private bool _canGoBack;
+
+    private int _backTarget;
+
+    private void SetBack(int target)
+    {
+        _backTarget = target;
+        CanGoBack = true;
+    }
+
+    private void ClearBack() => CanGoBack = false;
+
+    /// <summary>Remonte d'un cran.</summary>
+    public void GoBack()
+    {
+        if (!CanGoBack)
+        {
+            return;
+        }
+
+        Query = string.Empty;
+        ShowSection(_backTarget);
     }
 
     /// <summary>
@@ -205,14 +289,64 @@ public sealed partial class QuestViewModel : ObservableObject
     private void ShowSearch(string query)
     {
         Breadcrumb = "Recherche";
+        ClearBack();
 
         Nodes.Clear();
 
-        AddGrouped(_catalog.Search(query, limit: 60));
+        var found = _catalog.SearchAll(query, limit: 60);
+
+        if (found.Zones.Count > 0)
+        {
+            Nodes.Add(new QuestNode(
+                QuestNodeKind.Header, "Zones", Combien(found.Zones.Count, "zone", "zones")));
+
+            foreach (var zone in found.Zones)
+            {
+                Nodes.Add(new QuestNode(
+                    QuestNodeKind.Branch,
+                    $"{QuestZoneOrder.DisplayName(zone.Name)} ({_sectionCounts.GetValueOrDefault(zone.Id)})",
+                    Id: zone.Id));
+            }
+        }
+
+        if (found.Successes.Count > 0)
+        {
+            Nodes.Add(new QuestNode(
+                QuestNodeKind.Header, "Succès", Combien(found.Successes.Count, "succès", "succès")));
+
+            // Un succès ne se choisit pas : ce qu'on veut, ce sont ses quêtes.
+            // Elles suivent donc son nom, dans l'ordre où l'on y joue.
+            foreach (var success in found.Successes)
+            {
+                List<QuestSummary> quests =
+                [
+                    .. InPlayOrder(_catalog.Catalog.Quests.Where(q =>
+                        string.Equals(q.SuccessName, success, StringComparison.Ordinal))),
+                ];
+
+                Nodes.Add(new QuestNode(
+                    QuestNodeKind.Header, $"{success} ({quests.Count})", LevelRange(quests)));
+
+                foreach (var quest in quests)
+                {
+                    Nodes.Add(ToNode(quest));
+                }
+            }
+        }
+
+        if (found.Quests.Count > 0)
+        {
+            Nodes.Add(new QuestNode(QuestNodeKind.Header, "Quêtes", Nombre(found.Quests.Count)));
+
+            foreach (var quest in found.Quests)
+            {
+                Nodes.Add(ToNode(quest));
+            }
+        }
 
         if (Nodes.Count == 0)
         {
-            Nodes.Add(new QuestNode(QuestNodeKind.Pending, "Aucune quête de ce nom"));
+            Nodes.Add(new QuestNode(QuestNodeKind.Pending, "Rien de ce nom"));
         }
     }
 
@@ -224,14 +358,35 @@ public sealed partial class QuestViewModel : ObservableObject
     /// quêtes, comme on le faisait, revenait à ignorer l'ordre du site après
     /// être allé le chercher.
     /// </summary>
-    private IEnumerable<QuestNode> Branches() =>
-        _catalog.Catalog.Sections
+    private IEnumerable<QuestNode> Branches()
+    {
+        var zones = _catalog.Catalog.Sections
             .Where(s => s.Id != RootSection && _sectionCounts.GetValueOrDefault(s.Id) > 0)
-            .Select(s => new QuestNode(
+            .OrderBy(s => QuestZoneOrder.RankOf(s.Name))
+            .ThenBy(s => QuestZoneOrder.DisplayName(s.Name), StringComparer.CurrentCulture);
+
+        var separated = false;
+
+        foreach (var zone in zones)
+        {
+            // Ce qui ne relève pas de la progression vient après un intertitre,
+            // pour que la liste ne mélange pas un lieu et un cheminement.
+            if (!separated && QuestZoneOrder.IsExtra(zone.Name))
+            {
+                separated = true;
+
+                yield return new QuestNode(QuestNodeKind.Header, QuestZoneOrder.ExtrasHeader);
+            }
+
+            var name = QuestZoneOrder.DisplayName(zone.Name);
+
+            yield return new QuestNode(
                 QuestNodeKind.Branch,
-                $"{s.Name} ({_sectionCounts[s.Id]})",
-                LevelRange(_catalog.InSection(s.Id)),
-                Id: s.Id));
+                $"{name} ({_sectionCounts[zone.Id]})",
+                LevelRange(_catalog.InSection(zone.Id)),
+                Id: zone.Id);
+        }
+    }
 
     /// <summary>
     /// Plage de niveaux d'un ensemble de quêtes, ou <c>null</c> quand aucune
@@ -248,6 +403,14 @@ public sealed partial class QuestViewModel : ObservableObject
         List<int> levels = [.. quests.Where(q => q.Level > 0).Select(q => q.Level)];
 
         if (levels.Count == 0)
+        {
+            return null;
+        }
+
+        // Une plage tirée d'une ou deux quêtes sur vingt-huit passerait pour la
+        // plage de la zone. Le site ne renseigne le niveau que sur 117 quêtes
+        // sur 782 : mieux vaut ne rien dire que dire à peu près.
+        if (levels.Count < 3 && levels.Count < quests.Count)
         {
             return null;
         }
@@ -387,9 +550,21 @@ public sealed partial class QuestViewModel : ObservableObject
         Quest: quest);
 
     private string NameOf(int section) =>
-        _catalog.Catalog.Sections.FirstOrDefault(s => s.Id == section)?.Name ?? "Rubrique";
+        QuestZoneOrder.DisplayName(
+            _catalog.Catalog.Sections.FirstOrDefault(s => s.Id == section)?.Name)
+        is { Length: > 0 } name
+            ? name
+            : "Rubrique";
 
     private static string Nombre(int count) => count == 1 ? "1 quête" : $"{count} quêtes";
+
+    /// <summary>
+    /// Compte d'un intertitre de recherche. Le mot suit la nature : annoncer
+    /// « 1 quête » au-dessus d'une zone ferait mentir l'intertitre juste
+    /// au-dessus de ce qu'il coiffe.
+    /// </summary>
+    private static string Combien(int count, string singulier, string pluriel) =>
+        count == 1 ? $"1 {singulier}" : $"{count} {pluriel}";
 
     /// <summary>Catégorie qui range toutes les quêtes du site.</summary>
     private const int RootSection = 7;
@@ -407,11 +582,6 @@ public sealed partial class QuestViewModel : ObservableObject
 
         switch (node.Kind)
         {
-            case QuestNodeKind.Back:
-                Query = string.Empty;
-                ShowSection(node.Id);
-                return null;
-
             case QuestNodeKind.Branch:
                 Query = string.Empty;
                 ShowSection(node.Id);
@@ -435,6 +605,8 @@ public sealed partial class QuestViewModel : ObservableObject
         CurrentUrl = quest.Url;
         QuestTitle = quest.Title;
         HasQuest = true;
+
+        _start = QuestStepSummary.OfStart(quest.StartPosition, quest.StartPerson);
 
         SetNeighbours(quest);
 
@@ -502,6 +674,12 @@ public sealed partial class QuestViewModel : ObservableObject
 
     /// <summary>Étapes repérées dans la page ouverte.</summary>
     private IReadOnlyList<string> _steps = [];
+
+    /// <summary>
+    /// Raccourci de la première étape, composé des métadonnées de la quête
+    /// ouverte. Null quand le site ne dit ni où ni auprès de qui elle se lance.
+    /// </summary>
+    private string? _start;
 
     [ObservableProperty]
     private int _stepIndex = -1;
@@ -573,21 +751,44 @@ public sealed partial class QuestViewModel : ObservableObject
             ? $"Étape {index + 1} / {total}"
             : string.Empty;
 
-        StepDetail = index >= 0 && index < total ? _steps[index] : string.Empty;
+        // Le texte brut du paragraphe tenait sur une ligne tronquée où l'on ne
+        // voyait ni où aller ni à qui parler. La première étape se compose des
+        // métadonnées de la quête, bien plus sûres que sa prose.
+        StepDetail = index >= 0 && index < total
+            ? (index == 0 ? _start ?? QuestStepSummary.Of(_steps[0]) : QuestStepSummary.Of(_steps[index]))
+            : string.Empty;
 
         CanGoPreviousStep = index > 0;
         CanGoNextStep = index >= 0 && index < total - 1;
     }
 
     /// <summary>
-    /// On suit un lien de chaîne. Le titre est repris tout de suite : la page
+    /// On suit un lien de succès. Le titre est repris tout de suite : la page
     /// met une seconde à répondre, et un bandeau qui garde l'ancien nom pendant
     /// ce temps laisse croire que le clic n'a rien fait.
+    ///
+    /// La quête est retrouvée dans le catalogue par son adresse, pour que le
+    /// pied reste peuplé. Il ne l'était pas : la méthode effaçait la précédente
+    /// et la suivante sans jamais les rétablir, si bien qu'après un seul saut
+    /// la navigation s'éteignait et qu'il fallait repasser par la liste.
     /// </summary>
     public void Follow(QuestLink link)
     {
         ArgumentNullException.ThrowIfNull(link);
 
+        var quest = _catalog.Catalog.Quests.FirstOrDefault(q =>
+            string.Equals(q.Url, link.Url, StringComparison.Ordinal));
+
+        if (quest is not null)
+        {
+            SetCurrent(quest);
+            IsListOpen = false;
+
+            return;
+        }
+
+        // Une adresse que le catalogue ne connaît pas : on ouvre quand même,
+        // sans voisines, plutôt que de ne rien faire.
         CurrentUrl = link.Url;
         QuestTitle = link.Title;
         ChainText = string.Empty;
@@ -595,6 +796,7 @@ public sealed partial class QuestViewModel : ObservableObject
         HasQuest = true;
         IsListOpen = false;
 
+        _start = null;
         _steps = [];
         HasSteps = false;
         PreviousQuest = null;

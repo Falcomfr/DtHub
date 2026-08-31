@@ -20,30 +20,38 @@
     <Border DockPanel.Dock="Top" Padding="10,8"
             Background="{StaticResource BrushedPanelBrush}"
             BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1">
-      <Grid>
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="*" />
-          <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
-
-        <TextBox Grid.Column="0" x:Name="SearchBox"
+      <StackPanel>
+        <!-- Le champ prend toute la largeur : le compte de quêtes qui l'amputait
+             ne dit rien qu'on ait envie de lire deux fois. -->
+        <TextBox x:Name="SearchBox"
                  Text="{Binding Query, UpdateSourceTrigger=PropertyChanged, Delay=150}"
                  GotKeyboardFocus="OnSearchFocused"
                  PreviewMouseLeftButtonDown="OnSearchClicked"
                  PreviewKeyDown="OnSearchKey"
                  ToolTip="Cliquez pour dérouler la liste, ou tapez un nom. Les accents ne comptent pas." />
 
-        <TextBlock Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center"
-                   Style="{StaticResource Muted}" FontSize="11"
-                   Text="{Binding StatusText}" />
-      </Grid>
+        <!-- Seulement quand il y a quelque chose à dire : une indexation en
+             cours, ou un incident. Rien le reste du temps. -->
+        <ProgressBar Height="2" Margin="0,6,0,0" IsIndeterminate="True"
+                     Background="Transparent" BorderThickness="0"
+                     Foreground="{DynamicResource AccentBrush}"
+                     Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
+
+        <TextBlock Margin="0,4,0,0" Style="{StaticResource Muted}" FontSize="11"
+                   TextWrapping="Wrap"
+                   Text="{Binding StatusText}"
+                   Visibility="{Binding StatusText, Converter={StaticResource EmptyToVisibility},
+                                        ConverterParameter=inverse}" />
+      </StackPanel>
     </Border>
 
     <!-- Bandeau de la quête ouverte : son nom, sa place dans le succès, et
-         les flèches d'étape. -->
+         les flèches d'étape. Il s'efface quand la liste s'ouvre, pour qu'elle
+         prenne toute la hauteur : on ne consulte pas une étape et une liste en
+         même temps. -->
     <Border DockPanel.Dock="Top" Padding="10,6"
             BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1"
-            Visibility="{Binding HasQuest, Converter={StaticResource BoolToVisibility}}">
+            Visibility="{Binding ShowsQuestChrome, Converter={StaticResource BoolToVisibility}}">
       <StackPanel>
         <TextBlock Text="{Binding ChainText}" Style="{StaticResource Muted}" FontSize="11"
                    Visibility="{Binding ChainText, Converter={StaticResource EmptyToVisibility},
@@ -112,7 +120,7 @@
          l'autre et se ramifie. -->
     <Border DockPanel.Dock="Bottom" Padding="10,6"
             BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,1,0,0"
-            Visibility="{Binding HasQuest, Converter={StaticResource BoolToVisibility}}">
+            Visibility="{Binding ShowsQuestChrome, Converter={StaticResource BoolToVisibility}}">
       <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
@@ -187,7 +195,23 @@
                                           Converter={StaticResource EmptyToVisibility},
                                           ConverterParameter=inverse}" />
 
+          <!-- Le retour est fixe et non une ligne de la liste : il défilait avec
+               elle et disparaissait dès qu'on descendait dans une rubrique de
+               soixante quêtes. -->
+          <Button DockPanel.Dock="Top" Style="{StaticResource QuietButton}"
+                  HorizontalAlignment="Left" HorizontalContentAlignment="Left"
+                  Margin="1,0,0,2" Click="OnGoBack"
+                  ToolTip="Remonter d'un cran"
+                  Visibility="{Binding CanGoBack, Converter={StaticResource BoolToVisibility}}">
+            <StackPanel Orientation="Horizontal">
+              <Path Style="{StaticResource RowGlyph}" Data="M 9,3 L 5,7.5 L 9,12"
+                    Margin="0,0,6,0" />
+              <TextBlock Text="Retour" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+
           <ListBox x:Name="NodeList" ItemsSource="{Binding Nodes}"
+                   SelectedItem="{Binding SelectedNode, Mode=TwoWay}"
                    Background="Transparent" BorderThickness="0"
                    HorizontalContentAlignment="Stretch"
                    ScrollViewer.HorizontalScrollBarVisibility="Disabled"
@@ -210,23 +234,6 @@
                   </Grid.ColumnDefinitions>
 
                   <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <!-- La visibilité par défaut passe par un style : posée en
-                         attribut, elle serait une valeur locale, et aucun
-                         déclencheur de gabarit ne peut passer devant. -->
-                    <Path x:Name="Fleche" Data="M 9,3 L 5,7.5 L 9,12" Margin="0,0,6,0">
-                      <Path.Style>
-                        <Style TargetType="Path" BasedOn="{StaticResource RowGlyph}">
-                          <Setter Property="Visibility" Value="Collapsed" />
-
-                          <!-- RowGlyph prend sa couleur d'un bouton ancêtre. Il
-                               n'y en a pas dans une liste : sans cette ligne, le
-                               trait est peint avec une couleur nulle et la
-                               flèche reste invisible. -->
-                          <Setter Property="Stroke" Value="{DynamicResource TextBrush}" />
-                        </Style>
-                      </Path.Style>
-                    </Path>
-
                     <TextBlock x:Name="Libelle" Text="{Binding Label}"
                                TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                   </StackPanel>
@@ -237,13 +244,6 @@
                 </Grid>
 
                 <DataTemplate.Triggers>
-                  <!-- Remonter d'un niveau se dit par une flèche vers la
-                       gauche, comme partout ailleurs, et non par un mot. -->
-                  <DataTrigger Binding="{Binding Kind}" Value="Back">
-                    <Setter TargetName="Fleche" Property="Visibility" Value="Visible" />
-                    <Setter TargetName="Libelle" Property="Visibility" Value="Collapsed" />
-                  </DataTrigger>
-
                   <!-- L'intertitre se distingue de ce qu'il coiffe : sans cela,
                        une rubrique se lirait comme une quête de plus. -->
                   <DataTrigger Binding="{Binding Kind}" Value="Header">

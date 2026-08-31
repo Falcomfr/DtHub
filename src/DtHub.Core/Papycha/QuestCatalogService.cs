@@ -91,6 +91,13 @@ public sealed class QuestCatalogService : IDisposable
         QuestSearch.Filter(Catalog.Quests, query, limit);
 
     /// <summary>
+    /// Cherche les zones, les succès et les quêtes à la fois, sans jamais aller
+    /// au réseau.
+    /// </summary>
+    public QuestSearchResults SearchAll(string? query, int limit = 50) =>
+        QuestSearch.Search(Catalog.Quests, Catalog.Sections, query, limit);
+
+    /// <summary>
     /// Quêtes d'une rubrique, triées par titre.
     ///
     /// Sur toutes les rubriques auxquelles la quête appartient : le site range

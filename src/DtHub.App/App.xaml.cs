@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Threading;
@@ -425,8 +425,19 @@ public partial class App : Application, IDisposable
             return true;
         }
 
-        return _quests is not null
-            && new System.Windows.Interop.WindowInteropHelper(_quests).Handle == handle;
+        if (_quests is not null && _quests.Handle == handle)
+        {
+            return true;
+        }
+
+        // Les pages liées, qu'on ouvre par un clic dans un guide. Sans elles,
+        // les raccourcis mourraient dès qu'une de ces fenêtres a le focus, ce
+        // qui arrive précisément quand on lit.
+        //
+        // Par un ensemble de poignées et non par la liste des fenêtres : cette
+        // question est posée depuis le guet du premier plan, qui ne vit pas sur
+        // le fil de l'interface.
+        return QuestPageWindow.Owns(handle);
     }
 
     /// <summary>

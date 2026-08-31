@@ -1,10 +1,14 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 
+using Microsoft.Web.WebView2.Core;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using DtHub.App.ViewModels;
 using DtHub.Core.Papycha;
 
@@ -17,12 +21,14 @@ namespace DtHub.App.Windows;
 public partial class QuestWindow : Window
 {
     private readonly QuestViewModel _viewModel;
+    private readonly ILogger<QuestWindow> _logger;
 
-    public QuestWindow(QuestViewModel viewModel)
+    public QuestWindow(QuestViewModel viewModel, ILogger<QuestWindow> logger)
     {
         InitializeComponent();
 
         _viewModel = viewModel;
+        _logger = logger;
         DataContext = viewModel;
 
         Loaded += async (_, _) => await _viewModel.InitializeAsync().ConfigureAwait(true);
@@ -53,9 +59,21 @@ public partial class QuestWindow : Window
     /// déroulante ordinaire : c'est le geste qu'on fait sans y penser quand on
     /// ne sait pas encore ce qu'on cherche.
     /// </summary>
-    private void OnSearchClicked(object sender, MouseButtonEventArgs e) => _viewModel.OpenList();
+    private void OnSearchClicked(object sender, MouseButtonEventArgs e) => OpenList();
 
-    private void OnSearchFocused(object sender, KeyboardFocusChangedEventArgs e) => _viewModel.OpenList();
+    private void OnSearchFocused(object sender, KeyboardFocusChangedEventArgs e) => OpenList();
+
+    /// <summary>
+    /// Déploie la liste, puis amène la quête ouverte sous les yeux. Le
+    /// défilement passe par la file du répartiteur : les conteneurs de lignes
+    /// ne sont créés qu'après le rendu, et défiler avant ne mène nulle part.
+    /// </summary>
+    private void OpenList()
+    {
+        _viewModel.OpenList();
+
+        Dispatcher.BeginInvoke(ScrollToSelection, DispatcherPriority.Loaded);
+    }
 
     private void OnNodeChosen(object sender, MouseButtonEventArgs e) => ChooseSelected();
 
@@ -165,6 +183,16 @@ public partial class QuestWindow : Window
 
         View.CoreWebView2.WebMessageReceived += OnBridgeMessage;
 
+        // Un clic sur un lien du guide faisait naviguer cette fenêtre en place :
+        // le bandeau gardait l'ancienne quête, les étapes devenaient celles de
+        // la nouvelle page. Toute navigation qu'on n'a pas demandée part donc
+        // dans une fenêtre à part.
+        View.CoreWebView2.NavigationStarting += OnNavigationStarting;
+
+        // Et « target="_blank" », que le runtime ouvrirait dans une fenêtre
+        // hors de tout contrôle, sans notre cadre ni notre premier plan.
+        View.CoreWebView2.NewWindowRequested += OnNewWindowRequested;
+
         await View.CoreWebView2
             .AddScriptToExecuteOnDocumentCreatedAsync(BridgeScript())
             .ConfigureAwait(true);
@@ -254,6 +282,82 @@ public partial class QuestWindow : Window
 
     private void OnNextStep(object sender, RoutedEventArgs e) => GoToStep(_viewModel.StepTarget(1));
 
+    /// <summary>
+    /// Détourne vers une fenêtre à part toute navigation qui n'est pas la page
+    /// qu'on a demandée.
+    ///
+    /// La comparaison se fait sans la barre finale : le site rend tantôt l'une,
+    /// tantôt l'autre, et s'en tenir à l'égalité stricte détournerait la page
+    /// qu'on vient d'ouvrir.
+    /// </summary>
+    private void OnNavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
+    {
+        if (Same(e.Uri, _viewModel.CurrentUrl))
+        {
+            return;
+        }
+
+        e.Cancel = true;
+
+        _ = OpenAsideAsync(e.Uri);
+    }
+
+    private void OnNewWindowRequested(object? sender, CoreWebView2NewWindowRequestedEventArgs e)
+    {
+        e.Handled = true;
+
+        _ = OpenAsideAsync(e.Uri);
+    }
+
+    private static bool Same(string? first, string? second) =>
+        string.Equals(
+            (first ?? string.Empty).TrimEnd('/'),
+            (second ?? string.Empty).TrimEnd('/'),
+            StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Ouvre une adresse dans sa propre fenêtre, au-dessus des autres.
+    ///
+    /// L'échec est journalisé : lancée sans être attendue, cette tâche
+    /// emporterait sinon son exception en silence, et le clic resterait sans
+    /// effet ni explication.
+    /// </summary>
+    private async Task OpenAsideAsync(string url)
+    {
+        try
+        {
+            var page = AppHost.Services.GetRequiredService<QuestPageWindow>();
+
+            await page.ShowPageAsync(url, null).ConfigureAwait(true);
+
+            LogPageOpened(url);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            LogPageFailed(url, exception.Message);
+        }
+    }
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Page liée ouverte : {url}")]
+    private partial void LogPageOpened(string url);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Page liée non ouverte ({reason}) : {url}")]
+    private partial void LogPageFailed(string url, string reason);
+
+    /// <summary>
+    /// Amène la ligne sélectionnée sous les yeux. La poser ne suffit pas : sur
+    /// une rubrique de soixante quêtes, elle reste hors de l'écran.
+    /// </summary>
+    private void ScrollToSelection()
+    {
+        if (NodeList.SelectedItem is not null)
+        {
+            NodeList.ScrollIntoView(NodeList.SelectedItem);
+        }
+    }
+
+    private void OnGoBack(object sender, RoutedEventArgs e) => _viewModel.GoBack();
+
     /// <summary>Suit un lien de chaîne : la quête précédente ou la suivante.</summary>
     private void OnFollowChain(object sender, RoutedEventArgs e)
     {
@@ -268,6 +372,22 @@ public partial class QuestWindow : Window
     /// La croix masque, elle ne ferme pas : la fenêtre est un outil qu'on
     /// rappelle au raccourci, comme le configurateur.
     /// </summary>
+    /// <summary>
+    /// Poignée native, retenue une fois pour toutes. Elle est consultée depuis
+    /// le guet du premier plan, qui n'a pas le droit d'interroger une fenêtre
+    /// WPF : l'interroger levait à chaque changement de fenêtre, et le
+    /// raccourci mourait sans que rien ne le dise. Le configurateur prenait
+    /// déjà cette précaution, pas celle-ci.
+    /// </summary>
+    public nint Handle { get; private set; }
+
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+
+        Handle = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+    }
+
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
         ArgumentNullException.ThrowIfNull(e);

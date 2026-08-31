@@ -1,14 +1,11 @@
-using DtHub.Core.Papycha;
+﻿using DtHub.Core.Papycha;
 
 namespace DtHub.App.ViewModels;
 
 /// <summary>Ce qu'une ligne de la liste déroulante propose.</summary>
 public enum QuestNodeKind
 {
-    /// <summary>Remonter d'un cran.</summary>
-    Back,
-
-    /// <summary>Une branche à déplier.</summary>
+    /// <summary>Une branche à déplier : une zone de quêtes.</summary>
     Branch,
 
     /// <summary>Une quête à ouvrir.</summary>
@@ -22,7 +19,7 @@ public enum QuestNodeKind
 }
 
 /// <summary>
-/// Une ligne de la liste déroulante : une branche, une quête, ou le retour.
+/// Une ligne de la liste déroulante : une branche, une quête, un intertitre.
 /// </summary>
 /// <param name="Kind">Ce que le clic déclenchera.</param>
 /// <param name="Label">Texte affiché.</param>

@@ -1067,6 +1067,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
                            s => s.WindowHandle == window || (owner != 0 && s.ProcessId == owner))
                        || OwnsWindow?.Invoke(window) == true;
 
+            // La bascule est journalisée : sans elle, des raccourcis éteints
+            // par une fenêtre non reconnue ne laissaient aucune trace, et le
+            // symptôme ressemblait à un raccourci qui « ne marche plus ».
+            if (mine != _hotkeysActive)
+            {
+                _hotkeysActive = mine;
+
+                LogHotkeyScope(mine ? "actifs" : "en veille", window);
+            }
+
             await _hotkeys.SetEnabledAsync(mine).ConfigureAwait(false);
         }
         catch (Exception exception)
@@ -1074,6 +1084,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             LogHotkeyFailure(exception);
         }
     }
+
+    private bool _hotkeysActive = true;
 
     /// <summary>
     /// Permet à l'interface de déclarer ses propres fenêtres, pour que les
@@ -1177,6 +1189,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "{instance} non lancée : appareil au niveau d'API {sdk}, sous le minimum requis.")]
     private partial void LogAndroidTooOld(string instance, int sdk);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Raccourcis {state} (fenêtre {window}).")]
+    private partial void LogHotkeyScope(string state, nint window);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Écrans : {monitors}. Fenêtres de jeu : {placement}.")]
     private partial void LogPlacement(string monitors, string placement);

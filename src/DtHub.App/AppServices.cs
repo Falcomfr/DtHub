@@ -112,6 +112,10 @@ public static class AppServices
         services.AddTransient<SleepHelpWindow>();
         services.AddSingleton<QuestViewModel>();
         services.AddSingleton<QuestWindow>();
+
+        // À part et jetable : une page liée n'a rien à retenir d'une ouverture
+        // à l'autre, et on peut en vouloir plusieurs côte à côte.
+        services.AddTransient<QuestPageWindow>();
         services.AddTransient<HotkeyEditorViewModel>();
         services.AddTransient<HotkeyEditorWindow>();
         services.AddSingleton<ConfiguratorViewModel>();
