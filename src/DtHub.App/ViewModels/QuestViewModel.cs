@@ -46,6 +46,14 @@ public sealed partial class QuestViewModel : ObservableObject
     [ObservableProperty]
     private string _chainText = string.Empty;
 
+    /// <summary>
+    /// Place de la quête dans sa chaîne de prérequis, « 6 / 7 ». Affichée au
+    /// pied, entre la précédente et la suivante : c'est de cette chaîne qu'elle
+    /// parle, et non du succès.
+    /// </summary>
+    [ObservableProperty]
+    private string _chainStep = string.Empty;
+
     [ObservableProperty]
     private bool _hasQuest;
 
@@ -318,7 +326,16 @@ public sealed partial class QuestViewModel : ObservableObject
 
         foreach (var group in groups)
         {
-            List<QuestSummary> ordered = [.. group];
+            // Dans l'ordre où l'on y joue, que le site publie sous la forme
+            // « Étape 6/7 ». Ce rang situe la quête dans sa chaîne de
+            // prérequis et non dans son succès, mais c'est le seul ordre de jeu
+            // disponible, et l'ordre alphabétique n'en est pas un.
+            List<QuestSummary> ordered =
+            [
+                .. group
+                    .OrderBy(q => q.ChainStep == 0 ? int.MaxValue : q.ChainStep)
+                    .ThenBy(q => q.Title, StringComparer.CurrentCulture),
+            ];
 
             Nodes.Add(new QuestNode(
                 QuestNodeKind.Header,
@@ -409,6 +426,7 @@ public sealed partial class QuestViewModel : ObservableObject
         CurrentUrl = quest.Url;
         QuestTitle = quest.Title;
         ChainText = string.Empty;
+        ChainStep = string.Empty;
         HasQuest = true;
 
         // La page suivante n'est pas encore chargée : garder les étapes de la
@@ -465,20 +483,16 @@ public sealed partial class QuestViewModel : ObservableObject
         // nous nommons « étape » un objectif dans la page. Afficher les deux
         // mots côte à côte rendait le bandeau illisible.
         //
-        // Ce n'est pas non plus un compte de quêtes, et le dire ainsi trompait :
-        // « Sauter le pas du trépas » annonce 3/6 alors que son succès n'a que
-        // quatre quêtes documentées, chiffre que la page de succès du site
-        // confirme. Le dénominateur compte les étapes du succès en jeu, dont
-        // toutes ne font pas l'objet d'un article. Vérifié sur douze succès :
-        // les deux nombres diffèrent à chaque fois, dans les deux sens.
-        ChainText = string.Join(
-            "  ·  ",
-            new[]
-            {
-                facts.HasChain ? $"Progression {facts.StepNumber} / {facts.StepCount}" : null,
-                facts.Success,
-            }
-            .Where(s => !string.IsNullOrWhiteSpace(s)));
+        // Ce nombre ne compte pas non plus les quêtes du succès, et le coller
+        // au nom du succès le laissait croire. « Nettoyage express » annonce
+        // 6/7 alors que « De la caillasse plein les poches » n'a que trois
+        // quêtes, ce que confirme la liste du site ; et sa quête précédente,
+        // « La chasse aux sorcières », relève d'un autre succès. Le rang situe
+        // la quête dans sa chaîne de prérequis, laquelle traverse plusieurs
+        // succès. Il part donc au pied, entre les deux quêtes de la chaîne, où
+        // il ne prête plus à confusion.
+        ChainText = facts.Success ?? string.Empty;
+        ChainStep = facts.HasChain ? $"{facts.StepNumber} / {facts.StepCount}" : string.Empty;
 
         PreviousQuest = chain.PreviousQuest;
         NextQuest = chain.NextQuest;
@@ -518,6 +532,7 @@ public sealed partial class QuestViewModel : ObservableObject
         CurrentUrl = link.Url;
         QuestTitle = link.Title;
         ChainText = string.Empty;
+        ChainStep = string.Empty;
         HasQuest = true;
         IsListOpen = false;
 

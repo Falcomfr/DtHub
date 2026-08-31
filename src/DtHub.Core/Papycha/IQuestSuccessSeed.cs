@@ -1,4 +1,4 @@
-namespace DtHub.Core.Papycha;
+﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
 /// Carte « adresse de quête -> succès », relevée une fois sur le site et
@@ -21,5 +21,13 @@ public interface IQuestSuccessSeed
     /// Une carte vide est un cas normal : l'indexation retombe alors sur les
     /// seuls intertitres.
     /// </summary>
-    IReadOnlyDictionary<string, string> Load();
+    IReadOnlyDictionary<string, QuestSeedEntry> Load();
 }
+
+/// <summary>Ce que la carte retient d'une quête.</summary>
+/// <param name="Success">Nom du succès dont elle fait partie.</param>
+/// <param name="ChainStep">
+/// Sa place dans sa chaîne de prérequis, zéro si le site ne la donne pas. Sert
+/// à présenter les quêtes d'un succès dans l'ordre où l'on y joue.
+/// </param>
+public readonly record struct QuestSeedEntry(string Success, int ChainStep);

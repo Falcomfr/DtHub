@@ -106,20 +106,30 @@
       </Grid>
     </Border>
 
-    <!-- La chaîne du succès : d'où l'on vient, où l'on va. -->
+    <!-- La chaîne de prérequis : d'où l'on vient, où l'on va, et où l'on en
+         est. Le rang est ici et non près du succès : il compte les étapes de
+         cette chaîne, qui traverse plusieurs succès. -->
     <Border DockPanel.Dock="Bottom" Padding="10,6"
             BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,1,0,0"
             Visibility="{Binding HasQuest, Converter={StaticResource BoolToVisibility}}">
       <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Column="1" VerticalAlignment="Center" Margin="12,0"
+                   Style="{StaticResource Muted}" FontSize="11"
+                   Text="{Binding ChainStep}"
+                   ToolTip="Place de cette quête dans sa chaîne de prérequis"
+                   Visibility="{Binding ChainStep, Converter={StaticResource EmptyToVisibility},
+                                        ConverterParameter=inverse}" />
 
         <Button Grid.Column="0" Style="{StaticResource QuietButton}"
                 HorizontalAlignment="Left" HorizontalContentAlignment="Left"
                 Tag="{Binding PreviousQuest}" Click="OnFollowChain"
-                ToolTip="Revenir à la quête précédente du succès"
+                ToolTip="Revenir à la quête précédente de la chaîne"
                 Visibility="{Binding PreviousQuest, Converter={StaticResource EmptyToVisibility},
                                      ConverterParameter=inverse}">
           <StackPanel Orientation="Horizontal">
@@ -129,10 +139,10 @@
           </StackPanel>
         </Button>
 
-        <Button Grid.Column="1" Style="{StaticResource QuietButton}"
+        <Button Grid.Column="2" Style="{StaticResource QuietButton}"
                 HorizontalAlignment="Right" HorizontalContentAlignment="Right"
                 Tag="{Binding NextQuest}" Click="OnFollowChain"
-                ToolTip="Passer à la quête suivante du succès"
+                ToolTip="Passer à la quête suivante de la chaîne"
                 Visibility="{Binding NextQuest, Converter={StaticResource EmptyToVisibility},
                                      ConverterParameter=inverse}">
           <StackPanel Orientation="Horizontal">

@@ -105,6 +105,10 @@ def separer(brut: str, connus: dict[str, str]) -> list[str]:
     return [entier]
 
 
+def noms_de(carte: dict[str, tuple[str, int]]) -> dict[str, str]:
+    return {url: nom for url, (nom, _) in carte.items()}
+
+
 def succes_officiels() -> dict[str, str]:
     """Succès nommés par la page « Succès », pour savoir lesquels existent."""
     pages = json_de(f"{API}/pages?slug=succes&_fields=content")
@@ -127,9 +131,9 @@ def succes_officiels() -> dict[str, str]:
     return officiels
 
 
-def depuis_les_quetes(connus: dict[str, str]) -> dict[str, str]:
-    """Succès lu dans le bloc d'intro de chaque quête."""
-    carte: dict[str, str] = {}
+def depuis_les_quetes(connus: dict[str, str]) -> dict[str, tuple[str, int]]:
+    """Succès et rang de chaîne, lus dans le bloc d'intro de chaque quête."""
+    carte: dict[str, tuple[str, int]] = {}
 
     for page in range(1, 20):
         adresse = (
@@ -156,7 +160,18 @@ def depuis_les_quetes(connus: dict[str, str]) -> dict[str, str]:
 
             if brut := fait(intro.group(0), "successes"):
                 if noms := separer(brut, connus):
-                    carte[cle(article["link"])] = noms[0]
+                    rang = 0
+
+                    # « Étape 6/7 » situe la quête dans sa chaîne de prérequis,
+                    # non dans son succès : les trois quêtes de « De la
+                    # caillasse plein les poches » y valent 1, 6 et 6. C'est
+                    # tout de même le seul ordre de jeu que le site publie, et
+                    # il vaut mieux que l'ordre alphabétique.
+                    if etape := fait(intro.group(0), "step"):
+                        if chiffre := re.search(r"(\d+)", etape):
+                            rang = int(chiffre.group(1))
+
+                    carte[cle(article["link"])] = (noms[0], rang)
 
         print(f"  page {page} : {len(carte)} quêtes rattachées", file=sys.stderr)
         time.sleep(0.3)
@@ -227,7 +242,7 @@ def main() -> int:
 
     # Le bloc d'intro fait foi : il est porté par la quête elle-même. Les
     # intertitres complètent ce qu'il ne dit pas.
-    union = dict(par_rubrique)
+    union = {url: (nom, 0) for url, nom in par_rubrique.items()}
     union.update(par_quete)
 
     # Les deux sources n'écrivent pas toujours pareil : apostrophe droite ou
@@ -238,7 +253,7 @@ def main() -> int:
     # coquilles, « Se mettre la Cité dor à dos » pour n'en citer qu'une.
     graphies: dict[str, dict[str, int]] = {}
 
-    for source, poids in ((par_quete, 2), (par_rubrique, 1)):
+    for source, poids in ((noms_de(par_quete), 2), (par_rubrique, 1)):
         for nom in source.values():
             graphies.setdefault(reduire(nom), {})
             graphies[reduire(nom)][nom] = graphies[reduire(nom)].get(nom, 0) + poids
@@ -251,7 +266,10 @@ def main() -> int:
 
         return max(variantes.items(), key=lambda v: v[1])[0]
 
-    carte = {url: retenue(nom) for url, nom in sorted(union.items())}
+    carte = {
+        url: {"s": retenue(nom), "n": rang}
+        for url, (nom, rang) in sorted(union.items())
+    }
 
     SORTIE.parent.mkdir(parents=True, exist_ok=True)
     SORTIE.write_text(
@@ -259,7 +277,7 @@ def main() -> int:
         encoding="utf-8",
     )
 
-    distincts = len({reduire(n) for n in carte.values()})
+    distincts = len({reduire(v["s"]) for v in carte.values()})
     octets = SORTIE.stat().st_size
 
     print(file=sys.stderr)

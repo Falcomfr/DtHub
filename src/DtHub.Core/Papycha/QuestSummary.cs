@@ -69,6 +69,18 @@ public sealed record QuestSummary
     /// pas, et rien ne doit leur en inventer.
     /// </summary>
     public string SuccessName { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Place de la quête dans sa chaîne de prérequis, zéro si le site ne la
+    /// donne pas.
+    ///
+    /// Ce n'est pas sa place dans son succès : les trois quêtes de « De la
+    /// caillasse plein les poches » y valent 1, 6 et 6, et la chaîne qui
+    /// compte sept étapes traverse plusieurs succès. C'est tout de même le seul
+    /// ordre de jeu que le site publie, et il vaut mieux que l'ordre
+    /// alphabétique pour présenter les quêtes d'un succès.
+    /// </summary>
+    public int ChainStep { get; init; }
 }
 
 /// <summary>Une rubrique de l'arbre : une catégorie ou un type du site.</summary>

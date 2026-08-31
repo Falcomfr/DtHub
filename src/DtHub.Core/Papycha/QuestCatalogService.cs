@@ -142,7 +142,7 @@ public sealed class QuestCatalogService : IDisposable
         IReadOnlyList<QuestSummary> quests,
         IReadOnlyList<QuestSection> sections,
         IReadOnlyList<QuestPageSection> pages,
-        IReadOnlyDictionary<string, string>? seed)
+        IReadOnlyDictionary<string, QuestSeedEntry>? seed)
     {
         var known = sections.ToDictionary(s => s.Id, s => s);
         var extra = ExtraSections(pages, sections);
@@ -194,6 +194,9 @@ public sealed class QuestCatalogService : IDisposable
             arranged.Add(quest with
             {
                 SuccessName = names[key],
+                ChainStep = seed is not null && seed.TryGetValue(key, out var entry)
+                    ? entry.ChainStep
+                    : 0,
                 SectionKey = string.Join(
                     ' ',
                     quest.Categories
@@ -386,7 +389,7 @@ public sealed class QuestCatalogService : IDisposable
     /// </summary>
     private static Dictionary<string, string> Successes(
         IReadOnlyList<QuestPageSection> pages,
-        IReadOnlyDictionary<string, string>? seed)
+        IReadOnlyDictionary<string, QuestSeedEntry>? seed)
     {
         Dictionary<string, string> successes = new(StringComparer.Ordinal);
 
@@ -400,9 +403,9 @@ public sealed class QuestCatalogService : IDisposable
 
         if (seed is not null)
         {
-            foreach (var (url, name) in seed)
+            foreach (var (url, entry) in seed)
             {
-                successes[QuestSectionPageParser.Key(url)] = name;
+                successes[QuestSectionPageParser.Key(url)] = entry.Success;
             }
         }
 

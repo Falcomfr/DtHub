@@ -359,10 +359,7 @@ public class QuestCatalogServiceTests
             .WithPage("Quêtes principales", "https://papycha.fr/quetes-principales/", 1, 2)
             .WithSuccess("Vu par la page", 1);
 
-        var seed = new FakeQuestSuccessSeed
-        {
-            ["https://exemple.invalid/quete-2"] = "Vu par la carte",
-        };
+        var seed = new FakeQuestSuccessSeed().With(2, "Vu par la carte");
 
         var store = new InMemoryDocumentStore<QuestCatalogDocument>();
         var service = new QuestCatalogService(client, store, seed);
@@ -384,10 +381,8 @@ public class QuestCatalogServiceTests
             .WithPage("Quêtes d'Astrub", "https://papycha.fr/quetes-dastrub/", 1)
             .WithSuccess("Brûler le pissenlit à la racine", 1);
 
-        var seed = new FakeQuestSuccessSeed
-        {
-            ["https://exemple.invalid/quete-1"] = "Brûler le pissenlit par la racine",
-        };
+        var seed = new FakeQuestSuccessSeed()
+            .With(1, "Brûler le pissenlit par la racine");
 
         var store = new InMemoryDocumentStore<QuestCatalogDocument>();
         var service = new QuestCatalogService(client, store, seed);
@@ -409,5 +404,29 @@ public class QuestCatalogServiceTests
         var catalog = await service.GetAsync(cancellationToken: CancellationToken.None);
 
         Assert.Equal("Brûler le pissenlit à la racine", catalog.Quests[0].SuccessName);
+    }
+
+    [Fact]
+    public async Task La_place_dans_la_chaine_suit_la_quete()
+    {
+        // Elle sert à présenter les quêtes d'un succès dans l'ordre où l'on y
+        // joue : « De la caillasse plein les poches » va de l'étape 1 à
+        // l'étape 6, quand l'ordre alphabétique n'en est pas un.
+        var client = new FakePapychaClient()
+            .WithQuest(1, "Nettoyage express")
+            .WithQuest(2, "Langage corporel")
+            .WithPage("Quêtes répétables", "https://papycha.fr/quetes-repetables/", 1, 2);
+
+        var seed = new FakeQuestSuccessSeed()
+            .With(1, "De la caillasse plein les poches", chainStep: 6)
+            .With(2, "De la caillasse plein les poches", chainStep: 1);
+
+        var store = new InMemoryDocumentStore<QuestCatalogDocument>();
+        var service = new QuestCatalogService(client, store, seed);
+
+        var catalog = await service.GetAsync(cancellationToken: CancellationToken.None);
+
+        Assert.Equal(6, catalog.Quests[0].ChainStep);
+        Assert.Equal(1, catalog.Quests[1].ChainStep);
     }
 }
