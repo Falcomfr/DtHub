@@ -1,4 +1,4 @@
-// Pont entre la page de guide et la fenêtre de quêtes.
+﻿// Pont entre la page de guide et la fenêtre de quêtes.
 //
 // Il fait trois choses, et rien d'autre : il cadre la page sur le guide, il
 // repère les étapes, et il dit à l'application où l'on se trouve. Il ne modifie
@@ -113,6 +113,19 @@
     //
     // Une quête ancienne emploie une couleur au lieu du gras : les deux marques
     // valent, faute de balisage propre à cet usage.
+    // Ce que le site met en gras sans que ce soit une consigne : ses propres
+    // encarts, et les apartés. Relevé sur 335 étapes de 36 quêtes.
+    var ETIQUETTES = /^\s*(pr[ée].?requis|source|plage habituelle|dur[ée]e|note|notes|attention|astuce|remarque|rappel|info|informations?)\s*:/i;
+
+    function isNoise(text) {
+        if (ETIQUETTES.test(text)) {
+            return true;
+        }
+
+        // Un aparté entier entre parenthèses commente, il n'ordonne pas.
+        return text.charAt(0) === '(' && text.charAt(text.length - 1) === ')';
+    }
+
     function isObjective(node) {
         if (node.querySelector('strong, b')) {
             return true;
@@ -140,7 +153,7 @@
 
             var text = (node.textContent || '').replace(/\s+/g, ' ').trim();
 
-            if (text.length > 0) {
+            if (text.length > 0 && !isNoise(text)) {
                 found.push({ node: node, text: text });
             }
         }
