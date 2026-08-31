@@ -1,4 +1,4 @@
-using DtHub.Core.Papycha;
+﻿using DtHub.Core.Papycha;
 
 namespace DtHub.Tests.Papycha;
 
@@ -114,5 +114,73 @@ public class QuestSearchTests
         Assert.Equal("Astrub sous la neige", resultats[0].Title);
         Assert.Equal("Le dragon d'Astrub", resultats[1].Title);
         Assert.Equal("Une affaire de famille", resultats[2].Title);
+    }
+
+    private static QuestSummary Quete(string titre, string succes = "", string rubriques = "") =>
+        new()
+        {
+            Title = titre,
+            SearchKey = QuestSearch.Normalize(titre),
+            SectionKey = QuestSearch.Normalize(rubriques),
+            SuccessName = succes,
+        };
+
+    private static QuestSection Rubrique(int id, string nom) =>
+        new() { Id = id, Name = nom, SearchKey = QuestSearch.Normalize(nom) };
+
+    [Fact]
+    public void La_recherche_distingue_les_zones_les_succes_et_les_quetes()
+    {
+        QuestSummary[] quetes =
+        [
+            Quete("Complètement givré", "Les survivants de Frigost", "ile de frigost"),
+            Quete("Le dragon d'Astrub", "Devenir une légende", "astrub"),
+        ];
+
+        QuestSection[] rubriques = [Rubrique(135, "Île de Frigost"), Rubrique(18, "Astrub")];
+
+        var trouve = QuestSearch.Search(quetes, rubriques, "frigost");
+
+        Assert.Equal("Île de Frigost", Assert.Single(trouve.Zones).Name);
+        Assert.Equal("Les survivants de Frigost", Assert.Single(trouve.Successes));
+        Assert.Equal("Complètement givré", Assert.Single(trouve.Quests).Title);
+    }
+
+    [Fact]
+    public void Un_succes_se_cherche_par_son_nom()
+    {
+        // Les succès n'étaient cherchables par aucun chemin, alors que le
+        // catalogue en porte plus de cent.
+        QuestSummary[] quetes =
+        [
+            Quete("Une quête", "Intérimaire frigostien"),
+            Quete("Une autre", "Intérimaire frigostien"),
+            Quete("Une troisième", "Objets trouvés"),
+        ];
+
+        var trouve = QuestSearch.Search(quetes, [], "interimaire");
+
+        Assert.Equal("Intérimaire frigostien", Assert.Single(trouve.Successes));
+    }
+
+    [Fact]
+    public void Une_zone_se_cherche_sous_le_nom_qu_on_affiche()
+    {
+        // La liste montre « Port de Madrestam » ; chercher ce qu'on lit doit
+        // marcher, même si le catalogue nomme la rubrique autrement.
+        QuestSection[] rubriques = [Rubrique(-4, "Quêtes du Port de Madrestam")];
+
+        var trouve = QuestSearch.Search([], rubriques, "madrestam");
+
+        Assert.Single(trouve.Zones);
+    }
+
+    [Fact]
+    public void Une_recherche_vide_ne_rend_rien()
+    {
+        // Sans quoi la liste des zones serait remplacée par le catalogue entier
+        // dès que le champ se vide.
+        Assert.True(QuestSearch.Search([Quete("Une quête")], [], "  ").IsEmpty);
+        Assert.True(QuestSearch.Search([Quete("Une quête")], [], null).IsEmpty);
     }
 }

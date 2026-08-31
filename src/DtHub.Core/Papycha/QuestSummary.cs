@@ -37,6 +37,11 @@ public sealed record QuestSummary
     /// Chercher « frigost » ne rendait que quatre quêtes, celles dont le titre
     /// porte le mot, alors que cent quatre-vingt-quatre s'y déroulent. On
     /// cherche un endroit autant qu'un nom.
+    ///
+    /// Bâti sur les rubriques réellement affichées, et sous leur nom d'affichage.
+    /// Il l'était sur les catégories brutes du site : les sept rubriques venues
+    /// d'une page n'étaient donc cherchables par aucun chemin, et comme la
+    /// racine y figurait, les 782 quêtes portaient le mot « quêtes ».
     /// </summary>
     public string SectionKey { get; init; } = string.Empty;
 

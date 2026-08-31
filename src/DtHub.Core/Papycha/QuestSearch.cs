@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
 
 namespace DtHub.Core.Papycha;
@@ -161,5 +161,60 @@ public static class QuestSearch
                 .ThenBy(q => q.Title, StringComparer.CurrentCulture)
                 .Take(limit),
         ];
+    }
+
+    /// <summary>
+    /// Cherche dans les trois natures à la fois, où que l'on soit dans l'arbre.
+    ///
+    /// Chercher, c'est vouloir aller ailleurs : la rubrique ouverte ne doit pas
+    /// borner ce qu'on trouve. Les succès n'étaient jusqu'ici cherchables par
+    /// aucun chemin, alors que le catalogue en porte plus de cent.
+    /// </summary>
+    public static QuestSearchResults Search(
+        IReadOnlyList<QuestSummary> quests,
+        IReadOnlyList<QuestSection> sections,
+        string? query,
+        int limit = 50)
+    {
+        ArgumentNullException.ThrowIfNull(quests);
+        ArgumentNullException.ThrowIfNull(sections);
+
+        var terms = Terms(query);
+
+        if (terms.Count == 0)
+        {
+            return QuestSearchResults.Empty;
+        }
+
+        List<QuestSection> zones =
+        [
+            .. sections
+                .Where(s => Matches(Normalize(QuestZoneOrder.DisplayName(s.Name)), terms))
+                .Take(limit),
+        ];
+
+        // Un succès n'existe que par les quêtes qui le portent : on le retient
+        // au premier passage, avec l'orthographe de la première rencontrée.
+        Dictionary<string, string> successes = new(StringComparer.Ordinal);
+
+        foreach (var quest in quests)
+        {
+            if (quest.SuccessName.Length == 0)
+            {
+                continue;
+            }
+
+            var key = Normalize(quest.SuccessName);
+
+            if (Matches(key, terms))
+            {
+                successes.TryAdd(key, quest.SuccessName);
+            }
+        }
+
+        return new QuestSearchResults(
+            zones,
+            [.. successes.Values.OrderBy(n => n, StringComparer.CurrentCulture).Take(limit)],
+            Filter(quests, query, limit));
     }
 }
