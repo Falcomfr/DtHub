@@ -9,6 +9,39 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Ajouté
 
+- Les zones de quêtes suivent l'ordre de progression du jeu, sous leur nom court,
+  avec un bloc « Quêtes supplémentaires » pour ce qui n'en relève pas.
+- La recherche trouve aussi les zones et les succès, et les rend séparés ; les
+  quêtes d'un succès trouvé sont listées sous lui.
+- Un lien cliqué dans un guide ouvre une fenêtre à part, redimensionnable et
+  toujours au-dessus.
+- Le bandeau d'étape affiche un raccourci d'une phrase au lieu du paragraphe.
+
+### Modifié
+
+- Le retour est un bouton fixe sous le fil d'Ariane, avec sa flèche et son mot :
+  il défilait avec la liste et disparaissait dès qu'on descendait.
+- Le panneau de recherche prend toute la hauteur : le bandeau d'étape et le pied
+  de succès s'effacent tant qu'il est ouvert.
+- La barre de recherche prend toute la largeur ; un indicateur discret remplace
+  le compte de quêtes pendant l'indexation.
+- Une plage de niveaux n'est affichée que lorsqu'elle repose sur assez de
+  quêtes : le site ne renseigne le niveau que sur 117 des 782.
+- Les encarts du site et les apartés entre parenthèses ne comptent plus pour des
+  étapes.
+
+### Corrigé
+
+- Suivre la quête précédente ou suivante éteignait la navigation : le pied se
+  vidait après un seul saut et il fallait repasser par la liste.
+- Rouvrir le panneau sélectionne la quête ouverte, sans reconstruire la liste.
+- La reconnaissance des fenêtres de l'application interrogeait la fenêtre de
+  quêtes depuis le guet du premier plan, qui ne vit pas sur le fil de
+  l'interface : chaque changement de fenêtre levait une exception et les
+  raccourcis restaient dans leur état précédent.
+- Les sept rubriques venues d'une page du site n'étaient cherchables par aucun
+  chemin, et taper « quête » ramenait le catalogue entier.
+
 - Suivi de quêtes adossé à papycha.fr : fenêtre toujours au-dessus ouverte par
   `Ctrl+Q`, recherche par rubrique et par succès sur un catalogue de 782 quêtes,
   sélecteur d'étape et navigation dans la chaîne du succès.

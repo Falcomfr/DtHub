@@ -676,3 +676,33 @@ déclaré dans le manifeste de l'application. Ce manifeste déclare aussi la
 conscience de la mise à l'échelle écran par écran : sans elle, Windows livre
 les coordonnées virtualisées du moniteur principal, et les fenêtres déplacées
 vers un écran d'un autre facteur sont redimensionnées d'office.
+
+## D32 - Ce que la fenêtre de quêtes emprunte au site, et ce qu'elle en refait
+
+Le site range et nomme pour un lecteur qui arrive par un moteur de recherche.
+L'application affiche à quelqu'un qui joue. Les deux ne demandent pas la même
+chose, et trois écarts ont été assumés.
+
+**Les noms.** Une rubrique perd son préfixe « Quêtes » quand un article le suit,
+parce que ce qui reste est alors un lieu. Sans article, le mot fait partie du
+nom : « Quêtes principales » ne désigne pas un endroit.
+
+**L'ordre.** Le tableau du site classe ses pages ; il ne suit pas la progression
+du jeu. L'ordre affiché est écrit à la main, d'Albuera à Frigost, et ce qui ne
+relève pas de la progression passe sous un intertitre. Une zone que la table
+ignore se range en fin de progression, jamais au milieu.
+
+**Les voisines d'une quête.** Le site publie en pied d'article une chaîne de
+prérequis qui saute d'un succès à l'autre et se ramifie. Ce n'est pas ce qu'on
+parcourt : la précédente est celle qu'on voit au-dessus dans la liste du succès,
+la suivante celle d'en dessous.
+
+Le résumé d'étape suit la même règle. La première étape se compose des
+métadonnées de la quête, renseignées sur près de neuf quêtes sur dix, plutôt que
+de sa prose. Les suivantes passent par des règles sur le texte ; quand aucune ne
+s'applique, la première phrase raccourcie. Jamais de vide : une étape sans
+résumé laisserait croire qu'il n'y a rien à faire.
+
+Enfin, un lien cliqué dans un guide ouvre sa propre fenêtre. La fenêtre de
+quêtes tient un état — titre, succès, étapes, voisines — qu'une navigation
+qu'elle n'a pas demandée rendrait faux sans qu'elle le sache.
