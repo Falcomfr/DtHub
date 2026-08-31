@@ -87,6 +87,13 @@ public partial class QuestPageWindow : Window
 
         await View.EnsureCoreWebView2Async().ConfigureAwait(true);
 
+        // Avant de naviguer : le script s'injecte à la création du document, et
+        // une page déjà chargée ne le verrait pas passer. Cadrage seul, sans le
+        // suivi d'étapes qui ne vaut que pour un guide.
+        await View.CoreWebView2
+            .AddScriptToExecuteOnDocumentCreatedAsync(QuestBridge.Script(framingOnly: true))
+            .ConfigureAwait(true);
+
         View.CoreWebView2.Navigate(url);
     }
 

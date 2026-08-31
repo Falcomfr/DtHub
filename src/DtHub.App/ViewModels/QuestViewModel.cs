@@ -787,14 +787,8 @@ public sealed partial class QuestViewModel : ObservableObject
     {
         ArgumentNullException.ThrowIfNull(link);
 
-        var quest = _catalog.Catalog.Quests.FirstOrDefault(q =>
-            string.Equals(q.Url, link.Url, StringComparison.Ordinal));
-
-        if (quest is not null)
+        if (TryFollowUrl(link.Url))
         {
-            SetCurrent(quest);
-            IsListOpen = false;
-
             return;
         }
 
@@ -814,6 +808,47 @@ public sealed partial class QuestViewModel : ObservableObject
         NextQuest = null;
         SetStep(-1);
     }
+
+    /// <summary>
+    /// Suit une adresse sur place quand le catalogue la connaît, et dit si elle
+    /// l'était.
+    ///
+    /// Un guide renvoie vers ses quêtes voisines par de simples liens : un clic
+    /// dessus ouvrait une seconde fenêtre alors que le bouton « précédente »,
+    /// qui mène au même endroit, restait sur place. Le catalogue tranche : ce
+    /// qu'il connaît se suit ici, le reste part à part.
+    /// </summary>
+    public bool TryFollowUrl(string? url)
+    {
+        var key = UrlKey(url);
+
+        if (key.Length == 0)
+        {
+            return false;
+        }
+
+        var quest = _catalog.Catalog.Quests.FirstOrDefault(q =>
+            string.Equals(UrlKey(q.Url), key, StringComparison.Ordinal));
+
+        if (quest is null)
+        {
+            return false;
+        }
+
+        SetCurrent(quest);
+        IsListOpen = false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Adresse réduite à ce qui l'identifie.
+    ///
+    /// Le site écrit ses liens tantôt avec la barre finale, tantôt sans, et la
+    /// comparaison stricte manquait alors une quête pourtant au catalogue.
+    /// </summary>
+    private static string UrlKey(string? url) =>
+        (url ?? string.Empty).Trim().TrimEnd('/').ToLowerInvariant();
 
     /// <summary>
     /// Rang de la première ligne qui se choisit, en enjambant les intertitres.

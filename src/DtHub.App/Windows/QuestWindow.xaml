@@ -287,13 +287,27 @@
 
                     <!-- Une liste : ce qu'il faut avoir fait avant. Le site le
                          donne pour six cent treize quêtes, contre cent dix-sept
-                         auxquelles il donne un niveau. -->
-                    <Path Style="{StaticResource ListGlyph}"
-                          Data="M 3,4.5 H 12 M 3,7.5 H 12 M 3,10.5 H 8"
-                          VerticalAlignment="Center" Margin="6,0,2,0"
-                          ToolTip="{Binding Tip}"
-                          Visibility="{Binding HasTip,
-                                               Converter={StaticResource BoolToVisibility}}" />
+                         auxquelles il donne un niveau.
+
+                         L'infobulle est portée par un conteneur au fond
+                         transparent, et non par le tracé : trois traits ouverts
+                         n'ont pas de surface, si bien qu'un remplissage ne leur
+                         donne aucune prise et qu'il faudrait viser une ligne
+                         d'un pixel et demi. Mesuré : sur le tracé seul, le
+                         survol ne déclenchait rien.
+
+                         Elle tient longtemps affichée, parce qu'une liste de
+                         prérequis se lit moins vite que le mot d'un bouton. -->
+                    <Border Background="Transparent"
+                            VerticalAlignment="Center" Margin="6,0,2,0"
+                            ToolTip="{Binding Tip}"
+                            ToolTipService.InitialShowDelay="200"
+                            ToolTipService.ShowDuration="30000"
+                            Visibility="{Binding HasTip,
+                                                 Converter={StaticResource BoolToVisibility}}">
+                      <Path Style="{StaticResource ListGlyph}"
+                            Data="M 3,4.5 H 12 M 3,7.5 H 12 M 3,10.5 H 8" />
+                    </Border>
                   </StackPanel>
                 </Grid>
 

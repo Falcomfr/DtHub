@@ -1,6 +1,4 @@
 ﻿using System.Globalization;
-using System.IO;
-using System.Reflection;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
@@ -194,20 +192,8 @@ public partial class QuestWindow : Window
         View.CoreWebView2.NewWindowRequested += OnNewWindowRequested;
 
         await View.CoreWebView2
-            .AddScriptToExecuteOnDocumentCreatedAsync(BridgeScript())
+            .AddScriptToExecuteOnDocumentCreatedAsync(QuestBridge.Script())
             .ConfigureAwait(true);
-    }
-
-    /// <summary>Lit le pont depuis les ressources de l'assembly.</summary>
-    private static string BridgeScript()
-    {
-        using var stream = Assembly.GetExecutingAssembly()
-            .GetManifestResourceStream("DtHub.App.quest-bridge.js")
-            ?? throw new InvalidOperationException("Le pont de la fenêtre de quêtes est absent de l'assembly.");
-
-        using var reader = new StreamReader(stream);
-
-        return reader.ReadToEnd();
     }
 
     private void OnBridgeMessage(object? sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs e)
@@ -299,14 +285,37 @@ public partial class QuestWindow : Window
 
         e.Cancel = true;
 
-        _ = OpenAsideAsync(e.Uri);
+        Route(e.Uri);
     }
 
     private void OnNewWindowRequested(object? sender, CoreWebView2NewWindowRequestedEventArgs e)
     {
         e.Handled = true;
 
-        _ = OpenAsideAsync(e.Uri);
+        Route(e.Uri);
+    }
+
+    /// <summary>
+    /// Envoie une adresse là où elle se lit le mieux : sur place si c'est une
+    /// quête du catalogue, dans une fenêtre à part sinon.
+    /// </summary>
+    private void Route(string url)
+    {
+        if (!_viewModel.TryFollowUrl(url))
+        {
+            _ = OpenAsideAsync(url);
+
+            return;
+        }
+
+        // Le modèle est à jour, la page ne l'est pas : la navigation qui nous a
+        // amenés ici vient d'être annulée, et il n'y a personne d'autre pour la
+        // relancer. Sans cela le bandeau annonçait la nouvelle quête au-dessus
+        // du guide de l'ancienne.
+        //
+        // Différée, parce qu'on est encore dans le gestionnaire qui vient de
+        // refuser cette même navigation.
+        _ = Dispatcher.BeginInvoke(() => View.CoreWebView2?.Navigate(url));
     }
 
     private static bool Same(string? first, string? second) =>

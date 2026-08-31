@@ -20,11 +20,35 @@
     // Ce qui est masqué à l'intérieur même de l'article, parce que la fenêtre
     // le reprend à son compte : le titre, la chaîne des quêtes, les crédits.
     var HIDDEN = [
-        '.entry-header',
+        // Du bandeau à liseré vert, les deux blocs que notre propre bandeau
+        // reprend déjà : le succès avec l'étape, et la phrase de départ. Le
+        // reste du bandeau tient, car il ne se lit nulle part ailleurs : la
+        // récurrence, et surtout les quêtes précédentes, qui sont les seuls
+        // liens de quête qui restent une fois masquée la barre du site.
+        '.pqa-quest-intro__facts',
+        '.pqa-quest-intro__start',
+
         'nav.pqt-progress',
         'footer.papycha-article-footer',
         'footer.entry-footer'
     ];
+
+    // Le titre de l'article. Masqué dans la fenêtre de quêtes, qui le réaffiche
+    // dans son bandeau ; gardé dans la fenêtre des pages liées, qui n'en
+    // réaffiche aucun et où c'est le seul repère.
+    var TITLE = '.entry-header';
+
+    // Marque posée sur ce qui n'appartient pas au guide.
+    //
+    // Un attribut plutôt qu'un style en ligne : le site en réaffiche certains
+    // après coup, et le fadeIn de jQuery réaffecte style.display, ce qui perd
+    // le !important. Une déclaration !important d'une feuille, elle, l'emporte
+    // sur un style en ligne ordinaire ; l'inverse n'est pas vrai.
+    var MARK = 'data-dthub-hidden';
+
+    // Vrai quand seule la mise en page nous intéresse : la fenêtre des pages
+    // liées n'a ni étapes ni chaîne à suivre.
+    var framingOnly = window.__dtHubFramingOnly === true;
 
     // Tout le reste de la page est masqué par la règle inverse : on remonte de
     // l'article jusqu'au corps et, à chaque étage, on cache ses frères.
@@ -33,8 +57,17 @@
     // menu, le fil d'Ariane, le volet contextuel, chacun avec sa classe, et un
     // bouton qui réapparaît ailleurs à la moindre mise à jour du site. Garder
     // l'article et écarter le reste ne dépend d'aucun nom.
+    // Le contenu propre de la page : tout ce qui l'entoure est du décor.
+    //
+    // Un guide et une page de rubrique ont un « .entry-content », et c'est le
+    // meilleur ancrage : il exclut jusqu'au fil d'Ariane et au volet latéral.
+    // La carte n'en a aucun, parce qu'elle n'est pas un article ; on retombe
+    // alors sur le repère de contenu du thème, présent sur toutes les pages
+    // mesurées. Sans ce recours, la carte gardait l'en-tête du site et sa
+    // bannière, soit le quart haut de la fenêtre.
     function content() {
-        return document.querySelector('.entry-content');
+        return document.querySelector('.entry-content')
+            || document.querySelector('main#content');
     }
 
     function applyFraming() {
@@ -46,12 +79,29 @@
             document.head.appendChild(style);
         }
 
+        var hidden = framingOnly ? HIDDEN : HIDDEN.concat([TITLE]);
+
         style.textContent =
-            HIDDEN.join(',') + '{display:none !important}' +
-            'body,main.content,#main,#container{margin-top:0 !important;padding-top:0 !important}' +
+            hidden.join(',') + '{display:none !important}' +
+            '[' + MARK + ']{display:none !important}' +
+
+            // « .wrap » manquait, et c'est lui qui laissait voir le fond vert
+            // du site : le thème lui donne cinquante pixels de marge en haut et
+            // en bas, et n'annule la première qu'en dessous de cinq cent
+            // quarante pixels de large, seuil que la fenêtre franchit dès qu'on
+            // l'élargit. Les bordures du corps ajoutaient deux pixels verts.
+            'body,#container,.wrap,main#content,#main{margin-top:0 !important;' +
+            'margin-bottom:0 !important;padding-top:0 !important;' +
+            'border-top-width:0 !important;border-bottom-width:0 !important}' +
+
             // Le guide occupe toute la largeur : la fenêtre est étroite, et les
             // marges d'un site prévu pour un grand écran y coûtent cher.
-            '.entry-content{max-width:none !important;margin:0 !important;padding:12px !important}';
+            '.entry-content{max-width:none !important;margin:0 !important;padding:12px !important}' +
+
+            // Le bandeau d'intro ouvre désormais la page, ses deux premiers
+            // blocs étant masqués : sa marge haute, prévue pour suivre un
+            // titre, ne laisserait qu'un vide en tête de fenêtre.
+            '.pqa-quest-intro{margin-top:0 !important;padding-top:0 !important}';
     }
 
     function keepOnlyArticle() {
@@ -60,6 +110,12 @@
         if (!node) {
             return;
         }
+
+        // Le titre est un frère du contenu, et le masquage des frères passe
+        // avant la feuille : sans cette réserve, la fenêtre des pages liées le
+        // perdrait quand même, et une rubrique s'ouvrirait sans rien qui la
+        // nomme.
+        var titre = framingOnly ? document.querySelector(TITLE) : null;
 
         while (node && node !== document.body) {
             var parent = node.parentElement;
@@ -71,8 +127,8 @@
             for (var i = 0; i < parent.children.length; i++) {
                 var sibling = parent.children[i];
 
-                if (sibling !== node) {
-                    sibling.style.setProperty('display', 'none', 'important');
+                if (sibling !== node && sibling !== titre) {
+                    sibling.setAttribute(MARK, '');
                 }
             }
 
@@ -87,19 +143,26 @@
     // étroite pour en supporter.
     function hideFloating() {
         var guide = content();
+
+        // Sans guide, on ne sait pas ce qui est du décor : la page de carte n'a
+        // pas d'article, et tout masquer lui ôterait ses propres contrôles.
+        if (!guide) {
+            return;
+        }
+
         var nodes = document.body ? document.body.querySelectorAll('*') : [];
 
         for (var i = 0; i < nodes.length; i++) {
             var node = nodes[i];
 
-            if (guide && (node === guide || guide.contains(node))) {
+            if (node === guide || guide.contains(node)) {
                 continue;
             }
 
             var position = window.getComputedStyle(node).position;
 
             if (position === 'fixed' || position === 'sticky') {
-                node.style.setProperty('display', 'none', 'important');
+                node.setAttribute(MARK, '');
             }
         }
     }
@@ -237,12 +300,21 @@
         window.scrollTo({ top: Math.max(0, top - 16), behavior: 'smooth' });
     };
 
-    function start() {
+    function frame() {
         applyFraming();
         keepOnlyArticle();
         hideFloating();
-        describe();
-        reportStep();
+    }
+
+    function start() {
+        frame();
+
+        // Le suivi d'étapes n'a de sens que sur un guide de quête. Sur une page
+        // de rubrique ou de carte, il n'y a rien à décrire ni à situer.
+        if (!framingOnly) {
+            describe();
+            reportStep();
+        }
     }
 
     if (document.readyState === 'loading') {
@@ -253,16 +325,28 @@
 
     // Le thème ajoute des blocs après coup : on recadre une fois la page
     // entièrement chargée, sinon le décor réapparaît.
-    window.addEventListener('load', function () {
-        start();
+    window.addEventListener('load', start);
 
-        // Et une dernière passe une seconde plus tard, pour ce que les scripts
-        // du site posent encore après leur propre chargement.
-        window.setTimeout(function () {
-            applyFraming();
-            keepOnlyArticle();
-            hideFloating();
-            describe();
-        }, 1000);
-    });
+    // Et ce qui arrive plus tard encore : le volet contextuel du site s'insère
+    // quand il veut, et le bouton de retour en haut ne revient qu'au premier
+    // défilement, longtemps après la dernière passe. Un observateur rattrape ce
+    // qu'un nombre fini de passes laisserait passer.
+    if (window.MutationObserver && document.body) {
+        var pending = false;
+
+        new window.MutationObserver(function () {
+            // Le cadrage pose lui-même des attributs : réagir à chaque
+            // mutation ferait boucler l'observateur sur son propre travail.
+            if (pending) {
+                return;
+            }
+
+            pending = true;
+
+            window.setTimeout(function () {
+                pending = false;
+                frame();
+            }, 120);
+        }).observe(document.body, { childList: true, subtree: true });
+    }
 })();

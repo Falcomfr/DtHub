@@ -14,8 +14,13 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 - La recherche trouve aussi les zones et les succès, et les rend séparés ; les
   quêtes d'un succès trouvé sont listées sous lui.
 - Un lien cliqué dans un guide ouvre une fenêtre à part, redimensionnable et
-  toujours au-dessus.
+  toujours au-dessus, nettoyée du décor du site comme la fenêtre de quêtes.
 - Le bandeau d'étape affiche un raccourci d'une phrase au lieu du paragraphe.
+- Une carte devant les zones, une étoile devant les succès : la nature d'une
+  ligne se voit sans la lire.
+- Une croix vide la recherche, une autre ferme le panneau.
+- Une icône annonce les prérequis d'une quête, et le survol les donne un par
+  ligne.
 
 ### Modifié
 
@@ -29,6 +34,14 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   quêtes : le site ne renseigne le niveau que sur 117 des 782.
 - Les encarts du site et les apartés entre parenthèses ne comptent plus pour des
   étapes.
+- La recherche ne retient plus une quête pour un mot qui n'existe que dans le
+  nom de sa zone : « frigost » en rendait cent soixante-dix-sept, dont cent
+  soixante-treize par ce seul chemin, et « bworks » onze sans qu'aucune ne porte
+  le mot. C'est au groupe des zones que revient cette recherche-là.
+- Les prérequis remplacent le niveau à droite d'une quête : le site les donne
+  pour six cent treize quêtes contre cent dix-sept pour le niveau.
+- Un lien vers une quête du catalogue est suivi dans la fenêtre plutôt que dans
+  une seconde, comme le bouton « précédente » qui mène au même endroit.
 
 ### Corrigé
 
@@ -41,6 +54,16 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   raccourcis restaient dans leur état précédent.
 - Les sept rubriques venues d'une page du site n'étaient cherchables par aucun
   chemin, et taper « quête » ramenait le catalogue entier.
+- Le bouton de retour en haut du site et sa bande verte réapparaissaient au
+  premier défilement : ils étaient masqués par style en ligne, que le fondu du
+  greffon écrasait.
+- Le haut d'une page dépassait dès que la fenêtre passait cinq cent quarante
+  pixels de large, seuil sous lequel le site annule lui-même une marge de
+  cinquante pixels.
+- Le relevé des succès retirait des intitulés de prérequis un préfixe que le
+  site n'emploie plus : douze liens de l'ordre de jeu se perdaient en silence.
+- La lecture du fichier de succès livré était sensible à la casse et n'y voyait
+  aucune entrée, sans le dire.
 
 - Suivi de quêtes adossé à papycha.fr : fenêtre toujours au-dessus ouverte par
   `Ctrl+Q`, recherche par rubrique et par succès sur un catalogue de 782 quêtes,

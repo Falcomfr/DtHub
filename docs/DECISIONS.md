@@ -703,6 +703,43 @@ de sa prose. Les suivantes passent par des règles sur le texte ; quand aucune n
 s'applique, la première phrase raccourcie. Jamais de vide : une étape sans
 résumé laisserait croire qu'il n'y a rien à faire.
 
-Enfin, un lien cliqué dans un guide ouvre sa propre fenêtre. La fenêtre de
-quêtes tient un état — titre, succès, étapes, voisines — qu'une navigation
-qu'elle n'a pas demandée rendrait faux sans qu'elle le sache.
+Enfin, un lien cliqué dans un guide. Le catalogue tranche : s'il connaît
+l'adresse, la fenêtre la suit sur place et se remet à jour, exactement comme si
+l'on avait pressé « précédente » ; les cinq cent onze liens de quête de la
+colonne des prérequis passent par là. Sinon elle ouvre une fenêtre à part,
+parce qu'elle tient un état — titre, succès, étapes, voisines — qu'une
+navigation qu'elle n'a pas demandée rendrait faux sans qu'elle le sache.
+
+## D33 - Cadrer une page du site sans la casser
+
+Le site est fait pour un grand écran et pour quelqu'un qui le parcourt. Nos
+fenêtres sont étroites et affichent une seule page à la fois. Le pont enlève
+donc le décor, et quatre règles gouvernent ce retrait.
+
+**Le masquage passe par une feuille, pas par des styles en ligne.** Le greffon
+du site rappelle certains éléments au premier défilement avec un fondu, et un
+fondu réaffecte `style.display`, ce qui perd le `!important` d'un style en
+ligne. Les éléments reçoivent un attribut, et une règle de notre feuille les
+masque : une déclaration `!important` de feuille l'emporte sur un style en ligne
+ordinaire, l'inverse n'est pas vrai.
+
+**Le point d'ancrage est le contenu, pas une liste de choses à retirer.** On
+part du contenu de la page et l'on masque ses frères en remontant : la règle ne
+nomme rien et survit aux changements du thème. Le contenu, c'est
+`.entry-content` quand la page est un article, sinon le repère de contenu du
+thème. Sans ce recours, la carte, qui n'est pas un article, gardait l'en-tête et
+la bannière du site, soit le quart haut de la fenêtre.
+
+**Ce qui flotte n'est retiré que si l'on sait où est le contenu.** Sans ancrage,
+masquer tout ce qui est fixe ôterait à la carte ses propres commandes.
+
+**Ce qui arrive après coup est rattrapé.** Un observateur de mutations réapplique
+le cadrage : un nombre fini de passes ne suffit pas quand le site pose des blocs
+quand il veut.
+
+Deux emplois en découlent. La fenêtre de quêtes masque le titre de l'article et
+les deux blocs du bandeau d'intro qu'elle reprend dans le sien ; elle garde le
+reste de ce bandeau, dont les quêtes précédentes, seuls liens de quête qui
+subsistent une fois la barre de progression du site retirée. La fenêtre des
+pages liées ne prend que le cadrage, sans le suivi d'étapes qui n'aurait aucun
+sens sur une carte, et garde le titre, qui y est le seul repère.
