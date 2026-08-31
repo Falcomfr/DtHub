@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 
@@ -94,6 +94,10 @@ public sealed partial class QuestViewModel : ObservableObject
     /// Compte les quêtes par rubrique à partir du catalogue, et non des
     /// nombres du site : celui-ci compte aussi ce qui n'est pas une quête, et
     /// proposerait des rubriques qui s'ouvriraient sur rien.
+    ///
+    /// Sur la rubrique retenue pour la quête, et non sur toutes celles qu'elle
+    /// porte : compter une quête d'Astrub sous Astrub et sous Amakna gonflait
+    /// les nombres et la faisait apparaître deux fois.
     /// </summary>
     private void CountSections()
     {
@@ -101,10 +105,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
         foreach (var quest in _catalog.Catalog.Quests)
         {
-            foreach (var section in quest.Categories)
-            {
-                _sectionCounts[section] = _sectionCounts.GetValueOrDefault(section) + 1;
-            }
+            _sectionCounts[quest.SectionId] = _sectionCounts.GetValueOrDefault(quest.SectionId) + 1;
         }
     }
 
@@ -203,12 +204,17 @@ public sealed partial class QuestViewModel : ObservableObject
         }
     }
 
-    /// <summary>Rubriques qui contiennent au moins une quête, la plus fournie d'abord.</summary>
+    /// <summary>
+    /// Rubriques qui contiennent au moins une quête, dans l'ordre où le site
+    /// les range.
+    ///
+    /// Le catalogue les rend déjà ordonnées ; les reclasser par nombre de
+    /// quêtes, comme on le faisait, revenait à ignorer l'ordre du site après
+    /// être allé le chercher.
+    /// </summary>
     private IEnumerable<QuestNode> Branches() =>
         _catalog.Catalog.Sections
             .Where(s => s.Id != RootSection && _sectionCounts.GetValueOrDefault(s.Id) > 0)
-            .OrderByDescending(s => _sectionCounts[s.Id])
-            .ThenBy(s => s.Name, StringComparer.CurrentCulture)
             .Select(s => new QuestNode(
                 QuestNodeKind.Branch,
                 s.Name,

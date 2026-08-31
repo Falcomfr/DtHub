@@ -1,4 +1,4 @@
-namespace DtHub.Core.Papycha;
+﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
 /// Le catalogue tel qu'il est rangé sur le disque.
@@ -17,8 +17,11 @@ public sealed class QuestCatalogDocument
     ///
     /// Version 3 : la rubrique principale de chaque quête, et l'ordre dans
     /// lequel le site range ses rubriques.
+    ///
+    /// Version 4 : une quête est rangée sous une rubrique et une seule, et les
+    /// rubriques que le site tient à la main viennent compléter ses catégories.
     /// </summary>
-    public const int CurrentSchemaVersion = 3;
+    public const int CurrentSchemaVersion = 4;
 
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 

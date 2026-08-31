@@ -1,4 +1,4 @@
-using DtHub.Core.Papycha;
+﻿using DtHub.Core.Papycha;
 
 namespace DtHub.Tests.Fakes;
 
@@ -63,9 +63,23 @@ public sealed class FakePapychaClient : IPapychaClient
     public Task<IReadOnlyList<QuestSection>> GetSectionsAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult<IReadOnlyList<QuestSection>>(_sections);
 
-    /// <summary>Ordre annoncé par le site, vide par défaut.</summary>
-    public List<string> Order { get; } = [];
 
-    public Task<IReadOnlyList<string>> GetSectionOrderAsync(CancellationToken cancellationToken = default) =>
-        Task.FromResult<IReadOnlyList<string>>(Order);
+    private readonly List<QuestPageSection> _pages = [];
+
+    /// <summary>Rubrique tenue à la main sur le site, avec les quêtes qu'elle énumère.</summary>
+    public FakePapychaClient WithPage(string name, string url, params int[] questIds)
+    {
+        _pages.Add(new QuestPageSection
+        {
+            Name = name,
+            Url = url,
+            QuestUrls = [.. questIds.Select(id => $"https://exemple.invalid/quete-{id}")],
+        });
+
+        return this;
+    }
+
+    public Task<IReadOnlyList<QuestPageSection>> GetPageSectionsAsync(
+        CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<QuestPageSection>>(_pages);
 }

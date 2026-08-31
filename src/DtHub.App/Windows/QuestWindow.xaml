@@ -1,4 +1,4 @@
-<Window x:Class="DtHub.App.Windows.QuestWindow"
+﻿<Window x:Class="DtHub.App.Windows.QuestWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:wv="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
@@ -85,6 +85,27 @@
       </StackPanel>
     </Border>
 
+    <!-- La source, toujours citée, et un accès au vrai navigateur -->
+    <Border DockPanel.Dock="Bottom" Padding="10,6"
+            Background="{StaticResource BrushedPanelBrush}"
+            BorderBrush="{DynamicResource BevelBrush}" BorderThickness="0,1,0,0">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                   Style="{StaticResource Muted}" FontSize="11"
+                   Text="Guides de papycha.fr" />
+
+        <Button Grid.Column="1" Content="Ouvrir dans le navigateur"
+                Style="{StaticResource QuietButton}"
+                ToolTip="Ouvrir la page courante dans votre navigateur habituel, sur le site d'origine"
+                Click="OnOpenInBrowser" />
+      </Grid>
+    </Border>
+
     <!-- La chaîne du succès : d'où l'on vient, où l'on va. -->
     <Border DockPanel.Dock="Bottom" Padding="10,6"
             BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,1,0,0"
@@ -120,27 +141,6 @@
             <Path Style="{StaticResource RowGlyph}" Data="M 6,3 L 10,7.5 L 6,12" Margin="4,0,0,0" />
           </StackPanel>
         </Button>
-      </Grid>
-    </Border>
-
-    <!-- La source, toujours citée, et un accès au vrai navigateur -->
-    <Border DockPanel.Dock="Bottom" Padding="10,6"
-            Background="{StaticResource BrushedPanelBrush}"
-            BorderBrush="{DynamicResource BevelBrush}" BorderThickness="0,1,0,0">
-      <Grid>
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="*" />
-          <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
-
-        <TextBlock Grid.Column="0" VerticalAlignment="Center"
-                   Style="{StaticResource Muted}" FontSize="11"
-                   Text="Guides de papycha.fr" />
-
-        <Button Grid.Column="1" Content="Ouvrir dans le navigateur"
-                Style="{StaticResource QuietButton}"
-                ToolTip="Ouvrir la page courante dans votre navigateur habituel, sur le site d'origine"
-                Click="OnOpenInBrowser" />
       </Grid>
     </Border>
 
@@ -190,8 +190,27 @@
                     <ColumnDefinition Width="Auto" />
                   </Grid.ColumnDefinitions>
 
-                  <TextBlock x:Name="Libelle" Grid.Column="0" Text="{Binding Label}"
-                             TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                  <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <!-- La visibilité par défaut passe par un style : posée en
+                         attribut, elle serait une valeur locale, et aucun
+                         déclencheur de gabarit ne peut passer devant. -->
+                    <Path x:Name="Fleche" Data="M 9,3 L 5,7.5 L 9,12" Margin="0,0,6,0">
+                      <Path.Style>
+                        <Style TargetType="Path" BasedOn="{StaticResource RowGlyph}">
+                          <Setter Property="Visibility" Value="Collapsed" />
+
+                          <!-- RowGlyph prend sa couleur d'un bouton ancêtre. Il
+                               n'y en a pas dans une liste : sans cette ligne, le
+                               trait est peint avec une couleur nulle et la
+                               flèche reste invisible. -->
+                          <Setter Property="Stroke" Value="{DynamicResource TextBrush}" />
+                        </Style>
+                      </Path.Style>
+                    </Path>
+
+                    <TextBlock x:Name="Libelle" Text="{Binding Label}"
+                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                  </StackPanel>
 
                   <TextBlock Grid.Column="1" Text="{Binding Detail}" Margin="10,0,0,0"
                              VerticalAlignment="Center"
@@ -199,6 +218,13 @@
                 </Grid>
 
                 <DataTemplate.Triggers>
+                  <!-- Remonter d'un niveau se dit par une flèche vers la
+                       gauche, comme partout ailleurs, et non par un mot. -->
+                  <DataTrigger Binding="{Binding Kind}" Value="Back">
+                    <Setter TargetName="Fleche" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Libelle" Property="Visibility" Value="Collapsed" />
+                  </DataTrigger>
+
                   <!-- L'intertitre se distingue de ce qu'il coiffe : sans cela,
                        une rubrique se lirait comme une quête de plus. -->
                   <DataTrigger Binding="{Binding Kind}" Value="Header">

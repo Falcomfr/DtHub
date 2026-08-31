@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -169,40 +169,142 @@ public sealed partial class PapychaClient : IPapychaClient
     }
 
     /// <summary>
-    /// L'ordre du site, lu dans le menu que porte chacune de ses pages. Une
-    /// seule page suffit, et on prend celle des quêtes.
+    /// Le classement tenu à la main sur la page « Quêtes », et le contenu de
+    /// chacune des pages qu'il énumère.
     ///
-    /// Un échec ici n'est pas grave : sans cet ordre, les rubriques se rangent
-    /// par nombre de quêtes. On rend donc une liste vide plutôt que de faire
-    /// échouer toute l'indexation pour une question de présentation.
+    /// Une vingtaine de requêtes, une fois par semaine, sur le contenu seul :
+    /// une page de rubrique pèse une douzaine de kilooctets par l'API contre
+    /// trois cents en HTML complet. Une page qui ne répond pas est passée, elle
+    /// ne fait pas échouer les autres.
     /// </summary>
-    public async Task<IReadOnlyList<string>> GetSectionOrderAsync(
+    public async Task<IReadOnlyList<QuestPageSection>> GetPageSectionsAsync(
         CancellationToken cancellationToken = default)
     {
+        var index = await GetPageContentAsync("quetes", cancellationToken).ConfigureAwait(false);
+
+        if (index is null)
+        {
+            return [];
+        }
+
+        var listed = QuestSectionPageParser.ParseIndex(index);
+
+        if (listed.Count == 0)
+        {
+            LogSectionsUnavailable("le tableau de la page « Quêtes » est illisible");
+
+            return [];
+        }
+
+        List<QuestPageSection> sections = [];
+
+        foreach (var section in listed)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var content = await GetPageContentAsync(
+                PageReference(section.Url), cancellationToken).ConfigureAwait(false);
+
+            if (content is null)
+            {
+                continue;
+            }
+
+            sections.Add(section with
+            {
+                QuestUrls = QuestSectionPageParser.ParseQuestLinks(content),
+            });
+        }
+
+        LogSectionsRead(sections.Count);
+
+        return sections;
+    }
+
+    /// <summary>
+    /// Ce qui identifie une page dans l'API : son identifiant quand l'adresse
+    /// le porte, son dernier segment sinon. Le site emploie les deux formes
+    /// dans son propre tableau.
+    /// </summary>
+    private static string PageReference(string url)
+    {
+        var marker = url.IndexOf("page_id=", StringComparison.OrdinalIgnoreCase);
+
+        if (marker >= 0)
+        {
+            var digits = url[(marker + 8)..];
+            var end = digits.IndexOfAny(['&', '#']);
+
+            return end >= 0 ? digits[..end] : digits;
+        }
+
+        var segments = url.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+        return segments.Length > 0 ? segments[^1] : string.Empty;
+    }
+
+    /// <summary>
+    /// Contenu rendu d'une page, désignée par son identifiant ou par son
+    /// dernier segment d'adresse.
+    /// </summary>
+    private async Task<string?> GetPageContentAsync(
+        string reference,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(reference))
+        {
+            return null;
+        }
+
+        var address = reference.All(char.IsAsciiDigit)
+            ? $"pages/{reference}?_fields=content"
+            : $"pages?slug={Uri.EscapeDataString(reference)}&_fields=content";
+
         try
         {
             using var response = await _http
-                .GetAsync(new Uri("https://papycha.fr/quetes/"), cancellationToken)
+                .GetAsync(new Uri(address, UriKind.Relative), cancellationToken)
                 .ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
             {
-                return [];
+                return null;
             }
 
-            var html = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await using var stream = await response.Content
+                .ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
 
-            return QuestMenuParser.ParseOrder(html);
+            // Un identifiant rend la page seule, un slug rend un tableau : le
+            // même point d'entrée répond dans deux formes selon la question.
+            using var document = await JsonDocument
+                .ParseAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            var root = document.RootElement;
+
+            if (root.ValueKind == JsonValueKind.Array)
+            {
+                if (root.GetArrayLength() == 0)
+                {
+                    return null;
+                }
+
+                root = root[0];
+            }
+
+            return root.TryGetProperty("content", out var content)
+                   && content.TryGetProperty("rendered", out var rendered)
+                ? rendered.GetString()
+                : null;
         }
         catch (OperationCanceledException)
         {
             throw;
         }
-        catch (HttpRequestException exception)
+        catch (Exception exception) when (exception is HttpRequestException or JsonException)
         {
-            LogOrderUnavailable(exception.Message);
+            LogSectionsUnavailable(exception.Message);
 
-            return [];
+            return null;
         }
     }
 
@@ -270,8 +372,12 @@ public sealed partial class PapychaClient : IPapychaClient
     [LoggerMessage(Level = LogLevel.Information, Message = "Catalogue papycha indexé : {count} quête(s).")]
     private partial void LogIndexed(int count);
 
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Rubriques du site lues : {count}.")]
+    private partial void LogSectionsRead(int count);
+
     [LoggerMessage(
         Level = LogLevel.Information,
-        Message = "L'ordre des rubriques n'a pas pu être lu ({reason}) ; classement par nombre de quêtes.")]
-    private partial void LogOrderUnavailable(string reason);
+        Message = "Une rubrique du site n'a pas pu être lue ({reason}) ; les catégories suffisent à ranger le reste.")]
+    private partial void LogSectionsUnavailable(string reason);
 }

@@ -1,4 +1,4 @@
-namespace DtHub.Core.Papycha;
+﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
 /// Accès en lecture au site, isolé derrière une interface pour que le noyau
@@ -22,12 +22,18 @@ public interface IPapychaClient
     Task<IReadOnlyList<QuestSection>> GetSectionsAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Récupère l'ordre dans lequel le site présente ses rubriques.
+    /// Récupère le classement que le site tient à la main sur sa page
+    /// « Quêtes », et les quêtes que chaque rubrique énumère.
     ///
-    /// L'API ne le donne pas : elle range les catégories par ordre
-    /// alphabétique. Cet ordre-là ne vit que dans le menu du site.
+    /// Les catégories ne suffisent pas : mesuré sur les 782 quêtes, elles en
+    /// laissent 150 sans rubrique. Ces pages en réclament 120 et nomment des
+    /// ensembles qu'aucune catégorie ne porte.
+    ///
+    /// Rend une liste vide si le site ne répond pas : le catalogue reste
+    /// utilisable sur ses seules catégories.
     /// </summary>
-    Task<IReadOnlyList<string>> GetSectionOrderAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<QuestPageSection>> GetPageSectionsAsync(
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>Avancement d'une indexation.</summary>

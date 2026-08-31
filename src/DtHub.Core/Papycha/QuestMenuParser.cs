@@ -1,95 +1,52 @@
-using System.Net;
-using System.Text.RegularExpressions;
-
-namespace DtHub.Core.Papycha;
+﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Lit l'ordre dans lequel le site range ses rubriques de quêtes.
+/// Rapproche deux intitulés de rubrique qui désignent le même endroit.
 ///
-/// L'API donne les catégories par ordre alphabétique, ce qui n'a rien à voir
-/// avec l'ordre que le site présente à ses lecteurs : les quêtes principales
-/// d'abord, puis les répétables, puis les zones dans un ordre de progression.
-/// Cet ordre-là n'existe que dans leur menu, et c'est celui qu'il faut suivre.
+/// Le site ne nomme jamais deux fois pareil : sa page dit « Quêtes de Frigost »
+/// là où sa catégorie dit « Île de Frigost ». Une égalité ne se produirait
+/// jamais et une simple inclusion échouerait. On compare donc sur les mots qui
+/// distinguent.
 ///
 /// Fonction pure : elle se vérifie sur un fragment enregistré.
 /// </summary>
-public static partial class QuestMenuParser
+public static class QuestMenuParser
 {
     /// <summary>
-    /// Intitulés des rubriques de quêtes, dans l'ordre du menu, réduits à une
-    /// forme comparable.
+    /// Nombre de mots distinctifs que deux intitulés ont en commun, zéro s'ils
+    /// ne parlent pas du même endroit.
     ///
-    /// La lecture s'arrête à la première entrée qui sort de la branche des
-    /// quêtes : le menu enchaîne ensuite les chemins et les guides, qui ne
-    /// rangent rien ici.
+    /// Sert à rapprocher une page du site d'une catégorie : « Quêtes de
+    /// Frigost » et « Île de Frigost » désignent la même chose, et en faire
+    /// deux rubriques distinctes serait un doublon. Le compte, plutôt qu'un
+    /// simple oui ou non, départage « Quêtes du Château d'Amakna » entre les
+    /// catégories « Château d'Amakna » et « Amakna » : la première partage deux
+    /// mots, la seconde un seul.
     /// </summary>
-    public static IReadOnlyList<string> ParseOrder(string? html)
+    public static int Kinship(string? firstKey, string? secondKey)
     {
-        if (string.IsNullOrWhiteSpace(html))
-        {
-            return [];
-        }
+        var first = Distinctive(firstKey);
+        var second = Distinctive(secondKey);
 
-        var start = html.IndexOf("href=\"https://papycha.fr/quetes/\"", StringComparison.Ordinal);
-
-        if (start < 0)
-        {
-            return [];
-        }
-
-        List<string> order = [];
-
-        foreach (Match link in LinkPattern().Matches(html[start..]))
-        {
-            var url = link.Groups["url"].Value;
-
-            // Le menu quitte les quêtes : tout ce qui suit range autre chose.
-            if (!url.Contains("/quetes", StringComparison.OrdinalIgnoreCase)
-                && order.Count > 0)
-            {
-                break;
-            }
-
-            var label = QuestSearch.Normalize(
-                WebUtility.HtmlDecode(TagPattern().Replace(link.Groups["label"].Value, " ")));
-
-            if (label.Length > 0 && !order.Contains(label, StringComparer.Ordinal))
-            {
-                order.Add(label);
-            }
-        }
-
-        return order;
+        return first.Count == 0 || second.Count == 0
+            ? 0
+            : first.Count(w => second.Contains(w, StringComparer.Ordinal));
     }
 
     /// <summary>
-    /// Rang d'une rubrique dans l'ordre du site, ou un rang de fin si le menu
-    /// ne la mentionne pas.
-    ///
-    /// Les deux ne se nomment jamais pareil : le menu dit « Quêtes d'Astrub »
-    /// pour la catégorie « Astrub », et « Quêtes de Frigost » pour « Île de
-    /// Frigost ». Une égalité ne se produirait jamais, et une simple inclusion
-    /// échouerait sur Frigost. On rapproche donc sur le mot qui distingue.
+    /// Rang d'une rubrique dans le classement du site, ou un rang de fin s'il
+    /// ne la mentionne pas. Les rubriques qu'il ne nomme pas viennent après
+    /// celles qu'il nomme, sans jamais se glisser au milieu.
     /// </summary>
     public static int RankOf(IReadOnlyList<string> order, string sectionKey)
     {
         ArgumentNullException.ThrowIfNull(order);
 
-        var words = Distinctive(sectionKey);
-
-        if (words.Count == 0)
-        {
-            return int.MaxValue;
-        }
-
         for (var i = 0; i < order.Count; i++)
         {
-            foreach (var word in words)
+            if (Kinship(order[i], sectionKey) > 0)
             {
-                if (order[i].Contains(word, StringComparison.Ordinal))
-                {
-                    return i;
-                }
+                return i;
             }
         }
 
@@ -122,12 +79,4 @@ public static partial class QuestMenuParser
     {
         "quete", "quetes", "iles", "archipel", "region", "alentour", "monde", "douze",
     };
-
-    [GeneratedRegex(
-        @"<a[^>]*href=""(?<url>[^""]*)""[^>]*>(?<label>.*?)</a>",
-        RegexOptions.Singleline | RegexOptions.IgnoreCase)]
-    private static partial Regex LinkPattern();
-
-    [GeneratedRegex("<[^>]+>")]
-    private static partial Regex TagPattern();
 }
