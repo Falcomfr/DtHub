@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -18,6 +18,13 @@
     <!-- Le manifeste de dépendances est embarqué : la CI et l'exécution
          partagent exactement le même fichier. -->
     <EmbeddedResource Include="..\..\build\dependencies.json" LogicalName="DtHub.Infrastructure.dependencies.json" />
+
+    <!-- Carte « quête -> succès » relevée sur papycha par
+         build/extract-successes.py. Embarquée plutôt que lue à chaque
+         indexation : le succès n'est lisible que dans le bloc d'intro de
+         chaque quête, ce qui coûte treize mégaoctets, pour une information qui
+         ne bouge qu'aux mises à jour du jeu. -->
+    <EmbeddedResource Include="..\..\assets\quest-successes.json" LogicalName="DtHub.Infrastructure.quest-successes.json" />
   </ItemGroup>
 
 </Project>

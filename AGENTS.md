@@ -45,6 +45,7 @@ dotnet.exe build DtHub.slnx                 # compilation complète
 dotnet.exe test  DtHub.slnx                 # tests unitaires
 dotnet.exe run --project src/DtHub.App      # lancer l'application
 python3 build/make-icon.py                  # régénérer assets/app.ico
+python3 build/extract-successes.py           # relever la carte des succès de papycha
 
 # Publier le fichier unique distribué à l'utilisateur.
 dotnet.exe publish src/DtHub.App -c Release -r win-x64 --self-contained true \

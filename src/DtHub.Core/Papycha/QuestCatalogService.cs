@@ -14,16 +14,19 @@ public sealed class QuestCatalogService : IDisposable
 {
     private readonly IPapychaClient _client;
     private readonly IDocumentStore<QuestCatalogDocument> _store;
+    private readonly IQuestSuccessSeed? _seed;
     private readonly SemaphoreSlim _gate = new(1, 1);
 
     private QuestCatalogDocument? _current;
 
     public QuestCatalogService(
         IPapychaClient client,
-        IDocumentStore<QuestCatalogDocument> store)
+        IDocumentStore<QuestCatalogDocument> store,
+        IQuestSuccessSeed? seed = null)
     {
         _client = client;
         _store = store;
+        _seed = seed;
     }
 
     /// <summary>
@@ -138,12 +141,13 @@ public sealed class QuestCatalogService : IDisposable
         IReadOnlyList<string> Order) Arrange(
         IReadOnlyList<QuestSummary> quests,
         IReadOnlyList<QuestSection> sections,
-        IReadOnlyList<QuestPageSection> pages)
+        IReadOnlyList<QuestPageSection> pages,
+        IReadOnlyDictionary<string, string>? seed)
     {
         var known = sections.ToDictionary(s => s.Id, s => s);
         var extra = ExtraSections(pages, sections);
         var claimed = Claims(pages, extra, sections);
-        var successes = Successes(pages);
+        var successes = Successes(pages, seed);
 
         // Le tableau de la page « Quêtes » est le seul endroit où le site
         // publie son propre classement, et il le publie en clair. Le menu, qui
@@ -368,12 +372,21 @@ public sealed class QuestCatalogService : IDisposable
 
     /// <summary>
     /// <summary>
-    /// Succès de chaque quête, lu sur les intertitres des pages de rubrique.
+    /// Succès de chaque quête, de deux sources qui se complètent.
     ///
-    /// Le premier qui la nomme l'emporte : une quête n'appartient qu'à un
-    /// succès, et les pages ne se contredisent pas sur ce point.
+    /// Les intertitres des pages de rubrique en rattachent 380, la carte
+    /// embarquée 505, leur union 505 sur 782. La carte l'emporte : elle est
+    /// tirée du bloc d'intro de chaque quête, c'est-à-dire de ce que la quête
+    /// dit d'elle-même, là où un intertitre est un rangement éditorial. Elle
+    /// porte aussi l'orthographe officielle, les deux sources écrivant
+    /// « Brûler le pissenlit à la racine » et « par la racine ».
+    ///
+    /// Les intertitres restent lus à chaque indexation : ils rattrapent les
+    /// quêtes ajoutées depuis la dernière extraction.
     /// </summary>
-    private static Dictionary<string, string> Successes(IReadOnlyList<QuestPageSection> pages)
+    private static Dictionary<string, string> Successes(
+        IReadOnlyList<QuestPageSection> pages,
+        IReadOnlyDictionary<string, string>? seed)
     {
         Dictionary<string, string> successes = new(StringComparer.Ordinal);
 
@@ -382,6 +395,14 @@ public sealed class QuestCatalogService : IDisposable
             foreach (var url in group.QuestUrls)
             {
                 successes.TryAdd(url, group.Name);
+            }
+        }
+
+        if (seed is not null)
+        {
+            foreach (var (url, name) in seed)
+            {
+                successes[QuestSectionPageParser.Key(url)] = name;
             }
         }
 
@@ -495,7 +516,8 @@ public sealed class QuestCatalogService : IDisposable
             var sections = await _client.GetSectionsAsync(cancellationToken).ConfigureAwait(false);
             var pages = await _client.GetPageSectionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var (arranged, ordered, ranking) = Arrange(quests, sections, pages);
+            var (arranged, ordered, ranking) = Arrange(
+                quests, sections, pages, _seed?.Load());
 
             var document = new QuestCatalogDocument
             {

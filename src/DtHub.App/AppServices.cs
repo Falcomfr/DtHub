@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Net.Http;
 
 using DtHub.App.Services;
@@ -70,6 +70,7 @@ public static class AppServices
         services.AddSingleton<IPapychaClient>(provider => new PapychaClient(
             new HttpClient { Timeout = TimeSpan.FromSeconds(30) },
             provider.GetRequiredService<ILogger<PapychaClient>>()));
+        services.AddSingleton<IQuestSuccessSeed, EmbeddedQuestSuccessSeed>();
         services.AddSingleton<QuestCatalogService>();
         services.AddSingleton<IAdbLocator>(provider => new AdbLocator(
             provider.GetRequiredService<IDependencyProvisioner>(),

@@ -30,8 +30,11 @@ public sealed class QuestCatalogDocument
     /// réclament, le site la rangeant lui-même à plusieurs endroits.
     ///
     /// Version 8 : l'ordre dans lequel le site présente ses succès.
+    ///
+    /// Version 9 : les succès viennent aussi de la carte embarquée, tirée du
+    /// bloc d'intro de chaque quête.
     /// </summary>
-    public const int CurrentSchemaVersion = 8;
+    public const int CurrentSchemaVersion = 9;
 
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 

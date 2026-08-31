@@ -1,4 +1,4 @@
-# Décisions d'architecture
+﻿# Décisions d'architecture
 
 Une entrée par décision structurante : le contexte, le choix retenu et ce
 qu'il coûte. Les entrées ne sont pas réécrites ; si une décision est
@@ -622,7 +622,18 @@ le vrai navigateur. Leur logo seulement s'ils l'accordent.
 
 Le catalogue est bâti en huit requêtes sur leur API REST, mises en cache sept
 jours. Les champs sont demandés nommément, sans le corps des articles : 650 Ko
-au lieu de 22 Mo.
+au lieu de 13 Mo.
+
+Le succès dont une quête fait partie n'est pourtant lisible que dans ce corps.
+Le lire à chaque indexation, sur chaque poste, coûterait ces 13 Mo par semaine
+pour une information qui ne bouge qu'aux mises à jour du jeu. Il est donc relevé
+une fois, par `build/extract-successes.py`, et livré avec l'application dans
+`assets/quest-successes.json` : 37 Ko. Les intertitres des pages de rubrique
+restent lus à chaque indexation et rattrapent les quêtes ajoutées depuis.
+
+Mesuré : les intertitres seuls rattachent 380 quêtes, la carte 505, et le
+catalogue en rattache 498 sur 782. Les autres n'ont pas de succès, ce que
+confirme la liste officielle du site, qui n'en annonce que 475 au total.
 
 La fenêtre n'emploie pas AllowsTransparency. Un WebView2 est une surface native
 et ne se dessine pas dans une fenêtre transparente.

@@ -346,4 +346,68 @@ public class QuestCatalogServiceTests
         Assert.Equal(3, service.InSection(135).Count);
         Assert.Equal(3, service.InSection(18).Count);
     }
+
+    [Fact]
+    public async Task La_carte_embarquee_complete_les_intertitres()
+    {
+        // Les intertitres des pages rattachent 380 quêtes, la carte 505 : elle
+        // est tirée du bloc d'intro de chaque quête, que les pages ne coiffent
+        // pas toutes.
+        var client = new FakePapychaClient()
+            .WithQuest(1, "Une quête coiffée par un intertitre")
+            .WithQuest(2, "Une quête qu'aucun intertitre ne coiffe")
+            .WithPage("Quêtes principales", "https://papycha.fr/quetes-principales/", 1, 2)
+            .WithSuccess("Vu par la page", 1);
+
+        var seed = new FakeQuestSuccessSeed
+        {
+            ["https://exemple.invalid/quete-2"] = "Vu par la carte",
+        };
+
+        var store = new InMemoryDocumentStore<QuestCatalogDocument>();
+        var service = new QuestCatalogService(client, store, seed);
+
+        var catalog = await service.GetAsync(cancellationToken: CancellationToken.None);
+
+        Assert.Equal("Vu par la page", catalog.Quests[0].SuccessName);
+        Assert.Equal("Vu par la carte", catalog.Quests[1].SuccessName);
+    }
+
+    [Fact]
+    public async Task La_carte_embarquee_l_emporte_sur_un_intertitre()
+    {
+        // Le bloc d'intro est ce que la quête dit d'elle-même ; un intertitre
+        // est un rangement éditorial. Les deux sources écrivent d'ailleurs
+        // « à la racine » et « par la racine » pour le même succès.
+        var client = new FakePapychaClient()
+            .WithQuest(1, "La main occulte")
+            .WithPage("Quêtes d'Astrub", "https://papycha.fr/quetes-dastrub/", 1)
+            .WithSuccess("Brûler le pissenlit à la racine", 1);
+
+        var seed = new FakeQuestSuccessSeed
+        {
+            ["https://exemple.invalid/quete-1"] = "Brûler le pissenlit par la racine",
+        };
+
+        var store = new InMemoryDocumentStore<QuestCatalogDocument>();
+        var service = new QuestCatalogService(client, store, seed);
+
+        var catalog = await service.GetAsync(cancellationToken: CancellationToken.None);
+
+        Assert.Equal("Brûler le pissenlit par la racine", catalog.Quests[0].SuccessName);
+    }
+
+    [Fact]
+    public async Task Sans_carte_embarquee_les_intertitres_suffisent()
+    {
+        var client = new FakePapychaClient()
+            .WithQuest(1, "La main occulte")
+            .WithPage("Quêtes d'Astrub", "https://papycha.fr/quetes-dastrub/", 1)
+            .WithSuccess("Brûler le pissenlit à la racine", 1);
+
+        var (service, _, _) = Build(client);
+        var catalog = await service.GetAsync(cancellationToken: CancellationToken.None);
+
+        Assert.Equal("Brûler le pissenlit à la racine", catalog.Quests[0].SuccessName);
+    }
 }
