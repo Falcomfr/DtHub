@@ -96,6 +96,21 @@ public sealed record QuestSummary
     /// nulle part ailleurs pour la plupart des succès.
     /// </summary>
     public int PlayOrder { get; init; }
+
+    /// <summary>
+    /// Position en jeu où la quête se lance, « [4,-6] », vide si le site ne la
+    /// donne pas. Renseignée sur 687 quêtes sur 782.
+    /// </summary>
+    public string StartPosition { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Personnage auprès de qui la quête se lance, vide si le site ne le donne
+    /// pas. Renseigné sur 693 quêtes sur 782.
+    ///
+    /// Avec la position, de quoi composer la première étape sans lire la prose :
+    /// « Rendez-vous en [4,-6], parlez à Yse Vewibad ».
+    /// </summary>
+    public string StartPerson { get; init; } = string.Empty;
 }
 
 /// <summary>Une rubrique de l'arbre : une catégorie ou un type du site.</summary>

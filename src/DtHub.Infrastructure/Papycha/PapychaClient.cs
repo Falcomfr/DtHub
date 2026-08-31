@@ -67,6 +67,10 @@ public sealed partial class PapychaClient : IPapychaClient
         List<QuestSummary> quests = [];
         var total = 0;
 
+        // Avant les quêtes : chacune ne porte que l'identifiant de son
+        // personnage de départ, et il faut cette table pour en tirer un nom.
+        var people = await GetPeopleAsync(cancellationToken).ConfigureAwait(false);
+
         for (var page = 1; page <= MaxPages; page++)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -103,7 +107,7 @@ public sealed partial class PapychaClient : IPapychaClient
                 break;
             }
 
-            quests.AddRange(items.Select(ToSummary));
+            quests.AddRange(items.Select(item => ToSummary(item, people)));
             progress?.Report(new QuestIndexingProgress(quests.Count, total));
 
             if (items.Count < PageSize)
@@ -309,9 +313,10 @@ public sealed partial class PapychaClient : IPapychaClient
         }
     }
 
-    private static QuestSummary ToSummary(PostPayload post)
+    private static QuestSummary ToSummary(PostPayload post, IReadOnlyDictionary<int, string> people)
     {
         var title = Decode(post.Title?.Rendered);
+        var person = post.Meta?.StartPersonId ?? 0;
 
         return new QuestSummary
         {
@@ -322,7 +327,75 @@ public sealed partial class PapychaClient : IPapychaClient
             Categories = post.Categories ?? [],
             Types = post.QuestTypes ?? [],
             SearchKey = QuestSearch.Normalize(title),
+            StartPosition = Decode(post.Meta?.StartPosition).Trim(),
+            StartPerson = person > 0 ? people.GetValueOrDefault(person, string.Empty) : string.Empty,
         };
+    }
+
+    /// <summary>
+    /// Noms des personnages, par identifiant.
+    ///
+    /// Le site range le personnage de départ d'une quête sous forme
+    /// d'identifiant : sans cette table, on saurait qu'il y en a un sans savoir
+    /// lequel. Trois cent soixante-treize noms, quatre requêtes, une fois par
+    /// indexation.
+    ///
+    /// Rend une table vide si le site ne répond pas : la quête garde alors sa
+    /// position de départ, et perd seulement le nom.
+    /// </summary>
+    private async Task<Dictionary<int, string>> GetPeopleAsync(CancellationToken cancellationToken)
+    {
+        Dictionary<int, string> people = [];
+
+        for (var page = 1; page <= MaxPages; page++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var address = $"papycha_pnj?per_page={PageSize}&page={page}&_fields=id,name";
+
+            try
+            {
+                using var response = await _http
+                    .GetAsync(new Uri(address, UriKind.Relative), cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    break;
+                }
+
+                var terms = await response.Content
+                    .ReadFromJsonAsync<List<TermPayload>>(Json, cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (terms is not { Count: > 0 })
+                {
+                    break;
+                }
+
+                foreach (var term in terms)
+                {
+                    people[term.Id] = Decode(term.Name);
+                }
+
+                if (terms.Count < PageSize)
+                {
+                    break;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception exception) when (exception is HttpRequestException or JsonException)
+            {
+                LogPeopleUnavailable(exception.Message);
+
+                break;
+            }
+        }
+
+        return people;
     }
 
     /// <summary>
@@ -357,6 +430,12 @@ public sealed partial class PapychaClient : IPapychaClient
     {
         [JsonPropertyName("_pqa_level")]
         public int Level { get; set; }
+
+        [JsonPropertyName("_pqa_start_position")]
+        public string? StartPosition { get; set; }
+
+        [JsonPropertyName("_pqa_start_person_id")]
+        public int StartPersonId { get; set; }
     }
 
     private sealed class TermPayload
@@ -373,6 +452,11 @@ public sealed partial class PapychaClient : IPapychaClient
     [LoggerMessage(Level = LogLevel.Information, Message = "Catalogue papycha indexé : {count} quête(s).")]
     private partial void LogIndexed(int count);
 
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Les personnages n'ont pas pu être lus ({reason}) ; les quêtes garderont leur position sans le nom.")]
+    private partial void LogPeopleUnavailable(string reason);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Rubriques du site lues : {count}.")]
     private partial void LogSectionsRead(int count);

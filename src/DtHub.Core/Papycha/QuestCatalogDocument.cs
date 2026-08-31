@@ -35,8 +35,11 @@ public sealed class QuestCatalogDocument
     /// bloc d'intro de chaque quête.
     ///
     /// Version 10 : la place de chaque quête dans son succès.
+    ///
+    /// Version 11 : la position et le personnage de départ, et la clé de
+    /// rubrique bâtie sur les rubriques affichées.
     /// </summary>
-    public const int CurrentSchemaVersion = 10;
+    public const int CurrentSchemaVersion = 11;
 
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 
