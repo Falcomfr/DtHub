@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 
 namespace DtHub.Core.Scrcpy;
 
@@ -119,6 +119,21 @@ public sealed record ScrcpyOptions
     public string VideoBitrateArgument =>
         VideoBitrateKbps.ToString(CultureInfo.InvariantCulture) + "K";
 
+    /// <summary>Densité la plus basse acceptée.</summary>
+    public const int MinDisplayDpi = 60;
+
+    /// <summary>
+    /// Densité la plus haute acceptée.
+    ///
+    /// Ce n'est pas une limite d'Android : mesuré sur le téléphone de
+    /// référence, l'afficheur virtuel accepte 640, 800 et même 1200. C'est une
+    /// prudence, et elle doit valoir la même partout. Elle valait 800 au calcul
+    /// et 640 ici, si bien que toute densité au-dessus de 640 était rabotée en
+    /// silence et que le zoom le plus proche saturait bien avant la hauteur
+    /// annoncée.
+    /// </summary>
+    public const int MaxDisplayDpi = 800;
+
     /// <summary>
     /// Rend une copie corrigée si des valeurs aberrantes ont été saisies dans
     /// les paramètres. On préfère corriger que refuser de démarrer.
@@ -129,6 +144,6 @@ public sealed record ScrcpyOptions
         VideoBitrateKbps = Math.Clamp(VideoBitrateKbps, 200, 100_000),
         VirtualDisplayWidth = Math.Clamp(VirtualDisplayWidth, 240, 7680),
         VirtualDisplayHeight = Math.Clamp(VirtualDisplayHeight, 240, 7680),
-        VirtualDisplayDpi = Math.Clamp(VirtualDisplayDpi, 60, 640),
+        VirtualDisplayDpi = Math.Clamp(VirtualDisplayDpi, MinDisplayDpi, MaxDisplayDpi),
     };
 }

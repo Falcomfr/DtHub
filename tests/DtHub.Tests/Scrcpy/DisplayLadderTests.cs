@@ -1,4 +1,4 @@
-using DtHub.Core.Scrcpy;
+﻿using DtHub.Core.Scrcpy;
 using DtHub.Core.Settings;
 
 namespace DtHub.Tests.Scrcpy;
@@ -109,5 +109,34 @@ public sealed class DisplayLadderTests
 
         Assert.Equal(1920, width);
         Assert.Equal(1080, height);
+    }
+
+    [Fact]
+    public void Le_repli_descend_palier_par_palier()
+    {
+        // Un repli unique à 1080 laissait sans recours les encodeurs plafonnés
+        // à 1280x720, courants sur le bas de gamme ancien et les tablettes
+        // d'entrée de gamme.
+        Assert.Equal(1080, DisplayLadder.Below(1440, 1920, 1080)!.Value.Height);
+        Assert.Equal(720, DisplayLadder.Below(1080, 1920, 1080)!.Value.Height);
+        Assert.Null(DisplayLadder.Below(720, 1280, 720));
+        Assert.Null(DisplayLadder.Below(540, 960, 540));
+    }
+
+    [Fact]
+    public void Le_repli_garde_le_rapport_d_image_de_l_ecran()
+    {
+        // Le repli imposait du 16:9, si bien que la fenêtre changeait de forme
+        // entre la première tentative et la seconde sur un écran large.
+        var (width, height) = DisplayLadder.Below(1440, 3440, 1440)!.Value;
+
+        Assert.Equal(1080, height);
+        Assert.Equal(2580, width);
+    }
+
+    [Fact]
+    public void Un_rapport_inconnu_retombe_sur_la_definition_de_repli()
+    {
+        Assert.Equal((1920, 1080), DisplayLadder.At(1080, 0, 0));
     }
 }

@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 
 using DtHub.Core.Sessions;
 using DtHub.Core.Dependencies;
@@ -362,6 +362,11 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         }
         catch (TimeoutException)
         {
+            if (session.FailureKind == ScrcpyFailureKind.None)
+            {
+                session.FailureKind = ScrcpyFailureKind.Timeout;
+            }
+
             Fail(session, "Le téléphone n'a pas ouvert d'écran virtuel à temps.");
             session.Process.Kill();
             return null;
@@ -467,7 +472,16 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
                 if (ScrcpyOutputParser.IsError(line.Text))
                 {
-                    session.FailureMessage ??= ScrcpyOutputParser.DescribeError(line.Text);
+                    var kind = ScrcpyOutputParser.Classify(line.Text);
+
+                    // La première erreur est la cause, les suivantes en sont
+                    // souvent les conséquences : on retient la première.
+                    if (session.FailureKind == ScrcpyFailureKind.None)
+                    {
+                        session.FailureKind = kind;
+                    }
+
+                    session.FailureMessage ??= ScrcpyOutputParser.Describe(kind);
                 }
             }
         }
@@ -508,6 +522,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         {
             State = ScrcpySessionState.Failed,
             FailureMessage = details is null ? message : $"{message} ({details})",
+            FailureKind = ScrcpyFailureKind.Environment,
         };
 
         _sessions[sessionId] = session;

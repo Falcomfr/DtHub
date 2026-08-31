@@ -1,4 +1,4 @@
-using DtHub.Core.Adb;
+﻿using DtHub.Core.Adb;
 using DtHub.Core.Devices;
 using DtHub.Core.Dofus;
 using DtHub.Core.Hotkeys;
@@ -338,7 +338,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             IconDirectory = _iconDirectory,
         };
 
-        var serials = await ResolveSerialsAsync(cancellationToken).ConfigureAwait(false);
+        var devices = await ResolveDevicesAsync(cancellationToken).ConfigureAwait(false);
 
         // La position est donnée à scrcpy dès le lancement. Le faire après
         // coup ne suffit pas : scrcpy recentre sa fenêtre quand il reçoit la
@@ -357,9 +357,20 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 continue;
             }
 
-            if (!serials.TryGetValue(instance.DeviceId, out var serial))
+            if (!devices.TryGetValue(instance.DeviceId, out var device))
             {
                 problems.Add($"{instance.DisplayName} : le téléphone n'est pas connecté.");
+                continue;
+            }
+
+            // Le niveau d'API est connu depuis la découverte. Le lire ici évite
+            // d'attendre le délai complet de scrcpy pour un appareil dont on
+            // sait déjà qu'il ne créera pas d'afficheur virtuel.
+            if (AndroidRequirements.DescribeVirtualDisplayShortfall(
+                    device.SdkVersion, device.AndroidVersion) is { } shortfall)
+            {
+                problems.Add($"{instance.DisplayName} : {shortfall}");
+                LogAndroidTooOld(instance.DisplayName, device.SdkVersion ?? 0);
                 continue;
             }
 
@@ -367,31 +378,38 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             var placement = ComputePlacement(options, stored);
 
-            var target = ToTarget(instance, serial);
+            var target = ToTarget(instance, device.Serial);
             var display = WithDisplayFor(options, placement, stored);
 
             var session = await _sessions.StartAsync(
                 target, display, placement, cancellationToken).ConfigureAwait(false);
 
             // Les encodeurs vidéo annoncent une définition maximale, variable
-            // d'un appareil à l'autre : une tablette modeste peut plafonner là
-            // où un téléphone récent monte en 8K. Plutôt que de renoncer, on
-            // retente une fois à une définition qu'aucun encodeur ne refuse.
-            if (session.State == ScrcpySessionState.Failed
-                && display.VirtualDisplayHeight > DisplayLadder.FallbackHeight)
+            // d'un appareil à l'autre : une tablette modeste peut plafonner à
+            // 1280x720 là où un téléphone récent monte en 8K. Plutôt que de
+            // renoncer, on redescend les paliers de repli.
+            //
+            // Seulement pour les refus qu'une définition plus modeste peut
+            // réparer : un téléphone débranché le restera, et chaque tentative
+            // coûte l'attente complète.
+            while (session.State == ScrcpySessionState.Failed
+                && ScrcpyOutputParser.CanRetrySmaller(session.FailureKind)
+                && DisplayLadder.Below(
+                       display.VirtualDisplayHeight,
+                       display.VirtualDisplayWidth,
+                       display.VirtualDisplayHeight) is { } smaller)
             {
-                LogDisplayFallback(instance.DisplayName, display.VirtualDisplayHeight);
+                LogDisplayFallback(instance.DisplayName, display.VirtualDisplayHeight, smaller.Height);
+
+                display = display with
+                {
+                    VirtualDisplayWidth = smaller.Width,
+                    VirtualDisplayHeight = smaller.Height,
+                    VirtualDisplayDpi = ZoomProfile.DpiFor(smaller.Height, _zoom),
+                };
 
                 session = await _sessions.StartAsync(
-                    target,
-                    display with
-                    {
-                        VirtualDisplayWidth = DisplayLadder.FallbackWidth,
-                        VirtualDisplayHeight = DisplayLadder.FallbackHeight,
-                        VirtualDisplayDpi = ZoomProfile.DpiFor(DisplayLadder.FallbackHeight, _zoom),
-                    },
-                    placement,
-                    cancellationToken).ConfigureAwait(false);
+                    target, display, placement, cancellationToken).ConfigureAwait(false);
             }
 
             if (session.State == ScrcpySessionState.Failed)
@@ -970,13 +988,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
         DisplayName = instance.DisplayName,
     };
 
-    private async Task<Dictionary<string, string>> ResolveSerialsAsync(CancellationToken cancellationToken)
+    /// <summary>
+    /// Appareils connectés, indexés par identifiant. On garde l'enregistrement
+    /// entier et non le seul numéro de série : la version d'Android s'y trouve,
+    /// et le lancement en a besoin.
+    /// </summary>
+    private async Task<Dictionary<string, AndroidDevice>> ResolveDevicesAsync(
+        CancellationToken cancellationToken)
     {
         var discovery = await _devices.RefreshAsync(cancellationToken).ConfigureAwait(false);
 
         return discovery.Devices
             .Where(d => d.IsConnected)
-            .ToDictionary(d => d.Id, d => d.Serial, StringComparer.Ordinal);
+            .ToDictionary(d => d.Id, d => d, StringComparer.Ordinal);
     }
 
     private async Task ApplyWindowSettingsAsync(CancellationToken cancellationToken)
@@ -1140,8 +1164,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     [LoggerMessage(
         Level = LogLevel.Warning,
-        Message = "{instance} refusée en {height} de haut : nouvel essai à la définition de repli.")]
-    private partial void LogDisplayFallback(string instance, int height);
+        Message = "{instance} refusée en {height} de haut : nouvel essai en {retry} de haut.")]
+    private partial void LogDisplayFallback(string instance, int height, int retry);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "{instance} non lancée : appareil au niveau d'API {sdk}, sous le minimum requis.")]
+    private partial void LogAndroidTooOld(string instance, int sdk);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Écrans : {monitors}. Fenêtres de jeu : {placement}.")]
     private partial void LogPlacement(string monitors, string placement);

@@ -1,4 +1,4 @@
-using DtHub.Core.Processes;
+﻿using DtHub.Core.Processes;
 using DtHub.Core.Sessions;
 
 namespace DtHub.Core.Scrcpy;
@@ -71,6 +71,12 @@ public sealed class ScrcpySession
 
     /// <summary>Message affichable expliquant l'échec, le cas échéant.</summary>
     public string? FailureMessage { get; internal set; }
+
+    /// <summary>
+    /// Nature du refus. Sert à décider si une seconde tentative a un sens,
+    /// question à laquelle le message affiché ne répond pas.
+    /// </summary>
+    public ScrcpyFailureKind FailureKind { get; internal set; } = ScrcpyFailureKind.None;
 
     public DateTimeOffset StartedUtc { get; }
 

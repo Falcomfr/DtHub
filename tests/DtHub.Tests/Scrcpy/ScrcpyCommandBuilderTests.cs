@@ -1,4 +1,4 @@
-using DtHub.Core;
+﻿using DtHub.Core;
 using DtHub.Core.Scrcpy;
 
 namespace DtHub.Tests.Scrcpy;
@@ -188,7 +188,7 @@ public class ScrcpyCommandBuilderTests
 
         Assert.Equal("1", ValueOf(arguments, "--max-fps"));
         Assert.Equal("200K", ValueOf(arguments, "--video-bit-rate"));
-        Assert.Equal("240x1080/640", ValueOf(arguments, "--new-display"));
+        Assert.Equal("240x1080/800", ValueOf(arguments, "--new-display"));
     }
 
     [Fact]

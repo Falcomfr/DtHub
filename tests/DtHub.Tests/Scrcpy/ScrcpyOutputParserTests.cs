@@ -1,4 +1,4 @@
-using DtHub.Core.Scrcpy;
+﻿using DtHub.Core.Scrcpy;
 
 namespace DtHub.Tests.Scrcpy;
 
@@ -63,5 +63,48 @@ public class ScrcpyOutputParserTests
         // traduction approximative.
         Assert.Null(ScrcpyOutputParser.DescribeError("ERROR: something entirely new"));
         Assert.Null(ScrcpyOutputParser.DescribeError(null));
+    }
+
+    [Theory]
+    [InlineData("ERROR: Could not find any ADB device", ScrcpyFailureKind.DeviceGone)]
+    [InlineData("ERROR: Device disconnected", ScrcpyFailureKind.DeviceDisconnected)]
+    [InlineData("ERROR: device unauthorized", ScrcpyFailureKind.Unauthorized)]
+    [InlineData("ERROR: Could not create display", ScrcpyFailureKind.VirtualDisplayRefused)]
+    [InlineData("ERROR: Encoder 'c2.android.avc.encoder' failed", ScrcpyFailureKind.Encoder)]
+    [InlineData("ERROR: Server connection failed", ScrcpyFailureKind.ConnectionFailed)]
+    public void Chaque_refus_connu_est_range_dans_sa_categorie(string line, ScrcpyFailureKind expected)
+    {
+        Assert.Equal(expected, ScrcpyOutputParser.Classify(line));
+    }
+
+    [Fact]
+    public void Un_refus_non_reconnu_n_est_pas_range_dans_une_categorie_devinee()
+    {
+        // La sortie de scrcpy n'est pas contractuelle : ranger au jugé mènerait
+        // à afficher une explication fausse avec l'aplomb d'une explication
+        // vraie.
+        Assert.Equal(
+            ScrcpyFailureKind.Unknown,
+            ScrcpyOutputParser.Classify("ERROR: something entirely new"));
+
+        Assert.Null(ScrcpyOutputParser.Describe(ScrcpyFailureKind.Unknown));
+    }
+
+    [Fact]
+    public void On_ne_retente_que_les_refus_qu_une_definition_plus_modeste_peut_reparer()
+    {
+        // Un encodeur saturé se répare en descendant ; un téléphone débranché
+        // ne se répare pas, et chaque tentative coûte l'attente complète.
+        Assert.True(ScrcpyOutputParser.CanRetrySmaller(ScrcpyFailureKind.Encoder));
+        Assert.True(ScrcpyOutputParser.CanRetrySmaller(ScrcpyFailureKind.Timeout));
+        Assert.True(ScrcpyOutputParser.CanRetrySmaller(ScrcpyFailureKind.Unknown));
+        Assert.True(ScrcpyOutputParser.CanRetrySmaller(ScrcpyFailureKind.VirtualDisplayRefused));
+
+        Assert.False(ScrcpyOutputParser.CanRetrySmaller(ScrcpyFailureKind.DeviceGone));
+        Assert.False(ScrcpyOutputParser.CanRetrySmaller(ScrcpyFailureKind.DeviceDisconnected));
+        Assert.False(ScrcpyOutputParser.CanRetrySmaller(ScrcpyFailureKind.Unauthorized));
+        Assert.False(ScrcpyOutputParser.CanRetrySmaller(ScrcpyFailureKind.ConnectionFailed));
+        Assert.False(ScrcpyOutputParser.CanRetrySmaller(ScrcpyFailureKind.Environment));
+        Assert.False(ScrcpyOutputParser.CanRetrySmaller(ScrcpyFailureKind.None));
     }
 }
