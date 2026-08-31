@@ -32,20 +32,6 @@ public sealed record QuestSummary
     public string SearchKey { get; init; } = string.Empty;
 
     /// <summary>
-    /// Noms des rubriques de la quête, sous la même forme réduite.
-    ///
-    /// Chercher « frigost » ne rendait que quatre quêtes, celles dont le titre
-    /// porte le mot, alors que cent quatre-vingt-quatre s'y déroulent. On
-    /// cherche un endroit autant qu'un nom.
-    ///
-    /// Bâti sur les rubriques réellement affichées, et sous leur nom d'affichage.
-    /// Il l'était sur les catégories brutes du site : les sept rubriques venues
-    /// d'une page n'étaient donc cherchables par aucun chemin, et comme la
-    /// racine y figurait, les 782 quêtes portaient le mot « quêtes ».
-    /// </summary>
-    public string SectionKey { get; init; } = string.Empty;
-
-    /// <summary>
     /// Rubrique retenue pour situer la quête dans une liste de recherche.
     ///
     /// La plus petite de celles auxquelles elle appartient : c'est la plus
@@ -111,6 +97,16 @@ public sealed record QuestSummary
     /// « Rendez-vous en [4,-6], parlez à Yse Vewibad ».
     /// </summary>
     public string StartPerson { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Ce qu'il faut avoir fait avant cette quête, tel que le site l'affiche.
+    ///
+    /// De deux sources réunies : les métadonnées du site, qui donnent un texte
+    /// libre court pour 130 quêtes, et la colonne « précédents » de la page,
+    /// qui nomme les quêtes et les jalons pour 527. Ensemble, 613 quêtes sur
+    /// 782, là où le niveau n'en renseigne que 117.
+    /// </summary>
+    public IReadOnlyList<string> Prerequisites { get; init; } = [];
 }
 
 /// <summary>Une rubrique de l'arbre : une catégorie ou un type du site.</summary>

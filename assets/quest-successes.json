@@ -1,4 +1,9 @@
 {
+"https://papycha.fr/9803-2": {
+"p": [
+"Des anneaux sur le bout des doigts (bontarien 21)"
+]
+},
 "https://papycha.fr/?p=8713&amp;preview=true": {
 "n": 0,
 "o": 1,
@@ -14,24 +19,62 @@
 "o": 2,
 "s": "La grande kradoc"
 },
+"https://papycha.fr/apprentissage-ecuyer": {
+"p": [
+"Apprentissage : Disciple de Ménalt",
+"Les rats d’Hyoactif (bontarien 40)"
+]
+},
+"https://papycha.fr/dechainement-de-spiritualite": {
+"p": [
+"Bienvenue à Pandala"
+]
+},
 "https://papycha.fr/fusionner-pour-mieux-regner": {
 "n": 2,
 "o": 1,
+"p": [
+"Succès Vers l'infini et Pandala réalisé"
+],
 "s": "Choisir, c'est renoncer"
 },
 "https://papycha.fr/glugubrr-est-un-vilain-grincheux": {
 "n": 0,
 "o": 4,
+"p": [
+"La Clef de la réussite"
+],
 "s": "Sourire sous cape"
+},
+"https://papycha.fr/info-pour-un-vrai-traitre": {
+"p": [
+"Traître ou pas traître, telle est la question…"
+]
+},
+"https://papycha.fr/la-demoiselle-du-pont": {
+"p": [
+"Déchaînement de spiritualité"
+]
 },
 "https://papycha.fr/la-voie-du-wukang": {
 "n": 3,
 "o": 2,
+"p": [
+"Fusionner pour mieux régner"
+],
 "s": "Choisir, c'est renoncer"
+},
+"https://papycha.fr/le-pandawa-courtise": {
+"p": [
+"Déchaînement de spiritualité"
+]
 },
 "https://papycha.fr/les-ames-et-les-enfants-dabord": {
 "n": 2,
 "o": 3,
+"p": [
+"Vivre au delà de la mort"
+],
 "s": "Les choses sublimes rappellent toujours la mort"
 },
 "https://papycha.fr/les-graines-de-goroku": {
@@ -39,9 +82,22 @@
 "o": 1,
 "s": "À la chasse aux Goroku"
 },
+"https://papycha.fr/leternel-cerisier": {
+"p": [
+"Déchaînement de spiritualité"
+]
+},
+"https://papycha.fr/lyeno-abraknyde-malgre-lui-bonta-25": {
+"p": [
+"Corvée de patate (bontarien 24)"
+]
+},
 "https://papycha.fr/on-recherche-culbutoeuf": {
 "n": 2,
 "o": 1,
+"p": [
+"Les marcheurs blancs"
+],
 "s": "L’institut pisteur"
 },
 "https://papycha.fr/on-recherche-dremoan": {
@@ -57,26 +113,41 @@
 "https://papycha.fr/on-recherche-glourdorak": {
 "n": 2,
 "o": 2,
+"p": [
+"Les marcheurs blancs"
+],
 "s": "L’institut pisteur"
 },
 "https://papycha.fr/on-recherche-le-chevalier-de-glace": {
 "n": 2,
 "o": 4,
+"p": [
+"Les marcheurs blancs"
+],
 "s": "L’institut pisteur"
 },
 "https://papycha.fr/on-recherche-le-comte-harebourg": {
 "n": 2,
 "o": 5,
+"p": [
+"Les marcheurs blancs"
+],
 "s": "L’institut pisteur"
 },
 "https://papycha.fr/on-recherche-le-psikopompe": {
 "n": 2,
 "o": 6,
+"p": [
+"Les marcheurs blancs"
+],
 "s": "L’institut pisteur"
 },
 "https://papycha.fr/on-recherche-mekamouth": {
 "n": 2,
 "o": 3,
+"p": [
+"Les marcheurs blancs"
+],
 "s": "L’institut pisteur"
 },
 "https://papycha.fr/on-recherche-viti-glourson": {
@@ -92,52 +163,146 @@
 "https://papycha.fr/quete-a-chacun-ses-chaines": {
 "n": 7,
 "o": 7,
+"p": [
+"Le réveil par la force."
+],
 "s": "Se mettre la Cité dor à dos"
 },
 "https://papycha.fr/quete-a-fleur-de-peau": {
 "n": 4,
 "o": 6,
+"p": [
+"Botanique-nique-nique."
+],
 "s": "Agriculture et Alchimie"
 },
 "https://papycha.fr/quete-a-la-barbe-du-roi": {
 "n": 9,
 "o": 3,
+"p": [
+"Accès à l'île des Wabbits atteint",
+"Trouble-fête"
+],
 "s": "Étre plus royaliste que le roi"
+},
+"https://papycha.fr/quete-a-la-maniere-des-brakmariens-brakmarien-59": {
+"p": [
+"Paranoïa aiguë. (brâkmarien 58)"
+]
+},
+"https://papycha.fr/quete-a-la-poursuite-doctolliard-rouge-bontarien-67": {
+"p": [
+"Course-poursuite. (bontarien 66)"
+]
 },
 "https://papycha.fr/quete-a-la-recherche-de-dan-lavy": {
 "n": 6,
 "o": 6,
+"p": [
+"Chauffage à moindre frais."
+],
 "s": "Les survivants de Frigost"
 },
 "https://papycha.fr/quete-a-la-recherche-des-instants-perdus": {
 "n": 2,
 "o": 6,
+"p": [
+"Mieux vaut ne pas se fier à la première impression"
+],
 "s": "Cosmose"
 },
 "https://papycha.fr/quete-a-la-recherche-des-multiman": {
 "n": 3,
 "o": 3,
+"p": [
+"Nouvelle Super Mission : employé polyvalent"
+],
 "s": "La cape ne fait pas le Héros"
+},
+"https://papycha.fr/quete-a-la-rescousse-dun-incapable-brakmarien-39": {
+"p": [
+"Au combat ! (brâkmarien 38)"
+]
+},
+"https://papycha.fr/quete-a-lendroit-a-lenvers-bontarien-44": {
+"p": [
+"Plaine de chats. (bontarien 43)"
+]
 },
 "https://papycha.fr/quete-a-qui-profite-le-boufmouth": {
 "n": 7,
 "o": 7,
+"p": [
+"La marche de l’impératrice",
+"Lavomatique",
+"À la recherche de Dan Lavy."
+],
 "s": "Les survivants de Frigost"
+},
+"https://papycha.fr/quete-a-roublard-roublard-et-demi": {
+"p": [
+"Tomber sur un bec"
+]
 },
 "https://papycha.fr/quete-a-un-poil-pres": {
 "n": 9,
 "o": 2,
+"p": [
+"Accès à l'île des Wabbits atteint",
+"Qui veut la peau du Wabbit ?"
+],
 "s": "Étre plus royaliste que le roi"
 },
 "https://papycha.fr/quete-abysses-infinis": {
 "n": 2,
 "o": 3,
+"p": [
+"Le Fil d’Adrian"
+],
 "s": "À l'ombre, depuis trop longtemps"
+},
+"https://papycha.fr/quete-activites-volcaniques-brakmarien-25": {
+"p": [
+"Cruel, mais à quel point ? (brâkmarien 24)"
+]
+},
+"https://papycha.fr/quete-affrontement-brakmarien-69": {
+"p": [
+"Histoires de salaces. (brâkmarien 68)"
+]
+},
+"https://papycha.fr/quete-agent-double-et-demi-brakmarien-13": {
+"p": [
+"Mais si, ce sont des vitamines… (brâkmarien 12)"
+]
 },
 "https://papycha.fr/quete-akwadala-source-de-problemes": {
 "n": 8,
 "o": 1,
+"p": [
+"En route pour Akwadala"
+],
 "s": "Des vacances qui tombent à l'eau"
+},
+"https://papycha.fr/quete-alchimie-malfaisante-brakmarien-18": {
+"p": [
+"Le tabi mangeur de blops. (brâkmarien 17)"
+]
+},
+"https://papycha.fr/quete-alimentaire-mon-cher-bontarien-46": {
+"p": [
+"Dans la gueule du chat. (bontarien 45)"
+]
+},
+"https://papycha.fr/quete-amayiro-a-lombre-du-champo-bontarien-27": {
+"p": [
+"Au service de Danathor (bontarien 26)"
+]
+},
+"https://papycha.fr/quete-ambition-ambigue-bontarien-57": {
+"p": [
+"La panoplie du milicien. (bontarien 56)"
+]
 },
 "https://papycha.fr/quete-ange-de-gobriel": {
 "n": 1,
@@ -149,9 +314,78 @@
 "o": 1,
 "s": "Halte au péage"
 },
+"https://papycha.fr/quete-apprentissage-adepte-des-douleurs": {
+"p": [
+"Apprentissage : Apprenti Sombre",
+"Le trésor de La Descemer. (brâkmarien 60)"
+]
+},
+"https://papycha.fr/quete-apprentissage-adepte-des-ecrits": {
+"p": [
+"Apprentissage : Apprenti Éclairé",
+"Attaque à retardement. (bontarien 60)"
+]
+},
+"https://papycha.fr/quete-apprentissage-apprenti-eclaire": {
+"p": [
+"Apprentissage : Disciple de Jiva",
+"Les rats d’Hyoactif (bontarien 40)"
+]
+},
+"https://papycha.fr/quete-apprentissage-apprenti-sombre": {
+"p": [
+"Apprentissage : Disciple d’Hécate",
+"Triple X. (brâkmarien 40)"
+]
+},
+"https://papycha.fr/quete-apprentissage-chasseur-dames": {
+"p": [
+"Apprentissage : Espion Sombre",
+"Le trésor de La Descemer. (brâkmarien 60)"
+]
+},
+"https://papycha.fr/quete-apprentissage-chasseur-de-renegats": {
+"p": [
+"Apprentissage : Espion silencieux",
+"Attaque à retardement. (bontarien 60)"
+]
+},
+"https://papycha.fr/quete-apprentissage-chevalier-de-lespoir": {
+"p": [
+"Apprentissage : Écuyer",
+"Attaque à retardement. (bontarien 60)"
+]
+},
+"https://papycha.fr/quete-apprentissage-chevalier-du-desespoir": {
+"p": [
+"Apprentissage : Surineur",
+"Le trésor de La Descemer. (brâkmarien 60)"
+]
+},
+"https://papycha.fr/quete-apprentissage-espion-silencieux": {
+"p": [
+"Apprentissage : Disciple de Silvosse",
+"Les rats d’Hyoactif (bontarien 40)"
+]
+},
+"https://papycha.fr/quete-apprentissage-espion-sombre": {
+"p": [
+"Apprentissage : Disciple de Brumaire",
+"Triple X. (brâkmarien 40)"
+]
+},
+"https://papycha.fr/quete-apprentissage-surineur": {
+"p": [
+"Apprentissage : Disciple de Djaul",
+"Triple X. (brâkmarien 40)"
+]
+},
 "https://papycha.fr/quete-arakne-du-soir-espoir": {
 "n": 3,
 "o": 2,
+"p": [
+"L’épopée Paztek."
+],
 "s": "Retour dans le Bayou"
 },
 "https://papycha.fr/quete-arrivee-a-bon-port": {
@@ -162,12 +396,23 @@
 "https://papycha.fr/quete-art-gastronomique": {
 "n": 5,
 "o": 5,
+"p": [
+"Il y a un os, de Wabbit"
+],
 "s": "Rusé comme une Lenalde"
 },
 "https://papycha.fr/quete-art-nacre": {
 "n": 2,
 "o": 8,
+"p": [
+"Un volcan s’éteint"
+],
 "s": "Objets trouvés"
+},
+"https://papycha.fr/quete-attaque-a-retardement-bontarien-60": {
+"p": [
+"La Grafioze. (bontarien 59)"
+]
 },
 "https://papycha.fr/quete-attention-a-la-bete": {
 "n": 1,
@@ -177,12 +422,20 @@
 "https://papycha.fr/quete-attention-aux-coups-de-soleil": {
 "n": 2,
 "o": 2,
+"p": [
+"Le fils porté disparu"
+],
 "s": "Remettre ses vacances à plus tard"
 },
 "https://papycha.fr/quete-attention-poids-lourd": {
 "n": 1,
 "o": 1,
 "s": "Rocs en scène"
+},
+"https://papycha.fr/quete-au-combat-brakmarien-38": {
+"p": [
+"Un choix difficile. (brâkmarien 37)"
+]
 },
 "https://papycha.fr/quete-au-dela-des-murs": {
 "n": 0,
@@ -192,26 +445,53 @@
 "https://papycha.fr/quete-au-dela-du-mur": {
 "n": 16,
 "o": 6,
+"p": [
+"Moteur à explosion"
+],
 "s": "Mais où qu’ils sont les Frigostiens ?"
 },
 "https://papycha.fr/quete-au-fion-du-trou": {
 "n": 4,
 "o": 6,
+"p": [
+"Donjons et trouffions"
+],
 "s": "La maire dénie"
+},
+"https://papycha.fr/quete-au-service-de-danathor-bontarien-26": {
+"p": [
+"Lyeno, Abraknyde malgré lui (bontarien 25)"
+]
 },
 "https://papycha.fr/quete-aux-armes-citoyens": {
 "n": 1,
 "o": 1,
 "s": "Intérimaire frigostien"
 },
+"https://papycha.fr/quete-bandanarchie-bontarien-65": {
+"p": [
+"Histoires de tortues. (bontarien 64)"
+]
+},
+"https://papycha.fr/quete-bien-lubrifier-pour-mieux-tirer": {
+"p": [
+"Comme les Was Mages ont galéré"
+]
+},
 "https://papycha.fr/quete-bien-velu-cest-kerubim": {
 "n": 2,
 "o": 2,
+"p": [
+"Scène de ménage"
+],
 "s": "Faire le keke"
 },
 "https://papycha.fr/quete-bienvenue-a-frigost": {
 "n": 3,
 "o": 1,
+"p": [
+"La maire de glace"
+],
 "s": "La maire dénie"
 },
 "https://papycha.fr/quete-bienvenue-a-la-foire-du-trool": {
@@ -222,6 +502,9 @@
 "https://papycha.fr/quete-bienvenue-a-pandala": {
 "n": 2,
 "o": 4,
+"p": [
+"Pandavignon"
+],
 "s": "Les grands esprits se rencontrent"
 },
 "https://papycha.fr/quete-bienvenue-au-krazybwork-saloon": {
@@ -232,6 +515,9 @@
 "https://papycha.fr/quete-bienvenue-chez-la-famille-kulteur": {
 "n": 2,
 "o": 2,
+"p": [
+"Le labeur est dans le pré"
+],
 "s": "Filer un mauvais boufton"
 },
 "https://papycha.fr/quete-bijoux-de-famille": {
@@ -249,9 +535,17 @@
 "o": 1,
 "s": "Carnage de glace"
 },
+"https://papycha.fr/quete-bois-de-chauffage-brakmarien-29": {
+"p": [
+"Le défi du maître guerrier. (brâkmarien 28)"
+]
+},
 "https://papycha.fr/quete-boisson-pour-un-champion": {
 "n": 0,
 "o": 2,
+"p": [
+"Cogner avant d’entrer"
+],
 "s": "Sourire en boîte"
 },
 "https://papycha.fr/quete-boite-de-conserve": {
@@ -267,11 +561,22 @@
 "https://papycha.fr/quete-botanique-nique-nique": {
 "n": 3,
 "o": 4,
+"p": [
+"Cent vingt-trois fleurs, point comme les autres"
+],
 "s": "Agriculture et Alchimie"
+},
+"https://papycha.fr/quete-bouc-a-misere-bontarien-47": {
+"p": [
+"Alimentaire mon cher. (bontarien 46)"
+]
 },
 "https://papycha.fr/quete-breche-mais-intense": {
 "n": 2,
 "o": 1,
+"p": [
+"Accès à l’île de Pandala atteint"
+],
 "s": "Se mettre au ver"
 },
 "https://papycha.fr/quete-bricol-girl": {
@@ -292,16 +597,25 @@
 "https://papycha.fr/quete-ca-manque-de-sel": {
 "n": 2,
 "o": 7,
+"p": [
+"Une enquête alambiquée – Investigation"
+],
 "s": "L’envers du décor"
 },
 "https://papycha.fr/quete-ca-rend-aimable": {
 "n": 2,
 "o": 1,
+"p": [
+"Succès Rusé comme une Lenalde réalisé"
+],
 "s": "Cwoque ma Cawotte"
 },
 "https://papycha.fr/quete-ca-sent-la-cawotte": {
 "n": 3,
 "o": 3,
+"p": [
+"Faites l’amour, pas la guerre."
+],
 "s": "Rusé comme une Lenalde"
 },
 "https://papycha.fr/quete-cafarnaum": {
@@ -317,16 +631,31 @@
 "https://papycha.fr/quete-caltes-stlategiques": {
 "n": 2,
 "o": 2,
+"p": [
+"Succès Lancer de Wabbit réalisé",
+"Succès Un Wa de pacotille réalisé"
+],
 "s": "Partie prise"
+},
+"https://papycha.fr/quete-cambriolage-brakmarien-46": {
+"p": [
+"Le cristal de Kain Dharyn. (brâkmarien 45)"
+]
 },
 "https://papycha.fr/quete-ce-nest-quun-au-revoir": {
 "n": 5,
 "o": 10,
+"p": [
+"Une enquête alambiquée – Résolution"
+],
 "s": "L’envers du décor"
 },
 "https://papycha.fr/quete-cent-vingt-trois-fleurs-point-comme-les-autres": {
 "n": 2,
 "o": 2,
+"p": [
+"Développement durable."
+],
 "s": "Agriculture et Alchimie"
 },
 "https://papycha.fr/quete-cest-bon-pour-le-moral": {
@@ -337,51 +666,86 @@
 "https://papycha.fr/quete-cest-de-la-bombe": {
 "n": 4,
 "o": 3,
+"p": [
+"Terre à terre"
+],
 "s": "L'île aux donjons"
 },
 "https://papycha.fr/quete-cest-frais-mais-cest-pas-grave": {
 "n": 4,
 "o": 5,
+"p": [
+"Lavomatique"
+],
 "s": "Halte au péage"
 },
 "https://papycha.fr/quete-chachyene-de-vie": {
 "n": 3,
 "o": 3,
+"p": [
+"Ennemis rapprochés"
+],
 "s": "Jeter la première pierre"
 },
 "https://papycha.fr/quete-chaklaplop-leau-qui-mord": {
 "n": 3,
 "o": 2,
+"p": [
+"La Cité Dort"
+],
 "s": "Se mettre la Cité dor à dos"
 },
 "https://papycha.fr/quete-champ-borde-le-chateau": {
 "n": 11,
 "o": 20,
+"p": [
+"Le champ des héros."
+],
 "s": "Agriculture et Alchimie"
 },
 "https://papycha.fr/quete-champ-pomy": {
 "n": 7,
 "o": 12,
+"p": [
+"Mauvaise graine"
+],
 "s": "Agriculture et Alchimie"
 },
 "https://papycha.fr/quete-changer-dere-cest-salutaire": {
 "n": 5,
 "o": 1,
+"p": [
+"Passagers clandestins"
+],
 "s": "Un temps périt"
 },
 "https://papycha.fr/quete-chapelle-a-laide": {
 "n": 3,
 "o": 3,
+"p": [
+"Résidence des vils"
+],
 "s": "Dernière demeure"
+},
+"https://papycha.fr/quete-chasse-a-lespion-brakmarien-26": {
+"p": [
+"Activités volcaniques. (brâkmarien 25)"
+]
 },
 "https://papycha.fr/quete-chasse-aux-krokilles": {
 "n": 2,
 "o": 2,
+"p": [
+"Premier contact"
+],
 "s": "Tampon saisonnier"
 },
 "https://papycha.fr/quete-chasse-aux-wabbits": {
 "n": 4,
 "o": 4,
+"p": [
+"Vade Retro Wabbitas"
+],
 "s": "Lancer de Wabbit"
 },
 "https://papycha.fr/quete-chasse-dangereuse": {
@@ -389,9 +753,18 @@
 "o": 3,
 "s": "L'heure, c'est l'heure"
 },
+"https://papycha.fr/quete-chaud-du-s-l-i-p": {
+"p": [
+"Dépôt de ravitaillement"
+]
+},
 "https://papycha.fr/quete-chaud-et-froid": {
 "n": 13,
 "o": 4,
+"p": [
+"Le pic qui glace",
+"Mission Solution"
+],
 "s": "L'âme de glace"
 },
 "https://papycha.fr/quete-chaudiere-au-charbon": {
@@ -402,16 +775,26 @@
 "https://papycha.fr/quete-chauffage-a-moindre-frais": {
 "n": 5,
 "o": 5,
+"p": [
+"Fais dodo, t’auras du gâteau",
+"Il préfère la mort en mer."
+],
 "s": "Les survivants de Frigost"
 },
 "https://papycha.fr/quete-chercher-des-noises": {
 "n": 2,
 "o": 1,
+"p": [
+"La communauté de la forêt atteint"
+],
 "s": "L'appel de la Forêt"
 },
 "https://papycha.fr/quete-coeur-a-corps": {
 "n": 4,
 "o": 3,
+"p": [
+"L’ombre qui coule"
+],
 "s": "Tourment décisif"
 },
 "https://papycha.fr/quete-cogner-avant-dentrer": {
@@ -422,7 +805,15 @@
 "https://papycha.fr/quete-comme-dwabbitude": {
 "n": 2,
 "o": 2,
+"p": [
+"Timassacre entre Wabbits"
+],
 "s": "Lancer de Wabbit"
+},
+"https://papycha.fr/quete-comme-les-was-mages-ont-galere": {
+"p": [
+"L’Etoile des Was Mages"
+]
 },
 "https://papycha.fr/quete-completement-givre": {
 "n": 1,
@@ -432,42 +823,86 @@
 "https://papycha.fr/quete-contre-ceux-den-bas": {
 "n": 3,
 "o": 2,
+"p": [
+"Ennemis rapprochés"
+],
 "s": "Rocs en scène"
 },
 "https://papycha.fr/quete-contre-ceux-den-haut": {
 "n": 4,
 "o": 3,
+"p": [
+"Le gardien Crakillian"
+],
 "s": "Rocs en scène"
+},
+"https://papycha.fr/quete-contre-espion-brakmarien-67": {
+"p": [
+"Les documents avant tout. (brâkmarien 66)"
+]
 },
 "https://papycha.fr/quete-convoi-humanitaire": {
 "n": 7,
 "o": 4,
+"p": [
+"C’est frais mais c’est pas grave",
+"La fonte des glaces",
+"Le mal a dit"
+],
 "s": "Jouer au docteur"
 },
 "https://papycha.fr/quete-copains-comme-cochons": {
 "n": 0,
 "o": 2,
+"p": [
+"Mais pourquoi est-il si méchant?"
+],
 "s": "Sourire sous cape"
+},
+"https://papycha.fr/quete-corvee-de-patate-bontarien-24": {
+"p": [
+"Des capes Bontariennes (bontarien 23)"
+]
 },
 "https://papycha.fr/quete-couic-quand-tu-nous-tiens": {
 "n": 1,
 "o": 4,
 "s": "Intérimaire frigostien"
 },
+"https://papycha.fr/quete-course-poursuite-bontarien-66": {
+"p": [
+"Bandanarchie. (bontarien 65)"
+]
+},
 "https://papycha.fr/quete-craq-en-jambe": {
 "n": 3,
 "o": 1,
+"p": [
+"Les malheurs des petites gens"
+],
 "s": "Cent fois sur renclume remet ton ouvrage"
 },
 "https://papycha.fr/quete-cratere-dadmission": {
 "n": 2,
 "o": 3,
+"p": [
+"Premier contact"
+],
 "s": "Tampon saisonnier"
 },
 "https://papycha.fr/quete-crise-dex-emma": {
 "n": 17,
 "o": 7,
+"p": [
+"Au-delà du mur",
+"Il faut mettre un terme aux maîtres"
+],
 "s": "Mais où qu’ils sont les Frigostiens ?"
+},
+"https://papycha.fr/quete-cristal-rasha": {
+"p": [
+"Kapla ! | Survivant !"
+]
 },
 "https://papycha.fr/quete-crocs-en-jambes": {
 "n": 1,
@@ -477,27 +912,72 @@
 "https://papycha.fr/quete-crocs-nen-bourrent": {
 "n": 10,
 "o": 18,
+"p": [
+"Le nom de la Mycose"
+],
 "s": "Agriculture et Alchimie"
+},
+"https://papycha.fr/quete-cruel-mais-a-quel-point-brakmarien-24": {
+"p": [
+"Le dur travail d’éplucheur de patates. (brâkmarien 23)"
+]
 },
 "https://papycha.fr/quete-crypte-honnie": {
 "n": 2,
 "o": 5,
+"p": [
+"Le guide du Roublard"
+],
 "s": "Étre plus royaliste que le roi"
 },
 "https://papycha.fr/quete-cueillette-estivale": {
 "n": 2,
 "o": 4,
+"p": [
+"Premier contact"
+],
 "s": "Tampon saisonnier"
+},
+"https://papycha.fr/quete-danathor-a-t-il-tort-bontarien-35": {
+"p": [
+"La lettre anonyme (bontarien 34)"
+]
 },
 "https://papycha.fr/quete-dans-la-boue-ou-debout-devenir-meilleur-a-albuera": {
 "n": 4,
 "o": 2,
+"p": [
+"Le début des problèmes"
+],
 "s": "Médiation expéditive"
+},
+"https://papycha.fr/quete-dans-la-gueule-du-chat-bontarien-45": {
+"p": [
+"À l’endroit, à l’envers. (bontarien 44)"
+]
+},
+"https://papycha.fr/quete-dans-la-peau-de-sphincter-cell-brakmarien-51": {
+"p": [
+"Le carnage des plaines. (brâkmarien 50)"
+]
 },
 "https://papycha.fr/quete-dans-les-pas-du-chevalier-de-lautomne": {
 "n": 2,
 "o": 1,
+"p": [
+"Succès Un nouveau départ réalisé"
+],
 "s": "Devenir une légende"
+},
+"https://papycha.fr/quete-dapyus-nest-pas-doue-bontarien-39": {
+"p": [
+"Ras le bol de Lenglad (bontarien 38)"
+]
+},
+"https://papycha.fr/quete-de-la-poudre-aux-yeux-de-brakmar-bontarien-14": {
+"p": [
+"Pot l’agent double (bontarien 13)"
+]
 },
 "https://papycha.fr/quete-de-la-viande-de-dragodinde-pour-la-tablee-dallister": {
 "n": 1,
@@ -507,16 +987,26 @@
 "https://papycha.fr/quete-dedale-au-pluriel": {
 "n": 3,
 "o": 4,
+"p": [
+"Premier pas dans les ténèbres"
+],
 "s": "À l'ombre, depuis trop longtemps"
 },
 "https://papycha.fr/quete-defense-dapprocher": {
 "n": 2,
 "o": 2,
+"p": [
+"La communauté de la forêt"
+],
 "s": "Un Chemin semé de bûches"
 },
 "https://papycha.fr/quete-depot-de-ravitaillement": {
 "n": 0,
 "o": 8,
+"p": [
+"Les rescapés du Village Enseveli",
+"À qui profite le boufmouth"
+],
 "s": "Les survivants de Frigost"
 },
 "https://papycha.fr/quete-derniere-lettre-pour-bonta": {
@@ -524,24 +1014,57 @@
 "o": 1,
 "s": "Dernière demeure"
 },
+"https://papycha.fr/quete-des-anneaux-sur-le-bout-des-doigts-bontarien-21": {
+"p": [
+"Le fantôme de Tsog (bontarien 20)"
+]
+},
+"https://papycha.fr/quete-des-capes-bontariennes-bontarien-23": {
+"p": [
+"La fureur du Holbaïd (bontarien 22)"
+]
+},
+"https://papycha.fr/quete-des-capes-typiques-brakmarien-19": {
+"p": [
+"Alchimie malfaisante. (brâkmarien 18)"
+]
+},
+"https://papycha.fr/quete-des-combats-pas-tres-legaux-bontarien-31": {
+"p": [
+"Dike Tarak, la menace (bontarien 30)"
+]
+},
 "https://papycha.fr/quete-des-donjons-encore-des-donjons": {
 "n": 11,
 "o": 5,
+"p": [
+"Un juge hystérique"
+],
 "s": "Le tour du monde en 27 donjons"
 },
 "https://papycha.fr/quete-des-douziens-et-des-dieux": {
 "n": 8,
 "o": 8,
+"p": [
+"A chacun ses chaînes."
+],
 "s": "Se mettre la Cité dor à dos"
 },
 "https://papycha.fr/quete-des-koeurs-du-tonnerre": {
 "n": 7,
 "o": 13,
+"p": [
+"Les bons comptes font les bons amis",
+"Le secret de la baie Tarad"
+],
 "s": "L’envers du décor"
 },
 "https://papycha.fr/quete-des-pwinces-pas-tres-charmants": {
 "n": 8,
 "o": 8,
+"p": [
+"Voyage au centre du Wabbit"
+],
 "s": "Rusé comme une Lenalde"
 },
 "https://papycha.fr/quete-dessine-moi-un-bouton": {
@@ -552,6 +1075,9 @@
 "https://papycha.fr/quete-detournement-de-minerais": {
 "n": 3,
 "o": 1,
+"p": [
+"En route pour Terrdala"
+],
 "s": "Garder les pieds sur terre"
 },
 "https://papycha.fr/quete-developpement-durable": {
@@ -559,25 +1085,131 @@
 "o": 1,
 "s": "Agriculture et Alchimie"
 },
+"https://papycha.fr/quete-devotion-a-cra-2": {
+"p": [
+"Accès à Astrub atteint"
+]
+},
+"https://papycha.fr/quete-devotion-a-dralbour-2": {
+"p": [
+"Accès à Astrub atteint"
+]
+},
+"https://papycha.fr/quete-devotion-a-ecaflip-2": {
+"p": [
+"Accès à Astrub atteint"
+]
+},
+"https://papycha.fr/quete-devotion-a-eniripsa-2": {
+"p": [
+"Accès à Astrub atteint"
+]
+},
+"https://papycha.fr/quete-devotion-a-enutrof-2": {
+"p": [
+"Accès à Astrub atteint"
+]
+},
+"https://papycha.fr/quete-devotion-a-feca-2": {
+"p": [
+"Accès à Astrub atteint"
+]
+},
+"https://papycha.fr/quete-devotion-a-iop-2": {
+"p": [
+"Accès à Astrub atteint"
+]
+},
+"https://papycha.fr/quete-devotion-a-oktapodas-2": {
+"p": [
+"Accès à Astrub atteint"
+]
+},
+"https://papycha.fr/quete-devotion-a-osamodas-2": {
+"p": [
+"Accès à Astrub atteint"
+]
+},
+"https://papycha.fr/quete-devotion-a-pandawa-2": {
+"p": [
+"Accès à Astrub atteint"
+]
+},
+"https://papycha.fr/quete-devotion-a-sacrieur-2": {
+"p": [
+"Accès à Astrub atteint"
+]
+},
+"https://papycha.fr/quete-devotion-a-sadida-3": {
+"p": [
+"Accès à Astrub atteint"
+]
+},
+"https://papycha.fr/quete-devotion-a-sram-2": {
+"p": [
+"Accès à Astrub atteint"
+]
+},
+"https://papycha.fr/quete-devotion-a-xelor-2": {
+"p": [
+"Accès à Astrub atteint"
+]
+},
+"https://papycha.fr/quete-devotion-a-zobal": {
+"p": [
+"Accès à Astrub atteint"
+]
+},
 "https://papycha.fr/quete-devotion-aux-dieux": {
 "n": 8,
 "o": 2,
+"p": [
+"La découverte d’un destin"
+],
 "s": "Un nouveau départ"
+},
+"https://papycha.fr/quete-dike-tarak-la-menace-bontarien-30": {
+"p": [
+"Poison de scorbute pour la prison (bontarien 29)"
+]
 },
 "https://papycha.fr/quete-distribution-de-marrons": {
 "n": 0,
 "o": 1,
 "s": "T’es marron"
 },
+"https://papycha.fr/quete-divine-divinite": {
+"p": [
+"Premier contact"
+]
+},
+"https://papycha.fr/quete-dix-badges-pour-la-bonne-cause-bontarien-36": {
+"p": [
+"Danathor a-t-il tort ? (bontarien 35)"
+]
+},
 "https://papycha.fr/quete-donjons-et-trouffions": {
 "n": 3,
 "o": 4,
+"p": [
+"L’essentiel est dans le Lac gelé"
+],
 "s": "La maire dénie"
+},
+"https://papycha.fr/quete-du-pain-pour-les-braves-bontarien-3": {
+"p": [
+"La tenancière Dame Cloude (bontarien 2)"
+]
 },
 "https://papycha.fr/quete-du-plomb-dans-la-cervelle": {
 "n": 1,
 "o": 7,
 "s": "Intérimaire frigostien"
+},
+"https://papycha.fr/quete-du-repos-mais-pas-trop-bontarien-11": {
+"p": [
+"Un sanglier un peu trop agressif (bontarien 10)"
+]
 },
 "https://papycha.fr/quete-du-rire-en-barre": {
 "n": 1,
@@ -587,16 +1219,25 @@
 "https://papycha.fr/quete-eau-courante": {
 "n": 0,
 "o": 3,
+"p": [
+"Boisson pour un champion"
+],
 "s": "Sourire en boîte"
 },
 "https://papycha.fr/quete-education-sentimentale": {
 "n": 3,
 "o": 3,
+"p": [
+"Les Platypuces"
+],
 "s": "Les enfants du bois"
 },
 "https://papycha.fr/quete-eklate-vulkaine": {
 "n": 3,
 "o": 6,
+"p": [
+"Cratère d’admission"
+],
 "s": "Tampon saisonnier"
 },
 "https://papycha.fr/quete-eliminer-la-menace": {
@@ -604,20 +1245,64 @@
 "o": 1,
 "s": "L'os a coulé sous les ponts"
 },
+"https://papycha.fr/quete-emissaire-du-roi": {
+"p": [
+"Traître ou pas traître, telle est la question…"
+]
+},
+"https://papycha.fr/quete-en-route-pour-aerdala": {
+"p": [
+"Succès Sous des nuages de cendre réalisé"
+]
+},
+"https://papycha.fr/quete-en-route-pour-akwadala": {
+"p": [
+"La Calligraphie"
+]
+},
+"https://papycha.fr/quete-en-route-pour-feudala": {
+"p": [
+"Succès Garder les pieds sur terre réalisé"
+]
+},
 "https://papycha.fr/quete-en-route-pour-plantala": {
 "n": 0,
 "o": 2,
+"p": [
+"Succès Là où souffle le vent réalisé"
+],
 "s": "Là où souffle le vent"
+},
+"https://papycha.fr/quete-en-route-pour-terrdala": {
+"p": [
+"Succès Des vacances qui tombent à l'eau réalisé"
+]
 },
 "https://papycha.fr/quete-en-semant-se-ment": {
 "n": 2,
 "o": 3,
+"p": [
+"Développement durable."
+],
 "s": "Agriculture et Alchimie"
 },
 "https://papycha.fr/quete-ennemis-rapproches": {
 "n": 2,
 "o": 2,
+"p": [
+"Les visages de pierre"
+],
 "s": "Jeter la première pierre"
+},
+"https://papycha.fr/quete-enquete-a-moon-brakmarien-62": {
+"p": [
+"Une rumeur alléchante. (brâkmarien 61)"
+]
+},
+"https://papycha.fr/quete-entrainement-avec-torche-bontarien-5": {
+"p": [
+"Ned le dentiste (bontarien 4)"
+]
 },
 "https://papycha.fr/quete-entretien-dembuches": {
 "n": 1,
@@ -627,6 +1312,9 @@
 "https://papycha.fr/quete-epis-demi": {
 "n": 5,
 "o": 2,
+"p": [
+"Les monologues du vaccin"
+],
 "s": "Jouer au docteur"
 },
 "https://papycha.fr/quete-espece-menacee": {
@@ -642,16 +1330,30 @@
 "https://papycha.fr/quete-et-lemmental": {
 "n": 2,
 "o": 1,
+"p": [
+"Un volcan s’éteint"
+],
 "s": "Ondine ensemble ce soir"
 },
 "https://papycha.fr/quete-expedition-culinaire": {
 "n": 6,
 "o": 6,
+"p": [
+"Art gastronomique"
+],
 "s": "Rusé comme une Lenalde"
+},
+"https://papycha.fr/quete-extension-du-batiment-de-la-milice-bontarien-33": {
+"p": [
+"Mission de reconnaissance au cimetière (bontarien 32)"
+]
 },
 "https://papycha.fr/quete-faire-carriere": {
 "n": 4,
 "o": 7,
+"p": [
+"Le gardien Crakillian"
+],
 "s": "Jeter la première pierre"
 },
 "https://papycha.fr/quete-faire-le-tas-de-pin": {
@@ -662,11 +1364,18 @@
 "https://papycha.fr/quete-fais-dodo-tauras-du-gateau": {
 "n": 2,
 "o": 3,
+"p": [
+"Antiroyaliste",
+"Les joyeux de la couronne"
+],
 "s": "Halte au péage"
 },
 "https://papycha.fr/quete-faites-lamour-pas-la-guerre": {
 "n": 2,
 "o": 2,
+"p": [
+"Sauvegarder l’espèce"
+],
 "s": "Rusé comme une Lenalde"
 },
 "https://papycha.fr/quete-fantomes-contre-fantomes": {
@@ -677,6 +1386,9 @@
 "https://papycha.fr/quete-fifille-a-son-papa": {
 "n": 0,
 "o": 1,
+"p": [
+"Les derniers rescapés"
+],
 "s": "Mais où qu’ils sont les Frigostiens ?"
 },
 "https://papycha.fr/quete-fight-club": {
@@ -687,37 +1399,73 @@
 "https://papycha.fr/quete-filer-un-mauvais-cocon": {
 "n": 5,
 "o": 5,
+"p": [
+"Les Vestiges de l’Avenir"
+],
 "s": "Une impression blizzard"
+},
+"https://papycha.fr/quete-flagrant-delire-bontarien-48": {
+"p": [
+"Bouc à misère. (bontarien 47)"
+]
 },
 "https://papycha.fr/quete-fleuries-mais-rougissent": {
 "n": 7,
 "o": 13,
+"p": [
+"Rose à lys, Rose à lys, oh !"
+],
 "s": "Agriculture et Alchimie"
 },
 "https://papycha.fr/quete-fraicheur-de-livre": {
 "n": 0,
 "o": 3,
+"p": [
+"L’empire de la jetée"
+],
 "s": "Sourire jaune"
 },
 "https://papycha.fr/quete-frigost-une-ile-pas-comme-les-autres": {
 "n": 2,
 "o": 5,
+"p": [
+"Les rescapés de Frigost atteint"
+],
 "s": "La maire dénie"
 },
 "https://papycha.fr/quete-full-contact": {
 "n": 3,
 "o": 3,
+"p": [
+"La maire de glace"
+],
 "s": "Fri carré"
+},
+"https://papycha.fr/quete-g-o-pardi": {
+"p": [
+"Bien lubrifier pour mieux tirer"
+]
 },
 "https://papycha.fr/quete-gant-graine": {
 "n": 8,
 "o": 14,
+"p": [
+"Champ Pomy"
+],
 "s": "Agriculture et Alchimie"
 },
 "https://papycha.fr/quete-gare-au-kailleu": {
 "n": 3,
 "o": 3,
+"p": [
+"La Cité Dort"
+],
 "s": "Se mettre la Cité dor à dos"
+},
+"https://papycha.fr/quete-gare-aux-krokilles": {
+"p": [
+"Kapla ! | Survivant !"
+]
 },
 "https://papycha.fr/quete-gastronomie-en-culotte-courte": {
 "n": 1,
@@ -737,6 +1485,9 @@
 "https://papycha.fr/quete-goblynchage": {
 "n": 3,
 "o": 2,
+"p": [
+"Les malheurs des petites gens"
+],
 "s": "Cent fois sur renclume remet ton ouvrage"
 },
 "https://papycha.fr/quete-gobmichet-vibre-pour-gobrose": {
@@ -752,11 +1503,17 @@
 "https://papycha.fr/quete-gros-oeuvre-au-chateau-dallister": {
 "n": 2,
 "o": 2,
+"p": [
+"Pauvre pomme (de terre)"
+],
 "s": "Le vallon du château"
 },
 "https://papycha.fr/quete-guerre-froide": {
 "n": 3,
 "o": 3,
+"p": [
+"Le tour de guet"
+],
 "s": "Noblesse oblige"
 },
 "https://papycha.fr/quete-guewwe-et-paix": {
@@ -772,6 +1529,9 @@
 "https://papycha.fr/quete-heureux-qui-comme-les-lys": {
 "n": 8,
 "o": 15,
+"p": [
+"Fleuries mais rougissent"
+],
 "s": "Agriculture et Alchimie"
 },
 "https://papycha.fr/quete-hier-est-un-autre-jour": {
@@ -784,14 +1544,32 @@
 "o": 2,
 "s": "L'os a coulé sous les ponts"
 },
+"https://papycha.fr/quete-histoires-de-salaces-brakmarien-68": {
+"p": [
+"Contre-espion. (brâkmarien 67)"
+]
+},
+"https://papycha.fr/quete-histoires-de-tortues-bontarien-64": {
+"p": [
+"Manière douce. (bontarien 63)"
+]
+},
 "https://papycha.fr/quete-hotel-de-glace": {
 "n": 1,
 "o": 1,
 "s": "Les carrières de glace"
 },
+"https://papycha.fr/quete-humiliation-sans-precedent-brakmarien-36": {
+"p": [
+"Un dentier pour l’ami Mak. (brâkmarien 35)"
+]
+},
 "https://papycha.fr/quete-il-est-frais-mon-pichon": {
 "n": 7,
 "o": 2,
+"p": [
+"Mel au drame"
+],
 "s": "Forage à tout va"
 },
 "https://papycha.fr/quete-il-faut-mettre-un-terme-aux-maitres": {
@@ -802,26 +1580,43 @@
 "https://papycha.fr/quete-il-faut-que-cha-brille": {
 "n": 2,
 "o": 1,
+"p": [
+"Scène de ménage"
+],
 "s": "Un petit coup de polish"
 },
 "https://papycha.fr/quete-il-prefere-la-mort-en-mer": {
 "n": 4,
 "o": 4,
+"p": [
+"Antiroyaliste",
+"Les chasseurs",
+"Les joyeux de la couronne"
+],
 "s": "Les survivants de Frigost"
 },
 "https://papycha.fr/quete-il-y-a-un-os-de-wabbit": {
 "n": 4,
 "o": 4,
+"p": [
+"Ça sent la Cawotte"
+],
 "s": "Rusé comme une Lenalde"
 },
 "https://papycha.fr/quete-illumina-nui": {
 "n": 2,
 "o": 2,
+"p": [
+"Le langage Paztek."
+],
 "s": "Aux cendres de la terre"
 },
 "https://papycha.fr/quete-inferno": {
 "n": 7,
 "o": 1,
+"p": [
+"À la recherche de Dan Lavy."
+],
 "s": "Ongles incarnés"
 },
 "https://papycha.fr/quete-intrusion-chez-les-wabbits": {
@@ -829,44 +1624,85 @@
 "o": 1,
 "s": "Partie prise"
 },
+"https://papycha.fr/quete-investigations-a-moon-bontarien-62": {
+"p": [
+"Une rumeur intéressante. (bontarien 61)"
+]
+},
 "https://papycha.fr/quete-ixchelonia-la-tortue-lune": {
 "n": 4,
 "o": 4,
+"p": [
+"Chaklaplop l’Eau-qui-mord"
+],
 "s": "Se mettre la Cité dor à dos"
 },
 "https://papycha.fr/quete-jamais-deux-sans-trois": {
 "n": 3,
 "o": 1,
+"p": [
+"Accès à l’île de Pandala atteint",
+"Un nouveau Dofus ?"
+],
 "s": "Un Wa de pacotille"
+},
+"https://papycha.fr/quete-joyau-ze-fete-brakmarien-44": {
+"p": [
+"Rencontre du premier type. (brâkmarien 43)"
+]
 },
 "https://papycha.fr/quete-kanigroula": {
 "n": 5,
 "o": 8,
+"p": [
+"Faire carrière"
+],
 "s": "Jeter la première pierre"
 },
 "https://papycha.fr/quete-kartier-tremai-se-met-a-table": {
 "n": 3,
 "o": 3,
+"p": [
+"Gros oeuvre au château d’Allister"
+],
 "s": "Le vallon du château"
+},
+"https://papycha.fr/quete-kilucru": {
+"p": [
+"Kapla ! | Survivant !"
+]
 },
 "https://papycha.fr/quete-kinichinti-le-lezard-soleil": {
 "n": 5,
 "o": 5,
+"p": [
+"Ixchelonia, la tortue-lune"
+],
 "s": "Se mettre la Cité dor à dos"
 },
 "https://papycha.fr/quete-la-belle-au-bois-vivant": {
 "n": 5,
 "o": 3,
+"p": [
+"Le coeur grouillant de la forêt"
+],
 "s": "Sous le bois de sa colère"
 },
 "https://papycha.fr/quete-la-belle-ermite": {
 "n": 3,
 "o": 3,
+"p": [
+"La potion Lèche-bottes",
+"Succès Le vallon du château réalisé"
+],
 "s": "Léchage de bottes"
 },
 "https://papycha.fr/quete-la-bete-noire-dherve-caflip": {
 "n": 2,
 "o": 2,
+"p": [
+"Le sabotage d’Astrub Tofu Frit"
+],
 "s": "Astrub Tofu Frit, pour les grands et les petits"
 },
 "https://papycha.fr/quete-la-bete-tapie-dans-lombre": {
@@ -877,31 +1713,60 @@
 "https://papycha.fr/quete-la-calligraphie": {
 "n": 6,
 "o": 2,
+"p": [
+"La Pandassemblée"
+],
 "s": "Tracer sa voie"
 },
 "https://papycha.fr/quete-la-calligraphie-astrale": {
 "n": 7,
 "o": 3,
+"p": [
+"La Calligraphie"
+],
 "s": "Tracer sa voie"
+},
+"https://papycha.fr/quete-la-capture-bontarien-50": {
+"p": [
+"Quand y’en a marre de Brâkmar. (bontarien 49)"
+]
 },
 "https://papycha.fr/quete-la-chasse-a-lhomme-ours": {
 "n": 2,
 "o": 2,
+"p": [
+"La bête tapie dans l’ombre"
+],
 "s": "Chercher la grosse bâte"
 },
 "https://papycha.fr/quete-la-chasse-aux-sorcieres": {
 "n": 5,
 "o": 4,
+"p": [
+"Les indésirables d’Albuera"
+],
 "s": "Médiation expéditive"
+},
+"https://papycha.fr/quete-la-chasse-tout-un-art-brakmarien-16": {
+"p": [
+"Une collection digne de Xilébo. (brâkmarien 15)"
+]
 },
 "https://papycha.fr/quete-la-cite-dort": {
 "n": 2,
 "o": 1,
+"p": [
+"Succès Aux cendres de la terre réalisé",
+"Succès Retour dans le Bayou réalisé"
+],
 "s": "Se mettre la Cité dor à dos"
 },
 "https://papycha.fr/quete-la-clef-de-la-reussite-2": {
 "n": 0,
 "o": 3,
+"p": [
+"Copains comme cochons"
+],
 "s": "Sourire sous cape"
 },
 "https://papycha.fr/quete-la-communaute-de-la-foret": {
@@ -912,51 +1777,113 @@
 "https://papycha.fr/quete-la-croisiere-samuse": {
 "n": 2,
 "o": 2,
+"p": [
+"Succès Le siège des donjons réalisé"
+],
 "s": "Horizon incertain"
 },
 "https://papycha.fr/quete-la-decouverte-dun-destin": {
 "n": 7,
 "o": 1,
+"p": [
+"Prochain arrêt : Astrub !"
+],
 "s": "Un nouveau départ"
+},
+"https://papycha.fr/quete-la-decouverte-dun-vaste-monde": {
+"p": [
+"Succès Devenir une légende réalisé"
+]
 },
 "https://papycha.fr/quete-la-derniere-carte": {
 "n": 6,
 "o": 6,
+"p": [
+"Vous avez demandé la peau lisse ?"
+],
 "s": "Noblesse oblige"
+},
+"https://papycha.fr/quete-la-destinee": {
+"p": [
+"Entraînement avec Tarche (bontarien 1)",
+"La rivalité"
+]
+},
+"https://papycha.fr/quete-la-fatalite": {
+"p": [
+"Cliquetis fou. (brâkmarien 1)",
+"Entraînement avec Tarche (bontarien 1)"
+]
 },
 "https://papycha.fr/quete-la-femme-perdue": {
 "n": 1,
 "o": 1,
 "s": "Service de dépannage"
 },
+"https://papycha.fr/quete-la-foire-du-trool-suspectee-bontarien-18": {
+"p": [
+"L’élite squelettique (bontarien 17)"
+]
+},
 "https://papycha.fr/quete-la-fonte-des-glaces": {
 "n": 5,
 "o": 2,
+"p": [
+"Bricole Girl",
+"Hôtel de glace",
+"Les monologues du vaccin"
+],
 "s": "Les carrières de glace"
 },
 "https://papycha.fr/quete-la-forge-des-maux": {
 "n": 3,
 "o": 3,
+"p": [
+"Les malheurs des petites gens"
+],
 "s": "N'intervention musclée"
 },
 "https://papycha.fr/quete-la-forme-de-leau": {
 "n": 10,
 "o": 4,
+"p": [
+"Les enfants de la mère",
+"Surtout, ne pas faire de vagues"
+],
 "s": "Des vacances qui tombent à l'eau"
+},
+"https://papycha.fr/quete-la-grafioze-bontarien-59": {
+"p": [
+"Trâknar. (bontarien 58)"
+]
 },
 "https://papycha.fr/quete-la-haut-sur-la-montagne": {
 "n": 6,
 "o": 7,
+"p": [
+"Sans ma barbe, quelle barbe"
+],
 "s": "Halte au péage"
 },
 "https://papycha.fr/quete-la-legende-du-chevalier-de-lautomne": {
 "n": 9,
 "o": 3,
+"p": [
+"Dévotion aux dieux"
+],
 "s": "Un nouveau départ"
+},
+"https://papycha.fr/quete-la-lettre-anonyme-bontarien-34": {
+"p": [
+"Extension du bâtiment de la milice  (bontarien 33)"
+]
 },
 "https://papycha.fr/quete-la-machine-a-demonter-le-temps": {
 "n": 14,
 "o": 4,
+"p": [
+"Chaud et Froid"
+],
 "s": "L'hiver arrive"
 },
 "https://papycha.fr/quete-la-main-occulte": {
@@ -977,11 +1904,22 @@
 "https://papycha.fr/quete-la-melopee-dun-songe": {
 "n": 2,
 "o": 1,
+"p": [
+"Succès À l'ombre, depuis trop longtemps réalisé"
+],
 "s": "Tourment décisif"
+},
+"https://papycha.fr/quete-la-mise-a-mort-brakmarien-7": {
+"p": [
+"La noirceur des armes blanches. (brâkmarien 6)"
+]
 },
 "https://papycha.fr/quete-la-montagne-a-des-yeux": {
 "n": 3,
 "o": 1,
+"p": [
+"En route pour Aerdala"
+],
 "s": "Là où souffle le vent"
 },
 "https://papycha.fr/quete-la-mort-cest-dur-mais-bien-moins-quun-caillou": {
@@ -994,25 +1932,57 @@
 "o": 2,
 "s": "Chasse gardée"
 },
+"https://papycha.fr/quete-la-noirceur-des-armes-blanches-brakmarien-6": {
+"p": [
+"La revanche de Mak. (brâkmarien 5)"
+]
+},
 "https://papycha.fr/quete-la-pandassemblee": {
 "n": 5,
 "o": 1,
+"p": [
+"L’éveil de Pandala"
+],
 "s": "Tracer sa voie"
+},
+"https://papycha.fr/quete-la-panoplie-du-milicien-bontarien-56": {
+"p": [
+"La tactique des gens d’armes. (bontarien 55)"
+]
+},
+"https://papycha.fr/quete-la-peche-a-mel": {
+"p": [
+"Pêche en eaux gelées"
+]
 },
 "https://papycha.fr/quete-la-potion-bulbique": {
 "n": 2,
 "o": 5,
+"p": [
+"Le nouveau monde"
+],
 "s": "Service de dépannage"
 },
 "https://papycha.fr/quete-la-potion-leche-bottes": {
 "n": 2,
 "o": 2,
+"p": [
+"Les dents de la mère Verumacha"
+],
 "s": "Léchage de bottes"
 },
 "https://papycha.fr/quete-la-reine-de-tous-les-defis": {
 "n": 3,
 "o": 4,
+"p": [
+"Ennemis rapprochés"
+],
 "s": "Jeter la première pierre"
+},
+"https://papycha.fr/quete-la-revanche-de-mak-brakmarien-5": {
+"p": [
+"Le dentiste dément. (brâkmarien 4)"
+]
 },
 "https://papycha.fr/quete-la-revolte-botanique": {
 "n": 1,
@@ -1027,12 +1997,28 @@
 "https://papycha.fr/quete-la-scene-du-mecene": {
 "n": 5,
 "o": 3,
+"p": [
+"L’Art de la guerre"
+],
 "s": "Garder les pieds sur terre"
+},
+"https://papycha.fr/quete-la-tactique-des-gens-darmes-bontarien-55": {
+"p": [
+"Pour vivre heureux. (bontarien 54)"
+]
 },
 "https://papycha.fr/quete-la-technique-des-plaques": {
 "n": 2,
 "o": 2,
+"p": [
+"Une enquête alambiquée – Investigation"
+],
 "s": "L’envers du décor"
+},
+"https://papycha.fr/quete-la-tenanciere-dame-cloude-bontarien-2": {
+"p": [
+"Entraînement avec Tarche (bontarien 1)"
+]
 },
 "https://papycha.fr/quete-la-terre-banquise": {
 "n": 1,
@@ -1052,11 +2038,17 @@
 "https://papycha.fr/quete-la-vengeance-de-peggy-la-porkass": {
 "n": 2,
 "o": 1,
+"p": [
+"Succès La grande kradoc réalisé"
+],
 "s": "Sacrée Tourbière"
 },
 "https://papycha.fr/quete-la-vengeance-du-kito": {
 "n": 2,
 "o": 2,
+"p": [
+"Succès La grande kradoc réalisé"
+],
 "s": "Sacrée Tourbière"
 },
 "https://papycha.fr/quete-la-vie-de-chateau": {
@@ -1067,11 +2059,17 @@
 "https://papycha.fr/quete-la-voie-du-guerrier": {
 "n": 12,
 "o": 6,
+"p": [
+"Des donjons, encore des donjons"
+],
 "s": "Le tour du monde en 27 donjons"
 },
 "https://papycha.fr/quete-la-voie-maltee": {
 "n": 3,
 "o": 3,
+"p": [
+"Les malheurs des petites gens"
+],
 "s": "Cent fois sur renclume remet ton ouvrage"
 },
 "https://papycha.fr/quete-labominable-yechti": {
@@ -1082,6 +2080,9 @@
 "https://papycha.fr/quete-lacher-les-gaz": {
 "n": 9,
 "o": 6,
+"p": [
+"Qu’est ce qu’on a fait des tuyaux ?"
+],
 "s": "Les carrières de glace"
 },
 "https://papycha.fr/quete-laisser-les-morts-enterrer-vivants": {
@@ -1092,6 +2093,9 @@
 "https://papycha.fr/quete-lamere-liselle-a-perdu-son-chacha": {
 "n": 2,
 "o": 3,
+"p": [
+"Une enquête alambiquée – Investigation"
+],
 "s": "L’envers du décor"
 },
 "https://papycha.fr/quete-langage-corporel": {
@@ -1107,17 +2111,28 @@
 "https://papycha.fr/quete-larmes-fatales": {
 "n": 3,
 "o": 3,
+"p": [
+"L’empreinte de la mort"
+],
 "s": "Mettre la trouille au maitre"
 },
 "https://papycha.fr/quete-lart-de-la-guerre": {
 "n": 4,
 "o": 2,
+"p": [
+"Détournement de minerais"
+],
 "s": "Garder les pieds sur terre"
 },
 "https://papycha.fr/quete-lascension": {
 "n": 1,
 "o": 2,
 "s": "Destinations Aventure"
+},
+"https://papycha.fr/quete-lascension-2": {
+"p": [
+"L’Ascension"
+]
 },
 "https://papycha.fr/quete-lastrub-den-bas": {
 "n": 1,
@@ -1127,36 +2142,62 @@
 "https://papycha.fr/quete-laventure-de-la-terre": {
 "n": 2,
 "o": 5,
+"p": [
+"Premier contact"
+],
 "s": "Tampon saisonnier"
 },
 "https://papycha.fr/quete-laventure-nattend-pas": {
 "n": 3,
 "o": 5,
+"p": [
+"Les malheurs des petites gens"
+],
 "s": "Plus dure sera la tâte"
 },
 "https://papycha.fr/quete-lavomatique": {
 "n": 3,
 "o": 4,
+"p": [
+"Fais dodo, t’auras du gâteau"
+],
 "s": "Halte au péage"
 },
 "https://papycha.fr/quete-le-cafard-fadet-est-un-vilain-grincheux": {
 "n": 0,
 "o": 4,
+"p": [
+"Métamorphooose !"
+],
 "s": "Sourire aux éclats"
+},
+"https://papycha.fr/quete-le-carnage-des-plaines-brakmarien-50": {
+"p": [
+"Les 7 bandits. (brâkmarien 49)"
+]
 },
 "https://papycha.fr/quete-le-champ-des-heros": {
 "n": 10,
 "o": 19,
+"p": [
+"Les Graines de la Discorde"
+],
 "s": "Agriculture et Alchimie"
 },
 "https://papycha.fr/quete-le-chateau-du-wa": {
 "n": 4,
 "o": 2,
+"p": [
+"Jamais deux sans trois"
+],
 "s": "Un Wa de pacotille"
 },
 "https://papycha.fr/quete-le-chavalier-noir-et-rose": {
 "n": 2,
 "o": 4,
+"p": [
+"Succès La grande kradoc réalisé"
+],
 "s": "Sacrée Tourbière"
 },
 "https://papycha.fr/quete-le-cinquieme-element": {
@@ -1167,22 +2208,56 @@
 "https://papycha.fr/quete-le-cinquieme-gardien": {
 "n": 5,
 "o": 9,
+"p": [
+"Faire carrière"
+],
 "s": "Jeter la première pierre"
 },
 "https://papycha.fr/quete-le-coeur-grouillant-de-la-foret": {
 "n": 4,
 "o": 2,
+"p": [
+"Problème épineux"
+],
 "s": "Sous le bois de sa colère"
+},
+"https://papycha.fr/quete-le-con-tordant-brakmarien-10": {
+"p": [
+"Un oubli regrettable. (brâkmarien 9)"
+]
 },
 "https://papycha.fr/quete-le-convoi-le-sage-aussi": {
 "n": 1,
 "o": 4,
 "s": "L'heure, c'est l'heure"
 },
+"https://papycha.fr/quete-le-cristal-de-kain-dharyn-brakmarien-45": {
+"p": [
+"Joyau… ze fête. (brâkmarien 44)"
+]
+},
 "https://papycha.fr/quete-le-debut-des-problemes": {
 "n": 0,
 "o": 1,
+"p": [
+"Une arrivée mouvementée"
+],
 "s": "Médiation expéditive"
+},
+"https://papycha.fr/quete-le-deces-de-rimaraf-bontarien-28": {
+"p": [
+"Amayiro à l’ombre du Champo (bontarien 27)"
+]
+},
+"https://papycha.fr/quete-le-defi-du-maitre-guerrier-brakmarien-28": {
+"p": [
+"Un petit oubli. (brâkmarien 27)"
+]
+},
+"https://papycha.fr/quete-le-dentiste-dement-brakmarien-4": {
+"p": [
+"Un coup de fouet. (brâkmarien 3)"
+]
 },
 "https://papycha.fr/quete-le-desherbage-damy-gui-eaumin": {
 "n": 1,
@@ -1192,26 +2267,54 @@
 "https://papycha.fr/quete-le-dofus-des-glaces": {
 "n": 15,
 "o": 1,
+"p": [
+"La machine à démonter le temps",
+"Le givre des révélations",
+"Un comte de faits divers"
+],
 "s": "Fraîchement pondu"
 },
 "https://papycha.fr/quete-le-douzien-qui-plantait-des-arbres": {
 "n": 2,
 "o": 3,
+"p": [
+"La communauté de la forêt atteint"
+],
 "s": "Un Chemin semé de bûches"
 },
 "https://papycha.fr/quete-le-dragon-blanc-aux-yeux-noirs": {
 "n": 4,
 "o": 3,
+"p": [
+"Le voyage Astral"
+],
 "s": "Vers l'infini et Pandala"
 },
 "https://papycha.fr/quete-le-dragon-dastrub": {
 "n": 3,
 "o": 2,
+"p": [
+"Dans les pas du Chevalier de l’Automne"
+],
 "s": "Devenir une légende"
+},
+"https://papycha.fr/quete-le-dur-travail-deplucheur-de-patates-brakmarien-23": {
+"p": [
+"Par la force ou par la finesse ? (brâkmarien 22)"
+]
+},
+"https://papycha.fr/quete-le-fantome-de-tsog-bontarien-20": {
+"p": [
+"Le Tabi d’Amayiro (bontarien 19)"
+]
 },
 "https://papycha.fr/quete-le-faux-dofus": {
 "n": 5,
 "o": 1,
+"p": [
+"L’éveil de Pandala",
+"Un nouveau Dofus ?"
+],
 "s": "Mais où sont les dofus ?"
 },
 "https://papycha.fr/quete-le-fil-dadrian": {
@@ -1229,19 +2332,39 @@
 "o": 1,
 "s": "Remettre ses vacances à plus tard"
 },
+"https://papycha.fr/quete-le-forgeron-aux-deux-mains-gauches-brakmarien-52": {
+"p": [
+"Dans la peau de Sphincter Cell. (brâkmarien 51)"
+]
+},
+"https://papycha.fr/quete-le-forgeron-brakmarien-57": {
+"p": [
+"Supermilicien. (brâkmarien 56)"
+]
+},
 "https://papycha.fr/quete-le-gardien-crakillian": {
 "n": 3,
 "o": 5,
+"p": [
+"Ennemis rapprochés"
+],
 "s": "Jeter la première pierre"
 },
 "https://papycha.fr/quete-le-gardien-du-pont-de-la-mort": {
 "n": 2,
 "o": 3,
+"p": [
+"Succès La grande kradoc réalisé"
+],
 "s": "Sacrée Tourbière"
 },
 "https://papycha.fr/quete-le-givre-des-revelations": {
 "n": 14,
 "o": 5,
+"p": [
+"Chaud et Froid",
+"Lumière sur l’ombre"
+],
 "s": "L'âme de glace"
 },
 "https://papycha.fr/quete-le-guide-du-roublard": {
@@ -1249,9 +2372,17 @@
 "o": 1,
 "s": "Étre plus royaliste que le roi"
 },
+"https://papycha.fr/quete-le-heraut-de-la-foret": {
+"p": [
+"Succès Un Chemin semé de bûches réalisé"
+]
+},
 "https://papycha.fr/quete-le-jeu-de-lenald": {
 "n": 3,
 "o": 4,
+"p": [
+"Caltes Stlatégiques"
+],
 "s": "Partie prise"
 },
 "https://papycha.fr/quete-le-jour-de-la-serviette": {
@@ -1262,6 +2393,9 @@
 "https://papycha.fr/quete-le-kanojedo": {
 "n": 7,
 "o": 6,
+"p": [
+"Prochain arrêt : Astrub !"
+],
 "s": "Médiation expéditive"
 },
 "https://papycha.fr/quete-le-labeur-est-dans-le-pre": {
@@ -1277,31 +2411,56 @@
 "https://papycha.fr/quete-le-maire-de-glace": {
 "n": 2,
 "o": 2,
+"p": [
+"La Terre banquise"
+],
 "s": "Fri carré"
 },
 "https://papycha.fr/quete-le-maitre-des-clefs": {
 "n": 8,
 "o": 2,
+"p": [
+"Le tour du monde"
+],
 "s": "Le tour du monde en 27 donjons"
 },
 "https://papycha.fr/quete-le-mal-a-dit": {
 "n": 6,
 "o": 3,
+"p": [
+"Gène et tique",
+"Pauvre Kiki",
+"Épis d’Emi"
+],
 "s": "Jouer au docteur"
 },
 "https://papycha.fr/quete-le-mal-dhomere": {
 "n": 3,
 "o": 4,
+"p": [
+"La Croisière ça m’use"
+],
 "s": "Horizon incertain"
+},
+"https://papycha.fr/quete-le-moment-de-verite-brakmarien-48": {
+"p": [
+"Livraison rapide. (brâkmarien 47)"
+]
 },
 "https://papycha.fr/quete-le-moulin-de-mes-pairs": {
 "n": 2,
 "o": 4,
+"p": [
+"La communauté de la forêt"
+],
 "s": "Un Chemin semé de bûches"
 },
 "https://papycha.fr/quete-le-nom-de-la-mycose": {
 "n": 9,
 "o": 16,
+"p": [
+"Heureux qui, comme les lys."
+],
 "s": "Agriculture et Alchimie"
 },
 "https://papycha.fr/quete-le-nouveau-monde": {
@@ -1312,12 +2471,33 @@
 "https://papycha.fr/quete-le-pic-qui-glace": {
 "n": 7,
 "o": 8,
+"p": [
+"Là-haut sur la montagne"
+],
 "s": "Halte au péage"
+},
+"https://papycha.fr/quete-le-port-salue-bontarien-51": {
+"p": [
+"La capture. (bontarien 50)"
+]
 },
 "https://papycha.fr/quete-le-pot-au-rose-dorphelia-kulteur": {
 "n": 3,
 "o": 3,
+"p": [
+"Bienvenue chez la famille Kulteur"
+],
 "s": "Filer un mauvais boufton"
+},
+"https://papycha.fr/quete-le-professionnel-brakmarien-2": {
+"p": [
+"Cliquetis fou. (brâkmarien 1)"
+]
+},
+"https://papycha.fr/quete-le-pwince-monseigneuw": {
+"p": [
+"Émissaire du roi"
+]
 },
 "https://papycha.fr/quete-le-reglement-de-comptes-de-bworkekorall": {
 "n": 1,
@@ -1327,11 +2507,17 @@
 "https://papycha.fr/quete-le-reveil-par-la-force": {
 "n": 6,
 "o": 6,
+"p": [
+"Kinichinti, le Lézard-Soleil"
+],
 "s": "Se mettre la Cité dor à dos"
 },
 "https://papycha.fr/quete-le-rouage-de-linfini": {
 "n": 6,
 "o": 2,
+"p": [
+"Changer d’Ère, c’est salutaire"
+],
 "s": "Un temps périt"
 },
 "https://papycha.fr/quete-le-sabotage-dastrub-tofu-frit": {
@@ -1342,56 +2528,111 @@
 "https://papycha.fr/quete-le-secret-de-la-baie-tarad": {
 "n": 6,
 "o": 11,
+"p": [
+"Ce n’est qu’un au revoir"
+],
 "s": "L’envers du décor"
+},
+"https://papycha.fr/quete-le-subterfuge-de-la-corne-bontarien-70": {
+"p": [
+"Un sombre pouvoir. (bontarien 69)"
+]
 },
 "https://papycha.fr/quete-le-syndika-du-gobelin-libre": {
 "n": 1,
 "o": 2,
 "s": "Goblitération"
 },
+"https://papycha.fr/quete-le-tabi-damayiro-bontarien-19": {
+"p": [
+"La foire du Trool suspectée (bontarien 18)"
+]
+},
+"https://papycha.fr/quete-le-tabi-mangeur-de-blops-brakmarien-17": {
+"p": [
+"La chasse, tout un art… (brâkmarien 16)"
+]
+},
+"https://papycha.fr/quete-le-testament-du-papa-brakmarien-20": {
+"p": [
+"Des capes typiques. (brâkmarien 19)"
+]
+},
 "https://papycha.fr/quete-le-tour-de-guet": {
 "n": 2,
 "o": 1,
+"p": [
+"La vie de château"
+],
 "s": "Noblesse oblige"
 },
 "https://papycha.fr/quete-le-tour-du-monde": {
 "n": 7,
 "o": 1,
+"p": [
+"Pourfendre des donjons, pour la gloire !"
+],
 "s": "Le tour du monde en 27 donjons"
 },
 "https://papycha.fr/quete-le-tracas-du-guerrier": {
 "n": 13,
 "o": 7,
+"p": [
+"La voie du guerrier"
+],
 "s": "Le tour du monde en 27 donjons"
 },
 "https://papycha.fr/quete-le-travail-cest-la-sante": {
 "n": 12,
 "o": 4,
+"p": [
+"Un ami qui ne vous veut pas que du bien"
+],
 "s": "Ongles incarnés"
+},
+"https://papycha.fr/quete-le-tresor-de-la-descemer-brakmarien-60": {
+"p": [
+"À la manière des Brâkmariens. (brâkmarien 59)"
+]
 },
 "https://papycha.fr/quete-le-vent-lemportera": {
 "n": 5,
 "o": 4,
+"p": [
+"C’est de la bombe"
+],
 "s": "L'île aux donjons"
 },
 "https://papycha.fr/quete-le-vent-se-leve": {
 "n": 5,
 "o": 4,
+"p": [
+"Les enfants du vent"
+],
 "s": "Là où souffle le vent"
 },
 "https://papycha.fr/quete-le-ver-de-trop": {
 "n": 4,
 "o": 3,
+"p": [
+"Sauter le pas du trépas"
+],
 "s": "Se mettre au ver"
 },
 "https://papycha.fr/quete-le-ver-itay-sort-de-la-bouche-des-enfers": {
 "n": 5,
 "o": 4,
+"p": [
+"Le ver de trop"
+],
 "s": "Se mettre au ver"
 },
 "https://papycha.fr/quete-le-voyage-astral": {
 "n": 3,
 "o": 2,
+"p": [
+"L’éveil calligraphique"
+],
 "s": "Vers l'infini et Pandala"
 },
 "https://papycha.fr/quete-le-voyage-vers-incarnam": {
@@ -1399,30 +2640,85 @@
 "o": 3,
 "s": "Un Piou, c'est tout !"
 },
+"https://papycha.fr/quete-lecon-de-cuisine-bontarien-37": {
+"p": [
+"Dix badges pour la bonne cause (bontarien 36)"
+]
+},
+"https://papycha.fr/quete-legitime-defense-brakmarien-70": {
+"p": [
+"Affrontement ! (brâkmarien 69)"
+]
+},
+"https://papycha.fr/quete-lelite-squelettique-bontarien-17": {
+"p": [
+"Quatre caisses à pied, ça use… (bontarien 16)"
+]
+},
 "https://papycha.fr/quete-lempire-de-la-jetee": {
 "n": 0,
 "o": 2,
+"p": [
+"Tous les chemins mènent au Rhum"
+],
 "s": "Sourire jaune"
 },
 "https://papycha.fr/quete-lempreinte-de-la-mort": {
 "n": 2,
 "o": 2,
+"p": [
+"Oiseau de mauvais augure"
+],
 "s": "Mettre la trouille au maitre"
 },
 "https://papycha.fr/quete-lepopee-paztek": {
 "n": 2,
 "o": 1,
+"p": [
+"Le langage Paztek."
+],
 "s": "Retour dans le Bayou"
+},
+"https://papycha.fr/quete-lequipe-ment-bontarien-52": {
+"p": [
+"Le port salue. (bontarien 51)"
+]
+},
+"https://papycha.fr/quete-lequipement-du-traine-savate-standard-brakmarien-30": {
+"p": [
+"Bois de chauffage. (brâkmarien 29)"
+]
+},
+"https://papycha.fr/quete-les-7-bandits-brakmarien-49": {
+"p": [
+"Le moment de vérité. (brâkmarien 48)"
+]
+},
+"https://papycha.fr/quete-les-7-goules-de-cristal": {
+"p": [
+"L’île aux enfers"
+]
 },
 "https://papycha.fr/quete-les-bandits-de-la-foret-de-cania": {
 "n": 2,
 "o": 5,
+"p": [
+"La communauté de la forêt atteint"
+],
 "s": "Un Chemin semé de bûches"
 },
 "https://papycha.fr/quete-les-bons-comptes-font-les-bons-amis": {
 "n": 6,
 "o": 12,
+"p": [
+"Ce n’est qu’un au revoir"
+],
 "s": "L’envers du décor"
+},
+"https://papycha.fr/quete-les-cartes-speciales-damayiro-bontarien-6": {
+"p": [
+"Entraînement avec Torche (bontarien 5)"
+]
 },
 "https://papycha.fr/quete-les-chasses-de-crocodaille-dandi": {
 "n": 1,
@@ -1432,6 +2728,9 @@
 "https://papycha.fr/quete-les-chasseurs": {
 "n": 3,
 "o": 3,
+"p": [
+"Promenons-nous dans les bois"
+],
 "s": "Les survivants de Frigost"
 },
 "https://papycha.fr/quete-les-contretemps-du-voyage": {
@@ -1447,32 +2746,62 @@
 "https://papycha.fr/quete-les-derniers-rescapes": {
 "n": 11,
 "o": 6,
+"p": [
+"Les rescapés du Village Enseveli atteint"
+],
 "s": "L'hiver arrive"
 },
 "https://papycha.fr/quete-les-desseisn-de-sylargh": {
 "n": 4,
 "o": 4,
+"p": [
+"Guerre froide"
+],
 "s": "Noblesse oblige"
 },
 "https://papycha.fr/quete-les-dessous-de-la-gloire": {
 "n": 5,
 "o": 5,
+"p": [
+"Les ninsurgés"
+],
 "s": "N'intervention musclée"
+},
+"https://papycha.fr/quete-les-documents-avant-tout-brakmarien-66": {
+"p": [
+"Une faille dans sa carapace. (brâkmarien 65)"
+]
+},
+"https://papycha.fr/quete-les-ecas-ne-flippent-pas-bontarien-42": {
+"p": [
+"Vin diou. (bontarien 41)"
+]
 },
 "https://papycha.fr/quete-les-enfants-de-la-mere": {
 "n": 9,
 "o": 2,
+"p": [
+"Akwadala, source de problèmes"
+],
 "s": "Des vacances qui tombent à l'eau"
 },
 "https://papycha.fr/quete-les-enfants-du-vent": {
 "n": 4,
 "o": 3,
+"p": [
+"La montagne a des yeux"
+],
 "s": "Là où souffle le vent"
 },
 "https://papycha.fr/quete-les-etoiles-de-nowel": {
 "n": 0,
 "o": 2,
 "s": "Un drôle de Nowel"
+},
+"https://papycha.fr/quete-les-gardes-dhonneur-a-punir-brakmarien-8": {
+"p": [
+"La mise à mort. (brâkmarien 7)"
+]
 },
 "https://papycha.fr/quete-les-gobelins-de-la-manufacture": {
 "n": 1,
@@ -1482,11 +2811,17 @@
 "https://papycha.fr/quete-les-graines-de-la-discorde": {
 "n": 9,
 "o": 17,
+"p": [
+"Gant graine."
+],
 "s": "Agriculture et Alchimie"
 },
 "https://papycha.fr/quete-les-indesirables-dalbuera": {
 "n": 4,
 "o": 3,
+"p": [
+"Le début des problèmes"
+],
 "s": "Médiation expéditive"
 },
 "https://papycha.fr/quete-les-joyeux-de-la-couronne": {
@@ -1494,54 +2829,100 @@
 "o": 2,
 "s": "Halte au péage"
 },
+"https://papycha.fr/quete-les-kamas-resolvent-tout-brakmarien-55": {
+"p": [
+"Un maître ès pion. (brâkmarien 54)"
+]
+},
 "https://papycha.fr/quete-les-malheurs-des-petites-gens": {
 "n": 2,
 "o": 2,
+"p": [
+"Première nimpression"
+],
 "s": "N'intervention musclée"
 },
 "https://papycha.fr/quete-les-meandres-de-la-bensine": {
 "n": 4,
 "o": 3,
+"p": [
+"Arakne du soir, espoir… ?"
+],
 "s": "Retour dans le Bayou"
 },
 "https://papycha.fr/quete-les-monologues-du-vaccin": {
 "n": 4,
 "o": 1,
+"p": [
+"Bienvenue à Frigost"
+],
 "s": "Jouer au docteur"
 },
 "https://papycha.fr/quete-les-ninsurges": {
 "n": 4,
 "o": 4,
+"p": [
+"La forge des maux"
+],
 "s": "N'intervention musclée"
+},
+"https://papycha.fr/quete-les-noces-funestes": {
+"p": [
+"L’île aux enfers"
+]
 },
 "https://papycha.fr/quete-les-platypuces": {
 "n": 2,
 "o": 2,
+"p": [
+"Perdus dans le bois"
+],
 "s": "Les enfants du bois"
 },
 "https://papycha.fr/quete-les-pwinces-dechus": {
 "n": 2,
 "o": 1,
+"p": [
+"Succès Rusé comme une Lenalde réalisé"
+],
 "s": "Le retour des morts pas vraiment vivants"
+},
+"https://papycha.fr/quete-les-rats-dhyoactif-bontarien-40": {
+"p": [
+"Dapyus n’est pas doué (bontarien 39)"
+]
 },
 "https://papycha.fr/quete-les-rescapes-de-frigost": {
 "n": 2,
 "o": 3,
+"p": [
+"L’essentiel est dans le Lac gelé atteint"
+],
 "s": "La maire dénie"
 },
 "https://papycha.fr/quete-les-rescapes-du-village-enseveli": {
 "n": 9,
 "o": 3,
+"p": [
+"C’est frais mais c’est pas grave",
+"Les rescapés de Frigost atteint"
+],
 "s": "L'hiver arrive"
 },
 "https://papycha.fr/quete-les-sbires-du-maitre": {
 "n": 9,
 "o": 3,
+"p": [
+"Le maître des clefs"
+],
 "s": "Le tour du monde en 27 donjons"
 },
 "https://papycha.fr/quete-les-vestiges-de-lavenir": {
 "n": 4,
 "o": 4,
+"p": [
+"Tour de Quartier"
+],
 "s": "Une impression blizzard"
 },
 "https://papycha.fr/quete-les-visages-de-pierre": {
@@ -1549,9 +2930,17 @@
 "o": 1,
 "s": "Jeter la première pierre"
 },
+"https://papycha.fr/quete-lespionnage-nouveau-brakmarien-31": {
+"p": [
+"L’équipement du traine-savate standard. (brâkmarien 30)"
+]
+},
 "https://papycha.fr/quete-lessentiel-est-dans-le-lac-gele": {
 "n": 2,
 "o": 2,
+"p": [
+"Bienvenue à Frigost atteint"
+],
 "s": "La maire dénie"
 },
 "https://papycha.fr/quete-leternelle-moisson": {
@@ -1567,6 +2956,9 @@
 "https://papycha.fr/quete-letoile-des-donjons": {
 "n": 0,
 "o": 8,
+"p": [
+"Les Etoiles de Nowel"
+],
 "s": "Un drôle de Nowel"
 },
 "https://papycha.fr/quete-letoile-des-glutins-farceurs": {
@@ -1592,41 +2984,77 @@
 "https://papycha.fr/quete-leveil-calligraphique": {
 "n": 2,
 "o": 1,
+"p": [
+"Succès Sous le bois de sa colère réalisé",
+"Succès Tracer sa voie réalisé"
+],
 "s": "Vers l'infini et Pandala"
 },
 "https://papycha.fr/quete-leveil-de-pandala": {
 "n": 4,
 "o": 3,
+"p": [
+"Déchaînement de spiritualité"
+],
 "s": "Les grands esprits se rencontrent"
 },
 "https://papycha.fr/quete-lile-celeste": {
 "n": 3,
 "o": 2,
+"p": [
+"Le voyage vers Incarnam"
+],
 "s": "Un Piou, c'est tout !"
+},
+"https://papycha.fr/quete-livraison-rapide-brakmarien-47": {
+"p": [
+"Cambriolage. (brâkmarien 46)"
+]
+},
+"https://papycha.fr/quete-livreur-de-mauvaise-nouvelle-brakmarien-14": {
+"p": [
+"Agent double et demi. (brâkmarien 13)"
+]
 },
 "https://papycha.fr/quete-loeuf-ou-la-cawotte": {
 "n": 5,
 "o": 3,
+"p": [
+"Le château du Wa",
+"Succès Rusé comme une Lenalde réalisé"
+],
 "s": "Un Wa de pacotille"
 },
 "https://papycha.fr/quete-lombre-du-fanatisme": {
 "n": 2,
 "o": 2,
+"p": [
+"La main occulte"
+],
 "s": "Brûler le pissenlit par la racine"
 },
 "https://papycha.fr/quete-lombre-et-la-glace": {
 "n": 6,
 "o": 3,
+"p": [
+"La fonte des glaces"
+],
 "s": "Les carrières de glace"
 },
 "https://papycha.fr/quete-lombre-qui-coule": {
 "n": 3,
 "o": 2,
+"p": [
+"La mélopée d’un songe"
+],
 "s": "Tourment décisif"
 },
 "https://papycha.fr/quete-lumiere-sur-lombre": {
 "n": 7,
 "o": 4,
+"p": [
+"L’ombre et la glace"
+],
 "s": "Les carrières de glace"
 },
 "https://papycha.fr/quete-mais-pourquoi-est-il-si-mechant": {
@@ -1634,14 +3062,36 @@
 "o": 1,
 "s": "Sourire sous cape"
 },
+"https://papycha.fr/quete-mais-si-ce-sont-des-vitamines-brakmarien-12": {
+"p": [
+"Sombres échanges. (brâkmarien 11)"
+]
+},
 "https://papycha.fr/quete-malediction": {
 "n": 3,
 "o": 2,
+"p": [
+"La destinée",
+"L’essentiel est dans le Lac gelé atteint"
+],
 "s": "L'âme de glace"
+},
+"https://papycha.fr/quete-maniere-douce-bontarien-63": {
+"p": [
+"Investigations à Moon. (bontarien 62)"
+]
+},
+"https://papycha.fr/quete-maniere-forte-brakmarien-63": {
+"p": [
+"Enquête à Moon. (brâkmarien 62)"
+]
 },
 "https://papycha.fr/quete-manque-de-moule": {
 "n": 2,
 "o": 6,
+"p": [
+"Titi Gobelait le magobelin"
+],
 "s": "Le théâtre des gobelins"
 },
 "https://papycha.fr/quete-manque-de-peaux": {
@@ -1667,36 +3117,69 @@
 "https://papycha.fr/quete-massacre-au-hakapik": {
 "n": 4,
 "o": 7,
+"p": [
+"Pomdeupin vaut mieux que trois tu l’auras"
+],
 "s": "Agriculture et Alchimie"
 },
 "https://papycha.fr/quete-mauvaise-graine": {
 "n": 6,
 "o": 10,
+"p": [
+"Mettre son grain de sel"
+],
 "s": "Agriculture et Alchimie"
 },
 "https://papycha.fr/quete-maya-la-belle": {
 "n": 12,
 "o": 10,
+"p": [
+"Là-haut sur la montagne",
+"Un ami qui ne vous veut pas que du bien"
+],
 "s": "Les survivants de Frigost"
 },
 "https://papycha.fr/quete-meilleurs-ennemis": {
 "n": 3,
 "o": 7,
+"p": [
+"Le douzien qui plantait des arbres",
+"Les bandits de la forêt de Cania"
+],
 "s": "Un Chemin semé de bûches"
+},
+"https://papycha.fr/quete-mel-au-drame": {
+"p": [
+"Mel Odieuse"
+]
+},
+"https://papycha.fr/quete-mel-odieuse": {
+"p": [
+"La pêche à Mel"
+]
 },
 "https://papycha.fr/quete-mes-lys-fleurs": {
 "n": 5,
 "o": 8,
+"p": [
+"A fleur de peau"
+],
 "s": "Agriculture et Alchimie"
 },
 "https://papycha.fr/quete-metamorphooose": {
 "n": 0,
 "o": 3,
+"p": [
+"Souvenirs entomologiques"
+],
 "s": "Sourire aux éclats"
 },
 "https://papycha.fr/quete-mettre-son-grain-de-sel": {
 "n": 5,
 "o": 9,
+"p": [
+"Massacre au hakapik."
+],
 "s": "Agriculture et Alchimie"
 },
 "https://papycha.fr/quete-michel-shel-enquille-un-bouftonmouth": {
@@ -1717,6 +3200,9 @@
 "https://papycha.fr/quete-mille-et-un-jours-un-destin": {
 "n": 15,
 "o": 1,
+"p": [
+"Le givre des révélations"
+],
 "s": "Épilogue hivernal"
 },
 "https://papycha.fr/quete-mines-anti-personnel": {
@@ -1724,15 +3210,30 @@
 "o": 13,
 "s": "Intérimaire frigostien"
 },
+"https://papycha.fr/quete-mission-de-reconnaissance-au-cimetiere-bontarien-32": {
+"p": [
+"Des combats pas très légaux… (bontarien 31)"
+]
+},
 "https://papycha.fr/quete-mission-solution": {
 "n": 12,
 "o": 3,
+"p": [
+"Chaud du S.L.I.P",
+"Là-haut sur la montagne",
+"Malédiction"
+],
 "s": "L'âme de glace"
 },
 "https://papycha.fr/quete-mmmh-shab-al": {
 "n": 1,
 "o": 14,
 "s": "Intérimaire frigostien"
+},
+"https://papycha.fr/quete-mon-nom-est-poison-brakmarien-53": {
+"p": [
+"Le forgeron aux deux mains gauches. (brâkmarien 52)"
+]
 },
 "https://papycha.fr/quete-monsieur-nest-pas-une-tapette": {
 "n": 1,
@@ -1747,41 +3248,76 @@
 "https://papycha.fr/quete-moteur-a-explosion": {
 "n": 15,
 "o": 5,
+"p": [
+"Rappel à la vie"
+],
 "s": "Mais où qu’ils sont les Frigostiens ?"
 },
 "https://papycha.fr/quete-mutinerie-chez-les-armutins": {
 "n": 13,
 "o": 3,
+"p": [
+"Chauffage à moindre frais.",
+"Fifille à son papa"
+],
 "s": "Mais où qu’ils sont les Frigostiens ?"
 },
 "https://papycha.fr/quete-ne-pas-rester-planter-la": {
 "n": 6,
 "o": 5,
+"p": [
+"Le vent l’emportera"
+],
 "s": "L'île aux donjons"
 },
 "https://papycha.fr/quete-ne-reste-dombre-que-la-votre": {
 "n": 6,
 "o": 5,
+"p": [
+"Notre monde, sans couleurs"
+],
 "s": "Tourment décisif"
+},
+"https://papycha.fr/quete-ned-le-dentiste-bontarien-4": {
+"p": [
+"Du pain pour les braves (bontarien 3)"
+]
 },
 "https://papycha.fr/quete-nettoyage-express": {
 "n": 6,
 "o": 2,
+"p": [
+"La chasse aux sorcières"
+],
 "s": "De la caillasse plein les poches"
 },
 "https://papycha.fr/quete-notre-monde-sans-couleurs": {
 "n": 5,
 "o": 4,
+"p": [
+"Coeur à corps"
+],
 "s": "Tourment décisif"
+},
+"https://papycha.fr/quete-nourriture-alternative": {
+"p": [
+"Succès Astrub Tofu Frit, pour les grands et les petits réalisé"
+]
 },
 "https://papycha.fr/quete-nouvelle-meute": {
 "n": 3,
 "o": 4,
+"p": [
+"Les Platypuces"
+],
 "s": "Les enfants du bois"
 },
 "https://papycha.fr/quete-nouvelle-super-mission-employe-polyvalent": {
 "n": 2,
 "o": 2,
+"p": [
+"Bienvenue à la foire du Trool"
+],
 "s": "La cape ne fait pas le Héros"
 },
 "https://papycha.fr/quete-obscurantisme": {
@@ -1793,6 +3329,11 @@
 "n": 1,
 "o": 1,
 "s": "Mettre la trouille au maitre"
+},
+"https://papycha.fr/quete-on-a-vole-le-collier-de-la-fille-du-maire-bontarien-7": {
+"p": [
+"Les cartes spéciales d’Amayiro (bontarien 6)"
+]
 },
 "https://papycha.fr/quete-on-recherche-aermyne-bracos-scalptaras": {
 "n": 1,
@@ -1897,7 +3438,15 @@
 "https://papycha.fr/quete-oogie-betty-est-une-vilaine-grincheuse": {
 "n": 0,
 "o": 4,
+"p": [
+"Eau courante"
+],
 "s": "Sourire en boîte"
+},
+"https://papycha.fr/quete-operation-commando-brakmarien-42": {
+"p": [
+"X comme Xephirès. (brâkmarien 41)"
+]
 },
 "https://papycha.fr/quete-oranges-pressees": {
 "n": 0,
@@ -1932,16 +3481,45 @@
 "https://papycha.fr/quete-pandissidence": {
 "n": 6,
 "o": 2,
+"p": [
+"Le faux Dofus"
+],
 "s": "Mais où sont les dofus ?"
+},
+"https://papycha.fr/quete-par-la-force-ou-par-la-finesse-brakmarien-22": {
+"p": [
+"Taxe gratuite. (brâkmarien 21)"
+]
+},
+"https://papycha.fr/quete-paranoia-aigue-brakmarien-58": {
+"p": [
+"Le forgeron. (brâkmarien 57)"
+]
 },
 "https://papycha.fr/quete-parasite-de-lumiere": {
 "n": 4,
 "o": 2,
+"p": [
+"Sa lumière dans les ténèbres"
+],
 "s": "Sous des nuages de cendre"
+},
+"https://papycha.fr/quete-pas-de-faineants-dans-les-rangs-bontarien-8": {
+"p": [
+"On a volé le collier de la fille du maire (bontarien 7)"
+]
+},
+"https://papycha.fr/quete-pas-de-vaccin-pour-les-vilains": {
+"p": [
+"Le mal a dit"
+]
 },
 "https://papycha.fr/quete-passagers-clandestins": {
 "n": 4,
 "o": 7,
+"p": [
+"Pour Une Poignée De Cailloux"
+],
 "s": "Horizon incertain"
 },
 "https://papycha.fr/quete-passe-ta-larme-a-gauche": {
@@ -1957,12 +3535,25 @@
 "https://papycha.fr/quete-paulette-pain-beche-la-boulangere": {
 "n": 2,
 "o": 6,
+"p": [
+"Le nouveau monde"
+],
 "s": "Service de dépannage"
 },
 "https://papycha.fr/quete-pauvre-kiki": {
 "n": 1,
 "o": 5,
 "s": "Problèmes et solutions"
+},
+"https://papycha.fr/quete-pauvre-larve-brakmarien-33": {
+"p": [
+"Un assassin… chez Bonta ? (brâkmarien 32)"
+]
+},
+"https://papycha.fr/quete-pauvre-larve-doree-brakmarien-34": {
+"p": [
+"Pauvre larve. (brâkmarien 33)"
+]
 },
 "https://papycha.fr/quete-pauvre-pomme-de-terre": {
 "n": 1,
@@ -1972,6 +3563,10 @@
 "https://papycha.fr/quete-peche-en-eaux-gelees": {
 "n": 3,
 "o": 1,
+"p": [
+"Bricole Girl",
+"L’essentiel est dans le Lac gelé"
+],
 "s": "Forage à tout va"
 },
 "https://papycha.fr/quete-perdus-dans-le-bois": {
@@ -1982,6 +3577,9 @@
 "https://papycha.fr/quete-permis-de-chasse": {
 "n": 2,
 "o": 2,
+"p": [
+"La communauté de la forêt atteint"
+],
 "s": "L'appel de la Forêt"
 },
 "https://papycha.fr/quete-pied-joyeux": {
@@ -1994,6 +3592,16 @@
 "o": 4,
 "s": "Kaïra"
 },
+"https://papycha.fr/quete-plaine-de-chats-bontarien-43": {
+"p": [
+"Les Ecas ne flippent pas. (bontarien 42)"
+]
+},
+"https://papycha.fr/quete-poison-de-scorbute-pour-la-prison-bontarien-29": {
+"p": [
+"Le décès de Rimaraf (bontarien 28)"
+]
+},
 "https://papycha.fr/quete-polka-merera-besoin-de-vous": {
 "n": 1,
 "o": 4,
@@ -2002,16 +3610,35 @@
 "https://papycha.fr/quete-pomdepin-vaut-mieux-que-trois-tu-lauras": {
 "n": 3,
 "o": 5,
+"p": [
+"En semant, se ment"
+],
 "s": "Agriculture et Alchimie"
+},
+"https://papycha.fr/quete-pot-lagent-double-bontarien-13": {
+"p": [
+"Recouvrement de dette à la Tabasse (bontarien 12)"
+]
 },
 "https://papycha.fr/quete-pour-une-poignee-de-cailloux": {
 "n": 3,
 "o": 5,
+"p": [
+"La Croisière ça m’use"
+],
 "s": "Horizon incertain"
+},
+"https://papycha.fr/quete-pour-vivre-heureux-bontarien-54": {
+"p": [
+"Une partie de cache-cache. (bontarien 53)"
+]
 },
 "https://papycha.fr/quete-pourfendre-des-donjons-pour-la-gloire": {
 "n": 6,
 "o": 3,
+"p": [
+"La chasse aux sorcières"
+],
 "s": "De la caillasse plein les poches"
 },
 "https://papycha.fr/quete-pousse-mousse": {
@@ -2022,6 +3649,11 @@
 "https://papycha.fr/quete-premier-pas-dans-les-tenebres": {
 "n": 2,
 "o": 2,
+"p": [
+"Succès La cape ne fait pas le Héros réalisé",
+"Succès Sorcière malgré vous réalisé",
+"Succès Un Chemin semé de bûches réalisé"
+],
 "s": "À l'ombre, depuis trop longtemps"
 },
 "https://papycha.fr/quete-premiere-nimpression": {
@@ -2029,40 +3661,86 @@
 "o": 1,
 "s": "N'intervention musclée"
 },
+"https://papycha.fr/quete-premiere-visite-a-brakmar-bontarien-9": {
+"p": [
+"Pas de fainéants dans les rangs ! (bontarien 8)"
+]
+},
 "https://papycha.fr/quete-probleme-epineux": {
 "n": 3,
 "o": 1,
+"p": [
+"En route pour Plantala"
+],
 "s": "Sous le bois de sa colère"
 },
 "https://papycha.fr/quete-prochain-arret-astrub": {
 "n": 6,
 "o": 5,
+"p": [
+"La chasse aux sorcières"
+],
 "s": "Médiation expéditive"
 },
 "https://papycha.fr/quete-promenons-nous-dans-les-bois": {
 "n": 2,
 "o": 2,
+"p": [
+"Bricole Girl"
+],
 "s": "Les survivants de Frigost"
 },
 "https://papycha.fr/quete-protection-divine": {
 "n": 8,
 "o": 4,
+"p": [
+"Un sage parmi les sages"
+],
 "s": "Mais où sont les dofus ?"
 },
 "https://papycha.fr/quete-pulsations-a-contretemps": {
 "n": 3,
 "o": 5,
+"p": [
+"Abysses infinis"
+],
 "s": "À l'ombre, depuis trop longtemps"
+},
+"https://papycha.fr/quete-quand-yen-a-marre-de-brakmar-bontarien-49": {
+"p": [
+"Flagrant délire. (bontarien 48)"
+]
+},
+"https://papycha.fr/quete-quatre-caisses-a-pied-ca-use-bontarien-16": {
+"p": [
+"Une brèche à Bonta (bontarien 15)"
+]
 },
 "https://papycha.fr/quete-quest-ce-quon-a-fait-des-tuyaux": {
 "n": 8,
 "o": 5,
+"p": [
+"Lumière sur l’ombre"
+],
 "s": "Les carrières de glace"
+},
+"https://papycha.fr/quete-qui-veut-la-peau-du-wabbit": {
+"p": [
+"Un mawiage pwincier"
+]
 },
 "https://papycha.fr/quete-rappel-a-la-vie": {
 "n": 14,
 "o": 4,
+"p": [
+"Mutinerie chez les Armutins"
+],
 "s": "Mais où qu’ils sont les Frigostiens ?"
+},
+"https://papycha.fr/quete-ras-le-bol-de-lenglad-bontarien-38": {
+"p": [
+"Leçon de cuisine (bontarien 37)"
+]
 },
 "https://papycha.fr/quete-rase-de-pres": {
 "n": 1,
@@ -2072,17 +3750,33 @@
 "https://papycha.fr/quete-ratatinez-les": {
 "n": 3,
 "o": 6,
+"p": [
+"La Croisière ça m’use"
+],
 "s": "Horizon incertain"
+},
+"https://papycha.fr/quete-recouvrement-de-dette-a-la-tabasse-bontarien-12": {
+"p": [
+"Du repos mais pas trop (bontarien 11)"
+]
 },
 "https://papycha.fr/quete-redolphe-est-un-vilain-grincheux": {
 "n": 0,
 "o": 4,
+"p": [
+"Fraîcheur de l’Ivre"
+],
 "s": "Sourire jaune"
 },
 "https://papycha.fr/quete-rempart-ultime": {
 "n": 1,
 "o": 10,
 "s": "Intérimaire frigostien"
+},
+"https://papycha.fr/quete-rencontre-du-premier-type-brakmarien-43": {
+"p": [
+"Opération commando. (brâkmarien 42)"
+]
 },
 "https://papycha.fr/quete-rencontre-du-ratieme-type": {
 "n": 1,
@@ -2097,36 +3791,67 @@
 "https://papycha.fr/quete-residence-des-vils": {
 "n": 2,
 "o": 2,
+"p": [
+"Dernière lettre pour Bonta"
+],
 "s": "Dernière demeure"
+},
+"https://papycha.fr/quete-retour-aux-origines-brakmarien-64": {
+"p": [
+"Manière forte. (brâkmarien 63)"
+]
 },
 "https://papycha.fr/quete-sa-lumiere-dans-les-tenebres": {
 "n": 3,
 "o": 1,
+"p": [
+"En route pour Feudala"
+],
 "s": "Sous des nuages de cendre"
 },
 "https://papycha.fr/quete-sang-dencre": {
 "n": 6,
 "o": 5,
+"p": [
+"Le vent se lève"
+],
 "s": "Là où souffle le vent"
 },
 "https://papycha.fr/quete-sang-dessus-dessous": {
 "n": 8,
 "o": 5,
+"p": [
+"Convoi Humanitaire"
+],
 "s": "Jouer au docteur"
 },
 "https://papycha.fr/quete-sans-ma-barbe-quelle-barbe": {
 "n": 5,
 "o": 6,
+"p": [
+"C’est frais mais c’est pas grave"
+],
 "s": "Halte au péage"
+},
+"https://papycha.fr/quete-sans-tomber-sur-un-os": {
+"p": [
+"L’île aux enfers"
+]
 },
 "https://papycha.fr/quete-sarmer-pour-mieux-se-defendre": {
 "n": 2,
 "o": 3,
+"p": [
+"La communauté de la forêt atteint"
+],
 "s": "L'appel de la Forêt"
 },
 "https://papycha.fr/quete-sauter-le-pas-du-trepas": {
 "n": 3,
 "o": 2,
+"p": [
+"Brêche Mais Intense"
+],
 "s": "Se mettre au ver"
 },
 "https://papycha.fr/quete-sauvegarder-lespece": {
@@ -2137,16 +3862,50 @@
 "https://papycha.fr/quete-sauvetage-de-betapir": {
 "n": 2,
 "o": 1,
+"p": [
+"Succès Route 1 réalisé"
+],
 "s": "Bétapir"
 },
 "https://papycha.fr/quete-sauvetage-de-damphibrute": {
 "n": 2,
 "o": 1,
+"p": [
+"Succès Route 1 réalisé"
+],
 "s": "Amphibrute"
+},
+"https://papycha.fr/quete-sauvetage-de-faucombustion": {
+"p": [
+"Succès Route 1 réalisé"
+]
+},
+"https://papycha.fr/quete-sauvetage-de-mixomastoc": {
+"p": [
+"Succès Route 1 réalisé"
+]
+},
+"https://papycha.fr/quete-sauvetage-de-mysticorne": {
+"p": [
+"Succès Route 1 réalisé"
+]
+},
+"https://papycha.fr/quete-sauvetage-de-nenufarouche": {
+"p": [
+"Succès Route 1 réalisé"
+]
+},
+"https://papycha.fr/quete-sauvetage-de-serpierre": {
+"p": [
+"Succès Route 1 réalisé"
+]
 },
 "https://papycha.fr/quete-savez-vous-boucher-les-trous": {
 "n": 2,
 "o": 4,
+"p": [
+"Une enquête alambiquée – Investigation"
+],
 "s": "L’envers du décor"
 },
 "https://papycha.fr/quete-scaeroplane-a-tres-grande-vitesse": {
@@ -2162,21 +3921,43 @@
 "https://papycha.fr/quete-scierie-bambelle": {
 "n": 2,
 "o": 7,
+"p": [
+"Bricole Girl"
+],
 "s": "Problèmes et solutions"
 },
 "https://papycha.fr/quete-semer-ses-graines": {
 "n": 3,
 "o": 10,
+"p": [
+"Scierie Bambelle"
+],
 "s": "Problèmes et solutions"
+},
+"https://papycha.fr/quete-sendurcir-pour-reussir": {
+"p": [
+"Le sentier des Héros"
+]
 },
 "https://papycha.fr/quete-shushu-et-lulu": {
 "n": 2,
 "o": 3,
+"p": [
+"Scène de ménage"
+],
 "s": "Faire le keke"
+},
+"https://papycha.fr/quete-sombres-echanges-brakmarien-11": {
+"p": [
+"Le con tondant. (brâkmarien 10)"
+]
 },
 "https://papycha.fr/quete-sous-le-foux-des-projeteurs": {
 "n": 5,
 "o": 3,
+"p": [
+"Parasites de lumière"
+],
 "s": "Sous des nuages de cendre"
 },
 "https://papycha.fr/quete-souvenir-souvenir": {
@@ -2187,21 +3968,44 @@
 "https://papycha.fr/quete-souvenirs-entomologiques": {
 "n": 0,
 "o": 2,
+"p": [
+"Cafarnaüm"
+],
 "s": "Sourire aux éclats"
 },
 "https://papycha.fr/quete-souvenirs-perdus": {
 "n": 2,
 "o": 5,
+"p": [
+"Une enquête alambiquée – Investigation"
+],
 "s": "L’envers du décor"
 },
 "https://papycha.fr/quete-star-ski-et-dutch": {
 "n": 2,
 "o": 8,
+"p": [
+"Bricole Girl"
+],
 "s": "Problèmes et solutions"
+},
+"https://papycha.fr/quete-suite-woyal": {
+"p": [
+"Accès à l’île de Pandala atteint",
+"Le Pwince Monseigneuw"
+]
+},
+"https://papycha.fr/quete-supermilicien-brakmarien-56": {
+"p": [
+"Les kamas résolvent tout. (brâkmarien 55)"
+]
 },
 "https://papycha.fr/quete-surtout-ne-pas-faire-de-vagues": {
 "n": 9,
 "o": 3,
+"p": [
+"Akwadala, source de problèmes"
+],
 "s": "Des vacances qui tombent à l'eau"
 },
 "https://papycha.fr/quete-tas-les-boules": {
@@ -2209,14 +4013,25 @@
 "o": 3,
 "s": "Destinations Aventure"
 },
+"https://papycha.fr/quete-taxe-gratuite-brakmarien-21": {
+"p": [
+"Le testament du papa. (brâkmarien 20)"
+]
+},
 "https://papycha.fr/quete-terre-a-terre": {
 "n": 3,
 "o": 2,
+"p": [
+"Tour de l’île"
+],
 "s": "L'île aux donjons"
 },
 "https://papycha.fr/quete-tes-ou-si-tes-pas-la": {
 "n": 3,
 "o": 5,
+"p": [
+"Les Platypuces"
+],
 "s": "Les enfants du bois"
 },
 "https://papycha.fr/quete-timassacre-entre-wabbits": {
@@ -2234,19 +4049,33 @@
 "o": 4,
 "s": "Le théâtre des gobelins"
 },
+"https://papycha.fr/quete-tomber-sur-un-bec": {
+"p": [
+"Usuwpation d’identité"
+]
+},
 "https://papycha.fr/quete-tour-de-lile": {
 "n": 2,
 "o": 1,
+"p": [
+"Accès à l’île de Pandala atteint"
+],
 "s": "L'île aux donjons"
 },
 "https://papycha.fr/quete-tour-de-quartier": {
 "n": 3,
 "o": 3,
+"p": [
+"Vague Souvenir"
+],
 "s": "Une impression blizzard"
 },
 "https://papycha.fr/quete-tour-desprit": {
 "n": 7,
 "o": 6,
+"p": [
+"Ne pas rester planter là"
+],
 "s": "L'île aux donjons"
 },
 "https://papycha.fr/quete-tourner-ma-neige": {
@@ -2262,27 +4091,69 @@
 "https://papycha.fr/quete-tous-pour-un": {
 "n": 8,
 "o": 2,
+"p": [
+"À qui profite le boufmouth"
+],
 "s": "Ongles incarnés"
 },
 "https://papycha.fr/quete-tout-foux-tout-flamme": {
 "n": 6,
 "o": 4,
+"p": [
+"Sous le foux des projecteurs"
+],
 "s": "Sous des nuages de cendre"
+},
+"https://papycha.fr/quete-tout-lecrit-les-s-o-s": {
+"p": [
+"L’île aux enfers"
+]
 },
 "https://papycha.fr/quete-traite-de-pres": {
 "n": 6,
 "o": 10,
+"p": [
+"Kanigroula"
+],
 "s": "Jeter la première pierre"
 },
 "https://papycha.fr/quete-traitre-ou-pas-traitre-telle-est-la-question": {
 "n": 3,
 "o": 6,
+"p": [
+"Crypte Honnie"
+],
 "s": "Étre plus royaliste que le roi"
+},
+"https://papycha.fr/quete-traknar-bontarien-58": {
+"p": [
+"Ambition ambigüe. (bontarien 57)"
+]
+},
+"https://papycha.fr/quete-triple-x-brakmarien-40": {
+"p": [
+"A la rescousse d’un incapable. (brâkmarien 39)"
+]
+},
+"https://papycha.fr/quete-trouble-fete": {
+"p": [
+"Accès à l’île de Pandala atteint",
+"À roublard, roublard et demi"
+]
 },
 "https://papycha.fr/quete-un-ami-qui-ne-vous-veut-pas-que-du-bien": {
 "n": 11,
 "o": 9,
+"p": [
+"Dépôt de ravitaillement",
+"Sans ma barbe, quelle barbe"
+],
 "s": "Les survivants de Frigost"
+},
+"https://papycha.fr/quete-un-assassin-chez-bonta-brakmarien-32": {
+"p": [
+"L’espionnage nouveau. (brâkmarien 31)"
+]
 },
 "https://papycha.fr/quete-un-autre-moyen-de-transport": {
 "n": 1,
@@ -2294,25 +4165,73 @@
 "o": 5,
 "s": "Le théâtre des gobelins"
 },
+"https://papycha.fr/quete-un-choix-difficile-brakmarien-37": {
+"p": [
+"Humiliation sans précédent. (brâkmarien 36)"
+]
+},
 "https://papycha.fr/quete-un-comte-de-faits-divers": {
 "n": 2,
 "o": 5,
+"p": [
+"Il faut mettre un terme aux maîtres",
+"La vie de château atteint"
+],
 "s": "L'hiver arrive"
+},
+"https://papycha.fr/quete-un-coup-de-fouet-brakmarien-3": {
+"p": [
+"Le professionnel. (brâkmarien 2)"
+]
+},
+"https://papycha.fr/quete-un-dentier-pour-lami-mak-brakmarien-35": {
+"p": [
+"Pauvre larve… dorée. (brâkmarien 34)"
+]
 },
 "https://papycha.fr/quete-un-gros-cube-un-pti-cube": {
 "n": 4,
 "o": 9,
+"p": [
+"Pêche en eaux gelées"
+],
 "s": "Objets trouvés"
 },
 "https://papycha.fr/quete-un-juge-hysterique": {
 "n": 10,
 "o": 4,
+"p": [
+"Les sbires du maître"
+],
 "s": "Le tour du monde en 27 donjons"
+},
+"https://papycha.fr/quete-un-maitre-es-pion-brakmarien-54": {
+"p": [
+"Mon nom est poison. (brâkmarien 53)"
+]
+},
+"https://papycha.fr/quete-un-mawiage-pwincier": {
+"p": [
+"Suite Woyale"
+]
 },
 "https://papycha.fr/quete-un-moment-de-coupure": {
 "n": 3,
 "o": 3,
+"p": [
+"Attention aux coups de soleil !"
+],
 "s": "Remettre ses vacances à plus tard"
+},
+"https://papycha.fr/quete-un-oubli-regrettable-brakmarien-9": {
+"p": [
+"Les gardes d’honneur… à punir. (brâkmarien 8)"
+]
+},
+"https://papycha.fr/quete-un-petit-oubli-brakmarien-27": {
+"p": [
+"Chasse à l’espion. (brâkmarien 26)"
+]
 },
 "https://papycha.fr/quete-un-peu-de-tonus": {
 "n": 0,
@@ -2322,42 +4241,78 @@
 "https://papycha.fr/quete-un-peu-de-wab": {
 "n": 2,
 "o": 1,
+"p": [
+"Succès Lancer de Wabbit réalisé"
+],
 "s": "Le coup du Wabbit"
 },
 "https://papycha.fr/quete-un-remede-a-tous-les-maux": {
 "n": 9,
 "o": 6,
+"p": [
+"Sang dessus dessous"
+],
 "s": "Jouer au docteur"
 },
 "https://papycha.fr/quete-un-reveil-douloureux": {
 "n": 9,
 "o": 9,
+"p": [
+"Des Douziens et des Dieux."
+],
 "s": "Se mettre la Cité dor à dos"
 },
 "https://papycha.fr/quete-un-sage-parmi-les-sages": {
 "n": 7,
 "o": 3,
+"p": [
+"Pandissidence"
+],
 "s": "Mais où sont les dofus ?"
+},
+"https://papycha.fr/quete-un-sanglier-un-peu-trop-agressif-bontarien-10": {
+"p": [
+"Première visite à Brâkmar (bontarien 9)"
+]
+},
+"https://papycha.fr/quete-un-sombre-pouvoir-bontarien-69": {
+"p": [
+"Une Corne Edfrit sans sel. (bontarien 68)"
+]
 },
 "https://papycha.fr/quete-un-string-de-caractere": {
 "n": 14,
 "o": 5,
+"p": [
+"Chaud et Froid"
+],
 "s": "Regarde ce que j’ai trouvé"
 },
 "https://papycha.fr/quete-un-tour-dhorizon": {
 "n": 2,
 "o": 3,
+"p": [
+"Arrivée à bon port"
+],
 "s": "Horizon incertain"
 },
 "https://papycha.fr/quete-un-travail-a-temps-plein": {
 "n": 5,
 "o": 6,
+"p": [
+"Les Vestiges de l’Avenir"
+],
 "s": "Une impression blizzard"
 },
 "https://papycha.fr/quete-un-volcan-seteint": {
 "n": 1,
 "o": 6,
 "s": "Problèmes et solutions"
+},
+"https://papycha.fr/quete-une-arrivee-mouvementee": {
+"p": [
+"Bien débuter"
+]
 },
 "https://papycha.fr/quete-une-baguette-pour-chef-bworkestre": {
 "n": 1,
@@ -2367,26 +4322,61 @@
 "https://papycha.fr/quete-une-blague-vaseuse": {
 "n": 2,
 "o": 9,
+"p": [
+"Bricole Girl"
+],
 "s": "Problèmes et solutions"
+},
+"https://papycha.fr/quete-une-breche-a-bonta-bontarien-15": {
+"p": [
+"De la poudre aux yeux de Brâkmar (bontarien 14)"
+]
 },
 "https://papycha.fr/quete-une-breche-dans-astrub": {
 "n": 3,
 "o": 3,
+"p": [
+"La chasse à l’Homme (Ours)"
+],
 "s": "Chercher la grosse bâte"
+},
+"https://papycha.fr/quete-une-collection-digne-de-xilebo-brakmarien-15": {
+"p": [
+"Livreur de mauvaise nouvelle. (brâkmarien 14)"
+]
+},
+"https://papycha.fr/quete-une-corne-edfrit-sans-sel-bontarien-68": {
+"p": [
+"A la poursuite d’Octolliard rouge. (bontarien 67)"
+]
+},
+"https://papycha.fr/quete-une-danse-macabre": {
+"p": [
+"L’île aux enfers"
+]
 },
 "https://papycha.fr/quete-une-eaupportunite": {
 "n": 3,
 "o": 6,
+"p": [
+"Ennemis rapprochés"
+],
 "s": "Jeter la première pierre"
 },
 "https://papycha.fr/quete-une-enquete-alambiquee-confrontation": {
 "n": 3,
 "o": 8,
+"p": [
+"Une enquête alambiquée – Identification"
+],
 "s": "L’envers du décor"
 },
 "https://papycha.fr/quete-une-enquete-alambiquee-identification": {
 "n": 2,
 "o": 6,
+"p": [
+"Une enquête alambiquée – Investigation"
+],
 "s": "L’envers du décor"
 },
 "https://papycha.fr/quete-une-enquete-alambiquee-investigation": {
@@ -2397,7 +4387,15 @@
 "https://papycha.fr/quete-une-enquete-alambiquee-resolution": {
 "n": 4,
 "o": 9,
+"p": [
+"Une enquête alambiquée – Confrontation"
+],
 "s": "L’envers du décor"
+},
+"https://papycha.fr/quete-une-faille-dans-sa-carapace-brakmarien-65": {
+"p": [
+"Retour aux origines. (brâkmarien 64)"
+]
 },
 "https://papycha.fr/quete-une-famille-en-or": {
 "n": 1,
@@ -2407,6 +4405,9 @@
 "https://papycha.fr/quete-une-fin-en-chaque-cause": {
 "n": 7,
 "o": 3,
+"p": [
+"Le Rouage de l’Infini"
+],
 "s": "Un temps périt"
 },
 "https://papycha.fr/quete-une-mine-patibulaire": {
@@ -2414,55 +4415,117 @@
 "o": 6,
 "s": "Chasse gardée"
 },
+"https://papycha.fr/quete-une-partie-de-cache-cache-bontarien-53": {
+"p": [
+"L’équipe ment. (bontarien 52)"
+]
+},
 "https://papycha.fr/quete-une-reconversion-au-poil": {
 "n": 1,
 "o": 4,
 "s": "Plus dure sera la tâte"
 },
+"https://papycha.fr/quete-une-rumeur-allechante-brakmarien-61": {
+"p": [
+"Le trésor de La Descemer. (brâkmarien 60)"
+]
+},
+"https://papycha.fr/quete-une-rumeur-interessante-bontarien-61": {
+"p": [
+"Attaque à retardement. (bontarien 60)"
+]
+},
+"https://papycha.fr/quete-une-vision-rocambolesque": {
+"p": [
+"Succès Retour dans le Bayou réalisé"
+]
+},
+"https://papycha.fr/quete-usuwpation-didentite": {
+"p": [
+"Info pour un vrai traître"
+]
+},
 "https://papycha.fr/quete-vade-retro-wabbitas": {
 "n": 3,
 "o": 3,
+"p": [
+"Comme d’wabbitude"
+],
 "s": "Lancer de Wabbit"
 },
 "https://papycha.fr/quete-vague-souvenir": {
 "n": 2,
 "o": 2,
+"p": [
+"Succès Un voyage inopiné réalisé"
+],
 "s": "Une impression blizzard"
 },
 "https://papycha.fr/quete-venaison-en-toute-saison": {
 "n": 2,
 "o": 6,
+"p": [
+"La communauté de la forêt"
+],
 "s": "Un Chemin semé de bûches"
 },
 "https://papycha.fr/quete-ville-fleurie": {
 "n": 11,
 "o": 21,
+"p": [
+"Crocs n’en bourrent"
+],
 "s": "Agriculture et Alchimie"
+},
+"https://papycha.fr/quete-vin-diou-bontarien-41": {
+"p": [
+"Les rats d’Hyoactif (bontarien 40)"
+]
 },
 "https://papycha.fr/quete-voir-le-dark-vlad-et-ne-pas-mourir": {
 "n": 9,
 "o": 5,
+"p": [
+"Protection divine"
+],
 "s": "Mais où sont les dofus ?"
 },
 "https://papycha.fr/quete-voleur-en-tout-genre": {
 "n": 11,
 "o": 3,
+"p": [
+"Dépôt de ravitaillement"
+],
 "s": "Ongles incarnés"
 },
 "https://papycha.fr/quete-votre-premier-dofus": {
 "n": 2,
 "o": 2,
+"p": [
+"Avoir le Dofus Argenté atteint"
+],
 "s": "Les grands esprits se rencontrent"
 },
 "https://papycha.fr/quete-vous-avez-demande-la-peau-lisse": {
 "n": 5,
 "o": 5,
+"p": [
+"Les desseins de Sylargh"
+],
 "s": "Noblesse oblige"
 },
 "https://papycha.fr/quete-voyage-au-centre-du-wabbit": {
 "n": 7,
 "o": 7,
+"p": [
+"Expédition culinaire"
+],
 "s": "Rusé comme une Lenalde"
+},
+"https://papycha.fr/quete-x-comme-xephires-brakmarien-41": {
+"p": [
+"Triple X. (brâkmarien 40)"
+]
 },
 "https://papycha.fr/quete-ya-pas-ecrit-la-poste": {
 "n": 1,
@@ -2472,6 +4535,9 @@
 "https://papycha.fr/rose-a-lys-rose-a-lys-oh": {
 "n": 6,
 "o": 11,
+"p": [
+"Mes lys fleurs."
+],
 "s": "Agriculture et Alchimie"
 },
 "https://papycha.fr/succes-donjons-avances": {

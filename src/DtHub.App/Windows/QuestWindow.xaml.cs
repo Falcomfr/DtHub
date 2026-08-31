@@ -358,6 +358,15 @@ public partial class QuestWindow : Window
 
     private void OnGoBack(object sender, RoutedEventArgs e) => _viewModel.GoBack();
 
+    private void OnClearQuery(object sender, RoutedEventArgs e)
+    {
+        _viewModel.Query = string.Empty;
+
+        SearchBox.Focus();
+    }
+
+    private void OnCloseList(object sender, RoutedEventArgs e) => _viewModel.IsListOpen = false;
+
     /// <summary>Suit un lien de chaîne : la quête précédente ou la suivante.</summary>
     private void OnFollowChain(object sender, RoutedEventArgs e)
     {

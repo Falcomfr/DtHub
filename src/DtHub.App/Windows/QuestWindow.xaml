@@ -23,12 +23,29 @@
       <StackPanel>
         <!-- Le champ prend toute la largeur : le compte de quêtes qui l'amputait
              ne dit rien qu'on ait envie de lire deux fois. -->
-        <TextBox x:Name="SearchBox"
-                 Text="{Binding Query, UpdateSourceTrigger=PropertyChanged, Delay=150}"
-                 GotKeyboardFocus="OnSearchFocused"
-                 PreviewMouseLeftButtonDown="OnSearchClicked"
-                 PreviewKeyDown="OnSearchKey"
-                 ToolTip="Cliquez pour dérouler la liste, ou tapez un nom. Les accents ne comptent pas." />
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+
+          <TextBox Grid.Column="0" x:Name="SearchBox"
+                   Text="{Binding Query, UpdateSourceTrigger=PropertyChanged, Delay=150}"
+                   GotKeyboardFocus="OnSearchFocused"
+                   PreviewMouseLeftButtonDown="OnSearchClicked"
+                   PreviewKeyDown="OnSearchKey"
+                   ToolTip="Cliquez pour dérouler la liste, ou tapez un nom. Les accents ne comptent pas." />
+
+          <!-- Hors du champ et non par-dessus : le gabarit de TextBox n'a pas
+               de marge à droite, et une croix superposée mordrait sur le texte. -->
+          <Button Grid.Column="1" Style="{StaticResource IconButton}"
+                  Margin="4,0,0,0" Click="OnClearQuery"
+                  ToolTip="Vider la recherche"
+                  Visibility="{Binding Query, Converter={StaticResource EmptyToVisibility},
+                                       ConverterParameter=inverse}">
+            <Path Style="{StaticResource RowGlyph}" Data="M 4,4 L 11,11 M 11,4 L 4,11" />
+          </Button>
+        </Grid>
 
         <!-- Seulement quand il y a quelque chose à dire : une indexation en
              cours, ou un incident. Rien le reste du temps. -->
@@ -188,12 +205,25 @@
               BorderBrush="{StaticResource BevelPressedBrush}" BorderThickness="0,0,0,1"
               Visibility="{Binding IsListOpen, Converter={StaticResource BoolToVisibility}}">
         <DockPanel>
-          <TextBlock DockPanel.Dock="Top" Margin="10,8,10,4"
-                     Style="{StaticResource Muted}" FontSize="11"
-                     Text="{Binding Breadcrumb}"
-                     Visibility="{Binding Breadcrumb,
-                                          Converter={StaticResource EmptyToVisibility},
-                                          ConverterParameter=inverse}" />
+          <!-- Le fil d'Ariane et la fermeture partagent une ligne toujours
+               présente : le fil est vide à la racine, et une croix logée dans
+               son bloc y aurait disparu avec lui. -->
+          <Grid DockPanel.Dock="Top" Margin="10,4,4,2">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                       Style="{StaticResource Muted}" FontSize="11"
+                       TextTrimming="CharacterEllipsis"
+                       Text="{Binding Breadcrumb}" />
+
+            <Button Grid.Column="1" Style="{StaticResource IconButton}"
+                    Click="OnCloseList" ToolTip="Fermer la liste">
+              <Path Style="{StaticResource RowGlyph}" Data="M 4,4 L 11,11 M 11,4 L 4,11" />
+            </Button>
+          </Grid>
 
           <!-- Le retour est fixe et non une ligne de la liste : il défilait avec
                elle et disparaissait dès qu'on descendait dans une rubrique de
@@ -227,31 +257,81 @@
             </ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>
               <DataTemplate>
-                <Grid Margin="0,3" Background="Transparent" IsEnabled="{Binding IsEnabled}">
+                <!-- La gouttière est fixe et non un voisin replié : dans une
+                     pile horizontale, un élément masqué ne réserve pas sa
+                     place, et les libellés cesseraient de s'aligner d'une
+                     ligne à l'autre. -->
+                <Grid x:Name="Ligne" Margin="0,3" Background="Transparent"
+                      IsEnabled="{Binding IsEnabled}">
                   <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="19" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                   </Grid.ColumnDefinitions>
 
-                  <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <TextBlock x:Name="Libelle" Text="{Binding Label}"
-                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                  </StackPanel>
+                  <Path x:Name="Nature" Grid.Column="0" VerticalAlignment="Center"
+                        Visibility="Collapsed">
+                    <Path.Style>
+                      <Style TargetType="Path" BasedOn="{StaticResource ListGlyph}" />
+                    </Path.Style>
+                  </Path>
 
-                  <TextBlock Grid.Column="1" Text="{Binding Detail}" Margin="10,0,0,0"
-                             VerticalAlignment="Center"
-                             Style="{StaticResource Muted}" FontSize="11" />
+                  <TextBlock x:Name="Libelle" Grid.Column="1" Text="{Binding Label}"
+                             TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+
+                  <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="10,0,0,0"
+                              VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Detail}"
+                               VerticalAlignment="Center"
+                               Style="{StaticResource Muted}" FontSize="11" />
+
+                    <!-- Une liste : ce qu'il faut avoir fait avant. Le site le
+                         donne pour six cent treize quêtes, contre cent dix-sept
+                         auxquelles il donne un niveau. -->
+                    <Path Style="{StaticResource ListGlyph}"
+                          Data="M 3,4.5 H 12 M 3,7.5 H 12 M 3,10.5 H 8"
+                          VerticalAlignment="Center" Margin="6,0,2,0"
+                          ToolTip="{Binding Tip}"
+                          Visibility="{Binding HasTip,
+                                               Converter={StaticResource BoolToVisibility}}" />
+                  </StackPanel>
                 </Grid>
 
                 <DataTemplate.Triggers>
                   <!-- L'intertitre se distingue de ce qu'il coiffe : sans cela,
-                       une rubrique se lirait comme une quête de plus. -->
+                       une rubrique se lirait comme une quête de plus. Le
+                       décalage porte sur la ligne entière, sinon l'icône
+                       resterait huit pixels trop haut. -->
                   <DataTrigger Binding="{Binding Kind}" Value="Header">
                     <Setter TargetName="Libelle" Property="FontWeight" Value="SemiBold" />
                     <Setter TargetName="Libelle" Property="Foreground"
                             Value="{DynamicResource AccentBrush}" />
                     <Setter TargetName="Libelle" Property="FontSize" Value="11" />
-                    <Setter TargetName="Libelle" Property="Margin" Value="0,8,0,0" />
+                    <Setter TargetName="Ligne" Property="Margin" Value="0,11,0,3" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Kind}" Value="Success">
+                    <Setter TargetName="Libelle" Property="FontWeight" Value="SemiBold" />
+                    <Setter TargetName="Libelle" Property="Foreground"
+                            Value="{DynamicResource AccentBrush}" />
+                    <Setter TargetName="Libelle" Property="FontSize" Value="11" />
+                    <Setter TargetName="Ligne" Property="Margin" Value="0,11,0,3" />
+                    <Setter TargetName="Nature" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Nature" Property="Stroke"
+                            Value="{DynamicResource AccentBrush}" />
+                    <!-- Une étoile : ce qu'on obtient. -->
+                    <Setter TargetName="Nature" Property="Data"
+                            Value="M 7.5,2 L 9.2,5.9 L 13.3,6.4 L 10.3,9.2 L 11.1,13.2
+                                   L 7.5,11.2 L 3.9,13.2 L 4.7,9.2 L 1.7,6.4 L 5.8,5.9 Z" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Kind}" Value="Branch">
+                    <Setter TargetName="Nature" Property="Visibility" Value="Visible" />
+                    <!-- Une carte pliée : un endroit où l'on va. -->
+                    <Setter TargetName="Nature" Property="Data"
+                            Value="M 1.5,3.6 L 5.5,2.2 L 9.5,4.4 L 13.5,3 L 13.5,11.4
+                                   L 9.5,12.8 L 5.5,10.6 L 1.5,12 Z M 5.5,2.2 L 5.5,10.6
+                                   M 9.5,4.4 L 9.5,12.8" />
                   </DataTrigger>
                 </DataTemplate.Triggers>
               </DataTemplate>

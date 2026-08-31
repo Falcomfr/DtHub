@@ -131,14 +131,32 @@ def succes_officiels() -> dict[str, str]:
     return officiels
 
 
-def prerequis(contenu: str) -> list[str]:
-    """Intitulés des quêtes et jalons dont celle-ci dépend.
+def sans_marque(titre: str) -> str:
+    """Nom de la quête que désigne un intitulé de prérequis.
+
+    Un jalon n'est pas une quête mais l'état qu'elle laisse. Le site l'écrivait
+    « [FIN] L'essentiel est dans le Lac gelé » ; il écrit maintenant
+    « L'essentiel est dans le Lac gelé atteint », et « Succès X réalisé » pour
+    un succès. Mesuré sur les 584 items de la colonne « précédents » : plus
+    aucun ne porte de crochets, trente-cinq finissent par « atteint » et
+    trente-huit sont de la forme « Succès … réalisé ». La règle au préfixe ne
+    retirait donc plus rien, et douze arêtes du graphe d'ordre de jeu se
+    perdaient.
+    """
+    valeur = re.sub(r"^\[[^\]]*\]\s*", "", titre).strip()
+    valeur = re.sub(r"^Succ[èe]s\s+(?P<nom>.+?)\s+r[ée]alis[ée]$", r"\g<nom>", valeur, flags=re.I)
+    valeur = re.sub(r"\s+atteint(?:e)?$", "", valeur, flags=re.I)
+
+    return valeur.strip()
+
+
+def prerequis(contenu: str) -> list[tuple[str, str]]:
+    """Prérequis d'une quête : ce qu'il faut avoir fait avant elle.
 
     Le site les publie dans la colonne « précédents » de son bloc de
-    progression. Un jalon n'est pas une quête mais l'état qu'elle laisse :
-    « [FIN] L'essentiel est dans le Lac gelé » désigne la quête du même nom, à
-    sa marque près. C'est le seul ordre de jeu que le site donne pour un succès
-    dont aucune page ne publie la liste.
+    progression. Rend pour chacun le libellé tel qu'il s'affiche et le nom de
+    la quête qu'il désigne, le second servant à ordonner les quêtes d'un succès
+    et le premier à les montrer à l'utilisateur.
     """
     bloc = re.search(
         r'pqt-progress__column--previous\b(?P<corps>.*?)</section>', contenu, re.S
@@ -147,19 +165,16 @@ def prerequis(contenu: str) -> list[str]:
     if not bloc:
         return []
 
-    titres = []
+    trouves = []
 
     for ancre in re.finditer(r"<a[^>]*>(?P<inner>.*?)</a>", bloc.group("corps"), re.S):
         fort = re.search(r"<strong[^>]*>(?P<t>.*?)</strong>", ancre.group("inner"), re.S)
-        titre = texte(fort.group("t") if fort else ancre.group("inner"))
+        libelle = texte(fort.group("t") if fort else ancre.group("inner"))
 
-        # « [FIN] » et consorts marquent un jalon ; le reste nomme la quête.
-        titre = re.sub(r"^\[[^\]]*\]\s*", "", titre).strip()
+        if libelle:
+            trouves.append((libelle, sans_marque(libelle)))
 
-        if titre:
-            titres.append(titre)
-
-    return titres
+    return trouves
 
 
 def depuis_les_quetes(
@@ -301,9 +316,9 @@ def ordonner(
         # dit rien de l'ordre interne.
         requis = {
             url: {
-                par_titre[reduire(t)]
-                for t in avant.get(url, [])
-                if reduire(t) in par_titre and par_titre[reduire(t)] in dedans
+                par_titre[reduire(nom)]
+                for _, nom in avant.get(url, [])
+                if reduire(nom) in par_titre and par_titre[reduire(nom)] in dedans
             }
             for url in membres
         }
@@ -379,19 +394,33 @@ def main() -> int:
     for url, rang in ordonner(carte, titres, avant).items():
         carte[url]["o"] = rang
 
+    # Les prérequis, pour les montrer au survol dans la liste. Ils couvrent
+    # cinq fois plus de quêtes que le niveau que le site renseigne : 527 par
+    # cette colonne contre 117 niveaux. Une quête peut en avoir sans relever
+    # d'aucun succès : elle entre alors dans la carte pour ce seul motif.
+    for url, items in sorted(avant.items()):
+        libelles = [libelle for libelle, _ in items if libelle]
+
+        if not libelles:
+            continue
+
+        carte.setdefault(url, {})["p"] = libelles
+
     SORTIE.parent.mkdir(parents=True, exist_ok=True)
     SORTIE.write_text(
         json.dumps(carte, ensure_ascii=False, indent=0, sort_keys=True) + "\n",
         encoding="utf-8",
     )
 
-    distincts = len({reduire(v["s"]) for v in carte.values()})
+    distincts = len({reduire(v["s"]) for v in carte.values() if v.get("s")})
+    avec_prerequis = sum(1 for v in carte.values() if v.get("p"))
     octets = SORTIE.stat().st_size
 
     print(file=sys.stderr)
     print(f"blocs d'intro      : {len(par_quete)}", file=sys.stderr)
     print(f"intertitres        : {len(par_rubrique)}", file=sys.stderr)
     print(f"union              : {len(carte)} quêtes, {distincts} succès", file=sys.stderr)
+    print(f"avec prérequis     : {avec_prerequis}", file=sys.stderr)
     print(
         f"écrit              : {SORTIE} ({octets / 1024:.0f} Ko, "
         f"{len(gzip.compress(SORTIE.read_bytes())) / 1024:.0f} Ko compressé)",

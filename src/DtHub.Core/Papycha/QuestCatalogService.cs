@@ -162,18 +162,6 @@ public sealed class QuestCatalogService : IDisposable
         // la liste sur un classement par nombre de quêtes.
         List<string> ranking = [.. pages.Select(p => QuestSearch.Normalize(p.Name))];
 
-        // Ce que la recherche pourra rapprocher d'une quête par sa rubrique.
-        // La racine du site en est exclue : elle porte les 782 quêtes, si bien
-        // que taper « quete » ramenait tout le catalogue. Le nom retenu est
-        // celui qu'on affiche, sinon chercher « Madrestam » ne rendrait rien
-        // alors que la liste montre « Port de Madrestam ».
-        var searchable = known.Values
-            .Where(s => s.Id != RootCategory)
-            .Concat(extra.Values)
-            .ToDictionary(
-                s => s.Id,
-                s => QuestSearch.Normalize(QuestZoneOrder.DisplayName(s.Name)));
-
         Dictionary<string, HashSet<int>> membership = new(StringComparer.Ordinal);
         Dictionary<string, string> names = new(StringComparer.Ordinal);
 
@@ -219,11 +207,19 @@ public sealed class QuestCatalogService : IDisposable
                 PlayOrder = seed is not null && seed.TryGetValue(key, out var place)
                     ? place.PlayOrder
                     : 0,
-                SectionKey = string.Join(
-                    ' ',
-                    membership[key]
-                        .Select(id => searchable.GetValueOrDefault(id, string.Empty))
-                        .Where(n => n.Length > 0)),
+
+                // Les deux gisements réunis : le texte libre des métadonnées et
+                // les quêtes que la page nomme en amont. Le premier dit « Être
+                // le 3 Août », le second « L'essentiel est dans le Lac gelé » ;
+                // les deux sont des prérequis, et une quête peut avoir les deux.
+                Prerequisites =
+                [
+                    .. quest.Prerequisites.Concat(
+                        seed is not null && seed.TryGetValue(key, out var before)
+                            ? before.Prerequisites
+                            : [])
+                        .Distinct(StringComparer.OrdinalIgnoreCase),
+                ],
                 SectionIds = [.. membership[key]],
             });
         }

@@ -325,7 +325,7 @@ public sealed partial class QuestViewModel : ObservableObject
                 ];
 
                 Nodes.Add(new QuestNode(
-                    QuestNodeKind.Header, $"{success} ({quests.Count})", LevelRange(quests)));
+                    QuestNodeKind.Success, $"{success} ({quests.Count})", LevelRange(quests)));
 
                 foreach (var quest in quests)
                 {
@@ -493,7 +493,7 @@ public sealed partial class QuestViewModel : ObservableObject
             List<QuestSummary> ordered = [.. InPlayOrder(group)];
 
             Nodes.Add(new QuestNode(
-                QuestNodeKind.Header,
+                QuestNodeKind.Success,
                 $"{group.Key} ({ordered.Count})",
                 LevelRange(ordered)));
 
@@ -512,7 +512,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
         // L'intertitre ne s'affiche que s'il sépare de quelque chose : dans une
         // rubrique dont aucune quête n'a de succès, il ne coifferait rien.
-        if (Nodes.Any(n => n.Kind == QuestNodeKind.Header))
+        if (Nodes.Any(n => n.Kind == QuestNodeKind.Success))
         {
             Nodes.Add(new QuestNode(
                 QuestNodeKind.Header,
@@ -543,11 +543,22 @@ public sealed partial class QuestViewModel : ObservableObject
             .ThenBy(q => q.ChainStep == 0 ? int.MaxValue : q.ChainStep)
             .ThenBy(q => q.Title, StringComparer.CurrentCulture);
 
+    /// <summary>
+    /// Une ligne de quête.
+    ///
+    /// La colonne de droite ne porte plus le niveau : le site ne le renseigne
+    /// que sur cent dix-sept quêtes sur sept cent quatre-vingt-deux, et une
+    /// colonne vide neuf fois sur dix ne mérite pas sa place. Elle porte les
+    /// prérequis, qui en couvrent six cent treize, et qui disent quelque chose
+    /// d'utile avant de partir : ce qu'il faut avoir fait.
+    /// </summary>
     private QuestNode ToNode(QuestSummary quest) => new(
         QuestNodeKind.Quest,
         quest.Title,
-        quest.Level > 0 ? $"niveau {quest.Level}" : null,
-        Quest: quest);
+        Quest: quest,
+        Tip: quest.Prerequisites.Count > 0
+            ? "À faire avant :\n" + string.Join('\n', quest.Prerequisites)
+            : null);
 
     private string NameOf(int section) =>
         QuestZoneOrder.DisplayName(

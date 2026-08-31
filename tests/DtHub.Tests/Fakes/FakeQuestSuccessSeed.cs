@@ -15,10 +15,11 @@ public sealed class FakeQuestSuccessSeed : IQuestSuccessSeed
         int questId,
         string success,
         int chainStep = 0,
-        int playOrder = 0)
+        int playOrder = 0,
+        params string[] prerequisites)
     {
         _entries[$"https://exemple.invalid/quete-{questId}"] =
-            new QuestSeedEntry(success, chainStep, playOrder);
+            new QuestSeedEntry(success, chainStep, playOrder, prerequisites);
 
         return this;
     }

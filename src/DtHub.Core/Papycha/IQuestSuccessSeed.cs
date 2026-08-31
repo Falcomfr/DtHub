@@ -9,6 +9,9 @@
 /// refaire chaque semaine sur chaque poste pèserait sur le site pour une
 /// information qui ne bouge qu'aux mises à jour du jeu.
 ///
+/// Elle porte aussi les prérequis de chaque quête, que le site ne publie que
+/// dans le HTML de ses pages.
+///
 /// Elle complète les intertitres des pages de rubrique, que l'indexation lit
 /// déjà. Mesuré : les intertitres seuls rattachent 380 quêtes, les blocs
 /// d'intro 459, leur union 505 sur 782. Les 277 autres n'ont pas de succès, ce
@@ -36,4 +39,12 @@ public interface IQuestSuccessSeed
 /// « Les rescapés de Frigost » précédait « L'essentiel est dans le Lac gelé »
 /// qu'elle exige pourtant.
 /// </param>
-public readonly record struct QuestSeedEntry(string Success, int ChainStep, int PlayOrder);
+/// <param name="Prerequisites">
+/// Ce qu'il faut avoir fait avant cette quête, tel que le site l'affiche.
+/// Relevé sur 527 quêtes, contre 117 auxquelles il donne un niveau.
+/// </param>
+public readonly record struct QuestSeedEntry(
+    string Success,
+    int ChainStep,
+    int PlayOrder,
+    IReadOnlyList<string> Prerequisites);

@@ -55,11 +55,18 @@ public sealed partial class EmbeddedQuestSuccessSeed : IQuestSuccessSeed
 
             var raw = JsonSerializer.Deserialize<Dictionary<string, Entry>>(stream, Json) ?? [];
 
+            // Une entrée sans succès n'est pas vide : elle peut ne porter que
+            // des prérequis. La filtrer sur le succès seul en aurait écarté
+            // deux cent quatorze, en silence.
             var map = raw
-                .Where(pair => !string.IsNullOrWhiteSpace(pair.Value.S))
+                .Where(pair => !string.IsNullOrWhiteSpace(pair.Value.S) || pair.Value.P is { Count: > 0 })
                 .ToDictionary(
                     pair => pair.Key,
-                    pair => new QuestSeedEntry(pair.Value.S!, pair.Value.N, pair.Value.O),
+                    pair => new QuestSeedEntry(
+                        pair.Value.S ?? string.Empty,
+                        pair.Value.N,
+                        pair.Value.O,
+                        pair.Value.P ?? []),
                     StringComparer.Ordinal);
 
             if (map.Count == 0 && raw.Count > 0)
@@ -87,7 +94,7 @@ public sealed partial class EmbeddedQuestSuccessSeed : IQuestSuccessSeed
 
     /// <summary>
     /// Forme du fichier : « s » le succès, « n » le rang de chaîne, « o » la
-    /// place dans le succès.
+    /// place dans le succès, « p » les prérequis.
     /// </summary>
     private sealed class Entry
     {
@@ -96,6 +103,8 @@ public sealed partial class EmbeddedQuestSuccessSeed : IQuestSuccessSeed
         public int N { get; set; }
 
         public int O { get; set; }
+
+        public List<string>? P { get; set; }
     }
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Carte des succès embarquée : {count} quête(s).")]

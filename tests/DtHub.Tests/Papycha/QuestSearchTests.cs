@@ -69,59 +69,51 @@ public class QuestSearchTests
     }
 
     [Fact]
-    public void Une_quete_se_trouve_aussi_par_le_nom_de_sa_rubrique()
+    public void Une_quete_ne_se_trouve_plus_par_le_nom_de_sa_zone()
     {
-        // Chercher « frigost » ne rendait que les quatre quêtes dont le titre
-        // porte le mot, alors que cent quatre-vingt-quatre s'y déroulent. On
-        // cherche un endroit autant qu'un nom.
+        // Elle s'y trouvait, et c'est ce qui noyait la recherche : « frigost »
+        // rendait cent soixante-dix-sept quêtes dont cent soixante-treize par
+        // la seule rubrique. Cette intention est servie par le groupe des
+        // zones, qui n'existait pas quand la rubrique a été ajoutée ici.
         var quete = new QuestSummary
         {
             Title = "Complètement givré",
             SearchKey = QuestSearch.Normalize("Complètement givré"),
-            SectionKey = QuestSearch.Normalize("Île de Frigost"),
         };
 
-        Assert.Single(QuestSearch.Filter([quete], "frigost"));
         Assert.Single(QuestSearch.Filter([quete], "givre"));
-
-        // Les deux ensemble valent aussi, chaque mot pouvant venir de l'un ou
-        // de l'autre.
-        Assert.Single(QuestSearch.Filter([quete], "frigost givre"));
-        Assert.Empty(QuestSearch.Filter([quete], "frigost bouftou"));
+        Assert.Empty(QuestSearch.Filter([quete], "frigost"));
     }
 
     [Fact]
-    public void Le_titre_passe_avant_la_rubrique()
+    public void Ce_qui_commence_par_le_mot_cherche_passe_devant()
     {
-        // Sans cet ordre, « Le dragon d'Astrub » se perdrait au milieu des
-        // cinquante-six quêtes qui se déroulent à Astrub.
-        QuestSummary Quete(string title, string section) => new()
+        // Les titres français commencent souvent par un article : sans ce
+        // classement, « Dragon Cochon » se perdrait derrière « Le dragon
+        // d'Astrub ».
+        QuestSummary Quete(string title) => new()
         {
             Title = title,
             SearchKey = QuestSearch.Normalize(title),
-            SectionKey = QuestSearch.Normalize(section),
         };
 
         var resultats = QuestSearch.Filter(
             [
-                Quete("Une affaire de famille", "Astrub"),
-                Quete("Astrub sous la neige", "Amakna"),
-                Quete("Le dragon d'Astrub", "Astrub"),
+                Quete("Le dragon d'Astrub"),
+                Quete("Dragon Cochon"),
+                Quete("Antre du Dragon"),
             ],
-            "astrub");
+            "dragon");
 
         Assert.Equal(3, resultats.Count);
-        Assert.Equal("Astrub sous la neige", resultats[0].Title);
-        Assert.Equal("Le dragon d'Astrub", resultats[1].Title);
-        Assert.Equal("Une affaire de famille", resultats[2].Title);
+        Assert.Equal("Dragon Cochon", resultats[0].Title);
     }
 
-    private static QuestSummary Quete(string titre, string succes = "", string rubriques = "") =>
+    private static QuestSummary Quete(string titre, string succes = "") =>
         new()
         {
             Title = titre,
             SearchKey = QuestSearch.Normalize(titre),
-            SectionKey = QuestSearch.Normalize(rubriques),
             SuccessName = succes,
         };
 
@@ -133,8 +125,9 @@ public class QuestSearchTests
     {
         QuestSummary[] quetes =
         [
-            Quete("Complètement givré", "Les survivants de Frigost", "ile de frigost"),
-            Quete("Le dragon d'Astrub", "Devenir une légende", "astrub"),
+            Quete("Bienvenue à Frigost", "Les survivants de Frigost"),
+            Quete("Complètement givré", "Les survivants de Frigost"),
+            Quete("Le dragon d'Astrub", "Devenir une légende"),
         ];
 
         QuestSection[] rubriques = [Rubrique(135, "Île de Frigost"), Rubrique(18, "Astrub")];
@@ -143,7 +136,10 @@ public class QuestSearchTests
 
         Assert.Equal("Île de Frigost", Assert.Single(trouve.Zones).Name);
         Assert.Equal("Les survivants de Frigost", Assert.Single(trouve.Successes));
-        Assert.Equal("Complètement givré", Assert.Single(trouve.Quests).Title);
+
+        // « Complètement givré » se déroule à Frigost mais ne le dit pas dans
+        // son nom : elle relève de la zone, pas du groupe des quêtes.
+        Assert.Equal("Bienvenue à Frigost", Assert.Single(trouve.Quests).Title);
     }
 
     [Fact]

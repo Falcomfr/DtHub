@@ -145,10 +145,13 @@ public class QuestCatalogServiceTests
 
         var givre = catalog.Quests.Single(q => q.Title == "Complètement givré");
 
-        Assert.Contains("frigost", givre.SectionKey, StringComparison.Ordinal);
+        // La zone porte la quête, mais la recherche de quêtes ne s'en sert plus :
+        // chercher « frigost » rendait cent soixante-dix-sept résultats dont on
+        // n'avait pas voulu. C'est le groupe des zones qui répond à cela.
+        Assert.Contains(135, givre.SectionIds);
+        Assert.Empty(service.Search("frigost"));
 
-        // Et la recherche s'en sert : c'était tout l'objet de l'opération.
-        Assert.Single(service.Search("frigost"));
+        Assert.Single(service.SearchAll("frigost").Zones);
     }
 
     [Fact]

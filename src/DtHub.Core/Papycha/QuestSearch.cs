@@ -83,48 +83,33 @@ public static class QuestSearch
     }
 
     /// <summary>
-    /// Vrai si chaque mot se trouve dans le titre ou dans une rubrique de la
-    /// quête. Les deux sont acceptés mot à mot : « frigost givre » retient une
-    /// quête nommée « Complètement givré » qui se déroule à Frigost.
+    /// Vrai si chaque mot se trouve dans le titre de la quête.
+    ///
+    /// Le titre seul, et non plus la rubrique. Une quête retenue parce que sa
+    /// zone porte le mot noyait celles qu'on cherchait : « frigost » en rendait
+    /// cent soixante-dix-sept, dont cent soixante-treize par la seule rubrique,
+    /// et cinquante-six des soixante lignes affichées en relevaient. Cette
+    /// intention-là, « montre-moi tout Frigost », est désormais servie par le
+    /// groupe des zones, qui n'existait pas quand la rubrique a été ajoutée
+    /// ici.
     /// </summary>
     public static bool Matches(QuestSummary quest, IReadOnlyList<string> terms)
     {
         ArgumentNullException.ThrowIfNull(quest);
-        ArgumentNullException.ThrowIfNull(terms);
 
-        foreach (var term in terms)
-        {
-            if (!quest.SearchKey.Contains(term, StringComparison.Ordinal)
-                && !quest.SectionKey.Contains(term, StringComparison.Ordinal))
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return Matches(quest.SearchKey, terms);
     }
 
     /// <summary>
-    /// Rang d'un résultat : le titre passe avant la rubrique.
+    /// Rang d'un résultat : ce qui commence par le mot cherché passe devant.
     ///
-    /// Chercher « astrub » doit proposer « Le dragon d'Astrub » avant les
-    /// cinquante-six quêtes qui s'y déroulent, sans quoi le résultat qu'on
-    /// visait se perdrait au milieu.
+    /// Chercher « dragon » doit proposer « Dragon Cochon » avant « Le dragon
+    /// d'Astrub », dont le titre commence par un article.
     /// </summary>
-    private static int Rank(QuestSummary quest, IReadOnlyList<string> terms)
-    {
-        if (terms.Count == 0)
-        {
-            return 1;
-        }
-
-        if (quest.SearchKey.StartsWith(terms[0], StringComparison.Ordinal))
-        {
-            return 0;
-        }
-
-        return Matches(quest.SearchKey, terms) ? 1 : 2;
-    }
+    private static int Rank(QuestSummary quest, IReadOnlyList<string> terms) =>
+        terms.Count > 0 && quest.SearchKey.StartsWith(terms[0], StringComparison.Ordinal)
+            ? 0
+            : 1;
 
     /// <summary>Découpe une saisie en mots comparables.</summary>
     public static IReadOnlyList<string> Terms(string? query)

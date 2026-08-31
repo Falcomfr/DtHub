@@ -327,10 +327,24 @@ public sealed partial class PapychaClient : IPapychaClient
             Categories = post.Categories ?? [],
             Types = post.QuestTypes ?? [],
             SearchKey = QuestSearch.Normalize(title),
+            Prerequisites = Lines(post.Meta?.Prerequisites),
             StartPosition = Decode(post.Meta?.StartPosition).Trim(),
             StartPerson = person > 0 ? people.GetValueOrDefault(person, string.Empty) : string.Empty,
         };
     }
+
+    /// <summary>
+    /// Découpe un prérequis en lignes. Le site en met parfois deux dans le même
+    /// champ, séparés par un retour : les afficher collés les rendrait illisibles.
+    /// </summary>
+    private static IReadOnlyList<string> Lines(string? value) =>
+        string.IsNullOrWhiteSpace(value)
+            ? []
+            :
+            [
+                .. Decode(value)
+                    .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+            ];
 
     /// <summary>
     /// Noms des personnages, par identifiant.
@@ -436,6 +450,9 @@ public sealed partial class PapychaClient : IPapychaClient
 
         [JsonPropertyName("_pqa_start_person_id")]
         public int StartPersonId { get; set; }
+
+        [JsonPropertyName("_pqa_prerequisites")]
+        public string? Prerequisites { get; set; }
     }
 
     private sealed class TermPayload
