@@ -1,4 +1,4 @@
-# AGENTS.md
+﻿# AGENTS.md
 
 Guide destiné aux agents IA et aux contributeurs qui reprennent ce dépôt.
 Lis-le en entier avant de modifier quoi que ce soit.
@@ -51,6 +51,13 @@ dotnet.exe publish src/DtHub.App -c Release -r win-x64 --self-contained true \
   -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true \
   -p:IncludeNativeLibrariesForSelfExtract=true -o build\publish
 ```
+
+`build/lancer.cmd` rejoue cette publication puis ouvre l'application. C'est ce
+que vise le raccourci du bureau, et non le binaire : viser le binaire ne
+garantit rien, il date de la dernière publication et non de la dernière
+modification. Mesuré : 1,1 s quand rien n'a changé, 10,6 s sinon. Aucune étape
+n'est bloquante, un échec de publication lance quand même le binaire présent.
+`build/create-shortcut.ps1` pose ou met à jour ce raccourci.
 
 Le dépôt doit rester compilable et les tests verts à chaque commit. Zéro
 avertissement est la cible : les analyseurs .NET sont actifs.

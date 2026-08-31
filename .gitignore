@@ -492,3 +492,6 @@ build/*.log.err
 build/app-*.png
 build/dpi-*.png
 build/ingame-*.png
+
+# Journal de la republication faite par build/lancer.cmd
+build/publication.log

@@ -1,29 +1,38 @@
-# Pose un raccourci « DT Hub » sur le bureau, visant la publication en fichier
-# unique. À rejouer après une nouvelle publication seulement si le chemin
-# change : le raccourci suit le fichier, pas sa version.
+﻿# Pose ou met à jour le raccourci « DT Hub » du bureau.
 #
-#   dotnet publish src/DtHub.App -c Release -r win-x64 --self-contained true `
-#     -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true `
-#     -p:IncludeNativeLibrariesForSelfExtract=true -o build\publish
+# Le raccourci vise le lanceur, non le binaire. Viser le binaire directement ne
+# garantissait rien : il datait de la dernière publication, pas de la dernière
+# modification, et on pouvait jouer des heures sur une version périmée sans
+# s'en douter. Le lanceur republie d'abord, ce qui coûte une seconde quand rien
+# n'a changé.
+#
 #   powershell -ExecutionPolicy Bypass -File build\create-shortcut.ps1
 
 param(
-    [string]$Target = (Join-Path $PSScriptRoot 'publish\DtHub.exe'),
-    [string]$Icon = (Join-Path $PSScriptRoot '..\assets\app.ico')
+    [string]$Target = (Join-Path $PSScriptRoot 'lancer.cmd'),
+    [string]$Icon = (Join-Path $PSScriptRoot '..\assets\app.ico'),
+    [string]$Name = 'DtHub'
 )
 
 if (-not (Test-Path $Target)) {
-    Write-Error "Exécutable introuvable : $Target. Publiez d'abord."
+    Write-Error "Lanceur introuvable : $Target."
     exit 1
 }
 
-$link = Join-Path ([Environment]::GetFolderPath('Desktop')) 'DT Hub.lnk'
+$link = Join-Path ([Environment]::GetFolderPath('Desktop')) "$Name.lnk"
 $shell = New-Object -ComObject WScript.Shell
 $shortcut = $shell.CreateShortcut($link)
 $shortcut.TargetPath = (Resolve-Path $Target).Path
-$shortcut.WorkingDirectory = Split-Path (Resolve-Path $Target).Path
+$shortcut.WorkingDirectory = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $shortcut.IconLocation = (Resolve-Path $Icon).Path
-$shortcut.Description = 'Ouvrir plusieurs comptes DOFUS Touch'
+
+# Réduite : la republication ouvre une console une seconde, elle n'a pas à
+# passer devant le jeu.
+$shortcut.WindowStyle = 7
+
+$shortcut.Description = 'Ouvrir plusieurs comptes DOFUS Touch, toujours à la dernière version'
 $shortcut.Save()
 
-Write-Output "Raccourci créé : $link"
+Write-Output "Raccourci a jour : $link"
+Write-Output ("  cible   : " + $shortcut.TargetPath)
+Write-Output ("  dossier : " + $shortcut.WorkingDirectory)
