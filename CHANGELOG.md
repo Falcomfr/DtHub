@@ -29,6 +29,8 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   soixante-huit gagnent une suivante et cent quatre-vingt-dix-sept une
   précédente. Le bouton nomme la série d'arrivée quand on en change.
 - Un indicateur d'attente prend la place du guide le temps qu'une page arrive.
+- Une flèche revient sur la quête d'où l'on vient, quel que soit le chemin pris
+  pour y arriver.
   Il manquait sur les liens de quête cliqués dans le guide : la navigation
   refusée puis relancée signalait sa fin après le départ de la vraie, et
   l'ancien guide restait à l'écran sans que rien ne l'annonce.
@@ -63,6 +65,18 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 - Le personnage de départ vient des métadonnées et n'était pas relu : deux
   quêtes sur six cent quatre-vingt-treize y logent une phrase, d'où « Parlez à
   bateau pour vous rendre au village d'Albuera ».
+- Un paragraphe en gras ne suffit plus à faire une étape : il lui faut des
+  coordonnées ou un ordre donné au lecteur. Mesuré sur cinquante-cinq guides,
+  cinq cent trente-deux paragraphes en gras ne donnaient que trois cent
+  cinquante-sept consignes ; le reste décrivait des sorts de boss, commentait un
+  choix de dialogue ou titrait une liste, et se retrouvait résumé faute de mieux
+  par sa première phrase.
+- La suite d'une série se cherche dans tout le succès et non dans sa seule
+  dernière quête : sept succès y gagnent une continuation, dont « Médiation
+  expéditive », qui se prolonge depuis sa cinquième quête sur six.
+- Rouvrir la liste montre la rubrique de la quête affichée, celle-ci
+  surlignée. Elle rouvrait sur la racine ou sur une recherche.
+- Une recherche sans résultat dit « Aucun résultat ».
 - Le survol des prérequis dit « Prérequis » et non « À faire avant » : sur cinq
   cent soixante-sept prérequis distincts, on trouve des objets à apporter, un
   alignement, un nombre de joueurs, un niveau et des créneaux horaires.

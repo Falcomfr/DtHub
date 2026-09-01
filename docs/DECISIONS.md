@@ -712,6 +712,13 @@ passent par des règles sur le texte ; quand aucune ne s'applique, la première
 phrase raccourcie. Jamais de vide : une étape sans résumé laisserait croire
 qu'il n'y a rien à faire.
 
+**Les voisines, fin de série.** La suite d'un succès ne pend pas toujours à sa
+dernière quête : sur les cent quinze succès, la première quête de douze d'entre
+eux a pour prérequis une quête du milieu du succès précédent. « Médiation
+expéditive » se prolonge depuis sa cinquième quête sur six, si bien que la
+sixième n'avait aucune suite. On cherche donc dans tout le succès courant, ce qui
+en pourvoit sept ; deux en ouvrent plusieurs et restent muets.
+
 **Les voisines, suite.** La liste d'un succès s'arrête à ses bornes, et le site
 ne s'y arrête pas : à Albuera, « Bien débuter » mène à « Une arrivée
 mouvementée », qui mène à « Le début des problèmes », laquelle ouvre un succès.
@@ -819,6 +826,21 @@ un déplacement là où l'application était juste, ce qui a coûté un aller-re
 Le bandeau dit trois choses : à quelle étape on est, ce qu'elle demande, et où
 l'on va ensuite. Chacune s'est révélée fausse dans un cas courant, et chacune
 a demandé une règle plutôt qu'un correctif.
+
+**Ce qui compte pour une étape.** Le gras seul ne suffit pas. Relevé sur
+cinquante-cinq guides, cinq cent trente-deux paragraphes en gras ne donnent que
+trois cent cinquante-sept consignes : le reste décrit les sorts d'un boss,
+commente un choix de dialogue sans effet, ou titre une liste. Ceux-là se
+retrouvaient résumés par leur première phrase, faute d'avoir quoi que ce soit à
+résumer.
+
+La marque retenue est grammaticale et non lexicale : l'impératif de la deuxième
+personne du pluriel, terminaison en « -ez » hors pronom sujet, plus six
+irréguliers. Une liste de verbes avait été essayée d'abord ; elle jetait « Faites
+votre lit. », « Consultez la lettre de Mériana. », « Protégez Juzie et
+Mériana ! », et il s'en serait trouvé d'autres à chaque guide. Deux pièges au
+passage : le découpage en mots doit être unicode, sans quoi « Protégez » se casse
+en deux à l'accent, et le seuil de longueur doit laisser passer « Tuez ».
 
 **Le rang.** Le départ porte le rang zéro et son ancrage est le haut du guide ;
 le premier paragraphe se trouvant à une cinquantaine de pixels en dessous, il

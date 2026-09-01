@@ -22,6 +22,7 @@ public sealed class QuestChainIndex
 {
     private readonly Dictionary<string, QuestSummary> _byTitle;
     private readonly Dictionary<string, List<QuestSummary>> _followers;
+    private readonly Dictionary<string, List<QuestSummary>> _bySuccess;
 
     public QuestChainIndex(IEnumerable<QuestSummary> quests)
     {
@@ -38,6 +39,16 @@ public sealed class QuestChainIndex
         {
             _byTitle.TryAdd(QuestSearch.Normalize(quest.Title), quest);
         }
+
+        // Les quêtes de chaque succès, dans l'ordre où l'on y joue : c'est
+        // celui du site, porté par le champ de position.
+        _bySuccess = all
+            .Where(q => q.SuccessName.Length > 0)
+            .GroupBy(q => q.SuccessName, StringComparer.Ordinal)
+            .ToDictionary(
+                g => g.Key,
+                g => g.OrderBy(q => q.PlayOrder).ThenBy(q => q.Title, StringComparer.Ordinal).ToList(),
+                StringComparer.Ordinal);
 
         _followers = [];
 
@@ -125,6 +136,63 @@ public sealed class QuestChainIndex
         }
 
         return only;
+    }
+
+    /// <summary>
+    /// La quête qui ouvre la série suivante, ou <c>null</c> s'il n'y en a pas
+    /// une seule.
+    ///
+    /// La suite d'un succès ne pend pas toujours à sa dernière quête. Mesuré
+    /// sur les cent quinze succès, la première quête de douze d'entre eux a
+    /// pour prérequis une quête du milieu du succès précédent : « Médiation
+    /// expéditive » se prolonge depuis sa cinquième quête sur six, si bien que
+    /// la sixième n'avait aucune suite. On cherche donc dans tout le succès
+    /// courant, et non dans la seule quête d'où l'on part.
+    ///
+    /// Sept succès y gagnent une continuation. Deux en ouvrent plusieurs et
+    /// n'en reçoivent aucune : en désigner une au hasard mentirait.
+    /// </summary>
+    public QuestSummary? NextSeriesOf(QuestSummary? quest)
+    {
+        if (quest is null || quest.SuccessName.Length == 0)
+        {
+            return null;
+        }
+
+        QuestSummary? only = null;
+
+        foreach (var member in _bySuccess.GetValueOrDefault(quest.SuccessName, []))
+        {
+            foreach (var candidate in _followers.GetValueOrDefault(
+                QuestSearch.Normalize(member.Title), []))
+            {
+                // Ce qui reste dans le succès n'est pas une autre série, et la
+                // liste du succès l'a déjà dit.
+                if (string.Equals(candidate.SuccessName, quest.SuccessName, StringComparison.Ordinal)
+                    || candidate.SuccessName.Length == 0
+                    || !IsFirst(candidate))
+                {
+                    continue;
+                }
+
+                if (only is not null && !Same(only, candidate))
+                {
+                    return null;
+                }
+
+                only = candidate;
+            }
+        }
+
+        return only;
+    }
+
+    /// <summary>Vrai si la quête ouvre son succès, dans l'ordre de jeu.</summary>
+    private bool IsFirst(QuestSummary quest)
+    {
+        var group = _bySuccess.GetValueOrDefault(quest.SuccessName, []);
+
+        return group.Count > 0 && Same(group[0], quest);
     }
 
     /// <summary>

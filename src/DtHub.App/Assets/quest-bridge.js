@@ -191,9 +191,63 @@
             return true;
         }
 
+        // Un titre de liste : court et terminé par deux-points. Le site en met
+        // en gras comme le reste, et ils devenaient des étapes qui disaient
+        // « Conseils. », « Korbax. », « En résumé. ».
+        if (text.length <= 45 && /:\s*$/.test(text)) {
+            return true;
+        }
+
         // Un aparté entier entre parenthèses commente, il n'ordonne pas.
         return text.charAt(0) === '(' && text.charAt(text.length - 1) === ')';
     }
+
+    // Verbes à l'impératif que leur terminaison ne trahit pas.
+    var IRREGULIERS = ['faites', 'dites', 'soyez', 'ayez', 'sachez', 'veuillez'];
+
+    // Mots après lesquels un « -ez » n'est pas un ordre mais un présent : « vous
+    // validez », « qui rapportez », « ne partez ».
+    var SUJETS = ['vous', 'ne', 'n', 'qui', 'que', 'qu', 'et'];
+
+    // Mots courants en « -ez » qui ne sont pas des verbes.
+    var FAUX_AMIS = ['chez', 'assez', 'nez', 'rez'];
+
+    // Vrai si le texte donne un ordre au lecteur.
+    //
+    // La marque est grammaticale et non lexicale : l'impératif de la deuxième
+    // personne du pluriel se termine en « -ez », sauf six irréguliers. Une
+    // liste de verbes avait été essayée d'abord ; elle jetait « Faites votre
+    // lit. », « Consultez la lettre de Mériana. », « Protégez Juzie et
+    // Mériana ! », et il s'en serait trouvé d'autres à chaque guide.
+    function orders(text) {
+        // Le découpage doit être unicode : « \W » ne connaît que l'ASCII, et
+        // « Protégez » y devient « Prot » et « gez ». Vingt-trois impératifs
+        // accentués du corpus s'y perdaient, dont « Récupérez » et « Défendez ».
+        var words = text.match(/[\p{L}\p{M}]+/gu) || [];
+
+        for (var i = 0; i < words.length; i++) {
+            var word = words[i].toLowerCase();
+
+            if (IRREGULIERS.indexOf(word) >= 0) {
+                return true;
+            }
+
+            // Quatre lettres et non cinq : « Tuez » en fait quatre.
+            if (word.length >= 4
+                && word.slice(-2) === 'ez'
+                && FAUX_AMIS.indexOf(word) < 0) {
+                var before = i > 0 ? words[i - 1].toLowerCase() : '';
+
+                if (SUJETS.indexOf(before) < 0) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    var COORDONNEES = /\[\s*-?\d+\s*,\s*-?\d+\s*\]/;
 
     function isObjective(node) {
         if (node.querySelector('strong, b')) {
@@ -249,7 +303,14 @@
 
             var text = (node.textContent || '').replace(/\s+/g, ' ').trim();
 
-            if (text.length > 0 && !isNoise(text)) {
+            // Le gras ne suffit pas : le site en met sur ses commentaires de
+            // combat, ses apartés et ses titres de liste. Mesuré sur
+            // cinquante-cinq guides, cinq cent trente-deux paragraphes en gras
+            // ne donnent que trois cent cinquante-sept consignes ; le reste
+            // n'ordonne rien et n'avait donc rien à résumer.
+            if (text.length > 0
+                && !isNoise(text)
+                && (COORDONNEES.test(text) || orders(text))) {
                 found.push({ node: node, text: text });
             }
         }

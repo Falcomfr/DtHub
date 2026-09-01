@@ -475,6 +475,15 @@ public partial class QuestWindow : Window
 
     private void OnGoBack(object sender, RoutedEventArgs e) => _viewModel.GoBack();
 
+    /// <summary>Revient sur la quête d'où l'on vient.</summary>
+    private void OnGoBackQuest(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel.GoBackQuest() is { } url)
+        {
+            NavigateTo(url);
+        }
+    }
+
     private void OnClearQuery(object sender, RoutedEventArgs e)
     {
         _viewModel.Query = string.Empty;

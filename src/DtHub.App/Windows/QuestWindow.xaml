@@ -70,11 +70,36 @@
             BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1"
             Visibility="{Binding ShowsQuestChrome, Converter={StaticResource BoolToVisibility}}">
       <StackPanel>
-        <TextBlock Text="{Binding ChainText}" Style="{StaticResource Muted}" FontSize="11"
-                   Visibility="{Binding ChainText, Converter={StaticResource EmptyToVisibility},
-                                        ConverterParameter=inverse}" />
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
 
-        <TextBlock Text="{Binding QuestTitle}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+          <!-- Revenir d'où l'on vient. Une flèche courbe et non un chevron :
+               les chevrons de la ligne du dessous désignent l'étape précédente
+               et la suivante, et deux flèches gauche dans le même bandeau ne
+               diraient pas la même chose. -->
+          <Button Grid.Column="0" Style="{StaticResource IconButton}"
+                  Margin="0,0,4,0" VerticalAlignment="Center"
+                  Click="OnGoBackQuest"
+                  ToolTip="Revenir à la quête précédemment consultée"
+                  Visibility="{Binding CanGoBackQuest,
+                                       Converter={StaticResource BoolToVisibility}}">
+            <Path Style="{StaticResource RowGlyph}"
+                  Data="M 3.5,6 L 7,2.5 M 3.5,6 L 7,9.5
+                        M 3.5,6 H 9.5 C 12,6 12.5,7.6 12.5,9.6 V 12.5" />
+          </Button>
+
+          <StackPanel Grid.Column="1">
+            <TextBlock Text="{Binding ChainText}" Style="{StaticResource Muted}" FontSize="11"
+                       Visibility="{Binding ChainText, Converter={StaticResource EmptyToVisibility},
+                                            ConverterParameter=inverse}" />
+
+            <TextBlock Text="{Binding QuestTitle}" FontWeight="SemiBold"
+                       TextTrimming="CharacterEllipsis" />
+          </StackPanel>
+        </Grid>
 
         <!-- Les étapes : deux flèches, le rang, et ce qu'il y a à faire. -->
         <Grid Margin="0,6,0,0"

@@ -34,6 +34,18 @@ public sealed partial class QuestViewModel : ObservableObject
     /// <summary>Rubrique ouverte, ou zéro à la racine.</summary>
     private int _section;
 
+    /// <summary>La quête affichée, quand il y en a une.</summary>
+    private QuestSummary? _current;
+
+    /// <summary>
+    /// Les quêtes traversées, la dernière quittée au sommet.
+    ///
+    /// On saute d'une quête à l'autre par les voisines, les liens du guide et
+    /// les prérequis, et rien ne ramenait d'où l'on venait : il fallait se
+    /// rappeler le titre et le rechercher.
+    /// </summary>
+    private readonly Stack<QuestSummary> _visited = new();
+
     [ObservableProperty]
     private string _query = string.Empty;
 
@@ -210,8 +222,19 @@ public sealed partial class QuestViewModel : ObservableObject
             ShowRoot();
         }
 
-        // Sans reconstruire la liste : elle garde ses succès dépliés et ce
-        // qu'on y avait déroulé, on y retrouve seulement où l'on en est.
+        // La liste rouvre sur la rubrique de la quête affichée, sauf si elle y
+        // est déjà : elle garde alors ses succès dépliés et ce qu'on y avait
+        // déroulé, on y retrouve seulement où l'on en est.
+        //
+        // Sans cela, on rouvrait sur « Quêtes / Donjons » ou sur les résultats
+        // d'une recherche alors qu'un guide était affiché, et il fallait
+        // redescendre l'arbre pour retrouver les voisines de ce qu'on lisait.
+        if (_current is { } quest && (_section != quest.SectionId || Query.Length > 0))
+        {
+            Query = string.Empty;
+            ShowSection(quest.SectionId);
+        }
+
         SelectCurrent();
 
         IsListOpen = true;
@@ -300,6 +323,10 @@ public sealed partial class QuestViewModel : ObservableObject
     [ObservableProperty]
     private bool _canGoBack;
 
+    /// <summary>Vrai quand l'historique des quêtes a de quoi revenir.</summary>
+    [ObservableProperty]
+    private bool _canGoBackQuest;
+
     private int _backTarget;
 
     private void SetBack(int target)
@@ -309,6 +336,32 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     private void ClearBack() => CanGoBack = false;
+
+    /// <summary>
+    /// Revient sur la quête d'où l'on vient, et rend son adresse pour que la
+    /// fenêtre la charge. Rend <c>null</c> quand l'historique est vide.
+    ///
+    /// Le retour ne s'empile pas lui-même : sans quoi la flèche ferait la
+    /// navette entre les deux dernières quêtes au lieu de remonter.
+    /// </summary>
+    public string? GoBackQuest()
+    {
+        if (_visited.Count == 0)
+        {
+            return null;
+        }
+
+        var quest = _visited.Pop();
+
+        // La quête courante ne doit pas y retourner : SetCurrent l'y mettrait.
+        _current = null;
+        SetCurrent(quest);
+
+        CanGoBackQuest = _visited.Count > 0;
+        IsListOpen = false;
+
+        return quest.Url;
+    }
 
     /// <summary>Remonte d'un cran.</summary>
     public void GoBack()
@@ -390,7 +443,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
         if (Nodes.Count == 0)
         {
-            Nodes.Add(new QuestNode(QuestNodeKind.Pending, "Rien de ce nom"));
+            Nodes.Add(new QuestNode(QuestNodeKind.Pending, "Aucun résultat"));
         }
     }
 
@@ -702,6 +755,15 @@ public sealed partial class QuestViewModel : ObservableObject
     {
         ArgumentNullException.ThrowIfNull(quest);
 
+        // Ce qu'on quittait entre dans l'historique, sauf si l'on y revient :
+        // la flèche de retour ferait sinon la navette entre deux quêtes.
+        if (_current is { } left && !string.Equals(left.Url, quest.Url, StringComparison.Ordinal))
+        {
+            _visited.Push(left);
+            CanGoBackQuest = true;
+        }
+
+        _current = quest;
         CurrentUrl = quest.Url;
         QuestTitle = quest.Title;
         HasQuest = true;
@@ -794,6 +856,10 @@ public sealed partial class QuestViewModel : ObservableObject
 
         PreviousQuest ??= ToLink(_chain.PreviousOf(quest), quest);
         NextQuest ??= ToLink(_chain.NextOf(quest), quest);
+
+        // Et si rien ne pend à cette quête, la série suivante, cherchée dans
+        // tout le succès : elle ne part pas toujours de sa dernière quête.
+        NextQuest ??= ToLink(_chain.NextSeriesOf(quest), quest);
     }
 
     /// <summary>

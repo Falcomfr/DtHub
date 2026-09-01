@@ -1,4 +1,4 @@
-using DtHub.Core.Papycha;
+﻿using DtHub.Core.Papycha;
 
 namespace DtHub.Tests.Papycha;
 
@@ -98,6 +98,60 @@ public sealed class QuestChainIndexTests
         Assert.Equal(cible.Url, index.PreviousOf(suite)?.Url);
         Assert.Equal(suite.Url, index.NextOf(cible)?.Url);
     }
+
+    // ------------------------------------------------------------------
+    // La suite d'une série ne pend pas toujours à sa dernière quête.
+    // ------------------------------------------------------------------
+
+    private static QuestSummary Rang(string titre, string succes, int ordre, params string[] prerequis) =>
+        Quete(titre, succes, 1, prerequis) with { PlayOrder = ordre };
+
+    [Fact]
+    public void La_serie_suivante_se_cherche_dans_tout_le_succes()
+    {
+        // Relevé : « Médiation expéditive » se prolonge depuis sa cinquième
+        // quête sur six. La sixième n'avait donc aucune suite.
+        var cinq = Rang("Prochain arrêt : Astrub !", "Médiation expéditive", 5);
+        var six = Rang("Le Kanojedo", "Médiation expéditive", 6, "Prochain arrêt : Astrub !");
+        var apres = Rang("La découverte d’un destin", "Un nouveau départ", 1, "Prochain arrêt : Astrub !");
+
+        var index = new QuestChainIndex([cinq, six, apres]);
+
+        Assert.Equal(apres.Url, index.NextSeriesOf(six)?.Url);
+    }
+
+    [Fact]
+    public void Deux_series_qui_partent_du_meme_succes_n_en_designent_aucune()
+    {
+        // Relevé sur deux succès, dont « Les survivants de Frigost », qui en
+        // ouvre deux.
+        var une = Rang("À la recherche de Dan Lavy.", "Les survivants de Frigost", 6);
+        var deux = Rang("Le dernier survivant", "Les survivants de Frigost", 7, "À la recherche de Dan Lavy.");
+        var a = Rang("Inferno", "Ongles incarnés", 1, "À la recherche de Dan Lavy.");
+        var b = Rang("Le forage", "Forage à tout va", 1, "À la recherche de Dan Lavy.");
+
+        var index = new QuestChainIndex([une, deux, a, b]);
+
+        Assert.Null(index.NextSeriesOf(deux));
+    }
+
+    [Fact]
+    public void Une_quete_qui_n_ouvre_pas_son_succes_ne_compte_pas_pour_une_serie()
+    {
+        // Entrer une série par son milieu n'aurait pas de sens : ce qu'on
+        // propose, c'est de la commencer.
+        var fin = Rang("Le Kanojedo", "Médiation expéditive", 6);
+        var premiere = Rang("La découverte d’un destin", "Un nouveau départ", 1);
+        var seconde = Rang("La suite du destin", "Un nouveau départ", 2, "Le Kanojedo");
+
+        var index = new QuestChainIndex([fin, premiere, seconde]);
+
+        Assert.Null(index.NextSeriesOf(fin));
+    }
+
+    [Fact]
+    public void Une_quete_sans_succes_n_a_pas_de_serie_suivante() =>
+        Assert.Null(new QuestChainIndex([Debuter]).NextSeriesOf(Debuter));
 
     [Fact]
     public void Une_quete_qui_se_nomme_elle_meme_ne_se_suit_pas()
