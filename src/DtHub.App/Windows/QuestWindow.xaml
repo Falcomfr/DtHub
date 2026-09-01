@@ -562,38 +562,52 @@
                             Value="M 4,2.4 L 11,2.4 L 11,12.9 L 7.5,10.1 L 4,12.9 Z" />
                   </DataTrigger>
 
+                  <!-- Les deux entrées de la racine sont dessinées pleines et
+                       non au filet, contrairement au reste de la liste : ce sont
+                       des objets du jeu et non des repères de classement, et un
+                       trait d'un pixel et demi les rendait fades. Elles ne
+                       voisinent jamais avec les autres, la racine ne montrant
+                       qu'elles.
+
+                       Les creux viennent de la règle de remplissage pair-impair,
+                       celle du langage de tracé par défaut : un contour intérieur
+                       perce celui qui l'entoure, sans qu'on ait à le dire. -->
                   <DataTrigger Binding="{Binding Glyph}" Value="Quests">
                     <Setter TargetName="Nature" Property="Visibility" Value="Visible" />
-                    <Setter TargetName="Nature" Property="Stroke"
+                    <Setter TargetName="Nature" Property="Stroke" Value="{x:Null}" />
+                    <Setter TargetName="Nature" Property="Fill"
                             Value="{DynamicResource GlyphQuestBrush}" />
-                    <!-- Le point d'exclamation du donneur de quête, convention
-                         des jeux de rôle. Un parchemin à deux rouleaux puis une
-                         feuille lignée avaient été essayés : le premier se
-                         refermait en tache à quinze pixels, le second ne disait
-                         rien de plus qu'un rectangle. Le dessin est à nous ;
+                    <!-- Un parchemin : deux rouleaux en pilule, un corps, et
+                         deux lignes d'écriture évidées. Le dessin est à nous ;
                          celui du site ne sera repris que s'ils l'accordent. -->
                     <Setter TargetName="Nature" Property="Data"
-                            Value="M 7.5,2.6 L 7.5,9.2
-                                   M 7.5,11.9 m -0.75,0 a 0.75,0.75 0 1 0 1.5,0
-                                   a 0.75,0.75 0 1 0 -1.5,0" />
+                            Value="M 3.7,2.7 H 11.3 A 1.05,1.05 0 0 1 11.3,4.8
+                                   H 3.7 A 1.05,1.05 0 0 1 3.7,2.7 Z
+                                   M 4.1,4.8 H 10.9 V 10.2 H 4.1 Z
+                                   M 3.7,10.2 H 11.3 A 1.05,1.05 0 0 1 11.3,12.3
+                                   H 3.7 A 1.05,1.05 0 0 1 3.7,10.2 Z
+                                   M 5.6,6.2 H 9.4 V 7.0 H 5.6 Z
+                                   M 5.6,8.0 H 9.4 V 8.8 H 5.6 Z" />
                   </DataTrigger>
 
                   <DataTrigger Binding="{Binding Glyph}" Value="Dungeons">
                     <Setter TargetName="Nature" Property="Visibility" Value="Visible" />
-                    <Setter TargetName="Nature" Property="Stroke"
+                    <Setter TargetName="Nature" Property="Stroke" Value="{x:Null}" />
+                    <Setter TargetName="Nature" Property="Fill"
                             Value="{DynamicResource GlyphDungeonBrush}" />
-                    <!-- Un crâne : ce qui attend au fond d'un donjon. Une herse
-                         avait été essayée, dont les barreaux formaient tantôt
-                         une croix, tantôt une lettre. -->
+                    <!-- Une clef de donjon, couchée à plat. Une clef en
+                         diagonale avait déjà été essayée ailleurs : son anneau
+                         et sa tige se lisaient comme une loupe. À l'horizontale,
+                         l'anneau d'un côté et les dents de l'autre, la confusion
+                         n'est plus possible. -->
                     <Setter TargetName="Nature" Property="Data"
-                            Value="M 3.7,10.4 L 3.7,8.1 C 3.7,4.1 11.3,4.1 11.3,8.1
-                                   L 11.3,10.4 Z
-                                   M 6,8.1 m -0.9,0 a 0.9,0.9 0 1 0 1.8,0
-                                   a 0.9,0.9 0 1 0 -1.8,0
-                                   M 9,8.1 m -0.9,0 a 0.9,0.9 0 1 0 1.8,0
-                                   a 0.9,0.9 0 1 0 -1.8,0
-                                   M 5.8,10.4 L 5.8,12.4 M 7.5,10.4 L 7.5,12.4
-                                   M 9.2,10.4 L 9.2,12.4" />
+                            Value="M 4.7,7.5 m -3.1,0 a 3.1,3.1 0 1 0 6.2,0
+                                   a 3.1,3.1 0 1 0 -6.2,0
+                                   M 4.7,7.5 m -1.3,0 a 1.3,1.3 0 1 0 2.6,0
+                                   a 1.3,1.3 0 1 0 -2.6,0
+                                   M 7.2,6.5 H 13.3 V 8.5 H 7.2 Z
+                                   M 9.9,8.5 H 10.9 V 10.9 H 9.9 Z
+                                   M 12.1,8.5 H 13.3 V 10.2 H 12.1 Z" />
                   </DataTrigger>
                 </DataTemplate.Triggers>
               </DataTemplate>
