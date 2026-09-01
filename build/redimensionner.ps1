@@ -1,11 +1,10 @@
-﻿# Fait defiler une fenetre en envoyant des crans de molette sur son centre.
-# Outil de developpement uniquement.
-param([string]$Fenetre = "Quêtes", [int]$Crans = -10, [int]$OffsetY = 0)
+﻿# Deplace et redimensionne une fenetre. Outil de developpement uniquement.
+param([string]$Fenetre = "Quêtes", [int]$X = 0, [int]$Y = 0, [int]$L = 900, [int]$H = 700)
 Add-Type @"
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
-public class Molette {
+public class Taille {
     public delegate bool EnumProc(IntPtr h, IntPtr l);
     [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
     [DllImport("user32.dll")] public static extern bool SetProcessDpiAwarenessContext(IntPtr context);
@@ -13,9 +12,7 @@ public class Molette {
     [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr h);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern int GetWindowTextW(IntPtr h, StringBuilder s, int m);
     [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr h, out RECT r);
-    [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
-    [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
-    [DllImport("user32.dll")] public static extern void mouse_event(uint f, int dx, int dy, int d, IntPtr e);
+    [DllImport("user32.dll")] public static extern bool SetWindowPos(IntPtr h, IntPtr after, int x, int y, int cx, int cy, uint f);
     [StructLayout(LayoutKind.Sequential)] public struct RECT { public int L, T, R, B; }
     public static IntPtr Find(string titre) {
         IntPtr trouve = IntPtr.Zero;
@@ -31,20 +28,11 @@ public class Molette {
 "@
 # Par ecran et non par systeme : l application est PerMonitorV2, et un
 # outil qui ne l est pas mesure des coordonnees mises a l echelle.
-[void][Molette]::SetProcessDpiAwarenessContext([IntPtr]::new(-4))
-$h = [Molette]::Find($Fenetre)
-if ($h -eq [IntPtr]::Zero) { Write-Output "FENETRE INTROUVABLE"; exit 1 }
-[Molette]::SetForegroundWindow($h) | Out-Null
-Start-Sleep -Milliseconds 400
-$r = New-Object Molette+RECT
-[void][Molette]::GetWindowRect($h, [ref]$r)
-$x = [int](($r.L + $r.R) / 2)
-$y = [int](($r.T + $r.B) / 2) + $OffsetY
-[void][Molette]::SetCursorPos($x, $y)
-Start-Sleep -Milliseconds 200
-$pas = if ($Crans -lt 0) { -120 } else { 120 }
-for ($i = 0; $i -lt [Math]::Abs($Crans); $i++) {
-    [Molette]::mouse_event(0x0800, 0, 0, $pas, [IntPtr]::Zero)
-    Start-Sleep -Milliseconds 60
-}
-Write-Output ("DEFILE " + $Crans + " crans en " + $x + "," + $y)
+[void][Taille]::SetProcessDpiAwarenessContext([IntPtr]::new(-4))
+$poignee = [Taille]::Find($Fenetre)
+if ($poignee -eq [IntPtr]::Zero) { Write-Output "FENETRE INTROUVABLE"; exit 1 }
+[void][Taille]::SetWindowPos($poignee, [IntPtr]::Zero, $X, $Y, $L, $H, 0x0004)
+Start-Sleep -Milliseconds 500
+$r = New-Object Taille+RECT
+[void][Taille]::GetWindowRect($poignee, [ref]$r)
+Write-Output ("POSEE en " + $r.L + "," + $r.T + " taille " + ($r.R - $r.L) + "x" + ($r.B - $r.T))

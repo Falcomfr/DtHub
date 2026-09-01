@@ -1,10 +1,11 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
 
 using DtHub.App.Services;
+using DtHub.Core.Settings;
 using DtHub.App.ViewModels;
 using DtHub.Core.Windows;
 
@@ -24,10 +25,14 @@ public partial class ConfiguratorWindow : Window
 
     private bool _quitting;
 
-    public ConfiguratorWindow(ConfiguratorViewModel viewModel, GameLauncher launcher)
+    public ConfiguratorWindow(
+        ConfiguratorViewModel viewModel,
+        GameLauncher launcher,
+        WindowPlacements placements)
     {
         _viewModel = viewModel;
         _launcher = launcher;
+        _placements = placements;
 
         InitializeComponent();
         DataContext = viewModel;
@@ -48,6 +53,26 @@ public partial class ConfiguratorWindow : Window
     /// </summary>
     public nint Handle { get; private set; }
 
+    private readonly WindowPlacements _placements;
+
+    /// <summary>
+    /// Vrai quand la fenêtre a retrouvé une place retenue. Le placement par
+    /// défaut, qui l'écarte du bloc de jeu, s'efface alors devant elle.
+    /// </summary>
+    public bool Placed { get; private set; }
+
+    /// <summary>Remet la fenêtre où elle était, et dit si elle l'a été.</summary>
+    public bool RestorePlacement(AppSettingsDocument document)
+    {
+        Placed = _placements.Restore(this, WindowPlacements.Configurator, document);
+
+        return Placed;
+    }
+
+    /// <summary>Retient où est la fenêtre.</summary>
+    public Task SavePlacementAsync() =>
+        _placements.SaveAsync(this, WindowPlacements.Configurator);
+
     /// <summary>Affiche ou masque la fenêtre, selon son état.</summary>
     public void Toggle()
     {
@@ -67,6 +92,13 @@ public partial class ConfiguratorWindow : Window
     /// </summary>
     public void PlaceAwayFrom(WindowAnchor gameAnchor)
     {
+        // Une place retenue l'emporte : elle vient d'un déplacement voulu,
+        // tandis que celle-ci n'est qu'un défaut raisonnable.
+        if (Placed)
+        {
+            return;
+        }
+
         var work = _launcher.WorkArea();
         if (work is not { } area)
         {

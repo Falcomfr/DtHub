@@ -1,4 +1,4 @@
-namespace DtHub.Core.Windows;
+﻿namespace DtHub.Core.Windows;
 
 /// <summary>Une fenêtre de premier niveau appartenant à un processus.</summary>
 public readonly record struct WindowHandleInfo(nint Handle, string Title, int ProcessId);
@@ -17,6 +17,21 @@ public interface IWindowController
 
     /// <summary>Vrai si le handle désigne encore une fenêtre existante.</summary>
     bool IsWindow(nint handle);
+
+    /// <summary>
+    /// Où se trouve une fenêtre, telle que Windows la retient. Rend
+    /// <c>null</c> si la fenêtre n'existe plus.
+    /// </summary>
+    WindowPlacement? GetPlacement(nint handle);
+
+    /// <summary>
+    /// Remet une fenêtre où elle était.
+    ///
+    /// Windows se charge de la ramener sur un écran présent : un rectangle
+    /// enregistré sur un écran depuis débranché n'envoie pas la fenêtre dans
+    /// le vide, contrairement à une position posée à la main.
+    /// </summary>
+    bool SetPlacement(nint handle, WindowPlacement placement);
 
     /// <summary>
     /// Processus propriétaire d'une fenêtre, ou zéro si elle a disparu.

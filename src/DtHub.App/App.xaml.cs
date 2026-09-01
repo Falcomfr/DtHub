@@ -170,12 +170,21 @@ public partial class App : Application, IDisposable
         // quand elle doit finalement rester masquée.
         _configurator.Opacity = 0;
         _configurator.Show();
+        _configurator.RestorePlacement(document);
         _configurator.PlaceAwayFrom(document.GameAnchor);
         _configurator.Opacity = 1;
 
         if (!StartupPresence.ShowConfigurator(document.ConfiguratorVisible, report.Opened))
         {
             _configurator.Hide();
+        }
+
+        // Le suivi de quêtes revient comme on l'a laissé : ouvert ou non, et
+        // sur la quête qu'on y lisait. Sans cela il fallait le rouvrir puis
+        // retrouver sa quête à chaque lancement.
+        if (document.QuestsVisible)
+        {
+            await RestoreQuestsAsync(document.LastQuestUrl).ConfigureAwait(true);
         }
 
         // À partir d'ici seulement, masquer le panneau vaut décision de
@@ -239,6 +248,23 @@ public partial class App : Application, IDisposable
             await launcher.CaptureGeometriesAsync().ConfigureAwait(true);
 
             await settings.SetConfiguratorVisibleAsync(configuratorVisible).ConfigureAwait(true);
+
+            if (_configurator is not null)
+            {
+                await _configurator.SavePlacementAsync().ConfigureAwait(true);
+            }
+
+            if (_quests is not null)
+            {
+                await settings
+                    .SetQuestsStateAsync(_quests.IsVisible, _quests.LastQuestUrl)
+                    .ConfigureAwait(true);
+
+                await services
+                    .GetRequiredService<WindowPlacements>()
+                    .SaveAsync(_quests, WindowPlacements.Quests)
+                    .ConfigureAwait(true);
+            }
         }
         catch (IOException exception)
         {
@@ -450,6 +476,19 @@ public partial class App : Application, IDisposable
         _quests ??= _host?.Services.GetRequiredService<QuestWindow>();
 
         _quests?.Toggle();
+    }
+
+    /// <summary>Rouvre le suivi de quêtes sur ce qu'on y lisait au dernier arrêt.</summary>
+    private async Task RestoreQuestsAsync(string? url)
+    {
+        _quests ??= _host?.Services.GetRequiredService<QuestWindow>();
+
+        if (_quests is null)
+        {
+            return;
+        }
+
+        await _quests.RestoreAsync(url).ConfigureAwait(true);
     }
 
     private void ToggleConfigurator()

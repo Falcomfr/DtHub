@@ -371,10 +371,13 @@ public sealed partial class QuestViewModel : ObservableObject
             .OrderBy(s => QuestZoneOrder.RankOf(s.Name))
             .ThenBy(s => QuestZoneOrder.DisplayName(s.Name), StringComparer.CurrentCulture);
 
+        List<QuestSection> ordered = [.. zones];
         var separated = false;
 
-        foreach (var zone in zones)
+        for (var i = 0; i < ordered.Count; i++)
         {
+            var zone = ordered[i];
+
             // Ce qui ne relève pas de la progression vient après un intertitre,
             // pour que la liste ne mélange pas un lieu et un cheminement.
             if (!separated && QuestZoneOrder.IsExtra(zone.Name))
@@ -387,14 +390,23 @@ public sealed partial class QuestViewModel : ObservableObject
                     Glyph: QuestNodeGlyph.Family);
             }
 
-            var name = QuestZoneOrder.DisplayName(zone.Name);
+            // Un blanc là où l'on passe d'une famille de quêtes aux lieux :
+            // « Quêtes principales » ouvre la liste sans être un endroit, et
+            // sans cette respiration elle se lit comme la première zone du
+            // monde. Le blanc appartient à la ligne qui précède la rupture, et
+            // non à celle qui la suit, pour ne pas doubler celui de
+            // l'intertitre plus bas.
+            var next = i + 1 < ordered.Count ? ordered[i + 1] : null;
 
             yield return new QuestNode(
                 QuestNodeKind.Branch,
-                $"{name} ({_sectionCounts[zone.Id]})",
+                $"{QuestZoneOrder.DisplayName(zone.Name)} ({_sectionCounts[zone.Id]})",
                 LevelRange(_catalog.InSection(zone.Id)),
                 Id: zone.Id,
-                Glyph: GlyphOf(zone.Name));
+                Glyph: GlyphOf(zone.Name),
+                Spaced: next is not null
+                    && !QuestZoneOrder.IsPlace(zone.Name)
+                    && QuestZoneOrder.IsPlace(next.Name));
         }
     }
 
@@ -933,12 +945,53 @@ public sealed partial class QuestViewModel : ObservableObject
             + exception.Message;
     }
 
-    /// <summary>Rouvre la page courante sur le site, dans le vrai navigateur.</summary>
+    /// <summary>La page du site qui énumère les zones de quêtes.</summary>
+    private const string IndexUrl = "https://papycha.fr/quetes/";
+
+    /// <summary>
+    /// Rouvre sur le site ce que la fenêtre montre, et non la quête en toutes
+    /// circonstances.
+    ///
+    /// Le bouton menait toujours à la quête courante, y compris quand la liste
+    /// couvrait l'écran sur une rubrique qu'on parcourait : il ouvrait alors
+    /// autre chose que ce qu'on avait sous les yeux, ou rien du tout tant
+    /// qu'aucune quête n'avait été choisie.
+    ///
+    /// Une recherche fait exception : elle ne montre pas de rubrique, et ce
+    /// qu'on lisait avant de la lancer reste la quête.
+    /// </summary>
     public void OpenInBrowser()
     {
-        if (!string.IsNullOrWhiteSpace(CurrentUrl))
+        var url = Browsed() ?? CurrentUrl;
+
+        if (!string.IsNullOrWhiteSpace(url))
         {
-            _dialogs.OpenUrl(CurrentUrl);
+            _dialogs.OpenUrl(url);
         }
+    }
+
+    /// <summary>
+    /// La page de ce que la liste parcourt, ou <c>null</c> si elle ne parcourt
+    /// rien : liste fermée, recherche en cours, ou rubrique sans page rédigée.
+    /// </summary>
+    private string? Browsed()
+    {
+        if (!IsListOpen || Query.Length > 0)
+        {
+            return null;
+        }
+
+        if (_section is 0 or RootSection)
+        {
+            return IndexUrl;
+        }
+
+        var url = _catalog.Catalog.Sections.FirstOrDefault(s => s.Id == _section)?.Url;
+
+        // Trois rubriques sur vingt-cinq n'ont pas de page à elles : le tableau
+        // du site ne les nomme pas. On reste alors sur celle qui les énumère
+        // toutes, plutôt que de renvoyer vers une quête dont il n'est pas
+        // question à l'écran.
+        return string.IsNullOrWhiteSpace(url) ? IndexUrl : url;
     }
 }

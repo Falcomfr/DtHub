@@ -1,4 +1,4 @@
-using DtHub.Core.Windows;
+﻿using DtHub.Core.Windows;
 
 namespace DtHub.Tests.Fakes;
 
@@ -118,4 +118,22 @@ public sealed class FakeWindowController : IWindowController
     }
 
     public nint GetForegroundWindow() => Foreground;
+
+    /// <summary>Places retenues, par fenêtre.</summary>
+    public Dictionary<nint, WindowPlacement> Placements { get; } = [];
+
+    public WindowPlacement? GetPlacement(nint handle) =>
+        Placements.GetValueOrDefault(handle);
+
+    public bool SetPlacement(nint handle, WindowPlacement placement)
+    {
+        if (placement is not { IsSized: true })
+        {
+            return false;
+        }
+
+        Placements[handle] = placement;
+
+        return true;
+    }
 }

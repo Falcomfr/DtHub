@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 using DtHub.Core.Hotkeys;
 using DtHub.Core.Windows;
@@ -55,6 +55,26 @@ public sealed class AppSettingsDocument
     /// état au lancement suivant.
     /// </summary>
     public bool ConfiguratorVisible { get; set; } = true;
+
+    /// <summary>
+    /// Vrai si le suivi de quêtes était affiché à la sortie. Il rouvre alors
+    /// au lancement suivant, sur la dernière quête lue.
+    /// </summary>
+    public bool QuestsVisible { get; set; }
+
+    /// <summary>
+    /// La dernière quête ouverte dans le suivi. Vide tant qu'aucune ne l'a été,
+    /// et la fenêtre rouvre alors sur sa liste.
+    /// </summary>
+    public string LastQuestUrl { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Où sont les fenêtres de l'application, par nom.
+    ///
+    /// Une table plutôt qu'un champ par fenêtre : elles se ressemblent toutes
+    /// sur ce point, et une nouvelle n'a alors rien à ajouter ici.
+    /// </summary>
+    public Dictionary<string, WindowPlacement> WindowPlacements { get; set; } = [];
 
     // Mirroring
 

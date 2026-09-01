@@ -7,7 +7,9 @@ using System.Windows.Threading;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using DtHub.App.Services;
 using DtHub.App.ViewModels;
+using DtHub.Core.Settings;
 using DtHub.Core.Papycha;
 
 namespace DtHub.App.Windows;
@@ -20,12 +22,20 @@ public partial class QuestWindow : Window
 {
     private readonly QuestViewModel _viewModel;
     private readonly ILogger<QuestWindow> _logger;
+    private readonly WindowPlacements _placements;
+    private readonly SettingsService _settings;
 
-    public QuestWindow(QuestViewModel viewModel, ILogger<QuestWindow> logger)
+    public QuestWindow(
+        QuestViewModel viewModel,
+        WindowPlacements placements,
+        SettingsService settings,
+        ILogger<QuestWindow> logger)
     {
         InitializeComponent();
 
         _viewModel = viewModel;
+        _placements = placements;
+        _settings = settings;
         _logger = logger;
         DataContext = viewModel;
 
@@ -37,6 +47,11 @@ public partial class QuestWindow : Window
     {
         if (IsVisible)
         {
+            // La place est retenue au moment où l'on masque : on ne la
+            // retrouverait plus après, la fenêtre n'ayant plus de position à
+            // l'écran qui vaille.
+            _ = _placements.SaveAsync(this, WindowPlacements.Quests);
+
             Hide();
             return;
         }
@@ -49,6 +64,44 @@ public partial class QuestWindow : Window
         SearchBox.Focus();
         _viewModel.OpenList();
     }
+
+    /// <summary>
+    /// Rouvre la fenêtre sur la quête qu'on lisait au dernier arrêt.
+    ///
+    /// La liste ne se déroule pas dans ce cas : on retrouve la page où on
+    /// l'avait laissée, ce qui est justement ce qu'on venait chercher.
+    /// </summary>
+    public async Task RestoreAsync(string? url)
+    {
+        Show();
+
+        // Le catalogue doit être là avant qu'on lui demande une quête. Il se
+        // charge d'ordinaire au premier affichage, mais rien ne garantit qu'il
+        // ait fini : sans cette attente, l'adresse retenue tombait à côté et la
+        // fenêtre s'ouvrait sur sa liste.
+        await _viewModel.InitializeAsync().ConfigureAwait(true);
+
+        if (string.IsNullOrWhiteSpace(url) || !_viewModel.TryFollowUrl(url))
+        {
+            _viewModel.OpenList();
+
+            return;
+        }
+
+        try
+        {
+            await PrepareAsync().ConfigureAwait(true);
+
+            View.CoreWebView2.Navigate(url);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            _viewModel.ReportViewFailure(exception);
+        }
+    }
+
+    /// <summary>L'adresse de ce qu'on lisait, pour la retrouver au prochain lancement.</summary>
+    public string? LastQuestUrl => _viewModel.CurrentUrl;
 
     private void OnOpenInBrowser(object sender, RoutedEventArgs e) => _viewModel.OpenInBrowser();
 
@@ -357,6 +410,11 @@ public partial class QuestWindow : Window
     [LoggerMessage(Level = LogLevel.Warning, Message = "Page liée non ouverte ({reason}) : {url}")]
     private partial void LogPageFailed(string url, string reason);
 
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "La place du suivi de quêtes n'a pas pu être rétablie.")]
+    private partial void LogPlacementFailed(Exception exception);
+
     /// <summary>
     /// Amène la ligne sélectionnée sous les yeux. La poser ne suffit pas : sur
     /// une rubrique de soixante quêtes, elle reste hors de l'écran.
@@ -403,16 +461,36 @@ public partial class QuestWindow : Window
     /// </summary>
     public nint Handle { get; private set; }
 
-    protected override void OnSourceInitialized(EventArgs e)
+    /// <summary>
+    /// La fenêtre vient d'obtenir sa poignée : c'est le moment de la remettre
+    /// où elle était. Plus tôt il n'y aurait rien à placer, plus tard on la
+    /// verrait sauter.
+    /// </summary>
+    protected override async void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
 
         Handle = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+
+        try
+        {
+            var document = await _settings.GetAsync().ConfigureAwait(true);
+
+            _placements.Restore(this, WindowPlacements.Quests, document);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            LogPlacementFailed(exception);
+        }
     }
 
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
         ArgumentNullException.ThrowIfNull(e);
+
+        // La croix masque, elle ne ferme pas : la place est donc retenue ici,
+        // faute de quoi fermer la fenêtre à la croix l'oublierait.
+        _ = _placements.SaveAsync(this, WindowPlacements.Quests);
 
         e.Cancel = true;
         Hide();

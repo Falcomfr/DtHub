@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 using DtHub.Core.Windows;
 
@@ -392,6 +392,88 @@ public sealed partial class Win32WindowController : IWindowController
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool ShowWindow(nint handle, int command);
+
+    /// <summary>
+    /// Où se trouve une fenêtre, en pixels du bureau.
+    ///
+    /// Le rectangle vient de GetWindowRect et non du rectangle « normal » de
+    /// WINDOWPLACEMENT : celui-ci est exprimé dans la densité de l'écran
+    /// principal, si bien qu'une fenêtre posée sur un second écran à cent
+    /// cinquante pour cent revenait à deux tiers de sa taille. Mesuré :
+    /// 780 x 1140 à l'enregistrement, 570 x 761 à la relecture.
+    ///
+    /// De WINDOWPLACEMENT on ne garde que l'état d'affichage, qui ne dépend
+    /// d'aucune échelle.
+    /// </summary>
+    public WindowPlacement? GetPlacement(nint handle)
+    {
+        if (handle == 0 || !GetWindowRectCore(handle, out var rect))
+        {
+            return null;
+        }
+
+        var raw = new WindowPlacementRaw { length = Marshal.SizeOf<WindowPlacementRaw>() };
+
+        return new WindowPlacement
+        {
+            Left = rect.Left,
+            Top = rect.Top,
+            Right = rect.Right,
+            Bottom = rect.Bottom,
+            Maximized = GetWindowPlacement(handle, ref raw) && raw.showCmd == ShowMaximized,
+        };
+    }
+
+    /// <summary>
+    /// Remet une fenêtre où elle était, si tant est qu'un écran s'y trouve
+    /// encore. Sinon elle garde sa place par défaut, ce qui vaut mieux que de
+    /// s'ouvrir hors de vue.
+    /// </summary>
+    public bool SetPlacement(nint handle, WindowPlacement placement)
+    {
+        ArgumentNullException.ThrowIfNull(placement);
+
+        if (handle == 0
+            || !WindowPlacementCalculator.IsReachable(
+                placement,
+                [.. GetMonitors().Select(m => m.WorkArea)]))
+        {
+            return false;
+        }
+
+        _ = SetWindowPos(
+            handle,
+            0,
+            placement.Left,
+            placement.Top,
+            placement.Right - placement.Left,
+            placement.Bottom - placement.Top,
+            SwpNoZOrder | SwpNoActivate);
+
+        if (placement.Maximized)
+        {
+            _ = ShowWindow(handle, ShowMaximized);
+        }
+
+        return true;
+    }
+
+    private const int ShowMaximized = 3;
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct WindowPlacementRaw
+    {
+        public int length;
+        public int flags;
+        public int showCmd;
+        public Point ptMinPosition;
+        public Point ptMaxPosition;
+        public Rect rcNormalPosition;
+    }
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetWindowPlacement(nint handle, ref WindowPlacementRaw placement);
 
     [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")]
     private static extern int GetWindowLong(nint handle, int index);

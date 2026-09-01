@@ -1,4 +1,4 @@
-using DtHub.Core.Papycha;
+﻿using DtHub.Core.Papycha;
 
 namespace DtHub.App.ViewModels;
 
@@ -71,6 +71,10 @@ public enum QuestNodeGlyph
 /// <param name="Detail">Complément à droite : un nombre de quêtes, un niveau.</param>
 /// <param name="Id">Identifiant de la rubrique, quand c'en est une.</param>
 /// <param name="Glyph">L'icône qui annonce la nature de la ligne.</param>
+/// <param name="Spaced">
+/// Vrai quand un blanc doit suivre la ligne, parce que ce qui vient après
+/// change de nature.
+/// </param>
 /// <param name="Needs">
 /// Ce que le survol montre : les prérequis d'une quête, un par ligne. Vide
 /// quand le site n'en donne pas, et la ligne n'affiche alors aucune icône.
@@ -83,7 +87,8 @@ public sealed record QuestNode(
     int Id = 0,
     QuestSummary? Quest = null,
     QuestNodeGlyph Glyph = QuestNodeGlyph.None,
-    IReadOnlyList<string>? Needs = null)
+    IReadOnlyList<string>? Needs = null,
+    bool Spaced = false)
 {
     /// <summary>Ni les branches non faites, ni les intertitres ne se cliquent.</summary>
     public bool IsEnabled => Kind is QuestNodeKind.Branch or QuestNodeKind.Quest;

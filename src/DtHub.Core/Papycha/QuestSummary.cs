@@ -122,5 +122,14 @@ public sealed record QuestSection
     /// <summary>Nombre de quêtes rangées directement dessous.</summary>
     public int Count { get; init; }
 
+    /// <summary>
+    /// La page du site qui présente cette rubrique, quand elle en a une.
+    ///
+    /// Ce n'est pas l'archive de la catégorie WordPress, qui n'est qu'une liste
+    /// d'articles : c'est la page rédigée, celle que le tableau de « Quêtes »
+    /// désigne. Vide pour une rubrique que ce tableau ne nomme pas.
+    /// </summary>
+    public string Url { get; init; } = string.Empty;
+
     public string SearchKey { get; init; } = string.Empty;
 }

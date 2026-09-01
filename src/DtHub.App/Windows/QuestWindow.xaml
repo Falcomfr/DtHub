@@ -120,8 +120,10 @@
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
 
-        <TextBlock Grid.Column="0" VerticalAlignment="Center"
-                   Style="{StaticResource Muted}" FontSize="11"
+        <!-- Le crédit porte la couleur d'accent : c'est le nom de ceux dont
+             on affiche le travail, il ne se lit pas comme une mention grise. -->
+        <TextBlock Grid.Column="0" VerticalAlignment="Center" FontSize="11"
+                   Foreground="{DynamicResource AccentBrush}"
                    Text="Guides de papycha.fr" />
 
         <Button Grid.Column="1" Content="Ouvrir dans le navigateur"
@@ -402,6 +404,11 @@
                     <Setter TargetName="Libelle" Property="FontSize" Value="13" />
                     <Setter TargetName="Ligne" Property="Margin" Value="0,18,0,5" />
                     <Setter TargetName="Filet" Property="Visibility" Value="Visible" />
+                  </DataTrigger>
+
+                  <!-- Le blanc de rupture, posé sur la ligne qui précède. -->
+                  <DataTrigger Binding="{Binding Spaced}" Value="True">
+                    <Setter TargetName="Ligne" Property="Margin" Value="0,3,0,14" />
                   </DataTrigger>
 
                   <DataTrigger Binding="{Binding Glyph}" Value="Success">

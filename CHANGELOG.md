@@ -19,6 +19,9 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 - Une carte devant les zones, une étoile devant les succès : la nature d'une
   ligne se voit sans la lire.
 - Une croix vide la recherche, une autre ferme le panneau.
+- Les fenêtres de l'application retrouvent leur place au lancement, y compris
+  sur un second écran d'une autre densité.
+- Le suivi de quêtes rouvre comme on l'a laissé, sur la dernière quête lue.
 - Une icône annonce les prérequis d'une quête, et le survol les donne un par
   ligne, sous un titre et à la puce.
 - Chaque nature de ligne porte son icône et sa couleur : une feuille pour les
@@ -46,6 +49,13 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   alignement, un nombre de joueurs, un niveau et des créneaux horaires.
 - Dans une recherche, les titres « Zones », « Succès » et « Quêtes » dominent
   les succès qu'ils coiffent, au lieu de leur ressembler.
+- « Ouvrir dans le navigateur » ouvre ce que la fenêtre montre : la page des
+  zones quand on les parcourt, celle d'une rubrique quand on y est entré, la
+  quête sinon. Elle menait toujours à la quête, y compris quand la liste
+  couvrait l'écran.
+- Un blanc sépare « Quêtes principales » des lieux, qu'elle ouvrait sans en
+  être un.
+- Le crédit « Guides de papycha.fr » porte la couleur d'accent.
 - La recherche ne retient plus une quête pour un mot qui n'existe que dans le
   nom de sa zone : « frigost » en rendait cent soixante-dix-sept, dont cent
   soixante-treize par ce seul chemin, et « bworks » onze sans qu'aucune ne porte

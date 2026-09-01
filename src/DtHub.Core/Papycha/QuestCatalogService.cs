@@ -229,12 +229,22 @@ public sealed class QuestCatalogService : IDisposable
             .GroupBy(id => id)
             .ToDictionary(g => g.Key, g => g.Count());
 
-        List<QuestSection> kept =
+        List<QuestSection> present =
         [
             .. sections
                 .Concat(extra.Values)
                 .Where(s => counts.ContainsKey(s.Id))
                 .Select(s => s with { Count = counts[s.Id] }),
+        ];
+
+        var pageUrls = PageUrls(present, pages, membership);
+
+        List<QuestSection> kept =
+        [
+            .. present.Select(s => s with
+            {
+                Url = pageUrls.GetValueOrDefault(s.Id, string.Empty),
+            }),
         ];
 
         if (counts.TryGetValue(OtherSectionId, out var others))
@@ -338,6 +348,85 @@ public sealed class QuestCatalogService : IDisposable
     /// qu'aucune catégorie ne désigne déjà. Leur identifiant est négatif : il ne
     /// vient pas du site et ne doit jamais croiser celui d'une catégorie.
     /// </summary>
+    /// <summary>
+    /// La page rédigée de chaque rubrique, telle que le tableau de « Quêtes »
+    /// la désigne.
+    ///
+    /// Deux rapprochements, dans cet ordre. Le nom d'abord, débarrassé de son
+    /// préfixe : le site écrit « Quêtes d'Albuera » dans son tableau et
+    /// « Albuera » dans ses catégories. Il suffit pour treize rubriques sur
+    /// vingt-cinq, et laisse de côté celles que le tableau nomme plus court
+    /// que la catégorie : « Quêtes de Frigost » contre « Île de Frigost »,
+    /// « Quêtes de Cania » contre « Bonta &amp; Cania ».
+    ///
+    /// Le contenu ensuite, qui ne ment pas : la rubrique qui range le plus des
+    /// quêtes d'une page est celle que la page présente. La moitié au moins
+    /// doit s'y retrouver, faute de quoi le rapprochement tiendrait du hasard.
+    /// </summary>
+    private static Dictionary<int, string> PageUrls(
+        IReadOnlyList<QuestSection> sections,
+        IReadOnlyList<QuestPageSection> pages,
+        Dictionary<string, HashSet<int>> membership)
+    {
+        Dictionary<int, string> urls = [];
+
+        var byName = sections
+            .GroupBy(s => QuestSearch.Normalize(QuestZoneOrder.DisplayName(s.Name)), StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.First().Id, StringComparer.Ordinal);
+
+        List<QuestPageSection> pending = [];
+
+        foreach (var page in pages)
+        {
+            if (string.IsNullOrWhiteSpace(page.Url))
+            {
+                continue;
+            }
+
+            var key = QuestSearch.Normalize(QuestZoneOrder.DisplayName(page.Name));
+
+            if (byName.TryGetValue(key, out var id))
+            {
+                urls.TryAdd(id, page.Url);
+            }
+            else
+            {
+                pending.Add(page);
+            }
+        }
+
+        foreach (var page in pending)
+        {
+            Dictionary<int, int> tally = [];
+
+            foreach (var url in page.QuestUrls)
+            {
+                if (!membership.TryGetValue(QuestSectionPageParser.Key(url), out var owners))
+                {
+                    continue;
+                }
+
+                foreach (var owner in owners)
+                {
+                    tally[owner] = tally.GetValueOrDefault(owner) + 1;
+                }
+            }
+
+            var best = tally
+                .Where(pair => !urls.ContainsKey(pair.Key))
+                .OrderByDescending(pair => pair.Value)
+                .ThenBy(pair => pair.Key)
+                .FirstOrDefault();
+
+            if (best.Value * 2 >= page.QuestUrls.Count && best.Value > 0)
+            {
+                urls[best.Key] = page.Url;
+            }
+        }
+
+        return urls;
+    }
+
     private static Dictionary<string, QuestSection> ExtraSections(
         IReadOnlyList<QuestPageSection> pages,
         IReadOnlyList<QuestSection> sections)

@@ -724,6 +724,15 @@ Deux dessins ont été refaits après mesure à l'écran, la taille utile étant
 quinze pixels : un parchemin à deux rouleaux s'y refermait en tache, et une clé
 se lisait comme une loupe à quelques centimètres du champ de recherche.
 
+Le bouton « Ouvrir dans le navigateur » suit la même règle : il ouvre ce que la
+fenêtre montre. La page qui énumère les zones quand on les parcourt, celle d'une
+rubrique quand on y est entré, la quête sinon. Le tableau de « Quêtes » ne nomme
+ses rubriques ni comme les catégories du site ni comme nous : « Quêtes de
+Frigost » d'un côté, « Île de Frigost » de l'autre. Le rapprochement se fait
+donc sur le nom d'abord, treize rubriques sur vingt-cinq, puis sur le contenu,
+qui ne ment pas, ce qui en donne vingt-deux. Les trois qui restent n'ont pas de
+page à elles, et l'on retombe alors sur celle qui les énumère toutes.
+
 Enfin, un lien cliqué dans un guide. Le catalogue tranche : s'il connaît
 l'adresse, la fenêtre la suit sur place et se remet à jour, exactement comme si
 l'on avait pressé « précédente » ; les cinq cent onze liens de quête de la
@@ -767,3 +776,32 @@ c'est le bandeau entier qui part, sans quoi sa seule bordure ouvrirait le guide
 sur une bande vide. La fenêtre des pages liées, elle, ne prend que le cadrage,
 sans le suivi d'étapes qui n'aurait aucun sens sur une carte, et garde le titre,
 qui y est le seul repère.
+
+## D34 - Retenir la place des fenêtres, sur plusieurs écrans
+
+Deux écrans de densités différentes suffisent à rendre fausse toute mesure
+naïve. Trois choix en découlent, chacun tranché par la mesure.
+
+**Les coordonnées sont celles du bureau, prises à GetWindowRect.** Le rectangle
+« normal » de WINDOWPLACEMENT, qui semblait fait pour cela, est exprimé dans la
+densité de l'écran principal : une fenêtre de 780 x 1140 posée sur un second
+écran à cent cinquante pour cent revenait à 570 x 761. Les coordonnées WPF ont
+le même défaut, aggravé : elles dépendent de l'écran qui porte la fenêtre.
+
+**La place est appliquée deux fois.** Le premier appel déplace la fenêtre, ce
+qui la fait changer d'écran donc de densité ; la taille vient d'être posée dans
+la densité de départ, et WPF la reproportionne en encaissant le changement.
+Mesuré : 800 x 620 revenaient à 533 x 413. Le second appel, différé d'un tour de
+boucle de messages, rend la bonne taille. La position, elle, était juste dès le
+premier.
+
+**Une place hors de tout écran n'est pas rendue.** Un écran débranché laisserait
+la fenêtre ouverte, présente dans la barre des tâches, et invisible. Il faut
+qu'un écran en laisse voir au moins cent vingt pixels dans les deux dimensions,
+de quoi saisir la barre de titre.
+
+Les outils de développement du dépôt ont dû être recalibrés pour le vérifier :
+ils se déclaraient conscients de la densité du système quand l'application l'est
+par écran, et mesuraient donc des coordonnées mises à l'échelle. Ils ont montré
+un déplacement là où l'application était juste, ce qui a coûté un aller-retour.
+

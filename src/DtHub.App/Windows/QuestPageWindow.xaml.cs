@@ -1,6 +1,9 @@
 ﻿using System.Windows;
 
 using DtHub.App.Services;
+using DtHub.Core.Settings;
+
+using Serilog;
 
 namespace DtHub.App.Windows;
 
@@ -16,12 +19,19 @@ namespace DtHub.App.Windows;
 public partial class QuestPageWindow : Window
 {
     private readonly IDialogService _dialogs;
+    private readonly WindowPlacements _placements;
+    private readonly SettingsService _settings;
 
     private string _url = string.Empty;
 
-    public QuestPageWindow(IDialogService dialogs)
+    public QuestPageWindow(
+        IDialogService dialogs,
+        WindowPlacements placements,
+        SettingsService settings)
     {
         _dialogs = dialogs;
+        _placements = placements;
+        _settings = settings;
 
         InitializeComponent();
     }
@@ -46,7 +56,7 @@ public partial class QuestPageWindow : Window
         }
     }
 
-    protected override void OnSourceInitialized(EventArgs e)
+    protected override async void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
 
@@ -56,6 +66,31 @@ public partial class QuestPageWindow : Window
         {
             Handles.Add(handle);
         }
+
+        // Une seule place pour toutes ces fenêtres : elles se succèdent au fil
+        // des liens et ne se distinguent pas les unes des autres. Ce qu'on veut
+        // retrouver, c'est l'endroit où l'on a posé « la fenêtre des pages ».
+        try
+        {
+            var document = await _settings.GetAsync().ConfigureAwait(true);
+
+            _placements.Restore(this, WindowPlacements.LinkedPage, document);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Log.Warning(exception, "La place de la page liée n'a pas pu être rétablie.");
+        }
+    }
+
+    /// <summary>
+    /// La place se retient ici et non dans <c>OnClosed</c> : la poignée n'existe
+    /// déjà plus à ce moment-là, et il n'y aurait plus rien à interroger.
+    /// </summary>
+    protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+    {
+        _ = _placements.SaveAsync(this, WindowPlacements.LinkedPage);
+
+        base.OnClosing(e);
     }
 
     protected override void OnClosed(EventArgs e)

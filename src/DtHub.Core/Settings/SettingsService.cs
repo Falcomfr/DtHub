@@ -1,4 +1,4 @@
-using DtHub.Core.Dofus;
+﻿using DtHub.Core.Dofus;
 using DtHub.Core.Hotkeys;
 using DtHub.Core.Scrcpy;
 using DtHub.Core.Storage;
@@ -575,6 +575,48 @@ public sealed class SettingsService : IDisposable
     /// <summary>Retient si le configurateur était affiché à la sortie.</summary>
     public Task SetConfiguratorVisibleAsync(bool visible, CancellationToken cancellationToken = default) =>
         UpdateAsync(settings => settings.ConfiguratorVisible = visible, cancellationToken);
+
+    /// <summary>
+    /// Retient si le suivi de quêtes était ouvert et sur quelle quête, pour le
+    /// rouvrir tel quel au lancement suivant.
+    /// </summary>
+    public Task SetQuestsStateAsync(
+        bool visible,
+        string? lastQuestUrl,
+        CancellationToken cancellationToken = default) =>
+        UpdateAsync(
+            settings =>
+            {
+                settings.QuestsVisible = visible;
+
+                // Une adresse vide n'efface pas la précédente : fermer la
+                // fenêtre sur sa liste ne doit pas faire oublier la quête qu'on
+                // y lisait avant.
+                if (!string.IsNullOrWhiteSpace(lastQuestUrl))
+                {
+                    settings.LastQuestUrl = lastQuestUrl;
+                }
+            },
+            cancellationToken);
+
+    /// <summary>
+    /// Retient où était une fenêtre. Une place sans surface n'est pas
+    /// enregistrée : c'est ce que rend une fenêtre jamais affichée.
+    /// </summary>
+    public Task SetWindowPlacementAsync(
+        string key,
+        WindowPlacement? placement,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
+        if (placement is not { IsSized: true })
+        {
+            return Task.CompletedTask;
+        }
+
+        return UpdateAsync(settings => settings.WindowPlacements[key] = placement, cancellationToken);
+    }
 
     public void Dispose() => _gate.Dispose();
 }

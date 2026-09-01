@@ -1,4 +1,4 @@
-# Liste les fenetres visibles d'un processus, avec leur position et leur taille.
+﻿# Liste les fenetres visibles d'un processus, avec leur position et leur taille.
 # Outil de developpement uniquement.
 param([string]$ProcessName = "scrcpy")
 
@@ -10,6 +10,7 @@ using System.Text;
 public class WinList {
     public delegate bool EnumProc(IntPtr hWnd, IntPtr lParam);
     [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
+    [DllImport("user32.dll")] public static extern bool SetProcessDpiAwarenessContext(IntPtr context);
     [DllImport("user32.dll")] public static extern bool EnumWindows(EnumProc cb, IntPtr lParam);
     [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr hWnd);
     [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint pid);
@@ -35,7 +36,9 @@ public class WinList {
 }
 "@
 
-[void][WinList]::SetProcessDPIAware()
+# Par ecran et non par systeme : l application est PerMonitorV2, et un
+# outil qui ne l est pas mesure des coordonnees mises a l echelle.
+[void][WinList]::SetProcessDpiAwarenessContext([IntPtr]::new(-4))
 
 $pids = New-Object 'System.Collections.Generic.HashSet[uint32]'
 foreach ($p in Get-Process -Name $ProcessName -ErrorAction SilentlyContinue) { [void]$pids.Add([uint32]$p.Id) }

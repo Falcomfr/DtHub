@@ -111,6 +111,7 @@ public static class AppServices
         services.AddTransient<SleepHelpViewModel>();
         services.AddTransient<SleepHelpWindow>();
         services.AddSingleton<QuestViewModel>();
+        services.AddSingleton<WindowPlacements>();
         services.AddSingleton<QuestWindow>();
 
         // À part et jetable : une page liée n'a rien à retenir d'une ouverture

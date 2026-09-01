@@ -42,7 +42,7 @@ public sealed class QuestCatalogDocument
     /// Version 12 : les prérequis de chaque quête, et la clé de rubrique
     /// retirée, la recherche ne portant plus que sur les titres.
     /// </summary>
-    public const int CurrentSchemaVersion = 12;
+    public const int CurrentSchemaVersion = 13;
 
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 
