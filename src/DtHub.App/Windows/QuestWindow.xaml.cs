@@ -210,7 +210,8 @@ public partial class QuestWindow : Window
                     _viewModel.SetPage(
                         Text(root, "intro"),
                         Text(root, "chain"),
-                        Steps(root));
+                        Steps(root),
+                        Flag(root, "departure"));
                     break;
 
                 case "step":
@@ -231,6 +232,9 @@ public partial class QuestWindow : Window
 
     private static string? Text(JsonElement root, string name) =>
         root.TryGetProperty(name, out var value) ? value.GetString() : null;
+
+    private static bool Flag(JsonElement root, string name) =>
+        root.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.True;
 
     private static IReadOnlyList<string> Steps(JsonElement root)
     {

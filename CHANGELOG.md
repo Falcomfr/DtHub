@@ -20,7 +20,11 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   ligne se voit sans la lire.
 - Une croix vide la recherche, une autre ferme le panneau.
 - Une icône annonce les prérequis d'une quête, et le survol les donne un par
-  ligne.
+  ligne, sous un titre et à la puce.
+- Chaque nature de ligne porte son icône et sa couleur : une feuille pour les
+  quêtes, une herse pour les donjons, une épingle pour un lieu, un marque-page
+  pour une famille de quêtes, une étoile pour un succès, un cadenas pour des
+  prérequis.
 
 ### Modifié
 
@@ -34,6 +38,14 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   quêtes : le site ne renseigne le niveau que sur 117 des 782.
 - Les encarts du site et les apartés entre parenthèses ne comptent plus pour des
   étapes.
+- Le départ d'une quête est une étape à part entière, la première. Il était
+  plaqué sur le premier paragraphe du guide, qui n'a le plus souvent rien à
+  voir : sur seize guides relevés, treize ouvrent sur un préambule.
+- Le survol des prérequis dit « Prérequis » et non « À faire avant » : sur cinq
+  cent soixante-sept prérequis distincts, on trouve des objets à apporter, un
+  alignement, un nombre de joueurs, un niveau et des créneaux horaires.
+- Dans une recherche, les titres « Zones », « Succès » et « Quêtes » dominent
+  les succès qu'ils coiffent, au lieu de leur ressembler.
 - La recherche ne retient plus une quête pour un mot qui n'existe que dans le
   nom de sa zone : « frigost » en rendait cent soixante-dix-sept, dont cent
   soixante-treize par ce seul chemin, et « bworks » onze sans qu'aucune ne porte

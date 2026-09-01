@@ -1,4 +1,4 @@
-using DtHub.Core.Papycha;
+﻿using DtHub.Core.Papycha;
 
 namespace DtHub.Tests.Papycha;
 
@@ -80,6 +80,33 @@ public class QuestZoneOrderTests
         Assert.Equal(QuestZoneOrder.UnknownRank, rang);
         Assert.False(QuestZoneOrder.IsExtra("Île de Nulle Part"));
         Assert.True(rang > QuestZoneOrder.RankOf("Île de Frigost"));
+    }
+
+    [Theory]
+    [InlineData("Albuera")]
+    [InlineData("Quêtes du Port de Madrestam")]
+    [InlineData("Île de Frigost")]
+    [InlineData("Île de Nulle Part")]
+    public void Un_lieu_porte_l_icone_des_lieux(string nom) =>
+        Assert.True(QuestZoneOrder.IsPlace(nom), nom);
+
+    [Theory]
+    [InlineData("Quêtes principales")]
+    [InlineData("Quêtes répétables")]
+    [InlineData("Autres quêtes")]
+    [InlineData("[Alignement] Bontarien")]
+    [InlineData("Krosmoz")]
+    public void Une_famille_de_quetes_n_est_pas_un_lieu(string nom) =>
+        Assert.False(QuestZoneOrder.IsPlace(nom), nom);
+
+    [Fact]
+    public void Les_quetes_principales_ouvrent_la_progression_sans_etre_un_lieu()
+    {
+        // Elles précèdent tout, y compris la zone de départ, mais ne désignent
+        // pas un endroit : c'est un fil qui traverse toutes les zones.
+        Assert.False(QuestZoneOrder.IsExtra("Quêtes principales"));
+        Assert.True(QuestZoneOrder.RankOf("Quêtes principales") < QuestZoneOrder.RankOf("Albuera"));
+        Assert.False(QuestZoneOrder.IsPlace("Quêtes principales"));
     }
 
     [Fact]

@@ -793,6 +793,27 @@
 
   <!-- Infobulle : le gabarit par défaut de Windows ignore le thème et donne
        du texte clair sur fond clair, illisible. -->
+  <!-- Une infobulle qui porte autre chose qu'une phrase.
+       Le gabarit ordinaire verse son contenu dans le Text d'un TextBlock : tout
+       ce qui n'est pas une chaîne y afficherait son nom de type. Celui-ci
+       présente le contenu tel qu'il est. -->
+  <Style x:Key="RichToolTip" TargetType="ToolTip">
+    <Setter Property="HasDropShadow" Value="False" />
+    <Setter Property="Placement" Value="Bottom" />
+    <Setter Property="VerticalOffset" Value="4" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ToolTip">
+          <Border Background="{DynamicResource SurfaceBrush}"
+                  BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                  CornerRadius="{StaticResource Radius}" Padding="11,8">
+            <ContentPresenter />
+          </Border>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
   <Style TargetType="ToolTip">
     <Setter Property="HasDropShadow" Value="False" />
     <Setter Property="Placement" Value="Bottom" />

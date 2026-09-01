@@ -77,6 +77,24 @@ public static class QuestZoneOrder
     /// <summary>Vrai si la zone appartient au bloc qui suit l'intertitre.</summary>
     public static bool IsExtra(string? name) => RankOf(name) > UnknownRank;
 
+    /// <summary>Nom de la rubrique qui ouvre la progression sans être un lieu.</summary>
+    private const string MainQuests = "Quêtes principales";
+
+    /// <summary>
+    /// Vrai si la rubrique désigne un endroit du monde plutôt qu'une famille de
+    /// quêtes.
+    ///
+    /// Ce qui suit l'intertitre n'en est pas : alignements, saisons, répétables.
+    /// « Quêtes principales » non plus, bien qu'elle ouvre la progression : ce
+    /// n'est pas un endroit mais un fil qui les traverse tous.
+    ///
+    /// La distinction ne change rien au classement, seulement à l'icône : une
+    /// liste où tout porte le même signe ne dit rien de plus qu'une liste sans
+    /// aucun signe.
+    /// </summary>
+    public static bool IsPlace(string? name) =>
+        !IsExtra(name) && RankOf(name) != RankOf(MainQuests);
+
     /// <summary>
     /// Nom tel qu'on veut le lire dans la liste.
     ///

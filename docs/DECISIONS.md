@@ -697,11 +697,32 @@ prérequis qui saute d'un succès à l'autre et se ramifie. Ce n'est pas ce qu'o
 parcourt : la précédente est celle qu'on voit au-dessus dans la liste du succès,
 la suivante celle d'en dessous.
 
-Le résumé d'étape suit la même règle. La première étape se compose des
-métadonnées de la quête, renseignées sur près de neuf quêtes sur dix, plutôt que
-de sa prose. Les suivantes passent par des règles sur le texte ; quand aucune ne
-s'applique, la première phrase raccourcie. Jamais de vide : une étape sans
-résumé laisserait croire qu'il n'y a rien à faire.
+**Le départ.** C'est une étape, la première, et non une manière de décrire le
+premier paragraphe du guide. Les deux avaient été confondus, en supposant que ce
+paragraphe disait où commencer ; relevé sur seize guides, treize ouvrent sur un
+préambule qui n'a rien à voir, « Cette quête est répétable », « La quête se lance
+à la suite de la précédente », « Divers : ». Le bandeau annonçait donc une
+adresse au-dessus d'un texte parlant d'autre chose. Le départ a désormais son
+rang, ancré en haut du guide, et chaque autre étape est résumée par son propre
+paragraphe.
+
+Ce résumé se compose, pour le départ, des métadonnées de la quête, renseignées
+sur près de neuf quêtes sur dix, plutôt que de la prose du site. Les autres
+passent par des règles sur le texte ; quand aucune ne s'applique, la première
+phrase raccourcie. Jamais de vide : une étape sans résumé laisserait croire
+qu'il n'y a rien à faire.
+
+**Les icônes.** Elles disent la nature d'une ligne, non ce que le clic fera :
+deux branches se déplient de la même façon sans désigner la même chose. Une
+épingle pour un endroit du monde, un marque-page pour une famille de quêtes -
+alignements, saisons, répétables, et « Quêtes principales », qui ouvre la
+progression sans être un lieu. Cinq teintes, pas une de plus : au-delà, une
+liste de soixante lignes se lit comme un vitrail. Elles ne réemploient pas les
+couleurs d'état, qui annoncent autre chose.
+
+Deux dessins ont été refaits après mesure à l'écran, la taille utile étant de
+quinze pixels : un parchemin à deux rouleaux s'y refermait en tache, et une clé
+se lisait comme une loupe à quelques centimètres du champ de recherche.
 
 Enfin, un lien cliqué dans un guide. Le catalogue tranche : s'il connaît
 l'adresse, la fenêtre la suit sur place et se remet à jour, exactement comme si

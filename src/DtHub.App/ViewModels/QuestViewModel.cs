@@ -208,11 +208,13 @@ public sealed partial class QuestViewModel : ObservableObject
             QuestNodeKind.Branch,
             "Quêtes",
             Nombre(_catalog.Catalog.Quests.Count),
-            Id: RootSection));
+            Id: RootSection,
+            Glyph: QuestNodeGlyph.Quests));
         Nodes.Add(new QuestNode(
             QuestNodeKind.Pending,
             "Donjons",
-            "bientôt"));
+            "bientôt",
+            Glyph: QuestNodeGlyph.Dungeons));
     }
 
     /// <summary>
@@ -298,21 +300,22 @@ public sealed partial class QuestViewModel : ObservableObject
         if (found.Zones.Count > 0)
         {
             Nodes.Add(new QuestNode(
-                QuestNodeKind.Header, "Zones", Combien(found.Zones.Count, "zone", "zones")));
+                QuestNodeKind.Section, "Zones", Combien(found.Zones.Count, "zone", "zones")));
 
             foreach (var zone in found.Zones)
             {
                 Nodes.Add(new QuestNode(
                     QuestNodeKind.Branch,
                     $"{QuestZoneOrder.DisplayName(zone.Name)} ({_sectionCounts.GetValueOrDefault(zone.Id)})",
-                    Id: zone.Id));
+                    Id: zone.Id,
+                    Glyph: GlyphOf(zone.Name)));
             }
         }
 
         if (found.Successes.Count > 0)
         {
             Nodes.Add(new QuestNode(
-                QuestNodeKind.Header, "Succès", Combien(found.Successes.Count, "succès", "succès")));
+                QuestNodeKind.Section, "Succès", Combien(found.Successes.Count, "succès", "succès")));
 
             // Un succès ne se choisit pas : ce qu'on veut, ce sont ses quêtes.
             // Elles suivent donc son nom, dans l'ordre où l'on y joue.
@@ -325,7 +328,10 @@ public sealed partial class QuestViewModel : ObservableObject
                 ];
 
                 Nodes.Add(new QuestNode(
-                    QuestNodeKind.Success, $"{success} ({quests.Count})", LevelRange(quests)));
+                    QuestNodeKind.Success,
+                    $"{success} ({quests.Count})",
+                    LevelRange(quests),
+                    Glyph: QuestNodeGlyph.Success));
 
                 foreach (var quest in quests)
                 {
@@ -336,7 +342,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
         if (found.Quests.Count > 0)
         {
-            Nodes.Add(new QuestNode(QuestNodeKind.Header, "Quêtes", Nombre(found.Quests.Count)));
+            Nodes.Add(new QuestNode(QuestNodeKind.Section, "Quêtes", Nombre(found.Quests.Count)));
 
             foreach (var quest in found.Quests)
             {
@@ -375,7 +381,10 @@ public sealed partial class QuestViewModel : ObservableObject
             {
                 separated = true;
 
-                yield return new QuestNode(QuestNodeKind.Header, QuestZoneOrder.ExtrasHeader);
+                yield return new QuestNode(
+                    QuestNodeKind.Header,
+                    QuestZoneOrder.ExtrasHeader,
+                    Glyph: QuestNodeGlyph.Family);
             }
 
             var name = QuestZoneOrder.DisplayName(zone.Name);
@@ -384,7 +393,8 @@ public sealed partial class QuestViewModel : ObservableObject
                 QuestNodeKind.Branch,
                 $"{name} ({_sectionCounts[zone.Id]})",
                 LevelRange(_catalog.InSection(zone.Id)),
-                Id: zone.Id);
+                Id: zone.Id,
+                Glyph: GlyphOf(zone.Name));
         }
     }
 
@@ -457,7 +467,11 @@ public sealed partial class QuestViewModel : ObservableObject
 
         foreach (var group in groups)
         {
-            Nodes.Add(new QuestNode(QuestNodeKind.Header, NameOf(group.Key), Nombre(group.Count())));
+            Nodes.Add(new QuestNode(
+                QuestNodeKind.Header,
+                NameOf(group.Key),
+                Nombre(group.Count()),
+                Glyph: GlyphOf(RawNameOf(group.Key))));
 
             foreach (var quest in group)
             {
@@ -495,7 +509,8 @@ public sealed partial class QuestViewModel : ObservableObject
             Nodes.Add(new QuestNode(
                 QuestNodeKind.Success,
                 $"{group.Key} ({ordered.Count})",
-                LevelRange(ordered)));
+                LevelRange(ordered),
+                Glyph: QuestNodeGlyph.Success));
 
             foreach (var quest in ordered)
             {
@@ -556,9 +571,15 @@ public sealed partial class QuestViewModel : ObservableObject
         QuestNodeKind.Quest,
         quest.Title,
         Quest: quest,
-        Tip: quest.Prerequisites.Count > 0
-            ? "À faire avant :\n" + string.Join('\n', quest.Prerequisites)
-            : null);
+        Needs: quest.Prerequisites);
+
+    /// <summary>L'icône d'une rubrique, selon qu'elle situe ou qu'elle range.</summary>
+    private static QuestNodeGlyph GlyphOf(string? zone) =>
+        QuestZoneOrder.IsPlace(zone) ? QuestNodeGlyph.Place : QuestNodeGlyph.Family;
+
+    /// <summary>Le nom de rubrique tel que le site l'écrit, pour en juger la nature.</summary>
+    private string? RawNameOf(int section) =>
+        _catalog.Catalog.Sections.FirstOrDefault(s => s.Id == section)?.Name;
 
     private string NameOf(int section) =>
         QuestZoneOrder.DisplayName(
@@ -618,6 +639,7 @@ public sealed partial class QuestViewModel : ObservableObject
         HasQuest = true;
 
         _start = QuestStepSummary.OfStart(quest.StartPosition, quest.StartPerson);
+        _startsAtDeparture = false;
 
         SetNeighbours(quest);
 
@@ -692,6 +714,13 @@ public sealed partial class QuestViewModel : ObservableObject
     /// </summary>
     private string? _start;
 
+    /// <summary>
+    /// Vrai quand la première étape est le départ de la quête et non un
+    /// paragraphe du guide. Le pont l'annonce, parce que lui seul voit si la
+    /// page porte un bloc de départ.
+    /// </summary>
+    private bool _startsAtDeparture;
+
     [ObservableProperty]
     private int _stepIndex = -1;
 
@@ -723,9 +752,15 @@ public sealed partial class QuestViewModel : ObservableObject
     /// <summary>
     /// Ce que la page vient de livrer : ses blocs structurés et ses étapes.
     /// </summary>
-    public void SetPage(string? introHtml, string? chainHtml, IReadOnlyList<string> steps)
+    public void SetPage(
+        string? introHtml,
+        string? chainHtml,
+        IReadOnlyList<string> steps,
+        bool startsAtDeparture = false)
     {
         ArgumentNullException.ThrowIfNull(steps);
+
+        _startsAtDeparture = startsAtDeparture;
 
         var facts = QuestPageParser.ParseFacts(introHtml);
         var chain = QuestPageParser.ParseChain(chainHtml);
@@ -763,10 +798,16 @@ public sealed partial class QuestViewModel : ObservableObject
             : string.Empty;
 
         // Le texte brut du paragraphe tenait sur une ligne tronquée où l'on ne
-        // voyait ni où aller ni à qui parler. La première étape se compose des
-        // métadonnées de la quête, bien plus sûres que sa prose.
+        // voyait ni où aller ni à qui parler : chaque étape est donc résumée.
+        //
+        // La première l'est par les métadonnées de la quête, plus sûres que la
+        // prose du site, mais seulement quand c'est bien le départ : le pont le
+        // dit. Sans cette réserve, le départ se retrouvait annoncé au-dessus du
+        // premier paragraphe du guide, qui n'a le plus souvent rien à voir.
         StepDetail = index >= 0 && index < total
-            ? (index == 0 ? _start ?? QuestStepSummary.Of(_steps[0]) : QuestStepSummary.Of(_steps[index]))
+            ? (index == 0 && _startsAtDeparture
+                ? _start ?? QuestStepSummary.Of(_steps[0])
+                : QuestStepSummary.Of(_steps[index]))
             : string.Empty;
 
         CanGoPreviousStep = index > 0;
@@ -802,6 +843,7 @@ public sealed partial class QuestViewModel : ObservableObject
         IsListOpen = false;
 
         _start = null;
+        _startsAtDeparture = false;
         _steps = [];
         HasSteps = false;
         PreviousQuest = null;

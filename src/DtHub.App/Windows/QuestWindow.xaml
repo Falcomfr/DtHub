@@ -269,6 +269,15 @@
                     <ColumnDefinition Width="Auto" />
                   </Grid.ColumnDefinitions>
 
+                  <!-- Le filet des titres de groupe. Une ligne pleine plutôt
+                       qu'un simple écart : dans une recherche, ces titres
+                       coiffent des succès qui sont eux-mêmes des intertitres,
+                       et l'écart seul ne suffisait pas à les distinguer. -->
+                  <Rectangle x:Name="Filet" Grid.ColumnSpan="3" Height="1"
+                             VerticalAlignment="Top" Margin="0,-9,0,0"
+                             Fill="{DynamicResource BorderBrush}"
+                             Visibility="Collapsed" />
+
                   <Path x:Name="Nature" Grid.Column="0" VerticalAlignment="Center"
                         Visibility="Collapsed">
                     <Path.Style>
@@ -285,37 +294,87 @@
                                VerticalAlignment="Center"
                                Style="{StaticResource Muted}" FontSize="11" />
 
-                    <!-- Une liste : ce qu'il faut avoir fait avant. Le site le
-                         donne pour six cent treize quêtes, contre cent dix-sept
-                         auxquelles il donne un niveau.
+                    <!-- Un cadenas : ce qui tient la quête fermée. Une clé
+                         avait été essayée d'abord ; son anneau et sa tige en
+                         diagonale se lisaient comme une loupe, à quelques
+                         centimètres du champ de recherche. Le site donne ces
+                         prérequis pour
+                         six cent treize quêtes, contre cent dix-sept auxquelles
+                         il donne un niveau.
+
+                         Ce n'est pas une liste de quêtes à faire avant : sur
+                         cinq cent soixante-sept prérequis distincts, on trouve
+                         des objets à apporter, un alignement, un nombre de
+                         joueurs, un niveau, et jusqu'à des créneaux horaires.
+                         Le mot qui les couvre tous est « prérequis ».
 
                          L'infobulle est portée par un conteneur au fond
-                         transparent, et non par le tracé : trois traits ouverts
-                         n'ont pas de surface, si bien qu'un remplissage ne leur
-                         donne aucune prise et qu'il faudrait viser une ligne
-                         d'un pixel et demi. Mesuré : sur le tracé seul, le
-                         survol ne déclenchait rien.
+                         transparent, et non par le tracé : un tracé ouvert n'a
+                         pas de surface, si bien qu'un remplissage ne lui donne
+                         aucune prise et qu'il faudrait viser une ligne d'un
+                         pixel et demi. Mesuré : sur le tracé seul, le survol ne
+                         déclenchait rien.
 
                          Elle tient longtemps affichée, parce qu'une liste de
                          prérequis se lit moins vite que le mot d'un bouton. -->
                     <Border Background="Transparent"
                             VerticalAlignment="Center" Margin="6,0,2,0"
-                            ToolTip="{Binding Tip}"
                             ToolTipService.InitialShowDelay="200"
                             ToolTipService.ShowDuration="30000"
-                            Visibility="{Binding HasTip,
+                            Visibility="{Binding HasNeeds,
                                                  Converter={StaticResource BoolToVisibility}}">
+                      <Border.ToolTip>
+                        <ToolTip Style="{StaticResource RichToolTip}">
+                          <StackPanel MaxWidth="330">
+                            <TextBlock Text="Prérequis" Margin="0,0,0,6"
+                                       FontFamily="{StaticResource UiFont}" FontSize="10"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource GlyphNeedBrush}" />
+
+                            <ItemsControl ItemsSource="{Binding Needs}">
+                              <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                  <Grid Margin="0,0,0,4">
+                                    <Grid.ColumnDefinitions>
+                                      <ColumnDefinition Width="11" />
+                                      <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Ellipse Grid.Column="0" Width="3" Height="3"
+                                             HorizontalAlignment="Left" VerticalAlignment="Top"
+                                             Margin="0,7,0,0"
+                                             Fill="{DynamicResource TextMutedBrush}" />
+
+                                    <TextBlock Grid.Column="1" Text="{Binding}"
+                                               TextWrapping="Wrap"
+                                               FontFamily="{StaticResource UiFont}" FontSize="12"
+                                               Foreground="{DynamicResource TextBrush}" />
+                                  </Grid>
+                                </DataTemplate>
+                              </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                          </StackPanel>
+                        </ToolTip>
+                      </Border.ToolTip>
+
                       <Path Style="{StaticResource ListGlyph}"
-                            Data="M 3,4.5 H 12 M 3,7.5 H 12 M 3,10.5 H 8" />
+                            Stroke="{DynamicResource GlyphNeedBrush}"
+                            Data="M 5.1,7 L 5.1,5.2 A 2.4,2.4 0 0 1 9.9,5.2 L 9.9,7
+                                  M 3.7,7 L 11.3,7 L 11.3,12.9 L 3.7,12.9 Z
+                                  M 7.5,9.3 L 7.5,10.8" />
                     </Border>
                   </StackPanel>
                 </Grid>
 
                 <DataTemplate.Triggers>
-                  <!-- L'intertitre se distingue de ce qu'il coiffe : sans cela,
-                       une rubrique se lirait comme une quête de plus. Le
-                       décalage porte sur la ligne entière, sinon l'icône
-                       resterait huit pixels trop haut. -->
+                  <!-- D'abord ce que la ligne est : un intertitre se distingue
+                       de ce qu'il coiffe, sans quoi une rubrique se lirait
+                       comme une quête de plus. Le décalage porte sur la ligne
+                       entière, sinon l'icône resterait huit pixels trop haut.
+
+                       L'icône vient après, et se règle sur la nature de la
+                       ligne et non sur son genre : deux branches se déplient de
+                       la même façon sans désigner la même chose. -->
                   <DataTrigger Binding="{Binding Kind}" Value="Header">
                     <Setter TargetName="Libelle" Property="FontWeight" Value="SemiBold" />
                     <Setter TargetName="Libelle" Property="Foreground"
@@ -330,22 +389,79 @@
                             Value="{DynamicResource AccentBrush}" />
                     <Setter TargetName="Libelle" Property="FontSize" Value="11" />
                     <Setter TargetName="Ligne" Property="Margin" Value="0,11,0,3" />
+                  </DataTrigger>
+
+                  <!-- Le titre d'un groupe de résultats domine tout le reste :
+                       plus grand, en pleine couleur de texte, précédé d'un
+                       filet. Il coiffe des succès qui portent déjà le bleu et
+                       la demi-graisse des intertitres. -->
+                  <DataTrigger Binding="{Binding Kind}" Value="Section">
+                    <Setter TargetName="Libelle" Property="FontWeight" Value="Bold" />
+                    <Setter TargetName="Libelle" Property="Foreground"
+                            Value="{DynamicResource TextBrush}" />
+                    <Setter TargetName="Libelle" Property="FontSize" Value="13" />
+                    <Setter TargetName="Ligne" Property="Margin" Value="0,18,0,5" />
+                    <Setter TargetName="Filet" Property="Visibility" Value="Visible" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Glyph}" Value="Success">
                     <Setter TargetName="Nature" Property="Visibility" Value="Visible" />
                     <Setter TargetName="Nature" Property="Stroke"
-                            Value="{DynamicResource AccentBrush}" />
+                            Value="{DynamicResource GlyphSuccessBrush}" />
                     <!-- Une étoile : ce qu'on obtient. -->
                     <Setter TargetName="Nature" Property="Data"
                             Value="M 7.5,2 L 9.2,5.9 L 13.3,6.4 L 10.3,9.2 L 11.1,13.2
                                    L 7.5,11.2 L 3.9,13.2 L 4.7,9.2 L 1.7,6.4 L 5.8,5.9 Z" />
                   </DataTrigger>
 
-                  <DataTrigger Binding="{Binding Kind}" Value="Branch">
+                  <DataTrigger Binding="{Binding Glyph}" Value="Place">
                     <Setter TargetName="Nature" Property="Visibility" Value="Visible" />
-                    <!-- Une carte pliée : un endroit où l'on va. -->
+                    <Setter TargetName="Nature" Property="Stroke"
+                            Value="{DynamicResource GlyphPlaceBrush}" />
+                    <!-- Une épingle : un endroit où l'on va. -->
                     <Setter TargetName="Nature" Property="Data"
-                            Value="M 1.5,3.6 L 5.5,2.2 L 9.5,4.4 L 13.5,3 L 13.5,11.4
-                                   L 9.5,12.8 L 5.5,10.6 L 1.5,12 Z M 5.5,2.2 L 5.5,10.6
-                                   M 9.5,4.4 L 9.5,12.8" />
+                            Value="M 7.5,13.6 C 7.5,13.6 12.3,8.6 12.3,6.1
+                                   A 4.8,4.8 0 1 0 2.7,6.1 C 2.7,8.6 7.5,13.6 7.5,13.6 Z
+                                   M 7.5,6.1 m -1.7,0 a 1.7,1.7 0 1 0 3.4,0
+                                   a 1.7,1.7 0 1 0 -3.4,0" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Glyph}" Value="Family">
+                    <Setter TargetName="Nature" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Nature" Property="Stroke"
+                            Value="{DynamicResource GlyphFamilyBrush}" />
+                    <!-- Un marque-page : une famille de quêtes, qui range sans
+                         situer. -->
+                    <Setter TargetName="Nature" Property="Data"
+                            Value="M 4,2.4 L 11,2.4 L 11,12.9 L 7.5,10.1 L 4,12.9 Z" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Glyph}" Value="Quests">
+                    <Setter TargetName="Nature" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Nature" Property="Stroke"
+                            Value="{DynamicResource GlyphQuestBrush}" />
+                    <!-- Une feuille et ses lignes : le journal de quêtes.
+                         Un parchemin à deux rouleaux avait été essayé, comme le
+                         bouton qui ouvre cette fenêtre ; à quinze pixels, ses
+                         volutes et ses trois lignes se refermaient en tache.
+                         Deux lignes dans un cadre, et le dessin tient.
+                         L'icône est à nous ; celle du site ne sera reprise que
+                         s'ils l'accordent. -->
+                    <Setter TargetName="Nature" Property="Data"
+                            Value="M 3.6,2.5 L 11.4,2.5 L 11.4,12.5 L 3.6,12.5 Z
+                                   M 5.8,6 L 9.2,6 M 5.8,9 L 9.2,9" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Glyph}" Value="Dungeons">
+                    <Setter TargetName="Nature" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Nature" Property="Stroke"
+                            Value="{DynamicResource GlyphDungeonBrush}" />
+                    <!-- Une herse : l'entrée d'un donjon. Deux barreaux
+                         verticaux et rien d'horizontal : la croix qu'ils
+                         formaient d'abord se lisait comme une lettre. -->
+                    <Setter TargetName="Nature" Property="Data"
+                            Value="M 2.8,13 L 2.8,7.4 A 4.7,4.7 0 0 1 12.2,7.4 L 12.2,13
+                                   M 5.7,4 L 5.7,13 M 9.3,4 L 9.3,13" />
                   </DataTrigger>
                 </DataTemplate.Triggers>
               </DataTemplate>

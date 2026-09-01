@@ -204,6 +204,13 @@
             || (node.getAttribute('style') || '').indexOf('color:') >= 0;
     }
 
+    // Le départ de la quête, tel que le site le donne dans son bandeau d'intro.
+    // Ce n'est pas un paragraphe du guide : c'est ce qu'il faut faire avant de
+    // le lire.
+    function departure() {
+        return document.querySelector('.pqa-quest-intro__start .pqa-quest-intro__lead');
+    }
+
     function steps() {
         var root = content();
 
@@ -212,6 +219,26 @@
         }
 
         var found = [];
+
+        // Le départ ouvre la marche, comme étape à part entière.
+        //
+        // Il était plaqué sur le premier paragraphe du guide, en supposant que
+        // celui-ci disait où commencer. Mesuré sur seize guides, treize ouvrent
+        // sur un préambule qui n'a rien à voir : « Cette quête est répétable »,
+        // « La quête se lance à la suite de la précédente », « Divers : ». Le
+        // bandeau annonçait donc « rendez-vous en [-64,-55] » au-dessus d'un
+        // texte parlant d'autre chose.
+        //
+        // Son ancrage est le haut du guide : c'est là qu'on revient quand on
+        // remonte à la première étape.
+        var start = departure();
+
+        if (start) {
+            found.push({
+                node: root,
+                text: (start.textContent || '').replace(/\s+/g, ' ').trim()
+            });
+        }
 
         for (var i = 0; i < root.children.length; i++) {
             var node = root.children[i];
@@ -246,6 +273,12 @@
             kind: 'loaded',
             intro: intro ? intro.outerHTML : '',
             chain: chain ? chain.outerHTML : '',
+
+            // Dit à la fenêtre si la première étape est le départ : elle le
+            // résume alors avec les métadonnées de la quête, plus sûres que la
+            // prose du site. Sans cette marque, elle appliquerait ce traitement
+            // au premier paragraphe des guides qui n'ont pas de bloc de départ.
+            departure: departure() !== null,
             steps: steps().map(function (s) { return s.text; })
         });
     }
