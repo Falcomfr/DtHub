@@ -1,4 +1,4 @@
-namespace DtHub.Core.Papycha;
+﻿namespace DtHub.Core.Papycha;
 
 /// <summary>Nature d'un lien de progression, telle que le site la distingue.</summary>
 public enum QuestLinkKind
@@ -17,7 +17,15 @@ public enum QuestLinkKind
 /// <param name="Title">Libellé affiché.</param>
 /// <param name="Url">Adresse absolue.</param>
 /// <param name="Kind">Ce vers quoi il mène.</param>
-public sealed record QuestLink(string Title, string Url, QuestLinkKind Kind);
+public sealed record QuestLink(string Title, string Url, QuestLinkKind Kind)
+{
+    /// <summary>
+    /// Ce qu'on quitte en suivant ce lien : le succès d'arrivée, à défaut sa
+    /// zone. Vide quand on reste dans la même suite, ce qui est le cas
+    /// ordinaire, et le bouton n'annonce alors rien de plus que le titre.
+    /// </summary>
+    public string? Series { get; init; }
+}
 
 /// <summary>
 /// Ce qui précède et ce qui suit une quête, lu dans le bloc de progression que

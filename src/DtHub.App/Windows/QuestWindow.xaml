@@ -160,10 +160,23 @@
                 ToolTip="Revenir à la quête précédente du succès"
                 Visibility="{Binding PreviousQuest, Converter={StaticResource EmptyToVisibility},
                                      ConverterParameter=inverse}">
+          <!-- La série n'apparaît que lorsqu'on en change : suivre un prérequis
+               fait parfois entrer dans un autre succès, voire dans une autre
+               zone, et le titre seul laisserait croire qu'on poursuit la même
+               suite. -->
           <StackPanel Orientation="Horizontal">
-            <Path Style="{StaticResource RowGlyph}" Data="M 9,3 L 5,7.5 L 9,12" Margin="0,0,4,0" />
-            <TextBlock Text="{Binding PreviousQuest.Title}" MaxWidth="180"
-                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+            <Path Style="{StaticResource RowGlyph}" Data="M 9,3 L 5,7.5 L 9,12"
+                  Margin="0,0,4,0" VerticalAlignment="Center" />
+            <StackPanel>
+              <TextBlock Text="{Binding PreviousQuest.Series}" MaxWidth="180"
+                         Style="{StaticResource Muted}" FontSize="10"
+                         TextTrimming="CharacterEllipsis"
+                         Visibility="{Binding PreviousQuest.Series,
+                                              Converter={StaticResource EmptyToVisibility},
+                                              ConverterParameter=inverse}" />
+              <TextBlock Text="{Binding PreviousQuest.Title}" MaxWidth="180"
+                         TextTrimming="CharacterEllipsis" />
+            </StackPanel>
           </StackPanel>
         </Button>
 
@@ -174,9 +187,18 @@
                 Visibility="{Binding NextQuest, Converter={StaticResource EmptyToVisibility},
                                      ConverterParameter=inverse}">
           <StackPanel Orientation="Horizontal">
-            <TextBlock Text="{Binding NextQuest.Title}" MaxWidth="180"
-                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-            <Path Style="{StaticResource RowGlyph}" Data="M 6,3 L 10,7.5 L 6,12" Margin="4,0,0,0" />
+            <StackPanel>
+              <TextBlock Text="{Binding NextQuest.Series}" MaxWidth="180"
+                         Style="{StaticResource Muted}" FontSize="10"
+                         TextAlignment="Right" TextTrimming="CharacterEllipsis"
+                         Visibility="{Binding NextQuest.Series,
+                                              Converter={StaticResource EmptyToVisibility},
+                                              ConverterParameter=inverse}" />
+              <TextBlock Text="{Binding NextQuest.Title}" MaxWidth="180"
+                         TextAlignment="Right" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+            <Path Style="{StaticResource RowGlyph}" Data="M 6,3 L 10,7.5 L 6,12"
+                  Margin="4,0,0,0" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
       </Grid>
@@ -184,6 +206,58 @@
 
     <!-- La page, et la liste déroulante par-dessus -->
     <Grid>
+      <!-- Les prérequis épinglés. Un seul panneau pour toute la liste, et non
+           un par ligne : soixante lignes en porteraient soixante, dont un seul
+           servirait. Il se ferme au premier clic ailleurs. -->
+      <Popup x:Name="PanneauPrerequis" StaysOpen="False"
+             Placement="Bottom" HorizontalOffset="-260" VerticalOffset="2"
+             AllowsTransparency="True" PopupAnimation="Fade"
+             Closed="OnNeedsClosed">
+        <Border Background="{DynamicResource SurfaceBrush}"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                CornerRadius="{StaticResource Radius}" Padding="11,8">
+          <StackPanel MaxWidth="330">
+            <TextBlock Text="Prérequis" Margin="0,0,0,6"
+                       FontFamily="{StaticResource UiFont}" FontSize="10"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource GlyphNeedBrush}" />
+
+            <ItemsControl ItemsSource="{Binding Needs}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Grid Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="11" />
+                      <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Ellipse Grid.Column="0" Width="3" Height="3"
+                             HorizontalAlignment="Left" VerticalAlignment="Top"
+                             Margin="0,7,0,0"
+                             Fill="{DynamicResource TextMutedBrush}" />
+
+                    <!-- Seuls les prérequis qui sont des quêtes se cliquent :
+                         un objet à rapporter ou un créneau horaire ne mène
+                         nulle part. -->
+                    <Button Grid.Column="1" Style="{StaticResource LinkButton}"
+                            Content="{Binding Text}" Tag="{Binding Quest}"
+                            Click="OnFollowNeed"
+                            Visibility="{Binding IsQuest,
+                                                 Converter={StaticResource BoolToVisibility}}" />
+
+                    <TextBlock Grid.Column="1" Text="{Binding Text}" TextWrapping="Wrap"
+                               FontFamily="{StaticResource UiFont}" FontSize="12"
+                               Foreground="{DynamicResource TextBrush}"
+                               Visibility="{Binding IsQuest,
+                                                    Converter={StaticResource InverseBoolToVisibility}}" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+      </Popup>
+
       <!-- Un WebView2 est une fenêtre native : il se dessine au-dessus de tout
            élément WPF du même châssis, quel que soit l'ordre de déclaration.
            Sans ce retrait, la liste s'ouvrait derrière la page dès qu'une quête
@@ -191,14 +265,28 @@
            la rend visible ; la page, elle, vit dans son propre processus et
            retrouve sa position au retour. -->
       <wv:WebView2 x:Name="View"
-                   Visibility="{Binding IsListOpen,
-                                        Converter={StaticResource InverseBoolToVisibility}}" />
+                   Visibility="{Binding ShowsPage,
+                                        Converter={StaticResource BoolToVisibility}}" />
 
       <TextBlock Style="{StaticResource Muted}" Margin="20"
                  HorizontalAlignment="Center" VerticalAlignment="Center"
                  TextAlignment="Center"
                  Text="{Binding Placeholder}"
                  Visibility="{Binding HasQuest, Converter={StaticResource InverseBoolToVisibility}}" />
+
+      <!-- L'attente prend la place de la vue plutôt que de la recouvrir, pour
+           la raison dite plus haut. Le titre demandé dessous : c'est lui qui
+           dit que le clic a été entendu. -->
+      <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                  Visibility="{Binding ShowsLoader, Converter={StaticResource BoolToVisibility}}">
+        <Control Style="{StaticResource BusyIndicator}" Width="22" Height="22"
+                 HorizontalAlignment="Center" />
+
+        <TextBlock Margin="0,12,0,0" MaxWidth="260" TextAlignment="Center"
+                   TextTrimming="CharacterEllipsis"
+                   Style="{StaticResource Muted}"
+                   Text="{Binding QuestTitle}" />
+      </StackPanel>
 
       <!-- Elle recouvre la page : la liste est un choix en cours, pas un
            panneau permanent qui volerait de la place au guide. -->
@@ -319,13 +407,14 @@
 
                          Elle tient longtemps affichée, parce qu'une liste de
                          prérequis se lit moins vite que le mot d'un bouton. -->
-                    <Border Background="Transparent"
+                    <Button x:Name="Cadenas" Style="{StaticResource IconButton}"
                             VerticalAlignment="Center" Margin="6,0,2,0"
+                            Click="OnShowNeeds"
                             ToolTipService.InitialShowDelay="200"
                             ToolTipService.ShowDuration="30000"
                             Visibility="{Binding HasNeeds,
                                                  Converter={StaticResource BoolToVisibility}}">
-                      <Border.ToolTip>
+                      <Button.ToolTip>
                         <ToolTip Style="{StaticResource RichToolTip}">
                           <StackPanel MaxWidth="330">
                             <TextBlock Text="Prérequis" Margin="0,0,0,6"
@@ -347,7 +436,7 @@
                                              Margin="0,7,0,0"
                                              Fill="{DynamicResource TextMutedBrush}" />
 
-                                    <TextBlock Grid.Column="1" Text="{Binding}"
+                                    <TextBlock Grid.Column="1" Text="{Binding Text}"
                                                TextWrapping="Wrap"
                                                FontFamily="{StaticResource UiFont}" FontSize="12"
                                                Foreground="{DynamicResource TextBrush}" />
@@ -355,16 +444,21 @@
                                 </DataTemplate>
                               </ItemsControl.ItemTemplate>
                             </ItemsControl>
+
+                            <TextBlock Margin="0,6,0,0"
+                                       FontFamily="{StaticResource UiFont}" FontSize="10"
+                                       Foreground="{DynamicResource TextMutedBrush}"
+                                       Text="Cliquez pour ouvrir celles qui sont des quêtes." />
                           </StackPanel>
                         </ToolTip>
-                      </Border.ToolTip>
+                      </Button.ToolTip>
 
                       <Path Style="{StaticResource ListGlyph}"
                             Stroke="{DynamicResource GlyphNeedBrush}"
                             Data="M 5.1,7 L 5.1,5.2 A 2.4,2.4 0 0 1 9.9,5.2 L 9.9,7
                                   M 3.7,7 L 11.3,7 L 11.3,12.9 L 3.7,12.9 Z
                                   M 7.5,9.3 L 7.5,10.8" />
-                    </Border>
+                    </Button>
                   </StackPanel>
                 </Grid>
 

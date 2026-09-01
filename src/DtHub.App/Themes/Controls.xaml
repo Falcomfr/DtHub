@@ -156,6 +156,35 @@
     <Setter Property="FontSize" Value="12" />
   </Style>
 
+  <!-- Un lien dans un texte : ni cadre ni fond, seulement la couleur et le
+       soulignement au survol. Sert aux prérequis qui mènent à une quête. -->
+  <Style x:Key="LinkButton" TargetType="Button">
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <TextBlock x:Name="Libelle" Text="{TemplateBinding Content}"
+                     TextWrapping="Wrap" Background="Transparent"
+                     Foreground="{TemplateBinding Foreground}"
+                     FontFamily="{TemplateBinding FontFamily}"
+                     FontSize="{TemplateBinding FontSize}" />
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Libelle" Property="TextDecorations" Value="Underline" />
+              <Setter TargetName="Libelle" Property="Foreground"
+                      Value="{DynamicResource AccentHoverBrush}" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
   <Style TargetType="TextBox">
     <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
     <Setter Property="FontSize" Value="13" />

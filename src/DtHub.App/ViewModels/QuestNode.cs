@@ -87,7 +87,7 @@ public sealed record QuestNode(
     int Id = 0,
     QuestSummary? Quest = null,
     QuestNodeGlyph Glyph = QuestNodeGlyph.None,
-    IReadOnlyList<string>? Needs = null,
+    IReadOnlyList<QuestNeed>? Needs = null,
     bool Spaced = false)
 {
     /// <summary>Ni les branches non faites, ni les intertitres ne se cliquent.</summary>
@@ -95,4 +95,19 @@ public sealed record QuestNode(
 
     /// <summary>Vrai quand la ligne a quelque chose à dire au survol.</summary>
     public bool HasNeeds => Needs is { Count: > 0 };
+}
+
+/// <summary>
+/// Un prérequis d'une quête, et la quête qu'il nomme quand c'en est une.
+///
+/// Le site en écrit de toutes sortes : des quêtes, mais aussi des objets à
+/// apporter, un alignement, un nombre de joueurs, un niveau, des créneaux
+/// horaires. Seuls les premiers se cliquent.
+/// </summary>
+/// <param name="Text">Le prérequis tel que le site l'écrit.</param>
+/// <param name="Quest">La quête qu'il désigne, ou <c>null</c>.</param>
+public sealed record QuestNeed(string Text, QuestSummary? Quest)
+{
+    /// <summary>Vrai quand le prérequis mène quelque part.</summary>
+    public bool IsQuest => Quest is not null;
 }

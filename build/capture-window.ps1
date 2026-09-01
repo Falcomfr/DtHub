@@ -1,4 +1,4 @@
-# Capture une fenetre de l'application dans un PNG.
+﻿# Capture une fenetre de l'application dans un PNG.
 # Outil de developpement uniquement : jamais utilise par l'application.
 #
 # PrintWindow capture le contenu meme si la fenetre n'est pas au premier plan.
@@ -22,6 +22,7 @@ public class Win {
     public delegate bool EnumProc(IntPtr hWnd, IntPtr lParam);
 
     [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
+    [DllImport("user32.dll")] public static extern bool SetProcessDpiAwarenessContext(IntPtr context);
     [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr hWnd, IntPtr hdcBlt, uint nFlags);
     [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
     [DllImport("user32.dll")] public static extern bool EnumWindows(EnumProc cb, IntPtr lParam);
@@ -49,7 +50,9 @@ public class Win {
 }
 "@
 
-[void][Win]::SetProcessDPIAware()
+# Par ecran et non par systeme : l application est PerMonitorV2, et un
+# outil qui ne l est pas dessine la fenetre dans un canevas trop grand.
+[void][Win]::SetProcessDpiAwarenessContext([IntPtr]::new(-4))
 
 # Un identifiant de processus permet de viser une fenetre precise quand
 # plusieurs instances du meme programme tournent.

@@ -23,7 +23,12 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   sur un second écran d'une autre densité.
 - Le suivi de quêtes rouvre comme on l'a laissé, sur la dernière quête lue.
 - Une icône annonce les prérequis d'une quête, et le survol les donne un par
-  ligne, sous un titre et à la puce.
+  ligne, sous un titre et à la puce. Un clic épingle le panneau, et ceux qui
+  sont des quêtes s'ouvrent d'un clic.
+- Les quêtes se suivent au-delà de leur succès, par leurs prérequis : cent
+  soixante-huit gagnent une suivante et cent quatre-vingt-dix-sept une
+  précédente. Le bouton nomme la série d'arrivée quand on en change.
+- Un indicateur d'attente prend la place du guide le temps qu'une page arrive.
 - Chaque nature de ligne porte son icône et sa couleur : une feuille pour les
   quêtes, une herse pour les donjons, une épingle pour un lieu, un marque-page
   pour une famille de quêtes, une étoile pour un succès, un cadenas pour des
@@ -44,6 +49,17 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 - Le départ d'une quête est une étape à part entière, la première. Il était
   plaqué sur le premier paragraphe du guide, qui n'a le plus souvent rien à
   voir : sur seize guides relevés, treize ouvrent sur un préambule.
+- Le départ s'affiche enfin : le premier paragraphe passait la marque de lecture
+  avant qu'on ait rien fait défiler, et l'étape 1 n'existait qu'en théorie.
+- Une étape choisie au bouton n'est plus reprise par le défilement qu'on vient
+  de demander, ni perdue sur un guide trop court pour défiler.
+- Le résumé d'étape ne finit plus au milieu d'un mot : le nom capturé débordait
+  sur la suite de la phrase seize fois sur dix-huit, coupé net au quarantième
+  caractère. Il reconnaît en plus « reparlez », « en parlant », « vos adieux à »
+  et « présentez-vous à », relevés sur le site.
+- Le personnage de départ vient des métadonnées et n'était pas relu : deux
+  quêtes sur six cent quatre-vingt-treize y logent une phrase, d'où « Parlez à
+  bateau pour vous rendre au village d'Albuera ».
 - Le survol des prérequis dit « Prérequis » et non « À faire avant » : sur cinq
   cent soixante-sept prérequis distincts, on trouve des objets à apporter, un
   alignement, un nombre de joueurs, un niveau et des créneaux horaires.

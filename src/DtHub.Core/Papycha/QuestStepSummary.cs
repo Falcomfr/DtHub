@@ -61,7 +61,7 @@ public static partial class QuestStepSummary
     public static string? OfStart(string? position, string? person)
     {
         var place = Coordinates().Match(position ?? string.Empty);
-        var who = (person ?? string.Empty).Trim();
+        var who = StartPerson(person);
 
         if (!place.Success && who.Length == 0)
         {
@@ -82,6 +82,31 @@ public static partial class QuestStepSummary
 
         return summary.Append('.').ToString();
     }
+
+    /// <summary>
+    /// Le personnage de départ, tel qu'on accepte de le nommer.
+    ///
+    /// La donnée est propre presque partout — sur six cent quatre-vingt-treize
+    /// quêtes, deux seulement dépassent six mots — mais elle n'était pas
+    /// relue, et « bateau pour vous rendre au village d'Albuera. » donnait
+    /// « Parlez à bateau pour vous rendre au village d'Albuera. ».
+    ///
+    /// Deux garde-fous : la même borne que pour la prose, et la majuscule. Un
+    /// personnage porte un nom propre ; « clef secrète des crocs de verre » et
+    /// « bateau » n'en sont pas, et il vaut mieux ne rien dire du départ que
+    /// d'inviter à parler à un bateau.
+    /// </summary>
+    private static string StartPerson(string? person)
+    {
+        var value = Article().Replace((person ?? string.Empty).Trim(), string.Empty);
+        var name = NameOf(value);
+
+        return name.Length > 0 && char.IsUpper(name[0]) ? name : string.Empty;
+    }
+
+    /// <summary>Article qui précède parfois le nom, « l'Agent de la compagnie ».</summary>
+    [GeneratedRegex(@"^(?:l[e]?s?\s+|l['’]|un[e]?\s+|d[eu]\s+|des\s+)", RegexOptions.IgnoreCase)]
+    private static partial Regex Article();
 
     /// <summary>
     /// Phrase composée à partir de ce que le texte porte de repérable, ou
@@ -106,7 +131,7 @@ public static partial class QuestStepSummary
 
         if (who.Success)
         {
-            var name = TrimConnector(who.Groups["name"].Value);
+            var name = NameOf(who.Groups["name"].Value);
 
             if (name.Length > 0)
             {
@@ -114,7 +139,25 @@ public static partial class QuestStepSummary
             }
         }
 
-        return summary.Length > 0 ? summary.Append('.').ToString() : null;
+        // La phrase composée passe par la même coupe que l'autre : rien de ce
+        // qui sort d'ici ne doit finir au milieu d'un mot.
+        return summary.Length > 0 ? Clipped(summary.Append('.').ToString()) : null;
+    }
+
+    /// <summary>
+    /// Coupe un texte au dernier mot entier qui tient, et le marque d'un point
+    /// de suspension. En deçà du plafond, il ressort tel quel.
+    /// </summary>
+    private static string Clipped(string text)
+    {
+        if (text.Length <= MaxLength)
+        {
+            return text;
+        }
+
+        var cut = text.LastIndexOf(' ', MaxLength);
+
+        return (cut > MaxLength / 2 ? text[..cut] : text[..MaxLength]).TrimEnd() + "…";
     }
 
     /// <summary>
@@ -140,10 +183,7 @@ public static partial class QuestStepSummary
 
         if (sentence.Length > MaxLength)
         {
-            var cut = sentence.LastIndexOf(' ', MaxLength);
-
-            sentence = (cut > MaxLength / 2 ? sentence[..cut] : sentence[..MaxLength]).TrimEnd()
-                + "…";
+            sentence = Clipped(sentence);
         }
         else if (!sentence.EndsWith('.') && !sentence.EndsWith('!') && !sentence.EndsWith('?'))
         {
@@ -154,42 +194,99 @@ public static partial class QuestStepSummary
     }
 
     /// <summary>
-    /// Retire du nom capturé les mots de liaison qu'il a avalés.
+    /// Le nom, borné au premier mot qui ouvre une autre proposition.
     ///
-    /// « parlez à Milicien Kâpon en [-1,-12] » donnait « Milicien Kâpon en » :
-    /// la capture s'arrête à la ponctuation, pas au sens.
+    /// La capture s'arrête à la ponctuation, et une phrase sans virgule n'en
+    /// offre aucune : « auprès du Grand jarl Ordyn et en vous mettant en route »
+    /// donnait « Grand jarl Ordyn et en vous mettant en ro », coupé net au
+    /// quarantième caractère. Mesuré sur dix-huit captures, seize débordaient
+    /// ainsi et onze finissaient au milieu d'un mot.
+    ///
+    /// Couper au premier mot de rupture les ramène toutes, sans abîmer les noms
+    /// qui portent une particule : « Gardien du Donjon de Belladone » n'en
+    /// contient aucun.
     /// </summary>
-    private static string TrimConnector(string name)
+    private static string NameOf(string capture)
     {
-        var value = name.Trim().TrimEnd(',', ';', ':', '.', '-', '’', '\'');
+        List<string> kept = [];
 
-        while (true)
+        foreach (var word in capture.Split(' ', StringSplitOptions.RemoveEmptyEntries))
         {
-            var cut = value.LastIndexOf(' ');
-
-            if (cut < 0)
+            if (Breakers.Contains(Bare(word), StringComparer.OrdinalIgnoreCase))
             {
                 break;
             }
 
-            var last = value[(cut + 1)..];
+            kept.Add(word);
 
-            if (!Connectors.Contains(last, StringComparer.OrdinalIgnoreCase))
+            // Aucun personnage du site ne porte plus de six mots : au-delà, la
+            // capture a forcément débordé sur autre chose.
+            if (kept.Count == MaxNameWords)
             {
                 break;
             }
-
-            value = value[..cut].TrimEnd();
         }
 
-        return value;
+        // Une particule ne termine pas un nom : « Gardien du Donjon de » vient
+        // d'une capture coupée trop tard.
+        while (kept.Count > 0 && Particles.Contains(Bare(kept[^1]), StringComparer.OrdinalIgnoreCase))
+        {
+            kept.RemoveAt(kept.Count - 1);
+        }
+
+        return string.Join(' ', kept).Trim().TrimEnd(',', ';', ':', '.', '-', '’', '\'');
     }
 
-    /// <summary>Mots qui ne font jamais partie d'un nom propre.</summary>
-    private static readonly string[] Connectors =
+    private static string Bare(string word) =>
+        word.Trim(',', ';', ':', '.', '!', '?', '’', '\'', '-', '(', ')');
+
+    /// <summary>Au-delà, la capture a débordé sur la suite de la phrase.</summary>
+    private const int MaxNameWords = 6;
+
+    /// <summary>
+    /// Mots qui ne se trouvent jamais au milieu d'un nom propre.
+    ///
+    /// C'est une classe fermée de la langue — conjonctions, prépositions,
+    /// déterminants, pronoms, quelques adverbes de liaison — et non une liste
+    /// tirée des cas rencontrés : celle-ci s'allongerait à chaque guide, et le
+    /// premier mot oublié rendrait « Truffo lors de votre première visite ».
+    ///
+    /// Les particules qui appartiennent bel et bien aux noms en sont exclues et
+    /// figurent plus bas : « Gardien du Donjon de Belladone » doit survivre.
+    /// </summary>
+    private static readonly string[] Breakers =
     [
-        "en", "dans", "pour", "puis", "et", "afin", "qui", "que", "au", "aux",
-        "sur", "vers", "avec", "de", "du", "des", "à", "a", "le", "la", "les",
+        // Conjonctions
+        "et", "ou", "mais", "donc", "or", "ni", "car", "que", "qui", "quoi",
+        "quand", "lorsque", "comme", "si", "puisque", "parce",
+
+        // Prépositions
+        "à", "a", "en", "dans", "sur", "sous", "vers", "avec", "sans", "pour",
+        "par", "chez", "entre", "contre", "depuis", "pendant", "avant", "après",
+        "apres", "jusqu", "lors", "malgré", "selon", "près", "hors", "afin",
+
+        // Déterminants
+        "un", "une", "ce", "cet", "cette", "ces", "mon", "ma", "mes", "ton",
+        "ta", "tes", "son", "sa", "ses", "notre", "nos", "votre", "vos",
+        "leur", "leurs", "tout", "toute", "tous", "toutes", "quelques",
+        "plusieurs", "aucun", "aucune", "chaque",
+
+        // Pronoms
+        "je", "tu", "il", "elle", "on", "nous", "vous", "ils", "elles", "se",
+        "y", "lui", "cela", "ça", "ceci", "celui", "celle",
+
+        // Adverbes de liaison
+        "ensuite", "puis", "enfin", "alors", "ainsi", "aussi", "encore",
+        "déjà", "toujours", "jamais", "plus", "moins", "très", "bien",
+    ];
+
+    /// <summary>
+    /// Mots qui appartiennent à un nom quand ils sont suivis d'autre chose,
+    /// mais qui ne le terminent jamais.
+    /// </summary>
+    private static readonly string[] Particles =
+    [
+        "de", "du", "des", "le", "la", "les", "au", "aux", "d", "l",
     ];
 
     /// <summary>Coordonnées resserrées : « [ 4 , -6 ] » se lit « [4,-6] ».</summary>
@@ -208,14 +305,32 @@ public static partial class QuestStepSummary
     private static partial Regex Coordinates();
 
     /// <summary>
-    /// Nom d'un personnage, reconnu à ce qui l'annonce. Le nom commence par une
-    /// majuscule et s'arrête à la ponctuation : sans cette borne, la capture
-    /// avalait la fin de la phrase.
+    /// Nom d'un personnage, reconnu à ce qui l'annonce.
+    ///
+    /// Les amorces sont relevées, pas devinées : sur dix-huit guides, « parlez »
+    /// vingt-trois fois, « parlant » quatre, « reparlez » quatre, « parler »
+    /// deux, puis « adieux à » et « présentez-vous à ». Trois de ces formes
+    /// manquaient, d'où des résumés qui donnaient les coordonnées sans dire à
+    /// qui parler.
+    ///
+    /// Ce qui n'y figure pas n'y figure pas par choix : « vous emmène à
+    /// Astrub », « vous déposer au Temple », « vous êtes à Albuera » annoncent
+    /// des lieux. Accepter « à » suivi d'une majuscule ferait passer un lieu
+    /// pour un personnage.
+    ///
+    /// La majuscule initiale est explicitement sensible à la casse. Sans cela
+    /// elle ne borne rien : en .NET, l'option d'indifférence à la casse
+    /// s'applique aussi aux catégories Unicode, et « \p{Lu} » accepte alors les
+    /// minuscules. « parlez de nouveau à Waldos » capturait « de nouveau à
+    /// Waldos ».
     /// </summary>
     [GeneratedRegex(
-        @"\b(?:parlez?|parler|voir|aupr[èe]s d[eu]|adressez-vous [àa]|rendre compte [àa])\s+"
+        @"\b(?:reparlez|parlez?|parler|parlant|voir|aupr[èe]s d[eu]"
+        + @"|adressez-vous [àa]|pr[ée]sentez-vous [àa]|adieux [àa]"
+        + @"|rendre compte [àa])\s+"
+        + @"(?:(?:de|[àa])\s+nouveau\s+)?"
         + @"(?:au |à la |aux |à |le |la |les |l['’])?"
-        + @"(?<name>\p{Lu}[\p{L}\p{M}'’\- ]{1,40})",
+        + @"(?<name>(?-i:\p{Lu})[\p{L}\p{M}'’\- ]{0,60})",
         RegexOptions.IgnoreCase)]
     private static partial Regex Person();
 

@@ -283,11 +283,32 @@
         });
     }
 
+    // Vrai quand la page n'a pas bougé. Le départ vaut tant qu'on n'a rien lu,
+    // et il n'a pas d'autre ancrage : le haut du guide est aussi celui du
+    // premier paragraphe, à quelques dizaines de pixels près.
+    function atTop() {
+        return (window.scrollY || document.documentElement.scrollTop || 0) <= 4;
+    }
+
     // L'étape courante est le dernier paragraphe dont le haut est passé au-
     // dessus du tiers supérieur de la fenêtre : c'est celui qu'on est en train
     // de lire, pas celui qui vient d'apparaître en bas.
+    //
+    // Le départ échappe à cette règle. Il porte le rang zéro et son ancrage est
+    // le haut du guide ; le premier paragraphe se trouvant à une cinquantaine
+    // de pixels en dessous, il passait la marque avant qu'on ait rien fait
+    // défiler, et le départ ne s'affichait jamais.
     function currentStep() {
         var found = steps();
+
+        if (found.length === 0) {
+            return -1;
+        }
+
+        if (departure() && atTop()) {
+            return 0;
+        }
+
         var mark = window.innerHeight / 3;
         var index = 0;
 
@@ -297,10 +318,41 @@
             }
         }
 
-        return found.length === 0 ? -1 : index;
+        return index;
+    }
+
+    // Étape choisie au bouton, retenue jusqu'au prochain défilement de la main
+    // de l'utilisateur. -1 quand rien n'est retenu.
+    //
+    // Deux raisons. Le défilement qu'on demande traverse les étapes
+    // intermédiaires, et les rapporter une à une ferait défiler le bandeau. Et
+    // sur une page trop courte pour défiler, l'étape visée n'atteint jamais la
+    // marque : le bandeau revenait aussitôt à la précédente, et le clic passait
+    // pour n'avoir rien fait.
+    var held = -1;
+    var release = null;
+
+    // Le relâchement suit le dernier événement de défilement, et non le saut :
+    // un défilement doux en émet pendant quelques centaines de millisecondes.
+    // Armé dès le saut, pour le cas où la page ne bouge pas du tout.
+    function holdStep(index) {
+        held = index;
+
+        if (release !== null) {
+            window.clearTimeout(release);
+        }
+
+        release = window.setTimeout(function () {
+            release = null;
+            held = -1;
+        }, 150);
     }
 
     function reportStep() {
+        if (held >= 0) {
+            return;
+        }
+
         var index = currentStep();
 
         if (index !== current) {
@@ -322,6 +374,15 @@
         // en émet des centaines par seconde.
         window.requestAnimationFrame(function () {
             pending = false;
+
+            // Tant qu'une étape est retenue, chaque événement repousse le
+            // relâchement : le défilement en cours est encore le nôtre.
+            if (held >= 0) {
+                holdStep(held);
+
+                return;
+            }
+
             reportStep();
         });
     }, { passive: true });
@@ -333,10 +394,18 @@
             return;
         }
 
+        current = index;
+        holdStep(index);
+
         var top = found[index].node.getBoundingClientRect().top + window.scrollY;
 
         // Une marge au-dessus : un paragraphe collé au bord haut se lit mal.
-        window.scrollTo({ top: Math.max(0, top - 16), behavior: 'smooth' });
+        // Le départ, lui, veut le vrai haut de page : c'est ce qui le rend
+        // courant, et seize pixels plus bas suffiraient à l'en priver.
+        window.scrollTo({
+            top: index === 0 && departure() ? 0 : Math.max(0, top - 16),
+            behavior: 'smooth'
+        });
     };
 
     // Le bandeau d'intro n'a plus rien à montrer une fois retirés les blocs que

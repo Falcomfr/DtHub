@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 
@@ -92,7 +93,7 @@ public partial class QuestWindow : Window
         {
             await PrepareAsync().ConfigureAwait(true);
 
-            View.CoreWebView2.Navigate(url);
+            NavigateTo(url);
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
@@ -205,7 +206,7 @@ public partial class QuestWindow : Window
         {
             await PrepareAsync().ConfigureAwait(true);
 
-            View.CoreWebView2.Navigate(quest.Url);
+            NavigateTo(quest.Url);
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
@@ -244,9 +245,34 @@ public partial class QuestWindow : Window
         // hors de tout contrôle, sans notre cadre ni notre premier plan.
         View.CoreWebView2.NewWindowRequested += OnNewWindowRequested;
 
+        View.CoreWebView2.NavigationCompleted += OnNavigationCompleted;
+
         await View.CoreWebView2
             .AddScriptToExecuteOnDocumentCreatedAsync(QuestBridge.Script())
             .ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// Charge une page du site en disant qu'on l'attend.
+    ///
+    /// Seule porte : quatre chemins menaient à Navigate, et l'attente devait
+    /// être levée aux quatre. Elle retombe au message du pont, qui ne vient
+    /// qu'une fois la page cadrée, ou à défaut à la fin de la navigation.
+    /// </summary>
+    private void NavigateTo(string url)
+    {
+        _viewModel.IsLoadingPage = true;
+
+        View.CoreWebView2?.Navigate(url);
+    }
+
+    private void OnNavigationCompleted(
+        object? sender,
+        CoreWebView2NavigationCompletedEventArgs e)
+    {
+        // Le filet : une page en erreur, un réseau coupé, et le pont ne dira
+        // jamais rien. L'indicateur tournerait alors sans fin.
+        _viewModel.IsLoadingPage = false;
     }
 
     private void OnBridgeMessage(object? sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs e)
@@ -260,6 +286,7 @@ public partial class QuestWindow : Window
             switch (root.GetProperty("kind").GetString())
             {
                 case "loaded":
+                    _viewModel.IsLoadingPage = false;
                     _viewModel.SetPage(
                         Text(root, "intro"),
                         Text(root, "chain"),
@@ -372,7 +399,7 @@ public partial class QuestWindow : Window
         //
         // Différée, parce qu'on est encore dans le gestionnaire qui vient de
         // refuser cette même navigation.
-        _ = Dispatcher.BeginInvoke(() => View.CoreWebView2?.Navigate(url));
+        _ = Dispatcher.BeginInvoke(() => NavigateTo(url));
     }
 
     private static bool Same(string? first, string? second) =>
@@ -438,13 +465,53 @@ public partial class QuestWindow : Window
 
     private void OnCloseList(object sender, RoutedEventArgs e) => _viewModel.IsListOpen = false;
 
+    /// <summary>
+    /// Épingle les prérequis d'une ligne, pour qu'on puisse les lire sans tenir
+    /// la souris et cliquer ceux qui mènent à une quête.
+    ///
+    /// L'infobulle du même bouton est éteinte le temps du panneau : elle
+    /// s'ouvrirait par-dessus et dirait la même chose sans les liens.
+    /// </summary>
+    private void OnShowNeeds(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button bouton)
+        {
+            return;
+        }
+
+        ToolTipService.SetIsEnabled(bouton, false);
+
+        PanneauPrerequis.PlacementTarget = bouton;
+        PanneauPrerequis.DataContext = bouton.DataContext;
+        PanneauPrerequis.IsOpen = true;
+    }
+
+    private void OnNeedsClosed(object? sender, EventArgs e)
+    {
+        if (PanneauPrerequis.PlacementTarget is Button bouton)
+        {
+            ToolTipService.SetIsEnabled(bouton, true);
+        }
+    }
+
+    /// <summary>Ouvre la quête qu'un prérequis nomme.</summary>
+    private void OnFollowNeed(object sender, RoutedEventArgs e)
+    {
+        PanneauPrerequis.IsOpen = false;
+
+        if ((sender as FrameworkElement)?.Tag is QuestSummary quest)
+        {
+            Route(quest.Url);
+        }
+    }
+
     /// <summary>Suit un lien de chaîne : la quête précédente ou la suivante.</summary>
     private void OnFollowChain(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.Tag is QuestLink link)
         {
             _viewModel.Follow(link);
-            View.CoreWebView2?.Navigate(link.Url);
+            NavigateTo(link.Url);
         }
     }
 

@@ -75,7 +75,21 @@ public sealed partial class QuestViewModel : ObservableObject
     /// <summary>Vrai quand la liste déroulante est ouverte.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsQuestChrome))]
+    [NotifyPropertyChangedFor(nameof(ShowsPage))]
+    [NotifyPropertyChangedFor(nameof(ShowsLoader))]
     private bool _isListOpen;
+
+    /// <summary>
+    /// Vrai le temps qu'une page de guide arrive.
+    ///
+    /// Le bandeau annonce la nouvelle quête dès le clic, mais la vue montre
+    /// encore l'ancien guide pendant une seconde ou deux : on croyait que le
+    /// clic n'avait rien fait, ou pire, on lisait la mauvaise page.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsPage))]
+    [NotifyPropertyChangedFor(nameof(ShowsLoader))]
+    private bool _isLoadingPage;
 
     /// <summary>Vrai pendant l'indexation, pour montrer que ça travaille.</summary>
     [ObservableProperty]
@@ -88,6 +102,17 @@ public sealed partial class QuestViewModel : ObservableObject
     /// hauteur, et on ne consulte pas une étape et une liste en même temps.
     /// </summary>
     public bool ShowsQuestChrome => HasQuest && !IsListOpen;
+
+    /// <summary>
+    /// Vrai quand la vue web doit se voir. Elle est retirée pendant un
+    /// chargement, et non recouverte : une fenêtre native se dessine au-dessus
+    /// de tout élément WPF du même châssis, et un voile posé dessus resterait
+    /// invisible. C'est du reste ce que fait déjà la liste déroulante.
+    /// </summary>
+    public bool ShowsPage => !IsListOpen && !IsLoadingPage;
+
+    /// <summary>Vrai quand la place de la vue revient à l'indicateur d'attente.</summary>
+    public bool ShowsLoader => IsLoadingPage && !IsListOpen;
 
     /// <summary>Où l'on se trouve dans l'arbre, affiché au-dessus de la liste.</summary>
     [ObservableProperty]
@@ -110,6 +135,8 @@ public sealed partial class QuestViewModel : ObservableObject
                 : "Indexation…");
 
         var catalog = await _catalog.GetAsync(progress, cancellationToken).ConfigureAwait(true);
+
+        _chain = new QuestChainIndex(catalog.Quests);
 
         IsBusy = false;
 
@@ -583,7 +610,25 @@ public sealed partial class QuestViewModel : ObservableObject
         QuestNodeKind.Quest,
         quest.Title,
         Quest: quest,
-        Needs: quest.Prerequisites);
+        Needs: NeedsOf(quest));
+
+    /// <summary>
+    /// Les prérequis d'une quête, chacun rattaché à la quête qu'il nomme quand
+    /// c'en est une. Sur cinq cent soixante-sept prérequis distincts, beaucoup
+    /// sont des objets, un alignement ou un créneau horaire : ceux-là restent
+    /// du texte, et seuls les autres deviendront des liens.
+    /// </summary>
+    private IReadOnlyList<QuestNeed> NeedsOf(QuestSummary quest) =>
+        quest.Prerequisites.Count == 0
+            ? []
+            : [.. quest.Prerequisites.Select(need => new QuestNeed(need, _chain?.Find(need)))];
+
+    /// <summary>
+    /// Ce que les prérequis relient, table construite une fois par catalogue.
+    /// Sert aussi bien à rattacher un prérequis à sa quête qu'à prolonger la
+    /// navigation au-delà d'un succès.
+    /// </summary>
+    private QuestChainIndex? _chain;
 
     /// <summary>L'icône d'une rubrique, selon qu'elle situe ou qu'elle range.</summary>
     private static QuestNodeGlyph GlyphOf(string? zone) =>
@@ -654,6 +699,7 @@ public sealed partial class QuestViewModel : ObservableObject
         _startsAtDeparture = false;
 
         SetNeighbours(quest);
+        ExtendNeighbours(quest);
 
         // La page suivante n'est pas encore chargée : garder les étapes de la
         // précédente afficherait un objectif qui n'a plus rien à voir.
@@ -712,6 +758,58 @@ public sealed partial class QuestViewModel : ObservableObject
         {
             NextQuest = ToLink(group[index + 1]);
         }
+    }
+
+    /// <summary>
+    /// Prolonge la navigation là où la liste du succès s'arrête, en suivant les
+    /// prérequis.
+    ///
+    /// La première quête d'un succès n'a pas de précédente et la dernière pas
+    /// de suivante ; une quête hors succès n'a ni l'une ni l'autre. Le site,
+    /// lui, continue : « Bien débuter » mène à « Une arrivée mouvementée », qui
+    /// mène à « Le début des problèmes », laquelle ouvre un succès. Mesuré, cela
+    /// rend une suivante à cent soixante-huit quêtes et une précédente à cent
+    /// quatre-vingt-dix-sept.
+    /// </summary>
+    private void ExtendNeighbours(QuestSummary quest)
+    {
+        if (_chain is null)
+        {
+            return;
+        }
+
+        PreviousQuest ??= ToLink(_chain.PreviousOf(quest), quest);
+        NextQuest ??= ToLink(_chain.NextOf(quest), quest);
+    }
+
+    /// <summary>
+    /// Le lien vers une quête voisine, annoncé par sa série quand on en change.
+    ///
+    /// Suivre un prérequis fait parfois entrer dans un autre succès, voire dans
+    /// une autre zone. Le titre seul laisserait croire qu'on poursuit la même
+    /// suite ; le nom du succès — à défaut celui de la zone — dit qu'on en
+    /// commence une autre.
+    /// </summary>
+    private QuestLink? ToLink(QuestSummary? target, QuestSummary from)
+    {
+        if (target is null)
+        {
+            return null;
+        }
+
+        var link = ToLink(target);
+
+        if (string.Equals(target.SuccessName, from.SuccessName, StringComparison.Ordinal))
+        {
+            return target.SectionId == from.SectionId
+                ? link
+                : link with { Series = NameOf(target.SectionId) };
+        }
+
+        return link with
+        {
+            Series = target.SuccessName.Length > 0 ? target.SuccessName : NameOf(target.SectionId),
+        };
     }
 
     private static QuestLink ToLink(QuestSummary quest) =>

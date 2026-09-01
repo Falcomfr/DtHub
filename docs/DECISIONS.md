@@ -712,6 +712,15 @@ passent par des règles sur le texte ; quand aucune ne s'applique, la première
 phrase raccourcie. Jamais de vide : une étape sans résumé laisserait croire
 qu'il n'y a rien à faire.
 
+**Les voisines, suite.** La liste d'un succès s'arrête à ses bornes, et le site
+ne s'y arrête pas : à Albuera, « Bien débuter » mène à « Une arrivée
+mouvementée », qui mène à « Le début des problèmes », laquelle ouvre un succès.
+Quand la liste ne dit rien, le graphe des prérequis prend le relais - cent
+soixante-huit suivantes et cent quatre-vingt-dix-sept précédentes gagnées. Une
+seule candidate, sinon rien : treize suites se ramifient, et en désigner une
+mentirait. Le bouton nomme la série d'arrivée dès qu'on en change de succès ou
+de zone, faute de quoi on croirait poursuivre la même.
+
 **Les icônes.** Elles disent la nature d'une ligne, non ce que le clic fera :
 deux branches se déplient de la même façon sans désigner la même chose. Une
 épingle pour un endroit du monde, un marque-page pour une famille de quêtes -
@@ -804,4 +813,44 @@ Les outils de développement du dépôt ont dû être recalibrés pour le vérif
 ils se déclaraient conscients de la densité du système quand l'application l'est
 par écran, et mesuraient donc des coordonnées mises à l'échelle. Ils ont montré
 un déplacement là où l'application était juste, ce qui a coûté un aller-retour.
+
+## D35 - Ce que le bandeau d'étape promet, et comment il le tient
+
+Le bandeau dit trois choses : à quelle étape on est, ce qu'elle demande, et où
+l'on va ensuite. Chacune s'est révélée fausse dans un cas courant, et chacune
+a demandé une règle plutôt qu'un correctif.
+
+**Le rang.** Le départ porte le rang zéro et son ancrage est le haut du guide ;
+le premier paragraphe se trouvant à une cinquantaine de pixels en dessous, il
+passait la marque de lecture avant qu'on ait rien fait défiler. Le départ vaut
+donc tant que la page n'a pas bougé, et la marque ne gouverne que les
+paragraphes.
+
+**Le rang choisi.** Une étape désignée au bouton est retenue jusqu'au prochain
+défilement de la main. Sans cela, le défilement qu'on demande traverse les
+étapes intermédiaires et les rapporte une à une ; et sur un guide trop court
+pour défiler, l'étape visée n'atteint jamais la marque et le bandeau revenait
+aussitôt en arrière, le clic passant pour n'avoir rien fait.
+
+**Le résumé.** Le nom capturé est borné par la classe fermée des mots-outils -
+conjonctions, prépositions, déterminants, pronoms - et non par une liste tirée
+des cas rencontrés, qui s'allongerait à chaque guide. Les particules qui
+appartiennent aux noms en sont exclues : « Gardien du Donjon de Belladone » doit
+survivre là où « Grand jarl Ordyn et en vous mettant en route » doit être coupé.
+Un plafond de six mots ferme la porte au reste.
+
+Les amorces qui annoncent un personnage sont relevées, pas devinées, et ce
+qu'on refuse compte autant que ce qu'on accepte : « vous emmène à Astrub » et
+« vous êtes à Albuera » introduisent des lieux, et accepter « à » suivi d'une
+majuscule ferait parler à une ville.
+
+Une majuscule ne borne rien sans précaution : en .NET, l'indifférence à la casse
+s'applique aussi aux catégories Unicode, et « \p{Lu} » accepte alors les
+minuscules. Elle est donc rendue sensible à la casse explicitement.
+
+**L'attente.** Une fenêtre native se dessine au-dessus de tout élément WPF du
+même châssis : un voile posé sur la vue resterait invisible. La vue est donc
+retirée le temps du chargement et l'indicateur prend sa place, comme le fait
+déjà la liste déroulante. C'est aussi ce qu'on veut : le guide périmé resté à
+l'écran est précisément ce qui trompait.
 
