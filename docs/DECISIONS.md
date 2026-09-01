@@ -854,3 +854,14 @@ retirée le temps du chargement et l'indicateur prend sa place, comme le fait
 déjà la liste déroulante. C'est aussi ce qu'on veut : le guide périmé resté à
 l'écran est précisément ce qui trompait.
 
+Toutes les navigations ne sont pas les nôtres, et il faut les distinguer par
+leur identifiant. Un lien de quête cliqué dans le guide est refusé, puis relancé
+par nos soins : la navigation refusée signale sa fin, et elle le fait après que
+la nôtre a commencé. L'attente s'éteignait alors aussitôt, sur le chemin même où
+elle servait le plus.
+
+La ligne d'étape, enfin, tient sa place pendant le chargement. Elle disparaissait
+faute d'étapes connues, et le bandeau perdait une ligne pour la reprendre une
+seconde plus tard. Ce qu'elle montre en attendant est le départ, qui vient des
+métadonnées et n'attend pas la page.
+

@@ -29,6 +29,9 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   soixante-huit gagnent une suivante et cent quatre-vingt-dix-sept une
   précédente. Le bouton nomme la série d'arrivée quand on en change.
 - Un indicateur d'attente prend la place du guide le temps qu'une page arrive.
+  Il manquait sur les liens de quête cliqués dans le guide : la navigation
+  refusée puis relancée signalait sa fin après le départ de la vraie, et
+  l'ancien guide restait à l'écran sans que rien ne l'annonce.
 - Chaque nature de ligne porte son icône et sa couleur : une feuille pour les
   quêtes, une herse pour les donjons, une épingle pour un lieu, un marque-page
   pour une famille de quêtes, une étoile pour un succès, un cadenas pour des

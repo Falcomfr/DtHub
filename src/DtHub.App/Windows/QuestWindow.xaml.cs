@@ -266,13 +266,29 @@ public partial class QuestWindow : Window
         View.CoreWebView2?.Navigate(url);
     }
 
+    /// <summary>
+    /// Identifiant de la navigation qu'on attend. Zéro quand on n'attend rien.
+    ///
+    /// Toutes les navigations ne sont pas les nôtres : un lien de quête cliqué
+    /// dans le guide est refusé, puis relancé par nos soins. La navigation
+    /// refusée signale sa fin, et elle le faisait après que la nôtre avait
+    /// commencé : l'attente s'éteignait aussitôt, et l'ancien guide restait à
+    /// l'écran sans que rien n'indique qu'une page arrivait.
+    /// </summary>
+    private ulong _awaited;
+
     private void OnNavigationCompleted(
         object? sender,
         CoreWebView2NavigationCompletedEventArgs e)
     {
+        ArgumentNullException.ThrowIfNull(e);
+
         // Le filet : une page en erreur, un réseau coupé, et le pont ne dira
         // jamais rien. L'indicateur tournerait alors sans fin.
-        _viewModel.IsLoadingPage = false;
+        if (e.NavigationId == _awaited)
+        {
+            _viewModel.IsLoadingPage = false;
+        }
     }
 
     private void OnBridgeMessage(object? sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs e)
@@ -364,6 +380,9 @@ public partial class QuestWindow : Window
     {
         if (Same(e.Uri, _viewModel.CurrentUrl))
         {
+            // Celle-ci est la nôtre : c'est sa fin qui lèvera l'attente.
+            _awaited = e.NavigationId;
+
             return;
         }
 

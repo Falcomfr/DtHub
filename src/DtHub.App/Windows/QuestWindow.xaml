@@ -78,7 +78,7 @@
 
         <!-- Les étapes : deux flèches, le rang, et ce qu'il y a à faire. -->
         <Grid Margin="0,6,0,0"
-              Visibility="{Binding HasSteps, Converter={StaticResource BoolToVisibility}}">
+              Visibility="{Binding ShowsSteps, Converter={StaticResource BoolToVisibility}}">
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="Auto" />

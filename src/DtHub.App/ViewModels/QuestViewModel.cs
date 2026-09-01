@@ -89,6 +89,7 @@ public sealed partial class QuestViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsPage))]
     [NotifyPropertyChangedFor(nameof(ShowsLoader))]
+    [NotifyPropertyChangedFor(nameof(ShowsSteps))]
     private bool _isLoadingPage;
 
     /// <summary>Vrai pendant l'indexation, pour montrer que ça travaille.</summary>
@@ -113,6 +114,16 @@ public sealed partial class QuestViewModel : ObservableObject
 
     /// <summary>Vrai quand la place de la vue revient à l'indicateur d'attente.</summary>
     public bool ShowsLoader => IsLoadingPage && !IsListOpen;
+
+    /// <summary>
+    /// Vrai quand la ligne d'étape doit se voir.
+    ///
+    /// Elle tient sa place pendant le chargement, où l'on ne connaît pas encore
+    /// les étapes : sans cela le bandeau perdait une ligne puis la reprenait, et
+    /// sautait à chaque changement de quête. Ce qu'elle montre alors est le
+    /// départ, qui vient des métadonnées et n'attend pas la page.
+    /// </summary>
+    public bool ShowsSteps => HasSteps || IsLoadingPage;
 
     /// <summary>Où l'on se trouve dans l'arbre, affiché au-dessus de la liste.</summary>
     [ObservableProperty]
@@ -702,10 +713,13 @@ public sealed partial class QuestViewModel : ObservableObject
         ExtendNeighbours(quest);
 
         // La page suivante n'est pas encore chargée : garder les étapes de la
-        // précédente afficherait un objectif qui n'a plus rien à voir.
+        // précédente afficherait un objectif qui n'a plus rien à voir. Le
+        // départ, lui, se sait déjà et tient la ligne en attendant.
         _steps = [];
         HasSteps = false;
         SetStep(-1);
+
+        StepDetail = _start ?? string.Empty;
     }
 
     /// <summary>
@@ -843,6 +857,7 @@ public sealed partial class QuestViewModel : ObservableObject
     private string _stepDetail = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsSteps))]
     private bool _hasSteps;
 
     [ObservableProperty]
