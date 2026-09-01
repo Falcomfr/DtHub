@@ -34,6 +34,17 @@ public interface IPapychaClient
     /// </summary>
     Task<IReadOnlyList<QuestPageSection>> GetPageSectionsAsync(
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Récupère les donjons, contenu des pages compris.
+    ///
+    /// Le contenu est demandé avec le reste et non page par page : le niveau,
+    /// la position et le personnage sont dans les métadonnées, mais la clef et
+    /// la pierre d'âme ne vivent que dans le corps de l'article. Les demander
+    /// séparément coûterait quatre-vingt-trois requêtes là où une suffit.
+    /// </summary>
+    Task<IReadOnlyList<DungeonSummary>> GetDungeonsAsync(
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>Avancement d'une indexation.</summary>

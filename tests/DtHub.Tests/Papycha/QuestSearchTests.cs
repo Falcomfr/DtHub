@@ -132,7 +132,7 @@ public class QuestSearchTests
 
         QuestSection[] rubriques = [Rubrique(135, "Île de Frigost"), Rubrique(18, "Astrub")];
 
-        var trouve = QuestSearch.Search(quetes, rubriques, "frigost");
+        var trouve = QuestSearch.Search(quetes, rubriques, [], "frigost");
 
         Assert.Equal("Île de Frigost", Assert.Single(trouve.Zones).Name);
         Assert.Equal("Les survivants de Frigost", Assert.Single(trouve.Successes));
@@ -154,7 +154,7 @@ public class QuestSearchTests
             Quete("Une troisième", "Objets trouvés"),
         ];
 
-        var trouve = QuestSearch.Search(quetes, [], "interimaire");
+        var trouve = QuestSearch.Search(quetes, [], [], "interimaire");
 
         Assert.Equal("Intérimaire frigostien", Assert.Single(trouve.Successes));
     }
@@ -166,7 +166,7 @@ public class QuestSearchTests
         // marcher, même si le catalogue nomme la rubrique autrement.
         QuestSection[] rubriques = [Rubrique(-4, "Quêtes du Port de Madrestam")];
 
-        var trouve = QuestSearch.Search([], rubriques, "madrestam");
+        var trouve = QuestSearch.Search([], rubriques, [], "madrestam");
 
         Assert.Single(trouve.Zones);
     }
@@ -176,7 +176,7 @@ public class QuestSearchTests
     {
         // Sans quoi la liste des zones serait remplacée par le catalogue entier
         // dès que le champ se vide.
-        Assert.True(QuestSearch.Search([Quete("Une quête")], [], "  ").IsEmpty);
-        Assert.True(QuestSearch.Search([Quete("Une quête")], [], null).IsEmpty);
+        Assert.True(QuestSearch.Search([Quete("Une quête")], [], [], "  ").IsEmpty);
+        Assert.True(QuestSearch.Search([Quete("Une quête")], [], [], null).IsEmpty);
     }
 }

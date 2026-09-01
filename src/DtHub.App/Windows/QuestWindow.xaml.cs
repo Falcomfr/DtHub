@@ -191,22 +191,22 @@ public partial class QuestWindow : Window
 
     private void ChooseSelected()
     {
-        if (_viewModel.Activate(NodeList.SelectedItem as QuestNode) is { } quest)
+        if (_viewModel.Activate(NodeList.SelectedItem as QuestNode) is { } url)
         {
-            Open(quest);
+            Open(url);
         }
     }
 
     private bool _bridgeReady;
 
     /// <summary>Charge la page d'une quête, en s'assurant que le moteur est prêt.</summary>
-    private async void Open(QuestSummary quest)
+    private async void Open(string url)
     {
         try
         {
             await PrepareAsync().ConfigureAwait(true);
 
-            NavigateTo(quest.Url);
+            NavigateTo(url);
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
@@ -404,7 +404,7 @@ public partial class QuestWindow : Window
     /// </summary>
     private void Route(string url)
     {
-        if (!_viewModel.TryFollowUrl(url))
+        if (!_viewModel.TryFollowUrl(url, remember: true))
         {
             _ = OpenAsideAsync(url);
 

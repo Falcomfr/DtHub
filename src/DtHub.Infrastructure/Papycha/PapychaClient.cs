@@ -28,6 +28,9 @@ public sealed partial class PapychaClient : IPapychaClient
     /// <summary>Catégorie qui range toutes les quêtes du site.</summary>
     private const int QuestCategory = 7;
 
+    /// <summary>La catégorie « [Donjons] », qui en range quatre-vingt-trois.</summary>
+    private const int DungeonCategory = 6;
+
     /// <summary>Maximum accepté par WordPress sur une page.</summary>
     private const int PageSize = 100;
 
@@ -419,6 +422,106 @@ public sealed partial class PapychaClient : IPapychaClient
     private static string Decode(string? value) =>
         string.IsNullOrEmpty(value) ? string.Empty : System.Net.WebUtility.HtmlDecode(value);
 
+    /// <summary>
+    /// Les donjons, contenu compris, en une requête.
+    ///
+    /// Le niveau, la position et le personnage viennent des métadonnées ; la
+    /// clef et la pierre d'âme ne vivent que dans le corps de l'article, d'où
+    /// la demande du contenu rendu. Quatre mégaoctets pour quatre-vingt-trois
+    /// donjons, une fois par indexation : le prix d'une requête au lieu de
+    /// quatre-vingt-trois.
+    /// </summary>
+    public async Task<IReadOnlyList<DungeonSummary>> GetDungeonsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        List<DungeonSummary> dungeons = [];
+
+        for (var page = 1; page <= MaxPages; page++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var address =
+                $"posts?categories={DungeonCategory}&per_page={PageSize}&page={page}"
+                + "&orderby=title&order=asc"
+                + "&_fields=id,title,link,meta,content";
+
+            using var response = await _http.GetAsync(address, cancellationToken).ConfigureAwait(false);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.BadRequest && page > 1)
+            {
+                break;
+            }
+
+            response.EnsureSuccessStatusCode();
+
+            var items = await response.Content
+                .ReadFromJsonAsync<List<DungeonPayload>>(Json, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (items is not { Count: > 0 })
+            {
+                break;
+            }
+
+            dungeons.AddRange(items.Select(ToDungeon));
+
+            if (items.Count < PageSize)
+            {
+                break;
+            }
+        }
+
+        LogDungeons(dungeons.Count);
+
+        return dungeons;
+    }
+
+    private static DungeonSummary ToDungeon(DungeonPayload item)
+    {
+        var title = DungeonTitle(Decode(item.Title?.Rendered));
+        var html = item.Content?.Rendered ?? string.Empty;
+
+        return new DungeonSummary
+        {
+            Id = item.Id,
+            Title = title,
+            Url = item.Link ?? string.Empty,
+            SearchKey = QuestSearch.Normalize(title),
+            Level = item.Meta?.DungeonLevel ?? 0,
+            Position = (item.Meta?.DungeonPosition ?? string.Empty).Trim(),
+            Person = Decode(item.Meta?.DungeonPerson).Trim(),
+            Key = DungeonPageParser.ParseKey(html),
+            SoulStone = DungeonPageParser.ParseSoulStone(html),
+        };
+    }
+
+    /// <summary>
+    /// Le nom du donjon sans le préfixe que le site met à tous ses titres. Il
+    /// se lit bien dans une page, mal dans une liste où toutes les lignes sont
+    /// des donjons.
+    /// </summary>
+    private static string DungeonTitle(string title)
+    {
+        var value = title.Trim();
+
+        return value.StartsWith("[Donjon]", StringComparison.OrdinalIgnoreCase)
+            ? value["[Donjon]".Length..].Trim()
+            : value;
+    }
+
+    private sealed class DungeonPayload
+    {
+        public int Id { get; set; }
+
+        public RenderedText? Title { get; set; }
+
+        public string? Link { get; set; }
+
+        public RenderedText? Content { get; set; }
+
+        public MetaPayload? Meta { get; set; }
+    }
+
     private sealed class PostPayload
     {
         public int Id { get; set; }
@@ -453,6 +556,18 @@ public sealed partial class PapychaClient : IPapychaClient
 
         [JsonPropertyName("_pqa_prerequisites")]
         public string? Prerequisites { get; set; }
+
+        // Les donjons ont leur propre préfixe de métadonnées. Elles partagent
+        // ce type plutôt que d'en avoir un second : les champs absents restent
+        // à leur valeur par défaut, et l'API les rend tous de toute façon.
+        [JsonPropertyName("_pcd_level")]
+        public int DungeonLevel { get; set; }
+
+        [JsonPropertyName("_pcd_position")]
+        public string? DungeonPosition { get; set; }
+
+        [JsonPropertyName("_pcd_npc")]
+        public string? DungeonPerson { get; set; }
     }
 
     private sealed class TermPayload
@@ -468,6 +583,9 @@ public sealed partial class PapychaClient : IPapychaClient
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Catalogue papycha indexé : {count} quête(s).")]
     private partial void LogIndexed(int count);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Donjons indexés : {count}.")]
+    private partial void LogDungeons(int count);
 
 
     [LoggerMessage(

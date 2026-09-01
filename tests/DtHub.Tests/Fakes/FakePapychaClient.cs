@@ -115,4 +115,11 @@ public sealed class FakePapychaClient : IPapychaClient
     public Task<IReadOnlyList<QuestPageSection>> GetPageSectionsAsync(
         CancellationToken cancellationToken = default) =>
         Task.FromResult<IReadOnlyList<QuestPageSection>>(_pages);
+
+    /// <summary>Donjons rendus par le faux client.</summary>
+    public List<DungeonSummary> Dungeons { get; } = [];
+
+    public Task<IReadOnlyList<DungeonSummary>> GetDungeonsAsync(
+        CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<DungeonSummary>>(Dungeons);
 }

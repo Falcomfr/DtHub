@@ -9,6 +9,15 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Ajouté
 
+- La branche « Donjons » s'ouvre : les 83 donjons du site, rangés par palier de
+  cinquante niveaux, avec leur niveau entre parenthèses et, à droite, la clef
+  exigée, la taille de la pierre d'âme et la position. Le nom de la clef vient
+  au survol.
+- Une page de donjon se parcourt par ses sections — Monstres, Liste des salles,
+  Boss, Mécanique du donjon, Les succès, Fin du donjon — et non par un résumé de
+  paragraphe : ce n'est pas une suite de consignes mais un dossier.
+- La recherche rend un quatrième groupe, « Donjons ».
+
 - Les zones de quêtes suivent l'ordre de progression du jeu, sous leur nom court,
   avec un bloc « Quêtes supplémentaires » pour ce qui n'en relève pas.
 - La recherche trouve aussi les zones et les succès, et les rend séparés ; les

@@ -38,11 +38,12 @@ public sealed partial class QuestViewModel : ObservableObject
     private QuestSummary? _current;
 
     /// <summary>
-    /// Les quêtes traversées, la dernière quittée au sommet.
+    /// Les quêtes quittées en suivant un lien, la dernière au sommet.
     ///
-    /// On saute d'une quête à l'autre par les voisines, les liens du guide et
-    /// les prérequis, et rien ne ramenait d'où l'on venait : il fallait se
-    /// rappeler le titre et le rechercher.
+    /// Seuls les liens comptent : ceux du guide et ceux des prérequis, qui
+    /// mènent ailleurs sans qu'on l'ait cherché et dont rien ne ramenait. Une
+    /// voisine choisie au pied ou une quête prise dans la liste n'y entrent
+    /// pas : on sait d'où l'on vient quand c'est soi qui a désigné où aller.
     /// </summary>
     private readonly Stack<QuestSummary> _visited = new();
 
@@ -272,11 +273,18 @@ public sealed partial class QuestViewModel : ObservableObject
             Id: RootSection,
             Glyph: QuestNodeGlyph.Quests));
         Nodes.Add(new QuestNode(
-            QuestNodeKind.Pending,
+            QuestNodeKind.Branch,
             "Donjons",
-            "bientôt",
+            Combien(_catalog.Catalog.Dungeons.Count, "donjon", "donjons"),
+            Id: DungeonSection,
             Glyph: QuestNodeGlyph.Dungeons));
     }
+
+    /// <summary>
+    /// Rubrique des donjons. Un identifiant négatif, hors de portée des
+    /// catégories du site, qui sont positives : la branche n'en est pas une.
+    /// </summary>
+    private const int DungeonSection = -100;
 
     /// <summary>
     /// Le contenu d'une rubrique. À la racine des quêtes, ce sont les autres
@@ -293,6 +301,19 @@ public sealed partial class QuestViewModel : ObservableObject
         }
 
         Nodes.Clear();
+
+        if (section == DungeonSection)
+        {
+            Breadcrumb = "Donjons";
+            SetBack(target: 0);
+
+            foreach (var node in DungeonNodes())
+            {
+                Nodes.Add(node);
+            }
+
+            return;
+        }
 
         if (section == RootSection)
         {
@@ -341,8 +362,8 @@ public sealed partial class QuestViewModel : ObservableObject
     /// Revient sur la quête d'où l'on vient, et rend son adresse pour que la
     /// fenêtre la charge. Rend <c>null</c> quand l'historique est vide.
     ///
-    /// Le retour ne s'empile pas lui-même : sans quoi la flèche ferait la
-    /// navette entre les deux dernières quêtes au lieu de remonter.
+    /// Le retour ne s'empile pas lui-même : seul un lien suivi sur place le
+    /// fait, sans quoi la flèche ferait la navette entre deux quêtes.
     /// </summary>
     public string? GoBackQuest()
     {
@@ -353,8 +374,6 @@ public sealed partial class QuestViewModel : ObservableObject
 
         var quest = _visited.Pop();
 
-        // La quête courante ne doit pas y retourner : SetCurrent l'y mettrait.
-        _current = null;
         SetCurrent(quest);
 
         CanGoBackQuest = _visited.Count > 0;
@@ -431,6 +450,19 @@ public sealed partial class QuestViewModel : ObservableObject
             }
         }
 
+        if (found.Dungeons.Count > 0)
+        {
+            Nodes.Add(new QuestNode(
+                QuestNodeKind.Section,
+                "Donjons",
+                Combien(found.Dungeons.Count, "donjon", "donjons")));
+
+            foreach (var dungeon in found.Dungeons)
+            {
+                Nodes.Add(ToNode(dungeon) with { Glyph = QuestNodeGlyph.Dungeons });
+            }
+        }
+
         if (found.Quests.Count > 0)
         {
             Nodes.Add(new QuestNode(QuestNodeKind.Section, "Quêtes", Nombre(found.Quests.Count)));
@@ -445,6 +477,75 @@ public sealed partial class QuestViewModel : ObservableObject
         {
             Nodes.Add(new QuestNode(QuestNodeKind.Pending, "Aucun résultat"));
         }
+    }
+
+    /// <summary>
+    /// Les donjons, du plus abordable au plus exigeant, coupés par paliers de
+    /// cinquante niveaux.
+    ///
+    /// Quatre-vingt-trois lignes ne se parcourent pas d'un œil : on y cherche
+    /// ce qui est à sa portée, et les paliers évitent de compter. Ceux dont le
+    /// site ne donne pas le niveau ferment la marche sous leur propre
+    /// intertitre, plutôt que de passer pour du niveau zéro.
+    /// </summary>
+    private IEnumerable<QuestNode> DungeonNodes()
+    {
+        var ordered = _catalog.Catalog.Dungeons
+            .OrderBy(d => DungeonLevelBand.RankOf(d.Level))
+            .ThenBy(d => d.Level)
+            .ThenBy(d => d.Title, StringComparer.CurrentCulture);
+
+        var band = int.MinValue;
+
+        foreach (var dungeon in ordered)
+        {
+            var rank = DungeonLevelBand.RankOf(dungeon.Level);
+
+            if (rank != band)
+            {
+                band = rank;
+
+                yield return new QuestNode(
+                    QuestNodeKind.Header,
+                    DungeonLevelBand.NameOf(dungeon.Level));
+            }
+
+            yield return ToNode(dungeon);
+        }
+    }
+
+    /// <summary>
+    /// Une ligne de donjon : son nom avec son niveau, et à droite ce qu'il faut
+    /// savoir avant d'y aller.
+    /// </summary>
+    private static QuestNode ToNode(DungeonSummary dungeon) => new(
+        QuestNodeKind.Quest,
+        dungeon.Level > 0 ? $"{dungeon.Title} ({dungeon.Level})" : dungeon.Title,
+        Detail(dungeon),
+        Dungeon: dungeon);
+
+    /// <summary>
+    /// Ce que la colonne de droite dit d'un donjon : la pierre d'âme et la
+    /// position, précédées d'une clef quand il en faut une. Le nom de la clef
+    /// vient au survol : il est trop long pour la colonne.
+    /// </summary>
+    private static string Detail(DungeonSummary dungeon)
+    {
+        List<string> parts = [];
+
+        if (dungeon.SoulStone.Length > 0)
+        {
+            // « gigantesque pierre d'âme » dit deux fois « pierre d'âme » dans
+            // une colonne où toutes les lignes en portent une : la taille suffit.
+            parts.Add(dungeon.SoulStone.Replace(" pierre d’âme", string.Empty, StringComparison.Ordinal));
+        }
+
+        if (dungeon.Position.Length > 0)
+        {
+            parts.Add(dungeon.Position);
+        }
+
+        return string.Join(" · ", parts);
     }
 
     /// <summary>
@@ -723,10 +824,13 @@ public sealed partial class QuestViewModel : ObservableObject
     private const int RootSection = 7;
 
     /// <summary>
-    /// Donne suite à un clic dans la liste. Rend la quête à ouvrir, ou null
+    /// Donne suite à un clic dans la liste. Rend l'adresse à charger, ou null
     /// quand le clic ne fait que déplier une branche.
+    ///
+    /// Une adresse et non une quête : la liste mène aussi bien à un donjon, et
+    /// la fenêtre n'a besoin que de savoir quoi ouvrir.
     /// </summary>
-    public QuestSummary? Activate(QuestNode? node)
+    public string? Activate(QuestNode? node)
     {
         if (node is null || !node.IsEnabled)
         {
@@ -743,7 +847,12 @@ public sealed partial class QuestViewModel : ObservableObject
             case QuestNodeKind.Quest when node.Quest is { } quest:
                 SetCurrent(quest);
                 IsListOpen = false;
-                return quest;
+                return quest.Url;
+
+            case QuestNodeKind.Quest when node.Dungeon is { } dungeon:
+                SetCurrent(dungeon);
+                IsListOpen = false;
+                return dungeon.Url;
 
             default:
                 return null;
@@ -754,14 +863,6 @@ public sealed partial class QuestViewModel : ObservableObject
     public void SetCurrent(QuestSummary quest)
     {
         ArgumentNullException.ThrowIfNull(quest);
-
-        // Ce qu'on quittait entre dans l'historique, sauf si l'on y revient :
-        // la flèche de retour ferait sinon la navette entre deux quêtes.
-        if (_current is { } left && !string.Equals(left.Url, quest.Url, StringComparison.Ordinal))
-        {
-            _visited.Push(left);
-            CanGoBackQuest = true;
-        }
 
         _current = quest;
         CurrentUrl = quest.Url;
@@ -777,6 +878,38 @@ public sealed partial class QuestViewModel : ObservableObject
         // La page suivante n'est pas encore chargée : garder les étapes de la
         // précédente afficherait un objectif qui n'a plus rien à voir. Le
         // départ, lui, se sait déjà et tient la ligne en attendant.
+        _steps = [];
+        HasSteps = false;
+        SetStep(-1);
+
+        StepDetail = _start ?? string.Empty;
+    }
+
+    /// <summary>
+    /// Ouvre un donjon.
+    ///
+    /// Il n'a ni succès ni voisines : on n'enchaîne pas les donjons comme les
+    /// quêtes d'une série, on en choisit un. Le bandeau ne porte donc que son
+    /// nom et son départ, que le site donne dans ses métadonnées comme pour une
+    /// quête.
+    /// </summary>
+    public void SetCurrent(DungeonSummary dungeon)
+    {
+        ArgumentNullException.ThrowIfNull(dungeon);
+
+        _current = null;
+        CurrentUrl = dungeon.Url;
+        QuestTitle = dungeon.Title;
+        HasQuest = true;
+
+        _start = QuestStepSummary.OfStart(dungeon.Position, dungeon.Person);
+        _startsAtDeparture = false;
+
+        ChainText = dungeon.Key.Length > 0 ? dungeon.Key : string.Empty;
+        ChainStep = string.Empty;
+        PreviousQuest = null;
+        NextQuest = null;
+
         _steps = [];
         HasSteps = false;
         SetStep(-1);
@@ -1051,7 +1184,7 @@ public sealed partial class QuestViewModel : ObservableObject
     /// qui mène au même endroit, restait sur place. Le catalogue tranche : ce
     /// qu'il connaît se suit ici, le reste part à part.
     /// </summary>
-    public bool TryFollowUrl(string? url)
+    public bool TryFollowUrl(string? url, bool remember = false)
     {
         var key = UrlKey(url);
 
@@ -1066,6 +1199,18 @@ public sealed partial class QuestViewModel : ObservableObject
         if (quest is null)
         {
             return false;
+        }
+
+        // Seul un lien suivi sur place entre dans l'historique. Les voisines du
+        // pied et le choix dans la liste n'y entrent pas : on sait d'où l'on
+        // vient quand c'est soi qui a désigné où aller, et la flèche resterait
+        // allumée en permanence pour ne rien dire.
+        if (remember
+            && _current is { } left
+            && !string.Equals(left.Url, quest.Url, StringComparison.Ordinal))
+        {
+            _visited.Push(left);
+            CanGoBackQuest = true;
         }
 
         SetCurrent(quest);

@@ -265,6 +265,42 @@
         return document.querySelector('.pqa-quest-intro__start .pqa-quest-intro__lead');
     }
 
+    // Une page de donjon se reconnaît à son bloc d'en-tête, qui est du code du
+    // site et non de la prose.
+    function dungeon() {
+        return document.querySelector('section.pcd-info');
+    }
+
+    // Les sections d'un donjon, dans leur ordre.
+    //
+    // Un donjon ne se parcourt pas comme un guide de quête : ce n'est pas une
+    // suite de consignes mais un dossier — les monstres, les salles, le boss,
+    // la mécanique, les succès. Ce sont ces titres qu'on suit.
+    //
+    // Deux sont écartés : « Position du PNJ sur la carte » double la carte que
+    // le bloc d'en-tête porte déjà, et « Papycha remercie » est le pied de page.
+    function sections() {
+        var found = [];
+        var seen = {};
+        var titles = document.querySelectorAll('.entry-content h2');
+
+        for (var i = 0; i < titles.length; i++) {
+            var text = (titles[i].textContent || '').replace(/\s+/g, ' ').trim();
+
+            if (text.length === 0
+                || seen[text] === true
+                || /^Position du PNJ/i.test(text)
+                || /^Papycha remercie/i.test(text)) {
+                continue;
+            }
+
+            seen[text] = true;
+            found.push({ node: titles[i], text: text });
+        }
+
+        return found;
+    }
+
     function steps() {
         var root = content();
 
@@ -273,6 +309,17 @@
         }
 
         var found = [];
+
+        // Sur un donjon, les étapes sont les titres de sections et non les
+        // paragraphes : la page n'ordonne rien, elle expose.
+        if (dungeon()) {
+            // Le départ garde son rang, ancré en haut de la page. Son texte
+            // reste vide : la fenêtre le compose des métadonnées du donjon, sa
+            // position et son gardien, qu'elle connaît avant même la page.
+            found.push({ node: root, text: '' });
+
+            return found.concat(sections());
+        }
 
         // Le départ ouvre la marche, comme étape à part entière.
         //
@@ -339,7 +386,7 @@
             // résume alors avec les métadonnées de la quête, plus sûres que la
             // prose du site. Sans cette marque, elle appliquerait ce traitement
             // au premier paragraphe des guides qui n'ont pas de bloc de départ.
-            departure: departure() !== null,
+            departure: departure() !== null || dungeon() !== null,
             steps: steps().map(function (s) { return s.text; })
         });
     }

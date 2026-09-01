@@ -405,6 +405,24 @@
 
                   <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="10,0,0,0"
                               VerticalAlignment="Center">
+                    <!-- La clef exigée à l'entrée d'un donjon. Neuf sur
+                         quatre-vingt-deux n'en demandent pas, et n'ont donc pas
+                         d'icône : l'absence est une information. Son nom est
+                         trop long pour la colonne et vient au survol. -->
+                    <Border Background="Transparent"
+                            VerticalAlignment="Center" Margin="0,0,5,0"
+                            ToolTip="{Binding Dungeon.Key}"
+                            ToolTipService.InitialShowDelay="200"
+                            Visibility="{Binding Dungeon.NeedsKey,
+                                                 Converter={StaticResource BoolToVisibility},
+                                                 FallbackValue=Collapsed}">
+                      <Path Style="{StaticResource ListGlyph}"
+                            Stroke="{DynamicResource GlyphDungeonBrush}"
+                            Data="M 5.2,7.5 m -2.6,0 a 2.6,2.6 0 1 0 5.2,0
+                                  a 2.6,2.6 0 1 0 -5.2,0
+                                  M 7.8,7.5 H 12.8 M 10.3,7.5 V 9.8 M 12.4,7.5 V 9.3" />
+                    </Border>
+
                     <TextBlock Text="{Binding Detail}"
                                VerticalAlignment="Center"
                                Style="{StaticResource Muted}" FontSize="11" />

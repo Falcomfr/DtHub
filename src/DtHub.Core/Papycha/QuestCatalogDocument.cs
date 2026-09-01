@@ -42,7 +42,7 @@ public sealed class QuestCatalogDocument
     /// Version 12 : les prérequis de chaque quête, et la clé de rubrique
     /// retirée, la recherche ne portant plus que sur les titres.
     /// </summary>
-    public const int CurrentSchemaVersion = 13;
+    public const int CurrentSchemaVersion = 14;
 
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 
@@ -52,6 +52,12 @@ public sealed class QuestCatalogDocument
     public List<QuestSummary> Quests { get; set; } = [];
 
     public List<QuestSection> Sections { get; set; } = [];
+
+    /// <summary>
+    /// Les donjons du site. Rangés à part des quêtes : ils n'ont ni succès ni
+    /// prérequis, mais un niveau, une clef et une pierre d'âme.
+    /// </summary>
+    public List<DungeonSummary> Dungeons { get; set; } = [];
 
     /// <summary>
     /// Intitulés des rubriques dans l'ordre du site, réduits à une forme

@@ -158,11 +158,13 @@ public static class QuestSearch
     public static QuestSearchResults Search(
         IReadOnlyList<QuestSummary> quests,
         IReadOnlyList<QuestSection> sections,
+        IReadOnlyList<DungeonSummary> dungeons,
         string? query,
         int limit = 50)
     {
         ArgumentNullException.ThrowIfNull(quests);
         ArgumentNullException.ThrowIfNull(sections);
+        ArgumentNullException.ThrowIfNull(dungeons);
 
         var terms = Terms(query);
 
@@ -200,6 +202,13 @@ public static class QuestSearch
         return new QuestSearchResults(
             zones,
             [.. successes.Values.OrderBy(n => n, StringComparer.CurrentCulture).Take(limit)],
-            Filter(quests, query, limit));
+            Filter(quests, query, limit),
+            [
+                .. dungeons
+                    .Where(d => Matches(d.SearchKey, terms))
+                    .OrderBy(d => d.Level)
+                    .ThenBy(d => d.Title, StringComparer.CurrentCulture)
+                    .Take(limit),
+            ]);
     }
 }

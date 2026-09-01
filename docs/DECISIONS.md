@@ -887,3 +887,38 @@ faute d'étapes connues, et le bandeau perdait une ligne pour la reprendre une
 seconde plus tard. Ce qu'elle montre en attendant est le départ, qui vient des
 métadonnées et n'attend pas la page.
 
+## D36 - Les donjons, et pourquoi ils ne se lisent pas comme les quêtes
+
+Le site publie ses donjons dans un format bien plus régulier que ses quêtes, et
+ce format commande la façon de les montrer.
+
+**Tout tient en une requête.** Le niveau, la position et le personnage sont dans
+les métadonnées ; la clef et la pierre d'âme ne vivent que dans le corps de
+l'article. Demander le contenu rendu avec le reste coûte quatre mégaoctets une
+fois par indexation, contre quatre-vingt-trois requêtes autrement.
+
+**On lit les classes, jamais les libellés.** « Clef : » est un texte à l'usage
+des lecteurs d'écran et peut être réécrit ; « pcd-info__row--key » est du code.
+La même règle vaut déjà pour les quêtes.
+
+**Ce qu'on ne prend pas.** Les vignettes de boss et de clefs viennent des
+serveurs d'Ankama. Elles s'affichent dans la page, qui est celle du site, mais
+rien n'en est extrait : notre liste reste du texte.
+
+**Le classement par palier.** Quatre-vingt-trois lignes ne se parcourent pas
+d'un œil, et l'on n'y cherche pas un nom mais ce qui est à sa portée. Les
+paliers de cinquante niveaux coupent la liste comme les succès coupent celle des
+quêtes. Les trois donjons dont le site ne donne pas le niveau ferment la marche
+sous leur propre intertitre : les ranger au niveau zéro les mettrait en tête, ce
+qui serait faux.
+
+**Les sections plutôt qu'un résumé.** Une page de donjon n'ordonne rien, elle
+expose : les monstres, les salles, le boss, la mécanique, les succès. Ses titres
+sont réguliers — « Boss » sur 82 pages, « Liste des salles » sur 81 — là où une
+page de quête n'a aucun titre de section, vérifié sur six guides. Les deux
+affichages ne se gênent donc pas, et le pont distingue les deux au bloc
+d'en-tête, qui est du code du site.
+
+Le départ garde son rang et sa règle : la position et le gardien du donjon
+passent par le même composeur que celui des quêtes, sans qu'on ait rien à écrire.
+
