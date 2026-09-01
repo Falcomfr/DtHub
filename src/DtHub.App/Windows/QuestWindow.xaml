@@ -566,28 +566,34 @@
                     <Setter TargetName="Nature" Property="Visibility" Value="Visible" />
                     <Setter TargetName="Nature" Property="Stroke"
                             Value="{DynamicResource GlyphQuestBrush}" />
-                    <!-- Une feuille et ses lignes : le journal de quêtes.
-                         Un parchemin à deux rouleaux avait été essayé, comme le
-                         bouton qui ouvre cette fenêtre ; à quinze pixels, ses
-                         volutes et ses trois lignes se refermaient en tache.
-                         Deux lignes dans un cadre, et le dessin tient.
-                         L'icône est à nous ; celle du site ne sera reprise que
-                         s'ils l'accordent. -->
+                    <!-- Le point d'exclamation du donneur de quête, convention
+                         des jeux de rôle. Un parchemin à deux rouleaux puis une
+                         feuille lignée avaient été essayés : le premier se
+                         refermait en tache à quinze pixels, le second ne disait
+                         rien de plus qu'un rectangle. Le dessin est à nous ;
+                         celui du site ne sera repris que s'ils l'accordent. -->
                     <Setter TargetName="Nature" Property="Data"
-                            Value="M 3.6,2.5 L 11.4,2.5 L 11.4,12.5 L 3.6,12.5 Z
-                                   M 5.8,6 L 9.2,6 M 5.8,9 L 9.2,9" />
+                            Value="M 7.5,2.6 L 7.5,9.2
+                                   M 7.5,11.9 m -0.75,0 a 0.75,0.75 0 1 0 1.5,0
+                                   a 0.75,0.75 0 1 0 -1.5,0" />
                   </DataTrigger>
 
                   <DataTrigger Binding="{Binding Glyph}" Value="Dungeons">
                     <Setter TargetName="Nature" Property="Visibility" Value="Visible" />
                     <Setter TargetName="Nature" Property="Stroke"
                             Value="{DynamicResource GlyphDungeonBrush}" />
-                    <!-- Une herse : l'entrée d'un donjon. Deux barreaux
-                         verticaux et rien d'horizontal : la croix qu'ils
-                         formaient d'abord se lisait comme une lettre. -->
+                    <!-- Un crâne : ce qui attend au fond d'un donjon. Une herse
+                         avait été essayée, dont les barreaux formaient tantôt
+                         une croix, tantôt une lettre. -->
                     <Setter TargetName="Nature" Property="Data"
-                            Value="M 2.8,13 L 2.8,7.4 A 4.7,4.7 0 0 1 12.2,7.4 L 12.2,13
-                                   M 5.7,4 L 5.7,13 M 9.3,4 L 9.3,13" />
+                            Value="M 3.7,10.4 L 3.7,8.1 C 3.7,4.1 11.3,4.1 11.3,8.1
+                                   L 11.3,10.4 Z
+                                   M 6,8.1 m -0.9,0 a 0.9,0.9 0 1 0 1.8,0
+                                   a 0.9,0.9 0 1 0 -1.8,0
+                                   M 9,8.1 m -0.9,0 a 0.9,0.9 0 1 0 1.8,0
+                                   a 0.9,0.9 0 1 0 -1.8,0
+                                   M 5.8,10.4 L 5.8,12.4 M 7.5,10.4 L 7.5,12.4
+                                   M 9.2,10.4 L 9.2,12.4" />
                   </DataTrigger>
                 </DataTemplate.Triggers>
               </DataTemplate>

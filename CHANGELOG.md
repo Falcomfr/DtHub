@@ -34,10 +34,10 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   Il manquait sur les liens de quête cliqués dans le guide : la navigation
   refusée puis relancée signalait sa fin après le départ de la vraie, et
   l'ancien guide restait à l'écran sans que rien ne l'annonce.
-- Chaque nature de ligne porte son icône et sa couleur : une feuille pour les
-  quêtes, une herse pour les donjons, une épingle pour un lieu, un marque-page
-  pour une famille de quêtes, une étoile pour un succès, un cadenas pour des
-  prérequis.
+- Chaque nature de ligne porte son icône et sa couleur : un point d'exclamation
+  pour les quêtes, un crâne pour les donjons, une épingle pour un lieu, un
+  marque-page pour une famille de quêtes, une étoile pour un succès, un cadenas
+  pour des prérequis.
 
 ### Modifié
 
