@@ -1124,6 +1124,9 @@ public sealed partial class QuestViewModel : ObservableObject
             + exception.Message;
     }
 
+    /// <summary>L'accueil du site.</summary>
+    private const string HomeUrl = "https://papycha.fr/";
+
     /// <summary>La page du site qui énumère les zones de quêtes.</summary>
     private const string IndexUrl = "https://papycha.fr/quetes/";
 
@@ -1160,7 +1163,15 @@ public sealed partial class QuestViewModel : ObservableObject
             return null;
         }
 
-        if (_section is 0 or RootSection)
+        // La racine du menu n'est pas la liste des zones : elle annonce les
+        // quêtes et les donjons, soit tout ce que le site offre. C'est donc son
+        // accueil qu'elle ouvre, et la page des zones un cran plus bas.
+        if (_section == 0)
+        {
+            return HomeUrl;
+        }
+
+        if (_section == RootSection)
         {
             return IndexUrl;
         }

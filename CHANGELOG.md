@@ -82,9 +82,9 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   alignement, un nombre de joueurs, un niveau et des créneaux horaires.
 - Dans une recherche, les titres « Zones », « Succès » et « Quêtes » dominent
   les succès qu'ils coiffent, au lieu de leur ressembler.
-- « Ouvrir dans le navigateur » ouvre ce que la fenêtre montre : la page des
-  zones quand on les parcourt, celle d'une rubrique quand on y est entré, la
-  quête sinon. Elle menait toujours à la quête, y compris quand la liste
+- « Ouvrir dans le navigateur » ouvre ce que la fenêtre montre : l'accueil du
+  site à la racine du menu, la page des zones quand on les parcourt, celle d'une
+  rubrique quand on y est entré, la quête sinon. Elle menait toujours à la quête, y compris quand la liste
   couvrait l'écran.
 - Un blanc sépare « Quêtes principales » des lieux, qu'elle ouvrait sans en
   être un.
