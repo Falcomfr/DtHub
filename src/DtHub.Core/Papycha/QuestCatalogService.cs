@@ -39,11 +39,15 @@ public sealed class QuestCatalogService : IDisposable
     /// <summary>
     /// En deçà de ce délai, on ne demande même pas au site s'il a bougé.
     ///
-    /// Ouvrir et refermer la fenêtre dix fois dans l'heure ne doit pas produire
-    /// dix demandes. Au-delà, la demande coûte quatre-vingt-dix-sept octets, ce
-    /// qui se paie sans y penser.
+    /// Ouvrir et refermer la fenêtre dix fois de suite ne doit pas produire dix
+    /// demandes. Un quart d'heure suffit à s'en garder, et la demande coûte
+    /// deux cents octets : mieux vaut regarder souvent que donner à quelqu'un
+    /// un bouton pour le faire à notre place.
+    ///
+    /// Elle était d'une heure quand un bouton de relecture existait ; il a
+    /// disparu, et ce délai est ce qui le remplace.
     /// </summary>
-    public TimeSpan Patience { get; init; } = TimeSpan.FromHours(1);
+    public TimeSpan Patience { get; init; } = TimeSpan.FromMinutes(15);
 
     /// <summary>Catalogue en mémoire, éventuellement vide.</summary>
     public QuestCatalogDocument Catalog => _current ?? new QuestCatalogDocument();

@@ -98,10 +98,11 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   que s'il a bougé. Une quête parue le matin était vue jusqu'à sept jours plus
   tard ; elle l'est le jour même, et pour dix-huit mégaoctets de moins quand rien
   ne change.
-- Le pied de la liste dit depuis quand les guides sont lus, et un lien « Relire »
-  force la relecture. Il n'existait aucun moyen de la demander : il fallait
-  attendre la semaine ou effacer le cache à la main. Une relecture demandée
-  annonce ce qu'elle a changé, « 3 quêtes de plus » ou « rien de nouveau ».
+- Une relecture dit ce qu'elle a rapporté, « 3 quêtes de plus », sans qu'on
+  l'ait demandée : personne ne demande une relecture, la sentinelle décide, et
+  l'on veut savoir ce qu'elle a trouvé. Elle se tait quand le catalogue n'a rien
+  gagné ni perdu, ce qui est le cas courant, le site remaniant souvent ses pages
+  sans en ajouter.
 - Une sonde de développement vérifie que le site se lit encore comme
   l'application le suppose : titres des donjons, sommaires des raids et des
   tanières, absence de sommaire sur les guides de quête, et une quinzaine de

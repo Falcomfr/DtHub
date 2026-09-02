@@ -1335,3 +1335,37 @@ temps ; les relire quand seule une quête a changé reste du gâchis. Le filtre
 `modified_after` de l'API est vérifié et permettra de ne reprendre que les pages
 touchées.
 \n
+
+## D53 - Un bouton qui double un automatisme n'a pas lieu d'être
+
+Le pied de la liste portait la date de dernière lecture et un lien « Relire ».
+Les deux sont retirés.
+
+**Le bouton ne servait qu'à devancer un quart d'heure.** La sentinelle demande au
+site, pour deux cents octets, s'il a bougé, et relit alors d'elle-même. Le
+bouton ne gagnait que le délai de politesse qui empêche d'interroger le site à
+chaque ouverture de fenêtre. Ce délai est passé d'une heure à un quart d'heure,
+ce qui coûte deux cents octets de plus par heure d'usage et remplace le bouton.
+
+**La date ne servait à personne.** Savoir que les guides ont été lus il y a six
+minutes n'appelle aucune décision, puisqu'il n'y a plus rien à décider.
+
+**Ce qui reste est le seul fait utile** : quand une relecture rapporte quelque
+chose, elle le dit. Et seulement alors : le site remanie souvent ses pages sans
+que le catalogue en gagne ou en perde, et l'annoncer à chaque fois serait du
+bruit.
+
+**La cadence du site, mesurée, contredit l'intuition.** Articles modifiés en sept
+jours : quarante quêtes sur sept cent quatre-vingt-deux, trente-quatre donjons
+sur quatre-vingt-trois, dix chemins sur vingt et un, un raid, aucune tanière.
+Sur trente jours, sept cent soixante-dix-huit quêtes sur sept cent
+quatre-vingt-deux, ce qui trahit une réécriture d'ensemble plutôt qu'un travail
+éditorial. Le site n'est donc pas calme, mais ses remaniements ne changent
+presque jamais ce que le catalogue retient.
+
+**Ce qui a été écarté pour cette raison** : la relecture par différence, qui ne
+reprendrait que les pages touchées. Elle demanderait de fusionner un catalogue
+partiel dans l'ancien, donc un moteur de fusion et ses tests, pour épargner une
+lecture de cinquante secondes qui se fait en fond, fenêtre utilisable. Le
+rapport n'y est pas.
+\n

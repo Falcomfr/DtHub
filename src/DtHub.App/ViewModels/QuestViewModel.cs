@@ -81,13 +81,6 @@ public sealed partial class QuestViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(ShowsChain))]
     private bool _hasQuest;
 
-    /// <summary>
-    /// Depuis quand les guides sont lus. Affiché sous la liste, discrètement :
-    /// c'est une information qu'on cherche, pas une qu'on subit.
-    /// </summary>
-    [ObservableProperty]
-    private string _indexedText = string.Empty;
-
     /// <summary>Ce qu'on lit tant qu'aucune quête n'est ouverte.</summary>
     [ObservableProperty]
     private string _placeholder = "Cherchez un guide, ou dépliez la liste.";
@@ -207,33 +200,6 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Relit le site sur demande, sans attendre que la sentinelle le juge
-    /// nécessaire.
-    ///
-    /// Le site publie quand il publie, et l'on sait parfois avant l'application
-    /// qu'une nouveauté est sortie. Sans ce bouton, il n'y avait qu'à attendre
-    /// ou à effacer le cache à la main.
-    /// </summary>
-    [RelayCommand]
-    private async Task ReindexAsync()
-    {
-        var before = Tally(_catalog.Catalog);
-
-        IsBusy = true;
-
-        var progress = new Progress<QuestIndexingProgress>(
-            p => StatusText = p.Total > 0
-                ? $"Relecture {p.Loaded} / {p.Total}"
-                : "Relecture…");
-
-        var catalog = await _catalog.RefreshAsync(progress).ConfigureAwait(true);
-
-        Settle(catalog, before, spoken: true);
-        CountSections();
-        OpenList();
-    }
-
-    /// <summary>
     /// Ce qu'on retient d'un catalogue pour dire, après relecture, ce qui a
     /// changé.
     /// </summary>
@@ -244,34 +210,35 @@ public sealed partial class QuestViewModel : ObservableObject
     /// Range ce qui suit une lecture : la chaîne, l'état affiché, et la date de
     /// la dernière lecture.
     /// </summary>
-    /// <param name="spoken">
-    /// Vrai quand la lecture a été demandée : on dit alors ce qu'elle a changé,
-    /// fût-ce rien. Une lecture que personne n'a demandée se tait, sauf
-    /// incident.
-    /// </param>
     private void Settle(
         QuestCatalogDocument catalog,
-        (int Quests, int Places, int Paths) before,
-        bool spoken = false)
+        (int Quests, int Places, int Paths) before)
     {
         _chain = new QuestChainIndex(catalog.Quests);
 
         IsBusy = false;
-        IndexedText = Freshness(catalog.IndexedUtc);
 
-        // Une fois l'indexation faite, le compte n'apprend rien : on ne garde
-        // un mot que lorsqu'il y a un incident à signaler, ou quand on vient
-        // d'être prié de relire.
+        // Ce que la relecture a rapporté, quand il y avait quelque chose avant
+        // à quoi le comparer. La première indexation se tait : annoncer « sept
+        // cent quatre-vingt-deux quêtes de plus » n'apprendrait rien.
+        //
+        // C'est dit sans qu'on l'ait demandé, parce que personne ne demande une
+        // relecture : la sentinelle décide, et l'on veut savoir ce qu'elle a
+        // trouvé.
         StatusText = catalog.Quests.Count == 0
             ? "Aucune quête : le site n'a pas répondu."
             : _catalog.LastFailure is not null
                 ? "Le site n'a pas répondu ; liste en cache."
-                : spoken
+                : before.Quests > 0 && Tally(catalog) != before
                     ? Changes(before, Tally(catalog))
                     : string.Empty;
     }
 
-    /// <summary>Ce qu'une relecture a changé, en une ligne.</summary>
+    /// <summary>
+    /// Ce qu'une relecture a changé, en une ligne, ou rien quand elle n'a rien
+    /// changé : le site remanie souvent ses pages sans que le catalogue en
+    /// gagne ou en perde, et l'annoncer à chaque fois serait du bruit.
+    /// </summary>
     private static string Changes(
         (int Quests, int Places, int Paths) before,
         (int Quests, int Places, int Paths) after)
@@ -283,7 +250,7 @@ public sealed partial class QuestViewModel : ObservableObject
         Add(after.Paths - before.Paths, "chemin", "chemins");
 
         return parts.Count == 0
-            ? "Guides relus : rien de nouveau."
+            ? string.Empty
             : "Guides relus : " + string.Join(", ", parts) + ".";
 
         void Add(int delta, string one, string many)
@@ -298,25 +265,6 @@ public sealed partial class QuestViewModel : ObservableObject
             parts.Add(
                 $"{Text(count)} {(count > 1 ? many : one)} {(delta > 0 ? "de plus" : "de moins")}");
         }
-    }
-
-    /// <summary>Quand le site a été lu, dit comme on le dirait à voix haute.</summary>
-    private static string Freshness(DateTimeOffset? indexed)
-    {
-        if (indexed is not { } read)
-        {
-            return string.Empty;
-        }
-
-        var age = DateTimeOffset.Now - read;
-
-        return age < TimeSpan.FromMinutes(2)
-            ? "Guides lus à l'instant"
-            : age < TimeSpan.FromHours(1)
-                ? $"Guides lus il y a {Text((int)age.TotalMinutes)} minutes"
-                : age < TimeSpan.FromDays(1)
-                    ? $"Guides lus il y a {Text((int)age.TotalHours)} heures"
-                    : $"Guides lus le {read.ToLocalTime():d MMMM}";
     }
 
     /// <summary>
