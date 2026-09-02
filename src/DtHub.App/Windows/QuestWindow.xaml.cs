@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -27,12 +26,14 @@ public partial class QuestWindow : Window
     private readonly WindowPlacements _placements;
     private readonly SettingsService _settings;
     private readonly WebViewEnvironment _engine;
+    private readonly IDialogService _dialogs;
 
     public QuestWindow(
         QuestViewModel viewModel,
         WindowPlacements placements,
         SettingsService settings,
         WebViewEnvironment engine,
+        IDialogService dialogs,
         ILogger<QuestWindow> logger)
     {
         InitializeComponent();
@@ -41,6 +42,7 @@ public partial class QuestWindow : Window
         _placements = placements;
         _settings = settings;
         _engine = engine;
+        _dialogs = dialogs;
         _logger = logger;
         DataContext = viewModel;
 
@@ -350,56 +352,48 @@ public partial class QuestWindow : Window
 
     private void OnBridgeMessage(object? sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs e)
     {
+        string payload;
+
         try
         {
-            using var document = JsonDocument.Parse(e.TryGetWebMessageAsString());
-
-            var root = document.RootElement;
-
-            switch (root.GetProperty("kind").GetString())
-            {
-                case "loaded":
-                    LogBridgeLoaded();
-                    _watchdog.Stop();
-                    _viewModel.IsLoadingPage = false;
-                    _viewModel.SetPage(
-                        Text(root, "intro"),
-                        Text(root, "chain"),
-                        Steps(root),
-                        Flag(root, "departure"));
-                    ResumeStep();
-                    break;
-
-                case "step":
-                    _viewModel.SetStep(root.GetProperty("index").GetInt32());
-                    break;
-
-                default:
-                    break;
-            }
+            payload = e.TryGetWebMessageAsString();
         }
-        catch (JsonException)
+        catch (ArgumentException)
         {
-            // Un message qui ne vient pas du pont, ou une page qui en aurait
-            // posté un autre : on l'ignore plutôt que de faire tomber la
-            // fenêtre.
+            // Le message n'est pas du texte. Le pont n'en poste jamais d'autre,
+            // mais il est posé sur tout document que cette fenêtre charge, et
+            // toute page peut appeler « postMessage » avec ce qu'elle veut.
+            return;
         }
-    }
 
-    private static string? Text(JsonElement root, string name) =>
-        root.TryGetProperty(name, out var value) ? value.GetString() : null;
+        var message = QuestBridgeMessage.Parse(payload);
 
-    private static bool Flag(JsonElement root, string name) =>
-        root.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.True;
-
-    private static IReadOnlyList<string> Steps(JsonElement root)
-    {
-        if (!root.TryGetProperty("steps", out var steps) || steps.ValueKind != JsonValueKind.Array)
+        if (message is null)
         {
-            return [];
+            return;
         }
 
-        return [.. steps.EnumerateArray().Select(s => s.GetString() ?? string.Empty)];
+        switch (message.Kind)
+        {
+            case QuestBridgeMessage.Loaded:
+                LogBridgeLoaded();
+                _watchdog.Stop();
+                _viewModel.IsLoadingPage = false;
+                _viewModel.SetPage(
+                    message.Intro,
+                    message.Chain,
+                    message.Steps,
+                    message.Departure);
+                ResumeStep();
+                break;
+
+            case QuestBridgeMessage.Step:
+                _viewModel.SetStep(message.Index);
+                break;
+
+            default:
+                break;
+        }
     }
 
     /// <summary>
@@ -544,6 +538,18 @@ public partial class QuestWindow : Window
     /// </summary>
     private void Route(string url)
     {
+        // Hors du site, rien n'entre dans nos fenêtres : elles n'ont pas de
+        // barre d'adresse, elles portent notre cadre, et le pont y est posé sur
+        // tout document. Un guide qui renvoie au wiki ou à une vidéo s'ouvre
+        // donc dans le navigateur, où l'on voit où l'on va.
+        if (!PapychaSite.Owns(url))
+        {
+            LogSentOutside(url);
+            _dialogs.OpenUrl(url);
+
+            return;
+        }
+
         if (!_viewModel.TryFollowUrl(url, remember: true))
         {
             _ = OpenAsideAsync(url);
@@ -611,6 +617,11 @@ public partial class QuestWindow : Window
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Page liée ouverte : {url}")]
     private partial void LogPageOpened(string url);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Adresse hors du site confiée au navigateur : {url}")]
+    private partial void LogSentOutside(string url);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Page liée non ouverte ({reason}) : {url}")]
     private partial void LogPageFailed(string url, string reason);

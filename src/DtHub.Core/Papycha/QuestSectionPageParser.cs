@@ -184,9 +184,7 @@ public static partial class QuestSectionPageParser
     {
         var value = Key(url);
 
-        return value.StartsWith("https://papycha.fr/", StringComparison.OrdinalIgnoreCase)
-            ? value
-            : string.Empty;
+        return PapychaSite.Owns(value) ? value : string.Empty;
     }
 
     private static string Text(string? html) =>

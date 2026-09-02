@@ -1,6 +1,9 @@
 ﻿using System.Windows;
 
+using Microsoft.Web.WebView2.Core;
+
 using DtHub.App.Services;
+using DtHub.Core.Papycha;
 using DtHub.Core.Settings;
 
 using Serilog;
@@ -24,6 +27,7 @@ public partial class QuestPageWindow : Window
     private readonly WebViewEnvironment _engine;
 
     private string _url = string.Empty;
+    private bool _watched;
 
     public QuestPageWindow(
         IDialogService dialogs,
@@ -110,9 +114,24 @@ public partial class QuestPageWindow : Window
         base.OnClosed(e);
     }
 
-    /// <summary>Ouvre la page et se montre.</summary>
+    /// <summary>
+    /// Ouvre la page et se montre, si c'est bien une page du site.
+    ///
+    /// Cette fenêtre n'a pas de barre d'adresse : on y voit une page sans
+    /// savoir d'où elle vient, sous notre titre et notre icône. Elle ne reçoit
+    /// donc que le site, et le reste part au navigateur. Sans cette réserve,
+    /// n'importe quel lien d'un guide ouvrait n'importe quelle adresse ici,
+    /// « file:// » compris.
+    /// </summary>
     public async Task ShowPageAsync(string url, string? title)
     {
+        if (!PapychaSite.Owns(url))
+        {
+            _dialogs.OpenUrl(url);
+
+            return;
+        }
+
         _url = url;
 
         if (!string.IsNullOrWhiteSpace(title))
@@ -136,7 +155,49 @@ public partial class QuestPageWindow : Window
             .AddScriptToExecuteOnDocumentCreatedAsync(QuestBridge.Script(framingOnly: true))
             .ConfigureAwait(true);
 
+        if (!_watched)
+        {
+            _watched = true;
+
+            View.CoreWebView2.NavigationStarting += OnNavigationStarting;
+            View.CoreWebView2.NewWindowRequested += OnNewWindowRequested;
+        }
+
         View.CoreWebView2.Navigate(url);
+    }
+
+    /// <summary>
+    /// Retient ici la navigation, et confie au navigateur ce qui sort du site.
+    ///
+    /// La fenêtre suivait jusqu'ici tout ce qu'une page lui demandait de
+    /// suivre. Une page du site qui renvoie ailleurs, ou qu'on aurait
+    /// remplacée, emmenait donc la fenêtre où elle voulait, sans que le bouton
+    /// « ouvrir dans le navigateur » cesse pour autant de désigner la page
+    /// d'origine.
+    /// </summary>
+    private void OnNavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
+    {
+        if (PapychaSite.Owns(e.Uri))
+        {
+            _url = e.Uri;
+
+            return;
+        }
+
+        e.Cancel = true;
+
+        _dialogs.OpenUrl(e.Uri);
+    }
+
+    /// <summary>
+    /// Et « target="_blank" », que le moteur ouvrirait sinon dans une fenêtre
+    /// à lui, hors de tout contrôle et sans rien qui la rattache à nous.
+    /// </summary>
+    private void OnNewWindowRequested(object? sender, CoreWebView2NewWindowRequestedEventArgs e)
+    {
+        e.Handled = true;
+
+        _dialogs.OpenUrl(e.Uri);
     }
 
     private void OnOpenInBrowser(object sender, RoutedEventArgs e) => _dialogs.OpenUrl(_url);

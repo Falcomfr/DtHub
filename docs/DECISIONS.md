@@ -1369,3 +1369,57 @@ partiel dans l'ancien, donc un moteur de fusion et ses tests, pour épargner une
 lecture de cinquante secondes qui se fait en fond, fenêtre utilisable. Le
 rapport n'y est pas.
 \n
+
+## D54 - Le pont n'est pas une conversation avec nous-mêmes
+
+Le script du pont est posé par `AddScriptToExecuteOnDocumentCreatedAsync`, donc
+sur *tout* document que la fenêtre charge, et `postMessage` est ouvert à toute
+page. Ce qui en revient est une entrée, pas une réponse.
+
+**Mesuré**, en rejouant l'ancienne lecture sur ce qu'une page peut poster :
+
+| Message posté | Ce que faisait l'ancienne lecture |
+|---|---|
+| `{}` | `KeyNotFoundException` |
+| `[]`, `null`, `42`, `"loaded"` | `InvalidOperationException` |
+| `{"genre":"loaded"}` | `KeyNotFoundException` |
+| `{"kind":"step"}` | `KeyNotFoundException` |
+| `{"kind":"step","index":"4"}` | `InvalidOperationException` |
+| `{"kind":"loaded","steps":[1,2]}` | `InvalidOperationException` |
+
+Neuf formes sur neuf. Seule `JsonException` était rattrapée, et aucune de ces
+neuf n'en est une. Une exception dans un gestionnaire d'événement WPF n'est
+rattrapée par personne : l'application tombe. À quoi s'ajoute
+`TryGetWebMessageAsString`, qui lève `ArgumentException` quand le message n'est
+pas du texte, avant même qu'on ait lu quoi que ce soit ; c'est la documentation
+du composant qui le dit, pas une supposition.
+
+La lecture descend donc dans le noyau, en fonction pure, avec ses vingt-cinq
+cas. Elle rend un message ou rien, jamais une exception. Le sonde est conservée
+dans `build/sonde-pont` : c'est elle qui a produit le tableau.
+
+## D55 - Nos fenêtres ne chargent que le site
+
+Deux fenêtres affichent le web sans barre d'adresse, sous notre titre et notre
+icône. Ce qu'elles chargent doit donc être ce que nous avons promis d'afficher.
+
+Ce n'était pas le cas. La fenêtre des pages liées naviguait vers n'importe
+quelle adresse qu'un lien lui tendait, sans filtre de schéma ni d'hôte, et
+n'écoutait ni la navigation ni les ouvertures en fenêtre neuve : un
+`target="_blank"` y ouvrait une fenêtre du moteur, hors de tout contrôle.
+
+La règle est une fonction du noyau, `PapychaSite.Owns` : schéma sûr, et l'hôte
+du site ou l'un de ses sous-domaines. **La comparaison porte sur l'hôte que rend
+l'analyseur d'adresses, non sur le début du texte** : `https://papycha.fr@ailleurs.example/`
+commence par le nom du site sans lui appartenir. Les sous-domaines sont admis
+parce que `www` redirige vers le nom nu, et qu'une redirection est annoncée
+comme une navigation avant d'être suivie.
+
+Le clair est refusé : les neuf cent dix-huit adresses du catalogue sont en
+`https`. Ce qui sort du site part au navigateur par `OpenUrl`, qui n'ouvre lui
+aussi que du `https` - donc ni `file://`, ni `javascript:`, ni un URI que le
+shell interpréterait.
+
+Le parseur de rubriques, qui posait déjà la même question par un préfixe de
+texte, lit maintenant la même règle.
+\n

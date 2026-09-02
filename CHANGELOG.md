@@ -284,6 +284,18 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Corrigé
 
+- Une page pouvait faire tomber l'application en trois lignes. Le pont est posé
+  sur tout document que la fenêtre des guides charge, et la fenêtre lisait ce
+  qu'il lui postait sans précaution : un message qui n'a pas le champ « kind »,
+  ou qui n'est pas du texte, levait dans un gestionnaire d'événement, où
+  personne ne rattrape. Mesuré sur neuf formes qu'une page peut poster, neuf
+  levaient. La lecture est descendue dans le noyau, où elle se vérifie, et rend
+  désormais un message ou rien.
+- Nos fenêtres ne chargent plus que le site. Elles n'ont pas de barre
+  d'adresse et portent notre cadre : tout lien qui sort du site part maintenant
+  au navigateur, où l'on voit où l'on va. La fenêtre des pages liées prenait
+  jusqu'ici n'importe quelle adresse, « file:// » compris, et ne retenait ni la
+  navigation ni les ouvertures en fenêtre neuve.
 - Suivre la quête précédente ou suivante éteignait la navigation : le pied se
   vidait après un seul saut et il fallait repasser par la liste.
 - Rouvrir le panneau sélectionne la quête ouverte, sans reconstruire la liste.
