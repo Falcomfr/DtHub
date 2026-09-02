@@ -92,16 +92,45 @@ public sealed class DisplayLadderTests
     {
         var profile = QualityProfile.For(
             StreamQuality.Custom,
-            new CustomQuality { MaximumDisplayHeight = 1440, MaxFps = 45, BitrateKbps = 20000 });
+            new CustomQuality { MaximumDisplayHeight = 1440, MaxFps = 45, BitsPerPixel = 0.12 });
 
         Assert.Equal(1440, profile.MaximumDisplayHeight);
         Assert.Equal(45, profile.MaxFps);
+        Assert.Equal(0.12, profile.BitsPerPixel);
+    }
 
-        // Le débit choisi est rendu tel quel, sans passer par le calcul en
-        // bits par pixel ni par le plafond du palier moyen : celui qui saisit
-        // un nombre a déjà tranché.
-        Assert.Equal(20000, profile.BitrateFor(2560, 1440));
-        Assert.Equal(20000, profile.BitrateFor(640, 360));
+    [Fact]
+    public void Le_debit_personnalise_suit_la_definition()
+    {
+        // La leçon que ce fichier gardait déjà pour les paliers automatiques,
+        // et qu'un débit choisi en mégabits aurait défaite : un débit fixe
+        // sert grassement une petite fenêtre et affame une grande. La finesse,
+        // elle, garde son sens à toute taille.
+        var profile = QualityProfile.For(
+            StreamQuality.Custom,
+            new CustomQuality { MaximumDisplayHeight = 2160, MaxFps = 60, BitsPerPixel = 0.09 });
+
+        var grande = profile.BitrateFor(2560, 1440);
+        var petite = profile.BitrateFor(1280, 720);
+
+        Assert.True(grande > petite, $"grande {grande} devrait dépasser petite {petite}");
+
+        // Et la finesse servie est bien celle demandée, aux arrondis près.
+        Assert.Equal(0.09, petite * 1000.0 / (1280.0 * 720 * 60), 3);
+    }
+
+    [Fact]
+    public void Le_palier_personnalise_garde_un_plafond()
+    {
+        // Le plafond ne protège pas de l'utilisateur mais de la liaison :
+        // plusieurs comptes ouverts, ce sont plusieurs flux sur le même Wi-Fi.
+        var profile = QualityProfile.For(
+            StreamQuality.Custom,
+            new CustomQuality { MaximumDisplayHeight = 2160, MaxFps = 60, BitsPerPixel = 0.30 });
+
+        Assert.Equal(
+            QualityProfile.For(StreamQuality.Maximum).CeilingKbps,
+            profile.BitrateFor(3840, 2160));
     }
 
     [Fact]

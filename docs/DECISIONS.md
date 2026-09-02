@@ -2107,8 +2107,49 @@ bien davantage pour l'image et s'explique en trois mots.
 
 `GameLauncher` ne tient pas le palier mais un `QualityProfile`, et tout passe par
 cet objet : le débit y est recalculé à chaque taille de fenêtre retenue. Il a
-donc suffi de donner à `QualityProfile` un `FixedKbps` optionnel, que
-`BitrateFor` rend tel quel. Une seule ligne du lanceur change.
+donc suffi de faire porter au profil les valeurs choisies. Une seule ligne du
+lanceur change.
+
+### Le débit ne se règle pas en mégabits, et c'est le point
+
+Le premier jet copiait l'application de référence : une ligne « Débit » en
+mégabits, rendue telle quelle par un `FixedKbps` qui court-circuitait le calcul.
+C'était défaire une leçon que ce code avait déjà apprise, et qui est écrite deux
+lignes au-dessus de l'endroit où le raccord a été fait :
+
+> Le débit s'en déduit aussi, et pour la même raison : un débit fixe servait
+> grassement une petite fenêtre et affamait une grande.
+
+La définition de l'afficheur suit ici la taille de la fenêtre. Un débit absolu
+n'y a pas de sens. La ligne est donc devenue **Finesse d'image**, en bits par
+pixel, qui est déjà l'unité des trois paliers et garde son sens à toute taille.
+
+Le plafond reste, et c'est celui du palier le plus haut. Il ne protège pas de
+l'utilisateur mais de la liaison.
+
+### Ce que la liaison encaisse, et qui n'existe pas chez un miroir simple
+
+L'application de référence pilote un seul miroir. DT Hub ouvre plusieurs
+fenêtres sur **un seul téléphone et une seule liaison**. Juger un flux isolé
+dirait « confortable » pendant que le téléphone s'étrangle : trois comptes à
+vingt-cinq mégabits en demandent soixante-quinze, là où l'appareil de référence
+en rend une soixantaine en Wi-Fi 4 sur 2,4 GHz.
+
+D'où la seconde ligne, sous le verdict :
+
+> au plus 11,2 Mb/s par fenêtre, 22,4 Mb/s à 2 comptes
+
+Le compte est celui du téléphone le plus chargé, non le total tous appareils
+confondus : c'est sa liaison qui cède la première. Il se rafraîchit à chaque
+ouverture et fermeture de fenêtre, faute de quoi la ligne annonçait le coût
+d'une seule alors que deux tournaient, et justement au moment où elle sert.
+
+### « Définition » devient « Définition max. »
+
+Le libellé mentait. La définition retenue suit la taille de la fenêtre ; la
+liste ne fixe qu'un plafond. Mesuré : plafond à 2160, fenêtre à 80 % d'un écran
+4K, afficheur réellement créé en **2880 x 1620**. Chez le miroir de référence la
+résolution est la résolution ; ici non, et le mot doit le dire.
 
 ### Le verdict en bits par pixel
 

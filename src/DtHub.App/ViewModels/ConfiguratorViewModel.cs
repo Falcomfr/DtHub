@@ -46,7 +46,25 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         // sans cet abonnement, le curseur et la grille gardaient la valeur
         // qu'ils avaient à l'ouverture et mentaient jusqu'au redémarrage.
         _settings.Changed += OnSettingsChanged;
+
+        // Ce que la liaison encaisse dépend du nombre de fenêtres ouvertes.
+        // Sans cet abonnement, la ligne annonçait le coût d'une seule fenêtre
+        // alors que deux tournaient, c'est-à-dire la moitié de la vérité, et
+        // justement au moment où elle sert.
+        _launcher.SessionChanged += OnSessionChanged;
     }
+
+    /// <summary>
+    /// Une fenêtre s'est ouverte ou fermée : ce que la liaison porte a changé.
+    ///
+    /// L'événement vient d'un fil de fond, d'où le passage par le répartiteur.
+    /// </summary>
+    private void OnSessionChanged(object? sender, Core.Scrcpy.ScrcpySession session) =>
+        System.Windows.Application.Current?.Dispatcher.InvokeAsync(() =>
+        {
+            OnPropertyChanged(nameof(BitrateSummary));
+            OnPropertyChanged(nameof(LinkSummary));
+        });
 
     /// <summary>
     /// Reflète une écriture venue d'ailleurs, raccourci clavier compris.
@@ -137,15 +155,26 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// <summary>Hauteur de l'afficheur, au palier personnalisé.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BitrateSummary))]
+    [NotifyPropertyChangedFor(nameof(LinkSummary))]
     private int _customHeight = 1080;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BitrateSummary))]
+    [NotifyPropertyChangedFor(nameof(LinkSummary))]
     private int _customFps = 60;
 
+    /// <summary>
+    /// Finesse d'image, en bits par pixel et par image.
+    ///
+    /// Et non un débit en mégabits, contrairement à ce que proposent les
+    /// interfaces qui ne pilotent qu'un seul miroir : ici la définition de
+    /// l'afficheur suit la taille de la fenêtre, et un débit absolu servirait
+    /// grassement une petite fenêtre et affamerait une grande.
+    /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BitrateSummary))]
-    private int _customBitrateKbps = 12000;
+    [NotifyPropertyChangedFor(nameof(LinkSummary))]
+    private double _customBitsPerPixel = 0.09;
 
     /// <summary>
     /// « h264 » ou « h265 ». Rien d'autre n'est proposé : relevé par
@@ -154,6 +183,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BitrateSummary))]
+    [NotifyPropertyChangedFor(nameof(LinkSummary))]
     private string _customCodec = "h264";
 
     /// <summary>
@@ -164,14 +194,57 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// tombé, et cette phrase existe pour qu'elle ne se répète pas sous la main
     /// de l'utilisateur.
     /// </summary>
-    public string BitrateSummary => BitrateAdvice
-        .Read(CustomWidth, CustomHeight, CustomFps, CustomBitrateKbps, CustomCodec)
-        .Summary;
+    public string BitrateSummary => CurrentPlan.Summary;
+
+    /// <summary>
+    /// Ce que la liaison recevra, toutes fenêtres confondues.
+    ///
+    /// C'est la ligne qui distingue ce panneau de celui d'un miroir simple :
+    /// DT Hub ouvre plusieurs fenêtres sur un seul téléphone et une seule
+    /// liaison. Trois comptes à vingt-cinq mégabits en demandent
+    /// soixante-quinze, là où un téléphone en Wi-Fi 4 sur 2,4 GHz en rend
+    /// une soixantaine.
+    /// </summary>
+    public string LinkSummary => CurrentPlan.LinkSummary;
+
+    private BitratePlan CurrentPlan => BitrateAdvice.Plan(
+        CustomBitsPerPixel,
+        CustomWidth,
+        CustomHeight,
+        CustomFps,
+        CustomCodec,
+        OpenWindowsOnBusiestDevice,
+        QualityProfile.For(StreamQuality.Custom).CeilingKbps);
+
+    /// <summary>
+    /// Fenêtres ouvertes sur le téléphone qui en porte le plus.
+    ///
+    /// C'est ce téléphone qui décide : sa liaison et son encodeur sont les
+    /// premiers à céder. Compter toutes les fenêtres, tous appareils
+    /// confondus, exagérerait la charge de chacun.
+    /// </summary>
+    private int OpenWindowsOnBusiestDevice
+    {
+        get
+        {
+            var sessions = _launcher.ActiveSessions;
+
+            return sessions.Count == 0
+                ? 1
+                : sessions
+                    .GroupBy(s => s.Target.DeviceId, StringComparer.Ordinal)
+                    .Max(g => g.Count());
+        }
+    }
 
     /// <summary>
     /// La largeur qui va avec la hauteur choisie. Le jeu s'affiche en paysage
     /// et l'afficheur virtuel suit le 16:9 : la demander séparément ferait un
     /// réglage de plus pour une valeur qui se déduit.
+    ///
+    /// C'est un <b>plafond</b>, et non la définition retenue : celle-ci suit la
+    /// taille de la fenêtre et peut être moindre. Le débit annoncé est donc le
+    /// plus haut que ce réglage puisse demander.
     /// </summary>
     private int CustomWidth => CustomHeight * 16 / 9;
 
@@ -199,14 +272,20 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         new("60 images par seconde", 60),
     ];
 
-    public IReadOnlyList<IntChoice> BitrateChoices { get; } =
+    /// <summary>
+    /// Les finesses proposées, en bits par pixel et par image.
+    ///
+    /// Les nombres sont montrés : ils ne parlent pas à tout le monde, mais ils
+    /// parlent à qui a choisi ce palier, et ils rendent les paliers comparables
+    /// entre eux. La référence du métier pour du H.264 de bonne facture tourne
+    /// autour de 0,10, ce que « Standard » vise.
+    /// </summary>
+    public IReadOnlyList<DoubleChoice> FinesseChoices { get; } =
     [
-        new("4 Mb/s", 4000),
-        new("8 Mb/s", 8000),
-        new("12 Mb/s", 12000),
-        new("16 Mb/s", 16000),
-        new("25 Mb/s", 25000),
-        new("40 Mb/s", 40000),
+        new("Économe, 0,06", 0.06),
+        new("Standard, 0,09", 0.09),
+        new("Fine, 0,12", 0.12),
+        new("Très fine, 0,16", 0.16),
     ];
 
     /// <summary>
@@ -587,7 +666,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
     partial void OnCustomFpsChanged(int value) => SaveCustomQuality();
 
-    partial void OnCustomBitrateKbpsChanged(int value) => SaveCustomQuality();
+    partial void OnCustomBitsPerPixelChanged(double value) => SaveCustomQuality();
 
     partial void OnCustomCodecChanged(string value) => SaveCustomQuality();
 
@@ -608,7 +687,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
         CustomHeight = custom.MaximumDisplayHeight;
         CustomFps = custom.MaxFps;
-        CustomBitrateKbps = custom.BitrateKbps;
+        CustomBitsPerPixel = custom.BitsPerPixel;
         CustomCodec = custom.VideoCodec;
     }
 
@@ -623,7 +702,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         {
             MaximumDisplayHeight = CustomHeight,
             MaxFps = CustomFps,
-            BitrateKbps = CustomBitrateKbps,
+            BitsPerPixel = CustomBitsPerPixel,
             VideoCodec = CustomCodec,
         }.Sanitized();
 

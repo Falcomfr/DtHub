@@ -322,8 +322,9 @@
                         <ColumnDefinition Width="120" />
                         <ColumnDefinition Width="*" />
                       </Grid.ColumnDefinitions>
-                      <TextBlock Text="Définition" VerticalAlignment="Center"
-                                 Style="{StaticResource Muted}" />
+                      <TextBlock Text="Définition max." VerticalAlignment="Center"
+                                 Style="{StaticResource Muted}"
+                                 ToolTip="Un plafond, non la définition retenue : celle-ci suit la taille de la fenêtre et peut être moindre." />
                       <ComboBox Grid.Column="1" ItemsSource="{Binding HeightChoices}"
                                 SelectedValuePath="Value"
                                 SelectedValue="{Binding CustomHeight}">
@@ -358,11 +359,12 @@
                         <ColumnDefinition Width="120" />
                         <ColumnDefinition Width="*" />
                       </Grid.ColumnDefinitions>
-                      <TextBlock Text="Débit" VerticalAlignment="Center"
-                                 Style="{StaticResource Muted}" />
-                      <ComboBox Grid.Column="1" ItemsSource="{Binding BitrateChoices}"
+                      <TextBlock Text="Finesse d'image" VerticalAlignment="Center"
+                                 Style="{StaticResource Muted}"
+                                 ToolTip="Bits accordés à chaque pixel de chaque image. Le débit s'en déduit d'après la définition réellement retenue, comme pour les trois autres paliers : un débit absolu servirait grassement une petite fenêtre et affamerait une grande." />
+                      <ComboBox Grid.Column="1" ItemsSource="{Binding FinesseChoices}"
                                 SelectedValuePath="Value"
-                                SelectedValue="{Binding CustomBitrateKbps}">
+                                SelectedValue="{Binding CustomBitsPerPixel}">
                         <ComboBox.ItemTemplate>
                           <DataTemplate>
                             <TextBlock Text="{Binding Label}" />
@@ -397,6 +399,14 @@
                                FontFamily="{StaticResource MonoFont}" FontSize="11"
                                Foreground="{DynamicResource AccentBrush}"
                                ToolTip="Bits accordés à chaque pixel de chaque image. La référence du métier tourne autour de 0,10 pour du H.264 de bonne facture." />
+
+                    <!-- Plusieurs comptes ouverts, ce sont plusieurs flux sur
+                         la même liaison et le même encodeur. Un miroir simple
+                         n'a pas ce souci ; celui-ci l'a, et le dit. -->
+                    <TextBlock Text="{Binding LinkSummary}" Style="{StaticResource Muted}"
+                               FontFamily="{StaticResource MonoFont}" FontSize="11"
+                               TextWrapping="Wrap"
+                               ToolTip="Ce que le téléphone devra pousser sur le Wi-Fi. Un appareil en Wi-Fi 4 sur 2,4 GHz en rend une soixantaine de mégabits en pratique." />
                   </StackPanel>
                 </StackPanel>
               </Border>

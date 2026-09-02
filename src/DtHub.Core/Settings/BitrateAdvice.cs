@@ -71,15 +71,58 @@ public static class BitrateAdvice
         // en donne davantage, et le verdict doit le refléter.
         var effective = IsHevc(codec) ? raw / Hevc : raw;
 
-        var verdict = effective switch
-        {
-            < Insufficient => BitrateVerdict.Insufficient,
-            < Tight => BitrateVerdict.Tight,
-            <= Generous => BitrateVerdict.Comfortable,
-            _ => BitrateVerdict.Generous,
-        };
+        return new BitrateReading(raw, effective, Judge(raw, codec), Sentence(raw, Judge(raw, codec)));
+    }
 
-        return new BitrateReading(raw, effective, verdict, Sentence(raw, verdict));
+    /// <summary>
+    /// Ce qu'une finesse choisie donnera vraiment, une fois rapportée à la
+    /// définition, à la cadence, et <b>au nombre de fenêtres ouvertes</b>.
+    ///
+    /// Ce dernier point est propre à cette application, et c'est lui qui
+    /// distingue le conseil d'un simple calcul : plusieurs comptes ouverts, ce
+    /// sont plusieurs flux sur la même liaison et le même encodeur. Juger un
+    /// flux isolé dirait « confortable » pendant que le téléphone s'étrangle.
+    /// </summary>
+    /// <param name="windows">
+    /// Fenêtres ouvertes sur le téléphone. Zéro et une donnent le même compte :
+    /// on annonce alors ce que coûtera la première.
+    /// </param>
+    /// <param name="ceilingKbps">Plafond du profil, qui borne chaque flux.</param>
+    public static BitratePlan Plan(
+        double bitsPerPixel,
+        int width,
+        int height,
+        int fps,
+        string? codec,
+        int windows,
+        int ceilingKbps)
+    {
+        if (bitsPerPixel <= 0 || width <= 0 || height <= 0 || fps <= 0)
+        {
+            return new BitratePlan(BitrateVerdict.Insufficient, 0, 0, string.Empty, string.Empty);
+        }
+
+        var pixels = (double)width * height * fps;
+
+        var perWindow = Math.Clamp(
+            (int)Math.Round(bitsPerPixel * pixels / 1000.0),
+            QualityProfile.FloorKbps,
+            Math.Max(QualityProfile.FloorKbps, ceilingKbps));
+
+        var count = Math.Max(1, windows);
+
+        // La finesse servie peut être moindre que celle demandée : le plafond
+        // rabote les grandes définitions. C'est celle-là qu'il faut juger, non
+        // celle qui a été cochée.
+        var served = perWindow * 1000.0 / pixels;
+        var verdict = Judge(served, codec);
+
+        return new BitratePlan(
+            verdict,
+            perWindow,
+            perWindow * count,
+            Sentence(served, verdict),
+            LinkSentence(perWindow, count));
     }
 
     /// <summary>Mot du verdict, tel qu'il s'affiche.</summary>
@@ -93,6 +136,35 @@ public static class BitrateAdvice
 
     private static bool IsHevc(string? codec) =>
         codec is not null && codec.Trim().Equals("h265", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Le verdict, une fois la finesse ramenée à ce que H.264 aurait demandé
+    /// pour le même rendu : c'est lui l'étalon des seuils.
+    /// </summary>
+    private static BitrateVerdict Judge(double bitsPerPixel, string? codec) =>
+        (IsHevc(codec) ? bitsPerPixel / Hevc : bitsPerPixel) switch
+        {
+            < Insufficient => BitrateVerdict.Insufficient,
+            < Tight => BitrateVerdict.Tight,
+            <= Generous => BitrateVerdict.Comfortable,
+            _ => BitrateVerdict.Generous,
+        };
+
+    /// <summary>
+    /// Ce que la liaison recevra. Le total ne paraît qu'à partir de deux
+    /// fenêtres : à une seule, le répéter ne dirait rien de plus.
+    /// </summary>
+    private static string LinkSentence(int perWindowKbps, int windows)
+    {
+        var fr = CultureInfo.GetCultureInfo("fr-FR");
+        var each = perWindowKbps / 1000.0;
+
+        return windows <= 1
+            ? string.Create(fr, $"au plus {each:0.#} Mb/s sur la liaison")
+            : string.Create(
+                fr,
+                $"au plus {each:0.#} Mb/s par fenêtre, {each * windows:0.#} Mb/s à {windows} comptes");
+    }
 
     /// <summary>
     /// La phrase montrée sous les réglages. En français explicite : la virgule
@@ -119,3 +191,18 @@ public readonly record struct BitrateReading(
     double EffectiveBitsPerPixel,
     BitrateVerdict Verdict,
     string Summary);
+
+/// <summary>
+/// Ce que rend <see cref="BitrateAdvice.Plan"/>.
+/// </summary>
+/// <param name="Verdict">L'appréciation de la finesse réellement servie.</param>
+/// <param name="KbpsPerWindow">Le débit demandé pour une fenêtre.</param>
+/// <param name="TotalKbps">Ce que toutes les fenêtres demanderont ensemble.</param>
+/// <param name="Summary">La finesse et son verdict, à afficher.</param>
+/// <param name="LinkSummary">Ce que la liaison recevra, à afficher.</param>
+public readonly record struct BitratePlan(
+    BitrateVerdict Verdict,
+    int KbpsPerWindow,
+    int TotalKbps,
+    string Summary,
+    string LinkSummary);

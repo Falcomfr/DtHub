@@ -92,3 +92,90 @@ public class BitrateAdviceTests
         }
     }
 }
+
+/// <summary>
+/// Le conseil ne juge pas un flux isolé : DT Hub ouvre plusieurs fenêtres sur
+/// un seul téléphone et une seule liaison. C'est ce que ces tests fixent, et
+/// c'est ce qui distingue ce panneau de celui d'un miroir simple.
+/// </summary>
+public class BitratePlanTests
+{
+    private const int Plafond = 25000;
+
+    [Fact]
+    public void Le_debit_se_deduit_de_la_finesse_et_de_la_taille()
+    {
+        var plan = BitrateAdvice.Plan(0.09, 1920, 1080, 60, "h264", 1, Plafond);
+
+        // 0,09 x 1920 x 1080 x 60 / 1000 = 11197 kb/s.
+        Assert.Equal(11197, plan.KbpsPerWindow);
+        Assert.Equal(BitrateVerdict.Comfortable, plan.Verdict);
+    }
+
+    [Fact]
+    public void La_liaison_porte_toutes_les_fenetres()
+    {
+        var seule = BitrateAdvice.Plan(0.09, 1920, 1080, 60, "h264", 1, Plafond);
+        var trois = BitrateAdvice.Plan(0.09, 1920, 1080, 60, "h264", 3, Plafond);
+
+        // Le flux d'une fenêtre ne change pas ; ce que la liaison encaisse, si.
+        Assert.Equal(seule.KbpsPerWindow, trois.KbpsPerWindow);
+        Assert.Equal(seule.KbpsPerWindow * 3, trois.TotalKbps);
+
+        Assert.DoesNotContain("comptes", seule.LinkSummary, StringComparison.Ordinal);
+        Assert.Contains("3 comptes", trois.LinkSummary, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Une_petite_fenetre_ne_recoit_pas_le_debit_d_une_grande()
+    {
+        // Le défaut qu'un débit absolu aurait réintroduit, et que le reste du
+        // code avait déjà corrigé.
+        var grande = BitrateAdvice.Plan(0.09, 2560, 1440, 60, "h264", 1, Plafond);
+        var petite = BitrateAdvice.Plan(0.09, 1280, 720, 60, "h264", 1, Plafond);
+
+        Assert.True(grande.KbpsPerWindow > petite.KbpsPerWindow);
+
+        // Et pourtant les deux sont jugées pareil : c'est tout l'intérêt de
+        // raisonner en bits par pixel.
+        Assert.Equal(grande.Verdict, petite.Verdict);
+    }
+
+    [Fact]
+    public void Le_plafond_degrade_le_verdict_plutot_que_de_mentir()
+    {
+        // Raboté par le plafond, le réglage ne rend plus la finesse demandée.
+        // C'est la finesse servie qu'il faut juger, sans quoi le panneau
+        // promettrait ce que la liaison ne laissera pas passer.
+        var plan = BitrateAdvice.Plan(0.16, 3840, 2160, 60, "h264", 1, Plafond);
+
+        // Demandé 0,16 bpp, servi 0,050 : le plafond de 25 Mb/s ne couvre pas
+        // 3840 x 2160 à soixante images. Le verdict tombe donc à « juste », là
+        // où juger la finesse demandée aurait dit « confortable ».
+        Assert.Equal(Plafond, plan.KbpsPerWindow);
+        Assert.Equal(BitrateVerdict.Tight, plan.Verdict);
+        Assert.Contains("juste", plan.Summary, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Un_reglage_incomplet_ne_dit_rien()
+    {
+        var plan = BitrateAdvice.Plan(0, 1920, 1080, 60, "h264", 2, Plafond);
+
+        Assert.Empty(plan.Summary);
+        Assert.Empty(plan.LinkSummary);
+        Assert.Equal(0, plan.TotalKbps);
+    }
+
+    [Fact]
+    public void Aucune_fenetre_ouverte_compte_pour_une()
+    {
+        // À l'ouverture du panneau, rien n'est encore lancé : on annonce alors
+        // ce que coûtera la première fenêtre, non zéro.
+        var aucune = BitrateAdvice.Plan(0.09, 1920, 1080, 60, "h264", 0, Plafond);
+        var une = BitrateAdvice.Plan(0.09, 1920, 1080, 60, "h264", 1, Plafond);
+
+        Assert.Equal(une.TotalKbps, aucune.TotalKbps);
+        Assert.Equal(une.LinkSummary, aucune.LinkSummary);
+    }
+}

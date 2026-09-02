@@ -56,7 +56,17 @@ public sealed record CustomQuality
 
     public int MaxFps { get; init; } = 60;
 
-    public int BitrateKbps { get; init; } = 12000;
+    /// <summary>
+    /// Finesse d'image, en bits par pixel et par image.
+    ///
+    /// Et non un débit en mégabits, contrairement à ce que proposent les
+    /// interfaces qui ne pilotent qu'un seul miroir. Ici la définition de
+    /// l'afficheur suit la taille de la fenêtre : un débit absolu servirait
+    /// grassement une petite fenêtre et affamerait une grande, ce que le reste
+    /// du code a précisément appris à ne plus faire. La finesse, elle, garde
+    /// son sens à toute taille, et c'est déjà l'unité des trois paliers.
+    /// </summary>
+    public double BitsPerPixel { get; init; } = 0.09;
 
     /// <summary>
     /// H.264 ou H.265, et rien d'autre.
@@ -77,7 +87,10 @@ public sealed record CustomQuality
     {
         MaximumDisplayHeight = Math.Clamp(MaximumDisplayHeight, 240, 7680),
         MaxFps = Math.Clamp(MaxFps, 1, 240),
-        BitrateKbps = Math.Clamp(BitrateKbps, QualityProfile.FloorKbps, 100_000),
+
+        // Bornes larges : 0,03 rend une image en bouillie, 0,30 dépasse de loin
+        // ce que l'oeil distingue. Entre les deux, c'est le choix de qui règle.
+        BitsPerPixel = Math.Clamp(BitsPerPixel, 0.03, 0.30),
         VideoCodec = string.Equals(VideoCodec?.Trim(), "h265", StringComparison.OrdinalIgnoreCase)
             ? "h265"
             : "h264",
@@ -129,8 +142,7 @@ public sealed record QualityProfile(
     int MaximumDisplayHeight,
     TimeSpan DevicePoll,
     TimeSpan InstanceRediscovery,
-    TimeSpan WindowWatch,
-    int? FixedKbps = null)
+    TimeSpan WindowWatch)
 {
     /// <summary>
     /// Plancher de débit. Sous ce seuil, une petite fenêtre rendrait une bouillie
@@ -150,15 +162,6 @@ public sealed record QualityProfile(
     /// </summary>
     public int BitrateFor(int width, int height)
     {
-        // Un débit choisi à la main est rendu tel quel, sans passer par le
-        // plafond : ce plafond protège des paliers automatiques, et celui qui
-        // saisit un nombre a déjà tranché. Le verdict en bits par pixel, lui,
-        // lui dira ce que ce nombre vaut.
-        if (FixedKbps is { } chosen)
-        {
-            return Math.Clamp(chosen, FloorKbps, 100_000);
-        }
-
         if (width <= 0 || height <= 0)
         {
             return Math.Clamp(FloorKbps, FloorKbps, CeilingKbps);
@@ -230,7 +233,14 @@ public sealed record QualityProfile(
         {
             MaxFps = wanted.MaxFps,
             MaximumDisplayHeight = wanted.MaximumDisplayHeight,
-            FixedKbps = wanted.BitrateKbps,
+            BitsPerPixel = wanted.BitsPerPixel,
+
+            // Le plafond reste, et c'est celui du palier le plus haut. Il ne
+            // protège pas de l'utilisateur mais de la liaison : plusieurs
+            // comptes ouverts, ce sont plusieurs flux sur le même Wi-Fi, et
+            // régler finement une fenêtre ne dit rien de ce que les autres
+            // demanderont en même temps.
+            CeilingKbps = For(StreamQuality.Maximum).CeilingKbps,
         };
     }
 }

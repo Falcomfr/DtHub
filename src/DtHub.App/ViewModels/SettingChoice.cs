@@ -11,3 +11,6 @@ public sealed record IntChoice(string Label, int Value);
 
 /// <summary>Le même, pour un choix qui se retient sous forme de texte.</summary>
 public sealed record TextChoice(string Label, string Value);
+
+/// <summary>Le même, pour un choix qui se retient sous forme de nombre décimal.</summary>
+public sealed record DoubleChoice(string Label, double Value);

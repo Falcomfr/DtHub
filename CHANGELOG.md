@@ -37,14 +37,24 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 ### Ajouté
 
 - Un quatrième palier de qualité, « Personnalisé », qui déplie le réglage de la
-  définition, de la cadence, du débit et du codec vidéo. Il reste replié tant
-  qu'on ne le choisit pas : les trois paliers demeurent le chemin ordinaire.
+  définition maximale, de la cadence, de la finesse d'image et du codec vidéo.
+  Il reste replié tant qu'on ne le choisit pas : les trois paliers demeurent le
+  chemin ordinaire.
 
-- Sous ces quatre réglages, une ligne qui dit ce qu'ils valent :
-  « 0,096 bit par pixel et par image, confortable ». C'est la mesure que
-  l'encodeur reçoit vraiment, et celle dont l'absence avait laissé passer un
-  débit à l'envers dans les paliers automatiques. Le codec entre dans le calcul,
-  H.265 rendant davantage à débit égal.
+  La finesse se règle en bits par pixel, et non en mégabits comme le proposent
+  les interfaces qui ne pilotent qu'un seul miroir. Ici la définition de
+  l'afficheur suit la taille de la fenêtre : un débit absolu servirait
+  grassement une petite fenêtre et affamerait une grande, ce que le reste du
+  code avait précisément appris à ne plus faire. La définition, elle, est
+  annoncée pour ce qu'elle est, un plafond.
+
+- Sous ces quatre réglages, deux lignes qui disent ce qu'ils valent :
+  « 0,090 bit par pixel et par image, confortable » puis « au plus 11,2 Mb/s
+  par fenêtre, 22,4 Mb/s à 2 comptes ». La première est la mesure que l'encodeur
+  reçoit vraiment, et celle dont l'absence avait laissé passer un débit à
+  l'envers dans les paliers automatiques ; le codec y entre, H.265 rendant
+  davantage à débit égal. La seconde compte les fenêtres ouvertes sur le
+  téléphone, parce qu'elles partagent une seule liaison et un seul encodeur.
 
 - Deux codecs au choix, H.264 et H.265. AV1 et VP8 ne sont pas proposés : relevé
   par `scrcpy --list-encoders`, un téléphone ordinaire n'a pour eux qu'un
