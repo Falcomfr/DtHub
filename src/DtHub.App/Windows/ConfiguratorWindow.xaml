@@ -536,33 +536,46 @@
               <!-- Les sessions nommées. Choisir en ouvre une : faute de cases
                    à cocher dans le configurateur, écrire seulement l'ensemble
                    de démarrage ne montrerait rien à l'écran. -->
-              <TextBlock Text="SESSIONS" Style="{StaticResource SectionLabel}"
-                         ToolTip="Des ensembles de comptes qu'on ouvre d'un geste." />
-
-              <Grid Margin="0,0,0,14">
+              <!-- Tout sur une ligne, intertitre compris : deux lignes pour
+                   trois boutons et une liste, c'était de la hauteur prise sur
+                   la liste des comptes, qui elle a besoin de place. -->
+              <Grid Margin="0,0,0,12">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*" />
                   <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <ComboBox ItemsSource="{Binding Instances.Profiles}"
-                          SelectedItem="{Binding Instances.SelectedProfile}"
-                          IsEnabled="{Binding Instances.HasProfiles}"
-                          ToolTip="Ouvrir une session enregistrée. Les fenêtres qui n'en font pas partie se ferment.">
-                  <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                      <TextBlock Text="{Binding Label}" />
-                    </DataTemplate>
-                  </ComboBox.ItemTemplate>
-                </ComboBox>
+                <Grid>
+                  <ComboBox ItemsSource="{Binding Instances.Profiles}"
+                            SelectedItem="{Binding Instances.SelectedProfile}"
+                            IsEnabled="{Binding Instances.HasProfiles}"
+                            ToolTip="Des ensembles de comptes qu'on ouvre d'un geste. Choisir une session ferme les fenêtres qui n'en font pas partie.">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Label}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+
+                  <!-- Rien n'est choisi au démarrage, et un champ vide ne dit
+                       pas qu'il contient quelque chose. L'invite se pose par
+                       dessus, sans prendre de place à elle. -->
+                  <TextBlock IsHitTestVisible="False" Margin="11,0,30,0"
+                             VerticalAlignment="Center" TextWrapping="NoWrap"
+                             TextTrimming="CharacterEllipsis"
+                             Style="{StaticResource Muted}"
+                             Text="{Binding Instances.ProfilePrompt}"
+                             Visibility="{Binding Instances.HasSelectedProfile,
+                                                  Converter={StaticResource InverseBoolToVisibility}}" />
+                </Grid>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="6,0,0,0">
                   <Button Content="Enregistrer" Style="{StaticResource QuietButton}"
-                          Padding="10,5"
+                          Padding="9,4"
                           ToolTip="Retenir les comptes actuellement ouverts sous un nom."
                           Command="{Binding Instances.SaveProfileCommand}" />
 
-                  <ToggleButton Cursor="Hand" Margin="4,0,0,0" Background="Transparent"
+                  <ToggleButton Cursor="Hand" Margin="3,0,0,0" Background="Transparent"
                                 IsChecked="{Binding Instances.SelectedProfile.IsDefault, Mode=OneWay}"
                                 IsEnabled="{Binding Instances.HasSelectedProfile}"
                                 ToolTip="Ouvrir cette session au démarrage. Sans session désignée, l'application rouvre ce qui était ouvert."
@@ -592,8 +605,8 @@
                     </ToggleButton.Template>
                   </ToggleButton>
 
-                  <Button Content="✕" Style="{StaticResource QuietButton}" Padding="9,5"
-                          Margin="2,0,0,0"
+                  <Button Content="✕" Style="{StaticResource QuietButton}" Padding="8,4"
+                          Margin="1,0,0,0"
                           IsEnabled="{Binding Instances.HasSelectedProfile}"
                           ToolTip="Supprimer cette session. Les comptes ne sont pas touchés."
                           Command="{Binding Instances.DeleteProfileCommand}" />

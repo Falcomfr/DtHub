@@ -2452,3 +2452,21 @@ personne n'avait vu partir. Retiré.
 `IDialogService` ne savait qu'informer, avertir et faire confirmer. Nommer une
 session demande une ligne de texte, d'où `PromptText` et une petite fenêtre
 modale, sur le modèle de celle de l'appairage.
+
+### Reprise : la ligne des sessions tient sur une seule
+
+L'intertitre au-dessus et les commandes en dessous faisaient quatre-vingts
+pixels de haut, pris sur la liste des comptes qui, elle, en a besoin. Tout
+revient sur une ligne, et le bloc tombe à quarante-sept.
+
+**L'intertitre disparaît, remplacé par une invite dans le champ vide.** Elle dit
+ce que l'intertitre disait, et davantage : « Choisir une session » quand il y en
+a, « Aucune session enregistrée » sinon. Un champ vide ne distinguait pas les
+deux, et c'est justement la question qu'on se pose en le voyant. Elle se pose
+par-dessus la liste et ne prend aucune place à elle.
+
+Deux pièges rencontrés en chemin, tous deux visibles seulement à l'écran : le
+style « Muted » autorise le retour à la ligne, si bien que l'invite gonflait la
+liste d'une ligne entière ; et l'intertitre gardé en ligne volait à la liste la
+largeur qui lui manquait ensuite pour afficher un nom de session.
+

@@ -136,6 +136,17 @@ public sealed partial class InstanceListViewModel : ObservableObject
     public bool HasSelectedProfile => SelectedProfile is not null;
 
     /// <summary>
+    /// Ce que dit le champ tant que rien n'y est choisi.
+    ///
+    /// Un champ vide ne distingue pas « aucune session enregistrée » de
+    /// « des sessions attendent d'être choisies », et c'est justement la
+    /// question qu'on se pose en le voyant.
+    /// </summary>
+    public string ProfilePrompt => HasProfiles
+        ? "Choisir une session"
+        : "Aucune session enregistrée";
+
+    /// <summary>
     /// Reprend les sessions enregistrées, en gardant la sélection courante.
     ///
     /// Reconstruire la liste repose la sélection, ce qui rejouerait l'ouverture
@@ -173,6 +184,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
         OnPropertyChanged(nameof(HasProfiles));
         OnPropertyChanged(nameof(HasSelectedProfile));
+        OnPropertyChanged(nameof(ProfilePrompt));
     }
 
     partial void OnSelectedProfileChanged(LaunchProfileRowViewModel? value)

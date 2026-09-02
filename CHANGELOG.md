@@ -37,7 +37,7 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 ### Ajouté
 
 - Des sessions nommées : un ensemble de comptes qu'on retient sous un nom et
-  qu'on rouvre d'un geste, dans l'onglet Appareils. Une session peut être
+  qu'on rouvre d'un geste, sur une seule ligne de l'onglet Appareils. Une session peut être
   désignée pour le démarrage ; sans désignation, l'application rouvre ce qui
   était ouvert, comme avant. Choisir une session ferme les fenêtres qui n'en font
   pas partie et ouvre celles qui manquent, après confirmation.
