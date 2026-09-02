@@ -30,6 +30,10 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 - Un chemin se parcourt par ses étapes, « Jusqu'à la première grotte » à « Fin
   du chemin » : la règle qui distingue le dossier de la consigne ne regarde plus
   le bloc des donjons mais la présence de titres de sections.
+- Le pied de succès disparaît quand il n'a rien à dire. Un donjon, un raid, une
+  tanière et un chemin n'appartiennent à aucune suite : ils n'ont ni quête
+  avant, ni quête après, ni rang dans un succès, et le pied ne montrait pour eux
+  qu'un filet et une bande vide au-dessus de la source.
 - Les tanières et les raids se parcourent enfin par leurs sections. Une page se
   lit par ses titres de second rang, mais les deux raids n'ont d'autre titre que
   « Sommaire » et sept tanières sur huit descendent les leurs au quatrième

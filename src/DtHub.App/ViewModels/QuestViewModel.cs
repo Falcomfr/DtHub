@@ -71,11 +71,13 @@ public sealed partial class QuestViewModel : ObservableObject
     /// parle, et non du succès.
     /// </summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsChain))]
     private string _chainStep = string.Empty;
 
-
+    /// <summary>Vrai quand une page est ouverte dans la vue.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsQuestChrome))]
+    [NotifyPropertyChangedFor(nameof(ShowsChain))]
     private bool _hasQuest;
 
     /// <summary>Ce qu'on lit tant qu'aucune quête n'est ouverte.</summary>
@@ -94,6 +96,7 @@ public sealed partial class QuestViewModel : ObservableObject
     /// <summary>Vrai quand la liste déroulante est ouverte.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsQuestChrome))]
+    [NotifyPropertyChangedFor(nameof(ShowsChain))]
     [NotifyPropertyChangedFor(nameof(ShowsPage))]
     [NotifyPropertyChangedFor(nameof(ShowsLoader))]
     private bool _isListOpen;
@@ -116,12 +119,23 @@ public sealed partial class QuestViewModel : ObservableObject
     private bool _isBusy;
 
     /// <summary>
-    /// Vrai quand le bandeau d'étape et le pied de succès doivent se voir.
+    /// Vrai quand le bandeau d'étape doit se voir.
     ///
-    /// Ils s'effacent tant que la liste est ouverte : elle prend alors toute la
+    /// Il s'efface tant que la liste est ouverte : elle prend alors toute la
     /// hauteur, et on ne consulte pas une étape et une liste en même temps.
     /// </summary>
     public bool ShowsQuestChrome => HasQuest && !IsListOpen;
+
+    /// <summary>
+    /// Vrai quand le pied de succès a quelque chose à dire.
+    ///
+    /// Un donjon, un raid, une tanière et un chemin n'appartiennent à aucune
+    /// suite : ils n'ont ni quête avant, ni quête après, ni rang dans un succès,
+    /// et le pied ne montrait pour eux qu'un filet et une bande vide.
+    /// </summary>
+    public bool ShowsChain =>
+        ShowsQuestChrome
+        && (PreviousQuest is not null || NextQuest is not null || ChainStep.Length > 0);
 
     /// <summary>
     /// Vrai quand la vue web doit se voir. Elle est retirée pendant un
@@ -1248,10 +1262,12 @@ public sealed partial class QuestViewModel : ObservableObject
 
     /// <summary>Quête suivante du succès, s'il y en a une après celle-ci.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsChain))]
     private QuestLink? _nextQuest;
 
     /// <summary>Quête précédente du succès, s'il y en a une avant celle-ci.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsChain))]
     private QuestLink? _previousQuest;
 
     /// <summary>

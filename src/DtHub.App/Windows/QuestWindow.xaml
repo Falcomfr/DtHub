@@ -181,7 +181,7 @@
          l'autre et se ramifie. -->
     <Border DockPanel.Dock="Bottom" Padding="10,6"
             BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,1,0,0"
-            Visibility="{Binding ShowsQuestChrome, Converter={StaticResource BoolToVisibility}}">
+            Visibility="{Binding ShowsChain, Converter={StaticResource BoolToVisibility}}">
       <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
