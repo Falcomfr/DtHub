@@ -160,6 +160,113 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.Null(await _service.GetDefaultLaunchProfileAsync());
     }
 
+    [Fact]
+    public async Task Un_profil_retient_les_positions_et_les_reglages()
+    {
+        var xspace = Compte(999);
+
+        await _service.UpdateAsync(s =>
+        {
+            s.Instances.Add(xspace);
+            xspace.Window = new StoredWindowRect { X = 40, Y = 50, Width = 1280, Height = 720 };
+            s.Quality = StreamQuality.Maximum;
+            s.GameZoom = GameZoom.Close;
+            s.GameAnchor = WindowAnchor.BottomRight;
+            s.CustomSizePercent = 85;
+        });
+
+        await _service.SaveLaunchProfileAsync("Solo donjon", [xspace.Key]);
+
+        var profil = (await _service.GetLaunchProfilesAsync())[0];
+
+        Assert.Equal(1280, profil.Windows[xspace.Key].Width);
+        Assert.Equal(40, profil.Windows[xspace.Key].X);
+        Assert.Equal(StreamQuality.Maximum, profil.Quality);
+        Assert.Equal(GameZoom.Close, profil.GameZoom);
+        Assert.Equal(WindowAnchor.BottomRight, profil.GameAnchor);
+        Assert.Equal(85, profil.CustomSizePercent);
+    }
+
+    [Fact]
+    public async Task Ouvrir_un_profil_restitue_positions_et_reglages()
+    {
+        var xspace = Compte(999);
+
+        await _service.UpdateAsync(s =>
+        {
+            s.Instances.Add(xspace);
+            xspace.Window = new StoredWindowRect { X = 40, Y = 50, Width = 1280, Height = 720 };
+            s.Quality = StreamQuality.Maximum;
+            s.GameZoom = GameZoom.Close;
+        });
+
+        await _service.SaveLaunchProfileAsync("Solo donjon", [xspace.Key]);
+
+        // On dérange tout, comme le ferait une autre session de jeu.
+        await _service.UpdateAsync(s =>
+        {
+            s.Instances[0].Window = new StoredWindowRect { X = 900, Y = 900, Width = 640, Height = 360 };
+            s.Quality = StreamQuality.Low;
+            s.GameZoom = GameZoom.Widest;
+        });
+
+        await _service.ApplyLaunchProfileAsync("Solo donjon");
+
+        var document = await _service.GetAsync();
+
+        Assert.Equal(1280, document.Instances[0].Window!.Width);
+        Assert.Equal(40, document.Instances[0].Window!.X);
+        Assert.Equal(StreamQuality.Maximum, document.Quality);
+        Assert.Equal(GameZoom.Close, document.GameZoom);
+    }
+
+    [Fact]
+    public async Task Un_profil_qui_ne_place_pas_un_compte_lui_laisse_sa_position()
+    {
+        // C'est le cas d'un profil enregistré avant que les profils ne portent
+        // les positions : il doit ouvrir ses comptes, non les renvoyer tous à
+        // l'ancrage.
+        var xspace = Compte(999);
+        var place = new StoredWindowRect { X = 7, Y = 8, Width = 640, Height = 360 };
+
+        await _service.UpdateAsync(s =>
+        {
+            s.Instances.Add(xspace);
+            xspace.Window = place;
+            s.LaunchProfiles.Add(new StoredLaunchProfile
+            {
+                Name = "Ancien",
+                InstanceKeys = [xspace.Key],
+            });
+        });
+
+        await _service.ApplyLaunchProfileAsync("Ancien");
+
+        var document = await _service.GetAsync();
+
+        Assert.True(document.Instances[0].IsEnabled);
+        Assert.Equal(7, document.Instances[0].Window!.X);
+    }
+
+    [Fact]
+    public async Task Le_resume_dit_la_qualite_quand_elle_sort_de_l_ordinaire()
+    {
+        var xspace = Compte(999);
+
+        await _service.UpdateAsync(s =>
+        {
+            s.Instances.Add(xspace);
+            s.Quality = StreamQuality.Maximum;
+        });
+
+        await _service.SaveLaunchProfileAsync("Solo", [xspace.Key]);
+
+        var document = await _service.GetAsync();
+        var resume = LaunchProfiles.Describe(document.LaunchProfiles[0], document.Instances);
+
+        Assert.Contains("qualité haute", resume, StringComparison.Ordinal);
+    }
+
     public void Dispose()
     {
         _service.Dispose();

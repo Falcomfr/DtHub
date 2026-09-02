@@ -149,6 +149,36 @@ public sealed class StoredLaunchProfile
     public string Name { get; set; } = string.Empty;
 
     public List<string> InstanceKeys { get; set; } = [];
+
+    /// <summary>
+    /// Où chaque fenêtre se pose, par clé d'instance.
+    ///
+    /// C'est ce qui fait d'un profil autre chose qu'une liste de comptes :
+    /// « solo donjon » ouvre une fenêtre en grand, « duo pêche » deux côte à
+    /// côte. Vide sur un profil enregistré avant que les profils ne portent les
+    /// positions ; ses comptes s'ouvrent alors où ils étaient.
+    /// </summary>
+    public Dictionary<string, StoredWindowRect> Windows { get; set; } = [];
+
+    /// <summary>
+    /// Les réglages restitués avec le profil.
+    ///
+    /// Ils sont figés à l'ouverture de scrcpy, donc les changer demande de
+    /// rouvrir les fenêtres. Passer d'un profil à l'autre les rouvre de toute
+    /// façon : cela ne coûte donc rien de plus.
+    /// </summary>
+    public StreamQuality Quality { get; set; } = StreamQuality.Medium;
+
+    public CustomQuality CustomQuality { get; set; } = new();
+
+    public GameZoom GameZoom { get; set; } = GameZoom.Normal;
+
+    /// <summary>Ancrage et taille : ce dont vivent les replacements automatiques.</summary>
+    public WindowAnchor GameAnchor { get; set; } = WindowAnchor.MiddleLeft;
+
+    public int SizeIndex { get; set; } = 1;
+
+    public int CustomSizePercent { get; set; }
 }
 
 /// <summary>Une instance mémorisée entre deux lancements.</summary>

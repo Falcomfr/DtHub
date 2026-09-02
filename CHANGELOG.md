@@ -36,14 +36,25 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Ajouté
 
-- Des sessions nommées : un ensemble de comptes qu'on retient sous un nom et
-  qu'on rouvre d'un geste, sur une seule ligne de l'onglet Appareils. Une session peut être
-  désignée pour le démarrage ; sans désignation, l'application rouvre ce qui
-  était ouvert, comme avant. Choisir une session ferme les fenêtres qui n'en font
-  pas partie et ouvre celles qui manquent, après confirmation.
+- Des profils de lancement : un ensemble de comptes **avec leurs positions et
+  leurs réglages**, qu'on retient sous un nom et qu'on rouvre d'un geste.
+  « Solo donjon » ouvre un compte en grand et en qualité haute, « Duo pêche »
+  deux fenêtres côte à côte en qualité moyenne. Un profil emporte la position et
+  la taille de chaque fenêtre, la qualité et sa personnalisation, la distance
+  dans le jeu, l'ancrage et la taille en pourcentage.
+
+  Un profil peut être désigné pour le démarrage ; sans désignation, l'application
+  rouvre ce qui était ouvert, comme avant. L'ouvrir ferme les fenêtres qui n'en
+  font pas partie et ouvre celles qui manquent, après confirmation.
+
+  Ils vivent derrière un bouton « Profils », sur la ligne du bouton
+  d'association : dépliés dans la page, ils prenaient quarante-sept pixels à la
+  liste des comptes, qui en manque dans une fenêtre courte.
 
   Un compte retiré du téléphone depuis l'enregistrement est simplement ignoré :
-  la session garde sa raison d'être et les autres comptes s'ouvrent.
+  le profil garde sa raison d'être et les autres comptes s'ouvrent. Un profil
+  enregistré avant que les profils ne portent les positions ouvre encore ses
+  comptes, là où ils étaient.
 
 - Un quatrième palier de qualité, « Personnalisé ». Ses réglages fins,
   définition maximale, cadence, finesse d'image et codec vidéo, s'ouvrent dans

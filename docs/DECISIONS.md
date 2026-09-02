@@ -2470,3 +2470,41 @@ style « Muted » autorise le retour à la ligne, si bien que l'invite gonflait 
 liste d'une ligne entière ; et l'intertitre gardé en ligne volait à la liste la
 largeur qui lui manquait ensuite pour afficher un nom de session.
 
+
+### Reprise : un profil emporte l'état, pas seulement les comptes
+
+La première forme ne retenait qu'une liste de comptes. Ce n'était pas la demande :
+ouvrir un profil doit lancer certains comptes **à certaines positions et avec
+certains réglages**. Le profil porte donc la géométrie de chaque fenêtre, la
+qualité et sa personnalisation, la distance dans le jeu, l'ancrage et la taille.
+
+**L'instantané se prend dans le document**, non en paramètres : la géométrie y
+est déjà, relevée juste avant par `CaptureGeometriesAsync`, et les réglages y
+vivent en permanence. Les passer de l'extérieur aurait ouvert la porte à un
+profil qui retient autre chose que ce que l'écran montre.
+
+**Un ordre qu'il ne faut pas inverser.** `CloseAllAsync` commence par relever la
+géométrie des fenêtres ouvertes. Appliquer le profil avant de fermer aurait donc
+fait écraser ses positions par celles qu'on ferme. L'ordre est : fermer,
+appliquer, lancer. La première version faisait l'inverse.
+
+**Un profil ne se met à jour que sur commande.** Déplacer une fenêtre ne le
+modifie pas : il faut réenregistrer. C'est ce qui le distingue de l'ensemble de
+démarrage, qui lui suit les gestes.
+
+**La ligne quitte le flux.** Dépliée dans la page, elle prenait quarante-sept
+pixels à la liste des comptes ; dans une fenêtre de 580 de haut, le second compte
+s'en trouvait coupé. Elle passe derrière un bouton « Profils », sur la ligne du
+bouton d'association qui avait de la place à droite. Vérifié à la capture : les
+deux comptes tiennent désormais à l'écran.
+
+Deux défauts trouvés en éprouvant, tous deux invisibles à la compilation :
+
+- `QuietButton` cible `Button`. L'appliquer à un `ToggleButton` lève au
+  chargement de la fenêtre, et l'application ne démarrait plus. Le bouton a
+  maintenant son gabarit.
+- Une liste déroulante nomme ses entrées d'après le type de l'objet : relevé à
+  l'automatisation, elles s'appelaient toutes
+  « DtHub.App.ViewModels.LaunchProfileRowViewModel ». Le gabarit d'affichage ne
+  corrige pas ce nom-là, et c'est celui qu'un lecteur d'écran prononce. Corrigé
+  par un `ToString`.

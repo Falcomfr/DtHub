@@ -339,10 +339,27 @@ public sealed class SettingsService : IDisposable
                     settings.LaunchProfiles.Remove(existing);
                 }
 
+                var retenus = keys.Distinct(StringComparer.Ordinal).ToList();
+
+                // L'instantané se prend dans le document lui-même : la
+                // géométrie y est déjà, relevée juste avant par l'appelant, et
+                // les réglages y vivent en permanence. Les passer en paramètres
+                // aurait ouvert la porte à un profil qui retient autre chose
+                // que ce que l'écran montre.
                 settings.LaunchProfiles.Add(new StoredLaunchProfile
                 {
                     Name = wanted,
-                    InstanceKeys = [.. keys.Distinct(StringComparer.Ordinal)],
+                    InstanceKeys = retenus,
+                    Windows = settings.Instances
+                        .Where(i => retenus.Contains(i.Key, StringComparer.Ordinal)
+                                    && i.Window is not null)
+                        .ToDictionary(i => i.Key, i => i.Window!, StringComparer.Ordinal),
+                    Quality = settings.Quality,
+                    CustomQuality = settings.CustomQuality.Sanitized(),
+                    GameZoom = settings.GameZoom,
+                    GameAnchor = settings.GameAnchor,
+                    SizeIndex = settings.SizeIndex,
+                    CustomSizePercent = settings.CustomSizePercent,
                 });
             },
             cancellationToken).ConfigureAwait(false);
@@ -417,27 +434,35 @@ public sealed class SettingsService : IDisposable
 
         var wanted = LaunchProfiles.KeysFor(settings.LaunchProfiles, name, settings.Instances);
 
-        // Une seule écriture, et non deux : deux appels successifs à
-        // SetInstancesEnabledAsync préviendraient deux fois, et la liste se
-        // rafraîchirait sur un état intermédiaire où plus rien n'est ouvert.
-        await UpdateIfChangedAsync(
+        var profile = LaunchProfiles.Find(settings.LaunchProfiles, name)!;
+
+        // Une seule écriture, et non trois : des appels successifs
+        // préviendraient à chaque fois, et la liste se rafraîchirait sur un état
+        // intermédiaire où les comptes sont posés mais pas encore les positions.
+        await UpdateAsync(
             document =>
             {
-                var changed = false;
                 var keys = wanted.ToHashSet(StringComparer.Ordinal);
 
                 foreach (var instance in document.Instances)
                 {
-                    var enabled = keys.Contains(instance.Key);
+                    instance.IsEnabled = keys.Contains(instance.Key);
 
-                    if (instance.IsEnabled != enabled)
+                    // La position du profil l'emporte. Un compte que le profil
+                    // ne place pas garde la sienne : un profil d'avant les
+                    // positions ne doit pas tout renvoyer à l'ancrage.
+                    if (profile.Windows.TryGetValue(instance.Key, out var rect))
                     {
-                        instance.IsEnabled = enabled;
-                        changed = true;
+                        instance.Window = rect;
                     }
                 }
 
-                return changed;
+                document.Quality = profile.Quality;
+                document.CustomQuality = profile.CustomQuality.Sanitized();
+                document.GameZoom = profile.GameZoom;
+                document.GameAnchor = profile.GameAnchor;
+                document.SizeIndex = profile.SizeIndex;
+                document.CustomSizePercent = profile.CustomSizePercent;
             },
             cancellationToken).ConfigureAwait(false);
 

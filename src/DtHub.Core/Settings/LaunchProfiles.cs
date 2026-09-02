@@ -112,10 +112,25 @@ public static class LaunchProfiles
             return "aucun compte connu";
         }
 
-        return names.Count <= NamedAtMost
+        var comptes = names.Count <= NamedAtMost
             ? string.Join(" + ", names)
             : string.Create(CultureInfo.GetCultureInfo("fr-FR"), $"{names.Count} comptes");
+
+        // La qualité n'est dite que si elle sort de l'ordinaire : la rappeler à
+        // chaque profil noierait le nom des comptes, qui est ce qu'on cherche.
+        return profile.Quality == StreamQuality.Medium
+            ? comptes
+            : $"{comptes}, {QualityLabel(profile.Quality)}";
     }
+
+    /// <summary>Le mot du palier, tel qu'il paraît dans le panneau.</summary>
+    private static string QualityLabel(StreamQuality quality) => quality switch
+    {
+        StreamQuality.Low => "qualité basse",
+        StreamQuality.Maximum => "qualité haute",
+        StreamQuality.Custom => "qualité personnalisée",
+        _ => "qualité moyenne",
+    };
 
     /// <summary>Le nom choisi par l'utilisateur, à défaut celui du profil Android.</summary>
     private static string NameOf(StoredInstance instance) =>
