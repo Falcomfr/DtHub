@@ -412,6 +412,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     VirtualDisplayWidth = smaller.Width,
                     VirtualDisplayHeight = smaller.Height,
                     VirtualDisplayDpi = ZoomProfile.DpiFor(smaller.Height, _zoom),
+                    VideoBitrateKbps = _quality.BitrateFor(smaller.Width, smaller.Height),
                 };
 
                 session = await _sessions.StartAsync(
@@ -433,6 +434,18 @@ public sealed partial class GameLauncher : IAsyncDisposable
             }
 
             LogStartupTiming(instance.DisplayName, session.DisplayReadyMs, session.StartupMs);
+
+            // La définition et le débit retenus : ils dépendent de la fenêtre,
+            // de l'écran et du palier de qualité, et se lisaient jusqu'ici
+            // nulle part. C'est aussi ce qui permet de vérifier que le débit
+            // suit bien la définition.
+            LogStreamSettings(
+                instance.DisplayName,
+                display.VirtualDisplayWidth,
+                display.VirtualDisplayHeight,
+                display.VirtualDisplayDpi,
+                display.MaxFps,
+                display.VideoBitrateKbps);
 
             started.Add(session);
         }
@@ -925,11 +938,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // La densité se déduit de la définition retenue : la laisser fixe
         // faisait varier le zoom du jeu avec la taille de la fenêtre, puisque
         // la définition, elle, la suit.
+        //
+        // Le débit s'en déduit aussi, et pour la même raison : un débit fixe
+        // servait grassement une petite fenêtre et affamait une grande.
         return options with
         {
             VirtualDisplayWidth = width,
             VirtualDisplayHeight = height,
             VirtualDisplayDpi = ZoomProfile.DpiFor(height, _zoom),
+            VideoBitrateKbps = _quality.BitrateFor(width, height),
         };
     }
 
@@ -1171,6 +1188,17 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Information,
         Message = "{instance} : afficheur prêt en {displayMs} ms, démarrage complet en {totalMs} ms.")]
     private partial void LogStartupTiming(string instance, long displayMs, long totalMs);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "{instance} : afficheur {width}x{height} à {dpi} ppp, {fps} ips, {kbps} kb/s.")]
+    private partial void LogStreamSettings(
+        string instance,
+        int width,
+        int height,
+        int dpi,
+        int fps,
+        int kbps);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "{count} téléphone(s) reconnecté(s) automatiquement.")]
     private partial void LogReconnected(int count);

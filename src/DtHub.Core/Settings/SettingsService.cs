@@ -228,6 +228,7 @@ public sealed class SettingsService : IDisposable
     public async Task<ScrcpyOptions> GetScrcpyOptionsAsync(CancellationToken cancellationToken = default)
     {
         var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
+        var profile = QualityProfile.For(settings.Quality);
 
         return new ScrcpyOptions
         {
@@ -239,8 +240,14 @@ public sealed class SettingsService : IDisposable
             // Les images par seconde et le débit ne viennent que de la
             // qualité choisie : deux sources pour un même réglage auraient
             // fini par diverger.
-            MaxFps = QualityProfile.For(settings.Quality).MaxFps,
-            VideoBitrateKbps = QualityProfile.For(settings.Quality).VideoBitrateKbps,
+            //
+            // Le débit est ici celui de la définition mémorisée. Il est
+            // recalculé au lancement sur la définition réellement retenue, qui
+            // suit la taille de la fenêtre : c'est là qu'il prend son sens.
+            MaxFps = profile.MaxFps,
+            VideoBitrateKbps = profile.BitrateFor(
+                settings.VirtualDisplayWidth,
+                Math.Min(settings.VirtualDisplayHeight, profile.MaximumDisplayHeight)),
         }.Sanitized();
     }
 

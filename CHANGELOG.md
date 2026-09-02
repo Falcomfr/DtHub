@@ -284,6 +284,19 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Corrigé
 
+- L'échelle de qualité allait à l'envers. Le débit était fixé par palier alors
+  que la définition et la cadence, elles, changeaient : mesuré en bits par pixel
+  et par image, ce qu'un encodeur reçoit vraiment, « maximale » en accordait
+  cinq fois et demie moins que « basse » et rendait donc une image plus
+  grossière en mouvement. Le débit suit maintenant la définition et la cadence
+  réellement retenues. Sur le même écran et la même fenêtre, « maximale » passe
+  de 0,029 à 0,089 bit par pixel, soit trois fois plus de bits par image.
+- La cadence maximale descend de 120 à 60 images par seconde. Mesuré sur le jeu,
+  il en rend trente-huit : les cent vingt ne servaient qu'à diviser par deux les
+  bits accordés à chaque image qui existe vraiment.
+- Le journal dit désormais, à chaque ouverture, la définition, la densité, la
+  cadence et le débit retenus. Ils dépendent de la fenêtre, de l'écran et du
+  palier, et ne se lisaient nulle part.
 - Les succès retrouvent le rang que le site leur donne. Le site n'écrit pas le
   même nom aux deux endroits où il nomme un succès : l'intertitre dit « Brûler
   le pissenlit à la racine », « Fri Carré », « Etre plus royaliste que le roi »,

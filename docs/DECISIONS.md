@@ -1674,3 +1674,64 @@ La sonde existe parce que ce fichier ne peut pas entrer au dépôt : il porte de
 identifiants d'appareil, et rien de tout cela n'a à figurer dans un test. Elle
 travaille sur une copie, l'original n'étant jamais touché.
 
+## D63 - L'échelle de qualité allait à l'envers
+
+Le débit vidéo était fixé par palier, la définition et la cadence variaient. La
+mesure qui compte est le bit par pixel et par image, parce que c'est ce qu'un
+encodeur reçoit vraiment :
+
+| Palier | Définition | Cadence | Débit | bpp |
+|:--|:--|--:|--:|--:|
+| Basse | 1280x720 | 30 | 2500 kb/s | 0,090 |
+| Moyenne | 1920x1080 | 60 | 6000 kb/s | 0,048 |
+| Maximale | 3840x2160 | 120 | 16000 kb/s | **0,016** |
+
+Du bas en haut, la définition et la cadence étaient multipliées par quinze, le
+débit par six. **Le palier « maximale » recevait cinq fois et demie moins de
+bits par pixel que le palier « basse »**, et rendait donc, en mouvement, une
+image plus grossière que le palier léger. C'est l'inverse de ce qu'il promet.
+
+La référence pour du H.264 de bonne facture tourne autour de 0,10 bpp à toute
+définition : YouTube demande 12 Mb/s en 1080p60, 24 en 1440p60, 53 en 2160p60,
+soit 0,096, 0,108 et 0,106.
+
+**Le débit se calcule donc, au lieu d'être fixé** : tant de bits par pixel et
+par image, appliqués à la définition et à la cadence réellement retenues. Cela
+corrige du même coup une seconde incohérence, à l'intérieur d'un palier : la
+définition suit la taille de la fenêtre, si bien qu'un débit fixe servait
+grassement une petite fenêtre et affamait une grande.
+
+**Trois mesures ont décidé des nombres**, et aucune n'était devinable :
+
+- **Le jeu rend trente-huit images par seconde** (`dumpsys gfxinfo`, deux
+  comptes, deux surfaces). La cadence maximale descend donc de 120 à 60 : les
+  cent vingt ne servaient qu'à diviser par deux les bits accordés à chaque image
+  qui existe vraiment.
+- **Le téléphone a un encodeur matériel H.264 et un H.265**, AV1 en logiciel
+  seulement. Le H.265 vaudrait environ 40 % de débit en moins à qualité égale :
+  c'est le prochain levier, et la plomberie existe déjà, `ScrcpyOptions.VideoCodec`
+  n'attendant qu'un appelant. Il n'est pas activé ici, faute d'avoir mesuré ce
+  que coûte son décodage sur un poste modeste, ce qui est précisément la
+  clientèle du palier bas.
+- **La liaison est le vrai plafond.** Le téléphone est en Wi-Fi 2,4 GHz, norme
+  11n, lien annoncé à 144 Mb/s, dont on tire la moitié en pratique. Deux comptes
+  ouverts, ce sont deux flux : demander cinquante mégabits par session ne
+  donnerait pas une image magnifique mais des pertes et des saccades. D'où un
+  plafond par palier, 4, 12 et 25 Mb/s, soit 50 Mb/s au plus pour deux comptes.
+
+**Vérifié sur le téléphone**, à définition et fenêtre identiques :
+
+| | Avant | Après |
+|:--|:--|:--|
+| Moyenne, 1920x1080 | 6000 kb/s, 0,048 bpp | **11197 kb/s, 0,090 bpp** |
+| Maximale, 2880x1620 | 16000 kb/s à 120 ips, 0,029 bpp | **25000 kb/s à 60 ips, 0,089 bpp** |
+
+Trois fois plus de bits par image au palier maximal, et la cadence rendue par le
+jeu ne bouge pas : trente-huit à quarante-deux images par seconde avant comme
+après.
+
+**Le palier léger allège les pixels, pas leur finesse.** Un quart des pixels et
+la moitié de la cadence, mais des bits par pixel du même ordre : brider ceux-là
+donnerait du flou sans soulager ni le téléphone ni le poste, dont la charge tient
+à la définition et à la cadence. C'est la règle qu'un test énonce désormais.
+\n

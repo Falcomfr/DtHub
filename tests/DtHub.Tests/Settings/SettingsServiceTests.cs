@@ -1,4 +1,4 @@
-using DtHub.Core.Dofus;
+﻿using DtHub.Core.Dofus;
 using DtHub.Core.Hotkeys;
 using DtHub.Core.Settings;
 using DtHub.Core.Windows;
@@ -239,8 +239,14 @@ public sealed class SettingsServiceTests : IDisposable
 
         var options = await _service.GetScrcpyOptionsAsync(CancellationToken.None);
 
-        Assert.Equal(120, options.MaxFps);
-        Assert.Equal("16000K", options.VideoBitrateArgument);
+        // Soixante images et non cent vingt : le jeu en rend trente-huit,
+        // mesuré, et les cent vingt ne servaient qu'à diviser par deux les bits
+        // accordés à chaque image qui existe vraiment.
+        Assert.Equal(60, options.MaxFps);
+
+        // Le débit suit la définition : 0,11 bit par pixel et par image sur du
+        // 1920x1080 à 60 images.
+        Assert.Equal(13686, options.VideoBitrateKbps);
     }
 
     [Fact]
@@ -404,7 +410,9 @@ public sealed class SettingsServiceTests : IDisposable
         var options = await _service.GetScrcpyOptionsAsync(CancellationToken.None);
 
         Assert.Equal(30, options.MaxFps);
-        Assert.Equal(2500, options.VideoBitrateKbps);
+
+        // La hauteur est bornée à 720 par le palier, et le débit suit.
+        Assert.Equal(3318, options.VideoBitrateKbps);
     }
 
     [Fact]
