@@ -2289,3 +2289,28 @@ Placé après les paliers, il retombait seul à la ligne suivante et faisait gag
 une rangée à la carte. Sur la ligne de l'intertitre, aligné à droite, il tient
 dans la hauteur que celui-ci occupe déjà : mesuré, l'intertitre « Distance dans
 le jeu » ne bouge pas d'un pixel selon le palier coché.
+
+### « Écran éteint » disait trop peu
+
+Raccourci de « Éteindre l'écran du téléphone » à « Écran éteint » pour ôter une
+répétition, le libellé a été compris comme parlant des fenêtres de jeu. Il
+redevient « Écran du téléphone éteint » : la répétition coûtait moins cher que
+l'ambiguïté.
+
+Deux vérifications que la question a provoquées, et qui manquaient :
+
+**L'image survit.** Ce qui était écrit dans l'infobulle sans avoir été prouvé
+l'est maintenant : afficheur virtuel, `--turn-screen-off`, jeu lancé, la fenêtre
+montre l'écran de connexion complet pendant que `mWakefulness` vaut `Dozing`.
+
+**Le gain est modeste, et l'infobulle le dit.** Sans l'option, la dalle passe
+quand même en veille pendant la session : `--keep-active` ne la retient pas.
+L'aide de scrcpy le décrit comme « garder l'écran allumé en simulant une
+activité », et avec un afficheur virtuel cette activité porte sur cet afficheur,
+non sur la dalle. L'option ne fait donc qu'éteindre **tout de suite** au lieu
+d'attendre le délai de veille, ce qui compte sur un téléphone réglé pour rester
+allumé longtemps, ou branché.
+
+Le commentaire du constructeur d'arguments affirmait que les deux options ne se
+contredisaient pas parce que « l'un empêche l'appareil de se mettre en veille,
+l'autre éteint sa dalle ». C'était faux sur le premier point, et corrigé.

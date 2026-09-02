@@ -493,9 +493,9 @@
                             IsChecked="{Binding AudioEnabled}"
                             ToolTip="Android ne sait pas isoler le son d'une application : c'est celui du téléphone entier qui arrive. Une seule fenêtre par appareil le porte donc, sinon le même flux reviendrait en plusieurs exemplaires." />
 
-                  <CheckBox Content="Écran éteint" Margin="0,0,0,8"
+                  <CheckBox Content="Écran du téléphone éteint" Margin="0,0,0,8"
                             IsChecked="{Binding TurnScreenOff}"
-                            ToolTip="L'écran de l'appareil s'éteint pendant les sessions. L'image continue d'arriver sur le PC." />
+                            ToolTip="La dalle du téléphone, pas les fenêtres de jeu : celles-ci gardent leur image, c'est vérifié. Sans cette case l'écran s'éteint quand même, mais au bout de son délai habituel ; cochée, il s'éteint tout de suite." />
 
                   <!-- Le seul réglage du panneau qui touche le téléphone
                        lui-même. Ses trois valeurs sont relues avant d'être

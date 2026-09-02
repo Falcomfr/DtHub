@@ -115,10 +115,15 @@ public sealed record ScrcpyOptions
     /// <summary>
     /// Éteindre l'écran du téléphone pendant la session.
     ///
-    /// Ne contredit pas <see cref="KeepDeviceAwake"/> : l'un empêche l'appareil
-    /// de se mettre en veille, l'autre éteint sa dalle. L'image continue
-    /// d'arriver, vérifié sur le téléphone de référence, où <c>mWakefulness</c>
-    /// passe de <c>Awake</c> à <c>Dozing</c> pendant que le flux tourne.
+    /// L'image continue d'arriver : vérifié sur le téléphone de référence,
+    /// <c>mWakefulness</c> passe de <c>Awake</c> à <c>Dozing</c> et le jeu
+    /// s'affiche entièrement dans la fenêtre.
+    ///
+    /// Le gain est modeste et il faut le dire : mesuré, la dalle s'éteint de
+    /// toute façon pendant la session, <see cref="KeepDeviceAwake"/> ne la
+    /// retenant pas. Cette option ne fait que l'éteindre <b>tout de suite</b>
+    /// au lieu d'attendre le délai de veille, ce qui compte sur un téléphone
+    /// réglé pour rester allumé longtemps, ou branché.
     /// </summary>
     public bool TurnScreenOff { get; init; }
 

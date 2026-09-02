@@ -72,7 +72,12 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   encodeur logiciel, qui coûterait bien plus qu'il ne rend.
 
 - Une section « Sur le téléphone » avec trois interrupteurs : « Son renvoyé sur
-  le PC », « Écran éteint » et « Animations coupées ». Le son est celui de l'appareil entier, Android ne sachant pas
+  le PC », « Écran du téléphone éteint » et « Animations coupées ». Le second
+  parle bien de la dalle de l'appareil et non des fenêtres de jeu, qui gardent
+  leur image : vérifié, le jeu s'affiche entièrement pendant que le téléphone est
+  en veille. Son gain est modeste et l'infobulle le dit : l'écran s'éteint de
+  toute façon au bout de son délai habituel, l'option ne fait que l'éteindre
+  aussitôt. Le son est celui de l'appareil entier, Android ne sachant pas
   l'isoler par application : une seule fenêtre par téléphone le porte donc.
   Les animations sont un réglage global du téléphone, relu avant d'être changé
   et rendu à la fermeture des fenêtres.
