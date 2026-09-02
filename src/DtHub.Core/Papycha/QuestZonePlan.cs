@@ -61,7 +61,7 @@ public static class QuestZonePlan
         var waiting = new int[blocks.Count];
         var after = Edges(quests, blocks, blockOfUrl, waiting);
 
-        return Sort(blocks, keys, after, waiting);
+        return Sort(blocks, keys, after, waiting, Lonely(blocks, after, waiting));
     }
 
     /// <summary>
@@ -184,6 +184,37 @@ public static class QuestZonePlan
     }
 
     /// <summary>
+    /// Les quêtes seules que rien ne lie : ni prérequis reconnu, ni quête qui
+    /// les réclame.
+    ///
+    /// Le site ne dit rien de leur place, et les laisser dans le tri les y
+    /// mettait au hasard : au Château d'Amakna, « On recherche Ali Grothor » se
+    /// glissait entre deux succès parce qu'elle était la seule chose que le tri
+    /// pouvait sortir pendant qu'une boucle bloquait le second. Elles vont donc
+    /// en fin de liste, où elles étaient avant ce rangement. Cent deux quêtes
+    /// seules sur trois cent une sont dans ce cas.
+    ///
+    /// Un succès sans lien, lui, garde son rang : celui-là, le site le donne.
+    /// </summary>
+    private static HashSet<int> Lonely(
+        List<(string Success, List<QuestSummary> Quests)> blocks,
+        List<HashSet<int>> after,
+        int[] waiting)
+    {
+        HashSet<int> lonely = [];
+
+        for (var i = 0; i < blocks.Count; i++)
+        {
+            if (blocks[i].Success.Length == 0 && waiting[i] == 0 && after[i].Count == 0)
+            {
+                lonely.Add(i);
+            }
+        }
+
+        return lonely;
+    }
+
+    /// <summary>
     /// Le tri topologique, avec repli sur boucle.
     ///
     /// Traiter un succès comme un bloc insécable crée un cycle dès que deux
@@ -197,7 +228,8 @@ public static class QuestZonePlan
         List<(string Success, List<QuestSummary> Quests)> blocks,
         (int Rank, int Kind, string Label, int Index)[] keys,
         List<HashSet<int>> after,
-        int[] waiting)
+        int[] waiting,
+        HashSet<int> lonely)
     {
         var order = Comparer<int>.Create((first, second) => keys[first].CompareTo(keys[second]));
         SortedSet<int> left = new(order);
@@ -205,6 +237,11 @@ public static class QuestZonePlan
 
         for (var i = 0; i < blocks.Count; i++)
         {
+            if (lonely.Contains(i))
+            {
+                continue;
+            }
+
             left.Add(i);
 
             if (waiting[i] == 0)
@@ -235,6 +272,11 @@ public static class QuestZonePlan
                     ready.Add(next);
                 }
             }
+        }
+
+        foreach (var at in lonely.Order(order))
+        {
+            plan.Add(new QuestZoneBlock(string.Empty, blocks[at].Quests));
         }
 
         return plan;

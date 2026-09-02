@@ -40,6 +40,14 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   ce qui dit maintenant l'appartenance : l'intertitre et ses quêtes étaient au
   même retrait, et une quête au ras de la marge se reconnaît sans rien avoir à
   apprendre.
+- Une quête que rien ne lie, ni prérequis reconnu ni quête qui la réclame, reste
+  en fin de liste au lieu de se glisser au hasard entre deux succès. Au Château
+  d'Amakna, « On recherche Ali Grothor » se retrouvait ainsi entre « Le vallon du
+  château » et « Étre plus royaliste que le roi », sans rapport avec ni l'un ni
+  l'autre. Cent deux quêtes seules sur trois cent une sont dans ce cas.
+- Le panneau des prérequis s'ouvre à gauche du cadenas et non plus dessous, où il
+  recouvrait les lignes suivantes et se calait sur un décalage fixe que la
+  largeur du texte démentait. Un second clic sur le cadenas le referme.
 - Ces quêtes s'enchaînent aussi entre elles au lieu de se ranger par titre. Les
   quatre-vingts quêtes d'alignement bontarien, qui se lisaient « bontarien 1,
   10, 11, 12, 2 », se lisent dans l'ordre.

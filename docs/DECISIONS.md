@@ -1050,6 +1050,14 @@ de ses propres quêtes. On tranche alors par l'ordre d'avant, et l'ordre reste
 total. Mesuré sur toutes les zones : **huit rangs forcés**, dont six sur la seule
 île de Frigost.
 
+**Une quête que rien ne lie ne se range pas, elle attend en fin de liste.**
+Laissée dans le tri, elle en sortait au hasard : au Château d'Amakna, « On
+recherche Ali Grothor » se glissait entre deux succès parce qu'elle était la
+seule chose que le tri pouvait sortir pendant qu'une boucle bloquait le second.
+Le site ne dit rien de sa place ; elle va donc où allaient toutes les quêtes
+seules avant ce rangement, à la fin. Cent deux quêtes seules sur trois cent une.
+Un succès sans lien, lui, garde son rang : celui-là, le site le donne.
+
 **À défaut de prérequis, rien ne bouge.** Le départage est exactement l'ordre
 d'avant, rang du succès sur le site puis nom, une quête seule passant après les
 succès de même rang. Les vingt quêtes seules d'Astrub, dont aucune ne nomme une
@@ -1078,4 +1086,19 @@ de vide. La cause est le remplissage que le conteneur de ligne se donne ; il est
 mis à zéro, et le débordement passe alors. La liste y gagne trois pixels de
 hauteur par ligne, et toutes les lignes la même hauteur, ce qui n'était pas le
 cas.
+
+## D44 - Le panneau des prérequis se ferme par où il s'ouvre
+
+**À gauche du cadenas et non dessous.** Posé dessous, il recouvrait les lignes
+suivantes, et le décalage de deux cent soixante pixels qui le ramenait dans la
+fenêtre était une mesure prise une fois, que la largeur du panneau dément dès
+qu'un prérequis est long. À gauche, il se cale seul sur le cadenas, quelle que
+soit sa taille.
+
+**La fenêtre le referme, il ne se ferme plus tout seul.** Laissé à lui-même, il
+se fermait au clic sur le cadenas qui l'avait ouvert, puis ce même clic le
+rouvrait aussitôt : on ne pouvait pas le refermer par où on l'avait ouvert.
+Sa fermeture ne prévenait d'ailleurs personne, l'événement ne se déclenchant
+pas, mesuré à la trace, ce qui ôtait tout moyen de la rattraper. La fenêtre
+ferme donc au premier clic hors du cadenas propriétaire, et le cadenas bascule.
 

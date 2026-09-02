@@ -182,6 +182,55 @@ public sealed class QuestZonePlanTests
     }
 
     [Fact]
+    public void Renvoie_en_fin_de_liste_une_quete_que_rien_ne_lie()
+    {
+        // Le site ne dit rien de sa place. La laisser dans le tri la mettait au
+        // hasard, entre deux succès, faute de mieux à sortir à ce moment-là.
+        List<QuestSummary> quetes =
+        [
+            Quete("On recherche Ali Grothor"),
+            Quete("Premier 1", "Premier succes", 1),
+            Quete("Second 1", "Second succes", 1, "Premier 1"),
+        ];
+
+        Assert.Equal(
+            ["* Premier succes", "* Second succes", "  On recherche Ali Grothor"],
+            Lignes(QuestZonePlan.Of(quetes, ["Premier succes", "Second succes"])));
+    }
+
+    [Fact]
+    public void Garde_dans_le_fil_une_quete_seule_qu_un_lien_rattache()
+    {
+        // Un lien suffit, dans un sens ou dans l'autre : c'est ce qui la sépare
+        // d'une quête que rien ne place.
+        List<QuestSummary> quetes =
+        [
+            Quete("Rien ne la lie"),
+            Quete("Elle ouvre le succes"),
+            Quete("Succes 1", "Un succes", 1, "Elle ouvre le succes"),
+        ];
+
+        Assert.Equal(
+            ["  Elle ouvre le succes", "* Un succes", "  Rien ne la lie"],
+            Lignes(QuestZonePlan.Of(quetes, ["Un succes"])));
+    }
+
+    [Fact]
+    public void Range_par_titre_les_quetes_que_rien_ne_lie()
+    {
+        List<QuestSummary> quetes =
+        [
+            Quete("Zoulou"),
+            Quete("Alpha 1", "Un succes", 1),
+            Quete("Bravo"),
+        ];
+
+        Assert.Equal(
+            ["* Un succes", "  Bravo", "  Zoulou"],
+            Lignes(QuestZonePlan.Of(quetes, ["Un succes"])));
+    }
+
+    [Fact]
     public void Rend_une_liste_vide_pour_une_zone_vide()
     {
         Assert.Empty(QuestZonePlan.Of([], ["Un succes"]));

@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 
 using Microsoft.Web.WebView2.Core;
@@ -542,6 +543,7 @@ public partial class QuestWindow : Window
         Message = "Aucune nouvelle de la page après vingt secondes : la vue est rendue.")]
     private partial void LogWaitedInVain();
 
+
     /// <summary>
     /// Amène la ligne sélectionnée sous les yeux. La poser ne suffit pas : sur
     /// une rubrique de soixante quêtes, elle reste hors de l'écran.
@@ -581,10 +583,21 @@ public partial class QuestWindow : Window
     /// L'infobulle du même bouton est éteinte le temps du panneau : elle
     /// s'ouvrirait par-dessus et dirait la même chose sans les liens.
     /// </summary>
+    /// <summary>
+    /// Ouvre les prérequis d'une ligne, ou les referme si ce sont déjà ceux-là.
+    /// </summary>
     private void OnShowNeeds(object sender, RoutedEventArgs e)
     {
         if (sender is not Button bouton)
         {
+            return;
+        }
+
+        if (PanneauPrerequis.IsOpen
+            && ReferenceEquals(PanneauPrerequis.PlacementTarget, bouton))
+        {
+            CloseNeeds();
+
             return;
         }
 
@@ -595,12 +608,53 @@ public partial class QuestWindow : Window
         PanneauPrerequis.IsOpen = true;
     }
 
-    private void OnNeedsClosed(object? sender, EventArgs e)
+    /// <summary>
+    /// Referme les prérequis dès qu'on clique ailleurs que sur le cadenas qui
+    /// les a ouverts.
+    ///
+    /// Le clic sur ce cadenas est laissé passer : c'est lui qui referme, et le
+    /// fermer ici le rouvrirait aussitôt. Un clic dans le panneau lui-même ne
+    /// vient jamais jusqu'ici, une fenêtre surgissante ayant la sienne.
+    /// </summary>
+    private void OnWindowPressed(object sender, MouseButtonEventArgs e)
+    {
+        if (!PanneauPrerequis.IsOpen
+            || (e.OriginalSource is DependencyObject source
+                && Owns(PanneauPrerequis.PlacementTarget as DependencyObject, source)))
+        {
+            return;
+        }
+
+        CloseNeeds();
+    }
+
+    /// <summary>Vrai si le second élément est dans l'arbre visuel du premier.</summary>
+    private static bool Owns(DependencyObject? parent, DependencyObject? child)
+    {
+        if (parent is null)
+        {
+            return false;
+        }
+
+        for (var at = child; at is not null; at = VisualTreeHelper.GetParent(at))
+        {
+            if (ReferenceEquals(at, parent))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void CloseNeeds()
     {
         if (PanneauPrerequis.PlacementTarget is Button bouton)
         {
             ToolTipService.SetIsEnabled(bouton, true);
         }
+
+        PanneauPrerequis.IsOpen = false;
     }
 
     /// <summary>Ouvre la quête qu'un prérequis nomme.</summary>

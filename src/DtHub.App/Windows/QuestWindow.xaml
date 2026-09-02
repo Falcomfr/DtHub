@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:wv="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         Title="Guides"
+        PreviewMouseDown="OnWindowPressed"
         Width="520" Height="760" MinWidth="380" MinHeight="360"
         Topmost="True"
         ShowInTaskbar="True"
@@ -250,11 +251,24 @@
     <Grid>
       <!-- Les prérequis épinglés. Un seul panneau pour toute la liste, et non
            un par ligne : soixante lignes en porteraient soixante, dont un seul
-           servirait. Il se ferme au premier clic ailleurs. -->
-      <Popup x:Name="PanneauPrerequis" StaysOpen="False"
-             Placement="Bottom" HorizontalOffset="-260" VerticalOffset="2"
-             AllowsTransparency="True" PopupAnimation="Fade"
-             Closed="OnNeedsClosed">
+           servirait. Il se ferme au premier clic ailleurs, et au second clic sur
+           le cadenas.
+
+           À gauche du cadenas et non dessous : posé dessous, il recouvrait les
+           lignes suivantes, et le décalage de deux cent soixante pixels qui le
+           ramenait dans la fenêtre était une mesure prise une fois, que la
+           largeur du panneau dément dès qu'un prérequis est long. À gauche, il
+           se cale tout seul sur le cadenas, quelle que soit sa taille.
+
+           Il tient ouvert et c'est la fenêtre qui le referme, au premier clic
+           hors du cadenas qui l'a ouvert. Laissé à lui-même, il se fermait au
+           clic sur ce cadenas, puis le clic rouvrait aussitôt : on ne pouvait
+           pas le refermer par où on l'avait ouvert. Sa fermeture ne prévenait
+           d'ailleurs personne, l'événement ne se déclenchant pas, ce qui ôtait
+           tout moyen de le savoir. -->
+      <Popup x:Name="PanneauPrerequis" StaysOpen="True"
+             Placement="Left" HorizontalOffset="-6" VerticalOffset="-6"
+             AllowsTransparency="True" PopupAnimation="Fade">
         <Border Background="{DynamicResource SurfaceBrush}"
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
                 CornerRadius="{StaticResource Radius}" Padding="11,8">
