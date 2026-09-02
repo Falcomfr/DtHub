@@ -1280,3 +1280,31 @@ deux.** Les deux fenêtres qui en portent un passent par le même environnement 
 c'est là que son absence se constate, et le message remonte par l'exception que
 la fenêtre affiche déjà à la place de la page.
 \n
+
+## D51 - Nous entrons dans des mises en page que le site n'éprouve pas
+
+La carte d'un donjon recouvrait l'en-tête, et avec lui le niveau et la pierre
+d'âme, dès que la fenêtre s'élargissait. Le réflexe serait d'accuser notre
+feuille de style ; la mesure dit autre chose.
+
+**Le site fait cela chez lui aussi, mais ne s'y expose jamais.** Sa carte porte
+une marge haute négative pour se glisser à côté de l'en-tête : moins dix-huit
+pixels en une colonne, moins quatre-vingt-quatorze en deux. Il passe à deux
+colonnes au-delà de huit cent quatre-vingts pixels de contenu. Or sa colonne de
+guide en fait six cent cinquante, un volet latéral prenant le reste : la branche
+à deux colonnes ne s'active jamais chez lui. Nous écartons ce volet, la colonne
+prend toute la place, et nous y tombons les premiers. Vérifié sur deux donjons,
+de neuf cent vingt-deux à mille neuf cents pixels : recouvrement partout.
+
+**C'est notre fenêtre, donc c'est notre correctif.** Une règle annule la marge :
+la carte descend à sa place, à droite des faits, et plus rien ne se recouvre.
+
+**Les autres pages sont saines.** Quête, raid, tanière, chemin, page de rubrique
+ont été passées à la même sonde à la largeur de la fenêtre : aucune marge
+négative, aucun débordement, aucun chevauchement. Seuls les donjons portent ce
+bloc.
+
+**La sonde reste**, dans `build/sonde-papycha/mise-en-page.js`. Le jour où le
+site changera de mise en page, c'est elle qui le dira, plutôt qu'une capture
+d'écran envoyée après coup.
+\n

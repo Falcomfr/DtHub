@@ -52,6 +52,11 @@ python3 build/extract-successes.py           # relever la carte des succès de p
 dotnet.exe run --project build/sonde-papycha
 dotnet.exe run --project build/sonde-papycha -- --benir   # rebénir le relevé
 
+# Chercher ce qui se recouvre dans une page du site, cadrée comme la fenêtre
+# des guides la cadre. À coller dans la console d'un navigateur, à la largeur
+# de la fenêtre. Voir l'en-tête du fichier.
+build/sonde-papycha/mise-en-page.js
+
 # Publier le fichier unique distribué à l'utilisateur. En Release, le projet
 # embarque ses symboles et écarte les fichiers annexes des paquets : le dossier
 # ne contient que DtHub.exe.

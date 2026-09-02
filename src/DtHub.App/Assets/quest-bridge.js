@@ -107,7 +107,23 @@
             // Le bandeau d'intro ouvre désormais la page, ses deux premiers
             // blocs étant masqués : sa marge haute, prévue pour suivre un
             // titre, ne laisserait qu'un vide en tête de fenêtre.
-            '.pqa-quest-intro{margin-top:0 !important;padding-top:0 !important}';
+            '.pqa-quest-intro{margin-top:0 !important;padding-top:0 !important}' +
+
+            // La carte d'un donjon remonte de quatre-vingt-quatorze pixels pour
+            // se glisser à côté de l'en-tête. Elle le recouvrait, et avec lui le
+            // niveau et la pierre d'âme.
+            //
+            // Ce n'est pas notre mise en page : le site passe à deux colonnes
+            // au-delà de huit cent quatre-vingts pixels de contenu, et la marge
+            // négative y vaut quatre-vingt-quatorze au lieu de dix-huit. Chez
+            // lui la colonne de guide fait six cent cinquante pixels, un volet
+            // latéral prenant le reste : il n'atteint donc jamais cette branche.
+            // Nous écartons ce volet, la colonne prend toute la place, et nous
+            // tombons dans une mise en page que le site n'éprouve pas.
+            //
+            // Mesuré sur deux donjons, de neuf cent vingt-deux à mille neuf
+            // cents pixels : recouvrement partout avant, nulle part après.
+            '.pcd-info__map{margin-top:0 !important}';
     }
 
     function keepOnlyArticle() {

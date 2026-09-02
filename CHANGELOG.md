@@ -45,6 +45,12 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   d'Amakna, « On recherche Ali Grothor » se retrouvait ainsi entre « Le vallon du
   château » et « Étre plus royaliste que le roi », sans rapport avec ni l'un ni
   l'autre. Cent deux quêtes seules sur trois cent une sont dans ce cas.
+- La carte d'un donjon ne recouvre plus l'en-tête de la page. Elle remonte de
+  quatre-vingt-quatorze pixels pour se glisser à côté, et recouvrait le niveau et
+  la pierre d'âme dès que la fenêtre passait huit cent quatre-vingts pixels de
+  contenu. Ce n'est pas notre mise en page : le site n'atteint jamais cette
+  branche, sa colonne de guide faisant six cent cinquante pixels, un volet
+  latéral prenant le reste. Nous écartons ce volet, donc nous y tombons.
 - L'exécutable porte enfin son nom. Ses propriétés annonçaient « DT Touch »,
   resté d'un renommage, quand la fenêtre dit « DT Hub », et sa description était
   le nom du fichier. C'est ce que Windows montre et ce que SmartScreen cite. La
