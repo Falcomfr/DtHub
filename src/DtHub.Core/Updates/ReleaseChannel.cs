@@ -16,5 +16,5 @@ public static class ReleaseChannel
     public const string Owner = "Falcomfr";
 
     /// <summary>Le dépôt.</summary>
-    public const string Repository = "DTHub";
+    public const string Repository = "DtHub";
 }
