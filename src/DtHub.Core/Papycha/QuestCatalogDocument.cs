@@ -75,6 +75,13 @@ public sealed class QuestCatalogDocument
     /// <inheritdoc cref="SiteModifiedUtc" />
     public int SitePosts { get; set; }
 
+    /// <summary>
+    /// Ce que chaque catégorie lue annonçait à ce moment-là. Vide dans un
+    /// catalogue plus ancien, ce qui vaut « on ne sait pas » et provoque une
+    /// relecture, une seule fois.
+    /// </summary>
+    public List<CategoryStamp> SiteCategories { get; set; } = [];
+
     public List<QuestSummary> Quests { get; set; } = [];
 
     public List<QuestSection> Sections { get; set; } = [];

@@ -45,6 +45,12 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   d'Amakna, « On recherche Ali Grothor » se retrouvait ainsi entre « Le vallon du
   château » et « Étre plus royaliste que le roi », sans rapport avec ni l'un ni
   l'autre. Cent deux quêtes seules sur trois cent une sont dans ce cas.
+- La sentinelle des guides interroge les cinq catégories qu'on lit, et non plus
+  le site entier. Sa date de dernière modification bougeait dès qu'un seul de ses
+  mille douze articles était touché, même un dont on ne lit rien : une virgule
+  ailleurs coûtait cinquante secondes de relecture. Cinq demandes de quarante
+  octets, deux cents en tout, et les catégories bougent chacune à leur rythme :
+  les raids n'ont pas changé depuis le 28 août, les tanières depuis le 18.
 - Le moteur de rendu s'endort quand les guides se masquent, et se réveille quand
   ils reviennent. Mesuré : quarante-quatre mégaoctets rendus sur quatre cent
   soixante-trois. Les six processus restent, seule leur mémoire de travail se

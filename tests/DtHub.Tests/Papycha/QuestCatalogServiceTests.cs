@@ -150,6 +150,14 @@ public class QuestCatalogServiceTests
 
         client.Stamp = annoncee;
 
+        // La sentinelle interroge les catégories qu'on lit, pas le site entier :
+        // une correction sur un article hors de nos catégories ne doit plus rien
+        // déclencher.
+        if (annoncee is not null)
+        {
+            client.CategoryStamps.Add(new CategoryStamp(7, annoncee.Modified, annoncee.Posts));
+        }
+
         var store = new InMemoryDocumentStore<QuestCatalogDocument>();
 
         await store.SaveAsync(
@@ -158,6 +166,7 @@ public class QuestCatalogServiceTests
                 IndexedUtc = DateTimeOffset.UtcNow - TimeSpan.FromHours(2),
                 SiteModifiedUtc = connue.Modified,
                 SitePosts = connue.Posts,
+                SiteCategories = [new CategoryStamp(7, connue.Modified, connue.Posts)],
                 Quests = [new QuestSummary { Id = 9, Title = "Vieille entrée" }],
             },
             CancellationToken.None);
@@ -235,6 +244,7 @@ public class QuestCatalogServiceTests
                 IndexedUtc = DateTimeOffset.UtcNow - TimeSpan.FromMinutes(1),
                 SiteModifiedUtc = DateTimeOffset.UtcNow - TimeSpan.FromDays(3),
                 SitePosts = 1012,
+                SiteCategories = [new CategoryStamp(7, DateTimeOffset.UtcNow - TimeSpan.FromDays(3), 782)],
                 Quests = [new QuestSummary { Id = 9, Title = "Vieille entrée" }],
             },
             CancellationToken.None);
@@ -254,11 +264,30 @@ public class QuestCatalogServiceTests
         using var _2 = service;
 
         client.Stamp = Empreinte(posts: 1013);
+        client.CategoryStamps.Add(new CategoryStamp(7, client.Stamp.Modified, 782));
 
         var catalog = await service.GetAsync(cancellationToken: CancellationToken.None);
 
         Assert.Equal(1013, catalog.SitePosts);
         Assert.Equal(client.Stamp.Modified, catalog.SiteModifiedUtc);
+        Assert.Equal(782, Assert.Single(catalog.SiteCategories).Posts);
+    }
+
+    [Fact]
+    public async Task Un_article_hors_de_nos_categories_ne_provoque_rien()
+    {
+        // Le site compte mille douze articles, on n'en lit que neuf cents. Une
+        // correction sur les autres bougeait la date du site entier et coûtait
+        // cinquante secondes de relecture pour rien.
+        var connue = Empreinte();
+        var (service, client) = await Veille(connue, connue);
+        using var ailleurs = service;
+
+        var catalog = await service.GetAsync(cancellationToken: CancellationToken.None);
+
+        Assert.Equal(1, client.StampCalls);
+        Assert.Equal(0, client.Calls);
+        Assert.Equal("Vieille entrée", Assert.Single(catalog.Quests).Title);
     }
 
     [Fact]

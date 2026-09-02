@@ -1308,3 +1308,30 @@ bloc.
 site changera de mise en page, c'est elle qui le dira, plutôt qu'une capture
 d'écran envoyée après coup.
 \n
+
+## D52 - La sentinelle regarde ce qu'elle lit, et rien d'autre
+
+Une empreinte pour tout le site déclenchait une relecture dès qu'un seul de ses
+mille douze articles bougeait. Or on n'en lit que neuf cents, rangés dans cinq
+catégories : une correction d'orthographe sur une page qu'on ignore coûtait
+cinquante secondes à chaque utilisateur.
+
+Les empreintes sont donc prises catégorie par catégorie. Cinq demandes de
+quarante octets, deux cents en tout, contre quatre-vingt-dix-sept pour l'ancienne
+demande unique : le prix triple et le déclenchement devient juste.
+
+Le relevé du jour dit pourquoi cela vaut la peine : les quêtes ont bougé le
+1er septembre, les chemins le 29 août, les donjons le 30, les raids le 28, les
+tanières le 18. Cinq rythmes distincts, qu'une seule date écrasait.
+
+**Une catégorie muette annule tout le relevé.** Retenir la moitié des empreintes
+ferait croire au repos sur les autres, et l'on cesserait de relire une catégorie
+qui a changé. Mieux vaut ne rien retenir et s'en remettre au délai de sept jours,
+qui reste en filet.
+
+**Ce qui reste à faire** : la relecture est encore complète quand une seule
+catégorie bouge. Les donjons pèsent quatre mégaoctets et quatre cinquièmes du
+temps ; les relire quand seule une quête a changé reste du gâchis. Le filtre
+`modified_after` de l'API est vérifié et permettra de ne reprendre que les pages
+touchées.
+\n

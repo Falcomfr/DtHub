@@ -641,16 +641,39 @@ public sealed class QuestCatalogService : IDisposable
             return false;
         }
 
-        var stamp = await _client.GetStampAsync(cancellationToken).ConfigureAwait(false);
+        var stamps = await _client.GetCategoryStampsAsync(cancellationToken).ConfigureAwait(false);
 
-        if (stamp is null)
+        if (stamps.Count == 0)
         {
             return false;
         }
 
-        return document.SiteModifiedUtc is not { } seen
-            || stamp.Posts != document.SitePosts
-            || stamp.Modified > seen;
+        return Moved(document.SiteCategories, stamps);
+    }
+
+    /// <summary>
+    /// Vrai si l'une des catégories qu'on lit a bougé depuis la dernière
+    /// lecture.
+    ///
+    /// Une catégorie qu'on ne connaissait pas encore compte comme ayant bougé :
+    /// c'est le cas d'un catalogue plus ancien que cette empreinte, et d'une
+    /// catégorie que le site vient d'ouvrir.
+    /// </summary>
+    private static bool Moved(
+        IReadOnlyList<CategoryStamp> seen,
+        IReadOnlyList<CategoryStamp> now)
+    {
+        foreach (var stamp in now)
+        {
+            var before = seen.FirstOrDefault(s => s.Category == stamp.Category);
+
+            if (before is null || stamp.Posts != before.Posts || stamp.Modified > before.Modified)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>À appeler sous verrou.</summary>
@@ -679,9 +702,12 @@ public sealed class QuestCatalogService : IDisposable
             var sections = await _client.GetSectionsAsync(cancellationToken).ConfigureAwait(false);
             var pages = await _client.GetPageSectionsAsync(cancellationToken).ConfigureAwait(false);
 
-            // L'empreinte est relevée pendant la lecture, et non avant : ce
-            // qu'on retient doit décrire le site tel qu'on vient de le lire.
+            // Les empreintes sont relevées pendant la lecture, et non avant :
+            // ce qu'on retient doit décrire le site tel qu'on vient de le lire.
             var stamp = await _client.GetStampAsync(cancellationToken).ConfigureAwait(false);
+            var categories = await _client
+                .GetCategoryStampsAsync(cancellationToken)
+                .ConfigureAwait(false);
             var dungeons = await _client.GetDungeonsAsync(cancellationToken).ConfigureAwait(false);
 
             // Les chemins après eux : le côté d'un chemin se décide sur les noms
@@ -700,6 +726,7 @@ public sealed class QuestCatalogService : IDisposable
                 IndexedUtc = DateTimeOffset.UtcNow,
                 SiteModifiedUtc = stamp?.Modified,
                 SitePosts = stamp?.Posts ?? 0,
+                SiteCategories = [.. categories],
                 Quests = [.. arranged],
                 Sections = [.. ordered],
                 Dungeons = [.. dungeons],

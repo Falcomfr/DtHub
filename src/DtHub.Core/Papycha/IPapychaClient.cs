@@ -28,6 +28,13 @@ public interface IPapychaClient
     Task<SiteStamp?> GetStampAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// L'empreinte de chacune des catégories qu'on lit, ou une liste vide si le
+    /// site ne répond pas. Sert à ne relire que ce qui a bougé.
+    /// </summary>
+    Task<IReadOnlyList<CategoryStamp>> GetCategoryStampsAsync(
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Récupère le classement que le site tient à la main sur sa page
     /// « Quêtes », et les quêtes que chaque rubrique énumère.
     ///

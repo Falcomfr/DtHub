@@ -136,13 +136,21 @@ public sealed partial class PapychaClient : IPapychaClient
     }
 
     /// <inheritdoc />
-    public async Task<SiteStamp?> GetStampAsync(CancellationToken cancellationToken = default)
+    public Task<SiteStamp?> GetStampAsync(CancellationToken cancellationToken = default) =>
+        StampAsync(category: null, cancellationToken);
+
+    private async Task<SiteStamp?> StampAsync(int? category, CancellationToken cancellationToken)
     {
         // Un seul article, le dernier modifié, et deux champs. Le site rend
         // quatre-vingt-dix-sept octets, et son en-tête donne le compte total.
         // C'est ce qui permet de demander souvent au lieu de relire une fois
         // par semaine.
-        var url = $"posts?per_page=1&orderby=modified&order=desc&_fields=modified_gmt";
+        var url = "posts?per_page=1&orderby=modified&order=desc&_fields=modified_gmt";
+
+        if (category is { } only)
+        {
+            url += "&categories=" + only.ToString(CultureInfo.InvariantCulture);
+        }
 
         try
         {
@@ -181,6 +189,34 @@ public sealed partial class PapychaClient : IPapychaClient
             return null;
         }
     }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<CategoryStamp>> GetCategoryStampsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        List<CategoryStamp> stamps = [];
+
+        foreach (var category in Watched)
+        {
+            var stamp = await StampAsync(category, cancellationToken).ConfigureAwait(false);
+
+            if (stamp is null)
+            {
+                // Une catégorie muette rend la comparaison impossible : mieux
+                // vaut ne rien retenir que retenir à moitié, ce qui ferait
+                // croire au repos.
+                return [];
+            }
+
+            stamps.Add(new CategoryStamp(category, stamp.Modified, stamp.Posts));
+        }
+
+        return stamps;
+    }
+
+    /// <summary>Les catégories dont on lit quelque chose, et elles seules.</summary>
+    private static IEnumerable<int> Watched =>
+        [QuestCategory, PathCategory, .. DungeonCategories.Select(c => c.Category)];
 
     public async Task<IReadOnlyList<QuestSection>> GetSectionsAsync(
         CancellationToken cancellationToken = default)
