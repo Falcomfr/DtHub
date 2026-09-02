@@ -17,6 +17,15 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   Boss, Mécanique du donjon, Les succès, Fin du donjon — et non par un résumé de
   paragraphe : ce n'est pas une suite de consignes mais un dossier.
 - La recherche rend un quatrième groupe, « Donjons ».
+- Un donjon se suit comme une quête : un lien qui y mène reste dans la fenêtre,
+  la liste rouvre sur sa branche, et il est retrouvé au lancement suivant.
+- Une ancre de la page, comme « Aller directement à la mécanique du donjon »,
+  ne passe plus pour une navigation étrangère et n'ouvre plus de seconde
+  fenêtre.
+- L'indicateur d'attente ne peut plus rester en l'air : il retombe si la vue
+  échoue, et de toute façon au bout de vingt secondes, le journal disant alors
+  qu'on a attendu pour rien. Le chemin de chargement est tracé de bout en
+  bout.
 
 - Les zones de quêtes suivent l'ordre de progression du jeu, sous leur nom court,
   avec un bloc « Quêtes supplémentaires » pour ce qui n'en relève pas.

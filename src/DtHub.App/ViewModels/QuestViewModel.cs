@@ -37,6 +37,9 @@ public sealed partial class QuestViewModel : ObservableObject
     /// <summary>La quête affichée, quand il y en a une.</summary>
     private QuestSummary? _current;
 
+    /// <summary>Le donjon affiché, quand c'en est un.</summary>
+    private DungeonSummary? _currentDungeon;
+
     /// <summary>
     /// Les quêtes quittées en suivant un lien, la dernière au sommet.
     ///
@@ -230,10 +233,14 @@ public sealed partial class QuestViewModel : ObservableObject
         // Sans cela, on rouvrait sur « Quêtes / Donjons » ou sur les résultats
         // d'une recherche alors qu'un guide était affiché, et il fallait
         // redescendre l'arbre pour retrouver les voisines de ce qu'on lisait.
-        if (_current is { } quest && (_section != quest.SectionId || Query.Length > 0))
+        // Un donjon n'appartient à aucune rubrique du site : sa branche est la
+        // sienne.
+        var section = _current?.SectionId ?? (_currentDungeon is not null ? DungeonSection : (int?)null);
+
+        if (section is { } target && (_section != target || Query.Length > 0))
         {
             Query = string.Empty;
-            ShowSection(quest.SectionId);
+            ShowSection(target);
         }
 
         SelectCurrent();
@@ -254,8 +261,7 @@ public sealed partial class QuestViewModel : ObservableObject
         }
 
         SelectedNode = Nodes.FirstOrDefault(n =>
-            n.Quest is { } quest
-            && string.Equals(quest.Url, CurrentUrl, StringComparison.Ordinal));
+            n.Url is { } url && string.Equals(url, CurrentUrl, StringComparison.Ordinal));
     }
 
     /// <summary>Le premier niveau : les grandes branches.</summary>
@@ -865,6 +871,7 @@ public sealed partial class QuestViewModel : ObservableObject
         ArgumentNullException.ThrowIfNull(quest);
 
         _current = quest;
+        _currentDungeon = null;
         CurrentUrl = quest.Url;
         QuestTitle = quest.Title;
         HasQuest = true;
@@ -898,6 +905,7 @@ public sealed partial class QuestViewModel : ObservableObject
         ArgumentNullException.ThrowIfNull(dungeon);
 
         _current = null;
+        _currentDungeon = dungeon;
         CurrentUrl = dungeon.Url;
         QuestTitle = dungeon.Title;
         HasQuest = true;
@@ -1198,7 +1206,22 @@ public sealed partial class QuestViewModel : ObservableObject
 
         if (quest is null)
         {
-            return false;
+            // Un donjon se suit comme une quête : c'est une page du site que le
+            // catalogue connaît. Sans cela, le lien d'un guide vers un donjon
+            // partait dans une fenêtre à part, et la dernière page lue n'était
+            // pas retrouvée au lancement suivant.
+            var dungeon = _catalog.Catalog.Dungeons.FirstOrDefault(d =>
+                string.Equals(UrlKey(d.Url), key, StringComparison.Ordinal));
+
+            if (dungeon is null)
+            {
+                return false;
+            }
+
+            SetCurrent(dungeon);
+            IsListOpen = false;
+
+            return true;
         }
 
         // Seul un lien suivi sur place entre dans l'historique. Les voisines du
@@ -1263,6 +1286,7 @@ public sealed partial class QuestViewModel : ObservableObject
         ArgumentNullException.ThrowIfNull(exception);
 
         HasQuest = false;
+        IsLoadingPage = false;
         Placeholder =
             "Le composant d'affichage web de Windows n'a pas pu démarrer.\n"
             + "Ouvrez la page dans votre navigateur avec le bouton en bas.\n\n"

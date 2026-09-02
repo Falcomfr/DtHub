@@ -211,7 +211,8 @@ public partial class QuestWindow : Window
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
             // Sans moteur d'exécution, la fenêtre ne peut rien montrer : le
-            // dire vaut mieux que laisser une zone vide.
+            // dire vaut mieux que laisser une zone vide. ReportViewFailure
+            // baisse aussi l'attente, qui vient peut-être d'être levée.
             _viewModel.ReportViewFailure(exception);
         }
     }
@@ -247,6 +248,17 @@ public partial class QuestWindow : Window
 
         View.CoreWebView2.NavigationCompleted += OnNavigationCompleted;
 
+        _watchdog.Tick += (_, _) =>
+        {
+            _watchdog.Stop();
+
+            if (_viewModel.IsLoadingPage)
+            {
+                LogWaitedInVain();
+                _viewModel.IsLoadingPage = false;
+            }
+        };
+
         await View.CoreWebView2
             .AddScriptToExecuteOnDocumentCreatedAsync(QuestBridge.Script())
             .ConfigureAwait(true);
@@ -263,8 +275,25 @@ public partial class QuestWindow : Window
     {
         _viewModel.IsLoadingPage = true;
 
+        LogNavigate(url, View.CoreWebView2 is not null);
+
         View.CoreWebView2?.Navigate(url);
+
+        // Un garde-fou, et non un correctif : la page annonce sa venue par deux
+        // chemins, le pont et la fin de navigation, et il a suffi qu'aucun des
+        // deux ne parle pour que l'indicateur tourne sans fin. Passé ce délai,
+        // on rend la vue plutôt que de laisser tourner ; le journal dit alors
+        // qu'on a attendu pour rien.
+        _watchdog.Stop();
+        _watchdog.Start();
     }
+
+    /// <summary>
+    /// Délai au-delà duquel on cesse d'attendre une page. Vingt secondes : une
+    /// page du site en met une ou deux, et l'on ne coupe donc jamais une
+    /// attente légitime, même sur une connexion lente.
+    /// </summary>
+    private readonly DispatcherTimer _watchdog = new() { Interval = TimeSpan.FromSeconds(20) };
 
     /// <summary>
     /// Identifiant de la navigation qu'on attend. Zéro quand on n'attend rien.
@@ -283,10 +312,13 @@ public partial class QuestWindow : Window
     {
         ArgumentNullException.ThrowIfNull(e);
 
+        LogNavigationCompleted(e.NavigationId, _awaited, e.IsSuccess);
+
         // Le filet : une page en erreur, un réseau coupé, et le pont ne dira
         // jamais rien. L'indicateur tournerait alors sans fin.
         if (e.NavigationId == _awaited)
         {
+            _watchdog.Stop();
             _viewModel.IsLoadingPage = false;
         }
     }
@@ -302,6 +334,8 @@ public partial class QuestWindow : Window
             switch (root.GetProperty("kind").GetString())
             {
                 case "loaded":
+                    LogBridgeLoaded();
+                    _watchdog.Stop();
                     _viewModel.IsLoadingPage = false;
                     _viewModel.SetPage(
                         Text(root, "intro"),
@@ -378,7 +412,11 @@ public partial class QuestWindow : Window
     /// </summary>
     private void OnNavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
     {
-        if (Same(e.Uri, _viewModel.CurrentUrl))
+        var ours = SamePage(e.Uri, _viewModel.CurrentUrl);
+
+        LogNavigationStarting(e.Uri, e.NavigationId, ours, e.IsRedirected);
+
+        if (ours)
         {
             // Celle-ci est la nôtre : c'est sa fin qui lèvera l'attente.
             _awaited = e.NavigationId;
@@ -421,6 +459,25 @@ public partial class QuestWindow : Window
         _ = Dispatcher.BeginInvoke(() => NavigateTo(url));
     }
 
+    /// <summary>
+    /// Vrai quand deux adresses ne diffèrent que par leur ancre.
+    ///
+    /// Une page de donjon propose « Aller directement à la mécanique du
+    /// donjon », qui est une ancre. Le moteur l'annonce comme une navigation,
+    /// et la traiter comme étrangère ouvrait une seconde fenêtre sur la page
+    /// qu'on était déjà en train de lire.
+    /// </summary>
+    private static bool SamePage(string? first, string? second) =>
+        Same(WithoutFragment(first), WithoutFragment(second));
+
+    private static string WithoutFragment(string? url)
+    {
+        var value = url ?? string.Empty;
+        var cut = value.IndexOf('#', StringComparison.Ordinal);
+
+        return cut < 0 ? value : value[..cut];
+    }
+
     private static bool Same(string? first, string? second) =>
         string.Equals(
             (first ?? string.Empty).TrimEnd('/'),
@@ -460,6 +517,30 @@ public partial class QuestWindow : Window
         Level = LogLevel.Warning,
         Message = "La place du suivi de quêtes n'a pas pu être rétablie.")]
     private partial void LogPlacementFailed(Exception exception);
+
+    // Le chemin de chargement d'une page, tracé de bout en bout : l'indicateur
+    // d'attente s'est déjà bloqué deux fois, et sans ces traces il a fallu
+    // deviner. Elles disent qui demande, qui commence, qui finit.
+    [LoggerMessage(Level = LogLevel.Information, Message = "Chargement demandé : {url} (moteur prêt : {ready})")]
+    private partial void LogNavigate(string url, bool ready);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Navigation {id} commencée : {url} (à nous : {ours}, redirection : {redirected})")]
+    private partial void LogNavigationStarting(string url, ulong id, bool ours, bool redirected);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Navigation {id} terminée (attendue : {awaited}, succès : {success})")]
+    private partial void LogNavigationCompleted(ulong id, ulong awaited, bool success);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Le pont annonce la page chargée.")]
+    private partial void LogBridgeLoaded();
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "Aucune nouvelle de la page après vingt secondes : la vue est rendue.")]
+    private partial void LogWaitedInVain();
 
     /// <summary>
     /// Amène la ligne sélectionnée sous les yeux. La poser ne suffit pas : sur
