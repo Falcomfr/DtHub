@@ -183,7 +183,7 @@ public sealed partial class QuestViewModel : ObservableObject
     /// </summary>
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
-        var before = Tally(_catalog.Catalog);
+        var before = QuestTally.Of(_catalog.Catalog);
 
         IsBusy = true;
 
@@ -200,19 +200,9 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Ce qu'on retient d'un catalogue pour dire, après relecture, ce qui a
-    /// changé.
+    /// Range ce qui suit une lecture : la chaîne et l'état affiché.
     /// </summary>
-    private static (int Quests, int Places, int Paths) Tally(QuestCatalogDocument catalog) =>
-        (catalog.Quests.Count, catalog.Dungeons.Count, catalog.Paths.Count);
-
-    /// <summary>
-    /// Range ce qui suit une lecture : la chaîne, l'état affiché, et la date de
-    /// la dernière lecture.
-    /// </summary>
-    private void Settle(
-        QuestCatalogDocument catalog,
-        (int Quests, int Places, int Paths) before)
+    private void Settle(QuestCatalogDocument catalog, QuestTally before)
     {
         _chain = new QuestChainIndex(catalog.Quests);
 
@@ -229,42 +219,7 @@ public sealed partial class QuestViewModel : ObservableObject
             ? "Aucune quête : le site n'a pas répondu."
             : _catalog.LastFailure is not null
                 ? "Le site n'a pas répondu ; liste en cache."
-                : before.Quests > 0 && Tally(catalog) != before
-                    ? Changes(before, Tally(catalog))
-                    : string.Empty;
-    }
-
-    /// <summary>
-    /// Ce qu'une relecture a changé, en une ligne, ou rien quand elle n'a rien
-    /// changé : le site remanie souvent ses pages sans que le catalogue en
-    /// gagne ou en perde, et l'annoncer à chaque fois serait du bruit.
-    /// </summary>
-    private static string Changes(
-        (int Quests, int Places, int Paths) before,
-        (int Quests, int Places, int Paths) after)
-    {
-        List<string> parts = [];
-
-        Add(after.Quests - before.Quests, "quête", "quêtes");
-        Add(after.Places - before.Places, "lieu de combat", "lieux de combat");
-        Add(after.Paths - before.Paths, "chemin", "chemins");
-
-        return parts.Count == 0
-            ? string.Empty
-            : "Guides relus : " + string.Join(", ", parts) + ".";
-
-        void Add(int delta, string one, string many)
-        {
-            if (delta == 0)
-            {
-                return;
-            }
-
-            var count = Math.Abs(delta);
-
-            parts.Add(
-                $"{Text(count)} {(count > 1 ? many : one)} {(delta > 0 ? "de plus" : "de moins")}");
-        }
+                : QuestTally.Of(catalog).Since(before);
     }
 
     /// <summary>
@@ -592,7 +547,7 @@ public sealed partial class QuestViewModel : ObservableObject
                 Nodes.Add(new QuestNode(
                     QuestNodeKind.Success,
                     $"{success} ({quests.Count})",
-                    LevelRange(quests),
+                    QuestLevelRange.Of(quests),
                     Glyph: QuestNodeGlyph.Success));
 
                 foreach (var quest in quests)
@@ -803,49 +758,13 @@ public sealed partial class QuestViewModel : ObservableObject
             yield return new QuestNode(
                 QuestNodeKind.Branch,
                 $"{QuestZoneOrder.DisplayName(zone.Name)} ({_sectionCounts[zone.Id]})",
-                LevelRange(_catalog.InSection(zone.Id)),
+                QuestLevelRange.Of(_catalog.InSection(zone.Id)),
                 Id: zone.Id,
                 Glyph: GlyphOf(zone.Name),
                 Spaced: next is not null
                     && !QuestZoneOrder.IsPlace(zone.Name)
                     && QuestZoneOrder.IsPlace(next.Name));
         }
-    }
-
-    /// <summary>
-    /// Plage de niveaux d'un ensemble de quêtes, ou <c>null</c> quand aucune
-    /// n'en porte.
-    ///
-    /// Le site ne renseigne le niveau que sur cent dix-sept quêtes sur sept
-    /// cent quatre-vingt-deux, et sur plusieurs zones aucune. Afficher une
-    /// plage tirée d'une seule quête sur vingt-trois la ferait passer pour la
-    /// plage de la zone : quand rien n'est connu, on ne dit rien, et le nombre
-    /// de quêtes sur lequel elle repose est rappelé dès qu'il est partiel.
-    /// </summary>
-    private static string? LevelRange(IReadOnlyList<QuestSummary> quests)
-    {
-        List<int> levels = [.. quests.Where(q => q.Level > 0).Select(q => q.Level)];
-
-        if (levels.Count == 0)
-        {
-            return null;
-        }
-
-        // Une plage tirée d'une ou deux quêtes sur vingt-huit passerait pour la
-        // plage de la zone. Le site ne renseigne le niveau que sur 117 quêtes
-        // sur 782 : mieux vaut ne rien dire que dire à peu près.
-        if (levels.Count < 3 && levels.Count < quests.Count)
-        {
-            return null;
-        }
-
-        var span = levels.Min() == levels.Max()
-            ? Text(levels.Min())
-            : $"{Text(levels.Min())} - {Text(levels.Max())}";
-
-        return levels.Count == quests.Count
-            ? $"niveau {span}"
-            : $"niveau {span} (sur {Text(levels.Count)})";
     }
 
     private static string Text(int value) =>
@@ -869,7 +788,7 @@ public sealed partial class QuestViewModel : ObservableObject
                 Nodes.Add(new QuestNode(
                     QuestNodeKind.Success,
                     $"{block.SuccessName} ({block.Quests.Count})",
-                    LevelRange(block.Quests),
+                    QuestLevelRange.Of(block.Quests),
                     Glyph: QuestNodeGlyph.Success));
             }
 

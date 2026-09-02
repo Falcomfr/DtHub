@@ -1476,3 +1476,27 @@ La sonde qui a produit ces chiffres est dans `build/sonde-rang`. Elle passe par
 le service, donc par le code livré, et non par une réimplémentation qui
 pourrait se tromper d'accord avec elle-même.
 \n
+
+## D57 - Ce qui se vérifie descend dans le noyau
+
+Le projet de tests ne référence pas `DtHub.App`, par construction : une vue-modèle
+WPF traîne un fil d'interface et des dépendances graphiques dont un test n'a que
+faire. La conséquence est que toute règle écrite dans une vue-modèle n'est
+couverte par rien.
+
+Trois règles en sont sorties, toutes pures, toutes lues par l'utilisateur :
+
+- **La lecture du pont**, `QuestBridgeMessage` : la seule des trois qui portait
+  un défaut, et qui tenait l'application (voir [D54](#d54---le-pont-nest-pas-une-conversation-avec-nous-mêmes)).
+- **La plage de niveaux d'une zone**, `QuestLevelRange` : elle décide de se
+  taire quand trop peu de quêtes portent un niveau, et de dire sur combien
+  quand la plage est partielle. Deux seuils, aucun n'était éprouvé.
+- **Ce qu'une relecture a rapporté**, `QuestTally` : ses accords, son silence
+  quand rien n'a bougé, son silence à la première lecture.
+
+Ce qui reste dans la vue-modèle et pourrait descendre encore : la construction
+des lignes de la liste, qui tient à des types d'affichage, et le rapprochement
+d'adresses de `TryFollowUrl`, qui emploie une normalisation légèrement
+différente de celle du catalogue - deux notions de « même adresse » dans le même
+dépôt, ce qui mériterait d'être unifié avant d'être testé.
+\n
