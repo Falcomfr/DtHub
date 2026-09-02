@@ -2256,3 +2256,36 @@ sur le PC », « Écran éteint », « Animations coupées ».
 de réglage sans le test de chargement : lire les préférences réécrivait aussitôt
 le fichier avec ce qu'on venait d'y trouver. Sans conséquence visible, mais c'est
 une écriture pour rien à chaque ouverture du panneau.
+
+### Le nom du jeu, là où il lève une ambiguïté
+
+L'application est faite pour un jeu et ne le disait qu'à son titre de fenêtre.
+Elle le dit maintenant à trois endroits : sur la ligne du produit dans l'en-tête,
+où il ne coûte aucune hauteur et se voit sur les trois onglets ; sur les fenêtres
+« de jeu », qui se distinguent ainsi du panneau lui-même ; et au-dessus de la
+liste des comptes, qui sont bien des installations du jeu.
+
+Nommer n'est pas embarquer : la fiche interdit d'inclure une marque, un logo ou
+une ressource d'Ankama, ce qui vise les fichiers, non le mot. Le titre de
+l'assemblage le nomme déjà, et la mention « projet indépendant, sans lien avec
+Ankama » reste sous les yeux.
+
+**Il n'est pas mis dans la section « Sur le téléphone », et c'est délibéré.**
+Les trois interrupteurs y auraient été faux :
+
+| Interrupteur | Ce qu'il touche vraiment |
+|:--|:--|
+| Son renvoyé sur le PC | le son de l'appareil entier, Android ne sachant pas l'isoler |
+| Écran éteint | la dalle du téléphone |
+| Animations coupées | les trois échelles globales d'Android |
+
+Écrire « son de DOFUS Touch » aurait promis une isolation qui n'existe pas, et
+masqué justement ce que l'infobulle explique : toutes les applications du
+téléphone s'entendent ensemble.
+
+### Le rouage remonte sur la ligne du titre
+
+Placé après les paliers, il retombait seul à la ligne suivante et faisait gagner
+une rangée à la carte. Sur la ligne de l'intertitre, aligné à droite, il tient
+dans la hauteur que celui-ci occupe déjà : mesuré, l'intertitre « Distance dans
+le jeu » ne bouge pas d'un pixel selon le palier coché.

@@ -32,7 +32,13 @@
           <Image Grid.Column="0" Source="/assets/app.png" Width="26" Height="26" VerticalAlignment="Center" />
 
           <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
-            <TextBlock Text="{Binding ProductName}" FontSize="17" FontWeight="SemiBold" />
+            <!-- Le nom du jeu dit ici, une fois, sur la ligne du produit : il ne
+                 coûte aucune hauteur et se voit sur les trois onglets. -->
+            <TextBlock>
+              <Run Text="{Binding ProductName, Mode=OneWay}" FontSize="17" FontWeight="SemiBold" />
+              <Run Text=" pour DOFUS Touch" FontSize="11"
+                   Foreground="{DynamicResource TextMutedBrush}" />
+            </TextBlock>
             <TextBlock Style="{StaticResource Muted}" FontSize="11">
               <Run Text="{Binding ToggleShortcutText, Mode=OneWay}" FontWeight="SemiBold"
                    FontFamily="{StaticResource MonoFont}" />
@@ -232,7 +238,7 @@
 
               <Border Style="{StaticResource Card}">
                 <StackPanel>
-                  <TextBlock Text="REPLACER LES FENÊTRES" Style="{StaticResource SectionLabel}" />
+                  <TextBlock Text="REPLACER LES FENÊTRES DE JEU" Style="{StaticResource SectionLabel}" />
 
                   <ItemsControl ItemsSource="{Binding Anchors}" HorizontalAlignment="Left"
                                 Margin="0,4,0,0"
@@ -258,7 +264,7 @@
 
               <Border Style="{StaticResource Card}">
                 <StackPanel>
-                  <TextBlock Text="TAILLE DES FENÊTRES" Style="{StaticResource SectionLabel}"
+                  <TextBlock Text="TAILLE DES FENÊTRES DE JEU" Style="{StaticResource SectionLabel}"
                              ToolTip="Proportionnelle à la zone utilisable de l'écran, et non à ses pixels : la même valeur donne la même part d'écran partout. Les raccourcis Ctrl+1 à Ctrl+5 posent cinq repères sur ce curseur." />
 
                   <Grid>
@@ -285,7 +291,40 @@
 
               <Border Style="{StaticResource Card}">
                 <StackPanel>
-                  <TextBlock Text="QUALITÉ" Style="{StaticResource SectionLabel}" />
+                  <!-- Le rouage sur la ligne du titre, et non sous les
+                       paliers : là il retombait à la ligne, seul, et faisait
+                       gagner une rangée à la carte. Ici il tient dans la
+                       hauteur que l'intertitre occupe déjà. -->
+                  <Grid>
+                    <TextBlock Text="QUALITÉ" Style="{StaticResource SectionLabel}" />
+
+                    <ToggleButton x:Name="CustomGear" Cursor="Hand"
+                                  HorizontalAlignment="Right" VerticalAlignment="Top"
+                                  Margin="0,-3,0,0" Background="Transparent"
+                                  ToolTip="Réglages fins de la qualité personnalisée"
+                                  Visibility="{Binding IsCustomQuality,
+                                                       Converter={StaticResource BoolToVisibility}}">
+                      <ToggleButton.Template>
+                        <ControlTemplate TargetType="ToggleButton">
+                          <Border x:Name="Fond" Background="Transparent" Padding="3"
+                                  CornerRadius="{StaticResource Radius}">
+                            <Path Width="15" Height="15" Stretch="Uniform"
+                                  Fill="{DynamicResource AccentBrush}" Data="F0 M 18.18,8.11 L 18.18,11.89 L 15.64,12.05 L 15.44,12.54 L 17.12,14.45 L 14.45,17.12 L 12.54,15.44 L 12.05,15.64 L 11.89,18.18 L 8.11,18.18 L 7.95,15.64 L 7.46,15.44 L 5.55,17.12 L 2.88,14.45 L 4.56,12.54 L 4.36,12.05 L 1.82,11.89 L 1.82,8.11 L 4.36,7.95 L 4.56,7.46 L 2.88,5.55 L 5.55,2.88 L 7.46,4.56 L 7.95,4.36 L 8.11,1.82 L 11.89,1.82 L 12.05,4.36 L 12.54,4.56 L 14.45,2.88 L 17.12,5.55 L 15.44,7.46 L 15.64,7.95 Z M 7.10,10.00 A 2.90,2.90 0 1 0 12.90,10.00 A 2.90,2.90 0 1 0 7.10,10.00 Z" />
+                          </Border>
+                          <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                              <Setter TargetName="Fond" Property="Background"
+                                      Value="{DynamicResource SurfaceAltBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                              <Setter TargetName="Fond" Property="Background"
+                                      Value="{DynamicResource SurfaceAltBrush}" />
+                            </Trigger>
+                          </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                      </ToggleButton.Template>
+                    </ToggleButton>
+                  </Grid>
 
                   <!-- Repliés comme la distance juste en dessous : quatre
                        paliers ne tiennent plus sur la largeur de la fenêtre. -->
@@ -309,41 +348,11 @@
                                  ToolTip="Régler soi-même la définition, la cadence, la finesse d'image et le codec. Les trois paliers restent le chemin ordinaire : celui-ci sert à qui sait déjà ce qu'il veut."
                                  IsChecked="{Binding Quality, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Custom}" />
-
-                    <!-- Le rouage n'apparaît qu'au palier personnalisé, et
-                         ouvre les réglages fins dans une bulle : dépliés dans
-                         la carte, ils lui faisaient gagner deux cents pixels
-                         de haut et repoussaient tout le reste du panneau. -->
-                    <ToggleButton x:Name="CustomGear" Cursor="Hand" Margin="2,0,0,0"
-                                  VerticalAlignment="Center" Background="Transparent"
-                                  ToolTip="Ouvrir les réglages fins"
-                                  Visibility="{Binding IsCustomQuality,
-                                                       Converter={StaticResource BoolToVisibility}}">
-                      <ToggleButton.Template>
-                        <ControlTemplate TargetType="ToggleButton">
-                          <Border x:Name="Fond" Background="Transparent" Padding="7"
-                                  CornerRadius="{StaticResource Radius}">
-                            <Path x:Name="Dents" Width="16" Height="16" Stretch="Uniform"
-                                  Fill="{DynamicResource AccentBrush}" Data="F0 M 18.18,8.11 L 18.18,11.89 L 15.64,12.05 L 15.44,12.54 L 17.12,14.45 L 14.45,17.12 L 12.54,15.44 L 12.05,15.64 L 11.89,18.18 L 8.11,18.18 L 7.95,15.64 L 7.46,15.44 L 5.55,17.12 L 2.88,14.45 L 4.56,12.54 L 4.36,12.05 L 1.82,11.89 L 1.82,8.11 L 4.36,7.95 L 4.56,7.46 L 2.88,5.55 L 5.55,2.88 L 7.46,4.56 L 7.95,4.36 L 8.11,1.82 L 11.89,1.82 L 12.05,4.36 L 12.54,4.56 L 14.45,2.88 L 17.12,5.55 L 15.44,7.46 L 15.64,7.95 Z M 7.10,10.00 A 2.90,2.90 0 1 0 12.90,10.00 A 2.90,2.90 0 1 0 7.10,10.00 Z" />
-                          </Border>
-                          <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                              <Setter TargetName="Fond" Property="Background"
-                                      Value="{DynamicResource SurfaceAltBrush}" />
-                            </Trigger>
-                            <Trigger Property="IsChecked" Value="True">
-                              <Setter TargetName="Fond" Property="Background"
-                                      Value="{DynamicResource SurfaceAltBrush}" />
-                            </Trigger>
-                          </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                      </ToggleButton.Template>
-                    </ToggleButton>
                   </WrapPanel>
 
                   <Popup IsOpen="{Binding IsChecked, ElementName=CustomGear}" StaysOpen="False"
                          Placement="Bottom" PlacementTarget="{Binding ElementName=CustomGear}"
-                         AllowsTransparency="True" PopupAnimation="Fade" HorizontalOffset="-230">
+                         AllowsTransparency="True" PopupAnimation="Fade" HorizontalOffset="-296">
                     <Border Background="{DynamicResource SurfaceBrush}" Width="330"
                             BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
                             CornerRadius="{StaticResource Radius}" Margin="0,4,0,0" Padding="14,12,14,12">
@@ -528,6 +537,9 @@
                    couleur ne dit pas ce qu'elle reproche, et c'est au premier
                    lancement, quand rien ne marche encore, qu'on en a le plus
                    besoin. -->
+              <TextBlock Text="COMPTES DOFUS TOUCH" Style="{StaticResource SectionLabel}"
+                         ToolTip="Un compte par profil Android où le jeu est installé." />
+
               <w:InstanceListControl DataContext="{Binding Instances}"
                                      ShowDeviceStatus="True" />
 

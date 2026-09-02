@@ -42,7 +42,15 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   lui faisaient gagner deux cents pixels de haut et repoussaient tout le reste
   du panneau. La hauteur ne bouge donc plus selon le palier choisi.
 
-- Le palier « Maximale » s'appelle désormais « Haute ».
+- Le palier « Maximale » s'appelle désormais « Haute », et son rouage de
+  réglages fins se tient sur la ligne du titre plutôt que sous les paliers, où
+  il retombait seul à la ligne.
+
+- Le nom du jeu paraît là où il lève une ambiguïté, et pas ailleurs : dans
+  l'en-tête, sur les fenêtres « de jeu », et au-dessus de la liste des comptes.
+  Il ne paraît pas dans la section « Sur le téléphone » : le son capté est celui
+  de l'appareil entier et non celui du jeu, l'écran est celui du téléphone, les
+  animations sont celles d'Android. L'y nommer aurait été faux.
 
   La finesse se règle en bits par pixel, et non en mégabits comme le proposent
   les interfaces qui ne pilotent qu'un seul miroir. Ici la définition de
