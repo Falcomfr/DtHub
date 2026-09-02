@@ -193,6 +193,18 @@ public sealed partial class GameLauncher : IAsyncDisposable
         var found = await _instances.DiscoverAsync(discovery.Devices, cancellationToken)
             .ConfigureAwait(false);
 
+        // Les profils disparus s'oublient avant la fusion : sinon leur entrée
+        // mémorisée reparaîtrait dans le résultat, et la liste garderait un
+        // compte qui n'existe plus nulle part.
+        var forgotten = await _settings
+            .ForgetMissingProfilesAsync(_instances.ScannedProfiles, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (forgotten > 0)
+        {
+            LogProfilesForgotten(forgotten);
+        }
+
         return await _settings.MergeInstancesAsync(found, cancellationToken).ConfigureAwait(false);
     }
 
@@ -1251,6 +1263,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Information,
         Message = "Compte « {name} » ajouté sur {device} : {succeeded}. {message}")]
     private partial void LogAccountAdded(string device, string name, bool succeeded, string message);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "{count} instance(s) oubliée(s) : leur profil Android n'existe plus.")]
+    private partial void LogProfilesForgotten(int count);
 
     [LoggerMessage(
         Level = LogLevel.Warning,

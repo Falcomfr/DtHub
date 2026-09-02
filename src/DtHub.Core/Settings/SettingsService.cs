@@ -303,6 +303,61 @@ public sealed class SettingsService : IDisposable
     /// Le nom choisi par l'utilisateur et la case de lancement lui
     /// appartiennent : une redécouverte ne les écrase jamais.
     /// </summary>
+    /// <summary>
+    /// Oublie les instances dont le profil Android n'existe plus.
+    ///
+    /// Une instance mémorisée survit à une déconnexion, et c'est voulu : un
+    /// téléphone débranché doit garder ses lignes. Elle survivait aussi à la
+    /// suppression du profil, ce qui laissait dans la liste un compte qui
+    /// n'existe nulle part, qu'aucun bouton ne pouvait retirer.
+    ///
+    /// On ne se fie pas à l'absence du jeu, qui peut n'être qu'un échec de
+    /// commande passager : on se fie à la disparition du profil. Seuls les
+    /// téléphones dont la liste de profils a été lue pour de bon sont
+    /// concernés, les autres ne prouvent rien.
+    /// </summary>
+    /// <param name="profiles">Profils relevés, par identifiant d'appareil.</param>
+    /// <returns>Le nombre d'instances oubliées.</returns>
+    public async Task<int> ForgetMissingProfilesAsync(
+        IReadOnlyDictionary<string, IReadOnlyList<int>> profiles,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(profiles);
+
+        if (profiles.Count == 0)
+        {
+            return 0;
+        }
+
+        var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
+
+        var gone = settings.Instances
+            .Where(i => profiles.TryGetValue(i.DeviceId, out var live) && !live.Contains(i.UserId))
+            .Select(i => i.Key)
+            .ToHashSet(StringComparer.Ordinal);
+
+        // Rien à retirer : on n'écrit pas. Une écriture sans changement à
+        // chaque balayage userait le fichier pour rien.
+        if (gone.Count == 0)
+        {
+            return 0;
+        }
+
+        await UpdateAsync(
+            document =>
+            {
+                // La géométrie de la fenêtre part avec l'instance : elle est
+                // portée par l'entrée elle-même, et non par le dictionnaire des
+                // places, qui ne connaît que nos propres fenêtres.
+                _ = document.Instances.RemoveAll(i => gone.Contains(i.Key));
+
+                InstanceOrdering.Normalize(document);
+            },
+            cancellationToken).ConfigureAwait(false);
+
+        return gone.Count;
+    }
+
     public async Task<IReadOnlyList<DofusInstance>> MergeInstancesAsync(
         IReadOnlyList<DofusInstance> discovered,
         CancellationToken cancellationToken = default)

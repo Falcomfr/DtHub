@@ -1829,3 +1829,33 @@ qui reste aux fiches de marque, dont la fenêtre d'aide est retirée.
 liste, l'entrée mémorisée survivant à la disparition du profil. Vu pendant les
 essais, non corrigé.
 \n
+
+## D66 - Oublier un compte dont le profil n'existe plus
+
+Une instance mémorisée survivait à tout, y compris à la suppression de son
+profil Android. La liste gardait alors un compte qui n'existe nulle part, et
+aucun bouton ne pouvait l'en retirer : seule la rupture d'association, qui
+efface tout le téléphone, en venait à bout.
+
+**Deux causes, et la seconde se cachait derrière la première.**
+
+La fusion des instances n'enlève jamais rien, et c'est voulu : un téléphone
+débranché doit garder ses lignes. Mais elle ne distinguait pas « ce profil a
+disparu » de « on n'a pas pu regarder ».
+
+Une fois cette distinction faite, la ligne restait pourtant. **Le balayage lisait
+les profils depuis son cache**, rempli au premier appel et invalidé seulement par
+nos propres créations. Un profil supprimé sur le téléphone restait donc connu
+indéfiniment. La liste est relue à chaque balayage : la commande est légère au
+regard du reste, qui interroge déjà les paquets de chaque profil.
+
+**Ce sur quoi on se fie, et ce qu'on écarte.** Pas l'absence du jeu : les
+journaux montrent que `pm list packages` échoue par moments, et une instance
+serait oubliée sur un incident passager. La disparition du profil, elle, ne se
+constate que sur une liste lue pour de bon, `IsFallback` servant de garde. Un
+téléphone qui n'a pas répondu ne figure pas au relevé, et l'on ne conclut donc
+rien de son absence.
+
+**Vérifié sur le téléphone** : compte créé par le bouton, profil supprimé depuis
+le téléphone, ligne partie au balayage suivant, avec sa trace au journal.
+\n

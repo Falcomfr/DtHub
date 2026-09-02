@@ -19,6 +19,8 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 - L'aide « Plusieurs comptes sur un même appareil ? » disparaît : le bouton fait
   ce qu'elle expliquait. Ses fiches de marque servent encore, mais seulement
   quand le téléphone refuse la création, pour dire où aller à la main.
+- Un compte dont le profil a été supprimé sur le téléphone quitte la liste tout
+  seul. Il y restait indéfiniment, sans qu'aucun bouton puisse l'en retirer.
 - La branche « Donjons » s'ouvre : les 83 donjons du site, rangés par palier de
   cinquante niveaux, avec leur niveau entre parenthèses et, à droite, la clef
   exigée, la taille de la pierre d'âme et la position. Le nom de la clef vient

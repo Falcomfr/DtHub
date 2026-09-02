@@ -582,4 +582,83 @@ public sealed class SettingsServiceTests : IDisposable
 
         Assert.Equal("Ctrl + K", hotkeys.For(HotkeyAction.Quit)!.DisplayText);
     }
+
+    /// <summary>
+    /// Un profil supprimé sur le téléphone laissait sa ligne dans la liste pour
+    /// toujours : l'entrée mémorisée survivait au profil, et aucun bouton ne
+    /// pouvait la retirer.
+    /// </summary>
+    [Fact]
+    public async Task Un_profil_disparu_du_telephone_est_oublie()
+    {
+        await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
+
+        var oubliees = await _service.ForgetMissingProfilesAsync(
+            new Dictionary<string, IReadOnlyList<int>>(StringComparer.Ordinal)
+            {
+                ["MATERIEL123"] = [0],
+            },
+            CancellationToken.None);
+
+        Assert.Equal(1, oubliees);
+
+        var merged = await _service.MergeInstancesAsync([Instance(0)], CancellationToken.None);
+
+        Assert.Equal([0], merged.Select(i => i.UserId));
+    }
+
+    /// <summary>
+    /// On ne conclut rien d'un téléphone qu'on n'a pas pu lire : ses instances
+    /// restent, comme celles d'un appareil débranché.
+    /// </summary>
+    [Fact]
+    public async Task Un_telephone_absent_du_releve_garde_ses_instances()
+    {
+        await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
+
+        var oubliees = await _service.ForgetMissingProfilesAsync(
+            new Dictionary<string, IReadOnlyList<int>>(StringComparer.Ordinal)
+            {
+                ["UN-AUTRE-TELEPHONE"] = [0],
+            },
+            CancellationToken.None);
+
+        Assert.Equal(0, oubliees);
+
+        var merged = await _service.MergeInstancesAsync([], CancellationToken.None);
+
+        Assert.Equal(2, merged.Count);
+    }
+
+    [Fact]
+    public async Task Un_releve_vide_n_oublie_rien()
+    {
+        await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
+
+        Assert.Equal(
+            0,
+            await _service.ForgetMissingProfilesAsync(
+                new Dictionary<string, IReadOnlyList<int>>(StringComparer.Ordinal),
+                CancellationToken.None));
+    }
+
+    /// <summary>Les profils sont tous là : rien n'est oublié.</summary>
+    [Fact]
+    public async Task Un_profil_toujours_la_n_est_pas_touche()
+    {
+        await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
+
+        var oubliees = await _service.ForgetMissingProfilesAsync(
+            new Dictionary<string, IReadOnlyList<int>>(StringComparer.Ordinal)
+            {
+                ["MATERIEL123"] = [0, 999],
+            },
+            CancellationToken.None);
+
+        Assert.Equal(0, oubliees);
+
+        var merged = await _service.MergeInstancesAsync([], CancellationToken.None);
+
+        Assert.Equal(2, merged.Count);
+    }
 }

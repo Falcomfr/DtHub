@@ -43,6 +43,19 @@ public sealed class DofusInstanceService
     /// </summary>
     public IReadOnlyList<string> Warnings => _warnings;
 
+    private readonly Dictionary<string, IReadOnlyList<int>> _profiles = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Les profils Android relevés sur chaque téléphone, par identifiant
+    /// d'appareil, du dernier balayage.
+    ///
+    /// Seulement les téléphones dont la liste a été lue pour de bon : un
+    /// appareil qui n'a pas répondu n'y figure pas, et l'on ne conclura donc
+    /// rien de son absence. C'est ce qui permet de distinguer « ce profil a
+    /// disparu » de « on n'a pas pu regarder ».
+    /// </summary>
+    public IReadOnlyDictionary<string, IReadOnlyList<int>> ScannedProfiles => _profiles;
+
     /// <summary>
     /// Instances présentes sur les téléphones donnés. Un téléphone hors ligne
     /// n'est pas interrogé : ses instances mémorisées sont réinjectées par
@@ -56,6 +69,7 @@ public sealed class DofusInstanceService
 
         List<DofusInstance> instances = [];
         _warnings.Clear();
+        _profiles.Clear();
 
         foreach (var device in devices.Where(d => d.IsConnected))
         {
@@ -77,7 +91,11 @@ public sealed class DofusInstanceService
 
         List<DofusInstance> instances = [];
 
-        var users = await _users.GetUsersAsync(device.Serial, refresh: false, cancellationToken)
+        // Relus à chaque balayage, et non pris au cache : un profil supprimé
+        // sur le téléphone restait sinon connu indéfiniment, et sa ligne ne
+        // quittait jamais la liste. La commande est légère au regard du reste
+        // du balayage, qui interroge les paquets de chaque profil.
+        var users = await _users.GetUsersAsync(device.Serial, refresh: true, cancellationToken)
             .ConfigureAwait(false);
 
         if (AndroidUserService.IsFallback(users))
@@ -86,6 +104,12 @@ public sealed class DofusInstanceService
                 $"{device.DisplayName} : la liste des profils Android n'a pas pu être lue. "
                 + "Seul le profil principal est visible ; un jeu installé dans un second "
                 + "espace n'apparaîtra pas.");
+        }
+        else
+        {
+            // Lue pour de bon : on saura dire qu'un profil a disparu, et non
+            // seulement qu'on ne l'a pas vu.
+            _profiles[device.Id] = [.. users.Select(u => u.Id)];
         }
 
         foreach (var user in users)
