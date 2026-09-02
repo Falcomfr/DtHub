@@ -24,12 +24,11 @@
         <!-- Le champ prend toute la largeur : le compte de quêtes qui l'amputait
              ne dit rien qu'on ait envie de lire deux fois. -->
         <Grid>
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-          </Grid.ColumnDefinitions>
-
-          <TextBox Grid.Column="0" x:Name="SearchBox"
+          <!-- Le retrait de droite est plus large que les autres : il réserve
+               la place de la croix, qui se pose par-dessus le champ. Il vaut la
+               moitié de la largeur voulue, le champ appliquant son retrait deux
+               fois — une fois au porte-texte, une fois au texte lui-même. -->
+          <TextBox x:Name="SearchBox" Padding="7,4,16,4"
                    Text="{Binding Query, UpdateSourceTrigger=PropertyChanged, Delay=150}"
                    GotKeyboardFocus="OnSearchFocused"
                    PreviewMouseLeftButtonDown="OnSearchClicked"
@@ -37,10 +36,11 @@
                    ToolTip="Cliquez pour dérouler la liste, ou tapez un nom. Les accents ne comptent pas."
                    Tag="Cherchez une zone, un succès, une quête ou un donjon" />
 
-          <!-- Hors du champ et non par-dessus : le gabarit de TextBox n'a pas
-               de marge à droite, et une croix superposée mordrait sur le texte. -->
-          <Button Grid.Column="1" Style="{StaticResource IconButton}"
-                  Margin="4,0,0,0" Click="OnClearQuery"
+          <!-- Dans le champ et non à côté : une croix posée en dehors se lisait
+               comme un bouton de la barre, sans dire ce qu'elle vidait. -->
+          <Button Style="{StaticResource IconButton}"
+                  HorizontalAlignment="Right" Margin="0,0,3,0"
+                  Click="OnClearQuery"
                   ToolTip="Vider la recherche"
                   Visibility="{Binding Query, Converter={StaticResource EmptyToVisibility},
                                        ConverterParameter=inverse}">

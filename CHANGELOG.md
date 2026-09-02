@@ -18,7 +18,8 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   paragraphe : ce n'est pas une suite de consignes mais un dossier.
 - La recherche rend un quatrième groupe, « Donjons ».
 - Le champ de recherche dit ce qu'il accepte tant qu'on n'y a rien écrit : une
-  zone, un succès, une quête ou un donjon.
+  zone, un succès, une quête ou un donjon. La croix qui le vide est passée
+  dedans, où l'on voit ce qu'elle vide.
 - Un donjon se suit comme une quête : un lien qui y mène reste dans la fenêtre,
   la liste rouvre sur sa branche, et il est retrouvé au lancement suivant.
 - Une ancre de la page, comme « Aller directement à la mécanique du donjon »,
