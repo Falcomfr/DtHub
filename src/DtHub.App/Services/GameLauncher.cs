@@ -1,6 +1,7 @@
 ﻿using DtHub.Core.Adb;
 using DtHub.Core.Devices;
 using DtHub.Core.Dofus;
+using DtHub.Core.Guidance;
 using DtHub.Core.Hotkeys;
 using DtHub.Core.Scrcpy;
 using DtHub.Core.Sessions;
@@ -556,6 +557,49 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// Rompt l'association d'un appareil : ses fenêtres se ferment et il sort
     /// de la mémoire, code d'appairage compris.
     /// </summary>
+    /// <summary>
+    /// Ajoute un compte sur un téléphone : un profil Android neuf, le jeu
+    /// dedans, prêt à ouvrir.
+    ///
+    /// Le message de refus se complète ici, où l'on sait de quelle marque est
+    /// l'appareil : quand la surcouche interdit la création, dire « passez par
+    /// vos réglages » sans dire où n'avance à rien.
+    /// </summary>
+    public async Task<AccountAddition> AddAccountAsync(
+        string deviceId,
+        string name,
+        CancellationToken cancellationToken = default)
+    {
+        // L'état vivant, et non celui du registre : le registre garde le
+        // dernier état écrit, qui vaut souvent « hors ligne » alors que le
+        // téléphone répond. Le bouton refusait ainsi de travailler sur un
+        // appareil que la liste montrait pourtant connecté.
+        var devices = await ResolveDevicesAsync(cancellationToken).ConfigureAwait(false);
+
+        if (!devices.TryGetValue(deviceId, out var device))
+        {
+            return new AccountAddition(false, "Le téléphone n'est pas connecté.");
+        }
+
+        var result = await _instances
+            .AddAccountAsync(device.Serial, name, cancellationToken)
+            .ConfigureAwait(false);
+
+        LogAccountAdded(device.DisplayName, name, result.Succeeded, result.Message);
+
+        if (result.Succeeded)
+        {
+            return result;
+        }
+
+        var brand = PhoneBrands.FromManufacturer(device.Manufacturer);
+
+        return result with
+        {
+            Message = result.Message + $"\n\nSur un appareil {brand.Name} : {brand.ClonePath}.",
+        };
+    }
+
     public async Task ForgetDeviceAsync(string deviceId, CancellationToken cancellationToken = default)
     {
         foreach (var session in _sessions.ActiveSessions
@@ -1202,6 +1246,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     [LoggerMessage(Level = LogLevel.Information, Message = "{count} téléphone(s) reconnecté(s) automatiquement.")]
     private partial void LogReconnected(int count);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Compte « {name} » ajouté sur {device} : {succeeded}. {message}")]
+    private partial void LogAccountAdded(string device, string name, bool succeeded, string message);
 
     [LoggerMessage(
         Level = LogLevel.Warning,

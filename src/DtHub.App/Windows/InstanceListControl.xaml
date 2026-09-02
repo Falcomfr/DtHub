@@ -1,4 +1,4 @@
-<UserControl x:Class="DtHub.App.Windows.InstanceListControl"
+﻿<UserControl x:Class="DtHub.App.Windows.InstanceListControl"
              GiveFeedback="OnGiveFeedback" MouseMove="OnDragSourceMoved"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -44,11 +44,35 @@
                                                   Converter={StaticResource BoolToVisibility}}" />
                 </StackPanel>
 
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+
+                <!-- Ajouter un compte : un profil Android neuf, le jeu dedans.
+                     C'est le mécanisme des comptes multiples d'Android, celui
+                     que la surcouche du téléphone emploie elle-même. Une croix
+                     pleine, parce qu'ajouter n'a pas d'autre dessin. -->
+                <Button Style="{StaticResource IconButton}" AllowDrop="False"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"
+                        ToolTip="Ajouter un compte sur ce téléphone : un profil Android neuf, avec le jeu déjà dedans. Il s'ouvrira comme une installation neuve, à reconnecter."
+                        Command="{Binding DataContext.AddAccountCommand,
+                                          RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        CommandParameter="{Binding Device}">
+                  <Path Data="M 7.5,3 L 7.5,12 M 3,7.5 L 12,7.5"
+                        Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                        StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+
+                  <Button.Visibility>
+                    <MultiBinding Converter="{StaticResource AllTrue}">
+                      <Binding Path="ShowActions" RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                      <Binding Path="IsFirstOfDevice" />
+                    </MultiBinding>
+                  </Button.Visibility>
+                </Button>
+
                 <!-- Rompre l'association ne vaut que pour l'appareil : sur son
                      premier morceau seulement, sans quoi le bouton paraîtrait
                      deux fois pour le même téléphone. -->
                 <!-- Un maillon rompu, dessiné comme deux anneaux écartés. -->
-                <Button Grid.Column="2" Style="{StaticResource DangerIconButton}"
+                <Button Style="{StaticResource DangerIconButton}"
                         AllowDrop="False"
                         ToolTip="Rompre l'association avec cet appareil. Ses fenêtres se ferment, et ses instances comme leurs réglages sont effacés. Une confirmation est demandée."
                         Command="{Binding DataContext.ForgetDeviceCommand,
@@ -63,6 +87,8 @@
                     </MultiBinding>
                   </Button.Visibility>
                 </Button>
+
+                </StackPanel>
               </Grid>
 
               <!-- Surface de dépôt : la ligne et ses deux repères, rien d'autre. -->

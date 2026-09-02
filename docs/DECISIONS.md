@@ -1781,3 +1781,51 @@ en place sans effet.
 dire pourquoi. Il dit maintenant l'état rendu par le moteur, `ConnectionAborted`
 dans l'essai. Si la page blanche revient, elle sera diagnosticable.
 
+## D65 - Ajouter un compte plutôt qu'expliquer comment cloner
+
+L'application expliquait, marque par marque, où trouver la fonction de clonage
+du téléphone. Elle peut le faire elle-même.
+
+**Trois commandes suffisent**, et elles ont été éprouvées sur le téléphone avant
+d'écrire une ligne :
+
+```
+pm create-user <nom>                          -> Success: created user id 10
+pm install-existing --user 10 <paquet>        -> Package installed for user: 10
+am start-user 10                              -> Success: user started
+```
+
+Quinze secondes. Pas de racine, pas de téléchargement, pas de repaquetage :
+`install-existing` rend au nouveau profil l'application **déjà présente**,
+signée par son éditeur. C'est le mécanisme des comptes multiples d'Android,
+celui-là même que l'espace secondaire de la surcouche emploie. Le profil naît en
+revanche avec son propre espace de données, vide : le jeu y redemandera ses
+ressources et la connexion, ce que la confirmation annonce.
+
+**Ce que le reste de l'application savait déjà faire.** Le profil créé a été
+découvert, listé et lancé sans qu'on touche à quoi que ce soit d'autre : toute
+la chaîne, de `pm list users` à `am start --user`, ne supposait rien du nombre
+de profils. Seule la création manquait.
+
+**Deux défauts trouvés en le construisant, tous deux invisibles au code :**
+
+- **Le registre n'est pas l'état vivant.** Le bouton refusait de travailler en
+  annonçant « le téléphone n'est pas connecté » alors que la liste le montrait
+  connecté, point vert compris : `IDeviceRegistry` garde le dernier état écrit,
+  pas l'état courant. Il lit maintenant la découverte, comme le lancement.
+- **ADB recolle les arguments, le téléphone les redécoupe.** `pm create-user
+  Compte 3` a créé un profil nommé « Compte ». Les arguments ne sont pas
+  transmis un par un : ADB les joint par des espaces et le shell de l'appareil
+  les resépare. Le nom est donc cité, et `AndroidShell.Quote` porte la règle,
+  apostrophe comprise.
+
+**Limites, mesurées sur le téléphone de référence** : quatre profils en tout,
+trois qui tournent à la fois. La place est vérifiée avant de créer, plutôt que
+de laisser ADB rendre un refus que personne ne comprend. Et si la surcouche
+interdit la création, le message dit où aller à la main : c'est le seul emploi
+qui reste aux fiches de marque, dont la fenêtre d'aide est retirée.
+
+**Reste ouvert** : un profil supprimé sur le téléphone garde sa ligne dans la
+liste, l'entrée mémorisée survivant à la disparition du profil. Vu pendant les
+essais, non corrigé.
+\n

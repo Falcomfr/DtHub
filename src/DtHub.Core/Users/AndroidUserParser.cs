@@ -1,4 +1,5 @@
-using System.Globalization;
+﻿using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace DtHub.Core.Users;
 
@@ -7,7 +8,7 @@ namespace DtHub.Core.Users;
 /// <c>UserInfo{identifiant:nom:drapeaux}</c>, suivi éventuellement de
 /// <c>running</c>. Les drapeaux sont en hexadécimal.
 /// </summary>
-public static class AndroidUserParser
+public static partial class AndroidUserParser
 {
     // Drapeaux issus de android.content.pm.UserInfo. Seuls ceux qui changent
     // notre comportement sont nommés ici.
@@ -226,6 +227,57 @@ public static class AndroidUserParser
 
         return types;
     }
+
+    /// <summary>
+    /// Identifiant du profil que <c>pm create-user</c> vient de créer, ou
+    /// <c>null</c> si la commande n'a rien créé.
+    ///
+    /// La réponse tient en une ligne : « Success: created user id 10 ». Tout
+    /// autre chose est un refus, et le texte du refus dit pourquoi.
+    /// </summary>
+    public static int? ParseCreatedUserId(string? output)
+    {
+        if (string.IsNullOrWhiteSpace(output))
+        {
+            return null;
+        }
+
+        var match = CreatedUserPattern().Match(output);
+
+        return match.Success
+               && int.TryParse(match.Groups["id"].Value, CultureInfo.InvariantCulture, out var id)
+            ? id
+            : null;
+    }
+
+    /// <summary>
+    /// Nombre de profils que l'appareil accepte, rendu par
+    /// <c>pm get-max-users</c>, ou <c>null</c> s'il ne le dit pas.
+    ///
+    /// La réponse est « Maximum supported users: 4 ». On la lit pour refuser
+    /// tôt et clairement, plutôt que de laisser la création échouer sur un
+    /// message d'ADB que personne ne comprend.
+    /// </summary>
+    public static int? ParseMaxUsers(string? output)
+    {
+        if (string.IsNullOrWhiteSpace(output))
+        {
+            return null;
+        }
+
+        var match = MaxUsersPattern().Match(output);
+
+        return match.Success
+               && int.TryParse(match.Groups["count"].Value, CultureInfo.InvariantCulture, out var count)
+            ? count
+            : null;
+    }
+
+    [GeneratedRegex(@"created\s+user\s+id\s+(?<id>\d+)", RegexOptions.IgnoreCase)]
+    private static partial Regex CreatedUserPattern();
+
+    [GeneratedRegex(@"Maximum\s+supported\s+users\s*:\s*(?<count>\d+)", RegexOptions.IgnoreCase)]
+    private static partial Regex MaxUsersPattern();
 
     private static int ParseFlags(string raw)
     {

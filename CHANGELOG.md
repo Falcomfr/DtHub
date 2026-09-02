@@ -9,6 +9,16 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Ajouté
 
+- Un bouton ajoute un compte sur le téléphone, à droite de son nom. Il crée un
+  profil Android, y installe le jeu et le démarre : le compte apparaît dans la
+  liste, prêt à ouvrir, sans redémarrer l'application. C'est le mécanisme des
+  comptes multiples d'Android, celui que la surcouche du téléphone emploie
+  elle-même : rien n'est recopié, l'application reste celle de l'éditeur,
+  signée par lui. Le profil naît vide, et le jeu y redemandera ses ressources
+  et la connexion, ce que la confirmation annonce.
+- L'aide « Plusieurs comptes sur un même appareil ? » disparaît : le bouton fait
+  ce qu'elle expliquait. Ses fiches de marque servent encore, mais seulement
+  quand le téléphone refuse la création, pour dire où aller à la main.
 - La branche « Donjons » s'ouvre : les 83 donjons du site, rangés par palier de
   cinquante niveaux, avec leur niveau entre parenthèses et, à droite, la clef
   exigée, la taille de la pierre d'âme et la position. Le nom de la clef vient

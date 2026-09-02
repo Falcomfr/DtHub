@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 
 using DtHub.Core.Adb;
 using DtHub.Core.Devices;
@@ -21,6 +21,14 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
 
     [ObservableProperty]
     private string _name;
+
+    /// <summary>
+    /// Vrai pendant l'ajout d'un compte. Créer un profil, y installer le jeu et
+    /// le démarrer demande une quinzaine de secondes au téléphone : sans cette
+    /// marque, le bouton restait cliquable et rien ne disait qu'il travaillait.
+    /// </summary>
+    [ObservableProperty]
+    private bool _isBusy;
 
     [ObservableProperty]
     private AdbDeviceState _state = AdbDeviceState.Offline;

@@ -384,10 +384,6 @@
         <StackPanel Grid.Row="2" Margin="0,6,0,0"
                     Visibility="{Binding IsChecked, ElementName=TabDevices,
                                          Converter={StaticResource BoolToVisibility}}">
-          <Button Content="Plusieurs comptes sur un même appareil ?"
-                  Style="{StaticResource QuietButton}" HorizontalAlignment="Left"
-                  Margin="-9,0,0,0" Click="OnCloneHelp" />
-
           <Button Content="Une fenêtre se fige au bout d'un moment ?"
                   Style="{StaticResource QuietButton}" HorizontalAlignment="Left"
                   Margin="-9,0,0,0" Click="OnSleepHelp" />

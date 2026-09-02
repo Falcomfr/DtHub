@@ -117,6 +117,93 @@ public sealed class DofusInstanceService
     }
 
     /// <summary>Vrai si le jeu est installé pour ce profil Android.</summary>
+    /// <summary>
+    /// Ajoute un compte : un profil Android neuf, le jeu dedans, et le profil
+    /// démarré pour qu'on puisse l'ouvrir tout de suite.
+    ///
+    /// C'est le mécanisme des comptes multiples d'Android, celui-là même que la
+    /// surcouche du téléphone emploie pour son « espace secondaire ». Rien
+    /// n'est recopié ni modifié : <c>install-existing</c> rend au nouveau
+    /// profil l'application déjà présente, signée par son éditeur. Le profil
+    /// naît en revanche avec son propre espace de données, vide : le jeu y
+    /// redemandera ses ressources et sa connexion.
+    ///
+    /// La place est vérifiée d'abord. Un téléphone plafonne le nombre de
+    /// profils, quatre sur celui de référence, et laisser la création échouer
+    /// rendrait un message d'ADB que personne ne comprend.
+    /// </summary>
+    public async Task<AccountAddition> AddAccountAsync(
+        string serial,
+        string name,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(serial);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+        var existing = await _users.GetUsersAsync(serial, refresh: true, cancellationToken)
+            .ConfigureAwait(false);
+
+        var maximum = await _users.GetMaxUsersAsync(serial, cancellationToken).ConfigureAwait(false);
+
+        if (maximum is { } limit && existing.Count >= limit)
+        {
+            return new AccountAddition(
+                false,
+                $"Ce téléphone n'accepte que {limit} profils, et les {limit} sont pris. "
+                + "Supprimez-en un dans ses réglages pour faire de la place.");
+        }
+
+        if (await _users.TryCreateUserAsync(serial, name, cancellationToken).ConfigureAwait(false)
+            is not { } userId)
+        {
+            return new AccountAddition(
+                false,
+                "Le téléphone a refusé de créer un profil. Certaines surcouches l'interdisent : "
+                + "passez alors par leurs réglages de comptes multiples.");
+        }
+
+        try
+        {
+            await _adb.ShellAsync(
+                serial,
+                [
+                    "pm",
+                    "install-existing",
+                    "--user",
+                    userId.ToString(CultureInfo.InvariantCulture),
+                    PackageName,
+                ],
+                Timeout,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (AdbException exception)
+        {
+            return new AccountAddition(
+                false,
+                $"Le profil est créé mais le jeu n'a pas pu y être installé : {exception.UserMessage}",
+                userId);
+        }
+
+        if (!await IsInstalledAsync(serial, userId, cancellationToken).ConfigureAwait(false))
+        {
+            return new AccountAddition(
+                false,
+                "Le profil est créé mais le jeu ne s'y trouve pas. Installez-le depuis ce profil.",
+                userId);
+        }
+
+        // Démarré tout de suite : une application ne s'ouvre pas sur un profil
+        // qui ne tourne pas, et l'utilisateur vient de demander un compte pour
+        // s'en servir.
+        await _users.TryStartUserAsync(serial, userId, cancellationToken).ConfigureAwait(false);
+
+        return new AccountAddition(
+            true,
+            $"« {name.Trim()} » ajouté. Le jeu s'y ouvrira comme neuf : "
+            + "il redemandera ses ressources et votre connexion.",
+            userId);
+    }
+
     public async Task<bool> IsInstalledAsync(
         string serial,
         int userId,

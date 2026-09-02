@@ -1,4 +1,5 @@
 ﻿using DtHub.Core.Adb;
+using DtHub.Core.Android;
 
 namespace DtHub.Core.Users;
 
@@ -133,6 +134,72 @@ public sealed class AndroidUserService
         catch (AdbException)
         {
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Nombre de profils que l'appareil accepte en tout, ou <c>null</c> s'il ne
+    /// le dit pas. Le principal compte dans ce total.
+    /// </summary>
+    public async Task<int?> GetMaxUsersAsync(
+        string serial,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(serial);
+
+        try
+        {
+            var output = await _adb
+                .ShellAsync(serial, ["pm", "get-max-users"], null, cancellationToken)
+                .ConfigureAwait(false);
+
+            return AndroidUserParser.ParseMaxUsers(output);
+        }
+        catch (AdbException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Crée un profil Android et rend son identifiant.
+    ///
+    /// C'est le mécanisme que le téléphone emploie lui-même pour ses comptes
+    /// multiples : rien n'est recopié, rien n'est modifié, l'application reste
+    /// celle de l'éditeur, signée par lui. Le profil naît vide, avec son propre
+    /// espace de données.
+    /// </summary>
+    /// <returns>L'identifiant du profil, ou <c>null</c> si la création a été refusée.</returns>
+    public async Task<int?> TryCreateUserAsync(
+        string serial,
+        string name,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(serial);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+        try
+        {
+            var output = await _adb
+                .ShellAsync(
+                    serial,
+                    ["pm", "create-user", AndroidShell.Quote(name.Trim())],
+                    null,
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+            var id = AndroidUserParser.ParseCreatedUserId(output);
+
+            if (id is not null)
+            {
+                InvalidateCache(serial);
+            }
+
+            return id;
+        }
+        catch (AdbException)
+        {
+            return null;
         }
     }
 

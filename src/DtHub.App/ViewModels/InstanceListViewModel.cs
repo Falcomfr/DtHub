@@ -470,6 +470,89 @@ public sealed partial class InstanceListViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Ajoute un compte sur ce téléphone.
+    ///
+    /// Un profil Android neuf, avec le jeu dedans. C'est le mécanisme des
+    /// comptes multiples d'Android, celui que la surcouche du téléphone emploie
+    /// elle-même : rien n'est recopié, l'application reste celle de l'éditeur.
+    ///
+    /// Le nom est posé d'office et se change ensuite comme celui des autres
+    /// instances : demander un nom avant même de savoir si le téléphone
+    /// acceptera ferait taper pour rien.
+    ///
+    /// Une confirmation est demandée, parce que cela touche le téléphone et
+    /// que le profil naît vide : le jeu y redemandera ses ressources et la
+    /// connexion, ce qui n'est pas ce qu'on attend d'un clic sur un plus.
+    /// </summary>
+    [RelayCommand]
+    private async Task AddAccountAsync(DeviceGroupViewModel? device)
+    {
+        if (device is null)
+        {
+            return;
+        }
+
+        var name = NextAccountName(device.DeviceId);
+
+        if (!_dialogs.Confirm(
+                $"Ajouter le compte « {name} » sur {device.Name} ?\n\n"
+                + "Un profil Android neuf sera créé sur le téléphone, avec le jeu dedans. "
+                + "Il s'ouvrira comme une installation neuve : le jeu redemandera ses "
+                + "ressources et votre connexion.",
+                "Ajouter un compte"))
+        {
+            return;
+        }
+
+        device.IsBusy = true;
+
+        try
+        {
+            var result = await _launcher
+                .AddAccountAsync(device.DeviceId, name)
+                .ConfigureAwait(true);
+
+            if (result.Succeeded)
+            {
+                _dialogs.ShowInformation(result.Message, "Ajouter un compte");
+            }
+            else
+            {
+                _dialogs.ShowWarning(result.Message, "Ajouter un compte");
+            }
+        }
+        finally
+        {
+            device.IsBusy = false;
+        }
+
+        await RefreshAsync().ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// Un nom libre pour le prochain compte de ce téléphone. Le numéro suit ce
+    /// qui existe déjà, sans jamais retomber sur un nom pris : deux profils du
+    /// même nom seraient indiscernables dans la liste comme sur le téléphone.
+    /// </summary>
+    private string NextAccountName(string deviceId)
+    {
+        var taken = Rows
+            .Where(r => string.Equals(r.DeviceId, deviceId, StringComparison.Ordinal))
+            .Select(r => r.Name)
+            .ToHashSet(StringComparer.CurrentCultureIgnoreCase);
+
+        for (var n = taken.Count + 1; ; n++)
+        {
+            var candidate = $"Compte {n.ToString(System.Globalization.CultureInfo.CurrentCulture)}";
+
+            if (!taken.Contains(candidate))
+            {
+                return candidate;
+            }
+        }
+    }
+
+    /// <summary>
     /// Rompt l'association d'un appareil. Ses fenêtres se ferment, ses
     /// instances et leurs réglages sont effacés : il faudra l'associer de
     /// nouveau pour s'en resservir.

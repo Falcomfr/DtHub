@@ -127,8 +127,6 @@ public static class AppServices
         services.AddTransient<AddDeviceWindow>();
         services.AddTransient<HelpViewModel>();
         services.AddTransient<HelpWindow>();
-        services.AddTransient<CloneHelpViewModel>();
-        services.AddTransient<CloneHelpWindow>();
         services.AddTransient<SleepHelpViewModel>();
         services.AddTransient<SleepHelpWindow>();
         services.AddSingleton<QuestViewModel>();
