@@ -34,24 +34,8 @@
                    GotKeyboardFocus="OnSearchFocused"
                    PreviewMouseLeftButtonDown="OnSearchClicked"
                    PreviewKeyDown="OnSearchKey"
-                   ToolTip="Cliquez pour dérouler la liste, ou tapez un nom. Les accents ne comptent pas." />
-
-          <!-- Ce que le champ accepte, tant qu'on n'y a rien écrit. Il rendait
-               quatre natures de résultat sans jamais le dire, et rien n'invitait
-               à y chercher autre chose qu'une quête.
-
-               Posé par-dessus le champ et non dedans : un TextBox n'a pas de
-               texte d'invite. Il laisse passer la souris, sans quoi le clic qui
-               déroule la liste tomberait dessus. Sa marge suit celle du gabarit,
-               un pixel de bordure et sept de retrait, pour que l'invite et la
-               saisie partent du même point. -->
-          <TextBlock Grid.Column="0" Margin="9,0,0,0" IsHitTestVisible="False"
-                     VerticalAlignment="Center"
-                     FontFamily="{StaticResource UiFont}" FontSize="13"
-                     Foreground="{DynamicResource TextMutedBrush}"
-                     TextTrimming="CharacterEllipsis"
-                     Text="Cherchez une zone, un succès, une quête ou un donjon"
-                     Visibility="{Binding Query, Converter={StaticResource EmptyToVisibility}}" />
+                   ToolTip="Cliquez pour dérouler la liste, ou tapez un nom. Les accents ne comptent pas."
+                   Tag="Cherchez une zone, un succès, une quête ou un donjon" />
 
           <!-- Hors du champ et non par-dessus : le gabarit de TextBox n'a pas
                de marge à droite, et une croix superposée mordrait sur le texte. -->

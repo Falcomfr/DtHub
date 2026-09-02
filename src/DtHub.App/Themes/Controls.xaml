@@ -201,8 +201,38 @@
           <Border Background="{TemplateBinding Background}"
                   BorderBrush="{TemplateBinding BorderBrush}"
                   BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{StaticResource Radius}">
-            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" />
+            <Grid>
+              <!-- Le texte d'invite, quand le champ est vide et qu'on lui en a
+                   posé un dans son Tag.
+
+                   Dans le gabarit et non par-dessus le champ : superposé, il
+                   fallait deviner sa marge. Il partage ainsi la bordure et la
+                   fonte du champ.
+
+                   Le retrait est appliqué deux fois, en marge et en retrait
+                   propre, parce que le champ fait de même : la marge du gabarit
+                   écarte le porte-texte, et le champ écarte encore le texte à
+                   l'intérieur. Mesuré, l'invite tombait quatorze pixels à
+                   gauche de la saisie, soit exactement deux fois les sept
+                   pixels de retrait. -->
+              <TextBlock x:Name="Invite" Margin="{TemplateBinding Padding}"
+                         Padding="{TemplateBinding Padding}"
+                         Text="{TemplateBinding Tag}"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         FontFamily="{TemplateBinding FontFamily}"
+                         FontSize="{TemplateBinding FontSize}"
+                         TextTrimming="CharacterEllipsis"
+                         IsHitTestVisible="False"
+                         Visibility="Collapsed" />
+
+              <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" />
+            </Grid>
           </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="Text" Value="">
+              <Setter TargetName="Invite" Property="Visibility" Value="Visible" />
+            </Trigger>
+          </ControlTemplate.Triggers>
         </ControlTemplate>
       </Setter.Value>
     </Setter>
