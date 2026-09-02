@@ -104,6 +104,7 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                   </Grid.ColumnDefinitions>
@@ -139,7 +140,17 @@
                                                      RelativeSource={RelativeSource AncestorType=UserControl},
                                                      Converter={StaticResource BoolToVisibility}}" />
 
-                  <StackPanel Grid.Column="3" VerticalAlignment="Center">
+                  <!-- L'icône réelle du jeu, tirée d'une seule entrée de son
+                       archive. La place est tenue même quand il n'y en a pas :
+                       une hauteur et une largeur fixes font que la colonne ne
+                       bouge pas, et qu'une icône arrivée après le balayage ne
+                       décale pas le nom de toutes les lignes. -->
+                  <Image Grid.Column="3" Width="20" Height="20" Margin="0,0,7,0"
+                         VerticalAlignment="Center" Stretch="Uniform"
+                         RenderOptions.BitmapScalingMode="HighQuality"
+                         Source="{Binding IconPath, Converter={StaticResource IconPath}}" />
+
+                  <StackPanel Grid.Column="4" VerticalAlignment="Center">
                     <TextBox Text="{Binding Name, UpdateSourceTrigger=LostFocus}" AllowDrop="False"
                              Style="{StaticResource InlineEdit}"
                              ToolTip="Cliquez pour renommer. Ce texte devient le titre de la fenêtre du jeu, visible dans la barre des tâches." />
@@ -156,7 +167,7 @@
                   <!-- Les boutons disent à eux seuls l'état de l'instance :
                        « Lancer » quand elle est fermée, « Relancer » et
                        « Fermer » quand elle est ouverte. -->
-                  <Grid Grid.Column="4" Margin="8,0,0,0"
+                  <Grid Grid.Column="5" Margin="8,0,0,0"
                         Visibility="{Binding ShowActions,
                                              RelativeSource={RelativeSource AncestorType=UserControl},
                                              Converter={StaticResource BoolToVisibility}}">

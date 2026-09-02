@@ -1,4 +1,4 @@
-using DtHub.Core.Adb;
+﻿using DtHub.Core.Adb;
 using DtHub.Core.Processes;
 
 namespace DtHub.Tests.Fakes;
@@ -39,6 +39,22 @@ public abstract class FakeAdbClientBase : IAdbClient
             StandardOutput = string.Empty,
             StandardError = string.Empty,
             Duration = TimeSpan.Zero,
+        });
+
+    /// <summary>
+    /// Aucune sortie binaire par défaut : les suites qui héritent de cette base
+    /// éprouvent des enchaînements de commandes textuelles.
+    /// </summary>
+    public virtual Task<ProcessBytes> ExecOutAsync(
+        string serial,
+        IReadOnlyList<string> arguments,
+        TimeSpan? timeout = null,
+        CancellationToken cancellationToken = default) =>
+        Task.FromResult(new ProcessBytes
+        {
+            ExitCode = 1,
+            StandardOutput = [],
+            StandardError = "FakeAdbClientBase : exec-out non simulé.",
         });
 
     public Task<string> ShellAsync(

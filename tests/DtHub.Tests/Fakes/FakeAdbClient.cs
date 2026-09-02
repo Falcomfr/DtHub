@@ -1,4 +1,4 @@
-using DtHub.Core.Adb;
+﻿using DtHub.Core.Adb;
 using DtHub.Core.Processes;
 
 namespace DtHub.Tests.Fakes;
@@ -86,6 +86,46 @@ public sealed class FakeAdbClient : IAdbClient
     {
         _shellRules.Add((argumentsContain, () => throw new AdbException(kind, AdbErrorInterpreter.Describe(kind))));
         return this;
+    }
+
+    private readonly List<(string Match, byte[] Output)> _execOutRules = [];
+
+    /// <summary>Commandes « exec-out » reçues, jointes par des espaces.</summary>
+    public List<string> ExecOutCalls { get; } = [];
+
+    /// <summary>Déclare une sortie binaire pour une commande contenant le motif donné.</summary>
+    public FakeAdbClient WithExecOut(string argumentsContain, byte[] output)
+    {
+        _execOutRules.Add((argumentsContain, output));
+
+        return this;
+    }
+
+    public Task<ProcessBytes> ExecOutAsync(
+        string serial,
+        IReadOnlyList<string> arguments,
+        TimeSpan? timeout = null,
+        CancellationToken cancellationToken = default)
+    {
+        var joined = string.Join(' ', arguments);
+        ExecOutCalls.Add(joined);
+
+        var rule = _execOutRules.FirstOrDefault(
+            r => joined.Contains(r.Match, StringComparison.Ordinal));
+
+        return Task.FromResult(rule.Output is null
+            ? new ProcessBytes
+            {
+                ExitCode = 1,
+                StandardOutput = [],
+                StandardError = $"FakeAdbClient : aucune règle exec-out pour « {joined} »",
+            }
+            : new ProcessBytes
+            {
+                ExitCode = 0,
+                StandardOutput = rule.Output,
+                StandardError = string.Empty,
+            });
     }
 
     public Task<string> ShellAsync(

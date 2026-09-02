@@ -129,8 +129,13 @@ pour toute la machine. Un test le vérifie.
   reconnaissance d'écran pour jouer, synchronisation d'entrées entre comptes,
   contournement d'une limitation du jeu. Une entrée utilisateur correspond à
   une action, sur un compte, et à une seule.
-- Utiliser une marque, un logo ou une ressource d'Ankama. DT Hub cite le nom
-  du jeu pour dire ce qu'il fait, rien de plus.
+- Embarquer ou redistribuer une marque, un logo ou une ressource d'Ankama.
+  Rien de tel n'entre dans le dépôt ni dans l'exécutable : DT Hub cite le nom
+  du jeu pour dire ce qu'il fait, et ses propres icônes sont dessinées par
+  `build/make-icon.py`. Afficher l'icône de l'application déjà installée sur
+  l'appareil de l'utilisateur, lue à l'exécution et gardée dans son cache, est
+  en revanche permis : c'est ce que fait tout gestionnaire d'applications, et
+  rien n'est ni copié ni diffusé.
 - PowerShell, AutoHotkey, Node.js ou Python à l'exécution de l'application.
   Ces outils sont tolérés dans les scripts de développement uniquement.
 - Toucher à Windows Defender, créer des exclusions antivirus, demander

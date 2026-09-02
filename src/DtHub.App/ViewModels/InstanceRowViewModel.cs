@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 
 using DtHub.Core.Dofus;
 
@@ -97,6 +97,20 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     private bool _dropBelow;
 
     public string DeviceId => Instance.DeviceId;
+
+    /// <summary>
+    /// Chemin de l'icône du jeu dans le cache, quand elle a pu être extraite.
+    ///
+    /// Une chaîne et non une image : aucun type d'interface n'entre dans un
+    /// modèle de vue ici, et c'est un convertisseur qui décode, une fois pour
+    /// toutes les lignes qui partagent le même fichier.
+    ///
+    /// Rien ne la remet à zéro : le balayage met les lignes à jour au lieu de
+    /// les recréer, si bien qu'une icône posée y reste et que la liste ne
+    /// clignote pas.
+    /// </summary>
+    [ObservableProperty]
+    private string? _iconPath;
 
     /// <summary>Appareil qui porte cette instance. Il peint l'en-tête, quand il y en a un.</summary>
     [ObservableProperty]

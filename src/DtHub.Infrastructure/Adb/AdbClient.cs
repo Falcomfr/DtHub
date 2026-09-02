@@ -1,4 +1,4 @@
-using DtHub.Core.Adb;
+﻿using DtHub.Core.Adb;
 using DtHub.Core.Processes;
 
 using Microsoft.Extensions.Logging;
@@ -93,6 +93,50 @@ public sealed partial class AdbClient : IAdbClient
         }
 
         return AdbOutputParser.ParseDevices(result.StandardOutput);
+    }
+
+    public async Task<ProcessBytes> ExecOutAsync(
+        string serial,
+        IReadOnlyList<string> arguments,
+        TimeSpan? timeout = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(serial);
+        ArgumentNullException.ThrowIfNull(arguments);
+
+        var adbPath = await _locator.GetAdbPathAsync(cancellationToken).ConfigureAwait(false);
+
+        var request = new ProcessRequest
+        {
+            FileName = adbPath,
+            Arguments = ["-s", serial, "exec-out", .. arguments],
+            Timeout = timeout ?? DefaultTimeout,
+        };
+
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            LogCommand(request.ToDisplayString());
+        }
+
+        try
+        {
+            var result = await _runner.RunForBytesAsync(request, cancellationToken).ConfigureAwait(false);
+
+            if (!result.Succeeded && _logger.IsEnabled(LogLevel.Debug))
+            {
+                LogCommandFailed(result.ExitCode, result.TimedOut, Truncate(result.StandardError));
+            }
+
+            return result;
+        }
+        catch (ProcessLaunchException exception)
+        {
+            throw new AdbException(
+                AdbErrorKind.AdbUnavailable,
+                AdbErrorInterpreter.Describe(AdbErrorKind.AdbUnavailable),
+                exception.Message,
+                exception);
+        }
     }
 
     public async Task<ProcessResult> ExecuteAsync(

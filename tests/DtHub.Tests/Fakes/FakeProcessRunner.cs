@@ -1,4 +1,4 @@
-using DtHub.Core.Processes;
+﻿using DtHub.Core.Processes;
 
 namespace DtHub.Tests.Fakes;
 
@@ -49,6 +49,46 @@ public sealed class FakeProcessRunner : IProcessRunner
         return this;
     }
 
+    private readonly List<BytesRule> _bytesRules = [];
+
+    /// <summary>Répond en octets dès que les arguments contiennent la séquence donnée.</summary>
+    public FakeProcessRunner RespondWithBytes(
+        string argumentsContain,
+        byte[] standardOutput,
+        string standardError = "",
+        int exitCode = 0)
+    {
+        _bytesRules.Add(new BytesRule(
+            request => Join(request).Contains(argumentsContain, StringComparison.Ordinal),
+            _ => new ProcessBytes
+            {
+                ExitCode = exitCode,
+                StandardOutput = standardOutput,
+                StandardError = standardError,
+            }));
+
+        return this;
+    }
+
+    public Task<ProcessBytes> RunForBytesAsync(
+        ProcessRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Calls.Add(request);
+
+        var rule = _bytesRules.FirstOrDefault(r => r.Matches(request));
+
+        var result = rule?.Respond(request) ?? new ProcessBytes
+        {
+            ExitCode = 1,
+            StandardOutput = [],
+            StandardError = $"FakeProcessRunner : aucune règle binaire pour « {Join(request)} »",
+        };
+
+        return Task.FromResult(result);
+    }
+
     public Task<ProcessResult> RunAsync(ProcessRequest request, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -72,4 +112,8 @@ public sealed class FakeProcessRunner : IProcessRunner
     private static string Join(ProcessRequest request) => string.Join(' ', request.Arguments);
 
     private sealed record Rule(Func<ProcessRequest, bool> Matches, Func<ProcessRequest, ProcessResult> Respond);
+
+    private sealed record BytesRule(
+        Func<ProcessRequest, bool> Matches,
+        Func<ProcessRequest, ProcessBytes> Respond);
 }

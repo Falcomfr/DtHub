@@ -123,7 +123,7 @@ qu'imposerait un tel patch est écrite dans
 
 ## D6 - Pas d'icônes réelles d'applications dans le cycle 0.x
 
-**2026-08-29 - Acceptée, à rouvrir**
+**2026-08-29 - Acceptée, à rouvrir. Rouverte le 2026-09-02, voir D67.**
 
 Le sélecteur d'applications gagnerait à montrer les vraies icônes. Aucune voie
 raisonnable ne le permet aujourd'hui :
@@ -1858,4 +1858,47 @@ rien de son absence.
 
 **Vérifié sur le téléphone** : compte créé par le bouton, profil supprimé depuis
 le téléphone, ligne partie au balayage suivant, avec sa trace au journal.
+\n
+
+## D67 - Les icônes réelles, la condition de D6 étant remplie
+
+D6 refusait les icônes réelles d'applications et se terminait ainsi :
+
+> À rouvrir si scrcpy publie les icônes, ou si **une extraction ciblée d'entrée
+> d'APK devient possible sans transférer le fichier entier**.
+
+C'est le cas, et le motif de D6 était faux pour ce jeu :
+
+| Ce que D6 supposait | Ce que la mesure donne |
+|:--|:--|
+| Une archive « de plusieurs centaines de mégaoctets » | 14,6 Mo, et elle ne bouge pas |
+| Un décodage de `resources.arsc` | Aucun : les icônes sont des PNG en clair, six densités |
+| Un transfert du fichier | 51 018 octets, la seule entrée voulue |
+
+Trois commandes, et l'archive reste sur le téléphone : `pm path` dit où elle
+est, `unzip -l` dit ce qu'elle contient, `exec-out unzip -p` en tire l'entrée.
+441 millisecondes, mesuré, une fois par appareil et par paquet.
+
+**Le choix de l'entrée ne lit aucune ressource.** La convention d'Android nomme
+cette image `ic_launcher`, et l'on prend la plus dense des matricielles. Les
+morceaux d'une icône adaptative, `_foreground` et `_background`, sont écartés :
+montrer l'un seul donnerait une image tronquée. Une application qui ne livre
+qu'une icône adaptative en XML ne rend rien, et la liste reste celle d'avant.
+
+**Un piège d'ADB, trouvé en le faisant.** `adb shell` fait passer la commande
+par un shell, qui retire les citations. **`adb exec-out` remet les arguments
+tels quels**, si bien qu'une apostrophe ajoutée devient une partie du nom de
+fichier : citée, l'archive rendait « couldn't open ... : I/O error » ; nue, elle
+rend ses cinquante et un kilooctets. La citation est donc appliquée au listage
+et retirée de l'extraction, ce qui est aussi plus sûr, rien n'étant réinterprété.
+
+**Ce que la règle du dépôt devient.** `AGENTS.md` interdisait « utiliser une
+marque, un logo ou une ressource d'Ankama ». Elle interdit désormais de les
+embarquer ou de les redistribuer, ce qui est le fond, et permet d'afficher
+l'icône de l'application déjà installée sur l'appareil de l'utilisateur, lue à
+l'exécution et gardée dans son cache. Rien n'entre dans le dépôt ni dans
+l'exécutable.
+
+**Ce qui reste vrai de D6** : scrcpy ne publie toujours pas les icônes, et aucun
+assistant n'est installé sur le téléphone.
 \n

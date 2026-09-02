@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 
 using DtHub.App.Services;
 using DtHub.Core.Adb;
+using DtHub.Core.Android;
 using DtHub.Core.Devices;
 using DtHub.Core.Settings;
 
@@ -21,11 +22,16 @@ public sealed partial class InstanceListViewModel : ObservableObject
     private readonly SettingsService _settings;
     private readonly IDialogService _dialogs;
 
-    public InstanceListViewModel(GameLauncher launcher, SettingsService settings, IDialogService dialogs)
+    public InstanceListViewModel(
+        GameLauncher launcher,
+        SettingsService settings,
+        IDialogService dialogs,
+        IAppIconProvider icons)
     {
         _launcher = launcher;
         _settings = settings;
         _dialogs = dialogs;
+        _icons = icons;
 
         // Fermer une fenêtre de jeu doit se voir tout de suite. Attendre le
         // balayage laissait jusqu'à trois secondes pendant lesquelles la liste
@@ -182,6 +188,8 @@ public sealed partial class InstanceListViewModel : ObservableObject
             OnPropertyChanged(nameof(HasNoConnectedDevice));
             OnPropertyChanged(nameof(HasConnectedDevice));
             OnPropertyChanged(nameof(EnabledCount));
+
+            RequestIcons();
         }
         catch (AdbException exception)
         {
@@ -190,6 +198,55 @@ public sealed partial class InstanceListViewModel : ObservableObject
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    private readonly IAppIconProvider _icons;
+
+    /// <summary>
+    /// Demande l'icône des lignes qui n'en ont pas encore.
+    ///
+    /// Ce qui est déjà connu est posé sur-le-champ, sans rien demander au
+    /// téléphone : le balayage passe toutes les trois secondes et ne doit pas
+    /// s'allonger d'une seule commande. Le reste part en tâche de fond, que
+    /// personne n'attend, ce que seule autorise la promesse du fournisseur de
+    /// ne jamais lever.
+    /// </summary>
+    private void RequestIcons()
+    {
+        foreach (var row in Rows)
+        {
+            if (row.IconPath is not null)
+            {
+                continue;
+            }
+
+            if (_icons.Find(row.DeviceId, row.Instance.PackageName) is { } known)
+            {
+                row.IconPath = known;
+
+                continue;
+            }
+
+            if (_devices.TryGetValue(row.DeviceId, out var device) && device.Serial.Length > 0)
+            {
+                _ = FillIconAsync(row, device.Serial);
+            }
+        }
+    }
+
+    private async Task FillIconAsync(InstanceRowViewModel row, string serial)
+    {
+        var path = await _icons.GetAsync(
+            new AppIconRequest(
+                row.DeviceId,
+                serial,
+                row.Instance.UserId,
+                row.Instance.PackageName)).ConfigureAwait(true);
+
+        if (path is not null)
+        {
+            row.IconPath = path;
         }
     }
 

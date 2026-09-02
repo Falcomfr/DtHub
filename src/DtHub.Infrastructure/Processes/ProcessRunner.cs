@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text;
 
 using DtHub.Core.Processes;
@@ -133,6 +133,124 @@ public sealed class ProcessRunner : IProcessRunner
             StandardOutput = standardOutput.ToString(),
             StandardError = standardError.ToString(),
             Duration = stopwatch.Elapsed,
+            TimedOut = timedOut,
+        };
+    }
+
+    /// <summary>
+    /// Même lancement, mais la sortie standard est lue en octets.
+    ///
+    /// Ni <c>StandardOutputEncoding</c> ni <c>BeginOutputReadLine</c> : le
+    /// premier décoderait en UTF-8, le second découperait en lignes, et une
+    /// image ne survit ni à l'un ni à l'autre. On lit le flux brut, et l'erreur
+    /// standard reste du texte parce que c'est ce qu'elle porte.
+    /// </summary>
+    public async Task<ProcessBytes> RunForBytesAsync(
+        ProcessRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = request.FileName,
+            WorkingDirectory = request.WorkingDirectory ?? string.Empty,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            RedirectStandardInput = true,
+            StandardErrorEncoding = Encoding.UTF8,
+        };
+
+        foreach (var argument in request.Arguments)
+        {
+            startInfo.ArgumentList.Add(argument);
+        }
+
+        foreach (var (key, value) in request.Environment)
+        {
+            startInfo.Environment[key] = value;
+        }
+
+        using var process = new Process { StartInfo = startInfo, EnableRaisingEvents = true };
+
+        try
+        {
+            if (!process.Start())
+            {
+                throw new ProcessLaunchException(
+                    request.FileName,
+                    $"Le processus {request.FileName} n'a pas pu être démarré.");
+            }
+        }
+        catch (Exception exception) when (exception is not ProcessLaunchException)
+        {
+            throw new ProcessLaunchException(
+                request.FileName,
+                $"Le processus {request.FileName} n'a pas pu être démarré : {exception.Message}",
+                exception);
+        }
+
+        try
+        {
+            process.StandardInput.Close();
+        }
+        catch (IOException)
+        {
+            // Le processus s'est déjà terminé, rien à fermer.
+        }
+
+        using var timeoutSource = new CancellationTokenSource();
+        using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken, timeoutSource.Token);
+
+        if (request.Timeout is { } timeout && timeout > TimeSpan.Zero)
+        {
+            timeoutSource.CancelAfter(timeout);
+        }
+
+        using var buffer = new MemoryStream();
+
+        var errorRead = process.StandardError.ReadToEndAsync(CancellationToken.None);
+        var timedOut = false;
+
+        try
+        {
+            // Les deux flux sont vidés en parallèle : lire l'un jusqu'au bout
+            // pendant que l'autre remplit son tampon bloquerait le processus.
+            await process.StandardOutput.BaseStream
+                .CopyToAsync(buffer, linkedSource.Token)
+                .ConfigureAwait(false);
+
+            await process.WaitForExitAsync(linkedSource.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            KillQuietly(process);
+
+            cancellationToken.ThrowIfCancellationRequested();
+            timedOut = true;
+        }
+
+        var error = string.Empty;
+
+        try
+        {
+            error = await errorRead.WaitAsync(TimeSpan.FromSeconds(5), CancellationToken.None)
+                .ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is TimeoutException or IOException)
+        {
+            // L'erreur standard n'a pas été refermée : ce qu'on a suffit.
+        }
+
+        return new ProcessBytes
+        {
+            ExitCode = timedOut ? -1 : SafeExitCode(process),
+            StandardOutput = timedOut ? [] : buffer.ToArray(),
+            StandardError = error,
             TimedOut = timedOut,
         };
     }

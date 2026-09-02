@@ -27,6 +27,13 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     /// le démarrer demande une quinzaine de secondes au téléphone : sans cette
     /// marque, le bouton restait cliquable et rien ne disait qu'il travaillait.
     /// </summary>
+    /// <summary>
+    /// Numéro de série ADB, qui est une adresse en sans-fil et change donc.
+    /// L'identité stable est <see cref="DeviceId"/> ; celui-ci ne sert qu'à
+    /// adresser une commande.
+    /// </summary>
+    public string Serial { get; private set; } = string.Empty;
+
     [ObservableProperty]
     private bool _isBusy;
 
@@ -87,6 +94,7 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
         ArgumentNullException.ThrowIfNull(device);
 
         Name = device.DisplayName;
+        Serial = device.Serial;
         State = device.State;
         Connection = device.ConnectionKind;
 

@@ -6,6 +6,8 @@ using DtHub.App.Services;
 using DtHub.App.ViewModels;
 using DtHub.App.Windows;
 using DtHub.Core.Adb;
+using DtHub.Infrastructure.Android;
+using DtHub.Core.Android;
 using DtHub.Core.Dependencies;
 using DtHub.Core.Devices;
 using DtHub.Core.Dofus;
@@ -108,6 +110,7 @@ public static class AppServices
 
         // Jeu.
         services.AddSingleton<DofusInstanceService>();
+        services.AddSingleton<IAppIconProvider, AppIconProvider>();
         services.AddSingleton<IAppLauncher, AndroidAppLauncher>();
         services.AddSingleton<AppRestartService>();
         services.AddSingleton<ScrcpySessionManager>();

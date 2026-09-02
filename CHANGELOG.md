@@ -9,6 +9,11 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Ajouté
 
+- Chaque compte porte l'icône du jeu, celle qui est sur le téléphone. Elle est
+  tirée d'une seule entrée de l'archive de l'application, cinquante et un
+  kilooctets pour une archive de quatorze mégaoctets qui ne bouge pas, puis
+  gardée dans le cache. Une application dont l'icône n'est pas extractible
+  n'affiche rien, et la liste reste ce qu'elle était.
 - Un bouton ajoute un compte sur le téléphone, à droite de son nom. Il crée un
   profil Android, y installe le jeu et le démarre : le compte apparaît dans la
   liste, prêt à ouvrir, sans redémarrer l'application. C'est le mécanisme des

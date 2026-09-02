@@ -1,4 +1,4 @@
-using DtHub.Core.Processes;
+﻿using DtHub.Core.Processes;
 
 namespace DtHub.Core.Adb;
 
@@ -52,6 +52,24 @@ public interface IAdbClient
         CancellationToken cancellationToken = default);
 
     /// <summary>Lit les propriétés système de l'appareil via <c>getprop</c>.</summary>
+    /// <summary>
+    /// Exécute une commande dans le shell de l'appareil et rend sa sortie
+    /// octet pour octet.
+    ///
+    /// C'est la variante binaire d'ADB. Contrairement à « shell », « exec-out »
+    /// n'alloue pas de pseudo-terminal et ne réécrit donc aucune fin de ligne :
+    /// c'est ce qui permet d'en tirer une image intacte.
+    ///
+    /// Ne lève pas sur un code de retour non nul et ne classe pas la sortie :
+    /// l'interprète d'erreurs lit du texte, et une image n'en est pas.
+    /// L'appelant vérifie lui-même ce qu'il reçoit.
+    /// </summary>
+    Task<ProcessBytes> ExecOutAsync(
+        string serial,
+        IReadOnlyList<string> arguments,
+        TimeSpan? timeout = null,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyDictionary<string, string>> GetPropertiesAsync(
         string serial,
         CancellationToken cancellationToken = default);

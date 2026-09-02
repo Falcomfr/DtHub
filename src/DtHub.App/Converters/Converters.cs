@@ -1,7 +1,9 @@
-using System.Globalization;
+﻿using System.Globalization;
+using System.IO;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace DtHub.App.Converters;
 
@@ -90,6 +92,76 @@ public sealed class HexToBrushConverter : IValueConverter
 }
 
 /// <summary>Vrai si la valeur est égale au paramètre. Sert aux boutons de filtre.</summary>
+/// <summary>
+/// Charge une icône du cache et la garde.
+///
+/// Trois choses comptent. « OnLoad » referme le fichier tout de suite, sans
+/// quoi une nouvelle extraction ne pourrait plus le réécrire. L'image est
+/// gelée, donc partageable entre lignes et entre fils. Et le décodage est
+/// mémorisé par chemin, si bien que dix instances du même jeu ne décodent
+/// qu'une seule image.
+///
+/// Un chemin absent, un fichier illisible ou une image abîmée rendent
+/// <c>null</c> : la place est tenue par la mise en page, et il ne s'affiche
+/// rien.
+/// </summary>
+public sealed class IconPathToImageConverter : IValueConverter
+{
+    private static readonly Dictionary<string, BitmapImage?> Cache = new(StringComparer.Ordinal);
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is not string path || path.Length == 0)
+        {
+            return null;
+        }
+
+        lock (Cache)
+        {
+            if (Cache.TryGetValue(path, out var known))
+            {
+                return known;
+            }
+
+            var image = Load(path);
+            Cache[path] = image;
+
+            return image;
+        }
+    }
+
+    private static BitmapImage? Load(string path)
+    {
+        try
+        {
+            var image = new BitmapImage();
+
+            image.BeginInit();
+            image.CacheOption = BitmapCacheOption.OnLoad;
+            image.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
+
+            // Le double de la place à l'écran : net jusqu'à deux cents pour
+            // cent de mise à l'échelle, sans décoder cent quatre-vingt-douze
+            // pixels pour en montrer vingt.
+            image.DecodePixelWidth = 40;
+            image.UriSource = new Uri(path, UriKind.Absolute);
+            image.EndInit();
+            image.Freeze();
+
+            return image;
+        }
+        catch (Exception exception)
+            when (exception is IOException or UnauthorizedAccessException
+                      or NotSupportedException or UriFormatException)
+        {
+            return null;
+        }
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
 public sealed class EqualityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
