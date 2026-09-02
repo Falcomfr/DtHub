@@ -89,6 +89,13 @@ public static class ScrcpyCommandBuilder
             arguments.Add("--keep-active");
         }
 
+        // Compatible avec « --keep-active » qui précède : l'un garde l'appareil
+        // éveillé, l'autre éteint sa dalle.
+        if (sanitized.TurnScreenOff)
+        {
+            arguments.Add("--turn-screen-off");
+        }
+
         if (!string.IsNullOrWhiteSpace(sanitized.VideoCodec))
         {
             arguments.Add(Option("video-codec", sanitized.VideoCodec));

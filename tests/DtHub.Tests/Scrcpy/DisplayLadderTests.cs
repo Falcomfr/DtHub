@@ -78,9 +78,41 @@ public sealed class DisplayLadderTests
         Assert.Equal(1080, QualityProfile.For(StreamQuality.Medium).MaximumDisplayHeight);
         Assert.Equal(int.MaxValue, QualityProfile.For(StreamQuality.Maximum).MaximumDisplayHeight);
 
-        // Trois paliers, pas quatre : deux voisins indiscernables ne servaient
-        // qu'à faire hésiter.
-        Assert.Equal(3, Enum.GetValues<StreamQuality>().Length);
+        // Trois paliers automatiques, pas quatre : deux voisins indiscernables
+        // ne servaient qu'à faire hésiter. « Personnalisé » ne se compte pas
+        // ici, ce n'est pas un barreau de plus sur l'échelle mais une sortie
+        // de route, dont les valeurs viennent de l'utilisateur.
+        Assert.Equal(
+            3,
+            Enum.GetValues<StreamQuality>().Count(q => q != StreamQuality.Custom));
+    }
+
+    [Fact]
+    public void Le_palier_personnalise_borne_a_la_hauteur_choisie()
+    {
+        var profile = QualityProfile.For(
+            StreamQuality.Custom,
+            new CustomQuality { MaximumDisplayHeight = 1440, MaxFps = 45, BitrateKbps = 20000 });
+
+        Assert.Equal(1440, profile.MaximumDisplayHeight);
+        Assert.Equal(45, profile.MaxFps);
+
+        // Le débit choisi est rendu tel quel, sans passer par le calcul en
+        // bits par pixel ni par le plafond du palier moyen : celui qui saisit
+        // un nombre a déjà tranché.
+        Assert.Equal(20000, profile.BitrateFor(2560, 1440));
+        Assert.Equal(20000, profile.BitrateFor(640, 360));
+    }
+
+    [Fact]
+    public void Un_palier_personnalise_sans_valeurs_reste_ouvrable()
+    {
+        // Un fichier de réglages qui annonce le palier sans en porter les
+        // valeurs doit rendre une session qui s'ouvre, pas une exception.
+        var profile = QualityProfile.For(StreamQuality.Custom);
+
+        Assert.Equal(CustomQuality.Default.MaxFps, profile.MaxFps);
+        Assert.True(profile.BitrateFor(1920, 1080) > 0);
     }
 
     [Fact]

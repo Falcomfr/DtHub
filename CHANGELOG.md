@@ -36,6 +36,27 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Ajouté
 
+- Un quatrième palier de qualité, « Personnalisé », qui déplie le réglage de la
+  définition, de la cadence, du débit et du codec vidéo. Il reste replié tant
+  qu'on ne le choisit pas : les trois paliers demeurent le chemin ordinaire.
+
+- Sous ces quatre réglages, une ligne qui dit ce qu'ils valent :
+  « 0,096 bit par pixel et par image, confortable ». C'est la mesure que
+  l'encodeur reçoit vraiment, et celle dont l'absence avait laissé passer un
+  débit à l'envers dans les paliers automatiques. Le codec entre dans le calcul,
+  H.265 rendant davantage à débit égal.
+
+- Deux codecs au choix, H.264 et H.265. AV1 et VP8 ne sont pas proposés : relevé
+  par `scrcpy --list-encoders`, un téléphone ordinaire n'a pour eux qu'un
+  encodeur logiciel, qui coûterait bien plus qu'il ne rend.
+
+- Une section « Sur le téléphone » avec trois interrupteurs : le son du
+  téléphone sur le PC, l'extinction de son écran, et la coupure de ses
+  animations. Le son est celui de l'appareil entier, Android ne sachant pas
+  l'isoler par application : une seule fenêtre par téléphone le porte donc.
+  Les animations sont un réglage global du téléphone, relu avant d'être changé
+  et rendu à la fermeture des fenêtres.
+
 - Chaque compte porte l'icône du jeu, celle qui est sur le téléphone. Elle est
   tirée d'une seule entrée de l'archive de l'application, cinquante et un
   kilooctets pour une archive de quatorze mégaoctets qui ne bouge pas, puis

@@ -112,6 +112,16 @@ public sealed record ScrcpyOptions
     /// <summary>Empêcher l'écran du téléphone de s'éteindre pendant la session.</summary>
     public bool KeepDeviceAwake { get; init; } = true;
 
+    /// <summary>
+    /// Éteindre l'écran du téléphone pendant la session.
+    ///
+    /// Ne contredit pas <see cref="KeepDeviceAwake"/> : l'un empêche l'appareil
+    /// de se mettre en veille, l'autre éteint sa dalle. L'image continue
+    /// d'arriver, vérifié sur le téléphone de référence, où <c>mWakefulness</c>
+    /// passe de <c>Awake</c> à <c>Dozing</c> pendant que le flux tourne.
+    /// </summary>
+    public bool TurnScreenOff { get; init; }
+
     /// <summary>Codec vidéo, <c>null</c> pour laisser scrcpy décider.</summary>
     public string? VideoCodec { get; init; }
 

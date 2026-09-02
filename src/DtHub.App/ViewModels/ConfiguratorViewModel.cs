@@ -86,6 +86,10 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
                 GameAnchor = document.GameAnchor;
                 Quality = document.Quality;
                 Zoom = document.GameZoom;
+                AudioEnabled = document.AudioEnabled;
+                TurnScreenOff = document.TurnDeviceScreenOff;
+                DisableAnimations = document.DisableDeviceAnimations;
+                ReadCustomQuality(document);
                 SizePercent = document.CustomSizePercent > 0
                     ? document.CustomSizePercent
                     : presets.PercentageAt(document.SizeIndex);
@@ -120,7 +124,101 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// lancement de scrcpy.
     /// </summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsCustomQuality))]
     private StreamQuality _quality = StreamQuality.Medium;
+
+    /// <summary>
+    /// Vrai quand le palier personnalisé est choisi. Les réglages fins ne
+    /// paraissent qu'alors : les montrer en permanence chargerait le panneau de
+    /// quatre lignes que la plupart des gens n'ont pas à connaître.
+    /// </summary>
+    public bool IsCustomQuality => Quality == StreamQuality.Custom;
+
+    /// <summary>Hauteur de l'afficheur, au palier personnalisé.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BitrateSummary))]
+    private int _customHeight = 1080;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BitrateSummary))]
+    private int _customFps = 60;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BitrateSummary))]
+    private int _customBitrateKbps = 12000;
+
+    /// <summary>
+    /// « h264 » ou « h265 ». Rien d'autre n'est proposé : relevé par
+    /// <c>scrcpy --list-encoders</c>, ce sont les seuls que le téléphone de
+    /// référence encode en matériel.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BitrateSummary))]
+    private string _customCodec = "h264";
+
+    /// <summary>
+    /// Ce que valent les quatre nombres, ramenés à la seule mesure qui compte.
+    ///
+    /// Un débit nu ne veut rien dire : seize mégabits sont généreux en 720p et
+    /// misérables en 2160p. C'est l'erreur dans laquelle ce projet est déjà
+    /// tombé, et cette phrase existe pour qu'elle ne se répète pas sous la main
+    /// de l'utilisateur.
+    /// </summary>
+    public string BitrateSummary => BitrateAdvice
+        .Read(CustomWidth, CustomHeight, CustomFps, CustomBitrateKbps, CustomCodec)
+        .Summary;
+
+    /// <summary>
+    /// La largeur qui va avec la hauteur choisie. Le jeu s'affiche en paysage
+    /// et l'afficheur virtuel suit le 16:9 : la demander séparément ferait un
+    /// réglage de plus pour une valeur qui se déduit.
+    /// </summary>
+    private int CustomWidth => CustomHeight * 16 / 9;
+
+    /// <summary>
+    /// Les hauteurs proposées. Le jeu s'affiche en 16:9 et la largeur suit :
+    /// une seule liste suffit donc à décrire la définition.
+    /// </summary>
+    public IReadOnlyList<IntChoice> HeightChoices { get; } =
+    [
+        new("1280 x 720", 720),
+        new("1920 x 1080", 1080),
+        new("2560 x 1440", 1440),
+        new("3840 x 2160", 2160),
+    ];
+
+    /// <summary>
+    /// Les cadences proposées. Pas de 120 : mesuré sur le jeu, il en rend
+    /// trente-huit, et les demander ne ferait que diviser les bits accordés à
+    /// chaque image qui existe vraiment.
+    /// </summary>
+    public IReadOnlyList<IntChoice> FpsChoices { get; } =
+    [
+        new("30 images par seconde", 30),
+        new("45 images par seconde", 45),
+        new("60 images par seconde", 60),
+    ];
+
+    public IReadOnlyList<IntChoice> BitrateChoices { get; } =
+    [
+        new("4 Mb/s", 4000),
+        new("8 Mb/s", 8000),
+        new("12 Mb/s", 12000),
+        new("16 Mb/s", 16000),
+        new("25 Mb/s", 25000),
+        new("40 Mb/s", 40000),
+    ];
+
+    /// <summary>
+    /// Deux codecs, et pas quatre. AV1 et VP8 n'ont qu'un encodeur logiciel sur
+    /// le téléphone de référence, relevé par « scrcpy --list-encoders » : les
+    /// proposer coûterait bien plus qu'ils ne rendent.
+    /// </summary>
+    public IReadOnlyList<TextChoice> CodecChoices { get; } =
+    [
+        new("H.264", "h264"),
+        new("H.265, meilleur à débit égal", "h265"),
+    ];
 
     // Onglet Raccourcis, en lecture seule
 
@@ -177,6 +275,29 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [ObservableProperty]
     private bool _isReopening;
 
+    /// <summary>
+    /// Sortir le son du téléphone sur le PC.
+    ///
+    /// C'est le son de l'appareil entier, non celui d'un compte : Android ne
+    /// sait pas l'isoler par application. Une seule fenêtre par téléphone le
+    /// porte donc, sans quoi le même flux arriverait en plusieurs exemplaires.
+    /// </summary>
+    [ObservableProperty]
+    private bool _audioEnabled;
+
+    /// <summary>Éteindre l'écran du téléphone pendant les sessions.</summary>
+    [ObservableProperty]
+    private bool _turnScreenOff;
+
+    /// <summary>
+    /// Couper les animations d'Android pendant les sessions.
+    ///
+    /// Seul réglage du panneau qui touche le téléphone plutôt que la session :
+    /// ce sont trois valeurs globales, rendues à la fermeture des fenêtres.
+    /// </summary>
+    [ObservableProperty]
+    private bool _disableAnimations;
+
     public string Disclaimer =>
         "Projet indépendant, sans lien avec Ankama.";
 
@@ -196,6 +317,10 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             Quality = settings.Quality;
             Zoom = settings.GameZoom;
             UpdatesAutomatic = settings.UpdatesAutomatic;
+            AudioEnabled = settings.AudioEnabled;
+            TurnScreenOff = settings.TurnDeviceScreenOff;
+            DisableAnimations = settings.DisableDeviceAnimations;
+            ReadCustomQuality(settings);
 
             SizePercent = settings.CustomSizePercent > 0
                 ? settings.CustomSizePercent
@@ -456,6 +581,92 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         }
 
         _ = ApplyStartupSettingAsync(() => _settings.SetZoomAsync(value));
+    }
+
+    partial void OnCustomHeightChanged(int value) => SaveCustomQuality();
+
+    partial void OnCustomFpsChanged(int value) => SaveCustomQuality();
+
+    partial void OnCustomBitrateKbpsChanged(int value) => SaveCustomQuality();
+
+    partial void OnCustomCodecChanged(string value) => SaveCustomQuality();
+
+    /// <summary>
+    /// Retient les quatre valeurs fines, et ne rouvre les fenêtres que si le
+    /// palier personnalisé est celui en vigueur.
+    ///
+    /// Les régler alors qu'un autre palier est coché ne change rien à l'image :
+    /// rouvrir dans ce cas ferait clignoter toutes les fenêtres pour rien.
+    /// </summary>
+    /// <summary>
+    /// Reprend les quatre valeurs fines depuis les réglages. Appelée sous le
+    /// garde-fou de chargement, comme la qualité et la distance.
+    /// </summary>
+    private void ReadCustomQuality(AppSettingsDocument document)
+    {
+        var custom = document.CustomQuality.Sanitized();
+
+        CustomHeight = custom.MaximumDisplayHeight;
+        CustomFps = custom.MaxFps;
+        CustomBitrateKbps = custom.BitrateKbps;
+        CustomCodec = custom.VideoCodec;
+    }
+
+    private void SaveCustomQuality()
+    {
+        if (_loading)
+        {
+            return;
+        }
+
+        var custom = new CustomQuality
+        {
+            MaximumDisplayHeight = CustomHeight,
+            MaxFps = CustomFps,
+            BitrateKbps = CustomBitrateKbps,
+            VideoCodec = CustomCodec,
+        }.Sanitized();
+
+        if (Quality == StreamQuality.Custom)
+        {
+            _ = ApplyStartupSettingAsync(() => _settings.SetCustomQualityAsync(custom));
+            return;
+        }
+
+        _ = SaveAsync(settings => settings.CustomQuality = custom);
+    }
+
+    partial void OnAudioEnabledChanged(bool value)
+    {
+        if (_loading)
+        {
+            return;
+        }
+
+        _ = ApplyStartupSettingAsync(() => _settings.SetAudioEnabledAsync(value));
+    }
+
+    partial void OnTurnScreenOffChanged(bool value)
+    {
+        if (_loading)
+        {
+            return;
+        }
+
+        _ = ApplyStartupSettingAsync(() => _settings.SetTurnDeviceScreenOffAsync(value));
+    }
+
+    partial void OnDisableAnimationsChanged(bool value)
+    {
+        if (_loading)
+        {
+            return;
+        }
+
+        // Rouvre comme les autres : la coupure s'applique au téléphone à
+        // l'ouverture d'une session, et la restauration à la fermeture de la
+        // dernière.
+        _ = ApplyStartupSettingAsync(() => _settings.SetDisableDeviceAnimationsAsync(value));
     }
 
     /// <summary>

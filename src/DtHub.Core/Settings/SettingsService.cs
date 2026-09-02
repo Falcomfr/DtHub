@@ -228,15 +228,23 @@ public sealed class SettingsService : IDisposable
     public async Task<ScrcpyOptions> GetScrcpyOptionsAsync(CancellationToken cancellationToken = default)
     {
         var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
-        var profile = QualityProfile.For(settings.Quality);
+        var profile = QualityProfile.For(settings.Quality, settings.CustomQuality);
 
         return new ScrcpyOptions
         {
             AudioEnabled = settings.AudioEnabled,
             ClipboardSyncEnabled = settings.ClipboardSyncEnabled,
+            TurnScreenOff = settings.TurnDeviceScreenOff,
             VirtualDisplayWidth = settings.VirtualDisplayWidth,
             VirtualDisplayHeight = settings.VirtualDisplayHeight,
             VirtualDisplayDpi = settings.VirtualDisplayDpi,
+
+            // Le codec ne se choisit qu'au palier personnalisé. Ailleurs il
+            // reste nul, et scrcpy décide : c'est lui qui sait ce que
+            // l'appareil encode en matériel.
+            VideoCodec = settings.Quality == StreamQuality.Custom
+                ? settings.CustomQuality.Sanitized().VideoCodec
+                : null,
             // Les images par seconde et le débit ne viennent que de la
             // qualité choisie : deux sources pour un même réglage auraient
             // fini par diverger.
@@ -252,12 +260,44 @@ public sealed class SettingsService : IDisposable
     }
 
     /// <summary>Profil de qualité en vigueur.</summary>
-    public async Task<QualityProfile> GetQualityAsync(CancellationToken cancellationToken = default) =>
-        QualityProfile.For((await GetAsync(cancellationToken).ConfigureAwait(false)).Quality);
+    public async Task<QualityProfile> GetQualityAsync(CancellationToken cancellationToken = default)
+    {
+        var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
+
+        return QualityProfile.For(settings.Quality, settings.CustomQuality);
+    }
 
     /// <summary>Retient la qualité choisie.</summary>
     public Task SetQualityAsync(StreamQuality quality, CancellationToken cancellationToken = default) =>
         UpdateAsync(settings => settings.Quality = quality, cancellationToken);
+
+    /// <summary>Valeurs du palier personnalisé, corrigées si le fichier déraille.</summary>
+    public async Task<CustomQuality> GetCustomQualityAsync(CancellationToken cancellationToken = default) =>
+        (await GetAsync(cancellationToken).ConfigureAwait(false)).CustomQuality.Sanitized();
+
+    /// <summary>Retient les valeurs du palier personnalisé.</summary>
+    public Task SetCustomQualityAsync(
+        CustomQuality custom,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(custom);
+
+        return UpdateAsync(settings => settings.CustomQuality = custom.Sanitized(), cancellationToken);
+    }
+
+    /// <summary>Retient s'il faut éteindre l'écran du téléphone.</summary>
+    public Task SetTurnDeviceScreenOffAsync(bool enabled, CancellationToken cancellationToken = default) =>
+        UpdateAsync(settings => settings.TurnDeviceScreenOff = enabled, cancellationToken);
+
+    /// <summary>Retient s'il faut couper les animations du téléphone.</summary>
+    public Task SetDisableDeviceAnimationsAsync(
+        bool enabled,
+        CancellationToken cancellationToken = default) =>
+        UpdateAsync(settings => settings.DisableDeviceAnimations = enabled, cancellationToken);
+
+    /// <summary>Retient si le son du téléphone doit sortir sur le PC.</summary>
+    public Task SetAudioEnabledAsync(bool enabled, CancellationToken cancellationToken = default) =>
+        UpdateAsync(settings => settings.AudioEnabled = enabled, cancellationToken);
 
     /// <summary>Distance apparente en vigueur.</summary>
     public async Task<GameZoom> GetZoomAsync(CancellationToken cancellationToken = default) =>

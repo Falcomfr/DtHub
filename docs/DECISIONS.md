@@ -2075,3 +2075,111 @@ Le Dossier sécurisé de Samsung est un profil Knox, donc un profil rattaché : 
 devrait relever de la voie qui marche. Faute d'appareil Samsung, ce n'est pas
 vérifié, et un refus de permission y reste possible. C'est pourquoi ce refus est
 désormais nommé pour ce qu'il est plutôt que traduit en « application absente ».
+
+## D71 - Les réglages fins se replient, et le débit se juge
+
+L'utilisateur voulait descendre plus bas que les trois paliers, et trois choses
+absentes du panneau : le son du téléphone sur le PC, l'extinction de son écran,
+la coupure de ses animations. Consigne : simple et complet.
+
+### Un quatrième palier qui n'est pas un barreau
+
+`Personnalisé` s'ajoute aux trois paliers mais ne prolonge pas leur échelle :
+c'est une sortie de route. La règle des trois, qui existe parce que deux voisins
+indiscernables ne font qu'hésiter, reste vraie pour le chemin ordinaire. Le test
+qui la gardait a été récrit pour compter les paliers automatiques, non les
+valeurs de l'énumération.
+
+Le panneau reste replié tant qu'on ne choisit pas ce palier. C'est ce qui tient
+la promesse de simplicité : quatre lignes de plus, visibles en permanence,
+auraient chargé le panneau de ce que la plupart des gens n'ont pas à savoir.
+
+**Le DPI n'y figure pas.** Il se règle déjà, plus bas, sous le nom de « distance
+dans le jeu », qui dit ce qu'il fait au joueur plutôt que ce qu'il est. La
+capture de référence l'appelait « DPI 320 (fin) » ; la formule actuelle est
+meilleure, et l'afficher deux fois aurait fait deux réglages pour une chose.
+
+**L'intervalle d'image-clé est écarté**, seul des cinq de la référence dont
+l'effet ne se voit pas en usage ordinaire. Le codec, lui, s'ajoute : il fait
+bien davantage pour l'image et s'explique en trois mots.
+
+### La couture, qui évitait de toucher au lanceur
+
+`GameLauncher` ne tient pas le palier mais un `QualityProfile`, et tout passe par
+cet objet : le débit y est recalculé à chaque taille de fenêtre retenue. Il a
+donc suffi de donner à `QualityProfile` un `FixedKbps` optionnel, que
+`BitrateFor` rend tel quel. Une seule ligne du lanceur change.
+
+### Le verdict en bits par pixel
+
+Quatre nombres nus ne se jugent pas. Seize mégabits sont généreux en 720p et
+misérables en 2160p, et c'est exactement l'erreur dans laquelle ce projet est
+tombé : les paliers avaient le débit à l'envers, « maximale » recevant cinq fois
+et demie moins de bits par pixel que « basse ». Chaque nombre pris isolément
+semblait pourtant raisonnable.
+
+D'où cette ligne, sous les quatre réglages :
+
+> 0,096 bit par pixel et par image, confortable
+
+Les seuils viennent des références publiées par YouTube pour du H.264 de bonne
+facture, toutes autour de 0,10. Le codec entre dans le calcul : H.265 demande
+environ un tiers de bits en moins à qualité égale, et sans en tenir compte le
+verdict aurait puni celui qui vient d'améliorer son réglage.
+
+### Deux codecs, parce que le téléphone n'en encode que deux
+
+```
+scrcpy --list-encoders
+--video-codec=h264  c2.mtk.avc.encoder      (hw) [vendor]
+--video-codec=h265  c2.mtk.hevc.encoder     (hw) [vendor]
+--video-codec=av1   c2.android.av1.encoder  (sw)
+--video-codec=vp8   c2.android.vp8.encoder  (sw)
+```
+
+AV1 n'a qu'un encodeur logiciel. Le proposer serait un piège : l'encoder ainsi à
+soixante images par seconde coûte bien plus qu'il ne rend. Beaucoup d'interfaces
+scrcpy l'offrent quand même. Vérifié après coup, `--video-codec=h265` prend bien
+`c2.mtk.hevc.encoder`.
+
+### Le son est celui du téléphone, pas du compte
+
+Android ne sait pas isoler le son d'une application. Avec trois fenêtres sur un
+téléphone, l'activer partout donnerait trois fois le même flux, c'est-à-dire un
+écho. Une seule session par appareil le porte donc, la première ouverte, et la
+règle se déduit de l'état déjà connu : une session est-elle déjà ouverte sur ce
+téléphone ?
+
+Relevé sur les lignes de commande, deux comptes ouverts :
+
+```
+session 1 : --turn-screen-off --video-codec=h264
+session 2 : --no-audio --turn-screen-off --video-codec=h264
+```
+
+### Les animations, seul réglage qui laisse une trace
+
+Ce ne sont pas des options de session mais trois valeurs globales d'Android,
+écrites par ADB, qui survivent à la fermeture de DT Hub. D'où la règle : **on
+relit avant d'écrire**, on garde ce qu'on a trouvé, et on le rend. Supposer que
+tout valait 1 remettrait à 1 le téléphone de qui les avait réglées autrement.
+
+La restauration est dans le `finally` de la fermeture et sans jeton
+d'annulation : rendre au téléphone ce qu'on lui a pris ne doit dépendre ni de la
+réussite de la fermeture, ni de la patience de qui a demandé l'arrêt.
+
+Aucune bascule ADB n'existe pour le mode pause d'un profil, mais l'écriture des
+échelles d'animation, elle, passe : vérifié, et la relecture rend bien 0.0 puis
+1.0 après fermeture.
+
+**Ce qui n'est pas garanti est dit.** Une fin brutale de l'application laisse les
+animations coupées. L'infobulle l'annonce, et dit où les rétablir, plutôt que de
+promettre ce qui ne peut pas l'être. Le gain est par ailleurs modeste sur un
+afficheur qui ne porte que le jeu : ces animations sont celles du système.
+
+### Un travers d'interface, corrigé
+
+Les listes déroulantes affichaient `IntChoice { Label = 1920 x 1080, ... }` :
+`DisplayMemberPath` ne prend pas avec le gabarit de sélection du thème. Un
+`ItemTemplate` explicite règle l'affichage de la liste et celui de la valeur
+choisie.

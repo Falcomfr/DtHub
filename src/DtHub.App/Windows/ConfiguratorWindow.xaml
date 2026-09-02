@@ -287,7 +287,9 @@
                 <StackPanel>
                   <TextBlock Text="QUALITÉ" Style="{StaticResource SectionLabel}" />
 
-                  <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                  <!-- Repliés comme la distance juste en dessous : quatre
+                       paliers ne tiennent plus sur la largeur de la fenêtre. -->
+                  <WrapPanel Margin="0,0,0,5">
                     <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="Basse"
                                  Margin="0,0,5,0"
                                  ToolTip="Image en 720 au plus, 30 images par seconde, débit réduit, et le téléphone est interrogé deux fois moins souvent. Pour les machines et les téléphones modestes, ou beaucoup de comptes à la fois."
@@ -302,6 +304,99 @@
                                  ToolTip="Image à la définition de la fenêtre, sans aucune borne, 120 images par seconde et débit doublé encore. Sans ménagement pour le téléphone : à réserver à un appareil récent, et en Wi-Fi à un réseau qui suit."
                                  IsChecked="{Binding Quality, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Maximum}" />
+                    <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="Personnalisé"
+                                 Margin="5,0,0,0"
+                                 ToolTip="Régler soi-même la définition, la cadence, le débit et le codec. Les trois paliers ci-contre restent le chemin ordinaire : celui-ci sert à qui sait déjà ce qu'il veut."
+                                 IsChecked="{Binding Quality, Converter={StaticResource EnumMatch},
+                                                     ConverterParameter=Custom}" />
+                  </WrapPanel>
+
+                  <!-- Replié tant que le palier personnalisé n'est pas choisi :
+                       montrer ces quatre lignes en permanence chargerait le
+                       panneau de ce que la plupart des gens n'ont pas à savoir. -->
+                  <StackPanel Margin="0,8,0,0"
+                              Visibility="{Binding IsCustomQuality,
+                                                   Converter={StaticResource BoolToVisibility}}">
+                    <Grid Margin="0,0,0,6">
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="120" />
+                        <ColumnDefinition Width="*" />
+                      </Grid.ColumnDefinitions>
+                      <TextBlock Text="Définition" VerticalAlignment="Center"
+                                 Style="{StaticResource Muted}" />
+                      <ComboBox Grid.Column="1" ItemsSource="{Binding HeightChoices}"
+                                SelectedValuePath="Value"
+                                SelectedValue="{Binding CustomHeight}">
+                        <ComboBox.ItemTemplate>
+                          <DataTemplate>
+                            <TextBlock Text="{Binding Label}" />
+                          </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                      </ComboBox>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,6">
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="120" />
+                        <ColumnDefinition Width="*" />
+                      </Grid.ColumnDefinitions>
+                      <TextBlock Text="Cadence" VerticalAlignment="Center"
+                                 Style="{StaticResource Muted}" />
+                      <ComboBox Grid.Column="1" ItemsSource="{Binding FpsChoices}"
+                                SelectedValuePath="Value"
+                                SelectedValue="{Binding CustomFps}">
+                        <ComboBox.ItemTemplate>
+                          <DataTemplate>
+                            <TextBlock Text="{Binding Label}" />
+                          </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                      </ComboBox>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,6">
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="120" />
+                        <ColumnDefinition Width="*" />
+                      </Grid.ColumnDefinitions>
+                      <TextBlock Text="Débit" VerticalAlignment="Center"
+                                 Style="{StaticResource Muted}" />
+                      <ComboBox Grid.Column="1" ItemsSource="{Binding BitrateChoices}"
+                                SelectedValuePath="Value"
+                                SelectedValue="{Binding CustomBitrateKbps}">
+                        <ComboBox.ItemTemplate>
+                          <DataTemplate>
+                            <TextBlock Text="{Binding Label}" />
+                          </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                      </ComboBox>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,6">
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="120" />
+                        <ColumnDefinition Width="*" />
+                      </Grid.ColumnDefinitions>
+                      <TextBlock Text="Codec vidéo" VerticalAlignment="Center"
+                                 Style="{StaticResource Muted}" />
+                      <ComboBox Grid.Column="1" ItemsSource="{Binding CodecChoices}"
+                                SelectedValuePath="Value"
+                                SelectedValue="{Binding CustomCodec}"
+                                ToolTip="AV1 et VP8 ne sont pas proposés : sur un téléphone ordinaire ils n'ont pas d'encodeur matériel, et les encoder en logiciel coûte bien plus qu'ils ne rendent.">
+                        <ComboBox.ItemTemplate>
+                          <DataTemplate>
+                            <TextBlock Text="{Binding Label}" />
+                          </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                      </ComboBox>
+                    </Grid>
+
+                    <!-- Un débit nu ne veut rien dire : seize mégabits sont
+                         généreux en 720p et misérables en 2160p. Cette ligne
+                         dit ce que l'encodeur reçoit vraiment. -->
+                    <TextBlock Text="{Binding BitrateSummary}" FontWeight="SemiBold"
+                               FontFamily="{StaticResource MonoFont}" FontSize="11"
+                               Foreground="{DynamicResource AccentBrush}"
+                               ToolTip="Bits accordés à chaque pixel de chaque image. La référence du métier tourne autour de 0,10 pour du H.264 de bonne facture." />
                   </StackPanel>
                 </StackPanel>
               </Border>
@@ -339,6 +434,27 @@
                   <TextBlock Style="{StaticResource Muted}" FontSize="11"
                              Visibility="{Binding IsReopening, Converter={StaticResource BoolToVisibility}}"
                              Text="Les fenêtres ouvertes se rouvrent pour prendre le changement." />
+                </StackPanel>
+              </Border>
+
+              <Border Style="{StaticResource Card}">
+                <StackPanel>
+                  <TextBlock Text="SUR LE TÉLÉPHONE" Style="{StaticResource SectionLabel}" />
+
+                  <CheckBox Content="Son du téléphone sur le PC" Margin="0,0,0,8"
+                            IsChecked="{Binding AudioEnabled}"
+                            ToolTip="Android ne sait pas isoler le son d'une application : c'est celui du téléphone entier qui arrive. Une seule fenêtre par appareil le porte donc, sinon le même flux reviendrait en plusieurs exemplaires." />
+
+                  <CheckBox Content="Éteindre l'écran du téléphone" Margin="0,0,0,8"
+                            IsChecked="{Binding TurnScreenOff}"
+                            ToolTip="L'écran de l'appareil s'éteint pendant les sessions. L'image continue d'arriver sur le PC." />
+
+                  <!-- Le seul réglage du panneau qui touche le téléphone
+                       lui-même. Ses trois valeurs sont relues avant d'être
+                       changées, et rendues à la fermeture des fenêtres. -->
+                  <CheckBox Content="Couper les animations du téléphone"
+                            IsChecked="{Binding DisableAnimations}"
+                            ToolTip="Réglage du téléphone, pas de la session : il est remis comme il était quand vous fermez les fenêtres. Si l'application s'arrête brutalement, les animations resteront coupées et il faudra les rétablir depuis les options pour développeurs." />
                 </StackPanel>
               </Border>
 
