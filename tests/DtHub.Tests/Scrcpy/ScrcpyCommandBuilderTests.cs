@@ -79,32 +79,6 @@ public class ScrcpyCommandBuilderTests
     }
 
     [Fact]
-    public void L_ecran_du_telephone_ne_s_eteint_que_si_on_le_demande()
-    {
-        var ordinaire = ScrcpyCommandBuilder.BuildMirrorArguments("USB0001", "T", ScrcpyOptions.Default);
-        var eteint = ScrcpyCommandBuilder.BuildMirrorArguments(
-            "USB0001", "T", ScrcpyOptions.Default with { TurnScreenOff = true });
-
-        Assert.DoesNotContain("--turn-screen-off", ordinaire);
-        Assert.Contains("--turn-screen-off", eteint);
-    }
-
-    [Fact]
-    public void Eteindre_l_ecran_n_empeche_pas_de_garder_l_appareil_eveille()
-    {
-        // Les deux options ne se contredisent pas : l'une empêche la mise en
-        // veille, l'autre éteint la dalle. Les croire incompatibles avait de
-        // quoi faire renoncer à l'une des deux.
-        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
-            "USB0001",
-            "T",
-            ScrcpyOptions.Default with { TurnScreenOff = true, KeepDeviceAwake = true });
-
-        Assert.Contains("--turn-screen-off", arguments);
-        Assert.Contains("--keep-active", arguments);
-    }
-
-    [Fact]
     public void Le_presse_papiers_reste_synchronise_par_defaut()
     {
         var synced = ScrcpyCommandBuilder.BuildMirrorArguments("USB0001", "T", ScrcpyOptions.Default);

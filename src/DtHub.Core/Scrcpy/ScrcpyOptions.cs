@@ -112,21 +112,6 @@ public sealed record ScrcpyOptions
     /// <summary>Empêcher l'écran du téléphone de s'éteindre pendant la session.</summary>
     public bool KeepDeviceAwake { get; init; } = true;
 
-    /// <summary>
-    /// Éteindre l'écran du téléphone pendant la session.
-    ///
-    /// L'image continue d'arriver : vérifié sur le téléphone de référence,
-    /// <c>mWakefulness</c> passe de <c>Awake</c> à <c>Dozing</c> et le jeu
-    /// s'affiche entièrement dans la fenêtre.
-    ///
-    /// Le gain est modeste et il faut le dire : mesuré, la dalle s'éteint de
-    /// toute façon pendant la session, <see cref="KeepDeviceAwake"/> ne la
-    /// retenant pas. Cette option ne fait que l'éteindre <b>tout de suite</b>
-    /// au lieu d'attendre le délai de veille, ce qui compte sur un téléphone
-    /// réglé pour rester allumé longtemps, ou branché.
-    /// </summary>
-    public bool TurnScreenOff { get; init; }
-
     /// <summary>Codec vidéo, <c>null</c> pour laisser scrcpy décider.</summary>
     public string? VideoCodec { get; init; }
 

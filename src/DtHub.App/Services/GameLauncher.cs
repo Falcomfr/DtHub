@@ -1,5 +1,4 @@
 ﻿using DtHub.Core.Adb;
-using DtHub.Core.Android;
 using DtHub.Core.Devices;
 using DtHub.Core.Dofus;
 using DtHub.Core.Guidance;
@@ -35,7 +34,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private readonly SettingsService _settings;
     private readonly IHotkeyRegistrar _hotkeys;
     private readonly AppRestartService _restarts;
-    private readonly DeviceAnimationService _animations;
     private readonly ILogger<GameLauncher> _logger;
 
     private bool _hotkeysWired;
@@ -62,10 +60,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
         SettingsService settings,
         IHotkeyRegistrar hotkeys,
         AppRestartService restarts,
-        DeviceAnimationService animations,
         ILogger<GameLauncher> logger)
     {
-        _animations = animations;
         _sessions = sessions;
         _windows = windows;
         _devices = devices;
@@ -413,8 +409,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 display = display with { AudioEnabled = false };
             }
 
-            await ApplyDeviceTweaksAsync(device.Serial, cancellationToken).ConfigureAwait(false);
-
             var session = await _sessions.StartAsync(
                 target, display, placement, cancellationToken).ConfigureAwait(false);
 
@@ -731,11 +725,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
         {
             _closing = false;
 
-            // Dans le « finally », et sans jeton d'annulation : c'est le seul
-            // réglage qui laisse une trace sur le téléphone de l'utilisateur.
-            // Le rendre ne doit dépendre ni de la réussite de la fermeture, ni
-            // de la patience de qui a demandé l'arrêt.
-            await _animations.RestoreAllAsync(CancellationToken.None).ConfigureAwait(false);
         }
 
         await _hotkeys.SetEnabledAsync(false).ConfigureAwait(false);
@@ -1107,23 +1096,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private bool HasOpenSessionOn(string deviceId) =>
         _sessions.ActiveSessions.Any(
             s => string.Equals(s.Target.DeviceId, deviceId, StringComparison.Ordinal));
-
-    /// <summary>
-    /// Applique au téléphone ce qui ne relève pas de la session.
-    ///
-    /// Pour l'instant les seules animations, et le service se garde lui-même de
-    /// recommencer sur un appareil déjà pris en charge : c'est ce qui permet de
-    /// l'appeler à chaque instance sans compter les ouvertures.
-    /// </summary>
-    private async Task ApplyDeviceTweaksAsync(string serial, CancellationToken cancellationToken)
-    {
-        var settings = await _settings.GetAsync(cancellationToken).ConfigureAwait(false);
-
-        if (settings.DisableDeviceAnimations)
-        {
-            await _animations.DisableAsync(serial, cancellationToken).ConfigureAwait(false);
-        }
-    }
 
     private async Task ApplyWindowSettingsAsync(CancellationToken cancellationToken)
     {

@@ -89,18 +89,6 @@ public static class ScrcpyCommandBuilder
             arguments.Add("--keep-active");
         }
 
-        // Contradictoire avec « --keep-active » sur le papier, l'aide de scrcpy
-        // décrivant celui-ci comme « garder l'écran allumé en simulant une
-        // activité ». Il n'y a pourtant pas de conflit : avec un afficheur
-        // virtuel, l'activité simulée porte sur cet afficheur et non sur la
-        // dalle du téléphone. Mesuré, celle-ci s'éteint dans les deux cas ;
-        // l'option ne fait que l'éteindre tout de suite au lieu d'attendre le
-        // délai de veille de l'appareil.
-        if (sanitized.TurnScreenOff)
-        {
-            arguments.Add("--turn-screen-off");
-        }
-
         if (!string.IsNullOrWhiteSpace(sanitized.VideoCodec))
         {
             arguments.Add(Option("video-codec", sanitized.VideoCodec));

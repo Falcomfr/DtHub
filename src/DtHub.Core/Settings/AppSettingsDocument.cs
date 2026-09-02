@@ -42,8 +42,6 @@ public sealed class AppSettingsDocument
     /// </summary>
     public int CustomSizePercent { get; set; }
 
-
-
     /// <summary>
     /// Vrai si le configurateur était affiché à la sortie. Il retrouve cet
     /// état au lancement suivant.
@@ -114,24 +112,6 @@ public sealed class AppSettingsDocument
     /// l'ouverture d'une session : la changer rouvre les fenêtres.
     /// </summary>
     public GameZoom GameZoom { get; set; } = GameZoom.Normal;
-
-    /// <summary>
-    /// Éteindre l'écran du téléphone pendant les sessions. L'image continue
-    /// d'arriver : vérifié sur le téléphone de référence, où l'appareil passe
-    /// de « Awake » à « Dozing » sans que le flux s'interrompe.
-    /// </summary>
-    public bool TurnDeviceScreenOff { get; set; }
-
-    /// <summary>
-    /// Couper les animations d'Android pendant les sessions.
-    ///
-    /// Seul réglage de l'application qui touche le téléphone lui-même, et non
-    /// la session : ce sont trois valeurs globales écrites par ADB, qui
-    /// survivent à la fermeture de DT Hub. Elles sont donc relues avant d'être
-    /// changées et remises ensuite. Une fin brutale de l'application les
-    /// laisserait coupées.
-    /// </summary>
-    public bool DisableDeviceAnimations { get; set; }
 
     /// <summary>Paquet du jeu. Réglable pour survivre à un changement amont.</summary>
     public string PackageName { get; set; } = Dofus.DofusPackages.DofusTouch;

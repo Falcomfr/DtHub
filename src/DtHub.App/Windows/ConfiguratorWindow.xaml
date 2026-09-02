@@ -485,31 +485,18 @@
                 </StackPanel>
               </Border>
 
-              <Border Style="{StaticResource Card}">
-                <StackPanel>
-                  <TextBlock Text="SUR LE TÉLÉPHONE" Style="{StaticResource SectionLabel}" />
-
-                  <CheckBox Content="Son renvoyé sur le PC" Margin="0,0,0,8"
-                            IsChecked="{Binding AudioEnabled}"
-                            ToolTip="Android ne sait pas isoler le son d'une application : c'est celui du téléphone entier qui arrive. Une seule fenêtre par appareil le porte donc, sinon le même flux reviendrait en plusieurs exemplaires." />
-
-                  <CheckBox Content="Écran du téléphone éteint" Margin="0,0,0,8"
-                            IsChecked="{Binding TurnScreenOff}"
-                            ToolTip="La dalle du téléphone, pas les fenêtres de jeu : celles-ci gardent leur image, c'est vérifié. Sans cette case l'écran s'éteint quand même, mais au bout de son délai habituel ; cochée, il s'éteint tout de suite." />
-
-                  <!-- Le seul réglage du panneau qui touche le téléphone
-                       lui-même. Ses trois valeurs sont relues avant d'être
-                       changées, et rendues à la fermeture des fenêtres. -->
-                  <CheckBox Content="Animations coupées"
-                            IsChecked="{Binding DisableAnimations}"
-                            ToolTip="Réglage du téléphone, pas de la session : il est remis comme il était quand vous fermez les fenêtres. Si l'application s'arrête brutalement, les animations resteront coupées et il faudra les rétablir depuis les options pour développeurs." />
-                </StackPanel>
-              </Border>
-
-              <StackPanel Margin="2,4,0,10">
+<StackPanel Margin="2,4,0,10">
                 <!-- Le téléchargement se fait en fond, l'échange à l'arrêt : une
                      application ne se remplace pas sous les doigts de celui qui
                      s'en sert. -->
+                <!-- Le son du téléphone entier, non celui d'un compte : Android
+                     ne sait pas l'isoler par application. Une seule fenêtre par
+                     appareil le porte, sans quoi le même flux reviendrait en
+                     plusieurs exemplaires. -->
+                <CheckBox Content="Son du téléphone renvoyé sur le PC" Margin="0,0,0,8"
+                          IsChecked="{Binding AudioEnabled}"
+                          ToolTip="Android ne sait pas isoler le son d'une application : c'est celui du téléphone entier qui arrive, tous comptes ouverts confondus. Une seule fenêtre par appareil le porte." />
+
                 <CheckBox Content="Se mettre à jour toute seule" Margin="0,0,0,8"
                           IsChecked="{Binding UpdatesAutomatic}"
                           ToolTip="La nouvelle version se télécharge en fond et s'installe quand vous quittez. Décoché, l'application se contente de dire qu'une version existe." />

@@ -234,7 +234,6 @@ public sealed class SettingsService : IDisposable
         {
             AudioEnabled = settings.AudioEnabled,
             ClipboardSyncEnabled = settings.ClipboardSyncEnabled,
-            TurnScreenOff = settings.TurnDeviceScreenOff,
             VirtualDisplayWidth = settings.VirtualDisplayWidth,
             VirtualDisplayHeight = settings.VirtualDisplayHeight,
             VirtualDisplayDpi = settings.VirtualDisplayDpi,
@@ -284,16 +283,6 @@ public sealed class SettingsService : IDisposable
 
         return UpdateAsync(settings => settings.CustomQuality = custom.Sanitized(), cancellationToken);
     }
-
-    /// <summary>Retient s'il faut éteindre l'écran du téléphone.</summary>
-    public Task SetTurnDeviceScreenOffAsync(bool enabled, CancellationToken cancellationToken = default) =>
-        UpdateAsync(settings => settings.TurnDeviceScreenOff = enabled, cancellationToken);
-
-    /// <summary>Retient s'il faut couper les animations du téléphone.</summary>
-    public Task SetDisableDeviceAnimationsAsync(
-        bool enabled,
-        CancellationToken cancellationToken = default) =>
-        UpdateAsync(settings => settings.DisableDeviceAnimations = enabled, cancellationToken);
 
     /// <summary>Retient si le son du téléphone doit sortir sur le PC.</summary>
     public Task SetAudioEnabledAsync(bool enabled, CancellationToken cancellationToken = default) =>

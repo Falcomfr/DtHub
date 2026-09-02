@@ -2314,3 +2314,38 @@ allumé longtemps, ou branché.
 Le commentaire du constructeur d'arguments affirmait que les deux options ne se
 contredisaient pas parce que « l'un empêche l'appareil de se mettre en veille,
 l'autre éteint sa dalle ». C'était faux sur le premier point, et corrigé.
+
+### Deux options retirées faute de rendre quelque chose
+
+**Éteindre l'écran du téléphone.** Mesuré : sans l'option, la dalle passe quand
+même en veille pendant la session. `--keep-active` ne la retient pas, son
+activité simulée portant sur l'afficheur virtuel. L'option n'avançait donc que
+l'extinction de quelques minutes.
+
+**Couper les animations.** Quatre lancements alternés, temps rendu par
+`am start -W` sur afficheur virtuel :
+
+| Échelles | Temps de lancement |
+|:--|--:|
+| 1,0 | 690 ms, 588 ms |
+| 0,0 | 633 ms, 604 ms |
+
+L'écart entre deux essais au même réglage dépasse l'écart entre les deux
+réglages : la coupure ne rend rien de mesurable. Elle coûtait en revanche une
+mutation globale du téléphone, qui survit à un plantage de l'application, plus un
+service de cent soixante lignes et ses tests.
+
+La section « Sur le téléphone » n'ayant plus qu'une case, elle disparaît aussi :
+la case rejoint les lignes isolées du bas. Le panneau y gagne une carte entière
+de hauteur.
+
+### Le son ne peut pas s'appeler « son du jeu »
+
+La demande était « son du jeu renvoyé sur le PC ». Ce serait faux, et pas d'un
+cheveu : Android ne sait pas isoler le son d'une application, et scrcpy capte la
+sortie de l'appareil entier. Avec trois comptes ouverts, on entend les trois
+mélangés, plus les notifications.
+
+Le libellé promettrait donc une singularité qui n'existe pas, et masquerait ce
+que l'infobulle explique. Il devient « Son du téléphone renvoyé sur le PC », qui
+nomme la seule chose vraie.

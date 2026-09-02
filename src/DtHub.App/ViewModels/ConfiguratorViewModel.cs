@@ -105,8 +105,6 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
                 Quality = document.Quality;
                 Zoom = document.GameZoom;
                 AudioEnabled = document.AudioEnabled;
-                TurnScreenOff = document.TurnDeviceScreenOff;
-                DisableAnimations = document.DisableDeviceAnimations;
                 ReadCustomQuality(document);
                 SizePercent = document.CustomSizePercent > 0
                     ? document.CustomSizePercent
@@ -375,19 +373,6 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [ObservableProperty]
     private bool _audioEnabled;
 
-    /// <summary>Éteindre l'écran du téléphone pendant les sessions.</summary>
-    [ObservableProperty]
-    private bool _turnScreenOff;
-
-    /// <summary>
-    /// Couper les animations d'Android pendant les sessions.
-    ///
-    /// Seul réglage du panneau qui touche le téléphone plutôt que la session :
-    /// ce sont trois valeurs globales, rendues à la fermeture des fenêtres.
-    /// </summary>
-    [ObservableProperty]
-    private bool _disableAnimations;
-
     public string Disclaimer =>
         "Projet indépendant, sans lien avec Ankama.";
 
@@ -408,8 +393,6 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             Zoom = settings.GameZoom;
             UpdatesAutomatic = settings.UpdatesAutomatic;
             AudioEnabled = settings.AudioEnabled;
-            TurnScreenOff = settings.TurnDeviceScreenOff;
-            DisableAnimations = settings.DisableDeviceAnimations;
             ReadCustomQuality(settings);
 
             SizePercent = settings.CustomSizePercent > 0
@@ -734,29 +717,6 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         }
 
         _ = ApplyStartupSettingAsync(() => _settings.SetAudioEnabledAsync(value));
-    }
-
-    partial void OnTurnScreenOffChanged(bool value)
-    {
-        if (_loading)
-        {
-            return;
-        }
-
-        _ = ApplyStartupSettingAsync(() => _settings.SetTurnDeviceScreenOffAsync(value));
-    }
-
-    partial void OnDisableAnimationsChanged(bool value)
-    {
-        if (_loading)
-        {
-            return;
-        }
-
-        // Rouvre comme les autres : la coupure s'applique au téléphone à
-        // l'ouverture d'une session, et la restauration à la fermeture de la
-        // dernière.
-        _ = ApplyStartupSettingAsync(() => _settings.SetDisableDeviceAnimationsAsync(value));
     }
 
     /// <summary>

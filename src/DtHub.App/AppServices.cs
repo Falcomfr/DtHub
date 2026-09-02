@@ -108,10 +108,6 @@ public static class AppServices
         services.AddSingleton<DeviceReconnectService>();
         services.AddSingleton<AndroidUserService>();
 
-        // Garde en mémoire ce qu'il a trouvé sur chaque téléphone : une
-        // instance par appareil ne saurait pas le rendre.
-        services.AddSingleton<DeviceAnimationService>();
-
         // Jeu.
         services.AddSingleton<DofusInstanceService>();
         services.AddSingleton<IAppIconProvider, AppIconProvider>();
