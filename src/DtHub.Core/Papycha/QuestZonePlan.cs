@@ -1,0 +1,242 @@
+﻿namespace DtHub.Core.Papycha;
+
+/// <summary>
+/// Un bloc de la liste d'une zone : un succès et ses quêtes, ou une quête que
+/// nul succès ne réclame.
+/// </summary>
+/// <param name="SuccessName">Le nom du succès, vide pour une quête seule.</param>
+/// <param name="Quests">Ses quêtes, dans l'ordre où l'on y joue.</param>
+public sealed record QuestZoneBlock(string SuccessName, IReadOnlyList<QuestSummary> Quests)
+{
+    /// <summary>Vrai quand le bloc est un succès et non une quête isolée.</summary>
+    public bool IsSuccess => SuccessName.Length > 0;
+}
+
+/// <summary>
+/// Range les quêtes d'une zone dans l'ordre où l'on y joue.
+///
+/// Les quêtes qu'aucun succès ne réclame étaient rejetées en fin de liste, par
+/// ordre alphabétique. Or beaucoup d'entre elles ouvrent un succès ou le
+/// prolongent : « Une arrivée mouvementée » précède « Médiation expéditive » à
+/// Albuera, « En route pour Aerdala » précède « Là où souffle le vent » à
+/// Pandala. Les voir en bas de liste, coupées de ce qu'elles servent, ne disait
+/// rien de la progression. Et l'ordre alphabétique lisait les quatre-vingts
+/// quêtes d'alignement « bontarien 1, 10, 11, 12, 2, 20 ».
+///
+/// La zone se range donc par ses prérequis : sur les sept cent quatre-vingt-deux
+/// quêtes, cinq cent quatorze prérequis sur sept cent vingt-neuf désignent une
+/// quête du catalogue, et cent quatre-vingt-douze des deux cent quatre-vingt-
+/// quatre quêtes seules sont prises dans une chaîne.
+///
+/// Un succès est un bloc insécable : ses quêtes se suivent, et c'est lui qu'on
+/// range parmi les autres. À défaut de prérequis, l'ordre est celui d'avant,
+/// si bien qu'une zone dont aucun prérequis ne se reconnaît ne bouge pas.
+/// </summary>
+public static class QuestZonePlan
+{
+    /// <summary>
+    /// Les blocs d'une zone, dans l'ordre où l'on y joue.
+    ///
+    /// Les prérequis qui désignent une quête absente de la liste sont ignorés :
+    /// ils ne peuvent rien y ranger. C'est le cas de ceux qui pointent une autre
+    /// zone.
+    /// </summary>
+    /// <param name="quests">Les quêtes de la zone.</param>
+    /// <param name="successOrder">L'ordre des succès sur le site.</param>
+    public static IReadOnlyList<QuestZoneBlock> Of(
+        IReadOnlyList<QuestSummary> quests,
+        IReadOnlyList<string> successOrder)
+    {
+        ArgumentNullException.ThrowIfNull(quests);
+        ArgumentNullException.ThrowIfNull(successOrder);
+
+        var blocks = Blocks(quests, out var blockOfUrl);
+
+        if (blocks.Count == 0)
+        {
+            return [];
+        }
+
+        var keys = Keys(blocks, successOrder);
+        var waiting = new int[blocks.Count];
+        var after = Edges(quests, blocks, blockOfUrl, waiting);
+
+        return Sort(blocks, keys, after, waiting);
+    }
+
+    /// <summary>
+    /// Un bloc par succès, un bloc d'une quête pour chaque quête seule, et de
+    /// quoi retrouver le bloc d'une quête par son adresse.
+    /// </summary>
+    private static List<(string Success, List<QuestSummary> Quests)> Blocks(
+        IReadOnlyList<QuestSummary> quests,
+        out Dictionary<string, int> blockOfUrl)
+    {
+        List<(string Success, List<QuestSummary> Quests)> blocks = [];
+        Dictionary<string, int> at = new(StringComparer.Ordinal);
+
+        blockOfUrl = new Dictionary<string, int>(StringComparer.Ordinal);
+
+        foreach (var quest in quests)
+        {
+            var key = quest.SuccessName.Length > 0
+                ? "s:" + quest.SuccessName
+                : "q:" + quest.Url;
+
+            if (!at.TryGetValue(key, out var index))
+            {
+                index = blocks.Count;
+                at[key] = index;
+                blocks.Add((quest.SuccessName, []));
+            }
+
+            blocks[index].Quests.Add(quest);
+            blockOfUrl[quest.Url] = index;
+        }
+
+        return blocks;
+    }
+
+    /// <summary>
+    /// Ce qui départage deux blocs qu'aucun prérequis ne sépare : c'est l'ordre
+    /// d'avant.
+    ///
+    /// Le rang du succès sur le site d'abord, son nom ensuite. Une quête seule
+    /// passe après tous les succès de même rang, comme le faisait le bloc
+    /// « Hors succès » qui les rassemblait en fin de liste. Le rang du bloc
+    /// clôt le départage, pour que l'ordre soit total.
+    /// </summary>
+    private static (int Rank, int Kind, string Label, int Index)[] Keys(
+        List<(string Success, List<QuestSummary> Quests)> blocks,
+        IReadOnlyList<string> successOrder)
+    {
+        Dictionary<string, int> rank = new(StringComparer.Ordinal);
+
+        for (var i = 0; i < successOrder.Count; i++)
+        {
+            rank.TryAdd(successOrder[i], i);
+        }
+
+        var keys = new (int Rank, int Kind, string Label, int Index)[blocks.Count];
+
+        for (var i = 0; i < blocks.Count; i++)
+        {
+            var (success, members) = blocks[i];
+
+            keys[i] = success.Length > 0
+                ? (rank.GetValueOrDefault(success, int.MaxValue), 0, success, i)
+                : (int.MaxValue, 1, members[0].Title, i);
+        }
+
+        return keys;
+    }
+
+    /// <summary>
+    /// Les arcs entre blocs : un prérequis reconnu comme quête de la zone place
+    /// son bloc avant celui de la quête qui le réclame.
+    ///
+    /// Le rapprochement se fait sur le titre normalisé, comme la recherche et
+    /// comme la chaîne de quêtes : le site écrit ses prérequis à la main.
+    /// </summary>
+    private static List<HashSet<int>> Edges(
+        IReadOnlyList<QuestSummary> quests,
+        List<(string Success, List<QuestSummary> Quests)> blocks,
+        Dictionary<string, int> blockOfUrl,
+        int[] waiting)
+    {
+        Dictionary<string, QuestSummary> byTitle = new(StringComparer.Ordinal);
+
+        foreach (var quest in quests)
+        {
+            byTitle.TryAdd(QuestSearch.Normalize(quest.Title), quest);
+        }
+
+        List<HashSet<int>> after = [];
+
+        for (var i = 0; i < blocks.Count; i++)
+        {
+            after.Add([]);
+        }
+
+        foreach (var quest in quests)
+        {
+            var to = blockOfUrl[quest.Url];
+
+            foreach (var need in quest.Prerequisites)
+            {
+                if (!byTitle.TryGetValue(QuestSearch.Normalize(need), out var found))
+                {
+                    continue;
+                }
+
+                var from = blockOfUrl[found.Url];
+
+                if (from == to || !after[from].Add(to))
+                {
+                    continue;
+                }
+
+                waiting[to]++;
+            }
+        }
+
+        return after;
+    }
+
+    /// <summary>
+    /// Le tri topologique, avec repli sur boucle.
+    ///
+    /// Traiter un succès comme un bloc insécable crée un cycle dès que deux
+    /// succès se réclament l'un l'autre par des quêtes différentes. Plutôt que
+    /// de rendre une liste tronquée, on prend alors le plus petit bloc restant
+    /// au sens du départage et l'on continue : l'ordre reste total, et il
+    /// retombe sur celui d'avant là où les prérequis se contredisent. Six rangs
+    /// seulement sont ainsi forcés sur tout le catalogue.
+    /// </summary>
+    private static List<QuestZoneBlock> Sort(
+        List<(string Success, List<QuestSummary> Quests)> blocks,
+        (int Rank, int Kind, string Label, int Index)[] keys,
+        List<HashSet<int>> after,
+        int[] waiting)
+    {
+        var order = Comparer<int>.Create((first, second) => keys[first].CompareTo(keys[second]));
+        SortedSet<int> left = new(order);
+        SortedSet<int> ready = new(order);
+
+        for (var i = 0; i < blocks.Count; i++)
+        {
+            left.Add(i);
+
+            if (waiting[i] == 0)
+            {
+                ready.Add(i);
+            }
+        }
+
+        List<QuestZoneBlock> plan = new(blocks.Count);
+
+        while (left.Count > 0)
+        {
+            var at = ready.Count > 0 ? ready.Min : left.Min;
+
+            _ = ready.Remove(at);
+            _ = left.Remove(at);
+
+            var (success, members) = blocks[at];
+
+            plan.Add(new QuestZoneBlock(
+                success,
+                success.Length > 0 ? QuestPlayOrder.Sorted(members) : members));
+
+            foreach (var next in after[at])
+            {
+                if (left.Contains(next) && --waiting[next] == 0)
+                {
+                    ready.Add(next);
+                }
+            }
+        }
+
+        return plan;
+    }
+}

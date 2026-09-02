@@ -70,6 +70,9 @@ public enum QuestNodeGlyph
 
     /// <summary>Un succès.</summary>
     Success,
+
+    /// <summary>Une quête qu'aucun succès ne réclame.</summary>
+    Alone,
 }
 
 /// <summary>

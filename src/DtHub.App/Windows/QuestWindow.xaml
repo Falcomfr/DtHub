@@ -577,6 +577,23 @@
                                    L 7.5,11.2 L 3.9,13.2 L 4.7,9.2 L 1.7,6.4 L 5.8,5.9 Z" />
                   </DataTrigger>
 
+                  <DataTrigger Binding="{Binding Glyph}" Value="Alone">
+                    <Setter TargetName="Nature" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Nature" Property="Stroke"
+                            Value="{DynamicResource TextMutedBrush}" />
+                    <!-- Un anneau vide, contre l'étoile pleine du succès : la
+                         quête ne fait partie d'aucun. Il porte le gris du texte
+                         secondaire et non une couleur : il dit une absence
+                         d'appartenance, il n'annonce rien.
+
+                         Il ne se pose que dans les zones qui ont des succès. Là
+                         où toutes les quêtes sont seules, il marquerait chaque
+                         ligne sans rien distinguer. -->
+                    <Setter TargetName="Nature" Property="Data"
+                            Value="M 7.5,7.5 m -3.2,0 a 3.2,3.2 0 1 0 6.4,0
+                                   a 3.2,3.2 0 1 0 -6.4,0" />
+                  </DataTrigger>
+
                   <DataTrigger Binding="{Binding Glyph}" Value="Place">
                     <Setter TargetName="Nature" Property="Visibility" Value="Visible" />
                     <Setter TargetName="Nature" Property="Stroke"

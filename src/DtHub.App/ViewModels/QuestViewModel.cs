@@ -514,7 +514,7 @@ public sealed partial class QuestViewModel : ObservableObject
             {
                 List<QuestSummary> quests =
                 [
-                    .. InPlayOrder(_catalog.Catalog.Quests.Where(q =>
+                    .. QuestPlayOrder.Sorted(_catalog.Catalog.Quests.Where(q =>
                         string.Equals(q.SuccessName, success, StringComparison.Ordinal))),
                 ];
 
@@ -781,125 +781,42 @@ public sealed partial class QuestViewModel : ObservableObject
         value.ToString(System.Globalization.CultureInfo.CurrentCulture);
 
     /// <summary>
-    /// Ajoute les quêtes en les rangeant sous leur rubrique, dans l'ordre du
-    /// site.
-    ///
-    /// Une liste de soixante titres sans repère ne se lit pas : l'intertitre
-    /// dit d'où vient ce qu'on voit. Il est inutile dans une rubrique déjà
-    /// ouverte, où il répéterait le fil d'Ariane à chaque ligne.
-    /// </summary>
-    private void AddGrouped(IReadOnlyList<QuestSummary> quests, bool skipHeaders = false)
-    {
-        if (skipHeaders)
-        {
-            foreach (var quest in quests)
-            {
-                Nodes.Add(ToNode(quest));
-            }
-
-            return;
-        }
-
-        var rank = _catalog.Catalog.Sections
-            .Select((s, i) => (s.Id, Index: i))
-            .ToDictionary(x => x.Id, x => x.Index);
-
-        var groups = quests
-            .GroupBy(q => q.SectionId)
-            .OrderBy(g => rank.GetValueOrDefault(g.Key, int.MaxValue));
-
-        foreach (var group in groups)
-        {
-            Nodes.Add(new QuestNode(
-                QuestNodeKind.Header,
-                NameOf(group.Key),
-                Nombre(group.Count()),
-                Glyph: GlyphOf(RawNameOf(group.Key))));
-
-            foreach (var quest in group)
-            {
-                Nodes.Add(ToNode(quest));
-            }
-        }
-    }
-
-    /// <summary>
-    /// Ajoute les quêtes d'une rubrique en les rangeant sous leur succès.
+    /// Ajoute les quêtes d'une rubrique dans l'ordre où l'on y joue.
     ///
     /// C'est ainsi que le site les présente, et c'est ainsi qu'on les joue :
-    /// une quête isolée dit rarement à quoi elle sert. Les quêtes qu'aucun
-    /// succès ne réclame viennent ensuite, sous un intertitre qui ne prétend
-    /// pas en être un.
+    /// une quête isolée dit rarement à quoi elle sert. Le rangement est celui
+    /// de <see cref="QuestZonePlan"/>, qui suit les prérequis.
     /// </summary>
     private void AddBySuccess(IReadOnlyList<QuestSummary> quests)
     {
-        // Dans l'ordre du site, qui est celui d'une progression. L'ordre
-        // alphabétique mettait « Épilogue hivernal » avant « L'hiver arrive ».
-        var rank = _catalog.Catalog.SuccessOrder
-            .Select((name, index) => (name, index))
-            .ToDictionary(x => x.name, x => x.index, StringComparer.Ordinal);
+        var plan = QuestZonePlan.Of(quests, _catalog.Catalog.SuccessOrder);
 
-        var groups = quests
-            .Where(q => q.SuccessName.Length > 0)
-            .GroupBy(q => q.SuccessName, StringComparer.Ordinal)
-            .OrderBy(g => rank.GetValueOrDefault(g.Key, int.MaxValue))
-            .ThenBy(g => g.Key, StringComparer.CurrentCulture);
+        // L'icône ne se pose que si elle distingue quelque chose. Dans les deux
+        // zones d'alignement, dont les quatre-vingts quêtes sont toutes seules,
+        // elle marquerait chaque ligne sans rien apprendre.
+        var mark = plan.Any(b => b.IsSuccess);
 
-        foreach (var group in groups)
+        foreach (var block in plan)
         {
-            List<QuestSummary> ordered = [.. InPlayOrder(group)];
-
-            Nodes.Add(new QuestNode(
-                QuestNodeKind.Success,
-                $"{group.Key} ({ordered.Count})",
-                LevelRange(ordered),
-                Glyph: QuestNodeGlyph.Success));
-
-            foreach (var quest in ordered)
+            if (block.IsSuccess)
             {
-                Nodes.Add(ToNode(quest));
+                Nodes.Add(new QuestNode(
+                    QuestNodeKind.Success,
+                    $"{block.SuccessName} ({block.Quests.Count})",
+                    LevelRange(block.Quests),
+                    Glyph: QuestNodeGlyph.Success));
+            }
+
+            foreach (var quest in block.Quests)
+            {
+                var node = ToNode(quest);
+
+                Nodes.Add(block.IsSuccess || !mark
+                    ? node
+                    : node with { Glyph = QuestNodeGlyph.Alone });
             }
         }
-
-        List<QuestSummary> loose = [.. quests.Where(q => q.SuccessName.Length == 0)];
-
-        if (loose.Count == 0)
-        {
-            return;
-        }
-
-        // L'intertitre ne s'affiche que s'il sépare de quelque chose : dans une
-        // rubrique dont aucune quête n'a de succès, il ne coifferait rien.
-        if (Nodes.Any(n => n.Kind == QuestNodeKind.Success))
-        {
-            Nodes.Add(new QuestNode(
-                QuestNodeKind.Header,
-                $"Hors succès ({loose.Count})",
-                LevelRange(loose)));
-        }
-
-        foreach (var quest in loose)
-        {
-            Nodes.Add(ToNode(quest));
-        }
     }
-
-    /// <summary>
-    /// Ordre de jeu d'un ensemble de quêtes.
-    ///
-    /// La place dans le succès d'abord, calculée à l'indexation à partir des
-    /// prérequis du site ; le rang de chaîne ensuite, pour les quêtes que la
-    /// carte ne connaît pas ; le titre en dernier, pour que l'ordre soit total
-    /// et toujours le même.
-    ///
-    /// Un seul et même ordre pour la liste et pour la navigation d'une quête à
-    /// l'autre : la suivante doit être celle qu'on voit juste en dessous.
-    /// </summary>
-    private static IEnumerable<QuestSummary> InPlayOrder(IEnumerable<QuestSummary> quests) =>
-        quests
-            .OrderBy(q => q.PlayOrder == 0 ? int.MaxValue : q.PlayOrder)
-            .ThenBy(q => q.ChainStep == 0 ? int.MaxValue : q.ChainStep)
-            .ThenBy(q => q.Title, StringComparer.CurrentCulture);
 
     /// <summary>
     /// Une ligne de quête.
@@ -1138,7 +1055,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
         List<QuestSummary> group =
         [
-            .. InPlayOrder(
+            .. QuestPlayOrder.Sorted(
                 _catalog.Catalog.Quests.Where(q =>
                     string.Equals(q.SuccessName, quest.SuccessName, StringComparison.Ordinal))),
         ];

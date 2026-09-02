@@ -30,6 +30,20 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 - Un chemin se parcourt par ses étapes, « Jusqu'à la première grotte » à « Fin
   du chemin » : la règle qui distingue le dossier de la consigne ne regarde plus
   le bloc des donjons mais la présence de titres de sections.
+- Les quêtes qu'aucun succès ne réclame ne sont plus rejetées en fin de liste.
+  Elles se rangent à leur place dans la progression, suivant leurs prérequis :
+  « Une arrivée mouvementée » ouvre désormais Albuera devant « Médiation
+  expéditive », « En route pour Feudala » se glisse entre « Sous le bois de sa
+  colère » et « Sous des nuages de cendre ». Un anneau vide les marque, contre
+  l'étoile pleine du succès, dans les zones qui ont des succès ; l'intertitre
+  « Hors succès » disparaît.
+- Ces quêtes s'enchaînent aussi entre elles au lieu de se ranger par titre. Les
+  quatre-vingts quêtes d'alignement bontarien, qui se lisaient « bontarien 1,
+  10, 11, 12, 2 », se lisent dans l'ordre.
+- La chaîne de quêtes et la liste rangent enfin un succès de la même façon. La
+  chaîne triait à l'endroit un rang de jeu inconnu, donc en tête, là où la liste
+  le met en queue : une quête de rang inconnu passait pour la première de son
+  succès et se donnait pour la suite de la série précédente.
 - La fenêtre s'appelle « Guides » et non plus « Quêtes » : elle ouvre aussi des
   donjons, des raids, des tanières et des chemins. Le raccourci et l'infobulle
   du bouton disent de même.

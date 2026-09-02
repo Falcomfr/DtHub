@@ -1027,3 +1027,50 @@ signe pour un niveau et pour un compte de quêtes. Le niveau se dit maintenant
 « niv. 180 ». La forme abrégée, et non « niveau », parce que la liste en compte
 quatre-vingt-treize lignes.
 
+## D42 - Une zone se range par ses prérequis
+
+**Le rejet en fin de liste était faux deux fois.** Les quêtes qu'aucun succès ne
+réclame, deux cent quatre-vingt-quatre sur sept cent quatre-vingt-deux,
+partaient toutes sous un intertitre « Hors succès », par ordre alphabétique.
+Faux de place : beaucoup ouvrent un succès ou le prolongent, et les voir en bas,
+coupées de ce qu'elles servent, ne dit rien de la progression. Faux d'ordre :
+les quatre-vingts quêtes d'alignement bontarien forment une suite numérotée que
+l'alphabet lisait « 1, 10, 11, 12, 2 ».
+
+**Les prérequis suffisent à ranger la zone.** Cinq cent quatorze prérequis sur
+sept cent vingt-neuf désignent une quête du catalogue, et cent
+quatre-vingt-douze des deux cent quatre-vingt-quatre quêtes seules sont prises
+dans une chaîne. Un tri topologique sur ces liens rend la progression du site.
+
+**Un succès reste un bloc insécable**, et c'est ce qui crée les seules boucles :
+deux succès qui se réclament l'un l'autre par des quêtes différentes ne peuvent
+pas être départagés. Au Château d'Amakna, le succès « Étre plus royaliste que le
+roi » ouvre deux suites de quêtes seules qui reviennent toutes deux en prérequis
+de ses propres quêtes. On tranche alors par l'ordre d'avant, et l'ordre reste
+total. Mesuré sur toutes les zones : **huit rangs forcés**, dont six sur la seule
+île de Frigost.
+
+**À défaut de prérequis, rien ne bouge.** Le départage est exactement l'ordre
+d'avant, rang du succès sur le site puis nom, une quête seule passant après les
+succès de même rang. Les vingt quêtes seules d'Astrub, dont aucune ne nomme une
+autre quête, restent donc où elles étaient.
+
+**Le calcul est dans le noyau** (`QuestZonePlan`), et non dans la vue : c'est la
+seule couche que les tests atteignent, le projet de tests visant `net10.0` quand
+l'application vise `net10.0-windows`. Douze tests y couvrent les cas mesurés.
+
+## D43 - L'anneau plutôt que l'intertitre
+
+**Une icône sur la ligne, pas d'intertitre.** Une fois les quêtes réparties, le
+compte d'un « Hors succès » ne veut plus rien dire, et quinze des trente suites
+de quêtes seules ne comptent qu'une ligne : un intertitre par suite aurait
+coiffé une seule quête une fois sur deux.
+
+L'anneau est vide contre l'étoile pleine du succès, et porte le gris du texte
+secondaire et non une couleur : il dit une absence d'appartenance, il n'annonce
+rien.
+
+**Il ne se pose que là où il distingue.** Dans les deux zones d'alignement, dont
+les quatre-vingts quêtes sont toutes seules, il marquerait chaque ligne sans
+rien apprendre. C'est la condition qui gouvernait déjà l'ancien intertitre.
+

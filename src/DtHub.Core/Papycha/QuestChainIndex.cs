@@ -22,7 +22,7 @@ public sealed class QuestChainIndex
 {
     private readonly Dictionary<string, QuestSummary> _byTitle;
     private readonly Dictionary<string, List<QuestSummary>> _followers;
-    private readonly Dictionary<string, List<QuestSummary>> _bySuccess;
+    private readonly Dictionary<string, IReadOnlyList<QuestSummary>> _bySuccess;
 
     public QuestChainIndex(IEnumerable<QuestSummary> quests)
     {
@@ -40,14 +40,17 @@ public sealed class QuestChainIndex
             _byTitle.TryAdd(QuestSearch.Normalize(quest.Title), quest);
         }
 
-        // Les quêtes de chaque succès, dans l'ordre où l'on y joue : c'est
-        // celui du site, porté par le champ de position.
+        // Les quêtes de chaque succès, dans l'ordre où l'on y joue, et dans le
+        // même que la liste : le rang inconnu se triait ici à l'endroit, donc en
+        // tête, et là-bas en queue. Une quête de rang inconnu passait ainsi pour
+        // la première de son succès, et « Une arrivée mouvementée » se donnait
+        // pour la suite de la série précédente sans l'ouvrir.
         _bySuccess = all
             .Where(q => q.SuccessName.Length > 0)
             .GroupBy(q => q.SuccessName, StringComparer.Ordinal)
             .ToDictionary(
                 g => g.Key,
-                g => g.OrderBy(q => q.PlayOrder).ThenBy(q => q.Title, StringComparer.Ordinal).ToList(),
+                g => (IReadOnlyList<QuestSummary>)QuestPlayOrder.Sorted(g),
                 StringComparer.Ordinal);
 
         _followers = [];
