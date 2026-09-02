@@ -45,6 +45,10 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   d'Amakna, « On recherche Ali Grothor » se retrouvait ainsi entre « Le vallon du
   château » et « Étre plus royaliste que le roi », sans rapport avec ni l'un ni
   l'autre. Cent deux quêtes seules sur trois cent une sont dans ce cas.
+- Le moteur de rendu s'endort quand les guides se masquent, et se réveille quand
+  ils reviennent. Mesuré : quarante-quatre mégaoctets rendus sur quatre cent
+  soixante-trois. Les six processus restent, seule leur mémoire de travail se
+  relâche.
 - L'arrêt de l'application laisse tourner sa boucle de messages pendant qu'il
   range. WPF coupe le répartiteur dès que la méthode d'arrêt rend la main, et un
   « await » la lui rend : tout ce qui suivait, dont la pose de la mise à jour,

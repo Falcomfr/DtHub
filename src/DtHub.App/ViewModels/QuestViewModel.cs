@@ -122,6 +122,17 @@ public sealed partial class QuestViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(ShowsSteps))]
     private bool _isLoadingPage;
 
+    /// <summary>
+    /// Vrai quand la fenêtre est à l'écran.
+    ///
+    /// Il ne sert qu'à retirer la vue web quand la fenêtre se masque, ce qui est
+    /// la condition pour endormir le moteur de rendu : il refuse de dormir tant
+    /// qu'il se croit visible, et le dit par une erreur d'état.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsPage))]
+    private bool _isWindowVisible = true;
+
     /// <summary>Vrai pendant l'indexation, pour montrer que ça travaille.</summary>
     [ObservableProperty]
     private bool _isBusy;
@@ -151,7 +162,7 @@ public sealed partial class QuestViewModel : ObservableObject
     /// de tout élément WPF du même châssis, et un voile posé dessus resterait
     /// invisible. C'est du reste ce que fait déjà la liste déroulante.
     /// </summary>
-    public bool ShowsPage => !IsListOpen && !IsLoadingPage;
+    public bool ShowsPage => !IsListOpen && !IsLoadingPage && IsWindowVisible;
 
     /// <summary>Vrai quand la place de la vue revient à l'indicateur d'attente.</summary>
     public bool ShowsLoader => IsLoadingPage && !IsListOpen;

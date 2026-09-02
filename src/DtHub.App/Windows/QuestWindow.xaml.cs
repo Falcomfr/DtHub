@@ -44,6 +44,12 @@ public partial class QuestWindow : Window
         _logger = logger;
         DataContext = viewModel;
 
+        // Le moteur de rendu garde six processus et un demi-gigaoctet quand la
+        // fenêtre est masquée, ce qui est le cas la plupart du temps : on ouvre
+        // les guides pour lire une étape, puis on retourne au jeu. Il sait se
+        // mettre en sommeil, à condition qu'on ne lui demande rien d'autre.
+        IsVisibleChanged += (_, _) => OnVisibilityChanged();
+
         Loaded += async (_, _) => await _viewModel.InitializeAsync().ConfigureAwait(true);
     }
 
@@ -413,6 +419,65 @@ public partial class QuestWindow : Window
         }
     }
 
+    /// <summary>
+    /// Endort ou réveille le moteur de rendu selon que la fenêtre se montre ou
+    /// se masque.
+    ///
+    /// Mesuré : quatre cent soixante-trois mégaoctets fenêtre ouverte, quatre
+    /// cent dix-neuf une fois endormi, soit quarante-quatre rendus. Les six
+    /// processus restent, seule leur mémoire de travail se relâche : c'est
+    /// moins que ce qu'on pouvait espérer, et c'est gratuit. La page revient
+    /// telle qu'on l'a laissée, défilement compris.
+    ///
+    /// Le moteur refuse de dormir tant qu'il se croit visible, et le dit par
+    /// une erreur d'état, 0x8007139F. La vue est donc retirée avant, ce que le
+    /// drapeau de visibilité de la fenêtre gouverne déjà.
+    ///
+    /// Sans moteur démarré, il n'y a rien à endormir : la fenêtre peut être
+    /// masquée avant d'avoir jamais montré une page.
+    /// </summary>
+    private void OnVisibilityChanged()
+    {
+        var visible = IsVisible;
+
+        // La vue est retirée avant qu'on demande le sommeil, et remise avant
+        // qu'on réveille : le moteur refuse de dormir tant qu'il se croit
+        // visible, et rend alors une erreur d'état, mesurée.
+        _viewModel.IsWindowVisible = visible;
+
+        // Après la passe de mise en page, faute de quoi la vue serait encore
+        // visible au moment de la demande.
+        _ = Dispatcher.BeginInvoke(
+            DispatcherPriority.Loaded, () => Doze(asleep: !visible));
+    }
+
+    private async void Doze(bool asleep)
+    {
+        try
+        {
+            if (View.CoreWebView2 is not { } engine)
+            {
+                return;
+            }
+
+            if (asleep)
+            {
+                LogDozed(await engine.TrySuspendAsync().ConfigureAwait(true));
+
+                return;
+            }
+
+            engine.Resume();
+        }
+        catch (Exception exception) when (exception is InvalidOperationException
+            or System.Runtime.InteropServices.COMException or ObjectDisposedException)
+        {
+            // Un moteur qui refuse de dormir ne coûte que de la mémoire ; le
+            // réveiller de force ou s'en plaindre coûterait la fenêtre.
+            LogDozeFailed(exception);
+        }
+    }
+
     /// <summary>Fait défiler la page jusqu'à une étape.</summary>
     private async void GoToStep(int index)
     {
@@ -570,6 +635,12 @@ public partial class QuestWindow : Window
         Level = LogLevel.Information,
         Message = "Navigation {id} terminée (attendue : {awaited}, succès : {success})")]
     private partial void LogNavigationCompleted(ulong id, ulong awaited, bool success);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Moteur de rendu mis en sommeil : {asleep}.")]
+    private partial void LogDozed(bool asleep);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Le moteur de rendu n'a pas pu être endormi.")]
+    private partial void LogDozeFailed(Exception exception);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Le pont annonce la page chargée.")]
     private partial void LogBridgeLoaded();
