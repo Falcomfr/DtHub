@@ -55,6 +55,13 @@ balaie ce qui reste. Si la seconde moitié échoue, la première est défaite.
 atteint, empreinte fausse, fichier verrouillé : l'application continue avec la
 version qu'elle a.
 
+## Faire reconnaître le binaire
+
+Ce que Windows et les antivirus en pensent, et comment le signer, sont dans
+[CONFIANCE.md](CONFIANCE.md). La chaîne refuse déjà de livrer un binaire dont le
+nom, la description ou l'éditeur manquent, et signe si le secret
+`SIGNING_COMMAND` est posé sur le dépôt.
+
 ## Vérifier une livraison à la main
 
 ```

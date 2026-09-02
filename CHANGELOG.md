@@ -45,6 +45,11 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   d'Amakna, « On recherche Ali Grothor » se retrouvait ainsi entre « Le vallon du
   château » et « Étre plus royaliste que le roi », sans rapport avec ni l'un ni
   l'autre. Cent deux quêtes seules sur trois cent une sont dans ce cas.
+- L'exécutable porte enfin son nom. Ses propriétés annonçaient « DT Touch »,
+  resté d'un renommage, quand la fenêtre dit « DT Hub », et sa description était
+  le nom du fichier. C'est ce que Windows montre et ce que SmartScreen cite. La
+  chaîne de livraison refuse désormais un binaire dont le nom, la description ou
+  l'éditeur manquent, et sait le signer dès qu'un certificat est configuré.
 - L'application n'écrit plus rien à côté de son exécutable. Le moteur de rendu y
   posait son cache, faute qu'on lui dise où aller : vingt-quatre mégaoctets après
   une seule session, trois cent quatre-vingt-dix-neuf après quelques semaines. Il

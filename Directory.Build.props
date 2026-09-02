@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
 
   <!--
     Identité produit centralisée.
@@ -6,8 +6,19 @@
     et src/DtHub.Core/ProductInfo.cs (voir AGENTS.md, section "Renommer le produit").
   -->
   <PropertyGroup Label="Product">
-    <Product>DT Touch</Product>
+    <!-- Ce que Windows montre dans les propriétés du fichier, et ce que
+         SmartScreen cite quand il met en garde. Il doit dire exactement ce que
+         l'application dit d'elle-même : « DT Touch » traînait ici depuis un
+         renommage, quand la fenêtre annonce « DT Hub ». Un exécutable qui ne
+         porte pas son propre nom se défend mal. -->
+    <Product>DT Hub</Product>
     <ProductSlug>DtHub</ProductSlug>
+
+    <!-- La description est ce que Windows affiche en premier, dans la mise en
+         garde de SmartScreen comme dans le gestionnaire des tâches. Sans elle,
+         il n'y a que le nom du fichier. -->
+    <AssemblyTitle>DT Hub, plusieurs comptes DOFUS Touch côte à côte</AssemblyTitle>
+    <Description>Ouvre plusieurs comptes DOFUS Touch côte à côte depuis de vrais appareils Android, avec un suivi de guides.</Description>
     <Company>Falcomfr</Company>
     <Authors>Falcomfr</Authors>
     <Copyright>Copyright (c) 2026 Falcomfr</Copyright>

@@ -21,6 +21,11 @@ jobs:
   livrer:
     runs-on: windows-latest
 
+    # Le secret est copié ici parce qu'un « if » d'étape ne peut pas lire le
+    # contexte des secrets. Vide, l'étape de signature est sautée.
+    env:
+      SIGNING_COMMAND: ${{ secrets.SIGNING_COMMAND }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -50,6 +55,46 @@ jobs:
           -p:Version=${{ steps.version.outputs.numero }}
           --output publication
           --nologo
+
+      - name: Contrôler l'identité du binaire
+        shell: pwsh
+        run: |
+          # Ce que Windows montre dans les propriétés du fichier, et ce que
+          # SmartScreen cite quand il met en garde. Un exécutable qui ne porte
+          # pas son nom se défend mal, et « DT Touch » a traîné là des semaines
+          # après un renommage sans que rien ne le dise.
+          $v = (Get-Item publication/DtHub.exe).VersionInfo
+          $manques = @()
+
+          if (-not $v.ProductName)     { $manques += 'ProductName' }
+          if (-not $v.FileDescription) { $manques += 'FileDescription' }
+          if (-not $v.CompanyName)     { $manques += 'CompanyName' }
+          if ($v.FileDescription -eq 'DtHub') { $manques += 'FileDescription (nom de fichier au lieu d une phrase)' }
+
+          Write-Host "ProductName     $($v.ProductName)"
+          Write-Host "FileDescription $($v.FileDescription)"
+          Write-Host "CompanyName     $($v.CompanyName)"
+          Write-Host "FileVersion     $($v.FileVersion)"
+
+          if ($manques) { throw "Identité incomplète : $($manques -join ', ')" }
+
+      - name: Signer
+        # Inerte tant qu'aucun certificat n'est configuré : la livraison sort
+        # alors non signée, et Windows met en garde le temps que la réputation
+        # se construise. Voir docs/CONFIANCE.md.
+        #
+        # Le secret SIGNING_COMMAND porte la ligne de signature complète, ce qui
+        # laisse le choix du fournisseur sans rien changer ici : signtool avec un
+        # certificat en nuage, ou l outil du prestataire.
+        if: env.SIGNING_COMMAND != ''
+        shell: pwsh
+        run: |
+          Invoke-Expression "$env:SIGNING_COMMAND publication/DtHub.exe"
+
+          $s = Get-AuthenticodeSignature publication/DtHub.exe
+          Write-Host "Signature : $($s.Status) $($s.SignerCertificate.Subject)"
+
+          if ($s.Status -ne 'Valid') { throw "La signature n a pas pris : $($s.Status)" }
 
       - name: Empreinte
         shell: pwsh
