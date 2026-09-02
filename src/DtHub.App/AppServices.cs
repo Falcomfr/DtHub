@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Net.Http;
+using System.Reflection;
 
 using DtHub.App.Services;
 using DtHub.App.ViewModels;
@@ -13,6 +14,7 @@ using DtHub.Core.Processes;
 using DtHub.Core.Scrcpy;
 using DtHub.Core.Sessions;
 using DtHub.Core.Papycha;
+using DtHub.Core.Updates;
 using DtHub.Core.Settings;
 using DtHub.Core.Storage;
 using DtHub.Core.Users;
@@ -22,6 +24,7 @@ using DtHub.Infrastructure.Dependencies;
 using DtHub.Infrastructure.Devices;
 using DtHub.Infrastructure.Hotkeys;
 using DtHub.Infrastructure.Papycha;
+using DtHub.Infrastructure.Updates;
 using DtHub.Infrastructure.Processes;
 using DtHub.Infrastructure.Scrcpy;
 using DtHub.Infrastructure.Storage;
@@ -70,6 +73,22 @@ public static class AppServices
         services.AddSingleton<IPapychaClient>(provider => new PapychaClient(
             new HttpClient { Timeout = TimeSpan.FromSeconds(30) },
             provider.GetRequiredService<ILogger<PapychaClient>>()));
+        // Mises à jour. Son propre client : un exécutable de soixante mégaoctets
+        // ne se télécharge pas dans le temps qu'on accorde à une page web.
+        services.AddSingleton<IReleaseSource>(provider => new GitHubReleaseSource(
+            new HttpClient { Timeout = TimeSpan.FromMinutes(10) },
+            ReleaseChannel.Owner,
+            ReleaseChannel.Repository,
+            provider.GetRequiredService<ILogger<GitHubReleaseSource>>()));
+        services.AddSingleton(_ => new UpdateTarget(
+            ReleaseParser.Normalize(ReleaseParser.VersionOf(
+                Assembly.GetEntryAssembly()
+                    ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+                    ?.InformationalVersion
+                    .Split('+')[0])),
+            Environment.ProcessPath ?? string.Empty));
+        services.AddSingleton<UpdateService>();
+
         services.AddSingleton<IQuestSuccessSeed, EmbeddedQuestSuccessSeed>();
         services.AddSingleton<QuestCatalogService>();
         services.AddSingleton<IAdbLocator>(provider => new AdbLocator(

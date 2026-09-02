@@ -45,6 +45,18 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   d'Amakna, « On recherche Ali Grothor » se retrouvait ainsi entre « Le vallon du
   château » et « Étre plus royaliste que le roi », sans rapport avec ni l'un ni
   l'autre. Cent deux quêtes seules sur trois cent une sont dans ce cas.
+- L'application se met à jour depuis les livraisons du dépôt. Elle demande la
+  dernière au démarrage, la télécharge en fond si la case « Se mettre à jour
+  toute seule » est cochée, vérifie son empreinte, et pose le nouvel exécutable
+  quand on quitte : jamais en pleine session. La note de version paraît au
+  démarrage suivant, celui qui exécute enfin la nouvelle version, et un bandeau
+  la rend consultable avant.
+- Elle refuse de se mettre à jour depuis un arbre de sources : le lanceur de
+  développement republie à chaque démarrage et écraserait la mise à jour dans la
+  seconde, en faisant croire à une régression.
+- Une chaîne de livraison publie l'exécutable, son empreinte et la note de
+  version quand une étiquette « v… » est poussée. La marche à suivre est dans
+  docs/LIVRAISON.md.
 - Les guides tiennent l'application en vie à eux seuls. Fermer la dernière
   fenêtre de jeu, ou masquer les réglages, emportait le guide qu'on était en
   train de lire. Ils comptent désormais comme le panneau : tant qu'ils sont à

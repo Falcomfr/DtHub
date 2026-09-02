@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -136,6 +136,20 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [ObservableProperty]
     private string _toggleShortcutText = "Ctrl + P";
 
+    /// <summary>Ce que le bandeau de mise à jour annonce. Vide, il ne paraît pas.</summary>
+    [ObservableProperty]
+    private string _updateText = string.Empty;
+
+    /// <summary>
+    /// Vrai quand l'application se met à jour toute seule. Elle télécharge alors
+    /// la livraison en fond et la pose en quittant, jamais en pleine session.
+    /// </summary>
+    [ObservableProperty]
+    private bool _updatesAutomatic = true;
+
+    partial void OnUpdatesAutomaticChanged(bool value) =>
+        _ = SaveAsync(settings => settings.UpdatesAutomatic = value);
+
     /// <summary>
     /// Raccourci du replacement, affiché à côté du bouton. Vide quand aucun
     /// raccourci n'est associé à l'action.
@@ -181,6 +195,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
             Quality = settings.Quality;
             Zoom = settings.GameZoom;
+            UpdatesAutomatic = settings.UpdatesAutomatic;
 
             SizePercent = settings.CustomSizePercent > 0
                 ? settings.CustomSizePercent
@@ -308,6 +323,13 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// l'application, pas par ce modèle : il n'a pas à connaître les fenêtres.
     /// </summary>
     public event EventHandler? QuestsRequested;
+
+    /// <summary>Montre ce que la version en attente apporte.</summary>
+    [RelayCommand]
+    private void UpdateNotes() => UpdateNotesRequested?.Invoke(this, EventArgs.Empty);
+
+    /// <summary>Demandé depuis le bandeau de mise à jour, même raison.</summary>
+    public event EventHandler? UpdateNotesRequested;
 
     [RelayCommand]
     private void OpenLogs() => _dialogs.OpenFolder(_paths.LogsDirectory);

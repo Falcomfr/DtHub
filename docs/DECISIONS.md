@@ -1120,3 +1120,49 @@ reste rien d'autre l'arrête, exactement comme masquer le panneau. Vérifié à
 l'écran : guides seuls affichés, réglages masqués, l'application survit ;
 guides masqués à leur tour, elle s'arrête.
 
+## D46 - La mise à jour depuis le dépôt
+
+**Un dépôt public, sans jeton.** L'application demande la dernière livraison à
+l'API du dépôt, soixante fois par heure et par adresse, ce qui dépasse de loin
+une vérification par démarrage. Un dépôt privé aurait demandé un jeton, et un
+jeton posé dans l'exécutable est lisible par qui l'ouvre : ce n'est pas un
+secret, c'est un secret publié.
+
+**L'empreinte avant l'exécution.** Un exécutable de soixante mégaoctets qui
+remplace le nôtre ne s'exécute pas sur la foi d'un téléchargement. La livraison
+porte un second fichier, `DtHub.exe.sha256`, et une livraison à laquelle il
+manque est ignorée. Un écart, et le fichier est effacé sans avoir servi.
+
+**L'échange à l'arrêt, jamais en session.** Un exécutable qui tourne ne peut pas
+être écrasé, mais il peut être renommé : l'ancien s'écarte en
+`DtHub.exe.ancien`, le nouveau prend sa place, et le démarrage suivant balaie ce
+qui reste. Si la seconde moitié échoue, la première est défaite : mieux vaut
+l'ancienne version que pas d'application. Rien ne demande de droits
+particuliers, la mise à jour se posant là où l'application est déjà installée.
+
+**La note de version attend le démarrage suivant.** C'est celui qui exécute la
+nouvelle version, et c'est donc là qu'annoncer ce qui change a un sens. Elle est
+écrite à côté de l'exécutable en attente, lue une fois, puis effacée. Avant
+cela, un bandeau du panneau dit qu'une version est prête et donne à lire sa
+note.
+
+**Pas de mise à jour depuis un arbre de sources.** Si le fichier de solution se
+trouve au-dessus de l'exécutable, la mise à jour est refusée : le lanceur de
+développement republie à chaque démarrage et l'écraserait dans la seconde, en
+faisant croire à une régression.
+
+**Rien de tout cela n'est une panne.** Pas de réseau, dépôt encore absent, quota
+atteint, empreinte fausse, fichier verrouillé : l'application continue avec la
+version qu'elle a. C'est un service de confort, pas une dépendance.
+
+**Le service est dans l'infrastructure et non dans la vue.** Il ne touche que
+des fichiers, et c'est la seule couche que les tests atteignent. Ce qu'il fait
+étant de remplacer un exécutable, il valait mieux l'éprouver : sept tests
+couvrent la pose, le refus sur empreinte fausse, le refus en arbre de sources,
+la note lue une seule fois et le ménage.
+
+**Aucune action tierce dans la chaîne de livraison**, seulement celles de GitHub
+et son outil en ligne de commande, déjà présent sur la machine de compilation.
+Une chaîne qui pose l'exécutable que des gens vont exécuter n'emprunte pas de
+code à des inconnus.
+\n

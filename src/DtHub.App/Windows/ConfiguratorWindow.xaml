@@ -46,6 +46,30 @@
         </Grid>
       </Border>
 
+      <!-- Ce que la prochaine version apporte. Le bandeau ne paraît que
+           lorsqu'il y a quelque chose à dire, et il le dit en une ligne : la
+           note complète tient dans sa propre fenêtre, qu'on ouvre si on veut. -->
+      <Border DockPanel.Dock="Top" Padding="12,7"
+              Background="{StaticResource BrushedPanelBrush}"
+              BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1"
+              Visibility="{Binding UpdateText, Converter={StaticResource EmptyToVisibility},
+                                   ConverterParameter=inverse}">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+
+          <TextBlock Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap"
+                     FontSize="12" Text="{Binding UpdateText}" />
+
+          <Button Grid.Column="1" Content="Nouveautés" Style="{StaticResource QuietButton}"
+                  Padding="8,3" Margin="8,0,0,0" VerticalAlignment="Center"
+                  Command="{Binding UpdateNotesCommand}"
+                  ToolTip="Lire ce que cette version apporte" />
+        </Grid>
+      </Border>
+
       <!-- Barre du bas : outils à gauche, quitter à droite. -->
       <Border DockPanel.Dock="Bottom" Padding="10,8"
               Background="{StaticResource BrushedPanelBrush}"
@@ -319,6 +343,13 @@
               </Border>
 
               <StackPanel Margin="2,4,0,10">
+                <!-- Le téléchargement se fait en fond, l'échange à l'arrêt : une
+                     application ne se remplace pas sous les doigts de celui qui
+                     s'en sert. -->
+                <CheckBox Content="Se mettre à jour toute seule" Margin="0,0,0,8"
+                          IsChecked="{Binding UpdatesAutomatic}"
+                          ToolTip="La nouvelle version se télécharge en fond et s'installe quand vous quittez. Décoché, l'application se contente de dire qu'une version existe." />
+
                 <TextBlock Style="{StaticResource Muted}" FontSize="11">
                   <Run Text="{Binding ProductName, Mode=OneWay}" />
                   <Run Text="{Binding Version, Mode=OneWay}" />

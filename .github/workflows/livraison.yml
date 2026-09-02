@@ -1,0 +1,89 @@
+# Publie une version quand une étiquette « v… » est poussée.
+#
+# Rien d'automatique sur les commits : c'est l'étiquette qui décide. La marche
+# à suivre est dans docs/LIVRAISON.md.
+#
+# Aucune action tierce : seules celles de GitHub, plus son propre outil en
+# ligne de commande, déjà présent sur la machine de compilation. Une chaîne de
+# livraison qui pose l'exécutable que des gens vont exécuter n'emprunte pas de
+# code à des inconnus.
+name: Livraison
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  livrer:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Version portée par l'étiquette
+        id: version
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}" -replace '^v', ''
+          "numero=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Éprouver
+        run: dotnet test DtHub.slnx --configuration Release --nologo
+
+      - name: Publier
+        run: >
+          dotnet publish src/DtHub.App
+          --configuration Release
+          --runtime win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:EnableCompressionInSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:Version=${{ steps.version.outputs.numero }}
+          --output publication
+          --nologo
+
+      - name: Empreinte
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash publication/DtHub.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  DtHub.exe" | Set-Content -NoNewline publication/DtHub.exe.sha256
+          Write-Host "SHA256 $hash"
+
+      - name: Note de version
+        shell: pwsh
+        run: |
+          # La note vient du journal des modifications, section de la version
+          # livrée. Écrite une fois, lue par le dépôt et par l'application.
+          $lignes = Get-Content CHANGELOG.md
+          $debut = $null
+          $note = @()
+
+          foreach ($ligne in $lignes) {
+            if ($ligne -match '^## \[${{ steps.version.outputs.numero }}\]') { $debut = $true; continue }
+            if ($debut -and $ligne -match '^## ') { break }
+            if ($debut) { $note += $ligne }
+          }
+
+          if (-not $debut) { throw "Le journal ne décrit pas la version ${{ steps.version.outputs.numero }}." }
+
+          ($note -join "`n").Trim() | Set-Content note.md
+
+      - name: Livrer
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create ${{ github.ref_name }}
+          publication/DtHub.exe
+          publication/DtHub.exe.sha256
+          --title "DT Hub ${{ steps.version.outputs.numero }}"
+          --notes-file note.md

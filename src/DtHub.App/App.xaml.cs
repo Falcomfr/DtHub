@@ -9,6 +9,8 @@ using DtHub.App.Windows;
 using DtHub.Core;
 using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
+using DtHub.Core.Updates;
+using DtHub.Infrastructure.Updates;
 using DtHub.Core.Storage;
 using DtHub.Infrastructure.Processes;
 using DtHub.Core.Scrcpy;
@@ -186,6 +188,32 @@ public partial class App : Application, IDisposable
         {
             await RestoreQuestsAsync(document.LastQuestUrl).ConfigureAwait(true);
         }
+
+        // Mises à jour : le ménage d'abord, puis ce qui vient d'être posé
+        // s'annonce, puis on regarde s'il existe mieux. La recherche n'est pas
+        // attendue : l'application ne doit pas démarrer au rythme du réseau.
+        var updates = services.GetRequiredService<UpdateService>();
+        var configuratorModel = services.GetRequiredService<ConfiguratorViewModel>();
+
+        updates.Sweep();
+        updates.Changed += (_, _) => Dispatcher.Invoke(() => ShowUpdateState(updates, configuratorModel));
+        configuratorModel.UpdateNotesRequested += (_, _) => Dispatcher.Invoke(
+            () => ShowNotes(
+                $"DT Hub {updates.Available?.Version}",
+                updates.Ready
+                    ? "Cette version est prête. Elle s'installera quand vous quitterez."
+                    : "Cette version est disponible.",
+                ReleaseNotes.Readable(updates.Available?.Notes)));
+
+        if (updates.TakeNotes() is { Length: > 0 } installed)
+        {
+            ShowNotes(
+                $"DT Hub {updates.Running}",
+                "Cette version vient d'être installée.",
+                installed);
+        }
+
+        _ = updates.CheckAsync(document.UpdatesAutomatic);
 
         // À partir d'ici seulement, masquer le panneau vaut décision de
         // l'utilisateur : le masquage de démarrage, lui, suit les réglages.
@@ -523,6 +551,37 @@ public partial class App : Application, IDisposable
         return _quests;
     }
 
+    /// <summary>
+    /// Dit en une ligne où en est la mise à jour. Le bandeau ne paraît que
+    /// lorsqu'il y a quelque chose à dire.
+    /// </summary>
+    private static void ShowUpdateState(UpdateService updates, ConfiguratorViewModel model)
+    {
+        model.UpdateText = updates.Available is not { } release
+            ? string.Empty
+            : updates.Ready
+                ? $"Version {release.Version} prête, elle s'installera en quittant."
+                : $"Version {release.Version} disponible.";
+    }
+
+    /// <summary>Ouvre la note de version, posée sur le panneau s'il est là.</summary>
+    private void ShowNotes(string heading, string lead, string notes)
+    {
+        if (notes.Length == 0)
+        {
+            return;
+        }
+
+        var window = new UpdateWindow(heading, lead, notes);
+
+        if (_configurator?.IsVisible == true)
+        {
+            window.Owner = _configurator;
+        }
+
+        window.Show();
+    }
+
     private void ToggleConfigurator()
     {
         if (_configurator is null)
@@ -542,6 +601,11 @@ public partial class App : Application, IDisposable
                 // Les fenêtres de jeu sont fermées avec l'application : les
                 // laisser ouvertes sans configurateur n'aurait pas de sens.
                 await _host.Services.GetRequiredService<GameLauncher>().CloseAllAsync().ConfigureAwait(true);
+
+                // La mise à jour se pose ici et nulle part ailleurs : plus rien
+                // ne tourne, et l'exécutable qui se renomme n'interrompt
+                // personne. Elle démarrera au prochain lancement.
+                _ = _host.Services.GetRequiredService<UpdateService>().Apply();
                 await _host.StopAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(true);
             }
             catch (Exception exception)

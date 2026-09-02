@@ -69,6 +69,13 @@ public sealed class AppSettingsDocument
     public string LastQuestUrl { get; set; } = string.Empty;
 
     /// <summary>
+    /// Vrai quand l'application se met à jour toute seule : elle télécharge la
+    /// livraison en fond et l'installe en quittant, jamais en pleine session.
+    /// Décoché, elle se contente de dire qu'une version existe.
+    /// </summary>
+    public bool UpdatesAutomatic { get; set; } = true;
+
+    /// <summary>
     /// Où sont les fenêtres de l'application, par nom.
     ///
     /// Une table plutôt qu'un champ par fenêtre : elles se ressemblent toutes

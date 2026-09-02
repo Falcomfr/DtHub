@@ -1,4 +1,4 @@
-using DtHub.Core;
+﻿using DtHub.Core;
 using DtHub.Core.Storage;
 
 namespace DtHub.Infrastructure.Storage;
@@ -22,6 +22,7 @@ public sealed class AppPaths : IAppPaths
         QuestCatalogFile = Path.Combine(CacheDirectory, "papycha-quetes.json");
         LogsDirectory = Path.Combine(Root, "logs");
         ToolsDirectory = Path.Combine(Root, "tools");
+        UpdatesDirectory = Path.Combine(Root, "updates");
     }
 
     public string Root { get; }
@@ -33,6 +34,7 @@ public sealed class AppPaths : IAppPaths
     public string QuestCatalogFile { get; }
     public string LogsDirectory { get; }
     public string ToolsDirectory { get; }
+    public string UpdatesDirectory { get; }
 
     public void EnsureCreated()
     {
@@ -40,5 +42,6 @@ public sealed class AppPaths : IAppPaths
         Directory.CreateDirectory(CacheDirectory);
         Directory.CreateDirectory(LogsDirectory);
         Directory.CreateDirectory(ToolsDirectory);
+        Directory.CreateDirectory(UpdatesDirectory);
     }
 }

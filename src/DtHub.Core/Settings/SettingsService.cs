@@ -580,6 +580,12 @@ public sealed class SettingsService : IDisposable
     /// Retient si le suivi de quêtes était ouvert et sur quelle quête, pour le
     /// rouvrir tel quel au lancement suivant.
     /// </summary>
+    /// <summary>Retient si l'application doit se mettre à jour toute seule.</summary>
+    public Task SetUpdatesAutomaticAsync(
+        bool automatic,
+        CancellationToken cancellationToken = default) =>
+        UpdateAsync(settings => settings.UpdatesAutomatic = automatic, cancellationToken);
+
     public Task SetQuestsStateAsync(
         bool visible,
         string? lastQuestUrl,
