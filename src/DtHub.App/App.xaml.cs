@@ -10,6 +10,7 @@ using DtHub.Core;
 using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
 using DtHub.Core.Updates;
+using DtHub.Core.Windows;
 using DtHub.Infrastructure.Updates;
 using DtHub.Core.Storage;
 using DtHub.Infrastructure.Processes;
@@ -107,6 +108,8 @@ public partial class App : Application, IDisposable
         await KillOrphansAsync(services).ConfigureAwait(true);
 
         launcher.IconDirectory = WindowIcons.EnsureDirectory(services.GetRequiredService<IAppPaths>());
+
+        PlaceShortcut(services);
 
         var current = await settings.GetAsync().ConfigureAwait(true);
 
@@ -234,6 +237,44 @@ public partial class App : Application, IDisposable
                 report.Problems.Count > 0
                     ? string.Join(" ", report.Problems)
                     : "aucune instance à ouvrir.");
+        }
+    }
+
+    /// <summary>
+    /// Pose le raccourci du menu Démarrer sur l'exécutable, là où il se trouve.
+    ///
+    /// L'application n'est pas installée : c'est un fichier qu'on pose où l'on
+    /// veut. Sans raccourci, on va le chercher là où on l'a mis, et il n'y a
+    /// rien à épingler. Le raccourci est récrit à chaque démarrage, si bien que
+    /// déplacer le fichier suffit à le corriger.
+    ///
+    /// Rien n'est copié ni déplacé : se copier laisserait un exécutable orphelin
+    /// qui ne se mettrait jamais à jour, et se déplacer reviendrait à bouger le
+    /// fichier de quelqu'un sans le lui demander.
+    ///
+    /// Rien n'est fait depuis un arbre de sources : le raccourci viserait la
+    /// sortie de publication, que le lanceur de développement récrit à chaque
+    /// fois. C'est la règle déjà écrite pour la mise à jour.
+    ///
+    /// Un raccourci que Windows refuse n'empêche rien : l'application démarre.
+    /// </summary>
+    private static void PlaceShortcut(IServiceProvider services)
+    {
+        var executable = Environment.ProcessPath;
+
+        if (!UpdatePaths.CanReplace(executable, File.Exists))
+        {
+            return;
+        }
+
+        var link = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.Programs),
+            ProductInfo.Name + ".lnk");
+
+        if (!services.GetRequiredService<IShortcutWriter>()
+            .Write(link, executable!, "Ouvrir " + ProductInfo.Name))
+        {
+            Log.Warning("Le raccourci du menu Démarrer n'a pas pu être posé.");
         }
     }
 

@@ -21,17 +21,20 @@ public partial class QuestPageWindow : Window
     private readonly IDialogService _dialogs;
     private readonly WindowPlacements _placements;
     private readonly SettingsService _settings;
+    private readonly WebViewEnvironment _engine;
 
     private string _url = string.Empty;
 
     public QuestPageWindow(
         IDialogService dialogs,
         WindowPlacements placements,
-        SettingsService settings)
+        SettingsService settings,
+        WebViewEnvironment engine)
     {
         _dialogs = dialogs;
         _placements = placements;
         _settings = settings;
+        _engine = engine;
 
         InitializeComponent();
     }
@@ -120,7 +123,11 @@ public partial class QuestPageWindow : Window
         Show();
         Activate();
 
-        await View.EnsureCoreWebView2Async().ConfigureAwait(true);
+        // Le même environnement que la fenêtre des guides : un seul profil, un
+        // seul cache, au même endroit.
+        await View
+            .EnsureCoreWebView2Async(await _engine.GetAsync().ConfigureAwait(true))
+            .ConfigureAwait(true);
 
         // Avant de naviguer : le script s'injecte à la création du document, et
         // une page déjà chargée ne le verrait pas passer. Cadrage seul, sans le

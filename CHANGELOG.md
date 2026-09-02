@@ -45,6 +45,20 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   d'Amakna, « On recherche Ali Grothor » se retrouvait ainsi entre « Le vallon du
   château » et « Étre plus royaliste que le roi », sans rapport avec ni l'un ni
   l'autre. Cent deux quêtes seules sur trois cent une sont dans ce cas.
+- L'application n'écrit plus rien à côté de son exécutable. Le moteur de rendu y
+  posait son cache, faute qu'on lui dise où aller : vingt-quatre mégaoctets après
+  une seule session, trois cent quatre-vingt-dix-neuf après quelques semaines. Il
+  écrit maintenant sous `%LOCALAPPDATA%\DtHub\webview`, avec un cache borné à
+  cent mégaoctets et balayé s'il déborde.
+- La publication ne rend plus qu'un fichier. Trois fichiers de symboles et trois
+  de documentation d'un paquet tiers traînaient à côté ; les symboles sont
+  désormais embarqués, ce qui garde les numéros de ligne dans les journaux.
+- L'application pose un raccourci dans le menu Démarrer, sur l'exécutable là où
+  il se trouve. Elle ne se copie ni ne se déplace ; déplacer le fichier corrige
+  le raccourci au démarrage suivant. Rien n'est fait depuis un arbre de sources.
+- Le composant WebView2 absent se dit en clair, avec le lien pour l'installer, au
+  lieu d'une fenêtre vide et d'une ligne de journal. C'est la seule dépendance
+  externe de l'application.
 - Les guides suivent le site au lieu de suivre un calendrier. L'application lui
   demande s'il a bougé, ce qui coûte quatre-vingt-dix-sept octets, et ne le relit
   que s'il a bougé. Une quête parue le matin était vue jusqu'à sept jours plus

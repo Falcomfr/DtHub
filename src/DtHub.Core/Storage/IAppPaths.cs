@@ -36,6 +36,18 @@ public interface IAppPaths
     /// </summary>
     string UpdatesDirectory { get; }
 
+    /// <summary>
+    /// Ce que le moteur de rendu écrit pour lui : son cache, ses cookies, ses
+    /// préférences.
+    ///
+    /// Sans cette adresse, il le pose à côté de l'exécutable. Mesuré sur un
+    /// dossier vierge, vingt-quatre mégaoctets après une seule session ; sur un
+    /// dossier de développement de quelques semaines, trois cent
+    /// quatre-vingt-dix-neuf. Un fichier unique qu'on peut donner à quelqu'un ne
+    /// laisse pas cela derrière lui.
+    /// </summary>
+    string WebViewDirectory { get; }
+
     /// <summary>Crée les dossiers manquants. Idempotent.</summary>
     void EnsureCreated();
 }

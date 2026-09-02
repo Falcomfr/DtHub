@@ -23,6 +23,7 @@ public sealed class AppPaths : IAppPaths
         LogsDirectory = Path.Combine(Root, "logs");
         ToolsDirectory = Path.Combine(Root, "tools");
         UpdatesDirectory = Path.Combine(Root, "updates");
+        WebViewDirectory = Path.Combine(Root, "webview");
     }
 
     public string Root { get; }
@@ -35,6 +36,7 @@ public sealed class AppPaths : IAppPaths
     public string LogsDirectory { get; }
     public string ToolsDirectory { get; }
     public string UpdatesDirectory { get; }
+    public string WebViewDirectory { get; }
 
     public void EnsureCreated()
     {
@@ -43,5 +45,6 @@ public sealed class AppPaths : IAppPaths
         Directory.CreateDirectory(LogsDirectory);
         Directory.CreateDirectory(ToolsDirectory);
         Directory.CreateDirectory(UpdatesDirectory);
+        Directory.CreateDirectory(WebViewDirectory);
     }
 }

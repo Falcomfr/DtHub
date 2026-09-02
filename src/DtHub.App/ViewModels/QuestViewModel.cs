@@ -1499,9 +1499,11 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Le navigateur embarqué n'a pas pu se mettre en route. Le cas le plus
-    /// probable est un moteur WebView2 absent, sur un Windows qui n'a pas été
-    /// mis à jour depuis longtemps.
+    /// Le navigateur embarqué n'a pas pu se mettre en route.
+    ///
+    /// Le message de l'incident porte déjà sa cause quand elle est connue :
+    /// l'environnement dit lui-même que le composant WebView2 manque, et
+    /// où le prendre. On n'y ajoute que le repli, qui vaut dans tous les cas.
     /// </summary>
     public void ReportViewFailure(Exception exception)
     {
@@ -1510,9 +1512,8 @@ public sealed partial class QuestViewModel : ObservableObject
         HasQuest = false;
         IsLoadingPage = false;
         Placeholder =
-            "Le composant d'affichage web de Windows n'a pas pu démarrer.\n"
-            + "Ouvrez la page dans votre navigateur avec le bouton en bas.\n\n"
-            + exception.Message;
+            exception.Message
+            + "\n\nEn attendant, le bouton du bas ouvre la page dans votre navigateur.";
     }
 
     /// <summary>L'accueil du site.</summary>

@@ -88,6 +88,8 @@ public static class AppServices
                     .Split('+')[0])),
             Environment.ProcessPath ?? string.Empty));
         services.AddSingleton<UpdateService>();
+        services.AddSingleton<WebViewEnvironment>();
+        services.AddSingleton<IShortcutWriter, Win32ShortcutWriter>();
 
         services.AddSingleton<IQuestSuccessSeed, EmbeddedQuestSuccessSeed>();
         services.AddSingleton<QuestCatalogService>();

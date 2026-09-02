@@ -16,6 +16,7 @@ public sealed class FakeAppPaths : IAppPaths
         LogsDirectory = Path.Combine(root, "logs");
         ToolsDirectory = Path.Combine(root, "tools");
         UpdatesDirectory = Path.Combine(root, "updates");
+        WebViewDirectory = Path.Combine(root, "webview");
     }
 
     public string Root { get; }
@@ -27,6 +28,7 @@ public sealed class FakeAppPaths : IAppPaths
     public string LogsDirectory { get; }
     public string ToolsDirectory { get; }
     public string UpdatesDirectory { get; }
+    public string WebViewDirectory { get; }
 
     public void EnsureCreated()
     {
@@ -35,5 +37,6 @@ public sealed class FakeAppPaths : IAppPaths
         _ = Directory.CreateDirectory(LogsDirectory);
         _ = Directory.CreateDirectory(ToolsDirectory);
         _ = Directory.CreateDirectory(UpdatesDirectory);
+        _ = Directory.CreateDirectory(WebViewDirectory);
     }
 }

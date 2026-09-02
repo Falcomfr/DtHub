@@ -1240,3 +1240,43 @@ compilable. Son premier passage a d'ailleurs mesuré deux faits qu'on ignorait,
 un donjon sans bloc d'en-tête sur quatre-vingt-trois, et six liens de sommaire
 sur quarante qui pointent une ancre absente.
 \n
+
+## D50 - Un fichier qu'on donne, et qui ne laisse rien
+
+**Ni installateur, ni auto-installation.** Un installateur devrait être signé
+sous peine d'un avertissement à chaque version, et poserait l'application là où
+elle ne peut plus se remplacer sans droits administrateur, ce qui tuerait la mise
+à jour. Quant à s'installer elle-même : se copier laisse un exécutable orphelin
+qui ne se mettra jamais à jour, et qu'on relancera un jour par habitude sans
+savoir qu'il est vieux ; se déplacer revient à bouger le fichier de quelqu'un
+sans le lui demander, et casse sur une clef USB. Ce qui manquait au fichier seul
+n'était pas d'être installé, c'était d'être retrouvable.
+
+**Un raccourci, récrit à chaque démarrage.** Il vise l'exécutable là où il est.
+Déplacer le fichier suffit à le corriger, sans rien demander. Rien n'est fait
+depuis un arbre de sources, le raccourci viserait une sortie de publication que
+le lanceur de développement récrit à chaque fois : c'est la règle déjà écrite
+pour la mise à jour, réutilisée telle quelle.
+
+Il se pose par l'interface COM du shell, première du dépôt : le script
+PowerShell qui fait la même chose ne peut pas servir, PowerShell étant proscrit à
+l'exécution.
+
+**Le cache du moteur de rendu déménage.** Sans adresse, il se posait à côté de
+l'exécutable : vingt-quatre mégaoctets après une session sur un dossier vierge,
+trois cent quatre-vingt-dix-neuf après quelques semaines, dont trois cent
+trente-huit de seul cache web. C'est le comportement normal de Chromium, qui
+dimensionne son cache sur la place libre du disque, et c'est démesuré pour une
+application qui montre des guides. Il écrit désormais dans le dossier de
+l'utilisateur, avec le reste, et son cache est borné à cent mégaoctets.
+
+La borne passe par un commutateur de ligne de commande, dont la documentation
+prévient que certains sont ignorés. Un balayage au démarrage, au-delà de deux
+cents mégaoctets, est le filet : mesuré à trente et un mégaoctets après cinq
+guides, la borne n'a pas encore été mise à l'épreuve.
+
+**Le composant WebView2 se vérifie au seul endroit qui les couvre tous les
+deux.** Les deux fenêtres qui en portent un passent par le même environnement :
+c'est là que son absence se constate, et le message remonte par l'exception que
+la fenêtre affiche déjà à la place de la page.
+\n

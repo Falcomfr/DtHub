@@ -13,6 +13,18 @@
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
 
+  <!-- La publication ne doit rendre qu'un fichier : c'est ce qu'on donne à
+       l'utilisateur, et six fichiers traînaient à côté, trois de symboles et
+       trois de documentation d'un paquet tiers.
+
+       Les symboles sont embarqués plutôt que supprimés : un fichier de moins,
+       et les journaux gardent leurs numéros de ligne, ce qu'ils perdraient
+       avec « none ». -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>embedded</DebugType>
+    <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
+  </PropertyGroup>
+
   <ItemGroup>
     <!-- L'image de marque est embarquée comme ressource pour être adressable
          par URI depuis le XAML. -->

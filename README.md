@@ -1,4 +1,4 @@
-<div align="center">
+﻿<div align="center">
 
 <img src="assets/app.png" alt="DT Hub" width="112" height="112">
 
@@ -27,7 +27,13 @@ its own account. DT Hub finds every one of them and opens each in its own
 window on your PC.
 
 - **One file to run.** `DtHub.exe`, no installer, no administrator rights,
-  no .NET to install. It downloads ADB and scrcpy on first launch.
+  no .NET to install. It downloads ADB and scrcpy on first launch, and writes
+  nothing next to itself: everything it keeps goes under
+  `%LOCALAPPDATA%\DtHub`. Deleting that folder resets it; deleting the file
+  leaves nothing else behind.
+- **It puts itself in your Start menu**, pointing at wherever you keep the file.
+  It never copies or moves itself. Move the file and the shortcut follows on the
+  next launch.
 - **First launch asks one question**: which instances to open. After that it
   just opens them.
 - **Any Android profile id works.** A cloned profile is not always 999, and

@@ -26,11 +26,13 @@ public partial class QuestWindow : Window
     private readonly ILogger<QuestWindow> _logger;
     private readonly WindowPlacements _placements;
     private readonly SettingsService _settings;
+    private readonly WebViewEnvironment _engine;
 
     public QuestWindow(
         QuestViewModel viewModel,
         WindowPlacements placements,
         SettingsService settings,
+        WebViewEnvironment engine,
         ILogger<QuestWindow> logger)
     {
         InitializeComponent();
@@ -38,6 +40,7 @@ public partial class QuestWindow : Window
         _viewModel = viewModel;
         _placements = placements;
         _settings = settings;
+        _engine = engine;
         _logger = logger;
         DataContext = viewModel;
 
@@ -226,7 +229,11 @@ public partial class QuestWindow : Window
     /// </summary>
     private async Task PrepareAsync()
     {
-        await View.EnsureCoreWebView2Async().ConfigureAwait(true);
+        // L'environnement dit au moteur où écrire et combien garder. Sans lui,
+        // il pose son cache à côté de l'exécutable et le laisse enfler.
+        await View
+            .EnsureCoreWebView2Async(await _engine.GetAsync().ConfigureAwait(true))
+            .ConfigureAwait(true);
 
         if (_bridgeReady)
         {

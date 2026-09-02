@@ -52,7 +52,9 @@ python3 build/extract-successes.py           # relever la carte des succès de p
 dotnet.exe run --project build/sonde-papycha
 dotnet.exe run --project build/sonde-papycha -- --benir   # rebénir le relevé
 
-# Publier le fichier unique distribué à l'utilisateur.
+# Publier le fichier unique distribué à l'utilisateur. En Release, le projet
+# embarque ses symboles et écarte les fichiers annexes des paquets : le dossier
+# ne contient que DtHub.exe.
 dotnet.exe publish src/DtHub.App -c Release -r win-x64 --self-contained true \
   -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true \
   -p:IncludeNativeLibrariesForSelfExtract=true -o build\publish
