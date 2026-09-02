@@ -1,4 +1,4 @@
-using DtHub.Core.Settings;
+﻿using DtHub.Core.Settings;
 using DtHub.Infrastructure.Storage;
 
 using Microsoft.Extensions.Logging.Abstractions;
@@ -191,9 +191,14 @@ public sealed class JsonDocumentStoreTests : IDisposable
         Assert.True(document.SetupCompleted);
         Assert.Equal(62, document.CustomSizePercent);
 
-        // ... et les deux valeurs inconnues retombent sur leur repli déclaré.
+        // ... et les deux valeurs inconnues retombent sur leur repli déclaré,
+        // qui porte la décision prise quand le palier a été retiré : « Haute »
+        // se fond dans la maximale, « très proche » dans « proche ». Deux
+        // migrations prétendaient le faire ; elles ne tiraient jamais, ce
+        // convertisseur ayant déjà tranché quand elles s'exécutaient, et l'une
+        // des deux visait « proche » alors que le repli disait « normal ».
         Assert.Equal(StreamQuality.Maximum, document.Quality);
-        Assert.Equal(GameZoom.Normal, document.GameZoom);
+        Assert.Equal(GameZoom.Close, document.GameZoom);
 
         // Le fichier n'a pas été mis en quarantaine : il n'était pas corrompu.
         Assert.Empty(Directory.GetFiles(_directory, "*.corrompu-*"));

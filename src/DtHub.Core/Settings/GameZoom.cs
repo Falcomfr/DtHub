@@ -6,8 +6,14 @@ namespace DtHub.Core.Settings;
 /// <summary>
 /// Distance apparente dans le jeu : plus ou moins de terrain visible, à taille
 /// de fenêtre égale.
+///
+/// Le repli est « proche » et non le réglage d'origine : le seul palier jamais
+/// retiré est « très proche », et il avait été décidé qu'il se fondrait dans
+/// celui-ci, qui prenait sa valeur. C'est ce repli qui applique la décision,
+/// une migration ne pouvant plus le faire : le convertisseur tolérant a déjà
+/// remplacé la valeur inconnue quand la migration s'exécute.
 /// </summary>
-[JsonFallback(Normal)]
+[JsonFallback(Close)]
 public enum GameZoom
 {
     /// <summary>Le plus de terrain possible, à la limite du lisible.</summary>

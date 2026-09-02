@@ -1637,3 +1637,40 @@ tâches sont simplement séparées : `build/frappe.ps1` n'envoie que des frappes
 et `build/premier-plan.ps1` demande le premier plan à l'automatisation
 d'interface plutôt qu'à `GetForegroundWindow`.
 
+## D62 - Deux migrations qui ne tiraient jamais, dont une qui mentait
+
+Les paliers huit et neuf du fichier de réglages devaient fondre la qualité
+« Haute » dans la maximale et le zoom « très proche » dans « proche ». Toutes
+deux gardées par `Enum.IsDefined`.
+
+**Elles ne tiraient jamais.** `TolerantEnumConverterFactory` est installé dans
+`JsonDocumentStore`, et remplace toute valeur inconnue par le repli déclaré sur
+l'énumération, au moment de la lecture. Quand `Migrate` s'exécute, la valeur est
+donc déjà définie, et `Enum.IsDefined` toujours vrai.
+
+Sans conséquence pour la qualité, dont le repli et la cible coïncident. Avec
+conséquence pour le zoom : le repli disait « normal » quand la migration visait
+« proche ». Un fichier portant `Closest` retombait au réglage d'origine.
+
+Prouvé avant d'être corrigé, par un test sur le fichier qui a réellement coûté
+la configuration le 30 août : `Expected: Close, Actual: Normal`.
+
+Le repli porte désormais la décision, puisque c'est lui qui décide, et les deux
+migrations mortes sont retirées plutôt que laissées à faire croire qu'elles
+agissent. Un commentaire dit à leur place pourquoi il n'y a rien à faire là.
+
+**Vérifié sur le vrai fichier**, par `build/sonde-reglages` :
+
+| | Avant | Après |
+|:--|:--|:--|
+| Schéma | 8 | 9 |
+| Zoom | `Closest` | `Close` |
+| Qualité | `Maximum` | `Maximum` |
+| Instances | 2 | 2 |
+| Raccourcis | 10 | 10 |
+| Quarantaine | | aucune |
+
+La sonde existe parce que ce fichier ne peut pas entrer au dépôt : il porte des
+identifiants d'appareil, et rien de tout cela n'a à figurer dans un test. Elle
+travaille sur une copie, l'original n'étant jamais touché.
+

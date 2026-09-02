@@ -1,4 +1,4 @@
-using DtHub.Core.Settings;
+﻿using DtHub.Core.Settings;
 using DtHub.Infrastructure.Storage;
 
 using Microsoft.Extensions.Logging.Abstractions;
@@ -147,5 +147,58 @@ public sealed class SettingsMigrationTests : IDisposable
         Assert.Equal(
             Enumerable.Range(0, settings.Instances.Count),
             settings.Instances.Select(i => i.Order).Order());
+    }
+
+    /// <summary>
+    /// Le vrai fichier perdu le 30 août : schéma 8, « Closest » comme zoom, un
+    /// palier retiré du code. C'est ce fichier-là qui a coûté toute la
+    /// configuration avant que le convertisseur tolérant n'existe.
+    /// </summary>
+    [Fact]
+    public async Task Un_palier_de_zoom_retire_devient_le_palier_voisin()
+    {
+        await WriteAsync("""
+        {
+          "schemaVersion": 8,
+          "setupCompleted": true,
+          "gameZoom": "Closest",
+          "quality": "High"
+        }
+        """);
+
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        // « Très proche » est fondu dans « proche », qui prend sa valeur.
+        Assert.Equal(GameZoom.Close, settings.GameZoom);
+
+        // « Haute » est fondue dans la maximale, jamais vers le dessous.
+        Assert.Equal(StreamQuality.Maximum, settings.Quality);
+
+        Assert.Equal(AppSettingsDocument.CurrentSchemaVersion, settings.SchemaVersion);
+    }
+
+    /// <summary>
+    /// Et le fichier ne se perd pas pour autant : le reste est conservé.
+    /// </summary>
+    [Fact]
+    public async Task Un_palier_inconnu_ne_fait_pas_perdre_le_fichier()
+    {
+        await WriteAsync("""
+        {
+          "schemaVersion": 8,
+          "setupCompleted": true,
+          "gameZoom": "PalierQuiNExistePas",
+          "instances": [
+            { "deviceId": "PHONE-A", "userId": 0, "packageName": "com.ankama.dofustouch",
+              "userName": "Principal", "isEnabled": true, "order": 0 }
+          ]
+        }
+        """);
+
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.True(settings.SetupCompleted);
+        Assert.Single(settings.Instances);
+        Assert.Equal("Principal", settings.Instances[0].UserName);
     }
 }

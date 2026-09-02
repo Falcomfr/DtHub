@@ -138,23 +138,15 @@ public sealed class SettingsService : IDisposable
             changed = true;
         }
 
-        if (settings.SchemaVersion < 8 && !Enum.IsDefined(settings.Quality))
-        {
-            // La qualité « Haute » est fondue dans la maximale : quatre paliers
-            // dont deux voisins indiscernables ne servaient à personne. Une
-            // valeur devenue inconnue retombe sur le palier du dessus, jamais
-            // du dessous, pour ne pas dégrader l'image sans prévenir.
-            settings.Quality = StreamQuality.Maximum;
-            changed = true;
-        }
-
-        if (settings.SchemaVersion < 9 && !Enum.IsDefined(settings.GameZoom))
-        {
-            // « Très proche » est fondu dans « proche », qui prend sa valeur :
-            // les deux ne se distinguaient plus une fois la densité plafonnée.
-            settings.GameZoom = GameZoom.Close;
-            changed = true;
-        }
+        // Les paliers retirés, huitième et neuvième versions : la qualité
+        // « Haute » fondue dans la maximale, le zoom « très proche » fondu dans
+        // « proche ». Il n'y a rien à faire ici, et il ne le faut pas : le
+        // convertisseur tolérant a déjà remplacé la valeur inconnue à la
+        // lecture, par le repli déclaré sur l'énumération, si bien qu'un
+        // Enum.IsDefined placé ici est toujours vrai et que la branche ne tirait
+        // jamais. Deux migrations mortes, dont une qui mentait : un fichier
+        // portant « Closest » retombait sur le réglage d'origine et non sur
+        // « proche ». Les deux replis portent maintenant la décision.
 
         if (settings.SchemaVersion != AppSettingsDocument.CurrentSchemaVersion)
         {
