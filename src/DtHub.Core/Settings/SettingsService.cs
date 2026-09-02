@@ -296,6 +296,154 @@ public sealed class SettingsService : IDisposable
     public Task SetZoomAsync(GameZoom zoom, CancellationToken cancellationToken = default) =>
         UpdateAsync(settings => settings.GameZoom = zoom, cancellationToken);
 
+    // Sessions nommées
+
+    /// <summary>Les profils enregistrés, dans l'ordre où ils ont été créés.</summary>
+    public async Task<IReadOnlyList<StoredLaunchProfile>> GetLaunchProfilesAsync(
+        CancellationToken cancellationToken = default) =>
+        [.. (await GetAsync(cancellationToken).ConfigureAwait(false)).LaunchProfiles];
+
+    /// <summary>Nom du profil ouvert au démarrage, ou <c>null</c> s'il n'y en a pas.</summary>
+    public async Task<string?> GetDefaultLaunchProfileAsync(
+        CancellationToken cancellationToken = default) =>
+        LaunchProfiles.Normalize(
+            (await GetAsync(cancellationToken).ConfigureAwait(false)).DefaultLaunchProfile);
+
+    /// <summary>
+    /// Retient une session sous ce nom, en remplaçant celle qui le portait.
+    ///
+    /// Remplacer plutôt que refuser : enregistrer deux fois sous le même nom
+    /// est le geste naturel pour corriger un profil, et rendre une erreur
+    /// obligerait à supprimer d'abord.
+    /// </summary>
+    /// <returns>Faux si le nom n'en est pas un.</returns>
+    public async Task<bool> SaveLaunchProfileAsync(
+        string? name,
+        IReadOnlyCollection<string> keys,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(keys);
+
+        if (LaunchProfiles.Normalize(name) is not { } wanted)
+        {
+            return false;
+        }
+
+        await UpdateAsync(
+            settings =>
+            {
+                var existing = LaunchProfiles.Find(settings.LaunchProfiles, wanted);
+
+                if (existing is not null)
+                {
+                    settings.LaunchProfiles.Remove(existing);
+                }
+
+                settings.LaunchProfiles.Add(new StoredLaunchProfile
+                {
+                    Name = wanted,
+                    InstanceKeys = [.. keys.Distinct(StringComparer.Ordinal)],
+                });
+            },
+            cancellationToken).ConfigureAwait(false);
+
+        return true;
+    }
+
+    /// <summary>
+    /// Retire un profil, et le démarrage avec lui s'il le désignait.
+    ///
+    /// Laisser un défaut qui pointe sur rien donnerait un démarrage qui
+    /// n'ouvre pas ce qu'on attend, sans que rien ne l'explique.
+    /// </summary>
+    public Task DeleteLaunchProfileAsync(string? name, CancellationToken cancellationToken = default) =>
+        UpdateIfChangedAsync(
+            settings =>
+            {
+                if (LaunchProfiles.Find(settings.LaunchProfiles, name) is not { } profile)
+                {
+                    return false;
+                }
+
+                settings.LaunchProfiles.Remove(profile);
+
+                if (LaunchProfiles.Find([profile], settings.DefaultLaunchProfile) is not null)
+                {
+                    settings.DefaultLaunchProfile = string.Empty;
+                }
+
+                return true;
+            },
+            cancellationToken);
+
+    /// <summary>
+    /// Désigne le profil du démarrage. <c>null</c> remet à « aucun », et
+    /// l'application rouvre alors ce qui était ouvert, comme avant.
+    /// </summary>
+    public Task SetDefaultLaunchProfileAsync(
+        string? name,
+        CancellationToken cancellationToken = default) =>
+        UpdateIfChangedAsync(
+            settings =>
+            {
+                var wanted = LaunchProfiles.Find(settings.LaunchProfiles, name)?.Name
+                    ?? string.Empty;
+
+                if (string.Equals(settings.DefaultLaunchProfile, wanted, StringComparison.Ordinal))
+                {
+                    return false;
+                }
+
+                settings.DefaultLaunchProfile = wanted;
+                return true;
+            },
+            cancellationToken);
+
+    /// <summary>
+    /// Fait de ce profil l'ensemble de démarrage : ses comptes sont cochés, les
+    /// autres décochés.
+    /// </summary>
+    /// <returns>Les comptes du profil, ou une liste vide s'il n'existe pas.</returns>
+    public async Task<IReadOnlyList<string>> ApplyLaunchProfileAsync(
+        string? name,
+        CancellationToken cancellationToken = default)
+    {
+        var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
+
+        if (LaunchProfiles.Find(settings.LaunchProfiles, name) is null)
+        {
+            return [];
+        }
+
+        var wanted = LaunchProfiles.KeysFor(settings.LaunchProfiles, name, settings.Instances);
+
+        // Une seule écriture, et non deux : deux appels successifs à
+        // SetInstancesEnabledAsync préviendraient deux fois, et la liste se
+        // rafraîchirait sur un état intermédiaire où plus rien n'est ouvert.
+        await UpdateIfChangedAsync(
+            document =>
+            {
+                var changed = false;
+                var keys = wanted.ToHashSet(StringComparer.Ordinal);
+
+                foreach (var instance in document.Instances)
+                {
+                    var enabled = keys.Contains(instance.Key);
+
+                    if (instance.IsEnabled != enabled)
+                    {
+                        instance.IsEnabled = enabled;
+                        changed = true;
+                    }
+                }
+
+                return changed;
+            },
+            cancellationToken).ConfigureAwait(false);
+
+        return wanted;
+    }
+
     /// <summary>Tailles configurées, corrigées si le fichier est incohérent.</summary>
     public async Task<WindowSizePresets> GetSizePresetsAsync(CancellationToken cancellationToken = default)
     {

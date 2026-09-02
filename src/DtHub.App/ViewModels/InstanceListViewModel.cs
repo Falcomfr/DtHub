@@ -112,6 +112,223 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// <summary>Nombre d'instances cochées pour le lancement.</summary>
     public int EnabledCount => Rows.Count(i => i.IsEnabled);
 
+    // Sessions nommées
+
+    /// <summary>Les sessions enregistrées, telles qu'elles paraissent.</summary>
+    public ObservableCollection<LaunchProfileRowViewModel> Profiles { get; } = [];
+
+    /// <summary>
+    /// La session choisie dans la liste. La choisir l'ouvre pour de bon.
+    ///
+    /// Le garde-fou est indispensable : la liste se reconstruit à chaque
+    /// balayage, et la sélection qu'on y repose déclencherait sinon une
+    /// ouverture toutes les trois secondes.
+    /// </summary>
+    [ObservableProperty]
+    private LaunchProfileRowViewModel? _selectedProfile;
+
+    private bool _syncingProfiles;
+
+    /// <summary>Vrai s'il y a au moins une session à proposer.</summary>
+    public bool HasProfiles => Profiles.Count > 0;
+
+    /// <summary>Vrai si une session est choisie, donc supprimable.</summary>
+    public bool HasSelectedProfile => SelectedProfile is not null;
+
+    /// <summary>
+    /// Reprend les sessions enregistrées, en gardant la sélection courante.
+    ///
+    /// Reconstruire la liste repose la sélection, ce qui rejouerait l'ouverture
+    /// à chaque balayage. D'où le garde-fou, sur le modèle de celui qui protège
+    /// les cases de la liste.
+    /// </summary>
+    private async Task SyncProfilesAsync(CancellationToken cancellationToken = default)
+    {
+        var settings = await _settings.GetAsync(cancellationToken).ConfigureAwait(true);
+        var stored = settings.LaunchProfiles;
+        var byDefault = LaunchProfiles.Normalize(settings.DefaultLaunchProfile);
+        var chosen = SelectedProfile?.Name;
+
+        _syncingProfiles = true;
+
+        try
+        {
+            Profiles.Clear();
+
+            foreach (var profile in stored)
+            {
+                Profiles.Add(new LaunchProfileRowViewModel(
+                    profile.Name,
+                    LaunchProfiles.Describe(profile, settings.Instances),
+                    string.Equals(profile.Name, byDefault, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            SelectedProfile = Profiles.FirstOrDefault(
+                p => string.Equals(p.Name, chosen, StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            _syncingProfiles = false;
+        }
+
+        OnPropertyChanged(nameof(HasProfiles));
+        OnPropertyChanged(nameof(HasSelectedProfile));
+    }
+
+    partial void OnSelectedProfileChanged(LaunchProfileRowViewModel? value)
+    {
+        OnPropertyChanged(nameof(HasSelectedProfile));
+
+        if (_syncingProfiles || value is null)
+        {
+            return;
+        }
+
+        _ = OpenProfileAsync(value);
+    }
+
+    /// <summary>
+    /// Ouvre une session : ce qui n'en fait pas partie se ferme, ce qui y
+    /// manque s'ouvre.
+    ///
+    /// Choisir ouvre pour de bon, faute de cases à cocher dans le
+    /// configurateur : si la sélection se contentait d'écrire l'ensemble de
+    /// démarrage, rien à l'écran ne montrerait qu'il s'est passé quelque chose.
+    /// </summary>
+    private async Task OpenProfileAsync(LaunchProfileRowViewModel profile)
+    {
+        // Fermer des fenêtres de jeu ne se fait pas sans le dire : on peut être
+        // en pleine partie, et un clic dans une liste n'est pas un consentement.
+        if (_launcher.ActiveSessions.Count > 0
+            && !_dialogs.Confirm(
+                $"Ouvrir la session « {profile.Name} » ?\n\n"
+                + "Les fenêtres de jeu qui n'en font pas partie seront fermées.",
+                "Changer de session"))
+        {
+            await SyncProfilesAsync().ConfigureAwait(true);
+            return;
+        }
+
+        IsBusy = true;
+
+        try
+        {
+            await _settings.ApplyLaunchProfileAsync(profile.Name).ConfigureAwait(true);
+            await _launcher.CloseAllAsync().ConfigureAwait(true);
+
+            var report = await _launcher.LaunchEnabledAsync().ConfigureAwait(true);
+
+            if (report.Problems.Count > 0)
+            {
+                _dialogs.ShowWarning(string.Join(Environment.NewLine, report.Problems));
+            }
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+
+        await RefreshAsync().ConfigureAwait(true);
+    }
+
+    /// <summary>Retient la session en cours sous un nom demandé.</summary>
+    [RelayCommand]
+    private async Task SaveProfileAsync()
+    {
+        var open = _launcher.ActiveSessions.Select(s => s.Target.Key).Distinct(StringComparer.Ordinal).ToList();
+
+        // À défaut de fenêtre ouverte, l'ensemble de démarrage fait foi : c'est
+        // lui qui rouvrira, et c'est donc lui que l'on enregistre.
+        if (open.Count == 0)
+        {
+            var settings = await _settings.GetAsync().ConfigureAwait(true);
+            open = [.. settings.Instances.Where(i => i.IsEnabled).Select(i => i.Key)];
+        }
+
+        if (open.Count == 0)
+        {
+            _dialogs.ShowWarning(
+                "Aucun compte n'est ouvert : il n'y a rien à retenir. Ouvrez les comptes "
+                + "de la session, puis enregistrez.",
+                "Enregistrer la session");
+
+            return;
+        }
+
+        if (_dialogs.PromptText(
+                $"Sous quel nom retenir cette session de {open.Count} compte(s) ?",
+                SelectedProfile?.Name,
+                "Enregistrer la session") is not { } typed)
+        {
+            return;
+        }
+
+        if (!await _settings.SaveLaunchProfileAsync(typed, open).ConfigureAwait(true))
+        {
+            _dialogs.ShowWarning("Une session a besoin d'un nom.", "Enregistrer la session");
+            return;
+        }
+
+        await SyncProfilesAsync().ConfigureAwait(true);
+
+        _syncingProfiles = true;
+
+        try
+        {
+            SelectedProfile = Profiles.FirstOrDefault(
+                p => string.Equals(p.Name, LaunchProfiles.Normalize(typed), StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            _syncingProfiles = false;
+        }
+    }
+
+    /// <summary>Désigne la session du démarrage, ou la retire.</summary>
+    [RelayCommand]
+    private async Task ToggleDefaultProfileAsync()
+    {
+        if (SelectedProfile is not { } profile)
+        {
+            return;
+        }
+
+        await _settings
+            .SetDefaultLaunchProfileAsync(profile.IsDefault ? null : profile.Name)
+            .ConfigureAwait(true);
+
+        await SyncProfilesAsync().ConfigureAwait(true);
+    }
+
+    /// <summary>Supprime la session choisie.</summary>
+    [RelayCommand]
+    private async Task DeleteProfileAsync()
+    {
+        if (SelectedProfile is not { } profile
+            || !_dialogs.Confirm(
+                $"Supprimer la session « {profile.Name} » ?\n\n"
+                + "Les comptes ne sont pas touchés, seule la liste disparaît.",
+                "Supprimer la session"))
+        {
+            return;
+        }
+
+        await _settings.DeleteLaunchProfileAsync(profile.Name).ConfigureAwait(true);
+
+        _syncingProfiles = true;
+
+        try
+        {
+            SelectedProfile = null;
+        }
+        finally
+        {
+            _syncingProfiles = false;
+        }
+
+        await SyncProfilesAsync().ConfigureAwait(true);
+    }
+
     /// <summary>Balaye les téléphones et reconstruit la liste.</summary>
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
     {
@@ -188,6 +405,10 @@ public sealed partial class InstanceListViewModel : ObservableObject
             OnPropertyChanged(nameof(HasNoConnectedDevice));
             OnPropertyChanged(nameof(HasConnectedDevice));
             OnPropertyChanged(nameof(EnabledCount));
+
+            // Les résumés de sessions citent les noms des comptes : ils se
+            // refont ici, après que la liste a été reconstruite.
+            await SyncProfilesAsync(cancellationToken).ConfigureAwait(true);
 
             RequestIcons();
         }

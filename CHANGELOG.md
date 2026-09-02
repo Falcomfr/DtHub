@@ -36,11 +36,27 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Ajouté
 
+- Des sessions nommées : un ensemble de comptes qu'on retient sous un nom et
+  qu'on rouvre d'un geste, dans l'onglet Appareils. Une session peut être
+  désignée pour le démarrage ; sans désignation, l'application rouvre ce qui
+  était ouvert, comme avant. Choisir une session ferme les fenêtres qui n'en font
+  pas partie et ouvre celles qui manquent, après confirmation.
+
+  Un compte retiré du téléphone depuis l'enregistrement est simplement ignoré :
+  la session garde sa raison d'être et les autres comptes s'ouvrent.
+
 - Un quatrième palier de qualité, « Personnalisé ». Ses réglages fins,
   définition maximale, cadence, finesse d'image et codec vidéo, s'ouvrent dans
   une bulle par le rouage qui paraît à côté de lui : dépliés dans la carte, ils
   lui faisaient gagner deux cents pixels de haut et repoussaient tout le reste
   du panneau. La hauteur ne bouge donc plus selon le palier choisi.
+
+  La finesse se règle en bits par pixel, et non en mégabits comme le proposent
+  les interfaces qui ne pilotent qu'un seul miroir. Ici la définition de
+  l'afficheur suit la taille de la fenêtre : un débit absolu servirait
+  grassement une petite fenêtre et affamerait une grande, ce que le reste du
+  code avait précisément appris à ne plus faire. La définition, elle, est
+  annoncée pour ce qu'elle est, un plafond.
 
 - Le palier « Maximale » s'appelle désormais « Haute », et son rouage de
   réglages fins se tient sur la ligne du titre plutôt que sous les paliers, où
@@ -51,13 +67,6 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   Il ne paraît pas dans la section « Sur le téléphone » : le son capté est celui
   de l'appareil entier et non celui du jeu, l'écran est celui du téléphone, les
   animations sont celles d'Android. L'y nommer aurait été faux.
-
-  La finesse se règle en bits par pixel, et non en mégabits comme le proposent
-  les interfaces qui ne pilotent qu'un seul miroir. Ici la définition de
-  l'afficheur suit la taille de la fenêtre : un débit absolu servirait
-  grassement une petite fenêtre et affamerait une grande, ce que le reste du
-  code avait précisément appris à ne plus faire. La définition, elle, est
-  annoncée pour ce qu'elle est, un plafond.
 
 - Une troisième ligne dit la définition réellement demandée, et prévient quand
   le plafond choisi n'y change rien : « vos fenêtres tournent en 2560 × 1440,

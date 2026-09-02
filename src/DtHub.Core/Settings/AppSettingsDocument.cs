@@ -22,6 +22,22 @@ public sealed class AppSettingsDocument
     /// <summary>Instances mémorisées, y compris celles qui ne sont pas cochées.</summary>
     public List<StoredInstance> Instances { get; set; } = [];
 
+    /// <summary>
+    /// Sessions nommées : des ensembles de comptes qu'on ouvre d'un geste.
+    ///
+    /// Tenues à part de l'ensemble de démarrage, et c'est le fond de l'affaire :
+    /// celui-ci se déforme à chaque geste, un lancement y ajoutant les comptes
+    /// ouverts et le bouton « fermer » les en retirant. Un profil qui s'en
+    /// déduirait se réécrirait tout seul.
+    /// </summary>
+    public List<StoredLaunchProfile> LaunchProfiles { get; set; } = [];
+
+    /// <summary>
+    /// Profil ouvert au démarrage. Vide : aucun, et l'on rouvre ce qui était
+    /// ouvert la fois d'avant, comme l'application l'a toujours fait.
+    /// </summary>
+    public string DefaultLaunchProfile { get; set; } = string.Empty;
+
     // Fenêtres
 
     /// <summary>Position du bloc de fenêtres de jeu dans l'écran.</summary>
@@ -118,6 +134,21 @@ public sealed class AppSettingsDocument
 
     // Raccourcis
     public List<StoredHotkey> Hotkeys { get; set; } = [];
+}
+
+/// <summary>
+/// Une session nommée : un nom, et les comptes qu'elle ouvre.
+///
+/// Les comptes sont désignés par la clé de <see cref="StoredInstance.Key"/>,
+/// déjà stable d'un lancement à l'autre et déjà employée partout ailleurs. Une
+/// clé dont l'instance a disparu est simplement ignorée à l'ouverture : le
+/// profil garde sa raison d'être, et les comptes restants s'ouvrent.
+/// </summary>
+public sealed class StoredLaunchProfile
+{
+    public string Name { get; set; } = string.Empty;
+
+    public List<string> InstanceKeys { get; set; } = [];
 }
 
 /// <summary>Une instance mémorisée entre deux lancements.</summary>

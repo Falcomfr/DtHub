@@ -24,6 +24,142 @@ public sealed class SettingsServiceTests : IDisposable
         _service = new SettingsService(_store);
     }
 
+    // Sessions nommées
+
+    private static StoredInstance Compte(int user) => new()
+    {
+        DeviceId = "phone",
+        UserId = user,
+        PackageName = "com.ankama.dofustouch",
+        UserName = $"Profil {user}",
+    };
+
+    [Fact]
+    public async Task Une_session_enregistree_se_relit()
+    {
+        var xspace = Compte(999);
+
+        await _service.UpdateAsync(s => s.Instances.Add(xspace));
+
+        Assert.True(await _service.SaveLaunchProfileAsync("Solo", [xspace.Key]));
+
+        var profils = await _service.GetLaunchProfilesAsync();
+
+        Assert.Single(profils);
+        Assert.Equal("Solo", profils[0].Name);
+        Assert.Equal([xspace.Key], profils[0].InstanceKeys);
+    }
+
+    [Fact]
+    public async Task Une_session_sans_nom_est_refusee()
+    {
+        Assert.False(await _service.SaveLaunchProfileAsync("   ", ["x"]));
+        Assert.Empty(await _service.GetLaunchProfilesAsync());
+    }
+
+    [Fact]
+    public async Task Enregistrer_deux_fois_le_meme_nom_remplace()
+    {
+        // Le geste naturel pour corriger un profil est de le réenregistrer.
+        // Refuser obligerait à supprimer d'abord.
+        await _service.SaveLaunchProfileAsync("Duo", ["a"]);
+        await _service.SaveLaunchProfileAsync("duo", ["b", "c"]);
+
+        var profils = await _service.GetLaunchProfilesAsync();
+
+        Assert.Single(profils);
+        Assert.Equal(["b", "c"], profils[0].InstanceKeys);
+    }
+
+    [Fact]
+    public async Task Appliquer_une_session_coche_les_siens_et_decoche_les_autres()
+    {
+        var principal = Compte(0);
+        var xspace = Compte(999);
+
+        await _service.UpdateAsync(s =>
+        {
+            s.Instances.Add(principal);
+            s.Instances.Add(xspace);
+            s.Instances.ForEach(i => i.IsEnabled = true);
+        });
+
+        await _service.SaveLaunchProfileAsync("Solo", [xspace.Key]);
+
+        Assert.Equal([xspace.Key], await _service.ApplyLaunchProfileAsync("Solo"));
+
+        var document = await _service.GetAsync();
+
+        Assert.False(document.Instances.Find(i => i.Key == principal.Key)!.IsEnabled);
+        Assert.True(document.Instances.Find(i => i.Key == xspace.Key)!.IsEnabled);
+    }
+
+    [Fact]
+    public async Task Une_session_inconnue_ne_touche_a_rien()
+    {
+        var principal = Compte(0);
+
+        await _service.UpdateAsync(s =>
+        {
+            s.Instances.Add(principal);
+            principal.IsEnabled = true;
+        });
+
+        Assert.Empty(await _service.ApplyLaunchProfileAsync("Fantôme"));
+
+        Assert.True((await _service.GetAsync()).Instances[0].IsEnabled);
+    }
+
+    [Fact]
+    public async Task Supprimer_la_session_du_demarrage_remet_a_aucun()
+    {
+        // Laisser un défaut qui pointe sur rien donnerait un démarrage qui
+        // n'ouvre pas ce qu'on attend, sans que rien ne l'explique.
+        await _service.SaveLaunchProfileAsync("Solo", ["a"]);
+        await _service.SetDefaultLaunchProfileAsync("Solo");
+
+        Assert.Equal("Solo", await _service.GetDefaultLaunchProfileAsync());
+
+        await _service.DeleteLaunchProfileAsync("Solo");
+
+        Assert.Empty(await _service.GetLaunchProfilesAsync());
+        Assert.Null(await _service.GetDefaultLaunchProfileAsync());
+    }
+
+    [Fact]
+    public async Task Supprimer_une_autre_session_laisse_le_demarrage_en_place()
+    {
+        await _service.SaveLaunchProfileAsync("Solo", ["a"]);
+        await _service.SaveLaunchProfileAsync("Duo", ["a", "b"]);
+        await _service.SetDefaultLaunchProfileAsync("Solo");
+
+        await _service.DeleteLaunchProfileAsync("Duo");
+
+        Assert.Equal("Solo", await _service.GetDefaultLaunchProfileAsync());
+    }
+
+    [Fact]
+    public async Task Le_demarrage_se_remet_a_aucun()
+    {
+        await _service.SaveLaunchProfileAsync("Solo", ["a"]);
+        await _service.SetDefaultLaunchProfileAsync("Solo");
+
+        await _service.SetDefaultLaunchProfileAsync(null);
+
+        Assert.Null(await _service.GetDefaultLaunchProfileAsync());
+    }
+
+    [Fact]
+    public async Task Un_demarrage_qui_designe_une_session_absente_vaut_aucun()
+    {
+        // Un fichier modifié à la main peut nommer n'importe quoi.
+        await _service.UpdateAsync(s => s.DefaultLaunchProfile = "Disparue");
+
+        await _service.SetDefaultLaunchProfileAsync("Disparue");
+
+        Assert.Null(await _service.GetDefaultLaunchProfileAsync());
+    }
+
     public void Dispose()
     {
         _service.Dispose();

@@ -27,11 +27,32 @@ public interface IDialogService
 
     /// <summary>Place un texte dans le presse-papiers de Windows.</summary>
     void CopyToClipboard(string text);
+
+    /// <summary>
+    /// Demande une ligne de texte, ou <c>null</c> si l'on renonce.
+    ///
+    /// Rend la saisie telle quelle : c'est à l'appelant de décider ce qu'un
+    /// texte vide ou trop long veut dire chez lui.
+    /// </summary>
+    string? PromptText(string question, string? initial = null, string? title = null);
 }
 
 /// <summary>Implémentation WPF.</summary>
 public sealed class DialogService : IDialogService
 {
+    public string? PromptText(string question, string? initial = null, string? title = null)
+    {
+        var window = new Windows.PromptWindow(question, initial)
+        {
+            Title = title ?? ProductInfo.Name,
+            Owner = Application.Current?.Windows
+                .OfType<Window>()
+                .FirstOrDefault(w => w.IsActive && w.IsVisible),
+        };
+
+        return window.ShowDialog() == true ? window.Answer : null;
+    }
+
     public void ShowInformation(string message, string? title = null) =>
         MessageBox.Show(message, title ?? ProductInfo.Name, MessageBoxButton.OK, MessageBoxImage.Information);
 

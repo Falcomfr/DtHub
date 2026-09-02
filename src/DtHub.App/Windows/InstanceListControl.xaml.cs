@@ -24,13 +24,6 @@ public partial class InstanceListControl : UserControl
     /// de premier lancement : c'est le dernier endroit où la question se pose.
     /// Ensuite, ce qui rouvre est ce qui était ouvert au moment de quitter.
     /// </summary>
-    public static readonly DependencyProperty ShowSelectionProperty =
-        DependencyProperty.Register(
-            nameof(ShowSelection),
-            typeof(bool),
-            typeof(InstanceListControl),
-            new PropertyMetadata(false));
-
     /// <summary>
     /// Montre les commandes de réordonnancement. Absentes de la fenêtre de
     /// premier lancement, où rien n'est encore ouvert.
@@ -72,12 +65,6 @@ public partial class InstanceListControl : UserControl
     private InstanceRowViewModel? _pending;
 
     public InstanceListControl() => InitializeComponent();
-
-    public bool ShowSelection
-    {
-        get => (bool)GetValue(ShowSelectionProperty);
-        set => SetValue(ShowSelectionProperty, value);
-    }
 
     public bool ShowDeviceStatus
     {

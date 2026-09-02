@@ -166,6 +166,11 @@ public partial class App : Application, IDisposable
             }
         };
 
+        // La session nommée du démarrage, s'il y en a une, décide de ce qui
+        // s'ouvre. Sans elle on ne touche à rien, et l'application rouvre ce
+        // qui était ouvert la fois d'avant, comme elle l'a toujours fait.
+        await ApplyDefaultLaunchProfileAsync(settings).ConfigureAwait(true);
+
         var report = await launcher.LaunchEnabledAsync().ConfigureAwait(true);
 
         _shape.Tick += (_, _) => launcher.Watch();
@@ -834,6 +839,39 @@ public partial class App : Application, IDisposable
     /// Journalise le détail technique et n'affiche qu'un message
     /// compréhensible, avec le chemin des journaux.
     /// </summary>
+    /// <summary>
+    /// Ouvre la session nommée du démarrage, s'il y en a une.
+    ///
+    /// Le journal dit ce qui a été retenu, et c'est indispensable : un
+    /// démarrage qui n'ouvre pas ce qu'on attend n'a sinon aucune trace, et l'on
+    /// ne sait pas distinguer un profil mal enregistré d'un compte disparu du
+    /// téléphone.
+    /// </summary>
+    private static async Task ApplyDefaultLaunchProfileAsync(SettingsService settings)
+    {
+        var name = await settings.GetDefaultLaunchProfileAsync().ConfigureAwait(true);
+
+        if (name is null)
+        {
+            Log.Information("Démarrage sans session nommée : on rouvre ce qui était ouvert.");
+            return;
+        }
+
+        var keys = await settings.ApplyLaunchProfileAsync(name).ConfigureAwait(true);
+
+        if (keys.Count == 0)
+        {
+            Log.Warning(
+                "La session « {Profile} » n'ouvre aucun compte : elle a disparu des réglages, "
+                + "ou tous ses comptes ont été retirés du téléphone.",
+                name);
+
+            return;
+        }
+
+        Log.Information("Session « {Profile} » retenue : {Count} compte(s).", name, keys.Count);
+    }
+
     private void Report(Exception exception, string headline)
     {
         Log.Fatal(exception, "{Headline}", headline);

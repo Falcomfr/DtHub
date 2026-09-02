@@ -2397,3 +2397,58 @@ plafond est sans effet.
 | Codec vidéo | H.265 rend mieux à débit égal, encodeur matériel |
 | Définition max. | agit, mais seulement jusqu'à la taille des fenêtres |
 | Cadence | le jeu rend 19 à 33 images ici : 45 et 60 se valent |
+
+## D72 - Des sessions nommées, posées au-dessus de l'ensemble de démarrage
+
+Ouvrir tantôt deux comptes, tantôt un seul, demandait de refaire le geste à
+chaque fois. Il fallait pouvoir retenir des ensembles nommés, et en désigner un
+pour le démarrage.
+
+### Ce qui a décidé de la forme
+
+Le lancement ne filtre que sur un drapeau, `LaunchEnabledAsync` faisant
+`instances.Where(i => i.IsEnabled)`. Une session peut donc se poser **au-dessus**
+sans toucher au lancement : l'appliquer, c'est écrire `IsEnabled`. Rien du chemin
+d'ouverture n'a changé.
+
+**Il n'y a plus de cases à cocher**, et c'est une décision antérieure du projet,
+D-e96e931 : « les cases à cocher quittent le configurateur ». Une session ne peut
+donc pas être « les comptes cochés ». C'est ce qui lui donne sa forme : elle
+retient **les comptes ouverts**, ce que le mot session dit déjà.
+
+Et comme l'ensemble de démarrage dérive tout seul, un lancement réussi y ajoutant
+les comptes ouverts et le bouton « fermer » les en retirant, une session doit
+être une liste à part. Déduite à la volée, elle se serait réécrite d'elle-même et
+n'aurait rien retenu.
+
+### Choisir ouvre pour de bon
+
+Faute de cases, écrire seulement l'ensemble de démarrage ne montrerait rien à
+l'écran : on cliquerait sans savoir s'il s'est passé quelque chose. Choisir une
+session ferme donc ce qui n'en fait pas partie et ouvre ce qui manque, après une
+confirmation quand des fenêtres sont ouvertes. Un clic dans une liste n'est pas
+un consentement à fermer une partie en cours.
+
+### Éprouvé sur le matériel
+
+Les deux comptes ouverts et cochés, session « Solo XSpace » enregistrée puis
+désignée pour le démarrage. Au redémarrage, le journal dit :
+
+```
+Session « Solo XSpace » retenue : 1 compte(s).
+Lancement terminé : 1 fenêtre(s) ouverte(s), 0 problème(s).
+```
+
+Une seule fenêtre là où deux rouvraient : la session restreint bien le démarrage.
+
+### Un effet de bord ramassé
+
+La fenêtre de premier lancement supprimée en D68, `ShowSelection` n'avait plus
+aucun consommateur : la propriété, sa colonne et sa case étaient du code mort que
+personne n'avait vu partir. Retiré.
+
+### Une saisie de texte, qui manquait
+
+`IDialogService` ne savait qu'informer, avertir et faire confirmer. Nommer une
+session demande une ligne de texte, d'où `PromptText` et une petite fenêtre
+modale, sur le modèle de celle de l'appairage.

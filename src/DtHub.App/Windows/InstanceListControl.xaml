@@ -109,12 +109,6 @@
                     <ColumnDefinition Width="Auto" />
                   </Grid.ColumnDefinitions>
 
-                  <CheckBox Grid.Column="0" IsChecked="{Binding IsEnabled}" AllowDrop="False"
-                            Margin="0,0,8,0" VerticalAlignment="Center"
-                            ToolTip="Ouvrir cette instance au démarrage de l'application"
-                            Visibility="{Binding ShowSelection,
-                                                 RelativeSource={RelativeSource AncestorType=UserControl},
-                                                 Converter={StaticResource BoolToVisibility}}" />
 
                   <Control Grid.Column="1" Style="{StaticResource DragHandle}" Margin="0,0,2,0"
                            VerticalAlignment="Center"
