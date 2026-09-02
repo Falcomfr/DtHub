@@ -186,7 +186,7 @@ public sealed class SettingsMigrationTests : IDisposable
         await WriteAsync("""
         {
           "schemaVersion": 8,
-          "setupCompleted": true,
+          "customSizePercent": 43,
           "gameZoom": "PalierQuiNExistePas",
           "instances": [
             { "deviceId": "PHONE-A", "userId": 0, "packageName": "com.ankama.dofustouch",
@@ -197,7 +197,7 @@ public sealed class SettingsMigrationTests : IDisposable
 
         var settings = await _service.GetAsync(CancellationToken.None);
 
-        Assert.True(settings.SetupCompleted);
+        Assert.Equal(43, settings.CustomSizePercent);
         Assert.Single(settings.Instances);
         Assert.Equal("Principal", settings.Instances[0].UserName);
     }

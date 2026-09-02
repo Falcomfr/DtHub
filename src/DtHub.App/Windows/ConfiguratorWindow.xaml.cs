@@ -150,6 +150,30 @@ public partial class ConfiguratorWindow : Window
     }
 
     /// <summary>Ouvre la fenêtre d'ajout, puis rafraîchit la liste.</summary>
+    /// <summary>
+    /// Ouvre le panneau sur l'onglet des appareils. Employé au premier
+    /// lancement, où c'est le seul endroit qui ait quelque chose à dire.
+    /// </summary>
+    public void ShowDevices()
+    {
+        Show();
+        Activate();
+
+        TabDevices.IsChecked = true;
+    }
+
+    /// <summary>
+    /// Ouvre la fenêtre d'association, comme le ferait le bouton.
+    ///
+    /// Différée : appelée pendant le démarrage, elle bloquerait la suite sur sa
+    /// boucle modale, et le suivi de quêtes comme la mise à jour attendraient
+    /// qu'on ait fini d'associer un téléphone.
+    /// </summary>
+    public void BeginPairing() =>
+        _ = Dispatcher.BeginInvoke(
+            DispatcherPriority.ApplicationIdle,
+            () => OnAddDevice(this, new RoutedEventArgs()));
+
     private async void OnAddDevice(object sender, RoutedEventArgs e)
     {
         var dialog = AppHost.Services.GetRequiredService<AddDeviceWindow>();

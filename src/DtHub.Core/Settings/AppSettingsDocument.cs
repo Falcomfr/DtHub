@@ -19,12 +19,6 @@ public sealed class AppSettingsDocument
 
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 
-    /// <summary>
-    /// Vrai une fois la mise en route faite. C'est ce qui distingue le premier
-    /// lancement, qui pose la question, des suivants, qui lancent directement.
-    /// </summary>
-    public bool SetupCompleted { get; set; }
-
     /// <summary>Instances mémorisées, y compris celles qui ne sont pas cochées.</summary>
     public List<StoredInstance> Instances { get; set; } = [];
 

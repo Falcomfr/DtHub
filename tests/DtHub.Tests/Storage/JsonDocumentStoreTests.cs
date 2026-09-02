@@ -176,7 +176,6 @@ public sealed class JsonDocumentStoreTests : IDisposable
             """
             {
               "schemaVersion": 9,
-              "setupCompleted": true,
               "quality": "Haute",
               "gameZoom": "TresProche",
               "customSizePercent": 62
@@ -188,7 +187,6 @@ public sealed class JsonDocumentStoreTests : IDisposable
         var document = await store.LoadAsync(CancellationToken.None);
 
         // Le reste du fichier est intact...
-        Assert.True(document.SetupCompleted);
         Assert.Equal(62, document.CustomSizePercent);
 
         // ... et les deux valeurs inconnues retombent sur leur repli déclaré,

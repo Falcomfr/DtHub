@@ -51,7 +51,6 @@ public sealed class SettingsServiceTests : IDisposable
     {
         var settings = await _service.GetAsync(CancellationToken.None);
 
-        Assert.False(settings.SetupCompleted);
         Assert.Empty(settings.Instances);
         Assert.Equal(WindowAnchor.MiddleLeft, settings.GameAnchor);
         Assert.Equal([40, 60, 80, 100], settings.SizePercentages);

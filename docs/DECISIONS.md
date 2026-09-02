@@ -520,10 +520,12 @@ L'ensemble des instances à rouvrir était recalculé à la sortie, à partir de
 sessions vivantes à cet instant. Fermer une fenêtre à la main la retirait donc
 de l'ensemble, ce qui est l'inverse de ce qu'on attend d'un geste banal.
 
-Trois écritures, et trois seulement : lancer une instance l'y met, le bouton
-« Fermer » l'en retire, et la case de la fenêtre de mise en route en décide au
-premier lancement. Quitter l'application, fermer une fenêtre de jeu ou perdre
-le téléphone n'y touchent pas.
+Deux écritures, et deux seulement : lancer une instance l'y met, le bouton
+« Fermer » l'en retire. Quitter l'application, fermer une fenêtre de jeu ou
+perdre le téléphone n'y touchent pas.
+
+Il y en avait une troisième, la case de la fenêtre de mise en route, disparue
+avec elle le 2 septembre : voir [D68](#d68---le-premier-lancement-va-droit-aux-appareils).
 
 ## D23 - Relancer redémarre le jeu, pas la fenêtre
 
@@ -1902,3 +1904,31 @@ l'exécutable.
 **Ce qui reste vrai de D6** : scrcpy ne publie toujours pas les icônes, et aucun
 assistant n'est installé sur le téléphone.
 \n
+
+## D68 - Le premier lancement va droit aux appareils
+
+Une fenêtre à part accueillait le premier lancement. Elle refaisait ce que le
+panneau fait déjà, en moins bien, et la refermer arrêtait l'application.
+
+**Ce qu'elle avait de plus, et ce que ça valait** : une case « ouvrir au
+démarrage » par instance, et l'état du téléphone en toutes lettres. La seconde
+est reprise dans le panneau, où elle manquait au premier lancement, quand une
+pastille de couleur ne dit pas ce qu'elle reproche. La première ne manque pas :
+l'ensemble de démarrage est tenu par l'usage, ouvrir une instance l'y met et le
+bouton fermer l'en retire, ce que dit [D22](#d22---lensemble-de-démarrage-est-tenu-par-lusage).
+Elle en était la troisième écriture, et elle n'existe plus.
+
+**Ce qui la remplace** : le panneau s'ouvre sur l'onglet des appareils, et la
+fenêtre d'association vient par-dessus quand aucun téléphone n'est connu. Rien
+d'autre n'a de sens à ce moment-là.
+
+L'ouverture de l'association est différée à l'inactivité du répartiteur : lancée
+dans la foulée du démarrage, sa boucle modale retiendrait tout ce qui suit, dont
+la reprise du suivi de quêtes et la recherche de mise à jour.
+
+**Le premier lancement se reconnaît maintenant à un registre d'appareils vide**,
+et non à une marque dans les réglages. C'est le fait qui compte, il se lit déjà,
+et le drapeau `SetupCompleted` n'avait plus ni lecteur ni écrivain : il est
+retiré. Le schéma ne bouge pas, un champ inconnu d'un ancien fichier étant
+ignoré à la lecture.
+

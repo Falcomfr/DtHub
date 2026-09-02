@@ -45,7 +45,6 @@ try
     Console.WriteLine($"schéma        : {settings.SchemaVersion}");
     Console.WriteLine($"zoom          : {settings.GameZoom}");
     Console.WriteLine($"qualité       : {settings.Quality}");
-    Console.WriteLine($"mise en route : {settings.SetupCompleted}");
     Console.WriteLine($"taille libre  : {settings.CustomSizePercent}");
     Console.WriteLine($"instances     : {settings.Instances.Count}");
     Console.WriteLine($"raccourcis    : {settings.Hotkeys.Count}");

@@ -239,6 +239,12 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Modifié
 
+- Le premier lancement ouvre le panneau sur l'onglet Appareils, avec la fenêtre
+  d'association par-dessus quand aucun téléphone n'est connu. La fenêtre de mise
+  en route disparaît : elle refaisait ce que le panneau fait déjà, et la
+  refermer arrêtait l'application. L'état du téléphone en toutes lettres, qui
+  n'existait que là, est repris dans le panneau.
+
 - Le retour est un bouton fixe sous le fil d'Ariane, avec sa flèche et son mot :
   il défilait avec la liste et disparaissait dès qu'on descendait.
 - Le panneau de recherche prend toute la hauteur : le bandeau d'étape et le pied

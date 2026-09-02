@@ -125,7 +125,6 @@ public static class AppServices
         services.AddSingleton<GameLauncher>();
 
         services.AddSingleton<InstanceListViewModel>();
-        services.AddSingleton<SetupViewModel>();
         services.AddTransient<AddDeviceViewModel>();
         services.AddTransient<AddDeviceWindow>();
         services.AddTransient<HelpViewModel>();
@@ -143,7 +142,6 @@ public static class AppServices
         services.AddTransient<HotkeyEditorWindow>();
         services.AddSingleton<ConfiguratorViewModel>();
         services.AddSingleton<ConfiguratorWindow>();
-        services.AddTransient<SetupWindow>();
 
         return services;
     }

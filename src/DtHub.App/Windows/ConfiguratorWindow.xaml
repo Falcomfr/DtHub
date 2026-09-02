@@ -369,7 +369,12 @@
                       ToolTip="À faire une seule fois par appareil. Les appareils déjà associés se connectent tout seuls."
                       Click="OnAddDevice" />
 
-              <w:InstanceListControl DataContext="{Binding Instances}" />
+              <!-- L'état du téléphone en toutes lettres. Une pastille de
+                   couleur ne dit pas ce qu'elle reproche, et c'est au premier
+                   lancement, quand rien ne marche encore, qu'on en a le plus
+                   besoin. -->
+              <w:InstanceListControl DataContext="{Binding Instances}"
+                                     ShowDeviceStatus="True" />
 
             </StackPanel>
 

@@ -7,6 +7,7 @@ using DtHub.App.Services;
 using DtHub.App.ViewModels;
 using DtHub.App.Windows;
 using DtHub.Core;
+using DtHub.Core.Devices;
 using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
 using DtHub.Core.Updates;
@@ -118,22 +119,11 @@ public partial class App : Application, IDisposable
 
         PlaceShortcut(services);
 
-        var current = await settings.GetAsync().ConfigureAwait(true);
-
-        // La question n'est posée qu'au premier lancement. Ne plus rien avoir
-        // à ouvrir est un état normal depuis que l'ensemble de démarrage est
-        // celui des fenêtres ouvertes à la sortie.
-        if (!current.SetupCompleted)
-        {
-            var setup = services.GetRequiredService<SetupWindow>();
-            MainWindow = setup;
-
-            if (setup.ShowDialog() != true)
-            {
-                Shutdown();
-                return;
-            }
-        }
+        // Le premier lancement se reconnaît à un registre d'appareils vide, et
+        // non à une marque dans les réglages : c'est le fait qui compte, et il
+        // se lit déjà.
+        var firstRun = (await services.GetRequiredService<IDeviceRegistry>()
+            .GetKnownAsync().ConfigureAwait(true)).Count == 0;
 
         // Le configurateur existe avant le lancement : c'est lui qui affichera
         // les problèmes s'il y en a.
@@ -194,7 +184,16 @@ public partial class App : Application, IDisposable
         _configurator.PlaceAwayFrom(document.GameAnchor);
         _configurator.Opacity = 1;
 
-        if (!StartupPresence.ShowConfigurator(document.ConfiguratorVisible, report.Opened))
+        // Au premier lancement, le panneau reste et s'ouvre sur les appareils :
+        // c'est là qu'il n'y a rien et que tout commence. La fenêtre
+        // d'association vient par-dessus, puisque sans téléphone associé aucun
+        // autre geste n'a de sens.
+        if (firstRun)
+        {
+            _configurator.ShowDevices();
+            _configurator.BeginPairing();
+        }
+        else if (!StartupPresence.ShowConfigurator(document.ConfiguratorVisible, report.Opened))
         {
             _configurator.Hide();
         }
