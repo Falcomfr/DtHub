@@ -54,6 +54,13 @@ public partial class App : Application, IDisposable
     /// </summary>
     private static readonly TimeSpan SessionSaveLimit = TimeSpan.FromSeconds(3);
 
+    /// <summary>
+    /// Ce qu'on s'accorde pour ranger à l'arrêt. Fermer les fenêtres de jeu
+    /// demande le plus clair de ce temps, et l'attente est bornée pour qu'une
+    /// fenêtre récalcitrante ne retienne pas l'application.
+    /// </summary>
+    private static readonly TimeSpan ShutdownLimit = TimeSpan.FromSeconds(8);
+
     private bool _quitting;
     private bool _started;
     private Mutex? _instance;
@@ -197,7 +204,8 @@ public partial class App : Application, IDisposable
         // retrouver sa quête à chaque lancement.
         if (document.QuestsVisible)
         {
-            await RestoreQuestsAsync(document.LastQuestUrl).ConfigureAwait(true);
+            await RestoreQuestsAsync(document.LastQuestUrl, document.LastQuestStep)
+                .ConfigureAwait(true);
         }
 
         // Mises à jour : le ménage d'abord, puis ce qui vient d'être posé
@@ -370,7 +378,8 @@ public partial class App : Application, IDisposable
             if (_quests is not null)
             {
                 await settings
-                    .SetQuestsStateAsync(_quests.IsVisible, _quests.LastQuestUrl)
+                    .SetQuestsStateAsync(
+                        _quests.IsVisible, _quests.LastQuestUrl, _quests.LastQuestStep)
                     .ConfigureAwait(true);
 
                 await services
@@ -592,14 +601,14 @@ public partial class App : Application, IDisposable
     private void ToggleQuests() => Quests()?.Toggle();
 
     /// <summary>Rouvre le suivi de quêtes sur ce qu'on y lisait au dernier arrêt.</summary>
-    private async Task RestoreQuestsAsync(string? url)
+    private async Task RestoreQuestsAsync(string? url, int step)
     {
         if (Quests() is not { } quests)
         {
             return;
         }
 
-        await quests.RestoreAsync(url).ConfigureAwait(true);
+        await quests.RestoreAsync(url, step).ConfigureAwait(true);
     }
 
     /// <summary>
@@ -677,7 +686,42 @@ public partial class App : Application, IDisposable
         _configurator.Toggle();
     }
 
-    protected override async void OnExit(ExitEventArgs e)
+    /// <summary>
+    /// L'arrêt, quelle qu'en soit la porte.
+    ///
+    /// Rien n'y est attendu à la façon ordinaire. WPF appelle cette méthode
+    /// depuis son propre arrêt, et coupe le répartiteur dès qu'elle rend la
+    /// main : or un « await » la lui rend au premier travail qui ne se termine
+    /// pas sur place, et la suite serait alors postée sur un répartiteur mort.
+    ///
+    /// Mesuré à la sonde : aujourd'hui tout s'exécute, mais seulement parce que
+    /// la fermeture des fenêtres de jeu se termine d'un trait quand il n'y en a
+    /// aucune. Avec des fenêtres ouvertes, elle attend vraiment, et ce qui suit
+    /// ne se ferait plus. Ce qui suit, c'est la pose de la mise à jour.
+    ///
+    /// La boucle de messages tourne donc pendant l'attente, comme à la fin de
+    /// session Windows, et une minuterie la borne : mieux vaut un arrêt à
+    /// moitié rangé qu'une application qui refuse de mourir.
+    /// </summary>
+    protected override void OnExit(ExitEventArgs e)
+    {
+        var frame = new DispatcherFrame();
+        var limit = new DispatcherTimer(
+            ShutdownLimit, DispatcherPriority.Send, (_, _) => frame.Continue = false, Dispatcher);
+
+        limit.Start();
+
+        _ = CloseDownAsync().ContinueWith(
+            _ => frame.Continue = false,
+            TaskScheduler.FromCurrentSynchronizationContext());
+
+        Dispatcher.PushFrame(frame);
+        limit.Stop();
+
+        base.OnExit(e);
+    }
+
+    private async Task CloseDownAsync()
     {
         if (_host is not null)
         {
@@ -690,7 +734,11 @@ public partial class App : Application, IDisposable
                 // La mise à jour se pose ici et nulle part ailleurs : plus rien
                 // ne tourne, et l'exécutable qui se renomme n'interrompt
                 // personne. Elle démarrera au prochain lancement.
-                _ = _host.Services.GetRequiredService<UpdateService>().Apply();
+                if (_host.Services.GetRequiredService<UpdateService>().Apply())
+                {
+                    Log.Information("Mise à jour posée, elle démarrera au prochain lancement.");
+                }
+
                 await _host.StopAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(true);
             }
             catch (Exception exception)
@@ -704,8 +752,6 @@ public partial class App : Application, IDisposable
         Dispose();
 
         await Log.CloseAndFlushAsync().ConfigureAwait(true);
-
-        base.OnExit(e);
     }
 
     /// <summary>

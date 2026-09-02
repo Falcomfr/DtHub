@@ -69,6 +69,14 @@ public sealed class AppSettingsDocument
     public string LastQuestUrl { get; set; } = string.Empty;
 
     /// <summary>
+    /// L'étape où l'on était dans ce guide. Seule l'adresse était retenue : on
+    /// rouvrait le bon guide à sa première étape, et il fallait refaire le
+    /// chemin. Zéro vaut « la première », qui est aussi le repli quand la page
+    /// en compte moins qu'avant.
+    /// </summary>
+    public int LastQuestStep { get; set; }
+
+    /// <summary>
     /// Vrai quand l'application se met à jour toute seule : elle télécharge la
     /// livraison en fond et l'installe en quittant, jamais en pleine session.
     /// Décoché, elle se contente de dire qu'une version existe.

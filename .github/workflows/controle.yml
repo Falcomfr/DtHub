@@ -1,0 +1,32 @@
+# Compile et éprouve à chaque poussée.
+#
+# La chaîne de livraison ne se déclenche que sur une étiquette de version.
+# Entre deux livraisons, une compilation cassée ou un test rouge ne se voyait
+# que sur la machine de celui qui avait écrit le code.
+#
+# Les avertissements sont traités en erreurs : le dépôt en compte zéro
+# aujourd'hui, et c'est un état qui ne se tient que s'il est exigé.
+name: Contrôle
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  controler:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Compiler
+        run: dotnet build DtHub.slnx --configuration Release --nologo -warnaserror
+
+      - name: Éprouver
+        run: dotnet test DtHub.slnx --configuration Release --nologo --no-build

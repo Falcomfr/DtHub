@@ -76,9 +76,14 @@ public partial class QuestWindow : Window
     /// La liste ne se déroule pas dans ce cas : on retrouve la page où on
     /// l'avait laissée, ce qui est justement ce qu'on venait chercher.
     /// </summary>
-    public async Task RestoreAsync(string? url)
+    public async Task RestoreAsync(string? url, int step = 0)
     {
         Show();
+
+        // L'étape attend que la page ait dit combien elle en a : le pont ne le
+        // rapporte qu'une fois le document lu, et sauter avant ne mènerait
+        // nulle part.
+        _pendingStep = step;
 
         // Le catalogue doit être là avant qu'on lui demande une quête. Il se
         // charge d'ordinaire au premier affichage, mais rien ne garantit qu'il
@@ -107,6 +112,12 @@ public partial class QuestWindow : Window
 
     /// <summary>L'adresse de ce qu'on lisait, pour la retrouver au prochain lancement.</summary>
     public string? LastQuestUrl => _viewModel.CurrentUrl;
+
+    /// <summary>L'étape où l'on en était, pour y revenir au prochain lancement.</summary>
+    public int LastQuestStep => _viewModel.StepIndex;
+
+    /// <summary>L'étape à retrouver, le temps que la page annonce les siennes.</summary>
+    private int _pendingStep;
 
     private void OnOpenInBrowser(object sender, RoutedEventArgs e) => _viewModel.OpenInBrowser();
 
@@ -350,6 +361,7 @@ public partial class QuestWindow : Window
                         Text(root, "chain"),
                         Steps(root),
                         Flag(root, "departure"));
+                    ResumeStep();
                     break;
 
                 case "step":
@@ -382,6 +394,23 @@ public partial class QuestWindow : Window
         }
 
         return [.. steps.EnumerateArray().Select(s => s.GetString() ?? string.Empty)];
+    }
+
+    /// <summary>
+    /// Reprend le guide à l'étape où on l'avait laissé, une seule fois, et
+    /// seulement si elle existe encore : le site peut avoir raccourci la page
+    /// depuis, et sauter à une étape absente ne mènerait nulle part.
+    /// </summary>
+    private void ResumeStep()
+    {
+        var step = _pendingStep;
+
+        _pendingStep = 0;
+
+        if (step > 0 && step < _viewModel.StepCount)
+        {
+            GoToStep(step);
+        }
     }
 
     /// <summary>Fait défiler la page jusqu'à une étape.</summary>

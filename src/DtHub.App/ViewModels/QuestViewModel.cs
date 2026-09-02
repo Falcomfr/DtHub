@@ -923,6 +923,9 @@ public sealed partial class QuestViewModel : ObservableObject
         }
     }
 
+    /// <summary>Combien d'étapes la page ouverte annonce.</summary>
+    public int StepCount => _steps.Count;
+
     /// <summary>
     /// Une ligne de quête.
     ///

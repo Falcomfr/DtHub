@@ -45,6 +45,19 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   d'Amakna, « On recherche Ali Grothor » se retrouvait ainsi entre « Le vallon du
   château » et « Étre plus royaliste que le roi », sans rapport avec ni l'un ni
   l'autre. Cent deux quêtes seules sur trois cent une sont dans ce cas.
+- L'arrêt de l'application laisse tourner sa boucle de messages pendant qu'il
+  range. WPF coupe le répartiteur dès que la méthode d'arrêt rend la main, et un
+  « await » la lui rend : tout ce qui suivait, dont la pose de la mise à jour,
+  se serait perdu dès qu'une fenêtre de jeu aurait été ouverte. Mesuré à la
+  sonde, la suite s'exécute aujourd'hui, mais seulement parce que fermer zéro
+  fenêtre se termine d'un trait. L'attente est bornée à huit secondes.
+- Le guide rouvre à l'étape où on l'avait laissé, et plus à la première. Elle
+  n'est reprise que si la page en compte encore autant : le site peut l'avoir
+  raccourcie depuis.
+- Une chaîne de contrôle compile et éprouve à chaque poussée, avertissements
+  traités en erreurs. La seule chaîne existante ne se déclenchait que sur une
+  étiquette de version : entre deux livraisons, un test rouge ne se voyait que
+  sur la machine de celui qui avait écrit le code.
 - La carte d'un donjon ne recouvre plus l'en-tête de la page. Elle remonte de
   quatre-vingt-quatorze pixels pour se glisser à côté, et recouvrait le niveau et
   la pierre d'âme dès que la fenêtre passait huit cent quatre-vingts pixels de

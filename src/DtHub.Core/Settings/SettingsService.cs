@@ -589,11 +589,20 @@ public sealed class SettingsService : IDisposable
     public Task SetQuestsStateAsync(
         bool visible,
         string? lastQuestUrl,
+        int lastQuestStep = 0,
         CancellationToken cancellationToken = default) =>
         UpdateAsync(
             settings =>
             {
                 settings.QuestsVisible = visible;
+
+                // L'étape suit l'adresse : retenir un rang sans le guide auquel
+                // il appartient ferait rouvrir une autre quête à une étape qui
+                // n'est pas la sienne.
+                if (!string.IsNullOrWhiteSpace(lastQuestUrl))
+                {
+                    settings.LastQuestStep = lastQuestStep < 0 ? 0 : lastQuestStep;
+                }
 
                 // Une adresse vide n'efface pas la précédente : fermer la
                 // fenêtre sur sa liste ne doit pas faire oublier la quête qu'on
