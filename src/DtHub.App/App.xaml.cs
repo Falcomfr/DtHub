@@ -323,7 +323,12 @@ public partial class App : Application, IDisposable
     private void OnNothingLeft(bool rememberConfigurator)
     {
         // Deux sessions qui meurent ensemble signalent chacune la dernière.
-        if (_quitting || _configurator?.IsVisible == true)
+        //
+        // Les guides tiennent l'application en vie comme le panneau : ils sont
+        // à l'écran, ils reçoivent les raccourcis, et on les consulte fenêtres
+        // de jeu fermées. Sans eux dans le compte, fermer la dernière fenêtre
+        // de jeu emportait le guide qu'on était en train de lire.
+        if (_quitting || _configurator?.IsVisible == true || _quests?.IsVisible == true)
         {
             return;
         }
@@ -471,24 +476,51 @@ public partial class App : Application, IDisposable
     /// appel seulement : elle porte un navigateur, qu'il serait inutile de
     /// mettre en route pour quelqu'un qui ne s'en sert pas.
     /// </summary>
-    private void ToggleQuests()
-    {
-        _quests ??= _host?.Services.GetRequiredService<QuestWindow>();
-
-        _quests?.Toggle();
-    }
+    private void ToggleQuests() => Quests()?.Toggle();
 
     /// <summary>Rouvre le suivi de quêtes sur ce qu'on y lisait au dernier arrêt.</summary>
     private async Task RestoreQuestsAsync(string? url)
     {
-        _quests ??= _host?.Services.GetRequiredService<QuestWindow>();
-
-        if (_quests is null)
+        if (Quests() is not { } quests)
         {
             return;
         }
 
-        await _quests.RestoreAsync(url).ConfigureAwait(true);
+        await quests.RestoreAsync(url).ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// Les guides, construits au premier besoin.
+    ///
+    /// Ils comptent au même titre que le panneau pour décider s'il reste
+    /// quelque chose : les masquer alors qu'il ne reste rien d'autre arrête
+    /// l'application, comme masquer le panneau.
+    /// </summary>
+    private QuestWindow? Quests()
+    {
+        if (_quests is not null)
+        {
+            return _quests;
+        }
+
+        _quests = _host?.Services.GetRequiredService<QuestWindow>();
+
+        if (_quests is null)
+        {
+            return null;
+        }
+
+        // Le panneau était déjà masqué, sans quoi on ne serait pas en train de
+        // s'arrêter : c'est bien qu'on le veut masqué.
+        _quests.IsVisibleChanged += (_, _) =>
+        {
+            if (_started && _quests?.IsVisible == false)
+            {
+                OnNothingLeft(rememberConfigurator: false);
+            }
+        };
+
+        return _quests;
     }
 
     private void ToggleConfigurator()

@@ -45,6 +45,11 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   d'Amakna, « On recherche Ali Grothor » se retrouvait ainsi entre « Le vallon du
   château » et « Étre plus royaliste que le roi », sans rapport avec ni l'un ni
   l'autre. Cent deux quêtes seules sur trois cent une sont dans ce cas.
+- Les guides tiennent l'application en vie à eux seuls. Fermer la dernière
+  fenêtre de jeu, ou masquer les réglages, emportait le guide qu'on était en
+  train de lire. Ils comptent désormais comme le panneau : tant qu'ils sont à
+  l'écran, l'application continue ; les masquer alors qu'il ne reste rien
+  d'autre l'arrête, comme masquer le panneau.
 - Le panneau des prérequis s'ouvre à gauche du cadenas et non plus dessous, où il
   recouvrait les lignes suivantes et se calait sur un décalage fixe que la
   largeur du texte démentait. Un second clic sur le cadenas le referme.

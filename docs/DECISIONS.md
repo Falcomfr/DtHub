@@ -1102,3 +1102,21 @@ Sa fermeture ne prévenait d'ailleurs personne, l'événement ne se déclenchant
 pas, mesuré à la trace, ce qui ôtait tout moyen de la rattraper. La fenêtre
 ferme donc au premier clic hors du cadenas propriétaire, et le cadenas bascule.
 
+## D45 - Les guides comptent comme le panneau
+
+L'application s'arrête quand il ne reste plus rien à l'écran : ni fenêtre de
+jeu, ni panneau de réglages. La règle existe parce qu'une application invisible
+serait injoignable, les raccourcis ne répondant que lorsqu'une de nos fenêtres a
+le premier plan.
+
+Les guides n'entraient pas dans ce compte, alors qu'ils remplissent les deux
+conditions : ils sont à l'écran, et ils reçoivent les raccourcis, ce qui était
+déjà admis ailleurs. Fermer la dernière fenêtre de jeu, ou masquer les réglages,
+emportait donc le guide qu'on était en train de lire, alors que c'est
+précisément fenêtres de jeu fermées qu'on prépare une session.
+
+Ils tiennent maintenant l'application en vie, et les masquer alors qu'il ne
+reste rien d'autre l'arrête, exactement comme masquer le panneau. Vérifié à
+l'écran : guides seuls affichés, réglages masqués, l'application survit ;
+guides masqués à leur tour, elle s'arrête.
+
