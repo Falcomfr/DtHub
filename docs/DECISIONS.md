@@ -1932,3 +1932,32 @@ et le drapeau `SetupCompleted` n'avait plus ni lecteur ni écrivain : il est
 retiré. Le schéma ne bouge pas, un champ inconnu d'un ancien fichier étant
 ignoré à la lecture.
 
+## D69 - Le chemin de menu se montre, il ne se lit plus
+
+Les deux aides donnaient le chemin à suivre en une ligne : « Paramètres ›
+Applications › Gérer les applications › DOFUS Touch › Économiseur de batterie ».
+Juste, mais il faut le lire pour le comprendre, et on le relit à chaque étape.
+
+Il est désormais dessiné : un petit écran par segment, cinq lignes de liste dont
+une surlignée, le libellé dessous, un chevron entre deux. On y voit d'un coup
+combien d'écrans traverser et où l'on va.
+
+**Rien n'a été rédigé pour cela.** Les fiches de marque écrivent déjà leurs
+chemins sous cette forme, et le découpage les lit. Une marque dont le chemin
+change de libellé change de dessin sans qu'on y touche, et une marque nouvelle
+est illustrée du seul fait d'exister.
+
+**Dessiné dans l'application, et non produit en images.** Les libellés changent
+d'une marque à l'autre, « Économiseur de batterie » chez Xiaomi contre
+« Batterie » sur Android nu : une image figée ne peut pas les porter, il en
+faudrait une par marque et par étape, à refaire à chaque retouche de texte. Le
+dessin vectoriel suit le thème, reste net à toute résolution, et rien ne
+s'ajoute au dépôt.
+
+**La hauteur de la ligne surlignée est tirée du libellé**, et non au hasard :
+l'illustration doit se redessiner à l'identique, sans quoi elle bougerait sous
+les yeux de qui rouvre la fenêtre. Deux écrans voisins surlignés à la même
+hauteur sont décalés, une suite de lignes alignées ayant l'air d'un dessin figé.
+Le dernier écran ne porte pas de chevron : il n'y a rien après, et en tracer un
+laisserait croire à une étape manquante.
+\n

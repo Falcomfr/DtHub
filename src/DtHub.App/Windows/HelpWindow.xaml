@@ -1,6 +1,7 @@
 ﻿<Window x:Class="DtHub.App.Windows.HelpWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:w="clr-namespace:DtHub.App.Windows"
         Title="Aide"
         Width="560" Height="640" MinWidth="480" MinHeight="420"
         WindowStartupLocation="CenterOwner"
@@ -37,7 +38,7 @@
           <StackPanel>
             <TextBlock FontWeight="SemiBold" Margin="0,0,0,4"
                        Text="1. Débloquer les options pour les développeurs" />
-            <TextBlock Text="{Binding Brand.BuildNumberPath}" Style="{StaticResource Muted}" Margin="0,0,0,3" />
+            <w:MenuPathControl Path="{Binding Brand.BuildNumberPath}" Margin="0,2,0,4" />
             <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap">
               <Run Text="Appuyez sept fois de suite sur «" />
               <Run Text="{Binding Brand.BuildNumberLabel, Mode=OneWay}" FontWeight="SemiBold" />
@@ -50,7 +51,7 @@
           <StackPanel>
             <TextBlock FontWeight="SemiBold" Margin="0,0,0,4"
                        Text="2. Ouvrir les options pour les développeurs" />
-            <TextBlock Text="{Binding Brand.DeveloperOptionsPath}" Style="{StaticResource Muted}" Margin="0,0,0,3" />
+            <w:MenuPathControl Path="{Binding Brand.DeveloperOptionsPath}" Margin="0,2,0,4" />
             <TextBlock Style="{StaticResource Muted}"
                        Text="Activez « Débogage USB » et « Débogage sans fil »." />
 

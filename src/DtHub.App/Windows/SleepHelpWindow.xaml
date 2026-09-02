@@ -1,6 +1,7 @@
 ﻿<Window x:Class="DtHub.App.Windows.SleepHelpWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:w="clr-namespace:DtHub.App.Windows"
         Title="Empêcher la mise en veille"
         Width="560" Height="620" MinWidth="480" MinHeight="420"
         WindowStartupLocation="CenterOwner"
@@ -37,8 +38,7 @@
         <Border Style="{StaticResource Card}">
           <StackPanel>
             <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="1. Ouvrir le réglage de batterie du jeu" />
-            <TextBlock Text="{Binding Brand.BatteryPath}" Style="{StaticResource Muted}" Margin="0,0,0,3"
-                       TextWrapping="Wrap" />
+            <w:MenuPathControl Path="{Binding Brand.BatteryPath}" Margin="0,2,0,4" />
             <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap">
               <Run Text="Sur cet appareil, le réglage à trouver s'appelle «" />
               <Run Text="{Binding Brand.BatteryFeature, Mode=OneWay}" FontWeight="SemiBold" />
