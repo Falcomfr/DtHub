@@ -1,5 +1,5 @@
 ﻿# Deplace et redimensionne une fenetre. Outil de developpement uniquement.
-param([string]$Fenetre = "Quêtes", [int]$X = 0, [int]$Y = 0, [int]$L = 900, [int]$H = 700)
+param([string]$Fenetre = "Guides", [int]$X = 0, [int]$Y = 0, [int]$L = 900, [int]$H = 700)
 Add-Type @"
 using System;
 using System.Runtime.InteropServices;

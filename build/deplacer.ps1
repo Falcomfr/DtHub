@@ -1,6 +1,6 @@
 ﻿# Deplace une fenetre a une position absolue, pour verifier la persistance.
 # Outil de developpement uniquement.
-param([string]$Fenetre = "Quêtes", [int]$X = 0, [int]$Y = 0)
+param([string]$Fenetre = "Guides", [int]$X = 0, [int]$Y = 0)
 Add-Type @"
 using System;
 using System.Runtime.InteropServices;

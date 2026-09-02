@@ -1,6 +1,6 @@
-# Ecrit un texte dans le champ de recherche d'une fenetre, sans clavier.
+﻿# Ecrit un texte dans le champ de recherche d'une fenetre, sans clavier.
 # Outil de developpement uniquement.
-param([string]$Fenetre = "Quêtes", [string]$Texte = "")
+param([string]$Fenetre = "Guides", [string]$Texte = "")
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
 $root = [System.Windows.Automation.AutomationElement]::RootElement

@@ -1,6 +1,6 @@
 ﻿# Fait defiler une fenetre en envoyant des crans de molette sur son centre.
 # Outil de developpement uniquement.
-param([string]$Fenetre = "Quêtes", [int]$Crans = -10, [int]$OffsetY = 0)
+param([string]$Fenetre = "Guides", [int]$Crans = -10, [int]$OffsetY = 0)
 Add-Type @"
 using System;
 using System.Runtime.InteropServices;

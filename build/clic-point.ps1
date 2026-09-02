@@ -1,6 +1,6 @@
 ﻿# Clique un point donne en coordonnees relatives au coin haut-gauche d'une fenetre.
 # Outil de developpement uniquement.
-param([string]$Fenetre = "Quêtes", [int]$X = 0, [int]$Y = 0, [switch]$Survol)
+param([string]$Fenetre = "Guides", [int]$X = 0, [int]$Y = 0, [switch]$Survol)
 Add-Type @"
 using System;
 using System.Runtime.InteropServices;

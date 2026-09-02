@@ -1,6 +1,6 @@
 ﻿# Clique une ligne de la liste deroulante de la fenetre Quetes, par son texte.
 # Outil de developpement uniquement.
-param([string]$Texte = "Quêtes", [string]$Fenetre = "Quêtes")
+param([string]$Texte = "Guides", [string]$Fenetre = "Guides")
 Add-Type -AssemblyName System.Windows.Forms
 
 Add-Type -AssemblyName UIAutomationClient

@@ -1,7 +1,7 @@
 ﻿# Capture une zone de l'ecran definie par rapport a une fenetre, en pixels
 # physiques. Sert a voir ce qui se dessine hors de la fenetre : les infobulles.
 # Outil de developpement uniquement.
-param([string]$Fenetre = "Quêtes", [int]$X = 0, [int]$Y = 0, [int]$L = 800, [int]$H = 400,
+param([string]$Fenetre = "Guides", [int]$X = 0, [int]$Y = 0, [int]$L = 800, [int]$H = 400,
       [string]$Output = "C:\Dev\DTHub\build\zone.png")
 Add-Type -AssemblyName System.Drawing
 Add-Type @"

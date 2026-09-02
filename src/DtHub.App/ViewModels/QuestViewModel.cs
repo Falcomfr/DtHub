@@ -82,7 +82,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
     /// <summary>Ce qu'on lit tant qu'aucune quête n'est ouverte.</summary>
     [ObservableProperty]
-    private string _placeholder = "Cherchez une quête, ou dépliez la liste.";
+    private string _placeholder = "Cherchez un guide, ou dépliez la liste.";
 
     /// <summary>
     /// Ligne à mettre en évidence quand le panneau s'ouvre : celle de la quête

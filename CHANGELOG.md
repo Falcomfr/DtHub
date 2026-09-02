@@ -30,6 +30,14 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 - Un chemin se parcourt par ses étapes, « Jusqu'à la première grotte » à « Fin
   du chemin » : la règle qui distingue le dossier de la consigne ne regarde plus
   le bloc des donjons mais la présence de titres de sections.
+- La fenêtre s'appelle « Guides » et non plus « Quêtes » : elle ouvre aussi des
+  donjons, des raids, des tanières et des chemins. Le raccourci et l'infobulle
+  du bouton disent de même.
+- Le rond d'attente était dessiné à seize unités quel que soit sa taille : à
+  vingt-deux pixels, l'arc bleu restait seize et se retrouvait décalé en haut à
+  gauche d'un anneau plus grand que lui. Il est maintenant dessiné à taille fixe
+  et mis à l'échelle. L'anneau et l'arc n'avaient d'ailleurs pas le même rayon,
+  huit contre sept, ce qui les décalait d'un pixel entier même à seize.
 - Le pied de succès disparaît quand il n'a rien à dire. Un donjon, un raid, une
   tanière et un chemin n'appartiennent à aucune suite : ils n'ont ni quête
   avant, ni quête après, ni rang dans un succès, et le pied ne montrait pour eux

@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:wv="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
-        Title="Quêtes"
+        Title="Guides"
         Width="520" Height="760" MinWidth="380" MinHeight="360"
         Topmost="True"
         ShowInTaskbar="True"

@@ -752,31 +752,47 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="Control">
-          <!-- L'animation vise l'élément qui porte le déclencheur, sans nom :
-               un Storyboard déclenché depuis un gabarit ne voit pas l'étendue
-               de noms de ce gabarit, et échouait à chaque affichage d'une
-               ligne. -->
-          <Grid Background="Transparent" RenderTransformOrigin="0.5,0.5">
-            <Grid.RenderTransform>
-              <RotateTransform Angle="0" />
-            </Grid.RenderTransform>
+          <!-- Le dessin est fait à seize unités et mis à l'échelle, au lieu
+               d'être dessiné à la taille demandée.
 
-            <Grid.Triggers>
-              <EventTrigger RoutedEvent="Loaded">
-                <BeginStoryboard>
-                  <Storyboard>
-                    <DoubleAnimation
-                        Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
-                        From="0" To="360" Duration="0:0:1" RepeatBehavior="Forever" />
-                  </Storyboard>
-                </BeginStoryboard>
-              </EventTrigger>
-            </Grid.Triggers>
+               L'arc était un tracé de coordonnées fixes, l'anneau une ellipse
+               qui remplissait la place : à seize pixels ils coïncidaient, et
+               nulle part ailleurs. Le suivi demande vingt-deux pixels, où l'arc
+               restait seize et se retrouvait décalé en haut à gauche d'un
+               anneau plus grand que lui. Mesuré à l'écran.
 
-            <Ellipse Stroke="{DynamicResource BorderBrush}" StrokeThickness="2" />
-            <Path Stroke="{DynamicResource AccentBrush}" StrokeThickness="2" StrokeStartLineCap="Round"
-                  Data="M 8 1 A 7 7 0 0 1 15 8" />
-          </Grid>
+               L'anneau garde une unité de marge pour que son rayon soit celui
+               de l'arc, sept : sans elle il vaut huit, et le bleu passe à côté
+               du gris d'un pixel entier. -->
+          <Viewbox Stretch="Uniform">
+            <!-- L'animation vise l'élément qui porte le déclencheur, sans nom :
+                 un Storyboard déclenché depuis un gabarit ne voit pas l'étendue
+                 de noms de ce gabarit, et échouait à chaque affichage d'une
+                 ligne. -->
+            <Grid Width="16" Height="16" Background="Transparent"
+                  RenderTransformOrigin="0.5,0.5">
+              <Grid.RenderTransform>
+                <RotateTransform Angle="0" />
+              </Grid.RenderTransform>
+
+              <Grid.Triggers>
+                <EventTrigger RoutedEvent="Loaded">
+                  <BeginStoryboard>
+                    <Storyboard>
+                      <DoubleAnimation
+                          Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                          From="0" To="360" Duration="0:0:1" RepeatBehavior="Forever" />
+                    </Storyboard>
+                  </BeginStoryboard>
+                </EventTrigger>
+              </Grid.Triggers>
+
+              <Ellipse Margin="1" Stroke="{DynamicResource BorderBrush}" StrokeThickness="2" />
+              <Path Stroke="{DynamicResource AccentBrush}" StrokeThickness="2"
+                    StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                    Data="M 8 1 A 7 7 0 0 1 15 8" />
+            </Grid>
+          </Viewbox>
         </ControlTemplate>
       </Setter.Value>
     </Setter>
