@@ -495,3 +495,7 @@ build/ingame-*.png
 
 # Journal de la republication faite par build/lancer.cmd
 build/publication.log
+
+# Captures de developpement : produites par build/capture-*.ps1 et les sondes,
+# elles servent une seule verification et ne sont jamais lues par le projet.
+build/**/*.png
