@@ -611,4 +611,98 @@ public class QuestCatalogServiceTests
         Assert.Equal(3, catalog.Quests[0].PlayOrder);
         Assert.Equal(2, catalog.Quests[1].PlayOrder);
     }
+
+    [Fact]
+    public async Task Le_rang_d_un_succes_se_prend_sur_ses_quetes_et_non_sur_l_intitule()
+    {
+        // Le site n'écrit pas le même nom aux deux endroits où il le nomme :
+        // « Fri Carré » en intertitre, « Fri carré » dans la quête. Le second
+        // fait foi partout ailleurs, et rapprocher les deux par leur texte
+        // perdait le rang.
+        var client = new FakePapychaClient()
+            .WithQuest(1, "Une pêche d'enfer")
+            .WithPage("Quêtes principales", "https://papycha.fr/quetes-principales/")
+            .WithSuccess("Fri Carré", 1);
+
+        var seed = new FakeQuestSuccessSeed().With(1, "Fri carré");
+
+        var store = new InMemoryDocumentStore<QuestCatalogDocument>();
+        using var service = new QuestCatalogService(client, store, seed);
+
+        var catalog = await service.GetAsync(cancellationToken: CancellationToken.None);
+
+        Assert.Equal(["Fri carré"], catalog.SuccessOrder);
+        Assert.Equal("Fri carré", catalog.Quests[0].SuccessName);
+    }
+
+    [Fact]
+    public async Task Un_intertitre_en_gras_range_meme_sans_la_marque_du_site()
+    {
+        // Trois succès n'ont pas d'autre intertitre que leur nom nu. Sans eux
+        // ils tombaient en fin de zone, par ordre alphabétique.
+        var client = new FakePapychaClient()
+            .WithQuest(1, "Le retour des morts pas vraiment vivants")
+            .WithQuest(2, "Cwoque ma Cawotte")
+            .WithPage("Île des Wabbits", "https://papycha.fr/quete-de-lile-des-wabbits/")
+            .WithHeading("Les morts", 1)
+            .WithHeading("La cawotte", 2);
+
+        var seed = new FakeQuestSuccessSeed()
+            .With(1, "Le retour des morts pas vraiment vivants")
+            .With(2, "Cwoque ma Cawotte");
+
+        var store = new InMemoryDocumentStore<QuestCatalogDocument>();
+        using var service = new QuestCatalogService(client, store, seed);
+
+        var catalog = await service.GetAsync(cancellationToken: CancellationToken.None);
+
+        Assert.Equal(
+            ["Le retour des morts pas vraiment vivants", "Cwoque ma Cawotte"],
+            catalog.SuccessOrder);
+    }
+
+    [Fact]
+    public async Task Un_intertitre_dont_aucune_quete_ne_porte_de_succes_ne_range_rien()
+    {
+        // « À la chasse aux Goroku » ne renvoie qu'à des pages que le catalogue
+        // ignore : le retenir mettrait dans la liste des rangs un nom que nulle
+        // quête ne porte.
+        var client = new FakePapychaClient()
+            .WithQuest(1, "Une pêche d'enfer")
+            .WithPage("Quêtes principales", "https://papycha.fr/quetes-principales/")
+            .WithSuccess("À la chasse aux Goroku", 7)
+            .WithSuccess("Fri carré", 1);
+
+        var seed = new FakeQuestSuccessSeed().With(1, "Fri carré");
+
+        var store = new InMemoryDocumentStore<QuestCatalogDocument>();
+        using var service = new QuestCatalogService(client, store, seed);
+
+        var catalog = await service.GetAsync(cancellationToken: CancellationToken.None);
+
+        Assert.Equal(["Fri carré"], catalog.SuccessOrder);
+    }
+
+    [Fact]
+    public async Task L_ordre_des_succes_suit_celui_des_pages()
+    {
+        var client = new FakePapychaClient()
+            .WithQuest(1, "Une pêche d'enfer")
+            .WithQuest(2, "Le dragon d'Astrub")
+            .WithPage("Île de Frigost", "https://papycha.fr/quetes-de-frigost/")
+            .WithSuccess("Second", 1)
+            .WithPage("Astrub", "https://papycha.fr/quetes-dastrub/")
+            .WithSuccess("Premier", 2);
+
+        var seed = new FakeQuestSuccessSeed().With(1, "Second").With(2, "Premier");
+
+        var store = new InMemoryDocumentStore<QuestCatalogDocument>();
+        using var service = new QuestCatalogService(client, store, seed);
+
+        var catalog = await service.GetAsync(cancellationToken: CancellationToken.None);
+
+        // Le rang est celui du site, pas l'alphabet : « Second » est bien
+        // premier parce que sa page l'est.
+        Assert.Equal(["Second", "Premier"], catalog.SuccessOrder);
+    }
 }

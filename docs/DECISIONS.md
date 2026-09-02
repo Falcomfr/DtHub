@@ -1423,3 +1423,56 @@ shell interpréterait.
 Le parseur de rubriques, qui posait déjà la même question par un préfixe de
 texte, lit maintenant la même règle.
 \n
+
+## D56 - Suivre les adresses, pas les noms
+
+Le site nomme un succès à deux endroits : l'intertitre d'une page de rubrique et
+le bloc d'intro de chaque quête. Il ne l'écrit pas pareil.
+
+| L'intertitre écrit | La quête écrit |
+|---|---|
+| Brûler le pissenlit **à** la racine | Brûler le pissenlit **par** la racine |
+| Fri **C**arré | Fri **c**arré |
+| **E**tre plus royaliste que le roi | **É**tre plus royaliste que le roi |
+| L'heure c'est l'heure | L'heure**,** c'est l'heure |
+| Glo**b**litération | Goblitération |
+| Plus dure sera la t**ê**te | Plus dure sera la t**â**te |
+
+C'est le nom porté par la quête qui fait foi partout ailleurs : c'est lui qui
+groupe les quêtes en succès. Le rang, lui, se prenait sur l'intitulé.
+
+**Mesuré sur le vrai site, par le code livré** : des quatre-vingt-seize entrées
+de la liste des rangs, trente ne désignaient aucun succès du catalogue, et
+quarante-neuf succès sur cent quinze se retrouvaient sans rang, donc rejetés en
+fin de zone.
+
+La correction ne compare plus les noms : elle suit les adresses. Un intertitre
+coiffe des quêtes, ces quêtes portent un nom de succès, et c'est ce nom-là qui
+prend le rang. Ni normalisation ni rapprochement approximatif, donc rien à
+régler et aucun faux rapprochement possible. **Quatre-vingt-dix-sept rangs,
+aucun nom en trop, dix-huit succès sans rang.** Les rangés par ordre
+alphabétique passent de trente-huit à douze.
+
+Tous les intertitres en gras comptent désormais, et non les seuls marqués
+« [Succès] » : trois succès n'ont pas d'autre intertitre que leur nom nu. Cela
+n'inverse aucun rang que le site marque, vérifié.
+
+**Ce qui a été écarté, mesuré aussi** :
+
+- *L'ordre du document*, qui range un succès à la première de ses quêtes citée
+  quelque part. Il classerait huit succès de plus, mais **cinquante-trois
+  inversions** de l'ordre que les intertitres marquent : un succès de Frigost
+  est cité en passant sur la page d'Amakna, et s'y retrouverait rangé. Il
+  placerait « Une impression blizzard » après « Agriculture et Alchimie ».
+- *Le niveau conseillé*, pour départager les douze qui restent : sept des
+  trente-neuf blocs concernés en portent un, et jamais tous ceux d'une même
+  zone. Mêler un niveau connu à des inconnus donne un ordre qui a l'air décidé
+  sans l'être.
+- *La page « Succès » du site*, qui les liste tous : par ordre alphabétique. Elle
+  ne porte aucun ordre de jeu, seulement l'orthographe officielle et le nombre
+  de quêtes.
+
+La sonde qui a produit ces chiffres est dans `build/sonde-rang`. Elle passe par
+le service, donc par le code livré, et non par une réimplémentation qui
+pourrait se tromper d'accord avec elle-même.
+\n

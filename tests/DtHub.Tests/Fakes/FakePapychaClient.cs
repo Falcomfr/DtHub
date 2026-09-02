@@ -112,7 +112,17 @@ public sealed class FakePapychaClient : IPapychaClient
     }
 
     /// <summary>Succès annoncé par un intertitre de la dernière rubrique ajoutée.</summary>
-    public FakePapychaClient WithSuccess(string name, params int[] questIds)
+    public FakePapychaClient WithSuccess(string name, params int[] questIds) =>
+        WithHeading(name, isSuccess: true, questIds);
+
+    /// <summary>
+    /// Intertitre en gras que le site n'a pas marqué « [Succès] ». Il ne
+    /// rattache aucune quête à un succès, mais il en range.
+    /// </summary>
+    public FakePapychaClient WithHeading(string name, params int[] questIds) =>
+        WithHeading(name, isSuccess: false, questIds);
+
+    private FakePapychaClient WithHeading(string name, bool isSuccess, int[] questIds)
     {
         var page = _pages[^1];
 
@@ -125,7 +135,7 @@ public sealed class FakePapychaClient : IPapychaClient
                 new QuestPageGroup
                 {
                     Name = name,
-                    IsSuccess = true,
+                    IsSuccess = isSuccess,
                     QuestUrls = [.. questIds.Select(Address)],
                 },
             ],

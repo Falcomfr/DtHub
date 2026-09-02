@@ -292,18 +292,54 @@ public sealed class QuestCatalogService : IDisposable
     }
 
     /// <summary>
-    /// Intitulés des succès dans l'ordre où les pages les présentent, chacun
-    /// pris à sa première apparition.
+    /// Succès dans l'ordre où les pages les présentent, chacun pris à sa
+    /// première apparition.
+    ///
+    /// Le rang se prend sur les quêtes que l'intertitre coiffe, et non sur ce
+    /// que l'intertitre écrit. Les deux endroits où le site nomme un succès ne
+    /// l'écrivent pas pareil : l'intertitre dit « Brûler le pissenlit à la
+    /// racine », « Fri Carré », « Etre plus royaliste que le roi », quand la
+    /// quête dit « par la racine », « Fri carré », « Étre ». Ailleurs c'est une
+    /// coquille franche, « Globlitération » contre « Goblitération ». Or c'est
+    /// le nom de la quête qui fait foi partout ailleurs. Rapprocher les deux
+    /// par leur texte perdait le rang : sur quatre-vingt-seize intitulés
+    /// relevés, trente ne désignaient aucun succès du catalogue, et
+    /// quarante-neuf succès sur cent quinze se retrouvaient sans rang. En
+    /// suivant les adresses, il en reste dix-huit.
+    ///
+    /// Tous les intertitres en gras comptent, et non les seuls marqués
+    /// « [Succès] » : trois succès n'ont pas d'autre intertitre que leur nom
+    /// nu, et les compter n'inverse aucun des rangs que le site marque.
     /// </summary>
-    private static List<string> SuccessOrder(IReadOnlyList<QuestPageSection> pages)
+    private static List<string> SuccessOrder(
+        IReadOnlyList<QuestPageSection> pages,
+        IReadOnlyList<QuestSummary> quests)
     {
-        List<string> order = [];
+        Dictionary<string, string> named = new(StringComparer.Ordinal);
 
-        foreach (var group in pages.SelectMany(p => p.Groups).Where(g => g.IsSuccess))
+        foreach (var quest in quests)
         {
-            if (!order.Contains(group.Name, StringComparer.Ordinal))
+            if (quest.SuccessName.Length > 0)
             {
-                order.Add(group.Name);
+                named.TryAdd(QuestSectionPageParser.Key(quest.Url), quest.SuccessName);
+            }
+        }
+
+        List<string> order = [];
+        HashSet<string> seen = new(StringComparer.Ordinal);
+
+        foreach (var group in pages.SelectMany(p => p.Groups))
+        {
+            var name = group.QuestUrls
+                .Select(url => named.GetValueOrDefault(url, string.Empty))
+                .FirstOrDefault(n => n.Length > 0);
+
+            // Un intertitre dont aucune quête ne porte de succès ne range rien.
+            // C'est le cas d'un groupe qui ne renvoie qu'à des pages absentes du
+            // catalogue.
+            if (!string.IsNullOrEmpty(name) && seen.Add(name))
+            {
+                order.Add(name);
             }
         }
 
@@ -736,7 +772,7 @@ public sealed class QuestCatalogService : IDisposable
                 Dungeons = [.. dungeons],
                 Paths = [.. paths],
                 SectionOrder = [.. ranking],
-                SuccessOrder = SuccessOrder(pages),
+                SuccessOrder = SuccessOrder(pages, arranged),
             };
 
             await _store.SaveAsync(document, cancellationToken).ConfigureAwait(false);

@@ -284,6 +284,17 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Corrigé
 
+- Les succès retrouvent le rang que le site leur donne. Le site n'écrit pas le
+  même nom aux deux endroits où il nomme un succès : l'intertitre dit « Brûler
+  le pissenlit à la racine », « Fri Carré », « Etre plus royaliste que le roi »,
+  la quête dit « par la racine », « Fri carré », « Étre » ; ailleurs c'est une
+  coquille franche, « Globlitération » contre « Goblitération ». Le rang se
+  prenait sur l'intitulé, si bien que trente des quatre-vingt-seize entrées de
+  la liste des rangs ne désignaient aucun succès, et que quarante-neuf succès
+  sur cent quinze n'en avaient pas. Il se prend maintenant sur les quêtes que
+  l'intertitre coiffe : quatre-vingt-dix-sept rangs, aucun nom en trop, dix-huit
+  succès sans rang. Rangés par ordre alphabétique en fin de zone, faute de tout
+  signal : douze, contre trente-huit.
 - Une page pouvait faire tomber l'application en trois lignes. Le pont est posé
   sur tout document que la fenêtre des guides charge, et la fenêtre lisait ce
   qu'il lui postait sans précaution : un message qui n'a pas le champ « kind »,

@@ -55,8 +55,15 @@ public sealed class QuestCatalogDocument
     /// seizième : ses champs sont absents d'un catalogue plus ancien, ce qui
     /// vaut « on ne sait pas » et provoque une relecture, une seule fois. Une
     /// version n'est due que lorsque ce qui est déjà écrit changerait de sens.
+    ///
+    /// Version 16 : l'ordre des succès est désormais celui des succès que
+    /// portent les quêtes, et non celui des intitulés du site. Ce qui est déjà
+    /// écrit change donc de sens : trente des quatre-vingt-seize entrées d'un
+    /// catalogue de la quinzième ne désignent aucun succès. Une empreinte de
+    /// site inchangée ne provoquerait aucune relecture, et l'ancien classement
+    /// resterait en place.
     /// </summary>
-    public const int CurrentSchemaVersion = 15;
+    public const int CurrentSchemaVersion = 16;
 
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 
