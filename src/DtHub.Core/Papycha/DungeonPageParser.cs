@@ -46,6 +46,25 @@ public static partial class DungeonPageParser
     }
 
     /// <summary>
+    /// Niveau écrit dans la prose, « Niveau : 190 ». Zéro quand la page n'en
+    /// donne pas.
+    ///
+    /// Les donjons le mettent dans leurs métadonnées ; les raids et les
+    /// tanières, sauf une, l'écrivent en clair dans leurs premiers paragraphes.
+    /// C'est le seul endroit où on le trouve pour neuf des dix.
+    /// </summary>
+    public static int ParseLevel(string? html)
+    {
+        var match = LevelPattern().Match(Clean(html));
+
+        return match.Success
+            && int.TryParse(match.Groups["value"].Value, out var level)
+            && level is > 0 and <= 300
+                ? level
+                : 0;
+    }
+
+    /// <summary>
     /// Titres des sections de la page, dans leur ordre.
     ///
     /// Une page de donjon n'est pas une suite de consignes mais un dossier :
@@ -118,6 +137,12 @@ public static partial class DungeonPageParser
         RegexOptions.Singleline | RegexOptions.IgnoreCase,
         2000)]
     private static partial Regex HeadingPattern();
+
+    [GeneratedRegex(
+        @"\bNiveau\s*:\s*(?<value>\d{1,3})\b",
+        RegexOptions.IgnoreCase,
+        2000)]
+    private static partial Regex LevelPattern();
 
     [GeneratedRegex("<[^>]+>")]
     private static partial Regex TagPattern();

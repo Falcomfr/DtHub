@@ -34,7 +34,7 @@
                    PreviewMouseLeftButtonDown="OnSearchClicked"
                    PreviewKeyDown="OnSearchKey"
                    ToolTip="Cliquez pour dérouler la liste, ou tapez un nom. Les accents ne comptent pas."
-                   Tag="Cherchez une zone, un succès, une quête ou un donjon" />
+                   Tag="Cherchez une quête, une zone, un succès, un donjon ou un chemin" />
 
           <!-- Dans le champ et non à côté : une croix posée en dehors se lisait
                comme un bouton de la barre, sans dire ce qu'elle vidait. -->

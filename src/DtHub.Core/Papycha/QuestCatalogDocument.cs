@@ -42,7 +42,7 @@ public sealed class QuestCatalogDocument
     /// Version 12 : les prérequis de chaque quête, et la clé de rubrique
     /// retirée, la recherche ne portant plus que sur les titres.
     /// </summary>
-    public const int CurrentSchemaVersion = 14;
+    public const int CurrentSchemaVersion = 15;
 
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 
@@ -58,6 +58,12 @@ public sealed class QuestCatalogDocument
     /// prérequis, mais un niveau, une clef et une pierre d'âme.
     /// </summary>
     public List<DungeonSummary> Dungeons { get; set; } = [];
+
+    /// <summary>
+    /// Les chemins du site, chacun rangé du côté qu'il dessert. Ils n'ont ni
+    /// niveau ni clef : un itinéraire ne se joue pas, il se suit.
+    /// </summary>
+    public List<PathSummary> Paths { get; set; } = [];
 
     /// <summary>
     /// Intitulés des rubriques dans l'ordre du site, réduits à une forme

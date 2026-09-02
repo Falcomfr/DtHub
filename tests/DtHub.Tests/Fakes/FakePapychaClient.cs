@@ -122,4 +122,12 @@ public sealed class FakePapychaClient : IPapychaClient
     public Task<IReadOnlyList<DungeonSummary>> GetDungeonsAsync(
         CancellationToken cancellationToken = default) =>
         Task.FromResult<IReadOnlyList<DungeonSummary>>(Dungeons);
+
+    /// <summary>Chemins rendus par le faux client.</summary>
+    public List<PathSummary> Paths { get; } = [];
+
+    public Task<IReadOnlyList<PathSummary>> GetPathsAsync(
+        IReadOnlyList<string> dungeonTitles,
+        CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<PathSummary>>(Paths);
 }

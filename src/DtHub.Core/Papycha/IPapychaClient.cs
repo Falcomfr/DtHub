@@ -45,6 +45,16 @@ public interface IPapychaClient
     /// </summary>
     Task<IReadOnlyList<DungeonSummary>> GetDungeonsAsync(
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Récupère les chemins, et décide de quel côté chacun se range.
+    ///
+    /// Les noms des donjons sont demandés parce que la décision en dépend : un
+    /// chemin va aux donjons quand son titre en nomme un.
+    /// </summary>
+    Task<IReadOnlyList<PathSummary>> GetPathsAsync(
+        IReadOnlyList<string> dungeonTitles,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>Avancement d'une indexation.</summary>

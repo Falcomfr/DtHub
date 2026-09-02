@@ -40,6 +40,9 @@ public sealed partial class QuestViewModel : ObservableObject
     /// <summary>Le donjon affiché, quand c'en est un.</summary>
     private DungeonSummary? _currentDungeon;
 
+    /// <summary>Le chemin affiché, quand c'en est un.</summary>
+    private PathSummary? _currentPath;
+
     /// <summary>
     /// Les quêtes quittées en suivant un lien, la dernière au sommet.
     ///
@@ -235,7 +238,11 @@ public sealed partial class QuestViewModel : ObservableObject
         // redescendre l'arbre pour retrouver les voisines de ce qu'on lisait.
         // Un donjon n'appartient à aucune rubrique du site : sa branche est la
         // sienne.
-        var section = _current?.SectionId ?? (_currentDungeon is not null ? DungeonSection : (int?)null);
+        var section = _current?.SectionId
+            ?? (_currentDungeon is { } place ? SectionOf(place) : (int?)null)
+            ?? (_currentPath is { } road
+                ? road.Side == PathSide.Dungeons ? DungeonPathSection : QuestPathSection
+                : (int?)null);
 
         if (section is { } target && (_section != target || Query.Length > 0))
         {
@@ -281,16 +288,32 @@ public sealed partial class QuestViewModel : ObservableObject
         Nodes.Add(new QuestNode(
             QuestNodeKind.Branch,
             "Donjons",
-            Combien(_catalog.Catalog.Dungeons.Count, "donjon", "donjons"),
+            Combien(Fighting(DungeonKind.Dungeon).Count, "donjon", "donjons"),
             Id: DungeonSection,
+            Glyph: QuestNodeGlyph.Dungeons));
+        Nodes.Add(new QuestNode(
+            QuestNodeKind.Branch,
+            "Raids",
+            Combien(Fighting(DungeonKind.Raid).Count, "raid", "raids"),
+            Id: RaidSection,
+            Glyph: QuestNodeGlyph.Dungeons));
+        Nodes.Add(new QuestNode(
+            QuestNodeKind.Branch,
+            "Tanières",
+            Combien(Fighting(DungeonKind.Lair).Count, "tanière", "tanières"),
+            Id: LairSection,
             Glyph: QuestNodeGlyph.Dungeons));
     }
 
     /// <summary>
-    /// Rubrique des donjons. Un identifiant négatif, hors de portée des
-    /// catégories du site, qui sont positives : la branche n'en est pas une.
+    /// Branches qui ne viennent pas des catégories du site. Leurs identifiants
+    /// sont négatifs, hors de portée de celles-ci, qui sont positives.
     /// </summary>
     private const int DungeonSection = -100;
+    private const int RaidSection = -101;
+    private const int LairSection = -102;
+    private const int QuestPathSection = -103;
+    private const int DungeonPathSection = -104;
 
     /// <summary>
     /// Le contenu d'une rubrique. À la racine des quêtes, ce sont les autres
@@ -313,9 +336,44 @@ public sealed partial class QuestViewModel : ObservableObject
             Breadcrumb = "Donjons";
             SetBack(target: 0);
 
+            Nodes.Add(PathBranch(PathSide.Dungeons, DungeonPathSection));
+
             foreach (var node in DungeonNodes())
             {
                 Nodes.Add(node);
+            }
+
+            return;
+        }
+
+        if (section is RaidSection or LairSection)
+        {
+            var kind = section == RaidSection ? DungeonKind.Raid : DungeonKind.Lair;
+
+            Breadcrumb = section == RaidSection ? "Raids" : "Tanières";
+            SetBack(target: 0);
+
+            // Sans paliers : dix lignes se lisent d'un trait, et les couper
+            // n'aiderait personne.
+            foreach (var place in Fighting(kind).OrderBy(d => d.Level)
+                         .ThenBy(d => d.Title, StringComparer.CurrentCulture))
+            {
+                Nodes.Add(ToNode(place));
+            }
+
+            return;
+        }
+
+        if (section is QuestPathSection or DungeonPathSection)
+        {
+            var side = section == DungeonPathSection ? PathSide.Dungeons : PathSide.Quests;
+
+            Breadcrumb = side == PathSide.Dungeons ? "Donjons  ›  Chemins" : "Zone de Quêtes  ›  Chemins";
+            SetBack(target: side == PathSide.Dungeons ? DungeonSection : RootSection);
+
+            foreach (var path in Paths(side).OrderBy(p => p.Title, StringComparer.CurrentCulture))
+            {
+                Nodes.Add(new QuestNode(QuestNodeKind.Quest, path.Title, Path: path));
             }
 
             return;
@@ -325,6 +383,8 @@ public sealed partial class QuestViewModel : ObservableObject
         {
             Breadcrumb = "Zone de Quêtes";
             SetBack(target: 0);
+
+            Nodes.Add(PathBranch(PathSide.Quests, QuestPathSection));
 
             foreach (var branch in Branches())
             {
@@ -456,16 +516,36 @@ public sealed partial class QuestViewModel : ObservableObject
             }
         }
 
-        if (found.Dungeons.Count > 0)
+        // Un groupe par nature, et seulement s'il a trouvé quelque chose : une
+        // recherche ordinaire en montre un ou deux.
+        foreach (var (kind, titre, un, plusieurs) in DungeonGroups)
+        {
+            List<DungeonSummary> places = [.. found.Of(kind)];
+
+            if (places.Count == 0)
+            {
+                continue;
+            }
+
+            Nodes.Add(new QuestNode(QuestNodeKind.Section, titre, Combien(places.Count, un, plusieurs)));
+
+            foreach (var place in places)
+            {
+                Nodes.Add(ToNode(place) with { Glyph = QuestNodeGlyph.Dungeons });
+            }
+        }
+
+        if (found.Paths.Count > 0)
         {
             Nodes.Add(new QuestNode(
                 QuestNodeKind.Section,
-                "Donjons",
-                Combien(found.Dungeons.Count, "donjon", "donjons")));
+                "Chemins",
+                Combien(found.Paths.Count, "chemin", "chemins")));
 
-            foreach (var dungeon in found.Dungeons)
+            foreach (var path in found.Paths)
             {
-                Nodes.Add(ToNode(dungeon) with { Glyph = QuestNodeGlyph.Dungeons });
+                Nodes.Add(new QuestNode(
+                    QuestNodeKind.Quest, path.Title, Path: path, Glyph: QuestNodeGlyph.Place));
             }
         }
 
@@ -485,6 +565,44 @@ public sealed partial class QuestViewModel : ObservableObject
         }
     }
 
+    /// <summary>Les trois groupes de lieux de combat, dans l'ordre de la racine.</summary>
+    private static readonly (DungeonKind Kind, string Title, string One, string Many)[] DungeonGroups =
+    [
+        (DungeonKind.Dungeon, "Donjons", "donjon", "donjons"),
+        (DungeonKind.Raid, "Raids", "raid", "raids"),
+        (DungeonKind.Lair, "Tanières", "tanière", "tanières"),
+    ];
+
+    /// <summary>La branche où un lieu de combat se trouve.</summary>
+    private static int SectionOf(DungeonSummary place) => place.Kind switch
+    {
+        DungeonKind.Raid => RaidSection,
+        DungeonKind.Lair => LairSection,
+        _ => DungeonSection,
+    };
+
+    /// <summary>Les lieux de combat d'un genre, dans l'ordre du site.</summary>
+    private IReadOnlyList<DungeonSummary> Fighting(DungeonKind kind) =>
+        [.. _catalog.Catalog.Dungeons.Where(d => d.Kind == kind)];
+
+    /// <summary>Les chemins d'un côté.</summary>
+    private IReadOnlyList<PathSummary> Paths(PathSide side) =>
+        [.. _catalog.Catalog.Paths.Where(p => p.Side == side)];
+
+    /// <summary>
+    /// La sous-branche des chemins, en tête de la branche qu'elle sert.
+    ///
+    /// Un dossier plutôt qu'un groupe à la suite : un chemin ne se compare ni à
+    /// une zone ni à un donjon, et les mêler allongerait une liste qu'on
+    /// parcourt déjà longuement.
+    /// </summary>
+    private QuestNode PathBranch(PathSide side, int section) => new(
+        QuestNodeKind.Branch,
+        "Chemins",
+        Combien(Paths(side).Count, "chemin", "chemins"),
+        Id: section,
+        Glyph: QuestNodeGlyph.Place);
+
     /// <summary>
     /// Les donjons, du plus abordable au plus exigeant, coupés par paliers de
     /// cinquante niveaux.
@@ -496,7 +614,7 @@ public sealed partial class QuestViewModel : ObservableObject
     /// </summary>
     private IEnumerable<QuestNode> DungeonNodes()
     {
-        var ordered = _catalog.Catalog.Dungeons
+        var ordered = Fighting(DungeonKind.Dungeon)
             .OrderBy(d => DungeonLevelBand.RankOf(d.Level))
             .ThenBy(d => d.Level)
             .ThenBy(d => d.Title, StringComparer.CurrentCulture);
@@ -860,6 +978,11 @@ public sealed partial class QuestViewModel : ObservableObject
                 IsListOpen = false;
                 return dungeon.Url;
 
+            case QuestNodeKind.Quest when node.Path is { } path:
+                SetCurrent(path);
+                IsListOpen = false;
+                return path.Url;
+
             default:
                 return null;
         }
@@ -872,6 +995,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
         _current = quest;
         _currentDungeon = null;
+        _currentPath = null;
         CurrentUrl = quest.Url;
         QuestTitle = quest.Title;
         HasQuest = true;
@@ -906,6 +1030,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
         _current = null;
         _currentDungeon = dungeon;
+        _currentPath = null;
         CurrentUrl = dungeon.Url;
         QuestTitle = dungeon.Title;
         HasQuest = true;
@@ -923,6 +1048,39 @@ public sealed partial class QuestViewModel : ObservableObject
         SetStep(-1);
 
         StepDetail = _start ?? string.Empty;
+    }
+
+    /// <summary>
+    /// Ouvre un chemin.
+    ///
+    /// Il n'a ni niveau ni voisines, et pas de départ à composer : un itinéraire
+    /// commence là où on se trouve. Le bandeau ne porte donc que son nom, et les
+    /// étapes viendront de ses titres de sections.
+    /// </summary>
+    public void SetCurrent(PathSummary path)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+
+        _current = null;
+        _currentDungeon = null;
+        _currentPath = path;
+        CurrentUrl = path.Url;
+        QuestTitle = path.Title;
+        HasQuest = true;
+
+        _start = null;
+        _startsAtDeparture = false;
+
+        ChainText = "Chemin";
+        ChainStep = string.Empty;
+        PreviousQuest = null;
+        NextQuest = null;
+
+        _steps = [];
+        HasSteps = false;
+        SetStep(-1);
+
+        StepDetail = string.Empty;
     }
 
     /// <summary>
@@ -1213,12 +1371,23 @@ public sealed partial class QuestViewModel : ObservableObject
             var dungeon = _catalog.Catalog.Dungeons.FirstOrDefault(d =>
                 string.Equals(UrlKey(d.Url), key, StringComparison.Ordinal));
 
-            if (dungeon is null)
+            if (dungeon is not null)
+            {
+                SetCurrent(dungeon);
+                IsListOpen = false;
+
+                return true;
+            }
+
+            var path = _catalog.Catalog.Paths.FirstOrDefault(p =>
+                string.Equals(UrlKey(p.Url), key, StringComparison.Ordinal));
+
+            if (path is null)
             {
                 return false;
             }
 
-            SetCurrent(dungeon);
+            SetCurrent(path);
             IsListOpen = false;
 
             return true;

@@ -28,8 +28,19 @@ public sealed partial class PapychaClient : IPapychaClient
     /// <summary>Catégorie qui range toutes les quêtes du site.</summary>
     private const int QuestCategory = 7;
 
-    /// <summary>La catégorie « [Donjons] », qui en range quatre-vingt-trois.</summary>
-    private const int DungeonCategory = 6;
+    /// <summary>
+    /// Les catégories des lieux de combat : donjons, raids, tanières.
+    /// Quatre-vingt-trois, deux et huit articles.
+    /// </summary>
+    private static readonly (int Category, DungeonKind Kind)[] DungeonCategories =
+    [
+        (6, DungeonKind.Dungeon),
+        (741, DungeonKind.Raid),
+        (721, DungeonKind.Lair),
+    ];
+
+    /// <summary>La catégorie « [Chemins] », qui en range vingt et un.</summary>
+    private const int PathCategory = 8;
 
     /// <summary>Maximum accepté par WordPress sur une page.</summary>
     private const int PageSize = 100;
@@ -436,12 +447,66 @@ public sealed partial class PapychaClient : IPapychaClient
     {
         List<DungeonSummary> dungeons = [];
 
+        foreach (var (category, kind) in DungeonCategories)
+        {
+            foreach (var item in await ReadCategoryAsync(category, cancellationToken).ConfigureAwait(false))
+            {
+                dungeons.Add(ToDungeon(item, kind));
+            }
+        }
+
+        LogDungeons(dungeons.Count);
+
+        return dungeons;
+    }
+
+    public async Task<IReadOnlyList<PathSummary>> GetPathsAsync(
+        IReadOnlyList<string> dungeonTitles,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(dungeonTitles);
+
+        List<PathSummary> paths = [];
+
+        foreach (var item in await ReadCategoryAsync(PathCategory, cancellationToken).ConfigureAwait(false))
+        {
+            var title = StripPrefix(Decode(item.Title?.Rendered));
+
+            paths.Add(new PathSummary
+            {
+                Id = item.Id,
+                Title = title,
+                Url = item.Link ?? string.Empty,
+                SearchKey = QuestSearch.Normalize(title),
+                Side = PathTarget.Of(title, dungeonTitles),
+            });
+        }
+
+        LogPaths(paths.Count, paths.Count(p => p.Side == PathSide.Dungeons));
+
+        return paths;
+    }
+
+    /// <summary>
+    /// Les articles d'une catégorie, contenu rendu compris, page après page.
+    ///
+    /// Le contenu vient avec le reste et non article par article : la clef, la
+    /// pierre d'âme et le niveau des raids ne vivent que dans le corps, et les
+    /// demander séparément coûterait cent quatorze requêtes là où trois
+    /// suffisent.
+    /// </summary>
+    private async Task<List<DungeonPayload>> ReadCategoryAsync(
+        int category,
+        CancellationToken cancellationToken)
+    {
+        List<DungeonPayload> all = [];
+
         for (var page = 1; page <= MaxPages; page++)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var address =
-                $"posts?categories={DungeonCategory}&per_page={PageSize}&page={page}"
+                $"posts?categories={category}&per_page={PageSize}&page={page}"
                 + "&orderby=title&order=asc"
                 + "&_fields=id,title,link,meta,content";
 
@@ -463,7 +528,7 @@ public sealed partial class PapychaClient : IPapychaClient
                 break;
             }
 
-            dungeons.AddRange(items.Select(ToDungeon));
+            all.AddRange(items);
 
             if (items.Count < PageSize)
             {
@@ -471,23 +536,27 @@ public sealed partial class PapychaClient : IPapychaClient
             }
         }
 
-        LogDungeons(dungeons.Count);
-
-        return dungeons;
+        return all;
     }
 
-    private static DungeonSummary ToDungeon(DungeonPayload item)
+    private static DungeonSummary ToDungeon(DungeonPayload item, DungeonKind kind)
     {
-        var title = DungeonTitle(Decode(item.Title?.Rendered));
+        var title = StripPrefix(Decode(item.Title?.Rendered));
         var html = item.Content?.Rendered ?? string.Empty;
 
         return new DungeonSummary
         {
             Id = item.Id,
+            Kind = kind,
             Title = title,
             Url = item.Link ?? string.Empty,
             SearchKey = QuestSearch.Normalize(title),
-            Level = item.Meta?.DungeonLevel ?? 0,
+
+            // Les métadonnées d'abord, la prose ensuite : les donjons y mettent
+            // leur niveau, les raids et les tanières l'écrivent en clair.
+            Level = item.Meta?.DungeonLevel is > 0 and var level
+                ? level
+                : DungeonPageParser.ParseLevel(html),
             Position = (item.Meta?.DungeonPosition ?? string.Empty).Trim(),
             Person = Decode(item.Meta?.DungeonPerson).Trim(),
             Key = DungeonPageParser.ParseKey(html),
@@ -496,17 +565,22 @@ public sealed partial class PapychaClient : IPapychaClient
     }
 
     /// <summary>
-    /// Le nom du donjon sans le préfixe que le site met à tous ses titres. Il
-    /// se lit bien dans une page, mal dans une liste où toutes les lignes sont
-    /// des donjons.
+    /// Le nom sans le préfixe entre crochets que le site met à tous ses titres.
+    /// Il se lit bien dans une page, mal dans une liste où toutes les lignes
+    /// sont de la même sorte.
     /// </summary>
-    private static string DungeonTitle(string title)
+    private static string StripPrefix(string title)
     {
         var value = title.Trim();
 
-        return value.StartsWith("[Donjon]", StringComparison.OrdinalIgnoreCase)
-            ? value["[Donjon]".Length..].Trim()
-            : value;
+        if (!value.StartsWith('['))
+        {
+            return value;
+        }
+
+        var close = value.IndexOf(']', StringComparison.Ordinal);
+
+        return close < 0 ? value : value[(close + 1)..].Trim();
     }
 
     private sealed class DungeonPayload
@@ -584,8 +658,13 @@ public sealed partial class PapychaClient : IPapychaClient
     [LoggerMessage(Level = LogLevel.Information, Message = "Catalogue papycha indexé : {count} quête(s).")]
     private partial void LogIndexed(int count);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Donjons indexés : {count}.")]
+    [LoggerMessage(Level = LogLevel.Information, Message = "Donjons, raids et tanières indexés : {count}.")]
     private partial void LogDungeons(int count);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Chemins indexés : {count}, dont {dungeons} côté donjons.")]
+    private partial void LogPaths(int count, int dungeons);
 
 
     [LoggerMessage(

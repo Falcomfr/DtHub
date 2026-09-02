@@ -17,6 +17,19 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   Boss, Mécanique du donjon, Les succès, Fin du donjon — et non par un résumé de
   paragraphe : ce n'est pas une suite de consignes mais un dossier.
 - La recherche rend un quatrième groupe, « Donjons ».
+- Deux sections de plus à la racine : « Raids » et « Tanières », avec leur
+  niveau entre parenthèses et le classement par niveau. Le site ne le met dans
+  ses métadonnées que pour une des dix : les neuf autres l'écrivent en clair
+  dans leur première ligne, où il est désormais lu.
+- Les chemins entrent dans la fenêtre, rangés dans la branche qu'ils servent :
+  six sous « Donjons », quinze sous « Zone de Quêtes », chacun dans une
+  sous-branche « Chemins ». Un chemin va aux donjons s'il écrit le mot
+  « donjon » ou s'il partage au moins deux mots distinctifs avec un donjon du
+  catalogue ; un seul mot commun ne suffit pas, faute de quoi le zaap de la
+  canopée passerait pour le chemin de la Canopée du Kimbo.
+- Un chemin se parcourt par ses étapes, « Jusqu'à la première grotte » à « Fin
+  du chemin » : la règle qui distingue le dossier de la consigne ne regarde plus
+  le bloc des donjons mais la présence de titres de sections.
 - Le champ de recherche dit ce qu'il accepte tant qu'on n'y a rien écrit : une
   zone, un succès, une quête ou un donjon. La croix qui le vide est passée
   dedans, où l'on voit ce qu'elle vide.

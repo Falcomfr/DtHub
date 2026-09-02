@@ -159,12 +159,14 @@ public static class QuestSearch
         IReadOnlyList<QuestSummary> quests,
         IReadOnlyList<QuestSection> sections,
         IReadOnlyList<DungeonSummary> dungeons,
+        IReadOnlyList<PathSummary> paths,
         string? query,
         int limit = 50)
     {
         ArgumentNullException.ThrowIfNull(quests);
         ArgumentNullException.ThrowIfNull(sections);
         ArgumentNullException.ThrowIfNull(dungeons);
+        ArgumentNullException.ThrowIfNull(paths);
 
         var terms = Terms(query);
 
@@ -206,8 +208,15 @@ public static class QuestSearch
             [
                 .. dungeons
                     .Where(d => Matches(d.SearchKey, terms))
-                    .OrderBy(d => d.Level)
+                    .OrderBy(d => d.Kind)
+                    .ThenBy(d => d.Level)
                     .ThenBy(d => d.Title, StringComparer.CurrentCulture)
+                    .Take(limit),
+            ],
+            [
+                .. paths
+                    .Where(p => Matches(p.SearchKey, terms))
+                    .OrderBy(p => p.Title, StringComparer.CurrentCulture)
                     .Take(limit),
             ]);
     }

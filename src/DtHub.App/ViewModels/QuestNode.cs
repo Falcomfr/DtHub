@@ -80,7 +80,8 @@ public enum QuestNodeGlyph
 /// quand le site n'en donne pas, et la ligne n'affiche alors aucune icône.
 /// </param>
 /// <param name="Quest">La quête, quand c'en est une.</param>
-/// <param name="Dungeon">Le donjon, quand c'en est un.</param>
+/// <param name="Dungeon">Le lieu de combat, quand c'en est un.</param>
+/// <param name="Path">Le chemin, quand c'en est un.</param>
 public sealed record QuestNode(
     QuestNodeKind Kind,
     string Label,
@@ -88,6 +89,7 @@ public sealed record QuestNode(
     int Id = 0,
     QuestSummary? Quest = null,
     DungeonSummary? Dungeon = null,
+    PathSummary? Path = null,
     QuestNodeGlyph Glyph = QuestNodeGlyph.None,
     IReadOnlyList<QuestNeed>? Needs = null,
     bool Spaced = false)
@@ -101,7 +103,7 @@ public sealed record QuestNode(
     /// <summary>
     /// L'adresse que la ligne ouvre, qu'elle mène à une quête ou à un donjon.
     /// </summary>
-    public string? Url => Quest?.Url ?? Dungeon?.Url;
+    public string? Url => Quest?.Url ?? Dungeon?.Url ?? Path?.Url;
 
     /// <summary>Vrai quand la ligne a quelque chose à dire au survol.</summary>
     public bool HasNeeds => Needs is { Count: > 0 };

@@ -271,11 +271,12 @@
         return document.querySelector('section.pcd-info');
     }
 
-    // Les sections d'un donjon, dans leur ordre.
+    // Les sections d'une page, dans leur ordre.
     //
-    // Un donjon ne se parcourt pas comme un guide de quête : ce n'est pas une
-    // suite de consignes mais un dossier — les monstres, les salles, le boss,
-    // la mécanique, les succès. Ce sont ces titres qu'on suit.
+    // Toutes les pages du site ne se parcourent pas comme un guide de quête. Un
+    // donjon, une tanière, un chemin sont des dossiers : les monstres, les
+    // salles, le boss pour l'un ; les étapes du trajet pour l'autre. Ce sont ces
+    // titres qu'on suit, et non des paragraphes à résumer.
     //
     // Deux sont écartés : « Position du PNJ sur la carte » double la carte que
     // le bloc d'en-tête porte déjà, et « Papycha remercie » est le pied de page.
@@ -310,15 +311,22 @@
 
         var found = [];
 
-        // Sur un donjon, les étapes sont les titres de sections et non les
-        // paragraphes : la page n'ordonne rien, elle expose.
-        if (dungeon()) {
-            // Le départ garde son rang, ancré en haut de la page. Son texte
-            // reste vide : la fenêtre le compose des métadonnées du donjon, sa
-            // position et son gardien, qu'elle connaît avant même la page.
-            found.push({ node: root, text: '' });
+        // Une page qui porte des titres de sections se lit par eux : elle
+        // n'ordonne rien, elle expose. Cela vaut pour les donjons, les tanières
+        // et les chemins ; une page de quête n'en a aucun, relevé sur six
+        // guides, et rien ne change donc pour elles.
+        var titles = sections();
 
-            return found.concat(sections());
+        if (titles.length > 0) {
+            // Le départ garde son rang, ancré en haut de la page, quand la page
+            // en a un. Son texte reste vide : la fenêtre le compose des
+            // métadonnées du lieu, sa position et son gardien, qu'elle connaît
+            // avant même la page. Un chemin n'en a pas : il commence où l'on est.
+            if (dungeon()) {
+                found.push({ node: root, text: '' });
+            }
+
+            return found.concat(titles);
         }
 
         // Le départ ouvre la marche, comme étape à part entière.

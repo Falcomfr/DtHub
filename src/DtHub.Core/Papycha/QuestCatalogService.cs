@@ -95,7 +95,8 @@ public sealed class QuestCatalogService : IDisposable
     /// au réseau.
     /// </summary>
     public QuestSearchResults SearchAll(string? query, int limit = 50) =>
-        QuestSearch.Search(Catalog.Quests, Catalog.Sections, Catalog.Dungeons, query, limit);
+        QuestSearch.Search(
+            Catalog.Quests, Catalog.Sections, Catalog.Dungeons, Catalog.Paths, query, limit);
 
     /// <summary>
     /// Quêtes d'une rubrique, triées par titre.
@@ -627,6 +628,14 @@ public sealed class QuestCatalogService : IDisposable
             var pages = await _client.GetPageSectionsAsync(cancellationToken).ConfigureAwait(false);
             var dungeons = await _client.GetDungeonsAsync(cancellationToken).ConfigureAwait(false);
 
+            // Les chemins après eux : le côté d'un chemin se décide sur les noms
+            // des donjons, qu'il faut donc connaître d'abord.
+            var paths = await _client
+                .GetPathsAsync(
+                    [.. dungeons.Where(d => d.Kind == DungeonKind.Dungeon).Select(d => d.Title)],
+                    cancellationToken)
+                .ConfigureAwait(false);
+
             var (arranged, ordered, ranking) = Arrange(
                 quests, sections, pages, _seed?.Load());
 
@@ -636,6 +645,7 @@ public sealed class QuestCatalogService : IDisposable
                 Quests = [.. arranged],
                 Sections = [.. ordered],
                 Dungeons = [.. dungeons],
+                Paths = [.. paths],
                 SectionOrder = [.. ranking],
                 SuccessOrder = SuccessOrder(pages),
             };

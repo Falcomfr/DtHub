@@ -922,3 +922,35 @@ d'en-tête, qui est du code du site.
 Le départ garde son rang et sa règle : la position et le gardien du donjon
 passent par le même composeur que celui des quêtes, sans qu'on ait rien à écrire.
 
+## D37 - Les chemins, les raids et les tanières
+
+**Un raid, une tanière et un donjon sont la même chose** : un lieu qu'on nettoie,
+à un niveau donné. Un genre porté par le même type, donc, et non trois types
+presque identiques ; ce qui les sépare est la section où on les cherche, pas leur
+forme. Une tanière emploie d'ailleurs le bloc structuré des donjons.
+
+**Le niveau se lit à deux endroits.** Les donjons le mettent dans leurs
+métadonnées ; les raids et les tanières, sauf une, l'écrivent en clair dans leur
+première ligne, « Niveau : 190 ». On lit les métadonnées d'abord, la prose
+ensuite, ce qui couvre les dix.
+
+**Les chemins ne forment pas une famille.** Certains mènent à un donjon, les
+autres à une île, un zaap ou un souterrain, et servent alors une quête. Ils se
+rangent donc dans la branche qu'ils servent, sous une sous-branche à eux : un
+chemin ne se compare ni à une zone ni à un donjon, et les mêler allongerait une
+liste qu'on parcourt déjà longuement.
+
+Le site ne dit pas de quel côté ils vont : ses catégories ne donnent que la
+zone, et les liens de ses pages sont presque toujours absents. Le titre suffit,
+à deux conditions : le mot « donjon » écrit en toutes lettres, ou au moins deux
+mots distinctifs partagés avec un donjon du catalogue. Un seul mot commun ne
+suffit pas, et c'est ce qui écarte les faux — « Zaap du village de la canopée »
+ne partage que « canopée » avec « Canopée du Kimbo ». Vérifié sur les vingt et
+un chemins publiés, qui sont les cas de test.
+
+**Une page se lit par ses titres quand elle en a.** La règle qui distinguait le
+dossier de la consigne s'appuyait sur le bloc des donjons ; elle s'appuie
+désormais sur la présence de titres de sections, ce qui couvre du même coup les
+tanières et les chemins, dont les titres sont les étapes du trajet. Une page de
+quête n'ayant aucun titre de section, rien ne change pour elles.
+

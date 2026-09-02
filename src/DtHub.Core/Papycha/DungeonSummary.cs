@@ -1,7 +1,8 @@
-namespace DtHub.Core.Papycha;
+﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Un donjon du site, tel qu'on en a besoin pour le choisir.
+/// Un lieu de combat du site — un donjon, un raid ou une tanière — tel qu'on en
+/// a besoin pour le choisir.
 ///
 /// Le site en publie quatre-vingt-trois, dans un format bien plus régulier que
 /// ses quêtes : le niveau, la position et le personnage viennent de ses
@@ -14,6 +15,9 @@ namespace DtHub.Core.Papycha;
 public sealed record DungeonSummary
 {
     public int Id { get; init; }
+
+    /// <summary>Donjon, raid ou tanière, selon la catégorie du site.</summary>
+    public DungeonKind Kind { get; init; }
 
     /// <summary>Nom du donjon, sans le préfixe « [Donjon] » du site.</summary>
     public string Title { get; init; } = string.Empty;
