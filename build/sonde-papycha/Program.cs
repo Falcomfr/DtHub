@@ -1,34 +1,204 @@
-// Sonde de développement : interroge le vrai site une fois pour vérifier que
-// le client rend ce qu'on attend. Jamais employée par l'application.
+﻿// Sonde de développement. Jamais employée par l'application.
+//
+// Elle interroge le vrai site et vérifie non pas des nombres figés, mais les
+// suppositions dont l'application dépend. Deux défauts trouvés à l'œil et par
+// hasard, les tanières à une seule étape et les raids à aucune, avaient vécu
+// des semaines : ce sont eux qu'elle est faite pour attraper.
+//
+// Elle rend zéro si tout tient, un sinon. Le relevé de référence est
+// reference.json, versionné à côté ; on le rebénit à la main avec --benir
+// quand un écart est légitime.
+//
+// À lancer avant de livrer : dotnet run --project build/sonde-papycha
+using System.Globalization;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+
 using DtHub.Core.Papycha;
 using DtHub.Infrastructure.Papycha;
 
 using Microsoft.Extensions.Logging.Abstractions;
 
-using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+var benir = args.Contains("--benir", StringComparer.Ordinal);
+var reference = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "reference.json");
+
+using var http = new HttpClient { Timeout = TimeSpan.FromMinutes(2) };
+http.DefaultRequestHeaders.UserAgent.ParseAdd("DtHub-sonde/1.0");
+
 var client = new PapychaClient(http, NullLogger<PapychaClient>.Instance);
+var constats = new List<Constat>();
+var mesures = new Dictionary<string, int>(StringComparer.Ordinal);
 
-var progress = new Progress<QuestIndexingProgress>(
-    p => Console.WriteLine($"  {p.Loaded}/{p.Total}"));
+Console.WriteLine("Lecture du site…\n");
 
-var chrono = System.Diagnostics.Stopwatch.StartNew();
-var quests = await client.GetQuestsAsync(progress);
-var sections = await client.GetSectionsAsync();
-chrono.Stop();
+// ---------------------------------------------------------------------------
+// Ce que le client rend, par la voie que l'application emprunte.
+// ---------------------------------------------------------------------------
+var quetes = await client.GetQuestsAsync();
+var rubriques = await client.GetSectionsAsync();
+var pages = await client.GetPageSectionsAsync();
+var lieux = await client.GetDungeonsAsync();
+var chemins = await client.GetPathsAsync(
+    [.. lieux.Where(d => d.Kind == DungeonKind.Dungeon).Select(d => d.Title)]);
 
-Console.WriteLine($"\n{quests.Count} quetes, {sections.Count} rubriques en {chrono.Elapsed.TotalSeconds:N1} s");
-Console.WriteLine($"niveaux renseignes : {quests.Count(q => q.Level > 0)}");
-Console.WriteLine($"titres vides       : {quests.Count(q => string.IsNullOrWhiteSpace(q.Title))}");
-Console.WriteLine($"entites restantes  : {quests.Count(q => q.Title.Contains("&#", StringComparison.Ordinal))}");
+mesures["quetes"] = quetes.Count;
+mesures["rubriques"] = rubriques.Count;
+mesures["pages-de-rubrique"] = pages.Count;
+mesures["succes"] = pages.SelectMany(p => p.Groups).Select(g => g.Name).Distinct(StringComparer.Ordinal).Count();
+mesures["donjons"] = lieux.Count(d => d.Kind == DungeonKind.Dungeon);
+mesures["raids"] = lieux.Count(d => d.Kind == DungeonKind.Raid);
+mesures["tanieres"] = lieux.Count(d => d.Kind == DungeonKind.Lair);
+mesures["chemins"] = chemins.Count;
+mesures["quetes-avec-niveau"] = quetes.Count(q => q.Level > 0);
+mesures["quetes-avec-depart"] = quetes.Count(q => q.StartPosition.Length > 0);
+mesures["quetes-avec-prerequis"] = quetes.Count(q => q.Prerequisites.Count > 0);
+mesures["lieux-avec-niveau"] = lieux.Count(d => d.Level > 0);
 
-Console.WriteLine("\nrecherche « dragon astrub » :");
-foreach (var q in QuestSearch.Filter(quests, "dragon astrub", 5))
+// ---------------------------------------------------------------------------
+// Les suppositions de forme, vérifiées sur les pages rendues.
+// ---------------------------------------------------------------------------
+var donjons = await Pages(6);
+var raids = await Pages(741);
+var tanieres = await Pages(721);
+// Cent guides suffisent à dire si la forme des pages de quête a bougé : les
+// sept cent quatre-vingt-deux sont écrites de la même main. Cent est aussi le
+// maximum que le site accorde en une demande.
+var guides = await Pages(7);
+
+Exige(
+    "chaque donjon porte un titre de second rang",
+    donjons.Count(p => Titres(p, 2).Any(EstUneSection)),
+    donjons.Count);
+
+Exige(
+    "chaque raid et chaque tanière porte un sommaire",
+    raids.Concat(tanieres).Count(p => Sommaire(p).Count > 0),
+    raids.Count + tanieres.Count);
+
+// Ces deux-là ne sont pas des exigences mais des mesures : un donjon sur
+// quatre-vingt-trois n'a pas le bloc d'en-tête, et six liens de sommaire sur
+// quarante pointent une ancre absente. C'est l'état du site, pas un défaut de
+// l'application, et l'application s'en accommode. Ce qui compte est que ces
+// nombres ne se dégradent pas.
+mesures["donjons-avec-bloc"] = donjons.Count(p => p.Contains("pcd-info", StringComparison.Ordinal));
+mesures["ancres-de-sommaire-valides"] =
+    raids.Concat(tanieres).Sum(p => Sommaire(p).Count(a => Ancres(p).Contains(a)));
+
+Exige(
+    "aucun guide de quête ne porte de sommaire",
+    guides.Count(p => Sommaire(p).Count == 0),
+    guides.Count);
+
+Exige(
+    "chaque guide de quête met ses consignes en évidence",
+    guides.Count(p => p.Contains("<strong>", StringComparison.Ordinal)),
+    guides.Count,
+    tolerance: 0.9);
+
+// ---------------------------------------------------------------------------
+// Comparaison au relevé de référence.
+// ---------------------------------------------------------------------------
+var connu = File.Exists(reference)
+    ? JsonSerializer.Deserialize<Dictionary<string, int>>(File.ReadAllText(reference))
+        ?? []
+    : [];
+
+foreach (var (nom, valeur) in mesures.OrderBy(m => m.Key, StringComparer.Ordinal))
 {
-    Console.WriteLine($"  {q.Title}  ->  {q.Url}");
+    if (!connu.TryGetValue(nom, out var avant))
+    {
+        constats.Add(new Constat(true, $"{nom} : {valeur} (nouveau relevé)"));
+
+        continue;
+    }
+
+    // Une baisse est un signal : le site supprime rarement, l'application
+    // cesse de lire souvent. Une hausse est la vie normale du site.
+    var chute = avant > 0 && valeur < avant * 0.95;
+
+    constats.Add(new Constat(
+        !chute,
+        $"{nom} : {valeur}" + (valeur == avant ? string.Empty : $" (référence {avant})")));
 }
 
-Console.WriteLine("\nrecherche « completement givre » (sans accent) :");
-foreach (var q in QuestSearch.Filter(quests, "completement givre", 5))
+// ---------------------------------------------------------------------------
+Console.WriteLine();
+
+foreach (var constat in constats)
 {
-    Console.WriteLine($"  {q.Title}");
+    Console.WriteLine((constat.Bon ? "  ok   " : "  ÉCART ") + constat.Texte);
 }
+
+var casse = constats.Count(c => !c.Bon);
+
+if (benir)
+{
+    File.WriteAllText(
+        reference,
+        JsonSerializer.Serialize(mesures, new JsonSerializerOptions { WriteIndented = true }));
+
+    Console.WriteLine($"\nRelevé écrit dans {Path.GetFullPath(reference)}");
+
+    return 0;
+}
+
+Console.WriteLine(casse == 0
+    ? "\nRien à signaler."
+    : $"\n{casse} écart(s). Si le site a changé pour de bon, relancer avec --benir.");
+
+return casse == 0 ? 0 : 1;
+
+// ---------------------------------------------------------------------------
+
+void Exige(string quoi, int obtenu, int attendu, double tolerance = 1.0)
+{
+    var bon = attendu == 0 || obtenu >= attendu * tolerance;
+
+    constats.Add(new Constat(bon, $"{quoi} : {obtenu} / {attendu}"));
+}
+
+async Task<List<string>> Pages(int categorie, int limite = 100)
+{
+    var url = "https://papycha.fr/wp-json/wp/v2/posts"
+        + $"?categories={categorie.ToString(CultureInfo.InvariantCulture)}"
+        + $"&per_page={limite.ToString(CultureInfo.InvariantCulture)}&_fields=content";
+
+    using var document = JsonDocument.Parse(await http.GetStringAsync(url));
+
+    return
+    [
+        .. document.RootElement.EnumerateArray()
+            .Select(e => e.GetProperty("content").GetProperty("rendered").GetString() ?? string.Empty),
+    ];
+}
+
+static IEnumerable<string> Titres(string html, int rang) =>
+    Regex.Matches(html, $"<h{rang}[^>]*>(.*?)</h{rang}>", RegexOptions.Singleline)
+        .Select(m => Regex.Replace(m.Groups[1].Value, "<[^>]+>", string.Empty).Trim());
+
+static bool EstUneSection(string titre) =>
+    titre.Length > 0
+    && !titre.StartsWith("Position du PNJ", StringComparison.OrdinalIgnoreCase)
+    && !titre.StartsWith("Papycha remercie", StringComparison.OrdinalIgnoreCase);
+
+static List<string> Sommaire(string html)
+{
+    var titre = Regex.Match(html, "<h[1-6][^>]*>\\s*Sommaire\\s*</h[1-6]>", RegexOptions.IgnoreCase);
+
+    if (!titre.Success)
+    {
+        return [];
+    }
+
+    var suite = html[titre.Index..];
+    var liste = Regex.Match(suite, "<ul.*?</ul>", RegexOptions.Singleline);
+
+    return liste.Success
+        ? [.. Regex.Matches(liste.Value, "href=\"#([^\"]*)\"").Select(m => Uri.UnescapeDataString(m.Groups[1].Value))]
+        : [];
+}
+
+static HashSet<string> Ancres(string html) =>
+    [.. Regex.Matches(html, "id=\"([^\"]+)\"").Select(m => m.Groups[1].Value)];
+
+internal sealed record Constat(bool Bon, string Texte);

@@ -135,6 +135,53 @@ public sealed partial class PapychaClient : IPapychaClient
         return quests;
     }
 
+    /// <inheritdoc />
+    public async Task<SiteStamp?> GetStampAsync(CancellationToken cancellationToken = default)
+    {
+        // Un seul article, le dernier modifié, et deux champs. Le site rend
+        // quatre-vingt-dix-sept octets, et son en-tête donne le compte total.
+        // C'est ce qui permet de demander souvent au lieu de relire une fois
+        // par semaine.
+        var url = $"posts?per_page=1&orderby=modified&order=desc&_fields=modified_gmt";
+
+        try
+        {
+            using var response = await _http
+                .GetAsync(new Uri(BaseAddress, url), cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode
+                || !response.Headers.TryGetValues("X-WP-Total", out var values)
+                || !int.TryParse(
+                    values.FirstOrDefault(), CultureInfo.InvariantCulture, out var posts))
+            {
+                return null;
+            }
+
+            var items = await response.Content
+                .ReadFromJsonAsync<List<StampPayload>>(Json, cancellationToken)
+                .ConfigureAwait(false);
+
+            var modified = items?.FirstOrDefault()?.ModifiedGmt;
+
+            // Le site écrit ses dates sans fuseau, en temps universel : sans le
+            // dire, elles seraient lues dans celui de la machine et paraîtraient
+            // en avance ou en retard de deux heures.
+            return modified is null
+                ? null
+                : new SiteStamp(
+                    new DateTimeOffset(
+                        DateTime.SpecifyKind(modified.Value, DateTimeKind.Utc)),
+                    posts);
+        }
+        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
+        {
+            LogStampUnavailable();
+
+            return null;
+        }
+    }
+
     public async Task<IReadOnlyList<QuestSection>> GetSectionsAsync(
         CancellationToken cancellationToken = default)
     {
@@ -596,6 +643,13 @@ public sealed partial class PapychaClient : IPapychaClient
         public MetaPayload? Meta { get; set; }
     }
 
+    /// <summary>Le seul champ que la sentinelle demande.</summary>
+    private sealed class StampPayload
+    {
+        [JsonPropertyName("modified_gmt")]
+        public DateTime? ModifiedGmt { get; set; }
+    }
+
     private sealed class PostPayload
     {
         public int Id { get; set; }
@@ -671,6 +725,9 @@ public sealed partial class PapychaClient : IPapychaClient
         Level = LogLevel.Information,
         Message = "Les personnages n'ont pas pu être lus ({reason}) ; les quêtes garderont leur position sans le nom.")]
     private partial void LogPeopleUnavailable(string reason);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Le site n'a pas dit s'il avait changé.")]
+    private partial void LogStampUnavailable();
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Rubriques du site lues : {count}.")]
     private partial void LogSectionsRead(int count);

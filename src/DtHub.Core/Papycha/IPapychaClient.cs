@@ -22,6 +22,12 @@ public interface IPapychaClient
     Task<IReadOnlyList<QuestSection>> GetSectionsAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// L'empreinte du site, ou <c>null</c> s'il ne répond pas. Sert à savoir
+    /// s'il a bougé sans le relire.
+    /// </summary>
+    Task<SiteStamp?> GetStampAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Récupère le classement que le site tient à la main sur sa page
     /// « Quêtes », et les quêtes que chaque rubrique énumère.
     ///

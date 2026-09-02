@@ -388,6 +388,29 @@
             </StackPanel>
           </Button>
 
+          <!-- Au pied de la liste, et seulement là : c'est en parcourant les
+               guides qu'on se demande de quand ils datent, jamais en lisant
+               une page. Le site est relu tout seul dès qu'il bouge ; ce lien
+               sert aux fois où l'on sait avant l'application qu'une nouveauté
+               est sortie. -->
+          <Grid DockPanel.Dock="Bottom" Margin="10,4,10,6">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                       Style="{StaticResource Muted}" FontSize="11"
+                       TextTrimming="CharacterEllipsis"
+                       Text="{Binding IndexedText}" />
+
+            <Button Grid.Column="1" Style="{StaticResource LinkButton}"
+                    Content="Relire" FontSize="11"
+                    Command="{Binding ReindexCommand}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"
+                    ToolTip="Relire le site maintenant, sans attendre qu'il annonce du nouveau" />
+          </Grid>
+
           <ListBox x:Name="NodeList" ItemsSource="{Binding Nodes}"
                    SelectedItem="{Binding SelectedNode, Mode=TwoWay}"
                    Background="Transparent" BorderThickness="0"

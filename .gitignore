@@ -499,3 +499,7 @@ build/publication.log
 # Captures de developpement : produites par build/capture-*.ps1 et les sondes,
 # elles servent une seule verification et ne sont jamais lues par le projet.
 build/**/*.png
+
+# Sortie de compilation de la sonde, qui vit dans build/ et non dans src/.
+build/sonde-papycha/bin/
+build/sonde-papycha/obj/

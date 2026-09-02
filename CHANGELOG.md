@@ -45,6 +45,21 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   d'Amakna, « On recherche Ali Grothor » se retrouvait ainsi entre « Le vallon du
   château » et « Étre plus royaliste que le roi », sans rapport avec ni l'un ni
   l'autre. Cent deux quêtes seules sur trois cent une sont dans ce cas.
+- Les guides suivent le site au lieu de suivre un calendrier. L'application lui
+  demande s'il a bougé, ce qui coûte quatre-vingt-dix-sept octets, et ne le relit
+  que s'il a bougé. Une quête parue le matin était vue jusqu'à sept jours plus
+  tard ; elle l'est le jour même, et pour dix-huit mégaoctets de moins quand rien
+  ne change.
+- Le pied de la liste dit depuis quand les guides sont lus, et un lien « Relire »
+  force la relecture. Il n'existait aucun moyen de la demander : il fallait
+  attendre la semaine ou effacer le cache à la main. Une relecture demandée
+  annonce ce qu'elle a changé, « 3 quêtes de plus » ou « rien de nouveau ».
+- Une sonde de développement vérifie que le site se lit encore comme
+  l'application le suppose : titres des donjons, sommaires des raids et des
+  tanières, absence de sommaire sur les guides de quête, et une quinzaine de
+  comptes comparés à un relevé de référence. Elle rend 1 en cas d'écart. Les
+  deux défauts trouvés à l'œil aujourd'hui, tanières et raids sans étapes,
+  auraient été dits par elle.
 - Redémarrer le poste retient désormais la place des fenêtres. Elle n'était
   enregistrée qu'au « Quitter » : une fin de session Windows la perdait, et les
   fenêtres revenaient à leur place de l'avant-dernière fois. L'écriture est

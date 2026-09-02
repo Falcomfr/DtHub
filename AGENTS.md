@@ -47,6 +47,11 @@ dotnet.exe run --project src/DtHub.App      # lancer l'application
 python3 build/make-icon.py                  # régénérer assets/app.ico
 python3 build/extract-successes.py           # relever la carte des succès de papycha
 
+# Vérifier que le site se lit encore comme l'application le suppose. Rend 1 en
+# cas d'écart avec build/sonde-papycha/reference.json. À lancer avant de livrer.
+dotnet.exe run --project build/sonde-papycha
+dotnet.exe run --project build/sonde-papycha -- --benir   # rebénir le relevé
+
 # Publier le fichier unique distribué à l'utilisateur.
 dotnet.exe publish src/DtHub.App -c Release -r win-x64 --self-contained true \
   -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true \

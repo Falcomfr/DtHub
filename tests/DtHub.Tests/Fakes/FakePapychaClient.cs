@@ -68,6 +68,19 @@ public sealed class FakePapychaClient : IPapychaClient
         return Task.FromResult<IReadOnlyList<QuestSummary>>(_quests);
     }
 
+    /// <summary>Ce que la sentinelle lira. Nul par défaut : le site se tait.</summary>
+    public SiteStamp? Stamp { get; set; }
+
+    /// <summary>Combien de fois la sentinelle a interrogé le site.</summary>
+    public int StampCalls { get; private set; }
+
+    public Task<SiteStamp?> GetStampAsync(CancellationToken cancellationToken = default)
+    {
+        StampCalls++;
+
+        return Task.FromResult(Stamp);
+    }
+
     public Task<IReadOnlyList<QuestSection>> GetSectionsAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult<IReadOnlyList<QuestSection>>(_sections);
 

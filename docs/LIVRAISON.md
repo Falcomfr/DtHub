@@ -17,6 +17,9 @@ l'application n'en sait pas plus : rien ne casse, rien ne s'affiche.
 
 ## Livrer
 
+0. Lancer la sonde : `dotnet run --project build/sonde-papycha`. Elle interroge
+   le vrai site et rend 1 si l'application n'y trouve plus ce qu'elle suppose.
+   Un écart légitime se rebénit avec `-- --benir`.
 1. Porter la version dans `Directory.Build.props`, champ `VersionPrefix`.
 2. Fermer la section `## [Non publié]` du journal : la renommer
    `## [0.2.0] - 2026-09-02`. La chaîne de livraison y lit la note de version,

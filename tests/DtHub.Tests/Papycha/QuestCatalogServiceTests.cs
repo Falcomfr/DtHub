@@ -135,6 +135,132 @@ public class QuestCatalogServiceTests
         Assert.Equal(2, catalog.Quests.Count);
     }
 
+    /// <summary>
+    /// Un catalogue lu il y a deux heures, avec l'empreinte que le site portait
+    /// alors. Deux heures parce que la sentinelle ne dérange le site qu'au-delà
+    /// d'une heure.
+    /// </summary>
+    private static async Task<(QuestCatalogService Service, FakePapychaClient Client)> Veille(
+        SiteStamp connue,
+        SiteStamp? annoncee)
+    {
+        var client = new FakePapychaClient()
+            .WithQuest(1, "Le dragon d'Astrub", 18)
+            .WithSection(18, "Astrub");
+
+        client.Stamp = annoncee;
+
+        var store = new InMemoryDocumentStore<QuestCatalogDocument>();
+
+        await store.SaveAsync(
+            new QuestCatalogDocument
+            {
+                IndexedUtc = DateTimeOffset.UtcNow - TimeSpan.FromHours(2),
+                SiteModifiedUtc = connue.Modified,
+                SitePosts = connue.Posts,
+                Quests = [new QuestSummary { Id = 9, Title = "Vieille entrée" }],
+            },
+            CancellationToken.None);
+
+        return (new QuestCatalogService(client, store), client);
+    }
+
+    private static SiteStamp Empreinte(int posts = 1012, int joursAvant = 3) =>
+        new(DateTimeOffset.UtcNow - TimeSpan.FromDays(joursAvant), posts);
+
+    [Fact]
+    public async Task Un_site_qui_n_a_pas_bouge_ne_provoque_aucune_relecture()
+    {
+        var connue = Empreinte();
+        var (service, client) = await Veille(connue, connue);
+        using var pareil = service;
+
+        var catalog = await service.GetAsync(cancellationToken: CancellationToken.None);
+
+        Assert.Equal(1, client.StampCalls);
+        Assert.Equal(0, client.Calls);
+        Assert.Equal("Vieille entrée", Assert.Single(catalog.Quests).Title);
+    }
+
+    [Fact]
+    public async Task Un_article_de_plus_provoque_une_relecture()
+    {
+        var connue = Empreinte();
+        var (service, client) = await Veille(connue, connue with { Posts = connue.Posts + 1 });
+        using var deplus = service;
+
+        var catalog = await service.GetAsync(cancellationToken: CancellationToken.None);
+
+        Assert.Equal(1, client.Calls);
+        Assert.Equal("Le dragon d'Astrub", Assert.Single(catalog.Quests).Title);
+    }
+
+    [Fact]
+    public async Task Un_article_modifie_depuis_provoque_une_relecture()
+    {
+        var connue = Empreinte();
+        var (service, client) = await Veille(
+            connue, connue with { Modified = DateTimeOffset.UtcNow });
+        using var modifie = service;
+
+        _ = await service.GetAsync(cancellationToken: CancellationToken.None);
+
+        Assert.Equal(1, client.Calls);
+    }
+
+    [Fact]
+    public async Task Un_site_qui_ne_repond_pas_ne_provoque_pas_de_relecture()
+    {
+        // Garder ce qu'on a vaut mieux que jeter un catalogue faute de réseau.
+        var (service, client) = await Veille(Empreinte(), annoncee: null);
+        using var mort = service;
+
+        var catalog = await service.GetAsync(cancellationToken: CancellationToken.None);
+
+        Assert.Equal(0, client.Calls);
+        Assert.Equal("Vieille entrée", Assert.Single(catalog.Quests).Title);
+    }
+
+    [Fact]
+    public async Task Un_catalogue_lu_il_y_a_une_minute_ne_derange_meme_pas_le_site()
+    {
+        // Ouvrir et refermer la fenêtre dix fois dans l'heure ne doit pas
+        // produire dix demandes.
+        var client = new FakePapychaClient().WithQuest(1, "Le dragon d'Astrub", 18);
+        var store = new InMemoryDocumentStore<QuestCatalogDocument>();
+
+        await store.SaveAsync(
+            new QuestCatalogDocument
+            {
+                IndexedUtc = DateTimeOffset.UtcNow - TimeSpan.FromMinutes(1),
+                SiteModifiedUtc = DateTimeOffset.UtcNow - TimeSpan.FromDays(3),
+                SitePosts = 1012,
+                Quests = [new QuestSummary { Id = 9, Title = "Vieille entrée" }],
+            },
+            CancellationToken.None);
+
+        using var service = new QuestCatalogService(client, store);
+
+        _ = await service.GetAsync(cancellationToken: CancellationToken.None);
+
+        Assert.Equal(0, client.StampCalls);
+        Assert.Equal(0, client.Calls);
+    }
+
+    [Fact]
+    public async Task Une_relecture_retient_l_empreinte_du_site()
+    {
+        var (service, client, _) = Build();
+        using var _2 = service;
+
+        client.Stamp = Empreinte(posts: 1013);
+
+        var catalog = await service.GetAsync(cancellationToken: CancellationToken.None);
+
+        Assert.Equal(1013, catalog.SitePosts);
+        Assert.Equal(client.Stamp.Modified, catalog.SiteModifiedUtc);
+    }
+
     [Fact]
     public async Task L_indexation_recopie_le_nom_des_rubriques_dans_les_quetes()
     {

@@ -41,6 +41,20 @@ public sealed class QuestCatalogDocument
     ///
     /// Version 12 : les prérequis de chaque quête, et la clé de rubrique
     /// retirée, la recherche ne portant plus que sur les titres.
+    ///
+    /// Version 13 : l'adresse de la page rédigée de chaque rubrique, celle que
+    /// le tableau de « Quêtes » désigne.
+    ///
+    /// Version 14 : les donjons, avec leur niveau, leur clef et leur pierre
+    /// d'âme.
+    ///
+    /// Version 15 : les chemins, et le genre d'un lieu de combat, donjon, raid
+    /// ou tanière.
+    ///
+    /// L'empreinte du site, ajoutée après la quinzième, n'a pas demandé de
+    /// seizième : ses champs sont absents d'un catalogue plus ancien, ce qui
+    /// vaut « on ne sait pas » et provoque une relecture, une seule fois. Une
+    /// version n'est due que lorsque ce qui est déjà écrit changerait de sens.
     /// </summary>
     public const int CurrentSchemaVersion = 15;
 
@@ -48,6 +62,18 @@ public sealed class QuestCatalogDocument
 
     /// <summary>Moment de la dernière indexation réussie.</summary>
     public DateTimeOffset? IndexedUtc { get; set; }
+
+    /// <summary>
+    /// Ce que le site annonçait au moment de cette lecture : date du dernier
+    /// article modifié, et nombre total d'articles. Les comparer à ce qu'il
+    /// annonce aujourd'hui dit s'il a bougé, pour le prix d'une demande.
+    /// Absents d'un catalogue plus ancien, ce qui vaut « on ne sait pas » et
+    /// provoque une relecture, une seule fois.
+    /// </summary>
+    public DateTimeOffset? SiteModifiedUtc { get; set; }
+
+    /// <inheritdoc cref="SiteModifiedUtc" />
+    public int SitePosts { get; set; }
 
     public List<QuestSummary> Quests { get; set; } = [];
 

@@ -1194,3 +1194,49 @@ du processus : la place des fenêtres est perdue, et l'application rouvre sur la
 dernière connue. Il faudrait écrire à chaque déplacement pour y remédier, ce qui
 coûterait une écriture par pixel parcouru.
 \n
+
+## D48 - Demander au site plutôt que compter les jours
+
+Le catalogue se relisait au bout de sept jours, que le site ait bougé ou non.
+Une quête parue le matin pouvait donc attendre une semaine, et une semaine sans
+publication coûtait quand même une relecture de dix-huit mégaoctets.
+
+**Une demande de quatre-vingt-dix-sept octets dit tout.** L'API du site rend la
+date du dernier article modifié, et le compte total dans un en-tête. Les deux
+retenus, on sait si quelque chose a paru, disparu ou été corrigé. Le rapport est
+de un à deux cent mille.
+
+**Le délai reste en filet.** Si le site cesse de répondre à cette demande-là, le
+catalogue vieillit quand même et finit par être relu. Et un site qui ne répond
+pas ne provoque jamais de relecture : garder ce qu'on a vaut mieux que jeter un
+catalogue faute de réseau.
+
+**Une heure de patience.** Ouvrir et refermer la fenêtre dix fois dans l'heure ne
+doit pas produire dix demandes, si petites soient-elles.
+
+## D49 - Une sonde qui dit ce qui ne se lit plus
+
+L'application fait des suppositions sur la forme des pages du site, et quand
+elles cessent d'être vraies rien ne le signale : elle affiche simplement moins
+bien. Les tanières n'annonçaient qu'une étape et les raids aucune ; ces deux
+défauts ont vécu des semaines et ont été trouvés à l'œil, par hasard.
+
+**Elle vérifie des suppositions, pas une implémentation.** Que chaque donjon
+porte un titre de second rang, que chaque raid et chaque tanière porte un
+sommaire, qu'aucun guide de quête n'en porte, que les consignes soient mises en
+évidence. Ce sont les faits dont le code dépend, énoncés séparément de lui : les
+vérifier avec le code qu'ils justifient ne prouverait rien.
+
+**Ce qui se compte se compare.** Une quinzaine de nombres sont relevés et
+confrontés à `build/sonde-papycha/reference.json`. Une baisse est un signal, le
+site supprimant rarement quand l'application cesse de lire souvent ; une hausse
+est la vie normale du site. Le relevé se rebénit à la main quand l'écart est
+légitime.
+
+**Hors des tests, dans la solution.** La règle du dépôt interdit au projet de
+tests d'avoir besoin du réseau. La sonde vivait déjà dans `build/`, hors de la
+solution et donc jamais compilée : elle y est entrée, ce qui la tient au moins
+compilable. Son premier passage a d'ailleurs mesuré deux faits qu'on ignorait,
+un donjon sans bloc d'en-tête sur quatre-vingt-trois, et six liens de sommaire
+sur quarante qui pointent une ancre absente.
+\n

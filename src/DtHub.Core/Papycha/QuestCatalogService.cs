@@ -36,6 +36,15 @@ public sealed class QuestCatalogService : IDisposable
     /// </summary>
     public TimeSpan Freshness { get; init; } = TimeSpan.FromDays(7);
 
+    /// <summary>
+    /// En deçà de ce délai, on ne demande même pas au site s'il a bougé.
+    ///
+    /// Ouvrir et refermer la fenêtre dix fois dans l'heure ne doit pas produire
+    /// dix demandes. Au-delà, la demande coûte quatre-vingt-dix-sept octets, ce
+    /// qui se paie sans y penser.
+    /// </summary>
+    public TimeSpan Patience { get; init; } = TimeSpan.FromHours(1);
+
     /// <summary>Catalogue en mémoire, éventuellement vide.</summary>
     public QuestCatalogDocument Catalog => _current ?? new QuestCatalogDocument();
 
@@ -56,7 +65,7 @@ public sealed class QuestCatalogService : IDisposable
         {
             _current ??= await _store.LoadAsync(cancellationToken).ConfigureAwait(false);
 
-            if (!IsStale(_current))
+            if (!await IsStaleAsync(_current, cancellationToken).ConfigureAwait(false))
             {
                 return _current;
             }
@@ -596,10 +605,53 @@ public sealed class QuestCatalogService : IDisposable
             .Select(c => (int?)c)
             .FirstOrDefault() ?? 0;
 
-    private bool IsStale(QuestCatalogDocument document) =>
-        document.NeedsRebuild
-        || document.IndexedUtc is not { } indexed
-        || DateTimeOffset.UtcNow - indexed > Freshness;
+    /// <summary>
+    /// Faut-il relire le site ?
+    ///
+    /// On le lui demande plutôt que de compter les jours. Le site publie quand
+    /// il publie, et une quête parue ce matin attendait jusqu'ici la fin d'une
+    /// semaine ; elle est vue le jour même. La demande pèse quatre-vingt-dix-sept
+    /// octets, contre dix-huit millions pour une relecture.
+    ///
+    /// Le délai reste, en filet : si le site cesse de répondre à cette
+    /// demande-là, le catalogue vieillit quand même et finit par être relu.
+    ///
+    /// Un site qui ne répond pas ne provoque jamais de relecture : on garde ce
+    /// qu'on a. Chercher dans une liste d'hier vaut mieux que ne rien pouvoir
+    /// chercher.
+    /// </summary>
+    private async Task<bool> IsStaleAsync(
+        QuestCatalogDocument document,
+        CancellationToken cancellationToken)
+    {
+        if (document.NeedsRebuild || document.IndexedUtc is not { } indexed)
+        {
+            return true;
+        }
+
+        var age = DateTimeOffset.UtcNow - indexed;
+
+        if (age > Freshness)
+        {
+            return true;
+        }
+
+        if (age < Patience)
+        {
+            return false;
+        }
+
+        var stamp = await _client.GetStampAsync(cancellationToken).ConfigureAwait(false);
+
+        if (stamp is null)
+        {
+            return false;
+        }
+
+        return document.SiteModifiedUtc is not { } seen
+            || stamp.Posts != document.SitePosts
+            || stamp.Modified > seen;
+    }
 
     /// <summary>À appeler sous verrou.</summary>
     private async Task<QuestCatalogDocument> RebuildAsync(
@@ -626,6 +678,10 @@ public sealed class QuestCatalogService : IDisposable
 
             var sections = await _client.GetSectionsAsync(cancellationToken).ConfigureAwait(false);
             var pages = await _client.GetPageSectionsAsync(cancellationToken).ConfigureAwait(false);
+
+            // L'empreinte est relevée pendant la lecture, et non avant : ce
+            // qu'on retient doit décrire le site tel qu'on vient de le lire.
+            var stamp = await _client.GetStampAsync(cancellationToken).ConfigureAwait(false);
             var dungeons = await _client.GetDungeonsAsync(cancellationToken).ConfigureAwait(false);
 
             // Les chemins après eux : le côté d'un chemin se décide sur les noms
@@ -642,6 +698,8 @@ public sealed class QuestCatalogService : IDisposable
             var document = new QuestCatalogDocument
             {
                 IndexedUtc = DateTimeOffset.UtcNow,
+                SiteModifiedUtc = stamp?.Modified,
+                SitePosts = stamp?.Posts ?? 0,
                 Quests = [.. arranged],
                 Sections = [.. ordered],
                 Dungeons = [.. dungeons],
