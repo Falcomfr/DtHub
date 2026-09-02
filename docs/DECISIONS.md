@@ -1596,3 +1596,44 @@ Le correctif est éprouvé au niveau du noyau, et la fenêtre a été ouverte po
 vérifier qu'elle s'affiche sans erreur de liaison, champ masqué comme il se
 doit. Le reste attend le téléphone en main.
 
+## D61 - Les douze raccourcis, éprouvés au clavier
+
+`Ctrl+Tab` et `Ctrl+P` « en conditions réelles » étaient marqués à faire depuis
+le début, et `Ctrl+0` avait un jour refusé de répondre sans qu'on sache si
+c'était le raccourci ou la simulation qui fautait.
+
+Réponse : la simulation. **Les douze fonctionnent**, éprouvés par de vraies
+frappes au niveau du système, deux comptes ouverts sur un vrai téléphone.
+
+| Raccourci | Effet observé |
+|:--|:--|
+| `Ctrl+P` | Le panneau se masque, puis se réaffiche |
+| `Ctrl+Q` | Les guides se masquent |
+| `Ctrl+Tab` | XSpace vers Principal |
+| `Ctrl+Shift+Tab` | Principal vers XSpace |
+| `Ctrl+R` | Les deux fenêtres au même rectangle, au pixel |
+| `Ctrl+T` | 0,482 et 1920,482, deux moitiés de l'écran |
+| `Ctrl+1` à `Ctrl+4` | 1407x835, 2110x1230, 2813x1626, 3516x2021 |
+| `Ctrl+5` | 0,0 en 3840x2160, l'écran entier |
+| `Ctrl+0` | Quitte, deux fenêtres fermées en 763 ms |
+
+**Et la portée tient.** Depuis la fenêtre des guides, `Ctrl+T` range bien les
+fenêtres de jeu : c'est exactement la situation qui levait deux cent
+soixante-quatre fois avant le 1er septembre. Depuis le Bloc-notes, le même
+`Ctrl+T` ne bouge rien.
+
+**Une observation non reproduite** : une fois, `Ctrl+3` a rendu une fenêtre de
+3840x2186 posée en 0,-58, donc plus haute que l'écran et barre de titre
+au-dessus du bord. La géométrie de départ venait d'un rectangle mémorisé
+antérieur aux tailles préréglées. Sept tentatives depuis, sur des états connus,
+rendent 2813x1626 en 0,234, stable. Consigné sans être qualifié de défaut, faute
+de savoir le reproduire.
+
+**Deux outils de développement en sont nés**, et l'antivirus a dicté leur
+forme. Un premier script réunissait l'envoi de frappes et l'énumération des
+fenêtres : Defender l'a refusé, à raison, c'est la signature d'un journaliseur
+de frappes. Rien n'a été désactivé, aucune exclusion n'a été créée. Les deux
+tâches sont simplement séparées : `build/frappe.ps1` n'envoie que des frappes,
+et `build/premier-plan.ps1` demande le premier plan à l'automatisation
+d'interface plutôt qu'à `GetForegroundWindow`.
+

@@ -3,7 +3,7 @@
 Légende : **DONE** terminé et vérifié, **IN PROGRESS** en cours,
 **TODO** pas commencé, **BLOCKED** nécessite une action externe.
 
-Dernière mise à jour : 2026-08-31
+Dernière mise à jour : 2026-09-02
 
 ## Vérifié sur matériel réel
 
@@ -22,7 +22,7 @@ Xiaomi 13T, Android 16, profil principal « Alice Martin » et profil cloné
 | Jeu affiché en plein écran virtuel, sans bande noire | DONE |
 | Superposition exacte, même position et même taille | DONE |
 | Ancrage du bloc de jeu et placement du configurateur | DONE |
-| `Ctrl+Tab` et `Ctrl+P` en conditions réelles | TODO |
+| Les douze raccourcis au clavier, trois contextes chacun | DONE |
 
 ## Noyau
 
@@ -55,7 +55,7 @@ Xiaomi 13T, Android 16, profil principal « Alice Martin » et profil cloné
 | Onglet Général : position, taille, écran | DONE |
 | Onglet Appareils : état, coche, nom, relance | DONE |
 | Onglet Raccourcis : édition, conflits, restauration | DONE |
-| Thème suivant Windows, clair et sombre | DONE |
+| Thème sombre. Il n'existe pas de palette claire | DONE |
 | Journalisation avec rotation, dossier accessible | DONE |
 
 ## Distribution
@@ -66,7 +66,7 @@ Xiaomi 13T, Android 16, profil principal « Alice Martin » et profil cloné
 | Décision : pas d'installateur ni de Velopack | DONE |
 | Signature Authenticode | TODO (non nécessaire pour un usage personnel) |
 | Dépôt GitHub public | TODO |
-| GitHub Actions build et tests | TODO |
+| GitHub Actions build et tests | DONE |
 
 ## Compatibilité
 
@@ -94,6 +94,6 @@ Audité le 2026-08-31, appareil par appareil et poste par poste.
 
 | Élément | État |
 |---|---|
-| Essai complet du lancement des deux comptes | IN PROGRESS |
+| Essai complet du lancement des deux comptes | DONE |
 | Options supplémentaires dans l'onglet Général | TODO (à définir) |
 | Réglages de mirroring exposés dans l'interface | TODO |
