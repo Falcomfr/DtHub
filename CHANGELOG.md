@@ -30,6 +30,12 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 - Un chemin se parcourt par ses étapes, « Jusqu'à la première grotte » à « Fin
   du chemin » : la règle qui distingue le dossier de la consigne ne regarde plus
   le bloc des donjons mais la présence de titres de sections.
+- Les quatre entrées de la racine ont chacune leur dessin : un parchemin, une
+  tour crénelée, un crâne, une empreinte. La clef qui tenait la place des
+  donjons a été rendue à son seul emploi, la colonne de droite, où elle dit
+  qu'un donjon en exige une ; une recherche la montrait jusque-là deux fois sur
+  la même ligne. Les trois lieux de combat gardent une teinte commune : la
+  couleur dit le genre, la forme dit lequel des trois.
 - Le champ de recherche dit ce qu'il accepte tant qu'on n'y a rien écrit : une
   zone, un succès, une quête ou un donjon. La croix qui le vide est passée
   dedans, où l'on voit ce qu'elle vide.

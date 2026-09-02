@@ -1,4 +1,4 @@
-# Clique une ligne de la liste deroulante de la fenetre Quetes, par son texte.
+﻿# Clique une ligne de la liste deroulante de la fenetre Quetes, par son texte.
 # Outil de developpement uniquement.
 param([string]$Texte = "Quêtes", [string]$Fenetre = "Quêtes")
 Add-Type -AssemblyName System.Windows.Forms

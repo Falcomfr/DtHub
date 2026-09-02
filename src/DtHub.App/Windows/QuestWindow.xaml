@@ -581,12 +581,16 @@
                             Value="M 4,2.4 L 11,2.4 L 11,12.9 L 7.5,10.1 L 4,12.9 Z" />
                   </DataTrigger>
 
-                  <!-- Les deux entrées de la racine sont dessinées pleines et
-                       non au filet, contrairement au reste de la liste : ce sont
-                       des objets du jeu et non des repères de classement, et un
-                       trait d'un pixel et demi les rendait fades. Elles ne
-                       voisinent jamais avec les autres, la racine ne montrant
-                       qu'elles.
+                  <!-- Les quatre entrées de la racine sont dessinées pleines
+                       et non au filet, contrairement au reste de la liste : ce
+                       sont des objets du jeu et non des repères de classement,
+                       et un trait d'un pixel et demi les rendait fades.
+
+                       Trois d'entre elles portent la même teinte : un donjon, un
+                       raid et une tanière sont le même genre de lieu, et la
+                       couleur dit le genre quand la forme dit lequel des trois.
+                       Les distinguer aussi par la teinte aurait porté la liste à
+                       huit couleurs, où six suffisent déjà à peine.
 
                        Les creux viennent de la règle de remplissage pair-impair,
                        celle du langage de tracé par défaut : un contour intérieur
@@ -614,19 +618,68 @@
                     <Setter TargetName="Nature" Property="Stroke" Value="{x:Null}" />
                     <Setter TargetName="Nature" Property="Fill"
                             Value="{DynamicResource GlyphDungeonBrush}" />
-                    <!-- Une clef de donjon, couchée à plat. Une clef en
-                         diagonale avait déjà été essayée ailleurs : son anneau
-                         et sa tige se lisaient comme une loupe. À l'horizontale,
-                         l'anneau d'un côté et les dents de l'autre, la confusion
-                         n'est plus possible. -->
+                    <!-- Un donjon au sens propre : une tour crénelée, sa
+                         porte en arc et sa meurtrière évidées.
+
+                         Une clef couchée avait tenu la place ; elle disait déjà
+                         autre chose. La colonne de droite marque d'une clef les
+                         soixante-treize donjons qui en exigent une, et une
+                         recherche montrait donc la même clef deux fois sur une
+                         seule ligne, à gauche pour dire « donjon » et à droite
+                         pour dire « il vous en faut une ». Mesuré sur
+                         « bworker ». La clef ne veut plus dire qu'une chose. -->
                     <Setter TargetName="Nature" Property="Data"
-                            Value="M 4.7,7.5 m -3.1,0 a 3.1,3.1 0 1 0 6.2,0
-                                   a 3.1,3.1 0 1 0 -6.2,0
-                                   M 4.7,7.5 m -1.3,0 a 1.3,1.3 0 1 0 2.6,0
+                            Value="M 3.5,2.3 H 5.7 V 4.6 H 6.4 V 2.3 H 8.6 V 4.6
+                                   H 9.3 V 2.3 H 11.5 V 13.1 H 3.5 Z
+                                   M 6.3,13.1 V 9.9 A 1.2,1.2 0 0 1 8.7,9.9
+                                   V 13.1 Z
+                                   M 6.9,5.9 H 8.1 V 7.9 H 6.9 Z" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Glyph}" Value="Raids">
+                    <Setter TargetName="Nature" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Nature" Property="Stroke" Value="{x:Null}" />
+                    <Setter TargetName="Nature" Property="Fill"
+                            Value="{DynamicResource GlyphDungeonBrush}" />
+                    <!-- Un crâne : le raid est le combat qui tue.
+
+                         Deux épées croisées avaient été dessinées d'abord, et
+                         montées dans l'application pour être vues. À la taille
+                         réelle, vingt-deux pixels, la garde et le pommeau ne
+                         portent plus : il ne reste qu'une croix, à quelques
+                         centimètres de celle qui vide le champ de recherche.
+                         Le crâne tient parce qu'il n'est fait que de masses :
+                         une calotte, deux orbites, une mâchoire. -->
+                    <Setter TargetName="Nature" Property="Data"
+                            Value="M 3.5,8 A 4,4.4 0 0 1 11.5,8 L 11.5,9.8 L 3.5,9.8 Z
+                                   M 5.4,9.8 H 9.6 L 8.9,12.6 H 6.1 Z
+                                   M 6,7.1 m -1.3,0 a 1.3,1.3 0 1 0 2.6,0
                                    a 1.3,1.3 0 1 0 -2.6,0
-                                   M 7.2,6.5 H 13.3 V 8.5 H 7.2 Z
-                                   M 9.9,8.5 H 10.9 V 10.9 H 9.9 Z
-                                   M 12.1,8.5 H 13.3 V 10.2 H 12.1 Z" />
+                                   M 9,7.1 m -1.3,0 a 1.3,1.3 0 1 0 2.6,0
+                                   a 1.3,1.3 0 1 0 -2.6,0
+                                   M 6.75,9.8 H 7.2 V 12.35 H 6.75 Z
+                                   M 7.8,9.8 H 8.25 V 12.3 H 7.8 Z" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Glyph}" Value="Lairs">
+                    <Setter TargetName="Nature" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Nature" Property="Stroke" Value="{x:Null}" />
+                    <Setter TargetName="Nature" Property="Fill"
+                            Value="{DynamicResource GlyphDungeonBrush}" />
+                    <!-- Une empreinte : la tanière est l'antre d'une bête, et
+                         c'est ce qui la sépare du donjon, bâti de main
+                         d'homme. -->
+                    <Setter TargetName="Nature" Property="Data"
+                            Value="M 4.35,9.9 a 3.15,2.6 0 1 0 6.3,0
+                                   a 3.15,2.6 0 1 0 -6.3,0 Z
+                                   M 4.25,4.8 a 1.3,1.75 0 1 0 2.6,0
+                                   a 1.3,1.75 0 1 0 -2.6,0 Z
+                                   M 8.15,4.8 a 1.3,1.75 0 1 0 2.6,0
+                                   a 1.3,1.75 0 1 0 -2.6,0 Z
+                                   M 1.6,7 a 1.15,1.55 0 1 0 2.3,0
+                                   a 1.15,1.55 0 1 0 -2.3,0 Z
+                                   M 11.1,7 a 1.15,1.55 0 1 0 2.3,0
+                                   a 1.15,1.55 0 1 0 -2.3,0 Z" />
                   </DataTrigger>
                 </DataTemplate.Triggers>
               </DataTemplate>

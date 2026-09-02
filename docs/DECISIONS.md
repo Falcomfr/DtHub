@@ -954,3 +954,28 @@ désormais sur la présence de titres de sections, ce qui couvre du même coup l
 tanières et les chemins, dont les titres sont les étapes du trajet. Une page de
 quête n'ayant aucun titre de section, rien ne change pour elles.
 
+## D38 - Les icônes de la racine
+
+**La couleur dit le genre, la forme dit lequel.** Un donjon, un raid et une
+tanière sont le même genre de lieu et gardent donc la même teinte ; ce qui les
+sépare est leur dessin. Leur donner trois couleurs aurait porté la liste à huit,
+où six suffisent déjà à peine sur soixante lignes.
+
+**Une clef ne devait plus dire deux choses.** La racine des donjons portait une
+clef, et la colonne de droite en porte une pour les soixante-treize donjons qui
+en exigent une. Une recherche montrait donc la même clef deux fois sur une
+seule ligne, une fois pour dire « donjon » et une fois pour dire « il vous en
+faut une ». Mesuré sur « bworker ». Le donjon prend une tour crénelée, la clef
+ne veut plus dire qu'une chose.
+
+**Le crâne a été choisi sur mesure, pas sur intention.** Deux épées croisées
+avaient été dessinées d'abord pour les raids, puis montées dans l'application et
+regardées à la taille réelle, vingt-deux pixels : la garde et le pommeau n'y
+portent plus, et il ne reste qu'une croix, à quelques centimètres de celle qui
+vide le champ de recherche. Le crâne tient parce qu'il n'est fait que de masses,
+une calotte, deux orbites, une mâchoire. La leçon vaut au-delà de ce cas : un
+dessin de quinze unités se juge monté, jamais sur son tracé.
+
+**La tanière prend une empreinte** parce qu'elle est l'antre d'une bête, et que
+c'est précisément ce qui la sépare du donjon, bâti de main d'homme.
+

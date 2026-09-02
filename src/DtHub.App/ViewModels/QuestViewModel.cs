@@ -296,13 +296,13 @@ public sealed partial class QuestViewModel : ObservableObject
             "Raids",
             Combien(Fighting(DungeonKind.Raid).Count, "raid", "raids"),
             Id: RaidSection,
-            Glyph: QuestNodeGlyph.Dungeons));
+            Glyph: QuestNodeGlyph.Raids));
         Nodes.Add(new QuestNode(
             QuestNodeKind.Branch,
             "Tanières",
             Combien(Fighting(DungeonKind.Lair).Count, "tanière", "tanières"),
             Id: LairSection,
-            Glyph: QuestNodeGlyph.Dungeons));
+            Glyph: QuestNodeGlyph.Lairs));
     }
 
     /// <summary>
@@ -531,7 +531,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
             foreach (var place in places)
             {
-                Nodes.Add(ToNode(place) with { Glyph = QuestNodeGlyph.Dungeons });
+                Nodes.Add(ToNode(place) with { Glyph = GlyphOf(kind) });
             }
         }
 
@@ -922,6 +922,20 @@ public sealed partial class QuestViewModel : ObservableObject
     /// <summary>L'icône d'une rubrique, selon qu'elle situe ou qu'elle range.</summary>
     private static QuestNodeGlyph GlyphOf(string? zone) =>
         QuestZoneOrder.IsPlace(zone) ? QuestNodeGlyph.Place : QuestNodeGlyph.Family;
+
+    /// <summary>
+    /// L'icône d'un lieu de combat, qui dit lequel des trois on regarde.
+    ///
+    /// Les trois se ressemblent assez pour partager un type ; ils ne se
+    /// ressemblent pas assez pour partager une icône, la recherche pouvant
+    /// rendre les trois d'un coup.
+    /// </summary>
+    private static QuestNodeGlyph GlyphOf(DungeonKind kind) => kind switch
+    {
+        DungeonKind.Raid => QuestNodeGlyph.Raids,
+        DungeonKind.Lair => QuestNodeGlyph.Lairs,
+        _ => QuestNodeGlyph.Dungeons,
+    };
 
     /// <summary>Le nom de rubrique tel que le site l'écrit, pour en juger la nature.</summary>
     private string? RawNameOf(int section) =>

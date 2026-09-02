@@ -53,6 +53,12 @@ public enum QuestNodeGlyph
     /// <summary>La racine des donjons.</summary>
     Dungeons,
 
+    /// <summary>La racine des raids.</summary>
+    Raids,
+
+    /// <summary>La racine des tanières.</summary>
+    Lairs,
+
     /// <summary>Un endroit du monde.</summary>
     Place,
 
