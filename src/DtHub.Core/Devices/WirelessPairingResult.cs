@@ -1,4 +1,4 @@
-namespace DtHub.Core.Devices;
+﻿namespace DtHub.Core.Devices;
 
 /// <summary>Issue d'un appairage sans fil, du point de vue de l'utilisateur.</summary>
 public enum WirelessPairingStatus
@@ -27,7 +27,19 @@ public sealed record WirelessPairingResult(
     string? Address = null,
     string? DeviceGuid = null)
 {
+    /// <summary>
+    /// Vrai quand le téléphone a accepté le code, quoi qu'il soit advenu de la
+    /// connexion ensuite. Ne veut donc pas dire qu'il y a de quoi jouer : c'est
+    /// <see cref="Connected"/> qui le dit.
+    /// </summary>
     public bool Paired => Status != WirelessPairingStatus.PairingFailed;
 
     public bool Connected => Status == WirelessPairingStatus.Connected;
+
+    /// <summary>
+    /// Vrai quand il ne manque plus que le port. Le réseau n'a rien annoncé,
+    /// mais le téléphone affiche ce port sous « Débogage sans fil », et
+    /// l'appairage est acquis : il n'y a rien à refaire, rien qu'à le lire.
+    /// </summary>
+    public bool NeedsPort => Status == WirelessPairingStatus.ConnectPortNotFound;
 }

@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -57,10 +57,27 @@ public sealed partial class AddDeviceViewModel : ObservableObject
     [ObservableProperty]
     private bool _isBusy;
 
+    /// <summary>
+    /// Vrai quand l'appairage a pris mais que le port de connexion reste à
+    /// saisir. C'est alors, et alors seulement, que le champ apparaît.
+    /// </summary>
+    [ObservableProperty]
+    private bool _needsPort;
+
+    /// <summary>Le port que l'utilisateur lit sur son téléphone.</summary>
+    [ObservableProperty]
+    private string _connectPort = string.Empty;
+
     /// <summary>Signalé après une association réussie.</summary>
     public event EventHandler? DevicePaired;
 
     public bool CanPair => SelectedCandidate is not null && PairingCode.Trim().Length > 0 && !IsBusy;
+
+    public bool CanConnect =>
+        SelectedCandidate is not null
+        && !IsBusy
+        && int.TryParse(ConnectPort.Trim(), out var port)
+        && port is > 0 and <= 65535;
 
     /// <summary>
     /// Cherche les téléphones qui affichent un code. Appelée en boucle : le
@@ -128,14 +145,8 @@ public sealed partial class AddDeviceViewModel : ObservableObject
 
             // Le code ne sert qu'une fois : il est effacé aussitôt.
             PairingCode = string.Empty;
-            Status = result.Paired
-                ? "Téléphone associé. Il se connectera tout seul, maintenant et à chaque lancement."
-                : result.UserMessage;
 
-            if (result.Paired)
-            {
-                DevicePaired?.Invoke(this, EventArgs.Empty);
-            }
+            Settle(result);
         }
         catch (AdbException exception)
         {
@@ -148,8 +159,73 @@ public sealed partial class AddDeviceViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Connecte à un port saisi à la main, l'appairage étant déjà acquis.
+    ///
+    /// L'hôte n'est pas demandé : c'est celui du téléphone qu'on vient
+    /// d'appairer, et le redemander serait demander à l'utilisateur de retrouver
+    /// une adresse que nous avons déjà.
+    /// </summary>
+    [RelayCommand]
+    private async Task ConnectAsync(CancellationToken cancellationToken)
+    {
+        if (SelectedCandidate is not { } candidate
+            || !int.TryParse(ConnectPort.Trim(), out var port))
+        {
+            return;
+        }
+
+        IsBusy = true;
+        Status = "Connexion en cours…";
+        OnPropertyChanged(nameof(CanConnect));
+
+        try
+        {
+            Settle(await _pairing
+                .ConnectAsync(candidate.Service.Host, port, cancellationToken)
+                .ConfigureAwait(true));
+        }
+        catch (AdbException exception)
+        {
+            Status = exception.UserMessage;
+        }
+        finally
+        {
+            IsBusy = false;
+            OnPropertyChanged(nameof(CanConnect));
+        }
+    }
+
+    /// <summary>
+    /// Range ce que dit une tentative.
+    ///
+    /// La fenêtre ne se ferme que sur une vraie connexion. Elle se fermait dès
+    /// que le téléphone avait accepté le code, en annonçant « il se connectera
+    /// tout seul » alors qu'il n'était pas connecté, et en jetant le message qui
+    /// disait quoi faire. Ce message demandait justement un port qu'aucun champ
+    /// ne permettait de saisir : l'utilisateur était dans une impasse.
+    /// </summary>
+    private void Settle(WirelessPairingResult result)
+    {
+        NeedsPort = result.NeedsPort;
+
+        Status = result.Connected
+            ? "Téléphone associé. Il se connectera tout seul, maintenant et à chaque lancement."
+            : result.UserMessage;
+
+        if (result.Connected)
+        {
+            DevicePaired?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
     partial void OnPairingCodeChanged(string value) => OnPropertyChanged(nameof(CanPair));
 
-    partial void OnSelectedCandidateChanged(PairingCandidateViewModel? value) =>
+    partial void OnConnectPortChanged(string value) => OnPropertyChanged(nameof(CanConnect));
+
+    partial void OnSelectedCandidateChanged(PairingCandidateViewModel? value)
+    {
         OnPropertyChanged(nameof(CanPair));
+        OnPropertyChanged(nameof(CanConnect));
+    }
 }

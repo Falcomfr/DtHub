@@ -1,4 +1,4 @@
-<Window x:Class="DtHub.App.Windows.AddDeviceWindow"
+﻿<Window x:Class="DtHub.App.Windows.AddDeviceWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Associer un nouvel appareil"
@@ -59,6 +59,18 @@
                  ToolTip="Le code à six chiffres affiché sur l'appareil" />
         <Button Content="Associer" Style="{StaticResource PrimaryButton}"
                 Command="{Binding PairCommand}" IsEnabled="{Binding CanPair}" />
+      </StackPanel>
+
+      <!-- Le port ne se demande que lorsqu'il manque, c'est-à-dire quand le
+           réseau n'a rien annoncé. L'appairage est alors déjà acquis : il n'y a
+           rien à refaire, rien qu'à lire un nombre sur le téléphone. -->
+      <StackPanel Orientation="Horizontal" Margin="0,12,0,0"
+                  Visibility="{Binding NeedsPort, Converter={StaticResource BoolToVisibility}}">
+        <TextBox Text="{Binding ConnectPort, UpdateSourceTrigger=PropertyChanged}"
+                 Width="150" Margin="0,0,8,0" FontSize="15"
+                 ToolTip="Le port affiché sous « Débogage sans fil » sur le téléphone" />
+        <Button Content="Connecter" Style="{StaticResource PrimaryButton}"
+                Command="{Binding ConnectCommand}" IsEnabled="{Binding CanConnect}" />
       </StackPanel>
 
       <TextBlock Text="{Binding Status}" Style="{StaticResource Muted}" Margin="2,12,0,0"

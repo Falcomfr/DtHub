@@ -1,4 +1,4 @@
-using DtHub.Core.Adb;
+﻿using DtHub.Core.Adb;
 using DtHub.Core.Devices;
 using DtHub.Tests.Fakes;
 
@@ -75,6 +75,11 @@ public class DevicePairingServiceTests
         Assert.Equal(WirelessPairingStatus.ConnectPortNotFound, result.Status);
         Assert.True(result.Paired);
         Assert.Contains("port", result.UserMessage, StringComparison.OrdinalIgnoreCase);
+
+        // Appairé n'est pas connecté, et c'est tout l'objet de la distinction :
+        // la fenêtre annonçait « il se connectera tout seul » sur ce cas-là.
+        Assert.False(result.Connected);
+        Assert.True(result.NeedsPort);
     }
 
     [Fact]
@@ -88,6 +93,10 @@ public class DevicePairingServiceTests
         Assert.Equal(WirelessPairingStatus.ConnectFailed, result.Status);
         Assert.True(result.Paired);
         Assert.Equal("192.168.1.25:37845", result.Address);
+
+        // Le port était connu : le redemander n'aiderait pas.
+        Assert.False(result.Connected);
+        Assert.False(result.NeedsPort);
     }
 
     [Fact]

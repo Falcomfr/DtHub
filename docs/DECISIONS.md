@@ -1560,3 +1560,39 @@ deux processus scrcpy sont bien partis avec.
 Les deux durées sont désormais journalisées à chaque arrêt. C'est le genre de
 question qui revient, et elle ne se reposera plus à l'aveugle.
 \n
+
+## D60 - Ne pas annoncer une réussite qu'on n'a pas obtenue
+
+`WirelessPairingResult.Paired` se définit comme « tout sauf `PairingFailed` ».
+C'est juste : le téléphone a bien accepté le code. Ce n'est pas pour autant de
+quoi jouer.
+
+La fenêtre d'association en faisait pourtant son critère. Sur
+`ConnectPortNotFound` comme sur `ConnectFailed`, elle affichait **« Téléphone
+associé. Il se connectera tout seul, maintenant et à chaque lancement »**, elle
+jetait le message qui disait ce qui n'allait pas, et elle se fermait au bout
+d'une seconde. Le téléphone n'était pas connecté.
+
+Pire : le message jeté demandait *« Saisissez le port affiché sous Débogage sans
+fil »*, et **aucun champ ne permettait de le saisir**. La méthode qui l'aurait
+consommé, `DevicePairingService.ConnectAsync(host, port)`, n'avait aucun
+appelant. Un utilisateur dont le réseau bloque le mDNS était donc dans une
+impasse : on lui disait que c'était réussi, puis on lui demandait une chose
+impossible.
+
+Trois corrections, une par maillon :
+
+- La fenêtre ne se ferme et n'annonce la réussite que sur `Connected`. Sinon
+  elle montre le message tel quel.
+- `NeedsPort` dit ce qui manque, et le champ n'apparaît que dans ce cas : rien à
+  refaire, rien qu'un nombre à lire sur le téléphone.
+- L'hôte n'est pas redemandé. C'est celui du téléphone qu'on vient d'appairer,
+  et le redemander serait faire chercher à l'utilisateur une adresse que nous
+  avons déjà.
+
+**Non vérifié sur matériel** : provoquer le cas demanderait de rompre
+l'association et de la refaire, donc de lire un code sur l'écran du téléphone.
+Le correctif est éprouvé au niveau du noyau, et la fenêtre a été ouverte pour
+vérifier qu'elle s'affiche sans erreur de liaison, champ masqué comme il se
+doit. Le reste attend le téléphone en main.
+
