@@ -694,14 +694,18 @@ public partial class App : Application, IDisposable
     /// main : or un « await » la lui rend au premier travail qui ne se termine
     /// pas sur place, et la suite serait alors postée sur un répartiteur mort.
     ///
-    /// Mesuré à la sonde : aujourd'hui tout s'exécute, mais seulement parce que
-    /// la fermeture des fenêtres de jeu se termine d'un trait quand il n'y en a
-    /// aucune. Avec des fenêtres ouvertes, elle attend vraiment, et ce qui suit
-    /// ne se ferait plus. Ce qui suit, c'est la pose de la mise à jour.
-    ///
     /// La boucle de messages tourne donc pendant l'attente, comme à la fin de
     /// session Windows, et une minuterie la borne : mieux vaut un arrêt à
     /// moitié rangé qu'une application qui refuse de mourir.
+    ///
+    /// On craignait que ce qui suit la fermeture des fenêtres de jeu, dont la
+    /// pose de la mise à jour, ne s'exécute jamais dès qu'il y a vraiment des
+    /// fenêtres à fermer, la sonde d'alors n'ayant mesuré que le cas où il n'y
+    /// en avait aucune. Mesuré depuis, deux comptes ouverts sur un vrai
+    /// téléphone : les fenêtres se ferment en six cent vingt-six millisecondes
+    /// et l'arrêt entier tient en six cent trente-quatre, sur une borne de huit
+    /// secondes. Le tour est joué par la boucle pompée, et les deux durées sont
+    /// désormais journalisées : la question ne se reposera pas à l'aveugle.
     /// </summary>
     protected override void OnExit(ExitEventArgs e)
     {
@@ -723,13 +727,28 @@ public partial class App : Application, IDisposable
 
     private async Task CloseDownAsync()
     {
+        // Chronométré, et pas par curiosité : tout ce qui suit la fermeture des
+        // fenêtres de jeu, dont la pose de la mise à jour, ne s'exécute que si
+        // cette fermeture rend la main avant la borne de ShutdownLimit. Le cas
+        // avec des fenêtres ouvertes n'avait jamais été mesuré, faute d'en
+        // avoir jamais eu la trace.
+        var start = System.Diagnostics.Stopwatch.StartNew();
+
         if (_host is not null)
         {
             try
             {
                 // Les fenêtres de jeu sont fermées avec l'application : les
                 // laisser ouvertes sans configurateur n'aurait pas de sens.
-                await _host.Services.GetRequiredService<GameLauncher>().CloseAllAsync().ConfigureAwait(true);
+                var launcher = _host.Services.GetRequiredService<GameLauncher>();
+                var windows = launcher.ActiveSessions.Count;
+
+                await launcher.CloseAllAsync().ConfigureAwait(true);
+
+                Log.Information(
+                    "Arrêt : {windows} fenêtre(s) de jeu fermée(s) en {elapsed} ms.",
+                    windows,
+                    start.ElapsedMilliseconds);
 
                 // La mise à jour se pose ici et nulle part ailleurs : plus rien
                 // ne tourne, et l'exécutable qui se renomme n'interrompt
@@ -750,6 +769,8 @@ public partial class App : Application, IDisposable
         }
 
         Dispose();
+
+        Log.Information("Arrêt rangé en {elapsed} ms.", start.ElapsedMilliseconds);
 
         await Log.CloseAndFlushAsync().ConfigureAwait(true);
     }

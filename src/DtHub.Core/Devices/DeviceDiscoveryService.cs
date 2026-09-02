@@ -1,4 +1,4 @@
-using DtHub.Core.Adb;
+﻿using DtHub.Core.Adb;
 
 namespace DtHub.Core.Devices;
 
@@ -133,7 +133,14 @@ public sealed class DeviceDiscoveryService : IDisposable
 
         // Les émulateurs ne sont pas la cible de l'outil et brouilleraient la
         // liste : ils sont écartés dès la découverte.
-        var relevant = entries.Where(e => e.ConnectionKind != AdbConnectionKind.Emulator).ToList();
+        //
+        // Les doubles aussi, et avant toute interrogation : ADB rejoint un
+        // téléphone tout seul par mDNS alors qu'il est déjà connecté par son
+        // adresse, et le nom mDNS refuse ensuite les commandes qu'on lui
+        // adresse.
+        var relevant = AdbTransportChoice.WithoutDoubles(
+            [.. entries.Where(e => e.ConnectionKind != AdbConnectionKind.Emulator)],
+            known);
 
         var properties = await ReadPropertiesAsync(relevant, warnings, cancellationToken).ConfigureAwait(false);
 
@@ -252,6 +259,13 @@ public sealed class DeviceDiscoveryService : IDisposable
             .Select(group => group
                 .OrderByDescending(d => d.IsConnected)
                 .ThenByDescending(d => d.ConnectionKind == AdbConnectionKind.Usb)
+
+                // Une adresse joignable avant un nom mDNS. Sans ce départage,
+                // deux lignes sans fil également connectées se départageaient
+                // par l'ordre où ADB les rend, c'est-à-dire par leur numéro de
+                // transport : la ligne retenue changeait d'une reconnexion à
+                // l'autre, et c'était parfois celle qui refuse les commandes.
+                .ThenBy(d => MdnsDeviceName.IsMdnsName(d.Serial))
                 .First())];
 
     private void PruneCache(IEnumerable<AdbDeviceEntry> entries)

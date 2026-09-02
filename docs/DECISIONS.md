@@ -1500,3 +1500,63 @@ d'adresses de `TryFollowUrl`, qui emploie une normalisation légèrement
 différente de celle du catalogue - deux notions de « même adresse » dans le même
 dépôt, ce qui mériterait d'être unifié avant d'être testé.
 \n
+
+## D58 - Un téléphone attaché deux fois
+
+ADB 37 rejoint un téléphone tout seul par mDNS alors qu'il est déjà connecté par
+son adresse. Le même appareil occupe alors deux transports :
+
+```
+192.168.1.14:40187                          device  transport_id:5
+adb-XXXXXXXX-XXXXXX._adb-tls-connect._tcp   device  transport_id:6
+```
+
+Le commentaire de `MdnsDeviceName` posait l'hypothèse inverse : l'appareil
+paraît sous son adresse quand il est joignable, et sous ce nom quand il ne l'est
+pas. **Il paraît sous les deux**, et le nom est un mauvais destinataire :
+vingt refus en quatre jours dans les journaux, « device 'adb-...' not found »
+sur `getprop`, sur `pm list users`, sur la résolution d'activité. Toute commande
+sans destinataire échoue par ailleurs en « more than one device ».
+
+Le départage était laissé au hasard. `Deduplicate` groupait par identité, triait
+sur « connecté » puis « USB », et prenait le premier : entre deux transports
+sans fil également connectés, c'est l'ordre d'ADB qui décidait, donc le numéro
+de transport, donc la reconnexion la plus récente.
+
+Deux corrections. `AdbTransportChoice.WithoutDoubles` écarte le nom mDNS **avant
+toute interrogation**, quand une adresse joignable désigne le même téléphone
+dans le même relevé ; et le départage final préfère explicitement une adresse à
+un nom. Le nom garde son emploi quand il est seul : il identifie l'appareil et
+sert à s'y connecter. Un appareil que le registre ne connaît pas garde ses deux
+lignes, faute de pouvoir affirmer que c'est le même.
+
+**Vérifié sur le vrai téléphone**, les deux transports attachés : une seule
+ligne d'appareil dans le panneau, deux instances, aucun refus d'ADB au
+démarrage. Huit tests.
+
+## D59 - L'arrêt fait bien son travail, mesuré
+
+`OnExit` est appelé par WPF depuis son propre arrêt, et le répartiteur meurt dès
+que la méthode rend la main. Un `await` la lui rendrait au premier travail qui
+ne se termine pas sur place. D'où la boucle de messages pompée sous
+`DispatcherFrame`, bornée à huit secondes.
+
+Le commentaire redoutait que la borne ne tombe : la sonde d'alors n'avait mesuré
+que le cas sans fenêtre de jeu, où la fermeture rend la main d'un trait, et
+concluait qu'avec des fenêtres ouvertes « ce qui suit ne se ferait plus. Ce qui
+suit, c'est la pose de la mise à jour ».
+
+**Mesuré, deux comptes ouverts sur un vrai téléphone :**
+
+| Étape | Durée |
+|:--|--:|
+| Fermeture des deux fenêtres de jeu | 626 ms |
+| Arrêt entier, pose de la mise à jour comprise | 634 ms |
+| Disparition du processus, vue du dehors | 1,2 s |
+
+Sept secondes et demie de marge sur huit. La crainte n'était pas fondée, et les
+deux processus scrcpy sont bien partis avec.
+
+Les deux durées sont désormais journalisées à chaque arrêt. C'est le genre de
+question qui revient, et elle ne se reposera plus à l'aveugle.
+\n
