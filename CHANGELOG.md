@@ -45,6 +45,10 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   d'Amakna, « On recherche Ali Grothor » se retrouvait ainsi entre « Le vallon du
   château » et « Étre plus royaliste que le roi », sans rapport avec ni l'un ni
   l'autre. Cent deux quêtes seules sur trois cent une sont dans ce cas.
+- Redémarrer le poste retient désormais la place des fenêtres. Elle n'était
+  enregistrée qu'au « Quitter » : une fin de session Windows la perdait, et les
+  fenêtres revenaient à leur place de l'avant-dernière fois. L'écriture est
+  attendue avant l'arrêt, bornée à trois secondes des cinq que Windows accorde.
 - L'application se met à jour depuis les livraisons du dépôt. Elle demande la
   dernière au démarrage, la télécharge en fond si la case « Se mettre à jour
   toute seule » est cochée, vérifie son empreinte, et pose le nouvel exécutable

@@ -47,6 +47,12 @@ public partial class App : Application, IDisposable
     private IHost? _host;
     private ConfiguratorWindow? _configurator;
     private QuestWindow? _quests;
+    /// <summary>
+    /// Ce qu'on s'accorde pour retenir l'état quand Windows ferme la session.
+    /// Il en donne cinq ; on en prend trois, et l'arrêt suit.
+    /// </summary>
+    private static readonly TimeSpan SessionSaveLimit = TimeSpan.FromSeconds(3);
+
     private bool _quitting;
     private bool _started;
     private Mutex? _instance;
@@ -127,6 +133,8 @@ public partial class App : Application, IDisposable
         // premier plan. Sans y ajouter le suivi de quêtes, ils mourraient dès
         // qu'on lui donne le focus, ce qui est précisément ce qu'on fait pour
         // lire un guide.
+        SessionEnding += OnSessionEnding;
+
         launcher.OwnsWindow = OwnsWindow;
         launcher.ConfiguratorToggleRequested += (_, _) => Dispatcher.Invoke(ToggleConfigurator);
         launcher.QuestsToggleRequested += (_, _) => Dispatcher.Invoke(ToggleQuests);
@@ -227,6 +235,42 @@ public partial class App : Application, IDisposable
                     ? string.Join(" ", report.Problems)
                     : "aucune instance à ouvrir.");
         }
+    }
+
+    /// <summary>
+    /// Windows ferme la session : arrêt, redémarrage, déconnexion.
+    ///
+    /// C'est un arrêt volontaire comme un autre, et il doit retenir ce qu'un
+    /// « Quitter » retient. Sans cela, redémarrer le poste ramenait les
+    /// fenêtres à leur place de l'avant-dernière fois, celle du dernier arrêt
+    /// par le bouton, et la fenêtre qu'on venait de déplacer perdait sa place.
+    ///
+    /// L'enregistrement est attendu, et non lancé en tâche de fond : Windows
+    /// n'accorde que quelques secondes avant de fermer d'autorité, et une
+    /// écriture lancée sans être attendue n'a aucune chance d'arriver. Il est
+    /// attendu en laissant tourner la boucle de messages, faute de quoi les
+    /// suites qui reviennent sur le fil d'affichage attendraient un fil qu'on
+    /// aurait soi-même bloqué. Une minuterie borne l'attente : mieux vaut un
+    /// état à moitié écrit qu'une session que l'on retient.
+    /// </summary>
+    private void OnSessionEnding(object? sender, SessionEndingCancelEventArgs e)
+    {
+        Log.Information("Fin de session Windows : l'état est retenu avant l'arrêt.");
+
+        var frame = new DispatcherFrame();
+
+        var limit = new DispatcherTimer(
+            SessionSaveLimit, DispatcherPriority.Send, (_, _) => frame.Continue = false, Dispatcher);
+
+        limit.Start();
+
+        _ = SaveSessionStateAsync(_configurator?.IsVisible == true)
+            .ContinueWith(
+                _ => frame.Continue = false,
+                TaskScheduler.FromCurrentSynchronizationContext());
+
+        Dispatcher.PushFrame(frame);
+        limit.Stop();
     }
 
     /// <summary>

@@ -1166,3 +1166,31 @@ et son outil en ligne de commande, déjà présent sur la machine de compilation
 Une chaîne qui pose l'exécutable que des gens vont exécuter n'emprunte pas de
 code à des inconnus.
 \n
+
+## D47 - Une fin de session Windows vaut un « Quitter »
+
+L'état de la session, la place des fenêtres et celles qui étaient ouvertes,
+n'était retenu qu'au « Quitter » et quand il ne restait plus rien à l'écran.
+Un arrêt ou un redémarrage du poste passe par un troisième chemin, que rien
+n'écoutait : les fenêtres revenaient alors à leur place de l'avant-dernière
+fois, celle du dernier arrêt volontaire. Mesuré sur une fenêtre déplacée en
+1700,250 : le fichier gardait 420,120.
+
+**Ce qui se règle, lui, ne craint rien.** Raccourcis, qualité, distance, taille
+des fenêtres, appareils, mise à jour automatique : tout cela s'écrit à l'instant
+où on le change. Vérifié en coupant le processus d'autorité, la case décochée
+avait survécu.
+
+**L'écriture est attendue, non lancée en fond.** Windows n'accorde que quelques
+secondes avant de fermer d'autorité, et une écriture lancée sans être attendue
+n'a aucune chance d'arriver. Elle est attendue en laissant tourner la boucle de
+messages, faute de quoi les suites qui reviennent sur le fil d'affichage
+attendraient un fil qu'on aurait soi-même bloqué. Une minuterie borne l'attente
+à trois secondes : mieux vaut un état à moitié écrit qu'une session que l'on
+retient.
+
+**Une coupure brutale reste une coupure brutale.** Panne de courant, arrêt forcé
+du processus : la place des fenêtres est perdue, et l'application rouvre sur la
+dernière connue. Il faudrait écrire à chaque déplacement pour y remédier, ce qui
+coûterait une écriture par pixel parcouru.
+\n
