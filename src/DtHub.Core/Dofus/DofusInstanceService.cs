@@ -177,7 +177,32 @@ public sealed class DofusInstanceService
                 + "Supprimez-en un dans ses réglages pour faire de la place.");
         }
 
-        if (await _users.TryCreateUserAsync(serial, name, cancellationToken).ConfigureAwait(false)
+        // Le profil se rattache à l'utilisateur principal. Aucun identifiant
+        // n'est supposé : c'est le téléphone qui dit lequel de ses comptes est
+        // le principal.
+        if (existing.FirstOrDefault(user => user.IsPrimary) is not { } parent)
+        {
+            return new AccountAddition(
+                false,
+                "Le téléphone n'a pas dit quel est son profil principal. Reconnectez-le, "
+                + "puis réessayez.");
+        }
+
+        // Android n'accepte qu'un seul profil géré par compte principal,
+        // vérifié sur Android 16 : « Cannot add more profiles of type
+        // android.os.usertype.profile.MANAGED for user 0 ». Le dire ici évite
+        // de rendre le refus brut d'ADB.
+        if (existing.Any(user => user.Type == AndroidUserType.ManagedProfile))
+        {
+            return new AccountAddition(
+                false,
+                "Ce téléphone n'accepte qu'un seul profil de ce genre, et il existe déjà. "
+                + "Pour un compte de plus, activez les applications dupliquées dans ses "
+                + "réglages.");
+        }
+
+        if (await _users.TryCreateUserAsync(serial, name, parent.Id, cancellationToken)
+                .ConfigureAwait(false)
             is not { } userId)
         {
             return new AccountAddition(

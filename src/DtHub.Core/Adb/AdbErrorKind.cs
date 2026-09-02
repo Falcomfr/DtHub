@@ -33,6 +33,20 @@ public enum AdbErrorKind
     /// <summary>L'utilisateur Android visé n'existe pas ou n'est pas démarré.</summary>
     UserNotAvailable,
 
+    /// <summary>
+    /// Le téléphone a refusé l'opération faute de permission. Le Dossier
+    /// sécurisé de Samsung et les profils tenus par une politique
+    /// d'entreprise répondent ainsi, et le jeu est pourtant bien installé.
+    /// </summary>
+    PermissionDenied,
+
+    /// <summary>
+    /// Le profil est en pause. C'est l'état normal d'un profil professionnel
+    /// dont l'interrupteur est éteint, et la fonction principale de Shelter et
+    /// d'Island.
+    /// </summary>
+    ProfilePaused,
+
     /// <summary>La commande n'a pas répondu dans le délai imparti.</summary>
     Timeout,
 

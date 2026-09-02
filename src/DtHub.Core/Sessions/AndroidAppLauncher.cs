@@ -35,7 +35,11 @@ public sealed class AndroidAppLauncher : IAppLauncher
         ArgumentException.ThrowIfNullOrWhiteSpace(serial);
         ArgumentException.ThrowIfNullOrWhiteSpace(packageName);
 
-        await EnsureUserRunningAsync(serial, userId, cancellationToken).ConfigureAwait(false);
+        if (await PrepareUserAsync(serial, userId, cancellationToken).ConfigureAwait(false)
+            is { } refusal)
+        {
+            return AppLaunchResult.Failure(refusal, "Profil hors d'état de porter une fenêtre.");
+        }
 
         var first = await TryStartAsync(serial, userId, knownComponent, displayId, cancellationToken)
             .ConfigureAwait(false);
@@ -88,22 +92,49 @@ public sealed class AndroidAppLauncher : IAppLauncher
     }
 
     /// <summary>
-    /// Démarre le profil Android s'il est arrêté. Une application ne peut pas
-    /// s'ouvrir sur un profil qui ne tourne pas.
+    /// Prépare le profil Android, ou dit pourquoi il ne peut pas porter de
+    /// fenêtre. Rend <c>null</c> quand la voie est libre, et sinon une phrase
+    /// montrable.
+    ///
+    /// Le contrôle a lieu ici parce qu'<c>am start</c> ne le fait pas :
+    /// mesuré sur le téléphone de référence, il répond <c>Status: ok</c> pour
+    /// un utilisateur complet, puis pend soixante-dix secondes sans rien
+    /// afficher. Refuser tôt vaut mieux qu'une fenêtre qui ne vient jamais.
     /// </summary>
-    private async Task EnsureUserRunningAsync(string serial, int userId, CancellationToken cancellationToken)
+    private async Task<string?> PrepareUserAsync(
+        string serial,
+        int userId,
+        CancellationToken cancellationToken)
     {
         if (userId == 0)
         {
-            return;
+            return null;
         }
 
         var user = await _users.FindAsync(serial, userId, cancellationToken).ConfigureAwait(false);
 
-        if (user is { IsRunning: false })
+        if (user is null)
         {
-            await _users.TryStartUserAsync(serial, userId, cancellationToken).ConfigureAwait(false);
+            return null;
         }
+
+        if (AndroidUserHosting.Describe(user) is { CanHostWindow: false } verdict)
+        {
+            return verdict.Reason;
+        }
+
+        if (user.IsRunning)
+        {
+            return null;
+        }
+
+        // Le résultat du démarrage compte : l'ignorer laissait « am start »
+        // échouer plus loin, sur un message que personne ne rattachait au
+        // profil.
+        return await _users.TryStartUserAsync(serial, userId, cancellationToken).ConfigureAwait(false)
+            ? null
+            : $"Le profil « {user.DisplayName} » n'a pas pu être démarré. "
+              + "Ouvrez-le une fois sur le téléphone, puis réessayez.";
     }
 
     private async Task<AppLaunchResult> TryStartAsync(
@@ -141,7 +172,11 @@ public sealed class AndroidAppLauncher : IAppLauncher
             if (output.Contains("Error", StringComparison.OrdinalIgnoreCase)
                 || output.Contains("Exception", StringComparison.Ordinal))
             {
-                var kind = AdbErrorInterpreter.Classify(output) ?? AdbErrorKind.PackageNotFound;
+                // Un échec inconnu reste inconnu. Le supposer « application
+                // absente » envoyait réinstaller un jeu bien présent chaque
+                // fois que le téléphone refusait pour une autre raison, un
+                // refus de permission au premier chef.
+                var kind = AdbErrorInterpreter.Classify(output) ?? AdbErrorKind.Unknown;
                 return AppLaunchResult.Failure(AdbErrorInterpreter.Describe(kind), output.Trim());
             }
 

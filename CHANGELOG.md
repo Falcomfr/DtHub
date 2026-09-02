@@ -7,6 +7,33 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ## [Non publié]
 
+### Corrigé
+
+- Le bouton « Ajouter un compte » créait un compte inutilisable. Il faisait un
+  utilisateur Android complet, et un utilisateur complet ne peut pas porter de
+  fenêtre pendant qu'un autre compte est au premier plan : mesuré sur un Xiaomi
+  23078PND5G sous Android 16, `cmd user is-user-visible` rend faux, et
+  `am start` répond pourtant `Status: ok` avant de pendre soixante-dix secondes
+  sans rien afficher. Le bouton crée désormais un profil rattaché au compte
+  principal, dont la fenêtre s'ouvre en quatre secondes, vérifié jusqu'à
+  l'écran de connexion du jeu.
+
+- Un refus du téléphone était annoncé comme « l'application n'est plus
+  installée », ce qui envoyait réinstaller un jeu bien présent. C'est ce que
+  rendent le Dossier sécurisé de Samsung et les profils tenus par une politique
+  d'entreprise. Un échec non reconnu reste maintenant sans interprétation, et un
+  refus de permission est nommé pour ce qu'il est.
+
+- Un profil en pause n'était pas vu. C'est l'interrupteur du profil
+  professionnel, et la fonction principale de Shelter et d'Island : le lancement
+  échouait sans que rien n'explique pourquoi. Le drapeau est désormais lu, le
+  profil écarté avant le lancement, et le message dit de le rallumer sur le
+  téléphone. Aucune commande ADB ne permet de le faire à sa place.
+
+- Le démarrage d'un profil ignorait son propre résultat et lançait quand même.
+  L'échec se manifestait plus loin, sous une forme que personne ne rattachait au
+  profil.
+
 ### Ajouté
 
 - Chaque compte porte l'icône du jeu, celle qui est sur le téléphone. Elle est

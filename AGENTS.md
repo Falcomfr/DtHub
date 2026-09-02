@@ -11,8 +11,21 @@ chacun dans sa fenêtre, depuis de vrais téléphones Android. Ce n'est pas un
 jeu, organise les fenêtres et transmet les entrées.
 
 Chaque compte vit sur un profil Android différent du téléphone : le profil
-principal, et un profil cloné du type Second Space ou Applications dupliquées.
-DT Hub trouve toutes les installations du jeu et en ouvre une par profil.
+principal, et des profils qui lui sont **rattachés**, du type Applications
+dupliquées, profil professionnel, Shelter ou Island. DT Hub trouve toutes les
+installations du jeu et en ouvre une par profil.
+
+Le rattachement n'est pas un détail de vocabulaire, il décide de tout. Un
+profil rattaché est visible dès que son parent l'est, donc il peut porter une
+fenêtre pendant que les autres comptes sont ouverts. Un **utilisateur complet**,
+ce que sont Second Space et ce que rendait `pm create-user` employé seul, ne le
+peut pas : mesuré sur un Xiaomi 23078PND5G sous Android 16, il remplace l'écran
+au lieu de s'ouvrir à côté. Second Space ne convient donc pas, contrairement à
+ce que ce document affirmait.
+
+Le téléphone plafonne les deux voies à **un profil de chaque genre** par compte
+principal, soit trois fenêtres au maximum : le principal, un clone, un profil
+géré. Voir `AndroidUserHosting` pour la mesure et son détail.
 
 ## Le fonctionnement, en deux cas
 

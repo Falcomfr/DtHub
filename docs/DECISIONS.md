@@ -1788,6 +1788,11 @@ dans l'essai. Si la page blanche revient, elle sera diagnosticable.
 L'application expliquait, marque par marque, où trouver la fonction de clonage
 du téléphone. Elle peut le faire elle-même.
 
+> **Corrigé par D70.** La première commande était la mauvaise. Elle créait un
+> utilisateur complet, incapable de porter une fenêtre pendant qu'un autre
+> compte est ouvert. L'épreuve décrite ici s'était arrêtée à la création du
+> profil, sans jamais y ouvrir le jeu.
+
 **Trois commandes suffisent**, et elles ont été éprouvées sur le téléphone avant
 d'écrire une ligne :
 
@@ -1983,4 +1988,90 @@ reste du menu montrerait ce que la fiche de marque ne dit pas.
 **Les libellés reviennent à la ligne au lieu d'être coupés.** Le premier essai
 les tronquait, « À propos du téléphone,… », « Options pour les dévelo… », ce qui
 ruinait l'objet même du dessin. La hauteur des lignes suit désormais le texte.
-\n
+
+## D70 - Un compte doit être rattaché, pas complet
+
+Le bouton « Ajouter un compte » livré en D65 créait un compte qui ne pouvait pas
+servir. La commande retenue alors, `pm create-user <nom>`, fait un **utilisateur
+Android complet**. Or un utilisateur complet ne peut pas afficher de fenêtre
+pendant qu'un autre est au premier plan.
+
+Rien dans D65 ne le disait, parce que la vérification s'était arrêtée à la
+création du profil. Elle n'était jamais allée jusqu'à ouvrir une fenêtre dedans.
+
+### Ce qu'Android répond quand on le lui demande
+
+Android publie l'oracle en ligne de commande, et il tranche sans rien lancer :
+
+```
+cmd user is-visible-background-users-supported   -> false
+cmd user is-user-visible --display 717 14        -> false   (utilisateur complet)
+cmd user is-user-visible --display 718 15        -> true    (profil rattaché)
+```
+
+Mesuré sur un Xiaomi 23078PND5G sous Android 16, afficheur virtuel créé par
+scrcpy.
+
+### Pourquoi le code de sortie ne pouvait pas le voir
+
+C'est le piège, et il vaut d'être écrit noir sur blanc :
+
+| Profil | `am start -W` | `LaunchState` | Attente | Fenêtre |
+|:--|:--|:--|--:|:--|
+| Utilisateur complet 14 | `Status: ok` | `UNKNOWN (0)` | 69 917 ms | aucune |
+| Profil rattaché 15 | `Status: ok` | `COLD` | 3 929 ms | le jeu |
+
+**`am start` annonce un succès là où rien ne s'affichera jamais.** Il pend
+jusqu'à ce que l'afficheur disparaisse, puis rend `ok`. Se fier à lui revient à
+promettre une fenêtre qui ne viendra pas ; c'est exactement ce que faisait
+l'application.
+
+### Ce qui est retenu
+
+`pm create-user --profileOf <principal> --managed <nom>`. Le profil est
+**rattaché** au compte principal, donc visible dès que celui-ci l'est, sur
+n'importe quel afficheur. Vérifié jusqu'à l'écran de connexion du jeu, capture à
+l'appui.
+
+L'identifiant du parent n'est pas câblé : il est pris sur le profil que le
+téléphone déclare principal.
+
+### Les plafonds, qui n'étaient pas ceux que l'application lisait
+
+```
+pm get-max-users                  -> Maximum supported users: 4
+pm get-max-running-users          -> Maximum supported running users: 3
+pm create-user --profileOf 0 --managed  (le second)
+   -> Cannot add more profiles of type android.os.usertype.profile.MANAGED
+      for user 0 (code 6)
+```
+
+Un profil géré par compte principal, un clone par compte principal. Soit **trois
+fenêtres au maximum** sur ce téléphone : le principal, un clone, un profil géré.
+L'application lisait `get-max-users` et croyait à quatre places. Elle annonce
+désormais le vrai refus avant de le provoquer.
+
+### Ce que devient Second Space
+
+Il ne convient pas, et l'affirmation contraire d'AGENTS.md est corrigée. Second
+Space est un utilisateur complet : il remplace l'écran au lieu de s'ouvrir à
+côté. Les voies qui marchent sont les profils rattachés, ce que produisent les
+applications dupliquées, le profil professionnel, Shelter et Island.
+
+### Le mode pause, jamais lu jusqu'ici
+
+`FLAG_QUIET_MODE` (0x80) n'apparaissait nulle part dans le dépôt. C'est
+pourtant l'interrupteur du profil professionnel et **la fonction principale** de
+Shelter et d'Island. Un profil en pause se liste comme les autres et ne lance
+rien : le lancement échouait sans que rien n'explique pourquoi.
+
+Le drapeau est lu, le profil écarté avant le lancement, et le message dit de le
+rallumer sur le téléphone. L'application ne propose pas de le faire à sa place :
+`cmd user set-quiet-mode` n'existe pas, vérifié.
+
+### Ce qui reste déduit plutôt que mesuré
+
+Le Dossier sécurisé de Samsung est un profil Knox, donc un profil rattaché : il
+devrait relever de la voie qui marche. Faute d'appareil Samsung, ce n'est pas
+vérifié, et un refus de permission y reste possible. C'est pourquoi ce refus est
+désormais nommé pour ce qu'il est plutôt que traduit en « application absente ».

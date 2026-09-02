@@ -16,6 +16,12 @@ public static partial class AndroidUserParser
     private const int FlagGuest = 0x00000004;
     private const int FlagRestricted = 0x00000008;
     private const int FlagManagedProfile = 0x00000020;
+
+    // Profil mis en pause. C'est l'interrupteur du profil professionnel, et la
+    // fonction principale de Shelter et d'Island : leurs utilisateurs
+    // l'actionnent tous les jours. Un profil en pause est listé comme les
+    // autres, et ne lance rien.
+    private const int FlagQuietMode = 0x00000080;
     private const int FlagProfile = 0x00001000;
     private const int FlagMain = 0x00004000;
 
@@ -95,6 +101,7 @@ public static partial class AndroidUserParser
             Name = name,
             Flags = flags,
             Type = ClassifyUser(id, flags),
+            IsPaused = (flags & FlagQuietMode) != 0,
             IsRunning = tail.Contains("running", StringComparison.OrdinalIgnoreCase),
         };
     }

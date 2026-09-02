@@ -221,4 +221,41 @@ public class AndroidUserParserTests
         Assert.Equal(0, user.Flags);
         Assert.Equal(AndroidUserType.Secondary, user.Type);
     }
+
+    [Fact]
+    public void Un_profil_en_pause_est_reconnu()
+    {
+        // 0x10b0 : profil géré, initialisé, et le drapeau 0x80 de la pause.
+        // C'est l'état d'un profil professionnel dont l'interrupteur est
+        // éteint, et celui que rendent Shelter et Island au repos.
+        var user = AndroidUserParser.ParseLine("UserInfo{10:Travail:10b0} running");
+
+        Assert.NotNull(user);
+        Assert.True(user.IsPaused);
+        Assert.Equal(AndroidUserType.ManagedProfile, user.Type);
+    }
+
+    [Fact]
+    public void Un_profil_actif_n_est_pas_dit_en_pause()
+    {
+        // Relevé réel : le profil géré créé sur le téléphone de référence
+        // porte 0x1030, sans le drapeau de pause.
+        var user = AndroidUserParser.ParseLine("UserInfo{15:Travail:1030} running");
+
+        Assert.NotNull(user);
+        Assert.False(user.IsPaused);
+    }
+
+    [Fact]
+    public void La_pause_ne_se_confond_pas_avec_l_arret()
+    {
+        // Un profil peut tourner et être en pause : ce sont deux états
+        // distincts, et les confondre ferait tenter un lancement voué à
+        // l'échec.
+        var user = AndroidUserParser.ParseLine("UserInfo{10:Travail:10b0} running");
+
+        Assert.NotNull(user);
+        Assert.True(user.IsRunning);
+        Assert.True(user.IsPaused);
+    }
 }

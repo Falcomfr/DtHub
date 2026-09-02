@@ -27,6 +27,15 @@ public sealed record AndroidUser
     /// </summary>
     public bool IsRunning { get; init; }
 
+    /// <summary>
+    /// Un profil en pause existe, se liste, et ne lance rien. C'est
+    /// l'interrupteur du profil professionnel, et la fonction principale de
+    /// Shelter et d'Island. Le téléphone seul peut le rallumer : aucune
+    /// commande ADB ne le permet, vérifié sur Android 16 où
+    /// <c>cmd user set-quiet-mode</c> n'existe pas.
+    /// </summary>
+    public bool IsPaused { get; init; }
+
     public bool IsPrimary => Type == AndroidUserType.Primary;
 
     /// <summary>Libellé court du type, pour les infobulles et le diagnostic.</summary>

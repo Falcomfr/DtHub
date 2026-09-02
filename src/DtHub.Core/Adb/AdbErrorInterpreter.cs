@@ -57,6 +57,23 @@ public static class AdbErrorInterpreter
             return AdbErrorKind.PairingFailed;
         }
 
+        // Un profil en pause se reconnaît avant tout le reste : c'est l'état
+        // ordinaire de Shelter et d'Island, et le téléphone répond alors des
+        // choses qui ressemblent à une application manquante.
+        if (Contains(text, "quiet mode") || Contains(text, "user is paused"))
+        {
+            return AdbErrorKind.ProfilePaused;
+        }
+
+        // Un refus de permission ne dit rien de l'installation. Le confondre
+        // avec une application absente envoyait réinstaller un jeu bien
+        // présent, ce que rend le Dossier sécurisé de Samsung.
+        if (Contains(text, "permission denial") || Contains(text, "securityexception")
+            || Contains(text, "permission denied"))
+        {
+            return AdbErrorKind.PermissionDenied;
+        }
+
         if (Contains(text, "unknown package") || Contains(text, "package not found")
             || Contains(text, "does not exist for user"))
         {
@@ -95,6 +112,12 @@ public static class AdbErrorInterpreter
                 "L'application n'est plus installée pour ce profil Android.",
             AdbErrorKind.UserNotAvailable =>
                 "Ce profil Android n'est pas disponible. Ouvrez-le une fois sur le téléphone, puis réessayez.",
+            AdbErrorKind.PermissionDenied =>
+                "Le téléphone a refusé l'accès à ce profil. Les dossiers sécurisés et les profils "
+                + "gérés par une entreprise n'autorisent pas le lancement depuis un PC.",
+            AdbErrorKind.ProfilePaused =>
+                "Ce profil est en pause. Réactivez-le sur le téléphone, depuis son interrupteur "
+                + "ou depuis l'application qui le gère, puis réessayez.",
             AdbErrorKind.Timeout =>
                 $"{device} n'a pas répondu à temps.",
             AdbErrorKind.AdbUnavailable =>

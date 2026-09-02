@@ -1,4 +1,5 @@
-﻿using DtHub.Core.Adb;
+﻿using System.Globalization;
+using DtHub.Core.Adb;
 using DtHub.Core.Android;
 
 namespace DtHub.Core.Users;
@@ -162,28 +163,47 @@ public sealed class AndroidUserService
     }
 
     /// <summary>
-    /// Crée un profil Android et rend son identifiant.
+    /// Crée un profil Android rattaché à <paramref name="parentUserId"/> et
+    /// rend son identifiant.
     ///
     /// C'est le mécanisme que le téléphone emploie lui-même pour ses comptes
     /// multiples : rien n'est recopié, rien n'est modifié, l'application reste
     /// celle de l'éditeur, signée par lui. Le profil naît vide, avec son propre
     /// espace de données.
+    ///
+    /// Le profil est <b>rattaché</b>, et non détaché. La distinction décide de
+    /// tout : mesuré sur un Xiaomi sous Android 16, un profil rattaché
+    /// s'affiche sur un afficheur virtuel pendant que les autres comptes sont
+    /// ouverts, tandis qu'un utilisateur complet, celui que rendait
+    /// <c>pm create-user</c> seul, ne s'affiche jamais. Il répondait pourtant
+    /// <c>Status: ok</c>, puis pendait sans rien montrer.
+    ///
+    /// Voir <see cref="AndroidUserHosting"/> pour la mesure et son détail.
     /// </summary>
     /// <returns>L'identifiant du profil, ou <c>null</c> si la création a été refusée.</returns>
     public async Task<int?> TryCreateUserAsync(
         string serial,
         string name,
+        int parentUserId,
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(serial);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentOutOfRangeException.ThrowIfNegative(parentUserId);
 
         try
         {
             var output = await _adb
                 .ShellAsync(
                     serial,
-                    ["pm", "create-user", AndroidShell.Quote(name.Trim())],
+                    [
+                        "pm",
+                        "create-user",
+                        "--profileOf",
+                        parentUserId.ToString(CultureInfo.InvariantCulture),
+                        "--managed",
+                        AndroidShell.Quote(name.Trim()),
+                    ],
                     null,
                     cancellationToken)
                 .ConfigureAwait(false);
