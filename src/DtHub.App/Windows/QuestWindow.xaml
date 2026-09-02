@@ -128,10 +128,26 @@
                      Margin="4,0,10,0" FontFamily="{StaticResource MonoFont}" FontSize="11"
                      Foreground="{DynamicResource AccentBrush}" />
 
-          <TextBlock Grid.Column="3" Text="{Binding StepDetail}" VerticalAlignment="Center"
-                     Style="{StaticResource Muted}" FontSize="11"
+          <!-- La ligne reste pendant le chargement pour que le bandeau ne
+               saute pas d'une hauteur ; elle n'y montrait que deux flèches
+               éteintes, ce qui se lisait comme une page cassée. Elle dit
+               maintenant ce qu'elle attend. -->
+          <TextBlock Grid.Column="3" VerticalAlignment="Center"
+                     FontSize="11"
                      TextTrimming="CharacterEllipsis"
-                     ToolTip="{Binding StepDetail}" />
+                     ToolTip="{Binding StepDetail}">
+            <TextBlock.Style>
+              <Style TargetType="TextBlock" BasedOn="{StaticResource Muted}">
+                <Setter Property="Text" Value="{Binding StepDetail}" />
+
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding IsLoadingPage}" Value="True">
+                    <Setter Property="Text" Value="Chargement de la page…" />
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </TextBlock.Style>
+          </TextBlock>
         </Grid>
       </StackPanel>
     </Border>
@@ -301,18 +317,20 @@
                  Visibility="{Binding HasQuest, Converter={StaticResource InverseBoolToVisibility}}" />
 
       <!-- L'attente prend la place de la vue plutôt que de la recouvrir, pour
-           la raison dite plus haut. Le titre demandé dessous : c'est lui qui
-           dit que le clic a été entendu. -->
-      <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
-                  Visibility="{Binding ShowsLoader, Converter={StaticResource BoolToVisibility}}">
-        <Control Style="{StaticResource BusyIndicator}" Width="22" Height="22"
-                 HorizontalAlignment="Center" />
+           la raison dite plus haut.
 
-        <TextBlock Margin="0,12,0,0" MaxWidth="260" TextAlignment="Center"
-                   TextTrimming="CharacterEllipsis"
-                   Style="{StaticResource Muted}"
-                   Text="{Binding QuestTitle}" />
-      </StackPanel>
+           En haut et non au centre : la fenêtre fait mille trois cents pixels
+           de haut, et un rond de vingt-deux pixels posé en son milieu tombe à
+           cinq cents pixels sous le bandeau, loin de l'œil, dans une étendue
+           vide qui se lit comme une panne. Il se pose donc là où le texte va
+           paraître.
+
+           Sans le titre dessous : le bandeau le porte déjà, deux lignes plus
+           haut, et il s'y affiche pendant le chargement. -->
+      <Control Style="{StaticResource BusyIndicator}" Width="22" Height="22"
+               HorizontalAlignment="Center" VerticalAlignment="Top"
+               Margin="0,54,0,0"
+               Visibility="{Binding ShowsLoader, Converter={StaticResource BoolToVisibility}}" />
 
       <!-- Elle recouvre la page : la liste est un choix en cours, pas un
            panneau permanent qui volerait de la place au guide. -->
@@ -569,6 +587,37 @@
                                    A 4.8,4.8 0 1 0 2.7,6.1 C 2.7,8.6 7.5,13.6 7.5,13.6 Z
                                    M 7.5,6.1 m -1.7,0 a 1.7,1.7 0 1 0 3.4,0
                                    a 1.7,1.7 0 1 0 -3.4,0" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Glyph}" Value="Route">
+                    <Setter TargetName="Nature" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Nature" Property="Stroke"
+                            Value="{DynamicResource GlyphPlaceBrush}" />
+                    <!-- Bouts francs, contre les bouts ronds du reste de la
+                         liste : un bout rond déborde de trois quarts d'unité de
+                         chaque côté, et refermait les blancs de la ligne
+                         médiane, qui n'en font que deux. -->
+                    <Setter TargetName="Nature" Property="StrokeStartLineCap" Value="Flat" />
+                    <Setter TargetName="Nature" Property="StrokeEndLineCap" Value="Flat" />
+                    <!-- Une route en perspective : deux bas-côtés qui se
+                         rapprochent, une ligne médiane en pointillés. L'épingle
+                         du lieu tenait la place, et un chemin n'est pas un
+                         lieu : il en joint deux.
+
+                         Trois autres dessins ont été montés et regardés avant
+                         celui-ci, et aucun ne tenait à quinze unités : une
+                         courbe à un virage donnait un os, une courbe à deux
+                         virages un chevron, une flèche en pointillés une flèche
+                         pleine, ses blancs mangés par les bouts ronds. Un
+                         panneau indicateur se lisait, mais désignait la
+                         direction et non le chemin. Reste la route elle-même,
+                         qui n'est faite que de droites. -->
+                    <Setter TargetName="Nature" Property="Data"
+                            Value="M 3.2,13.6 L 5.5,2.4
+                                   M 11.8,13.6 L 9.5,2.4
+                                   M 7.5,12.4 V 10.2
+                                   M 7.5,8.4 V 6.4
+                                   M 7.5,4.6 V 3.2" />
                   </DataTrigger>
 
                   <DataTrigger Binding="{Binding Glyph}" Value="Family">

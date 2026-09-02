@@ -62,6 +62,9 @@ public enum QuestNodeGlyph
     /// <summary>Un endroit du monde.</summary>
     Place,
 
+    /// <summary>Un chemin, qui joint deux endroits.</summary>
+    Route,
+
     /// <summary>Une famille de quêtes, qui ne se situe nulle part.</summary>
     Family,
 

@@ -979,3 +979,51 @@ dessin de quinze unités se juge monté, jamais sur son tracé.
 **La tanière prend une empreinte** parce qu'elle est l'antre d'une bête, et que
 c'est précisément ce qui la sépare du donjon, bâti de main d'homme.
 
+## D39 - Le plan d'une page qui n'a pas de titres
+
+Une page se parcourt par ses titres de second rang. Quatre-vingt-trois donjons
+sur quatre-vingt-trois les écrivent là, et huit chemins sur vingt et un ; les
+autres chemins n'ont aucun titre et retombent sur les consignes, comme une
+quête.
+
+**Deux familles échappaient à cette règle.** Les deux raids n'ont, dans toute
+leur page, qu'une seule balise de titre : « Sommaire ». Sept tanières sur huit
+descendent les leurs au quatrième rang. Toutes se lisaient donc comme des
+guides de quête, et la tanière du Piou n'annonçait qu'une étape.
+
+**À défaut de titres, le sommaire que la page se donne.** C'est une liste de
+liens vers ses propres ancres, donc un plan et des points d'arrêt en une seule
+fois. Le risque était d'attraper des pages de quête : aucun des sept cent
+quatre-vingt-deux guides n'en porte, la règle ne peut pas les atteindre. Elle ne
+s'applique d'ailleurs qu'à défaut, si bien que la tanière Arakne, seule des huit
+à écrire ses titres au second rang, se lit comme un donjon.
+
+**Le site se trompe d'ancre trois fois sur quarante** : « #salles » pour
+« salle », « #succès » pour « stratégies ». Le texte du lien la retrouve, réduit
+à ce qui l'identifie, sans accents ni article, et comparé aux identifiants de la
+page. Trente-sept liens sur quarante trouvent ainsi leur cible ; les trois
+autres n'en ont aucune sur la page et leur entrée est passée.
+
+## D40 - Ce qu'on montre pendant qu'une page charge
+
+**Le rond d'attente se pose en haut.** Il était centré dans la vue, qui fait
+mille trois cents pixels de haut : vingt-deux pixels de rond tombaient à cinq
+cents pixels sous le bandeau, loin de l'œil, au milieu d'une étendue vide qui se
+lit comme une panne. Il se pose là où le texte va paraître.
+
+**La ligne d'étape dit ce qu'elle attend.** Elle reste affichée pendant le
+chargement pour que le bandeau ne saute pas d'une hauteur, mais elle n'y
+montrait que deux flèches éteintes, sans numéro ni texte, ce qui se lisait comme
+une page cassée.
+
+**Le titre n'est plus répété sous le rond.** Il y avait été mis pour dire que le
+clic avait été entendu ; le bandeau le porte désormais dès le début du
+chargement, deux lignes plus haut.
+
+## D41 - Un nombre entre parenthèses doit dire ce qu'il compte
+
+Un donjon s'écrivait « Bworker (180) » et une zone « Astrub (37) » : le même
+signe pour un niveau et pour un compte de quêtes. Le niveau se dit maintenant
+« niv. 180 ». La forme abrégée, et non « niveau », parce que la liste en compte
+quatre-vingt-treize lignes.
+

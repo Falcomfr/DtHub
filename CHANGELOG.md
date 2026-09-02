@@ -30,6 +30,24 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 - Un chemin se parcourt par ses étapes, « Jusqu'à la première grotte » à « Fin
   du chemin » : la règle qui distingue le dossier de la consigne ne regarde plus
   le bloc des donjons mais la présence de titres de sections.
+- Les tanières et les raids se parcourent enfin par leurs sections. Une page se
+  lit par ses titres de second rang, mais les deux raids n'ont d'autre titre que
+  « Sommaire » et sept tanières sur huit descendent les leurs au quatrième
+  rang : on lit alors le sommaire que la page se donne. La tanière du Piou passe
+  de une étape à sept, le Domaine du Dark Vlad de une à quatre. Rien ne change
+  pour les donjons, les chemins et les quêtes, aucun des sept cent
+  quatre-vingt-deux guides ne portant de sommaire.
+- Trois des quarante liens de ces sommaires visent une ancre qui n'existe pas,
+  « #salles » pour « salle ». Le texte du lien la retrouve, comparé aux
+  identifiants de la page sans accents ni article.
+- Le niveau d'un donjon se dit « niv. 100 » et non plus « 100 » : le nombre entre
+  parenthèses se confondait avec ceux qui comptent les quêtes d'une zone.
+- Le rond d'attente se pose en haut de la page et non plus en son milieu, où il
+  tombait à cinq cents pixels sous le bandeau, dans une étendue vide qui se
+  lisait comme une panne. La ligne d'étape, qui n'affichait alors que deux
+  flèches éteintes, dit maintenant « Chargement de la page… ».
+- Les chemins prennent une route en perspective ; l'épingle du lieu tenait la
+  place, et un chemin n'est pas un lieu.
 - Les quatre entrées de la racine ont chacune leur dessin : un parchemin, une
   tour crénelée, un crâne, une empreinte. La clef qui tenait la place des
   donjons a été rendue à son seul emploi, la colonne de droite, où elle dit

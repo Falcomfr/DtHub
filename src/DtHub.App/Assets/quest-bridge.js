@@ -274,13 +274,29 @@
     // Les sections d'une page, dans leur ordre.
     //
     // Toutes les pages du site ne se parcourent pas comme un guide de quête. Un
-    // donjon, une tanière, un chemin sont des dossiers : les monstres, les
-    // salles, le boss pour l'un ; les étapes du trajet pour l'autre. Ce sont ces
-    // titres qu'on suit, et non des paragraphes à résumer.
+    // donjon, un raid, une tanière, un chemin sont des dossiers : les monstres,
+    // les salles, le boss pour l'un ; les étapes du trajet pour l'autre. Ce sont
+    // ces sections qu'on suit, et non des paragraphes à résumer.
+    //
+    // Deux sources, dans cet ordre. Les titres d'abord : quatre-vingt-trois
+    // donjons sur quatre-vingt-trois les écrivent au second rang, et huit
+    // chemins sur vingt et un. À défaut, le sommaire que la page se donne : les
+    // deux raids n'ont d'autre balise de titre que « Sommaire », et sept
+    // tanières sur huit descendent les leurs au quatrième rang, hors de portée
+    // d'une règle qui ne lit que le second. Aucun des sept cent quatre-vingt-deux
+    // guides de quête ne porte de sommaire : la seconde source ne peut pas les
+    // atteindre, et la première ne les atteignait déjà pas.
+    function sections() {
+        var found = headings();
+
+        return found.length > 0 ? found : summary();
+    }
+
+    // Les titres de second rang, dans leur ordre.
     //
     // Deux sont écartés : « Position du PNJ sur la carte » double la carte que
     // le bloc d'en-tête porte déjà, et « Papycha remercie » est le pied de page.
-    function sections() {
+    function headings() {
         var found = [];
         var seen = {};
         var titles = document.querySelectorAll('.entry-content h2');
@@ -300,6 +316,122 @@
         }
 
         return found;
+    }
+
+    // Le plan que la page se donne : la liste de liens qui suit son
+    // « Sommaire », chaque lien pointant une ancre de la page.
+    function summary() {
+        var list = summaryList();
+
+        if (!list) {
+            return [];
+        }
+
+        var found = [];
+        var seen = {};
+        var links = list.querySelectorAll('a[href]');
+
+        for (var i = 0; i < links.length; i++) {
+            var text = (links[i].textContent || '').replace(/\s+/g, ' ').trim();
+
+            if (text.length === 0 || seen[text] === true) {
+                continue;
+            }
+
+            var node = anchor(links[i], text);
+
+            if (node === null) {
+                continue;
+            }
+
+            seen[text] = true;
+            found.push({ node: node, text: text });
+        }
+
+        return found;
+    }
+
+    // La liste qui suit le titre « Sommaire ». Elle le suit de près : au-delà de
+    // quelques éléments, ce n'est plus son sommaire mais la page qui reprend.
+    function summaryList() {
+        var heads = document.querySelectorAll('.entry-content h1, .entry-content h2,'
+            + ' .entry-content h3, .entry-content h4, .entry-content h5,'
+            + ' .entry-content h6');
+
+        for (var i = 0; i < heads.length; i++) {
+            if (!/^sommaire$/i.test((heads[i].textContent || '').trim())) {
+                continue;
+            }
+
+            var node = heads[i].nextElementSibling;
+
+            for (var step = 0; node !== null && step < 4; step++) {
+                if (node.tagName === 'UL' || node.tagName === 'OL') {
+                    return node;
+                }
+
+                node = node.nextElementSibling;
+            }
+
+            return null;
+        }
+
+        return null;
+    }
+
+    // L'ancre que vise une entrée du sommaire.
+    //
+    // Le lien la donne, sauf quand le site se trompe : sur les quarante liens
+    // relevés, trois pointent une ancre qui n'existe pas, « #salles » pour
+    // « salle », « #succès » pour « stratégies ». Le texte du lien, lui, la
+    // retrouve : on le compare aux identifiants de la page, sans accents ni
+    // article. Trente-sept liens sur quarante trouvent ainsi leur cible ; les
+    // trois autres n'en ont aucune sur la page, et leur entrée est passée.
+    function anchor(link, text) {
+        var href = link.getAttribute('href') || '';
+        var cut = href.indexOf('#');
+        var node = null;
+
+        if (cut >= 0 && cut + 1 < href.length) {
+            var hash = href.slice(cut + 1);
+
+            try {
+                node = document.getElementById(decodeURIComponent(hash));
+            } catch (e) {
+                node = document.getElementById(hash);
+            }
+        }
+
+        if (node !== null) {
+            return node;
+        }
+
+        var wanted = fold(text);
+
+        if (wanted.length === 0) {
+            return null;
+        }
+
+        var marked = document.querySelectorAll('.entry-content [id]');
+
+        for (var i = 0; i < marked.length; i++) {
+            if (fold(marked[i].id) === wanted) {
+                return marked[i];
+            }
+        }
+
+        return null;
+    }
+
+    // Un texte réduit à ce qui l'identifie : sans accents, sans article, sans
+    // ponctuation. « Les stratégies » et « stratégies » s'y rejoignent.
+    function fold(text) {
+        return (text || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/^(les|le|la|l)[\s'\u2019]+/, '')
+            .replace(/[^a-z0-9]/g, '');
     }
 
     function steps() {

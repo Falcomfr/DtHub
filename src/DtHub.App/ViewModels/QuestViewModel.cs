@@ -373,7 +373,8 @@ public sealed partial class QuestViewModel : ObservableObject
 
             foreach (var path in Paths(side).OrderBy(p => p.Title, StringComparer.CurrentCulture))
             {
-                Nodes.Add(new QuestNode(QuestNodeKind.Quest, path.Title, Path: path));
+                Nodes.Add(new QuestNode(
+                    QuestNodeKind.Quest, path.Title, Path: path, Glyph: QuestNodeGlyph.Route));
             }
 
             return;
@@ -545,7 +546,7 @@ public sealed partial class QuestViewModel : ObservableObject
             foreach (var path in found.Paths)
             {
                 Nodes.Add(new QuestNode(
-                    QuestNodeKind.Quest, path.Title, Path: path, Glyph: QuestNodeGlyph.Place));
+                    QuestNodeKind.Quest, path.Title, Path: path, Glyph: QuestNodeGlyph.Route));
             }
         }
 
@@ -601,7 +602,7 @@ public sealed partial class QuestViewModel : ObservableObject
         "Chemins",
         Combien(Paths(side).Count, "chemin", "chemins"),
         Id: section,
-        Glyph: QuestNodeGlyph.Place);
+        Glyph: QuestNodeGlyph.Route);
 
     /// <summary>
     /// Les donjons, du plus abordable au plus exigeant, coupés par paliers de
@@ -644,7 +645,7 @@ public sealed partial class QuestViewModel : ObservableObject
     /// </summary>
     private static QuestNode ToNode(DungeonSummary dungeon) => new(
         QuestNodeKind.Quest,
-        dungeon.Level > 0 ? $"{dungeon.Title} ({dungeon.Level})" : dungeon.Title,
+        dungeon.Level > 0 ? $"{dungeon.Title} (niv. {dungeon.Level})" : dungeon.Title,
         Detail(dungeon),
         Dungeon: dungeon);
 
