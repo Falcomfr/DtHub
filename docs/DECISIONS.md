@@ -1934,6 +1934,8 @@ ignoré à la lecture.
 
 ## D69 - Le chemin de menu se montre, il ne se lit plus
 
+**Premier dessin le 2026-09-02, refait le même jour : voir la fin de l'entrée.**
+
 Les deux aides donnaient le chemin à suivre en une ligne : « Paramètres ›
 Applications › Gérer les applications › DOFUS Touch › Économiseur de batterie ».
 Juste, mais il faut le lire pour le comprendre, et on le relit à chaque étape.
@@ -1960,4 +1962,25 @@ les yeux de qui rouvre la fenêtre. Deux écrans voisins surlignés à la même
 hauteur sont décalés, une suite de lignes alignées ayant l'air d'un dessin figé.
 Le dernier écran ne porte pas de chevron : il n'y a rien après, et en tracer un
 laisserait croire à une étape manquante.
+\n
+
+### Reprise : des écrans qui portent les vrais mots
+
+Le premier dessin montrait des écrans de barres grises, une seule surlignée, et
+le libellé **sous** l'écran. On y voyait qu'il y avait des étapes, pas ce qu'il
+fallait chercher. Refait le jour même.
+
+**Le découpage change de forme.** Un chemin de N segments donne N-1 écrans, et
+non N : on est *dans* « Paramètres » et l'on y touche « Applications ». Le
+dernier segment est la ligne du dernier écran, non un écran de plus qu'il
+faudrait dessiner vide.
+
+**Chaque écran porte les vrais mots** : une barre de titre avec le chevron de
+retour et le nom de l'écran, puis quatre lignes dont celle qu'on touche, avec
+son libellé exact sur fond d'accent. Les autres restent muettes : inventer le
+reste du menu montrerait ce que la fiche de marque ne dit pas.
+
+**Les libellés reviennent à la ligne au lieu d'être coupés.** Le premier essai
+les tronquait, « À propos du téléphone,… », « Options pour les dévelo… », ce qui
+ruinait l'objet même du dessin. La hauteur des lignes suit désormais le texte.
 \n

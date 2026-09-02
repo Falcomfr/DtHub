@@ -6,8 +6,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
 
   <!-- Le chemin de menu, montré comme la suite d'écrans qu'il décrit. Chaque
-       écran porte la ligne à toucher, surlignée à une hauteur tirée du libellé
-       lui-même : le dessin est ainsi le même à chaque ouverture. -->
+       écran porte son nom en titre et, sur l'une de ses lignes, le vrai libellé
+       de ce qu'on y touche. Les autres lignes restent muettes : inventer le
+       reste du menu montrerait ce que la fiche de marque ne dit pas. -->
   <ItemsControl x:Name="Ecrans" Focusable="False">
     <ItemsControl.ItemsPanel>
       <ItemsPanelTemplate>
@@ -17,45 +18,68 @@
 
     <ItemsControl.ItemTemplate>
       <DataTemplate>
-        <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Top" Margin="0,3,0,7">
 
-          <StackPanel Width="86" Margin="0,2,0,6">
+          <Border Width="146" CornerRadius="7" BorderThickness="1"
+                  Background="{DynamicResource SurfaceBrush}"
+                  BorderBrush="{DynamicResource BorderBrush}">
+            <StackPanel>
 
-            <!-- L'écran : un cadre, cinq lignes de liste, dont une surlignée. -->
-            <Border Width="56" Height="76" CornerRadius="6" BorderThickness="1"
-                    HorizontalAlignment="Center"
-                    Background="{DynamicResource SurfaceAltBrush}"
-                    BorderBrush="{DynamicResource BorderBrush}">
-              <ItemsControl ItemsSource="{Binding Lignes}" Margin="6,7,6,7" Focusable="False">
+              <!-- La barre de titre, comme celle d'un écran de réglages : un
+                   chevron de retour, puis le nom de l'écran où l'on est. -->
+              <Border CornerRadius="6,6,0,0" Padding="7,5,7,5"
+                      Background="{DynamicResource SurfaceAltBrush}">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="&#x2039;" FontSize="13" Margin="0,-2,5,0"
+                             Foreground="{DynamicResource TextMutedBrush}" />
+                  <TextBlock Text="{Binding Titre}" FontSize="10" FontWeight="SemiBold"
+                             TextWrapping="Wrap" MaxWidth="118"
+                             Foreground="{DynamicResource TextBrush}" />
+                </StackPanel>
+              </Border>
+
+              <ItemsControl ItemsSource="{Binding Lignes}" Margin="6,6,6,7" Focusable="False">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
-                    <Border Height="6" CornerRadius="2" Margin="0,0,0,4">
-                      <Border.Style>
-                        <Style TargetType="Border">
-                          <Setter Property="Background" Value="{DynamicResource BevelBrush}" />
-                          <Setter Property="Opacity" Value="0.45" />
-                          <Style.Triggers>
-                            <DataTrigger Binding="{Binding EstSurlignee}" Value="True">
-                              <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
-                              <Setter Property="Opacity" Value="1" />
-                            </DataTrigger>
-                          </Style.Triggers>
-                        </Style>
-                      </Border.Style>
-                    </Border>
+                    <!-- La hauteur suit le texte : un libellé tronqué ne
+                         montrerait pas ce qu'on cherche, et c'est tout l'objet
+                         du dessin. -->
+                    <Grid MinHeight="19" Margin="0,0,0,3">
+
+                      <!-- Une ligne muette : une barre, rien de plus. -->
+                      <Border Height="6" CornerRadius="2" Margin="4,0,26,0"
+                              HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                              Background="{DynamicResource BevelBrush}" Opacity="0.4"
+                              Visibility="{Binding EstCelleQuOnTouche,
+                                                   Converter={StaticResource InverseBoolToVisibility}}" />
+
+                      <!-- Celle qu'on touche : son vrai libellé, sur fond
+                           d'accent, avec le chevron qui dit qu'elle mène
+                           ailleurs. -->
+                      <Border CornerRadius="4" Padding="4,2,3,2"
+                              Background="{DynamicResource AccentSoftBrush}"
+                              BorderThickness="1" BorderBrush="{DynamicResource AccentBrush}"
+                              Visibility="{Binding EstCelleQuOnTouche,
+                                                   Converter={StaticResource BoolToVisibility}}">
+                        <DockPanel LastChildFill="True">
+                          <TextBlock DockPanel.Dock="Right" Text="&#x203A;" FontSize="11"
+                                     Margin="3,-1,0,0" VerticalAlignment="Center"
+                                     Foreground="{DynamicResource AccentBrush}" />
+                          <TextBlock Text="{Binding Libelle}" FontSize="10"
+                                     TextWrapping="Wrap" VerticalAlignment="Center"
+                                     Foreground="{DynamicResource TextBrush}" />
+                        </DockPanel>
+                      </Border>
+                    </Grid>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
-            </Border>
-
-            <TextBlock Text="{Binding Libelle}" TextWrapping="Wrap" TextAlignment="Center"
-                       FontSize="10" Margin="0,5,0,0"
-                       Foreground="{DynamicResource TextMutedBrush}" />
-          </StackPanel>
+            </StackPanel>
+          </Border>
 
           <!-- Le chevron ne suit pas le dernier écran : il n'y a plus rien
                après, et le tracer laisserait croire à une étape manquante. -->
-          <TextBlock Text="›" FontSize="15" Margin="0,26,0,0" VerticalAlignment="Top"
+          <TextBlock Text="&#x203A;" FontSize="16" Margin="5,32,5,0" VerticalAlignment="Top"
                      Foreground="{DynamicResource TextMutedBrush}"
                      Visibility="{Binding SuitQuelqueChose,
                                           Converter={StaticResource BoolToVisibility}}" />

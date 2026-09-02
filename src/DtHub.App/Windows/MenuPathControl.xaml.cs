@@ -6,12 +6,13 @@ using DtHub.Core.Guidance;
 namespace DtHub.App.Windows;
 
 /// <summary>
-/// Montre un chemin de menu comme la suite d'écrans qu'il décrit.
+/// Montre un chemin de menu comme la suite d'écrans qu'il décrit, avec les
+/// vrais libellés dedans.
 ///
 /// Rien n'est rédigé pour lui : les fiches de marque écrivent déjà leurs
 /// chemins « Paramètres › Applications › DOFUS Touch », et c'est cette suite
 /// que la vue dessine. Un chemin qui change de libellé change donc de dessin
-/// sans qu'on ait à y toucher.
+/// sans qu'on y touche.
 /// </summary>
 public partial class MenuPathControl : UserControl
 {
@@ -40,30 +41,43 @@ public partial class MenuPathControl : UserControl
 
     private void Rebuild()
     {
-        var steps = MenuPath.Steps(Path);
+        var screens = MenuPath.Screens(Path);
 
-        Ecrans.ItemsSource = steps
-            .Select((step, index) => new Ecran(step, index < steps.Count - 1))
+        Ecrans.ItemsSource = screens
+            .Select((screen, index) => new Ecran(screen, index < screens.Count - 1))
             .ToList();
     }
 
-    /// <summary>Un écran dessiné : son libellé, ses lignes, et ce qui le suit.</summary>
-    internal sealed record Ecran
+    /// <summary>Un écran dessiné : son titre, ses lignes, et ce qui le suit.</summary>
+    internal sealed class Ecran
     {
-        public Ecran(MenuStep step, bool followed)
+        public Ecran(MenuScreen screen, bool followed)
         {
-            Libelle = step.Label;
+            Titre = screen.Title;
             SuitQuelqueChose = followed;
-            Lignes = [.. Enumerable.Range(0, MenuPath.Rows).Select(r => new Ligne(r == step.Row))];
+
+            Lignes =
+            [
+                .. Enumerable.Range(0, MenuPath.Rows).Select(rang =>
+                    rang == screen.Row && screen.Tap.Length > 0
+                        ? new Ligne(screen.Tap, true)
+                        : new Ligne(string.Empty, false)),
+            ];
         }
 
-        public string Libelle { get; }
+        public string Titre { get; }
 
         public bool SuitQuelqueChose { get; }
 
         public IReadOnlyList<Ligne> Lignes { get; }
     }
 
-    /// <summary>Une ligne de la liste dessinée.</summary>
-    internal sealed record Ligne(bool EstSurlignee);
+    /// <summary>
+    /// Une ligne de la liste dessinée. Seule celle qu'on touche porte un
+    /// libellé : inventer le texte des autres lignes du menu serait montrer ce
+    /// que la fiche ne dit pas.
+    /// </summary>
+    /// <param name="Libelle">Le vrai libellé, ou rien pour une ligne muette.</param>
+    /// <param name="EstCelleQuOnTouche">Vrai pour la ligne à toucher.</param>
+    internal sealed record Ligne(string Libelle, bool EstCelleQuOnTouche);
 }

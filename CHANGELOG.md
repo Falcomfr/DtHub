@@ -240,9 +240,10 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 ### Modifié
 
 - Les aides montrent le chemin de menu comme la suite d'écrans qu'il décrit :
-  un petit écran par étape, la ligne à toucher surlignée, le libellé dessous.
-  C'était une ligne de texte à chevrons. Rien n'a été rédigé pour cela, les
-  fiches de marque écrivant déjà leurs chemins sous cette forme.
+  chaque écran porte son nom en titre et, sur l'une de ses lignes, le libellé
+  exact de ce qu'on y touche. C'était une ligne de texte à chevrons. Rien n'a
+  été rédigé pour cela, les fiches de marque écrivant déjà leurs chemins sous
+  cette forme.
 
 - Le premier lancement ouvre le panneau sur l'onglet Appareils, avec la fenêtre
   d'association par-dessus quand aucun téléphone n'est connu. La fenêtre de mise

@@ -1,70 +1,104 @@
 namespace DtHub.Core.Guidance;
 
 /// <summary>
-/// Une étape d'un chemin de menu : ce qu'on touche, et à quelle hauteur de
-/// l'écran la ligne est dessinée.
+/// Un écran de réglages dessiné : son titre, la ligne qu'on y touche, et la
+/// hauteur à laquelle cette ligne est tracée.
 /// </summary>
-/// <param name="Label">Le libellé de la ligne, tel que la surcouche l'écrit.</param>
-/// <param name="Row">Rang de la ligne surlignée dans l'écran dessiné.</param>
-public readonly record struct MenuStep(string Label, int Row);
+/// <param name="Title">Le nom de l'écran où l'on se trouve.</param>
+/// <param name="Tap">
+/// La ligne à toucher pour aller plus loin. Vide sur le seul écran d'un chemin
+/// qui n'en compte qu'un, où il n'y a rien à toucher.
+/// </param>
+/// <param name="Row">Rang de cette ligne parmi celles dessinées.</param>
+public readonly record struct MenuScreen(string Title, string Tap, int Row);
 
 /// <summary>
-/// Découpe un chemin de menu en étapes, pour le montrer comme une suite
-/// d'écrans plutôt que comme une ligne de texte.
+/// Découpe un chemin de menu en écrans, pour le montrer plutôt que le faire
+/// lire.
 ///
-/// Les chemins sont écrits « Paramètres › Applications › DOFUS Touch », et
-/// c'est déjà la suite des écrans à parcourir : il n'y a rien à rédiger de
-/// plus, seulement à la lire.
+/// Les fiches de marque écrivent déjà « Paramètres › Applications › DOFUS
+/// Touch », et c'est la suite des écrans à parcourir : il n'y a rien à rédiger
+/// de plus, seulement à la lire.
+///
+/// Un chemin de N segments donne N-1 écrans, et non N : on est *dans*
+/// « Paramètres » et l'on y touche « Applications ». Le dernier segment est la
+/// ligne à toucher du dernier écran, et non un écran de plus, qu'on
+/// dessinerait vide.
 /// </summary>
 public static class MenuPath
 {
     /// <summary>Nombre de lignes dessinées dans chaque écran.</summary>
-    public const int Rows = 5;
+    public const int Rows = 4;
 
     private const char Separator = '›';
 
     /// <summary>
-    /// Les étapes du chemin, dans l'ordre. Un chemin vide n'en donne aucune,
-    /// et la vue n'affiche alors rien plutôt qu'un écran creux.
+    /// Les écrans du chemin, dans l'ordre. Un chemin vide n'en donne aucun, et
+    /// la vue n'affiche alors rien plutôt qu'un cadre creux.
     /// </summary>
-    public static IReadOnlyList<MenuStep> Steps(string? path)
+    public static IReadOnlyList<MenuScreen> Screens(string? path)
     {
-        if (string.IsNullOrWhiteSpace(path))
+        var segments = Segments(path);
+
+        if (segments.Count == 0)
         {
             return [];
         }
 
-        List<MenuStep> steps = [];
+        // Un seul segment : on montre l'écran où se rendre, sans ligne à
+        // toucher, parce qu'il n'y en a pas.
+        if (segments.Count == 1)
+        {
+            return [new MenuScreen(segments[0], string.Empty, 0)];
+        }
+
+        List<MenuScreen> screens = new(segments.Count - 1);
         var previous = -1;
 
-        foreach (var part in path.Split(Separator))
+        for (var i = 0; i + 1 < segments.Count; i++)
         {
-            var label = part.Trim();
+            var tap = segments[i + 1];
+            var row = RowFor(tap);
 
-            if (label.Length == 0)
-            {
-                continue;
-            }
-
-            var row = RowFor(label);
-
-            // Deux écrans de suite surlignés à la même hauteur donnent une
-            // image qui semble figée. On décale, ce qui suffit à ce que le
+            // Deux écrans de suite dont la ligne est à la même hauteur donnent
+            // une image qui semble figée. On décale, ce qui suffit à ce que le
             // dessin ait l'air d'écrans distincts.
             if (row == previous)
             {
                 row = (row + 1) % Rows;
             }
 
-            steps.Add(new MenuStep(label, row));
+            screens.Add(new MenuScreen(segments[i], tap, row));
             previous = row;
         }
 
-        return steps;
+        return screens;
+    }
+
+    private static List<string> Segments(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return [];
+        }
+
+        List<string> segments = [];
+
+        foreach (var part in path.Split(Separator))
+        {
+            var label = part.Trim();
+
+            if (label.Length > 0)
+            {
+                segments.Add(label);
+            }
+        }
+
+        return segments;
     }
 
     /// <summary>
-    /// La hauteur de la ligne surlignée, tirée du libellé lui-même.
+    /// La hauteur de la ligne, tirée de son libellé.
     ///
     /// Tirée et non tirée au sort : le même écran doit se dessiner pareil à
     /// chaque ouverture de la fenêtre, sans quoi l'illustration bougerait sous
