@@ -1735,3 +1735,49 @@ la moitié de la cadence, mais des bits par pixel du même ordre : brider ceux-l
 donnerait du flou sans soulager ni le téléphone ni le poste, dont la charge tient
 à la définition et à la cadence. C'est la règle qu'un test énonce désormais.
 \n
+
+## D64 - Les pages de succès ne sont pas vides, et l'échec de chargement se dit déjà
+
+Signalé : cliquer un succès depuis les quêtes mènerait à une page vide.
+
+**Ce que c'est.** Sept articles du site, rangés parmi les quêtes, portent un
+titre commençant par `[Succès]` : « Des trucs sans intérêt », « Donjons
+avancés », « Intérimaire frigostien », et quatre autres. Ce sont de vraies
+pages, et ce sont les seules choses nommées « succès » sur lesquelles un clic
+navigue quelque part.
+
+**Mesuré sur les sept**, après application du cadrage tel que la fenêtre
+l'applique :
+
+| Page | Texte conservé | Images | Paragraphes |
+|:--|--:|--:|--:|
+| Des trucs sans intérêt | 368 | 18 | 11 |
+| Donjons avancés | 2999 | 25 | 22 |
+| Donjons trois point cinq | 2079 | 17 | 16 |
+| Intérimaire frigostien | 1158 | 0 | 28 |
+| Première édition de donjons | 2497 | 22 | 20 |
+| La tornade des donjons | 2582 | 22 | 19 |
+| Le siège des donjons | 1984 | 18 | 16 |
+
+Aucune n'est vide, et deux ont été ouvertes dans l'application pour le voir. La
+plus maigre en texte, « Des trucs sans intérêt », tient sept mille deux cent
+trente-cinq pixels de haut : c'est une page d'images.
+
+**Ce qui reste sans effet, en revanche** : la ligne bleue à étoile qui coiffe
+les quêtes d'un succès, « Bétapir (1) ». Elle est délibérément inerte, le
+conteneur portant `IsEnabled` à faux, donc sans survol, sans curseur de main et
+sans sélection. Vérifié au clic réel : rien ne bouge, rien ne se charge.
+
+**Et l'échec de chargement était déjà traité.** On a cru devoir annoncer les
+pannes, une fenêtre vide et muette se lisant comme un défaut de l'application.
+Éprouvé en mettant au catalogue une adresse injoignable et en l'ouvrant : le
+moteur pose sa propre page d'erreur, en français, avec un bouton pour réessayer.
+Le message qu'on aurait ajouté n'aurait de toute façon jamais paru, la vue web
+étant une fenêtre native qui se dessine au-dessus de tout élément WPF du même
+châssis. La règle écrite pour l'occasion a donc été retirée plutôt que laissée
+en place sans effet.
+
+**Ce qui est gardé de l'enquête** : le journal disait « succès : false » sans
+dire pourquoi. Il dit maintenant l'état rendu par le moteur, `ConnectionAborted`
+dans l'essai. Si la page blanche revient, elle sera diagnosticable.
+

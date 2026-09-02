@@ -339,15 +339,24 @@ public partial class QuestWindow : Window
     {
         ArgumentNullException.ThrowIfNull(e);
 
-        LogNavigationCompleted(e.NavigationId, _awaited, e.IsSuccess);
+        LogNavigationCompleted(e.NavigationId, _awaited, e.IsSuccess, e.WebErrorStatus.ToString());
 
         // Le filet : une page en erreur, un réseau coupé, et le pont ne dira
         // jamais rien. L'indicateur tournerait alors sans fin.
-        if (e.NavigationId == _awaited)
+        if (e.NavigationId != _awaited)
         {
-            _watchdog.Stop();
-            _viewModel.IsLoadingPage = false;
+            return;
         }
+
+        _watchdog.Stop();
+        _viewModel.IsLoadingPage = false;
+
+        // Rien de plus n'est annoncé, et c'est délibéré : le moteur pose sa
+        // propre page d'erreur, en français, avec un bouton pour réessayer.
+        // Mesuré sur une adresse injoignable, elle s'affiche bel et bien. Y
+        // superposer un message à nous était impossible de toute façon, la vue
+        // web étant une fenêtre native qui se dessine au-dessus de tout élément
+        // WPF du même châssis.
     }
 
     private void OnBridgeMessage(object? sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs e)
@@ -644,8 +653,8 @@ public partial class QuestWindow : Window
 
     [LoggerMessage(
         Level = LogLevel.Information,
-        Message = "Navigation {id} terminée (attendue : {awaited}, succès : {success})")]
-    private partial void LogNavigationCompleted(ulong id, ulong awaited, bool success);
+        Message = "Navigation {id} terminée (attendue : {awaited}, succès : {success}, état : {status})")]
+    private partial void LogNavigationCompleted(ulong id, ulong awaited, bool success, string status);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Moteur de rendu mis en sommeil : {asleep}.")]
     private partial void LogDozed(bool asleep);
