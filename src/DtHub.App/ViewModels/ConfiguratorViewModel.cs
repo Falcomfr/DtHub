@@ -324,8 +324,19 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [ObservableProperty]
     private bool _updatesAutomatic = true;
 
-    partial void OnUpdatesAutomaticChanged(bool value) =>
+    partial void OnUpdatesAutomaticChanged(bool value)
+    {
+        // Le garde-fou manquait ici, seul de tous les réglages : lire les
+        // préférences réécrivait aussitôt le fichier avec ce qu'on venait d'y
+        // trouver. Sans conséquence visible, mais c'est une écriture pour rien
+        // à chaque ouverture du panneau.
+        if (_loading)
+        {
+            return;
+        }
+
         _ = SaveAsync(settings => settings.UpdatesAutomatic = value);
+    }
 
     /// <summary>
     /// Raccourci du replacement, affiché à côté du bouton. Vide quand aucun

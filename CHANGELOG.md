@@ -36,10 +36,13 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Ajouté
 
-- Un quatrième palier de qualité, « Personnalisé », qui déplie le réglage de la
-  définition maximale, de la cadence, de la finesse d'image et du codec vidéo.
-  Il reste replié tant qu'on ne le choisit pas : les trois paliers demeurent le
-  chemin ordinaire.
+- Un quatrième palier de qualité, « Personnalisé ». Ses réglages fins,
+  définition maximale, cadence, finesse d'image et codec vidéo, s'ouvrent dans
+  une bulle par le rouage qui paraît à côté de lui : dépliés dans la carte, ils
+  lui faisaient gagner deux cents pixels de haut et repoussaient tout le reste
+  du panneau. La hauteur ne bouge donc plus selon le palier choisi.
+
+- Le palier « Maximale » s'appelle désormais « Haute ».
 
   La finesse se règle en bits par pixel, et non en mégabits comme le proposent
   les interfaces qui ne pilotent qu'un seul miroir. Ici la définition de
@@ -60,9 +63,8 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   par `scrcpy --list-encoders`, un téléphone ordinaire n'a pour eux qu'un
   encodeur logiciel, qui coûterait bien plus qu'il ne rend.
 
-- Une section « Sur le téléphone » avec trois interrupteurs : le son du
-  téléphone sur le PC, l'extinction de son écran, et la coupure de ses
-  animations. Le son est celui de l'appareil entier, Android ne sachant pas
+- Une section « Sur le téléphone » avec trois interrupteurs : « Son renvoyé sur
+  le PC », « Écran éteint » et « Animations coupées ». Le son est celui de l'appareil entier, Android ne sachant pas
   l'isoler par application : une seule fenêtre par téléphone le porte donc.
   Les animations sont un réglage global du téléphone, relu avant d'être changé
   et rendu à la fermeture des fenêtres.

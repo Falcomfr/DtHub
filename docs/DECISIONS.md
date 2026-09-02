@@ -2224,3 +2224,35 @@ Les listes déroulantes affichaient `IntChoice { Label = 1920 x 1080, ... }` :
 `DisplayMemberPath` ne prend pas avec le gabarit de sélection du thème. Un
 `ItemTemplate` explicite règle l'affichage de la liste et celui de la valeur
 choisie.
+
+### Reprise : les réglages fins sortent de la carte
+
+Dépliés sous les paliers, les quatre réglages faisaient gagner deux cents pixels
+à la carte et repoussaient tout ce qui suit. Choisir un palier changeait la
+géométrie du panneau, ce qui est exactement ce qu'un choix de palier ne doit pas
+faire.
+
+Ils vivent maintenant dans une bulle, ouverte par un rouage qui ne paraît qu'au
+palier personnalisé. Une bulle ne prend aucune place dans la mise en page :
+mesuré, l'intertitre « Distance dans le jeu » tombe au même pixel que le palier
+choisi soit « Moyenne » ou « Personnalisé ».
+
+Le rouage est dessiné, non emprunté : sa géométrie est calculée, huit dents,
+rayon extérieur 8,4 et intérieur 6, trou de 2,9, dans une boîte de vingt. La
+fiche du projet interdit d'embarquer une ressource tierce, et une icône de jeu
+d'icônes en serait une.
+
+**« Maximale » devient « Haute ».** Le nom avait été retiré en version 8 quand ce
+palier-là avait disparu ; il désigne maintenant le plus haut des trois, qui reste
+le même. L'énumération, elle, garde `Maximum` : renommer une valeur enregistrée
+n'apporterait rien et casserait les fichiers existants.
+
+**Les libellés du téléphone perdent leur répétition.** « Son du téléphone sur le
+PC », « Éteindre l'écran du téléphone », « Couper les animations du téléphone »
+disaient trois fois ce que l'intertitre disait déjà. Ils deviennent « Son renvoyé
+sur le PC », « Écran éteint », « Animations coupées ».
+
+**Un garde-fou manquant.** `OnUpdatesAutomaticChanged` était le seul gestionnaire
+de réglage sans le test de chargement : lire les préférences réécrivait aussitôt
+le fichier avec ce qu'on venait d'y trouver. Sans conséquence visible, mais c'est
+une écriture pour rien à chaque ouverture du panneau.
