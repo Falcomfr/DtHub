@@ -34,9 +34,12 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   Elles se rangent à leur place dans la progression, suivant leurs prérequis :
   « Une arrivée mouvementée » ouvre désormais Albuera devant « Médiation
   expéditive », « En route pour Feudala » se glisse entre « Sous le bois de sa
-  colère » et « Sous des nuages de cendre ». Un anneau vide les marque, contre
-  l'étoile pleine du succès, dans les zones qui ont des succès ; l'intertitre
-  « Hors succès » disparaît.
+  colère » et « Sous des nuages de cendre ». L'intertitre « Hors succès »
+  disparaît.
+- Les quêtes d'un succès se décalent et se relient par un filet vertical. C'est
+  ce qui dit maintenant l'appartenance : l'intertitre et ses quêtes étaient au
+  même retrait, et une quête au ras de la marge se reconnaît sans rien avoir à
+  apprendre.
 - Ces quêtes s'enchaînent aussi entre elles au lieu de se ranger par titre. Les
   quatre-vingts quêtes d'alignement bontarien, qui se lisaient « bontarien 1,
   10, 11, 12, 2 », se lisent dans l'ordre.

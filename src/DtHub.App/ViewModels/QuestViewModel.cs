@@ -526,7 +526,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
                 foreach (var quest in quests)
                 {
-                    Nodes.Add(ToNode(quest));
+                    Nodes.Add(ToNode(quest) with { InSuccess = true });
                 }
             }
         }
@@ -791,11 +791,6 @@ public sealed partial class QuestViewModel : ObservableObject
     {
         var plan = QuestZonePlan.Of(quests, _catalog.Catalog.SuccessOrder);
 
-        // L'icône ne se pose que si elle distingue quelque chose. Dans les deux
-        // zones d'alignement, dont les quatre-vingts quêtes sont toutes seules,
-        // elle marquerait chaque ligne sans rien apprendre.
-        var mark = plan.Any(b => b.IsSuccess);
-
         foreach (var block in plan)
         {
             if (block.IsSuccess)
@@ -809,11 +804,9 @@ public sealed partial class QuestViewModel : ObservableObject
 
             foreach (var quest in block.Quests)
             {
-                var node = ToNode(quest);
-
-                Nodes.Add(block.IsSuccess || !mark
-                    ? node
-                    : node with { Glyph = QuestNodeGlyph.Alone });
+                // Le décalage dit l'appartenance : une quête au ras de la marge
+                // n'est réclamée par aucun succès.
+                Nodes.Add(ToNode(quest) with { InSuccess = block.IsSuccess });
             }
         }
     }

@@ -387,6 +387,8 @@
               <Style TargetType="ListBoxItem">
                 <Setter Property="IsEnabled" Value="{Binding IsEnabled}" />
                 <Setter Property="Focusable" Value="{Binding IsEnabled}" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Margin" Value="0" />
               </Style>
             </ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>
@@ -409,6 +411,23 @@
                        et l'écart seul ne suffisait pas à les distinguer. -->
                   <Rectangle x:Name="Filet" Grid.ColumnSpan="3" Height="1"
                              VerticalAlignment="Top" Margin="0,-9,0,0"
+                             Fill="{DynamicResource BorderBrush}"
+                             Visibility="Collapsed" />
+
+                  <!-- Le filet qui relie les quêtes d'un succès.
+
+                       C'est lui, avec le décalage, qui dit l'appartenance :
+                       l'intertitre et ses quêtes étaient au même retrait, et une
+                       icône portait seule toute la distinction.
+
+                       Pour qu'il ne se hache pas d'un rang à l'autre, une ligne
+                       de succès porte son écart au-dedans, sur son libellé, et
+                       non au-dehors comme les autres : un tracé débordant de la
+                       marge d'une ligne n'était pas dessiné, mesuré à
+                       quarante-cinq pixels de filet pour six de vide. -->
+                  <Rectangle x:Name="Trait" Grid.Column="0" Width="1"
+                             HorizontalAlignment="Right" VerticalAlignment="Stretch"
+                             Margin="0,-4,7,-4"
                              Fill="{DynamicResource BorderBrush}"
                              Visibility="Collapsed" />
 
@@ -562,6 +581,13 @@
                     <Setter TargetName="Filet" Property="Visibility" Value="Visible" />
                   </DataTrigger>
 
+                  <!-- Une quête de succès se décale et prend son filet. -->
+                  <DataTrigger Binding="{Binding InSuccess}" Value="True">
+                    <Setter TargetName="Trait" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Ligne" Property="Margin" Value="0" />
+                    <Setter TargetName="Libelle" Property="Margin" Value="9,3,0,3" />
+                  </DataTrigger>
+
                   <!-- Le blanc de rupture, posé sur la ligne qui précède. -->
                   <DataTrigger Binding="{Binding Spaced}" Value="True">
                     <Setter TargetName="Ligne" Property="Margin" Value="0,3,0,14" />
@@ -575,23 +601,6 @@
                     <Setter TargetName="Nature" Property="Data"
                             Value="M 7.5,2 L 9.2,5.9 L 13.3,6.4 L 10.3,9.2 L 11.1,13.2
                                    L 7.5,11.2 L 3.9,13.2 L 4.7,9.2 L 1.7,6.4 L 5.8,5.9 Z" />
-                  </DataTrigger>
-
-                  <DataTrigger Binding="{Binding Glyph}" Value="Alone">
-                    <Setter TargetName="Nature" Property="Visibility" Value="Visible" />
-                    <Setter TargetName="Nature" Property="Stroke"
-                            Value="{DynamicResource TextMutedBrush}" />
-                    <!-- Un anneau vide, contre l'étoile pleine du succès : la
-                         quête ne fait partie d'aucun. Il porte le gris du texte
-                         secondaire et non une couleur : il dit une absence
-                         d'appartenance, il n'annonce rien.
-
-                         Il ne se pose que dans les zones qui ont des succès. Là
-                         où toutes les quêtes sont seules, il marquerait chaque
-                         ligne sans rien distinguer. -->
-                    <Setter TargetName="Nature" Property="Data"
-                            Value="M 7.5,7.5 m -3.2,0 a 3.2,3.2 0 1 0 6.4,0
-                                   a 3.2,3.2 0 1 0 -6.4,0" />
                   </DataTrigger>
 
                   <DataTrigger Binding="{Binding Glyph}" Value="Place">

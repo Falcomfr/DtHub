@@ -70,9 +70,6 @@ public enum QuestNodeGlyph
 
     /// <summary>Un succès.</summary>
     Success,
-
-    /// <summary>Une quête qu'aucun succès ne réclame.</summary>
-    Alone,
 }
 
 /// <summary>
@@ -83,6 +80,11 @@ public enum QuestNodeGlyph
 /// <param name="Detail">Complément à droite : un nombre de quêtes, un niveau.</param>
 /// <param name="Id">Identifiant de la rubrique, quand c'en est une.</param>
 /// <param name="Glyph">L'icône qui annonce la nature de la ligne.</param>
+/// <param name="InSuccess">
+/// Vrai quand la ligne est une quête du succès qui la coiffe. Elle se décale
+/// alors, et un filet la relie aux autres : c'est ce décalage qui dit qu'une
+/// quête sans lui n'appartient à aucun succès.
+/// </param>
 /// <param name="Spaced">
 /// Vrai quand un blanc doit suivre la ligne, parce que ce qui vient après
 /// change de nature.
@@ -104,6 +106,7 @@ public sealed record QuestNode(
     PathSummary? Path = null,
     QuestNodeGlyph Glyph = QuestNodeGlyph.None,
     IReadOnlyList<QuestNeed>? Needs = null,
+    bool InSuccess = false,
     bool Spaced = false)
 {
     /// <summary>Ni les branches non faites, ni les intertitres ne se cliquent.</summary>

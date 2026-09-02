@@ -1059,18 +1059,23 @@ autre quête, restent donc où elles étaient.
 seule couche que les tests atteignent, le projet de tests visant `net10.0` quand
 l'application vise `net10.0-windows`. Douze tests y couvrent les cas mesurés.
 
-## D43 - L'anneau plutôt que l'intertitre
+## D43 - Le retrait dit l'appartenance
 
-**Une icône sur la ligne, pas d'intertitre.** Une fois les quêtes réparties, le
-compte d'un « Hors succès » ne veut plus rien dire, et quinze des trente suites
-de quêtes seules ne comptent qu'une ligne : un intertitre par suite aurait
-coiffé une seule quête une fois sur deux.
+**L'intertitre et ses quêtes étaient au même retrait.** La liste se lisait donc
+comme une suite plate d'où émergeaient des étoiles, et rien ne montrait qu'un
+succès contenait les lignes suivantes. Un anneau posé sur les quêtes seules
+avait d'abord été essayé : il ne dit rien de lui-même, s'apprend, et un cercle
+vide dans un suivi de quêtes se lit surtout comme une case à cocher.
 
-L'anneau est vide contre l'étoile pleine du succès, et porte le gris du texte
-secondaire et non une couleur : il dit une absence d'appartenance, il n'annonce
-rien.
+**Les quêtes d'un succès se décalent et se relient par un filet vertical.** Une
+quête au ras de la marge n'appartient alors à aucun succès, et cela se voit sans
+légende. Le filet montre du même coup où un succès commence et où il finit, ce
+que six lignes de suite ne disaient pas.
 
-**Il ne se pose que là où il distingue.** Dans les deux zones d'alignement, dont
-les quatre-vingts quêtes sont toutes seules, il marquerait chaque ligne sans
-rien apprendre. C'est la condition qui gouvernait déjà l'ancien intertitre.
+**Le filet se hachait d'un rang à l'autre.** Un tracé qui déborde de la marge
+d'une ligne n'était pas dessiné : mesuré, quarante-cinq pixels de filet pour six
+de vide. La cause est le remplissage que le conteneur de ligne se donne ; il est
+mis à zéro, et le débordement passe alors. La liste y gagne trois pixels de
+hauteur par ligne, et toutes les lignes la même hauteur, ce qui n'était pas le
+cas.
 
