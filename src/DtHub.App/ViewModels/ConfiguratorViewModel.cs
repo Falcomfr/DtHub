@@ -64,6 +64,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         {
             OnPropertyChanged(nameof(BitrateSummary));
             OnPropertyChanged(nameof(LinkSummary));
+            OnPropertyChanged(nameof(DisplayFitSummary));
         });
 
     /// <summary>
@@ -154,6 +155,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BitrateSummary))]
     [NotifyPropertyChangedFor(nameof(LinkSummary))]
+    [NotifyPropertyChangedFor(nameof(DisplayFitSummary))]
     private int _customHeight = 1080;
 
     [ObservableProperty]
@@ -204,6 +206,21 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// une soixantaine.
     /// </summary>
     public string LinkSummary => CurrentPlan.LinkSummary;
+
+    /// <summary>
+    /// La définition réellement demandée, et si le plafond choisi y change
+    /// quelque chose.
+    ///
+    /// C'est la réponse à un piège discret : le palier retenu est le premier
+    /// au-dessus de la fenêtre, donc monter le plafond au-delà de la taille des
+    /// fenêtres ne demande rien de plus. Sans cette ligne, on croit gagner en
+    /// finesse là où l'on ne gagne rien, et l'on paie parfois cher pour s'en
+    /// apercevoir.
+    /// </summary>
+    public string DisplayFitSummary => Core.Scrcpy.DisplayFit.Describe(
+        CustomHeight,
+        Core.Scrcpy.DisplayFit.FromCommandLine(
+            _launcher.ActiveSessions.FirstOrDefault(s => s.IsAlive)?.CommandLine));
 
     private BitratePlan CurrentPlan => BitrateAdvice.Plan(
         CustomBitsPerPixel,

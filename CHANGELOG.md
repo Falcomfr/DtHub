@@ -59,6 +59,12 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   code avait précisément appris à ne plus faire. La définition, elle, est
   annoncée pour ce qu'elle est, un plafond.
 
+- Une troisième ligne dit la définition réellement demandée, et prévient quand
+  le plafond choisi n'y change rien : « vos fenêtres tournent en 2560 × 1440,
+  au-delà ce réglage ne change rien ». Le palier retenu est le premier au-dessus
+  de la fenêtre, donc monter le plafond plus haut que les fenêtres ne demande
+  rien de plus, alors que l'interface laissait croire l'inverse.
+
 - Sous ces quatre réglages, deux lignes qui disent ce qu'ils valent :
   « 0,090 bit par pixel et par image, confortable » puis « au plus 11,2 Mb/s
   par fenêtre, 22,4 Mb/s à 2 comptes ». La première est la mesure que l'encodeur

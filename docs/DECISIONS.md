@@ -2349,3 +2349,51 @@ mélangés, plus les notifications.
 Le libellé promettrait donc une singularité qui n'existe pas, et masquerait ce
 que l'infobulle explique. Il devient « Son du téléphone renvoyé sur le PC », qui
 nomme la seule chose vraie.
+
+### La définition, ce qu'elle rend et ce qu'elle ne rend pas
+
+Signalé depuis l'usage : définition poussée au maximum, ça rame, et rien ne
+change à l'écran. Deux mesures, même scène, débit calculé comme l'application le
+ferait.
+
+**Dans une fenêtre de 1428 de haut :**
+
+| | 1920 × 1080 | 2560 × 1440 |
+|:--|--:|--:|
+| Débit demandé | 11 197 kb/s | 19 907 kb/s |
+| Images par seconde | 19 à 28 | 13 à 33 |
+| Écart moyen entre les deux images | | **0,63 sur 255** |
+| Énergie de contours | 1,37 | 1,42 |
+
+Soixante-dix-huit pour cent de débit pour un quart de pour cent d'image.
+
+**Dans une fenêtre de 1800 de haut**, le même essai donne un écart de 3,14 sur
+255 et une énergie de contours de 4,43 contre 5,03, soit treize pour cent de
+plus. Le texte y est visiblement plus net.
+
+**La première conclusion était donc trop générale**, et brider le palier « Haute »
+à 1080, ce qui avait été envisagé, aurait ramolli les grandes fenêtres. La règle
+juste est que la définition doit suivre la taille des fenêtres, ce que
+`DisplayLadder` fait déjà.
+
+### Le piège était ailleurs, et il est invisible
+
+`DisplayLadder.Choose` retient **le premier palier au-dessus de la fenêtre**,
+puis le plafond de qualité ne fait que le rabaisser. Un plafond au-delà de la
+taille des fenêtres ne demande donc rien de plus : 2160 et 1440 donnent le même
+afficheur dans une fenêtre de 1428.
+
+Rien ne le disait. On croyait monter en finesse, on ne montait rien, et l'on
+pouvait payer le double de débit en s'arrêtant à un palier intermédiaire. D'où la
+troisième ligne du panneau, qui lit la définition sur la ligne de commande de la
+session en cours, seul témoin qui ne puisse pas mentir, et annonce quand le
+plafond est sans effet.
+
+### Ce que valent les quatre réglages fins
+
+| Réglage | Verdict |
+|:--|:--|
+| Finesse d'image | agit directement sur l'image et le débit |
+| Codec vidéo | H.265 rend mieux à débit égal, encodeur matériel |
+| Définition max. | agit, mais seulement jusqu'à la taille des fenêtres |
+| Cadence | le jeu rend 19 à 33 images ici : 45 et 60 se valent |

@@ -443,6 +443,15 @@
                                    FontFamily="{StaticResource MonoFont}" FontSize="11"
                                    TextWrapping="Wrap"
                                    ToolTip="Ce que le téléphone devra pousser sur le Wi-Fi. Un appareil en Wi-Fi 4 sur 2,4 GHz en rend une soixantaine de mégabits en pratique." />
+
+                        <!-- Le palier retenu est le premier au-dessus de la
+                             fenêtre : au-delà, monter le plafond ne demande
+                             rien de plus et ne coûte rien de plus. Mesuré,
+                             c'est le piège le moins visible du panneau. -->
+                        <TextBlock Text="{Binding DisplayFitSummary}" Style="{StaticResource Muted}"
+                                   FontFamily="{StaticResource MonoFont}" FontSize="11"
+                                   TextWrapping="Wrap"
+                                   ToolTip="La définition suit la taille de vos fenêtres. Mesuré : dans une fenêtre de 1428 de haut, passer de 1080 à 1440 coûte 78 % de débit pour un écart d'image de 0,63 sur 255 ; dans une fenêtre de 1800, l'écart devient visible." />
                       </StackPanel>
                     </Border>
                   </Popup>
