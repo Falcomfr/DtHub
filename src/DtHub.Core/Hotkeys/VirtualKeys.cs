@@ -1,4 +1,5 @@
 using System.Globalization;
+using DtHub.Core.Localization;
 
 namespace DtHub.Core.Hotkeys;
 
@@ -66,32 +67,33 @@ public static class VirtualKeys
     /// <summary>Libellé affiché pour une touche.</summary>
     public static string Describe(int virtualKey) => virtualKey switch
     {
-        0 => "(aucune)",
-        Back => "Retour",
+        0 => Strings.Get("KeyNone"),
+        Back => Strings.Get("KeyBackspace"),
         Tab => "Tab",
-        Enter => "Entrée",
-        Pause => "Pause",
-        CapsLock => "Verr. Maj",
-        Escape => "Échap",
-        Space => "Espace",
-        PageUp => "Page préc.",
-        PageDown => "Page suiv.",
-        End => "Fin",
-        Home => "Origine",
-        Left => "Gauche",
-        Up => "Haut",
-        Right => "Droite",
-        Down => "Bas",
-        Insert => "Inser",
-        Delete => "Suppr",
+        Enter => Strings.Get("KeyEnter"),
+        Pause => Strings.Get("KeyPause"),
+        CapsLock => Strings.Get("KeyCapsLock"),
+        Escape => Strings.Get("KeyEscape"),
+        Space => Strings.Get("KeySpace"),
+        PageUp => Strings.Get("KeyPageUp"),
+        PageDown => Strings.Get("KeyPageDown"),
+        End => Strings.Get("KeyEnd"),
+        Home => Strings.Get("KeyHome"),
+        Left => Strings.Get("KeyLeft"),
+        Up => Strings.Get("KeyUp"),
+        Right => Strings.Get("KeyRight"),
+        Down => Strings.Get("KeyDown"),
+        Insert => Strings.Get("KeyInsert"),
+        Delete => Strings.Get("KeyDelete"),
         >= D0 and <= 0x39 => ((char)virtualKey).ToString(),
         >= A and <= 0x5A => ((char)virtualKey).ToString(),
-        >= NumPad0 and <= 0x69 => "Pavé " + (virtualKey - NumPad0).ToString(CultureInfo.InvariantCulture),
-        0x6A => "Pavé *",
-        0x6B => "Pavé +",
-        0x6D => "Pavé -",
-        0x6E => "Pavé .",
-        0x6F => "Pavé /",
+        >= NumPad0 and <= 0x69 =>
+            Strings.Get("KeyNumPadPrefix") + (virtualKey - NumPad0).ToString(CultureInfo.InvariantCulture),
+        0x6A => Strings.Get("KeyNumPadPrefix") + "*",
+        0x6B => Strings.Get("KeyNumPadPrefix") + "+",
+        0x6D => Strings.Get("KeyNumPadPrefix") + "-",
+        0x6E => Strings.Get("KeyNumPadPrefix") + ".",
+        0x6F => Strings.Get("KeyNumPadPrefix") + "/",
         >= F1 and <= F24 => "F" + (virtualKey - F1 + 1).ToString(CultureInfo.InvariantCulture),
         0xBA => ";",
         0xBB => "=",
@@ -104,6 +106,6 @@ public static class VirtualKeys
         0xDC => "\\",
         0xDD => "]",
         0xDE => "'",
-        _ => "Touche " + virtualKey.ToString(CultureInfo.InvariantCulture),
+        _ => Strings.Get("KeyUnknownPrefix") + virtualKey.ToString(CultureInfo.InvariantCulture),
     };
 }

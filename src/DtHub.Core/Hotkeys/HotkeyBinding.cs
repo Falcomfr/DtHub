@@ -1,4 +1,6 @@
-﻿namespace DtHub.Core.Hotkeys;
+﻿using DtHub.Core.Localization;
+
+namespace DtHub.Core.Hotkeys;
 
 /// <summary>Raison pour laquelle un raccourci est refusé.</summary>
 public enum HotkeyValidationResult
@@ -47,7 +49,7 @@ public sealed record HotkeyBinding
         {
             if (!IsAssigned)
             {
-                return "Non attribué";
+                return Strings.Get("HotkeyUnassigned");
             }
 
             List<string> parts = [];
@@ -64,7 +66,7 @@ public sealed record HotkeyBinding
 
             if (Modifiers.HasFlag(HotkeyModifiers.Shift))
             {
-                parts.Add("Maj");
+                parts.Add(Strings.Get("KeyShift"));
             }
 
             if (Modifiers.HasFlag(HotkeyModifiers.Windows))
@@ -88,18 +90,18 @@ public sealed record HotkeyBinding
     /// </summary>
     public static string DescribeAction(HotkeyAction action) => action switch
     {
-        HotkeyAction.ToggleConfigurator => "Afficher ou masquer les réglages",
-        HotkeyAction.NextInstance => "Fenêtre suivante",
-        HotkeyAction.PreviousInstance => "Fenêtre précédente",
-        HotkeyAction.Rearrange => "Empiler les fenêtres",
-        HotkeyAction.Tile => "Côte à côte",
-        HotkeyAction.Quests => "Afficher ou masquer les guides",
-        HotkeyAction.Size1 => "Taille 1",
-        HotkeyAction.Size2 => "Taille 2",
-        HotkeyAction.Size3 => "Taille 3",
-        HotkeyAction.Size4 => "Taille 4",
-        HotkeyAction.Fullscreen => "Plein écran",
-        HotkeyAction.Quit => "Quitter",
+        HotkeyAction.ToggleConfigurator => Strings.Get("ActionToggleSettings"),
+        HotkeyAction.NextInstance => Strings.Get("ActionNextWindow"),
+        HotkeyAction.PreviousInstance => Strings.Get("ActionPreviousWindow"),
+        HotkeyAction.Rearrange => Strings.Get("ActionStackWindows"),
+        HotkeyAction.Tile => Strings.Get("SideBySide"),
+        HotkeyAction.Quests => Strings.Get("ActionToggleGuides"),
+        HotkeyAction.Size1 => Strings.Get("ActionSize1"),
+        HotkeyAction.Size2 => Strings.Get("ActionSize2"),
+        HotkeyAction.Size3 => Strings.Get("ActionSize3"),
+        HotkeyAction.Size4 => Strings.Get("ActionSize4"),
+        HotkeyAction.Fullscreen => Strings.Get("ActionFullscreen"),
+        HotkeyAction.Quit => Strings.Get("Quit"),
         _ => action.ToString(),
     };
 
@@ -109,43 +111,18 @@ public sealed record HotkeyBinding
     /// </summary>
     public static string DetailAction(HotkeyAction action) => action switch
     {
-        HotkeyAction.ToggleConfigurator =>
-            "Montre ou cache cette fenêtre. Les fenêtres de jeu restent ouvertes, "
-            + "et le rappel de cette combinaison figure dans leur titre.",
-
-        HotkeyAction.NextInstance =>
-            "Passe à la fenêtre suivante, dans l'ordre de la liste des appareils. "
-            + "Les fenêtres mises de côté sont sautées.",
-
-        HotkeyAction.PreviousInstance =>
-            "Passe à la fenêtre précédente, dans l'ordre de la liste des appareils. "
-            + "Les fenêtres mises de côté sont sautées.",
-
-        HotkeyAction.Rearrange =>
-            "Empile toutes les fenêtres sur la dernière que vous avez utilisée, "
-            + "à sa position et à sa taille. Les fenêtres verrouillées ne bougent pas.",
-
-        HotkeyAction.Tile =>
-            "Range deux fenêtres côte à côte, chacune sur une moitié de l'écran. "
-            + "La fenêtre active va à droite.",
-
-        HotkeyAction.Quests =>
-            "Montre ou cache les guides, qui restent au-dessus des fenêtres de jeu. "
-            + "Quêtes, donjons, raids, tanières et chemins, de papycha.fr.",
-
-        HotkeyAction.Size1 => "La plus petite des quatre tailles, réglables au curseur.",
-        HotkeyAction.Size2 => "La deuxième des quatre tailles, réglables au curseur.",
-        HotkeyAction.Size3 => "La troisième des quatre tailles, réglables au curseur.",
-
-        HotkeyAction.Size4 =>
-            "La plus grande des quatre tailles. Elle couvre la zone utile de l'écran, "
-            + "barre des tâches exclue : ce n'est pas le plein écran.",
-
-        HotkeyAction.Fullscreen =>
-            "Couvre l'écran entier, sans bordure. Y revenir rend à chaque fenêtre "
-            + "la place qu'elle avait.",
-
-        HotkeyAction.Quit => "Ferme l'application et toutes les fenêtres de jeu.",
+        HotkeyAction.ToggleConfigurator => Strings.Get("ActionToggleSettingsDetail"),
+        HotkeyAction.NextInstance => Strings.Get("ActionNextWindowDetail"),
+        HotkeyAction.PreviousInstance => Strings.Get("ActionPreviousWindowDetail"),
+        HotkeyAction.Rearrange => Strings.Get("ActionStackWindowsDetail"),
+        HotkeyAction.Tile => Strings.Get("ActionTileDetail"),
+        HotkeyAction.Quests => Strings.Get("ActionToggleGuidesDetail"),
+        HotkeyAction.Size1 => Strings.Get("ActionSize1Detail"),
+        HotkeyAction.Size2 => Strings.Get("ActionSize2Detail"),
+        HotkeyAction.Size3 => Strings.Get("ActionSize3Detail"),
+        HotkeyAction.Size4 => Strings.Get("ActionSize4Detail"),
+        HotkeyAction.Fullscreen => Strings.Get("ActionFullscreenDetail"),
+        HotkeyAction.Quit => Strings.Get("ActionQuitDetail"),
 
         _ => string.Empty,
     };

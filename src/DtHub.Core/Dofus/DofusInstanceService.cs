@@ -3,6 +3,7 @@
 using DtHub.Core.Adb;
 using DtHub.Core.Android;
 using DtHub.Core.Devices;
+using DtHub.Core.Localization;
 using DtHub.Core.Users;
 
 namespace DtHub.Core.Dofus;
@@ -101,9 +102,7 @@ public sealed class DofusInstanceService
         if (AndroidUserService.IsFallback(users))
         {
             _warnings.Add(
-                $"{device.DisplayName} : la liste des profils Android n'a pas pu être lue. "
-                + "Seul le profil principal est visible ; un jeu installé dans un second "
-                + "espace n'apparaîtra pas.");
+                Strings.Format("ProfileListUnreadable", device.DisplayName));
         }
         else
         {
@@ -173,8 +172,7 @@ public sealed class DofusInstanceService
         {
             return new AccountAddition(
                 false,
-                $"Ce téléphone n'accepte que {limit} profils, et les {limit} sont pris. "
-                + "Supprimez-en un dans ses réglages pour faire de la place.");
+                Strings.Format("ProfileLimitReached", limit));
         }
 
         // Le profil se rattache à l'utilisateur principal. Aucun identifiant
@@ -184,8 +182,7 @@ public sealed class DofusInstanceService
         {
             return new AccountAddition(
                 false,
-                "Le téléphone n'a pas dit quel est son profil principal. Reconnectez-le, "
-                + "puis réessayez.");
+                Strings.Get("NoPrimaryProfile"));
         }
 
         // Android n'accepte qu'un seul profil géré par compte principal,
@@ -196,9 +193,7 @@ public sealed class DofusInstanceService
         {
             return new AccountAddition(
                 false,
-                "Ce téléphone n'accepte qu'un seul profil de ce genre, et il existe déjà. "
-                + "Pour un compte de plus, activez les applications dupliquées dans ses "
-                + "réglages.");
+                Strings.Get("OneManagedProfileOnly"));
         }
 
         if (await _users.TryCreateUserAsync(serial, name, parent.Id, cancellationToken)
@@ -207,8 +202,7 @@ public sealed class DofusInstanceService
         {
             return new AccountAddition(
                 false,
-                "Le téléphone a refusé de créer un profil. Certaines surcouches l'interdisent : "
-                + "passez alors par leurs réglages de comptes multiples.");
+                Strings.Get("ProfileCreationRefused"));
         }
 
         try
@@ -229,7 +223,7 @@ public sealed class DofusInstanceService
         {
             return new AccountAddition(
                 false,
-                $"Le profil est créé mais le jeu n'a pas pu y être installé : {exception.UserMessage}",
+                Strings.Format("ProfileMadeGameNotInstalled", exception.UserMessage),
                 userId);
         }
 
@@ -237,7 +231,7 @@ public sealed class DofusInstanceService
         {
             return new AccountAddition(
                 false,
-                "Le profil est créé mais le jeu ne s'y trouve pas. Installez-le depuis ce profil.",
+                Strings.Get("ProfileMadeGameMissing"),
                 userId);
         }
 
@@ -248,8 +242,7 @@ public sealed class DofusInstanceService
 
         return new AccountAddition(
             true,
-            $"« {name.Trim()} » ajouté. Le jeu s'y ouvrira comme neuf : "
-            + "il redemandera ses ressources et votre connexion.",
+            Strings.Format("AccountAdded", name.Trim()),
             userId);
     }
 

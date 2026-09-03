@@ -1,4 +1,5 @@
 using DtHub.Core.Adb;
+using DtHub.Core.Localization;
 
 namespace DtHub.Core.Devices;
 
@@ -56,8 +57,7 @@ public sealed class DevicePairingService
         {
             return new WirelessPairingResult(
                 WirelessPairingStatus.ConnectPortNotFound,
-                "Le téléphone est appairé, mais son port de connexion n'a pas été trouvé sur le réseau. "
-                + "Saisissez le port affiché sous « Débogage sans fil » sur le téléphone.",
+                Strings.Get("PairedButPortUnknown"),
                 DeviceGuid: pairing.DeviceGuid);
         }
 
@@ -67,7 +67,7 @@ public sealed class DevicePairingService
         return connect.Succeeded
             ? new WirelessPairingResult(
                 WirelessPairingStatus.Connected,
-                "Téléphone appairé et connecté.",
+                Strings.Get("PairedAndConnected"),
                 service.Address,
                 pairing.DeviceGuid)
             : new WirelessPairingResult(
@@ -89,7 +89,7 @@ public sealed class DevicePairingService
         var connect = await _adb.ConnectAsync(host, port, cancellationToken).ConfigureAwait(false);
 
         return connect.Succeeded
-            ? new WirelessPairingResult(WirelessPairingStatus.Connected, "Téléphone connecté.", $"{host}:{port}")
+            ? new WirelessPairingResult(WirelessPairingStatus.Connected, Strings.Get("PhoneConnected"), $"{host}:{port}")
             : new WirelessPairingResult(
                 WirelessPairingStatus.ConnectFailed,
                 AdbErrorInterpreter.Describe(AdbErrorKind.ConnectionFailed),

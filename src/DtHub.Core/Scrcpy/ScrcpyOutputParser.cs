@@ -1,6 +1,8 @@
 ﻿using System.Globalization;
 using System.Text.RegularExpressions;
 
+using DtHub.Core.Localization;
+
 namespace DtHub.Core.Scrcpy;
 
 /// <summary>
@@ -137,20 +139,12 @@ public static partial class ScrcpyOutputParser
     /// <summary>Message correspondant à une catégorie de refus.</summary>
     public static string? Describe(ScrcpyFailureKind kind) => kind switch
     {
-        ScrcpyFailureKind.DeviceGone =>
-            "Le téléphone n'est plus détecté. Vérifiez le câble ou la connexion Wi-Fi.",
-        ScrcpyFailureKind.DeviceDisconnected =>
-            "Le téléphone s'est déconnecté pendant la session.",
-        ScrcpyFailureKind.Unauthorized =>
-            "Le téléphone n'a pas autorisé ce PC. Déverrouillez l'écran et acceptez la demande de débogage.",
-        ScrcpyFailureKind.VirtualDisplayRefused =>
-            "Ce téléphone n'a pas pu créer d'écran virtuel. "
-            + "La fonction demande Android 11 ou plus récent.",
-        ScrcpyFailureKind.Encoder =>
-            "L'encodeur vidéo du téléphone a refusé la session. "
-            + "Réduisez le nombre de sessions simultanées ou le débit dans les paramètres.",
-        ScrcpyFailureKind.ConnectionFailed =>
-            "La connexion avec le téléphone a échoué. Reconnectez-le, puis réessayez.",
+        ScrcpyFailureKind.DeviceGone => Strings.Get("ScrcpyDeviceGone"),
+        ScrcpyFailureKind.DeviceDisconnected => Strings.Get("ScrcpyDisconnected"),
+        ScrcpyFailureKind.Unauthorized => Strings.Get("ScrcpyUnauthorized"),
+        ScrcpyFailureKind.VirtualDisplayRefused => Strings.Get("ScrcpyNoVirtualDisplay"),
+        ScrcpyFailureKind.Encoder => Strings.Get("ScrcpyEncoderRefused"),
+        ScrcpyFailureKind.ConnectionFailed => Strings.Get("ScrcpyConnectionFailed"),
         _ => null,
     };
 

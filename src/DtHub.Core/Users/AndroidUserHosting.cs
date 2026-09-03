@@ -1,3 +1,5 @@
+using DtHub.Core.Localization;
+
 namespace DtHub.Core.Users;
 
 /// <summary>
@@ -58,8 +60,7 @@ public static class AndroidUserHosting
         {
             return new Verdict(
                 false,
-                "Ce profil est en pause. Rallumez-le sur le téléphone, depuis son "
-                + "interrupteur ou depuis l'application qui le gère.");
+                Strings.Get("ProfilePausedShort"));
         }
 
         switch (user.Type)
@@ -74,27 +75,22 @@ public static class AndroidUserHosting
                     ? new Verdict(true, string.Empty)
                     : new Verdict(
                         false,
-                        "Ce téléphone n'affiche qu'un utilisateur complet à la fois. "
-                        + "Un second espace remplace l'écran au lieu de s'ouvrir à côté : "
-                        + "utilisez un profil ou des applications dupliquées.");
+                        Strings.Get("OneFullUserAtATime"));
 
             case AndroidUserType.Guest:
                 return new Verdict(
                     false,
-                    "Le profil invité s'efface à chaque fermeture : le jeu y "
-                    + "redemanderait la connexion à chaque fois.");
+                    Strings.Get("GuestProfileWiped"));
 
             case AndroidUserType.Restricted:
                 return new Verdict(
                     false,
-                    "Un profil restreint n'autorise pas le lancement d'applications "
-                    + "depuis un PC.");
+                    Strings.Get("RestrictedProfile"));
 
             default:
                 return new Verdict(
                     false,
-                    "La nature de ce profil est inconnue : rien ne garantit qu'une "
-                    + "fenêtre s'y ouvrira.");
+                    Strings.Get("UnknownProfileKind"));
         }
     }
 

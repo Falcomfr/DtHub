@@ -24,6 +24,13 @@ public static class Strings
         => Manager.GetString(key, CultureInfo.CurrentUICulture) ?? key;
 
     /// <summary>
+    /// Rend le texte de cette clé, ses trous remplis. Les nombres et les dates
+    /// y prennent le format du pays, qui est un réglage distinct de la langue.
+    /// </summary>
+    public static string Format(string key, params object?[] arguments)
+        => string.Format(CultureInfo.CurrentCulture, Get(key), arguments);
+
+    /// <summary>
     /// Rend le texte de cette clé dans une langue nommée. Sert aux épreuves,
     /// qui doivent pouvoir lire une langue sans changer celle du fil.
     ///

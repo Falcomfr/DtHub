@@ -2,6 +2,7 @@
 
 using DtHub.Core.Adb;
 using DtHub.Core.Dofus;
+using DtHub.Core.Localization;
 using DtHub.Core.Users;
 
 namespace DtHub.Core.Sessions;
@@ -38,7 +39,7 @@ public sealed class AndroidAppLauncher : IAppLauncher
         if (await PrepareUserAsync(serial, userId, cancellationToken).ConfigureAwait(false)
             is { } refusal)
         {
-            return AppLaunchResult.Failure(refusal, "Profil hors d'état de porter une fenêtre.");
+            return AppLaunchResult.Failure(refusal, Strings.Get("ProfileCannotHostWindow"));
         }
 
         var first = await TryStartAsync(serial, userId, knownComponent, displayId, cancellationToken)
@@ -58,7 +59,7 @@ public sealed class AndroidAppLauncher : IAppLauncher
         if (resolved is null)
         {
             return AppLaunchResult.Failure(
-                "Le jeu n'est plus installé sur ce profil Android.",
+                Strings.Get("GameNotInstalledOnProfile"),
                 first.Details);
         }
 
@@ -133,8 +134,7 @@ public sealed class AndroidAppLauncher : IAppLauncher
         // profil.
         return await _users.TryStartUserAsync(serial, userId, cancellationToken).ConfigureAwait(false)
             ? null
-            : $"Le profil « {user.DisplayName} » n'a pas pu être démarré. "
-              + "Ouvrez-le une fois sur le téléphone, puis réessayez.";
+            : Strings.Format("ProfileCouldNotStart", user.DisplayName);
     }
 
     private async Task<AppLaunchResult> TryStartAsync(
@@ -147,7 +147,7 @@ public sealed class AndroidAppLauncher : IAppLauncher
         if (string.IsNullOrWhiteSpace(component))
         {
             return AppLaunchResult.Failure(
-                "Le jeu n'est plus installé sur ce profil Android.",
+                Strings.Get("GameNotInstalledOnProfile"),
                 "Aucun composant de lancement connu.");
         }
 

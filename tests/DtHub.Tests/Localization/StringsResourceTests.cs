@@ -16,7 +16,7 @@ namespace DtHub.Tests.Localization;
 public sealed class StringsResourceTests
 {
     private static readonly Regex UsedInXaml = new(@"\{loc:T\s+(?<key>[A-Za-z0-9_]+)\s*\}");
-    private static readonly Regex UsedInCode = new(@"Strings\.Get\(\s*""(?<key>[A-Za-z0-9_]+)""");
+    private static readonly Regex UsedInCode = new(@"Strings\.(?:Get|Format)\(\s*""(?<key>[A-Za-z0-9_]+)""");
 
     [Fact]
     public void Les_trois_langues_portent_les_memes_cles()

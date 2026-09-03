@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 
+using DtHub.Core.Localization;
 using DtHub.Core.Sessions;
 using DtHub.Core.Dependencies;
 using DtHub.Core.Processes;
@@ -193,7 +194,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
             return FailedSession(
                 sessionId, target, windowTitle,
-                "scrcpy n'a pas pu démarrer. Le détail est dans les journaux.",
+                Strings.Get("ScrcpyDidNotStart"),
                 exception.Message);
         }
 
@@ -367,14 +368,14 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                 session.FailureKind = ScrcpyFailureKind.Timeout;
             }
 
-            Fail(session, "Le téléphone n'a pas ouvert d'écran virtuel à temps.");
+            Fail(session, Strings.Get("ScrcpyDisplayTimeout"));
             session.Process.Kill();
             return null;
         }
 
         if (displayId is null)
         {
-            Fail(session, session.FailureMessage ?? "La session de mirroring n'a pas pu s'ouvrir.");
+            Fail(session, session.FailureMessage ?? Strings.Get("ScrcpySessionFailed"));
             return null;
         }
 
@@ -410,7 +411,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             }
             catch (Exception exception) when (exception is not OutOfMemoryException)
             {
-                session.Record($"Placement préalable impossible : {exception.Message}");
+                session.Record(Strings.Format("ScrcpyPrePlacementFailed", exception.Message));
             }
         }
 
@@ -439,7 +440,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         {
             // Sans application, la fenêtre resterait vide : on ferme plutôt que
             // de laisser un écran noir sans explication.
-            Fail(session, launch.UserMessage ?? "L'application n'a pas pu être ouverte.");
+            Fail(session, launch.UserMessage ?? Strings.Get("ScrcpyAppNotOpened"));
             session.Process.Kill();
             return;
         }
@@ -533,7 +534,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
     private void Fail(ScrcpySession session, string? message)
     {
-        session.FailureMessage = message ?? "La session de mirroring s'est interrompue.";
+        session.FailureMessage = message ?? Strings.Get("ScrcpySessionInterrupted");
         Transition(session, ScrcpySessionState.Failed);
     }
 

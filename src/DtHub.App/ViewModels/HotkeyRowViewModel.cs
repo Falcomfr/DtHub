@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 
 using DtHub.Core.Hotkeys;
+using DtHub.Core.Localization;
 
 namespace DtHub.App.ViewModels;
 
@@ -27,7 +28,7 @@ public sealed partial class HotkeyRowViewModel : ObservableObject
     /// <summary>Ce que l'action fait vraiment, pour l'infobulle.</summary>
     public string ActionDetail => HotkeyBinding.DetailAction(Binding.Action);
 
-    public string ShortcutText => IsCapturing ? "Appuyez sur la nouvelle combinaison…" : Binding.DisplayText;
+    public string ShortcutText => IsCapturing ? Strings.Get("HotkeyPressNew") : Binding.DisplayText;
 
     public bool HasError => !string.IsNullOrWhiteSpace(Error);
 

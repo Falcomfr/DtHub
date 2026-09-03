@@ -506,4 +506,295 @@
   <data name="AlreadyFrozenHelp" xml:space="preserve">
     <value>Une fenêtre déjà figée se répare en la relançant : le bouton « Relancer » de sa ligne redémarre le jeu sans refermer la fenêtre.</value>
   </data>
+  <data name="KeyNone" xml:space="preserve">
+    <value>(aucune)</value>
+  </data>
+  <data name="KeyBackspace" xml:space="preserve">
+    <value>Retour</value>
+  </data>
+  <data name="KeyEnter" xml:space="preserve">
+    <value>Entrée</value>
+  </data>
+  <data name="KeyPause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="KeyCapsLock" xml:space="preserve">
+    <value>Verr. Maj</value>
+  </data>
+  <data name="KeyEscape" xml:space="preserve">
+    <value>Échap</value>
+  </data>
+  <data name="KeySpace" xml:space="preserve">
+    <value>Espace</value>
+  </data>
+  <data name="KeyPageUp" xml:space="preserve">
+    <value>Page préc.</value>
+  </data>
+  <data name="KeyPageDown" xml:space="preserve">
+    <value>Page suiv.</value>
+  </data>
+  <data name="KeyEnd" xml:space="preserve">
+    <value>Fin</value>
+  </data>
+  <data name="KeyHome" xml:space="preserve">
+    <value>Origine</value>
+  </data>
+  <data name="KeyLeft" xml:space="preserve">
+    <value>Gauche</value>
+  </data>
+  <data name="KeyUp" xml:space="preserve">
+    <value>Haut</value>
+  </data>
+  <data name="KeyRight" xml:space="preserve">
+    <value>Droite</value>
+  </data>
+  <data name="KeyDown" xml:space="preserve">
+    <value>Bas</value>
+  </data>
+  <data name="KeyInsert" xml:space="preserve">
+    <value>Inser</value>
+  </data>
+  <data name="KeyDelete" xml:space="preserve">
+    <value>Suppr</value>
+  </data>
+  <data name="KeyNumPadPrefix" xml:space="preserve">
+    <value>Pavé </value>
+  </data>
+  <data name="KeyUnknownPrefix" xml:space="preserve">
+    <value>Touche </value>
+  </data>
+  <data name="KeyShift" xml:space="preserve">
+    <value>Maj</value>
+  </data>
+  <data name="HotkeyUnassigned" xml:space="preserve">
+    <value>Non attribué</value>
+  </data>
+  <data name="ActionToggleSettings" xml:space="preserve">
+    <value>Afficher ou masquer les réglages</value>
+  </data>
+  <data name="ActionNextWindow" xml:space="preserve">
+    <value>Fenêtre suivante</value>
+  </data>
+  <data name="ActionPreviousWindow" xml:space="preserve">
+    <value>Fenêtre précédente</value>
+  </data>
+  <data name="ActionStackWindows" xml:space="preserve">
+    <value>Empiler les fenêtres</value>
+  </data>
+  <data name="ActionToggleGuides" xml:space="preserve">
+    <value>Afficher ou masquer les guides</value>
+  </data>
+  <data name="ActionSize1" xml:space="preserve">
+    <value>Taille 1</value>
+  </data>
+  <data name="ActionSize2" xml:space="preserve">
+    <value>Taille 2</value>
+  </data>
+  <data name="ActionSize3" xml:space="preserve">
+    <value>Taille 3</value>
+  </data>
+  <data name="ActionSize4" xml:space="preserve">
+    <value>Taille 4</value>
+  </data>
+  <data name="ActionFullscreen" xml:space="preserve">
+    <value>Plein écran</value>
+  </data>
+  <data name="ActionToggleSettingsDetail" xml:space="preserve">
+    <value>Montre ou cache cette fenêtre. Les fenêtres de jeu restent ouvertes, et le rappel de cette combinaison figure dans leur titre.</value>
+  </data>
+  <data name="ActionNextWindowDetail" xml:space="preserve">
+    <value>Passe à la fenêtre suivante, dans l'ordre de la liste des appareils. Les fenêtres mises de côté sont sautées.</value>
+  </data>
+  <data name="ActionPreviousWindowDetail" xml:space="preserve">
+    <value>Passe à la fenêtre précédente, dans l'ordre de la liste des appareils. Les fenêtres mises de côté sont sautées.</value>
+  </data>
+  <data name="ActionStackWindowsDetail" xml:space="preserve">
+    <value>Empile toutes les fenêtres sur la dernière que vous avez utilisée, à sa position et à sa taille. Les fenêtres verrouillées ne bougent pas.</value>
+  </data>
+  <data name="ActionTileDetail" xml:space="preserve">
+    <value>Range deux fenêtres côte à côte, chacune sur une moitié de l'écran. La fenêtre active va à droite.</value>
+  </data>
+  <data name="ActionToggleGuidesDetail" xml:space="preserve">
+    <value>Montre ou cache les guides, qui restent au-dessus des fenêtres de jeu. Quêtes, donjons, raids, tanières et chemins, de papycha.fr.</value>
+  </data>
+  <data name="ActionSize1Detail" xml:space="preserve">
+    <value>La plus petite des quatre tailles, réglables au curseur.</value>
+  </data>
+  <data name="ActionSize2Detail" xml:space="preserve">
+    <value>La deuxième des quatre tailles, réglables au curseur.</value>
+  </data>
+  <data name="ActionSize3Detail" xml:space="preserve">
+    <value>La troisième des quatre tailles, réglables au curseur.</value>
+  </data>
+  <data name="ActionSize4Detail" xml:space="preserve">
+    <value>La plus grande des quatre tailles. Elle couvre la zone utile de l'écran, barre des tâches exclue : ce n'est pas le plein écran.</value>
+  </data>
+  <data name="ActionFullscreenDetail" xml:space="preserve">
+    <value>Couvre l'écran entier, sans bordure. Y revenir rend à chaque fenêtre la place qu'elle avait.</value>
+  </data>
+  <data name="ActionQuitDetail" xml:space="preserve">
+    <value>Ferme l'application et toutes les fenêtres de jeu.</value>
+  </data>
+  <data name="HotkeyPressNew" xml:space="preserve">
+    <value>Appuyez sur la nouvelle combinaison…</value>
+  </data>
+  <data name="HotkeyRefusedByWindows" xml:space="preserve">
+    <value>Refusé par Windows, probablement pris par un autre logiciel : {0}</value>
+  </data>
+  <data name="HotkeyNoKey" xml:space="preserve">
+    <value>Aucune touche saisie.</value>
+  </data>
+  <data name="HotkeyModifierOnly" xml:space="preserve">
+    <value>Ajoutez une touche en plus du modificateur.</value>
+  </data>
+  <data name="HotkeyMissingModifier" xml:space="preserve">
+    <value>Ajoutez Ctrl, Alt ou Maj, sinon la touche serait interceptée pendant que vous jouez.</value>
+  </data>
+  <data name="HotkeyReserved" xml:space="preserve">
+    <value>Cette combinaison est réservée par Windows.</value>
+  </data>
+  <data name="HotkeyDuplicateBy" xml:space="preserve">
+    <value>Déjà utilisée par « {0} ».</value>
+  </data>
+  <data name="HotkeyDuplicate" xml:space="preserve">
+    <value>Cette combinaison est déjà utilisée.</value>
+  </data>
+  <data name="HotkeyRefused" xml:space="preserve">
+    <value>Combinaison refusée.</value>
+  </data>
+  <data name="ThePhone" xml:space="preserve">
+    <value>Le téléphone</value>
+  </data>
+  <data name="AdbDeviceNotFound" xml:space="preserve">
+    <value>{0} n'est plus détecté. Vérifiez le câble ou la connexion Wi-Fi.</value>
+  </data>
+  <data name="AdbDeviceOffline" xml:space="preserve">
+    <value>{0} ne répond plus. Réveillez l'écran, puis reconnectez-le.</value>
+  </data>
+  <data name="AdbDeviceUnauthorized" xml:space="preserve">
+    <value>{0} n'a pas encore autorisé ce PC. Déverrouillez l'écran et acceptez la demande de débogage.</value>
+  </data>
+  <data name="AdbAmbiguousDevice" xml:space="preserve">
+    <value>Plusieurs appareils sont connectés et aucun n'a été choisi.</value>
+  </data>
+  <data name="AdbConnectionFailed" xml:space="preserve">
+    <value>Impossible de joindre {0}. Vérifiez qu'il est sur le même réseau et que le débogage sans fil est actif.</value>
+  </data>
+  <data name="AdbPairingFailed" xml:space="preserve">
+    <value>L'appairage a échoué. Le code est peut-être expiré : relancez l'association sur le téléphone pour en obtenir un nouveau.</value>
+  </data>
+  <data name="AdbPackageNotFound" xml:space="preserve">
+    <value>L'application n'est plus installée pour ce profil Android.</value>
+  </data>
+  <data name="AdbUserNotAvailable" xml:space="preserve">
+    <value>Ce profil Android n'est pas disponible. Ouvrez-le une fois sur le téléphone, puis réessayez.</value>
+  </data>
+  <data name="AdbPermissionDenied" xml:space="preserve">
+    <value>Le téléphone a refusé l'accès à ce profil. Les dossiers sécurisés et les profils gérés par une entreprise n'autorisent pas le lancement depuis un PC.</value>
+  </data>
+  <data name="AdbProfilePaused" xml:space="preserve">
+    <value>Ce profil est en pause. Réactivez-le sur le téléphone, depuis son interrupteur ou depuis l'application qui le gère, puis réessayez.</value>
+  </data>
+  <data name="AdbTimeout" xml:space="preserve">
+    <value>{0} n'a pas répondu à temps.</value>
+  </data>
+  <data name="AdbUnavailable" xml:space="preserve">
+    <value>Les outils Android n'ont pas pu démarrer. Consultez le diagnostic dans les paramètres.</value>
+  </data>
+  <data name="AdbUnknownError" xml:space="preserve">
+    <value>Une erreur est survenue lors de la communication avec le téléphone.</value>
+  </data>
+  <data name="ProfileListUnreadable" xml:space="preserve">
+    <value>{0} : la liste des profils Android n'a pas pu être lue. Seul le profil principal est visible ; un jeu installé dans un second espace n'apparaîtra pas.</value>
+  </data>
+  <data name="ProfileLimitReached" xml:space="preserve">
+    <value>Ce téléphone n'accepte que {0} profils, et les {0} sont pris. Supprimez-en un dans ses réglages pour faire de la place.</value>
+  </data>
+  <data name="NoPrimaryProfile" xml:space="preserve">
+    <value>Le téléphone n'a pas dit quel est son profil principal. Reconnectez-le, puis réessayez.</value>
+  </data>
+  <data name="OneManagedProfileOnly" xml:space="preserve">
+    <value>Ce téléphone n'accepte qu'un seul profil de ce genre, et il existe déjà. Pour un compte de plus, activez les applications dupliquées dans ses réglages.</value>
+  </data>
+  <data name="ProfileCreationRefused" xml:space="preserve">
+    <value>Le téléphone a refusé de créer un profil. Certaines surcouches l'interdisent : passez alors par leurs réglages de comptes multiples.</value>
+  </data>
+  <data name="ProfileMadeGameNotInstalled" xml:space="preserve">
+    <value>Le profil est créé mais le jeu n'a pas pu y être installé : {0}</value>
+  </data>
+  <data name="ProfileMadeGameMissing" xml:space="preserve">
+    <value>Le profil est créé mais le jeu ne s'y trouve pas. Installez-le depuis ce profil.</value>
+  </data>
+  <data name="AccountAdded" xml:space="preserve">
+    <value>« {0} » ajouté. Le jeu s'y ouvrira comme neuf : il redemandera ses ressources et votre connexion.</value>
+  </data>
+  <data name="ProfilePausedShort" xml:space="preserve">
+    <value>Ce profil est en pause. Rallumez-le sur le téléphone, depuis son interrupteur ou depuis l'application qui le gère.</value>
+  </data>
+  <data name="OneFullUserAtATime" xml:space="preserve">
+    <value>Ce téléphone n'affiche qu'un utilisateur complet à la fois. Un second espace remplace l'écran au lieu de s'ouvrir à côté : utilisez un profil ou des applications dupliquées.</value>
+  </data>
+  <data name="GuestProfileWiped" xml:space="preserve">
+    <value>Le profil invité s'efface à chaque fermeture : le jeu y redemanderait la connexion à chaque fois.</value>
+  </data>
+  <data name="RestrictedProfile" xml:space="preserve">
+    <value>Un profil restreint n'autorise pas le lancement d'applications depuis un PC.</value>
+  </data>
+  <data name="UnknownProfileKind" xml:space="preserve">
+    <value>La nature de ce profil est inconnue : rien ne garantit qu'une fenêtre s'y ouvrira.</value>
+  </data>
+  <data name="ScrcpyDeviceGone" xml:space="preserve">
+    <value>Le téléphone n'est plus détecté. Vérifiez le câble ou la connexion Wi-Fi.</value>
+  </data>
+  <data name="ScrcpyDisconnected" xml:space="preserve">
+    <value>Le téléphone s'est déconnecté pendant la session.</value>
+  </data>
+  <data name="ScrcpyUnauthorized" xml:space="preserve">
+    <value>Le téléphone n'a pas autorisé ce PC. Déverrouillez l'écran et acceptez la demande de débogage.</value>
+  </data>
+  <data name="ScrcpyNoVirtualDisplay" xml:space="preserve">
+    <value>Ce téléphone n'a pas pu créer d'écran virtuel. La fonction demande Android 11 ou plus récent.</value>
+  </data>
+  <data name="ScrcpyEncoderRefused" xml:space="preserve">
+    <value>L'encodeur vidéo du téléphone a refusé la session. Réduisez le nombre de sessions simultanées ou le débit dans les paramètres.</value>
+  </data>
+  <data name="ScrcpyConnectionFailed" xml:space="preserve">
+    <value>La connexion avec le téléphone a échoué. Reconnectez-le, puis réessayez.</value>
+  </data>
+  <data name="ScrcpyDidNotStart" xml:space="preserve">
+    <value>scrcpy n'a pas pu démarrer. Le détail est dans les journaux.</value>
+  </data>
+  <data name="ScrcpyDisplayTimeout" xml:space="preserve">
+    <value>Le téléphone n'a pas ouvert d'écran virtuel à temps.</value>
+  </data>
+  <data name="ScrcpySessionFailed" xml:space="preserve">
+    <value>La session de mirroring n'a pas pu s'ouvrir.</value>
+  </data>
+  <data name="ScrcpyPrePlacementFailed" xml:space="preserve">
+    <value>Placement préalable impossible : {0}</value>
+  </data>
+  <data name="ScrcpyAppNotOpened" xml:space="preserve">
+    <value>L'application n'a pas pu être ouverte.</value>
+  </data>
+  <data name="ScrcpySessionInterrupted" xml:space="preserve">
+    <value>La session de mirroring s'est interrompue.</value>
+  </data>
+  <data name="ProfileCannotHostWindow" xml:space="preserve">
+    <value>Profil hors d'état de porter une fenêtre.</value>
+  </data>
+  <data name="GameNotInstalledOnProfile" xml:space="preserve">
+    <value>Le jeu n'est plus installé sur ce profil Android.</value>
+  </data>
+  <data name="ProfileCouldNotStart" xml:space="preserve">
+    <value>Le profil « {0} » n'a pas pu être démarré. Ouvrez-le une fois sur le téléphone, puis réessayez.</value>
+  </data>
+  <data name="PairedButPortUnknown" xml:space="preserve">
+    <value>Le téléphone est appairé, mais son port de connexion n'a pas été trouvé sur le réseau. Saisissez le port affiché sous « Débogage sans fil » sur le téléphone.</value>
+  </data>
+  <data name="PairedAndConnected" xml:space="preserve">
+    <value>Téléphone appairé et connecté.</value>
+  </data>
+  <data name="PhoneConnected" xml:space="preserve">
+    <value>Téléphone connecté.</value>
+  </data>
 </root>

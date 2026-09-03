@@ -506,4 +506,295 @@
   <data name="AlreadyFrozenHelp" xml:space="preserve">
     <value>Una ventana ya congelada se arregla reiniciándola: el botón «Reiniciar» de su fila reinicia el juego sin cerrar la ventana.</value>
   </data>
+  <data name="KeyNone" xml:space="preserve">
+    <value>(ninguna)</value>
+  </data>
+  <data name="KeyBackspace" xml:space="preserve">
+    <value>Retroceso</value>
+  </data>
+  <data name="KeyEnter" xml:space="preserve">
+    <value>Intro</value>
+  </data>
+  <data name="KeyPause" xml:space="preserve">
+    <value>Pausa</value>
+  </data>
+  <data name="KeyCapsLock" xml:space="preserve">
+    <value>Bloq Mayús</value>
+  </data>
+  <data name="KeyEscape" xml:space="preserve">
+    <value>Esc</value>
+  </data>
+  <data name="KeySpace" xml:space="preserve">
+    <value>Espacio</value>
+  </data>
+  <data name="KeyPageUp" xml:space="preserve">
+    <value>Re Pág</value>
+  </data>
+  <data name="KeyPageDown" xml:space="preserve">
+    <value>Av Pág</value>
+  </data>
+  <data name="KeyEnd" xml:space="preserve">
+    <value>Fin</value>
+  </data>
+  <data name="KeyHome" xml:space="preserve">
+    <value>Inicio</value>
+  </data>
+  <data name="KeyLeft" xml:space="preserve">
+    <value>Izquierda</value>
+  </data>
+  <data name="KeyUp" xml:space="preserve">
+    <value>Arriba</value>
+  </data>
+  <data name="KeyRight" xml:space="preserve">
+    <value>Derecha</value>
+  </data>
+  <data name="KeyDown" xml:space="preserve">
+    <value>Abajo</value>
+  </data>
+  <data name="KeyInsert" xml:space="preserve">
+    <value>Insert</value>
+  </data>
+  <data name="KeyDelete" xml:space="preserve">
+    <value>Supr</value>
+  </data>
+  <data name="KeyNumPadPrefix" xml:space="preserve">
+    <value>Num </value>
+  </data>
+  <data name="KeyUnknownPrefix" xml:space="preserve">
+    <value>Tecla </value>
+  </data>
+  <data name="KeyShift" xml:space="preserve">
+    <value>Mayús</value>
+  </data>
+  <data name="HotkeyUnassigned" xml:space="preserve">
+    <value>Sin asignar</value>
+  </data>
+  <data name="ActionToggleSettings" xml:space="preserve">
+    <value>Mostrar u ocultar los ajustes</value>
+  </data>
+  <data name="ActionNextWindow" xml:space="preserve">
+    <value>Ventana siguiente</value>
+  </data>
+  <data name="ActionPreviousWindow" xml:space="preserve">
+    <value>Ventana anterior</value>
+  </data>
+  <data name="ActionStackWindows" xml:space="preserve">
+    <value>Apilar las ventanas</value>
+  </data>
+  <data name="ActionToggleGuides" xml:space="preserve">
+    <value>Mostrar u ocultar las guías</value>
+  </data>
+  <data name="ActionSize1" xml:space="preserve">
+    <value>Tamaño 1</value>
+  </data>
+  <data name="ActionSize2" xml:space="preserve">
+    <value>Tamaño 2</value>
+  </data>
+  <data name="ActionSize3" xml:space="preserve">
+    <value>Tamaño 3</value>
+  </data>
+  <data name="ActionSize4" xml:space="preserve">
+    <value>Tamaño 4</value>
+  </data>
+  <data name="ActionFullscreen" xml:space="preserve">
+    <value>Pantalla completa</value>
+  </data>
+  <data name="ActionToggleSettingsDetail" xml:space="preserve">
+    <value>Muestra u oculta esta ventana. Las ventanas de juego siguen abiertas, y esta combinación se recuerda en su título.</value>
+  </data>
+  <data name="ActionNextWindowDetail" xml:space="preserve">
+    <value>Pasa a la ventana siguiente, en el orden de la lista de aparatos. Las ventanas apartadas se saltan.</value>
+  </data>
+  <data name="ActionPreviousWindowDetail" xml:space="preserve">
+    <value>Pasa a la ventana anterior, en el orden de la lista de aparatos. Las ventanas apartadas se saltan.</value>
+  </data>
+  <data name="ActionStackWindowsDetail" xml:space="preserve">
+    <value>Apila todas las ventanas sobre la última que has usado, en su posición y su tamaño. Las ventanas bloqueadas no se mueven.</value>
+  </data>
+  <data name="ActionTileDetail" xml:space="preserve">
+    <value>Coloca dos ventanas una al lado de la otra, cada una en una mitad de la pantalla. La ventana activa va a la derecha.</value>
+  </data>
+  <data name="ActionToggleGuidesDetail" xml:space="preserve">
+    <value>Muestra u oculta las guías, que permanecen encima de las ventanas de juego. Misiones, mazmorras, incursiones, guaridas y rutas, de papycha.fr.</value>
+  </data>
+  <data name="ActionSize1Detail" xml:space="preserve">
+    <value>El más pequeño de los cuatro tamaños, ajustables con el control.</value>
+  </data>
+  <data name="ActionSize2Detail" xml:space="preserve">
+    <value>El segundo de los cuatro tamaños, ajustables con el control.</value>
+  </data>
+  <data name="ActionSize3Detail" xml:space="preserve">
+    <value>El tercero de los cuatro tamaños, ajustables con el control.</value>
+  </data>
+  <data name="ActionSize4Detail" xml:space="preserve">
+    <value>El mayor de los cuatro tamaños. Cubre la zona útil de la pantalla, sin la barra de tareas: no es pantalla completa.</value>
+  </data>
+  <data name="ActionFullscreenDetail" xml:space="preserve">
+    <value>Cubre la pantalla entera, sin borde. Al volver, cada ventana recupera el sitio que tenía.</value>
+  </data>
+  <data name="ActionQuitDetail" xml:space="preserve">
+    <value>Cierra la aplicación y todas las ventanas de juego.</value>
+  </data>
+  <data name="HotkeyPressNew" xml:space="preserve">
+    <value>Pulsa la nueva combinación…</value>
+  </data>
+  <data name="HotkeyRefusedByWindows" xml:space="preserve">
+    <value>Rechazado por Windows, seguramente lo usa otro programa: {0}</value>
+  </data>
+  <data name="HotkeyNoKey" xml:space="preserve">
+    <value>No se ha introducido ninguna tecla.</value>
+  </data>
+  <data name="HotkeyModifierOnly" xml:space="preserve">
+    <value>Añade una tecla además del modificador.</value>
+  </data>
+  <data name="HotkeyMissingModifier" xml:space="preserve">
+    <value>Añade Ctrl, Alt o Mayús, si no la tecla se interceptaría mientras juegas.</value>
+  </data>
+  <data name="HotkeyReserved" xml:space="preserve">
+    <value>Esta combinación está reservada por Windows.</value>
+  </data>
+  <data name="HotkeyDuplicateBy" xml:space="preserve">
+    <value>Ya la usa «{0}».</value>
+  </data>
+  <data name="HotkeyDuplicate" xml:space="preserve">
+    <value>Esta combinación ya está en uso.</value>
+  </data>
+  <data name="HotkeyRefused" xml:space="preserve">
+    <value>Combinación rechazada.</value>
+  </data>
+  <data name="ThePhone" xml:space="preserve">
+    <value>El teléfono</value>
+  </data>
+  <data name="AdbDeviceNotFound" xml:space="preserve">
+    <value>{0} ya no se detecta. Comprueba el cable o la conexión Wi-Fi.</value>
+  </data>
+  <data name="AdbDeviceOffline" xml:space="preserve">
+    <value>{0} ya no responde. Enciende la pantalla y vuelve a conectarlo.</value>
+  </data>
+  <data name="AdbDeviceUnauthorized" xml:space="preserve">
+    <value>{0} aún no ha autorizado este PC. Desbloquea la pantalla y acepta la petición de depuración.</value>
+  </data>
+  <data name="AdbAmbiguousDevice" xml:space="preserve">
+    <value>Hay varios aparatos conectados y no se ha elegido ninguno.</value>
+  </data>
+  <data name="AdbConnectionFailed" xml:space="preserve">
+    <value>No se puede contactar con {0}. Comprueba que está en la misma red y que la depuración inalámbrica está activada.</value>
+  </data>
+  <data name="AdbPairingFailed" xml:space="preserve">
+    <value>La vinculación ha fallado. El código puede haber caducado: vuelve a iniciar la vinculación en el teléfono para obtener uno nuevo.</value>
+  </data>
+  <data name="AdbPackageNotFound" xml:space="preserve">
+    <value>La aplicación ya no está instalada para este perfil de Android.</value>
+  </data>
+  <data name="AdbUserNotAvailable" xml:space="preserve">
+    <value>Este perfil de Android no está disponible. Ábrelo una vez en el teléfono y vuelve a intentarlo.</value>
+  </data>
+  <data name="AdbPermissionDenied" xml:space="preserve">
+    <value>El teléfono ha denegado el acceso a este perfil. Las carpetas seguras y los perfiles gestionados por una empresa no permiten el lanzamiento desde un PC.</value>
+  </data>
+  <data name="AdbProfilePaused" xml:space="preserve">
+    <value>Este perfil está en pausa. Vuelve a activarlo en el teléfono, con su interruptor o desde la aplicación que lo gestiona, y prueba otra vez.</value>
+  </data>
+  <data name="AdbTimeout" xml:space="preserve">
+    <value>{0} no ha respondido a tiempo.</value>
+  </data>
+  <data name="AdbUnavailable" xml:space="preserve">
+    <value>Las herramientas de Android no han podido arrancar. Consulta el diagnóstico en los ajustes.</value>
+  </data>
+  <data name="AdbUnknownError" xml:space="preserve">
+    <value>Ha ocurrido un error al comunicarse con el teléfono.</value>
+  </data>
+  <data name="ProfileListUnreadable" xml:space="preserve">
+    <value>{0}: no se ha podido leer la lista de perfiles de Android. Solo se ve el perfil principal; un juego instalado en un segundo espacio no aparecerá.</value>
+  </data>
+  <data name="ProfileLimitReached" xml:space="preserve">
+    <value>Este teléfono solo acepta {0} perfiles, y los {0} están ocupados. Borra uno en sus ajustes para hacer sitio.</value>
+  </data>
+  <data name="NoPrimaryProfile" xml:space="preserve">
+    <value>El teléfono no ha dicho cuál es su perfil principal. Vuelve a conectarlo e inténtalo de nuevo.</value>
+  </data>
+  <data name="OneManagedProfileOnly" xml:space="preserve">
+    <value>Este teléfono solo acepta un perfil de este tipo, y ya existe. Para una cuenta más, activa las aplicaciones duplicadas en sus ajustes.</value>
+  </data>
+  <data name="ProfileCreationRefused" xml:space="preserve">
+    <value>El teléfono se ha negado a crear un perfil. Algunas capas del fabricante lo prohíben: usa entonces sus ajustes de cuentas múltiples.</value>
+  </data>
+  <data name="ProfileMadeGameNotInstalled" xml:space="preserve">
+    <value>El perfil está creado pero el juego no se ha podido instalar en él: {0}</value>
+  </data>
+  <data name="ProfileMadeGameMissing" xml:space="preserve">
+    <value>El perfil está creado pero el juego no está en él. Instálalo desde ese perfil.</value>
+  </data>
+  <data name="AccountAdded" xml:space="preserve">
+    <value>«{0}» añadido. El juego se abrirá en él como nuevo: volverá a pedir sus recursos y tu conexión.</value>
+  </data>
+  <data name="ProfilePausedShort" xml:space="preserve">
+    <value>Este perfil está en pausa. Vuelve a encenderlo en el teléfono, con su interruptor o desde la aplicación que lo gestiona.</value>
+  </data>
+  <data name="OneFullUserAtATime" xml:space="preserve">
+    <value>Este teléfono solo muestra un usuario completo a la vez. Un segundo espacio sustituye la pantalla en lugar de abrirse al lado: usa un perfil o aplicaciones duplicadas.</value>
+  </data>
+  <data name="GuestProfileWiped" xml:space="preserve">
+    <value>El perfil de invitado se borra cada vez que se cierra: el juego pediría la conexión cada vez.</value>
+  </data>
+  <data name="RestrictedProfile" xml:space="preserve">
+    <value>Un perfil restringido no permite lanzar aplicaciones desde un PC.</value>
+  </data>
+  <data name="UnknownProfileKind" xml:space="preserve">
+    <value>No se conoce la naturaleza de este perfil: nada garantiza que se abra una ventana en él.</value>
+  </data>
+  <data name="ScrcpyDeviceGone" xml:space="preserve">
+    <value>El teléfono ya no se detecta. Comprueba el cable o la conexión Wi-Fi.</value>
+  </data>
+  <data name="ScrcpyDisconnected" xml:space="preserve">
+    <value>El teléfono se ha desconectado durante la sesión.</value>
+  </data>
+  <data name="ScrcpyUnauthorized" xml:space="preserve">
+    <value>El teléfono no ha autorizado este PC. Desbloquea la pantalla y acepta la petición de depuración.</value>
+  </data>
+  <data name="ScrcpyNoVirtualDisplay" xml:space="preserve">
+    <value>Este teléfono no ha podido crear una pantalla virtual. La función necesita Android 11 o posterior.</value>
+  </data>
+  <data name="ScrcpyEncoderRefused" xml:space="preserve">
+    <value>El codificador de vídeo del teléfono ha rechazado la sesión. Reduce el número de sesiones simultáneas o la tasa de bits en los ajustes.</value>
+  </data>
+  <data name="ScrcpyConnectionFailed" xml:space="preserve">
+    <value>La conexión con el teléfono ha fallado. Vuelve a conectarlo e inténtalo de nuevo.</value>
+  </data>
+  <data name="ScrcpyDidNotStart" xml:space="preserve">
+    <value>scrcpy no ha podido arrancar. El detalle está en los registros.</value>
+  </data>
+  <data name="ScrcpyDisplayTimeout" xml:space="preserve">
+    <value>El teléfono no ha abierto una pantalla virtual a tiempo.</value>
+  </data>
+  <data name="ScrcpySessionFailed" xml:space="preserve">
+    <value>La sesión de duplicación no se ha podido abrir.</value>
+  </data>
+  <data name="ScrcpyPrePlacementFailed" xml:space="preserve">
+    <value>No se puede colocar de antemano: {0}</value>
+  </data>
+  <data name="ScrcpyAppNotOpened" xml:space="preserve">
+    <value>No se ha podido abrir la aplicación.</value>
+  </data>
+  <data name="ScrcpySessionInterrupted" xml:space="preserve">
+    <value>La sesión de duplicación se ha interrumpido.</value>
+  </data>
+  <data name="ProfileCannotHostWindow" xml:space="preserve">
+    <value>Perfil incapaz de albergar una ventana.</value>
+  </data>
+  <data name="GameNotInstalledOnProfile" xml:space="preserve">
+    <value>El juego ya no está instalado en este perfil de Android.</value>
+  </data>
+  <data name="ProfileCouldNotStart" xml:space="preserve">
+    <value>El perfil «{0}» no ha podido arrancar. Ábrelo una vez en el teléfono e inténtalo de nuevo.</value>
+  </data>
+  <data name="PairedButPortUnknown" xml:space="preserve">
+    <value>El teléfono está vinculado, pero no se ha encontrado su puerto de conexión en la red. Escribe el puerto que aparece en «Depuración inalámbrica» en el teléfono.</value>
+  </data>
+  <data name="PairedAndConnected" xml:space="preserve">
+    <value>Teléfono vinculado y conectado.</value>
+  </data>
+  <data name="PhoneConnected" xml:space="preserve">
+    <value>Teléfono conectado.</value>
+  </data>
 </root>

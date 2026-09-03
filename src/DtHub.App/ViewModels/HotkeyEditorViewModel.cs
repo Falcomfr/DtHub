@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 
 using DtHub.App.Services;
 using DtHub.Core.Hotkeys;
+using DtHub.Core.Localization;
 using DtHub.Core.Settings;
 
 namespace DtHub.App.ViewModels;
@@ -121,8 +122,9 @@ public sealed partial class HotkeyEditorViewModel : ObservableObject
 
         Problem = refused.Count == 0
             ? null
-            : "Refusé par Windows, probablement pris par un autre logiciel : "
-              + string.Join(", ", refused.Select(HotkeyBinding.DescribeAction));
+            : Strings.Format(
+                "HotkeyRefusedByWindows",
+                string.Join(", ", refused.Select(HotkeyBinding.DescribeAction)));
 
         Changed?.Invoke(this, EventArgs.Empty);
     }
@@ -138,14 +140,13 @@ public sealed partial class HotkeyEditorViewModel : ObservableObject
 
     private static string Describe(HotkeyValidationResult result, HotkeyAction? conflict) => result switch
     {
-        HotkeyValidationResult.NoKey => "Aucune touche saisie.",
-        HotkeyValidationResult.ModifierOnly => "Ajoutez une touche en plus du modificateur.",
-        HotkeyValidationResult.MissingModifier =>
-            "Ajoutez Ctrl, Alt ou Maj, sinon la touche serait interceptée pendant que vous jouez.",
-        HotkeyValidationResult.ReservedBySystem => "Cette combinaison est réservée par Windows.",
+        HotkeyValidationResult.NoKey => Strings.Get("HotkeyNoKey"),
+        HotkeyValidationResult.ModifierOnly => Strings.Get("HotkeyModifierOnly"),
+        HotkeyValidationResult.MissingModifier => Strings.Get("HotkeyMissingModifier"),
+        HotkeyValidationResult.ReservedBySystem => Strings.Get("HotkeyReserved"),
         HotkeyValidationResult.Duplicate when conflict is { } action =>
-            $"Déjà utilisée par « {HotkeyBinding.DescribeAction(action)} ».",
-        HotkeyValidationResult.Duplicate => "Cette combinaison est déjà utilisée.",
-        _ => "Combinaison refusée.",
+            Strings.Format("HotkeyDuplicateBy", HotkeyBinding.DescribeAction(action)),
+        HotkeyValidationResult.Duplicate => Strings.Get("HotkeyDuplicate"),
+        _ => Strings.Get("HotkeyRefused"),
     };
 }

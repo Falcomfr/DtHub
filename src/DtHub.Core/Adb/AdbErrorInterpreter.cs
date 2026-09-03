@@ -1,3 +1,5 @@
+using DtHub.Core.Localization;
+
 namespace DtHub.Core.Adb;
 
 /// <summary>
@@ -92,37 +94,23 @@ public static class AdbErrorInterpreter
     /// <summary>Message court et actionnable, destiné à l'interface.</summary>
     public static string Describe(AdbErrorKind kind, string? deviceName = null)
     {
-        var device = string.IsNullOrWhiteSpace(deviceName) ? "Le téléphone" : deviceName;
+        var device = string.IsNullOrWhiteSpace(deviceName) ? Strings.Get("ThePhone") : deviceName;
 
         return kind switch
         {
-            AdbErrorKind.DeviceNotFound =>
-                $"{device} n'est plus détecté. Vérifiez le câble ou la connexion Wi-Fi.",
-            AdbErrorKind.DeviceOffline =>
-                $"{device} ne répond plus. Réveillez l'écran, puis reconnectez-le.",
-            AdbErrorKind.DeviceUnauthorized =>
-                $"{device} n'a pas encore autorisé ce PC. Déverrouillez l'écran et acceptez la demande de débogage.",
-            AdbErrorKind.AmbiguousDevice =>
-                "Plusieurs appareils sont connectés et aucun n'a été choisi.",
-            AdbErrorKind.ConnectionFailed =>
-                $"Impossible de joindre {device}. Vérifiez qu'il est sur le même réseau et que le débogage sans fil est actif.",
-            AdbErrorKind.PairingFailed =>
-                "L'appairage a échoué. Le code est peut-être expiré : relancez l'association sur le téléphone pour en obtenir un nouveau.",
-            AdbErrorKind.PackageNotFound =>
-                "L'application n'est plus installée pour ce profil Android.",
-            AdbErrorKind.UserNotAvailable =>
-                "Ce profil Android n'est pas disponible. Ouvrez-le une fois sur le téléphone, puis réessayez.",
-            AdbErrorKind.PermissionDenied =>
-                "Le téléphone a refusé l'accès à ce profil. Les dossiers sécurisés et les profils "
-                + "gérés par une entreprise n'autorisent pas le lancement depuis un PC.",
-            AdbErrorKind.ProfilePaused =>
-                "Ce profil est en pause. Réactivez-le sur le téléphone, depuis son interrupteur "
-                + "ou depuis l'application qui le gère, puis réessayez.",
-            AdbErrorKind.Timeout =>
-                $"{device} n'a pas répondu à temps.",
-            AdbErrorKind.AdbUnavailable =>
-                "Les outils Android n'ont pas pu démarrer. Consultez le diagnostic dans les paramètres.",
-            _ => "Une erreur est survenue lors de la communication avec le téléphone.",
+            AdbErrorKind.DeviceNotFound => Strings.Format("AdbDeviceNotFound", device),
+            AdbErrorKind.DeviceOffline => Strings.Format("AdbDeviceOffline", device),
+            AdbErrorKind.DeviceUnauthorized => Strings.Format("AdbDeviceUnauthorized", device),
+            AdbErrorKind.AmbiguousDevice => Strings.Get("AdbAmbiguousDevice"),
+            AdbErrorKind.ConnectionFailed => Strings.Format("AdbConnectionFailed", device),
+            AdbErrorKind.PairingFailed => Strings.Get("AdbPairingFailed"),
+            AdbErrorKind.PackageNotFound => Strings.Get("AdbPackageNotFound"),
+            AdbErrorKind.UserNotAvailable => Strings.Get("AdbUserNotAvailable"),
+            AdbErrorKind.PermissionDenied => Strings.Get("AdbPermissionDenied"),
+            AdbErrorKind.ProfilePaused => Strings.Get("AdbProfilePaused"),
+            AdbErrorKind.Timeout => Strings.Format("AdbTimeout", device),
+            AdbErrorKind.AdbUnavailable => Strings.Get("AdbUnavailable"),
+            _ => Strings.Get("AdbUnknownError"),
         };
     }
 
