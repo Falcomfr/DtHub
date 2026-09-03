@@ -14,7 +14,11 @@ Aucune notice de copyright ni aucun texte de licence tiers ne doit être retiré
 | Android SDK Platform Tools (adb) | Android SDK License Agreement | Téléchargé depuis Google au premier lancement |
 | .NET runtime | MIT | Inclus par la publication self-contained |
 | CommunityToolkit.Mvvm | MIT | Paquet NuGet |
-| xUnit | Apache License 2.0 | Dépendance de test, non distribuée |
+| Serilog et ses puits | Apache License 2.0 | Paquets NuGet |
+| Microsoft.Extensions.* | MIT | Paquets NuGet |
+| Microsoft.Web.WebView2 | Licence Microsoft, non libre | Paquet NuGet, moteur fourni par Windows |
+| Données de quêtes de papycha.fr | Non libre, voir plus bas | Fichier embarqué dans l'exécutable |
+| xUnit, coverlet | Apache License 2.0, MIT | Dépendances de test, non distribuées |
 
 ## scrcpy
 
@@ -81,6 +85,56 @@ l'application, ce que la licence MIT autorise.
 - Projet : https://github.com/CommunityToolkit/dotnet
 - Licence : MIT
 
+## Serilog
+
+- Projet : https://github.com/serilog/serilog
+- Licence : Apache License 2.0
+- Paquets employés : `Serilog.Extensions.Hosting`, `Serilog.Sinks.File`,
+  `Serilog.Sinks.Debug`
+
+Journalisation de l'application. Distribué avec l'exécutable.
+
+## Microsoft.Extensions.Hosting et Microsoft.Extensions.Logging.Abstractions
+
+- Projet : https://github.com/dotnet/runtime
+- Licence : MIT
+
+Hôte générique et abstractions de journalisation, du même dépôt que le runtime
+.NET. Distribués avec l'exécutable.
+
+## Microsoft.Web.WebView2
+
+- Éditeur : Microsoft Corporation
+- Projet : https://developer.microsoft.com/microsoft-edge/webview2/
+- Licence : conditions de distribution Microsoft, **qui ne sont pas une licence
+  libre**. Voir le fichier de licence livré avec le paquet NuGet.
+
+C'est la seule dépendance de ce type. Deux choses distinctes en découlent : le
+paquet NuGet, qui n'apporte que l'amorce et les liaisons managées, est distribué
+avec l'exécutable ; le moteur de rendu lui-même n'est **pas** distribué par
+DT Hub, il est fourni avec Windows 11 et arrive sur Windows 10 par Microsoft
+Edge. Son absence est détectée et dite à l'utilisateur, elle n'empêche que les
+fenêtres de guides.
+
+## Données de quêtes issues de papycha.fr
+
+- Source : https://papycha.fr
+- Fichier : `assets/quest-successes.json`, embarqué dans l'exécutable
+- Relevé le 2026-08-30 par `build/extract-successes.py`
+
+**Ce fichier n'est pas couvert par la licence MIT de DT Hub.** Il contient 719
+entrées indexées par adresse de page, portant le nom du succès auquel une quête
+appartient, son rang, et les titres des quêtes prérequises. Ce sont des titres
+d'œuvre du jeu DOFUS Touch, et surtout une structure de progression que
+papycha.fr a établie par un travail éditorial qui lui appartient.
+
+Aucun texte de quête, aucune description, aucune solution n'est repris : le
+fichier ne sert qu'à savoir dans quel ordre lire les pages du site, et
+l'application renvoie toujours au site pour le contenu lui-même.
+
+DT Hub n'est affilié ni à papycha.fr ni à Ankama. Quiconque réutilise ce dépôt
+sous licence MIT doit traiter ce fichier à part et s'adresser à papycha.fr.
+
 ## xUnit
 
 - Projet : https://github.com/xunit/xunit
@@ -96,8 +150,15 @@ permettre à l'utilisateur de reconnaître ses propres applications. Ils ne sont
 ni redistribués, ni stockés hors de la machine de l'utilisateur, ni utilisés
 comme éléments de communication de DT Hub.
 
-DT Hub n'embarque aucun logo ni aucune ressource appartenant à un éditeur
-d'application tiers.
+DT Hub n'embarque aucun logo ni aucune ressource graphique appartenant à un
+éditeur d'application tiers. Les deux seules images du dépôt, `assets/app.png`
+et `assets/app.ico`, sont dessinées par `build/make-icon.py`.
+
+Deux exceptions, nommées ici parce qu'une règle qui ne dit pas ses exceptions ne
+protège plus rien : les titres de quêtes du fichier décrit plus haut, et les
+captures d'écran du README, qui montrent l'application en fonctionnement et donc
+le jeu qu'elle affiche. Les unes servent l'interopérabilité, les autres
+illustrent la documentation.
 
 ## Ajouter une dépendance
 

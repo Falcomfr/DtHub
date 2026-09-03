@@ -147,13 +147,20 @@ pour toute la machine. Un test le vérifie.
   reconnaissance d'écran pour jouer, synchronisation d'entrées entre comptes,
   contournement d'une limitation du jeu. Une entrée utilisateur correspond à
   une action, sur un compte, et à une seule.
-- Embarquer ou redistribuer une marque, un logo ou une ressource d'Ankama.
-  Rien de tel n'entre dans le dépôt ni dans l'exécutable : DT Hub cite le nom
-  du jeu pour dire ce qu'il fait, et ses propres icônes sont dessinées par
-  `build/make-icon.py`. Afficher l'icône de l'application déjà installée sur
-  l'appareil de l'utilisateur, lue à l'exécution et gardée dans son cache, est
-  en revanche permis : c'est ce que fait tout gestionnaire d'applications, et
-  rien n'est ni copié ni diffusé.
+- Embarquer ou redistribuer un logo, une image, une police, un son ou un
+  fichier de données extrait du jeu d'Ankama. DT Hub cite le nom du jeu pour
+  dire ce qu'il fait, et ses propres icônes sont dessinées par
+  `build/make-icon.py`.
+
+  Trois choses sont permises, et il faut les nommer sous peine que la règle ne
+  protège plus rien. Afficher l'icône de l'application déjà installée sur
+  l'appareil, lue à l'exécution et gardée dans le cache de l'utilisateur : c'est
+  ce que fait tout gestionnaire d'applications, rien n'est copié ni diffusé.
+  Citer des titres de quêtes et de succès pour savoir dans quel ordre lire les
+  pages d'un guide, ce que fait `assets/quest-successes.json`, décrit et sorti
+  du champ de la licence MIT dans `THIRD-PARTY-NOTICES.md`. Montrer des captures
+  d'écran de l'application en fonctionnement dans sa documentation, où le jeu
+  qu'elle affiche paraît forcément.
 - PowerShell, AutoHotkey, Node.js ou Python à l'exécution de l'application.
   Ces outils sont tolérés dans les scripts de développement uniquement.
 - Toucher à Windows Defender, créer des exclusions antivirus, demander

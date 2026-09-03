@@ -147,9 +147,17 @@ configured are ever intercepted, and only while a DT Hub window is focused.
 DT Hub is released under the [MIT licence](LICENSE). Third party components
 keep their own, listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
+One file is not covered by that licence: `assets/quest-successes.json` is a
+table of quest and achievement titles compiled by [papycha.fr](https://papycha.fr),
+which keeps its own rights over it. DT Hub uses it only to know in which order
+to open the site's own pages, and always sends you to the site for the guides
+themselves.
+
 ## Not affiliated
 
 DT Hub is an independent open-source project. It is not affiliated with,
-endorsed by, or connected to Ankama, Genymobile, Google, or any device
-manufacturer. DOFUS and DOFUS Touch are trademarks of Ankama. DT Hub contains
-no Ankama artwork, code or assets, and does not modify the game in any way.
+endorsed by, or connected to Ankama, Genymobile, Google, papycha.fr, or any
+device manufacturer. DOFUS and DOFUS Touch are trademarks of Ankama. DT Hub
+embeds no Ankama artwork, code or game assets, and does not modify the game in
+any way. Screenshots in this page show the app running, so the game it mirrors
+appears in them.
