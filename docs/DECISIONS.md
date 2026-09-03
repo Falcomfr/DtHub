@@ -2811,3 +2811,94 @@ en écrivant chacun les deux mêmes lignes ; une cinquième ligne à tenir les a
 fait diverger. `ResetSteps` les réunit, et le résumé d'une étape est écrit une
 fois pour le bandeau et pour la liste, y compris la réserve du départ, dont la
 première étape emprunte les métadonnées de la quête.
+
+
+## D76 - Ce qui est compté comme étape doit en être
+
+Le découpage en étapes avait été réglé sur des échantillons de seize à
+cinquante-cinq guides. Le site en compte 782, et rien ne disait ce que la règle
+attrapait ailleurs.
+
+### L'audit passe par l'interface du site, pas par ses pages
+
+`posts?categories=7&per_page=100&_fields=link,content` rend le contenu rendu de
+cent articles par requête : **les 782 guides en huit requêtes**, là où les pages
+complètes en auraient coûté 782 sur le site d'un bénévole. Et `content.rendered`
+est exactement ce que la règle parcourt, l'intérieur de `.entry-content`,
+bandeau d'intro compris. Vérifié avant de s'y fier.
+
+Relevé de départ : 777 guides en mode paragraphe, 5 en mode sections, **3 293
+étapes-paragraphes**, 3 guides sans aucune étape.
+
+### L'encart n'était pas compté, il était affiché
+
+C'est un `dl.pqa-quest-intro__taxonomies`, petit-enfant du contenu ; la règle
+n'examine que les enfants directs de balise `p`. Il n'a donc jamais été une
+étape.
+
+Mais l'étape de départ est ancrée en haut du contenu, et ce bloc était **le seul
+morceau du bandeau d'intro que la fenêtre des quêtes ne masquait pas** :
+`__facts` et `__start` l'étaient pour les deux fenêtres, `__requirements` pour
+celle des quêtes, et la taxonomie avait été oubliée. C'est donc elle qu'on voyait
+en étape 1.
+
+Le bandeau y passe maintenant en entier, `section.pqa-quest-intro`, et non enfant
+par enfant : relevé sur cent guides, la section n'a que quatre enfants directs
+possibles et trois étaient déjà masqués. Une liste d'enfants laisserait passer le
+prochain que le site ajoutera ; la mesure en a d'ailleurs trouvé un cinquième,
+`__rewards`, sur un guide.
+
+Masquer ne retire rien du document : le pont continue de lire le bloc de départ
+et de poster le bandeau à la fenêtre.
+
+### Trois familles retirées, trois écartées
+
+Chaque règle candidate a été mesurée sur les 782 guides, et **chaque étape
+qu'elle retirait a été relue une à une**.
+
+| Règle | Retire | Verdict |
+|:--|--:|:--|
+| Le garde des sujets vaut aussi pour les irréguliers | 7 | retenue, sept récits |
+| L'annonce du départ sans consigne propre | 30 | retenue, trente redites du bandeau |
+| L'encart « Important : » | 4 | retenue, même famille que « Attention : » |
+| Les pronoms objets gardent aussi | +31 | **écartée** |
+| Refuser une puce ou une minuscule en tête | 2 | **écartée** |
+| Retirer la branche « couleur » | 3 | **écartée** |
+
+Les trois retenues retirent 41 étapes sur 3 293, en ajoutent zéro, et laissent
+le nombre de guides sans étape inchangé.
+
+**Les trois écartées le sont pour une seule raison : elles perdaient de vraies
+consignes.** Les pronoms objets tuaient « Badufron emmène le Sadida avec lui,
+parlez avec Raymond Santho », où « parlez » suit « lui ». La minuscule en tête
+tuait « on continue par le drapeau de Korhog cette fois-ci en [-54,34] », qui est
+bien une étape. La branche « couleur » ne rapportait que trois étapes, dont une
+vraie consigne.
+
+**L'échantillon avait donné deux de ces trois pour bonnes.** Sur soixante-trois
+guides, la puce et la couleur paraissaient nettes ; sur 782, elles se retournent.
+C'est ce qui justifie l'audit complet plutôt qu'un sondage.
+
+### Ce que la sonde retient
+
+Deux ajouts à `build/sonde-papycha` :
+
+- **Le bandeau d'intro existe encore.** Le jour où le site le renomme, le
+  masquage devient muet et l'encart reparaît en tête de guide, à l'endroit exact
+  où la première étape est ancrée. Mesuré à 94 guides sur 100 ; les six autres
+  n'ont pas de bandeau du tout.
+- **L'annonce du départ se tourne encore ainsi.** Quatre-vingt-sept paragraphes
+  sur cent guides emploient la formule que le pont écarte. Si le site la tourne
+  autrement, le nombre s'effondre et l'exclusion ne mord plus.
+
+### Le vrai défaut de volume est ailleurs, et il n'est pas corrigé ici
+
+`isObjective` exige du gras ou une couleur. **Cent cinquante-trois guides sur 777
+ne rendent aucune étape-paragraphe**, non qu'ils n'aient pas de consignes, mais
+parce que leurs auteurs n'emploient jamais le gras. L'ordre de grandeur mesuré
+sur un échantillon est d'une centaine de consignes perdues, contre quarante et
+une fausses retirées ici.
+
+Le gras n'est pas une convention du site, c'est une habitude d'auteur. Corriger
+cela demande une autre règle et un autre audit ; ce n'était pas la demande, et
+c'est signalé plutôt que fait à la sauvette.

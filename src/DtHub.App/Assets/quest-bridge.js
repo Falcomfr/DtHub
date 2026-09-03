@@ -39,9 +39,19 @@
     // manière : le titre, et les quêtes précédentes, que son pied donne déjà
     // sous forme de boutons. Les afficher deux fois n'aidait pas et coûtait de
     // la place en tête de guide.
+    //
+    // Le bandeau d'intro y passe en entier, et non enfant par enfant. Tous
+    // l'étaient déjà sauf le classement, « Type : Principale », qu'une liste
+    // d'enfants avait laissé passer. Comme l'étape de départ s'ancre en haut du
+    // contenu, c'était lui qu'on voyait en première étape, à la place de la
+    // prose du guide. Une liste d'enfants laisserait passer le suivant que le
+    // site ajoutera ; la section, elle, les couvre tous.
+    //
+    // Masquer ne retire rien du document : le pont continue de lire le bloc de
+    // départ et de poster le bandeau d'intro à la fenêtre.
     var HIDDEN_IN_QUEST = [
         TITLE,
-        '.pqa-quest-intro__requirements'
+        '.pqa-quest-intro'
     ];
 
     // Marque posée sur ce qui n'appartient pas au guide.
@@ -200,10 +210,23 @@
     // valent, faute de balisage propre à cet usage.
     // Ce que le site met en gras sans que ce soit une consigne : ses propres
     // encarts, et les apartés. Relevé sur 335 étapes de 36 quêtes.
-    var ETIQUETTES = /^\s*(pr[ée].?requis|source|plage habituelle|dur[ée]e|note|notes|attention|astuce|remarque|rappel|info|informations?)\s*:/i;
+    var ETIQUETTES = /^\s*(pr[ée].?requis|source|plage habituelle|dur[ée]e|note|notes|attention|astuce|remarque|rappel|important|info|informations?)\s*:/i;
+
+    // L'annonce du départ, que le bandeau donne déjà en première étape et que
+    // le guide répète en prose : « La quête se lance en [2,-16] en parlant à
+    // Kerubim Crépin. » Relevé sur les 782 guides du site, trente paragraphes,
+    // tous des redites du bloc de départ et aucun une consigne.
+    var DEPART = /^(la|cette)\s+qu[eê]te\b[\s\S]{0,90}?\b(se\s+(lance|d[ée]clenche|d[ée]bloque)|est\s+(disponible|r[ée]p[ée]table|accessible))/i;
 
     function isNoise(text) {
         if (ETIQUETTES.test(text)) {
+            return true;
+        }
+
+        // Sauf quand l'annonce porte en plus sa propre consigne : « La quête se
+        // lance en [-68,-76] auprès du Barron d'Ouillard, renseignez-vous sur
+        // son rôle. » Quatre guides sur les 782 sont dans ce cas.
+        if (DEPART.test(text) && !orders(text)) {
             return true;
         }
 
@@ -243,6 +266,15 @@
 
         for (var i = 0; i < words.length; i++) {
             var word = words[i].toLowerCase();
+            var before = i > 0 ? words[i - 1].toLowerCase() : '';
+
+            // Le garde des sujets vaut pour les irréguliers comme pour les
+            // autres, et ne le faisait pas : « vous faites », « vous vous
+            // faites agresser », « et faites l'acquisition » passaient pour des
+            // ordres. Sept paragraphes sur les 782 guides, tous du récit.
+            if (SUJETS.indexOf(before) >= 0) {
+                continue;
+            }
 
             if (IRREGULIERS.indexOf(word) >= 0) {
                 return true;
@@ -252,11 +284,7 @@
             if (word.length >= 4
                 && word.slice(-2) === 'ez'
                 && FAUX_AMIS.indexOf(word) < 0) {
-                var before = i > 0 ? words[i - 1].toLowerCase() : '';
-
-                if (SUJETS.indexOf(before) < 0) {
-                    return true;
-                }
+                return true;
             }
         }
 

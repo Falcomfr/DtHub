@@ -95,6 +95,22 @@ Exige(
     guides.Count,
     tolerance: 0.9);
 
+// La fenêtre des quêtes masque ce bandeau en entier, son propre bandeau le
+// reprenant. Le jour où le site le renomme, le masquage devient muet et
+// l'encart « Type : Principale » reparaît en tête de guide, à l'endroit même
+// où la première étape est ancrée.
+Exige(
+    "chaque guide de quête porte le bandeau d'intro que la fenêtre masque",
+    guides.Count(p => p.Contains("pqa-quest-intro", StringComparison.Ordinal)),
+    guides.Count,
+    tolerance: 0.9);
+
+// L'annonce du départ écrite en prose, que le pont écarte de ses étapes parce
+// que le bandeau la donne déjà : « La quête se lance en [2,-16] en parlant à
+// Kerubim Crépin. » Une mesure et non une exigence : le jour où le site tourne
+// la phrase autrement, l'exclusion ne mord plus et le nombre s'effondre.
+mesures["annonces-de-depart-en-prose"] = guides.Sum(Annonces);
+
 // ---------------------------------------------------------------------------
 // Comparaison au relevé de référence.
 // ---------------------------------------------------------------------------
@@ -171,6 +187,17 @@ async Task<List<string>> Pages(int categorie, int limite = 100)
             .Select(e => e.GetProperty("content").GetProperty("rendered").GetString() ?? string.Empty),
     ];
 }
+
+// Les paragraphes qui annoncent le départ de la quête, dans les termes que le
+// pont écarte. La même expression que la sienne, ancrée en tête de paragraphe.
+static int Annonces(string html) =>
+    Regex.Matches(html, "<p\\b.*?</p>", RegexOptions.Singleline)
+        .Select(m => Regex.Replace(Regex.Replace(m.Value, "<[^>]+>", " "), "\\s+", " ").Trim())
+        .Count(texte => Regex.IsMatch(
+            texte,
+            @"^(La|Cette)\s+qu[eê]te\b[\s\S]{0,90}?\b(se\s+(lance|d[ée]clenche|d[ée]bloque)"
+            + @"|est\s+(disponible|r[ée]p[ée]table|accessible))",
+            RegexOptions.IgnoreCase));
 
 static IEnumerable<string> Titres(string html, int rang) =>
     Regex.Matches(html, $"<h{rang}[^>]*>(.*?)</h{rang}>", RegexOptions.Singleline)

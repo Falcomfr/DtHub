@@ -9,6 +9,28 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Corrigé
 
+- L'encart « Type : Principale » tenait lieu de première étape dans la fenêtre
+  des guides. Il n'était pas compté comme étape, mais l'étape de départ est
+  ancrée en haut de l'article, et cet encart était le seul morceau du bandeau
+  d'intro que la fenêtre ne masquait pas : c'est donc lui qu'on voyait. Le
+  bandeau y passe maintenant en entier, ses quatre blocs étant repris par le
+  nôtre.
+
+- Trois familles de paragraphes étaient comptées comme étapes sans en être.
+  Relevé sur les 782 guides du site, quarante et une étapes sur 3 293 :
+
+  - **L'annonce du départ écrite en prose**, « La quête se lance en [2,-16] en
+    parlant à Kerubim Crépin », que le bandeau donne déjà en première étape.
+    Trente cas. Elle est gardée quand elle porte en plus sa propre consigne.
+  - **Le récit au présent**, « vous vous faites agresser par x2 Bandit ». Le
+    garde qui distingue « vous partez » de « partez » ne valait pas pour les
+    six verbes irréguliers. Sept cas.
+  - **Les encarts « Important : »**, de même nature que « Attention : » et
+    « Prérequis : » que la règle écartait déjà. Quatre cas.
+
+  Chacune des quarante et une a été relue. Aucun guide ne perd sa dernière
+  étape, et aucune étape n'apparaît là où il n'y en avait pas.
+
 - Le bouton « Ajouter un compte » créait un compte inutilisable. Il faisait un
   utilisateur Android complet, et un utilisateur complet ne peut pas porter de
   fenêtre pendant qu'un autre compte est au premier plan : mesuré sur un Xiaomi
