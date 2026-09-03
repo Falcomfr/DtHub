@@ -13,6 +13,23 @@ namespace DtHub.Core.Guidance;
 public readonly record struct MenuScreen(string Title, string Tap, int Row);
 
 /// <summary>
+/// Ce qui habille une ligne muette d'un écran dessiné.
+///
+/// Rien de tout cela ne nomme un réglage : la fiche de marque ne donne que le
+/// chemin. Ce sont les traits qu'ont toutes les listes de réglages d'Android,
+/// et sans eux le dessin ressemblait à n'importe quelle liste.
+/// </summary>
+/// <param name="BarShare">Part de la largeur qu'occupe la barre du libellé.</param>
+/// <param name="Tint">Rang de la teinte de la pastille, de 0 à cinq.</param>
+/// <param name="HasSwitch">Vrai quand la ligne porte un interrupteur, non un chevron.</param>
+/// <param name="HasSubtitle">Vrai quand une seconde ligne, plus courte, la suit.</param>
+public readonly record struct MenuRowDecor(
+    double BarShare,
+    int Tint,
+    bool HasSwitch,
+    bool HasSubtitle);
+
+/// <summary>
 /// Découpe un chemin de menu en écrans, pour le montrer plutôt que le faire
 /// lire.
 ///
@@ -97,29 +114,54 @@ public static class MenuPath
         return segments;
     }
 
+    /// <summary>Nombre de teintes de pastille.</summary>
+    public const int Tints = 6;
+
     /// <summary>
-    /// La part de la largeur qu'occupe la barre d'une ligne muette, entre un
-    /// peu moins de la moitié et la presque totalité.
+    /// L'habillage d'une ligne muette.
     ///
-    /// Des barres toutes de la même longueur trahissent le dessin : aucune
-    /// liste de réglages n'a cinq intitulés de même taille. Elles sont donc
-    /// inégales, mais pas au hasard : le même écran doit se dessiner pareil à
-    /// chaque ouverture de la fenêtre.
+    /// Des barres toutes de la même longueur, toutes les pastilles de la même
+    /// couleur et pas un interrupteur : le dessin se trahissait, aucune liste
+    /// de réglages ne ressemble à cela. Tout est donc inégal, mais rien n'est
+    /// tiré au sort : le même écran doit se dessiner pareil à chaque ouverture
+    /// de la fenêtre, sans quoi l'illustration bougerait sous les yeux de qui
+    /// la relit.
     /// </summary>
     /// <param name="title">Le nom de l'écran.</param>
     /// <param name="row">Le rang de la ligne.</param>
-    public static double BarShare(string? title, int row)
+    public static MenuRowDecor Decor(string? title, int row)
     {
-        var sum = row * 7;
+        var ligne = Hash((row + 1) * 7, title);
+
+        return new MenuRowDecor(
+            // Cinq largeurs, assez éloignées pour se voir, assez proches pour
+            // que la liste reste une liste.
+            0.5 + (ligne % 5 * 0.115),
+            ligne / 5 % Tints,
+            // Un seul interrupteur par écran. Un premier essai en tirait un par
+            // ligne, et « Applications » se retrouvait avec quatre bascules :
+            // un écran par lequel on ne fait que passer n'en porte pas quatre.
+            row == Hash(0, title) % Rows,
+            // Un sous-titre une fois sur trois : beaucoup de réglages annoncent
+            // leur état sous leur nom, mais pas tous.
+            ligne / 97 % 3 == 0);
+    }
+
+    /// <summary>
+    /// Une empreinte stable d'un titre. Stable et non aléatoire : le même écran
+    /// doit se dessiner pareil à chaque ouverture de la fenêtre, sans quoi
+    /// l'illustration bougerait sous les yeux de qui la relit.
+    /// </summary>
+    private static int Hash(int seed, string? title)
+    {
+        var sum = seed;
 
         foreach (var character in title ?? string.Empty)
         {
-            sum = ((sum * 31) + character) % 4096;
+            sum = ((sum * 31) + character) % 65536;
         }
 
-        // Cinq largeurs, assez éloignées pour se voir, assez proches pour que
-        // la liste reste une liste.
-        return 0.5 + (sum % 5 * 0.115);
+        return sum;
     }
 
     /// <summary>

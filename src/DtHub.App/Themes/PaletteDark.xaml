@@ -34,6 +34,21 @@
   <SolidColorBrush x:Key="AccentHoverBrush" Color="#FF5098D6" />
   <SolidColorBrush x:Key="AccentSoftBrush" Color="#FF16222E" />
 
+  <!-- Les pastilles des écrans dessinés dans l'aide. Android range ses
+       réglages derrière des icônes de couleur, et c'est ce qui distingue une
+       liste de réglages de n'importe quelle autre liste : le dessin le reprend.
+       Elles ne disent pas la couleur d'un réglage en particulier, que la fiche
+       de marque ne donne pas, mais qu'il y en a une.
+
+       Le bleu de l'accent n'y figure pas : c'est la teinte de la ligne à
+       toucher, et elle doit rester la seule de sa sorte. -->
+  <SolidColorBrush x:Key="MenuTintA" Color="#FF2F6E66" />
+  <SolidColorBrush x:Key="MenuTintB" Color="#FF4C7A47" />
+  <SolidColorBrush x:Key="MenuTintC" Color="#FF8F6B33" />
+  <SolidColorBrush x:Key="MenuTintD" Color="#FF8C4A50" />
+  <SolidColorBrush x:Key="MenuTintE" Color="#FF63508C" />
+  <SolidColorBrush x:Key="MenuTintF" Color="#FF4A5566" />
+
   <!-- Les trois diodes d'état. -->
   <SolidColorBrush x:Key="SuccessBrush" Color="#FF46B478" />
   <SolidColorBrush x:Key="WarningBrush" Color="#FFE8C24A" />

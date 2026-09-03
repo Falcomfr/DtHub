@@ -110,18 +110,15 @@ public sealed class MenuPathTests
     }
 
     /// <summary>
-    /// Des barres toutes de la même longueur trahiraient le dessin, mais un
-    /// dessin qui bouge à chaque ouverture serait pire : le même écran doit se
-    /// rendre pareil.
+    /// Un dessin qui bouge à chaque ouverture serait pire que des barres
+    /// toutes égales : le même écran doit se rendre pareil.
     /// </summary>
     [Fact]
-    public void La_longueur_des_barres_ne_bouge_pas_d_une_lecture_a_l_autre()
+    public void L_habillage_ne_bouge_pas_d_une_lecture_a_l_autre()
     {
         for (var rang = 0; rang < MenuPath.Rows; rang++)
         {
-            Assert.Equal(
-                MenuPath.BarShare("Paramètres", rang),
-                MenuPath.BarShare("Paramètres", rang));
+            Assert.Equal(MenuPath.Decor("Paramètres", rang), MenuPath.Decor("Paramètres", rang));
         }
     }
 
@@ -130,20 +127,73 @@ public sealed class MenuPathTests
     {
         for (var rang = 0; rang < MenuPath.Rows; rang++)
         {
-            Assert.InRange(MenuPath.BarShare("Applications", rang), 0.5, 1.0);
+            Assert.InRange(MenuPath.Decor("Applications", rang).BarShare, 0.5, 1.0);
         }
     }
 
-    /// <summary>Cinq barres identiques se verraient : elles ne le sont pas.</summary>
     [Fact]
-    public void Les_barres_d_un_meme_ecran_ne_sont_pas_toutes_egales()
+    public void La_teinte_reste_dans_la_palette()
     {
-        var largeurs = Enumerable
-            .Range(0, MenuPath.Rows)
-            .Select(rang => MenuPath.BarShare("Paramètres supplémentaires", rang))
-            .Distinct()
-            .Count();
+        for (var rang = 0; rang < MenuPath.Rows; rang++)
+        {
+            Assert.InRange(MenuPath.Decor("Applications", rang).Tint, 0, MenuPath.Tints - 1);
+        }
+    }
 
-        Assert.True(largeurs > 1, "les cinq barres ont la même longueur");
+    /// <summary>
+    /// Cinq lignes rigoureusement identiques se verraient : ni les longueurs
+    /// ni les teintes ne le sont.
+    /// </summary>
+    [Fact]
+    public void Les_lignes_d_un_meme_ecran_ne_se_ressemblent_pas_toutes()
+    {
+        var habillages = Enumerable
+            .Range(0, MenuPath.Rows)
+            .Select(rang => MenuPath.Decor("Paramètres supplémentaires", rang))
+            .ToList();
+
+        Assert.True(habillages.Select(d => d.BarShare).Distinct().Count() > 1, "longueurs égales");
+        Assert.True(habillages.Select(d => d.Tint).Distinct().Count() > 1, "teintes égales");
+    }
+
+    /// <summary>
+    /// Un écran de navigation ne porte pas quatre bascules. Il en porte une,
+    /// exactement : assez pour que la liste ressemble à des réglages, pas assez
+    /// pour qu'elle ressemble à un tableau de bord.
+    /// </summary>
+    [Theory]
+    [InlineData("Paramètres")]
+    [InlineData("Applications")]
+    [InlineData("Système")]
+    [InlineData("Batterie")]
+    [InlineData("Paramètres supplémentaires")]
+    [InlineData("Gérer les applications")]
+    [InlineData("DOFUS Touch")]
+    public void Un_ecran_ne_porte_qu_un_seul_interrupteur(string ecran)
+    {
+        var interrupteurs = Enumerable
+            .Range(0, MenuPath.Rows)
+            .Count(rang => MenuPath.Decor(ecran, rang).HasSwitch);
+
+        Assert.Equal(1, interrupteurs);
+    }
+
+    /// <summary>
+    /// Ni tous les réglages ni aucun n'annoncent leur état sous leur nom.
+    /// </summary>
+    [Fact]
+    public void Les_sous_titres_restent_minoritaires()
+    {
+        string[] ecrans =
+        [
+            "Paramètres", "Applications", "Système", "Batterie",
+            "Paramètres supplémentaires", "Gérer les applications", "DOFUS Touch",
+        ];
+
+        var lignes = ecrans
+            .SelectMany(nom => Enumerable.Range(0, MenuPath.Rows).Select(rang => MenuPath.Decor(nom, rang)))
+            .ToList();
+
+        Assert.InRange(lignes.Count(d => d.HasSubtitle), 1, lignes.Count / 2);
     }
 }

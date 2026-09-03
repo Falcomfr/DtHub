@@ -16,12 +16,20 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   barres grises sous un mince bandeau de titre, qui n'évoquaient aucun téléphone
   en particulier.
 
+  Chaque ligne porte une pastille de couleur, comme Android range ses réglages,
+  et une ligne sur trois annonce son état sous son nom. Un écran porte un
+  interrupteur, un seul : un écran par lequel on ne fait que passer n'en porte
+  pas quatre.
+
   La longueur des barres est inégale, sans quoi cinq intitulés de même taille
-  trahissaient le dessin, mais elle ne bouge pas d'une ouverture à l'autre : le
-  même écran se rend toujours pareil. Cinq lignes par écran au lieu de quatre.
+  trahissaient le dessin, mais rien ne bouge d'une ouverture à l'autre : le même
+  écran se rend toujours pareil, teintes et interrupteur compris. Cinq lignes par
+  écran au lieu de quatre.
 
   Ce qui n'est pas dit reste muet : ni les autres intitulés du menu, ni l'heure,
-  ni le niveau de batterie ne sont inventés. La fiche de marque ne les donne pas.
+  ni le niveau de batterie ne sont inventés. Les pastilles ne disent pas la
+  couleur d'un réglage en particulier, que la fiche de marque ne donne pas, mais
+  qu'il y en a une.
 
 - Fermer le cadre à onglets ferme les comptes qu'il logeait. Ils en ressortaient
   libres, et l'on se retrouvait avec autant de fenêtres de jeu éparses qu'on

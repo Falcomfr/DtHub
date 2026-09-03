@@ -41,10 +41,35 @@ public partial class MenuPathControl : UserControl
 
     /// <summary>
     /// La place qui reste pour la barre d'une ligne muette, une fois retirés
-    /// l'icône, le chevron et les marges. Le gabarit fixe la largeur de
+    /// la pastille, le chevron et les marges. Le gabarit fixe la largeur de
     /// l'écran, donc celle-ci se calcule ici plutôt que de se deviner.
     /// </summary>
     private const double BarWidth = 100;
+
+    /// <summary>
+    /// Les teintes de pastille, par leur clé de palette. Le noyau en rend le
+    /// rang, la vue la couleur : c'est le thème qui décide des couleurs, ici
+    /// comme partout.
+    /// </summary>
+    private static readonly string[] Teintes =
+        ["MenuTintA", "MenuTintB", "MenuTintC", "MenuTintD", "MenuTintE", "MenuTintF"];
+
+    private static Ligne Muette(string titre, int rang)
+    {
+        var decor = MenuPath.Decor(titre, rang);
+
+        return new Ligne(
+            string.Empty,
+            false,
+            Math.Round(BarWidth * decor.BarShare),
+            // Le sous-titre est nettement plus court que le titre : c'est ce
+            // qui le fait lire comme un sous-titre et non comme une seconde
+            // ligne du même texte.
+            Math.Round(BarWidth * decor.BarShare * 0.62),
+            Teintes[decor.Tint % Teintes.Length],
+            decor.HasSwitch,
+            decor.HasSubtitle);
+    }
 
     private void Rebuild()
     {
@@ -67,11 +92,8 @@ public partial class MenuPathControl : UserControl
             [
                 .. Enumerable.Range(0, MenuPath.Rows).Select(rang =>
                     rang == screen.Row && screen.Tap.Length > 0
-                        ? new Ligne(screen.Tap, true, 0)
-                        : new Ligne(
-                            string.Empty,
-                            false,
-                            Math.Round(BarWidth * MenuPath.BarShare(screen.Title, rang)))),
+                        ? new Ligne(screen.Tap, true, 0, 0, Teintes[0], false, false)
+                        : Muette(screen.Title, rang)),
             ];
         }
 
@@ -90,5 +112,24 @@ public partial class MenuPathControl : UserControl
     /// <param name="Libelle">Le vrai libellé, ou rien pour une ligne muette.</param>
     /// <param name="EstCelleQuOnTouche">Vrai pour la ligne à toucher.</param>
     /// <param name="Largeur">Longueur de la barre, pour une ligne muette.</param>
-    internal sealed record Ligne(string Libelle, bool EstCelleQuOnTouche, double Largeur);
+    /// <param name="LargeurSousTitre">Longueur de la seconde barre, s'il y en a une.</param>
+    /// <param name="Teinte">Clé de palette de la pastille.</param>
+    /// <param name="AvecInterrupteur">Vrai quand la ligne porte un interrupteur.</param>
+    /// <param name="AvecSousTitre">Vrai quand la ligne porte un sous-titre.</param>
+    internal sealed record Ligne(
+        string Libelle,
+        bool EstCelleQuOnTouche,
+        double Largeur,
+        double LargeurSousTitre,
+        string Teinte,
+        bool AvecInterrupteur,
+        bool AvecSousTitre)
+    {
+        /// <summary>
+        /// Vrai quand la ligne porte un chevron muet : ni celle qu'on touche,
+        /// qui a le sien en couleur, ni celle qui bascule, qui a son
+        /// interrupteur. Les deux se seraient superposés.
+        /// </summary>
+        public bool AvecChevron => !EstCelleQuOnTouche && !AvecInterrupteur;
+    }
 }

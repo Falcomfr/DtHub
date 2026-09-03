@@ -85,31 +85,43 @@
                             <ColumnDefinition Width="Auto" />
                           </Grid.ColumnDefinitions>
 
-                          <!-- L'icône. Chaque réglage en porte une, et c'est
-                               ce qui distingue une liste de réglages de
-                               n'importe quelle autre liste. La sienne reste
-                               muette : la fiche de marque ne dit pas laquelle. -->
-                          <Border Grid.Column="0" Width="15" Height="15" CornerRadius="5"
+                          <!-- La pastille. Android range ses réglages derrière
+                               des icônes de couleur, et c'est ce qui distingue
+                               une liste de réglages de n'importe quelle autre
+                               liste. Le dessin qu'elle porte reste muet : la
+                               fiche de marque ne dit pas lequel. -->
+                          <Border Grid.Column="0" Width="16" Height="16" CornerRadius="5"
                                   Margin="0,0,7,0" VerticalAlignment="Center"
-                                  Background="{DynamicResource BevelBrush}" Opacity="0.45"
+                                  Background="{Binding Teinte,
+                                                       Converter={StaticResource KeyToBrush}}"
                                   Visibility="{Binding EstCelleQuOnTouche,
                                                        Converter={StaticResource InverseBoolToVisibility}}" />
 
-                          <Border Grid.Column="0" Width="15" Height="15" CornerRadius="5"
+                          <Border Grid.Column="0" Width="16" Height="16" CornerRadius="5"
                                   Margin="0,0,7,0" VerticalAlignment="Center"
                                   Background="{DynamicResource AccentBrush}"
                                   Visibility="{Binding EstCelleQuOnTouche,
                                                        Converter={StaticResource BoolToVisibility}}" />
 
-                          <!-- Une ligne muette : une barre, rien de plus.
-                               Inventer le reste du menu montrerait ce que la
-                               fiche de marque ne dit pas. -->
-                          <Border Grid.Column="1" Height="6" CornerRadius="2"
-                                  Margin="0,0,10,0" Width="{Binding Largeur}"
-                                  HorizontalAlignment="Left" VerticalAlignment="Center"
-                                  Background="{DynamicResource BevelBrush}" Opacity="0.4"
-                                  Visibility="{Binding EstCelleQuOnTouche,
-                                                       Converter={StaticResource InverseBoolToVisibility}}" />
+                          <!-- Une ligne muette : une barre, et parfois une
+                               seconde plus courte, comme les réglages qui
+                               annoncent leur état sous leur nom. Inventer le
+                               texte montrerait ce que la fiche ne dit pas. -->
+                          <StackPanel Grid.Column="1" Margin="0,0,8,0"
+                                      VerticalAlignment="Center"
+                                      Visibility="{Binding EstCelleQuOnTouche,
+                                                           Converter={StaticResource InverseBoolToVisibility}}">
+                            <Border Height="6" CornerRadius="2" Width="{Binding Largeur}"
+                                    HorizontalAlignment="Left"
+                                    Background="{DynamicResource BevelBrush}" Opacity="0.45" />
+
+                            <Border Height="4" CornerRadius="2" Margin="0,4,0,0"
+                                    Width="{Binding LargeurSousTitre}"
+                                    HorizontalAlignment="Left"
+                                    Background="{DynamicResource BevelBrush}" Opacity="0.28"
+                                    Visibility="{Binding AvecSousTitre,
+                                                         Converter={StaticResource BoolToVisibility}}" />
+                          </StackPanel>
 
                           <TextBlock Grid.Column="1" Text="{Binding Libelle}" FontSize="10"
                                      TextWrapping="Wrap" VerticalAlignment="Center"
@@ -118,21 +130,35 @@
                                      Visibility="{Binding EstCelleQuOnTouche,
                                                           Converter={StaticResource BoolToVisibility}}" />
 
-                          <!-- Le chevron court sur toutes les lignes : c'est
-                               ce que fait la vraie liste, et le réserver à une
-                               seule trahirait le dessin. -->
-                          <TextBlock Grid.Column="2" Text="&#x203A;" FontSize="11"
-                                     Margin="0,-1,0,0" VerticalAlignment="Center"
-                                     Opacity="0.5"
-                                     Foreground="{DynamicResource TextMutedBrush}"
-                                     Visibility="{Binding EstCelleQuOnTouche,
-                                                          Converter={StaticResource InverseBoolToVisibility}}" />
+                          <!-- À droite, ce que porte la ligne : un chevron
+                               quand elle mène ailleurs, un interrupteur quand
+                               elle bascule quelque chose. Une liste qui n'aurait
+                               que des chevrons ne ressemblerait à aucun écran
+                               de réglages. -->
+                          <Grid Grid.Column="2" VerticalAlignment="Center">
+                            <TextBlock Text="&#x203A;" FontSize="11" Margin="0,-1,0,0"
+                                       Opacity="0.5"
+                                       Foreground="{DynamicResource TextMutedBrush}"
+                                       Visibility="{Binding AvecChevron,
+                                                            Converter={StaticResource BoolToVisibility}}" />
 
-                          <TextBlock Grid.Column="2" Text="&#x203A;" FontSize="11"
-                                     Margin="0,-1,0,0" VerticalAlignment="Center"
-                                     Foreground="{DynamicResource AccentBrush}"
-                                     Visibility="{Binding EstCelleQuOnTouche,
-                                                          Converter={StaticResource BoolToVisibility}}" />
+                            <TextBlock Text="&#x203A;" FontSize="11" Margin="0,-1,0,0"
+                                       Foreground="{DynamicResource AccentBrush}"
+                                       Visibility="{Binding EstCelleQuOnTouche,
+                                                            Converter={StaticResource BoolToVisibility}}" />
+                          </Grid>
+
+                          <!-- L'interrupteur, au repos : c'est l'état où l'on
+                               trouve un réglage qu'on n'a pas encore touché. -->
+                          <Border Grid.Column="2" Width="18" Height="10" CornerRadius="5"
+                                  VerticalAlignment="Center"
+                                  Background="{DynamicResource BevelBrush}" Opacity="0.5"
+                                  Visibility="{Binding AvecInterrupteur,
+                                                       Converter={StaticResource BoolToVisibility}}">
+                            <Border Width="6" Height="6" CornerRadius="3" Margin="2,0,0,0"
+                                    HorizontalAlignment="Left" VerticalAlignment="Center"
+                                    Background="{DynamicResource TextMutedBrush}" />
+                          </Border>
                         </Grid>
                       </Grid>
                     </DataTemplate>
