@@ -3566,6 +3566,16 @@ WebView2 sur un Windows 10 non tenu à jour, dont l'absence ne coûte que les de
 fenêtres de guides et se dit déjà clairement. Et l'avertissement SmartScreen,
 le binaire n'étant pas signé.
 
+**La seule porte de sortie n'existait pas.** `AdbLocator` annonçait accepter un
+chemin ADB imposé dans les réglages, ce qui aurait épargné le téléchargement à
+qui a déjà Android Studio. Rien ne posait ce réglage, aucune fenêtre ne le
+demandait, et la branche n'avait jamais tourné. Elle est retirée plutôt que
+branchée : elle promettait ce que D4 écarte, dépendre d'une installation tierce,
+et le code lit la sortie d'`adb` pour trouver profils, afficheurs et paquets.
+Une version qu'on ne maîtrise pas ne casse pas bruyamment, elle rend une sortie
+un peu différente que l'analyse interprète de travers. Huit mégaoctets épargnés
+une fois ne valent pas ce risque pour un public qui joue à DOFUS Touch.
+
 **Ce qui n'a pas été touché.** Le profil WebView2 pèse cent cinquante et un
 mégaoctets, dont quatre-vingt-dix-neuf pour le cache web : la borne de cent
 mégaoctets de D50 est donc tenue au mégaoctet près. Le reste est le

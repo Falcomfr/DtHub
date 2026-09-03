@@ -95,9 +95,7 @@ public static class AppServices
 
         services.AddSingleton<IQuestSuccessSeed, EmbeddedQuestSuccessSeed>();
         services.AddSingleton<QuestCatalogService>();
-        services.AddSingleton<IAdbLocator>(provider => new AdbLocator(
-            provider.GetRequiredService<IDependencyProvisioner>(),
-            provider.GetRequiredService<ILogger<AdbLocator>>()));
+        services.AddSingleton<IAdbLocator, AdbLocator>();
         services.AddSingleton<IScrcpyLocator, ScrcpyLocator>();
         services.AddSingleton<ToolPreparation>();
 

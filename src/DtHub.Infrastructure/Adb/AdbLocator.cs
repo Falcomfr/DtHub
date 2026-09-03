@@ -2,62 +2,37 @@
 using DtHub.Core.Dependencies;
 using DtHub.Infrastructure.Dependencies;
 
-using Microsoft.Extensions.Logging;
-
 namespace DtHub.Infrastructure.Adb;
 
 /// <summary>
-/// Détermine le chemin absolu d'ADB. Dans l'ordre : le chemin explicitement
-/// choisi par l'utilisateur, puis la copie installée par DT Hub, qui est
-/// téléchargée à la demande. Le PATH n'est jamais consulté, pour ne dépendre
-/// d'aucune installation tierce.
+/// Détermine le chemin absolu d'ADB : celui de la copie installée par DT Hub,
+/// téléchargée à la demande. Le PATH n'est jamais consulté, et aucun chemin
+/// choisi ailleurs n'est accepté.
+///
+/// C'est la règle de D4, prise au mot. Le code portait une branche pour un
+/// chemin imposé dans les réglages, mais ce réglage n'a jamais existé : rien
+/// ne le posait, aucune fenêtre ne le demandait, et la branche n'a jamais
+/// tourné. Elle promettait surtout ce que la décision écarte, dépendre d'une
+/// installation tierce, pour huit mégaoctets épargnés une fois. Le code lit la
+/// sortie d'adb pour trouver profils, afficheurs et paquets : une version
+/// qu'on ne maîtrise pas ne casse pas bruyamment, elle rend une sortie un peu
+/// différente que l'analyse interprète de travers.
 /// </summary>
-public sealed partial class AdbLocator : IAdbLocator, IDisposable
+public sealed class AdbLocator : IAdbLocator, IDisposable
 {
     private readonly IDependencyProvisioner _provisioner;
-    private readonly ILogger<AdbLocator> _logger;
     private readonly SemaphoreSlim _gate = new(1, 1);
-    private readonly Func<string?> _overrideProvider;
 
     private string? _resolved;
 
-    /// <param name="overrideProvider">
-    /// Chemin ADB imposé par l'utilisateur dans les paramètres, ou <c>null</c>.
-    /// Passé sous forme de fonction pour être relu à chaud après modification.
-    /// </param>
-    public AdbLocator(
-        IDependencyProvisioner provisioner,
-        ILogger<AdbLocator> logger,
-        Func<string?>? overrideProvider = null)
-    {
-        _provisioner = provisioner;
-        _logger = logger;
-        _overrideProvider = overrideProvider ?? (static () => null);
-    }
+    public AdbLocator(IDependencyProvisioner provisioner) => _provisioner = provisioner;
 
-    public string? TryGetInstalledPath()
-    {
-        if (_overrideProvider() is { Length: > 0 } custom && File.Exists(custom))
-        {
-            return custom;
-        }
-
-        return _resolved ?? _provisioner.TryGetExistingPath(
+    public string? TryGetInstalledPath() =>
+        _resolved ?? _provisioner.TryGetExistingPath(
             DependencyManifest.Get(DependencyManifest.PlatformToolsKey));
-    }
 
     public async Task<string> GetAdbPathAsync(CancellationToken cancellationToken = default)
     {
-        if (_overrideProvider() is { Length: > 0 } custom)
-        {
-            if (File.Exists(custom))
-            {
-                return custom;
-            }
-
-            LogOverrideMissing(custom);
-        }
-
         if (_resolved is not null)
         {
             return _resolved;
@@ -97,9 +72,4 @@ public sealed partial class AdbLocator : IAdbLocator, IDisposable
     }
 
     public void Dispose() => _gate.Dispose();
-
-    [LoggerMessage(
-        Level = LogLevel.Warning,
-        Message = "Le chemin ADB personnalisé {path} est introuvable ; retour à la copie de DT Hub.")]
-    private partial void LogOverrideMissing(string path);
 }
