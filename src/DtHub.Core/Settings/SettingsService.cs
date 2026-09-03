@@ -1,5 +1,6 @@
 ﻿using DtHub.Core.Dofus;
 using DtHub.Core.Hotkeys;
+using DtHub.Core.Localization;
 using DtHub.Core.Scrcpy;
 using DtHub.Core.Storage;
 using DtHub.Core.Windows;
@@ -926,6 +927,15 @@ public sealed class SettingsService : IDisposable
         bool automatic,
         CancellationToken cancellationToken = default) =>
         UpdateAsync(settings => settings.UpdatesAutomatic = automatic, cancellationToken);
+
+    /// <summary>
+    /// Retient la langue de l'interface. Une chaîne vide rend la main à la
+    /// langue d'affichage de Windows.
+    /// </summary>
+    public Task SetLanguageAsync(string? language, CancellationToken cancellationToken = default) =>
+        UpdateAsync(
+            settings => settings.Language = AppLanguage.Serves(language) ? language!.Trim() : string.Empty,
+            cancellationToken);
 
     public Task SetQuestsStateAsync(
         bool visible,

@@ -7,6 +7,19 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ## [Non publié]
 
+### Ajouté
+
+- L'application se montre en anglais, en français ou en espagnol. Elle suit la
+  langue d'affichage de Windows sans qu'on ait rien à régler, et retombe sur
+  l'anglais quand cette langue n'est pas traduite. Un choix dans l'onglet
+  Fenêtres permet de la contredire ; il prend effet au démarrage suivant, les
+  fenêtres lisant leurs textes une fois pour toutes à leur construction.
+
+  Cette première étape traduit le panneau de réglages en entier, ses infobulles
+  comprises. Le reste des fenêtres, les messages d'erreur et les phrases bâties
+  à l'exécution restent français pour l'instant. Les guides eux-mêmes viennent
+  de papycha.fr et resteront français : c'est du contenu, non de l'habillage.
+
 ### Corrigé
 
 - L'ordre des onglets rangé à la souris ne survivait pas au démarrage suivant

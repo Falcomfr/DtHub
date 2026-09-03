@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    Genere depuis une table unique : les trois fichiers portent les memes cles,
+    et une epreuve le verifie (StringsResourceTests).
+  -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AppSubtitleForGame" xml:space="preserve">
+    <value> para DOFUS Touch</value>
+  </data>
+  <data name="ShortcutToggleSuffix" xml:space="preserve">
+    <value> para mostrar u ocultar</value>
+  </data>
+  <data name="HideThisWindow" xml:space="preserve">
+    <value>Ocultar esta ventana</value>
+  </data>
+  <data name="WhatsNew" xml:space="preserve">
+    <value>Novedades</value>
+  </data>
+  <data name="WhatsNewTip" xml:space="preserve">
+    <value>Leer lo que aporta esta versión</value>
+  </data>
+  <data name="Stack" xml:space="preserve">
+    <value>Apilar</value>
+  </data>
+  <data name="StackTip" xml:space="preserve">
+    <value>Apilar todas las ventanas de juego sobre la última que has usado, en su posición y su tamaño</value>
+  </data>
+  <data name="SideBySide" xml:space="preserve">
+    <value>Lado a lado</value>
+  </data>
+  <data name="SideBySideTip" xml:space="preserve">
+    <value>Colocar dos ventanas una al lado de la otra, cada una en una mitad de la pantalla. La ventana activa va a la derecha.</value>
+  </data>
+  <data name="Guides" xml:space="preserve">
+    <value>Guías</value>
+  </data>
+  <data name="GuidesTip" xml:space="preserve">
+    <value>Abrir las guías, que permanecen encima de las ventanas de juego. Misiones, mazmorras, incursiones, guaridas y rutas, de papycha.fr.</value>
+  </data>
+  <data name="Quit" xml:space="preserve">
+    <value>Salir</value>
+  </data>
+  <data name="QuitTip" xml:space="preserve">
+    <value>Cerrar la aplicación y las ventanas de juego</value>
+  </data>
+  <data name="TabShortcuts" xml:space="preserve">
+    <value>Atajos</value>
+  </data>
+  <data name="TabWindows" xml:space="preserve">
+    <value>Ventanas</value>
+  </data>
+  <data name="TabDevices" xml:space="preserve">
+    <value>Dispositivos</value>
+  </data>
+  <data name="EditShortcuts" xml:space="preserve">
+    <value>Modificar los atajos</value>
+  </data>
+  <data name="PlaceWindowsHeading" xml:space="preserve">
+    <value>RECOLOCAR LAS VENTANAS DE JUEGO</value>
+  </data>
+  <data name="PlaceWindowsTip" xml:space="preserve">
+    <value>Haz clic en una casilla para agrupar todas las ventanas en ese punto de la pantalla. Es también la esquina donde se abren las ventanas que aún no tienen sitio guardado.</value>
+  </data>
+  <data name="WindowSizeHeading" xml:space="preserve">
+    <value>TAMAÑO DE LAS VENTANAS DE JUEGO</value>
+  </data>
+  <data name="WindowSizeTip" xml:space="preserve">
+    <value>Proporcional a la zona utilizable de la pantalla, no a sus píxeles: el mismo valor da la misma parte de pantalla en todas partes. Los atajos Ctrl+1 a Ctrl+5 colocan cinco marcas en este control.</value>
+  </data>
+  <data name="QualityHeading" xml:space="preserve">
+    <value>CALIDAD</value>
+  </data>
+  <data name="CustomQualityTip" xml:space="preserve">
+    <value>Ajustes finos de la calidad personalizada</value>
+  </data>
+  <data name="QualityLow" xml:space="preserve">
+    <value>Baja</value>
+  </data>
+  <data name="QualityLowTip" xml:space="preserve">
+    <value>Imagen de 720 como máximo, 30 imágenes por segundo, tasa de bits reducida, y el teléfono se consulta la mitad de veces. Para equipos y teléfonos modestos, o muchas cuentas a la vez.</value>
+  </data>
+  <data name="QualityMedium" xml:space="preserve">
+    <value>Media</value>
+  </data>
+  <data name="QualityMediumTip" xml:space="preserve">
+    <value>Imagen de 1080 como máximo, 60 imágenes por segundo. El ajuste de origen, que conviene a la mayoría de los equipos.</value>
+  </data>
+  <data name="QualityHigh" xml:space="preserve">
+    <value>Alta</value>
+  </data>
+  <data name="QualityHighTip" xml:space="preserve">
+    <value>Imagen a la resolución de la ventana, sin ningún límite, y tasa de bits doble. Duro para el teléfono: resérvalo para un aparato reciente, y en Wi-Fi para una red que aguante.</value>
+  </data>
+  <data name="QualityCustom" xml:space="preserve">
+    <value>Personalizada</value>
+  </data>
+  <data name="QualityCustomTip" xml:space="preserve">
+    <value>Ajustar tú mismo la resolución, la cadencia, el detalle de imagen y el códec. Los tres niveles siguen siendo el camino habitual: este es para quien ya sabe lo que quiere.</value>
+  </data>
+  <data name="FineSettingsHeading" xml:space="preserve">
+    <value>AJUSTES FINOS</value>
+  </data>
+  <data name="MaxResolution" xml:space="preserve">
+    <value>Resolución máx.</value>
+  </data>
+  <data name="MaxResolutionTip" xml:space="preserve">
+    <value>Un techo, no la resolución empleada: esta sigue el tamaño de la ventana y puede ser menor.</value>
+  </data>
+  <data name="FrameRate" xml:space="preserve">
+    <value>Cadencia</value>
+  </data>
+  <data name="ImageDetail" xml:space="preserve">
+    <value>Detalle de imagen</value>
+  </data>
+  <data name="ImageDetailTip" xml:space="preserve">
+    <value>Bits concedidos a cada píxel de cada imagen. La tasa de bits se deduce de la resolución realmente empleada, como en los otros tres niveles: una tasa absoluta daría de sobra a una ventana pequeña y dejaría en ayunas a una grande.</value>
+  </data>
+  <data name="VideoCodec" xml:space="preserve">
+    <value>Códec de vídeo</value>
+  </data>
+  <data name="VideoCodecTip" xml:space="preserve">
+    <value>AV1 y VP8 no se ofrecen: en un teléfono corriente no tienen codificador por hardware, y codificarlos por software cuesta mucho más de lo que aportan.</value>
+  </data>
+  <data name="BitsPerPixelTip" xml:space="preserve">
+    <value>Bits concedidos a cada píxel de cada imagen. La referencia del oficio ronda 0,10 para un H.264 bien hecho.</value>
+  </data>
+  <data name="BitrateTip" xml:space="preserve">
+    <value>Lo que el teléfono tendrá que enviar por Wi-Fi. Un aparato con Wi-Fi 4 en 2,4 GHz da unos sesenta megabits en la práctica.</value>
+  </data>
+  <data name="ResolutionAdviceTip" xml:space="preserve">
+    <value>La resolución sigue el tamaño de tus ventanas. Medido: en una ventana de 1428 de alto, pasar de 1080 a 1440 cuesta un 78 % de tasa de bits para una diferencia de imagen de 0,63 sobre 255; en una ventana de 1800, la diferencia se ve.</value>
+  </data>
+  <data name="GameDistanceHeading" xml:space="preserve">
+    <value>DISTANCIA EN EL JUEGO</value>
+  </data>
+  <data name="GameDistanceTip" xml:space="preserve">
+    <value>Actúa sobre la densidad de pantalla que ve Android, no sobre el detalle de imagen: a igual tamaño de ventana, el juego muestra más o menos terreno.</value>
+  </data>
+  <data name="ZoomVeryFar" xml:space="preserve">
+    <value>Muy lejana</value>
+  </data>
+  <data name="ZoomVeryFarTip" xml:space="preserve">
+    <value>El máximo terreno que se puede mostrar. La interfaz del juego se vuelve pequeña: en una ventana modesta estará al límite de lo legible.</value>
+  </data>
+  <data name="ZoomFar" xml:space="preserve">
+    <value>Lejana</value>
+  </data>
+  <data name="ZoomFarTip" xml:space="preserve">
+    <value>Mucho terreno visible, la interfaz del juego pequeña. Práctico para seguir varias cuentas de un vistazo, menos cómodo para apuntar.</value>
+  </data>
+  <data name="ZoomNormal" xml:space="preserve">
+    <value>Normal</value>
+  </data>
+  <data name="ZoomNormalTip" xml:space="preserve">
+    <value>El ajuste de origen, el de una pantalla de 1080 píxeles a 240 ppp.</value>
+  </data>
+  <data name="ZoomClose" xml:space="preserve">
+    <value>Cercana</value>
+  </data>
+  <data name="ZoomCloseTip" xml:space="preserve">
+    <value>El mínimo terreno posible, la interfaz del juego lo más grande. Cómodo en una ventana pequeña. En una ventana de más de 2300 píxeles de alto, este nivel se acerca al anterior: la densidad pedida llega a su techo.</value>
+  </data>
+  <data name="ReopenNotice" xml:space="preserve">
+    <value>Las ventanas abiertas se reabren para aplicar el cambio.</value>
+  </data>
+  <data name="PhoneAudio" xml:space="preserve">
+    <value>Sonido del teléfono enviado al PC</value>
+  </data>
+  <data name="PhoneAudioTip" xml:space="preserve">
+    <value>Android no sabe aislar el sonido de una aplicación: llega el del teléfono entero, con todas las cuentas abiertas mezcladas. Una sola ventana por aparato lo lleva.</value>
+  </data>
+  <data name="AutomaticUpdates" xml:space="preserve">
+    <value>Actualización automática</value>
+  </data>
+  <data name="AutomaticUpdatesTip" xml:space="preserve">
+    <value>La nueva versión se descarga en segundo plano y se instala al salir. Sin marcar, la aplicación se limita a avisar de que existe una versión.</value>
+  </data>
+  <data name="OpenLogFolder" xml:space="preserve">
+    <value>Abrir la carpeta de registros</value>
+  </data>
+  <data name="PairDevice" xml:space="preserve">
+    <value>Vincular un aparato nuevo</value>
+  </data>
+  <data name="PairDeviceTip" xml:space="preserve">
+    <value>Se hace una sola vez por aparato. Los aparatos ya vinculados se conectan solos.</value>
+  </data>
+  <data name="Profiles" xml:space="preserve">
+    <value>Perfiles</value>
+  </data>
+  <data name="ProfilesTip" xml:space="preserve">
+    <value>Conjuntos de cuentas, con sus posiciones y sus ajustes, que se abren de un gesto.</value>
+  </data>
+  <data name="LaunchProfilesHeading" xml:space="preserve">
+    <value>PERFILES DE INICIO</value>
+  </data>
+  <data name="NoProfilesYet" xml:space="preserve">
+    <value>Aún no hay perfiles. Abre tus cuentas, coloca sus ventanas y crea uno.</value>
+  </data>
+  <data name="LaunchProfileTip" xml:space="preserve">
+    <value>Abrir este perfil: sus cuentas se abren en sus posiciones y con sus ajustes, las demás ventanas se cierran.</value>
+  </data>
+  <data name="DefaultProfileTip" xml:space="preserve">
+    <value>Abrir este perfil al iniciar. Un segundo clic quita la marca, y la aplicación vuelve a abrir entonces lo que estaba abierto.</value>
+  </data>
+  <data name="DeleteProfileTip" xml:space="preserve">
+    <value>Eliminar este perfil. Las cuentas no se tocan.</value>
+  </data>
+  <data name="CreateProfile" xml:space="preserve">
+    <value>Crear un perfil</value>
+  </data>
+  <data name="CreateProfileTip" xml:space="preserve">
+    <value>Guardar las cuentas abiertas, sus posiciones y los ajustes actuales con un nombre.</value>
+  </data>
+  <data name="AccountsHeading" xml:space="preserve">
+    <value>CUENTAS DE DOFUS TOUCH</value>
+  </data>
+  <data name="AccountsTip" xml:space="preserve">
+    <value>Una cuenta por perfil de Android donde el juego está instalado.</value>
+  </data>
+  <data name="FrozenWindowHelp" xml:space="preserve">
+    <value>¿Una ventana se congela al cabo de un rato?</value>
+  </data>
+  <data name="LanguageHeading" xml:space="preserve">
+    <value>IDIOMA</value>
+  </data>
+  <data name="LanguageTip" xml:space="preserve">
+    <value>El idioma de la aplicación. «Windows» sigue el idioma de pantalla del sistema, y recurre al inglés cuando no está traducido. El cambio se aplica en el próximo inicio.</value>
+  </data>
+  <data name="LanguageRestart" xml:space="preserve">
+    <value>El idioma cambia en el próximo inicio.</value>
+  </data>
+</root>

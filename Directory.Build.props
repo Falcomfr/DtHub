@@ -17,8 +17,8 @@
     <!-- La description est ce que Windows affiche en premier, dans la mise en
          garde de SmartScreen comme dans le gestionnaire des tâches. Sans elle,
          il n'y a que le nom du fichier. -->
-    <AssemblyTitle>DT Hub, plusieurs comptes DOFUS Touch côte à côte</AssemblyTitle>
-    <Description>Ouvre plusieurs comptes DOFUS Touch côte à côte depuis de vrais appareils Android, avec un suivi de guides.</Description>
+    <AssemblyTitle>DT Hub, several DOFUS Touch accounts side by side</AssemblyTitle>
+    <Description>Opens several DOFUS Touch accounts side by side from real Android devices, with guide tracking.</Description>
     <Company>Falcomfr</Company>
     <Authors>Falcomfr</Authors>
     <Copyright>Copyright (c) 2026 Falcomfr</Copyright>

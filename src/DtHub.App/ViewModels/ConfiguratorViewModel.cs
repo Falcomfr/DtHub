@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 using DtHub.App.Services;
 using DtHub.Core;
 using DtHub.Core.Hotkeys;
+using DtHub.Core.Localization;
 using DtHub.Core.Settings;
 using DtHub.Core.Storage;
 using DtHub.Core.Windows;
@@ -314,6 +315,45 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         new("H.265, meilleur à débit égal", "h265"),
     ];
 
+    /// <summary>
+    /// La langue de l'interface. La valeur vide suit la langue d'affichage de
+    /// Windows, ce que fait l'application quand on ne lui dit rien.
+    ///
+    /// Les langues se nomment dans leur propre langue : c'est l'usage, et
+    /// c'est le seul moyen d'être lu par qui ne comprend pas celle qui est
+    /// affichée en ce moment.
+    /// </summary>
+    public IReadOnlyList<TextChoice> LanguageChoices { get; } =
+    [
+        new("Windows", string.Empty),
+        new("English", "en"),
+        new("Français", "fr"),
+        new("Español", "es"),
+    ];
+
+    [ObservableProperty]
+    private string _language = string.Empty;
+
+    /// <summary>
+    /// Vrai après un changement de langue, tant que l'application n'a pas été
+    /// relancée. Les fenêtres lisent leurs textes à la construction : les
+    /// retraduire à chaud demanderait de toutes les rebâtir, pour un réglage
+    /// qu'on touche une fois.
+    /// </summary>
+    [ObservableProperty]
+    private bool _languageRestartNeeded;
+
+    partial void OnLanguageChanged(string value)
+    {
+        if (_loading)
+        {
+            return;
+        }
+
+        LanguageRestartNeeded = true;
+        _ = SaveAsync(settings => settings.Language = AppLanguage.Serves(value) ? value : string.Empty);
+    }
+
     // Onglet Raccourcis, en lecture seule
 
     public ObservableCollection<HotkeyRowViewModel> Hotkeys { get; } = [];
@@ -409,6 +449,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             Quality = settings.Quality;
             Zoom = settings.GameZoom;
             UpdatesAutomatic = settings.UpdatesAutomatic;
+            Language = settings.Language;
             AudioEnabled = settings.AudioEnabled;
             ReadCustomQuality(settings);
 

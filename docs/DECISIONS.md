@@ -3084,3 +3084,73 @@ selon le profil qu'on ouvre.
 celui des arrivées. Les afficheurs ne se préparent pas à la même vitesse, et rien
 ne garantissait que l'ordre d'ouverture soit celui du rangement. La garantie est
 maintenant explicite plutôt que constatée.
+
+---
+
+## D80 - L'anglais devient la langue neutre, et les textes vivent dans le domaine
+
+**2026-09-03 - Acceptée**
+
+L'application est écrite en français de bout en bout et se destine désormais à
+une communauté plus large. Trois questions se posaient : quelle langue par
+défaut, où loger les textes, et jusqu'où la traduction peut aller.
+
+**La langue suit `CurrentUICulture`, non `CurrentCulture`.** La première est la
+langue d'affichage de Windows, la seconde le format des nombres et des dates.
+Ce sont deux réglages distincts, et un francophone sous Windows anglais a
+couramment l'un sans l'autre. La comparaison porte sur les deux premières
+lettres, ce qui sert `fr-BE` et `es-419` sans énumérer les variantes. Faute de
+correspondance, l'anglais.
+
+**Un réglage manuel l'emporte sur la détection.** Trois lignes de code, et cela
+évite toutes les demandes de gens dont le Windows n'est pas dans la langue
+qu'ils veulent lire. La détection est un bon défaut, pas une loi. Le changement
+prend effet au démarrage suivant : les fenêtres lisent leurs textes à leur
+construction, et les retraduire à chaud demanderait de toutes les rebâtir pour
+un réglage qu'on touche une fois.
+
+**L'anglais est la langue neutre**, celle qui reste quand rien ne correspond et
+qui est embarquée dans l'assembly principal. Conséquence assumée : la
+description de l'exécutable, que Windows montre dans les propriétés du fichier
+et que SmartScreen cite dans sa mise en garde, ne peut avoir qu'une langue.
+Elle passe en anglais.
+
+**Les ressources vivent dans `DtHub.Core`, non dans le projet d'interface.**
+Un relevé sur tout le dépôt donne les deux tiers du texte visible écrits dans le
+domaine : messages d'erreur ADB, refus de scrcpy, phrases des profils de
+lancement. Un jeu de ressources logé côté fenêtres leur serait hors d'atteinte,
+Core ne pouvant référencer l'interface. Le loger dans Core sert les deux, et
+laisse les épreuves y accéder sans basculer la suite de tests sur Windows.
+
+**Un piège relevé avant de tomber dedans** : `DtHub.App.csproj` portait
+`<SatelliteResourceLanguages>en</SatelliteResourceLanguages>`, mis là pour que
+les paquets tiers ne sèment pas leurs traductions à côté de l'exécutable. Tel
+quel, il aurait supprimé les nôtres sans le moindre message. Il énumère
+maintenant nos langues, et une épreuve lit un texte français et un texte
+espagnol depuis les assemblys satellites : le filtre ne peut plus se refermer
+en silence.
+
+### Ce qui restera français quoi qu'on fasse
+
+C'est le fait le plus déterminant, et il doit être dit plutôt que découvert :
+
+- **Les guides.** Ils viennent de papycha.fr, site français, et l'application ne
+  fait que masquer le décor autour. En volume lu, ils dominent tout le reste.
+- **Le découpage en étapes est grammaticalement français.** Le relevé en a
+  trouvé vingt et une règles, non pas une : impératifs en « -ez » et leurs six
+  irréguliers, articles retirés devant un nom propre, verbes de dialogue,
+  amorces de phrases à élaguer, mots vides. Ces règles ne lisent pas notre
+  interface, elles lisent le site : elles resteront justes, et monolingues.
+- **Les noms de rubriques, de quêtes et de succès** viennent du catalogue du
+  site, et servent de clés d'appariement : les traduire casserait le tri.
+- **Le formulaire de signalement** est celui du site.
+- **Les chemins de menus Android** de `PhoneBrand.cs` sont ceux du système du
+  téléphone. Les traduire demanderait un relevé sur de vrais appareils dans
+  chaque langue, soit un travail de terrain et non de traduction. Deux fenêtres
+  le disent déjà en toutes lettres.
+- **Les notes de version** sont tirées de `CHANGELOG.md`. C'est le seul de ces
+  points qui dépende de nous : il faudra les écrire en anglais le jour de la
+  publication.
+
+La règle est donc : traduire la coquille, pas le contenu, et annoncer les
+guides pour ce qu'ils sont.

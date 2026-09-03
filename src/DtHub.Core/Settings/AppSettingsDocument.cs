@@ -92,6 +92,13 @@ public sealed class AppSettingsDocument
     public bool UpdatesAutomatic { get; set; } = true;
 
     /// <summary>
+    /// La langue de l'interface, en deux lettres. Vide pour suivre la langue
+    /// d'affichage de Windows, ce qui est le cas ordinaire : le réglage n'est
+    /// là que pour la contredire.
+    /// </summary>
+    public string Language { get; set; } = string.Empty;
+
+    /// <summary>
     /// Où sont les fenêtres de l'application, par nom.
     ///
     /// Une table plutôt qu'un champ par fenêtre : elles se ressemblent toutes

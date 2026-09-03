@@ -4,6 +4,9 @@
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>DtHub.Core</RootNamespace>
     <AssemblyName>DtHub.Core</AssemblyName>
+    <!-- Les textes de Localization/Strings.resx sont anglais : le déclarer
+         évite au runtime de chercher un satellite « en » qui n'existe pas. -->
+    <NeutralResourcesLanguage>en</NeutralResourcesLanguage>
   </PropertyGroup>
 
 </Project>

@@ -8,6 +8,7 @@ using DtHub.App.ViewModels;
 using DtHub.App.Windows;
 using DtHub.Core;
 using DtHub.Core.Devices;
+using DtHub.Core.Localization;
 using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
 using DtHub.Core.Updates;
@@ -112,6 +113,11 @@ public partial class App : Application, IDisposable
         var services = _host!.Services;
         var settings = services.GetRequiredService<SettingsService>();
         var launcher = services.GetRequiredService<GameLauncher>();
+
+        // La langue est posée avant la première fenêtre : les textes sont lus
+        // à la construction des vues, et une fenêtre déjà bâtie ne changerait
+        // plus de langue.
+        await ApplyLanguageAsync(settings).ConfigureAwait(true);
 
         await KillOrphansAsync(services).ConfigureAwait(true);
 
@@ -270,6 +276,30 @@ public partial class App : Application, IDisposable
     ///
     /// Un raccourci que Windows refuse n'empêche rien : l'application démarre.
     /// </summary>
+    /// <summary>
+    /// Pose la langue de l'interface sur tous les fils.
+    ///
+    /// Le réglage l'emporte sur Windows quand il est rempli ; vide, c'est la
+    /// langue d'affichage du système qui décide, et l'anglais quand elle n'est
+    /// pas traduite. Les formats de nombres et de dates ne sont pas touchés :
+    /// ils suivent le pays, qui est un autre réglage.
+    /// </summary>
+    private static async Task ApplyLanguageAsync(SettingsService settings)
+    {
+        var reglages = await settings.GetAsync().ConfigureAwait(true);
+        var langue = AppLanguage.Choose(reglages.Language, CultureInfo.CurrentUICulture.Name);
+        var culture = CultureInfo.GetCultureInfo(langue);
+
+        CultureInfo.DefaultThreadCurrentUICulture = culture;
+        CultureInfo.CurrentUICulture = culture;
+
+        Log.Information(
+            "Langue de l'interface : {Langue} (réglage {Reglage}, Windows {Windows}).",
+            langue,
+            reglages.Language,
+            CultureInfo.InstalledUICulture.Name);
+    }
+
     private static void PlaceShortcut(IServiceProvider services)
     {
         var executable = Environment.ProcessPath;

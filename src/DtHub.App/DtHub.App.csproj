@@ -10,7 +10,10 @@
     <ApplicationIcon>..\..\assets\app.ico</ApplicationIcon>
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <PlatformTarget>x64</PlatformTarget>
-    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- Ce filtre est là pour que les paquets tiers ne sèment pas leurs
+         traductions à côté de l'exécutable. Il vaut aussi pour les nôtres :
+         omettre « fr » et « es » les supprimerait sans rien dire. -->
+    <SatelliteResourceLanguages>en;fr;es</SatelliteResourceLanguages>
   </PropertyGroup>
 
   <!-- La publication ne doit rendre qu'un fichier : c'est ce qu'on donne à

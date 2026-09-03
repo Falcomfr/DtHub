@@ -2,6 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:w="clr-namespace:DtHub.App.Windows"
+        xmlns:loc="clr-namespace:DtHub.App.Localization"
         Title="DT Hub"
         Width="400" Height="580"
         MinWidth="360" MinHeight="380"
@@ -36,19 +37,19 @@
                  coûte aucune hauteur et se voit sur les trois onglets. -->
             <TextBlock>
               <Run Text="{Binding ProductName, Mode=OneWay}" FontSize="17" FontWeight="SemiBold" />
-              <Run Text=" pour DOFUS Touch" FontSize="11"
+              <Run Text="{loc:T AppSubtitleForGame}" FontSize="11"
                    Foreground="{DynamicResource TextMutedBrush}" />
             </TextBlock>
             <TextBlock Style="{StaticResource Muted}" FontSize="11">
               <Run Text="{Binding ToggleShortcutText, Mode=OneWay}" FontWeight="SemiBold"
                    FontFamily="{StaticResource MonoFont}" />
-              <Run Text=" pour afficher ou masquer" />
+              <Run Text="{loc:T ShortcutToggleSuffix}" />
             </TextBlock>
           </StackPanel>
 
           <Button Grid.Column="2" Content="✕" Style="{StaticResource QuietButton}"
                   FontSize="14" Padding="8,2" Click="OnHide"
-                  ToolTip="Masquer cette fenêtre" />
+                  ToolTip="{loc:T HideThisWindow}" />
         </Grid>
       </Border>
 
@@ -69,10 +70,10 @@
           <TextBlock Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap"
                      FontSize="12" Text="{Binding UpdateText}" />
 
-          <Button Grid.Column="1" Content="Nouveautés" Style="{StaticResource QuietButton}"
+          <Button Grid.Column="1" Content="{loc:T WhatsNew}" Style="{StaticResource QuietButton}"
                   Padding="8,3" Margin="8,0,0,0" VerticalAlignment="Center"
                   Command="{Binding UpdateNotesCommand}"
-                  ToolTip="Lire ce que cette version apporte" />
+                  ToolTip="{loc:T WhatsNewTip}" />
         </Grid>
       </Border>
 
@@ -104,7 +105,7 @@
             <StackPanel Orientation="Horizontal">
 
               <Button Style="{StaticResource GroupKey}"
-                      ToolTip="Empiler toutes les fenêtres de jeu sur la dernière que vous avez utilisée, à sa position et à sa taille"
+                      ToolTip="{loc:T StackTip}"
                       Command="{Binding RearrangeCommand}">
                 <StackPanel Orientation="Horizontal">
                   <!-- Deux fenêtres superposées : c'est exactement ce que fait
@@ -112,14 +113,14 @@
                   <Path Style="{StaticResource RowGlyph}" Margin="0,0,5,0"
                         VerticalAlignment="Center"
                         Data="M 1.8,2.2 H 10.2 V 8.4 H 1.8 Z M 4.8,6.6 H 13.2 V 12.8 H 4.8 Z" />
-                  <TextBlock Text="Empiler" VerticalAlignment="Center" />
+                  <TextBlock Text="{loc:T Stack}" VerticalAlignment="Center" />
                 </StackPanel>
               </Button>
 
               <Border Width="1" Margin="0,6" Background="{DynamicResource BorderBrush}" />
 
               <Button Style="{StaticResource GroupKey}"
-                      ToolTip="Ranger deux fenêtres côte à côte, chacune sur une moitié de l'écran. La fenêtre active va à droite."
+                      ToolTip="{loc:T SideBySideTip}"
                       Command="{Binding TileCommand}">
                 <StackPanel Orientation="Horizontal">
                   <!-- Une fenêtre partagée en deux : les deux panneaux
@@ -128,14 +129,14 @@
                   <Path Style="{StaticResource RowGlyph}" Margin="0,0,5,0"
                         VerticalAlignment="Center"
                         Data="M 2,2.6 H 13 V 12.4 H 2 Z M 7.5,2.6 V 12.4" />
-                  <TextBlock Text="Côte à côte" VerticalAlignment="Center" />
+                  <TextBlock Text="{loc:T SideBySide}" VerticalAlignment="Center" />
                 </StackPanel>
               </Button>
 
               <Border Width="1" Margin="0,6" Background="{DynamicResource BorderBrush}" />
 
               <Button Style="{StaticResource GroupKey}"
-                      ToolTip="Ouvrir les guides, qui restent au-dessus des fenêtres de jeu. Quêtes, donjons, raids, tanières et chemins, de papycha.fr."
+                      ToolTip="{loc:T GuidesTip}"
                       Command="{Binding QuestsCommand}">
                 <StackPanel Orientation="Horizontal">
                   <!-- Un parchemin déroulé : deux rouleaux et des lignes de
@@ -145,16 +146,16 @@
                         VerticalAlignment="Center"
                         Data="M 2.4,2.4 V 12.6 M 12.6,2.4 V 12.6
                               M 5,5.2 H 10 M 5,7.5 H 10 M 5,9.8 H 10" />
-                  <TextBlock Text="Guides" VerticalAlignment="Center" />
+                  <TextBlock Text="{loc:T Guides}" VerticalAlignment="Center" />
                 </StackPanel>
               </Button>
 
             </StackPanel>
           </Border>
 
-          <Button Grid.Column="1" Content="Quitter" Click="OnQuit"
+          <Button Grid.Column="1" Content="{loc:T Quit}" Click="OnQuit"
                   VerticalAlignment="Center"
-                  ToolTip="Fermer l'application et les fenêtres de jeu" />
+                  ToolTip="{loc:T QuitTip}" />
         </Grid>
       </Border>
 
@@ -167,10 +168,10 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
-          <RadioButton x:Name="TabHotkeys" Style="{StaticResource Tab}" Content="Raccourcis"
+          <RadioButton x:Name="TabHotkeys" Style="{StaticResource Tab}" Content="{loc:T TabShortcuts}"
                        GroupName="Tabs" IsChecked="True" />
-          <RadioButton x:Name="TabGeneral" Style="{StaticResource Tab}" Content="Fenêtres" GroupName="Tabs" />
-          <RadioButton x:Name="TabDevices" Style="{StaticResource Tab}" Content="Appareils" GroupName="Tabs" />
+          <RadioButton x:Name="TabGeneral" Style="{StaticResource Tab}" Content="{loc:T TabWindows}" GroupName="Tabs" />
+          <RadioButton x:Name="TabDevices" Style="{StaticResource Tab}" Content="{loc:T TabDevices}" GroupName="Tabs" />
         </StackPanel>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,10,0">
@@ -205,7 +206,7 @@
                     </ItemsControl.ItemTemplate>
                   </ItemsControl>
 
-                  <Button Content="Modifier les raccourcis" HorizontalAlignment="Left" Margin="0,8,0,0"
+                  <Button Content="{loc:T EditShortcuts}" HorizontalAlignment="Left" Margin="0,8,0,0"
                           Click="OnEditHotkeys" />
                 </StackPanel>
               </Border>
@@ -217,11 +218,11 @@
 
               <Border Style="{StaticResource Card}">
                 <StackPanel>
-                  <TextBlock Text="REPLACER LES FENÊTRES DE JEU" Style="{StaticResource SectionLabel}" />
+                  <TextBlock Text="{loc:T PlaceWindowsHeading}" Style="{StaticResource SectionLabel}" />
 
                   <ItemsControl ItemsSource="{Binding Anchors}" HorizontalAlignment="Left"
                                 Margin="0,4,0,0"
-                                ToolTip="Cliquez une case pour regrouper toutes les fenêtres à cet endroit de l'écran. C'est aussi le coin où s'ouvrent les fenêtres qui n'ont pas encore de place retenue.">
+                                ToolTip="{loc:T PlaceWindowsTip}">
                     <ItemsControl.ItemsPanel>
                       <ItemsPanelTemplate>
                         <UniformGrid Columns="3" Rows="3" />
@@ -243,8 +244,8 @@
 
               <Border Style="{StaticResource Card}">
                 <StackPanel>
-                  <TextBlock Text="TAILLE DES FENÊTRES DE JEU" Style="{StaticResource SectionLabel}"
-                             ToolTip="Proportionnelle à la zone utilisable de l'écran, et non à ses pixels : la même valeur donne la même part d'écran partout. Les raccourcis Ctrl+1 à Ctrl+5 posent cinq repères sur ce curseur." />
+                  <TextBlock Text="{loc:T WindowSizeHeading}" Style="{StaticResource SectionLabel}"
+                             ToolTip="{loc:T WindowSizeTip}" />
 
                   <Grid>
                     <Grid.ColumnDefinitions>
@@ -275,12 +276,12 @@
                        gagner une rangée à la carte. Ici il tient dans la
                        hauteur que l'intertitre occupe déjà. -->
                   <Grid>
-                    <TextBlock Text="QUALITÉ" Style="{StaticResource SectionLabel}" />
+                    <TextBlock Text="{loc:T QualityHeading}" Style="{StaticResource SectionLabel}" />
 
                     <ToggleButton x:Name="CustomGear" Cursor="Hand"
                                   HorizontalAlignment="Right" VerticalAlignment="Top"
                                   Margin="0,-3,0,0" Background="Transparent"
-                                  ToolTip="Réglages fins de la qualité personnalisée"
+                                  ToolTip="{loc:T CustomQualityTip}"
                                   Visibility="{Binding IsCustomQuality,
                                                        Converter={StaticResource BoolToVisibility}}">
                       <ToggleButton.Template>
@@ -308,23 +309,23 @@
                   <!-- Repliés comme la distance juste en dessous : quatre
                        paliers ne tiennent plus sur la largeur de la fenêtre. -->
                   <WrapPanel Margin="0,0,0,5">
-                    <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="Basse"
+                    <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="{loc:T QualityLow}"
                                  Margin="0,0,5,0"
-                                 ToolTip="Image en 720 au plus, 30 images par seconde, débit réduit, et le téléphone est interrogé deux fois moins souvent. Pour les machines et les téléphones modestes, ou beaucoup de comptes à la fois."
+                                 ToolTip="{loc:T QualityLowTip}"
                                  IsChecked="{Binding Quality, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Low}" />
-                    <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="Moyenne"
+                    <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="{loc:T QualityMedium}"
                                  Margin="0,0,5,0"
-                                 ToolTip="Image en 1080 au plus, 60 images par seconde. Le réglage d'origine, qui convient à la plupart des machines."
+                                 ToolTip="{loc:T QualityMediumTip}"
                                  IsChecked="{Binding Quality, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Medium}" />
-                    <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="Haute"
+                    <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="{loc:T QualityHigh}"
                                  Margin="0,0,5,0"
-                                 ToolTip="Image à la définition de la fenêtre, sans aucune borne, et débit doublé. Sans ménagement pour le téléphone : à réserver à un appareil récent, et en Wi-Fi à un réseau qui suit."
+                                 ToolTip="{loc:T QualityHighTip}"
                                  IsChecked="{Binding Quality, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Maximum}" />
-                    <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="Personnalisé"
-                                 ToolTip="Régler soi-même la définition, la cadence, la finesse d'image et le codec. Les trois paliers restent le chemin ordinaire : celui-ci sert à qui sait déjà ce qu'il veut."
+                    <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="{loc:T QualityCustom}"
+                                 ToolTip="{loc:T QualityCustomTip}"
                                  IsChecked="{Binding Quality, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Custom}" />
                   </WrapPanel>
@@ -336,16 +337,16 @@
                             BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
                             CornerRadius="{StaticResource Radius}" Margin="0,4,0,0" Padding="14,12,14,12">
                       <StackPanel>
-                        <TextBlock Text="RÉGLAGES FINS" Style="{StaticResource SectionLabel}" />
+                        <TextBlock Text="{loc:T FineSettingsHeading}" Style="{StaticResource SectionLabel}" />
 
             <Grid Margin="0,0,0,7">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="118" />
                 <ColumnDefinition Width="*" />
               </Grid.ColumnDefinitions>
-              <TextBlock Text="Définition max." VerticalAlignment="Center"
+              <TextBlock Text="{loc:T MaxResolution}" VerticalAlignment="Center"
                          Style="{StaticResource Muted}"
-                            ToolTip="Un plafond, non la définition retenue : celle-ci suit la taille de la fenêtre et peut être moindre." />
+                            ToolTip="{loc:T MaxResolutionTip}" />
               <ComboBox Grid.Column="1" ItemsSource="{Binding HeightChoices}"
                         SelectedValuePath="Value" SelectedValue="{Binding CustomHeight}">
                 <ComboBox.ItemTemplate>
@@ -361,7 +362,7 @@
                 <ColumnDefinition Width="118" />
                 <ColumnDefinition Width="*" />
               </Grid.ColumnDefinitions>
-              <TextBlock Text="Cadence" VerticalAlignment="Center"
+              <TextBlock Text="{loc:T FrameRate}" VerticalAlignment="Center"
                          Style="{StaticResource Muted}" />
               <ComboBox Grid.Column="1" ItemsSource="{Binding FpsChoices}"
                         SelectedValuePath="Value" SelectedValue="{Binding CustomFps}">
@@ -378,9 +379,9 @@
                 <ColumnDefinition Width="118" />
                 <ColumnDefinition Width="*" />
               </Grid.ColumnDefinitions>
-              <TextBlock Text="Finesse d&apos;image" VerticalAlignment="Center"
+              <TextBlock Text="{loc:T ImageDetail}" VerticalAlignment="Center"
                          Style="{StaticResource Muted}"
-                            ToolTip="Bits accordés à chaque pixel de chaque image. Le débit s&apos;en déduit d&apos;après la définition réellement retenue, comme pour les trois autres paliers : un débit absolu servirait grassement une petite fenêtre et affamerait une grande." />
+                            ToolTip="{loc:T ImageDetailTip}" />
               <ComboBox Grid.Column="1" ItemsSource="{Binding FinesseChoices}"
                         SelectedValuePath="Value" SelectedValue="{Binding CustomBitsPerPixel}">
                 <ComboBox.ItemTemplate>
@@ -396,9 +397,9 @@
                 <ColumnDefinition Width="118" />
                 <ColumnDefinition Width="*" />
               </Grid.ColumnDefinitions>
-              <TextBlock Text="Codec vidéo" VerticalAlignment="Center"
+              <TextBlock Text="{loc:T VideoCodec}" VerticalAlignment="Center"
                          Style="{StaticResource Muted}"
-                            ToolTip="AV1 et VP8 ne sont pas proposés : sur un téléphone ordinaire ils n&apos;ont pas d&apos;encodeur matériel, et les encoder en logiciel coûte bien plus qu&apos;ils ne rendent." />
+                            ToolTip="{loc:T VideoCodecTip}" />
               <ComboBox Grid.Column="1" ItemsSource="{Binding CodecChoices}"
                         SelectedValuePath="Value" SelectedValue="{Binding CustomCodec}">
                 <ComboBox.ItemTemplate>
@@ -413,7 +414,7 @@
                                    FontFamily="{StaticResource MonoFont}" FontSize="11"
                                    TextWrapping="Wrap" Margin="0,4,0,0"
                                    Foreground="{DynamicResource AccentBrush}"
-                                   ToolTip="Bits accordés à chaque pixel de chaque image. La référence du métier tourne autour de 0,10 pour du H.264 de bonne facture." />
+                                   ToolTip="{loc:T BitsPerPixelTip}" />
 
                         <!-- Plusieurs comptes ouverts, ce sont plusieurs flux
                              sur la même liaison et le même encodeur. Un miroir
@@ -421,7 +422,7 @@
                         <TextBlock Text="{Binding LinkSummary}" Style="{StaticResource Muted}"
                                    FontFamily="{StaticResource MonoFont}" FontSize="11"
                                    TextWrapping="Wrap"
-                                   ToolTip="Ce que le téléphone devra pousser sur le Wi-Fi. Un appareil en Wi-Fi 4 sur 2,4 GHz en rend une soixantaine de mégabits en pratique." />
+                                   ToolTip="{loc:T BitrateTip}" />
 
                         <!-- Le palier retenu est le premier au-dessus de la
                              fenêtre : au-delà, monter le plafond ne demande
@@ -430,7 +431,7 @@
                         <TextBlock Text="{Binding DisplayFitSummary}" Style="{StaticResource Muted}"
                                    FontFamily="{StaticResource MonoFont}" FontSize="11"
                                    TextWrapping="Wrap"
-                                   ToolTip="La définition suit la taille de vos fenêtres. Mesuré : dans une fenêtre de 1428 de haut, passer de 1080 à 1440 coûte 78 % de débit pour un écart d'image de 0,63 sur 255 ; dans une fenêtre de 1800, l'écart devient visible." />
+                                   ToolTip="{loc:T ResolutionAdviceTip}" />
                       </StackPanel>
                     </Border>
                   </Popup>
@@ -439,41 +440,63 @@
 
               <Border Style="{StaticResource Card}">
                 <StackPanel>
-                  <TextBlock Text="DISTANCE DANS LE JEU" Style="{StaticResource SectionLabel}"
-                             ToolTip="Agit sur la densité de l'écran vu par Android, et non sur la finesse de l'image : à taille de fenêtre égale, le jeu montre plus ou moins de terrain." />
+                  <TextBlock Text="{loc:T GameDistanceHeading}" Style="{StaticResource SectionLabel}"
+                             ToolTip="{loc:T GameDistanceTip}" />
 
                   <!-- Repliés plutôt qu'alignés : cinq paliers ne tiennent
                        plus sur la largeur de la fenêtre, et rogner un libellé
                        le rendrait indéchiffrable. -->
                   <WrapPanel Margin="0,0,0,5">
-                    <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="Très éloignée"
+                    <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="{loc:T ZoomVeryFar}"
                                  Margin="0,0,5,0"
-                                 ToolTip="Le plus de terrain qu'il soit possible d'afficher. L'interface du jeu devient petite : sur une fenêtre modeste, elle sera à la limite du lisible."
+                                 ToolTip="{loc:T ZoomVeryFarTip}"
                                  IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Widest}" />
-                    <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="Éloignée"
+                    <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="{loc:T ZoomFar}"
                                  Margin="0,0,5,0"
-                                 ToolTip="Beaucoup de terrain visible, l'interface du jeu petite. Pratique pour suivre plusieurs comptes d'un coup d'oeil, moins confortable pour viser."
+                                 ToolTip="{loc:T ZoomFarTip}"
                                  IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Wide}" />
-                    <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="Normale"
+                    <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="{loc:T ZoomNormal}"
                                  Margin="0,0,5,0"
-                                 ToolTip="Le réglage d'origine, celui d'un affichage de 1080 pixels à 240 ppp."
+                                 ToolTip="{loc:T ZoomNormalTip}"
                                  IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Normal}" />
-                    <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="Proche"
-                                 ToolTip="Le moins de terrain possible, l'interface du jeu la plus grande. Confortable sur une petite fenêtre. Sur une fenêtre de plus de 2300 pixels de haut, ce palier se rapproche du précédent : la densité demandée y touche son plafond."
+                    <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="{loc:T ZoomClose}"
+                                 ToolTip="{loc:T ZoomCloseTip}"
                                  IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Close}" />
                   </WrapPanel>
 
                   <TextBlock Style="{StaticResource Muted}" FontSize="11"
                              Visibility="{Binding IsReopening, Converter={StaticResource BoolToVisibility}}"
-                             Text="Les fenêtres ouvertes se rouvrent pour prendre le changement." />
+                             Text="{loc:T ReopenNotice}" />
                 </StackPanel>
               </Border>
 
-<StackPanel Margin="2,4,0,10">
+              <StackPanel Margin="2,4,0,10">
+                <!-- La langue suit Windows sans qu'on ait rien à dire. Le choix
+                     n'est là que pour la contredire : un Windows anglais chez
+                     un francophone, ou l'inverse, est un cas courant. -->
+                <TextBlock Text="{loc:T LanguageHeading}" Style="{StaticResource SectionLabel}"
+                           ToolTip="{loc:T LanguageTip}" />
+
+                <ComboBox ItemsSource="{Binding LanguageChoices}" Margin="0,0,0,4"
+                          HorizontalAlignment="Left" MinWidth="150"
+                          SelectedValuePath="Value" SelectedValue="{Binding Language}"
+                          ToolTip="{loc:T LanguageTip}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Label}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <TextBlock Style="{StaticResource Muted}" FontSize="11" Margin="0,0,0,10"
+                           Text="{loc:T LanguageRestart}"
+                           Visibility="{Binding LanguageRestartNeeded,
+                                                Converter={StaticResource BoolToVisibility}}" />
+
                 <!-- Le téléchargement se fait en fond, l'échange à l'arrêt : une
                      application ne se remplace pas sous les doigts de celui qui
                      s'en sert. -->
@@ -481,20 +504,20 @@
                      ne sait pas l'isoler par application. Une seule fenêtre par
                      appareil le porte, sans quoi le même flux reviendrait en
                      plusieurs exemplaires. -->
-                <CheckBox Content="Son du téléphone renvoyé sur le PC" Margin="0,0,0,8"
+                <CheckBox Content="{loc:T PhoneAudio}" Margin="0,0,0,8"
                           IsChecked="{Binding AudioEnabled}"
-                          ToolTip="Android ne sait pas isoler le son d'une application : c'est celui du téléphone entier qui arrive, tous comptes ouverts confondus. Une seule fenêtre par appareil le porte." />
+                          ToolTip="{loc:T PhoneAudioTip}" />
 
-                <CheckBox Content="Mise à jour automatique" Margin="0,0,0,8"
+                <CheckBox Content="{loc:T AutomaticUpdates}" Margin="0,0,0,8"
                           IsChecked="{Binding UpdatesAutomatic}"
-                          ToolTip="La nouvelle version se télécharge en fond et s'installe quand vous quittez. Décoché, l'application se contente de dire qu'une version existe." />
+                          ToolTip="{loc:T AutomaticUpdatesTip}" />
 
                 <TextBlock Style="{StaticResource Muted}" FontSize="11">
                   <Run Text="{Binding ProductName, Mode=OneWay}" />
                   <Run Text="{Binding Version, Mode=OneWay}" />
                 </TextBlock>
                 <TextBlock Text="{Binding Disclaimer}" Style="{StaticResource Muted}" FontSize="11" />
-                <Button Content="Ouvrir le dossier des journaux" Style="{StaticResource QuietButton}"
+                <Button Content="{loc:T OpenLogFolder}" Style="{StaticResource QuietButton}"
                         HorizontalAlignment="Left" Margin="-9,4,0,0" Command="{Binding OpenLogsCommand}" />
               </StackPanel>
 
@@ -516,7 +539,7 @@
                 </Grid.ColumnDefinitions>
 
                 <Button Style="{StaticResource OutlineButton}"
-                        ToolTip="À faire une seule fois par appareil. Les appareils déjà associés se connectent tout seuls."
+                        ToolTip="{loc:T PairDeviceTip}"
                         Click="OnAddDevice">
                   <StackPanel Orientation="Horizontal">
                     <!-- Un plus tracé, du même trait que le signet de la touche
@@ -528,14 +551,14 @@
                           Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.6"
                           StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                           Data="M 7.5,2.2 V 12.8 M 2.2,7.5 H 12.8" />
-                    <TextBlock Text="Associer un nouvel appareil" VerticalAlignment="Center" />
+                    <TextBlock Text="{loc:T PairDevice}" VerticalAlignment="Center" />
                   </StackPanel>
                 </Button>
 
                 <ToggleButton x:Name="ProfilesToggle" Grid.Column="2"
                               Style="{StaticResource OutlineToggle}"
                               VerticalAlignment="Center"
-                              ToolTip="Des ensembles de comptes, avec leurs positions et leurs réglages, qu'on ouvre d'un geste.">
+                              ToolTip="{loc:T ProfilesTip}">
                   <StackPanel Orientation="Horizontal">
                     <!-- Un signet : ce qu'on met de côté pour y revenir. Le
                          chevron dit que la bulle s'ouvre en dessous ; il était
@@ -545,7 +568,7 @@
                           VerticalAlignment="Center" StrokeLineJoin="Round"
                           Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
                           Data="M 1,1 H 10 V 12 L 5.5,8.6 L 1,12 Z" />
-                    <TextBlock Text="Profils" VerticalAlignment="Center" />
+                    <TextBlock Text="{loc:T Profiles}" VerticalAlignment="Center" />
                     <Path Width="9" Height="5" Margin="9,2,0,0" Stretch="None"
                           VerticalAlignment="Center" StrokeLineJoin="Round"
                           Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.5"
@@ -561,13 +584,13 @@
                           BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
                           CornerRadius="{StaticResource Radius}" Margin="0,4,0,0" Padding="14,12,14,12">
                     <StackPanel>
-                      <TextBlock Text="PROFILS DE LANCEMENT" Style="{StaticResource SectionLabel}" />
+                      <TextBlock Text="{loc:T LaunchProfilesHeading}" Style="{StaticResource SectionLabel}" />
 
                       <!-- Un panneau vide ne distingue pas « aucun profil » de
                            « la liste n'a pas chargé », et c'est justement la
                            question qu'on se pose en l'ouvrant. -->
                       <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"
-                                 Text="Aucun profil pour l'instant. Ouvrez vos comptes, placez leurs fenêtres, puis créez-en un."
+                                 Text="{loc:T NoProfilesYet}"
                                  Visibility="{Binding Instances.HasProfiles,
                                                       Converter={StaticResource InverseBoolToVisibility}}" />
 
@@ -594,7 +617,7 @@
                               </StackPanel>
 
                               <Button Grid.Column="1" Style="{StaticResource IconButton}"
-                                      ToolTip="Ouvrir ce profil : ses comptes s'ouvrent à leurs positions et avec ses réglages, les autres fenêtres se ferment."
+                                      ToolTip="{loc:T LaunchProfileTip}"
                                       Command="{Binding DataContext.Instances.OpenProfileCommand,
                                                         RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                       CommandParameter="{Binding}">
@@ -609,7 +632,7 @@
                                    que la compilation le voie. L'état se dit par
                                    l'étoile pleine. -->
                               <Button Grid.Column="2" Style="{StaticResource IconButton}"
-                                      ToolTip="Ouvrir ce profil au démarrage. Un second clic retire la désignation, et l'application rouvre alors ce qui était ouvert."
+                                      ToolTip="{loc:T DefaultProfileTip}"
                                       Command="{Binding DataContext.Instances.ToggleDefaultProfileCommand,
                                                         RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                       CommandParameter="{Binding}">
@@ -632,7 +655,7 @@
                               </Button>
 
                               <Button Grid.Column="3" Style="{StaticResource DangerIconButton}"
-                                      ToolTip="Supprimer ce profil. Les comptes ne sont pas touchés."
+                                      ToolTip="{loc:T DeleteProfileTip}"
                                       Command="{Binding DataContext.Instances.DeleteProfileCommand,
                                                         RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                       CommandParameter="{Binding}">
@@ -644,17 +667,17 @@
                         </ItemsControl.ItemTemplate>
                       </ItemsControl>
 
-                      <Button Content="Créer un profil" Style="{StaticResource QuietButton}"
+                      <Button Content="{loc:T CreateProfile}" Style="{StaticResource QuietButton}"
                               Padding="10,5" Margin="0,10,0,0" HorizontalAlignment="Left"
-                              ToolTip="Retenir les comptes ouverts, leurs positions et les réglages actuels sous un nom."
+                              ToolTip="{loc:T CreateProfileTip}"
                               Command="{Binding Instances.CreateProfileCommand}" />
                     </StackPanel>
                   </Border>
                 </Popup>
               </Grid>
 
-              <TextBlock Text="COMPTES DOFUS TOUCH" Style="{StaticResource SectionLabel}"
-                         ToolTip="Un compte par profil Android où le jeu est installé." />
+              <TextBlock Text="{loc:T AccountsHeading}" Style="{StaticResource SectionLabel}"
+                         ToolTip="{loc:T AccountsTip}" />
 
               <w:InstanceListControl DataContext="{Binding Instances}"
                                      ShowDeviceStatus="True" />
@@ -672,7 +695,7 @@
         <StackPanel Grid.Row="2" Margin="0,6,0,0"
                     Visibility="{Binding IsChecked, ElementName=TabDevices,
                                          Converter={StaticResource BoolToVisibility}}">
-          <Button Content="Une fenêtre se fige au bout d'un moment ?"
+          <Button Content="{loc:T FrozenWindowHelp}"
                   Style="{StaticResource QuietButton}" HorizontalAlignment="Left"
                   Margin="-9,0,0,0" Click="OnSleepHelp" />
         </StackPanel>

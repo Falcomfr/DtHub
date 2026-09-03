@@ -171,6 +171,11 @@ pour toute la machine. Un test le vérifie.
 - Tout appel pouvant durer est asynchrone et accepte un `CancellationToken`.
 - Nommage des tests : phrase descriptive en français avec underscores.
 - Commits en français, à l'impératif, un sujet cohérent par commit.
+- **Aucun texte visible en dur.** Tout ce que l'utilisateur lit passe par
+  `src/DtHub.Core/Localization/Strings*.resx` : `{loc:T Cle}` en XAML,
+  `Strings.Get("Cle")` en C#. Une clé s'ajoute aux **trois** fichiers d'un
+  coup, sans quoi `StringsResourceTests` échoue. Les journaux, eux, restent
+  français et n'y passent pas.
 
 ## Pièges déjà rencontrés
 
