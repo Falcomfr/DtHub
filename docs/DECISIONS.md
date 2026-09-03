@@ -2509,6 +2509,30 @@ Deux défauts trouvés en éprouvant, tous deux invisibles à la compilation :
   corrige pas ce nom-là, et c'est celui qu'un lecteur d'écran prononce. Corrigé
   par un `ToString`.
 
+### Reprise : la liste est montrée, et choisir n'ouvre plus
+
+Le champ replié cachait ce qu'on avait, et surtout **le choisir ouvrait le
+profil pour de bon** : `OnSelectedProfileChanged` appelait l'ouverture, qui
+ferme les fenêtres de jeu. Un clic d'exploration coûtait donc une partie en
+cours, et la confirmation ne rattrapait qu'à moitié, arrivant après le geste.
+
+La bulle montre désormais une ligne par profil, avec à droite de quoi l'ouvrir,
+le désigner pour le démarrage et le supprimer. **Ouvrir est un geste à part**,
+et la sélection n'existe plus : la liste peut se reconstruire à chaque balayage
+sans rien déclencher, ce qui supprime du même coup le garde-fou qu'il fallait
+tenir pour l'en empêcher. Le `ToString` du paragraphe précédent perd sa raison
+d'être avec la liste déroulante ; il reste, sans coût, pour l'automatisation.
+
+**« Créer » dit ce qu'il retient.** « Enregistrer » ne laissait rien deviner :
+on croyait ne retenir que des comptes, et l'ouverture replaçait les fenêtres et
+changeait la qualité. La fenêtre de saisie porte donc une phrase construite sur
+l'état du moment, non une liste figée, pour qu'on y reconnaisse son propre
+réglage. `PromptText` a gagné un texte explicatif et un libellé de bouton.
+
+**Une mesure de largeur.** La bulle à 380 unités débordait de vingt-cinq pixels
+sur la gauche de la fenêtre : à cent cinquante pour cent, le panneau ne fait que
+360 unités de large. Ramenée à 340, elle s'aligne sur son bord droit.
+
 ## D73 - Un mode onglets, et ce que la sonde a permis d'affirmer
 
 Loger plusieurs comptes dans un seul cadre, comme un navigateur, supposait de
@@ -2558,3 +2582,58 @@ un écran à cent cinquante pour cent. La zone client est demandée à Windows.
 Rien ne se dessine par-dessus le jeu : une fenêtre native se peint au-dessus de
 tout élément WPF du même châssis, comme D33 le notait déjà. La barre d'onglets
 est donc au-dessus de la zone de jeu, jamais dessus.
+
+### Reprise : le cadre prend la forme du jeu, il ne la subit pas
+
+scrcpy verrouille le rapport de ce qu'il rend. Une zone d'accueil d'une autre
+forme lui laisse donc forcément une bande noire, et la première pose ne faisait
+que la **répartir** de part et d'autre au lieu de la supprimer.
+
+Le cadre adopte maintenant le rapport de l'afficheur à chaque
+redimensionnement : sa hauteur vaut la largeur de la zone divisée par ce
+rapport, plus l'encombrement du châssis. C'est le calcul que
+`WindowManagerService.EnforceAspect` fait déjà pour les fenêtres libres, à la
+barre d'onglets près. S'il n'y a plus de place en hauteur sur l'écran, c'est la
+largeur qui cède : rogner encore la hauteur donnerait un cadre écrasé, et il
+avait déjà été trouvé trop court une fois.
+
+**Recréer l'afficheur à la taille exacte de la zone est écarté.** Ce serait le
+seul moyen d'avoir des pixels justes plutôt qu'une image mise à l'échelle, mais
+`--new-display` crée l'afficheur *et* y lance l'application : chaque
+redimensionnement du cadre redémarrerait le jeu.
+
+La conversion de coordonnées passe désormais par `PointToScreen` sur la zone
+d'accueil et sur la fenêtre, dont la différence donne l'origine en pixels dans
+la zone client. Le calcul précédent additionnait une hauteur d'onglets en
+unités de WPF et une marge déjà mise à l'échelle ; il tombait juste par
+coïncidence à cent cinquante pour cent.
+
+### Reprise : un onglet ne survit pas à sa session
+
+Rien ne retirait l'onglet quand la session fermait. Le cadre croyait donc le
+compte encore logé, `Attach` refusait de le reloger, et rouvrir un profil
+faisait reparaître la fenêtre **libre, par-dessus le cadre**, barre de titre
+comprise. Le défaut ne se voyait qu'au deuxième lancement.
+
+Les fermetures voulues détachent maintenant l'onglet elles-mêmes, sans attendre
+l'entretien périodique : l'ouverture d'un profil enchaîne fermeture et
+relancement dans la même chaîne, et un rendez-vous toutes les demi-secondes
+arriverait trop tard. `Watch` garde un filet, `KeepOnly`, pour les sessions qui
+meurent sans passer par nous : fenêtre fermée à la main, téléphone débranché.
+
+Le cadre se referme quand son dernier onglet le quitte. Un cadre vide n'a rien
+à montrer et ne dit pas ce qu'il attend ; sa position n'étant pas retenue, le
+rouvrir ne coûte rien.
+
+### Le glissement des onglets, éprouvé
+
+Le glissement était écrit mais jamais éprouvé. Il l'a été, et il marche du
+premier coup : glisser « Principal » sur la moitié droite de « XSpace » range
+les onglets dans l'ordre XSpace, Principal, et la liste des comptes suit, le
+champ `order` du document passant à 0 et 1.
+
+Le premier essai avait pourtant conclu à une panne. La sonde était en cause :
+son `Add-Type` avait échoué sur un fichier temporaire refusé, le type appelé
+ensuite n'était pas celui qu'elle croyait, et aucun mouvement de souris
+n'atteignait la fenêtre. **Un outil de mesure muet vaut un faux négatif** : la
+sonde dit maintenant ce qu'elle fait, et l'appelant relance quand elle échoue.

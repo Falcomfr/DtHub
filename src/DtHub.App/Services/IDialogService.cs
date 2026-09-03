@@ -34,15 +34,30 @@ public interface IDialogService
     /// Rend la saisie telle quelle : c'est à l'appelant de décider ce qu'un
     /// texte vide ou trop long veut dire chez lui.
     /// </summary>
-    string? PromptText(string question, string? initial = null, string? title = null);
+    /// <param name="details">
+    /// Ce que le geste va retenir, annoncé au-dessus du champ. Facultatif :
+    /// une question qui se suffit à elle-même n'en a pas besoin.
+    /// </param>
+    /// <param name="acceptLabel">Le mot du bouton, « Enregistrer » à défaut.</param>
+    string? PromptText(
+        string question,
+        string? initial = null,
+        string? title = null,
+        string? details = null,
+        string? acceptLabel = null);
 }
 
 /// <summary>Implémentation WPF.</summary>
 public sealed class DialogService : IDialogService
 {
-    public string? PromptText(string question, string? initial = null, string? title = null)
+    public string? PromptText(
+        string question,
+        string? initial = null,
+        string? title = null,
+        string? details = null,
+        string? acceptLabel = null)
     {
-        var window = new Windows.PromptWindow(question, initial)
+        var window = new Windows.PromptWindow(question, initial, details, acceptLabel)
         {
             Title = title ?? ProductInfo.Name,
             Owner = Application.Current?.Windows

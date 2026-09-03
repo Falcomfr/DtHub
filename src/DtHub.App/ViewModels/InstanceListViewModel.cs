@@ -114,110 +114,58 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
     // Profils de lancement
 
-    /// <summary>Les profils enregistrés, tels qu'ils paraissent.</summary>
+    /// <summary>Les profils enregistrés, tels qu'ils paraissent dans le panneau.</summary>
     public ObservableCollection<LaunchProfileRowViewModel> Profiles { get; } = [];
 
-    /// <summary>
-    /// Le profil choisi dans la liste. Le choisir l'ouvre pour de bon.
-    ///
-    /// Le garde-fou est indispensable : la liste se reconstruit à chaque
-    /// balayage, et la sélection qu'on y repose déclencherait sinon une
-    /// ouverture toutes les trois secondes.
-    /// </summary>
-    [ObservableProperty]
-    private LaunchProfileRowViewModel? _selectedProfile;
-
-    private bool _syncingProfiles;
-
-    /// <summary>Vrai s'il y a au moins un profil à proposer.</summary>
+    /// <summary>Vrai s'il y a au moins un profil à montrer.</summary>
     public bool HasProfiles => Profiles.Count > 0;
 
-    /// <summary>Vrai si un profil est choisi, donc supprimable.</summary>
-    public bool HasSelectedProfile => SelectedProfile is not null;
-
     /// <summary>
-    /// Ce que dit le champ tant que rien n'y est choisi.
+    /// Reprend les profils enregistrés.
     ///
-    /// Un champ vide ne distingue pas « aucune session enregistrée » de
-    /// « des sessions attendent d'être choisies », et c'est justement la
-    /// question qu'on se pose en le voyant.
-    /// </summary>
-    public string ProfilePrompt => HasProfiles
-        ? "Choisir un profil"
-        : "Aucun profil enregistré";
-
-    /// <summary>
-    /// Reprend les profils enregistrés, en gardant la sélection courante.
-    ///
-    /// Reconstruire la liste repose la sélection, ce qui rejouerait l'ouverture
-    /// à chaque balayage. D'où le garde-fou, sur le modèle de celui qui protège
-    /// les cases de la liste.
+    /// Rien n'est sélectionné ici : chaque ligne porte ses propres gestes, et
+    /// c'est le bouton qui ouvre, non le fait de désigner la ligne. La liste
+    /// peut donc se reconstruire à chaque balayage sans rien déclencher, ce
+    /// qui n'était pas le cas quand choisir valait ouvrir.
     /// </summary>
     private async Task SyncProfilesAsync(CancellationToken cancellationToken = default)
     {
         var settings = await _settings.GetAsync(cancellationToken).ConfigureAwait(true);
-        var stored = settings.LaunchProfiles;
         var byDefault = LaunchProfiles.Normalize(settings.DefaultLaunchProfile);
-        var chosen = SelectedProfile?.Name;
 
-        _syncingProfiles = true;
+        Profiles.Clear();
 
-        try
+        foreach (var profile in settings.LaunchProfiles)
         {
-            Profiles.Clear();
-
-            foreach (var profile in stored)
-            {
-                Profiles.Add(new LaunchProfileRowViewModel(
-                    profile.Name,
-                    LaunchProfiles.Describe(profile, settings.Instances),
-                    string.Equals(profile.Name, byDefault, StringComparison.OrdinalIgnoreCase)));
-            }
-
-            SelectedProfile = Profiles.FirstOrDefault(
-                p => string.Equals(p.Name, chosen, StringComparison.OrdinalIgnoreCase));
-        }
-        finally
-        {
-            _syncingProfiles = false;
+            Profiles.Add(new LaunchProfileRowViewModel(
+                profile.Name,
+                LaunchProfiles.Describe(profile, settings.Instances),
+                string.Equals(profile.Name, byDefault, StringComparison.OrdinalIgnoreCase)));
         }
 
         OnPropertyChanged(nameof(HasProfiles));
-        OnPropertyChanged(nameof(HasSelectedProfile));
-        OnPropertyChanged(nameof(ProfilePrompt));
-    }
-
-    partial void OnSelectedProfileChanged(LaunchProfileRowViewModel? value)
-    {
-        OnPropertyChanged(nameof(HasSelectedProfile));
-
-        if (_syncingProfiles || value is null)
-        {
-            return;
-        }
-
-        _ = OpenProfileAsync(value);
     }
 
     /// <summary>
     /// Ouvre un profil : ce qui n'en fait pas partie se ferme, ce qui y
     /// manque s'ouvre.
-    ///
-    /// Choisir ouvre pour de bon, faute de cases à cocher dans le
-    /// configurateur : si la sélection se contentait d'écrire l'ensemble de
-    /// démarrage, rien à l'écran ne montrerait qu'il s'est passé quelque chose.
     /// </summary>
-    private async Task OpenProfileAsync(LaunchProfileRowViewModel profile)
+    [RelayCommand]
+    private async Task OpenProfileAsync(LaunchProfileRowViewModel? profile)
     {
+        if (profile is null)
+        {
+            return;
+        }
+
         // Fermer des fenêtres de jeu ne se fait pas sans le dire : on peut être
-        // en pleine partie, et un clic dans une liste n'est pas un consentement.
+        // en pleine partie, et un clic n'est pas un consentement.
         if (_launcher.ActiveSessions.Count > 0
             && !_dialogs.Confirm(
                 $"Ouvrir le profil « {profile.Name} » ?\n\n"
                 + "Les fenêtres de jeu qui n'en font pas partie seront fermées.",
-                "Changer de profil"))
+                "Ouvrir le profil"))
         {
-            await SyncProfilesAsync().ConfigureAwait(true);
             return;
         }
 
@@ -248,20 +196,24 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
     /// <summary>Retient les comptes ouverts, leurs positions et les réglages, sous un nom.</summary>
     [RelayCommand]
-    private async Task SaveProfileAsync()
+    private async Task CreateProfileAsync()
     {
         // La géométrie est relevée avant l'instantané, sans quoi le profil
         // retiendrait les positions de l'ouverture et non celles du moment :
-        // déplacer une fenêtre puis enregistrer n'aurait rien retenu.
+        // déplacer une fenêtre puis créer n'aurait rien retenu.
         await _launcher.CaptureGeometriesAsync().ConfigureAwait(true);
 
-        var open = _launcher.ActiveSessions.Select(s => s.Target.Key).Distinct(StringComparer.Ordinal).ToList();
+        var settings = await _settings.GetAsync().ConfigureAwait(true);
+
+        var open = _launcher.ActiveSessions
+            .Select(s => s.Target.Key)
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
 
         // À défaut de fenêtre ouverte, l'ensemble de démarrage fait foi : c'est
         // lui qui rouvrira, et c'est donc lui que l'on enregistre.
         if (open.Count == 0)
         {
-            var settings = await _settings.GetAsync().ConfigureAwait(true);
             open = [.. settings.Instances.Where(i => i.IsEnabled).Select(i => i.Key)];
         }
 
@@ -269,46 +221,39 @@ public sealed partial class InstanceListViewModel : ObservableObject
         {
             _dialogs.ShowWarning(
                 "Aucun compte n'est ouvert : il n'y a rien à retenir. Ouvrez les comptes "
-                + "du profil, puis enregistrez.",
-                "Enregistrer le profil");
+                + "du profil, puis créez-le.",
+                "Créer un profil");
 
             return;
         }
 
+        var tabbed = settings.Instances.Count(
+            i => i.IsTabbed && open.Contains(i.Key, StringComparer.Ordinal));
+
         if (_dialogs.PromptText(
-                $"Sous quel nom retenir ce profil de {open.Count} compte(s), avec leurs positions et les réglages actuels ?",
-                SelectedProfile?.Name,
-                "Enregistrer le profil") is not { } typed)
+                "Sous quel nom retenir ce profil ?",
+                null,
+                "Créer un profil",
+                LaunchProfiles.Announce(open.Count, settings.Quality, settings.GameZoom, tabbed),
+                "Créer") is not { } typed)
         {
             return;
         }
 
         if (!await _settings.SaveLaunchProfileAsync(typed, open).ConfigureAwait(true))
         {
-            _dialogs.ShowWarning("Un profil a besoin d'un nom.", "Enregistrer le profil");
+            _dialogs.ShowWarning("Un profil a besoin d'un nom.", "Créer un profil");
             return;
         }
 
         await SyncProfilesAsync().ConfigureAwait(true);
-
-        _syncingProfiles = true;
-
-        try
-        {
-            SelectedProfile = Profiles.FirstOrDefault(
-                p => string.Equals(p.Name, LaunchProfiles.Normalize(typed), StringComparison.OrdinalIgnoreCase));
-        }
-        finally
-        {
-            _syncingProfiles = false;
-        }
     }
 
     /// <summary>Désigne le profil du démarrage, ou le retire.</summary>
     [RelayCommand]
-    private async Task ToggleDefaultProfileAsync()
+    private async Task ToggleDefaultProfileAsync(LaunchProfileRowViewModel? profile)
     {
-        if (SelectedProfile is not { } profile)
+        if (profile is null)
         {
             return;
         }
@@ -320,31 +265,20 @@ public sealed partial class InstanceListViewModel : ObservableObject
         await SyncProfilesAsync().ConfigureAwait(true);
     }
 
-    /// <summary>Supprime le profil choisi.</summary>
+    /// <summary>Supprime un profil, après confirmation.</summary>
     [RelayCommand]
-    private async Task DeleteProfileAsync()
+    private async Task DeleteProfileAsync(LaunchProfileRowViewModel? profile)
     {
-        if (SelectedProfile is not { } profile
+        if (profile is null
             || !_dialogs.Confirm(
                 $"Supprimer le profil « {profile.Name} » ?\n\n"
-                + "Les comptes ne sont pas touchés, seule la liste disparaît.",
+                + "Les comptes ne sont pas touchés, seule la ligne disparaît.",
                 "Supprimer le profil"))
         {
             return;
         }
 
         await _settings.DeleteLaunchProfileAsync(profile.Name).ConfigureAwait(true);
-
-        _syncingProfiles = true;
-
-        try
-        {
-            SelectedProfile = null;
-        }
-        finally
-        {
-            _syncingProfiles = false;
-        }
 
         await SyncProfilesAsync().ConfigureAwait(true);
     }

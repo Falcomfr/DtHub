@@ -10,6 +10,19 @@
     <TextBlock x:Name="Question" Style="{StaticResource Muted}" TextWrapping="Wrap"
                Margin="0,0,0,10" />
 
+    <!-- Ce que le geste va retenir, quand l'appelant a de quoi le dire. Une
+         question seule ne l'annonce pas : « sous quel nom » ne prévient pas
+         qu'on enregistre aussi des positions et des réglages. Replié tant que
+         personne ne remplit ce texte. -->
+    <Border x:Name="DetailsBox" Visibility="Collapsed"
+            Background="{DynamicResource SurfaceBrush}"
+            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+            CornerRadius="{StaticResource Radius}"
+            Padding="12,10" Margin="0,0,0,12">
+      <TextBlock x:Name="Details" Style="{StaticResource Muted}"
+                 TextWrapping="Wrap" LineHeight="18" />
+    </Border>
+
     <!-- Le champ prend le focus à l'ouverture : on vient ici pour taper, et
          cliquer d'abord dans la case serait un geste de trop. -->
     <TextBox x:Name="Entry" FontSize="14" MaxLength="40"

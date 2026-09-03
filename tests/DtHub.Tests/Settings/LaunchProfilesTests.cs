@@ -129,4 +129,43 @@ public class LaunchProfilesTests
         // Toutes ses clés désignent des comptes disparus.
         Assert.Equal("aucun compte connu", LaunchProfiles.Describe(Profil("Duo", XSpace), [Principal]));
     }
+
+    [Fact]
+    public void L_annonce_dit_les_comptes_la_qualite_et_la_distance()
+    {
+        var phrase = LaunchProfiles.Announce(2, StreamQuality.Maximum, GameZoom.Wide, 0);
+
+        Assert.Equal(
+            "Ce profil retiendra les 2 comptes ouverts, la position et la taille de leurs "
+            + "fenêtres, la qualité haute et la distance éloignée.",
+            phrase);
+    }
+
+    [Fact]
+    public void L_annonce_accorde_le_compte_unique()
+    {
+        var phrase = LaunchProfiles.Announce(1, StreamQuality.Medium, GameZoom.Normal, 0);
+
+        Assert.StartsWith("Ce profil retiendra le compte ouvert,", phrase, StringComparison.Ordinal);
+        Assert.EndsWith("la qualité moyenne et la distance normale.", phrase, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void L_annonce_ne_parle_des_onglets_que_s_il_y_en_a()
+    {
+        Assert.DoesNotContain(
+            "onglets",
+            LaunchProfiles.Announce(2, StreamQuality.Low, GameZoom.Close, 0),
+            StringComparison.Ordinal);
+
+        Assert.EndsWith(
+            "Le compte logé dans le cadre à onglets y retournera.",
+            LaunchProfiles.Announce(2, StreamQuality.Low, GameZoom.Close, 1),
+            StringComparison.Ordinal);
+
+        Assert.EndsWith(
+            "Les 2 comptes logés dans le cadre à onglets y retourneront.",
+            LaunchProfiles.Announce(2, StreamQuality.Low, GameZoom.Close, 2),
+            StringComparison.Ordinal);
+    }
 }

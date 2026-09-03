@@ -25,6 +25,8 @@ public partial class TabbedGameWindow : Window
 
     private GameTabViewModel? _pressed;
     private Point _origin;
+    private bool _fitting;
+    private bool _closing;
 
     public TabbedGameWindow(IWindowController windows)
     {
@@ -49,7 +51,7 @@ public partial class TabbedGameWindow : Window
     /// Loge une fenêtre de jeu et lui ajoute son onglet. Sans effet si elle
     /// s'y trouve déjà.
     /// </summary>
-    public bool Attach(string key, string title, string? iconPath, nint window)
+    public bool Attach(string key, string title, string? iconPath, nint window, double aspect)
     {
         if (Find(key) is not null || window == 0)
         {
@@ -61,7 +63,7 @@ public partial class TabbedGameWindow : Window
             return false;
         }
 
-        var tab = new GameTabViewModel(key, title, iconPath, window);
+        var tab = new GameTabViewModel(key, title, iconPath, window, aspect);
         tab.PropertyChanged += OnTabChanged;
         Items.Add(tab);
 
@@ -90,6 +92,8 @@ public partial class TabbedGameWindow : Window
             Select(Items[0]);
         }
 
+        CloseIfEmpty();
+
         return true;
     }
 
@@ -97,6 +101,24 @@ public partial class TabbedGameWindow : Window
     public void DetachAll()
     {
         foreach (var key in Items.Select(t => t.Key).ToList())
+        {
+            Detach(key);
+        }
+    }
+
+    /// <summary>
+    /// Ne garde que les onglets de cette liste, et ressort les autres.
+    ///
+    /// Une session peut mourir sans passer par nous : la fenêtre du jeu fermée
+    /// à la main, le téléphone débranché. L'onglet restait alors dans la barre
+    /// et désignait une fenêtre disparue ; pire, rouvrir le compte ne le
+    /// relogeait plus, l'onglet fantôme faisant croire qu'il y était déjà.
+    /// </summary>
+    public void KeepOnly(IReadOnlyCollection<string> keys)
+    {
+        ArgumentNullException.ThrowIfNull(keys);
+
+        foreach (var key in Items.Select(t => t.Key).Where(k => !keys.Contains(k)).ToList())
         {
             Detach(key);
         }
@@ -128,6 +150,23 @@ public partial class TabbedGameWindow : Window
         }
     }
 
+    /// <summary>
+    /// Referme le cadre dès qu'il ne loge plus rien.
+    ///
+    /// Un cadre vide n'a rien à montrer et ne dit pas ce qu'il attend. Sa
+    /// position n'est pas retenue de toute façon : le rouvrir ne coûte rien.
+    /// </summary>
+    private void CloseIfEmpty()
+    {
+        if (Items.Count > 0 || _closing)
+        {
+            return;
+        }
+
+        _closing = true;
+        Close();
+    }
+
     private GameTabViewModel? Find(string key) =>
         Items.FirstOrDefault(t => string.Equals(t.Key, key, StringComparison.Ordinal));
 
@@ -154,6 +193,7 @@ public partial class TabbedGameWindow : Window
             _windows.SetVisible(other.Window, other.IsSelected);
         }
 
+        Fit(tab);
         Place(tab);
         Retitle();
     }
@@ -162,48 +202,137 @@ public partial class TabbedGameWindow : Window
     {
         if (Items.FirstOrDefault(t => t.IsSelected) is { } tab)
         {
+            Fit(tab);
             Place(tab);
         }
     }
 
     /// <summary>
-    /// Pose la fenêtre logée sur toute la zone d'accueil.
+    /// La zone d'accueil, en pixels et dans les coordonnées de la zone client
+    /// du cadre, c'est-à-dire celles qu'attend une fenêtre logée.
     ///
-    /// Les coordonnées sont converties en pixels : WPF raisonne en unités
-    /// indépendantes de la densité, et <c>SetWindowPos</c> non. Sur un écran à
-    /// cent cinquante pour cent, l'oublier laisserait la fenêtre aux deux tiers
-    /// de la zone.
+    /// Les points sont demandés à WPF plutôt que calculés : convertir soi-même
+    /// les unités indépendantes de la densité s'est révélé faux sur un écran à
+    /// cent cinquante pour cent, et la fenêtre se posait cent pixels trop bas
+    /// et trop à droite.
     /// </summary>
-    private void Place(GameTabViewModel tab)
+    private ScreenRect? HostArea()
     {
-        if (Handle == 0 || Accueil.ActualWidth <= 0)
+        if (Handle == 0 || !IsVisible || Accueil.ActualWidth <= 0 || Accueil.ActualHeight <= 0)
         {
-            return;
+            return null;
         }
 
-        // La zone client est demandée à Windows, non calculée : convertir
-        // soi-même les unités de WPF en pixels s'est révélé faux sur un écran
-        // à cent cinquante pour cent, et la fenêtre se posait cent pixels trop
-        // bas et trop à droite.
-        if (_windows.GetClientRect(Handle) is not { } client)
+        var racine = PointToScreen(new Point(0, 0));
+        var coin = Accueil.PointToScreen(new Point(0, 0));
+        var fin = Accueil.PointToScreen(new Point(Accueil.ActualWidth, Accueil.ActualHeight));
+
+        return new ScreenRect(
+            (int)Math.Round(coin.X - racine.X),
+            (int)Math.Round(coin.Y - racine.Y),
+            (int)Math.Round(fin.X - coin.X),
+            (int)Math.Round(fin.Y - coin.Y));
+    }
+
+    /// <summary>
+    /// Donne au cadre la forme de l'image.
+    ///
+    /// scrcpy verrouille le rapport de ce qu'il rend : une zone d'accueil d'une
+    /// autre forme lui laisse une bande noire, que le centrage se contentait de
+    /// répartir de part et d'autre. En donnant au cadre le rapport du jeu, il
+    /// n'y a plus de bande à répartir. C'est déjà la règle des fenêtres libres,
+    /// dans <see cref="Core.Windows.WindowManagerService.EnforceAspect"/>.
+    /// </summary>
+    private void Fit(GameTabViewModel tab)
+    {
+        if (_fitting
+            || tab.Aspect <= 0
+            || WindowState != WindowState.Normal
+            || HostArea() is not { } zone
+            || zone.Width <= 0
+            || zone.Height <= 0)
         {
             return;
         }
 
         var dpi = VisualTreeHelper.GetDpi(this);
-        var barre = (int)Math.Round(Tabs.ActualHeight + 9 * dpi.DpiScaleY);
 
-        var y = Math.Min(barre, client.Height);
-        var hauteur = Math.Max(1, client.Height - y);
+        // L'encombrement du cadre : bordures, barre de titre et barre
+        // d'onglets réunies. Il ne change pas avec la taille, ce qui permet de
+        // raisonner sur la seule zone de jeu.
+        var chromeH = Height - (zone.Height / dpi.DpiScaleY);
+        var chromeW = Width - (zone.Width / dpi.DpiScaleX);
 
-        _windows.MoveWindow(tab.Window, new ScreenRect(0, y, client.Width, hauteur));
+        var largeurJeu = zone.Width / dpi.DpiScaleX;
+        var voulue = (largeurJeu / tab.Aspect) + chromeH;
 
-        // scrcpy verrouille le rapport de son image : la fenêtre ressort donc
-        // plus petite que demandé, et collée en haut à gauche. On la recentre
-        // sur ce qu'elle a réellement pris, faute de quoi la bande noire se
-        // retrouve tout entière d'un seul côté.
+        // Deux pixels de tolérance : l'arrondi du rapport ne justifie pas de
+        // redimensionner la fenêtre à chaque passage, ce qui la ferait
+        // trembler sans jamais se poser.
+        if (Math.Abs(voulue - Height) <= 2)
+        {
+            return;
+        }
+
+        var place = WorkAreaHeight(dpi);
+
+        _fitting = true;
+
+        try
+        {
+            if (voulue <= place)
+            {
+                Height = voulue;
+                return;
+            }
+
+            // Plus de place en hauteur : c'est la largeur qui cède. Rogner
+            // encore la hauteur donnerait un cadre écrasé, et il a déjà été
+            // trouvé trop court une fois.
+            Height = place;
+            Width = Math.Max(MinWidth, ((place - chromeH) * tab.Aspect) + chromeW);
+        }
+        finally
+        {
+            _fitting = false;
+        }
+    }
+
+    /// <summary>
+    /// Hauteur utilisable de l'écran qui porte le cadre, barre des tâches
+    /// exclue, en unités de WPF.
+    /// </summary>
+    private double WorkAreaHeight(DpiScale dpi)
+    {
+        var monitors = _windows.GetMonitors();
+
+        if (monitors.Count == 0 || _windows.GetWindowRect(Handle) is not { } outer)
+        {
+            return SystemParameters.WorkArea.Height;
+        }
+
+        var ecran = WindowLayoutCalculator.ChooseMonitor(monitors, outer.CenterX, outer.CenterY);
+
+        return ecran.WorkArea.Height / dpi.DpiScaleY;
+    }
+
+    /// <summary>Pose la fenêtre logée sur toute la zone d'accueil.</summary>
+    private void Place(GameTabViewModel tab)
+    {
+        if (HostArea() is not { } zone || zone.Width <= 0 || zone.Height <= 0)
+        {
+            return;
+        }
+
+        _windows.MoveWindow(tab.Window, zone);
+
+        // Filet : le cadre a normalement déjà pris la forme de l'image, mais
+        // il reste l'arrondi, et le cas où il est agrandi ou trop petit pour
+        // s'y conformer. La fenêtre ressort alors plus petite que demandé et
+        // collée en haut à gauche ; on la recentre, faute de quoi le reste
+        // noir se retrouve tout entier d'un seul côté.
         if (_windows.GetWindowRect(tab.Window) is not { } pris
-            || (pris.Width >= client.Width && pris.Height >= hauteur))
+            || (pris.Width >= zone.Width && pris.Height >= zone.Height))
         {
             return;
         }
@@ -211,8 +340,8 @@ public partial class TabbedGameWindow : Window
         _windows.MoveWindow(
             tab.Window,
             new ScreenRect(
-                (client.Width - pris.Width) / 2,
-                y + ((hauteur - pris.Height) / 2),
+                zone.X + ((zone.Width - pris.Width) / 2),
+                zone.Y + ((zone.Height - pris.Height) / 2),
                 pris.Width,
                 pris.Height));
     }
@@ -279,6 +408,7 @@ public partial class TabbedGameWindow : Window
     {
         // Les fenêtres logées ne doivent pas mourir avec le cadre : elles
         // reprennent leur vie de fenêtres libres.
+        _closing = true;
         DetachAll();
 
         base.OnClosing(e);

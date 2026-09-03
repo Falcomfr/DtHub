@@ -7,12 +7,13 @@ namespace DtHub.App.ViewModels;
 /// </summary>
 public sealed partial class GameTabViewModel : ObservableObject
 {
-    public GameTabViewModel(string key, string title, string? iconPath, nint window)
+    public GameTabViewModel(string key, string title, string? iconPath, nint window, double aspect)
     {
         Key = key;
         _title = title;
         _iconPath = iconPath;
         Window = window;
+        Aspect = aspect;
     }
 
     /// <summary>Clé de l'instance. Identifie l'onglet : elle ne change pas.</summary>
@@ -20,6 +21,14 @@ public sealed partial class GameTabViewModel : ObservableObject
 
     /// <summary>Fenêtre de jeu logée, telle que Windows la désigne.</summary>
     public nint Window { get; }
+
+    /// <summary>
+    /// Rapport largeur sur hauteur de l'afficheur, celui que scrcpy verrouille.
+    ///
+    /// C'est lui qui donne sa forme au cadre : une zone d'accueil d'une autre
+    /// forme laisserait une bande noire sur les côtés.
+    /// </summary>
+    public double Aspect { get; }
 
     [ObservableProperty]
     private string _title;

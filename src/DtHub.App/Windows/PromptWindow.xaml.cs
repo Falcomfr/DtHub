@@ -12,12 +12,25 @@ namespace DtHub.App.Windows;
 /// </summary>
 public partial class PromptWindow : Window
 {
-    public PromptWindow(string question, string? initial)
+    public PromptWindow(string question, string? initial, string? details = null, string? acceptLabel = null)
     {
         InitializeComponent();
 
         Question.Text = question;
         Entry.Text = initial ?? string.Empty;
+
+        // Le cadre explicatif ne paraît que si l'appelant a quelque chose à
+        // annoncer : une boîte vide coûterait de la hauteur pour rien.
+        if (!string.IsNullOrWhiteSpace(details))
+        {
+            Details.Text = details;
+            DetailsBox.Visibility = Visibility.Visible;
+        }
+
+        if (!string.IsNullOrWhiteSpace(acceptLabel))
+        {
+            Accept.Content = acceptLabel;
+        }
 
         // Tout est sélectionné : la réponse la plus fréquente à une valeur
         // proposée est de la remplacer, non de la compléter.

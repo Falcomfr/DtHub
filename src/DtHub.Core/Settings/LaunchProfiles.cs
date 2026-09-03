@@ -123,6 +123,49 @@ public static class LaunchProfiles
             : $"{comptes}, {QualityLabel(profile.Quality)}";
     }
 
+    /// <summary>
+    /// Ce qu'un profil s'apprête à retenir, dit avant de le créer.
+    ///
+    /// « Enregistrer » ne laissait rien deviner de ce qui part avec le nom :
+    /// on croyait ne retenir que des comptes, et l'ouverture du profil
+    /// replaçait les fenêtres et changeait la qualité. La phrase le dit à
+    /// l'avance, avec les valeurs du moment plutôt qu'une liste figée, pour
+    /// qu'on reconnaisse son propre réglage.
+    /// </summary>
+    public static string Announce(int accounts, StreamQuality quality, GameZoom zoom, int tabbed)
+    {
+        var fr = CultureInfo.GetCultureInfo("fr-FR");
+
+        var comptes = accounts <= 1
+            ? "le compte ouvert"
+            : string.Create(fr, $"les {accounts} comptes ouverts");
+
+        var phrase = string.Create(
+            fr,
+            $"Ce profil retiendra {comptes}, la position et la taille de leurs fenêtres, "
+            + $"la {QualityLabel(quality)} et la distance {ZoomLabel(zoom)}.");
+
+        if (tabbed <= 0)
+        {
+            return phrase;
+        }
+
+        var onglets = tabbed <= 1
+            ? "Le compte logé dans le cadre à onglets y retournera."
+            : string.Create(fr, $"Les {tabbed} comptes logés dans le cadre à onglets y retourneront.");
+
+        return $"{phrase} {onglets}";
+    }
+
+    /// <summary>Le mot de la distance, tel qu'il paraît dans le panneau.</summary>
+    private static string ZoomLabel(GameZoom zoom) => zoom switch
+    {
+        GameZoom.Widest => "très éloignée",
+        GameZoom.Wide => "éloignée",
+        GameZoom.Close => "proche",
+        _ => "normale",
+    };
+
     /// <summary>Le mot du palier, tel qu'il paraît dans le panneau.</summary>
     private static string QualityLabel(StreamQuality quality) => quality switch
     {

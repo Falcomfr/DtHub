@@ -592,6 +592,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
         {
             _closing = false;
         }
+
+        // L'onglet part avec la session. Le laisser faisait croire au cadre
+        // que le compte y était encore, et rouvrir ce compte ne le relogeait
+        // plus : il reparaissait en fenêtre libre par-dessus le cadre.
+        if (_tabs is not null)
+        {
+            await OnUiAsync(() => _tabs?.Detach(session.Target.Key)).ConfigureAwait(false);
+        }
     }
 
     /// <summary>
@@ -747,6 +755,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         }
 
+        // Voir StopSessionAsync : le cadre ne doit pas garder d'onglet sur une
+        // fenêtre qui n'existe plus. Ici l'ouverture d'un profil enchaîne
+        // aussitôt, et attendre le prochain entretien serait trop tard.
+        if (_tabs is not null)
+        {
+            await OnUiAsync(() => _tabs?.DetachAll()).ConfigureAwait(false);
+        }
+
         await _hotkeys.SetEnabledAsync(false).ConfigureAwait(false);
     }
 
@@ -787,6 +803,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // fenêtre logée, il défaisait la pose du cadre toutes les demi-secondes,
         // et le jeu revenait se coller de travers sans qu'on comprenne pourquoi.
         _windows.EnforceAspect(ManagedSessions);
+
+        // Filet pour les sessions qui meurent sans passer par nous : fenêtre du
+        // jeu fermée à la main, téléphone débranché. Les fermetures voulues
+        // détachent déjà l'onglet elles-mêmes, sans attendre ce passage.
+        _tabs?.KeepOnly(
+            [.. _sessions.ActiveSessions.Select(s => s.Target.Key)]);
     }
 
 
@@ -1144,7 +1166,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // fenêtre WPF ne se crée que sur un fil en mode STA, et la chaîne
         // asynchrone du lanceur n'en est pas un.
         await OnUiAsync(() =>
-            EnsureTabs().Attach(session.Target.Key, session.DisplayName, IconFor(session), handle))
+            EnsureTabs().Attach(
+                session.Target.Key,
+                session.DisplayName,
+                IconFor(session),
+                handle,
+                session.SourceAspectRatio))
             .ConfigureAwait(false);
     }
 

@@ -41,10 +41,21 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   libre. Autant de comptes qu'on veut, un seul visible à la fois, et passer de
   l'un à l'autre est immédiat : les fenêtres sont cachées, non fermées.
 
+  Les onglets se glissent pour changer leur ordre, qui est aussi celui de la
+  liste des comptes : un seul ordre partout.
+
+  Le cadre prend la forme de l'image du jeu et la garde à chaque
+  redimensionnement, si bien qu'aucune bande noire ne subsiste sur les côtés :
+  scrcpy verrouille le rapport de ce qu'il rend, et une zone d'accueil d'une
+  autre forme lui laissait forcément du noir. S'il n'y a plus de place en
+  hauteur, c'est la largeur qui cède.
+
   La fenêtre n'est ni recréée ni rouverte, seulement logée : basculer ne coûte
   ni les secondes d'une ouverture ni un nouvel afficheur virtuel sur le
   téléphone. Un compte logé échappe aux placements automatiques, qui
-  lutteraient contre le cadre.
+  lutteraient contre le cadre. Le cadre se referme quand son dernier onglet le
+  quitte, et un onglet part avec la session qu'il montre : le laisser faisait
+  croire que le compte était encore logé, et le rouvrir le sortait du cadre.
 
 - Des profils de lancement : un ensemble de comptes **avec leurs positions et
   leurs réglages**, qu'on retient sous un nom et qu'on rouvre d'un geste.
@@ -59,7 +70,15 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
   Ils vivent derrière un bouton « Profils », sur la ligne du bouton
   d'association : dépliés dans la page, ils prenaient quarante-sept pixels à la
-  liste des comptes, qui en manque dans une fenêtre courte.
+  liste des comptes, qui en manque dans une fenêtre courte. La bulle les montre
+  tous, une ligne chacun, avec à droite de quoi l'ouvrir, le désigner pour le
+  démarrage et le supprimer, cette dernière après confirmation. Désigner une
+  ligne ne fait plus rien par soi-même : ouvrir est un geste à part, faute de
+  quoi un simple clic d'exploration fermait des fenêtres de jeu en cours.
+
+  « Créer un profil » annonce ce qu'il va retenir avant de demander un nom, avec
+  les valeurs du moment plutôt qu'une liste figée : le nombre de comptes
+  ouverts, la qualité, la distance dans le jeu et lesquels sont en onglets.
 
   Un compte retiré du téléphone depuis l'enregistrement est simplement ignoré :
   le profil garde sa raison d'être et les autres comptes s'ouvrent. Un profil

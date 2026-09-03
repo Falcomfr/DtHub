@@ -155,7 +155,7 @@
                                 CornerRadius="{StaticResource Radius}">
                           <Path x:Name="Trait" StrokeThickness="1.4" Width="16" Height="16"
                                 Stroke="{DynamicResource TextMutedBrush}"
-                                Data="M 1.5,5 H 14.5 V 14 H 1.5 Z M 1.5,5 V 2 H 7 V 5" />
+                                Data="M 1.5,3 H 14.5 V 13.5 H 1.5 Z M 1.5,7 H 14.5 M 8,3 V 7" />
                         </Border>
                         <ControlTemplate.Triggers>
                           <Trigger Property="IsMouseOver" Value="True">
