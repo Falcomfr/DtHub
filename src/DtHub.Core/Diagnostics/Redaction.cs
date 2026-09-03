@@ -52,6 +52,7 @@ public static partial class Redaction
 
         clean = AddressPattern().Replace(clean, Placeholder);
         clean = SerialOptionPattern().Replace(clean, "--serial=" + Placeholder);
+        clean = DisplayPattern().Replace(clean, Placeholder);
         clean = UserPathPattern().Replace(clean, @"C:\Users\" + Placeholder + @"\");
 
         // Puis ce que l'application sait d'avance, par la chaîne la plus longue
@@ -87,6 +88,14 @@ public static partial class Redaction
     /// <summary>La valeur collée à « --serial= », que l'égalité exacte manque.</summary>
     [GeneratedRegex(@"--serial=\S+", RegexOptions.None, 500)]
     private static partial Regex SerialOptionPattern();
+
+    /// <summary>
+    /// Le nom de périphérique d'un écran, « \\.\DISPLAY11 ». C'est une
+    /// empreinte de machine sans valeur de diagnostic : la définition et la
+    /// position, qui restent, disent tout ce qu'un placement demande.
+    /// </summary>
+    [GeneratedRegex(@"\\\\[.?]\\DISPLAY\d+", RegexOptions.IgnoreCase, 500)]
+    private static partial Regex DisplayPattern();
 
     /// <summary>
     /// Le nom du compte Windows dans un chemin. Il arrive sans que personne

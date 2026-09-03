@@ -92,6 +92,35 @@ public sealed class RedactionTests
         Assert.Equal(message, Redaction.Apply(message));
     }
 
+    /// <summary>
+    /// Le nom de périphérique d'un écran est une empreinte de machine sans
+    /// valeur de diagnostic. La géométrie, elle, dit tout ce qu'un placement
+    /// demande, et reste.
+    /// </summary>
+    [Fact]
+    public void Le_nom_d_un_ecran_part_mais_sa_geometrie_reste()
+    {
+        var clean = Redaction.Apply(
+            @"Écrans : \\.\DISPLAY11 3840x2160 en (0, 0) utile 3840x2088 en (0, 0)");
+
+        Assert.DoesNotContain("DISPLAY11", clean, StringComparison.Ordinal);
+        Assert.Contains("3840x2160", clean, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Le nom d'un profil de lancement est choisi par la personne, et rien ne
+    /// l'empêche d'y mettre son pseudonyme. Aucun motif ne le reconnaît : il
+    /// faut le donner à la biffure.
+    /// </summary>
+    [Fact]
+    public void Un_nom_de_profil_choisi_part_s_il_est_donne()
+    {
+        const string ligne = "Session « Duo haute » retenue : 2 compte(s).";
+
+        Assert.Contains("Duo haute", Redaction.Apply(ligne), StringComparison.Ordinal);
+        Assert.DoesNotContain("Duo haute", Redaction.Apply(ligne, ["Duo haute"]), StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]

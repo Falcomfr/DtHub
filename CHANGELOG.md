@@ -22,10 +22,15 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   déjà le signalement vers papycha.fr.
 
   Ce qui identifie en est retiré : adresses et ports, noms de débogage sans fil
-  qui portent le numéro de série, valeurs collées à « --serial= », et le nom du
-  compte Windows dans les chemins. Mesuré sur sept fichiers de journal réels,
-  près de trois lignes sur dix en portaient une, quand les erreurs en font sept
-  sur cent.
+  qui portent le numéro de série, valeurs collées à « --serial= », noms de
+  périphériques d'écran, le nom du compte Windows dans les chemins, et les noms
+  que la personne a choisis pour ses comptes et ses profils de lancement. Mesuré
+  sur sept fichiers de journal réels, près de trois lignes sur dix en portaient
+  une, quand les erreurs en font sept sur cent.
+
+  Le rapport est donc collable en public, sur un salon Discord comme ailleurs.
+  Vérifié sur un vrai rapport : ni numéro de série, ni adresse, ni nom de
+  compte, ni nom de profil, ni nom d'écran, ni nom d'utilisateur Windows.
 
   Chaque ligne de journal porte désormais l'identifiant du lancement : quatre
   cent huit démarrages en six jours se mêlaient dans sept fichiers, et un

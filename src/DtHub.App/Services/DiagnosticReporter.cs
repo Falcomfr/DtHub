@@ -37,6 +37,17 @@ public sealed class DiagnosticReporter
     /// <summary>Le dernier refus technique relevé, s'il y en a eu un.</summary>
     public string? LastFailure { get; set; }
 
+    /// <summary>
+    /// Les noms que la personne a choisis : ses comptes, ses profils de
+    /// lancement. Ils ne se devinent par aucun motif, et rien n'empêche
+    /// quelqu'un d'y mettre son pseudonyme de jeu.
+    ///
+    /// Ils sont posés du dehors plutôt que lus ici : le panneau reçoit déjà les
+    /// réglages à chaque écriture, et un rapport n'a pas à attendre une lecture
+    /// de fichier.
+    /// </summary>
+    public IReadOnlyList<string> Names { get; set; } = [];
+
     /// <summary>Combien d'incidents ont été relevés depuis le démarrage.</summary>
     public int Incidents { get; private set; }
 
@@ -173,6 +184,11 @@ public sealed class DiagnosticReporter
     /// </summary>
     private IEnumerable<string> Secrets()
     {
+        foreach (var name in Names)
+        {
+            yield return name;
+        }
+
         if (Launcher is not { } launcher)
         {
             yield break;

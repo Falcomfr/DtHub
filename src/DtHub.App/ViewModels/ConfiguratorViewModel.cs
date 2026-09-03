@@ -106,6 +106,8 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// </summary>
     private void OnSettingsChanged(object? sender, AppSettingsDocument document)
     {
+        RememberNames(document);
+
         var dispatcher = System.Windows.Application.Current?.Dispatcher;
 
         if (dispatcher is null)
@@ -471,6 +473,10 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         {
             var settings = await _settings.GetAsync(cancellationToken).ConfigureAwait(true);
 
+            // Dès la première lecture : une faute peut survenir avant toute
+            // écriture, et le rapport doit déjà savoir quoi biffer.
+            RememberNames(settings);
+
             GameAnchor = settings.GameAnchor;
 
             var presets = await _settings.GetSizePresetsAsync(cancellationToken).ConfigureAwait(true);
@@ -598,6 +604,19 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             Instances.Problem = Strings.Get("NothingToTile");
         }
     }
+
+    /// <summary>
+    /// Donne au rapport les noms que la personne a choisis, pour qu'il les
+    /// biffe. Ni les noms de comptes ni ceux des profils ne se devinent par un
+    /// motif, et rien n'empêche quelqu'un d'y mettre son pseudonyme de jeu.
+    /// </summary>
+    private void RememberNames(AppSettingsDocument document) =>
+        _reporter.Names =
+        [
+            .. document.LaunchProfiles.Select(p => p.Name),
+            .. document.Instances.Select(i => i.UserName),
+            .. document.Instances.Select(i => i.CustomName ?? string.Empty),
+        ];
 
     /// <summary>
     /// Vrai quand une faute a été relevée sans être montrée. La ligne qui
