@@ -303,6 +303,15 @@ public sealed class SettingsService : IDisposable
         CancellationToken cancellationToken = default) =>
         [.. (await GetAsync(cancellationToken).ConfigureAwait(false)).LaunchProfiles];
 
+    /// <summary>
+    /// Sous quel nom la place du cadre à onglets est retenue.
+    ///
+    /// La même clé que celle du service d'interface qui l'enregistre : les
+    /// profils y touchent aussi, et deux orthographes auraient donné deux
+    /// entrées dont une seule aurait servi.
+    /// </summary>
+    public const string TabsPlacementKey = "tabs";
+
     /// <summary>Nom du profil ouvert au démarrage, ou <c>null</c> s'il n'y en a pas.</summary>
     public async Task<string?> GetDefaultLaunchProfileAsync(
         CancellationToken cancellationToken = default) =>
@@ -360,9 +369,19 @@ public sealed class SettingsService : IDisposable
                     GameAnchor = settings.GameAnchor,
                     SizeIndex = settings.SizeIndex,
                     CustomSizePercent = settings.CustomSizePercent,
+                    AudioEnabled = settings.AudioEnabled,
+                    ClipboardSyncEnabled = settings.ClipboardSyncEnabled,
                     TabbedKeys = [.. settings.Instances
                         .Where(i => i.IsTabbed && retenus.Contains(i.Key, StringComparer.Ordinal))
                         .Select(i => i.Key)],
+
+                    // La place du cadre n'est retenue que si le profil loge
+                    // quelque chose : la garder sur un profil sans onglets
+                    // déplacerait le cadre d'un autre profil en l'ouvrant.
+                    TabsWindow = settings.Instances.Any(
+                        i => i.IsTabbed && retenus.Contains(i.Key, StringComparer.Ordinal))
+                        ? settings.WindowPlacements.GetValueOrDefault(TabsPlacementKey)
+                        : null,
                 });
             },
             cancellationToken).ConfigureAwait(false);
@@ -474,6 +493,17 @@ public sealed class SettingsService : IDisposable
                 document.CustomQuality = profile.CustomQuality.Sanitized();
                 document.GameZoom = profile.GameZoom;
                 document.GameAnchor = profile.GameAnchor;
+                document.AudioEnabled = profile.AudioEnabled;
+                document.ClipboardSyncEnabled = profile.ClipboardSyncEnabled;
+
+                // Un profil sans place de cadre laisse celle qui est retenue :
+                // c'est le cas des profils enregistrés avant, et de ceux qui ne
+                // logent rien.
+                if (profile.TabsWindow is { IsSized: true } cadre)
+                {
+                    document.WindowPlacements[TabsPlacementKey] = cadre;
+                }
+
                 document.SizeIndex = profile.SizeIndex;
                 document.CustomSizePercent = profile.CustomSizePercent;
             },

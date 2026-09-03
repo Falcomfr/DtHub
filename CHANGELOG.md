@@ -42,7 +42,14 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   l'un à l'autre est immédiat : les fenêtres sont cachées, non fermées.
 
   Les onglets se glissent pour changer leur ordre, qui est aussi celui de la
-  liste des comptes : un seul ordre partout.
+  liste des comptes : un seul ordre partout. Un trait bleu montre où l'onglet se
+  posera, à gauche ou à droite de celui qu'on survole, et lâcher après le dernier
+  range en fin de liste. L'onglet part à l'instant où on lâche, sans attendre le
+  trajet par les réglages.
+
+  Le cadre s'attrape par n'importe quel bord, comme une fenêtre de jeu libre :
+  tirer un côté commande la hauteur, tirer le haut ou le bas commande la
+  largeur, et le bord opposé ne bouge pas.
 
   Le cadre prend la forme de l'image du jeu et la garde à chaque
   redimensionnement, si bien qu'aucune bande noire ne subsiste sur les côtés :
@@ -62,7 +69,9 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   « Solo donjon » ouvre un compte en grand et en qualité haute, « Duo pêche »
   deux fenêtres côte à côte en qualité moyenne. Un profil emporte la position et
   la taille de chaque fenêtre, la qualité et sa personnalisation, la distance
-  dans le jeu, l'ancrage et la taille en pourcentage.
+  dans le jeu, l'ancrage et la taille en pourcentage, le son du jeu renvoyé sur
+  le PC, le presse-papiers partagé, quels comptes sont en onglets et où était le
+  cadre qui les logeait.
 
   Un profil peut être désigné pour le démarrage ; sans désignation, l'application
   rouvre ce qui était ouvert, comme avant. L'ouvrir ferme les fenêtres qui n'en
@@ -359,6 +368,13 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   filet.
 
 ### Modifié
+
+- Le bouton d'association et celui des profils forment une paire. Ils partagent
+  la même ligne et n'avaient rien en commun : l'un cadré, l'autre flottant sans
+  bord, avec un plus en simple caractère qui passait pour de la ponctuation et un
+  chevron de fonte à chasse fixe qui pendait sous le texte. Même dessin
+  désormais, une marque d'accent à gauche, et le bleu sourd sous le doigt à la
+  place d'une baisse d'opacité qui ne disait rien.
 
 - Les aides montrent le chemin de menu comme la suite d'écrans qu'il décrit :
   chaque écran porte son nom en titre et, sur l'une de ses lignes, le libellé

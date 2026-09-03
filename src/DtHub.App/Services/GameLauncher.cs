@@ -34,6 +34,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private readonly SettingsService _settings;
     private readonly IHotkeyRegistrar _hotkeys;
     private readonly AppRestartService _restarts;
+    private readonly WindowPlacements _placements;
     private readonly ILogger<GameLauncher> _logger;
 
     private bool _hotkeysWired;
@@ -60,6 +61,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         SettingsService settings,
         IHotkeyRegistrar hotkeys,
         AppRestartService restarts,
+        WindowPlacements placements,
         ILogger<GameLauncher> logger)
     {
         _sessions = sessions;
@@ -72,6 +74,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _settings = settings;
         _hotkeys = hotkeys;
         _restarts = restarts;
+        _placements = placements;
         _logger = logger;
 
         // Une session qui meurt après son ouverture ne laissait aucune trace :
@@ -773,7 +776,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     public async Task CaptureGeometriesAsync(CancellationToken cancellationToken = default)
     {
-        var captured = _windows.CaptureGeometries(_sessions.ActiveSessions);
+        await CaptureTabsPlacementAsync(cancellationToken).ConfigureAwait(false);
+
+        // Les fenêtres logées sont écartées : leur rectangle est celui qu'elles
+        // occupent dans le cadre, et le retenir comme place libre les faisait
+        // reparaître au milieu de l'écran le jour où on les sortait des onglets.
+        var captured = _windows.CaptureGeometries(
+            [.. _sessions.ActiveSessions.Where(s => !_tabbed.Contains(s.Target.Key))]);
 
         if (captured.Count == 0)
         {
@@ -783,6 +792,30 @@ public sealed partial class GameLauncher : IAsyncDisposable
         await _settings.SaveWindowRectsAsync(
             captured.ToDictionary(c => c.Key, c => c.Rect, StringComparer.Ordinal),
             cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Retient où est le cadre à onglets.
+    ///
+    /// À part des fenêtres de jeu : une fenêtre logée n'a plus de place à
+    /// elle, et c'est celle du cadre qui compte. La lecture se fait sur le fil
+    /// d'interface, la poignée d'une fenêtre WPF n'étant pas lisible ailleurs.
+    /// </summary>
+    private async Task CaptureTabsPlacementAsync(CancellationToken cancellationToken)
+    {
+        if (_tabs is not { } cadre)
+        {
+            return;
+        }
+
+        WindowPlacement? place = null;
+
+        await OnUiAsync(() => place = _windows.Controller.GetPlacement(cadre.Handle))
+            .ConfigureAwait(false);
+
+        await _settings
+            .SetWindowPlacementAsync(WindowPlacements.Tabs, place, cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -1165,8 +1198,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // Sur le fil d'interface, et non celui qui nous a menés ici : une
         // fenêtre WPF ne se crée que sur un fil en mode STA, et la chaîne
         // asynchrone du lanceur n'en est pas un.
+        var reglages = await _settings.GetAsync(cancellationToken).ConfigureAwait(false);
+
         await OnUiAsync(() =>
-            EnsureTabs().Attach(
+            EnsureTabs(reglages).Attach(
                 session.Target.Key,
                 session.DisplayName,
                 IconFor(session),
@@ -1195,7 +1230,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>Le cadre, créé au premier besoin et gardé ouvert ensuite.</summary>
-    private Windows.TabbedGameWindow EnsureTabs()
+    private Windows.TabbedGameWindow EnsureTabs(AppSettingsDocument document)
     {
         if (_tabs is { } existant)
         {
@@ -1223,6 +1258,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         _tabs = cadre;
         cadre.Show();
+
+        // Après l'affichage : il n'y a pas de poignée avant, donc rien à
+        // placer. Le cadre reparaît ainsi là où on l'avait laissé, et un profil
+        // en onglets le rouvre là où il était quand on l'a enregistré.
+        _placements.Restore(cadre, WindowPlacements.Tabs, document);
 
         return cadre;
     }

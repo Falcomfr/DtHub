@@ -2637,3 +2637,63 @@ son `Add-Type` avait échoué sur un fichier temporaire refusé, le type appelé
 ensuite n'était pas celui qu'elle croyait, et aucun mouvement de souris
 n'atteignait la fenêtre. **Un outil de mesure muet vaut un faux négatif** : la
 sonde dit maintenant ce qu'elle fait, et l'appelant relance quand elle échoue.
+
+### Reprise : le geste se voit, et le cadre s'attrape par tous les bords
+
+Le glissement marchait mais ne montrait rien. On lâchait à l'aveugle : rien ne
+disait de quel côté le dépôt tomberait, et viser à côté d'un onglet ne faisait
+rien sans dire pourquoi. Trois corrections, toutes visibles à l'écran :
+
+- **Un trait d'accent** paraît à gauche ou à droite de l'onglet survolé. Les
+  deux gouttières qui le portent sont là en permanence, même vides : les faire
+  apparaître au survol décalait toute la barre de trois pixels au moment précis
+  où l'on vise.
+- **La barre entière reçoit le dépôt**, et pas seulement les onglets : lâcher
+  après le dernier range en fin de liste.
+- **L'onglet part à l'instant où on lâche.** Il attendait le retour de
+  l'enregistrement, et le geste paraissait n'avoir rien fait pendant ce trajet.
+- Le seuil de glissement ne regarde plus que l'écart horizontal : la barre est
+  horizontale, et le tremblement vertical d'un simple clic partait en glissement.
+
+**Le redimensionnement passe par WM_SIZING.** Le cadre gardait sa forme en se
+corrigeant après coup, ce qui rendait le bord du bas inerte : la hauteur était
+aussitôt recalculée depuis la largeur, et la fenêtre paraissait résister à la
+souris. Windows demande sa taille à la fenêtre pendant l'étirement, bord par
+bord ; y répondre laisse attraper le cadre par n'importe quel bord, comme une
+fenêtre de jeu libre. Tirer un côté commande la hauteur, tirer le haut ou le bas
+commande la largeur, et le bord opposé à celui qu'on tire ne bouge pas, sans quoi
+la fenêtre glisserait sous la souris au lieu de s'étirer.
+
+La règle est sortie de la fenêtre, dans `AspectSizing` : c'est un calcul, et un
+calcul se vérifie sans ouvrir d'interface. Sept épreuves le tiennent, dont une
+qui balaie les huit bords et vérifie que la zone de jeu garde son rapport.
+
+### Reprise : ce qu'un profil doit retenir de plus
+
+Trois manques, cherchés en relisant le document de réglages ligne à ligne :
+
+- **Le son du jeu renvoyé sur le PC** et **le presse-papiers partagé**. On ne
+  joue pas de la même façon avec et sans le son.
+- **La place du cadre à onglets.** Les positions retenues pour chaque compte ne
+  disent rien du cadre : une fenêtre logée n'a plus de place à elle. Un profil en
+  onglets rouvrait donc son cadre là où Windows voulait bien le mettre. Elle
+  n'est retenue que si le profil loge quelque chose, faute de quoi ouvrir un
+  profil sans onglets déplacerait le cadre d'un autre.
+
+Le reste du document a été écarté à dessein : les paliers de taille, le paquet du
+jeu et les raccourcis sont des préférences générales, pas l'état d'une séance ;
+la définition et la densité de l'afficheur virtuel se déduisent à l'ouverture de
+la taille de la fenêtre et de la distance.
+
+**Un défaut trouvé au passage.** Le relevé des géométries prenait aussi les
+fenêtres logées, dont le rectangle est celui qu'elles occupent dans le cadre. Les
+sortir des onglets les faisait reparaître au milieu de l'écran. Elles en sont
+maintenant écartées.
+
+### La souris de l'utilisateur n'est pas la nôtre
+
+Le glissement n'a pas pu être remesuré tout de suite : l'utilisateur était revenu
+à sa machine, Firefox au premier plan, et les clics injectés se perdaient. Le
+diagnostic a coûté plusieurs essais avant que la fenêtre de premier plan ne le
+dise. **Vérifier qui tient la souris avant de conclure à une panne**, et ne pas
+la lui disputer.

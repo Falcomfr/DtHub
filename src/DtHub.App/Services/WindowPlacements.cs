@@ -32,6 +32,12 @@ public sealed class WindowPlacements(IWindowController windows, SettingsService 
     /// <summary>Le panneau de réglages.</summary>
     public const string Configurator = "configurator";
 
+    /// <summary>
+    /// Le cadre à onglets. La clé vient des réglages, où les profils la
+    /// retiennent aussi : deux orthographes auraient donné deux entrées.
+    /// </summary>
+    public const string Tabs = SettingsService.TabsPlacementKey;
+
     private readonly IWindowController _windows = windows;
     private readonly SettingsService _settings = settings;
 

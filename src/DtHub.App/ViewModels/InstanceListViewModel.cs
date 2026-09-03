@@ -234,7 +234,12 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 "Sous quel nom retenir ce profil ?",
                 null,
                 "Créer un profil",
-                LaunchProfiles.Announce(open.Count, settings.Quality, settings.GameZoom, tabbed),
+                LaunchProfiles.Announce(
+                    open.Count,
+                    settings.Quality,
+                    settings.GameZoom,
+                    tabbed,
+                    settings.AudioEnabled),
                 "Créer") is not { } typed)
         {
             return;

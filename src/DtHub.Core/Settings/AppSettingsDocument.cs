@@ -181,6 +181,28 @@ public sealed class StoredLaunchProfile
     public int CustomSizePercent { get; set; }
 
     /// <summary>
+    /// Le son du jeu renvoyé sur le PC, et le presse-papiers partagé avec le
+    /// téléphone.
+    ///
+    /// Ils font partie de l'environnement autant que la qualité : on ne joue
+    /// pas de la même façon avec et sans le son, et un profil qui ne les
+    /// retiendrait pas ne rendrait pas tout à fait la même place de travail.
+    /// </summary>
+    public bool AudioEnabled { get; set; }
+
+    public bool ClipboardSyncEnabled { get; set; } = true;
+
+    /// <summary>
+    /// Où était le cadre à onglets, quand le profil en employait un.
+    ///
+    /// Sans lui, un profil en onglets rouvrait son cadre à la place que Windows
+    /// voulait bien lui donner : les positions retenues pour chaque compte ne
+    /// disent rien du cadre, une fenêtre logée n'ayant plus de place à elle.
+    /// <c>null</c> sur un profil sans onglets, ou enregistré avant.
+    /// </summary>
+    public WindowPlacement? TabsWindow { get; set; }
+
+    /// <summary>
     /// Les comptes qui étaient dans le cadre à onglets. Vide sur un profil
     /// enregistré avant le mode onglets : ses comptes s'ouvrent alors en
     /// fenêtres libres, comme ils le faisaient.

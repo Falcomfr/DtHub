@@ -132,7 +132,12 @@ public static class LaunchProfiles
     /// l'avance, avec les valeurs du moment plutôt qu'une liste figée, pour
     /// qu'on reconnaisse son propre réglage.
     /// </summary>
-    public static string Announce(int accounts, StreamQuality quality, GameZoom zoom, int tabbed)
+    public static string Announce(
+        int accounts,
+        StreamQuality quality,
+        GameZoom zoom,
+        int tabbed,
+        bool audio)
     {
         var fr = CultureInfo.GetCultureInfo("fr-FR");
 
@@ -143,7 +148,8 @@ public static class LaunchProfiles
         var phrase = string.Create(
             fr,
             $"Ce profil retiendra {comptes}, la position et la taille de leurs fenêtres, "
-            + $"la {QualityLabel(quality)} et la distance {ZoomLabel(zoom)}.");
+            + $"la {QualityLabel(quality)}, la distance {ZoomLabel(zoom)} et le son "
+            + $"{(audio ? "renvoyé sur le PC" : "coupé")}.");
 
         if (tabbed <= 0)
         {
@@ -151,8 +157,10 @@ public static class LaunchProfiles
         }
 
         var onglets = tabbed <= 1
-            ? "Le compte logé dans le cadre à onglets y retournera."
-            : string.Create(fr, $"Les {tabbed} comptes logés dans le cadre à onglets y retourneront.");
+            ? "Le compte logé dans le cadre à onglets y retournera, cadre à sa place."
+            : string.Create(
+                fr,
+                $"Les {tabbed} comptes logés dans le cadre à onglets y retourneront, cadre à sa place.");
 
         return $"{phrase} {onglets}";
     }

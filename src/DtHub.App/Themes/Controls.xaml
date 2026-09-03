@@ -148,6 +148,95 @@
     <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
 
+  <!-- Deux touches de la même famille, l'une simple et l'autre à bascule.
+       Le geste d'association et l'ouverture des profils se tiennent sur la même
+       ligne : deux dessins différents y faisaient désordre, l'un cadré et
+       l'autre flottant sans bord.
+
+       Au repos, le fond du panneau et le biseau, comme les autres touches. Sous
+       le doigt, le bleu sourd et le bord d'accent, c'est-à-dire la couleur de
+       ce qu'on choisit, là où il n'y avait qu'une baisse d'opacité qui ne
+       disait rien. Le dessin de gauche, lui, reste toujours à l'accent : c'est
+       la marque de la touche, pas un état. -->
+  <Style x:Key="OutlineButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
+    <Setter Property="Padding" Value="11,7" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Border x:Name="Root" Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"
+                  CornerRadius="{StaticResource Radius}" Padding="{TemplateBinding Padding}"
+                  SnapsToDevicePixels="True">
+            <ContentPresenter VerticalAlignment="Center"
+                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Root" Property="Background"
+                      Value="{DynamicResource AccentSoftBrush}" />
+              <Setter TargetName="Root" Property="BorderBrush"
+                      Value="{DynamicResource AccentBrush}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+              <Setter TargetName="Root" Property="BorderBrush"
+                      Value="{StaticResource BevelPressedBrush}" />
+              <Setter TargetName="Root" Property="Opacity" Value="0.9" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter TargetName="Root" Property="Opacity" Value="0.4" />
+              <Setter Property="Cursor" Value="Arrow" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- La bascule du même dessin. Elle a son gabarit à elle et n'hérite de rien :
+       les styles ci-dessus ciblent Button, et les poser sur un ToggleButton lève
+       au chargement de la fenêtre, ce que la compilation ne voit pas. Ouverte,
+       elle garde le fond d'accent, pour qu'on sache d'où sort la bulle. -->
+  <Style x:Key="OutlineToggle" TargetType="ToggleButton">
+    <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="Padding" Value="11,7" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+    <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource BevelBorderBrush}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ToggleButton">
+          <Border x:Name="Root" Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"
+                  CornerRadius="{StaticResource Radius}" Padding="{TemplateBinding Padding}"
+                  SnapsToDevicePixels="True">
+            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" />
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Root" Property="Background"
+                      Value="{DynamicResource AccentSoftBrush}" />
+              <Setter TargetName="Root" Property="BorderBrush"
+                      Value="{DynamicResource AccentBrush}" />
+            </Trigger>
+            <Trigger Property="IsChecked" Value="True">
+              <Setter TargetName="Root" Property="Background"
+                      Value="{DynamicResource AccentSoftBrush}" />
+              <Setter TargetName="Root" Property="BorderBrush"
+                      Value="{DynamicResource AccentBrush}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter TargetName="Root" Property="Opacity" Value="0.4" />
+              <Setter Property="Cursor" Value="Arrow" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
   <Style x:Key="QuietButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderBrush" Value="Transparent" />

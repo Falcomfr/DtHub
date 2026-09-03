@@ -95,6 +95,95 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Un_profil_retient_le_son_et_le_presse_papiers()
+    {
+        var xspace = Compte(999);
+
+        await _service.UpdateAsync(s =>
+        {
+            s.Instances.Add(xspace);
+            s.AudioEnabled = true;
+            s.ClipboardSyncEnabled = false;
+        });
+
+        await _service.SaveLaunchProfileAsync("Solo", [xspace.Key]);
+
+        // Les réglages changent après l'enregistrement : c'est l'état du moment
+        // de l'enregistrement que le profil doit rendre, pas le dernier connu.
+        await _service.UpdateAsync(s =>
+        {
+            s.AudioEnabled = false;
+            s.ClipboardSyncEnabled = true;
+        });
+
+        await _service.ApplyLaunchProfileAsync("Solo");
+
+        var document = await _service.GetAsync();
+
+        Assert.True(document.AudioEnabled);
+        Assert.False(document.ClipboardSyncEnabled);
+    }
+
+    [Fact]
+    public async Task Un_profil_en_onglets_retient_la_place_du_cadre()
+    {
+        var xspace = Compte(999);
+
+        await _service.UpdateAsync(s =>
+        {
+            s.Instances.Add(xspace);
+            xspace.IsTabbed = true;
+            s.WindowPlacements[SettingsService.TabsPlacementKey] =
+                new WindowPlacement { Left = 40, Top = 60, Right = 1240, Bottom = 735 };
+        });
+
+        await _service.SaveLaunchProfileAsync("Duo", [xspace.Key]);
+
+        await _service.UpdateAsync(s =>
+            s.WindowPlacements[SettingsService.TabsPlacementKey] =
+                new WindowPlacement { Left = 0, Top = 0, Right = 800, Bottom = 500 });
+
+        await _service.ApplyLaunchProfileAsync("Duo");
+
+        var cadre = (await _service.GetAsync())
+            .WindowPlacements[SettingsService.TabsPlacementKey];
+
+        Assert.Equal(40, cadre.Left);
+        Assert.Equal(1240, cadre.Right);
+    }
+
+    [Fact]
+    public async Task Un_profil_sans_onglets_laisse_le_cadre_ou_il_est()
+    {
+        // Retenir la place du cadre sur un profil qui ne loge rien déplacerait
+        // le cadre d'un autre profil en l'ouvrant.
+        var xspace = Compte(999);
+
+        await _service.UpdateAsync(s =>
+        {
+            s.Instances.Add(xspace);
+            s.WindowPlacements[SettingsService.TabsPlacementKey] =
+                new WindowPlacement { Left = 40, Top = 60, Right = 1240, Bottom = 735 };
+        });
+
+        await _service.SaveLaunchProfileAsync("Libre", [xspace.Key]);
+
+        Assert.Null(
+            (await _service.GetLaunchProfilesAsync())
+                .Single(p => p.Name == "Libre").TabsWindow);
+
+        await _service.UpdateAsync(s =>
+            s.WindowPlacements[SettingsService.TabsPlacementKey] =
+                new WindowPlacement { Left = 5, Top = 5, Right = 805, Bottom = 505 });
+
+        await _service.ApplyLaunchProfileAsync("Libre");
+
+        Assert.Equal(
+            5,
+            (await _service.GetAsync()).WindowPlacements[SettingsService.TabsPlacementKey].Left);
+    }
+
+    [Fact]
     public async Task Une_session_inconnue_ne_touche_a_rien()
     {
         var principal = Compte(0);

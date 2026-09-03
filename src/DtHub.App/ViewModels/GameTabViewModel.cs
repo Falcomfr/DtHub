@@ -42,4 +42,24 @@ public sealed partial class GameTabViewModel : ObservableObject
     /// </summary>
     [ObservableProperty]
     private bool _isSelected;
+
+    /// <summary>
+    /// Où l'onglet glissé se posera, montré par un trait à gauche ou à droite
+    /// de celui que l'on survole.
+    ///
+    /// Sans ce trait, on lâchait à l'aveugle : rien ne disait de quel côté le
+    /// dépôt tomberait, et il fallait recommencer pour comprendre.
+    /// </summary>
+    [ObservableProperty]
+    private bool _dropBefore;
+
+    [ObservableProperty]
+    private bool _dropAfter;
+
+    /// <summary>Efface les deux repères de dépôt.</summary>
+    public void ClearDropHint()
+    {
+        DropBefore = false;
+        DropAfter = false;
+    }
 }

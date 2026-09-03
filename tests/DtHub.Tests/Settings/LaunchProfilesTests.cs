@@ -131,23 +131,32 @@ public class LaunchProfilesTests
     }
 
     [Fact]
-    public void L_annonce_dit_les_comptes_la_qualite_et_la_distance()
+    public void L_annonce_dit_les_comptes_la_qualite_la_distance_et_le_son()
     {
-        var phrase = LaunchProfiles.Announce(2, StreamQuality.Maximum, GameZoom.Wide, 0);
+        var phrase = LaunchProfiles.Announce(2, StreamQuality.Maximum, GameZoom.Wide, 0, audio: true);
 
         Assert.Equal(
             "Ce profil retiendra les 2 comptes ouverts, la position et la taille de leurs "
-            + "fenêtres, la qualité haute et la distance éloignée.",
+            + "fenêtres, la qualité haute, la distance éloignée et le son renvoyé sur le PC.",
             phrase);
+    }
+
+    [Fact]
+    public void L_annonce_dit_le_son_coupe()
+    {
+        Assert.EndsWith(
+            "et le son coupé.",
+            LaunchProfiles.Announce(1, StreamQuality.Medium, GameZoom.Normal, 0, audio: false),
+            StringComparison.Ordinal);
     }
 
     [Fact]
     public void L_annonce_accorde_le_compte_unique()
     {
-        var phrase = LaunchProfiles.Announce(1, StreamQuality.Medium, GameZoom.Normal, 0);
+        var phrase = LaunchProfiles.Announce(1, StreamQuality.Medium, GameZoom.Normal, 0, audio: false);
 
         Assert.StartsWith("Ce profil retiendra le compte ouvert,", phrase, StringComparison.Ordinal);
-        Assert.EndsWith("la qualité moyenne et la distance normale.", phrase, StringComparison.Ordinal);
+        Assert.Contains("la qualité moyenne, la distance normale", phrase, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -155,17 +164,17 @@ public class LaunchProfilesTests
     {
         Assert.DoesNotContain(
             "onglets",
-            LaunchProfiles.Announce(2, StreamQuality.Low, GameZoom.Close, 0),
+            LaunchProfiles.Announce(2, StreamQuality.Low, GameZoom.Close, 0, audio: false),
             StringComparison.Ordinal);
 
         Assert.EndsWith(
-            "Le compte logé dans le cadre à onglets y retournera.",
-            LaunchProfiles.Announce(2, StreamQuality.Low, GameZoom.Close, 1),
+            "Le compte logé dans le cadre à onglets y retournera, cadre à sa place.",
+            LaunchProfiles.Announce(2, StreamQuality.Low, GameZoom.Close, 1, audio: false),
             StringComparison.Ordinal);
 
         Assert.EndsWith(
-            "Les 2 comptes logés dans le cadre à onglets y retourneront.",
-            LaunchProfiles.Announce(2, StreamQuality.Low, GameZoom.Close, 2),
+            "Les 2 comptes logés dans le cadre à onglets y retourneront, cadre à sa place.",
+            LaunchProfiles.Announce(2, StreamQuality.Low, GameZoom.Close, 2, audio: false),
             StringComparison.Ordinal);
     }
 }

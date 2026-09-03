@@ -14,10 +14,15 @@
 
     <!-- La barre d'onglets, au-dessus de la zone de jeu et jamais dessus :
          une fenêtre native se dessine par-dessus tout élément WPF du même
-         châssis, et un onglet posé sur l'image serait invisible. -->
+         châssis, et un onglet posé sur l'image serait invisible.
+
+         La barre entière reçoit les dépôts : lâcher après le dernier onglet
+         range en fin de liste, là où il fallait viser un onglet. -->
     <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}"
-            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
-      <ItemsControl x:Name="Tabs" Margin="6,4,6,0">
+            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1"
+            AllowDrop="True" DragOver="OnStripDragOver" Drop="OnStripDrop"
+            DragLeave="OnStripDragLeave">
+      <ItemsControl x:Name="Tabs" Margin="4,4,4,0">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
             <StackPanel Orientation="Horizontal" />
@@ -26,21 +31,40 @@
 
         <ItemsControl.ItemTemplate>
           <DataTemplate>
-            <RadioButton Style="{StaticResource Tab}" GroupName="Onglets"
-                         Margin="0,0,4,0" AllowDrop="True"
-                         IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                         ToolTip="{Binding Title}"
-                         PreviewMouseLeftButtonDown="OnTabPressed"
-                         PreviewMouseMove="OnTabMoved"
-                         DragOver="OnTabDragOver"
-                         Drop="OnTabDrop">
-              <StackPanel Orientation="Horizontal">
-                <Image Width="16" Height="16" Margin="0,0,6,0" Stretch="Uniform"
-                       RenderOptions.BitmapScalingMode="HighQuality"
-                       Source="{Binding IconPath, Converter={StaticResource IconPath}}" />
-                <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
-              </StackPanel>
-            </RadioButton>
+            <!-- Les deux gouttières encadrent l'onglet en permanence, même
+                 vides : les faire paraître au survol décalerait toute la barre
+                 de trois pixels au moment précis où l'on vise. -->
+            <Grid Background="Transparent" AllowDrop="True"
+                  DragOver="OnTabDragOver" Drop="OnTabDrop" DragLeave="OnTabDragLeave">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="4" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="4" />
+              </Grid.ColumnDefinitions>
+
+              <Border Grid.Column="0" Width="2" Margin="1,4,1,4" CornerRadius="1"
+                      Background="{DynamicResource AccentBrush}"
+                      Visibility="{Binding DropBefore,
+                                           Converter={StaticResource BoolToVisibility}}" />
+
+              <RadioButton Grid.Column="1" Style="{StaticResource Tab}" GroupName="Onglets"
+                           IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                           ToolTip="{Binding Title}"
+                           PreviewMouseLeftButtonDown="OnTabPressed"
+                           PreviewMouseMove="OnTabMoved">
+                <StackPanel Orientation="Horizontal">
+                  <Image Width="16" Height="16" Margin="0,0,6,0" Stretch="Uniform"
+                         RenderOptions.BitmapScalingMode="HighQuality"
+                         Source="{Binding IconPath, Converter={StaticResource IconPath}}" />
+                  <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
+                </StackPanel>
+              </RadioButton>
+
+              <Border Grid.Column="2" Width="2" Margin="1,4,1,4" CornerRadius="1"
+                      Background="{DynamicResource AccentBrush}"
+                      Visibility="{Binding DropAfter,
+                                           Converter={StaticResource BoolToVisibility}}" />
+            </Grid>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>

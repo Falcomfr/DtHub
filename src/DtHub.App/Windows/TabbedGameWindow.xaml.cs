@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
+using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -21,6 +21,9 @@ namespace DtHub.App.Windows;
 /// </summary>
 public partial class TabbedGameWindow : Window
 {
+    /// <summary>Windows demande sa taille à une fenêtre qu'on étire.</summary>
+    private const int WmSizing = 0x0214;
+
     private readonly IWindowController _windows;
 
     private GameTabViewModel? _pressed;
@@ -139,6 +142,8 @@ public partial class TabbedGameWindow : Window
     /// <summary>Range les onglets dans cet ordre, celui de la liste des comptes.</summary>
     public void Reorder(IReadOnlyList<string> keys)
     {
+        ArgumentNullException.ThrowIfNull(keys);
+
         for (var wanted = 0; wanted < keys.Count; wanted++)
         {
             var present = Items.ToList().FindIndex(t => string.Equals(t.Key, keys[wanted], StringComparison.Ordinal));
@@ -154,7 +159,7 @@ public partial class TabbedGameWindow : Window
     /// Referme le cadre dès qu'il ne loge plus rien.
     ///
     /// Un cadre vide n'a rien à montrer et ne dit pas ce qu'il attend. Sa
-    /// position n'est pas retenue de toute façon : le rouvrir ne coûte rien.
+    /// position est rendue au lanceur avant de partir, qui la retient.
     /// </summary>
     private void CloseIfEmpty()
     {
@@ -202,7 +207,6 @@ public partial class TabbedGameWindow : Window
     {
         if (Items.FirstOrDefault(t => t.IsSelected) is { } tab)
         {
-            Fit(tab);
             Place(tab);
         }
     }
@@ -235,36 +239,82 @@ public partial class TabbedGameWindow : Window
     }
 
     /// <summary>
-    /// Donne au cadre la forme de l'image.
-    ///
-    /// scrcpy verrouille le rapport de ce qu'il rend : une zone d'accueil d'une
-    /// autre forme lui laisse une bande noire, que le centrage se contentait de
-    /// répartir de part et d'autre. En donnant au cadre le rapport du jeu, il
-    /// n'y a plus de bande à répartir. C'est déjà la règle des fenêtres libres,
-    /// dans <see cref="Core.Windows.WindowManagerService.EnforceAspect"/>.
+    /// Ce que le châssis prend autour de la zone de jeu : bordures, barre de
+    /// titre et barre d'onglets. Constant, donc mesurable sur la taille
+    /// courante et réutilisable pour toute autre.
+    /// </summary>
+    private (int Width, int Height)? Chrome()
+    {
+        if (_windows.GetWindowRect(Handle) is not { } outer
+            || HostArea() is not { } zone
+            || zone.Width <= 0
+            || zone.Height <= 0)
+        {
+            return null;
+        }
+
+        return (outer.Width - zone.Width, outer.Height - zone.Height);
+    }
+
+    /// <summary>Le rapport de l'onglet montré, ou <c>null</c> s'il n'y en a pas.</summary>
+    private double? Aspect() =>
+        Items.FirstOrDefault(t => t.IsSelected) is { Aspect: > 0 } tab ? tab.Aspect : null;
+
+    /// <summary>
+    /// Garde la forme de l'image pendant qu'on étire la fenêtre : le cadre
+    /// s'attrape par n'importe quel bord, comme une fenêtre de jeu libre. La
+    /// règle est dans <see cref="AspectSizing"/>, où elle se vérifie sans
+    /// ouvrir d'interface.
+    /// </summary>
+    private nint OnWindowMessage(nint hwnd, int msg, nint wParam, nint lParam, ref bool handled)
+    {
+        if (msg != WmSizing || Aspect() is not { } rapport || Chrome() is not { } chrome)
+        {
+            return 0;
+        }
+
+        var voulu = Marshal.PtrToStructure<SizingRect>(lParam);
+
+        var corrige = AspectSizing.Constrain(
+            new ScreenRect(
+                voulu.Left,
+                voulu.Top,
+                voulu.Right - voulu.Left,
+                voulu.Bottom - voulu.Top),
+            (int)wParam,
+            rapport,
+            chrome,
+            (int)Math.Round(MinWidth * VisualTreeHelper.GetDpi(this).DpiScaleX));
+
+        voulu.Left = corrige.X;
+        voulu.Top = corrige.Y;
+        voulu.Right = corrige.Right;
+        voulu.Bottom = corrige.Bottom;
+
+        Marshal.StructureToPtr(voulu, lParam, false);
+        handled = true;
+
+        return 1;
+    }
+
+    /// <summary>
+    /// Donne au cadre la forme de l'image, quand ce n'est pas la souris qui
+    /// décide : à l'arrivée d'un onglet, ou quand on passe à un onglet dont
+    /// l'afficheur n'a pas la même forme.
     /// </summary>
     private void Fit(GameTabViewModel tab)
     {
         if (_fitting
             || tab.Aspect <= 0
             || WindowState != WindowState.Normal
-            || HostArea() is not { } zone
-            || zone.Width <= 0
-            || zone.Height <= 0)
+            || Chrome() is not { } chrome
+            || HostArea() is not { } zone)
         {
             return;
         }
 
         var dpi = VisualTreeHelper.GetDpi(this);
-
-        // L'encombrement du cadre : bordures, barre de titre et barre
-        // d'onglets réunies. Il ne change pas avec la taille, ce qui permet de
-        // raisonner sur la seule zone de jeu.
-        var chromeH = Height - (zone.Height / dpi.DpiScaleY);
-        var chromeW = Width - (zone.Width / dpi.DpiScaleX);
-
-        var largeurJeu = zone.Width / dpi.DpiScaleX;
-        var voulue = (largeurJeu / tab.Aspect) + chromeH;
+        var voulue = ((zone.Width / dpi.DpiScaleX) / tab.Aspect) + (chrome.Height / dpi.DpiScaleY);
 
         // Deux pixels de tolérance : l'arrondi du rapport ne justifie pas de
         // redimensionner la fenêtre à chaque passage, ce qui la ferait
@@ -290,7 +340,9 @@ public partial class TabbedGameWindow : Window
             // encore la hauteur donnerait un cadre écrasé, et il a déjà été
             // trouvé trop court une fois.
             Height = place;
-            Width = Math.Max(MinWidth, ((place - chromeH) * tab.Aspect) + chromeW);
+            Width = Math.Max(
+                MinWidth,
+                ((place - (chrome.Height / dpi.DpiScaleY)) * tab.Aspect) + (chrome.Width / dpi.DpiScaleX));
         }
         finally
         {
@@ -326,11 +378,11 @@ public partial class TabbedGameWindow : Window
 
         _windows.MoveWindow(tab.Window, zone);
 
-        // Filet : le cadre a normalement déjà pris la forme de l'image, mais
-        // il reste l'arrondi, et le cas où il est agrandi ou trop petit pour
-        // s'y conformer. La fenêtre ressort alors plus petite que demandé et
-        // collée en haut à gauche ; on la recentre, faute de quoi le reste
-        // noir se retrouve tout entier d'un seul côté.
+        // Filet : le cadre a normalement déjà la forme de l'image, mais il
+        // reste l'arrondi, et le cas où il est agrandi ou trop petit pour s'y
+        // conformer. La fenêtre ressort alors plus petite que demandé et collée
+        // en haut à gauche ; on la recentre, faute de quoi le reste noir se
+        // retrouve tout entier d'un seul côté.
         if (_windows.GetWindowRect(tab.Window) is not { } pris
             || (pris.Width >= zone.Width && pris.Height >= zone.Height))
         {
@@ -366,10 +418,9 @@ public partial class TabbedGameWindow : Window
             return;
         }
 
-        var bouge = e.GetPosition(this) - _origin;
-
-        if (Math.Abs(bouge.X) < SystemParameters.MinimumHorizontalDragDistance
-            && Math.Abs(bouge.Y) < SystemParameters.MinimumVerticalDragDistance)
+        // Seul l'écart horizontal compte : la barre est horizontale, et le
+        // tremblement vertical d'un simple clic partait sinon en glissement.
+        if (Math.Abs(e.GetPosition(this).X - _origin.X) < SystemParameters.MinimumHorizontalDragDistance)
         {
             return;
         }
@@ -377,31 +428,161 @@ public partial class TabbedGameWindow : Window
         var porte = _pressed;
         _pressed = null;
 
-        DragDrop.DoDragDrop(this, porte, DragDropEffects.Move);
+        try
+        {
+            DragDrop.DoDragDrop(this, porte, DragDropEffects.Move);
+        }
+        finally
+        {
+            ClearDropHints();
+        }
     }
 
     private void OnTabDragOver(object sender, DragEventArgs e)
     {
-        e.Effects = DragDropEffects.Move;
         e.Handled = true;
+
+        if (Carried(e) is null
+            || (sender as FrameworkElement)?.DataContext is not GameTabViewModel onto)
+        {
+            e.Effects = DragDropEffects.None;
+            return;
+        }
+
+        e.Effects = DragDropEffects.Move;
+
+        Hint(onto, Before(sender, e));
+    }
+
+    private void OnTabDragLeave(object sender, DragEventArgs e)
+    {
+        e.Handled = true;
+
+        if ((sender as FrameworkElement)?.DataContext is GameTabViewModel onto)
+        {
+            onto.ClearDropHint();
+        }
     }
 
     private void OnTabDrop(object sender, DragEventArgs e)
     {
         e.Handled = true;
+        ClearDropHints();
 
         if ((sender as FrameworkElement)?.DataContext is not GameTabViewModel onto
-            || e.Data.GetData(typeof(GameTabViewModel)) is not GameTabViewModel moved
+            || Carried(e) is not { } moved
             || ReferenceEquals(moved, onto))
         {
             return;
         }
 
-        // Avant ou après, selon le côté du survol : le même geste que dans la
-        // liste des comptes, en horizontal.
-        var avant = e.GetPosition((IInputElement)sender).X < ((FrameworkElement)sender).ActualWidth / 2;
+        Rearrange(moved, onto, Before(sender, e));
+    }
 
-        Reordered?.Invoke(this, (moved.Key, onto.Key, avant));
+    // Le reste de la barre, après le dernier onglet : y lâcher range en fin
+    // de liste. Sans cela il fallait viser un onglet, et lâcher à côté ne
+    // faisait rien sans dire pourquoi.
+
+    private void OnStripDragOver(object sender, DragEventArgs e)
+    {
+        e.Handled = true;
+
+        if (Carried(e) is null || Items.Count == 0)
+        {
+            e.Effects = DragDropEffects.None;
+            return;
+        }
+
+        e.Effects = DragDropEffects.Move;
+
+        Hint(Items[^1], before: false);
+    }
+
+    private void OnStripDragLeave(object sender, DragEventArgs e)
+    {
+        e.Handled = true;
+        ClearDropHints();
+    }
+
+    private void OnStripDrop(object sender, DragEventArgs e)
+    {
+        e.Handled = true;
+        ClearDropHints();
+
+        if (Carried(e) is not { } moved
+            || Items.Count == 0
+            || ReferenceEquals(moved, Items[^1]))
+        {
+            return;
+        }
+
+        Rearrange(moved, Items[^1], before: false);
+    }
+
+    private static GameTabViewModel? Carried(DragEventArgs e) =>
+        e.Data.GetData(typeof(GameTabViewModel)) as GameTabViewModel;
+
+    private static bool Before(object sender, DragEventArgs e) =>
+        sender is FrameworkElement cible
+        && e.GetPosition(cible).X < cible.ActualWidth / 2;
+
+    private void Hint(GameTabViewModel onto, bool before)
+    {
+        foreach (var tab in Items)
+        {
+            tab.DropBefore = before && ReferenceEquals(tab, onto);
+            tab.DropAfter = !before && ReferenceEquals(tab, onto);
+        }
+    }
+
+    private void ClearDropHints()
+    {
+        foreach (var tab in Items)
+        {
+            tab.ClearDropHint();
+        }
+    }
+
+    /// <summary>
+    /// Range l'onglet tout de suite, puis fait suivre la liste des comptes.
+    ///
+    /// Tout de suite, et non au retour de l'enregistrement : le trajet par les
+    /// réglages prenait un instant pendant lequel l'onglet restait où il
+    /// était, et le geste paraissait n'avoir rien fait.
+    /// </summary>
+    private void Rearrange(GameTabViewModel moved, GameTabViewModel onto, bool before)
+    {
+        var depart = Items.IndexOf(moved);
+        var cible = Items.IndexOf(onto);
+
+        if (depart < 0 || cible < 0)
+        {
+            return;
+        }
+
+        var voulu = before ? cible : cible + 1;
+
+        if (voulu > depart)
+        {
+            voulu--;
+        }
+
+        if (voulu != depart)
+        {
+            Items.Move(depart, voulu);
+        }
+
+        Reordered?.Invoke(this, (moved.Key, onto.Key, before));
+    }
+
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+
+        if (PresentationSource.FromVisual(this) is HwndSource source)
+        {
+            source.AddHook(OnWindowMessage);
+        }
     }
 
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
@@ -412,5 +593,18 @@ public partial class TabbedGameWindow : Window
         DetachAll();
 
         base.OnClosing(e);
+    }
+
+    /// <summary>
+    /// Le rectangle que Windows passe dans WM_SIZING. Nommé à part de
+    /// <c>System.Windows.Rect</c>, avec lequel il n'a en commun que l'idée.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    private struct SizingRect
+    {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
     }
 }

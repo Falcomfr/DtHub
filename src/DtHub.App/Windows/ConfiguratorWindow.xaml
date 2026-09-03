@@ -536,40 +536,47 @@
                   <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <Button Content="+  Associer un nouvel appareil"
+                <Button Style="{StaticResource OutlineButton}"
                         ToolTip="À faire une seule fois par appareil. Les appareils déjà associés se connectent tout seuls."
-                        Click="OnAddDevice" />
+                        Click="OnAddDevice">
+                  <StackPanel Orientation="Horizontal">
+                    <!-- Le plus tenait dans le libellé, en simple caractère : il
+                         flottait à hauteur de texte et ne se distinguait pas
+                         d'une ponctuation. Dessiné dans sa pastille, il devient
+                         la marque de la touche. -->
+                    <Border Width="18" Height="18" CornerRadius="4" Margin="0,0,9,0"
+                            VerticalAlignment="Center" BorderThickness="1.2"
+                            BorderBrush="{DynamicResource AccentBrush}"
+                            Background="{DynamicResource AccentSoftBrush}">
+                      <Path Width="9" Height="9" Stretch="None"
+                            Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.6"
+                            StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                            Data="M 4.5,0.7 V 8.3 M 0.7,4.5 H 8.3" />
+                    </Border>
+                    <TextBlock Text="Associer un nouvel appareil" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
 
-                <!-- Gabarit à lui : « QuietButton » cible Button, et l'appliquer
-                     à un ToggleButton lève au chargement, ce que la
-                     compilation ne voit pas. -->
-                <ToggleButton x:Name="ProfilesToggle" Grid.Column="2" Cursor="Hand"
-                              VerticalAlignment="Center" Background="Transparent"
-                              Foreground="{DynamicResource TextBrush}"
+                <ToggleButton x:Name="ProfilesToggle" Grid.Column="2"
+                              Style="{StaticResource OutlineToggle}"
+                              VerticalAlignment="Center"
                               ToolTip="Des ensembles de comptes, avec leurs positions et leurs réglages, qu'on ouvre d'un geste.">
-                  <ToggleButton.Template>
-                    <ControlTemplate TargetType="ToggleButton">
-                      <Border x:Name="Fond" Background="Transparent" Padding="10,6"
-                              CornerRadius="{StaticResource Radius}">
-                        <ContentPresenter />
-                      </Border>
-                      <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                          <Setter TargetName="Fond" Property="Background"
-                                  Value="{DynamicResource SurfaceAltBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsChecked" Value="True">
-                          <Setter TargetName="Fond" Property="Background"
-                                  Value="{DynamicResource SurfaceAltBrush}" />
-                        </Trigger>
-                      </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                  </ToggleButton.Template>
-
-                  <TextBlock>
-                    <Run Text="Profils" />
-                    <Run Text="⌄" FontFamily="{StaticResource MonoFont}" />
-                  </TextBlock>
+                  <StackPanel Orientation="Horizontal">
+                    <!-- Un signet : ce qu'on met de côté pour y revenir. Le
+                         chevron dit que la bulle s'ouvre en dessous ; il était
+                         écrit en caractère de fonte à chasse fixe, et pendait
+                         sous la ligne de texte. -->
+                    <Path Width="11" Height="13" Margin="0,0,8,0" Stretch="None"
+                          VerticalAlignment="Center" StrokeLineJoin="Round"
+                          Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
+                          Data="M 1,1 H 10 V 12 L 5.5,8.6 L 1,12 Z" />
+                    <TextBlock Text="Profils" VerticalAlignment="Center" />
+                    <Path Width="9" Height="5" Margin="9,2,0,0" Stretch="None"
+                          VerticalAlignment="Center" StrokeLineJoin="Round"
+                          Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.5"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                          Data="M 0.8,0.8 L 4.5,4.2 L 8.2,0.8" />
+                  </StackPanel>
                 </ToggleButton>
 
                 <Popup IsOpen="{Binding IsChecked, ElementName=ProfilesToggle}" StaysOpen="False"
