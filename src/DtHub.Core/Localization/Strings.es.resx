@@ -1288,4 +1288,214 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="PreparationSkip" xml:space="preserve">
     <value>Continuar sin</value>
   </data>
+  <data name="BrandStandardName" xml:space="preserve">
+    <value>Android sin capa: Pixel, Motorola, ASUS, TCL, otro</value>
+  </data>
+  <data name="BrandStandardCloneFeature" xml:space="preserve">
+    <value>Varios usuarios</value>
+  </data>
+  <data name="BrandStandardClonePath" xml:space="preserve">
+    <value>Ajustes  ›  Sistema  ›  Varios usuarios</value>
+  </data>
+  <data name="BrandStandardCloneNote" xml:space="preserve">
+    <value>Android sin capa no tiene función de duplicación. La vía es añadir un segundo usuario y luego instalar el juego desde Play Store. DT Hub abre cada perfil en su propia pantalla, sin tener que cambiar de uno a otro.</value>
+  </data>
+  <data name="BrandStandardBatteryFeature" xml:space="preserve">
+    <value>Sin restricciones</value>
+  </data>
+  <data name="BrandStandardBatteryPath" xml:space="preserve">
+    <value>Ajustes  ›  Aplicaciones  ›  DOFUS Touch  ›  Batería</value>
+  </data>
+  <data name="BrandStandardBuildNumberPath" xml:space="preserve">
+    <value>Ajustes  ›  Información del teléfono, o de la tableta</value>
+  </data>
+  <data name="BrandStandardBuildNumberLabel" xml:space="preserve">
+    <value>Número de compilación</value>
+  </data>
+  <data name="BrandStandardDeveloperOptionsPath" xml:space="preserve">
+    <value>Ajustes  ›  Sistema  ›  Opciones de desarrollador</value>
+  </data>
+  <data name="BrandXiaomiName" xml:space="preserve">
+    <value>Xiaomi, Redmi, POCO</value>
+  </data>
+  <data name="BrandXiaomiCloneFeature" xml:space="preserve">
+    <value>Aplicaciones duales</value>
+  </data>
+  <data name="BrandXiaomiClonePath" xml:space="preserve">
+    <value>Ajustes  ›  Aplicaciones  ›  Aplicaciones duales</value>
+  </data>
+  <data name="BrandXiaomiCloneNote" xml:space="preserve">
+    <value>Esta marca ofrece también « Segundo espacio », que crea un espacio completo en vez de una simple copia. Ambos sirven: DT Hub ve las instancias en los dos casos.</value>
+  </data>
+  <data name="BrandXiaomiBatteryFeature" xml:space="preserve">
+    <value>Sin restricciones, e Inicio automático</value>
+  </data>
+  <data name="BrandXiaomiBatteryPath" xml:space="preserve">
+    <value>Ajustes  ›  Aplicaciones  ›  Administrar aplicaciones  ›  DOFUS Touch  ›  Ahorro de batería</value>
+  </data>
+  <data name="BrandXiaomiBatteryNote" xml:space="preserve">
+    <value>Esta marca es la más agresiva de todas. Bloquee también el juego en la vista de aplicaciones recientes, tirando de su tarjeta hacia abajo: sin ese bloqueo, HyperOS lo cierra a los pocos minutos pese al ajuste de batería.</value>
+  </data>
+  <data name="BrandXiaomiBuildNumberPath" xml:space="preserve">
+    <value>Ajustes  ›  Información del teléfono, o de la tableta</value>
+  </data>
+  <data name="BrandXiaomiBuildNumberLabel" xml:space="preserve">
+    <value>Versión de HyperOS, o Versión de MIUI en modelos antiguos</value>
+  </data>
+  <data name="BrandXiaomiDeveloperOptionsPath" xml:space="preserve">
+    <value>Ajustes  ›  Ajustes adicionales  ›  Opciones de desarrollador</value>
+  </data>
+  <data name="BrandXiaomiWarning" xml:space="preserve">
+    <value>En HyperOS y MIUI, la depuración USB pide a veces una tarjeta SIM y una cuenta Xiaomi conectada. Active también « Depuración USB (ajustes de seguridad) » si aparece la línea.</value>
+  </data>
+  <data name="BrandSamsungName" xml:space="preserve">
+    <value>Samsung</value>
+  </data>
+  <data name="BrandSamsungCloneFeature" xml:space="preserve">
+    <value>Carpeta segura</value>
+  </data>
+  <data name="BrandSamsungClonePath" xml:space="preserve">
+    <value>Ajustes  ›  Seguridad y privacidad  ›  Carpeta segura</value>
+  </data>
+  <data name="BrandSamsungCloneNote" xml:space="preserve">
+    <value>« Dual Messenger » solo duplica aplicaciones de mensajería, así que no sirve para un juego. La carpeta segura acepta cualquier aplicación, y pide una cuenta Samsung.</value>
+  </data>
+  <data name="BrandSamsungBatteryFeature" xml:space="preserve">
+    <value>Permitir actividad en segundo plano</value>
+  </data>
+  <data name="BrandSamsungBatteryPath" xml:space="preserve">
+    <value>Ajustes  ›  Batería  ›  Límites de uso en segundo plano  ›  Aplicaciones que nunca se suspenden</value>
+  </data>
+  <data name="BrandSamsungBatteryNote" xml:space="preserve">
+    <value>Desactive también « Optimizar ajustes » en Ajustes &gt; Mantenimiento del dispositivo: al reactivarse, vuelve a suspender el juego a los pocos días.</value>
+  </data>
+  <data name="BrandSamsungBuildNumberPath" xml:space="preserve">
+    <value>Ajustes  ›  Información del teléfono, o de la tableta  ›  Información del software</value>
+  </data>
+  <data name="BrandSamsungBuildNumberLabel" xml:space="preserve">
+    <value>Número de compilación</value>
+  </data>
+  <data name="BrandSamsungDeveloperOptionsPath" xml:space="preserve">
+    <value>Ajustes  ›  Opciones de desarrollador</value>
+  </data>
+  <data name="BrandOnePlusName" xml:space="preserve">
+    <value>OnePlus, OPPO, realme</value>
+  </data>
+  <data name="BrandOnePlusCloneFeature" xml:space="preserve">
+    <value>Clonar aplicaciones</value>
+  </data>
+  <data name="BrandOnePlusClonePath" xml:space="preserve">
+    <value>Ajustes  ›  Aplicaciones  ›  Clonar aplicaciones</value>
+  </data>
+  <data name="BrandOnePlusBatteryFeature" xml:space="preserve">
+    <value>Permitir actividad en segundo plano, en Sin restricciones</value>
+  </data>
+  <data name="BrandOnePlusBatteryPath" xml:space="preserve">
+    <value>Ajustes  ›  Batería  ›  Uso de la batería  ›  DOFUS Touch</value>
+  </data>
+  <data name="BrandOnePlusBatteryNote" xml:space="preserve">
+    <value>En estas capas, una « limpieza automática » aparte puede cerrar las aplicaciones al apagarse la pantalla. Se desactiva en Ajustes &gt; Batería &gt; Más ajustes.</value>
+  </data>
+  <data name="BrandOnePlusBuildNumberPath" xml:space="preserve">
+    <value>Ajustes  ›  Acerca del dispositivo  ›  Versión</value>
+  </data>
+  <data name="BrandOnePlusBuildNumberLabel" xml:space="preserve">
+    <value>Número de compilación, o Número de versión según la versión instalada</value>
+  </data>
+  <data name="BrandOnePlusDeveloperOptionsPath" xml:space="preserve">
+    <value>Ajustes  ›  Ajustes adicionales  ›  Opciones de desarrollador</value>
+  </data>
+  <data name="BrandHonorName" xml:space="preserve">
+    <value>Honor, Huawei</value>
+  </data>
+  <data name="BrandHonorCloneFeature" xml:space="preserve">
+    <value>Aplicación gemela</value>
+  </data>
+  <data name="BrandHonorClonePath" xml:space="preserve">
+    <value>Ajustes  ›  Aplicaciones  ›  Aplicación gemela</value>
+  </data>
+  <data name="BrandHonorCloneNote" xml:space="preserve">
+    <value>En versiones sin servicios de Google, instalar la segunda copia puede exigir pasar por la tienda del fabricante.</value>
+  </data>
+  <data name="BrandHonorBatteryFeature" xml:space="preserve">
+    <value>Inicio de aplicaciones, en modo manual</value>
+  </data>
+  <data name="BrandHonorBatteryPath" xml:space="preserve">
+    <value>Ajustes  ›  Batería  ›  Inicio de aplicaciones  ›  DOFUS Touch</value>
+  </data>
+  <data name="BrandHonorBatteryNote" xml:space="preserve">
+    <value>Ponga el juego en gestión manual y active los tres interruptores propuestos, incluido « Ejecutar en segundo plano ». La gestión automática cierra el juego se ajuste lo que se ajuste.</value>
+  </data>
+  <data name="BrandHonorBuildNumberPath" xml:space="preserve">
+    <value>Ajustes  ›  Información del teléfono, o de la tableta</value>
+  </data>
+  <data name="BrandHonorBuildNumberLabel" xml:space="preserve">
+    <value>Número de compilación</value>
+  </data>
+  <data name="BrandHonorDeveloperOptionsPath" xml:space="preserve">
+    <value>Ajustes  ›  Sistema y actualizaciones  ›  Opciones de desarrollador</value>
+  </data>
+  <data name="BrandHonorWarning" xml:space="preserve">
+    <value>En versiones sin servicios de Google, la depuración inalámbrica a veces no existe. El cable USB queda entonces como única vía.</value>
+  </data>
+  <data name="BrandVivoName" xml:space="preserve">
+    <value>vivo, iQOO</value>
+  </data>
+  <data name="BrandVivoCloneFeature" xml:space="preserve">
+    <value>Clonar aplicaciones</value>
+  </data>
+  <data name="BrandVivoClonePath" xml:space="preserve">
+    <value>Ajustes  ›  Aplicaciones  ›  Clonar aplicaciones</value>
+  </data>
+  <data name="BrandVivoCloneNote" xml:space="preserve">
+    <value>Según la versión de Funtouch o de OriginOS, la función está en Aplicaciones, o en « Aplicaciones y permisos ».</value>
+  </data>
+  <data name="BrandVivoBatteryFeature" xml:space="preserve">
+    <value>Consumo en segundo plano, en Permitir</value>
+  </data>
+  <data name="BrandVivoBatteryPath" xml:space="preserve">
+    <value>Ajustes  ›  Batería  ›  Gestión del consumo en segundo plano  ›  DOFUS Touch</value>
+  </data>
+  <data name="BrandVivoBatteryNote" xml:space="preserve">
+    <value>Active también « Inicio automático » para el juego. Estas capas son de las más rápidas en cerrar una aplicación en cuanto deja el primer plano.</value>
+  </data>
+  <data name="BrandVivoBuildNumberPath" xml:space="preserve">
+    <value>Ajustes  ›  Información del teléfono, o de la tableta  ›  Información del software</value>
+  </data>
+  <data name="BrandVivoBuildNumberLabel" xml:space="preserve">
+    <value>Número de versión, o Número de compilación según la versión instalada</value>
+  </data>
+  <data name="BrandVivoDeveloperOptionsPath" xml:space="preserve">
+    <value>Ajustes  ›  Más ajustes  ›  Opciones de desarrollador</value>
+  </data>
+  <data name="BrandAmazonName" xml:space="preserve">
+    <value>Amazon Fire</value>
+  </data>
+  <data name="BrandAmazonCloneFeature" xml:space="preserve">
+    <value>Perfiles</value>
+  </data>
+  <data name="BrandAmazonClonePath" xml:space="preserve">
+    <value>Ajustes  ›  Perfiles y Biblioteca familiar</value>
+  </data>
+  <data name="BrandAmazonCloneNote" xml:space="preserve">
+    <value>Fire OS no tiene función de duplicación y sus perfiles no son los de Android: DT Hub probablemente solo verá una instancia. Reservado a las pruebas.</value>
+  </data>
+  <data name="BrandAmazonBatteryFeature" xml:space="preserve">
+    <value>Optimización de la batería, a desactivar</value>
+  </data>
+  <data name="BrandAmazonBatteryPath" xml:space="preserve">
+    <value>Ajustes  ›  Batería  ›  Optimización de la batería</value>
+  </data>
+  <data name="BrandAmazonBuildNumberPath" xml:space="preserve">
+    <value>Ajustes  ›  Opciones del dispositivo</value>
+  </data>
+  <data name="BrandAmazonBuildNumberLabel" xml:space="preserve">
+    <value>Número de serie</value>
+  </data>
+  <data name="BrandAmazonDeveloperOptionsPath" xml:space="preserve">
+    <value>Ajustes  ›  Opciones del dispositivo  ›  Opciones de desarrollador</value>
+  </data>
+  <data name="BrandAmazonWarning" xml:space="preserve">
+    <value>Fire OS no tiene Play Store: DOFUS Touch no se distribuye ahí, e instalarlo obliga a pasar por un archivo APK. Esta ficha describe el procedimiento, no promete que el juego funcione.</value>
+  </data>
 </root>

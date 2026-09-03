@@ -1,4 +1,6 @@
-﻿namespace DtHub.Core.Guidance;
+﻿using DtHub.Core.Localization;
+
+namespace DtHub.Core.Guidance;
 
 /// <summary>
 /// Marche à suivre pour activer le débogage, propre à une marque. Les chemins
@@ -7,52 +9,63 @@
 /// </summary>
 public sealed record PhoneBrand
 {
-    /// <summary>Nom affiché dans le sélecteur.</summary>
-    public required string Name { get; init; }
+    /// <summary>
+    /// Identifiant de la fiche. Il compose les clés de ressources, sur la forme
+    /// <c>Brand{Key}{Champ}</c>, et n'est jamais montré.
+    /// </summary>
+    public required string Key { get; init; }
 
     /// <summary>
     /// Fragments du nom du constructeur permettant de reconnaître la marque à
-    /// partir de <c>ro.product.manufacturer</c>.
+    /// partir de <c>ro.product.manufacturer</c>. Seule donnée de cette fiche qui
+    /// ne soit pas du texte : elle ne se traduit pas.
     /// </summary>
     public IReadOnlyList<string> Manufacturers { get; init; } = [];
 
+    /// <summary>Nom affiché dans le sélecteur.</summary>
+    public string Name => Text(nameof(Name));
+
     /// <summary>Chemin de menu menant à la ligne à taper sept fois.</summary>
-    public required string BuildNumberPath { get; init; }
+    public string BuildNumberPath => Text(nameof(BuildNumberPath));
 
     /// <summary>Nom exact de cette ligne sur cette surcouche.</summary>
-    public required string BuildNumberLabel { get; init; }
+    public string BuildNumberLabel => Text(nameof(BuildNumberLabel));
 
     /// <summary>Chemin de menu des options pour les développeurs.</summary>
-    public required string DeveloperOptionsPath { get; init; }
+    public string DeveloperOptionsPath => Text(nameof(DeveloperOptionsPath));
 
     /// <summary>Particularité de la marque, quand il y en a une.</summary>
-    public string? Warning { get; init; }
+    public string? Warning => Maybe(nameof(Warning));
 
     /// <summary>
     /// Nom que porte, sur cette surcouche, la fonction qui installe une
     /// seconde copie d'une application. Chaque constructeur l'a nommée
     /// autrement, et c'est ce nom qu'il faut chercher dans les menus.
     /// </summary>
-    public required string CloneFeature { get; init; }
+    public string CloneFeature => Text(nameof(CloneFeature));
 
     /// <summary>Chemin de menu menant à cette fonction.</summary>
-    public required string ClonePath { get; init; }
+    public string ClonePath => Text(nameof(ClonePath));
 
     /// <summary>Ce qu'il faut savoir avant de s'y prendre sur cette marque.</summary>
-    public string? CloneNote { get; init; }
+    public string? CloneNote => Maybe(nameof(CloneNote));
 
     /// <summary>
     /// Nom que porte, sur cette surcouche, le réglage qui dispense une
     /// application des économies de batterie. Sans lui, Android suspend le jeu
     /// dès qu'il cesse d'être au premier plan, et la fenêtre se fige.
     /// </summary>
-    public required string BatteryFeature { get; init; }
+    public string BatteryFeature => Text(nameof(BatteryFeature));
 
     /// <summary>Chemin de menu menant à ce réglage.</summary>
-    public required string BatteryPath { get; init; }
+    public string BatteryPath => Text(nameof(BatteryPath));
 
     /// <summary>Second réglage à désactiver, quand la marque en ajoute un.</summary>
-    public string? BatteryNote { get; init; }
+    public string? BatteryNote => Maybe(nameof(BatteryNote));
+
+    private string Text(string field) => Strings.Get($"Brand{Key}{field}");
+
+    private string? Maybe(string field) => Strings.Optional($"Brand{Key}{field}");
 }
 
 /// <summary>Marques connues, avec leurs chemins de menu.</summary>
@@ -69,11 +82,7 @@ public static class PhoneBrands
     /// </summary>
     public static readonly PhoneBrand Standard = new()
     {
-        Name = "Android sans surcouche : Pixel, Motorola, ASUS, TCL, autre",
-        CloneFeature = "Utilisateurs multiples",
-        ClonePath = "Paramètres  ›  Système  ›  Utilisateurs multiples",
-        CloneNote =
-            "Android sans surcouche n'a pas de fonction de duplication. La voie est d'ajouter un second utilisateur, puis d'y installer le jeu depuis le Play Store. DT Hub ouvre chaque profil sur son propre affichage, sans avoir à basculer de l'un à l'autre.",
+        Key = "Standard",
         Manufacturers =
         [
             "google", "motorola", "lenovo", "nothing", "sony", "asus", "tcl",
@@ -81,126 +90,29 @@ public static class PhoneBrands
             "tecno", "itel", "transsion", "blackview", "doogee", "ulefone",
             "oukitel", "umidigi", "sharp", "crosscall", "wiko",
         ],
-        BatteryFeature = "Sans restriction",
-        BatteryPath = "Paramètres  ›  Applications  ›  DOFUS Touch  ›  Batterie",
-        BuildNumberPath = "Paramètres  ›  À propos du téléphone, ou de la tablette",
-        BuildNumberLabel = "Numéro de build",
-        DeveloperOptionsPath = "Paramètres  ›  Système  ›  Options pour les développeurs",
     };
 
     /// <summary>
     /// Marques regroupées par procédure. Les distinguer quand les chemins de
     /// menu sont identiques n'apporterait rien et allongerait la liste.
+    ///
+    /// Les textes de chaque fiche vivent dans les ressources, sous les clés
+    /// <c>Brand{Key}{Champ}</c> : ils étaient écrits ici en français, et une
+    /// personne dont l'interface est en espagnol recevait l'aide en français au
+    /// moment précis où elle ne s'en sortait pas.
+    ///
+    /// Seuls les chemins de Xiaomi sont vérifiés sur un vrai téléphone, ce que
+    /// dit déjà docs/DECISIONS.md. Les autres sont donnés de bonne foi, dans
+    /// les trois langues.
     /// </summary>
     public static readonly IReadOnlyList<PhoneBrand> All =
     [
-        new()
-        {
-            Name = "Xiaomi, Redmi, POCO",
-            CloneFeature = "Applications doubles",
-            ClonePath = "Paramètres  ›  Applications  ›  Applications doubles",
-            CloneNote =
-                "Cette marque propose aussi « Second espace », qui crée un espace complet plutôt qu'une simple copie. Les deux conviennent : DT Hub voit les instances dans les deux cas.",
-            Manufacturers = ["xiaomi", "redmi", "poco"],
-            BatteryFeature = "Aucune restriction, et Démarrage automatique",
-            BatteryPath = "Paramètres  ›  Applications  ›  Gérer les applications  ›  DOFUS Touch  ›  Économiseur de batterie",
-            BatteryNote =
-                "Cette marque est la plus agressive du lot. Verrouillez aussi le jeu dans la vue des applications récentes, en tirant sa vignette vers le bas : sans ce verrou, HyperOS la ferme au bout de quelques minutes malgré le réglage de batterie.",
-            BuildNumberPath = "Paramètres  ›  À propos du téléphone, ou de la tablette",
-            BuildNumberLabel = "Version HyperOS, ou Version MIUI sur les modèles plus anciens",
-            DeveloperOptionsPath =
-                "Paramètres  ›  Paramètres supplémentaires  ›  Options pour les développeurs",
-            Warning =
-                "Sur HyperOS et MIUI, le débogage USB demande parfois une carte SIM insérée et "
-                + "un compte Xiaomi connecté. Activez aussi « Débogage USB (réglages de sécurité) » "
-                + "si la ligne existe.",
-        },
-        new()
-        {
-            Name = "Samsung",
-            CloneFeature = "Dossier sécurisé",
-            ClonePath = "Paramètres  ›  Sécurité et confidentialité  ›  Dossier sécurisé",
-            CloneNote =
-                "« Dual Messenger » ne duplique que les applications de messagerie et ne convient donc pas pour un jeu. Le dossier sécurisé accepte n'importe quelle application, et demande un compte Samsung.",
-            Manufacturers = ["samsung"],
-            BatteryFeature = "Autoriser l'activité en arrière-plan",
-            BatteryPath = "Paramètres  ›  Batterie  ›  Limites d'utilisation en arrière-plan  ›  Applications jamais mises en veille",
-            BatteryNote =
-                "Désactivez aussi « Optimiser les paramètres » dans Paramètres › Maintenance de l'appareil : réactivé, il remet le jeu en veille au bout de quelques jours.",
-            BuildNumberPath = "Paramètres  ›  À propos du téléphone, ou de la tablette  ›  Informations sur le logiciel",
-            BuildNumberLabel = "Numéro de version",
-            DeveloperOptionsPath = "Paramètres  ›  Options de développement",
-        },
-        new()
-        {
-            Name = "OnePlus, OPPO, realme",
-            CloneFeature = "Clonage d'applications",
-            ClonePath = "Paramètres  ›  Applications  ›  Clonage d'applications",
-            Manufacturers = ["oneplus", "oppo", "realme"],
-            BatteryFeature = "Autoriser l'activité en arrière-plan, réglée sur Sans restriction",
-            BatteryPath = "Paramètres  ›  Batterie  ›  Utilisation de la batterie  ›  DOFUS Touch",
-            BatteryNote =
-                "Sur ces surcouches, un « nettoyage automatique » séparé peut fermer les applications à l'extinction de l'écran. Il se désactive dans Paramètres › Batterie › Autres réglages.",
-            BuildNumberPath = "Paramètres  ›  À propos de l'appareil  ›  Version",
-            BuildNumberLabel = "Numéro de build, ou Numéro de version selon la version installée",
-            DeveloperOptionsPath =
-                "Paramètres  ›  Paramètres supplémentaires  ›  Options pour les développeurs",
-        },
-        new()
-        {
-            Name = "Honor, Huawei",
-            CloneFeature = "Double instance d'application",
-            ClonePath = "Paramètres  ›  Applications  ›  Double instance d'application",
-            CloneNote =
-                "Sur les versions sans services Google, l'installation de la seconde copie peut demander de passer par la boutique du constructeur.",
-            Manufacturers = ["honor", "huawei"],
-            BatteryFeature = "Lancement d'applications, en mode manuel",
-            BatteryPath = "Paramètres  ›  Batterie  ›  Lancement d'applications  ›  DOFUS Touch",
-            BatteryNote =
-                "Passez le jeu en gestion manuelle, puis activez les trois interrupteurs proposés, dont « Exécution en arrière-plan ». La gestion automatique referme le jeu quoi qu'on règle ailleurs.",
-            BuildNumberPath = "Paramètres  ›  À propos du téléphone, ou de la tablette",
-            BuildNumberLabel = "Numéro de build",
-            DeveloperOptionsPath =
-                "Paramètres  ›  Système et mises à jour  ›  Options pour les développeurs",
-            Warning =
-                "Sur les versions sans services Google, le débogage sans fil est parfois absent. "
-                + "Le câble USB reste alors la seule voie.",
-        },
-        new()
-        {
-            Name = "vivo, iQOO",
-            CloneFeature = "Clonage d'applications",
-            ClonePath = "Paramètres  ›  Applications  ›  Clonage d'applications",
-            CloneNote =
-                "Selon la version de Funtouch ou d'OriginOS, la fonction se trouve sous Applications, ou sous « Applications et autorisations ».",
-            Manufacturers = ["vivo", "iqoo"],
-            BatteryFeature = "Consommation en arrière-plan, réglée sur Autoriser",
-            BatteryPath = "Paramètres  ›  Batterie  ›  Gestion de la consommation en arrière-plan  ›  DOFUS Touch",
-            BatteryNote =
-                "Activez aussi « Démarrage automatique » pour le jeu. Ces surcouches comptent parmi les plus promptes à fermer une application dès qu'elle quitte le premier plan.",
-            BuildNumberPath = "Paramètres  ›  À propos du téléphone, ou de la tablette  ›  Infos logiciel",
-            BuildNumberLabel = "Numéro de version, ou Numéro de build selon la version installée",
-            DeveloperOptionsPath =
-                "Paramètres  ›  Autres paramètres  ›  Options pour les développeurs",
-        },
-        new()
-        {
-            Name = "Amazon Fire",
-            CloneFeature = "Profils",
-            ClonePath = "Paramètres  ›  Profils et sécurité familiale",
-            CloneNote =
-                "Fire OS n'a pas de fonction de duplication et ses profils ne sont pas ceux d'Android : DT Hub n'y verra vraisemblablement qu'une seule instance. À réserver aux essais.",
-            Manufacturers = ["amazon"],
-            BatteryFeature = "Optimisation de la batterie, à désactiver",
-            BatteryPath = "Paramètres  ›  Batterie  ›  Optimisation de la batterie",
-            BuildNumberPath = "Paramètres  ›  Options de l'appareil",
-            BuildNumberLabel = "Numéro de série",
-            DeveloperOptionsPath = "Paramètres  ›  Options de l'appareil  ›  Options pour les développeurs",
-            Warning =
-                "Fire OS n'a pas le Play Store : DOFUS Touch n'y est pas distribué, et l'installer "
-                + "demande de passer par un fichier APK. Cette fiche décrit la marche à suivre, elle "
-                + "ne promet pas que le jeu s'y lance.",
-        },
+        new() { Key = "Xiaomi", Manufacturers = ["xiaomi", "redmi", "poco"] },
+        new() { Key = "Samsung", Manufacturers = ["samsung"] },
+        new() { Key = "OnePlus", Manufacturers = ["oneplus", "oppo", "realme"] },
+        new() { Key = "Honor", Manufacturers = ["honor", "huawei"] },
+        new() { Key = "Vivo", Manufacturers = ["vivo", "iqoo"] },
+        new() { Key = "Amazon", Manufacturers = ["amazon"] },
         Standard,
     ];
 

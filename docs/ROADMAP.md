@@ -16,7 +16,8 @@ majeure est `0`, l'interface et les formats de configuration peuvent changer.
   position et la taille sont mémorisées.
 - Ordre des instances modifiable, qui détermine le parcours au clavier.
 - Suivi de quêtes adossé à papycha.fr, dans sa propre fenêtre.
-- Interface en français, anglais et espagnol, suivant la langue de Windows.
+- Interface en français, anglais et espagnol, suivant la langue de Windows,
+  fiches d'aide par marque comprises.
 - Rapport d'incident biffé de ce qui identifie, à copier et à envoyer.
 - Publication en fichier unique, sans installateur, mise à jour depuis le
   dépôt, et intégration continue qui éprouve et livre.
@@ -27,8 +28,6 @@ majeure est `0`, l'interface et les formats de configuration peuvent changer.
 - Réglages de mirroring exposés dans l'interface : images par seconde, débit,
   définition de l'écran virtuel.
 - Options supplémentaires dans l'onglet Général, à définir à l'usage.
-- Fiches d'aide par marque traduites : elles sont aujourd'hui en français
-  seulement, quelle que soit la langue de l'interface.
 
 ## v0.3 - Confort
 

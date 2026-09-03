@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Resources;
 
 namespace DtHub.Core.Localization;
@@ -22,6 +22,14 @@ public static class Strings
     /// <summary>Rend le texte de cette clé dans la langue de l'interface.</summary>
     public static string Get(string key)
         => Manager.GetString(key, CultureInfo.CurrentUICulture) ?? key;
+
+    /// <summary>
+    /// Rend le texte de cette clé, ou <c>null</c> si elle n'est pas déclarée.
+    /// Sert aux textes facultatifs, où l'absence est une réponse : une fiche de
+    /// marque qui n'a pas d'avertissement particulier n'en affiche pas.
+    /// </summary>
+    public static string? Optional(string key)
+        => Manager.GetString(key, CultureInfo.CurrentUICulture);
 
     /// <summary>
     /// Rend le texte de cette clé, ses trous remplis. Les nombres et les dates

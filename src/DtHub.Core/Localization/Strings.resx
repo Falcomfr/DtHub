@@ -1288,4 +1288,214 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="PreparationSkip" xml:space="preserve">
     <value>Continue without</value>
   </data>
+  <data name="BrandStandardName" xml:space="preserve">
+    <value>Stock Android: Pixel, Motorola, ASUS, TCL, other</value>
+  </data>
+  <data name="BrandStandardCloneFeature" xml:space="preserve">
+    <value>Multiple users</value>
+  </data>
+  <data name="BrandStandardClonePath" xml:space="preserve">
+    <value>Settings  ›  System  ›  Multiple users</value>
+  </data>
+  <data name="BrandStandardCloneNote" xml:space="preserve">
+    <value>Stock Android has no cloning feature. The way round it is to add a second user, then install the game there from the Play Store. DT Hub opens each profile on its own display, with no switching back and forth.</value>
+  </data>
+  <data name="BrandStandardBatteryFeature" xml:space="preserve">
+    <value>Unrestricted</value>
+  </data>
+  <data name="BrandStandardBatteryPath" xml:space="preserve">
+    <value>Settings  ›  Apps  ›  DOFUS Touch  ›  Battery</value>
+  </data>
+  <data name="BrandStandardBuildNumberPath" xml:space="preserve">
+    <value>Settings  ›  About phone, or About tablet</value>
+  </data>
+  <data name="BrandStandardBuildNumberLabel" xml:space="preserve">
+    <value>Build number</value>
+  </data>
+  <data name="BrandStandardDeveloperOptionsPath" xml:space="preserve">
+    <value>Settings  ›  System  ›  Developer options</value>
+  </data>
+  <data name="BrandXiaomiName" xml:space="preserve">
+    <value>Xiaomi, Redmi, POCO</value>
+  </data>
+  <data name="BrandXiaomiCloneFeature" xml:space="preserve">
+    <value>Dual apps</value>
+  </data>
+  <data name="BrandXiaomiClonePath" xml:space="preserve">
+    <value>Settings  ›  Apps  ›  Dual apps</value>
+  </data>
+  <data name="BrandXiaomiCloneNote" xml:space="preserve">
+    <value>This brand also offers Second space, which creates a whole separate space rather than a simple copy. Either will do: DT Hub sees the instances both ways.</value>
+  </data>
+  <data name="BrandXiaomiBatteryFeature" xml:space="preserve">
+    <value>No restrictions, and Autostart</value>
+  </data>
+  <data name="BrandXiaomiBatteryPath" xml:space="preserve">
+    <value>Settings  ›  Apps  ›  Manage apps  ›  DOFUS Touch  ›  Battery saver</value>
+  </data>
+  <data name="BrandXiaomiBatteryNote" xml:space="preserve">
+    <value>This brand is the most aggressive of the lot. Lock the game in the recents view as well, by pulling its card down: without that lock, HyperOS closes it after a few minutes whatever the battery setting says.</value>
+  </data>
+  <data name="BrandXiaomiBuildNumberPath" xml:space="preserve">
+    <value>Settings  ›  About phone, or About tablet</value>
+  </data>
+  <data name="BrandXiaomiBuildNumberLabel" xml:space="preserve">
+    <value>HyperOS version, or MIUI version on older models</value>
+  </data>
+  <data name="BrandXiaomiDeveloperOptionsPath" xml:space="preserve">
+    <value>Settings  ›  Additional settings  ›  Developer options</value>
+  </data>
+  <data name="BrandXiaomiWarning" xml:space="preserve">
+    <value>On HyperOS and MIUI, USB debugging sometimes asks for a SIM card and a signed-in Xiaomi account. Turn on USB debugging (security settings) too, if the line is there.</value>
+  </data>
+  <data name="BrandSamsungName" xml:space="preserve">
+    <value>Samsung</value>
+  </data>
+  <data name="BrandSamsungCloneFeature" xml:space="preserve">
+    <value>Secure Folder</value>
+  </data>
+  <data name="BrandSamsungClonePath" xml:space="preserve">
+    <value>Settings  ›  Security and privacy  ›  Secure Folder</value>
+  </data>
+  <data name="BrandSamsungCloneNote" xml:space="preserve">
+    <value>Dual Messenger only duplicates messaging apps, so it will not do for a game. Secure Folder takes any app, and asks for a Samsung account.</value>
+  </data>
+  <data name="BrandSamsungBatteryFeature" xml:space="preserve">
+    <value>Allow background activity</value>
+  </data>
+  <data name="BrandSamsungBatteryPath" xml:space="preserve">
+    <value>Settings  ›  Battery  ›  Background usage limits  ›  Never sleeping apps</value>
+  </data>
+  <data name="BrandSamsungBatteryNote" xml:space="preserve">
+    <value>Turn off Auto optimise daily as well, under Settings &gt; Device care: switched back on, it puts the game back to sleep after a few days.</value>
+  </data>
+  <data name="BrandSamsungBuildNumberPath" xml:space="preserve">
+    <value>Settings  ›  About phone, or About tablet  ›  Software information</value>
+  </data>
+  <data name="BrandSamsungBuildNumberLabel" xml:space="preserve">
+    <value>Build number</value>
+  </data>
+  <data name="BrandSamsungDeveloperOptionsPath" xml:space="preserve">
+    <value>Settings  ›  Developer options</value>
+  </data>
+  <data name="BrandOnePlusName" xml:space="preserve">
+    <value>OnePlus, OPPO, realme</value>
+  </data>
+  <data name="BrandOnePlusCloneFeature" xml:space="preserve">
+    <value>App Cloner</value>
+  </data>
+  <data name="BrandOnePlusClonePath" xml:space="preserve">
+    <value>Settings  ›  Apps  ›  App Cloner</value>
+  </data>
+  <data name="BrandOnePlusBatteryFeature" xml:space="preserve">
+    <value>Allow background activity, set to Unrestricted</value>
+  </data>
+  <data name="BrandOnePlusBatteryPath" xml:space="preserve">
+    <value>Settings  ›  Battery  ›  Battery usage  ›  DOFUS Touch</value>
+  </data>
+  <data name="BrandOnePlusBatteryNote" xml:space="preserve">
+    <value>On these skins, a separate auto-clean can close apps when the screen goes off. It is turned off under Settings &gt; Battery &gt; More settings.</value>
+  </data>
+  <data name="BrandOnePlusBuildNumberPath" xml:space="preserve">
+    <value>Settings  ›  About device  ›  Version</value>
+  </data>
+  <data name="BrandOnePlusBuildNumberLabel" xml:space="preserve">
+    <value>Build number, or Version number depending on the release installed</value>
+  </data>
+  <data name="BrandOnePlusDeveloperOptionsPath" xml:space="preserve">
+    <value>Settings  ›  Additional settings  ›  Developer options</value>
+  </data>
+  <data name="BrandHonorName" xml:space="preserve">
+    <value>Honor, Huawei</value>
+  </data>
+  <data name="BrandHonorCloneFeature" xml:space="preserve">
+    <value>App twin</value>
+  </data>
+  <data name="BrandHonorClonePath" xml:space="preserve">
+    <value>Settings  ›  Apps  ›  App twin</value>
+  </data>
+  <data name="BrandHonorCloneNote" xml:space="preserve">
+    <value>On builds without Google services, installing the second copy may mean going through the maker's own store.</value>
+  </data>
+  <data name="BrandHonorBatteryFeature" xml:space="preserve">
+    <value>App launch, set to manual</value>
+  </data>
+  <data name="BrandHonorBatteryPath" xml:space="preserve">
+    <value>Settings  ›  Battery  ›  App launch  ›  DOFUS Touch</value>
+  </data>
+  <data name="BrandHonorBatteryNote" xml:space="preserve">
+    <value>Switch the game to manual management, then turn on the three switches offered, Run in background included. Automatic management closes the game whatever you set elsewhere.</value>
+  </data>
+  <data name="BrandHonorBuildNumberPath" xml:space="preserve">
+    <value>Settings  ›  About phone, or About tablet</value>
+  </data>
+  <data name="BrandHonorBuildNumberLabel" xml:space="preserve">
+    <value>Build number</value>
+  </data>
+  <data name="BrandHonorDeveloperOptionsPath" xml:space="preserve">
+    <value>Settings  ›  System &amp; updates  ›  Developer options</value>
+  </data>
+  <data name="BrandHonorWarning" xml:space="preserve">
+    <value>On builds without Google services, wireless debugging is sometimes missing. The USB cable is then the only way.</value>
+  </data>
+  <data name="BrandVivoName" xml:space="preserve">
+    <value>vivo, iQOO</value>
+  </data>
+  <data name="BrandVivoCloneFeature" xml:space="preserve">
+    <value>App Clone</value>
+  </data>
+  <data name="BrandVivoClonePath" xml:space="preserve">
+    <value>Settings  ›  Apps  ›  App Clone</value>
+  </data>
+  <data name="BrandVivoCloneNote" xml:space="preserve">
+    <value>Depending on the Funtouch or OriginOS release, the feature sits under Apps, or under Apps and permissions.</value>
+  </data>
+  <data name="BrandVivoBatteryFeature" xml:space="preserve">
+    <value>Background power consumption, set to Allow</value>
+  </data>
+  <data name="BrandVivoBatteryPath" xml:space="preserve">
+    <value>Settings  ›  Battery  ›  Background power consumption management  ›  DOFUS Touch</value>
+  </data>
+  <data name="BrandVivoBatteryNote" xml:space="preserve">
+    <value>Turn on Autostart for the game as well. These skins are among the quickest to close an app the moment it leaves the foreground.</value>
+  </data>
+  <data name="BrandVivoBuildNumberPath" xml:space="preserve">
+    <value>Settings  ›  About phone, or About tablet  ›  Software version</value>
+  </data>
+  <data name="BrandVivoBuildNumberLabel" xml:space="preserve">
+    <value>Version number, or Build number depending on the release installed</value>
+  </data>
+  <data name="BrandVivoDeveloperOptionsPath" xml:space="preserve">
+    <value>Settings  ›  More settings  ›  Developer options</value>
+  </data>
+  <data name="BrandAmazonName" xml:space="preserve">
+    <value>Amazon Fire</value>
+  </data>
+  <data name="BrandAmazonCloneFeature" xml:space="preserve">
+    <value>Profiles</value>
+  </data>
+  <data name="BrandAmazonClonePath" xml:space="preserve">
+    <value>Settings  ›  Profiles &amp; Family Library</value>
+  </data>
+  <data name="BrandAmazonCloneNote" xml:space="preserve">
+    <value>Fire OS has no cloning feature and its profiles are not Android's: DT Hub will most likely see only one instance there. For trials only.</value>
+  </data>
+  <data name="BrandAmazonBatteryFeature" xml:space="preserve">
+    <value>Battery optimisation, to be turned off</value>
+  </data>
+  <data name="BrandAmazonBatteryPath" xml:space="preserve">
+    <value>Settings  ›  Battery  ›  Battery optimisation</value>
+  </data>
+  <data name="BrandAmazonBuildNumberPath" xml:space="preserve">
+    <value>Settings  ›  Device Options</value>
+  </data>
+  <data name="BrandAmazonBuildNumberLabel" xml:space="preserve">
+    <value>Serial Number</value>
+  </data>
+  <data name="BrandAmazonDeveloperOptionsPath" xml:space="preserve">
+    <value>Settings  ›  Device Options  ›  Developer Options</value>
+  </data>
+  <data name="BrandAmazonWarning" xml:space="preserve">
+    <value>Fire OS has no Play Store: DOFUS Touch is not distributed there, and installing it means going through an APK file. This card describes the steps; it does not promise the game will run.</value>
+  </data>
 </root>

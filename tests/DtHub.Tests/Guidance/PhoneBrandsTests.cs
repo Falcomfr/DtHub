@@ -1,9 +1,24 @@
-﻿using DtHub.Core.Guidance;
+﻿using System.Globalization;
+
+using DtHub.Core.Guidance;
+using DtHub.Core.Localization;
 
 namespace DtHub.Tests.Guidance;
 
 public class PhoneBrandsTests
 {
+    /// <summary>Les champs qu'une fiche doit porter dans les trois langues.</summary>
+    private static readonly string[] Obligatoires =
+    [
+        nameof(PhoneBrand.Name), nameof(PhoneBrand.BuildNumberPath),
+        nameof(PhoneBrand.BuildNumberLabel), nameof(PhoneBrand.DeveloperOptionsPath),
+        nameof(PhoneBrand.CloneFeature), nameof(PhoneBrand.ClonePath),
+        nameof(PhoneBrand.BatteryFeature), nameof(PhoneBrand.BatteryPath),
+    ];
+
+    /// <summary>Les trois langues embarquées.</summary>
+    private static readonly string[] Langues = ["en", "fr", "es"];
+
     [Fact]
     public void Chaque_marque_indique_un_chemin_complet()
     {
@@ -18,6 +33,52 @@ public class PhoneBrandsTests
             Assert.False(string.IsNullOrWhiteSpace(brand.BatteryFeature));
             Assert.False(string.IsNullOrWhiteSpace(brand.BatteryPath));
         }
+    }
+
+    /// <summary>
+    /// Le vrai contrôle depuis que les fiches vivent dans les ressources : une
+    /// clé absente ne lève pas, elle rend son propre nom. « BrandXiaomiClonePath »
+    /// s'afficherait donc à l'écran sans que rien ne rougisse, et le contrôle
+    /// de chaîne vide ne le verrait pas.
+    /// </summary>
+    [Theory]
+    [InlineData("en")]
+    [InlineData("fr")]
+    [InlineData("es")]
+    public void Chaque_fiche_est_ecrite_dans_les_trois_langues(string langue)
+    {
+        var culture = CultureInfo.GetCultureInfo(langue);
+
+        foreach (var brand in PhoneBrands.All)
+        {
+            foreach (var champ in Obligatoires)
+            {
+                var cle = $"Brand{brand.Key}{champ}";
+                var texte = Strings.GetIn(cle, culture);
+
+                Assert.False(
+                    string.IsNullOrWhiteSpace(texte) || string.Equals(texte, cle, StringComparison.Ordinal),
+                    $"{cle} manque en « {langue} ».");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Les chemins de menu doivent différer d'une langue à l'autre : c'est tout
+    /// l'objet du travail. Les noms de marque, eux, ne se traduisent pas, et
+    /// c'est pourquoi le contrôle porte sur un chemin.
+    /// </summary>
+    [Fact]
+    public void Les_chemins_de_menu_sont_bien_traduits()
+    {
+        var xiaomi = PhoneBrands.All.First(b => b.Key == "Xiaomi");
+        var cle = $"Brand{xiaomi.Key}{nameof(PhoneBrand.ClonePath)}";
+
+        var textes = Langues
+            .Select(l => Strings.GetIn(cle, CultureInfo.GetCultureInfo(l)))
+            .ToList();
+
+        Assert.Equal(3, textes.Distinct(StringComparer.Ordinal).Count());
     }
 
     [Fact]
