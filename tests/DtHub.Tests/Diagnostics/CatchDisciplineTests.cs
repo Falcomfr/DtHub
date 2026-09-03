@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace DtHub.Tests.Diagnostics;
 
@@ -116,7 +116,7 @@ public sealed class CatchDisciplineTests
 
     private static IEnumerable<(string File, string[] Lines)> Sources()
     {
-        var root = Path.Combine(RepositoryRoot(), "src");
+        var root = Path.Combine(RepositoryRoot.Path(), "src");
 
         foreach (var file in Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories))
         {
@@ -130,17 +130,4 @@ public sealed class CatchDisciplineTests
         }
     }
 
-    private static string RepositoryRoot()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "DtHub.slnx")))
-        {
-            directory = directory.Parent;
-        }
-
-        Assert.NotNull(directory);
-
-        return directory.FullName;
-    }
 }

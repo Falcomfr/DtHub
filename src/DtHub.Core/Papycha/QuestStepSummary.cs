@@ -86,8 +86,8 @@ public static partial class QuestStepSummary
     /// <summary>
     /// Le personnage de départ, tel qu'on accepte de le nommer.
     ///
-    /// La donnée est propre presque partout — sur six cent quatre-vingt-treize
-    /// quêtes, deux seulement dépassent six mots — mais elle n'était pas
+    /// La donnée est propre presque partout - sur six cent quatre-vingt-treize
+    /// quêtes, deux seulement dépassent six mots - mais elle n'était pas
     /// relue, et « bateau pour vous rendre au village d'Albuera. » donnait
     /// « Parlez à bateau pour vous rendre au village d'Albuera. ».
     ///
@@ -246,8 +246,8 @@ public static partial class QuestStepSummary
     /// <summary>
     /// Mots qui ne se trouvent jamais au milieu d'un nom propre.
     ///
-    /// C'est une classe fermée de la langue — conjonctions, prépositions,
-    /// déterminants, pronoms, quelques adverbes de liaison — et non une liste
+    /// C'est une classe fermée de la langue - conjonctions, prépositions,
+    /// déterminants, pronoms, quelques adverbes de liaison - et non une liste
     /// tirée des cas rencontrés : celle-ci s'allongerait à chaque guide, et le
     /// premier mot oublié rendrait « Truffo lors de votre première visite ».
     ///

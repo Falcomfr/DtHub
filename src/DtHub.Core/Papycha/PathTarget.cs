@@ -4,7 +4,7 @@
 /// Décide de quel côté un chemin se range.
 ///
 /// Le site ne le dit pas : ses catégories ne donnent que la zone, et les liens
-/// de ses pages sont presque toujours absents. Le titre, lui, suffit — à deux
+/// de ses pages sont presque toujours absents. Le titre, lui, suffit - à deux
 /// conditions.
 ///
 /// Un chemin va aux donjons s'il écrit le mot « donjon », ou s'il partage au

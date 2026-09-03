@@ -73,7 +73,7 @@ public sealed class DiagnosticReporter
 
         if (error is not null)
         {
-            LastFailure = $"{headline} — {error.GetType().Name} : {error.Message}";
+            LastFailure = $"{headline} - {error.GetType().Name} : {error.Message}";
         }
 
         IncidentRecorded?.Invoke(this, EventArgs.Empty);

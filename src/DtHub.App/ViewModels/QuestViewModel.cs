@@ -1134,7 +1134,7 @@ public sealed partial class QuestViewModel : ObservableObject
     ///
     /// Suivre un prérequis fait parfois entrer dans un autre succès, voire dans
     /// une autre zone. Le titre seul laisserait croire qu'on poursuit la même
-    /// suite ; le nom du succès — à défaut celui de la zone — dit qu'on en
+    /// suite ; le nom du succès - à défaut celui de la zone - dit qu'on en
     /// commence une autre.
     /// </summary>
     private QuestLink? ToLink(QuestSummary? target, QuestSummary from)

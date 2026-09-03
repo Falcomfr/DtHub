@@ -9,7 +9,7 @@ namespace DtHub.Core.Papycha;
 /// Comme pour les quêtes, on ne lit que ce que le site engendre lui-même :
 /// « section.pcd-info » est un bloc maison dont les classes sont du code, là où
 /// le corps de l'article est écrit à la main. L'analyse s'appuie donc sur les
-/// classes et jamais sur les libellés — « Clef : » peut être réécrit, la classe
+/// classes et jamais sur les libellés - « Clef : » peut être réécrit, la classe
 /// « pcd-info__row--key » non.
 ///
 /// Fonctions pures, sans réseau : elles se vérifient sur des fragments

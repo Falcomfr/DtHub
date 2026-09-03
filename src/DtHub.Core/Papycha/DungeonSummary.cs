@@ -1,7 +1,7 @@
 ﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Un lieu de combat du site — un donjon, un raid ou une tanière — tel qu'on en
+/// Un lieu de combat du site - un donjon, un raid ou une tanière - tel qu'on en
 /// a besoin pour le choisir.
 ///
 /// Le site en publie quatre-vingt-trois, dans un format bien plus régulier que
@@ -9,8 +9,8 @@
 /// métadonnées, la clef et la pierre d'âme d'un bloc dont les classes sont du
 /// code et non des libellés.
 ///
-/// Rien de ce qui vient des serveurs d'Ankama — les vignettes de boss et de
-/// clefs — n'est repris ici : la liste reste du texte.
+/// Rien de ce qui vient des serveurs d'Ankama - les vignettes de boss et de
+/// clefs - n'est repris ici : la liste reste du texte.
 /// </summary>
 public sealed record DungeonSummary
 {

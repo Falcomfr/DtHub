@@ -458,8 +458,8 @@ Première version publiée.
   cinquante niveaux, avec leur niveau entre parenthèses et, à droite, la clef
   exigée, la taille de la pierre d'âme et la position. Le nom de la clef vient
   au survol.
-- Une page de donjon se parcourt par ses sections — Monstres, Liste des salles,
-  Boss, Mécanique du donjon, Les succès, Fin du donjon — et non par un résumé de
+- Une page de donjon se parcourt par ses sections - Monstres, Liste des salles,
+  Boss, Mécanique du donjon, Les succès, Fin du donjon - et non par un résumé de
   paragraphe : ce n'est pas une suite de consignes mais un dossier.
 - La recherche rend un quatrième groupe, « Donjons ».
 - Deux sections de plus à la racine : « Raids » et « Tanières », avec leur

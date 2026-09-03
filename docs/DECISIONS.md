@@ -755,7 +755,7 @@ Enfin, un lien cliqué dans un guide. Le catalogue tranche : s'il connaît
 l'adresse, la fenêtre la suit sur place et se remet à jour, exactement comme si
 l'on avait pressé « précédente » ; les cinq cent onze liens de quête de la
 colonne des prérequis passent par là. Sinon elle ouvre une fenêtre à part,
-parce qu'elle tient un état — titre, succès, étapes, voisines — qu'une
+parce qu'elle tient un état - titre, succès, étapes, voisines - qu'une
 navigation qu'elle n'a pas demandée rendrait faux sans qu'elle le sache.
 
 ## D33 - Cadrer une page du site sans la casser
@@ -916,7 +916,7 @@ qui serait faux.
 
 **Les sections plutôt qu'un résumé.** Une page de donjon n'ordonne rien, elle
 expose : les monstres, les salles, le boss, la mécanique, les succès. Ses titres
-sont réguliers — « Boss » sur 82 pages, « Liste des salles » sur 81 — là où une
+sont réguliers - « Boss » sur 82 pages, « Liste des salles » sur 81 - là où une
 page de quête n'a aucun titre de section, vérifié sur six guides. Les deux
 affichages ne se gênent donc pas, et le pont distingue les deux au bloc
 d'en-tête, qui est du code du site.
@@ -946,7 +946,7 @@ Le site ne dit pas de quel côté ils vont : ses catégories ne donnent que la
 zone, et les liens de ses pages sont presque toujours absents. Le titre suffit,
 à deux conditions : le mot « donjon » écrit en toutes lettres, ou au moins deux
 mots distinctifs partagés avec un donjon du catalogue. Un seul mot commun ne
-suffit pas, et c'est ce qui écarte les faux — « Zaap du village de la canopée »
+suffit pas, et c'est ce qui écarte les faux - « Zaap du village de la canopée »
 ne partage que « canopée » avec « Canopée du Kimbo ». Vérifié sur les vingt et
 un chemins publiés, qui sont les cas de test.
 
@@ -3463,7 +3463,7 @@ qui remontait très bien.
 Dix-huit l'étaient pour de bon, et aucun n'avait besoin d'un journal : chacun
 rend une valeur que l'appelant sait lire. Ils portent maintenant la phrase qui
 le dit. `CatchDisciplineTests` tient le compte à zéro et exige un filtre `when`
-sur tout `catch (Exception)` — un seul en est dispensé, nommé dans l'épreuve :
+sur tout `catch (Exception)` - un seul en est dispensé, nommé dans l'épreuve :
 le passeur de raccourcis, qui ne traite pas la faute mais la fait voyager d'un
 fil à l'autre.
 

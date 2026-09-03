@@ -29,7 +29,7 @@
           <!-- Le retrait de droite est plus large que les autres : il réserve
                la place de la croix, qui se pose par-dessus le champ. Il vaut la
                moitié de la largeur voulue, le champ appliquant son retrait deux
-               fois — une fois au porte-texte, une fois au texte lui-même. -->
+               fois - une fois au porte-texte, une fois au texte lui-même. -->
           <TextBox x:Name="SearchBox" Padding="7,4,16,4"
                    Text="{Binding Query, UpdateSourceTrigger=PropertyChanged, Delay=150}"
                    GotKeyboardFocus="OnSearchFocused"
