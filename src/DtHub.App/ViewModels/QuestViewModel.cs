@@ -21,6 +21,7 @@ public sealed partial class QuestViewModel : ObservableObject
     public QuestViewModel(QuestCatalogService catalog, IDialogService dialogs)
     {
         _catalog = catalog;
+        _tree = new QuestTree(catalog, _sectionCounts);
         _dialogs = dialogs;
     }
 
@@ -32,6 +33,21 @@ public sealed partial class QuestViewModel : ObservableObject
 
     /// <summary>Nombre de quêtes du catalogue rangées dans chaque rubrique.</summary>
     private readonly Dictionary<int, int> _sectionCounts = [];
+
+    /// <summary>Les branches, bâties depuis le catalogue et ce décompte.</summary>
+    private readonly QuestTree _tree;
+
+    /// <summary>Combien d'étapes la page ouverte annonce.</summary>
+    public int StepCount => _steps.Count;
+
+    /// <summary>Pose dans la liste les lignes que l'arbre compose.</summary>
+    private void AddBySuccess(IReadOnlyList<QuestSummary> quests)
+    {
+        foreach (var node in _tree.BySuccess(quests))
+        {
+            Nodes.Add(node);
+        }
+    }
 
     /// <summary>Rubrique ouverte, ou zéro à la racine.</summary>
     private int _section;
@@ -221,7 +237,7 @@ public sealed partial class QuestViewModel : ObservableObject
     /// </summary>
     private void Settle(QuestCatalogDocument catalog, QuestTally before)
     {
-        _chain = new QuestChainIndex(catalog.Quests);
+        _tree.Chain = new QuestChainIndex(catalog.Quests);
 
         IsBusy = false;
 
@@ -297,9 +313,9 @@ public sealed partial class QuestViewModel : ObservableObject
         // sienne.
         var section = _anchorSection
             ?? (_current is { } lue ? SectionSeen(lue) : (int?)null)
-            ?? (_currentDungeon is { } place ? SectionOf(place) : (int?)null)
+            ?? (_currentDungeon is { } place ? QuestTree.SectionOf(place) : (int?)null)
             ?? (_currentPath is { } road
-                ? road.Side == PathSide.Dungeons ? DungeonPathSection : QuestPathSection
+                ? road.Side == PathSide.Dungeons ? QuestTree.DungeonPathSection : QuestTree.QuestPathSection
                 : (int?)null);
 
         if (section is { } target && (_section != target || Query.Length > 0))
@@ -365,38 +381,29 @@ public sealed partial class QuestViewModel : ObservableObject
         Nodes.Add(new QuestNode(
             QuestNodeKind.Branch,
             Strings.Get("Quests"),
-            Nombre(_catalog.Catalog.Quests.Count),
-            Id: RootSection,
+            QuestTree.Nombre(_catalog.Catalog.Quests.Count),
+            Id: QuestTree.RootSection,
             Glyph: QuestNodeGlyph.Quests));
         Nodes.Add(new QuestNode(
             QuestNodeKind.Branch,
             Strings.Get("Dungeons"),
-            Combien(Fighting(DungeonKind.Dungeon).Count, "WordDungeon", "WordDungeons"),
-            Id: DungeonSection,
+            QuestTree.Combien(_tree.Fighting(DungeonKind.Dungeon).Count, "WordDungeon", "WordDungeons"),
+            Id: QuestTree.DungeonSection,
             Glyph: QuestNodeGlyph.Dungeons));
         Nodes.Add(new QuestNode(
             QuestNodeKind.Branch,
             Strings.Get("Raids"),
-            Combien(Fighting(DungeonKind.Raid).Count, "WordRaid", "WordRaids"),
-            Id: RaidSection,
+            QuestTree.Combien(_tree.Fighting(DungeonKind.Raid).Count, "WordRaid", "WordRaids"),
+            Id: QuestTree.RaidSection,
             Glyph: QuestNodeGlyph.Raids));
         Nodes.Add(new QuestNode(
             QuestNodeKind.Branch,
             Strings.Get("Lairs"),
-            Combien(Fighting(DungeonKind.Lair).Count, "WordLair", "WordLairs"),
-            Id: LairSection,
+            QuestTree.Combien(_tree.Fighting(DungeonKind.Lair).Count, "WordLair", "WordLairs"),
+            Id: QuestTree.LairSection,
             Glyph: QuestNodeGlyph.Lairs));
     }
 
-    /// <summary>
-    /// Branches qui ne viennent pas des catégories du site. Leurs identifiants
-    /// sont négatifs, hors de portée de celles-ci, qui sont positives.
-    /// </summary>
-    private const int DungeonSection = -100;
-    private const int RaidSection = -101;
-    private const int LairSection = -102;
-    private const int QuestPathSection = -103;
-    private const int DungeonPathSection = -104;
 
     /// <summary>
     /// Le contenu d'une rubrique. À la racine des quêtes, ce sont les autres
@@ -414,14 +421,14 @@ public sealed partial class QuestViewModel : ObservableObject
 
         Nodes.Clear();
 
-        if (section == DungeonSection)
+        if (section == QuestTree.DungeonSection)
         {
             Breadcrumb = Strings.Get("Dungeons");
             SetBack(target: 0);
 
-            Nodes.Add(PathBranch(PathSide.Dungeons, DungeonPathSection));
+            Nodes.Add(_tree.PathBranch(PathSide.Dungeons, QuestTree.DungeonPathSection));
 
-            foreach (var node in DungeonNodes())
+            foreach (var node in _tree.DungeonNodes())
             {
                 Nodes.Add(node);
             }
@@ -429,33 +436,33 @@ public sealed partial class QuestViewModel : ObservableObject
             return;
         }
 
-        if (section is RaidSection or LairSection)
+        if (section is QuestTree.RaidSection or QuestTree.LairSection)
         {
-            var kind = section == RaidSection ? DungeonKind.Raid : DungeonKind.Lair;
+            var kind = section == QuestTree.RaidSection ? DungeonKind.Raid : DungeonKind.Lair;
 
-            Breadcrumb = Strings.Get(section == RaidSection ? "Raids" : "Lairs");
+            Breadcrumb = Strings.Get(section == QuestTree.RaidSection ? "Raids" : "Lairs");
             SetBack(target: 0);
 
             // Sans paliers : dix lignes se lisent d'un trait, et les couper
             // n'aiderait personne.
-            foreach (var place in Fighting(kind).OrderBy(d => d.Level)
+            foreach (var place in _tree.Fighting(kind).OrderBy(d => d.Level)
                          .ThenBy(d => d.Title, StringComparer.CurrentCulture))
             {
-                Nodes.Add(ToNode(place));
+                Nodes.Add(QuestTree.NodeOf(place));
             }
 
             return;
         }
 
-        if (section is QuestPathSection or DungeonPathSection)
+        if (section is QuestTree.QuestPathSection or QuestTree.DungeonPathSection)
         {
-            var side = section == DungeonPathSection ? PathSide.Dungeons : PathSide.Quests;
+            var side = section == QuestTree.DungeonPathSection ? PathSide.Dungeons : PathSide.Quests;
 
             Breadcrumb = Strings.Get(side == PathSide.Dungeons ? "Dungeons" : "QuestAreaCrumb")
                 + Separator + Strings.Get("Paths");
-            SetBack(target: side == PathSide.Dungeons ? DungeonSection : RootSection);
+            SetBack(target: side == PathSide.Dungeons ? QuestTree.DungeonSection : QuestTree.RootSection);
 
-            foreach (var path in Paths(side).OrderBy(p => p.Title, StringComparer.CurrentCulture))
+            foreach (var path in _tree.Paths(side).OrderBy(p => p.Title, StringComparer.CurrentCulture))
             {
                 Nodes.Add(new QuestNode(
                     QuestNodeKind.Quest, path.Title, Path: path, Glyph: QuestNodeGlyph.Route));
@@ -464,14 +471,14 @@ public sealed partial class QuestViewModel : ObservableObject
             return;
         }
 
-        if (section == RootSection)
+        if (section == QuestTree.RootSection)
         {
             Breadcrumb = Strings.Get("QuestAreaCrumb");
             SetBack(target: 0);
 
-            Nodes.Add(PathBranch(PathSide.Quests, QuestPathSection));
+            Nodes.Add(_tree.PathBranch(PathSide.Quests, QuestTree.QuestPathSection));
 
-            foreach (var branch in Branches())
+            foreach (var branch in _tree.Branches())
             {
                 Nodes.Add(branch);
             }
@@ -479,8 +486,8 @@ public sealed partial class QuestViewModel : ObservableObject
             return;
         }
 
-        Breadcrumb = Strings.Get("QuestAreaCrumb") + Separator + NameOf(section);
-        SetBack(target: RootSection);
+        Breadcrumb = Strings.Get("QuestAreaCrumb") + Separator + _tree.NameOf(section);
+        SetBack(target: QuestTree.RootSection);
 
         AddBySuccess(_catalog.InSection(section));
     }
@@ -564,7 +571,7 @@ public sealed partial class QuestViewModel : ObservableObject
         if (found.Zones.Count > 0)
         {
             Nodes.Add(new QuestNode(
-                QuestNodeKind.Section, Strings.Get("Zones"), Combien(found.Zones.Count, "WordZone", "WordZones")));
+                QuestNodeKind.Section, Strings.Get("Zones"), QuestTree.Combien(found.Zones.Count, "WordZone", "WordZones")));
 
             foreach (var zone in found.Zones)
             {
@@ -572,7 +579,7 @@ public sealed partial class QuestViewModel : ObservableObject
                     QuestNodeKind.Branch,
                     $"{QuestZoneOrder.DisplayName(zone.Name)} ({_sectionCounts.GetValueOrDefault(zone.Id)})",
                     Id: zone.Id,
-                    Glyph: GlyphOf(zone.Name)));
+                    Glyph: QuestTree.GlyphOf(zone.Name)));
             }
         }
 
@@ -581,7 +588,7 @@ public sealed partial class QuestViewModel : ObservableObject
             Nodes.Add(new QuestNode(
                 QuestNodeKind.Section,
                 Strings.Get("Achievements"),
-                Combien(found.Successes.Count, "WordAchievement", "WordAchievements")));
+                QuestTree.Combien(found.Successes.Count, "WordAchievement", "WordAchievements")));
 
             // Un succès ne se choisit pas : ce qu'on veut, ce sont ses quêtes.
             // Elles suivent donc son nom, dans l'ordre où l'on y joue.
@@ -601,14 +608,14 @@ public sealed partial class QuestViewModel : ObservableObject
 
                 foreach (var quest in quests)
                 {
-                    Nodes.Add(ToNode(quest) with { InSuccess = true });
+                    Nodes.Add(_tree.NodeOf(quest) with { InSuccess = true });
                 }
             }
         }
 
         // Un groupe par nature, et seulement s'il a trouvé quelque chose : une
         // recherche ordinaire en montre un ou deux.
-        foreach (var (kind, titre, un, plusieurs) in DungeonGroups)
+        foreach (var (kind, titre, un, plusieurs) in QuestTree.DungeonGroups)
         {
             List<DungeonSummary> places = [.. found.Of(kind)];
 
@@ -618,11 +625,11 @@ public sealed partial class QuestViewModel : ObservableObject
             }
 
             Nodes.Add(new QuestNode(
-                QuestNodeKind.Section, Strings.Get(titre), Combien(places.Count, un, plusieurs)));
+                QuestNodeKind.Section, Strings.Get(titre), QuestTree.Combien(places.Count, un, plusieurs)));
 
             foreach (var place in places)
             {
-                Nodes.Add(ToNode(place) with { Glyph = GlyphOf(kind) });
+                Nodes.Add(QuestTree.NodeOf(place) with { Glyph = QuestTree.GlyphOf(kind) });
             }
         }
 
@@ -631,7 +638,7 @@ public sealed partial class QuestViewModel : ObservableObject
             Nodes.Add(new QuestNode(
                 QuestNodeKind.Section,
                 Strings.Get("Paths"),
-                Combien(found.Paths.Count, "WordPath", "WordPaths")));
+                QuestTree.Combien(found.Paths.Count, "WordPath", "WordPaths")));
 
             foreach (var path in found.Paths)
             {
@@ -642,11 +649,11 @@ public sealed partial class QuestViewModel : ObservableObject
 
         if (found.Quests.Count > 0)
         {
-            Nodes.Add(new QuestNode(QuestNodeKind.Section, Strings.Get("Quests"), Nombre(found.Quests.Count)));
+            Nodes.Add(new QuestNode(QuestNodeKind.Section, Strings.Get("Quests"), QuestTree.Nombre(found.Quests.Count)));
 
             foreach (var quest in found.Quests)
             {
-                Nodes.Add(ToNode(quest));
+                Nodes.Add(_tree.NodeOf(quest));
             }
         }
 
@@ -661,290 +668,11 @@ public sealed partial class QuestViewModel : ObservableObject
     /// quatre textes sont des clés de traduction et non des libellés : la
     /// table est statique, et la langue n'est connue qu'à l'affichage.
     /// </summary>
-    private static readonly (DungeonKind Kind, string Title, string One, string Many)[] DungeonGroups =
-    [
-        (DungeonKind.Dungeon, "Dungeons", "WordDungeon", "WordDungeons"),
-        (DungeonKind.Raid, "Raids", "WordRaid", "WordRaids"),
-        (DungeonKind.Lair, "Lairs", "WordLair", "WordLairs"),
-    ];
 
-    /// <summary>La branche où un lieu de combat se trouve.</summary>
-    private static int SectionOf(DungeonSummary place) => place.Kind switch
-    {
-        DungeonKind.Raid => RaidSection,
-        DungeonKind.Lair => LairSection,
-        _ => DungeonSection,
-    };
-
-    /// <summary>Les lieux de combat d'un genre, dans l'ordre du site.</summary>
-    private IReadOnlyList<DungeonSummary> Fighting(DungeonKind kind) =>
-        [.. _catalog.Catalog.Dungeons.Where(d => d.Kind == kind)];
-
-    /// <summary>Les chemins d'un côté.</summary>
-    private IReadOnlyList<PathSummary> Paths(PathSide side) =>
-        [.. _catalog.Catalog.Paths.Where(p => p.Side == side)];
-
-    /// <summary>
-    /// La sous-branche des chemins, en tête de la branche qu'elle sert.
-    ///
-    /// Un dossier plutôt qu'un groupe à la suite : un chemin ne se compare ni à
-    /// une zone ni à un donjon, et les mêler allongerait une liste qu'on
-    /// parcourt déjà longuement.
-    /// </summary>
-    private QuestNode PathBranch(PathSide side, int section) => new(
-        QuestNodeKind.Branch,
-        Strings.Get("Paths"),
-        Combien(Paths(side).Count, "WordPath", "WordPaths"),
-        Id: section,
-        Glyph: QuestNodeGlyph.Route);
-
-    /// <summary>
-    /// Les donjons, du plus abordable au plus exigeant, coupés par paliers de
-    /// cinquante niveaux.
-    ///
-    /// Quatre-vingt-trois lignes ne se parcourent pas d'un œil : on y cherche
-    /// ce qui est à sa portée, et les paliers évitent de compter. Ceux dont le
-    /// site ne donne pas le niveau ferment la marche sous leur propre
-    /// intertitre, plutôt que de passer pour du niveau zéro.
-    /// </summary>
-    private IEnumerable<QuestNode> DungeonNodes()
-    {
-        var ordered = Fighting(DungeonKind.Dungeon)
-            .OrderBy(d => DungeonLevelBand.RankOf(d.Level))
-            .ThenBy(d => d.Level)
-            .ThenBy(d => d.Title, StringComparer.CurrentCulture);
-
-        var band = int.MinValue;
-
-        foreach (var dungeon in ordered)
-        {
-            var rank = DungeonLevelBand.RankOf(dungeon.Level);
-
-            if (rank != band)
-            {
-                band = rank;
-
-                yield return new QuestNode(
-                    QuestNodeKind.Header,
-                    DungeonLevelBand.NameOf(dungeon.Level));
-            }
-
-            yield return ToNode(dungeon);
-        }
-    }
-
-    /// <summary>
-    /// Une ligne de donjon : son nom avec son niveau, et à droite ce qu'il faut
-    /// savoir avant d'y aller.
-    /// </summary>
-    private static QuestNode ToNode(DungeonSummary dungeon) => new(
-        QuestNodeKind.Quest,
-        dungeon.Level > 0 ? $"{dungeon.Title} (niv. {dungeon.Level})" : dungeon.Title,
-        Detail(dungeon),
-        Dungeon: dungeon);
-
-    /// <summary>
-    /// Ce que la colonne de droite dit d'un donjon : la pierre d'âme et la
-    /// position, précédées d'une clef quand il en faut une. Le nom de la clef
-    /// vient au survol : il est trop long pour la colonne.
-    /// </summary>
-    private static string Detail(DungeonSummary dungeon)
-    {
-        List<string> parts = [];
-
-        if (dungeon.SoulStone.Length > 0)
-        {
-            // « gigantesque pierre d'âme » dit deux fois « pierre d'âme » dans
-            // une colonne où toutes les lignes en portent une : la taille suffit.
-            parts.Add(dungeon.SoulStone.Replace(" pierre d’âme", string.Empty, StringComparison.Ordinal));
-        }
-
-        if (dungeon.Position.Length > 0)
-        {
-            parts.Add(dungeon.Position);
-        }
-
-        return string.Join(" · ", parts);
-    }
-
-    /// <summary>
-    /// Rubriques qui contiennent au moins une quête, dans l'ordre où le site
-    /// les range.
-    ///
-    /// Le catalogue les rend déjà ordonnées ; les reclasser par nombre de
-    /// quêtes, comme on le faisait, revenait à ignorer l'ordre du site après
-    /// être allé le chercher.
-    /// </summary>
-    private IEnumerable<QuestNode> Branches()
-    {
-        var zones = _catalog.Catalog.Sections
-            .Where(s => s.Id != RootSection && _sectionCounts.GetValueOrDefault(s.Id) > 0)
-            .OrderBy(s => QuestZoneOrder.RankOf(s.Name))
-            .ThenBy(s => QuestZoneOrder.DisplayName(s.Name), StringComparer.CurrentCulture);
-
-        List<QuestSection> ordered = [.. zones];
-        var separated = false;
-
-        for (var i = 0; i < ordered.Count; i++)
-        {
-            var zone = ordered[i];
-
-            // Ce qui ne relève pas de la progression vient après un intertitre,
-            // pour que la liste ne mélange pas un lieu et un cheminement.
-            if (!separated && QuestZoneOrder.IsExtra(zone.Name))
-            {
-                separated = true;
-
-                yield return new QuestNode(
-                    QuestNodeKind.Header,
-                    QuestZoneOrder.ExtrasHeader,
-                    Glyph: QuestNodeGlyph.Family);
-            }
-
-            // Un blanc là où l'on passe d'une famille de quêtes aux lieux :
-            // « Quêtes principales » ouvre la liste sans être un endroit, et
-            // sans cette respiration elle se lit comme la première zone du
-            // monde. Le blanc appartient à la ligne qui précède la rupture, et
-            // non à celle qui la suit, pour ne pas doubler celui de
-            // l'intertitre plus bas.
-            var next = i + 1 < ordered.Count ? ordered[i + 1] : null;
-
-            yield return new QuestNode(
-                QuestNodeKind.Branch,
-                $"{QuestZoneOrder.DisplayName(zone.Name)} ({_sectionCounts[zone.Id]})",
-                QuestLevelRange.Of(_catalog.InSection(zone.Id)),
-                Id: zone.Id,
-                Glyph: GlyphOf(zone.Name),
-                Spaced: next is not null
-                    && !QuestZoneOrder.IsPlace(zone.Name)
-                    && QuestZoneOrder.IsPlace(next.Name));
-        }
-    }
-
-    private static string Text(int value) =>
-        value.ToString(System.Globalization.CultureInfo.CurrentCulture);
-
-    /// <summary>
-    /// Ajoute les quêtes d'une rubrique dans l'ordre où l'on y joue.
-    ///
-    /// C'est ainsi que le site les présente, et c'est ainsi qu'on les joue :
-    /// une quête isolée dit rarement à quoi elle sert. Le rangement est celui
-    /// de <see cref="QuestZonePlan"/>, qui suit les prérequis.
-    /// </summary>
-    private void AddBySuccess(IReadOnlyList<QuestSummary> quests)
-    {
-        var plan = QuestZonePlan.Of(quests, _catalog.Catalog.SuccessOrder);
-
-        // Le compte annoncé est celui du succès entier, non celui du morceau :
-        // une série coupée par une quête seule reste une seule série, et son
-        // premier intertitre doit dire combien de quêtes elle porte en tout.
-        var total = plan
-            .Where(b => b.IsSuccess)
-            .GroupBy(b => b.SuccessName, StringComparer.Ordinal)
-            .ToDictionary(g => g.Key, g => g.Sum(b => b.Quests.Count), StringComparer.Ordinal);
-
-        foreach (var block in plan)
-        {
-            if (block.IsSuccess)
-            {
-                Nodes.Add(new QuestNode(
-                    QuestNodeKind.Success,
-                    block.IsContinuation
-                        ? $"{block.SuccessName} ({Strings.Get("SeriesContinued")})"
-                        : $"{block.SuccessName} ({Text(total[block.SuccessName])})",
-                    QuestLevelRange.Of(block.Quests),
-                    Glyph: QuestNodeGlyph.Success));
-            }
-
-            foreach (var quest in block.Quests)
-            {
-                // Le décalage dit l'appartenance : une quête au ras de la marge
-                // n'est réclamée par aucun succès.
-                Nodes.Add(ToNode(quest) with { InSuccess = block.IsSuccess });
-            }
-        }
-    }
-
-    /// <summary>Combien d'étapes la page ouverte annonce.</summary>
-    public int StepCount => _steps.Count;
-
-    /// <summary>
-    /// Une ligne de quête.
-    ///
-    /// La colonne de droite ne porte plus le niveau : le site ne le renseigne
-    /// que sur cent dix-sept quêtes sur sept cent quatre-vingt-deux, et une
-    /// colonne vide neuf fois sur dix ne mérite pas sa place. Elle porte les
-    /// prérequis, qui en couvrent six cent treize, et qui disent quelque chose
-    /// d'utile avant de partir : ce qu'il faut avoir fait.
-    /// </summary>
-    private QuestNode ToNode(QuestSummary quest) => new(
-        QuestNodeKind.Quest,
-        quest.Title,
-        Quest: quest,
-        Needs: NeedsOf(quest));
-
-    /// <summary>
-    /// Les prérequis d'une quête, chacun rattaché à la quête qu'il nomme quand
-    /// c'en est une. Sur cinq cent soixante-sept prérequis distincts, beaucoup
-    /// sont des objets, un alignement ou un créneau horaire : ceux-là restent
-    /// du texte, et seuls les autres deviendront des liens.
-    /// </summary>
-    private IReadOnlyList<QuestNeed> NeedsOf(QuestSummary quest) =>
-        quest.Prerequisites.Count == 0
-            ? []
-            : [.. quest.Prerequisites.Select(need => new QuestNeed(need, _chain?.Find(need)))];
-
-    /// <summary>
-    /// Ce que les prérequis relient, table construite une fois par catalogue.
-    /// Sert aussi bien à rattacher un prérequis à sa quête qu'à prolonger la
-    /// navigation au-delà d'un succès.
-    /// </summary>
-    private QuestChainIndex? _chain;
-
-    /// <summary>L'icône d'une rubrique, selon qu'elle situe ou qu'elle range.</summary>
-    private static QuestNodeGlyph GlyphOf(string? zone) =>
-        QuestZoneOrder.IsPlace(zone) ? QuestNodeGlyph.Place : QuestNodeGlyph.Family;
-
-    /// <summary>
-    /// L'icône d'un lieu de combat, qui dit lequel des trois on regarde.
-    ///
-    /// Les trois se ressemblent assez pour partager un type ; ils ne se
-    /// ressemblent pas assez pour partager une icône, la recherche pouvant
-    /// rendre les trois d'un coup.
-    /// </summary>
-    private static QuestNodeGlyph GlyphOf(DungeonKind kind) => kind switch
-    {
-        DungeonKind.Raid => QuestNodeGlyph.Raids,
-        DungeonKind.Lair => QuestNodeGlyph.Lairs,
-        _ => QuestNodeGlyph.Dungeons,
-    };
-
-    /// <summary>Le nom de rubrique tel que le site l'écrit, pour en juger la nature.</summary>
-    private string? RawNameOf(int section) =>
-        _catalog.Catalog.Sections.FirstOrDefault(s => s.Id == section)?.Name;
-
-    private string NameOf(int section) =>
-        QuestZoneOrder.DisplayName(
-            _catalog.Catalog.Sections.FirstOrDefault(s => s.Id == section)?.Name)
-        is { Length: > 0 } name
-            ? name
-            : Strings.Get("Section");
-
-    private static string Nombre(int count) => Combien(count, "WordQuest", "WordQuests");
-
-    /// <summary>
-    /// Compte d'un intertitre de recherche. Le mot suit la nature : annoncer
-    /// « 1 quête » au-dessus d'une zone ferait mentir l'intertitre juste
-    /// au-dessus de ce qu'il coiffe.
-    /// </summary>
-    private static string Combien(int count, string singulier, string pluriel) =>
-        Strings.Format("Count", count, Strings.Get(count == 1 ? singulier : pluriel));
 
     /// <summary>Ce qui sépare deux niveaux d'un fil d'Ariane.</summary>
     private const string Separator = "  \u203a  ";
 
-    /// <summary>Catégorie qui range toutes les quêtes du site.</summary>
-    private const int RootSection = 7;
 
     /// <summary>
     /// Donne suite à un clic dans la liste. Rend l'adresse à charger, ou null
@@ -1047,7 +775,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
         if (anchor)
         {
-            Anchor(SectionOf(dungeon), dungeon.Url);
+            Anchor(QuestTree.SectionOf(dungeon), dungeon.Url);
         }
         CurrentUrl = dungeon.Url;
         QuestTitle = dungeon.Title;
@@ -1086,7 +814,7 @@ public sealed partial class QuestViewModel : ObservableObject
         if (anchor)
         {
             Anchor(
-                path.Side == PathSide.Dungeons ? DungeonPathSection : QuestPathSection,
+                path.Side == PathSide.Dungeons ? QuestTree.DungeonPathSection : QuestTree.QuestPathSection,
                 path.Url);
         }
         CurrentUrl = path.Url;
@@ -1117,12 +845,12 @@ public sealed partial class QuestViewModel : ObservableObject
     /// </summary>
     private void SetNeighbours(QuestSummary quest)
     {
-        var voisines = QuestNeighbourhood.Of(quest, _catalog.Catalog.Quests, _chain);
+        var voisines = QuestNeighbourhood.Of(quest, _catalog.Catalog.Quests, _tree.Chain);
 
         ChainText = quest.SuccessName;
 
         ChainStep = voisines.Count > 0
-            ? $"{Text(voisines.Rank)} / {Text(voisines.Count)}"
+            ? $"{QuestTree.Text(voisines.Rank)} / {QuestTree.Text(voisines.Count)}"
             : string.Empty;
 
         PreviousQuest = ToLink(voisines.Previous, quest);
@@ -1153,12 +881,12 @@ public sealed partial class QuestViewModel : ObservableObject
             // différente parce que l'une est aussi répétable.
             return SectionSeen(target) == SectionSeen(from)
                 ? link
-                : link with { Series = NameOf(SectionSeen(target)) };
+                : link with { Series = _tree.NameOf(SectionSeen(target)) };
         }
 
         return link with
         {
-            Series = target.SuccessName.Length > 0 ? target.SuccessName : NameOf(SectionSeen(target)),
+            Series = target.SuccessName.Length > 0 ? target.SuccessName : _tree.NameOf(SectionSeen(target)),
         };
     }
 
@@ -1601,9 +1329,9 @@ public sealed partial class QuestViewModel : ObservableObject
     private string ZoneName()
     {
         var section = (_current is { } lue ? SectionSeen(lue) : (int?)null)
-            ?? (_currentDungeon is { } place ? SectionOf(place) : (int?)null);
+            ?? (_currentDungeon is { } place ? QuestTree.SectionOf(place) : (int?)null);
 
-        return section is { } id ? NameOf(id) : string.Empty;
+        return section is { } id ? _tree.NameOf(id) : string.Empty;
     }
 
     /// <summary>
@@ -1635,7 +1363,7 @@ public sealed partial class QuestViewModel : ObservableObject
             return HomeUrl;
         }
 
-        if (_section == RootSection)
+        if (_section == QuestTree.RootSection)
         {
             return IndexUrl;
         }

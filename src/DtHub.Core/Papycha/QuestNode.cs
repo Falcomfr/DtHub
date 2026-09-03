@@ -1,6 +1,4 @@
-﻿using DtHub.Core.Papycha;
-
-namespace DtHub.App.ViewModels;
+﻿namespace DtHub.Core.Papycha;
 
 /// <summary>Ce qu'une ligne de la liste déroulante propose.</summary>
 public enum QuestNodeKind
