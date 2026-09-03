@@ -9,6 +9,11 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Modifié
 
+- Le panneau de réglages s'ouvre moins haut : 520 unités au lieu de 580. C'est
+  la hauteur exacte de l'onglet Raccourcis, le plus long des trois à ne pas
+  défiler, et les deux autres défilaient déjà. La fenêtre reste redimensionnable
+  et retient la taille qu'on lui donne.
+
 - Les écrans dessinés dans les aides ressemblent enfin à ce qu'ils montrent. Ils
   portent une barre d'état, une flèche de retour et un grand titre comme les
   réglages d'Android depuis leur douzième version, et leurs lignes ont chacune

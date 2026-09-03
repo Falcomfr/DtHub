@@ -4,7 +4,7 @@
         xmlns:w="clr-namespace:DtHub.App.Windows"
         xmlns:loc="clr-namespace:DtHub.App.Localization"
         Title="DT Hub"
-        Width="400" Height="580"
+        Width="400" Height="520"
         MinWidth="360" MinHeight="380"
         Topmost="True"
         ShowInTaskbar="True"
