@@ -105,6 +105,22 @@ Exige(
     guides.Count,
     tolerance: 0.9);
 
+// Le bloc de progression, d'où viennent la quête précédente et la quête
+// suivante. C'est la seule source qui franchisse la borne d'un succès : le jour
+// où le site le renomme, les deux boutons se taisent sans que rien ne le dise.
+Exige(
+    "chaque guide de quête porte le bloc de progression du site",
+    guides.Count(p => p.Contains("pqt-progress__column--next", StringComparison.Ordinal)),
+    guides.Count,
+    tolerance: 0.8);
+
+// Combien de ces blocs nomment vraiment une quête suivante, et une seule. Une
+// mesure et non une exigence : deux guides sur cinq n'ont pour suite qu'un
+// succès validé, et c'est l'état du site. Elle passe par le code livré, pour
+// que l'écart se voie ici et non à l'écran.
+mesures["guides-avec-suivante"] =
+    guides.Count(p => QuestPageParser.ParseChain(p).OnlyNextQuest is not null);
+
 // L'annonce du départ écrite en prose, que le pont écarte de ses étapes parce
 // que le bandeau la donne déjà : « La quête se lance en [2,-16] en parlant à
 // Kerubim Crépin. » Une mesure et non une exigence : le jour où le site tourne

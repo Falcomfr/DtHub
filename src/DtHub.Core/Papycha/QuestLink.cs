@@ -47,4 +47,43 @@ public sealed record QuestChain
     /// <summary>Quête suivante immédiate, s'il y en a une.</summary>
     public QuestLink? NextQuest =>
         Next.FirstOrDefault(l => l.Kind == QuestLinkKind.Quest);
+
+    /// <summary>
+    /// La quête précédente que le site nomme, s'il n'en nomme qu'une.
+    ///
+    /// La colonne peut en porter plusieurs : en désigner une mentirait sur ce
+    /// que le site publie, et c'est la règle qui vaut déjà pour le graphe des
+    /// prérequis. Relevé sur les 782 guides : 448 colonnes nomment une seule
+    /// quête, 39 en nomment plusieurs.
+    /// </summary>
+    public QuestLink? OnlyPreviousQuest => Only(Previous);
+
+    /// <summary>
+    /// La quête suivante que le site nomme, s'il n'en nomme qu'une. Relevé :
+    /// 325 colonnes en nomment une seule, 79 plusieurs, et 213 ne nomment que
+    /// le succès qui vient d'être validé.
+    /// </summary>
+    public QuestLink? OnlyNextQuest => Only(Next);
+
+    private static QuestLink? Only(IReadOnlyList<QuestLink> links)
+    {
+        QuestLink? seul = null;
+
+        foreach (var link in links)
+        {
+            if (link.Kind != QuestLinkKind.Quest)
+            {
+                continue;
+            }
+
+            if (seul is not null)
+            {
+                return null;
+            }
+
+            seul = link;
+        }
+
+        return seul;
+    }
 }

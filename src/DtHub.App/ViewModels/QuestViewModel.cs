@@ -1008,7 +1008,6 @@ public sealed partial class QuestViewModel : ObservableObject
         _startsAtDeparture = false;
 
         SetNeighbours(quest);
-        ExtendNeighbours(quest);
 
         // La page suivante n'est pas encore chargée : garder les étapes de la
         // précédente afficherait un objectif qui n'a plus rien à voir. Le
@@ -1101,79 +1100,23 @@ public sealed partial class QuestViewModel : ObservableObject
     /// <summary>
     /// Établit le succès de la quête ouverte, sa place et ses voisines.
     ///
-    /// Ce sont les voisines de la liste du succès, dans l'ordre du site, et non
-    /// celles de la chaîne publiée en pied de page : cette chaîne-là relie les
-    /// prérequis, saute d'un succès à l'autre et se ramifie. La première quête
-    /// d'un succès n'a pas de précédente, la dernière pas de suivante, et c'est
-    /// ce qu'on attend en parcourant une liste.
-    ///
-    /// Une quête sans succès n'a pas de voisines : les autres quêtes de sa
-    /// rubrique ne forment pas une suite.
+    /// Le choix des voisines est dans le noyau, <see cref="QuestNeighbourhood"/> ;
+    /// il ne reste ici que l'habillage, qui demande de savoir quelle rubrique
+    /// on parcourt. Ce sont les voisines que le catalogue connaît : la page,
+    /// quand elle arrivera, dira ce que le site publie et l'emportera.
     /// </summary>
     private void SetNeighbours(QuestSummary quest)
     {
+        var voisines = QuestNeighbourhood.Of(quest, _catalog.Catalog.Quests, _chain);
+
         ChainText = quest.SuccessName;
-        ChainStep = string.Empty;
-        PreviousQuest = null;
-        NextQuest = null;
 
-        if (quest.SuccessName.Length == 0)
-        {
-            return;
-        }
+        ChainStep = voisines.Count > 0
+            ? $"{Text(voisines.Rank)} / {Text(voisines.Count)}"
+            : string.Empty;
 
-        List<QuestSummary> group =
-        [
-            .. QuestPlayOrder.Sorted(
-                _catalog.Catalog.Quests.Where(q =>
-                    string.Equals(q.SuccessName, quest.SuccessName, StringComparison.Ordinal))),
-        ];
-
-        var index = group.FindIndex(q =>
-            string.Equals(q.Url, quest.Url, StringComparison.Ordinal));
-
-        if (index < 0)
-        {
-            return;
-        }
-
-        ChainStep = $"{Text(index + 1)} / {Text(group.Count)}";
-
-        if (index > 0)
-        {
-            PreviousQuest = ToLink(group[index - 1]);
-        }
-
-        if (index < group.Count - 1)
-        {
-            NextQuest = ToLink(group[index + 1]);
-        }
-    }
-
-    /// <summary>
-    /// Prolonge la navigation là où la liste du succès s'arrête, en suivant les
-    /// prérequis.
-    ///
-    /// La première quête d'un succès n'a pas de précédente et la dernière pas
-    /// de suivante ; une quête hors succès n'a ni l'une ni l'autre. Le site,
-    /// lui, continue : « Bien débuter » mène à « Une arrivée mouvementée », qui
-    /// mène à « Le début des problèmes », laquelle ouvre un succès. Mesuré, cela
-    /// rend une suivante à cent soixante-huit quêtes et une précédente à cent
-    /// quatre-vingt-dix-sept.
-    /// </summary>
-    private void ExtendNeighbours(QuestSummary quest)
-    {
-        if (_chain is null)
-        {
-            return;
-        }
-
-        PreviousQuest ??= ToLink(_chain.PreviousOf(quest), quest);
-        NextQuest ??= ToLink(_chain.NextOf(quest), quest);
-
-        // Et si rien ne pend à cette quête, la série suivante, cherchée dans
-        // tout le succès : elle ne part pas toujours de sa dernière quête.
-        NextQuest ??= ToLink(_chain.NextSeriesOf(quest), quest);
+        PreviousQuest = ToLink(voisines.Previous, quest);
+        NextQuest = ToLink(voisines.Next, quest);
     }
 
     /// <summary>
@@ -1211,6 +1154,30 @@ public sealed partial class QuestViewModel : ObservableObject
 
     private static QuestLink ToLink(QuestSummary quest) =>
         new(quest.Title, quest.Url, QuestLinkKind.Quest);
+
+    /// <summary>
+    /// La voisine que le site nomme, rendue avec son étiquette de série quand
+    /// le catalogue la connaît.
+    ///
+    /// Il la connaît presque toujours, et l'étiquette est ce qui prévient qu'on
+    /// change de succès ou de zone. Quand il ne la connaît pas, on garde le
+    /// titre et l'adresse du site plutôt que de taire la suite : le bouton
+    /// mène alors à une page que la fenêtre ouvrira à part.
+    /// </summary>
+    private QuestLink? Published(QuestLink? published, QuestSummary from)
+    {
+        if (published is null)
+        {
+            return null;
+        }
+
+        var key = UrlKey(published.Url);
+
+        var target = _catalog.Catalog.Quests.FirstOrDefault(q =>
+            string.Equals(UrlKey(q.Url), key, StringComparison.Ordinal));
+
+        return target is null ? published : ToLink(target, from);
+    }
 
     /// <summary>Étapes repérées dans la page ouverte.</summary>
     private IReadOnlyList<string> _steps = [];
@@ -1281,15 +1248,24 @@ public sealed partial class QuestViewModel : ObservableObject
         var facts = QuestPageParser.ParseFacts(introHtml);
         var chain = QuestPageParser.ParseChain(chainHtml);
 
-        // La chaîne publiée en pied de page relie les prérequis : elle saute
-        // d'un succès à l'autre et se ramifie. « Les rescapés de Frigost » y a
-        // deux suites et pour seul précédent un jalon. Ce n'est pas ce qu'on
-        // parcourt : les voisines sont celles de la liste du succès, et
-        // SetCurrent les a déjà posées avant même que la page arrive.
+        // Le site publie en pied d'article ce qui précède et ce qui suit. C'est
+        // lui qui fait foi : il connaît sa propre progression mieux que l'ordre
+        // que nous recalculons, et les deux se contredisent parfois à
+        // l'intérieur même d'un succès. SetCurrent a posé le nôtre avant que la
+        // page arrive, pour que les boutons répondent pendant le chargement ;
+        // la page le corrige en arrivant.
         //
-        // Le nom du succès vient du catalogue pour la même raison, afin que la
-        // liste et la page s'accordent. On ne retombe sur celui de la page que
-        // pour une quête que le catalogue ne rattache à rien.
+        // Sauf quand la colonne nomme plusieurs quêtes : en désigner une
+        // mentirait, et l'ordre calculé garde alors la main.
+        if (_current is { } ouverte)
+        {
+            PreviousQuest = Published(chain.OnlyPreviousQuest, ouverte) ?? PreviousQuest;
+            NextQuest = Published(chain.OnlyNextQuest, ouverte) ?? NextQuest;
+        }
+
+        // Le nom du succès vient du catalogue, afin que la liste et la page
+        // s'accordent. On ne retombe sur celui de la page que pour une quête
+        // que le catalogue ne rattache à rien.
         if (ChainText.Length == 0)
         {
             ChainText = facts.Success ?? string.Empty;

@@ -7,6 +7,30 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ## [Non publié]
 
+### Corrigé
+
+- La quête suivante manquait à la fin d'une série. « La légende du Chevalier de
+  l'Automne » clôt le succès « Un nouveau départ » et le site propose en pied
+  d'article « Dans les pas du Chevalier de l'Automne », première quête du succès
+  suivant ; le bouton, lui, disparaissait.
+
+  Deux causes. Le site écrit ses prérequis de trois formes, et l'application
+  n'en lisait qu'une : soixante-treize libellés sur cinq cent quatre-vingt-quatre
+  nommaient un jalon ou un succès entier plutôt qu'une quête, et l'arête ne
+  reliait rien. Et le bloc de progression que le site publie en pied d'article,
+  celui qui donne la quête précédente et la suivante, était analysé puis jeté.
+
+  Le site fait foi désormais : quand il nomme une voisine, et une seule, c'est
+  elle. Mesuré sur les sept cent quatre-vingt-deux guides : huit succès de moins
+  s'achèvent sur un cul-de-sac, quatre suivantes et deux précédentes
+  apparaissent, quarante-huit suivantes et quatre-vingt-dix-neuf précédentes
+  suivent maintenant l'ordre du site plutôt que le nôtre. Des quatre-vingt-un
+  succès qui restent sans suite, soixante-dix-sept sont muets sur le site lui-même.
+
+- Le bloc de progression du site était masqué dans la fenêtre des pages liées,
+  qui n'a pas de pied de fenêtre pour le remplacer : l'information y était perdue
+  sans contrepartie. Il n'est plus masqué que dans la fenêtre des guides.
+
 ### Ajouté
 
 - L'application se montre en anglais, en français ou en espagnol. Elle suit la

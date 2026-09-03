@@ -159,6 +159,50 @@ public class QuestPageParserTests
         Assert.Equal(QuestLinkKind.Quest, suivante.Kind);
     }
 
+    /// <summary>
+    /// Le bouton ne montre qu'une quête : quand la colonne en nomme plusieurs,
+    /// en désigner une mentirait sur ce que le site publie. Relevé sur les
+    /// 782 guides : 79 colonnes « suivants » en nomment plus d'une.
+    /// </summary>
+    [Fact]
+    public void Une_colonne_qui_nomme_plusieurs_quetes_n_en_designe_aucune()
+    {
+        var chain = QuestPageParser.ParseChain(NavDragonAstrub);
+
+        // Deux objectifs, deux quêtes : « Un nouveau Dofus ? » et « La
+        // découverte d'un vaste monde ! ».
+        Assert.Equal(2, chain.Next.Count(l => l.Kind == QuestLinkKind.Quest));
+
+        Assert.NotNull(chain.NextQuest);
+        Assert.Null(chain.OnlyNextQuest);
+    }
+
+    [Fact]
+    public void Une_colonne_qui_n_en_nomme_qu_une_la_designe()
+    {
+        var chain = QuestPageParser.ParseChain(NavDragonAstrub);
+
+        Assert.Equal(
+            "https://papycha.fr/quete-dans-les-pas-du-chevalier-de-lautomne/",
+            chain.OnlyPreviousQuest?.Url);
+    }
+
+    /// <summary>Un succès validé n'est pas une quête suivante.</summary>
+    [Fact]
+    public void Un_succes_seul_ne_fait_pas_une_suivante()
+    {
+        const string html = """
+            <nav class="pqt-progress">
+            <section class="pqt-progress__column pqt-progress__column--next">
+            <div class="pqt-progress__items"><a class="pqt-progress__item pqt-progress__item--success"
+            href="https://papycha.fr/succes/?pqt_success=x"><strong>[Succès] Un nouveau départ</strong></a></div>
+            </section>
+            </nav>
+            """;
+
+        Assert.Null(QuestPageParser.ParseChain(html).OnlyNextQuest);
+    }
+
     [Fact]
     public void Les_apostrophes_typographiques_sont_decodees()
     {

@@ -17,15 +17,15 @@
 
     window.__dtHubQuestBridge = true;
 
-    // Ce qui est masqué à l'intérieur même de l'article, parce que la fenêtre
-    // le reprend à son compte : le titre, la chaîne des quêtes, les crédits.
+    // Ce qui est masqué dans toutes nos fenêtres, parce qu'aucune n'en a
+    // l'usage : les deux blocs du bandeau que notre propre bandeau reprend, et
+    // les crédits de pied d'article.
     var HIDDEN = [
         // Du bandeau à liseré vert, les deux blocs que notre propre bandeau
         // reprend déjà : le succès avec l'étape, et la phrase de départ.
         '.pqa-quest-intro__facts',
         '.pqa-quest-intro__start',
 
-        'nav.pqt-progress',
         'footer.papycha-article-footer',
         'footer.entry-footer'
     ];
@@ -49,9 +49,15 @@
     //
     // Masquer ne retire rien du document : le pont continue de lire le bloc de
     // départ et de poster le bandeau d'intro à la fenêtre.
+    //
+    // Le bloc de progression du site y est aussi, et n'y était pas : il était
+    // masqué partout, y compris dans la fenêtre des pages liées, qui n'a pas de
+    // pied à nous pour le remplacer. On y perdait la seule indication de suite
+    // sans rien donner en échange.
     var HIDDEN_IN_QUEST = [
         TITLE,
-        '.pqa-quest-intro'
+        '.pqa-quest-intro',
+        'nav.pqt-progress'
     ];
 
     // Marque posée sur ce qui n'appartient pas au guide.

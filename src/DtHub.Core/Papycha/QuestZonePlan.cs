@@ -132,11 +132,13 @@ public static class QuestZonePlan
     }
 
     /// <summary>
-    /// Les arcs entre blocs : un prérequis reconnu comme quête de la zone place
-    /// son bloc avant celui de la quête qui le réclame.
+    /// Les arcs entre blocs : un prérequis reconnu place son bloc avant celui
+    /// de la quête qui le réclame.
     ///
-    /// Le rapprochement se fait sur le titre normalisé, comme la recherche et
-    /// comme la chaîne de quêtes : le site écrit ses prérequis à la main.
+    /// Le rapprochement se fait sur le nom normalisé, comme la recherche et
+    /// comme la chaîne de quêtes : le site écrit ses prérequis à la main. Il
+    /// passe par <see cref="PrerequisiteLabel"/>, car un prérequis nomme
+    /// tantôt une quête, tantôt le jalon qu'elle pose, tantôt un succès entier.
     /// </summary>
     private static List<HashSet<int>> Edges(
         IReadOnlyList<QuestSummary> quests,
@@ -149,6 +151,19 @@ public static class QuestZonePlan
         foreach (var quest in quests)
         {
             byTitle.TryAdd(QuestSearch.Normalize(quest.Title), quest);
+        }
+
+        // Un prérequis nomme parfois un succès entier plutôt qu'une quête,
+        // « Succès Un nouveau départ réalisé ». Il désigne alors le bloc, qui
+        // est justement ce qu'on range ici.
+        Dictionary<string, int> blockOfSuccess = new(StringComparer.Ordinal);
+
+        for (var i = 0; i < blocks.Count; i++)
+        {
+            if (blocks[i].Success.Length > 0)
+            {
+                blockOfSuccess.TryAdd(QuestSearch.Normalize(blocks[i].Success), i);
+            }
         }
 
         List<HashSet<int>> after = [];
@@ -164,12 +179,26 @@ public static class QuestZonePlan
 
             foreach (var need in quest.Prerequisites)
             {
-                if (!byTitle.TryGetValue(QuestSearch.Normalize(need), out var found))
+                var named = PrerequisiteLabel.Of(need);
+                var key = QuestSearch.Normalize(named.Name);
+
+                int from;
+
+                if (named.IsSuccess)
+                {
+                    if (!blockOfSuccess.TryGetValue(key, out from))
+                    {
+                        continue;
+                    }
+                }
+                else if (byTitle.TryGetValue(key, out var found))
+                {
+                    from = blockOfUrl[found.Url];
+                }
+                else
                 {
                     continue;
                 }
-
-                var from = blockOfUrl[found.Url];
 
                 if (from == to || !after[from].Add(to))
                 {

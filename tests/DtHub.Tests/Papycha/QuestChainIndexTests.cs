@@ -149,6 +149,66 @@ public sealed class QuestChainIndexTests
         Assert.Null(index.NextSeriesOf(fin));
     }
 
+    // ------------------------------------------------------------------
+    // Un prérequis ne nomme pas toujours une quête.
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// Le cas relevé sur le site : « La légende du Chevalier de l'Automne »
+    /// clôt « Un nouveau départ », et la seule chose qui mène au succès suivant
+    /// est le prérequis « Succès Un nouveau départ réalisé » porté par « Dans
+    /// les pas du Chevalier de l'Automne ». Ce libellé n'étant le titre d'aucune
+    /// quête, l'arête n'entrait pas dans le graphe et le bouton se taisait.
+    /// </summary>
+    [Fact]
+    public void Un_prerequis_qui_nomme_un_succes_relie_les_deux_series()
+    {
+        var destin = Rang("La découverte d’un destin", "Un nouveau départ", 1);
+        var devotion = Rang("Dévotion aux dieux", "Un nouveau départ", 2, "La découverte d’un destin");
+        var legende = Rang(
+            "La légende du chevalier de l’Automne", "Un nouveau départ", 3, "Dévotion aux dieux");
+        var pas = Rang(
+            "Dans les pas du Chevalier de l’Automne",
+            "Devenir une légende",
+            1,
+            "Succès Un nouveau départ réalisé");
+
+        var index = new QuestChainIndex([destin, devotion, legende, pas]);
+
+        Assert.Equal(pas.Url, index.NextSeriesOf(legende)?.Url);
+
+        // Exiger un succès entier, c'est exiger la quête qui le clôt : le lien
+        // vaut donc dans les deux sens.
+        Assert.Equal(pas.Url, index.NextOf(legende)?.Url);
+        Assert.Equal(legende.Url, index.PreviousOf(pas)?.Url);
+    }
+
+    /// <summary>Un jalon désigne la quête qui le pose, pas une autre.</summary>
+    [Fact]
+    public void Un_prerequis_de_jalon_relie_la_quete_qui_le_pose()
+    {
+        var lac = Quete("L’essentiel est dans le Lac gelé");
+        var suite = Quete("Les monologues du vaccin", prerequis: "L’essentiel est dans le Lac gelé atteint");
+
+        var index = new QuestChainIndex([lac, suite]);
+
+        Assert.Equal(suite.Url, index.NextOf(lac)?.Url);
+        Assert.Equal(lac.Url, index.PreviousOf(suite)?.Url);
+    }
+
+    /// <summary>
+    /// Un succès que le catalogue ne connaît pas ne relie rien : trois des
+    /// succès cités en prérequis n'existent nulle part ailleurs.
+    /// </summary>
+    [Fact]
+    public void Un_succes_inconnu_ne_relie_rien()
+    {
+        var seule = Quete("Le forage", "Forage à tout va", 1, "Succès Route 1 réalisé");
+        var index = new QuestChainIndex([seule]);
+
+        Assert.Null(index.PreviousOf(seule));
+    }
+
     [Fact]
     public void Une_quete_sans_succes_n_a_pas_de_serie_suivante() =>
         Assert.Null(new QuestChainIndex([Debuter]).NextSeriesOf(Debuter));

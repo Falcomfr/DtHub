@@ -14,6 +14,12 @@
 /// et dix-sept se ramifient, et n'en gagnent aucune : en choisir une au hasard
 /// mentirait sur ce que le site publie.
 ///
+/// Un prérequis ne nomme pas toujours une quête, et c'est <see cref="Resolve"/>
+/// qui le démêle. Les lire tous comme des titres laissait soixante-treize
+/// libellés sur cinq cent quatre-vingt-quatre sans effet, et huit succès
+/// s'achevaient sur un cul-de-sac faute de la seule arête qui menait au
+/// suivant.
+///
 /// Table construite une fois : la question se pose à chaque ouverture de quête,
 /// et parcourir le catalogue à chaque fois coûterait sept cent quatre-vingt-deux
 /// comparaisons pour une réponse.
@@ -23,6 +29,7 @@ public sealed class QuestChainIndex
     private readonly Dictionary<string, QuestSummary> _byTitle;
     private readonly Dictionary<string, List<QuestSummary>> _followers;
     private readonly Dictionary<string, IReadOnlyList<QuestSummary>> _bySuccess;
+    private readonly Dictionary<string, QuestSummary> _lastOfSuccess;
 
     public QuestChainIndex(IEnumerable<QuestSummary> quests)
     {
@@ -53,18 +60,31 @@ public sealed class QuestChainIndex
                 g => (IReadOnlyList<QuestSummary>)QuestPlayOrder.Sorted(g),
                 StringComparer.Ordinal);
 
+        // La dernière quête de chaque succès, par nom normalisé. Un prérequis
+        // qui cite un succès entier, « Succès Un nouveau départ réalisé »,
+        // désigne l'état où ce succès est acquis : la quête qui l'a clos.
+        _lastOfSuccess = [];
+
+        foreach (var (name, group) in _bySuccess)
+        {
+            if (group.Count > 0)
+            {
+                _lastOfSuccess[QuestSearch.Normalize(name)] = group[^1];
+            }
+        }
+
         _followers = [];
 
         foreach (var quest in all)
         {
             foreach (var need in quest.Prerequisites)
             {
-                var key = QuestSearch.Normalize(need);
-
-                if (key.Length == 0 || !_byTitle.ContainsKey(key))
+                if (Resolve(need) is not { } before)
                 {
                     continue;
                 }
+
+                var key = QuestSearch.Normalize(before.Title);
 
                 if (!_followers.TryGetValue(key, out var list))
                 {
@@ -75,6 +95,34 @@ public sealed class QuestChainIndex
                 list.Add(quest);
             }
         }
+    }
+
+    /// <summary>
+    /// La quête qu'un intitulé de prérequis désigne, ou <c>null</c>.
+    ///
+    /// Le titre nu et le jalon nomment la quête elle-même ; le succès nomme
+    /// celle qui le clôt, puisque l'exiger, c'est exiger tout ce qu'il contient.
+    /// Sans cette lecture, un prérequis sur huit ne reliait rien.
+    /// </summary>
+    private QuestSummary? Resolve(string? need)
+    {
+        var target = PrerequisiteLabel.Of(need);
+
+        if (target.Name.Length == 0)
+        {
+            return null;
+        }
+
+        var key = QuestSearch.Normalize(target.Name);
+
+        if (key.Length == 0)
+        {
+            return null;
+        }
+
+        return target.IsSuccess
+            ? _lastOfSuccess.GetValueOrDefault(key)
+            : _byTitle.GetValueOrDefault(key);
     }
 
     /// <summary>
@@ -92,8 +140,7 @@ public sealed class QuestChainIndex
 
         foreach (var need in quest.Prerequisites)
         {
-            if (!_byTitle.TryGetValue(QuestSearch.Normalize(need), out var found)
-                || Same(found, quest))
+            if (Resolve(need) is not { } found || Same(found, quest))
             {
                 continue;
             }

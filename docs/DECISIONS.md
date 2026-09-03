@@ -3154,3 +3154,102 @@ C'est le fait le plus déterminant, et il doit être dit plutôt que découvert 
 
 La règle est donc : traduire la coquille, pas le contenu, et annoncer les
 guides pour ce qu'ils sont.
+
+---
+
+## D81 - Le site sait où mène une quête, il suffit de l'écouter
+
+**2026-09-03 - Acceptée**
+
+Le bouton « quête suivante » disparaissait à la fin d'un succès, là où le site
+propose explicitement la première quête du succès d'après. Deux causes, l'une
+dans les données et l'autre dans le code, et toutes deux invisibles.
+
+### Un prérequis ne nomme pas toujours une quête
+
+Le site écrit ses prérequis de trois formes, relevées sur les 584 du catalogue :
+511 titres de quête nus, 35 jalons (« L'essentiel est dans le Lac gelé
+atteint ») et 38 succès entiers (« Succès Un nouveau départ réalisé »).
+`QuestChainIndex` les rapprochait tous des titres de quête et jetait en silence
+ceux qui ne correspondaient à rien.
+
+**Un prérequis sur huit ne reliait donc rien**, et c'était précisément la forme
+qui franchit la borne d'un succès : exiger un succès entier, c'est ce qu'écrit
+la première quête d'une nouvelle série. Le cas signalé n'avait pas d'autre
+cause.
+
+Le script d'extraction, lui, savait décoder ces formes depuis toujours,
+`build/extract-successes.py`, fonction `sans_marque` - mais il ne recopiait pas
+son résultat dans le fichier. La règle vivait du seul côté Python, et
+l'application ne pouvait pas la connaître. Elle a désormais son pendant C#,
+`PrerequisiteLabel`, employé par la chaîne comme par le rangement des zones, qui
+souffrait du même angle mort.
+
+**Exiger un succès, c'est exiger la quête qui le clôt.** C'est ce que
+`Resolve` en fait, et le lien vaut alors dans les deux sens.
+
+### La chaîne publiée par le site était lue puis jetée
+
+`QuestPageParser.ParseChain` lisait correctement le bloc `nav.pqt-progress`, et
+une épreuve le prouvait sur du vrai HTML. Mais dans la vue, la variable qui en
+recevait le résultat n'était **jamais relue**. Une affectation morte.
+
+Le choix était assumé par un commentaire : la chaîne du site « saute d'un succès
+à l'autre et se ramifie », donc on lui préférait la liste du succès. Le
+raisonnement tenait quand le site publiait ses prérequis en vrac. Il ne tient
+plus : le bloc est structuré en deux colonnes nommées, et il échouait
+exactement là où la liste n'a plus rien à dire.
+
+**Le site fait foi.** Il connaît sa progression mieux que l'ordre que nous
+recalculons, et les deux se contredisent parfois à l'intérieur même d'un succès.
+Notre ordre garde son emploi : il répond pendant que la page charge, et la page
+le corrige en arrivant.
+
+**Sauf quand la colonne nomme plusieurs quêtes** : en désigner une mentirait.
+C'est la règle qui valait déjà pour le graphe des prérequis, et le site ne donne
+aucun moyen de départager. Relevé : 79 colonnes « suivants » et 39 colonnes
+« précédents » en nomment plus d'une.
+
+### Ce que cela change, mesuré
+
+Sonde `build/sonde-voisines`, sur les 782 guides, en passant par le code livré.
+
+| | avant | après |
+| :-- | --: | --: |
+| succès s'achevant sur un cul-de-sac | 89 / 115 | **81 / 115** |
+| quêtes sans suivante, catalogue seul | 219 | 201 |
+| quêtes sans suivante, site compris | 205 | 197 |
+
+Et sur ce que le site corrige à l'arrivée de la page : 4 suivantes et
+2 précédentes apparaissent, 48 suivantes et 99 précédentes changent pour suivre
+l'ordre du site.
+
+**Des 81 succès qui restent sans suite, 77 sont muets sur le site lui-même** et
+4 s'y ramifient. Il n'y a donc plus rien à gagner sans inventer.
+
+### Ce qui a été écarté
+
+**Enchaîner les succès par `SuccessOrder`.** Cet ordre est calculé et stocké, et
+il aurait donné une suivante à tous les culs-de-sac. Mais c'est notre
+construction, tirée de l'ordre d'apparition sur les pages de rubrique, et non
+une affirmation du site : faire suivre le succès N par le N+1 aurait rempli les
+81 trous de réponses dont la plupart seraient fausses. Un bouton muet vaut mieux
+qu'un bouton qui ment.
+
+### Deux effets de bord
+
+**Le calcul des voisines descend dans le noyau**, `QuestNeighbourhood`. Il vivait
+dans la vue, que le projet d'épreuves n'atteint pas, et **rien ne le couvrait** :
+ni l'ordre des deux sources, ni le rang dans le succès, ni le silence en bout de
+liste. La sonde y accède maintenant aussi, ce qui permet de mesurer contre le
+code livré plutôt que contre une réimplémentation.
+
+**Le bloc de progression n'est plus masqué partout.** Il l'était dans toutes nos
+fenêtres, y compris celle des pages liées, qui n'a pas de pied à nous pour le
+remplacer : on y perdait la seule indication de suite sans rien donner en
+échange. Il ne disparaît plus que dans la fenêtre des guides, dont le pied la
+reprend - ce que le commentaire du pont promettait déjà sans que ce soit vrai.
+
+Enfin, la sonde du site exige désormais ce bloc et compte les guides qui nomment
+vraiment une suivante : le jour où le site le renomme, les deux boutons se
+tairaient sans que rien ne le dise.

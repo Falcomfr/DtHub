@@ -65,6 +65,13 @@ python3 build/extract-successes.py           # relever la carte des succès de p
 dotnet.exe run --project build/sonde-papycha
 dotnet.exe run --project build/sonde-papycha -- --benir   # rebénir le relevé
 
+# Ce que l'application propose comme quête voisine, comparé au bloc de
+# progression que le site publie en pied d'article. Diagnostic, sans relevé de
+# référence : elle interroge le site à chaque fois.
+dotnet.exe run --project build/sonde-voisines
+dotnet.exe run --project build/sonde-voisines -- --lister     # nommer les écarts
+dotnet.exe run --project build/sonde-voisines -- "chevalier"  # une quête en particulier
+
 # Chercher ce qui se recouvre dans une page du site, cadrée comme la fenêtre
 # des guides la cadre. À coller dans la console d'un navigateur, à la largeur
 # de la fenêtre. Voir l'en-tête du fichier.
