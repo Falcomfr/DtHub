@@ -1,4 +1,4 @@
-namespace DtHub.Core.Windows;
+﻿namespace DtHub.Core.Windows;
 
 /// <summary>
 /// La règle de forme d'une fenêtre qu'on étire à la souris : quel bord commande

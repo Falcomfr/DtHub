@@ -1,4 +1,4 @@
-using System.Windows.Markup;
+﻿using System.Windows.Markup;
 using DtHub.Core.Localization;
 
 namespace DtHub.App.Localization;

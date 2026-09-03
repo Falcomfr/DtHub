@@ -1,4 +1,4 @@
-namespace DtHub.Core.Papycha;
+﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
 /// Ce qu'on remplit à la place du lecteur dans le formulaire de signalement du

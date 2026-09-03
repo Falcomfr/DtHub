@@ -1,4 +1,4 @@
-namespace DtHub.Core.Dependencies;
+﻿namespace DtHub.Core.Dependencies;
 
 /// <summary>
 /// Description d'un composant tiers téléchargé chez l'utilisateur. Chaque

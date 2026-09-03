@@ -1,4 +1,4 @@
-// Sonde de développement : ce que l'application propose comme quête voisine,
+﻿// Sonde de développement : ce que l'application propose comme quête voisine,
 // comparé à ce que le site publie en pied d'article.
 //
 // Elle passe par le code livré, QuestNeighbourhood et QuestPageParser, et non

@@ -1,4 +1,4 @@
-using DtHub.Core.Scrcpy;
+﻿using DtHub.Core.Scrcpy;
 using DtHub.Core.Sessions;
 using DtHub.Tests.Fakes;
 

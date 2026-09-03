@@ -1,4 +1,4 @@
-namespace DtHub.Core.Android;
+﻿namespace DtHub.Core.Android;
 
 /// <summary>Un composant Android lançable, sous la forme <c>paquet/activité</c>.</summary>
 public sealed record AppComponent(string PackageName, string ClassName)

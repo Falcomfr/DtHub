@@ -1,4 +1,4 @@
-using DtHub.Core.Windows;
+﻿using DtHub.Core.Windows;
 
 namespace DtHub.Tests.Windows;
 
@@ -10,12 +10,12 @@ public sealed class WindowGeometryRestoreTests
 {
     private static MonitorInfo Monitor(
         string name, int x, int y, int width, int height, int taskbar = 0, bool primary = true) => new()
-    {
-        DeviceName = name,
-        Bounds = new ScreenRect(x, y, width, height),
-        WorkArea = new ScreenRect(x, y, width, height - taskbar),
-        IsPrimary = primary,
-    };
+        {
+            DeviceName = name,
+            Bounds = new ScreenRect(x, y, width, height),
+            WorkArea = new ScreenRect(x, y, width, height - taskbar),
+            IsPrimary = primary,
+        };
 
     [Fact]
     public void Un_ecran_identique_rend_le_rectangle_tel_quel()

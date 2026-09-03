@@ -1,4 +1,4 @@
-using DtHub.Core.Android;
+﻿using DtHub.Core.Android;
 
 namespace DtHub.Tests.Dofus;
 

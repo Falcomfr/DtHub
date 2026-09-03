@@ -1,4 +1,4 @@
-namespace DtHub.Core.Adb;
+﻿namespace DtHub.Core.Adb;
 
 /// <summary>
 /// Une ligne de <c>adb devices</c> ou <c>adb devices -l</c>, transcrite telle

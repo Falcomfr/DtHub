@@ -1,4 +1,4 @@
-using DtHub.Core.Diagnostics;
+﻿using DtHub.Core.Diagnostics;
 
 namespace DtHub.Tests.Diagnostics;
 

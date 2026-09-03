@@ -1,6 +1,6 @@
-using DtHub.Core.Scrcpy;
-using DtHub.Core.Settings;
+﻿using DtHub.Core.Scrcpy;
 using DtHub.Core.Sessions;
+using DtHub.Core.Settings;
 using DtHub.Core.Windows;
 using DtHub.Tests.Fakes;
 

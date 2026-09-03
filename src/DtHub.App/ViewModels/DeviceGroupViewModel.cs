@@ -74,14 +74,14 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     public string StatusText => HasNoGame
         ? Strings.Get("GameNotInstalled")
         : State switch
-    {
-        AdbDeviceState.Device => Strings.Get(
-            Connection == AdbConnectionKind.Usb ? "ConnectedByUsb" : "ConnectedByWifi"),
-        AdbDeviceState.Unauthorized => Strings.Get("ToAuthorizeOnPhone"),
-        AdbDeviceState.Offline => Strings.Get("Offline"),
-        AdbDeviceState.NoPermissions => Strings.Get("UsbDriverRefused"),
-        _ => Strings.Get("UnknownState"),
-    };
+        {
+            AdbDeviceState.Device => Strings.Get(
+                Connection == AdbConnectionKind.Usb ? "ConnectedByUsb" : "ConnectedByWifi"),
+            AdbDeviceState.Unauthorized => Strings.Get("ToAuthorizeOnPhone"),
+            AdbDeviceState.Offline => Strings.Get("Offline"),
+            AdbDeviceState.NoPermissions => Strings.Get("UsbDriverRefused"),
+            _ => Strings.Get("UnknownState"),
+        };
 
     public string StatusBrushKey => HasNoGame ? "WarningBrush" : State switch
     {

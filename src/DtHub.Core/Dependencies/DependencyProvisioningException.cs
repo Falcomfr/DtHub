@@ -1,4 +1,4 @@
-namespace DtHub.Core.Dependencies;
+﻿namespace DtHub.Core.Dependencies;
 
 /// <summary>Échec de mise en place d'un composant tiers.</summary>
 public sealed class DependencyProvisioningException : Exception

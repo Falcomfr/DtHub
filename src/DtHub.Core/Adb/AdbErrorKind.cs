@@ -1,4 +1,4 @@
-namespace DtHub.Core.Adb;
+﻿namespace DtHub.Core.Adb;
 
 /// <summary>
 /// Familles d'échecs ADB, telles qu'un utilisateur peut les comprendre. Sert à

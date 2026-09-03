@@ -1,4 +1,4 @@
-namespace DtHub.Core;
+﻿namespace DtHub.Core;
 
 /// <summary>
 /// Identité du produit. Point unique de renommage côté code.

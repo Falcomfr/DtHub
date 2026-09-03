@@ -1,4 +1,4 @@
-namespace DtHub.Core.Processes;
+﻿namespace DtHub.Core.Processes;
 
 /// <summary>Résultat d'un processus terminé, ou tué après expiration du délai.</summary>
 public sealed record ProcessResult

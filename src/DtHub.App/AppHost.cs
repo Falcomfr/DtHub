@@ -1,4 +1,4 @@
-namespace DtHub.App;
+﻿namespace DtHub.App;
 
 /// <summary>
 /// Accès au conteneur pour les rares cas où une fenêtre en ouvre une autre.

@@ -1,4 +1,4 @@
-using DtHub.Core.Sessions;
+﻿using DtHub.Core.Sessions;
 
 namespace DtHub.Tests.App;
 

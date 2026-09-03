@@ -3,12 +3,10 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
-
 using DtHub.App.Services;
-using DtHub.Core.Settings;
 using DtHub.App.ViewModels;
+using DtHub.Core.Settings;
 using DtHub.Core.Windows;
-
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DtHub.App.Windows;

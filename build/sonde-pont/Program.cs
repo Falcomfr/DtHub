@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 
 // Ce que faisait l'ancienne lecture du pont, sur ce qu'une page peut poster.
 string[] charges =

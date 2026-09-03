@@ -1,4 +1,4 @@
-namespace DtHub.Core.Android;
+﻿namespace DtHub.Core.Android;
 
 /// <summary>De quoi aller chercher une icône sur un téléphone précis.</summary>
 /// <param name="DeviceId">Identité stable de l'appareil, qui sert de clef.</param>

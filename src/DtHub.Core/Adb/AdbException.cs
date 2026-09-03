@@ -1,4 +1,4 @@
-namespace DtHub.Core.Adb;
+﻿namespace DtHub.Core.Adb;
 
 /// <summary>
 /// Échec d'une commande ADB. <see cref="UserMessage"/> est destiné à

@@ -1,4 +1,4 @@
-using DtHub.Core.Devices;
+﻿using DtHub.Core.Devices;
 using DtHub.Tests.Fakes;
 
 namespace DtHub.Tests.Devices;

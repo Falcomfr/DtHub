@@ -1,4 +1,4 @@
-namespace DtHub.Core.Sessions;
+﻿namespace DtHub.Core.Sessions;
 
 /// <summary>
 /// Ce qu'il faut pour ouvrir une session : un téléphone joignable, un profil

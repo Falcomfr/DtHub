@@ -1,4 +1,4 @@
-// Sonde de développement : passe un vrai fichier de réglages par la lecture et
+﻿// Sonde de développement : passe un vrai fichier de réglages par la lecture et
 // les migrations livrées, et dit ce qu'il devient.
 //
 // Elle sert à éprouver un fichier qu'on ne peut pas verser au dépôt : celui de

@@ -1,4 +1,4 @@
-namespace DtHub.Core.Android;
+﻿namespace DtHub.Core.Android;
 
 /// <summary>
 /// Ce qu'il faut faire d'un texte avant de le confier au shell du téléphone.

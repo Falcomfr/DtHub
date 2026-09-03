@@ -1,4 +1,4 @@
-using DtHub.Core.Adb;
+﻿using DtHub.Core.Adb;
 using DtHub.Core.Dofus;
 using DtHub.Core.Users;
 using DtHub.Tests.Fakes;

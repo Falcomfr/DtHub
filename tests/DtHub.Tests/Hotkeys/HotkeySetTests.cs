@@ -1,4 +1,4 @@
-using DtHub.Core.Hotkeys;
+﻿using DtHub.Core.Hotkeys;
 
 namespace DtHub.Tests.Hotkeys;
 

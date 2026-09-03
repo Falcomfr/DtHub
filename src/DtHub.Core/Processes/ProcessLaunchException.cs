@@ -1,4 +1,4 @@
-namespace DtHub.Core.Processes;
+﻿namespace DtHub.Core.Processes;
 
 /// <summary>
 /// Le processus n'a pas pu être démarré : exécutable absent, droits

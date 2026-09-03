@@ -1,4 +1,4 @@
-namespace DtHub.Core.Adb;
+﻿namespace DtHub.Core.Adb;
 
 /// <summary>
 /// Un service annoncé par le débogage sans fil sur le réseau local. Le nom

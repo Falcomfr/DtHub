@@ -1,7 +1,6 @@
-using System.Windows;
-
-using DtHub.Core.Localization;
+﻿using System.Windows;
 using DtHub.Core;
+using DtHub.Core.Localization;
 
 namespace DtHub.App.Services;
 
@@ -82,11 +81,11 @@ public sealed class DialogService : IDialogService
     public bool? ConfirmWithCancel(string message, string? title = null) =>
         MessageBox.Show(message, title ?? ProductInfo.Name, MessageBoxButton.YesNoCancel, MessageBoxImage.Question)
             switch
-            {
-                MessageBoxResult.Yes => true,
-                MessageBoxResult.No => false,
-                _ => null,
-            };
+        {
+            MessageBoxResult.Yes => true,
+            MessageBoxResult.No => false,
+            _ => null,
+        };
 
     public void OpenFolder(string path)
     {

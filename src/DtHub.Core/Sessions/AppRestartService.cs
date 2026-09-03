@@ -1,4 +1,4 @@
-using DtHub.Core.Scrcpy;
+﻿using DtHub.Core.Scrcpy;
 
 namespace DtHub.Core.Sessions;
 

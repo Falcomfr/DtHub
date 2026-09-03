@@ -1,4 +1,4 @@
-namespace DtHub.Core.Adb;
+﻿namespace DtHub.Core.Adb;
 
 /// <summary>Issue d'un <c>adb pair</c>.</summary>
 public sealed record AdbPairResult(bool Succeeded, string? DeviceGuid = null, string? FailureReason = null)

@@ -1,4 +1,4 @@
-namespace DtHub.Core.Adb;
+﻿namespace DtHub.Core.Adb;
 
 /// <summary>
 /// État rapporté par <c>adb devices</c>. La valeur brute est conservée à côté

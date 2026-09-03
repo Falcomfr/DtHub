@@ -1,4 +1,4 @@
-namespace DtHub.Core.Dependencies;
+﻿namespace DtHub.Core.Dependencies;
 
 /// <summary>Étape en cours, pour informer l'utilisateur pendant l'attente.</summary>
 public enum ProvisioningStage

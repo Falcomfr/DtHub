@@ -1,4 +1,4 @@
-namespace DtHub.Core.Hotkeys;
+﻿namespace DtHub.Core.Hotkeys;
 
 /// <summary>
 /// Les actions auxquelles un raccourci peut être associé. Volontairement peu

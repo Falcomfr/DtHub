@@ -1,4 +1,4 @@
-namespace DtHub.Core.Processes;
+﻿namespace DtHub.Core.Processes;
 
 /// <summary>
 /// Description d'un processus à exécuter. Les arguments sont passés sous forme

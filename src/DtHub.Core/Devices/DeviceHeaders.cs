@@ -1,4 +1,4 @@
-namespace DtHub.Core.Devices;
+﻿namespace DtHub.Core.Devices;
 
 /// <summary>
 /// Décide où poser un nom d'appareil dans une liste plate d'instances.

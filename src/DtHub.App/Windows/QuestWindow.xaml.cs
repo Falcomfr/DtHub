@@ -4,15 +4,14 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-
-using Microsoft.Web.WebView2.Core;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using DtHub.App.Services;
 using DtHub.App.ViewModels;
 using DtHub.Core.Localization;
-using DtHub.Core.Settings;
 using DtHub.Core.Papycha;
+using DtHub.Core.Settings;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Web.WebView2.Core;
 
 namespace DtHub.App.Windows;
 

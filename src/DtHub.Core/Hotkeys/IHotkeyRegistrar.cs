@@ -1,4 +1,4 @@
-namespace DtHub.Core.Hotkeys;
+﻿namespace DtHub.Core.Hotkeys;
 
 /// <summary>
 /// Enregistre les raccourcis auprès du système. L'enregistrement est

@@ -1,4 +1,4 @@
-using DtHub.Core.Android;
+﻿using DtHub.Core.Android;
 using DtHub.Infrastructure.Android;
 using DtHub.Tests.Fakes;
 

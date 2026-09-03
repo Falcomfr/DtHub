@@ -1,4 +1,4 @@
-namespace DtHub.Core.Sessions;
+﻿namespace DtHub.Core.Sessions;
 
 /// <summary>Issue d'une tentative d'ouverture du jeu.</summary>
 public sealed record AppLaunchResult(bool Succeeded, string? UserMessage = null, string? Details = null)

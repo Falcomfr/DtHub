@@ -1,4 +1,4 @@
-namespace DtHub.Core.Windows;
+﻿namespace DtHub.Core.Windows;
 
 /// <summary>
 /// Décide si une place retenue peut être rendue à une fenêtre.

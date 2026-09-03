@@ -1,4 +1,4 @@
-using DtHub.Core.Adb;
+﻿using DtHub.Core.Adb;
 using DtHub.Infrastructure.Adb;
 using DtHub.Tests.Fakes;
 

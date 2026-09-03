@@ -1,4 +1,4 @@
-namespace DtHub.Core.Dofus;
+﻿namespace DtHub.Core.Dofus;
 
 /// <summary>
 /// Une instance du jeu : un téléphone, un profil Android, une installation.

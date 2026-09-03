@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 
 using DtHub.App.Services;
 using DtHub.Core.Localization;

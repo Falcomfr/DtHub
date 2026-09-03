@@ -1,4 +1,4 @@
-namespace DtHub.Core.Settings;
+﻿namespace DtHub.Core.Settings;
 
 /// <summary>
 /// Tient l'ordre des instances dans les réglages.

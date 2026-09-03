@@ -1,4 +1,4 @@
-namespace DtHub.Core.Devices;
+﻿namespace DtHub.Core.Devices;
 
 /// <summary>
 /// Mémoire des appareils entre deux lancements : noms personnalisés, dernière

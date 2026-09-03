@@ -1,4 +1,4 @@
-namespace DtHub.Core.Devices;
+﻿namespace DtHub.Core.Devices;
 
 /// <summary>
 /// Lecture des propriétés système d'un téléphone. Chaque information utile

@@ -1,4 +1,4 @@
-namespace DtHub.Core.Windows;
+﻿namespace DtHub.Core.Windows;
 
 /// <summary>
 /// Rectangle en pixels écran. Défini ici plutôt que d'emprunter un type WPF :

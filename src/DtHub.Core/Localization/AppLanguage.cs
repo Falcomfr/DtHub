@@ -1,4 +1,4 @@
-namespace DtHub.Core.Localization;
+﻿namespace DtHub.Core.Localization;
 
 /// <summary>
 /// Choisit la langue de l'interface.

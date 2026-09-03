@@ -8,20 +8,35 @@
 # aujourd'hui, et c'est un état qui ne se tient que s'il est exigé.
 name: Contrôle
 
+# Toutes les branches, et non la seule principale : une poussée sur une branche
+# de travail n'était contrôlée qu'au moment d'ouvrir une demande de tirage.
 on:
   push:
-    branches:
-      - main
   pull_request:
+
+# Le jeton n'a rien à écrire. Sans ce bloc, il hérite du réglage du dépôt, qui
+# accorde souvent l'écriture, et cette chaîne se déclenche sur du code de
+# contributeur.
+permissions:
+  contents: read
+
+# Une poussée qui en suit une autre annule la précédente : rien ne sert
+# d'éprouver un état déjà dépassé.
+concurrency:
+  group: controle-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   controler:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # Épinglées par empreinte et non par étiquette : une étiquette se
+      # déplace, et l'en-tête de la chaîne de livraison se félicite de
+      # n'emprunter de code à personne.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           dotnet-version: '10.0.x'
 
@@ -30,3 +45,10 @@ jobs:
 
       - name: Éprouver
         run: dotnet test DtHub.slnx --configuration Release --nologo --no-build
+
+      # En dernier : un écart de forme ne doit pas masquer une épreuve rouge.
+      # Le .editorconfig décrivait un projet qui n'existait pas, et ce contrôle
+      # aurait échoué sur mille neuf cent cinquante-six faux positifs avant
+      # qu'il soit remis d'aplomb.
+      - name: Contrôler la forme
+        run: dotnet format DtHub.slnx --verify-no-changes --no-restore

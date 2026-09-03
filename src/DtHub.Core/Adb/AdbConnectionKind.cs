@@ -1,4 +1,4 @@
-namespace DtHub.Core.Adb;
+﻿namespace DtHub.Core.Adb;
 
 /// <summary>Manière dont l'appareil est rattaché à l'hôte.</summary>
 public enum AdbConnectionKind

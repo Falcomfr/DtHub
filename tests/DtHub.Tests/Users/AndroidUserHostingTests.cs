@@ -1,4 +1,4 @@
-using DtHub.Core.Users;
+﻿using DtHub.Core.Users;
 
 namespace DtHub.Tests.Users;
 

@@ -1,4 +1,4 @@
-namespace DtHub.Core.Hotkeys;
+﻿namespace DtHub.Core.Hotkeys;
 
 /// <summary>
 /// L'ensemble des raccourcis, avec la validation qui va avec. Immuable : toute

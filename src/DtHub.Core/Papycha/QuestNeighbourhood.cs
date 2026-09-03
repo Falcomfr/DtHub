@@ -1,4 +1,4 @@
-namespace DtHub.Core.Papycha;
+﻿namespace DtHub.Core.Papycha;
 
 /// <summary>Ce qui précède et ce qui suit une quête, et son rang dans son succès.</summary>
 /// <param name="Previous">La quête d'avant, ou <c>null</c>.</param>

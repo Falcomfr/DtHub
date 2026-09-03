@@ -1,4 +1,4 @@
-namespace DtHub.Core.Devices;
+﻿namespace DtHub.Core.Devices;
 
 /// <summary>
 /// Résultat d'un balayage. Les avertissements portent les incidents non

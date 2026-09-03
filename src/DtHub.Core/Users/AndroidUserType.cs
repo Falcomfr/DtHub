@@ -1,4 +1,4 @@
-namespace DtHub.Core.Users;
+﻿namespace DtHub.Core.Users;
 
 /// <summary>
 /// Nature d'un utilisateur Android. Elle est déduite des drapeaux rapportés

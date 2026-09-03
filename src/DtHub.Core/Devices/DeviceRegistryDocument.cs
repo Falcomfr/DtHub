@@ -1,4 +1,4 @@
-namespace DtHub.Core.Devices;
+﻿namespace DtHub.Core.Devices;
 
 /// <summary>
 /// Forme persistée de <c>devices.json</c>. Volontairement distincte du modèle

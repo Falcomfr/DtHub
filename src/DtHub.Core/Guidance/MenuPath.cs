@@ -1,4 +1,4 @@
-namespace DtHub.Core.Guidance;
+﻿namespace DtHub.Core.Guidance;
 
 /// <summary>
 /// Un écran de réglages dessiné : son titre, la ligne qu'on y touche, et la

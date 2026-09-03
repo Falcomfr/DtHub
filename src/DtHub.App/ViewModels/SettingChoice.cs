@@ -1,4 +1,4 @@
-namespace DtHub.App.ViewModels;
+﻿namespace DtHub.App.ViewModels;
 
 /// <summary>
 /// Un choix de liste déroulante : ce qui s'affiche, et ce qui est retenu.

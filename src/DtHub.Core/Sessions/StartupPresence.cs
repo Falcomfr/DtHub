@@ -1,4 +1,4 @@
-namespace DtHub.Core.Sessions;
+﻿namespace DtHub.Core.Sessions;
 
 /// <summary>
 /// Décide de ce qui paraît au démarrage.

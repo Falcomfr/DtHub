@@ -1,4 +1,4 @@
-namespace DtHub.Core.Storage;
+﻿namespace DtHub.Core.Storage;
 
 /// <summary>
 /// Valeur à retenir quand un fichier de configuration porte un nom

@@ -1,4 +1,4 @@
-namespace DtHub.Core.Windows;
+﻿namespace DtHub.Core.Windows;
 
 /// <summary>Un écran Windows et sa zone utilisable, barre des tâches exclue.</summary>
 public sealed record MonitorInfo

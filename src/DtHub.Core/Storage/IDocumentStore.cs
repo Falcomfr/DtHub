@@ -1,4 +1,4 @@
-namespace DtHub.Core.Storage;
+﻿namespace DtHub.Core.Storage;
 
 /// <summary>
 /// Persistance d'un document de configuration. Un fichier illisible ne doit

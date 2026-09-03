@@ -1,4 +1,4 @@
-using DtHub.Core.Scrcpy;
+﻿using DtHub.Core.Scrcpy;
 using DtHub.Core.Settings;
 
 namespace DtHub.Core.Windows;
@@ -597,7 +597,7 @@ public sealed class WindowManagerService
                 1 => windows[0],
                 _ => windows.FirstOrDefault(
                          w => string.Equals(w.Title, session.WindowTitle, StringComparison.Ordinal)) is
-                     { Handle: not 0 } titled
+                { Handle: not 0 } titled
                     ? titled
                     : windows[0],
             };

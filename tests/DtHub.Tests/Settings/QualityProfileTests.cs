@@ -1,4 +1,4 @@
-using DtHub.Core.Settings;
+﻿using DtHub.Core.Settings;
 
 namespace DtHub.Tests.Settings;
 

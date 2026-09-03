@@ -1,37 +1,35 @@
 ﻿using System.IO;
 using System.Net.Http;
 using System.Reflection;
-
 using DtHub.App.Services;
 using DtHub.App.ViewModels;
 using DtHub.App.Windows;
 using DtHub.Core.Adb;
-using DtHub.Infrastructure.Android;
 using DtHub.Core.Android;
 using DtHub.Core.Dependencies;
 using DtHub.Core.Devices;
 using DtHub.Core.Dofus;
 using DtHub.Core.Hotkeys;
+using DtHub.Core.Papycha;
 using DtHub.Core.Processes;
 using DtHub.Core.Scrcpy;
 using DtHub.Core.Sessions;
-using DtHub.Core.Papycha;
-using DtHub.Core.Updates;
 using DtHub.Core.Settings;
 using DtHub.Core.Storage;
+using DtHub.Core.Updates;
 using DtHub.Core.Users;
 using DtHub.Core.Windows;
 using DtHub.Infrastructure.Adb;
+using DtHub.Infrastructure.Android;
 using DtHub.Infrastructure.Dependencies;
 using DtHub.Infrastructure.Devices;
 using DtHub.Infrastructure.Hotkeys;
 using DtHub.Infrastructure.Papycha;
-using DtHub.Infrastructure.Updates;
 using DtHub.Infrastructure.Processes;
 using DtHub.Infrastructure.Scrcpy;
 using DtHub.Infrastructure.Storage;
+using DtHub.Infrastructure.Updates;
 using DtHub.Infrastructure.Windows;
-
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 

@@ -1,4 +1,4 @@
-// Sonde de développement : combien de succès le site range vraiment.
+﻿// Sonde de développement : combien de succès le site range vraiment.
 //
 // Elle passe par le service, donc par le code livré, et non par une
 // réimplémentation qui pourrait se tromper d'accord avec elle-même.

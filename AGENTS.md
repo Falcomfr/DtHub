@@ -57,6 +57,14 @@ Prérequis : .NET SDK 10, Git, GitHub CLI. `winget` sert à les installer.
 dotnet.exe build DtHub.slnx                 # compilation complète
 dotnet.exe test  DtHub.slnx                 # tests unitaires
 dotnet.exe run --project src/DtHub.App      # lancer l'application
+# Couverture de code, à la demande. Le paquet coverlet est référencé pour cela.
+# Attention à la lecture : trente-six pour cent des lignes mesurées sont
+# engendrées par [GeneratedRegex] et tirent le chiffre vers le bas, et
+# DtHub.App n'est pas référencé par le projet d'épreuves, donc il n'y figure
+# pas du tout.
+dotnet.exe test tests/DtHub.Tests/DtHub.Tests.csproj -c Release \
+  --collect:"XPlat Code Coverage" --results-directory "$TEMP/dthub-cov"
+
 python3 build/make-icon.py                  # régénérer assets/app.ico
 python3 build/extract-successes.py           # relever la carte des succès de papycha
 

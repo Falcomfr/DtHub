@@ -1,4 +1,4 @@
-namespace DtHub.Core.Dofus;
+﻿namespace DtHub.Core.Dofus;
 
 /// <summary>
 /// Ce qu'a donné une tentative d'ajout de compte, prêt à être affiché.

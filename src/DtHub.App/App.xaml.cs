@@ -2,7 +2,6 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Threading;
-
 using DtHub.App.Services;
 using DtHub.App.ViewModels;
 using DtHub.App.Windows;
@@ -10,20 +9,18 @@ using DtHub.Core;
 using DtHub.Core.Devices;
 using DtHub.Core.Diagnostics;
 using DtHub.Core.Localization;
+using DtHub.Core.Scrcpy;
 using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
+using DtHub.Core.Storage;
 using DtHub.Core.Updates;
 using DtHub.Core.Windows;
-using DtHub.Infrastructure.Updates;
-using DtHub.Core.Storage;
 using DtHub.Infrastructure.Processes;
 using DtHub.Infrastructure.Storage;
-using DtHub.Core.Scrcpy;
-
+using DtHub.Infrastructure.Updates;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-
 using Serilog;
 
 namespace DtHub.App;

@@ -1,4 +1,4 @@
-namespace DtHub.Core.Diagnostics;
+﻿namespace DtHub.Core.Diagnostics;
 
 /// <summary>
 /// L'identifiant de ce lancement, porté par chaque ligne de journal.

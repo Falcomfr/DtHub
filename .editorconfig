@@ -1,8 +1,7 @@
 root = true
 
 [*]
-charset = utf-8
-end_of_line = lf
+charset = utf-8-bom
 insert_final_newline = true
 indent_style = space
 indent_size = 4
@@ -18,7 +17,6 @@ trim_trailing_whitespace = false
 dotnet_sort_system_directives_first = true
 csharp_using_directive_placement = outside_namespace:suggestion
 csharp_style_namespace_declarations = file_scoped:suggestion
-dotnet_diagnostic.CA1416.severity = none
 
 # Les noms de tests décrivent un comportement en français : les underscores
 # sont volontaires et lisibles, on désactive donc CA1707 sur ce projet.
@@ -36,3 +34,19 @@ dotnet_diagnostic.CA1873.severity = none
 # instances pour l'injection de dépendances. CA1822 n'a donc pas de sens ici.
 [src/DtHub.App/**/*.cs]
 dotnet_diagnostic.CA1822.severity = none
+
+# CA1416 signale un appel réservé à une plateforme. Il est éteint là où appeler
+# Windows est le métier du projet, et laissé actif ailleurs : c'est lui qui
+# préviendrait qu'un appel Windows s'est glissé dans DtHub.Core, ce que la règle
+# d'architecture interdit. Éteint partout, il ne protégeait plus rien.
+[src/DtHub.App/**/*.cs]
+dotnet_diagnostic.CA1416.severity = none
+
+[src/DtHub.Infrastructure/**/*.cs]
+dotnet_diagnostic.CA1416.severity = none
+
+[build/**/*.cs]
+dotnet_diagnostic.CA1416.severity = none
+
+[tests/**/*.cs]
+dotnet_diagnostic.CA1416.severity = none

@@ -27,17 +27,24 @@ jobs:
       SIGNING_COMMAND: ${{ secrets.SIGNING_COMMAND }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           dotnet-version: '10.0.x'
 
+      # L'étiquette passe par l'environnement, jamais par interpolation dans
+      # le corps du script : un nom d'étiquette autorise le guillemet et le
+      # point-virgule, et PowerShell exécuterait ce qu'on y aurait mis. Il faut
+      # déjà le droit de pousser une étiquette pour en profiter, donc ce n'est
+      # pas une élévation, mais la forme sûre ne coûte rien.
       - name: Version portée par l'étiquette
         id: version
         shell: pwsh
+        env:
+          ETIQUETTE: ${{ github.ref_name }}
         run: |
-          $version = "${{ github.ref_name }}" -replace '^v', ''
+          $version = $env:ETIQUETTE -replace '^v', ''
           "numero=$version" >> $env:GITHUB_OUTPUT
 
       - name: Éprouver
@@ -45,10 +52,13 @@ jobs:
 
       # Les options vivent dans le profil, seul endroit où elles sont écrites.
       - name: Publier
+        shell: pwsh
+        env:
+          VERSION: ${{ steps.version.outputs.numero }}
         run: >
           dotnet publish src/DtHub.App
           -p:PublishProfile=win-x64
-          -p:Version=${{ steps.version.outputs.numero }}
+          "-p:Version=$env:VERSION"
           --output publication
           --nologo
 
@@ -121,6 +131,8 @@ jobs:
 
       - name: Note de version
         shell: pwsh
+        env:
+          VERSION: ${{ steps.version.outputs.numero }}
         run: |
           # La note vient du journal des modifications, section de la version
           # livrée. Écrite une fois, lue par le dépôt et par l'application.
@@ -129,12 +141,12 @@ jobs:
           $note = @()
 
           foreach ($ligne in $lignes) {
-            if ($ligne -match '^## \[${{ steps.version.outputs.numero }}\]') { $debut = $true; continue }
+            if ($ligne -match ('^## \[' + [regex]::Escape($env:VERSION) + '\]')) { $debut = $true; continue }
             if ($debut -and $ligne -match '^## ') { break }
             if ($debut) { $note += $ligne }
           }
 
-          if (-not $debut) { throw "Le journal ne décrit pas la version ${{ steps.version.outputs.numero }}." }
+          if (-not $debut) { throw "Le journal ne décrit pas la version $env:VERSION." }
 
           ($note -join "`n").Trim() | Set-Content note.md
 
@@ -142,9 +154,11 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
+          ETIQUETTE: ${{ github.ref_name }}
+          VERSION: ${{ steps.version.outputs.numero }}
         run: >
-          gh release create ${{ github.ref_name }}
+          gh release create $env:ETIQUETTE
           publication/DtHub.exe
           publication/DtHub.exe.sha256
-          --title "DT Hub ${{ steps.version.outputs.numero }}"
+          --title "DT Hub $env:VERSION"
           --notes-file note.md

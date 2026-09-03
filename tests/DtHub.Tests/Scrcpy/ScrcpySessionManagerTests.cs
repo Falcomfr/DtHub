@@ -1,7 +1,7 @@
+﻿using DtHub.Core;
 using DtHub.Core.Processes;
-using DtHub.Core.Sessions;
-using DtHub.Core;
 using DtHub.Core.Scrcpy;
+using DtHub.Core.Sessions;
 using DtHub.Tests.Fakes;
 
 namespace DtHub.Tests.Scrcpy;

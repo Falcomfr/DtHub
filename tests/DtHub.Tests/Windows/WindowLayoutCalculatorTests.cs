@@ -1,4 +1,4 @@
-using DtHub.Core.Windows;
+﻿using DtHub.Core.Windows;
 
 namespace DtHub.Tests.Windows;
 
