@@ -198,7 +198,19 @@ public partial class App : Application, IDisposable
 
         var report = await launcher.LaunchEnabledAsync().ConfigureAwait(true);
 
-        _shape.Tick += (_, _) => launcher.Watch();
+        _shape.Tick += (_, _) =>
+        {
+            // Même raison que pour le sondage du panneau : le palier de qualité
+            // se change en cours de route, et l'intervalle posé au démarrage ne
+            // suivait pas.
+            if (_shape.Interval != launcher.Quality.WindowWatch)
+            {
+                _shape.Interval = launcher.Quality.WindowWatch;
+            }
+
+            launcher.Watch();
+        };
+
         _shape.Interval = launcher.Quality.WindowWatch;
         _shape.Start();
 

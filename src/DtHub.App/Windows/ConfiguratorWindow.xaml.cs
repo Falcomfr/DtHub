@@ -35,14 +35,44 @@ public partial class ConfiguratorWindow : Window
         InitializeComponent();
         DataContext = viewModel;
 
-        Loaded += async (_, _) =>
+        Loaded += async (_, _) => await _viewModel.LoadAsync(CancellationToken.None).ConfigureAwait(true);
+
+        // Le sondage suit la visibilité, et non le chargement. Il ne s'arrêtait
+        // jamais : la croix masque au lieu de fermer, donc OnClosing rendait la
+        // main avant le Stop, et Toggle masque sans passer par là du tout. Un
+        // panneau caché continuait donc d'interroger le téléphone.
+        //
+        // Ce que cela coûtait, mesuré : un tic déclenche jusqu'à sept appels à
+        // adb.exe, à cinquante-cinq millisecondes pièce. Sur une soirée de
+        // quatre heures avec le panneau masqué, cela fait des milliers de
+        // lancements pour une fenêtre que personne ne regarde, chacun
+        // réveillant le gestionnaire de paquets du téléphone.
+        IsVisibleChanged += (_, e) =>
         {
-            await _viewModel.LoadAsync(CancellationToken.None).ConfigureAwait(true);
-            _poll.Start();
+            if (e.NewValue is true)
+            {
+                _poll.Start();
+            }
+            else
+            {
+                _poll.Stop();
+            }
         };
 
         _poll.Interval = _viewModel.Instances.PollInterval;
-        _poll.Tick += async (_, _) => await _viewModel.PollAsync(CancellationToken.None).ConfigureAwait(true);
+        _poll.Tick += async (_, _) =>
+        {
+            // La cadence suit le palier de qualité, qui se change en cours de
+            // route : posée une fois pour toutes au démarrage, elle gardait sa
+            // valeur d'origine jusqu'à la prochaine exécution, et le réglage
+            // n'avait aucun effet.
+            if (_poll.Interval != _viewModel.Instances.PollInterval)
+            {
+                _poll.Interval = _viewModel.Instances.PollInterval;
+            }
+
+            await _viewModel.PollAsync(CancellationToken.None).ConfigureAwait(true);
+        };
     }
 
     /// <summary>
