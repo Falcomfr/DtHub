@@ -41,9 +41,18 @@ l'adresse est celle d'un dépôt public, l'empreinte est vérifiée avant que le
 fichier ne serve, et rien ne s'exécute avant le lancement suivant. Cela ne
 convaincra pas une heuristique, cela convaincra un analyste.
 
-**Le téléchargement d'ADB et de scrcpy.** Dix-huit mégaoctets d'outils tiers, pris
-aux sources officielles, empreintes vérifiées, adresses centralisées dans
-`build/dependencies.json`. Un analyste vérifiera ce fichier.
+Il faut dire ce que cette empreinte garantit et ce qu'elle ne garantit pas :
+elle est lue dans le fichier `.sha256` de la **même** livraison. Elle protège
+donc du transport, d'un téléchargement tronqué ou altéré en chemin. Elle ne
+protège pas de la publication d'une fausse livraison, qui porterait sa propre
+empreinte. Ce qui protège de cela est le code public, et la signature quand
+elle existera.
+
+**Le téléchargement d'ADB et de scrcpy.** Dix-neuf mégaoctets d'outils tiers,
+pris aux sources officielles, empreintes vérifiées, adresses centralisées dans
+`build/dependencies.json`. Un analyste vérifiera ce fichier. L'utilisateur, lui,
+voit au premier lancement une fenêtre qui nomme chaque composant, son éditeur et
+l'adresse d'où il vient, puis montre le téléchargement et la vérification.
 
 **Le fichier unique auto-extractible.** Un exécutable qui se décompresse
 ressemble à un binaire empaqueté. C'est la forme normale d'une application .NET

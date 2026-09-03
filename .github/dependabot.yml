@@ -1,0 +1,21 @@
+# Les mises à jour arrivent en demande de tirage, où la chaîne les éprouve.
+# Regroupées, parce qu'un dépôt tenu par une seule personne n'a rien à gagner
+# à recevoir sept demandes le même matin.
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    groups:
+      dependances:
+        patterns: ["*"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]

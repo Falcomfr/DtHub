@@ -45,6 +45,15 @@ window on your PC.
 - **A floating configurator**, shown or hidden with `Ctrl+P`, holding the
   window position, the device list and the shortcuts.
 - **Clipboard sync** both ways, through scrcpy's own mechanism.
+- **A quest guide**, opened with `Ctrl+Q`, that reads
+  [papycha.fr](https://papycha.fr) beside the game and remembers where you
+  stopped. It shows the site's own pages; it never plays for you.
+- **English, French and Spanish**, following your Windows display language, and
+  English for anything else.
+- **A report you can send.** When something fails, DT Hub shows what happened
+  and hands you a report you can paste anywhere: serial numbers, addresses,
+  account names and your Windows user name are stripped out of it first.
+  Nothing is ever sent on its own.
 
 ## What it deliberately does not do
 
@@ -78,7 +87,7 @@ Android 11 and later, phone and PC on the same network.
 1. In **Developer options**, enable **Wireless debugging**.
 2. Tap **Pair device with pairing code**.
 3. DT Hub finds the phone on the network and fills in its address and port.
-   Type the six digit code and press **Associer**.
+   Type the six digit code and press **Pair**.
 
 Afterwards it reconnects on its own at every launch, even when the phone's
 port changes after a reboot.
@@ -91,6 +100,10 @@ port changes after a reboot.
 | `Ctrl+Tab` | Next instance |
 | `Ctrl+Shift+Tab` | Previous instance |
 | `Ctrl+R` | Put every window back in place |
+| `Ctrl+T` | Tile the windows side by side |
+| `Ctrl+1` … `Ctrl+4` | Resize every window to one of four steps |
+| `Ctrl+5` | Full screen |
+| `Ctrl+Q` | Show or hide the quest guide |
 | `Ctrl+0` | Close every window |
 
 Shortcuts only apply while a DT Hub window is focused, so `Ctrl+Tab` keeps
@@ -109,10 +122,11 @@ that folder to reset everything.
 - Wireless pairing needs Android 11 or later. USB works further back.
 - Virtual displays need Android 11 or later.
 - A cloned Android profile must exist on the phone; DT Hub does not create one.
-- Real app icons are not shown, and cannot be with the tools available. See
-  decision D6 in [docs/DECISIONS.md](docs/DECISIONS.md).
 - The first launch needs an internet connection, once: 19 MB of tools, with a
   window showing what is being fetched.
+- DT Hub asks GitHub whether a newer version exists every time it starts. It
+  never installs anything without asking, and the **Automatic updates** setting
+  decides whether the new version is prepared or merely announced.
 - The guide windows need Microsoft's WebView2, which ships with Windows 11 and
   reaches Windows 10 through Edge. Without it, DT Hub says so and everything
   else still works.
@@ -141,6 +155,13 @@ dependency URL is listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 Shortcuts use `RegisterHotKey`, not a keyboard hook: only the combinations you
 configured are ever intercepted, and only while a DT Hub window is focused.
+
+## Contribuer, signaler
+
+Les défauts se signalent par une [issue](https://github.com/Falcomfr/DtHub/issues/new/choose) ;
+l'application sait composer un rapport déjà biffé de ce qui vous identifie.
+Une faille se signale en privé, voir [SECURITY.md](SECURITY.md). Les conventions
+du dépôt sont dans [CONTRIBUTING.md](CONTRIBUTING.md) et `AGENTS.md`.
 
 ## Licences
 
