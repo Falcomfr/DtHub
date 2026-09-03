@@ -1,5 +1,7 @@
 using System.Globalization;
 
+using DtHub.Core.Localization;
+
 namespace DtHub.Core.Settings;
 
 /// <summary>Ce que vaut un débit, une fois rapporté à ce qu'il doit couvrir.</summary>
@@ -128,10 +130,10 @@ public static class BitrateAdvice
     /// <summary>Mot du verdict, tel qu'il s'affiche.</summary>
     public static string Label(BitrateVerdict verdict) => verdict switch
     {
-        BitrateVerdict.Insufficient => "insuffisant",
-        BitrateVerdict.Tight => "juste",
-        BitrateVerdict.Comfortable => "confortable",
-        _ => "généreux",
+        BitrateVerdict.Insufficient => Strings.Get("BitrateInsufficient"),
+        BitrateVerdict.Tight => Strings.Get("BitrateTight"),
+        BitrateVerdict.Comfortable => Strings.Get("BitrateComfortable"),
+        _ => Strings.Get("BitrateGenerous"),
     };
 
     private static bool IsHevc(string? codec) =>
@@ -156,14 +158,14 @@ public static class BitrateAdvice
     /// </summary>
     private static string LinkSentence(int perWindowKbps, int windows)
     {
-        var fr = CultureInfo.GetCultureInfo("fr-FR");
         var each = perWindowKbps / 1000.0;
 
+        // Le format des nombres suit le pays et non la langue : « 8,4 » en
+        // France, « 8.4 » aux États-Unis, et ce sont deux réglages distincts
+        // de Windows. Strings.Format s'en charge.
         return windows <= 1
-            ? string.Create(fr, $"au plus {each:0.#} Mb/s sur la liaison")
-            : string.Create(
-                fr,
-                $"au plus {each:0.#} Mb/s par fenêtre, {each * windows:0.#} Mb/s à {windows} comptes");
+            ? Strings.Format("BitrateLinkOne", Arrondi(each))
+            : Strings.Format("BitrateLinkMany", Arrondi(each), Arrondi(each * windows), windows);
     }
 
     /// <summary>
@@ -171,9 +173,14 @@ public static class BitrateAdvice
     /// décimale n'est pas un détail quand le nombre tient en trois chiffres.
     /// </summary>
     private static string Sentence(double bitsPerPixel, BitrateVerdict verdict) =>
-        string.Create(
-            CultureInfo.GetCultureInfo("fr-FR"),
-            $"{bitsPerPixel:0.000} bit par pixel et par image, {Label(verdict)}");
+        Strings.Format(
+            "BitrateSentence",
+            bitsPerPixel.ToString("0.000", CultureInfo.CurrentCulture),
+            Label(verdict));
+
+    /// <summary>Un mégabit à la décimale près, dans le format du pays.</summary>
+    private static string Arrondi(double megabits) =>
+        megabits.ToString("0.#", CultureInfo.CurrentCulture);
 }
 
 /// <summary>

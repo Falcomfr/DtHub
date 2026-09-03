@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using DtHub.App.Services;
 using DtHub.App.ViewModels;
+using DtHub.Core.Localization;
 using DtHub.Core.Settings;
 using DtHub.Core.Papycha;
 
@@ -148,7 +149,7 @@ public partial class QuestWindow : Window
             var page = AppHost.Services.GetRequiredService<QuestPageWindow>();
 
             await page
-                .ShowReportAsync(demande.Url, "Remonter une erreur sur Papycha", demande.Location)
+                .ShowReportAsync(demande.Url, Strings.Get("ReportOnPapycha"), demande.Location)
                 .ConfigureAwait(true);
 
             LogReportOpened(demande.Url);

@@ -797,4 +797,271 @@
   <data name="PhoneConnected" xml:space="preserve">
     <value>Phone connected.</value>
   </data>
+  <data name="FinesseThrifty" xml:space="preserve">
+    <value>Thrifty, 0.06</value>
+  </data>
+  <data name="FinesseStandard" xml:space="preserve">
+    <value>Standard, 0.09</value>
+  </data>
+  <data name="FinesseFine" xml:space="preserve">
+    <value>Fine, 0.12</value>
+  </data>
+  <data name="FinesseVeryFine" xml:space="preserve">
+    <value>Very fine, 0.16</value>
+  </data>
+  <data name="CodecH265" xml:space="preserve">
+    <value>H.265, better at equal bitrate</value>
+  </data>
+  <data name="Disclaimer" xml:space="preserve">
+    <value>Independent project, not affiliated with Ankama.</value>
+  </data>
+  <data name="NothingToRearrange" xml:space="preserve">
+    <value>No game window to move.</value>
+  </data>
+  <data name="NothingToTile" xml:space="preserve">
+    <value>No game window to lay out.</value>
+  </data>
+  <data name="UpdateReadyNotes" xml:space="preserve">
+    <value>This version is ready. It will install when you quit.</value>
+  </data>
+  <data name="UpdateAvailableNotes" xml:space="preserve">
+    <value>This version is available.</value>
+  </data>
+  <data name="UpdateJustInstalled" xml:space="preserve">
+    <value>This version has just been installed.</value>
+  </data>
+  <data name="UpdateReadyBanner" xml:space="preserve">
+    <value>Version {0} ready, it will install when you quit.</value>
+  </data>
+  <data name="UpdateAvailableBanner" xml:space="preserve">
+    <value>Version {0} available.</value>
+  </data>
+  <data name="StartupFailed" xml:space="preserve">
+    <value>Startup failed.</value>
+  </data>
+  <data name="UnexpectedError" xml:space="preserve">
+    <value>An unexpected error occurred.</value>
+  </data>
+  <data name="ErrorDetailsInLogs" xml:space="preserve">
+    <value>
+
+The detail is in the logs:
+{0}</value>
+  </data>
+  <data name="ProfileClosesOthers" xml:space="preserve">
+    <value>The game windows that are not part of it will be closed.</value>
+  </data>
+  <data name="NothingToRemember" xml:space="preserve">
+    <value>No account is open: there is nothing to remember. Open the accounts of the profile, then create it.</value>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Create</value>
+  </data>
+  <data name="ProfileNeedsName" xml:space="preserve">
+    <value>A profile needs a name.</value>
+  </data>
+  <data name="OnlyTheRowGoes" xml:space="preserve">
+    <value>The accounts are not touched, only the row disappears.</value>
+  </data>
+  <data name="AddAccountQuestion" xml:space="preserve">
+    <value>Add the account “{0}” on {1}?</value>
+  </data>
+  <data name="ForgetDeviceQuestion" xml:space="preserve">
+    <value>Break the pairing with {0}?</value>
+  </data>
+  <data name="ForgetDeviceConsequence" xml:space="preserve">
+    <value>Its instances and their settings will be erased.</value>
+  </data>
+  <data name="GameNotInstalled" xml:space="preserve">
+    <value>Game not installed</value>
+  </data>
+  <data name="ConnectedByUsb" xml:space="preserve">
+    <value>Connected by USB</value>
+  </data>
+  <data name="ConnectedByWifi" xml:space="preserve">
+    <value>Connected by Wi-Fi</value>
+  </data>
+  <data name="ToAuthorizeOnPhone" xml:space="preserve">
+    <value>To be authorised on the phone</value>
+  </data>
+  <data name="UsbDriverRefused" xml:space="preserve">
+    <value>USB driver refused</value>
+  </data>
+  <data name="NoPairingCodeYet" xml:space="preserve">
+    <value>No phone is showing a pairing code right now.</value>
+  </data>
+  <data name="EnterSixDigitCode" xml:space="preserve">
+    <value>Enter the six-digit code shown on the phone.</value>
+  </data>
+  <data name="PhonePaired" xml:space="preserve">
+    <value>Phone paired. It will connect on its own, now and at every start.</value>
+  </data>
+  <data name="NoInstanceChecked" xml:space="preserve">
+    <value>No instance is ticked.</value>
+  </data>
+  <data name="PhoneNotConnectedNamed" xml:space="preserve">
+    <value>{0}: the phone is not connected.</value>
+  </data>
+  <data name="PhoneNotConnected" xml:space="preserve">
+    <value>The phone is not connected.</value>
+  </data>
+  <data name="TitleHintSettings" xml:space="preserve">
+    <value>{0}: settings</value>
+  </data>
+  <data name="TitleHintNextWindow" xml:space="preserve">
+    <value>{0}: next window</value>
+  </data>
+  <data name="FolderDoesNotExistYet" xml:space="preserve">
+    <value>The folder does not exist yet:
+{0}</value>
+  </data>
+  <data name="ClipboardBusy" xml:space="preserve">
+    <value>The clipboard is held by another program. Try again in a moment.</value>
+  </data>
+  <data name="ReportOnPapycha" xml:space="preserve">
+    <value>Report an error on Papycha</value>
+  </data>
+  <data name="OpenProfileQuestion" xml:space="preserve">
+    <value>Open the profile “{0}”?</value>
+  </data>
+  <data name="OpenProfileTitle" xml:space="preserve">
+    <value>Open the profile</value>
+  </data>
+  <data name="ProfileNameQuestion" xml:space="preserve">
+    <value>Under what name should this profile be remembered?</value>
+  </data>
+  <data name="DeleteProfileQuestion" xml:space="preserve">
+    <value>Delete the profile “{0}”?</value>
+  </data>
+  <data name="DeleteProfileTitle" xml:space="preserve">
+    <value>Delete the profile</value>
+  </data>
+  <data name="AddAccountTitle" xml:space="preserve">
+    <value>Add an account</value>
+  </data>
+  <data name="AddAccountConsequence" xml:space="preserve">
+    <value>A fresh Android profile will be created on the phone, with the game in it. It will open like a new installation: the game will ask again for its resources and for your login.</value>
+  </data>
+  <data name="ForgetDeviceTitle" xml:space="preserve">
+    <value>Break the pairing</value>
+  </data>
+  <data name="Offline" xml:space="preserve">
+    <value>Offline</value>
+  </data>
+  <data name="UnknownState" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="WebViewMissingFull" xml:space="preserve">
+    <value>Microsoft's WebView2 component is missing from this Windows.
+It installs in a few seconds from {0}
+The rest of the application works without it.</value>
+  </data>
+  <data name="NoAccount" xml:space="preserve">
+    <value>no account</value>
+  </data>
+  <data name="NoKnownAccount" xml:space="preserve">
+    <value>no known account</value>
+  </data>
+  <data name="AccountCount" xml:space="preserve">
+    <value>{0} accounts</value>
+  </data>
+  <data name="QualityLowWord" xml:space="preserve">
+    <value>low quality</value>
+  </data>
+  <data name="QualityMediumWord" xml:space="preserve">
+    <value>medium quality</value>
+  </data>
+  <data name="QualityHighWord" xml:space="preserve">
+    <value>high quality</value>
+  </data>
+  <data name="QualityCustomWord" xml:space="preserve">
+    <value>custom quality</value>
+  </data>
+  <data name="ZoomVeryFarWord" xml:space="preserve">
+    <value>very far</value>
+  </data>
+  <data name="ZoomFarWord" xml:space="preserve">
+    <value>far</value>
+  </data>
+  <data name="ZoomNormalWord" xml:space="preserve">
+    <value>normal</value>
+  </data>
+  <data name="ZoomCloseWord" xml:space="preserve">
+    <value>close</value>
+  </data>
+  <data name="ProfileAccountsOne" xml:space="preserve">
+    <value>the open account</value>
+  </data>
+  <data name="ProfileAccountsMany" xml:space="preserve">
+    <value>the {0} open accounts</value>
+  </data>
+  <data name="SoundToPc" xml:space="preserve">
+    <value>sent back to the PC</value>
+  </data>
+  <data name="SoundOff" xml:space="preserve">
+    <value>off</value>
+  </data>
+  <data name="ProfileAnnounce" xml:space="preserve">
+    <value>This profile will remember {0}, the position and the size of their windows, {1}, the {2} distance and the sound {3}.</value>
+  </data>
+  <data name="ProfileTabbedOne" xml:space="preserve">
+    <value>The account housed in the tabbed frame will go back to it, frame in its place.</value>
+  </data>
+  <data name="ProfileTabbedMany" xml:space="preserve">
+    <value>The {0} accounts housed in the tabbed frame will go back to it, frame in its place.</value>
+  </data>
+  <data name="BitrateInsufficient" xml:space="preserve">
+    <value>insufficient</value>
+  </data>
+  <data name="BitrateTight" xml:space="preserve">
+    <value>tight</value>
+  </data>
+  <data name="BitrateComfortable" xml:space="preserve">
+    <value>comfortable</value>
+  </data>
+  <data name="BitrateGenerous" xml:space="preserve">
+    <value>generous</value>
+  </data>
+  <data name="BitrateLinkOne" xml:space="preserve">
+    <value>at most {0} Mb/s on the link</value>
+  </data>
+  <data name="BitrateLinkMany" xml:space="preserve">
+    <value>at most {0} Mb/s per window, {1} Mb/s at {2} accounts</value>
+  </data>
+  <data name="BitrateSentence" xml:space="preserve">
+    <value>{0} bit per pixel per frame, {1}</value>
+  </data>
+  <data name="DisplayFitSentence" xml:space="preserve">
+    <value>your windows run at {0} × {1}</value>
+  </data>
+  <data name="DisplayFitCapped" xml:space="preserve">
+    <value>, beyond that this setting changes nothing</value>
+  </data>
+  <data name="AnchorTopLeft" xml:space="preserve">
+    <value>Top left</value>
+  </data>
+  <data name="AnchorTopCenter" xml:space="preserve">
+    <value>Top centre</value>
+  </data>
+  <data name="AnchorTopRight" xml:space="preserve">
+    <value>Top right</value>
+  </data>
+  <data name="AnchorMiddleLeft" xml:space="preserve">
+    <value>Left</value>
+  </data>
+  <data name="AnchorCenter" xml:space="preserve">
+    <value>Centre</value>
+  </data>
+  <data name="AnchorMiddleRight" xml:space="preserve">
+    <value>Right</value>
+  </data>
+  <data name="AnchorBottomLeft" xml:space="preserve">
+    <value>Bottom left</value>
+  </data>
+  <data name="AnchorBottomCenter" xml:space="preserve">
+    <value>Bottom centre</value>
+  </data>
+  <data name="AnchorBottomRight" xml:space="preserve">
+    <value>Bottom right</value>
+  </data>
 </root>

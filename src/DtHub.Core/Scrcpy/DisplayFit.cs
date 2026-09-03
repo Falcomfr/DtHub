@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 
+using DtHub.Core.Localization;
+
 namespace DtHub.Core.Scrcpy;
 
 /// <summary>
@@ -58,15 +60,12 @@ public static partial class DisplayFit
             return string.Empty;
         }
 
-        var fr = CultureInfo.GetCultureInfo("fr-FR");
-
-        var phrase = string.Create(
-            fr, $"vos fenêtres tournent en {display.Width} × {display.Height}");
+        var phrase = Strings.Format("DisplayFitSentence", display.Width, display.Height);
 
         // Le plafond ne peut que rabaisser : au-dessus de ce qui sert, il est
         // sans effet, et le dire évite de payer pour rien en le montant.
         return chosenHeight > display.Height
-            ? phrase + ", au-delà ce réglage ne change rien"
+            ? phrase + Strings.Get("DisplayFitCapped")
             : phrase;
     }
 

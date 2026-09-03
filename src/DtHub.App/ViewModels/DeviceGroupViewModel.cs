@@ -2,6 +2,7 @@
 
 using DtHub.Core.Adb;
 using DtHub.Core.Devices;
+using DtHub.Core.Localization;
 
 namespace DtHub.App.ViewModels;
 
@@ -71,14 +72,15 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     }
 
     public string StatusText => HasNoGame
-        ? "Jeu non installé"
+        ? Strings.Get("GameNotInstalled")
         : State switch
     {
-        AdbDeviceState.Device => Connection == AdbConnectionKind.Usb ? "Connecté en USB" : "Connecté en Wi-Fi",
-        AdbDeviceState.Unauthorized => "À autoriser sur le téléphone",
-        AdbDeviceState.Offline => "Hors ligne",
-        AdbDeviceState.NoPermissions => "Pilote USB refusé",
-        _ => "Inconnu",
+        AdbDeviceState.Device => Strings.Get(
+            Connection == AdbConnectionKind.Usb ? "ConnectedByUsb" : "ConnectedByWifi"),
+        AdbDeviceState.Unauthorized => Strings.Get("ToAuthorizeOnPhone"),
+        AdbDeviceState.Offline => Strings.Get("Offline"),
+        AdbDeviceState.NoPermissions => Strings.Get("UsbDriverRefused"),
+        _ => Strings.Get("UnknownState"),
     };
 
     public string StatusBrushKey => HasNoGame ? "WarningBrush" : State switch

@@ -797,4 +797,271 @@
   <data name="PhoneConnected" xml:space="preserve">
     <value>Teléfono conectado.</value>
   </data>
+  <data name="FinesseThrifty" xml:space="preserve">
+    <value>Ahorrativa, 0,06</value>
+  </data>
+  <data name="FinesseStandard" xml:space="preserve">
+    <value>Estándar, 0,09</value>
+  </data>
+  <data name="FinesseFine" xml:space="preserve">
+    <value>Fina, 0,12</value>
+  </data>
+  <data name="FinesseVeryFine" xml:space="preserve">
+    <value>Muy fina, 0,16</value>
+  </data>
+  <data name="CodecH265" xml:space="preserve">
+    <value>H.265, mejor a igual tasa de bits</value>
+  </data>
+  <data name="Disclaimer" xml:space="preserve">
+    <value>Proyecto independiente, sin vínculo con Ankama.</value>
+  </data>
+  <data name="NothingToRearrange" xml:space="preserve">
+    <value>Ninguna ventana de juego que recolocar.</value>
+  </data>
+  <data name="NothingToTile" xml:space="preserve">
+    <value>Ninguna ventana de juego que colocar.</value>
+  </data>
+  <data name="UpdateReadyNotes" xml:space="preserve">
+    <value>Esta versión está lista. Se instalará cuando salgas.</value>
+  </data>
+  <data name="UpdateAvailableNotes" xml:space="preserve">
+    <value>Esta versión está disponible.</value>
+  </data>
+  <data name="UpdateJustInstalled" xml:space="preserve">
+    <value>Esta versión acaba de instalarse.</value>
+  </data>
+  <data name="UpdateReadyBanner" xml:space="preserve">
+    <value>Versión {0} lista, se instalará al salir.</value>
+  </data>
+  <data name="UpdateAvailableBanner" xml:space="preserve">
+    <value>Versión {0} disponible.</value>
+  </data>
+  <data name="StartupFailed" xml:space="preserve">
+    <value>El arranque ha fallado.</value>
+  </data>
+  <data name="UnexpectedError" xml:space="preserve">
+    <value>Se ha producido un error inesperado.</value>
+  </data>
+  <data name="ErrorDetailsInLogs" xml:space="preserve">
+    <value>
+
+El detalle está en los registros:
+{0}</value>
+  </data>
+  <data name="ProfileClosesOthers" xml:space="preserve">
+    <value>Las ventanas de juego que no formen parte se cerrarán.</value>
+  </data>
+  <data name="NothingToRemember" xml:space="preserve">
+    <value>No hay ninguna cuenta abierta: no hay nada que guardar. Abre las cuentas del perfil y créalo después.</value>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Crear</value>
+  </data>
+  <data name="ProfileNeedsName" xml:space="preserve">
+    <value>Un perfil necesita un nombre.</value>
+  </data>
+  <data name="OnlyTheRowGoes" xml:space="preserve">
+    <value>Las cuentas no se tocan, solo desaparece la fila.</value>
+  </data>
+  <data name="AddAccountQuestion" xml:space="preserve">
+    <value>¿Añadir la cuenta «{0}» en {1}?</value>
+  </data>
+  <data name="ForgetDeviceQuestion" xml:space="preserve">
+    <value>¿Romper la vinculación con {0}?</value>
+  </data>
+  <data name="ForgetDeviceConsequence" xml:space="preserve">
+    <value>Sus instancias y sus ajustes se borrarán.</value>
+  </data>
+  <data name="GameNotInstalled" xml:space="preserve">
+    <value>Juego no instalado</value>
+  </data>
+  <data name="ConnectedByUsb" xml:space="preserve">
+    <value>Conectado por USB</value>
+  </data>
+  <data name="ConnectedByWifi" xml:space="preserve">
+    <value>Conectado por Wi-Fi</value>
+  </data>
+  <data name="ToAuthorizeOnPhone" xml:space="preserve">
+    <value>Pendiente de autorizar en el teléfono</value>
+  </data>
+  <data name="UsbDriverRefused" xml:space="preserve">
+    <value>Controlador USB rechazado</value>
+  </data>
+  <data name="NoPairingCodeYet" xml:space="preserve">
+    <value>Ningún teléfono muestra un código de vinculación por ahora.</value>
+  </data>
+  <data name="EnterSixDigitCode" xml:space="preserve">
+    <value>Escribe el código de seis cifras que aparece en el teléfono.</value>
+  </data>
+  <data name="PhonePaired" xml:space="preserve">
+    <value>Teléfono vinculado. Se conectará solo, ahora y en cada arranque.</value>
+  </data>
+  <data name="NoInstanceChecked" xml:space="preserve">
+    <value>No hay ninguna instancia marcada.</value>
+  </data>
+  <data name="PhoneNotConnectedNamed" xml:space="preserve">
+    <value>{0}: el teléfono no está conectado.</value>
+  </data>
+  <data name="PhoneNotConnected" xml:space="preserve">
+    <value>El teléfono no está conectado.</value>
+  </data>
+  <data name="TitleHintSettings" xml:space="preserve">
+    <value>{0}: ajustes</value>
+  </data>
+  <data name="TitleHintNextWindow" xml:space="preserve">
+    <value>{0}: ventana siguiente</value>
+  </data>
+  <data name="FolderDoesNotExistYet" xml:space="preserve">
+    <value>La carpeta aún no existe:
+{0}</value>
+  </data>
+  <data name="ClipboardBusy" xml:space="preserve">
+    <value>El portapapeles lo está usando otro programa. Inténtalo dentro de un momento.</value>
+  </data>
+  <data name="ReportOnPapycha" xml:space="preserve">
+    <value>Informar de un error en Papycha</value>
+  </data>
+  <data name="OpenProfileQuestion" xml:space="preserve">
+    <value>¿Abrir el perfil «{0}»?</value>
+  </data>
+  <data name="OpenProfileTitle" xml:space="preserve">
+    <value>Abrir el perfil</value>
+  </data>
+  <data name="ProfileNameQuestion" xml:space="preserve">
+    <value>¿Con qué nombre guardar este perfil?</value>
+  </data>
+  <data name="DeleteProfileQuestion" xml:space="preserve">
+    <value>¿Eliminar el perfil «{0}»?</value>
+  </data>
+  <data name="DeleteProfileTitle" xml:space="preserve">
+    <value>Eliminar el perfil</value>
+  </data>
+  <data name="AddAccountTitle" xml:space="preserve">
+    <value>Añadir una cuenta</value>
+  </data>
+  <data name="AddAccountConsequence" xml:space="preserve">
+    <value>Se creará un perfil de Android nuevo en el teléfono, con el juego dentro. Se abrirá como una instalación nueva: el juego volverá a pedir sus recursos y tu conexión.</value>
+  </data>
+  <data name="ForgetDeviceTitle" xml:space="preserve">
+    <value>Romper la vinculación</value>
+  </data>
+  <data name="Offline" xml:space="preserve">
+    <value>Sin conexión</value>
+  </data>
+  <data name="UnknownState" xml:space="preserve">
+    <value>Desconocido</value>
+  </data>
+  <data name="WebViewMissingFull" xml:space="preserve">
+    <value>Falta el componente WebView2 de Microsoft en este Windows.
+Se instala en unos segundos desde {0}
+El resto de la aplicación funciona sin él.</value>
+  </data>
+  <data name="NoAccount" xml:space="preserve">
+    <value>ninguna cuenta</value>
+  </data>
+  <data name="NoKnownAccount" xml:space="preserve">
+    <value>ninguna cuenta conocida</value>
+  </data>
+  <data name="AccountCount" xml:space="preserve">
+    <value>{0} cuentas</value>
+  </data>
+  <data name="QualityLowWord" xml:space="preserve">
+    <value>calidad baja</value>
+  </data>
+  <data name="QualityMediumWord" xml:space="preserve">
+    <value>calidad media</value>
+  </data>
+  <data name="QualityHighWord" xml:space="preserve">
+    <value>calidad alta</value>
+  </data>
+  <data name="QualityCustomWord" xml:space="preserve">
+    <value>calidad personalizada</value>
+  </data>
+  <data name="ZoomVeryFarWord" xml:space="preserve">
+    <value>muy lejana</value>
+  </data>
+  <data name="ZoomFarWord" xml:space="preserve">
+    <value>lejana</value>
+  </data>
+  <data name="ZoomNormalWord" xml:space="preserve">
+    <value>normal</value>
+  </data>
+  <data name="ZoomCloseWord" xml:space="preserve">
+    <value>cercana</value>
+  </data>
+  <data name="ProfileAccountsOne" xml:space="preserve">
+    <value>la cuenta abierta</value>
+  </data>
+  <data name="ProfileAccountsMany" xml:space="preserve">
+    <value>las {0} cuentas abiertas</value>
+  </data>
+  <data name="SoundToPc" xml:space="preserve">
+    <value>enviado al PC</value>
+  </data>
+  <data name="SoundOff" xml:space="preserve">
+    <value>cortado</value>
+  </data>
+  <data name="ProfileAnnounce" xml:space="preserve">
+    <value>Este perfil guardará {0}, la posición y el tamaño de sus ventanas, la {1}, la distancia {2} y el sonido {3}.</value>
+  </data>
+  <data name="ProfileTabbedOne" xml:space="preserve">
+    <value>La cuenta alojada en el marco con pestañas volverá a él, con el marco en su sitio.</value>
+  </data>
+  <data name="ProfileTabbedMany" xml:space="preserve">
+    <value>Las {0} cuentas alojadas en el marco con pestañas volverán a él, con el marco en su sitio.</value>
+  </data>
+  <data name="BitrateInsufficient" xml:space="preserve">
+    <value>insuficiente</value>
+  </data>
+  <data name="BitrateTight" xml:space="preserve">
+    <value>justo</value>
+  </data>
+  <data name="BitrateComfortable" xml:space="preserve">
+    <value>cómodo</value>
+  </data>
+  <data name="BitrateGenerous" xml:space="preserve">
+    <value>generoso</value>
+  </data>
+  <data name="BitrateLinkOne" xml:space="preserve">
+    <value>como mucho {0} Mb/s en el enlace</value>
+  </data>
+  <data name="BitrateLinkMany" xml:space="preserve">
+    <value>como mucho {0} Mb/s por ventana, {1} Mb/s con {2} cuentas</value>
+  </data>
+  <data name="BitrateSentence" xml:space="preserve">
+    <value>{0} bit por píxel y por imagen, {1}</value>
+  </data>
+  <data name="DisplayFitSentence" xml:space="preserve">
+    <value>tus ventanas van a {0} × {1}</value>
+  </data>
+  <data name="DisplayFitCapped" xml:space="preserve">
+    <value>, más allá este ajuste no cambia nada</value>
+  </data>
+  <data name="AnchorTopLeft" xml:space="preserve">
+    <value>Arriba a la izquierda</value>
+  </data>
+  <data name="AnchorTopCenter" xml:space="preserve">
+    <value>Arriba en el centro</value>
+  </data>
+  <data name="AnchorTopRight" xml:space="preserve">
+    <value>Arriba a la derecha</value>
+  </data>
+  <data name="AnchorMiddleLeft" xml:space="preserve">
+    <value>A la izquierda</value>
+  </data>
+  <data name="AnchorCenter" xml:space="preserve">
+    <value>En el centro</value>
+  </data>
+  <data name="AnchorMiddleRight" xml:space="preserve">
+    <value>A la derecha</value>
+  </data>
+  <data name="AnchorBottomLeft" xml:space="preserve">
+    <value>Abajo a la izquierda</value>
+  </data>
+  <data name="AnchorBottomCenter" xml:space="preserve">
+    <value>Abajo en el centro</value>
+  </data>
+  <data name="AnchorBottomRight" xml:space="preserve">
+    <value>Abajo a la derecha</value>
+  </data>
 </root>

@@ -1,5 +1,6 @@
 using System.Windows;
 
+using DtHub.Core.Localization;
 using DtHub.Core;
 
 namespace DtHub.App.Services;
@@ -91,7 +92,7 @@ public sealed class DialogService : IDialogService
     {
         if (!System.IO.Directory.Exists(path))
         {
-            ShowWarning($"Le dossier n'existe pas encore :\n{path}");
+            ShowWarning(Strings.Format("FolderDoesNotExistYet", path));
             return;
         }
 
@@ -119,7 +120,7 @@ public sealed class DialogService : IDialogService
         {
             // Le presse-papiers est momentanément verrouillé par un autre
             // logiciel : ce n'est pas une raison de faire échouer l'action.
-            ShowWarning("Le presse-papiers est occupé par un autre logiciel. Réessayez dans un instant.");
+            ShowWarning(Strings.Get("ClipboardBusy"));
         }
     }
 

@@ -1,5 +1,6 @@
 ﻿using System.IO;
 
+using DtHub.Core.Localization;
 using DtHub.Core.Storage;
 
 using Microsoft.Extensions.Logging;
@@ -103,10 +104,9 @@ public sealed partial class WebViewEnvironment(IAppPaths paths, ILogger<WebViewE
         LogMissing();
 
         throw new WebView2RuntimeNotFoundException(
-            "Le composant WebView2 de Microsoft est absent de ce Windows.\n"
-            + "Il s'installe en quelques secondes depuis "
-            + "https://developer.microsoft.com/microsoft-edge/webview2/\n"
-            + "Le reste de l'application fonctionne sans lui.");
+            Strings.Format(
+                "WebViewMissingFull",
+                "https://developer.microsoft.com/microsoft-edge/webview2/"));
     }
 
     /// <summary>

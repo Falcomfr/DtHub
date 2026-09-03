@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 
 using DtHub.Core.Adb;
 using DtHub.Core.Devices;
+using DtHub.Core.Localization;
 
 namespace DtHub.App.ViewModels;
 
@@ -122,14 +123,14 @@ public sealed partial class AddDeviceViewModel : ObservableObject
     {
         if (SelectedCandidate is not { } candidate)
         {
-            Status = "Aucun téléphone n'affiche de code d'association pour l'instant.";
+            Status = Strings.Get("NoPairingCodeYet");
             return;
         }
 
         var code = PairingCode.Trim();
         if (code.Length == 0)
         {
-            Status = "Saisissez le code à six chiffres affiché sur le téléphone.";
+            Status = Strings.Get("EnterSixDigitCode");
             return;
         }
 
@@ -210,7 +211,7 @@ public sealed partial class AddDeviceViewModel : ObservableObject
         NeedsPort = result.NeedsPort;
 
         Status = result.Connected
-            ? "Téléphone associé. Il se connectera tout seul, maintenant et à chaque lancement."
+            ? Strings.Get("PhonePaired")
             : result.UserMessage;
 
         if (result.Connected)

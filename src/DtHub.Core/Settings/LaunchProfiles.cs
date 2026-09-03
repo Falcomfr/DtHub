@@ -1,5 +1,7 @@
 using System.Globalization;
 
+using DtHub.Core.Localization;
+
 namespace DtHub.Core.Settings;
 
 /// <summary>
@@ -97,7 +99,7 @@ public static class LaunchProfiles
     {
         if (profile?.InstanceKeys is not { Count: > 0 })
         {
-            return "aucun compte";
+            return Strings.Get("NoAccount");
         }
 
         List<StoredInstance> all = [.. instances ?? []];
@@ -109,12 +111,12 @@ public static class LaunchProfiles
 
         if (names.Count == 0)
         {
-            return "aucun compte connu";
+            return Strings.Get("NoKnownAccount");
         }
 
         var comptes = names.Count <= NamedAtMost
             ? string.Join(" + ", names)
-            : string.Create(CultureInfo.GetCultureInfo("fr-FR"), $"{names.Count} comptes");
+            : Strings.Format("AccountCount", names.Count);
 
         // La qualité n'est dite que si elle sort de l'ordinaire : la rappeler à
         // chaque profil noierait le nom des comptes, qui est ce qu'on cherche.
@@ -139,17 +141,20 @@ public static class LaunchProfiles
         int tabbed,
         bool audio)
     {
-        var fr = CultureInfo.GetCultureInfo("fr-FR");
-
+        // L'article vit dans le gabarit de chaque langue et non dans
+        // l'étiquette : « la qualité haute » en français, « high quality » sans
+        // article en anglais. Coller l'article au mot rendait la phrase
+        // intraduisible, le genre n'étant pas le même d'une langue à l'autre.
         var comptes = accounts <= 1
-            ? "le compte ouvert"
-            : string.Create(fr, $"les {accounts} comptes ouverts");
+            ? Strings.Get("ProfileAccountsOne")
+            : Strings.Format("ProfileAccountsMany", accounts);
 
-        var phrase = string.Create(
-            fr,
-            $"Ce profil retiendra {comptes}, la position et la taille de leurs fenêtres, "
-            + $"la {QualityLabel(quality)}, la distance {ZoomLabel(zoom)} et le son "
-            + $"{(audio ? "renvoyé sur le PC" : "coupé")}.");
+        var phrase = Strings.Format(
+            "ProfileAnnounce",
+            comptes,
+            QualityLabel(quality),
+            ZoomLabel(zoom),
+            Strings.Get(audio ? "SoundToPc" : "SoundOff"));
 
         if (tabbed <= 0)
         {
@@ -157,10 +162,8 @@ public static class LaunchProfiles
         }
 
         var onglets = tabbed <= 1
-            ? "Le compte logé dans le cadre à onglets y retournera, cadre à sa place."
-            : string.Create(
-                fr,
-                $"Les {tabbed} comptes logés dans le cadre à onglets y retourneront, cadre à sa place.");
+            ? Strings.Get("ProfileTabbedOne")
+            : Strings.Format("ProfileTabbedMany", tabbed);
 
         return $"{phrase} {onglets}";
     }
@@ -168,19 +171,19 @@ public static class LaunchProfiles
     /// <summary>Le mot de la distance, tel qu'il paraît dans le panneau.</summary>
     private static string ZoomLabel(GameZoom zoom) => zoom switch
     {
-        GameZoom.Widest => "très éloignée",
-        GameZoom.Wide => "éloignée",
-        GameZoom.Close => "proche",
-        _ => "normale",
+        GameZoom.Widest => Strings.Get("ZoomVeryFarWord"),
+        GameZoom.Wide => Strings.Get("ZoomFarWord"),
+        GameZoom.Close => Strings.Get("ZoomCloseWord"),
+        _ => Strings.Get("ZoomNormalWord"),
     };
 
     /// <summary>Le mot du palier, tel qu'il paraît dans le panneau.</summary>
     private static string QualityLabel(StreamQuality quality) => quality switch
     {
-        StreamQuality.Low => "qualité basse",
-        StreamQuality.Maximum => "qualité haute",
-        StreamQuality.Custom => "qualité personnalisée",
-        _ => "qualité moyenne",
+        StreamQuality.Low => Strings.Get("QualityLowWord"),
+        StreamQuality.Maximum => Strings.Get("QualityHighWord"),
+        StreamQuality.Custom => Strings.Get("QualityCustomWord"),
+        _ => Strings.Get("QualityMediumWord"),
     };
 
     /// <summary>Le nom choisi par l'utilisateur, à défaut celui du profil Android.</summary>

@@ -3,6 +3,7 @@ using DtHub.Core.Devices;
 using DtHub.Core.Dofus;
 using DtHub.Core.Guidance;
 using DtHub.Core.Hotkeys;
+using DtHub.Core.Localization;
 using DtHub.Core.Scrcpy;
 using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
@@ -338,7 +339,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         if (enabled.Count == 0)
         {
-            return new LaunchReport(0, ["Aucune instance n'est cochée."]);
+            return new LaunchReport(0, [Strings.Get("NoInstanceChecked")]);
         }
 
         return await LaunchAsync(enabled, cancellationToken).ConfigureAwait(false);
@@ -393,7 +394,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             if (!devices.TryGetValue(instance.DeviceId, out var device))
             {
-                problems.Add($"{instance.DisplayName} : le téléphone n'est pas connecté.");
+                problems.Add(Strings.Format("PhoneNotConnectedNamed", instance.DisplayName));
                 continue;
             }
 
@@ -630,7 +631,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         if (!devices.TryGetValue(deviceId, out var device))
         {
-            return new AccountAddition(false, "Le téléphone n'est pas connecté.");
+            return new AccountAddition(false, Strings.Get("PhoneNotConnected"));
         }
 
         var result = await _instances
@@ -1142,12 +1143,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         if (hotkeys.For(HotkeyAction.ToggleConfigurator) is { IsAssigned: true } toggle)
         {
-            parts.Add($"{toggle.DisplayText} : réglages");
+            parts.Add(Strings.Format("TitleHintSettings", toggle.DisplayText));
         }
 
         if (hotkeys.For(HotkeyAction.NextInstance) is { IsAssigned: true } next)
         {
-            parts.Add($"{next.DisplayText} : fenêtre suivante");
+            parts.Add(Strings.Format("TitleHintNextWindow", next.DisplayText));
         }
 
         return parts.Count > 0 ? string.Join("  ·  ", parts) : null;

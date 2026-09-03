@@ -1,3 +1,5 @@
+using DtHub.Core.Localization;
+
 namespace DtHub.Core.Windows;
 
 /// <summary>
@@ -32,15 +34,15 @@ public static class WindowAnchors
     /// <summary>Libellé court, pour les infobulles.</summary>
     public static string Describe(WindowAnchor anchor) => anchor switch
     {
-        WindowAnchor.TopLeft => "En haut à gauche",
-        WindowAnchor.TopCenter => "En haut au centre",
-        WindowAnchor.TopRight => "En haut à droite",
-        WindowAnchor.MiddleLeft => "À gauche",
-        WindowAnchor.Center => "Au centre",
-        WindowAnchor.MiddleRight => "À droite",
-        WindowAnchor.BottomLeft => "En bas à gauche",
-        WindowAnchor.BottomCenter => "En bas au centre",
-        WindowAnchor.BottomRight => "En bas à droite",
+        WindowAnchor.TopLeft => Strings.Get("AnchorTopLeft"),
+        WindowAnchor.TopCenter => Strings.Get("AnchorTopCenter"),
+        WindowAnchor.TopRight => Strings.Get("AnchorTopRight"),
+        WindowAnchor.MiddleLeft => Strings.Get("AnchorMiddleLeft"),
+        WindowAnchor.Center => Strings.Get("AnchorCenter"),
+        WindowAnchor.MiddleRight => Strings.Get("AnchorMiddleRight"),
+        WindowAnchor.BottomLeft => Strings.Get("AnchorBottomLeft"),
+        WindowAnchor.BottomCenter => Strings.Get("AnchorBottomCenter"),
+        WindowAnchor.BottomRight => Strings.Get("AnchorBottomRight"),
         _ => anchor.ToString(),
     };
 

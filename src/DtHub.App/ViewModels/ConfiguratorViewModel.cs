@@ -298,10 +298,10 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// </summary>
     public IReadOnlyList<DoubleChoice> FinesseChoices { get; } =
     [
-        new("Économe, 0,06", 0.06),
-        new("Standard, 0,09", 0.09),
-        new("Fine, 0,12", 0.12),
-        new("Très fine, 0,16", 0.16),
+        new(Strings.Get("FinesseThrifty"), 0.06),
+        new(Strings.Get("FinesseStandard"), 0.09),
+        new(Strings.Get("FinesseFine"), 0.12),
+        new(Strings.Get("FinesseVeryFine"), 0.16),
     ];
 
     /// <summary>
@@ -312,7 +312,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     public IReadOnlyList<TextChoice> CodecChoices { get; } =
     [
         new("H.264", "h264"),
-        new("H.265, meilleur à débit égal", "h265"),
+        new(Strings.Get("CodecH265"), "h265"),
     ];
 
     /// <summary>
@@ -431,7 +431,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     private bool _audioEnabled;
 
     public string Disclaimer =>
-        "Projet indépendant, sans lien avec Ankama.";
+        Strings.Get("Disclaimer");
 
     /// <summary>Charge l'état des réglages dans la fenêtre.</summary>
     public async Task LoadAsync(CancellationToken cancellationToken = default)
@@ -554,7 +554,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
         if (moved == 0)
         {
-            Instances.Problem = "Aucune fenêtre de jeu à replacer.";
+            Instances.Problem = Strings.Get("NothingToRearrange");
         }
     }
 
@@ -566,7 +566,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
         if (placed == 0)
         {
-            Instances.Problem = "Aucune fenêtre de jeu à ranger.";
+            Instances.Problem = Strings.Get("NothingToTile");
         }
     }
 

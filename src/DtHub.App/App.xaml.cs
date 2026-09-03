@@ -102,7 +102,7 @@ public partial class App : Application, IDisposable
         }
         catch (Exception exception)
         {
-            Report(exception, "Le démarrage a échoué.");
+            Report(exception, Strings.Get("StartupFailed"));
             Shutdown(1);
         }
     }
@@ -230,15 +230,15 @@ public partial class App : Application, IDisposable
             () => ShowNotes(
                 $"DT Hub {updates.Available?.Version}",
                 updates.Ready
-                    ? "Cette version est prête. Elle s'installera quand vous quitterez."
-                    : "Cette version est disponible.",
+                    ? Strings.Get("UpdateReadyNotes")
+                    : Strings.Get("UpdateAvailableNotes"),
                 ReleaseNotes.Readable(updates.Available?.Notes)));
 
         if (updates.TakeNotes() is { Length: > 0 } installed)
         {
             ShowNotes(
                 $"DT Hub {updates.Running}",
-                "Cette version vient d'être installée.",
+                Strings.Get("UpdateJustInstalled"),
                 installed);
         }
 
@@ -688,8 +688,8 @@ public partial class App : Application, IDisposable
         model.UpdateText = updates.Available is not { } release
             ? string.Empty
             : updates.Ready
-                ? $"Version {release.Version} prête, elle s'installera en quittant."
-                : $"Version {release.Version} disponible.";
+                ? Strings.Format("UpdateReadyBanner", release.Version)
+                : Strings.Format("UpdateAvailableBanner", release.Version);
     }
 
     /// <summary>Ouvre la note de version, posée sur le panneau s'il est là.</summary>
@@ -848,7 +848,7 @@ public partial class App : Application, IDisposable
         // L'interface reste vivante : une erreur d'affichage ne doit pas
         // fermer les fenêtres de jeu.
         e.Handled = true;
-        Report(e.Exception, "Une erreur inattendue s'est produite.");
+        Report(e.Exception, Strings.Get("UnexpectedError"));
     }
 
     private static void OnDomainException(object sender, UnhandledExceptionEventArgs e)
@@ -910,7 +910,7 @@ public partial class App : Application, IDisposable
 
         var details = string.IsNullOrEmpty(logs)
             ? string.Empty
-            : $"\n\nLe détail se trouve dans les journaux :\n{logs}";
+            : Strings.Format("ErrorDetailsInLogs", logs);
 
         MessageBox.Show(
             $"{headline}{details}",

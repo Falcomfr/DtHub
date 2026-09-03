@@ -7,6 +7,7 @@ using DtHub.App.Services;
 using DtHub.Core.Adb;
 using DtHub.Core.Android;
 using DtHub.Core.Devices;
+using DtHub.Core.Localization;
 using DtHub.Core.Settings;
 
 namespace DtHub.App.ViewModels;
@@ -162,9 +163,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
         // en pleine partie, et un clic n'est pas un consentement.
         if (_launcher.ActiveSessions.Count > 0
             && !_dialogs.Confirm(
-                $"Ouvrir le profil « {profile.Name} » ?\n\n"
-                + "Les fenêtres de jeu qui n'en font pas partie seront fermées.",
-                "Ouvrir le profil"))
+                Strings.Format("OpenProfileQuestion", profile.Name)
+                + "\n\n" + Strings.Get("ProfileClosesOthers"),
+                Strings.Get("OpenProfileTitle")))
         {
             return;
         }
@@ -220,9 +221,8 @@ public sealed partial class InstanceListViewModel : ObservableObject
         if (open.Count == 0)
         {
             _dialogs.ShowWarning(
-                "Aucun compte n'est ouvert : il n'y a rien à retenir. Ouvrez les comptes "
-                + "du profil, puis créez-le.",
-                "Créer un profil");
+                Strings.Get("NothingToRemember"),
+                Strings.Get("CreateProfile"));
 
             return;
         }
@@ -231,23 +231,23 @@ public sealed partial class InstanceListViewModel : ObservableObject
             i => i.IsTabbed && open.Contains(i.Key, StringComparer.Ordinal));
 
         if (_dialogs.PromptText(
-                "Sous quel nom retenir ce profil ?",
+                Strings.Get("ProfileNameQuestion"),
                 null,
-                "Créer un profil",
+                Strings.Get("CreateProfile"),
                 LaunchProfiles.Announce(
                     open.Count,
                     settings.Quality,
                     settings.GameZoom,
                     tabbed,
                     settings.AudioEnabled),
-                "Créer") is not { } typed)
+                Strings.Get("Create")) is not { } typed)
         {
             return;
         }
 
         if (!await _settings.SaveLaunchProfileAsync(typed, open).ConfigureAwait(true))
         {
-            _dialogs.ShowWarning("Un profil a besoin d'un nom.", "Créer un profil");
+            _dialogs.ShowWarning(Strings.Get("ProfileNeedsName"), Strings.Get("CreateProfile"));
             return;
         }
 
@@ -276,9 +276,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
     {
         if (profile is null
             || !_dialogs.Confirm(
-                $"Supprimer le profil « {profile.Name} » ?\n\n"
-                + "Les comptes ne sont pas touchés, seule la ligne disparaît.",
-                "Supprimer le profil"))
+                Strings.Format("DeleteProfileQuestion", profile.Name)
+                + "\n\n" + Strings.Get("OnlyTheRowGoes"),
+                Strings.Get("DeleteProfileTitle")))
         {
             return;
         }
@@ -733,11 +733,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
         var name = NextAccountName(device.DeviceId);
 
         if (!_dialogs.Confirm(
-                $"Ajouter le compte « {name} » sur {device.Name} ?\n\n"
-                + "Un profil Android neuf sera créé sur le téléphone, avec le jeu dedans. "
-                + "Il s'ouvrira comme une installation neuve : le jeu redemandera ses "
-                + "ressources et votre connexion.",
-                "Ajouter un compte"))
+                Strings.Format("AddAccountQuestion", name, device.Name)
+                + "\n\n" + Strings.Get("AddAccountConsequence"),
+                Strings.Get("AddAccountTitle")))
         {
             return;
         }
@@ -800,8 +798,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
     {
         if (device is null
             || !_dialogs.Confirm(
-                $"Rompre l'association avec {device.Name} ?\n\nSes instances et leurs réglages seront effacés.",
-                "Rompre l'association"))
+                Strings.Format("ForgetDeviceQuestion", device.Name)
+                + "\n\n" + Strings.Get("ForgetDeviceConsequence"),
+                Strings.Get("ForgetDeviceTitle")))
         {
             return;
         }
