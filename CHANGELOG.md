@@ -369,6 +369,12 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Modifié
 
+- La croix qui fermait la fenêtre d'un compte devient un carré, en paire avec le
+  triangle de lecture. Dans une liste, une croix veut dire « supprimer cette
+  ligne » pour à peu près tout le monde ; rien n'est supprimé ici, ni le compte,
+  ni son profil Android, ni le jeu sur le téléphone. L'infobulle le dit
+  maintenant, et ne renvoie plus à une case à cocher retirée depuis.
+
 - Le bouton d'association et celui des profils forment une paire. Ils partagent
   la même ligne et n'avaient rien en commun : l'un cadré, l'autre flottant sans
   bord, avec un plus en simple caractère qui passait pour de la ponctuation et un

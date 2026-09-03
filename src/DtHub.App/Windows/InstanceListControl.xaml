@@ -230,13 +230,20 @@
                               Data="M 13,7.5 A 5.5,5.5 0 1 1 11.1,3.3 M 13,1.5 V 4.2 H 10.3" />
                       </Button>
 
+                      <!-- Un carré plein, en paire avec le triangle : lecture
+                           et arrêt. C'était une croix, et dans une liste une
+                           croix veut dire « supprimer cette ligne » pour à peu
+                           près tout le monde. Rien n'est supprimé ici, et
+                           l'infobulle le dit maintenant aussi. -->
                       <Button Style="{StaticResource IconButton}" AllowDrop="False"
-                              ToolTip="Fermer cette fenêtre. Sa position est retenue, mais elle ne rouvrira pas au prochain lancement tant que vous ne la recochez pas."
+                              ToolTip="Fermer la fenêtre de ce compte. Rien n'est supprimé : sa position est retenue et le bouton de lecture la rouvre au même endroit. Elle ne rouvrira pas d'elle-même au prochain démarrage."
                               Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"
                               Command="{Binding DataContext.StopCommand,
                                                 RelativeSource={RelativeSource AncestorType=UserControl}}"
                               CommandParameter="{Binding}">
-                        <Path Style="{StaticResource RowGlyph}" Data="M 4,4 L 11,11 M 11,4 L 4,11" />
+                        <Rectangle Width="9" Height="9" RadiusX="1.5" RadiusY="1.5"
+                                   Fill="{Binding Foreground,
+                                                  RelativeSource={RelativeSource AncestorType=Button}}" />
                       </Button>
                     </StackPanel>
                   </Grid>
