@@ -3,7 +3,7 @@
 Légende : **DONE** terminé et vérifié, **IN PROGRESS** en cours,
 **TODO** pas commencé, **BLOCKED** nécessite une action externe.
 
-Dernière mise à jour : 2026-09-02
+Dernière mise à jour : 2026-09-04
 
 ## Vérifié sur matériel réel
 
@@ -56,7 +56,15 @@ Xiaomi 13T, Android 16, profil principal « Alice Martin » et profil cloné
 | Onglet Appareils : état, coche, nom, relance | DONE |
 | Onglet Raccourcis : édition, conflits, restauration | DONE |
 | Thème sombre. Il n'existe pas de palette claire | DONE |
+| Barre de titre sombre sur les fenêtres qui gardent celle de Windows | DONE |
+| Échelle typographique nommée, six crans | DONE |
 | Journalisation avec rotation, dossier accessible | DONE |
+| Cadre à onglets : loger, réordonner, sortir, fermer | DONE |
+| Fenêtre de préparation au premier lancement, sources nommées | DONE |
+| Rapport d'incident biffé, à copier et à envoyer | DONE |
+| Interface en anglais, français et espagnol, fiches de marques comprises | DONE |
+| Suivi de quêtes adossé à papycha.fr, dans sa propre fenêtre | DONE |
+| Clavier : Entrée et Échap sur les boîtes de dialogue | DONE |
 
 ## Distribution
 
@@ -66,7 +74,13 @@ Xiaomi 13T, Android 16, profil principal « Alice Martin » et profil cloné
 | Décision : pas d'installateur ni de Velopack | DONE |
 | Signature Authenticode | TODO (non nécessaire pour un usage personnel) |
 | Dépôt GitHub public | TODO |
+| Première livraison étiquetée | TODO |
 | GitHub Actions build et tests | DONE |
+| Chaîne : forme, permissions restreintes, actions épinglées | DONE |
+| Contrôles d'artefact : un seul fichier, plancher de poids | DONE |
+| Mise à jour depuis le dépôt, empreinte vérifiée | DONE |
+| Attribution de papycha.fr, hors du champ de la licence MIT | DONE |
+| Historique purgé des captures de développement | DONE |
 
 ## Compatibilité
 

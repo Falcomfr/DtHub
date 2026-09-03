@@ -19,6 +19,32 @@ on your real phone, DT Hub only mirrors it and arranges the windows.
 > **Status: early development (v0.1).** Usable, but rough edges remain. See
 > [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).
 
+## Download
+
+Grab **`DtHub.exe`** from the
+[latest release](https://github.com/Falcomfr/DtHub/releases/latest) and run it.
+There is nothing to install.
+
+The release also carries `DtHub.exe.sha256`. The file is **not code-signed**, so
+that checksum is the only way to know what you downloaded. Checking it takes one
+line in PowerShell, from the folder where both files sit:
+
+```powershell
+(Get-FileHash DtHub.exe -Algorithm SHA256).Hash -eq (Get-Content DtHub.exe.sha256).Split(' ')[0]
+```
+
+`True` means the file is the one this repository built.
+
+**Windows will warn you the first time.** SmartScreen shows "Windows protected
+your PC" on any downloaded program it does not recognise, and an unsigned one
+never earns that recognition. Click **More info**, then **Run anyway**. Why the
+file is unsigned, and what it would take to change that, is written down in
+[docs/CONFIANCE.md](docs/CONFIANCE.md).
+
+You need Windows 10 version 1809 or later, 64 bit, and an internet connection
+the first time: DT Hub then fetches ADB and scrcpy from Google and Genymobile,
+19 MB in all, checking each archive against a known fingerprint before using it.
+
 ## What it does
 
 You install DOFUS Touch once on your phone's main profile, and again on a

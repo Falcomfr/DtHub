@@ -8,6 +8,13 @@ merci de le dire en privé plutôt que dans une issue publique.
 [Security > Report a vulnerability](https://github.com/Falcomfr/DtHub/security/advisories/new).
 GitHub le garde entre vous et moi jusqu'à ce qu'un correctif existe.
 
+**Si ce formulaire ne s'ouvre pas**, c'est que le signalement privé n'est pas
+activé sur le dépôt. N'écrivez rien de technique en public pour autant : ouvrez
+une issue ordinaire disant seulement que vous avez trouvé quelque chose qui
+touche à la sécurité, sans le décrire, et j'ouvrirai le canal privé. Une
+politique de sécurité qui renvoie vers une porte fermée est pire que pas de
+politique du tout, d'où cette porte de secours.
+
 **Ce qui aide.** La version affichée par l'application, ce qui se passe, et ce
 qu'il faut faire pour le reproduire. Le rapport de diagnostic de l'application
 convient : il est déjà biffé de ce qui identifie.

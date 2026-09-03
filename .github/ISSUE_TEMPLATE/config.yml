@@ -1,8 +1,13 @@
-blank_issues_enabled: false
+# Les issues vides restent possibles : le modèle de défaut est proposé en
+# premier, mais quelqu'un qui a une question ou une idée doit pouvoir écrire.
+# Avec « false » et un seul modèle, il n'avait littéralement aucune porte.
+blank_issues_enabled: true
+
+# Aucun renvoi vers les Discussions : elles ne sont pas activées par défaut,
+# vérifié sur l'API GitHub où le champ has_discussions vaut false même sur des
+# projets tenus comme scrcpy. Le lien aurait rendu un 404 à la première
+# personne qui essaie d'ouvrir une issue.
 contact_links:
   - name: Faille de sécurité
     url: https://github.com/Falcomfr/DtHub/security/advisories/new
     about: En privé, jamais dans une issue publique. Voir SECURITY.md.
-  - name: Question ou idée
-    url: https://github.com/Falcomfr/DtHub/discussions
-    about: Pour ce qui n'est pas un défaut reproductible.
