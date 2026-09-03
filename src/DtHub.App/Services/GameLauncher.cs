@@ -99,6 +99,17 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// <summary>Instances laissées de côté par les placements automatiques.</summary>
     private IReadOnlySet<string> _unmanaged = new HashSet<string>(StringComparer.Ordinal);
 
+    /// <summary>Les comptes qui s'ouvrent dans le cadre à onglets.</summary>
+    private HashSet<string> _tabbed = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Le cadre à onglets, créé au premier compte qui en demande un.
+    ///
+    /// Paresseux : la plupart des sessions n'en veulent pas, et une fenêtre
+    /// vide ouverte pour rien se remarquerait.
+    /// </summary>
+    private Windows.TabbedGameWindow? _tabs;
+
     /// <summary>Réglages dérivés de la qualité choisie, relus à chaque lancement.</summary>
     private QualityProfile _quality = QualityProfile.For(StreamQuality.Medium);
     private GameZoom _zoom = GameZoom.Normal;
@@ -151,7 +162,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// s'ouvre, se ferme et se souvient de sa place comme les autres.
     /// </summary>
     public IReadOnlyList<ScrcpySession> ManagedSessions =>
-        [.. _sessions.ActiveSessions.Where(s => !_unmanaged.Contains(s.Target.Key))];
+        [.. _sessions.ActiveSessions.Where(
+            s => !_unmanaged.Contains(s.Target.Key) && !_tabbed.Contains(s.Target.Key))];
 
     /// <summary>Signalé à chaque changement d'état d'une session.</summary>
     public event EventHandler<ScrcpySession>? SessionChanged
@@ -479,6 +491,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
         {
             await _windows.RestoreAsync(started, remembered, cancellationToken).ConfigureAwait(false);
 
+            // Les comptes à onglets rejoignent le cadre. Après le placement :
+            // arrimer d'abord ferait replacer une fenêtre déjà logée, qui
+            // sauterait hors du cadre le temps d'y revenir.
+            foreach (var session in started.Where(s => _tabbed.Contains(s.Target.Key)))
+            {
+                await AttachToTabsAsync(session, cancellationToken).ConfigureAwait(false);
+            }
+
         }
 
         // Ce qui vient d'être ouvert rouvrira au lancement suivant. Seul le
@@ -759,10 +779,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     public void Watch()
     {
-        var sessions = _sessions.ActiveSessions;
+        // Le suivi regarde toutes les fenêtres : savoir laquelle est active
+        // vaut aussi pour celles qui sont logées dans le cadre.
+        _windows.TrackActiveWindow(_sessions.ActiveSessions);
 
-        _windows.TrackActiveWindow(sessions);
-        _windows.EnforceAspect(sessions);
+        // Le rapport d'image, lui, ne concerne que les fenêtres libres. Sur une
+        // fenêtre logée, il défaisait la pose du cadre toutes les demi-secondes,
+        // et le jeu revenait se coller de travers sans qu'on comprenne pourquoi.
+        _windows.EnforceAspect(ManagedSessions);
     }
 
 
@@ -1034,6 +1058,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         _unmanaged = await _settings.GetUnmanagedKeysAsync(cancellationToken).ConfigureAwait(false);
 
+        var reglages = await _settings.GetAsync(cancellationToken).ConfigureAwait(false);
+
+        _tabbed = reglages.Instances
+            .Where(i => i.IsTabbed)
+            .Select(i => i.Key)
+            .ToHashSet(StringComparer.Ordinal);
+
         var ranks = await _settings.GetInstanceRanksAsync(cancellationToken).ConfigureAwait(false);
 
         _sessions.OrderKey = session =>
@@ -1091,6 +1122,119 @@ public sealed partial class GameLauncher : IAsyncDisposable
             .Where(d => d.IsConnected)
             .ToDictionary(d => d.Id, d => d, StringComparer.Ordinal);
     }
+
+    /// <summary>
+    /// Loge une session dans le cadre à onglets, en le créant s'il le faut.
+    ///
+    /// La fenêtre doit exister : elle est cherchée comme pour un placement,
+    /// avec la même attente. Une session dont la fenêtre n'est jamais apparue
+    /// reste libre plutôt que d'être perdue.
+    /// </summary>
+    private async Task AttachToTabsAsync(ScrcpySession session, CancellationToken cancellationToken)
+    {
+        var handle = await _windows.ResolveWindowAsync(session, cancellationToken).ConfigureAwait(false);
+
+        if (handle == 0)
+        {
+            LogTabWindowMissing(session.DisplayName);
+            return;
+        }
+
+        // Sur le fil d'interface, et non celui qui nous a menés ici : une
+        // fenêtre WPF ne se crée que sur un fil en mode STA, et la chaîne
+        // asynchrone du lanceur n'en est pas un.
+        await OnUiAsync(() =>
+            EnsureTabs().Attach(session.Target.Key, session.DisplayName, IconFor(session), handle))
+            .ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Exécute un geste d'interface sur le fil qui a le droit de le faire.
+    ///
+    /// Rend la main tout de suite s'il n'y a pas d'application WPF, ce qui est
+    /// le cas des tests.
+    /// </summary>
+    private static Task OnUiAsync(Action geste)
+    {
+        var fil = System.Windows.Application.Current?.Dispatcher;
+
+        if (fil is null || fil.CheckAccess())
+        {
+            geste();
+            return Task.CompletedTask;
+        }
+
+        return fil.InvokeAsync(geste).Task;
+    }
+
+    /// <summary>Le cadre, créé au premier besoin et gardé ouvert ensuite.</summary>
+    private Windows.TabbedGameWindow EnsureTabs()
+    {
+        if (_tabs is { } existant)
+        {
+            return existant;
+        }
+
+        var cadre = new Windows.TabbedGameWindow(_windows.Controller);
+
+        cadre.Closed += (_, _) => _tabs = null;
+
+        // Réordonner les onglets réordonne les comptes : un seul ordre partout.
+        cadre.Reordered += async (_, mouvement) =>
+        {
+            if (await _settings
+                    .MoveInstanceAsync(mouvement.Moved, mouvement.Onto, mouvement.Before)
+                    .ConfigureAwait(true))
+            {
+                await RefreshRanksAsync().ConfigureAwait(true);
+
+                var ordre = await _settings.GetInstanceRanksAsync().ConfigureAwait(true);
+
+                cadre.Reorder([.. ordre.OrderBy(p => p.Value).Select(p => p.Key)]);
+            }
+        };
+
+        _tabs = cadre;
+        cadre.Show();
+
+        return cadre;
+    }
+
+    /// <summary>
+    /// Fait entrer ou sortir un compte du cadre, sans rouvrir sa session.
+    ///
+    /// C'est la même fenêtre qu'on arrime ou détache : la rouvrir coûterait
+    /// plusieurs secondes et ferait recréer son afficheur virtuel.
+    /// </summary>
+    public async Task SetTabbedAsync(
+        DofusInstance instance,
+        bool tabbed,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(instance);
+
+        await _settings.SetInstanceTabbedAsync(instance.Key, tabbed, cancellationToken)
+            .ConfigureAwait(false);
+
+        await RefreshRanksAsync(cancellationToken).ConfigureAwait(false);
+
+        if (FindSession(instance) is not { } session)
+        {
+            return;
+        }
+
+        if (tabbed)
+        {
+            await AttachToTabsAsync(session, cancellationToken).ConfigureAwait(false);
+            return;
+        }
+
+        await OnUiAsync(() => _tabs?.Detach(instance.Key)).ConfigureAwait(false);
+    }
+
+    /// <summary>Icône du compte, telle que la liste la montre.</summary>
+    private string? IconFor(ScrcpySession session) =>
+        _iconDirectory is null ? null : System.IO.Path.Combine(_iconDirectory, "scrcpy.png");
 
     /// <summary>Vrai si une session est déjà ouverte sur ce téléphone.</summary>
     private bool HasOpenSessionOn(string deviceId) =>
@@ -1293,6 +1437,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "{instance} refusée en {height} de haut : nouvel essai en {retry} de haut.")]
     private partial void LogDisplayFallback(string instance, int height, int retry);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "{instance} : fenêtre introuvable, le compte reste en fenêtre libre.")]
+    private partial void LogTabWindowMissing(string instance);
 
     [LoggerMessage(
         Level = LogLevel.Warning,

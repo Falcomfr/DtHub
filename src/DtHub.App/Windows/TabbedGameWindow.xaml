@@ -1,0 +1,54 @@
+<Window x:Class="DtHub.App.Windows.TabbedGameWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Width="1400" Height="900" MinWidth="480" MinHeight="320"
+        WindowStartupLocation="Manual"
+        Background="{DynamicResource SurfaceAltBrush}"
+        TextOptions.TextFormattingMode="Display">
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <!-- La barre d'onglets, au-dessus de la zone de jeu et jamais dessus :
+         une fenêtre native se dessine par-dessus tout élément WPF du même
+         châssis, et un onglet posé sur l'image serait invisible. -->
+    <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}"
+            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
+      <ItemsControl x:Name="Tabs" Margin="6,4,6,0">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Orientation="Horizontal" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <RadioButton Style="{StaticResource Tab}" GroupName="Onglets"
+                         Margin="0,0,4,0" AllowDrop="True"
+                         IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                         ToolTip="{Binding Title}"
+                         PreviewMouseLeftButtonDown="OnTabPressed"
+                         PreviewMouseMove="OnTabMoved"
+                         DragOver="OnTabDragOver"
+                         Drop="OnTabDrop">
+              <StackPanel Orientation="Horizontal">
+                <Image Width="16" Height="16" Margin="0,0,6,0" Stretch="Uniform"
+                       RenderOptions.BitmapScalingMode="HighQuality"
+                       Source="{Binding IconPath, Converter={StaticResource IconPath}}" />
+                <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
+              </StackPanel>
+            </RadioButton>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </Border>
+
+    <!-- Zone d'accueil : volontairement vide. Les fenêtres de jeu y sont
+         logées, et tout élément WPF posé ici serait caché sous elles. -->
+    <Grid x:Name="Accueil" Grid.Row="1" Background="{DynamicResource SurfaceAltBrush}"
+          SizeChanged="OnHostResized" />
+  </Grid>
+</Window>

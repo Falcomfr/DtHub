@@ -2508,3 +2508,53 @@ Deux défauts trouvés en éprouvant, tous deux invisibles à la compilation :
   « DtHub.App.ViewModels.LaunchProfileRowViewModel ». Le gabarit d'affichage ne
   corrige pas ce nom-là, et c'est celui qu'un lecteur d'écran prononce. Corrigé
   par un `ToString`.
+
+## D73 - Un mode onglets, et ce que la sonde a permis d'affirmer
+
+Loger plusieurs comptes dans un seul cadre, comme un navigateur, supposait de
+ré-parenter des fenêtres SDL. Rien de tel n'avait jamais été fait ici, et la
+faisabilité ne se lisait pas dans le code.
+
+### La sonde d'abord, l'interface ensuite
+
+Relevé sur une vraie session, avant d'écrire une ligne d'interface :
+
+```
+avant  : style 0x16CF0000  parent 0
+apres  : parent 20252514  attendu 20252514  arrime: True
+pointeur en 560,460 -> fenetre 9766672  cible: True
+rendue : parent 0  style 0x16CF0000
+```
+
+La fenêtre devient fille, continue de rendre l'image, reçoit le pointeur selon
+Windows lui-même, et ressort intacte. C'est ce qui a autorisé la suite.
+
+La mesure du focus clavier a dû être abandonnée : `AttachThreadInput` et
+`GetFocus`, joints à `SetParent`, forment la signature d'une injection de
+frappes, et l'antivirus a bloqué le script entier. Ni exclusion ni désactivation.
+
+### L'état d'origine est retenu, jamais recalculé
+
+`Dock` mémorise style, parent et géométrie ; `Undock` les rend. Une fenêtre
+rendue avec un style deviné ne se comporterait plus comme les autres.
+
+### Trois pièges, tous invisibles à la compilation
+
+**Le fil d'interface.** Créer le cadre depuis la chaîne asynchrone du lanceur
+lève « le thread appelant doit être en mode STA ». Tout geste d'interface passe
+désormais par le répartiteur.
+
+**La surveillance périodique.** `Watch` appliquait `EnforceAspect` à toutes les
+sessions, y compris logées : toutes les demi-secondes, elle défaisait la pose du
+cadre et le jeu revenait se coller de travers. Deux implémentations de la pose
+ont été essayées avant de comprendre que ce n'était pas la pose qui échouait,
+mais quelqu'un qui l'annulait derrière.
+
+**La densité.** Convertir soi-même les unités de WPF en pixels donnait faux sur
+un écran à cent cinquante pour cent. La zone client est demandée à Windows.
+
+### Ce que le cadre ne peut pas faire
+
+Rien ne se dessine par-dessus le jeu : une fenêtre native se peint au-dessus de
+tout élément WPF du même châssis, comme D33 le notait déjà. La barre d'onglets
+est donc au-dessus de la zone de jeu, jamais dessus.

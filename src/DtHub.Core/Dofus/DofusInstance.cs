@@ -36,6 +36,12 @@ public sealed record DofusInstance
     /// </summary>
     public bool IsManaged { get; init; } = true;
 
+    /// <summary>
+    /// Vrai si ce compte s'ouvre dans le cadre à onglets plutôt qu'en fenêtre
+    /// libre. Un compte logé échappe aux placements automatiques.
+    /// </summary>
+    public bool IsTabbed { get; init; }
+
     /// <summary>Vrai si le téléphone est joignable maintenant.</summary>
     public bool IsDeviceConnected { get; init; }
 

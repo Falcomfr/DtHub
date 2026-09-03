@@ -11,6 +11,15 @@ namespace DtHub.Core.Windows;
 public sealed class WindowManagerService
 {
     private readonly IWindowController _controller;
+
+    /// <summary>
+    /// L'accès brut aux fenêtres, pour ce qui n'est pas un placement.
+    ///
+    /// Le cadre à onglets arrime et détache lui-même : lui faire passer chaque
+    /// geste par ce service, qui ne parle que de sessions et d'écrans, aurait
+    /// mêlé deux affaires distinctes.
+    /// </summary>
+    public IWindowController Controller => _controller;
     private readonly Func<TimeSpan, CancellationToken, Task> _delay;
 
     private int _focusIndex = -1;

@@ -101,4 +101,31 @@ public interface IWindowController
 
     /// <summary>Handle de la fenêtre active, tous processus confondus.</summary>
     nint GetForegroundWindow();
+
+    /// <summary>
+    /// Loge une fenêtre dans une autre, comme un onglet dans son cadre.
+    ///
+    /// La fenêtre perd son cadre et devient fille : elle ne paraît plus dans
+    /// la barre des tâches, ne s'aligne plus toute seule, et suit son hôte.
+    /// Mesuré sur une fenêtre scrcpy, elle continue de rendre l'image et
+    /// Windows lui adresse toujours le pointeur.
+    ///
+    /// L'état d'origine est retenu par l'implémentation, pour que
+    /// <see cref="Undock"/> puisse le rendre exactement. Le recalculer
+    /// laisserait une fenêtre qui ne se comporte plus comme les autres.
+    /// </summary>
+    /// <returns>Faux si la fenêtre ou l'hôte n'existe pas.</returns>
+    bool Dock(nint child, nint host);
+
+    /// <summary>
+    /// Ressort une fenêtre de son cadre et lui rend son état d'avant, style,
+    /// parent et géométrie compris. Sans effet si elle n'était pas logée.
+    /// </summary>
+    bool Undock(nint child);
+
+    /// <summary>Vrai si cette fenêtre est actuellement logée dans un cadre.</summary>
+    bool IsDocked(nint child);
+
+    /// <summary>Montre ou cache une fenêtre logée, pour passer d'un onglet à l'autre.</summary>
+    void SetVisible(nint handle, bool visible);
 }

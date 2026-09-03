@@ -681,6 +681,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 row = new InstanceRowViewModel(instance) { IsRunning = _launcher.IsOpen(instance) };
                 row.EnabledChanged += OnEnabledChanged;
                 row.ManagedChanged += OnManagedChanged;
+                row.TabbedChanged += OnTabbedChanged;
                 row.NameChanged += OnNameChanged;
                 Rows.Add(row);
             }
@@ -906,6 +907,32 @@ public sealed partial class InstanceListViewModel : ObservableObject
         finally
         {
             row.IsManagedPending = false;
+        }
+    }
+
+    /// <summary>
+    /// Le compte entre dans le cadre à onglets ou en sort.
+    ///
+    /// Le lanceur s'occupe de tout : il écrit le réglage, puis loge ou ressort
+    /// la fenêtre si elle est ouverte. Rien n'est rouvert.
+    /// </summary>
+    private async void OnTabbedChanged(object? sender, InstanceRowViewModel row)
+    {
+        try
+        {
+            await _launcher.SetTabbedAsync(row.Instance, row.IsTabbed).ConfigureAwait(true);
+
+            // Même piège que pour le verrou : sans cela le balayage suivant
+            // rendrait à la ligne son ancien état.
+            _instances = null;
+        }
+        catch (AdbException exception)
+        {
+            Problem = exception.UserMessage;
+        }
+        finally
+        {
+            row.IsTabbedPending = false;
         }
     }
 

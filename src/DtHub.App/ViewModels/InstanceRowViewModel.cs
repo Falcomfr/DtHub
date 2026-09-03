@@ -84,6 +84,15 @@ public sealed partial class InstanceRowViewModel : ObservableObject
 
     public string Key => Instance.Key;
 
+    /// <summary>
+    /// Vrai si ce compte s'ouvre dans le cadre à onglets.
+    ///
+    /// Basculer n'ouvre ni ne ferme rien : c'est la même fenêtre qu'on loge
+    /// dans le cadre ou qu'on en ressort.
+    /// </summary>
+    [ObservableProperty]
+    private bool _isTabbed;
+
     /// <summary>Vrai pour la ligne que l'on est en train de déplacer.</summary>
     [ObservableProperty]
     private bool _isDragging;
@@ -152,6 +161,9 @@ public sealed partial class InstanceRowViewModel : ObservableObject
 
     public event EventHandler<InstanceRowViewModel>? NameChanged;
 
+    /// <summary>Signalé quand le compte entre dans le cadre à onglets ou en sort.</summary>
+    public event EventHandler<InstanceRowViewModel>? TabbedChanged;
+
     /// <summary>
     /// Vrai tant que le nom saisi n'est pas écrit. Le balayage périodique ne
     /// doit pas le remplacer entre-temps par l'ancien : la saisie semblerait
@@ -169,6 +181,9 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     /// </summary>
     public bool IsManagedPending { get; set; }
 
+    /// <summary>Vrai le temps que la bascule d'onglet soit écrite.</summary>
+    public bool IsTabbedPending { get; set; }
+
     /// <inheritdoc cref="IsManagedPending" />
     public bool IsEnabledPending { get; set; }
 
@@ -176,6 +191,20 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     {
         Instance = instance;
         IsRunning = isRunning;
+
+        if (!IsTabbedPending && IsTabbed != instance.IsTabbed)
+        {
+            _applying = true;
+
+            try
+            {
+                IsTabbed = instance.IsTabbed;
+            }
+            finally
+            {
+                _applying = false;
+            }
+        }
 
         if (!IsManagedPending && IsManaged != instance.IsManaged)
         {
@@ -213,6 +242,17 @@ public sealed partial class InstanceRowViewModel : ObservableObject
         OnPropertyChanged(nameof(IsDeviceConnected));
         OnPropertyChanged(nameof(UserLabel));
         OnPropertyChanged(nameof(ShowUserLabel));
+    }
+
+    partial void OnIsTabbedChanged(bool value)
+    {
+        if (_applying)
+        {
+            return;
+        }
+
+        IsTabbedPending = true;
+        TabbedChanged?.Invoke(this, this);
     }
 
     partial void OnIsEnabledChanged(bool value)

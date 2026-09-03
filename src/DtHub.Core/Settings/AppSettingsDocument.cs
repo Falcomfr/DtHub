@@ -179,6 +179,13 @@ public sealed class StoredLaunchProfile
     public int SizeIndex { get; set; } = 1;
 
     public int CustomSizePercent { get; set; }
+
+    /// <summary>
+    /// Les comptes qui étaient dans le cadre à onglets. Vide sur un profil
+    /// enregistré avant le mode onglets : ses comptes s'ouvrent alors en
+    /// fenêtres libres, comme ils le faisaient.
+    /// </summary>
+    public List<string> TabbedKeys { get; set; } = [];
 }
 
 /// <summary>Une instance mémorisée entre deux lancements.</summary>
@@ -209,6 +216,16 @@ public sealed class StoredInstance
     /// elle. Elle s'ouvre et se ferme comme les autres.
     /// </summary>
     public bool IsManaged { get; set; } = true;
+
+    /// <summary>
+    /// Vrai si ce compte s'ouvre dans le cadre à onglets plutôt qu'en fenêtre
+    /// libre.
+    ///
+    /// La fenêtre reste la même : elle est logée dans le cadre, non recréée.
+    /// Un compte logé échappe aux placements automatiques, qui lutteraient
+    /// contre le cadre.
+    /// </summary>
+    public bool IsTabbed { get; set; }
 
     /// <summary>
     /// Rang de l'instance dans la liste unique, dense de 0 à n-1.

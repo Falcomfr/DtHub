@@ -136,4 +136,38 @@ public sealed class FakeWindowController : IWindowController
 
         return true;
     }
+
+    /// <summary>Les fenêtres logées, par leur cadre. Vide au départ.</summary>
+    public Dictionary<nint, nint> Docked { get; } = [];
+
+    /// <summary>Les fenêtres cachées, pour éprouver le passage d'un onglet à l'autre.</summary>
+    public HashSet<nint> Hidden { get; } = [];
+
+    public bool Dock(nint child, nint host)
+    {
+        if (child == 0 || host == 0 || Docked.ContainsKey(child))
+        {
+            return false;
+        }
+
+        Docked[child] = host;
+
+        return true;
+    }
+
+    public bool Undock(nint child) => Docked.Remove(child);
+
+    public bool IsDocked(nint child) => Docked.ContainsKey(child);
+
+    public void SetVisible(nint handle, bool visible)
+    {
+        if (visible)
+        {
+            Hidden.Remove(handle);
+        }
+        else
+        {
+            Hidden.Add(handle);
+        }
+    }
 }

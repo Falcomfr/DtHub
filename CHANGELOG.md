@@ -36,6 +36,16 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Ajouté
 
+- Un mode onglets : une icône sur la ligne du compte le loge dans un cadre
+  unique, comme un onglet de navigateur, et un second clic lui rend sa fenêtre
+  libre. Autant de comptes qu'on veut, un seul visible à la fois, et passer de
+  l'un à l'autre est immédiat : les fenêtres sont cachées, non fermées.
+
+  La fenêtre n'est ni recréée ni rouverte, seulement logée : basculer ne coûte
+  ni les secondes d'une ouverture ni un nouvel afficheur virtuel sur le
+  téléphone. Un compte logé échappe aux placements automatiques, qui
+  lutteraient contre le cadre.
+
 - Des profils de lancement : un ensemble de comptes **avec leurs positions et
   leurs réglages**, qu'on retient sous un nom et qu'on rouvre d'un geste.
   « Solo donjon » ouvre un compte en grand et en qualité haute, « Duo pêche »

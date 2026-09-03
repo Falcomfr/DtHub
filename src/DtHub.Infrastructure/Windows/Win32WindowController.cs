@@ -251,6 +251,76 @@ public sealed partial class Win32WindowController : IWindowController
         _ = SetWindowPos(handle, 0, 0, 0, 0, 0, SwpNoMove | SwpNoSize | SwpNoZOrder | SwpFrameChanged | SwpNoActivate);
     }
 
+    /// <summary>
+    /// Ce qu'une fenêtre était avant d'être logée : de quoi la rendre à
+    /// l'identique.
+    /// </summary>
+    private readonly record struct DockedWindow(nint Parent, int Style, ScreenRect Rect);
+
+    private readonly Dictionary<nint, DockedWindow> _docked = [];
+
+    public bool Dock(nint child, nint host)
+    {
+        if (child == 0 || host == 0 || !IsWindow(child) || !IsWindow(host) || _docked.ContainsKey(child))
+        {
+            return false;
+        }
+
+        var style = GetWindowLong(child, GwlStyle);
+        var rect = GetWindowRect(child);
+
+        if (style == 0 || rect is not { } before)
+        {
+            return false;
+        }
+
+        // Retenu avant de toucher à quoi que ce soit : une fenêtre rendue avec
+        // un style deviné ne se comporterait plus comme les autres.
+        _docked[child] = new DockedWindow(GetParent(child), style, before);
+
+        // Le cadre et la barre de titre partent, WS_CHILD arrive. L'ordre
+        // compte : changer le style avant d'attacher évite un clignotement de
+        // fenêtre principale sans cadre.
+        _ = SetWindowLong(child, GwlStyle, (style & ~(WsPopup | WsCaption | WsThickFrame)) | WsChild);
+        _ = SetParent(child, host);
+        _ = SetWindowPos(child, 0, 0, 0, 0, 0, SwpNoMove | SwpNoSize | SwpNoZOrder | SwpFrameChanged | SwpNoActivate);
+
+        return true;
+    }
+
+    public bool Undock(nint child)
+    {
+        if (!_docked.Remove(child, out var before))
+        {
+            return false;
+        }
+
+        if (!IsWindow(child))
+        {
+            return false;
+        }
+
+        _ = SetParent(child, before.Parent);
+        _ = SetWindowLong(child, GwlStyle, before.Style);
+
+        // La géométrie est rendue en dernier : posée avant le style, elle
+        // serait reprise par le retour du cadre.
+        MoveWindow(child, before.Rect);
+        _ = SetWindowPos(child, 0, 0, 0, 0, 0, SwpNoMove | SwpNoSize | SwpNoZOrder | SwpFrameChanged | SwpNoActivate);
+
+        return true;
+    }
+
+    public bool IsDocked(nint child) => _docked.ContainsKey(child);
+
+    public void SetVisible(nint handle, bool visible)
+    {
+        if (handle != 0 && IsWindow(handle))
+        {
+            _ = ShowWindow(handle, visible ? SwShowNoActivate : SwHide);
+        }
+    }
+
     public nint GetForegroundWindow() => GetForegroundWindowCore();
 
     private static ScreenRect ToRect(Rect rect) =>
@@ -261,6 +331,10 @@ public sealed partial class Win32WindowController : IWindowController
     private const int GwlStyle = -16;
     private const int WsCaption = 0x00C00000;
     private const int WsThickFrame = 0x00040000;
+    private const int WsPopup = unchecked((int)0x80000000);
+    private const int WsChild = 0x40000000;
+    private const int SwHide = 0;
+    private const int SwShowNoActivate = 4;
     private const int ShowWindowRestore = 9;
     private const uint SwpNoSize = 0x0001;
     private const uint SwpNoMove = 0x0002;
@@ -361,6 +435,12 @@ public sealed partial class Win32WindowController : IWindowController
     [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool SetWindowTextW(nint handle, string title);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern nint SetParent(nint child, nint parent);
+
+    [DllImport("user32.dll")]
+    private static extern nint GetParent(nint handle);
 
     [DllImport("user32.dll", EntryPoint = "GetWindowRect")]
     [return: MarshalAs(UnmanagedType.Bool)]

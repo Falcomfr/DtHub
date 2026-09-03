@@ -360,6 +360,9 @@ public sealed class SettingsService : IDisposable
                     GameAnchor = settings.GameAnchor,
                     SizeIndex = settings.SizeIndex,
                     CustomSizePercent = settings.CustomSizePercent,
+                    TabbedKeys = [.. settings.Instances
+                        .Where(i => i.IsTabbed && retenus.Contains(i.Key, StringComparer.Ordinal))
+                        .Select(i => i.Key)],
                 });
             },
             cancellationToken).ConfigureAwait(false);
@@ -444,9 +447,19 @@ public sealed class SettingsService : IDisposable
             {
                 var keys = wanted.ToHashSet(StringComparer.Ordinal);
 
+                var loges = profile.TabbedKeys.ToHashSet(StringComparer.Ordinal);
+
                 foreach (var instance in document.Instances)
                 {
                     instance.IsEnabled = keys.Contains(instance.Key);
+
+                    // Un profil d'avant le mode onglets n'en cite aucun : ses
+                    // comptes gardent alors leur mode, faute de quoi il les
+                    // sortirait tous du cadre sans qu'on l'ait demandé.
+                    if (profile.TabbedKeys.Count > 0)
+                    {
+                        instance.IsTabbed = loges.Contains(instance.Key);
+                    }
 
                     // La position du profil l'emporte. Un compte que le profil
                     // ne place pas garde la sienne : un profil d'avant les
@@ -468,6 +481,25 @@ public sealed class SettingsService : IDisposable
 
         return wanted;
     }
+
+    /// <summary>Fait entrer ou sortir un compte du cadre à onglets.</summary>
+    public Task SetInstanceTabbedAsync(
+        string key,
+        bool tabbed,
+        CancellationToken cancellationToken = default) =>
+        UpdateIfChangedAsync(
+            settings =>
+            {
+                if (settings.Instances.Find(i => string.Equals(i.Key, key, StringComparison.Ordinal))
+                    is not { } instance || instance.IsTabbed == tabbed)
+                {
+                    return false;
+                }
+
+                instance.IsTabbed = tabbed;
+                return true;
+            },
+            cancellationToken);
 
     /// <summary>Tailles configurées, corrigées si le fichier est incohérent.</summary>
     public async Task<WindowSizePresets> GetSizePresetsAsync(CancellationToken cancellationToken = default)
@@ -617,6 +649,7 @@ public sealed class SettingsService : IDisposable
                     CustomName = i.CustomName,
                     IsEnabled = i.IsEnabled,
                     IsManaged = i.IsManaged,
+                    IsTabbed = i.IsTabbed,
                     IsDeviceConnected = live.Contains(i.Key),
                 })];
         }, cancellationToken).ConfigureAwait(false);
