@@ -95,6 +95,59 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Un_profil_liste_ses_comptes_dans_l_ordre_du_rangement()
+    {
+        var premier = Compte(0);
+        var second = Compte(999);
+
+        await _service.UpdateAsync(s =>
+        {
+            s.Instances.Add(premier);
+            s.Instances.Add(second);
+            premier.Order = 0;
+            second.Order = 1;
+        });
+
+        // L'appelant les donne dans le désordre : c'est le rang qui fait foi,
+        // parce que c'est lui que la liste montre et que les onglets suivent.
+        await _service.SaveLaunchProfileAsync("Duo", [second.Key, premier.Key]);
+
+        Assert.Equal(
+            [premier.Key, second.Key],
+            (await _service.GetLaunchProfilesAsync()).Single().InstanceKeys);
+    }
+
+    [Fact]
+    public async Task Ouvrir_un_profil_ne_derange_pas_l_ordre_des_comptes()
+    {
+        var premier = Compte(0);
+        var second = Compte(999);
+
+        await _service.UpdateAsync(s =>
+        {
+            s.Instances.Add(premier);
+            s.Instances.Add(second);
+            premier.Order = 0;
+            second.Order = 1;
+        });
+
+        await _service.SaveLaunchProfileAsync("Duo", [premier.Key, second.Key]);
+
+        // Le rangement à la souris vient après l'enregistrement du profil.
+        await _service.MoveInstanceAsync(second.Key, premier.Key, above: true);
+
+        await _service.ApplyLaunchProfileAsync("Duo");
+
+        // Le profil ne doit pas le défaire : l'ordre est un réglage général, et
+        // le profil de démarrage s'ouvrant tout seul, il l'aurait défait à
+        // chaque lancement.
+        var rangs = await _service.GetInstanceRanksAsync();
+
+        Assert.Equal(0, rangs[second.Key]);
+        Assert.Equal(1, rangs[premier.Key]);
+    }
+
+    [Fact]
     public async Task Un_profil_retient_le_son_et_le_presse_papiers()
     {
         var xspace = Compte(999);

@@ -1200,14 +1200,29 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // asynchrone du lanceur n'en est pas un.
         var reglages = await _settings.GetAsync(cancellationToken).ConfigureAwait(false);
 
+        // L'ordre retenu est reposé après chaque arrivée, et non laissé à
+        // celui des arrivées. Les afficheurs ne se préparent pas à la même
+        // vitesse : d'un lancement à l'autre, les onglets sortaient dans un
+        // ordre différent, et celui qu'on avait rangé à la souris ne tenait pas
+        // d'une session à la suivante.
+        var ordre = reglages.Instances
+            .OrderBy(i => i.Order)
+            .Select(i => i.Key)
+            .ToList();
+
         await OnUiAsync(() =>
-            EnsureTabs(reglages).Attach(
+        {
+            var cadre = EnsureTabs(reglages);
+
+            cadre.Attach(
                 session.Target.Key,
                 session.DisplayName,
                 IconFor(session),
                 handle,
-                session.SourceAspectRatio))
-            .ConfigureAwait(false);
+                session.SourceAspectRatio);
+
+            cadre.Reorder(ordre);
+        }).ConfigureAwait(false);
     }
 
     /// <summary>

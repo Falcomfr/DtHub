@@ -348,7 +348,21 @@ public sealed class SettingsService : IDisposable
                     settings.LaunchProfiles.Remove(existing);
                 }
 
-                var retenus = keys.Distinct(StringComparer.Ordinal).ToList();
+                // Dans l'ordre où les comptes sont rangés, et non dans celui
+                // où l'appelant les donne : c'est cet ordre que la liste montre
+                // et que les onglets suivent, et c'est donc lui que le profil
+                // doit rendre en s'ouvrant.
+                var voulus = keys.Distinct(StringComparer.Ordinal).ToHashSet(StringComparer.Ordinal);
+
+                var retenus = settings.Instances
+                    .Where(i => voulus.Contains(i.Key))
+                    .OrderBy(i => i.Order)
+                    .Select(i => i.Key)
+                    .ToList();
+
+                // Un compte cité par l'appelant que le document ne connaît pas
+                // garde sa place : le profil vaut mieux amputé que refusé.
+                retenus.AddRange(voulus.Where(k => !retenus.Contains(k, StringComparer.Ordinal)));
 
                 // L'instantané se prend dans le document lui-même : la
                 // géométrie y est déjà, relevée juste avant par l'appelant, et
@@ -373,6 +387,7 @@ public sealed class SettingsService : IDisposable
                     ClipboardSyncEnabled = settings.ClipboardSyncEnabled,
                     TabbedKeys = [.. settings.Instances
                         .Where(i => i.IsTabbed && retenus.Contains(i.Key, StringComparer.Ordinal))
+                        .OrderBy(i => i.Order)
                         .Select(i => i.Key)],
 
                     // La place du cadre n'est retenue que si le profil loge
@@ -488,6 +503,13 @@ public sealed class SettingsService : IDisposable
                         instance.Window = rect;
                     }
                 }
+
+                // L'ordre des comptes n'est PAS rendu par le profil, et c'est
+                // voulu : c'est un réglage général, celui de la liste comme
+                // celui des onglets. Un profil qui le rejouerait défairait le
+                // rangement à la souris dès le démarrage suivant, le profil de
+                // démarrage s'ouvrant tout seul. Le profil le retient pour être
+                // lisible, il ne l'impose pas.
 
                 document.Quality = profile.Quality;
                 document.CustomQuality = profile.CustomQuality.Sanitized();

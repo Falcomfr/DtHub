@@ -3055,3 +3055,32 @@ lien, `/category/zones/…`, n'ont pas la forme de celles que le catalogue retie
 Rien de tout cela n'a d'épreuve automatique : la vue-modèle des guides n'en a
 aucune aujourd'hui, et lui en donner demanderait un faux catalogue. Tout a été
 vérifié à l'écran, sur le cas signalé et sur son retour.
+
+
+## D79 - L'ordre des comptes est un réglage général, pas un instantané
+
+Le rangement des onglets à la souris se persistait déjà : le glissement appelle
+`MoveInstanceAsync`, et le champ `Order` du document en garde la trace. Il ne
+survivait pourtant pas au démarrage suivant.
+
+**La cause était une décision que je venais de prendre.** En rendant le profil
+plus complet, j'avais fait qu'ouvrir un profil rejoue l'ordre qu'il avait
+retenu. Or un profil de démarrage s'ouvre tout seul : chaque lancement défaisait
+donc le rangement de la veille. Mesuré sur le fichier de réglages, l'ordre
+revenait à celui du profil « Duo haute » à chaque démarrage.
+
+**L'ordre est un réglage général**, celui de la liste des comptes comme celui des
+onglets, et les deux sont le même. Le profil le retient dans `InstanceKeys`, pour
+que le fichier se lise, mais ne l'impose pas. C'est la seule façon que la demande
+tienne dans ses trois branches à la fois : garder l'ordre pour la session, pour
+les profils, et d'un lancement à l'autre.
+
+Le contraste avec les positions de fenêtres est assumé : une position est
+attachée à une disposition d'écran, qu'on veut retrouver telle quelle en ouvrant
+un profil. Un ordre de lecture, non : c'est une habitude, et elle ne change pas
+selon le profil qu'on ouvre.
+
+**Les onglets sont reposés dans cet ordre à chaque arrivée**, et non laissés dans
+celui des arrivées. Les afficheurs ne se préparent pas à la même vitesse, et rien
+ne garantissait que l'ordre d'ouverture soit celui du rangement. La garantie est
+maintenant explicite plutôt que constatée.

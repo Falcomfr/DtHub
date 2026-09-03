@@ -9,6 +9,17 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Corrigé
 
+- L'ordre des onglets rangé à la souris ne survivait pas au démarrage suivant
+  quand un profil s'ouvrait tout seul : le profil rejouait l'ordre qu'il avait
+  retenu. L'ordre des comptes est un réglage général, celui de la liste comme
+  celui des onglets ; un profil le retient pour être lisible, il ne l'impose
+  plus. Il tient donc pour la session, pour les profils et d'un lancement à
+  l'autre.
+
+  Les onglets sont par ailleurs remis dans cet ordre à chaque arrivée, et non
+  laissés dans celui des arrivées : les afficheurs ne se préparent pas à la
+  même vitesse.
+
 - Suivre un lien du guide vers un chemin, un donjon, un raid ou une tanière
   perdait le fil : la flèche de retour ne paraissait pas, et rouvrir le panneau
   montrait la branche de ce qu'on venait d'ouvrir au lieu de la fiche d'où l'on
