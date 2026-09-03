@@ -474,6 +474,30 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Modifié
 
+- **Les touches de l'application se ressemblent enfin.** Ce qui se presse porte
+  un angle de cinq pixels, ce qui porte du contenu en garde deux : la
+  distinction se voit sans qu'on ait à la nommer, là où deux pixels sur une
+  touche de trente de haut lisaient comme un rectangle inachevé. La face prend
+  un dégradé à peine perceptible, plus clair en haut, et s'éclaircit sous le
+  doigt au lieu de s'effacer : une baisse d'opacité rapprochait la touche du
+  fond, ce qui est le contraire de ce qu'un survol doit dire.
+
+- **La barre du bas est un groupe de touches nommées.** Trois icônes flottantes
+  y surmontaient chacune son raccourci en chasse fixe : « Ctrl + » paraissait
+  trois fois dans un pied de fenêtre qui ne demande qu'à se faire oublier, et il
+  fallait survoler pour savoir laquelle faisait quoi. Un seul cadre, deux
+  filets, et « Empiler », « Côte à côte », « Guides » écrits à côté de leur
+  dessin. Les raccourcis se lisent dans l'onglet qui leur est consacré, et
+  l'infobulle dit ce que chaque touche fait.
+
+  Les trois dessins sont redevenus des tracés, comme partout ailleurs dans
+  l'application : ils étaient bâtis en rectangles imbriqués, et celui du
+  côte-à-côte se remplissait de son propre trait à cette taille.
+
+- Le plus du bouton d'association perd sa pastille et redevient un tracé, du
+  même trait que le signet de la touche voisine : la pastille lui donnait un
+  poids que l'autre n'avait pas.
+
 - Le rang de l'étape ne déplie plus rien quand le guide n'en a qu'une : la
   pastille y ouvrait une liste d'un seul élément.
 

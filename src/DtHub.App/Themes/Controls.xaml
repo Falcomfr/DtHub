@@ -18,6 +18,25 @@
   <CornerRadius x:Key="Radius">2</CornerRadius>
   <CornerRadius x:Key="RadiusTop">2,2,0,0</CornerRadius>
 
+  <!-- Ce qui se presse est plus arrondi que ce qui porte : cinq pixels pour les
+       touches, deux pour les cartes et les bulles. La distinction se voit sans
+       qu'on ait à la nommer, et deux pixels sur une touche de trente de haut
+       lisaient comme un rectangle qu'on aurait oublié de finir. -->
+  <CornerRadius x:Key="RadiusKey">5</CornerRadius>
+
+  <!-- La face d'une touche : un dégradé à peine perceptible, plus clair en
+       haut. Avec le biseau, c'est ce qui la fait paraître posée plutôt que
+       peinte. Deux valeurs prises de part et d'autre du fond des panneaux. -->
+  <LinearGradientBrush x:Key="KeyFaceBrush" StartPoint="0,0" EndPoint="0,1">
+    <GradientStop Offset="0" Color="#FF21252C" />
+    <GradientStop Offset="1" Color="#FF15181C" />
+  </LinearGradientBrush>
+
+  <LinearGradientBrush x:Key="KeyFaceHoverBrush" StartPoint="0,0" EndPoint="0,1">
+    <GradientStop Offset="0" Color="#FF272C34" />
+    <GradientStop Offset="1" Color="#FF1A1E23" />
+  </LinearGradientBrush>
+
   <!-- Le biseau : lumière en haut, ombre en bas, sur une bordure d'un pixel.
        C'est tout le relief de l'interface, et il ne coûte aucune ombre portée.
        Inversé, il enfonce au lieu de poser : c'est ce que fait un bouton
@@ -104,7 +123,7 @@
     <Setter Property="Cursor" Value="Hand" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
-    <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+    <Setter Property="Background" Value="{StaticResource KeyFaceBrush}" />
     <Setter Property="BorderBrush" Value="{StaticResource BevelBorderBrush}" />
     <Setter Property="Template">
       <Setter.Value>
@@ -112,12 +131,16 @@
           <Border x:Name="Root" Background="{TemplateBinding Background}"
                   BorderBrush="{TemplateBinding BorderBrush}"
                   BorderThickness="{TemplateBinding BorderThickness}"
-                  CornerRadius="{StaticResource Radius}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                  CornerRadius="{StaticResource RadiusKey}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
           </Border>
           <ControlTemplate.Triggers>
+            <!-- La face s'éclaircit sous le doigt, au lieu de s'effacer : une
+                 baisse d'opacité rapprochait la touche du fond, ce qui est le
+                 contraire de ce qu'un survol doit dire. -->
             <Trigger Property="IsMouseOver" Value="True">
-              <Setter TargetName="Root" Property="Opacity" Value="0.85" />
+              <Setter TargetName="Root" Property="Background"
+                      Value="{StaticResource KeyFaceHoverBrush}" />
             </Trigger>
 
             <!-- Le biseau s'inverse : la lumière passe en bas, et la touche
@@ -166,7 +189,7 @@
         <ControlTemplate TargetType="Button">
           <Border x:Name="Root" Background="{TemplateBinding Background}"
                   BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"
-                  CornerRadius="{StaticResource Radius}" Padding="{TemplateBinding Padding}"
+                  CornerRadius="{StaticResource RadiusKey}" Padding="{TemplateBinding Padding}"
                   SnapsToDevicePixels="True">
             <ContentPresenter VerticalAlignment="Center"
                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
@@ -210,7 +233,7 @@
         <ControlTemplate TargetType="ToggleButton">
           <Border x:Name="Root" Background="{TemplateBinding Background}"
                   BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"
-                  CornerRadius="{StaticResource Radius}" Padding="{TemplateBinding Padding}"
+                  CornerRadius="{StaticResource RadiusKey}" Padding="{TemplateBinding Padding}"
                   SnapsToDevicePixels="True">
             <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" />
           </Border>
@@ -226,6 +249,45 @@
                       Value="{DynamicResource AccentSoftBrush}" />
               <Setter TargetName="Root" Property="BorderBrush"
                       Value="{DynamicResource AccentBrush}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter TargetName="Root" Property="Opacity" Value="0.4" />
+              <Setter Property="Cursor" Value="Arrow" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- Une touche d'un groupe : les trois gestes de rangement de la barre du
+       bas tiennent dans un seul cadre, séparés par un filet. Elles n'ont donc ni
+       bord ni angle à elles, et c'est le cadre qui les arrondit aux extrémités.
+
+       Elles portent leur nom : trois icônes seules obligeaient à survoler pour
+       savoir laquelle faisait quoi, et le raccourci écrit sous chacune répétait
+       « Ctrl + » trois fois dans une barre de trois cent soixante unités. -->
+  <Style x:Key="GroupKey" TargetType="Button">
+    <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="Padding" Value="7,6" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Border x:Name="Root" Background="Transparent" Padding="{TemplateBinding Padding}"
+                  SnapsToDevicePixels="True">
+            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" />
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Root" Property="Background"
+                      Value="{StaticResource KeyFaceHoverBrush}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+              <Setter TargetName="Root" Property="Background"
+                      Value="{DynamicResource AccentSoftBrush}" />
             </Trigger>
             <Trigger Property="IsEnabled" Value="False">
               <Setter TargetName="Root" Property="Opacity" Value="0.4" />
@@ -719,7 +781,8 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="Button">
-          <Border x:Name="Root" Background="{TemplateBinding Background}" CornerRadius="{StaticResource Radius}">
+          <Border x:Name="Root" Background="{TemplateBinding Background}"
+                  CornerRadius="{StaticResource RadiusKey}">
             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
                               TextElement.Foreground="{TemplateBinding Foreground}" />
           </Border>

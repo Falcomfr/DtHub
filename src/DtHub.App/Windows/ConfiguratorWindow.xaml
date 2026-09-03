@@ -86,96 +86,75 @@
             <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
 
-          <!-- Les outils viendront s'ajouter ici, chacun avec son raccourci. -->
-          <!-- Le raccourci passe sous son bouton : d'autres outils viendront se
-               ranger à sa droite, sur la même ligne. -->
-          <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-            <StackPanel MinWidth="54">
-            <Button Padding="8,5" Style="{StaticResource QuietButton}" HorizontalAlignment="Center"
-                    ToolTip="Empiler toutes les fenêtres de jeu sur la dernière que vous avez utilisée, à sa position et à sa taille"
-                    Command="{Binding RearrangeCommand}">
-              <!-- Deux fenêtres superposées : c'est exactement ce que fait
-                   l'action, et aucun glyphe ne le dit clairement. -->
-              <Grid Width="20" Height="16">
-                <Border Width="14" Height="11" CornerRadius="2"
-                        HorizontalAlignment="Left" VerticalAlignment="Top"
-                        BorderThickness="1.4" BorderBrush="{DynamicResource TextMutedBrush}" />
-                <Border Width="14" Height="11" CornerRadius="2"
-                        HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                        Background="{DynamicResource SurfaceAltBrush}"
-                        BorderThickness="1.4" BorderBrush="{DynamicResource AccentBrush}" />
-              </Grid>
-            </Button>
+          <!-- Les trois gestes de rangement, groupés comme les touches d'un
+               même appareil : un seul cadre, deux filets, et le nom de chacune
+               écrit à côté de son dessin.
 
-            <TextBlock Text="{Binding RearrangeShortcutText}" Style="{StaticResource Muted}" FontFamily="{StaticResource MonoFont}"
-                       FontSize="10" HorizontalAlignment="Center" Margin="0,1,0,0"
-                       Visibility="{Binding RearrangeShortcutText,
-                                            Converter={StaticResource EmptyToVisibility},
-                                            ConverterParameter=inverse}" />
-            </StackPanel>
+               Elles étaient trois icônes flottantes surmontant chacune son
+               raccourci en chasse fixe. « Ctrl + » y paraissait trois fois dans
+               une barre de trois cent soixante unités, et c'était la chose la
+               plus voyante d'un pied de fenêtre qui ne demande qu'à se faire
+               oublier. Les raccourcis se lisent dans l'onglet qui leur est
+               consacré, et l'infobulle dit ce que chaque touche fait. -->
+          <Border Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left"
+                  Margin="0,0,10,0"
+                  Background="{StaticResource KeyFaceBrush}"
+                  BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
+                  CornerRadius="{StaticResource RadiusKey}">
+            <StackPanel Orientation="Horizontal">
 
-            <StackPanel MinWidth="54" Margin="14,0,0,0">
-              <Button Padding="8,5" Style="{StaticResource QuietButton}" HorizontalAlignment="Center"
+              <Button Style="{StaticResource GroupKey}"
+                      ToolTip="Empiler toutes les fenêtres de jeu sur la dernière que vous avez utilisée, à sa position et à sa taille"
+                      Command="{Binding RearrangeCommand}">
+                <StackPanel Orientation="Horizontal">
+                  <!-- Deux fenêtres superposées : c'est exactement ce que fait
+                       l'action, et aucun glyphe ne le dit clairement. -->
+                  <Path Style="{StaticResource RowGlyph}" Margin="0,0,5,0"
+                        VerticalAlignment="Center"
+                        Data="M 1.8,2.2 H 10.2 V 8.4 H 1.8 Z M 4.8,6.6 H 13.2 V 12.8 H 4.8 Z" />
+                  <TextBlock Text="Empiler" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+
+              <Border Width="1" Margin="0,6" Background="{DynamicResource BorderBrush}" />
+
+              <Button Style="{StaticResource GroupKey}"
                       ToolTip="Ranger deux fenêtres côte à côte, chacune sur une moitié de l'écran. La fenêtre active va à droite."
                       Command="{Binding TileCommand}">
-                <!-- Deux fenêtres accolées, l'active en couleur à droite. -->
-                <Grid Width="20" Height="16">
-                  <Border Width="9" Height="13" CornerRadius="2"
-                          HorizontalAlignment="Left" VerticalAlignment="Center"
-                          BorderThickness="1.4" BorderBrush="{DynamicResource TextMutedBrush}" />
-                  <Border Width="9" Height="13" CornerRadius="2"
-                          HorizontalAlignment="Right" VerticalAlignment="Center"
-                          Background="{DynamicResource SurfaceAltBrush}"
-                          BorderThickness="1.4" BorderBrush="{DynamicResource AccentBrush}" />
-                </Grid>
+                <StackPanel Orientation="Horizontal">
+                  <!-- Une fenêtre partagée en deux : les deux panneaux
+                       séparés se remplissaient de leur propre trait à cette
+                       taille, et l'icône devenait deux pavés blancs. -->
+                  <Path Style="{StaticResource RowGlyph}" Margin="0,0,5,0"
+                        VerticalAlignment="Center"
+                        Data="M 2,2.6 H 13 V 12.4 H 2 Z M 7.5,2.6 V 12.4" />
+                  <TextBlock Text="Côte à côte" VerticalAlignment="Center" />
+                </StackPanel>
               </Button>
 
-              <TextBlock Text="{Binding TileShortcutText}" Style="{StaticResource Muted}" FontFamily="{StaticResource MonoFont}"
-                         FontSize="10" HorizontalAlignment="Center" Margin="0,1,0,0"
-                         Visibility="{Binding TileShortcutText,
-                                              Converter={StaticResource EmptyToVisibility},
-                                              ConverterParameter=inverse}" />
-            </StackPanel>
+              <Border Width="1" Margin="0,6" Background="{DynamicResource BorderBrush}" />
 
-            <StackPanel MinWidth="54" Margin="14,0,0,0">
-              <Button Padding="8,5" Style="{StaticResource QuietButton}" HorizontalAlignment="Center"
+              <Button Style="{StaticResource GroupKey}"
                       ToolTip="Ouvrir les guides, qui restent au-dessus des fenêtres de jeu. Quêtes, donjons, raids, tanières et chemins, de papycha.fr."
                       Command="{Binding QuestsCommand}">
-                <!-- Un parchemin déroulé : deux rouleaux et des lignes de
-                     texte. L'icône est à nous ; celle du site ne sera reprise
-                     que s'ils l'accordent. -->
-                <Grid Width="20" Height="16">
-                  <Border Width="3" Height="14" CornerRadius="{StaticResource Radius}"
-                          HorizontalAlignment="Left" VerticalAlignment="Center"
-                          BorderThickness="1.4" BorderBrush="{DynamicResource TextMutedBrush}" />
-                  <Border Width="3" Height="14" CornerRadius="{StaticResource Radius}"
-                          HorizontalAlignment="Right" VerticalAlignment="Center"
-                          BorderThickness="1.4" BorderBrush="{DynamicResource TextMutedBrush}" />
-                  <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="9">
-                    <Border Height="1.4" Margin="0,0,0,3" Background="{DynamicResource AccentBrush}" />
-                    <Border Height="1.4" Margin="0,0,0,3" Background="{DynamicResource TextMutedBrush}" />
-                    <Border Height="1.4" Background="{DynamicResource TextMutedBrush}" />
-                  </StackPanel>
-                </Grid>
+                <StackPanel Orientation="Horizontal">
+                  <!-- Un parchemin déroulé : deux rouleaux et des lignes de
+                       texte. Le dessin est à nous ; celui du site ne sera repris
+                       que s'ils l'accordent. -->
+                  <Path Style="{StaticResource RowGlyph}" Margin="0,0,5,0"
+                        VerticalAlignment="Center"
+                        Data="M 2.4,2.4 V 12.6 M 12.6,2.4 V 12.6
+                              M 5,5.2 H 10 M 5,7.5 H 10 M 5,9.8 H 10" />
+                  <TextBlock Text="Guides" VerticalAlignment="Center" />
+                </StackPanel>
               </Button>
 
-              <TextBlock Text="{Binding QuestsShortcutText}" Style="{StaticResource Muted}" FontFamily="{StaticResource MonoFont}"
-                         FontSize="10" HorizontalAlignment="Center" Margin="0,1,0,0"
-                         Visibility="{Binding QuestsShortcutText,
-                                              Converter={StaticResource EmptyToVisibility},
-                                              ConverterParameter=inverse}" />
             </StackPanel>
-          </StackPanel>
+          </Border>
 
-          <StackPanel Grid.Column="1">
-            <Button Content="Quitter" Click="OnQuit"
-                    ToolTip="Fermer l'application et les fenêtres de jeu" />
-            <TextBlock Text="{Binding QuitShortcutText}" Style="{StaticResource Muted}" FontFamily="{StaticResource MonoFont}"
-                       FontSize="10" HorizontalAlignment="Center" Margin="0,1,0,0"
-                       Visibility="{Binding QuitShortcutText,
-                                            Converter={StaticResource EmptyToVisibility},
-                                            ConverterParameter=inverse}" />
-          </StackPanel>
+          <Button Grid.Column="1" Content="Quitter" Click="OnQuit"
+                  VerticalAlignment="Center"
+                  ToolTip="Fermer l'application et les fenêtres de jeu" />
         </Grid>
       </Border>
 
@@ -540,19 +519,15 @@
                         ToolTip="À faire une seule fois par appareil. Les appareils déjà associés se connectent tout seuls."
                         Click="OnAddDevice">
                   <StackPanel Orientation="Horizontal">
-                    <!-- Le plus tenait dans le libellé, en simple caractère : il
-                         flottait à hauteur de texte et ne se distinguait pas
-                         d'une ponctuation. Dessiné dans sa pastille, il devient
-                         la marque de la touche. -->
-                    <Border Width="18" Height="18" CornerRadius="4" Margin="0,0,9,0"
-                            VerticalAlignment="Center" BorderThickness="1.2"
-                            BorderBrush="{DynamicResource AccentBrush}"
-                            Background="{DynamicResource AccentSoftBrush}">
-                      <Path Width="9" Height="9" Stretch="None"
-                            Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.6"
-                            StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                            Data="M 4.5,0.7 V 8.3 M 0.7,4.5 H 8.3" />
-                    </Border>
+                    <!-- Un plus tracé, du même trait que le signet de la touche
+                         voisine : la pastille qui l'entourait lui donnait un
+                         poids que l'autre n'avait pas, et les deux touches de la
+                         ligne ne se ressemblaient plus. -->
+                    <Path Width="15" Height="15" Stretch="None" Margin="0,0,8,0"
+                          VerticalAlignment="Center"
+                          Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.6"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                          Data="M 7.5,2.2 V 12.8 M 2.2,7.5 H 12.8" />
                     <TextBlock Text="Associer un nouvel appareil" VerticalAlignment="Center" />
                   </StackPanel>
                 </Button>
