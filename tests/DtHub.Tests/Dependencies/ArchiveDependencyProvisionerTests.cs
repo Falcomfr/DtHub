@@ -18,9 +18,17 @@ public sealed class ArchiveDependencyProvisionerTests : IDisposable
 
     public void Dispose()
     {
-        if (Directory.Exists(_root))
+        try
         {
-            Directory.Delete(_root, recursive: true);
+            if (Directory.Exists(_root))
+            {
+                Directory.Delete(_root, recursive: true);
+            }
+        }
+        catch (IOException)
+        {
+            // Un fichier encore tenu par l'antivirus ne doit pas faire rougir
+            // une épreuve qui a réussi. UpdateServiceTests a la même garde.
         }
     }
 
@@ -164,13 +172,15 @@ public sealed class ArchiveDependencyProvisionerTests : IDisposable
         var archive = BuildArchive();
         var (provisioner, _) = Build(archive);
         var stages = new List<ProvisioningStage>();
-        var progress = new Progress<ProvisioningProgress>(p => stages.Add(p.Stage));
+
+        // Un rapporteur synchrone, et non Progress<T> : celui-ci poste sur le
+        // contexte de synchronisation, ce qui obligeait à attendre deux cents
+        // millisecondes avant de conclure. C'était la seule attente d'horloge
+        // du dépôt, et le premier candidat au rouge intermittent sur un
+        // coureur chargé.
+        var progress = new SyncProgress<ProvisioningProgress>(p => stages.Add(p.Stage));
 
         await provisioner.EnsureAvailableAsync(Dependency(archive), progress, CancellationToken.None);
-
-        // Progress<T> poste sur le contexte de synchronisation : on laisse les
-        // rappels s'exécuter avant de conclure.
-        await Task.Delay(200, CancellationToken.None);
 
         Assert.Contains(ProvisioningStage.Downloading, stages);
         Assert.Contains(ProvisioningStage.Verifying, stages);

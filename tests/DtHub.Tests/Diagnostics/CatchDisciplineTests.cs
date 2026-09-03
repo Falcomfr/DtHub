@@ -64,10 +64,19 @@ public sealed class CatchDisciplineTests
 
     /// <summary>
     /// Attraper toute exception sans filtre cache les fautes qu'on ne veut pas
-    /// traiter, à commencer par le manque de mémoire. Une seule exception est
-    /// admise, et elle est nommée : le passeur de raccourcis, qui ne traite pas
-    /// la faute mais la fait voyager d'un fil à l'autre.
+    /// traiter, à commencer par le manque de mémoire.
+    ///
+    /// La dérogation ne se déclare plus par un couple de coordonnées, mais par
+    /// une phrase écrite sous le bloc. L'épreuve affirmait
+    /// « Win32HotkeyRegistrar.cs:228 » : insérer une ligne ailleurs dans ce
+    /// fichier la faisait rougir alors qu'elle ne parlait pas de ce qu'on avait
+    /// modifié. Ancrée sur la phrase, elle devient aussi plus forte : un
+    /// nouveau bloc sans filtre n'y échappe qu'en écrivant la même décision
+    /// délibérée, à l'endroit où on la lira.
     /// </summary>
+    /// <summary>La phrase qui déclare une dérogation assumée, sous le bloc.</summary>
+    private const string Derogation = "Sans filtre, et c'est voulu";
+
     [Fact]
     public void Attraper_tout_se_borne_par_un_filtre()
     {
@@ -85,14 +94,17 @@ public sealed class CatchDisciplineTests
                 // Le filtre s'écrit parfois à la ligne suivante.
                 var window = lines[i] + " " + (i + 1 < lines.Length ? lines[i + 1] : string.Empty);
 
-                if (!window.Contains(" when ", StringComparison.Ordinal))
+                if (window.Contains(" when ", StringComparison.Ordinal)
+                    || Body(lines, i).Contains(Derogation, StringComparison.Ordinal))
                 {
-                    larges.Add($"{Path.GetFileName(file)}:{i + 1}");
+                    continue;
                 }
+
+                larges.Add($"{Path.GetFileName(file)}:{i + 1}");
             }
         }
 
-        Assert.Equal(["Win32HotkeyRegistrar.cs:228"], larges.Order());
+        Assert.Equal([], larges.Order());
     }
 
     /// <summary>Le corps du bloc, jusqu'à son accolade fermante.</summary>
