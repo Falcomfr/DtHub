@@ -77,9 +77,6 @@
   <data name="WhatsNewTip" xml:space="preserve">
     <value>Read what this version brings</value>
   </data>
-  <data name="Stack" xml:space="preserve">
-    <value>Stack</value>
-  </data>
   <data name="StackTip" xml:space="preserve">
     <value>Stack every game window onto the last one you used, at its position and its size</value>
   </data>

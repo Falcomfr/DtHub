@@ -169,6 +169,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
         [.. _sessions.ActiveSessions.Where(
             s => !_unmanaged.Contains(s.Target.Key) && !_tabbed.Contains(s.Target.Key))];
 
+    /// <summary>
+    /// Signalé quand l'ensemble des fenêtres que les placements peuvent ranger
+    /// a pu changer : une mise de côté, une entrée ou une sortie du cadre à
+    /// onglets, un réordonnancement.
+    ///
+    /// L'ouverture et la fermeture passent par <see cref="SessionChanged"/> ;
+    /// celui-ci couvre ce qui change sans qu'aucune session ne bouge.
+    /// </summary>
+    public event EventHandler? ArrangeableChanged;
+
     /// <summary>Signalé à chaque changement d'état d'une session.</summary>
     public event EventHandler<ScrcpySession>? SessionChanged
     {
@@ -1125,6 +1135,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         _sessions.OrderKey = session =>
             ranks.TryGetValue(session.Target.Key, out var rank) ? rank : int.MaxValue;
+
+        // Après la relecture, non avant : ce qui écoute lira alors le bon
+        // ensemble. C'est ici que « mise de côté » et « logée en onglet »
+        // prennent effet pour tout le reste.
+        ArrangeableChanged?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>

@@ -53,7 +53,26 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         // alors que deux tournaient, c'est-à-dire la moitié de la vérité, et
         // justement au moment où elle sert.
         _launcher.SessionChanged += OnSessionChanged;
+
+        // Une mise de côté ou un passage en onglet ne touche à aucune session,
+        // et les deux touches de rangement doivent pourtant disparaître.
+        _launcher.ArrangeableChanged += OnArrangeableChanged;
     }
+
+    /// <summary>
+    /// Vrai quand il y a de quoi ranger : au moins deux fenêtres que les
+    /// placements peuvent bouger.
+    ///
+    /// Empiler ou mettre côte à côte n'a aucun sens à une seule fenêtre, et
+    /// n'en a pas davantage sur des fenêtres logées dans le cadre à onglets ou
+    /// mises de côté : ces placements les ignorent. Les touches se retirent
+    /// donc plutôt que de ne rien faire quand on les presse.
+    /// </summary>
+    public bool CanArrange => _launcher.ManagedSessions.Count > 1;
+
+    private void OnArrangeableChanged(object? sender, EventArgs e) =>
+        System.Windows.Application.Current?.Dispatcher.InvokeAsync(
+            () => OnPropertyChanged(nameof(CanArrange)));
 
     /// <summary>
     /// Une fenêtre s'est ouverte ou fermée : ce que la liaison porte a changé.
@@ -66,6 +85,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             OnPropertyChanged(nameof(BitrateSummary));
             OnPropertyChanged(nameof(LinkSummary));
             OnPropertyChanged(nameof(DisplayFitSummary));
+            OnPropertyChanged(nameof(CanArrange));
         });
 
     /// <summary>

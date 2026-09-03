@@ -77,9 +77,6 @@
   <data name="WhatsNewTip" xml:space="preserve">
     <value>Leer lo que aporta esta versión</value>
   </data>
-  <data name="Stack" xml:space="preserve">
-    <value>Apilar</value>
-  </data>
   <data name="StackTip" xml:space="preserve">
     <value>Apilar todas las ventanas de juego sobre la última que has usado, en su posición y su tamaño</value>
   </data>

@@ -7,6 +7,20 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ## [Non publié]
 
+### Modifié
+
+- La barre du bas se lit en deux temps. « Guides » est seul à gauche, dans son
+  propre cadre : il ne range rien, contrairement aux deux autres, et les mettre
+  tous les trois dans le même cadre les donnait pour trois gestes de même
+  nature. Empiler et côte à côte gardent leur cadre commun et perdent leur
+  texte : leur dessin dit ce qu'elles font, et le pied de fenêtre respire.
+
+- Empiler et côte à côte ne paraissent plus qu'avec de quoi ranger : deux
+  fenêtres au moins, et que ces placements peuvent bouger. Une seule fenêtre
+  ouverte, ou deux logées dans le cadre à onglets, et les presser ne faisait
+  rien. Elles se retirent maintenant plutôt que de ne rien faire, et
+  reparaissent dès qu'une deuxième fenêtre libre s'ouvre.
+
 ### Corrigé
 
 - La liste d'une zone montrait des quêtes avant ce qu'elles exigent. Dans

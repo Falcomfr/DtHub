@@ -87,54 +87,25 @@
             <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
 
-          <!-- Les trois gestes de rangement, groupés comme les touches d'un
-               même appareil : un seul cadre, deux filets, et le nom de chacune
-               écrit à côté de son dessin.
+          <!-- Deux groupes et non un seul. Les guides ne rangent rien : les
+               mettre dans le même cadre que l'empilement et le côte à côte les
+               donnait pour trois gestes de même nature, alors que c'est le
+               seul des trois qui ouvre quelque chose. Ils gardent donc leur
+               nom, et le cadre de rangement se réduit à deux dessins.
 
-               Elles étaient trois icônes flottantes surmontant chacune son
-               raccourci en chasse fixe. « Ctrl + » y paraissait trois fois dans
-               une barre de trois cent soixante unités, et c'était la chose la
-               plus voyante d'un pied de fenêtre qui ne demande qu'à se faire
+               Les touches étaient trois icônes flottantes surmontant chacune
+               son raccourci en chasse fixe. « Ctrl + » y paraissait trois fois
+               dans une barre de trois cent soixante unités, et c'était la chose
+               la plus voyante d'un pied de fenêtre qui ne demande qu'à se faire
                oublier. Les raccourcis se lisent dans l'onglet qui leur est
                consacré, et l'infobulle dit ce que chaque touche fait. -->
-          <Border Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left"
-                  Margin="0,0,10,0"
-                  Background="{StaticResource KeyFaceBrush}"
-                  BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
-                  CornerRadius="{StaticResource RadiusKey}">
-            <StackPanel Orientation="Horizontal">
+          <StackPanel Grid.Column="0" Orientation="Horizontal"
+                      VerticalAlignment="Center" HorizontalAlignment="Left"
+                      Margin="0,0,10,0">
 
-              <Button Style="{StaticResource GroupKey}"
-                      ToolTip="{loc:T StackTip}"
-                      Command="{Binding RearrangeCommand}">
-                <StackPanel Orientation="Horizontal">
-                  <!-- Deux fenêtres superposées : c'est exactement ce que fait
-                       l'action, et aucun glyphe ne le dit clairement. -->
-                  <Path Style="{StaticResource RowGlyph}" Margin="0,0,5,0"
-                        VerticalAlignment="Center"
-                        Data="M 1.8,2.2 H 10.2 V 8.4 H 1.8 Z M 4.8,6.6 H 13.2 V 12.8 H 4.8 Z" />
-                  <TextBlock Text="{loc:T Stack}" VerticalAlignment="Center" />
-                </StackPanel>
-              </Button>
-
-              <Border Width="1" Margin="0,6" Background="{DynamicResource BorderBrush}" />
-
-              <Button Style="{StaticResource GroupKey}"
-                      ToolTip="{loc:T SideBySideTip}"
-                      Command="{Binding TileCommand}">
-                <StackPanel Orientation="Horizontal">
-                  <!-- Une fenêtre partagée en deux : les deux panneaux
-                       séparés se remplissaient de leur propre trait à cette
-                       taille, et l'icône devenait deux pavés blancs. -->
-                  <Path Style="{StaticResource RowGlyph}" Margin="0,0,5,0"
-                        VerticalAlignment="Center"
-                        Data="M 2,2.6 H 13 V 12.4 H 2 Z M 7.5,2.6 V 12.4" />
-                  <TextBlock Text="{loc:T SideBySide}" VerticalAlignment="Center" />
-                </StackPanel>
-              </Button>
-
-              <Border Width="1" Margin="0,6" Background="{DynamicResource BorderBrush}" />
-
+            <Border Background="{StaticResource KeyFaceBrush}"
+                    BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
+                    CornerRadius="{StaticResource RadiusKey}">
               <Button Style="{StaticResource GroupKey}"
                       ToolTip="{loc:T GuidesTip}"
                       Command="{Binding QuestsCommand}">
@@ -149,9 +120,45 @@
                   <TextBlock Text="{loc:T Guides}" VerticalAlignment="Center" />
                 </StackPanel>
               </Button>
+            </Border>
 
-            </StackPanel>
-          </Border>
+            <!-- Le rangement ne paraît qu'avec de quoi ranger : deux fenêtres
+                 au moins, et que les placements peuvent bouger. Une seule
+                 fenêtre, ou deux logées dans le cadre à onglets, et presser ces
+                 touches ne faisait rien. Sans texte : leur dessin dit ce
+                 qu'elles font, et le pied de fenêtre respire. -->
+            <Border Margin="8,0,0,0"
+                    Background="{StaticResource KeyFaceBrush}"
+                    BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
+                    CornerRadius="{StaticResource RadiusKey}"
+                    Visibility="{Binding CanArrange, Converter={StaticResource BoolToVisibility}}">
+              <StackPanel Orientation="Horizontal">
+
+                <Button Style="{StaticResource GroupKey}"
+                        ToolTip="{loc:T StackTip}"
+                        Command="{Binding RearrangeCommand}">
+                  <!-- Deux fenêtres superposées : c'est exactement ce que fait
+                       l'action, et aucun glyphe ne le dit clairement. -->
+                  <Path Style="{StaticResource RowGlyph}" VerticalAlignment="Center"
+                        Data="M 1.8,2.2 H 10.2 V 8.4 H 1.8 Z M 4.8,6.6 H 13.2 V 12.8 H 4.8 Z" />
+                </Button>
+
+                <Border Width="1" Margin="0,6" Background="{DynamicResource BorderBrush}" />
+
+                <Button Style="{StaticResource GroupKey}"
+                        ToolTip="{loc:T SideBySideTip}"
+                        Command="{Binding TileCommand}">
+                  <!-- Une fenêtre partagée en deux : les deux panneaux
+                       séparés se remplissaient de leur propre trait à cette
+                       taille, et l'icône devenait deux pavés blancs. -->
+                  <Path Style="{StaticResource RowGlyph}" VerticalAlignment="Center"
+                        Data="M 2,2.6 H 13 V 12.4 H 2 Z M 7.5,2.6 V 12.4" />
+                </Button>
+
+              </StackPanel>
+            </Border>
+
+          </StackPanel>
 
           <Button Grid.Column="1" Content="{loc:T Quit}" Click="OnQuit"
                   VerticalAlignment="Center"
