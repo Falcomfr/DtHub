@@ -287,4 +287,223 @@
   <data name="LanguageRestart" xml:space="preserve">
     <value>The language changes at the next start.</value>
   </data>
+  <data name="Help" xml:space="preserve">
+    <value>Help</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Back" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Prerequisites" xml:space="preserve">
+    <value>Prerequisites</value>
+  </data>
+  <data name="PapychaGuides" xml:space="preserve">
+    <value>Guides from papycha.fr</value>
+  </data>
+  <data name="FrenchLabelsNotice" xml:space="preserve">
+    <value>The labels below are those of a device set to French. On a device in another language the words differ, but the menus follow one another in the same order.</value>
+  </data>
+  <data name="PairCodeIntro" xml:space="preserve">
+    <value>On the device, open “Pair device with pairing code”. It will appear below.</value>
+  </data>
+  <data name="HelpTip" xml:space="preserve">
+    <value>Where to find these settings on your phone</value>
+  </data>
+  <data name="WaitingForDevice" xml:space="preserve">
+    <value>Waiting for a device. The list fills on its own as soon as the pairing screen is open on the device.</value>
+  </data>
+  <data name="PairingCodeTip" xml:space="preserve">
+    <value>The six-digit code shown on the device</value>
+  </data>
+  <data name="Pair" xml:space="preserve">
+    <value>Pair</value>
+  </data>
+  <data name="PortTip" xml:space="preserve">
+    <value>The port shown under “Wireless debugging” on the phone</value>
+  </data>
+  <data name="Connect" xml:space="preserve">
+    <value>Connect</value>
+  </data>
+  <data name="PrepareDevice" xml:space="preserve">
+    <value>Prepare the device</value>
+  </data>
+  <data name="BrandsDiffer" xml:space="preserve">
+    <value>Menus do not carry the same name from one brand to the next. Choose yours.</value>
+  </data>
+  <data name="UnlockDeveloperOptions" xml:space="preserve">
+    <value>1. Unlock the developer options</value>
+  </data>
+  <data name="TapSevenTimesPrefix" xml:space="preserve">
+    <value>Tap seven times in a row on “</value>
+  </data>
+  <data name="TapSevenTimesSuffix" xml:space="preserve">
+    <value>”. A message confirms that you are a developer.</value>
+  </data>
+  <data name="OpenDeveloperOptions" xml:space="preserve">
+    <value>2. Open the developer options</value>
+  </data>
+  <data name="EnableDebugging" xml:space="preserve">
+    <value>Turn on “USB debugging” and “Wireless debugging”.</value>
+  </data>
+  <data name="CableIsSimplest" xml:space="preserve">
+    <value>3. By cable, the simplest way</value>
+  </data>
+  <data name="CableSteps" xml:space="preserve">
+    <value>Plug in the cable and accept the request shown on the device. It appears on its own in the main window, there is nothing else to do.</value>
+  </data>
+  <data name="WirelessFirstTime" xml:space="preserve">
+    <value>4. Wireless, the first time</value>
+  </data>
+  <data name="WirelessMenuPath" xml:space="preserve">
+    <value>Wireless debugging  ›  Pair device with pairing code</value>
+  </data>
+  <data name="WirelessCodeShown" xml:space="preserve">
+    <value>The device shows a six-digit code and appears in the pairing window.</value>
+  </data>
+  <data name="SameNetworkNotice" xml:space="preserve">
+    <value>The device and the PC must be on the same Wi-Fi network, and Android 11 at least. After that, the connection is made again on its own at every start.</value>
+  </data>
+  <data name="AndroidOnly" xml:space="preserve">
+    <value>Only Android devices will do. iOS allows neither opening an extra display nor installing the same application twice.</value>
+  </data>
+  <data name="ShortcutsScopeNotice" xml:space="preserve">
+    <value>They act only while a window of the application is active. Ctrl+Tab therefore stays available in your other software.</value>
+  </data>
+  <data name="Defaults" xml:space="preserve">
+    <value>Defaults</value>
+  </data>
+  <data name="AddAccountTip" xml:space="preserve">
+    <value>Add an account on this phone: a fresh Android profile, with the game already in it. It will open like a new installation, to be logged in again.</value>
+  </data>
+  <data name="ForgetDeviceTip" xml:space="preserve">
+    <value>Break the pairing with this device. Its windows close, and its instances as well as their settings are erased. A confirmation is asked for.</value>
+  </data>
+  <data name="ForgetDeviceShortTip" xml:space="preserve">
+    <value>Break the pairing with this device. Its instances as well as their settings are erased. A confirmation is asked for.</value>
+  </data>
+  <data name="DragToReorderTip" xml:space="preserve">
+    <value>Drag to change the order. An instance can sit between those of another device, and this order is also the one the keyboard follows.</value>
+  </data>
+  <data name="LockWindowTip" xml:space="preserve">
+    <value>Lock this window in its place. It will no longer move on a stack, a side-by-side or a size change, and the keyboard will not stop on it. The other windows arrange themselves without it.</value>
+  </data>
+  <data name="TabbedTip" xml:space="preserve">
+    <value>Open this account in the tabbed frame. Click again to give it back its own free window.</value>
+  </data>
+  <data name="RenameTip" xml:space="preserve">
+    <value>Click to rename. This text becomes the title of the game window, visible in the taskbar.</value>
+  </data>
+  <data name="OpenInstanceTip" xml:space="preserve">
+    <value>Open this instance now. Its window comes back to the place and the size it had last time.</value>
+  </data>
+  <data name="RestartTip" xml:space="preserve">
+    <value>Restart the game without closing the window. Useful when a window has frozen: it starts again at the login screen, at its place and its size.</value>
+  </data>
+  <data name="CloseWindowTip" xml:space="preserve">
+    <value>Close this account's window. Nothing is deleted: its position is remembered and the play button reopens it in the same spot. It will not reopen on its own at the next start.</value>
+  </data>
+  <data name="NoDeviceFound" xml:space="preserve">
+    <value>NO DEVICE FOUND</value>
+  </data>
+  <data name="NoDeviceHelp" xml:space="preserve">
+    <value>Plug in a USB cable with debugging turned on: the device will appear on its own. A phone already paired over Wi-Fi reconnects by itself as soon as it is back on the network.</value>
+  </data>
+  <data name="LinkedPage" xml:space="preserve">
+    <value>Linked page</value>
+  </data>
+  <data name="OpenInBrowser" xml:space="preserve">
+    <value>Open in the browser</value>
+  </data>
+  <data name="OpenThisPageTip" xml:space="preserve">
+    <value>Open this page in your usual browser, on the original site</value>
+  </data>
+  <data name="OpenCurrentPageTip" xml:space="preserve">
+    <value>Open the current page in your usual browser, on the original site</value>
+  </data>
+  <data name="SearchTip" xml:space="preserve">
+    <value>Click to unroll the list, or type a name. Accents do not count.</value>
+  </data>
+  <data name="ClearSearchTip" xml:space="preserve">
+    <value>Clear the search</value>
+  </data>
+  <data name="BackToPreviousPageTip" xml:space="preserve">
+    <value>Go back to the page seen before</value>
+  </data>
+  <data name="PreviousStepTip" xml:space="preserve">
+    <value>Previous step. The page moves back onto it.</value>
+  </data>
+  <data name="NextStepTip" xml:space="preserve">
+    <value>Next step. The page moves onto it.</value>
+  </data>
+  <data name="PickStepTip" xml:space="preserve">
+    <value>Choose a step. The page moves onto it.</value>
+  </data>
+  <data name="ReportErrorTip" xml:space="preserve">
+    <value>Report an error to papycha.fr on this page. The site's form opens with the area and the quest already noted, and nothing is sent until you press.</value>
+  </data>
+  <data name="ReportError" xml:space="preserve">
+    <value>Report an error</value>
+  </data>
+  <data name="QuestInSuccessTip" xml:space="preserve">
+    <value>Where this quest sits in its achievement</value>
+  </data>
+  <data name="PreviousQuestTip" xml:space="preserve">
+    <value>Go back to the previous quest of the achievement</value>
+  </data>
+  <data name="NextQuestTip" xml:space="preserve">
+    <value>Move on to the next quest of the achievement</value>
+  </data>
+  <data name="CloseListTip" xml:space="preserve">
+    <value>Close the list</value>
+  </data>
+  <data name="GoUpOneTip" xml:space="preserve">
+    <value>Go up one level</value>
+  </data>
+  <data name="ClickQuestsHint" xml:space="preserve">
+    <value>Click to open those that are quests.</value>
+  </data>
+  <data name="PreventSleep" xml:space="preserve">
+    <value>Prevent sleep</value>
+  </data>
+  <data name="WindowFreezes" xml:space="preserve">
+    <value>A window freezes after a while</value>
+  </data>
+  <data name="SleepExplanation" xml:space="preserve">
+    <value>DT Hub keeps the device's screen on, but Android puts to sleep by itself the applications it judges idle, and a game window that is not in the foreground is one of them. The windows then freeze one after another, the oldest first. One setting is enough to prevent it, and it holds.</value>
+  </data>
+  <data name="OpenBatterySetting" xml:space="preserve">
+    <value>1. Open the game's battery setting</value>
+  </data>
+  <data name="SettingCalledPrefix" xml:space="preserve">
+    <value>On this device, the setting to find is called “</value>
+  </data>
+  <data name="SettingCalledSuffix" xml:space="preserve">
+    <value>”.</value>
+  </data>
+  <data name="RemoveRestrictions" xml:space="preserve">
+    <value>2. Take it out of the restrictions</value>
+  </data>
+  <data name="RemoveRestrictionsHelp" xml:space="preserve">
+    <value>The game must be able to run in the background without limit. This is the only handling needed in most cases, and it survives restarts.</value>
+  </data>
+  <data name="RepeatForEachCopy" xml:space="preserve">
+    <value>3. Do it again for each copy of the game</value>
+  </data>
+  <data name="RepeatForEachCopyHelp" xml:space="preserve">
+    <value>A cloned application, or one installed in a second profile, is a separate application in Android's eyes: it has its own restrictions, and the setting made on one does not hold for the other.</value>
+  </data>
+  <data name="AlreadyFrozenHelp" xml:space="preserve">
+    <value>A window that has already frozen is repaired by restarting it: the “Restart” button on its row restarts the game without closing the window.</value>
+  </data>
 </root>

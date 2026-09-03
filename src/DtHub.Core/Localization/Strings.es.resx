@@ -287,4 +287,223 @@
   <data name="LanguageRestart" xml:space="preserve">
     <value>El idioma cambia en el próximo inicio.</value>
   </data>
+  <data name="Help" xml:space="preserve">
+    <value>Ayuda</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="Back" xml:space="preserve">
+    <value>Atrás</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Modificar</value>
+  </data>
+  <data name="Prerequisites" xml:space="preserve">
+    <value>Requisitos</value>
+  </data>
+  <data name="PapychaGuides" xml:space="preserve">
+    <value>Guías de papycha.fr</value>
+  </data>
+  <data name="FrenchLabelsNotice" xml:space="preserve">
+    <value>Las etiquetas de abajo son las de un aparato configurado en francés. En un aparato en otro idioma las palabras cambian, pero los menús se suceden en el mismo orden.</value>
+  </data>
+  <data name="PairCodeIntro" xml:space="preserve">
+    <value>En el aparato, abre «Vincular dispositivo con código de vinculación». Aparecerá abajo.</value>
+  </data>
+  <data name="HelpTip" xml:space="preserve">
+    <value>Dónde encontrar estos ajustes en tu teléfono</value>
+  </data>
+  <data name="WaitingForDevice" xml:space="preserve">
+    <value>Esperando un aparato. La lista se rellena sola en cuanto la pantalla de vinculación está abierta en el aparato.</value>
+  </data>
+  <data name="PairingCodeTip" xml:space="preserve">
+    <value>El código de seis cifras que muestra el aparato</value>
+  </data>
+  <data name="Pair" xml:space="preserve">
+    <value>Vincular</value>
+  </data>
+  <data name="PortTip" xml:space="preserve">
+    <value>El puerto que aparece en «Depuración inalámbrica» en el teléfono</value>
+  </data>
+  <data name="Connect" xml:space="preserve">
+    <value>Conectar</value>
+  </data>
+  <data name="PrepareDevice" xml:space="preserve">
+    <value>Preparar el aparato</value>
+  </data>
+  <data name="BrandsDiffer" xml:space="preserve">
+    <value>Los menús no se llaman igual de una marca a otra. Elige la tuya.</value>
+  </data>
+  <data name="UnlockDeveloperOptions" xml:space="preserve">
+    <value>1. Desbloquear las opciones para desarrolladores</value>
+  </data>
+  <data name="TapSevenTimesPrefix" xml:space="preserve">
+    <value>Pulsa siete veces seguidas en «</value>
+  </data>
+  <data name="TapSevenTimesSuffix" xml:space="preserve">
+    <value>». Un mensaje confirma que eres desarrollador.</value>
+  </data>
+  <data name="OpenDeveloperOptions" xml:space="preserve">
+    <value>2. Abrir las opciones para desarrolladores</value>
+  </data>
+  <data name="EnableDebugging" xml:space="preserve">
+    <value>Activa «Depuración por USB» y «Depuración inalámbrica».</value>
+  </data>
+  <data name="CableIsSimplest" xml:space="preserve">
+    <value>3. Por cable, lo más sencillo</value>
+  </data>
+  <data name="CableSteps" xml:space="preserve">
+    <value>Conecta el cable y acepta la petición que aparece en el aparato. Aparece solo en la ventana principal, no hay nada más que hacer.</value>
+  </data>
+  <data name="WirelessFirstTime" xml:space="preserve">
+    <value>4. Sin cables, la primera vez</value>
+  </data>
+  <data name="WirelessMenuPath" xml:space="preserve">
+    <value>Depuración inalámbrica  ›  Vincular dispositivo con código de vinculación</value>
+  </data>
+  <data name="WirelessCodeShown" xml:space="preserve">
+    <value>El aparato muestra un código de seis cifras y aparece en la ventana de vinculación.</value>
+  </data>
+  <data name="SameNetworkNotice" xml:space="preserve">
+    <value>El aparato y el PC deben estar en la misma red Wi-Fi, y Android 11 como mínimo. Después, la conexión se rehace sola en cada arranque.</value>
+  </data>
+  <data name="AndroidOnly" xml:space="preserve">
+    <value>Solo sirven los aparatos Android. iOS no permite abrir una pantalla adicional ni instalar dos veces la misma aplicación.</value>
+  </data>
+  <data name="ShortcutsScopeNotice" xml:space="preserve">
+    <value>Solo actúan mientras una ventana de la aplicación está activa. Por eso Ctrl+Tab sigue disponible en tus otros programas.</value>
+  </data>
+  <data name="Defaults" xml:space="preserve">
+    <value>Valores por defecto</value>
+  </data>
+  <data name="AddAccountTip" xml:space="preserve">
+    <value>Añadir una cuenta en este teléfono: un perfil de Android nuevo, con el juego ya dentro. Se abrirá como una instalación nueva, para volver a conectarse.</value>
+  </data>
+  <data name="ForgetDeviceTip" xml:space="preserve">
+    <value>Romper la vinculación con este aparato. Sus ventanas se cierran, y sus instancias y sus ajustes se borran. Se pide confirmación.</value>
+  </data>
+  <data name="ForgetDeviceShortTip" xml:space="preserve">
+    <value>Romper la vinculación con este aparato. Sus instancias y sus ajustes se borran. Se pide confirmación.</value>
+  </data>
+  <data name="DragToReorderTip" xml:space="preserve">
+    <value>Arrastra para cambiar el orden. Una instancia puede colocarse entre las de otro aparato, y este orden es también el que sigue el teclado.</value>
+  </data>
+  <data name="LockWindowTip" xml:space="preserve">
+    <value>Bloquear esta ventana en su sitio. Ya no se moverá al apilar, al poner lado a lado ni al cambiar de tamaño, y el teclado no se detendrá en ella. Las demás ventanas se colocan sin ella.</value>
+  </data>
+  <data name="TabbedTip" xml:space="preserve">
+    <value>Abrir esta cuenta en el marco con pestañas. Vuelve a hacer clic para devolverle su ventana libre.</value>
+  </data>
+  <data name="RenameTip" xml:space="preserve">
+    <value>Haz clic para renombrar. Este texto pasa a ser el título de la ventana del juego, visible en la barra de tareas.</value>
+  </data>
+  <data name="OpenInstanceTip" xml:space="preserve">
+    <value>Abrir esta instancia ahora. Su ventana vuelve al sitio y al tamaño que tenía la última vez.</value>
+  </data>
+  <data name="RestartTip" xml:space="preserve">
+    <value>Reiniciar el juego sin cerrar la ventana. Útil cuando una ventana se ha congelado: vuelve a la pantalla de conexión, en su sitio y con su tamaño.</value>
+  </data>
+  <data name="CloseWindowTip" xml:space="preserve">
+    <value>Cerrar la ventana de esta cuenta. No se borra nada: su posición se guarda y el botón de reproducción la vuelve a abrir en el mismo sitio. No se reabrirá sola en el próximo arranque.</value>
+  </data>
+  <data name="NoDeviceFound" xml:space="preserve">
+    <value>NINGÚN APARATO DETECTADO</value>
+  </data>
+  <data name="NoDeviceHelp" xml:space="preserve">
+    <value>Conecta un cable USB con la depuración activada: el aparato aparecerá solo. Un teléfono ya vinculado por Wi-Fi se reconecta solo en cuanto vuelve a la red.</value>
+  </data>
+  <data name="LinkedPage" xml:space="preserve">
+    <value>Página enlazada</value>
+  </data>
+  <data name="OpenInBrowser" xml:space="preserve">
+    <value>Abrir en el navegador</value>
+  </data>
+  <data name="OpenThisPageTip" xml:space="preserve">
+    <value>Abrir esta página en tu navegador habitual, en el sitio de origen</value>
+  </data>
+  <data name="OpenCurrentPageTip" xml:space="preserve">
+    <value>Abrir la página actual en tu navegador habitual, en el sitio de origen</value>
+  </data>
+  <data name="SearchTip" xml:space="preserve">
+    <value>Haz clic para desplegar la lista, o escribe un nombre. Los acentos no cuentan.</value>
+  </data>
+  <data name="ClearSearchTip" xml:space="preserve">
+    <value>Vaciar la búsqueda</value>
+  </data>
+  <data name="BackToPreviousPageTip" xml:space="preserve">
+    <value>Volver a la página consultada antes</value>
+  </data>
+  <data name="PreviousStepTip" xml:space="preserve">
+    <value>Paso anterior. La página se coloca en él.</value>
+  </data>
+  <data name="NextStepTip" xml:space="preserve">
+    <value>Paso siguiente. La página se coloca en él.</value>
+  </data>
+  <data name="PickStepTip" xml:space="preserve">
+    <value>Elegir un paso. La página se coloca en él.</value>
+  </data>
+  <data name="ReportErrorTip" xml:space="preserve">
+    <value>Informar de un error a papycha.fr en esta página. El formulario del sitio se abre con la zona y la misión ya anotadas, y no se envía nada hasta que pulses.</value>
+  </data>
+  <data name="ReportError" xml:space="preserve">
+    <value>Informar de un error</value>
+  </data>
+  <data name="QuestInSuccessTip" xml:space="preserve">
+    <value>Lugar de esta misión dentro de su logro</value>
+  </data>
+  <data name="PreviousQuestTip" xml:space="preserve">
+    <value>Volver a la misión anterior del logro</value>
+  </data>
+  <data name="NextQuestTip" xml:space="preserve">
+    <value>Pasar a la misión siguiente del logro</value>
+  </data>
+  <data name="CloseListTip" xml:space="preserve">
+    <value>Cerrar la lista</value>
+  </data>
+  <data name="GoUpOneTip" xml:space="preserve">
+    <value>Subir un nivel</value>
+  </data>
+  <data name="ClickQuestsHint" xml:space="preserve">
+    <value>Haz clic para abrir las que son misiones.</value>
+  </data>
+  <data name="PreventSleep" xml:space="preserve">
+    <value>Impedir la suspensión</value>
+  </data>
+  <data name="WindowFreezes" xml:space="preserve">
+    <value>Una ventana se congela al cabo de un rato</value>
+  </data>
+  <data name="SleepExplanation" xml:space="preserve">
+    <value>DT Hub mantiene encendida la pantalla del aparato, pero Android duerme por su cuenta las aplicaciones que considera inactivas, y una ventana de juego que no está en primer plano es una de ellas. Las ventanas se congelan entonces una a una, la más antigua primero. Un solo ajuste basta para impedirlo, y se mantiene.</value>
+  </data>
+  <data name="OpenBatterySetting" xml:space="preserve">
+    <value>1. Abrir el ajuste de batería del juego</value>
+  </data>
+  <data name="SettingCalledPrefix" xml:space="preserve">
+    <value>En este aparato, el ajuste que hay que buscar se llama «</value>
+  </data>
+  <data name="SettingCalledSuffix" xml:space="preserve">
+    <value>».</value>
+  </data>
+  <data name="RemoveRestrictions" xml:space="preserve">
+    <value>2. Quitarlo de las restricciones</value>
+  </data>
+  <data name="RemoveRestrictionsHelp" xml:space="preserve">
+    <value>El juego debe poder ejecutarse en segundo plano sin límite. Es la única operación necesaria en la mayoría de los casos, y sobrevive a los reinicios.</value>
+  </data>
+  <data name="RepeatForEachCopy" xml:space="preserve">
+    <value>3. Repetirlo para cada copia del juego</value>
+  </data>
+  <data name="RepeatForEachCopyHelp" xml:space="preserve">
+    <value>Una aplicación clonada, o instalada en un segundo perfil, es una aplicación distinta a ojos de Android: tiene sus propias restricciones, y el ajuste hecho en una no vale para la otra.</value>
+  </data>
+  <data name="AlreadyFrozenHelp" xml:space="preserve">
+    <value>Una ventana ya congelada se arregla reiniciándola: el botón «Reiniciar» de su fila reinicia el juego sin cerrar la ventana.</value>
+  </data>
 </root>

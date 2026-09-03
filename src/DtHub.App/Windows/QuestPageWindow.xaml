@@ -1,8 +1,9 @@
 <Window x:Class="DtHub.App.Windows.QuestPageWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:DtHub.App.Localization"
         xmlns:wv="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
-        Title="Page liée"
+        Title="{loc:T LinkedPage}"
         Width="620" Height="820" MinWidth="380" MinHeight="360"
         Topmost="True" ShowInTaskbar="True"
         Background="{DynamicResource SurfaceBrush}"
@@ -28,11 +29,11 @@
         <TextBlock Grid.Column="0" VerticalAlignment="Center"
                    Style="{StaticResource Muted}" FontSize="11"
                    TextTrimming="CharacterEllipsis"
-                   Text="Guides de papycha.fr" />
+                   Text="{loc:T PapychaGuides}" />
 
-        <Button Grid.Column="1" Content="Ouvrir dans le navigateur"
+        <Button Grid.Column="1" Content="{loc:T OpenInBrowser}"
                 Style="{StaticResource QuietButton}"
-                ToolTip="Ouvrir cette page dans votre navigateur habituel, sur le site d'origine"
+                ToolTip="{loc:T OpenThisPageTip}"
                 Click="OnOpenInBrowser" />
       </Grid>
     </Border>

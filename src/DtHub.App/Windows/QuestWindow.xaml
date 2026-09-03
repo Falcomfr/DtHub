@@ -1,8 +1,9 @@
 ﻿<Window x:Class="DtHub.App.Windows.QuestWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:DtHub.App.Localization"
         xmlns:wv="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
-        Title="Guides"
+        Title="{loc:T Guides}"
         PreviewMouseDown="OnWindowPressed"
         Width="520" Height="760" MinWidth="380" MinHeight="360"
         Topmost="True"
@@ -34,7 +35,7 @@
                    GotKeyboardFocus="OnSearchFocused"
                    PreviewMouseLeftButtonDown="OnSearchClicked"
                    PreviewKeyDown="OnSearchKey"
-                   ToolTip="Cliquez pour dérouler la liste, ou tapez un nom. Les accents ne comptent pas."
+                   ToolTip="{loc:T SearchTip}"
                    Tag="Cherchez une quête, une zone, un succès, un donjon ou un chemin" />
 
           <!-- Dans le champ et non à côté : une croix posée en dehors se lisait
@@ -42,7 +43,7 @@
           <Button Style="{StaticResource IconButton}"
                   HorizontalAlignment="Right" Margin="0,0,3,0"
                   Click="OnClearQuery"
-                  ToolTip="Vider la recherche"
+                  ToolTip="{loc:T ClearSearchTip}"
                   Visibility="{Binding Query, Converter={StaticResource EmptyToVisibility},
                                        ConverterParameter=inverse}">
             <Path Style="{StaticResource RowGlyph}" Data="M 4,4 L 11,11 M 11,4 L 4,11" />
@@ -85,7 +86,7 @@
           <Button Grid.Column="0" Style="{StaticResource IconButton}"
                   Margin="0,0,4,0" VerticalAlignment="Center"
                   Click="OnGoBackPage"
-                  ToolTip="Revenir à la page précédemment consultée"
+                  ToolTip="{loc:T BackToPreviousPageTip}"
                   Visibility="{Binding CanGoBackPage,
                                        Converter={StaticResource BoolToVisibility}}">
             <Path Style="{StaticResource RowGlyph}"
@@ -115,13 +116,13 @@
 
           <Button Grid.Column="0" Style="{StaticResource IconButton}"
                   IsEnabled="{Binding CanGoPreviousStep}" Click="OnPreviousStep"
-                  ToolTip="Étape précédente. La page se replace dessus.">
+                  ToolTip="{loc:T PreviousStepTip}">
             <Path Style="{StaticResource RowGlyph}" Data="M 9,3 L 5,7.5 L 9,12" />
           </Button>
 
           <Button Grid.Column="1" Style="{StaticResource IconButton}"
                   IsEnabled="{Binding CanGoNextStep}" Click="OnNextStep"
-                  ToolTip="Étape suivante. La page se replace dessus.">
+                  ToolTip="{loc:T NextStepTip}">
             <Path Style="{StaticResource RowGlyph}" Data="M 6,3 L 10,7.5 L 6,12" />
           </Button>
 
@@ -144,7 +145,7 @@
                           Padding="7,2" VerticalAlignment="Center"
                           Background="Transparent"
                           BorderBrush="{DynamicResource BorderBrush}"
-                          ToolTip="Choisir une étape. La page se replace dessus."
+                          ToolTip="{loc:T PickStepTip}"
                           Visibility="{Binding CanPickStep,
                                                Converter={StaticResource BoolToVisibility}}">
               <StackPanel Orientation="Horizontal">
@@ -250,7 +251,7 @@
         <TextBlock Grid.Column="0" VerticalAlignment="Center" FontSize="11"
                    TextTrimming="CharacterEllipsis"
                    Foreground="{DynamicResource AccentBrush}"
-                   Text="Guides de papycha.fr" />
+                   Text="{loc:T PapychaGuides}" />
 
         <!-- Le signalement porte les couleurs de l'accent, au repos et non au
              seul survol : c'est le geste qu'on cherche dans cette barre, et un
@@ -265,7 +266,7 @@
                 Background="{DynamicResource AccentSoftBrush}"
                 BorderBrush="{DynamicResource AccentBrush}"
                 Visibility="{Binding CanReport, Converter={StaticResource BoolToVisibility}}"
-                ToolTip="Remonter une erreur à papycha.fr sur cette page. Le formulaire du site s'ouvre avec la zone et la quête déjà notées, et rien n'est envoyé tant que vous n'appuyez pas."
+                ToolTip="{loc:T ReportErrorTip}"
                 Click="OnReportError">
           <StackPanel Orientation="Horizontal">
             <Path Width="15" Height="15" Stretch="None" Margin="0,0,7,0"
@@ -273,12 +274,12 @@
                   StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                   Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
                   Data="M 3.6,2.2 V 13.8 M 3.6,3.3 H 12.6 L 10.3,6.2 L 12.6,9.1 H 3.6" />
-            <TextBlock Text="Signaler une erreur" VerticalAlignment="Center" />
+            <TextBlock Text="{loc:T ReportError}" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
 
         <Button Grid.Column="2" Style="{StaticResource IconButton}"
-                ToolTip="Ouvrir la page courante dans votre navigateur habituel, sur le site d'origine"
+                ToolTip="{loc:T OpenCurrentPageTip}"
                 Click="OnOpenInBrowser">
           <Path Style="{StaticResource RowGlyph}"
                 Data="M 7,3.5 H 3.5 V 12.5 H 12.5 V 9 M 9.5,3.5 H 12.5 V 6.5 M 12.5,3.5 L 7.8,8.2" />
@@ -303,14 +304,14 @@
         <TextBlock Grid.Column="1" VerticalAlignment="Center" Margin="12,0"
                    Style="{StaticResource Muted}" FontSize="11"
                    Text="{Binding ChainStep}"
-                   ToolTip="Place de cette quête dans son succès"
+                   ToolTip="{loc:T QuestInSuccessTip}"
                    Visibility="{Binding ChainStep, Converter={StaticResource EmptyToVisibility},
                                         ConverterParameter=inverse}" />
 
         <Button Grid.Column="0" Style="{StaticResource QuietButton}"
                 HorizontalAlignment="Left" HorizontalContentAlignment="Left"
                 Tag="{Binding PreviousQuest}" Click="OnFollowChain"
-                ToolTip="Revenir à la quête précédente du succès"
+                ToolTip="{loc:T PreviousQuestTip}"
                 Visibility="{Binding PreviousQuest, Converter={StaticResource EmptyToVisibility},
                                      ConverterParameter=inverse}">
           <!-- La série n'apparaît que lorsqu'on en change : suivre un prérequis
@@ -336,7 +337,7 @@
         <Button Grid.Column="2" Style="{StaticResource QuietButton}"
                 HorizontalAlignment="Right" HorizontalContentAlignment="Right"
                 Tag="{Binding NextQuest}" Click="OnFollowChain"
-                ToolTip="Passer à la quête suivante du succès"
+                ToolTip="{loc:T NextQuestTip}"
                 Visibility="{Binding NextQuest, Converter={StaticResource EmptyToVisibility},
                                      ConverterParameter=inverse}">
           <StackPanel Orientation="Horizontal">
@@ -383,7 +384,7 @@
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
                 CornerRadius="{StaticResource Radius}" Padding="11,8">
           <StackPanel MaxWidth="330">
-            <TextBlock Text="Prérequis" Margin="0,0,0,6"
+            <TextBlock Text="{loc:T Prerequisites}" Margin="0,0,0,6"
                        FontFamily="{StaticResource UiFont}" FontSize="10"
                        FontWeight="SemiBold"
                        Foreground="{DynamicResource GlyphNeedBrush}" />
@@ -478,7 +479,7 @@
                        Text="{Binding Breadcrumb}" />
 
             <Button Grid.Column="1" Style="{StaticResource IconButton}"
-                    Click="OnCloseList" ToolTip="Fermer la liste">
+                    Click="OnCloseList" ToolTip="{loc:T CloseListTip}">
               <Path Style="{StaticResource RowGlyph}" Data="M 4,4 L 11,11 M 11,4 L 4,11" />
             </Button>
           </Grid>
@@ -489,12 +490,12 @@
           <Button DockPanel.Dock="Top" Style="{StaticResource QuietButton}"
                   HorizontalAlignment="Left" HorizontalContentAlignment="Left"
                   Margin="1,0,0,2" Click="OnGoBack"
-                  ToolTip="Remonter d'un cran"
+                  ToolTip="{loc:T GoUpOneTip}"
                   Visibility="{Binding CanGoBack, Converter={StaticResource BoolToVisibility}}">
             <StackPanel Orientation="Horizontal">
               <Path Style="{StaticResource RowGlyph}" Data="M 9,3 L 5,7.5 L 9,12"
                     Margin="0,0,6,0" />
-              <TextBlock Text="Retour" VerticalAlignment="Center" />
+              <TextBlock Text="{loc:T Back}" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
 
@@ -622,7 +623,7 @@
                       <Button.ToolTip>
                         <ToolTip Style="{StaticResource RichToolTip}">
                           <StackPanel MaxWidth="330">
-                            <TextBlock Text="Prérequis" Margin="0,0,0,6"
+                            <TextBlock Text="{loc:T Prerequisites}" Margin="0,0,0,6"
                                        FontFamily="{StaticResource UiFont}" FontSize="10"
                                        FontWeight="SemiBold"
                                        Foreground="{DynamicResource GlyphNeedBrush}" />
@@ -653,7 +654,7 @@
                             <TextBlock Margin="0,6,0,0"
                                        FontFamily="{StaticResource UiFont}" FontSize="10"
                                        Foreground="{DynamicResource TextMutedBrush}"
-                                       Text="Cliquez pour ouvrir celles qui sont des quêtes." />
+                                       Text="{loc:T ClickQuestsHint}" />
                           </StackPanel>
                         </ToolTip>
                       </Button.ToolTip>

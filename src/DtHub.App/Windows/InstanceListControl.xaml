@@ -1,7 +1,8 @@
 ﻿<UserControl x:Class="DtHub.App.Windows.InstanceListControl"
              GiveFeedback="OnGiveFeedback" MouseMove="OnDragSourceMoved"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:DtHub.App.Localization">
   <!-- Liste unique des instances, tous appareils confondus. Le nom d'un
        téléphone n'apparaît qu'aux endroits où il change. Partagée par la
        fenêtre de mise en route et par l'onglet Appareils. -->
@@ -52,7 +53,7 @@
                      pleine, parce qu'ajouter n'a pas d'autre dessin. -->
                 <Button Style="{StaticResource IconButton}" AllowDrop="False"
                         IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"
-                        ToolTip="Ajouter un compte sur ce téléphone : un profil Android neuf, avec le jeu déjà dedans. Il s'ouvrira comme une installation neuve, à reconnecter."
+                        ToolTip="{loc:T AddAccountTip}"
                         Command="{Binding DataContext.AddAccountCommand,
                                           RelativeSource={RelativeSource AncestorType=UserControl}}"
                         CommandParameter="{Binding Device}">
@@ -74,7 +75,7 @@
                 <!-- Un maillon rompu, dessiné comme deux anneaux écartés. -->
                 <Button Style="{StaticResource DangerIconButton}"
                         AllowDrop="False"
-                        ToolTip="Rompre l'association avec cet appareil. Ses fenêtres se ferment, et ses instances comme leurs réglages sont effacés. Une confirmation est demandée."
+                        ToolTip="{loc:T ForgetDeviceTip}"
                         Command="{Binding DataContext.ForgetDeviceCommand,
                                           RelativeSource={RelativeSource AncestorType=UserControl}}"
                         CommandParameter="{Binding Device}">
@@ -113,7 +114,7 @@
 
                   <Control Grid.Column="1" Style="{StaticResource DragHandle}" Margin="0,0,2,0"
                            VerticalAlignment="Center"
-                           ToolTip="Glissez pour changer l'ordre. Une instance peut se placer entre celles d'un autre appareil, et cet ordre est aussi celui du parcours au clavier."
+                           ToolTip="{loc:T DragToReorderTip}"
                            PreviewMouseLeftButtonDown="OnDragSourcePressed">
                     <Control.Visibility>
                       <MultiBinding Converter="{StaticResource AllTrue}">
@@ -130,7 +131,7 @@
                   <ToggleButton Grid.Column="2" Style="{StaticResource LockToggle}"
                                 IsChecked="{Binding IsLocked}" AllowDrop="False"
                                 Margin="0,0,4,0" VerticalAlignment="Center"
-                                ToolTip="Verrouiller cette fenêtre à sa place. Elle ne bougera plus lors d'un empilement, d'une mise côte à côte ou d'un changement de taille, et le parcours au clavier ne s'y arrêtera pas. Les autres fenêtres se placent sans elle."
+                                ToolTip="{loc:T LockWindowTip}"
                                 Visibility="{Binding ShowActions,
                                                      RelativeSource={RelativeSource AncestorType=UserControl},
                                                      Converter={StaticResource BoolToVisibility}}" />
@@ -145,7 +146,7 @@
                   <ToggleButton Grid.Column="3" AllowDrop="False" Cursor="Hand"
                                 Margin="0,0,5,0" VerticalAlignment="Center"
                                 IsChecked="{Binding IsTabbed}"
-                                ToolTip="Ouvrir ce compte dans le cadre à onglets. Recliquez pour lui rendre sa fenêtre libre."
+                                ToolTip="{loc:T TabbedTip}"
                                 Visibility="{Binding ShowActions,
                                                      RelativeSource={RelativeSource AncestorType=UserControl},
                                                      Converter={StaticResource BoolToVisibility}}">
@@ -179,7 +180,7 @@
                   <StackPanel Grid.Column="5" VerticalAlignment="Center">
                     <TextBox Text="{Binding Name, UpdateSourceTrigger=LostFocus}" AllowDrop="False"
                              Style="{StaticResource InlineEdit}"
-                             ToolTip="Cliquez pour renommer. Ce texte devient le titre de la fenêtre du jeu, visible dans la barre des tâches." />
+                             ToolTip="{loc:T RenameTip}" />
 
                     <!-- Le profil ne s'affiche qu'après un renommage : c'est
                          alors le seul moyen de savoir lequel est lequel. Sans
@@ -208,7 +209,7 @@
                       <!-- Un triangle plein : la seule icône que personne
                            n'a besoin d'apprendre. -->
                       <Button Style="{StaticResource IconButton}" AllowDrop="False"
-                              ToolTip="Ouvrir cette instance maintenant. Sa fenêtre revient à la place et à la taille qu'elle avait la dernière fois."
+                              ToolTip="{loc:T OpenInstanceTip}"
                               Visibility="{Binding IsRunning, Converter={StaticResource InverseBoolToVisibility}}"
                               Command="{Binding DataContext.LaunchInstanceCommand,
                                                 RelativeSource={RelativeSource AncestorType=UserControl}}"
@@ -221,7 +222,7 @@
                       <!-- Une flèche qui reboucle : le jeu redémarre, la
                            fenêtre reste. -->
                       <Button Style="{StaticResource IconButton}" AllowDrop="False"
-                              ToolTip="Relancer le jeu sans fermer la fenêtre. Utile quand une fenêtre s'est figée : elle repart à l'écran de connexion, à sa place et à sa taille."
+                              ToolTip="{loc:T RestartTip}"
                               Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"
                               Command="{Binding DataContext.RestartCommand,
                                                 RelativeSource={RelativeSource AncestorType=UserControl}}"
@@ -236,7 +237,7 @@
                            près tout le monde. Rien n'est supprimé ici, et
                            l'infobulle le dit maintenant aussi. -->
                       <Button Style="{StaticResource IconButton}" AllowDrop="False"
-                              ToolTip="Fermer la fenêtre de ce compte. Rien n'est supprimé : sa position est retenue et le bouton de lecture la rouvre au même endroit. Elle ne rouvrira pas d'elle-même au prochain démarrage."
+                              ToolTip="{loc:T CloseWindowTip}"
                               Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"
                               Command="{Binding DataContext.StopCommand,
                                                 RelativeSource={RelativeSource AncestorType=UserControl}}"
@@ -298,7 +299,7 @@
               </StackPanel>
 
               <Button Grid.Column="2" Style="{StaticResource DangerIconButton}"
-                      ToolTip="Rompre l'association avec cet appareil. Ses instances comme leurs réglages sont effacés. Une confirmation est demandée."
+                      ToolTip="{loc:T ForgetDeviceShortTip}"
                       Visibility="{Binding ShowActions,
                                            RelativeSource={RelativeSource AncestorType=UserControl},
                                            Converter={StaticResource BoolToVisibility}}"
@@ -317,9 +318,9 @@
     <Border Style="{StaticResource Card}" Padding="10,8"
             Visibility="{Binding HasNoConnectedDevice, Converter={StaticResource BoolToVisibility}}">
       <StackPanel>
-        <TextBlock Text="AUCUN APPAREIL DÉTECTÉ" Style="{StaticResource SectionLabel}" />
+        <TextBlock Text="{loc:T NoDeviceFound}" Style="{StaticResource SectionLabel}" />
         <TextBlock Style="{StaticResource Muted}" FontSize="11"
-                   Text="Branchez un câble USB avec le débogage activé : l'appareil apparaîtra tout seul. Un téléphone déjà associé en Wi-Fi se reconnecte de lui-même dès qu'il revient sur le réseau." />
+                   Text="{loc:T NoDeviceHelp}" />
       </StackPanel>
     </Border>
 
