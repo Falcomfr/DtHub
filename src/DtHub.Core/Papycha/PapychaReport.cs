@@ -35,11 +35,11 @@ public static class PapychaReport
     /// </summary>
     public static string Location(string? zone, string? quest, string? success = null)
     {
-        var titre = Flatten(quest);
+        var title = Flatten(quest);
         var rubrique = Flatten(zone);
-        var succes = Flatten(success);
+        var achievement = Flatten(success);
 
-        if (titre.Length == 0)
+        if (title.Length == 0)
         {
             return Cut(rubrique);
         }
@@ -47,12 +47,12 @@ public static class PapychaReport
         // Le succès accompagne la quête, non la zone : c'est d'elle qu'il dit
         // quelque chose. Une page qui n'en a pas ne montre pas de parenthèse
         // vide.
-        if (succes.Length > 0)
+        if (achievement.Length > 0)
         {
-            titre += $" ({succes})";
+            title += $" ({achievement})";
         }
 
-        return Cut(rubrique.Length == 0 ? titre : rubrique + Separator + titre);
+        return Cut(rubrique.Length == 0 ? title : rubrique + Separator + title);
     }
 
     /// <summary>Le texte sur une seule ligne, sans blancs de bord ni doublons.</summary>

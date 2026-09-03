@@ -58,18 +58,18 @@ public static class AspectSizing
         }
 
         // Tout le reste, côtés et coins, commande la hauteur depuis la largeur.
-        var largeur = Math.Max(minimumWidth, proposed.Width);
-        var hauteur = (int)Math.Round((largeur - chrome.Width) / aspect) + chrome.Height;
+        var width = Math.Max(minimumWidth, proposed.Width);
+        var height = (int)Math.Round((width - chrome.Width) / aspect) + chrome.Height;
 
         // Le bord opposé à celui que l'on tire reste où il est. Tirer un coin du
         // haut garde donc le bas, et inversement.
         return edge is TopLeft or TopRight
             ? proposed with
             {
-                Y = proposed.Bottom - hauteur,
-                Width = largeur,
-                Height = hauteur,
+                Y = proposed.Bottom - height,
+                Width = width,
+                Height = height,
             }
-            : proposed with { Width = largeur, Height = hauteur };
+            : proposed with { Width = width, Height = height };
     }
 }

@@ -466,7 +466,7 @@ public sealed class SettingsService : IDisposable
             {
                 var keys = wanted.ToHashSet(StringComparer.Ordinal);
 
-                var loges = profile.TabbedKeys.ToHashSet(StringComparer.Ordinal);
+                var housed = profile.TabbedKeys.ToHashSet(StringComparer.Ordinal);
 
                 foreach (var instance in document.Instances)
                 {
@@ -477,7 +477,7 @@ public sealed class SettingsService : IDisposable
                     // sortirait tous du cadre sans qu'on l'ait demandé.
                     if (profile.TabbedKeys.Count > 0)
                     {
-                        instance.IsTabbed = loges.Contains(instance.Key);
+                        instance.IsTabbed = housed.Contains(instance.Key);
                     }
 
                     // La position du profil l'emporte. Un compte que le profil

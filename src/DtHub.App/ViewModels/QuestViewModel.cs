@@ -845,16 +845,16 @@ public sealed partial class QuestViewModel : ObservableObject
     /// </summary>
     private void SetNeighbours(QuestSummary quest)
     {
-        var voisines = QuestNeighbourhood.Of(quest, _catalog.Catalog.Quests, _tree.Chain);
+        var neighbours = QuestNeighbourhood.Of(quest, _catalog.Catalog.Quests, _tree.Chain);
 
         ChainText = quest.SuccessName;
 
-        ChainStep = voisines.Count > 0
-            ? $"{QuestTree.Text(voisines.Rank)} / {QuestTree.Text(voisines.Count)}"
+        ChainStep = neighbours.Count > 0
+            ? $"{QuestTree.Text(neighbours.Rank)} / {QuestTree.Text(neighbours.Count)}"
             : string.Empty;
 
-        PreviousQuest = ToLink(voisines.Previous, quest);
-        NextQuest = ToLink(voisines.Next, quest);
+        PreviousQuest = ToLink(neighbours.Previous, quest);
+        NextQuest = ToLink(neighbours.Next, quest);
     }
 
     /// <summary>
@@ -1218,21 +1218,21 @@ public sealed partial class QuestViewModel : ObservableObject
     /// </summary>
     private static string UrlKey(string? url)
     {
-        var texte = (url ?? string.Empty).Trim();
+        var text = (url ?? string.Empty).Trim();
 
         // Le fragment part : le site renvoie parfois vers une ancre d'une page
         // qu'il connaît, « …/quete-x/#etape-3 », et la comparaison stricte la
         // prenait pour une page inconnue qui partait en fenêtre annexe. La
         // chaîne de requête, elle, reste : au moins une adresse du catalogue en
         // fait son identité.
-        var ancre = texte.IndexOf('#', StringComparison.Ordinal);
+        var anchor = text.IndexOf('#', StringComparison.Ordinal);
 
-        if (ancre >= 0)
+        if (anchor >= 0)
         {
-            texte = texte[..ancre];
+            text = text[..anchor];
         }
 
-        return texte.TrimEnd('/').ToLowerInvariant();
+        return text.TrimEnd('/').ToLowerInvariant();
     }
 
     /// <summary>

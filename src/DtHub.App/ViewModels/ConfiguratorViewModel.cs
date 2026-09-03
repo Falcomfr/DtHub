@@ -635,9 +635,9 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [RelayCommand]
     private void ReportProblem()
     {
-        var titre = Strings.Get("ReportProblem");
+        var title = Strings.Get("ReportProblem");
 
-        new Windows.ProblemWindow(_dialogs, titre, _reporter.Compose(titre), detail: null)
+        new Windows.ProblemWindow(_dialogs, title, _reporter.Compose(title), detail: null)
         {
             Logs = _paths.LogsDirectory,
         }.ShowDialog();

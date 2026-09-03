@@ -254,13 +254,13 @@ public partial class TabbedGameWindow : Window
 
         var racine = PointToScreen(new Point(0, 0));
         var coin = Accueil.PointToScreen(new Point(0, 0));
-        var fin = Accueil.PointToScreen(new Point(Accueil.ActualWidth, Accueil.ActualHeight));
+        var end = Accueil.PointToScreen(new Point(Accueil.ActualWidth, Accueil.ActualHeight));
 
         return new ScreenRect(
             (int)Math.Round(coin.X - racine.X),
             (int)Math.Round(coin.Y - racine.Y),
-            (int)Math.Round(fin.X - coin.X),
-            (int)Math.Round(fin.Y - coin.Y));
+            (int)Math.Round(end.X - coin.X),
+            (int)Math.Round(end.Y - coin.Y));
     }
 
     /// <summary>
@@ -339,12 +339,12 @@ public partial class TabbedGameWindow : Window
         }
 
         var dpi = VisualTreeHelper.GetDpi(this);
-        var voulue = ((zone.Width / dpi.DpiScaleX) / tab.Aspect) + (chrome.Height / dpi.DpiScaleY);
+        var wanted = ((zone.Width / dpi.DpiScaleX) / tab.Aspect) + (chrome.Height / dpi.DpiScaleY);
 
         // Deux pixels de tolérance : l'arrondi du rapport ne justifie pas de
         // redimensionner la fenêtre à chaque passage, ce qui la ferait
         // trembler sans jamais se poser.
-        if (Math.Abs(voulue - Height) <= 2)
+        if (Math.Abs(wanted - Height) <= 2)
         {
             return;
         }
@@ -355,9 +355,9 @@ public partial class TabbedGameWindow : Window
 
         try
         {
-            if (voulue <= place)
+            if (wanted <= place)
             {
-                Height = voulue;
+                Height = wanted;
                 return;
             }
 
@@ -388,9 +388,9 @@ public partial class TabbedGameWindow : Window
             return SystemParameters.WorkArea.Height;
         }
 
-        var ecran = WindowLayoutCalculator.ChooseMonitor(monitors, outer.CenterX, outer.CenterY);
+        var screen = WindowLayoutCalculator.ChooseMonitor(monitors, outer.CenterX, outer.CenterY);
 
-        return ecran.WorkArea.Height / dpi.DpiScaleY;
+        return screen.WorkArea.Height / dpi.DpiScaleY;
     }
 
     /// <summary>Pose la fenêtre logée sur toute la zone d'accueil.</summary>

@@ -306,17 +306,17 @@ public partial class App : Application, IDisposable
     /// </summary>
     private static async Task ApplyLanguageAsync(SettingsService settings)
     {
-        var reglages = await settings.GetAsync().ConfigureAwait(true);
-        var langue = AppLanguage.Choose(reglages.Language, CultureInfo.CurrentUICulture.Name);
-        var culture = CultureInfo.GetCultureInfo(langue);
+        var document = await settings.GetAsync().ConfigureAwait(true);
+        var language = AppLanguage.Choose(document.Language, CultureInfo.CurrentUICulture.Name);
+        var culture = CultureInfo.GetCultureInfo(language);
 
         CultureInfo.DefaultThreadCurrentUICulture = culture;
         CultureInfo.CurrentUICulture = culture;
 
         Log.Information(
             "Langue de l'interface : {Langue} (réglage {Reglage}, Windows {Windows}).",
-            langue,
-            reglages.Language,
+            language,
+            document.Language,
             CultureInfo.InstalledUICulture.Name);
     }
 

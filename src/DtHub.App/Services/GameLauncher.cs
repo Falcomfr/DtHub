@@ -814,14 +814,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private async Task CaptureTabsPlacementAsync(CancellationToken cancellationToken)
     {
-        if (_tabs is not { } cadre)
+        if (_tabs is not { } frame)
         {
             return;
         }
 
         WindowPlacement? place = null;
 
-        await OnUiAsync(() => place = _windows.Controller.GetPlacement(cadre.Handle))
+        await OnUiAsync(() => place = _windows.Controller.GetPlacement(frame.Handle))
             .ConfigureAwait(false);
 
         await _settings
@@ -1101,9 +1101,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         _unmanaged = await _settings.GetUnmanagedKeysAsync(cancellationToken).ConfigureAwait(false);
 
-        var reglages = await _settings.GetAsync(cancellationToken).ConfigureAwait(false);
+        var settings = await _settings.GetAsync(cancellationToken).ConfigureAwait(false);
 
-        _tabbed = reglages.Instances
+        _tabbed = settings.Instances
             .Where(i => i.IsTabbed)
             .Select(i => i.Key)
             .ToHashSet(StringComparer.Ordinal);
@@ -1191,30 +1191,30 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // Sur le fil d'interface, et non celui qui nous a menés ici : une
         // fenêtre WPF ne se crée que sur un fil en mode STA, et la chaîne
         // asynchrone du lanceur n'en est pas un.
-        var reglages = await _settings.GetAsync(cancellationToken).ConfigureAwait(false);
+        var settings = await _settings.GetAsync(cancellationToken).ConfigureAwait(false);
 
         // L'ordre retenu est reposé après chaque arrivée, et non laissé à
         // celui des arrivées. Les afficheurs ne se préparent pas à la même
         // vitesse : d'un lancement à l'autre, les onglets sortaient dans un
         // ordre différent, et celui qu'on avait rangé à la souris ne tenait pas
         // d'une session à la suivante.
-        var ordre = reglages.Instances
+        var order = settings.Instances
             .OrderBy(i => i.Order)
             .Select(i => i.Key)
             .ToList();
 
         await OnUiAsync(() =>
         {
-            var cadre = EnsureTabs(reglages);
+            var frame = EnsureTabs(settings);
 
-            cadre.Attach(
+            frame.Attach(
                 session.Target.Key,
                 session.DisplayName,
                 IconFor(session),
                 handle,
                 session.SourceAspectRatio);
 
-            cadre.Reorder(ordre);
+            frame.Reorder(order);
         }).ConfigureAwait(false);
     }
 
@@ -1226,15 +1226,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private static Task OnUiAsync(Action geste)
     {
-        var fil = System.Windows.Application.Current?.Dispatcher;
+        var thread = System.Windows.Application.Current?.Dispatcher;
 
-        if (fil is null || fil.CheckAccess())
+        if (thread is null || thread.CheckAccess())
         {
             geste();
             return Task.CompletedTask;
         }
 
-        return fil.InvokeAsync(geste).Task;
+        return thread.InvokeAsync(geste).Task;
     }
 
     /// <summary>Le cadre, créé au premier besoin et gardé ouvert ensuite.</summary>
@@ -1287,14 +1287,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
             return existant;
         }
 
-        var cadre = new Windows.TabbedGameWindow(_windows.Controller);
+        var frame = new Windows.TabbedGameWindow(_windows.Controller);
 
-        cadre.Closed += (_, _) => _tabs = null;
+        frame.Closed += (_, _) => _tabs = null;
 
         // Fermer le cadre ferme les comptes qu'il logeait : c'est ce que le
         // geste annonce, et les voir se disperser en fenêtres libres était le
         // contraire de ce qu'on demandait.
-        cadre.CloseRequested += async (_, loges) =>
+        frame.CloseRequested += async (_, loges) =>
         {
             // Bornés, ces deux gestes-ci. Une faute s'échapperait d'une lambda
             // « async void » et atteindrait le garde-fou du répartiteur, qui
@@ -1311,7 +1311,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         };
 
         // Réordonner les onglets réordonne les comptes : un seul ordre partout.
-        cadre.Reordered += async (_, mouvement) =>
+        frame.Reordered += async (_, mouvement) =>
         {
             try
             {
@@ -1321,9 +1321,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 {
                     await RefreshRanksAsync().ConfigureAwait(true);
 
-                    var ordre = await _settings.GetInstanceRanksAsync().ConfigureAwait(true);
+                    var order = await _settings.GetInstanceRanksAsync().ConfigureAwait(true);
 
-                    cadre.Reorder([.. ordre.OrderBy(p => p.Value).Select(p => p.Key)]);
+                    frame.Reorder([.. order.OrderBy(p => p.Value).Select(p => p.Key)]);
                 }
             }
             catch (Exception exception) when (exception is not OutOfMemoryException)
@@ -1332,15 +1332,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
             }
         };
 
-        _tabs = cadre;
-        cadre.Show();
+        _tabs = frame;
+        frame.Show();
 
         // Après l'affichage : il n'y a pas de poignée avant, donc rien à
         // placer. Le cadre reparaît ainsi là où on l'avait laissé, et un profil
         // en onglets le rouvre là où il était quand on l'a enregistré.
-        _placements.Restore(cadre, WindowPlacements.Tabs, document);
+        _placements.Restore(frame, WindowPlacements.Tabs, document);
 
-        return cadre;
+        return frame;
     }
 
     /// <summary>

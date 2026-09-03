@@ -37,19 +37,19 @@ public static class AppLanguage
 
         // « fr-BE », « es_MX » : seule la partie qui précède le séparateur
         // nomme la langue.
-        var langue = culture.Trim();
-        var separateur = langue.IndexOfAny(['-', '_']);
+        var language = culture.Trim();
+        var separator = language.IndexOfAny(['-', '_']);
 
-        if (separateur >= 0)
+        if (separator >= 0)
         {
-            langue = langue[..separateur];
+            language = language[..separator];
         }
 
-        foreach (var servie in Supported)
+        foreach (var served in Supported)
         {
-            if (string.Equals(servie, langue, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(served, language, StringComparison.OrdinalIgnoreCase))
             {
-                return servie;
+                return served;
             }
         }
 

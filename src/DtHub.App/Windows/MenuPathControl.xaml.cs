@@ -54,9 +54,9 @@ public partial class MenuPathControl : UserControl
     private static readonly string[] Teintes =
         ["MenuTintA", "MenuTintB", "MenuTintC", "MenuTintD", "MenuTintE", "MenuTintF"];
 
-    private static Ligne Muette(string titre, int rang)
+    private static Ligne Muette(string title, int rang)
     {
-        var decor = MenuPath.Decor(titre, rang);
+        var decor = MenuPath.Decor(title, rang);
 
         return new Ligne(
             string.Empty,

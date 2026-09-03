@@ -226,18 +226,18 @@ public partial class QuestPageWindow : Window
 
         try
         {
-            var etat = await View.CoreWebView2
+            var state = await View.CoreWebView2
                 .ExecuteScriptAsync(QuestBridge.ReportScript(_report))
                 .ConfigureAwait(true);
 
-            Log.Information("Formulaire de signalement : {Etat}.", etat);
+            Log.Information("Formulaire de signalement : {Etat}.", state);
 
             // « absent » : la page n'a pas de formulaire, ou le site a changé
             // son pied d'article. Le bouton ne paraît que sur un guide, où le
             // formulaire est toujours là ; on n'y arrive donc que si le site a
             // bougé. La fenêtre montre alors la page entière, et reprend un
             // titre qui ne promet plus ce qu'elle ne montre pas.
-            if (etat.Contains("absent", StringComparison.Ordinal))
+            if (state.Contains("absent", StringComparison.Ordinal))
             {
                 Title = "Guides de papycha.fr";
                 return;
@@ -245,7 +245,7 @@ public partial class QuestPageWindow : Window
 
             // Le script rend la hauteur qu'il faudrait pour montrer le
             // formulaire en entier. La fenêtre s'y pose, sans dépasser l'écran.
-            if (Hauteur(etat) is { } voulue)
+            if (Hauteur(state) is { } voulue)
             {
                 Height = Math.Min(voulue + (ActualHeight - View.ActualHeight), SystemParameters.WorkArea.Height);
             }
@@ -261,14 +261,14 @@ public partial class QuestPageWindow : Window
     ///
     /// Le moteur rend le résultat en JSON : « "pret 812" », guillemets compris.
     /// </summary>
-    private static double? Hauteur(string etat)
+    private static double? Hauteur(string state)
     {
-        var morceaux = etat.Trim('"', ' ').Split(' ');
+        var parts = state.Trim('"', ' ').Split(' ');
 
-        return morceaux.Length > 1
-            && double.TryParse(morceaux[1], NumberStyles.Number, CultureInfo.InvariantCulture, out var valeur)
-            && valeur > 0
-            ? valeur
+        return parts.Length > 1
+            && double.TryParse(parts[1], NumberStyles.Number, CultureInfo.InvariantCulture, out var value)
+            && value > 0
+            ? value
             : null;
     }
 

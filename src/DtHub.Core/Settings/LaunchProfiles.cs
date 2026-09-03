@@ -114,15 +114,15 @@ public static class LaunchProfiles
             return Strings.Get("NoKnownAccount");
         }
 
-        var comptes = names.Count <= NamedAtMost
+        var accountsText = names.Count <= NamedAtMost
             ? string.Join(" + ", names)
             : Strings.Format("AccountCount", names.Count);
 
         // La qualité n'est dite que si elle sort de l'ordinaire : la rappeler à
         // chaque profil noierait le nom des comptes, qui est ce qu'on cherche.
         return profile.Quality == StreamQuality.Medium
-            ? comptes
-            : $"{comptes}, {QualityLabel(profile.Quality)}";
+            ? accountsText
+            : $"{accountsText}, {QualityLabel(profile.Quality)}";
     }
 
     /// <summary>
@@ -145,13 +145,13 @@ public static class LaunchProfiles
         // l'étiquette : « la qualité haute » en français, « high quality » sans
         // article en anglais. Coller l'article au mot rendait la phrase
         // intraduisible, le genre n'étant pas le même d'une langue à l'autre.
-        var comptes = accounts <= 1
+        var accountsText = accounts <= 1
             ? Strings.Get("ProfileAccountsOne")
             : Strings.Format("ProfileAccountsMany", accounts);
 
         var phrase = Strings.Format(
             "ProfileAnnounce",
-            comptes,
+            accountsText,
             QualityLabel(quality),
             ZoomLabel(zoom),
             Strings.Get(audio ? "SoundToPc" : "SoundOff"));
