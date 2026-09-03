@@ -538,6 +538,17 @@ public partial class QuestWindow : Window
         }
     }
 
+    /// <summary>Une étape choisie dans la liste : on s'y rend, et la liste se referme.</summary>
+    private void OnPickStep(object sender, RoutedEventArgs e)
+    {
+        StepsToggle.IsChecked = false;
+
+        if ((sender as FrameworkElement)?.DataContext is ViewModels.QuestStepRowViewModel row)
+        {
+            GoToStep(row.Index);
+        }
+    }
+
     private void OnPreviousStep(object sender, RoutedEventArgs e) => GoToStep(_viewModel.StepTarget(-1));
 
     private void OnNextStep(object sender, RoutedEventArgs e) => GoToStep(_viewModel.StepTarget(1));

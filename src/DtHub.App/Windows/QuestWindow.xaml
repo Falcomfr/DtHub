@@ -125,9 +125,79 @@
             <Path Style="{StaticResource RowGlyph}" Data="M 6,3 L 10,7.5 L 6,12" />
           </Button>
 
-          <TextBlock Grid.Column="2" Text="{Binding StepText}" VerticalAlignment="Center"
-                     Margin="4,0,10,0" FontFamily="{StaticResource MonoFont}" FontSize="11"
-                     Foreground="{DynamicResource AccentBrush}" />
+          <!-- Le rang déplie la liste des étapes. Les deux flèches n'avancent
+               que d'une à la fois : revenir à la troisième d'un guide qui en
+               compte douze demandait neuf clics, et rien ne disait ce qu'on
+               trouverait en chemin. Le rang n'était qu'un texte, et rien ne
+               laissait deviner qu'il y avait autre chose à faire ici. -->
+          <Grid Grid.Column="2" Margin="4,0,10,0">
+            <ToggleButton x:Name="StepsToggle" Style="{StaticResource OutlineToggle}"
+                          Padding="7,2" VerticalAlignment="Center"
+                          Background="Transparent"
+                          BorderBrush="{DynamicResource BorderBrush}"
+                          ToolTip="Choisir une étape. La page se replace dessus."
+                          Visibility="{Binding StepText, Converter={StaticResource EmptyToVisibility},
+                                               ConverterParameter=inverse}">
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding StepText}" VerticalAlignment="Center"
+                           FontFamily="{StaticResource MonoFont}" FontSize="11"
+                           Foreground="{DynamicResource AccentBrush}" />
+                <Path Width="8" Height="5" Stretch="None" Margin="6,1,0,0"
+                      VerticalAlignment="Center" StrokeLineJoin="Round"
+                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                      Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.4"
+                      Data="M 0.7,0.7 L 4,4 L 7.3,0.7" />
+              </StackPanel>
+            </ToggleButton>
+
+            <Popup IsOpen="{Binding IsChecked, ElementName=StepsToggle}" StaysOpen="False"
+                   Placement="Bottom" PlacementTarget="{Binding ElementName=StepsToggle}"
+                   AllowsTransparency="True" PopupAnimation="Fade">
+              <Border Background="{DynamicResource SurfaceBrush}" Width="400"
+                      BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                      CornerRadius="{StaticResource Radius}" Margin="0,4,0,0" Padding="6">
+                <!-- Un guide de vingt étapes ne tient pas d'un coup : la liste
+                     défile plutôt que de sortir de l'écran. -->
+                <ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto">
+                  <ItemsControl ItemsSource="{Binding Steps}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Button Padding="8,5" Margin="0,1" Click="OnPickStep">
+                          <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource OutlineButton}">
+                              <Setter Property="Background" Value="Transparent" />
+                              <Setter Property="BorderBrush" Value="Transparent" />
+                              <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                  <Setter Property="Background"
+                                          Value="{DynamicResource AccentSoftBrush}" />
+                                  <Setter Property="BorderBrush"
+                                          Value="{DynamicResource AccentBrush}" />
+                                </DataTrigger>
+                              </Style.Triggers>
+                            </Style>
+                          </Button.Style>
+                          <Grid>
+                            <Grid.ColumnDefinitions>
+                              <ColumnDefinition Width="26" />
+                              <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="{Binding Rank}" VerticalAlignment="Top"
+                                       FontFamily="{StaticResource MonoFont}" FontSize="11"
+                                       Foreground="{DynamicResource AccentBrush}" />
+
+                            <TextBlock Grid.Column="1" Text="{Binding Label}"
+                                       TextWrapping="Wrap" Style="{StaticResource Muted}" />
+                          </Grid>
+                        </Button>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
+              </Border>
+            </Popup>
+          </Grid>
 
           <!-- La ligne reste pendant le chargement pour que le bandeau ne
                saute pas d'une hauteur ; elle n'y montrait que deux flèches
@@ -173,21 +243,36 @@
                    Foreground="{DynamicResource AccentBrush}"
                    Text="Guides de papycha.fr" />
 
-        <!-- Un drapeau, et non le libellé en toutes lettres : deux boutons
-             écrits ne laissaient plus la place au crédit, qui tombait à
-             « Guide… ». C'est le nom de ceux dont on affiche le travail, il
-             passe avant. -->
-        <Button Grid.Column="1" Style="{StaticResource IconButton}" Margin="0,0,4,0"
+        <!-- Le signalement porte les couleurs de l'accent, au repos et non au
+             seul survol : c'est le geste qu'on cherche dans cette barre, et un
+             dessin gris s'y confondait avec le reste.
+
+             L'accès au navigateur passe donc en icône. Trois libellés écrits ne
+             tenaient pas ensemble dans une fenêtre étroite, et le crédit tombait
+             à « Guide… » : c'est le nom de ceux dont on affiche le travail, il
+             ne se laisse pas rogner. -->
+        <Button Grid.Column="1" Style="{StaticResource OutlineButton}" Margin="0,0,6,0"
+                Padding="9,5" FontSize="12"
+                Background="{DynamicResource AccentSoftBrush}"
+                BorderBrush="{DynamicResource AccentBrush}"
                 ToolTip="Remonter une erreur à papycha.fr sur cette page. Le formulaire du site s'ouvre avec l'étape où vous en êtes déjà notée, et rien n'est envoyé tant que vous n'appuyez pas."
                 Click="OnReportError">
-          <Path Style="{StaticResource RowGlyph}"
-                Data="M 3.6,2.2 V 13.8 M 3.6,3.3 H 12.6 L 10.3,6.2 L 12.6,9.1 H 3.6" />
+          <StackPanel Orientation="Horizontal">
+            <Path Width="15" Height="15" Stretch="None" Margin="0,0,7,0"
+                  VerticalAlignment="Center" StrokeLineJoin="Round"
+                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                  Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
+                  Data="M 3.6,2.2 V 13.8 M 3.6,3.3 H 12.6 L 10.3,6.2 L 12.6,9.1 H 3.6" />
+            <TextBlock Text="Signaler une erreur" VerticalAlignment="Center" />
+          </StackPanel>
         </Button>
 
-        <Button Grid.Column="2" Content="Ouvrir dans le navigateur"
-                Style="{StaticResource QuietButton}"
+        <Button Grid.Column="2" Style="{StaticResource IconButton}"
                 ToolTip="Ouvrir la page courante dans votre navigateur habituel, sur le site d'origine"
-                Click="OnOpenInBrowser" />
+                Click="OnOpenInBrowser">
+          <Path Style="{StaticResource RowGlyph}"
+                Data="M 7,3.5 H 3.5 V 12.5 H 12.5 V 9 M 9.5,3.5 H 12.5 V 6.5 M 12.5,3.5 L 7.8,8.2" />
+        </Button>
       </Grid>
     </Border>
 

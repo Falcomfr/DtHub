@@ -61,9 +61,29 @@
         + '#papycha-report-error > summary{display:none !important}'
 
         // Rien du formulaire ne dépasse : les champs sont dimensionnés pour une
-        // colonne d'article, et débordaient de la fenêtre par la droite.
+        // colonne d'article, et débordaient de la fenêtre par la droite. Une
+        // largeur maximale garde les champs lisibles sur un écran large, où ils
+        // s'étiraient sur toute la fenêtre.
         + '#papycha-report-error,#papycha-report-error *{max-width:100% !important;'
-        + 'box-sizing:border-box !important}';
+        + 'box-sizing:border-box !important}'
+        + '#papycha-report-error{max-width:720px !important;padding-bottom:20px !important}'
+
+        // La zone de texte ne s'étire plus à la poignée : le formulaire défile,
+        // il ne se redimensionne pas. Sa hauteur suit celle de la fenêtre, avec
+        // deux bornes, pour tenir aussi bien sur un portable que sur un grand
+        // écran. Haute comme le site la donne, elle poussait le bouton d'envoi
+        // sous le bord inférieur, où on ne le trouvait plus.
+        + '#papycha-report-error textarea{resize:none !important;'
+        + 'height:20vh !important;min-height:100px !important;max-height:240px !important}'
+
+        // Le bouton d'envoi du site est invisible : sa feuille de style lui
+        // donne « background: currentColor » et « color: Canvas », si bien que
+        // le fond prend la couleur du texte du bouton, c'est-à-dire la sienne.
+        // On lui rend les deux couleurs qu'il visait, dans le même vocabulaire
+        // de couleurs système, pour qu'il suive le thème clair ou sombre.
+        + '#papycha-report-error .papycha-report__submit{background:CanvasText !important;'
+        + 'border-color:CanvasText !important;color:Canvas !important;'
+        + 'margin-top:8px !important}';
 
     document.head.appendChild(style);
 

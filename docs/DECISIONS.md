@@ -2741,9 +2741,73 @@ formulaire, ou un pied d'article que le site aurait changé, s'ouvre alors telle
 quelle, et la fenêtre reprend un titre qui ne promet plus ce qu'elle ne montre
 pas.
 
-### Le bouton est un drapeau, pas un libellé
+### Le bouton se voit, l'accès au navigateur passe en icône
 
 Le pied de la fenêtre des guides porte le crédit du site, qu'on doit pouvoir
-lire : c'est le nom de ceux dont on affiche le travail. Deux boutons écrits le
-réduisaient à « Guide… » dans une fenêtre de 570 pixels. Le signalement passe
-donc par un drapeau, et l'infobulle dit tout.
+lire : c'est le nom de ceux dont on affiche le travail. Trois libellés écrits le
+réduisaient à « Guide… » dans une fenêtre de 570 pixels.
+
+Le signalement a d'abord été mis en drapeau seul, et il s'y confondait avec le
+reste. Il porte maintenant son libellé et les couleurs de l'accent **au repos**,
+non au seul survol : c'est le geste qu'on cherche dans cette barre. L'accès au
+navigateur, lui, passe en icône : il est secondaire, et son infobulle le dit.
+
+### Reprise : où le formulaire existe, et ce qu'on fait quand il n'existe pas
+
+Relevé page par page plutôt que supposé :
+
+| Page | Formulaire |
+|:--|:--|
+| Guide de quête, de donjon, de chemin, page de zone | oui |
+| Accueil, « /quetes/ », « /donjons/ », « /raids/ », « /tanieres/ » | non |
+| « /contact/ », « /mentions-legales/ » | non |
+
+Le site n'a **pas de formulaire général** : sa page de contact renvoie vers le
+serveur Discord de l'équipe. C'est donc elle le repli, et la fenêtre y descend
+sur le texte, sa bannière occupant sinon la moitié d'une fenêtre étroite.
+
+Le repli se décide à deux endroits. La vue-modèle sait déjà si la fenêtre montre
+une rubrique ou un article : depuis une rubrique, on va droit au contact sans
+ouvrir une page pour y constater l'absence. Et le script rend « absent » quand le
+pied d'article n'a rien, ce qui rattrape un article sans formulaire ou un site
+qui aurait changé.
+
+### Le bouton d'envoi du site est invisible, et c'est chez eux
+
+Sa feuille de style dit :
+
+```css
+.papycha-report__submit { background: currentColor; color: Canvas; }
+```
+
+`currentColor` vaut la couleur du texte de l'élément lui-même, c'est-à-dire
+`Canvas` : le fond et le texte prennent donc la même couleur, et le bouton
+disparaît. On lui rend les deux couleurs qu'il visait, dans le même vocabulaire
+de couleurs système pour qu'il suive le thème clair ou sombre.
+
+C'est une correction portée sur la page d'autrui, ce qu'on ne fait pas à la
+légère. Elle se justifie ici : sans elle, la fenêtre montre un formulaire qu'on
+ne peut pas envoyer.
+
+### La zone de texte ne s'étire plus
+
+La poignée de redimensionnement est retirée et la hauteur exprimée en unités de
+fenêtre, entre deux bornes : le formulaire défile, il ne se redimensionne pas, et
+il tient aussi bien sur un portable que sur un grand écran. Haute comme le site
+la donne, la zone poussait le bouton d'envoi sous le bord inférieur.
+
+## D75 - Choisir une étape, et non seulement avancer d'une
+
+Le rang de l'étape n'était qu'un texte. Les deux flèches avançaient d'une étape
+à la fois : sur un guide de treize étapes, revenir à la troisième demandait neuf
+clics, et rien ne disait ce qu'on trouverait en chemin.
+
+Le rang déplie donc la liste des étapes, chacune avec son numéro et son résumé,
+celle où l'on est marquée. Le choix passe par `GoToStep`, déjà écrit pour les
+flèches : la page se replace, et le bandeau suit.
+
+**Un seul endroit pose les étapes.** Quatre chemins remettaient la liste à zéro
+en écrivant chacun les deux mêmes lignes ; une cinquième ligne à tenir les aurait
+fait diverger. `ResetSteps` les réunit, et le résumé d'une étape est écrit une
+fois pour le bandeau et pour la liste, y compris la réserve du départ, dont la
+première étape emprunte les métadonnées de la quête.

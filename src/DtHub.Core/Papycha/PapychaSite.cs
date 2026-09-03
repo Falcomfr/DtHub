@@ -24,6 +24,18 @@ public static class PapychaSite
     public const string Root = "https://" + Host + "/";
 
     /// <summary>
+    /// La page de contact, seul recours du site quand la page qu'on lit n'a pas
+    /// de formulaire de signalement.
+    ///
+    /// Relevé sur le site : le formulaire est en pied d'article, et les articles
+    /// seuls en portent un. L'accueil, « /quetes/ », « /donjons/ », « /raids/ »
+    /// et « /tanieres/ » n'en ont pas. Il n'existe pas non plus de formulaire
+    /// général : la page de contact renvoie vers le serveur Discord de
+    /// l'équipe, et c'est là que les erreurs se remontent autrement.
+    /// </summary>
+    public const string ContactUrl = Root + "contact/";
+
+    /// <summary>
     /// Vrai quand l'adresse est une page du site, en clair une adresse sûre de
     /// l'hôte du site ou d'un de ses sous-domaines.
     ///

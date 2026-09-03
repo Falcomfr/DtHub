@@ -214,20 +214,60 @@ public partial class QuestPageWindow : Window
                 .ExecuteScriptAsync(QuestBridge.ReportScript(_report))
                 .ConfigureAwait(true);
 
-            // « absent » : la page n'a pas de formulaire, ou le site a changé
-            // son pied d'article. La fenêtre montre alors la page entière, où
-            // le formulaire reste atteignable à la main, et reprend un titre
-            // qui ne promet plus ce qu'elle ne montre pas.
-            if (etat.Contains("absent", StringComparison.Ordinal))
+            Log.Information("Formulaire de signalement : {Etat}.", etat);
+
+            if (!etat.Contains("absent", StringComparison.Ordinal))
             {
-                Title = "Guides de papycha.fr";
+                return;
             }
 
-            Log.Information("Formulaire de signalement : {Etat}.", etat);
+            // La page n'a pas de formulaire, ou le site a changé son pied
+            // d'article. Le site n'en a pas de général : sa page de contact
+            // renvoie vers le Discord de l'équipe, et c'est là qu'on remonte
+            // une erreur autrement. On y mène plutôt que de laisser la fenêtre
+            // sur une page où il n'y a rien à remplir.
+            Title = "Contacter papycha.fr";
+
+            if (!string.Equals(_url, PapychaSite.ContactUrl, StringComparison.OrdinalIgnoreCase))
+            {
+                _report = null;
+                View.CoreWebView2.NavigationCompleted += OnContactPageLoaded;
+                View.CoreWebView2.Navigate(PapychaSite.ContactUrl);
+            }
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
             Log.Warning(exception, "Le formulaire de signalement n'a pas pu être préparé.");
+        }
+    }
+
+    /// <summary>
+    /// Descend sur le texte de la page de contact.
+    ///
+    /// Sa bannière occupe la moitié d'une fenêtre étroite, et l'on arrivait
+    /// au-dessus de tout ce qu'on venait y chercher.
+    /// </summary>
+    private async void OnContactPageLoaded(object? sender, CoreWebView2NavigationCompletedEventArgs e)
+    {
+        View.CoreWebView2.NavigationCompleted -= OnContactPageLoaded;
+
+        if (!e.IsSuccess)
+        {
+            return;
+        }
+
+        try
+        {
+            await View.CoreWebView2
+                .ExecuteScriptAsync(
+                    "(function(){var c=document.querySelector('.entry-content')"
+                    + "||document.querySelector('.entry-header');"
+                    + "if(c){c.scrollIntoView({block:'start'});}})();")
+                .ConfigureAwait(true);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Log.Warning(exception, "La page de contact n'a pas pu être cadrée.");
         }
     }
 

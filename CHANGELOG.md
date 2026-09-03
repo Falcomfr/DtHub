@@ -36,11 +36,11 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Ajouté
 
-- Un bouton pour **remonter une erreur à papycha.fr**, dans le pied de la
-  fenêtre des guides. Il ouvre le formulaire de signalement du site sur la page
-  qu'on lit, dans une fenêtre à part, avec le champ « Où se trouve l'erreur ? »
-  déjà rempli : l'étape où l'on en est, et le début du paragraphe cité pour que
-  le passage se retrouve.
+- Un bouton **Signaler une erreur**, dans le pied de la fenêtre des guides. Il
+  ouvre le formulaire de signalement du site sur la page qu'on lit, dans une
+  fenêtre à part, avec le champ « Où se trouve l'erreur ? » déjà rempli :
+  l'étape où l'on en est, et le début du paragraphe cité pour que le passage se
+  retrouve.
 
   Rien n'est envoyé et rien d'autre n'est écrit : la description reste vide,
   c'est ce que le lecteur a vu, et c'est lui qui appuie. Le repère peut être
@@ -48,8 +48,23 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
   La fenêtre ne montre que le formulaire : le reste de l'article y est masqué,
   le fond photographique du site remplacé par le nôtre, et les champs ramenés à
-  la largeur disponible. Une page sans formulaire s'ouvre telle quelle et reprend
-  un titre qui ne promet rien.
+  la largeur disponible. La zone de texte ne s'étire plus à la poignée, sa
+  hauteur suit celle de la fenêtre, et le formulaire défile.
+
+  Le bouton d'envoi du site est rendu visible : sa feuille de style lui donne
+  « background: currentColor » avec « color: Canvas », si bien que son fond
+  prend la couleur de son propre texte et qu'il disparaît.
+
+  Seuls les articles portent ce formulaire, quêtes, donjons et chemins compris ;
+  les rubriques n'en ont pas et le site n'en a pas de général. Depuis une
+  rubrique, le bouton mène donc à la page de contact du site, qui renvoie vers
+  le serveur Discord de l'équipe.
+
+- **Choisir une étape dans une liste**, en dépliant son rang dans le bandeau des
+  guides. Les deux flèches n'avancent que d'une étape à la fois : revenir à la
+  troisième d'un guide qui en compte treize demandait neuf clics, et rien ne
+  disait ce qu'on trouverait en chemin. Chaque entrée porte son numéro et ce
+  qu'il y a à y faire, celle où l'on est se distingue, et la page s'y replace.
 
 - Un mode onglets : une icône sur la ligne du compte le loge dans un cadre
   unique, comme un onglet de navigateur, et un second clic lui rend sa fenêtre

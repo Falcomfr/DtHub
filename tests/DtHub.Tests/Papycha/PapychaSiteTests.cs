@@ -39,4 +39,14 @@ public sealed class PapychaSiteTests
     [InlineData("https://ailleurs.example/https://papycha.fr/quetes/")]
     public void NeSeLaissePasPrendreAuNom(string adresse) =>
         Assert.False(PapychaSite.Owns(adresse));
+
+    [Fact]
+    public void L_adresse_de_contact_appartient_au_site()
+    {
+        // C'est le repli du signalement : elle doit passer la même garde que
+        // les pages de guide, faute de quoi la fenêtre la confierait au
+        // navigateur au lieu de l'afficher.
+        Assert.True(PapychaSite.Owns(PapychaSite.ContactUrl));
+        Assert.Equal("https://papycha.fr/contact/", PapychaSite.ContactUrl);
+    }
 }

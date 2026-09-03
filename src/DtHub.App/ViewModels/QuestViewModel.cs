@@ -941,8 +941,7 @@ public sealed partial class QuestViewModel : ObservableObject
         // La page suivante n'est pas encore chargée : garder les étapes de la
         // précédente afficherait un objectif qui n'a plus rien à voir. Le
         // départ, lui, se sait déjà et tient la ligne en attendant.
-        _steps = [];
-        HasSteps = false;
+        ResetSteps([]);
         SetStep(-1);
 
         StepDetail = _start ?? string.Empty;
@@ -975,8 +974,7 @@ public sealed partial class QuestViewModel : ObservableObject
         PreviousQuest = null;
         NextQuest = null;
 
-        _steps = [];
-        HasSteps = false;
+        ResetSteps([]);
         SetStep(-1);
 
         StepDetail = _start ?? string.Empty;
@@ -1008,8 +1006,7 @@ public sealed partial class QuestViewModel : ObservableObject
         PreviousQuest = null;
         NextQuest = null;
 
-        _steps = [];
-        HasSteps = false;
+        ResetSteps([]);
         SetStep(-1);
 
         StepDetail = string.Empty;
@@ -1130,6 +1127,12 @@ public sealed partial class QuestViewModel : ObservableObject
     private IReadOnlyList<string> _steps = [];
 
     /// <summary>
+    /// Les étapes du guide, telles qu'on les choisit dans la liste que le rang
+    /// déplie. Les deux flèches n'avancent que d'une à la fois.
+    /// </summary>
+    public System.Collections.ObjectModel.ObservableCollection<QuestStepRowViewModel> Steps { get; } = [];
+
+    /// <summary>
     /// Raccourci de la première étape, composé des métadonnées de la quête
     /// ouverte. Null quand le site ne dit ni où ni auprès de qui elle se lance.
     /// </summary>
@@ -1204,8 +1207,7 @@ public sealed partial class QuestViewModel : ObservableObject
         }
 
 
-        _steps = steps;
-        HasSteps = steps.Count > 0;
+        ResetSteps(steps);
 
         SetStep(steps.Count > 0 ? 0 : -1);
     }
@@ -1221,21 +1223,50 @@ public sealed partial class QuestViewModel : ObservableObject
             ? $"Étape {index + 1} / {total}"
             : string.Empty;
 
-        // Le texte brut du paragraphe tenait sur une ligne tronquée où l'on ne
-        // voyait ni où aller ni à qui parler : chaque étape est donc résumée.
-        //
-        // La première l'est par les métadonnées de la quête, plus sûres que la
-        // prose du site, mais seulement quand c'est bien le départ : le pont le
-        // dit. Sans cette réserve, le départ se retrouvait annoncé au-dessus du
-        // premier paragraphe du guide, qui n'a le plus souvent rien à voir.
-        StepDetail = index >= 0 && index < total
-            ? (index == 0 && _startsAtDeparture
-                ? _start ?? QuestStepSummary.Of(_steps[0])
-                : QuestStepSummary.Of(_steps[index]))
-            : string.Empty;
+        StepDetail = index >= 0 && index < total ? StepLabel(index) : string.Empty;
+
+        foreach (var row in Steps)
+        {
+            row.IsCurrent = row.Index == index;
+        }
 
         CanGoPreviousStep = index > 0;
         CanGoNextStep = index >= 0 && index < total - 1;
+    }
+
+    /// <summary>
+    /// Ce qu'il y a à faire à cette étape, en une ligne.
+    ///
+    /// Le texte brut du paragraphe tenait sur une ligne tronquée où l'on ne
+    /// voyait ni où aller ni à qui parler : chaque étape est donc résumée.
+    ///
+    /// La première l'est par les métadonnées de la quête, plus sûres que la
+    /// prose du site, mais seulement quand c'est bien le départ : le pont le
+    /// dit. Sans cette réserve, le départ se retrouvait annoncé au-dessus du
+    /// premier paragraphe du guide, qui n'a le plus souvent rien à voir.
+    /// </summary>
+    private string StepLabel(int index) =>
+        index == 0 && _startsAtDeparture
+            ? _start ?? QuestStepSummary.Of(_steps[0])
+            : QuestStepSummary.Of(_steps[index]);
+
+    /// <summary>
+    /// Repose les étapes, et la liste où on les choisit avec elles.
+    ///
+    /// Une seule porte pour les deux : la liste et le compte se contredisaient
+    /// dès qu'un chemin oubliait l'une des deux lignes.
+    /// </summary>
+    private void ResetSteps(IReadOnlyList<string> steps)
+    {
+        _steps = steps;
+        HasSteps = steps.Count > 0;
+
+        Steps.Clear();
+
+        for (var index = 0; index < steps.Count; index++)
+        {
+            Steps.Add(new QuestStepRowViewModel(index, StepLabel(index)));
+        }
     }
 
     /// <summary>
@@ -1268,8 +1299,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
         _start = null;
         _startsAtDeparture = false;
-        _steps = [];
-        HasSteps = false;
+        ResetSteps([]);
         PreviousQuest = null;
         NextQuest = null;
         SetStep(-1);
@@ -1444,11 +1474,14 @@ public sealed partial class QuestViewModel : ObservableObject
             return null;
         }
 
-        // Le repère ne vaut que pour la quête elle-même : une rubrique n'a pas
-        // d'étape, et celle de la quête lue avant n'y désignerait rien.
-        return (url!, browsed is null
-            ? PapychaReport.Location(StepIndex, _steps.Count, StepTextAt(StepIndex))
-            : string.Empty);
+        // Une rubrique n'a pas de formulaire : le site n'en met qu'en pied
+        // d'article, mesuré sur l'accueil, « /quetes/ », « /donjons/ »,
+        // « /raids/ » et « /tanieres/ ». On va donc droit au contact plutôt que
+        // d'ouvrir une page pour y constater l'absence. Elle n'a pas d'étape
+        // non plus, et celle de la quête lue avant n'y désignerait rien.
+        return browsed is not null
+            ? (PapychaSite.ContactUrl, string.Empty)
+            : (url!, PapychaReport.Location(StepIndex, _steps.Count, StepTextAt(StepIndex)));
     }
 
     private string? StepTextAt(int index) =>
