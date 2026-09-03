@@ -108,4 +108,42 @@ public sealed class MenuPathTests
 
         Assert.Equal(premier[0].Row, second[0].Row);
     }
+
+    /// <summary>
+    /// Des barres toutes de la même longueur trahiraient le dessin, mais un
+    /// dessin qui bouge à chaque ouverture serait pire : le même écran doit se
+    /// rendre pareil.
+    /// </summary>
+    [Fact]
+    public void La_longueur_des_barres_ne_bouge_pas_d_une_lecture_a_l_autre()
+    {
+        for (var rang = 0; rang < MenuPath.Rows; rang++)
+        {
+            Assert.Equal(
+                MenuPath.BarShare("Paramètres", rang),
+                MenuPath.BarShare("Paramètres", rang));
+        }
+    }
+
+    [Fact]
+    public void La_longueur_des_barres_reste_lisible_comme_une_liste()
+    {
+        for (var rang = 0; rang < MenuPath.Rows; rang++)
+        {
+            Assert.InRange(MenuPath.BarShare("Applications", rang), 0.5, 1.0);
+        }
+    }
+
+    /// <summary>Cinq barres identiques se verraient : elles ne le sont pas.</summary>
+    [Fact]
+    public void Les_barres_d_un_meme_ecran_ne_sont_pas_toutes_egales()
+    {
+        var largeurs = Enumerable
+            .Range(0, MenuPath.Rows)
+            .Select(rang => MenuPath.BarShare("Paramètres supplémentaires", rang))
+            .Distinct()
+            .Count();
+
+        Assert.True(largeurs > 1, "les cinq barres ont la même longueur");
+    }
 }

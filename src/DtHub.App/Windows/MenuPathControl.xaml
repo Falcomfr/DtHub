@@ -18,68 +18,133 @@
 
     <ItemsControl.ItemTemplate>
       <DataTemplate>
-        <StackPanel Orientation="Horizontal" VerticalAlignment="Top" Margin="0,3,0,7">
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Top" Margin="0,3,0,9">
 
-          <Border Width="146" CornerRadius="7" BorderThickness="1"
+          <!-- L'écran du téléphone : fond sombre, coins arrondis, barre d'état
+               en haut. Ce sont ces trois marques qui le font reconnaître d'un
+               coup d'oeil pour ce qu'il est. -->
+          <Border Width="164" CornerRadius="11" BorderThickness="1"
                   Background="{DynamicResource SurfaceBrush}"
                   BorderBrush="{DynamicResource BorderBrush}">
             <StackPanel>
 
-              <!-- La barre de titre, comme celle d'un écran de réglages : un
-                   chevron de retour, puis le nom de l'écran où l'on est. -->
-              <Border CornerRadius="6,6,0,0" Padding="7,5,7,5"
-                      Background="{DynamicResource SurfaceAltBrush}">
-                <StackPanel Orientation="Horizontal">
-                  <TextBlock Text="&#x2039;" FontSize="13" Margin="0,-2,5,0"
-                             Foreground="{DynamicResource TextMutedBrush}" />
-                  <TextBlock Text="{Binding Titre}" FontSize="10" FontWeight="SemiBold"
-                             TextWrapping="Wrap" MaxWidth="118"
-                             Foreground="{DynamicResource TextBrush}" />
+              <!-- La barre d'état. Rien n'y est écrit : l'heure et le niveau
+                   de batterie seraient inventés, et la silhouette suffit. -->
+              <Grid Margin="10,7,10,0" Height="7">
+                <Border Width="17" Height="5" CornerRadius="2"
+                        HorizontalAlignment="Left" VerticalAlignment="Center"
+                        Background="{DynamicResource BevelBrush}" Opacity="0.55" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                            VerticalAlignment="Center">
+                  <Border Width="6" Height="5" CornerRadius="1" Margin="0,0,3,0"
+                          Background="{DynamicResource BevelBrush}" Opacity="0.55" />
+                  <Border Width="6" Height="5" CornerRadius="1" Margin="0,0,3,0"
+                          Background="{DynamicResource BevelBrush}" Opacity="0.55" />
+                  <Border Width="10" Height="5" CornerRadius="1"
+                          Background="{DynamicResource BevelBrush}" Opacity="0.55" />
                 </StackPanel>
-              </Border>
+              </Grid>
 
-              <ItemsControl ItemsSource="{Binding Lignes}" Margin="6,6,6,7" Focusable="False">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                    <!-- La hauteur suit le texte : un libellé tronqué ne
-                         montrerait pas ce qu'on cherche, et c'est tout l'objet
-                         du dessin. -->
-                    <Grid MinHeight="19" Margin="0,0,0,3">
+              <!-- La flèche de retour et le grand titre, comme les réglages
+                   d'Android les posent depuis leur douzième version. Le titre
+                   est, avec la ligne à toucher, le seul texte de l'écran :
+                   c'est ce qu'on cherche des yeux. -->
+              <TextBlock Text="&#x2190;" FontSize="13" Margin="11,7,0,0"
+                         Foreground="{DynamicResource TextMutedBrush}" />
 
-                      <!-- Une ligne muette : une barre, rien de plus. -->
-                      <Border Height="6" CornerRadius="2" Margin="4,0,26,0"
-                              HorizontalAlignment="Stretch" VerticalAlignment="Center"
-                              Background="{DynamicResource BevelBrush}" Opacity="0.4"
-                              Visibility="{Binding EstCelleQuOnTouche,
-                                                   Converter={StaticResource InverseBoolToVisibility}}" />
+              <TextBlock Text="{Binding Titre}" FontSize="13" FontWeight="SemiBold"
+                         Margin="11,3,11,0" TextWrapping="Wrap"
+                         Foreground="{DynamicResource TextBrush}" />
 
-                      <!-- Celle qu'on touche : son vrai libellé, sur fond
-                           d'accent, avec le chevron qui dit qu'elle mène
-                           ailleurs. -->
-                      <Border CornerRadius="4" Padding="4,2,3,2"
-                              Background="{DynamicResource AccentSoftBrush}"
-                              BorderThickness="1" BorderBrush="{DynamicResource AccentBrush}"
-                              Visibility="{Binding EstCelleQuOnTouche,
-                                                   Converter={StaticResource BoolToVisibility}}">
-                        <DockPanel LastChildFill="True">
-                          <TextBlock DockPanel.Dock="Right" Text="&#x203A;" FontSize="11"
-                                     Margin="3,-1,0,0" VerticalAlignment="Center"
-                                     Foreground="{DynamicResource AccentBrush}" />
-                          <TextBlock Text="{Binding Libelle}" FontSize="10"
+              <!-- La liste, dans sa carte : Android groupe ses réglages dans
+                   un pavé arrondi plus clair que la page. -->
+              <Border CornerRadius="9" Margin="7,9,7,8" Padding="0,4"
+                      Background="{DynamicResource SurfaceAltBrush}">
+                <ItemsControl ItemsSource="{Binding Lignes}" Focusable="False">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <!-- La hauteur suit le texte : un libellé tronqué ne
+                           montrerait pas ce qu'on cherche, et c'est tout
+                           l'objet du dessin. -->
+                      <Grid MinHeight="25">
+
+                        <!-- Le fond de la ligne à toucher. Il court sur toute
+                             la ligne, icône comprise : c'est ainsi qu'un
+                             réglage se montre désigné. -->
+                        <Border CornerRadius="7" Margin="4,1"
+                                Background="{DynamicResource AccentSoftBrush}"
+                                BorderThickness="1"
+                                BorderBrush="{DynamicResource AccentBrush}"
+                                Visibility="{Binding EstCelleQuOnTouche,
+                                                     Converter={StaticResource BoolToVisibility}}" />
+
+                        <Grid Margin="9,4,8,4">
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                          </Grid.ColumnDefinitions>
+
+                          <!-- L'icône. Chaque réglage en porte une, et c'est
+                               ce qui distingue une liste de réglages de
+                               n'importe quelle autre liste. La sienne reste
+                               muette : la fiche de marque ne dit pas laquelle. -->
+                          <Border Grid.Column="0" Width="15" Height="15" CornerRadius="5"
+                                  Margin="0,0,7,0" VerticalAlignment="Center"
+                                  Background="{DynamicResource BevelBrush}" Opacity="0.45"
+                                  Visibility="{Binding EstCelleQuOnTouche,
+                                                       Converter={StaticResource InverseBoolToVisibility}}" />
+
+                          <Border Grid.Column="0" Width="15" Height="15" CornerRadius="5"
+                                  Margin="0,0,7,0" VerticalAlignment="Center"
+                                  Background="{DynamicResource AccentBrush}"
+                                  Visibility="{Binding EstCelleQuOnTouche,
+                                                       Converter={StaticResource BoolToVisibility}}" />
+
+                          <!-- Une ligne muette : une barre, rien de plus.
+                               Inventer le reste du menu montrerait ce que la
+                               fiche de marque ne dit pas. -->
+                          <Border Grid.Column="1" Height="6" CornerRadius="2"
+                                  Margin="0,0,10,0" Width="{Binding Largeur}"
+                                  HorizontalAlignment="Left" VerticalAlignment="Center"
+                                  Background="{DynamicResource BevelBrush}" Opacity="0.4"
+                                  Visibility="{Binding EstCelleQuOnTouche,
+                                                       Converter={StaticResource InverseBoolToVisibility}}" />
+
+                          <TextBlock Grid.Column="1" Text="{Binding Libelle}" FontSize="10"
                                      TextWrapping="Wrap" VerticalAlignment="Center"
-                                     Foreground="{DynamicResource TextBrush}" />
-                        </DockPanel>
-                      </Border>
-                    </Grid>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
+                                     Margin="0,0,6,0"
+                                     Foreground="{DynamicResource TextBrush}"
+                                     Visibility="{Binding EstCelleQuOnTouche,
+                                                          Converter={StaticResource BoolToVisibility}}" />
+
+                          <!-- Le chevron court sur toutes les lignes : c'est
+                               ce que fait la vraie liste, et le réserver à une
+                               seule trahirait le dessin. -->
+                          <TextBlock Grid.Column="2" Text="&#x203A;" FontSize="11"
+                                     Margin="0,-1,0,0" VerticalAlignment="Center"
+                                     Opacity="0.5"
+                                     Foreground="{DynamicResource TextMutedBrush}"
+                                     Visibility="{Binding EstCelleQuOnTouche,
+                                                          Converter={StaticResource InverseBoolToVisibility}}" />
+
+                          <TextBlock Grid.Column="2" Text="&#x203A;" FontSize="11"
+                                     Margin="0,-1,0,0" VerticalAlignment="Center"
+                                     Foreground="{DynamicResource AccentBrush}"
+                                     Visibility="{Binding EstCelleQuOnTouche,
+                                                          Converter={StaticResource BoolToVisibility}}" />
+                        </Grid>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
             </StackPanel>
           </Border>
 
           <!-- Le chevron ne suit pas le dernier écran : il n'y a plus rien
                après, et le tracer laisserait croire à une étape manquante. -->
-          <TextBlock Text="&#x203A;" FontSize="16" Margin="5,32,5,0" VerticalAlignment="Top"
+          <TextBlock Text="&#x203A;" FontSize="16" Margin="6,52,6,0" VerticalAlignment="Top"
                      Foreground="{DynamicResource TextMutedBrush}"
                      Visibility="{Binding SuitQuelqueChose,
                                           Converter={StaticResource BoolToVisibility}}" />

@@ -9,6 +9,20 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Modifié
 
+- Les écrans dessinés dans les aides ressemblent enfin à ce qu'ils montrent. Ils
+  portent une barre d'état, une flèche de retour et un grand titre comme les
+  réglages d'Android depuis leur douzième version, et leurs lignes ont chacune
+  son icône et son chevron dans une carte arrondie. C'étaient auparavant des
+  barres grises sous un mince bandeau de titre, qui n'évoquaient aucun téléphone
+  en particulier.
+
+  La longueur des barres est inégale, sans quoi cinq intitulés de même taille
+  trahissaient le dessin, mais elle ne bouge pas d'une ouverture à l'autre : le
+  même écran se rend toujours pareil. Cinq lignes par écran au lieu de quatre.
+
+  Ce qui n'est pas dit reste muet : ni les autres intitulés du menu, ni l'heure,
+  ni le niveau de batterie ne sont inventés. La fiche de marque ne les donne pas.
+
 - Fermer le cadre à onglets ferme les comptes qu'il logeait. Ils en ressortaient
   libres, et l'on se retrouvait avec autant de fenêtres de jeu éparses qu'on
   croyait venir de fermer : le geste ne faisait pas ce qu'il annonce. Chaque

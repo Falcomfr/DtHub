@@ -39,6 +39,13 @@ public partial class MenuPathControl : UserControl
         }
     }
 
+    /// <summary>
+    /// La place qui reste pour la barre d'une ligne muette, une fois retirés
+    /// l'icône, le chevron et les marges. Le gabarit fixe la largeur de
+    /// l'écran, donc celle-ci se calcule ici plutôt que de se deviner.
+    /// </summary>
+    private const double BarWidth = 100;
+
     private void Rebuild()
     {
         var screens = MenuPath.Screens(Path);
@@ -60,8 +67,11 @@ public partial class MenuPathControl : UserControl
             [
                 .. Enumerable.Range(0, MenuPath.Rows).Select(rang =>
                     rang == screen.Row && screen.Tap.Length > 0
-                        ? new Ligne(screen.Tap, true)
-                        : new Ligne(string.Empty, false)),
+                        ? new Ligne(screen.Tap, true, 0)
+                        : new Ligne(
+                            string.Empty,
+                            false,
+                            Math.Round(BarWidth * MenuPath.BarShare(screen.Title, rang)))),
             ];
         }
 
@@ -79,5 +89,6 @@ public partial class MenuPathControl : UserControl
     /// </summary>
     /// <param name="Libelle">Le vrai libellé, ou rien pour une ligne muette.</param>
     /// <param name="EstCelleQuOnTouche">Vrai pour la ligne à toucher.</param>
-    internal sealed record Ligne(string Libelle, bool EstCelleQuOnTouche);
+    /// <param name="Largeur">Longueur de la barre, pour une ligne muette.</param>
+    internal sealed record Ligne(string Libelle, bool EstCelleQuOnTouche, double Largeur);
 }

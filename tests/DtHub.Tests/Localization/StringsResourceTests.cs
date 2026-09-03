@@ -134,9 +134,15 @@ public sealed class StringsResourceTests
     [Fact]
     public void Aucune_fenetre_ne_porte_de_texte_en_dur()
     {
-        // Le nom du produit, le glyphe de fermeture, le signe du pourcentage et
-        // les chevrons du fil d'Ariane ne se traduisent pas.
-        HashSet<string> admis = ["DT Hub", "\u2715", "%", "\u2039", "\u203a", "&#x2039;", "&#x203A;"];
+        // Le nom du produit, le signe du pourcentage et les glyphes ne se
+        // traduisent pas : fermeture, chevrons du fil d'Ariane, et la flèche de
+        // retour des écrans Android dessinés dans l'aide.
+        HashSet<string> admis =
+        [
+            "DT Hub", "%", "\u2715",
+            "\u2039", "\u203a", "&#x2039;", "&#x203A;",
+            "\u2190", "&#x2190;",
+        ];
 
         var attributs = new Regex(
             @"(?<!\w)(?:Content|Text|Title|ToolTip|Header)=""(?<value>[^""{][^""]*)""");

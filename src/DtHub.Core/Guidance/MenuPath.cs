@@ -28,7 +28,7 @@ public readonly record struct MenuScreen(string Title, string Tap, int Row);
 public static class MenuPath
 {
     /// <summary>Nombre de lignes dessinées dans chaque écran.</summary>
-    public const int Rows = 4;
+    public const int Rows = 5;
 
     private const char Separator = '›';
 
@@ -95,6 +95,31 @@ public static class MenuPath
         }
 
         return segments;
+    }
+
+    /// <summary>
+    /// La part de la largeur qu'occupe la barre d'une ligne muette, entre un
+    /// peu moins de la moitié et la presque totalité.
+    ///
+    /// Des barres toutes de la même longueur trahissent le dessin : aucune
+    /// liste de réglages n'a cinq intitulés de même taille. Elles sont donc
+    /// inégales, mais pas au hasard : le même écran doit se dessiner pareil à
+    /// chaque ouverture de la fenêtre.
+    /// </summary>
+    /// <param name="title">Le nom de l'écran.</param>
+    /// <param name="row">Le rang de la ligne.</param>
+    public static double BarShare(string? title, int row)
+    {
+        var sum = row * 7;
+
+        foreach (var character in title ?? string.Empty)
+        {
+            sum = ((sum * 31) + character) % 4096;
+        }
+
+        // Cinq largeurs, assez éloignées pour se voir, assez proches pour que
+        // la liste reste une liste.
+        return 0.5 + (sum % 5 * 0.115);
     }
 
     /// <summary>
