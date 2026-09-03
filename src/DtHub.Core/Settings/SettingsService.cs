@@ -570,11 +570,6 @@ public sealed class SettingsService : IDisposable
     }
 
     /// <summary>
-    /// Fusionne les instances découvertes avec celles qui étaient mémorisées.
-    /// Le nom choisi par l'utilisateur et la case de lancement lui
-    /// appartiennent : une redécouverte ne les écrase jamais.
-    /// </summary>
-    /// <summary>
     /// Oublie les instances dont le profil Android n'existe plus.
     ///
     /// Une instance mémorisée survit à une déconnexion, et c'est voulu : un
@@ -629,6 +624,11 @@ public sealed class SettingsService : IDisposable
         return gone.Count;
     }
 
+    /// <summary>
+    /// Fusionne les instances découvertes avec celles qui étaient mémorisées.
+    /// Le nom choisi par l'utilisateur et la case de lancement lui
+    /// appartiennent : une redécouverte ne les écrase jamais.
+    /// </summary>
     public async Task<IReadOnlyList<DofusInstance>> MergeInstancesAsync(
         IReadOnlyList<DofusInstance> discovered,
         CancellationToken cancellationToken = default)

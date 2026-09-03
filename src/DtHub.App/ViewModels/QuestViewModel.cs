@@ -329,6 +329,13 @@ public sealed partial class QuestViewModel : ObservableObject
         IsListOpen = true;
     }
 
+    /// <summary>Pose le repère de la liste sur la page qu'on vient de désigner.</summary>
+    private void Anchor(int section, string url)
+    {
+        _anchorSection = section;
+        _anchorUrl = url;
+    }
+
     /// <summary>
     /// La rubrique sous laquelle une quête se lit : celle qu'on parcourt quand
     /// elle en fait partie, sinon celle que le catalogue lui a retenue.
@@ -340,13 +347,6 @@ public sealed partial class QuestViewModel : ObservableObject
     /// 215 quêtes sur 782 appartiennent à plus d'une rubrique, dont 93 qu'une
     /// rubrique transverse emporte et 80 dans l'autre sens.
     /// </summary>
-    /// <summary>Pose le repère de la liste sur la page qu'on vient de désigner.</summary>
-    private void Anchor(int section, string url)
-    {
-        _anchorSection = section;
-        _anchorUrl = url;
-    }
-
     private int SectionSeen(QuestSummary quest) =>
         quest.SectionIds.Contains(_section) ? _section : quest.SectionId;
 
@@ -1054,12 +1054,6 @@ public sealed partial class QuestViewModel : ObservableObject
             : QuestStepSummary.Of(_steps[index]);
 
     /// <summary>
-    /// Repose les étapes, et la liste où on les choisit avec elles.
-    ///
-    /// Une seule porte pour les deux : la liste et le compte se contredisaient
-    /// dès qu'un chemin oubliait l'une des deux lignes.
-    /// </summary>
-    /// <summary>
     /// Vrai quand il y a de quoi choisir : à partir de deux étapes.
     ///
     /// Sur un guide d'une seule étape, la pastille dépliait une liste d'un
@@ -1067,6 +1061,12 @@ public sealed partial class QuestViewModel : ObservableObject
     /// </summary>
     public bool CanPickStep => _steps.Count > 1;
 
+    /// <summary>
+    /// Repose les étapes, et la liste où on les choisit avec elles.
+    ///
+    /// Une seule porte pour les deux : la liste et le compte se contredisaient
+    /// dès qu'un chemin oubliait l'une des deux lignes.
+    /// </summary>
     private void ResetSteps(IReadOnlyList<string> steps)
     {
         _steps = steps;

@@ -297,24 +297,6 @@ public partial class App : Application, IDisposable
     }
 
     /// <summary>
-    /// Pose le raccourci du menu Démarrer sur l'exécutable, là où il se trouve.
-    ///
-    /// L'application n'est pas installée : c'est un fichier qu'on pose où l'on
-    /// veut. Sans raccourci, on va le chercher là où on l'a mis, et il n'y a
-    /// rien à épingler. Le raccourci est récrit à chaque démarrage, si bien que
-    /// déplacer le fichier suffit à le corriger.
-    ///
-    /// Rien n'est copié ni déplacé : se copier laisserait un exécutable orphelin
-    /// qui ne se mettrait jamais à jour, et se déplacer reviendrait à bouger le
-    /// fichier de quelqu'un sans le lui demander.
-    ///
-    /// Rien n'est fait depuis un arbre de sources : le raccourci viserait la
-    /// sortie de publication, que le lanceur de développement récrit à chaque
-    /// fois. C'est la règle déjà écrite pour la mise à jour.
-    ///
-    /// Un raccourci que Windows refuse n'empêche rien : l'application démarre.
-    /// </summary>
-    /// <summary>
     /// Pose la langue de l'interface sur tous les fils.
     ///
     /// Le réglage l'emporte sur Windows quand il est rempli ; vide, c'est la
@@ -338,6 +320,24 @@ public partial class App : Application, IDisposable
             CultureInfo.InstalledUICulture.Name);
     }
 
+    /// <summary>
+    /// Pose le raccourci du menu Démarrer sur l'exécutable, là où il se trouve.
+    ///
+    /// L'application n'est pas installée : c'est un fichier qu'on pose où l'on
+    /// veut. Sans raccourci, on va le chercher là où on l'a mis, et il n'y a
+    /// rien à épingler. Le raccourci est récrit à chaque démarrage, si bien que
+    /// déplacer le fichier suffit à le corriger.
+    ///
+    /// Rien n'est copié ni déplacé : se copier laisserait un exécutable orphelin
+    /// qui ne se mettrait jamais à jour, et se déplacer reviendrait à bouger le
+    /// fichier de quelqu'un sans le lui demander.
+    ///
+    /// Rien n'est fait depuis un arbre de sources : le raccourci viserait la
+    /// sortie de publication, que le lanceur de développement récrit à chaque
+    /// fois. C'est la règle déjà écrite pour la mise à jour.
+    ///
+    /// Un raccourci que Windows refuse n'empêche rien : l'application démarre.
+    /// </summary>
     private static void PlaceShortcut(IServiceProvider services)
     {
         var executable = Environment.ProcessPath;
@@ -471,11 +471,6 @@ public partial class App : Application, IDisposable
     }
 
     /// <summary>
-    /// Ferme les fenêtres de mirroring laissées par une exécution précédente
-    /// qui ne s'est pas terminée proprement. Sans cela, elles resteraient à
-    /// l'écran et de nouvelles viendraient s'y ajouter.
-    /// </summary>
-    /// <summary>
     /// Efface les dossiers d'extraction des versions précédentes.
     ///
     /// Attendu, et non lancé en arrière-plan : quand rien ne s'ouvre,
@@ -495,6 +490,11 @@ public partial class App : Application, IDisposable
         }
     }
 
+    /// <summary>
+    /// Ferme les fenêtres de mirroring laissées par une exécution précédente
+    /// qui ne s'est pas terminée proprement. Sans cela, elles resteraient à
+    /// l'écran et de nouvelles viendraient s'y ajouter.
+    /// </summary>
     private static async Task KillOrphansAsync(IServiceProvider services)
     {
         try
@@ -524,17 +524,13 @@ public partial class App : Application, IDisposable
     }
 
     /// <summary>
-    /// Ferme l'application quand la dernière fenêtre de jeu disparaît sans que
-    /// le configurateur soit à l'écran.
+    /// Il ne reste ni fenêtre de jeu ni panneau : l'application s'arrête.
     ///
     /// Il ne resterait sinon rien de visible, et les raccourcis ne répondent
     /// pas quand aucune de nos fenêtres n'est au premier plan : l'application
     /// serait injoignable autrement que par le gestionnaire des tâches. Rien
     /// n'est enregistré au passage : fermer une fenêtre à la main ne change
     /// pas ce qui doit rouvrir au lancement suivant.
-    /// </summary>
-    /// <summary>
-    /// Il ne reste ni fenêtre de jeu ni panneau : l'application s'arrête.
     /// </summary>
     /// <param name="rememberConfigurator">
     /// Ce qu'il faut retenir de la présence du panneau au prochain démarrage.

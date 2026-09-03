@@ -24,17 +24,17 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     private string _name;
 
     /// <summary>
-    /// Vrai pendant l'ajout d'un compte. Créer un profil, y installer le jeu et
-    /// le démarrer demande une quinzaine de secondes au téléphone : sans cette
-    /// marque, le bouton restait cliquable et rien ne disait qu'il travaillait.
-    /// </summary>
-    /// <summary>
     /// Numéro de série ADB, qui est une adresse en sans-fil et change donc.
     /// L'identité stable est <see cref="DeviceId"/> ; celui-ci ne sert qu'à
     /// adresser une commande.
     /// </summary>
     public string Serial { get; private set; } = string.Empty;
 
+    /// <summary>
+    /// Vrai pendant l'ajout d'un compte. Créer un profil, y installer le jeu et
+    /// le démarrer demande une quinzaine de secondes au téléphone : sans cette
+    /// marque, le bouton restait cliquable et rien ne disait qu'il travaillait.
+    /// </summary>
     [ObservableProperty]
     private bool _isBusy;
 

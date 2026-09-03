@@ -617,10 +617,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Rompt l'association d'un appareil : ses fenêtres se ferment et il sort
-    /// de la mémoire, code d'appairage compris.
-    /// </summary>
-    /// <summary>
     /// Ajoute un compte sur un téléphone : un profil Android neuf, le jeu
     /// dedans, prêt à ouvrir.
     ///
@@ -663,6 +659,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
         };
     }
 
+    /// <summary>
+    /// Rompt l'association d'un appareil : ses fenêtres se ferment et il sort
+    /// de la mémoire, code d'appairage compris.
+    /// </summary>
     public async Task ForgetDeviceAsync(string deviceId, CancellationToken cancellationToken = default)
     {
         foreach (var session in _sessions.ActiveSessions
@@ -830,10 +830,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Ramène les fenêtres au rapport de leur afficheur, une fois leur taille
-    /// stabilisée. Appelée régulièrement.
-    /// </summary>
-    /// <summary>
     /// Entretien périodique : corrige la forme des fenêtres et retient
     /// laquelle est au premier plan.
     /// </summary>
@@ -857,11 +853,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
 
     /// <summary>
-    /// Empile les fenêtres sur celle qui est active, ou sur la première.
-    /// C'est ce que fait le raccourci de replacement, et le bouton de la barre
-    /// du bas : on place une fenêtre où on la veut, les autres la rejoignent.
-    /// </summary>
-    /// <summary>
     /// Range les fenêtres côte à côte, la fenêtre active à droite.
     /// </summary>
     public async Task<int> TileAsync(CancellationToken cancellationToken = default)
@@ -875,6 +866,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         return placed;
     }
 
+    /// <summary>
+    /// Empile les fenêtres sur celle qui est active, ou sur la première.
+    /// C'est ce que fait le raccourci de replacement, et le bouton de la barre
+    /// du bas : on place une fenêtre où on la veut, les autres la rejoignent.
+    /// </summary>
     public async Task<int> StackOnActiveAsync(CancellationToken cancellationToken = default)
     {
         var moved = await _windows
@@ -929,14 +925,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
         return moved;
     }
 
-    /// <summary>
-    /// Rouvre les fenêtres devenues trop petites pour la taille demandée.
-    ///
-    /// Le jeu ne se remet pas en page au-delà de la hauteur qu'il avait à son
-    /// ouverture : agrandir davantage laisserait une bande. La seule façon de
-    /// lui donner cette hauteur est de le rouvrir dessus. Cela n'arrive que
-    /// sur une demande explicite d'agrandissement, jamais pendant un geste.
-    /// </summary>
     /// <summary>Applique une taille à toutes les fenêtres et la retient.</summary>
     public async Task<int> ApplySizeAsync(int sizeIndex, CancellationToken cancellationToken = default)
     {

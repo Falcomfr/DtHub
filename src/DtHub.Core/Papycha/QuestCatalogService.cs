@@ -394,11 +394,6 @@ public sealed class QuestCatalogService : IDisposable
     }
 
     /// <summary>
-    /// Rubriques que les pages du site apportent en propre, c'est-à-dire celles
-    /// qu'aucune catégorie ne désigne déjà. Leur identifiant est négatif : il ne
-    /// vient pas du site et ne doit jamais croiser celui d'une catégorie.
-    /// </summary>
-    /// <summary>
     /// La page rédigée de chaque rubrique, telle que le tableau de « Quêtes »
     /// la désigne.
     ///
@@ -477,6 +472,11 @@ public sealed class QuestCatalogService : IDisposable
         return urls;
     }
 
+    /// <summary>
+    /// Rubriques que les pages du site apportent en propre, c'est-à-dire celles
+    /// qu'aucune catégorie ne désigne déjà. Leur identifiant est négatif : il ne
+    /// vient pas du site et ne doit jamais croiser celui d'une catégorie.
+    /// </summary>
     private static Dictionary<string, QuestSection> ExtraSections(
         IReadOnlyList<QuestPageSection> pages,
         IReadOnlyList<QuestSection> sections)

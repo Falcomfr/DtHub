@@ -332,11 +332,6 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Attend que la session soit utilisable : afficheur créé puis application
-    /// ouverte, ou échec. Sans afficheur virtuel, scrcpy montre l'écran du
-    /// téléphone et il n'y a rien à lancer.
-    /// </summary>
-    /// <summary>
     /// Attend que le téléphone ouvre l'afficheur virtuel. C'est la seule partie
     /// du démarrage qui doive être sérialisée entre deux ouvertures.
     /// </summary>

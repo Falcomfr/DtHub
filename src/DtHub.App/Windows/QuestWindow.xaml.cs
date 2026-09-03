@@ -750,14 +750,12 @@ public partial class QuestWindow : Window
     private void OnCloseList(object sender, RoutedEventArgs e) => _viewModel.IsListOpen = false;
 
     /// <summary>
-    /// Épingle les prérequis d'une ligne, pour qu'on puisse les lire sans tenir
-    /// la souris et cliquer ceux qui mènent à une quête.
+    /// Ouvre les prérequis d'une ligne, ou les referme si ce sont déjà ceux-là.
+    /// On peut alors les lire sans tenir la souris, et cliquer ceux qui mènent
+    /// à une quête.
     ///
     /// L'infobulle du même bouton est éteinte le temps du panneau : elle
     /// s'ouvrirait par-dessus et dirait la même chose sans les liens.
-    /// </summary>
-    /// <summary>
-    /// Ouvre les prérequis d'une ligne, ou les referme si ce sont déjà ceux-là.
     /// </summary>
     private void OnShowNeeds(object sender, RoutedEventArgs e)
     {
@@ -852,10 +850,6 @@ public partial class QuestWindow : Window
     }
 
     /// <summary>
-    /// La croix masque, elle ne ferme pas : la fenêtre est un outil qu'on
-    /// rappelle au raccourci, comme le configurateur.
-    /// </summary>
-    /// <summary>
     /// Poignée native, retenue une fois pour toutes. Elle est consultée depuis
     /// le guet du premier plan, qui n'a pas le droit d'interroger une fenêtre
     /// WPF : l'interroger levait à chaque changement de fenêtre, et le
@@ -887,6 +881,10 @@ public partial class QuestWindow : Window
         }
     }
 
+    /// <summary>
+    /// La croix masque, elle ne ferme pas : la fenêtre est un outil qu'on
+    /// rappelle au raccourci, comme le configurateur.
+    /// </summary>
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
         ArgumentNullException.ThrowIfNull(e);

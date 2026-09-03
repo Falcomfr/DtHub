@@ -796,13 +796,6 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     partial void OnCustomCodecChanged(string value) => SaveCustomQuality();
 
     /// <summary>
-    /// Retient les quatre valeurs fines, et ne rouvre les fenêtres que si le
-    /// palier personnalisé est celui en vigueur.
-    ///
-    /// Les régler alors qu'un autre palier est coché ne change rien à l'image :
-    /// rouvrir dans ce cas ferait clignoter toutes les fenêtres pour rien.
-    /// </summary>
-    /// <summary>
     /// Reprend les quatre valeurs fines depuis les réglages. Appelée sous le
     /// garde-fou de chargement, comme la qualité et la distance.
     /// </summary>
@@ -816,6 +809,13 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         CustomCodec = custom.VideoCodec;
     }
 
+    /// <summary>
+    /// Retient les quatre valeurs fines, et ne rouvre les fenêtres que si le
+    /// palier personnalisé est celui en vigueur.
+    ///
+    /// Les régler alors qu'un autre palier est coché ne change rien à l'image :
+    /// rouvrir dans ce cas ferait clignoter toutes les fenêtres pour rien.
+    /// </summary>
     private void SaveCustomQuality()
     {
         if (_loading)

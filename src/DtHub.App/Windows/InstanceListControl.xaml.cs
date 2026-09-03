@@ -20,11 +20,6 @@ namespace DtHub.App.Windows;
 public partial class InstanceListControl : UserControl
 {
     /// <summary>
-    /// Montre la case « ouvrir au démarrage ». Vraie seulement dans la fenêtre
-    /// de premier lancement : c'est le dernier endroit où la question se pose.
-    /// Ensuite, ce qui rouvre est ce qui était ouvert au moment de quitter.
-    /// </summary>
-    /// <summary>
     /// Montre les commandes de réordonnancement. Absentes de la fenêtre de
     /// premier lancement, où rien n'est encore ouvert.
     /// </summary>
@@ -35,11 +30,6 @@ public partial class InstanceListControl : UserControl
             typeof(InstanceListControl),
             new PropertyMetadata(true));
 
-    /// <summary>
-    /// Montre les boutons d'action de chaque instance. Coupé dans la fenêtre
-    /// de mise en route : on y coche ce qui doit s'ouvrir, et c'est le bouton
-    /// « Enregistrer et lancer » qui décide, pas un bouton par ligne.
-    /// </summary>
     /// <summary>
     /// Montre l'état de chaque appareil en toutes lettres, et non par le seul
     /// point de couleur.
@@ -54,6 +44,11 @@ public partial class InstanceListControl : UserControl
             typeof(InstanceListControl),
             new PropertyMetadata(false));
 
+    /// <summary>
+    /// Montre les boutons d'action de chaque instance. Coupé dans la fenêtre
+    /// de mise en route : on y coche ce qui doit s'ouvrir, et c'est le bouton
+    /// « Enregistrer et lancer » qui décide, pas un bouton par ligne.
+    /// </summary>
     public static readonly DependencyProperty ShowActionsProperty =
         DependencyProperty.Register(
             nameof(ShowActions),
