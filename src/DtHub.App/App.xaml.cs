@@ -8,6 +8,7 @@ using DtHub.App.ViewModels;
 using DtHub.App.Windows;
 using DtHub.Core;
 using DtHub.Core.Devices;
+using DtHub.Core.Diagnostics;
 using DtHub.Core.Localization;
 using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
@@ -100,8 +101,11 @@ public partial class App : Application, IDisposable
 
             await RunAsync().ConfigureAwait(true);
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is not OutOfMemoryException)
         {
+            // Le garde-fou du démarrage attrape tout, c'est son rôle : une
+            // faute ici laisserait une application sans fenêtre. Tout sauf le
+            // manque de mémoire, où ouvrir une fenêtre de plus n'aboutirait pas.
             Report(exception, Strings.Get("StartupFailed"));
             Shutdown(1);
         }
@@ -142,6 +146,10 @@ public partial class App : Application, IDisposable
         SessionEnding += OnSessionEnding;
 
         launcher.OwnsWindow = OwnsWindow;
+
+        // Sans lui, le rapport annonce zéro compte ouvert alors que deux
+        // tournent, et ne sait pas quels noms masquer.
+        services.GetRequiredService<DiagnosticReporter>().Launcher = launcher;
         launcher.ConfiguratorToggleRequested += (_, _) => Dispatcher.Invoke(ToggleConfigurator);
         launcher.QuestsToggleRequested += (_, _) => Dispatcher.Invoke(ToggleQuests);
 
@@ -794,8 +802,10 @@ public partial class App : Application, IDisposable
 
                 await _host.StopAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(true);
             }
-            catch (Exception exception)
+            catch (Exception exception) when (exception is not OutOfMemoryException)
             {
+                // L'arrêt fait au mieux : ce qui échoue ici n'empêche pas de
+                // partir, et l'application se ferme de toute façon.
                 Log.Warning(exception, "Arrêt incomplet.");
             }
 
@@ -825,6 +835,11 @@ public partial class App : Application, IDisposable
             .MinimumLevel.Information()
             .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
             .Enrich.FromLogContext()
+
+            // L'identifiant du lancement, sur chaque ligne : c'est ce qui
+            // permet à un rapport de ne prendre que la session en cours dans un
+            // fichier où se mêlent tous les démarrages de la journée.
+            .Enrich.WithProperty("Session", AppSession.Id)
             .WriteTo.Debug(formatProvider: CultureInfo.InvariantCulture)
             .WriteTo.File(
                 Path.Combine(paths.LogsDirectory, "dthub-.log"),
@@ -834,7 +849,9 @@ public partial class App : Application, IDisposable
                 fileSizeLimitBytes: 8 * 1024 * 1024,
                 rollOnFileSizeLimit: true,
                 shared: true,
-                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {SourceContext} {Message:lj}{NewLine}{Exception}")
+                outputTemplate:
+                    "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] [{Session}] "
+                    + "{SourceContext} {Message:lj}{NewLine}{Exception}")
             .CreateLogger();
 
         builder.Logging.ClearProviders();
@@ -851,18 +868,42 @@ public partial class App : Application, IDisposable
         Report(e.Exception, Strings.Get("UnexpectedError"));
     }
 
+    /// <summary>
+    /// Une faute que personne n'a rattrapée. Le processus s'arrête après :
+    /// ouvrir une fenêtre ici n'aboutirait pas toujours, mais la retenir permet
+    /// au rapport du prochain démarrage de la porter.
+    /// </summary>
     private static void OnDomainException(object sender, UnhandledExceptionEventArgs e)
     {
         if (e.ExceptionObject is Exception exception)
         {
             Log.Fatal(exception, "Exception non interceptée.");
+            Note(exception, "Exception non interceptée.");
         }
     }
 
+    /// <summary>
+    /// Une tâche a échoué sans que personne n'attende son résultat. C'est par
+    /// là que passent ADB, scrcpy et le réseau, et cela ne se voyait pas.
+    /// </summary>
     private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
         Log.Error(e.Exception, "Exception de tâche non observée.");
+        Note(e.Exception, "Exception de tâche non observée.");
         e.SetObserved();
+    }
+
+    /// <summary>
+    /// Retient une faute pour le rapport et pour la ligne du panneau. Muet si
+    /// l'hôte n'est pas encore là : au tout début, le journal suffit.
+    /// </summary>
+    private static void Note(Exception exception, string headline)
+    {
+        if (Current is App { _host: { } host }
+            && host.Services.GetService<DiagnosticReporter>() is { } reporter)
+        {
+            Current.Dispatcher.InvokeAsync(() => reporter.Note(exception, headline));
+        }
     }
 
     /// <summary>
@@ -902,18 +943,48 @@ public partial class App : Application, IDisposable
         Log.Information("Session « {Profile} » retenue : {Count} compte(s).", name, keys.Count);
     }
 
+    /// <summary>
+    /// Montre une faute et donne de quoi la raconter.
+    ///
+    /// La boîte d'avant affichait le chemin du dossier de journaux et un bouton
+    /// « OK ». Le message de l'exception, qui dit ce qui s'est passé, n'y
+    /// atteignait jamais l'écran, et il n'y avait rien à envoyer à personne.
+    ///
+    /// Le repli sur une boîte simple est gardé : si la fenêtre de signalement
+    /// ne peut pas s'ouvrir, ce qui arrive quand la faute vient du démarrage
+    /// lui-même, il vaut mieux une phrase que rien.
+    /// </summary>
     private void Report(Exception exception, string headline)
     {
         Log.Fatal(exception, "{Headline}", headline);
 
-        var logs = _host?.Services.GetService<IAppPaths>()?.LogsDirectory;
+        var services = _host?.Services;
+        var logs = services?.GetService<IAppPaths>()?.LogsDirectory;
 
-        var details = string.IsNullOrEmpty(logs)
-            ? string.Empty
-            : Strings.Format("ErrorDetailsInLogs", logs);
+        try
+        {
+            if (services?.GetService<DiagnosticReporter>() is { } reporter
+                && services.GetService<IDialogService>() is { } dialogs
+                && logs is { Length: > 0 })
+            {
+                new ProblemWindow(dialogs, headline, reporter.Compose(headline, exception), exception.Message)
+                {
+                    Logs = logs,
+                    Owner = _configurator is { IsVisible: true } panel ? panel : null,
+                }.ShowDialog();
+
+                return;
+            }
+        }
+        catch (Exception second) when (second is not OutOfMemoryException)
+        {
+            // La fenêtre de signalement a échoué à son tour. On ne repart pas
+            // dans le même chemin : la boîte du système, elle, s'ouvrira.
+            Log.Error(second, "La fenêtre de signalement n'a pas pu s'ouvrir.");
+        }
 
         MessageBox.Show(
-            $"{headline}{details}",
+            headline + (logs is { Length: > 0 } ? Strings.Format("ErrorDetailsInLogs", logs) : string.Empty),
             ProductInfo.Name,
             MessageBoxButton.OK,
             MessageBoxImage.Warning);

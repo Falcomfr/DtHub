@@ -64,6 +64,9 @@ public sealed record QuestBridgeMessage
         }
         catch (JsonException)
         {
+            // Silence assumé : un message que le pont n'a pas écrit, ou qu'il a
+            // écrit de travers, ne dit rien de la page. On l'ignore plutôt que
+            // de faire tomber la fenêtre sur du texte venu du site.
             return null;
         }
 

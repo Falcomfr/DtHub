@@ -93,6 +93,8 @@ public sealed partial class WebViewEnvironment(IAppPaths paths, ILogger<WebViewE
         }
         catch (WebView2RuntimeNotFoundException)
         {
+            // Silence assumé : l'absence du moteur est la réponse, non une
+            // faute. C'est l'appelant qui la transforme en message.
             version = null;
         }
 

@@ -154,6 +154,9 @@ public sealed class IconPathToImageConverter : IValueConverter
             when (exception is IOException or UnauthorizedAccessException
                       or NotSupportedException or UriFormatException)
         {
+            // Silence assumé : un convertisseur qui lève casse la liaison et
+            // laisse la ligne vide sans rien dire. L'icône est un confort, son
+            // absence se voit à l'écran, et le fichier vient de notre cache.
             return null;
         }
     }

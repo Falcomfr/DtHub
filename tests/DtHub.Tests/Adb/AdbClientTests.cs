@@ -119,7 +119,11 @@ public class AdbClientTests
             () => client.ListDevicesAsync(true, CancellationToken.None));
 
         Assert.Equal(AdbErrorKind.AdbUnavailable, exception.Kind);
-        Assert.Contains("diagnostic", exception.UserMessage, StringComparison.Ordinal);
+
+        // Le message disait « consultez le diagnostic dans les paramètres »,
+        // page qui n'a jamais existé. Il renvoie maintenant au signalement,
+        // qui existe et qui porte le refus technique.
+        Assert.Contains("Signalez", exception.UserMessage, StringComparison.Ordinal);
     }
 
     [Fact]

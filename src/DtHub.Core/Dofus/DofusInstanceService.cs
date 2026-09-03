@@ -221,6 +221,9 @@ public sealed class DofusInstanceService
         }
         catch (AdbException exception)
         {
+            // L'erreur remonte : le refus d'ADB devient le message que la
+            // personne lit, « Le profil est créé mais le jeu n'a pas pu y être
+            // installé », suivi de sa raison.
             return new AccountAddition(
                 false,
                 Strings.Format("ProfileMadeGameNotInstalled", exception.UserMessage),
@@ -339,6 +342,9 @@ public sealed class DofusInstanceService
         }
         catch (AdbException)
         {
+            // Silence assumé : le composant de lancement est une commodité, et
+            // l'absence de réponse se traite comme une absence de composant.
+            // L'appelant a son propre message pour le dire.
             return null;
         }
     }

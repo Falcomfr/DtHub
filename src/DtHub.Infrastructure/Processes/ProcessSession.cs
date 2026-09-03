@@ -40,6 +40,9 @@ public sealed class ProcessSession : IProcessSession
             }
             catch (InvalidOperationException)
             {
+                // Silence assumé : un processus dont on ne peut plus lire
+                // l'état ne tourne plus. Répondre « vivant » retiendrait la
+                // session indéfiniment.
                 return true;
             }
         }

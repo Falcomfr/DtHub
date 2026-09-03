@@ -57,6 +57,9 @@ public static class ReleaseParser
         }
         catch (JsonException)
         {
+            // Silence assumé : la mise à jour est un service de confort, non
+            // une dépendance. Une réponse illisible se traite comme une absence
+            // de version, et l'application démarre pareil.
             return null;
         }
     }

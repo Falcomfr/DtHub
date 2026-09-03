@@ -1,0 +1,66 @@
+<Window x:Class="DtHub.App.Windows.ProblemWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:DtHub.App.Localization"
+        Width="640" SizeToContent="Height"
+        MinWidth="560" MaxHeight="720"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="True"
+        Background="{DynamicResource SurfaceAltBrush}"
+        TextOptions.TextFormattingMode="Display">
+
+  <StackPanel Margin="20">
+
+    <!-- Ce qui a échoué, en clair. La boîte d'avant n'en montrait qu'un chemin
+         de dossier : le message de l'exception, qui dit ce qui s'est passé,
+         n'atteignait jamais l'écran. -->
+    <TextBlock x:Name="Headline" FontSize="15" FontWeight="SemiBold"
+               TextWrapping="Wrap" Margin="0,0,0,10"
+               Foreground="{DynamicResource TextBrush}" />
+
+    <TextBlock x:Name="Detail" Style="{StaticResource Muted}"
+               TextWrapping="Wrap" Margin="0,0,0,14" />
+
+    <TextBlock Text="{loc:T ReportContents}" Style="{StaticResource Muted}"
+               FontSize="11" TextWrapping="Wrap" Margin="0,0,0,12" />
+
+    <!-- Le rapport lui-même, replié. On ne demande à personne d'envoyer un
+         texte qu'il ne peut pas lire. -->
+    <Expander Header="{loc:T ShowTheReport}" Margin="0,0,0,14">
+      <Border Background="{DynamicResource SurfaceBrush}"
+              BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+              CornerRadius="{StaticResource Radius}"
+              Padding="10,8" Margin="0,8,0,0">
+        <ScrollViewer MaxHeight="260" VerticalScrollBarVisibility="Auto">
+          <TextBox x:Name="Report" IsReadOnly="True" BorderThickness="0"
+                   Background="Transparent" FontSize="11"
+                   FontFamily="{StaticResource MonoFont}"
+                   TextWrapping="NoWrap" HorizontalScrollBarVisibility="Auto"
+                   Foreground="{DynamicResource TextMutedBrush}" />
+        </ScrollViewer>
+      </Border>
+    </Expander>
+
+    <TextBlock x:Name="Copied" Text="{loc:T ReportCopied}" Style="{StaticResource Muted}"
+               FontSize="11" Margin="0,0,0,8" Visibility="Collapsed"
+               Foreground="{DynamicResource SuccessBrush}" />
+
+    <!-- Quatre touches dont deux au long nom : elles passent à la ligne
+         plutôt que de se faire couper. -->
+    <WrapPanel HorizontalAlignment="Right">
+      <Button Content="{loc:T OpenLogFolder}" Style="{StaticResource QuietButton}"
+              Padding="12,6" Margin="0,0,8,4" Click="OnOpenLogs" />
+
+      <Button Content="{loc:T ReportProblem}" Style="{StaticResource QuietButton}"
+              Padding="12,6" Margin="0,0,8,4" Click="OnReport"
+              ToolTip="{loc:T ReportProblemTip}" />
+
+      <Button Content="{loc:T CopyReport}" Padding="14,6" Margin="0,0,8,4"
+              IsDefault="True" Click="OnCopy" />
+
+      <Button Content="{loc:T Close}" Style="{StaticResource QuietButton}"
+              Padding="12,6" Margin="0,0,0,4" IsCancel="True" />
+    </WrapPanel>
+  </StackPanel>
+</Window>

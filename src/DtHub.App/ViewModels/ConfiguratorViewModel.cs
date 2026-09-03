@@ -25,6 +25,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     private readonly IDialogService _dialogs;
     private readonly IAppPaths _paths;
 
+    private readonly DiagnosticReporter _reporter;
     private bool _loading;
     private bool _movingWindows;
     private int? _pendingPercent;
@@ -35,13 +36,21 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         SettingsService settings,
         GameLauncher launcher,
         IDialogService dialogs,
-        IAppPaths paths)
+        IAppPaths paths,
+        DiagnosticReporter reporter)
     {
         Instances = instances;
         _settings = settings;
         _launcher = launcher;
         _dialogs = dialogs;
         _paths = paths;
+        _reporter = reporter;
+
+        // Une faute hors du fil d'interface ne s'affiche pas : elle se compte,
+        // et cette ligne est le seul endroit où elle se voit.
+        _reporter.IncidentRecorded += (_, _) =>
+            System.Windows.Application.Current?.Dispatcher.InvokeAsync(
+                () => OnPropertyChanged(nameof(HasIncident)));
 
         // Les raccourcis écrivent la taille et l'ancrage sans passer par ici :
         // sans cet abonnement, le curseur et la grille gardaient la valeur
@@ -588,6 +597,31 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         {
             Instances.Problem = Strings.Get("NothingToTile");
         }
+    }
+
+    /// <summary>
+    /// Vrai quand une faute a été relevée sans être montrée. La ligne qui
+    /// l'annonce se laisse ignorer : ce n'est pas une boîte, et une faute qui
+    /// se répète ne bloque donc rien.
+    /// </summary>
+    public bool HasIncident => _reporter.Incidents > 0;
+
+    /// <summary>
+    /// Ouvre la fenêtre de signalement, avec ou sans incident derrière elle.
+    ///
+    /// Un problème n'est pas toujours un plantage : une fenêtre qui ne s'ouvre
+    /// pas, un compte qui manque, un guide qui ne charge pas se racontent aussi,
+    /// et il faut pouvoir le faire sans attendre une faute.
+    /// </summary>
+    [RelayCommand]
+    private void ReportProblem()
+    {
+        var titre = Strings.Get("ReportProblem");
+
+        new Windows.ProblemWindow(_dialogs, titre, _reporter.Compose(titre), detail: null)
+        {
+            Logs = _paths.LogsDirectory,
+        }.ShowDialog();
     }
 
     /// <summary>Ouvre le suivi de quêtes, ou le referme s'il est déjà là.</summary>

@@ -524,8 +524,27 @@
                   <Run Text="{Binding Version, Mode=OneWay}" />
                 </TextBlock>
                 <TextBlock Text="{Binding Disclaimer}" Style="{StaticResource Muted}" FontSize="11" />
-                <Button Content="{loc:T OpenLogFolder}" Style="{StaticResource QuietButton}"
-                        HorizontalAlignment="Left" Margin="-9,4,0,0" Command="{Binding OpenLogsCommand}" />
+                <!-- Une faute hors du fil d'interface ne s'affiche pas : elle
+                     se compte, et cette ligne est le seul endroit où elle se
+                     voit. Elle se laisse ignorer, ce qu'une boîte ne ferait pas
+                     pour une faute qui se répète. -->
+                <TextBlock Text="{loc:T IncidentNoticed}" Style="{StaticResource Muted}"
+                           FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0"
+                           Foreground="{DynamicResource WarningBrush}"
+                           Visibility="{Binding HasIncident,
+                                                Converter={StaticResource BoolToVisibility}}" />
+
+                <!-- Deux touches sur une ligne de trois cent soixante unités,
+                     et la seconde se faisait couper : elles passent à la ligne
+                     plutôt que de mentir sur leur nom. -->
+                <WrapPanel Margin="-9,4,0,0">
+                  <Button Content="{loc:T OpenLogFolder}" Style="{StaticResource QuietButton}"
+                          Command="{Binding OpenLogsCommand}" />
+
+                  <Button Content="{loc:T ReportProblem}" Style="{StaticResource QuietButton}"
+                          Command="{Binding ReportProblemCommand}"
+                          ToolTip="{loc:T ReportProblemTip}" />
+                </WrapPanel>
               </StackPanel>
 
             </StackPanel>

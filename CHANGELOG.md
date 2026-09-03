@@ -7,6 +7,30 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ## [Non publié]
 
+### Ajouté
+
+- Un rapport d'incident qu'on peut envoyer. La fenêtre qui s'affichait sur une
+  faute montrait un chemin de dossier et un bouton « OK » : le message de
+  l'erreur, qui dit ce qui s'est passé, n'atteignait jamais l'écran. Elle montre
+  maintenant la faute, laisse lire le rapport avant de le copier, et ouvre le
+  formulaire de signalement du dépôt. Un bouton « Signaler un problème » fait la
+  même chose sans attendre une faute, dans l'onglet Fenêtres.
+
+  Le rapport porte la version, le système, les écrans, l'erreur avec sa pile et
+  les lignes utiles du journal de la session. **Rien n'est envoyé** : il va dans
+  le presse-papiers, et c'est la personne qui décide. C'est la ligne que suit
+  déjà le signalement vers papycha.fr.
+
+  Ce qui identifie en est retiré : adresses et ports, noms de débogage sans fil
+  qui portent le numéro de série, valeurs collées à « --serial= », et le nom du
+  compte Windows dans les chemins. Mesuré sur sept fichiers de journal réels,
+  près de trois lignes sur dix en portaient une, quand les erreurs en font sept
+  sur cent.
+
+  Chaque ligne de journal porte désormais l'identifiant du lancement : quatre
+  cent huit démarrages en six jours se mêlaient dans sept fichiers, et un
+  rapport aurait emporté les fautes de la veille.
+
 ### Modifié
 
 - Le panneau de réglages s'ouvre moins haut : 520 unités au lieu de 580. C'est

@@ -227,6 +227,10 @@ public sealed partial class Win32HotkeyRegistrar : IHotkeyRegistrar
             }
             catch (Exception exception)
             {
+                // Sans filtre, et c'est voulu : ce bloc ne traite pas la faute,
+                // il la fait voyager du fil des raccourcis vers celui qui
+                // attend. La borner ici la ferait disparaître au lieu d'arriver
+                // à qui peut la traiter.
                 completion.TrySetException(exception);
             }
         });

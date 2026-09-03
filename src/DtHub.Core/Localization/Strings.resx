@@ -696,7 +696,7 @@
     <value>{0} did not answer in time.</value>
   </data>
   <data name="AdbUnavailable" xml:space="preserve">
-    <value>The Android tools could not start. See the diagnostic in the settings.</value>
+    <value>The Android tools could not start. Report the problem: the report says what failed.</value>
   </data>
   <data name="AdbUnknownError" xml:space="preserve">
     <value>Something went wrong while talking to the phone.</value>
@@ -1230,5 +1230,26 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   </data>
   <data name="SeriesContinued" xml:space="preserve">
     <value>continued</value>
+  </data>
+  <data name="CopyReport" xml:space="preserve">
+    <value>Copy the report</value>
+  </data>
+  <data name="ReportCopied" xml:space="preserve">
+    <value>Report copied.</value>
+  </data>
+  <data name="ReportProblem" xml:space="preserve">
+    <value>Report a problem</value>
+  </data>
+  <data name="ReportProblemTip" xml:space="preserve">
+    <value>Copy the report, then paste it into the form that opens. Nothing is sent until you press: the report goes to your clipboard and you decide what to do with it.</value>
+  </data>
+  <data name="ReportContents" xml:space="preserve">
+    <value>The report carries the version, your screens, the error and the useful lines of today's log. Device serials, addresses and your Windows account name are removed from it.</value>
+  </data>
+  <data name="ShowTheReport" xml:space="preserve">
+    <value>Show the report</value>
+  </data>
+  <data name="IncidentNoticed" xml:space="preserve">
+    <value>An incident was recorded. Nothing is lost, but it is worth reporting.</value>
   </data>
 </root>

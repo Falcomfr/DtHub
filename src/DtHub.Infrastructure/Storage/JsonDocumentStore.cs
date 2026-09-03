@@ -143,6 +143,9 @@ public sealed partial class JsonDocumentStore<T> : IDocumentStore<T>, IDisposabl
         }
         catch (IOException)
         {
+            // Silence assumé pour les deux : l'archivage d'un fichier corrompu
+            // est un secours. S'il échoue, l'appelant dit quand même que le
+            // fichier était illisible, avec la raison.
             return null;
         }
         catch (UnauthorizedAccessException)

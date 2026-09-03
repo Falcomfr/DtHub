@@ -134,6 +134,9 @@ public sealed class AndroidUserService
         }
         catch (AdbException)
         {
+            // Silence assumé : le faux dit « le profil n'a pas démarré », et
+            // l'appelant en fait un refus nommé, « Ouvrez-le une fois sur le
+            // téléphone ». Le motif technique, lui, part au journal d'ADB.
             return false;
         }
     }
@@ -158,6 +161,9 @@ public sealed class AndroidUserService
         }
         catch (AdbException)
         {
+            // Silence assumé : le vide dit « ce téléphone ne dit pas sa
+            // limite », ce qui est aussi le cas de ceux qui ne connaissent pas
+            // la commande. On ne refuse alors pas d'ajouter un compte.
             return null;
         }
     }
@@ -219,6 +225,9 @@ public sealed class AndroidUserService
         }
         catch (AdbException)
         {
+            // Silence assumé : le vide dit « aucun profil créé », et l'appelant
+            // en fait le refus « Le téléphone a refusé de créer un profil »,
+            // qui nomme les surcouches qui l'interdisent.
             return null;
         }
     }
@@ -264,6 +273,9 @@ public sealed class AndroidUserService
         }
         catch (AdbException)
         {
+            // Silence assumé : la nature des profils est un enrichissement. Sans
+            // « dumpsys user » on rend la liste telle quelle, et l'appelant
+            // reconnaît ce repli pour ce qu'il est.
             return users;
         }
     }

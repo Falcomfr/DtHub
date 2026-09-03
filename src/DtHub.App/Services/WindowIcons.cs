@@ -50,6 +50,8 @@ public static class WindowIcons
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
+            // Silence assumé : l'icône est un confort. Sans elle la fenêtre
+            // garde celle du système, et rien d'autre n'en dépend.
             return null;
         }
     }

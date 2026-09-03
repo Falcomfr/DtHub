@@ -696,7 +696,7 @@
     <value>{0} n'a pas répondu à temps.</value>
   </data>
   <data name="AdbUnavailable" xml:space="preserve">
-    <value>Les outils Android n'ont pas pu démarrer. Consultez le diagnostic dans les paramètres.</value>
+    <value>Les outils Android n'ont pas pu démarrer. Signalez le problème : le rapport dit ce qui a échoué.</value>
   </data>
   <data name="AdbUnknownError" xml:space="preserve">
     <value>Une erreur est survenue lors de la communication avec le téléphone.</value>
@@ -1230,5 +1230,26 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   </data>
   <data name="SeriesContinued" xml:space="preserve">
     <value>suite</value>
+  </data>
+  <data name="CopyReport" xml:space="preserve">
+    <value>Copier le rapport</value>
+  </data>
+  <data name="ReportCopied" xml:space="preserve">
+    <value>Rapport copié.</value>
+  </data>
+  <data name="ReportProblem" xml:space="preserve">
+    <value>Signaler un problème</value>
+  </data>
+  <data name="ReportProblemTip" xml:space="preserve">
+    <value>Copiez le rapport, puis collez-le dans le formulaire qui s'ouvre. Rien n'est envoyé tant que vous n'appuyez pas : le rapport va dans votre presse-papiers et vous en faites ce que vous voulez.</value>
+  </data>
+  <data name="ReportContents" xml:space="preserve">
+    <value>Le rapport porte la version, vos écrans, l'erreur et les lignes utiles du journal du jour. Les numéros de série, les adresses et le nom de votre compte Windows en sont retirés.</value>
+  </data>
+  <data name="ShowTheReport" xml:space="preserve">
+    <value>Voir le rapport</value>
+  </data>
+  <data name="IncidentNoticed" xml:space="preserve">
+    <value>Un incident a été relevé. Rien n'est perdu, mais il vaut la peine d'être signalé.</value>
   </data>
 </root>

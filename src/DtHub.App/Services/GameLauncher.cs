@@ -1456,8 +1456,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             await _hotkeys.SetEnabledAsync(mine).ConfigureAwait(false);
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is not OutOfMemoryException)
         {
+            // Ces deux gardes tournent sur un fil de fond, au rythme des
+            // changements de fenêtre au premier plan. Une faute y est fréquente
+            // et sans gravité pour la session ; elle part au journal, et la
+            // ligne du panneau dit qu'un incident a été relevé.
             LogHotkeyFailure(exception);
         }
     }
@@ -1528,8 +1532,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     break;
             }
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is not OutOfMemoryException)
         {
+            // Ces deux gardes tournent sur un fil de fond, au rythme des
+            // changements de fenêtre au premier plan. Une faute y est fréquente
+            // et sans gravité pour la session ; elle part au journal, et la
+            // ligne du panneau dit qu'un incident a été relevé.
             LogHotkeyFailure(exception);
         }
     }

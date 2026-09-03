@@ -1,0 +1,50 @@
+name: Signaler un problème
+description: Quelque chose ne fonctionne pas comme prévu.
+labels: ["bogue"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci de prendre le temps. Le plus utile est le **rapport** que
+        l'application compose pour vous : dans DT Hub, onglet Fenêtres, bouton
+        « Signaler un problème », puis « Copier le rapport ».
+
+        Il porte la version, vos écrans, l'erreur et les lignes utiles du
+        journal. Les numéros de série, les adresses et le nom de votre compte
+        Windows en sont retirés avant d'y entrer.
+
+  - type: textarea
+    id: attendu
+    attributes:
+      label: Ce que vous attendiez
+      placeholder: Ouvrir deux comptes côte à côte.
+    validations:
+      required: true
+
+  - type: textarea
+    id: produit
+    attributes:
+      label: Ce qui s'est produit
+      placeholder: La deuxième fenêtre s'ouvre puis se ferme aussitôt.
+    validations:
+      required: true
+
+  - type: textarea
+    id: rapport
+    attributes:
+      label: Le rapport
+      description: Collé depuis le bouton « Copier le rapport ».
+      render: text
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        **Si le rapport ne suffit pas**, le journal complet du jour se trouve
+        par le bouton « Ouvrir le dossier des journaux », dans le même onglet.
+        Vous pouvez joindre le fichier `dthub-<date>.log` en le glissant ici.
+
+        Attention : ce fichier n'est **pas** biffé. Il porte l'adresse de votre
+        téléphone, son numéro de série et le nom de votre compte Windows. Ne le
+        joignez que si vous l'acceptez.

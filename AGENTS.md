@@ -174,7 +174,10 @@ pour toute la machine. Un test le vérifie.
   README en anglais.
 - Pas de tiret cadratin dans les textes produits.
 - Fichiers en UTF-8, fins de ligne LF dans le dépôt.
-- `nullable` activé partout, pas de `catch (Exception)` muet.
+- `nullable` activé partout. Une erreur attrapée ressort : par le journal, par
+  l'écran, par un échec rendu à l'appelant, ou par un commentaire qui dit
+  pourquoi le silence est le bon choix. `CatchDisciplineTests` le vérifie sur
+  tout `src/`, et exige un filtre `when` sur tout `catch (Exception)`.
 - Tout appel pouvant durer est asynchrone et accepte un `CancellationToken`.
 - Nommage des tests : phrase descriptive en français avec underscores.
 - Commits en français, à l'impératif, un sujet cohérent par commit.

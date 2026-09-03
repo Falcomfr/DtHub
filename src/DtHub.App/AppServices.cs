@@ -122,6 +122,7 @@ public static class AppServices
 
         // Interface.
         services.AddSingleton<IDialogService, DialogService>();
+        services.AddSingleton<DiagnosticReporter>();
         services.AddSingleton<GameLauncher>();
 
         services.AddSingleton<InstanceListViewModel>();

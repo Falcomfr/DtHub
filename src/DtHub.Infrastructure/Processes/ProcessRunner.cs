@@ -301,6 +301,9 @@ public sealed class ProcessRunner : IProcessRunner
         }
         catch (InvalidOperationException)
         {
+            // Silence assumé : un processus déjà nettoyé n'a plus de code de
+            // sortie. Moins un dit « on ne sait pas », ce qu'aucun programme ne
+            // rend, et l'appelant le distingue donc d'un vrai code.
             return -1;
         }
     }

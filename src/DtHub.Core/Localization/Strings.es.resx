@@ -696,7 +696,7 @@
     <value>{0} no ha respondido a tiempo.</value>
   </data>
   <data name="AdbUnavailable" xml:space="preserve">
-    <value>Las herramientas de Android no han podido arrancar. Consulta el diagnóstico en los ajustes.</value>
+    <value>Las herramientas de Android no han podido arrancar. Informa del problema: el informe dice qué ha fallado.</value>
   </data>
   <data name="AdbUnknownError" xml:space="preserve">
     <value>Ha ocurrido un error al comunicarse con el teléfono.</value>
@@ -1230,5 +1230,26 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   </data>
   <data name="SeriesContinued" xml:space="preserve">
     <value>continuación</value>
+  </data>
+  <data name="CopyReport" xml:space="preserve">
+    <value>Copiar el informe</value>
+  </data>
+  <data name="ReportCopied" xml:space="preserve">
+    <value>Informe copiado.</value>
+  </data>
+  <data name="ReportProblem" xml:space="preserve">
+    <value>Informar de un problema</value>
+  </data>
+  <data name="ReportProblemTip" xml:space="preserve">
+    <value>Copia el informe y pégalo en el formulario que se abre. No se envía nada hasta que pulses: el informe va a tu portapapeles y decides qué hacer con él.</value>
+  </data>
+  <data name="ReportContents" xml:space="preserve">
+    <value>El informe lleva la versión, tus pantallas, el error y las líneas útiles del registro de hoy. Los números de serie, las direcciones y el nombre de tu cuenta de Windows se quitan de él.</value>
+  </data>
+  <data name="ShowTheReport" xml:space="preserve">
+    <value>Ver el informe</value>
+  </data>
+  <data name="IncidentNoticed" xml:space="preserve">
+    <value>Se ha registrado un incidente. No se ha perdido nada, pero vale la pena informar de él.</value>
   </data>
 </root>

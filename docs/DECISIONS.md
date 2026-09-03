@@ -3390,3 +3390,103 @@ continue de se ranger pareil.
 **Il reste sept fautes**, dont six sont des boucles entre succès et une un dégât
 collatéral. Elles ne tomberont pas sans laisser deux séries s'entrelacer, ce que
 la mesure ci-dessus déconseille. La sonde les compte à chaque passage.
+
+---
+
+## D84 - Un rapport qu'on donne, jamais qu'on envoie
+
+**2026-09-03 - Acceptée**
+
+Deux manques, liés. La gestion des erreurs d'abord : rien ne garantissait que
+les bonnes remontent. Le signalement ensuite : qui voulait prévenir n'avait rien
+à envoyer.
+
+### Pourquoi pas de remontée automatique
+
+La question s'est posée franchement, Sentry compris. Trois raisons de s'en
+tenir au geste volontaire.
+
+**Le précédent est écrit.** D74 tranche déjà pour le signalement vers
+papycha.fr : « Rien n'est envoyé : la fenêtre montre le formulaire du site,
+c'est le lecteur qui appuie. » Une remontée automatique dirait le contraire dans
+la même application.
+
+**`docs/CONFIANCE.md` en fait un coût.** Le binaire n'est pas signé et n'a
+aucune réputation SmartScreen. Le document dit que chacun des traits de
+l'application « est, pris isolément, ce que fait aussi un logiciel malveillant »,
+et qu'« un analyste vérifiera `build/dependencies.json` ». Un flux sortant vers
+un tiers, absent de ce fichier, se paye là.
+
+**Le contenu l'interdirait de toute façon.** Relevé sur sept fichiers de journal
+réels, 7 870 lignes :
+
+| | Lignes | Part |
+| :-- | --: | --: |
+| Rythme d'usage, bascules de fenêtre | 1 015 | 12,9 % |
+| Nom de compte ou de profil choisi | ~750 | 9,5 % |
+| Configuration d'écrans | 717 | 9,1 % |
+| Historique de lecture sur papycha.fr | 531 | 6,7 % |
+| Adresses, ports, numéros de série | ~310 | 3,9 % |
+| Chemins portant le nom Windows | 112 | 1,4 % |
+| **Erreurs et avertissements** | **581** | **7,4 %** |
+
+Le numéro de série matériel y arrive par un chemin que personne n'a voulu : la
+recopie mot pour mot de la sortie de scrcpy, 94 lignes.
+
+### Ce qui a été fait à la place
+
+**Le rapport se compose, se lit, se copie.** Il porte la version, le système,
+les écrans, l'erreur avec sa pile, le dernier refus technique et les lignes
+utiles du journal. Tout passe par une biffure par motif avant d'être rendu.
+
+**La biffure est par motif, non par égalité.** `ProcessRequest.SensitiveValues`
+masquait déjà les codes d'appairage, et sa promesse tient : zéro occurrence dans
+les sept fichiers. Mais elle compare des chaînes entières, et ne mordrait pas
+sur `--serial=192.168.1.16`. L'ordre compte aussi : biffer un numéro de série
+connu avant de reconnaître le nom mDNS qui le contient casserait la forme de ce
+nom, et le reste survivrait. Les motifs passent donc en premier.
+
+**Les lignes de journal sont choisies, pas prises en vrac** : les
+avertissements et les erreurs de la session, puis les vingt dernières. Sur mille
+sept cents lignes, cela en rend une trentaine. Cela a demandé un identifiant de
+lancement sur chaque ligne : quatre cent huit démarrages en six jours se
+mêlaient dans sept fichiers.
+
+### Que les bonnes erreurs remontent
+
+Un premier relevé comptait trente et un blocs `catch` muets et sans un mot. **Il
+se trompait de treize.** Le détecteur ne cherchait qu'un journal ou un `throw`,
+et ignorait `Status =`, `FailedSession`, `AppLaunchResult.Failure`,
+`session.Record`, `TrySetException` : autant de façons de remonter une erreur
+qui remontait très bien.
+
+Dix-huit l'étaient pour de bon, et aucun n'avait besoin d'un journal : chacun
+rend une valeur que l'appelant sait lire. Ils portent maintenant la phrase qui
+le dit. `CatchDisciplineTests` tient le compte à zéro et exige un filtre `when`
+sur tout `catch (Exception)` — un seul en est dispensé, nommé dans l'épreuve :
+le passeur de raccourcis, qui ne traite pas la faute mais la fait voyager d'un
+fil à l'autre.
+
+**Deux gestionnaires étaient muets à l'écran**, celui du domaine et celui des
+tâches non observées, alors que c'est par là que passent ADB, scrcpy et le
+réseau. Ils ne montrent toujours pas de boîte, et c'est voulu : une faute de ce
+genre se répète, deux cent soixante-quatre fois dans les journaux relevés, et la
+boîte deviendrait le vrai problème. Elle est retenue, comptée, et le panneau la
+signale d'une ligne qu'on peut ignorer.
+
+**Un message renvoyait vers une page qui n'existe pas** : « Consultez le
+diagnostic dans les paramètres ». Il renvoie au signalement, qui existe et qui
+porte le refus technique.
+
+### Ce qui reste à faire
+
+Le dépôt GitHub n'existe pas encore : `api.github.com/repos/Falcomfr/DtHub`
+répond 404. Le bouton « Signaler » vise `ProductInfo.RepositoryUrl`, dont la
+mise à jour dépend déjà, et le modèle d'incident est en place dans
+`.github/ISSUE_TEMPLATE/bug.yml`. Les deux marcheront le jour de la publication.
+
+Deux défauts relevés au passage et laissés : `UpdateService.CheckAsync`
+interroge GitHub à chaque démarrage même quand « Mise à jour automatique » est
+décoché, alors que son infobulle laisse croire le contraire ; et les fichiers
+renommés à la main, `settings.json.corrompu-…` et `dthub-…-avant.log`, sont hors
+du motif de rotation et ne seront jamais purgés.

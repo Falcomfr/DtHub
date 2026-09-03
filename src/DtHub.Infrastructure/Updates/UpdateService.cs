@@ -224,6 +224,9 @@ public sealed partial class UpdateService(
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
+            // Silence assumé : les notes de version sont un agrément. Sans
+            // elles la fenêtre « Nouveautés » ne paraît pas, et la mise à jour
+            // s'est faite quand même.
             return string.Empty;
         }
     }

@@ -48,6 +48,8 @@ public sealed class Win32ShortcutWriter : IShortcutWriter
         catch (Exception exception) when (exception is COMException
             or IOException or UnauthorizedAccessException or NotSupportedException)
         {
+            // Silence assumé : le faux rend l'échec à l'appelant, qui le
+            // journalise. Un raccourci de menu Démarrer absent n'empêche rien.
             return false;
         }
     }

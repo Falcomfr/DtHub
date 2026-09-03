@@ -48,6 +48,9 @@ public sealed class DeviceDiscoveryService : IDisposable
         }
         catch (AdbException)
         {
+            // Silence assumé : sans réponse d'ADB on ne sait pas quels
+            // appareils ont disparu, et n'en oublier aucun est le bon défaut.
+            // Le refus d'ADB, lui, est déjà dit par le balayage qui suit.
             return 0;
         }
 
