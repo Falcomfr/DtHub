@@ -2707,10 +2707,14 @@ dedans.
 
 ### Ce que l'application remplit, et ce qu'elle ne remplit pas
 
-**Le repère d'étape, et rien d'autre.** Le formulaire demande où se trouve
-l'erreur : c'est la seule chose que l'application sache dire, puisqu'elle connaît
-l'étape qu'on lisait. Elle écrit « Étape 3 / 12 : « début du paragraphe… » », le
-début cité servant à retrouver le passage dans la page.
+**La zone et la quête, et rien d'autre.** Le formulaire demande où se trouve
+l'erreur ; l'application y porte « Astrub › La découverte d'un destin », dans les
+termes du site et dans la forme du fil d'Ariane de la fenêtre.
+
+Elle y écrivait d'abord le rang de l'étape et le début du paragraphe :
+« Étape 3 / 12 : « … » ». **Ce rang est une numérotation qui n'existe que chez
+nous** : le site ne numérote pas ses paragraphes, et le repère ne désignait donc
+rien pour qui reçoit le signalement.
 
 **La description reste vide.** C'est ce que le lecteur a vu, et l'écrire pour lui
 reviendrait à signaler quelque chose qu'il n'a pas dit. **Rien n'est envoyé** :
@@ -2718,9 +2722,9 @@ la fenêtre montre le formulaire du site, c'est le lecteur qui appuie. Le champ
 anti-robot du site n'est pas touché, et le repère n'écrase pas une saisie en
 cours.
 
-La citation est coupée sur un mot entier : coupée au milieu d'un mot, on ne la
-retrouve pas dans la page en la cherchant. Le champ du site accepte 250
-caractères ; au-delà, le repère part seul plutôt que tronqué par le navigateur.
+Le champ du site accepte 250 caractères ; un nom de zone et un titre de quête
+tiennent très en deçà, mais le repère est borné quand même, pour qu'une saisie ne
+parte jamais tronquée par le navigateur.
 
 ### Le pont ne sert pas ici, il gêne
 

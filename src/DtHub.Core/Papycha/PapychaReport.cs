@@ -4,8 +4,11 @@ namespace DtHub.Core.Papycha;
 /// Ce qu'on remplit à la place du lecteur dans le formulaire de signalement du
 /// site, et rien de plus.
 ///
-/// Le formulaire demande où se trouve l'erreur, et c'est la seule chose que
-/// l'application sache dire à sa place : elle connaît l'étape qu'on lisait.
+/// Le formulaire demande où se trouve l'erreur. L'application y porte la zone et
+/// la quête, c'est-à-dire ce que le site nomme lui-même. Elle y mettait d'abord
+/// le rang de l'étape ; ce rang est une numérotation qui n'existe que chez nous,
+/// et il ne désignait donc rien pour qui reçoit le signalement.
+///
 /// La description, elle, reste vide : c'est ce que le lecteur a vu, et l'écrire
 /// pour lui reviendrait à signaler quelque chose qu'il n'a pas dit.
 /// </summary>
@@ -18,60 +21,43 @@ public static class PapychaReport
     public const int MaxLocationLength = 250;
 
     /// <summary>
-    /// Combien de caractères de l'étape sont cités. Assez pour retrouver le
-    /// paragraphe, pas assez pour recopier le guide.
+    /// Le chevron du fil d'Ariane de la fenêtre, pour que le repère se lise
+    /// comme la liste où on l'a trouvé.
     /// </summary>
-    private const int QuotedLength = 140;
+    private const string Separator = "  ›  ";
 
     /// <summary>
-    /// Où l'on en était, dit dans les termes du site.
+    /// Où l'on lisait, dans les termes du site : la zone puis la quête.
     ///
-    /// Vide quand il n'y a pas d'étape : une rubrique ou une carte n'en a pas,
-    /// et un repère inventé vaudrait moins que le champ laissé libre.
+    /// Vide quand on ne sait ni l'une ni l'autre : un repère inventé vaudrait
+    /// moins que le champ laissé libre.
     /// </summary>
-    /// <param name="stepIndex">Étape courante, comptée à partir de zéro, ou -1.</param>
-    /// <param name="stepCount">Nombre d'étapes du guide.</param>
-    /// <param name="stepText">Le texte de l'étape, dont le début est cité.</param>
-    public static string Location(int stepIndex, int stepCount, string? stepText)
+    public static string Location(string? zone, string? quest)
     {
-        if (stepIndex < 0 || stepCount <= 0 || stepIndex >= stepCount)
+        var titre = Flatten(quest);
+        var rubrique = Flatten(zone);
+
+        if (titre.Length == 0)
         {
-            return string.Empty;
+            return Cut(rubrique);
         }
 
-        var repere = $"Étape {stepIndex + 1} / {stepCount}";
-        var cite = Quote(stepText);
-
-        if (cite.Length == 0)
-        {
-            return repere;
-        }
-
-        var complet = $"{repere} : « {cite} »";
-
-        return complet.Length <= MaxLocationLength ? complet : repere;
+        return Cut(rubrique.Length == 0 ? titre : rubrique + Separator + titre);
     }
+
+    /// <summary>Le texte sur une seule ligne, sans blancs de bord ni doublons.</summary>
+    private static string Flatten(string? text) =>
+        string.Join(
+            ' ',
+            (text ?? string.Empty).Split(
+                (char[]?)null,
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
 
     /// <summary>
-    /// Le début de l'étape, sur une seule ligne et coupé à un mot entier.
-    ///
-    /// Couper au milieu d'un mot donnerait une citation qu'on ne retrouve pas
-    /// dans la page en la cherchant.
+    /// Ramené à ce que le champ accepte. Le cas ne devrait pas se produire, un
+    /// nom de zone et un titre de quête tenant très en deçà ; c'est un garde-fou
+    /// contre une saisie tronquée par le navigateur.
     /// </summary>
-    private static string Quote(string? stepText)
-    {
-        var plat = string.Join(' ', (stepText ?? string.Empty).Split(
-            (char[]?)null,
-            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
-
-        if (plat.Length <= QuotedLength)
-        {
-            return plat;
-        }
-
-        var coupe = plat[..QuotedLength];
-        var espace = coupe.LastIndexOf(' ');
-
-        return (espace > 40 ? coupe[..espace] : coupe).TrimEnd(' ', ',', ';', ':') + "…";
-    }
+    private static string Cut(string text) =>
+        text.Length <= MaxLocationLength ? text : text[..MaxLocationLength].TrimEnd();
 }

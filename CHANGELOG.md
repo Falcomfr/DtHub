@@ -85,9 +85,8 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 - Un bouton **Signaler une erreur**, dans le pied de la fenêtre des guides. Il
   ouvre le formulaire de signalement du site sur la page qu'on lit, dans une
-  fenêtre à part, avec le champ « Où se trouve l'erreur ? » déjà rempli :
-  l'étape où l'on en est, et le début du paragraphe cité pour que le passage se
-  retrouve.
+  fenêtre à part, avec le champ « Où se trouve l'erreur ? » déjà rempli : la
+  zone et la quête, c'est-à-dire ce que le site nomme lui-même.
 
   Rien n'est envoyé et rien d'autre n'est écrit : la description reste vide,
   c'est ce que le lecteur a vu, et c'est lui qui appuie. Le repère peut être
@@ -445,6 +444,12 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   filet.
 
 ### Modifié
+
+- Le signalement porte la zone et la quête, et non plus le rang de l'étape. Ce
+  rang est une numérotation qui n'existe que dans cette fenêtre : le site ne
+  numérote pas ses paragraphes, et le repère ne désignait donc rien pour qui
+  reçoit le signalement. Le champ dit maintenant « Astrub › La découverte d'un
+  destin ».
 
 - La fenêtre de signalement épouse le formulaire : sa hauteur s'ajuste à ce
   qu'il mesure, sa largeur ne s'étire plus et le bouton d'agrandissement

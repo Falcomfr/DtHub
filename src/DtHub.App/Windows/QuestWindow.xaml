@@ -256,7 +256,7 @@
                 Background="{DynamicResource AccentSoftBrush}"
                 BorderBrush="{DynamicResource AccentBrush}"
                 Visibility="{Binding CanReport, Converter={StaticResource BoolToVisibility}}"
-                ToolTip="Remonter une erreur à papycha.fr sur cette page. Le formulaire du site s'ouvre avec l'étape où vous en êtes déjà notée, et rien n'est envoyé tant que vous n'appuyez pas."
+                ToolTip="Remonter une erreur à papycha.fr sur cette page. Le formulaire du site s'ouvre avec la zone et la quête déjà notées, et rien n'est envoyé tant que vous n'appuyez pas."
                 Click="OnReportError">
           <StackPanel Orientation="Horizontal">
             <Path Width="15" Height="15" Stretch="None" Margin="0,0,7,0"

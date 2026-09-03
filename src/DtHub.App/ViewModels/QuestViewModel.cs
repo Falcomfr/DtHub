@@ -1476,17 +1476,30 @@ public sealed partial class QuestViewModel : ObservableObject
 
     /// <summary>
     /// Ce qu'il faut pour signaler une erreur sur ce qu'on a sous les yeux :
-    /// la page, et le repère d'étape à porter dans le formulaire du site.
-    /// Rend <c>null</c> quand il n'y a pas de page du site à signaler.
+    /// la page, et le repère à porter dans le formulaire du site.
     ///
-    /// La page est celle qu'« Ouvrir dans le navigateur » ouvrirait, et pour la
-    /// même raison : on signale ce qu'on lit, pas la quête en toutes
-    /// circonstances.
+    /// Le repère est la zone et la quête, c'est-à-dire ce que le site nomme
+    /// lui-même. Le rang de l'étape y figurait d'abord ; c'est une numérotation
+    /// qui n'existe que dans cette fenêtre, et elle ne désignait donc rien pour
+    /// qui reçoit le signalement.
     /// </summary>
     public (string Url, string Location)? ErrorReport() =>
         CanReport
-            ? (CurrentUrl!, PapychaReport.Location(StepIndex, _steps.Count, StepTextAt(StepIndex)))
+            ? (CurrentUrl!, PapychaReport.Location(ZoneName(), QuestTitle))
             : null;
+
+    /// <summary>
+    /// Le nom de la rubrique sous laquelle on lit, ou vide quand la page n'en a
+    /// pas. La même règle que la liste : celle qu'on parcourt si la quête y
+    /// figure, sinon celle que le catalogue lui a retenue.
+    /// </summary>
+    private string ZoneName()
+    {
+        var section = (_current is { } lue ? SectionSeen(lue) : (int?)null)
+            ?? (_currentDungeon is { } place ? SectionOf(place) : (int?)null);
+
+        return section is { } id ? NameOf(id) : string.Empty;
+    }
 
     /// <summary>
     /// Vrai quand il y a un formulaire à ouvrir, c'est-à-dire quand un guide
@@ -1497,9 +1510,6 @@ public sealed partial class QuestViewModel : ObservableObject
     /// général. Le bouton disparaît donc plutôt que de mener nulle part.
     /// </summary>
     public bool CanReport => !IsListOpen && HasQuest && PapychaSite.Owns(CurrentUrl);
-
-    private string? StepTextAt(int index) =>
-        index >= 0 && index < _steps.Count ? _steps[index] : null;
 
     /// <summary>
     /// La page de ce que la liste parcourt, ou <c>null</c> si elle ne parcourt
