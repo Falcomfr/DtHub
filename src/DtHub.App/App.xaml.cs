@@ -80,6 +80,8 @@ public partial class App : Application, IDisposable
         // doit pas se fermer quand le configurateur est masqué.
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
+        DarkTitleBar.Arm();
+
 
         if (!ClaimSingleInstance())
         {

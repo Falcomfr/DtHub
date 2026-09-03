@@ -56,7 +56,8 @@
                Visibility="Collapsed">
       <Button Content="{loc:T PreparationRetry}" Click="OnRetry"
               MinWidth="110" Margin="0,0,8,0" Style="{StaticResource PrimaryButton}" />
-      <Button Content="{loc:T PreparationSkip}" Click="OnSkip" MinWidth="110" />
+      <Button Content="{loc:T PreparationSkip}" Click="OnSkip" MinWidth="110"
+              IsCancel="True" />
     </WrapPanel>
   </StackPanel>
 </Window>

@@ -26,7 +26,8 @@
 
         <Button Grid.Column="0" Content="{loc:T Help}" MinWidth="90" Click="OnHelp"
                 ToolTip="{loc:T HelpTip}" />
-        <Button Grid.Column="2" Content="{loc:T Close}" MinWidth="110" Click="OnClose" />
+        <Button Grid.Column="2" Content="{loc:T Close}" MinWidth="110" Click="OnClose"
+                IsCancel="True" />
       </Grid>
     </Border>
 
@@ -55,8 +56,9 @@
       <StackPanel Orientation="Horizontal"
                   Visibility="{Binding Candidates.Count, Converter={StaticResource EmptyToVisibility},
                                        ConverterParameter=inverse}">
-        <TextBox Text="{Binding PairingCode, UpdateSourceTrigger=PropertyChanged}"
+        <TextBox x:Name="Code" Text="{Binding PairingCode, UpdateSourceTrigger=PropertyChanged}"
                  Width="150" Margin="0,0,8,0" FontSize="15"
+                 KeyDown="OnCodeKey"
                  ToolTip="{loc:T PairingCodeTip}" />
         <Button Content="{loc:T Pair}" Style="{StaticResource PrimaryButton}"
                 Command="{Binding PairCommand}" IsEnabled="{Binding CanPair}" />
@@ -69,6 +71,7 @@
                   Visibility="{Binding NeedsPort, Converter={StaticResource BoolToVisibility}}">
         <TextBox Text="{Binding ConnectPort, UpdateSourceTrigger=PropertyChanged}"
                  Width="150" Margin="0,0,8,0" FontSize="15"
+                 KeyDown="OnPortKey"
                  ToolTip="{loc:T PortTip}" />
         <Button Content="{loc:T Connect}" Style="{StaticResource PrimaryButton}"
                 Command="{Binding ConnectCommand}" IsEnabled="{Binding CanConnect}" />

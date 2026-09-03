@@ -1,4 +1,4 @@
-<Window x:Class="DtHub.App.Windows.HotkeyEditorWindow"
+﻿<Window x:Class="DtHub.App.Windows.HotkeyEditorWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:loc="clr-namespace:DtHub.App.Localization"
@@ -26,7 +26,8 @@
 
         <Button Grid.Column="0" Content="{loc:T Defaults}" Style="{StaticResource QuietButton}"
                 Command="{Binding RestoreDefaultsCommand}" />
-        <Button Grid.Column="2" Content="{loc:T Close}" MinWidth="110" Click="OnClose" />
+        <Button Grid.Column="2" Content="{loc:T Close}" MinWidth="110" Click="OnClose"
+                IsCancel="True" />
       </Grid>
     </Border>
 

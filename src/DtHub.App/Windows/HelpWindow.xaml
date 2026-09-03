@@ -18,7 +18,8 @@
     </StackPanel>
 
     <Border DockPanel.Dock="Bottom" Margin="0,14,0,0">
-      <Button Content="{loc:T Close}" HorizontalAlignment="Right" MinWidth="110" Click="OnClose" />
+      <Button Content="{loc:T Close}" HorizontalAlignment="Right" MinWidth="110" Click="OnClose"
+              IsCancel="True" />
     </Border>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,10,0">
