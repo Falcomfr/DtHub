@@ -130,6 +130,41 @@ public partial class QuestWindow : Window
     private void OnOpenInBrowser(object sender, RoutedEventArgs e) => _viewModel.OpenInBrowser();
 
     /// <summary>
+    /// Ouvre le formulaire de signalement du site sur la page qu'on lit.
+    ///
+    /// Dans une fenêtre à part, et non dans celle-ci : la fenêtre de quêtes
+    /// tient un bandeau, des étapes et une chaîne qui décrivent la quête, et
+    /// rien de tout cela ne vaut pour un formulaire.
+    /// </summary>
+    private async void OnReportError(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel.ErrorReport() is not { } demande)
+        {
+            return;
+        }
+
+        try
+        {
+            var page = AppHost.Services.GetRequiredService<QuestPageWindow>();
+
+            await page
+                .ShowReportAsync(demande.Url, "Remonter une erreur", demande.Location)
+                .ConfigureAwait(true);
+
+            LogReportOpened(demande.Url);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            LogPageFailed(demande.Url, exception.Message);
+        }
+    }
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Formulaire de signalement ouvert sur : {url}")]
+    private partial void LogReportOpened(string url);
+
+    /// <summary>
     /// Cliquer dans la recherche déroule la liste, comme le ferait une liste
     /// déroulante ordinaire : c'est le geste qu'on fait sans y penser quand on
     /// ne sait pas encore ce qu'on cherche.

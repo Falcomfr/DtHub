@@ -34,6 +34,7 @@
   <ItemGroup>
     <!-- Le pont est embarqué : il doit suivre l'exécutable, pas traîner à côté. -->
     <EmbeddedResource Include="Assets\quest-bridge.js" LogicalName="DtHub.App.quest-bridge.js" />
+    <EmbeddedResource Include="Assets\papycha-report.js" LogicalName="DtHub.App.papycha-report.js" />
   </ItemGroup>
 
   <ItemGroup>

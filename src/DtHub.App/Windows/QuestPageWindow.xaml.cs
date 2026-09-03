@@ -28,6 +28,7 @@ public partial class QuestPageWindow : Window
 
     private string _url = string.Empty;
     private bool _watched;
+    private string? _report;
 
     public QuestPageWindow(
         IDialogService dialogs,
@@ -123,7 +124,19 @@ public partial class QuestPageWindow : Window
     /// n'importe quel lien d'un guide ouvrait n'importe quelle adresse ici,
     /// « file:// » compris.
     /// </summary>
-    public async Task ShowPageAsync(string url, string? title)
+    public Task ShowPageAsync(string url, string? title) => ShowAsync(url, title, report: null);
+
+    /// <summary>
+    /// Ouvre la page sur son formulaire de signalement, déplié et prêt à
+    /// remplir, avec le repère d'étape déjà posé.
+    ///
+    /// Rien n'est envoyé : la fenêtre montre le formulaire du site, et c'est le
+    /// lecteur qui écrit et qui décide d'appuyer.
+    /// </summary>
+    public Task ShowReportAsync(string url, string? title, string location) =>
+        ShowAsync(url, title, location ?? string.Empty);
+
+    private async Task ShowAsync(string url, string? title, string? report)
     {
         if (!PapychaSite.Owns(url))
         {
@@ -131,6 +144,8 @@ public partial class QuestPageWindow : Window
 
             return;
         }
+
+        _report = report;
 
         _url = url;
 
@@ -151,9 +166,20 @@ public partial class QuestPageWindow : Window
         // Avant de naviguer : le script s'injecte à la création du document, et
         // une page déjà chargée ne le verrait pas passer. Cadrage seul, sans le
         // suivi d'étapes qui ne vaut que pour un guide.
-        await View.CoreWebView2
-            .AddScriptToExecuteOnDocumentCreatedAsync(QuestBridge.Script(framingOnly: true))
-            .ConfigureAwait(true);
+        //
+        // Sauf en signalement : le cadrage masque le pied d'article, où vit le
+        // formulaire. Celui-ci a son propre script, et il attend que la page
+        // soit là, le formulaire n'existant pas avant.
+        if (_report is null)
+        {
+            await View.CoreWebView2
+                .AddScriptToExecuteOnDocumentCreatedAsync(QuestBridge.Script(framingOnly: true))
+                .ConfigureAwait(true);
+        }
+        else
+        {
+            View.CoreWebView2.NavigationCompleted += OnReportPageLoaded;
+        }
 
         if (!_watched)
         {
@@ -164,6 +190,45 @@ public partial class QuestPageWindow : Window
         }
 
         View.CoreWebView2.Navigate(url);
+    }
+
+    /// <summary>
+    /// Prépare le formulaire, une fois et une seule.
+    ///
+    /// Une seule fois parce que l'envoi renvoie sur l'article : le rejouer
+    /// masquerait la réponse du site, qui est justement ce qu'on veut lire
+    /// après avoir appuyé.
+    /// </summary>
+    private async void OnReportPageLoaded(object? sender, CoreWebView2NavigationCompletedEventArgs e)
+    {
+        View.CoreWebView2.NavigationCompleted -= OnReportPageLoaded;
+
+        if (!e.IsSuccess)
+        {
+            return;
+        }
+
+        try
+        {
+            var etat = await View.CoreWebView2
+                .ExecuteScriptAsync(QuestBridge.ReportScript(_report))
+                .ConfigureAwait(true);
+
+            // « absent » : la page n'a pas de formulaire, ou le site a changé
+            // son pied d'article. La fenêtre montre alors la page entière, où
+            // le formulaire reste atteignable à la main, et reprend un titre
+            // qui ne promet plus ce qu'elle ne montre pas.
+            if (etat.Contains("absent", StringComparison.Ordinal))
+            {
+                Title = "Guides de papycha.fr";
+            }
+
+            Log.Information("Formulaire de signalement : {Etat}.", etat);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Log.Warning(exception, "Le formulaire de signalement n'a pas pu être préparé.");
+        }
     }
 
     /// <summary>

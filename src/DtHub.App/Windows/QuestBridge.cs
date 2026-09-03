@@ -1,5 +1,6 @@
 using System.IO;
 using System.Reflection;
+using System.Text.Json;
 
 namespace DtHub.App.Windows;
 
@@ -24,14 +25,36 @@ internal static class QuestBridge
     /// </param>
     public static string Script(bool framingOnly = false)
     {
-        using var stream = Assembly.GetExecutingAssembly()
-            .GetManifestResourceStream("DtHub.App.quest-bridge.js")
-            ?? throw new InvalidOperationException("Le pont de la fenêtre de quêtes est absent de l'assembly.");
+        var source = Read("DtHub.App.quest-bridge.js");
+
+        return framingOnly ? "window.__dtHubFramingOnly = true;\n" + source : source;
+    }
+
+    /// <summary>
+    /// Le script qui prépare le formulaire de signalement du site.
+    ///
+    /// Il ne va pas avec le pont, il le remplace : le pont masque le pied
+    /// d'article, et c'est justement là que le formulaire se trouve.
+    ///
+    /// Le repère d'étape passe par une chaîne JSON, produite par le
+    /// sérialiseur : c'est aussi une chaîne JavaScript valide, et un texte de
+    /// guide contient guillemets et apostrophes qu'il faudrait sinon échapper à
+    /// la main, en oubliant un cas.
+    /// </summary>
+    public static string ReportScript(string? location) =>
+        Read("DtHub.App.papycha-report.js")
+            .Replace(
+                "__DTHUB_LOCATION__",
+                JsonSerializer.Serialize(location ?? string.Empty),
+                StringComparison.Ordinal);
+
+    private static string Read(string name)
+    {
+        using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(name)
+            ?? throw new InvalidOperationException($"La ressource « {name} » est absente de l'assembly.");
 
         using var reader = new StreamReader(stream);
 
-        var source = reader.ReadToEnd();
-
-        return framingOnly ? "window.__dtHubFramingOnly = true;\n" + source : source;
+        return reader.ReadToEnd();
     }
 }

@@ -1426,6 +1426,35 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Ce qu'il faut pour signaler une erreur sur ce qu'on a sous les yeux :
+    /// la page, et le repère d'étape à porter dans le formulaire du site.
+    /// Rend <c>null</c> quand il n'y a pas de page du site à signaler.
+    ///
+    /// La page est celle qu'« Ouvrir dans le navigateur » ouvrirait, et pour la
+    /// même raison : on signale ce qu'on lit, pas la quête en toutes
+    /// circonstances.
+    /// </summary>
+    public (string Url, string Location)? ErrorReport()
+    {
+        var browsed = Browsed();
+        var url = browsed ?? CurrentUrl;
+
+        if (!PapychaSite.Owns(url))
+        {
+            return null;
+        }
+
+        // Le repère ne vaut que pour la quête elle-même : une rubrique n'a pas
+        // d'étape, et celle de la quête lue avant n'y désignerait rien.
+        return (url!, browsed is null
+            ? PapychaReport.Location(StepIndex, _steps.Count, StepTextAt(StepIndex))
+            : string.Empty);
+    }
+
+    private string? StepTextAt(int index) =>
+        index >= 0 && index < _steps.Count ? _steps[index] : null;
+
+    /// <summary>
     /// La page de ce que la liste parcourt, ou <c>null</c> si elle ne parcourt
     /// rien : liste fermée, recherche en cours, ou rubrique sans page rédigée.
     /// </summary>

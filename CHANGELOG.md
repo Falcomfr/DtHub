@@ -36,6 +36,21 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Ajouté
 
+- Un bouton pour **remonter une erreur à papycha.fr**, dans le pied de la
+  fenêtre des guides. Il ouvre le formulaire de signalement du site sur la page
+  qu'on lit, dans une fenêtre à part, avec le champ « Où se trouve l'erreur ? »
+  déjà rempli : l'étape où l'on en est, et le début du paragraphe cité pour que
+  le passage se retrouve.
+
+  Rien n'est envoyé et rien d'autre n'est écrit : la description reste vide,
+  c'est ce que le lecteur a vu, et c'est lui qui appuie. Le repère peut être
+  effacé, et il n'écrase jamais une saisie en cours.
+
+  La fenêtre ne montre que le formulaire : le reste de l'article y est masqué,
+  le fond photographique du site remplacé par le nôtre, et les champs ramenés à
+  la largeur disponible. Une page sans formulaire s'ouvre telle quelle et reprend
+  un titre qui ne promet rien.
+
 - Un mode onglets : une icône sur la ligne du compte le loge dans un cadre
   unique, comme un onglet de navigateur, et un second clic lui rend sa fenêtre
   libre. Autant de comptes qu'on veut, un seul visible à la fois, et passer de

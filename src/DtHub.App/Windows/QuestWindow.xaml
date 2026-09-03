@@ -161,15 +161,30 @@
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
 
         <!-- Le crédit porte la couleur d'accent : c'est le nom de ceux dont
-             on affiche le travail, il ne se lit pas comme une mention grise. -->
+             on affiche le travail, il ne se lit pas comme une mention grise.
+             Il se laisse couper : les deux boutons passent avant lui dans une
+             fenêtre étroite. -->
         <TextBlock Grid.Column="0" VerticalAlignment="Center" FontSize="11"
+                   TextTrimming="CharacterEllipsis"
                    Foreground="{DynamicResource AccentBrush}"
                    Text="Guides de papycha.fr" />
 
-        <Button Grid.Column="1" Content="Ouvrir dans le navigateur"
+        <!-- Un drapeau, et non le libellé en toutes lettres : deux boutons
+             écrits ne laissaient plus la place au crédit, qui tombait à
+             « Guide… ». C'est le nom de ceux dont on affiche le travail, il
+             passe avant. -->
+        <Button Grid.Column="1" Style="{StaticResource IconButton}" Margin="0,0,4,0"
+                ToolTip="Remonter une erreur à papycha.fr sur cette page. Le formulaire du site s'ouvre avec l'étape où vous en êtes déjà notée, et rien n'est envoyé tant que vous n'appuyez pas."
+                Click="OnReportError">
+          <Path Style="{StaticResource RowGlyph}"
+                Data="M 3.6,2.2 V 13.8 M 3.6,3.3 H 12.6 L 10.3,6.2 L 12.6,9.1 H 3.6" />
+        </Button>
+
+        <Button Grid.Column="2" Content="Ouvrir dans le navigateur"
                 Style="{StaticResource QuietButton}"
                 ToolTip="Ouvrir la page courante dans votre navigateur habituel, sur le site d'origine"
                 Click="OnOpenInBrowser" />

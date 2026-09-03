@@ -2697,3 +2697,53 @@ Le glissement n'a pas pu être remesuré tout de suite : l'utilisateur était re
 diagnostic a coûté plusieurs essais avant que la fenêtre de premier plan ne le
 dise. **Vérifier qui tient la souris avant de conclure à une panne**, et ne pas
 la lui disputer.
+
+## D74 - Signaler une erreur au site, sans jamais parler à sa place
+
+Les guides viennent de papycha.fr, et leurs pages portent en pied un formulaire
+« Remonter une erreur ». On le lisait dans notre fenêtre sans pouvoir s'en
+servir : le cadrage masque `footer.papycha-article-footer`, et le formulaire est
+dedans.
+
+### Ce que l'application remplit, et ce qu'elle ne remplit pas
+
+**Le repère d'étape, et rien d'autre.** Le formulaire demande où se trouve
+l'erreur : c'est la seule chose que l'application sache dire, puisqu'elle connaît
+l'étape qu'on lisait. Elle écrit « Étape 3 / 12 : « début du paragraphe… » », le
+début cité servant à retrouver le passage dans la page.
+
+**La description reste vide.** C'est ce que le lecteur a vu, et l'écrire pour lui
+reviendrait à signaler quelque chose qu'il n'a pas dit. **Rien n'est envoyé** :
+la fenêtre montre le formulaire du site, c'est le lecteur qui appuie. Le champ
+anti-robot du site n'est pas touché, et le repère n'écrase pas une saisie en
+cours.
+
+La citation est coupée sur un mot entier : coupée au milieu d'un mot, on ne la
+retrouve pas dans la page en la cherchant. Le champ du site accepte 250
+caractères ; au-delà, le repère part seul plutôt que tronqué par le navigateur.
+
+### Le pont ne sert pas ici, il gêne
+
+Le script de cadrage masque le pied d'article. Le signalement a donc le sien, qui
+fait l'inverse : il déplie le `details`, remonte du bloc jusqu'au corps en
+masquant à chaque étage tout ce qui n'est pas sur le chemin, et ne laisse que le
+formulaire. **Masquer plutôt que retirer** : le nœud reste où le site l'a mis,
+avec son jeton de sécurité et son champ de provenance, et rien de ce que le site
+attend autour n'est cassé.
+
+Trois défauts vus à l'écran, tous de mise en page : le fond photographique du
+site passait derrière les champs, les champs débordaient par la droite parce
+qu'ils sont taillés pour une colonne d'article, et deux barres de défilement
+paraissaient côte à côte. Le style injecté règle les trois.
+
+Le script rend « pret » ou « absent », et l'état est journalisé : une page sans
+formulaire, ou un pied d'article que le site aurait changé, s'ouvre alors telle
+quelle, et la fenêtre reprend un titre qui ne promet plus ce qu'elle ne montre
+pas.
+
+### Le bouton est un drapeau, pas un libellé
+
+Le pied de la fenêtre des guides porte le crédit du site, qu'on doit pouvoir
+lire : c'est le nom de ceux dont on affiche le travail. Deux boutons écrits le
+réduisaient à « Guide… » dans une fenêtre de 570 pixels. Le signalement passe
+donc par un drapeau, et l'infobulle dit tout.
