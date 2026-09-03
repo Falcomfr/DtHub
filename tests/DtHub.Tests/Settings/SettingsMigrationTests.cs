@@ -63,6 +63,58 @@ public sealed class SettingsMigrationTests : IDisposable
         _service.Invalidate();
     }
 
+    /// <summary>
+    /// Un fichier sans champ de version se lit comme s'il était à jour :
+    /// AppSettingsDocument donne à SchemaVersion la version courante par
+    /// défaut, si bien qu'aucune étape de migration ne tire.
+    ///
+    /// C'est optimiste et c'est assumé : les étapes ne se déclenchent que sur
+    /// des valeurs précises, et les rejouer sur un fichier moderne dont le
+    /// champ manque en changerait à tort. Le cas n'arrive que sur un fichier
+    /// écrit à la main. L'épreuve existe pour que ce choix soit dit quelque
+    /// part plutôt que d'être un effet de bord d'une valeur par défaut.
+    /// </summary>
+    [Fact]
+    public async Task Un_fichier_sans_version_est_tenu_pour_a_jour()
+    {
+        await WriteAsync("""
+        { "sizePercentages": [30, 45, 60, 90], "virtualDisplayWidth": 1080,
+          "virtualDisplayHeight": 1920, "virtualDisplayDpi": 320 }
+        """);
+
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.Equal(AppSettingsDocument.CurrentSchemaVersion, settings.SchemaVersion);
+        Assert.Equal([30, 45, 60, 90], settings.SizePercentages);
+
+        // La migration de la version 3 aurait remplacé cet afficheur.
+        Assert.Equal(1080, settings.VirtualDisplayWidth);
+    }
+
+    /// <summary>
+    /// Un fichier venu d'une version plus récente est ramené à la version
+    /// courante. C'est le scénario du retour en arrière après une mise à jour
+    /// automatique, que le produit sait faire.
+    ///
+    /// Les réglages que la version suivante aurait ajoutés sont perdus : ils
+    /// n'existent pas dans ce modèle, donc la lecture les ignore et la
+    /// prochaine écriture ne les remet pas. L'épreuve fixe ce comportement pour
+    /// qu'un changement s'en aperçoive.
+    /// </summary>
+    [Fact]
+    public async Task Un_fichier_venu_d_une_version_plus_recente_est_ramene_a_la_courante()
+    {
+        await WriteAsync("""
+        { "schemaVersion": 99, "sizePercentages": [25, 50, 75, 100],
+          "reglageInventeParUneVersionFuture": true }
+        """);
+
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.Equal(AppSettingsDocument.CurrentSchemaVersion, settings.SchemaVersion);
+        Assert.Equal([25, 50, 75, 100], settings.SizePercentages);
+    }
+
     [Fact]
     public async Task Un_fichier_v3_recoit_la_premiere_taille_plus_petite()
     {

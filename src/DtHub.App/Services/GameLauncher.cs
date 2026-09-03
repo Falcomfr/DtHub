@@ -1440,9 +1440,18 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // puis de nouveau sur une fenêtre de jeu.
             var owner = _windows.GetWindowProcessId(window);
 
-            var mine = _sessions.ActiveSessions.Any(
-                           s => s.WindowHandle == window || (owner != 0 && s.ProcessId == owner))
-                       || OwnsWindow?.Invoke(window) == true;
+            // Le cadre à onglets compte parmi nos fenêtres. Il manquait :
+            // cliquer sur la barre d'onglets ou sur le bord du cadre pour
+            // changer de compte éteignait les douze raccourcis, Ctrl+P compris,
+            // jusqu'à ce qu'on reclique dans l'image du jeu.
+            var ours = OwnsWindow?.Invoke(window) == true
+                       || (_tabs is { Handle: var frame } && frame != 0 && frame == window);
+
+            var mine = HotkeyScope.Holds(
+                window,
+                owner,
+                _sessions.ActiveSessions.Select(s => new SessionWindow(s.WindowHandle, s.ProcessId)),
+                ours);
 
             // La bascule est journalisée : sans elle, des raccourcis éteints
             // par une fenêtre non reconnue ne laissaient aucune trace, et le

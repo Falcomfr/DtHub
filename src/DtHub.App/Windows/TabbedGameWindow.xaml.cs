@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
@@ -47,8 +47,17 @@ public partial class TabbedGameWindow : Window
     /// <summary>Signalé quand l'utilisateur a réordonné les onglets.</summary>
     public event EventHandler<(string Moved, string Onto, bool Before)>? Reordered;
 
-    /// <summary>Handle du cadre, une fois la fenêtre créée.</summary>
-    public nint Handle => new WindowInteropHelper(this).Handle;
+    /// <summary>
+    /// Handle natif du cadre, retenu une fois pour toutes.
+    ///
+    /// Il était recalculé à chaque lecture, ce qui interroge une fenêtre WPF et
+    /// n'est permis que sur son fil. Le configurateur et la fenêtre des guides
+    /// avaient déjà été corrigés ainsi ; celui-ci avait été oublié, et il est
+    /// désormais consulté depuis le guet du premier plan, qui ne vit pas sur ce
+    /// fil. C'est exactement le chemin de la faute qui s'était répétée deux cent
+    /// soixante-quatre fois.
+    /// </summary>
+    public nint Handle { get; private set; }
 
     /// <summary>
     /// Loge une fenêtre de jeu et lui ajoute son onglet. Sans effet si elle
@@ -594,6 +603,8 @@ public partial class TabbedGameWindow : Window
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
+
+        Handle = new WindowInteropHelper(this).Handle;
 
         if (PresentationSource.FromVisual(this) is HwndSource source)
         {

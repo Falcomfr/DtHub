@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using DtHub.Core.Localization;
@@ -13,7 +13,7 @@ namespace DtHub.Tests.Localization;
 /// hispanophone ne voie « QualityHigh » dans un bouton. Le contrôle est fait
 /// sur le texte des fichiers, comme pour les commandes du XAML.
 /// </summary>
-public sealed class StringsResourceTests
+public sealed partial class StringsResourceTests
 {
     private static readonly Regex UsedInXaml = new(@"\{loc:T\s+(?<key>[A-Za-z0-9_]+)\s*\}");
     private static readonly Regex UsedInCode = new(@"Strings\.(?:Get|Format)\(\s*""(?<key>[A-Za-z0-9_]+)""");
@@ -52,6 +52,74 @@ public sealed class StringsResourceTests
     /// Toute clé écrite dans une fenêtre ou dans le code doit exister. WPF ne
     /// signale rien quand elle manque : l'étiquette affiche la clé.
     /// </summary>
+    /// <summary>
+    /// Les trous de format doivent concorder d'une langue à l'autre. Un
+    /// « {1} » de trop dans une traduction lève une FormatException en pleine
+    /// interface, et rien ne l'attrapait : cinquante et une clés portent des
+    /// trous, cinquante-cinq appels à Strings.Format les remplissent, et aucune
+    /// épreuve n'appelait Format une seule fois.
+    /// </summary>
+    [Fact]
+    public void Les_trous_de_format_concordent_dans_les_trois_langues()
+    {
+        var reference = Entries("").ToDictionary(e => e.Key, e => Trous(e.Value), StringComparer.Ordinal);
+
+        List<string> ecarts = [];
+
+        foreach (var langue in new[] { "fr", "es" })
+        {
+            foreach (var entry in Entries(langue))
+            {
+                if (reference.TryGetValue(entry.Key, out var attendus)
+                    && !attendus.SetEquals(Trous(entry.Value)))
+                {
+                    ecarts.Add($"{entry.Key} ({langue})");
+                }
+            }
+        }
+
+        Assert.Equal([], ecarts.Order());
+    }
+
+    /// <summary>
+    /// Et le remplissage lui-même ne doit pas lever, dans aucune des trois
+    /// langues. Le contrôle précédent compare des ensembles ; celui-ci exécute
+    /// vraiment le formatage, avec assez d'arguments pour tous les trous.
+    /// </summary>
+    [Theory]
+    [InlineData("en")]
+    [InlineData("fr")]
+    [InlineData("es")]
+    public void Chaque_texte_a_trous_se_remplit_sans_lever(string langue)
+    {
+        var culture = CultureInfo.GetCultureInfo(langue);
+
+        foreach (var entry in Entries(langue == "en" ? "" : langue))
+        {
+            var trous = Trous(entry.Value);
+
+            if (trous.Count == 0)
+            {
+                continue;
+            }
+
+            var arguments = Enumerable.Range(0, trous.Max() + 1)
+                .Select(object (i) => $"valeur{i}")
+                .ToArray();
+
+            var texte = string.Format(culture, Strings.GetIn(entry.Key, culture), arguments);
+
+            Assert.False(string.IsNullOrWhiteSpace(texte));
+        }
+    }
+
+    /// <summary>Les numéros de trou d'un texte, « {0} » et « {1:0.0} » compris.</summary>
+    private static HashSet<int> Trous(string texte) =>
+        [.. FormatHole().Matches(texte).Select(m => int.Parse(m.Groups["n"].Value, CultureInfo.InvariantCulture))];
+
+    [GeneratedRegex(@"\{(?<n>\d+)(?::[^}]*)?\}")]
+    private static partial Regex FormatHole();
+
     [Fact]
     public void Chaque_cle_employee_existe()
     {
