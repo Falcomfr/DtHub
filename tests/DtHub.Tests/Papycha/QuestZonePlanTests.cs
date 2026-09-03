@@ -56,6 +56,57 @@ public sealed class QuestZonePlanTests
             Lignes(QuestZonePlan.Of(quetes, ["Etre royaliste"])));
     }
 
+    /// <summary>
+    /// Le cas relevé à Astrub : « La découverte d'un vaste monde » n'a pour
+    /// prérequis que le succès « Devenir une légende ». Elle était rangée après
+    /// ce succès, mais aussi après tous les autres, trente rangs plus bas :
+    /// le tri la plaçait bien après ce qu'elle exige, si loin que la
+    /// progression ne se lisait plus.
+    /// </summary>
+    [Fact]
+    public void Colle_une_quete_seule_au_succes_dont_elle_decoule()
+    {
+        List<QuestSummary> quetes =
+        [
+            Quete("Legende 1", "Devenir une legende", 1),
+            Quete("Legende 2", "Devenir une legende", 2, "Legende 1"),
+            Quete("La decouverte d’un vaste monde", prerequis: "Succes Devenir une legende realise"),
+            Quete("Ville 1", "Quand on arrive en ville", 1),
+            Quete("Piou 1", "Un Piou c’est tout", 1),
+        ];
+
+        Assert.Equal(
+            [
+                "* Devenir une legende",
+                "  La decouverte d’un vaste monde",
+                "* Quand on arrive en ville",
+                "* Un Piou c’est tout",
+            ],
+            Lignes(QuestZonePlan.Of(
+                quetes,
+                ["Devenir une legende", "Quand on arrive en ville", "Un Piou c’est tout"])));
+    }
+
+    /// <summary>
+    /// Une suite de quêtes seules qui pend à un succès le suit tout entière,
+    /// dans l'ordre où on l'enchaîne.
+    /// </summary>
+    [Fact]
+    public void Une_suite_de_quetes_seules_suit_le_succes_qui_l_ouvre()
+    {
+        List<QuestSummary> quetes =
+        [
+            Quete("Ailleurs 1", "Un autre succes", 1),
+            Quete("Seule 2", prerequis: "Seule 1"),
+            Quete("Seule 1", prerequis: "Ouvrir 1"),
+            Quete("Ouvrir 1", "Ouvrir la voie", 1),
+        ];
+
+        Assert.Equal(
+            ["* Ouvrir la voie", "  Seule 1", "  Seule 2", "* Un autre succes"],
+            Lignes(QuestZonePlan.Of(quetes, ["Ouvrir la voie", "Un autre succes"])));
+    }
+
     [Fact]
     public void Glisse_une_quete_seule_entre_deux_succes()
     {

@@ -57,9 +57,9 @@ public static class QuestZonePlan
             return [];
         }
 
-        var keys = Keys(blocks, successOrder);
         var waiting = new int[blocks.Count];
         var after = Edges(quests, blocks, blockOfUrl, waiting);
+        var keys = Keys(blocks, successOrder, after);
 
         return Sort(blocks, keys, after, waiting, Lonely(blocks, after, waiting));
     }
@@ -105,10 +105,18 @@ public static class QuestZonePlan
     /// passe après tous les succès de même rang, comme le faisait le bloc
     /// « Hors succès » qui les rassemblait en fin de liste. Le rang du bloc
     /// clôt le départage, pour que l'ordre soit total.
+    ///
+    /// **Une quête seule qui découle d'un succès prend son rang**, et se range
+    /// donc juste derrière lui plutôt qu'après tous les autres. Sans cela, « La
+    /// découverte d'un vaste monde », dont le seul prérequis est le succès
+    /// « Devenir une légende », se retrouvait trente rangs plus bas, derrière
+    /// des succès qui n'ont rien à voir : le tri la plaçait bien après ce
+    /// qu'elle exige, mais si loin que la progression ne se lisait plus.
     /// </summary>
-    private static (int Rank, int Kind, string Label, int Index)[] Keys(
+    private static (int Rank, int Kind, int Depth, string Label, int Index)[] Keys(
         List<(string Success, List<QuestSummary> Quests)> blocks,
-        IReadOnlyList<string> successOrder)
+        IReadOnlyList<string> successOrder,
+        List<HashSet<int>> after)
     {
         Dictionary<string, int> rank = new(StringComparer.Ordinal);
 
@@ -117,18 +125,69 @@ public static class QuestZonePlan
             rank.TryAdd(successOrder[i], i);
         }
 
-        var keys = new (int Rank, int Kind, string Label, int Index)[blocks.Count];
+        var keys = new (int Rank, int Kind, int Depth, string Label, int Index)[blocks.Count];
 
         for (var i = 0; i < blocks.Count; i++)
         {
             var (success, members) = blocks[i];
 
             keys[i] = success.Length > 0
-                ? (rank.GetValueOrDefault(success, int.MaxValue), 0, success, i)
-                : (int.MaxValue, 1, members[0].Title, i);
+                ? (rank.GetValueOrDefault(success, int.MaxValue), 0, 0, success, i)
+                : (int.MaxValue, 1, 0, members[0].Title, i);
         }
 
+        Inherit(blocks, keys, after);
+
         return keys;
+    }
+
+    /// <summary>
+    /// Fait descendre le rang d'un succès sur les quêtes seules qui en
+    /// découlent, de proche en proche.
+    ///
+    /// Le parcours part des succès dans leur ordre, si bien qu'une quête seule
+    /// que deux succès pourraient réclamer prend le rang du premier. La
+    /// profondeur retient la distance parcourue, pour qu'une suite de quêtes
+    /// seules se lise dans l'ordre où on l'enchaîne et non par ordre
+    /// alphabétique.
+    ///
+    /// Ce qu'aucun succès n'atteint garde son rang maximal, et part donc en fin
+    /// de liste comme avant : le site ne dit rien de sa place.
+    /// </summary>
+    private static void Inherit(
+        List<(string Success, List<QuestSummary> Quests)> blocks,
+        (int Rank, int Kind, int Depth, string Label, int Index)[] keys,
+        List<HashSet<int>> after)
+    {
+        List<int> departs = [.. Enumerable
+            .Range(0, blocks.Count)
+            .Where(i => blocks[i].Success.Length > 0)
+            .OrderBy(i => keys[i].Rank)
+            .ThenBy(i => keys[i].Label, StringComparer.Ordinal)];
+
+        HashSet<int> vus = [.. departs];
+        Queue<int> file = new(departs);
+
+        while (file.Count > 0)
+        {
+            var at = file.Dequeue();
+
+            foreach (var next in after[at])
+            {
+                if (blocks[next].Success.Length > 0 || !vus.Add(next))
+                {
+                    continue;
+                }
+
+                keys[next] = keys[next] with
+                {
+                    Rank = keys[at].Rank,
+                    Depth = keys[at].Depth + 1,
+                };
+
+                file.Enqueue(next);
+            }
+        }
     }
 
     /// <summary>
@@ -255,7 +314,7 @@ public static class QuestZonePlan
     /// </summary>
     private static List<QuestZoneBlock> Sort(
         List<(string Success, List<QuestSummary> Quests)> blocks,
-        (int Rank, int Kind, string Label, int Index)[] keys,
+        (int Rank, int Kind, int Depth, string Label, int Index)[] keys,
         List<HashSet<int>> after,
         int[] waiting,
         HashSet<int> lonely)

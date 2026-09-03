@@ -9,6 +9,29 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Corrigé
 
+- La liste d'une zone montrait des quêtes avant ce qu'elles exigent. Dans
+  « Un Piou, c'est tout ! », « L'île Céleste » paraissait avant « Le voyage vers
+  Incarnam », qu'elle réclame : la carte des rangs, calculée à l'indexation, se
+  contredisait elle-même sur treize quêtes. Les quêtes d'un succès se rangent
+  maintenant par leurs prérequis d'abord, la carte ne servant qu'à départager
+  celles qu'aucun prérequis ne sépare.
+
+  Une quête qui réclame son propre succès le réclame en entier : elle passe donc
+  après tout le reste de son bloc. « En route pour Plantala » est seule dans ce
+  cas.
+
+- Une quête seule qui découle d'un succès était rangée après **tous** les
+  succès, et non derrière le sien. « La découverte d'un vaste monde », dont le
+  seul prérequis est le succès « Devenir une légende », se retrouvait trente
+  rangs plus bas à Astrub, entre des quêtes qui n'ont rien à voir. Elle prend
+  désormais le rang du succès dont elle découle, et le suit immédiatement ; une
+  suite de quêtes seules le suit tout entière, dans l'ordre où on l'enchaîne.
+
+  Mesuré sur les vingt-cinq listes : les prérequis placés après la quête qui les
+  réclame passent de treize à onze. Les onze qui restent viennent de boucles,
+  deux blocs se réclamant l'un l'autre, qu'un succès insécable ne peut pas
+  départager.
+
 - La quête suivante manquait à la fin d'une série. « La légende du Chevalier de
   l'Automne » clôt le succès « Un nouveau départ » et le site propose en pied
   d'article « Dans les pas du Chevalier de l'Automne », première quête du succès

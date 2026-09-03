@@ -3253,3 +3253,77 @@ reprend - ce que le commentaire du pont promettait déjà sans que ce soit vrai.
 Enfin, la sonde du site exige désormais ce bloc et compte les guides qui nomment
 vraiment une suivante : le jour où le site le renomme, les deux boutons se
 tairaient sans que rien ne le dise.
+
+---
+
+## D82 - La liste doit se lire comme on joue, prérequis compris
+
+**2026-09-03 - Acceptée**
+
+Deux quêtes signalées, deux défauts de rangement distincts, et une seule règle
+pour les deux : **la liste dit la progression, donc rien n'y paraît avant ce
+qu'il exige.**
+
+### Une carte des rangs qui se contredit
+
+La place d'une quête dans son succès vient d'un tri topologique fait en Python à
+l'extraction, et rangé dans la carte sous la clé `o`. `QuestPlayOrder` s'y fiait
+sans la vérifier.
+
+Or elle se contredit. Dans « Un Piou, c'est tout ! », « L'île Céleste » porte le
+rang 2 et réclame « Le voyage vers Incarnam », qui porte le rang 3. **Treize
+quêtes du catalogue sont dans ce cas**, relevées par une sonde qui contrôle, sur
+les vingt-cinq listes, que chaque prérequis paraît avant la quête qui le
+réclame.
+
+Le tri se refait donc ici, sur les prérequis que l'application lit de toute
+façon. La carte ne sert plus qu'à départager les quêtes qu'aucun prérequis ne
+sépare, et à trancher une boucle - ce qu'elle faisait déjà pour les blocs d'une
+zone. Les deux couches lisent maintenant la même règle.
+
+**Une quête qui réclame son propre succès le réclame en entier**, et passe donc
+après tout le reste de son bloc. « En route pour Plantala » est seule dans ce cas
+sur les 782.
+
+### Une quête seule rangée après tous les succès, pas derrière le sien
+
+Le départage donnait à toute quête seule le rang maximal. Elle passait donc
+après **tous** les succès, et non derrière celui dont elle découle. « La
+découverte d'un vaste monde », dont le seul prérequis est le succès « Devenir une
+légende », se retrouvait au rang 38 sur 57 à Astrub quand ce succès finit au
+rang 5 : le tri respectait la contrainte, mais si loin que la progression ne se
+lisait plus.
+
+**Une quête seule prend le rang du succès dont elle découle**, propagé de proche
+en proche pour qu'une suite de quêtes seules le suive tout entière. Ce qu'aucun
+succès n'atteint garde le rang maximal et part en fin de liste, comme avant : le
+site ne dit rien de sa place, et c'est D42 qui le veut.
+
+### Ce qui reste, et pourquoi
+
+| | avant | après |
+| :-- | --: | --: |
+| prérequis placés après la quête qui les réclame | 13 | **11** |
+| dont une boucle rend indépartageables | - | 10 |
+
+**Dix des onze sont des boucles vraies** : deux blocs se réclament l'un l'autre
+par des quêtes différentes, et un succès étant insécable, aucun ordre ne les
+satisfait tous les deux. C'est la limite que D42 avait déjà nommée. Le onzième
+est un dégât collatéral : son bloc sort trop tôt pendant qu'une boucle voisine
+bloque tout.
+
+**Un repli plus fin a été essayé et rejeté.** Casser la boucle sur le bloc qui
+attend le moins de prérequis, plutôt que sur le plus petit au sens du départage,
+laisse le compte à onze et fait passer les dégâts collatéraux de un à trois. La
+règle simple est meilleure, et elle est mesurée.
+
+Les faire tomber à zéro demanderait de rendre un succès sécable, c'est-à-dire de
+laisser ses quêtes se séparer autour d'une quête seule. C'est un autre sujet, et
+un changement visible : il se décidera en le regardant.
+
+### Un effet de bord assumé
+
+L'ordre des quêtes d'un succès ayant changé, sa **dernière** quête change parfois
+avec lui, et avec elle la suite qu'on lui propose. Un succès de plus s'achève
+sans suivante, 82 au lieu de 81. L'ancien compte reposait sur un ordre faux : on
+préfère un ordre juste et un bouton muet à un ordre faux et un bouton bavard.
