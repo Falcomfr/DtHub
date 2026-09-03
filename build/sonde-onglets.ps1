@@ -37,6 +37,9 @@ public static class Arrimage {
     public static extern bool EnumWindows(EnumProc cb, IntPtr p);
     [DllImport("user32.dll")]
     public static extern bool IsWindowVisible(IntPtr hWnd);
+    [DllImport("user32.dll")]
+    public static extern IntPtr WindowFromPoint(POINT p);
+    public struct POINT { public int X, Y; }
     public delegate bool EnumProc(IntPtr hWnd, IntPtr p);
     public struct RECT { public int Left, Top, Right, Bottom; }
 }
@@ -91,12 +94,23 @@ $nouveau = ([int64]$styleAvant -band -bnot ($WS_POPUP -bor $WS_CAPTION -bor $WS_
 [void][Arrimage]::SetWindowLong($cible, $GWL_STYLE, [IntPtr]$nouveau)
 $ancienParent = [Arrimage]::SetParent($cible, $cadre.Handle)
 [void][Arrimage]::SetWindowPos($cible, [IntPtr]::Zero, 0, 0, $cadre.ClientSize.Width, $cadre.ClientSize.Height, $SWP_FRAME)
+Start-Sleep -Milliseconds 300
+# Deux fois : le premier appel arrive parfois avant que le changement de
+# parent ne soit pris en compte, et la fille reste a ses anciennes coordonnees.
+[void][Arrimage]::SetWindowPos($cible, [IntPtr]::Zero, 0, 0, $cadre.ClientSize.Width, $cadre.ClientSize.Height, $SWP_FRAME)
 [System.Windows.Forms.Application]::DoEvents()
 Start-Sleep -Milliseconds 600
 
 $parentApres = [Arrimage]::GetParent($cible)
 Write-Output ("apres: parent {0}  attendu {1}  arrime: {2}" -f `
     $parentApres, $cadre.Handle, ($parentApres -eq $cadre.Handle))
+
+# --- A qui Windows donnera-t-il la souris ? -----------------------------
+$pt = New-Object Arrimage+POINT
+$pt.X = $cadre.Location.X + 500
+$pt.Y = $cadre.Location.Y + 400
+$sous = [Arrimage]::WindowFromPoint($pt)
+Write-Output ("pointeur en {0},{1} -> fenetre {2}  cible: {3}" -f $pt.X, $pt.Y, $sous, ($sous -eq $cible))
 
 # --- Laisser vivre, pour l'oeil et la capture ---------------------------
 $fin = (Get-Date).AddSeconds($Secondes)
