@@ -9,6 +9,24 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Corrigé
 
+- Suivre un lien du guide vers un chemin, un donjon, un raid ou une tanière
+  perdait le fil : la flèche de retour ne paraissait pas, et rouvrir le panneau
+  montrait la branche de ce qu'on venait d'ouvrir au lieu de la fiche d'où l'on
+  venait. L'historique n'était empilé que dans la branche des quêtes, et il ne
+  savait retenir que des quêtes.
+
+  La règle est maintenant la même pour toutes les natures : un lien s'ouvre à
+  part quand le catalogue ne le connaît pas, sur place quand il le connaît, et
+  dès qu'il s'ouvre sur place la flèche paraît et le panneau garde la fiche
+  d'origine. Choisir dans la liste efface la piste : on a désigné où aller.
+
+- Le repli des boutons « précédente » et « suivante », quand la page n'est pas
+  au catalogue, laissait l'état sur la page d'avant : le panneau rouvrait sur
+  l'ancienne rubrique et le signalement nommait l'ancienne quête.
+
+- Une adresse du catalogue ornée d'une ancre, « …/quete-x/#etape-3 », partait en
+  fenêtre annexe alors qu'elle devait s'ouvrir sur place.
+
 - Le formulaire de signalement se soulignait dès qu'on cliquait dans un champ.
   Le thème du site porte `label:focus { text-decoration: underline }`, et ses
   champs sont écrits `<label><span>intitulé</span><input></label>` : la
@@ -444,6 +462,12 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   filet.
 
 ### Modifié
+
+- Le rang de l'étape ne déplie plus rien quand le guide n'en a qu'une : la
+  pastille y ouvrait une liste d'un seul élément.
+
+- Le signalement porte le succès entre parenthèses : « Île d'Otomaï › Les
+  chasses de Crocodaille Dandi (Service de dépannage) ».
 
 - Le signalement porte la zone et la quête, et non plus le rang de l'étape. Ce
   rang est une numérotation qui n'existe que dans cette fenêtre : le site ne

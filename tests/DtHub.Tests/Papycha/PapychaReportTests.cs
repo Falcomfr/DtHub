@@ -58,4 +58,29 @@ public class PapychaReportTests
 
         Assert.True(pris.Length <= PapychaReport.MaxLocationLength, pris);
     }
+
+    [Fact]
+    public void Le_succes_suit_la_quete_entre_parentheses()
+    {
+        Assert.Equal(
+            "Astrub  ›  La découverte d'un destin (Un nouveau départ)",
+            PapychaReport.Location("Astrub", "La découverte d'un destin", "Un nouveau départ"));
+    }
+
+    [Fact]
+    public void Sans_succes_la_parenthese_ne_parait_pas()
+    {
+        // Un chemin ou un donjon n'a pas de succès : une parenthèse vide y
+        // vaudrait moins que rien.
+        Assert.Equal("Astrub  ›  Antiroyaliste", PapychaReport.Location("Astrub", "Antiroyaliste", null));
+        Assert.Equal("Astrub  ›  Antiroyaliste", PapychaReport.Location("Astrub", "Antiroyaliste", "  "));
+    }
+
+    [Fact]
+    public void Le_succes_accompagne_la_quete_meme_sans_zone()
+    {
+        Assert.Equal(
+            "Antiroyaliste (Halte au péage)",
+            PapychaReport.Location(null, "Antiroyaliste", "Halte au péage"));
+    }
 }

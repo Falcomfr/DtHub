@@ -84,9 +84,9 @@
                diraient pas la même chose. -->
           <Button Grid.Column="0" Style="{StaticResource IconButton}"
                   Margin="0,0,4,0" VerticalAlignment="Center"
-                  Click="OnGoBackQuest"
-                  ToolTip="Revenir à la quête précédemment consultée"
-                  Visibility="{Binding CanGoBackQuest,
+                  Click="OnGoBackPage"
+                  ToolTip="Revenir à la page précédemment consultée"
+                  Visibility="{Binding CanGoBackPage,
                                        Converter={StaticResource BoolToVisibility}}">
             <Path Style="{StaticResource RowGlyph}"
                   Data="M 3.5,6 L 7,2.5 M 3.5,6 L 7,9.5
@@ -131,13 +131,22 @@
                trouverait en chemin. Le rang n'était qu'un texte, et rien ne
                laissait deviner qu'il y avait autre chose à faire ici. -->
           <Grid Grid.Column="2" Margin="4,0,10,0">
+            <!-- Le rang en texte simple quand il n'y a qu'une étape : la pastille
+                 y dépliait une liste d'un seul élément, qui ne menait nulle
+                 part. -->
+            <TextBlock VerticalAlignment="Center" Text="{Binding StepText}"
+                       Margin="7,0,0,0" FontFamily="{StaticResource MonoFont}" FontSize="11"
+                       Foreground="{DynamicResource AccentBrush}"
+                       Visibility="{Binding CanPickStep,
+                                            Converter={StaticResource InverseBoolToVisibility}}" />
+
             <ToggleButton x:Name="StepsToggle" Style="{StaticResource OutlineToggle}"
                           Padding="7,2" VerticalAlignment="Center"
                           Background="Transparent"
                           BorderBrush="{DynamicResource BorderBrush}"
                           ToolTip="Choisir une étape. La page se replace dessus."
-                          Visibility="{Binding StepText, Converter={StaticResource EmptyToVisibility},
-                                               ConverterParameter=inverse}">
+                          Visibility="{Binding CanPickStep,
+                                               Converter={StaticResource BoolToVisibility}}">
               <StackPanel Orientation="Horizontal">
                 <TextBlock Text="{Binding StepText}" VerticalAlignment="Center"
                            FontFamily="{StaticResource MonoFont}" FontSize="11"

@@ -52,7 +52,21 @@ public sealed partial class QuestViewModel : ObservableObject
     /// voisine choisie au pied ou une quête prise dans la liste n'y entrent
     /// pas : on sait d'où l'on vient quand c'est soi qui a désigné où aller.
     /// </summary>
-    private readonly Stack<QuestSummary> _visited = new();
+    private readonly Stack<string> _visited = new();
+
+    /// <summary>
+    /// Ce sur quoi la liste se repose : la rubrique et l'adresse de la dernière
+    /// page qu'on a désignée soi-même, dans la liste ou par les boutons du pied.
+    ///
+    /// Un lien suivi dans le guide ne les déplace pas : on va voir un chemin ou
+    /// un donjon, et l'on veut retrouver la fiche d'où l'on vient en rouvrant le
+    /// panneau. Sans ce repère, ouvrir un chemin depuis une quête rouvrait la
+    /// liste sur la branche des chemins, et plus rien ne disait d'où l'on
+    /// venait.
+    /// </summary>
+    private int? _anchorSection;
+
+    private string? _anchorUrl;
 
     [ObservableProperty]
     private string _query = string.Empty;
@@ -280,7 +294,8 @@ public sealed partial class QuestViewModel : ObservableObject
         // redescendre l'arbre pour retrouver les voisines de ce qu'on lisait.
         // Un donjon n'appartient à aucune rubrique du site : sa branche est la
         // sienne.
-        var section = (_current is { } lue ? SectionSeen(lue) : (int?)null)
+        var section = _anchorSection
+            ?? (_current is { } lue ? SectionSeen(lue) : (int?)null)
             ?? (_currentDungeon is { } place ? SectionOf(place) : (int?)null)
             ?? (_currentPath is { } road
                 ? road.Side == PathSide.Dungeons ? DungeonPathSection : QuestPathSection
@@ -308,6 +323,13 @@ public sealed partial class QuestViewModel : ObservableObject
     /// 215 quêtes sur 782 appartiennent à plus d'une rubrique, dont 93 qu'une
     /// rubrique transverse emporte et 80 dans l'autre sens.
     /// </summary>
+    /// <summary>Pose le repère de la liste sur la page qu'on vient de désigner.</summary>
+    private void Anchor(int section, string url)
+    {
+        _anchorSection = section;
+        _anchorUrl = url;
+    }
+
     private int SectionSeen(QuestSummary quest) =>
         quest.SectionIds.Contains(_section) ? _section : quest.SectionId;
 
@@ -318,13 +340,17 @@ public sealed partial class QuestViewModel : ObservableObject
     /// </summary>
     public void SelectCurrent()
     {
-        if (string.IsNullOrEmpty(CurrentUrl))
+        // Le repère plutôt que la page courante : après un lien suivi, c'est la
+        // fiche d'où l'on vient qu'on veut retrouver surlignée.
+        var vise = _anchorUrl ?? CurrentUrl;
+
+        if (string.IsNullOrEmpty(vise))
         {
             return;
         }
 
         SelectedNode = Nodes.FirstOrDefault(n =>
-            n.Url is { } url && string.Equals(url, CurrentUrl, StringComparison.Ordinal));
+            n.Url is { } url && string.Equals(url, vise, StringComparison.Ordinal));
     }
 
     /// <summary>Le premier niveau : les grandes branches.</summary>
@@ -467,9 +493,9 @@ public sealed partial class QuestViewModel : ObservableObject
     [ObservableProperty]
     private bool _canGoBack;
 
-    /// <summary>Vrai quand l'historique des quêtes a de quoi revenir.</summary>
+    /// <summary>Vrai quand l'historique des pages lues a de quoi revenir.</summary>
     [ObservableProperty]
-    private bool _canGoBackQuest;
+    private bool _canGoBackPage;
 
     private int _backTarget;
 
@@ -488,21 +514,24 @@ public sealed partial class QuestViewModel : ObservableObject
     /// Le retour ne s'empile pas lui-même : seul un lien suivi sur place le
     /// fait, sans quoi la flèche ferait la navette entre deux quêtes.
     /// </summary>
-    public string? GoBackQuest()
+    public string? GoBackPage()
     {
         if (_visited.Count == 0)
         {
             return null;
         }
 
-        var quest = _visited.Pop();
+        var url = _visited.Pop();
 
-        SetCurrent(quest);
+        CanGoBackPage = _visited.Count > 0;
 
-        CanGoBackQuest = _visited.Count > 0;
+        // Par la même porte que l'aller : seules des adresses que le catalogue
+        // sait rouvrir sont empilées, et c'est lui qui décide de la nature.
+        TryFollowUrl(url);
+
         IsListOpen = false;
 
-        return quest.Url;
+        return url;
     }
 
     /// <summary>Remonte d'un cran.</summary>
@@ -909,6 +938,12 @@ public sealed partial class QuestViewModel : ObservableObject
             return null;
         }
 
+        // Choisir dans la liste efface la piste : on a désigné où aller, et ce
+        // qu'on lisait avant ne veut plus rien dire. La flèche restait sinon
+        // allumée, pointant une page sans rapport.
+        _visited.Clear();
+        CanGoBackPage = false;
+
         switch (node.Kind)
         {
             case QuestNodeKind.Branch:
@@ -937,13 +972,22 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>Retient la quête ouverte, pour le pied de fenêtre et le titre.</summary>
-    public void SetCurrent(QuestSummary quest)
+    /// <param name="anchor">
+    /// Faux quand on suit un lien du guide : la page s'affiche, mais le repère
+    /// de la liste reste sur la fiche d'où l'on vient.
+    /// </param>
+    public void SetCurrent(QuestSummary quest, bool anchor = true)
     {
         ArgumentNullException.ThrowIfNull(quest);
 
         _current = quest;
         _currentDungeon = null;
         _currentPath = null;
+
+        if (anchor)
+        {
+            Anchor(SectionSeen(quest), quest.Url);
+        }
         CurrentUrl = quest.Url;
         QuestTitle = quest.Title;
         HasQuest = true;
@@ -971,13 +1015,19 @@ public sealed partial class QuestViewModel : ObservableObject
     /// nom et son départ, que le site donne dans ses métadonnées comme pour une
     /// quête.
     /// </summary>
-    public void SetCurrent(DungeonSummary dungeon)
+    /// <param name="anchor">Voir la surcharge des quêtes.</param>
+    public void SetCurrent(DungeonSummary dungeon, bool anchor = true)
     {
         ArgumentNullException.ThrowIfNull(dungeon);
 
         _current = null;
         _currentDungeon = dungeon;
         _currentPath = null;
+
+        if (anchor)
+        {
+            Anchor(SectionOf(dungeon), dungeon.Url);
+        }
         CurrentUrl = dungeon.Url;
         QuestTitle = dungeon.Title;
         HasQuest = true;
@@ -1003,13 +1053,21 @@ public sealed partial class QuestViewModel : ObservableObject
     /// commence là où on se trouve. Le bandeau ne porte donc que son nom, et les
     /// étapes viendront de ses titres de sections.
     /// </summary>
-    public void SetCurrent(PathSummary path)
+    /// <param name="anchor">Voir la surcharge des quêtes.</param>
+    public void SetCurrent(PathSummary path, bool anchor = true)
     {
         ArgumentNullException.ThrowIfNull(path);
 
         _current = null;
         _currentDungeon = null;
         _currentPath = path;
+
+        if (anchor)
+        {
+            Anchor(
+                path.Side == PathSide.Dungeons ? DungeonPathSection : QuestPathSection,
+                path.Url);
+        }
         CurrentUrl = path.Url;
         QuestTitle = path.Title;
         HasQuest = true;
@@ -1275,10 +1333,19 @@ public sealed partial class QuestViewModel : ObservableObject
     /// Une seule porte pour les deux : la liste et le compte se contredisaient
     /// dès qu'un chemin oubliait l'une des deux lignes.
     /// </summary>
+    /// <summary>
+    /// Vrai quand il y a de quoi choisir : à partir de deux étapes.
+    ///
+    /// Sur un guide d'une seule étape, la pastille dépliait une liste d'un
+    /// élément, ce qui ne menait nulle part.
+    /// </summary>
+    public bool CanPickStep => _steps.Count > 1;
+
     private void ResetSteps(IReadOnlyList<string> steps)
     {
         _steps = steps;
         HasSteps = steps.Count > 0;
+        OnPropertyChanged(nameof(CanPickStep));
 
         Steps.Clear();
 
@@ -1309,6 +1376,15 @@ public sealed partial class QuestViewModel : ObservableObject
 
         // Une adresse que le catalogue ne connaît pas : on ouvre quand même,
         // sans voisines, plutôt que de ne rien faire.
+        //
+        // Les trois champs d'état sont vidés : ils désignaient encore la page
+        // d'avant, et tout ce qui s'en sert mentait donc. La liste rouvrait sur
+        // la rubrique de l'ancienne quête, et le signalement la nommait à la
+        // place de celle qu'on lisait.
+        _current = null;
+        _currentDungeon = null;
+        _currentPath = null;
+
         CurrentUrl = link.Url;
         QuestTitle = link.Title;
         ChainText = string.Empty;
@@ -1342,53 +1418,67 @@ public sealed partial class QuestViewModel : ObservableObject
             return false;
         }
 
+        // Un donjon, un raid, une tanière et un chemin se suivent comme une
+        // quête : ce sont des pages du site que le catalogue connaît. Sans cela,
+        // le lien d'un guide vers l'une d'elles partait dans une fenêtre à part.
         var quest = _catalog.Catalog.Quests.FirstOrDefault(q =>
             string.Equals(UrlKey(q.Url), key, StringComparison.Ordinal));
 
-        if (quest is null)
+        var dungeon = quest is null
+            ? _catalog.Catalog.Dungeons.FirstOrDefault(d =>
+                string.Equals(UrlKey(d.Url), key, StringComparison.Ordinal))
+            : null;
+
+        var path = quest is null && dungeon is null
+            ? _catalog.Catalog.Paths.FirstOrDefault(p =>
+                string.Equals(UrlKey(p.Url), key, StringComparison.Ordinal))
+            : null;
+
+        if (quest is null && dungeon is null && path is null)
         {
-            // Un donjon se suit comme une quête : c'est une page du site que le
-            // catalogue connaît. Sans cela, le lien d'un guide vers un donjon
-            // partait dans une fenêtre à part, et la dernière page lue n'était
-            // pas retrouvée au lancement suivant.
-            var dungeon = _catalog.Catalog.Dungeons.FirstOrDefault(d =>
-                string.Equals(UrlKey(d.Url), key, StringComparison.Ordinal));
+            return false;
+        }
 
-            if (dungeon is not null)
-            {
-                SetCurrent(dungeon);
-                IsListOpen = false;
+        // L'empilement se fait ici, avant l'aiguillage, et vaut donc pour les
+        // quatre natures. Il ne se faisait que dans la branche des quêtes : un
+        // lien vers un chemin ou un donjon n'entrait jamais dans l'historique,
+        // et la flèche de retour ne paraissait pas.
+        //
+        // Seule une page que le catalogue sait rouvrir est empilée : le retour
+        // repasse par cette même porte, et une adresse qu'elle refuserait
+        // laisserait la flèche sans effet.
+        if (remember
+            && CurrentUrl is { Length: > 0 } quittee
+            && (_current is not null || _currentDungeon is not null || _currentPath is not null)
+            && !string.Equals(UrlKey(quittee), key, StringComparison.Ordinal))
+        {
+            _visited.Push(quittee);
+            CanGoBackPage = true;
+        }
 
-                return true;
-            }
+        // Un lien suivi dans le guide ne déplace pas le repère de la liste : on
+        // va voir un chemin, et l'on veut retrouver la quête en rouvrant le
+        // panneau. Tout le reste, choix dans la liste ou bouton du pied, le
+        // déplace.
+        var anchor = !remember;
 
-            var path = _catalog.Catalog.Paths.FirstOrDefault(p =>
-                string.Equals(UrlKey(p.Url), key, StringComparison.Ordinal));
-
-            if (path is null)
-            {
-                return false;
-            }
-
-            SetCurrent(path);
+        if (dungeon is not null)
+        {
+            SetCurrent(dungeon, anchor);
             IsListOpen = false;
 
             return true;
         }
 
-        // Seul un lien suivi sur place entre dans l'historique. Les voisines du
-        // pied et le choix dans la liste n'y entrent pas : on sait d'où l'on
-        // vient quand c'est soi qui a désigné où aller, et la flèche resterait
-        // allumée en permanence pour ne rien dire.
-        if (remember
-            && _current is { } left
-            && !string.Equals(left.Url, quest.Url, StringComparison.Ordinal))
+        if (path is not null)
         {
-            _visited.Push(left);
-            CanGoBackQuest = true;
+            SetCurrent(path, anchor);
+            IsListOpen = false;
+
+            return true;
         }
 
-        SetCurrent(quest);
+        SetCurrent(quest!, anchor);
         IsListOpen = false;
 
         return true;
@@ -1400,8 +1490,24 @@ public sealed partial class QuestViewModel : ObservableObject
     /// Le site écrit ses liens tantôt avec la barre finale, tantôt sans, et la
     /// comparaison stricte manquait alors une quête pourtant au catalogue.
     /// </summary>
-    private static string UrlKey(string? url) =>
-        (url ?? string.Empty).Trim().TrimEnd('/').ToLowerInvariant();
+    private static string UrlKey(string? url)
+    {
+        var texte = (url ?? string.Empty).Trim();
+
+        // Le fragment part : le site renvoie parfois vers une ancre d'une page
+        // qu'il connaît, « …/quete-x/#etape-3 », et la comparaison stricte la
+        // prenait pour une page inconnue qui partait en fenêtre annexe. La
+        // chaîne de requête, elle, reste : au moins une adresse du catalogue en
+        // fait son identité.
+        var ancre = texte.IndexOf('#', StringComparison.Ordinal);
+
+        if (ancre >= 0)
+        {
+            texte = texte[..ancre];
+        }
+
+        return texte.TrimEnd('/').ToLowerInvariant();
+    }
 
     /// <summary>
     /// Rang de la première ligne qui se choisit, en enjambant les intertitres.
@@ -1478,14 +1584,16 @@ public sealed partial class QuestViewModel : ObservableObject
     /// Ce qu'il faut pour signaler une erreur sur ce qu'on a sous les yeux :
     /// la page, et le repère à porter dans le formulaire du site.
     ///
-    /// Le repère est la zone et la quête, c'est-à-dire ce que le site nomme
-    /// lui-même. Le rang de l'étape y figurait d'abord ; c'est une numérotation
+    /// Le repère est la zone, la quête et son succès, c'est-à-dire ce que le site
+    /// nomme lui-même. Le succès vient de la quête et non de <c>ChainText</c>,
+    /// que le bandeau détourne pour dire « Chemin » sur un chemin et la clef sur
+    /// un donjon. Le rang de l'étape y figurait d'abord ; c'est une numérotation
     /// qui n'existe que dans cette fenêtre, et elle ne désignait donc rien pour
     /// qui reçoit le signalement.
     /// </summary>
     public (string Url, string Location)? ErrorReport() =>
         CanReport
-            ? (CurrentUrl!, PapychaReport.Location(ZoneName(), QuestTitle))
+            ? (CurrentUrl!, PapychaReport.Location(ZoneName(), QuestTitle, _current?.SuccessName))
             : null;
 
     /// <summary>

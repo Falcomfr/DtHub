@@ -4,10 +4,10 @@ namespace DtHub.Core.Papycha;
 /// Ce qu'on remplit à la place du lecteur dans le formulaire de signalement du
 /// site, et rien de plus.
 ///
-/// Le formulaire demande où se trouve l'erreur. L'application y porte la zone et
-/// la quête, c'est-à-dire ce que le site nomme lui-même. Elle y mettait d'abord
-/// le rang de l'étape ; ce rang est une numérotation qui n'existe que chez nous,
-/// et il ne désignait donc rien pour qui reçoit le signalement.
+/// Le formulaire demande où se trouve l'erreur. L'application y porte la zone,
+/// la quête et son succès, c'est-à-dire ce que le site nomme lui-même. Elle y
+/// mettait d'abord le rang de l'étape ; ce rang est une numérotation qui n'existe
+/// que chez nous, et il ne désignait donc rien pour qui reçoit le signalement.
 ///
 /// La description, elle, reste vide : c'est ce que le lecteur a vu, et l'écrire
 /// pour lui reviendrait à signaler quelque chose qu'il n'a pas dit.
@@ -27,19 +27,29 @@ public static class PapychaReport
     private const string Separator = "  ›  ";
 
     /// <summary>
-    /// Où l'on lisait, dans les termes du site : la zone puis la quête.
+    /// Où l'on lisait, dans les termes du site : la zone, la quête, et le succès
+    /// entre parenthèses.
     ///
-    /// Vide quand on ne sait ni l'une ni l'autre : un repère inventé vaudrait
-    /// moins que le champ laissé libre.
+    /// Vide quand on ne sait rien : un repère inventé vaudrait moins que le
+    /// champ laissé libre.
     /// </summary>
-    public static string Location(string? zone, string? quest)
+    public static string Location(string? zone, string? quest, string? success = null)
     {
         var titre = Flatten(quest);
         var rubrique = Flatten(zone);
+        var succes = Flatten(success);
 
         if (titre.Length == 0)
         {
             return Cut(rubrique);
+        }
+
+        // Le succès accompagne la quête, non la zone : c'est d'elle qu'il dit
+        // quelque chose. Une page qui n'en a pas ne montre pas de parenthèse
+        // vide.
+        if (succes.Length > 0)
+        {
+            titre += $" ({succes})";
         }
 
         return Cut(rubrique.Length == 0 ? titre : rubrique + Separator + titre);

@@ -732,9 +732,9 @@ public partial class QuestWindow : Window
     private void OnGoBack(object sender, RoutedEventArgs e) => _viewModel.GoBack();
 
     /// <summary>Revient sur la quête d'où l'on vient.</summary>
-    private void OnGoBackQuest(object sender, RoutedEventArgs e)
+    private void OnGoBackPage(object sender, RoutedEventArgs e)
     {
-        if (_viewModel.GoBackQuest() is { } url)
+        if (_viewModel.GoBackPage() is { } url)
         {
             NavigateTo(url);
         }

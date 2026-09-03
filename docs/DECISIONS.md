@@ -2985,3 +2985,73 @@ L'icône des quêtes prend la teinte neutre des trois autres lignes de l'accueil
 elle y était la seule en couleur, alors que les quatre natures s'y valent.
 `GlyphQuestBrush` n'ayant plus d'emploi, la palette passe de cinq teintes à
 quatre.
+
+
+## D78 - Un lien s'ouvre sur place, donc il s'empile et garde le fil
+
+### La règle, telle qu'elle se dit
+
+**Un lien s'ouvre à part quand le catalogue ne le connaît pas, et sur place
+quand il le connaît. Dès qu'il s'ouvre sur place, la flèche de retour paraît, et
+rouvrir le panneau montre la fiche d'où l'on vient.**
+
+Une seule règle, sans exception de nature. Le chemin n'est que le cas par lequel
+le défaut s'est vu.
+
+### Ce qui n'allait pas
+
+Relevé sur « Les chasses de Crocodaille Dandi », dont l'étape 1 renvoie vers
+`chemin-du-zaap-du-village-de-la-canopee-otomai`, une page du catalogue :
+
+- `TryFollowUrl` n'empilait l'historique **que dans la branche des quêtes**. Les
+  branches donjon et chemin sortaient avant, et la flèche ne paraissait jamais.
+- `_visited` était un `Stack<QuestSummary>` : il **ne pouvait pas** retenir un
+  chemin. Il n'était jamais vidé non plus, si bien que la flèche survivait à un
+  choix dans la liste en pointant une page sans rapport.
+- `SetCurrent(PathSummary)` met `_current` à `null`, et `OpenList` ne savait
+  déduire une rubrique que de la page courante : le panneau rouvrait sur la
+  branche des chemins, et plus rien ne disait d'où l'on venait.
+
+### Ce qui a changé
+
+**L'empilement remonte avant l'aiguillage.** Une seule condition, en tête de
+`TryFollowUrl`, et les quatre natures en héritent par construction plutôt que
+par une liste de cas à tenir à jour. L'historique retient des **adresses**, et
+le retour repasse par la même porte que l'aller : `TryFollowUrl` décide de la
+nature dans les deux sens.
+
+Seule une adresse que le catalogue sait rouvrir est empilée. Sans cette réserve,
+la flèche aurait pu pointer une page de repli qu'elle n'aurait pas su rouvrir.
+
+**Le repère du panneau se distingue de la page courante.** Deux champs,
+`_anchorSection` et `_anchorUrl`, que les trois surcharges de `SetCurrent`
+posent, **sauf quand on suit un lien**. La distinction n'a pas eu à être
+inventée : `remember` vaut vrai exactement pour un lien suivi dans la page, et
+`SetCurrent` reçoit `anchor: !remember`.
+
+C'est ce qui permet d'aller voir un chemin et de revenir : on regarde ailleurs,
+le repère ne bouge pas.
+
+**Choisir dans la liste efface la piste.** On a désigné où aller ; ce qu'on
+lisait avant ne veut plus rien dire.
+
+### Deux voisins trouvés en tirant le fil
+
+Le repli de `Follow`, quand la page n'est pas au catalogue, affichait sans
+toucher aux trois champs d'état : `_current` mentait, et tout ce qui s'en sert
+avec lui. Ils sont vidés.
+
+`UrlKey` ne retirait pas le fragment là où le routage de la fenêtre le retire :
+une adresse du catalogue ornée d'une ancre partait en fenêtre annexe. Le
+fragment part, **la chaîne de requête reste** : au moins une adresse du
+catalogue en fait son identité.
+
+### Ce qui reste
+
+Les pages de rubrique partent toujours en fenêtre annexe : leurs adresses de
+lien, `/category/zones/…`, n'ont pas la forme de celles que le catalogue retient,
+`/quetes/…`. Les rapprocher demanderait un autre travail.
+
+Rien de tout cela n'a d'épreuve automatique : la vue-modèle des guides n'en a
+aucune aujourd'hui, et lui en donner demanderait un faux catalogue. Tout a été
+vérifié à l'écran, sur le cas signalé et sur son retour.
