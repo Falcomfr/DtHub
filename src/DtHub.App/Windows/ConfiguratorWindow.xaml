@@ -36,11 +36,13 @@
             <!-- Le nom du jeu dit ici, une fois, sur la ligne du produit : il ne
                  coûte aucune hauteur et se voit sur les trois onglets. -->
             <TextBlock>
+              <!-- Hors échelle, et c'est voulu : le nom du produit est une marque,
+                   pas du texte courant. -->
               <Run Text="{Binding ProductName, Mode=OneWay}" FontSize="17" FontWeight="SemiBold" />
-              <Run Text="{loc:T AppSubtitleForGame}" FontSize="11"
+              <Run Text="{loc:T AppSubtitleForGame}" FontSize="{StaticResource FontSmall}"
                    Foreground="{DynamicResource TextMutedBrush}" />
             </TextBlock>
-            <TextBlock Style="{StaticResource Muted}" FontSize="11">
+            <TextBlock Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}">
               <Run Text="{Binding ToggleShortcutText, Mode=OneWay}" FontWeight="SemiBold"
                    FontFamily="{StaticResource MonoFont}" />
               <Run Text="{loc:T ShortcutToggleSuffix}" />
@@ -68,7 +70,7 @@
           </Grid.ColumnDefinitions>
 
           <TextBlock Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap"
-                     FontSize="12" Text="{Binding UpdateText}" />
+                     FontSize="{StaticResource FontBody}" Text="{Binding UpdateText}" />
 
           <Button Grid.Column="1" Content="{loc:T WhatsNew}" Style="{StaticResource QuietButton}"
                   Padding="8,3" Margin="8,0,0,0" VerticalAlignment="Center"
@@ -205,7 +207,7 @@
                           <Border Grid.Column="1" CornerRadius="{StaticResource Radius}" Padding="7,2"
                                   Background="{DynamicResource SurfaceAltBrush}"
                                   BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}">
-                            <TextBlock Text="{Binding ShortcutText}" FontSize="12"
+                            <TextBlock Text="{Binding ShortcutText}" FontSize="{StaticResource FontBody}"
                        FontFamily="{StaticResource MonoFont}" />
                           </Border>
                         </Grid>
@@ -418,7 +420,7 @@
             </Grid>
 
                         <TextBlock Text="{Binding BitrateSummary}" FontWeight="SemiBold"
-                                   FontFamily="{StaticResource MonoFont}" FontSize="11"
+                                   FontFamily="{StaticResource MonoFont}" FontSize="{StaticResource FontSmall}"
                                    TextWrapping="Wrap" Margin="0,4,0,0"
                                    Foreground="{DynamicResource AccentBrush}"
                                    ToolTip="{loc:T BitsPerPixelTip}" />
@@ -427,7 +429,7 @@
                              sur la même liaison et le même encodeur. Un miroir
                              simple n&apos;a pas ce souci ; celui-ci l&apos;a, et le dit. -->
                         <TextBlock Text="{Binding LinkSummary}" Style="{StaticResource Muted}"
-                                   FontFamily="{StaticResource MonoFont}" FontSize="11"
+                                   FontFamily="{StaticResource MonoFont}" FontSize="{StaticResource FontSmall}"
                                    TextWrapping="Wrap"
                                    ToolTip="{loc:T BitrateTip}" />
 
@@ -436,7 +438,7 @@
                              rien de plus et ne coûte rien de plus. Mesuré,
                              c'est le piège le moins visible du panneau. -->
                         <TextBlock Text="{Binding DisplayFitSummary}" Style="{StaticResource Muted}"
-                                   FontFamily="{StaticResource MonoFont}" FontSize="11"
+                                   FontFamily="{StaticResource MonoFont}" FontSize="{StaticResource FontSmall}"
                                    TextWrapping="Wrap"
                                    ToolTip="{loc:T ResolutionAdviceTip}" />
                       </StackPanel>
@@ -475,7 +477,7 @@
                                                      ConverterParameter=Close}" />
                   </WrapPanel>
 
-                  <TextBlock Style="{StaticResource Muted}" FontSize="11"
+                  <TextBlock Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
                              Visibility="{Binding IsReopening, Converter={StaticResource BoolToVisibility}}"
                              Text="{loc:T ReopenNotice}" />
                 </StackPanel>
@@ -499,7 +501,7 @@
                   </ComboBox.ItemTemplate>
                 </ComboBox>
 
-                <TextBlock Style="{StaticResource Muted}" FontSize="11" Margin="0,0,0,10"
+                <TextBlock Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" Margin="0,0,0,10"
                            Text="{loc:T LanguageRestart}"
                            Visibility="{Binding LanguageRestartNeeded,
                                                 Converter={StaticResource BoolToVisibility}}" />
@@ -519,17 +521,17 @@
                           IsChecked="{Binding UpdatesAutomatic}"
                           ToolTip="{loc:T AutomaticUpdatesTip}" />
 
-                <TextBlock Style="{StaticResource Muted}" FontSize="11">
+                <TextBlock Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}">
                   <Run Text="{Binding ProductName, Mode=OneWay}" />
                   <Run Text="{Binding Version, Mode=OneWay}" />
                 </TextBlock>
-                <TextBlock Text="{Binding Disclaimer}" Style="{StaticResource Muted}" FontSize="11" />
+                <TextBlock Text="{Binding Disclaimer}" Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" />
                 <!-- Une faute hors du fil d'interface ne s'affiche pas : elle
                      se compte, et cette ligne est le seul endroit où elle se
                      voit. Elle se laisse ignorer, ce qu'une boîte ne ferait pas
                      pour une faute qui se répète. -->
                 <TextBlock Text="{loc:T IncidentNoticed}" Style="{StaticResource Muted}"
-                           FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0"
+                           FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" Margin="0,8,0,0"
                            Foreground="{DynamicResource WarningBrush}"
                            Visibility="{Binding HasIncident,
                                                 Converter={StaticResource BoolToVisibility}}" />

@@ -40,7 +40,7 @@
                          Checked="OnCandidateChecked">
               <StackPanel>
                 <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
-                <TextBlock Text="{Binding Address}" Style="{StaticResource Muted}" FontSize="11" />
+                <TextBlock Text="{Binding Address}" Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" />
               </StackPanel>
             </RadioButton>
           </DataTemplate>
@@ -57,7 +57,7 @@
                   Visibility="{Binding Candidates.Count, Converter={StaticResource EmptyToVisibility},
                                        ConverterParameter=inverse}">
         <TextBox x:Name="Code" Text="{Binding PairingCode, UpdateSourceTrigger=PropertyChanged}"
-                 Width="150" Margin="0,0,8,0" FontSize="15"
+                 Width="150" Margin="0,0,8,0" FontSize="{StaticResource FontLarge}"
                  KeyDown="OnCodeKey"
                  ToolTip="{loc:T PairingCodeTip}" />
         <Button Content="{loc:T Pair}" Style="{StaticResource PrimaryButton}"
@@ -70,7 +70,7 @@
       <StackPanel Orientation="Horizontal" Margin="0,12,0,0"
                   Visibility="{Binding NeedsPort, Converter={StaticResource BoolToVisibility}}">
         <TextBox Text="{Binding ConnectPort, UpdateSourceTrigger=PropertyChanged}"
-                 Width="150" Margin="0,0,8,0" FontSize="15"
+                 Width="150" Margin="0,0,8,0" FontSize="{StaticResource FontLarge}"
                  KeyDown="OnPortKey"
                  ToolTip="{loc:T PortTip}" />
         <Button Content="{loc:T Connect}" Style="{StaticResource PrimaryButton}"

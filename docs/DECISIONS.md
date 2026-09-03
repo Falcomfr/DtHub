@@ -3580,3 +3580,40 @@ une fois ne valent pas ce risque pour un public qui joue à DOFUS Touch.
 mégaoctets, dont quatre-vingt-dix-neuf pour le cache web : la borne de cent
 mégaoctets de D50 est donc tenue au mégaoctet près. Le reste est le
 fonctionnement normal de Chromium, et D50 ne promettait que le cache.
+
+## D86 - Nommer l'échelle typographique, et ne pas nommer les marges
+
+**2026-09-03 - Acceptée**
+
+Le relevé d'avant publication a montré une discipline à deux vitesses. Les
+couleurs passaient toutes par la palette : **zéro couleur écrite en dur** dans
+les vingt fichiers XAML. Les tailles de police, elles, étaient huit nombres
+anonymes semés dans les fenêtres, si bien qu'une fenêtre neuve en choisissait
+un à l'œil.
+
+**Six crans nommés, aux valeurs déjà employées.** `FontTiny` 10, `FontSmall`
+11, `FontBody` 12, `FontMedium` 13, `FontLarge` 15, `FontTitle` 19. Nommer une
+échelle ne doit rien déplacer à l'écran, et rien n'a bougé : vérifié par
+capture du configurateur. Cinquante-trois emplois y sont passés.
+
+**Trois exceptions, nommées pour qu'elles restent des exceptions.** Le nom du
+produit dans l'en-tête est une marque et non du texte courant. La croix de
+fermeture et le chevron sont des signes, dont la taille suit le dessin. Et
+`MenuPathControl` dessine un écran d'Android : ses proportions sont celles de
+ce téléphone-là, pas celles de notre interface, et les plier à notre échelle
+abîmerait le dessin sans rien gagner.
+
+Le seul écart réel corrigé au passage : le champ de `PromptWindow` était à 14
+quand celui de l'association est à 15. Deux champs de saisie qui ne se
+ressemblent pas.
+
+**Les marges ne sont pas tokenisées, et ce n'est pas un oubli.** Cent
+quatre-vingt-quinze déclarations pour soixante-quatorze valeurs distinctes,
+le chiffre est mauvais. Mais une marge WPF est un `Thickness` à quatre nombres,
+et il n'existe aucune façon de la composer depuis un jeton d'espacement :
+tokeniser reviendrait à déclarer soixante-quatorze ressources `Thickness`
+nommées d'après leur contenu, ce qui est pire que le problème. Le remède
+existe et n'est pas celui-là : c'est de faire porter l'espacement par les
+conteneurs, avec des styles de section, plutôt que par chaque élément. Ce
+travail-là se fait fenêtre par fenêtre, avec une capture avant et après, et
+il n'a pas sa place dans une revue de publication.

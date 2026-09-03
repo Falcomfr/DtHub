@@ -23,12 +23,12 @@
           <Border Style="{StaticResource Card}">
             <StackPanel>
               <Grid>
-                <TextBlock Text="{Binding Name}" FontSize="13"
+                <TextBlock Text="{Binding Name}" FontSize="{StaticResource FontMedium}"
                            FontFamily="{StaticResource UiFont}"
                            Foreground="{DynamicResource TextBrush}" />
                 <!-- La source est nommée : c'est ce qu'on télécharge et d'où. -->
                 <TextBlock Text="{Binding Host}" HorizontalAlignment="Right"
-                           Style="{StaticResource Muted}" FontSize="11" />
+                           Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" />
               </Grid>
 
               <ProgressBar Height="3" Margin="0,9,0,0"
@@ -39,7 +39,7 @@
                            BorderThickness="0"
                            Foreground="{DynamicResource AccentBrush}" />
 
-              <TextBlock Margin="0,7,0,0" Style="{StaticResource Muted}" FontSize="11"
+              <TextBlock Margin="0,7,0,0" Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
                          Text="{Binding Status}" />
             </StackPanel>
           </Border>

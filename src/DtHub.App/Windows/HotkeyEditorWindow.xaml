@@ -60,7 +60,7 @@
                 </Grid>
 
                 <TextBlock Text="{Binding Error}" Foreground="{DynamicResource DangerBrush}"
-                           FontSize="11" Margin="2,4,0,0" TextWrapping="Wrap"
+                           FontSize="{StaticResource FontSmall}" Margin="2,4,0,0" TextWrapping="Wrap"
                            Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}" />
               </StackPanel>
             </DataTemplate>

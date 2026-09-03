@@ -85,7 +85,7 @@
           </StackPanel>
         </Border>
 
-        <TextBlock Style="{StaticResource Muted}" FontSize="11" Margin="2,0,0,4"
+        <TextBlock Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" Margin="2,0,0,4"
                    Text="{loc:T AndroidOnly}" />
 
       </StackPanel>

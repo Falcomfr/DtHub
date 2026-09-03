@@ -1,4 +1,4 @@
-<Window x:Class="DtHub.App.Windows.QuestPageWindow"
+﻿<Window x:Class="DtHub.App.Windows.QuestPageWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:loc="clr-namespace:DtHub.App.Localization"
@@ -27,7 +27,7 @@
         </Grid.ColumnDefinitions>
 
         <TextBlock Grid.Column="0" VerticalAlignment="Center"
-                   Style="{StaticResource Muted}" FontSize="11"
+                   Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
                    TextTrimming="CharacterEllipsis"
                    Text="{loc:T PapychaGuides}" />
 

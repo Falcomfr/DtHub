@@ -39,7 +39,7 @@
                   <!-- En toutes lettres seulement là où on choisit ce qu'on
                        lance : ailleurs le point de couleur suffit. -->
                   <TextBlock Text="{Binding Device.StatusText}" Style="{StaticResource Muted}"
-                             FontSize="10" Margin="8,1,0,0" VerticalAlignment="Center"
+                             FontSize="{StaticResource FontTiny}" Margin="8,1,0,0" VerticalAlignment="Center"
                              Visibility="{Binding ShowDeviceStatus,
                                                   RelativeSource={RelativeSource AncestorType=UserControl},
                                                   Converter={StaticResource BoolToVisibility}}" />
@@ -186,7 +186,7 @@
                          alors le seul moyen de savoir lequel est lequel. Sans
                          renommage, il répète le nom déjà affiché. -->
                     <TextBlock Text="{Binding UserLabel}" Style="{StaticResource Muted}"
-                               FontSize="10" Margin="2,1,0,0"
+                               FontSize="{StaticResource FontTiny}" Margin="2,1,0,0"
                                Visibility="{Binding ShowUserLabel,
                                                     Converter={StaticResource BoolToVisibility}}" />
                   </StackPanel>
@@ -287,7 +287,7 @@
                      Un jeu manquant, lui, ne se devine pas. Et là où l'on
                      choisit ce qu'on lance, les deux cas se disent. -->
                 <TextBlock Text="{Binding StatusText}" Style="{StaticResource Muted}"
-                           FontSize="10" Margin="8,1,0,0">
+                           FontSize="{StaticResource FontTiny}" Margin="8,1,0,0">
                   <TextBlock.Visibility>
                     <MultiBinding Converter="{StaticResource AnyTrue}">
                       <Binding Path="HasNoGame" />
@@ -319,12 +319,12 @@
             Visibility="{Binding HasNoConnectedDevice, Converter={StaticResource BoolToVisibility}}">
       <StackPanel>
         <TextBlock Text="{loc:T NoDeviceFound}" Style="{StaticResource SectionLabel}" />
-        <TextBlock Style="{StaticResource Muted}" FontSize="11"
+        <TextBlock Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
                    Text="{loc:T NoDeviceHelp}" />
       </StackPanel>
     </Border>
 
-    <TextBlock Text="{Binding Problem}" Style="{StaticResource Muted}" FontSize="11"
+    <TextBlock Text="{Binding Problem}" Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
                Foreground="{DynamicResource WarningBrush}" Margin="2,0,0,4"
                Visibility="{Binding Problem, Converter={StaticResource EmptyToVisibility},
                                     ConverterParameter=inverse}" />
