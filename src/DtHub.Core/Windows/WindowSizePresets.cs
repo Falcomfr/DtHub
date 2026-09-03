@@ -33,10 +33,6 @@ public sealed record WindowSizePresets
     public int PercentageAt(int index) =>
         Percentages.Count == 0 ? 100 : Percentages[Math.Clamp(index, 0, Percentages.Count - 1)];
 
-    /// <summary>Libellé affiché dans l'éditeur de raccourcis.</summary>
-    public string LabelAt(int index) =>
-        IsFullscreen(index) ? Strings.Get("ActionFullscreen") : $"Taille {index + 1} ({PercentageAt(index)} %)";
-
     /// <summary>
     /// Rend une copie assainie : pourcentages ramenés dans des bornes
     /// raisonnables, triés, dédoublonnés, et jamais vides.

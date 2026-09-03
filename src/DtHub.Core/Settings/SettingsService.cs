@@ -259,21 +259,9 @@ public sealed class SettingsService : IDisposable
         }.Sanitized();
     }
 
-    /// <summary>Profil de qualité en vigueur.</summary>
-    public async Task<QualityProfile> GetQualityAsync(CancellationToken cancellationToken = default)
-    {
-        var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
-
-        return QualityProfile.For(settings.Quality, settings.CustomQuality);
-    }
-
     /// <summary>Retient la qualité choisie.</summary>
     public Task SetQualityAsync(StreamQuality quality, CancellationToken cancellationToken = default) =>
         UpdateAsync(settings => settings.Quality = quality, cancellationToken);
-
-    /// <summary>Valeurs du palier personnalisé, corrigées si le fichier déraille.</summary>
-    public async Task<CustomQuality> GetCustomQualityAsync(CancellationToken cancellationToken = default) =>
-        (await GetAsync(cancellationToken).ConfigureAwait(false)).CustomQuality.Sanitized();
 
     /// <summary>Retient les valeurs du palier personnalisé.</summary>
     public Task SetCustomQualityAsync(
@@ -288,10 +276,6 @@ public sealed class SettingsService : IDisposable
     /// <summary>Retient si le son du téléphone doit sortir sur le PC.</summary>
     public Task SetAudioEnabledAsync(bool enabled, CancellationToken cancellationToken = default) =>
         UpdateAsync(settings => settings.AudioEnabled = enabled, cancellationToken);
-
-    /// <summary>Distance apparente en vigueur.</summary>
-    public async Task<GameZoom> GetZoomAsync(CancellationToken cancellationToken = default) =>
-        (await GetAsync(cancellationToken).ConfigureAwait(false)).GameZoom;
 
     /// <summary>Retient la distance apparente choisie.</summary>
     public Task SetZoomAsync(GameZoom zoom, CancellationToken cancellationToken = default) =>
@@ -782,17 +766,6 @@ public sealed class SettingsService : IDisposable
         }, cancellationToken);
     }
 
-    /// <summary>Oublie la géométrie d'une instance : elle repartira de l'ancrage.</summary>
-    public Task ClearWindowRectAsync(string key, CancellationToken cancellationToken = default) =>
-        UpdateAsync(settings =>
-        {
-            var instance = settings.Instances.Find(i => string.Equals(i.Key, key, StringComparison.Ordinal));
-            if (instance is not null)
-            {
-                instance.Window = null;
-            }
-        }, cancellationToken);
-
     // Ordre
 
     /// <summary>Rang de chaque instance, par sa clé, pour trier des sessions.</summary>
@@ -822,14 +795,6 @@ public sealed class SettingsService : IDisposable
 
         return moved;
     }
-
-    /// <summary>Fixe l'ordre complet des instances, par leurs clés.</summary>
-    public Task ReorderInstancesAsync(
-        IReadOnlyList<string> orderedKeys,
-        CancellationToken cancellationToken = default) =>
-        UpdateAsync(
-            settings => InstanceOrdering.ReorderInstances(settings, orderedKeys),
-            cancellationToken);
 
     // Démarrage
 
@@ -922,21 +887,6 @@ public sealed class SettingsService : IDisposable
     /// Retient si le suivi de quêtes était ouvert et sur quelle quête, pour le
     /// rouvrir tel quel au lancement suivant.
     /// </summary>
-    /// <summary>Retient si l'application doit se mettre à jour toute seule.</summary>
-    public Task SetUpdatesAutomaticAsync(
-        bool automatic,
-        CancellationToken cancellationToken = default) =>
-        UpdateAsync(settings => settings.UpdatesAutomatic = automatic, cancellationToken);
-
-    /// <summary>
-    /// Retient la langue de l'interface. Une chaîne vide rend la main à la
-    /// langue d'affichage de Windows.
-    /// </summary>
-    public Task SetLanguageAsync(string? language, CancellationToken cancellationToken = default) =>
-        UpdateAsync(
-            settings => settings.Language = AppLanguage.Serves(language) ? language!.Trim() : string.Empty,
-            cancellationToken);
-
     public Task SetQuestsStateAsync(
         bool visible,
         string? lastQuestUrl,

@@ -67,6 +67,4 @@ public partial class ProblemWindow : Window
     /// <summary>Le dossier des journaux, posé par l'appelant.</summary>
     public required string Logs { get; init; }
 
-    /// <summary>Le titre de la fenêtre, tel que les ressources le donnent.</summary>
-    public static string DefaultHeadline => Strings.Get("UnexpectedError");
 }

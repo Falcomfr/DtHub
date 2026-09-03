@@ -972,17 +972,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// <summary>Vrai si l'instance a une fenêtre ouverte.</summary>
     public bool IsOpen(DofusInstance instance) => FindSession(instance) is not null;
 
-    /// <summary>Zone occupée par les fenêtres de jeu, pour placer le configurateur ailleurs.</summary>
-    public ScreenRect? GameArea()
-    {
-        var sessions = _sessions.ActiveSessions;
-        // Zéro signifie « aucune contrainte de rapport » : c'est le cas en
-        // mode flexible, où l'afficheur épouse la fenêtre.
-        var aspect = sessions.Count > 0 ? sessions[0].SourceAspectRatio : 0;
-
-        return _windows.PreviewGameArea(aspect);
-    }
-
     public ScreenRect? WorkArea() => _windows.WorkArea();
 
 

@@ -110,9 +110,6 @@ public sealed record QuestNode(
     /// <summary>Ni les branches non faites, ni les intertitres ne se cliquent.</summary>
     public bool IsEnabled => Kind is QuestNodeKind.Branch or QuestNodeKind.Quest;
 
-    /// <summary>Vrai quand la ligne mène à un donjon.</summary>
-    public bool IsDungeon => Dungeon is not null;
-
     /// <summary>
     /// L'adresse que la ligne ouvre, qu'elle mène à une quête ou à un donjon.
     /// </summary>

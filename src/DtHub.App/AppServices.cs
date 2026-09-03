@@ -151,7 +151,4 @@ public static class AppServices
             path(provider.GetRequiredService<IAppPaths>()),
             provider.GetRequiredService<ILoggerFactory>().CreateLogger($"Store.{typeof(T).Name}"));
 
-    /// <summary>Chemin d'un fichier du cache, pour les composants qui en veulent un.</summary>
-    public static string CacheFile(IAppPaths paths, string name) =>
-        Path.Combine(paths.CacheDirectory, name);
 }
