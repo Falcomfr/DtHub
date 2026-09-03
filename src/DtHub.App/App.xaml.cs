@@ -69,6 +69,15 @@ public partial class App : Application, IDisposable
     private RegisteredWaitHandle? _wakeRegistration;
 
 
+    /// <summary>
+    /// Ce qu'on fait d'une faute. Il ne connaît ni l'hôte ni les fenêtres :
+    /// il les demande au moment où il en a besoin, ce qui lui permet de servir
+    /// avant que l'hôte n'existe.
+    /// </summary>
+    private readonly FaultReporting _faults = new(
+        () => (Current as App)?._host?.Services,
+        () => (Current as App)?._configurator is { IsVisible: true } panel ? panel : null);
+
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -86,9 +95,7 @@ public partial class App : Application, IDisposable
             return;
         }
 
-        AppDomain.CurrentDomain.UnhandledException += OnDomainException;
-        DispatcherUnhandledException += OnDispatcherException;
-        TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+        _faults.Arm(this);
 
         try
         {
@@ -107,7 +114,7 @@ public partial class App : Application, IDisposable
             // Le garde-fou du démarrage attrape tout, c'est son rôle : une
             // faute ici laisserait une application sans fenêtre. Tout sauf le
             // manque de mémoire, où ouvrir une fenêtre de plus n'aboutirait pas.
-            Report(exception, Strings.Get("StartupFailed"));
+            _faults.Show(exception, Strings.Get("StartupFailed"));
             Shutdown(1);
         }
     }
@@ -910,56 +917,6 @@ public partial class App : Application, IDisposable
         return builder.Build();
     }
 
-    private void OnDispatcherException(object sender, DispatcherUnhandledExceptionEventArgs e)
-    {
-        // L'interface reste vivante : une erreur d'affichage ne doit pas
-        // fermer les fenêtres de jeu.
-        e.Handled = true;
-        Report(e.Exception, Strings.Get("UnexpectedError"));
-    }
-
-    /// <summary>
-    /// Une faute que personne n'a rattrapée. Le processus s'arrête après :
-    /// ouvrir une fenêtre ici n'aboutirait pas toujours, mais la retenir permet
-    /// au rapport du prochain démarrage de la porter.
-    /// </summary>
-    private static void OnDomainException(object sender, UnhandledExceptionEventArgs e)
-    {
-        if (e.ExceptionObject is Exception exception)
-        {
-            Log.Fatal(exception, "Exception non interceptée.");
-            Note(exception, "Exception non interceptée.");
-        }
-    }
-
-    /// <summary>
-    /// Une tâche a échoué sans que personne n'attende son résultat. C'est par
-    /// là que passent ADB, scrcpy et le réseau, et cela ne se voyait pas.
-    /// </summary>
-    private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
-    {
-        Log.Error(e.Exception, "Exception de tâche non observée.");
-        Note(e.Exception, "Exception de tâche non observée.");
-        e.SetObserved();
-    }
-
-    /// <summary>
-    /// Retient une faute pour le rapport et pour la ligne du panneau. Muet si
-    /// l'hôte n'est pas encore là : au tout début, le journal suffit.
-    /// </summary>
-    private static void Note(Exception exception, string headline)
-    {
-        if (Current is App { _host: { } host }
-            && host.Services.GetService<DiagnosticReporter>() is { } reporter)
-        {
-            Current.Dispatcher.InvokeAsync(() => reporter.Note(exception, headline));
-        }
-    }
-
-    /// <summary>
-    /// Journalise le détail technique et n'affiche qu'un message
-    /// compréhensible, avec le chemin des journaux.
-    /// </summary>
     /// <summary>
     /// Ouvre la session nommée du démarrage, s'il y en a une.
     ///
@@ -991,79 +948,5 @@ public partial class App : Application, IDisposable
         }
 
         Log.Information("Session « {Profile} » retenue : {Count} compte(s).", name, keys.Count);
-    }
-
-    /// <summary>
-    /// Montre une faute et donne de quoi la raconter.
-    ///
-    /// La boîte d'avant affichait le chemin du dossier de journaux et un bouton
-    /// « OK ». Le message de l'exception, qui dit ce qui s'est passé, n'y
-    /// atteignait jamais l'écran, et il n'y avait rien à envoyer à personne.
-    ///
-    /// Le repli sur une boîte simple est gardé : si la fenêtre de signalement
-    /// ne peut pas s'ouvrir, ce qui arrive quand la faute vient du démarrage
-    /// lui-même, il vaut mieux une phrase que rien.
-    /// </summary>
-    private void Report(Exception exception, string headline)
-    {
-        Log.Fatal(exception, "{Headline}", headline);
-
-        var services = _host?.Services;
-
-        // Pas par le conteneur : quand c'est sa construction qui a échoué, il
-        // n'y a rien à lui demander, et c'est justement le cas où le message
-        // qui suit est le seul que la personne verra. AppPaths ne fait que
-        // calculer des chemins, il ne crée rien.
-        var logs = services?.GetService<IAppPaths>()?.LogsDirectory
-            ?? Quietly(static () => new AppPaths().LogsDirectory);
-
-        try
-        {
-            if (services?.GetService<DiagnosticReporter>() is { } reporter
-                && services.GetService<IDialogService>() is { } dialogs
-                && logs is { Length: > 0 })
-            {
-                new ProblemWindow(dialogs, headline, reporter.Compose(headline, exception), exception.Message)
-                {
-                    Logs = logs,
-                    Owner = _configurator is { IsVisible: true } panel ? panel : null,
-                }.ShowDialog();
-
-                return;
-            }
-        }
-        catch (Exception second) when (second is not OutOfMemoryException)
-        {
-            // La fenêtre de signalement a échoué à son tour. On ne repart pas
-            // dans le même chemin : la boîte du système, elle, s'ouvrira.
-            Log.Error(second, "La fenêtre de signalement n'a pas pu s'ouvrir.");
-        }
-
-        // La boîte du système, en dernier recours. Elle ne montrait que le
-        // titre : « Le démarrage a échoué », sans dire de quoi. Le message de
-        // l'exception est le seul indice quand le journal n'a pas pu naître,
-        // ce qui est précisément le cas d'un dossier de données inaccessible.
-        MessageBox.Show(
-            headline
-                + Environment.NewLine + Environment.NewLine + exception.Message
-                + (logs is { Length: > 0 } ? Strings.Format("ErrorDetailsInLogs", logs) : string.Empty),
-            ProductInfo.Name,
-            MessageBoxButton.OK,
-            MessageBoxImage.Warning);
-    }
-
-    /// <summary>Ce que rend l'appel, ou <c>null</c> s'il échoue.</summary>
-    private static string? Quietly(Func<string> read)
-    {
-        try
-        {
-            return read();
-        }
-        catch (Exception exception) when (exception is not OutOfMemoryException)
-        {
-            // Un dernier recours qui lève laisserait la personne sans message
-            // du tout : c'est le seul endroit où le silence est le bon choix.
-            return null;
-        }
     }
 }
