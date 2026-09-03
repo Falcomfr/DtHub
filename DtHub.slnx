@@ -4,8 +4,16 @@
     <Project Path="src/DtHub.Core/DtHub.Core.csproj" />
     <Project Path="src/DtHub.Infrastructure/DtHub.Infrastructure.csproj" />
   </Folder>
+  <!-- Les six sondes sont dans la solution pour être au moins compilées : hors
+       d'elle, sonde-icone a pourri sans témoin le jour où IAdbLocator a changé.
+       C'est le raisonnement de D49, appliqué aux cinq qui l'attendaient. -->
   <Folder Name="/build/">
+    <Project Path="build/sonde-icone/sonde-icone.csproj" />
     <Project Path="build/sonde-papycha/sonde-papycha.csproj" />
+    <Project Path="build/sonde-pont/sonde-pont.csproj" />
+    <Project Path="build/sonde-rang/sonde-rang.csproj" />
+    <Project Path="build/sonde-reglages/sonde-reglages.csproj" />
+    <Project Path="build/sonde-voisines/sonde-voisines.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/DtHub.Tests/DtHub.Tests.csproj" />

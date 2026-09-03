@@ -97,6 +97,16 @@ avertissement est la cible : les analyseurs .NET sont actifs.
 C'est l'outil qui permet de vérifier le rendu réel. Il se déclare conscient de
 la mise à l'échelle : sans cela, il mesure la fenêtre trop petite et rogne la
 capture, ce qui fait croire à un défaut de disposition inexistant.
+`build/list-windows.ps1` nomme les fenêtres ouvertes, ce qui sert à désigner
+celle qu'on veut capturer.
+
+Ce sont les deux seuls scripts d'interface qui restent. Vingt-huit autres ont
+été retirés avant la publication : des sondes d'un jour que plus rien ne
+citait, et huit qui synthétisaient des frappes ou des clics. Ces derniers
+étaient des outils de développement et l'application n'en a jamais rien fait,
+mais dans un dépôt public de multi-comptes, de la synthèse d'entrées se lit mal
+et se lit vite. **Ne pas en réintroduire** : ce qui se pilote dans une épreuve
+se pilote par le code, pas par le clavier de quelqu'un d'autre.
 
 ## Architecture
 

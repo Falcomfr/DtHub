@@ -7,7 +7,7 @@
 param(
     [int]$ProcessId = 0,
     [string]$ProcessName = "DtHub",
-    [string]$Output = "C:\Dev\DTHub\build\capture.png",
+    [string]$Output = (Join-Path $PSScriptRoot "capture.png"),
     [string]$WindowTitle = ""
 )
 

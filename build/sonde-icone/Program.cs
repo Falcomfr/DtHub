@@ -1,4 +1,4 @@
-// Sonde de développement : extrait l'icône d'une application par le code livré.
+﻿// Sonde de développement : extrait l'icône d'une application par le code livré.
 //
 // Elle court-circuite la mise en place d'ADB, déjà faite sur cette machine, et
 // n'éprouve donc que ce qui nous intéresse : les trois commandes et l'écriture.
@@ -76,6 +76,8 @@ return path is null ? 1 : 0;
 /// <summary>Un chemin d'ADB déjà connu, sans mise en place.</summary>
 internal sealed class FixedLocator(string path) : IAdbLocator
 {
+    public string? TryGetInstalledPath() => path;
+
     public Task<string> GetAdbPathAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult(path);
 }

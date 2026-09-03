@@ -7,6 +7,10 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ## [Non publié]
 
+## [0.1.0] - 2026-09-03
+
+Première version publiée.
+
 ### Ajouté
 
 - Un rapport d'incident qu'on peut envoyer. La fenêtre qui s'affichait sur une
