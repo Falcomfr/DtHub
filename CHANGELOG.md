@@ -9,6 +9,17 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Modifié
 
+- Fermer le cadre à onglets ferme les comptes qu'il logeait. Ils en ressortaient
+  libres, et l'on se retrouvait avec autant de fenêtres de jeu éparses qu'on
+  croyait venir de fermer : le geste ne faisait pas ce qu'il annonce. Chaque
+  compte se comporte comme si l'on avait fermé sa fenêtre, sa place est retenue
+  et il ne rouvrira pas de lui-même au prochain démarrage. Il reste logé en
+  onglets, et y retournera le jour où on le rouvre.
+
+  Les fenêtres quittent le cadre avant de se fermer, et masquées : une fenêtre
+  logée est fille du cadre, et Windows détruirait ses enfants avec lui sans
+  laisser à scrcpy le temps de s'arrêter proprement.
+
 - Une quête seule peut désormais se glisser entre deux quêtes d'un succès, et
   la série reprend après elle sous un intertitre marqué « suite ». Au Château
   d'Amakna, « Étre plus royaliste que le roi » réclame neuf quêtes seules au

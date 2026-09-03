@@ -1261,6 +1261,48 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>Le cadre, créé au premier besoin et gardé ouvert ensuite.</summary>
+    /// <summary>
+    /// Ferme les comptes que le cadre à onglets logeait.
+    ///
+    /// Le compte se comporte comme si l'on avait fermé sa fenêtre une à une :
+    /// sa place est retenue, et il ne rouvrira pas de lui-même au prochain
+    /// démarrage. Il reste logé en onglets, si bien qu'il y retournera le jour
+    /// où on le rouvrira.
+    ///
+    /// Une session qui survit à l'arrêt retrouve sa fenêtre visible : elle a
+    /// quitté le cadre masquée, et la laisser ainsi la rendrait introuvable.
+    /// </summary>
+    private async Task CloseTabbedAsync(IReadOnlyList<string> keys)
+    {
+        List<string> fermes = [];
+
+        foreach (var key in keys)
+        {
+            if (_sessions.ActiveSessions.FirstOrDefault(
+                    s => string.Equals(s.Target.Key, key, StringComparison.Ordinal)) is not { } session)
+            {
+                continue;
+            }
+
+            await StopSessionAsync(session, CancellationToken.None).ConfigureAwait(false);
+
+            if (session.IsAlive && session.WindowHandle != 0)
+            {
+                await OnUiAsync(() => _windows.Controller.SetVisible(session.WindowHandle, true))
+                    .ConfigureAwait(false);
+
+                continue;
+            }
+
+            fermes.Add(key);
+        }
+
+        if (fermes.Count > 0)
+        {
+            await _settings.SetInstancesEnabledAsync(fermes, enabled: false).ConfigureAwait(false);
+        }
+    }
+
     private Windows.TabbedGameWindow EnsureTabs(AppSettingsDocument document)
     {
         if (_tabs is { } existant)
@@ -1271,6 +1313,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         var cadre = new Windows.TabbedGameWindow(_windows.Controller);
 
         cadre.Closed += (_, _) => _tabs = null;
+
+        // Fermer le cadre ferme les comptes qu'il logeait : c'est ce que le
+        // geste annonce, et les voir se disperser en fenêtres libres était le
+        // contraire de ce qu'on demandait.
+        cadre.CloseRequested += async (_, loges) => await CloseTabbedAsync(loges).ConfigureAwait(true);
 
         // Réordonner les onglets réordonne les comptes : un seul ordre partout.
         cadre.Reordered += async (_, mouvement) =>

@@ -77,8 +77,19 @@ public partial class TabbedGameWindow : Window
         return true;
     }
 
-    /// <summary>Ressort une fenêtre du cadre et lui rend son état d'avant.</summary>
-    public bool Detach(string key)
+    /// <summary>Signalé à la fermeture du cadre, avec les comptes qu'il logeait.</summary>
+    public event EventHandler<IReadOnlyList<string>>? CloseRequested;
+
+    /// <summary>
+    /// Ressort une fenêtre du cadre et lui rend son état d'avant.
+    /// </summary>
+    /// <param name="key">Le compte à ressortir.</param>
+    /// <param name="reveal">
+    /// Faux pour la laisser masquée. Sert à la fermeture du cadre : la fenêtre
+    /// doit quitter le cadre pour ne pas mourir avec lui, mais la montrer une
+    /// fraction de seconde avant de la fermer ne servirait qu'à clignoter.
+    /// </param>
+    public bool Detach(string key, bool reveal = true)
     {
         if (Find(key) is not { } tab)
         {
@@ -87,7 +98,12 @@ public partial class TabbedGameWindow : Window
 
         tab.PropertyChanged -= OnTabChanged;
         Items.Remove(tab);
-        _windows.SetVisible(tab.Window, true);
+
+        if (reveal)
+        {
+            _windows.SetVisible(tab.Window, true);
+        }
+
         _windows.Undock(tab.Window);
 
         if (tab.IsSelected && Items.Count > 0)
@@ -100,12 +116,12 @@ public partial class TabbedGameWindow : Window
         return true;
     }
 
-    /// <summary>Ressort toutes les fenêtres. Appelé à la fermeture.</summary>
-    public void DetachAll()
+    /// <summary>Ressort toutes les fenêtres.</summary>
+    public void DetachAll(bool reveal = true)
     {
         foreach (var key in Items.Select(t => t.Key).ToList())
         {
-            Detach(key);
+            Detach(key, reveal);
         }
     }
 
@@ -587,12 +603,23 @@ public partial class TabbedGameWindow : Window
 
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
-        // Les fenêtres logées ne doivent pas mourir avec le cadre : elles
-        // reprennent leur vie de fenêtres libres.
+        // Fermer le cadre ferme ce qu'il contient. Les fenêtres en ressortaient
+        // libres, et l'on se retrouvait avec autant de fenêtres de jeu éparses
+        // qu'on croyait venir de fermer : le geste ne faisait pas ce qu'il dit.
+        //
+        // Elles quittent tout de même le cadre d'abord, et masquées : une
+        // fenêtre logée est fille de celui-ci, et Windows détruirait ses
+        // enfants avec lui sans laisser à scrcpy le temps de s'arrêter
+        // proprement. Les montrer entre-temps ne ferait que clignoter.
         _closing = true;
-        DetachAll();
+
+        List<string> loges = [.. Items.Select(t => t.Key)];
+
+        DetachAll(reveal: false);
 
         base.OnClosing(e);
+
+        CloseRequested?.Invoke(this, loges);
     }
 
     /// <summary>
