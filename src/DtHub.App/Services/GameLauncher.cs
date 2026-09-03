@@ -1306,20 +1306,41 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // Fermer le cadre ferme les comptes qu'il logeait : c'est ce que le
         // geste annonce, et les voir se disperser en fenêtres libres était le
         // contraire de ce qu'on demandait.
-        cadre.CloseRequested += async (_, loges) => await CloseTabbedAsync(loges).ConfigureAwait(true);
+        cadre.CloseRequested += async (_, loges) =>
+        {
+            // Bornés, ces deux gestes-ci. Une faute s'échapperait d'une lambda
+            // « async void » et atteindrait le garde-fou du répartiteur, qui
+            // ouvrirait une fenêtre d'erreur pour un clic sur une croix ou un
+            // glissement d'onglet. Le journal la retient, le geste échoue seul.
+            try
+            {
+                await CloseTabbedAsync(loges).ConfigureAwait(true);
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                LogTabsFailure(exception);
+            }
+        };
 
         // Réordonner les onglets réordonne les comptes : un seul ordre partout.
         cadre.Reordered += async (_, mouvement) =>
         {
-            if (await _settings
-                    .MoveInstanceAsync(mouvement.Moved, mouvement.Onto, mouvement.Before)
-                    .ConfigureAwait(true))
+            try
             {
-                await RefreshRanksAsync().ConfigureAwait(true);
+                if (await _settings
+                        .MoveInstanceAsync(mouvement.Moved, mouvement.Onto, mouvement.Before)
+                        .ConfigureAwait(true))
+                {
+                    await RefreshRanksAsync().ConfigureAwait(true);
 
-                var ordre = await _settings.GetInstanceRanksAsync().ConfigureAwait(true);
+                    var ordre = await _settings.GetInstanceRanksAsync().ConfigureAwait(true);
 
-                cadre.Reorder([.. ordre.OrderBy(p => p.Value).Select(p => p.Key)]);
+                    cadre.Reorder([.. ordre.OrderBy(p => p.Value).Select(p => p.Key)]);
+                }
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                LogTabsFailure(exception);
             }
         };
 
@@ -1612,6 +1633,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Un raccourci n'a pas pu être traité.")]
     private partial void LogHotkeyFailure(Exception exception);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "Un geste sur le cadre à onglets n'a pas pu être traité.")]
+    private partial void LogTabsFailure(Exception exception);
 
 
     [LoggerMessage(

@@ -9,6 +9,8 @@ using DtHub.Core.Settings;
 using DtHub.Core.Windows;
 using Microsoft.Extensions.DependencyInjection;
 
+using Serilog;
+
 namespace DtHub.App.Windows;
 
 /// <summary>
@@ -71,7 +73,20 @@ public partial class ConfiguratorWindow : Window
                 _poll.Interval = _viewModel.Instances.PollInterval;
             }
 
-            await _viewModel.PollAsync(CancellationToken.None).ConfigureAwait(true);
+            // Borné, et c'est le tic qui l'exige. Le balayage n'attrape que
+            // les fautes d'ADB ; toute autre s'échapperait de cette lambda
+            // « async void », atteindrait le garde-fou du répartiteur, et
+            // ouvrirait une fenêtre d'erreur toutes les trois secondes. Une
+            // panne durable rendrait alors l'application inutilisable par son
+            // propre message. Le journal la retient, le tic suivant réessaie.
+            try
+            {
+                await _viewModel.PollAsync(CancellationToken.None).ConfigureAwait(true);
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                Log.Warning(exception, "Le balayage du panneau a échoué.");
+            }
         };
     }
 

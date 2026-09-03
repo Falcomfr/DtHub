@@ -7,6 +7,8 @@ using DtHub.App.ViewModels;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using Serilog;
+
 namespace DtHub.App.Windows;
 
 /// <summary>
@@ -36,7 +38,21 @@ public partial class AddDeviceWindow : Window
             Code.Focus();
         };
 
-        _poll.Tick += async (_, _) => await _viewModel.ScanAsync(CancellationToken.None).ConfigureAwait(true);
+        // Borné pour la même raison que le tic du panneau : sans cela, une
+        // faute inattendue pendant la recherche du téléphone ouvrirait une
+        // fenêtre d'erreur toutes les deux secondes, par-dessus la fenêtre où
+        // l'on tape son code d'appairage.
+        _poll.Tick += async (_, _) =>
+        {
+            try
+            {
+                await _viewModel.ScanAsync(CancellationToken.None).ConfigureAwait(true);
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                Log.Warning(exception, "La recherche de téléphones a échoué.");
+            }
+        };
     }
 
     private void OnClose(object sender, RoutedEventArgs e) => Close();
