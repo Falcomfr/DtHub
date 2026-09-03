@@ -1,3 +1,5 @@
+using DtHub.Core.Localization;
+
 namespace DtHub.Core.Windows;
 
 /// <summary>
@@ -33,7 +35,7 @@ public sealed record WindowSizePresets
 
     /// <summary>Libellé affiché dans l'éditeur de raccourcis.</summary>
     public string LabelAt(int index) =>
-        IsFullscreen(index) ? "Plein écran" : $"Taille {index + 1} ({PercentageAt(index)} %)";
+        IsFullscreen(index) ? Strings.Get("ActionFullscreen") : $"Taille {index + 1} ({PercentageAt(index)} %)";
 
     /// <summary>
     /// Rend une copie assainie : pourcentages ramenés dans des bornes

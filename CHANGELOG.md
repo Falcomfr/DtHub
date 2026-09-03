@@ -15,10 +15,13 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   Fenêtres permet de la contredire ; il prend effet au démarrage suivant, les
   fenêtres lisant leurs textes une fois pour toutes à leur construction.
 
-  Cette première étape traduit le panneau de réglages en entier, ses infobulles
-  comprises. Le reste des fenêtres, les messages d'erreur et les phrases bâties
-  à l'exécution restent français pour l'instant. Les guides eux-mêmes viennent
-  de papycha.fr et resteront français : c'est du contenu, non de l'habillage.
+  Toutes les fenêtres sont traduites, infobulles comprises, ainsi que les
+  messages d'erreur, les noms de touches et les phrases bâties à l'exécution.
+
+  Ce qui reste français y reste à dessein : les guides viennent de papycha.fr
+  et sont du contenu, non de l'habillage ; les noms de rubriques et de quêtes
+  servent de clés d'appariement avec le site ; les chemins de menus Android
+  sont ceux du téléphone, et l'aide le dit déjà en toutes lettres.
 
 ### Corrigé
 

@@ -1064,4 +1064,171 @@ Le reste de l'application fonctionne sans lui.</value>
   <data name="AnchorBottomRight" xml:space="preserve">
     <value>En bas à droite</value>
   </data>
+  <data name="Quests" xml:space="preserve">
+    <value>Quêtes</value>
+  </data>
+  <data name="Dungeons" xml:space="preserve">
+    <value>Donjons</value>
+  </data>
+  <data name="Raids" xml:space="preserve">
+    <value>Raids</value>
+  </data>
+  <data name="Lairs" xml:space="preserve">
+    <value>Tanières</value>
+  </data>
+  <data name="Paths" xml:space="preserve">
+    <value>Chemins</value>
+  </data>
+  <data name="Zones" xml:space="preserve">
+    <value>Zones</value>
+  </data>
+  <data name="Achievements" xml:space="preserve">
+    <value>Succès</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Recherche</value>
+  </data>
+  <data name="NoResult" xml:space="preserve">
+    <value>Aucun résultat</value>
+  </data>
+  <data name="Section" xml:space="preserve">
+    <value>Rubrique</value>
+  </data>
+  <data name="Path" xml:space="preserve">
+    <value>Chemin</value>
+  </data>
+  <data name="QuestAreaCrumb" xml:space="preserve">
+    <value>Zone de Quêtes</value>
+  </data>
+  <data name="WordQuest" xml:space="preserve">
+    <value>quête</value>
+  </data>
+  <data name="WordQuests" xml:space="preserve">
+    <value>quêtes</value>
+  </data>
+  <data name="WordDungeon" xml:space="preserve">
+    <value>donjon</value>
+  </data>
+  <data name="WordDungeons" xml:space="preserve">
+    <value>donjons</value>
+  </data>
+  <data name="WordRaid" xml:space="preserve">
+    <value>raid</value>
+  </data>
+  <data name="WordRaids" xml:space="preserve">
+    <value>raids</value>
+  </data>
+  <data name="WordLair" xml:space="preserve">
+    <value>tanière</value>
+  </data>
+  <data name="WordLairs" xml:space="preserve">
+    <value>tanières</value>
+  </data>
+  <data name="WordZone" xml:space="preserve">
+    <value>zone</value>
+  </data>
+  <data name="WordZones" xml:space="preserve">
+    <value>zones</value>
+  </data>
+  <data name="WordAchievement" xml:space="preserve">
+    <value>succès</value>
+  </data>
+  <data name="WordAchievements" xml:space="preserve">
+    <value>succès</value>
+  </data>
+  <data name="WordPath" xml:space="preserve">
+    <value>chemin</value>
+  </data>
+  <data name="WordPaths" xml:space="preserve">
+    <value>chemins</value>
+  </data>
+  <data name="WordBattleSite" xml:space="preserve">
+    <value>lieu de combat</value>
+  </data>
+  <data name="WordBattleSites" xml:space="preserve">
+    <value>lieux de combat</value>
+  </data>
+  <data name="Count" xml:space="preserve">
+    <value>{0} {1}</value>
+  </data>
+  <data name="SearchPlaceholder" xml:space="preserve">
+    <value>Cherchez un guide, ou dépliez la liste.</value>
+  </data>
+  <data name="NoQuestSiteDown" xml:space="preserve">
+    <value>Aucune quête : le site n'a pas répondu.</value>
+  </data>
+  <data name="SiteDownCached" xml:space="preserve">
+    <value>Le site n'a pas répondu ; liste en cache.</value>
+  </data>
+  <data name="StepOfTotal" xml:space="preserve">
+    <value>Étape {0} / {1}</value>
+  </data>
+  <data name="StepShort" xml:space="preserve">
+    <value>Étape {0}/{1}</value>
+  </data>
+  <data name="BrowserFallback" xml:space="preserve">
+    <value>
+
+En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
+  </data>
+  <data name="LevelUnknown" xml:space="preserve">
+    <value>Niveau inconnu</value>
+  </data>
+  <data name="LevelRange" xml:space="preserve">
+    <value>Niveau {0} à {1}</value>
+  </data>
+  <data name="LevelSpan" xml:space="preserve">
+    <value>niveau {0}</value>
+  </data>
+  <data name="LevelSpanOf" xml:space="preserve">
+    <value>niveau {0} (sur {1})</value>
+  </data>
+  <data name="AndroidTooOld" xml:space="preserve">
+    <value>cet appareil est en {0}, or ouvrir une fenêtre de jeu demande {1} ou plus récent.</value>
+  </data>
+  <data name="ApiLevelPrefix" xml:space="preserve">
+    <value>niveau d'API </value>
+  </data>
+  <data name="ManagedProfile" xml:space="preserve">
+    <value>Profil géré</value>
+  </data>
+  <data name="Guest" xml:space="preserve">
+    <value>Invité</value>
+  </data>
+  <data name="GuidesReread" xml:space="preserve">
+    <value>Guides relus : {0}.</value>
+  </data>
+  <data name="TallyMore" xml:space="preserve">
+    <value>{0} {1} de plus</value>
+  </data>
+  <data name="TallyFewer" xml:space="preserve">
+    <value>{0} {1} de moins</value>
+  </data>
+  <data name="DependencyUrlNotSecure" xml:space="preserve">
+    <value>{0} : l'URL déclarée n'est pas sécurisée.</value>
+  </data>
+  <data name="DependencyInstallFailed" xml:space="preserve">
+    <value>{0} n'a pas pu être installé : {1}</value>
+  </data>
+  <data name="DependencyExecutableMissing" xml:space="preserve">
+    <value>{0} a été extrait mais {1} reste introuvable.</value>
+  </data>
+  <data name="DependencyDownloadFailed" xml:space="preserve">
+    <value>{0} : le téléchargement a échoué ({1}).</value>
+  </data>
+  <data name="DependencyWrongSize" xml:space="preserve">
+    <value>{0} : l'archive téléchargée n'a pas la taille attendue. Installation interrompue.</value>
+  </data>
+  <data name="DependencyWrongHash" xml:space="preserve">
+    <value>{0} : l'empreinte du fichier téléchargé ne correspond pas. Rien n'a été installé.</value>
+  </data>
+  <data name="ProcessCouldNotStart" xml:space="preserve">
+    <value>Le processus {0} n'a pas pu être démarré.</value>
+  </data>
+  <data name="ProcessCouldNotStartWhy" xml:space="preserve">
+    <value>Le processus {0} n'a pas pu être démarré : {1}</value>
+  </data>
+  <data name="NoScreenDetected" xml:space="preserve">
+    <value>Aucun écran n'a été détecté.</value>
+  </data>
 </root>

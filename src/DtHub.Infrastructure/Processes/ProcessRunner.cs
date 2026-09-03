@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text;
 
+using DtHub.Core.Localization;
 using DtHub.Core.Processes;
 
 namespace DtHub.Infrastructure.Processes;
@@ -63,14 +64,14 @@ public sealed class ProcessRunner : IProcessRunner
             {
                 throw new ProcessLaunchException(
                     request.FileName,
-                    $"Le processus {request.FileName} n'a pas pu être démarré.");
+                    Strings.Format("ProcessCouldNotStart", request.FileName));
             }
         }
         catch (Exception exception) when (exception is not ProcessLaunchException)
         {
             throw new ProcessLaunchException(
                 request.FileName,
-                $"Le processus {request.FileName} n'a pas pu être démarré : {exception.Message}",
+                Strings.Format("ProcessCouldNotStartWhy", request.FileName, exception.Message),
                 exception);
         }
 
@@ -182,14 +183,14 @@ public sealed class ProcessRunner : IProcessRunner
             {
                 throw new ProcessLaunchException(
                     request.FileName,
-                    $"Le processus {request.FileName} n'a pas pu être démarré.");
+                    Strings.Format("ProcessCouldNotStart", request.FileName));
             }
         }
         catch (Exception exception) when (exception is not ProcessLaunchException)
         {
             throw new ProcessLaunchException(
                 request.FileName,
-                $"Le processus {request.FileName} n'a pas pu être démarré : {exception.Message}",
+                Strings.Format("ProcessCouldNotStartWhy", request.FileName, exception.Message),
                 exception);
         }
 

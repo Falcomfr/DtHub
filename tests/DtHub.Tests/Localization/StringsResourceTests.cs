@@ -126,6 +126,40 @@ public sealed class StringsResourceTests
     public void Une_cle_inconnue_se_rend_telle_quelle()
         => Assert.Equal("PasUneCle", Strings.GetIn("PasUneCle", CultureInfo.InvariantCulture));
 
+    /// <summary>
+    /// Aucune fenêtre ne doit porter de texte en dur. Le contrôle est
+    /// mécanique parce que l'oubli l'est aussi : on ajoute un bouton, on tape
+    /// son libellé, et l'application redevient française dans un coin.
+    /// </summary>
+    [Fact]
+    public void Aucune_fenetre_ne_porte_de_texte_en_dur()
+    {
+        // Le nom du produit, le glyphe de fermeture, le signe du pourcentage et
+        // les chevrons du fil d'Ariane ne se traduisent pas.
+        HashSet<string> admis = ["DT Hub", "\u2715", "%", "\u2039", "\u203a", "&#x2039;", "&#x203A;"];
+
+        var attributs = new Regex(
+            @"(?<!\w)(?:Content|Text|Title|ToolTip|Header)=""(?<value>[^""{][^""]*)""");
+
+        List<string> durs = [];
+
+        foreach (var fichier in Directory.EnumerateFiles(
+            Path.Combine(RepositoryRoot(), "src"), "*.xaml", SearchOption.AllDirectories))
+        {
+            foreach (Match match in attributs.Matches(File.ReadAllText(fichier)))
+            {
+                var valeur = match.Groups["value"].Value.Trim();
+
+                if (!admis.Contains(valeur))
+                {
+                    durs.Add($"{Path.GetFileName(fichier)} : {valeur}");
+                }
+            }
+        }
+
+        Assert.Equal([], durs.Order());
+    }
+
     private static HashSet<string> Keys(string langue)
         => [.. Entries(langue).Select(e => e.Key)];
 

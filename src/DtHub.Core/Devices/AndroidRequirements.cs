@@ -1,5 +1,7 @@
 using System.Globalization;
 
+using DtHub.Core.Localization;
+
 namespace DtHub.Core.Devices;
 
 /// <summary>
@@ -33,12 +35,12 @@ public static class AndroidRequirements
             return null;
         }
 
-        return $"cet appareil est en {Describe(sdk, androidVersion)}, "
-            + $"or ouvrir une fenêtre de jeu demande {VirtualDisplayVersion} ou plus récent.";
+        return Strings.Format(
+            "AndroidTooOld", Describe(sdk, androidVersion), VirtualDisplayVersion);
     }
 
     private static string Describe(int sdk, string? androidVersion) =>
         string.IsNullOrWhiteSpace(androidVersion)
-            ? "niveau d'API " + sdk.ToString(CultureInfo.InvariantCulture)
+            ? Strings.Get("ApiLevelPrefix") + sdk.ToString(CultureInfo.InvariantCulture)
             : "Android " + androidVersion.Trim();
 }

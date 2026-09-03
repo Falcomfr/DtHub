@@ -2,6 +2,7 @@ using System.IO.Compression;
 using System.Security.Cryptography;
 
 using DtHub.Core.Dependencies;
+using DtHub.Core.Localization;
 using DtHub.Core.Storage;
 
 using Microsoft.Extensions.Logging;
@@ -55,7 +56,7 @@ public sealed partial class ArchiveDependencyProvisioner : IDependencyProvisione
         {
             throw new DependencyProvisioningException(
                 dependency.Key,
-                $"{dependency.DisplayName} : l'URL déclarée n'est pas sécurisée.");
+                Strings.Format("DependencyUrlNotSecure", dependency.DisplayName));
         }
 
         _paths.EnsureCreated();
@@ -80,7 +81,7 @@ public sealed partial class ArchiveDependencyProvisioner : IDependencyProvisione
         {
             throw new DependencyProvisioningException(
                 dependency.Key,
-                $"{dependency.DisplayName} n'a pas pu être installé : {exception.Message}",
+                Strings.Format("DependencyInstallFailed", dependency.DisplayName, exception.Message),
                 exception);
         }
         finally
@@ -93,7 +94,8 @@ public sealed partial class ArchiveDependencyProvisioner : IDependencyProvisione
         {
             throw new DependencyProvisioningException(
                 dependency.Key,
-                $"{dependency.DisplayName} a été extrait mais {dependency.Executable} reste introuvable.");
+                Strings.Format(
+                    "DependencyExecutableMissing", dependency.DisplayName, dependency.Executable));
         }
 
         progress?.Report(new ProvisioningProgress(ProvisioningStage.Done));
@@ -127,7 +129,8 @@ public sealed partial class ArchiveDependencyProvisioner : IDependencyProvisione
         {
             throw new DependencyProvisioningException(
                 dependency.Key,
-                $"{dependency.DisplayName} : le téléchargement a échoué ({(int)response.StatusCode}).");
+                Strings.Format(
+                    "DependencyDownloadFailed", dependency.DisplayName, (int)response.StatusCode));
         }
 
         var total = response.Content.Headers.ContentLength ?? dependency.SizeBytes;
@@ -174,7 +177,7 @@ public sealed partial class ArchiveDependencyProvisioner : IDependencyProvisione
         {
             throw new DependencyProvisioningException(
                 dependency.Key,
-                $"{dependency.DisplayName} : l'archive téléchargée n'a pas la taille attendue. Installation interrompue.");
+                Strings.Format("DependencyWrongSize", dependency.DisplayName));
         }
 
         await using var stream = new FileStream(
@@ -187,8 +190,7 @@ public sealed partial class ArchiveDependencyProvisioner : IDependencyProvisione
         {
             throw new DependencyProvisioningException(
                 dependency.Key,
-                $"{dependency.DisplayName} : l'empreinte du fichier téléchargé ne correspond pas. "
-                + "Rien n'a été installé.");
+                Strings.Format("DependencyWrongHash", dependency.DisplayName));
         }
     }
 

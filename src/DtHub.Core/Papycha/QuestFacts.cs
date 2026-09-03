@@ -1,3 +1,5 @@
+using DtHub.Core.Localization;
+
 namespace DtHub.Core.Papycha;
 
 /// <summary>
@@ -31,5 +33,5 @@ public sealed record QuestFacts
     public bool HasChain => StepCount > 1 && StepNumber > 0;
 
     /// <summary>« Étape 3/4 », ou une chaîne vide hors chaîne.</summary>
-    public string StepText => HasChain ? $"Étape {StepNumber}/{StepCount}" : string.Empty;
+    public string StepText => HasChain ? Strings.Format("StepShort", StepNumber, StepCount) : string.Empty;
 }

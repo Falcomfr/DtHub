@@ -1,5 +1,7 @@
 ﻿using System.Globalization;
 
+using DtHub.Core.Localization;
+
 namespace DtHub.Core.Papycha;
 
 /// <summary>
@@ -36,8 +38,8 @@ public static class QuestLevelRange
         var span = low == high ? Text(low) : $"{Text(low)} - {Text(high)}";
 
         return levels.Count == quests.Count
-            ? $"niveau {span}"
-            : $"niveau {span} (sur {Text(levels.Count)})";
+            ? Strings.Format("LevelSpan", span)
+            : Strings.Format("LevelSpanOf", span, Text(levels.Count));
     }
 
     private static string Text(int value) => value.ToString(CultureInfo.CurrentCulture);

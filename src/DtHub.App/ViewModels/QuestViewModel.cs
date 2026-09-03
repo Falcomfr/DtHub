@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 using DtHub.App.Services;
+using DtHub.Core.Localization;
 using DtHub.Core.Papycha;
 
 namespace DtHub.App.ViewModels;
@@ -98,7 +99,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
     /// <summary>Ce qu'on lit tant qu'aucune quête n'est ouverte.</summary>
     [ObservableProperty]
-    private string _placeholder = "Cherchez un guide, ou dépliez la liste.";
+    private string _placeholder = Strings.Get("SearchPlaceholder");
 
     /// <summary>
     /// Ligne à mettre en évidence quand le panneau s'ouvre : celle de la quête
@@ -232,9 +233,9 @@ public sealed partial class QuestViewModel : ObservableObject
         // relecture : la sentinelle décide, et l'on veut savoir ce qu'elle a
         // trouvé.
         StatusText = catalog.Quests.Count == 0
-            ? "Aucune quête : le site n'a pas répondu."
+            ? Strings.Get("NoQuestSiteDown")
             : _catalog.LastFailure is not null
-                ? "Le site n'a pas répondu ; liste en cache."
+                ? Strings.Get("SiteDownCached")
                 : QuestTally.Of(catalog).Since(before);
     }
 
@@ -363,26 +364,26 @@ public sealed partial class QuestViewModel : ObservableObject
         Nodes.Clear();
         Nodes.Add(new QuestNode(
             QuestNodeKind.Branch,
-            "Quêtes",
+            Strings.Get("Quests"),
             Nombre(_catalog.Catalog.Quests.Count),
             Id: RootSection,
             Glyph: QuestNodeGlyph.Quests));
         Nodes.Add(new QuestNode(
             QuestNodeKind.Branch,
-            "Donjons",
-            Combien(Fighting(DungeonKind.Dungeon).Count, "donjon", "donjons"),
+            Strings.Get("Dungeons"),
+            Combien(Fighting(DungeonKind.Dungeon).Count, "WordDungeon", "WordDungeons"),
             Id: DungeonSection,
             Glyph: QuestNodeGlyph.Dungeons));
         Nodes.Add(new QuestNode(
             QuestNodeKind.Branch,
-            "Raids",
-            Combien(Fighting(DungeonKind.Raid).Count, "raid", "raids"),
+            Strings.Get("Raids"),
+            Combien(Fighting(DungeonKind.Raid).Count, "WordRaid", "WordRaids"),
             Id: RaidSection,
             Glyph: QuestNodeGlyph.Raids));
         Nodes.Add(new QuestNode(
             QuestNodeKind.Branch,
-            "Tanières",
-            Combien(Fighting(DungeonKind.Lair).Count, "tanière", "tanières"),
+            Strings.Get("Lairs"),
+            Combien(Fighting(DungeonKind.Lair).Count, "WordLair", "WordLairs"),
             Id: LairSection,
             Glyph: QuestNodeGlyph.Lairs));
     }
@@ -415,7 +416,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
         if (section == DungeonSection)
         {
-            Breadcrumb = "Donjons";
+            Breadcrumb = Strings.Get("Dungeons");
             SetBack(target: 0);
 
             Nodes.Add(PathBranch(PathSide.Dungeons, DungeonPathSection));
@@ -432,7 +433,7 @@ public sealed partial class QuestViewModel : ObservableObject
         {
             var kind = section == RaidSection ? DungeonKind.Raid : DungeonKind.Lair;
 
-            Breadcrumb = section == RaidSection ? "Raids" : "Tanières";
+            Breadcrumb = Strings.Get(section == RaidSection ? "Raids" : "Lairs");
             SetBack(target: 0);
 
             // Sans paliers : dix lignes se lisent d'un trait, et les couper
@@ -450,7 +451,8 @@ public sealed partial class QuestViewModel : ObservableObject
         {
             var side = section == DungeonPathSection ? PathSide.Dungeons : PathSide.Quests;
 
-            Breadcrumb = side == PathSide.Dungeons ? "Donjons  ›  Chemins" : "Zone de Quêtes  ›  Chemins";
+            Breadcrumb = Strings.Get(side == PathSide.Dungeons ? "Dungeons" : "QuestAreaCrumb")
+                + Separator + Strings.Get("Paths");
             SetBack(target: side == PathSide.Dungeons ? DungeonSection : RootSection);
 
             foreach (var path in Paths(side).OrderBy(p => p.Title, StringComparer.CurrentCulture))
@@ -464,7 +466,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
         if (section == RootSection)
         {
-            Breadcrumb = "Zone de Quêtes";
+            Breadcrumb = Strings.Get("QuestAreaCrumb");
             SetBack(target: 0);
 
             Nodes.Add(PathBranch(PathSide.Quests, QuestPathSection));
@@ -477,7 +479,7 @@ public sealed partial class QuestViewModel : ObservableObject
             return;
         }
 
-        Breadcrumb = $"Zone de Quêtes  ›  {NameOf(section)}";
+        Breadcrumb = Strings.Get("QuestAreaCrumb") + Separator + NameOf(section);
         SetBack(target: RootSection);
 
         AddBySuccess(_catalog.InSection(section));
@@ -552,7 +554,7 @@ public sealed partial class QuestViewModel : ObservableObject
     /// </summary>
     private void ShowSearch(string query)
     {
-        Breadcrumb = "Recherche";
+        Breadcrumb = Strings.Get("Search");
         ClearBack();
 
         Nodes.Clear();
@@ -562,7 +564,7 @@ public sealed partial class QuestViewModel : ObservableObject
         if (found.Zones.Count > 0)
         {
             Nodes.Add(new QuestNode(
-                QuestNodeKind.Section, "Zones", Combien(found.Zones.Count, "zone", "zones")));
+                QuestNodeKind.Section, Strings.Get("Zones"), Combien(found.Zones.Count, "WordZone", "WordZones")));
 
             foreach (var zone in found.Zones)
             {
@@ -577,7 +579,9 @@ public sealed partial class QuestViewModel : ObservableObject
         if (found.Successes.Count > 0)
         {
             Nodes.Add(new QuestNode(
-                QuestNodeKind.Section, "Succès", Combien(found.Successes.Count, "succès", "succès")));
+                QuestNodeKind.Section,
+                Strings.Get("Achievements"),
+                Combien(found.Successes.Count, "WordAchievement", "WordAchievements")));
 
             // Un succès ne se choisit pas : ce qu'on veut, ce sont ses quêtes.
             // Elles suivent donc son nom, dans l'ordre où l'on y joue.
@@ -613,7 +617,8 @@ public sealed partial class QuestViewModel : ObservableObject
                 continue;
             }
 
-            Nodes.Add(new QuestNode(QuestNodeKind.Section, titre, Combien(places.Count, un, plusieurs)));
+            Nodes.Add(new QuestNode(
+                QuestNodeKind.Section, Strings.Get(titre), Combien(places.Count, un, plusieurs)));
 
             foreach (var place in places)
             {
@@ -625,8 +630,8 @@ public sealed partial class QuestViewModel : ObservableObject
         {
             Nodes.Add(new QuestNode(
                 QuestNodeKind.Section,
-                "Chemins",
-                Combien(found.Paths.Count, "chemin", "chemins")));
+                Strings.Get("Paths"),
+                Combien(found.Paths.Count, "WordPath", "WordPaths")));
 
             foreach (var path in found.Paths)
             {
@@ -637,7 +642,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
         if (found.Quests.Count > 0)
         {
-            Nodes.Add(new QuestNode(QuestNodeKind.Section, "Quêtes", Nombre(found.Quests.Count)));
+            Nodes.Add(new QuestNode(QuestNodeKind.Section, Strings.Get("Quests"), Nombre(found.Quests.Count)));
 
             foreach (var quest in found.Quests)
             {
@@ -647,16 +652,20 @@ public sealed partial class QuestViewModel : ObservableObject
 
         if (Nodes.Count == 0)
         {
-            Nodes.Add(new QuestNode(QuestNodeKind.Pending, "Aucun résultat"));
+            Nodes.Add(new QuestNode(QuestNodeKind.Pending, Strings.Get("NoResult")));
         }
     }
 
-    /// <summary>Les trois groupes de lieux de combat, dans l'ordre de la racine.</summary>
+    /// <summary>
+    /// Les trois groupes de lieux de combat, dans l'ordre de la racine. Les
+    /// quatre textes sont des clés de traduction et non des libellés : la
+    /// table est statique, et la langue n'est connue qu'à l'affichage.
+    /// </summary>
     private static readonly (DungeonKind Kind, string Title, string One, string Many)[] DungeonGroups =
     [
-        (DungeonKind.Dungeon, "Donjons", "donjon", "donjons"),
-        (DungeonKind.Raid, "Raids", "raid", "raids"),
-        (DungeonKind.Lair, "Tanières", "tanière", "tanières"),
+        (DungeonKind.Dungeon, "Dungeons", "WordDungeon", "WordDungeons"),
+        (DungeonKind.Raid, "Raids", "WordRaid", "WordRaids"),
+        (DungeonKind.Lair, "Lairs", "WordLair", "WordLairs"),
     ];
 
     /// <summary>La branche où un lieu de combat se trouve.</summary>
@@ -684,8 +693,8 @@ public sealed partial class QuestViewModel : ObservableObject
     /// </summary>
     private QuestNode PathBranch(PathSide side, int section) => new(
         QuestNodeKind.Branch,
-        "Chemins",
-        Combien(Paths(side).Count, "chemin", "chemins"),
+        Strings.Get("Paths"),
+        Combien(Paths(side).Count, "WordPath", "WordPaths"),
         Id: section,
         Glyph: QuestNodeGlyph.Route);
 
@@ -909,9 +918,9 @@ public sealed partial class QuestViewModel : ObservableObject
             _catalog.Catalog.Sections.FirstOrDefault(s => s.Id == section)?.Name)
         is { Length: > 0 } name
             ? name
-            : "Rubrique";
+            : Strings.Get("Section");
 
-    private static string Nombre(int count) => count == 1 ? "1 quête" : $"{count} quêtes";
+    private static string Nombre(int count) => Combien(count, "WordQuest", "WordQuests");
 
     /// <summary>
     /// Compte d'un intertitre de recherche. Le mot suit la nature : annoncer
@@ -919,7 +928,10 @@ public sealed partial class QuestViewModel : ObservableObject
     /// au-dessus de ce qu'il coiffe.
     /// </summary>
     private static string Combien(int count, string singulier, string pluriel) =>
-        count == 1 ? $"1 {singulier}" : $"{count} {pluriel}";
+        Strings.Format("Count", count, Strings.Get(count == 1 ? singulier : pluriel));
+
+    /// <summary>Ce qui sépare deux niveaux d'un fil d'Ariane.</summary>
+    private const string Separator = "  \u203a  ";
 
     /// <summary>Catégorie qui range toutes les quêtes du site.</summary>
     private const int RootSection = 7;
@@ -1075,7 +1087,7 @@ public sealed partial class QuestViewModel : ObservableObject
         _start = null;
         _startsAtDeparture = false;
 
-        ChainText = "Chemin";
+        ChainText = Strings.Get("Path");
         ChainStep = string.Empty;
         PreviousQuest = null;
         NextQuest = null;
@@ -1297,7 +1309,7 @@ public sealed partial class QuestViewModel : ObservableObject
         var total = _steps.Count;
 
         StepText = index >= 0 && total > 0
-            ? $"Étape {index + 1} / {total}"
+            ? Strings.Format("StepOfTotal", index + 1, total)
             : string.Empty;
 
         StepDetail = index >= 0 && index < total ? StepLabel(index) : string.Empty;
@@ -1548,8 +1560,7 @@ public sealed partial class QuestViewModel : ObservableObject
         HasQuest = false;
         IsLoadingPage = false;
         Placeholder =
-            exception.Message
-            + "\n\nEn attendant, le bouton du bas ouvre la page dans votre navigateur.";
+            exception.Message + Strings.Get("BrowserFallback");
     }
 
     /// <summary>L'accueil du site.</summary>

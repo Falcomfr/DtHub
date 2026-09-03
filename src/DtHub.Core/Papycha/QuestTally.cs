@@ -1,5 +1,7 @@
 ﻿using System.Globalization;
 
+using DtHub.Core.Localization;
+
 namespace DtHub.Core.Papycha;
 
 /// <summary>
@@ -36,13 +38,13 @@ public readonly record struct QuestTally(int Quests, int Places, int Paths)
 
         List<string> parts = [];
 
-        Add(Quests - before.Quests, "quête", "quêtes");
-        Add(Places - before.Places, "lieu de combat", "lieux de combat");
-        Add(Paths - before.Paths, "chemin", "chemins");
+        Add(Quests - before.Quests, "WordQuest", "WordQuests");
+        Add(Places - before.Places, "WordBattleSite", "WordBattleSites");
+        Add(Paths - before.Paths, "WordPath", "WordPaths");
 
         return parts.Count == 0
             ? string.Empty
-            : "Guides relus : " + string.Join(", ", parts) + ".";
+            : Strings.Format("GuidesReread", string.Join(", ", parts));
 
         void Add(int delta, string one, string many)
         {
@@ -53,9 +55,10 @@ public readonly record struct QuestTally(int Quests, int Places, int Paths)
 
             var count = Math.Abs(delta);
 
-            parts.Add(
-                $"{count.ToString(CultureInfo.CurrentCulture)} "
-                + $"{(count > 1 ? many : one)} {(delta > 0 ? "de plus" : "de moins")}");
+            parts.Add(Strings.Format(
+                delta > 0 ? "TallyMore" : "TallyFewer",
+                count,
+                Strings.Get(count > 1 ? many : one)));
         }
     }
 }

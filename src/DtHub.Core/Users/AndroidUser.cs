@@ -1,3 +1,5 @@
+using DtHub.Core.Localization;
+
 namespace DtHub.Core.Users;
 
 /// <summary>
@@ -42,10 +44,10 @@ public sealed record AndroidUser
     public string TypeLabel => Type switch
     {
         AndroidUserType.Primary => "Principal",
-        AndroidUserType.ManagedProfile => "Profil géré",
+        AndroidUserType.ManagedProfile => Strings.Get("ManagedProfile"),
         AndroidUserType.CloneProfile => "Clone",
         AndroidUserType.Secondary => "Second espace",
-        AndroidUserType.Guest => "Invité",
+        AndroidUserType.Guest => Strings.Get("Guest"),
         AndroidUserType.Restricted => "Restreint",
         _ => "Profil",
     };

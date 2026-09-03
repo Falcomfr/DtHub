@@ -1,3 +1,5 @@
+using DtHub.Core.Localization;
+
 namespace DtHub.Core.Papycha;
 
 /// <summary>
@@ -32,11 +34,11 @@ public static class DungeonLevelBand
 
         if (rank == Unknown)
         {
-            return "Niveau inconnu";
+            return Strings.Get("LevelUnknown");
         }
 
         var first = (rank * Width) + 1;
 
-        return $"Niveau {first} à {first + Width - 1}";
+        return Strings.Format("LevelRange", first, first + Width - 1);
     }
 }

@@ -1,3 +1,5 @@
+using DtHub.Core.Localization;
+
 namespace DtHub.Core.Windows;
 
 /// <summary>
@@ -101,7 +103,7 @@ public static class WindowLayoutCalculator
 
         if (monitors.Count == 0)
         {
-            throw new InvalidOperationException("Aucun écran n'a été détecté.");
+            throw new InvalidOperationException(Strings.Get("NoScreenDetected"));
         }
 
         if (!string.IsNullOrWhiteSpace(preferredDeviceName))
@@ -125,7 +127,7 @@ public static class WindowLayoutCalculator
 
         if (monitors.Count == 0)
         {
-            throw new InvalidOperationException("Aucun écran n'a été détecté.");
+            throw new InvalidOperationException(Strings.Get("NoScreenDetected"));
         }
 
         return monitors.FirstOrDefault(m => m.Bounds.Contains(x, y))
