@@ -9,6 +9,21 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Modifié
 
+- Une quête seule peut désormais se glisser entre deux quêtes d'un succès, et
+  la série reprend après elle sous un intertitre marqué « suite ». Au Château
+  d'Amakna, « Étre plus royaliste que le roi » réclame neuf quêtes seules au
+  milieu de sa propre suite : traité comme un bloc insécable, il les rejetait
+  toutes avant ou toutes après, et la liste montrait des quêtes avant ce
+  qu'elles exigent.
+
+  Deux succès, eux, ne s'entrelacent jamais. Les laisser faire lèverait les
+  onze fautes restantes, mais l'île de Frigost, où huit succès se réclament
+  mutuellement, devenait un va-et-vient de quinze intertitres entre les mêmes
+  séries.
+
+  Mesuré : les prérequis placés après la quête qui les réclame passent de onze
+  à sept, et quatre succès sur cent soixante et un sont coupés.
+
 - La barre du bas se lit en deux temps. « Guides » est seul à gauche, dans son
   propre cadre : il ne range rien, contrairement aux deux autres, et les mettre
   tous les trois dans le même cadre les donnait pour trois gestes de même

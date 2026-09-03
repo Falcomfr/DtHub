@@ -10,6 +10,12 @@ public sealed record QuestZoneBlock(string SuccessName, IReadOnlyList<QuestSumma
 {
     /// <summary>Vrai quand le bloc est un succès et non une quête isolée.</summary>
     public bool IsSuccess => SuccessName.Length > 0;
+
+    /// <summary>
+    /// Vrai quand ce bloc reprend un succès déjà commencé plus haut, une quête
+    /// seule s'étant glissée entre deux de ses quêtes.
+    /// </summary>
+    public bool IsContinuation { get; init; }
 }
 
 /// <summary>
@@ -61,7 +67,205 @@ public static class QuestZonePlan
         var after = Edges(quests, blocks, blockOfUrl, waiting);
         var keys = Keys(blocks, successOrder, after);
 
-        return Sort(blocks, keys, after, waiting, Lonely(blocks, after, waiting));
+        return Weave(Sort(blocks, keys, after, waiting, Lonely(blocks, after, waiting)));
+    }
+
+
+    /// <summary>
+    /// Deuxième passe : laisse une quête seule se glisser entre deux quêtes
+    /// d'un succès, sans jamais entrelacer deux succès.
+    ///
+    /// Un succès traité comme un bloc insécable crée des contradictions que
+    /// nul ordre ne lève : à Amakna, « Étre plus royaliste que le roi » réclame
+    /// neuf quêtes seules au milieu de sa propre suite, si bien que ces neuf-là
+    /// paraissaient soit toutes avant, soit toutes après. Mesuré sur les
+    /// vingt-cinq listes : onze prérequis se retrouvaient après la quête qui les
+    /// réclame, et quatre disparaissent en laissant la quête seule entrer.
+    ///
+    /// Deux succès, eux, ne s'entrelacent pas. Les laisser faire lèverait les
+    /// onze, mais l'île de Frigost, où huit succès se réclament mutuellement,
+    /// devenait un va-et-vient de quinze intertitres entre les mêmes séries.
+    /// Une liste illisible n'est pas un progrès sur une liste imparfaite.
+    ///
+    /// La première passe décide de l'ordre des succès ; celle-ci n'y touche
+    /// pas. À contrainte égale, rien ne bouge.
+    /// </summary>
+    private static List<QuestZoneBlock> Weave(List<QuestZoneBlock> plan)
+    {
+        List<QuestSummary> flat = [.. plan.SelectMany(b => b.Quests)];
+
+        if (flat.Count < 2)
+        {
+            return plan;
+        }
+
+        Dictionary<string, int> at = new(StringComparer.Ordinal);
+        Dictionary<string, int> byTitle = new(StringComparer.Ordinal);
+        Dictionary<string, List<int>> bySuccess = new(StringComparer.Ordinal);
+
+        for (var i = 0; i < flat.Count; i++)
+        {
+            at[flat[i].Url] = i;
+            byTitle.TryAdd(QuestSearch.Normalize(flat[i].Title), i);
+
+            if (flat[i].SuccessName.Length > 0)
+            {
+                var key = QuestSearch.Normalize(flat[i].SuccessName);
+
+                if (!bySuccess.TryGetValue(key, out var members))
+                {
+                    members = [];
+                    bySuccess[key] = members;
+                }
+
+                members.Add(i);
+            }
+        }
+
+        var after = new List<HashSet<int>>(flat.Count);
+        var waiting = new int[flat.Count];
+
+        for (var i = 0; i < flat.Count; i++)
+        {
+            after.Add([]);
+        }
+
+        void Link(int from, int to)
+        {
+            if (from != to && after[from].Add(to))
+            {
+                waiting[to]++;
+            }
+        }
+
+        // Les prérequis. Exiger un succès, c'est exiger toutes ses quêtes.
+        for (var i = 0; i < flat.Count; i++)
+        {
+            foreach (var need in flat[i].Prerequisites)
+            {
+                var named = PrerequisiteLabel.Of(need);
+                var key = QuestSearch.Normalize(named.Name);
+
+                if (named.IsSuccess)
+                {
+                    foreach (var member in bySuccess.GetValueOrDefault(key, []))
+                    {
+                        Link(member, i);
+                    }
+                }
+                else if (byTitle.TryGetValue(key, out var one))
+                {
+                    Link(one, i);
+                }
+            }
+        }
+
+        // Et l'ordre des succès, tel que la première passe l'a fixé : tout un
+        // succès avant tout le suivant. C'est ce qui les empêche de
+        // s'entrelacer, et la transitivité suffit à couvrir les autres paires.
+        List<List<int>> series =
+        [
+            .. plan
+                .Where(b => b.IsSuccess)
+                .Select(b => (List<int>)[.. b.Quests.Select(q => at[q.Url])]),
+        ];
+
+        for (var i = 1; i < series.Count; i++)
+        {
+            foreach (var before in series[i - 1])
+            {
+                foreach (var next in series[i])
+                {
+                    Link(before, next);
+                }
+            }
+        }
+
+        var woven = Thread(flat, after, waiting);
+
+        return Runs(woven);
+    }
+
+    /// <summary>
+    /// Le tri topologique de la deuxième passe. Le départage est la place
+    /// d'avant, si bien qu'une contrainte absente ne déplace rien, et une
+    /// boucle retombe sur l'ordre de la première passe.
+    /// </summary>
+    private static List<QuestSummary> Thread(
+        List<QuestSummary> flat,
+        List<HashSet<int>> after,
+        int[] waiting)
+    {
+        SortedSet<int> left = [];
+        SortedSet<int> ready = [];
+
+        for (var i = 0; i < flat.Count; i++)
+        {
+            left.Add(i);
+
+            if (waiting[i] == 0)
+            {
+                ready.Add(i);
+            }
+        }
+
+        List<QuestSummary> order = new(flat.Count);
+
+        while (left.Count > 0)
+        {
+            var at = ready.Count > 0 ? ready.Min : left.Min;
+
+            _ = ready.Remove(at);
+            _ = left.Remove(at);
+
+            order.Add(flat[at]);
+
+            foreach (var next in after[at])
+            {
+                if (left.Contains(next) && --waiting[next] == 0)
+                {
+                    ready.Add(next);
+                }
+            }
+        }
+
+        return order;
+    }
+
+    /// <summary>
+    /// Regroupe les quêtes qui se suivent sous un même intertitre. Un succès
+    /// repris plus bas est marqué comme une suite, pour que le lecteur sache
+    /// qu'il ne recommence pas une série.
+    /// </summary>
+    private static List<QuestZoneBlock> Runs(List<QuestSummary> order)
+    {
+        List<QuestZoneBlock> plan = [];
+        HashSet<string> seen = new(StringComparer.Ordinal);
+
+        var start = 0;
+
+        for (var i = 1; i <= order.Count; i++)
+        {
+            // Deux quêtes seules qui se suivent restent deux blocs : c'est
+            // ainsi que la liste les montre, une ligne chacune.
+            if (i < order.Count
+                && order[i].SuccessName.Length > 0
+                && string.Equals(order[i].SuccessName, order[start].SuccessName, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var name = order[start].SuccessName;
+
+            plan.Add(new QuestZoneBlock(name, order[start..i])
+            {
+                IsContinuation = name.Length > 0 && !seen.Add(name),
+            });
+
+            start = i;
+        }
+
+        return plan;
     }
 
     /// <summary>

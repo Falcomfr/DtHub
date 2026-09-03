@@ -21,8 +21,74 @@ public sealed class QuestZonePlanTests
     /// <summary>Ce que la liste montrerait, un bloc par ligne.</summary>
     private static string[] Lignes(IEnumerable<QuestZoneBlock> plan) =>
         [.. plan.Select(b => b.IsSuccess
-            ? "* " + b.SuccessName
+            ? (b.IsContinuation ? "* " + b.SuccessName + " (suite)" : "* " + b.SuccessName)
             : "  " + b.Quests[0].Title)];
+
+    /// <summary>
+    /// Une quête seule que le succès réclame au milieu de sa propre suite s'y
+    /// glisse, et la série reprend après elle.
+    ///
+    /// Relevé au Château d'Amakna : « Étre plus royaliste que le roi » réclame
+    /// neuf quêtes seules entre ses quêtes. Traité comme un bloc insécable, il
+    /// les rejetait toutes avant ou toutes après, et la liste montrait des
+    /// quêtes avant ce qu'elles exigent.
+    /// </summary>
+    [Fact]
+    public void Une_quete_seule_se_glisse_entre_deux_quetes_d_un_succes()
+    {
+        List<QuestSummary> quetes =
+        [
+            Quete("Royaliste 1", "Etre royaliste", 1),
+            Quete("Emissaire du roi", prerequis: "Royaliste 1"),
+            Quete("Royaliste 2", "Etre royaliste", 2, "Emissaire du roi"),
+        ];
+
+        Assert.Equal(
+            ["* Etre royaliste", "  Emissaire du roi", "* Etre royaliste (suite)"],
+            Lignes(QuestZonePlan.Of(quetes, ["Etre royaliste"])));
+    }
+
+    /// <summary>
+    /// Deux succès ne s'entrelacent jamais, même quand leurs prérequis le
+    /// demandent : à Frigost, huit succès se réclament mutuellement, et les
+    /// laisser faire donnait un va-et-vient de quinze intertitres entre les
+    /// mêmes séries.
+    /// </summary>
+    [Fact]
+    public void Deux_succes_ne_s_entrelacent_pas()
+    {
+        List<QuestSummary> quetes =
+        [
+            Quete("Docteur 1", "Jouer au docteur", 1),
+            Quete("Docteur 2", "Jouer au docteur", 2, "Probleme 1"),
+            Quete("Probleme 1", "Problemes et solutions", 1, "Docteur 1"),
+        ];
+
+        var plan = QuestZonePlan.Of(quetes, ["Jouer au docteur", "Problemes et solutions"]);
+
+        Assert.Equal(["* Jouer au docteur", "* Problemes et solutions"], Lignes(plan));
+        Assert.DoesNotContain(plan, b => b.IsContinuation);
+    }
+
+    /// <summary>
+    /// Le compte du premier intertitre reste celui du succès entier : une série
+    /// coupée en deux n'en devient pas deux.
+    /// </summary>
+    [Fact]
+    public void Un_succes_coupe_garde_toutes_ses_quetes()
+    {
+        List<QuestSummary> quetes =
+        [
+            Quete("Royaliste 1", "Etre royaliste", 1),
+            Quete("Emissaire du roi", prerequis: "Royaliste 1"),
+            Quete("Royaliste 2", "Etre royaliste", 2, "Emissaire du roi"),
+        ];
+
+        var plan = QuestZonePlan.Of(quetes, ["Etre royaliste"]);
+
+        Assert.Equal(2, plan.Where(b => b.IsSuccess).Sum(b => b.Quests.Count));
+        Assert.Equal(3, plan.Sum(b => b.Quests.Count));
+    }
 
     [Fact]
     public void Range_une_quete_seule_avant_le_succes_qui_la_reclame()

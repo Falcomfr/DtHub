@@ -1228,4 +1228,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="NoScreenDetected" xml:space="preserve">
     <value>Aucun écran n'a été détecté.</value>
   </data>
+  <data name="SeriesContinued" xml:space="preserve">
+    <value>suite</value>
+  </data>
 </root>

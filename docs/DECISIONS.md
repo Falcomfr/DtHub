@@ -3327,3 +3327,66 @@ L'ordre des quêtes d'un succès ayant changé, sa **dernière** quête change p
 avec lui, et avec elle la suite qu'on lui propose. Un succès de plus s'achève
 sans suivante, 82 au lieu de 81. L'ancien compte reposait sur un ordre faux : on
 préfère un ordre juste et un bouton muet à un ordre faux et un bouton bavard.
+
+---
+
+## D83 - Une quête seule peut couper une série, deux séries ne s'entrelacent pas
+
+**2026-09-03 - Acceptée**
+
+D82 laissait onze prérequis placés après la quête qui les réclame, tous dus à la
+même règle : un succès est un bloc insécable, donc rien ne peut se glisser entre
+deux de ses quêtes. Ce n'étaient pas des boucles du jeu mais **des boucles que
+la règle fabrique** : au niveau de la quête, le graphe est acyclique.
+
+Trois voies ont été mesurées sur les vingt-cinq listes, avant de choisir.
+
+| | prérequis mal placés | succès coupés |
+| :-- | --: | --: |
+| Bloc insécable, l'état de D82 | 11 | 0 |
+| **Une quête seule peut couper** | **7** | **4 / 161** |
+| Tout peut couper | 0 | 11 / 161 |
+
+**La troisième a été écartée bien qu'elle rende un ordre exact.** Sur l'île de
+Frigost, où huit succès se réclament mutuellement, la liste devenait un va-et-
+vient de quinze intertitres entre les mêmes séries :
+
+```
+[Problèmes et solutions] (suite)
+[Jouer au docteur] (suite)
+[Problèmes et solutions] (suite)
+[Les carrières de glace]
+[Jouer au docteur] (suite)
+```
+
+Une liste illisible n'est pas un progrès sur une liste imparfaite. Le lecteur y
+perdrait plus qu'il n'y gagne, et ce que la liste doit dire avant tout, c'est
+où l'on en est.
+
+**La deuxième a été retenue.** Elle se dit en une phrase, et c'est ainsi qu'on
+joue : une quête seule s'intercale dans une série, deux séries ne se mélangent
+pas. Au Château d'Amakna, « Étre plus royaliste que le roi » réclame neuf quêtes
+seules au milieu de sa propre suite, et la liste le montre enfin :
+
+```
+[Étre plus royaliste que le roi]
+    Le guide du Roublard
+    Crypte Honnie
+    Traître ou pas traître, telle est la question…
+(neuf quêtes seules)
+[Étre plus royaliste que le roi] (suite)
+    A un poil près
+```
+
+Le premier intertitre porte le compte du succès entier ; ceux d'après portent
+« suite », pour qu'on sache qu'on ne recommence pas une série.
+
+**Le calcul se fait en deux passes**, et la première n'est pas touchée : elle
+range les succès entre eux, la seconde n'y déplace que les quêtes seules. À
+contrainte égale, rien ne bouge, et une boucle retombe sur l'ordre de la
+première. C'est ce qui rend le changement sûr : tout ce qui se rangeait bien
+continue de se ranger pareil.
+
+**Il reste sept fautes**, dont six sont des boucles entre succès et une un dégât
+collatéral. Elles ne tomberont pas sans laisser deux séries s'entrelacer, ce que
+la mesure ci-dessus déconseille. La sonde les compte à chaque passage.

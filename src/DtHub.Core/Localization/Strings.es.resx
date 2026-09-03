@@ -1228,4 +1228,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="NoScreenDetected" xml:space="preserve">
     <value>No se ha detectado ninguna pantalla.</value>
   </data>
+  <data name="SeriesContinued" xml:space="preserve">
+    <value>continuación</value>
+  </data>
 </root>

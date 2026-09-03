@@ -835,13 +835,23 @@ public sealed partial class QuestViewModel : ObservableObject
     {
         var plan = QuestZonePlan.Of(quests, _catalog.Catalog.SuccessOrder);
 
+        // Le compte annoncé est celui du succès entier, non celui du morceau :
+        // une série coupée par une quête seule reste une seule série, et son
+        // premier intertitre doit dire combien de quêtes elle porte en tout.
+        var total = plan
+            .Where(b => b.IsSuccess)
+            .GroupBy(b => b.SuccessName, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.Sum(b => b.Quests.Count), StringComparer.Ordinal);
+
         foreach (var block in plan)
         {
             if (block.IsSuccess)
             {
                 Nodes.Add(new QuestNode(
                     QuestNodeKind.Success,
-                    $"{block.SuccessName} ({block.Quests.Count})",
+                    block.IsContinuation
+                        ? $"{block.SuccessName} ({Strings.Get("SeriesContinued")})"
+                        : $"{block.SuccessName} ({Text(total[block.SuccessName])})",
                     QuestLevelRange.Of(block.Quests),
                     Glyph: QuestNodeGlyph.Success));
             }
