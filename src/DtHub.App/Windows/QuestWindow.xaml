@@ -150,7 +150,7 @@
               </StackPanel>
             </ToggleButton>
 
-            <Popup IsOpen="{Binding IsChecked, ElementName=StepsToggle}" StaysOpen="False"
+            <Popup IsOpen="{Binding IsChecked, ElementName=StepsToggle, Mode=TwoWay}" StaysOpen="False"
                    Placement="Bottom" PlacementTarget="{Binding ElementName=StepsToggle}"
                    AllowsTransparency="True" PopupAnimation="Fade">
               <Border Background="{DynamicResource SurfaceBrush}" Width="400"
@@ -255,6 +255,7 @@
                 Padding="9,5" FontSize="12"
                 Background="{DynamicResource AccentSoftBrush}"
                 BorderBrush="{DynamicResource AccentBrush}"
+                Visibility="{Binding CanReport, Converter={StaticResource BoolToVisibility}}"
                 ToolTip="Remonter une erreur à papycha.fr sur cette page. Le formulaire du site s'ouvre avec l'étape où vous en êtes déjà notée, et rien n'est envoyé tant que vous n'appuyez pas."
                 Click="OnReportError">
           <StackPanel Orientation="Horizontal">
@@ -787,8 +788,12 @@
                   <DataTrigger Binding="{Binding Glyph}" Value="Quests">
                     <Setter TargetName="Nature" Property="Visibility" Value="Visible" />
                     <Setter TargetName="Nature" Property="Stroke" Value="{x:Null}" />
+                    <!-- La teinte neutre des trois autres lignes de l'accueil.
+                         Le parchemin y était le seul en couleur, et rien ne
+                         justifiait qu'une des quatre natures se distingue là où
+                         elles se valent. -->
                     <Setter TargetName="Nature" Property="Fill"
-                            Value="{DynamicResource GlyphQuestBrush}" />
+                            Value="{DynamicResource GlyphDungeonBrush}" />
                     <!-- Un parchemin : deux rouleaux en pilule, un corps, et
                          deux lignes d'écriture évidées. Le dessin est à nous ;
                          celui du site ne sera repris que s'ils l'accordent. -->

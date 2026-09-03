@@ -2902,3 +2902,82 @@ une fausses retirées ici.
 Le gras n'est pas une convention du site, c'est une habitude d'auteur. Corriger
 cela demande une autre règle et un autre audit ; ce n'était pas la demande, et
 c'est signalé plutôt que fait à la sauvette.
+
+
+## D77 - Sept reprises, dont deux causes qu'il fallait aller chercher
+
+### Le soulignement venait du thème du site
+
+`stargazer/style.css` porte `label:focus { text-decoration: underline }`. Les
+champs du formulaire de signalement sont écrits
+`<label><span>intitulé</span><input></label>` : cliquer dans un champ met le
+libellé au focus, et **la décoration se propage à tout ce que la boîte
+contient**. D'où l'intitulé et la valeur soulignés.
+
+On la coupe **sur le libellé lui-même**, et non sur ses descendants : une
+décoration héritée par propagation ne s'annule pas depuis l'enfant, il faut
+l'empêcher à sa source. Le `<summary>` garde la sienne, qui dit qu'on peut le
+toucher.
+
+### Masquer un « summary », c'est supprimer le seul moyen d'ouvrir
+
+Le formulaire du site vit dans un `<details>` dont le `<summary>` dit « Remonter
+une erreur ». Je l'avais masqué en le prenant pour un doublon du titre de la
+fenêtre. Il n'en était pas un : c'était la poignée du bloc.
+
+**Un élément qui a l'air décoratif peut être un geste.** Il est de retour,
+ramené à gauche, le site l'alignant à droite pour terminer une ligne de
+métadonnées.
+
+### Une bulle liée dans un seul sens ne se rouvre qu'au deuxième clic
+
+`IsOpen="{Binding IsChecked, ElementName=Bascule}"` sans `Mode=TwoWay` : quand la
+bulle se referme d'elle-même, au clic ailleurs, la bascule reste cochée. Le clic
+suivant ne fait que la décocher, et il en faut deux pour rouvrir.
+
+Les trois bulles du projet avaient le défaut, écrites sur le même modèle : les
+étapes, les profils, les réglages fins. **Un défaut de gabarit se recopie avec
+le gabarit** ; c'est là qu'il faut chercher les autres.
+
+### La rubrique qu'on parcourt l'emporte sur celle du catalogue
+
+`QuestSummary` garde toutes les rubriques d'une quête dans `SectionIds`, mais
+n'en expose qu'une dans `SectionId`, choisie comme **la moins peuplée**
+(`QuestCatalogService`). `OpenList` s'en servait pour rouvrir la liste : parti de
+Frigost sur une quête aussi principale, on rouvrait sur « Quêtes principales ».
+
+Mesuré sur le cache du catalogue, 782 quêtes indexées :
+
+| | |
+|:--|--:|
+| quêtes à plus d'une rubrique | 215 |
+| dont une rubrique transverse emporte la zone | 93 |
+| dont la zone emporte la transverse | 80 |
+| « Quêtes répétables » : quêtes partagées | 113 / 128 |
+
+`_section` retenait déjà la rubrique ouverte et survivait à la lecture d'un
+guide ; il n'était écrasé que là. La règle tient en une ligne, `SectionSeen` :
+**la rubrique qu'on parcourt si la quête y figure, sinon celle du catalogue.**
+L'étiquette de série des liens précédente et suivante la suit, pour la même
+raison : deux quêtes de la même zone s'y annonçaient d'une série différente parce
+que l'une était aussi répétable.
+
+**Ce qui reste**, relevé et laissé : deux quêtes portent le titre
+« L'Ascension », et l'index des chaînes retient la première. Une collision sur
+782, sur un chemin qui ne dévie pas la navigation.
+
+### Le reste
+
+Le bouton de signalement ne paraît que sur un guide : le site ne met de
+formulaire qu'en pied d'article et n'en a pas de général, donc le repli vers la
+page de contact disparaît avec `PapychaSite.ContactUrl`.
+
+La fenêtre de signalement épouse le formulaire. Le script rend la hauteur du
+bloc, la fenêtre s'y pose, bornée à l'écran ; sa largeur est figée par
+`MinWidth` et `MaxWidth`, et le style `WS_MAXIMIZEBOX` est retiré à la main, WPF
+ne sachant pas ôter le seul agrandissement sans figer aussi la hauteur.
+
+L'icône des quêtes prend la teinte neutre des trois autres lignes de l'accueil :
+elle y était la seule en couleur, alors que les quatre natures s'y valent.
+`GlyphQuestBrush` n'ayant plus d'emploi, la palette passe de cinq teintes à
+quatre.

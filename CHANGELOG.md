@@ -9,6 +9,31 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Corrigé
 
+- Le formulaire de signalement se soulignait dès qu'on cliquait dans un champ.
+  Le thème du site porte `label:focus { text-decoration: underline }`, et ses
+  champs sont écrits `<label><span>intitulé</span><input></label>` : la
+  décoration se propageait donc à l'intitulé et à la valeur. Elle est coupée là
+  où elle naît, sur le libellé, une décoration ne s'annulant pas depuis ses
+  descendants.
+
+- Le bloc « Remonter une erreur » ne se repliait plus. Son résumé était masqué,
+  en croyant qu'il faisait doublon avec le titre de la fenêtre ; c'était le seul
+  moyen d'ouvrir et de refermer le bloc. Il est de retour, ramené à gauche.
+
+- Les trois bulles de l'application demandaient deux clics pour rouvrir après
+  s'être refermées d'elles-mêmes : la liste des étapes, celle des profils et
+  celle des réglages fins. Leur ouverture ne suivait la bascule que dans un
+  sens, si bien qu'une bulle refermée au clic ailleurs laissait la bascule
+  cochée.
+
+- La liste rouvrait sur la mauvaise rubrique. Une quête sur cinq appartient à
+  plusieurs rubriques, et le catalogue n'en retient qu'une, la moins peuplée :
+  rouvrir la liste depuis une quête de Frigost basculait sur « Quêtes
+  principales ». Relevé sur le catalogue, 215 quêtes sur 782 sont dans ce cas,
+  dont 93 qu'une rubrique transverse emporte et 80 dans l'autre sens. La liste
+  garde désormais la rubrique d'où l'on vient quand la quête y figure, et
+  l'étiquette de série des liens précédente et suivante suit la même règle.
+
 - L'encart « Type : Principale » tenait lieu de première étape dans la fenêtre
   des guides. Il n'était pas compté comme étape, mais l'étape de départ est
   ancrée en haut de l'article, et cet encart était le seul morceau du bandeau
@@ -420,6 +445,17 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   filet.
 
 ### Modifié
+
+- La fenêtre de signalement épouse le formulaire : sa hauteur s'ajuste à ce
+  qu'il mesure, sa largeur ne s'étire plus et le bouton d'agrandissement
+  disparaît. Elle s'appelle « Remonter une erreur sur Papycha ».
+
+- Le bouton de signalement ne paraît plus que sur un guide. Le site ne met de
+  formulaire qu'en pied d'article, et n'en a pas de général : ailleurs, le
+  bouton menait à la page de contact, ce qui n'était pas ce qu'il promettait.
+
+- L'icône des quêtes rejoint la teinte neutre des trois autres lignes de
+  l'accueil des guides, où elle était la seule en couleur.
 
 - La croix qui fermait la fenêtre d'un compte devient un carré, en paire avec le
   triangle de lecture. Dans une liste, une croix veut dire « supprimer cette

@@ -55,10 +55,22 @@
 
         + '#papycha-report-error{margin:14px !important;overflow:visible !important}'
 
-        // Le résumé du bloc est masqué : le bloc est déjà déplié, et son titre
-        // est celui de la fenêtre. Le site l'aligne à droite, où il termine une
-        // ligne de métadonnées ; seul, il pendait hors du cadre.
-        + '#papycha-report-error > summary{display:none !important}'
+        // Le résumé reste : c'est le seul moyen de replier et de rouvrir le
+        // bloc, et le masquer l'avait supprimé. Il est ramené à gauche, le site
+        // l'alignant à droite pour terminer une ligne de métadonnées ; seul, il
+        // pendait hors du cadre. Il garde son soulignement, qui dit qu'on peut
+        // le toucher.
+        + '#papycha-report-error > summary{margin:0 0 12px 0 !important;'
+        + 'width:auto !important;text-align:left !important;font-size:1rem !important}'
+
+        // Le thème du site souligne un libellé qui a le focus, et la décoration
+        // se propage à tout ce qu'il contient : cliquer dans un champ soulignait
+        // son intitulé et sa valeur. On la coupe là où elle naît, sur le libellé
+        // lui-même, faute de quoi elle traverse ses descendants sans qu'ils
+        // puissent s'en défaire.
+        + '#papycha-report-error label,#papycha-report-error label:focus,'
+        + '#papycha-report-error label.focus,#papycha-report-error fieldset,'
+        + '#papycha-report-error legend{text-decoration:none !important}'
 
         // Rien du formulaire ne dépasse : les champs sont dimensionnés pour une
         // colonne d'article, et débordaient de la fenêtre par la droite. Une
@@ -66,7 +78,7 @@
         // s'étiraient sur toute la fenêtre.
         + '#papycha-report-error,#papycha-report-error *{max-width:100% !important;'
         + 'box-sizing:border-box !important}'
-        + '#papycha-report-error{max-width:720px !important;padding-bottom:20px !important}'
+        + '#papycha-report-error{max-width:560px !important;padding-bottom:20px !important}'
 
         // La zone de texte ne s'étire plus à la poignée : le formulaire défile,
         // il ne se redimensionne pas. Sa hauteur suit celle de la fenêtre, avec
@@ -112,5 +124,9 @@
         quoi.focus();
     }
 
-    return 'pret';
+    // La hauteur qu'il faudrait à la fenêtre pour montrer le formulaire en
+    // entier, marges comprises. La fenêtre s'y pose, bornée à l'écran : elle
+    // n'a que ce formulaire à montrer, et rien ne justifie qu'elle le coupe
+    // quand la place existe.
+    return 'pret ' + Math.ceil(bloc.getBoundingClientRect().height + 28);
 })();

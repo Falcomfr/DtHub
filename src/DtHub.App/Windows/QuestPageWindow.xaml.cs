@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using System.Globalization;
+using System.Runtime.InteropServices;
+using System.Windows;
 
 using Microsoft.Web.WebView2.Core;
 
@@ -29,6 +31,7 @@ public partial class QuestPageWindow : Window
     private string _url = string.Empty;
     private bool _watched;
     private string? _report;
+    private bool _reportMode;
 
     public QuestPageWindow(
         IDialogService dialogs,
@@ -69,6 +72,21 @@ public partial class QuestPageWindow : Window
         base.OnSourceInitialized(e);
 
         var handle = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+
+        // La fenêtre de signalement n'a qu'un formulaire à montrer : sa largeur
+        // est celle que le pont donne au formulaire, et l'élargir ne montrerait
+        // rien de plus. La hauteur, elle, reste libre, un petit écran ne
+        // pouvant pas toujours le loger en entier.
+        if (_reportMode)
+        {
+            MinWidth = Width;
+            MaxWidth = Width;
+
+            // WPF ne sait pas retirer le seul agrandissement : « CanMinimize »
+            // fige aussi la hauteur. On ôte donc le style à la main, comme le
+            // projet le fait déjà pour arrimer une fenêtre de jeu.
+            _ = SetWindowLong(handle, GwlStyle, GetWindowLong(handle, GwlStyle) & ~WsMaximizeBox);
+        }
 
         lock (Handles)
         {
@@ -146,6 +164,7 @@ public partial class QuestPageWindow : Window
         }
 
         _report = report;
+        _reportMode = report is not null;
 
         _url = url;
 
@@ -216,23 +235,22 @@ public partial class QuestPageWindow : Window
 
             Log.Information("Formulaire de signalement : {Etat}.", etat);
 
-            if (!etat.Contains("absent", StringComparison.Ordinal))
+            // « absent » : la page n'a pas de formulaire, ou le site a changé
+            // son pied d'article. Le bouton ne paraît que sur un guide, où le
+            // formulaire est toujours là ; on n'y arrive donc que si le site a
+            // bougé. La fenêtre montre alors la page entière, et reprend un
+            // titre qui ne promet plus ce qu'elle ne montre pas.
+            if (etat.Contains("absent", StringComparison.Ordinal))
             {
+                Title = "Guides de papycha.fr";
                 return;
             }
 
-            // La page n'a pas de formulaire, ou le site a changé son pied
-            // d'article. Le site n'en a pas de général : sa page de contact
-            // renvoie vers le Discord de l'équipe, et c'est là qu'on remonte
-            // une erreur autrement. On y mène plutôt que de laisser la fenêtre
-            // sur une page où il n'y a rien à remplir.
-            Title = "Contacter papycha.fr";
-
-            if (!string.Equals(_url, PapychaSite.ContactUrl, StringComparison.OrdinalIgnoreCase))
+            // Le script rend la hauteur qu'il faudrait pour montrer le
+            // formulaire en entier. La fenêtre s'y pose, sans dépasser l'écran.
+            if (Hauteur(etat) is { } voulue)
             {
-                _report = null;
-                View.CoreWebView2.NavigationCompleted += OnContactPageLoaded;
-                View.CoreWebView2.Navigate(PapychaSite.ContactUrl);
+                Height = Math.Min(voulue + (ActualHeight - View.ActualHeight), SystemParameters.WorkArea.Height);
             }
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
@@ -242,33 +260,19 @@ public partial class QuestPageWindow : Window
     }
 
     /// <summary>
-    /// Descend sur le texte de la page de contact.
+    /// La hauteur que le script annonce, ou <c>null</c> s'il n'en donne pas.
     ///
-    /// Sa bannière occupe la moitié d'une fenêtre étroite, et l'on arrivait
-    /// au-dessus de tout ce qu'on venait y chercher.
+    /// Le moteur rend le résultat en JSON : « "pret 812" », guillemets compris.
     /// </summary>
-    private async void OnContactPageLoaded(object? sender, CoreWebView2NavigationCompletedEventArgs e)
+    private static double? Hauteur(string etat)
     {
-        View.CoreWebView2.NavigationCompleted -= OnContactPageLoaded;
+        var morceaux = etat.Trim('"', ' ').Split(' ');
 
-        if (!e.IsSuccess)
-        {
-            return;
-        }
-
-        try
-        {
-            await View.CoreWebView2
-                .ExecuteScriptAsync(
-                    "(function(){var c=document.querySelector('.entry-content')"
-                    + "||document.querySelector('.entry-header');"
-                    + "if(c){c.scrollIntoView({block:'start'});}})();")
-                .ConfigureAwait(true);
-        }
-        catch (Exception exception) when (exception is not OutOfMemoryException)
-        {
-            Log.Warning(exception, "La page de contact n'a pas pu être cadrée.");
-        }
+        return morceaux.Length > 1
+            && double.TryParse(morceaux[1], NumberStyles.Number, CultureInfo.InvariantCulture, out var valeur)
+            && valeur > 0
+            ? valeur
+            : null;
     }
 
     /// <summary>
@@ -306,4 +310,16 @@ public partial class QuestPageWindow : Window
     }
 
     private void OnOpenInBrowser(object sender, RoutedEventArgs e) => _dialogs.OpenUrl(_url);
+
+    // Le seul style qu'on retire : le bouton d'agrandissement de la fenêtre de
+    // signalement.
+    private const int GwlStyle = -16;
+
+    private const int WsMaximizeBox = 0x00010000;
+
+    [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")]
+    private static extern int GetWindowLong(nint handle, int index);
+
+    [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW")]
+    private static extern int SetWindowLong(nint handle, int index, int value);
 }

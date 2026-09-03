@@ -79,6 +79,7 @@ public sealed partial class QuestViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsQuestChrome))]
     [NotifyPropertyChangedFor(nameof(ShowsChain))]
+    [NotifyPropertyChangedFor(nameof(CanReport))]
     private bool _hasQuest;
 
     /// <summary>Ce qu'on lit tant qu'aucune quête n'est ouverte.</summary>
@@ -100,6 +101,7 @@ public sealed partial class QuestViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(ShowsChain))]
     [NotifyPropertyChangedFor(nameof(ShowsPage))]
     [NotifyPropertyChangedFor(nameof(ShowsLoader))]
+    [NotifyPropertyChangedFor(nameof(CanReport))]
     private bool _isListOpen;
 
     /// <summary>
@@ -278,7 +280,7 @@ public sealed partial class QuestViewModel : ObservableObject
         // redescendre l'arbre pour retrouver les voisines de ce qu'on lisait.
         // Un donjon n'appartient à aucune rubrique du site : sa branche est la
         // sienne.
-        var section = _current?.SectionId
+        var section = (_current is { } lue ? SectionSeen(lue) : (int?)null)
             ?? (_currentDungeon is { } place ? SectionOf(place) : (int?)null)
             ?? (_currentPath is { } road
                 ? road.Side == PathSide.Dungeons ? DungeonPathSection : QuestPathSection
@@ -294,6 +296,20 @@ public sealed partial class QuestViewModel : ObservableObject
 
         IsListOpen = true;
     }
+
+    /// <summary>
+    /// La rubrique sous laquelle une quête se lit : celle qu'on parcourt quand
+    /// elle en fait partie, sinon celle que le catalogue lui a retenue.
+    ///
+    /// Une quête peut appartenir à plusieurs rubriques, et le catalogue n'en
+    /// garde qu'une dans <c>SectionId</c>, la moins peuplée. Rouvrir la liste
+    /// depuis une quête répétable lue dans Frigost basculait donc sur « Quêtes
+    /// répétables », alors qu'on venait de Frigost. Relevé sur le catalogue :
+    /// 215 quêtes sur 782 appartiennent à plus d'une rubrique, dont 93 qu'une
+    /// rubrique transverse emporte et 80 dans l'autre sens.
+    /// </summary>
+    private int SectionSeen(QuestSummary quest) =>
+        quest.SectionIds.Contains(_section) ? _section : quest.SectionId;
 
     /// <summary>
     /// Pose la sélection sur la quête affichée, si elle est dans la liste.
@@ -1109,14 +1125,17 @@ public sealed partial class QuestViewModel : ObservableObject
 
         if (string.Equals(target.SuccessName, from.SuccessName, StringComparison.Ordinal))
         {
-            return target.SectionId == from.SectionId
+            // Par la rubrique qu'on parcourt, et non par celle que le catalogue
+            // a retenue : deux quêtes de la même zone s'annonçaient d'une série
+            // différente parce que l'une est aussi répétable.
+            return SectionSeen(target) == SectionSeen(from)
                 ? link
-                : link with { Series = NameOf(target.SectionId) };
+                : link with { Series = NameOf(SectionSeen(target)) };
         }
 
         return link with
         {
-            Series = target.SuccessName.Length > 0 ? target.SuccessName : NameOf(target.SectionId),
+            Series = target.SuccessName.Length > 0 ? target.SuccessName : NameOf(SectionSeen(target)),
         };
     }
 
@@ -1464,25 +1483,20 @@ public sealed partial class QuestViewModel : ObservableObject
     /// même raison : on signale ce qu'on lit, pas la quête en toutes
     /// circonstances.
     /// </summary>
-    public (string Url, string Location)? ErrorReport()
-    {
-        var browsed = Browsed();
-        var url = browsed ?? CurrentUrl;
+    public (string Url, string Location)? ErrorReport() =>
+        CanReport
+            ? (CurrentUrl!, PapychaReport.Location(StepIndex, _steps.Count, StepTextAt(StepIndex)))
+            : null;
 
-        if (!PapychaSite.Owns(url))
-        {
-            return null;
-        }
-
-        // Une rubrique n'a pas de formulaire : le site n'en met qu'en pied
-        // d'article, mesuré sur l'accueil, « /quetes/ », « /donjons/ »,
-        // « /raids/ » et « /tanieres/ ». On va donc droit au contact plutôt que
-        // d'ouvrir une page pour y constater l'absence. Elle n'a pas d'étape
-        // non plus, et celle de la quête lue avant n'y désignerait rien.
-        return browsed is not null
-            ? (PapychaSite.ContactUrl, string.Empty)
-            : (url!, PapychaReport.Location(StepIndex, _steps.Count, StepTextAt(StepIndex)));
-    }
+    /// <summary>
+    /// Vrai quand il y a un formulaire à ouvrir, c'est-à-dire quand un guide
+    /// est sous les yeux.
+    ///
+    /// Le site ne met de formulaire de signalement qu'en pied d'article, mesuré
+    /// page par page : les rubriques n'en ont pas, et il n'en existe pas de
+    /// général. Le bouton disparaît donc plutôt que de mener nulle part.
+    /// </summary>
+    public bool CanReport => !IsListOpen && HasQuest && PapychaSite.Owns(CurrentUrl);
 
     private string? StepTextAt(int index) =>
         index >= 0 && index < _steps.Count ? _steps[index] : null;

@@ -350,7 +350,7 @@
                                                      ConverterParameter=Custom}" />
                   </WrapPanel>
 
-                  <Popup IsOpen="{Binding IsChecked, ElementName=CustomGear}" StaysOpen="False"
+                  <Popup IsOpen="{Binding IsChecked, ElementName=CustomGear, Mode=TwoWay}" StaysOpen="False"
                          Placement="Bottom" PlacementTarget="{Binding ElementName=CustomGear}"
                          AllowsTransparency="True" PopupAnimation="Fade" HorizontalOffset="-296">
                     <Border Background="{DynamicResource SurfaceBrush}" Width="330"
@@ -579,7 +579,7 @@
                   </StackPanel>
                 </ToggleButton>
 
-                <Popup IsOpen="{Binding IsChecked, ElementName=ProfilesToggle}" StaysOpen="False"
+                <Popup IsOpen="{Binding IsChecked, ElementName=ProfilesToggle, Mode=TwoWay}" StaysOpen="False"
                        Placement="Bottom" PlacementTarget="{Binding ElementName=ProfilesToggle}"
                        AllowsTransparency="True" PopupAnimation="Fade" HorizontalOffset="-250">
                   <Border Background="{DynamicResource SurfaceBrush}" Width="340"

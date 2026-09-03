@@ -44,10 +44,13 @@
        à distinguer des natures de ligne, pas à annoncer un état, et emprunter
        pour cela les diodes ci-dessus aurait brouillé les deux usages.
 
-       Cinq teintes distinctes, pas une de plus : au-delà, une liste de soixante
-       lignes se lit comme un vitrail. Toutes sont désaturées pour tenir sur le
-       fond sombre sans vibrer. -->
-  <SolidColorBrush x:Key="GlyphQuestBrush" Color="#FF6FB894" />
+       Quatre teintes distinctes, pas une de plus : au-delà, une liste de
+       soixante lignes se lit comme un vitrail. Toutes sont désaturées pour tenir
+       sur le fond sombre sans vibrer.
+
+       Le parchemin des quêtes en avait une cinquième, verte. Il était le seul
+       en couleur sur l'accueil, où les quatre lignes se valent, et il prend
+       donc la teinte neutre des lieux. -->
   <SolidColorBrush x:Key="GlyphDungeonBrush" Color="#FF8590A0" />
   <SolidColorBrush x:Key="GlyphPlaceBrush" Color="#FFD9A05E" />
   <SolidColorBrush x:Key="GlyphFamilyBrush" Color="#FF9D8ACF" />

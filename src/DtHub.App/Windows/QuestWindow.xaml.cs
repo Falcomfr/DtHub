@@ -148,7 +148,7 @@ public partial class QuestWindow : Window
             var page = AppHost.Services.GetRequiredService<QuestPageWindow>();
 
             await page
-                .ShowReportAsync(demande.Url, "Remonter une erreur", demande.Location)
+                .ShowReportAsync(demande.Url, "Remonter une erreur sur Papycha", demande.Location)
                 .ConfigureAwait(true);
 
             LogReportOpened(demande.Url);
