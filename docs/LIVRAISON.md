@@ -35,6 +35,35 @@ La chaîne éprouve, publie, calcule l'empreinte et crée la livraison avec deux
 fichiers : `DtHub.exe` et `DtHub.exe.sha256`. Ces deux noms sont ceux que
 l'application attend ; une livraison à laquelle il en manque un est ignorée.
 
+## Avec quoi le fichier est publié
+
+Les options tiennent dans un seul fichier,
+`src/DtHub.App/Properties/PublishProfiles/win-x64.pubxml`, que la chaîne, le
+lanceur de développement et `AGENTS.md` désignent tous les trois :
+
+```
+dotnet publish src/DtHub.App -p:PublishProfile=win-x64 -o publication
+```
+
+Elles ont vécu recopiées dans ces trois endroits, sans que rien ne vérifie
+qu'ils concordaient. Une publication sans `SelfContained` sort un exécutable de
+cent cinquante kilooctets qui réclame le .NET installé sur le poste, en portant
+exactement les mêmes métadonnées Windows que le vrai : le contrôle d'identité,
+qui ne lit que ces métadonnées, le laissait passer.
+
+La chaîne mesure donc aussi ce que le fichier est : un seul fichier dans le
+dossier de publication, et quarante mégaoctets au moins. Les deux ensemble
+suffisent, un binaire dépendant du framework pesant cent cinquante kilooctets et
+traînant une quarantaine de fichiers compagnons.
+
+Les traductions, elles, se contrôlent à la compilation et non sur le binaire :
+chercher `fr/DtHub.Core.resources.dll` dans les octets retombe sur le
+`deps.json` embarqué, qui cite les satellites même quand `SatelliteResourceLanguages`
+les a écartés. Vérifié : un fichier publié sans eux pèse un demi-mégaoctet de
+moins et passe pourtant la recherche. Le contrôle porte donc sur la propriété
+elle-même, dans `src/DtHub.App/DtHub.App.csproj`, avec ceux des ressources
+embarquées.
+
 ## Ce que l'application fait de tout cela
 
 **Elle ne se met pas à jour depuis un arbre de sources.** Si le fichier de

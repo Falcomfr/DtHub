@@ -1,4 +1,4 @@
-using System.IO.Compression;
+﻿using System.IO.Compression;
 using System.Security.Cryptography;
 
 using DtHub.Core.Dependencies;
@@ -59,7 +59,6 @@ public sealed partial class ArchiveDependencyProvisioner : IDependencyProvisione
                 Strings.Format("DependencyUrlNotSecure", dependency.DisplayName));
         }
 
-        _paths.EnsureCreated();
         var installRoot = Path.Combine(_paths.ToolsDirectory, dependency.InstallDirectoryName);
 
         var archivePath = Path.Combine(
@@ -68,6 +67,12 @@ public sealed partial class ArchiveDependencyProvisioner : IDependencyProvisione
 
         try
         {
+            // Dans le try, et non avant : un dossier de données non
+            // inscriptible, sur un poste tenu par une stratégie de groupe ou un
+            // profil itinérant restreint, sortait en exception brute qui
+            // franchissait tous les filets et fermait l'application.
+            _paths.EnsureCreated();
+
             await DownloadAsync(dependency, archivePath, progress, cancellationToken).ConfigureAwait(false);
 
             progress?.Report(new ProvisioningProgress(ProvisioningStage.Verifying));

@@ -43,18 +43,34 @@ jobs:
       - name: Éprouver
         run: dotnet test DtHub.slnx --configuration Release --nologo
 
+      # Les options vivent dans le profil, seul endroit où elles sont écrites.
       - name: Publier
         run: >
           dotnet publish src/DtHub.App
-          --configuration Release
-          --runtime win-x64
-          --self-contained true
-          -p:PublishSingleFile=true
-          -p:EnableCompressionInSingleFile=true
-          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:PublishProfile=win-x64
           -p:Version=${{ steps.version.outputs.numero }}
           --output publication
           --nologo
+
+      # Le contrôle d'identité qui suit ne lit que des métadonnées Windows :
+      # un binaire dépendant du framework les porte à l'identique. Ces trois
+      # mesures-ci regardent ce que le fichier est vraiment.
+      - name: Contrôler que le binaire est autonome
+        shell: pwsh
+        run: |
+          $fichiers = @(Get-ChildItem publication -File)
+          if ($fichiers.Count -ne 1) {
+            throw "La publication doit rendre un seul fichier, elle en rend $($fichiers.Count) : $($fichiers.Name -join ', ')"
+          }
+
+          # Un exécutable dépendant du .NET installé pèse environ cent
+          # cinquante kilooctets. Le nôtre en fait soixante millions.
+          $poids = (Get-Item publication/DtHub.exe).Length
+          if ($poids -lt 40MB) {
+            throw "DtHub.exe ne pèse que $([math]::Round($poids / 1MB, 1)) Mo : il n'embarque pas le runtime."
+          }
+
+          Write-Host "Un seul fichier, $([math]::Round($poids / 1MB, 1)) Mo, runtime embarqué."
 
       - name: Contrôler l'identité du binaire
         shell: pwsh

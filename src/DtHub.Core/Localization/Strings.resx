@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!--
     Genere depuis une table unique : les trois fichiers portent les memes cles,
@@ -1251,5 +1251,41 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   </data>
   <data name="IncidentNoticed" xml:space="preserve">
     <value>An incident was recorded. Nothing is lost, but it is worth reporting.</value>
+  </data>
+  <data name="PreparationTitle" xml:space="preserve">
+    <value>Preparing the tools</value>
+  </data>
+  <data name="PreparationLead" xml:space="preserve">
+    <value>DT Hub is installing the components it needs. This happens once, on the first launch.</value>
+  </data>
+  <data name="PreparationChecksum" xml:space="preserve">
+    <value>Each archive comes from its publisher's official address, and its checksum is verified before anything runs.</value>
+  </data>
+  <data name="PreparationWaiting" xml:space="preserve">
+    <value>Waiting</value>
+  </data>
+  <data name="PreparationDownloading" xml:space="preserve">
+    <value>Downloading</value>
+  </data>
+  <data name="PreparationVerifying" xml:space="preserve">
+    <value>Verifying the checksum</value>
+  </data>
+  <data name="PreparationExtracting" xml:space="preserve">
+    <value>Extracting</value>
+  </data>
+  <data name="PreparationDone" xml:space="preserve">
+    <value>Ready</value>
+  </data>
+  <data name="PreparationFailed" xml:space="preserve">
+    <value>Failed</value>
+  </data>
+  <data name="PreparationBytes" xml:space="preserve">
+    <value>{0:0.0} of {1:0.0} MB</value>
+  </data>
+  <data name="PreparationRetry" xml:space="preserve">
+    <value>Try again</value>
+  </data>
+  <data name="PreparationSkip" xml:space="preserve">
+    <value>Continue without</value>
   </data>
 </root>

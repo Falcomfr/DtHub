@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
 using DtHub.Core.Dependencies;
@@ -25,6 +25,9 @@ public static class DependencyManifest
 
     /// <summary>Clé de la dépendance fournissant ADB.</summary>
     public const string PlatformToolsKey = "platform-tools";
+
+    /// <summary>Clé de la dépendance fournissant scrcpy.</summary>
+    public const string ScrcpyKey = "scrcpy";
 
     /// <summary>Toutes les dépendances déclarées, indexées par clé.</summary>
     public static IReadOnlyDictionary<string, ExternalDependency> All => Cached.Value;

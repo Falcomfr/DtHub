@@ -1,4 +1,4 @@
-using DtHub.Core.Adb;
+﻿using DtHub.Core.Adb;
 using DtHub.Core.Dependencies;
 using DtHub.Infrastructure.Dependencies;
 
@@ -35,11 +35,16 @@ public sealed partial class AdbLocator : IAdbLocator, IDisposable
         _overrideProvider = overrideProvider ?? (static () => null);
     }
 
-    /// <summary>
-    /// Avancement de l'installation d'ADB, à brancher sur l'interface au
-    /// premier lancement.
-    /// </summary>
-    public IProgress<ProvisioningProgress>? Progress { get; set; }
+    public string? TryGetInstalledPath()
+    {
+        if (_overrideProvider() is { Length: > 0 } custom && File.Exists(custom))
+        {
+            return custom;
+        }
+
+        return _resolved ?? _provisioner.TryGetExistingPath(
+            DependencyManifest.Get(DependencyManifest.PlatformToolsKey));
+    }
 
     public async Task<string> GetAdbPathAsync(CancellationToken cancellationToken = default)
     {
@@ -71,7 +76,7 @@ public sealed partial class AdbLocator : IAdbLocator, IDisposable
             try
             {
                 _resolved = await _provisioner
-                    .EnsureAvailableAsync(dependency, Progress, cancellationToken)
+                    .EnsureAvailableAsync(dependency, progress: null, cancellationToken)
                     .ConfigureAwait(false);
             }
             catch (DependencyProvisioningException exception)

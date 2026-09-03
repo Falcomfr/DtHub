@@ -13,7 +13,6 @@ Aucune notice de copyright ni aucun texte de licence tiers ne doit être retiré
 | scrcpy | Apache License 2.0 | Téléchargé depuis GitHub au premier lancement |
 | Android SDK Platform Tools (adb) | Android SDK License Agreement | Téléchargé depuis Google au premier lancement |
 | .NET runtime | MIT | Inclus par la publication self-contained |
-| Velopack | MIT | Paquet NuGet |
 | CommunityToolkit.Mvvm | MIT | Paquet NuGet |
 | xUnit | Apache License 2.0 | Dépendance de test, non distribuée |
 
@@ -52,8 +51,11 @@ pas leur nom ni leurs logos comme élément de sa propre identité.
 
 - Éditeur : Google LLC
 - Licence : Android Software Development Kit License Agreement
-- Source officielle :
-  https://dl.google.com/android/repository/platform-tools-latest-windows.zip
+- Source officielle, versionnée et donc au contenu immuable :
+  https://dl.google.com/android/repository/platform-tools_r37.0.1-win.zip
+
+  L'adresse « latest » n'est pas employée : son contenu change sans prévenir,
+  et l'empreinte déclarée dans `build/dependencies.json` ne vaudrait plus rien.
 
 Le contrat de licence du SDK Android n'autorise pas la redistribution des
 binaires. Les platform tools ne sont donc **pas** inclus dans le dépôt ni dans
@@ -61,8 +63,9 @@ l'installateur. DT Hub les télécharge depuis l'URL officielle ci-dessus, au
 premier lancement, dans le dossier de données de l'utilisateur, et vérifie
 l'archive avant de l'extraire.
 
-L'utilisateur est informé de ce téléchargement et l'accepte explicitement.
-Aucune autre source n'est utilisée.
+L'utilisateur en est informé : au premier lancement, une fenêtre nomme chaque
+composant, sa version et l'adresse d'où il vient, et montre l'avancement du
+téléchargement puis de la vérification. Aucune autre source n'est utilisée.
 
 ## .NET
 
@@ -72,13 +75,6 @@ Aucune autre source n'est utilisée.
 
 DT Hub est publié en self-contained : le runtime .NET est inclus dans
 l'application, ce que la licence MIT autorise.
-
-## Velopack
-
-- Projet : https://github.com/velopack/velopack
-- Licence : MIT
-
-Utilisé pour l'installation et les mises à jour.
 
 ## CommunityToolkit.Mvvm
 

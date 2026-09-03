@@ -36,7 +36,37 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   cent huit démarrages en six jours se mêlaient dans sept fichiers, et un
   rapport aurait emporté les fautes de la veille.
 
+- Une fenêtre de préparation au premier lancement. DT Hub téléchargeait
+  dix-neuf mégaoctets d'outils avant d'afficher un seul pixel, avec un délai
+  réseau de dix minutes : sur une ligne lente, l'exécutable semblait mort. La
+  fenêtre nomme ce qui manque, l'adresse d'où ça vient, et montre le
+  téléchargement puis la vérification de l'empreinte. Elle ne paraît que s'il
+  manque quelque chose, donc au premier lancement seulement, et se ferme d'elle
+  même. Mesuré : elle s'affiche à sept cent cinquante millisecondes.
+
+  Onze de ces dix-neuf mégaoctets ne servaient à rien : le ménage des fenêtres
+  restées d'une exécution précédente réclamait scrcpy pour les reconnaître,
+  alors qu'un scrcpy jamais installé n'a jamais pu en laisser.
+
 ### Modifié
+
+- Le démarrage efface ce que les versions précédentes ont laissé dans les
+  fichiers temporaires. Windows y dépose les bibliothèques graphiques dont un
+  programme d'un seul fichier a besoin, dans un dossier neuf à chaque version :
+  cent soixante et un dossiers, un giga-octet et trois cents mégaoctets sur le
+  poste de développement. Le fichier lu à ce sujet dans le README disait le
+  contraire, il dit maintenant ce qui est.
+
+- Le message affiché quand le démarrage échoue dit enfin de quoi. Un dossier de
+  données impossible à créer ne laisse ni journal ni fenêtre de signalement, et
+  la boîte du système n'affichait que « Le démarrage a échoué ». Elle porte
+  maintenant la cause, qui nomme le chemin en défaut.
+
+- Les options de publication tiennent dans un seul fichier au lieu d'être
+  recopiées dans trois, et la chaîne de livraison vérifie que le binaire est
+  bien autonome : elle ne lisait que quatre chaînes de métadonnées Windows, qu'un
+  exécutable de cent cinquante kilooctets réclamant le .NET installé porte à
+  l'identique.
 
 - Le panneau de réglages s'ouvre moins haut : 520 unités au lieu de 580. C'est
   la hauteur exacte de l'onglet Raccourcis, le plus long des trois à ne pas

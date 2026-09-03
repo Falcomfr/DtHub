@@ -1,4 +1,4 @@
-using DtHub.Core.Sessions;
+﻿using DtHub.Core.Sessions;
 using DtHub.Core.Scrcpy;
 
 namespace DtHub.Tests.Fakes;
@@ -9,6 +9,11 @@ public sealed class FakeScrcpyLocator(string path = @"C:\Dev\DTHub\scrcpy\scrcpy
     public string Path { get; } = path;
 
     public string Version => "4.1.0";
+
+    /// <summary>Ce que rend <see cref="TryGetInstalledPath"/> : posé, par défaut.</summary>
+    public bool IsInstalled { get; set; } = true;
+
+    public string? TryGetInstalledPath() => IsInstalled ? Path : null;
 
     public Task<string> GetScrcpyPathAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult(Path);

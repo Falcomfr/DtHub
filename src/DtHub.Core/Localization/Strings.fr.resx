@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!--
     Genere depuis une table unique : les trois fichiers portent les memes cles,
@@ -1251,5 +1251,41 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   </data>
   <data name="IncidentNoticed" xml:space="preserve">
     <value>Un incident a été relevé. Rien n'est perdu, mais il vaut la peine d'être signalé.</value>
+  </data>
+  <data name="PreparationTitle" xml:space="preserve">
+    <value>Préparation des outils</value>
+  </data>
+  <data name="PreparationLead" xml:space="preserve">
+    <value>DT Hub met en place les composants dont il a besoin. Cela n'arrive qu'une fois, au premier lancement.</value>
+  </data>
+  <data name="PreparationChecksum" xml:space="preserve">
+    <value>Chaque archive vient de l'adresse officielle de son éditeur, et son empreinte est vérifiée avant tout usage.</value>
+  </data>
+  <data name="PreparationWaiting" xml:space="preserve">
+    <value>En attente</value>
+  </data>
+  <data name="PreparationDownloading" xml:space="preserve">
+    <value>Téléchargement</value>
+  </data>
+  <data name="PreparationVerifying" xml:space="preserve">
+    <value>Vérification de l'empreinte</value>
+  </data>
+  <data name="PreparationExtracting" xml:space="preserve">
+    <value>Extraction</value>
+  </data>
+  <data name="PreparationDone" xml:space="preserve">
+    <value>Prêt</value>
+  </data>
+  <data name="PreparationFailed" xml:space="preserve">
+    <value>Échec</value>
+  </data>
+  <data name="PreparationBytes" xml:space="preserve">
+    <value>{0:0.0} sur {1:0.0} Mo</value>
+  </data>
+  <data name="PreparationRetry" xml:space="preserve">
+    <value>Réessayer</value>
+  </data>
+  <data name="PreparationSkip" xml:space="preserve">
+    <value>Continuer sans</value>
   </data>
 </root>

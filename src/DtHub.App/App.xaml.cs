@@ -17,6 +17,7 @@ using DtHub.Core.Windows;
 using DtHub.Infrastructure.Updates;
 using DtHub.Core.Storage;
 using DtHub.Infrastructure.Processes;
+using DtHub.Infrastructure.Storage;
 using DtHub.Core.Scrcpy;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -79,6 +80,7 @@ public partial class App : Application, IDisposable
         // doit pas se fermer quand le configurateur est masqué.
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
+
         if (!ClaimSingleInstance())
         {
             Shutdown();
@@ -122,6 +124,16 @@ public partial class App : Application, IDisposable
         // à la construction des vues, et une fenêtre déjà bâtie ne changerait
         // plus de langue.
         await ApplyLanguageAsync(settings).ConfigureAwait(true);
+
+        // Avant tout le reste, et avant la première fenêtre : sur un poste
+        // neuf, ADB et scrcpy s'installaient au détour de deux appels qui
+        // avaient besoin d'autre chose, dix-neuf mégaoctets durant lesquels
+        // rien ne paraissait à l'écran. Ne montre rien quand ils sont là.
+        await PreparationWindow
+            .RunAsync(services.GetRequiredService<ToolPreparation>())
+            .ConfigureAwait(true);
+
+        await SweepLeftoversAsync().ConfigureAwait(true);
 
         await KillOrphansAsync(services).ConfigureAwait(true);
 
@@ -445,12 +457,39 @@ public partial class App : Application, IDisposable
     /// qui ne s'est pas terminée proprement. Sans cela, elles resteraient à
     /// l'écran et de nouvelles viendraient s'y ajouter.
     /// </summary>
+    /// <summary>
+    /// Efface les dossiers d'extraction des versions précédentes.
+    ///
+    /// Attendu, et non lancé en arrière-plan : quand rien ne s'ouvre,
+    /// l'application s'arrête trois secondes après son démarrage, et la tâche
+    /// détachée était coupée avant d'avoir effacé quoi que ce soit. Sans rien à
+    /// faire, ce qui est le cas ordinaire, cela coûte le parcours d'un dossier.
+    /// </summary>
+    private static async Task SweepLeftoversAsync()
+    {
+        var removed = await Task.Run(BundleLeftovers.Sweep).ConfigureAwait(true);
+
+        if (removed > 0)
+        {
+            Log.Information(
+                "{Count} dossier(s) d'extraction laissé(s) par des versions précédentes effacé(s).",
+                removed);
+        }
+    }
+
     private static async Task KillOrphansAsync(IServiceProvider services)
     {
         try
         {
-            var path = await services.GetRequiredService<IScrcpyLocator>()
-                .GetScrcpyPathAsync().ConfigureAwait(true);
+            // Sans rien télécharger : scrcpy jamais installé veut dire scrcpy
+            // jamais lancé, donc aucune fenêtre restée d'une exécution
+            // précédente. Demander le chemin tout court mettait onze
+            // mégaoctets sur le chemin du premier démarrage pour un ramassage
+            // qui n'avait rien à ramasser.
+            if (services.GetRequiredService<IScrcpyLocator>().TryGetInstalledPath() is not { } path)
+            {
+                return;
+            }
 
             var killed = OrphanProcesses.KillFrom(path);
 
@@ -959,7 +998,13 @@ public partial class App : Application, IDisposable
         Log.Fatal(exception, "{Headline}", headline);
 
         var services = _host?.Services;
-        var logs = services?.GetService<IAppPaths>()?.LogsDirectory;
+
+        // Pas par le conteneur : quand c'est sa construction qui a échoué, il
+        // n'y a rien à lui demander, et c'est justement le cas où le message
+        // qui suit est le seul que la personne verra. AppPaths ne fait que
+        // calculer des chemins, il ne crée rien.
+        var logs = services?.GetService<IAppPaths>()?.LogsDirectory
+            ?? Quietly(static () => new AppPaths().LogsDirectory);
 
         try
         {
@@ -983,10 +1028,31 @@ public partial class App : Application, IDisposable
             Log.Error(second, "La fenêtre de signalement n'a pas pu s'ouvrir.");
         }
 
+        // La boîte du système, en dernier recours. Elle ne montrait que le
+        // titre : « Le démarrage a échoué », sans dire de quoi. Le message de
+        // l'exception est le seul indice quand le journal n'a pas pu naître,
+        // ce qui est précisément le cas d'un dossier de données inaccessible.
         MessageBox.Show(
-            headline + (logs is { Length: > 0 } ? Strings.Format("ErrorDetailsInLogs", logs) : string.Empty),
+            headline
+                + Environment.NewLine + Environment.NewLine + exception.Message
+                + (logs is { Length: > 0 } ? Strings.Format("ErrorDetailsInLogs", logs) : string.Empty),
             ProductInfo.Name,
             MessageBoxButton.OK,
             MessageBoxImage.Warning);
+    }
+
+    /// <summary>Ce que rend l'appel, ou <c>null</c> s'il échoue.</summary>
+    private static string? Quietly(Func<string> read)
+    {
+        try
+        {
+            return read();
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // Un dernier recours qui lève laisserait la personne sans message
+            // du tout : c'est le seul endroit où le silence est le bon choix.
+            return null;
+        }
     }
 }

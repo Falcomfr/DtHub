@@ -27,10 +27,12 @@ its own account. DT Hub finds every one of them and opens each in its own
 window on your PC.
 
 - **One file to run.** `DtHub.exe`, no installer, no administrator rights,
-  no .NET to install. It downloads ADB and scrcpy on first launch, and writes
-  nothing next to itself: everything it keeps goes under
-  `%LOCALAPPDATA%\DtHub`. Deleting that folder resets it; deleting the file
-  leaves nothing else behind.
+  no .NET to install. It downloads ADB and scrcpy on first launch, telling you
+  what it fetches and from where, and writes nothing next to itself: everything
+  it keeps goes under `%LOCALAPPDATA%\DtHub`. Deleting that folder resets it.
+  Windows itself unpacks a handful of graphics libraries into
+  `%TEMP%\.net\DtHub` to run a single-file program; DT Hub clears the ones
+  earlier versions left there every time it starts.
 - **It puts itself in your Start menu**, pointing at wherever you keep the file.
   It never copies or moves itself. Move the file and the shortcut follows on the
   next launch.
@@ -109,7 +111,12 @@ that folder to reset everything.
 - A cloned Android profile must exist on the phone; DT Hub does not create one.
 - Real app icons are not shown, and cannot be with the tools available. See
   decision D6 in [docs/DECISIONS.md](docs/DECISIONS.md).
-- The first launch needs an internet connection, once.
+- The first launch needs an internet connection, once: 19 MB of tools, with a
+  window showing what is being fetched.
+- The guide windows need Microsoft's WebView2, which ships with Windows 11 and
+  reaches Windows 10 through Edge. Without it, DT Hub says so and everything
+  else still works.
+- The file is not signed, so SmartScreen warns the first time you run it.
 
 ## Build from source
 

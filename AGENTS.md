@@ -80,9 +80,7 @@ build/sonde-papycha/mise-en-page.js
 # Publier le fichier unique distribué à l'utilisateur. En Release, le projet
 # embarque ses symboles et écarte les fichiers annexes des paquets : le dossier
 # ne contient que DtHub.exe.
-dotnet.exe publish src/DtHub.App -c Release -r win-x64 --self-contained true \
-  -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true \
-  -p:IncludeNativeLibrariesForSelfExtract=true -o build\publish
+dotnet.exe publish src/DtHub.App -p:PublishProfile=win-x64 -o build\publish
 ```
 
 `build/lancer.cmd` rejoue cette publication puis ouvre l'application. C'est ce

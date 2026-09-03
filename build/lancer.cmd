@@ -26,9 +26,7 @@ set "JOURNAL=%CD%\build\publication.log"
 where dotnet >nul 2>&1
 if errorlevel 1 goto lancer
 
-dotnet publish src\DtHub.App -c Release -r win-x64 --self-contained true ^
-  -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true ^
-  -p:IncludeNativeLibrariesForSelfExtract=true ^
+dotnet publish src\DtHub.App -p:PublishProfile=win-x64 ^
   -o "%SORTIE%" --nologo -v q >"%JOURNAL%" 2>&1
 
 :lancer

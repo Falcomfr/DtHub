@@ -1,4 +1,4 @@
-using DtHub.Core.Dependencies;
+﻿using DtHub.Core.Dependencies;
 using DtHub.Core.Scrcpy;
 using DtHub.Infrastructure.Dependencies;
 
@@ -10,9 +10,6 @@ namespace DtHub.Infrastructure.Scrcpy;
 /// </summary>
 public sealed class ScrcpyLocator : IScrcpyLocator, IDisposable
 {
-    /// <summary>Clé de la dépendance dans <c>build/dependencies.json</c>.</summary>
-    public const string DependencyKey = "scrcpy";
-
     private readonly IDependencyProvisioner _provisioner;
     private readonly SemaphoreSlim _gate = new(1, 1);
 
@@ -20,10 +17,10 @@ public sealed class ScrcpyLocator : IScrcpyLocator, IDisposable
 
     public ScrcpyLocator(IDependencyProvisioner provisioner) => _provisioner = provisioner;
 
-    /// <summary>Avancement de l'installation, à brancher sur l'interface.</summary>
-    public IProgress<ProvisioningProgress>? Progress { get; set; }
+    public string Version => DependencyManifest.Get(DependencyManifest.ScrcpyKey).Version;
 
-    public string Version => DependencyManifest.Get(DependencyKey).Version;
+    public string? TryGetInstalledPath() =>
+        _resolved ?? _provisioner.TryGetExistingPath(DependencyManifest.Get(DependencyManifest.ScrcpyKey));
 
     public async Task<string> GetScrcpyPathAsync(CancellationToken cancellationToken = default)
     {
@@ -36,7 +33,8 @@ public sealed class ScrcpyLocator : IScrcpyLocator, IDisposable
         try
         {
             _resolved ??= await _provisioner
-                .EnsureAvailableAsync(DependencyManifest.Get(DependencyKey), Progress, cancellationToken)
+                .EnsureAvailableAsync(
+                    DependencyManifest.Get(DependencyManifest.ScrcpyKey), progress: null, cancellationToken)
                 .ConfigureAwait(false);
 
             return _resolved;

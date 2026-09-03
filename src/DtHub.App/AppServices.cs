@@ -99,6 +99,7 @@ public static class AppServices
             provider.GetRequiredService<IDependencyProvisioner>(),
             provider.GetRequiredService<ILogger<AdbLocator>>()));
         services.AddSingleton<IScrcpyLocator, ScrcpyLocator>();
+        services.AddSingleton<ToolPreparation>();
 
         // Téléphones.
         services.AddSingleton<IAdbClient, AdbClient>();

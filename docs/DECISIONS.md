@@ -3490,3 +3490,83 @@ interroge GitHub à chaque démarrage même quand « Mise à jour automatique »
 décoché, alors que son infobulle laisse croire le contraire ; et les fichiers
 renommés à la main, `settings.json.corrompu-…` et `dthub-…-avant.log`, sont hors
 du motif de rotation et ne seront jamais purgés.
+
+## D85 - Un poste vierge, et ce qu'on ne peut pas y mettre
+
+**2026-09-03 - Acceptée**
+
+Vérifié avant publication, sur un poste qui n'a jamais rien vu du projet. Tout
+est mesuré, rien n'est déduit.
+
+**Ce qui tient.** Le fichier unique porte le runtime .NET, WPF avec ses sept
+thèmes, les données de globalisation, les six bibliothèques natives et les
+satellites `fr` et `es` : deux cent quatre-vingt-treize entrées, cent
+vingt-six mégaoctets décompressés. Les deux archives tierces sont elles-mêmes
+autonomes, leurs empreintes SHA-256 recalculées concordent au byte avec
+`build/dependencies.json`. Aucune bibliothèque Visual C++ à installer, aucun
+droit administrateur, aucun accès au registre, aucun chemin absolu, et les
+polices déclarent chacune un repli présent depuis Vista.
+
+**Le premier lancement était aveugle.** Dix-neuf mégaoctets se téléchargeaient
+avant qu'un pixel ne paraisse, avec un délai réseau réglé à dix minutes : sur
+une ligne lente, l'exécutable semblait mort. Les deux téléchargements arrivaient
+par accident, au détour d'appels qui avaient besoin d'autre chose, et le premier
+ne servait à rien : le ramassage des fenêtres restées demandait le chemin de
+scrcpy, alors qu'un scrcpy jamais installé n'a jamais pu laisser de fenêtre.
+
+Une fenêtre de préparation nomme désormais ce qui manque, d'où ça vient et où en
+est le téléchargement. Elle ne paraît que s'il manque quelque chose, donc au
+premier lancement seulement. Mesuré : elle s'affiche à sept cent cinquante
+millisecondes, le panneau suit à trois secondes et demie.
+
+**Elle informe, elle ne demande pas.** `THIRD-PARTY-NOTICES.md` promettait un
+consentement explicite qu'aucun code ne demandait. Une question dont la seule
+réponse utile est « oui » n'est pas un consentement : c'est la notice qui
+s'aligne sur le code. La ligne de D74, « rien n'est envoyé sans un geste », vaut
+pour ce qui sort, pas pour ce que l'application est venue chercher.
+
+**La publication ne peut plus sortir amputée.** Les cinq options qui font tout
+vivaient recopiées dans trois fichiers sans que rien ne vérifie qu'ils
+concordaient. Elles tiennent maintenant dans un profil unique. Le contrôle
+d'identité de la chaîne ne lisait que quatre chaînes de métadonnées Windows,
+qu'un binaire dépendant du framework porte à l'identique : la chaîne mesure
+désormais qu'il n'y a qu'un fichier et qu'il pèse au moins quarante mégaoctets.
+
+**Les traductions ne se vérifient pas sur le binaire.** Chercher
+`fr/DtHub.Core.resources.dll` dans les octets du fichier publié semblait tenir,
+et ne tenait pas : le `deps.json` embarqué cite les satellites même quand
+`SatelliteResourceLanguages` les a écartés. Éprouvé, un fichier publié sans eux
+pèse un demi-mégaoctet de moins et passe pourtant la recherche. Le contrôle
+porte donc sur la propriété elle-même, à la compilation, avec ceux des
+ressources embarquées, qui ne se voyaient nulle part non plus.
+
+**Ce que Windows laisse derrière.** L'hôte du fichier unique pose les six
+bibliothèques natives sous `%TEMP%\.net\DtHub\{identifiant}`, recalculé à chaque
+publication : cent soixante et un dossiers, un giga-octet et trois cents
+mégaoctets sur le poste de développement. Le README affirmait que supprimer le
+fichier ne laissait rien. Le démarrage efface maintenant les dossiers des
+versions précédentes, et la phrase dit ce qui est.
+
+Le balayage est attendu et non détaché : quand rien ne s'ouvre, l'application
+s'arrête trois secondes après son démarrage et la tâche détachée était coupée
+sans avoir rien effacé. Il ne vise aucune bibliothèque en particulier pour
+reconnaître son propre dossier : elles se chargent à la demande, et viser
+`wpfgfx_cor3.dll` ne trouvait rien tant que la première fenêtre n'était pas
+dessinée.
+
+**Le dernier message a cessé d'être muet.** Un dossier de données impossible à
+créer fait échouer la construction du conteneur : il n'y a alors ni service, ni
+journal, ni fenêtre de signalement, et la boîte du système affichait « Le
+démarrage a échoué » sans dire de quoi. Elle porte maintenant le message de
+l'exception, qui nomme le chemin et la cause.
+
+**Ce qui reste dehors, et ne peut pas entrer.** Une connexion au premier
+lancement, la licence du SDK Android interdisant de redistribuer ADB. Le moteur
+WebView2 sur un Windows 10 non tenu à jour, dont l'absence ne coûte que les deux
+fenêtres de guides et se dit déjà clairement. Et l'avertissement SmartScreen,
+le binaire n'étant pas signé.
+
+**Ce qui n'a pas été touché.** Le profil WebView2 pèse cent cinquante et un
+mégaoctets, dont quatre-vingt-dix-neuf pour le cache web : la borne de cent
+mégaoctets de D50 est donc tenue au mégaoctet près. Le reste est le
+fonctionnement normal de Chromium, et D50 ne promettait que le cache.

@@ -1,0 +1,62 @@
+﻿<Window x:Class="DtHub.App.Windows.PreparationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:DtHub.App.Localization"
+        Title="{loc:T PreparationTitle}"
+        Width="520" SizeToContent="Height"
+        ResizeMode="NoResize" ShowInTaskbar="True"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource SurfaceAltBrush}"
+        TextOptions.TextFormattingMode="Display">
+
+  <StackPanel Margin="20">
+
+    <TextBlock Text="{loc:T PreparationTitle}" Style="{StaticResource Title}" />
+    <TextBlock Style="{StaticResource Muted}" Margin="0,6,0,14"
+               Text="{loc:T PreparationLead}" />
+
+    <!-- Un bloc par composant manquant, et rien pour ceux déjà posés : aux
+         lancements suivants cette fenêtre ne paraît pas du tout. -->
+    <ItemsControl x:Name="Rows">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate>
+          <Border Style="{StaticResource Card}">
+            <StackPanel>
+              <Grid>
+                <TextBlock Text="{Binding Name}" FontSize="13"
+                           FontFamily="{StaticResource UiFont}"
+                           Foreground="{DynamicResource TextBrush}" />
+                <!-- La source est nommée : c'est ce qu'on télécharge et d'où. -->
+                <TextBlock Text="{Binding Host}" HorizontalAlignment="Right"
+                           Style="{StaticResource Muted}" FontSize="11" />
+              </Grid>
+
+              <ProgressBar Height="3" Margin="0,9,0,0"
+                           Minimum="0" Maximum="1"
+                           Value="{Binding Fraction, Mode=OneWay}"
+                           IsIndeterminate="{Binding IsBusy}"
+                           Background="{DynamicResource SurfaceAltBrush}"
+                           BorderThickness="0"
+                           Foreground="{DynamicResource AccentBrush}" />
+
+              <TextBlock Margin="0,7,0,0" Style="{StaticResource Muted}" FontSize="11"
+                         Text="{Binding Status}" />
+            </StackPanel>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    <TextBlock x:Name="Footer" Style="{StaticResource Muted}" Margin="0,6,0,0"
+               Text="{loc:T PreparationChecksum}" />
+
+    <!-- Montrés seulement si quelque chose a échoué. L'application sait vivre
+         sans ces outils : « Continuer » n'est pas un aveu, c'est une sortie. -->
+    <WrapPanel x:Name="Choices" HorizontalAlignment="Right" Margin="0,14,0,0"
+               Visibility="Collapsed">
+      <Button Content="{loc:T PreparationRetry}" Click="OnRetry"
+              MinWidth="110" Margin="0,0,8,0" Style="{StaticResource PrimaryButton}" />
+      <Button Content="{loc:T PreparationSkip}" Click="OnSkip" MinWidth="110" />
+    </WrapPanel>
+  </StackPanel>
+</Window>
