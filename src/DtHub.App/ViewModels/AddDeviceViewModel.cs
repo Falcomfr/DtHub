@@ -248,7 +248,7 @@ public sealed partial class AddDeviceViewModel : ObservableObject
         }
 
         IsBusy = true;
-        Status = "Connexion en cours…";
+        Status = Strings.Get("ConnectionInProgress");
         OnPropertyChanged(nameof(CanConnect));
 
         try

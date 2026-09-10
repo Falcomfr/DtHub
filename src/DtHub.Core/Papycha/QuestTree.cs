@@ -161,7 +161,9 @@ public sealed class QuestTree
     /// </summary>
     public static QuestNode NodeOf(DungeonSummary dungeon) => new(
         QuestNodeKind.Quest,
-        dungeon.Level > 0 ? $"{dungeon.Title} (niv. {dungeon.Level})" : dungeon.Title,
+        dungeon.Level > 0
+            ? Strings.Format("DungeonWithLevel", dungeon.Title, dungeon.Level)
+            : dungeon.Title,
         Detail(dungeon),
         Dungeon: dungeon);
 

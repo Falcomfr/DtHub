@@ -64,6 +64,29 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Corrigé
 
+- **Le choix de la langue n'agissait pas.** Le réglage était lu, journalisé,
+  et l'application affichait quand même la langue de Windows : une culture
+  posée à l'intérieur d'une méthode asynchrone revient à sa valeur d'avant dès
+  que la méthode rend la main. Mesuré, réglage sur « en », trente
+  millisecondes après la pose : « fr-FR ». Les traductions anglaise et
+  espagnole étaient donc inatteignables depuis l'interface.
+
+- **Dix textes affichés étaient écrits en français dans le code**, dont
+  « Connexion en cours… », le nom donné à un compte neuf, les trois cadences
+  du réglage de qualité, le nom du profil principal et le titre de la boîte
+  « Ajouter un compte », qui avait pourtant déjà sa clé de traduction. Une
+  épreuve garde désormais la porte.
+
+- **Trois textes d'aide disaient faux.** DT Hub ne maintient pas l'écran du
+  téléphone allumé mais l'écran virtuel où tourne le jeu ; le palier de
+  qualité haute est borné à 1440 et non à la définition de la fenêtre ; et le
+  même palier s'appelait « Haute » dans les réglages et « Max » dans le
+  sélecteur par compte.
+
+- **L'espagnol mélangeait le tutoiement et le vouvoiement**, jusque dans une
+  même phrase. Trente et une clés reviennent au tutoiement, qui est la forme
+  du reste du fichier.
+
 - **Une liaison qui lâche ne ferme plus l'application.** Quand la dernière
   fenêtre de jeu mourait sans qu'on l'ait demandé, DT Hub se fermait avec
   elle. Un hoquet Wi-Fi suffisait, et les déconnexions sont la première

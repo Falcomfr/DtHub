@@ -130,7 +130,10 @@ public partial class App : Application, IDisposable
         // La langue est posée avant la première fenêtre : les textes sont lus
         // à la construction des vues, et une fenêtre déjà bâtie ne changerait
         // plus de langue.
-        await ApplyLanguageAsync(settings).ConfigureAwait(true);
+        //
+        // La lecture est séparée de la pose, et ce n'est pas de la coquetterie :
+        // voir ApplyLanguage.
+        ApplyLanguage(await ChooseLanguageAsync(settings).ConfigureAwait(true));
 
         // Avant tout le reste, et avant la première fenêtre : sur un poste
         // neuf, ADB et scrcpy s'installaient au détour de deux appels qui
@@ -326,20 +329,47 @@ public partial class App : Application, IDisposable
     /// pas traduite. Les formats de nombres et de dates ne sont pas touchés :
     /// ils suivent le pays, qui est un autre réglage.
     /// </summary>
-    private static async Task ApplyLanguageAsync(SettingsService settings)
+    private static async Task<string> ChooseLanguageAsync(SettingsService settings)
     {
         var document = await settings.GetAsync().ConfigureAwait(true);
         var language = AppLanguage.Choose(document.Language, CultureInfo.CurrentUICulture.Name);
-        var culture = CultureInfo.GetCultureInfo(language);
-
-        CultureInfo.DefaultThreadCurrentUICulture = culture;
-        CultureInfo.CurrentUICulture = culture;
 
         Log.Information(
             "Langue de l'interface : {Langue} (réglage {Reglage}, Windows {Windows}).",
             language,
             document.Language,
             CultureInfo.InstalledUICulture.Name);
+
+        return language;
+    }
+
+    /// <summary>
+    /// Pose la langue sur le fil qui va bâtir les fenêtres.
+    ///
+    /// **Cette méthode ne doit pas devenir « async », et c'est tout l'objet
+    /// d'une correction mesurée.** Une culture posée à l'intérieur d'une
+    /// méthode asynchrone voyage dans le contexte d'exécution : elle revient à
+    /// sa valeur d'avant dès que la méthode rend la main à son appelant. Le
+    /// réglage de langue était donc lu, journalisé, et sans effet, et
+    /// l'application parlait toujours la langue de Windows.
+    ///
+    /// Relevé, réglage sur « en », trente millisecondes après la pose et avant
+    /// la première fenêtre :
+    ///
+    /// <code>
+    /// Langue de l'interface : en (réglage en, Windows fr-FR).
+    /// SONDE culture avant fenetre : fr-FR / fr-FR -> COMPTES DOFUS TOUCH
+    /// </code>
+    ///
+    /// Appelée depuis une méthode ordinaire, la pose tient : un appel
+    /// synchrone n'empile ni ne restaure de contexte.
+    /// </summary>
+    private static void ApplyLanguage(string language)
+    {
+        var culture = CultureInfo.GetCultureInfo(language);
+
+        CultureInfo.DefaultThreadCurrentUICulture = culture;
+        CultureInfo.CurrentUICulture = culture;
     }
 
     /// <summary>

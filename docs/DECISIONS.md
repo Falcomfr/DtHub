@@ -6590,3 +6590,90 @@ le second forcé :
 ```
 
 L'appareil a été remis dans son état par `dumpsys battery reset`.
+
+## D122 - Le tour des textes affichés
+
+Question posée : les astuces, les aides et les messages d'erreur sont-ils
+encore justes et compréhensibles, et manque-t-il des traductions ? Le tour a
+été fait en entier, mécaniquement puis à la lecture des 578 textes.
+
+### Le socle était sain
+
+Trois langues, mêmes clés, aucun texte vide, aucun trou de format discordant,
+aucune clé citée sans exister, et pas un seul texte en dur dans le XAML. Les
+épreuves qui gardent ces règles ont tenu.
+
+### Le réglage de langue n'agissait pas
+
+C'est la trouvaille de la journée, et elle était invisible : le développeur
+comme l'utilisateur sont français sur un Windows français, donc la langue
+affichée était la bonne par accident.
+
+`ApplyLanguageAsync` lisait le réglage, posait la culture et le journalisait.
+Une sonde posée trente millisecondes plus tard, juste avant la première
+fenêtre, réglage sur « en » :
+
+```
+Langue de l'interface : en (réglage en, Windows fr-FR).
+SONDE culture avant fenetre : fr-FR / fr-FR -> COMPTES DOFUS TOUCH
+```
+
+**Une culture posée dans une méthode `async` voyage dans le contexte
+d'exécution : elle revient à sa valeur d'avant dès que la méthode rend la
+main à son appelant.** La lecture est donc séparée de la pose, et la pose
+confiée à une méthode ordinaire, appelée par celle qui bâtira les fenêtres.
+Un appel synchrone n'empile ni ne restaure de contexte. Même sonde après
+correction :
+
+```
+SONDE culture avant fenetre : en / fr-FR -> DOFUS TOUCH ACCOUNTS
+```
+
+L'interface passe à l'anglais, et les nombres gardent le format français, ce
+qui est exactement la règle que `Strings.Format` énonce depuis le début : la
+langue et le pays sont deux réglages.
+
+### Trois textes disaient faux
+
+| Texte | Ce qu'il disait | Ce qui est vrai |
+| :-- | :-- | :-- |
+| `SleepExplanation` | « DT Hub maintient l'écran de l'appareil allumé » | D115 a mesuré le contraire : `--keep-active` maintient l'afficheur virtuel, pas l'écran |
+| `QualityHighTip` | « à la définition de la fenêtre, sans aucune borne » | le palier est borné à 1440 depuis qu'un même palier coûtait deux fois plus sur un écran 4K |
+| `QualityMaximumShort` | « Max » | le même palier s'appelle « Haute » dans les réglages ; deux noms pour une chose |
+
+Les deux premiers sont des textes qui ont survécu à la décision qui les a
+rendus faux. C'est le défaut propre aux textes d'aide : rien ne les compile.
+
+### Dix textes affichés étaient écrits en dur
+
+Dont le nom donné à un compte neuf, les trois cadences du réglage de qualité,
+le nom du profil principal, et le titre de la boîte « Ajouter un compte » qui
+avait pourtant déjà sa clé. Tous passent maintenant par les ressources, en
+trois langues.
+
+### L'épreuve a d'abord été inutile, et c'est le point de méthode
+
+`DisplayedTextTests` garde la porte. Sa première version cherchait les
+caractères accentués, et elle passait au vert avec la faute remise en place :
+« Connexion en cours » n'a pas un seul accent, et cinq des dix fautes non
+plus. **Une épreuve de convention doit être éprouvée sur la faute qu'elle
+prétend attraper**, comme `StyleTargetTests` l'a été. La seconde version
+compte les mots hors des trous de format : un identifiant, un chemin, une
+adresse ou une chaîne d'interpolation n'en font pas deux. Vérifiée en
+replaçant la faute.
+
+### L'espagnol parlait deux fois
+
+Trente et une clés vouvoyaient quand le reste du fichier tutoie, et
+`AccountAdded` faisait les deux dans la même phrase. Les fautives sont pour
+l'essentiel les plus récentes : une traduction s'écrit au fil de l'eau et le
+registre se perd sans que rien ne le signale. Elles reviennent au tutoiement.
+
+### Ce qui a été vu sans être corrigé
+
+Quand toutes les fenêtres mémorisées échouent à s'ouvrir au démarrage et que
+le panneau est masqué, l'application se ferme sans un mot : le compte de
+fenêtres tombe à zéro et la règle « plus aucune fenêtre ni panneau » conclut à
+l'arrêt. Observé deux fois de suite pendant ce tour, sur un serveur ADB
+fatigué. C'est de la même famille que le défaut corrigé en D113, mais sur le
+chemin du démarrage, et cela dépasse le périmètre d'un tour de textes.

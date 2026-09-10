@@ -253,8 +253,8 @@ public sealed partial class QuestViewModel : ObservableObject
 
         var progress = new Progress<QuestIndexingProgress>(
             p => StatusText = p.Total > 0
-                ? $"Indexation {p.Loaded} / {p.Total}"
-                : "Indexation…");
+                ? Strings.Format("IndexingProgress", p.Loaded, p.Total)
+                : Strings.Get("Indexing"));
 
         var catalog = await _catalog.GetAsync(progress, cancellationToken).ConfigureAwait(true);
 

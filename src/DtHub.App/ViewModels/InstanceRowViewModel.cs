@@ -146,7 +146,7 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     public bool IsDeviceConnected => Instance.IsDeviceConnected;
 
     /// <summary>Profil Android d'origine, affiché en second plan.</summary>
-    public string UserLabel => $"profil {Instance.UserId} · {Instance.UserName}";
+    public string UserLabel => Strings.Format("ProfileOrigin", Instance.UserId, Instance.UserName);
 
     /// <summary>
     /// Vrai quand le nom affiché ne dit plus de quel profil il s'agit, donc

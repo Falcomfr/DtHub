@@ -144,7 +144,7 @@
     <value>Alta</value>
   </data>
   <data name="QualityHighTip" xml:space="preserve">
-    <value>Imagen a la resolución de la ventana, sin ningún límite, y tasa de bits doble. Duro para el teléfono: resérvalo para un aparato reciente, y en Wi-Fi para una red que aguante.</value>
+    <value>Imagen en 1440 como máximo, 60 imágenes por segundo, y tasa de bits doble. Duro para el teléfono: resérvalo para un aparato reciente, y en Wi-Fi para una red que aguante.</value>
   </data>
   <data name="QualityCustom" xml:space="preserve">
     <value>Personalizada</value>
@@ -234,7 +234,7 @@
     <value>Cerrar también el juego en el teléfono</value>
   </data>
   <data name="StopAppOnCloseTip" xml:space="preserve">
-    <value>Al cerrar una ventana de juego, el juego también se detiene en el teléfono. Sin marcar, sigue funcionando: al reabrir la ventana el personaje sigue conectado, pero una cuenta cerrada conserva su memoria y su conexión.</value>
+    <value>Al cerrar una ventana de juego, el juego también se detiene en el teléfono. Sin marcar, sigue funcionando: al reabrir la ventana el personaje sigue conectado, pero la cuenta sigue ocupando la memoria del teléfono, con la ventana cerrada o no.</value>
   </data>
   <data name="OpenLogFolder" xml:space="preserve">
     <value>Abrir la carpeta de registros</value>
@@ -432,13 +432,13 @@
     <value>El teléfono responde. Todo está listo.</value>
   </data>
   <data name="CheckNoDevice" xml:space="preserve">
-    <value>Ningún teléfono detectado. Que Windows lo vea para las fotos no basta: eso solo prueba la transferencia de archivos, nunca la depuración. Conecte un cable de datos, elija « Transferencia de archivos » si el teléfono lo pide, y active la depuración USB. Un dispositivo ya vinculado se reconecta solo por Wi-Fi.</value>
+    <value>Ningún teléfono detectado. Que Windows lo vea para las fotos no basta: eso solo prueba la transferencia de archivos, nunca la depuración. Conecta un cable de datos, elige « Transferencia de archivos » si el teléfono lo pide, y activa la depuración USB. Un dispositivo ya vinculado se reconecta solo por Wi-Fi.</value>
   </data>
   <data name="CheckWaitingAuthorization" xml:space="preserve">
-    <value>El teléfono está ahí pero aún no ha autorizado este PC. Desbloquee su pantalla y acepte la solicitud de depuración.</value>
+    <value>El teléfono está ahí pero aún no ha autorizado este PC. Desbloquea su pantalla y acepta la solicitud de depuración.</value>
   </data>
   <data name="CheckDriverRefused" xml:space="preserve">
-    <value>El controlador USB de Windows rechaza el acceso a este dispositivo. Desconéctelo, conéctelo en otro puerto y acepte la solicitud en el teléfono.</value>
+    <value>El controlador USB de Windows rechaza el acceso a este dispositivo. Desconéctalo, conéctalo en otro puerto y acepta la solicitud en el teléfono.</value>
   </data>
   <data name="CheckUsbUnreadable" xml:space="preserve">
     <value>Hay un dispositivo conectado pero Windows no ha podido leer su identidad. La culpa es del cable, del puerto o del conector, no del teléfono.</value>
@@ -459,42 +459,42 @@
     <value>Puede que el teléfono se esté cargando, lo que solo prueba la alimentación. Los hilos de datos no transmiten nada aprovechable. Estas son las pistas, de la más frecuente a la más rara.</value>
   </data>
   <data name="CableHelpSteps" xml:space="preserve">
-    <value>Pruebe otro cable. Muchos cables que vienen con un cargador no tienen hilos de datos, y un cable de datos dañado da exactamente este fallo.
+    <value>Prueba otro cable. Muchos cables que vienen con un cargador no tienen hilos de datos, y un cable de datos dañado da exactamente este fallo.
 
-Pruebe un puerto USB 2.0, en la parte trasera de la máquina y no en el frontal: la enumeración es más tolerante y el recorrido más corto.
+Prueba un puerto USB 2.0, en la parte trasera de la máquina y no en el frontal: la enumeración es más tolerante y el recorrido más corto.
 
-Reinicie, no apague. Con el inicio rápido de Windows, apagar y volver a encender no reinicia los controladores USB; solo «Reiniciar» lo hace.
+Reinicia, no apagues. Con el inicio rápido de Windows, apagar y volver a encender no reinicia los controladores USB; solo «Reiniciar» lo hace.
 
-Limpie el conector del teléfono. El polvo del bolsillo impide el contacto de los pines de datos aunque la carga siga funcionando.
+Limpia el conector del teléfono. El polvo del bolsillo impide el contacto de los pines de datos aunque la carga siga funcionando.
 
-Cruce las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC. Así sabrá cuál de los tres falla.</value>
+Cruza las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC. Así sabrás cuál de los tres falla.</value>
   </data>
   <data name="AdbShellUserAccessDenied" xml:space="preserve">
-    <value>El teléfono ha denegado al PC el acceso a ese perfil. Si es una carpeta segura, desbloquéela en el teléfono antes de iniciar. Si no, active «Depuración USB (ajustes de seguridad)» en las opciones de desarrollo.</value>
+    <value>El teléfono ha denegado al PC el acceso a ese perfil. Si es una carpeta segura, desbloquéala en el teléfono antes de iniciar. Si no, activa «Depuración USB (ajustes de seguridad)» en las opciones de desarrollo.</value>
   </data>
   <data name="ScrcpyDisplayTimeoutWithAudio" xml:space="preserve">
-    <value>El teléfono no abrió una pantalla virtual a tiempo. Pruebe primero sin sonido: en algunas tabletas, activarlo basta para impedir que la pantalla se abra.</value>
+    <value>El teléfono no abrió una pantalla virtual a tiempo. Prueba primero sin sonido: en algunas tabletas, activarlo basta para impedir que la pantalla se abra.</value>
   </data>
   <data name="BrandSamsungWarning" xml:space="preserve">
-    <value>Si la tableta no se detecta en absoluto, desactive «Bloqueador automático» en Ajustes > Seguridad y privacidad, y después «Bloquear conexiones USB» en los demás ajustes de seguridad. Una carpeta segura debe desbloquearse antes de iniciar, o el juego no se encontrará en ella.</value>
+    <value>Si la tableta no se detecta en absoluto, desactiva «Bloqueador automático» en Ajustes > Seguridad y privacidad, y después «Bloquear conexiones USB» en los demás ajustes de seguridad. Una carpeta segura debe desbloquearse antes de iniciar, o el juego no se encontrará en ella.</value>
   </data>
   <data name="BrandOnePlusWarning" xml:space="preserve">
-    <value>Active también «Depuración USB (ajustes de seguridad)» e «Instalar vía USB» en el mismo menú. Sin la primera, la imagen se ve pero el ratón y el teclado no hacen nada.</value>
+    <value>Activa también «Depuración USB (ajustes de seguridad)» e «Instalar vía USB» en el mismo menú. Sin la primera, la imagen se ve pero el ratón y el teclado no hacen nada.</value>
   </data>
   <data name="BrandVivoWarning" xml:space="preserve">
-    <value>Active también «Depuración USB (ajustes de seguridad)» e «Instalar vía USB» en el mismo menú. Sin la primera, la imagen se ve pero el ratón y el teclado no hacen nada.</value>
+    <value>Activa también «Depuración USB (ajustes de seguridad)» e «Instalar vía USB» en el mismo menú. Sin la primera, la imagen se ve pero el ratón y el teclado no hacen nada.</value>
   </data>
   <data name="SessionRecovering" xml:space="preserve">
     <value>La conexión con {0} se cortó. Su ventana se vuelve a abrir.</value>
   </data>
   <data name="SessionRecoveryGaveUp" xml:space="preserve">
-    <value>{0} no pudo reabrirse tras varios intentos. Revise el teléfono y vuelva a lanzarlo usted mismo.</value>
+    <value>{0} no pudo reabrirse tras varios intentos. Revisa el teléfono y vuelve a lanzarlo tú mismo.</value>
   </data>
   <data name="DeviceBatteryLow" xml:space="preserve">
-    <value>El teléfono está al {0} % y no está cargando. Enchúfelo o la sesión acabará antes que usted.</value>
+    <value>El teléfono está al {0} % y no está cargando. Enchúfalo o la sesión acabará antes que tú.</value>
   </data>
   <data name="DeviceBatteryCritical" xml:space="preserve">
-    <value>El teléfono está al {0} % y no está cargando. Enchúfelo ya: le quedan unos minutos.</value>
+    <value>El teléfono está al {0} % y no está cargando. Enchúfalo ya: le quedan unos minutos.</value>
   </data>
   <data name="BatteryPercent" xml:space="preserve">
     <value>{0} %</value>
@@ -509,7 +509,7 @@ Cruce las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
     <value>Solo quedan {0} GB libres en el teléfono. DOFUS Touch puede fallar sin decir por qué cuando falta espacio.</value>
   </data>
   <data name="DeviceStorageCritical" xml:space="preserve">
-    <value>Solo quedan {0} GB libres en el teléfono. Haga sitio antes de jugar: el juego fallará.</value>
+    <value>Solo quedan {0} GB libres en el teléfono. Haz sitio antes de jugar: el juego fallará.</value>
   </data>
   <data name="DeviceOn24GHz" xml:space="preserve">
     <value>El teléfono está en la banda de 2,4 GHz. La imagen se entrecortará más que en 5 GHz; cambiar de banda es lo que más ayuda.</value>
@@ -521,7 +521,7 @@ Cruce las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
     <value>Media</value>
   </data>
   <data name="QualityMaximumShort" xml:space="preserve">
-    <value>Máx</value>
+    <value>Alta</value>
   </data>
   <data name="QualityCustomShort" xml:space="preserve">
     <value>Personal</value>
@@ -536,7 +536,7 @@ Cruce las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
     <value>Registrar la cadencia en el registro</value>
   </data>
   <data name="FluidityDiagnosticsTip" xml:space="preserve">
-    <value>Pide a scrcpy que escriba cuántas imágenes por segundo recibe realmente cada ventana. Actívelo solo para investigar un tirón.</value>
+    <value>Pide a scrcpy que escriba cuántas imágenes por segundo recibe realmente cada ventana. Actívalo solo para investigar un tirón.</value>
   </data>
   <data name="FluidityDiagnosticsHelp" xml:space="preserve">
     <value>Cero imágenes por segundo no es un fallo: scrcpy solo codifica lo que cambia, así que una imagen inmóvil no produce nada. El registro anota también los codificadores que ofrece el teléfono.</value>
@@ -560,7 +560,7 @@ Cruce las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
     <value>Sustituye todos los ajustes por los de un archivo escrito por esta aplicación.</value>
   </data>
   <data name="ImportSettingsConfirm" xml:space="preserve">
-    <value>Esto sustituye todas sus cuentas, perfiles, atajos y ajustes. ¿Continuar?</value>
+    <value>Esto sustituye todas tus cuentas, perfiles, atajos y ajustes. ¿Continuar?</value>
   </data>
   <data name="SettingsFileFilter" xml:space="preserve">
     <value>Ajustes DT Hub|*.json|Todos los archivos|*.*</value>
@@ -569,10 +569,10 @@ Cruce las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
     <value>Ajustes guardados en {0}.</value>
   </data>
   <data name="SettingsImported" xml:space="preserve">
-    <value>Ajustes restaurados. Vuelva a abrir sus ventanas para que todo se aplique.</value>
+    <value>Ajustes restaurados. Vuelve a abrir tus ventanas para que todo se aplique.</value>
   </data>
   <data name="SettingsFileTooNew" xml:space="preserve">
-    <value>Este archivo fue escrito por una versión más reciente de DT Hub. Actualice la aplicación antes de restaurarlo; de lo contrario, parte de sus ajustes se perdería sin avisar.</value>
+    <value>Este archivo fue escrito por una versión más reciente de DT Hub. Actualiza la aplicación antes de restaurarlo; de lo contrario, parte de tus ajustes se perdería sin avisar.</value>
   </data>
   <data name="SettingsFileForeign" xml:space="preserve">
     <value>Este archivo no es un archivo de ajustes de DT Hub.</value>
@@ -584,10 +584,10 @@ Cruce las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
     <value>{0} muestra su pantalla de bloqueo en lugar del juego. Este teléfono no puede crear una pantalla virtual desbloqueada, así que Android le impone el bloqueo. Hace falta un Android más reciente para esta cuenta.</value>
   </data>
   <data name="DeviceThrottling" xml:space="preserve">
-    <value>El dispositivo se está calentando y empieza a limitarse. Cierre una cuenta, o baje un nivel de calidad, y volverá a rendir.</value>
+    <value>El dispositivo se está calentando y empieza a limitarse. Cierra una cuenta, o baja un nivel de calidad, y volverá a rendir.</value>
   </data>
   <data name="DeviceThrottlingSevere" xml:space="preserve">
-    <value>El dispositivo está demasiado caliente y se limita mucho. Cierre una cuenta o baje un nivel sin esperar: por debajo de esto, Android suspende las ventanas hasta que se enfríe.</value>
+    <value>El dispositivo está demasiado caliente y se limita mucho. Cierra una cuenta o baja un nivel sin esperar: por debajo de esto, Android suspende las ventanas hasta que se enfríe.</value>
   </data>
   <data name="DeadInputHelp" xml:space="preserve">
     <value>¿El ratón no hace nada en la ventana?</value>
@@ -611,25 +611,25 @@ Cruce las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
     <value>El dispositivo acepta la simulación de entrada. Si los clics siguen sin hacer nada, la causa está más abajo, no aquí.</value>
   </data>
   <data name="DeadInputTestDenied" xml:space="preserve">
-    <value>El dispositivo rechaza la simulación de entrada. Esa es la causa: active el ajuste de abajo y repita la prueba.</value>
+    <value>El dispositivo rechaza la simulación de entrada. Esa es la causa: activa el ajuste de abajo y repite la prueba.</value>
   </data>
   <data name="DeadInputTestUnknown" xml:space="preserve">
     <value>Sin veredicto. El dispositivo respondió algo inesperado, y adivinar sería peor que callar.</value>
   </data>
   <data name="DeadInputTestNoDevice" xml:space="preserve">
-    <value>No hay ningún dispositivo conectado. Conecte uno o vincúlelo y repita la prueba.</value>
+    <value>No hay ningún dispositivo conectado. Conecta uno o vincúlalo y repite la prueba.</value>
   </data>
   <data name="DeadInputSecuritySetting" xml:space="preserve">
     <value>Permitir la simulación de entrada</value>
   </data>
   <data name="DeadInputSecurityHelp" xml:space="preserve">
-    <value>En las opciones de desarrollo, active la línea cuya descripción dice «Conceder permisos y simular la entrada mediante depuración USB». Según la marca se llama «Depuración USB (ajustes de seguridad)». Es con diferencia la causa más frecuente.</value>
+    <value>En las opciones de desarrollo, activa la línea cuya descripción dice «Conceder permisos y simular la entrada mediante depuración USB». Según la marca se llama «Depuración USB (ajustes de seguridad)». Es con diferencia la causa más frecuente.</value>
   </data>
   <data name="DeadInputCable" xml:space="preserve">
     <value>El cable debe transferir datos</value>
   </data>
   <data name="DeadInputCableHelp" xml:space="preserve">
-    <value>Cuando el teléfono pregunte por el modo de conexión, elija «Transferencia de archivos» y no «Carga». Un cable que se queda en carga deja ver la pantalla y rechaza todo lo demás. Si la pregunta no aparece, pruebe otro cable: muchos cables que vienen con un cargador no tienen hilos de datos.</value>
+    <value>Cuando el teléfono pregunte por el modo de conexión, elige «Transferencia de archivos» y no «Carga». Un cable que se queda en carga deja ver la pantalla y rechaza todo lo demás. Si la pregunta no aparece, prueba otro cable: muchos cables que vienen con un cargador no tienen hilos de datos.</value>
   </data>
   <data name="SimulatedKeyboard" xml:space="preserve">
     <value>Teclado físico simulado</value>
@@ -638,19 +638,19 @@ Cruce las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
     <value>Presenta el teclado al teléfono como un teclado conectado, en lugar de escribir a través de su teclado en pantalla.</value>
   </data>
   <data name="SimulatedKeyboardHelp" xml:space="preserve">
-    <value>Actívelo cuando la ventana responde al ratón pero no se escribe nada: el teclado en pantalla de algunas marcas se traga los caracteres. A cambio, el teléfono lee sus teclas según su propia distribución de Android: ajústela igual que la del PC, o un AZERTY escribirá como QWERTY.</value>
+    <value>Actívalo cuando la ventana responde al ratón pero no se escribe nada: el teclado en pantalla de algunas marcas se traga los caracteres. A cambio, el teléfono lee tus teclas según su propia distribución de Android: ajústala igual que la del PC, o un AZERTY escribirá como QWERTY.</value>
   </data>
   <data name="DeadInputRevoke" xml:space="preserve">
     <value>Revocar las autorizaciones de depuración USB</value>
   </data>
   <data name="DeadInputRevokeHelp" xml:space="preserve">
-    <value>En las opciones de desarrollador, pulse «Revocar autorizaciones de depuración USB», desconecte el dispositivo, vuelva a conectarlo y acepte de nuevo la solicitud. Borra una autorización que quedó a medio conceder, y es el paso que desbloquea los casos en los que todo parece bien configurado.</value>
+    <value>En las opciones de desarrollador, pulsa «Revocar autorizaciones de depuración USB», desconecta el dispositivo, vuelve a conectarlo y acepta de nuevo la solicitud. Borra una autorización que quedó a medio conceder, y es el paso que desbloquea los casos en los que todo parece bien configurado.</value>
   </data>
   <data name="DeadInputToggleDeveloper" xml:space="preserve">
     <value>Apagarlo todo, reiniciar, volver a encenderlo</value>
   </data>
   <data name="DeadInputToggleDeveloperHelp" xml:space="preserve">
-    <value>Desconecte primero el teléfono del PC. Después apague los interruptores de depuración, hasta tres según la marca: depuración USB, instalación por USB y depuración USB (ajustes de seguridad). Reinicie el teléfono, vuelva a encenderlos una vez reiniciado y conéctelo de nuevo en modo «Transferencia de archivos» aceptando la solicitud. El orden importa, y el reinicio también: volver a encenderlos sin él suele dejar el ajuste marcado sin aplicarse.</value>
+    <value>Desconecta primero el teléfono del PC. Después apaga los interruptores de depuración, hasta tres según la marca: depuración USB, instalación por USB y depuración USB (ajustes de seguridad). Reinicia el teléfono, vuelve a encenderlos una vez reiniciado y conéctalo de nuevo en modo «Transferencia de archivos» aceptando la solicitud. El orden importa, y el reinicio también: volver a encenderlos sin él suele dejar el ajuste marcado sin aplicarse.</value>
   </data>
   <data name="OnBrandUseClonePath" xml:space="preserve">
     <value>
@@ -778,7 +778,7 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
     <value>Una ventana se congela al cabo de un rato</value>
   </data>
   <data name="SleepExplanation" xml:space="preserve">
-    <value>DT Hub mantiene encendida la pantalla del aparato, pero Android duerme por su cuenta las aplicaciones que considera inactivas, y una ventana de juego que no está en primer plano es una de ellas. Las ventanas se congelan entonces una a una, la más antigua primero. Un solo ajuste basta para impedirlo, y se mantiene.</value>
+    <value>DT Hub mantiene activa la pantalla virtual en la que corre el juego, pero Android duerme por su cuenta las aplicaciones que considera inactivas, y una ventana de juego que no está en primer plano es una de ellas. Las ventanas se congelan entonces una a una, la más antigua primero. Un solo ajuste basta para impedirlo, y se mantiene.</value>
   </data>
   <data name="OpenBatterySetting" xml:space="preserve">
     <value>1. Abrir el ajuste de batería del juego</value>
@@ -1180,7 +1180,7 @@ El detalle está en los registros:
     <value>¿Romper la vinculación con {0}?</value>
   </data>
   <data name="ForgetDeviceConsequence" xml:space="preserve">
-    <value>Sus cuentas y sus ajustes se borrarán, y este PC dejará de conectarse solo. El teléfono conserva su propia lista: quite este PC desde « Depuración inalámbrica » si también quiere borrarlo allí.</value>
+    <value>Sus cuentas y sus ajustes se borrarán, y este PC dejará de conectarse solo. El teléfono conserva su propia lista: quita este PC desde « Depuración inalámbrica » si también quieres borrarlo allí.</value>
   </data>
   <data name="GameNotInstalled" xml:space="preserve">
     <value>Juego no instalado</value>
@@ -1662,7 +1662,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Ajustes  ›  Ajustes adicionales  ›  Opciones de desarrollador</value>
   </data>
   <data name="BrandXiaomiWarning" xml:space="preserve">
-    <value>Active « Depuración USB (ajustes de seguridad) »: sin ella la imagen se ve pero el ratón y el teclado no hacen nada. La depuración USB pide a veces además una tarjeta SIM y una cuenta Xiaomi conectada. Si los clics siguen muertos, desactive « Escritura a mano con lápiz », al final de las opciones de desarrollo.</value>
+    <value>Activa « Depuración USB (ajustes de seguridad) »: sin ella la imagen se ve pero el ratón y el teclado no hacen nada. La depuración USB pide a veces además una tarjeta SIM y una cuenta Xiaomi conectada. Si los clics siguen muertos, desactiva « Escritura a mano con lápiz », al final de las opciones de desarrollo.</value>
   </data>
   <data name="BrandSamsungName" xml:space="preserve">
     <value>Samsung</value>
@@ -1683,7 +1683,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Ajustes  ›  Batería  ›  Límites de uso en segundo plano  ›  Aplicaciones que nunca se suspenden</value>
   </data>
   <data name="BrandSamsungBatteryNote" xml:space="preserve">
-    <value>Desactive también « Optimizar ajustes » en Ajustes &gt; Mantenimiento del dispositivo: al reactivarse, vuelve a suspender el juego a los pocos días.</value>
+    <value>Desactiva también « Optimizar ajustes » en Ajustes &gt; Mantenimiento del dispositivo: al reactivarse, vuelve a suspender el juego a los pocos días.</value>
   </data>
   <data name="BrandSamsungBuildNumberPath" xml:space="preserve">
     <value>Ajustes  ›  Información del teléfono, o de la tableta  ›  Información del software</value>
@@ -1740,7 +1740,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Ajustes  ›  Batería  ›  Inicio de aplicaciones  ›  DOFUS Touch</value>
   </data>
   <data name="BrandHonorBatteryNote" xml:space="preserve">
-    <value>Ponga el juego en gestión manual y active los tres interruptores propuestos, incluido « Ejecutar en segundo plano ». La gestión automática cierra el juego se ajuste lo que se ajuste.</value>
+    <value>Pon el juego en gestión manual y activa los tres interruptores propuestos, incluido « Ejecutar en segundo plano ». La gestión automática cierra el juego se ajuste lo que se ajuste.</value>
   </data>
   <data name="BrandHonorBuildNumberPath" xml:space="preserve">
     <value>Ajustes  ›  Información del teléfono, o de la tableta</value>
@@ -1773,7 +1773,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Ajustes  ›  Batería  ›  Gestión del consumo en segundo plano  ›  DOFUS Touch</value>
   </data>
   <data name="BrandVivoBatteryNote" xml:space="preserve">
-    <value>Active también « Inicio automático » para el juego. Estas capas son de las más rápidas en cerrar una aplicación en cuanto deja el primer plano.</value>
+    <value>Activa también « Inicio automático » para el juego. Estas capas son de las más rápidas en cerrar una aplicación en cuanto deja el primer plano.</value>
   </data>
   <data name="BrandVivoBuildNumberPath" xml:space="preserve">
     <value>Ajustes  ›  Información del teléfono, o de la tableta  ›  Información del software</value>
@@ -1813,5 +1813,41 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   </data>
   <data name="BrandAmazonWarning" xml:space="preserve">
     <value>Fire OS no tiene Play Store: DOFUS Touch no se distribuye ahí, e instalarlo obliga a pasar por un archivo APK. Esta ficha describe el procedimiento, no promete que el juego funcione.</value>
+  </data>
+  <data name="FpsChoice" xml:space="preserve">
+    <value>{0} imágenes por segundo</value>
+  </data>
+  <data name="ConnectionInProgress" xml:space="preserve">
+    <value>Conectando…</value>
+  </data>
+  <data name="Indexing" xml:space="preserve">
+    <value>Indexando…</value>
+  </data>
+  <data name="IndexingProgress" xml:space="preserve">
+    <value>Indexando {0} / {1}</value>
+  </data>
+  <data name="ProfileOrigin" xml:space="preserve">
+    <value>perfil {0} · {1}</value>
+  </data>
+  <data name="DungeonWithLevel" xml:space="preserve">
+    <value>{0} (niv. {1})</value>
+  </data>
+  <data name="DefaultAccountName" xml:space="preserve">
+    <value>Cuenta {0}</value>
+  </data>
+  <data name="UserTypePrimary" xml:space="preserve">
+    <value>Principal</value>
+  </data>
+  <data name="UserTypeClone" xml:space="preserve">
+    <value>Clon</value>
+  </data>
+  <data name="UserTypeSecondary" xml:space="preserve">
+    <value>Segundo espacio</value>
+  </data>
+  <data name="UserTypeRestricted" xml:space="preserve">
+    <value>Restringido</value>
+  </data>
+  <data name="UserTypeProfile" xml:space="preserve">
+    <value>Perfil</value>
   </data>
 </root>

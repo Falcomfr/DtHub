@@ -905,11 +905,11 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
             if (result.Succeeded)
             {
-                _dialogs.ShowInformation(result.Message, "Ajouter un compte");
+                _dialogs.ShowInformation(result.Message, Strings.Get("AddAccountTitle"));
             }
             else
             {
-                _dialogs.ShowWarning(result.Message, "Ajouter un compte");
+                _dialogs.ShowWarning(result.Message, Strings.Get("AddAccountTitle"));
             }
         }
         finally
@@ -940,7 +940,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
         for (var n = taken.Count + 1; ; n++)
         {
-            var candidate = $"Compte {n.ToString(System.Globalization.CultureInfo.CurrentCulture)}";
+            var candidate = Strings.Format("DefaultAccountName", n);
 
             if (!taken.Contains(candidate))
             {

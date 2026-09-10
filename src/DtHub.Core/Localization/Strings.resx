@@ -144,7 +144,7 @@
     <value>High</value>
   </data>
   <data name="QualityHighTip" xml:space="preserve">
-    <value>Image at the window's resolution, with no cap at all, and double the bitrate. Hard on the phone: keep it for a recent device, and over Wi-Fi for a network that keeps up.</value>
+    <value>Image at 1440 at most, 60 frames per second, and double the bitrate. Hard on the phone: keep it for a recent device, and over Wi-Fi for a network that keeps up.</value>
   </data>
   <data name="QualityCustom" xml:space="preserve">
     <value>Custom</value>
@@ -234,7 +234,7 @@
     <value>Close the game on the phone too</value>
   </data>
   <data name="StopAppOnCloseTip" xml:space="preserve">
-    <value>When you close a game window, the game is also stopped on the phone. Unchecked, it keeps running: reopening the window finds your character still logged in, but a closed account keeps its memory and its connection.</value>
+    <value>When you close a game window, the game is also stopped on the phone. Unchecked, it keeps running: reopening the window finds your character still logged in, but the account goes on using the phone's memory, window closed or not.</value>
   </data>
   <data name="OpenLogFolder" xml:space="preserve">
     <value>Open the log folder</value>
@@ -521,7 +521,7 @@ Cross the tests: another device on this port, and this phone on another PC. You 
     <value>Medium</value>
   </data>
   <data name="QualityMaximumShort" xml:space="preserve">
-    <value>Max</value>
+    <value>High</value>
   </data>
   <data name="QualityCustomShort" xml:space="preserve">
     <value>Custom</value>
@@ -778,7 +778,7 @@ On a {0} device, the manual copy goes through: {1}.</value>
     <value>A window freezes after a while</value>
   </data>
   <data name="SleepExplanation" xml:space="preserve">
-    <value>DT Hub keeps the device's screen on, but Android puts to sleep by itself the applications it judges idle, and a game window that is not in the foreground is one of them. The windows then freeze one after another, the oldest first. One setting is enough to prevent it, and it holds.</value>
+    <value>DT Hub keeps active the virtual screen the game runs on, but Android puts to sleep by itself the applications it judges idle, and a game window that is not in the foreground is one of them. The windows then freeze one after another, the oldest first. One setting is enough to prevent it, and it holds.</value>
   </data>
   <data name="OpenBatterySetting" xml:space="preserve">
     <value>1. Open the game's battery setting</value>
@@ -1813,5 +1813,41 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   </data>
   <data name="BrandAmazonWarning" xml:space="preserve">
     <value>Fire OS has no Play Store: DOFUS Touch is not distributed there, and installing it means going through an APK file. This card describes the steps; it does not promise the game will run.</value>
+  </data>
+  <data name="FpsChoice" xml:space="preserve">
+    <value>{0} frames per second</value>
+  </data>
+  <data name="ConnectionInProgress" xml:space="preserve">
+    <value>Connecting…</value>
+  </data>
+  <data name="Indexing" xml:space="preserve">
+    <value>Indexing…</value>
+  </data>
+  <data name="IndexingProgress" xml:space="preserve">
+    <value>Indexing {0} / {1}</value>
+  </data>
+  <data name="ProfileOrigin" xml:space="preserve">
+    <value>profile {0} · {1}</value>
+  </data>
+  <data name="DungeonWithLevel" xml:space="preserve">
+    <value>{0} (lvl {1})</value>
+  </data>
+  <data name="DefaultAccountName" xml:space="preserve">
+    <value>Account {0}</value>
+  </data>
+  <data name="UserTypePrimary" xml:space="preserve">
+    <value>Primary</value>
+  </data>
+  <data name="UserTypeClone" xml:space="preserve">
+    <value>Clone</value>
+  </data>
+  <data name="UserTypeSecondary" xml:space="preserve">
+    <value>Second space</value>
+  </data>
+  <data name="UserTypeRestricted" xml:space="preserve">
+    <value>Restricted</value>
+  </data>
+  <data name="UserTypeProfile" xml:space="preserve">
+    <value>Profile</value>
   </data>
 </root>

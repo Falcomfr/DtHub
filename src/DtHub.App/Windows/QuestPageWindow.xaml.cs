@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Windows;
 using DtHub.App.Services;
+using DtHub.Core.Localization;
 using DtHub.Core.Papycha;
 using DtHub.Core.Settings;
 using Microsoft.Web.WebView2.Core;
@@ -239,7 +240,7 @@ public partial class QuestPageWindow : Window
             // titre qui ne promet plus ce qu'elle ne montre pas.
             if (state.Contains("absent", StringComparison.Ordinal))
             {
-                Title = "Guides de papycha.fr";
+                Title = Strings.Get("PapychaGuides");
                 return;
             }
 

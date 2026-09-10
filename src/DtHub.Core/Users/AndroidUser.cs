@@ -43,13 +43,13 @@ public sealed record AndroidUser
     /// <summary>Libellé court du type, pour les infobulles et le diagnostic.</summary>
     public string TypeLabel => Type switch
     {
-        AndroidUserType.Primary => "Principal",
+        AndroidUserType.Primary => Strings.Get("UserTypePrimary"),
         AndroidUserType.ManagedProfile => Strings.Get("ManagedProfile"),
-        AndroidUserType.CloneProfile => "Clone",
-        AndroidUserType.Secondary => "Second espace",
+        AndroidUserType.CloneProfile => Strings.Get("UserTypeClone"),
+        AndroidUserType.Secondary => Strings.Get("UserTypeSecondary"),
         AndroidUserType.Guest => Strings.Get("Guest"),
-        AndroidUserType.Restricted => "Restreint",
-        _ => "Profil",
+        AndroidUserType.Restricted => Strings.Get("UserTypeRestricted"),
+        _ => Strings.Get("UserTypeProfile"),
     };
 
     /// <summary>
@@ -57,8 +57,12 @@ public sealed record AndroidUser
     /// souvent mieux que nous ne saurions le faire : « Applications
     /// dupliquées », « Second espace ». On lui laisse la main, sauf pour
     /// l'utilisateur principal où un libellé stable est plus clair.
+    ///
+    /// Ce libellé suit la langue de l'interface. Il sert de premier nom au
+    /// compte, que l'utilisateur peut renommer et qui est alors retenu tel
+    /// quel : changer de langue ne renomme donc rien de ce qui existe déjà.
     /// </summary>
     public string DisplayName => Type == AndroidUserType.Primary
-        ? "Principal"
+        ? Strings.Get("UserTypePrimary")
         : string.IsNullOrWhiteSpace(Name) ? $"{TypeLabel} {Id}" : Name.Trim();
 }

@@ -325,9 +325,9 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// </summary>
     public IReadOnlyList<IntChoice> FpsChoices { get; } =
     [
-        new("30 images par seconde", 30),
-        new("45 images par seconde", 45),
-        new("60 images par seconde", 60),
+        new(Strings.Format("FpsChoice", 30), 30),
+        new(Strings.Format("FpsChoice", 45), 45),
+        new(Strings.Format("FpsChoice", 60), 60),
     ];
 
     /// <summary>

@@ -144,7 +144,7 @@
     <value>Haute</value>
   </data>
   <data name="QualityHighTip" xml:space="preserve">
-    <value>Image à la définition de la fenêtre, sans aucune borne, et débit doublé. Sans ménagement pour le téléphone : à réserver à un appareil récent, et en Wi-Fi à un réseau qui suit.</value>
+    <value>Image en 1440 au plus, 60 images par seconde, et débit doublé. Sans ménagement pour le téléphone : à réserver à un appareil récent, et en Wi-Fi à un réseau qui suit.</value>
   </data>
   <data name="QualityCustom" xml:space="preserve">
     <value>Personnalisé</value>
@@ -234,7 +234,7 @@
     <value>Fermer aussi le jeu sur le téléphone</value>
   </data>
   <data name="StopAppOnCloseTip" xml:space="preserve">
-    <value>Fermer une fenêtre de jeu arrête aussi le jeu sur le téléphone. Décoché, il continue de tourner : rouvrir la fenêtre retrouve le personnage connecté, mais un compte fermé garde sa mémoire et sa connexion.</value>
+    <value>Fermer une fenêtre de jeu arrête aussi le jeu sur le téléphone. Décoché, il continue de tourner : rouvrir la fenêtre retrouve le personnage connecté, mais le compte continue d'occuper la mémoire du téléphone, fenêtre fermée ou non.</value>
   </data>
   <data name="OpenLogFolder" xml:space="preserve">
     <value>Ouvrir le dossier des journaux</value>
@@ -521,7 +521,7 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
     <value>Moyenne</value>
   </data>
   <data name="QualityMaximumShort" xml:space="preserve">
-    <value>Max</value>
+    <value>Haute</value>
   </data>
   <data name="QualityCustomShort" xml:space="preserve">
     <value>Perso</value>
@@ -778,7 +778,7 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
     <value>Une fenêtre se fige au bout d'un moment</value>
   </data>
   <data name="SleepExplanation" xml:space="preserve">
-    <value>DT Hub maintient l'écran de l'appareil allumé, mais Android endort de lui-même les applications qu'il juge inactives, et une fenêtre de jeu qui n'est pas au premier plan en fait partie. Les fenêtres se figent alors une à une, la plus ancienne d'abord. Un réglage suffit à l'empêcher, et il tient.</value>
+    <value>DT Hub garde actif l'écran virtuel où tourne le jeu, mais Android endort de lui-même les applications qu'il juge inactives, et une fenêtre de jeu qui n'est pas au premier plan en fait partie. Les fenêtres se figent alors une à une, la plus ancienne d'abord. Un réglage suffit à l'empêcher, et il tient.</value>
   </data>
   <data name="OpenBatterySetting" xml:space="preserve">
     <value>1. Ouvrir le réglage de batterie du jeu</value>
@@ -949,7 +949,7 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
     <value>Ajoutez Ctrl, Alt ou Maj, sinon la touche serait interceptée pendant que vous jouez.</value>
   </data>
   <data name="HotkeyEditingKey" xml:space="preserve">
-    <value>Ctrl+A, Ctrl+C, Ctrl+V et Ctrl+X restent aux gestes d’édition.</value>
+    <value>Ctrl+A, Ctrl+C, Ctrl+V et Ctrl+X restent aux gestes d'édition.</value>
   </data>
   <data name="HotkeyReserved" xml:space="preserve">
     <value>Cette combinaison est réservée par Windows.</value>
@@ -1813,5 +1813,41 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   </data>
   <data name="BrandAmazonWarning" xml:space="preserve">
     <value>Fire OS n'a pas le Play Store : DOFUS Touch n'y est pas distribué, et l'installer demande de passer par un fichier APK. Cette fiche décrit la marche à suivre, elle ne promet pas que le jeu s'y lance.</value>
+  </data>
+  <data name="FpsChoice" xml:space="preserve">
+    <value>{0} images par seconde</value>
+  </data>
+  <data name="ConnectionInProgress" xml:space="preserve">
+    <value>Connexion en cours…</value>
+  </data>
+  <data name="Indexing" xml:space="preserve">
+    <value>Indexation…</value>
+  </data>
+  <data name="IndexingProgress" xml:space="preserve">
+    <value>Indexation {0} / {1}</value>
+  </data>
+  <data name="ProfileOrigin" xml:space="preserve">
+    <value>profil {0} · {1}</value>
+  </data>
+  <data name="DungeonWithLevel" xml:space="preserve">
+    <value>{0} (niv. {1})</value>
+  </data>
+  <data name="DefaultAccountName" xml:space="preserve">
+    <value>Compte {0}</value>
+  </data>
+  <data name="UserTypePrimary" xml:space="preserve">
+    <value>Principal</value>
+  </data>
+  <data name="UserTypeClone" xml:space="preserve">
+    <value>Clone</value>
+  </data>
+  <data name="UserTypeSecondary" xml:space="preserve">
+    <value>Second espace</value>
+  </data>
+  <data name="UserTypeRestricted" xml:space="preserve">
+    <value>Restreint</value>
+  </data>
+  <data name="UserTypeProfile" xml:space="preserve">
+    <value>Profil</value>
   </data>
 </root>
