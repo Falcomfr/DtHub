@@ -311,6 +311,18 @@ public sealed class StoredInstance
     public StoredWindowRect? Window { get; set; }
 
     /// <summary>
+    /// Palier de qualité propre à ce compte, ou <c>null</c> pour suivre le
+    /// réglage commun.
+    ///
+    /// Un compte principal mérite soixante images et un gros débit ; quatre
+    /// mules qui suivent n'en ont pas besoin, et ce qu'on leur épargne est
+    /// autant de processeur, de bande passante, de chaleur et de batterie en
+    /// moins. <c>null</c> par défaut : personne n'a à régler cinq comptes pour
+    /// que l'application marche.
+    /// </summary>
+    public StreamQuality? Quality { get; set; }
+
+    /// <summary>
     /// Clé stable de l'instance. Exclue du fichier : elle se déduit des trois
     /// champs qui la composent, et l'écrire n'ajouterait qu'une redondance
     /// qu'une modification à la main pourrait contredire.

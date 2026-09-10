@@ -550,6 +550,57 @@ public sealed class SettingsService : IDisposable
             },
             cancellationToken);
 
+    /// <summary>
+    /// Le profil de qualité de chaque compte : le sien s'il en a choisi un,
+    /// le commun sinon.
+    ///
+    /// Résolu ici plutôt que chez l'appelant : c'est le seul endroit qui voie
+    /// à la fois les comptes et le réglage commun, et la règle de préséance
+    /// n'a pas à être répétée ailleurs.
+    /// </summary>
+    public async Task<IReadOnlyDictionary<string, QualityProfile>> GetInstanceQualitiesAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
+
+        Dictionary<string, QualityProfile> profiles = new(StringComparer.Ordinal);
+
+        foreach (var instance in settings.Instances)
+        {
+            profiles[instance.Key] = InstanceQuality.ProfileFor(
+                instance.Quality,
+                settings.Quality,
+                settings.CustomQuality);
+        }
+
+        return profiles;
+    }
+
+    /// <summary>
+    /// Donne son propre palier à un compte, ou le rend au réglage commun avec
+    /// <c>null</c>.
+    /// </summary>
+    public Task SetInstanceQualityAsync(
+        string key,
+        StreamQuality? quality,
+        CancellationToken cancellationToken = default) =>
+        UpdateIfChangedAsync(
+            settings =>
+            {
+                var instance = settings.Instances
+                    .FirstOrDefault(i => string.Equals(i.Key, key, StringComparison.Ordinal));
+
+                if (instance is null || instance.Quality == quality)
+                {
+                    return false;
+                }
+
+                instance.Quality = quality;
+
+                return true;
+            },
+            cancellationToken);
+
     /// <summary>Tailles configurées, corrigées si le fichier est incohérent.</summary>
     public async Task<WindowSizePresets> GetSizePresetsAsync(CancellationToken cancellationToken = default)
     {
@@ -722,6 +773,7 @@ public sealed class SettingsService : IDisposable
                     IsEnabled = i.IsEnabled,
                     IsManaged = i.IsManaged,
                     IsTabbed = i.IsTabbed,
+                    Quality = i.Quality,
                     IsDeviceConnected = live.Contains(i.Key),
                 })];
         }, cancellationToken).ConfigureAwait(false);

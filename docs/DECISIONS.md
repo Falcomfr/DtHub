@@ -6122,3 +6122,68 @@ sur l'Almanax officiel en D112 : lire une documentation n'est pas mesurer.
 Une conséquence utile, tout de même : la batterie que le jeu consomme part
 entièrement dans le jeu et le mirroring, pas dans l'écran. L'avertissement de
 batterie de D114 n'en est que plus justifié.
+
+## D116 - Un palier de qualité par compte
+
+On joue un compte et on en regarde quatre. Jusqu'ici tous recevaient le même
+traitement : soixante images par seconde et un gros débit pour la mule qui
+suit comme pour le personnage qu'on dirige. Ce qu'on épargne aux mules est
+pourtant autant de processeur, de bande passante, de chaleur et de batterie en
+moins, c'est-à-dire les trois limites qui font échouer une longue séance.
+
+### Le point dur n'était pas le réglage, c'était le chemin
+
+La qualité n'était pas seulement commune dans le fichier : elle était résolue
+une fois pour toutes en un champ unique de `GameLauncher`, puis lue par
+`WithDisplayFor` pour calculer la définition et le débit de chaque fenêtre.
+
+Rendre la qualité propre à un compte voulait donc dire **faire descendre un
+profil par compte jusqu'à ce calcul**, au lieu de lire un champ d'objet. C'est
+le vrai travail, et il touche aussi le repli à une définition plus modeste, qui
+recalculait le débit avec le même champ.
+
+### Deux niveaux, pas trois
+
+La règle tient en une phrase : **le compte l'emporte sur le réglage commun**.
+Il n'y a pas de troisième niveau, malgré les apparences : un profil de
+lancement recopie ses valeurs dans le réglage commun avant le lancement, si
+bien qu'au moment où la question se pose il ne reste que deux sources.
+
+### Pas de réglage fin par compte
+
+Un compte choisit un palier parmi ceux qui existent, ou suit le commun. Les
+valeurs du palier personnalisé restent communes.
+
+C'est délibéré : un réglage fin par compte aurait été un champ persisté que
+rien n'exposerait, et le dépôt écarte ce genre de poids mort. Le champ avait
+d'ailleurs été écrit, puis retiré avant l'interface, quand il est devenu clair
+que rien ne l'afficherait.
+
+### Les cadences ne suivent pas
+
+Un palier porte aussi le rythme des sondages d'appareils et de fenêtres. Ceux
+là sont propres à l'application : interroger les téléphones à cinq rythmes
+différents parce que cinq comptes sont ouverts n'aurait aucun sens. Seuls la
+définition et le débit se règlent par compte.
+
+### Le bouton devait rester visible
+
+Premier jet : un compte qui suit le commun n'a rien à dire, donc son bouton se
+réduisait à un point. Vérifié à l'écran, c'était illisible, et **un bouton
+qu'on ne voit pas est un bouton que personne ne trouve**.
+
+Le dessin reste donc toujours là, trois barres montantes, et seule son opacité
+baisse. Le palier ne s'écrit à côté que lorsque le compte en a choisi un : cinq
+lignes affichant « Moyenne » pour cinq comptes réglés pareil n'apprendraient
+rien.
+
+### Ce qui n'est pas fait
+
+**Le palier ne vaut qu'à la prochaine ouverture.** La définition et le débit
+sont fixés au lancement de scrcpy, et une session en cours ne se renégocie pas.
+Changer le palier d'un compte ouvert ne fait donc rien tant qu'on ne le rouvre
+pas, et c'est dit ici plutôt que subi.
+
+**Aucune lacune laissée en chemin.** `QualityProfile.For` au palier
+personnalisé n'était couvert par aucune épreuve, alors que c'est le seul chemin
+qui accepte des nombres venus de l'utilisateur. Il l'est maintenant.

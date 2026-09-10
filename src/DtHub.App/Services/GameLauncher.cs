@@ -756,6 +756,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
         remembered ??= await _settings.GetWindowRectsAsync(cancellationToken).ConfigureAwait(false);
 
         List<string> problems = [];
+        // Une lecture pour tout le lancement : la table ne change pas pendant
+        // qu'on ouvre les fenêtres.
+        var qualities = await _settings
+            .GetInstanceQualitiesAsync(cancellationToken)
+            .ConfigureAwait(false);
+
         List<ScrcpySession> started = [];
 
         foreach (var instance in instances)
@@ -793,7 +799,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
             var placement = ComputePlacement(options, stored);
 
             var target = ToTarget(instance, device.Serial);
-            var display = WithDisplayFor(options, placement, stored);
+
+            // Le palier du compte, ou le commun s'il n'en a pas choisi.
+            var quality = qualities.TryGetValue(instance.Key, out var own) ? own : _quality;
+
+            var display = WithDisplayFor(options, placement, stored, quality);
 
             // Le son capté est celui du téléphone entier : Android ne sait pas
             // l'isoler par application. Une seule session par appareil le porte
@@ -829,7 +839,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     VirtualDisplayWidth = smaller.Width,
                     VirtualDisplayHeight = smaller.Height,
                     VirtualDisplayDpi = ZoomProfile.DpiFor(smaller.Height, _zoom),
-                    VideoBitrateKbps = _quality.BitrateFor(smaller.Width, smaller.Height),
+                    VideoBitrateKbps = quality.BitrateFor(smaller.Width, smaller.Height),
                 };
 
                 session = await _sessions.StartAsync(
@@ -1578,10 +1588,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// de référence : une fenêtre laissée sur un second écran de forme
     /// différente naîtrait sinon mal formée.
     /// </summary>
+    /// <summary>
+    /// La définition et le débit d'une fenêtre, selon le palier de son compte.
+    ///
+    /// Le palier vient du compte et non du champ commun : un compte principal
+    /// mérite mieux que quatre mules, et ce qu'on épargne aux mules est autant
+    /// de processeur, de bande passante, de chaleur et de batterie en moins.
+    /// Les cadences de sondage, elles, restent communes.
+    /// </summary>
     private ScrcpyOptions WithDisplayFor(
         ScrcpyOptions options,
         ScrcpyWindowPlacement? placement,
-        StoredWindowRect? remembered)
+        StoredWindowRect? remembered,
+        QualityProfile quality)
     {
         if (placement is not { Height: > 0 } window
             || _windows.MonitorBoundsFor(remembered) is not { } screen)
@@ -1590,7 +1609,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
 
         var (width, height) = DisplayLadder.For(
-            window.Height, screen.Width, screen.Height, _quality.MaximumDisplayHeight);
+            window.Height, screen.Width, screen.Height, quality.MaximumDisplayHeight);
 
         // La densité se déduit de la définition retenue : la laisser fixe
         // faisait varier le zoom du jeu avec la taille de la fenêtre, puisque
@@ -1603,7 +1622,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             VirtualDisplayWidth = width,
             VirtualDisplayHeight = height,
             VirtualDisplayDpi = ZoomProfile.DpiFor(height, _zoom),
-            VideoBitrateKbps = _quality.BitrateFor(width, height),
+            VideoBitrateKbps = quality.BitrateFor(width, height),
         };
     }
 

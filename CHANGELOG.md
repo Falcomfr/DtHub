@@ -18,6 +18,11 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 - **L'événement du mois dans la fenêtre Almanax**, lu sur la page déjà
   chargée.
 
+- **Un palier de qualité par compte.** Le principal en maximale, les mules en
+  basse : autant de processeur, de bande passante, de chaleur et de batterie
+  en moins. Chaque compte suit le réglage commun tant qu'on ne lui en donne
+  pas un, et le nouveau palier vaut à la prochaine ouverture de sa fenêtre.
+
 ### Corrigé
 
 - **Une liaison qui lâche ne ferme plus l'application.** Quand la dernière

@@ -764,6 +764,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 row.EnabledChanged += OnEnabledChanged;
                 row.ManagedChanged += OnManagedChanged;
                 row.TabbedChanged += OnTabbedChanged;
+                row.QualityChanged += OnQualityChanged;
                 row.NameChanged += OnNameChanged;
                 Rows.Add(row);
             }
@@ -1009,6 +1010,35 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// Le lanceur s'occupe de tout : il écrit le réglage, puis loge ou ressort
     /// la fenêtre si elle est ouverte. Rien n'est rouvert.
     /// </summary>
+    /// <summary>
+    /// Écrit le palier propre à un compte.
+    ///
+    /// Le nouveau palier ne vaudra qu'à la prochaine ouverture de la fenêtre :
+    /// la définition et le débit sont fixés au lancement de scrcpy, et une
+    /// session en cours ne se renégocie pas.
+    /// </summary>
+    private async void OnQualityChanged(object? sender, InstanceRowViewModel row)
+    {
+        ArgumentNullException.ThrowIfNull(row);
+
+        try
+        {
+            await _settings.SetInstanceQualityAsync(row.Key, row.Quality).ConfigureAwait(true);
+
+            // Même piège que pour le verrou : sans cela le balayage suivant
+            // rendrait à la ligne son ancien palier.
+            _instances = null;
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Problem = exception.Message;
+        }
+        finally
+        {
+            row.IsQualityPending = false;
+        }
+    }
+
     private async void OnTabbedChanged(object? sender, InstanceRowViewModel row)
     {
         try

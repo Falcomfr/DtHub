@@ -505,6 +505,24 @@ Cross the tests: another device on this port, and this phone on another PC. You 
   <data name="DeviceOn24GHz" xml:space="preserve">
     <value>The phone is on the 2.4 GHz band. The picture will stutter more than on 5 GHz; switching bands is the single best change you can make.</value>
   </data>
+  <data name="QualityLowShort" xml:space="preserve">
+    <value>Low</value>
+  </data>
+  <data name="QualityMediumShort" xml:space="preserve">
+    <value>Medium</value>
+  </data>
+  <data name="QualityMaximumShort" xml:space="preserve">
+    <value>Max</value>
+  </data>
+  <data name="QualityCustomShort" xml:space="preserve">
+    <value>Custom</value>
+  </data>
+  <data name="QualityFollowShared" xml:space="preserve">
+    <value>Follow the shared setting</value>
+  </data>
+  <data name="InstanceQualityTip" xml:space="preserve">
+    <value>Quality for this account alone. A main account deserves more than the mules that follow it, and what you spare them is CPU, bandwidth, heat and battery saved.</value>
+  </data>
   <data name="DeviceThrottling" xml:space="preserve">
     <value>The device is heating up and is starting to slow itself down. Close an account, or drop one quality step, and it will pick up again.</value>
   </data>

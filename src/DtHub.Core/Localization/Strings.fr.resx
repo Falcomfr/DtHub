@@ -505,6 +505,24 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
   <data name="DeviceOn24GHz" xml:space="preserve">
     <value>Le téléphone est sur la bande 2,4 GHz. L'image saccadera plus qu'en 5 GHz ; changer de bande est le geste qui apporte le plus.</value>
   </data>
+  <data name="QualityLowShort" xml:space="preserve">
+    <value>Basse</value>
+  </data>
+  <data name="QualityMediumShort" xml:space="preserve">
+    <value>Moyenne</value>
+  </data>
+  <data name="QualityMaximumShort" xml:space="preserve">
+    <value>Max</value>
+  </data>
+  <data name="QualityCustomShort" xml:space="preserve">
+    <value>Perso</value>
+  </data>
+  <data name="QualityFollowShared" xml:space="preserve">
+    <value>Suivre le réglage commun</value>
+  </data>
+  <data name="InstanceQualityTip" xml:space="preserve">
+    <value>La qualité de ce compte seul. Un compte principal mérite mieux que les mules qui le suivent, et ce qu'on leur épargne est autant de processeur, de bande passante, de chaleur et de batterie en moins.</value>
+  </data>
   <data name="DeviceThrottling" xml:space="preserve">
     <value>L'appareil chauffe et commence à se brider. Fermez un compte, ou descendez d'un palier de qualité, et il repartira.</value>
   </data>

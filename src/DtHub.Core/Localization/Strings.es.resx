@@ -505,6 +505,24 @@ Cruce las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
   <data name="DeviceOn24GHz" xml:space="preserve">
     <value>El teléfono está en la banda de 2,4 GHz. La imagen se entrecortará más que en 5 GHz; cambiar de banda es lo que más ayuda.</value>
   </data>
+  <data name="QualityLowShort" xml:space="preserve">
+    <value>Baja</value>
+  </data>
+  <data name="QualityMediumShort" xml:space="preserve">
+    <value>Media</value>
+  </data>
+  <data name="QualityMaximumShort" xml:space="preserve">
+    <value>Máx</value>
+  </data>
+  <data name="QualityCustomShort" xml:space="preserve">
+    <value>Personal</value>
+  </data>
+  <data name="QualityFollowShared" xml:space="preserve">
+    <value>Seguir el ajuste común</value>
+  </data>
+  <data name="InstanceQualityTip" xml:space="preserve">
+    <value>La calidad de esta cuenta sola. Una cuenta principal merece más que las mulas que la siguen, y lo que se les ahorra es procesador, ancho de banda, calor y batería de menos.</value>
+  </data>
   <data name="DeviceThrottling" xml:space="preserve">
     <value>El dispositivo se está calentando y empieza a limitarse. Cierre una cuenta, o baje un nivel de calidad, y volverá a rendir.</value>
   </data>

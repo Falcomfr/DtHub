@@ -1,6 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 using DtHub.Core.Dofus;
+using DtHub.Core.Localization;
+using DtHub.Core.Settings;
 
 namespace DtHub.App.ViewModels;
 
@@ -164,6 +167,43 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     /// <summary>Signalé quand le compte entre dans le cadre à onglets ou en sort.</summary>
     public event EventHandler<InstanceRowViewModel>? TabbedChanged;
 
+    /// <summary>Signalé quand le compte change de palier de qualité.</summary>
+    public event EventHandler<InstanceRowViewModel>? QualityChanged;
+
+    /// <summary>
+    /// Palier propre à ce compte, ou <c>null</c> pour suivre le commun.
+    ///
+    /// On joue un compte et on en regarde quatre : le principal mérite mieux
+    /// que les mules, et ce qu'on épargne aux mules est autant de processeur,
+    /// de bande passante, de chaleur et de batterie en moins.
+    /// </summary>
+    [ObservableProperty]
+    private StreamQuality? _quality;
+
+    /// <summary>Vrai le temps que le palier soit écrit.</summary>
+    public bool IsQualityPending { get; set; }
+
+    /// <summary>Vrai quand le compte a son propre palier, donc que ça se voit.</summary>
+    public bool HasOwnQuality => Quality is not null;
+
+    /// <summary>Ce que le bouton affiche : le palier, ou rien s'il suit le commun.</summary>
+    public string QualityLabel => Quality switch
+    {
+        StreamQuality.Low => Strings.Get("QualityLowShort"),
+        StreamQuality.Medium => Strings.Get("QualityMediumShort"),
+        StreamQuality.Maximum => Strings.Get("QualityMaximumShort"),
+        StreamQuality.Custom => Strings.Get("QualityCustomShort"),
+        _ => string.Empty,
+    };
+
+    /// <summary>Donne son palier au compte, ou le rend au commun avec <c>null</c>.</summary>
+    [RelayCommand]
+    private void PickQuality(StreamQuality? quality) => Quality = quality;
+
+    /// <summary>Rend le compte au réglage commun.</summary>
+    [RelayCommand]
+    private void FollowSharedQuality() => Quality = null;
+
     /// <summary>
     /// Vrai tant que le nom saisi n'est pas écrit. Le balayage périodique ne
     /// doit pas le remplacer entre-temps par l'ancien : la saisie semblerait
@@ -199,6 +239,22 @@ public sealed partial class InstanceRowViewModel : ObservableObject
             try
             {
                 IsTabbed = instance.IsTabbed;
+            }
+            finally
+            {
+                _applying = false;
+            }
+        }
+
+        if (!IsQualityPending && Quality != instance.Quality)
+        {
+            // Écriture venue des réglages : la répercuter comme un choix de
+            // l'utilisateur relancerait une écriture à chaque balayage.
+            _applying = true;
+
+            try
+            {
+                Quality = instance.Quality;
             }
             finally
             {
@@ -242,6 +298,20 @@ public sealed partial class InstanceRowViewModel : ObservableObject
         OnPropertyChanged(nameof(IsDeviceConnected));
         OnPropertyChanged(nameof(UserLabel));
         OnPropertyChanged(nameof(ShowUserLabel));
+    }
+
+    partial void OnQualityChanged(StreamQuality? value)
+    {
+        OnPropertyChanged(nameof(QualityLabel));
+        OnPropertyChanged(nameof(HasOwnQuality));
+
+        if (_applying)
+        {
+            return;
+        }
+
+        IsQualityPending = true;
+        QualityChanged?.Invoke(this, this);
     }
 
     partial void OnIsTabbedChanged(bool value)

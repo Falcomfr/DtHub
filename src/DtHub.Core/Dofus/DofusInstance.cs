@@ -1,4 +1,6 @@
-﻿namespace DtHub.Core.Dofus;
+﻿using DtHub.Core.Settings;
+
+namespace DtHub.Core.Dofus;
 
 /// <summary>
 /// Une instance du jeu : un téléphone, un profil Android, une installation.
@@ -41,6 +43,12 @@ public sealed record DofusInstance
     /// libre. Un compte logé échappe aux placements automatiques.
     /// </summary>
     public bool IsTabbed { get; init; }
+
+    /// <summary>
+    /// Palier de qualité propre à ce compte, ou <c>null</c> pour suivre le
+    /// réglage commun.
+    /// </summary>
+    public StreamQuality? Quality { get; init; }
 
     /// <summary>Vrai si le téléphone est joignable maintenant.</summary>
     public bool IsDeviceConnected { get; init; }

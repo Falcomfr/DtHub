@@ -433,6 +433,99 @@ public sealed class SettingsServiceTests : IDisposable
     };
 
     [Fact]
+    public async Task Un_compte_sans_palier_prend_le_commun()
+    {
+        await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
+        await _service.SetQualityAsync(StreamQuality.Maximum, CancellationToken.None);
+
+        var qualities = await _service.GetInstanceQualitiesAsync(CancellationToken.None);
+
+        Assert.Equal(2, qualities.Count);
+        Assert.All(qualities.Values, q => Assert.Equal(QualityProfile.For(StreamQuality.Maximum), q));
+    }
+
+    [Fact]
+    public async Task Le_palier_d_un_compte_l_emporte_et_se_relit()
+    {
+        await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
+        await _service.SetQualityAsync(StreamQuality.Maximum, CancellationToken.None);
+
+        var mule = Instance(999).Key;
+
+        await _service.SetInstanceQualityAsync(mule, StreamQuality.Low, CancellationToken.None);
+        _service.Invalidate();
+
+        var qualities = await _service.GetInstanceQualitiesAsync(CancellationToken.None);
+
+        Assert.Equal(QualityProfile.For(StreamQuality.Low), qualities[mule]);
+        Assert.Equal(QualityProfile.For(StreamQuality.Maximum), qualities[Instance(0).Key]);
+    }
+
+    [Fact]
+    public async Task Rendre_un_compte_au_commun_efface_son_palier()
+    {
+        await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
+
+        var mule = Instance(999).Key;
+
+        await _service.SetInstanceQualityAsync(mule, StreamQuality.Low, CancellationToken.None);
+        await _service.SetInstanceQualityAsync(mule, null, CancellationToken.None);
+
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.Null(Assert.Single(settings.Instances).Quality);
+    }
+
+    [Fact]
+    public async Task Le_palier_d_un_compte_survit_a_un_rebalayage()
+    {
+        // La redécouverte ne recopie que le nom de l'appareil, celui du profil
+        // et le composant : tout le reste appartient à l'utilisateur et doit
+        // traverser un rebalayage sans une égratignure.
+        await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
+
+        var mule = Instance(999).Key;
+
+        await _service.SetInstanceQualityAsync(mule, StreamQuality.Low, CancellationToken.None);
+
+        await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
+
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.Equal(StreamQuality.Low, Assert.Single(settings.Instances).Quality);
+    }
+
+    [Fact]
+    public async Task Poser_deux_fois_le_meme_palier_n_ecrit_pas_le_fichier()
+    {
+        await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
+
+        var mule = Instance(999).Key;
+
+        await _service.SetInstanceQualityAsync(mule, StreamQuality.Low, CancellationToken.None);
+
+        var avant = File.GetLastWriteTimeUtc(_store.FilePath);
+
+        await Task.Delay(20, CancellationToken.None);
+        await _service.SetInstanceQualityAsync(mule, StreamQuality.Low, CancellationToken.None);
+
+        Assert.Equal(avant, File.GetLastWriteTimeUtc(_store.FilePath));
+    }
+
+    [Fact]
+    public async Task Un_palier_pose_sur_un_compte_inconnu_ne_fait_rien()
+    {
+        await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
+
+        await _service.SetInstanceQualityAsync(
+            "personne|1|rien", StreamQuality.Low, CancellationToken.None);
+
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.Null(Assert.Single(settings.Instances).Quality);
+    }
+
+    [Fact]
     public async Task Les_valeurs_par_defaut_correspondent_a_ce_qui_est_annonce()
     {
         var settings = await _service.GetAsync(CancellationToken.None);
@@ -607,7 +700,7 @@ public sealed class SettingsServiceTests : IDisposable
         {
             s.AudioEnabled = true;
             s.ClipboardSyncEnabled = false;
-        }, CancellationToken.None);
+        }, cancellationToken: CancellationToken.None);
 
         var options = await _service.GetScrcpyOptionsAsync(CancellationToken.None);
 
@@ -1048,7 +1141,8 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.Equal(
             0,
             await _service.ForgetMissingProfilesAsync(
-                new Dictionary<string, IReadOnlyList<int>>(StringComparer.Ordinal), cancellationToken: CancellationToken.None));
+                new Dictionary<string, IReadOnlyList<int>>(StringComparer.Ordinal),
+                cancellationToken: CancellationToken.None));
     }
 
     /// <summary>Les profils sont tous là : rien n'est oublié.</summary>
