@@ -6917,3 +6917,40 @@ un verdict en une seconde ; mais elle envoie une touche à l'appareil, et
 `InputInjectionCheck` dit en toutes lettres qu'elle n'est envoyée que sur
 demande. La règle vaut mieux qu'un avertissement de plus, et la question est
 posée à l'utilisateur plutôt que tranchée ici.
+
+## D126 - Un style écrit sur l'élément jette celui du thème
+
+Signalé avec une capture : dans la fiche « Rien ne répond dans la fenêtre »,
+le verdict de la sonde d'entrée était illisible, noir sur la carte sombre.
+
+La cause tient en un mot manquant. Le verdict portait son propre style, pour
+passer en orange gras quand l'appareil refuse :
+
+```xml
+<TextBlock.Style>
+  <Style TargetType="TextBlock">      <!-- sans BasedOn -->
+    <Style.Triggers>
+      <DataTrigger Binding="{Binding VerdictIsRefusal}" Value="True">
+        <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
+```
+
+**WPF remplace, il n'étend pas.** Un style écrit à même l'élément sans
+`BasedOn` jette le style implicite du thème : la police, la taille, et
+surtout la couleur du texte, qui retombe alors sur le noir par défaut de WPF.
+Seul le verdict de refus se voyait, parce que lui seul posait une couleur,
+dans son déclencheur. Les deux autres, dont celui qui annonce que tout va
+bien, s'écrivaient en noir sur fond sombre.
+
+Rien ne le signalait : ni la compilation, ni l'exécution, ni l'oeil, tant
+qu'on ne tombait pas sur le bon verdict.
+
+Le dépôt en portait deux cas, l'autre dans le bandeau d'incidents, qui s'en
+tirait par hasard : il posait sa police sur l'élément et sa couleur dans le
+style. Les deux dérivent maintenant du style implicite.
+
+`StyleTargetTests` gagne un second contrôle : tout style écrit sur un élément
+doit dériver du style implicite de son type, quand le thème en déclare un.
+Vérifié en remettant la faute, comme le premier contrôle du même fichier.
+
+**Éprouvé à l'écran**, la fenêtre ouverte par une sonde provisoire au
+démarrage et le test lancé par la même sonde : le verdict s'affiche en blanc.

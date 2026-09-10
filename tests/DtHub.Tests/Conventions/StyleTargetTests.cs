@@ -57,6 +57,81 @@ public partial class StyleTargetTests
         Assert.Equal([], wrong);
     }
 
+    /// <summary>
+    /// Un style écrit à même l'élément doit dériver du style implicite de son
+    /// type, quand il en existe un.
+    ///
+    /// **WPF remplace, il n'étend pas.** Un
+    /// <c>&lt;TextBlock.Style&gt;&lt;Style TargetType="TextBlock"&gt;</c> sans
+    /// <c>BasedOn</c> jette le style implicite du thème, donc la police, la
+    /// taille et surtout la couleur du texte, qui retombe sur le noir par
+    /// défaut de WPF. Sur un fond sombre, le texte disparaît.
+    ///
+    /// C'est arrivé au verdict de la sonde d'entrée : « L'appareil accepte la
+    /// simulation d'entrée » s'affichait en noir sur la carte sombre, et seul
+    /// le verdict de refus se voyait, parce que lui seul posait une couleur
+    /// dans un déclencheur. Rien ne le signalait, ni la compilation ni
+    /// l'exécution.
+    /// </summary>
+    [Fact]
+    public void Un_style_ecrit_sur_l_element_derive_du_style_implicite()
+    {
+        var root = RepositoryRoot.Path();
+        var implicites = Implicit(Path.Combine(root, "src", "DtHub.App", "Themes"));
+
+        Assert.NotEmpty(implicites);
+
+        List<string> orphans = [];
+
+        foreach (var file in Directory.EnumerateFiles(
+                     Path.Combine(root, "src", "DtHub.App"), "*.xaml", SearchOption.AllDirectories))
+        {
+            if (file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var text = File.ReadAllText(file);
+
+            foreach (Match inline in Inline().Matches(text))
+            {
+                var attributes = inline.Groups[2].Value;
+
+                if (attributes.Contains("BasedOn", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                var target = TargetType().Match(attributes);
+
+                if (target.Success && implicites.Contains(target.Groups[1].Value))
+                {
+                    orphans.Add(
+                        $"{Path.GetFileName(file)} : <{inline.Groups[1].Value}.Style> "
+                        + $"jette le style implicite de {target.Groups[1].Value}.");
+                }
+            }
+        }
+
+        Assert.Equal([], orphans);
+    }
+
+    /// <summary>Les types que les thèmes habillent sans clé, donc pour tous.</summary>
+    private static HashSet<string> Implicit(string themes)
+    {
+        HashSet<string> found = new(StringComparer.Ordinal);
+
+        foreach (var file in Directory.EnumerateFiles(themes, "*.xaml", SearchOption.AllDirectories))
+        {
+            foreach (Match declared in Anonymous().Matches(File.ReadAllText(file)))
+            {
+                found.Add(declared.Groups[1].Value);
+            }
+        }
+
+        return found;
+    }
+
     /// <summary>Les styles nommés des thèmes, et le type que chacun vise.</summary>
     private static Dictionary<string, string> Targets(string themes)
     {
@@ -80,4 +155,15 @@ public partial class StyleTargetTests
 
     [GeneratedRegex(@"<(\w+)\b[^>]*?Style=""\{StaticResource (\w+)\}""", RegexOptions.Singleline)]
     private static partial Regex Applied();
+
+    /// <summary>Un style déclaré sans clé habille tous les éléments du type.</summary>
+    [GeneratedRegex(@"<Style\s+TargetType=""(\w+)""\s*(?:BasedOn=""[^""]*""\s*)?/?>")]
+    private static partial Regex Anonymous();
+
+    /// <summary>Un style écrit dans l'élément lui-même.</summary>
+    [GeneratedRegex(@"<(\w+)\.Style>\s*<Style([^>]*)>")]
+    private static partial Regex Inline();
+
+    [GeneratedRegex(@"TargetType=""(\w+)""")]
+    private static partial Regex TargetType();
 }

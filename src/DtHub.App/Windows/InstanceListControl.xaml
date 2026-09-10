@@ -484,7 +484,7 @@
                  TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                  VerticalAlignment="Center">
         <TextBlock.Style>
-          <Style TargetType="TextBlock">
+          <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
             <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
             <Style.Triggers>
               <DataTrigger Binding="{Binding ProblemIsSerious}" Value="True">

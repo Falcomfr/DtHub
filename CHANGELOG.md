@@ -80,6 +80,13 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Corrigé
 
+- **Le verdict de la sonde d'entrée s'affichait en noir sur fond sombre.**
+  Son style écrit à même l'élément n'héritait pas du style implicite du
+  thème : WPF remplace au lieu d'étendre quand « BasedOn » manque, et le
+  texte retombait sur le noir par défaut. Seul le verdict de refus se voyait,
+  parce que lui seul posait une couleur. Une épreuve garde désormais la
+  porte, sur tout le dossier des fenêtres.
+
 - **L'avertissement du cadenas criait quand tout allait bien, et se taisait
   quand il fallait parler.** Il ne regardait que la capacité de l'appareil,
   jamais l'état de son verrou : un téléphone déverrouillé, jeu à l'écran,
