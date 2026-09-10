@@ -6954,3 +6954,42 @@ Vérifié en remettant la faute, comme le premier contrôle du même fichier.
 
 **Éprouvé à l'écran**, la fenêtre ouverte par une sonde provisoire au
 démarrage et le test lancé par la même sonde : le verdict s'affiche en blanc.
+
+## D127 - La préparation batterie, toutes marques confondues
+
+Question posée après l'ajout du contrôle : il faut bien que ça vaille pour
+toutes les marques ?
+
+**Le contrôle, oui.** Il pose `dumpsys deviceidle whitelist`, qui est la liste
+d'Android et non celle d'un constructeur. Aucune marque n'apparaît dans
+`BatteryExemption` ni dans `DeviceHealth` : la même commande répond de la même
+façon sur les sept familles que l'aide décrit.
+
+**Le chemin pour y arriver, non**, et c'est la limite à écrire plutôt qu'à
+taire. Chaque fiche de marque donne le menu de sa surcouche, et rien ne
+garantit que ce menu écrit dans la liste d'Android :
+
+| Marque | Ce que l'aide donne | Écrit dans la liste d'Android ? |
+| :-- | :-- | :-- |
+| Standard | Applications › le jeu › Batterie › Sans restriction | oui, c'est le chemin d'Android |
+| Amazon | Optimisation de la batterie, à désactiver | oui, même chemin sous un autre nom |
+| Xiaomi | Économiseur de batterie › Aucune restriction | **mesuré oui** : le 13T Pro porte l'entrée |
+| OnePlus | Activité en arrière-plan › Sans restriction | probable, c'est le réglage d'Android remonté |
+| Samsung | Applications jamais mises en veille | liste maison, peut laisser celle d'Android vide |
+| Honor | Lancement d'applications, mode manuel | mécanisme maison |
+| vivo | Consommation en arrière-plan › Autoriser | mécanisme maison |
+
+Une seule marque est mesurée, faute d'avoir les autres appareils, et les deux
+téléphones du banc sont des Xiaomi. Sur Samsung, Honor et vivo, suivre la
+fiche pourrait laisser l'avertissement en place : ce serait un faux positif,
+exactement ce qu'on a reproché à l'avertissement du cadenas.
+
+**Le message nomme donc le réglage universel** plutôt que de renvoyer
+seulement à la fiche : « le réglage qui compte pour Android s'appelle Sans
+restriction, dans la fiche batterie du jeu ; votre marque peut en demander
+d'autres en plus ». C'est vrai partout, ça se vérifie sur l'appareil, et ça
+n'invente aucun chemin de menu pour des téléphones qu'on n'a pas.
+
+Ce qui n'est pas fait : ajouter le chemin d'Android à chacune des cinq fiches
+de marque. Il faudrait écrire des menus qu'on ne peut pas ouvrir, et le dépôt
+mesure au lieu de supposer.

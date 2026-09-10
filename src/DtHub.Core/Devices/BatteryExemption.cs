@@ -17,6 +17,17 @@
 /// Le second est justement celui qui se déconnecte. L'aide était bonne, elle
 /// n'avait simplement pas été appliquée là, et rien ne le disait.
 ///
+/// **Le contrôle ne connaît aucune marque, et c'est voulu.** Il lit la liste
+/// d'Android, pas celle d'un constructeur : la même commande répond sur les
+/// sept familles décrites par l'aide. Mais l'inverse n'est pas garanti, et il
+/// faut le dire : le chemin de menu que chaque marque propose n'écrit pas
+/// forcément dans cette liste. Mesuré sur Xiaomi, « Économiseur de batterie ›
+/// Aucune restriction » y écrit bien. Chez Samsung, Honor et vivo, le menu
+/// que l'aide donne est une liste maison, qui peut laisser celle d'Android
+/// vide. Le message nomme donc le réglage qui compte pour Android, « Sans
+/// restriction » dans la fiche batterie du jeu, et renvoie à l'aide pour ce
+/// que la marque demande en plus.
+///
 /// **Le contrôle porte sur l'appareil, pas sur le compte.** Android tient sa
 /// liste par paquet et par identifiant d'application, et une copie du jeu
 /// dans un second profil est une application distincte, avec sa propre

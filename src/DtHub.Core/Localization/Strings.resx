@@ -1854,6 +1854,6 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>This phone keeps only one account active at a time. Android caches the others, where they lose their grip and can be closed without warning: expect disconnections. Its Android version cannot give each window its own display group, so it is not a setting you can change.</value>
   </data>
   <data name="BatteryNotPrepared" xml:space="preserve">
-    <value>The game is not shielded from battery saving on this phone. Android will freeze it sooner or later, and the windows will lock up one by one, oldest first. The help below, "A window freezes after a while?", says where to set it.</value>
+    <value>Android does not have this game in its list of apps shielded from battery saving. It will freeze it sooner or later, and the windows will lock up one by one, oldest first. The setting that counts for Android is "Unrestricted", in the game's battery page; your brand may want others on top, and the help below lists them.</value>
   </data>
 </root>
