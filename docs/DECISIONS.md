@@ -6312,24 +6312,64 @@ n'est pas du temps de jeu, et l'écrire ferait une écriture de fichier pour
 rien. Le temps n'est compté qu'une fois par session, une session pouvant passer
 par deux états finaux.
 
-### Le second téléphone : vérifié par la lecture, pas par l'usage
+### Le second téléphone : vérifié par la lecture, puis par l'usage
 
 C'était le seul des douze points qui demandait de vérifier plutôt que
-d'écrire. La lecture dit que tout est déjà par appareil :
+d'écrire. La lecture disait que tout était déjà par appareil : la découverte
+rend une liste, la clef d'un compte porte l'identifiant de l'appareil, la
+porte d'ouverture se prend par appareil, la déduplication du son aussi, le
+bilan de santé boucle, les encodeurs sont retenus par appareil, et la
+reconnexion traite tous les appareils connus.
 
-| Ce qui pourrait être commun | Ce qu'il en est |
-| :-- | :-- |
-| La découverte | rend une liste d'appareils |
-| La clef d'un compte | porte l'identifiant de l'appareil |
-| La porte d'ouverture | se prend par appareil |
-| La déduplication du son | se fait par appareil |
-| Le bilan de santé | boucle sur les appareils |
-| Les encodeurs | sont retenus par appareil |
-| La reconnexion | traite tous les appareils connus |
+**Un second téléphone est arrivé, et l'essai a eu lieu.** Un Mi 9T Pro sous
+Android 11, API 30, c'est-à-dire exactement le plancher que l'application
+déclare. Ce qui a marché du premier coup :
 
-Rien n'a donc été écrit. **Ce qui manque n'est pas du code, c'est un second
-téléphone** : la vérification à l'usage reste à faire, et elle ne peut pas
-l'être ici.
+```
+2 appareil(s) vu(s), 0 défaut(s) USB
+3 comptes listés, chacun sous son appareil
+12 encodeurs déclarés par le Mi 9T Pro, matériel pour h264, h265, vp8
+10 encodeurs déclarés par le 13T Pro,  matériel pour h264, h265
+Lancement terminé : 2 fenêtre(s) ouverte(s), 0 problème(s)
+```
+
+Le bilan de santé s'est signalé de lui-même, avant tout lancement : le Mi 9T
+Pro est sur la bande 2,4 GHz, et le bandeau l'a dit. Sa batterie était à vingt
+pour cent, le seuil exact, et il n'a rien dit parce qu'il était branché. Les
+deux règles se sont donc éprouvées sur du matériel, pas seulement sur des
+échantillons.
+
+### Le défaut que seul un second téléphone pouvait montrer
+
+Le tampon d'affichage était **commun à toutes les fenêtres**, calculé sur la
+liaison du premier appareil résolu. Avec un seul téléphone, c'est juste par
+construction. Avec deux, c'est faux dès qu'ils ne sont pas sur la même bande :
+
+```
+13T Pro     11ac à 5220 MHz, -58 dBm, 31,4 %  ->  25 ms
+Mi 9T Pro      4 à 2462 MHz, -61 dBm, 18,4 %  ->  42 ms
+```
+
+Le Mi 9T Pro recevait 25 ms au lieu des 42 que sa liaison réclame, soit dix-sept
+de moins sur celui des deux qui en avait le plus besoin. Le tampon est
+maintenant retenu par appareil, comme la qualité l'est par compte, et les deux
+valeurs ci-dessus sont celles que le journal a écrites après correction.
+
+C'est exactement ce que ce point promettait : essayer d'abord, et ne coder que
+ce que l'essai révèle manquant.
+
+### Ce que le second appareil a appris aux analyseurs
+
+Trois différences de sortie, toutes devenues des épreuves :
+
+| Ce qui change | 13T Pro | Mi 9T Pro |
+| :-- | :-- | :-- |
+| Standard Wi-Fi | `11n` | `4`, un nombre |
+| Lignes de batterie | avec `Dock powered` | sans |
+| Encodeurs vp8 | logiciel seulement | matériel |
+
+Aucune n'a fait échouer un analyseur, ce qui est le résultat qu'on espère sans
+pouvoir le supposer.
 
 ### Un style de bouton posé sur une bascule, et l'application meurt
 

@@ -137,7 +137,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// déduisent de ce que l'appareil dit de sa liaison, et ni l'un ni l'autre
     /// ne change entre deux redimensionnements de fenêtre.
     /// </summary>
-    private int _videoBufferMs = VideoBuffer.None;
+    /// <summary>
+    /// Tampon d'affichage par appareil, en millisecondes.
+    ///
+    /// Par appareil et non commun : deux téléphones peuvent être sur des
+    /// bandes différentes, et c'est le cas dès qu'on en branche un second.
+    /// Mesuré avec un 13T Pro en 5 GHz et un Mi 9T Pro en 2,4 GHz, la valeur
+    /// commune était celle du premier venu, et le second héritait d'un tampon
+    /// calculé pour une liaison qui n'était pas la sienne.
+    /// </summary>
+    private readonly Dictionary<string, int> _videoBuffers = new(StringComparer.Ordinal);
 
     /// <summary>Rythme des contrôles et des sondages, selon la qualité.</summary>
     public QualityProfile Quality => _quality;
@@ -828,7 +837,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
         {
             WindowTitleHint = await BuildTitleHintAsync(cancellationToken).ConfigureAwait(false),
             IconDirectory = _iconDirectory,
-            VideoBufferMs = _videoBufferMs,
         };
 
         // La position est donnée à scrcpy dès le lancement. Le faire après
@@ -886,7 +894,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // Le palier du compte, ou le commun s'il n'en a pas choisi.
             var quality = qualities.TryGetValue(instance.Key, out var own) ? own : _quality;
 
-            var display = WithDisplayFor(options, placement, stored, quality);
+            var display = WithDisplayFor(options, placement, stored, quality) with
+            {
+                // Propre à l'appareil : deux téléphones sur des bandes
+                // différentes n'ont pas besoin du même tampon.
+                VideoBufferMs = _videoBuffers.TryGetValue(device.Serial, out var buffer)
+                    ? buffer
+                    : VideoBuffer.None,
+            };
 
             // L'encodeur n'est imposé que si l'appareil mettrait du logiciel
             // devant du matériel, et seulement si on le sait déjà : la liste
@@ -1807,29 +1822,32 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Dictionary<string, AndroidDevice> devices,
         CancellationToken cancellationToken)
     {
-        var serial = instances
+        var serials = instances
             .Select(i => devices.TryGetValue(i.DeviceId, out var device) ? device.Serial : null)
-            .FirstOrDefault(s => !string.IsNullOrWhiteSpace(s));
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
 
-        var link = string.IsNullOrWhiteSpace(serial)
-            ? null
-            : await _devices.GetWifiLinkAsync(serial, cancellationToken).ConfigureAwait(false);
-
-        _videoBufferMs = VideoBuffer.MillisecondsFor(link);
-
-        if (link is null)
+        foreach (var serial in serials)
         {
-            LogUnknownLink();
-            return;
-        }
+            var link = await _devices.GetWifiLinkAsync(serial!, cancellationToken).ConfigureAwait(false);
 
-        LogLink(
-            link.Standard,
-            link.FrequencyMhz,
-            link.LinkSpeedMbps,
-            link.Rssi,
-            Math.Round(link.RetryShare * 100, 1),
-            _videoBufferMs);
+            _videoBuffers[serial!] = VideoBuffer.MillisecondsFor(link);
+
+            if (link is null)
+            {
+                LogUnknownLink();
+                continue;
+            }
+
+            LogLink(
+                link.Standard,
+                link.FrequencyMhz,
+                link.LinkSpeedMbps,
+                link.Rssi,
+                Math.Round(link.RetryShare * 100, 1),
+                _videoBuffers[serial!]);
+        }
     }
 
     /// <summary>

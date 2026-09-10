@@ -78,4 +78,23 @@ public class WifiLinkTests
     {
         Assert.Null(WifiLink.Parse(null));
     }
+
+    [Fact]
+    public void Un_standard_annonce_par_un_nombre_ne_gene_pas()
+    {
+        // Relevé sur un Mi 9T Pro sous Android 11 : il écrit « Wi-Fi
+        // standard: 4 » là où le 13T Pro écrit « 11n ». Et il est en 2,4 GHz,
+        // ce que le bilan doit signaler.
+        const string releve =
+            "WifiInfo: SSID: tkt-home, Wi-Fi standard: 4, RSSI: -61, Link speed: 144Mbps, "
+            + "Tx Link speed: 144Mbps, Frequency: 2462MHz, Net ID: 5";
+
+        var link = WifiLink.Parse(releve);
+
+        Assert.NotNull(link);
+        Assert.Equal("4", link!.Standard);
+        Assert.Equal(2462, link.FrequencyMhz);
+        Assert.Equal(-61, link.Rssi);
+        Assert.True(link.Is24GHz);
+    }
 }

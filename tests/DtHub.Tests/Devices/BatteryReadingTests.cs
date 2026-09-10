@@ -165,4 +165,35 @@ public class BatteryReadingTests
         Assert.NotNull(battery);
         Assert.Null(battery!.Celsius);
     }
+
+    [Fact]
+    public void Un_second_appareil_se_lit_aussi()
+    {
+        // Relevé au caractère près sur un Mi 9T Pro sous Android 11, qui
+        // n'écrit pas la même chose que le 13T Pro : pas de ligne « Dock
+        // powered », et l'appareil est en charge à vingt pour cent.
+        const string releve = """
+            Current Battery Service state:
+              AC powered: true
+              USB powered: false
+              Wireless powered: false
+              status: 2
+              level: 20
+              scale: 100
+              temperature: 362
+            """;
+
+        var battery = BatteryReading.Parse(releve);
+
+        Assert.NotNull(battery);
+        Assert.Equal(20, battery!.Percent);
+        Assert.Equal(36.2, battery.Celsius);
+
+        // Vingt pour cent est le seuil, mais l'appareil est branché : il n'a
+        // rien à dire. C'est la règle qui compte, éprouvée sur un vrai
+        // appareil à un vrai niveau bas.
+        Assert.True(battery.Charging);
+        Assert.False(battery.IsLow);
+        Assert.Null(battery.Describe());
+    }
 }

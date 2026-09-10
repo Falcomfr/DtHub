@@ -88,4 +88,20 @@ public class StorageReadingTests
 
         Assert.Null(StorageReading.Parse(releve));
     }
+
+    [Fact]
+    public void Un_second_appareil_se_lit_aussi()
+    {
+        // Mi 9T Pro sous Android 11 : un autre volume, un autre remplissage.
+        const string releve = """
+            Filesystem       1K-blocks     Used Available Use% Mounted on
+            /dev/block/sda31 114192940 96885540  17159944  85% /data/user/0
+            """;
+
+        var storage = StorageReading.Parse(releve);
+
+        Assert.NotNull(storage);
+        Assert.Equal(16.4, storage!.FreeGigabytes, precision: 1);
+        Assert.False(storage.IsLow);
+    }
 }

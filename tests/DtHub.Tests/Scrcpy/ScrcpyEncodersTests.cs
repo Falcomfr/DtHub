@@ -140,4 +140,30 @@ public class ScrcpyEncodersTests
         Assert.Null(ScrcpyEncoders.Force(ScrcpyEncoders.Parse(Releve), "vp9"));
         Assert.Null(ScrcpyEncoders.Force(ScrcpyEncoders.Parse(Releve), null));
     }
+
+    [Fact]
+    public void Un_second_appareil_se_lit_aussi()
+    {
+        // Mi 9T Pro, Snapdragon 855 : des noms d'encodeurs entièrement
+        // différents, et vp8 y est matériel alors qu'il ne l'est pas sur le
+        // 13T Pro. Rien à imposer là non plus.
+        const string qualcomm = """
+            [server] INFO: List of video encoders:
+                --video-codec=h264 --video-encoder=OMX.qcom.video.encoder.avc     (hw) [vendor]
+                --video-codec=h264 --video-encoder=c2.android.avc.encoder         (sw)
+                --video-codec=h265 --video-encoder=OMX.qcom.video.encoder.hevc    (hw) [vendor]
+                --video-codec=vp8 --video-encoder=OMX.qcom.video.encoder.vp8      (hw) [vendor]
+                --video-codec=vp9 --video-encoder=c2.android.vp9.encoder          (sw)
+            """;
+
+        var encoders = ScrcpyEncoders.Parse(qualcomm);
+
+        Assert.Equal(["h264", "h265", "vp8"], ScrcpyEncoders.HardwareCodecs(encoders));
+        Assert.True(ScrcpyEncoders.SoftwareOnly(encoders, "vp9"));
+        Assert.Null(ScrcpyEncoders.Force(encoders, "h264"));
+
+        // Absent de la liste : ne pas savoir n'est pas savoir que c'est
+        // mauvais.
+        Assert.False(ScrcpyEncoders.SoftwareOnly(encoders, "av1"));
+    }
 }

@@ -127,4 +127,21 @@ public class DeviceHealthTests
         Assert.Equal(3, findings.Count(f => f.Severity == HealthSeverity.Serious));
         Assert.Equal(HealthSeverity.Notice, findings[^1].Severity);
     }
+
+    [Fact]
+    public void Le_cas_reel_du_second_appareil_ne_dit_que_la_bande()
+    {
+        // Mi 9T Pro relevé sur le terrain : vingt pour cent mais branché,
+        // seize gigaoctets libres, aucune chaleur, et une liaison en 2,4 GHz.
+        // Un seul constat doit sortir, et c'est le plus anodin.
+        var findings = DeviceHealth.Review(
+            new ThermalReading(0, null),
+            new BatteryReading(20, Charging: true, Celsius: 36.2),
+            new StorageReading(17159944L * 1024),
+            new WifiLink(144, 2462, "4", -61, 0.0));
+
+        var finding = Assert.Single(findings);
+
+        Assert.Equal(HealthSeverity.Notice, finding.Severity);
+    }
 }

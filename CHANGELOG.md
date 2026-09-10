@@ -38,6 +38,11 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 - **Une note libre par compte**, et le temps passé sur chacun cette semaine.
   Information seulement : aucune limite, aucun rappel.
 
+- **Le tampon d'affichage est propre à chaque téléphone.** Il était calculé sur
+  la liaison du premier appareil et appliqué à toutes les fenêtres. Avec deux
+  téléphones sur des bandes différentes, celui en 2,4 GHz recevait un tampon de
+  25 ms au lieu des 42 que sa liaison réclame.
+
 ### Corrigé
 
 - **Une liaison qui lâche ne ferme plus l'application.** Quand la dernière
