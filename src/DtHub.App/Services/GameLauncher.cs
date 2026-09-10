@@ -606,12 +606,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         await RefreshBatteriesAsync(discovery, cancellationToken).ConfigureAwait(false);
 
-        var playing = _sessions.ActiveSessions
+        var alive = _sessions.ActiveSessions
             .Where(s => s.IsAlive)
             .Select(s => s.Target.Serial)
             .Where(s => !string.IsNullOrWhiteSpace(s))
-            .Distinct(StringComparer.Ordinal)
             .ToList();
+
+        var playing = alive.Distinct(StringComparer.Ordinal).ToList();
 
         var serials = playing.Count > 0
             ? playing
@@ -652,10 +653,20 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     .IsDeviceLockedAsync(serial, cancellationToken)
                     .ConfigureAwait(false) == true;
 
+            // Plusieurs fenêtres sur un appareil qui ne sait en garder
+            // qu'une vivante : les autres passent en cache, perdent leur
+            // connexion et finissent fermées. Rien n'échoue, et c'est ce qui
+            // rend la panne si longue à comprendre.
+            var crowded = alive.Count(s => string.Equals(s, serial, StringComparison.Ordinal)) > 1
+                && await _devices
+                    .HasOwnDisplayGroupAsync(serial, cancellationToken)
+                    .ConfigureAwait(false) == false;
+
             Trace(serial, heat, battery, storage);
             TraceLock(serial, locked);
+            TraceCrowd(serial, crowded);
 
-            findings.AddRange(DeviceHealth.Review(heat, battery, storage, link, locked));
+            findings.AddRange(DeviceHealth.Review(heat, battery, storage, link, locked, crowded));
         }
 
         var ordered = findings.OrderByDescending(f => f.Severity).ToList();
@@ -727,6 +738,25 @@ public sealed partial class GameLauncher : IAsyncDisposable
         else
         {
             _ = _loggedLock.Remove(serial);
+        }
+    }
+
+    /// <summary>Appareils dont l'encombrement a déjà été journalisé.</summary>
+    private readonly HashSet<string> _loggedCrowd = new(StringComparer.Ordinal);
+
+    /// <summary>Journalise l'encombrement, une fois par épisode.</summary>
+    private void TraceCrowd(string serial, bool crowded)
+    {
+        if (crowded)
+        {
+            if (_loggedCrowd.Add(serial))
+            {
+                LogCrowded(serial);
+            }
+        }
+        else
+        {
+            _ = _loggedCrowd.Remove(serial);
         }
     }
 
@@ -2436,6 +2466,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "{serial} : l'afficheur virtuel suit le verrouillage et le téléphone est verrouillé ; ses fenêtres montrent le cadenas, pas le jeu.")]
     private partial void LogDisplayLocked(string serial);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "{serial} : plusieurs comptes ouverts, mais ses afficheurs virtuels partagent un groupe ; un seul restera actif.")]
+    private partial void LogCrowded(string serial);
 
     [LoggerMessage(
         Level = LogLevel.Information,

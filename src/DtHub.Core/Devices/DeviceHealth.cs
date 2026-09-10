@@ -39,6 +39,10 @@ public static class DeviceHealth
     /// Les constats, du plus grave au plus anodin, à gravité égale dans
     /// l'ordre où ils comptent : ce qui coupe la séance, puis ce qui la gêne.
     /// </summary>
+    /// <param name="crowdedDevice">
+    /// Vrai quand plusieurs comptes sont ouverts sur un appareil qui ne sait
+    /// en garder qu'un seul actif.
+    /// </param>
     /// <param name="lockedWindows">
     /// Vrai quand les fenêtres de jeu de cet appareil montrent son écran de
     /// verrouillage au lieu du jeu, c'est-à-dire quand son afficheur virtuel
@@ -49,7 +53,8 @@ public static class DeviceHealth
         BatteryReading? battery,
         StorageReading? storage,
         WifiLink? link,
-        bool lockedWindows = false)
+        bool lockedWindows = false,
+        bool crowdedDevice = false)
     {
         List<HealthFinding> findings = [];
 
@@ -60,6 +65,14 @@ public static class DeviceHealth
         if (lockedWindows)
         {
             findings.Add(new HealthFinding(HealthSeverity.Serious, Strings.Get("DisplayStaysLocked")));
+        }
+
+        // Juste après le cadenas : les fenêtres sont là, elles montrent le
+        // jeu, et pourtant une seule est vraiment vivante. C'est le genre de
+        // panne qu'on met une soirée à comprendre, parce que rien n'échoue.
+        if (crowdedDevice)
+        {
+            findings.Add(new HealthFinding(HealthSeverity.Serious, Strings.Get("OneAccountAtATime")));
         }
 
         if (battery?.Describe() is { } power && battery.Concern is { } level)

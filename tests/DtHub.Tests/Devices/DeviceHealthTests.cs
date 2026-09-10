@@ -14,6 +14,31 @@ public class DeviceHealthTests
         new(LinkSpeedMbps: 144, FrequencyMhz: frequency, Standard: "11n", Rssi: -57, RetryShare: 0.1);
 
     [Fact]
+    public void Un_appareil_qui_ne_tient_qu_un_compte_le_dit()
+    {
+        var seul = DeviceHealth.Review(null, null, null, null, crowdedDevice: true);
+        var large = DeviceHealth.Review(null, null, null, null);
+
+        Assert.Equal(HealthSeverity.Serious, Assert.Single(seul).Severity);
+        Assert.Empty(large);
+    }
+
+    [Fact]
+    public void Le_cadenas_passe_devant_l_encombrement()
+    {
+        // Les deux peuvent être vrais en même temps sur un vieux téléphone.
+        // Le cadenas d'abord : tant qu'il est là, on ne voit rien du tout,
+        // alors que l'encombrement laisse au moins un compte jouable.
+        var findings = DeviceHealth.Review(
+            null, null, null, null, lockedWindows: true, crowdedDevice: true);
+
+        var cadenas = DeviceHealth.Review(null, null, null, null, lockedWindows: true);
+
+        Assert.Equal(2, findings.Count);
+        Assert.Equal(Assert.Single(cadenas).Message, findings[0].Message);
+    }
+
+    [Fact]
     public void Le_cadenas_passe_devant_tout_le_reste()
     {
         // Les fenêtres sont ouvertes et ne montrent pas le jeu : rien

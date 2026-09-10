@@ -9,6 +9,13 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Ajouté
 
+- **L'application dit maintenant quand un téléphone ne peut tenir qu'un
+  compte à la fois.** Mesuré : sur Android 11, le second compte ouvert tombe
+  en cache, perd la main et finit fermé par le système, là où un Android
+  récent garde les deux au premier plan. La différence tient à un drapeau de
+  l'afficheur virtuel, que l'application lisait déjà pour autre chose. Rien
+  n'échouait, et c'est ce qui rendait la panne si longue à comprendre.
+
 - **Le niveau de batterie de chaque téléphone, en permanence.** Une jauge
   dessinée et le pourcentage, à côté du nom de l'appareil, avec un éclair
   quand il est branché. La lecture se faisait déjà toutes les minutes et seule

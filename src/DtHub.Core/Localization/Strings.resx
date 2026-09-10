@@ -1850,4 +1850,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="UserTypeProfile" xml:space="preserve">
     <value>Profile</value>
   </data>
+  <data name="OneAccountAtATime" xml:space="preserve">
+    <value>This phone keeps only one account active at a time. Android caches the others, where they lose their grip and can be closed without warning: expect disconnections. Its Android version cannot give each window its own display group, so it is not a setting you can change.</value>
+  </data>
 </root>

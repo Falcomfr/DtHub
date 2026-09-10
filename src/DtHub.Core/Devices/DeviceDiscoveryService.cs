@@ -241,10 +241,16 @@ public sealed class DeviceDiscoveryService : IDisposable
             var unlocked = VirtualDisplayTrust.IsUnlocked(dump);
 
             // Seule une réponse est gardée : tant qu'aucun afficheur n'existe,
-            // la question n'a pas de réponse et il faudra la reposer.
+            // la question n'a pas de réponse et il faudra la reposer. Le
+            // groupe d'affichage se lit dans le même relevé : le demander à
+            // part vaudrait un second « dumpsys display », qui n'est pas
+            // donné.
             if (unlocked is not null)
             {
-                _trusted[serial] = (unlocked, System.Diagnostics.Stopwatch.StartNew());
+                var now = System.Diagnostics.Stopwatch.StartNew();
+
+                _trusted[serial] = (unlocked, now);
+                _grouped[serial] = (VirtualDisplayTrust.HasOwnGroup(dump), now);
             }
 
             return unlocked;
@@ -308,6 +314,36 @@ public sealed class DeviceDiscoveryService : IDisposable
         new(StringComparer.Ordinal);
 
     private static readonly TimeSpan TrustFreshness = TimeSpan.FromMinutes(1);
+
+    /// <summary>
+    /// L'afficheur virtuel a-t-il son propre groupe, par appareil. Lu dans le
+    /// même relevé que la confiance, et gardé aussi longtemps : c'est une
+    /// capacité de l'appareil, pas un état.
+    /// </summary>
+    private readonly Dictionary<string, (bool? Grouped, System.Diagnostics.Stopwatch Vu)> _grouped =
+        new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Cet appareil peut-il garder plusieurs comptes actifs à la fois, ou
+    /// <c>null</c> tant qu'aucun afficheur virtuel n'a été vu.
+    ///
+    /// La réponse vient du relevé qu'<see cref="IsVirtualDisplayUnlockedAsync" />
+    /// a déjà fait : appeler celui-ci d'abord est donc la règle.
+    /// </summary>
+    public async Task<bool?> HasOwnDisplayGroupAsync(
+        string serial,
+        CancellationToken cancellationToken = default)
+    {
+        if (_grouped.TryGetValue(serial ?? string.Empty, out var garde)
+            && garde.Vu.Elapsed < TrustFreshness)
+        {
+            return garde.Grouped;
+        }
+
+        _ = await IsVirtualDisplayUnlockedAsync(serial!, cancellationToken).ConfigureAwait(false);
+
+        return _grouped.TryGetValue(serial ?? string.Empty, out var frais) ? frais.Grouped : null;
+    }
 
     /// <summary>
     /// Dernier état de verrouillage, par appareil.

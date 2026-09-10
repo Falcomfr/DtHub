@@ -6769,3 +6769,79 @@ n'est pas la contrainte.
 **La contrainte est la mémoire.** Six gigaoctets, dont 1,7 libre à deux
 comptes sur l'écran de connexion. C'est ce qui limitera le nombre de comptes
 sur ce téléphone, pas le processeur ni le réseau.
+
+## D124 - Ce que le Mi 9T Pro ne peut pas faire, et pourquoi
+
+Plainte suivante sur le même téléphone : « des fois ça me dit dofus cannot be
+reached, je peux rien faire dans la fenêtre ». Deux symptômes, deux causes
+distinctes, et aucune n'était celle du cadenas de D123.
+
+### Les clics : l'appareil refuse l'injection
+
+La sonde d'entrée de l'application, posée sur les deux téléphones :
+
+```
+Mi 9T Pro  : java.lang.SecurityException: Injecting to another application
+             requires INJECT_EVENTS permission
+13T Pro    : (silence, code 0)
+```
+
+C'est le défaut que `InputInjectionCheck` décrit depuis toujours, et la cause
+est celle que la fiche Xiaomi annonce : le réglage « Débogage USB (réglages de
+sécurité) » n'est pas actif. Deux obstacles concrets sur cet appareil, tous
+deux relevés : **le débogage USB est à zéro** (`adb_enabled = 0`, la liaison se
+fait en sans-fil) et **il n'y a pas de carte SIM** (`gsm.sim.state =
+ABSENT,ABSENT`), que MIUI exige pour activer ce réglage. Le compte Xiaomi, lui,
+est bien connecté.
+
+Tant que ce réglage n'est pas actif, ce téléphone est en lecture seule : on
+voit le jeu, on n'y touche pas.
+
+### Les déconnexions : un seul compte peut vivre à la fois
+
+C'est la trouvaille de fond, et elle explique le « cannot be reached ». Deux
+comptes ouverts, `dumpsys activity processes` :
+
+```
+Mi 9T Pro, Android 11   vis+ 2 F/A/TOP  u10a260 (vis-activity)
+                        cch    b/ /CRE  u0a260  (cch-rec)      <- en cache
+13T Pro,   Android 16   fg     T/A/TOP  u999a475 (top-activity)
+                        vis+ 2 F/A/TOP  u0a475   (vis-activity)
+```
+
+Sur Android 11, le second compte tombe **en cache** : plus de priorité, plus
+de garanties, et le système peut le fermer quand il veut. Sur Android 16, les
+deux restent au premier plan.
+
+La raison se lit dans les drapeaux de l'afficheur, déjà relevés en D123 :
+`FLAG_OWN_DISPLAY_GROUP` est présent sur le 13T et absent sur le 9T. Un
+afficheur qui a son propre groupe a sa propre activité de tête ; sans lui,
+tous les afficheurs partagent la même, et le système n'en garde qu'une.
+
+**Ce n'est pas un réglage, c'est la version d'Android.** Le Mi 9T Pro peut
+tenir un compte, pas plusieurs.
+
+Une circonstance aggravante, mesurée elle aussi : le jeu **n'est pas dans la
+liste blanche d'économie d'énergie** de ce téléphone, alors qu'il l'est sur le
+13T Pro (`user,com.ankama.dofustouch,10475`). La préparation décrite dans
+l'aide n'a jamais été faite sur le second appareil, ce qui accélère la
+fermeture du compte mis en cache.
+
+### L'application le dit maintenant
+
+Un constat de plus dans `DeviceHealth` : plusieurs fenêtres sur un appareil
+dont les afficheurs partagent un groupe. Il se lève au deuxième compte, se
+tait au premier, et passe après le cadenas parce qu'un cadenas cache tout
+alors qu'un encombrement laisse au moins un compte jouable. L'ordre est tenu
+par une épreuve, vérifiée en l'inversant.
+
+Le drapeau se lit dans le relevé que la confiance de l'afficheur faisait déjà :
+pas un « dumpsys display » de plus.
+
+### Ce qui n'a pas été fait, et pourquoi
+
+Détecter automatiquement le refus d'injection au lancement aurait évité à
+l'utilisateur de chercher. La sonde envoie pourtant une touche à l'appareil, et
+`InputInjectionCheck` dit en toutes lettres qu'elle n'est envoyée que sur
+demande, jamais d'elle-même. Cette règle vaut mieux qu'un avertissement de
+plus : la question est posée à l'utilisateur plutôt que tranchée ici.

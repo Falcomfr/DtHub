@@ -1850,4 +1850,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="UserTypeProfile" xml:space="preserve">
     <value>Perfil</value>
   </data>
+  <data name="OneAccountAtATime" xml:space="preserve">
+    <value>Este teléfono solo mantiene una cuenta activa a la vez. Android pone las demás en caché, donde pierden el control y pueden cerrarse sin avisar: espera desconexiones. Su versión de Android no sabe dar un grupo de pantalla a cada ventana, así que no es un ajuste que puedas cambiar.</value>
+  </data>
 </root>

@@ -28,6 +28,26 @@ public static class VirtualDisplayTrust
     public const string UnlockedFlag = "FLAG_ALWAYS_UNLOCKED";
 
     /// <summary>
+    /// Le drapeau qui décide si plusieurs comptes peuvent vivre ensemble.
+    ///
+    /// Un afficheur qui a son propre groupe a sa propre activité de tête.
+    /// Sans lui, tous les afficheurs partagent la même, et le système n'en
+    /// garde qu'une seule au premier plan : les autres passent en cache, où
+    /// ils perdent la main et peuvent être fermés.
+    ///
+    /// Mesuré, deux comptes ouverts sur chaque téléphone,
+    /// <c>dumpsys activity processes</c> :
+    ///
+    /// <code>
+    /// Mi 9T Pro, Android 11 : vis+ … u10a260 (vis-activity)
+    ///                         cch  … u0a260  (cch-rec)      &lt;- en cache
+    /// 13T Pro,   Android 16 : fg   … u999a475 (top-activity)
+    ///                         vis+ … u0a475   (vis-activity) &lt;- les deux vivants
+    /// </code>
+    /// </summary>
+    public const string GroupFlag = "FLAG_OWN_DISPLAY_GROUP";
+
+    /// <summary>
     /// Vrai si l'afficheur virtuel de scrcpy est déverrouillé, <c>null</c> si
     /// on ne le trouve pas.
     ///
@@ -35,7 +55,16 @@ public static class VirtualDisplayTrust
     /// n'en a pas créé, ou que la sortie a changé de forme. Alarmer sur une
     /// ignorance serait pire que se taire.
     /// </summary>
-    public static bool? IsUnlocked(string? dumpsysDisplay)
+    public static bool? IsUnlocked(string? dumpsysDisplay) => Flag(dumpsysDisplay, UnlockedFlag);
+
+    /// <summary>
+    /// Vrai si l'afficheur virtuel a son propre groupe d'affichage, donc si ce
+    /// téléphone peut garder plusieurs comptes actifs à la fois. <c>null</c>
+    /// quand aucun afficheur n'est trouvé.
+    /// </summary>
+    public static bool? HasOwnGroup(string? dumpsysDisplay) => Flag(dumpsysDisplay, GroupFlag);
+
+    private static bool? Flag(string? dumpsysDisplay, string flag)
     {
         if (string.IsNullOrWhiteSpace(dumpsysDisplay))
         {
@@ -50,7 +79,7 @@ public static class VirtualDisplayTrust
                 || (line.Contains("uniqueId=\"virtual:", StringComparison.Ordinal)
                     && line.Contains("scrcpy", StringComparison.OrdinalIgnoreCase)))
             {
-                return line.Contains(UnlockedFlag, StringComparison.Ordinal);
+                return line.Contains(flag, StringComparison.Ordinal);
             }
         }
 
