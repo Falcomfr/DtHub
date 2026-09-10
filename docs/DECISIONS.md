@@ -5981,3 +5981,87 @@ C'est acceptable, et c'est dit ici plutôt que subi.
 **Aucune reprise sur une fermeture propre**, y compris quand scrcpy est tué de
 l'extérieur : le code de sortie diffère, mais rien dans la sortie ne dit
 pourquoi, et deviner mènerait à rouvrir des fenêtres qu'on vient de fermer.
+
+## D114 - Ce que le téléphone a dans le ventre, et quand le dire
+
+L'application lisait la chaleur et la liaison Wi-Fi. Elle ne lisait ni la
+batterie, ni la place libre, alors que ce sont deux causes documentées de
+séance ratée : le jeu consomme trente à cinquante pour cent de batterie par
+heure, et en Wi-Fi le téléphone n'est pas branché.
+
+### Deux lectures de plus, sur le patron des deux existantes
+
+`BatteryReading` et `StorageReading` suivent `ThermalReading` à la lettre : un
+`record` avec un `Parse` qui ne lève jamais et rend `null` quand on ne sait
+pas, des constantes de seuil, un `Describe()` qui rend le texte ou `null`, un
+cache d'une minute dans la découverte, et des épreuves nourries d'un relevé
+réel.
+
+Relevés au caractère près sur le Xiaomi 13T Pro sous Android 16 :
+
+```
+dumpsys battery   level: 100  scale: 100  status: 5  AC powered: true  temperature: 328
+df /data          485636064 blocs, 313535476 libres, soit 299 Go
+```
+
+La place est gardée un quart d'heure et non une minute : elle ne bouge pas en
+séance.
+
+### La règle qui compte : un téléphone branché ne dit rien
+
+Ce n'est pas le niveau qui inquiète, c'est le niveau qui baisse. Un bandeau qui
+annonce quarante pour cent alors que la prise est mise parle pour ne rien dire,
+et un bandeau qui parle pour ne rien dire cesse d'être lu. La charge se déduit
+de deux sources concordantes : les lignes « … powered » et l'état numérique,
+qui vaut 2 en charge et 5 quand la batterie est pleine.
+
+### La place libre est une assurance, pas un besoin
+
+À dire franchement : l'appareil de référence a 299 Go libres, et
+l'avertissement n'y paraîtra jamais. Il coûte une analyse et une épreuve, et il
+sert le jour où quelqu'un joue sur un téléphone plein, ce qui fait échouer
+DOFUS Touch sans qu'il dise pourquoi.
+
+La colonne se cherche par son intitulé et **se compte depuis la droite** : un
+nom de volume peut contenir un espace, et compter depuis la gauche décalerait
+tout. Une épreuve nommée garde ce cas.
+
+### Un bilan, et non quatre avertissements
+
+Chaleur, batterie, place et bande Wi-Fi parlaient chacune dans son coin. Trois
+messages côte à côte dans le même bandeau se lisent comme un seul, plus long.
+
+`DeviceHealth` les met en file, du plus grave au plus anodin, et le premier
+parle pour tous. Les textes viennent des lectures elles-mêmes : les réécrire
+donnerait deux formulations d'un même fait, qui finiraient par diverger.
+
+La bande 2,4 GHz ferme toujours la marche. Elle ne casse rien et se compense
+déjà par le tampon vidéo ; elle est dite pour que « ça saccade » ait une
+réponse, pas pour alarmer.
+
+### Avant le lancement, pas seulement pendant
+
+C'est le vrai apport. Jusqu'ici, seuls les appareils portant une fenêtre
+étaient interrogés : on découvrait le problème une fois les cinq comptes
+ouverts, c'est-à-dire trop tard pour l'éviter. Tant qu'aucune fenêtre n'est
+ouverte, ce sont maintenant les appareils connectés qu'on interroge.
+
+Le coût reste borné par les caches : une minute pour la chaleur et la batterie,
+un quart d'heure pour la place, quel que soit le rythme du panneau.
+
+### L'événement du mois, presque gratuit
+
+La page de l'Almanax qu'on lit déjà porte un bloc `idbar_almanax_month_events`
+avec la date et le nom, d'un seul tenant : « 12 Septange : L'Aurore Pourpre ».
+Un champ de plus dans le pont, une ligne de plus dans la fenêtre. Il vaut pour
+tout le mois, et c'est ce qu'on vient préparer en regardant les jours à venir.
+
+### Ce qui n'est pas fait
+
+**Pas d'écran de bilan à part.** Les constats rejoignent le bandeau existant,
+qui est déjà l'endroit où l'on regarde quand ça va mal. Un panneau dédié dirait
+aussi « tout est prêt » quand tout va bien, ce que le bandeau ne sait pas
+faire ; ça reste à décider.
+
+**Aucune action déduite du bilan.** Il ne refuse pas un lancement et ne baisse
+pas la qualité tout seul. Il dit, et c'est tout.

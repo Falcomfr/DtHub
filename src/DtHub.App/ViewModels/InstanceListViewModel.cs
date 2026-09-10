@@ -395,16 +395,16 @@ public sealed partial class InstanceListViewModel : ObservableObject
             // aussi utile à savoir qu'un appareil injoignable.
             var warnings = discovery.Warnings.Concat(_launcher.InstanceWarnings).ToList();
 
-            // La chaleur y a sa place pour la même raison : elle ne casse rien,
-            // elle ralentit tout, et c'est ici qu'on regarde quand ça va mal.
-            if (_launcher.HeatWarning is { Length: > 0 } heat)
+            // Le bilan de l'appareil y a sa place pour la même raison : il
+            // ne casse rien, il dit ce qui va casser, et c'est ici qu'on
+            // regarde quand ça va mal.
+            if (_launcher.HealthSummary is { Length: > 0 } health)
             {
-                warnings.Add(heat);
+                warnings.Add(health);
             }
 
             // La reprise d'une fenêtre perdue se dit au même endroit, et pour
-            // la même raison : elle ne casse rien, elle explique ce qui vient
-            // de se passer à l'écran.
+            // la même raison : elle explique ce qui vient de se passer.
             if (_launcher.RecoveryNotice is { Length: > 0 } recovery)
             {
                 warnings.Add(recovery);

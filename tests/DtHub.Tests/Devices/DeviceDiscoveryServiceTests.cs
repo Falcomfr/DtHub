@@ -449,6 +449,63 @@ public class DeviceDiscoveryServiceTests
     }
 
     [Fact]
+    public async Task La_batterie_est_lue_puis_gardee_une_minute()
+    {
+        // Même raison que la chaleur : la question coûte un aller-retour, et
+        // une batterie ne perd pas dix pour cent en dix secondes.
+        var adb = new FakeAdbClient().WithShell("battery", "  level: 42\n  scale: 100\n  AC powered: false");
+
+        using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry());
+
+        var premier = await service.GetBatteryAsync("USB0001", CancellationToken.None);
+        var second = await service.GetBatteryAsync("USB0001", CancellationToken.None);
+
+        Assert.Equal(42, premier?.Percent);
+        Assert.Equal(42, second?.Percent);
+        Assert.Single(adb.ShellCalls, c => c.Contains("battery", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Un_appareil_muet_sur_sa_batterie_ne_fait_rien_echouer()
+    {
+        var adb = new FakeAdbClient().WithShell("battery", "dumpsys: service battery does not exist");
+
+        using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry());
+
+        Assert.Null(await service.GetBatteryAsync("USB0001", CancellationToken.None));
+        Assert.Null(await service.GetBatteryAsync("   ", CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task La_place_libre_est_lue_puis_gardee()
+    {
+        // Gardée bien plus longtemps que les autres : la place ne bouge pas en
+        // séance, et c'est une assurance, pas une surveillance.
+        var adb = new FakeAdbClient().WithShell(
+            "df",
+            "Filesystem 1K-blocks Used Available Use% Mounted on\n/dev/x 100 50 313535476 36% /data");
+
+        using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry());
+
+        var premier = await service.GetStorageAsync("USB0001", CancellationToken.None);
+        _ = await service.GetStorageAsync("USB0001", CancellationToken.None);
+
+        Assert.Equal(313535476L * 1024, premier?.FreeBytes);
+        Assert.Single(adb.ShellCalls, c => c.Contains("df", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Un_appareil_muet_sur_sa_place_ne_fait_rien_echouer()
+    {
+        var adb = new FakeAdbClient().WithShell("df", "df: /data: Permission denied");
+
+        using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry());
+
+        Assert.Null(await service.GetStorageAsync("USB0001", CancellationToken.None));
+        Assert.Null(await service.GetStorageAsync("   ", CancellationToken.None));
+    }
+
+    [Fact]
     public async Task La_chaleur_est_lue_puis_gardee_une_minute()
     {
         // La question coûte un aller-retour de shell, et le panneau sonde

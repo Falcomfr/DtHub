@@ -490,6 +490,21 @@ Cross the tests: another device on this port, and this phone on another PC. You 
   <data name="SessionRecoveryGaveUp" xml:space="preserve">
     <value>{0} could not be reopened after several tries. Check the phone, then relaunch it yourself.</value>
   </data>
+  <data name="DeviceBatteryLow" xml:space="preserve">
+    <value>The phone is down to {0} % and is not charging. Plug it in, or the session will end before you do.</value>
+  </data>
+  <data name="DeviceBatteryCritical" xml:space="preserve">
+    <value>The phone is down to {0} % and is not charging. Plug it in now: it has a few minutes left.</value>
+  </data>
+  <data name="DeviceStorageLow" xml:space="preserve">
+    <value>The phone has only {0} GB free. DOFUS Touch can fail without saying why when space runs out.</value>
+  </data>
+  <data name="DeviceStorageCritical" xml:space="preserve">
+    <value>The phone has only {0} GB free. Make room before playing: the game will fail.</value>
+  </data>
+  <data name="DeviceOn24GHz" xml:space="preserve">
+    <value>The phone is on the 2.4 GHz band. The picture will stutter more than on 5 GHz; switching bands is the single best change you can make.</value>
+  </data>
   <data name="DeviceThrottling" xml:space="preserve">
     <value>The device is heating up and is starting to slow itself down. Close an account, or drop one quality step, and it will pick up again.</value>
   </data>
@@ -599,6 +614,9 @@ On a {0} device, the manual copy goes through: {1}.</value>
   </data>
   <data name="AlmanaxQuest" xml:space="preserve">
     <value>Quest</value>
+  </data>
+  <data name="AlmanaxMonthEvent" xml:space="preserve">
+    <value>Event of the month</value>
   </data>
   <data name="AlmanaxMeryde" xml:space="preserve">
     <value>Meryde</value>

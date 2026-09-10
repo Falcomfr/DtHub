@@ -452,78 +452,140 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         var discovery = await _devices.RefreshAsync(cancellationToken).ConfigureAwait(false);
 
-        await RefreshHeatAsync(cancellationToken).ConfigureAwait(false);
+        await RefreshHealthAsync(discovery, cancellationToken).ConfigureAwait(false);
 
         return discovery;
     }
 
     /// <summary>
-    /// Ce que les appareils qui portent une fenêtre disent de leur chaleur, ou
-    /// <c>null</c> s'ils n'ont rien à en dire.
+    /// Le bilan des appareils, ou <c>null</c> quand ils n'ont rien à dire.
     ///
-    /// C'est la limite qui mord en premier sur une tablette à plusieurs
-    /// comptes, et elle est silencieuse : rien n'échoue, tout ralentit.
+    /// Un seul texte, le plus grave : chaleur, batterie, place libre et bande
+    /// Wi-Fi parlaient chacune dans son coin, et trois avertissements côte à
+    /// côte dans le même bandeau se lisent comme un seul, plus long.
+    ///
+    /// **Évalué avant le lancement autant que pendant.** Tant qu'aucune
+    /// fenêtre n'est ouverte, ce sont les appareils connectés qu'on interroge :
+    /// découvrir qu'il ne reste rien de batterie une fois les cinq comptes
+    /// ouverts, c'est le découvrir trop tard.
     /// </summary>
-    public string? HeatWarning { get; private set; }
+    public string? HealthSummary { get; private set; }
 
     /// <summary>Dernier état thermique journalisé par appareil.</summary>
     private readonly Dictionary<string, int> _loggedHeat = new(StringComparer.Ordinal);
 
+    /// <summary>Dernier palier de batterie journalisé par appareil.</summary>
+    private readonly Dictionary<string, int> _loggedBattery = new(StringComparer.Ordinal);
+
+    /// <summary>Appareils dont le manque de place a déjà été journalisé.</summary>
+    private readonly HashSet<string> _loggedStorage = new(StringComparer.Ordinal);
+
     /// <summary>
-    /// Relit la chaleur des appareils qui portent une session.
+    /// Relit l'état des appareils et en tire un bilan.
     ///
-    /// Seulement ceux-là, et seulement quand une fenêtre est ouverte : un
-    /// téléphone posé sur la table ne chauffe pas, et l'interroger pour rien
-    /// coûterait un aller-retour de shell à chaque balayage. La lecture est
-    /// gardée une minute par la découverte, ce qui borne le coût même quand le
-    /// panneau sonde toutes les deux secondes.
+    /// Ceux qui portent une fenêtre d'abord, et à défaut ceux qui sont
+    /// simplement connectés. Les lectures sont gardées par la découverte, une
+    /// minute pour la chaleur et la batterie, un quart d'heure pour la place :
+    /// le panneau peut sonder toutes les deux secondes sans que cela se paie.
+    ///
+    /// Le journal ne parle qu'au changement de palier. La même ligne répétée
+    /// trois cents fois en dix minutes noierait le reste.
     /// </summary>
-    private async Task RefreshHeatAsync(CancellationToken cancellationToken)
+    private async Task RefreshHealthAsync(
+        DeviceDiscoveryResult discovery,
+        CancellationToken cancellationToken)
     {
-        var serials = _sessions.ActiveSessions
+        ArgumentNullException.ThrowIfNull(discovery);
+
+        var playing = _sessions.ActiveSessions
             .Where(s => s.IsAlive)
             .Select(s => s.Target.Serial)
             .Where(s => !string.IsNullOrWhiteSpace(s))
             .Distinct(StringComparer.Ordinal)
             .ToList();
 
+        var serials = playing.Count > 0
+            ? playing
+            : [.. discovery.Devices
+                .Where(d => d.IsConnected)
+                .Select(d => d.Serial)
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Distinct(StringComparer.Ordinal)];
+
         if (serials.Count == 0)
         {
-            HeatWarning = null;
+            HealthSummary = null;
             _loggedHeat.Clear();
+            _loggedBattery.Clear();
+            _loggedStorage.Clear();
             return;
         }
 
-        string? warning = null;
+        List<HealthFinding> findings = [];
 
         foreach (var serial in serials)
         {
-            var reading = await _devices.GetThermalAsync(serial, cancellationToken).ConfigureAwait(false);
+            var heat = await _devices.GetThermalAsync(serial, cancellationToken).ConfigureAwait(false);
+            var battery = await _devices.GetBatteryAsync(serial, cancellationToken).ConfigureAwait(false);
+            var storage = await _devices.GetStorageAsync(serial, cancellationToken).ConfigureAwait(false);
+            var link = await _devices.GetWifiLinkAsync(serial, cancellationToken).ConfigureAwait(false);
 
-            if (reading?.Describe() is not { } said)
-            {
-                _ = _loggedHeat.Remove(serial);
-                continue;
-            }
+            Trace(serial, heat, battery, storage);
 
-            // Journalisé au changement d'état, non à chaque relecture : le
-            // panneau sonde jusqu'à deux fois par seconde, et la même ligne
-            // répétée trois cents fois en dix minutes noierait le reste.
-            if (!_loggedHeat.TryGetValue(serial, out var already) || already != reading.Status)
-            {
-                _loggedHeat[serial] = reading.Status;
-                LogHeat(serial, reading.Status, reading.SkinCelsius ?? 0);
-            }
-
-            // Le plus chaud parle pour tous : deux avertissements côte à côte
-            // dans le même bandeau se liraient comme un seul, plus long.
-            if (warning is null || reading.Status >= ThermalReading.Severe)
-            {
-                warning = said;
-            }
+            findings.AddRange(DeviceHealth.Review(heat, battery, storage, link));
         }
 
-        HeatWarning = warning;
+        HealthSummary = DeviceHealth.Worst([.. findings.OrderByDescending(f => f.Severity)]);
+    }
+
+    /// <summary>Journalise les paliers, et seulement quand ils changent.</summary>
+    private void Trace(
+        string serial,
+        ThermalReading? heat,
+        BatteryReading? battery,
+        StorageReading? storage)
+    {
+        if (heat?.Describe() is not null)
+        {
+            if (!_loggedHeat.TryGetValue(serial, out var already) || already != heat.Status)
+            {
+                _loggedHeat[serial] = heat.Status;
+                LogHeat(serial, heat.Status, heat.SkinCelsius ?? 0);
+            }
+        }
+        else
+        {
+            _ = _loggedHeat.Remove(serial);
+        }
+
+        if (battery?.Describe() is not null)
+        {
+            // Le palier, non le pourcentage : journaliser chaque point perdu
+            // ferait quatre-vingts lignes par séance.
+            var band = battery.Percent <= BatteryReading.Critical ? 2 : 1;
+
+            if (!_loggedBattery.TryGetValue(serial, out var already) || already != band)
+            {
+                _loggedBattery[serial] = band;
+                LogBattery(serial, battery.Percent, battery.Celsius ?? 0);
+            }
+        }
+        else
+        {
+            _ = _loggedBattery.Remove(serial);
+        }
+
+        if (storage?.Describe() is not null)
+        {
+            if (_loggedStorage.Add(serial))
+            {
+                LogStorage(serial, storage.FreeGigabytes);
+            }
+        }
+        else
+        {
+            _ = _loggedStorage.Remove(serial);
+        }
     }
 
     /// <summary>
@@ -2132,6 +2194,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "L'appareil {serial} se bride : état thermique {status}, surface {skin} °C.")]
     private partial void LogHeat(string serial, int status, double skin);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "L'appareil {serial} est à {percent} % de batterie, non branché, batterie à {celsius} °C.")]
+    private partial void LogBattery(string serial, int percent, double celsius);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "L'appareil {serial} n'a plus que {free} Go libres.")]
+    private partial void LogStorage(string serial, double free);
 
     [LoggerMessage(
         Level = LogLevel.Warning,

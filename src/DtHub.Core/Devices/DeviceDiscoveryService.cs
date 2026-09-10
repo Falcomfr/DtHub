@@ -211,6 +211,106 @@ public sealed class DeviceDiscoveryService : IDisposable
         }
     }
 
+    /// <summary>Dernier niveau de batterie lu par appareil, avec son âge.</summary>
+    private readonly Dictionary<string, (BatteryReading? Reading, System.Diagnostics.Stopwatch Vu)> _battery =
+        new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Combien de temps une lecture de batterie reste valable.
+    ///
+    /// La même minute que la chaleur, et pour la même raison : une batterie ne
+    /// perd pas dix pour cent en dix secondes, et la question coûte un
+    /// aller-retour de shell à chaque balayage.
+    /// </summary>
+    private static readonly TimeSpan BatteryFreshness = TimeSpan.FromMinutes(1);
+
+    /// <summary>
+    /// Ce que l'appareil dit de sa batterie, ou <c>null</c> s'il n'en dit rien.
+    /// </summary>
+    public async Task<BatteryReading?> GetBatteryAsync(
+        string serial,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(serial))
+        {
+            return null;
+        }
+
+        if (_battery.TryGetValue(serial, out var garde) && garde.Vu.Elapsed < BatteryFreshness)
+        {
+            return garde.Reading;
+        }
+
+        try
+        {
+            var dump = await _adb
+                .ShellAsync(serial, ["dumpsys", "battery"], cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            var reading = BatteryReading.Parse(dump);
+
+            _battery[serial] = (reading, System.Diagnostics.Stopwatch.StartNew());
+
+            return reading;
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // Même silence assumé que pour la chaleur : ne pas connaître la
+            // batterie est un résultat valable, et un appareil qui répond mal
+            // à une question accessoire ne doit pas faire échouer le balayage.
+            return null;
+        }
+    }
+
+    /// <summary>Dernière place libre lue par appareil, avec son âge.</summary>
+    private readonly Dictionary<string, (StorageReading? Reading, System.Diagnostics.Stopwatch Vu)> _storage =
+        new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Combien de temps une lecture de place libre reste valable.
+    ///
+    /// Bien plus longue que les autres : la place ne bouge pas en séance, et
+    /// c'est une assurance, pas une surveillance.
+    /// </summary>
+    private static readonly TimeSpan StorageFreshness = TimeSpan.FromMinutes(15);
+
+    /// <summary>
+    /// Ce que l'appareil dit de sa place libre, ou <c>null</c> s'il n'en dit
+    /// rien.
+    /// </summary>
+    public async Task<StorageReading?> GetStorageAsync(
+        string serial,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(serial))
+        {
+            return null;
+        }
+
+        if (_storage.TryGetValue(serial, out var garde) && garde.Vu.Elapsed < StorageFreshness)
+        {
+            return garde.Reading;
+        }
+
+        try
+        {
+            var dump = await _adb
+                .ShellAsync(serial, ["df", "/data"], cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            var reading = StorageReading.Parse(dump);
+
+            _storage[serial] = (reading, System.Diagnostics.Stopwatch.StartNew());
+
+            return reading;
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // Même silence assumé que pour les autres sondages accessoires.
+            return null;
+        }
+    }
+
     /// <summary>
     /// Demande à l'appareil s'il accepte la simulation d'entrée.
     ///

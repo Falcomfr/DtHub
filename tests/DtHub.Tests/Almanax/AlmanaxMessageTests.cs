@@ -15,7 +15,8 @@ public class AlmanaxMessageTests
           "bonus": "Bonus : Élevage de Dragodindes",
           "bonusDetail": "Toutes les variétés de Dragodindes Ebène donnent naissance à un bébé supplémentaire.",
           "quest": "Quête : Offrande à Mau",
-          "offering": "Récupérer 1 Dent de Dragodinde et rapporter l'offrande à Théodoran Ax"
+          "offering": "Récupérer 1 Dent de Dragodinde et rapporter l'offrande à Théodoran Ax",
+          "monthEvent": "12 Septange : L'Aurore Pourpre"
         }
         """;
 
@@ -32,6 +33,25 @@ public class AlmanaxMessageTests
         Assert.Equal("Élevage de Dragodindes", day.Bonus);
         Assert.Equal("Offrande à Mau", day.Quest);
         Assert.Equal("Mau", day.Meryde);
+        Assert.Equal("12 Septange : L'Aurore Pourpre", day.MonthEvent);
+    }
+
+    [Fact]
+    public void Un_mois_sans_evenement_ne_fait_rien_tomber()
+    {
+        // Tous les mois n'en portent pas, et le bloc manque alors dans la page.
+        const string json = """
+            {
+              "heading": "Bonus et Quêtes DOFUS Touch",
+              "day": "10",
+              "month": "Septange"
+            }
+            """;
+
+        var day = AlmanaxMessage.From(json, Day);
+
+        Assert.NotNull(day);
+        Assert.Equal(string.Empty, day!.MonthEvent);
     }
 
     [Fact]

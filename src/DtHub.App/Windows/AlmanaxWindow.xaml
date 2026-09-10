@@ -392,6 +392,18 @@
             </StackPanel>
           </Grid>
 
+          <!-- L'événement du mois, le même tout le mois durant : il ne
+               concerne pas la journée, il aide à préparer les suivantes. -->
+          <StackPanel Margin="0,12,0,0"
+                      Visibility="{Binding MonthEvent, Converter={StaticResource EmptyToVisibility},
+                                           ConverterParameter=inverse}">
+            <TextBlock Text="{loc:T AlmanaxMonthEvent}" TextWrapping="NoWrap"
+                       FontSize="{StaticResource FontSmall}"
+                       Foreground="{DynamicResource TextMutedBrush}" />
+            <TextBlock Text="{Binding MonthEvent}" TextWrapping="Wrap" Margin="0,2,0,0"
+                       FontSize="{StaticResource FontBody}" />
+          </StackPanel>
+
         </StackPanel>
       </ScrollViewer>
 

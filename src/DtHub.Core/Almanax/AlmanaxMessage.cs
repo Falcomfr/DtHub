@@ -61,7 +61,8 @@ public static class AlmanaxMessage
             AlmanaxReading.AfterColon(Text(root, "bonus")),
             AlmanaxReading.Clean(Text(root, "bonusDetail")),
             AlmanaxReading.AfterColon(Text(root, "quest")),
-            AlmanaxReading.Clean(Text(root, "meryde")));
+            AlmanaxReading.Clean(Text(root, "meryde")),
+            AlmanaxReading.Clean(Text(root, "monthEvent")));
     }
 
     private static string Text(JsonElement root, string name) =>

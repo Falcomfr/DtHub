@@ -161,6 +161,10 @@ public sealed partial class AlmanaxViewModel : ObservableObject
     [ObservableProperty]
     private string _meryde = string.Empty;
 
+    /// <summary>L'événement du mois, le même tout le mois durant.</summary>
+    [ObservableProperty]
+    private string _monthEvent = string.Empty;
+
     /// <summary>Vrai quand une journée est affichée, donc qu'il y a autre chose qu'une attente.</summary>
     [ObservableProperty]
     private bool _hasDay;
@@ -199,6 +203,7 @@ public sealed partial class AlmanaxViewModel : ObservableObject
         BonusDetail = day.BonusDetail;
         Quest = day.Quest;
         Meryde = day.Meryde;
+        MonthEvent = day.MonthEvent;
 
         Problem = string.Empty;
         HasDay = true;

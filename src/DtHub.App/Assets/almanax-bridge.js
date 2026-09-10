@@ -73,7 +73,12 @@
             bonus: texteSansEnfants(mid, '.more'),
             bonusDetail: texteSansEnfants(more, '.more-infos'),
             quest: texte(infos ? infos.querySelector('p') : null),
-            offering: texte(infos ? infos.querySelector('.more-infos-content p') : null)
+            offering: texte(infos ? infos.querySelector('.more-infos-content p') : null),
+
+            // « 12 Septange : L'Aurore Pourpre ». Le lien porte la date et le
+            // nom d'un seul tenant, et il vaut pour tout le mois : c'est ce
+            // qu'on vient préparer quand on regarde les jours à venir.
+            monthEvent: texte(document.querySelector('#idbar_almanax_month_events a'))
         };
     }
 

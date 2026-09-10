@@ -17,6 +17,11 @@
 /// <param name="BonusDetail">Ce que le bonus fait.</param>
 /// <param name="Quest">Le nom de la quête d'offrande, sans son préfixe.</param>
 /// <param name="Meryde">Le Méryde du jour.</param>
+/// <param name="MonthEvent">
+/// L'événement du mois, date et nom d'un seul tenant, vide s'il n'y en a pas.
+/// Il ne change pas d'un jour à l'autre : c'est ce qu'on vient préparer en
+/// regardant les jours à venir.
+/// </param>
 public sealed record AlmanaxDay(
     DateOnly Date,
     string DofusianDay,
@@ -26,4 +31,5 @@ public sealed record AlmanaxDay(
     string Bonus,
     string BonusDetail,
     string Quest,
-    string Meryde);
+    string Meryde,
+    string MonthEvent);

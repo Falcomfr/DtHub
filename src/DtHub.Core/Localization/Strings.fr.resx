@@ -490,6 +490,21 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
   <data name="SessionRecoveryGaveUp" xml:space="preserve">
     <value>{0} n'a pas pu être rouvert après plusieurs tentatives. Vérifiez le téléphone, puis relancez-le vous-même.</value>
   </data>
+  <data name="DeviceBatteryLow" xml:space="preserve">
+    <value>Le téléphone est à {0} % et n'est pas branché. Mettez-le en charge, sinon la séance finira avant vous.</value>
+  </data>
+  <data name="DeviceBatteryCritical" xml:space="preserve">
+    <value>Le téléphone est à {0} % et n'est pas branché. Branchez-le maintenant : il lui reste quelques minutes.</value>
+  </data>
+  <data name="DeviceStorageLow" xml:space="preserve">
+    <value>Il ne reste que {0} Go libres sur le téléphone. DOFUS Touch peut échouer sans dire pourquoi quand la place manque.</value>
+  </data>
+  <data name="DeviceStorageCritical" xml:space="preserve">
+    <value>Il ne reste que {0} Go libres sur le téléphone. Faites de la place avant de jouer : le jeu échouera.</value>
+  </data>
+  <data name="DeviceOn24GHz" xml:space="preserve">
+    <value>Le téléphone est sur la bande 2,4 GHz. L'image saccadera plus qu'en 5 GHz ; changer de bande est le geste qui apporte le plus.</value>
+  </data>
   <data name="DeviceThrottling" xml:space="preserve">
     <value>L'appareil chauffe et commence à se brider. Fermez un compte, ou descendez d'un palier de qualité, et il repartira.</value>
   </data>
@@ -599,6 +614,9 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
   </data>
   <data name="AlmanaxQuest" xml:space="preserve">
     <value>Quête</value>
+  </data>
+  <data name="AlmanaxMonthEvent" xml:space="preserve">
+    <value>Événement du mois</value>
   </data>
   <data name="AlmanaxMeryde" xml:space="preserve">
     <value>Méryde</value>

@@ -7,6 +7,17 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ## [Non publié]
 
+### Ajouté
+
+- **Le bilan du téléphone, avant de lancer et pas seulement pendant.** La
+  batterie et la place libre s'ajoutent à la chaleur et à la bande Wi-Fi, et
+  les quatre parlent d'une seule voix, la plus grave d'abord. Un téléphone
+  branché ne dit rien : ce n'est pas le niveau qui inquiète, c'est le niveau
+  qui baisse.
+
+- **L'événement du mois dans la fenêtre Almanax**, lu sur la page déjà
+  chargée.
+
 ### Corrigé
 
 - **Une liaison qui lâche ne ferme plus l'application.** Quand la dernière
