@@ -272,7 +272,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private void ProbeEncoders(
         IReadOnlyList<DofusInstance> instances,
-        IReadOnlyDictionary<string, AndroidDevice> devices)
+        Dictionary<string, AndroidDevice> devices)
     {
         foreach (var serial in instances
                      .Select(i => devices.TryGetValue(i.DeviceId, out var d) ? d.Serial : null)
