@@ -484,6 +484,12 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
   <data name="BrandVivoWarning" xml:space="preserve">
     <value>Activez aussi « Débogage USB (paramètres de sécurité) » et « Installer via USB » dans le même menu. Sans le premier, l'image s'affiche mais la souris et le clavier ne font rien.</value>
   </data>
+  <data name="SessionRecovering" xml:space="preserve">
+    <value>La liaison avec {0} a lâché. Sa fenêtre se rouvre.</value>
+  </data>
+  <data name="SessionRecoveryGaveUp" xml:space="preserve">
+    <value>{0} n'a pas pu être rouvert après plusieurs tentatives. Vérifiez le téléphone, puis relancez-le vous-même.</value>
+  </data>
   <data name="DeviceThrottling" xml:space="preserve">
     <value>L'appareil chauffe et commence à se brider. Fermez un compte, ou descendez d'un palier de qualité, et il repartira.</value>
   </data>

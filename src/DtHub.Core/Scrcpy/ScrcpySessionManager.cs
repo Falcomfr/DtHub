@@ -273,6 +273,10 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             return;
         }
 
+        // Dit avant tout le reste : la boucle de lecture verra la marque quand
+        // le canal se refermera, et saura que cette fin était voulue.
+        session.StopRequested = true;
+
         // Le droit d'arrêter le jeu est réclamé maintenant, avant même de
         // toucher à scrcpy. Le réclamer après aurait laissé la boucle de
         // lecture, réveillée par la mort du processus, le prendre la première :
@@ -664,6 +668,13 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
     private void Transition(ScrcpySession session, ScrcpySessionState state)
     {
+        // Avant la garde d'égalité : la marque doit se poser même si l'état
+        // était déjà celui-là.
+        if (state == ScrcpySessionState.Running)
+        {
+            session.EverRan = true;
+        }
+
         if (session.State == state)
         {
             return;

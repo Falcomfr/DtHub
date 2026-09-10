@@ -81,6 +81,27 @@ public sealed class ScrcpySession
     public DateTimeOffset StartedUtc { get; }
 
     /// <summary>
+    /// Vrai quand la fin a été demandée par l'application, et non subie.
+    ///
+    /// Sans cette marque, rien ne distinguait une fermeture voulue d'une
+    /// panne : les deux aboutissent au même état. Voir
+    /// <see cref="SessionRecovery" />.
+    /// </summary>
+    public bool StopRequested { get; internal set; }
+
+    /// <summary>
+    /// Vrai dès que la session a été ouverte au moins une fois.
+    ///
+    /// Un échec d'ouverture est déjà traité pendant le lancement, par le repli
+    /// à une définition plus modeste. Le reprendre après coup doublerait les
+    /// tentatives sans rien apporter.
+    /// </summary>
+    public bool EverRan { get; internal set; }
+
+    /// <summary>Ce qu'on sait de la fin, pour décider s'il faut rouvrir.</summary>
+    public SessionEnd End => new(StopRequested, EverRan, FailureKind);
+
+    /// <summary>
     /// Temps mis par le téléphone à ouvrir l'afficheur virtuel, en
     /// millisecondes. C'est la seule partie du démarrage qui doive être
     /// sérialisée : la mesurer dit combien coûte vraiment l'attente.

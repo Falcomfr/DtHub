@@ -396,6 +396,59 @@ public class ScrcpySessionManagerTests
     }
 
     [Fact]
+    public async Task Une_fin_demandee_se_declare_comme_telle()
+    {
+        var process = new FakeProcessSession().Emit(NewDisplayLine);
+        var launcher = new FakeProcessLauncher().Prepare(process);
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var session = await manager
+            .StartAsync(Target(), ScrcpyOptions.Default, null, CancellationToken.None)
+            .ConfigureAwait(true);
+
+        await manager.StopAsync(session.Id, CancellationToken.None).ConfigureAwait(true);
+
+        Assert.True(session.End.Requested);
+        Assert.True(session.End.EverRan);
+    }
+
+    [Fact]
+    public async Task Une_fin_subie_ne_se_declare_pas_demandee()
+    {
+        // Rien ne les distinguait : les deux aboutissent à l'état arrêté. Sans
+        // cette marque, on ne pouvait pas décider s'il fallait rouvrir.
+        var process = new FakeProcessSession().Emit(NewDisplayLine);
+        var launcher = new FakeProcessLauncher().Prepare(process);
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var session = await manager
+            .StartAsync(Target(), ScrcpyOptions.Default, null, CancellationToken.None)
+            .ConfigureAwait(true);
+
+        process.Exit(1);
+
+        Assert.True(await Eventually(() => !session.IsAlive).ConfigureAwait(true), "la session est restée vivante.");
+        Assert.False(session.End.Requested);
+        Assert.True(session.End.EverRan);
+    }
+
+    [Fact]
+    public async Task Une_session_qui_n_a_jamais_ouvert_ne_pretend_pas_avoir_tourne()
+    {
+        // Aucune ligne d'afficheur : le démarrage expire sans que la session
+        // n'ait jamais été ouverte.
+        var process = new FakeProcessSession();
+        var launcher = new FakeProcessLauncher().Prepare(process);
+        await using var manager = Manager(launcher, new FakeAppLauncher(), TimeSpan.FromMilliseconds(200));
+
+        var session = await manager
+            .StartAsync(Target(), ScrcpyOptions.Default, null, CancellationToken.None)
+            .ConfigureAwait(true);
+
+        Assert.False(session.End.EverRan);
+    }
+
+    [Fact]
     public async Task Une_fenetre_fermee_a_la_main_arrete_aussi_le_jeu()
     {
         // Le chemin de la croix de la fenêtre scrcpy, et du téléphone

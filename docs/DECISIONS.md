@@ -5868,3 +5868,89 @@ même chargée à la volée.
 présentent comme tels, et les bibliothèques du milieu passent outre avec
 `cloudscraper`. Une fenêtre qui charge une page à la demande d'une personne est
 un lecteur, pas un contournement.
+
+## D113 - Une liaison qui lâche ne doit pas fermer l'application
+
+Le défaut se lisait en quatre lignes. Quand une session mourait sans qu'on
+l'ait demandé, `GameLauncher.OnSessionChanged` journalisait, puis, si c'était
+la dernière session vivante, levait `LastWindowClosed`, que l'application
+traduisait par sa propre fermeture.
+
+Autrement dit : **un hoquet Wi-Fi sur la dernière fenêtre fermait DT Hub**. Les
+déconnexions sont la première plainte des joueurs de DOFUS Touch, et une
+liaison qui tousse n'est pas une raison de perdre sa session de jeu et son
+outil avec.
+
+### Rien ne distinguait une fermeture voulue d'une panne
+
+`StopAsync` et une fenêtre fermée à la croix aboutissaient au même état,
+`Stopped`. Les seuls indices étaient `GameLauncher._closing` et
+`ScrcpySession.ClaimAppStop()`, tous deux privés et détournés de leur rôle
+véritable.
+
+La session porte donc maintenant deux marques : `StopRequested`, posée par
+`StopAsync` avant tout le reste, et `EverRan`, posée au passage à l'état
+ouvert. Ensemble avec la nature du refus, elles forment `SessionEnd`, tout ce
+qu'il faut pour décider.
+
+### Le piège : la fenêtre fermée à la main
+
+De notre point de vue, fermer la fenêtre à la croix et perdre la liaison se
+ressemblent : aucun code à nous n'est appelé, seul le canal de sortie se tait.
+Rouvrir une fenêtre que l'utilisateur vient de fermer serait exaspérant.
+
+Ce qui les sépare est que **scrcpy sort proprement quand on ferme sa fenêtre,
+et en erreur quand la liaison tombe**. On ne rouvre donc que sur un refus
+déclaré, jamais sur une sortie propre. C'est la première règle de
+`SessionRecovery`, et elle a son épreuve nommée.
+
+### Ce qu'insister ne guérirait pas
+
+Le reste des règles suit l'esprit de `ScrcpyOutputParser.CanRetrySmaller` : un
+appareil non autorisé le restera, scrcpy absent du poste ne s'installera pas
+tout seul, et le refus d'encodeur a déjà son propre repli à une définition plus
+modeste. Ne se rouvrent donc que la déconnexion, l'appareil disparu, la liaison
+refusée et le refus non reconnu.
+
+Une session qui n'a jamais tourné est écartée aussi : son échec est déjà traité
+pendant le lancement, et le reprendre ici doublerait les tentatives.
+
+### Trois tentatives, espacées, puis on le dit
+
+```
+2 s, puis 5 s, puis 15 s, puis on renonce
+```
+
+Trois, parce qu'un hoquet passager tient rarement plus de vingt secondes et
+qu'une panne durable ne se résout pas en insistant. Une application qui rouvre
+sans fin une fenêtre qui retombe est pire qu'une application qui s'arrête :
+elle occupe sans servir.
+
+Le compte s'oublie au bout de dix minutes sans rechute, sans quoi une session
+de six heures épuiserait son crédit sur des incidents sans rapport.
+
+Renoncer se dit, à une condition : seulement si l'on avait promis quelque
+chose. Après des tentatives annoncées, abandonner en silence laisserait le
+lecteur attendre une fenêtre qui ne reviendra pas.
+
+### La décision est dans le noyau, le reste ne l'est pas
+
+`GameLauncher` n'a aucune épreuve et ne peut pas en avoir : les épreuves ne
+référencent pas la couche d'interface. La décision vit donc dans
+`SessionRecovery`, comme `AlmanaxRange` avant elle, et le launcher ne tient que
+le compte des tentatives.
+
+La réouverture elle-même repasse par le répartiteur de l'interface : la mort
+d'une session est annoncée depuis la boucle de lecture de scrcpy, qui ne vit
+pas sur ce fil.
+
+### Ce qui n'est pas fait
+
+**La position au moment de la perte n'est pas capturée.** Les géométries ne
+sont relevées que sur les gestes volontaires. Une fenêtre rouverte reprend donc
+la dernière position voulue, pas celle qu'elle avait à l'instant de la chute.
+C'est acceptable, et c'est dit ici plutôt que subi.
+
+**Aucune reprise sur une fermeture propre**, y compris quand scrcpy est tué de
+l'extérieur : le code de sortie diffère, mais rien dans la sortie ne dit
+pourquoi, et deviner mènerait à rouvrir des fenêtres qu'on vient de fermer.

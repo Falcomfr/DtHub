@@ -180,6 +180,12 @@ public partial class App : Application, IDisposable
         services.GetRequiredService<ConfiguratorViewModel>().AlmanaxRequested +=
             (_, _) => Dispatcher.Invoke(ShowAlmanax);
         launcher.QuitRequested += (_, _) => Dispatcher.Invoke(async () => await RequestQuitAsync().ConfigureAwait(true));
+        // La reprise d'une fenêtre perdue est demandée depuis la boucle de
+        // lecture de scrcpy, qui ne vit pas sur le fil de l'interface. Elle
+        // repasse donc par le répartiteur, comme les raccourcis.
+        launcher.RecoveryRequested += (_, request) =>
+            Dispatcher.Invoke(() => _ = RecoverAsync(launcher, request));
+
         // Le panneau était déjà masqué : c'est bien qu'on le veut masqué.
         launcher.LastWindowClosed += (_, _) => Dispatcher.Invoke(
             () => OnNothingLeft(rememberConfigurator: false));
@@ -780,6 +786,31 @@ public partial class App : Application, IDisposable
         _almanax.Closed += (_, _) => _almanax = null;
 
         _ = _almanax.ShowAlmanaxAsync();
+    }
+
+    /// <summary>
+    /// Rouvre une fenêtre de jeu perdue, après l'attente que la décision a
+    /// fixée.
+    ///
+    /// L'attente n'est pas un ornement : rouvrir dans la seconde échouerait
+    /// tant que la liaison n'est pas revenue, et brûlerait une tentative pour
+    /// rien.
+    /// </summary>
+    private static async Task RecoverAsync(GameLauncher launcher, RecoveryRequest request)
+    {
+        try
+        {
+            await Task.Delay(request.Delay).ConfigureAwait(true);
+
+            _ = await launcher.LaunchAsync([request.Instance]).ConfigureAwait(true);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // La prochaine panne redécidera. Signaler ici n'apporterait rien :
+            // l'avis affiché dit déjà que la fenêtre est attendue, et un échec
+            // de réouverture se voit à ce qu'elle ne revient pas.
+            Log.Warning(exception, "La réouverture de {Nom} a échoué.", request.Instance.DisplayName);
+        }
     }
 
     /// <summary>Rouvre le suivi de quêtes sur ce qu'on y lisait au dernier arrêt.</summary>

@@ -484,6 +484,12 @@ Cruce las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
   <data name="BrandVivoWarning" xml:space="preserve">
     <value>Active también «Depuración USB (ajustes de seguridad)» e «Instalar vía USB» en el mismo menú. Sin la primera, la imagen se ve pero el ratón y el teclado no hacen nada.</value>
   </data>
+  <data name="SessionRecovering" xml:space="preserve">
+    <value>La conexión con {0} se cortó. Su ventana se vuelve a abrir.</value>
+  </data>
+  <data name="SessionRecoveryGaveUp" xml:space="preserve">
+    <value>{0} no pudo reabrirse tras varios intentos. Revise el teléfono y vuelva a lanzarlo usted mismo.</value>
+  </data>
   <data name="DeviceThrottling" xml:space="preserve">
     <value>El dispositivo se está calentando y empieza a limitarse. Cierre una cuenta, o baje un nivel de calidad, y volverá a rendir.</value>
   </data>

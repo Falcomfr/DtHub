@@ -402,6 +402,14 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 warnings.Add(heat);
             }
 
+            // La reprise d'une fenêtre perdue se dit au même endroit, et pour
+            // la même raison : elle ne casse rien, elle explique ce qui vient
+            // de se passer à l'écran.
+            if (_launcher.RecoveryNotice is { Length: > 0 } recovery)
+            {
+                warnings.Add(recovery);
+            }
+
             Problem = warnings.Count > 0 ? string.Join(" ", warnings) : null;
 
             // Seules les instances des téléphones joignables ont une ligne.

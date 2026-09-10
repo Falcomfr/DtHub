@@ -484,6 +484,12 @@ Cross the tests: another device on this port, and this phone on another PC. You 
   <data name="BrandVivoWarning" xml:space="preserve">
     <value>Also turn on “USB debugging (security settings)” and “Install via USB” in the same menu. Without the first one the picture shows but the mouse and keyboard do nothing.</value>
   </data>
+  <data name="SessionRecovering" xml:space="preserve">
+    <value>The link to {0} dropped. Reopening its window.</value>
+  </data>
+  <data name="SessionRecoveryGaveUp" xml:space="preserve">
+    <value>{0} could not be reopened after several tries. Check the phone, then relaunch it yourself.</value>
+  </data>
   <data name="DeviceThrottling" xml:space="preserve">
     <value>The device is heating up and is starting to slow itself down. Close an account, or drop one quality step, and it will pick up again.</value>
   </data>

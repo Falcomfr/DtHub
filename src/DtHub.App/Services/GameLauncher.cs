@@ -142,6 +142,31 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// <summary>Rythme des contrôles et des sondages, selon la qualité.</summary>
     public QualityProfile Quality => _quality;
 
+    /// <summary>
+    /// Les instances déjà lancées, pour savoir quoi rouvrir quand une fenêtre
+    /// tombe. La session ne porte qu'une cible, pas l'instance d'origine.
+    /// </summary>
+    private readonly Dictionary<string, DofusInstance> _launched = new(StringComparer.Ordinal);
+
+    /// <summary>Tentatives de reprise par instance, et heure de la dernière.</summary>
+    private readonly Dictionary<string, (int Count, DateTimeOffset Last)> _recoveries =
+        new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Ce que la reprise a à dire, ou <c>null</c>. Rejoint le même bandeau que
+    /// la chaleur : c'est là qu'on regarde quand quelque chose cloche.
+    /// </summary>
+    public string? RecoveryNotice { get; private set; }
+
+    /// <summary>
+    /// Signalé quand une fenêtre perdue doit être rouverte.
+    ///
+    /// La fenêtre est reconstruite par l'application, pas ici : ce service ne
+    /// vit pas sur le fil de l'interface, et la mort d'une session est
+    /// annoncée depuis la boucle de lecture de scrcpy.
+    /// </summary>
+    public event EventHandler<RecoveryRequest>? RecoveryRequested;
+
 
     /// <summary>
     /// Journalise la mort d'une session, avec la sortie de scrcpy. Sans cela,
@@ -149,6 +174,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private void OnSessionChanged(object? sender, ScrcpySession session)
     {
+        // La fenêtre est revenue : l'avis de reprise n'a plus lieu d'être. Le
+        // compte des tentatives, lui, survit, et c'est voulu : une liaison qui
+        // clignote doit finir par épuiser son crédit.
+        if (session.State == ScrcpySessionState.Running)
+        {
+            RecoveryNotice = null;
+        }
+
         if (session.IsAlive || _closing)
         {
             return;
@@ -160,10 +193,66 @@ public sealed partial class GameLauncher : IAsyncDisposable
             session.FailureMessage ?? "aucun message",
             string.Join(Environment.NewLine, session.RecentOutput));
 
+        // Avant de conclure qu'il ne reste rien : une fenêtre qu'on va rouvrir
+        // n'est pas une fenêtre perdue. Sans cette réserve, un hoquet Wi-Fi sur
+        // la dernière session fermait l'application.
+        if (TryRecover(session))
+        {
+            return;
+        }
+
         if (_sessions.ActiveSessions.Count == 0)
         {
             LastWindowClosed?.Invoke(this, EventArgs.Empty);
         }
+    }
+
+    /// <summary>
+    /// Décide s'il faut rouvrir cette fenêtre, et le demande le cas échéant.
+    ///
+    /// La décision elle-même vit dans <see cref="SessionRecovery" />, où elle
+    /// s'éprouve. Ici on ne tient que le compte des tentatives, et l'oubli au
+    /// bout d'un moment sans rechute.
+    /// </summary>
+    private bool TryRecover(ScrcpySession session)
+    {
+        var key = session.Target.Key;
+
+        if (!_launched.TryGetValue(key, out var instance))
+        {
+            return false;
+        }
+
+        var already = _recoveries.TryGetValue(key, out var seen)
+            && DateTimeOffset.UtcNow - seen.Last < SessionRecovery.Forget
+                ? seen.Count
+                : 0;
+
+        var decision = SessionRecovery.Decide(session.End, already);
+
+        if (!decision.Retry)
+        {
+            // On ne se tait que si l'on n'avait rien promis. Après des
+            // tentatives annoncées, renoncer sans le dire laisserait le
+            // lecteur attendre une fenêtre qui ne reviendra pas.
+            if (already > 0 && SessionRecovery.Recoverable(session.End.Failure))
+            {
+                RecoveryNotice = Strings.Format("SessionRecoveryGaveUp", instance.DisplayName);
+                LogRecoveryGaveUp(instance.DisplayName, already);
+            }
+
+            return false;
+        }
+
+        _recoveries[key] = (already + 1, DateTimeOffset.UtcNow);
+
+        RecoveryNotice = Strings.Format("SessionRecovering", instance.DisplayName);
+
+        LogRecovering(instance.DisplayName, already + 1, (int)decision.Delay.TotalSeconds);
+
+        RecoveryRequested?.Invoke(this, new RecoveryRequest(instance, decision.Delay));
+
+        return true;
     }
 
     /// <summary>Sessions actuellement ouvertes.</summary>
@@ -610,6 +699,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
         foreach (var instance in instances)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            // Retenue avant tout filtre : c'est par elle qu'on saura quoi
+            // rouvrir si la fenêtre tombe.
+            _launched[instance.Key] = instance;
 
             if (IsOpen(instance))
             {
@@ -2039,6 +2132,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "L'appareil {serial} se bride : état thermique {status}, surface {skin} °C.")]
     private partial void LogHeat(string serial, int status, double skin);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "Fenêtre perdue, réouverture de {name} dans {seconds} s (tentative {attempt}).")]
+    private partial void LogRecovering(string name, int attempt, int seconds);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "Réouverture de {name} abandonnée après {attempts} tentatives.")]
+    private partial void LogRecoveryGaveUp(string name, int attempts);
 
     [LoggerMessage(
         Level = LogLevel.Information,

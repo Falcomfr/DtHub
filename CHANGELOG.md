@@ -7,6 +7,16 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ## [Non publié]
 
+### Corrigé
+
+- **Une liaison qui lâche ne ferme plus l'application.** Quand la dernière
+  fenêtre de jeu mourait sans qu'on l'ait demandé, DT Hub se fermait avec
+  elle. Un hoquet Wi-Fi suffisait, et les déconnexions sont la première
+  plainte des joueurs de DOFUS Touch. La fenêtre se rouvre maintenant d'elle
+  même, jusqu'à trois fois, en espaçant les tentatives, et le bandeau le dit.
+  Une fenêtre fermée à la main, elle, reste fermée : scrcpy sort proprement
+  dans ce cas, et en erreur quand la liaison tombe.
+
 ## [0.2.0] - 2026-09-09
 
 Vingt et une décisions depuis la 0.1.0. Le fil conducteur : rendre visibles les
