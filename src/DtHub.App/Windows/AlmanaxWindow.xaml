@@ -1,0 +1,412 @@
+﻿<Window x:Class="DtHub.App.Windows.AlmanaxWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:DtHub.App.Localization"
+        xmlns:wv="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        Title="{loc:T AlmanaxWindowTitle}"
+        Width="470" Height="560" MinWidth="420" MinHeight="340"
+        Topmost="True" ShowInTaskbar="True"
+        Background="{DynamicResource SurfaceAltBrush}"
+        Foreground="{DynamicResource TextBrush}">
+
+  <!-- L'Almanax réduit à ce qu'on vient y chercher. La page du portail est
+       lue, pas affichée : « almanax-bridge.js » en tire les champs utiles, et
+       cette fenêtre les dessine elle-même.
+
+       Pas de WindowStyle="None" ni d'AllowsTransparency : un WebView2 est une
+       surface native et ne se dessine pas dans une fenêtre transparente. -->
+
+  <Window.Resources>
+
+    <!-- La pastille d'un jour de la bande.
+
+         Le jour choisi se marque par le fond et le contour ; aujourd'hui, par
+         un point sous le nombre. Deux contours se seraient disputé la même
+         case le jour même, et rien n'aurait dit lequel voulait dire quoi. -->
+    <Style x:Key="DayChip" TargetType="Button" BasedOn="{StaticResource OutlineButton}">
+      <Setter Property="Padding" Value="0,6" />
+      <Setter Property="Margin" Value="2,0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Style.Triggers>
+        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+          <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+          <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+
+    <!-- Une case du calendrier déroulant. Même grammaire que la pastille :
+         fond et contour pour le jour choisi, point pour aujourd'hui. Les
+         débords du mois voisin s'effacent sans cesser d'être cliquables. -->
+    <Style x:Key="DayCell" TargetType="Button" BasedOn="{StaticResource OutlineButton}">
+      <Setter Property="Padding" Value="0,5" />
+      <Setter Property="Margin" Value="1" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="FontSize" Value="{StaticResource FontBody}" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Style.Triggers>
+        <DataTrigger Binding="{Binding InMonth}" Value="False">
+          <Setter Property="Opacity" Value="0.4" />
+        </DataTrigger>
+
+        <!-- Hors des bornes consultables : la case garde sa place pour que la
+             grille garde sa forme, mais elle ne répond plus. -->
+        <DataTrigger Binding="{Binding IsReachable}" Value="False">
+          <Setter Property="Opacity" Value="0.2" />
+          <Setter Property="IsEnabled" Value="False" />
+        </DataTrigger>
+        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+          <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+          <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+          <Setter Property="Opacity" Value="1" />
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+
+    <!-- Le point d'aujourd'hui, partagé par la bande et le calendrier. -->
+    <Style x:Key="TodayDot" TargetType="Ellipse">
+      <Setter Property="Width" Value="3" />
+      <Setter Property="Height" Value="3" />
+      <Setter Property="Margin" Value="0,3,0,0" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="Fill" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Visibility" Value="Collapsed" />
+      <Style.Triggers>
+        <DataTrigger Binding="{Binding IsToday}" Value="True">
+          <Setter Property="Visibility" Value="Visible" />
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+
+    <!-- L'intitulé qui coiffe une valeur : petit, en accent, avec de l'air
+         entre les lettres. C'est ce qui donne son rythme à la fiche. -->
+    <Style x:Key="FieldLabel" TargetType="TextBlock">
+      <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+      <Setter Property="FontSize" Value="{StaticResource FontSmall}" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+  </Window.Resources>
+
+  <DockPanel>
+
+    <!-- La bande des jours, en tête : un Almanax se prépare, et savoir ce
+         qu'il faudra demain permet de l'avoir en poche. -->
+    <Border DockPanel.Dock="Top" Padding="8,8"
+            Background="{StaticResource BrushedPanelBrush}"
+            BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1">
+      <DockPanel>
+        <Button DockPanel.Dock="Left" Style="{StaticResource IconButton}"
+                VerticalAlignment="Center" ToolTip="{loc:T AlmanaxPreviousTip}"
+                Command="{Binding PreviousCommand}">
+          <Path Style="{StaticResource RowGlyph}" Data="M 9,3 L 5,7.5 L 9,12" />
+        </Button>
+
+        <!-- Le retour à aujourd'hui ne paraît que lorsqu'on s'en est écarté :
+             une touche qui ne fait rien est une touche de trop. Le plus à
+             droite, donc le dernier atteint : c'est un recours, pas un geste
+             courant. -->
+        <Button DockPanel.Dock="Right" Style="{StaticResource QuietButton}"
+                VerticalAlignment="Center" Margin="4,0,0,0" Padding="8,5"
+                FontSize="{StaticResource FontSmall}"
+                Content="{loc:T AlmanaxToday}" ToolTip="{loc:T AlmanaxTodayTip}"
+                Command="{Binding TodayCommand}"
+                Visibility="{Binding CanGoToday, Converter={StaticResource BoolToVisibility}}" />
+
+        <!-- Aller loin, en avant comme en arrière : la bande couvre la
+             semaine, le calendrier couvre le reste. -->
+        <Grid DockPanel.Dock="Right" VerticalAlignment="Center">
+          <ToggleButton x:Name="CalendarToggle" Style="{StaticResource OutlineToggle}"
+                        Padding="7,6" Margin="4,0,0,0"
+                        ToolTip="{loc:T AlmanaxPickTip}"
+                        IsChecked="{Binding IsCalendarOpen, Mode=TwoWay}">
+            <Path Width="15" Height="15" Stretch="None" StrokeLineJoin="Round"
+                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                  Stroke="{DynamicResource TextBrush}" StrokeThickness="1.3"
+                  Data="M 2.5,4 H 12.5 V 13 H 2.5 Z M 2.5,6.6 H 12.5 M 5,2.5 V 5 M 10,2.5 V 5" />
+          </ToggleButton>
+
+          <Popup IsOpen="{Binding IsCalendarOpen, Mode=TwoWay}" StaysOpen="False"
+                 Placement="Bottom" PlacementTarget="{Binding ElementName=CalendarToggle}"
+                 AllowsTransparency="True" PopupAnimation="Fade" HorizontalOffset="-190">
+            <Border Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                    CornerRadius="{StaticResource RadiusKey}" Margin="0,5,0,0" Padding="10">
+              <StackPanel Width="262">
+
+                <!-- La tête du mois : reculer, le mois, avancer. -->
+                <DockPanel Margin="0,0,0,8">
+                  <Button DockPanel.Dock="Left" Style="{StaticResource IconButton}"
+                          Command="{Binding PreviousMonthCommand}">
+                    <Path Style="{StaticResource RowGlyph}" Data="M 9,3 L 5,7.5 L 9,12" />
+                  </Button>
+
+                  <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}"
+                          Command="{Binding NextMonthCommand}">
+                    <Path Style="{StaticResource RowGlyph}" Data="M 6,3 L 10,7.5 L 6,12" />
+                  </Button>
+
+                  <TextBlock Text="{Binding MonthLabel}" HorizontalAlignment="Center"
+                             VerticalAlignment="Center" FontWeight="SemiBold" />
+                </DockPanel>
+
+                <ItemsControl ItemsSource="{Binding Weekdays}" Margin="0,0,0,2">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <UniformGrid Rows="1" Columns="7" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding}" HorizontalAlignment="Center"
+                                 TextWrapping="NoWrap"
+                                 FontSize="{StaticResource FontSmall}"
+                                 Foreground="{DynamicResource TextMutedBrush}" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <ItemsControl ItemsSource="{Binding MonthDays}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <UniformGrid Rows="6" Columns="7" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Button Style="{StaticResource DayCell}"
+                              Command="{Binding DataContext.PickDayCommand,
+                                        RelativeSource={RelativeSource AncestorType=Window}}"
+                              CommandParameter="{Binding}">
+                        <StackPanel>
+                          <TextBlock Text="{Binding Number}" TextWrapping="NoWrap"
+                                     HorizontalAlignment="Center" />
+                          <Ellipse Style="{StaticResource TodayDot}" />
+                        </StackPanel>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+          </Popup>
+        </Grid>
+
+        <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}"
+                VerticalAlignment="Center" ToolTip="{loc:T AlmanaxNextTip}"
+                Command="{Binding NextCommand}">
+          <Path Style="{StaticResource RowGlyph}" Data="M 6,3 L 10,7.5 L 6,12" />
+        </Button>
+
+        <ItemsControl ItemsSource="{Binding Days}" Margin="4,0">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <UniformGrid Rows="1" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Button Style="{StaticResource DayChip}"
+                      Command="{Binding DataContext.PickCommand,
+                                RelativeSource={RelativeSource AncestorType=Window}}"
+                      CommandParameter="{Binding}">
+                <StackPanel>
+                  <TextBlock Text="{Binding Weekday}" HorizontalAlignment="Center"
+                             TextWrapping="NoWrap"
+                             FontSize="{StaticResource FontSmall}"
+                             Foreground="{DynamicResource TextMutedBrush}" />
+                  <TextBlock Text="{Binding Number}" HorizontalAlignment="Center"
+                             TextWrapping="NoWrap" Margin="0,1,0,0"
+                             FontSize="15" FontWeight="SemiBold" />
+                  <Ellipse Style="{StaticResource TodayDot}" />
+                </StackPanel>
+              </Button>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </DockPanel>
+    </Border>
+
+    <!-- La source, citée comme celle des guides l'est : la fenêtre ne montre
+         pas la page, donc rien d'autre ne dit d'où vient ce qu'on lit. -->
+    <Border DockPanel.Dock="Bottom" Padding="10,6"
+            Background="{StaticResource BrushedPanelBrush}"
+            BorderBrush="{DynamicResource BevelBrush}" BorderThickness="0,1,0,0">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                   Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
+                   TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"
+                   Text="{loc:T AlmanaxSource}" />
+
+        <Button Grid.Column="1" Style="{StaticResource IconButton}"
+                ToolTip="{loc:T OpenThisPageTip}"
+                Click="OnOpenInBrowser">
+          <Path Style="{StaticResource RowGlyph}"
+                Data="M 7,3.5 H 3.5 V 12.5 H 12.5 V 9 M 9.5,3.5 H 12.5 V 6.5 M 12.5,3.5 L 7.8,8.2" />
+        </Button>
+      </Grid>
+    </Border>
+
+    <!-- Le lecteur. Il n'a pas de hauteur : il n'est pas là pour être vu, il
+         est là pour charger la page et la laisser lire au pont. Le retirer de
+         l'arbre l'endormirait, et il n'y aurait plus rien à lire. -->
+    <wv:WebView2 x:Name="View" DockPanel.Dock="Bottom" Height="0" />
+
+    <!-- Le chargement se dit ici, sous la bande : le contenu du dessous
+         s'estompe le temps de la lecture plutôt que de disparaître, pour que
+         la fenêtre ne saute pas d'une hauteur à chaque changement de jour. -->
+    <ProgressBar DockPanel.Dock="Top" Height="2" IsIndeterminate="True"
+                 Background="Transparent" BorderThickness="0"
+                 Foreground="{DynamicResource AccentBrush}"
+                 Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}" />
+
+    <Grid>
+      <!-- L'attente, seule, tant que rien n'a jamais été lu. -->
+      <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center"
+                 Style="{StaticResource Muted}" Text="{loc:T AlmanaxLoading}"
+                 Visibility="{Binding ShowsWaiting, Converter={StaticResource BoolToVisibility}}" />
+
+      <ScrollViewer VerticalScrollBarVisibility="Auto"
+                    Visibility="{Binding HasDay, Converter={StaticResource BoolToVisibility}}">
+        <ScrollViewer.Style>
+          <Style TargetType="ScrollViewer">
+            <Style.Triggers>
+              <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                <Setter Property="Opacity" Value="0.35" />
+              </DataTrigger>
+            </Style.Triggers>
+          </Style>
+        </ScrollViewer.Style>
+
+        <StackPanel Margin="16,14,16,16">
+
+          <!-- La date à gauche, le jour dofusien à droite : deux façons de
+               nommer le même jour, elles vont sur la même ligne. -->
+          <DockPanel>
+            <Border DockPanel.Dock="Right" Padding="7,2" Margin="8,0,0,0"
+                    VerticalAlignment="Center"
+                    Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="1"
+                    CornerRadius="{StaticResource RadiusKey}"
+                    Visibility="{Binding DofusianDay, Converter={StaticResource EmptyToVisibility},
+                                         ConverterParameter=inverse}">
+              <TextBlock Text="{Binding DofusianDay}" TextWrapping="NoWrap"
+                         FontSize="{StaticResource FontSmall}"
+                         Foreground="{DynamicResource TextMutedBrush}" />
+            </Border>
+
+            <TextBlock Text="{Binding DateText}" VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"
+                       FontSize="{StaticResource FontBody}"
+                       Foreground="{DynamicResource TextMutedBrush}" />
+          </DockPanel>
+
+          <!-- L'offrande : la seule chose qu'on vient vraiment chercher, donc
+               la seule qui a droit à ce corps-là. Le nombre porte l'accent :
+               c'est lui qu'on vérifie d'un coup d'œil dans son sac. -->
+          <TextBlock Text="{loc:T AlmanaxOffering}" Style="{StaticResource FieldLabel}"
+                     Margin="0,18,0,0" />
+
+          <Grid Margin="0,4,0,0">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="{Binding OfferingCount}"
+                       FontSize="30" FontWeight="Bold" Margin="0,0,10,0"
+                       VerticalAlignment="Center" TextWrapping="NoWrap"
+                       Foreground="{DynamicResource AccentBrush}"
+                       Visibility="{Binding OfferingCount, Converter={StaticResource EmptyToVisibility},
+                                            ConverterParameter=inverse}" />
+
+            <TextBlock Grid.Column="1" Text="{Binding OfferingItem}"
+                       FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap"
+                       VerticalAlignment="Center" />
+          </Grid>
+
+          <TextBlock Text="{Binding OfferingDetail}" TextWrapping="Wrap"
+                     Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
+                     Margin="0,6,0,0"
+                     Visibility="{Binding OfferingDetail, Converter={StaticResource EmptyToVisibility},
+                                          ConverterParameter=inverse}" />
+
+          <!-- Le bonus, ensuite : il vaut pour la journée entière, pas
+               seulement pour la quête. -->
+          <Border Margin="0,18,0,0" Padding="12,10"
+                  Background="{DynamicResource SurfaceBrush}"
+                  BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="1"
+                  CornerRadius="{StaticResource RadiusKey}"
+                  Visibility="{Binding Bonus, Converter={StaticResource EmptyToVisibility},
+                                       ConverterParameter=inverse}">
+            <StackPanel>
+              <TextBlock Text="{loc:T AlmanaxBonus}" Style="{StaticResource FieldLabel}" />
+              <TextBlock Text="{Binding Bonus}" TextWrapping="Wrap"
+                         FontSize="14" FontWeight="SemiBold" Margin="0,3,0,0" />
+              <TextBlock Text="{Binding BonusDetail}" TextWrapping="Wrap"
+                         Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
+                         Margin="0,5,0,0"
+                         Visibility="{Binding BonusDetail, Converter={StaticResource EmptyToVisibility},
+                                              ConverterParameter=inverse}" />
+            </StackPanel>
+          </Border>
+
+          <!-- La quête et le Méryde ferment la marche, séparés par un filet :
+               ce sont des repères, pas des choses à faire. -->
+          <Rectangle Height="1" Margin="0,16,0,0"
+                     Fill="{DynamicResource GrooveBrush}" />
+
+          <Grid Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Margin="0,0,8,0"
+                        Visibility="{Binding Quest, Converter={StaticResource EmptyToVisibility},
+                                             ConverterParameter=inverse}">
+              <TextBlock Text="{loc:T AlmanaxQuest}" TextWrapping="NoWrap"
+                         FontSize="{StaticResource FontSmall}"
+                         Foreground="{DynamicResource TextMutedBrush}" />
+              <TextBlock Text="{Binding Quest}" TextWrapping="Wrap" Margin="0,2,0,0"
+                         FontSize="{StaticResource FontBody}" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1"
+                        Visibility="{Binding Meryde, Converter={StaticResource EmptyToVisibility},
+                                             ConverterParameter=inverse}">
+              <TextBlock Text="{loc:T AlmanaxMeryde}" TextWrapping="NoWrap"
+                         FontSize="{StaticResource FontSmall}"
+                         Foreground="{DynamicResource TextMutedBrush}" />
+              <TextBlock Text="{Binding Meryde}" TextWrapping="Wrap" Margin="0,2,0,0"
+                         FontSize="{StaticResource FontBody}" />
+            </StackPanel>
+          </Grid>
+
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- L'incident se pose par-dessus ce qui était affiché plutôt que de
+           l'effacer : un jour lu reste lisible même si le suivant échoue. -->
+      <Border VerticalAlignment="Bottom" Margin="12" Padding="12,10"
+              Background="{DynamicResource SurfaceBrush}"
+              BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+              CornerRadius="{StaticResource RadiusKey}"
+              Visibility="{Binding Problem, Converter={StaticResource EmptyToVisibility},
+                                   ConverterParameter=inverse}">
+        <TextBlock Text="{Binding Problem}" TextWrapping="Wrap"
+                   FontSize="{StaticResource FontSmall}" />
+      </Border>
+    </Grid>
+
+  </DockPanel>
+</Window>
