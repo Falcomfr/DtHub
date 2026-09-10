@@ -68,6 +68,11 @@ window on your PC.
   DT Hub never assumes it is.
 - **Stacked windows.** Every instance opens at the same place and size, so
   they overlay exactly. `Ctrl+Tab` cycles through them.
+- **Or one window with tabs.** Any instance can be docked into a single frame
+  and picked from a tab bar, dragged into another order, or pulled back out.
+  Typing and the clipboard reach the docked game exactly as they reach a free
+  window, and the frame answers to the size and placement shortcuts like any
+  other game window.
 - **A floating configurator**, shown or hidden with `Ctrl+P`, holding the
   window position, the device list and the shortcuts.
 - **Clipboard sync** both ways, through scrcpy's own mechanism.
@@ -104,7 +109,10 @@ reasoning is in [docs/DECISIONS.md](docs/DECISIONS.md).
 2. In **Developer options**, enable **USB debugging**.
 3. Plug the phone in and accept the prompt on its screen.
 
-The phone appears on its own, there is no button to press.
+The phone appears on its own, there is no button to press. If it does not,
+the **Devices** tab says why: DT Hub also looks below ADB, at what Windows makes
+of the USB port, and names a cable, a port or a missing driver rather than
+leaving you with an empty list.
 
 ### Over Wi-Fi
 
@@ -123,8 +131,8 @@ port changes after a reboot.
 | Shortcut | Action |
 |---|---|
 | `Ctrl+P` | Show or hide the configurator |
-| `Ctrl+Tab` | Next instance |
-| `Ctrl+Shift+Tab` | Previous instance |
+| `Ctrl+Tab` | Next instance, or next tab when the frame is focused |
+| `Ctrl+Shift+Tab` | Previous instance, or previous tab |
 | `Ctrl+R` | Put every window back in place |
 | `Ctrl+T` | Tile the windows side by side |
 | `Ctrl+1` … `Ctrl+4` | Resize every window to one of four steps |
@@ -134,7 +142,13 @@ port changes after a reboot.
 
 Shortcuts only apply while a DT Hub window is focused, so `Ctrl+Tab` keeps
 working normally in your browser. All of them can be changed in the
-configurator.
+configurator, except `Ctrl+A`, `Ctrl+C`, `Ctrl+V` and `Ctrl+X`: binding those
+would take them from every application, the game included.
+
+Sizes are absolute: the largest step fills the usable screen area, the smallest
+one always lands on the same rectangle. A window can be locked in place from its
+row, and the placements then leave it alone; one locked tab freezes the whole
+tabbed frame, since a frame is a single window.
 
 ## Where your data lives
 

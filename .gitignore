@@ -503,3 +503,16 @@ build/**/*.png
 # Sortie de compilation de la sonde, qui vit dans build/ et non dans src/.
 build/sonde-papycha/bin/
 build/sonde-papycha/obj/
+
+# Corpus et rapport de l'audit des etapes : le premier est une copie des 782
+# guides du site, le second le detail de ce que la regle en retient. Les deux
+# se refont d'une commande et pesent trop pour etre versionnes.
+build/sonde-papycha/corpus.json
+build/sonde-papycha/etapes.json
+
+# Dossier de publication, celui que docs/LIVRAISON.md nomme. Il porte
+# l'executable de soixante et un megaoctets : le versionner alourdirait
+# l'historique pour toujours, et GitHub refuse un fichier de plus de cent
+# megaoctets. C'est la chaine de livraison qui le produit et l'attache a une
+# livraison, jamais le depot qui le garde.
+publication/

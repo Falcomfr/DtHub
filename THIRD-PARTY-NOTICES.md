@@ -1,4 +1,4 @@
-# Composants tiers
+﻿# Composants tiers
 
 DT Hub est publié sous licence MIT. Il s'appuie sur des composants tiers qui
 conservent leur propre licence. Ce fichier recense ces composants, la manière
@@ -17,6 +17,7 @@ Aucune notice de copyright ni aucun texte de licence tiers ne doit être retiré
 | Serilog et ses puits | Apache License 2.0 | Paquets NuGet |
 | Microsoft.Extensions.* | MIT | Paquets NuGet |
 | Microsoft.Web.WebView2 | Licence Microsoft, non libre | Paquet NuGet, moteur fourni par Windows |
+| Logo de papycha.fr | Accord de l'auteur, voir plus bas | Fichier embarqué dans l'exécutable |
 | Données de quêtes de papycha.fr | Non libre, voir plus bas | Fichier embarqué dans l'exécutable |
 | xUnit, coverlet | Apache License 2.0, MIT | Dépendances de test, non distribuées |
 
@@ -115,6 +116,26 @@ avec l'exécutable ; le moteur de rendu lui-même n'est **pas** distribué par
 DT Hub, il est fourni avec Windows 11 et arrive sur Windows 10 par Microsoft
 Edge. Son absence est détectée et dite à l'utilisateur, elle n'empêche que les
 fenêtres de guides.
+
+## Logo de papycha.fr
+
+- Source : https://papycha.fr/wp-content/uploads/2022/04/cropped-luis-192x192.png
+- Fichier : `assets/papycha.png`, embarqué dans l'exécutable
+- Relevé le 2026-09-09, **avec l'accord de papycha.fr**
+
+C'est l'icône de site de papycha.fr, celle qui identifie leurs pages dans un
+onglet de navigateur, et la mascotte qui figure dans leur propre logotype. Elle
+marque le bouton des guides et le crédit de la fenêtre de guides : aux deux
+endroits où l'on montre leur travail.
+
+**Ce fichier n'est pas couvert par la licence MIT de DT Hub.** L'accord vaut
+pour DT Hub et non pour quiconque réutiliserait ce dépôt, qui doit s'adresser à
+papycha.fr.
+
+**La bannière du site est écartée, et le restera.** Elle porte le logo déposé de
+DOFUS Touch, son symbole ® et l'illustration officielle d'Ankama. Aucun accord
+de papycha ne peut céder ce qui ne leur appartient pas, et le projet ne
+redistribue aucune ressource d'Ankama.
 
 ## Données de quêtes issues de papycha.fr
 

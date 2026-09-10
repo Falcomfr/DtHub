@@ -595,6 +595,33 @@ côte à côte et les changements de taille. Elle s'ouvre, se ferme et se souvie
 de sa place comme les autres : c'est un retrait des placements, pas une mise à
 l'écart.
 
+### Reprise : le verrou ne disait rien du cadre à onglets, et ne protégeait rien
+
+Les deux bascules d'une ligne sont indépendantes : un compte peut être
+verrouillé et logé. Le cadenas promet alors que la fenêtre « ne bougera plus
+lors d'un empilement, d'une mise côte à côte ou d'un changement de taille », et
+le cadre la redimensionnait sans le consulter. Le verrou n'y était pas
+seulement redondant, il était trompeur.
+
+Un compte logé n'a pas de géométrie à lui : c'est le cadre qui commande, et le
+redimensionner redimensionne tout ce qu'il loge. Trois lectures étaient
+possibles, et la question a été posée. Retenue : **un seul compte logé
+verrouillé fige le cadre entier**. Un verrou est une protection, et un voisin ne
+lève pas la protection d'un autre. Le prix est assumé et dit dans l'infobulle :
+un seul cadenas immobilise le cadre de tous ceux qui s'y trouvent.
+
+Les deux autres lectures sont écartées pour la même raison. Faire du cadenas
+une décoration tant que le compte est logé rendrait la protection illusoire au
+moment précis où l'on croit l'avoir posée ; le faire sortir du cadre ferait
+deux choses d'un seul geste.
+
+La règle est ensembliste, donc elle vit dans le noyau et s'éprouve sans écran.
+Deux comptages qui la suivaient de travers sont corrigés du même coup : le pied
+du configurateur cachait ses deux touches dès que tout était logé, alors qu'il y
+avait bien deux fenêtres à ranger ; et le rapport d'incident, qui déduisait les
+logés des rangeables, comptait les verrouillés parmi les onglets.
+
+
 ## D28 - Un rangement côte à côte
 
 Le replacement empile toutes les fenêtres au même endroit, ce qui sert à en
@@ -1638,6 +1665,37 @@ de frappes. Rien n'a été désactivé, aucune exclusion n'a été créée. Les 
 tâches sont simplement séparées : `build/frappe.ps1` n'envoie que des frappes,
 et `build/premier-plan.ps1` demande le premier plan à l'automatisation
 d'interface plutôt qu'à `GetForegroundWindow`.
+
+### Reprise : une taille était un facteur, pas une taille
+
+« Le max n'ouvre pas la fenêtre à fond et le min pas au minimum. » Le relevé
+ci-dessus, 1407x835 à 3516x2021, avait été pris depuis un état rangé ; il ne
+disait donc pas ce que le raccourci fait depuis un état quelconque.
+
+`ApplySizeAsync` retenait la part en cours, puis multipliait le rectangle
+courant par le rapport de la nouvelle part sur l'ancienne. Deux conséquences,
+toutes deux vérifiables :
+
+- redemander la part déjà en cours donnait un facteur de un, et **le raccourci
+  ne faisait rien du tout**. Un réglage à `sizeIndex: 3` rendait donc Ctrl+4
+  inerte, quelle que soit la taille réelle de la fenêtre ;
+- venir de la part haute vers la basse réduisait ce qui était là, et non vers le
+  minimum : une fenêtre déjà petite devenait minuscule, une grande restait
+  grande.
+
+Le calcul absolu existait pourtant, et servait au replacement : la part
+demandée de la zone utile, ajustée au rapport une fois le châssis retiré. Les
+paliers l'emploient désormais, et le README redevient vrai, qui promettait
+« Resize every window to one of four steps ».
+
+**Ce qu'on perd est écrit noir sur blanc dans le code qui disparaît** : le
+facteur gardait les écarts de taille voulus entre fenêtres, une fenêtre
+volontairement plus petite restant plus petite. Ce n'est plus le cas. Les
+places, elles, sont gardées : la part d'espace libre à gauche et au-dessus reste
+la même, si bien qu'un côte à côte reste gauche et droite, seulement
+redimensionné. À cent pour cent, les deux se recouvrent, ce qui est le
+comportement normal d'une taille maximale.
+
 
 ## D62 - Deux migrations qui ne tiraient jamais, dont une qui mentait
 
@@ -2698,6 +2756,139 @@ diagnostic a coûté plusieurs essais avant que la fenêtre de premier plan ne l
 dise. **Vérifier qui tient la souris avant de conclure à une panne**, et ne pas
 la lui disputer.
 
+### Reprise : le clavier n'était jamais arrivé
+
+Dans le cadre, on ne pouvait ni écrire ni coller. C'est le même défaut vu deux
+fois : dans scrcpy, le collage **est** une frappe.
+
+Le relevé plus haut disait pourtant vrai, et disait aussi ce qui manquait :
+« la fenêtre devient fille, continue de rendre l'image, reçoit le pointeur selon
+Windows lui-même ». L'image et la souris, jamais le clavier. Le contrat
+d'`IWindowController` ne promettait que le pointeur, et la mesure qui aurait
+montré le trou avait dû être abandonnée.
+
+**Elle a été refaite, et le refus d'alors était bien réel.** Le même relevé, en
+lecture seule, sans rien attacher ni déplacer, se fait encore bloquer : « Ce
+script dont le contenu est malveillant a été bloqué par votre logiciel
+antivirus. » Ce n'est donc pas la combinaison de fonctions qui déplaît, c'est le
+**script** PowerShell, qu'AMSI analyse avant de le laisser courir. Compilée, la
+même lecture passe sans un mot. D'où `build/sonde-focus`, en lecture seule et
+qui doit le rester : `GetGUIThreadInfo` et de quoi nommer les fenêtres, rien
+d'autre.
+
+**Ce qu'elle a montré renverse le diagnostic.** L'hypothèse était qu'il fallait
+joindre les files d'entrée par `AttachThreadInput`, la documentation exigeant
+que la fenêtre soit « attached to the calling thread's message queue » pour que
+`SetFocus` la prenne. La mesure dit que le travail est déjà fait :
+
+| Mode | Fil de scrcpy | Focus qu'il déclare |
+| :-- | :-- | :-- |
+| Fenêtres libres | 26368, 19296 | aucun, chacun chez soi |
+| Onglets | 20536, 23364 | la fenêtre WPF de DT Hub, la même pour les deux |
+
+Les fils d'explorer, pris comme témoins dans le même relevé, déclarent leur
+propre focus : la lecture est bien par fil, et ce n'est pas un artefact. Or rien
+dans notre code n'avait attaché le fil 20536. **C'est `SetParent` qui joint les
+files**, du seul fait qu'on loge une fenêtre chez un autre processus. Le clavier
+était donc atteignable depuis le début ; il partait à la fenêtre WPF, faute
+qu'on ait jamais désigné l'autre.
+
+Le correctif tient en un appel, `SetFocus` sur la fenêtre logée, au changement
+d'onglet et au retour d'activation. `AttachThreadInput` avait été écrit, puis
+retiré : inutile ici, il remet l'état des touches à zéro à chaque appel, ce qui
+perdrait le Ctrl d'un Ctrl+V en cours, et le défaire aurait coupé ce dont
+l'arrimage dépend. Une hypothèse chassée par une mesure, et du code en moins.
+
+Deux détails tiennent avec lui. Le retour d'activation redemande le focus une
+seconde fois par le répartiteur : WPF rend le focus à son propre arbre en
+traitant `WM_SETFOCUS`, qui arrive après l'événement d'activation. Et les
+onglets sont devenus non focalisables, un clic dessus n'ayant aucune raison de
+prendre le clavier au jeu.
+
+### Reprise : deux écarts de plus entre les deux modes
+
+**`Ctrl+Tab` ne faisait rien dans le cadre.** Le parcours au clavier passe par
+`ManagedSessions`, qui écarte les comptes logés parce que les placements
+automatiques n'ont rien à leur dire. Le clavier, lui, avait besoin d'eux : le
+raccourci changeait de compte en fenêtres libres et restait muet en onglets.
+Quand le cadre a le premier plan, il change d'onglet. La fenêtre au premier plan
+reste le cadre même lorsque c'est le jeu qui tient le clavier, une fenêtre fille
+ne pouvant jamais l'être.
+
+**Rien n'interdisait de confisquer `Ctrl+C`.** `RegisterHotKey` vaut pour tout
+le bureau : lier `Ctrl+V` à une action de DT Hub retirait le collage à
+l'éditeur de texte, au navigateur et au jeu lui-même, dans les deux modes,
+aussi longtemps que l'application tourne, et rien n'aurait relié le symptôme à
+sa cause. `Ctrl+A`, `Ctrl+C`, `Ctrl+V` et `Ctrl+X` sont refusés, avec leur
+propre motif : ce n'est pas Windows qui les réserve, c'est nous qui refusons de
+les prendre. Les mêmes lettres restent libres sous un autre modificateur.
+
+### Ce que le rendu en onglets coûte : rien de mesurable
+
+Quatre relevés de trente secondes, deux comptes, même téléphone :
+
+| Relevé | Fenêtre visible | Fenêtre cachée |
+| :-- | --: | --: |
+| Fenêtres libres | 8,8 % | 9,4 % |
+| Onglets, 1 | 6,7 % | 6,5 % |
+| Onglets, 2 | 7,9 % | 9,7 % |
+| Onglets, 3 | 6,6 % | 6,9 % |
+
+En pourcentage d'un cœur. **L'écart entre relevés d'un même mode vaut l'écart
+entre les modes**, le coût de décodage suivant surtout ce qui bouge à l'écran :
+il n'y a pas de différence de rendu à annoncer, et il n'y avait donc pas
+d'optimisation à inventer.
+
+Un chiffre tient debout, en revanche, les deux fenêtres étant mesurées en même
+temps : **l'onglet caché coûte autant que le visible**, 1641x952 contre
+2560x1334, moitié moins de pixels pour le même temps de processeur. Cacher une
+fenêtre n'arrête pas son flux, et c'est voulu : revenir sur un onglet doit être
+immédiat, et le jeu continue de tourner qu'on le regarde ou non.
+
+### Reprise : le cadre est une fenêtre de jeu pour les commandes de géométrie
+
+Les tailles, le plein écran, le replacement et le côte à côte passaient tous par
+la liste des sessions rangeables, qui écarte les comptes logés. En onglets,
+aucune de ces commandes ne faisait donc quoi que ce soit. Le cadre n'exposait
+d'ailleurs rien : sa forme, son châssis et sa pose étaient tous privés.
+
+Le cadre reçoit maintenant les cinq commandes. **Rien n'est jamais appliqué à la
+fenêtre logée** : elle est fille du cadre, ses coordonnées sont celles de la zone
+client et non de l'écran, l'énumération des fenêtres de premier niveau ne la voit
+pas, et lui rendre une bordure lui donnerait une barre de titre à l'intérieur du
+cadre. C'est le cadre qu'on dimensionne, et la fenêtre logée suit.
+
+**Le partage de l'écran sort du service.** Le côte à côte doit répartir l'écran
+entre les fenêtres libres et le cadre, qui n'est pas une session et ne peut donc
+pas figurer dans la liste. Le calcul devient une fonction pure du noyau, employée
+par les deux, et le service accepte de laisser la moitié droite libre quand c'est
+le cadre qui l'occupe.
+
+**Le plein écran du cadre partage le travail avec WPF.** Le style est retiré par
+WPF, le rectangle posé par nous. Retirer les styles de bordure par Win32 mettrait
+la fenêtre en désaccord avec son propre gestionnaire de zone non cliente, qui les
+réécrit à la moindre occasion, et rendre un style supposé plutôt que celui d'avant
+est la faute que `Undock` prend soin d'éviter. À l'inverse, laisser WPF poser la
+géométrie par un état agrandi ne couvrirait pas la barre des tâches, là où le
+plein écran des fenêtres libres prend les bornes entières de l'écran. L'état reste
+donc `Normal`, et c'est pourquoi l'ajustement de forme doit renoncer sur le
+drapeau de plein écran et non sur l'état de la fenêtre.
+
+**Deux défauts trouvés en chemin.** La restauration de la place du cadre repose
+la taille enregistrée une seconde fois par le répartiteur, pour encaisser un
+changement de densité : elle passait donc **après** l'ajustement de forme du
+premier onglet et l'écrasait. Le cadre gardait une forme qui ne correspondait à
+aucun onglet, et la fenêtre logée était simplement recentrée avec ses bandes
+noires. La reprise de forme est désormais mise en file derrière elle. Et la place
+du cadre n'est plus enregistrée pendant le plein écran, faute de quoi il aurait
+rouvert couvrant tout, sans plus rien qui dise d'où il venait.
+
+**Les commandes sont sérialisées.** Elles arrivent du fil des raccourcis, sautent
+sur celui de l'interface et écrivent les réglages en repassant. Deux Ctrl+5
+rapprochés entrelaçaient deux entrées en plein écran, et le cadre perdait le
+rectangle d'où il venait.
+
+
 ## D74 - Signaler une erreur au site, sans jamais parler à sa place
 
 Les guides viennent de papycha.fr, et leurs pages portent en pied un formulaire
@@ -2907,6 +3098,74 @@ Le gras n'est pas une convention du site, c'est une habitude d'auteur. Corriger
 cela demande une autre règle et un autre audit ; ce n'était pas la demande, et
 c'est signalé plutôt que fait à la sauvette.
 
+
+### Reprise : le gras n'était pas la marque, il n'en avait que l'air
+
+Le défaut de volume signalé plus haut est corrigé. Une quête riche en consignes,
+« La découverte d'un destin », n'affichait qu'une étape ; elle en affiche huit.
+
+**`isObjective` tombe entièrement.** Elle filtrait sur la mise en forme avant
+même de lire le texte, et le gras n'est pas une convention du site : c'est une
+habitude d'auteur. Ce qui trie vraiment, et qui reste, est ce que D35 avait
+établi : le bruit écarté, puis l'ordre donné au lecteur, impératif de la
+deuxième personne du pluriel ou coordonnées.
+
+| Règle | Consignes | Guides sans aucune étape |
+| :-- | --: | --: |
+| Gras exigé | 3 275 | 159 |
+| Gras non exigé | 4 506 | 30 |
+
+Les deux lignes viennent du même instrument et du même relevé, ce qui manquait
+la première fois. Par guide, la médiane passe de 2 à 4 et le maximum de 40 à
+45 : la liste déroulante des étapes n'a pas à changer de forme pour autant.
+
+**Une exception par guide avait été mesurée puis écartée.** Ne lever le gras que
+là où l'auteur n'en emploie nulle part réparait cent deux guides sur cent
+cinquante-neuf, mais laissait cinq cent quarante-six consignes non grasses
+perdues dans des guides qui fonctionnent déjà. Relues, vingt et une sur
+vingt-deux étaient de vraies consignes : les garder dehors n'aurait tenu à
+aucune raison.
+
+**Le seul faux positif de masse porte un nom.** Sur cinquante-sept ajouts tirés
+au sort et relus un à un, trois du même moule : « Lorsque vous l'aurez vaincu,
+il se met automatiquement à vous suivre. » `aurez` est le futur d'avoir, jamais
+un impératif, et le garde des sujets le manque parce que le pronom élidé
+s'intercale entre « vous » et lui. `aurez` et `serez` rejoignent donc les faux
+amis, leurs impératifs `ayez` et `soyez` étant déjà parmi les irréguliers. Le
+relevé des déclencheurs confirme qu'il n'y en a pas d'autre de cette taille :
+`parlez` 87, `retournez` 68, `rendez` 55, `ramenez` 22, `adressez` 18, et
+`aurez` 18 comme seule anomalie.
+
+**Les trente guides qui restent muets** ont de trois à neuf paragraphes, quêtes
+répétables ou de collecte, et n'écrivent aucune consigne à l'impératif. Rien à
+en tirer sans inventer une règle pour eux.
+
+### La sonde ne peut plus dire ce qu'elle disait
+
+« Chaque guide de quête met ses consignes en évidence », `<strong>` à 90 %, ne
+gardait qu'une supposition dont plus rien ne dépend : elle aurait rougi un jour
+pour une raison fausse. Elle est retirée.
+
+À sa place, la mesure dont ce même chapitre notait l'absence : le nombre de
+consignes repérées, et le nombre de guides qui en rendent au moins une. C'est le
+chiffre qui s'effondrera le jour où le site tournera ses consignes autrement, et
+personne ne le surveillait.
+
+**L'audit, lui, se rejoue.** `build/sonde-papycha/audit-etapes.mjs` découpe dans
+`quest-bridge.js` le bloc qui porte la règle et l'exécute tel quel sur les 782
+guides : ses nombres sont ceux que la fenêtre affichera, et non ceux d'une
+redite. C'est ce qui manquait la première fois, où les 3 293 étapes relevées
+n'ont jamais pu être retrouvées. La sonde en C#, elle, garde une redite
+approximative de la règle, comme pour l'annonce de départ : elle sert de guet,
+pas de mesure, et le dit.
+
+**Un piège qui a failli faire livrer de faux chiffres.** Le premier audit de
+cette reprise passait par un analyseur écrit pour l'occasion, qui suivait la
+profondeur par un compteur. Le site laisse traîner des balises fermantes
+orphelines : un `</em>` de trop suffit à ramener le compteur à zéro au milieu du
+document, après quoi tout le reste passe pour du premier niveau. Le défaut est
+silencieux, et il donnait sept guides muets de plus. Une pile explicite le
+corrige, et l'instrument versé au dépôt en porte une.
 
 ## D77 - Sept reprises, dont deux causes qu'il fallait aller chercher
 
@@ -3491,6 +3750,30 @@ décoché, alors que son infobulle laisse croire le contraire ; et les fichiers
 renommés à la main, `settings.json.corrompu-…` et `dthub-…-avant.log`, sont hors
 du motif de rotation et ne seront jamais purgés.
 
+### Reprise : le repère nommait « Rubrique » au lieu de la branche
+
+Un signalement sur le Minotoror portait « Rubrique › Minotoror ». Il ne disait
+donc pas où regarder, alors que c'est tout ce qu'on lui demande.
+
+Quatre branches de la liste ne viennent pas des catégories du site et portent
+des identifiants négatifs : les donjons, les raids, les tanières et les chemins.
+`NameOf` les cherchait quand même parmi les rubriques du site, ne les y trouvait
+pas, et retombait sur le mot générique. Elles ont désormais leur nom, celui-là
+même que la racine affiche, et les chemins gardent leurs deux rangs comme le fil
+d'Ariane les montre.
+
+**Le second défaut était une duplication qui avait divergé.** Le calcul de la
+rubrique existait en deux exemplaires : celui qui pose le repère de la liste, et
+celui qui compose le signalement. Le premier connaissait les trois natures de
+page, le second en avait oublié une : sur un chemin, le signalement ne nommait
+aucune rubrique du tout. Les deux passent maintenant par le même endroit, et le
+seul écart qui subsiste est celui qui a une raison d'être, le repère de la liste
+tenant compte de l'ancre posée par l'utilisateur.
+
+Le chevron, lui, était écrit en trois endroits avec un commentaire renvoyant à
+chacun des deux autres. Il est déclaré une fois : le repère doit se lire comme
+la liste où l'on a trouvé la page, c'est le sens même de ce champ.
+
 ## D85 - Un poste vierge, et ce qu'on ne peut pas y mettre
 
 **2026-09-03 - Acceptée**
@@ -3617,3 +3900,1971 @@ existe et n'est pas celui-là : c'est de faire porter l'espacement par les
 conteneurs, avec des styles de section, plutôt que par chaque élément. Ce
 travail-là se fait fenêtre par fenêtre, avec une capture avant et après, et
 il n'a pas sa place dans une revue de publication.
+
+### Reprise : ce qui se replie doit rendre son air
+
+La ligne de succès du guide de quêtes n'était pas déclarée comme un espacement,
+mais elle en faisait office : quinze pixels de gris clair au-dessus du titre.
+Plus de la moitié des quêtes n'ont pas de succès, la ligne se repliait alors en
+`Collapsed`, et rien ne reprenait sa place. La perte est asymétrique, tout étant
+situé au-dessus du titre : le haut perdait toute son avance quand le bas n'a
+jamais eu que les six pixels du bandeau. Le corps de la page, lui, s'offre douze
+pixels de marge, et ce contraste achevait de faire paraître le titre collé.
+
+Le bloc rend donc quatre pixels quand la ligne se replie, et trois dans la barre
+des quêtes voisines, où la même mécanique jouait sur la série. Il ne s'agit pas
+de simuler un texte absent, seulement de ne plus toucher le filet.
+
+**Le déclencheur lit la visibilité de la ligne, pas la chaîne.** `Series` est
+nullable, et un déclencheur sur la chaîne vide aurait manqué les valeurs nulles
+là où le convertisseur, lui, teste aussi le blanc. En lisant ce que le
+convertisseur a décidé, les deux ne peuvent pas diverger.
+
+Aucune ressource nommée n'a été créée pour autant : c'est bien un conteneur qui
+porte l'espacement, comme ce chapitre le préconisait.
+
+## D87 - Regarder un étage en dessous d'ADB
+
+Un téléphone branché, le débogage activé, et rien. Le diagnostic a demandé une
+demi-heure dans le Gestionnaire de périphériques pour aboutir à ceci : un
+appareil arrivé à 13:55:37, `USB\VID_0000&PID_0002`, code 43, descripteur
+illisible. Un utilisateur seul devant sa machine n'aurait eu aucune piste.
+
+**Le vocabulaire d'ADB était déjà complet, et c'est ce qui rend le trou net.**
+`AdbConnectionKind` distingue le câble du sans-fil, `AdbDeviceState` couvre
+treize états, `AdbErrorKind` range douze familles d'échec, et les douze messages
+correspondants sont écrits dans les trois langues avec le geste à faire. Rien de
+tout cela ne pouvait servir : quand le descripteur ne se lit pas, ADB ne voit
+simplement aucun appareil. Toute cette richesse s'arrête au seuil où la panne
+commence.
+
+### Trois faces au même trou
+
+**Rien ne voyait en dessous d'ADB.** Windows savait tout et personne ne le lui
+demandait. `WindowsUsbInspector` le fait maintenant, par `SetupDiGetClassDevs`
+et `CM_Get_DevNode_Status`, en P/Invoke comme les quarante autres appels du
+dépôt : pas de paquet supplémentaire, pas de coût de démarrage, et la lecture
+reste dans la couche qui a le droit de parler à Windows. **Aucune élévation**,
+vérifié plutôt que supposé : la sonde rend le code 43 depuis un compte
+ordinaire. Deux codes sont expliqués, 43 pour un descripteur illisible et 28
+pour un pilote absent ; les autres sont nommés sans être interprétés.
+
+**Rien ne se voyait au repos.** Les douze messages ne paraissaient qu'en réponse
+à une action qui échoue. L'onglet Appareils porte désormais un bloc qui dit
+l'état de la liaison avant qu'on ait rien lancé, et s'efface quand le téléphone
+répond. La règle qui choisit le verdict est pure et vit dans le noyau, comme
+`AdbErrorInterpreter` dont elle prolonge le travail. L'avis de Windows n'est
+demandé que lorsqu'ADB ne voit rien : c'est le seul cas où il apporte quelque
+chose.
+
+**Rien ne réagissait au branchement, et pour une bonne raison.** Le sondage suit
+la visibilité du panneau, et le commentaire qui l'explique est chiffré : un tic
+déclenche jusqu'à sept lancements d'adb.exe, soit des milliers par soirée pour
+une fenêtre que personne ne regarde. Panneau masqué, plus rien ne regardait non
+plus, et un câble branché n'était vu qu'au retour du panneau. Le journal du jour
+le montre sans appel : **aucune ligne au moment du branchement.**
+
+Le remède ne reprend pas ce que la mesure avait fait retirer. `WM_DEVICECHANGE`
+est diffusé par Windows aux fenêtres de premier niveau sans inscription
+préalable, et une fenêtre masquée le reçoit comme les autres : il ne coûte rien
+tant qu'il ne se passe rien. Une seconde de temps mort absorbe la rafale et
+laisse Windows finir d'énumérer avant qu'ADB ait quelque chose à voir.
+
+### Une contradiction corrigée au passage
+
+Un téléphone non autorisé s'affichait nommé, en orange, avec « à autoriser sur
+le téléphone », et juste en dessous la carte « AUCUN APPAREIL DÉTECTÉ ». Les
+deux venaient du même fait : un appareil non autorisé n'est pas connecté. La
+carte ne paraît plus quand un appareil est nommé au-dessus d'elle ; la ligne qui
+le nomme dit déjà ce qui manque.
+
+### Où l'application s'arrête
+
+Elle nomme la panne et dit le geste. Elle ne désinstalle rien, ne réinitialise
+aucun port, ne redémarre pas la machine et n'installe aucun pilote : cela
+demande les droits d'administrateur, et ce n'est pas à une application de
+mirroring de le faire dans le dos de qui que ce soit. La fiche de dépannage
+retient d'ailleurs un conseil contre-intuitif que la mesure a imposé :
+**redémarrer, et non éteindre**, le démarrage rapide de Windows ne
+réinitialisant pas les contrôleurs USB.
+
+## D88 - Ce qu'un salon d'entraide concurrent nous a appris
+
+Quatre-vingt-sept captures du salon Discord de TabDesk, une application qui fait
+la même chose que celle-ci : plusieurs comptes DOFUS Touch sur un PC, depuis un
+appareil Android, par ADB et scrcpy. Mêmes téléphones, mêmes contraintes, mêmes
+pannes. Une source d'observation qu'aucun essai en chambre ne remplace.
+
+**La règle qui a guidé le tri : leurs symptômes sont les nôtres, leurs messages
+d'erreur ne le sont pas forcément.**
+
+`ScrcpyLaunchFailed: timeout waiting for scrcpy-server to report new display`
+est leur habillage autour de leur propre attente, pas une phrase de scrcpy.
+L'inscrire dans notre analyseur de sortie aurait été guetter une chaîne que
+scrcpy n'écrit jamais. Ce qui nous concerne est ailleurs : nous avons la même
+attente, le même délai, et le même message qui dit le symptôme sans donner de
+cause. Ce sont eux qui ont trouvé la cause, après des jours, et l'un d'eux
+l'écrit en une ligne : « si je désactive le son ça marche ». Notre message la
+nomme désormais, et seulement quand le son est demandé.
+
+À l'inverse, `java.lang.SecurityException: Shell does not have permission to
+access user 150` est une vraie erreur d'Android, rendue par la commande que
+nous lançons nous aussi, `pm install-existing` après `pm create-user`. Elle
+entre donc telle quelle.
+
+### Le symptôme le plus fréquent était le seul sans un mot chez nous
+
+« La souris ne fonctionne pas. » Une dizaine de personnes le posent sur
+plusieurs semaines. L'image passe, la fenêtre s'ouvre, rien ne répond, et il
+n'y a **aucune erreur** : ADB accepte d'afficher, pas d'injecter. La cause tient
+à un réglage dont le sous-titre dit tout, « Accorder les autorisations et
+simulation d'entrée via le débogage USB ».
+
+Le mot « souris » n'existait nulle part dans nos textes, et le réglage n'était
+mentionné qu'une fois, au milieu de l'avertissement Xiaomi, rattaché à une autre
+cause. Une fiche le nomme maintenant à partir du symptôme, avec les deux autres
+remèdes confirmés sur le terrain : le câble resté en recharge au lieu du
+transfert de fichiers, et le mode développeur qu'on retire puis remet.
+
+### Une famille d'erreur de plus, parce que les remèdes n'ont rien à voir
+
+Toute `SecurityException` était rangée en refus de permission, et répondait que
+les dossiers sécurisés et les profils d'entreprise n'autorisent pas le lancement
+depuis un PC. C'est une des deux causes. L'autre, que le salon donne et que
+personne n'avait écrite, est qu'un dossier sécurisé **doit être déverrouillé
+avant** : verrouillé, le profil existe et le shell ne l'atteint pas. Le message
+nomme les deux, et l'ordre des motifs place le nouveau avant l'ancien.
+
+### La fausse piste la plus coûteuse
+
+Windows voit le téléphone, propose d'importer les photos, et l'utilisateur en
+conclut que le PC va bien. Il change alors de câble, plusieurs fois, pour rien.
+Le bloc d'état de la connexion le dit désormais : voir l'appareil pour les
+photos ne prouve que le transfert de fichiers, jamais le débogage.
+
+### Quatre marques sur sept n'avaient aucun avertissement
+
+Samsung, la plus citée du salon, n'en avait pas. Une utilisatrice y a perdu sa
+journée avant de trouver seule le « Bloqueur automatique » puis le « Blocage des
+connexions USB », qui empêchent toute détection et n'existent que là. Samsung,
+OnePlus et Vivo ont maintenant le leur.
+
+### Ce que nous faisons déjà mieux, et qu'il fallait constater
+
+Là où ces utilisateurs se débattent avec des cloneurs tiers, cette application
+crée de vrais profils Android. Le salon dit ce que cela évite : des publicités
+de trente secondes en plein tour de jeu, un cloneur retiré du Play Store qu'il
+faut installer par APK, et une défiance explicite sur les données. Notre qualité
+par défaut est déjà `Medium`, ce que le salon recommande unanimement contre
+`Ultra`. La limite de profils Android est déjà nommée par un message propre.
+
+### Deux chantiers ouverts, pas refermés à la sauvette
+
+**La reconnexion après une micro-coupure USB.** Deux utilisateurs décrivent une
+tablette qui se déconnecte et se reconnecte en moins d'une seconde toutes les
+dix à vingt minutes, et doivent tout relancer à la main. Rouvrir seul demande de
+décider quand c'est un service et quand cela devient un harcèlement.
+
+**Détecter que l'injection d'entrée ne marche pas.** C'est le symptôme n°1, et il
+est silencieux par nature. Le détecter demanderait de sonder l'appareil. La
+fiche le nomme ; l'application ne sait toujours pas le voir. *Refermé par D107 :
+la fiche sait désormais poser la question à l'appareil, sur demande.*
+
+## D89 - Montrer l'application avant de la remplir
+
+Lancer DT Hub laissait l'écran vide plusieurs secondes. Le reproche est arrivé
+tel quel : « ça charge », alors que rien ne chargeait au sens habituel.
+
+Deux causes distinctes, qu'il fallait séparer avant de corriger quoi que ce
+soit.
+
+### La première n'était pas dans l'application
+
+Il n'existait aucun raccourci, ni sur le bureau ni au menu Démarrer : le seul
+chemin de lancement écrit dans le dépôt est `build\lancer.cmd`, le lanceur de
+développement, qui republie avant de lancer. Mesuré sur ce poste : 1,1 s quand
+rien n'a changé, 10,6 s après une modification. C'est un outil de travail, pas
+le produit, et la réponse n'est pas de l'optimiser : c'est de ne pas le donner à
+quelqu'un qui veut jouer.
+
+L'absence de raccourci avait une cause précise, et déjà écrite : `PlaceShortcut`
+refuse d'agir depuis un arbre de sources, par la même règle que la mise à jour,
+`UpdatePaths.CanReplace`. Un binaire compilé sur place ne pouvait donc pas poser
+son raccourci. Le binaire publié est désormais posé hors de l'arbre, où cette
+règle le laisse faire.
+
+### La seconde était un ordre d'opérations
+
+`RunAsync` ouvrait les sessions de jeu, puis montrait le panneau. Or ouvrir deux
+sessions demande cinq secondes et demie, pendant lesquelles le panneau existait
+déjà, prêt, en mémoire. Il attendait pour une seule raison : sa présence dépend
+du nombre de fenêtres ouvertes, qu'on ne connaît qu'à la fin.
+
+Sauf que la règle qui en décide, `StartupPresence.ShowConfigurator`, est
+`remembered || openedWindows <= 0`. Quand le panneau était affiché à la sortie,
+le premier terme suffit : aucun résultat de lancement ne peut plus le faire
+disparaître. Dans ce cas, et dans ce cas seulement, le montrer tout de suite
+n'anticipe rien.
+
+C'est ce qu'écrit `ShowBeforeLaunch`, et ce que prouve son épreuve : pour tout
+nombre de fenêtres, ce qu'elle autorise, `ShowConfigurator` l'autorise aussi.
+Un clignotement au démarrage est impossible par construction, pas par prudence.
+
+Le premier lancement garde l'ancien ordre : la fenêtre d'association n'a rien à
+faire par-dessus un lancement en cours.
+
+### Mesure
+
+| | Avant | Après |
+| :-- | --: | --: |
+| Fenêtre à l'écran, démarrage à froid | ~6,5 s | 2,7 s |
+| Fenêtre à l'écran, démarrage à chaud | ~6,5 s | **1,2 s** |
+| Sessions de jeu ouvertes | 5,6 s | 5,6 s |
+
+Les sessions n'ont pas accéléré, et il n'y avait pas lieu : elles dépendent du
+téléphone et du réseau. Ce qui a changé, c'est qu'on ne les attend plus pour
+savoir que l'application est lancée.
+
+### Le raccourci du bureau, et pourquoi il a fallu une règle
+
+Poser un raccourci au démarrage est facile. Ne pas le reposer quand on vient de
+l'effacer l'est moins : sans mémoire, l'application impose sa présence sur le
+bureau de quelqu'un à chaque lancement.
+
+Aucun nouveau réglage n'a été ajouté pour cela. Le raccourci du menu Démarrer,
+qui est toujours récrit, porte déjà l'information : son absence signe une
+première installation, où l'on pose les deux ; sa présence signe une
+installation connue, où un bureau vide est un choix. Reste le cas de
+l'exécutable déplacé, où un raccourci de bureau figé viserait l'ancien
+emplacement pour toujours : un raccourci qui existe est donc récrit, comme celui
+du menu Démarrer. `ShortcutPlacement.ShouldWriteDesktop` tient en une ligne et
+ses trois cas sont éprouvés.
+
+### Ce que la vérification a révélé au passage
+
+L'application refusait de s'ouvrir : processus vivant, 147 Mo, aucune fenêtre,
+aucune ligne de journal. Le premier soupçon, l'emplacement du binaire, était
+faux : l'ancien chemin, qui marchait la veille, échouait pareillement. La cause
+était un dossier d'extraction corrompu sous `%TEMP%\.net\DtHub`, laissé par le
+fichier unique compressé. L'effacer a suffi.
+
+L'application efface déjà les dossiers d'extraction des versions précédentes, et
+l'a fait au lancement suivant. Elle ne sait pas repérer le sien quand il est
+abîmé, parce qu'à ce stade elle n'existe pas encore pour s'en rendre compte :
+c'est l'hôte .NET qui bloque, avant la première ligne de code. Noté ici faute de
+pouvoir le corriger depuis l'intérieur.
+
+## D90 - Un palier ne peut pas savoir seul ce qu'il coûte
+
+Reproche de départ : ça rame en qualité maximale, sur un bon PC et un bon
+téléphone. Les deux affirmations étaient exactes. Xiaomi 13T Pro, Dimensity
+9200+, encodeur matériel largement dimensionné ; PC sans reproche. Le matériel
+n'était pour rien dans l'affaire.
+
+### Ce que la mesure a montré, et ce qu'elle a d'abord montré de faux
+
+La première mesure, `adb push` d'un fichier de 25 Mo, donnait 24 à 31 Mb/s. J'en
+ai conclu trop vite que la liaison plafonnait là. C'était faux : `adb push`
+écrit dans la mémoire du téléphone, et mesurait donc le stockage autant que le
+réseau. La bonne mesure ne touche pas au stockage :
+`adb exec-out "dd if=/dev/zero"`, qui ne fait que traverser la liaison.
+
+Le second chiffre trompeur venait du produit lui-même. Deux sessions au palier
+maximal annoncent 24 330 kb/s chacune, soit 48,7 Mb/s. Mais ce nombre est un
+plafond d'encodeur, pas un débit. Compteurs de `wlan0` relevés sur dix secondes,
+sessions ouvertes sur un écran de jeu immobile : **196 kb/s émis**. Un encodeur
+ne produit que ce que l'image contient ; le plafond n'est atteint qu'en
+mouvement.
+
+Restait à mesurer la liaison seule, sans session ouverte, par la bonne méthode.
+Cinq transferts de huit mégaoctets :
+
+| | 1 | 2 | 3 | 4 | 5 |
+| :-- | --: | --: | --: | --: | --: |
+| Mb/s | 7,7 | 11,8 | 21,0 | 23,6 | 20,5 |
+
+Du simple au triple. Et la latence, sans rien qui tourne : 7 ms au mieux,
+290 ms au pire, 101 ms de moyenne. La liaison n'est pas lente, elle est
+instable. Cause lisible d'un coup d'oeil : `Wi-Fi standard: 11n`,
+`Frequency: 2412MHz`, canal 1 de la bande de 2,4 GHz, partagé avec deux
+Freebox voisines, `retriedTxPackets` à onze pour cent.
+
+### Les deux défauts du produit
+
+**Le plafond est écrit par session, la liaison est partagée.** Le commentaire du
+fichier le disait déjà, mot pour mot, mais le code n'en tirait rien : chaque
+session recevait le plafond entier.
+
+**Le palier maximal n'avait aucune borne de définition.** La définition suivait
+la taille de la fenêtre, donc l'écran du PC. Le même palier coûtait deux fois
+plus sur un écran 4K que sur un 1080p, sans que rien ne le dise. Un palier doit
+désigner une charge, pas hériter de celle de l'écran. Il est borné à 1440p.
+
+### Lire la liaison plutôt que la mesurer
+
+La mesure par transfert a été essayée puis écartée, et c'est la variabilité
+relevée plus haut qui l'a écartée : un sondage unique au démarrage aurait figé
+la qualité sur un coup de dé entre 7,7 et 23,6, et un sondage assez long pour
+être fiable aurait coûté plusieurs secondes à chaque lancement, juste après
+qu'on a travaillé à les supprimer.
+
+`cmd wifi status` rend les mêmes faits en 0,46 s et 1 261 octets, sans consommer
+la bande passante qu'on cherche à préserver. La part de l'annonce retenue comme
+portante est de quinze pour cent, calibrée sur ce poste : 144 Mb/s annoncés
+contre 20,5 mesurés en médiane, soit quatorze. Volontairement prudent, parce que
+les deux erreurs ne coûtent pas la même chose : surestimer donne des saccades en
+plein jeu, sous-estimer donne une image un peu plus petite.
+
+Une constante ne distingue pas un canal libre d'un canal encombré. C'est sa
+limite, elle est assumée, et c'est pourquoi le palier personnalisé échappe
+entièrement au calcul : il existe pour qui sait déjà ce que sa liaison vaut.
+Une liaison USB ne contraint rien non plus, et c'est voulu.
+
+### Rogner la définition, pas le débit
+
+Le point qui décide de la qualité perçue. À budget donné, affamer une grande
+image donne une bouillie en mouvement, là où les mêmes bits rendent une image
+plus petite parfaitement nette. La finesse en bits par pixel du palier est donc
+tenue, et c'est le nombre de pixels qui cède. La cadence n'est pas touchée :
+elle fait partie de ce que le palier promet, et l'abaisser en douce changerait
+la sensation du jeu bien plus qu'un nombre de pixels.
+
+### Résultat, relevé au lancement
+
+```
+Liaison : 11n à 2412 MHz, 144 Mb/s annoncés, -57 dBm, 11 % de réémissions.
+          Budget retenu 21600 kb/s pour 2 session(s).
+afficheur 1426x802 à 178 ppp, 60 ips, 7548 kb/s
+```
+
+Deux sessions à 15,1 Mb/s au total, là où le produit en réclamait 48,7 sur une
+liaison qui en porte 8 à 33. Sur une bande de 5 GHz ordinaire, le même palier
+rend ses 1440p sans rien rogner, et une épreuve le fixe.
+
+### Ce qui reste ouvert
+
+L'application ne dit pas encore à l'écran pourquoi l'image est plus petite. Le
+journal le dit, l'interface non, et une qualité qui baisse sans explication est
+un mauvais produit. Le conseil qui vaut le plus n'est pas non plus donné :
+passer le téléphone sur la bande de 5 GHz du même réseau, quand elle est à
+portée. La règle est écrite et éprouvée sous le nom
+`LinkBudget.ShouldSuggestFiveGigahertz` ; rien ne l'appelle encore.
+
+## D91 - Ce qui restait vivant sur le téléphone
+
+Fermer une fenêtre de jeu n'arrêtait rien côté Android. L'afficheur virtuel
+était bien rendu, mais l'application, elle, survivait indéfiniment.
+
+Relevé sur le poste alors que DT Hub n'avait que **deux** sessions ouvertes :
+
+```
+u999_a475   8577  ELAPSED 05:07  RSS 338 Mo  com.ankama.dofustouch
+u0_a475     8578  ELAPSED 05:07  RSS 337 Mo  com.ankama.dofustouch
+u10_a475   23918  ELAPSED 18:23  RSS 220 Mo  com.ankama.dofustouch   <- orphelin
+```
+
+Le troisième jeu tournait depuis dix-huit minutes sans fenêtre en face, et avait
+survécu à plusieurs fermetures complètes de DT Hub. Le coût est surtout de la
+mémoire, 220 Mo par oublié, le processeur restant faible (6 s en 18 min, contre
+24 s en 5 min pour une session active). Le personnage restait aussi connecté aux
+serveurs du jeu.
+
+### Ce qui existait déjà
+
+Rien à écrire côté Android : `IAppLauncher.ForceStopAsync` était là depuis
+longtemps, employé à l'ouverture d'une session et par le bouton « Relancer ». Il
+manquait seulement d'être appelé quand on ferme. Le gestionnaire de sessions le
+portait déjà, et une session connaît son numéro de série, son profil et son
+paquet pendant toute sa vie.
+
+### Deux points d'appel, pas cinq
+
+Les cinq gestes de fermeture convergent vers deux endroits : `StopAsync` pour
+les fermetures voulues, et la fin de la boucle de lecture pour la fenêtre fermée
+à la main ou le téléphone débranché. Une seule méthode privée y sert.
+
+Les deux sont nécessaires. La fin de lecture couvre à elle seule tous les cas,
+mais elle tourne en tâche de fond : quitter l'application ne lui laisserait pas
+le temps de finir. `StopAsync` attend donc l'arrêt, et une réclamation à usage
+unique par session empêche le double aller-retour.
+
+**L'ordre compte.** L'arrêt du jeu vient après le départ de scrcpy, jamais
+avant : c'est scrcpy qui prévient son serveur, et le serveur qui rend
+l'afficheur virtuel. Une épreuve le vérifie en observant l'état du processus au
+moment précis de l'arrêt, plutôt qu'après coup.
+
+### Deux réserves
+
+**Ce qu'on n'a pas ouvert, on ne le ferme pas.** Une session qui échoue avant
+d'avoir rien lancé ne doit pas arrêter un jeu qui tournait parce que quelqu'un y
+jouait sur le téléphone. La session porte donc un marqueur, posé au moment où
+nous lançons le jeu.
+
+**Un délai court et explicite.** Le défaut d'une commande ADB est de vingt
+secondes, alors que l'application entière s'arrête en huit : quitter avec un
+téléphone injoignable aurait figé la fermeture. Deux secondes, ce qui est
+généreux au vu du coût réel mesuré ensuite.
+
+### Le réglage, et pourquoi il n'est pas dans les sessions nommées
+
+Le comportement est destructif d'une session de jeu : sans interrupteur, une
+fermeture par mégarde coûterait une reconnexion sans recours. La case est donc
+là, cochée par défaut, à côté du son.
+
+Elle n'est **pas** portée par `StoredLaunchProfile`, et c'est délibéré. Une
+session nommée décrit un environnement de jeu, pas les habitudes de celui qui
+s'en sert. Un profil qui réimposerait ce choix à chaque lancement serait
+exactement le piège rencontré la veille avec la qualité, où « Duo haute »
+remettait Maximum sans que rien ne le dise.
+
+Le lanceur s'abonne aux changements de réglages plutôt que de lire la valeur au
+démarrage : sans cela, décocher la case en cours de partie n'aurait rien changé
+avant le lancement suivant.
+
+### Mesures sur l'appareil
+
+| | Avant | Après |
+| :-- | :-- | :-- |
+| Une fenêtre fermée | le jeu survit | le jeu de ce profil s'arrête, les autres non |
+| Toutes les fenêtres fermées | trois jeux vivants | aucun jeu sur le téléphone |
+| Coût d'un arrêt | | 0,11 / 0,12 / 0,16 s |
+
+Le coût mesuré est trois fois moindre que ce que j'avais estimé : quatre comptes
+ouverts restent sous la seconde à la fermeture, loin des huit disponibles.
+
+### Ce qui n'est pas fait
+
+Le ménage au démarrage des jeux oubliés par une version précédente. Un balayage
+tuerait aussi un jeu lancé à la main sur le téléphone, juste au moment où DT Hub
+s'ouvre. Le besoin disparaît de lui-même : les oubliés ne s'accumulent plus.
+
+## D92 - Une image plus petite ne répare pas une liaison qui saute
+
+La veille, j'avais réduit la définition pour tenir dans la bande passante
+(D90). Le reproche est revenu tel quel : « même en basse résolution et une seule
+fenêtre de jeu, je lag ». Il était fondé, et il désignait la moitié du problème
+que j'avais laissée de côté.
+
+### Ce que les mesures ont écarté
+
+**Le flux.** Les 2 et 3 septembre, quand c'était fluide, le journal montre
+exactement les mêmes réglages qu'au test qui a motivé cette reprise :
+`1920x1080 à 240 ppp, 60 ips, 11197 kb/s`. Le budget de liaison n'avait rien
+rogné dans ce cas : il autorisait 15,1 Mb/s pour une session qui en demandait
+11,2.
+
+**Le téléphone.** Sur secteur, cent pour cent, économie d'énergie éteinte,
+`Thermal Status: 0`, fréquences normales.
+
+**Le PC.** Mesuré pendant une partie à deux fenêtres : `DtHub` à 0 %, scrcpy à
+4,0 et 3,2 % d'un cœur sur douze.
+
+**La boucle de géométrie.** C'était mon principal soupçon, et il était faux. La
+surveillance de forme tourne toutes les 500 ms sur le fil d'interface et peut
+envoyer un `SetWindowPos` bloquant vers scrcpy ; le code porte même la trace
+d'un incident passé de ce genre. Une sonde temporaire a compté les corrections
+pendant une minute, fenêtres ouvertes : **zéro sur cent vingt tics**. Piste
+abandonnée, sonde retirée.
+
+### Ce que les mesures ont désigné
+
+La liaison, mais par sa régularité et non par son débit. Pendant une partie,
+deux fenêtres ouvertes, écran de jeu immobile, à peine quatre mégabits sur un
+lien qui en porte huit à treize :
+
+| | Valeur |
+| :-- | --: |
+| Latence minimale | 4 ms |
+| Latence moyenne | 39 ms |
+| Latence maximale | **223 ms** |
+
+Rien n'était saturé. C'est la seule irrégularité qui se voyait. Et une image
+plus petite n'y change rien : c'est précisément pourquoi la correction de la
+veille n'avait pas suffi.
+
+### Trois corrections
+
+**Un tampon d'affichage.** scrcpy expose `--video-buffer=ms`, dont sa propre
+documentation dit qu'il « augmente la latence pour compenser la gigue ». Son
+défaut est zéro, et DT Hub ne le passait pas : chaque pointe se voyait
+intégralement. Le tampon se déduit maintenant de ce que la liaison vaut, avec
+un plafond assumé de quatre-vingt-dix millisecondes au-delà duquel le clic
+paraîtrait mou. En USB il vaut zéro : il n'y a pas de gigue à compenser, et la
+latence brute est un cadeau qu'on ne gâche pas.
+
+**Un budget qui suit vraiment la liaison.** La fraction retenue était constante,
+appliquée à la vitesse *annoncée*. Or celle-ci ne bouge pas : 144 Mb/s dans les
+deux états du même lien, alors qu'il portait vingt mégabits à -57 dBm et huit à
+-66. Le budget promettait donc 21,6 Mb/s à une liaison qui n'en portait plus
+huit. Il suit désormais la puissance reçue, calibré sur ces deux états mesurés.
+
+**Des définitions que l'encodeur rendra vraiment.** Les côtés étaient arrondis
+au pair, ce qui ne suffisait pas : l'encodeur rabote au multiple de huit
+inférieur, en silence. Relevé dans le journal, demandé contre rendu :
+
+```
+2560x1440  ->  2560x1440
+1920x1080  ->  1920x1080
+1576x886   ->  1576x880
+1426x802   ->  1424x800
+```
+
+Les définitions rondes tombaient juste ; celles que mon plafond de la veille
+produisait ne tombaient jamais juste. L'écart n'est pas qu'esthétique : le
+rapport d'image d'une session est calculé sur la taille **demandée**, et sert
+ensuite à corriger la forme de la fenêtre. Demander une taille qu'on ne recevra
+pas revient à poursuivre un rapport qui n'existe nulle part. L'alignement passe
+à huit, et la demande vaut désormais le rendu.
+
+### Une course supprimée en chemin
+
+L'arrêt du jeu à la fermeture (D91) était réclamé après la mort de scrcpy. La
+boucle de lecture, réveillée par cette mort, pouvait prendre la réclamation la
+première ; la fermeture volontaire rendait alors la main sans rien attendre, et
+quitter l'application aurait pu couper l'arrêt en plein vol. La réclamation est
+désormais prise avant de toucher à scrcpy. Une épreuve qui passait seule mais
+échouait en série a mis le doigt dessus.
+
+### Ce qui vaut plus que tout le reste, et qui n'est pas de mon ressort
+
+Le téléphone est sur la bande de 2,4 GHz, canal 1, partagé avec deux Freebox à
+-62 et -67 dBm. La bande de 5 GHz du même routeur est à portée, à -63 dBm,
+aussi bien que la 2,4 GHz à -59. Tout ce qui précède sert à bien se comporter
+sur une mauvaise liaison ; rien ne remplace une bonne.
+
+## D93 - Retirer l'adaptation qui n'avait pas gagné sa place
+
+Reproche, après deux tours de correction : « ça saccade encore un peu mais la
+qualité est vraiment pas top alors qu'on est en moyen ». Suivi de la question
+qui tranche tout : sans notre application, scrcpy seul était plus rapide, plus
+fluide et plus joli.
+
+### La comparaison qu'il fallait faire
+
+| | Définition | Débit |
+| :-- | :-- | --: |
+| scrcpy seul, écran natif du téléphone | 2712x1220 | 8 000 kb/s |
+| Palier Moyen, tel qu'annoncé | 1920x1080 | 11 197 kb/s |
+| Ce que l'application rendait après D90 et D92 | **1464x824** | **6 514 kb/s** |
+
+L'adaptation à la liaison faisait donc descendre l'utilisateur **sous les deux
+références à la fois**, sans le lui dire, alors qu'il avait choisi « moyen ».
+
+### Pourquoi elle ne gagnait rien en échange
+
+La mesure qui aurait dû être faite avant de l'écrire : pendant une partie, deux
+fenêtres ouvertes, le trafic vidéo réel était de **4,2 Mb/s** sur une liaison
+qui en portait 8 à 13. Les à-coups, eux, se produisaient à ce trafic-là.
+
+La bande passante n'a donc jamais été le facteur limitant, et rogner la
+définition ne pouvait rien contre des pointes de latence. L'adaptation coûtait
+de la netteté et ne rendait rien. `QualityProfile.SharedOver`, `LinkBudget` et
+leurs dix-sept épreuves sont retirés ; le palier choisi est rendu tel quel.
+
+### Ce qui reste, et pourquoi
+
+**Le tampon d'affichage.** C'est la seule mesure qui vise la cause constatée. Il
+est recalibré sur la gigue **moyenne**, 39 ms, et non sur la pire, 223 ms :
+couvrir la pire aurait demandé un quart de seconde de retard sur chaque clic. Le
+plafond passe de quatre-vingt-dix à soixante millisecondes, et la liaison du
+poste reçoit trente-cinq millisecondes au lieu de soixante, la mollesse ayant
+été reprochée avant même que le plafond ne soit atteint.
+
+**L'alignement des côtés sur huit pixels.** Sans coût, et il évite de demander à
+l'encodeur une taille qu'il rabotera en silence.
+
+**La lecture de la liaison.** Elle ne sert plus qu'à dimensionner le tampon, ce
+qui est peu, mais c'est un appel de moins d'une demi-seconde une fois par
+lancement.
+
+### La leçon, écrite pour ne pas la répéter
+
+Une adaptation automatique doit se juger sur ce qu'elle **gagne**, mesuré, et
+non sur la cohérence de son raisonnement. Celle-ci était cohérente : la liaison
+est partagée, le palier l'ignorait, le calcul était juste. Elle était aussi
+inutile, parce que la grandeur qu'elle économisait n'était pas celle qui
+manquait. Le premier réflexe aurait dû être de mesurer le trafic réel, ce qui
+prend dix secondes et se lit dans `/proc/net/dev`.
+
+Et une adaptation qui dégrade en silence un réglage que l'utilisateur a choisi
+lui-même est doublement fautive : elle se trompe, et elle empêche de s'en
+apercevoir.
+
+## D94 - Ne pas affirmer une absence qu'on n'a pas vérifiée
+
+Ouvrir l'onglet Appareils affichait « Aucun téléphone détecté », puis effaçait
+le message une seconde plus tard. Le téléphone était pourtant là.
+
+La cause tient en une ligne : le panneau ne sonde qu'à l'ouverture, et son
+minuteur ne rend son premier verdict que trois secondes après. Entre les deux,
+le bloc affichait sa valeur de départ, `NoDevice`. Ce n'était pas un état de la
+liaison, c'était l'absence de mesure présentée comme un constat.
+
+Une liste vide avant le premier balayage ressemble en tout point à une liste
+vide après : dans les deux cas rien n'est là. Seule la différence entre « je
+n'ai pas regardé » et « j'ai regardé, il n'y a rien » autorise à l'écrire, et
+elle ne se lisait nulle part.
+
+Les deux blocs concernés portent donc maintenant la marque du premier examen, et
+restent muets tant qu'il n'a pas eu lieu. Le panneau sonde en outre dès son
+ouverture au lieu d'attendre son premier tic, ce qui réduit le silence à la
+durée d'un aller-retour ADB.
+
+C'est la deuxième fois que ce défaut paraît sous une autre forme. La règle vaut
+d'être écrite : un écran ne dit « il n'y a rien » que lorsqu'il a regardé.
+
+## D95 - Le garde qui ne voyait qu'un mot en arrière
+
+Reproche : certaines étapes ne sont pas des actions à faire. Fondé, et la cause
+est le retrait du gras décidé le matin même. Il fallait le retirer, 153 guides
+sur 777 ne rendaient aucune étape sans lui, mais il rattrapait au passage les
+faux positifs grammaticaux que plus rien n'arrête ensuite.
+
+### D'abord, se donner de quoi regarder
+
+`audit-etapes.mjs` avait déjà la bonne idée : il découpe la règle réelle dans
+`quest-bridge.js` et l'exécute, donc il ne peut pas diverger d'elle. Il lui
+manquait de garder ce qu'il voyait. Il écrit maintenant, pour chacun des 782
+guides, chaque étape retenue avec son texte entier et ce qui l'a retenue, et il
+garde le corpus sur disque pour que les essais suivants ne coûtent plus rien au
+site. C'est ce que D76 regrettait de n'avoir pas fait.
+
+### Le défaut principal
+
+Le garde des sujets annule un impératif quand le mot d'avant est un sujet :
+« vous validez » n'est pas un ordre. Mais il ne regardait qu'**un** mot en
+arrière, et un pronom suffisait à le tromper :
+
+> Ce dernier vous confie qu'il est dans le donjon, et **vous lui faites** part
+> du mal être de Tira.
+
+Du récit, compté comme étape. Le code connaissait ce défaut : son commentaire
+sur `aurez` dit que « le pronom élidé s'intercale entre *vous* et *aurez* ». Il
+l'avait contourné en mettant deux verbes sur liste noire. Le garde franchit
+maintenant les pronoms compléments avant de chercher son sujet. Quatre-vingt-
+quatorze paragraphes des 782 guides étaient dans ce cas, tous du récit, relus
+un à un.
+
+### Le défaut que la table de cas a trouvé, et qui datait
+
+La règle n'avait aucune épreuve : elle est en JavaScript, et le dépôt n'a pas de
+quoi en exécuter. La sonde porte donc désormais une table de cas tirés du
+corpus, avec le verdict attendu, et rend un code de sortie non nul si la règle
+s'en écarte.
+
+Elle a servi dans la minute. `ne` et `n'` étaient rangés parmi les sujets, pour
+« vous ne partez pas ». Conséquence : **tout impératif négatif était invisible**.
+« N'oubliez pas de lui reparler une seconde fois ! », « Ne vendez pas votre Slip
+Iholo », « Ne finissez pas le donjon » n'étaient pas des étapes. Ce n'est pas la
+négation qui distingue le présent de l'ordre, c'est le sujet : la négation se
+franchit donc comme un pronom, et le sujet se cherche derrière elle.
+
+### Les faux amis complétés
+
+`aurez` et `serez` étaient seuls de leur espèce. S'y ajoutent les imparfaits et
+les conditionnels des mêmes verbes irréguliers, `saviez`, `aviez`, `étiez`,
+`seriez`, `pourriez`. La justification tient en une ligne : pour ces verbes-là
+l'ordre s'écrit autrement, « sachez », « ayez », « soyez », donc aucune de ces
+formes ne peut en être un. La terminaison `-iez` ne dit rien à elle seule, et il
+ne fallait surtout pas s'en servir : « remerciez », « oubliez » et
+« privilégiez » sont de vrais ordres, et rien dans leur forme ne les sépare de
+« affrontiez ».
+
+### Comptes
+
+| | Étapes | Guides muets |
+| :-- | --: | --: |
+| Avant, avec le gras exigé | 3 275 | 159 |
+| Après le retrait du gras | 4 506 | 30 |
+| Après ce resserrement | **4 440** | **30** |
+
+Soixante-six étapes de moins, et pas un guide de plus rendu muet. Le détail est
+sur disque, famille par famille.
+
+### Ce qu'on n'a pas fait
+
+Les lignes qui disent où ramasser un objet restent des étapes, sur décision de
+l'utilisateur : « La Page de journal trempée de bave se trouve en [21,8] dans le
+coffre à côté du bateau. » Ramasser les cinq pages est bien ce qu'il faut faire,
+et chaque ligne porte une coordonnée qu'on perdrait à les fondre.
+
+Les quatre lignes « X vous lancera *telle quête* » ont été mesurées avant d'être
+écartées : quatre occurrences dans tout le site, un seul guide. Une règle pour
+cela aurait coûté plus qu'elle ne rend, et l'intention était de les retirer.
+
+### Une leçon de méthode, encore
+
+La fonction du rapport qui nomme le verbe déclencheur avait gardé l'ancien
+garde. Elle a donc désigné des verbes que la règle avait écartés, et j'ai cru
+deux corrections en échec avant de m'apercevoir que c'était l'instrument qui se
+trompait. Un instrument faux est pire que pas d'instrument, puisqu'on le croit.
+Il emprunte maintenant les listes de la règle plutôt que d'en recopier le
+contenu.
+
+## D96 - Prévenir l'interface après avoir posé le cadre, pas avant
+
+Avec une fenêtre libre et un compte logé en onglet, les deux touches de
+rangement, empiler et mettre côte à côte, disparaissaient. Il y avait pourtant
+bien deux fenêtres à ranger, et la règle le disait déjà : « le cadre à onglets
+compte pour une fenêtre ».
+
+La règle était juste, l'ordre des gestes ne l'était pas. Dans `SetTabbedAsync`,
+l'événement qui fait recalculer les touches partait à la ligne 1642, et le cadre
+n'était créé qu'à la ligne 1651. Au moment où l'interface comptait, le cadre
+n'existait pas encore : `FrameMoves` le voyait absent, le compte tombait à un, et
+les touches se retiraient. Rien ne repassait ensuite.
+
+L'événement est donc levé une seconde fois, après l'arrimage ou le détachement.
+C'est celle-là qui compte.
+
+Les deux commandes elles-mêmes n'avaient rien à corriger : `TileAsync` laisse
+déjà sa moitié d'écran au cadre selon qu'il est au premier plan ou non, et
+`StackOnActiveAsync` prend le cadre pour référence quand on le regarde. Seule
+leur visibilité était en cause, et le raccourci clavier, lui, avait toujours
+fonctionné.
+
+### Ce qui reste sans garde
+
+Le compte des fenêtres à ranger vit dans le projet d'interface, que la suite
+d'épreuves ne référence pas. Le défaut n'était d'ailleurs pas dans la formule
+mais dans le moment où on la relit, ce qu'une épreuve sur la formule n'aurait
+pas vu. Noté faute de mieux.
+
+## D97 - Griser à l'instant du clic, pas à la prise du verrou
+
+Reproche : en ouvrant un compte, les autres ne se bloquent pas tout de suite et
+leur bouton reste cliquable un moment.
+
+Le verrou d'ouverture est par appareil, et il annonce son occupation à
+l'interface. Mais il ne se prend qu'au bout du préambule : relecture des
+comptes, découverte des appareils, lecture de la liaison. Relevé dans le
+journal, **deux secondes et trois dixièmes** entre le début d'une ouverture et
+la ligne qui suit la prise du verrou. Pendant tout ce temps l'appareil n'était
+officiellement pas occupé, et rien ne grisait les voisines.
+
+La ligne cliquée, elle, se grisait bien tout de suite : son indicateur est posé
+avant le premier `await`. Il manquait le même geste pour les autres lignes du
+même téléphone.
+
+L'engagement est donc pris à l'instant du clic, dans le même coup de peinture,
+et rendu quand l'action se termine. Il ne décide de rien : le verrou reste seul
+juge de qui passe. Il ne fait que dire à l'écran ce qui est déjà décidé.
+
+### Et le préambule lui-même
+
+Le même reproche portait sur sa durée. Deux gestes :
+
+La lecture de la liaison, ajoutée le jour même, coûte 0,46 s mesuré et se
+trouvait sur le chemin de chaque ouverture. Elle est gardée une minute : un
+réseau change, et c'est quand il change qu'il faut le relire, mais ouvrir deux
+comptes coup sur coup n'a pas à payer deux fois la même réponse.
+
+Le reste, environ 1,85 s, n'était pas mesuré, et je n'allais pas l'optimiser au
+jugé après m'être déjà trompé deux fois ainsi dans la journée. Le préambule
+écrit maintenant son propre détail dans le journal, poste par poste. La
+prochaine ouverture dira où le temps passe, et la correction suivra la mesure.
+
+### Reprise : l'engagement tenait bien trop longtemps
+
+Corriger la fenêtre de clic avait introduit pire que le mal. L'engagement était
+rendu à la fin de l'action, alors que le verrou, lui, se rend dès que
+l'afficheur existe. Les voisines restaient donc grisées pendant tout le
+lancement du jeu et le placement de la fenêtre, une bonne seconde de plus
+qu'avant ma correction.
+
+L'engagement ne couvre plus que ce pour quoi il a été fait : l'attente **avant**
+la prise du verrou. Dès que le verrou se prend, il cède la place et c'est lui
+qui décide, comme avant.
+
+Et fermer n'engage plus rien. Fermer ne passe pas par le verrou d'ouverture,
+deux fermetures ne se gênent pas, et griser les voisines obligeait à fermer un
+compte à la fois.
+
+### Ce qu'il ne faut pas faire, et pourquoi
+
+Rendre le verrou plus tôt encore a été mesuré avant d'être écarté. Le verrou est
+gardé jusqu'à la création de l'afficheur virtuel ; le signal précédent, le
+serveur prêt, arrive **191, 208 et 264 ms plus tôt** sur trois essais. Un quart
+de seconde gagné sur une attente qui en dure une à deux, contre le risque de
+faire pousser deux serveurs scrcpy à la fois, ce qui tue la première session sur
+un « Server connection failed ». Le compte n'y est pas.
+
+## D98 - Reprendre le profil vide plutôt que refuser
+
+Reproche : impossible d'ajouter un compte, alors que c'était possible avant.
+
+Le refus venait de nous, et il était fondé sur une vraie limite : Android
+n'accepte **qu'un seul profil géré** par compte principal, ce qu'il dit
+lui-même, « Cannot add more profiles of type android.os.usertype.profile.MANAGED
+for user 0 ». Le profil existait, donc l'ajout était refusé. Rien d'anormal
+jusque-là.
+
+Sauf que ce profil ne portait plus le jeu. Relevé sur le téléphone :
+
+```
+profil 0    jeu présent      principal
+profil 10   jeu ABSENT       android.os.usertype.profile.MANAGED
+profil 999  jeu présent      Second Space
+```
+
+Le journal l'avait d'ailleurs annoncé une demi-heure plus tôt, « Le jeu n'est
+plus installé sur ce profil Android », sans que rien ne relie les deux.
+
+L'unique place qu'Android accorde était donc occupée par un profil qui ne
+servait à rien, et refuser laissait sans recours : impossible d'ajouter un
+compte, impossible de deviner qu'il fallait d'abord réparer celui-là, et le
+message parlait d'activer les applications dupliquées, ce qui n'aurait rien
+changé.
+
+Le profil est maintenant repris : le jeu y est posé et le profil démarré, par le
+même chemin que pour un profil neuf. Il garde son nom, qu'ADB ne sait pas
+changer, et le message le dit plutôt que de laisser croire qu'un compte est né.
+
+Le refus demeure quand le profil porte le jeu : là, il n'y a effectivement rien
+à faire, et c'est la limite d'Android qui parle.
+
+### Ce que l'épreuve a demandé au faux
+
+Vérifier la reprise demande que le téléphone change d'avis : le paquet est
+absent, on l'installe, il est présent. Le faux client ADB ne savait rendre
+qu'une sortie fixe par commande, et l'épreuve échouait donc toujours après
+l'installation. Il sait maintenant rendre une suite de sorties, la dernière
+valant pour les appels suivants.
+
+## D99 - L'association aboutit souvent après qu'on a cessé de regarder
+
+Reproche : la fenêtre d'association reste ouverte alors que l'appairage a
+marché. Le journal montre deux appairages réussis à trois minutes d'écart sur le
+même téléphone : le second n'a servi qu'à réessayer ce qui avait déjà abouti.
+
+La fenêtre se ferme bien, mais seulement sur une **vraie connexion**, et c'est
+volontaire : elle se fermait autrefois dès que le code était accepté, en
+annonçant que le téléphone se connecterait tout seul alors qu'il ne l'était pas,
+et en jetant le message qui disait quoi faire.
+
+Le défaut est ailleurs. Accepter le code et être joignable sont deux choses, et
+la seconde arrive par le réseau, quand le téléphone s'annonce en mDNS. Cette
+annonce vient souvent après que la tentative a rendu la main : le résultat dit
+alors « appairé, port inconnu », la fenêtre attend un port, et personne ne
+regarde plus. Le téléphone se connecte pourtant une poignée de secondes plus
+tard, et rien ne le remarque.
+
+La fenêtre balaie déjà le réseau toutes les deux secondes pour trouver les
+téléphones qui affichent un code. Ce balayage demande maintenant aussi, quand un
+code vient d'être accepté, si ce téléphone-là s'annonce enfin ; le cas échéant
+il s'y connecte et la fenêtre se referme comme sur une réussite immédiate.
+
+L'hôte est comparé, et non pas simplement « quelque chose s'est connecté » : un
+autre téléphone déjà associé peut s'annoncer au même moment, et refermer la
+fenêtre sur son dos donnerait à croire que l'association vient d'aboutir.
+
+### Trouvé en chemin
+
+Le message « Association en cours… » était écrit en dur dans le modèle, en
+français, alors que l'application se donne trois langues. Il a sa clef comme
+les autres.
+
+## D100 - Une absence n'est pas une panne
+
+Sur un poste sans téléphone branché, l'onglet Appareils affichait deux blocs qui
+disaient la même chose. Le premier, « État de la connexion », en cinq lignes
+avec un bouton « Que faire ? ». Le second, « Aucun appareil détecté », en deux
+lignes juste en dessous. Pour le même néant.
+
+Le bloc d'état a été écrit pour expliquer ce que personne ne peut deviner : un
+appareil vu mais pas encore autorisé, un pilote qui refuse, un descripteur USB
+illisible, les outils Android absents. Ces cas-là méritent cinq lignes.
+
+Mais n'avoir aucun appareil n'en fait pas partie. C'est l'état de repos de
+l'application, celui qu'on trouve en l'ouvrant sans avoir rien branché. Le
+signaler dans un bloc d'alerte fait passer une absence pour un problème, et la
+liste des comptes le dit déjà, plus brièvement et au bon endroit.
+
+`ConnectionCheck.NeedsExplaining` écarte donc deux verdicts sur huit : le
+téléphone qui répond, qui n'appelle aucun commentaire, et l'absence
+d'appareil, qui n'appelle qu'une phrase et l'a déjà.
+
+### Au passage, deux astuces qui parlaient dans le vide
+
+« Une fenêtre se fige au bout d'un moment ? » et « La souris ne fait rien dans
+la fenêtre ? » restaient affichées sans téléphone joignable. Elles parlent
+toutes deux d'une fenêtre de jeu ; sans téléphone il n'y en a aucune. Elles
+attendent maintenant qu'il y ait de quoi les lire.
+
+Les deux conditions, l'onglet et le téléphone, tiennent dans deux panneaux
+imbriqués : elles s'ajoutent, elles ne se remplacent pas. Une première tentative
+avait remplacé l'une par l'autre, ce qui aurait fait paraître ces astuces sur
+tous les onglets.
+
+## D101 - Une colonne de prérequis n'est pas un ordre de lecture
+
+Reproche : dans « Le théâtre des gobelins », « suivant » menait de « Titi
+Gobelait le magobelin » à « Manque de moule », en sautant « Un avenir de krotte
+de Trooll ».
+
+Le catalogue donne l'ordre du succès :
+
+```
+ 4  Titi Gobelait le magobelin       prérequis : aucun
+ 5  Un avenir de krotte de Trooll    prérequis : aucun
+ 6  Manque de moule                  prérequis : Titi Gobelait le magobelin
+```
+
+Et `QuestNeighbourhood` calculait bien Titi puis Krotte : son tri est
+topologique, avec l'ordre de jeu pour départager, et il place Krotte avant
+Moule.
+
+C'est la vue qui défaisait ce calcul. La page du site publie en pied d'article
+une colonne que `SetPage` prenait pour parole d'évangile, avec ce commentaire :
+« C'est lui qui fait foi : il connaît sa propre progression mieux que l'ordre
+que nous recalculons. »
+
+La colonne relevée sur la page de Titi dit ceci :
+
+> Quêtes et jalons **suivants** : Objectif : Réaliser le succès Le théâtre des
+> gobelins - Manque de moule
+
+Son titre dit tout : ce sont les quêtes et jalons qui **suivent** au sens des
+prérequis, c'est-à-dire ce que celle-ci débloque. Ce n'est pas l'ordre dans
+lequel on lit un succès. Les deux se ressemblent le plus souvent, et diffèrent
+dès qu'une quête de la liste n'exige rien.
+
+La liste garde donc la main à l'intérieur de ses bornes, et le site ne complète
+plus que là où elle se tait : la première quête n'a pas de précédente, la
+dernière pas de suivante, et une quête sans succès n'a ni l'une ni l'autre.
+C'est exactement ce que `QuestNeighbourhood` disait déjà faire dans son propre
+résumé, et que la vue contredisait ensuite.
+
+`NextFromList` et `PreviousFromList` se déduisent du rang, déjà calculé, et
+disent qui a le dernier mot.
+
+### Combien de quêtes étaient concernées
+
+Pas seulement celle-là. Sur les 498 quêtes rattachées à l'un des 115 succès,
+**55** avaient plus loin dans leur liste une quête qui les exige, sans être
+l'immédiate suivante. Toutes pouvaient donc faire sauter au moins une quête.
+
+## D102 - Demander un profil cloné, et dire quand on ne l'a pas
+
+Un utilisateur a vu apparaître dix-sept icônes à valise sur son écran
+d'accueil, et le jeu marqué comme application professionnelle plutôt que comme
+application clonée. Il n'avait rien demandé de tel.
+
+La cause tenait en un mot de la ligne de commande. DT Hub envoyait :
+
+```
+pm create-user --profileOf 0 --managed "Compte 3"
+```
+
+Et l'aide d'Android, relevée sur l'appareil, dit ce que fait ce raccourci :
+
+> `--managed` is shorthand for `--user-type android.os.usertype.profile.MANAGED`
+
+C'est donc un **profil professionnel** qui était demandé. La valise est la
+marque qu'Android colle sur toute application qui en dépend, et le garnissage
+automatique est le propre de ce type : il est fait pour un téléphone
+d'entreprise, où l'employé doit retrouver sa messagerie, son agenda et son
+magasin. Personne ne l'avait choisi ; c'était le défaut hérité.
+
+### Ce que la mesure a montré
+
+Sur le téléphone de référence, trois profils coexistaient :
+
+| profil | type | paquets |
+| :-- | :-- | --: |
+| principal | `full.SYSTEM` | 479 |
+| créé par DT Hub | `profile.MANAGED` | **359** |
+| Second Space de l'utilisateur | `profile.CLONE` | **22** |
+
+Le profil cloné est celui que les surcouches emploient pour dupliquer une
+application. Il porte le jeu tout aussi bien, et le téléphone n'y installe
+presque rien.
+
+Les deux types sont plafonnés de la même façon, `mMaxAllowedPerParent: 1` :
+une place clonée, une place professionnelle.
+
+### La règle retenue
+
+Le cloné d'abord, toujours. Le professionnel seulement si la place clonée est
+prise, et **jamais en silence** : le message de réussite dit alors que le
+profil est professionnel, que ses icônes porteront une valise, et qu'Android y
+installera ses propres applications. Ce qui se voit sur l'écran d'accueil ne
+doit pas être une surprise.
+
+Si les deux places sont prises, un profil qui n'a plus le jeu est repris, comme
+avant. Mais jamais tant qu'une place reste libre : créer vaut mieux que
+réquisitionner le Second Space de quelqu'un, qui existe souvent pour de tout
+autres raisons que les nôtres. Une première version de ce changement le faisait,
+et une épreuve l'a rattrapée.
+
+De même, une création refusée alors qu'une place était libre se dit telle
+quelle : c'est le téléphone qui a refusé, et bricoler une reprise masquerait
+l'erreur.
+
+### Ce qui n'a pas pu être éprouvé sur l'appareil
+
+Le chemin normal, celui qui crée un profil cloné, ne l'a pas été : sur le
+téléphone de référence la place clonée est occupée par le Second Space de son
+propriétaire, et provoquer une création réussie pour voir aurait posé chez lui
+un profil dont il ne veut pas. Les deux chemins sont couverts par des épreuves,
+et la syntaxe employée est celle que l'aide du téléphone publie.
+
+## D103 - Un profil par défaut doit se voir sans ouvrir la bulle
+
+Le bouton « Profils » disait la même chose qu'un profil soit retenu pour le
+démarrage ou non. Rien ne distinguait « aucune session nommée » de « Duo haute
+s'appliquera au prochain lancement », et il fallait déplier la bulle pour le
+savoir.
+
+Ce n'est pas un détail d'affichage. Un profil par défaut décide des comptes qui
+s'ouvrent, de la qualité, du zoom et de l'ancrage. Nous en avons fait
+l'expérience le jour même : la qualité repassait en maximale à chaque
+lancement, et il a fallu lire le fichier de réglages pour comprendre que « Duo
+haute » la réimposait. Le bouton, lui, ne disait rien.
+
+### Ce que porte le bouton
+
+Le nom du profil retenu, à la place du mot générique, et son signet se remplit.
+
+Le signal n'est pas inventé : la ligne du profil par défaut, dans la bulle,
+remplit déjà son étoile en couleur d'accent. Le bouton reprend le même
+vocabulaire sur son icône plutôt que d'ajouter un symbole de plus.
+
+Le nom est coupé s'il déborde, un profil pouvant en compter quarante
+caractères, et l'info-bulle le donne alors en entier.
+
+### Actif veut dire par défaut
+
+Un profil peut aussi être appliqué à la main depuis la bulle, sans être retenu.
+Ce cas a été écarté, et pour une raison qui se vérifie dans le code : le nom du
+profil réellement appliqué n'est conservé nulle part. Ni le document de
+réglages ni aucun service ne le retient, seul le journal le trace. Le montrer
+aurait demandé d'inventer cet état, et le bouton aurait alors dit deux choses
+différentes pour une même configuration selon qu'on venait de redémarrer ou non.
+
+Le profil par défaut, lui, est écrit dans les réglages : le bouton dit la même
+chose à chaque ouverture du panneau.
+
+### Où vit la règle
+
+Le libellé, « le nom du profil retenu ou le mot générique », est descendu dans
+`LaunchProfiles`, à côté de `Normalize` et `Find`, parce que le modèle de vue
+n'est pas atteignable par la suite d'épreuves : elle vise `net10.0` quand
+l'application vise `net10.0-windows`. La normalisation y est la même que
+partout ailleurs, faute de quoi le bouton et la ligne mise en accent auraient pu
+diverger sur un espace de bord.
+
+Le nom affiché est d'ailleurs pris sur la ligne elle-même et non sur le réglage,
+pour la même raison : ce que le bouton annonce est exactement ce que la liste
+montre.
+
+## D104 - Une absence qu'on peut prouver
+
+Deux plaintes, deux causes, et un même endroit : le balayage des comptes.
+
+### Le compte fantôme
+
+Désinstaller le jeu dans un profil du téléphone, sans supprimer le profil,
+laissait le compte affiché indéfiniment, au redémarrage comme en cours de route.
+
+Le nettoyage existait pourtant, mais il ne couvrait qu'un cas : la disparition
+du **profil** de `pm list users`. Son commentaire disait la règle et sa raison,
+« On ne se fie pas à l'absence du jeu, on se fie à la disparition du profil ».
+
+Cette prudence était fondée, et pour un motif qui se lisait quelques fichiers
+plus loin. `ListInstalledAsync` attrapait l'erreur ADB et rendait une liste
+vide :
+
+```
+catch (AdbException)
+{
+    // Un profil qui refuse la question est simplement considéré comme
+    // dépourvu du jeu : rien ne justifie de faire échouer le balayage.
+    return [];
+}
+```
+
+Un profil qui n'avait pas su répondre était donc indiscernable d'un profil ayant
+répondu « rien ». S'y fier pour effacer un compte l'aurait perdu au premier
+hoquet. La donnée nécessaire existait ; elle était jetée.
+
+Elle ne l'est plus. `TryListInstalledAsync` rend `null` quand la question n'a
+pas abouti, et la découverte tient un second relevé à côté des profils lus :
+ceux qui ont **répondu** sans le jeu. L'oubli s'appuie sur celui-là, avec la
+même garde que son aîné : rien n'est conclu d'un silence.
+
+Un compte oublié perd son nom choisi et ses réglages, comme lorsque son profil
+entier disparaît. C'est la contrepartie, et elle était déjà celle du cas voisin.
+
+### Le compte neuf qui se faisait attendre
+
+`AddAccountAsync` rafraîchissait bien la liste en sortant, mais le balayage ne
+redécouvre que si son cache est vide, si la signature des appareils a changé, ou
+si l'intervalle de redécouverte est écoulé, quinze à soixante secondes selon le
+palier. Après une création, rien de tout cela n'était vrai : le cache était
+repris tel quel et le compte n'apparaissait qu'à la minute suivante. Le geste
+qui manquait existait déjà dans `ActOnAsync`, jeter le cache avant de
+rafraîchir.
+
+### Éprouvé sur l'appareil
+
+Le cas a été rejoué en entier sur le téléphone de référence, profil professionnel
+« Compte 3 » :
+
+```
+comptes mémorisés : [0, 999]
+pm install-existing --user 10        →  [0, 10, 999]   apparu en moins de 45 s
+pm uninstall --user 10               →  [0, 999]       oublié au balayage suivant
+profils toujours présents sur le téléphone : 3
+```
+
+Le mécanisme ne regarde ni le type de profil ni la façon dont il est né : cloné
+ou professionnel, il se comporte pareil.
+
+### Une trace qui mentait
+
+Le journal annonçait « leur profil Android n'existe plus » pour tout oubli. Avec
+deux motifs, il fallait le dire autrement : le profil a disparu, ou le jeu n'y
+est plus installé.
+
+## D105 - Rompre une association, c'est s'en souvenir
+
+« Rompre l'association avec cet appareil » ne rompait rien. Le téléphone restait
+affiché, revenait au balayage suivant, et se retrouvait là après un redémarrage
+complet, y compris quand l'association avait été retirée depuis le téléphone.
+
+Trois mécanismes le ramenaient, et le geste n'en coupait aucun.
+
+### Ce qui gardait la trace
+
+Le registre ne connaissait que des appareils **présents** : oublier, c'était
+effacer, donc ne plus rien savoir. Or effacer ne suffit pas quand une autre
+source réinscrit. Et il y en avait une, à chaque balayage :
+
+```
+await _registry.UpsertRangeAsync(merged, cancellationToken);
+```
+
+`ForgetDeviceAsync` retirait bien l'entrée. Le balayage la remettait une seconde
+plus tard, le téléphone étant toujours joignable. Pire, ce balayage était celui
+que le bouton lui-même déclenchait : la rupture se défaisait dans le geste qui
+la demandait.
+
+À cela s'ajoutait le cache de la liste, jamais jeté avant le rafraîchissement,
+si bien que les lignes tenaient jusqu'à l'intervalle de redécouverte. C'est le
+défaut corrigé en D104 pour l'ajout d'un compte, au même endroit.
+
+Le registre gagne donc une liste d'identifiants **écartés**. Ce sont des numéros
+de série matériels et non des adresses : une adresse change à chaque bail
+réseau, et la rupture doit y survivre.
+
+### Filtrer le registre ne suffisait pas
+
+Premier correctif écrit, premier correctif faux : l'écart ne filtrait que
+l'écriture au registre, et la découverte rendait toujours l'appareil à
+l'affichage. Une épreuve consacrait même cette erreur, en vérifiant que la ligne
+restait présente. Le registre était propre et l'écran mentait.
+
+L'écart porte maintenant sur le balayage entier, découverte et souvenir, parce
+que la coupure ADB ne tient pas éternellement : le serveur rejoint de lui-même
+un téléphone qui s'annonce et dont il garde la clé. Mesuré, justement, en
+rétablissant l'état après l'épreuve :
+
+```
+adb disconnect 192.168.1.16:44477    →  disconnected
+adb devices  (30 s durant)           →  vide
+puis, plus tard, sans rien demander  →  192.168.1.16:44477              device
+                                        adb-CMBU79RCINVSFYUO-1V3FXQ...  device
+```
+
+### Deux transports, pas un
+
+Le téléphone de référence en occupait bien deux : celui de son adresse, et celui
+de son nom mDNS, qu'ADB ouvre seul en découvrant l'annonce. Couper le premier
+laissait le second ouvert. `DisconnectDeviceAsync` liste donc les transports et
+coupe tous ceux qui mènent à l'appareil, en plus de son adresse mémorisée.
+
+### Un analyseur qui ne lisait qu'une forme sur deux
+
+La reconnexion automatique devait sauter les annonces écartées, en tirant le
+numéro de série du nom mDNS. Elle ne sautait rien : `HardwareSerialFrom` exige
+le suffixe de service, absent de la colonne « nom » de `adb mdns services`.
+
+```
+adb devices        adb-CMBU79RCINVSFYUO-1V3FXQ._adb-tls-connect._tcp
+adb mdns services  adb-CMBU79RCINVSFYUO-1V3FXQ       _adb-tls-connect._tcp
+```
+
+Le suffixe reste exigé là où il tranche, dans `adb devices`, où il distingue une
+annonce d'un numéro de série ordinaire. La colonne d'une annonce, elle, est déjà
+triée par ADB : `HardwareSerialFromInstance` s'en remet à cela.
+
+### Une lecture, pas deux
+
+Le registre relit `devices.json` à chaque demande, par choix assumé : quelques
+dizaines d'entrées, et aucune divergence possible si le fichier est modifié à la
+main. Réclamer les mémorisés puis les écartés séparément le faisait donc lire
+deux fois par balayage.
+
+`GetSnapshotAsync` rend les deux d'une seule lecture, et une épreuve compte les
+accès pour qu'un balayage n'en demande jamais plus d'un.
+
+### Ce que la rupture ne fait pas
+
+**Rien contre la clé d'ADB.** Elle est partagée par tous les téléphones associés
+à ce PC : la retirer les romprait tous.
+
+**Rien côté téléphone.** Sa liste d'appareils associés vit dans
+`/data/misc/adb/`, illisible sans root. La confirmation le dit désormais au lieu
+de le taire : « Le téléphone garde sa propre liste : retirez-y ce PC depuis
+"Débogage sans fil" si vous voulez l'en effacer aussi. »
+
+Une seule chose lève l'écart, une nouvelle association depuis la fenêtre prévue
+pour cela. C'est le retour en arrière explicite qui a été choisi.
+
+### Éprouvé sur l'appareil
+
+L'écart a été posé à la main dans le registre, l'application lancée, et l'état
+d'avant rétabli ensuite sans qu'aucun code n'ait été redemandé :
+
+```
+adb devices        →  192.168.1.16:44477  device
+registre           →  devices: [], discarded: ["CMBU79RCINVSFYUO"]
+DT Hub             →  « Aucun appareil détecté »
+registre après     →  inchangé, aucune réinscription
+```
+
+L'épreuve par le bouton lui-même reste à faire de la main de l'utilisateur :
+elle laisse désassocié, et seul le code affiché sur le téléphone permet de
+revenir.
+
+## D106 - Une fenêtre de jeu se pose une fois
+
+À l'ouverture d'un compte, la fenêtre paraissait à un endroit puis sautait à un
+autre. La plainte portait sur un décalage de droite à gauche, à l'ouverture
+comme à la relance par le bouton de redémarrage.
+
+Il y avait bien un défaut de placement, décrit plus bas, et il est corrigé. Mais
+**ce n'est pas lui qu'on voyait**, et le dire est le premier enseignement de
+cette décision : deux causes se superposaient, l'une mesurable en position,
+l'autre invisible à une sonde de position.
+
+### Ce que la mesure a montré
+
+Une sonde relevant la position de la fenêtre toutes les vingt millisecondes :
+
+```
+  5885 ms   DT Hub Principal   -11,268   2522x1462
+  6086 ms   DT Hub Principal     0,313   2522x1462
+```
+
+Onze pixels à droite, quarante-cinq vers le bas. Ce sont exactement la bordure
+gauche et la barre de titre.
+
+### La cause
+
+`--window-x` et `--window-y` visent la **zone client**, pas le cadre. Vérifié
+sur scrcpy seul, sans DT Hub :
+
+```
+demandé   --window-x=186 --window-y=284
+observé   cadre en (175, 239), soit client en (186, 284)
+```
+
+DT Hub y passait le coin extérieur voulu. La fenêtre naissait donc décalée d'un
+cadre, et deux replacements la ramenaient ensuite, dont un qui se voyait.
+
+### Deux replacements, et un seul se voyait
+
+`ApplyLayoutAsync` repose chaque fenêtre qui vient d'ouvrir. Ce n'était pas lui
+le coupable : son rectangle était déjà le bon, et son déplacement ne corrigeait
+rien de visible.
+
+Le saut venait de `PrepareWindow`, qui repose la fenêtre avant que le jeu ne
+s'ouvre. Il visait les coordonnées transmises à scrcpy, c'est-à-dire celles de
+la zone client, en les traitant comme celles du cadre.
+
+Corriger le seul placement transmis à scrcpy ne suffisait donc pas, et l'a même
+aggravé : la fenêtre naissait juste, `PrepareWindow` la décalait, le placement
+final la ramenait. Trois positions au lieu de deux, mesurées comme les autres :
+
+```
+  6298 ms   0,313
+  6449 ms   11,358
+  6812 ms   0,313
+```
+
+### Ce qui a été fait
+
+Le cadre devient un objet à lui, `WindowFrame`, qui porte le décalage du coin
+en plus de l'encombrement. Il ne portait que la largeur et la hauteur, ce qui
+suffisait à dimensionner l'afficheur mais laissait le coin sans réponse.
+
+`ComputePlacement` en tire la zone client à demander à scrcpy. `PrepareWindow`
+en retire le décalage pour viser le cadre. Et les deux replacements sautent un
+déplacement sans objet, comme le faisait déjà le redimensionnement.
+
+Après, sur le même appareil, une seule position pour toute la vie de la
+fenêtre :
+
+```
+  6207 ms   DT Hub Principal    0,313   2522x1462
+```
+
+### Ce qu'on voyait vraiment
+
+Le correctif posé, la fenêtre ne se déplaçait plus du tout, et le décalage
+restait. La sonde regardait la mauvaise chose : elle relevait la position, et
+la position ne bougeait pas.
+
+Un film du bord gauche, quarante-cinq images par seconde, a montré l'autre
+cause. La fenêtre naît à quatre-vingt-quinze pour cent de sa taille, translucide,
+et grandit jusqu'à son rectangle en cent quatre-vingt-dix millisecondes. C'est
+l'animation d'ouverture du compositeur de Windows, celle de toutes les fenêtres
+de toutes les applications. Sur une fenêtre de deux mille cinq cents pixels de
+large, ces cinq pour cent font glisser le bord gauche de cent vingt pixels : ce
+que l'œil lit comme un décalage de droite à gauche.
+
+DT Hub ne peut pas l'en empêcher, faute de créer la fenêtre lui-même. Trois
+tentatives, trois échecs mesurés :
+
+| Tentative | Résultat |
+| :-- | :-- |
+| `DWMWA_TRANSITIONS_FORCEDISABLED` dès que la fenêtre paraît | L'animation se joue quand même, entière |
+| Garer la fenêtre hors champ puis la poser | scrcpy la ramène et la rétrécit : demandée en (11, 2400) de 2500x1406, elle naît en (0, 1570) de 1681x975 |
+| La rendre transparente le temps de l'animation | Le style ne prend qu'une fois l'animation finie : elle se joue, puis la fenêtre clignote |
+
+L'animation est composée par DWM à partir d'une capture, et ne s'interrompt pas
+de l'extérieur.
+
+Le seul levier est le réglage de Windows, qui appartient à l'utilisateur et non
+à l'application. Vérifié en le posant à zéro le temps d'un film, puis rétabli :
+la fenêtre paraît alors en deux images, vingt-quatre millisecondes, au lieu de
+quinze images et cent quatre-vingt-dix millisecondes.
+
+### Ce qui n'a pas été touché
+
+**Le réglage d'animation de Windows.** Il vaut pour toutes les applications du
+poste, et une application qui le change pour son propre confort décide à la
+place de son utilisateur. Il est dit, pas posé.
+
+**Le panneau de réglages.** Il a été soupçonné puis mis hors de cause par la
+mesure : sa fenêtre est bien montrée avant d'être placée, mais son opacité est
+nulle jusqu'au placement, et son premier rendu vient après.
+
+```
+SONDE avant Show        0.01 ms
+SONDE apres Show      366.50 ms   Left=253
+SONDE deplacement     372.42 ms   Left=2037
+SONDE opacite rendue  373.18 ms
+SONDE rendu           407.76 ms   Left=2037, Opacity=1
+```
+
+**Le pré-placement lui-même.** Son commentaire annonçait une fenêtre « garée
+hors écran » parce que « scrcpy recentre la sienne à la première image ». La
+mesure ne montre aucun recentrage sur scrcpy 4.1, mais le retirer sur cette
+seule observation aurait été un pari : il est gardé, et vise désormais le bon
+coin.
+
+## D107 - Constater ce qu'aucun message n'annonce
+
+D88 laissait deux chantiers ouverts. Celui-ci était le plus coûteux : « le
+symptôme n°1, et il est silencieux par nature ». L'image passe, la fenêtre
+s'ouvre, le clic ne fait rien, et il n'y a aucune erreur parce qu'il n'y a
+aucune faute : ADB accepte d'afficher, pas d'injecter.
+
+La fiche nommait la cause depuis D88. Elle ne savait pas la constater, et
+l'utilisateur essayait donc les trois remèdes au hasard.
+
+### La sonde, et pourquoi celle-là
+
+`adb shell input keyevent 0`. La touche zéro est celle qu'Android appelle
+« inconnue » : elle est acceptée partout et ne déclenche rien nulle part. Ce
+n'est pas une commande de jeu, c'est une question posée au système, et le shell
+de scrcpy a exactement les mêmes droits que celui-là. Elle n'est envoyée que sur
+demande, depuis la fiche d'aide, jamais pendant une partie.
+
+Mesurée sur le téléphone de référence, où la souris fonctionne :
+
+```
+adb shell input keyevent 0   →  code 0, aucune sortie, aucune erreur
+```
+
+### Un verdict prudent, et trois issues seulement
+
+`InputInjectionCheck.Read` ne dit « ça marche » que sur un silence complet, et
+« refusé » que sur un refus nommé. Tout le reste est « je n'ai pas su dire ».
+
+Un refus générique ne suffit pas. Le shell rend la même famille d'erreur pour un
+dossier sécurisé Samsung verrouillé, qui n'a rien à voir avec la souris : un
+`SecurityException` ne compte que s'il parle aussi d'entrée. C'est la même
+distinction que D88 avait imposée entre `ShellUserAccessDenied` et
+`PermissionDenied`, au même endroit du raisonnement.
+
+### Ce qui n'a pas pu être éprouvé, et pourquoi
+
+**Le verdict de refus n'est pas reproductible ici.** Le provoquer demanderait
+d'éteindre « Débogage USB (paramètres de sécurité) » sur le téléphone de
+développement, ce qui casse l'installation qui sert à tout le reste et peut
+exiger un compte Xiaomi pour revenir. La moitié mesurée est donc l'acceptation ;
+la moitié refusée repose sur le message d'Android, stable et documenté, et sur
+des épreuves qui en couvrent quatre formulations.
+
+### La piste passive, écartée sur pièces
+
+scrcpy pourrait dire lui-même qu'il n'arrive pas à injecter, et le lire dans sa
+sortie n'aurait rien coûté. Le serveur de scrcpy 4.1 a été dépaqueté pour le
+vérifier. Il porte bien deux chaînes qui parlent d'injection :
+
+```
+Could not inject input event if !supportsInputEvents()
+INJECT_EVENTS permission
+```
+
+La première est le texte d'une assertion interne, pas un message d'exécution.
+La seconde est un fragment assemblé au vol, dont rien ne dit qu'il sort dans ce
+cas-là. Guetter une phrase qu'on n'a jamais vue produire, c'est exactement
+l'erreur que D88 avait nommée à propos de leur message d'attente. La piste est
+donc écartée, faute de pouvoir l'éprouver.
+
+## D108 - Le clavier qui n'écrit rien, et le bouton qui débloque
+
+Une seconde fournée du salon d'entraide concurrent, après celle de D88. Deux
+apports, tous deux vérifiables dans notre code.
+
+### Un mode clavier que personne ne pouvait atteindre
+
+« Juste le clavier qui n'est pas activé pour écrire », dit l'un. Un autre en
+donne la cause et le remède : « scrcpy a du mal avec les claviers custom, j'ai
+résolu en basculant en clavier AOSP au lancement ».
+
+C'est le mode `sdk`, qui injecte par l'API Android et passe donc par le clavier
+virtuel de l'appareil. Plusieurs surcouches en fournissent un qui avale les
+caractères : la fenêtre répond à la souris et rien ne s'écrit.
+
+Le dépôt portait les deux modes depuis toujours, et le bon était inatteignable :
+
+```
+ScrcpyCommandBuilder.cs   keyboard = Uhid ? "uhid" : "sdk"
+ScrcpyOptions.cs          KeyboardMode = Sdk      ← jamais changé, nulle part
+```
+
+Le mode `uhid` simule un clavier physique branché et court-circuite le clavier
+de l'appareil. Éprouvé sur le téléphone de référence, Xiaomi 13T sous Android
+16 : la session s'ouvre et l'afficheur se crée sans une ligne d'erreur.
+
+### Pourquoi c'est un réglage et non un nouveau défaut
+
+Un clavier physique est interprété selon la disposition réglée **dans Android**.
+Si elle ne correspond pas à celle du PC, un AZERTY tape en QWERTY. Le remède
+casserait donc la saisie de tous ceux qui n'ont pas la panne qu'il répare.
+
+La case est décochée d'origine, et le piège est dit sous elle plutôt qu'en
+infobulle : il décide du réglage, il ne le commente pas.
+
+Absente des sessions nommées, pour la raison déjà retenue pour l'arrêt du jeu à
+la fermeture : c'est une habitude de celui qui joue, pas une description de son
+environnement de jeu. Et le mode étant un argument de démarrage de scrcpy, le
+changer rouvre les fenêtres, comme la qualité et la distance.
+
+### Le remède le plus donné, qui manquait
+
+Deux personnes le donnent l'une après l'autre, et c'est lui qui débloque le cas
+rapporté : le bouton **« Révoquer les autorisations de débogage USB »**, puis
+rebrancher et accepter de nouveau.
+
+La fiche disait déjà d'éteindre et rallumer le mode développeur, ce qui produit
+le même effet par un chemin plus long. Le bouton, lui, n'était nommé nulle part.
+Il passe donc devant, avec le chemin de menu de la marque détectée.
+
+### Et l'autre chemin, que notre fiche affaiblissait
+
+La personne au clic mort a fini par s'en sortir, et a dit exactement comment,
+sur un Redmi Note 13 Pro :
+
+> J'ai juste tout désactiver (j'ai débranché mon téléphone du pc avant) → le
+> débogage USB, l'installation par USB et le débogage USB (paramètres de
+> sécurité) puis j'ai redémarré mon téléphone et j'ai tout réactiver une fois
+> mon téléphone redémarré puis je l'ai branché à mon pc en passant mon
+> téléphone en transfert de fichiers
+
+Notre fiche en donnait une version affaiblie sur trois points : elle ne disait
+pas de débrancher d'abord, elle ne parlait que de la bascule des options de
+développement au lieu des trois interrupteurs, et surtout **elle ne parlait pas
+du redémarrage**. C'est pourtant lui qui fait la différence : les rallumer sans
+lui laisse le réglage coché sans être appliqué, ce que la fiche décrivait déjà
+comme symptôme sans donner le geste qui le lève.
+
+Le texte porte maintenant la séquence dans son ordre. Le remède court, la
+révocation, reste devant ; celui-ci vient après, comme une escalade.
+
+**Ce qui n'entre pas :** le lancement en administrateur, que la même personne
+cite dans la foulée. DT Hub ne demande jamais d'élévation, c'est une limite du
+projet, et rien dans ADB ne l'exige pour une liaison USB ou sans fil.
+
+### Ce que cette fournée confirme sans rien changer
+
+Le verdict d'un utilisateur avancé sur le produit concurrent : « pour un
+utilisateur avancé il n'y a pas vraiment de gain de performance, c'est surtout
+du confort si tu pars de rien ». La valeur est dans la mise en route et le
+dépannage, pas dans le moteur.
+
+Et le cloneur que le salon se recommande se télécharge en APK sur un agrégateur.
+Une personne n'y retrouve pas son jeu du dossier sécurisé. Créer de vrais
+profils reste le bon choix.
+
+## D109 - Voir la chaleur, qui est la vraie limite du multicompte
+
+Le deuxième apport du salon d'entraide concurrent, après le clavier de D108.
+Plusieurs personnes décrivent la même chose : « dès que le SoC dépasse 65 °, il
+coupe le multitâche et demande d'attendre que ça refroidisse ». Leurs remèdes
+sont exactement nos réglages, brider les images par seconde et baisser la
+définition, compte par compte.
+
+C'est une panne de la même famille que le refus d'injection de D107 : rien
+n'échoue, tout ralentit, et rien ne le dit. Le journal n'en portait pas trace.
+
+### Ce qu'on lit, et ce qu'on ne lit pas
+
+`dumpsys thermalservice`. Le verdict est `Thermal Status`, l'échelle de zéro à
+six que tout Android expose depuis la version 10, donc portable. À partir de
+deux, le système bride assez pour que cela se voie ; à partir de trois, le
+bridage est lourd.
+
+Les températures nommées ne servent qu'au journal, et pour une raison mesurée :
+sur le téléphone de référence, le processeur affichait **84,2 °** alors que
+l'état valait zéro et que rien n'était bridé. Un tel nombre dans un message
+d'interface alarmerait pour rien.
+
+### Deux relevés, et le premier est faux
+
+La sortie donne la température de surface **deux fois**, et prendre la première
+aurait mis un chiffre faux dans le journal :
+
+```
+Cached temperatures:
+        Temperature{mValue=48.517, mType=3, mName=SKIN}     ← périmé
+Current temperatures from HAL:
+        Temperature{mValue=34.351, mType=3, mName=SKIN}     ← l'instant
+```
+
+Quatorze degrés d'écart. La lecture cherche donc à partir de la section
+courante, et retombe sur la lecture unique quand une version d'Android ne
+sépare pas les deux.
+
+### Ce qui borne le coût
+
+La question coûte entre 0,28 et 0,53 seconde, mesuré trois fois. Le panneau
+sonde jusqu'à deux fois par seconde. Deux garde-fous, donc : la lecture est
+gardée une minute par appareil, et elle n'est posée que pour les appareils qui
+**portent une fenêtre ouverte**. Un téléphone posé sur la table ne chauffe pas.
+
+L'avertissement rejoint le bandeau qui porte déjà les incidents de découverte et
+de balayage. Aucun endroit nouveau : c'est là qu'on regarde quand ça va mal.
+
+### Éprouvé sur l'appareil, et ce que l'épreuve a révélé
+
+Android offre un forçage réversible, `cmd thermalservice override-status`. La
+chaîne complète a été jouée avec :
+
+```
+override-status 3   →  IsStatusOverride: true, Thermal Status: 3
+journal             →  « L'appareil se bride : état thermique 3, surface 33.785 °C »
+reset               →  IsStatusOverride: false, Thermal Status: 0
+```
+
+La température journalisée est bien celle de l'instant, ce qui vérifie du même
+coup la lecture des deux sections.
+
+L'épreuve a montré un défaut que la relecture n'avait pas vu : **vingt lignes
+identiques en une minute**. L'état était relu à chaque balayage, et journalisé à
+chaque fois. Le cache épargnait l'aller-retour ADB, pas le journal. La ligne ne
+paraît désormais qu'au changement d'état.
+
+La correction a été rejouée sur l'appareil, en faisant varier l'état forcé :
+
+```
+override-status 3   →  20:30:27  « état thermique 3, surface 34,279 °C »
+                       (rien pendant les deux minutes suivantes)
+override-status 4   →  20:32:28  « état thermique 4, surface 35,107 °C »
+reset               →  plus rien
+```
+
+Deux lignes pour deux états, là où la version d'avant en écrivait vingt par
+minute. Le décalage de deux minutes entre le forçage et la ligne est celui du
+cache d'une minute, et il est voulu.
+
+## D110 - La nature d'une étape traversait le pont, et on la jetait
+
+Deux demandes d'un coup. La première a tenu, la seconde s'est révélée déjà
+satisfaite, et le correctif écrit pour elle a été retiré.
+
+### Le résumé qui n'apprenait rien
+
+Chaque étape d'un guide était résumée par `QuestStepSummary.Of`, et ce résumé
+paraissait aux deux endroits qui montrent une étape : le bandeau, à côté du
+rang, et chaque ligne de la liste où l'on choisit son rang.
+
+Sur un guide de quête, ce résumé est une ligne de prose tronquée posée sous le
+rang, alors que la page porte le paragraphe entier juste au-dessus. Il ne dit
+donc rien de plus, et le rang suffit à s'y rendre.
+
+Reste ce qui n'est pas de la prose et qui situe vraiment : le départ d'une
+quête, composé des **métadonnées** du site et non de son texte, et les titres de
+section d'une fiche de donjon, de raid, de tanière ou de chemin.
+
+### Un titre résumé gagnait un point qu'il n'avait pas demandé
+
+Un titre de section ne porte ni verbe d'ordre, ni coordonnées, ni nom de
+personnage. Il traversait donc les trois recours du résumé jusqu'au plus
+grossier, `Shortened`, qui le capitalise **et lui ajoute un point final** :
+
+```
+« Les salles »  ->  « Les salles. »
+```
+
+Garder les titres supposait donc de cesser de les résumer, pas de mieux les
+résumer.
+
+### La nature était connue, en JavaScript, et jetée à la ligne suivante
+
+`quest-bridge.js` sait de quel régime vient chaque étape : `sections()` pour les
+titres de second rang et les entrées de sommaire, les paragraphes de premier
+niveau pour les consignes. Ces deux branches sont à dix lignes l'une de
+l'autre. Et le message postait :
+
+```js
+steps: steps().map(function (s) { return s.text; })
+```
+
+Des chaînes nues. La fenêtre devait donc redeviner ce que le pont venait
+d'oublier de dire.
+
+**Les indices côté C# existaient, et ils mentaient.** `_currentDungeon` et
+`_currentPath` face à `_current` distinguent le type de page, mais un chemin a
+des titres pour étapes alors que son drapeau de départ est faux ; et
+`_startsAtDeparture` fusionne le bloc de départ d'une quête avec les pages de
+lieu, à cause d'un `||` dans le pont. Deviner ici aurait reproduit exactement ce
+que le dépôt refuse ailleurs.
+
+Chaque étape porte donc sa nature, et `QuestStepLabel` en tire trois issues : le
+départ, le titre tel quel, ou rien.
+
+### La décision est dans le noyau, où elle s'éprouve
+
+Les épreuves n'atteignent pas la couche d'interface, qui n'a aucune référence de
+projet vers elle : c'est pourquoi aucun `ViewModel` n'est éprouvé. La décision
+d'affichage vit donc dans `DtHub.Core`, comme `StartupPresence` et
+`ShortcutPlacement` avant elle, et la fenêtre ne garde que le calcul du rang.
+
+`QuestStepSummary.Of` perd son dernier appelant de production. Il est annoté et
+conservé avec ses dix-neuf épreuves plutôt que démantelé dans la foulée : les
+deux points d'entrée partagent leur machinerie, et `OfStart` sert toujours au
+départ d'une quête.
+
+### Le départ était compté comme une étape
+
+Le bandeau annonçait « Étape 1 / 2 » sur un guide qui ne porte qu'une seule
+consigne. Le compte n'était pas faux, il comptait juste une chose qui n'en est
+pas une : la ligne de départ occupe la position zéro de la liste des étapes,
+donc elle entrait dans le total.
+
+Mesuré sur le corpus des sept cent quatre-vingt-deux guides : **cent
+quatre-vingt-deux** n'ont qu'une consigne, et affichaient donc « / 2 » pour un
+parcours d'un seul pas ; **trente** n'en ont aucune, et affichaient « Étape
+1 / 1 » pour un guide qui ne demande que de se rendre quelque part.
+
+Le départ n'est pas une étape du parcours, c'est son point de lancement. Il
+reste affiché, l'utilisateur l'a tranché, mais il cesse d'être compté :
+`QuestStepLabel.Numbering` décale l'origine quand un départ ouvre la liste, et
+rend `null` sur le départ lui-même, qui porte alors le mot « Départ » à la place
+d'un rang.
+
+```
+avant   Départ « Étape 1 / 2 »      consigne « Étape 2 / 2 »
+après   Départ « Départ »           consigne « Étape 1 / 1 »
+```
+
+**Deux colonnes, deux libellés.** Le bandeau a la place d'écrire « Étape 2 / 5 »,
+la colonne de gauche de la liste dépliable fait vingt-six pixels et n'a la place
+que du nombre. `StepRank` sert le premier, `StepNumber` le second, et la ligne
+de départ y reste vide plutôt que d'y porter un zéro.
+
+### Le mode sombre : un correctif retiré parce qu'il ne corrigeait rien
+
+Le site a son propre mode sombre, un greffon écrit pour lui,
+`papycha-dark-mode` 1.3.3, configuré ainsi :
+
+```json
+{"defaultMode":"system","remember":"1","followSystem":"1","storageKey":"papycha_dark_mode"}
+```
+
+`defaultMode: "system"` veut dire qu'il suit `prefers-color-scheme` tout seul.
+Comme `CoreWebView2.Profile` n'était atteint nulle part dans le dépôt,
+`PreferredColorScheme` valait `Auto`, et les pages paraissaient claires alors
+que Windows était en sombre. La déduction semblait faite : `Auto` n'était pas
+honoré. Un lecteur du thème de Windows et une déclaration explicite ont donc été
+écrits.
+
+**Deux faits ne font pas un diagnostic.** Mesuré dans la page, sous `Auto` :
+
+```
+sombre: true, classe: "papycha-dark", stocke: null
+```
+
+`prefers-color-scheme` valait bien `dark`, la classe du greffon était bien posée,
+et aucun choix n'était enregistré. Autrement dit : **la page était déjà sombre**,
+`Auto` faisait déjà exactement ce qu'on lui demandait, et le correctif
+reproduisait à la main ce que le moteur faisait tout seul, avec une lecture de
+registre par navigation en plus.
+
+Tout a été retiré, lecteur de thème compris. C'est la règle de D93, appliquée à
+soi-même : une adaptation qui ne gagne pas sa place s'en va, même écrite.
+
+Ce qui reste à savoir est ce que l'utilisateur a réellement vu de clair, et cela
+demande de le lui demander plutôt que de le deviner une seconde fois.
+
+### Ce qui n'est pas fait
+
+**Aucune couleur imposée aux pages.** C'est le site qui se peint, avec son mode
+sombre, et il le fait déjà bien. Le seul script qui impose des couleurs reste
+celui du formulaire de signalement.
+
+**`QuestStepSummary.Of` n'est pas démantelé.** Il perd son dernier appelant de
+production et reste annoté, avec ses dix-neuf épreuves : les deux points
+d'entrée partagent leur machinerie, `OfStart` sert toujours au départ d'une
+quête, et le tri mérite d'être fait à part plutôt qu'à la veille d'une livraison.
+
+### Éprouvé à l'écran
+
+La fenêtre des guides s'ouvre sans clic par la visibilité mémorisée dans les
+réglages, la page se joint par l'adresse mémorisée, et les réglages sont
+rétablis ensuite.
+
+```
+guide de quête   « Étape 1 / 4 »                    et rien d'autre
+raid             « Étape 1 / 3 »  « La salle »      sans point ajouté
+une consigne     « Départ »                         et non plus « / 2 »
+```
+
+Le défaut des deux guides, lui, ne s'éprouve pas à l'écran mais par une épreuve
+nommée sur `QuestStepLabel`, et c'est tout l'intérêt d'avoir sorti la décision de
+la fenêtre.
+
+Un point reste hors de portée, faute de pouvoir cliquer : la liste dépliable
+réduite à ses numéros.
+
+## D111 - Une sortie de secours vers la recherche du site
+
+Notre catalogue ne connaît que des **titres** : ceux des quêtes, des zones, des
+succès, des donjons et des chemins. C'est un choix mesuré, écrit dans
+`QuestSummary` : indexer le corps des articles coûterait vingt-deux mégaoctets
+et trente fois plus de transfert, pour une information qu'on obtient
+gratuitement en ouvrant la page.
+
+Le revers ne s'était jamais dit à l'écran. Chercher un objet, un monstre ou un
+personnage ne donne rien chez nous, alors que le site le trouve : sa recherche
+lit le corps de ses articles. Mesuré sur « dofus ocre », deux cent huit pages
+plausibles chez lui, zéro chez nous.
+
+Le lien paraît donc dès qu'on cherche quelque chose, et disparaît quand le champ
+est vide.
+
+**Il a d'abord paru sur un retour à la ligne, et c'était une erreur.** Le
+raisonnement se tenait, un retour dit qu'on a fini de taper et qu'on attend
+quelque chose ; mais l'écran qui avait le plus besoin de cette issue était
+justement celui qui ne l'avait pas. Un utilisateur tape « ocre », lit « Aucun
+résultat », et n'a rien devant lui : ni lien, ni indication que le site trouve
+deux cent huit pages. Une impasse, dans le seul cas où ce lien existe.
+
+Le déclencheur est donc la recherche elle-même. L'offre suit le texte tapé mot à
+mot, ce qui la rend incapable de s'écarter de ce qu'on cherche.
+
+### Pourquoi le vrai navigateur, et pas nos fenêtres
+
+Une page de résultats n'est pas un guide. Elle n'a ni étapes, ni chaîne, ni bloc
+d'intro, et notre cadrage, qui garde `.entry-content` et masque le reste, n'en
+laisserait qu'une colonne de liens sans en-tête ni pagination. Le navigateur la
+rend telle que le site l'a conçue.
+
+### Pourquoi une ligne à part
+
+La barre du bas porte déjà trois éléments, et son commentaire dit ce qu'il
+advient d'un quatrième : « Trois libellés écrits ne tenaient pas ensemble dans
+une fenêtre étroite, et le crédit tombait à "Guide…" ». Le lien a donc sa propre
+ligne, au-dessus, où il ne concurrence personne. Elle ne paraît que lorsqu'il y
+a quelque chose à chercher.
+
+L'adresse est bâtie dans `PapychaSite`, avec le reste de ce qui appartient au
+site, et elle franchit son propre contrôle d'appartenance : c'est éprouvé.
+
+## D112 - L'Almanax de Touch n'est pas celui de DOFUS
+
+Afficher l'Almanax du jour dans l'application. La fonction tient en une page
+affichée ; tout le travail a été de trouver **laquelle**, parce qu'une offrande
+fausse coûte une journée de quête à qui la suit, et que la page la plus évidente
+est la mauvaise.
+
+### Les deux jeux n'ont pas le même calendrier
+
+Mesuré le 10 septembre 2026, sur la même page officielle selon son filtre :
+
+```
+DOFUS         1 Aile de dragodinde
+DOFUS Touch   1 Dent de Dragodinde
+```
+
+Le 11, Touch demande « 2 Corne de Dragoeuf Guerrier ». Ce ne sont pas les mêmes
+objets, et rien à l'écran ne dit lequel des deux calendriers on regarde.
+
+### Aucune API ne sert Touch
+
+Sondé, `api.dofusdu.de` ne répond que pour un jeu :
+
+```
+dofus3      200
+dofus2      400
+dofustouch  302   route inconnue, redirigée vers la documentation
+touch       302
+retro       302
+```
+
+Les bibliothèques du milieu grattent toutes le même portail, sans son filtre, et
+rendent donc l'Almanax de DOFUS. La seule application dédiée à Touch, Almafus, a
+quitté le Play Store en 2024.
+
+### Lire le calendrier depuis le téléphone : essayé, et mort
+
+Le client Touch n'est pas un jeu natif : c'est une enveloppe Cordova qui
+télécharge ses actifs. L'hypothèse était qu'ils soient lisibles par l'ADB, comme
+les icônes d'application le sont déjà. Sondé sur un appareil réel :
+
+| Sonde | Réponse |
+| :-- | :-- |
+| `/sdcard/Android/data/com.ankama.dofustouch/files` | vide |
+| `.../cache` | vide |
+| `/sdcard/Android/obb/com.ankama.dofustouch/` | n'existe pas |
+| Tout fichier `*ankama*` ou `*dofus*` sur `/sdcard` | aucun |
+| Taille de l'APK | 14,8 Mo, donc les données n'y sont pas non plus |
+| `/data/data/com.ankama.dofustouch/` | `Permission denied` |
+| `run-as com.ankama.dofustouch` | `package not debuggable` |
+| `su`, `ro.debuggable` | absent, `0` |
+
+Le gigaoctet d'actifs vit dans le stockage interne, verrouillé. Ce n'est pas
+propre à un appareil : c'est vrai de tout téléphone non rooté. La piste est
+close, et elle l'est avant qu'une ligne de code en dépende.
+
+### Le tort que j'ai eu, et ce qui l'a corrigé
+
+J'ai d'abord conclu qu'Ankama ne publiait pas l'Almanax de Touch sur le web, et
+que le portail ne couvrait que DOFUS et WAKFU. **C'était faux.** L'outil de
+lecture que j'employais recevait un 403 du portail, j'ai lu la page par une
+description de seconde main, et j'ai pris cette description pour la page.
+
+Relue en entier, la page porte ceci :
+
+```html
+<li><a href="?game=dofustouch">Dofus Touch</a></li>
+```
+
+La leçon n'est pas nouvelle dans ce dépôt, mais elle s'est répétée : **une
+absence constatée par un outil qui échoue n'est pas une absence.** Le 403 était
+une information sur mon outil, pas sur le site.
+
+### Le filtre va dans l'adresse, pas dans la session
+
+Le portail retient le choix de jeu en session. S'en remettre à ce témoin ferait
+afficher l'Almanax de DOFUS à la première ouverture, sur une machine neuve :
+l'offrande d'un autre jeu, sans que rien ne le dise. L'adresse porte donc
+toujours `?game=dofustouch`, et une épreuve le garde pour les trois langues.
+
+Le chemin suit la langue de l'application. Le portail publie en huit langues,
+l'application en parle trois, et une épreuve vérifie que chacune des trois a bien
+son chemin plutôt que de retomber en silence sur l'anglais.
+
+### On lit la page, on ne la montre pas
+La page du portail est une page de bureau entière : décor, protecteur du mois,
+signe du zodiaque, Rubrikabrax, et leurs textes d'ambiance. Une seule question
+s'y pose vraiment, « qu'est-ce que j'apporte aujourd'hui », et il faut la
+chercher au milieu du reste.
+Le moteur charge donc la page, un script en tire quatre champs, et la fenêtre
+les dessine elle-même : l'offrande en tête, le bonus ensuite, la quête et le
+Méryde en repères. Le lecteur est un WebView2 de hauteur nulle, présent dans
+l'arbre pour rester éveillé mais sans rien occuper.
+**C'est de la lecture, pas du grattage.** La page est chargée par le moteur du
+poste, à la demande de la personne qui l'ouvre, et rien n'en sort : les
+journées lues tiennent en mémoire le temps de la session et disparaissent avec
+elle. Aucune requête automatisée, aucun contournement de protection, aucune
+copie conservée. Le bouton « ouvrir dans le navigateur » reste là pour qui veut
+la page entière et son décor.
+**Le script ne touche à rien.** Il lit et il poste. Aucune couleur imposée,
+aucun élément masqué, aucun clic simulé.
+### Le garde-fou : le bloc doit se nommer
+Le portail sert les deux jeux sur la même page, et l'Almanax de DOFUS demande
+d'autres objets. Le titre du bloc porte le nom du jeu dans les trois langues, à
+des places différentes :
+```
+fr  Bonus et Quêtes DOFUS Touch
+en  DOFUS Touch bonuses and quests
+es  Bonus y misiones DOFUS Touch
+```
+On cherche donc le nom n'importe où dans le titre, et **on refuse tout le
+reste** : sans nom de jeu reconnu, la fenêtre dit qu'elle n'a pas pu lire
+plutôt que d'afficher une offrande. Mieux vaut ne rien montrer que faire courir
+quelqu'un après le mauvais objet.
+Le script choisit aussi le bloc par son nom, et non le premier venu : sans
+filtre, la page porte un bloc par jeu et celui de DOFUS vient en tête.
+### Lire sans énumérer les langues
+Trois tournures relevées le même jour :
+```
+fr  Récupérer 1 Dent de Dragodinde et rapporter l'offrande à Théodoran Ax
+en  Find 1 Dragoturkey Tooth and take the offering to Antyklime Ax
+es  Recolectar 1 Diente de dragopavo y llevárselo a Ontoral Zo
+```
+Le verbe change, le personnage change, et jusqu'à son nom. Ce qui ne change pas
+est la forme : un nombre, puis l'objet, puis une conjonction. C'est sur cette
+forme qu'on lit. Les intitulés, eux, se coupent au deux-points, présent dans
+les trois langues.
+Quand la phrase ne se laisse pas lire, **rien ne casse** : la fenêtre affiche
+la phrase entière, qui dit déjà quoi faire. On ne perd que la mise en avant.
+### La bande des jours, en tête
+Un Almanax se prépare : savoir ce qu'il faudra demain permet de l'avoir en
+poche. Sept jours, l'horizon que le portail propose lui-même. La bande suit le
+jour choisi plutôt que de rester sur aujourd'hui, faute de quoi avancer d'une
+semaine laissait la bande derrière et le jour affiché n'y était plus marqué.
+Aujourd'hui reste repérable même quand on regarde ailleurs, et le retour ne se
+propose que lorsqu'on s'en est écarté.
+Le calendrier est fixe : une journée lue ne changera plus. Elles sont donc
+retenues en mémoire le temps de la session, ce qui rend la bande utilisable au
+lieu d'imposer une seconde d'attente par jour.
+### La touche est dans DT Hub, pas dans les guides
+Elle était d'abord au bas de la fenêtre des guides. C'était une erreur de
+rangement : cette fenêtre est celle d'un autre site, et l'Almanax n'est pas une
+quête du catalogue. Elle est maintenant à côté de « Guides » dans le pied de la
+fenêtre principale, où vivent les deux touches qui ouvrent quelque chose à
+lire. Un calendrier dessiné et non un logo : la page vient d'Ankama, dont nous
+n'affichons aucune marque.
+### Deux inconnues levées par une sonde
+Un WebView2 de hauteur nulle charge-t-il vraiment la page, et son script
+s'exécute-t-il ? Les repères tiennent-ils sur la page réelle ? Ni l'un ni
+l'autre ne se devine, et ni l'un ni l'autre ne s'éprouve depuis les tests, qui
+n'atteignent pas la couche d'interface.
+`build/sonde-almanax` monte donc le même montage, hauteur nulle comprise, et
+imprime ce que le pont poste. Relevé sur deux jours :
+```
+10 septembre   1 Dent de Dragodinde        Élevage de Dragodindes
+11 septembre   2 Corne de Dragoeuf Guerrier Butin
+```
+Les deux correspondent à ce qu'un calendrier communautaire dédié à Touch
+annonce, et le second m'a confirmé que la bande change bien de jour.
+### Ce qui n'est pas fait
+**Aucune donnée copiée hors session.** Pas de table des 366 jours embarquée,
+pas de relevé gardé sur le disque. C'est la page qui fait foi qui est lue, donc
+rien ne peut se périmer en silence, et rien d'Ankama n'est redistribué.
+**Aucune image.** L'offrande porte une icône d'objet sur le portail. Elle n'est
+pas reprise : c'est une ressource d'Ankama, et la règle du dépôt lui vaut,
+même chargée à la volée.
+**Aucune requête automatisée.** Le portail répond 403 aux outils qui se
+présentent comme tels, et les bibliothèques du milieu passent outre avec
+`cloudscraper`. Une fenêtre qui charge une page à la demande d'une personne est
+un lecteur, pas un contournement.

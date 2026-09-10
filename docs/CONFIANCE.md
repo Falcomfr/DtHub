@@ -60,24 +60,61 @@ autonome, et les moteurs la connaissent, mais elle compte dans un score.
 
 ## Ce qu'il reste à faire, par ordre d'effet
 
-### 1. Signer, ce qui règle l'essentiel
+### 1. Signer, ce qui aide, mais pas comme on le croit
 
-Trois routes, à vérifier chez le fournisseur car les conditions changent :
+**Aucun certificat ne fait taire SmartScreen le premier jour.** C'est la
+première chose à savoir, et elle contredit ce que vendent encore la plupart des
+revendeurs. Vérifié en septembre 2026.
 
-**Azure Trusted Signing**, chez Microsoft. La moins chère, de l'ordre de dix
-euros par mois, sans jeton matériel puisque la clef reste chez eux. Elle demande
-une identité vérifiée ; pour un particulier, un historique vérifiable de
-plusieurs années est exigé. C'est la route à regarder en premier.
+Le certificat EV a longtemps accordé la réputation d'emblée. Microsoft a changé
+ce comportement en mars 2024 : EV reste le certificat de plus haut niveau de
+vérification, exigé pour les pilotes, mais il n'achète plus le silence de
+SmartScreen. Payer le supplément pour cette seule raison n'a plus de sens.
 
-**Un certificat OV** chez une autorité de certification. De l'ordre de deux à
-quatre cents euros par an, livré sur un jeton matériel ou dans un coffre en
-nuage depuis que les clefs logicielles ne sont plus admises. La réputation
-SmartScreen se construit ensuite, sur quelques semaines et quelques centaines de
-téléchargements.
+Ce que la signature achète vraiment, et qui vaut le prix :
 
-**Un certificat EV**, plus cher, qui accorde la réputation SmartScreen dès la
-première signature. C'est le seul moyen de n'avoir aucun avertissement le
-premier jour.
+- le nom de l'éditeur à la place d'« Éditeur inconnu » dans l'avertissement ;
+- une réputation qui **s'accumule d'une version à l'autre** au lieu de repartir
+  de zéro à chaque livraison, ce qui est le sort d'un binaire non signé.
+
+Trois routes, à revérifier chez le fournisseur car les conditions bougent vite.
+
+**SignPath Foundation, gratuit, et c'est la route à regarder en premier.** Elle
+signe gratuitement les projets libres, avec des certificats Sectigo de niveau OV.
+Son mécanisme est plus exigeant que l'achat d'un certificat, et c'est ce qui en
+fait la valeur : elle vérifie que le binaire a bien été bâti depuis le dépôt
+public, et engage son nom là-dessus.
+
+Deux conditions bloquent aujourd'hui, et toutes deux figurent déjà dans ce qui
+reste à faire : le dépôt doit être **public**, et le projet doit **déjà avoir une
+livraison** dans la forme à signer. La licence MIT convient. L'examen du dossier
+prend de quelques jours à quelques semaines.
+
+Un point à vérifier sur leurs conditions avant de s'engager : l'éditeur affiché
+est celui de la fondation, qui se porte garante du projet, et non « Falcomfr ».
+C'est un choix, pas un détail.
+
+Les deux autres routes, payantes :
+
+**Azure Artifact Signing**, chez Microsoft, renommé en 2026 et anciennement
+Trusted Signing. Environ dix dollars par mois pour cinq mille signatures, sans
+jeton matériel puisque la clef reste chez eux. Ouvert aux entreprises et aux
+**indépendants** vérifiés de l'Union européenne, du Royaume-Uni, des États-Unis
+et du Canada : c'est la première condition à vérifier, un particulier sans
+statut n'y entre pas. Comptez quelques jours ouvrés de vérification d'identité.
+
+Une réserve sérieuse, relevée en 2026 : Microsoft fait tourner ses autorités
+intermédiaires, et plusieurs utilisateurs voient l'avertissement SmartScreen
+réapparaître à chaque livraison parce que la nouvelle autorité n'a pas encore de
+réputation. La réputation d'un binaire signé chez eux n'est donc pas acquise une
+fois pour toutes.
+
+**Un certificat OV ou EV** chez une autorité de certification. De deux cent
+cinquante à six cents dollars par an, sur jeton matériel ou dans un coffre en
+nuage, les clefs logicielles n'étant plus admises. Depuis février 2026, la
+validité est plafonnée à un an, ce qui rend le renouvellement annuel obligatoire.
+La réputation se construit ensuite, sur quelques semaines et quelques centaines
+de téléchargements.
 
 Une fois le certificat obtenu, rien à changer dans le dépôt : poser un secret
 `SIGNING_COMMAND` sur le dépôt GitHub, contenant la ligne de signature complète

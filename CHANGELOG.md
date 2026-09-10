@@ -7,6 +7,140 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ## [Non publié]
 
+## [0.2.0] - 2026-09-09
+
+Vingt et une décisions depuis la 0.1.0. Le fil conducteur : rendre visibles les
+pannes qui ne disaient rien.
+
+### Ajouté
+
+- **Tester la simulation d'entrée**, dans la fiche « La souris ne fait rien ».
+  C'était le symptôme le plus fréquent du terrain et le seul entièrement muet :
+  l'image passe, la fenêtre s'ouvre, le clic ne fait rien, et il n'y a aucune
+  erreur parce qu'il n'y a aucune faute. ADB accepte d'afficher, pas d'injecter.
+  Un bouton pose la question à l'appareil et rend l'un de trois verdicts, dont
+  « je n'ai pas su dire » : se tromper de diagnostic coûterait plus cher que de
+  n'en donner aucun.
+
+- **Un avertissement quand l'appareil chauffe.** C'est la limite qui mord en
+  premier sur une tablette à plusieurs comptes, et elle est silencieuse comme la
+  précédente : rien n'échoue, tout ralentit. L'état thermique est lu une fois par
+  minute, et seulement sur les appareils qui portent une fenêtre ouverte.
+
+- **Le clavier physique simulé**, en option. Le clavier virtuel de certaines
+  marques avale les caractères : la fenêtre répond à la souris et rien ne
+  s'écrit. Décoché d'origine, parce qu'un clavier physique est lu selon la
+  disposition réglée dans Android : mal réglée, un AZERTY tape en QWERTY.
+
+- **Le bouton « Révoquer les autorisations de débogage USB »** dans la fiche de
+  souris, avec le chemin de menu de la marque détectée.
+
+- **Le logo de papycha.fr** sur le bouton des guides et dans la fenêtre de
+  guides, avec leur accord.
+
+- **Le bouton Profils dit quand un profil est actif.** Il fallait ouvrir la bulle
+  pour savoir lequel servait.
+
+- **Un lien vers la recherche du site**, en bas de la fenêtre des guides, dès
+  qu'on cherche quelque chose. Notre catalogue ne connaît que des titres ; le
+  site cherche dans le corps de ses articles, donc les objets, les monstres et
+  les personnages. « ocre » n'y donne rien et lui en trouve deux cent huit. Le
+  lien ouvre sa recherche dans votre navigateur.
+
+
+### Modifié
+
+- **L'application s'ouvre tout de suite.** Le panneau paraissait après le
+  lancement des sessions, soit plusieurs secondes d'écran vide où l'on croyait
+  qu'elle n'avait pas démarré.
+
+- **Le débit se calcule au lieu d'être fixé par palier.** L'échelle était à
+  l'envers : le palier maximal recevait 0,016 bit par pixel contre 0,090 pour le
+  palier bas, et rendait donc une image plus grossière en mouvement, l'inverse de
+  ce qu'il promet. Le débit suit maintenant la définition et la cadence
+  réellement retenues.
+
+- **Un tampon d'affichage adapté à la liaison.** Mesuré sur une liaison que rien
+  ne saturait, la latence allait de 4 à 223 millisecondes. Le tampon échange
+  cette irrégularité contre un retard constant, de 0 en USB à 60 au pire.
+
+- **Le bridage selon la bande passante est retiré.** Il coûtait de la netteté
+  sans rien gagner : la bande passante n'a jamais été le facteur limitant.
+
+- **Un profil cloné est demandé en priorité**, et l'on prévient quand le
+  téléphone n'en accorde pas : un profil professionnel amène trois cent
+  cinquante-neuf applications et des icônes à valise, là où un cloné en amène
+  vingt-deux.
+
+- **Fermer une fenêtre arrête aussi le jeu sur le téléphone.** Un compte fermé
+  gardait deux cent vingt mégaoctets et sa connexion aux serveurs, et les oubliés
+  s'accumulaient d'un lancement à l'autre.
+
+- **Le bloc d'état de la connexion ne paraît que s'il a quelque chose à dire.**
+  Il annonçait « aucun téléphone connecté » quand rien n'était branché, ce qui
+  est normal et n'a pas à s'afficher.
+
+- **Les étapes d'un guide ne sont plus résumées.** Le bandeau et la liste des
+  rangs portaient une ligne de prose tronquée alors que la page a le paragraphe
+  entier juste au-dessus. Le rang suffit à s'y rendre. Ce qui reste est ce qui
+  situe vraiment : le départ d'une quête, composé des métadonnées du site, et
+  les titres de section d'une fiche de donjon, de raid, de tanière ou de chemin,
+  désormais rendus tels quels. Le résumé leur ajoutait un point final :
+  « Les salles » s'affichait « Les salles. »
+
+- **L'Almanax du jour, dans DT Hub.** Une touche à côté de « Guides » ouvre une
+  fenêtre qui dit ce qu'il faut apporter aujourd'hui, avec une bande de sept
+  jours en tête pour préparer les suivants. L'information est lue sur le portail
+  d'Ankama, filtré sur DOFUS Touch : le calendrier de DOFUS n'est pas le même, il
+  demandait « 1 Aile de dragodinde » le 10 septembre 2026 quand Touch demandait
+  « 1 Dent de Dragodinde ». La page n'est pas affichée telle quelle mais réduite
+  à l'offrande, au bonus, à la quête et au Méryde. Rien n'est conservé après la
+  session, et si le bloc lu n'est pas celui de DOFUS Touch, la fenêtre le dit au
+  lieu d'afficher une offrande.
+
+- **L'ordre des onglets va du concret au réglage** : Appareils, Fenêtres,
+  Raccourcis.
+
+### Corrigé
+
+- **Rompre l'association rompt vraiment.** L'appareil restait affiché, revenait
+  au balayage suivant et survivait à un redémarrage. Trois causes : le balayage
+  le réinscrivait dans le geste même qui le retirait, aucune connexion ADB
+  n'était coupée, et rien ne gardait mémoire de la rupture. Le registre retient
+  maintenant les appareils écartés, et seule une nouvelle association lève la
+  marque.
+
+- **La fenêtre de jeu ne saute plus à l'ouverture.** Elle naissait onze pixels à
+  gauche et quarante-cinq au-dessus de sa place, puis on la recalait sous les
+  yeux : les coordonnées données à scrcpy visent la zone client, pas le cadre.
+
+- **Un compte dont le jeu a été désinstallé disparaît de la liste.** Le nettoyage
+  ne couvrait que la disparition du profil entier.
+
+- **Les étapes des guides ne retiennent plus les phrases qui n'ordonnent rien.**
+  Le garde ne regardait qu'un mot en arrière, si bien qu'un présent passait pour
+  un impératif.
+
+- **Le départ d'une quête n'est plus compté comme une étape.** Un guide qui ne
+  porte qu'une consigne annonçait « Étape 1 / 2 » : la ligne de départ, qui dit
+  où la quête se lance, entrait dans le total. Elle reste affichée et porte
+  maintenant le mot « Départ » au lieu d'un rang. Sur les 782 guides du site,
+  182 n'ont qu'une consigne et 30 n'en ont aucune.
+
+- **« Suivant » ne saute plus une quête.** Dans une liste de quêtes d'un succès,
+  l'ordre des prérequis l'emporte désormais sur la colonne du site.
+
+- **La fenêtre d'association se ferme d'elle-même** quand la connexion arrive
+  après qu'on a cessé de regarder.
+
+- **Le bouton de lancement se débloque plus tôt**, et les autres se bloquent tout
+  de suite : le verrou était pris trop tard et rendu trop tard.
+
+- **Un profil créé mais vide est repris** au lieu d'être refusé.
+
+- **L'application n'affirme plus une absence qu'elle n'a pas vérifiée.** Un profil
+  qui refuse de répondre n'est plus compté comme un profil sans le jeu.
+
 ## [0.1.0] - 2026-09-03
 
 Première version publiée.

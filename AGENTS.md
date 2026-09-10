@@ -73,12 +73,33 @@ python3 build/extract-successes.py           # relever la carte des succès de p
 dotnet.exe run --project build/sonde-papycha
 dotnet.exe run --project build/sonde-papycha -- --benir   # rebénir le relevé
 
+# Ce que le pont retient comme étapes, sur les 782 guides. Elle ne porte pas la
+# règle : elle découpe le bloc de quest-bridge.js et l'exécute tel quel, si bien
+# que ses nombres sont ceux que la fenêtre affichera. Node est un outil de
+# développement, l'application n'en dépend pas.
+node build/sonde-papycha/audit-etapes.mjs
+node build/sonde-papycha/audit-etapes.mjs "découverte d'un destin"   # une quête en particulier
+
 # Ce que l'application propose comme quête voisine, comparé au bloc de
 # progression que le site publie en pied d'article. Diagnostic, sans relevé de
 # référence : elle interroge le site à chaque fois.
 dotnet.exe run --project build/sonde-voisines
 dotnet.exe run --project build/sonde-voisines -- --lister     # nommer les écarts
 dotnet.exe run --project build/sonde-voisines -- "chevalier"  # une quête en particulier
+
+# Qui tient le clavier, et quelles fenêtres sont logées dans le cadre. Sert à
+# vérifier le mode onglets : une fenêtre arrimée ne peut jamais être au premier
+# plan, seul ce relevé dit si le focus lui parvient. En lecture seule, et à
+# garder ainsi. Un script PowerShell faisant la même chose se fait bloquer par
+# l'antivirus, ce qui avait fait renoncer à la mesure une première fois.
+dotnet.exe run --project build/sonde-focus
+dotnet.exe run --project build/sonde-focus -- --suivre 60   # n'imprimer que les changements
+
+# Ce que Windows reproche à ses périphériques USB, par le code livré. Sert à
+# vérifier qu'un défaut d'énumération se lit bien depuis un compte ordinaire :
+# c'est l'étage en dessous d'ADB, celui où un câble sans fils de données ne
+# produit aucune ligne dans « adb devices ».
+dotnet.exe run --project build/sonde-usb
 
 # Chercher ce qui se recouvre dans une page du site, cadrée comme la fenêtre
 # des guides la cadre. À coller dans la console d'un navigateur, à la largeur
