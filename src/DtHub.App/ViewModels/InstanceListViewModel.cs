@@ -398,6 +398,12 @@ public sealed partial class InstanceListViewModel : ObservableObject
     }
 
     /// <summary>Balaye les téléphones et reconstruit la liste.</summary>
+    /// <summary>Vrai si ce numéro de série est celui de l'appareil de cette instance.</summary>
+    private static bool Carries(DeviceDiscoveryResult discovery, string serial, string deviceId) =>
+        discovery.Devices.Any(d =>
+            string.Equals(d.Id, deviceId, StringComparison.Ordinal)
+            && string.Equals(d.Serial, serial, StringComparison.Ordinal));
+
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
     {
         if (IsBusy || IsReordering)
@@ -435,22 +441,24 @@ public sealed partial class InstanceListViewModel : ObservableObject
             // aussi utile à savoir qu'un appareil injoignable.
             var warnings = discovery.Warnings.Concat(_launcher.InstanceWarnings).ToList();
 
-            // Le bilan de l'appareil y a sa place pour la même raison : il
-            // ne casse rien, il dit ce qui va casser, et c'est ici qu'on
-            // regarde quand ça va mal.
             // Deux listes des mêmes faits : celle du bandeau, qui s'arrête
             // au plus grave, et celle de la bulle, qui les porte tous.
             List<string> everything = [.. warnings];
 
-            if (_launcher.HealthSummary is { Length: > 0 } health)
-            {
-                warnings.Add(health);
-            }
+            // Le bilan de chaque appareil s'affiche sous son nom, plus dans
+            // ce bandeau. Sauf pour un appareil qui n'a aucune ligne dans la
+            // liste : il n'a pas d'en-tête où loger son constat, et le perdre
+            // serait pire que de le mettre au mauvais endroit. Celui-là est
+            // nommé, puisque rien autour ne le nomme.
+            var homeless = _launcher.HealthByDevice
+                .Where(pair => !instances.Any(i => Carries(discovery, pair.Key, i.DeviceId)))
+                .Select(pair => pair.Value.Device is { Length: > 0 } named
+                    ? Strings.Format("NamedFinding", named, pair.Value.Text)
+                    : pair.Value.Text)
+                .ToList();
 
-            if (_launcher.HealthDetail is { Length: > 0 } detail)
-            {
-                everything.Add(detail);
-            }
+            warnings.AddRange(homeless);
+            everything.AddRange(homeless);
 
             ProblemIsSerious = _launcher.HealthIsSerious;
 
@@ -488,6 +496,10 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
                 view.Update(device);
                 view.SetBattery(_launcher.Batteries.GetValueOrDefault(device.Serial));
+
+                var found = _launcher.HealthByDevice.GetValueOrDefault(device.Serial);
+
+                view.SetProblems(found?.Text, found?.Serious ?? false);
             }
 
             foreach (var gone in _devices.Keys

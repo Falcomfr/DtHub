@@ -20,6 +20,14 @@ public sealed record LaunchReport(int Opened, IReadOnlyList<string> Problems)
 }
 
 /// <summary>
+/// Ce qu'un appareil a de travers, prêt à s'afficher sous son nom.
+/// </summary>
+/// <param name="Text">Les constats, un par ligne, du plus grave au plus anodin.</param>
+/// <param name="Serious">Vrai quand le premier coupera la séance au lieu de la gêner.</param>
+/// <param name="Device">Le nom lisible de l'appareil, quand on le connaît.</param>
+public sealed record DeviceFindings(string Text, bool Serious, string? Device);
+
+/// <summary>
 /// Ouvre les instances cochées, place leurs fenêtres et branche les
 /// raccourcis. C'est le seul endroit qui enchaîne ces trois choses.
 /// </summary>
@@ -568,6 +576,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
     public string? HealthDetail { get; private set; }
 
     /// <summary>
+    /// Les constats de chaque appareil, rangés par numéro de série.
+    ///
+    /// **Rangés, parce que la place du message est la moitié du message.**
+    /// Réunis dans un bandeau en bas de liste, ils se lisaient comme s'ils
+    /// parlaient du dernier appareil affiché, qui était justement celui qui
+    /// n'avait rien. Chaque constat se montre sous l'en-tête de l'appareil
+    /// qu'il concerne, et là le nom n'a plus besoin d'être répété.
+    /// </summary>
+    public IReadOnlyDictionary<string, DeviceFindings> HealthByDevice => _health;
+
+    private readonly Dictionary<string, DeviceFindings> _health = new(StringComparer.Ordinal);
+
+    /// <summary>
     /// Vrai quand le bilan porte un constat qui coupera la séance, par
     /// opposition à un qui la gênera. Décide de la couleur du sigle.
     /// </summary>
@@ -633,6 +654,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             HealthSummary = null;
             HealthDetail = null;
             HealthIsSerious = false;
+            _health.Clear();
             _loggedHeat.Clear();
             _loggedBattery.Clear();
             _loggedStorage.Clear();
@@ -685,14 +707,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
             var seen = DeviceHealth.Review(
                 heat, battery, storage, link, locked, crowded, unprepared);
 
-            // Le nom de l'appareil devant, dès qu'il y en a plusieurs. Sans
-            // lui, « Android n'a pas ce jeu dans sa liste » ne dit pas de
-            // quel téléphone il parle, et l'utilisateur va régler le mauvais.
-            // Avec un seul appareil le nom serait du bruit : les messages
-            // disent déjà « le téléphone ».
-            findings.AddRange(serials.Count > 1 && Named(discovery, serial) is { } name
-                ? seen.Select(f => f with { Message = Strings.Format("NamedFinding", name, f.Message) })
-                : seen);
+            if (DeviceHealth.Every(seen) is { } said)
+            {
+                _health[serial] = new DeviceFindings(
+                    said,
+                    seen[0].Severity == HealthSeverity.Serious,
+                    Named(discovery, serial));
+            }
+            else
+            {
+                _ = _health.Remove(serial);
+            }
+
+            findings.AddRange(seen);
         }
 
         var ordered = findings.OrderByDescending(f => f.Severity).ToList();
@@ -722,6 +749,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
             .Where(s => !string.IsNullOrWhiteSpace(s))
             .Distinct(StringComparer.Ordinal)
             .ToList();
+
+        foreach (var gone in _health.Keys.Where(s => !connected.Contains(s, StringComparer.Ordinal)).ToList())
+        {
+            _ = _health.Remove(gone);
+        }
 
         foreach (var gone in _batteries.Keys.Where(s => !connected.Contains(s, StringComparer.Ordinal)).ToList())
         {

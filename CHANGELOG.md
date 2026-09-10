@@ -80,6 +80,13 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Corrigé
 
+- **Le bilan de chaque appareil s'affiche sous son nom**, et non plus dans un
+  bandeau en bas de liste où il semblait parler du dernier appareil montré,
+  qui était justement celui qui n'avait rien. Un constat par ligne, sous
+  l'en-tête du téléphone concerné, le texte entier au survol. Le bandeau
+  garde ce qui ne vise aucun appareil, et les constats d'un appareil qui n'a
+  aucune ligne dans la liste, faute d'en-tête où les loger.
+
 - **Le bilan d'appareil ne disait pas de quel appareil il parlait.** Avec
   deux téléphones connectés, « Android n'a pas ce jeu dans sa liste » laissait
   deviner lequel des deux régler. Le nom passe devant dès qu'il y a plusieurs

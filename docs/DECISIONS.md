@@ -7027,3 +7027,33 @@ ne parte :
 ```
 ⚠ Xiaomi Mi 9T Pro : Android n'a pas ce jeu dans sa liste des applications à l'…
 ```
+
+## D129 - La place du message est la moitié du message
+
+Demande, une capture à l'appui : « on peut mettre les erreurs au bon endroit ?
+en dessous du device, qu'on sache de quoi on parle ».
+
+La capture montrait le défaut mieux qu'un long texte. Un seul avertissement,
+en bas de la liste, juste sous la ligne « Xiaomi 13T Pro — Hors ligne ». Il
+parlait du Mi 9T Pro. Tout invitait à lire le contraire.
+
+D128 avait traité le symptôme en préfixant le nom de l'appareil dès qu'il y en
+a plusieurs. C'était une rustine : le message restait au mauvais endroit, et le
+préfixe ne servait qu'à contredire ce que la position affirmait.
+
+**Chaque constat s'affiche maintenant sous l'en-tête de son appareil**, avant
+ses comptes, avec le triangle coloré selon la gravité et le texte entier au
+survol. Le nom n'a plus besoin d'être répété : il est juste au-dessus.
+
+Le bandeau du bas ne disparaît pas pour autant. Il garde ce qui ne vise aucun
+appareil, les incidents de découverte et la reprise d'une fenêtre perdue, et
+**les constats d'un appareil qui n'a aucune ligne dans la liste** : celui-là
+n'a pas d'en-tête où loger son message, et le perdre serait pire que de le
+mettre au mauvais endroit. Ceux-là seuls gardent le préfixe de D128, puisque
+rien autour d'eux ne les nomme.
+
+La demande proposait aussi un sigle seul, expliqué au survol. Refusé pour la
+troisième fois, et pour la raison de D120 : ces messages annoncent une batterie
+qui lâche ou un jeu qu'Android va geler, et un avertissement qu'il faut
+survoler pour découvrir est un avertissement que personne ne lit. Bien placé,
+le texte n'a plus besoin d'être caché.

@@ -134,6 +134,42 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
         _ => "TextMutedBrush",
     };
 
+    /// <summary>
+    /// Ce que cet appareil a de travers, un constat par ligne, ou <c>null</c>
+    /// quand il n'a rien.
+    ///
+    /// Sous son nom plutôt que dans un bandeau commun : réunis en bas de
+    /// liste, les constats semblaient parler du dernier appareil affiché.
+    /// </summary>
+    private string? _problems;
+
+    private bool _problemsAreSerious;
+
+    /// <summary>Vrai quand cet appareil a quelque chose à signaler.</summary>
+    public bool HasProblems => !string.IsNullOrEmpty(_problems);
+
+    /// <summary>Les constats, un par ligne, du plus grave au plus anodin.</summary>
+    public string Problems => _problems ?? string.Empty;
+
+    /// <summary>La couleur du sigle et du texte : rouge si la séance est en jeu.</summary>
+    public string ProblemsBrushKey => _problemsAreSerious ? "DangerBrush" : "WarningBrush";
+
+    /// <summary>Pose ce que le bilan a trouvé pour cet appareil.</summary>
+    public void SetProblems(string? problems, bool serious)
+    {
+        if (string.Equals(_problems, problems, StringComparison.Ordinal)
+            && _problemsAreSerious == serious)
+        {
+            return;
+        }
+
+        (_problems, _problemsAreSerious) = (problems, serious);
+
+        OnPropertyChanged(nameof(HasProblems));
+        OnPropertyChanged(nameof(Problems));
+        OnPropertyChanged(nameof(ProblemsBrushKey));
+    }
+
     /// <summary>Pose la dernière lecture, et prévient l'affichage.</summary>
     public void SetBattery(BatteryReading? battery)
     {
