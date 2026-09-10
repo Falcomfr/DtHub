@@ -6517,3 +6517,76 @@ l'outil officiel d'Android puis en le remettant :
 override-status 2  ->  triangle jaune, « L'appareil chauffe et commence à se brider. Fermez un compte, ou descen… »
 override-status 4  ->  triangle rouge, « L'appareil est trop chaud et se bride lourdement. Fermez un compte ou de… »
 ```
+
+## D121 - Le niveau de batterie, et pas seulement son alerte
+
+L'application lisait la batterie de chaque téléphone toutes les minutes depuis
+D114, et n'en sortait qu'une phrase, à vingt pour cent. Question posée : est-ce
+qu'on ne peut pas simplement afficher le niveau ?
+
+Si, et le coût est nul : la lecture est déjà faite, gardée une minute par la
+découverte. Ne pas la montrer, c'était garder pour soi ce qu'on savait déjà.
+
+**Une jauge dessinée, pas seulement un chiffre.** Vingt et un pixels à côté du
+nom de l'appareil, un éclair quand il est branché, le pourcentage à droite. Une
+jauge se lit sans se lire, et c'est ce qu'on demande à une information qu'on
+veut voir du coin de l'oeil pendant qu'on fait autre chose. Elle reste grise
+tant que rien ne presse : une jauge qui crie à quatre-vingts pour cent
+n'apprend rien, et on cesse de la regarder.
+
+**Tous les appareils joignables, pas seulement ceux qui jouent.** Le bilan de
+`RefreshHealthAsync` n'interroge que les téléphones qui portent une fenêtre,
+et c'était bon pour un avertissement. Pour une jauge, c'était l'inverse du
+besoin : le niveau se regarde *avant* d'ouvrir cinq comptes. La lecture de la
+batterie sort donc de cette boucle et passe par tous les appareils connectés.
+
+**Les seuils ne sont plus écrits deux fois.** `BatteryReading.Concern` rend le
+palier, et le bandeau comme la couleur de la jauge le lisent. Deux jeux de
+seuils auraient fini par diverger, et une jauge rouge sans un mot pour
+l'expliquer est pire qu'une jauge grise.
+
+### Ce que la vérification a trouvé
+
+Le seuil bas ne se laisse pas attendre : le forcer était le seul moyen de voir
+la couleur. `dumpsys battery unplug` puis `set level 15` sur le Mi 9T Pro, et
+l'écran a montré **un éclair sur un téléphone débranché**, aucune alerte, une
+jauge grise à quinze pour cent.
+
+Ce n'était pas l'artefact de l'outil. Le relevé dit ceci :
+
+```
+AC powered: false
+USB powered: false
+Wireless powered: false
+status: 2
+level: 15
+```
+
+`IsCharging` unissait les lignes de prise et l'état numérique par un « ou ».
+Le commentaire disait pourtant déjà le contraire : les lignes « … powered »
+disent la prise elle-même, l'état numérique traîne. Le code faisait le
+raisonnement inverse de son propre commentaire, et **un téléphone débranché
+dont l'état numérique traîne ne recevait aucune alerte de batterie basse.**
+
+Les lignes de prise ont désormais le dernier mot ; l'état numérique ne sert
+plus que de repli, pour un appareil qui n'écrirait aucune ligne de prise. Le
+relevé ci-dessus est devenu une épreuve, avec sa provenance.
+
+C'est la troisième fois que forcer un état sur un vrai téléphone trouve un
+défaut qu'aucune relecture n'avait vu, après D115 et D120. Le point de méthode
+tient en une phrase : **une branche qu'on ne peut pas atteindre en jouant
+normalement doit être atteinte de force, sinon elle n'est pas vérifiée.**
+
+### Éprouvé à l'écran
+
+Sur les deux téléphones, l'un débranché à 99 %, l'autre en charge à 82 %, puis
+le second forcé :
+
+```
+99 %, débranché  ->  jauge pleine, grise, pas d'éclair
+82 %, en charge  ->  jauge aux quatre cinquièmes, éclair
+15 %, débranché  ->  jauge et chiffre orange, bandeau « Le téléphone est à 15 %… »
+7 %,  débranché  ->  jauge et chiffre rouges, bandeau « … Branchez-le maintenant »
+```
+
+L'appareil a été remis dans son état par `dumpsys battery reset`.

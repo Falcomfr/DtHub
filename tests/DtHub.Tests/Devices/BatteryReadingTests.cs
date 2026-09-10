@@ -125,6 +125,111 @@ public class BatteryReadingTests
     }
 
     [Fact]
+    public void Un_etat_numerique_qui_traine_ne_fait_pas_croire_a_une_prise()
+    {
+        // Relevé au caractère près sur le Mi 9T Pro, Android 11, après un
+        // « dumpsys battery unplug » : les quatre prises sont à faux et
+        // « status: 2 » dit pourtant la charge. C'est l'état numérique qui
+        // traîne, et le croire revenait à taire l'alerte d'un téléphone
+        // débranché à quinze pour cent.
+        const string releve = """
+            Current Battery Service state:
+              (UPDATES STOPPED -- use 'reset' to restart)
+              AC powered: false
+              USB powered: false
+              Wireless powered: false
+              Max charging current: 2100000
+              Max charging voltage: 7000000
+              Charge counter: 2228457
+              status: 2
+              health: 2
+              present: true
+              level: 15
+              scale: 100
+              voltage: 4427
+              temperature: 307
+              technology: Li-poly
+            """;
+
+        var battery = BatteryReading.Parse(releve);
+
+        Assert.False(battery!.Charging);
+        Assert.True(battery.IsLow);
+        Assert.Equal(HealthSeverity.Warning, battery.Concern);
+    }
+
+    [Fact]
+    public void Un_appareil_qui_ne_dit_aucune_prise_retombe_sur_l_etat_numerique()
+    {
+        // Toutes les ROM vues écrivent les lignes de prise, mais rien ne
+        // l'impose : sans elles, l'état numérique reste la seule source.
+        const string releve = """
+            Current Battery Service state:
+              status: 2
+              level: 40
+              scale: 100
+            """;
+
+        Assert.True(BatteryReading.Parse(releve)!.Charging);
+    }
+
+    [Theory]
+    [InlineData(64, false, null)]
+    [InlineData(21, false, null)]
+    [InlineData(20, false, HealthSeverity.Warning)]
+    [InlineData(11, false, HealthSeverity.Warning)]
+    [InlineData(10, false, HealthSeverity.Serious)]
+    [InlineData(3, false, HealthSeverity.Serious)]
+    [InlineData(3, true, null)]
+    public void Le_palier_d_attention_suit_les_memes_seuils_que_le_message(
+        int level,
+        bool charging,
+        HealthSeverity? concern)
+    {
+        // Le bandeau et la couleur de la jauge lisent tous deux ce palier :
+        // s'ils divergeaient, un téléphone pourrait crier en rouge sans qu'un
+        // mot l'explique, ou l'inverse.
+        var releve = Releve.Replace("level: 64", "level: " + level, StringComparison.Ordinal);
+
+        if (charging)
+        {
+            releve = releve.Replace("AC powered: false", "AC powered: true", StringComparison.Ordinal);
+        }
+
+        var battery = BatteryReading.Parse(releve);
+
+        Assert.Equal(concern, battery!.Concern);
+
+        // Les deux vont ensemble, toujours : un palier sans message serait une
+        // couleur sans explication.
+        Assert.Equal(concern is not null, battery.Describe() is not null);
+    }
+
+    [Fact]
+    public void Le_niveau_s_ecrit_en_toutes_lettres()
+    {
+        var battery = BatteryReading.Parse(Releve);
+
+        Assert.Contains("64", battery!.Label, StringComparison.Ordinal);
+        Assert.Contains("64", battery.Summary, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void La_phrase_du_niveau_dit_la_charge()
+    {
+        // C'est tout l'intérêt de la bulle : un téléphone à douze pour cent
+        // qui n'avertit de rien doit pouvoir dire pourquoi.
+        var bas = Releve.Replace("level: 64", "level: 12", StringComparison.Ordinal);
+        var branche = bas.Replace("AC powered: false", "AC powered: true", StringComparison.Ordinal);
+
+        var seul = BatteryReading.Parse(bas)!.Summary;
+        var charge = BatteryReading.Parse(branche)!.Summary;
+
+        Assert.NotEqual(seul, charge);
+        Assert.Contains("12", charge, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Une_echelle_qui_n_est_pas_cent_est_respectee()
     {
         // Elle vaut cent partout où on l'a vue, mais elle est déclarée : s'en

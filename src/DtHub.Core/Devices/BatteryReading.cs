@@ -35,6 +35,32 @@ public sealed partial record BatteryReading(int Percent, bool Charging, double? 
     public bool IsLow => !Charging && Percent <= Low;
 
     /// <summary>
+    /// Le palier d'attention, ou <c>null</c> quand il n'y a rien à signaler.
+    ///
+    /// Deux lectures s'en servent, l'avertissement et la couleur de la jauge :
+    /// les seuils se décident donc une fois, ici, et pas de chaque côté.
+    /// </summary>
+    public HealthSeverity? Concern => !Charging && Percent <= Critical
+        ? HealthSeverity.Serious
+        : IsLow
+            ? HealthSeverity.Warning
+            : null;
+
+    /// <summary>Le niveau seul, tel qu'il tient à côté du nom de l'appareil.</summary>
+    public string Label => Strings.Format("BatteryPercent", Percent);
+
+    /// <summary>
+    /// Le niveau en une phrase, pour la bulle d'aide.
+    ///
+    /// La charge y est dite, et c'est le point : un téléphone à douze pour
+    /// cent qui ne déclenche aucun avertissement doit pouvoir expliquer
+    /// pourquoi sans qu'on aille chercher.
+    /// </summary>
+    public string Summary => Charging
+        ? Strings.Format("BatteryChargingAt", Percent)
+        : Strings.Format("BatteryAt", Percent);
+
+    /// <summary>
     /// Lit la sortie de <c>dumpsys battery</c>. Rend <c>null</c> dès que le
     /// niveau manque : ne rien savoir est un cas ordinaire, et l'appelant s'en
     /// passe, comme pour la chaleur.
@@ -77,17 +103,26 @@ public sealed partial record BatteryReading(int Percent, bool Charging, double? 
     /// <summary>
     /// Vrai si l'appareil reçoit du courant.
     ///
-    /// Deux sources concordantes, et c'est voulu : l'état numérique vaut 2 en
-    /// charge et 5 quand la batterie est pleine, mais un appareil plein qu'on
-    /// vient de débrancher garde parfois 5 le temps d'une lecture. Les lignes
-    /// « … powered » disent la prise elle-même.
+    /// **Les lignes « … powered » ont le dernier mot**, parce qu'elles disent
+    /// la prise elle-même. L'état numérique vaut 2 en charge et 5 quand la
+    /// batterie est pleine, mais il traîne : un appareil qu'on vient de
+    /// débrancher le garde le temps d'une lecture au moins.
+    ///
+    /// Mesuré : un Mi 9T Pro débranché annonce les quatre prises à faux et
+    /// « status: 2 » en même temps. Croire les deux à égalité, c'était taire
+    /// l'alerte de batterie basse d'un téléphone débranché.
+    ///
+    /// L'état numérique ne sert donc que de repli, pour un appareil qui
+    /// n'écrirait aucune ligne de prise.
     /// </summary>
-    private static bool IsCharging(string dumpsys) =>
-        Flag(dumpsys, "AC powered")
-        || Flag(dumpsys, "USB powered")
-        || Flag(dumpsys, "Wireless powered")
-        || Flag(dumpsys, "Dock powered")
-        || Number(dumpsys, StatusPattern()) is 2 or 5;
+    private static bool IsCharging(string dumpsys)
+    {
+        string[] plugs = ["AC powered", "USB powered", "Wireless powered", "Dock powered"];
+
+        return plugs.Any(p => dumpsys.Contains(p, StringComparison.OrdinalIgnoreCase))
+            ? plugs.Any(p => Flag(dumpsys, p))
+            : Number(dumpsys, StatusPattern()) is 2 or 5;
+    }
 
     private static bool Flag(string dumpsys, string label)
     {

@@ -438,6 +438,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 }
 
                 view.Update(device);
+                view.SetBattery(_launcher.Batteries.GetValueOrDefault(device.Serial));
             }
 
             foreach (var gone in _devices.Keys

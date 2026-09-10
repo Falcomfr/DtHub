@@ -567,6 +567,17 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     public bool HealthIsSerious { get; private set; }
 
+    /// <summary>
+    /// La dernière lecture de batterie par appareil.
+    ///
+    /// Exposée et pas seulement résumée en avertissement : la lecture est
+    /// faite de toute façon, et un niveau qu'on voit en permanence vaut mieux
+    /// qu'une alerte qui arrive à vingt pour cent.
+    /// </summary>
+    public IReadOnlyDictionary<string, BatteryReading> Batteries => _batteries;
+
+    private readonly Dictionary<string, BatteryReading> _batteries = new(StringComparer.Ordinal);
+
     /// <summary>Dernier état thermique journalisé par appareil.</summary>
     private readonly Dictionary<string, int> _loggedHeat = new(StringComparer.Ordinal);
 
@@ -592,6 +603,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(discovery);
+
+        await RefreshBatteriesAsync(discovery, cancellationToken).ConfigureAwait(false);
 
         var playing = _sessions.ActiveSessions
             .Where(s => s.IsAlive)
@@ -636,6 +649,47 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         HealthSummary = DeviceHealth.Worst(ordered);
         HealthIsSerious = ordered.Count > 0 && ordered[0].Severity == HealthSeverity.Serious;
+    }
+
+    /// <summary>
+    /// Relève le niveau de batterie de chaque appareil joignable.
+    ///
+    /// Tous, et pas seulement ceux qui portent une fenêtre : un téléphone qui
+    /// attend son tour se vide aussi, et une jauge qui n'apparaîtrait qu'une
+    /// fois le jeu lancé arriverait après la décision qu'elle éclaire.
+    ///
+    /// La lecture est gardée une minute par la découverte, si bien que sonder
+    /// toutes les deux secondes ne coûte rien de plus.
+    /// </summary>
+    private async Task RefreshBatteriesAsync(
+        DeviceDiscoveryResult discovery,
+        CancellationToken cancellationToken)
+    {
+        var connected = discovery.Devices
+            .Where(d => d.IsConnected)
+            .Select(d => d.Serial)
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+
+        foreach (var gone in _batteries.Keys.Where(s => !connected.Contains(s, StringComparer.Ordinal)).ToList())
+        {
+            _ = _batteries.Remove(gone);
+        }
+
+        foreach (var serial in connected)
+        {
+            var battery = await _devices.GetBatteryAsync(serial, cancellationToken).ConfigureAwait(false);
+
+            if (battery is null)
+            {
+                _ = _batteries.Remove(serial);
+            }
+            else
+            {
+                _batteries[serial] = battery;
+            }
+        }
     }
 
     /// <summary>Journalise les paliers, et seulement quand ils changent.</summary>

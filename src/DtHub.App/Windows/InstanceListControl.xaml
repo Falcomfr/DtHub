@@ -44,6 +44,45 @@
                              Visibility="{Binding ShowDeviceStatus,
                                                   RelativeSource={RelativeSource AncestorType=UserControl},
                                                   Converter={StaticResource BoolToVisibility}}" />
+
+                  <!-- Le niveau de batterie. Dessiné et pas seulement chiffré :
+                       une jauge se lit sans se lire, et c'est le propre d'une
+                       information qu'on veut voir du coin de l'oeil. Rien ne
+                       paraît tant que l'appareil n'a pas répondu. -->
+                  <StackPanel Orientation="Horizontal" Margin="10,1,0,0" VerticalAlignment="Center"
+                              ToolTip="{Binding Device.BatterySummary}"
+                              Visibility="{Binding Device.HasBattery,
+                                                   Converter={StaticResource BoolToVisibility}}">
+
+                    <Border Width="18" Height="9" CornerRadius="2" Padding="1"
+                            VerticalAlignment="Center"
+                            BorderBrush="{DynamicResource TextMutedBrush}" BorderThickness="1">
+                      <Rectangle HorizontalAlignment="Left" RadiusX="1" RadiusY="1"
+                                 Width="{Binding Device.BatteryFill}"
+                                 Fill="{Binding Device.BatteryBrushKey,
+                                                Converter={StaticResource KeyToBrush}}" />
+                    </Border>
+
+                    <!-- La borne du petit bout, qui fait lire une pile. -->
+                    <Border Width="2" Height="4" CornerRadius="0,1,1,0" Margin="1,0,0,0"
+                            VerticalAlignment="Center"
+                            Background="{DynamicResource TextMutedBrush}" />
+
+                    <!-- L'éclair dit pourquoi un téléphone à douze pour cent
+                         n'avertit de rien : il est branché. -->
+                    <Path Width="5" Height="8" Margin="5,0,0,0" Stretch="Uniform"
+                          VerticalAlignment="Center"
+                          Data="M 3.2,0 L 0,4.6 L 2.2,4.6 L 1.8,8 L 5,3.4 L 2.8,3.4 Z"
+                          Fill="{DynamicResource TextMutedBrush}"
+                          Visibility="{Binding Device.IsCharging,
+                                               Converter={StaticResource BoolToVisibility}}" />
+
+                    <TextBlock Text="{Binding Device.BatteryText}" Style="{StaticResource Muted}"
+                               FontSize="{StaticResource FontTiny}" Margin="5,1,0,0"
+                               VerticalAlignment="Center"
+                               Foreground="{Binding Device.BatteryBrushKey,
+                                                    Converter={StaticResource KeyToBrush}}" />
+                  </StackPanel>
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">

@@ -496,6 +496,15 @@ Cross the tests: another device on this port, and this phone on another PC. You 
   <data name="DeviceBatteryCritical" xml:space="preserve">
     <value>The phone is down to {0} % and is not charging. Plug it in now: it has a few minutes left.</value>
   </data>
+  <data name="BatteryPercent" xml:space="preserve">
+    <value>{0} %</value>
+  </data>
+  <data name="BatteryAt" xml:space="preserve">
+    <value>Battery at {0} %</value>
+  </data>
+  <data name="BatteryChargingAt" xml:space="preserve">
+    <value>Battery at {0} %, charging</value>
+  </data>
   <data name="DeviceStorageLow" xml:space="preserve">
     <value>The phone has only {0} GB free. DOFUS Touch can fail without saying why when space runs out.</value>
   </data>

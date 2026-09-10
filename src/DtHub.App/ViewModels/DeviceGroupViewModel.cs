@@ -91,6 +91,67 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
         _ => "TextMutedBrush",
     };
 
+    /// <summary>
+    /// La dernière lecture de batterie, ou <c>null</c> tant qu'on ne sait pas.
+    ///
+    /// Elle était déjà faite toutes les minutes, et seule l'alerte des vingt
+    /// pour cent en sortait. Le niveau lui-même vaut mieux : il se regarde
+    /// avant de lancer cinq comptes, pas une fois qu'il est trop tard.
+    /// </summary>
+    private BatteryReading? _battery;
+
+    /// <summary>Largeur intérieure de la jauge, en pixels de mise en page.</summary>
+    private const double GaugeWidth = 14;
+
+    /// <summary>Vrai quand il y a un niveau à montrer.</summary>
+    public bool HasBattery => _battery is not null && IsConnected;
+
+    /// <summary>Le niveau seul, « 84 % ».</summary>
+    public string BatteryText => _battery?.Label ?? string.Empty;
+
+    /// <summary>Le niveau en une phrase, avec la charge s'il y a lieu.</summary>
+    public string BatterySummary => _battery?.Summary ?? string.Empty;
+
+    /// <summary>Vrai quand l'appareil est branché, ce que dit l'éclair.</summary>
+    public bool IsCharging => _battery?.Charging ?? false;
+
+    /// <summary>
+    /// La part remplie de la jauge. Jamais tout à fait nulle : à trois pour
+    /// cent, une jauge vide se lit comme une jauge en panne.
+    /// </summary>
+    public double BatteryFill => _battery is null
+        ? 0
+        : Math.Max(2, Math.Round(GaugeWidth * _battery.Percent / 100.0));
+
+    /// <summary>
+    /// La couleur du remplissage. Discrète tant que rien ne presse : une
+    /// jauge qui crie à quatre-vingts pour cent n'apprend rien.
+    /// </summary>
+    public string BatteryBrushKey => _battery?.Concern switch
+    {
+        HealthSeverity.Serious => "DangerBrush",
+        HealthSeverity.Warning => "WarningBrush",
+        _ => "TextMutedBrush",
+    };
+
+    /// <summary>Pose la dernière lecture, et prévient l'affichage.</summary>
+    public void SetBattery(BatteryReading? battery)
+    {
+        if (_battery == battery)
+        {
+            return;
+        }
+
+        _battery = battery;
+
+        OnPropertyChanged(nameof(HasBattery));
+        OnPropertyChanged(nameof(BatteryText));
+        OnPropertyChanged(nameof(BatterySummary));
+        OnPropertyChanged(nameof(IsCharging));
+        OnPropertyChanged(nameof(BatteryFill));
+        OnPropertyChanged(nameof(BatteryBrushKey));
+    }
+
     public void Update(AndroidDevice device)
     {
         ArgumentNullException.ThrowIfNull(device);
@@ -104,6 +165,7 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
         OnPropertyChanged(nameof(HasNoGame));
         OnPropertyChanged(nameof(StatusText));
         OnPropertyChanged(nameof(StatusBrushKey));
+        OnPropertyChanged(nameof(HasBattery));
     }
 
 }

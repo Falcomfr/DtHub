@@ -9,6 +9,12 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Ajouté
 
+- **Le niveau de batterie de chaque téléphone, en permanence.** Une jauge
+  dessinée et le pourcentage, à côté du nom de l'appareil, avec un éclair
+  quand il est branché. La lecture se faisait déjà toutes les minutes et seule
+  l'alerte des vingt pour cent en sortait ; le niveau se voit maintenant avant
+  de lancer cinq comptes, pas une fois qu'il est trop tard.
+
 - **Le bilan du téléphone, avant de lancer et pas seulement pendant.** La
   batterie et la place libre s'ajoutent à la chaleur et à la bande Wi-Fi, et
   les quatre parlent d'une seule voix, la plus grave d'abord. Un téléphone

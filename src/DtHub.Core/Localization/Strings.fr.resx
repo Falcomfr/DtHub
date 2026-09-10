@@ -496,6 +496,15 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
   <data name="DeviceBatteryCritical" xml:space="preserve">
     <value>Le téléphone est à {0} % et n'est pas branché. Branchez-le maintenant : il lui reste quelques minutes.</value>
   </data>
+  <data name="BatteryPercent" xml:space="preserve">
+    <value>{0} %</value>
+  </data>
+  <data name="BatteryAt" xml:space="preserve">
+    <value>Batterie à {0} %</value>
+  </data>
+  <data name="BatteryChargingAt" xml:space="preserve">
+    <value>Batterie à {0} %, en charge</value>
+  </data>
   <data name="DeviceStorageLow" xml:space="preserve">
     <value>Il ne reste que {0} Go libres sur le téléphone. DOFUS Touch peut échouer sans dire pourquoi quand la place manque.</value>
   </data>

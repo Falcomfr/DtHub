@@ -496,6 +496,15 @@ Cruce las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
   <data name="DeviceBatteryCritical" xml:space="preserve">
     <value>El teléfono está al {0} % y no está cargando. Enchúfelo ya: le quedan unos minutos.</value>
   </data>
+  <data name="BatteryPercent" xml:space="preserve">
+    <value>{0} %</value>
+  </data>
+  <data name="BatteryAt" xml:space="preserve">
+    <value>Batería al {0} %</value>
+  </data>
+  <data name="BatteryChargingAt" xml:space="preserve">
+    <value>Batería al {0} %, cargando</value>
+  </data>
   <data name="DeviceStorageLow" xml:space="preserve">
     <value>Solo quedan {0} GB libres en el teléfono. DOFUS Touch puede fallar sin decir por qué cuando falta espacio.</value>
   </data>

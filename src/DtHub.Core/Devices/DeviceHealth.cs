@@ -47,11 +47,9 @@ public static class DeviceHealth
     {
         List<HealthFinding> findings = [];
 
-        if (battery?.Describe() is { } power)
+        if (battery?.Describe() is { } power && battery.Concern is { } level)
         {
-            findings.Add(new HealthFinding(
-                battery.Percent <= BatteryReading.Critical ? HealthSeverity.Serious : HealthSeverity.Warning,
-                power));
+            findings.Add(new HealthFinding(level, power));
         }
 
         if (storage?.Describe() is { } room)
