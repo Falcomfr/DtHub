@@ -1853,4 +1853,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="OneAccountAtATime" xml:space="preserve">
     <value>Este teléfono solo mantiene una cuenta activa a la vez. Android pone las demás en caché, donde pierden el control y pueden cerrarse sin avisar: espera desconexiones. Su versión de Android no sabe dar un grupo de pantalla a cada ventana, así que no es un ajuste que puedas cambiar.</value>
   </data>
+  <data name="BatteryNotPrepared" xml:space="preserve">
+    <value>El juego no está a salvo del ahorro de energía en este teléfono. Android acabará congelándolo, y las ventanas se bloquearán una a una, la más antigua primero. La ayuda «¿Una ventana se congela al cabo de un rato?», abajo, dice dónde ajustarlo.</value>
+  </data>
 </root>

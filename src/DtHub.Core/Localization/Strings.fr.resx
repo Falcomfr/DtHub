@@ -1853,4 +1853,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="OneAccountAtATime" xml:space="preserve">
     <value>Ce téléphone ne garde qu'un seul compte actif à la fois. Android met les autres en cache, où ils perdent la main et peuvent être fermés sans prévenir : attendez-vous à des déconnexions. Sa version d'Android ne sait pas donner un groupe d'affichage à chaque fenêtre, ce n'est donc pas un réglage à changer.</value>
   </data>
+  <data name="BatteryNotPrepared" xml:space="preserve">
+    <value>Le jeu n'est pas à l'abri de l'économie d'énergie sur ce téléphone. Android finira par le geler, et les fenêtres se figeront une à une, la plus ancienne d'abord. L'aide « Une fenêtre se fige au bout d'un moment ? », en bas, dit où le régler.</value>
+  </data>
 </root>

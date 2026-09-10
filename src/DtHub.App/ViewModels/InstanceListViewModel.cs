@@ -86,6 +86,38 @@ public sealed partial class InstanceListViewModel : ObservableObject
     private string? _problem;
 
     /// <summary>
+    /// Le même signalement, mais entier : tous les constats, un par ligne.
+    ///
+    /// Le bandeau tient sur une ligne et ne montre donc que le plus grave.
+    /// Ce qu'il laisse de côté se lit au survol, faute de quoi il faudrait
+    /// corriger le premier problème pour apprendre l'existence du second.
+    /// </summary>
+    [ObservableProperty]
+    private string? _problemDetail;
+
+    /// <summary>
+    /// Ce que montre le bandeau : tous les constats s'il y en a plusieurs, la
+    /// ligne seule sinon.
+    ///
+    /// **Un constat par ligne, et non le pire suivi d'une bulle.** Un
+    /// téléphone a porté trois constats en même temps, verrou, encombrement
+    /// et batterie non préparée : un seul paraissait, et il fallait corriger
+    /// le premier pour apprendre l'existence du second. C'est exactement le
+    /// défaut que D120 refusait en gardant le texte visible plutôt que caché
+    /// au survol ; le cacher par le nombre plutôt que par le survol revenait
+    /// au même. Chaque ligne reste tronquée à une ligne, et le survol donne
+    /// le texte entier.
+    ///
+    /// Le repli sur <see cref="Problem" /> compte : plusieurs chemins posent
+    /// un signalement sans détail, une erreur attrapée par exemple.
+    /// </summary>
+    public string? AllProblems => string.IsNullOrEmpty(ProblemDetail) ? Problem : ProblemDetail;
+
+    partial void OnProblemChanged(string? value) => OnPropertyChanged(nameof(AllProblems));
+
+    partial void OnProblemDetailChanged(string? value) => OnPropertyChanged(nameof(AllProblems));
+
+    /// <summary>
     /// Vrai quand ce qui est signalé coupera la séance, par opposition à un
     /// simple désagrément. Seule la couleur du sigle en dépend : le texte, lui,
     /// reste le même.
@@ -406,9 +438,18 @@ public sealed partial class InstanceListViewModel : ObservableObject
             // Le bilan de l'appareil y a sa place pour la même raison : il
             // ne casse rien, il dit ce qui va casser, et c'est ici qu'on
             // regarde quand ça va mal.
+            // Deux listes des mêmes faits : celle du bandeau, qui s'arrête
+            // au plus grave, et celle de la bulle, qui les porte tous.
+            List<string> everything = [.. warnings];
+
             if (_launcher.HealthSummary is { Length: > 0 } health)
             {
                 warnings.Add(health);
+            }
+
+            if (_launcher.HealthDetail is { Length: > 0 } detail)
+            {
+                everything.Add(detail);
             }
 
             ProblemIsSerious = _launcher.HealthIsSerious;
@@ -420,7 +461,15 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 warnings.Add(recovery);
             }
 
+            if (_launcher.RecoveryNotice is { Length: > 0 } sameRecovery)
+            {
+                everything.Add(sameRecovery);
+            }
+
             Problem = warnings.Count > 0 ? string.Join(" ", warnings) : null;
+            ProblemDetail = everything.Count > 0
+                ? string.Join(Environment.NewLine, everything)
+                : null;
 
             // Seules les instances des téléphones joignables ont une ligne.
             // Les autres appareils ne disparaissent pas pour autant : ils

@@ -14,6 +14,47 @@ public class DeviceHealthTests
         new(LinkSpeedMbps: 144, FrequencyMhz: frequency, Standard: "11n", Rssi: -57, RetryShare: 0.1);
 
     [Fact]
+    public void La_bulle_porte_tous_les_constats_quand_le_bandeau_n_en_montre_qu_un()
+    {
+        // Le cas mesuré sur un vrai téléphone : trois constats en même temps,
+        // dont un seul paraissait, les deux autres nulle part.
+        var findings = DeviceHealth.Review(
+            null,
+            Battery(6),
+            null,
+            Link(2437),
+            lockedWindows: true,
+            crowdedDevice: true,
+            unpreparedBattery: true);
+
+        var tout = DeviceHealth.Every(findings);
+
+        Assert.Equal(5, findings.Count);
+        Assert.Equal(DeviceHealth.Worst(findings), findings[0].Message);
+        Assert.All(findings, f => Assert.Contains(f.Message, tout, StringComparison.Ordinal));
+
+        // Une ligne par constat, et rien de plus.
+        Assert.Equal(
+            findings.Count,
+            tout!.Split(Environment.NewLine, StringSplitOptions.None).Length);
+    }
+
+    [Fact]
+    public void Sans_constat_la_bulle_ne_dit_rien()
+    {
+        Assert.Null(DeviceHealth.Every(DeviceHealth.Review(null, null, null, null)));
+    }
+
+    [Fact]
+    public void Une_preparation_batterie_manquante_se_dit()
+    {
+        var sans = DeviceHealth.Review(null, null, null, null, unpreparedBattery: true);
+
+        Assert.Equal(HealthSeverity.Warning, Assert.Single(sans).Severity);
+        Assert.Empty(DeviceHealth.Review(null, null, null, null));
+    }
+
+    [Fact]
     public void Un_appareil_qui_ne_tient_qu_un_compte_le_dit()
     {
         var seul = DeviceHealth.Review(null, null, null, null, crowdedDevice: true);

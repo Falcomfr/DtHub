@@ -6845,3 +6845,75 @@ l'utilisateur de chercher. La sonde envoie pourtant une touche à l'appareil, et
 `InputInjectionCheck` dit en toutes lettres qu'elle n'est envoyée que sur
 demande, jamais d'elle-même. Cette règle vaut mieux qu'un avertissement de
 plus : la question est posée à l'utilisateur plutôt que tranchée ici.
+
+## D125 - Informe-t-on vraiment l'utilisateur ?
+
+Question posée après les deux tours précédents : d'accord, mais est-ce que
+l'information arrive ? Le tour a porté sur ce que l'application sait et ne dit
+pas, plutôt que sur ce qu'elle dit.
+
+### Ce qu'elle savait sans le dire
+
+L'inventaire des commandes qu'elle pose au téléphone tient en quatorze lignes.
+Une manquait, et c'était la plus utile : `dumpsys deviceidle whitelist`.
+L'application explique depuis longtemps qu'il faut retirer le jeu des
+restrictions de batterie, c'est la première cause des fenêtres qui se figent,
+et **elle ne vérifiait jamais que c'était fait**. Les deux téléphones du même
+utilisateur, relevés le même jour :
+
+```
+13T Pro    user,com.ankama.dofustouch,10475   <- préparé
+Mi 9T Pro  (rien)                             <- jamais fait
+```
+
+Le second est justement celui qui se déconnecte. L'aide était bonne, elle
+n'avait pas été appliquée là, et rien ne le disait. Un `BatteryExemption` lit
+la liste, et le bilan porte le constat.
+
+Le contrôle porte sur l'appareil et non sur le compte, et c'est dit dans le
+type : Android tient sa liste par identifiant d'application, une copie du jeu
+dans un second profil est une application distincte, et conclure compte par
+compte demanderait de deviner l'identifiant de chaque copie. « Ce téléphone
+n'a jamais été préparé » est la chose vraie qu'on peut affirmer.
+
+### Le bandeau cachait ce qu'il ne montrait pas
+
+Le Mi 9T Pro portait **trois constats en même temps** : verrou, un seul compte
+actif possible, batterie non préparée. Le journal les avait tous les trois. Le
+bandeau en montrait un, et les deux autres n'étaient nulle part, **pas même au
+survol** : `HealthSummary` ne portait que le pire.
+
+C'est le défaut que D120 refusait déjà, à une échelle près. Cacher un message
+derrière un survol et le cacher derrière un autre message plus grave reviennent
+au même : il faut corriger le premier problème pour apprendre l'existence du
+second, et on découvre les trois en trois soirées.
+
+Le bandeau montre donc maintenant **un constat par ligne**, chacun tronqué à
+une ligne, du plus grave au plus anodin, le texte entier au survol. Le nombre
+de lignes suit le nombre de vrais problèmes, qui est zéro la plupart du temps.
+`DeviceHealth.Worst` reste pour qui ne veut qu'un texte ; `Every` sert
+l'affichage.
+
+Ce que D120 refusait, c'était un message unique qui prenait trois lignes à lui
+seul en s'enroulant. Trois constats sur trois lignes, ce n'est pas la même
+chose : chaque ligne dit un fait entier.
+
+### Vérifié à l'écran
+
+Sur le Mi 9T Pro, verrouillé, deux comptes ouverts, batterie non préparée :
+
+```
+⚠ Le téléphone est verrouillé, et ses fenêtres de jeu montrent donc son écran…
+  Ce téléphone ne garde qu'un seul compte actif à la fois. Android met les a…
+  Le jeu n'est pas à l'abri de l'économie d'énergie sur ce téléphone. Android…
+```
+
+Trois lignes, triangle rouge, et chacune se lit sans souris.
+
+### Ce qui reste su et tu
+
+Le refus d'injection d'entrées. La sonde existe, elle est sûre, et elle donne
+un verdict en une seconde ; mais elle envoie une touche à l'appareil, et
+`InputInjectionCheck` dit en toutes lettres qu'elle n'est envoyée que sur
+demande. La règle vaut mieux qu'un avertissement de plus, et la question est
+posée à l'utilisateur plutôt que tranchée ici.

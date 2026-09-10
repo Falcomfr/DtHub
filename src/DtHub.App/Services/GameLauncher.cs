@@ -562,6 +562,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
     public string? HealthSummary { get; private set; }
 
     /// <summary>
+    /// Tous les constats, un par ligne, pour la bulle d'aide du bandeau. Le
+    /// bandeau, lui, n'en montre qu'un : voir <see cref="DeviceHealth.Every" />.
+    /// </summary>
+    public string? HealthDetail { get; private set; }
+
+    /// <summary>
     /// Vrai quand le bilan porte un constat qui coupera la séance, par
     /// opposition à un qui la gênera. Décide de la couleur du sigle.
     /// </summary>
@@ -625,6 +631,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         if (serials.Count == 0)
         {
             HealthSummary = null;
+            HealthDetail = null;
             HealthIsSerious = false;
             _loggedHeat.Clear();
             _loggedBattery.Clear();
@@ -662,16 +669,27 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     .HasOwnDisplayGroupAsync(serial, cancellationToken)
                     .ConfigureAwait(false) == false;
 
+            // La préparation batterie est décrite dans l'aide depuis
+            // longtemps ; ce contrôle dit seulement si elle a été faite. La
+            // question vaut aussi avant le lancement : c'est le moment où on
+            // peut encore aller la régler.
+            var unprepared = await _devices
+                .IsBatteryExemptAsync(serial, DofusPackages.DofusTouch, cancellationToken)
+                .ConfigureAwait(false) == false;
+
             Trace(serial, heat, battery, storage);
             TraceLock(serial, locked);
             TraceCrowd(serial, crowded);
+            TracePreparation(serial, unprepared);
 
-            findings.AddRange(DeviceHealth.Review(heat, battery, storage, link, locked, crowded));
+            findings.AddRange(DeviceHealth.Review(
+                heat, battery, storage, link, locked, crowded, unprepared));
         }
 
         var ordered = findings.OrderByDescending(f => f.Severity).ToList();
 
         HealthSummary = DeviceHealth.Worst(ordered);
+        HealthDetail = DeviceHealth.Every(ordered);
         HealthIsSerious = ordered.Count > 0 && ordered[0].Severity == HealthSeverity.Serious;
     }
 
@@ -757,6 +775,25 @@ public sealed partial class GameLauncher : IAsyncDisposable
         else
         {
             _ = _loggedCrowd.Remove(serial);
+        }
+    }
+
+    /// <summary>Appareils dont la préparation manquante a déjà été journalisée.</summary>
+    private readonly HashSet<string> _loggedPreparation = new(StringComparer.Ordinal);
+
+    /// <summary>Journalise la préparation manquante, une fois par épisode.</summary>
+    private void TracePreparation(string serial, bool unprepared)
+    {
+        if (unprepared)
+        {
+            if (_loggedPreparation.Add(serial))
+            {
+                LogUnprepared(serial);
+            }
+        }
+        else
+        {
+            _ = _loggedPreparation.Remove(serial);
         }
     }
 
@@ -2471,6 +2508,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "{serial} : plusieurs comptes ouverts, mais ses afficheurs virtuels partagent un groupe ; un seul restera actif.")]
     private partial void LogCrowded(string serial);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "{serial} : le jeu n'est pas exempté d'économie d'énergie ; Android finira par le geler.")]
+    private partial void LogUnprepared(string serial);
 
     [LoggerMessage(
         Level = LogLevel.Information,

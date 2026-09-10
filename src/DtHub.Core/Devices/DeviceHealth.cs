@@ -39,6 +39,11 @@ public static class DeviceHealth
     /// Les constats, du plus grave au plus anodin, à gravité égale dans
     /// l'ordre où ils comptent : ce qui coupe la séance, puis ce qui la gêne.
     /// </summary>
+    /// <param name="unpreparedBattery">
+    /// Vrai quand le jeu n'est pas à l'abri de l'économie d'énergie sur cet
+    /// appareil, c'est-à-dire quand la préparation décrite dans l'aide n'y a
+    /// jamais été faite.
+    /// </param>
     /// <param name="crowdedDevice">
     /// Vrai quand plusieurs comptes sont ouverts sur un appareil qui ne sait
     /// en garder qu'un seul actif.
@@ -54,7 +59,8 @@ public static class DeviceHealth
         StorageReading? storage,
         WifiLink? link,
         bool lockedWindows = false,
-        bool crowdedDevice = false)
+        bool crowdedDevice = false,
+        bool unpreparedBattery = false)
     {
         List<HealthFinding> findings = [];
 
@@ -94,6 +100,15 @@ public static class DeviceHealth
                 warm));
         }
 
+        // Après tout ce qui gêne déjà, avant ce qui ne gêne pas encore : le
+        // jeu tourne, et rien ne se voit tant qu'Android ne s'en mêle pas.
+        // Mais c'est la première cause des fenêtres qui se figent, et
+        // l'application le savait sans jamais le vérifier.
+        if (unpreparedBattery)
+        {
+            findings.Add(new HealthFinding(HealthSeverity.Warning, Strings.Get("BatteryNotPrepared")));
+        }
+
         // La liaison ne casse rien et se compense déjà toute seule par le
         // tampon vidéo. Elle est dite pour que « ça saccade » ait une réponse,
         // pas pour alarmer : d'où le rang le plus bas.
@@ -116,5 +131,24 @@ public static class DeviceHealth
         ArgumentNullException.ThrowIfNull(findings);
 
         return findings.Count == 0 ? null : findings[0].Message;
+    }
+
+    /// <summary>
+    /// Tous les constats, un par ligne, ou <c>null</c> quand il n'y en a pas.
+    ///
+    /// **Le bandeau montre le pire, la bulle montre tout**, et la nuance a
+    /// été payée cher : un téléphone a porté trois constats en même temps,
+    /// verrou, encombrement et batterie non préparée, dont un seul paraissait.
+    /// Les deux autres n'étaient nulle part, pas même au survol : il fallait
+    /// corriger le premier pour découvrir le second. Une ligne reste une
+    /// ligne, mais ce qu'elle cache doit rester atteignable.
+    /// </summary>
+    public static string? Every(IReadOnlyList<HealthFinding> findings)
+    {
+        ArgumentNullException.ThrowIfNull(findings);
+
+        return findings.Count == 0
+            ? null
+            : string.Join(Environment.NewLine, findings.Select(f => f.Message));
     }
 }

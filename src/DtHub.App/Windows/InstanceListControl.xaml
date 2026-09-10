@@ -438,16 +438,22 @@
       </StackPanel>
     </Border>
 
-    <!-- Une seule ligne, coupée, et le texte entier au survol.
-         Le message pleine largeur prenait deux ou trois lignes au milieu de la
-         liste des comptes. Le réduire à un sigle seul aurait été pire : ces
-         messages annoncent une batterie qui lâche, un téléphone qui se bride
-         ou une fenêtre qui n'affichera qu'un cadenas, et un avertissement
-         qu'il faut survoler pour découvrir est un avertissement que personne
-         ne lit. Les premiers mots portent l'essentiel, le reste attend la
-         souris. -->
+    <!-- Un constat par ligne, chacune coupée, et le texte entier au survol.
+         Le message pleine largeur prenait deux ou trois lignes à lui seul au
+         milieu de la liste des comptes. Le réduire à un sigle seul aurait été
+         pire : ces messages annoncent une batterie qui lâche, un téléphone
+         qui se bride ou une fenêtre qui n'affichera qu'un cadenas, et un
+         avertissement qu'il faut survoler pour découvrir est un avertissement
+         que personne ne lit.
+
+         Et pour la même raison, le bandeau les montre tous : n'afficher que
+         le plus grave cachait les autres aussi sûrement qu'un survol. Un
+         téléphone en a porté trois à la fois, et il fallait corriger le
+         premier pour apprendre l'existence du second. Chaque ligne reste une
+         ligne ; leur nombre suit celui des vrais problèmes, qui est zéro la
+         plupart du temps. -->
     <Grid Margin="2,0,0,4"
-          ToolTip="{Binding Problem}"
+          ToolTip="{Binding AllProblems}"
           Visibility="{Binding Problem, Converter={StaticResource EmptyToVisibility},
                                ConverterParameter=inverse}">
       <Grid.ColumnDefinitions>
@@ -473,7 +479,7 @@
         </Path.Style>
       </Path>
 
-      <TextBlock Grid.Column="1" Text="{Binding Problem}"
+      <TextBlock Grid.Column="1" Text="{Binding AllProblems}"
                  FontFamily="{StaticResource UiFont}" FontSize="{StaticResource FontSmall}"
                  TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                  VerticalAlignment="Center">

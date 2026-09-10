@@ -356,6 +356,59 @@ public sealed class DeviceDiscoveryService : IDisposable
 
     private static readonly TimeSpan LockFreshness = TimeSpan.FromSeconds(4);
 
+    /// <summary>
+    /// Le jeu est-il exempté d'économie d'énergie, par appareil.
+    ///
+    /// Gardé deux minutes : c'est un réglage qu'on va poser à la main sur le
+    /// téléphone, et l'avertissement doit s'éteindre peu après, sans qu'on
+    /// pose la question toutes les deux secondes pour autant.
+    /// </summary>
+    private readonly Dictionary<string, (bool? Exempt, System.Diagnostics.Stopwatch Vu)> _exempt =
+        new(StringComparer.Ordinal);
+
+    private static readonly TimeSpan ExemptFreshness = TimeSpan.FromMinutes(2);
+
+    /// <summary>
+    /// Le jeu est-il à l'abri de l'économie d'énergie sur cet appareil, ou
+    /// <c>null</c> quand l'appareil ne le dit pas.
+    /// </summary>
+    public async Task<bool?> IsBatteryExemptAsync(
+        string serial,
+        string package,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(serial) || string.IsNullOrWhiteSpace(package))
+        {
+            return null;
+        }
+
+        if (_exempt.TryGetValue(serial, out var garde) && garde.Vu.Elapsed < ExemptFreshness)
+        {
+            return garde.Exempt;
+        }
+
+        try
+        {
+            var dump = await _adb
+                .ShellAsync(
+                    serial,
+                    ["dumpsys", "deviceidle", "whitelist"],
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            var exempt = BatteryExemption.Covers(dump, package);
+
+            _exempt[serial] = (exempt, System.Diagnostics.Stopwatch.StartNew());
+
+            return exempt;
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // Même silence assumé que pour les autres sondages accessoires.
+            return null;
+        }
+    }
+
     /// <summary>Dernier niveau de batterie lu par appareil, avec son âge.</summary>
     private readonly Dictionary<string, (BatteryReading? Reading, System.Diagnostics.Stopwatch Vu)> _battery =
         new(StringComparer.Ordinal);

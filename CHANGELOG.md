@@ -9,6 +9,15 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Ajouté
 
+- **L'application vérifie enfin que la préparation batterie a été faite.**
+  Elle l'expliquait depuis longtemps sans jamais la contrôler, alors que le
+  téléphone le dit en une commande. Des deux appareils d'un même utilisateur,
+  seul celui qui ne se déconnecte pas était préparé.
+
+- **Le bandeau montre tous les constats, un par ligne**, du plus grave au plus
+  anodin, au lieu du seul plus grave. Un téléphone en portait trois à la fois,
+  et il fallait corriger le premier pour apprendre l'existence du second.
+
 - **L'application dit maintenant quand un téléphone ne peut tenir qu'un
   compte à la fois.** Mesuré : sur Android 11, le second compte ouvert tombe
   en cache, perd la main et finit fermé par le système, là où un Android
