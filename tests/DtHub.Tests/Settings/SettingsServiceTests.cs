@@ -433,6 +433,111 @@ public sealed class SettingsServiceTests : IDisposable
     };
 
     [Fact]
+    public async Task Les_reglages_font_l_aller_retour_sans_rien_perdre()
+    {
+        await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
+        await _service.SetInstanceNoteAsync(Instance(999).Key, "Pêche 60", CancellationToken.None);
+        await _service.SetInstanceQualityAsync(Instance(999).Key, StreamQuality.Low, CancellationToken.None);
+        await _service.SetQualityAsync(StreamQuality.Maximum, CancellationToken.None);
+
+        var emporte = await _service.ExportAsync(CancellationToken.None);
+
+        // Tout est effacé, comme sur un poste neuf.
+        await _service.UpdateAsync(s => { s.Instances.Clear(); s.Quality = StreamQuality.Medium; }, CancellationToken.None);
+
+        Assert.Equal(BackupVerdict.Usable, await _service.ImportAsync(emporte, CancellationToken.None));
+
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.Equal(2, settings.Instances.Count);
+        Assert.Equal(StreamQuality.Maximum, settings.Quality);
+
+        var mule = settings.Instances.Single(i => i.UserId == 999);
+
+        Assert.Equal("Pêche 60", mule.Note);
+        Assert.Equal(StreamQuality.Low, mule.Quality);
+    }
+
+    [Fact]
+    public async Task Un_fichier_qu_on_ne_sait_pas_lire_ne_touche_a_rien()
+    {
+        await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
+
+        foreach (var (contenu, attendu) in new (string, BackupVerdict)[]
+                 {
+                     ("pas du json", BackupVerdict.Unreadable),
+                     ("""{ "quelque": "chose" }""", BackupVerdict.Foreign),
+                     ($$"""{ "schemaVersion": {{AppSettingsDocument.CurrentSchemaVersion + 5}}, "instances": [] }""",
+                         BackupVerdict.TooNew),
+                 })
+        {
+            Assert.Equal(attendu, await _service.ImportAsync(contenu, CancellationToken.None));
+        }
+
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.Single(settings.Instances);
+    }
+
+    [Fact]
+    public async Task La_note_d_un_compte_se_relit_et_survit_a_un_rebalayage()
+    {
+        await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
+
+        var mule = Instance(999).Key;
+
+        await _service.SetInstanceNoteAsync(mule, "  Pêche niveau 60, à monter  ", CancellationToken.None);
+
+        var apres = await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
+
+        Assert.Equal("Pêche niveau 60, à monter", Assert.Single(apres).Note);
+    }
+
+    [Fact]
+    public async Task Une_note_vide_efface_la_note()
+    {
+        await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
+
+        var mule = Instance(999).Key;
+
+        await _service.SetInstanceNoteAsync(mule, "quelque chose", CancellationToken.None);
+        await _service.SetInstanceNoteAsync(mule, "   ", CancellationToken.None);
+
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.Null(Assert.Single(settings.Instances).Note);
+    }
+
+    [Fact]
+    public async Task Le_temps_de_jeu_s_accumule_et_se_relit()
+    {
+        await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
+
+        var mule = Instance(999).Key;
+
+        await _service.AddPlaytimeAsync(mule, 600, CancellationToken.None);
+        await _service.AddPlaytimeAsync(mule, 900, CancellationToken.None);
+
+        var apres = await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
+
+        Assert.Equal(1500, Assert.Single(apres).PlayedThisWeek);
+    }
+
+    [Fact]
+    public async Task Une_session_d_une_poignee_de_secondes_ne_compte_pas()
+    {
+        // Ouvrir puis refermer aussitôt n'est pas du temps de jeu, et
+        // l'écrire ferait une écriture de fichier pour rien.
+        await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
+
+        await _service.AddPlaytimeAsync(Instance(999).Key, 5, CancellationToken.None);
+
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.Empty(Assert.Single(settings.Instances).Playtime);
+    }
+
+    [Fact]
     public async Task Un_compte_sans_palier_prend_le_commun()
     {
         await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);

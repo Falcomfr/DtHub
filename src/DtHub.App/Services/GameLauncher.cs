@@ -193,6 +193,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             session.FailureMessage ?? "aucun message",
             string.Join(Environment.NewLine, session.RecentOutput));
 
+        CountPlaytime(session);
+
         // Avant de conclure qu'il ne reste rien : une fenêtre qu'on va rouvrir
         // n'est pas une fenêtre perdue. Sans cette réserve, un hoquet Wi-Fi sur
         // la dernière session fermait l'application.
@@ -253,6 +255,36 @@ public sealed partial class GameLauncher : IAsyncDisposable
         RecoveryRequested?.Invoke(this, new RecoveryRequest(instance, decision.Delay));
 
         return true;
+    }
+
+    /// <summary>Sessions dont le temps de jeu a déjà été compté.</summary>
+    private readonly HashSet<string> _counted = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Ajoute au compte le temps que sa fenêtre est restée ouverte.
+    ///
+    /// Une fois par session, jamais deux : une session peut passer par deux
+    /// états finaux, arrêtée puis en échec, et le compter aux deux doublerait
+    /// le temps.
+    ///
+    /// Seulement si elle a vraiment tourné : une session qui n'a jamais ouvert
+    /// son afficheur n'est pas du temps de jeu.
+    /// </summary>
+    private void CountPlaytime(ScrcpySession session)
+    {
+        if (!session.EverRan || !_counted.Add(session.Id))
+        {
+            return;
+        }
+
+        var seconds = (int)(DateTimeOffset.UtcNow - session.StartedUtc).TotalSeconds;
+
+        if (seconds < SettingsService.MinimumCountedPlaytimeSeconds)
+        {
+            return;
+        }
+
+        _ = _settings.AddPlaytimeAsync(session.Target.Key, seconds);
     }
 
     /// <summary>Encodeurs vidéo connus par appareil, une fois demandés.</summary>

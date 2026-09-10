@@ -604,6 +604,16 @@
                   <Button Content="{loc:T ReportProblem}" Style="{StaticResource QuietButton}"
                           Command="{Binding ReportProblemCommand}"
                           ToolTip="{loc:T ReportProblemTip}" />
+
+                  <!-- Emporter ses réglages d'un poste à l'autre, et les
+                       retrouver si le fichier s'abîme. -->
+                  <Button Content="{loc:T ExportSettings}" Style="{StaticResource QuietButton}"
+                          Command="{Binding ExportSettingsCommand}"
+                          ToolTip="{loc:T ExportSettingsTip}" />
+
+                  <Button Content="{loc:T ImportSettings}" Style="{StaticResource QuietButton}"
+                          Command="{Binding ImportSettingsCommand}"
+                          ToolTip="{loc:T ImportSettingsTip}" />
                 </WrapPanel>
               </StackPanel>
 

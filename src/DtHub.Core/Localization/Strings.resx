@@ -532,6 +532,51 @@ Cross the tests: another device on this port, and this phone on another PC. You 
   <data name="FluidityDiagnosticsHelp" xml:space="preserve">
     <value>Zero frames per second is not a fault: scrcpy only encodes what changes, so a still picture produces nothing. The log also records which encoders the phone offers.</value>
   </data>
+  <data name="PlaytimeHours" xml:space="preserve">
+    <value>{0} h {1} this week</value>
+  </data>
+  <data name="PlaytimeMinutes" xml:space="preserve">
+    <value>{0} min this week</value>
+  </data>
+  <data name="InstanceNote" xml:space="preserve">
+    <value>Note</value>
+  </data>
+  <data name="InstanceNoteTip" xml:space="preserve">
+    <value>A free note on this account: what it farms, where its professions stand. Nothing is sent anywhere.</value>
+  </data>
+  <data name="ExportSettings" xml:space="preserve">
+    <value>Save settings</value>
+  </data>
+  <data name="ImportSettings" xml:space="preserve">
+    <value>Restore settings</value>
+  </data>
+  <data name="ExportSettingsTip" xml:space="preserve">
+    <value>Writes accounts, profiles, shortcuts and settings to one file, to carry to another PC.</value>
+  </data>
+  <data name="ImportSettingsTip" xml:space="preserve">
+    <value>Replaces every setting with those of a file written by this application.</value>
+  </data>
+  <data name="ImportSettingsConfirm" xml:space="preserve">
+    <value>This replaces all your accounts, profiles, shortcuts and settings. Continue?</value>
+  </data>
+  <data name="SettingsFileFilter" xml:space="preserve">
+    <value>DT Hub settings|*.json|All files|*.*</value>
+  </data>
+  <data name="SettingsExported" xml:space="preserve">
+    <value>Settings saved to {0}.</value>
+  </data>
+  <data name="SettingsImported" xml:space="preserve">
+    <value>Settings restored. Reopen your windows for everything to apply.</value>
+  </data>
+  <data name="SettingsFileTooNew" xml:space="preserve">
+    <value>This file was written by a newer version of DT Hub. Update the application before restoring it, otherwise part of your settings would be lost without saying so.</value>
+  </data>
+  <data name="SettingsFileForeign" xml:space="preserve">
+    <value>This file is not a DT Hub settings file.</value>
+  </data>
+  <data name="SettingsFileUnreadable" xml:space="preserve">
+    <value>This file could not be read.</value>
+  </data>
   <data name="DeviceThrottling" xml:space="preserve">
     <value>The device is heating up and is starting to slow itself down. Close an account, or drop one quality step, and it will pick up again.</value>
   </data>

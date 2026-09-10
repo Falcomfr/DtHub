@@ -98,6 +98,24 @@ public sealed partial class JsonDocumentStore<T> : IDocumentStore<T>, IDisposabl
         }
     }
 
+    /// <inheritdoc />
+    public string Serialize(T document) => JsonSerializer.Serialize(document, SerializerOptions);
+
+    /// <inheritdoc />
+    public T? Deserialize(string json)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<T>(json, SerializerOptions);
+        }
+        catch (JsonException)
+        {
+            // Le contrat le dit : cette méthode ne lève pas. L'appelant a déjà
+            // inspecté la forme, et un champ mal typé reste possible.
+            return null;
+        }
+    }
+
     public async Task SaveAsync(T document, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(document);

@@ -765,6 +765,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 row.ManagedChanged += OnManagedChanged;
                 row.TabbedChanged += OnTabbedChanged;
                 row.QualityChanged += OnQualityChanged;
+                row.NoteChanged += OnNoteChanged;
                 row.NameChanged += OnNameChanged;
                 Rows.Add(row);
             }
@@ -1036,6 +1037,27 @@ public sealed partial class InstanceListViewModel : ObservableObject
         finally
         {
             row.IsQualityPending = false;
+        }
+    }
+
+    /// <summary>Écrit la note d'un compte.</summary>
+    private async void OnNoteChanged(object? sender, InstanceRowViewModel row)
+    {
+        ArgumentNullException.ThrowIfNull(row);
+
+        try
+        {
+            await _settings.SetInstanceNoteAsync(row.Key, row.Note).ConfigureAwait(true);
+
+            _instances = null;
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Problem = exception.Message;
+        }
+        finally
+        {
+            row.IsNotePending = false;
         }
     }
 

@@ -31,6 +31,13 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 - **L'encodeur matériel est imposé quand l'appareil mettrait du logiciel
   devant lui**, et seulement dans ce cas.
 
+- **Enregistrer et restaurer ses réglages** en un fichier, pour les emporter
+  sur un autre PC. La restauration refuse franchement un fichier écrit par une
+  version plus récente, plutôt que d'en perdre une partie en silence.
+
+- **Une note libre par compte**, et le temps passé sur chacun cette semaine.
+  Information seulement : aucune limite, aucun rappel.
+
 ### Corrigé
 
 - **Une liaison qui lâche ne ferme plus l'application.** Quand la dernière

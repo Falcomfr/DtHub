@@ -22,6 +22,16 @@ public interface IDialogService
     /// <summary>Ouvre l'explorateur sur un dossier.</summary>
     void OpenFolder(string path);
 
+    /// <summary>
+    /// Demande où écrire un fichier, ou <c>null</c> si l'on renonce.
+    /// </summary>
+    string? AskWhereToSave(string suggestedName, string filter, string title);
+
+    /// <summary>
+    /// Demande quel fichier lire, ou <c>null</c> si l'on renonce.
+    /// </summary>
+    string? AskWhichFileToRead(string filter, string title);
+
     /// <summary>Ouvre une adresse dans le navigateur par défaut.</summary>
     void OpenUrl(string url);
 
@@ -86,6 +96,35 @@ public sealed class DialogService : IDialogService
             MessageBoxResult.No => false,
             _ => null,
         };
+
+    /// <inheritdoc />
+    public string? AskWhereToSave(string suggestedName, string filter, string title)
+    {
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            FileName = suggestedName,
+            Filter = filter,
+            Title = title,
+            OverwritePrompt = true,
+            AddExtension = true,
+        };
+
+        return dialog.ShowDialog() == true ? dialog.FileName : null;
+    }
+
+    /// <inheritdoc />
+    public string? AskWhichFileToRead(string filter, string title)
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Filter = filter,
+            Title = title,
+            CheckFileExists = true,
+            Multiselect = false,
+        };
+
+        return dialog.ShowDialog() == true ? dialog.FileName : null;
+    }
 
     public void OpenFolder(string path)
     {

@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Globalization;
+using System.IO;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -702,6 +703,92 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
     [RelayCommand]
     private void SetAnchor(WindowAnchor anchor) => GameAnchor = anchor;
+
+    /// <summary>
+    /// Écrit les réglages dans un fichier, pour les emporter ailleurs.
+    ///
+    /// Le fichier lui-même, tel qu'il est sur le disque : ce qui se relit est
+    /// exactement ce qui a été écrit.
+    /// </summary>
+    [RelayCommand]
+    private async Task ExportSettingsAsync()
+    {
+        var path = _dialogs.AskWhereToSave(
+            SettingsBackup.SuggestedFileName,
+            Strings.Get("SettingsFileFilter"),
+            Strings.Get("ExportSettings"));
+
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return;
+        }
+
+        try
+        {
+            var content = await _settings.ExportAsync().ConfigureAwait(true);
+
+            await File.WriteAllTextAsync(path, content).ConfigureAwait(true);
+
+            _dialogs.ShowInformation(Strings.Format("SettingsExported", path));
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            _dialogs.ShowWarning(exception.Message);
+        }
+    }
+
+    /// <summary>
+    /// Reprend des réglages écrits ailleurs, après confirmation.
+    ///
+    /// Le geste remplace tout : les comptes, les profils, les raccourcis. Il
+    /// se confirme donc, et il refuse franchement un fichier qu'il ne sait pas
+    /// lire plutôt que d'en appliquer la moitié.
+    /// </summary>
+    [RelayCommand]
+    private async Task ImportSettingsAsync()
+    {
+        var path = _dialogs.AskWhichFileToRead(
+            Strings.Get("SettingsFileFilter"),
+            Strings.Get("ImportSettings"));
+
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return;
+        }
+
+        if (!_dialogs.Confirm(Strings.Get("ImportSettingsConfirm"), Strings.Get("ImportSettings")))
+        {
+            return;
+        }
+
+        try
+        {
+            var content = await File.ReadAllTextAsync(path).ConfigureAwait(true);
+
+            var verdict = await _settings.ImportAsync(content).ConfigureAwait(true);
+
+            var message = verdict switch
+            {
+                BackupVerdict.Usable => Strings.Get("SettingsImported"),
+                BackupVerdict.TooNew => Strings.Get("SettingsFileTooNew"),
+                BackupVerdict.Foreign => Strings.Get("SettingsFileForeign"),
+                _ => Strings.Get("SettingsFileUnreadable"),
+            };
+
+            if (verdict == BackupVerdict.Usable)
+            {
+                _dialogs.ShowInformation(message);
+            }
+            else
+            {
+                _dialogs.ShowWarning(message);
+            }
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            _dialogs.ShowWarning(exception.Message);
+        }
+    }
 
     /// <summary>
     /// Empile les fenêtres sur celle qui est active, ou sur la première.

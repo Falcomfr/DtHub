@@ -19,4 +19,18 @@ public interface IDocumentStore<T>
 
     /// <summary>Écrit le document de façon atomique.</summary>
     Task SaveAsync(T document, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Le document tel qu'il s'écrirait sur le disque.
+    ///
+    /// Ici et non chez l'appelant : c'est le magasin qui connaît le format, et
+    /// un second jeu d'options ailleurs finirait par diverger du premier.
+    /// </summary>
+    string Serialize(T document);
+
+    /// <summary>
+    /// Le document que porte ce texte, ou <c>null</c> s'il ne s'y trouve pas.
+    /// Ne lève pas.
+    /// </summary>
+    T? Deserialize(string json);
 }

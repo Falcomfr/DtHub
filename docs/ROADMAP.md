@@ -1,4 +1,4 @@
-# Feuille de route
+﻿# Feuille de route
 
 Le versionnage suit [SemVer](https://semver.org/lang/fr/). Tant que la version
 majeure est `0`, l'interface et les formats de configuration peuvent changer.
@@ -24,15 +24,19 @@ majeure est `0`, l'interface et les formats de configuration peuvent changer.
 
 ## v0.2 - Ce qui manque pour un usage quotidien confortable
 
-- Essai complet sur plusieurs comptes et plusieurs téléphones.
+- Essai complet sur plusieurs comptes et plusieurs téléphones. Le code est déjà
+  par appareil de bout en bout, vérifié par la lecture ; ce qui manque est un
+  second téléphone.
 - Réglages de mirroring exposés dans l'interface : images par seconde, débit,
   définition de l'écran virtuel.
-- Options supplémentaires dans l'onglet Général, à définir à l'usage.
 
 ## v0.3 - Confort
 
 - Indication de l'instance active à l'écran.
-- Reprise d'une instance dont la fenêtre a été fermée à la main.
+
+Livré depuis : la reprise d'une fenêtre que la liaison a fait tomber, le bilan
+de l'appareil avant lancement, un palier de qualité par compte, l'Almanax, une
+note et un temps de jeu par compte, et l'enregistrement des réglages.
 
 ## v1.0 - Stable
 

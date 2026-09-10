@@ -532,6 +532,51 @@ Cruce las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
   <data name="FluidityDiagnosticsHelp" xml:space="preserve">
     <value>Cero imágenes por segundo no es un fallo: scrcpy solo codifica lo que cambia, así que una imagen inmóvil no produce nada. El registro anota también los codificadores que ofrece el teléfono.</value>
   </data>
+  <data name="PlaytimeHours" xml:space="preserve">
+    <value>{0} h {1} esta semana</value>
+  </data>
+  <data name="PlaytimeMinutes" xml:space="preserve">
+    <value>{0} min esta semana</value>
+  </data>
+  <data name="InstanceNote" xml:space="preserve">
+    <value>Nota</value>
+  </data>
+  <data name="InstanceNoteTip" xml:space="preserve">
+    <value>Una nota libre sobre esta cuenta: qué farmea, cómo van sus oficios. No se envía a ninguna parte.</value>
+  </data>
+  <data name="ExportSettings" xml:space="preserve">
+    <value>Guardar los ajustes</value>
+  </data>
+  <data name="ImportSettings" xml:space="preserve">
+    <value>Restaurar ajustes</value>
+  </data>
+  <data name="ExportSettingsTip" xml:space="preserve">
+    <value>Escribe las cuentas, los perfiles, los atajos y los ajustes en un archivo, para llevarlos a otro PC.</value>
+  </data>
+  <data name="ImportSettingsTip" xml:space="preserve">
+    <value>Sustituye todos los ajustes por los de un archivo escrito por esta aplicación.</value>
+  </data>
+  <data name="ImportSettingsConfirm" xml:space="preserve">
+    <value>Esto sustituye todas sus cuentas, perfiles, atajos y ajustes. ¿Continuar?</value>
+  </data>
+  <data name="SettingsFileFilter" xml:space="preserve">
+    <value>Ajustes DT Hub|*.json|Todos los archivos|*.*</value>
+  </data>
+  <data name="SettingsExported" xml:space="preserve">
+    <value>Ajustes guardados en {0}.</value>
+  </data>
+  <data name="SettingsImported" xml:space="preserve">
+    <value>Ajustes restaurados. Vuelva a abrir sus ventanas para que todo se aplique.</value>
+  </data>
+  <data name="SettingsFileTooNew" xml:space="preserve">
+    <value>Este archivo fue escrito por una versión más reciente de DT Hub. Actualice la aplicación antes de restaurarlo; de lo contrario, parte de sus ajustes se perdería sin avisar.</value>
+  </data>
+  <data name="SettingsFileForeign" xml:space="preserve">
+    <value>Este archivo no es un archivo de ajustes de DT Hub.</value>
+  </data>
+  <data name="SettingsFileUnreadable" xml:space="preserve">
+    <value>No se pudo leer este archivo.</value>
+  </data>
   <data name="DeviceThrottling" xml:space="preserve">
     <value>El dispositivo se está calentando y empieza a limitarse. Cierre una cuenta, o baje un nivel de calidad, y volverá a rendir.</value>
   </data>

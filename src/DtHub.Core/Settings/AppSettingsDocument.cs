@@ -334,6 +334,20 @@ public sealed class StoredInstance
     public StreamQuality? Quality { get; set; }
 
     /// <summary>
+    /// Note libre sur ce compte : ce qu'il farme, où en sont ses métiers.
+    ///
+    /// Le multicompte est exactement le cas où l'on oublie ce que faisait le
+    /// troisième personnage.
+    /// </summary>
+    public string? Note { get; set; }
+
+    /// <summary>
+    /// Temps de jeu par jour, en secondes, sur la semaine glissante. La clef
+    /// est une date en ISO. Voir <see cref="PlaytimeLog" />.
+    /// </summary>
+    public Dictionary<string, int> Playtime { get; set; } = [];
+
+    /// <summary>
     /// Clé stable de l'instance. Exclue du fichier : elle se déduit des trois
     /// champs qui la composent, et l'écrire n'ajouterait qu'une redondance
     /// qu'une modification à la main pourrait contredire.

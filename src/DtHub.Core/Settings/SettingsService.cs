@@ -618,6 +618,131 @@ public sealed class SettingsService : IDisposable
             },
             cancellationToken);
 
+    /// <summary>Écrit la note d'un compte, ou l'efface avec un texte vide.</summary>
+    public Task SetInstanceNoteAsync(
+        string key,
+        string? note,
+        CancellationToken cancellationToken = default) =>
+        UpdateIfChangedAsync(
+            settings =>
+            {
+                var instance = settings.Instances
+                    .FirstOrDefault(i => string.Equals(i.Key, key, StringComparison.Ordinal));
+
+                var wanted = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
+
+                if (instance is null || string.Equals(instance.Note, wanted, StringComparison.Ordinal))
+                {
+                    return false;
+                }
+
+                instance.Note = wanted;
+
+                return true;
+            },
+            cancellationToken);
+
+    /// <summary>
+    /// Ajoute un temps de jeu au compte, pour aujourd'hui.
+    ///
+    /// Rien n'est écrit pour une session d'une poignée de secondes : ouvrir
+    /// puis refermer aussitôt n'est pas du temps de jeu, et l'écrire ferait
+    /// une écriture de fichier pour rien.
+    /// </summary>
+    public Task AddPlaytimeAsync(
+        string key,
+        int seconds,
+        CancellationToken cancellationToken = default) =>
+        UpdateIfChangedAsync(
+            settings =>
+            {
+                if (seconds < MinimumCountedPlaytimeSeconds)
+                {
+                    return false;
+                }
+
+                var instance = settings.Instances
+                    .FirstOrDefault(i => string.Equals(i.Key, key, StringComparison.Ordinal));
+
+                if (instance is null)
+                {
+                    return false;
+                }
+
+                instance.Playtime = new Dictionary<string, int>(
+                    PlaytimeLog.Add(instance.Playtime, DateOnly.FromDateTime(DateTime.Now), seconds),
+                    StringComparer.Ordinal);
+
+                return true;
+            },
+            cancellationToken);
+
+    /// <summary>En dessous, la session ne compte pas comme du temps de jeu.</summary>
+    public const int MinimumCountedPlaytimeSeconds = 30;
+
+    /// <summary>
+    /// Les réglages, tels qu'on les emporte : le fichier lui-même.
+    ///
+    /// Le fichier et non un extrait recomposé : ce qui se relit est ce qui a
+    /// été écrit, et un format d'export à part serait un second format à
+    /// maintenir, qui finirait par diverger du premier.
+    /// </summary>
+    public async Task<string> ExportAsync(CancellationToken cancellationToken = default)
+    {
+        var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
+
+        return _store.Serialize(settings);
+    }
+
+    /// <summary>
+    /// Remplace les réglages par ceux d'un fichier, s'il est lisible.
+    ///
+    /// Rien n'est appliqué tant que l'inspection n'a pas conclu : un fichier
+    /// venu d'une version plus récente serait ramené en arrière par le chemin
+    /// ordinaire, et l'utilisateur croirait avoir restauré. Voir
+    /// <see cref="SettingsBackup" />.
+    /// </summary>
+    public async Task<BackupVerdict> ImportAsync(
+        string? json,
+        CancellationToken cancellationToken = default)
+    {
+        var inspection = SettingsBackup.Inspect(json);
+
+        if (inspection.Verdict != BackupVerdict.Usable)
+        {
+            return inspection.Verdict;
+        }
+
+        if (_store.Deserialize(json!) is not { } incoming)
+        {
+            // L'inspection a dit que la forme tenait ; un champ mal typé peut
+            // encore faire échouer la lecture complète. On refuse plutôt que
+            // d'appliquer à moitié.
+            return BackupVerdict.Unreadable;
+        }
+
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            // Migré comme n'importe quel fichier : un export plus ancien a
+            // droit aux mêmes conversions qu'un fichier local.
+            _ = Migrate(incoming);
+
+            _current = incoming;
+
+            await _store.SaveAsync(incoming, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _gate.Release();
+        }
+
+        Changed?.Invoke(this, incoming);
+
+        return BackupVerdict.Usable;
+    }
+
     /// <summary>Tailles configurées, corrigées si le fichier est incohérent.</summary>
     public async Task<WindowSizePresets> GetSizePresetsAsync(CancellationToken cancellationToken = default)
     {
@@ -791,6 +916,8 @@ public sealed class SettingsService : IDisposable
                     IsManaged = i.IsManaged,
                     IsTabbed = i.IsTabbed,
                     Quality = i.Quality,
+                    Note = i.Note,
+                    PlayedThisWeek = PlaytimeLog.Week(i.Playtime, DateOnly.FromDateTime(DateTime.Now)),
                     IsDeviceConnected = live.Contains(i.Key),
                 })];
         }, cancellationToken).ConfigureAwait(false);

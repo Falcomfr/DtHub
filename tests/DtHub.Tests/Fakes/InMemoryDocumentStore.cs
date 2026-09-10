@@ -1,4 +1,6 @@
-﻿using DtHub.Core.Storage;
+﻿using System.Text.Json;
+
+using DtHub.Core.Storage;
 
 namespace DtHub.Tests.Fakes;
 
@@ -15,6 +17,10 @@ public sealed class InMemoryDocumentStore<T> : IDocumentStore<T>
 
     public Task<T> LoadAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult(_document ?? new T());
+
+    public string Serialize(T document) => JsonSerializer.Serialize(document);
+
+    public T? Deserialize(string json) => JsonSerializer.Deserialize<T>(json);
 
     public Task SaveAsync(T document, CancellationToken cancellationToken = default)
     {

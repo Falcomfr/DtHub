@@ -440,4 +440,8 @@ internal sealed class Nulle : IDocumentStore<QuestCatalogDocument>
 
     public Task SaveAsync(QuestCatalogDocument document, CancellationToken cancellationToken = default) =>
         Task.CompletedTask;
+
+    public string Serialize(QuestCatalogDocument document) => string.Empty;
+
+    public QuestCatalogDocument? Deserialize(string json) => null;
 }

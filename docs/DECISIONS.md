@@ -6259,3 +6259,106 @@ veut pas dire ce qu'un lecteur y lirait.
 
 **Aucun changement d'encodeur en cours de session.** L'encodeur est choisi au
 lancement de scrcpy ; le modifier demanderait de rouvrir la fenêtre.
+
+## D118 - Le confort : emporter, noter, compter
+
+Quatre ajouts de confort, dont un qui n'en est pas un et qui s'est révélé être
+une vérification.
+
+### Emporter ses réglages
+
+Sert au déménagement vers un autre poste, ce qui venait d'être fait à la main,
+et de filet quand le fichier s'abîme.
+
+**Le fichier lui-même, pas un extrait recomposé.** Ce qui se relit est
+exactement ce qui a été écrit, et un format d'export à part aurait été un
+second format à maintenir, qui finit toujours par diverger du premier. La
+sérialisation reste chez le magasin de documents, à qui le format appartient :
+un second jeu d'options ailleurs aurait divergé de la même façon.
+
+**Le piège était à l'import, et il était précis.** Le chargement ordinaire est
+volontairement tolérant : un fichier venu d'une version plus récente est ramené
+à la version courante, et ce qu'il portait en plus est perdu. C'est acceptable
+pour un fichier local qu'on retrouve, où l'alternative serait de ne plus
+démarrer. **Ce ne l'est pas pour un import**, où quelqu'un croit restaurer et
+se retrouverait avec des réglages amputés en silence.
+
+`SettingsBackup.Inspect` lit donc la version **avant** que le chemin ordinaire
+ne s'en mêle, et rend quatre verdicts : utilisable, illisible, étranger, trop
+récent. Seul le premier applique quoi que ce soit. Le geste remplace tout, il
+se confirme donc.
+
+### Noter ce que fait un compte
+
+Un texte libre par compte. Le multicompte est exactement le cas où l'on oublie
+ce que faisait le troisième personnage.
+
+La note doit survivre à un rebalayage : la redécouverte ne recopie que le nom
+de l'appareil, celui du profil et le composant, tout le reste appartenant à
+l'utilisateur. Une épreuve nommée le garde.
+
+### Compter le temps, sans le juger
+
+Sept jours glissants, une entrée par jour, la clef en date ISO. Information
+seulement : aucune limite, aucun rappel, aucun jugement.
+
+Sept jours et pas un cumul depuis toujours : celui-ci ne dirait rien d'utile et
+grossirait sans fin dans le fichier de réglages. Une clef illisible est écartée
+au passage, le fichier se modifiant à la main et un relevé n'ayant pas à
+survivre à sa propre corruption.
+
+Une session de quelques secondes ne compte pas : ouvrir puis refermer aussitôt
+n'est pas du temps de jeu, et l'écrire ferait une écriture de fichier pour
+rien. Le temps n'est compté qu'une fois par session, une session pouvant passer
+par deux états finaux.
+
+### Le second téléphone : vérifié par la lecture, pas par l'usage
+
+C'était le seul des douze points qui demandait de vérifier plutôt que
+d'écrire. La lecture dit que tout est déjà par appareil :
+
+| Ce qui pourrait être commun | Ce qu'il en est |
+| :-- | :-- |
+| La découverte | rend une liste d'appareils |
+| La clef d'un compte | porte l'identifiant de l'appareil |
+| La porte d'ouverture | se prend par appareil |
+| La déduplication du son | se fait par appareil |
+| Le bilan de santé | boucle sur les appareils |
+| Les encodeurs | sont retenus par appareil |
+| La reconnexion | traite tous les appareils connus |
+
+Rien n'a donc été écrit. **Ce qui manque n'est pas du code, c'est un second
+téléphone** : la vérification à l'usage reste à faire, et elle ne peut pas
+l'être ici.
+
+### Un style de bouton posé sur une bascule, et l'application meurt
+
+Le carnet de notes avait reçu le style d'icône, qui vise un `Button`, alors
+que c'est une `ToggleButton`. WPF ne le dit qu'à l'exécution, et il ne
+pardonne pas : la fenêtre a cessé de se construire, la liste des comptes s'est
+vidée, et le processus s'est arrêté sur un débordement de pile.
+
+Le message trompait doublement. À l'écran, « impossible de créer une nouvelle
+page de garde pour la pile » ; dans le journal, quarante lignes de mesure de
+mise en page qui donnaient toutes les apparences d'une boucle de disposition.
+La cause véritable était plus haut, en une ligne :
+
+```
+Le TargetType 'Button' ne correspond pas au type de l'élément 'ToggleButton'.
+```
+
+Ni la compilation ni les épreuves ne pouvaient le voir, celles-ci n'atteignant
+pas la couche d'interface. **Une épreuve de convention le voit maintenant** :
+elle lit le texte des fichiers, comme le contrôle du tiret cadratin, et
+rapproche chaque style nommé du type de l'élément qui le porte. Vérifiée en
+remettant la faute : elle échoue, et elle nomme le fichier et l'élément.
+
+L'audit de tout le dossier n'a trouvé aucune autre incohérence.
+
+### Ce qui n'est pas fait
+
+**Aucun réglage fin par compte dans la note.** C'est un texte, pas un
+formulaire.
+
+**Le temps de jeu n'est pas exporté vers quoi que ce soit.** Il se lit dans la
+fenêtre, et c'est tout.

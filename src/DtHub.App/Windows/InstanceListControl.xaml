@@ -207,6 +207,59 @@
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
                                 Visibility="{Binding IsBusy,
                                                      Converter={StaticResource InverseBoolToVisibility}}">
+                      <!-- La note du compte. Le crayon se remplit quand il y
+                           en a une : le multicompte est exactement le cas où
+                           l'on oublie ce que faisait le troisième personnage. -->
+                      <Grid Margin="0,0,2,0" VerticalAlignment="Center">
+                        <ToggleButton x:Name="Carnet" Style="{StaticResource OutlineToggle}"
+                                      AllowDrop="False" Padding="5,3"
+                                      ToolTip="{loc:T InstanceNoteTip}">
+                          <Path Width="15" Height="15" Stretch="None" StrokeThickness="1.4"
+                                StrokeLineJoin="Round"
+                                Stroke="{DynamicResource TextMutedBrush}"
+                                Data="M 3.5,2.5 H 11.5 V 13 H 3.5 Z M 5.5,5.5 H 9.5 M 5.5,8 H 9.5 M 5.5,10.5 H 8">
+                            <Path.Style>
+                              <Style TargetType="Path">
+                                <Style.Triggers>
+                                  <DataTrigger Binding="{Binding HasNote}" Value="True">
+                                    <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
+                                  </DataTrigger>
+                                </Style.Triggers>
+                              </Style>
+                            </Path.Style>
+                          </Path>
+                        </ToggleButton>
+
+                        <Popup IsOpen="{Binding IsChecked, ElementName=Carnet, Mode=TwoWay}" StaysOpen="False"
+                               Placement="Bottom" PlacementTarget="{Binding ElementName=Carnet}"
+                               AllowsTransparency="True" PopupAnimation="Fade" HorizontalOffset="-190">
+                          <Border Background="{DynamicResource SurfaceBrush}"
+                                  BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                  CornerRadius="{StaticResource Radius}" Margin="0,4,0,0" Padding="8">
+                            <StackPanel Width="250">
+                              <TextBlock Text="{loc:T InstanceNote}" Margin="0,0,0,4"
+                                         FontSize="{StaticResource FontSmall}"
+                                         Foreground="{DynamicResource AccentBrush}" />
+                              <TextBox Text="{Binding Note, UpdateSourceTrigger=LostFocus}"
+                                       AcceptsReturn="True" TextWrapping="Wrap"
+                                       MinHeight="70" MaxHeight="140"
+                                       VerticalScrollBarVisibility="Auto" />
+
+                              <!-- Le temps de la semaine se lit là où l'on
+                                   note ce que fait le compte : c'est la même
+                                   question, « qu'est-ce que je fais de
+                                   celui-ci ». -->
+                              <TextBlock Text="{Binding PlaytimeLabel}" Margin="0,6,0,0"
+                                         Style="{StaticResource Muted}"
+                                         FontSize="{StaticResource FontSmall}"
+                                         Visibility="{Binding PlaytimeLabel,
+                                                      Converter={StaticResource EmptyToVisibility},
+                                                      ConverterParameter=inverse}" />
+                            </StackPanel>
+                          </Border>
+                        </Popup>
+                      </Grid>
+
                       <!-- Le palier de ce compte. Muet tant qu'il suit le
                            réglage commun, ce qui est le cas de tout le monde
                            par défaut : cinq lignes affichant « Moyenne » pour

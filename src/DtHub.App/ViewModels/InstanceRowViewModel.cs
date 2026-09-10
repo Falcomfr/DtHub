@@ -170,6 +170,47 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     /// <summary>Signalé quand le compte change de palier de qualité.</summary>
     public event EventHandler<InstanceRowViewModel>? QualityChanged;
 
+    /// <summary>Signalé quand la note du compte change.</summary>
+    public event EventHandler<InstanceRowViewModel>? NoteChanged;
+
+    /// <summary>
+    /// Note libre : ce que fait ce compte, où en sont ses métiers. Le
+    /// multicompte est exactement le cas où l'on oublie.
+    /// </summary>
+    [ObservableProperty]
+    private string _note = string.Empty;
+
+    /// <summary>Vrai le temps que la note soit écrite.</summary>
+    public bool IsNotePending { get; set; }
+
+    /// <summary>Vrai quand le compte porte une note, donc que ça se voit.</summary>
+    public bool HasNote => !string.IsNullOrWhiteSpace(Note);
+
+    /// <summary>
+    /// Le temps passé cette semaine, « 3 h 20 », ou vide s'il n'y en a pas.
+    ///
+    /// Information seulement : aucune limite, aucun rappel. Qui joue cinq
+    /// comptes finit par ne plus savoir lequel il fait vraiment tourner.
+    /// </summary>
+    public string PlaytimeLabel
+    {
+        get
+        {
+            var seconds = Instance.PlayedThisWeek;
+
+            if (seconds < 60)
+            {
+                return string.Empty;
+            }
+
+            var span = TimeSpan.FromSeconds(seconds);
+
+            return span.TotalHours >= 1
+                ? Strings.Format("PlaytimeHours", (int)span.TotalHours, span.Minutes)
+                : Strings.Format("PlaytimeMinutes", span.Minutes);
+        }
+    }
+
     /// <summary>
     /// Palier propre à ce compte, ou <c>null</c> pour suivre le commun.
     ///
@@ -246,6 +287,23 @@ public sealed partial class InstanceRowViewModel : ObservableObject
             }
         }
 
+        OnPropertyChanged(nameof(PlaytimeLabel));
+
+        if (!IsNotePending && !string.Equals(Note, instance.Note ?? string.Empty, StringComparison.Ordinal))
+        {
+            // Écriture venue des réglages, pas de la saisie en cours.
+            _applying = true;
+
+            try
+            {
+                Note = instance.Note ?? string.Empty;
+            }
+            finally
+            {
+                _applying = false;
+            }
+        }
+
         if (!IsQualityPending && Quality != instance.Quality)
         {
             // Écriture venue des réglages : la répercuter comme un choix de
@@ -298,6 +356,19 @@ public sealed partial class InstanceRowViewModel : ObservableObject
         OnPropertyChanged(nameof(IsDeviceConnected));
         OnPropertyChanged(nameof(UserLabel));
         OnPropertyChanged(nameof(ShowUserLabel));
+    }
+
+    partial void OnNoteChanged(string value)
+    {
+        OnPropertyChanged(nameof(HasNote));
+
+        if (_applying)
+        {
+            return;
+        }
+
+        IsNotePending = true;
+        NoteChanged?.Invoke(this, this);
     }
 
     partial void OnQualityChanged(StreamQuality? value)
