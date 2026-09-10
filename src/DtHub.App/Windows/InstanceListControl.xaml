@@ -173,9 +173,15 @@
                     </ToggleButton.Template>
                   </ToggleButton>
 
+                  <!-- Le temps de la semaine se lit au survol de l'icône :
+                       c'est un renseignement qu'on va chercher, pas un état
+                       qu'on surveille, et la ligne est déjà pleine. Rien ne
+                       paraît tant qu'il n'y a rien à dire, la valeur étant
+                       nulle et non vide. -->
                   <Image Grid.Column="4" Width="20" Height="20" Margin="0,0,7,0"
                          VerticalAlignment="Center" Stretch="Uniform"
                          RenderOptions.BitmapScalingMode="HighQuality"
+                         ToolTip="{Binding PlaytimeLabel}"
                          Source="{Binding IconPath, Converter={StaticResource IconPath}}" />
 
                   <StackPanel Grid.Column="5" VerticalAlignment="Center">
@@ -207,59 +213,6 @@
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
                                 Visibility="{Binding IsBusy,
                                                      Converter={StaticResource InverseBoolToVisibility}}">
-                      <!-- La note du compte. Le crayon se remplit quand il y
-                           en a une : le multicompte est exactement le cas où
-                           l'on oublie ce que faisait le troisième personnage. -->
-                      <Grid Margin="0,0,2,0" VerticalAlignment="Center">
-                        <ToggleButton x:Name="Carnet" Style="{StaticResource OutlineToggle}"
-                                      AllowDrop="False" Padding="5,3"
-                                      ToolTip="{loc:T InstanceNoteTip}">
-                          <Path Width="15" Height="15" Stretch="None" StrokeThickness="1.4"
-                                StrokeLineJoin="Round"
-                                Stroke="{DynamicResource TextMutedBrush}"
-                                Data="M 3.5,2.5 H 11.5 V 13 H 3.5 Z M 5.5,5.5 H 9.5 M 5.5,8 H 9.5 M 5.5,10.5 H 8">
-                            <Path.Style>
-                              <Style TargetType="Path">
-                                <Style.Triggers>
-                                  <DataTrigger Binding="{Binding HasNote}" Value="True">
-                                    <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
-                                  </DataTrigger>
-                                </Style.Triggers>
-                              </Style>
-                            </Path.Style>
-                          </Path>
-                        </ToggleButton>
-
-                        <Popup IsOpen="{Binding IsChecked, ElementName=Carnet, Mode=TwoWay}" StaysOpen="False"
-                               Placement="Bottom" PlacementTarget="{Binding ElementName=Carnet}"
-                               AllowsTransparency="True" PopupAnimation="Fade" HorizontalOffset="-190">
-                          <Border Background="{DynamicResource SurfaceBrush}"
-                                  BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
-                                  CornerRadius="{StaticResource Radius}" Margin="0,4,0,0" Padding="8">
-                            <StackPanel Width="250">
-                              <TextBlock Text="{loc:T InstanceNote}" Margin="0,0,0,4"
-                                         FontSize="{StaticResource FontSmall}"
-                                         Foreground="{DynamicResource AccentBrush}" />
-                              <TextBox Text="{Binding Note, UpdateSourceTrigger=LostFocus}"
-                                       AcceptsReturn="True" TextWrapping="Wrap"
-                                       MinHeight="70" MaxHeight="140"
-                                       VerticalScrollBarVisibility="Auto" />
-
-                              <!-- Le temps de la semaine se lit là où l'on
-                                   note ce que fait le compte : c'est la même
-                                   question, « qu'est-ce que je fais de
-                                   celui-ci ». -->
-                              <TextBlock Text="{Binding PlaytimeLabel}" Margin="0,6,0,0"
-                                         Style="{StaticResource Muted}"
-                                         FontSize="{StaticResource FontSmall}"
-                                         Visibility="{Binding PlaytimeLabel,
-                                                      Converter={StaticResource EmptyToVisibility},
-                                                      ConverterParameter=inverse}" />
-                            </StackPanel>
-                          </Border>
-                        </Popup>
-                      </Grid>
-
                       <!-- Le palier de ce compte. Muet tant qu'il suit le
                            réglage commun, ce qui est le cas de tout le monde
                            par défaut : cinq lignes affichant « Moyenne » pour
@@ -446,10 +399,57 @@
       </StackPanel>
     </Border>
 
-    <TextBlock Text="{Binding Problem}" Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
-               Foreground="{DynamicResource WarningBrush}" Margin="2,0,0,4"
-               Visibility="{Binding Problem, Converter={StaticResource EmptyToVisibility},
-                                    ConverterParameter=inverse}" />
+    <!-- Une seule ligne, coupée, et le texte entier au survol.
+         Le message pleine largeur prenait deux ou trois lignes au milieu de la
+         liste des comptes. Le réduire à un sigle seul aurait été pire : ces
+         messages annoncent une batterie qui lâche, un téléphone qui se bride
+         ou une fenêtre qui n'affichera qu'un cadenas, et un avertissement
+         qu'il faut survoler pour découvrir est un avertissement que personne
+         ne lit. Les premiers mots portent l'essentiel, le reste attend la
+         souris. -->
+    <Grid Margin="2,0,0,4"
+          ToolTip="{Binding Problem}"
+          Visibility="{Binding Problem, Converter={StaticResource EmptyToVisibility},
+                               ConverterParameter=inverse}">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="*" />
+      </Grid.ColumnDefinitions>
+
+      <!-- Le triangle passe du jaune au rouge quand le constat coupera la
+           séance au lieu de la gêner. -->
+      <Path Grid.Column="0" Width="13" Height="13" Stretch="None" Margin="0,1,5,0"
+            VerticalAlignment="Top" StrokeLineJoin="Round"
+            StrokeThickness="1.3"
+            Data="M 6.5,2 L 12.5,11.5 H 0.5 Z M 6.5,5.5 V 8 M 6.5,9.6 V 10.1">
+        <Path.Style>
+          <Style TargetType="Path">
+            <Setter Property="Stroke" Value="{DynamicResource WarningBrush}" />
+            <Style.Triggers>
+              <DataTrigger Binding="{Binding ProblemIsSerious}" Value="True">
+                <Setter Property="Stroke" Value="{DynamicResource DangerBrush}" />
+              </DataTrigger>
+            </Style.Triggers>
+          </Style>
+        </Path.Style>
+      </Path>
+
+      <TextBlock Grid.Column="1" Text="{Binding Problem}"
+                 FontFamily="{StaticResource UiFont}" FontSize="{StaticResource FontSmall}"
+                 TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                 VerticalAlignment="Center">
+        <TextBlock.Style>
+          <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
+            <Style.Triggers>
+              <DataTrigger Binding="{Binding ProblemIsSerious}" Value="True">
+                <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
+              </DataTrigger>
+            </Style.Triggers>
+          </Style>
+        </TextBlock.Style>
+      </TextBlock>
+    </Grid>
 
   </StackPanel>
 </UserControl>

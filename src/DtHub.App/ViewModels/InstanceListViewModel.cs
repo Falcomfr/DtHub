@@ -86,6 +86,14 @@ public sealed partial class InstanceListViewModel : ObservableObject
     private string? _problem;
 
     /// <summary>
+    /// Vrai quand ce qui est signalé coupera la séance, par opposition à un
+    /// simple désagrément. Seule la couleur du sigle en dépend : le texte, lui,
+    /// reste le même.
+    /// </summary>
+    [ObservableProperty]
+    private bool _problemIsSerious;
+
+    /// <summary>
     /// Vrai pendant un glisser-déposer. Le balayage périodique s'abstient
     /// alors de reconstruire la liste, faute de quoi une carte disparaîtrait
     /// sous le curseur.
@@ -402,6 +410,8 @@ public sealed partial class InstanceListViewModel : ObservableObject
             {
                 warnings.Add(health);
             }
+
+            ProblemIsSerious = _launcher.HealthIsSerious;
 
             // La reprise d'une fenêtre perdue se dit au même endroit, et pour
             // la même raison : elle explique ce qui vient de se passer.
@@ -765,7 +775,6 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 row.ManagedChanged += OnManagedChanged;
                 row.TabbedChanged += OnTabbedChanged;
                 row.QualityChanged += OnQualityChanged;
-                row.NoteChanged += OnNoteChanged;
                 row.NameChanged += OnNameChanged;
                 Rows.Add(row);
             }
@@ -1037,27 +1046,6 @@ public sealed partial class InstanceListViewModel : ObservableObject
         finally
         {
             row.IsQualityPending = false;
-        }
-    }
-
-    /// <summary>Écrit la note d'un compte.</summary>
-    private async void OnNoteChanged(object? sender, InstanceRowViewModel row)
-    {
-        ArgumentNullException.ThrowIfNull(row);
-
-        try
-        {
-            await _settings.SetInstanceNoteAsync(row.Key, row.Note).ConfigureAwait(true);
-
-            _instances = null;
-        }
-        catch (Exception exception) when (exception is not OutOfMemoryException)
-        {
-            Problem = exception.Message;
-        }
-        finally
-        {
-            row.IsNotePending = false;
         }
     }
 

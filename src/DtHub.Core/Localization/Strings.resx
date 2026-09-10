@@ -538,12 +538,6 @@ Cross the tests: another device on this port, and this phone on another PC. You 
   <data name="PlaytimeMinutes" xml:space="preserve">
     <value>{0} min this week</value>
   </data>
-  <data name="InstanceNote" xml:space="preserve">
-    <value>Note</value>
-  </data>
-  <data name="InstanceNoteTip" xml:space="preserve">
-    <value>A free note on this account: what it farms, where its professions stand. Nothing is sent anywhere.</value>
-  </data>
   <data name="ExportSettings" xml:space="preserve">
     <value>Save settings</value>
   </data>

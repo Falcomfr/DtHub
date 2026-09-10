@@ -35,8 +35,13 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   sur un autre PC. La restauration refuse franchement un fichier écrit par une
   version plus récente, plutôt que d'en perdre une partie en silence.
 
-- **Une note libre par compte**, et le temps passé sur chacun cette semaine.
+- **Le temps passé sur chaque compte cette semaine**, au survol de son icône.
   Information seulement : aucune limite, aucun rappel.
+
+- **Les avertissements tiennent sur une ligne.** Un triangle, jaune pour ce qui
+  gêne et rouge pour ce qui coupera la séance, puis une ligne coupée dont le
+  texte entier s'affiche au survol. Le message occupait deux à trois lignes au
+  milieu de la liste des comptes.
 
 - **Le tampon d'affichage est propre à chaque téléphone.** Il était calculé sur
   la liaison du premier appareil et appliqué à toutes les fenêtres. Avec deux

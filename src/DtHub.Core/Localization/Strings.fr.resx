@@ -538,12 +538,6 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
   <data name="PlaytimeMinutes" xml:space="preserve">
     <value>{0} min cette semaine</value>
   </data>
-  <data name="InstanceNote" xml:space="preserve">
-    <value>Note</value>
-  </data>
-  <data name="InstanceNoteTip" xml:space="preserve">
-    <value>Une note libre sur ce compte : ce qu'il farme, où en sont ses métiers. Rien n'est envoyé nulle part.</value>
-  </data>
   <data name="ExportSettings" xml:space="preserve">
     <value>Enregistrer les réglages</value>
   </data>

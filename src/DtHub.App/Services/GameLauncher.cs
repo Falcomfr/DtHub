@@ -561,6 +561,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     public string? HealthSummary { get; private set; }
 
+    /// <summary>
+    /// Vrai quand le bilan porte un constat qui coupera la séance, par
+    /// opposition à un qui la gênera. Décide de la couleur du sigle.
+    /// </summary>
+    public bool HealthIsSerious { get; private set; }
+
     /// <summary>Dernier état thermique journalisé par appareil.</summary>
     private readonly Dictionary<string, int> _loggedHeat = new(StringComparer.Ordinal);
 
@@ -605,6 +611,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         if (serials.Count == 0)
         {
             HealthSummary = null;
+            HealthIsSerious = false;
             _loggedHeat.Clear();
             _loggedBattery.Clear();
             _loggedStorage.Clear();
@@ -625,7 +632,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
             findings.AddRange(DeviceHealth.Review(heat, battery, storage, link));
         }
 
-        HealthSummary = DeviceHealth.Worst([.. findings.OrderByDescending(f => f.Severity)]);
+        var ordered = findings.OrderByDescending(f => f.Severity).ToList();
+
+        HealthSummary = DeviceHealth.Worst(ordered);
+        HealthIsSerious = ordered.Count > 0 && ordered[0].Severity == HealthSeverity.Serious;
     }
 
     /// <summary>Journalise les paliers, et seulement quand ils changent.</summary>

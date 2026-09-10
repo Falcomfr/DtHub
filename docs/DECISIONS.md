@@ -6288,14 +6288,17 @@ ne s'en mêle, et rend quatre verdicts : utilisable, illisible, étranger, trop
 récent. Seul le premier applique quoi que ce soit. Le geste remplace tout, il
 se confirme donc.
 
-### Noter ce que fait un compte
+### Noter ce que fait un compte : écrit, puis retiré
 
-Un texte libre par compte. Le multicompte est exactement le cas où l'on oublie
-ce que faisait le troisième personnage.
+Un texte libre par compte avait été ajouté, avec son crayon sur chaque ligne et
+son panneau de saisie. L'utilisateur n'en voulait pas, et il a été retiré en
+entier : le champ persisté, l'écriture, la vue-modèle, le bouton et ses
+libellés.
 
-La note doit survivre à un rebalayage : la redécouverte ne recopie que le nom
-de l'appareil, celui du profil et le composant, tout le reste appartenant à
-l'utilisateur. Une épreuve nommée le garde.
+Le temps de jeu, lui, y logeait. Il a déménagé dans l'infobulle de l'icône du
+compte, où il ne prend aucune place : c'est un renseignement qu'on va chercher,
+pas un état qu'on surveille. La valeur est **nulle** et non vide quand il n'y a
+rien à dire, faute de quoi WPF montrerait une bulle grise et sans contenu.
 
 ### Compter le temps, sans le juger
 
@@ -6485,3 +6488,32 @@ série codé en dur était périmé. La seconde venait du serveur ADB, laissé d
 un mauvais état par mes propres arrêts forcés de scrcpy ; un
 `adb kill-server` a suffi. Aucune des deux n'était un défaut de
 l'application, et il valait mieux le vérifier que le supposer.
+
+## D120 - Un avertissement qu'il faut survoler est un avertissement qu'on ne lit pas
+
+Le bandeau d'incidents prenait deux à trois lignes pleine largeur au milieu de
+la liste des comptes. La proposition était de le réduire à un sigle, expliqué
+au survol.
+
+**Le sigle seul a été refusé.** Ces messages annoncent une batterie qui va
+lâcher, un téléphone qui se bride, une fenêtre qui n'affichera qu'un cadenas.
+Ce sont exactement ceux qu'il ne faut pas manquer, et les cacher derrière un
+survol aurait fait retomber l'application dans le défaut qu'elle passe son
+temps à corriger : échouer en silence.
+
+Le compromis retenu garde les deux : **un triangle, une seule ligne coupée, et
+le texte entier au survol.** Les premiers mots portent l'essentiel, « Le
+téléphone est à 8 %… », « L'appareil chauffe et commence à se brider… ». La
+place gagnée est celle de deux lignes sur trois.
+
+Le triangle passe du jaune au rouge quand le constat coupera la séance au lieu
+de la gêner. La gravité vient de `DeviceHealth`, qui la calculait déjà pour
+ordonner ses constats, et remonte par une propriété de plus.
+
+**Éprouvé à l'écran**, sur l'appareil réel, en forçant l'état thermique par
+l'outil officiel d'Android puis en le remettant :
+
+```
+override-status 2  ->  triangle jaune, « L'appareil chauffe et commence à se brider. Fermez un compte, ou descen… »
+override-status 4  ->  triangle rouge, « L'appareil est trop chaud et se bride lourdement. Fermez un compte ou de… »
+```

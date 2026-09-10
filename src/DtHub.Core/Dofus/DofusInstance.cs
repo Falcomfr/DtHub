@@ -50,9 +50,6 @@ public sealed record DofusInstance
     /// </summary>
     public StreamQuality? Quality { get; init; }
 
-    /// <summary>Note libre sur ce compte.</summary>
-    public string? Note { get; init; }
-
     /// <summary>Temps de jeu de la semaine, en secondes.</summary>
     public int PlayedThisWeek { get; init; }
 

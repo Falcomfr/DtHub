@@ -538,12 +538,6 @@ Cruce las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
   <data name="PlaytimeMinutes" xml:space="preserve">
     <value>{0} min esta semana</value>
   </data>
-  <data name="InstanceNote" xml:space="preserve">
-    <value>Nota</value>
-  </data>
-  <data name="InstanceNoteTip" xml:space="preserve">
-    <value>Una nota libre sobre esta cuenta: qué farmea, cómo van sus oficios. No se envía a ninguna parte.</value>
-  </data>
   <data name="ExportSettings" xml:space="preserve">
     <value>Guardar los ajustes</value>
   </data>

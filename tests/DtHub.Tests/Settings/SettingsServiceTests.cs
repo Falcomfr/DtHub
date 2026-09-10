@@ -436,7 +436,6 @@ public sealed class SettingsServiceTests : IDisposable
     public async Task Les_reglages_font_l_aller_retour_sans_rien_perdre()
     {
         await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
-        await _service.SetInstanceNoteAsync(Instance(999).Key, "Pêche 60", CancellationToken.None);
         await _service.SetInstanceQualityAsync(Instance(999).Key, StreamQuality.Low, CancellationToken.None);
         await _service.SetQualityAsync(StreamQuality.Maximum, CancellationToken.None);
 
@@ -454,7 +453,6 @@ public sealed class SettingsServiceTests : IDisposable
 
         var mule = settings.Instances.Single(i => i.UserId == 999);
 
-        Assert.Equal("Pêche 60", mule.Note);
         Assert.Equal(StreamQuality.Low, mule.Quality);
     }
 
@@ -477,35 +475,6 @@ public sealed class SettingsServiceTests : IDisposable
         var settings = await _service.GetAsync(CancellationToken.None);
 
         Assert.Single(settings.Instances);
-    }
-
-    [Fact]
-    public async Task La_note_d_un_compte_se_relit_et_survit_a_un_rebalayage()
-    {
-        await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
-
-        var mule = Instance(999).Key;
-
-        await _service.SetInstanceNoteAsync(mule, "  Pêche niveau 60, à monter  ", CancellationToken.None);
-
-        var apres = await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
-
-        Assert.Equal("Pêche niveau 60, à monter", Assert.Single(apres).Note);
-    }
-
-    [Fact]
-    public async Task Une_note_vide_efface_la_note()
-    {
-        await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
-
-        var mule = Instance(999).Key;
-
-        await _service.SetInstanceNoteAsync(mule, "quelque chose", CancellationToken.None);
-        await _service.SetInstanceNoteAsync(mule, "   ", CancellationToken.None);
-
-        var settings = await _service.GetAsync(CancellationToken.None);
-
-        Assert.Null(Assert.Single(settings.Instances).Note);
     }
 
     [Fact]

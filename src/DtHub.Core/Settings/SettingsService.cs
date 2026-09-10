@@ -618,30 +618,6 @@ public sealed class SettingsService : IDisposable
             },
             cancellationToken);
 
-    /// <summary>Écrit la note d'un compte, ou l'efface avec un texte vide.</summary>
-    public Task SetInstanceNoteAsync(
-        string key,
-        string? note,
-        CancellationToken cancellationToken = default) =>
-        UpdateIfChangedAsync(
-            settings =>
-            {
-                var instance = settings.Instances
-                    .FirstOrDefault(i => string.Equals(i.Key, key, StringComparison.Ordinal));
-
-                var wanted = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
-
-                if (instance is null || string.Equals(instance.Note, wanted, StringComparison.Ordinal))
-                {
-                    return false;
-                }
-
-                instance.Note = wanted;
-
-                return true;
-            },
-            cancellationToken);
-
     /// <summary>
     /// Ajoute un temps de jeu au compte, pour aujourd'hui.
     ///
@@ -916,7 +892,6 @@ public sealed class SettingsService : IDisposable
                     IsManaged = i.IsManaged,
                     IsTabbed = i.IsTabbed,
                     Quality = i.Quality,
-                    Note = i.Note,
                     PlayedThisWeek = PlaytimeLog.Week(i.Playtime, DateOnly.FromDateTime(DateTime.Now)),
                     IsDeviceConnected = live.Contains(i.Key),
                 })];
