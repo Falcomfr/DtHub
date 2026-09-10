@@ -682,8 +682,17 @@ public sealed partial class GameLauncher : IAsyncDisposable
             TraceCrowd(serial, crowded);
             TracePreparation(serial, unprepared);
 
-            findings.AddRange(DeviceHealth.Review(
-                heat, battery, storage, link, locked, crowded, unprepared));
+            var seen = DeviceHealth.Review(
+                heat, battery, storage, link, locked, crowded, unprepared);
+
+            // Le nom de l'appareil devant, dès qu'il y en a plusieurs. Sans
+            // lui, « Android n'a pas ce jeu dans sa liste » ne dit pas de
+            // quel téléphone il parle, et l'utilisateur va régler le mauvais.
+            // Avec un seul appareil le nom serait du bruit : les messages
+            // disent déjà « le téléphone ».
+            findings.AddRange(serials.Count > 1 && Named(discovery, serial) is { } name
+                ? seen.Select(f => f with { Message = Strings.Format("NamedFinding", name, f.Message) })
+                : seen);
         }
 
         var ordered = findings.OrderByDescending(f => f.Severity).ToList();
@@ -733,6 +742,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
             }
         }
     }
+
+    /// <summary>Le nom lisible d'un appareil, ou <c>null</c> si on ne l'a pas.</summary>
+    private static string? Named(DeviceDiscoveryResult discovery, string serial) =>
+        discovery.Devices
+            .FirstOrDefault(d => string.Equals(d.Serial, serial, StringComparison.Ordinal))
+            ?.DisplayName;
 
     /// <summary>Appareils dont le cadenas a déjà été journalisé.</summary>
     private readonly HashSet<string> _loggedLock = new(StringComparer.Ordinal);

@@ -1856,4 +1856,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="BatteryNotPrepared" xml:space="preserve">
     <value>Android n'a pas ce jeu dans sa liste des applications à l'abri de l'économie d'énergie. Il finira par le geler, et les fenêtres se figeront une à une, la plus ancienne d'abord. Le réglage qui compte pour lui s'appelle « Sans restriction », dans la fiche batterie du jeu ; votre marque peut en demander d'autres en plus, et l'aide en bas les énumère.</value>
   </data>
+  <data name="NamedFinding" xml:space="preserve">
+    <value>{0} : {1}</value>
+  </data>
 </root>

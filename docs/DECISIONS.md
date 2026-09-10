@@ -6993,3 +6993,37 @@ n'invente aucun chemin de menu pour des téléphones qu'on n'a pas.
 Ce qui n'est pas fait : ajouter le chemin d'Android à chacune des cinq fiches
 de marque. Il faudrait écrire des menus qu'on ne peut pas ouvrir, et le dépôt
 mesure au lieu de supposer.
+
+## D128 - Deux téléphones, un message qui n'en nomme aucun
+
+Signalé avec une capture : « c'est normal, j'ai tous ces messages ? », deux
+avertissements affichés en même temps.
+
+Le premier, « la liste des profils Android n'a pas pu être lue », était vrai
+sur le moment et faux dix secondes plus tard : le 13T Pro avait changé de port
+de débogage sans fil, de 45573 à 33439. L'application s'est reconnectée toute
+seule et le balayage suivant a effacé le message. Rien à corriger, et c'est
+plutôt une bonne nouvelle : le message est apparu quand il fallait et parti
+quand il fallait.
+
+Le second était juste, mais muet sur l'essentiel : **il ne disait pas de quel
+téléphone il parlait.** Les deux appareils étaient connectés, un seul est
+concerné, et le message se lisait « Android n'a pas ce jeu dans sa liste des
+applications à l'abri de l'économie d'énergie » sans plus. La personne va
+régler le mauvais téléphone, ou les deux.
+
+Les avertissements de découverte, eux, nomment l'appareil depuis toujours :
+« Xiaomi 13T Pro : la liste des profils… ». Le bilan d'appareil ne le faisait
+pas, parce qu'il a été écrit du temps d'un seul téléphone.
+
+Le nom passe donc devant chaque constat **dès qu'il y a plusieurs appareils
+sous revue**, et pas avant : avec un seul, les messages disent déjà « le
+téléphone » et le nommer serait du bruit. C'est la même règle que celle des
+comptes d'un profil, singulier ou pluriel selon le nombre.
+
+Éprouvé à l'écran avec les deux téléphones présents, juste avant que le second
+ne parte :
+
+```
+⚠ Xiaomi Mi 9T Pro : Android n'a pas ce jeu dans sa liste des applications à l'…
+```

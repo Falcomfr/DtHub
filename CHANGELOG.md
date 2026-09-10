@@ -80,6 +80,11 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Corrigé
 
+- **Le bilan d'appareil ne disait pas de quel appareil il parlait.** Avec
+  deux téléphones connectés, « Android n'a pas ce jeu dans sa liste » laissait
+  deviner lequel des deux régler. Le nom passe devant dès qu'il y a plusieurs
+  appareils, comme le font déjà les avertissements de découverte.
+
 - **Le verdict de la sonde d'entrée s'affichait en noir sur fond sombre.**
   Son style écrit à même l'élément n'héritait pas du style implicite du
   thème : WPF remplace au lieu d'étendre quand « BasedOn » manque, et le

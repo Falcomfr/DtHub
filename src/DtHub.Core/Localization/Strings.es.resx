@@ -1856,4 +1856,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="BatteryNotPrepared" xml:space="preserve">
     <value>Android no tiene este juego en su lista de aplicaciones a salvo del ahorro de energía. Acabará congelándolo, y las ventanas se bloquearán una a una, la más antigua primero. El ajuste que cuenta para él se llama «Sin restricciones», en la ficha de batería del juego; tu marca puede pedir otros además, y la ayuda de abajo los enumera.</value>
   </data>
+  <data name="NamedFinding" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
 </root>

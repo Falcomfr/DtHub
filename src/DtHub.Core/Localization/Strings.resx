@@ -1856,4 +1856,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="BatteryNotPrepared" xml:space="preserve">
     <value>Android does not have this game in its list of apps shielded from battery saving. It will freeze it sooner or later, and the windows will lock up one by one, oldest first. The setting that counts for Android is "Unrestricted", in the game's battery page; your brand may want others on top, and the help below lists them.</value>
   </data>
+  <data name="NamedFinding" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
 </root>
