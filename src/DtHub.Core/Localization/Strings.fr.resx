@@ -577,6 +577,9 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
   <data name="SettingsFileUnreadable" xml:space="preserve">
     <value>Ce fichier n'a pas pu être lu.</value>
   </data>
+  <data name="DisplayStaysLocked" xml:space="preserve">
+    <value>{0} affiche son écran de verrouillage au lieu du jeu. Ce téléphone ne sait pas créer un afficheur virtuel déverrouillé, et Android y impose donc le verrou. Un Android plus récent est nécessaire pour ce compte.</value>
+  </data>
   <data name="DeviceThrottling" xml:space="preserve">
     <value>L'appareil chauffe et commence à se brider. Fermez un compte, ou descendez d'un palier de qualité, et il repartira.</value>
   </data>

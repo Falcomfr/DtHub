@@ -577,6 +577,9 @@ Cruce las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
   <data name="SettingsFileUnreadable" xml:space="preserve">
     <value>No se pudo leer este archivo.</value>
   </data>
+  <data name="DisplayStaysLocked" xml:space="preserve">
+    <value>{0} muestra su pantalla de bloqueo en lugar del juego. Este teléfono no puede crear una pantalla virtual desbloqueada, así que Android le impone el bloqueo. Hace falta un Android más reciente para esta cuenta.</value>
+  </data>
   <data name="DeviceThrottling" xml:space="preserve">
     <value>El dispositivo se está calentando y empieza a limitarse. Cierre una cuenta, o baje un nivel de calidad, y volverá a rendir.</value>
   </data>

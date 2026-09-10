@@ -211,6 +211,37 @@ public sealed class DeviceDiscoveryService : IDisposable
         }
     }
 
+    /// <summary>
+    /// L'afficheur virtuel ouvert par scrcpy sur cet appareil est-il
+    /// déverrouillé, ou <c>null</c> si on ne le trouve pas.
+    ///
+    /// Sans cache : la question n'a de sens qu'une fois l'afficheur créé, et
+    /// elle n'est posée qu'une fois par lancement.
+    /// </summary>
+    public async Task<bool?> IsVirtualDisplayUnlockedAsync(
+        string serial,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(serial))
+        {
+            return null;
+        }
+
+        try
+        {
+            var dump = await _adb
+                .ShellAsync(serial, ["dumpsys", "display"], cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            return VirtualDisplayTrust.IsUnlocked(dump);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // Même silence assumé que pour les autres sondages accessoires.
+            return null;
+        }
+    }
+
     /// <summary>Dernier niveau de batterie lu par appareil, avec son âge.</summary>
     private readonly Dictionary<string, (BatteryReading? Reading, System.Diagnostics.Stopwatch Vu)> _battery =
         new(StringComparer.Ordinal);

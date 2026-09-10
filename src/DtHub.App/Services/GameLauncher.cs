@@ -953,6 +953,21 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     target, display, placement, cancellationToken).ConfigureAwait(false);
             }
 
+            // L'afficheur est là, la fenêtre s'ouvre, et pourtant le jeu ne
+            // s'y lancera pas si le système y impose le verrou. Sans ce
+            // contrôle, on annonçait « 0 problème » devant une horloge et un
+            // cadenas.
+            if (session.State != ScrcpySessionState.Failed
+                && await _devices
+                    .IsVirtualDisplayUnlockedAsync(device.Serial, cancellationToken)
+                    .ConfigureAwait(false) == false)
+            {
+                var said = Strings.Format("DisplayStaysLocked", instance.DisplayName);
+
+                problems.Add(said);
+                LogDisplayLocked(instance.DisplayName, device.AndroidVersion ?? "inconnue");
+            }
+
             if (session.State == ScrcpySessionState.Failed)
             {
                 problems.Add($"{instance.DisplayName} : {session.FailureMessage}");
@@ -1730,6 +1745,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
             VirtualDisplayHeight = height,
             VirtualDisplayDpi = ZoomProfile.DpiFor(height, _zoom),
             VideoBitrateKbps = quality.BitrateFor(width, height),
+
+            // La cadence aussi, et c'est elle qu'on oublie : la définition et
+            // le débit descendaient bien, mais un compte en palier bas
+            // tournait toujours à soixante images, ce qui est l'essentiel du
+            // coût. Vu dans le journal, pas dans le code.
+            MaxFps = quality.MaxFps,
         };
     }
 
@@ -2323,6 +2344,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "L'appareil {serial} se bride : état thermique {status}, surface {skin} °C.")]
     private partial void LogHeat(string serial, int status, double skin);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "{name} : l'afficheur virtuel suit le verrouillage (Android {version}), le jeu ne s'y lancera pas.")]
+    private partial void LogDisplayLocked(string name, string version);
 
     [LoggerMessage(
         Level = LogLevel.Information,

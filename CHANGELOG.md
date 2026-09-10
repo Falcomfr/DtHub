@@ -43,6 +43,14 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   téléphones sur des bandes différentes, celui en 2,4 GHz recevait un tampon de
   25 ms au lieu des 42 que sa liaison réclame.
 
+- **Une fenêtre qui n'affichera que l'écran de verrouillage le dit.** Sur un
+  téléphone trop ancien, l'afficheur virtuel suit le verrouillage : la fenêtre
+  s'ouvrait sur une horloge et un cadenas, et le lancement annonçait « aucun
+  problème ».
+
+- **Le palier d'un compte règle aussi sa cadence.** Il descendait la définition
+  et le débit, mais un compte en palier bas tournait toujours à soixante images.
+
 ### Corrigé
 
 - **Une liaison qui lâche ne ferme plus l'application.** Quand la dernière

@@ -6402,3 +6402,86 @@ formulaire.
 
 **Le temps de jeu n'est pas exporté vers quoi que ce soit.** Il se lit dans la
 fenêtre, et c'est tout.
+
+## D119 - Ce qu'un second téléphone a montré en une heure
+
+Le second appareil est arrivé, un Mi 9T Pro sous Android 11. Trois défauts en
+sont sortis, dont aucun ne pouvait se voir avec un seul téléphone ou par la
+lecture du code.
+
+### Une fenêtre qui montre l'écran de verrouillage, et « 0 problème »
+
+Le jeu ne s'ouvrait pas : la fenêtre affichait une horloge et un cadenas, et
+l'application annonçait un lancement sans incident.
+
+Mesuré, même version de scrcpy, mêmes options, les drapeaux de l'afficheur
+virtuel créé :
+
+```
+Mi 9T Pro, Android 11 : FLAG_ROTATES_WITH_CONTENT, FLAG_PRESENTATION,
+                        FLAG_OWN_CONTENT_ONLY
+13T Pro,   Android 16 : … FLAG_TRUSTED, FLAG_ALWAYS_UNLOCKED, FLAG_OWN_FOCUS …
+```
+
+Sans `FLAG_ALWAYS_UNLOCKED`, l'afficheur suit le verrouillage du téléphone :
+Android y impose le verrou, et aucune application ne s'y lance. scrcpy, lui,
+ne s'en plaint pas, puisque l'afficheur a bien été créé.
+
+**On mesure, on ne suppose pas une version.** Le niveau d'API à partir duquel
+le drapeau apparaît dépend d'Android et du constructeur, et deux appareils ne
+suffisent pas à le fixer. Le drapeau, lui, se lit sur l'appareil qu'on a
+devant soi : `VirtualDisplayTrust` le cherche après l'ouverture, et le
+lancement le signale au lieu de se taire.
+
+C'est pour cela que le plancher d'API n'a pas été relevé : le relever à
+trente-trois refuserait des appareils qui marchent peut-être, alors que la
+mesure répond juste, appareil par appareil.
+
+### Un tampon d'affichage pour tous, calculé sur un seul
+
+Le tampon venait de la liaison du **premier** appareil résolu et valait pour
+toutes les fenêtres. Avec un téléphone, juste par construction ; avec deux sur
+des bandes différentes, faux :
+
+```
+13T Pro     11ac à 5220 MHz, -58 dBm  ->  25 ms
+Mi 9T Pro      4 à 2462 MHz, -61 dBm  ->  42 ms
+```
+
+Le second recevait celui du premier. Le tampon est maintenant retenu par
+appareil, comme la qualité l'est par compte.
+
+### Un palier par compte qui oubliait la cadence
+
+Le palier descendait bien jusqu'à la définition et au débit, mais pas jusqu'à
+la cadence. Un compte en palier bas tournait donc toujours à soixante images,
+c'est-à-dire à l'essentiel du coût.
+
+Vu dans le journal, pas dans le code, et pas non plus par les épreuves : la
+résolution du palier était juste, c'est son emploi qui était incomplet. La
+ligne de commande, relue sur un processus vivant, a tranché :
+
+```
+avant    --new-display=1280x720/160 --video-bit-rate=2212K --max-fps=60
+après    --new-display=1280x720/160 --video-bit-rate=2212K --max-fps=30
+```
+
+### Ce que le second appareil a appris aux analyseurs
+
+Trois différences de sortie, toutes devenues des épreuves, aucune n'ayant fait
+échouer un analyseur :
+
+| | 13T Pro | Mi 9T Pro |
+| :-- | :-- | :-- |
+| Standard Wi-Fi | `11n` | `4`, un nombre |
+| Lignes de batterie | avec `Dock powered` | sans |
+| Encodeurs vp8 | logiciel seulement | matériel |
+
+### Deux fausses pistes, pour mémoire
+
+**« Server connection failed », deux fois.** La première venait du port du
+débogage sans fil, changé quand l'appareil a été réactivé, et mon numéro de
+série codé en dur était périmé. La seconde venait du serveur ADB, laissé dans
+un mauvais état par mes propres arrêts forcés de scrcpy ; un
+`adb kill-server` a suffi. Aucune des deux n'était un défaut de
+l'application, et il valait mieux le vérifier que le supposer.

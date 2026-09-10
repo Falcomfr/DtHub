@@ -577,6 +577,9 @@ Cross the tests: another device on this port, and this phone on another PC. You 
   <data name="SettingsFileUnreadable" xml:space="preserve">
     <value>This file could not be read.</value>
   </data>
+  <data name="DisplayStaysLocked" xml:space="preserve">
+    <value>{0} shows its lock screen instead of the game. This phone cannot create an unlocked virtual display, so Android puts the keyguard on it. A more recent Android is needed for this account.</value>
+  </data>
   <data name="DeviceThrottling" xml:space="preserve">
     <value>The device is heating up and is starting to slow itself down. Close an account, or drop one quality step, and it will pick up again.</value>
   </data>
