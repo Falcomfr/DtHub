@@ -17,6 +17,11 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   Une fenêtre fermée à la main, elle, reste fermée : scrcpy sort proprement
   dans ce cas, et en erreur quand la liaison tombe.
 
+- **Une coupure de liaison est enfin reconnue comme telle.** scrcpy l'annonce
+  par un avertissement et non par une erreur, et l'application ne regardait
+  que les erreurs : la panne la plus fréquente passait pour une fermeture
+  voulue.
+
 ## [0.2.0] - 2026-09-09
 
 Vingt et une décisions depuis la 0.1.0. Le fil conducteur : rendre visibles les

@@ -107,4 +107,40 @@ public class ScrcpyOutputParserTests
         Assert.False(ScrcpyOutputParser.CanRetrySmaller(ScrcpyFailureKind.Environment));
         Assert.False(ScrcpyOutputParser.CanRetrySmaller(ScrcpyFailureKind.None));
     }
+
+    [Fact]
+    public void La_coupure_de_liaison_compte_comme_une_fin_meme_sans_le_mot_erreur()
+    {
+        // Relevé sur l'appareil réel, scrcpy 4.1, liaison Wi-Fi coupée en
+        // pleine session : c'est un avertissement, pas une erreur, et pourtant
+        // le processus s'arrête là. Ne regarder que « ERROR: » revenait à
+        // prendre la panne la plus fréquente pour une fermeture voulue.
+        const string releve = "WARN: Device disconnected";
+
+        Assert.False(ScrcpyOutputParser.IsError(releve));
+        Assert.True(ScrcpyOutputParser.IsFatal(releve));
+        Assert.Equal(ScrcpyFailureKind.DeviceDisconnected, ScrcpyOutputParser.Classify(releve));
+    }
+
+    [Theory]
+    [InlineData("ERROR: Could not connect to the device")]
+    [InlineData("ERROR: Device disconnected")]
+    public void Une_erreur_declaree_reste_une_fin(string line)
+    {
+        Assert.True(ScrcpyOutputParser.IsFatal(line));
+    }
+
+    [Theory]
+    [InlineData("WARN: Frame skipped")]
+    [InlineData("WARN: Demuxer error")]
+    [InlineData("INFO: New display: 800x600/240 (id=33)")]
+    [InlineData("[server] INFO: Device: [Xiaomi] Xiaomi 23078PND5G (Android 16)")]
+    [InlineData("")]
+    [InlineData(null)]
+    public void Un_avertissement_anodin_n_est_pas_une_fin(string? line)
+    {
+        // Le contrôle reste étroit : prendre tout avertissement pour une panne
+        // ferait rouvrir des fenêtres que personne n'a perdues.
+        Assert.False(ScrcpyOutputParser.IsFatal(line));
+    }
 }

@@ -5933,6 +5933,33 @@ Renoncer se dit, à une condition : seulement si l'on avait promis quelque
 chose. Après des tentatives annoncées, abandonner en silence laisserait le
 lecteur attendre une fenêtre qui ne reviendra pas.
 
+### La mesure a rattrapé le tout, et de justesse
+
+Tout ce qui précède était écrit, éprouvé et vert quand la vérification sur
+l'appareil a montré que **rien ne se serait déclenché**.
+
+Liaison Wi-Fi coupée en pleine session par un « adb disconnect », scrcpy 4.1
+écrit ceci, puis s'arrête :
+
+```
+WARN: Device disconnected
+```
+
+Or `ScrcpyOutputParser.IsError` ne reconnaissait que les lignes portant
+« ERROR: ». La ligne n'atteignait donc jamais le classement, le refus restait
+`None`, et la session passait pour une fermeture propre, c'est-à-dire, par la
+première règle ci-dessus, pour une fenêtre fermée à la main. La reprise ne se
+serait jamais produite, et aucune épreuve ne l'aurait dit : elles nourrissaient
+toutes le classement avec des lignes en « ERROR: ».
+
+`IsFatal` couvre donc les deux, et le relevé réel est devenu une épreuve. Le
+contrôle reste étroit : scrcpy émet des avertissements anodins, et les prendre
+tous pour des pannes ferait rouvrir des fenêtres que personne n'a perdues.
+
+**La leçon, encore une fois** : une fonction verte de bout en bout n'est pas
+une fonction qui marche. Ce qui l'a montrée est une coupure réelle sur un
+appareil réel, faite exprès.
+
 ### La décision est dans le noyau, le reste ne l'est pas
 
 `GameLauncher` n'a aucune épreuve et ne peut pas en avoir : les épreuves ne

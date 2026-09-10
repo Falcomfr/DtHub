@@ -593,7 +593,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                     continue;
                 }
 
-                if (ScrcpyOutputParser.IsError(line.Text))
+                if (ScrcpyOutputParser.IsFatal(line.Text))
                 {
                     var kind = ScrcpyOutputParser.Classify(line.Text);
 

@@ -78,6 +78,42 @@ public static partial class ScrcpyOutputParser
         && line.Contains("ERROR:", StringComparison.Ordinal);
 
     /// <summary>
+    /// Vrai si la ligne annonce la fin de la session, avec ou sans le mot
+    /// « ERROR ».
+    ///
+    /// **Mesuré sur l'appareil réel**, scrcpy 4.1, liaison Wi-Fi coupée en
+    /// pleine session par un « adb disconnect » :
+    ///
+    /// <code>
+    /// WARN: Device disconnected
+    /// </code>
+    ///
+    /// puis le processus s'arrête. Le mot n'est pas « ERROR », et pourtant
+    /// c'est la panne la plus fréquente, celle dont les joueurs se plaignent
+    /// le plus. Ne regarder que « ERROR: » revenait à ne jamais la voir : le
+    /// refus restait « aucun », et la session passait pour une fermeture
+    /// propre, c'est-à-dire pour une fenêtre fermée à la main.
+    ///
+    /// Le contrôle reste étroit à dessein. scrcpy émet des avertissements
+    /// anodins, et les prendre tous pour des pannes ferait rouvrir des
+    /// fenêtres que personne n'a perdues.
+    /// </summary>
+    public static bool IsFatal(string? line)
+    {
+        if (IsError(line))
+        {
+            return true;
+        }
+
+        if (string.IsNullOrWhiteSpace(line) || !line.Contains("WARN:", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return line.Contains("device disconnected", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
     /// Range une ligne d'erreur de scrcpy dans une catégorie. La reconnaissance
     /// porte sur la sortie anglaise de scrcpy, qui n'est pas contractuelle :
     /// tout ce qui n'est pas reconnu devient <see cref="ScrcpyFailureKind.Unknown"/>,
