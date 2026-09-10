@@ -21,4 +21,23 @@ public static class StartupPresence
     /// </summary>
     public static bool ShowConfigurator(bool remembered, int openedWindows) =>
         remembered || openedWindows <= 0;
+
+    /// <summary>
+    /// Vrai si le configurateur peut paraître sans attendre le lancement.
+    ///
+    /// Ouvrir les sessions demande plusieurs secondes, pendant lesquelles rien
+    /// ne paraissait : l'application semblait ne pas démarrer, alors qu'elle
+    /// travaillait. Le panneau est pourtant prêt bien avant elles.
+    ///
+    /// La seule chose qui empêchait de le montrer tout de suite est que sa
+    /// présence dépend du nombre de fenêtres ouvertes, qu'on ne connaît qu'à la
+    /// fin. Sauf dans un cas : quand il était affiché à la sortie, il reste
+    /// affiché quoi qu'il arrive ensuite. Le montrer alors n'anticipe rien, et
+    /// ne peut donc pas mener à le reprendre à l'écran.
+    ///
+    /// Autrement dit, cette règle ne rend vrai que là où
+    /// <see cref="ShowConfigurator" /> rendra vrai de toute façon.
+    /// </summary>
+    /// <param name="remembered">Le panneau était-il affiché à la sortie.</param>
+    public static bool ShowBeforeLaunch(bool remembered) => remembered;
 }

@@ -230,6 +230,12 @@
   <data name="AutomaticUpdatesTip" xml:space="preserve">
     <value>La nouvelle version se télécharge en fond et s'installe quand vous quittez. Décoché, l'application se contente de dire qu'une version existe.</value>
   </data>
+  <data name="StopAppOnClose" xml:space="preserve">
+    <value>Fermer aussi le jeu sur le téléphone</value>
+  </data>
+  <data name="StopAppOnCloseTip" xml:space="preserve">
+    <value>Fermer une fenêtre de jeu arrête aussi le jeu sur le téléphone. Décoché, il continue de tourner : rouvrir la fenêtre retrouve le personnage connecté, mais un compte fermé garde sa mémoire et sa connexion.</value>
+  </data>
   <data name="OpenLogFolder" xml:space="preserve">
     <value>Ouvrir le dossier des journaux</value>
   </data>
@@ -244,6 +250,9 @@
   </data>
   <data name="ProfilesTip" xml:space="preserve">
     <value>Des ensembles de comptes, avec leurs positions et leurs réglages, qu'on ouvre d'un geste.</value>
+  </data>
+  <data name="ProfilesActiveTip" xml:space="preserve">
+    <value>Profils de lancement. « {0} » est celui qui s'ouvre au démarrage.</value>
   </data>
   <data name="LaunchProfilesHeading" xml:space="preserve">
     <value>PROFILS DE LANCEMENT</value>
@@ -393,7 +402,7 @@
     <value>Glissez pour changer l'ordre. Une instance peut se placer entre celles d'un autre appareil, et cet ordre est aussi celui du parcours au clavier.</value>
   </data>
   <data name="LockWindowTip" xml:space="preserve">
-    <value>Verrouiller cette fenêtre à sa place. Elle ne bougera plus lors d'un empilement, d'une mise côte à côte ou d'un changement de taille, et le parcours au clavier ne s'y arrêtera pas. Les autres fenêtres se placent sans elle.</value>
+    <value>Verrouiller cette fenêtre à sa place. Elle ne bougera plus lors d'un empilement, d'une mise côte à côte ou d'un changement de taille, et le parcours au clavier ne s'y arrêtera pas. Les autres fenêtres se placent sans elle. Si le compte est logé dans le cadre à onglets, un seul onglet verrouillé fige le cadre entier.</value>
   </data>
   <data name="TabbedTip" xml:space="preserve">
     <value>Ouvrir ce compte dans le cadre à onglets. Recliquez pour lui rendre sa fenêtre libre.</value>
@@ -416,6 +425,139 @@
   <data name="NoDeviceHelp" xml:space="preserve">
     <value>Branchez un câble USB avec le débogage activé : l'appareil apparaîtra tout seul. Un téléphone déjà associé en Wi-Fi se reconnecte de lui-même dès qu'il revient sur le réseau.</value>
   </data>
+  <data name="ConnectionHeading" xml:space="preserve">
+    <value>ÉTAT DE LA CONNEXION</value>
+  </data>
+  <data name="CheckReady" xml:space="preserve">
+    <value>Le téléphone répond. Tout est prêt.</value>
+  </data>
+  <data name="CheckNoDevice" xml:space="preserve">
+    <value>Aucun téléphone détecté. Que Windows le voie pour les photos ne suffit pas : cela ne prouve que le transfert de fichiers, jamais le débogage. Branchez un câble de données, choisissez « Transfert de fichiers » si le téléphone le demande, et activez le débogage USB. Un appareil déjà associé se reconnecte seul en Wi-Fi.</value>
+  </data>
+  <data name="CheckWaitingAuthorization" xml:space="preserve">
+    <value>Le téléphone est là mais n'a pas encore autorisé ce PC. Déverrouillez son écran et acceptez la demande de débogage.</value>
+  </data>
+  <data name="CheckDriverRefused" xml:space="preserve">
+    <value>Le pilote USB de Windows refuse l'accès à cet appareil. Débranchez, rebranchez sur un autre port, et acceptez la demande sur le téléphone.</value>
+  </data>
+  <data name="CheckUsbUnreadable" xml:space="preserve">
+    <value>Un appareil est branché mais Windows n'a pas pu lire son identité. Le câble, le port ou le connecteur sont en cause, pas le téléphone.</value>
+  </data>
+  <data name="CheckUsbDriverMissing" xml:space="preserve">
+    <value>Un appareil est branché mais Windows n'a aucun pilote pour lui. Il faut installer le pilote ADB du constructeur, avec les droits d'administrateur.</value>
+  </data>
+  <data name="CheckUsbOther" xml:space="preserve">
+    <value>Un appareil est branché et Windows l'a écarté. Le détail figure dans le Gestionnaire de périphériques.</value>
+  </data>
+  <data name="CableHelp" xml:space="preserve">
+    <value>Que faire ?</value>
+  </data>
+  <data name="CableHelpTitle" xml:space="preserve">
+    <value>Un appareil branché que Windows ne lit pas</value>
+  </data>
+  <data name="CableHelpIntro" xml:space="preserve">
+    <value>Le téléphone se charge peut-être, ce qui ne prouve que l'alimentation. Les fils de données, eux, ne transmettent rien d'exploitable. Voici les pistes, de la plus fréquente à la plus rare.</value>
+  </data>
+  <data name="CableHelpSteps" xml:space="preserve">
+    <value>Essayez un autre câble. Beaucoup de câbles livrés avec un chargeur n'ont pas de fils de données, et un câble de données abîmé donne exactement ce défaut.
+
+Essayez un port USB 2.0, à l'arrière de la machine plutôt qu'en façade : l'énumération y est plus tolérante et le trajet plus court.
+
+Redémarrez, n'éteignez pas. Avec le démarrage rapide de Windows, éteindre puis rallumer ne réinitialise pas les contrôleurs USB ; seul « Redémarrer » le fait.
+
+Nettoyez le connecteur du téléphone. La poussière de poche empêche le contact des broches de données alors que la charge passe encore.
+
+Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un autre PC. Vous saurez alors lequel des trois est en cause.</value>
+  </data>
+  <data name="AdbShellUserAccessDenied" xml:space="preserve">
+    <value>Le téléphone a refusé au PC l'accès à ce profil. S'il s'agit d'un dossier sécurisé, déverrouillez-le sur le téléphone avant de lancer. Sinon, activez « Débogage USB (paramètres de sécurité) » dans les options de développement.</value>
+  </data>
+  <data name="ScrcpyDisplayTimeoutWithAudio" xml:space="preserve">
+    <value>Le téléphone n'a pas ouvert d'écran virtuel à temps. Essayez d'abord sans le son : sur certaines tablettes, l'activer suffit à empêcher l'écran de s'ouvrir.</value>
+  </data>
+  <data name="BrandSamsungWarning" xml:space="preserve">
+    <value>Si la tablette n'est pas détectée du tout, désactivez « Bloqueur automatique » dans Paramètres > Sécurité et confidentialité, puis « Bloquer les connexions USB » dans les autres paramètres de sécurité. Un dossier sécurisé doit être déverrouillé avant le lancement, sans quoi le jeu n'y sera pas trouvé.</value>
+  </data>
+  <data name="BrandOnePlusWarning" xml:space="preserve">
+    <value>Activez aussi « Débogage USB (paramètres de sécurité) » et « Installer via USB » dans le même menu. Sans le premier, l'image s'affiche mais la souris et le clavier ne font rien.</value>
+  </data>
+  <data name="BrandVivoWarning" xml:space="preserve">
+    <value>Activez aussi « Débogage USB (paramètres de sécurité) » et « Installer via USB » dans le même menu. Sans le premier, l'image s'affiche mais la souris et le clavier ne font rien.</value>
+  </data>
+  <data name="DeviceThrottling" xml:space="preserve">
+    <value>L'appareil chauffe et commence à se brider. Fermez un compte, ou descendez d'un palier de qualité, et il repartira.</value>
+  </data>
+  <data name="DeviceThrottlingSevere" xml:space="preserve">
+    <value>L'appareil est trop chaud et se bride lourdement. Fermez un compte ou descendez d'un palier sans attendre : en dessous, Android suspend les fenêtres le temps qu'il refroidisse.</value>
+  </data>
+  <data name="DeadInputHelp" xml:space="preserve">
+    <value>La souris ne fait rien dans la fenêtre ?</value>
+  </data>
+  <data name="DeadInputTitle" xml:space="preserve">
+    <value>Rien ne répond dans la fenêtre</value>
+  </data>
+  <data name="DeadInputExplanation" xml:space="preserve">
+    <value>L'image s'affiche, la fenêtre s'ouvre, et pourtant les clics et les frappes ne font rien. Aucune erreur n'apparaît, parce qu'il n'y en a pas : l'appareil accepte de montrer son écran, mais pas de recevoir vos gestes. C'est une autorisation à part, et elle se donne sur le téléphone.</value>
+  </data>
+  <data name="DeadInputTest" xml:space="preserve">
+    <value>Tester l'appareil</value>
+  </data>
+  <data name="DeadInputTestHelp" xml:space="preserve">
+    <value>Le test demande à l'appareil d'accepter un événement d'entrée, avec la touche qu'Android appelle « inconnue » et qui ne déclenche rien nulle part. Il dit en une seconde ce qu'on met sinon une soirée à découvrir.</value>
+  </data>
+  <data name="DeadInputTestRunning" xml:space="preserve">
+    <value>Question posée à l'appareil…</value>
+  </data>
+  <data name="DeadInputTestWorks" xml:space="preserve">
+    <value>L'appareil accepte la simulation d'entrée. Si les clics ne font toujours rien, la cause est plus bas, pas ici.</value>
+  </data>
+  <data name="DeadInputTestDenied" xml:space="preserve">
+    <value>L'appareil refuse la simulation d'entrée. C'est la cause : activez le réglage ci-dessous, puis refaites le test.</value>
+  </data>
+  <data name="DeadInputTestUnknown" xml:space="preserve">
+    <value>Pas de verdict. L'appareil a répondu autre chose que prévu, et deviner serait pire que de se taire.</value>
+  </data>
+  <data name="DeadInputTestNoDevice" xml:space="preserve">
+    <value>Aucun appareil connecté. Branchez-en un ou associez-le, puis refaites le test.</value>
+  </data>
+  <data name="DeadInputSecuritySetting" xml:space="preserve">
+    <value>Autoriser la simulation d'entrée</value>
+  </data>
+  <data name="DeadInputSecurityHelp" xml:space="preserve">
+    <value>Dans les options de développement, activez la ligne dont la description dit « Accorder les autorisations et simulation d'entrée via le débogage USB ». Selon la marque elle s'appelle « Débogage USB (paramètres de sécurité) » ou « Débogage USB (réglages de sécurité) ». C'est la cause la plus fréquente, et de loin.</value>
+  </data>
+  <data name="DeadInputCable" xml:space="preserve">
+    <value>Le câble doit transférer des données</value>
+  </data>
+  <data name="DeadInputCableHelp" xml:space="preserve">
+    <value>Quand le téléphone demande le mode de connexion, choisissez « Transfert de fichiers » et non « Recharge ». Un câble resté en recharge laisse l'écran s'afficher tout en refusant le reste. Si la question n'apparaît pas, essayez un autre câble : beaucoup de câbles livrés avec un chargeur n'ont pas de fils de données.</value>
+  </data>
+  <data name="SimulatedKeyboard" xml:space="preserve">
+    <value>Clavier physique simulé</value>
+  </data>
+  <data name="SimulatedKeyboardTip" xml:space="preserve">
+    <value>Présente le clavier au téléphone comme un clavier branché, au lieu de taper par son clavier virtuel.</value>
+  </data>
+  <data name="SimulatedKeyboardHelp" xml:space="preserve">
+    <value>À activer quand la fenêtre répond à la souris mais que rien ne s'écrit : le clavier virtuel de certaines marques avale les caractères. En échange, le téléphone lit vos touches selon sa propre disposition Android : réglez-la comme celle de votre PC, sinon un AZERTY tape en QWERTY.</value>
+  </data>
+  <data name="DeadInputRevoke" xml:space="preserve">
+    <value>Révoquer les autorisations de débogage USB</value>
+  </data>
+  <data name="DeadInputRevokeHelp" xml:space="preserve">
+    <value>Dans les options pour les développeurs, appuyez sur « Révoquer les autorisations de débogage USB », débranchez l'appareil, rebranchez-le et acceptez de nouveau la demande. Cela efface une autorisation restée à moitié accordée, et c'est l'étape qui débloque les cas où tout paraît pourtant bien réglé.</value>
+  </data>
+  <data name="DeadInputToggleDeveloper" xml:space="preserve">
+    <value>Tout éteindre, redémarrer, tout rallumer</value>
+  </data>
+  <data name="DeadInputToggleDeveloperHelp" xml:space="preserve">
+    <value>Débranchez d'abord le téléphone du PC. Éteignez ensuite les interrupteurs de débogage, jusqu'à trois selon la marque : débogage USB, installation via USB, et débogage USB (paramètres de sécurité). Redémarrez le téléphone, rallumez-les une fois redémarré, puis rebranchez-le en mode « Transfert de fichiers » et acceptez la demande. L'ordre compte, et le redémarrage aussi : les rallumer sans lui laisse souvent le réglage coché sans être appliqué.</value>
+  </data>
+  <data name="OnBrandUseClonePath" xml:space="preserve">
+    <value>
+
+Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
+  </data>
   <data name="LinkedPage" xml:space="preserve">
     <value>Page liée</value>
   </data>
@@ -427,6 +569,63 @@
   </data>
   <data name="OpenCurrentPageTip" xml:space="preserve">
     <value>Ouvrir la page courante dans votre navigateur habituel, sur le site d'origine</value>
+  </data>
+  <data name="SearchOnSite" xml:space="preserve">
+    <value>Chercher « {0} » sur papycha.fr</value>
+  </data>
+  <data name="Almanax" xml:space="preserve">
+    <value>Almanax</value>
+  </data>
+  <data name="AlmanaxTip" xml:space="preserve">
+    <value>L'offrande et le bonus du jour pour DOFUS Touch, lus sur le portail d'Ankama.</value>
+  </data>
+  <data name="AlmanaxWindowTitle" xml:space="preserve">
+    <value>Almanax - DOFUS Touch</value>
+  </data>
+  <data name="AlmanaxSource" xml:space="preserve">
+    <value>Almanax officiel, krosmoz.com, filtré sur DOFUS Touch</value>
+  </data>
+  <data name="AlmanaxOffering" xml:space="preserve">
+    <value>Offrande</value>
+  </data>
+  <data name="AlmanaxBonus" xml:space="preserve">
+    <value>Bonus</value>
+  </data>
+  <data name="AlmanaxQuest" xml:space="preserve">
+    <value>Quête</value>
+  </data>
+  <data name="AlmanaxMeryde" xml:space="preserve">
+    <value>Méryde</value>
+  </data>
+  <data name="AlmanaxPickTip" xml:space="preserve">
+    <value>Choisir une autre date, plus loin ou plus ancienne</value>
+  </data>
+  <data name="ActionAlmanax" xml:space="preserve">
+    <value>Ouvrir l'Almanax</value>
+  </data>
+  <data name="ActionAlmanaxDetail" xml:space="preserve">
+    <value>Ouvre l'offrande et le bonus du jour pour DOFUS Touch, lus sur le portail d'Ankama. La fenêtre laisse aussi voir les jours suivants pour préparer.</value>
+  </data>
+  <data name="AlmanaxToday" xml:space="preserve">
+    <value>Aujourd'hui</value>
+  </data>
+  <data name="AlmanaxTodayTip" xml:space="preserve">
+    <value>Revenir à aujourd'hui</value>
+  </data>
+  <data name="AlmanaxPreviousTip" xml:space="preserve">
+    <value>Jour précédent</value>
+  </data>
+  <data name="AlmanaxNextTip" xml:space="preserve">
+    <value>Jour suivant</value>
+  </data>
+  <data name="AlmanaxLoading" xml:space="preserve">
+    <value>Lecture de l'Almanax…</value>
+  </data>
+  <data name="AlmanaxUnavailable" xml:space="preserve">
+    <value>L'Almanax n'a pas pu être lu. Le portail est peut-être injoignable, ou sa page a changé.</value>
+  </data>
+  <data name="SearchOnSiteTip" xml:space="preserve">
+    <value>Ouvre la recherche du site dans votre navigateur. Elle cherche dans le corps des articles, donc les objets, les monstres et les personnages que cette liste n'indexe pas.</value>
   </data>
   <data name="SearchTip" xml:space="preserve">
     <value>Cliquez pour dérouler la liste, ou tapez un nom. Les accents ne comptent pas.</value>
@@ -647,6 +846,9 @@
   <data name="HotkeyMissingModifier" xml:space="preserve">
     <value>Ajoutez Ctrl, Alt ou Maj, sinon la touche serait interceptée pendant que vous jouez.</value>
   </data>
+  <data name="HotkeyEditingKey" xml:space="preserve">
+    <value>Ctrl+A, Ctrl+C, Ctrl+V et Ctrl+X restent aux gestes d’édition.</value>
+  </data>
   <data name="HotkeyReserved" xml:space="preserve">
     <value>Cette combinaison est réservée par Windows.</value>
   </data>
@@ -710,8 +912,14 @@
   <data name="NoPrimaryProfile" xml:space="preserve">
     <value>Le téléphone n'a pas dit quel est son profil principal. Reconnectez-le, puis réessayez.</value>
   </data>
-  <data name="OneManagedProfileOnly" xml:space="preserve">
-    <value>Ce téléphone n'accepte qu'un seul profil de ce genre, et il existe déjà. Pour un compte de plus, activez les applications dupliquées dans ses réglages.</value>
+  <data name="ProfileReused" xml:space="preserve">
+    <value>Le profil « {0} » existait déjà mais n'avait plus le jeu. Il a été repris et le jeu y a été réinstallé : Android n'en accepte qu'un seul de ce genre.</value>
+  </data>
+  <data name="AccountAddedAsWorkProfile" xml:space="preserve">
+    <value>Compte « {0} » ajouté, mais dans un profil professionnel : le téléphone n'accepte qu'un seul profil cloné et il est déjà pris. Ses icônes porteront une valise, et Android y installera de lui-même ses propres applications.</value>
+  </data>
+  <data name="ProfileSlotsFull" xml:space="preserve">
+    <value>Ce téléphone n'accepte qu'un profil cloné et un profil professionnel, et les deux servent déjà. Pour un compte de plus, activez les applications dupliquées dans ses réglages.</value>
   </data>
   <data name="ProfileCreationRefused" xml:space="preserve">
     <value>Le téléphone a refusé de créer un profil. Certaines surcouches l'interdisent : passez alors par leurs réglages de comptes multiples.</value>
@@ -791,6 +999,9 @@
   <data name="PairedAndConnected" xml:space="preserve">
     <value>Téléphone appairé et connecté.</value>
   </data>
+  <data name="PairingInProgress" xml:space="preserve">
+    <value>Association en cours…</value>
+  </data>
   <data name="PhoneConnected" xml:space="preserve">
     <value>Téléphone connecté.</value>
   </data>
@@ -867,7 +1078,7 @@ Le détail se trouve dans les journaux :
     <value>Rompre l'association avec {0} ?</value>
   </data>
   <data name="ForgetDeviceConsequence" xml:space="preserve">
-    <value>Ses instances et leurs réglages seront effacés.</value>
+    <value>Ses comptes et leurs réglages seront effacés, et ce PC cessera de s'y connecter de lui-même. Le téléphone garde sa propre liste : retirez-y ce PC depuis « Débogage sans fil » si vous voulez l'en effacer aussi.</value>
   </data>
   <data name="GameNotInstalled" xml:space="preserve">
     <value>Jeu non installé</value>
@@ -1157,6 +1368,9 @@ Le reste de l'application fonctionne sans lui.</value>
   <data name="SiteDownCached" xml:space="preserve">
     <value>Le site n'a pas répondu ; liste en cache.</value>
   </data>
+  <data name="StepStart" xml:space="preserve">
+    <value>Départ</value>
+  </data>
   <data name="StepOfTotal" xml:space="preserve">
     <value>Étape {0} / {1}</value>
   </data>
@@ -1346,7 +1560,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>Paramètres  ›  Paramètres supplémentaires  ›  Options pour les développeurs</value>
   </data>
   <data name="BrandXiaomiWarning" xml:space="preserve">
-    <value>Sur HyperOS et MIUI, le débogage USB demande parfois une carte SIM insérée et un compte Xiaomi connecté. Activez aussi « Débogage USB (réglages de sécurité) » si la ligne existe.</value>
+    <value>Activez « Débogage USB (réglages de sécurité) » : sans elle, l'image s'affiche mais la souris et le clavier ne font rien. Le débogage USB demande parfois en plus une carte SIM insérée et un compte Xiaomi connecté. Si les clics restent morts, désactivez « Écriture manuscrite au stylet », tout en bas des options de développement.</value>
   </data>
   <data name="BrandSamsungName" xml:space="preserve">
     <value>Samsung</value>
@@ -1358,7 +1572,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>Paramètres  ›  Sécurité et confidentialité  ›  Dossier sécurisé</value>
   </data>
   <data name="BrandSamsungCloneNote" xml:space="preserve">
-    <value>« Dual Messenger » ne duplique que les applications de messagerie et ne convient donc pas pour un jeu. Le dossier sécurisé accepte n'importe quelle application, et demande un compte Samsung.</value>
+    <value>« Dual Messenger » ne duplique que les applications de messagerie et ne convient donc pas pour un jeu. Le dossier sécurisé accepte n'importe quelle application, et demande un compte Samsung. Il doit être déverrouillé avant le lancement : verrouillé, le jeu qu'il contient reste introuvable depuis le PC.</value>
   </data>
   <data name="BrandSamsungBatteryFeature" xml:space="preserve">
     <value>Autoriser l'activité en arrière-plan</value>

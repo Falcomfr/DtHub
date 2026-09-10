@@ -24,6 +24,12 @@ public sealed class HotkeySet
         [HotkeyAction.Rearrange] = Bind(HotkeyAction.Rearrange, VirtualKeys.R, HotkeyModifiers.Control),
         [HotkeyAction.Tile] = Bind(HotkeyAction.Tile, VirtualKeys.T, HotkeyModifiers.Control),
         [HotkeyAction.Quests] = Bind(HotkeyAction.Quests, VirtualKeys.Q, HotkeyModifiers.Control),
+
+        // Ctrl+M et non Ctrl+A : ces raccourcis sont enregistrés auprès de
+        // Windows, donc pris à toutes les applications. « A » aurait mangé le
+        // « tout sélectionner » de tout le poste. « M » n'est réservé nulle
+        // part, et le raccourci s'édite.
+        [HotkeyAction.Almanax] = Bind(HotkeyAction.Almanax, VirtualKeys.M, HotkeyModifiers.Control),
         [HotkeyAction.Size1] = Bind(HotkeyAction.Size1, VirtualKeys.D1, HotkeyModifiers.Control),
         [HotkeyAction.Size2] = Bind(HotkeyAction.Size2, VirtualKeys.D2, HotkeyModifiers.Control),
         [HotkeyAction.Size3] = Bind(HotkeyAction.Size3, VirtualKeys.D3, HotkeyModifiers.Control),
@@ -73,6 +79,11 @@ public sealed class HotkeySet
         if (IsReserved(virtualKey, modifiers))
         {
             return HotkeyValidationResult.ReservedBySystem;
+        }
+
+        if (IsEditing(virtualKey, modifiers))
+        {
+            return HotkeyValidationResult.ReservedForEditing;
         }
 
         var conflicting = _bindings.Values.FirstOrDefault(
@@ -146,6 +157,7 @@ public sealed class HotkeySet
                              && (binding.Modifiers != HotkeyModifiers.None
                                  || VirtualKeys.IsFunctionKey(binding.VirtualKey))
                              && !IsReserved(binding.VirtualKey, binding.Modifiers)
+                             && !IsEditing(binding.VirtualKey, binding.Modifiers)
                              && used.Add(binding.Combination);
 
             if (acceptable)
@@ -194,6 +206,20 @@ public sealed class HotkeySet
         // Alt+Tab et Alt+Échap appartiennent au sélecteur de fenêtres.
         return modifiers == HotkeyModifiers.Alt && virtualKey is VirtualKeys.Tab or VirtualKeys.Escape;
     }
+
+    /// <summary>
+    /// Les touches d'édition, qu'on ne confisque pas.
+    ///
+    /// Contrairement aux précédentes, celles-ci s'intercepteraient très bien,
+    /// et c'est le danger : <c>RegisterHotKey</c> vaut pour tout le bureau, si
+    /// bien que lier Ctrl+V à une action de DT Hub retirerait le collage à
+    /// l'éditeur de texte, au navigateur et au jeu lui-même, dans les deux
+    /// modes d'affichage, aussi longtemps que l'application tourne. Rien
+    /// n'interdisait ce geste, et rien ne l'aurait expliqué ensuite.
+    /// </summary>
+    private static bool IsEditing(int virtualKey, HotkeyModifiers modifiers) =>
+        modifiers == HotkeyModifiers.Control
+        && virtualKey is VirtualKeys.A or VirtualKeys.C or VirtualKeys.V or VirtualKeys.X;
 
     private static HotkeyBinding Bind(HotkeyAction action, int virtualKey, HotkeyModifiers modifiers) =>
         new() { Action = action, VirtualKey = virtualKey, Modifiers = modifiers };

@@ -30,6 +30,15 @@ public sealed class QuestTree
     public const int DungeonPathSection = -104;
 
     /// <summary>
+    /// Le chevron qui sépare les rangs d'un fil d'Ariane. Il vit ici parce que
+    /// trois endroits l'écrivaient chacun de leur côté : la fenêtre, le repère
+    /// d'un signalement, et le nom d'une rubrique à deux rangs. Ils doivent se
+    /// lire pareil, le repère servant justement à retrouver la page dans la
+    /// liste.
+    /// </summary>
+    public const string Separator = "  \u203a  ";
+
+    /// <summary>
     /// Les trois sortes de lieux de combat, dans l'ordre où la racine les
     /// présente, avec leur titre et les mots du compte.
     /// </summary>
@@ -324,13 +333,30 @@ public sealed class QuestTree
         _ => QuestNodeGlyph.Dungeons,
     };
 
-    /// <summary>Le nom de rubrique tel que le site l'écrit, pour en juger la nature.</summary>
-    public string NameOf(int section) =>
-        QuestZoneOrder.DisplayName(
-            _catalog.Catalog.Sections.FirstOrDefault(s => s.Id == section)?.Name)
-        is { Length: > 0 } name
-            ? name
-            : Strings.Get("Section");
+    /// <summary>
+    /// Le nom d'une rubrique, tel que la fenêtre l'affiche au-dessus d'elle.
+    ///
+    /// Les quatre branches qui ne viennent pas du site n'ont pas de nom à y
+    /// chercher, et le repli les nommait toutes « Rubrique » : un signalement
+    /// sur le Minotoror portait « Rubrique › Minotoror » au lieu de
+    /// « Donjons › Minotoror », et ne disait donc pas où regarder. Les chemins
+    /// gardent leurs deux rangs, comme le fil d'Ariane les montre.
+    /// </summary>
+    public string NameOf(int section) => section switch
+    {
+        // RootSection n'est pas de la partie : c'est une vraie catégorie du
+        // site, et son nom se lit dans le catalogue comme les autres.
+        DungeonSection => Strings.Get("Dungeons"),
+        RaidSection => Strings.Get("Raids"),
+        LairSection => Strings.Get("Lairs"),
+        DungeonPathSection => Strings.Get("Dungeons") + Separator + Strings.Get("Paths"),
+        QuestPathSection => Strings.Get("QuestAreaCrumb") + Separator + Strings.Get("Paths"),
+        _ => QuestZoneOrder.DisplayName(
+                 _catalog.Catalog.Sections.FirstOrDefault(s => s.Id == section)?.Name)
+             is { Length: > 0 } name
+                 ? name
+                 : Strings.Get("Section"),
+    };
 
     public static string Nombre(int count) => Combien(count, "WordQuest", "WordQuests");
 

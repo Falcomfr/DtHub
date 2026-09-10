@@ -49,6 +49,7 @@ public partial class App : Application, IDisposable
     private IHost? _host;
     private ConfiguratorWindow? _configurator;
     private QuestWindow? _quests;
+    private AlmanaxWindow? _almanax;
     /// <summary>
     /// Ce qu'on s'accorde pour retenir l'état quand Windows ferme la session.
     /// Il en donne cinq ; on en prend trois, et l'arrêt suit.
@@ -170,10 +171,14 @@ public partial class App : Application, IDisposable
         services.GetRequiredService<DiagnosticReporter>().Launcher = launcher;
         launcher.ConfiguratorToggleRequested += (_, _) => Dispatcher.Invoke(ToggleConfigurator);
         launcher.QuestsToggleRequested += (_, _) => Dispatcher.Invoke(ToggleQuests);
+        launcher.AlmanaxRequested += (_, _) => Dispatcher.Invoke(ShowAlmanax);
 
         // Le bouton d'outil passe par le même chemin que le raccourci.
         services.GetRequiredService<ConfiguratorViewModel>().QuestsRequested +=
             (_, _) => Dispatcher.Invoke(ToggleQuests);
+
+        services.GetRequiredService<ConfiguratorViewModel>().AlmanaxRequested +=
+            (_, _) => Dispatcher.Invoke(ShowAlmanax);
         launcher.QuitRequested += (_, _) => Dispatcher.Invoke(async () => await RequestQuitAsync().ConfigureAwait(true));
         // Le panneau était déjà masqué : c'est bien qu'on le veut masqué.
         launcher.LastWindowClosed += (_, _) => Dispatcher.Invoke(
@@ -203,6 +208,24 @@ public partial class App : Application, IDisposable
         // qui était ouvert la fois d'avant, comme elle l'a toujours fait.
         await ApplyDefaultLaunchProfileAsync(settings).ConfigureAwait(true);
 
+        // Les réglages sont relus après la session nommée, qui vient d'y poser
+        // ses propres choix.
+        var document = await settings.GetAsync().ConfigureAwait(true);
+
+        // Ouvrir les sessions demande plusieurs secondes, et le panneau ne
+        // paraissait qu'après : l'écran restait vide, et l'application semblait
+        // ne pas démarrer. Quand il était affiché à la sortie, on sait déjà
+        // qu'il restera affiché quel que soit le résultat du lancement, et rien
+        // n'oblige alors à attendre. Le premier lancement est laissé à sa suite
+        // habituelle : la fenêtre d'association ne doit pas s'ouvrir par-dessus
+        // un lancement en cours.
+        var revealedEarly = !firstRun && StartupPresence.ShowBeforeLaunch(document.ConfiguratorVisible);
+
+        if (revealedEarly)
+        {
+            RevealConfigurator(document);
+        }
+
         var report = await launcher.LaunchEnabledAsync().ConfigureAwait(true);
 
         _shape.Tick += (_, _) =>
@@ -221,17 +244,10 @@ public partial class App : Application, IDisposable
         _shape.Interval = launcher.Quality.WindowWatch;
         _shape.Start();
 
-        var document = await settings.GetAsync().ConfigureAwait(true);
-
-        // La fenêtre doit être affichée une fois pour que son chargement se
-        // fasse et que sa mise à l'échelle soit connue : PlaceAwayFrom mesure
-        // le rapport de la fenêtre elle-même. L'opacité évite le clignotement
-        // quand elle doit finalement rester masquée.
-        _configurator.Opacity = 0;
-        _configurator.Show();
-        _configurator.RestorePlacement(document);
-        _configurator.PlaceAwayFrom(document.GameAnchor);
-        _configurator.Opacity = 1;
+        if (!revealedEarly)
+        {
+            RevealConfigurator(document);
+        }
 
         // Au premier lancement, le panneau reste et s'ouvre sur les appareils :
         // c'est là qu'il n'y a rien et que tout commence. La fenêtre
@@ -321,7 +337,24 @@ public partial class App : Application, IDisposable
     }
 
     /// <summary>
-    /// Pose le raccourci du menu Démarrer sur l'exécutable, là où il se trouve.
+    /// Montre le configurateur à sa place, prêt à l'usage.
+    ///
+    /// La fenêtre doit être affichée une fois pour que son chargement se fasse
+    /// et que sa mise à l'échelle soit connue : PlaceAwayFrom mesure le rapport
+    /// de la fenêtre elle-même. L'opacité évite le clignotement quand elle doit
+    /// finalement rester masquée.
+    /// </summary>
+    private void RevealConfigurator(AppSettingsDocument document)
+    {
+        _configurator!.Opacity = 0;
+        _configurator.Show();
+        _configurator.RestorePlacement(document);
+        _configurator.PlaceAwayFrom(document.GameAnchor);
+        _configurator.Opacity = 1;
+    }
+
+    /// <summary>
+    /// Pose les raccourcis sur l'exécutable, là où il se trouve.
     ///
     /// L'application n'est pas installée : c'est un fichier qu'on pose où l'on
     /// veut. Sans raccourci, on va le chercher là où on l'a mis, et il n'y a
@@ -336,6 +369,10 @@ public partial class App : Application, IDisposable
     /// sortie de publication, que le lanceur de développement récrit à chaque
     /// fois. C'est la règle déjà écrite pour la mise à jour.
     ///
+    /// Le menu Démarrer est récrit à chaque fois ; le bureau suit une règle à
+    /// lui, écrite dans <see cref="ShortcutPlacement" />, pour ne pas reposer un
+    /// raccourci qu'on vient d'effacer.
+    ///
     /// Un raccourci que Windows refuse n'empêche rien : l'application démarre.
     /// </summary>
     private static void PlaceShortcut(IServiceProvider services)
@@ -347,14 +384,32 @@ public partial class App : Application, IDisposable
             return;
         }
 
-        var link = Path.Combine(
+        var writer = services.GetRequiredService<IShortcutWriter>();
+        var description = "Ouvrir " + ProductInfo.Name;
+
+        var startMenuLink = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.Programs),
             ProductInfo.Name + ".lnk");
 
-        if (!services.GetRequiredService<IShortcutWriter>()
-            .Write(link, executable!, "Ouvrir " + ProductInfo.Name))
+        var desktopLink = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+            ProductInfo.Name + ".lnk");
+
+        // Lu avant d'écrire quoi que ce soit : le raccourci du menu Démarrer
+        // est justement ce qui distingue une première installation d'un bureau
+        // volontairement vide, et l'écrire d'abord effacerait la différence.
+        var placeDesktop = ShortcutPlacement.ShouldWriteDesktop(
+            File.Exists(desktopLink),
+            File.Exists(startMenuLink));
+
+        if (!writer.Write(startMenuLink, executable!, description))
         {
             Log.Warning("Le raccourci du menu Démarrer n'a pas pu être posé.");
+        }
+
+        if (placeDesktop && !writer.Write(desktopLink, executable!, description))
+        {
+            Log.Warning("Le raccourci du bureau n'a pas pu être posé.");
         }
     }
 
@@ -685,7 +740,7 @@ public partial class App : Application, IDisposable
         // Par un ensemble de poignées et non par la liste des fenêtres : cette
         // question est posée depuis le guet du premier plan, qui ne vit pas sur
         // le fil de l'interface.
-        return QuestPageWindow.Owns(handle);
+        return QuestPageWindow.Owns(handle) || AlmanaxWindow.Owns(handle);
     }
 
     /// <summary>
@@ -694,6 +749,38 @@ public partial class App : Application, IDisposable
     /// mettre en route pour quelqu'un qui ne s'en sert pas.
     /// </summary>
     private void ToggleQuests() => Quests()?.Toggle();
+
+    /// <summary>
+    /// Ouvre l'Almanax du jour, une fenêtre à la fois.
+    ///
+    /// Une seule parce qu'il n'y a qu'un Almanax : deux fenêtres montreraient
+    /// la même chose, et la seconde ferait oublier la première. Si elle est
+    /// déjà là, on la ramène devant.
+    ///
+    /// Elle ne compte pas, elle, pour décider s'il reste quelque chose : on
+    /// n'ouvre pas DT Hub pour consulter un calendrier, et l'application n'a
+    /// pas à survivre pour lui seul.
+    /// </summary>
+    private void ShowAlmanax()
+    {
+        if (_almanax is { IsLoaded: true })
+        {
+            _almanax.Activate();
+
+            return;
+        }
+
+        _almanax = _host?.Services.GetRequiredService<AlmanaxWindow>();
+
+        if (_almanax is null)
+        {
+            return;
+        }
+
+        _almanax.Closed += (_, _) => _almanax = null;
+
+        _ = _almanax.ShowAlmanaxAsync();
+    }
 
     /// <summary>Rouvre le suivi de quêtes sur ce qu'on y lisait au dernier arrêt.</summary>
     private async Task RestoreQuestsAsync(string? url, int step)

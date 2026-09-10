@@ -187,10 +187,25 @@ public sealed class AndroidUserService
     /// Voir <see cref="AndroidUserHosting"/> pour la mesure et son détail.
     /// </summary>
     /// <returns>L'identifiant du profil, ou <c>null</c> si la création a été refusée.</returns>
+    /// <summary>
+    /// Le nom du type tel qu'Android l'attend sur la ligne de commande.
+    ///
+    /// Relevé dans l'aide de <c>pm create-user</c> du téléphone de référence :
+    /// « --managed is shorthand for --user-type
+    /// android.os.usertype.profile.MANAGED ». Le raccourci est donc écarté au
+    /// profit du nom complet, qui dit lequel des deux on demande.
+    /// </summary>
+    private static string TypeName(AndroidUserType type) => type switch
+    {
+        AndroidUserType.CloneProfile => "android.os.usertype.profile.CLONE",
+        _ => "android.os.usertype.profile.MANAGED",
+    };
+
     public async Task<int?> TryCreateUserAsync(
         string serial,
         string name,
         int parentUserId,
+        AndroidUserType type = AndroidUserType.ManagedProfile,
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(serial);
@@ -207,7 +222,8 @@ public sealed class AndroidUserService
                         "create-user",
                         "--profileOf",
                         parentUserId.ToString(CultureInfo.InvariantCulture),
-                        "--managed",
+                        "--user-type",
+                        TypeName(type),
                         AndroidShell.Quote(name.Trim()),
                     ],
                     null,

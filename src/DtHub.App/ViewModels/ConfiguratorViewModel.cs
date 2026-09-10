@@ -1,10 +1,13 @@
 ﻿using System.Collections.ObjectModel;
+using System.Globalization;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 using DtHub.App.Services;
 using DtHub.Core;
+using DtHub.Core.Adb;
+using DtHub.Core.Devices;
 using DtHub.Core.Hotkeys;
 using DtHub.Core.Localization;
 using DtHub.Core.Settings;
@@ -37,7 +40,8 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         GameLauncher launcher,
         IDialogService dialogs,
         IAppPaths paths,
-        DiagnosticReporter reporter)
+        DiagnosticReporter reporter,
+        IUsbEnumerationInspector usb)
     {
         Instances = instances;
         _settings = settings;
@@ -45,6 +49,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         _dialogs = dialogs;
         _paths = paths;
         _reporter = reporter;
+        _usb = usb;
 
         // Une faute hors du fil d'interface ne s'affiche pas : elle se compte,
         // et cette ligne est le seul endroit où elle se voit.
@@ -73,11 +78,16 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// placements peuvent bouger.
     ///
     /// Empiler ou mettre côte à côte n'a aucun sens à une seule fenêtre, et
-    /// n'en a pas davantage sur des fenêtres logées dans le cadre à onglets ou
-    /// mises de côté : ces placements les ignorent. Les touches se retirent
-    /// donc plutôt que de ne rien faire quand on les presse.
+    /// n'en a pas davantage sur des fenêtres mises de côté : ces placements les
+    /// ignorent. Les touches se retirent donc plutôt que de ne rien faire quand
+    /// on les presse.
+    ///
+    /// Le cadre à onglets compte pour une fenêtre, ce qu'il n'a pas toujours
+    /// fait : deux comptes logés faisaient disparaître les deux touches, et un
+    /// compte logé plus une fenêtre libre aussi, alors qu'il y avait bien deux
+    /// fenêtres à ranger. Un cadre figé par un cadenas ne compte pas.
     /// </summary>
-    public bool CanArrange => _launcher.ManagedSessions.Count > 1;
+    public bool CanArrange => _launcher.ArrangeableCount > 1;
 
     private void OnArrangeableChanged(object? sender, EventArgs e) =>
         System.Windows.Application.Current?.Dispatcher.InvokeAsync(
@@ -366,13 +376,19 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     private string _language = string.Empty;
 
     /// <summary>
-    /// Vrai après un changement de langue, tant que l'application n'a pas été
-    /// relancée. Les fenêtres lisent leurs textes à la construction : les
-    /// retraduire à chaud demanderait de toutes les rebâtir, pour un réglage
-    /// qu'on touche une fois.
+    /// Vrai quand la langue choisie n'est pas celle qui est affichée, tant que
+    /// l'application n'a pas été relancée. Les fenêtres lisent leurs textes à
+    /// la construction : les retraduire à chaud demanderait de toutes les
+    /// rebâtir, pour un réglage qu'on touche une fois.
     /// </summary>
     [ObservableProperty]
     private bool _languageRestartNeeded;
+
+    /// <summary>
+    /// La langue effectivement affichée, posée au démarrage et inchangée
+    /// depuis : c'est elle que les fenêtres portent.
+    /// </summary>
+    private readonly string _languageInForce = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
 
     partial void OnLanguageChanged(string value)
     {
@@ -381,7 +397,18 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             return;
         }
 
-        LanguageRestartNeeded = true;
+        // Le message se levait à tout changement et ne redescendait jamais :
+        // reprendre la langue du départ, donc renoncer, laissait pourtant
+        // l'invitation à relancer, pour une application qui n'avait plus rien à
+        // changer.
+        //
+        // Ce qui compte n'est pas qu'on ait touché au réglage, mais que le
+        // choix s'écarte de ce qui est affiché. « Suivre Windows » est résolu
+        // comme au démarrage, si bien que le choisir alors que Windows parle
+        // déjà cette langue ne demande rien non plus.
+        LanguageRestartNeeded = AppLanguage.NeedsRestart(
+            value, CultureInfo.InstalledUICulture.Name, _languageInForce);
+
         _ = SaveAsync(settings => settings.Language = AppLanguage.Serves(value) ? value : string.Empty);
     }
 
@@ -422,6 +449,44 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         }
 
         _ = SaveAsync(settings => settings.UpdatesAutomatic = value);
+    }
+
+    /// <summary>
+    /// Vrai quand fermer une fenêtre de jeu arrête aussi le jeu sur le
+    /// téléphone. Faux, le jeu survit à sa fenêtre et on la rouvre sans avoir
+    /// à se reconnecter.
+    /// </summary>
+    [ObservableProperty]
+    private bool _stopAppOnClose = true;
+
+    partial void OnStopAppOnCloseChanged(bool value)
+    {
+        if (_loading)
+        {
+            return;
+        }
+
+        _ = SaveAsync(settings => settings.StopAppOnClose = value);
+    }
+
+    /// <summary>
+    /// Vrai quand le clavier est présenté au téléphone comme un clavier
+    /// physique branché. Le clavier virtuel de certaines surcouches avale les
+    /// caractères, et la fenêtre répond alors à la souris sans rien écrire.
+    /// </summary>
+    [ObservableProperty]
+    private bool _simulatedPhysicalKeyboard;
+
+    partial void OnSimulatedPhysicalKeyboardChanged(bool value)
+    {
+        if (_loading)
+        {
+            return;
+        }
+
+        // Le mode clavier est un argument de démarrage de scrcpy : sans
+        // rouvrir, le réglage paraîtrait mort jusqu'à la session suivante.
+        _ = ApplyStartupSettingAsync(() => _settings.SetSimulatedPhysicalKeyboardAsync(value));
     }
 
     /// <summary>
@@ -484,6 +549,8 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             Quality = settings.Quality;
             Zoom = settings.GameZoom;
             UpdatesAutomatic = settings.UpdatesAutomatic;
+            StopAppOnClose = settings.StopAppOnClose;
+            SimulatedPhysicalKeyboard = settings.SimulatedPhysicalKeyboard;
             Language = settings.Language;
             AudioEnabled = settings.AudioEnabled;
             ReadCustomQuality(settings);
@@ -529,6 +596,85 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     {
         await Instances.RefreshAsync(cancellationToken).ConfigureAwait(true);
         Instances.RefreshRunningState();
+        RefreshConnection();
+    }
+
+    private readonly IUsbEnumerationInspector _usb;
+
+    /// <summary>Ce que l'application peut dire de la liaison, en une phrase.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsCableHelp))]
+    [NotifyPropertyChangedFor(nameof(ConnectionIsHealthy))]
+    [NotifyPropertyChangedFor(nameof(ShowsConnection))]
+    private ConnectionVerdict _connection = ConnectionVerdict.NoDevice;
+
+    /// <summary>
+    /// Faux tant que la liaison n'a jamais été examinée.
+    ///
+    /// Sans lui, le bloc partait de « aucun téléphone connecté » et l'affichait
+    /// à l'ouverture du panneau, avant même le premier sondage, pour se
+    /// dédire une seconde plus tard. Ce n'était pas un état de la liaison,
+    /// c'était l'absence de mesure présentée comme un constat.
+    ///
+    /// Ne rien afficher est la seule réponse honnête à « je ne sais pas
+    /// encore » : un bloc vide n'apprend rien, un bloc qui se trompe défait
+    /// la confiance qu'on accorde aux suivants.
+    /// </summary>
+    private bool _connectionKnown;
+
+    /// <summary>La phrase elle-même.</summary>
+    public string ConnectionMessage => ConnectionCheck.Describe(Connection);
+
+    /// <summary>Vrai quand le téléphone répond : le bloc se fait alors discret.</summary>
+    public bool ConnectionIsHealthy => Connection == ConnectionVerdict.Ready;
+
+    /// <summary>
+    /// Vrai quand le bloc a quelque chose à dire : la liaison a été examinée,
+    /// et ce qu'on y a trouvé demande une explication.
+    /// </summary>
+    public bool ShowsConnection => _connectionKnown && ConnectionCheck.NeedsExplaining(Connection);
+
+    /// <summary>Vrai quand la fiche du câble a quelque chose à apporter.</summary>
+    public bool ShowsCableHelp => ConnectionCheck.NeedsCableHelp(Connection);
+
+    /// <summary>
+    /// Relit le verdict.
+    ///
+    /// L'avis de Windows n'est demandé que lorsqu'ADB ne voit rien : c'est le
+    /// seul cas où il apporte quelque chose, et une énumération à chaque
+    /// balayage coûterait sans rien rendre.
+    /// </summary>
+    private void RefreshConnection()
+    {
+        var states = Instances.DeviceStates;
+
+        var faults = states.Contains(AdbDeviceState.Device)
+            ? []
+            : _usb.Faults();
+
+        var avant = Connection;
+        var connuAvant = _connectionKnown;
+
+        Connection = ConnectionCheck.Of(states, faults, toolsReady: true);
+        _connectionKnown = true;
+
+        OnPropertyChanged(nameof(ConnectionMessage));
+
+        // Le premier examen ne change pas forcément le verdict, mais il change
+        // le droit de l'afficher.
+        if (!connuAvant)
+        {
+            OnPropertyChanged(nameof(ShowsConnection));
+        }
+
+        if (Connection != avant)
+        {
+            Serilog.Log.Information(
+                "Liaison : {Verdict} ({Appareils} appareil(s) vu(s), {Defauts} défaut(s) USB).",
+                Connection,
+                states.Count,
+                faults.Count);
+        }
     }
 
     [RelayCommand]
@@ -652,6 +798,13 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// l'application, pas par ce modèle : il n'a pas à connaître les fenêtres.
     /// </summary>
     public event EventHandler? QuestsRequested;
+
+    /// <summary>Ouvre l'Almanax du jour.</summary>
+    [RelayCommand]
+    private void Almanax() => AlmanaxRequested?.Invoke(this, EventArgs.Empty);
+
+    /// <summary>Demandé depuis le bouton d'outil, même raison.</summary>
+    public event EventHandler? AlmanaxRequested;
 
     /// <summary>Montre ce que la version en attente apporte.</summary>
     [RelayCommand]

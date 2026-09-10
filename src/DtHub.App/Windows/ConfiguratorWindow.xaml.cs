@@ -49,16 +49,21 @@ public partial class ConfiguratorWindow : Window
         // quatre heures avec le panneau masqué, cela fait des milliers de
         // lancements pour une fenêtre que personne ne regarde, chacun
         // réveillant le gestionnaire de paquets du téléphone.
-        IsVisibleChanged += (_, e) =>
+        IsVisibleChanged += async (_, e) =>
         {
-            if (e.NewValue is true)
-            {
-                _poll.Start();
-            }
-            else
+            if (e.NewValue is not true)
             {
                 _poll.Stop();
+                return;
             }
+
+            _poll.Start();
+
+            // Et tout de suite, sans attendre le premier tic : celui-ci vient
+            // trois secondes plus tard, et pendant ces trois secondes le
+            // panneau n'aurait rien à dire de la liaison alors que c'est la
+            // première chose qu'on vient y lire.
+            await PollSafelyAsync().ConfigureAwait(true);
         };
 
         _poll.Interval = _viewModel.Instances.PollInterval;
@@ -73,21 +78,43 @@ public partial class ConfiguratorWindow : Window
                 _poll.Interval = _viewModel.Instances.PollInterval;
             }
 
-            // Borné, et c'est le tic qui l'exige. Le balayage n'attrape que
-            // les fautes d'ADB ; toute autre s'échapperait de cette lambda
-            // « async void », atteindrait le garde-fou du répartiteur, et
-            // ouvrirait une fenêtre d'erreur toutes les trois secondes. Une
-            // panne durable rendrait alors l'application inutilisable par son
-            // propre message. Le journal la retient, le tic suivant réessaie.
-            try
-            {
-                await _viewModel.PollAsync(CancellationToken.None).ConfigureAwait(true);
-            }
-            catch (Exception exception) when (exception is not OutOfMemoryException)
-            {
-                Log.Warning(exception, "Le balayage du panneau a échoué.");
-            }
+            await PollSafelyAsync().ConfigureAwait(true);
         };
+
+        // Le temps mort après un branchement absorbe la rafale : Windows
+        // diffuse le changement plusieurs fois pendant qu'il énumère, et il
+        // faut de toute façon le laisser finir avant qu'ADB ait quelque chose
+        // à voir. Une seconde, une seule interrogation.
+        _afterDeviceChange.Tick += async (_, _) =>
+        {
+            _afterDeviceChange.Stop();
+
+            Log.Information("Changement de périphériques signalé par Windows : balayage.");
+
+            await PollSafelyAsync().ConfigureAwait(true);
+        };
+    }
+
+    private readonly DispatcherTimer _afterDeviceChange = new() { Interval = TimeSpan.FromSeconds(1) };
+
+    /// <summary>
+    /// Un balayage borné, et c'est le rythme qui l'exige. Le balayage n'attrape
+    /// que les fautes d'ADB ; toute autre s'échapperait d'une lambda
+    /// « async void », atteindrait le garde-fou du répartiteur, et ouvrirait
+    /// une fenêtre d'erreur toutes les trois secondes. Une panne durable
+    /// rendrait alors l'application inutilisable par son propre message. Le
+    /// journal la retient, le tic suivant réessaie.
+    /// </summary>
+    private async Task PollSafelyAsync()
+    {
+        try
+        {
+            await _viewModel.PollAsync(CancellationToken.None).ConfigureAwait(true);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Log.Warning(exception, "Le balayage du panneau a échoué.");
+        }
     }
 
     /// <summary>
@@ -115,6 +142,32 @@ public partial class ConfiguratorWindow : Window
     /// <summary>Retient où est la fenêtre.</summary>
     public Task SavePlacementAsync() =>
         _placements.SaveAsync(this, WindowPlacements.Configurator);
+
+    /// <summary>
+    /// Branche un téléphone, et le balayage part tout de suite.
+    ///
+    /// Le sondage périodique suit la visibilité du panneau, pour de bonnes
+    /// raisons dites plus haut : un tic déclenche jusqu'à sept lancements
+    /// d'adb.exe, et des milliers par soirée pour une fenêtre que personne ne
+    /// regarde. Mais panneau masqué, plus rien ne regardait non plus : un câble
+    /// branché n'était vu qu'au retour du panneau. Relevé sur un cas réel, un
+    /// branchement n'a laissé aucune ligne de journal.
+    ///
+    /// Ce message-ci ne coûte rien tant qu'il ne se passe rien : Windows le
+    /// diffuse, nous n'interrogeons personne. Il rend donc au panneau masqué
+    /// exactement ce qui lui manquait, sans reprendre ce que la mesure avait
+    /// fait retirer.
+    /// </summary>
+    private nint OnWindowMessage(nint hwnd, int msg, nint wParam, nint lParam, ref bool handled)
+    {
+        if (msg == WmDeviceChange && (int)wParam == DbtDevNodesChanged)
+        {
+            _afterDeviceChange.Stop();
+            _afterDeviceChange.Start();
+        }
+
+        return 0;
+    }
 
     /// <summary>Affiche ou masque la fenêtre, selon son état.</summary>
     public void Toggle()
@@ -182,6 +235,18 @@ public partial class ConfiguratorWindow : Window
         help.ShowDialog();
     }
 
+    /// <summary>
+    /// Que faire quand l'image passe mais que rien ne répond. Le symptôme est
+    /// silencieux par nature : aucune erreur n'est levée, et sans cette porte
+    /// la personne n'a rien à quoi se raccrocher.
+    /// </summary>
+    private void OnInputHelp(object sender, RoutedEventArgs e)
+    {
+        var help = AppHost.Services.GetRequiredService<InputHelpWindow>();
+        help.Owner = this;
+        help.ShowDialog();
+    }
+
     /// <summary>Ouvre l'éditeur de raccourcis, puis relit ce qui a changé.</summary>
     private async void OnEditHotkeys(object sender, RoutedEventArgs e)
     {
@@ -234,11 +299,25 @@ public partial class ConfiguratorWindow : Window
         }
     }
 
+    /// <summary>
+    /// Message que Windows diffuse quand l'arborescence des périphériques
+    /// change. Il arrive aux fenêtres de premier niveau sans inscription
+    /// préalable, et une fenêtre masquée le reçoit comme les autres.
+    /// </summary>
+    private const int WmDeviceChange = 0x0219;
+
+    private const int DbtDevNodesChanged = 0x0007;
+
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
 
         Handle = new WindowInteropHelper(this).Handle;
+
+        if (PresentationSource.FromVisual(this) is HwndSource source)
+        {
+            source.AddHook(OnWindowMessage);
+        }
     }
 
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)

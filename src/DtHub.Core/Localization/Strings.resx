@@ -230,6 +230,12 @@
   <data name="AutomaticUpdatesTip" xml:space="preserve">
     <value>The new version downloads in the background and installs when you quit. Unchecked, the application only says that a version exists.</value>
   </data>
+  <data name="StopAppOnClose" xml:space="preserve">
+    <value>Close the game on the phone too</value>
+  </data>
+  <data name="StopAppOnCloseTip" xml:space="preserve">
+    <value>When you close a game window, the game is also stopped on the phone. Unchecked, it keeps running: reopening the window finds your character still logged in, but a closed account keeps its memory and its connection.</value>
+  </data>
   <data name="OpenLogFolder" xml:space="preserve">
     <value>Open the log folder</value>
   </data>
@@ -244,6 +250,9 @@
   </data>
   <data name="ProfilesTip" xml:space="preserve">
     <value>Sets of accounts, with their positions and their settings, opened in one gesture.</value>
+  </data>
+  <data name="ProfilesActiveTip" xml:space="preserve">
+    <value>Launch profiles. « {0} » is the one that opens at startup.</value>
   </data>
   <data name="LaunchProfilesHeading" xml:space="preserve">
     <value>LAUNCH PROFILES</value>
@@ -393,7 +402,7 @@
     <value>Drag to change the order. An instance can sit between those of another device, and this order is also the one the keyboard follows.</value>
   </data>
   <data name="LockWindowTip" xml:space="preserve">
-    <value>Lock this window in its place. It will no longer move on a stack, a side-by-side or a size change, and the keyboard will not stop on it. The other windows arrange themselves without it.</value>
+    <value>Lock this window in its place. It will no longer move on a stack, a side-by-side or a size change, and the keyboard will not stop on it. The other windows arrange themselves without it. If the account sits in the tabbed frame, one locked tab freezes the whole frame.</value>
   </data>
   <data name="TabbedTip" xml:space="preserve">
     <value>Open this account in the tabbed frame. Click again to give it back its own free window.</value>
@@ -416,6 +425,139 @@
   <data name="NoDeviceHelp" xml:space="preserve">
     <value>Plug in a USB cable with debugging turned on: the device will appear on its own. A phone already paired over Wi-Fi reconnects by itself as soon as it is back on the network.</value>
   </data>
+  <data name="ConnectionHeading" xml:space="preserve">
+    <value>CONNECTION STATUS</value>
+  </data>
+  <data name="CheckReady" xml:space="preserve">
+    <value>The phone answers. Everything is ready.</value>
+  </data>
+  <data name="CheckNoDevice" xml:space="preserve">
+    <value>No phone detected. Windows seeing it for photos is not enough: that only proves file transfer, never debugging. Plug in a data cable, pick File transfer if the phone asks, and turn on USB debugging. A device already paired reconnects on its own over Wi-Fi.</value>
+  </data>
+  <data name="CheckWaitingAuthorization" xml:space="preserve">
+    <value>The phone is there but has not authorised this PC yet. Unlock its screen and accept the debugging prompt.</value>
+  </data>
+  <data name="CheckDriverRefused" xml:space="preserve">
+    <value>The Windows USB driver refuses access to this device. Unplug it, plug it into another port, and accept the prompt on the phone.</value>
+  </data>
+  <data name="CheckUsbUnreadable" xml:space="preserve">
+    <value>A device is plugged in but Windows could not read its identity. The cable, the port or the connector is at fault, not the phone.</value>
+  </data>
+  <data name="CheckUsbDriverMissing" xml:space="preserve">
+    <value>A device is plugged in but Windows has no driver for it. The manufacturer's ADB driver has to be installed, with administrator rights.</value>
+  </data>
+  <data name="CheckUsbOther" xml:space="preserve">
+    <value>A device is plugged in and Windows turned it away. The detail is in Device Manager.</value>
+  </data>
+  <data name="CableHelp" xml:space="preserve">
+    <value>What can I do?</value>
+  </data>
+  <data name="CableHelpTitle" xml:space="preserve">
+    <value>A plugged-in device Windows cannot read</value>
+  </data>
+  <data name="CableHelpIntro" xml:space="preserve">
+    <value>The phone may well be charging, which only proves power. The data wires carry nothing usable. Here are the leads, from the most common to the rarest.</value>
+  </data>
+  <data name="CableHelpSteps" xml:space="preserve">
+    <value>Try another cable. Many cables shipped with a charger have no data wires, and a damaged data cable gives exactly this fault.
+
+Try a USB 2.0 port, at the back of the machine rather than the front: enumeration is more forgiving there and the path is shorter.
+
+Restart, do not shut down. With Windows fast startup, shutting down and powering back on does not reinitialise the USB controllers; only "Restart" does.
+
+Clean the phone's connector. Pocket dust keeps the data pins from making contact while charging still works.
+
+Cross the tests: another device on this port, and this phone on another PC. You will then know which of the three is at fault.</value>
+  </data>
+  <data name="AdbShellUserAccessDenied" xml:space="preserve">
+    <value>The phone refused the PC access to that profile. If it is a secure folder, unlock it on the phone before launching. Otherwise turn on “USB debugging (security settings)” in the developer options.</value>
+  </data>
+  <data name="ScrcpyDisplayTimeoutWithAudio" xml:space="preserve">
+    <value>The phone did not open a virtual display in time. Try without sound first: on some tablets, turning it on is enough to stop the display from opening.</value>
+  </data>
+  <data name="BrandSamsungWarning" xml:space="preserve">
+    <value>If the tablet is not detected at all, turn off “Auto blocker” in Settings > Security and privacy, then “Block USB connections” in the other security settings. A secure folder has to be unlocked before launching, or the game will not be found in it.</value>
+  </data>
+  <data name="BrandOnePlusWarning" xml:space="preserve">
+    <value>Also turn on “USB debugging (security settings)” and “Install via USB” in the same menu. Without the first one the picture shows but the mouse and keyboard do nothing.</value>
+  </data>
+  <data name="BrandVivoWarning" xml:space="preserve">
+    <value>Also turn on “USB debugging (security settings)” and “Install via USB” in the same menu. Without the first one the picture shows but the mouse and keyboard do nothing.</value>
+  </data>
+  <data name="DeviceThrottling" xml:space="preserve">
+    <value>The device is heating up and is starting to slow itself down. Close an account, or drop one quality step, and it will pick up again.</value>
+  </data>
+  <data name="DeviceThrottlingSevere" xml:space="preserve">
+    <value>The device is too hot and is heavily slowing itself down. Close an account or drop one quality step now: below this, Android suspends the windows until it cools off.</value>
+  </data>
+  <data name="DeadInputHelp" xml:space="preserve">
+    <value>The mouse does nothing in the window?</value>
+  </data>
+  <data name="DeadInputTitle" xml:space="preserve">
+    <value>Nothing responds in the window</value>
+  </data>
+  <data name="DeadInputExplanation" xml:space="preserve">
+    <value>The picture shows, the window opens, and yet clicks and keystrokes do nothing. No error appears, because there is none: the device agrees to show its screen, but not to receive your gestures. That is a separate permission, and it is granted on the phone.</value>
+  </data>
+  <data name="DeadInputTest" xml:space="preserve">
+    <value>Test the device</value>
+  </data>
+  <data name="DeadInputTestHelp" xml:space="preserve">
+    <value>The check asks the device to accept an input event, using the key Android calls “unknown”, which triggers nothing anywhere. It says in one second what otherwise takes an evening to find out.</value>
+  </data>
+  <data name="DeadInputTestRunning" xml:space="preserve">
+    <value>Asking the device…</value>
+  </data>
+  <data name="DeadInputTestWorks" xml:space="preserve">
+    <value>The device accepts input simulation. If clicks still do nothing, the cause is below, not here.</value>
+  </data>
+  <data name="DeadInputTestDenied" xml:space="preserve">
+    <value>The device refuses input simulation. That is the cause: turn on the setting below, then run the check again.</value>
+  </data>
+  <data name="DeadInputTestUnknown" xml:space="preserve">
+    <value>No verdict. The device answered something unexpected, and guessing would be worse than saying nothing.</value>
+  </data>
+  <data name="DeadInputTestNoDevice" xml:space="preserve">
+    <value>No device connected. Plug one in or pair it, then run the check again.</value>
+  </data>
+  <data name="DeadInputSecuritySetting" xml:space="preserve">
+    <value>Allow input simulation</value>
+  </data>
+  <data name="DeadInputSecurityHelp" xml:space="preserve">
+    <value>In the developer options, turn on the line whose description reads “Grant permissions and simulate input via USB debugging”. Depending on the brand it is called “USB debugging (security settings)”. This is by far the most common cause.</value>
+  </data>
+  <data name="DeadInputCable" xml:space="preserve">
+    <value>The cable has to carry data</value>
+  </data>
+  <data name="DeadInputCableHelp" xml:space="preserve">
+    <value>When the phone asks for the connection mode, pick “File transfer”, not “Charging”. A cable left on charging lets the screen show while refusing everything else. If the question never appears, try another cable: many cables shipped with a charger have no data wires.</value>
+  </data>
+  <data name="SimulatedKeyboard" xml:space="preserve">
+    <value>Simulated physical keyboard</value>
+  </data>
+  <data name="SimulatedKeyboardTip" xml:space="preserve">
+    <value>Present the keyboard to the phone as a plugged-in keyboard, instead of typing through its on-screen one.</value>
+  </data>
+  <data name="SimulatedKeyboardHelp" xml:space="preserve">
+    <value>Turn this on when the window answers the mouse but nothing you type appears: the on-screen keyboard of some brands swallows the characters. In exchange, the phone reads your keys through its own Android layout, so set that layout to match your PC keyboard, or an AZERTY will type as QWERTY.</value>
+  </data>
+  <data name="DeadInputRevoke" xml:space="preserve">
+    <value>Revoke the USB debugging authorisations</value>
+  </data>
+  <data name="DeadInputRevokeHelp" xml:space="preserve">
+    <value>In the developer options, press “Revoke USB debugging authorisations”, unplug the device, plug it back in, and accept the prompt again. It clears an authorisation left half granted, and it is the step that unblocks the cases where everything looks correctly set.</value>
+  </data>
+  <data name="DeadInputToggleDeveloper" xml:space="preserve">
+    <value>Turn it all off, restart, turn it all back on</value>
+  </data>
+  <data name="DeadInputToggleDeveloperHelp" xml:space="preserve">
+    <value>Unplug the phone from the PC first. Then turn off the debugging switches, up to three depending on the brand: USB debugging, install via USB, and USB debugging (security settings). Restart the phone, turn them back on once it has restarted, then plug it back in on “File transfer” and accept the prompt. The order matters, and so does the restart: turning them back on without it often leaves the setting ticked without being applied.</value>
+  </data>
+  <data name="OnBrandUseClonePath" xml:space="preserve">
+    <value>
+
+On a {0} device, the manual copy goes through: {1}.</value>
+  </data>
   <data name="LinkedPage" xml:space="preserve">
     <value>Linked page</value>
   </data>
@@ -427,6 +569,63 @@
   </data>
   <data name="OpenCurrentPageTip" xml:space="preserve">
     <value>Open the current page in your usual browser, on the original site</value>
+  </data>
+  <data name="SearchOnSite" xml:space="preserve">
+    <value>Search “{0}” on papycha.fr</value>
+  </data>
+  <data name="Almanax" xml:space="preserve">
+    <value>Almanax</value>
+  </data>
+  <data name="AlmanaxTip" xml:space="preserve">
+    <value>Today's offering and bonus for DOFUS Touch, read from Ankama's own portal.</value>
+  </data>
+  <data name="AlmanaxWindowTitle" xml:space="preserve">
+    <value>Almanax - DOFUS Touch</value>
+  </data>
+  <data name="AlmanaxSource" xml:space="preserve">
+    <value>Official Almanax, krosmoz.com, filtered on DOFUS Touch</value>
+  </data>
+  <data name="AlmanaxOffering" xml:space="preserve">
+    <value>Offering</value>
+  </data>
+  <data name="AlmanaxBonus" xml:space="preserve">
+    <value>Bonus</value>
+  </data>
+  <data name="AlmanaxQuest" xml:space="preserve">
+    <value>Quest</value>
+  </data>
+  <data name="AlmanaxMeryde" xml:space="preserve">
+    <value>Meryde</value>
+  </data>
+  <data name="AlmanaxPickTip" xml:space="preserve">
+    <value>Pick another date, further ahead or further back</value>
+  </data>
+  <data name="ActionAlmanax" xml:space="preserve">
+    <value>Open the Almanax</value>
+  </data>
+  <data name="ActionAlmanaxDetail" xml:space="preserve">
+    <value>Opens today's offering and bonus for DOFUS Touch, read from Ankama's own portal. The window also lets you look ahead to prepare.</value>
+  </data>
+  <data name="AlmanaxToday" xml:space="preserve">
+    <value>Today</value>
+  </data>
+  <data name="AlmanaxTodayTip" xml:space="preserve">
+    <value>Back to today</value>
+  </data>
+  <data name="AlmanaxPreviousTip" xml:space="preserve">
+    <value>Previous day</value>
+  </data>
+  <data name="AlmanaxNextTip" xml:space="preserve">
+    <value>Next day</value>
+  </data>
+  <data name="AlmanaxLoading" xml:space="preserve">
+    <value>Reading the Almanax…</value>
+  </data>
+  <data name="AlmanaxUnavailable" xml:space="preserve">
+    <value>The Almanax could not be read. The portal may be unreachable, or its page may have changed.</value>
+  </data>
+  <data name="SearchOnSiteTip" xml:space="preserve">
+    <value>Open the site's own search in your browser. It looks inside the articles, so it finds items, monsters and characters that this list does not index.</value>
   </data>
   <data name="SearchTip" xml:space="preserve">
     <value>Click to unroll the list, or type a name. Accents do not count.</value>
@@ -647,6 +846,9 @@
   <data name="HotkeyMissingModifier" xml:space="preserve">
     <value>Add Ctrl, Alt or Shift, otherwise the key would be caught while you play.</value>
   </data>
+  <data name="HotkeyEditingKey" xml:space="preserve">
+    <value>Ctrl+A, Ctrl+C, Ctrl+V and Ctrl+X stay available for editing.</value>
+  </data>
   <data name="HotkeyReserved" xml:space="preserve">
     <value>This combination is reserved by Windows.</value>
   </data>
@@ -710,8 +912,14 @@
   <data name="NoPrimaryProfile" xml:space="preserve">
     <value>The phone did not say which is its main profile. Reconnect it, then try again.</value>
   </data>
-  <data name="OneManagedProfileOnly" xml:space="preserve">
-    <value>This phone accepts only one profile of this kind, and it already exists. For one more account, turn on duplicated applications in its settings.</value>
+  <data name="ProfileReused" xml:space="preserve">
+    <value>The profile « {0} » already existed but no longer had the game. It was reused and the game reinstalled on it: Android allows only one profile of this kind.</value>
+  </data>
+  <data name="AccountAddedAsWorkProfile" xml:space="preserve">
+    <value>Account « {0} » added, but in a work profile: the phone allows only one cloned profile and it is already taken. Its icons will carry a briefcase, and Android installs its own set of apps in that profile by itself.</value>
+  </data>
+  <data name="ProfileSlotsFull" xml:space="preserve">
+    <value>This phone allows one cloned profile and one work profile, and both are already in use. For one more account, turn on duplicated apps in its settings.</value>
   </data>
   <data name="ProfileCreationRefused" xml:space="preserve">
     <value>The phone refused to create a profile. Some manufacturer layers forbid it: go through their multiple-account settings instead.</value>
@@ -791,6 +999,9 @@
   <data name="PairedAndConnected" xml:space="preserve">
     <value>Phone paired and connected.</value>
   </data>
+  <data name="PairingInProgress" xml:space="preserve">
+    <value>Pairing in progress…</value>
+  </data>
   <data name="PhoneConnected" xml:space="preserve">
     <value>Phone connected.</value>
   </data>
@@ -867,7 +1078,7 @@ The detail is in the logs:
     <value>Break the pairing with {0}?</value>
   </data>
   <data name="ForgetDeviceConsequence" xml:space="preserve">
-    <value>Its instances and their settings will be erased.</value>
+    <value>Its accounts and their settings will be erased, and this PC will stop connecting to it on its own. The phone keeps its own record: remove it from « Wireless debugging » if you want it gone there too.</value>
   </data>
   <data name="GameNotInstalled" xml:space="preserve">
     <value>Game not installed</value>
@@ -1157,6 +1368,9 @@ The rest of the application works without it.</value>
   <data name="SiteDownCached" xml:space="preserve">
     <value>The site did not answer; list from cache.</value>
   </data>
+  <data name="StepStart" xml:space="preserve">
+    <value>Start</value>
+  </data>
   <data name="StepOfTotal" xml:space="preserve">
     <value>Step {0} / {1}</value>
   </data>
@@ -1346,7 +1560,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>Settings  ›  Additional settings  ›  Developer options</value>
   </data>
   <data name="BrandXiaomiWarning" xml:space="preserve">
-    <value>On HyperOS and MIUI, USB debugging sometimes asks for a SIM card and a signed-in Xiaomi account. Turn on USB debugging (security settings) too, if the line is there.</value>
+    <value>Turn on USB debugging (security settings): without it the picture shows but the mouse and keyboard do nothing. USB debugging sometimes also asks for a SIM card and a signed-in Xiaomi account. If clicks stay dead, turn off Stylus handwriting, right at the bottom of the developer options.</value>
   </data>
   <data name="BrandSamsungName" xml:space="preserve">
     <value>Samsung</value>
@@ -1358,7 +1572,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>Settings  ›  Security and privacy  ›  Secure Folder</value>
   </data>
   <data name="BrandSamsungCloneNote" xml:space="preserve">
-    <value>Dual Messenger only duplicates messaging apps, so it will not do for a game. Secure Folder takes any app, and asks for a Samsung account.</value>
+    <value>Dual Messenger only duplicates messaging apps, so it will not do for a game. Secure Folder takes any app, and asks for a Samsung account. It has to be unlocked before launching: locked, the game inside it stays out of reach from the PC.</value>
   </data>
   <data name="BrandSamsungBatteryFeature" xml:space="preserve">
     <value>Allow background activity</value>

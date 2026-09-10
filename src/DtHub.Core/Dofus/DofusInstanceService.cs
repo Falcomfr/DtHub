@@ -58,10 +58,28 @@ public sealed class DofusInstanceService
     public IReadOnlyDictionary<string, IReadOnlyList<int>> ScannedProfiles => _profiles;
 
     /// <summary>
+    /// Profils qui ont répondu et qui n'ont pas le jeu, par appareil.
+    ///
+    /// Répondu est le mot qui compte. Interroger les paquets d'un profil peut
+    /// échouer, et l'échec rendait jusqu'ici une liste vide, exactement comme
+    /// une réponse disant « rien ». Les deux étaient donc indiscernables, et
+    /// c'est pourquoi rien ne pouvait être conclu d'une absence : effacer un
+    /// compte sur cette foi l'aurait perdu au premier hoquet d'ADB.
+    ///
+    /// Ce relevé ne retient que les profils dont la question a abouti. Un
+    /// profil qui a refusé de répondre n'y figure pas, et l'on ne conclura donc
+    /// rien de son silence. Même prudence que <see cref="ScannedProfiles" />,
+    /// pour la même raison.
+    /// </summary>
+    public IReadOnlyDictionary<string, IReadOnlyList<int>> ProfilesWithoutGame => _without;
+
+    /// <summary>
     /// Instances présentes sur les téléphones donnés. Un téléphone hors ligne
     /// n'est pas interrogé : ses instances mémorisées sont réinjectées par
     /// l'appelant.
     /// </summary>
+    private readonly Dictionary<string, IReadOnlyList<int>> _without = new(StringComparer.Ordinal);
+
     public async Task<IReadOnlyList<DofusInstance>> DiscoverAsync(
         IEnumerable<AndroidDevice> devices,
         CancellationToken cancellationToken = default)
@@ -71,6 +89,7 @@ public sealed class DofusInstanceService
         List<DofusInstance> instances = [];
         _warnings.Clear();
         _profiles.Clear();
+        _without.Clear();
 
         foreach (var device in devices.Where(d => d.IsConnected))
         {
@@ -111,14 +130,23 @@ public sealed class DofusInstanceService
             _profiles[device.Id] = [.. users.Select(u => u.Id)];
         }
 
+        List<int> sansJeu = [];
+
         foreach (var user in users)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var packages = await ListInstalledAsync(device.Serial, user.Id, cancellationToken)
+            var packages = await TryListInstalledAsync(device.Serial, user.Id, cancellationToken)
                 .ConfigureAwait(false);
 
-            foreach (var package in packages)
+            // Null veut dire « pas su demander », et non « rien trouvé ». Seule
+            // une réponse vide autorise à dire que ce profil n'a pas le jeu.
+            if (packages is { Count: 0 })
+            {
+                sansJeu.Add(user.Id);
+            }
+
+            foreach (var package in packages ?? [])
             {
                 var component = await ResolveComponentAsync(
                     device.Serial, user.Id, package, cancellationToken).ConfigureAwait(false);
@@ -134,6 +162,13 @@ public sealed class DofusInstanceService
                     IsDeviceConnected = true,
                 });
             }
+        }
+
+        // Posé seulement si la liste des profils elle-même a été lue pour de
+        // bon : sans elle, on ne sait même pas de quels profils on parle.
+        if (_profiles.ContainsKey(device.Id))
+        {
+            _without[device.Id] = sansJeu;
         }
 
         return instances;
@@ -185,26 +220,91 @@ public sealed class DofusInstanceService
                 Strings.Get("NoPrimaryProfile"));
         }
 
-        // Android n'accepte qu'un seul profil géré par compte principal,
-        // vérifié sur Android 16 : « Cannot add more profiles of type
-        // android.os.usertype.profile.MANAGED for user 0 ». Le dire ici évite
-        // de rendre le refus brut d'ADB.
-        if (existing.Any(user => user.Type == AndroidUserType.ManagedProfile))
+        // Android plafonne chaque type de profil à un par compte principal,
+        // relevé sur le téléphone de référence : « mMaxAllowedPerParent: 1 »
+        // pour le cloné comme pour le professionnel. Deux places, donc, et
+        // elles ne se valent pas.
+        var clone = existing.FirstOrDefault(user => user.Type == AndroidUserType.CloneProfile);
+        var managed = existing.FirstOrDefault(user => user.Type == AndroidUserType.ManagedProfile);
+
+        // Le profil cloné d'abord, et de loin. C'est celui que les surcouches
+        // emploient pour dupliquer une application : le téléphone n'y installe
+        // presque rien, et ses icônes ne portent aucune marque particulière.
+        //
+        // Le professionnel, lui, est fait pour un téléphone d'entreprise :
+        // Android le garnit tout seul de son environnement complet. Relevé sur
+        // le téléphone de référence, 359 paquets contre 22 pour le cloné, et
+        // une quinzaine d'icônes à valise apparues sur l'écran d'accueil sans
+        // que personne ne les ait demandées.
+        if (clone is null
+            && await _users
+                .TryCreateUserAsync(serial, name, parent.Id, AndroidUserType.CloneProfile, cancellationToken)
+                .ConfigureAwait(false) is { } cloned)
         {
-            return new AccountAddition(
-                false,
-                Strings.Get("OneManagedProfileOnly"));
+            return await FillProfileAsync(
+                serial,
+                cloned,
+                Strings.Format("AccountAdded", name.Trim()),
+                cancellationToken).ConfigureAwait(false);
         }
 
-        if (await _users.TryCreateUserAsync(serial, name, parent.Id, cancellationToken)
-                .ConfigureAwait(false)
-            is not { } userId)
+        // Le repli. Il marche, mais il ne se fait pas en silence : ce qu'il
+        // change se voit sur l'écran d'accueil, et personne ne devinerait
+        // pourquoi.
+        if (managed is null
+            && await _users
+                .TryCreateUserAsync(serial, name, parent.Id, AndroidUserType.ManagedProfile, cancellationToken)
+                .ConfigureAwait(false) is { } worked)
         {
-            return new AccountAddition(
-                false,
-                Strings.Get("ProfileCreationRefused"));
+            return await FillProfileAsync(
+                serial,
+                worked,
+                Strings.Format("AccountAddedAsWorkProfile", name.Trim()),
+                cancellationToken).ConfigureAwait(false);
         }
 
+        // Une place restait libre et la création a pourtant échoué : c'est le
+        // téléphone qui a refusé, et le dire vaut mieux que de bricoler.
+        if (clone is null || managed is null)
+        {
+            return new AccountAddition(false, Strings.Get("ProfileCreationRefused"));
+        }
+
+        // Les deux places sont prises. Reste le cas d'un profil qui en occupe
+        // une sans rien porter : son jeu a été désinstallé, il ne sert plus à
+        // rien, et refuser laisserait sans recours. On le reprend alors.
+        //
+        // Jamais tant qu'une place est libre : créer un profil vaut mieux que
+        // réquisitionner celui de quelqu'un, un Second Space existant souvent
+        // pour de tout autres raisons que les nôtres.
+        foreach (var idle in new[] { clone, managed })
+        {
+            if (!await IsInstalledAsync(serial, idle.Id, cancellationToken).ConfigureAwait(false))
+            {
+                return await FillProfileAsync(
+                    serial,
+                    idle.Id,
+                    Strings.Format("ProfileReused", idle.Name),
+                    cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        return new AccountAddition(false, Strings.Get("ProfileSlotsFull"));
+    }
+
+    /// <summary>
+    /// Pose le jeu sur un profil et le démarre.
+    ///
+    /// Partagé par le profil qu'on vient de créer et par celui qu'on reprend :
+    /// les deux ont besoin exactement de la même chose, et les tenir ensemble
+    /// évite qu'une reprise oublie le démarrage ou la vérification.
+    /// </summary>
+    private async Task<AccountAddition> FillProfileAsync(
+        string serial,
+        int userId,
+        string success,
+        CancellationToken cancellationToken)
+    {
         try
         {
             await _adb.ShellAsync(
@@ -243,10 +343,7 @@ public sealed class DofusInstanceService
         // s'en servir.
         await _users.TryStartUserAsync(serial, userId, cancellationToken).ConfigureAwait(false);
 
-        return new AccountAddition(
-            true,
-            Strings.Format("AccountAdded", name.Trim()),
-            userId);
+        return new AccountAddition(true, success, userId);
     }
 
     public async Task<bool> IsInstalledAsync(
@@ -268,6 +365,23 @@ public sealed class DofusInstanceService
     public async Task<IReadOnlyList<string>> ListInstalledAsync(
         string serial,
         int userId,
+        CancellationToken cancellationToken = default) =>
+        await TryListInstalledAsync(serial, userId, cancellationToken).ConfigureAwait(false) ?? [];
+
+    /// <summary>
+    /// Les paquets du jeu de ce profil, ou <c>null</c> si la question n'a pas
+    /// abouti.
+    ///
+    /// La distinction est tout l'objet de cette méthode. Une liste vide dit
+    /// « ce profil a répondu, et il n'a pas le jeu », ce dont on peut conclure
+    /// quelque chose. <c>null</c> dit « on n'a pas su demander », ce dont on ne
+    /// conclut rien. Les confondre revenait à effacer des comptes au premier
+    /// hoquet d'ADB, et c'est pourquoi l'absence du jeu ne servait jusqu'ici à
+    /// rien.
+    /// </summary>
+    public async Task<IReadOnlyList<string>?> TryListInstalledAsync(
+        string serial,
+        int userId,
         CancellationToken cancellationToken = default)
     {
         IReadOnlyList<string> found;
@@ -286,9 +400,10 @@ public sealed class DofusInstanceService
         }
         catch (AdbException)
         {
-            // Un profil qui refuse la question est simplement considéré comme
-            // dépourvu du jeu : rien ne justifie de faire échouer le balayage.
-            return [];
+            // Un profil qui refuse la question ne fait pas échouer le balayage,
+            // et ne produit aucune instance. Il n'est simplement pas déclaré
+            // dépourvu du jeu : on n'en sait rien.
+            return null;
         }
 
         List<string> matches = [];

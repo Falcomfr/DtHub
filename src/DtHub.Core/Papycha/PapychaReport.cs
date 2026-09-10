@@ -24,7 +24,7 @@ public static class PapychaReport
     /// Le chevron du fil d'Ariane de la fenêtre, pour que le repère se lise
     /// comme la liste où on l'a trouvé.
     /// </summary>
-    private const string Separator = "  ›  ";
+    private const string Separator = QuestTree.Separator;
 
     /// <summary>
     /// Où l'on lisait, dans les termes du site : la zone, la quête, et le succès

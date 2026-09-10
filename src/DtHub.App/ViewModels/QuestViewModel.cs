@@ -88,6 +88,25 @@ public sealed partial class QuestViewModel : ObservableObject
     [ObservableProperty]
     private string _query = string.Empty;
 
+    /// <summary>
+    /// Le texte pour lequel on propose la recherche du site, vide quand on ne
+    /// cherche rien.
+    ///
+    /// Notre catalogue ne connaît que des titres. Chercher un objet, un monstre
+    /// ou un personnage n'y donne rien, alors que le site le trouve : il cherche
+    /// dans le corps de ses articles. L'offre suit donc la recherche, dès la
+    /// première lettre : elle a d'abord paru sur un retour à la ligne, et l'écran
+    /// qui en avait le plus besoin, celui qui annonce « aucun résultat », était
+    /// justement celui qui ne l'avait pas.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SiteSearchLabel))]
+    private string _siteSearch = string.Empty;
+
+    /// <summary>Ce que le lien annonce, le texte cherché compris.</summary>
+    public string SiteSearchLabel =>
+        SiteSearch.Length == 0 ? string.Empty : Strings.Format("SearchOnSite", SiteSearch);
+
     [ObservableProperty]
     private string _statusText = string.Empty;
 
@@ -111,6 +130,7 @@ public sealed partial class QuestViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(ShowsQuestChrome))]
     [NotifyPropertyChangedFor(nameof(ShowsChain))]
     [NotifyPropertyChangedFor(nameof(CanReport))]
+    [NotifyPropertyChangedFor(nameof(CanCloseList))]
     private bool _hasQuest;
 
     /// <summary>Ce qu'on lit tant qu'aucune quête n'est ouverte.</summary>
@@ -133,6 +153,7 @@ public sealed partial class QuestViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(ShowsPage))]
     [NotifyPropertyChangedFor(nameof(ShowsLoader))]
     [NotifyPropertyChangedFor(nameof(CanReport))]
+    [NotifyPropertyChangedFor(nameof(CanCloseList))]
     private bool _isListOpen;
 
     /// <summary>
@@ -170,6 +191,16 @@ public sealed partial class QuestViewModel : ObservableObject
     /// hauteur, et on ne consulte pas une étape et une liste en même temps.
     /// </summary>
     public bool ShowsQuestChrome => HasQuest && !IsListOpen;
+
+    /// <summary>
+    /// Vrai si refermer la liste mène quelque part.
+    ///
+    /// La croix rend la place au guide qu'on lisait. Sans guide ouvert, elle ne
+    /// rend rien : elle échange une liste utilisable contre une fenêtre vide
+    /// qui invite à rouvrir cette même liste. Une commande dont le seul effet
+    /// est d'annuler ce qu'on vient de faire n'a pas à être proposée.
+    /// </summary>
+    public bool CanCloseList => IsListOpen && HasQuest;
 
     /// <summary>
     /// Vrai quand le pied de succès a quelque chose à dire.
@@ -279,6 +310,10 @@ public sealed partial class QuestViewModel : ObservableObject
 
     partial void OnQueryChanged(string value)
     {
+        // L'offre suit le texte tapé, mot à mot : c'est la même chose que ce
+        // qu'on cherche, donc elle ne peut pas s'en écarter.
+        SiteSearch = string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+
         if (string.IsNullOrWhiteSpace(value))
         {
             // Effacer la recherche ramène là où l'on était, plutôt qu'à la
@@ -311,12 +346,7 @@ public sealed partial class QuestViewModel : ObservableObject
         // redescendre l'arbre pour retrouver les voisines de ce qu'on lisait.
         // Un donjon n'appartient à aucune rubrique du site : sa branche est la
         // sienne.
-        var section = _anchorSection
-            ?? (_current is { } lue ? SectionSeen(lue) : (int?)null)
-            ?? (_currentDungeon is { } place ? QuestTree.SectionOf(place) : (int?)null)
-            ?? (_currentPath is { } road
-                ? road.Side == PathSide.Dungeons ? QuestTree.DungeonPathSection : QuestTree.QuestPathSection
-                : (int?)null);
+        var section = _anchorSection ?? SectionOfPage();
 
         if (section is { } target && (_section != target || Query.Length > 0))
         {
@@ -671,7 +701,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
 
     /// <summary>Ce qui sépare deux niveaux d'un fil d'Ariane.</summary>
-    private const string Separator = "  \u203a  ";
+    private const string Separator = QuestTree.Separator;
 
 
     /// <summary>
@@ -843,9 +873,17 @@ public sealed partial class QuestViewModel : ObservableObject
     /// on parcourt. Ce sont les voisines que le catalogue connaît : la page,
     /// quand elle arrivera, dira ce que le site publie et l'emportera.
     /// </summary>
+    /// <summary>
+    /// Ce que le catalogue a décidé pour la quête ouverte. Retenu parce que la
+    /// page, en arrivant, doit savoir si la liste du succès avait déjà tranché.
+    /// </summary>
+    private QuestNeighbours _neighbours;
+
     private void SetNeighbours(QuestSummary quest)
     {
         var neighbours = QuestNeighbourhood.Of(quest, _catalog.Catalog.Quests, _tree.Chain);
+
+        _neighbours = neighbours;
 
         ChainText = quest.SuccessName;
 
@@ -918,7 +956,7 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>Étapes repérées dans la page ouverte.</summary>
-    private IReadOnlyList<string> _steps = [];
+    private IReadOnlyList<QuestStep> _steps = [];
 
     /// <summary>
     /// Les étapes du guide, telles qu'on les choisit dans la liste que le rang
@@ -976,7 +1014,7 @@ public sealed partial class QuestViewModel : ObservableObject
     public void SetPage(
         string? introHtml,
         string? chainHtml,
-        IReadOnlyList<string> steps,
+        IReadOnlyList<QuestStep> steps,
         bool startsAtDeparture = false)
     {
         ArgumentNullException.ThrowIfNull(steps);
@@ -986,19 +1024,32 @@ public sealed partial class QuestViewModel : ObservableObject
         var facts = QuestPageParser.ParseFacts(introHtml);
         var chain = QuestPageParser.ParseChain(chainHtml);
 
-        // Le site publie en pied d'article ce qui précède et ce qui suit. C'est
-        // lui qui fait foi : il connaît sa propre progression mieux que l'ordre
-        // que nous recalculons, et les deux se contredisent parfois à
-        // l'intérieur même d'un succès. SetCurrent a posé le nôtre avant que la
-        // page arrive, pour que les boutons répondent pendant le chargement ;
-        // la page le corrige en arrivant.
+        // Le site publie en pied d'article ce qui précède et ce qui suit, et
+        // c'est lui qui fait foi **là où nous n'avons rien** : aux bornes d'un
+        // succès et pour les quêtes qui n'en ont pas. SetCurrent a posé notre
+        // ordre avant que la page arrive, pour que les boutons répondent
+        // pendant le chargement ; la page le complète en arrivant.
         //
-        // Sauf quand la colonne nomme plusieurs quêtes : en désigner une
-        // mentirait, et l'ordre calculé garde alors la main.
+        // Mais elle ne le remplace plus à l'intérieur d'une liste. Cette
+        // colonne s'intitule « Quêtes et jalons suivants » : elle dit ce que la
+        // quête débloque, non l'ordre où on lit un succès. Dans « Le théâtre
+        // des gobelins », celle de « Titi Gobelait le magobelin » ne nomme que
+        // « Manque de moule », qui l'exige, et suivre la colonne sautait « Un
+        // avenir de krotte de Trooll », qui vient avant et n'exige rien.
+        //
+        // Et jamais quand la colonne nomme plusieurs quêtes : en désigner une
+        // mentirait.
         if (_current is { } ouverte)
         {
-            PreviousQuest = Published(chain.OnlyPreviousQuest, ouverte) ?? PreviousQuest;
-            NextQuest = Published(chain.OnlyNextQuest, ouverte) ?? NextQuest;
+            if (!_neighbours.PreviousFromList)
+            {
+                PreviousQuest = Published(chain.OnlyPreviousQuest, ouverte) ?? PreviousQuest;
+            }
+
+            if (!_neighbours.NextFromList)
+            {
+                NextQuest = Published(chain.OnlyNextQuest, ouverte) ?? NextQuest;
+            }
         }
 
         // Le nom du succès vient du catalogue, afin que la liste et la page
@@ -1022,9 +1073,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
         var total = _steps.Count;
 
-        StepText = index >= 0 && total > 0
-            ? Strings.Format("StepOfTotal", index + 1, total)
-            : string.Empty;
+        StepText = index >= 0 && index < total ? StepRank(index) : string.Empty;
 
         StepDetail = index >= 0 && index < total ? StepLabel(index) : string.Empty;
 
@@ -1038,20 +1087,36 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Ce qu'il y a à faire à cette étape, en une ligne.
-    ///
-    /// Le texte brut du paragraphe tenait sur une ligne tronquée où l'on ne
-    /// voyait ni où aller ni à qui parler : chaque étape est donc résumée.
-    ///
-    /// La première l'est par les métadonnées de la quête, plus sûres que la
-    /// prose du site, mais seulement quand c'est bien le départ : le pont le
-    /// dit. Sans cette réserve, le départ se retrouvait annoncé au-dessus du
-    /// premier paragraphe du guide, qui n'a le plus souvent rien à voir.
+    /// Ce qu'on écrit à côté du rang d'une étape. La décision est dans le
+    /// noyau, où elle s'éprouve ; il ne reste ici que le calcul du rang.
     /// </summary>
     private string StepLabel(int index) =>
-        index == 0 && _startsAtDeparture
-            ? _start ?? QuestStepSummary.Of(_steps[0])
-            : QuestStepSummary.Of(_steps[index]);
+        QuestStepLabel.For(_steps[index], IsDeparture(index), _start);
+
+    /// <summary>
+    /// Le rang tel qu'il se lit : « Étape 2 / 5 », ou « Départ » pour le
+    /// lancement, qui n'est pas une étape du parcours et ne se compte donc pas.
+    /// </summary>
+    private string StepRank(int index) =>
+        QuestStepLabel.Numbering(index, _steps.Count, HasDeparture) is { } numbering
+            ? Strings.Format("StepOfTotal", numbering.Rank, numbering.Total)
+            : Strings.Get("StepStart");
+
+    /// <summary>
+    /// Le seul numéro, pour la colonne étroite de la liste. Le départ n'en a
+    /// pas : sa ligne se reconnaît à ce qu'elle dit, « Rendez-vous en… », et
+    /// écrire « Départ » dans vingt-six pixels était impossible.
+    /// </summary>
+    private string StepNumber(int index) =>
+        QuestStepLabel.Numbering(index, _steps.Count, HasDeparture) is { } numbering
+            ? numbering.Rank.ToString(System.Globalization.CultureInfo.InvariantCulture)
+            : string.Empty;
+
+    /// <summary>Vrai quand la première étape rendue est le lancement.</summary>
+    private bool HasDeparture => _steps.Count > 0 && IsDeparture(0);
+
+    private bool IsDeparture(int index) =>
+        QuestStepLabel.IsDeparture(_steps[index], index == 0, _startsAtDeparture);
 
     /// <summary>
     /// Vrai quand il y a de quoi choisir : à partir de deux étapes.
@@ -1067,7 +1132,7 @@ public sealed partial class QuestViewModel : ObservableObject
     /// Une seule porte pour les deux : la liste et le compte se contredisaient
     /// dès qu'un chemin oubliait l'une des deux lignes.
     /// </summary>
-    private void ResetSteps(IReadOnlyList<string> steps)
+    private void ResetSteps(IReadOnlyList<QuestStep> steps)
     {
         _steps = steps;
         HasSteps = steps.Count > 0;
@@ -1077,7 +1142,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
         for (var index = 0; index < steps.Count; index++)
         {
-            Steps.Add(new QuestStepRowViewModel(index, StepLabel(index)));
+            Steps.Add(new QuestStepRowViewModel(index, StepNumber(index), StepLabel(index)));
         }
     }
 
@@ -1295,6 +1360,21 @@ public sealed partial class QuestViewModel : ObservableObject
     /// Une recherche fait exception : elle ne montre pas de rubrique, et ce
     /// qu'on lisait avant de la lancer reste la quête.
     /// </summary>
+    /// <summary>
+    /// Ouvre la recherche du site dans le navigateur.
+    ///
+    /// Dans le vrai navigateur et non dans nos fenêtres : une page de résultats
+    /// n'est pas un guide, elle n'a ni étapes ni chaîne, et notre cadrage n'y
+    /// laisserait qu'une colonne de liens sans en-tête.
+    /// </summary>
+    public void OpenSiteSearch()
+    {
+        if (PapychaSite.SearchUrl(SiteSearch) is { } url)
+        {
+            _dialogs.OpenUrl(url);
+        }
+    }
+
     public void OpenInBrowser()
     {
         var url = Browsed() ?? CurrentUrl;
@@ -1326,13 +1406,22 @@ public sealed partial class QuestViewModel : ObservableObject
     /// pas. La même règle que la liste : celle qu'on parcourt si la quête y
     /// figure, sinon celle que le catalogue lui a retenue.
     /// </summary>
-    private string ZoneName()
-    {
-        var section = (_current is { } lue ? SectionSeen(lue) : (int?)null)
-            ?? (_currentDungeon is { } place ? QuestTree.SectionOf(place) : (int?)null);
+    private string ZoneName() =>
+        SectionOfPage() is { } id ? _tree.NameOf(id) : string.Empty;
 
-        return section is { } id ? _tree.NameOf(id) : string.Empty;
-    }
+    /// <summary>
+    /// La rubrique de la page qu'on lit, quelle qu'en soit la nature.
+    ///
+    /// Les trois cas vivaient en double, ici et dans le repère de la liste, et
+    /// ils avaient divergé : le signalement ignorait les chemins et n'en
+    /// nommait aucune rubrique. Un seul endroit, désormais.
+    /// </summary>
+    private int? SectionOfPage() =>
+        (_current is { } lue ? SectionSeen(lue) : (int?)null)
+        ?? (_currentDungeon is { } place ? QuestTree.SectionOf(place) : (int?)null)
+        ?? (_currentPath is { } road
+            ? road.Side == PathSide.Dungeons ? QuestTree.DungeonPathSection : QuestTree.QuestPathSection
+            : (int?)null);
 
     /// <summary>
     /// Vrai quand il y a un formulaire à ouvrir, c'est-à-dire quand un guide

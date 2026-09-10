@@ -1,5 +1,6 @@
 ﻿using DtHub.Core.Dofus;
 using DtHub.Core.Hotkeys;
+using DtHub.Core.Scrcpy;
 using DtHub.Core.Settings;
 using DtHub.Core.Windows;
 using DtHub.Infrastructure.Storage;
@@ -615,6 +616,33 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Le_clavier_passe_par_l_api_android_par_defaut()
+    {
+        // Le mode physique simulé lit les touches selon la disposition réglée
+        // dans Android : l'imposer ferait taper en QWERTY sur un AZERTY, à qui
+        // n'a pas la panne qu'il répare.
+        var options = await _service.GetScrcpyOptionsAsync(CancellationToken.None);
+
+        Assert.Equal(ScrcpyKeyboardMode.Sdk, options.KeyboardMode);
+    }
+
+    [Fact]
+    public async Task Le_clavier_physique_simule_se_demande_et_arrive_jusqu_a_scrcpy()
+    {
+        // Le mode existait dans le code depuis toujours, et rien ne pouvait
+        // l'atteindre. C'est le remède du clavier qui n'écrit rien.
+        await _service.SetSimulatedPhysicalKeyboardAsync(true, CancellationToken.None);
+
+        var options = await _service.GetScrcpyOptionsAsync(CancellationToken.None);
+
+        Assert.Equal(ScrcpyKeyboardMode.Uhid, options.KeyboardMode);
+
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments("SERIE", "titre", options);
+
+        Assert.Contains("--keyboard=uhid", arguments, StringComparer.Ordinal);
+    }
+
+    [Fact]
     public async Task Les_images_par_seconde_et_le_debit_viennent_de_la_qualite()
     {
         // Deux sources pour un même réglage auraient fini par diverger : la
@@ -981,8 +1009,7 @@ public sealed class SettingsServiceTests : IDisposable
             new Dictionary<string, IReadOnlyList<int>>(StringComparer.Ordinal)
             {
                 ["MATERIEL123"] = [0],
-            },
-            CancellationToken.None);
+            }, cancellationToken: CancellationToken.None);
 
         Assert.Equal(1, oubliees);
 
@@ -1004,8 +1031,7 @@ public sealed class SettingsServiceTests : IDisposable
             new Dictionary<string, IReadOnlyList<int>>(StringComparer.Ordinal)
             {
                 ["UN-AUTRE-TELEPHONE"] = [0],
-            },
-            CancellationToken.None);
+            }, cancellationToken: CancellationToken.None);
 
         Assert.Equal(0, oubliees);
 
@@ -1022,8 +1048,7 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.Equal(
             0,
             await _service.ForgetMissingProfilesAsync(
-                new Dictionary<string, IReadOnlyList<int>>(StringComparer.Ordinal),
-                CancellationToken.None));
+                new Dictionary<string, IReadOnlyList<int>>(StringComparer.Ordinal), cancellationToken: CancellationToken.None));
     }
 
     /// <summary>Les profils sont tous là : rien n'est oublié.</summary>
@@ -1036,13 +1061,89 @@ public sealed class SettingsServiceTests : IDisposable
             new Dictionary<string, IReadOnlyList<int>>(StringComparer.Ordinal)
             {
                 ["MATERIEL123"] = [0, 999],
-            },
-            CancellationToken.None);
+            }, cancellationToken: CancellationToken.None);
 
         Assert.Equal(0, oubliees);
 
         var merged = await _service.MergeInstancesAsync([], CancellationToken.None);
 
         Assert.Equal(2, merged.Count);
+    }
+
+    /// <summary>
+    /// Le jeu désinstallé d'un profil qui reste : le compte doit partir aussi.
+    ///
+    /// C'est le cas signalé sur le terrain. Le profil Android existe toujours,
+    /// donc l'oubli par disparition de profil ne s'appliquait pas, et l'entrée
+    /// mémorisée était reconduite indéfiniment, jusque par-delà les
+    /// redémarrages.
+    /// </summary>
+    [Fact]
+    public async Task Un_profil_qui_a_perdu_le_jeu_est_oublie()
+    {
+        await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
+
+        var oubliees = await _service.ForgetMissingProfilesAsync(
+            new Dictionary<string, IReadOnlyList<int>>(StringComparer.Ordinal)
+            {
+                ["MATERIEL123"] = [0, 999],
+            },
+            new Dictionary<string, IReadOnlyList<int>>(StringComparer.Ordinal)
+            {
+                ["MATERIEL123"] = [999],
+            },
+            CancellationToken.None);
+
+        Assert.Equal(1, oubliees);
+
+        var merged = await _service.MergeInstancesAsync([Instance(0)], CancellationToken.None);
+
+        Assert.Equal([0], merged.Select(i => i.UserId));
+    }
+
+    /// <summary>
+    /// Un profil dont la question n'a pas abouti ne prouve rien.
+    ///
+    /// C'est toute la prudence de ce nettoyage : interroger les paquets d'un
+    /// profil peut échouer, et confondre cet échec avec une réponse vide
+    /// effacerait des comptes au premier hoquet d'ADB. Un profil qui n'a pas
+    /// répondu n'est pas déclaré vide, donc il n'entre pas dans ce relevé.
+    /// </summary>
+    [Fact]
+    public async Task Un_profil_qui_n_a_pas_repondu_garde_son_compte()
+    {
+        await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
+
+        var oubliees = await _service.ForgetMissingProfilesAsync(
+            new Dictionary<string, IReadOnlyList<int>>(StringComparer.Ordinal)
+            {
+                ["MATERIEL123"] = [0, 999],
+            },
+            new Dictionary<string, IReadOnlyList<int>>(StringComparer.Ordinal)
+            {
+                ["MATERIEL123"] = [],
+            },
+            CancellationToken.None);
+
+        Assert.Equal(0, oubliees);
+    }
+
+    /// <summary>
+    /// Sans relevé des profils sans jeu, rien ne change : c'est le comportement
+    /// d'avant, et les appelants qui ne le fournissent pas le gardent.
+    /// </summary>
+    [Fact]
+    public async Task Sans_releve_des_profils_vides_rien_n_est_oublie_de_plus()
+    {
+        await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
+
+        var oubliees = await _service.ForgetMissingProfilesAsync(
+            new Dictionary<string, IReadOnlyList<int>>(StringComparer.Ordinal)
+            {
+                ["MATERIEL123"] = [0, 999],
+            },
+            cancellationToken: CancellationToken.None);
+
+        Assert.Equal(0, oubliees);
     }
 }

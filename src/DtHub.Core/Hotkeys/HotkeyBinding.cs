@@ -22,6 +22,13 @@ public enum HotkeyValidationResult
     /// <summary>Combinaison réservée par Windows, impossible à intercepter.</summary>
     ReservedBySystem,
 
+    /// <summary>
+    /// Touche d'édition universelle. Elle serait bien interceptée, et c'est
+    /// justement le problème : <c>RegisterHotKey</c> la confisquerait partout,
+    /// jeu compris.
+    /// </summary>
+    ReservedForEditing,
+
     /// <summary>Déjà attribuée à une autre action.</summary>
     Duplicate,
 }
@@ -96,6 +103,7 @@ public sealed record HotkeyBinding
         HotkeyAction.Rearrange => Strings.Get("ActionStackWindows"),
         HotkeyAction.Tile => Strings.Get("SideBySide"),
         HotkeyAction.Quests => Strings.Get("ActionToggleGuides"),
+        HotkeyAction.Almanax => Strings.Get("ActionAlmanax"),
         HotkeyAction.Size1 => Strings.Get("ActionSize1"),
         HotkeyAction.Size2 => Strings.Get("ActionSize2"),
         HotkeyAction.Size3 => Strings.Get("ActionSize3"),
@@ -117,6 +125,7 @@ public sealed record HotkeyBinding
         HotkeyAction.Rearrange => Strings.Get("ActionStackWindowsDetail"),
         HotkeyAction.Tile => Strings.Get("ActionTileDetail"),
         HotkeyAction.Quests => Strings.Get("ActionToggleGuidesDetail"),
+        HotkeyAction.Almanax => Strings.Get("ActionAlmanaxDetail"),
         HotkeyAction.Size1 => Strings.Get("ActionSize1Detail"),
         HotkeyAction.Size2 => Strings.Get("ActionSize2Detail"),
         HotkeyAction.Size3 => Strings.Get("ActionSize3Detail"),

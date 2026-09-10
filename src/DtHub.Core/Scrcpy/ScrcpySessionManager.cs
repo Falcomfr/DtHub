@@ -15,6 +15,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 {
     private readonly ConcurrentDictionary<string, ScrcpySession> _sessions = new(StringComparer.Ordinal);
 
+
     private readonly IScrcpyLocator _scrcpy;
     private readonly Adb.IAdbLocator _adbLocator;
     private readonly IProcessLauncher _launcher;
@@ -71,6 +72,31 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     /// liaison Wi-Fi ordinaire, sans faire attendre à la fermeture.
     /// </summary>
     public TimeSpan CloseTimeout { get; init; } = TimeSpan.FromMilliseconds(1500);
+
+    /// <summary>
+    /// Vrai si fermer une fenêtre doit aussi arrêter le jeu sur le téléphone.
+    ///
+    /// Sans cela le jeu survit à sa fenêtre. Son afficheur virtuel est rendu,
+    /// mais l'application, elle, reste au chaud : relevé sur le poste, un jeu
+    /// tournait depuis dix-huit minutes sans aucune fenêtre en face, avec deux
+    /// cent vingt mégaoctets à lui, et avait survécu à plusieurs fermetures de
+    /// DT Hub. Le personnage reste aussi connecté aux serveurs du jeu.
+    ///
+    /// Le prix est connu et assumé : on ne peut plus refermer une fenêtre puis
+    /// la rouvrir en étant toujours en jeu. C'est le réglage qui tranche.
+    /// </summary>
+    public bool StopAppOnClose { get; set; }
+
+    /// <summary>
+    /// Temps laissé à l'arrêt du jeu sur le téléphone.
+    ///
+    /// Court, et explicite, parce que le défaut ne conviendrait pas : une
+    /// commande ADB attend vingt secondes, alors que l'application entière
+    /// s'arrête en huit. Quitter avec un téléphone injoignable dépasserait le
+    /// budget et figerait la fermeture. Deux secondes couvrent largement les
+    /// trois à cinq dixièmes mesurés sur une liaison Wi-Fi ordinaire.
+    /// </summary>
+    public TimeSpan StopAppTimeout { get; init; } = TimeSpan.FromSeconds(2);
 
     /// <summary>Une seule ouverture à la fois par téléphone.</summary>
     private readonly DeviceStartupGate _gate = new();
@@ -247,6 +273,13 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             return;
         }
 
+        // Le droit d'arrêter le jeu est réclamé maintenant, avant même de
+        // toucher à scrcpy. Le réclamer après aurait laissé la boucle de
+        // lecture, réveillée par la mort du processus, le prendre la première :
+        // cette méthode aurait alors rendu la main sans rien attendre, et
+        // quitter l'application aurait pu couper l'arrêt en plein vol.
+        var mine = StopAppOnClose && session.ClaimAppStop();
+
         // scrcpy est prié de partir avant d'être tué : c'est lui qui prévient
         // son serveur, et le serveur qui rend l'afficheur virtuel. Un client
         // tué net sur une liaison Wi-Fi laissait le serveur en vie sur le
@@ -269,6 +302,81 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         }
 
         Transition(session, ScrcpySessionState.Stopped);
+
+        // Après le départ de scrcpy, jamais avant : c'est lui qui prévient son
+        // serveur, et le serveur qui rend l'afficheur virtuel. Attendu ici, et
+        // pas seulement laissé à la fin de la lecture de sortie, parce que
+        // quitter l'application ne laisse pas le temps à celle-ci de finir.
+        if (mine)
+        {
+            await ForceStopGameAsync(session, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Arrête le jeu sur le téléphone, si le réglage le demande et si personne
+    /// ne l'a déjà fait pour cette session.
+    ///
+    /// Rien n'est propagé : un téléphone parti, une liaison coupée, un profil
+    /// que le shell ne peut plus atteindre, aucun de ces cas ne doit empêcher
+    /// une fenêtre de se fermer ni l'application de s'arrêter. Le jeu qui
+    /// survit est un désagrément ; une fermeture qui se fige est une panne.
+    /// </summary>
+    private async Task StopAppOnDeviceAsync(ScrcpySession session, CancellationToken cancellationToken)
+    {
+        if (!StopAppOnClose || !session.ClaimAppStop())
+        {
+            return;
+        }
+
+        await ForceStopGameAsync(session, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Arrête le jeu, sans se demander si c'est le moment : l'appelant a déjà
+    /// réclamé le droit de le faire.
+    /// </summary>
+    private async Task ForceStopGameAsync(ScrcpySession session, CancellationToken cancellationToken)
+    {
+        // Ce qu'on n'a pas ouvert, on ne le ferme pas : une session qui a
+        // échoué avant de rien lancer laisserait tourner un jeu auquel
+        // quelqu'un joue peut-être sur le téléphone.
+        if (!session.AppLaunchedByUs)
+        {
+            return;
+        }
+
+        await ForceStopCoreAsync(session).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// L'ordre lui-même, avec son délai propre et rien d'autre.
+    ///
+    /// Le jeton de l'appelant n'est délibérément pas transmis. Sur le chemin de
+    /// la fermeture, c'est justement lui qu'on annule : le lier ici reviendrait
+    /// à renoncer à l'arrêt au moment précis où il compte le plus, et à laisser
+    /// le jeu tourner sur le téléphone. Une fois décidé, l'ordre part ; son
+    /// propre délai suffit à borner l'attente.
+    /// </summary>
+    private async Task ForceStopCoreAsync(ScrcpySession session)
+    {
+        using var deadline = new CancellationTokenSource(StopAppTimeout);
+
+        try
+        {
+            await _appLauncher.ForceStopAsync(
+                session.Serial,
+                session.Target.UserId,
+                session.Target.PackageName,
+                deadline.Token).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // Silence assumé, et c'est le seul comportement tenable ici : la
+            // méthode est appelée sur le chemin de fermeture, y compris celui
+            // de l'application entière. Une faute y serait sans destinataire.
+            session.Record("Arrêt du jeu sur le téléphone impossible : " + exception.Message);
+        }
     }
 
     /// <summary>
@@ -362,7 +470,18 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                 session.FailureKind = ScrcpyFailureKind.Timeout;
             }
 
-            Fail(session, Strings.Get("ScrcpyDisplayTimeout"));
+            // Le son d'abord, quand il est demandé. Sur certaines tablettes
+            // Samsung, l'activer suffit à empêcher l'afficheur de s'ouvrir :
+            // relevé sur un produit concurrent qui emprunte le même chemin, où
+            // deux utilisateurs ont mis des jours à faire le lien, l'un
+            // finissant par écrire « si je désactive le son ça marche ». Le
+            // message ne le dit que si le son est effectivement demandé, sinon
+            // il enverrait chercher une cause qu'on a déjà écartée.
+            Fail(
+                session,
+                Strings.Get(options.AudioEnabled
+                    ? "ScrcpyDisplayTimeoutWithAudio"
+                    : "ScrcpyDisplayTimeout"));
             session.Process.Kill();
             return null;
         }
@@ -430,6 +549,11 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             displayId,
             cancellationToken).ConfigureAwait(false);
 
+        // Posé même quand l'ouverture échoue : « am start » peut avoir lancé
+        // le jeu et rendu tout de même une faute, et dans le doute le jeu qu'on
+        // laisse est bien le nôtre.
+        session.AppLaunchedByUs = true;
+
         if (!launch.Succeeded)
         {
             // Sans application, la fenêtre resterait vide : on ferme plutôt que
@@ -487,6 +611,12 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
         // La sortie est close : le processus est terminé ou l'a été.
         displayReady.TrySetResult(null);
+
+        // C'est ici que passe la fenêtre fermée à la main, et le téléphone
+        // débranché : aucun code à nous n'a été appelé, seul le canal s'est
+        // tu. La fermeture volontaire est déjà servie par StopAsync, et la
+        // réclamation à usage unique empêche le double aller-retour.
+        await StopAppOnDeviceAsync(session, CancellationToken.None).ConfigureAwait(false);
 
         var exitCode = session.Process.ExitCode ?? -1;
 

@@ -244,4 +244,44 @@ public sealed class DeviceRegistryTests : IDisposable
             json,
             StringComparison.Ordinal);
     }
+
+    [Fact]
+    public async Task Un_appareil_ecarte_n_est_plus_reinscrit_par_un_balayage()
+    {
+        // C'est tout l'objet de l'écart. Effacer ne suffisait pas : le
+        // téléphone reste joignable, et le balayage suivant le remettait au
+        // registre comme une découverte ordinaire.
+        await _registry.UpsertRangeAsync([Device()], CancellationToken.None);
+
+        await _registry.DiscardAsync("MATERIEL123", CancellationToken.None);
+
+        var ecartes = (await _registry.GetSnapshotAsync(CancellationToken.None)).Discarded;
+
+        Assert.Contains("MATERIEL123", ecartes);
+        Assert.Empty(await _registry.GetKnownAsync(CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Une_nouvelle_association_leve_l_ecart()
+    {
+        // Le seul retour en arrière, et il est explicite : on retape le code
+        // affiché sur le téléphone.
+        await _registry.DiscardAsync("MATERIEL123", CancellationToken.None);
+        await _registry.WelcomeBackAsync("MATERIEL123", CancellationToken.None);
+
+        Assert.Empty((await _registry.GetSnapshotAsync(CancellationToken.None)).Discarded);
+    }
+
+    [Fact]
+    public async Task L_ecart_survit_a_une_relecture_du_fichier()
+    {
+        // Il ne servirait à rien s'il ne tenait que le temps d'une session :
+        // le symptôme rapporté était justement que l'appareil revenait après
+        // un redémarrage.
+        await _registry.DiscardAsync("MATERIEL123", CancellationToken.None);
+
+        var relu = new DeviceRegistry(_store);
+
+        Assert.Contains("MATERIEL123", (await relu.GetSnapshotAsync(CancellationToken.None)).Discarded);
+    }
 }

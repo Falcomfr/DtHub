@@ -235,6 +235,12 @@ public sealed class SettingsService : IDisposable
         {
             AudioEnabled = settings.AudioEnabled,
             ClipboardSyncEnabled = settings.ClipboardSyncEnabled,
+
+            // Le clavier physique simulé court-circuite le clavier virtuel de
+            // l'appareil, qui avale les caractères sur plusieurs surcouches.
+            KeyboardMode = settings.SimulatedPhysicalKeyboard
+                ? ScrcpyKeyboardMode.Uhid
+                : ScrcpyKeyboardMode.Sdk,
             VirtualDisplayWidth = settings.VirtualDisplayWidth,
             VirtualDisplayHeight = settings.VirtualDisplayHeight,
             VirtualDisplayDpi = settings.VirtualDisplayDpi,
@@ -276,6 +282,12 @@ public sealed class SettingsService : IDisposable
     /// <summary>Retient si le son du téléphone doit sortir sur le PC.</summary>
     public Task SetAudioEnabledAsync(bool enabled, CancellationToken cancellationToken = default) =>
         UpdateAsync(settings => settings.AudioEnabled = enabled, cancellationToken);
+
+    /// <summary>Retient le mode clavier choisi.</summary>
+    public Task SetSimulatedPhysicalKeyboardAsync(
+        bool simulated,
+        CancellationToken cancellationToken = default) =>
+        UpdateAsync(settings => settings.SimulatedPhysicalKeyboard = simulated, cancellationToken);
 
     /// <summary>Retient la distance apparente choisie.</summary>
     public Task SetZoomAsync(GameZoom zoom, CancellationToken cancellationToken = default) =>
@@ -583,9 +595,15 @@ public sealed class SettingsService : IDisposable
     /// concernés, les autres ne prouvent rien.
     /// </summary>
     /// <param name="profiles">Profils relevés, par identifiant d'appareil.</param>
+    /// <param name="withoutGame">
+    /// Profils qui ont répondu et qui n'ont pas le jeu, par identifiant
+    /// d'appareil. Seuls ceux-là comptent : un profil qui n'a pas su répondre
+    /// n'y figure pas, et son silence ne prouve rien.
+    /// </param>
     /// <returns>Le nombre d'instances oubliées.</returns>
     public async Task<int> ForgetMissingProfilesAsync(
         IReadOnlyDictionary<string, IReadOnlyList<int>> profiles,
+        IReadOnlyDictionary<string, IReadOnlyList<int>>? withoutGame = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(profiles);
@@ -597,10 +615,27 @@ public sealed class SettingsService : IDisposable
 
         var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
 
+        // Deux motifs d'oubli, et une seule garde commune : le téléphone doit
+        // avoir répondu. Le profil a disparu de la liste, ou bien il est
+        // toujours là et a dit lui-même qu'il n'avait plus le jeu. Désinstaller
+        // le jeu d'un profil qu'on garde laissait sinon un compte fantôme dans
+        // la liste, indéfiniment et jusque par-delà les redémarrages.
         var gone = settings.Instances
             .Where(i => profiles.TryGetValue(i.DeviceId, out var live) && !live.Contains(i.UserId))
             .Select(i => i.Key)
             .ToHashSet(StringComparer.Ordinal);
+
+        if (withoutGame is not null)
+        {
+            foreach (var instance in settings.Instances)
+            {
+                if (withoutGame.TryGetValue(instance.DeviceId, out var empty)
+                    && empty.Contains(instance.UserId))
+                {
+                    _ = gone.Add(instance.Key);
+                }
+            }
+        }
 
         // Rien à retirer : on n'écrit pas. Une écriture sans changement à
         // chaque balayage userait le fichier pour rien.

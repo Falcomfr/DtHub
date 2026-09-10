@@ -18,6 +18,21 @@ public interface IDeviceRegistry
     /// <summary>Oublie un appareil et tout ce qui le concerne.</summary>
     Task ForgetAsync(string deviceId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Retire l'appareil et retient qu'on ne veut plus de lui : il ne sera ni
+    /// réinscrit par un balayage, ni repris par la reconnexion automatique.
+    /// </summary>
+    Task DiscardAsync(string deviceId, CancellationToken cancellationToken = default);
+
+    /// <summary>Lève l'écart, ce que seule une nouvelle association fait.</summary>
+    Task WelcomeBackAsync(string deviceId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Les appareils mémorisés et les écartés, en une seule lecture. C'est ce
+    /// que demande un balayage, qui a besoin des deux.
+    /// </summary>
+    Task<DeviceRegistrySnapshot> GetSnapshotAsync(CancellationToken cancellationToken = default);
+
     /// <summary>Renomme un appareil. Un nom vide rétablit le nom détecté.</summary>
     Task RenameAsync(string deviceId, string? customName, CancellationToken cancellationToken = default);
 

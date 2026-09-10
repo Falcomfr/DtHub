@@ -230,6 +230,12 @@
   <data name="AutomaticUpdatesTip" xml:space="preserve">
     <value>La nueva versión se descarga en segundo plano y se instala al salir. Sin marcar, la aplicación se limita a avisar de que existe una versión.</value>
   </data>
+  <data name="StopAppOnClose" xml:space="preserve">
+    <value>Cerrar también el juego en el teléfono</value>
+  </data>
+  <data name="StopAppOnCloseTip" xml:space="preserve">
+    <value>Al cerrar una ventana de juego, el juego también se detiene en el teléfono. Sin marcar, sigue funcionando: al reabrir la ventana el personaje sigue conectado, pero una cuenta cerrada conserva su memoria y su conexión.</value>
+  </data>
   <data name="OpenLogFolder" xml:space="preserve">
     <value>Abrir la carpeta de registros</value>
   </data>
@@ -244,6 +250,9 @@
   </data>
   <data name="ProfilesTip" xml:space="preserve">
     <value>Conjuntos de cuentas, con sus posiciones y sus ajustes, que se abren de un gesto.</value>
+  </data>
+  <data name="ProfilesActiveTip" xml:space="preserve">
+    <value>Perfiles de lanzamiento. « {0} » es el que se abre al iniciar.</value>
   </data>
   <data name="LaunchProfilesHeading" xml:space="preserve">
     <value>PERFILES DE INICIO</value>
@@ -393,7 +402,7 @@
     <value>Arrastra para cambiar el orden. Una instancia puede colocarse entre las de otro aparato, y este orden es también el que sigue el teclado.</value>
   </data>
   <data name="LockWindowTip" xml:space="preserve">
-    <value>Bloquear esta ventana en su sitio. Ya no se moverá al apilar, al poner lado a lado ni al cambiar de tamaño, y el teclado no se detendrá en ella. Las demás ventanas se colocan sin ella.</value>
+    <value>Bloquear esta ventana en su sitio. Ya no se moverá al apilar, al poner lado a lado ni al cambiar de tamaño, y el teclado no se detendrá en ella. Las demás ventanas se colocan sin ella. Si la cuenta está en el marco con pestañas, una sola pestaña bloqueada congela todo el marco.</value>
   </data>
   <data name="TabbedTip" xml:space="preserve">
     <value>Abrir esta cuenta en el marco con pestañas. Vuelve a hacer clic para devolverle su ventana libre.</value>
@@ -416,6 +425,139 @@
   <data name="NoDeviceHelp" xml:space="preserve">
     <value>Conecta un cable USB con la depuración activada: el aparato aparecerá solo. Un teléfono ya vinculado por Wi-Fi se reconecta solo en cuanto vuelve a la red.</value>
   </data>
+  <data name="ConnectionHeading" xml:space="preserve">
+    <value>ESTADO DE LA CONEXIÓN</value>
+  </data>
+  <data name="CheckReady" xml:space="preserve">
+    <value>El teléfono responde. Todo está listo.</value>
+  </data>
+  <data name="CheckNoDevice" xml:space="preserve">
+    <value>Ningún teléfono detectado. Que Windows lo vea para las fotos no basta: eso solo prueba la transferencia de archivos, nunca la depuración. Conecte un cable de datos, elija « Transferencia de archivos » si el teléfono lo pide, y active la depuración USB. Un dispositivo ya vinculado se reconecta solo por Wi-Fi.</value>
+  </data>
+  <data name="CheckWaitingAuthorization" xml:space="preserve">
+    <value>El teléfono está ahí pero aún no ha autorizado este PC. Desbloquee su pantalla y acepte la solicitud de depuración.</value>
+  </data>
+  <data name="CheckDriverRefused" xml:space="preserve">
+    <value>El controlador USB de Windows rechaza el acceso a este dispositivo. Desconéctelo, conéctelo en otro puerto y acepte la solicitud en el teléfono.</value>
+  </data>
+  <data name="CheckUsbUnreadable" xml:space="preserve">
+    <value>Hay un dispositivo conectado pero Windows no ha podido leer su identidad. La culpa es del cable, del puerto o del conector, no del teléfono.</value>
+  </data>
+  <data name="CheckUsbDriverMissing" xml:space="preserve">
+    <value>Hay un dispositivo conectado pero Windows no tiene ningún controlador para él. Hay que instalar el controlador ADB del fabricante, con derechos de administrador.</value>
+  </data>
+  <data name="CheckUsbOther" xml:space="preserve">
+    <value>Hay un dispositivo conectado y Windows lo ha descartado. El detalle está en el Administrador de dispositivos.</value>
+  </data>
+  <data name="CableHelp" xml:space="preserve">
+    <value>¿Qué puedo hacer?</value>
+  </data>
+  <data name="CableHelpTitle" xml:space="preserve">
+    <value>Un dispositivo conectado que Windows no lee</value>
+  </data>
+  <data name="CableHelpIntro" xml:space="preserve">
+    <value>Puede que el teléfono se esté cargando, lo que solo prueba la alimentación. Los hilos de datos no transmiten nada aprovechable. Estas son las pistas, de la más frecuente a la más rara.</value>
+  </data>
+  <data name="CableHelpSteps" xml:space="preserve">
+    <value>Pruebe otro cable. Muchos cables que vienen con un cargador no tienen hilos de datos, y un cable de datos dañado da exactamente este fallo.
+
+Pruebe un puerto USB 2.0, en la parte trasera de la máquina y no en el frontal: la enumeración es más tolerante y el recorrido más corto.
+
+Reinicie, no apague. Con el inicio rápido de Windows, apagar y volver a encender no reinicia los controladores USB; solo «Reiniciar» lo hace.
+
+Limpie el conector del teléfono. El polvo del bolsillo impide el contacto de los pines de datos aunque la carga siga funcionando.
+
+Cruce las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC. Así sabrá cuál de los tres falla.</value>
+  </data>
+  <data name="AdbShellUserAccessDenied" xml:space="preserve">
+    <value>El teléfono ha denegado al PC el acceso a ese perfil. Si es una carpeta segura, desbloquéela en el teléfono antes de iniciar. Si no, active «Depuración USB (ajustes de seguridad)» en las opciones de desarrollo.</value>
+  </data>
+  <data name="ScrcpyDisplayTimeoutWithAudio" xml:space="preserve">
+    <value>El teléfono no abrió una pantalla virtual a tiempo. Pruebe primero sin sonido: en algunas tabletas, activarlo basta para impedir que la pantalla se abra.</value>
+  </data>
+  <data name="BrandSamsungWarning" xml:space="preserve">
+    <value>Si la tableta no se detecta en absoluto, desactive «Bloqueador automático» en Ajustes > Seguridad y privacidad, y después «Bloquear conexiones USB» en los demás ajustes de seguridad. Una carpeta segura debe desbloquearse antes de iniciar, o el juego no se encontrará en ella.</value>
+  </data>
+  <data name="BrandOnePlusWarning" xml:space="preserve">
+    <value>Active también «Depuración USB (ajustes de seguridad)» e «Instalar vía USB» en el mismo menú. Sin la primera, la imagen se ve pero el ratón y el teclado no hacen nada.</value>
+  </data>
+  <data name="BrandVivoWarning" xml:space="preserve">
+    <value>Active también «Depuración USB (ajustes de seguridad)» e «Instalar vía USB» en el mismo menú. Sin la primera, la imagen se ve pero el ratón y el teclado no hacen nada.</value>
+  </data>
+  <data name="DeviceThrottling" xml:space="preserve">
+    <value>El dispositivo se está calentando y empieza a limitarse. Cierre una cuenta, o baje un nivel de calidad, y volverá a rendir.</value>
+  </data>
+  <data name="DeviceThrottlingSevere" xml:space="preserve">
+    <value>El dispositivo está demasiado caliente y se limita mucho. Cierre una cuenta o baje un nivel sin esperar: por debajo de esto, Android suspende las ventanas hasta que se enfríe.</value>
+  </data>
+  <data name="DeadInputHelp" xml:space="preserve">
+    <value>¿El ratón no hace nada en la ventana?</value>
+  </data>
+  <data name="DeadInputTitle" xml:space="preserve">
+    <value>Nada responde en la ventana</value>
+  </data>
+  <data name="DeadInputExplanation" xml:space="preserve">
+    <value>La imagen se ve, la ventana se abre, y sin embargo los clics y las teclas no hacen nada. No aparece ningún error, porque no lo hay: el dispositivo acepta mostrar su pantalla, pero no recibir sus gestos. Es un permiso aparte, y se concede en el teléfono.</value>
+  </data>
+  <data name="DeadInputTest" xml:space="preserve">
+    <value>Probar el dispositivo</value>
+  </data>
+  <data name="DeadInputTestHelp" xml:space="preserve">
+    <value>La prueba pide al dispositivo que acepte un evento de entrada, con la tecla que Android llama «desconocida» y que no activa nada en ningún sitio. Dice en un segundo lo que de otro modo cuesta una tarde entera averiguar.</value>
+  </data>
+  <data name="DeadInputTestRunning" xml:space="preserve">
+    <value>Preguntando al dispositivo…</value>
+  </data>
+  <data name="DeadInputTestWorks" xml:space="preserve">
+    <value>El dispositivo acepta la simulación de entrada. Si los clics siguen sin hacer nada, la causa está más abajo, no aquí.</value>
+  </data>
+  <data name="DeadInputTestDenied" xml:space="preserve">
+    <value>El dispositivo rechaza la simulación de entrada. Esa es la causa: active el ajuste de abajo y repita la prueba.</value>
+  </data>
+  <data name="DeadInputTestUnknown" xml:space="preserve">
+    <value>Sin veredicto. El dispositivo respondió algo inesperado, y adivinar sería peor que callar.</value>
+  </data>
+  <data name="DeadInputTestNoDevice" xml:space="preserve">
+    <value>No hay ningún dispositivo conectado. Conecte uno o vincúlelo y repita la prueba.</value>
+  </data>
+  <data name="DeadInputSecuritySetting" xml:space="preserve">
+    <value>Permitir la simulación de entrada</value>
+  </data>
+  <data name="DeadInputSecurityHelp" xml:space="preserve">
+    <value>En las opciones de desarrollo, active la línea cuya descripción dice «Conceder permisos y simular la entrada mediante depuración USB». Según la marca se llama «Depuración USB (ajustes de seguridad)». Es con diferencia la causa más frecuente.</value>
+  </data>
+  <data name="DeadInputCable" xml:space="preserve">
+    <value>El cable debe transferir datos</value>
+  </data>
+  <data name="DeadInputCableHelp" xml:space="preserve">
+    <value>Cuando el teléfono pregunte por el modo de conexión, elija «Transferencia de archivos» y no «Carga». Un cable que se queda en carga deja ver la pantalla y rechaza todo lo demás. Si la pregunta no aparece, pruebe otro cable: muchos cables que vienen con un cargador no tienen hilos de datos.</value>
+  </data>
+  <data name="SimulatedKeyboard" xml:space="preserve">
+    <value>Teclado físico simulado</value>
+  </data>
+  <data name="SimulatedKeyboardTip" xml:space="preserve">
+    <value>Presenta el teclado al teléfono como un teclado conectado, en lugar de escribir a través de su teclado en pantalla.</value>
+  </data>
+  <data name="SimulatedKeyboardHelp" xml:space="preserve">
+    <value>Actívelo cuando la ventana responde al ratón pero no se escribe nada: el teclado en pantalla de algunas marcas se traga los caracteres. A cambio, el teléfono lee sus teclas según su propia distribución de Android: ajústela igual que la del PC, o un AZERTY escribirá como QWERTY.</value>
+  </data>
+  <data name="DeadInputRevoke" xml:space="preserve">
+    <value>Revocar las autorizaciones de depuración USB</value>
+  </data>
+  <data name="DeadInputRevokeHelp" xml:space="preserve">
+    <value>En las opciones de desarrollador, pulse «Revocar autorizaciones de depuración USB», desconecte el dispositivo, vuelva a conectarlo y acepte de nuevo la solicitud. Borra una autorización que quedó a medio conceder, y es el paso que desbloquea los casos en los que todo parece bien configurado.</value>
+  </data>
+  <data name="DeadInputToggleDeveloper" xml:space="preserve">
+    <value>Apagarlo todo, reiniciar, volver a encenderlo</value>
+  </data>
+  <data name="DeadInputToggleDeveloperHelp" xml:space="preserve">
+    <value>Desconecte primero el teléfono del PC. Después apague los interruptores de depuración, hasta tres según la marca: depuración USB, instalación por USB y depuración USB (ajustes de seguridad). Reinicie el teléfono, vuelva a encenderlos una vez reiniciado y conéctelo de nuevo en modo «Transferencia de archivos» aceptando la solicitud. El orden importa, y el reinicio también: volver a encenderlos sin él suele dejar el ajuste marcado sin aplicarse.</value>
+  </data>
+  <data name="OnBrandUseClonePath" xml:space="preserve">
+    <value>
+
+En un dispositivo {0}, la copia manual se hace por: {1}.</value>
+  </data>
   <data name="LinkedPage" xml:space="preserve">
     <value>Página enlazada</value>
   </data>
@@ -427,6 +569,63 @@
   </data>
   <data name="OpenCurrentPageTip" xml:space="preserve">
     <value>Abrir la página actual en tu navegador habitual, en el sitio de origen</value>
+  </data>
+  <data name="SearchOnSite" xml:space="preserve">
+    <value>Buscar «{0}» en papycha.fr</value>
+  </data>
+  <data name="Almanax" xml:space="preserve">
+    <value>Almanax</value>
+  </data>
+  <data name="AlmanaxTip" xml:space="preserve">
+    <value>La ofrenda y el bonus del día para DOFUS Touch, leídos en el portal de Ankama.</value>
+  </data>
+  <data name="AlmanaxWindowTitle" xml:space="preserve">
+    <value>Almanax - DOFUS Touch</value>
+  </data>
+  <data name="AlmanaxSource" xml:space="preserve">
+    <value>Almanax oficial, krosmoz.com, filtrado en DOFUS Touch</value>
+  </data>
+  <data name="AlmanaxOffering" xml:space="preserve">
+    <value>Ofrenda</value>
+  </data>
+  <data name="AlmanaxBonus" xml:space="preserve">
+    <value>Bonus</value>
+  </data>
+  <data name="AlmanaxQuest" xml:space="preserve">
+    <value>Misión</value>
+  </data>
+  <data name="AlmanaxMeryde" xml:space="preserve">
+    <value>Méryde</value>
+  </data>
+  <data name="AlmanaxPickTip" xml:space="preserve">
+    <value>Elegir otra fecha, más lejana o más antigua</value>
+  </data>
+  <data name="ActionAlmanax" xml:space="preserve">
+    <value>Abrir el Almanax</value>
+  </data>
+  <data name="ActionAlmanaxDetail" xml:space="preserve">
+    <value>Abre la ofrenda y el bonus del día para DOFUS Touch, leídos en el portal de Ankama. La ventana también deja ver los días siguientes para prepararse.</value>
+  </data>
+  <data name="AlmanaxToday" xml:space="preserve">
+    <value>Hoy</value>
+  </data>
+  <data name="AlmanaxTodayTip" xml:space="preserve">
+    <value>Volver a hoy</value>
+  </data>
+  <data name="AlmanaxPreviousTip" xml:space="preserve">
+    <value>Día anterior</value>
+  </data>
+  <data name="AlmanaxNextTip" xml:space="preserve">
+    <value>Día siguiente</value>
+  </data>
+  <data name="AlmanaxLoading" xml:space="preserve">
+    <value>Leyendo el Almanax…</value>
+  </data>
+  <data name="AlmanaxUnavailable" xml:space="preserve">
+    <value>No se pudo leer el Almanax. Puede que el portal no esté disponible o que su página haya cambiado.</value>
+  </data>
+  <data name="SearchOnSiteTip" xml:space="preserve">
+    <value>Abre la búsqueda del sitio en su navegador. Busca dentro de los artículos, así que encuentra objetos, monstruos y personajes que esta lista no indexa.</value>
   </data>
   <data name="SearchTip" xml:space="preserve">
     <value>Haz clic para desplegar la lista, o escribe un nombre. Los acentos no cuentan.</value>
@@ -647,6 +846,9 @@
   <data name="HotkeyMissingModifier" xml:space="preserve">
     <value>Añade Ctrl, Alt o Mayús, si no la tecla se interceptaría mientras juegas.</value>
   </data>
+  <data name="HotkeyEditingKey" xml:space="preserve">
+    <value>Ctrl+A, Ctrl+C, Ctrl+V y Ctrl+X quedan para la edición.</value>
+  </data>
   <data name="HotkeyReserved" xml:space="preserve">
     <value>Esta combinación está reservada por Windows.</value>
   </data>
@@ -710,8 +912,14 @@
   <data name="NoPrimaryProfile" xml:space="preserve">
     <value>El teléfono no ha dicho cuál es su perfil principal. Vuelve a conectarlo e inténtalo de nuevo.</value>
   </data>
-  <data name="OneManagedProfileOnly" xml:space="preserve">
-    <value>Este teléfono solo acepta un perfil de este tipo, y ya existe. Para una cuenta más, activa las aplicaciones duplicadas en sus ajustes.</value>
+  <data name="ProfileReused" xml:space="preserve">
+    <value>El perfil « {0} » ya existía pero ya no tenía el juego. Se ha reutilizado y el juego se ha reinstalado en él: Android solo admite uno de este tipo.</value>
+  </data>
+  <data name="AccountAddedAsWorkProfile" xml:space="preserve">
+    <value>Cuenta « {0} » añadida, pero en un perfil de trabajo: el teléfono solo admite un perfil clonado y ya está ocupado. Sus iconos llevarán un maletín, y Android instalará por su cuenta sus propias aplicaciones en ese perfil.</value>
+  </data>
+  <data name="ProfileSlotsFull" xml:space="preserve">
+    <value>Este teléfono solo admite un perfil clonado y un perfil de trabajo, y ambos ya están en uso. Para una cuenta más, active las aplicaciones duplicadas en sus ajustes.</value>
   </data>
   <data name="ProfileCreationRefused" xml:space="preserve">
     <value>El teléfono se ha negado a crear un perfil. Algunas capas del fabricante lo prohíben: usa entonces sus ajustes de cuentas múltiples.</value>
@@ -791,6 +999,9 @@
   <data name="PairedAndConnected" xml:space="preserve">
     <value>Teléfono vinculado y conectado.</value>
   </data>
+  <data name="PairingInProgress" xml:space="preserve">
+    <value>Emparejamiento en curso…</value>
+  </data>
   <data name="PhoneConnected" xml:space="preserve">
     <value>Teléfono conectado.</value>
   </data>
@@ -867,7 +1078,7 @@ El detalle está en los registros:
     <value>¿Romper la vinculación con {0}?</value>
   </data>
   <data name="ForgetDeviceConsequence" xml:space="preserve">
-    <value>Sus instancias y sus ajustes se borrarán.</value>
+    <value>Sus cuentas y sus ajustes se borrarán, y este PC dejará de conectarse solo. El teléfono conserva su propia lista: quite este PC desde « Depuración inalámbrica » si también quiere borrarlo allí.</value>
   </data>
   <data name="GameNotInstalled" xml:space="preserve">
     <value>Juego no instalado</value>
@@ -1157,6 +1368,9 @@ El resto de la aplicación funciona sin él.</value>
   <data name="SiteDownCached" xml:space="preserve">
     <value>El sitio no ha respondido; lista en caché.</value>
   </data>
+  <data name="StepStart" xml:space="preserve">
+    <value>Inicio</value>
+  </data>
   <data name="StepOfTotal" xml:space="preserve">
     <value>Paso {0} / {1}</value>
   </data>
@@ -1346,7 +1560,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Ajustes  ›  Ajustes adicionales  ›  Opciones de desarrollador</value>
   </data>
   <data name="BrandXiaomiWarning" xml:space="preserve">
-    <value>En HyperOS y MIUI, la depuración USB pide a veces una tarjeta SIM y una cuenta Xiaomi conectada. Active también « Depuración USB (ajustes de seguridad) » si aparece la línea.</value>
+    <value>Active « Depuración USB (ajustes de seguridad) »: sin ella la imagen se ve pero el ratón y el teclado no hacen nada. La depuración USB pide a veces además una tarjeta SIM y una cuenta Xiaomi conectada. Si los clics siguen muertos, desactive « Escritura a mano con lápiz », al final de las opciones de desarrollo.</value>
   </data>
   <data name="BrandSamsungName" xml:space="preserve">
     <value>Samsung</value>
@@ -1358,7 +1572,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Ajustes  ›  Seguridad y privacidad  ›  Carpeta segura</value>
   </data>
   <data name="BrandSamsungCloneNote" xml:space="preserve">
-    <value>« Dual Messenger » solo duplica aplicaciones de mensajería, así que no sirve para un juego. La carpeta segura acepta cualquier aplicación, y pide una cuenta Samsung.</value>
+    <value>« Dual Messenger » solo duplica aplicaciones de mensajería, así que no sirve para un juego. La carpeta segura acepta cualquier aplicación, y pide una cuenta Samsung. Debe desbloquearse antes de iniciar: bloqueada, el juego que contiene queda fuera del alcance del PC.</value>
   </data>
   <data name="BrandSamsungBatteryFeature" xml:space="preserve">
     <value>Permitir actividad en segundo plano</value>

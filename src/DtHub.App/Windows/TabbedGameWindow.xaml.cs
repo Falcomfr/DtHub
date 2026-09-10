@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 using DtHub.App.ViewModels;
 using DtHub.Core.Windows;
@@ -82,6 +83,8 @@ public partial class TabbedGameWindow : Window
         // Le premier arrivé se montre : un cadre ouvert sur du vide n'aurait
         // aucun sens.
         Select(Items.Count == 1 ? tab : Items.First(t => t.IsSelected));
+
+        _ = Dispatcher.BeginInvoke(DispatcherPriority.Loaded, Settle);
 
         return true;
     }
@@ -226,6 +229,192 @@ public partial class TabbedGameWindow : Window
         Fit(tab);
         Place(tab);
         Retitle();
+
+        // Le clavier ne suit pas l'onglet tout seul. Une fenêtre logée est
+        // fille du cadre, donc hors d'atteinte du premier plan : sans cet
+        // appel, l'image s'affiche et la souris passe, mais rien de ce qu'on
+        // tape n'arrive, le collage compris puisque scrcpy colle en frappant.
+        _ = _windows.GiveKeyboardFocus(tab.Window);
+    }
+
+    /// <summary>
+    /// Passe à l'onglet suivant, ou au précédent. Le parcours boucle, comme
+    /// celui des fenêtres libres, pour que Ctrl+Tab veuille dire la même chose
+    /// dans les deux modes.
+    /// </summary>
+    /// <returns>Faux s'il n'y a pas de quoi tourner.</returns>
+    public bool Cycle(bool forward)
+    {
+        if (Items.Count < 2)
+        {
+            return false;
+        }
+
+        var courant = Items.FirstOrDefault(t => t.IsSelected) ?? Items[0];
+        var pas = forward ? 1 : -1;
+        var voulu = ((Items.IndexOf(courant) + pas) % Items.Count + Items.Count) % Items.Count;
+
+        // Cocher suffit : le changement passe par OnTabChanged, comme un clic.
+        Items[voulu].IsSelected = true;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Le rapport de l'onglet actif, ou <c>null</c> si le cadre est vide ou si
+    /// l'afficheur n'en impose aucun.
+    ///
+    /// Publié pour que les commandes de géométrie puissent calculer un
+    /// rectangle qui donne au jeu sa forme, comme elles le font pour une
+    /// fenêtre libre.
+    /// </summary>
+    public double? SelectedAspect => Aspect();
+
+    /// <summary>
+    /// L'encombrement du châssis, bordures, barre de titre et barre d'onglets
+    /// comprises. C'est ce qu'il faut retirer avant d'appliquer un rapport,
+    /// puisque le rapport vaut pour la zone de jeu et non pour la fenêtre.
+    /// </summary>
+    public (int Width, int Height)? Chassis => Chrome();
+
+    /// <summary>Vrai quand le cadre couvre l'écran entier.</summary>
+    public bool IsFullscreen => _fullscreen;
+
+    private bool _fullscreen;
+    private WindowStyle _styleBefore = WindowStyle.SingleBorderWindow;
+    private ResizeMode _resizeBefore = ResizeMode.CanResize;
+    private ScreenRect _boundsBefore;
+
+    /// <summary>
+    /// Pose le cadre à l'endroit et à la taille demandés, en pixels du bureau.
+    ///
+    /// C'est le seul point d'entrée des commandes de géométrie. Rien n'est
+    /// jamais appliqué à la fenêtre logée elle-même : elle est fille du cadre,
+    /// ses coordonnées ne sont pas celles de l'écran, et lui rendre une
+    /// bordure la doterait d'une barre de titre à l'intérieur du cadre.
+    /// </summary>
+    public void ApplyRect(ScreenRect outer)
+    {
+        if (Handle == 0 || _fullscreen || outer.Width <= 0 || outer.Height <= 0)
+        {
+            return;
+        }
+
+        _windows.MoveWindow(Handle, outer);
+
+        // Deux fois, la seconde une fois la boucle de messages passée. Franchir
+        // un écran d'une autre densité fait reproportionner la taille par WPF,
+        // et la première pose arrive dans la densité de l'écran de départ :
+        // c'est le piège déjà rencontré à la restauration d'un placement.
+        //
+        // La forme est reprise à ce moment-là seulement : un rectangle venu
+        // d'ailleurs, celui d'une fenêtre libre qu'on empile par exemple, n'a
+        // aucune raison d'avoir déjà celle du jeu.
+        _ = Dispatcher.BeginInvoke(
+            DispatcherPriority.Loaded,
+            () =>
+            {
+                if (Handle == 0 || _fullscreen)
+                {
+                    return;
+                }
+
+                _windows.MoveWindow(Handle, outer);
+                Settle();
+            });
+    }
+
+    /// <summary>
+    /// Redonne au cadre la forme de l'onglet montré, une fois la disposition
+    /// retombée.
+    ///
+    /// Différé à dessein. La restauration de la place du cadre repose la taille
+    /// enregistrée une seconde fois par le répartiteur, à cette même priorité,
+    /// donc après le <see cref="Fit"/> de <see cref="Select"/> : le cadre
+    /// gardait une forme qui ne correspondait à aucun onglet, et la fenêtre
+    /// logée était simplement recentrée avec ses bandes noires. Mise en file
+    /// après elle, la reprise a le dernier mot.
+    /// </summary>
+    private void Settle()
+    {
+        if (_fullscreen || Items.FirstOrDefault(t => t.IsSelected) is not { } tab)
+        {
+            return;
+        }
+
+        Fit(tab);
+        Place(tab);
+    }
+
+    /// <summary>
+    /// Fait couvrir un rectangle entier au cadre, châssis retiré, ou lui rend
+    /// son châssis et sa place.
+    ///
+    /// Le style est retiré par WPF, le rectangle posé par nous. C'est le seul
+    /// partage qui tienne : retirer les styles de bordure par Win32 mettrait
+    /// la fenêtre en désaccord avec son propre gestionnaire de zone non
+    /// cliente, qui les réécrit à la moindre occasion ; et laisser WPF poser la
+    /// géométrie par <c>Maximized</c> ne couvrirait pas la barre des tâches, là
+    /// où le plein écran des fenêtres libres prend les bornes entières de
+    /// l'écran. L'état reste donc <c>Normal</c>, et c'est pourquoi
+    /// <see cref="Fit"/> doit renoncer sur le drapeau plutôt que sur l'état.
+    ///
+    /// Le style d'abord, la géométrie ensuite : posée avant, elle serait
+    /// reprise par le retour du châssis.
+    /// </summary>
+    /// <param name="on">Vrai pour couvrir, faux pour rendre.</param>
+    /// <param name="target">
+    /// Les bornes de l'écran en entrant, le rectangle à rendre en sortant.
+    /// </param>
+    public void SetFullscreen(bool on, ScreenRect target)
+    {
+        if (Handle == 0 || on == _fullscreen)
+        {
+            return;
+        }
+
+        _fullscreen = on;
+
+        if (on)
+        {
+            // D'où l'on vient, retenu ici et non chez l'appelant : c'est le
+            // cadre qui sait ce qu'il occupait, et l'appelant ne peut pas le
+            // relire une fois la pose faite.
+            _boundsBefore = _windows.GetWindowRect(Handle) ?? default;
+            _styleBefore = WindowStyle;
+            _resizeBefore = ResizeMode;
+            WindowStyle = WindowStyle.None;
+            ResizeMode = ResizeMode.NoResize;
+        }
+        else
+        {
+            WindowStyle = _styleBefore;
+            ResizeMode = _resizeBefore;
+
+            if (target.Width <= 0 || target.Height <= 0)
+            {
+                target = _boundsBefore;
+            }
+        }
+
+        if (target.Width > 0 && target.Height > 0)
+        {
+            _windows.MoveWindow(Handle, target);
+        }
+
+        if (Items.FirstOrDefault(t => t.IsSelected) is not { } tab)
+        {
+            return;
+        }
+
+        // En sortant seulement : le cadre reprend la forme du jeu, ce qu'il ne
+        // doit surtout pas faire tant qu'il couvre l'écran.
+        if (!on)
+        {
+            Fit(tab);
+        }
+
+        Place(tab);
     }
 
     private void OnHostResized(object sender, SizeChangedEventArgs e)
@@ -330,6 +519,7 @@ public partial class TabbedGameWindow : Window
     private void Fit(GameTabViewModel tab)
     {
         if (_fitting
+            || _fullscreen
             || tab.Aspect <= 0
             || WindowState != WindowState.Normal
             || Chrome() is not { } chrome
@@ -610,6 +800,39 @@ public partial class TabbedGameWindow : Window
         {
             source.AddHook(OnWindowMessage);
         }
+    }
+
+    /// <summary>
+    /// Le cadre reprend la main : le clavier retourne à l'onglet actif.
+    ///
+    /// Sans cela, revenir par Alt+Tab rendrait l'activation au cadre, qui n'a
+    /// rien à saisir, et les frappes tomberaient à côté du jeu.
+    /// </summary>
+    protected override void OnActivated(EventArgs e)
+    {
+        base.OnActivated(e);
+
+        if (Items.FirstOrDefault(t => t.IsSelected) is not { } tab)
+        {
+            return;
+        }
+
+        _ = _windows.GiveKeyboardFocus(tab.Window);
+
+        // Deux fois, et ce n'est pas une précaution en l'air : WPF rend le
+        // focus à son propre arbre en traitant WM_SETFOCUS, qui arrive après
+        // l'activation. Le premier appel sert au cas ordinaire, le second
+        // repasse derrière lui. Désigner deux fois la même fenêtre ne coûte
+        // rien, aucune file n'étant touchée.
+        _ = Dispatcher.BeginInvoke(
+            DispatcherPriority.Input,
+            () =>
+            {
+                if (IsActive && Items.FirstOrDefault(t => t.IsSelected) is { } encore)
+                {
+                    _ = _windows.GiveKeyboardFocus(encore.Window);
+                }
+            });
     }
 
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)

@@ -84,6 +84,37 @@ public sealed class RedactionTests
     }
 
     [Fact]
+    public void L_avertissement_de_chaleur_perd_l_appareil_et_garde_la_mesure()
+    {
+        // Cette ligne est journalisée en avertissement, donc toujours retenue
+        // par le condensé, donc toujours présente dans un rapport collé en
+        // public. Elle nomme l'appareil : c'est ce qui doit partir, et rien de
+        // plus, la mesure étant tout l'intérêt du rapport.
+        const string ligne =
+            "L'appareil 192.168.1.16:40335 se bride : état thermique 4, surface 35.107 °C.";
+
+        var clean = Redaction.Apply(ligne);
+
+        Assert.DoesNotContain("192.168.1.16", clean, StringComparison.Ordinal);
+        Assert.DoesNotContain("40335", clean, StringComparison.Ordinal);
+        Assert.Contains("état thermique 4", clean, StringComparison.Ordinal);
+        Assert.Contains("35.107", clean, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void L_avertissement_de_chaleur_perd_aussi_l_appareil_nomme_par_mdns()
+    {
+        const string ligne =
+            "L'appareil adb-CMBU79RCINVSFYUO-1V3FXQ._adb-tls-connect._tcp se bride : "
+            + "état thermique 3, surface 34.279 °C.";
+
+        var clean = Redaction.Apply(ligne);
+
+        Assert.DoesNotContain("CMBU79RCINVSFYUO", clean, StringComparison.Ordinal);
+        Assert.Contains("état thermique 3", clean, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Ce_qui_n_identifie_personne_reste_lisible()
     {
         const string message =

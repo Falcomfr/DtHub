@@ -157,6 +157,52 @@ public class DevicePairingServiceTests
     }
 
     [Fact]
+    public async Task Une_annonce_ecartee_n_est_pas_reprise_par_la_reconnexion()
+    {
+        // Le téléphone continue de s'annoncer après une rupture : ADB garde sa
+        // clé et le débogage sans fil reste actif. Sans la mémoire de l'écart,
+        // la reconnexion automatique le reprenait au balayage suivant.
+        var adb = new FakeAdbClient();
+        adb.MdnsOutputs.Enqueue(PairingAndConnect);
+        adb.ConnectableAddresses.Add("192.168.1.25:37845");
+
+        var connected = await Service(adb).ConnectAnnouncedAsync(
+            [],
+            new HashSet<string>(StringComparer.Ordinal) { "MATERIEL123" },
+            CancellationToken.None);
+
+        Assert.Empty(connected);
+        Assert.Empty(adb.ConnectAttempts);
+    }
+
+    [Fact]
+    public async Task Un_ecart_ne_vaut_que_pour_l_appareil_ecarte()
+    {
+        var adb = new FakeAdbClient();
+        adb.MdnsOutputs.Enqueue(PairingAndConnect);
+        adb.ConnectableAddresses.Add("192.168.1.25:37845");
+
+        var connected = await Service(adb).ConnectAnnouncedAsync(
+            [],
+            new HashSet<string>(StringComparer.Ordinal) { "AUTRETELEPHONE" },
+            CancellationToken.None);
+
+        Assert.Equal("192.168.1.25:37845", Assert.Single(connected));
+    }
+
+    [Fact]
+    public async Task Sans_ecart_la_reconnexion_reprend_ce_qui_s_annonce()
+    {
+        var adb = new FakeAdbClient();
+        adb.MdnsOutputs.Enqueue(PairingAndConnect);
+        adb.ConnectableAddresses.Add("192.168.1.25:37845");
+
+        var connected = await Service(adb).ConnectAnnouncedAsync([], null, CancellationToken.None);
+
+        Assert.Equal("192.168.1.25:37845", Assert.Single(connected));
+    }
+
+    [Fact]
     public async Task Les_telephones_en_attente_d_appairage_sont_proposes()
     {
         var adb = new FakeAdbClient();

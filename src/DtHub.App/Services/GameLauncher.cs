@@ -82,17 +82,29 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // la fenêtre disparaissait et le journal restait muet.
         _sessions.SessionChanged += OnSessionChanged;
 
+        // L'arrêt du jeu à la fermeture se décide au moment de fermer, pas au
+        // lancement : sans cet abonnement, décocher la case en cours de partie
+        // n'aurait rien changé avant le lancement suivant, et la fenêtre qu'on
+        // ferme juste après aurait quand même tué le jeu.
+        _settings.Changed += (_, document) => _sessions.StopAppOnClose = document.StopAppOnClose;
+
         // La fenêtre est placée avant l'ouverture du jeu, pour qu'il naisse à
         // la taille définitive.
         _sessions.PrepareWindow = async (session, placement, cancellationToken) =>
         {
-            // La fenêtre est maintenue garée hors écran : scrcpy recentre la
-            // sienne à la première image. Sa taille, elle, n'est pas touchée :
-            // l'afficheur est déjà né à la bonne, et le jeu fige la hauteur de
-            // sa mise en page à son initialisation.
+            // Le coin visé est celui du cadre, alors que le placement transmis
+            // à scrcpy est celui de la zone client : reposer la fenêtre sur les
+            // coordonnées du placement la décalait d'une bordure et d'une barre
+            // de titre, sous les yeux, juste après son ouverture.
+            //
+            // Sa taille n'est pas touchée : l'afficheur est déjà né à la bonne,
+            // et le jeu fige la hauteur de sa mise en page à son initialisation.
             if (placement is { } wanted)
             {
-                await _windows.MoveOnlyAsync(session, wanted.X, wanted.Y, cancellationToken)
+                var frame = _windows.WindowChrome();
+
+                await _windows
+                    .MoveOnlyAsync(session, wanted.X - frame.Left, wanted.Y - frame.Top, cancellationToken)
                     .ConfigureAwait(false);
             }
         };
@@ -117,6 +129,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// <summary>Réglages dérivés de la qualité choisie, relus à chaque lancement.</summary>
     private QualityProfile _quality = QualityProfile.For(StreamQuality.Medium);
     private GameZoom _zoom = GameZoom.Normal;
+
+    /// <summary>
+    /// Retard d'affichage qui convient à cette liaison, en millisecondes.
+    ///
+    /// Relu en même temps que le budget, et pour la même raison : les deux se
+    /// déduisent de ce que l'appareil dit de sa liaison, et ni l'un ni l'autre
+    /// ne change entre deux redimensionnements de fenêtre.
+    /// </summary>
+    private int _videoBufferMs = VideoBuffer.None;
 
     /// <summary>Rythme des contrôles et des sondages, selon la qualité.</summary>
     public QualityProfile Quality => _quality;
@@ -170,6 +191,89 @@ public sealed partial class GameLauncher : IAsyncDisposable
             s => !_unmanaged.Contains(s.Target.Key) && !_tabbed.Contains(s.Target.Key))];
 
     /// <summary>
+    /// Comptes réellement logés dans le cadre à onglets.
+    ///
+    /// Compté sur les sessions ouvertes et non sur le réglage : un compte peut
+    /// être marqué logé et n'avoir jamais pu être arrimé.
+    /// </summary>
+    public int HousedCount =>
+        _sessions.ActiveSessions.Count(s => _tabbed.Contains(s.Target.Key));
+
+    /// <summary>
+    /// Vrai si le cadre à onglets suit les commandes de géométrie.
+    ///
+    /// Un seul compte logé verrouillé le fige : le cadre est une seule fenêtre,
+    /// et on ne peut pas en immobiliser un onglet tout en déplaçant l'autre.
+    /// </summary>
+    public bool FrameMoves => _tabs is not null && !FrameLock.Freezes(_unmanaged, _tabbed);
+
+    /// <summary>
+    /// Nombre de fenêtres qu'un rangement peut bouger, le cadre comptant pour
+    /// une. En dessous de deux, il n'y a rien à ranger et les boutons du pied
+    /// de fenêtre se retirent.
+    /// </summary>
+    public int ArrangeableCount =>
+        ManagedSessions.Count + (HousedCount > 0 && FrameMoves ? 1 : 0);
+
+    /// <summary>Le cadre, quand il est posé, visible, et qu'aucun cadenas ne le fige.</summary>
+    private Windows.TabbedGameWindow? MovableFrame =>
+        _tabs is { Handle: not 0 } frame && FrameMoves ? frame : null;
+
+    /// <summary>
+    /// Sérialise les commandes de géométrie.
+    ///
+    /// Elles arrivent du fil des raccourcis, sautent sur celui de l'interface
+    /// et écrivent les réglages en repassant : deux Ctrl+5 rapprochés
+    /// entrelaçaient deux entrées en plein écran, et le cadre perdait le
+    /// rectangle d'où il venait.
+    /// </summary>
+    private readonly SemaphoreSlim _arranging = new(1, 1);
+
+    /// <summary>
+    /// Donne au cadre la taille en cours, ou le plein écran, sans le déplacer.
+    ///
+    /// Rien n'est jamais appliqué à la fenêtre logée : elle est fille du cadre,
+    /// et c'est le cadre qu'on dimensionne. Sa forme, elle, suit l'onglet
+    /// montré : la taille du cadre est donc en pratique une part de largeur, la
+    /// hauteur venant du rapport de l'image.
+    /// </summary>
+    private Task ResizeFrameAsync(bool fullscreen) =>
+        MovableFrame is not { } frame
+            ? Task.CompletedTask
+            : OnUiAsync(() =>
+            {
+                if (fullscreen)
+                {
+                    if (_windows.ScreenBoundsFor(frame.Handle) is { } bounds)
+                    {
+                        frame.SetFullscreen(true, bounds);
+                    }
+
+                    return;
+                }
+
+                // Le rectangle d'avant est retenu par le cadre lui-même.
+                frame.SetFullscreen(false, default);
+
+                if (frame.Chassis is { } chassis
+                    && _windows.ResizedRect(frame.Handle, frame.SelectedAspect ?? 0, chassis)
+                        is { } rect)
+                {
+                    frame.ApplyRect(rect);
+                }
+            });
+
+    /// <summary>Pose le cadre sur un rectangle imposé, celui d'un empilement.</summary>
+    private Task StackFrameAsync(ScreenRect rect) =>
+        MovableFrame is not { } frame
+            ? Task.CompletedTask
+            : OnUiAsync(() =>
+            {
+                frame.SetFullscreen(false, default);
+                frame.ApplyRect(rect);
+            });
+
+    /// <summary>
     /// Signalé quand l'ensemble des fenêtres que les placements peuvent ranger
     /// a pu changer : une mise de côté, une entrée ou une sortie du cadre à
     /// onglets, un réordonnancement.
@@ -191,6 +295,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     /// <summary>Le raccourci du suivi de quêtes a été pressé.</summary>
     public event EventHandler? QuestsToggleRequested;
+
+    /// <summary>Demandé par le raccourci de l'Almanax.</summary>
+    public event EventHandler? AlmanaxRequested;
 
     /// <summary>
     /// Demandé par le raccourci de sortie. L'arrêt lui-même appartient à
@@ -219,11 +326,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
         var found = await _instances.DiscoverAsync(discovery.Devices, cancellationToken)
             .ConfigureAwait(false);
 
-        // Les profils disparus s'oublient avant la fusion : sinon leur entrée
+        // Les comptes disparus s'oublient avant la fusion : sinon leur entrée
         // mémorisée reparaîtrait dans le résultat, et la liste garderait un
-        // compte qui n'existe plus nulle part.
+        // compte qui n'existe plus nulle part. Deux disparitions comptent, le
+        // profil retiré du téléphone et le jeu désinstallé d'un profil qui
+        // reste.
         var forgotten = await _settings
-            .ForgetMissingProfilesAsync(_instances.ScannedProfiles, cancellationToken)
+            .ForgetMissingProfilesAsync(
+                _instances.ScannedProfiles,
+                _instances.ProfilesWithoutGame,
+                cancellationToken)
             .ConfigureAwait(false);
 
         if (forgotten > 0)
@@ -249,7 +361,80 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         await EnsureKnownDevicesConnectedAsync(cancellationToken).ConfigureAwait(false);
 
-        return await _devices.RefreshAsync(cancellationToken).ConfigureAwait(false);
+        var discovery = await _devices.RefreshAsync(cancellationToken).ConfigureAwait(false);
+
+        await RefreshHeatAsync(cancellationToken).ConfigureAwait(false);
+
+        return discovery;
+    }
+
+    /// <summary>
+    /// Ce que les appareils qui portent une fenêtre disent de leur chaleur, ou
+    /// <c>null</c> s'ils n'ont rien à en dire.
+    ///
+    /// C'est la limite qui mord en premier sur une tablette à plusieurs
+    /// comptes, et elle est silencieuse : rien n'échoue, tout ralentit.
+    /// </summary>
+    public string? HeatWarning { get; private set; }
+
+    /// <summary>Dernier état thermique journalisé par appareil.</summary>
+    private readonly Dictionary<string, int> _loggedHeat = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Relit la chaleur des appareils qui portent une session.
+    ///
+    /// Seulement ceux-là, et seulement quand une fenêtre est ouverte : un
+    /// téléphone posé sur la table ne chauffe pas, et l'interroger pour rien
+    /// coûterait un aller-retour de shell à chaque balayage. La lecture est
+    /// gardée une minute par la découverte, ce qui borne le coût même quand le
+    /// panneau sonde toutes les deux secondes.
+    /// </summary>
+    private async Task RefreshHeatAsync(CancellationToken cancellationToken)
+    {
+        var serials = _sessions.ActiveSessions
+            .Where(s => s.IsAlive)
+            .Select(s => s.Target.Serial)
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+
+        if (serials.Count == 0)
+        {
+            HeatWarning = null;
+            _loggedHeat.Clear();
+            return;
+        }
+
+        string? warning = null;
+
+        foreach (var serial in serials)
+        {
+            var reading = await _devices.GetThermalAsync(serial, cancellationToken).ConfigureAwait(false);
+
+            if (reading?.Describe() is not { } said)
+            {
+                _ = _loggedHeat.Remove(serial);
+                continue;
+            }
+
+            // Journalisé au changement d'état, non à chaque relecture : le
+            // panneau sonde jusqu'à deux fois par seconde, et la même ligne
+            // répétée trois cents fois en dix minutes noierait le reste.
+            if (!_loggedHeat.TryGetValue(serial, out var already) || already != reading.Status)
+            {
+                _loggedHeat[serial] = reading.Status;
+                LogHeat(serial, reading.Status, reading.SkinCelsius ?? 0);
+            }
+
+            // Le plus chaud parle pour tous : deux avertissements côte à côte
+            // dans le même bandeau se liraient comme un seul, plus long.
+            if (warning is null || reading.Status >= ThermalReading.Severe)
+            {
+                warning = said;
+            }
+        }
+
+        HeatWarning = warning;
     }
 
     /// <summary>
@@ -287,13 +472,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 .ToHashSet(StringComparer.Ordinal);
 
             // Une tentative sur une annonce n'aboutit que pour un téléphone
-            // déjà associé à ce PC : ADB refuse les autres.
-            var opened = await _pairing.ConnectAnnouncedAsync(addresses, cancellationToken)
+            // déjà associé à ce PC : ADB refuse les autres. Encore faut-il ne
+            // pas reprendre celui dont on vient de rompre l'association, qui
+            // s'annonce toujours et dont ADB garde la clé.
+            var (known, discarded) = await _registry.GetSnapshotAsync(cancellationToken).ConfigureAwait(false);
+
+            var opened = await _pairing
+                .ConnectAnnouncedAsync(addresses, discarded, cancellationToken)
                 .ConfigureAwait(false);
 
             var recovered = opened.Count;
-
-            var known = await _registry.GetKnownAsync(cancellationToken).ConfigureAwait(false);
 
             if (known.Count > 0)
             {
@@ -372,18 +560,44 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(instances);
 
+        // Le préambule est chronométré parce qu'il se voit : rien ne s'ouvre
+        // pendant ce temps, et les boutons des autres comptes attendent. Sans
+        // ces trois nombres, « ça bloque trop longtemps » ne se corrige qu'au
+        // hasard.
+        var preambule = System.Diagnostics.Stopwatch.StartNew();
+
         await EnsureHotkeysAsync(cancellationToken).ConfigureAwait(false);
+
+        var raccourcis = preambule.ElapsedMilliseconds;
+
+        // Les appareils sont résolus avant les réglages de fenêtre, et non
+        // après : c'est d'eux qu'on tire la liaison, et c'est la liaison qui
+        // borne la qualité que ces réglages vont poser.
+        var devices = await ResolveDevicesAsync(cancellationToken).ConfigureAwait(false);
+
+        var appareils = preambule.ElapsedMilliseconds;
+
+        await RefreshLinkAsync(instances, devices, cancellationToken).ConfigureAwait(false);
+
+        var liaison = preambule.ElapsedMilliseconds;
+
         await ApplyWindowSettingsAsync(cancellationToken).ConfigureAwait(false);
 
         var options = await _settings.GetScrcpyOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+        LogPreamble(
+            raccourcis,
+            appareils - raccourcis,
+            liaison - appareils,
+            preambule.ElapsedMilliseconds - liaison,
+            preambule.ElapsedMilliseconds);
 
         options = options with
         {
             WindowTitleHint = await BuildTitleHintAsync(cancellationToken).ConfigureAwait(false),
             IconDirectory = _iconDirectory,
+            VideoBufferMs = _videoBufferMs,
         };
-
-        var devices = await ResolveDevicesAsync(cancellationToken).ConfigureAwait(false);
 
         // La position est donnée à scrcpy dès le lancement. Le faire après
         // coup ne suffit pas : scrcpy recentre sa fenêtre quand il reçoit la
@@ -655,7 +869,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         return result with
         {
-            Message = result.Message + $"\n\nSur un appareil {brand.Name} : {brand.ClonePath}.",
+            // Par une ressource : la phrase était écrite en français dans le
+            // code, si bien qu'une interface en anglais ou en espagnol rendait
+            // un message traduit suivi d'une phrase qui ne l'était pas.
+            Message = result.Message + Strings.Format("OnBrandUseClonePath", brand.Name, brand.ClonePath),
         };
     }
 
@@ -672,7 +889,28 @@ public sealed partial class GameLauncher : IAsyncDisposable
             await StopSessionAsync(session, cancellationToken).ConfigureAwait(false);
         }
 
-        await _registry.ForgetAsync(deviceId, cancellationToken).ConfigureAwait(false);
+        // ADB garde ses connexions ouvertes, et le balayage suivant reverrait
+        // donc le téléphone comme n'importe quel autre. L'appareil est relu
+        // avant l'écart, puisque l'écart efface l'entrée.
+        var known = await _registry.GetKnownAsync(cancellationToken).ConfigureAwait(false);
+        var device = known.FirstOrDefault(
+            d => string.Equals(d.Id, deviceId, StringComparison.Ordinal));
+
+        if (device is not null)
+        {
+            try
+            {
+                await _devices.DisconnectDeviceAsync(device, cancellationToken).ConfigureAwait(false);
+            }
+            catch (AdbException exception)
+            {
+                // Un appareil déjà parti n'a pas à faire échouer une rupture :
+                // le reste du nettoyage compte davantage que cette coupure.
+                LogDisconnectFailed(device.DisplayName, exception.UserMessage);
+            }
+        }
+
+        await _registry.DiscardAsync(deviceId, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -814,8 +1052,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private async Task CaptureTabsPlacementAsync(CancellationToken cancellationToken)
     {
-        if (_tabs is not { } frame)
+        if (_tabs is not { } frame || frame.IsFullscreen)
         {
+            // En plein écran, le rectangle est celui de l'écran entier :
+            // l'enregistrer ferait rouvrir le cadre couvrant tout, sans plus
+            // rien qui dise d'où il venait.
             return;
         }
 
@@ -857,14 +1098,49 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     public async Task<int> TileAsync(CancellationToken cancellationToken = default)
     {
-        var placed = await _windows
-            .TileAsync(ManagedSessions, cancellationToken)
-            .ConfigureAwait(false);
+        await _arranging.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-        await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            // Le cadre compte pour une fenêtre. Au premier plan, il prend la
+            // droite et les fenêtres libres passent toutes à gauche : sans
+            // cela, l'une d'elles se poserait à droite par-dessus lui.
+            var frame = ArrangeableCount > 1 ? MovableFrame : null;
+            var frameFirst = frame is not null
+                && _windows.Controller.GetForegroundWindow() == frame.Handle;
 
-        return placed;
+            var placed = await _windows
+                .TileAsync(ManagedSessions, frameFirst, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (frame is not null)
+            {
+                await TileFrameAsync(frame, frameFirst).ConfigureAwait(false);
+                placed++;
+            }
+
+            await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+
+            return placed;
+        }
+        finally
+        {
+            _ = _arranging.Release();
+        }
     }
+
+    /// <summary>Donne au cadre sa moitié d'écran.</summary>
+    private Task TileFrameAsync(Windows.TabbedGameWindow frame, bool onRight) =>
+        OnUiAsync(() =>
+        {
+            frame.SetFullscreen(false, default);
+
+            if (frame.Chassis is { } chassis && _windows.WorkAreaFor(frame.Handle) is { } work)
+            {
+                frame.ApplyRect(
+                    TileLayout.Half(work, onRight, frame.SelectedAspect ?? 0, chassis));
+            }
+        });
 
     /// <summary>
     /// Empile les fenêtres sur celle qui est active, ou sur la première.
@@ -873,23 +1149,96 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     public async Task<int> StackOnActiveAsync(CancellationToken cancellationToken = default)
     {
-        var moved = await _windows
-            .StackOnActiveAsync(ManagedSessions, cancellationToken)
-            .ConfigureAwait(false);
+        await _arranging.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-        await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var frame = MovableFrame;
+            var sessions = ManagedSessions;
 
-        return moved;
+            // Le cadre au premier plan sert de référence : on ne déplace pas ce
+            // qu'on regarde pour aligner tout le reste ailleurs.
+            var vu = frame is not null
+                && _windows.Controller.GetForegroundWindow() == frame.Handle
+                    ? _windows.Controller.GetWindowRect(frame.Handle)
+                    : null;
+
+            if (vu is { IsEmpty: false } depuisLeCadre)
+            {
+                var pris = await _windows
+                    .StackOnAsync(sessions, depuisLeCadre, null, cancellationToken)
+                    .ConfigureAwait(false);
+
+                await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+
+                return pris;
+            }
+
+            if (await _windows.StackTargetAsync(sessions, cancellationToken).ConfigureAwait(false)
+                is not { } cible)
+            {
+                return 0;
+            }
+
+            var moved = await _windows
+                .StackOnAsync(sessions, cible.Rect, cible.Reference, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (frame is not null)
+            {
+                await StackFrameAsync(cible.Rect).ConfigureAwait(false);
+                moved++;
+            }
+
+            await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+
+            return moved;
+        }
+        finally
+        {
+            _ = _arranging.Release();
+        }
     }
 
 
     /// <summary>Remet toutes les fenêtres en place, à la taille en cours.</summary>
     public async Task<int> ArrangeAsync(CancellationToken cancellationToken = default)
     {
+        await _arranging.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            return await ArrangeCoreAsync(cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _ = _arranging.Release();
+        }
+    }
+
+    private async Task<int> ArrangeCoreAsync(CancellationToken cancellationToken)
+    {
         await ApplyWindowSettingsAsync(cancellationToken).ConfigureAwait(false);
 
         var moved = await _windows.ArrangeAsync(ManagedSessions, cancellationToken)
             .ConfigureAwait(false);
+
+        if (MovableFrame is { } frame)
+        {
+            await OnUiAsync(() =>
+            {
+                frame.SetFullscreen(false, default);
+
+                if (frame.Chassis is { } chassis
+                    && _windows.AnchoredRect(frame.Handle, frame.SelectedAspect ?? 0, chassis)
+                        is { } rect)
+                {
+                    frame.ApplyRect(rect);
+                }
+            }).ConfigureAwait(false);
+
+            moved++;
+        }
 
         // Le replacement rapide devient la nouvelle géométrie de référence,
         // sans quoi la mémoire divergerait de ce qui est à l'écran.
@@ -917,6 +1266,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         if (persist)
         {
+            // Le cadre ne suit qu'au relâchement : à chaque cran, il faudrait
+            // un aller-retour par le fil d'interface pour redimensionner une
+            // fenêtre WPF, et le geste deviendrait saccadé.
+            await ResizeFrameAsync(fullscreen: false).ConfigureAwait(false);
+
             await _settings.SaveCustomSizePercentAsync(percent, cancellationToken).ConfigureAwait(false);
 
             await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
@@ -927,6 +1281,20 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     /// <summary>Applique une taille à toutes les fenêtres et la retient.</summary>
     public async Task<int> ApplySizeAsync(int sizeIndex, CancellationToken cancellationToken = default)
+    {
+        await _arranging.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            return await ApplySizeCoreAsync(sizeIndex, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _ = _arranging.Release();
+        }
+    }
+
+    private async Task<int> ApplySizeCoreAsync(int sizeIndex, CancellationToken cancellationToken)
     {
         await ApplyWindowSettingsAsync(cancellationToken).ConfigureAwait(false);
 
@@ -942,6 +1310,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
         var moved = await _windows
             .ApplySizeAsync(ManagedSessions, sizeIndex, cancellationToken)
             .ConfigureAwait(false);
+
+        await ResizeFrameAsync(sizeIndex >= _windows.Presets.FullscreenIndex).ConfigureAwait(false);
 
         await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
 
@@ -1029,17 +1399,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
             return null;
         }
 
-        // La taille transmise est celle de la zone client, cadre déduit :
-        // scrcpy dimensionne sa fenêtre par l'intérieur, et lui donner le
-        // rectangle extérieur la ferait naître trop grande d'une barre de
-        // titre.
-        var chrome = _windows.WindowChrome();
+        // Le rectangle transmis est celui de la zone client, cadre déduit et
+        // coin décalé : scrcpy dimensionne **et positionne** sa fenêtre par
+        // l'intérieur. Lui donner le rectangle extérieur la faisait naître trop
+        // grande d'une barre de titre, puis, la taille corrigée, naître une
+        // bordure trop à gauche et une barre de titre trop haut. Le placement
+        // qui suit la recalait alors sous les yeux, deux cents millisecondes
+        // après son ouverture.
+        var client = _windows.WindowChrome().ClientOf(value);
 
-        return new ScrcpyWindowPlacement(
-            value.X,
-            value.Y,
-            Math.Max(1, value.Width - chrome.Width),
-            Math.Max(1, value.Height - chrome.Height));
+        return new ScrcpyWindowPlacement(client.X, client.Y, client.Width, client.Height);
     }
 
     /// <summary>
@@ -1155,6 +1524,47 @@ public sealed partial class GameLauncher : IAsyncDisposable
         LaunchComponent = instance.LaunchComponent,
         DisplayName = instance.DisplayName,
     };
+
+    /// <summary>
+    /// Relit ce que vaut la liaison, pour en déduire le tampon d'affichage.
+    ///
+    /// Une fois par lancement, et jamais pendant un geste de géométrie : le
+    /// chiffre ne bouge pas entre deux redimensionnements, alors que l'appel
+    /// coûterait une demi-seconde à chaque fois.
+    ///
+    /// Toutes les sessions d'un lancement passent par le même téléphone : le
+    /// premier trouvé suffit à connaître la liaison, et interroger les autres
+    /// rendrait la même réponse.
+    /// </summary>
+    private async Task RefreshLinkAsync(
+        IReadOnlyList<DofusInstance> instances,
+        Dictionary<string, AndroidDevice> devices,
+        CancellationToken cancellationToken)
+    {
+        var serial = instances
+            .Select(i => devices.TryGetValue(i.DeviceId, out var device) ? device.Serial : null)
+            .FirstOrDefault(s => !string.IsNullOrWhiteSpace(s));
+
+        var link = string.IsNullOrWhiteSpace(serial)
+            ? null
+            : await _devices.GetWifiLinkAsync(serial, cancellationToken).ConfigureAwait(false);
+
+        _videoBufferMs = VideoBuffer.MillisecondsFor(link);
+
+        if (link is null)
+        {
+            LogUnknownLink();
+            return;
+        }
+
+        LogLink(
+            link.Standard,
+            link.FrequencyMhz,
+            link.LinkSpeedMbps,
+            link.Rssi,
+            Math.Round(link.RetryShare * 100, 1),
+            _videoBufferMs);
+    }
 
     /// <summary>
     /// Appareils connectés, indexés par identifiant. On garde l'enregistrement
@@ -1369,10 +1779,18 @@ public sealed partial class GameLauncher : IAsyncDisposable
         if (tabbed)
         {
             await AttachToTabsAsync(session, cancellationToken).ConfigureAwait(false);
-            return;
+        }
+        else
+        {
+            await OnUiAsync(() => _tabs?.Detach(instance.Key)).ConfigureAwait(false);
         }
 
-        await OnUiAsync(() => _tabs?.Detach(instance.Key)).ConfigureAwait(false);
+        // Une seconde fois, et c'est la seule qui compte pour les touches de
+        // rangement. La première est partie avant que le cadre n'existe : le
+        // compte des fenêtres à ranger le voyait donc absent, et « une fenêtre
+        // libre plus un onglet » faisait un au lieu de deux. Les deux touches
+        // disparaissaient alors qu'il y avait bien deux fenêtres à ranger.
+        ArrangeableChanged?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>Icône du compte, telle que la liste la montre.</summary>
@@ -1390,8 +1808,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         await RefreshRanksAsync(cancellationToken).ConfigureAwait(false);
 
+        // Le palier choisi est rendu tel quel. Il a été un temps rogné par un
+        // calcul de liaison ; la mesure a montré que ce calcul coûtait de la
+        // netteté sans rien gagner, la bande passante n'ayant jamais été le
+        // facteur limitant. Voir la décision sur la gigue.
         _quality = QualityProfile.For(settings.Quality, settings.CustomQuality);
+
         _zoom = settings.GameZoom;
+        _sessions.StopAppOnClose = settings.StopAppOnClose;
         _windows.Anchor = settings.GameAnchor;
         _windows.Presets = await _settings.GetSizePresetsAsync(cancellationToken).ConfigureAwait(false);
 
@@ -1476,6 +1900,35 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private bool _hotkeysActive = true;
 
     /// <summary>
+    /// Le parcours au clavier change d'onglet quand le cadre a la main, et de
+    /// fenêtre libre sinon.
+    ///
+    /// Ctrl+Tab ne faisait rien dans le cadre : le parcours passe par
+    /// <see cref="ManagedSessions"/>, qui écarte les comptes logés parce que
+    /// les placements automatiques n'ont rien à leur dire. Le clavier, lui,
+    /// avait quand même besoin d'eux, et le raccourci ne voulait donc pas dire
+    /// la même chose selon le mode.
+    ///
+    /// La fenêtre au premier plan reste le cadre même quand c'est le jeu qui
+    /// tient le clavier : logé, il est fille du cadre et ne peut pas l'être.
+    /// </summary>
+    private async Task<bool> CycleTabsAsync(bool forward)
+    {
+        if (_tabs is not { } frame
+            || frame.Handle == 0
+            || _windows.Controller.GetForegroundWindow() != frame.Handle)
+        {
+            return false;
+        }
+
+        var tourne = false;
+
+        await OnUiAsync(() => tourne = frame.Cycle(forward)).ConfigureAwait(false);
+
+        return tourne;
+    }
+
+    /// <summary>
     /// Permet à l'interface de déclarer ses propres fenêtres, pour que les
     /// raccourcis fonctionnent aussi depuis le configurateur.
     /// </summary>
@@ -1492,11 +1945,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     break;
 
                 case HotkeyAction.NextInstance:
-                    _windows.FocusNext(ManagedSessions);
+                    if (!await CycleTabsAsync(forward: true).ConfigureAwait(false))
+                    {
+                        _windows.FocusNext(ManagedSessions);
+                    }
+
                     break;
 
                 case HotkeyAction.PreviousInstance:
-                    _windows.FocusPrevious(ManagedSessions);
+                    if (!await CycleTabsAsync(forward: false).ConfigureAwait(false))
+                    {
+                        _windows.FocusPrevious(ManagedSessions);
+                    }
+
                     break;
 
                 case HotkeyAction.Rearrange:
@@ -1509,6 +1970,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
                 case HotkeyAction.Quests:
                     QuestsToggleRequested?.Invoke(this, EventArgs.Empty);
+                    break;
+
+                case HotkeyAction.Almanax:
+                    AlmanaxRequested?.Invoke(this, EventArgs.Empty);
                     break;
 
                 case HotkeyAction.Size1:
@@ -1555,6 +2020,45 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private partial void LogLaunch(int opened, int problems);
 
     [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Préambule d'ouverture : raccourcis {hotkeysMs} ms, appareils {devicesMs} ms, "
+            + "liaison {linkMs} ms, réglages {settingsMs} ms, total {totalMs} ms.")]
+    private partial void LogPreamble(
+        long hotkeysMs,
+        long devicesMs,
+        long linkMs,
+        long settingsMs,
+        long totalMs);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "La coupure d'ADB sur {address} a échoué : {reason}. L'association est rompue quand même.")]
+    private partial void LogDisconnectFailed(string address, string reason);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "L'appareil {serial} se bride : état thermique {status}, surface {skin} °C.")]
+    private partial void LogHeat(string serial, int status, double skin);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Liaison : filaire, ou Wi-Fi que l'appareil ne décrit pas. Aucun tampon.")]
+    private partial void LogUnknownLink();
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Liaison : {standard} à {frequencyMhz} MHz, {linkSpeedMbps} Mb/s annoncés, "
+            + "{rssi} dBm, {retryPercent} % de réémissions. "
+            + "Tampon d'affichage {bufferMs} ms.")]
+    private partial void LogLink(
+        string standard,
+        int frequencyMhz,
+        int linkSpeedMbps,
+        int rssi,
+        double retryPercent,
+        int bufferMs);
+
+    [LoggerMessage(
         Level = LogLevel.Warning,
         Message = "Aucune géométrie mémorisée pour {instances} : la fenêtre rouvre au coin par défaut.")]
     private partial void LogMissingGeometry(string instances);
@@ -1585,7 +2089,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     [LoggerMessage(
         Level = LogLevel.Information,
-        Message = "{count} instance(s) oubliée(s) : leur profil Android n'existe plus.")]
+        Message = "{count} compte(s) oublié(s) : leur profil Android a disparu, "
+            + "ou le jeu n'y est plus installé.")]
     private partial void LogProfilesForgotten(int count);
 
     [LoggerMessage(

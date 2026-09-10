@@ -110,6 +110,44 @@ public sealed class AppSettingsDocument
 
     public bool AudioEnabled { get; set; }
     public bool ClipboardSyncEnabled { get; set; } = true;
+
+    /// <summary>
+    /// Vrai si fermer une fenêtre de jeu arrête aussi le jeu sur le téléphone.
+    ///
+    /// Sans cela le jeu survit à sa fenêtre, indéfiniment : un compte fermé
+    /// gardait deux cent vingt mégaoctets et sa connexion aux serveurs du jeu,
+    /// et les oubliés s'accumulaient d'un lancement à l'autre.
+    ///
+    /// Vrai par défaut. Le faux rend l'ancien comportement, qui a son mérite :
+    /// une fenêtre refermée puis rouverte retrouve le personnage toujours en
+    /// jeu, sans reconnexion.
+    ///
+    /// Volontairement absent de <see cref="StoredLaunchProfile" /> : une session
+    /// nommée décrit un environnement de jeu, pas les habitudes de celui qui
+    /// s'en sert, et un profil qui réimposerait ce choix à chaque lancement
+    /// serait exactement le piège déjà rencontré avec la qualité.
+    /// </summary>
+    public bool StopAppOnClose { get; set; } = true;
+
+    /// <summary>
+    /// Vrai si le clavier est présenté au téléphone comme un clavier physique
+    /// branché, plutôt qu'injecté par l'API Android.
+    ///
+    /// L'injection par l'API passe par le clavier virtuel de l'appareil, et
+    /// plusieurs surcouches en fournissent un qui avale les caractères : la
+    /// fenêtre répond à la souris mais rien ne s'écrit. Un clavier physique
+    /// simulé le court-circuite entièrement.
+    ///
+    /// Faux par défaut, et pour une raison qui ne se devine pas : un clavier
+    /// physique est interprété selon la disposition réglée dans Android. Si
+    /// elle ne correspond pas à celle du PC, un AZERTY tape en QWERTY. Le
+    /// remède ne doit donc pas s'imposer à ceux qui n'ont pas la panne.
+    ///
+    /// Volontairement absent de <see cref="StoredLaunchProfile" />, comme
+    /// l'arrêt du jeu à la fermeture : c'est une habitude de celui qui joue,
+    /// pas une description de son environnement de jeu.
+    /// </summary>
+    public bool SimulatedPhysicalKeyboard { get; set; }
     // Le jeu s'affiche en paysage : un écran virtuel vertical le centrerait
     // en 16:9 au milieu d'une fenêtre haute, avec deux larges bandes noires.
     public int VirtualDisplayWidth { get; set; } = 1920;

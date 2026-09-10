@@ -98,6 +98,24 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// <summary>Vrai tant qu'aucun téléphone n'est joignable.</summary>
     public bool HasNoConnectedDevice => !_devices.Values.Any(d => d.IsConnected);
 
+    /// <summary>
+    /// Faux tant qu'aucun balayage n'a eu lieu.
+    ///
+    /// Une liste vide avant le premier balayage ressemble en tout point à une
+    /// liste vide après : dans les deux cas rien n'est là. Seule la différence
+    /// entre « je n'ai pas regardé » et « j'ai regardé, il n'y a rien »
+    /// autorise à l'écrire à l'écran, et elle ne se lit nulle part ailleurs.
+    /// </summary>
+    private bool _scanned;
+
+    /// <summary>
+    /// L'état de chaque appareil vu, pour le verdict de connexion. Les
+    /// appareils seulement mémorisés y figurent hors ligne, ce qui est juste :
+    /// un téléphone qu'on a connu et qui ne répond pas n'est pas un téléphone
+    /// détecté.
+    /// </summary>
+    public IReadOnlyList<AdbDeviceState> DeviceStates => [.. _devices.Values.Select(d => d.State)];
+
     /// <summary>Vrai si au moins un téléphone répond.</summary>
     public bool HasConnectedDevice => !HasNoConnectedDevice;
 
@@ -110,6 +128,28 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// <summary>Vrai s'il y a au moins un appareil sans instance à signaler.</summary>
     public bool HasInactiveDevices => InactiveDevices.Count > 0;
 
+    /// <summary>
+    /// Vrai quand la carte « aucun appareil détecté » a lieu d'être.
+    ///
+    /// Elle s'affichait dès qu'aucun appareil ne répondait, y compris quand un
+    /// téléphone était nommé juste au-dessus, en orange, avec la mention « à
+    /// autoriser sur le téléphone ». L'écran se contredisait alors dans la
+    /// même colonne. Un appareil vu, même muet, vaut mieux que le mot
+    /// « aucun » : la ligne qui le nomme dit déjà ce qui manque.
+    /// </summary>
+    public bool ShowsNoDeviceCard => _scanned && HasNoConnectedDevice && !HasInactiveDevices;
+
+    /// <summary>
+    /// Vrai quand les astuces sur les fenêtres de jeu ont un objet.
+    ///
+    /// Elles parlent d'une fenêtre qui se fige et d'une fenêtre où la souris ne
+    /// fait rien. Sans téléphone joignable il n'y a pas de fenêtre, et ces deux
+    /// lignes ne sont plus que du texte de plus sur un écran qui n'a rien à
+    /// dire. Comme pour les autres blocs, rien n'est affirmé avant le premier
+    /// balayage.
+    /// </summary>
+    public bool ShowsWindowHelp => _scanned && !HasNoConnectedDevice;
+
     /// <summary>Nombre d'instances cochées pour le lancement.</summary>
     public int EnabledCount => Rows.Count(i => i.IsEnabled);
 
@@ -120,6 +160,29 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
     /// <summary>Vrai s'il y a au moins un profil à montrer.</summary>
     public bool HasProfiles => Profiles.Count > 0;
+
+    /// <summary>
+    /// Nom du profil retenu pour le démarrage, vide s'il n'y en a pas.
+    ///
+    /// Pris sur la ligne elle-même et non sur le réglage : c'est ainsi que le
+    /// bouton dit exactement ce que la liste montre en accent, sans qu'une
+    /// différence de casse ou d'espaces puisse les faire diverger.
+    /// </summary>
+    public string ActiveProfileName { get; private set; } = string.Empty;
+
+    /// <summary>Vrai quand un profil est retenu pour le démarrage.</summary>
+    public bool HasActiveProfile => ActiveProfileName.Length > 0;
+
+    /// <summary>Ce que porte le bouton : le nom du profil, ou le mot générique.</summary>
+    public string ProfilesButtonText => LaunchProfiles.ButtonLabel(ActiveProfileName);
+
+    /// <summary>
+    /// L'info-bulle du bouton. Elle nomme le profil en entier quand il y en a
+    /// un, puisque le bouton, lui, coupe les noms longs.
+    /// </summary>
+    public string ProfilesTooltip => HasActiveProfile
+        ? Strings.Format("ProfilesActiveTip", ActiveProfileName)
+        : Strings.Get("ProfilesTip");
 
     /// <summary>
     /// Reprend les profils enregistrés.
@@ -144,7 +207,13 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 string.Equals(profile.Name, byDefault, StringComparison.OrdinalIgnoreCase)));
         }
 
+        ActiveProfileName = Profiles.FirstOrDefault(p => p.IsDefault)?.Name ?? string.Empty;
+
         OnPropertyChanged(nameof(HasProfiles));
+        OnPropertyChanged(nameof(ActiveProfileName));
+        OnPropertyChanged(nameof(HasActiveProfile));
+        OnPropertyChanged(nameof(ProfilesButtonText));
+        OnPropertyChanged(nameof(ProfilesTooltip));
     }
 
     /// <summary>
@@ -326,6 +395,13 @@ public sealed partial class InstanceListViewModel : ObservableObject
             // aussi utile à savoir qu'un appareil injoignable.
             var warnings = discovery.Warnings.Concat(_launcher.InstanceWarnings).ToList();
 
+            // La chaleur y a sa place pour la même raison : elle ne casse rien,
+            // elle ralentit tout, et c'est ici qu'on regarde quand ça va mal.
+            if (_launcher.HeatWarning is { Length: > 0 } heat)
+            {
+                warnings.Add(heat);
+            }
+
             Problem = warnings.Count > 0 ? string.Join(" ", warnings) : null;
 
             // Seules les instances des téléphones joignables ont une ligne.
@@ -358,10 +434,14 @@ public sealed partial class InstanceListViewModel : ObservableObject
             SyncInactiveDevices(discovery.Devices, instances);
             RefreshDeviceHeaders();
 
+            _scanned = true;
+
             OnPropertyChanged(nameof(CanReorder));
             OnPropertyChanged(nameof(HasRows));
             OnPropertyChanged(nameof(HasInactiveDevices));
             OnPropertyChanged(nameof(HasNoConnectedDevice));
+            OnPropertyChanged(nameof(ShowsNoDeviceCard));
+            OnPropertyChanged(nameof(ShowsWindowHelp));
             OnPropertyChanged(nameof(HasConnectedDevice));
             OnPropertyChanged(nameof(EnabledCount));
 
@@ -510,6 +590,8 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
     private void OnDeviceBusyChanged(object? sender, Core.Scrcpy.DeviceBusyChangedEventArgs args)
     {
+        ArgumentNullException.ThrowIfNull(args);
+
         var dispatcher = System.Windows.Application.Current?.Dispatcher;
 
         if (dispatcher is null)
@@ -517,7 +599,18 @@ public sealed partial class InstanceListViewModel : ObservableObject
             return;
         }
 
-        _ = dispatcher.BeginInvoke(RefreshBusyState);
+        _ = dispatcher.BeginInvoke(() =>
+        {
+            // Le verrou vient de se prendre : il sait mieux que nous, et
+            // surtout il se rendra plus tôt. L'engagement ne couvrait que
+            // l'attente avant lui, et n'a plus rien à dire.
+            if (args.IsBusy)
+            {
+                _ = _engages.Remove(args.DeviceId);
+            }
+
+            RefreshBusyState();
+        });
     }
 
     /// <summary>
@@ -531,9 +624,26 @@ public sealed partial class InstanceListViewModel : ObservableObject
     {
         foreach (var row in Rows)
         {
-            row.IsDeviceBusy = _launcher.IsDeviceBusy(row.DeviceId);
+            row.IsDeviceBusy = _launcher.IsDeviceBusy(row.DeviceId) || _engages.Contains(row.DeviceId);
         }
     }
+
+    /// <summary>
+    /// Appareils sur lesquels une action vient d'être demandée, mais dont le
+    /// verrou d'ouverture n'est pas encore pris.
+    ///
+    /// Le verrou ne se prend qu'au bout du préambule d'ouverture : relecture
+    /// des comptes, découverte des appareils, lecture de la liaison. Mesuré sur
+    /// le poste, deux secondes et trois dixièmes entre le clic et la prise.
+    /// Pendant tout ce temps, l'appareil n'était officiellement pas occupé, et
+    /// les boutons des autres comptes restaient donc cliquables alors qu'une
+    /// ouverture était déjà en route.
+    ///
+    /// L'engagement est pris à l'instant du clic, sans rien attendre, et rendu
+    /// quand l'action se termine. Le verrou reste seul juge de qui passe : ceci
+    /// ne fait que dire à l'écran ce qui est déjà décidé.
+    /// </summary>
+    private readonly HashSet<string> _engages = new(StringComparer.Ordinal);
 
     /// <summary>Rafraîchit uniquement l'état ouvert ou fermé de chaque instance.</summary>
     public void RefreshRunningState()
@@ -547,21 +657,30 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// <summary>Ouvre une instance qui ne l'est pas encore.</summary>
     [RelayCommand(AllowConcurrentExecutions = true)]
     private Task LaunchInstanceAsync(InstanceRowViewModel? row) =>
-        ActOnAsync(row, instance => _launcher.LaunchAsync([instance]));
+        ActOnAsync(row, instance => _launcher.LaunchAsync([instance]), engageDevice: true);
 
     /// <summary>Ferme le jeu sur l'appareil puis le rouvre.</summary>
     [RelayCommand(AllowConcurrentExecutions = true)]
     private Task RestartAsync(InstanceRowViewModel? row) =>
-        ActOnAsync(row, instance => _launcher.RestartAsync(instance));
+        ActOnAsync(row, instance => _launcher.RestartAsync(instance), engageDevice: true);
 
-    /// <summary>Ferme la fenêtre d'une instance.</summary>
+    /// <summary>
+    /// Ferme la fenêtre d'une instance.
+    ///
+    /// Sans engager l'appareil : fermer ne passe pas par le verrou
+    /// d'ouverture, deux fermetures ne se gênent pas, et griser les voisines
+    /// obligerait à fermer un compte à la fois.
+    /// </summary>
     [RelayCommand(AllowConcurrentExecutions = true)]
     private Task StopAsync(InstanceRowViewModel? row) =>
-        ActOnAsync(row, async instance =>
-        {
-            await _launcher.StopAsync(instance).ConfigureAwait(true);
-            return new LaunchReport(0, []);
-        });
+        ActOnAsync(
+            row,
+            async instance =>
+            {
+                await _launcher.StopAsync(instance).ConfigureAwait(true);
+                return new LaunchReport(0, []);
+            },
+            engageDevice: false);
 
     /// <summary>
     /// Exécute une action sur une instance et en répercute le résultat sur la
@@ -569,9 +688,15 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// l'appareil, et deux actions concurrentes laisseraient l'état affiché en
     /// désaccord avec les fenêtres réellement ouvertes.
     /// </summary>
+    /// <param name="engageDevice">
+    /// Vrai pour les actions qui prendront le verrou d'ouverture. Elles seules
+    /// grisent les voisines du même téléphone, et seulement jusqu'à ce que le
+    /// verrou prenne le relais.
+    /// </param>
     private async Task ActOnAsync(
         InstanceRowViewModel? row,
-        Func<Core.Dofus.DofusInstance, Task<LaunchReport>> action)
+        Func<Core.Dofus.DofusInstance, Task<LaunchReport>> action,
+        bool engageDevice)
     {
         // Le garde-fou est propre à la ligne, et non à la liste entière. Un
         // verrou global avalait le clic quand une autre instance travaillait,
@@ -583,6 +708,15 @@ public sealed partial class InstanceListViewModel : ObservableObject
         }
 
         row.IsWorking = true;
+
+        // Avant le premier await : c'est tout l'intérêt. Les voisines du même
+        // téléphone se grisent dans le même coup de peinture que la ligne
+        // cliquée, et non deux secondes plus tard.
+        if (engageDevice)
+        {
+            _ = _engages.Add(row.DeviceId);
+            RefreshBusyState();
+        }
 
         try
         {
@@ -597,6 +731,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         finally
         {
             row.IsWorking = false;
+            _ = _engages.Remove(row.DeviceId);
 
             // L'état est relu plutôt que déduit de l'action : une session peut
             // s'être arrêtée d'elle-même entre-temps.
@@ -762,6 +897,12 @@ public sealed partial class InstanceListViewModel : ObservableObject
             device.IsBusy = false;
         }
 
+        // Le cache est jeté avant de rafraîchir : sans cela le balayage reprend
+        // ce qu'il connaît déjà, et le compte tout juste créé n'apparaît qu'au
+        // bout de l'intervalle de redécouverte, quinze à soixante secondes
+        // selon le palier. Le même geste existe déjà dans ActOnAsync.
+        _instances = null;
+
         await RefreshAsync().ConfigureAwait(true);
     }
 
@@ -807,6 +948,12 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
         await _launcher.ForgetDeviceAsync(device.DeviceId).ConfigureAwait(true);
         await _settings.ForgetDeviceAsync(device.DeviceId).ConfigureAwait(true);
+
+        // Le cache est jeté, sans quoi le balayage reprend ce qu'il connaît
+        // déjà et les lignes de l'appareil restent à l'écran jusqu'à
+        // l'intervalle de redécouverte. Même geste que pour l'ajout d'un compte.
+        _instances = null;
+
         await RefreshAsync().ConfigureAwait(true);
     }
 

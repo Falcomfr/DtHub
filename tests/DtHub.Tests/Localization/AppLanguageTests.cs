@@ -60,4 +60,36 @@ public sealed class AppLanguageTests
     [Fact]
     public void La_langue_neutre_fait_partie_des_langues_servies()
         => Assert.Contains(AppLanguage.Neutral, AppLanguage.Supported);
+    [Fact]
+    public void Revenir_a_la_langue_affichee_ne_demande_plus_de_relancer()
+    {
+        // Le défaut d'origine : le message se levait à tout changement et ne
+        // redescendait jamais. Qui changeait de langue puis se ravisait gardait
+        // l'invitation à relancer, pour une application qui n'avait plus rien
+        // à changer.
+        Assert.True(AppLanguage.NeedsRestart("es", "fr-FR", inForce: "fr"));
+        Assert.False(AppLanguage.NeedsRestart("fr", "fr-FR", inForce: "fr"));
+    }
+
+    [Fact]
+    public void Suivre_windows_ne_demande_rien_quand_windows_parle_deja_cette_langue()
+    {
+        Assert.False(AppLanguage.NeedsRestart(string.Empty, "fr-FR", inForce: "fr"));
+        Assert.True(AppLanguage.NeedsRestart(string.Empty, "es-ES", inForce: "fr"));
+    }
+
+    [Fact]
+    public void Une_langue_non_traduite_retombe_sur_la_neutre_des_deux_cotes()
+    {
+        // Choisir le japonais alors que l'application est en anglais ne change
+        // rien : les deux se résolvent en anglais.
+        Assert.False(AppLanguage.NeedsRestart("ja", "ja-JP", inForce: "en"));
+    }
+
+    [Fact]
+    public void Une_variante_regionale_vaut_sa_langue()
+    {
+        Assert.False(AppLanguage.NeedsRestart("fr-BE", "en-US", inForce: "fr"));
+    }
+
 }

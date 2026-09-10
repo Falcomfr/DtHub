@@ -14,6 +14,23 @@ public sealed class DeviceRegistryDocument
     public List<StoredDevice> Devices { get; set; } = [];
 
     /// <summary>
+    /// Appareils dont l'association a été rompue, par identifiant matériel.
+    ///
+    /// Effacer un appareil ne suffisait pas à s'en défaire. Le téléphone
+    /// continue de s'annoncer sur le réseau, ADB garde sa clé et s'y reconnecte,
+    /// et le balayage suivant le réinscrit ici comme une découverte ordinaire.
+    /// Oublier, c'était ne plus rien savoir, donc ne plus rien pouvoir refuser.
+    ///
+    /// Cette liste est la mémoire de la rupture. Un appareil qui y figure n'est
+    /// ni réinscrit ni reconnecté, jusqu'à ce qu'on l'associe de nouveau depuis
+    /// la fenêtre prévue pour cela.
+    ///
+    /// Des identifiants matériels et non des adresses : une adresse change à
+    /// chaque bail réseau, et la rupture doit y survivre.
+    /// </summary>
+    public List<string> Discarded { get; set; } = [];
+
+    /// <summary>
     /// Réunit les doublons laissés par la version 1, et rend vrai si le fichier
     /// a changé.
     ///

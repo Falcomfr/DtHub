@@ -76,7 +76,7 @@ public sealed class DisplayLadderTests
         // ne se voit pas sur une image presque fixe.
         Assert.Equal(720, QualityProfile.For(StreamQuality.Low).MaximumDisplayHeight);
         Assert.Equal(1080, QualityProfile.For(StreamQuality.Medium).MaximumDisplayHeight);
-        Assert.Equal(int.MaxValue, QualityProfile.For(StreamQuality.Maximum).MaximumDisplayHeight);
+        Assert.Equal(1440, QualityProfile.For(StreamQuality.Maximum).MaximumDisplayHeight);
 
         // Trois paliers automatiques, pas quatre : deux voisins indiscernables
         // ne servaient qu'à faire hésiter. « Personnalisé » ne se compte pas
@@ -192,7 +192,17 @@ public sealed class DisplayLadderTests
         var (width, height) = DisplayLadder.Below(1440, 3440, 1440)!.Value;
 
         Assert.Equal(1080, height);
-        Assert.Equal(2580, width);
+        Assert.Equal(2576, width);
+
+        // Ce que le chiffre protège, dit autrement : le rapport suit l'écran
+        // ultra-large et ne retombe pas sur du 16:9. L'alignement des côtés
+        // sur huit pixels en écarte un peu, sans rien changer à l'intention.
+        Assert.Equal(3440 / 1440.0, width / (double)height, precision: 2);
+        Assert.True(width > 1920 * 1.2, "Le repli est retombé sur du 16:9.");
+
+        // Les deux côtés sont des tailles que l'encodeur rendra sans raboter.
+        Assert.Equal(0, width % 8);
+        Assert.Equal(0, height % 8);
     }
 
     [Fact]

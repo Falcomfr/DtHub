@@ -16,6 +16,17 @@ public class TypographyTests
     // échouerait sur lui-même.
     private const char Cadratin = '\u2014';
 
+    /// <summary>
+    /// Fichiers qui ne portent pas notre écriture.
+    ///
+    /// La sonde des étapes garde sur disque une copie des guides du site et le
+    /// détail de ce qu'elle en retient. C'est la prose de quelqu'un d'autre,
+    /// recopiée telle quelle : la corriger serait fausser la mesure, et la
+    /// juger n'a pas de sens puisque cette consigne porte sur ce que nous
+    /// écrivons. Les deux fichiers ne sont pas versionnés.
+    /// </summary>
+    private static readonly string[] Copies = ["corpus.json", "etapes.json"];
+
     private static readonly string[] Lus =
         [".cs", ".xaml", ".md", ".yml", ".yaml", ".json", ".csproj", ".props", ".slnx",
          ".ps1", ".py", ".cmd", ".js", ".resx"];
@@ -50,7 +61,8 @@ public class TypographyTests
         {
             if (file.Contains($"{separator}obj{separator}", StringComparison.Ordinal)
                 || file.Contains($"{separator}bin{separator}", StringComparison.Ordinal)
-                || file.Contains($"{separator}.git{separator}", StringComparison.Ordinal))
+                || file.Contains($"{separator}.git{separator}", StringComparison.Ordinal)
+                || Copies.Contains(Path.GetFileName(file), StringComparer.Ordinal))
             {
                 continue;
             }

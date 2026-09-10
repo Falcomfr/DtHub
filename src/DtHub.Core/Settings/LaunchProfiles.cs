@@ -44,6 +44,24 @@ public static class LaunchProfiles
     }
 
     /// <summary>
+    /// Ce que porte le bouton des profils.
+    ///
+    /// Le nom du profil retenu pour le démarrage quand il y en a un, le mot
+    /// générique sinon. Rien ne distinguait « aucune session nommée » de
+    /// « Duo haute s'appliquera au prochain démarrage », et il fallait ouvrir la
+    /// bulle pour le savoir. Un profil décide pourtant des comptes qui
+    /// s'ouvrent, de la qualité, du zoom et de l'ancrage : nous avons nous-mêmes
+    /// cherché longtemps pourquoi la qualité repassait en maximale à chaque
+    /// lancement, faute que rien ne le laisse voir.
+    ///
+    /// Le nom passe par <see cref="Normalize" />, qui écarte les espaces de bord
+    /// et un nom vide : un bouton qui n'afficherait que du blanc serait pire que
+    /// le mot générique.
+    /// </summary>
+    public static string ButtonLabel(string? defaultProfile) =>
+        Normalize(defaultProfile) ?? Strings.Get("Profiles");
+
+    /// <summary>
     /// Le profil de ce nom, ou <c>null</c>.
     ///
     /// La casse est ignorée : « Duo » et « duo » seraient deux entrées

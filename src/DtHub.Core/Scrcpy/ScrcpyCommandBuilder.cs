@@ -64,6 +64,15 @@ public static class ScrcpyCommandBuilder
         // dans le champ au lieu de coller. Mesuré, et scrcpy le déconseille
         // lui-même pour les jeux, où il casse aussi les touches de
         // déplacement.
+        // Un tampon ne se demande que s'il vaut quelque chose : passer zéro
+        // reviendrait à écrire le défaut de scrcpy dans la ligne de commande.
+        if (sanitized.VideoBufferMs > 0)
+        {
+            arguments.Add(Option(
+                "video-buffer",
+                sanitized.VideoBufferMs.ToString(CultureInfo.InvariantCulture)));
+        }
+
         if (sanitized.PreferText)
         {
             arguments.Add("--prefer-text");

@@ -114,6 +114,37 @@ public sealed class ScrcpySession
     /// <summary>Ligne de commande employée, pour le diagnostic.</summary>
     public string CommandLine { get; internal set; } = string.Empty;
 
+    /// <summary>
+    /// Vrai si c'est nous qui avons ouvert le jeu sur le téléphone.
+    ///
+    /// Ce qu'on n'a pas ouvert, on ne le ferme pas. Sans cette réserve, une
+    /// session qui échoue avant d'avoir rien lancé arrêterait tout de même le
+    /// jeu, qui pouvait très bien tourner parce que quelqu'un y jouait sur le
+    /// téléphone.
+    /// </summary>
+    internal bool AppLaunchedByUs { get; set; }
+
+    /// <summary>
+    /// Zéro tant que personne n'a demandé l'arrêt du jeu sur le téléphone.
+    ///
+    /// Deux chemins mènent à cette demande, et ils peuvent se croiser : la
+    /// fermeture volontaire, qui l'attend pour en garantir l'exécution avant
+    /// que l'application ne s'arrête, et la fin de la lecture de sortie, qui
+    /// couvre la fenêtre fermée à la main. Les deux surviennent pour une même
+    /// session dès qu'on ferme volontairement.
+    /// </summary>
+    private int _appStopClaimed;
+
+    /// <summary>
+    /// Réclame le droit d'arrêter le jeu, et ne l'accorde qu'une fois.
+    ///
+    /// Arrêter deux fois serait sans conséquence sur le téléphone, l'ordre
+    /// étant sans effet sur une application déjà partie. Mais c'est un
+    /// aller-retour de plus sur la liaison, et à la fermeture de
+    /// l'application ces allers-retours se paient sur un budget compté.
+    /// </summary>
+    internal bool ClaimAppStop() => Interlocked.Exchange(ref _appStopClaimed, 1) == 0;
+
     private const int MaxRetainedLines = 60;
 
     private readonly Queue<string> _output = new();

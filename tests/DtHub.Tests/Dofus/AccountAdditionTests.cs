@@ -17,6 +17,15 @@ public sealed class AccountAdditionTests
         	UserInfo{999:XSpace:801010} running
         """;
 
+    /// <summary>
+    /// Un téléphone où aucune place n'est prise. C'est le cas ordinaire d'un
+    /// appareil neuf, et celui où le profil cloné peut être créé.
+    /// </summary>
+    private const string AucunProfil = """
+        Users:
+        	UserInfo{0:Alice Martin:4c13} running
+        """;
+
     private static DofusInstanceService Service(FakeAdbClient adb) =>
         new(adb, new AndroidUserService(adb));
 
@@ -56,10 +65,58 @@ public sealed class AccountAdditionTests
     [Fact]
     public async Task La_reussite_previent_que_le_profil_est_neuf()
     {
-        var result = await Service(Sain()).AddAccountAsync("USB0001", "Troisième", CancellationToken.None);
+        var adb = new FakeAdbClient()
+            .WithShell("pm list users", AucunProfil)
+            .WithShell("pm get-max-users", "Maximum supported users: 4")
+            .WithShell("pm create-user", "Success: created user id 10")
+            .WithShell("install-existing", "Package com.ankama.dofustouch installed for user: 10")
+            .WithShell("pm list packages", "package:com.ankama.dofustouch")
+            .WithShell("am start-user", "Success: user started");
+
+        var result = await Service(adb).AddAccountAsync("USB0001", "Troisième", CancellationToken.None);
 
         Assert.Contains("Troisième", result.Message, StringComparison.Ordinal);
         Assert.Contains("neuf", result.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Le_profil_clone_est_demande_en_premier()
+    {
+        // C'est celui que les surcouches emploient pour dupliquer une
+        // application : le téléphone n'y installe presque rien, et ses icônes
+        // ne portent aucune marque. Le professionnel, lui, arrive garni.
+        var adb = new FakeAdbClient()
+            .WithShell("pm list users", AucunProfil)
+            .WithShell("pm get-max-users", "Maximum supported users: 4")
+            .WithShell("pm create-user", "Success: created user id 10")
+            .WithShell("install-existing", "Package com.ankama.dofustouch installed for user: 10")
+            .WithShell("pm list packages", "package:com.ankama.dofustouch")
+            .WithShell("am start-user", "Success: user started");
+
+        var result = await Service(adb).AddAccountAsync("USB0001", "Troisième", CancellationToken.None);
+
+        Assert.True(result.Succeeded, result.Message);
+
+        Assert.Contains(
+            adb.ShellCalls,
+            c => c.Contains("android.os.usertype.profile.CLONE", StringComparison.Ordinal));
+
+        Assert.DoesNotContain(
+            adb.ShellCalls,
+            c => c.Contains("profile.MANAGED", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Sans_place_clonee_le_repli_professionnel_est_annonce()
+    {
+        // La place clonée est prise par XSpace. Le repli marche, mais il change
+        // ce qu'on verra sur l'écran d'accueil : il ne doit pas se faire en
+        // silence.
+        var result = await Service(Sain()).AddAccountAsync("USB0001", "Troisième", CancellationToken.None);
+
+        Assert.True(result.Succeeded, result.Message);
+        Assert.Contains("professionnel", result.Message, StringComparison.Ordinal);
+        Assert.Contains("valise", result.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -154,4 +211,62 @@ public sealed class AccountAdditionTests
     [InlineData("Unknown command")]
     public void Une_limite_illisible_rend_rien(string? sortie) =>
         Assert.Null(AndroidUserParser.ParseMaxUsers(sortie));
+
+    /// <summary>
+    /// Relevé sur le téléphone de référence : le profil géré porte l'indicateur
+    /// 0x20 dans ses drapeaux, ici 0x1030.
+    /// </summary>
+    private const string AvecProfilGere = """
+        Users:
+        	UserInfo{0:Alice Martin:4c13} running
+        	UserInfo{10:Compte 3:1030} running
+        	UserInfo{999:XSpace:801010} running
+        """;
+
+    [Fact]
+    public async Task Un_second_profil_gere_est_refuse_quand_le_premier_porte_le_jeu()
+    {
+        // Android n'en accepte qu'un. Tant qu'il sert, il n'y a rien à faire.
+        //
+        // Le client est bâti à la main : le faux garde la première règle qui
+        // correspond, donc en ajouter une seconde sur « pm list users » ne
+        // remplace rien.
+        var adb = new FakeAdbClient()
+            .WithShell("pm list users", AvecProfilGere)
+            .WithShell("pm get-max-users", "Maximum supported users: 4")
+            .WithShell("pm list packages", "package:com.ankama.dofustouch");
+
+        var ajout = await Service(adb).AddAccountAsync("SERIE1", "Compte 4");
+
+        Assert.False(ajout.Succeeded);
+        Assert.DoesNotContain("pm create-user", adb.ShellCalls);
+    }
+
+    [Fact]
+    public async Task Un_profil_gere_sans_jeu_est_repris_au_lieu_d_etre_refuse()
+    {
+        // Le cas relevé sur le poste : l'unique place qu'Android accorde était
+        // occupée par un profil dont le jeu avait disparu. Refuser laissait
+        // sans recours, puisque rien ne disait qu'il fallait réparer celui-là.
+        var adb = new FakeAdbClient()
+            .WithShellChanging(
+                "list packages --user 10", string.Empty, "package:com.ankama.dofustouch")
+            .WithShell("pm list users", AvecProfilGere)
+            .WithShell("pm get-max-users", "Maximum supported users: 4")
+            .WithShell("install-existing", "Package com.ankama.dofustouch installed for user: 10")
+            .WithShell("pm list packages", "package:com.ankama.dofustouch")
+            .WithShell("am start-user", "Success: user started");
+
+        var ajout = await Service(adb).AddAccountAsync("SERIE1", "Compte 4");
+
+        Assert.True(ajout.Succeeded, ajout.Message);
+        Assert.Equal(10, ajout.UserId);
+
+        // Repris, donc pas recréé : la place est unique et elle est déjà prise.
+        Assert.DoesNotContain(adb.ShellCalls, c => c.Contains("create-user", StringComparison.Ordinal));
+
+        // Et rempli : le jeu posé, le profil démarré.
+        Assert.Contains(adb.ShellCalls, c => c.Contains("install-existing", StringComparison.Ordinal));
+        Assert.Contains(adb.ShellCalls, c => c.Contains("start-user", StringComparison.Ordinal));
+    }
 }

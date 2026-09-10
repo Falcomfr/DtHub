@@ -205,17 +205,21 @@
         }
     }
 
-    // Une étape est un paragraphe de consigne, et le site les distingue de la
-    // narration en les mettant en gras. Mesuré sur trois quêtes de types
-    // différents : 35 paragraphes donnent 17 consignes, 6 en donnent 5, 3 en
-    // donnent 3, et tout ce qui ressort est bien une instruction. Compter tous
-    // les paragraphes annoncerait trente-quatre étapes là où il y en a dix-sept,
-    // dont la moitié serait du récit.
+    // Une étape est un paragraphe de consigne, et ce qui la distingue de la
+    // narration est grammatical : l'ordre donné au lecteur, ou des coordonnées.
     //
-    // Une quête ancienne emploie une couleur au lieu du gras : les deux marques
-    // valent, faute de balisage propre à cet usage.
-    // Ce que le site met en gras sans que ce soit une consigne : ses propres
-    // encarts, et les apartés. Relevé sur 335 étapes de 36 quêtes.
+    // Le gras a longtemps servi de premier filtre, avant même de lire le texte.
+    // Il ne le sert plus : mesuré sur les 782 guides, cette exigence laissait
+    // cent soixante guides sans la moindre étape, non qu'ils n'aient pas de
+    // consignes, mais parce que leurs auteurs n'emploient jamais le gras. Ce
+    // n'est pas une convention du site, c'est une habitude d'auteur, et le
+    // reconnaître rend mille deux cent cinquante-cinq consignes.
+    //
+    // Ce qui filtre vraiment, c'est ce qui suit : le bruit d'abord, l'ordre
+    // ensuite. Relevé sur les ajouts tirés au sort et relus un à un, vingt et
+    // un sur vingt-deux sont de vraies consignes.
+    // Ce que le site écrit sans que ce soit une consigne : ses propres encarts,
+    // et les apartés. Relevé sur 335 étapes de 36 quêtes.
     var ETIQUETTES = /^\s*(pr[ée].?requis|source|plage habituelle|dur[ée]e|note|notes|attention|astuce|remarque|rappel|important|info|informations?)\s*:/i;
 
     // L'annonce du départ, que le bandeau donne déjà en première étape et que
@@ -251,11 +255,50 @@
     var IRREGULIERS = ['faites', 'dites', 'soyez', 'ayez', 'sachez', 'veuillez'];
 
     // Mots après lesquels un « -ez » n'est pas un ordre mais un présent : « vous
-    // validez », « qui rapportez », « ne partez ».
-    var SUJETS = ['vous', 'ne', 'n', 'qui', 'que', 'qu', 'et'];
+    // validez », « qui rapportez », « et faites l'acquisition ».
+    //
+    // La négation n'y figure plus. Elle y était pour « vous ne partez pas »,
+    // mais elle emportait avec elle tous les ordres négatifs : « N'oubliez pas
+    // de lui reparler une seconde fois ! », « Ne partez pas sans lui parler. »
+    // Ce n'est pas la négation qui distingue le présent de l'ordre, c'est le
+    // sujet ; la négation se franchit donc comme un pronom, et le sujet est
+    // cherché derrière elle.
+    var SUJETS = ['vous', 'qui', 'que', 'qu', 'et'];
 
-    // Mots courants en « -ez » qui ne sont pas des verbes.
-    var FAUX_AMIS = ['chez', 'assez', 'nez', 'rez'];
+    // Pronoms compléments qui s'intercalent entre le sujet et son verbe.
+    //
+    // Le garde ne regardait qu'un mot en arrière, et un pronom suffisait donc à
+    // le tromper : « et vous lui faites part du mal être de Tira », « que vous
+    // lui infligez », « Vous y découvrez un message » passaient pour des
+    // ordres alors que ce sont des récits. Relevé sur les 782 guides du site,
+    // quatre-vingt-quatorze paragraphes, tous du récit, aucun une consigne.
+    //
+    // « vous » figure dans les deux listes, et c'est voulu : on franchit les
+    // pronoms mais on s'arrête sur lui, puisque c'est le sujet qu'on cherche.
+    var PRONOMS = [
+        'le', 'la', 'l', 'les', 'lui', 'leur', 'me', 'm', 'te', 't',
+        'se', 's', 'nous', 'vous', 'y', 'en', 'ne', 'n'];
+
+    // Mots en « -ez » qui ne donnent pas d'ordre : des noms courants, et les
+    // futurs d'avoir et d'être, dont les impératifs « ayez » et « soyez »
+    // figurent déjà plus haut. « Lorsque vous l'aurez vaincu, il se met
+    // automatiquement à vous suivre » est du récit, et le garde des sujets le
+    // manque parce que le pronom élidé s'intercale entre « vous » et « aurez ».
+    // Dix-huit paragraphes sur les 782 guides, tous du récit.
+    //
+    // S'y ajoutent les imparfaits des verbes dont l'impératif s'écrit tout
+    // autrement : « vous saviez », « vous aviez », « vous étiez ». Un « -iez »
+    // ne trahit rien à lui seul, puisque « remerciez », « oubliez » et
+    // « privilégiez » en sont de vrais, et que rien dans la forme ne les
+    // sépare. Mais pour ces verbes-là, l'ordre se dit « sachez », « ayez »,
+    // « soyez », « faites », « allez » : ni l'imparfait ni le conditionnel de
+    // ces verbes-là ne peuvent donc être un ordre.
+    var FAUX_AMIS = [
+        'chez', 'assez', 'nez', 'rez', 'aurez', 'serez',
+        'aviez', 'saviez', 'étiez', 'deviez', 'pouviez', 'vouliez',
+        'faisiez', 'alliez', 'veniez', 'preniez', 'disiez', 'voyiez',
+        'auriez', 'seriez', 'pourriez', 'devriez', 'voudriez', 'sauriez',
+        'feriez', 'iriez', 'viendriez', 'prendriez', 'diriez', 'verriez'];
 
     // Vrai si le texte donne un ordre au lecteur.
     //
@@ -272,7 +315,18 @@
 
         for (var i = 0; i < words.length; i++) {
             var word = words[i].toLowerCase();
-            var before = i > 0 ? words[i - 1].toLowerCase() : '';
+
+            // Le sujet ne touche pas toujours son verbe : on remonte par-dessus
+            // les pronoms compléments avant de juger.
+            var j = i - 1;
+
+            while (j >= 0
+                && PRONOMS.indexOf(words[j].toLowerCase()) >= 0
+                && SUJETS.indexOf(words[j].toLowerCase()) < 0) {
+                j--;
+            }
+
+            var before = j >= 0 ? words[j].toLowerCase() : '';
 
             // Le garde des sujets vaut pour les irréguliers comme pour les
             // autres, et ne le faisait pas : « vous faites », « vous vous
@@ -298,15 +352,6 @@
     }
 
     var COORDONNEES = /\[\s*-?\d+\s*,\s*-?\d+\s*\]/;
-
-    function isObjective(node) {
-        if (node.querySelector('strong, b')) {
-            return true;
-        }
-
-        return node.className.indexOf('has-text-color') >= 0
-            || (node.getAttribute('style') || '').indexOf('color:') >= 0;
-    }
 
     // Le départ de la quête, tel que le site le donne dans son bandeau d'intro.
     // Ce n'est pas un paragraphe du guide : c'est ce qu'il faut faire avant de
@@ -362,7 +407,7 @@
             }
 
             seen[text] = true;
-            found.push({ node: titles[i], text: text });
+            found.push({ node: titles[i], text: text, title: true });
         }
 
         return found;
@@ -395,7 +440,7 @@
             }
 
             seen[text] = true;
-            found.push({ node: node, text: text });
+            found.push({ node: node, text: text, title: true });
         }
 
         return found;
@@ -505,7 +550,7 @@
             // métadonnées du lieu, sa position et son gardien, qu'elle connaît
             // avant même la page. Un chemin n'en a pas : il commence où l'on est.
             if (dungeon()) {
-                found.push({ node: root, text: '' });
+                found.push({ node: root, text: '', title: false });
             }
 
             return found.concat(titles);
@@ -527,28 +572,30 @@
         if (start) {
             found.push({
                 node: root,
-                text: (start.textContent || '').replace(/\s+/g, ' ').trim()
+                text: (start.textContent || '').replace(/\s+/g, ' ').trim(),
+                title: false
             });
         }
 
         for (var i = 0; i < root.children.length; i++) {
             var node = root.children[i];
 
-            if (node.tagName !== 'P' || !isObjective(node)) {
+            if (node.tagName !== 'P') {
                 continue;
             }
 
             var text = (node.textContent || '').replace(/\s+/g, ' ').trim();
 
-            // Le gras ne suffit pas : le site en met sur ses commentaires de
-            // combat, ses apartés et ses titres de liste. Mesuré sur
-            // cinquante-cinq guides, cinq cent trente-deux paragraphes en gras
-            // ne donnent que trois cent cinquante-sept consignes ; le reste
-            // n'ordonne rien et n'avait donc rien à résumer.
+            // Tout paragraphe n'est pas une consigne : le site raconte autant
+            // qu'il ordonne. Mesuré sur cinquante-cinq guides, cinq cent
+            // trente-deux paragraphes en gras ne donnaient que trois cent
+            // cinquante-sept consignes ; le reste n'ordonne rien et n'avait
+            // donc rien à résumer. C'est ce test-ci qui fait le tri, et non
+            // plus la mise en forme.
             if (text.length > 0
                 && !isNoise(text)
                 && (COORDONNEES.test(text) || orders(text))) {
-                found.push({ node: node, text: text });
+                found.push({ node: node, text: text, title: false });
             }
         }
 
@@ -577,7 +624,15 @@
             // prose du site. Sans cette marque, elle appliquerait ce traitement
             // au premier paragraphe des guides qui n'ont pas de bloc de départ.
             departure: departure() !== null || dungeon() !== null,
-            steps: steps().map(function (s) { return s.text; })
+
+            // Chaque étape part avec sa nature. Un titre de section expose, une
+            // consigne ordonne, et la fenêtre ne les affiche pas de la même
+            // façon : elle montre le titre tel quel et ne montre rien d'une
+            // consigne. Cette nature était connue ici et jetée à la ligne
+            // suivante, ce qui obligeait la fenêtre à la deviner.
+            steps: steps().map(function (s) {
+                return { text: s.text, title: s.title === true };
+            })
         });
     }
 

@@ -18,6 +18,13 @@ public sealed class DeviceDiscoveryService : IDisposable
     private readonly Dictionary<string, IReadOnlyDictionary<string, string>> _propertyCache = new(StringComparer.Ordinal);
 
     private readonly IAdbClient _adb;
+
+    /// <summary>Combien de temps une lecture de liaison reste valable.</summary>
+    private static readonly TimeSpan LinkFreshness = TimeSpan.FromMinutes(1);
+
+    /// <summary>Dernière liaison lue par appareil, avec son âge.</summary>
+    private readonly Dictionary<string, (WifiLink? Link, System.Diagnostics.Stopwatch Vu)> _link =
+        new(StringComparer.Ordinal);
     private readonly IDeviceRegistry _registry;
     private readonly SemaphoreSlim _gate = new(1, 1);
 
@@ -94,6 +101,213 @@ public sealed class DeviceDiscoveryService : IDisposable
     }
 
     /// <summary>
+    /// Coupe tous les transports ADB qui mènent à cet appareil.
+    ///
+    /// Un même téléphone en occupe couramment deux : celui de son adresse, et
+    /// celui de son nom mDNS, qu'ADB ouvre de lui-même en découvrant l'annonce.
+    /// Mesuré sur l'appareil de développement, qui en portait bien deux.
+    /// N'en couper qu'un laisserait l'autre ouvert.
+    ///
+    /// Le client ADB vit ici et nulle part ailleurs dans cette couche : rompre
+    /// une association a besoin de cette coupure, et lui donner son propre
+    /// client reviendrait à disperser l'accès à ADB pour une seule commande.
+    /// </summary>
+    /// <returns>Les adresses effectivement coupées, dans l'ordre.</returns>
+    public async Task<IReadOnlyList<string>> DisconnectDeviceAsync(
+        AndroidDevice device,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(device);
+
+        IReadOnlyList<AdbDeviceEntry> entries;
+
+        try
+        {
+            entries = await _adb.ListDevicesAsync(detailed: false, cancellationToken).ConfigureAwait(false);
+        }
+        catch (AdbException)
+        {
+            // Sans réponse d'ADB il ne reste que l'adresse mémorisée, et la
+            // tenter vaut mieux que renoncer. Le refus d'ADB est déjà dit
+            // ailleurs, par le balayage.
+            entries = [];
+        }
+
+        var addresses = entries
+            .Where(e => e.ConnectionKind == AdbConnectionKind.Wireless
+                && DeviceFactory.Match([device], e) is not null)
+            .Select(e => e.Serial)
+            .Concat(device.ReconnectAddress is { Length: > 0 } remembered ? [remembered] : [])
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+
+        List<string> cut = [];
+
+        foreach (var address in addresses)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await _adb.DisconnectAsync(address, cancellationToken).ConfigureAwait(false);
+            InvalidatePropertyCache(address);
+            cut.Add(address);
+        }
+
+        return cut;
+    }
+
+    /// <summary>Dernier état thermique lu par appareil, avec son âge.</summary>
+    private readonly Dictionary<string, (ThermalReading? Reading, System.Diagnostics.Stopwatch Vu)> _heat =
+        new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Combien de temps une lecture de chaleur reste valable.
+    ///
+    /// Plus longue que celle de la liaison : un appareil ne passe pas d'un
+    /// palier thermique à l'autre en quelques secondes, et la question coûte un
+    /// aller-retour de shell.
+    /// </summary>
+    private static readonly TimeSpan HeatFreshness = TimeSpan.FromMinutes(1);
+
+    /// <summary>
+    /// Ce que l'appareil dit de sa chaleur, ou <c>null</c> s'il n'en dit rien.
+    ///
+    /// La question n'est posée qu'une fois par minute et par appareil : c'est
+    /// le rythme auquel la chaleur bouge, et l'appelant la pose à chaque
+    /// balayage sans que cela se paie.
+    /// </summary>
+    public async Task<ThermalReading?> GetThermalAsync(
+        string serial,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(serial))
+        {
+            return null;
+        }
+
+        if (_heat.TryGetValue(serial, out var garde) && garde.Vu.Elapsed < HeatFreshness)
+        {
+            return garde.Reading;
+        }
+
+        try
+        {
+            var dump = await _adb
+                .ShellAsync(serial, ["dumpsys", "thermalservice"], cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            var reading = ThermalReading.Parse(dump);
+
+            _heat[serial] = (reading, System.Diagnostics.Stopwatch.StartNew());
+
+            return reading;
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // Même silence assumé que pour la liaison : ne pas connaître la
+            // chaleur est un résultat valable, que l'appelant traite comme une
+            // absence de contrainte. Un appareil qui répond mal à une question
+            // accessoire ne doit pas faire échouer le balayage.
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Demande à l'appareil s'il accepte la simulation d'entrée.
+    ///
+    /// Le symptôme qu'elle éclaire est silencieux par nature : l'image passe,
+    /// la fenêtre s'ouvre, et le clic ne fait rien sans qu'aucune erreur ne
+    /// paraisse. La sonde envoie la touche « inconnue », qui ne déclenche rien,
+    /// et lit ce que le système répond.
+    ///
+    /// Elle n'est lancée que sur demande de l'utilisateur. Le délai est court :
+    /// une question à laquelle l'appareil ne répond pas vite ne répondra pas.
+    /// </summary>
+    public async Task<InputInjection> CheckInputInjectionAsync(
+        string serial,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(serial))
+        {
+            return InputInjection.Unknown;
+        }
+
+        try
+        {
+            var probe = await _adb
+                .ExecuteAsync(
+                    serial,
+                    InputInjectionCheck.ProbeCommand,
+                    ProbeTimeout,
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            return probe.TimedOut
+                ? InputInjection.Unknown
+                : InputInjectionCheck.Read(probe.ExitCode, probe.StandardOutput, probe.StandardError);
+        }
+        catch (AdbException)
+        {
+            // Un appareil qui ne répond plus n'apprend rien sur la souris, et
+            // le dire relèverait du hasard. Son absence est déjà signalée
+            // ailleurs, par le balayage.
+            return InputInjection.Unknown;
+        }
+    }
+
+    /// <summary>Délai laissé à la sonde d'entrée.</summary>
+    private static readonly TimeSpan ProbeTimeout = TimeSpan.FromSeconds(5);
+
+    /// <summary>
+    /// Ce que l'appareil dit de sa liaison Wi-Fi, ou <c>null</c> s'il n'en a
+    /// pas à dire : liaison USB, Wi-Fi éteint, ou Android qui répond autrement.
+    ///
+    /// Gardé une minute, pas davantage : un réseau change, et c'est justement
+    /// quand il change qu'il faut le relire. Mais l'appel coûte 0,46 s mesuré,
+    /// il est sur le chemin de l'ouverture, et ouvrir deux comptes coup sur
+    /// coup le payait deux fois pour la même réponse.
+    ///
+    /// Aucune faute n'est propagée. Ne pas connaître la liaison ne doit jamais
+    /// empêcher une session de s'ouvrir : l'appelant traite l'absence comme
+    /// une absence de contrainte.
+    /// </summary>
+    public async Task<WifiLink?> GetWifiLinkAsync(
+        string serial,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(serial))
+        {
+            return null;
+        }
+
+        if (_link.TryGetValue(serial, out var garde) && garde.Vu.Elapsed < LinkFreshness)
+        {
+            return garde.Link;
+        }
+
+        try
+        {
+            var status = await _adb
+                .ShellAsync(serial, ["cmd", "wifi", "status"], cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            var link = WifiLink.Parse(status);
+
+            _link[serial] = (link, System.Diagnostics.Stopwatch.StartNew());
+
+            return link;
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // Silence assumé, et c'est le seul endroit où il se justifie ici :
+            // ne pas connaître la liaison est déjà un résultat valable, que
+            // l'appelant traite comme une absence de contrainte. Faire échouer
+            // un lancement parce qu'un appareil répond mal à une question
+            // accessoire serait hors de proportion.
+            return null;
+        }
+    }
+
+    /// <summary>
     /// Force la relecture des propriétés au prochain balayage, par exemple
     /// après une mise à jour d'Android ou un changement de nom d'appareil.
     /// </summary>
@@ -132,7 +346,9 @@ public sealed class DeviceDiscoveryService : IDisposable
             return new DeviceDiscoveryResult(stored, warnings);
         }
 
-        var known = await _registry.GetKnownAsync(cancellationToken).ConfigureAwait(false);
+        // Les mémorisés et les écartés viennent ensemble : le balayage a besoin
+        // des deux, et le registre relit son fichier à chaque demande.
+        var (known, discarded) = await _registry.GetSnapshotAsync(cancellationToken).ConfigureAwait(false);
 
         // Les émulateurs ne sont pas la cible de l'outil et brouilleraient la
         // liste : ils sont écartés dès la découverte.
@@ -162,12 +378,25 @@ public sealed class DeviceDiscoveryService : IDisposable
 
         // Un même téléphone peut apparaître deux fois, branché en USB et
         // toujours connecté en Wi-Fi. On garde la meilleure des deux lignes.
-        var merged = Deduplicate(discovered);
+        var deduplicated = Deduplicate(discovered);
+
+        // Un appareil écarté sort du balayage entier, et pas seulement de
+        // l'écriture au registre. La coupure ADB ne tient pas éternellement :
+        // le serveur rejoint de lui-même un téléphone qui s'annonce et dont il
+        // garde la clé, au redémarrage du serveur ou à la réactivation du
+        // débogage sans fil. Filtrer le seul registre laissait alors la ligne
+        // revenir à l'écran, ce qui est le défaut rapporté.
+        var merged = discarded.Count == 0
+            ? deduplicated
+            : deduplicated.Where(d => !discarded.Contains(d.Id)).ToList();
 
         await _registry.UpsertRangeAsync(merged, cancellationToken).ConfigureAwait(false);
 
         var seen = merged.Select(d => d.Id).ToHashSet(StringComparer.Ordinal);
-        var offline = known.Where(d => !seen.Contains(d.Id));
+
+        // Le souvenir est filtré comme la découverte : un appareil écarté n'a
+        // pas à revenir par la liste des hors ligne.
+        var offline = known.Where(d => !seen.Contains(d.Id) && !discarded.Contains(d.Id));
 
         var all = merged
             .Concat(offline)

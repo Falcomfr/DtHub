@@ -333,4 +333,190 @@ public class ScrcpySessionManagerTests
 
         Assert.Equal([known.Id, unknown.Id], [.. manager.ActiveSessions.Select(s => s.Id)]);
     }
+
+    /// <summary>
+    /// Attend qu'une condition se réalise, sans dépasser un délai.
+    ///
+    /// La mort d'une fenêtre est constatée par la boucle de lecture, qui tourne
+    /// en tâche de fond : rien à attendre directement, et une attente fixe
+    /// serait soit trop courte sur une machine chargée, soit du temps perdu.
+    /// </summary>
+    private static async Task<bool> Eventually(Func<bool> condition)
+    {
+        for (var attempt = 0; attempt < 200; attempt++)
+        {
+            if (condition())
+            {
+                return true;
+            }
+
+            await Task.Delay(10);
+        }
+
+        return condition();
+    }
+
+    [Fact]
+    public async Task Fermer_une_fenetre_arrete_le_jeu_sur_le_telephone()
+    {
+        var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
+        var appLauncher = new FakeAppLauncher();
+
+        await using var manager = Manager(launcher, appLauncher);
+        manager.StopAppOnClose = true;
+
+        var session = await manager.StartAsync(
+            Target(userId: 10), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        // L'ouverture arrête déjà le jeu avant de le relancer sur le bon
+        // afficheur : c'est la fermeture qu'on observe, pas ce reste.
+        appLauncher.ForceStops.Clear();
+
+        await manager.StopAsync(session.Id, CancellationToken.None);
+
+        Assert.Equal("USB0001|10|com.ankama.dofustouch", Assert.Single(appLauncher.ForceStops));
+    }
+
+    [Fact]
+    public async Task Le_reglage_decoche_laisse_le_jeu_tourner()
+    {
+        var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
+        var appLauncher = new FakeAppLauncher();
+
+        await using var manager = Manager(launcher, appLauncher);
+
+        var session = await manager.StartAsync(
+            Target(), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        appLauncher.ForceStops.Clear();
+
+        await manager.StopAsync(session.Id, CancellationToken.None);
+
+        Assert.Empty(appLauncher.ForceStops);
+    }
+
+    [Fact]
+    public async Task Une_fenetre_fermee_a_la_main_arrete_aussi_le_jeu()
+    {
+        // Le chemin de la croix de la fenêtre scrcpy, et du téléphone
+        // débranché : aucun code à nous n'est appelé, seule la sortie du
+        // processus se tait.
+        var process = new FakeProcessSession().Emit(NewDisplayLine);
+        var launcher = new FakeProcessLauncher().Prepare(process);
+        var appLauncher = new FakeAppLauncher();
+
+        await using var manager = Manager(launcher, appLauncher);
+        manager.StopAppOnClose = true;
+
+        await manager.StartAsync(Target(userId: 42), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        appLauncher.ForceStops.Clear();
+        process.Exit(0);
+
+        Assert.True(
+            await Eventually(() => appLauncher.ForceStops.Count > 0),
+            "Le jeu n'a pas été arrêté après la mort de la fenêtre.");
+
+        Assert.Equal("USB0001|42|com.ankama.dofustouch", appLauncher.ForceStops[0]);
+    }
+
+    [Fact]
+    public async Task Le_jeu_n_est_arrete_qu_une_fois_par_session()
+    {
+        // La fermeture volontaire et la fin de la lecture de sortie surviennent
+        // toutes deux pour une même session. Un aller-retour de trop se paierait
+        // sur le budget compté de la fermeture de l'application.
+        var process = new FakeProcessSession().Emit(NewDisplayLine);
+        var launcher = new FakeProcessLauncher().Prepare(process);
+        var appLauncher = new FakeAppLauncher();
+
+        await using var manager = Manager(launcher, appLauncher);
+        manager.StopAppOnClose = true;
+
+        var session = await manager.StartAsync(
+            Target(), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        appLauncher.ForceStops.Clear();
+
+        await manager.StopAsync(session.Id, CancellationToken.None);
+        await Eventually(() => appLauncher.ForceStops.Count > 1);
+
+        Assert.Single(appLauncher.ForceStops);
+    }
+
+    [Fact]
+    public async Task Chaque_compte_ferme_n_arrete_que_son_propre_profil()
+    {
+        var first = new FakeProcessSession(100).Emit(NewDisplayLine);
+        var second = new FakeProcessSession(101).Emit(NewDisplayLine);
+        var launcher = new FakeProcessLauncher().Prepare(first).Prepare(second);
+        var appLauncher = new FakeAppLauncher();
+
+        await using var manager = Manager(launcher, appLauncher);
+        manager.StopAppOnClose = true;
+
+        var principal = await manager.StartAsync(
+            Target(userId: 0), ScrcpyOptions.Default, null, CancellationToken.None);
+        await manager.StartAsync(
+            Target(userId: 999), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        appLauncher.ForceStops.Clear();
+
+        await manager.StopAsync(principal.Id, CancellationToken.None);
+
+        Assert.Equal("USB0001|0|com.ankama.dofustouch", Assert.Single(appLauncher.ForceStops));
+    }
+
+    [Fact]
+    public async Task Le_jeu_est_arrete_apres_le_depart_de_scrcpy_et_non_avant()
+    {
+        // L'ordre n'est pas cosmétique : c'est scrcpy qui prévient son serveur,
+        // et le serveur qui rend l'afficheur virtuel. Tuer le jeu d'abord
+        // reviendrait à défaire cet enchaînement.
+        var process = new FakeProcessSession().Emit(NewDisplayLine);
+        var launcher = new FakeProcessLauncher().Prepare(process);
+
+        bool? scrcpyPartiAuMomentDeLArret = null;
+        var appLauncher = new FakeAppLauncher();
+
+        await using var manager = Manager(launcher, appLauncher);
+        manager.StopAppOnClose = true;
+
+        var session = await manager.StartAsync(
+            Target(), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        appLauncher.ForceStops.Clear();
+        appLauncher.OnForceStop = () => scrcpyPartiAuMomentDeLArret ??= process.HasExited;
+
+        await manager.StopAsync(session.Id, CancellationToken.None);
+
+        Assert.True(
+            await Eventually(() => appLauncher.ForceStops.Count > 0),
+            "Le jeu n'a pas été arrêté.");
+
+        Assert.Single(appLauncher.ForceStops);
+        Assert.True(scrcpyPartiAuMomentDeLArret, "Le jeu a été arrêté avant que scrcpy ne soit parti.");
+    }
+
+    [Fact]
+    public async Task Un_jeu_que_nous_n_avons_pas_ouvert_n_est_pas_arrete()
+    {
+        // scrcpy meurt avant d'avoir créé son afficheur : nous n'avons jamais
+        // lancé le jeu. S'il tourne quand même, c'est que quelqu'un y joue sur
+        // le téléphone, et ce n'est pas à nous de le fermer.
+        var process = new FakeProcessSession();
+        var launcher = new FakeProcessLauncher().Prepare(process);
+        var appLauncher = new FakeAppLauncher();
+
+        await using var manager = Manager(launcher, appLauncher, TimeSpan.FromMilliseconds(200));
+        manager.StopAppOnClose = true;
+
+        var session = await manager.StartAsync(
+            Target(), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        await manager.StopAsync(session.Id, CancellationToken.None);
+        await Eventually(() => appLauncher.ForceStops.Count > 0);
+
+        Assert.Empty(appLauncher.ForceStops);
+    }
 }

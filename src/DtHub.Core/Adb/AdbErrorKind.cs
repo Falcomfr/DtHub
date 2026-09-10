@@ -41,6 +41,17 @@ public enum AdbErrorKind
     PermissionDenied,
 
     /// <summary>
+    /// Le shell ADB n'a pas le droit d'atteindre ce profil Android.
+    ///
+    /// Distinct du refus de permission ordinaire, parce que les remèdes n'ont
+    /// rien à voir. Deux causes, toutes deux relevées sur le terrain : le
+    /// dossier sécurisé Samsung qu'il faut déverrouiller avant, et le réglage
+    /// « Débogage USB (paramètres de sécurité) » que les surcouches Xiaomi,
+    /// Oppo et Realme exigent pour installer dans un autre profil.
+    /// </summary>
+    ShellUserAccessDenied,
+
+    /// <summary>
     /// Le profil est en pause. C'est l'état normal d'un profil professionnel
     /// dont l'interrupteur est éteint, et la fonction principale de Shelter et
     /// d'Island.

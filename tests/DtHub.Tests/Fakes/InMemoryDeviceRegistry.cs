@@ -17,8 +17,19 @@ public sealed class InMemoryDeviceRegistry : IDeviceRegistry
 
     public int UpsertCallCount { get; private set; }
 
-    public Task<IReadOnlyList<AndroidDevice>> GetKnownAsync(CancellationToken cancellationToken = default) =>
-        Task.FromResult<IReadOnlyList<AndroidDevice>>([.. _devices.Values]);
+    /// <summary>
+    /// Nombre de lectures du registre. Le vrai registre relit son fichier à
+    /// chaque demande : ce compteur est là pour qu'un balayage n'en demande
+    /// pas plus qu'il n'en faut.
+    /// </summary>
+    public int Reads { get; private set; }
+
+    public Task<IReadOnlyList<AndroidDevice>> GetKnownAsync(CancellationToken cancellationToken = default)
+    {
+        Reads++;
+
+        return Task.FromResult<IReadOnlyList<AndroidDevice>>([.. _devices.Values]);
+    }
 
     public Task UpsertAsync(AndroidDevice device, CancellationToken cancellationToken = default) =>
         UpsertRangeAsync([device], cancellationToken);
@@ -46,6 +57,31 @@ public sealed class InMemoryDeviceRegistry : IDeviceRegistry
     {
         _devices.Remove(deviceId);
         return Task.CompletedTask;
+    }
+
+    /// <summary>Appareils dont l'association a été rompue.</summary>
+    public HashSet<string> Discarded { get; } = new(StringComparer.Ordinal);
+
+    public Task DiscardAsync(string deviceId, CancellationToken cancellationToken = default)
+    {
+        _ = _devices.Remove(deviceId);
+        _ = Discarded.Add(deviceId);
+
+        return Task.CompletedTask;
+    }
+
+    public Task WelcomeBackAsync(string deviceId, CancellationToken cancellationToken = default)
+    {
+        _ = Discarded.Remove(deviceId);
+
+        return Task.CompletedTask;
+    }
+
+    public Task<DeviceRegistrySnapshot> GetSnapshotAsync(CancellationToken cancellationToken = default)
+    {
+        Reads++;
+
+        return Task.FromResult(new DeviceRegistrySnapshot([.. _devices.Values], Discarded));
     }
 
     public Task RenameAsync(string deviceId, string? customName, CancellationToken cancellationToken = default)

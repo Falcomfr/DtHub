@@ -74,4 +74,42 @@ public class AdbErrorInterpreterTests
             Assert.NotEmpty(AdbErrorInterpreter.Describe(kind));
         }
     }
+    [Fact]
+    public void Un_shell_qui_n_atteint_pas_un_profil_a_sa_propre_famille()
+    {
+        // Chaîne relevée au caractère près sur le salon d'entraide d'un
+        // produit concurrent, qui emprunte le même chemin que nous :
+        // pm create-user puis pm install-existing. L'utilisateur 150 est le
+        // dossier sécurisé Samsung, qu'il faut déverrouiller avant.
+        const string sortie =
+            "Exception occurred while executing 'install-existing': "
+            + "java.lang.SecurityException: Shell does not have permission to access user 150";
+
+        Assert.Equal(AdbErrorKind.ShellUserAccessDenied, AdbErrorInterpreter.Classify(sortie));
+    }
+
+    [Fact]
+    public void Le_refus_de_permission_ordinaire_reste_range_comme_avant()
+    {
+        // L'ordre des motifs est tout : la nouvelle famille se reconnaît avant
+        // le refus générique, et ne doit pas l'avaler pour autant.
+        Assert.Equal(
+            AdbErrorKind.PermissionDenied,
+            AdbErrorInterpreter.Classify("java.lang.SecurityException: Permission Denial: broadcast"));
+    }
+
+    [Fact]
+    public void Les_deux_familles_ne_disent_pas_la_meme_chose()
+    {
+        var profil = AdbErrorInterpreter.Describe(AdbErrorKind.ShellUserAccessDenied);
+        var permission = AdbErrorInterpreter.Describe(AdbErrorKind.PermissionDenied);
+
+        Assert.NotEqual(permission, profil);
+
+        // Le message nomme les deux remèdes, qui n'ont rien à voir l'un avec
+        // l'autre : déverrouiller le dossier sécurisé, ou le réglage de
+        // sécurité du débogage.
+        Assert.Contains("sécurité", profil, StringComparison.OrdinalIgnoreCase);
+    }
+
 }

@@ -316,7 +316,7 @@
 
     <!-- Aucun appareil du tout : il faut dire pourquoi la liste est vide. -->
     <Border Style="{StaticResource Card}" Padding="10,8"
-            Visibility="{Binding HasNoConnectedDevice, Converter={StaticResource BoolToVisibility}}">
+            Visibility="{Binding ShowsNoDeviceCard, Converter={StaticResource BoolToVisibility}}">
       <StackPanel>
         <TextBlock Text="{loc:T NoDeviceFound}" Style="{StaticResource SectionLabel}" />
         <TextBlock Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"

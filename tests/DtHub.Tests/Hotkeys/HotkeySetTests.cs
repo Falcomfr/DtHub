@@ -122,6 +122,57 @@ public class HotkeySetTests
             HotkeySet.Default.Validate(HotkeyAction.Rearrange, key, modifiers));
     }
 
+    [Theory]
+    [InlineData(VirtualKeys.A)]
+    [InlineData(VirtualKeys.C)]
+    [InlineData(VirtualKeys.V)]
+    [InlineData(VirtualKeys.X)]
+    public void Les_touches_d_edition_ne_peuvent_pas_etre_confisquees(int key)
+    {
+        // RegisterHotKey vaut pour tout le bureau : lier Ctrl+V à DT Hub
+        // retirerait le collage à l'éditeur de texte, au navigateur et au jeu
+        // lui-même, aussi longtemps que l'application tourne, et rien
+        // n'aurait relié le symptôme à sa cause.
+        Assert.Equal(
+            HotkeyValidationResult.ReservedForEditing,
+            HotkeySet.Default.Validate(HotkeyAction.Rearrange, key, HotkeyModifiers.Control));
+    }
+
+    [Theory]
+    [InlineData(VirtualKeys.C, HotkeyModifiers.Control | HotkeyModifiers.Shift)]
+    [InlineData(VirtualKeys.V, HotkeyModifiers.Control | HotkeyModifiers.Alt)]
+    [InlineData(VirtualKeys.A, HotkeyModifiers.Alt)]
+    public void Les_memes_touches_restent_libres_avec_un_autre_modificateur(
+        int key, HotkeyModifiers modifiers)
+    {
+        // Ce n'est pas la lettre qui est réservée, c'est le geste d'édition.
+        Assert.Equal(
+            HotkeyValidationResult.Valid,
+            HotkeySet.Default.Validate(HotkeyAction.Rearrange, key, modifiers));
+    }
+
+    [Fact]
+    public void Une_touche_d_edition_enregistree_est_ecartee_au_chargement()
+    {
+        // Le refus dans l'éditeur ne suffirait pas : un réglage écrit à la
+        // main, ou venu d'une version antérieure à cette règle, armerait le
+        // raccourci au démarrage sans que personne ne l'ait revu.
+        var charge = HotkeySet.FromBindings(
+        [
+            new HotkeyBinding
+            {
+                Action = HotkeyAction.Rearrange,
+                VirtualKey = VirtualKeys.V,
+                Modifiers = HotkeyModifiers.Control,
+            },
+        ]);
+
+        var repris = charge.Bindings.Single(b => b.Action == HotkeyAction.Rearrange);
+
+        Assert.NotEqual(
+            (VirtualKeys.V, HotkeyModifiers.Control), (repris.VirtualKey, repris.Modifiers));
+    }
+
     [Fact]
     public void Un_raccourci_valide_remplace_l_ancien()
     {

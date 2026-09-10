@@ -16,9 +16,13 @@ public enum StreamQuality
     Medium,
 
     /// <summary>
-    /// Sans ménagement pour le téléphone : définition sans borne, débit et
-    /// images par seconde au maximum. Demande un appareil récent et, en
-    /// Wi-Fi, un réseau qui suit.
+    /// Sans ménagement pour le téléphone : 1440p, débit et images par seconde
+    /// au maximum. Demande un appareil récent et, en Wi-Fi, un réseau qui suit.
+    ///
+    /// La définition était sans borne, et suivait donc la taille de la fenêtre,
+    /// c'est-à-dire l'écran du PC. Le même palier coûtait alors deux fois plus
+    /// sur un écran 4K que sur un 1080p, sans que rien ne le dise. Un palier
+    /// doit désigner une charge, pas hériter de celle de l'écran.
     ///
     /// Trois paliers, pas quatre : entre deux voisins trop proches, personne
     /// ne sait lequel choisir, et l'écart ne se voit pas.
@@ -203,7 +207,10 @@ public sealed record QualityProfile(
             MaxFps: 60,
             BitsPerPixel: 0.11,
             CeilingKbps: 25000,
-            MaximumDisplayHeight: int.MaxValue,
+
+            // 1440p, et non la définition de la fenêtre : voir StreamQuality.Maximum.
+            // Au-dessus du palier moyen, qui borne à 1080p, et l'écart reste net.
+            MaximumDisplayHeight: 1440,
             DevicePoll: TimeSpan.FromSeconds(2),
             InstanceRediscovery: TimeSpan.FromSeconds(15),
             WindowWatch: TimeSpan.FromMilliseconds(500)),

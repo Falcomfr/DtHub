@@ -144,6 +144,69 @@ public class WindowManagerServiceTests
     }
 
     [Fact]
+    public async Task Une_taille_est_absolue_et_ne_depend_pas_de_celle_d_avant()
+    {
+        // Le défaut d'origine : la taille était un facteur, la nouvelle part
+        // divisée par l'ancienne. Redemander la part en cours donnait un
+        // facteur de un et ne faisait rien du tout.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        await service.ApplySizeAsync(sessions, 3, CancellationToken.None);
+        var pose = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+
+        // On dérange la fenêtre à la main, puis on redemande la même taille.
+        desktop.MoveWindow(sessions[0].WindowHandle, new ScreenRect(40, 40, 300, 200));
+        await service.ApplySizeAsync(sessions, 3, CancellationToken.None);
+
+        var reprise = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+
+        Assert.Equal(pose.Width, reprise.Width);
+        Assert.Equal(pose.Height, reprise.Height);
+    }
+
+    [Fact]
+    public async Task Le_plus_grand_palier_occupe_la_zone_utile()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        desktop.Chrome = new WindowFrame(Left: 8, Top: 40, Width: 16, Height: 48);
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        var work = FakeWindowController.PrimaryMonitor.WorkArea;
+
+        await service.ApplySizeAsync(sessions, service.Presets.Percentages.Count - 1, CancellationToken.None);
+
+        var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+
+        // Au rapport près, l'une des deux dimensions touche le bord.
+        Assert.True(rect.Width <= work.Width && rect.Height <= work.Height);
+        Assert.True(rect.Width == work.Width || rect.Height == work.Height, $"{rect}");
+    }
+
+    [Fact]
+    public async Task Le_plus_petit_palier_rend_le_meme_rectangle_d_ou_qu_on_vienne()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        await service.ApplySizeAsync(sessions, 3, CancellationToken.None);
+        await service.ApplySizeAsync(sessions, 0, CancellationToken.None);
+        var parLeHaut = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+
+        await service.ApplySizeAsync(sessions, 1, CancellationToken.None);
+        await service.ApplySizeAsync(sessions, 0, CancellationToken.None);
+        var parLeBas = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+
+        Assert.Equal(parLeHaut, parLeBas);
+    }
+
+    [Fact]
     public async Task Le_plein_ecran_couvre_l_ecran_entier_et_retire_la_bordure()
     {
         var (manager, sessions, desktop) = await OpenSessionsAsync(2);
@@ -206,7 +269,7 @@ public class WindowManagerServiceTests
 
         await using var _ = manager;
 
-        desktop.Chrome = (16, 48);
+        desktop.Chrome = new WindowFrame(Left: 8, Top: 40, Width: 16, Height: 48);
 
         var service = new WindowManagerService(desktop, NoDelay);
         await service.ApplySizeAsync([], 1, CancellationToken.None);
@@ -224,7 +287,7 @@ public class WindowManagerServiceTests
         var (manager, sessions, desktop) = await OpenSessionsAsync(1);
         await using var _ = manager;
 
-        desktop.Chrome = (16, 48);
+        desktop.Chrome = new WindowFrame(Left: 8, Top: 40, Width: 16, Height: 48);
 
         var service = new WindowManagerService(desktop, NoDelay);
         await service.ApplySizeAsync(sessions, 1, CancellationToken.None);
@@ -354,6 +417,9 @@ public class WindowManagerServiceTests
         Assert.Equal(FakeWindowController.PrimaryMonitor.WorkArea.X, area.Value.X);
     }
 
+    /// <summary>Poignée de la première fenêtre posée par <c>OpenSessionsAsync</c>.</summary>
+    private const nint FirstWindow = 1000;
+
     private static StoredWindowRect Remembered(ScreenRect rect) =>
         StoredWindowRect.From(rect, FakeWindowController.PrimaryMonitor);
 
@@ -376,6 +442,85 @@ public class WindowManagerServiceTests
         Assert.Equal(
             new ScreenRect(300, 200, 900, 900),
             desktop.GetWindowRect(sessions[0].WindowHandle));
+    }
+
+    [Fact]
+    public async Task Une_fenetre_deja_a_sa_place_n_est_pas_deplacee()
+    {
+        // Le défaut rapporté : la fenêtre de jeu sautait sous les yeux deux
+        // cents millisecondes après son ouverture. scrcpy l'ouvre au rectangle
+        // demandé, et la reposer par-dessus n'avait rien à corriger.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        var voulu = new ScreenRect(300, 200, 900, 900);
+        desktop.MoveWindow(FirstWindow, voulu);
+        desktop.Moves.Clear();
+
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        await service.RestoreAsync(
+            sessions,
+            new Dictionary<string, StoredWindowRect> { [sessions[0].Target.Key] = Remembered(voulu) },
+            CancellationToken.None);
+
+        Assert.Empty(desktop.Moves);
+        Assert.Equal(voulu, desktop.GetWindowRect(sessions[0].WindowHandle));
+    }
+
+    [Fact]
+    public async Task Le_pre_placement_ne_bouge_pas_une_fenetre_deja_au_bon_coin()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        desktop.MoveWindow(FirstWindow, new ScreenRect(0, 313, 2522, 1462));
+        desktop.Moves.Clear();
+
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        await service.MoveOnlyAsync(sessions[0], 0, 313, CancellationToken.None);
+
+        Assert.Empty(desktop.Moves);
+    }
+
+    [Fact]
+    public async Task Le_pre_placement_deplace_sans_toucher_a_la_taille()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        desktop.MoveWindow(FirstWindow, new ScreenRect(-11, 268, 2522, 1462));
+        desktop.Moves.Clear();
+
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        await service.MoveOnlyAsync(sessions[0], 0, 313, CancellationToken.None);
+
+        Assert.Equal(new ScreenRect(0, 313, 2522, 1462), desktop.GetWindowRect(FirstWindow));
+    }
+
+    [Fact]
+    public async Task Une_fenetre_posee_ailleurs_est_bien_ramenee()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        desktop.MoveWindow(FirstWindow, new ScreenRect(11, 245, 900, 900));
+        desktop.Moves.Clear();
+
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        await service.RestoreAsync(
+            sessions,
+            new Dictionary<string, StoredWindowRect>
+            {
+                [sessions[0].Target.Key] = Remembered(new ScreenRect(300, 200, 900, 900)),
+            },
+            CancellationToken.None);
+
+        Assert.Single(desktop.Moves);
+        Assert.Equal(new ScreenRect(300, 200, 900, 900), desktop.GetWindowRect(sessions[0].WindowHandle));
     }
 
     [Fact]
@@ -653,7 +798,7 @@ public class WindowManagerServiceTests
         service.TrackActiveWindow(sessions);
         desktop.Foreground = 0;
 
-        Assert.Equal(2, await service.TileAsync(sessions, CancellationToken.None));
+        Assert.Equal(2, await service.TileAsync(sessions, cancellationToken: CancellationToken.None));
 
         var work = FakeWindowController.PrimaryMonitor.WorkArea;
         var half = work.Width / 2;
@@ -677,7 +822,7 @@ public class WindowManagerServiceTests
         var service = new WindowManagerService(desktop, NoDelay);
         await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
 
-        await service.TileAsync(sessions, CancellationToken.None);
+        await service.TileAsync(sessions, cancellationToken: CancellationToken.None);
 
         Assert.Equal(
             desktop.GetWindowRect(sessions[1].WindowHandle),
@@ -798,10 +943,13 @@ public class WindowManagerServiceTests
         // C'est elle que scrcpy donne à l'afficheur, et le jeu fige la hauteur
         // de sa mise en page dessus. Compter le cadre la rendrait trop haute
         // d'une barre de titre, et l'image serait rognée d'autant.
-        var desktop = new FakeWindowController { Chrome = (22, 56) };
+        var desktop = new FakeWindowController
+        {
+            Chrome = new WindowFrame(Left: 11, Top: 45, Width: 22, Height: 56),
+        };
         var service = new WindowManagerService(desktop, NoDelay);
 
-        Assert.Equal((22, 56), service.WindowChrome());
+        Assert.Equal(new WindowFrame(11, 45, 22, 56), service.WindowChrome());
     }
 
     [Fact]
@@ -949,7 +1097,7 @@ public class WindowManagerServiceTests
         desktop.Foreground = sessions[0].WindowHandle;
         service.TrackActiveWindow(sessions);
 
-        var placed = await service.TileAsync(sessions, CancellationToken.None);
+        var placed = await service.TileAsync(sessions, cancellationToken: CancellationToken.None);
 
         Assert.Equal(2, placed);
         Assert.Equal(sessions[1].WindowHandle, desktop.FocusCalls[^1]);
@@ -978,4 +1126,46 @@ public class WindowManagerServiceTests
 
         Assert.Equal([sessions[0].WindowHandle], desktop.CloseRequests);
     }
+    [Fact]
+    public async Task La_moitie_droite_peut_etre_laissee_libre()
+    {
+        // Le cadre à onglets au premier plan prend la droite, et il n'est pas
+        // une session : sans cette réserve, une fenêtre de jeu s'y poserait
+        // par-dessus lui.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(2);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        var work = FakeWindowController.PrimaryMonitor.WorkArea;
+
+        await service.TileAsync(sessions, leaveRightFree: true, CancellationToken.None);
+
+        foreach (var session in sessions)
+        {
+            Assert.Equal(work.X, desktop.GetWindowRect(session.WindowHandle)!.Value.X);
+        }
+    }
+
+    [Fact]
+    public async Task Sans_reserve_la_fenetre_active_garde_la_droite()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(2);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        var work = FakeWindowController.PrimaryMonitor.WorkArea;
+
+        // Le placement d'abord : sans lui les poignées ne sont pas résolues, et
+        // la fenêtre active ne peut pas être reconnue.
+        await service.RestoreAsync(
+            sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
+
+        desktop.Focus(sessions[1].WindowHandle);
+
+        await service.TileAsync(sessions, cancellationToken: CancellationToken.None);
+
+        Assert.Equal(work.X + (work.Width / 2), desktop.GetWindowRect(sessions[1].WindowHandle)!.Value.X);
+        Assert.Equal(work.X, desktop.GetWindowRect(sessions[0].WindowHandle)!.Value.X);
+    }
+
 }

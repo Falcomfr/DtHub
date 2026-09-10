@@ -56,15 +56,16 @@ public interface IWindowController
     void MoveWindow(nint handle, ScreenRect rect, bool bringToFront = false);
 
     /// <summary>
-    /// Encombrement du cadre d'une fenêtre ordinaire sur l'écran donné :
-    /// bordures et barre de titre.
+    /// Cadre d'une fenêtre ordinaire sur l'écran donné : bordures et barre de
+    /// titre, en épaisseur comme en décalage du coin.
     ///
     /// Il faut le connaître avant qu'aucune fenêtre n'existe, pour demander à
     /// scrcpy un afficheur de la taille exacte de la zone client. Le jeu fige
     /// la hauteur de sa mise en page à son initialisation : la corriger après
-    /// coup ne rattrape rien.
+    /// coup ne rattrape rien. Le décalage sert au même moment et pour la même
+    /// raison : scrcpy positionne aussi sa fenêtre par l'intérieur.
     /// </summary>
-    (int Width, int Height) GetWindowChrome(string? monitorDeviceName);
+    WindowFrame GetWindowChrome(string? monitorDeviceName);
 
     /// <summary>Met une fenêtre au premier plan et lui donne le focus clavier.</summary>
     void Focus(nint handle);
@@ -108,7 +109,8 @@ public interface IWindowController
     /// La fenêtre perd son cadre et devient fille : elle ne paraît plus dans
     /// la barre des tâches, ne s'aligne plus toute seule, et suit son hôte.
     /// Mesuré sur une fenêtre scrcpy, elle continue de rendre l'image et
-    /// Windows lui adresse toujours le pointeur.
+    /// Windows lui adresse toujours le pointeur. Le clavier, lui, ne suit pas
+    /// tout seul : il faut <see cref="GiveKeyboardFocus"/>.
     ///
     /// L'état d'origine est retenu par l'implémentation, pour que
     /// <see cref="Undock"/> puisse le rendre exactement. Le recalculer
@@ -128,4 +130,18 @@ public interface IWindowController
 
     /// <summary>Montre ou cache une fenêtre logée, pour passer d'un onglet à l'autre.</summary>
     void SetVisible(nint handle, bool visible);
+
+    /// <summary>
+    /// Rend le clavier à une fenêtre logée.
+    ///
+    /// <see cref="Dock"/> en fait la fille d'un cadre tenu par un autre
+    /// processus. Windows joint alors les deux files d'entrée, si bien que le
+    /// clavier est atteignable ; seulement le focus reste sur la fenêtre de
+    /// l'hôte, et rien de ce qu'on tape n'arrive au jeu, le collage compris
+    /// puisque scrcpy colle en frappant. C'est le seul geste qui manquait, et
+    /// le mode onglets a vécu sans jusqu'ici : validé sur l'image et sur la
+    /// souris, jamais sur le clavier.
+    /// </summary>
+    /// <returns>Faux si la fenêtre a disparu ou n'est pas logée.</returns>
+    bool GiveKeyboardFocus(nint child);
 }

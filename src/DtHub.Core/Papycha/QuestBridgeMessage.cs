@@ -33,8 +33,8 @@ public sealed record QuestBridgeMessage
     /// <summary>Bloc de chaîne du guide, tel quel.</summary>
     public string? Chain { get; init; }
 
-    /// <summary>Le texte de chaque étape.</summary>
-    public IReadOnlyList<string> Steps { get; init; } = [];
+    /// <summary>Chaque étape, avec sa nature.</summary>
+    public IReadOnlyList<QuestStep> Steps { get; init; } = [];
 
     /// <summary>Vrai quand la première étape est bien le départ de la quête.</summary>
     public bool Departure { get; init; }
@@ -111,7 +111,7 @@ public sealed record QuestBridgeMessage
     private static bool Flag(JsonElement root, string name) =>
         root.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.True;
 
-    private static IReadOnlyList<string> Lines(JsonElement root)
+    private static IReadOnlyList<QuestStep> Lines(JsonElement root)
     {
         if (!root.TryGetProperty("steps", out var steps)
             || steps.ValueKind != JsonValueKind.Array)
@@ -119,11 +119,38 @@ public sealed record QuestBridgeMessage
             return [];
         }
 
-        return
-        [
-            .. steps
-                .EnumerateArray()
-                .Select(s => s.ValueKind == JsonValueKind.String ? s.GetString() ?? string.Empty : string.Empty),
-        ];
+        return [.. steps.EnumerateArray().Select(StepOf)];
     }
+
+    /// <summary>
+    /// Lit une étape, sous l'une ou l'autre des deux formes.
+    ///
+    /// Le pont l'écrit en objet, texte et nature. Une chaîne nue est acceptée
+    /// pour ce qu'elle est, une étape sans nature déclarée, donc une consigne :
+    /// c'est la forme qu'écrivait le pont avant qu'il ne porte la nature, et
+    /// c'est aussi tout ce qu'une page du site saurait poster d'elle-même. Le
+    /// rang, lui, est gardé quoi qu'il arrive : une étape illisible devient une
+    /// étape vide et non une étape en moins, sans quoi les rangs glisseraient.
+    /// </summary>
+    private static QuestStep StepOf(JsonElement step) => step.ValueKind switch
+    {
+        JsonValueKind.String => new QuestStep(step.GetString() ?? string.Empty, IsTitle: false),
+        JsonValueKind.Object => new QuestStep(
+            Text(step, "text") ?? string.Empty,
+            Flag(step, "title")),
+        _ => new QuestStep(string.Empty, IsTitle: false),
+    };
 }
+
+/// <summary>
+/// Une étape d'un guide, telle que le pont la rapporte.
+///
+/// La nature commande l'affichage. Un titre de section expose et se montre tel
+/// quel ; une consigne ordonne, et la fenêtre n'en montre rien, le rang suffisant
+/// à s'y rendre. La distinction vient du site : une fiche de donjon, de raid, de
+/// tanière ou de chemin se lit par ses titres, un guide de quête par ses
+/// paragraphes.
+/// </summary>
+/// <param name="Text">Le texte de l'étape, vide pour le départ d'un lieu.</param>
+/// <param name="IsTitle">Vrai quand l'étape est un titre de section du site.</param>
+public readonly record struct QuestStep(string Text, bool IsTitle);

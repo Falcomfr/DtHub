@@ -416,8 +416,70 @@ public sealed class WindowManagerService
             (false, true) => EnterFullscreenAsync(sessions, previousPercent, cancellationToken),
             (true, false) => LeaveFullscreenAsync(sessions, cancellationToken),
             (true, true) => Task.FromResult(0),
-            _ => ScaleInPlaceAsync(sessions, (double)SizePercent / previousPercent, cancellationToken),
+            _ => ResizeToPercentAsync(sessions, cancellationToken),
         };
+
+    /// <summary>
+    /// Donne à chaque fenêtre la taille que le pourcentage désigne, sans la
+    /// déplacer.
+    ///
+    /// C'était un facteur, et non une taille : la nouvelle part était divisée
+    /// par l'ancienne, et le rectangle courant multiplié par ce rapport.
+    /// Redemander la part déjà en cours donnait donc un facteur de un, et le
+    /// raccourci ne faisait rien ; venir de la part haute vers la basse
+    /// réduisait ce qui était là plutôt que de poser le minimum. Le maximum
+    /// n'ouvrait pas la fenêtre à fond et le minimum ne la fermait pas au plus
+    /// petit, ce que le README promettait pourtant en toutes lettres.
+    ///
+    /// Ce que le facteur protégeait est perdu, et il faut le dire : deux
+    /// fenêtres volontairement de tailles différentes reçoivent désormais la
+    /// même. Leurs places, elles, sont gardées : la part d'espace libre à
+    /// gauche et au-dessus reste la même, si bien qu'un côte à côte reste
+    /// gauche et droite, seulement redimensionné.
+    /// </summary>
+    private async Task<int> ResizeToPercentAsync(
+        IReadOnlyList<ScrcpySession> sessions,
+        CancellationToken cancellationToken)
+    {
+        var monitors = _controller.GetMonitors();
+
+        if (monitors.Count == 0)
+        {
+            return 0;
+        }
+
+        var resized = 0;
+
+        foreach (var session in sessions.Where(s => s.IsAlive))
+        {
+            var handle = await ResolveWindowAsync(session, cancellationToken).ConfigureAwait(false);
+
+            if (handle == 0)
+            {
+                continue;
+            }
+
+            _controller.SetBorderless(handle, borderless: false);
+
+            if (_controller.GetWindowRect(handle) is not { } current || current.IsEmpty)
+            {
+                continue;
+            }
+
+            if (ResizedRect(handle, session.SourceAspectRatio, MeasureChrome(handle))
+                is not { } target
+                || target == current)
+            {
+                continue;
+            }
+
+            _controller.MoveWindow(handle, target);
+            _lastSeen[session.Id] = target;
+            resized++;
+        }
+
+        return resized;
+    }
 
     /// <summary>
     /// Passe en plein écran, chaque fenêtre couvrant l'écran qui la porte, et
@@ -521,7 +583,7 @@ public sealed class WindowManagerService
     /// qu'aucune fenêtre n'existe, pour demander à scrcpy un afficheur de la
     /// taille exacte de la zone client.
     /// </summary>
-    public (int Width, int Height) WindowChrome() =>
+    public WindowFrame WindowChrome() =>
         _controller.GetWindowChrome(monitorDeviceName: null);
 
     /// <summary>
@@ -725,8 +787,13 @@ public sealed class WindowManagerService
             (int Width, int Height) chrome = IsFullscreen ? (0, 0) : MeasureChrome(handle);
             var rect = Resolve(session, monitor, monitors, chrome, remembered);
 
-
-            _controller.MoveWindow(handle, rect);
+            // Une fenêtre déjà en place n'est pas déplacée. scrcpy l'ouvre au
+            // rectangle qu'on lui a demandé : la bouger quand même n'a rien à
+            // corriger, et le saut se voyait à chaque ouverture.
+            if (_controller.GetWindowRect(handle) != rect)
+            {
+                _controller.MoveWindow(handle, rect);
+            }
 
             applied.Add((session.Target.Key, rect));
         }
@@ -756,6 +823,76 @@ public sealed class WindowManagerService
         }
 
         return Compute(monitor, session.SourceAspectRatio, chrome);
+    }
+
+    /// <summary>
+    /// Le rectangle qu'une fenêtre devrait occuper à la taille courante, sans
+    /// changer de place : sa part d'espace libre à gauche et au-dessus est
+    /// gardée, exactement comme pour les fenêtres de jeu.
+    ///
+    /// Ces deux méthodes sont publiées pour le cadre à onglets. Il n'est pas
+    /// une session, ne figure donc dans aucune des listes que reçoivent les
+    /// autres méthodes, et se range pourtant comme une fenêtre de jeu. Leur
+    /// donner le calcul plutôt qu'une seconde mise en œuvre est la seule façon
+    /// que les deux ne divergent pas.
+    /// </summary>
+    /// <param name="handle">Fenêtre visée, pour savoir quel écran la porte.</param>
+    /// <param name="aspectRatio">Rapport de l'image, zéro s'il est inconnu.</param>
+    /// <param name="chrome">Encombrement du châssis.</param>
+    public ScreenRect? ResizedRect(nint handle, double aspectRatio, (int Width, int Height) chrome)
+    {
+        if (MonitorOf(handle) is not { } monitor)
+        {
+            return null;
+        }
+
+        var work = UsableArea(monitor);
+        var (width, height) = ComputeSize(monitor, aspectRatio, chrome);
+
+        if (_controller.GetWindowRect(handle) is not { } current || current.IsEmpty)
+        {
+            return WindowLayoutCalculator.Place(work, width, height, Anchor);
+        }
+
+        return KeepInside(
+            new ScreenRect(
+                Slide(current.X, current.Width, width, work.X, work.Width),
+                Slide(current.Y, current.Height, height, work.Y, work.Height),
+                width,
+                height),
+            work);
+    }
+
+    /// <summary>
+    /// Le rectangle qu'une fenêtre devrait occuper à la taille et à la
+    /// position courantes des réglages, celle de la grille des neuf ancrages.
+    /// </summary>
+    public ScreenRect? AnchoredRect(nint handle, double aspectRatio, (int Width, int Height) chrome) =>
+        MonitorOf(handle) is { } monitor ? Compute(monitor, aspectRatio, chrome) : null;
+
+    /// <summary>
+    /// Les bornes entières de l'écran qui porte une fenêtre, barre des tâches
+    /// comprise. C'est ce que couvre le plein écran.
+    /// </summary>
+    public ScreenRect? ScreenBoundsFor(nint handle) => MonitorOf(handle)?.Bounds;
+
+    /// <summary>La zone utilisable de l'écran qui porte une fenêtre.</summary>
+    public ScreenRect? WorkAreaFor(nint handle) =>
+        MonitorOf(handle) is { } monitor ? UsableArea(monitor) : null;
+
+    /// <summary>L'écran qui porte une fenêtre, ou l'écran principal à défaut.</summary>
+    private MonitorInfo? MonitorOf(nint handle)
+    {
+        var monitors = _controller.GetMonitors();
+
+        if (monitors.Count == 0)
+        {
+            return null;
+        }
+
+        return handle != 0 && _controller.GetWindowRect(handle) is { } current && !current.IsEmpty
+            ? WindowLayoutCalculator.ChooseMonitor(monitors, current.CenterX, current.CenterY)
+            : WindowLayoutCalculator.ChooseMonitor(monitors, preferredDeviceName: null);
     }
 
     /// <summary>
@@ -811,13 +948,35 @@ public sealed class WindowManagerService
         IReadOnlyList<ScrcpySession> sessions,
         CancellationToken cancellationToken = default)
     {
+        if (await StackTargetAsync(sessions, cancellationToken).ConfigureAwait(false)
+            is not var (reference, rect))
+        {
+            return 0;
+        }
+
+        return await StackOnAsync(sessions, rect, reference, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// La fenêtre de référence de l'empilement et son rectangle, ou
+    /// <c>null</c> s'il n'y a rien à empiler.
+    ///
+    /// Publié à part pour que le cadre à onglets reçoive le même rectangle que
+    /// les fenêtres libres : il n'est pas une session, ne peut donc pas figurer
+    /// dans la liste, et l'empiler ailleurs qu'elles serait tout sauf un
+    /// replacement.
+    /// </summary>
+    public async Task<(ScrcpySession Reference, ScreenRect Rect)?> StackTargetAsync(
+        IReadOnlyList<ScrcpySession> sessions,
+        CancellationToken cancellationToken = default)
+    {
         ArgumentNullException.ThrowIfNull(sessions);
 
         var alive = sessions.Where(s => s.IsAlive).ToList();
 
         if (alive.Count == 0)
         {
-            return 0;
+            return null;
         }
 
         var foreground = _controller.GetForegroundWindow();
@@ -830,14 +989,26 @@ public sealed class WindowManagerService
 
         var handle = await ResolveWindowAsync(reference, cancellationToken).ConfigureAwait(false);
 
-        if (handle == 0 || _controller.GetWindowRect(handle) is not { } rect || rect.IsEmpty)
-        {
-            return 0;
-        }
+        return handle != 0 && _controller.GetWindowRect(handle) is { } rect && !rect.IsEmpty
+            ? (reference, rect)
+            : null;
+    }
+
+    /// <summary>Pose toutes les fenêtres sur un même rectangle.</summary>
+    /// <param name="except">Celle qui l'occupe déjà, et qu'on ne compte pas.</param>
+    /// <returns>Nombre de fenêtres déplacées.</returns>
+    public async Task<int> StackOnAsync(
+        IReadOnlyList<ScrcpySession> sessions,
+        ScreenRect rect,
+        ScrcpySession? except = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(sessions);
 
         var moved = 0;
 
-        foreach (var session in alive.Where(s => !ReferenceEquals(s, reference)))
+        foreach (var session in sessions.Where(
+            s => s.IsAlive && !ReferenceEquals(s, except)))
         {
             var other = await ResolveWindowAsync(session, cancellationToken).ConfigureAwait(false);
 
@@ -865,9 +1036,16 @@ public sealed class WindowManagerService
     /// La hauteur suit le rapport de l'afficheur : la remplir davantage
     /// laisserait une bande, l'image étant mise à l'échelle.
     /// </summary>
+    /// <param name="leaveRightFree">
+    /// Vrai quand la moitié droite revient à quelqu'un d'autre, le cadre à
+    /// onglets étant au premier plan : toutes les fenêtres passent alors à
+    /// gauche. Sans cela, une fenêtre de jeu se poserait à droite par-dessus
+    /// le cadre, qui n'est pas une session et ne peut donc pas figurer ici.
+    /// </param>
     /// <returns>Nombre de fenêtres placées.</returns>
     public async Task<int> TileAsync(
         IReadOnlyList<ScrcpySession> sessions,
+        bool leaveRightFree = false,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(sessions);
@@ -882,18 +1060,21 @@ public sealed class WindowManagerService
 
         var foreground = _controller.GetForegroundWindow();
 
-        var right = alive.Find(s => s.WindowHandle != 0 && s.WindowHandle == foreground)
-            ?? alive.Find(s => string.Equals(s.Id, _lastActive, StringComparison.Ordinal))
-            ?? alive[0];
+        var right = leaveRightFree
+            ? null
+            : alive.Find(s => s.WindowHandle != 0 && s.WindowHandle == foreground)
+                ?? alive.Find(s => string.Equals(s.Id, _lastActive, StringComparison.Ordinal))
+                ?? alive[0];
 
-        var rightHandle = await ResolveWindowAsync(right, cancellationToken).ConfigureAwait(false);
+        var rightHandle = right is null
+            ? 0
+            : await ResolveWindowAsync(right, cancellationToken).ConfigureAwait(false);
 
         var reference = rightHandle != 0 && _controller.GetWindowRect(rightHandle) is { } known && !known.IsEmpty
             ? WindowLayoutCalculator.ChooseMonitor(monitors, known.CenterX, known.CenterY)
             : WindowLayoutCalculator.ChooseMonitor(monitors, preferredDeviceName: null);
 
         var work = UsableArea(reference);
-        var half = work.Width / 2;
 
         var placed = 0;
         nint left = 0;
@@ -911,19 +1092,11 @@ public sealed class WindowManagerService
 
             _controller.SetBorderless(handle, borderless: false);
 
-            var chrome = MeasureChrome(handle);
-
-            var height = session.SourceAspectRatio > 0
-                ? Math.Min(
-                      work.Height,
-                      (int)Math.Round((half - chrome.Width) / session.SourceAspectRatio) + chrome.Height)
-                : work.Height;
-
-            var rect = new ScreenRect(
-                ReferenceEquals(session, right) ? work.X + half : work.X,
-                work.Y + ((work.Height - height) / 2),
-                half,
-                height);
+            var rect = TileLayout.Half(
+                work,
+                ReferenceEquals(session, right),
+                session.SourceAspectRatio,
+                MeasureChrome(handle));
 
             _controller.MoveWindow(handle, rect);
             _lastSeen[session.Id] = rect;
@@ -987,6 +1160,13 @@ public sealed class WindowManagerService
         var handle = await ResolveWindowAsync(session, cancellationToken).ConfigureAwait(false);
 
         if (handle == 0 || _controller.GetWindowRect(handle) is not { } rect || rect.IsEmpty)
+        {
+            return;
+        }
+
+        // Une fenêtre déjà au bon coin n'est pas bougée : c'est ce déplacement
+        // sans objet qu'on voyait sauter juste après l'ouverture.
+        if (rect.X == x && rect.Y == y)
         {
             return;
         }

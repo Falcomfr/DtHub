@@ -14,7 +14,10 @@ public sealed class QuestBridgeMessageTests
               "intro": "<div>Départ</div>",
               "chain": "<div>Succès</div>",
               "departure": true,
-              "steps": ["Parler à Amayiro", "Aller au Bois"]
+              "steps": [
+                { "text": "Parler à Amayiro", "title": false },
+                { "text": "Aller au Bois", "title": false }
+              ]
             }
             """);
 
@@ -23,7 +26,75 @@ public sealed class QuestBridgeMessageTests
         Assert.Equal("<div>Départ</div>", message.Intro);
         Assert.Equal("<div>Succès</div>", message.Chain);
         Assert.True(message.Departure);
-        Assert.Equal(["Parler à Amayiro", "Aller au Bois"], message.Steps);
+
+        Assert.Equal(
+            [new QuestStep("Parler à Amayiro", false), new QuestStep("Aller au Bois", false)],
+            message.Steps);
+    }
+
+    /// <summary>
+    /// Une fiche de donjon, de raid, de tanière ou de chemin se lit par ses
+    /// titres de section. Le pont dit lesquels le sont : c'est ce qui décide de
+    /// les montrer ou non.
+    /// </summary>
+    [Fact]
+    public void LitLaNatureDeChaqueEtape()
+    {
+        var message = QuestBridgeMessage.Parse(
+            """
+            {
+              "kind": "loaded",
+              "steps": [
+                { "text": "", "title": false },
+                { "text": "Les salles", "title": true },
+                { "text": "Parlez à Otomaï", "title": false }
+              ]
+            }
+            """);
+
+        Assert.NotNull(message);
+
+        Assert.Equal(
+            [
+                new QuestStep(string.Empty, false),
+                new QuestStep("Les salles", true),
+                new QuestStep("Parlez à Otomaï", false),
+            ],
+            message.Steps);
+    }
+
+    /// <summary>
+    /// Une étape écrite en chaîne nue reste lisible, et compte pour une
+    /// consigne : c'est la forme qu'écrivait le pont avant qu'il ne porte la
+    /// nature, et la seule qu'une page du site saurait poster d'elle-même.
+    /// </summary>
+    [Fact]
+    public void UneEtapeSansNatureCompteCommeUneConsigne()
+    {
+        var message = QuestBridgeMessage.Parse(
+            """{"kind":"loaded","steps":["Parler à Amayiro"]}""");
+
+        var step = Assert.Single(message!.Steps);
+
+        Assert.Equal("Parler à Amayiro", step.Text);
+        Assert.False(step.IsTitle);
+    }
+
+    /// <summary>
+    /// Une nature écrite autrement qu'en booléen vrai ne fait pas d'un
+    /// paragraphe un titre : mieux vaut ne rien montrer que montrer de la prose.
+    /// </summary>
+    [Theory]
+    [InlineData("\"oui\"")]
+    [InlineData("1")]
+    [InlineData("null")]
+    public void UneNatureQuiNEstPasVraieNeTitreRien(string valeur)
+    {
+        var message = QuestBridgeMessage.Parse(
+            """{"kind":"loaded","steps":[{"text":"Les salles","title":VALEUR}]}"""
+                .Replace("VALEUR", valeur, StringComparison.Ordinal));
+
+        Assert.False(Assert.Single(message!.Steps).IsTitle);
     }
 
     [Fact]
@@ -123,6 +194,14 @@ public sealed class QuestBridgeMessageTests
             """{"kind":"loaded","steps":["une",null,3,"quatre"]}""");
 
         Assert.NotNull(message);
-        Assert.Equal(["une", string.Empty, string.Empty, "quatre"], message.Steps);
+
+        Assert.Equal(
+            [
+                new QuestStep("une", false),
+                new QuestStep(string.Empty, false),
+                new QuestStep(string.Empty, false),
+                new QuestStep("quatre", false),
+            ],
+            message.Steps);
     }
 }

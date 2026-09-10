@@ -237,4 +237,51 @@ public class DofusInstanceServiceTests
 
         Assert.Empty(service.Warnings);
     }
+
+    [Fact]
+    public async Task Un_profil_qui_repond_sans_le_jeu_est_releve_comme_tel()
+    {
+        // Le relevé sert à oublier le compte correspondant. Il ne doit contenir
+        // que des profils qui ont vraiment répondu.
+        var adb = new StatefulAdb();
+        var service = new DofusInstanceService(adb, new AndroidUserService(adb));
+
+        _ = await service.DiscoverOnDeviceAsync(Device(), CancellationToken.None);
+
+        Assert.Equal([0], service.ProfilesWithoutGame["MATERIEL123"]);
+    }
+
+    [Fact]
+    public async Task Un_profil_qui_n_a_pas_su_repondre_n_est_pas_declare_vide()
+    {
+        // Toute la prudence tient là. L'échec rendait autrefois une liste vide,
+        // indiscernable d'une réponse disant « rien » : s'y fier pour effacer
+        // un compte l'aurait perdu au premier hoquet d'ADB.
+        var adb = new FakeAdbClient()
+            .FailShell("pm list packages")
+            .WithShell("pm list users", RealUsers);
+
+        var service = Service(adb);
+
+        var instances = await service.DiscoverOnDeviceAsync(Device(), CancellationToken.None);
+
+        Assert.Empty(instances);
+        Assert.Empty(service.ProfilesWithoutGame["MATERIEL123"]);
+    }
+
+    [Fact]
+    public async Task Une_liste_de_profils_illisible_ne_releve_aucun_profil_vide()
+    {
+        // Sans la liste des profils, on ne sait même pas de quels profils on
+        // parlerait : l'appareil n'entre pas du tout dans le relevé.
+        var adb = new FakeAdbClient()
+            .WithShell("pm list users", "Error: could not access users")
+            .WithShell("pm list packages", string.Empty);
+
+        var service = Service(adb);
+
+        _ = await service.DiscoverOnDeviceAsync(Device(), CancellationToken.None);
+
+        Assert.DoesNotContain("MATERIEL123", service.ProfilesWithoutGame.Keys);
+    }
 }

@@ -28,6 +28,9 @@ public enum HotkeyAction
     /// <summary>Afficher ou masquer le suivi de quêtes.</summary>
     Quests,
 
+    /// <summary>Ouvrir l'Almanax du jour.</summary>
+    Almanax,
+
     /// <summary>Première taille, la plus petite.</summary>
     Size1,
 

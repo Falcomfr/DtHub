@@ -32,6 +32,15 @@ public sealed class FakeAppLauncher : IAppLauncher
     /// <summary>Arrêts forcés demandés, dans l'ordre.</summary>
     public List<string> ForceStops { get; } = [];
 
+    /// <summary>
+    /// Appelé au moment précis d'un arrêt forcé, avant qu'il ne soit consigné.
+    ///
+    /// Sert à observer l'état du monde à cet instant, ce qu'une liste consultée
+    /// après coup ne permet pas : l'ordre entre le départ de scrcpy et l'arrêt
+    /// du jeu ne se lit que là.
+    /// </summary>
+    public Action? OnForceStop { get; set; }
+
     public Task<AppLaunchResult> LaunchAsync(
         string serial,
         int userId,
@@ -50,6 +59,7 @@ public sealed class FakeAppLauncher : IAppLauncher
         string packageName,
         CancellationToken cancellationToken = default)
     {
+        OnForceStop?.Invoke();
         ForceStops.Add($"{serial}|{userId}|{packageName}");
         return Task.CompletedTask;
     }

@@ -24,6 +24,25 @@ public static class AppLanguage
     public static string Choose(string? preferred, string? windows)
         => Match(preferred) ?? Match(windows) ?? Neutral;
 
+    /// <summary>
+    /// Vrai s'il faut relancer pour que le choix se voie, c'est-à-dire si la
+    /// langue qu'il désigne n'est pas celle qui est déjà affichée.
+    ///
+    /// Le message d'invitation se levait auparavant à tout changement de
+    /// réglage et ne redescendait jamais : revenir à la langue du départ, donc
+    /// renoncer, laissait pourtant l'invitation, pour une application qui
+    /// n'avait plus rien à changer. Ce qui compte n'est pas qu'on ait touché au
+    /// réglage, mais que le choix s'écarte de ce qui est affiché.
+    ///
+    /// « Suivre Windows » est résolu comme au démarrage : le choisir alors que
+    /// Windows parle déjà la langue affichée ne demande donc rien non plus.
+    /// </summary>
+    /// <param name="preferred">Le réglage choisi, vide pour « suivre Windows ».</param>
+    /// <param name="windows">La langue d'affichage de Windows.</param>
+    /// <param name="inForce">La langue actuellement affichée.</param>
+    public static bool NeedsRestart(string? preferred, string? windows, string? inForce) =>
+        !string.Equals(Choose(preferred, windows), Choose(inForce, null), StringComparison.Ordinal);
+
     /// <summary>Vrai si cette langue est traduite.</summary>
     public static bool Serves(string? culture) => Match(culture) is not null;
 

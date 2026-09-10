@@ -89,12 +89,6 @@ Exige(
     guides.Count(p => Sommaire(p).Count == 0),
     guides.Count);
 
-Exige(
-    "chaque guide de quête met ses consignes en évidence",
-    guides.Count(p => p.Contains("<strong>", StringComparison.Ordinal)),
-    guides.Count,
-    tolerance: 0.9);
-
 // La fenêtre des quêtes masque ce bandeau en entier, son propre bandeau le
 // reprenant. Le jour où le site le renomme, le masquage devient muet et
 // l'encart « Type : Principale » reparaît en tête de guide, à l'endroit même
@@ -120,6 +114,24 @@ Exige(
 // que l'écart se voie ici et non à l'écran.
 mesures["guides-avec-suivante"] =
     guides.Count(p => QuestPageParser.ParseChain(p).OnlyNextQuest is not null);
+
+// Ce que le pont repère comme consignes. C'est le nombre qui dit si la règle
+// mord encore : elle ne tient plus qu'à la grammaire, l'impératif de la
+// deuxième personne du pluriel ou des coordonnées, le bruit écarté. Le jour où
+// le site tournera ses consignes autrement, ce nombre s'effondrera et c'est ici
+// qu'on le verra, plutôt que sur un guide vide à l'écran.
+//
+// Deux mesures et non des exigences : trente et un guides sur les 782 n'ont
+// vraiment aucune consigne à l'impératif, quêtes répétables ou de collecte de
+// trois à neuf paragraphes, et c'est l'état du site.
+//
+// La règle est redite ici, comme l'est déjà l'annonce de départ juste en
+// dessous : le pont vit en JavaScript, cette sonde en C#, et rien ne peut les
+// lier. La redite est donc approximative à dessein, et suffit à un guet. Le
+// relevé exact se refait avec build/sonde-papycha/audit-etapes.mjs, qui exécute
+// le code du pont lui-même sur les 782 guides.
+mesures["consignes-reperees"] = guides.Sum(Consigne.Dans);
+mesures["guides-avec-consigne"] = guides.Count(p => Consigne.Dans(p) > 0);
 
 // L'annonce du départ écrite en prose, que le pont écarte de ses étapes parce
 // que le bandeau la donne déjà : « La quête se lance en [2,-16] en parlant à
@@ -208,12 +220,8 @@ async Task<List<string>> Pages(int categorie, int limite = 100)
 // pont écarte. La même expression que la sienne, ancrée en tête de paragraphe.
 static int Annonces(string html) =>
     Regex.Matches(html, "<p\\b.*?</p>", RegexOptions.Singleline)
-        .Select(m => Regex.Replace(Regex.Replace(m.Value, "<[^>]+>", " "), "\\s+", " ").Trim())
-        .Count(texte => Regex.IsMatch(
-            texte,
-            @"^(La|Cette)\s+qu[eê]te\b[\s\S]{0,90}?\b(se\s+(lance|d[ée]clenche|d[ée]bloque)"
-            + @"|est\s+(disponible|r[ée]p[ée]table|accessible))",
-            RegexOptions.IgnoreCase));
+        .Select(Consigne.Texte)
+        .Count(Consigne.Depart.IsMatch);
 
 static IEnumerable<string> Titres(string html, int rang) =>
     Regex.Matches(html, $"<h{rang}[^>]*>(.*?)</h{rang}>", RegexOptions.Singleline)
@@ -245,3 +253,108 @@ static HashSet<string> Ancres(string html) =>
     [.. Regex.Matches(html, "id=\"([^\"]+)\"").Select(m => m.Groups[1].Value)];
 
 internal sealed record Constat(bool Bon, string Texte);
+
+/// <summary>
+/// Ce que le pont retient comme consigne, redit ici pour pouvoir le compter.
+///
+/// Volontairement plus grossier que lui : les paragraphes sont pris à
+/// l'expression régulière et non par la place qu'ils occupent dans le document,
+/// si bien qu'un paragraphe imbriqué compte alors que le pont l'ignore. C'est
+/// un guet, pas une mesure : ce qui importe est que le nombre ne s'effondre
+/// pas le jour où le site change sa façon d'écrire.
+/// </summary>
+internal static class Consigne
+{
+    // Verbes à l'impératif que leur terminaison ne trahit pas.
+    private static readonly string[] Irreguliers =
+        ["faites", "dites", "soyez", "ayez", "sachez", "veuillez"];
+
+    // Mots après lesquels un « -ez » est un présent et non un ordre.
+    private static readonly string[] Sujets = ["vous", "ne", "n", "qui", "que", "qu", "et"];
+
+    // Mots en « -ez » qui n'ordonnent rien : des noms, et les futurs d'avoir et
+    // d'être, dont les impératifs figurent déjà parmi les irréguliers.
+    private static readonly string[] FauxAmis = ["chez", "assez", "nez", "rez", "aurez", "serez"];
+
+    private static readonly Regex Paragraphe = new("<p\\b.*?</p>", RegexOptions.Singleline);
+
+    private static readonly Regex Etiquette = new(
+        @"^\s*(pr[ée].?requis|source|plage habituelle|dur[ée]e|note|notes|attention|astuce"
+        + @"|remarque|rappel|important|info|informations?)\s*:",
+        RegexOptions.IgnoreCase);
+
+    private static readonly Regex Coordonnees = new(@"\[\s*-?\d+\s*,\s*-?\d+\s*\]");
+
+    private static readonly Regex Mots = new(@"[\p{L}\p{M}]+");
+
+    /// <summary>Combien de paragraphes de cette page donnent un ordre.</summary>
+    internal static int Dans(string html) =>
+        Paragraphe.Matches(html).Select(Texte).Count(EstUneConsigne);
+
+    internal static string Texte(Match paragraphe) =>
+        Regex.Replace(Regex.Replace(paragraphe.Value, "<[^>]+>", " "), "\\s+", " ").Trim();
+
+    private static bool EstUneConsigne(string texte) =>
+        texte.Length > 0
+        && !EstDuBruit(texte)
+        && (Coordonnees.IsMatch(texte) || Ordonne(texte));
+
+    private static bool EstDuBruit(string texte)
+    {
+        if (Etiquette.IsMatch(texte))
+        {
+            return true;
+        }
+
+        if (Depart.IsMatch(texte) && !Ordonne(texte))
+        {
+            return true;
+        }
+
+        if (texte.Length <= 45 && texte.EndsWith(':'))
+        {
+            return true;
+        }
+
+        return texte.StartsWith('(') && texte.EndsWith(')');
+    }
+
+    /// <summary>
+    /// L'annonce du départ, que le bandeau donne déjà et que le guide répète en
+    /// prose. La même expression que celle du pont, ancrée en tête.
+    /// </summary>
+    internal static readonly Regex Depart = new(
+        @"^(la|cette)\s+qu[eê]te\b[\s\S]{0,90}?\b(se\s+(lance|d[ée]clenche|d[ée]bloque)"
+        + @"|est\s+(disponible|r[ée]p[ée]table|accessible))",
+        RegexOptions.IgnoreCase);
+
+    private static bool Ordonne(string texte)
+    {
+        // Le découpage doit être unicode : « \W » ne connaît que l'ASCII, et
+        // « Protégez » y devient « Prot » et « gez ».
+        var mots = Mots.Matches(texte).Select(m => m.Value.ToLowerInvariant()).ToList();
+
+        for (var i = 0; i < mots.Count; i++)
+        {
+            if (i > 0 && Sujets.Contains(mots[i - 1], StringComparer.Ordinal))
+            {
+                continue;
+            }
+
+            if (Irreguliers.Contains(mots[i], StringComparer.Ordinal))
+            {
+                return true;
+            }
+
+            // Quatre lettres et non cinq : « Tuez » en fait quatre.
+            if (mots[i].Length >= 4
+                && mots[i].EndsWith("ez", StringComparison.Ordinal)
+                && !FauxAmis.Contains(mots[i], StringComparer.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}

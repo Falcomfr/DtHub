@@ -29,6 +29,9 @@ public sealed class WindowPlacements(IWindowController windows, SettingsService 
     /// <summary>La fenêtre des pages ouvertes depuis un guide.</summary>
     public const string LinkedPage = "page";
 
+    /// <summary>L'Almanax du jour.</summary>
+    public const string Almanax = "almanax";
+
     /// <summary>Le panneau de réglages.</summary>
     public const string Configurator = "configurator";
 

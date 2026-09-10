@@ -55,19 +55,47 @@ public sealed class FakeAdbClient : IAdbClient
             : Task.FromResult(AdbOutputParser.ParseDevices(DevicesOutput));
     }
 
+    private readonly List<(string Match, ProcessResult Result)> _executeRules = [];
+
+    /// <summary>Commandes reçues par <c>ExecuteAsync</c>, jointes par des espaces.</summary>
+    public List<string> ExecuteCalls { get; } = [];
+
+    /// <summary>Déclare un résultat pour une commande contenant le motif donné.</summary>
+    public FakeAdbClient WithExecute(string argumentsContain, ProcessResult result)
+    {
+        _executeRules.Add((argumentsContain, result));
+
+        return this;
+    }
+
     public Task<ProcessResult> ExecuteAsync(
         string? serial,
         IReadOnlyList<string> arguments,
         TimeSpan? timeout = null,
         IReadOnlyCollection<string>? sensitiveValues = null,
-        CancellationToken cancellationToken = default) =>
-        Task.FromResult(new ProcessResult
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(arguments);
+
+        var line = string.Join(' ', arguments);
+        ExecuteCalls.Add(line);
+
+        foreach (var (match, result) in _executeRules)
+        {
+            if (line.Contains(match, StringComparison.Ordinal))
+            {
+                return Task.FromResult(result);
+            }
+        }
+
+        return Task.FromResult(new ProcessResult
         {
             ExitCode = 0,
             StandardOutput = string.Empty,
             StandardError = string.Empty,
             Duration = TimeSpan.Zero,
         });
+    }
 
     private readonly List<(string Match, Func<string> Respond)> _shellRules = [];
 
@@ -78,6 +106,23 @@ public sealed class FakeAdbClient : IAdbClient
     public FakeAdbClient WithShell(string argumentsContain, string output)
     {
         _shellRules.Add((argumentsContain, () => output));
+        return this;
+    }
+
+    /// <summary>
+    /// Déclare une suite de sorties pour une même commande, la dernière valant
+    /// pour tous les appels suivants.
+    ///
+    /// Le téléphone change d'état sous nos pieds : après une installation, le
+    /// paquet est là où il n'était pas. Une sortie fixe ne sait pas dire cela,
+    /// et une épreuve qui installe puis vérifie échouait donc toujours.
+    /// </summary>
+    public FakeAdbClient WithShellChanging(string argumentsContain, params string[] outputs)
+    {
+        var rang = 0;
+
+        _shellRules.Add((argumentsContain, () => outputs[Math.Min(rang++, outputs.Length - 1)]));
+
         return this;
     }
 

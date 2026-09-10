@@ -100,6 +100,7 @@ public static class AppServices
         // Téléphones.
         services.AddSingleton<IAdbClient, AdbClient>();
         services.AddSingleton<IDeviceRegistry, DeviceRegistry>();
+        services.AddSingleton<IUsbEnumerationInspector, WindowsUsbInspector>();
         services.AddSingleton<DeviceDiscoveryService>();
         services.AddSingleton<DevicePairingService>();
         services.AddSingleton<DeviceReconnectService>();
@@ -129,6 +130,8 @@ public static class AppServices
         services.AddTransient<HelpWindow>();
         services.AddTransient<SleepHelpViewModel>();
         services.AddTransient<SleepHelpWindow>();
+        services.AddTransient<InputHelpViewModel>();
+        services.AddTransient<InputHelpWindow>();
         services.AddSingleton<QuestViewModel>();
         services.AddSingleton<WindowPlacements>();
         services.AddSingleton<QuestWindow>();
@@ -136,6 +139,7 @@ public static class AppServices
         // À part et jetable : une page liée n'a rien à retenir d'une ouverture
         // à l'autre, et on peut en vouloir plusieurs côte à côte.
         services.AddTransient<QuestPageWindow>();
+        services.AddTransient<AlmanaxWindow>();
         services.AddTransient<HotkeyEditorViewModel>();
         services.AddTransient<HotkeyEditorWindow>();
         services.AddSingleton<ConfiguratorViewModel>();

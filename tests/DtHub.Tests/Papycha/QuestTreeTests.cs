@@ -165,4 +165,38 @@ public class QuestTreeTests
             QuestTree.DungeonGroups.Length,
             QuestTree.DungeonGroups.Select(g => g.Kind).Distinct().Count());
     }
+    [Theory]
+    [InlineData(QuestTree.DungeonSection, "Dungeons")]
+    [InlineData(QuestTree.RaidSection, "Raids")]
+    [InlineData(QuestTree.LairSection, "Lairs")]
+    public async Task Une_branche_hors_du_site_porte_son_propre_nom(int section, string clef)
+    {
+        // Le repli les nommait toutes « Rubrique » : un signalement sur le
+        // Minotoror portait « Rubrique › Minotoror » et ne disait donc pas où
+        // regarder.
+        var (tree, _) = await BuildAsync(new FakePapychaClient());
+
+        Assert.Equal(Strings.Get(clef), tree.NameOf(section));
+    }
+
+    [Theory]
+    [InlineData(QuestTree.DungeonPathSection, "Dungeons")]
+    [InlineData(QuestTree.QuestPathSection, "QuestAreaCrumb")]
+    public async Task Un_chemin_garde_ses_deux_rangs(int section, string cote)
+    {
+        var (tree, _) = await BuildAsync(new FakePapychaClient());
+
+        Assert.Equal(
+            Strings.Get(cote) + QuestTree.Separator + Strings.Get("Paths"),
+            tree.NameOf(section));
+    }
+
+    [Fact]
+    public async Task Une_rubrique_inconnue_reste_nommee_par_defaut()
+    {
+        var (tree, _) = await BuildAsync(new FakePapychaClient());
+
+        Assert.Equal(Strings.Get("Section"), tree.NameOf(987654));
+    }
+
 }

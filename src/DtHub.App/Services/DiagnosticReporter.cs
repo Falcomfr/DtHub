@@ -92,7 +92,11 @@ public sealed class DiagnosticReporter
     private DiagnosticFacts Facts()
     {
         var sessions = Launcher?.ActiveSessions.Count ?? 0;
-        var tabbed = sessions - (Launcher?.ManagedSessions.Count ?? 0);
+
+        // Le compte des logés, et non la différence avec les fenêtres que les
+        // placements peuvent ranger : celle-ci écarte aussi les verrouillées,
+        // qu'elle faisait donc passer pour des onglets.
+        var tabbed = Launcher?.HousedCount ?? 0;
 
         return new DiagnosticFacts(
             $"{Core.ProductInfo.Name} {Core.ProductInfo.Version}",

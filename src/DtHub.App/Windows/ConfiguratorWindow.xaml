@@ -4,7 +4,7 @@
         xmlns:w="clr-namespace:DtHub.App.Windows"
         xmlns:loc="clr-namespace:DtHub.App.Localization"
         Title="DT Hub"
-        Width="400" Height="520"
+        Width="440" Height="580"
         MinWidth="360" MinHeight="380"
         Topmost="True"
         ShowInTaskbar="True"
@@ -112,14 +112,37 @@
                       ToolTip="{loc:T GuidesTip}"
                       Command="{Binding QuestsCommand}">
                 <StackPanel Orientation="Horizontal">
-                  <!-- Un parchemin déroulé : deux rouleaux et des lignes de
-                       texte. Le dessin est à nous ; celui du site ne sera repris
-                       que s'ils l'accordent. -->
-                  <Path Style="{StaticResource RowGlyph}" Margin="0,0,5,0"
-                        VerticalAlignment="Center"
-                        Data="M 2.4,2.4 V 12.6 M 12.6,2.4 V 12.6
-                              M 5,5.2 H 10 M 5,7.5 H 10 M 5,9.8 H 10" />
+                  <!-- Le logo du site, employé avec l'accord de papycha.fr. Il
+                       remplace le parchemin que nous dessinions en attendant cet
+                       accord. La bannière du site est écartée : elle porte le
+                       logo déposé de DOFUS Touch, qu'aucun accord de papycha ne
+                       peut nous céder. Voir THIRD-PARTY-NOTICES.md. -->
+                  <Image Source="/assets/papycha.png" Width="16" Height="16"
+                         Margin="0,0,6,0" VerticalAlignment="Center"
+                         RenderOptions.BitmapScalingMode="HighQuality" />
                   <TextBlock Text="{loc:T Guides}" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+            </Border>
+
+            <!-- L'Almanax à côté des guides : ce sont les deux touches qui
+                 ouvrent quelque chose à lire, par opposition au rangement de
+                 fenêtres qui suit. Un calendrier dessiné et non un logo : la
+                 page vient d'Ankama, dont nous n'affichons aucune marque. -->
+            <Border Margin="8,0,0,0"
+                    Background="{StaticResource KeyFaceBrush}"
+                    BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
+                    CornerRadius="{StaticResource RadiusKey}">
+              <Button Style="{StaticResource GroupKey}"
+                      ToolTip="{loc:T AlmanaxTip}"
+                      Command="{Binding AlmanaxCommand}">
+                <StackPanel Orientation="Horizontal">
+                  <Path Width="16" Height="16" Stretch="None" Margin="0,0,6,0"
+                        VerticalAlignment="Center" StrokeLineJoin="Round"
+                        StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                        Stroke="{DynamicResource TextBrush}" StrokeThickness="1.3"
+                        Data="M 3,4.5 H 13 V 13.5 H 3 Z M 3,7.5 H 13 M 6,3 V 6 M 10,3 V 6" />
+                  <TextBlock Text="{loc:T Almanax}" VerticalAlignment="Center" />
                 </StackPanel>
               </Button>
             </Border>
@@ -177,10 +200,19 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
-          <RadioButton x:Name="TabHotkeys" Style="{StaticResource Tab}" Content="{loc:T TabShortcuts}"
+          <!-- L'ordre va du concret au réglage : l'appareil d'abord, puis ses
+               fenêtres, puis les touches. Les panneaux de contenu suivent les
+               liaisons par nom et non cet ordre : les retourner ici ne les
+               déplace pas. -->
+          <!-- Le premier onglet est aussi celui qui s'ouvre : c'est là qu'on
+               agit, alors que les raccourcis se lisent une fois. L'ouverture
+               n'est pas mémorisée d'une session à l'autre, ce choix vaut donc à
+               chaque démarrage. -->
+          <RadioButton x:Name="TabDevices" Style="{StaticResource Tab}" Content="{loc:T TabDevices}"
                        GroupName="Tabs" IsChecked="True" />
           <RadioButton x:Name="TabGeneral" Style="{StaticResource Tab}" Content="{loc:T TabWindows}" GroupName="Tabs" />
-          <RadioButton x:Name="TabDevices" Style="{StaticResource Tab}" Content="{loc:T TabDevices}" GroupName="Tabs" />
+          <RadioButton x:Name="TabHotkeys" Style="{StaticResource Tab}" Content="{loc:T TabShortcuts}"
+                       GroupName="Tabs" />
         </StackPanel>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,10,0">
@@ -517,6 +549,23 @@
                           IsChecked="{Binding AudioEnabled}"
                           ToolTip="{loc:T PhoneAudioTip}" />
 
+                <!-- Placée avec le son plutôt qu'avec les mises à jour : elle
+                     décrit ce qui arrive au téléphone, pas à l'application. -->
+                <CheckBox Content="{loc:T StopAppOnClose}" Margin="0,0,0,8"
+                          IsChecked="{Binding StopAppOnClose}"
+                          ToolTip="{loc:T StopAppOnCloseTip}" />
+
+                <!-- Placée avec le son et l'arrêt du jeu : elle décrit elle
+                     aussi ce qui arrive au téléphone. Le piège de la
+                     disposition est dit sous la case, pas en infobulle : il
+                     décide du réglage, il ne le commente pas. -->
+                <CheckBox Content="{loc:T SimulatedKeyboard}"
+                          IsChecked="{Binding SimulatedPhysicalKeyboard}"
+                          ToolTip="{loc:T SimulatedKeyboardTip}" />
+                <TextBlock Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
+                           TextWrapping="Wrap" Margin="24,2,0,8"
+                           Text="{loc:T SimulatedKeyboardHelp}" />
+
                 <CheckBox Content="{loc:T AutomaticUpdates}" Margin="0,0,0,8"
                           IsChecked="{Binding UpdatesAutomatic}"
                           ToolTip="{loc:T AutomaticUpdatesTip}" />
@@ -555,6 +604,44 @@
             <StackPanel Visibility="{Binding IsChecked, ElementName=TabDevices,
                                              Converter={StaticResource BoolToVisibility}}">
 
+              <!-- L'état de la liaison, dit avant qu'on ait lancé quoi que ce
+                   soit. Les messages d'échec existaient déjà, mais ils ne
+                   paraissaient qu'en réponse à une action : tant qu'on ne
+                   lançait rien, l'application ne disait ni ce qu'elle voyait,
+                   ni ce qui manquait.
+
+                   Le bloc s'efface quand le téléphone répond : il n'a alors
+                   rien à apprendre à personne. Il reste également muet tant
+                   que la liaison n'a pas été examinée, faute de quoi il
+                   annonçait « aucun téléphone » à l'ouverture du panneau pour
+                   se dédire au premier sondage. -->
+              <Border Style="{StaticResource Card}" Padding="10,8" Margin="0,0,0,12"
+                      Visibility="{Binding ShowsConnection,
+                                           Converter={StaticResource BoolToVisibility}}">
+                <StackPanel>
+                  <TextBlock Text="{loc:T ConnectionHeading}" Style="{StaticResource SectionLabel}" />
+
+                  <TextBlock Text="{Binding ConnectionMessage}" TextWrapping="Wrap"
+                             Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" />
+
+                  <ToggleButton x:Name="CableHelpToggle" Style="{StaticResource OutlineToggle}"
+                                Content="{loc:T CableHelp}" HorizontalAlignment="Left"
+                                Margin="0,8,0,0"
+                                Visibility="{Binding ShowsCableHelp,
+                                                     Converter={StaticResource BoolToVisibility}}" />
+
+                  <StackPanel Margin="0,8,0,0"
+                              Visibility="{Binding IsChecked, ElementName=CableHelpToggle,
+                                                   Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Text="{loc:T CableHelpTitle}" Style="{StaticResource SectionLabel}" />
+                    <TextBlock Text="{loc:T CableHelpIntro}" TextWrapping="Wrap"
+                               Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" />
+                    <TextBlock Text="{loc:T CableHelpSteps}" TextWrapping="Wrap" Margin="0,8,0,0"
+                               Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" />
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+
               <!-- Les profils partagent la ligne du bouton d'association, qui
                    avait de la place à droite. Dépliés dans la page, ils
                    prenaient quarante-sept pixels à la liste des comptes, qui
@@ -586,17 +673,45 @@
                 <ToggleButton x:Name="ProfilesToggle" Grid.Column="2"
                               Style="{StaticResource OutlineToggle}"
                               VerticalAlignment="Center"
-                              ToolTip="{loc:T ProfilesTip}">
+                              ToolTip="{Binding Instances.ProfilesTooltip}">
                   <StackPanel Orientation="Horizontal">
                     <!-- Un signet : ce qu'on met de côté pour y revenir. Le
                          chevron dit que la bulle s'ouvre en dessous ; il était
                          écrit en caractère de fonte à chasse fixe, et pendait
-                         sous la ligne de texte. -->
-                    <Path Width="11" Height="13" Margin="0,0,8,0" Stretch="None"
-                          VerticalAlignment="Center" StrokeLineJoin="Round"
-                          Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
-                          Data="M 1,1 H 10 V 12 L 5.5,8.6 L 1,12 Z" />
-                    <TextBlock Text="{loc:T Profiles}" VerticalAlignment="Center" />
+                         sous la ligne de texte.
+
+                         Le signet se remplit quand un profil est retenu pour le
+                         démarrage. C'est le même signal que l'étoile pleine de
+                         la ligne concernée, plus bas dans la bulle : un profil
+                         par défaut décide des comptes, de la qualité et du
+                         zoom, et cela doit se voir sans rien ouvrir.
+
+                         Deux tracés superposés plutôt qu'un convertisseur de
+                         pinceau : les convertisseurs de visibilité existent
+                         déjà, un convertisseur de couleur non. -->
+                    <Grid Margin="0,0,8,0" VerticalAlignment="Center">
+                      <Path Width="11" Height="13" Stretch="None"
+                            StrokeLineJoin="Round"
+                            Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
+                            Data="M 1,1 H 10 V 12 L 5.5,8.6 L 1,12 Z"
+                            Visibility="{Binding Instances.HasActiveProfile,
+                                                 Converter={StaticResource InverseBoolToVisibility}}" />
+
+                      <Path Width="11" Height="13" Stretch="None"
+                            StrokeLineJoin="Round"
+                            Fill="{DynamicResource AccentBrush}"
+                            Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
+                            Data="M 1,1 H 10 V 12 L 5.5,8.6 L 1,12 Z"
+                            Visibility="{Binding Instances.HasActiveProfile,
+                                                 Converter={StaticResource BoolToVisibility}}" />
+                    </Grid>
+
+                    <!-- Le nom du profil retenu, coupé s'il déborde : un nom va
+                         jusqu'à quarante caractères, et le laisser pousser
+                         chasserait le chevron hors du bouton. -->
+                    <TextBlock Text="{Binding Instances.ProfilesButtonText}"
+                               VerticalAlignment="Center"
+                               MaxWidth="150" TextTrimming="CharacterEllipsis" />
                     <Path Width="9" Height="5" Margin="9,2,0,0" Stretch="None"
                           VerticalAlignment="Center" StrokeLineJoin="Round"
                           Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.5"
@@ -723,9 +838,22 @@
         <StackPanel Grid.Row="2" Margin="0,6,0,0"
                     Visibility="{Binding IsChecked, ElementName=TabDevices,
                                          Converter={StaticResource BoolToVisibility}}">
-          <Button Content="{loc:T FrozenWindowHelp}"
-                  Style="{StaticResource QuietButton}" HorizontalAlignment="Left"
-                  Margin="-9,0,0,0" Click="OnSleepHelp" />
+          <!-- Deux conditions, donc deux panneaux : l'onglet dehors, le
+               téléphone dedans. Elles ne se remplacent pas, elles s'ajoutent.
+               Sans téléphone joignable il n'y a pas de fenêtre de jeu, et ces
+               deux lignes ne parleraient de rien. -->
+          <StackPanel Visibility="{Binding Instances.ShowsWindowHelp,
+                                           Converter={StaticResource BoolToVisibility}}">
+            <Button Content="{loc:T FrozenWindowHelp}"
+                    Style="{StaticResource QuietButton}" HorizontalAlignment="Left"
+                    Margin="-9,0,0,0" Click="OnSleepHelp" />
+
+            <!-- Le symptôme le plus fréquent du terrain, et le plus démuni :
+                 rien n'échoue, rien ne s'affiche, et le clic ne fait rien. -->
+            <Button Content="{loc:T DeadInputHelp}"
+                    Style="{StaticResource QuietButton}" HorizontalAlignment="Left"
+                    Margin="-9,0,0,0" Click="OnInputHelp" />
+          </StackPanel>
         </StackPanel>
       </Grid>
 

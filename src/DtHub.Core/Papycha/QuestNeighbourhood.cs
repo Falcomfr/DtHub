@@ -9,7 +9,29 @@ public readonly record struct QuestNeighbours(
     QuestSummary? Previous,
     QuestSummary? Next,
     int Rank,
-    int Count);
+    int Count)
+{
+    /// <summary>
+    /// Vrai quand la liste du succès a désigné elle-même la suivante, parce que
+    /// la quête ouverte n'est pas la dernière de la liste.
+    ///
+    /// Sert à savoir qui a le dernier mot. La colonne que le site publie en
+    /// pied d'article s'intitule « Quêtes et jalons suivants » : elle dit ce que
+    /// cette quête débloque, c'est-à-dire le graphe des prérequis, et non
+    /// l'ordre dans lequel on lit un succès. Les deux se ressemblent souvent et
+    /// diffèrent parfois : dans « Le théâtre des gobelins », la colonne de
+    /// « Titi Gobelait le magobelin » ne nomme que « Manque de moule », qui
+    /// l'exige, alors que la liste passe d'abord par « Un avenir de krotte de
+    /// Trooll », qui n'exige rien. Suivre la colonne sautait une quête.
+    /// </summary>
+    public bool NextFromList => Rank > 0 && Rank < Count;
+
+    /// <summary>
+    /// Vrai quand la liste du succès a désigné elle-même la précédente, parce
+    /// que la quête ouverte n'en est pas la première.
+    /// </summary>
+    public bool PreviousFromList => Rank > 1;
+}
 
 /// <summary>
 /// Décide des voisines d'une quête.

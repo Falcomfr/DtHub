@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace DtHub.App.ViewModels;
 
@@ -13,19 +11,26 @@ namespace DtHub.App.ViewModels;
 /// </summary>
 public sealed partial class QuestStepRowViewModel : ObservableObject
 {
-    public QuestStepRowViewModel(int index, string label)
+    public QuestStepRowViewModel(int index, string rank, string label)
     {
         Index = index;
+        Rank = rank;
         Label = label;
     }
 
     /// <summary>Rang de l'étape, compté à partir de zéro comme dans la page.</summary>
     public int Index { get; }
 
-    /// <summary>Le numéro montré, compté à partir de un comme sur le site.</summary>
-    public string Rank => (Index + 1).ToString(CultureInfo.InvariantCulture);
+    /// <summary>
+    /// Ce qui se lit à gauche de la ligne : un numéro, ou « Départ ».
+    ///
+    /// Donné et non déduit du rang, parce que le départ n'est pas numéroté : il
+    /// n'est pas une étape du parcours mais l'endroit où l'on se rend pour le
+    /// commencer.
+    /// </summary>
+    public string Rank { get; }
 
-    /// <summary>Ce qu'il y a à y faire, résumé comme dans le bandeau.</summary>
+    /// <summary>Ce qu'il y a à y faire, quand il y a quelque chose à en dire.</summary>
     public string Label { get; }
 
     /// <summary>Vrai pour l'étape où l'on est.</summary>

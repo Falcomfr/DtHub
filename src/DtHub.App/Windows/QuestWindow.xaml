@@ -94,8 +94,31 @@
                         M 3.5,6 H 9.5 C 12,6 12.5,7.6 12.5,9.6 V 12.5" />
           </Button>
 
+          <!-- La ligne du succès n'était pas déclarée comme un espacement, mais
+               elle en faisait office : quinze pixels de gris clair au-dessus du
+               titre. Plus de la moitié des quêtes n'en ont pas, et le titre
+               venait alors toucher le filet, d'autant que la page en dessous
+               s'offre douze pixels de marge. Le bloc rend donc un peu d'air
+               quand la ligne se replie, sans prétendre remplacer un texte
+               absent.
+
+               Le déclencheur lit la visibilité de la ligne plutôt que la chaîne
+               elle-même : c'est la même notion de vide que le convertisseur, y
+               compris pour un texte nul ou blanc, et les deux ne peuvent pas
+               diverger. -->
           <StackPanel Grid.Column="1">
-            <TextBlock Text="{Binding ChainText}" Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
+            <StackPanel.Style>
+              <Style TargetType="StackPanel">
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding Visibility, ElementName=HeaderSeries}" Value="Collapsed">
+                    <Setter Property="Margin" Value="0,4" />
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </StackPanel.Style>
+
+            <TextBlock x:Name="HeaderSeries"
+                       Text="{Binding ChainText}" Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
                        Visibility="{Binding ChainText, Converter={StaticResource EmptyToVisibility},
                                             ConverterParameter=inverse}" />
 
@@ -197,8 +220,14 @@
                                        FontFamily="{StaticResource MonoFont}" FontSize="{StaticResource FontSmall}"
                                        Foreground="{DynamicResource AccentBrush}" />
 
+                            <!-- Le plus souvent vide : seul un titre de section
+                                 s'écrit ici. La ligne garde sa hauteur et sa
+                                 zone cliquable par le remplissage du bouton. -->
                             <TextBlock Grid.Column="1" Text="{Binding Label}"
-                                       TextWrapping="Wrap" Style="{StaticResource Muted}" />
+                                       TextWrapping="Wrap" Style="{StaticResource Muted}"
+                                       Visibility="{Binding Label,
+                                           Converter={StaticResource EmptyToVisibility},
+                                           ConverterParameter=inverse}" />
                           </Grid>
                         </Button>
                       </DataTemplate>
@@ -222,8 +251,18 @@
                 <Setter Property="Text" Value="{Binding StepDetail}" />
 
                 <Style.Triggers>
+                  <!-- Rien à dire, rien à montrer : le rang se suffit. La
+                       visibilité est posée ici et non sur l'élément, une valeur
+                       locale l'emportant sur tout déclencheur de style. -->
+                  <DataTrigger Binding="{Binding StepDetail}" Value="">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                  </DataTrigger>
+
+                  <!-- En dernier, donc l'emporte : l'attente se dit même quand
+                       l'étape n'a rien à afficher. -->
                   <DataTrigger Binding="{Binding IsLoadingPage}" Value="True">
                     <Setter Property="Text" Value="Chargement de la page…" />
+                    <Setter Property="Visibility" Value="Visible" />
                   </DataTrigger>
                 </Style.Triggers>
               </Style>
@@ -248,10 +287,15 @@
              on affiche le travail, il ne se lit pas comme une mention grise.
              Il se laisse couper : les deux boutons passent avant lui dans une
              fenêtre étroite. -->
-        <TextBlock Grid.Column="0" VerticalAlignment="Center" FontSize="{StaticResource FontSmall}"
-                   TextTrimming="CharacterEllipsis"
-                   Foreground="{DynamicResource AccentBrush}"
-                   Text="{loc:T PapychaGuides}" />
+        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+          <Image Source="/assets/papycha.png" Width="14" Height="14" Margin="0,0,5,0"
+                 VerticalAlignment="Center"
+                 RenderOptions.BitmapScalingMode="HighQuality" />
+          <TextBlock VerticalAlignment="Center" FontSize="{StaticResource FontSmall}"
+                     TextTrimming="CharacterEllipsis"
+                     Foreground="{DynamicResource AccentBrush}"
+                     Text="{loc:T PapychaGuides}" />
+        </StackPanel>
 
         <!-- Le signalement porte les couleurs de l'accent, au repos et non au
              seul survol : c'est le geste qu'on cherche dans cette barre, et un
@@ -285,6 +329,40 @@
                 Data="M 7,3.5 H 3.5 V 12.5 H 12.5 V 9 M 9.5,3.5 H 12.5 V 6.5 M 12.5,3.5 L 7.8,8.2" />
         </Button>
       </Grid>
+    </Border>
+
+    <!-- La sortie de secours de la recherche, offerte sur un retour à la ligne.
+         Notre catalogue ne connaît que des titres ; le site cherche dans le
+         corps de ses articles, donc les objets, les monstres et les personnages.
+
+         Sur sa propre ligne et non dans la barre du crédit : celle-ci porte
+         déjà trois éléments, et son commentaire dit ce qu'il advient d'un
+         quatrième dans une fenêtre étroite. Déclarée après elle, donc placée
+         au-dessus : un enfant ancré en bas se pose sur le précédent. -->
+    <Border DockPanel.Dock="Bottom" Padding="10,6"
+            Background="{DynamicResource AccentSoftBrush}"
+            BorderBrush="{DynamicResource BevelBrush}" BorderThickness="0,1,0,0"
+            Visibility="{Binding SiteSearch, Converter={StaticResource EmptyToVisibility},
+                                 ConverterParameter=inverse}">
+      <Button Style="{StaticResource QuietButton}" HorizontalAlignment="Left"
+              Padding="0" Background="Transparent" BorderThickness="0"
+              ToolTip="{loc:T SearchOnSiteTip}"
+              Click="OnSearchOnSite">
+        <StackPanel Orientation="Horizontal">
+          <Image Source="/assets/papycha.png" Width="14" Height="14" Margin="0,0,6,0"
+                 VerticalAlignment="Center"
+                 RenderOptions.BitmapScalingMode="HighQuality" />
+          <TextBlock VerticalAlignment="Center" FontSize="{StaticResource FontSmall}"
+                     TextTrimming="CharacterEllipsis"
+                     Foreground="{DynamicResource AccentBrush}"
+                     Text="{Binding SiteSearchLabel}" />
+
+          <!-- Le même dessin que l'accès au navigateur de la barre du dessous :
+               c'est le même geste, sortir de l'application. -->
+          <Path Style="{StaticResource RowGlyph}" Margin="7,0,0,0" VerticalAlignment="Center"
+                Data="M 7,3.5 H 3.5 V 12.5 H 12.5 V 9 M 9.5,3.5 H 12.5 V 6.5 M 12.5,3.5 L 7.8,8.2" />
+        </StackPanel>
+      </Button>
     </Border>
 
     <!-- La suite du succès : d'où l'on vient, où l'on en est, où l'on va.
@@ -321,8 +399,21 @@
           <StackPanel Orientation="Horizontal">
             <Path Style="{StaticResource RowGlyph}" Data="M 9,3 L 5,7.5 L 9,12"
                   Margin="0,0,4,0" VerticalAlignment="Center" />
+            <!-- Même mécanique qu'en tête de fenêtre : sans série, le titre
+                 remontait contre le bord du bouton. -->
             <StackPanel>
-              <TextBlock Text="{Binding PreviousQuest.Series}" MaxWidth="180"
+              <StackPanel.Style>
+                <Style TargetType="StackPanel">
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding Visibility, ElementName=PreviousSeries}" Value="Collapsed">
+                      <Setter Property="Margin" Value="0,3" />
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </StackPanel.Style>
+
+              <TextBlock x:Name="PreviousSeries"
+                         Text="{Binding PreviousQuest.Series}" MaxWidth="180"
                          Style="{StaticResource Muted}" FontSize="{StaticResource FontTiny}"
                          TextTrimming="CharacterEllipsis"
                          Visibility="{Binding PreviousQuest.Series,
@@ -342,7 +433,18 @@
                                      ConverterParameter=inverse}">
           <StackPanel Orientation="Horizontal">
             <StackPanel>
-              <TextBlock Text="{Binding NextQuest.Series}" MaxWidth="180"
+              <StackPanel.Style>
+                <Style TargetType="StackPanel">
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding Visibility, ElementName=NextSeries}" Value="Collapsed">
+                      <Setter Property="Margin" Value="0,3" />
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </StackPanel.Style>
+
+              <TextBlock x:Name="NextSeries"
+                         Text="{Binding NextQuest.Series}" MaxWidth="180"
                          Style="{StaticResource Muted}" FontSize="{StaticResource FontTiny}"
                          TextAlignment="Right" TextTrimming="CharacterEllipsis"
                          Visibility="{Binding NextQuest.Series,
@@ -479,7 +581,8 @@
                        Text="{Binding Breadcrumb}" />
 
             <Button Grid.Column="1" Style="{StaticResource IconButton}"
-                    Click="OnCloseList" ToolTip="{loc:T CloseListTip}">
+                    Click="OnCloseList" ToolTip="{loc:T CloseListTip}"
+                    Visibility="{Binding CanCloseList, Converter={StaticResource BoolToVisibility}}">
               <Path Style="{StaticResource RowGlyph}" Data="M 4,4 L 11,11 M 11,4 L 4,11" />
             </Button>
           </Grid>

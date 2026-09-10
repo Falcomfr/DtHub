@@ -40,8 +40,26 @@ public sealed partial class PairingCandidateViewModel : ObservableObject
 public sealed partial class AddDeviceViewModel : ObservableObject
 {
     private readonly DevicePairingService _pairing;
+    private readonly IDeviceRegistry _registry;
 
-    public AddDeviceViewModel(DevicePairingService pairing) => _pairing = pairing;
+    /// <summary>
+    /// Hôte du téléphone qui vient d'accepter le code, tant qu'il n'est pas
+    /// encore connecté.
+    ///
+    /// Le code accepté ne suffit pas à jouer : il faut encore que le téléphone
+    /// s'annonce sur le réseau et qu'on s'y connecte. Cette annonce arrive
+    /// souvent après que la tentative a rendu la main, et la fenêtre restait
+    /// alors ouverte pour toujours sur un appairage pourtant réussi. Relevé sur
+    /// le poste, deux appairages coup sur coup faute de voir le premier
+    /// aboutir.
+    /// </summary>
+    private string? _awaitedHost;
+
+    public AddDeviceViewModel(DevicePairingService pairing, IDeviceRegistry registry)
+    {
+        _pairing = pairing;
+        _registry = registry;
+    }
 
     /// <summary>Téléphones qui affichent un code d'association.</summary>
     public ObservableCollection<PairingCandidateViewModel> Candidates { get; } = [];
@@ -88,6 +106,21 @@ public sealed partial class AddDeviceViewModel : ObservableObject
     {
         try
         {
+            // Le téléphone appairé s'est-il annoncé depuis ? Ce balayage tourne
+            // déjà toutes les deux secondes : il n'en coûte rien de le lui
+            // demander, et c'est ce qui manquait pour refermer la fenêtre.
+            if (_awaitedHost is { Length: > 0 } awaited
+                && await ConnectedSinceAsync(awaited, cancellationToken).ConfigureAwait(true))
+            {
+                _awaitedHost = null;
+
+                Settle(new WirelessPairingResult(
+                    WirelessPairingStatus.Connected,
+                    Strings.Get("PairedAndConnected")));
+
+                return;
+            }
+
             var found = await _pairing.FindPairingCandidatesAsync(cancellationToken).ConfigureAwait(true);
 
             foreach (var service in found)
@@ -118,6 +151,30 @@ public sealed partial class AddDeviceViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Vrai si le téléphone attendu s'annonce enfin et accepte la connexion.
+    ///
+    /// L'hôte est comparé, et non pas simplement « quelque chose s'est
+    /// connecté » : un autre téléphone déjà associé peut s'annoncer au même
+    /// moment, et refermer la fenêtre sur son dos donnerait à croire que
+    /// l'association vient d'aboutir.
+    /// </summary>
+    private async Task<bool> ConnectedSinceAsync(string host, CancellationToken cancellationToken)
+    {
+        var announced = await _pairing.FindConnectableAsync(cancellationToken).ConfigureAwait(true);
+
+        if (announced.FirstOrDefault(
+                s => string.Equals(s.Host, host, StringComparison.OrdinalIgnoreCase)) is not { } mine)
+        {
+            return false;
+        }
+
+        var result = await _pairing.ConnectAsync(mine.Host, mine.Port, cancellationToken)
+            .ConfigureAwait(true);
+
+        return result.Connected;
+    }
+
     [RelayCommand]
     private async Task PairAsync(CancellationToken cancellationToken)
     {
@@ -135,7 +192,7 @@ public sealed partial class AddDeviceViewModel : ObservableObject
         }
 
         IsBusy = true;
-        Status = "Association en cours…";
+        Status = Strings.Get("PairingInProgress");
         OnPropertyChanged(nameof(CanPair));
 
         try
@@ -147,7 +204,21 @@ public sealed partial class AddDeviceViewModel : ObservableObject
             // Le code ne sert qu'une fois : il est effacé aussitôt.
             PairingCode = string.Empty;
 
+            // Une association acceptée lève l'écart, et elle seule : c'est le
+            // geste explicite par lequel on revient sur une rupture. Sans cela,
+            // un appareil écarté resterait refusé alors qu'on vient de retaper
+            // son code, et rien ne le dirait.
+            if (result.Paired
+                && MdnsDeviceName.HardwareSerialFromInstance(candidate.Service.Name) is { Length: > 0 } serial)
+            {
+                await _registry.WelcomeBackAsync(serial, cancellationToken).ConfigureAwait(true);
+            }
+
             Settle(result);
+
+            // Le code est accepté mais la connexion n'est pas venue : on guette
+            // l'annonce du téléphone au lieu de laisser la fenêtre ouverte.
+            _awaitedHost = result.Paired && !result.Connected ? candidate.Service.Host : null;
         }
         catch (AdbException exception)
         {

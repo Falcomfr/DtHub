@@ -117,7 +117,7 @@ public sealed partial class Win32WindowController : IWindowController
     /// compte : sur un écran à 150 pour cent, le cadre est une fois et demie
     /// plus épais.
     /// </summary>
-    public (int Width, int Height) GetWindowChrome(string? monitorDeviceName)
+    public WindowFrame GetWindowChrome(string? monitorDeviceName)
     {
         var dpi = DpiOf(monitorDeviceName);
 
@@ -125,10 +125,16 @@ public sealed partial class Win32WindowController : IWindowController
 
         if (!AdjustWindowRectExForDpi(ref frame, OverlappedWindow, bMenu: false, 0, dpi))
         {
-            return (0, 0);
+            return WindowFrame.None;
         }
 
-        return (frame.Right - frame.Left - 1000, frame.Bottom - frame.Top - 1000);
+        // Le rectangle rendu déborde du client : ses bords gauche et haut sont
+        // négatifs, et leur opposé est l'épaisseur cherchée.
+        return new WindowFrame(
+            Left: -frame.Left,
+            Top: -frame.Top,
+            Width: frame.Right - frame.Left - 1000,
+            Height: frame.Bottom - frame.Top - 1000);
     }
 
     /// <summary>Points par pouce de l'écran visé, ou ceux du système à défaut.</summary>
@@ -321,6 +327,38 @@ public sealed partial class Win32WindowController : IWindowController
         }
     }
 
+    /// <summary>
+    /// Rend le clavier à une fenêtre logée.
+    ///
+    /// Un seul appel suffit, et c'est une mesure qui le dit : comparées côte
+    /// à côte, la file d'entrée d'une fenêtre scrcpy libre et la nôtre sont
+    /// séparées, alors qu'une fois la fenêtre arrimée elles n'en font plus
+    /// qu'une, sans que rien ici ne les ait jointes. C'est SetParent qui les
+    /// attache. Il ne restait donc qu'à désigner la fenêtre : le focus, lui,
+    /// demeurait sur la fenêtre WPF, et toutes les frappes avec lui.
+    ///
+    /// Le chemin le plus court se trouve être le plus sûr.
+    /// <c>AttachThreadInput</c> remettrait l'état des touches à zéro à chaque
+    /// appel, perdant le Ctrl d'un Ctrl+V en cours, et le défaire couperait
+    /// ce dont l'arrimage dépend.
+    /// </summary>
+    public bool GiveKeyboardFocus(nint child)
+    {
+        if (child == 0 || !IsWindow(child) || !_docked.ContainsKey(child))
+        {
+            return false;
+        }
+
+        _ = SetFocus(child);
+
+        // On relit plutôt que de croire la valeur rendue : SetFocus rend NULL
+        // aussi bien s'il échoue que si aucune fenêtre n'avait le focus, et le
+        // second cas est le nôtre au premier arrimage. GetFocus interroge la
+        // file du fil appelant, celle-là même que l'arrimage a jointe à celle
+        // du jeu : si la réponse est la fenêtre logée, le clavier lui va.
+        return GetFocus() == child;
+    }
+
     public nint GetForegroundWindow() => GetForegroundWindowCore();
 
     private static ScreenRect ToRect(Rect rect) =>
@@ -456,6 +494,12 @@ public sealed partial class Win32WindowController : IWindowController
 
     [DllImport("user32.dll")]
     private static extern uint GetWindowThreadProcessId(nint handle, out uint processId);
+
+    [DllImport("user32.dll")]
+    private static extern nint SetFocus(nint handle);
+
+    [DllImport("user32.dll")]
+    private static extern nint GetFocus();
 
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]

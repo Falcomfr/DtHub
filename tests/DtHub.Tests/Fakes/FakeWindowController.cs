@@ -56,10 +56,10 @@ public sealed class FakeWindowController : IWindowController
 
     public bool IsWindow(nint handle) => _windows.Exists(w => w.Handle == handle);
 
-    /// <summary>Encombrement simulé de la barre de titre et des bordures.</summary>
-    public (int Width, int Height) Chrome { get; set; }
+    /// <summary>Cadre simulé : barre de titre et bordures.</summary>
+    public WindowFrame Chrome { get; set; }
 
-    public (int Width, int Height) GetWindowChrome(string? monitorDeviceName) => Chrome;
+    public WindowFrame GetWindowChrome(string? monitorDeviceName) => Chrome;
 
     public ScreenRect? GetWindowRect(nint handle) =>
         _rects.TryGetValue(handle, out var rect) ? rect : null;
@@ -155,7 +155,15 @@ public sealed class FakeWindowController : IWindowController
         return true;
     }
 
-    public bool Undock(nint child) => Docked.Remove(child);
+    public bool Undock(nint child)
+    {
+        if (KeyboardFocus == child)
+        {
+            KeyboardFocus = 0;
+        }
+
+        return Docked.Remove(child);
+    }
 
     public bool IsDocked(nint child) => Docked.ContainsKey(child);
 
@@ -169,5 +177,24 @@ public sealed class FakeWindowController : IWindowController
         {
             Hidden.Add(handle);
         }
+    }
+
+    /// <summary>La fenêtre qui tient le clavier, zéro si aucune.</summary>
+    public nint KeyboardFocus { get; private set; }
+
+    /// <summary>Chaque don du clavier, dans l'ordre.</summary>
+    public List<nint> KeyboardFocusCalls { get; } = [];
+
+    public bool GiveKeyboardFocus(nint child)
+    {
+        if (child == 0 || !IsWindow(child) || !Docked.ContainsKey(child))
+        {
+            return false;
+        }
+
+        KeyboardFocusCalls.Add(child);
+        KeyboardFocus = child;
+
+        return true;
     }
 }

@@ -21,6 +21,17 @@ namespace DtHub.Core.Papycha;
 /// parce qu'elle laisse croire qu'il n'y a rien à faire.
 ///
 /// Fonction pure : elle se vérifie sur des textes enregistrés.
+///
+/// <para>
+/// **<see cref="Of"/> n'est plus branché sur l'interface.** Le résumé des
+/// étapes a été retiré du bandeau et de la liste : la page a le paragraphe en
+/// entier juste au-dessus, et le rang suffit à s'y rendre. Voir
+/// <see cref="QuestStepLabel"/>. Seul <see cref="OfStart"/> sert encore, pour le
+/// départ d'une quête, qui ne vient pas de la prose du site mais de ses
+/// métadonnées. Le reste est conservé avec ses épreuves plutôt que démantelé à
+/// la hâte : les deux points d'entrée partagent leur machinerie, et le tri
+/// mérite d'être fait à part.
+/// </para>
 /// </summary>
 public static partial class QuestStepSummary
 {

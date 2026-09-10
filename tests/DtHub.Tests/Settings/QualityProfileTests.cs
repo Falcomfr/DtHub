@@ -63,7 +63,7 @@ public sealed class QualityProfileTests
     [Theory]
     [InlineData(StreamQuality.Low, 30, 720)]
     [InlineData(StreamQuality.Medium, 60, 1080)]
-    [InlineData(StreamQuality.Maximum, 60, int.MaxValue)]
+    [InlineData(StreamQuality.Maximum, 60, 1440)]
     public void Chaque_palier_annonce_sa_cadence_et_sa_borne(
         StreamQuality quality,
         int fps,

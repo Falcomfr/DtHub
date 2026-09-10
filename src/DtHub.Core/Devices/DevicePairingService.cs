@@ -161,8 +161,15 @@ public sealed class DevicePairingService
     /// de se connecter au téléphone d'un voisin.
     /// </summary>
     /// <returns>Adresses effectivement connectées.</returns>
+    /// <param name="discarded">
+    /// Appareils dont l'association a été rompue, par identifiant matériel. Une
+    /// annonce ne suffit pas à revenir : ADB garde sa clé et se reconnecterait
+    /// sans fin à un téléphone qu'on vient d'écarter, dans le rafraîchissement
+    /// même que déclenche le bouton de rupture.
+    /// </param>
     public async Task<IReadOnlyList<string>> ConnectAnnouncedAsync(
         IReadOnlyCollection<string> alreadyConnected,
+        IReadOnlySet<string>? discarded = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(alreadyConnected);
@@ -174,6 +181,16 @@ public sealed class DevicePairingService
             cancellationToken.ThrowIfCancellationRequested();
 
             if (alreadyConnected.Contains(service.Address))
+            {
+                continue;
+            }
+
+            // Le nom de l'annonce porte le numéro de série du téléphone, qui
+            // est aussi son identifiant chez nous : c'est ce qui permet de
+            // reconnaître un appareil écarté malgré un changement d'adresse.
+            if (discarded is { Count: > 0 }
+                && MdnsDeviceName.HardwareSerialFromInstance(service.Name) is { Length: > 0 } serial
+                && discarded.Contains(serial))
             {
                 continue;
             }

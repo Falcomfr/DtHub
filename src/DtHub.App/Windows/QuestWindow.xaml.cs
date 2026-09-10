@@ -129,6 +129,8 @@ public partial class QuestWindow : Window
 
     private void OnOpenInBrowser(object sender, RoutedEventArgs e) => _viewModel.OpenInBrowser();
 
+    private void OnSearchOnSite(object sender, RoutedEventArgs e) => _viewModel.OpenSiteSearch();
+
     /// <summary>
     /// Ouvre le formulaire de signalement du site sur la page qu'on lit.
     ///

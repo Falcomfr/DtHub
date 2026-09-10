@@ -67,6 +67,20 @@ public static class AdbErrorInterpreter
             return AdbErrorKind.ProfilePaused;
         }
 
+        // Avant le refus générique, et l'ordre est tout : le shell qui n'atteint
+        // pas un profil rend lui aussi une SecurityException, mais les remèdes
+        // n'ont rien à voir. Relevé au caractère près sur un vrai poste :
+        // « Exception occurred while executing 'install-existing' :
+        // java.lang.SecurityException: Shell does not have permission to access
+        // user 150 ». L'utilisateur 150 est le dossier sécurisé Samsung, qu'il
+        // faut déverrouiller avant. Rangé en refus de permission, le message
+        // parlait de profils d'entreprise et envoyait chercher ailleurs.
+        if (Contains(text, "does not have permission to access user")
+            || Contains(text, "shell does not have permission"))
+        {
+            return AdbErrorKind.ShellUserAccessDenied;
+        }
+
         // Un refus de permission ne dit rien de l'installation. Le confondre
         // avec une application absente envoyait réinstaller un jeu bien
         // présent, ce que rend le Dossier sécurisé de Samsung.
@@ -107,6 +121,7 @@ public static class AdbErrorInterpreter
             AdbErrorKind.PackageNotFound => Strings.Get("AdbPackageNotFound"),
             AdbErrorKind.UserNotAvailable => Strings.Get("AdbUserNotAvailable"),
             AdbErrorKind.PermissionDenied => Strings.Get("AdbPermissionDenied"),
+            AdbErrorKind.ShellUserAccessDenied => Strings.Get("AdbShellUserAccessDenied"),
             AdbErrorKind.ProfilePaused => Strings.Get("AdbProfilePaused"),
             AdbErrorKind.Timeout => Strings.Format("AdbTimeout", device),
             AdbErrorKind.AdbUnavailable => Strings.Get("AdbUnavailable"),

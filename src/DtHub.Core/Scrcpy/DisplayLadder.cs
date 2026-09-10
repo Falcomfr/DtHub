@@ -135,6 +135,29 @@ public static class DisplayLadder
         return screenHeight;
     }
 
-    /// <summary>Les encodeurs vidéo refusent les côtés impairs.</summary>
-    private static int Even(int value) => Math.Max(2, value - (value % 2));
+    /// <summary>Alignement des côtés, en pixels.</summary>
+    private const int SideAlignment = 8;
+
+    /// <summary>
+    /// Ramène un côté à ce que l'encodeur rendra vraiment.
+    ///
+    /// Les côtés impairs sont refusés, mais s'arrêter là ne suffisait pas :
+    /// l'encodeur rabote jusqu'au multiple de huit inférieur, et il le fait en
+    /// silence. Relevé dans le journal, définition demandée contre texture
+    /// réellement rendue par scrcpy :
+    ///
+    /// <code>
+    /// 2560x1440  ->  2560x1440     déjà alignés
+    /// 1920x1080  ->  1920x1080     déjà alignés
+    /// 1576x886   ->  1576x880      six pixels perdus
+    /// 1426x802   ->  1424x800      deux et deux
+    /// </code>
+    ///
+    /// L'écart n'est pas qu'esthétique : le rapport d'image de la session est
+    /// calculé sur la taille **demandée**, et sert ensuite à corriger la forme
+    /// de la fenêtre. Demander une taille qu'on ne recevra pas revient à
+    /// poursuivre un rapport qui n'existe nulle part.
+    /// </summary>
+    private static int Even(int value) =>
+        Math.Max(SideAlignment, value - (value % SideAlignment));
 }

@@ -1,4 +1,5 @@
-﻿using DtHub.Core.Settings;
+﻿using DtHub.Core.Localization;
+using DtHub.Core.Settings;
 
 namespace DtHub.Tests.Settings;
 
@@ -176,5 +177,35 @@ public class LaunchProfilesTests
             "Les 2 comptes logés dans le cadre à onglets y retourneront, cadre à sa place.",
             LaunchProfiles.Announce(2, StreamQuality.Low, GameZoom.Close, 2, audio: false),
             StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Sans_profil_retenu_le_bouton_garde_son_mot()
+    {
+        // Le mot générique, et non du blanc : un bouton vide ne se clique pas.
+        Assert.Equal(Strings.Get("Profiles"), LaunchProfiles.ButtonLabel(null));
+        Assert.Equal(Strings.Get("Profiles"), LaunchProfiles.ButtonLabel(string.Empty));
+        Assert.Equal(Strings.Get("Profiles"), LaunchProfiles.ButtonLabel("   "));
+    }
+
+    [Fact]
+    public void Le_profil_retenu_donne_son_nom_au_bouton()
+    {
+        // C'est tout l'objet : savoir sans ouvrir la bulle que « Duo haute »
+        // décidera des comptes, de la qualité et du zoom au prochain démarrage.
+        Assert.Equal("Duo haute", LaunchProfiles.ButtonLabel("Duo haute"));
+    }
+
+    [Fact]
+    public void Le_nom_du_bouton_passe_par_la_meme_normalisation_que_le_reste()
+    {
+        // Les espaces de bord partent, comme partout ailleurs : sans quoi le
+        // bouton et la ligne mise en accent ne diraient pas la même chose.
+        Assert.Equal("Duo haute", LaunchProfiles.ButtonLabel("  Duo haute  "));
+
+        // Et un nom trop long est coupé à la même longueur que le reste.
+        var long_ = new string('a', LaunchProfiles.MaxNameLength + 10);
+
+        Assert.Equal(LaunchProfiles.MaxNameLength, LaunchProfiles.ButtonLabel(long_).Length);
     }
 }

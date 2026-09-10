@@ -28,6 +28,16 @@ public sealed record ScrcpyOptions
     public int VideoBitrateKbps { get; init; } = 4000;
 
     /// <summary>
+    /// Retard, en millisecondes, avant d'afficher chaque image reçue.
+    ///
+    /// Zéro par défaut, comme scrcpy : sur une liaison régulière, retenir une
+    /// image ne ferait qu'ajouter du retard au clic. La valeur vient de
+    /// <see cref="DtHub.Core.Devices.VideoBuffer" />, qui la tire de ce que la
+    /// liaison vaut réellement.
+    /// </summary>
+    public int VideoBufferMs { get; init; }
+
+    /// <summary>
     /// Audio désactivé par défaut : plusieurs sessions simultanées produiraient
     /// un mélange inaudible, et l'audio coûte de la bande passante.
     /// </summary>
@@ -153,6 +163,7 @@ public sealed record ScrcpyOptions
     public ScrcpyOptions Sanitized() => this with
     {
         MaxFps = Math.Clamp(MaxFps, 1, 240),
+        VideoBufferMs = Math.Clamp(VideoBufferMs, 0, 1000),
         VideoBitrateKbps = Math.Clamp(VideoBitrateKbps, 200, 100_000),
         VirtualDisplayWidth = Math.Clamp(VirtualDisplayWidth, 240, 7680),
         VirtualDisplayHeight = Math.Clamp(VirtualDisplayHeight, 240, 7680),
