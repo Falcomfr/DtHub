@@ -6065,3 +6065,60 @@ faire ; ça reste à décider.
 
 **Aucune action déduite du bilan.** Il ne refuse pas un lancement et ne baisse
 pas la qualité tout seul. Il dit, et c'est tout.
+
+## D115 - Éteindre l'écran du téléphone : mesuré, inutile, abandonné
+
+L'idée venait d'une lecture de la documentation de scrcpy et paraissait
+excellente. L'application passe `--keep-active`, dont l'aide dit « garder
+l'écran allumé en simulant une activité ». Un écran de téléphone allumé trois
+heures pour rien, c'est le premier poste de consommation d'un appareil déjà
+donné pour trente à cinquante pour cent par heure. Il suffisait donc de
+l'éteindre avec `--turn-screen-off`, et de gagner beaucoup.
+
+**C'était faux, et deux mesures l'ont montré.**
+
+### Première mesure : l'écran ne s'allume jamais
+
+Téléphone en veille, session ouverte avec `--new-display` et `--keep-active`,
+afficheur virtuel bien créé :
+
+```
+avant     mWakefulness=Dozing
+pendant   mWakefulness=Dozing
+après     mWakefulness=Dozing
+```
+
+L'écran physique n'a pas bougé. scrcpy ne l'a pas réveillé au démarrage, et
+`--keep-active` ne l'a pas rallumé.
+
+### Seconde mesure : un écran allumé s'éteint quand même
+
+On pouvait objecter que l'utilisateur déverrouille parfois son téléphone en
+cours de route. Écran réveillé à la main, veille réglée à soixante secondes,
+puis quatre-vingts secondes de session :
+
+```
+au réveil          mWakefulness=Awake
+après 80 secondes  mWakefulness=Dozing
+```
+
+Le téléphone s'est endormi seul, `--keep-active` en cours. L'option maintient
+l'afficheur **virtuel**, pas l'écran de l'appareil, ce que son aide ne dit pas
+et que seule la mesure tranche.
+
+### Conclusion
+
+Il n'y a rien à gagner : l'écran est déjà éteint. `--turn-screen-off` ne
+changerait rien, et n'ajouterait que du risque sur un chemin qui marche.
+L'option n'est pas ajoutée, le réglage non plus, et `--keep-active` reste tel
+quel.
+
+**Ce que la mesure corrige, c'est moi.** J'avais annoncé « l'application garde
+l'écran du téléphone allumé toute la session » comme un fait, tiré de la seule
+lecture de l'aide de scrcpy. C'était une déduction, pas une observation, et
+elle était fausse. C'est la même faute que sur le mode sombre en D110 et que
+sur l'Almanax officiel en D112 : lire une documentation n'est pas mesurer.
+
+Une conséquence utile, tout de même : la batterie que le jeu consomme part
+entièrement dans le jeu et le mirroring, pas dans l'écran. L'avertissement de
+batterie de D114 n'en est que plus justifié.
