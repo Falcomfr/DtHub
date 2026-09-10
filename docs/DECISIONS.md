@@ -6677,3 +6677,95 @@ fenêtres tombe à zéro et la règle « plus aucune fenêtre ni panneau » conc
 l'arrêt. Observé deux fois de suite pendant ce tour, sur un serveur ADB
 fatigué. C'est de la même famille que le défaut corrigé en D113, mais sur le
 chemin du démarrage, et cela dépasse le périmètre d'un tour de textes.
+
+## D123 - Le cadenas du Mi 9T Pro : ce que la mesure a montré
+
+Plainte : sur le Mi 9T Pro, « les 2 app ne fonctionnent pas forcément bien et
+la session est verrouillée ». L'application avait déjà son avertissement, mais
+il fallait vérifier ce qu'il vaut plutôt que le répéter.
+
+### Le jeu tourne, c'est Android qui dessine le verrou par-dessus
+
+Afficheur virtuel ouvert à la main sur ce téléphone, jeu lancé sur les deux
+profils, téléphone verrouillé :
+
+```
+displayId=21
+  * ActivityRecord{... u0  com.ankama.dofustouch/.MainActivity t61}
+  * ActivityRecord{... u10 com.ankama.dofustouch/.MainActivity t62}  mResumedActivity
+```
+
+Les deux activités sont vivantes et au premier plan. La fenêtre, elle, montre
+l'heure et un cadenas. Le jeu ne refuse donc pas de se lancer : il est caché.
+
+Les drapeaux de l'afficheur, les deux téléphones verrouillés au même instant :
+
+| Mi 9T Pro, Android 11 | 13T Pro, Android 16 |
+| :-- | :-- |
+| `FLAG_PRESENTATION` | `FLAG_PRESENTATION` `FLAG_TRUSTED` `FLAG_OWN_DISPLAY_GROUP` `FLAG_ALWAYS_UNLOCKED` `FLAG_TOUCH_FEEDBACK_DISABLED` |
+
+### Déverrouiller suffit, et ça tient
+
+Téléphone déverrouillé à la main, fenêtres déjà ouvertes : elles montrent le
+jeu, sans relance. Et le verrou ne revient pas, ce qui n'allait pas de soi.
+Mesuré, veille réglée à soixante secondes, téléphone débranché, « Rester
+activé » à zéro :
+
+```
+session ouverte, 4 minutes sans y toucher   Awake   deviceLocked=0
+session fermée, 100 secondes plus tard      Dozing  deviceLocked=1
+```
+
+**Sur cet Android 11, une session ouverte tient le téléphone éveillé**, donc
+déverrouillé. Un seul déverrouillage au début de la séance suffit, tant qu'une
+fenêtre reste ouverte. Il n'y a pas besoin de retirer le verrouillage d'écran,
+qui était l'autre issue envisagée et la mauvaise : elle laisse le téléphone
+ouvert en permanence pour un gain nul.
+
+À noter, cela nuance D115 : `--keep-active` n'y gardait pas l'écran allumé, sur
+un Android 16 dont l'afficheur virtuel a son propre groupe d'affichage. Sur
+Android 11, où il n'en a pas, l'écran physique reste allumé toute la session.
+C'est le prix à payer, et il se voit sur la batterie.
+
+### L'avertissement était faux deux fois
+
+**Il criait quand tout allait bien.** La condition ne regardait que le drapeau
+de l'afficheur, c'est-à-dire ce dont l'appareil est capable, jamais l'état du
+verrou, c'est-à-dire où il en est. Téléphone déverrouillé, jeu à l'écran,
+l'application annonçait quand même « Un Android plus récent est nécessaire ».
+Un nouveau `DeviceLock` lit `dumpsys trust`, et les deux conditions doivent
+tenir ensemble.
+
+**Et il ne durait pas deux secondes.** Le constat était ajouté au rapport de
+lancement, qui pose `Problem` une fois ; le balayage suivant, deux secondes
+plus tard, recalcule `Problem` à partir des avertissements de découverte et du
+bilan d'appareil, et l'efface. Personne ne l'a jamais lu ailleurs que dans le
+journal. Le constat est donc passé dans `DeviceHealth`, qui est refait toutes
+les deux secondes : il paraît tant qu'il est vrai, et disparaît de lui-même au
+déverrouillage comme à la fermeture de la dernière fenêtre. Vérifié à l'écran
+dans les deux sens.
+
+Le message dit maintenant quoi faire, au lieu d'annoncer qu'il n'y a rien à
+faire.
+
+### Ce que le téléphone vaut, mesuré sous charge
+
+Deux comptes ouverts, réglages réels de l'application (1080p, 60 ips,
+11,2 Mb/s par fenêtre), huit minutes :
+
+```
+t+2min  thermique=0  batterie=81%  30,5 °C  libre=1801 Mo
+t+4min  thermique=0  batterie=80%  31,2 °C  libre=1795 Mo
+t+6min  thermique=0  batterie=80%  31,7 °C  libre=1678 Mo
+t+8min  thermique=0  batterie=79%  32,2 °C  libre=1712 Mo
+```
+
+Aucun bridage, +2,7 °C, environ dix-huit pour cent de batterie par heure,
+écran allumé compris. L'encodeur matériel arrive en tête pour h264 comme pour
+h265, donc aucun forçage n'est nécessaire. La liaison est du Wi-Fi 5 à
+5220 MHz, -57 dBm, 780 Mb/s annoncés, pour deux flux à 11,2 Mb/s : le réseau
+n'est pas la contrainte.
+
+**La contrainte est la mémoire.** Six gigaoctets, dont 1,7 libre à deux
+comptes sur l'écran de connexion. C'est ce qui limitera le nombre de comptes
+sur ce téléphone, pas le processeur ni le réseau.

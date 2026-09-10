@@ -14,6 +14,34 @@ public class DeviceHealthTests
         new(LinkSpeedMbps: 144, FrequencyMhz: frequency, Standard: "11n", Rssi: -57, RetryShare: 0.1);
 
     [Fact]
+    public void Le_cadenas_passe_devant_tout_le_reste()
+    {
+        // Les fenêtres sont ouvertes et ne montrent pas le jeu : rien
+        // d'autre ne compte tant que cela dure, pas même une batterie à
+        // bout.
+        var findings = DeviceHealth.Review(
+            new ThermalReading(3, 44.0),
+            Battery(5),
+            Storage(1),
+            Link(2437),
+            lockedWindows: true);
+
+        Assert.Equal(HealthSeverity.Serious, findings[0].Severity);
+        Assert.Equal(findings[0].Message, DeviceHealth.Worst(findings));
+        Assert.NotEqual(findings[0].Message, findings[1].Message);
+    }
+
+    [Fact]
+    public void Sans_cadenas_rien_n_est_dit_du_verrouillage()
+    {
+        var avec = DeviceHealth.Review(null, null, null, null, lockedWindows: true);
+        var sans = DeviceHealth.Review(null, null, null, null);
+
+        Assert.Single(avec);
+        Assert.Empty(sans);
+    }
+
+    [Fact]
     public void Un_appareil_en_forme_n_a_rien_a_dire()
     {
         var findings = DeviceHealth.Review(

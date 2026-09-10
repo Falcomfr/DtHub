@@ -227,13 +227,27 @@ public sealed class DeviceDiscoveryService : IDisposable
             return null;
         }
 
+        if (_trusted.TryGetValue(serial, out var garde) && garde.Vu.Elapsed < TrustFreshness)
+        {
+            return garde.Unlocked;
+        }
+
         try
         {
             var dump = await _adb
                 .ShellAsync(serial, ["dumpsys", "display"], cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
 
-            return VirtualDisplayTrust.IsUnlocked(dump);
+            var unlocked = VirtualDisplayTrust.IsUnlocked(dump);
+
+            // Seule une réponse est gardée : tant qu'aucun afficheur n'existe,
+            // la question n'a pas de réponse et il faudra la reposer.
+            if (unlocked is not null)
+            {
+                _trusted[serial] = (unlocked, System.Diagnostics.Stopwatch.StartNew());
+            }
+
+            return unlocked;
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
@@ -241,6 +255,70 @@ public sealed class DeviceDiscoveryService : IDisposable
             return null;
         }
     }
+
+    /// <summary>
+    /// L'appareil est-il verrouillé en ce moment, ou <c>null</c> si sa
+    /// réponse ne le dit pas.
+    ///
+    /// Sans cache, et pour la même raison que le drapeau de l'afficheur : la
+    /// question n'est posée qu'au lancement, et un état qui change en une
+    /// seconde ne se garde pas.
+    /// </summary>
+    public async Task<bool?> IsDeviceLockedAsync(
+        string serial,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(serial))
+        {
+            return null;
+        }
+
+        if (_locked.TryGetValue(serial, out var garde) && garde.Vu.Elapsed < LockFreshness)
+        {
+            return garde.Locked;
+        }
+
+        try
+        {
+            var dump = await _adb
+                .ShellAsync(serial, ["dumpsys", "trust"], cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            var locked = DeviceLock.IsLocked(dump);
+
+            _locked[serial] = (locked, System.Diagnostics.Stopwatch.StartNew());
+
+            return locked;
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // Même silence assumé que pour les autres sondages accessoires.
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Dernier verdict de confiance de l'afficheur, par appareil.
+    ///
+    /// Gardé longtemps : ce drapeau dit ce dont l'appareil est capable, et
+    /// cela ne change pas d'une session à l'autre. Une minute suffit à ce que
+    /// le panneau puisse poser la question toutes les deux secondes.
+    /// </summary>
+    private readonly Dictionary<string, (bool? Unlocked, System.Diagnostics.Stopwatch Vu)> _trusted =
+        new(StringComparer.Ordinal);
+
+    private static readonly TimeSpan TrustFreshness = TimeSpan.FromMinutes(1);
+
+    /// <summary>
+    /// Dernier état de verrouillage, par appareil.
+    ///
+    /// Gardé peu : c'est un état que l'utilisateur change d'un geste, et
+    /// l'avertissement doit disparaître dans la foulée du déverrouillage.
+    /// </summary>
+    private readonly Dictionary<string, (bool? Locked, System.Diagnostics.Stopwatch Vu)> _locked =
+        new(StringComparer.Ordinal);
+
+    private static readonly TimeSpan LockFreshness = TimeSpan.FromSeconds(4);
 
     /// <summary>Dernier niveau de batterie lu par appareil, avec son âge.</summary>
     private readonly Dictionary<string, (BatteryReading? Reading, System.Diagnostics.Stopwatch Vu)> _battery =

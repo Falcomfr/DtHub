@@ -39,13 +39,28 @@ public static class DeviceHealth
     /// Les constats, du plus grave au plus anodin, à gravité égale dans
     /// l'ordre où ils comptent : ce qui coupe la séance, puis ce qui la gêne.
     /// </summary>
+    /// <param name="lockedWindows">
+    /// Vrai quand les fenêtres de jeu de cet appareil montrent son écran de
+    /// verrouillage au lieu du jeu, c'est-à-dire quand son afficheur virtuel
+    /// suit le verrouillage et qu'il est verrouillé.
+    /// </param>
     public static IReadOnlyList<HealthFinding> Review(
         ThermalReading? heat,
         BatteryReading? battery,
         StorageReading? storage,
-        WifiLink? link)
+        WifiLink? link,
+        bool lockedWindows = false)
     {
         List<HealthFinding> findings = [];
+
+        // En tête parce que rien d'autre ne compte tant qu'il dure : les
+        // fenêtres sont ouvertes et ne montrent pas le jeu. Et ici plutôt
+        // qu'au lancement, où le message ne vivait que deux secondes avant
+        // que le balayage suivant ne le remplace.
+        if (lockedWindows)
+        {
+            findings.Add(new HealthFinding(HealthSeverity.Serious, Strings.Get("DisplayStaysLocked")));
+        }
 
         if (battery?.Describe() is { } power && battery.Concern is { } level)
         {

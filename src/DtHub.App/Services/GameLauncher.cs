@@ -640,9 +640,22 @@ public sealed partial class GameLauncher : IAsyncDisposable
             var storage = await _devices.GetStorageAsync(serial, cancellationToken).ConfigureAwait(false);
             var link = await _devices.GetWifiLinkAsync(serial, cancellationToken).ConfigureAwait(false);
 
-            Trace(serial, heat, battery, storage);
+            // Les fenêtres de cet appareil montrent-elles le cadenas plutôt
+            // que le jeu ? La question ne se pose que là où il y a des
+            // fenêtres, et seulement sur un appareil dont l'afficheur suit le
+            // verrouillage : ailleurs, rien n'est demandé au téléphone.
+            var locked = playing.Contains(serial, StringComparer.Ordinal)
+                && await _devices
+                    .IsVirtualDisplayUnlockedAsync(serial, cancellationToken)
+                    .ConfigureAwait(false) == false
+                && await _devices
+                    .IsDeviceLockedAsync(serial, cancellationToken)
+                    .ConfigureAwait(false) == true;
 
-            findings.AddRange(DeviceHealth.Review(heat, battery, storage, link));
+            Trace(serial, heat, battery, storage);
+            TraceLock(serial, locked);
+
+            findings.AddRange(DeviceHealth.Review(heat, battery, storage, link, locked));
         }
 
         var ordered = findings.OrderByDescending(f => f.Severity).ToList();
@@ -689,6 +702,31 @@ public sealed partial class GameLauncher : IAsyncDisposable
             {
                 _batteries[serial] = battery;
             }
+        }
+    }
+
+    /// <summary>Appareils dont le cadenas a déjà été journalisé.</summary>
+    private readonly HashSet<string> _loggedLock = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Journalise le cadenas, une fois par épisode.
+    ///
+    /// Le bilan est refait toutes les deux secondes : sans cette garde, une
+    /// soirée devant un téléphone verrouillé écrirait mille fois la même
+    /// ligne.
+    /// </summary>
+    private void TraceLock(string serial, bool locked)
+    {
+        if (locked)
+        {
+            if (_loggedLock.Add(serial))
+            {
+                LogDisplayLocked(serial);
+            }
+        }
+        else
+        {
+            _ = _loggedLock.Remove(serial);
         }
     }
 
@@ -1015,21 +1053,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
                 session = await _sessions.StartAsync(
                     target, display, placement, cancellationToken).ConfigureAwait(false);
-            }
-
-            // L'afficheur est là, la fenêtre s'ouvre, et pourtant le jeu ne
-            // s'y lancera pas si le système y impose le verrou. Sans ce
-            // contrôle, on annonçait « 0 problème » devant une horloge et un
-            // cadenas.
-            if (session.State != ScrcpySessionState.Failed
-                && await _devices
-                    .IsVirtualDisplayUnlockedAsync(device.Serial, cancellationToken)
-                    .ConfigureAwait(false) == false)
-            {
-                var said = Strings.Format("DisplayStaysLocked", instance.DisplayName);
-
-                problems.Add(said);
-                LogDisplayLocked(instance.DisplayName, device.AndroidVersion ?? "inconnue");
             }
 
             if (session.State == ScrcpySessionState.Failed)
@@ -2411,8 +2434,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     [LoggerMessage(
         Level = LogLevel.Warning,
-        Message = "{name} : l'afficheur virtuel suit le verrouillage (Android {version}), le jeu ne s'y lancera pas.")]
-    private partial void LogDisplayLocked(string name, string version);
+        Message = "{serial} : l'afficheur virtuel suit le verrouillage et le téléphone est verrouillé ; ses fenêtres montrent le cadenas, pas le jeu.")]
+    private partial void LogDisplayLocked(string serial);
 
     [LoggerMessage(
         Level = LogLevel.Information,

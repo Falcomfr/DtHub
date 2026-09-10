@@ -64,6 +64,14 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Corrigé
 
+- **L'avertissement du cadenas criait quand tout allait bien, et se taisait
+  quand il fallait parler.** Il ne regardait que la capacité de l'appareil,
+  jamais l'état de son verrou : un téléphone déverrouillé, jeu à l'écran,
+  s'entendait dire qu'un Android plus récent était nécessaire. Et le message
+  ne vivait que deux secondes, le balayage suivant l'effaçant. Il est passé
+  dans le bilan d'appareil : il paraît tant qu'il est vrai, disparaît au
+  déverrouillage, et dit quoi faire.
+
 - **Le choix de la langue n'agissait pas.** Le réglage était lu, journalisé,
   et l'application affichait quand même la langue de Windows : une culture
   posée à l'intérieur d'une méthode asynchrone revient à sa valeur d'avant dès
