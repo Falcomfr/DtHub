@@ -6187,3 +6187,75 @@ pas, et c'est dit ici plutôt que subi.
 **Aucune lacune laissée en chemin.** `QualityProfile.For` au palier
 personnalisé n'était couvert par aucune épreuve, alors que c'est le seul chemin
 qui accepte des nombres venus de l'utilisateur. Il l'est maintenant.
+
+## D117 - La fluidité, mesurée avant d'être corrigée
+
+Deux idées tenaient ensemble : savoir combien d'images une fenêtre reçoit
+vraiment, et éviter qu'un encodeur logiciel ne s'en charge. Les deux ont été
+mesurées sur l'appareil avant d'écrire quoi que ce soit, et la mesure a changé
+la forme des deux.
+
+### scrcpy étiquette lui-même ses encodeurs
+
+`scrcpy --list-encoders`, relevé au caractère près sur le Xiaomi 13T Pro sous
+Android 16 :
+
+```
+--video-codec=h264 --video-encoder=c2.mtk.avc.encoder     (hw) [vendor]
+--video-codec=h264 --video-encoder=c2.android.avc.encoder (sw)
+--video-codec=av1  --video-encoder=c2.android.av1.encoder (sw)
+```
+
+Il n'y a donc **rien à deviner et aucune API à interroger** : scrcpy dit lui
+même ce qui est matériel, ce qui est logiciel, et ce qui n'est qu'un autre nom
+d'une entrée déjà listée.
+
+Sur cet appareil, h264 et h265 ont chacun un encodeur matériel, en tête de
+liste. Av1 et vp8 n'ont que du logiciel.
+
+### On n'impose un encodeur que lorsque c'est utile
+
+Trois cas, et un seul appelle une action :
+
+- le premier encodeur du codec est matériel : **rien à faire**, forcer un nom
+  n'apporterait aucune image et ajouterait une façon d'échouer ;
+- il n'y a que du logiciel : **rien à faire non plus**, il n'y a pas
+  d'alternative ;
+- du logiciel vient devant du matériel : **on impose le matériel**.
+
+L'appareil de référence est dans le premier cas, donc rien ne change pour lui.
+Le troisième existe pourtant : l'ordre vient de l'appareil, et rien ne le
+garantit ailleurs. Les alias sont écartés, ce sont d'autres noms d'une entrée
+déjà listée.
+
+**La liste est demandée en arrière-plan**, une fois par appareil, et sert au
+lancement suivant. L'attendre retarderait l'ouverture de plusieurs secondes
+pour un renseignement dont la plupart des appareils n'ont aucun usage.
+
+### Zéro image par seconde n'est pas un défaut
+
+`--print-fps` écrit une ligne par seconde. Mesuré sur un afficheur virtuel où
+rien ne bouge :
+
+```
+INFO: FPS counter started
+INFO: 36 fps
+INFO: 0 fps
+INFO: 0 fps
+```
+
+scrcpy n'encode que ce qui change : un écran immobile ne produit rien, et zéro
+est la bonne réponse. **Une jauge permanente aurait donc alarmé pour rien**,
+et c'est pour cela que la cadence part au journal et non à l'écran.
+
+Le réglage est éteint par défaut et se présente comme un diagnostic, pas comme
+un confort : c'est la réponse à « ça saccade », et son texte d'aide dit
+lui-même que zéro n'est pas un défaut.
+
+### Ce qui n'est pas fait
+
+**Aucune jauge de fluidité.** Voir ci-dessus : le nombre est juste, mais il ne
+veut pas dire ce qu'un lecteur y lirait.
+
+**Aucun changement d'encodeur en cours de session.** L'encodeur est choisi au
+lancement de scrcpy ; le modifier demanderait de rouvrir la fenêtre.

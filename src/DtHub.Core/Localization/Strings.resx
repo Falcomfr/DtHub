@@ -523,6 +523,15 @@ Cross the tests: another device on this port, and this phone on another PC. You 
   <data name="InstanceQualityTip" xml:space="preserve">
     <value>Quality for this account alone. A main account deserves more than the mules that follow it, and what you spare them is CPU, bandwidth, heat and battery saved.</value>
   </data>
+  <data name="FluidityDiagnostics" xml:space="preserve">
+    <value>Record the frame rate in the log</value>
+  </data>
+  <data name="FluidityDiagnosticsTip" xml:space="preserve">
+    <value>Asks scrcpy to write how many frames per second each window actually receives. Turn it on only to investigate stuttering.</value>
+  </data>
+  <data name="FluidityDiagnosticsHelp" xml:space="preserve">
+    <value>Zero frames per second is not a fault: scrcpy only encodes what changes, so a still picture produces nothing. The log also records which encoders the phone offers.</value>
+  </data>
   <data name="DeviceThrottling" xml:space="preserve">
     <value>The device is heating up and is starting to slow itself down. Close an account, or drop one quality step, and it will pick up again.</value>
   </data>

@@ -265,6 +265,65 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         return session;
     }
 
+    /// <summary>
+    /// Les encodeurs vidéo que l'appareil déclare, ou une liste vide si la
+    /// question n'a pas abouti.
+    ///
+    /// Aucune fenêtre, aucun afficheur : scrcpy pousse son serveur, interroge
+    /// et sort. Rien n'est propagé en cas d'échec, c'est un renseignement, pas
+    /// une étape de lancement.
+    /// </summary>
+    public async Task<IReadOnlyList<VideoEncoder>> ListEncodersAsync(
+        string serial,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(serial))
+        {
+            return [];
+        }
+
+        try
+        {
+            var scrcpyPath = await _scrcpy.GetScrcpyPathAsync(cancellationToken).ConfigureAwait(false);
+            var adbPath = await _adbLocator.GetAdbPathAsync(cancellationToken).ConfigureAwait(false);
+
+            var request = new ProcessRequest
+            {
+                FileName = scrcpyPath,
+                Arguments = ScrcpyCommandBuilder.BuildListEncodersArguments(serial),
+                Environment = new Dictionary<string, string?> { ["ADB"] = adbPath },
+            };
+
+            await using var process = _launcher.Start(request);
+
+            var lines = new List<string>();
+
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            deadline.CancelAfter(EncoderListTimeout);
+
+            await foreach (var line in process.Output.ReadAllAsync(deadline.Token).ConfigureAwait(false))
+            {
+                lines.Add(line.Text);
+            }
+
+            return ScrcpyEncoders.Parse(string.Join('\n', lines));
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // Un appareil qui ne répond pas, scrcpy absent, un délai dépassé :
+            // ne pas connaître les encodeurs est un résultat valable, et
+            // l'appelant s'en passe. C'est le même silence assumé que pour la
+            // chaleur et la batterie.
+            return [];
+        }
+    }
+
+    /// <summary>
+    /// Au-delà, on renonce à connaître les encodeurs. La question coûte une
+    /// poussée du serveur, et elle n'est jamais urgente.
+    /// </summary>
+    private static readonly TimeSpan EncoderListTimeout = TimeSpan.FromSeconds(20);
+
     /// <summary>Ferme une session ouverte par DT Hub.</summary>
     public async Task StopAsync(string sessionId, CancellationToken cancellationToken = default)
     {

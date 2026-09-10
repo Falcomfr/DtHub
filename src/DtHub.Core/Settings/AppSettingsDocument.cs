@@ -148,6 +148,17 @@ public sealed class AppSettingsDocument
     /// pas une description de son environnement de jeu.
     /// </summary>
     public bool SimulatedPhysicalKeyboard { get; set; }
+
+    /// <summary>
+    /// Demande à scrcpy d'écrire sa cadence dans le journal, une ligne par
+    /// seconde et par fenêtre.
+    ///
+    /// Éteint par défaut, et diagnostic seulement : c'est la réponse à « ça
+    /// saccade », pas un réglage de confort. **Zéro image par seconde n'est
+    /// pas un défaut** : scrcpy n'encode que ce qui change, et un écran
+    /// immobile ne produit rien.
+    /// </summary>
+    public bool FluidityDiagnostics { get; set; }
     // Le jeu s'affiche en paysage : un écran virtuel vertical le centrerait
     // en 16:9 au milieu d'une fenêtre haute, avec deux larges bandes noires.
     public int VirtualDisplayWidth { get; set; } = 1920;

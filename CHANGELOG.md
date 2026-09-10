@@ -23,6 +23,14 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   en moins. Chaque compte suit le réglage commun tant qu'on ne lui en donne
   pas un, et le nouveau palier vaut à la prochaine ouverture de sa fenêtre.
 
+- **Un diagnostic de fluidité**, éteint par défaut. Il fait consigner dans le
+  journal la cadence réellement reçue par chaque fenêtre, et les encodeurs que
+  le téléphone propose. Zéro image par seconde n'est pas un défaut : scrcpy
+  n'encode que ce qui change.
+
+- **L'encodeur matériel est imposé quand l'appareil mettrait du logiciel
+  devant lui**, et seulement dans ce cas.
+
 ### Corrigé
 
 - **Une liaison qui lâche ne ferme plus l'application.** Quand la dernière

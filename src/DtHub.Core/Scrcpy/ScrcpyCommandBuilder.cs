@@ -103,6 +103,19 @@ public static class ScrcpyCommandBuilder
             arguments.Add(Option("video-codec", sanitized.VideoCodec));
         }
 
+        // Après le codec, et seulement quand l'appareil mettrait un encodeur
+        // logiciel devant un matériel. Voir « ScrcpyEncoders.Force ».
+        if (!string.IsNullOrWhiteSpace(sanitized.VideoEncoder))
+        {
+            arguments.Add(Option("video-encoder", sanitized.VideoEncoder));
+        }
+
+        // Diagnostic seulement : la cadence part au journal, pas à l'écran.
+        if (sanitized.PrintFps)
+        {
+            arguments.Add("--print-fps");
+        }
+
         if (sanitized.UseVirtualDisplay)
         {
             // L'afficheur garde une définition fixe et l'image est mise à
@@ -149,6 +162,19 @@ public static class ScrcpyCommandBuilder
         ArgumentException.ThrowIfNullOrWhiteSpace(serial);
 
         return [Option("serial", serial), "--list-apps"];
+    }
+
+    /// <summary>
+    /// Demande à l'appareil la liste de ses encodeurs vidéo.
+    ///
+    /// scrcpy pousse son serveur, interroge, écrit et sort : quelques
+    /// secondes, aucune fenêtre, aucun afficheur créé.
+    /// </summary>
+    public static IReadOnlyList<string> BuildListEncodersArguments(string serial)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(serial);
+
+        return [Option("serial", serial), "--list-encoders"];
     }
 
     /// <summary>Une option longue et sa valeur, accolées.</summary>

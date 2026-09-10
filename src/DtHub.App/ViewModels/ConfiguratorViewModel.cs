@@ -490,6 +490,28 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Fait écrire à scrcpy sa cadence dans le journal.
+    ///
+    /// Diagnostic, pas confort : c'est la réponse à « ça saccade ». Zéro image
+    /// par seconde n'est pas un défaut, scrcpy n'encodant que ce qui change.
+    /// </summary>
+    [ObservableProperty]
+    private bool _fluidityDiagnostics;
+
+    partial void OnFluidityDiagnosticsChanged(bool value)
+    {
+        if (_loading)
+        {
+            return;
+        }
+
+        // C'est un argument de démarrage de scrcpy, comme le mode clavier :
+        // sans rouvrir, le réglage paraîtrait mort jusqu'à la session
+        // suivante.
+        _ = ApplyStartupSettingAsync(() => _settings.SetFluidityDiagnosticsAsync(value));
+    }
+
+    /// <summary>
     /// Raccourci du replacement, affiché à côté du bouton. Vide quand aucun
     /// raccourci n'est associé à l'action.
     /// </summary>
@@ -551,6 +573,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             UpdatesAutomatic = settings.UpdatesAutomatic;
             StopAppOnClose = settings.StopAppOnClose;
             SimulatedPhysicalKeyboard = settings.SimulatedPhysicalKeyboard;
+            FluidityDiagnostics = settings.FluidityDiagnostics;
             Language = settings.Language;
             AudioEnabled = settings.AudioEnabled;
             ReadCustomQuality(settings);

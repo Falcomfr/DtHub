@@ -289,4 +289,42 @@ public class ScrcpyCommandBuilderTests
 
         Assert.DoesNotContain(arguments, a => a.StartsWith("--video-codec", StringComparison.Ordinal));
     }
+
+    [Fact]
+    public void L_encodeur_et_la_cadence_ne_paraissent_que_si_on_les_demande()
+    {
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001", "Titre", ScrcpyOptions.Default);
+
+        Assert.DoesNotContain(arguments, a => a.StartsWith("--video-encoder", StringComparison.Ordinal));
+        Assert.DoesNotContain(arguments, a => string.Equals(a, "--print-fps", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void L_encodeur_impose_arrive_dans_la_commande()
+    {
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001",
+            "Titre",
+            ScrcpyOptions.Default with { VideoEncoder = "c2.mtk.avc.encoder" });
+
+        Assert.Contains("--video-encoder=c2.mtk.avc.encoder", arguments);
+    }
+
+    [Fact]
+    public void Le_diagnostic_de_fluidite_arrive_dans_la_commande()
+    {
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001", "Titre", ScrcpyOptions.Default with { PrintFps = true });
+
+        Assert.Contains("--print-fps", arguments);
+    }
+
+    [Fact]
+    public void La_liste_des_encodeurs_n_ouvre_ni_fenetre_ni_afficheur()
+    {
+        var arguments = ScrcpyCommandBuilder.BuildListEncodersArguments("USB0001");
+
+        Assert.Equal(["--serial=USB0001", "--list-encoders"], arguments);
+    }
 }

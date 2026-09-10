@@ -258,6 +258,7 @@ public sealed class SettingsService : IDisposable
             // Le débit est ici celui de la définition mémorisée. Il est
             // recalculé au lancement sur la définition réellement retenue, qui
             // suit la taille de la fenêtre : c'est là qu'il prend son sens.
+            PrintFps = settings.FluidityDiagnostics,
             MaxFps = profile.MaxFps,
             VideoBitrateKbps = profile.BitrateFor(
                 settings.VirtualDisplayWidth,
@@ -284,6 +285,22 @@ public sealed class SettingsService : IDisposable
         UpdateAsync(settings => settings.AudioEnabled = enabled, cancellationToken);
 
     /// <summary>Retient le mode clavier choisi.</summary>
+    /// <summary>Allume ou éteint le diagnostic de fluidité.</summary>
+    public Task SetFluidityDiagnosticsAsync(bool value, CancellationToken cancellationToken = default) =>
+        UpdateIfChangedAsync(
+            settings =>
+            {
+                if (settings.FluidityDiagnostics == value)
+                {
+                    return false;
+                }
+
+                settings.FluidityDiagnostics = value;
+
+                return true;
+            },
+            cancellationToken);
+
     public Task SetSimulatedPhysicalKeyboardAsync(
         bool simulated,
         CancellationToken cancellationToken = default) =>

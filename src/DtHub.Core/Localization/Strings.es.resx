@@ -523,6 +523,15 @@ Cruce las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
   <data name="InstanceQualityTip" xml:space="preserve">
     <value>La calidad de esta cuenta sola. Una cuenta principal merece más que las mulas que la siguen, y lo que se les ahorra es procesador, ancho de banda, calor y batería de menos.</value>
   </data>
+  <data name="FluidityDiagnostics" xml:space="preserve">
+    <value>Registrar la cadencia en el registro</value>
+  </data>
+  <data name="FluidityDiagnosticsTip" xml:space="preserve">
+    <value>Pide a scrcpy que escriba cuántas imágenes por segundo recibe realmente cada ventana. Actívelo solo para investigar un tirón.</value>
+  </data>
+  <data name="FluidityDiagnosticsHelp" xml:space="preserve">
+    <value>Cero imágenes por segundo no es un fallo: scrcpy solo codifica lo que cambia, así que una imagen inmóvil no produce nada. El registro anota también los codificadores que ofrece el teléfono.</value>
+  </data>
   <data name="DeviceThrottling" xml:space="preserve">
     <value>El dispositivo se está calentando y empieza a limitarse. Cierre una cuenta, o baje un nivel de calidad, y volverá a rendir.</value>
   </data>

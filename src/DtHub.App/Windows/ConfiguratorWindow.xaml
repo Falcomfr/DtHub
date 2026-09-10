@@ -566,6 +566,15 @@
                            TextWrapping="Wrap" Margin="24,2,0,8"
                            Text="{loc:T SimulatedKeyboardHelp}" />
 
+                <!-- Diagnostic, pas confort. Sous les réglages du téléphone,
+                     parce que c'est de lui qu'on parle quand l'image saccade. -->
+                <CheckBox Content="{loc:T FluidityDiagnostics}"
+                          IsChecked="{Binding FluidityDiagnostics}"
+                          ToolTip="{loc:T FluidityDiagnosticsTip}" />
+                <TextBlock Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
+                           TextWrapping="Wrap" Margin="24,2,0,8"
+                           Text="{loc:T FluidityDiagnosticsHelp}" />
+
                 <CheckBox Content="{loc:T AutomaticUpdates}" Margin="0,0,0,8"
                           IsChecked="{Binding UpdatesAutomatic}"
                           ToolTip="{loc:T AutomaticUpdatesTip}" />

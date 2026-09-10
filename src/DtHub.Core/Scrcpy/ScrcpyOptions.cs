@@ -126,6 +126,24 @@ public sealed record ScrcpyOptions
     public string? VideoCodec { get; init; }
 
     /// <summary>
+    /// Encodeur imposé, ou <c>null</c> pour laisser l'appareil choisir.
+    ///
+    /// On n'impose que lorsque l'appareil mettrait un encodeur logiciel
+    /// devant un matériel. Voir <see cref="ScrcpyEncoders.Force" />.
+    /// </summary>
+    public string? VideoEncoder { get; init; }
+
+    /// <summary>
+    /// Demande à scrcpy d'écrire sa cadence, une ligne par seconde.
+    ///
+    /// Diagnostic seulement, éteint par défaut. **Zéro image par seconde n'est
+    /// pas un défaut** : scrcpy n'encode que ce qui change, et un écran
+    /// immobile ne produit rien. C'est pourquoi ce nombre va au journal et non
+    /// dans une jauge, qui alarmerait pour rien.
+    /// </summary>
+    public bool PrintFps { get; init; }
+
+    /// <summary>
     /// Codecs que scrcpy 4.1 accepte. Un nom hors de cette liste le fait sortir
     /// aussitôt, et le refus arrive sous une forme que rien ne sait traduire :
     /// l'utilisateur reçoit alors le message générique après le délai complet,

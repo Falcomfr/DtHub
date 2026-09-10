@@ -255,6 +255,55 @@ public sealed partial class GameLauncher : IAsyncDisposable
         return true;
     }
 
+    /// <summary>Encodeurs vidéo connus par appareil, une fois demandés.</summary>
+    private readonly Dictionary<string, IReadOnlyList<VideoEncoder>> _encoders = new(StringComparer.Ordinal);
+
+    /// <summary>Appareils dont la liste a déjà été demandée, aboutie ou non.</summary>
+    private readonly HashSet<string> _encodersAsked = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Demande, en arrière-plan, ce que les appareils savent encoder.
+    ///
+    /// En arrière-plan et une seule fois par appareil : la question coûte une
+    /// poussée du serveur scrcpy, et elle n'est jamais urgente. Le résultat
+    /// sert au lancement suivant, pas à celui-ci. Attendre ici retarderait
+    /// l'ouverture de plusieurs secondes pour un renseignement dont la plupart
+    /// des appareils n'ont aucun usage.
+    /// </summary>
+    private void ProbeEncoders(
+        IReadOnlyList<DofusInstance> instances,
+        IReadOnlyDictionary<string, AndroidDevice> devices)
+    {
+        foreach (var serial in instances
+                     .Select(i => devices.TryGetValue(i.DeviceId, out var d) ? d.Serial : null)
+                     .Where(s => !string.IsNullOrWhiteSpace(s))
+                     .Distinct(StringComparer.Ordinal)
+                     .ToList())
+        {
+            if (!_encodersAsked.Add(serial!))
+            {
+                continue;
+            }
+
+            _ = Task.Run(async () =>
+            {
+                var found = await _sessions.ListEncodersAsync(serial!).ConfigureAwait(false);
+
+                if (found.Count == 0)
+                {
+                    return;
+                }
+
+                _encoders[serial!] = found;
+
+                LogEncoders(
+                    serial!,
+                    string.Join(", ", ScrcpyEncoders.HardwareCodecs(found)),
+                    found.Count);
+            });
+        }
+    }
+
     /// <summary>Sessions actuellement ouvertes.</summary>
     public IReadOnlyList<ScrcpySession> ActiveSessions => _sessions.ActiveSessions;
 
@@ -762,6 +811,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             .GetInstanceQualitiesAsync(cancellationToken)
             .ConfigureAwait(false);
 
+        ProbeEncoders(instances, devices);
+
         List<ScrcpySession> started = [];
 
         foreach (var instance in instances)
@@ -804,6 +855,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
             var quality = qualities.TryGetValue(instance.Key, out var own) ? own : _quality;
 
             var display = WithDisplayFor(options, placement, stored, quality);
+
+            // L'encodeur n'est imposé que si l'appareil mettrait du logiciel
+            // devant du matériel, et seulement si on le sait déjà : la liste
+            // est demandée en arrière-plan et sert au lancement suivant.
+            if (_encoders.TryGetValue(device.Serial, out var known)
+                && ScrcpyEncoders.Force(known, display.VideoCodec ?? "h264") is { } forced)
+            {
+                display = display with { VideoEncoder = forced };
+            }
 
             // Le son capté est celui du téléphone entier : Android ne sait pas
             // l'isoler par application. Une seule session par appareil le porte
@@ -2213,6 +2273,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "L'appareil {serial} se bride : état thermique {status}, surface {skin} °C.")]
     private partial void LogHeat(string serial, int status, double skin);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "L'appareil {serial} déclare {count} encodeurs vidéo, matériel pour : {hardware}.")]
+    private partial void LogEncoders(string serial, string hardware, int count);
 
     [LoggerMessage(
         Level = LogLevel.Warning,

@@ -523,6 +523,15 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
   <data name="InstanceQualityTip" xml:space="preserve">
     <value>La qualité de ce compte seul. Un compte principal mérite mieux que les mules qui le suivent, et ce qu'on leur épargne est autant de processeur, de bande passante, de chaleur et de batterie en moins.</value>
   </data>
+  <data name="FluidityDiagnostics" xml:space="preserve">
+    <value>Consigner la cadence dans le journal</value>
+  </data>
+  <data name="FluidityDiagnosticsTip" xml:space="preserve">
+    <value>Demande à scrcpy d'écrire combien d'images par seconde chaque fenêtre reçoit réellement. À allumer seulement pour chercher d'où vient une saccade.</value>
+  </data>
+  <data name="FluidityDiagnosticsHelp" xml:space="preserve">
+    <value>Zéro image par seconde n'est pas un défaut : scrcpy n'encode que ce qui change, donc une image immobile ne produit rien. Le journal note aussi les encodeurs que le téléphone propose.</value>
+  </data>
   <data name="DeviceThrottling" xml:space="preserve">
     <value>L'appareil chauffe et commence à se brider. Fermez un compte, ou descendez d'un palier de qualité, et il repartira.</value>
   </data>
