@@ -1859,4 +1859,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="NamedFinding" xml:space="preserve">
     <value>{0}: {1}</value>
   </data>
+  <data name="SearchingDevices" xml:space="preserve">
+    <value>Buscando los teléfonos…</value>
+  </data>
 </root>

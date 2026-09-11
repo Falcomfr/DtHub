@@ -7034,7 +7034,7 @@ Demande, une capture à l'appui : « on peut mettre les erreurs au bon endroit ?
 en dessous du device, qu'on sache de quoi on parle ».
 
 La capture montrait le défaut mieux qu'un long texte. Un seul avertissement,
-en bas de la liste, juste sous la ligne « Xiaomi 13T Pro — Hors ligne ». Il
+en bas de la liste, juste sous la ligne du Xiaomi 13T Pro passé hors ligne. Il
 parlait du Mi 9T Pro. Tout invitait à lire le contraire.
 
 D128 avait traité le symptôme en préfixant le nom de l'appareil dès qu'il y en
@@ -7057,3 +7057,61 @@ troisième fois, et pour la raison de D120 : ces messages annoncent une batterie
 qui lâche ou un jeu qu'Android va geler, et un avertissement qu'il faut
 survoler pour découvrir est un avertissement que personne ne lit. Bien placé,
 le texte n'a plus besoin d'être caché.
+
+## D130 - Le démarrage attendait les téléphones éteints, un par un
+
+Demande : « quand je lance l'app la première fois ça met du temps avant
+d'afficher les devices, possible de mettre un loader ? »
+
+Le témoin a été posé, mais la mesure a d'abord cherché d'où venaient les
+secondes. Chronomètre sur les commandes que l'application enchaîne :
+
+```
+adb devices                         58 ms
+pm list users                      105 ms
+adb connect (appareil présent)     189 ms
+adb connect (port fermé)         2 016 ms
+adb connect (machine éteinte)   22 268 ms
+```
+
+Vingt-deux secondes, c'est le délai que le système accorde à une adresse qui
+ne répond pas du tout. Le registre en contient une par téléphone mémorisé, et
+`TryReconnectAllAsync` les essayait **en file**, au motif écrit dans sa propre
+documentation : « ADB sérialise de toute façon les connexions ».
+
+**La mesure dit le contraire.** Deux connexions vers des appareils absents,
+lancées ensemble :
+
+```
+une seule            22,3 s
+deux en parallèle    19,3 s
+```
+
+Elles ne se gênent pas. La file faisait donc payer la somme des attentes pour
+rien : deux téléphones éteints, quarante-quatre secondes d'écran vide.
+
+Trois changements, dans cet ordre d'importance :
+
+1. **Les tentatives sont menées de front.** Le commentaire qui les justifiait
+   est remplacé par la mesure qui le dément.
+2. **La dernière adresse connue n'a plus que cinq secondes**, vingt-cinq fois
+   ce qu'une connexion réussie demande. Au-delà, le balayage mDNS prend le
+   relais, et c'est lui qui sait retrouver un appareil dont le port a changé.
+   L'échéance est distinguée de l'arrêt demandé par l'utilisateur : les
+   confondre ferait continuer un balayage qu'on vient d'annuler. Les deux cas
+   sont éprouvés.
+3. **Le témoin demandé**, un arc qui tourne et « Recherche des téléphones… »,
+   tant que le premier balayage n'a rien rendu. Il ne tourne que tant qu'il est
+   à l'écran : une animation sans fin sur un élément replié réclamerait une
+   image à chaque rafraîchissement pour rien.
+
+### Le témoin a été faux du premier coup
+
+Signalé aussitôt : « le loader est buggé, il s'affiche mal ». L'arc portait
+deux centres de rotation, `RenderTransformOrigin="0.5,0.5"` sur le calque et
+`CenterX/CenterY` sur la transformation. **Ils s'additionnent** : la rotation
+se faisait autour du coin bas-droit, et l'arc décrivait une orbite au lieu de
+tourner sur lui-même. Un seul centre subsiste.
+
+Vérifié en capturant six images successives à deux cent vingt millisecondes
+d'intervalle : l'ouverture de l'arc fait le tour, le cercle ne bouge pas.

@@ -463,6 +463,17 @@
       </ItemsControl>
     </StackPanel>
 
+    <!-- Le premier balayage cherche les téléphones mémorisés, et un
+         téléphone éteint le fait attendre. Un mot vaut mieux qu'un vide. -->
+    <Border Style="{StaticResource Card}" Padding="10,8"
+            Visibility="{Binding ShowsSearching, Converter={StaticResource BoolToVisibility}}">
+      <StackPanel Orientation="Horizontal">
+        <Control Style="{StaticResource Spinner}" VerticalAlignment="Center" Margin="0,0,9,0" />
+        <TextBlock Text="{loc:T SearchingDevices}" Style="{StaticResource Muted}"
+                   VerticalAlignment="Center" />
+      </StackPanel>
+    </Border>
+
     <!-- Aucun appareil du tout : il faut dire pourquoi la liste est vide. -->
     <Border Style="{StaticResource Card}" Padding="10,8"
             Visibility="{Binding ShowsNoDeviceCard, Converter={StaticResource BoolToVisibility}}">

@@ -190,6 +190,18 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// </summary>
     public bool ShowsWindowHelp => _scanned && !HasNoConnectedDevice;
 
+    /// <summary>
+    /// Vrai tant que le premier balayage n'a rien rendu.
+    ///
+    /// **La liste ne reste pas vide sans rien dire.** Au premier lancement,
+    /// l'application tente de rejoindre chaque téléphone mémorisé à sa
+    /// dernière adresse, et un téléphone éteint fait attendre le système
+    /// plusieurs secondes. Pendant ce temps, l'écran n'avait ni appareil, ni
+    /// carte « aucun appareil », qu'on se garde bien d'afficher avant de
+    /// savoir : rien du tout, donc, et rien ne disait que ça travaillait.
+    /// </summary>
+    public bool ShowsSearching => !_scanned;
+
     /// <summary>Nombre d'instances cochées pour le lancement.</summary>
     public int EnabledCount => Rows.Count(i => i.IsEnabled);
 
@@ -521,6 +533,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
             OnPropertyChanged(nameof(HasInactiveDevices));
             OnPropertyChanged(nameof(HasNoConnectedDevice));
             OnPropertyChanged(nameof(ShowsNoDeviceCard));
+            OnPropertyChanged(nameof(ShowsSearching));
             OnPropertyChanged(nameof(ShowsWindowHelp));
             OnPropertyChanged(nameof(HasConnectedDevice));
             OnPropertyChanged(nameof(EnabledCount));

@@ -9,6 +9,11 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Ajouté
 
+- **Un témoin de recherche au démarrage.** La liste restait vide et muette
+  pendant que l'application cherchait les téléphones mémorisés, ce qui peut
+  prendre plusieurs secondes quand l'un d'eux est éteint. Elle dit maintenant
+  « Recherche des téléphones… ».
+
 - **L'application vérifie enfin que la préparation batterie a été faite.**
   Elle l'expliquait depuis longtemps sans jamais la contrôler, alors que le
   téléphone le dit en une commande. Des deux appareils d'un même utilisateur,
@@ -79,6 +84,14 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   et le débit, mais un compte en palier bas tournait toujours à soixante images.
 
 ### Corrigé
+
+- **Le démarrage attendait les téléphones absents l'un après l'autre.** Les
+  reconnexions étaient séquentielles, au motif qu'ADB sérialise de toute façon
+  les connexions ; la mesure dit le contraire, deux connexions vers des
+  appareils absents prennent 19,3 s ensemble contre 22 s pour une seule. Elles
+  sont maintenant menées de front, et la dernière adresse connue n'a plus que
+  cinq secondes pour répondre avant que le balayage réseau ne prenne le relais,
+  au lieu des vingt-deux secondes que le système accorde à une machine éteinte.
 
 - **Le bilan de chaque appareil s'affiche sous son nom**, et non plus dans un
   bandeau en bas de liste où il semblait parler du dernier appareil montré,

@@ -831,6 +831,56 @@
     </Style.Triggers>
   </Style>
 
+  <!-- Un arc qui tourne, pour dire qu'on travaille.
+
+       Il ne tourne que tant qu'il est à l'écran : une animation sans fin sur
+       un élément replié continue de réclamer une image à chaque rafraîchissement
+       pour rien, et cette carte disparaît au premier balayage rendu. -->
+  <Style x:Key="Spinner" TargetType="Control">
+    <Setter Property="Width" Value="14" />
+    <Setter Property="Height" Value="14" />
+    <Setter Property="Focusable" Value="False" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Control">
+          <!-- Un seul centre de rotation. Les deux, « RenderTransformOrigin »
+               et « CenterX/CenterY », s'additionnent : posés ensemble, l'arc
+               tournait autour du coin bas-droit au lieu de tourner sur
+               lui-même. -->
+          <Canvas Width="14" Height="14">
+            <Canvas.RenderTransform>
+              <RotateTransform x:Name="Turn" CenterX="7" CenterY="7" />
+            </Canvas.RenderTransform>
+
+            <!-- Trois quarts de cercle : l'ouverture est ce qui donne à voir
+                 que ça tourne. -->
+            <Path Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.6"
+                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                  Data="M 7,1.2 A 5.8,5.8 0 1 1 1.9,4.3" />
+          </Canvas>
+
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsVisible" Value="True">
+              <Trigger.EnterActions>
+                <BeginStoryboard x:Name="Spin">
+                  <Storyboard>
+                    <DoubleAnimation Storyboard.TargetName="Turn"
+                                     Storyboard.TargetProperty="Angle"
+                                     From="0" To="360" Duration="0:0:0.9"
+                                     RepeatBehavior="Forever" />
+                  </Storyboard>
+                </BeginStoryboard>
+              </Trigger.EnterActions>
+              <Trigger.ExitActions>
+                <StopStoryboard BeginStoryboardName="Spin" />
+              </Trigger.ExitActions>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
   <!-- Maillon rompu : deux anneaux sur la même diagonale, écartés. Employé
        par les deux listes d'appareils, celle qui porte des instances et celle
        des appareils qui n'en ont pas. -->

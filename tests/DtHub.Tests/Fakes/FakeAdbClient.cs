@@ -238,7 +238,13 @@ public sealed class FakeAdbClient : IAdbClient
         return Task.FromResult(PairOutcome);
     }
 
-    public Task<AdbConnectResult> ConnectAsync(
+    /// <summary>
+    /// Adresses qui ne répondent jamais, pour éprouver l'échéance. Un vrai
+    /// téléphone éteint laisse le système attendre vingt-deux secondes.
+    /// </summary>
+    public HashSet<string> SilentAddresses { get; } = new(StringComparer.Ordinal);
+
+    public async Task<AdbConnectResult> ConnectAsync(
         string host,
         int port,
         CancellationToken cancellationToken = default)
@@ -246,9 +252,14 @@ public sealed class FakeAdbClient : IAdbClient
         var address = $"{host}:{port}";
         ConnectAttempts.Add(address);
 
-        return Task.FromResult(ConnectableAddresses.Contains(address)
+        if (SilentAddresses.Contains(address))
+        {
+            await Task.Delay(Timeout.Infinite, cancellationToken).ConfigureAwait(false);
+        }
+
+        return ConnectableAddresses.Contains(address)
             ? AdbConnectResult.Connected
-            : AdbConnectResult.Failure($"failed to connect to '{address}'"));
+            : AdbConnectResult.Failure($"failed to connect to '{address}'");
     }
 
     /// <summary>Adresses déconnectées, dans l'ordre.</summary>

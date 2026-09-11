@@ -26,8 +26,22 @@ public enum ReconnectOutcome
 public sealed class DeviceReconnectService
 {
     private readonly IAdbClient _adb;
+    private readonly TimeSpan _directAttempt;
 
-    public DeviceReconnectService(IAdbClient adb) => _adb = adb;
+    /// <param name="adb">Le client ADB.</param>
+    /// <param name="directAttempt">
+    /// Ce qu'on accorde à la dernière adresse connue avant de passer au
+    /// balayage. La valeur de service est celle de <see cref="DirectAttempt" />
+    /// ; les épreuves la raccourcissent pour ne pas attendre pour de vrai.
+    /// </param>
+    public DeviceReconnectService(IAdbClient adb, TimeSpan? directAttempt = null) =>
+        (_adb, _directAttempt) = (adb, directAttempt ?? DirectAttempt);
+
+    /// <summary>
+    /// Ce qu'on accorde à la dernière adresse connue avant de passer au
+    /// balayage. Vingt-cinq fois la mesure d'une connexion qui réussit.
+    /// </summary>
+    private static readonly TimeSpan DirectAttempt = TimeSpan.FromSeconds(5);
 
     /// <summary>Tente de retrouver un appareil mémorisé.</summary>
     public async Task<ReconnectOutcome> TryReconnectAsync(
@@ -43,15 +57,35 @@ public sealed class DeviceReconnectService
 
         // Le port de débogage sans fil change à chaque redémarrage du
         // téléphone : la dernière adresse connue échoue souvent, mais elle est
-        // gratuite à essayer et évite un balayage mDNS quand elle marche.
+        // presque gratuite à essayer et évite un balayage mDNS quand elle
+        // marche.
+        //
+        // Presque, et c'est tout l'objet de l'échéance. Mesuré : un appareil
+        // qui répond se connecte en 190 ms, un port fermé rend la main en deux
+        // secondes, mais un téléphone éteint laisse le système attendre
+        // vingt-deux secondes la réponse d'une machine qui ne répondra jamais.
+        // La liste des appareils attendait tout ce temps.
         if (device.LastKnownAddress is { Length: > 0 } address && device.LastKnownPort is > 0)
         {
-            var direct = await _adb.ConnectAsync(address, device.LastKnownPort.Value, cancellationToken)
-                .ConfigureAwait(false);
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-            if (direct.Succeeded)
+            deadline.CancelAfter(_directAttempt);
+
+            try
             {
-                return ReconnectOutcome.ReconnectedToLastAddress;
+                var direct = await _adb
+                    .ConnectAsync(address, device.LastKnownPort.Value, deadline.Token)
+                    .ConfigureAwait(false);
+
+                if (direct.Succeeded)
+                {
+                    return ReconnectOutcome.ReconnectedToLastAddress;
+                }
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                // L'échéance a parlé, pas l'utilisateur : on passe au balayage
+                // mDNS, qui sait trouver un appareil dont le port a changé.
             }
         }
 
@@ -68,9 +102,14 @@ public sealed class DeviceReconnectService
     }
 
     /// <summary>
-    /// Tente de retrouver plusieurs appareils. Les tentatives sont
-    /// séquentielles : ADB sérialise de toute façon les connexions, et cela
-    /// évite d'empiler les balayages mDNS.
+    /// Tente de retrouver plusieurs appareils, tous en même temps.
+    ///
+    /// **Elles étaient séquentielles, au motif qu'ADB sérialise de toute façon
+    /// les connexions. La mesure dit le contraire** : deux connexions vers des
+    /// appareils absents prennent 19,3 s ensemble, contre 22 s pour une seule.
+    /// Elles ne se gênent pas. En file, chaque téléphone éteint ajoutait son
+    /// attente à celle des autres, et la liste des appareils attendait la
+    /// somme.
     ///
     /// Tous les appareils connus sont tentés, sans filtre préalable : la
     /// sûreté vient de la correspondance entre le numéro de série et le nom du
@@ -83,22 +122,32 @@ public sealed class DeviceReconnectService
     {
         ArgumentNullException.ThrowIfNull(devices);
 
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var attempts = devices
+            .Select(async device =>
+            {
+                try
+                {
+                    return (device.Id, Outcome: await TryReconnectAsync(device, cancellationToken)
+                        .ConfigureAwait(false));
+                }
+                catch (AdbException)
+                {
+                    // Un appareil injoignable ne doit pas interrompre la
+                    // reprise des autres.
+                    return (device.Id, Outcome: ReconnectOutcome.NotFound);
+                }
+            })
+            .ToList();
+
+        var results = await Task.WhenAll(attempts).ConfigureAwait(false);
+
         var outcomes = new Dictionary<string, ReconnectOutcome>(StringComparer.Ordinal);
 
-        foreach (var device in devices)
+        foreach (var (id, outcome) in results)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            try
-            {
-                outcomes[device.Id] = await TryReconnectAsync(device, cancellationToken).ConfigureAwait(false);
-            }
-            catch (AdbException)
-            {
-                // Un appareil injoignable ne doit pas interrompre la reprise
-                // des autres.
-                outcomes[device.Id] = ReconnectOutcome.NotFound;
-            }
+            outcomes[id] = outcome;
         }
 
         return outcomes;

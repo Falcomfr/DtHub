@@ -19,6 +19,48 @@ public class DeviceReconnectServiceTests
         };
 
     [Fact]
+    public async Task Une_adresse_qui_ne_repond_pas_ne_retient_pas_la_liste()
+    {
+        // Mesuré sur le vrai ADB : un téléphone éteint laisse le système
+        // attendre vingt-deux secondes avant de rendre la main, et la liste
+        // des appareils attendait avec lui. L'échéance rend la main, et le
+        // balayage mDNS prend le relais, lui qui sait retrouver un appareil
+        // dont le port a changé.
+        var adb = new FakeAdbClient();
+        adb.MdnsOutputs.Enqueue("""
+            List of discovered mdns services
+            adb-MATERIEL123-nJyLWZ	_adb-tls-connect._tcp	192.168.1.25:41999
+            """);
+        adb.SilentAddresses.Add("192.168.1.25:37845");
+        adb.ConnectableAddresses.Add("192.168.1.25:41999");
+
+        var service = new DeviceReconnectService(adb, TimeSpan.FromMilliseconds(60));
+
+        var outcome = await service.TryReconnectAsync(Known(), CancellationToken.None);
+
+        Assert.Equal(ReconnectOutcome.ReconnectedByDiscovery, outcome);
+    }
+
+    [Fact]
+    public async Task L_arret_demande_par_l_utilisateur_n_est_pas_confondu_avec_l_echeance()
+    {
+        // L'échéance se rattrape, l'arrêt demandé non : les confondre ferait
+        // continuer un balayage que quelqu'un vient d'annuler.
+        var adb = new FakeAdbClient();
+
+        adb.SilentAddresses.Add("192.168.1.25:37845");
+
+        using var stop = new CancellationTokenSource();
+
+        stop.CancelAfter(TimeSpan.FromMilliseconds(60));
+
+        var service = new DeviceReconnectService(adb, TimeSpan.FromSeconds(30));
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => service.TryReconnectAsync(Known(), stop.Token));
+    }
+
+    [Fact]
     public async Task Un_appareil_deja_connecte_ne_declenche_aucune_tentative()
     {
         var adb = new FakeAdbClient
