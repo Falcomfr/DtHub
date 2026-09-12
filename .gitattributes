@@ -3,6 +3,7 @@
 *.py text eol=lf
 *.ico binary
 *.png binary
+*.jpg binary
 *.jar binary
 *.patch text eol=lf
 *.cmd text eol=crlf

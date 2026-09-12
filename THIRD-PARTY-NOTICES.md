@@ -132,6 +132,13 @@ endroits où l'on montre leur travail.
 pour DT Hub et non pour quiconque réutiliserait ce dépôt, qui doit s'adresser à
 papycha.fr.
 
+**L'accord couvre aussi les captures d'écran de la documentation.** L'une
+d'elles, `assets/screenshots/guide-de-quete.jpg`, montre la fenêtre de guides en
+usage, et donc deux illustrations de papycha.fr dans le corps d'un de leurs
+guides. Elles ne sont pas extraites ni réemployées : on montre la fenêtre telle
+qu'elle est, avec son crédit « Guides de papycha.fr » visible en pied. La même
+réserve vaut : cet accord ne se transmet pas à un fork.
+
 **La bannière du site est écartée, et le restera.** Elle porte le logo déposé de
 DOFUS Touch, son symbole ® et l'illustration officielle d'Ankama. Aucun accord
 de papycha ne peut céder ce qui ne leur appartient pas, et le projet ne
@@ -177,9 +184,23 @@ et `assets/app.ico`, sont dessinées par `build/make-icon.py`.
 
 Deux exceptions, nommées ici parce qu'une règle qui ne dit pas ses exceptions ne
 protège plus rien : les titres de quêtes du fichier décrit plus haut, et les
-captures d'écran du README, qui montrent l'application en fonctionnement et donc
-le jeu qu'elle affiche. Les unes servent l'interopérabilité, les autres
-illustrent la documentation.
+captures d'écran, qui montrent l'application en fonctionnement et donc le jeu
+qu'elle affiche. Les unes servent l'interopérabilité, les autres illustrent la
+documentation.
+
+Les captures sont nommées, puisque le principe est de nommer :
+
+| Fichier | Ce qu'on y voit |
+|---|---|
+| `assets/screenshots/deux-comptes.jpg` | deux fenêtres de jeu côte à côte |
+| `assets/screenshots/cadre-a-onglets.jpg` | les deux mêmes en onglets |
+| `assets/screenshots/guide-de-quete.jpg` | la fenêtre de guides, et donc une page de papycha.fr |
+| `assets/screenshots/appareils.png` | le configurateur seul, aucune ressource tierce |
+| `assets/screenshots/liste-des-donjons.png` | la liste que DT Hub compose lui-même, aucune ressource tierce |
+
+Aucune ne sert d'identité au projet : ni icône, ni favicon, ni image d'aperçu.
+Celles-là sont dessinées par `build/make-icon.py`. Et toutes sont retirables
+sans que la documentation cesse de se lire.
 
 ## Ajouter une dépendance
 
