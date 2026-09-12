@@ -516,3 +516,10 @@ build/sonde-papycha/etapes.json
 # megaoctets. C'est la chaine de livraison qui le produit et l'attache a une
 # livraison, jamais le depot qui le garde.
 publication/
+
+# Aperçu local de la page : le workflow rassemble ces fichiers au moment de
+# publier, en les copiant depuis assets/. Les verser ici les doublerait dans le
+# dépôt, un mégaoctet et demi pour rien, et laisserait deux copies à tenir
+# d'accord.
+site/screenshots/
+site/app.png

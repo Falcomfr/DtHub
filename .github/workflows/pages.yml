@@ -1,0 +1,70 @@
+# Publie la page de présentation sur GitHub Pages.
+#
+# La page vit dans site/, et non dans docs/ : ce dernier porte quatre cents
+# kilooctets de raisonnement interne en français, et le servir publierait une
+# documentation d'ingénierie à la place d'une page de téléchargement.
+#
+# Pas de branche gh-pages non plus : une branche de plus à tenir pour trois
+# fichiers. La route « GitHub Actions » sert l'artefact tel quel, sans passer
+# par Jekyll, donc sans .nojekyll ni _config.yml.
+#
+# **Gratuite sur un dépôt public seulement.** Sur un dépôt privé, Pages demande
+# un abonnement payant.
+name: Page
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - 'assets/screenshots/**'
+      - 'assets/app.png'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write
+      id-token: write
+      contents: read
+
+    # Deux publications ne se doublent pas, et la seconde n'annule pas la
+    # première : une page à moitié déployée serait pire qu'une page en retard.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployer.outputs.page_url }}
+
+    steps:
+      # Épinglées par empreinte, comme les trois autres chaînes, et toutes sous
+      # l'organisation « actions » : la règle du dépôt est de n'emprunter de
+      # code à personne d'autre que GitHub.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      # Les images vivent dans assets/, seul dossier d'images versionné, et la
+      # page les désigne en chemin relatif : il faut donc les poser à côté
+      # d'elle avant l'envoi. Le site est servi sous /DtHub/, et une barre
+      # oblique initiale y donnerait des 404.
+      - name: Rassembler la page et ses images
+        run: |
+          mkdir -p site/screenshots
+          cp assets/screenshots/* site/screenshots/
+          cp assets/app.png site/app.png
+
+      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+
+      - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
+        with:
+          path: site
+
+      - id: deployer
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4

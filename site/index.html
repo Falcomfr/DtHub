@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DT Hub, plusieurs comptes DOFUS Touch côte à côte sur Windows</title>
+<meta name="description" content="Affichez plusieurs comptes DOFUS Touch côte à côte sur votre PC, depuis vos propres téléphones Android. Pas un émulateur, aucune automatisation.">
+<link rel="icon" href="app.png">
+<link rel="stylesheet" href="style.css">
+<meta property="og:title" content="DT Hub">
+<meta property="og:description" content="Plusieurs comptes DOFUS Touch côte à côte sur Windows, depuis vos propres téléphones.">
+<meta property="og:image" content="screenshots/cadre-a-onglets.jpg">
+<meta property="og:type" content="website">
+</head>
+<body>
+<div class="page">
+
+<nav class="langues">
+  <a href="index.html" aria-current="page">Français</a>
+  <a href="index.en.html">English</a>
+</nav>
+
+<header class="hero">
+  <img class="logo" src="app.png" alt="" width="96" height="96">
+  <h1>DT Hub</h1>
+  <p class="accroche">Plusieurs comptes DOFUS Touch côte à côte sur Windows, depuis vos propres téléphones.</p>
+  <p class="precision">
+    Ce n'est pas un émulateur. Le jeu tourne sur votre vrai téléphone ; DT Hub
+    l'affiche sur le PC et range les fenêtres. Bâti sur
+    <a href="https://developer.android.com/tools/adb">ADB</a> et
+    <a href="https://github.com/Genymobile/scrcpy">scrcpy</a>.
+  </p>
+
+  <div class="telecharger">
+    <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe">Télécharger DtHub.exe</a>
+    <span class="sous-bouton">Windows 10 1809 ou plus, 64 bits · rien à installer · licence MIT</span>
+  </div>
+</header>
+
+<section id="principales">
+  <h2>Ce que fait DT Hub</h2>
+  <p class="chapo">
+    Vous installez DOFUS Touch sur le profil principal du téléphone, puis sur un
+    profil cloné, par exemple Second Space ou la duplication d'applications de
+    Xiaomi. Chaque profil porte son compte. DT Hub les trouve tous et ouvre
+    chacun dans sa fenêtre.
+  </p>
+
+  <div class="grille">
+    <div class="carte">
+      <h4>Un seul fichier</h4>
+      <p>Pas d'installeur, pas de droits administrateur, pas de .NET à poser. Tout ce qu'il garde tient dans un dossier qu'il suffit de supprimer pour repartir à zéro.</p>
+    </div>
+    <div class="carte">
+      <h4>Fenêtres empilées ou en onglets</h4>
+      <p>Chaque compte s'ouvre au même endroit et à la même taille, ou se range dans un cadre unique avec une barre d'onglets qu'on réordonne à la souris.</p>
+    </div>
+    <div class="carte">
+      <h4>N'importe quel profil Android</h4>
+      <p>Un profil cloné ne porte pas toujours le numéro 999, et DT Hub ne le suppose jamais. Il lit ce que le téléphone déclare.</p>
+    </div>
+    <div class="carte">
+      <h4>USB ou Wi-Fi</h4>
+      <p>En sans fil, il trouve le téléphone sur le réseau, remplit son adresse, et se reconnecte seul à chaque lancement même quand le port a changé après un redémarrage.</p>
+    </div>
+    <div class="carte">
+      <h4>Un guide de quêtes</h4>
+      <p>Les guides de papycha.fr à côté du jeu, avec l'endroit où vous vous êtes arrêté. Ce sont les pages du site, affichées telles quelles.</p>
+    </div>
+    <div class="carte">
+      <h4>Trois langues</h4>
+      <p>Français, anglais et espagnol, selon la langue d'affichage de Windows, et l'anglais pour tout le reste.</p>
+    </div>
+  </div>
+</section>
+
+<section id="enimages">
+  <h2>En images</h2>
+
+  <h3>Deux comptes côte à côte</h3>
+  <p>
+    Chaque compte a sa fenêtre, à la même taille et au même endroit, si bien
+    qu'elles se superposent exactement. <code>Ctrl+Tab</code> passe de l'une à
+    l'autre, et le titre de chaque fenêtre rappelle les raccourcis.
+  </p>
+  <figure>
+    <img src="screenshots/deux-comptes.jpg" alt="Deux fenêtres de jeu côte à côte, chacune portant le nom de son compte dans son titre" loading="lazy">
+  </figure>
+
+  <h3>Ou une seule fenêtre à onglets</h3>
+  <p>
+    N'importe quel compte peut être rangé dans un cadre unique et choisi dans
+    une barre d'onglets, glissé dans un autre ordre, ou ressorti. La frappe et
+    le presse-papiers atteignent le jeu ancré exactement comme une fenêtre
+    libre, et le cadre répond aux raccourcis de taille et de placement comme
+    n'importe quelle fenêtre de jeu.
+  </p>
+  <figure>
+    <img src="screenshots/cadre-a-onglets.jpg" alt="Une fenêtre unique portant deux onglets, un par compte" loading="lazy">
+  </figure>
+
+  <h3>Le configurateur</h3>
+  <p>
+    Affiché ou masqué par <code>Ctrl+P</code>. Il porte la liste des appareils,
+    les comptes que chacun héberge avec leur profil Android, le niveau de
+    batterie du téléphone, et les raccourcis. Chaque compte s'ouvre, se ferme et
+    se verrouille en place depuis sa ligne.
+  </p>
+  <figure>
+    <img src="screenshots/appareils.png" alt="Le configurateur, montrant un téléphone et les deux comptes qu'il héberge" loading="lazy">
+  </figure>
+
+  <h3>Les guides, à côté du jeu</h3>
+  <p>
+    <code>Ctrl+Q</code> ouvre la fenêtre des guides. Elle suit les étapes d'une
+    quête, retient où vous en étiez, et dit en bas de page ce que la quête
+    débloque. Elle ne joue jamais à votre place : elle affiche les pages du
+    site.
+  </p>
+  <figure>
+    <img src="screenshots/guide-de-quete.jpg" alt="La fenêtre des guides, une quête ouverte avec sa barre d'étapes" loading="lazy">
+  </figure>
+
+  <h3>Et de quoi s'y retrouver</h3>
+  <p>
+    782 quêtes, 83 donjons, 2 raids et 8 tanières, rangés par niveau, par taille
+    et par zone, avec leurs coordonnées et leurs prérequis. Cette liste-là,
+    DT Hub la compose lui-même.
+  </p>
+  <figure>
+    <img src="screenshots/liste-des-donjons.png" alt="La liste des donjons, rangée par palier de niveau, avec taille et coordonnées" loading="lazy">
+  </figure>
+</section>
+
+<section id="raccourcis">
+  <h2>Raccourcis</h2>
+  <p class="chapo">
+    Ils ne s'appliquent que lorsqu'une fenêtre DT Hub a le focus, si bien que
+    <code>Ctrl+Tab</code> continue de fonctionner normalement dans votre
+    navigateur. Tous se changent dans le configurateur.
+  </p>
+  <div class="defilant">
+    <table>
+      <thead><tr><th>Raccourci</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td>Ctrl+P</td><td>Afficher ou masquer le configurateur</td></tr>
+        <tr><td>Ctrl+Tab</td><td>Compte suivant, ou onglet suivant dans le cadre</td></tr>
+        <tr><td>Ctrl+R</td><td>Remettre chaque fenêtre en place</td></tr>
+        <tr><td>Ctrl+T</td><td>Ranger les fenêtres côte à côte</td></tr>
+        <tr><td>Ctrl+1 … Ctrl+4</td><td>Quatre tailles de fenêtre</td></tr>
+        <tr><td>Ctrl+5</td><td>Plein écran</td></tr>
+        <tr><td>Ctrl+Q</td><td>Afficher ou masquer les guides</td></tr>
+        <tr><td>Ctrl+0</td><td>Fermer toutes les fenêtres</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="nonfait">
+  <h2>Ce qu'il ne fait délibérément pas</h2>
+  <p>
+    DT Hub affiche, lance, range et transmet vos propres gestes. Il ne contient
+    <strong>aucun robot, aucune macro, aucun rejeu d'entrées, aucune
+    reconnaissance d'écran pour jouer, et aucun moyen de répéter une action sur
+    plusieurs comptes à la fois</strong>. Un geste est une action, sur un compte.
+  </p>
+  <p>
+    Il ne désactive jamais votre antivirus, n'ajoute aucune exclusion et ne
+    demande jamais les droits administrateur. Les raccourcis passent par
+    <code>RegisterHotKey</code> et non par un espion de clavier : seules les
+    combinaisons que vous avez réglées sont interceptées.
+  </p>
+</section>
+
+<section id="telecharger">
+  <h2>Télécharger</h2>
+
+  <div class="telecharger">
+    <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe">Télécharger DtHub.exe</a>
+    <span class="sous-bouton">
+      et son empreinte,
+      <a href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe.sha256">DtHub.exe.sha256</a>
+    </span>
+  </div>
+
+  <h3>Vérifier ce que vous avez téléchargé</h3>
+  <p>
+    Le fichier n'est pas signé, donc cette empreinte est le seul moyen de savoir
+    que vous avez bien le binaire construit par ce dépôt. Une ligne dans
+    PowerShell, depuis le dossier où les deux fichiers se trouvent :
+  </p>
+  <pre><code>(Get-FileHash DtHub.exe -Algorithm SHA256).Hash -eq (Get-Content DtHub.exe.sha256).Split(' ')[0]</code></pre>
+  <p><code>True</code> signifie que c'est le bon fichier.</p>
+
+  <div class="encart">
+    <h3>Windows vous mettra en garde la première fois</h3>
+    <p>
+      SmartScreen affiche « Windows a protégé votre ordinateur » devant tout
+      programme téléchargé qu'il ne connaît pas, et un programme non signé ne
+      gagne jamais cette reconnaissance. Cliquez sur <strong>Informations
+      complémentaires</strong>, puis <strong>Exécuter quand même</strong>.
+    </p>
+    <p>
+      Pourquoi il n'est pas signé, ce qu'il faudrait pour que cela change, et ce
+      que la signature achète vraiment : tout est écrit dans
+      <a href="https://github.com/Falcomfr/DtHub/blob/main/docs/CONFIANCE.md">docs/CONFIANCE.md</a>.
+      Nous préférons l'expliquer avant que l'écran bleu n'arrive.
+    </p>
+  </div>
+
+  <h3>Ce qu'il vous faut</h3>
+  <ul class="faits">
+    <li>Windows 10 version 1809 ou plus récent, 64 bits.</li>
+    <li>Un téléphone Android 11 ou plus récent pour les afficheurs virtuels et l'appairage sans fil. L'USB remonte plus loin.</li>
+    <li>Un profil cloné déjà créé sur le téléphone. DT Hub n'en crée pas.</li>
+    <li>Une connexion au premier lancement, une seule fois : 19 Mo d'outils tiers, pris chez Google et Genymobile, dont l'empreinte est vérifiée avant usage.</li>
+    <li>Microsoft WebView2 pour les fenêtres de guides. Il vient avec Windows 11 et arrive sur Windows 10 par Edge. Sans lui, DT Hub le dit et tout le reste fonctionne.</li>
+  </ul>
+</section>
+
+<section id="merci">
+  <h2>Merci</h2>
+  <p>
+    Les guides affichés par DT Hub sont ceux de
+    <a href="https://papycha.fr">papycha.fr</a>, écrits et tenus à jour par une
+    seule personne. Rien de ce que la fenêtre des guides montre n'existerait
+    sans ce travail, et l'accord qui permet de l'afficher a été donné de bonne
+    grâce. Allez y faire un tour : c'est là que tout est écrit.
+  </p>
+  <p>
+    Merci aussi à <a href="https://github.com/Genymobile/scrcpy">scrcpy</a>, sur
+    lequel repose tout l'affichage, et qui est employé sans la moindre
+    modification.
+  </p>
+</section>
+
+<footer>
+  <div class="liens">
+    <a href="https://github.com/Falcomfr/DtHub">Code source</a>
+    <a href="https://github.com/Falcomfr/DtHub/blob/main/CHANGELOG.md">Journal des changements</a>
+    <a href="https://github.com/Falcomfr/DtHub/blob/main/SECURITY.md">Signaler une faille</a>
+    <a href="https://github.com/Falcomfr/DtHub/blob/main/THIRD-PARTY-NOTICES.md">Composants tiers</a>
+    <a href="https://github.com/Falcomfr/DtHub/issues">Signaler un défaut</a>
+  </div>
+  <p>
+    DT Hub est publié sous <a href="https://github.com/Falcomfr/DtHub/blob/main/LICENSE">licence MIT</a>.
+    Un fichier y échappe, <code>assets/quest-successes.json</code> : ce sont des
+    titres de quêtes compilés par papycha.fr, qui en garde les droits. Un fork
+    doit s'adresser à eux.
+  </p>
+  <p>
+    <strong>Sans lien avec Ankama.</strong> DOFUS et DOFUS Touch sont des
+    marques d'Ankama. Ce projet n'est ni affilié, ni approuvé, ni soutenu par
+    Ankama. Il n'embarque aucune ressource du jeu et ne le modifie en rien.
+  </p>
+</footer>
+
+</div>
+</body>
+</html>
