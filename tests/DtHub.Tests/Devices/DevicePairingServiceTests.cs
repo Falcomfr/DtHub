@@ -171,7 +171,8 @@ public class DevicePairingServiceTests
             new HashSet<string>(StringComparer.Ordinal) { "MATERIEL123" },
             CancellationToken.None);
 
-        Assert.Empty(connected);
+        Assert.Empty(connected.Connected);
+        Assert.Empty(connected.Refused);
         Assert.Empty(adb.ConnectAttempts);
     }
 
@@ -187,7 +188,7 @@ public class DevicePairingServiceTests
             new HashSet<string>(StringComparer.Ordinal) { "AUTRETELEPHONE" },
             CancellationToken.None);
 
-        Assert.Equal("192.168.1.25:37845", Assert.Single(connected));
+        Assert.Equal("192.168.1.25:37845", Assert.Single(connected.Connected));
     }
 
     [Fact]
@@ -199,7 +200,36 @@ public class DevicePairingServiceTests
 
         var connected = await Service(adb).ConnectAnnouncedAsync([], null, CancellationToken.None);
 
-        Assert.Equal("192.168.1.25:37845", Assert.Single(connected));
+        Assert.Equal("192.168.1.25:37845", Assert.Single(connected.Connected));
+        Assert.Empty(connected.Refused);
+    }
+
+    [Fact]
+    public async Task Une_annonce_qui_refuse_la_connexion_est_signalee()
+    {
+        // Le cas mesuré sur un vrai téléphone : il s'annonce, son port est
+        // ouvert, la connexion TCP passe, et ADB est refusé juste après. Une
+        // adresse périmée ne peut pas l'expliquer, puisque l'appareil vient de
+        // dire lui-même où il écoute. Il ne reconnaît plus la clé de ce PC.
+        var adb = new FakeAdbClient();
+        adb.MdnsOutputs.Enqueue(PairingAndConnect);
+
+        var outcome = await Service(adb).ConnectAnnouncedAsync([], null, CancellationToken.None);
+
+        Assert.Empty(outcome.Connected);
+        Assert.Equal("MATERIEL123", Assert.Single(outcome.Refused));
+    }
+
+    [Fact]
+    public async Task Une_annonce_reprise_ne_compte_pas_comme_un_refus()
+    {
+        var adb = new FakeAdbClient();
+        adb.MdnsOutputs.Enqueue(PairingAndConnect);
+        adb.ConnectableAddresses.Add("192.168.1.25:37845");
+
+        var outcome = await Service(adb).ConnectAnnouncedAsync([], null, CancellationToken.None);
+
+        Assert.Empty(outcome.Refused);
     }
 
     [Fact]

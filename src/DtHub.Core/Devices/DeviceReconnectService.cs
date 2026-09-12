@@ -16,6 +16,12 @@ public enum ReconnectOutcome
 
     /// <summary>Introuvable : téléphone éteint, hors du réseau, ou débogage désactivé.</summary>
     NotFound,
+
+    /// <summary>
+    /// Trouvé, joignable, et il refuse ce PC : il ne reconnaît plus sa clé.
+    /// Seule une nouvelle association le répare.
+    /// </summary>
+    RefusedByDevice,
 }
 
 /// <summary>
@@ -55,6 +61,8 @@ public sealed class DeviceReconnectService
             return ReconnectOutcome.AlreadyConnected;
         }
 
+        var refused = false;
+
         // Le port de débogage sans fil change à chaque redémarrage du
         // téléphone : la dernière adresse connue échoue souvent, mais elle est
         // presque gratuite à essayer et évite un balayage mDNS quand elle
@@ -81,6 +89,8 @@ public sealed class DeviceReconnectService
                 {
                     return ReconnectOutcome.ReconnectedToLastAddress;
                 }
+
+                refused = AdbConnectFailure.MeansRefusedKey(direct.FailureReason);
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
@@ -90,15 +100,25 @@ public sealed class DeviceReconnectService
         }
 
         var discovered = await FindByDiscoveryAsync(device, cancellationToken).ConfigureAwait(false);
+
         if (discovered is null)
         {
-            return ReconnectOutcome.NotFound;
+            // L'appareil ne s'annonce plus, mais il a refusé ce PC juste
+            // avant : c'est le refus qui explique, pas le silence.
+            return refused ? ReconnectOutcome.RefusedByDevice : ReconnectOutcome.NotFound;
         }
 
         var connect = await _adb.ConnectAsync(discovered.Host, discovered.Port, cancellationToken)
             .ConfigureAwait(false);
 
-        return connect.Succeeded ? ReconnectOutcome.ReconnectedByDiscovery : ReconnectOutcome.NotFound;
+        if (connect.Succeeded)
+        {
+            return ReconnectOutcome.ReconnectedByDiscovery;
+        }
+
+        return refused || AdbConnectFailure.MeansRefusedKey(connect.FailureReason)
+            ? ReconnectOutcome.RefusedByDevice
+            : ReconnectOutcome.NotFound;
     }
 
     /// <summary>

@@ -938,7 +938,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 .ConnectAnnouncedAsync(addresses, discarded, cancellationToken)
                 .ConfigureAwait(false);
 
-            var recovered = opened.Count;
+            var recovered = opened.Connected.Count;
+
+            // Deux voies mènent au même constat : un appareil qui s'annonce et
+            // refuse, et un appareil mémorisé dont l'adresse répond mais
+            // décline la poignée de main. Les refus des deux voies sont réunis
+            // avant d'être comptés, faute de quoi l'un effacerait l'autre.
+            List<string> refused = [.. opened.Refused];
 
             if (known.Count > 0)
             {
@@ -961,8 +967,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
                     recovered += outcomes.Count(o => o.Value is ReconnectOutcome.ReconnectedToLastAddress
                                                      or ReconnectOutcome.ReconnectedByDiscovery);
+
+                    refused.AddRange(outcomes
+                        .Where(o => o.Value == ReconnectOutcome.RefusedByDevice)
+                        .Select(o => o.Key));
                 }
             }
+
+            NoteRefusals(refused);
 
             if (recovered > 0)
             {
@@ -974,6 +986,44 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // Rien à reconnecter si ADB lui-même est indisponible : le
             // balayage suivant le signalera.
         }
+    }
+
+    /// <summary>
+    /// Appareils qui s'annoncent et refusent ce PC, et depuis combien de
+    /// tentatives.
+    /// </summary>
+    private readonly Dictionary<string, int> _refusals = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Deux refus d'affilée avant de conclure. Une tentative peut tomber au
+    /// mauvais moment, sur un téléphone qui vient de changer de port ou qui
+    /// s'éteint ; deux refus sur deux annonces fraîches, non.
+    /// </summary>
+    private const int RefusalsBeforeDoubt = 2;
+
+    /// <summary>
+    /// Appareils dont l'association est à refaire : ils s'annoncent sur le
+    /// réseau et refusent la clé de ce PC.
+    /// </summary>
+    public IReadOnlySet<string> NeedsPairing { get; private set; } =
+        new HashSet<string>(StringComparer.Ordinal);
+
+    private void NoteRefusals(IReadOnlyList<string> refused)
+    {
+        foreach (var gone in _refusals.Keys.Where(s => !refused.Contains(s, StringComparer.Ordinal)).ToList())
+        {
+            _ = _refusals.Remove(gone);
+        }
+
+        foreach (var serial in refused)
+        {
+            _refusals[serial] = _refusals.GetValueOrDefault(serial) + 1;
+        }
+
+        NeedsPairing = _refusals
+            .Where(pair => pair.Value >= RefusalsBeforeDoubt)
+            .Select(pair => pair.Key)
+            .ToHashSet(StringComparer.Ordinal);
     }
 
     private static readonly TimeSpan ReconnectInterval = TimeSpan.FromSeconds(5);

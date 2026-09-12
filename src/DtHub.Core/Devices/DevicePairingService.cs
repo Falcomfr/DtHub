@@ -4,6 +4,19 @@ using DtHub.Core.Localization;
 namespace DtHub.Core.Devices;
 
 /// <summary>
+/// Ce que la reprise des appareils annoncés a donné.
+/// </summary>
+/// <param name="Connected">Adresses désormais connectées.</param>
+/// <param name="Refused">
+/// Numéros de série des appareils qui s'annonçaient et ont refusé la
+/// connexion. Un refus sur une annonce fraîche ne s'explique pas par une
+/// adresse périmée : l'appareil ne reconnaît plus la clé de ce PC.
+/// </param>
+public sealed record AnnouncedConnections(
+    IReadOnlyList<string> Connected,
+    IReadOnlyList<string> Refused);
+
+/// <summary>
 /// Conduit l'appairage du débogage sans fil de bout en bout : appairage avec
 /// le code affiché par le téléphone, découverte du port de connexion par mDNS,
 /// puis connexion. L'utilisateur ne tape jamais de commande ADB.
@@ -167,7 +180,7 @@ public sealed class DevicePairingService
     /// sans fin à un téléphone qu'on vient d'écarter, dans le rafraîchissement
     /// même que déclenche le bouton de rupture.
     /// </param>
-    public async Task<IReadOnlyList<string>> ConnectAnnouncedAsync(
+    public async Task<AnnouncedConnections> ConnectAnnouncedAsync(
         IReadOnlyCollection<string> alreadyConnected,
         IReadOnlySet<string>? discarded = null,
         CancellationToken cancellationToken = default)
@@ -175,6 +188,7 @@ public sealed class DevicePairingService
         ArgumentNullException.ThrowIfNull(alreadyConnected);
 
         List<string> connected = [];
+        List<string> refused = [];
 
         foreach (var service in await FindConnectableAsync(cancellationToken).ConfigureAwait(false))
         {
@@ -201,9 +215,21 @@ public sealed class DevicePairingService
             if (result.Succeeded)
             {
                 connected.Add(service.Address);
+
+                continue;
+            }
+
+            // **Une annonce qui refuse la connexion est un fait, pas un
+            // hasard.** L'appareil dit lui-même, à l'instant, sur quel port il
+            // écoute : l'adresse ne peut pas être périmée. S'il refuse quand
+            // même, c'est qu'il ne reconnaît plus la clé de ce PC, et seule
+            // une nouvelle association la lui redonnera.
+            if (MdnsDeviceName.HardwareSerialFromInstance(service.Name) is { Length: > 0 } refusedBy)
+            {
+                refused.Add(refusedBy);
             }
         }
 
-        return connected;
+        return new AnnouncedConnections(connected, refused);
     }
 }

@@ -61,6 +61,35 @@ public class DeviceReconnectServiceTests
     }
 
     [Fact]
+    public async Task Un_appareil_qui_refuse_la_cle_se_distingue_d_un_appareil_absent()
+    {
+        // Mesuré : le téléphone répond, son port est ouvert, et ADB est
+        // refusé juste après. Ce n'est pas « introuvable », et le conseil
+        // n'est pas le même.
+        var adb = new FakeAdbClient
+        {
+            ConnectFailure = "failed to connect to 192.168.1.25:37845",
+        };
+
+        var outcome = await new DeviceReconnectService(adb).TryReconnectAsync(Known(), CancellationToken.None);
+
+        Assert.Equal(ReconnectOutcome.RefusedByDevice, outcome);
+    }
+
+    [Fact]
+    public async Task Un_telephone_eteint_reste_introuvable()
+    {
+        var adb = new FakeAdbClient
+        {
+            ConnectFailure = "cannot connect to 192.168.1.25:37845: … (10060)",
+        };
+
+        var outcome = await new DeviceReconnectService(adb).TryReconnectAsync(Known(), CancellationToken.None);
+
+        Assert.Equal(ReconnectOutcome.NotFound, outcome);
+    }
+
+    [Fact]
     public async Task Un_appareil_deja_connecte_ne_declenche_aucune_tentative()
     {
         var adb = new FakeAdbClient

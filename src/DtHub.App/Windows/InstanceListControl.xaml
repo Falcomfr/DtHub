@@ -436,7 +436,9 @@
                      Un jeu manquant, lui, ne se devine pas. Et là où l'on
                      choisit ce qu'on lance, les deux cas se disent. -->
                 <TextBlock Text="{Binding StatusText}" Style="{StaticResource Muted}"
-                           FontSize="{StaticResource FontTiny}" Margin="8,1,0,0">
+                           FontSize="{StaticResource FontTiny}" Margin="8,1,0,0"
+                           Foreground="{Binding StatusBrushKey, Converter={StaticResource KeyToBrush}}"
+                           ToolTip="{Binding StatusTip}">
                   <TextBlock.Visibility>
                     <MultiBinding Converter="{StaticResource AnyTrue}">
                       <Binding Path="HasNoGame" />

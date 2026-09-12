@@ -71,7 +71,35 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
         }
     }
 
-    public string StatusText => HasNoGame
+    /// <summary>
+    /// Vrai quand cet appareil s'annonce sur le réseau et refuse ce PC.
+    ///
+    /// C'est le seul cas où « hors ligne » induit en erreur : le téléphone est
+    /// là, allumé, son débogage sans fil est actif, et il ne manque qu'une
+    /// nouvelle association. Sans ce mot, on cherche du côté du réseau, on
+    /// rallume ce qui est déjà allumé, et on n'a aucune raison de penser à
+    /// réassocier puisqu'on n'a rien désassocié.
+    /// </summary>
+    private bool _needsPairing;
+
+    /// <summary>Pose le doute sur l'association, et prévient l'affichage.</summary>
+    public void SetNeedsPairing(bool needed)
+    {
+        if (_needsPairing == needed)
+        {
+            return;
+        }
+
+        _needsPairing = needed;
+
+        OnPropertyChanged(nameof(StatusText));
+        OnPropertyChanged(nameof(StatusTip));
+        OnPropertyChanged(nameof(StatusBrushKey));
+    }
+
+    public string StatusText => _needsPairing && !IsConnected
+        ? Strings.Get("ToPairAgain")
+        : HasNoGame
         ? Strings.Get("GameNotInstalled")
         : State switch
         {
@@ -83,13 +111,25 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
             _ => Strings.Get("UnknownState"),
         };
 
-    public string StatusBrushKey => HasNoGame ? "WarningBrush" : State switch
-    {
-        AdbDeviceState.Device => "SuccessBrush",
-        AdbDeviceState.Unauthorized => "WarningBrush",
-        AdbDeviceState.NoPermissions => "DangerBrush",
-        _ => "TextMutedBrush",
-    };
+    /// <summary>
+    /// Ce que le survol explique, quand l'état seul ne suffit pas.
+    ///
+    /// Deux mots dans une liste ne peuvent pas dire quoi faire ; « À
+    /// réassocier » dit ce qui manque, la bulle dit par où.
+    /// </summary>
+    public string? StatusTip => _needsPairing && !IsConnected
+        ? Strings.Get("ToPairAgainTip")
+        : null;
+
+    public string StatusBrushKey => _needsPairing && !IsConnected
+        ? "WarningBrush"
+        : HasNoGame ? "WarningBrush" : State switch
+        {
+            AdbDeviceState.Device => "SuccessBrush",
+            AdbDeviceState.Unauthorized => "WarningBrush",
+            AdbDeviceState.NoPermissions => "DangerBrush",
+            _ => "TextMutedBrush",
+        };
 
     /// <summary>
     /// La dernière lecture de batterie, ou <c>null</c> tant qu'on ne sait pas.

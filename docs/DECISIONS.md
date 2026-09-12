@@ -7115,3 +7115,58 @@ tourner sur lui-même. Un seul centre subsiste.
 
 Vérifié en capturant six images successives à deux cent vingt millisecondes
 d'intervalle : l'ouverture de l'arc fait le tour, le cercle ne bouge pas.
+
+## D131 - Distinguer un téléphone absent d'un téléphone qui refuse
+
+Signalement : « je viens d'activer le débogage sans fil mais il se met pas en
+ligne », puis, à l'hypothèse d'une association perdue : « c'est bizarre car
+j'ai pas enlevé l'association donc je capte pas ».
+
+L'objection était juste, et elle a mené à un signal mesurable.
+
+### Ce que les trois échecs disent, au caractère près
+
+```
+port fermé        cannot connect to 192.168.1.16:45573: … (10061)
+machine absente   cannot connect to 192.168.1.99:40000: … (10060)
+clé refusée       failed to connect to 192.168.1.16:37697
+```
+
+Les deux premiers portent un code d'erreur réseau : la connexion TCP n'a pas
+abouti. Le troisième n'en porte aucun, parce qu'il n'y a pas eu de faute
+réseau : **le téléphone a accepté la connexion, puis refusé la poignée de
+main.** Vérifié à la main : le port 37697 acceptait bien une connexion TCP au
+même moment.
+
+C'est la seule cause qu'une nouvelle association répare, et la seule qu'on ne
+devine pas, puisque rien n'a été désassocié.
+
+`AdbConnectFailure.MeansRefusedKey` lit cette différence, et les trois messages
+relevés sont devenus des épreuves, accents et apostrophes typographiques de
+Windows compris. Le doute remonte par `ReconnectOutcome.RefusedByDevice` et par
+les annonces mDNS qui refusent, réunis avant d'être comptés. Deux refus
+d'affilée avant de conclure : une tentative peut tomber au mauvais moment.
+
+### Deux fausses pistes, écartées par la mesure
+
+**Deux serveurs ADB de versions différentes.** scrcpy embarque son propre
+`adb.exe` en 37.0.0, l'application en utilise un en 37.0.1, et c'est celui de
+scrcpy qui détenait le port 5037. Toutes les commandes parlaient donc à un
+serveur d'une autre version. Le soupçon était bon, la conclusion non : serveur
+redémarré proprement en 37.0.1, le refus est identique. À surveiller quand
+même, deux binaires ADB pour un poste est une hygiène douteuse.
+
+**Le pare-feu.** Les deux binaires ont une règle d'autorisation active. Écarté
+par lecture, sans rien modifier.
+
+### Ce que ce signal ne couvre pas
+
+Dans le cas même qui l'a motivé, il ne s'allume pas, et il faut le dire. Le
+téléphone écoutait sur un port neuf, l'application ne connaissait que l'ancien,
+et **plus aucune annonce mDNS ne parvenait au poste** : elle n'a donc jamais
+frappé à la bonne porte. Le refus n'a été constaté qu'à la main, sur le port
+découvert avant que les annonces ne cessent.
+
+Autrement dit, ce constat vaut quand l'appareil s'annonce ou que son port n'a
+pas changé. Quand les deux manquent, il reste « hors ligne », ce qui est vrai
+faute de mieux.

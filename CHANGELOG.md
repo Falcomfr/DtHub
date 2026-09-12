@@ -9,6 +9,13 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Ajouté
 
+- **« À réassocier » au lieu de « Hors ligne »** quand le téléphone est là,
+  joignable, et refuse la clé de ce PC. Les trois échecs de connexion sans fil
+  s'écrivent différemment : un port fermé et une machine absente portent un
+  code d'erreur réseau, une clé refusée n'en porte aucun, parce que la
+  connexion a bien abouti. Le survol dit quoi faire, et que rallumer le
+  débogage sans fil n'y suffira pas.
+
 - **Un témoin de recherche au démarrage.** La liste restait vide et muette
   pendant que l'application cherchait les téléphones mémorisés, ce qui peut
   prendre plusieurs secondes quand l'un d'eux est éteint. Elle dit maintenant

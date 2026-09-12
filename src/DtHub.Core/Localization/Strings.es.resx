@@ -1862,4 +1862,10 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="SearchingDevices" xml:space="preserve">
     <value>Buscando los teléfonos…</value>
   </data>
+  <data name="ToPairAgain" xml:space="preserve">
+    <value>Volver a vincular</value>
+  </data>
+  <data name="ToPairAgainTip" xml:space="preserve">
+    <value>Este teléfono se anuncia en la red pero rechaza este PC: ya no reconoce su clave. Encender la depuración inalámbrica no basta, hay que volver a vincularlo. «Vincular un nuevo dispositivo», y en el teléfono «Vincular dispositivo con código de vinculación».</value>
+  </data>
 </root>

@@ -244,6 +244,9 @@ public sealed class FakeAdbClient : IAdbClient
     /// </summary>
     public HashSet<string> SilentAddresses { get; } = new(StringComparer.Ordinal);
 
+    /// <summary>Le message d'échec rendu, quand on veut en éprouver la lecture.</summary>
+    public string? ConnectFailure { get; init; }
+
     public async Task<AdbConnectResult> ConnectAsync(
         string host,
         int port,
@@ -259,7 +262,7 @@ public sealed class FakeAdbClient : IAdbClient
 
         return ConnectableAddresses.Contains(address)
             ? AdbConnectResult.Connected
-            : AdbConnectResult.Failure($"failed to connect to '{address}'");
+            : AdbConnectResult.Failure(ConnectFailure ?? $"cannot connect to {address}: (10061)");
     }
 
     /// <summary>Adresses déconnectées, dans l'ordre.</summary>

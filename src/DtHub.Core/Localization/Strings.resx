@@ -1862,4 +1862,10 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="SearchingDevices" xml:space="preserve">
     <value>Looking for your phones…</value>
   </data>
+  <data name="ToPairAgain" xml:space="preserve">
+    <value>To pair again</value>
+  </data>
+  <data name="ToPairAgainTip" xml:space="preserve">
+    <value>This phone is announcing itself on the network but refuses this PC: it no longer recognises its key. Enabling wireless debugging is not enough, it has to be paired again. "Pair a new device", and on the phone "Pair device with pairing code".</value>
+  </data>
 </root>
