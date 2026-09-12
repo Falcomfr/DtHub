@@ -1,4 +1,4 @@
-# Contribuer
+﻿# Contribuer
 
 Merci de l'intérêt. Ce dépôt a des conventions inhabituelles et fermement
 tenues : lisez `AGENTS.md` avant d'écrire une ligne. Il dit ce qui est interdit,
@@ -31,10 +31,27 @@ La chaîne rejoue les deux. Une demande qui les casse ne sera pas relue.
 `TestPairing2`. Les épreuves de ce dépôt se lisent comme une spécification, et
 c'est ce qui les rend utiles.
 
-**Les conventions d'écriture.** Identifiants en anglais, commentaires et
-documentation en français, messages de commit en français à l'impératif. Un
-commentaire dit *pourquoi*, jamais *quoi* : le code dit déjà ce qu'il fait.
-Jamais de tiret cadratin.
+**Les conventions d'écriture.** Identifiants en anglais. Un commentaire dit
+*pourquoi*, jamais *quoi* : le code dit déjà ce qu'il fait. Jamais de tiret
+cadratin.
+
+**La langue, depuis la publication du dépôt.** La règle est simple : *ce qui ne
+peut pas exister dans les deux langues s'écrit en anglais*. Un message de
+commit, un commentaire de code, une note de version n'ont qu'une version ; ils
+sont donc en anglais, à partir du 2026-09-12.
+
+Ce qui existe déjà reste tel quel, et il faut le dire plutôt que de le cacher :
+
+- les **291 commits** antérieurs sont en français, et ne peuvent plus changer
+  sans réécrire un historique déjà public ;
+- `docs/DECISIONS.md`, 392 Ko, reste en français. Sa valeur tient à sa
+  précision, et une traduction en perdrait plus qu'elle n'apporterait ;
+- les **commentaires existants** restent en français. Les nouveaux sont en
+  anglais, et un fichier retouché en profondeur peut passer à l'anglais d'un
+  bloc plutôt que ligne à ligne.
+
+Le mélange se voit, et c'est le prix d'un choix fait après coup plutôt que
+d'une réécriture de l'histoire.
 
 **Les décisions se consignent.** Un choix d'architecture, un compromis, un
 renoncement : cela va dans `docs/DECISIONS.md`, avec ce qui a été mesuré et ce

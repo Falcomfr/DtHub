@@ -214,8 +214,11 @@ pour toute la machine. Un test le vérifie.
 
 ## Conventions
 
-- Identifiants en anglais, commentaires et documentation en français,
-  README en anglais.
+- Identifiants en anglais.
+- **Langue, depuis le 2026-09-12 :** ce qui ne peut pas exister dans les deux
+  langues s'écrit en anglais. Commits, commentaires neufs, notes de version.
+  L'existant reste français, `docs/DECISIONS.md` compris : voir
+  `CONTRIBUTING.md` pour le détail et la raison.
 - Pas de tiret cadratin dans les textes produits.
 - Fichiers en UTF-8, fins de ligne LF dans le dépôt.
 - `nullable` activé partout. Une erreur attrapée ressort : par le journal, par
@@ -223,8 +226,9 @@ pour toute la machine. Un test le vérifie.
   pourquoi le silence est le bon choix. `CatchDisciplineTests` le vérifie sur
   tout `src/`, et exige un filtre `when` sur tout `catch (Exception)`.
 - Tout appel pouvant durer est asynchrone et accepte un `CancellationToken`.
-- Nommage des tests : phrase descriptive en français avec underscores.
-- Commits en français, à l'impératif, un sujet cohérent par commit.
+- Nommage des tests : phrase descriptive en français avec underscores. Ceux qui
+  existent ne se renomment pas ; les nouveaux suivent les voisins du fichier.
+- Commits en anglais, à l'impératif, un sujet cohérent par commit.
 - **Aucun texte visible en dur.** Tout ce que l'utilisateur lit passe par
   `src/DtHub.Core/Localization/Strings*.resx` : `{loc:T Cle}` en XAML,
   `Strings.Get("Cle")` en C#. Une clé s'ajoute aux **trois** fichiers d'un
