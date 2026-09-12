@@ -881,55 +881,6 @@
     </Setter>
   </Style>
 
-  <!-- Maillon rompu : deux anneaux sur la même diagonale, écartés. Employé
-       par les deux listes d'appareils, celle qui porte des instances et celle
-       des appareils qui n'en ont pas. -->
-  <Style x:Key="UnlinkGlyph" TargetType="Control">
-    <Setter Property="Width" Value="15" />
-    <Setter Property="Height" Value="15" />
-    <Setter Property="Focusable" Value="False" />
-    <Setter Property="Template">
-      <Setter.Value>
-        <ControlTemplate TargetType="Control">
-          <Grid Width="15" Height="15">
-            <Grid.Resources>
-              <Style TargetType="Rectangle">
-                <Setter Property="Stroke" Value="{Binding Foreground,
-                                                         RelativeSource={RelativeSource AncestorType=Button}}" />
-                <Setter Property="StrokeThickness" Value="1.5" />
-                <Setter Property="RadiusX" Value="1" />
-                <Setter Property="RadiusY" Value="1" />
-                <Setter Property="Width" Value="8.4" />
-                <Setter Property="Height" Value="5.2" />
-                <Setter Property="HorizontalAlignment" Value="Center" />
-                <Setter Property="VerticalAlignment" Value="Center" />
-                <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
-              </Style>
-            </Grid.Resources>
-            <Rectangle>
-              <Rectangle.RenderTransform>
-                <TransformGroup>
-                  <RotateTransform Angle="-45" />
-                  <TranslateTransform X="-3.3" Y="3.3" />
-                </TransformGroup>
-              </Rectangle.RenderTransform>
-            </Rectangle>
-            <Rectangle>
-              <Rectangle.RenderTransform>
-                <TransformGroup>
-                  <RotateTransform Angle="-45" />
-                  <TranslateTransform X="3.3" Y="-3.3" />
-                </TransformGroup>
-              </Rectangle.RenderTransform>
-            </Rectangle>
-          </Grid>
-        </ControlTemplate>
-      </Setter.Value>
-    </Setter>
-  </Style>
-
-  <!-- Les trois dessins. Tracés, jamais remplis : à cette taille un aplat
-       devient une tache. -->
   <Style x:Key="RowGlyph" TargetType="Path">
     <Setter Property="Stroke" Value="{Binding Foreground,
                                               RelativeSource={RelativeSource AncestorType=Button}}" />
@@ -940,6 +891,18 @@
     <Setter Property="Width" Value="15" />
     <Setter Property="Height" Value="15" />
     <Setter Property="Stretch" Value="None" />
+  </Style>
+
+  <!-- Une corbeille : ce qui retire une chose de l'application.
+
+       Elle était dessinée à même la fenêtre des profils, et le bouton qui
+       oublie un appareil portait une chaîne rompue, héritée du temps où il
+       s'appelait « rompre l'association ». Il n'annule pourtant rien côté
+       téléphone : il retire l'appareil d'ici, exactement comme la suppression
+       d'un profil. Un seul geste, un seul dessin, écrit une seule fois. -->
+  <Style x:Key="BinGlyph" TargetType="Path" BasedOn="{StaticResource RowGlyph}">
+    <Setter Property="Data"
+            Value="M 3,4.6 H 12 M 6,4.6 V 3.2 H 9 V 4.6 M 4.2,4.6 V 12.3 H 10.8 V 4.6 M 6.4,6.6 V 10.3 M 8.6,6.6 V 10.3" />
   </Style>
 
   <!-- Le même dessin, mais dans une liste. RowGlyph prend sa couleur d'un

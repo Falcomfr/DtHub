@@ -821,8 +821,7 @@
                                       Command="{Binding DataContext.Instances.DeleteProfileCommand,
                                                         RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                       CommandParameter="{Binding}">
-                                <Path Style="{StaticResource RowGlyph}"
-                                      Data="M 3,4.6 H 12 M 6,4.6 V 3.2 H 9 V 4.6 M 4.2,4.6 V 12.3 H 10.8 V 4.6 M 6.4,6.6 V 10.3 M 8.6,6.6 V 10.3" />
+                                <Path Style="{StaticResource BinGlyph}" />
                               </Button>
                             </Grid>
                           </DataTemplate>

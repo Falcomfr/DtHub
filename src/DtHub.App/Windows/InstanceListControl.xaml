@@ -119,7 +119,7 @@
                         Command="{Binding DataContext.ForgetDeviceCommand,
                                           RelativeSource={RelativeSource AncestorType=UserControl}}"
                         CommandParameter="{Binding Device}">
-                  <Control Style="{StaticResource UnlinkGlyph}" />
+                  <Path Style="{StaticResource BinGlyph}" />
 
                   <Button.Visibility>
                     <MultiBinding Converter="{StaticResource AllTrue}">
@@ -457,7 +457,7 @@
                       Command="{Binding DataContext.ForgetDeviceCommand,
                                         RelativeSource={RelativeSource AncestorType=UserControl}}"
                       CommandParameter="{Binding}">
-                <Control Style="{StaticResource UnlinkGlyph}" />
+                <Path Style="{StaticResource BinGlyph}" />
               </Button>
             </Grid>
           </DataTemplate>
