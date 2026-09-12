@@ -7288,8 +7288,37 @@ téléphone   19,6  ->   6,6  (-66 %)
 PC          44,0  -> 34,0  (-23 %)
 ```
 
-### Ce qui reste à mesurer, et qui demande un téléphone
+### Ce que le banc a donné
 
-La cadence réellement obtenue, la latence du tampon d'affichage, le codec, et
-la définition de l'afficheur virtuel face à la taille de la fenêtre. Rien de
-tout cela ne se juge sans une fenêtre de jeu qui tourne.
+Le 13T Pro réassocié, trois configurations, même contenu, quarante relevés
+chacune. Wi-Fi 5 GHz, -54 dBm, 866 Mb/s annoncés.
+
+| Configuration | pic d'images | zéros | thermique |
+| :-- | --: | --: | --: |
+| 1080p h264 à 11,2 Mb/s, palier moyen | 40 | 0/40 | 0 |
+| 1080p h265 à 11,2 Mb/s | 44 | 7/40 | 0 |
+| 1440p h264 à 24,3 Mb/s, palier haut | 44 | 2/40 | 0 |
+
+**Les moyennes ne se comparent pas et il faut le dire** : scrcpy n'encode que
+ce qui change, si bien qu'une moyenne mesure l'animation du jeu autant que le
+tuyau. Les sept zéros du second essai disent un écran immobile, pas un codec
+plus lent. Ce qui se compare est le pic, qui dit si quelque chose sature.
+
+Il est identique dans les trois cas, et bien en dessous du plafond de
+soixante. **Le tuyau ne sature jamais** : ni l'encodeur, ni la liaison, ni la
+chaleur. Ce qui plafonne est le jeu lui-même, autour de quarante images, ce
+que D117 avait déjà mesuré à trente-huit.
+
+Batterie 62 à 61 pour cent sur l'ensemble des essais, température 29,8 à
+30,3 °C, état thermique nominal du début à la fin, y compris en 1440p à
+24 Mb/s.
+
+### Ce qu'il faut en conclure
+
+**Sur cet appareil, le palier haut ne coûte rien de mesurable et rend une
+image juste.** Les fenêtres de jeu font 2522 pixels de large ; en 1080p le
+poste étire l'image d'un facteur 1,3, en 1440p il l'affiche presque au pixel
+près. C'est le seul réglage de cette liste qui change quelque chose à l'oeil.
+
+Réserve honnête : mesuré sur l'écran de connexion, pas en combat. Le pic laisse
+de la marge, mais je ne peux pas affirmer des chiffres en jeu sans jouer.
