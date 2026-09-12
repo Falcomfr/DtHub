@@ -6797,7 +6797,10 @@ est bien connecté.
 Tant que ce réglage n'est pas actif, ce téléphone est en lecture seule : on
 voit le jeu, on n'y touche pas.
 
-### Les déconnexions : un seul compte peut vivre à la fois
+### Les déconnexions : une conclusion que la mesure a démentie
+
+**Ce qui suit a été écrit puis réfuté le lendemain. Je le laisse, et j'écris
+la correction dessous : une décision effacée n'apprend rien.**
 
 C'est la trouvaille de fond, et elle explique le « cannot be reached ». Deux
 comptes ouverts, `dumpsys activity processes` :
@@ -6820,6 +6823,34 @@ tous les afficheurs partagent la même, et le système n'en garde qu'une.
 
 **Ce n'est pas un réglage, c'est la version d'Android.** Le Mi 9T Pro peut
 tenir un compte, pas plusieurs.
+
+### La correction, mesurée le lendemain
+
+Le même téléphone, deux comptes ouverts, relevé toutes les vingt secondes
+pendant plusieurs minutes :
+
+```
+u0a260 = vis+ 2 (vis-activity)
+u10a260 = vis+ 3 (vis-activity)
+```
+
+**Les deux sont vivants et le restent.** Ni cache, ni gel. La séquence a été
+reprise à l'identique, A puis B, téléphone déverrouillé : rien ne retombe en
+cache.
+
+Ce que j'avais pris pour une limite structurelle était un état de passage. Le
+relevé d'hier disait `cch-rec`, c'est-à-dire le **souvenir** d'un processus
+déjà tombé, et non une instance vivante reléguée. Le jeu n'était alors pas
+sorti des restrictions de batterie sur cet appareil, et la mémoire y était
+plus serrée qu'aujourd'hui.
+
+L'absence de `FLAG_OWN_DISPLAY_GROUP` reste un fait ; la conséquence que j'en
+ai tirée, non. **L'avertissement bâti dessus est retiré**, avec sa clé de
+traduction, sa lecture du drapeau et ses épreuves : un faux positif est
+exactement ce que ce projet passe son temps à corriger ailleurs.
+
+La vraie contrainte de ce téléphone reste celle qui était déjà mesurée : la
+mémoire. Six gigaoctets, 1,5 libre à deux comptes.
 
 Une circonstance aggravante, mesurée elle aussi : le jeu **n'est pas dans la
 liste blanche d'économie d'énergie** de ce téléphone, alors qu'il l'est sur le

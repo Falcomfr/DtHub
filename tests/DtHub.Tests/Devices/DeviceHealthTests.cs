@@ -24,12 +24,11 @@ public class DeviceHealthTests
             null,
             Link(2437),
             lockedWindows: true,
-            crowdedDevice: true,
             unpreparedBattery: true);
 
         var tout = DeviceHealth.Every(findings);
 
-        Assert.Equal(5, findings.Count);
+        Assert.Equal(4, findings.Count);
         Assert.Equal(DeviceHealth.Worst(findings), findings[0].Message);
         Assert.All(findings, f => Assert.Contains(f.Message, tout, StringComparison.Ordinal));
 
@@ -52,31 +51,6 @@ public class DeviceHealthTests
 
         Assert.Equal(HealthSeverity.Warning, Assert.Single(sans).Severity);
         Assert.Empty(DeviceHealth.Review(null, null, null, null));
-    }
-
-    [Fact]
-    public void Un_appareil_qui_ne_tient_qu_un_compte_le_dit()
-    {
-        var seul = DeviceHealth.Review(null, null, null, null, crowdedDevice: true);
-        var large = DeviceHealth.Review(null, null, null, null);
-
-        Assert.Equal(HealthSeverity.Serious, Assert.Single(seul).Severity);
-        Assert.Empty(large);
-    }
-
-    [Fact]
-    public void Le_cadenas_passe_devant_l_encombrement()
-    {
-        // Les deux peuvent être vrais en même temps sur un vieux téléphone.
-        // Le cadenas d'abord : tant qu'il est là, on ne voit rien du tout,
-        // alors que l'encombrement laisse au moins un compte jouable.
-        var findings = DeviceHealth.Review(
-            null, null, null, null, lockedWindows: true, crowdedDevice: true);
-
-        var cadenas = DeviceHealth.Review(null, null, null, null, lockedWindows: true);
-
-        Assert.Equal(2, findings.Count);
-        Assert.Equal(Assert.Single(cadenas).Message, findings[0].Message);
     }
 
     [Fact]
