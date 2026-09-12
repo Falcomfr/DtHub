@@ -1052,12 +1052,49 @@ public sealed partial class InstanceListViewModel : ObservableObject
         await _launcher.ForgetDeviceAsync(device.DeviceId).ConfigureAwait(true);
         await _settings.ForgetDeviceAsync(device.DeviceId).ConfigureAwait(true);
 
+        // **L'appareil quitte la vue ici, et non au prochain balayage.**
+        //
+        // Il fallait cliquer deux fois pour l'enlever, et il s'affichait entre
+        // les deux « Jeu non installé », ce qui était faux. Les deux symptômes
+        // ont la même cause : « RefreshAsync » rend la main sans rien faire
+        // quand un balayage est déjà en cours, et il en part un toutes les deux
+        // secondes. L'appel ci-dessous ne s'exécutait donc presque jamais, et
+        // l'appelant croyait pourtant avoir rafraîchi.
+        //
+        // Le balayage en vol, lui, finissait avec la liste d'appareils d'avant
+        // la rupture mais les instances déjà effacées : l'appareil reparaissait
+        // sans aucun compte, donc marqué comme dépourvu du jeu. Une absence
+        // d'information montrée comme un constat.
+        //
+        // On sait ce qu'on vient de faire : on le retire, sans rien attendre
+        // de personne.
+        Forget(device);
+
         // Le cache est jeté, sans quoi le balayage reprend ce qu'il connaît
         // déjà et les lignes de l'appareil restent à l'écran jusqu'à
         // l'intervalle de redécouverte. Même geste que pour l'ajout d'un compte.
         _instances = null;
 
         await RefreshAsync().ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// Retire de la vue tout ce qui appartenait à un appareil.
+    ///
+    /// Les trois collections, parce qu'un appareil peut être dans n'importe
+    /// laquelle : ses comptes dans <see cref="Rows" />, sa fiche dans
+    /// <see cref="InactiveDevices" /> quand il n'en a aucun, et son entrée dans
+    /// l'index qui sert à les retrouver.
+    /// </summary>
+    private void Forget(DeviceGroupViewModel device)
+    {
+        foreach (var row in Rows.Where(r => r.DeviceId == device.DeviceId).ToList())
+        {
+            _ = Rows.Remove(row);
+        }
+
+        _ = InactiveDevices.Remove(device);
+        _ = _devices.Remove(device.DeviceId);
     }
 
     private async void OnEnabledChanged(object? sender, InstanceRowViewModel row)

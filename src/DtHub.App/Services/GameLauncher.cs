@@ -1249,6 +1249,25 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         await EnsureHotkeysAsync(cancellationToken).ConfigureAwait(false);
 
+        // **Rien de coché : rien à découvrir.**
+        //
+        // La redécouverte coûte deux commandes par profil de chaque téléphone,
+        // et elle courait toujours avant qu'on regarde s'il y avait seulement
+        // quelque chose à ouvrir. Mesuré au démarrage : trois secondes pendant
+        // lesquelles l'écran restait vide, pour conclure « aucune instance
+        // n'est cochée », réponse que les réglages donnaient déjà.
+        //
+        // La découverte ne peut pas changer cette réponse : un compte qu'elle
+        // vient de trouver n'est jamais coché, « StoredInstance.IsEnabled »
+        // valant faux par défaut. Lire les réglages suffit donc, et suffit
+        // toujours.
+        var stored = await _settings.GetAsync(cancellationToken).ConfigureAwait(false);
+
+        if (!stored.Instances.Exists(i => i.IsEnabled))
+        {
+            return new LaunchReport(0, [Strings.Get("NoInstanceChecked")]);
+        }
+
         var instances = await RefreshInstancesAsync(cancellationToken).ConfigureAwait(false);
         var enabled = instances.Where(i => i.IsEnabled).ToList();
 
@@ -1659,6 +1678,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
 
         await _registry.DiscardAsync(deviceId, cancellationToken).ConfigureAwait(false);
+
+        // Un geste irréversible ne laissait aucune trace : quand l'utilisateur
+        // a signalé qu'il fallait cliquer deux fois pour oublier un appareil,
+        // le journal n'avait rien à en dire et le diagnostic a dû se faire par
+        // lecture de code.
+        LogDeviceForgotten(device?.DisplayName ?? deviceId);
     }
 
     /// <summary>
@@ -2948,4 +2973,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "Le jeu de {instance} n'a pas pu être arrêté : {serial} est resté injoignable.")]
     private partial void LogGameLeftRunning(string instance, string serial);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Association rompue avec {device} : ses comptes et ses réglages sont effacés.")]
+    private partial void LogDeviceForgotten(string device);
 }

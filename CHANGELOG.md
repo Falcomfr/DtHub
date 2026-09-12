@@ -120,6 +120,20 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Corrigé
 
+- **L'application paraît quatre fois et demie plus tôt.** Elle lançait une
+  redécouverte complète de tous les profils de tous les téléphones avant de
+  regarder s'il y avait seulement quelque chose à ouvrir : trois secondes
+  d'écran vide pour conclure qu'aucune instance n'était cochée, réponse que les
+  réglages donnaient déjà. La fenêtre paraît maintenant en 840 ms au lieu de
+  3 950.
+
+- **Oublier un appareil demandait deux clics, et mentait entre les deux.**
+  L'appareil restait affiché après le premier, étiqueté « Jeu non installé »
+  alors que ses comptes venaient simplement d'être effacés. Le rafraîchissement
+  final ne s'exécutait pas quand un balayage était déjà en cours, ce qui est le
+  cas presque à chaque fois. L'appareil quitte désormais la vue immédiatement,
+  et la rupture d'association laisse enfin une trace dans le journal.
+
 - **Le jeu laissait une vignette vide dans la liste des applications du
   téléphone.** Le processus était bien arrêté, mais sa carte restait en tête de
   liste, impossible à distinguer d'une application vivante, et y appuyer

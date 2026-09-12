@@ -7912,3 +7912,107 @@ réponses, et cet ordre est celui dans lequel le site range ses rubriques.
 Le filtre `modified_after` de l'API sur les donjons, déjà repéré et vérifié dans
 D53. Il attaque les quatre cinquièmes du temps, mais demande de savoir fusionner
 un catalogue partiel : c'est un chantier à part, qu'on ne mêle pas à ceux-ci.
+
+## D142 - Deux défauts qui n'en font qu'un : un rafraîchissement qui ne se fait pas
+
+L'utilisateur : « quand je supprime un tel ça me dit une première fois l'app est
+pas installé alors que c'est faux [...] et aussi je dois recliquer sur supprimer
+une seconde fois pour enlever l'appareil ».
+
+J'avais vu le premier symptôme une heure plus tôt en capturant une fenêtre, et
+je l'avais rangé en « transitoire » après avoir constaté que l'application et
+ADB finissaient par s'accorder. C'était une conclusion paresseuse : il était
+reproductible, et l'utilisateur avait le geste.
+
+### La cause, et elle est unique
+
+`InstanceListViewModel.RefreshAsync` commence par ceci :
+
+```csharp
+if (IsBusy || IsReordering)
+{
+    return;
+}
+```
+
+Un balayage part toutes les deux secondes. Quand l'utilisateur confirme la
+rupture d'association, il y en a presque toujours un en vol : **le
+rafraîchissement final ne s'exécute pas, et l'appelant croit pourtant l'avoir
+fait.** L'appareil reste donc à l'écran, d'où le second clic.
+
+Le balayage en vol, lui, se termine avec la liste d'appareils lue **avant** la
+rupture, mais les instances déjà effacées par `ForgetDeviceAsync`.
+`SyncInactiveDevices` voit alors un appareil sans aucun compte et pose
+`HasNoGame`, que la fiche traduit par « Jeu non installé ».
+
+**Une absence d'information montrée comme un constat**, pour la troisième fois
+de la journée après D137 et D141. Le garde-fou existait pourtant,
+`HasNoGame => _hasNoGame && IsConnected` : il protège de l'appareil parti, pas
+de l'appareil qu'on vient soi-même d'effacer.
+
+### Le remède
+
+On sait ce qu'on vient de faire : l'appareil quitte les trois collections de la
+vue sur-le-champ, sans rien attendre d'un balayage qui peut ne pas venir. Le
+rafraîchissement suivant reste, il n'est simplement plus la seule chose sur
+laquelle on compte.
+
+### Ce que le journal ne disait pas
+
+Rompre une association efface des comptes, des réglages et des géométries, sans
+retour possible, et **ne laissait aucune trace**. C'est pourquoi ce diagnostic a
+dû se faire par lecture de code : le journal de l'utilisateur n'avait rien à
+dire de son propre geste. Une ligne le consigne maintenant.
+
+---
+
+## D143 - Trois secondes d'écran vide pour lire un booléen
+
+L'utilisateur : « l'app est un peu longue a se lancer regarde si c'est normal si
+on peut pas opti le lancement ».
+
+### Où passait le temps
+
+Quatre démarrages relevés dans le journal, tous semblables :
+
+```
+départ            0 ms
+langue           95 ms
+réouverture     830 ms
+fenêtre visible 3 950 ms     <- trois secondes de trou
+liaison prête   9 500 ms
+```
+
+Le trou est dans `LaunchEnabledAsync`, qui lançait **une redécouverte complète**
+avant de regarder s'il y avait seulement quelque chose à ouvrir. La découverte
+coûte deux commandes par profil de chaque téléphone. Trois secondes d'écran
+vide, pour conclure « aucune instance n'est cochée ».
+
+### Pourquoi les réglages suffisent, et suffisent toujours
+
+Cette réponse était dans le fichier de réglages depuis le début. La seule
+objection sérieuse serait qu'une découverte puisse cocher quelque chose, et elle
+tombe : `StoredInstance.IsEnabled` vaut faux par défaut, **un compte qu'on vient
+de découvrir n'est jamais coché**. La découverte ne peut donc pas changer la
+réponse, et la lire d'abord n'est pas un pari.
+
+Mesuré après correctif, même machine :
+
+```
+fenêtre visible  840 ms   (contre 3 950)
+```
+
+**Quatre fois et demie plus tôt.** Le « liaison prête » est passé de 9,5 s à
+4,0 s dans le même relevé, mais il n'y avait plus qu'un téléphone au lieu de
+deux : ce chiffre-là n'est pas comparable et n'est pas revendiqué. Le premier
+l'est, le chemin ne dépendant plus d'aucun appareil.
+
+### Ce qui reste, et qui n'est pas rien
+
+Le démarrage garde une seconde optimisation déjà en place, `ShowBeforeLaunch`,
+qui montre le panneau avant le lancement quand il était affiché à la sortie.
+Elle ne servait pas ici, l'utilisateur quittant panneau masqué. Son raisonnement
+s'étend pourtant au cas présent : si rien n'est coché, aucune fenêtre ne peut
+s'ouvrir, donc le panneau paraîtra de toute façon. Le correctif ci-dessus rend
+la question sans objet, mais la règle mériterait d'être élargie le jour où le
+lancement redeviendra long pour une autre raison.
