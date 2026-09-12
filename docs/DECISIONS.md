@@ -7153,8 +7153,14 @@ d'affilée avant de conclure : une tentative peut tomber au mauvais moment.
 `adb.exe` en 37.0.0, l'application en utilise un en 37.0.1, et c'est celui de
 scrcpy qui détenait le port 5037. Toutes les commandes parlaient donc à un
 serveur d'une autre version. Le soupçon était bon, la conclusion non : serveur
-redémarré proprement en 37.0.1, le refus est identique. À surveiller quand
-même, deux binaires ADB pour un poste est une hygiène douteuse.
+redémarré proprement en 37.0.1, le refus est identique.
+
+**Et la faute était la mienne**, ce qu'il faut écrire plutôt que laisser
+planer. L'application pose déjà `ADB` dans l'environnement de scrcpy, qui
+honore cette variable et emploie donc notre copie ; le commentaire du code le
+dit depuis toujours. Le binaire de scrcpy tournait parce que mes propres
+sondes lançaient `scrcpy.exe` à la main, sans la variable. Vérifié après coup :
+un seul `adb.exe` vit sur le poste quand seule l'application travaille.
 
 **Le pare-feu.** Les deux binaires ont une règle d'autorisation active. Écarté
 par lecture, sans rien modifier.
