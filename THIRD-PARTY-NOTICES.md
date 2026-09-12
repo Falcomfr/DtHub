@@ -144,6 +144,22 @@ DOFUS Touch, son symbole ® et l'illustration officielle d'Ankama. Aucun accord
 de papycha ne peut céder ce qui ne leur appartient pas, et le projet ne
 redistribue aucune ressource d'Ankama.
 
+## Almanax du portail d'Ankama
+
+- Source : https://krosmoz.com, page de l'Almanax du jour
+- Rien n'est embarqué : la page est lue au moment où la fenêtre s'ouvre
+
+**Aucune ressource n'est copiée ni redistribuée.** La fenêtre n'affiche pas la
+page : elle la lit et se dessine elle-même. Le portail rend une page de bureau
+entière, avec son décor et ses textes d'ambiance, dont rien n'aide à savoir quoi
+apporter aujourd'hui ; on en retient l'offrande, le bonus, la quête et le
+méryde, qui sont des faits de jeu et non des créations graphiques. Le pied de la
+fenêtre nomme la source à l'écran, « Almanax officiel, krosmoz.com ».
+
+**Ce que cela n'autorise pas.** Ni image, ni icône d'objet, ni bandeau du
+portail. La règle générale plus bas vaut ici comme ailleurs : aucune ressource
+graphique d'Ankama n'entre dans ce dépôt.
+
 ## Données de quêtes issues de papycha.fr
 
 - Source : https://papycha.fr
@@ -197,6 +213,7 @@ Les captures sont nommées, puisque le principe est de nommer :
 | `assets/screenshots/guide-de-quete.jpg` | la fenêtre de guides, et donc une page de papycha.fr |
 | `assets/screenshots/appareils.png` | le configurateur seul, aucune ressource tierce |
 | `assets/screenshots/liste-des-donjons.png` | la liste que DT Hub compose lui-même, aucune ressource tierce |
+| `assets/screenshots/almanax.png` | la fenêtre de l'Almanax, qui se dessine elle-même à partir des faits du jour |
 
 Aucune ne sert d'identité au projet : ni icône, ni favicon, ni image d'aperçu.
 Celles-là sont dessinées par `build/make-icon.py`. Et toutes sont retirables
