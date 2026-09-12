@@ -109,7 +109,8 @@ public sealed partial class QuestViewModel : ObservableObject
         SiteSearch.Length == 0 ? string.Empty : Strings.Format("SearchOnSite", SiteSearch);
 
     /// <summary>
-    /// Vrai quand l'offre de chercher sur le site a lieu d'être.
+    /// Vrai quand l'offre de chercher sur le site a lieu d'être : un texte
+    /// cherché, et la liste sous les yeux.
     ///
     /// **Elle survivait au guide qu'on venait d'ouvrir.** Le texte cherché
     /// n'est effacé qu'en descendant vers une rubrique ; ouvrir une quête
@@ -117,11 +118,19 @@ public sealed partial class QuestViewModel : ObservableObject
     /// proposer « Chercher … sur papycha.fr » au bas d'un guide déjà ouvert,
     /// alors que la recherche était finie et avait abouti.
     ///
-    /// Cette offre est faite pour l'écran des résultats, et surtout pour celui
-    /// qui annonce « aucun résultat » : c'est là qu'on veut aller voir
-    /// ailleurs. Devant un guide, elle n'offre rien que le lecteur cherche.
+    /// **Le premier remède visait à côté.** Il exigeait qu'aucune quête ne soit
+    /// ouverte, et faisait donc disparaître l'offre dès qu'on cherchait depuis
+    /// un guide, ce qui est le geste le plus courant : on lit, on veut autre
+    /// chose, on tape. La question n'est pas de savoir si une page est ouverte
+    /// mais si la liste est à l'écran.
+    ///
+    /// <see cref="IsListOpen" /> répond exactement à cela, et taper du texte le
+    /// pose. L'offre paraît donc sur l'écran des résultats, et surtout sur
+    /// celui qui annonce « aucun résultat » : c'est là qu'on veut aller voir
+    /// ailleurs. Devant un guide seul, elle n'offre rien que le lecteur
+    /// cherche.
     /// </summary>
-    public bool ShowsSiteSearch => SiteSearch.Length > 0 && !HasQuest;
+    public bool ShowsSiteSearch => SiteSearch.Length > 0 && IsListOpen;
 
     [ObservableProperty]
     private string _statusText = string.Empty;
@@ -147,7 +156,6 @@ public sealed partial class QuestViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(ShowsChain))]
     [NotifyPropertyChangedFor(nameof(CanReport))]
     [NotifyPropertyChangedFor(nameof(CanCloseList))]
-    [NotifyPropertyChangedFor(nameof(ShowsSiteSearch))]
     private bool _hasQuest;
 
     /// <summary>Ce qu'on lit tant qu'aucune quête n'est ouverte.</summary>
@@ -171,6 +179,7 @@ public sealed partial class QuestViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(ShowsLoader))]
     [NotifyPropertyChangedFor(nameof(CanReport))]
     [NotifyPropertyChangedFor(nameof(CanCloseList))]
+    [NotifyPropertyChangedFor(nameof(ShowsSiteSearch))]
     private bool _isListOpen;
 
     /// <summary>
