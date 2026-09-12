@@ -114,11 +114,19 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     /// <summary>
     /// Ce que le survol explique, quand l'état seul ne suffit pas.
     ///
-    /// Deux mots dans une liste ne peuvent pas dire quoi faire ; « À
-    /// réassocier » dit ce qui manque, la bulle dit par où.
+    /// Deux mots dans une liste ne peuvent pas dire quoi faire. « À
+    /// réassocier » dit ce qui manque, et la bulle dit par où.
+    ///
+    /// **« Hors ligne » a droit à la sienne, et c'est le cas qui manquait.**
+    /// L'application ne sait pas toujours pourquoi un téléphone ne répond
+    /// pas : il peut être éteint, sur un autre réseau, avoir son débogage
+    /// sans fil coupé, ou avoir oublié la clé de ce PC. Elle ne peut pas
+    /// trancher, mais elle peut dire dans quel ordre chercher, au lieu de
+    /// laisser deviner. Un utilisateur a passé une soirée sur exactement
+    /// cette question, et la réponse était la dernière de la liste.
     /// </summary>
-    public string? StatusTip => _needsPairing && !IsConnected
-        ? Strings.Get("ToPairAgainTip")
+    public string? StatusTip => !IsConnected
+        ? Strings.Get(_needsPairing ? "ToPairAgainTip" : "OfflineTip")
         : null;
 
     public string StatusBrushKey => _needsPairing && !IsConnected

@@ -92,6 +92,16 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Corrigé
 
+- **Un appareil hors ligne explique quoi vérifier.** « Hors ligne » ne disait
+  pas si le téléphone était éteint, sur un autre réseau, son débogage sans fil
+  coupé, ou s'il avait oublié ce PC. Le survol donne la liste, dans l'ordre où
+  chercher, et finit par celle qu'on ne devine pas : l'association perdue.
+
+- **Le bouton qui oublie un appareil s'appelait « Rompre l'association ».** Il
+  n'annule rien côté téléphone, il retire l'appareil de ce PC ; la phrase de
+  confirmation le disait déjà, et le nom du bouton prétendait le contraire.
+  D'autant plus troublant sur un téléphone qui n'est justement plus associé.
+
 - **Le démarrage attendait les téléphones absents l'un après l'autre.** Les
   reconnexions étaient séquentielles, au motif qu'ADB sérialise de toute façon
   les connexions ; la mesure dit le contraire, deux connexions vers des

@@ -393,10 +393,10 @@
     <value>Añadir una cuenta en este teléfono: un perfil de Android nuevo, con el juego ya dentro. Se abrirá como una instalación nueva, para volver a conectarse.</value>
   </data>
   <data name="ForgetDeviceTip" xml:space="preserve">
-    <value>Romper la vinculación con este aparato. Sus ventanas se cierran, y sus instancias y sus ajustes se borran. Se pide confirmación.</value>
+    <value>Olvidar este dispositivo en este PC. Sus ventanas se cierran, y sus instancias y sus ajustes se borran. El teléfono no se toca. Se pide confirmación.</value>
   </data>
   <data name="ForgetDeviceShortTip" xml:space="preserve">
-    <value>Romper la vinculación con este aparato. Sus instancias y sus ajustes se borran. Se pide confirmación.</value>
+    <value>Olvidar este dispositivo en este PC. Sus instancias y sus ajustes se borran. El teléfono no se toca. Se pide confirmación.</value>
   </data>
   <data name="DragToReorderTip" xml:space="preserve">
     <value>Arrastra para cambiar el orden. Una instancia puede colocarse entre las de otro aparato, y este orden es también el que sigue el teclado.</value>
@@ -1177,7 +1177,7 @@ El detalle está en los registros:
     <value>¿Añadir la cuenta «{0}» en {1}?</value>
   </data>
   <data name="ForgetDeviceQuestion" xml:space="preserve">
-    <value>¿Romper la vinculación con {0}?</value>
+    <value>¿Olvidar {0}?</value>
   </data>
   <data name="ForgetDeviceConsequence" xml:space="preserve">
     <value>Sus cuentas y sus ajustes se borrarán, y este PC dejará de conectarse solo. El teléfono conserva su propia lista: quita este PC desde « Depuración inalámbrica » si también quieres borrarlo allí.</value>
@@ -1253,7 +1253,7 @@ El detalle está en los registros:
     <value>Se creará un perfil de Android nuevo en el teléfono, con el juego dentro. Se abrirá como una instalación nueva: el juego volverá a pedir sus recursos y tu conexión.</value>
   </data>
   <data name="ForgetDeviceTitle" xml:space="preserve">
-    <value>Romper la vinculación</value>
+    <value>Olvidar el dispositivo</value>
   </data>
   <data name="Offline" xml:space="preserve">
     <value>Sin conexión</value>
@@ -1867,5 +1867,8 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   </data>
   <data name="ToPairAgainTip" xml:space="preserve">
     <value>Este teléfono se anuncia en la red pero rechaza este PC: ya no reconoce su clave. Encender la depuración inalámbrica no basta, hay que volver a vincularlo. «Vincular un nuevo dispositivo», y en el teléfono «Vincular dispositivo con código de vinculación».</value>
+  </data>
+  <data name="OfflineTip" xml:space="preserve">
+    <value>El teléfono debe estar encendido, en la misma red Wi-Fi que este PC, y con la depuración inalámbrica activa. Si todo eso es cierto, la vinculación se ha perdido: vuelve a vincularlo con «Vincular un nuevo dispositivo». Un teléfono olvida un PC por su cuenta más a menudo de lo que parece, y volver a encender la depuración inalámbrica no la restablece.</value>
   </data>
 </root>

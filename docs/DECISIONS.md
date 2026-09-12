@@ -7170,3 +7170,44 @@ découvert avant que les annonces ne cessent.
 Autrement dit, ce constat vaut quand l'appareil s'annonce ou que son port n'a
 pas changé. Quand les deux manquent, il reste « hors ligne », ce qui est vrai
 faute de mieux.
+
+## D132 - Dire ce qu'on ne sait pas, et nommer ce qu'on fait
+
+Suite de D131, et la demande est plus nette : « ce que je veux c'est que les
+utilisateurs sachent pourquoi ça marche pas ; là c'est écrit hors ligne alors
+qu'il est pas associé ».
+
+### Quand on ne peut pas prouver, on peut ordonner
+
+D131 sait reconnaître un refus de clé, mais seulement quand l'application
+atteint le port où le téléphone écoute. Dans le cas qui l'a motivée, elle ne
+l'atteignait pas : port mémorisé périmé, plus aucune annonce mDNS. Elle en
+restait donc à « hors ligne », ce qui est vrai et n'apprend rien.
+
+Un état qu'on ne peut pas trancher se dit quand même, à condition de dire dans
+quel ordre chercher. Le survol d'un appareil hors ligne donne maintenant les
+quatre causes, de la plus fréquente à la plus surprenante : éteint, autre
+réseau, débogage sans fil coupé, association perdue. La dernière porte la
+phrase qui manquait : **un téléphone oublie un PC tout seul plus souvent qu'on
+ne croit, et rallumer le débogage sans fil ne la rétablit pas.**
+
+C'est exactement le raisonnement que l'utilisateur a dû faire à la main, et
+qu'il a fini par valider en regardant la liste des appareils associés du
+téléphone.
+
+### Un bouton doit dire ce qu'il fait
+
+Remarque suivante, dans la foulée : « y a le bouton pour enlever l'association
+alors qu'il est pas associé, c'est pas logique ».
+
+Le bouton s'appelait « Rompre l'association ». Il n'annule rien côté téléphone :
+il retire l'appareil de ce PC, ses comptes et ses réglages. Le dépôt le savait
+et se contredisait sur toute la ligne : les clés s'appellent `ForgetDevice*`, et
+la phrase de confirmation disait déjà « le téléphone garde sa propre liste,
+retirez-y ce PC depuis Débogage sans fil si vous voulez l'en effacer aussi ».
+Seul le nom du bouton prétendait le contraire.
+
+Il s'appelle donc « Oublier l'appareil », dans les trois langues, et sa bulle
+ajoute que le téléphone n'est pas touché. Le bouton reste affiché sur un
+appareil non associé, et c'est voulu : c'est précisément là qu'on veut retirer
+une entrée devenue morte.

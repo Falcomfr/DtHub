@@ -393,10 +393,10 @@
     <value>Add an account on this phone: a fresh Android profile, with the game already in it. It will open like a new installation, to be logged in again.</value>
   </data>
   <data name="ForgetDeviceTip" xml:space="preserve">
-    <value>Break the pairing with this device. Its windows close, and its instances as well as their settings are erased. A confirmation is asked for.</value>
+    <value>Forget this device on this PC. Its windows close, and its instances as well as their settings are erased. The phone itself is not touched. A confirmation is asked.</value>
   </data>
   <data name="ForgetDeviceShortTip" xml:space="preserve">
-    <value>Break the pairing with this device. Its instances as well as their settings are erased. A confirmation is asked for.</value>
+    <value>Forget this device on this PC. Its instances as well as their settings are erased. The phone itself is not touched. A confirmation is asked.</value>
   </data>
   <data name="DragToReorderTip" xml:space="preserve">
     <value>Drag to change the order. An instance can sit between those of another device, and this order is also the one the keyboard follows.</value>
@@ -1177,7 +1177,7 @@ The detail is in the logs:
     <value>Add the account “{0}” on {1}?</value>
   </data>
   <data name="ForgetDeviceQuestion" xml:space="preserve">
-    <value>Break the pairing with {0}?</value>
+    <value>Forget {0}?</value>
   </data>
   <data name="ForgetDeviceConsequence" xml:space="preserve">
     <value>Its accounts and their settings will be erased, and this PC will stop connecting to it on its own. The phone keeps its own record: remove it from « Wireless debugging » if you want it gone there too.</value>
@@ -1253,7 +1253,7 @@ The detail is in the logs:
     <value>A fresh Android profile will be created on the phone, with the game in it. It will open like a new installation: the game will ask again for its resources and for your login.</value>
   </data>
   <data name="ForgetDeviceTitle" xml:space="preserve">
-    <value>Break the pairing</value>
+    <value>Forget the device</value>
   </data>
   <data name="Offline" xml:space="preserve">
     <value>Offline</value>
@@ -1867,5 +1867,8 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   </data>
   <data name="ToPairAgainTip" xml:space="preserve">
     <value>This phone is announcing itself on the network but refuses this PC: it no longer recognises its key. Enabling wireless debugging is not enough, it has to be paired again. "Pair a new device", and on the phone "Pair device with pairing code".</value>
+  </data>
+  <data name="OfflineTip" xml:space="preserve">
+    <value>The phone must be on, on the same Wi-Fi network as this PC, and its wireless debugging must be on. If all of that is true, then the pairing has been lost: pair it again with "Pair a new device". A phone forgets a PC on its own more often than you would think, and turning wireless debugging back on does not restore it.</value>
   </data>
 </root>

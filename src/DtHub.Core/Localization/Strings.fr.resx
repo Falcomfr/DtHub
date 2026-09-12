@@ -393,10 +393,10 @@
     <value>Ajouter un compte sur ce téléphone : un profil Android neuf, avec le jeu déjà dedans. Il s'ouvrira comme une installation neuve, à reconnecter.</value>
   </data>
   <data name="ForgetDeviceTip" xml:space="preserve">
-    <value>Rompre l'association avec cet appareil. Ses fenêtres se ferment, et ses instances comme leurs réglages sont effacés. Une confirmation est demandée.</value>
+    <value>Oublier cet appareil sur ce PC. Ses fenêtres se ferment, et ses instances comme leurs réglages sont effacés. Le téléphone, lui, n'est pas touché. Une confirmation est demandée.</value>
   </data>
   <data name="ForgetDeviceShortTip" xml:space="preserve">
-    <value>Rompre l'association avec cet appareil. Ses instances comme leurs réglages sont effacés. Une confirmation est demandée.</value>
+    <value>Oublier cet appareil sur ce PC. Ses instances comme leurs réglages sont effacés. Le téléphone, lui, n'est pas touché. Une confirmation est demandée.</value>
   </data>
   <data name="DragToReorderTip" xml:space="preserve">
     <value>Glissez pour changer l'ordre. Une instance peut se placer entre celles d'un autre appareil, et cet ordre est aussi celui du parcours au clavier.</value>
@@ -1177,7 +1177,7 @@ Le détail se trouve dans les journaux :
     <value>Ajouter le compte « {0} » sur {1} ?</value>
   </data>
   <data name="ForgetDeviceQuestion" xml:space="preserve">
-    <value>Rompre l'association avec {0} ?</value>
+    <value>Oublier {0} ?</value>
   </data>
   <data name="ForgetDeviceConsequence" xml:space="preserve">
     <value>Ses comptes et leurs réglages seront effacés, et ce PC cessera de s'y connecter de lui-même. Le téléphone garde sa propre liste : retirez-y ce PC depuis « Débogage sans fil » si vous voulez l'en effacer aussi.</value>
@@ -1253,7 +1253,7 @@ Le détail se trouve dans les journaux :
     <value>Un profil Android neuf sera créé sur le téléphone, avec le jeu dedans. Il s'ouvrira comme une installation neuve : le jeu redemandera ses ressources et votre connexion.</value>
   </data>
   <data name="ForgetDeviceTitle" xml:space="preserve">
-    <value>Rompre l'association</value>
+    <value>Oublier l'appareil</value>
   </data>
   <data name="Offline" xml:space="preserve">
     <value>Hors ligne</value>
@@ -1867,5 +1867,8 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   </data>
   <data name="ToPairAgainTip" xml:space="preserve">
     <value>Ce téléphone s'annonce sur le réseau mais refuse ce PC : il ne reconnaît plus sa clé. Rallumer le débogage sans fil ne suffit pas, il faut refaire l'association. « Associer un nouvel appareil », et sur le téléphone « Associer l'appareil avec un code d'association ».</value>
+  </data>
+  <data name="OfflineTip" xml:space="preserve">
+    <value>Le téléphone doit être allumé, sur le même réseau Wi-Fi que ce PC, et son débogage sans fil actif. Si tout cela est vrai, c'est que l'association a été perdue : réassociez-le avec « Associer un nouvel appareil ». Un téléphone oublie un PC tout seul plus souvent qu'on ne croit, et rallumer le débogage sans fil ne la rétablit pas.</value>
   </data>
 </root>
