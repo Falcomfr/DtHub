@@ -79,4 +79,49 @@ public sealed class PapychaSiteTests
         // contrôle d'appartenance.
         Assert.True(PapychaSite.Owns(PapychaSite.SearchUrl("bouftou")));
     }
+    /// <summary>
+    /// Adresse relevee au caractère près dans le pied d'article de la quete
+    /// « La potion Lèche-bottes », colonne des suivantes.
+    /// </summary>
+    private const string ArbreDuSucces =
+        "https://papycha.fr/succes/?pqt_success=success:cards.lechage-de-bottes#succes-selectionne";
+
+    [Fact]
+    public void L_arbre_des_succes_se_reconnait()
+    {
+        // La seule page du site qu'on renvoie au navigateur : ce n'est pas un
+        // guide mais un outil qu'on déplie et qu'on parcourt.
+        Assert.True(PapychaSite.IsSuccessTree(ArbreDuSucces));
+    }
+
+    [Theory]
+    [InlineData("https://papycha.fr/succes/")]
+    [InlineData("https://papycha.fr/succes")]
+    [InlineData("https://papycha.fr/SUCCES/")]
+    [InlineData("https://papycha.fr/succes/#succes-selectionne")]
+    [InlineData("https://papycha.fr/succes/?pqt_success=x")]
+    public void La_barre_finale_la_casse_et_l_ancre_ne_changent_rien(string url)
+    {
+        // Le site sert la même page sous ces cinq formes. En rater une ouvrirait
+        // l'arbre dans une de nos fenêtres une fois sur cinq, sans qu'on sache
+        // pourquoi.
+        Assert.True(PapychaSite.IsSuccessTree(url));
+    }
+
+    [Theory]
+    [InlineData("https://papycha.fr/quete-la-potion-leche-bottes/")]
+    [InlineData("https://papycha.fr/")]
+    [InlineData("https://papycha.fr/succes-de-quelque-chose/")]
+    [InlineData("https://papycha.fr/quetes/succes/")]
+    [InlineData("https://exemple.test/succes/")]
+    [InlineData("http://papycha.fr/succes/")]
+    [InlineData(null)]
+    [InlineData("")]
+    public void Tout_le_reste_continue_de_s_ouvrir_chez_nous(string? url)
+    {
+        // L'exception doit rester une exception. Une quête, la racine du site,
+        // un titre qui commence par « succès » : rien de cela ne part au
+        // navigateur.
+        Assert.False(PapychaSite.IsSuccessTree(url));
+    }
 }

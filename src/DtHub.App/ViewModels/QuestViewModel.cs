@@ -251,10 +251,20 @@ public sealed partial class QuestViewModel : ObservableObject
 
         IsBusy = true;
 
+        // **L'arbre d'hier vaut mieux qu'un arbre vide.** Le catalogue en cache
+        // est déjà chargé en mémoire quand on arrive ici, et pourtant la
+        // fenêtre affichait « Quêtes 0 » pendant toute la relecture : elle
+        // attendait la fin d'une lecture réseau pour montrer ce qu'elle avait
+        // déjà sur le disque. On le montre tout de suite, la ligne d'état
+        // disant par ailleurs qu'une mise à jour est en cours.
+        if (before.Quests > 0)
+        {
+            CountSections();
+            ShowRoot();
+        }
+
         var progress = new Progress<QuestIndexingProgress>(
-            p => StatusText = p.Total > 0
-                ? Strings.Format("IndexingProgress", p.Loaded, p.Total)
-                : Strings.Get("Indexing"));
+            p => StatusText = QuestIndexingLabel.For(p));
 
         var catalog = await _catalog.GetAsync(progress, cancellationToken).ConfigureAwait(true);
 
@@ -262,6 +272,12 @@ public sealed partial class QuestViewModel : ObservableObject
         CountSections();
         ShowRoot();
     }
+
+    /// <summary>
+    /// Durée de la dernière indexation complète, ou <c>null</c> s'il n'y en a
+    /// pas eu. Journalisée par la fenêtre, la vue-modèle n'ayant pas de journal.
+    /// </summary>
+    public TimeSpan? LastIndexing => _catalog.LastIndexing;
 
     /// <summary>
     /// Range ce qui suit une lecture : la chaîne et l'état affiché.
@@ -775,12 +791,6 @@ public sealed partial class QuestViewModel : ObservableObject
         _start = QuestStepSummary.OfStart(quest.StartPosition, quest.StartPerson);
         _startsAtDeparture = false;
 
-        // Le pied d'article de la quête qu'on quitte ne vaut plus rien : le
-        // garder proposerait, en bas de la nouvelle, les suites de la
-        // précédente. La position aussi se rouvre en haut.
-        _chain = null;
-        _atEnd = false;
-
         SetNeighbours(quest);
 
         // La page suivante n'est pas encore chargée : garder les étapes de la
@@ -1015,64 +1025,6 @@ public sealed partial class QuestViewModel : ObservableObject
     private QuestLink? _previousQuest;
 
     /// <summary>
-    /// Ce que la quête débloque, tel que le site le publie en pied d'article,
-    /// groupé par objectif.
-    ///
-    /// Montré en fin de quête et pas avant : c'est le moment où la question se
-    /// pose, et le reste du temps ces trois lignes mangeraient la place d'une
-    /// fenêtre qui sert à lire un guide.
-    /// </summary>
-    public System.Collections.ObjectModel.ObservableCollection<QuestFollowUpGroupViewModel> FollowUps { get; } = [];
-
-    /// <summary>Vrai quand la liste des suites a lieu d'être montrée.</summary>
-    [ObservableProperty]
-    private bool _showsFollowUps;
-
-    /// <summary>Le pied d'article de la page ouverte, gardé pour la fin.</summary>
-    private QuestChain? _chain;
-
-    /// <summary>Vrai quand la page est arrivée en bas.</summary>
-    private bool _atEnd;
-
-    /// <summary>
-    /// Le guide est arrivé en bas, ou l'a quitté.
-    ///
-    /// **Le bas de page, et non la dernière étape.** Lier l'affichage à l'étape
-    /// le faisait clignoter pendant tout le défilement : le bloc rogne la
-    /// hauteur de la vue, ce qui déplace la page, ce qui change l'étape
-    /// détectée, ce qui referme le bloc, ce qui rend la hauteur. Le pont
-    /// annonce donc une position, avec deux seuils assez écartés pour que ce
-    /// déplacement ne puisse pas les retraverser.
-    /// </summary>
-    public void SetAtEnd(bool atEnd)
-    {
-        _atEnd = atEnd;
-
-        RefreshFollowUps();
-    }
-
-    /// <summary>
-    /// Rafraîchit la liste des suites et décide de la montrer.
-    ///
-    /// Un guide trop court pour défiler est arrivé en bas dès son ouverture :
-    /// le pont l'annonce au chargement, sans attendre un défilement qui
-    /// n'aura jamais lieu.
-    /// </summary>
-    private void RefreshFollowUps()
-    {
-        var groups = QuestFollowUps.Of(_chain, _current?.Url);
-
-        FollowUps.Clear();
-
-        foreach (var group in groups)
-        {
-            FollowUps.Add(new QuestFollowUpGroupViewModel(group));
-        }
-
-        ShowsFollowUps = _atEnd && FollowUps.Count > 0;
-    }
-
-    /// <summary>
     /// Ce que la page vient de livrer : ses blocs structurés et ses étapes.
     /// </summary>
     public void SetPage(
@@ -1087,8 +1039,6 @@ public sealed partial class QuestViewModel : ObservableObject
 
         var facts = QuestPageParser.ParseFacts(introHtml);
         var chain = QuestPageParser.ParseChain(chainHtml);
-
-        _chain = chain;
 
         // Le site publie en pied d'article ce qui précède et ce qui suit, et
         // c'est lui qui fait foi **là où nous n'avons rien** : aux bornes d'un
@@ -1150,8 +1100,6 @@ public sealed partial class QuestViewModel : ObservableObject
 
         CanGoPreviousStep = index > 0;
         CanGoNextStep = index >= 0 && index < total - 1;
-
-        RefreshFollowUps();
     }
 
     /// <summary>

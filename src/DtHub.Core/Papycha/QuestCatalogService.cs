@@ -727,6 +727,7 @@ public sealed class QuestCatalogService : IDisposable
         _current ??= await _store.LoadAsync(cancellationToken).ConfigureAwait(false);
 
         var previous = _current;
+        var chrono = System.Diagnostics.Stopwatch.StartNew();
 
         try
         {
@@ -739,6 +740,13 @@ public sealed class QuestCatalogService : IDisposable
                 return previous;
             }
 
+            // Chaque étape s'annonce avant de commencer, et non après. Une
+            // seule le faisait, celle des quêtes, et c'est la plus courte : le
+            // compteur atteignait son total en quelques secondes puis restait
+            // figé pendant tout le reste, sans que rien ne dise que le travail
+            // continuait.
+            progress?.Report(new QuestIndexingProgress(0, 0, QuestIndexingPhase.Sections));
+
             var sections = await _client.GetSectionsAsync(cancellationToken).ConfigureAwait(false);
             var pages = await _client.GetPageSectionsAsync(cancellationToken).ConfigureAwait(false);
 
@@ -748,7 +756,13 @@ public sealed class QuestCatalogService : IDisposable
             var categories = await _client
                 .GetCategoryStampsAsync(cancellationToken)
                 .ConfigureAwait(false);
+            // Quatre mégaoctets, et les quatre cinquièmes du temps d'une
+            // indexation : c'est l'étape qu'il importe le plus de nommer.
+            progress?.Report(new QuestIndexingProgress(0, 0, QuestIndexingPhase.Dungeons));
+
             var dungeons = await _client.GetDungeonsAsync(cancellationToken).ConfigureAwait(false);
+
+            progress?.Report(new QuestIndexingProgress(0, 0, QuestIndexingPhase.Paths));
 
             // Les chemins après eux : le côté d'un chemin se décide sur les noms
             // des donjons, qu'il faut donc connaître d'abord.
@@ -757,6 +771,8 @@ public sealed class QuestCatalogService : IDisposable
                     [.. dungeons.Where(d => d.Kind == DungeonKind.Dungeon).Select(d => d.Title)],
                     cancellationToken)
                 .ConfigureAwait(false);
+
+            progress?.Report(new QuestIndexingProgress(0, 0, QuestIndexingPhase.Arranging));
 
             var (arranged, ordered, ranking) = Arrange(
                 quests, sections, pages, _seed?.Load());
@@ -778,6 +794,7 @@ public sealed class QuestCatalogService : IDisposable
             await _store.SaveAsync(document, cancellationToken).ConfigureAwait(false);
 
             _current = document;
+            LastIndexing = chrono.Elapsed;
 
             return document;
         }
@@ -796,6 +813,18 @@ public sealed class QuestCatalogService : IDisposable
             return previous;
         }
     }
+
+    /// <summary>
+    /// Durée de la dernière indexation complète, ou <c>null</c> s'il n'y en a
+    /// pas eu dans cette session.
+    ///
+    /// **Mesurée parce qu'elle ne l'était pas.** Les « cinquante secondes »
+    /// citées dans les décisions du projet datent d'une époque où
+    /// l'indexation faisait huit requêtes ; elle en fait une cinquantaine
+    /// depuis. Aucun chronomètre n'existait, et toute optimisation se jugeait
+    /// donc à l'impression.
+    /// </summary>
+    public TimeSpan? LastIndexing { get; private set; }
 
     /// <summary>Dernier échec d'indexation, pour que la fenêtre puisse le dire.</summary>
     public Exception? LastFailure { get; private set; }

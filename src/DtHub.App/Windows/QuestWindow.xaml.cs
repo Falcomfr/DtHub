@@ -52,7 +52,7 @@ public partial class QuestWindow : Window
         // mettre en sommeil, à condition qu'on ne lui demande rien d'autre.
         IsVisibleChanged += (_, _) => OnVisibilityChanged();
 
-        Loaded += async (_, _) => await _viewModel.InitializeAsync().ConfigureAwait(true);
+        Loaded += async (_, _) => await IndexAsync().ConfigureAwait(true);
     }
 
     /// <summary>Montre la fenêtre si elle est masquée, la masque sinon.</summary>
@@ -97,7 +97,7 @@ public partial class QuestWindow : Window
         // charge d'ordinaire au premier affichage, mais rien ne garantit qu'il
         // ait fini : sans cette attente, l'adresse retenue tombait à côté et la
         // fenêtre s'ouvrait sur sa liste.
-        await _viewModel.InitializeAsync().ConfigureAwait(true);
+        await IndexAsync().ConfigureAwait(true);
 
         if (string.IsNullOrWhiteSpace(url) || !_viewModel.TryFollowUrl(url))
         {
@@ -437,9 +437,6 @@ public partial class QuestWindow : Window
                 _viewModel.SetStep(message.Index);
                 break;
 
-            case QuestBridgeMessage.End:
-                _viewModel.SetAtEnd(message.AtEnd);
-                break;
 
             default:
                 break;
@@ -611,6 +608,19 @@ public partial class QuestWindow : Window
             return;
         }
 
+        // L'arbre des succès part au navigateur, et c'est la seule page du site
+        // dans ce cas. Elle n'est pas un guide mais un outil qu'on déplie et
+        // qu'on parcourt : ouverte dans une de nos fenêtres, elle s'affichait
+        // bien mais imposait une étape de plus avant le bouton qui menait enfin
+        // là où l'on voulait aller. Voir PapychaSite.IsSuccessTree.
+        if (PapychaSite.IsSuccessTree(url))
+        {
+            LogTreeSentOutside(url);
+            _dialogs.OpenUrl(url);
+
+            return;
+        }
+
         if (!_viewModel.TryFollowUrl(url, remember: true))
         {
             _ = OpenAsideAsync(url);
@@ -684,6 +694,17 @@ public partial class QuestWindow : Window
         Message = "Adresse hors du site confiée au navigateur : {url}")]
     private partial void LogSentOutside(string url);
 
+    /// <summary>
+    /// L'arbre des succès, seule page du site qu'on confie au navigateur. Sa
+    /// propre ligne, parce que la précédente disait « hors du site » d'une
+    /// adresse qui, elle, en fait partie : un journal qui ment sur ce qu'il a
+    /// fait vaut moins qu'un journal muet.
+    /// </summary>
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Arbre des succès ouvert dans le navigateur : {url}")]
+    private partial void LogTreeSentOutside(string url);
+
     [LoggerMessage(Level = LogLevel.Warning, Message = "Page liée non ouverte ({reason}) : {url}")]
     private partial void LogPageFailed(string url, string reason);
 
@@ -716,6 +737,11 @@ public partial class QuestWindow : Window
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Le pont annonce la page chargée.")]
     private partial void LogBridgeLoaded();
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Catalogue indexé en {seconds:F1} s.")]
+    private partial void LogIndexed(double seconds);
 
     [LoggerMessage(
         Level = LogLevel.Warning,
@@ -852,6 +878,27 @@ public partial class QuestWindow : Window
         {
             _viewModel.Follow(link);
             NavigateTo(link.Url);
+        }
+    }
+
+    /// <summary>
+    /// Indexe, puis consigne la durée quand il y a eu quelque chose à indexer.
+    ///
+    /// **Rien ne chronométrait l'indexation**, et les cinquante secondes citées
+    /// de mémoire dans les décisions du projet dataient d'une époque où elle
+    /// faisait huit requêtes au lieu d'une cinquantaine. Toute amélioration se
+    /// jugeait donc à l'impression.
+    ///
+    /// Muet quand le cache a suffi, ce qui est le cas ordinaire : une ligne par
+    /// ouverture de fenêtre ne dirait rien d'utile.
+    /// </summary>
+    private async Task IndexAsync()
+    {
+        await _viewModel.InitializeAsync().ConfigureAwait(true);
+
+        if (_viewModel.LastIndexing is { } duree)
+        {
+            LogIndexed(duree.TotalSeconds);
         }
     }
 

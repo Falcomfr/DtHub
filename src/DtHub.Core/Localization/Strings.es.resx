@@ -493,21 +493,6 @@ Cruza las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
   <data name="GameLeftRunning" xml:space="preserve">
     <value>{0} se cerró, pero el juego sigue abierto en el teléfono: no se pudo contactar. Ciérralo desde el teléfono.</value>
   </data>
-  <data name="QuestFollowUpsTitle" xml:space="preserve">
-    <value>Misiones e hitos siguientes</value>
-  </data>
-  <data name="QuestFollowUpsTip" xml:space="preserve">
-    <value>Lo que desbloquea esta misión, tal como la guía lo lista al pie de página. Haz clic para abrirla.</value>
-  </data>
-  <data name="QuestFollowUpObjective" xml:space="preserve">
-    <value>Objetivo: {0}</value>
-  </data>
-  <data name="QuestFollowUpSuccess" xml:space="preserve">
-    <value>logro</value>
-  </data>
-  <data name="QuestFollowUpMilestone" xml:space="preserve">
-    <value>hito</value>
-  </data>
   <data name="DeviceBatteryLow" xml:space="preserve">
     <value>El teléfono está al {0} % y no está cargando. Enchúfalo o la sesión acabará antes que tú.</value>
   </data>
@@ -1837,6 +1822,21 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   </data>
   <data name="ConnectionInProgress" xml:space="preserve">
     <value>Conectando…</value>
+  </data>
+  <data name="IndexingQuests" xml:space="preserve">
+    <value>Leyendo misiones {0} / {1}</value>
+  </data>
+  <data name="IndexingSections" xml:space="preserve">
+    <value>Leyendo secciones…</value>
+  </data>
+  <data name="IndexingDungeons" xml:space="preserve">
+    <value>Leyendo mazmorras…</value>
+  </data>
+  <data name="IndexingPaths" xml:space="preserve">
+    <value>Leyendo rutas…</value>
+  </data>
+  <data name="IndexingArranging" xml:space="preserve">
+    <value>Ordenando…</value>
   </data>
   <data name="Indexing" xml:space="preserve">
     <value>Indexando…</value>

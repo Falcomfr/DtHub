@@ -153,22 +153,6 @@ public static partial class QuestPageParser
             return [];
         }
 
-        // Les groupes d'objectif d'abord, avec leur étendue : le site range ses
-        // suites sous « Objectif : … », et un lien hérite de celui qui
-        // l'englobe. Repérer les groupes puis situer chaque lien vaut mieux que
-        // de lire la colonne dans l'ordre : un lien peut précéder tout groupe,
-        // comme le succès validé, et rien ne garantit que le site n'en
-        // intercale pas d'autres demain.
-        List<(int Start, int End, string? Title)> groups = [];
-
-        foreach (Match group in ObjectivePattern().Matches(body))
-        {
-            groups.Add((
-                group.Index,
-                group.Index + group.Length,
-                Clean(group.Groups["objective"].Value)));
-        }
-
         List<QuestLink> links = [];
 
         foreach (Match anchor in LinkPattern().Matches(body))
@@ -183,14 +167,7 @@ public static partial class QuestPageParser
                 continue;
             }
 
-            var objective = groups
-                .FirstOrDefault(g => anchor.Index >= g.Start && anchor.Index < g.End)
-                .Title;
-
-            links.Add(new QuestLink(title, url, KindOf(anchor.Groups["class"].Value))
-            {
-                Objective = objective,
-            });
+            links.Add(new QuestLink(title, url, KindOf(anchor.Groups["class"].Value)));
         }
 
         return links;
@@ -230,14 +207,6 @@ public static partial class QuestPageParser
     [GeneratedRegex(@"<strong[^>]*>(?<title>.*?)</strong>", RegexOptions.Singleline | RegexOptions.IgnoreCase)]
     private static partial Regex TitlePattern();
 
-    /// <summary>
-    /// Un groupe d'objectif et tout ce qu'il contient. Le titre vit dans le
-    /// &lt;strong&gt; de son en-tête, après un &lt;span&gt; qui dit « Objectif : ».
-    /// </summary>
-    [GeneratedRegex(
-        @"<section[^>]*pqt-progress__objective-group[^>]*>.*?<strong[^>]*>(?<objective>.*?)</strong>.*?</section>",
-        RegexOptions.Singleline | RegexOptions.IgnoreCase)]
-    private static partial Regex ObjectivePattern();
 
     [GeneratedRegex("<[^>]+>")]
     private static partial Regex TagPattern();

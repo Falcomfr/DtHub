@@ -122,7 +122,8 @@ public sealed partial class PapychaClient : IPapychaClient
             }
 
             quests.AddRange(items.Select(item => ToSummary(item, people)));
-            progress?.Report(new QuestIndexingProgress(quests.Count, total));
+            progress?.Report(
+                new QuestIndexingProgress(quests.Count, total, QuestIndexingPhase.Quests));
 
             if (items.Count < PageSize)
             {
@@ -297,31 +298,56 @@ public sealed partial class PapychaClient : IPapychaClient
             return [];
         }
 
-        List<QuestPageSection> sections = [];
+        // **Quatre de front, et pas une de plus.** Ces lectures sont de la
+        // latence presque pure, une douzaine de kilooctets chacune : les
+        // enchaîner une par une payait vingt-cinq allers-retours bout à bout
+        // pour trois cents kilooctets en tout. C'est le seul endroit de
+        // l'indexation où le parallélisme rapporte vraiment.
+        //
+        // Le plafond est un choix de courtoisie et non une limite technique :
+        // le site est tenu par une personne, et rien ne justifie de lui envoyer
+        // vingt-cinq requêtes simultanées pour gagner une seconde de plus.
+        using var gate = new SemaphoreSlim(SectionParallelism, SectionParallelism);
 
-        foreach (var section in listed)
+        var read = await Task.WhenAll(listed.Select(async section =>
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-            var content = await GetPageContentAsync(
-                PageReference(section.Url), cancellationToken).ConfigureAwait(false);
-
-            if (content is null)
+            try
             {
-                continue;
+                var content = await GetPageContentAsync(
+                    PageReference(section.Url), cancellationToken).ConfigureAwait(false);
+
+                return content is null
+                    ? null
+                    : section with
+                    {
+                        QuestUrls = QuestSectionPageParser.ParseQuestLinks(content),
+                        Groups = QuestSectionPageParser.ParseGroups(content),
+                    };
             }
-
-            sections.Add(section with
+            finally
             {
-                QuestUrls = QuestSectionPageParser.ParseQuestLinks(content),
-                Groups = QuestSectionPageParser.ParseGroups(content),
-            });
-        }
+                _ = gate.Release();
+            }
+        })).ConfigureAwait(false);
+
+        // L'ordre de la page « Quêtes » est conservé : « Task.WhenAll » rend
+        // les résultats dans l'ordre des tâches, non dans celui des réponses.
+        // Cet ordre est celui dans lequel le site range ses rubriques, et la
+        // fenêtre s'en sert.
+        List<QuestPageSection> sections = [.. read.OfType<QuestPageSection>()];
 
         LogSectionsRead(sections.Count);
 
         return sections;
     }
+
+    /// <summary>
+    /// Lectures de pages de rubrique menées de front. Quatre, par courtoisie
+    /// pour un site tenu par une personne.
+    /// </summary>
+    private const int SectionParallelism = 4;
 
     /// <summary>
     /// Ce qui identifie une page dans l'API : son identifiant quand l'adresse

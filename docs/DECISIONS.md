@@ -7799,3 +7799,116 @@ pour que la différence se voie. Seule une quête reste un lien.
 **Ce que les deux ont en commun** : le choix initial était raisonnable sur le
 papier et faux à l'écran. Ni l'un ni l'autre n'était visible sans ouvrir la
 fenêtre, que je n'ai aucun moyen de voir.
+
+## D140 - L'arbre des succès n'est pas une page, c'est un outil
+
+L'utilisateur : « Arbre du succès je veux que ça ouvre le site papycha quand il
+y a des liens vers ça mais ça propose d'ouvrir le navigateur ».
+
+### Ce que l'application faisait vraiment
+
+Rien de ce que la phrase laissait entendre. Le journal, deux fois :
+
+```
+17:00:46  Page liée ouverte : https://papycha.fr/succes/?pqt_success=...
+17:01:38  Page liée ouverte : https://papycha.fr/succes/?pqt_success=...
+```
+
+`PapychaSite.Owns` rend vrai, `TryFollowUrl` rend faux puisque ce n'est ni une
+quête ni un donjon ni un chemin, donc `Route` ouvre la fenêtre des pages liées.
+Et cette page s'y affichait correctement : vérifié sur le HTML servi, le détail
+du succès, la liste et l'arbre sont **tous les trois** dans `.entry-content`, que
+le cadrage garde.
+
+Aucune boîte de confirmation n'existe d'ailleurs dans l'application :
+`IDialogService.OpenUrl` lance le navigateur sans rien demander.
+
+**La « validation » était cette fenêtre elle-même.** Son bouton de pied
+« Ouvrir dans le navigateur » était le seul chemin vers ce que l'utilisateur
+voulait. Une étape de plus, pas une question.
+
+### La règle, et son exception
+
+Tout le site s'ouvre chez nous : nos fenêtres cadrent la page, retirent le décor
+et gardent le lecteur dans son guide. L'arbre des succès fait exception, et il
+faut dire pourquoi : **ce n'est pas une page qu'on lit, c'est un outil qu'on
+manipule.** On le déplie, on le parcourt, on suit ses branches. Cela demande des
+onglets et un historique, c'est-à-dire un navigateur.
+
+`PapychaSite.IsSuccessTree` compare le chemin seul. Le site sert la même page
+sous cinq formes, avec ou sans barre oblique finale, en capitales, avec ou sans
+chaîne de requête, avec ou sans ancre : en rater une ouvrirait l'arbre dans une
+de nos fenêtres une fois sur cinq, sans qu'on sache pourquoi. Une épreuve tient
+les cinq, et le défaut est prouvé par réintroduction.
+
+### Un journal qui mentait
+
+Le premier jet réutilisait `LogSentOutside`, dont le message dit « Adresse hors
+du site confiée au navigateur ». Relevé :
+
+```
+Adresse hors du site confiée au navigateur : https://papycha.fr/succes/?...
+```
+
+Cette page **est** sur le site. Un journal qui ment sur ce qu'il a fait vaut
+moins qu'un journal muet : l'arbre a donc sa propre ligne.
+
+---
+
+## D141 - L'indexation ne mentait pas sur sa durée, elle mentait sur son avancement
+
+L'utilisateur : « l'indexation prend du temps sur le guide c'est normal ? »
+
+### Trois choses qu'on ne savait pas
+
+**Aucun chronomètre n'existait.** Les « cinquante secondes » que citent D52 et
+D53 datent d'une époque où l'indexation faisait huit requêtes. Elle en fait une
+cinquantaine depuis l'ajout des pages de rubrique, des donjons et des chemins,
+et personne ne l'avait remesurée. Première mesure, faite ce soir, cache effacé :
+
+```
+Catalogue indexé en 14.7 s.
+```
+
+Trois fois moins que ce que le projet croyait. **Toute optimisation se jugeait
+jusqu'ici à l'impression**, sur un chiffre de mémoire trois fois trop grand.
+
+**Une seule étape sur cinq rapportait son avancement**, et c'est la plus courte.
+`progress?.Report` n'était appelé qu'à un endroit, dans la pagination des
+quêtes. Le compteur atteignait donc « Indexation 782 / 782 » en quelques
+secondes, puis restait figé là pendant tout le reste : rubriques, donjons,
+chemins, rangement. Les donjons pèsent à eux seuls quatre mégaoctets.
+
+**L'arbre affichait zéro alors que le catalogue était en mémoire.**
+`InitializeAsync` n'appelait `ShowRoot()` qu'après le `await`. Pendant toute une
+relecture, la fenêtre montrait « Quêtes 0 » en attendant le réseau pour afficher
+ce qu'elle avait déjà sur le disque.
+
+### Ce qui a été fait, et dans quel ordre
+
+Le chronomètre d'abord, parce que sans lui le reste ne se juge pas. Puis les
+cinq phases nommées, `QuestIndexingPhase`, avec leur libellé décidé dans le
+noyau pour être éprouvable, comme `QuestStepLabel`. Puis l'arbre en cache montré
+avant l'attente. Puis, seulement, le réseau.
+
+Le décompte n'apparaît que là où il existe. Les quêtes se comptent, le site
+annonçant son total ; les autres étapes sont des lectures d'un seul tenant, et un
+« 0 / 0 » y serait pire que rien.
+
+### Le seul endroit où le parallélisme rapporte
+
+Aucun n'existait : pas un `Task.WhenAll` dans tout le domaine. Les ~26 lectures
+de pages de rubrique sont de la latence presque pure, une douzaine de kilooctets
+chacune, enchaînées bout à bout. Elles passent à **quatre de front**.
+
+Le plafond est un choix de courtoisie et non une limite technique : le site est
+tenu par une personne, et rien ne justifie de lui envoyer vingt-cinq requêtes
+simultanées pour gagner une seconde de plus. L'ordre est conservé,
+`Task.WhenAll` rendant ses résultats dans l'ordre des tâches et non des
+réponses, et cet ordre est celui dans lequel le site range ses rubriques.
+
+### Ce qui reste
+
+Le filtre `modified_after` de l'API sur les donjons, déjà repéré et vérifié dans
+D53. Il attaque les quatre cinquièmes du temps, mais demande de savoir fusionner
+un catalogue partiel : c'est un chantier à part, qu'on ne mêle pas à ceux-ci.

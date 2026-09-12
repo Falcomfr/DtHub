@@ -493,21 +493,6 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
   <data name="GameLeftRunning" xml:space="preserve">
     <value>{0} s'est fermé, mais le jeu tourne encore sur le téléphone : il est resté injoignable. Arrêtez-le depuis le téléphone.</value>
   </data>
-  <data name="QuestFollowUpsTitle" xml:space="preserve">
-    <value>Quêtes et jalons suivants</value>
-  </data>
-  <data name="QuestFollowUpsTip" xml:space="preserve">
-    <value>Ce que cette quête débloque, tel que le guide le liste en pied de page. Cliquez pour ouvrir.</value>
-  </data>
-  <data name="QuestFollowUpObjective" xml:space="preserve">
-    <value>Objectif : {0}</value>
-  </data>
-  <data name="QuestFollowUpSuccess" xml:space="preserve">
-    <value>succès</value>
-  </data>
-  <data name="QuestFollowUpMilestone" xml:space="preserve">
-    <value>jalon</value>
-  </data>
   <data name="DeviceBatteryLow" xml:space="preserve">
     <value>Le téléphone est à {0} % et n'est pas branché. Mettez-le en charge, sinon la séance finira avant vous.</value>
   </data>
@@ -1837,6 +1822,21 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   </data>
   <data name="ConnectionInProgress" xml:space="preserve">
     <value>Connexion en cours…</value>
+  </data>
+  <data name="IndexingQuests" xml:space="preserve">
+    <value>Lecture des quêtes {0} / {1}</value>
+  </data>
+  <data name="IndexingSections" xml:space="preserve">
+    <value>Lecture des rubriques…</value>
+  </data>
+  <data name="IndexingDungeons" xml:space="preserve">
+    <value>Lecture des donjons…</value>
+  </data>
+  <data name="IndexingPaths" xml:space="preserve">
+    <value>Lecture des chemins…</value>
+  </data>
+  <data name="IndexingArranging" xml:space="preserve">
+    <value>Rangement…</value>
   </data>
   <data name="Indexing" xml:space="preserve">
     <value>Indexation…</value>

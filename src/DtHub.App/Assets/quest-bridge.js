@@ -50,14 +50,24 @@
     // Masquer ne retire rien du document : le pont continue de lire le bloc de
     // départ et de poster le bandeau d'intro à la fenêtre.
     //
-    // Le bloc de progression du site y est aussi, et n'y était pas : il était
-    // masqué partout, y compris dans la fenêtre des pages liées, qui n'a pas de
-    // pied à nous pour le remplacer. On y perdait la seule indication de suite
-    // sans rien donner en échange.
+    // **Le bloc de progression du site n'y est plus, et c'est un retour en
+    // arrière assumé.** Il a été masqué tant que le pied de la fenêtre le
+    // remplaçait, puis rendu à la fenêtre des pages liées qui n'en avait pas.
+    // Le pied ne sait annoncer qu'une suite, et se tait dès que le site en
+    // nomme plusieurs : presque quatre cents guides ne disaient donc rien de ce
+    // qu'ils débloquent.
+    //
+    // Le montrer tel que le site le dessine vaut mieux que de le redessiner. Il
+    // range déjà ses suites par objectif, il suit la page au lieu de lui prendre
+    // de la hauteur, et ses liens passent par le routage ordinaire de la
+    // fenêtre : une quête s'ouvre sur place, un succès dans une fenêtre à part.
+    //
+    // Sans risque pour le suivi d'étapes, vérifié : « steps » ne lit que les
+    // « p » enfants directs du contenu, et « headings » que les « h2 ». Le bloc
+    // est un « nav » et ses intertitres sont des « h3 ».
     var HIDDEN_IN_QUEST = [
         TITLE,
-        '.pqa-quest-intro',
-        'nav.pqt-progress'
+        '.pqa-quest-intro'
     ];
 
     // Marque posée sur ce qui n'appartient pas au guide.
@@ -714,40 +724,6 @@
         }
     }
 
-    // Le bas du guide, annonce à part.
-    //
-    // **Deux seuils, et l'écart entre eux est la correction d'un défaut.** La
-    // fenetre montre en bas de page ce que la quête débloque ; ce bloc rogne la
-    // hauteur de la vue, donc « window.innerHeight », donc la distance au bas de
-    // page, qui bondit de la hauteur du bloc. Avec un seuil unique, le bloc
-    // s'affichait, se faisait sortir par son propre effet, disparaissait, et
-    // l'écran clignotait pendant tout le défilement.
-    //
-    // Le seuil de retrait doit donc dépasser franchement la hauteur du bloc, au
-    // plus deux cent vingt pixels : six cents laissent la marge, et demandent de
-    // remonter d'un bon demi-ecran pour le refermer.
-    var REACH = 24;
-    var RELEASE = 600;
-    var ended = false;
-
-    function fromBottom() {
-        var doc = document.documentElement;
-        var height = Math.max(doc.scrollHeight || 0, document.body ? document.body.scrollHeight : 0);
-        var seen = (window.scrollY || doc.scrollTop || 0) + window.innerHeight;
-
-        return height - seen;
-    }
-
-    function reportEnd() {
-        var margin = ended ? RELEASE : REACH;
-        var now = fromBottom() <= margin;
-
-        if (now !== ended) {
-            ended = now;
-            post({ kind: 'end', at: now });
-        }
-    }
-
     var pending = false;
 
     window.addEventListener('scroll', function () {
@@ -764,10 +740,6 @@
 
             // Tant qu'une étape est retenue, chaque événement repousse le
             // relâchement : le défilement en cours est encore le nôtre.
-            // Le bas de page se rapporte même pendant un saut demandé : c'est
-            // une position, pas une étape, et la retenir n'aurait pas de sens.
-            reportEnd();
-
             if (held >= 0) {
                 holdStep(held);
 
@@ -837,11 +809,6 @@
         if (!framingOnly) {
             describe();
             reportStep();
-
-            // Annonce dès le départ : une page trop courte pour défiler est
-            // déjà tout entière sa propre fin, et n'émettra jamais d'événement
-            // de défilement.
-            reportEnd();
         }
     }
 

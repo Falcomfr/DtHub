@@ -24,16 +24,7 @@ public sealed record QuestBridgeMessage
     /// <summary>On a fait défiler la page jusqu'à une autre étape.</summary>
     public const string Step = "step";
 
-    /// <summary>
-    /// On a atteint le bas du guide, ou on l'a quitté.
-    ///
-    /// Distinct de l'étape, et c'est la correction d'un défaut : lier
-    /// l'affichage de fin à la dernière étape le faisait clignoter, le bloc
-    /// rognant la hauteur de la vue et déplaçant du même coup l'étape détectée.
-    /// </summary>
-    public const string End = "end";
-
-    /// <summary>Ce que le message annonce, « loaded », « step » ou « end ».</summary>
+    /// <summary>Ce que le message annonce, « loaded » ou « step ».</summary>
     public string Kind { get; init; } = string.Empty;
 
     /// <summary>Bloc d'introduction du guide, tel quel.</summary>
@@ -51,8 +42,6 @@ public sealed record QuestBridgeMessage
     /// <summary>Rang de l'étape atteinte.</summary>
     public int Index { get; init; }
 
-    /// <summary>Vrai quand la page est arrivée en bas, pour un message « end ».</summary>
-    public bool AtEnd { get; init; }
 
     /// <summary>
     /// Lit un message, ou rend <c>null</c> quand il n'y a rien à en tirer.
@@ -94,11 +83,6 @@ public sealed record QuestBridgeMessage
             }
 
             var name = kind.GetString() ?? string.Empty;
-
-            if (string.Equals(name, End, StringComparison.Ordinal))
-            {
-                return new QuestBridgeMessage { Kind = End, AtEnd = Flag(root, "at") };
-            }
 
             if (string.Equals(name, Step, StringComparison.Ordinal))
             {

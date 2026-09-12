@@ -154,7 +154,10 @@ public partial class QuestPageWindow : Window
 
     private async Task ShowAsync(string url, string? title, string? report)
     {
-        if (!PapychaSite.Owns(url))
+        // L'arbre des succès va au navigateur comme ce qui est hors du site, et
+        // pour une raison de même nature : ce n'est pas une page qu'on lit mais
+        // un outil qu'on manipule. Voir PapychaSite.IsSuccessTree.
+        if (!PapychaSite.Owns(url) || PapychaSite.IsSuccessTree(url))
         {
             _dialogs.OpenUrl(url);
 
@@ -284,7 +287,7 @@ public partial class QuestPageWindow : Window
     /// </summary>
     private void OnNavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
     {
-        if (PapychaSite.Owns(e.Uri))
+        if (PapychaSite.Owns(e.Uri) && !PapychaSite.IsSuccessTree(e.Uri))
         {
             _url = e.Uri;
 

@@ -10,13 +10,27 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 ### Ajouté
 
 - **La fin d'une quête dit ce qu'elle débloque.** Le guide publie en pied de
-  page une colonne « Quêtes et jalons suivants », rangée par objectif.
-  L'application la lisait déjà mais n'en gardait qu'une, et se taisait dès
-  qu'elle en nommait plusieurs. Elle est maintenant montrée en entier à la
-  dernière étape, quêtes, succès et jalons, chacun marqué. Relevé sur les 782
-  guides : presque quatre cents fins de quête ne disaient rien jusqu'ici.
-  Le bloc paraît quand le guide arrive en bas, et un succès s'y lit sans se
-  cliquer : son lien mène à la page d'arbre du site, hors du guide.
+  page une colonne « Quêtes et jalons suivants », rangée par objectif, que
+  l'application masquait au profit de son propre pied de fenêtre. Or celui-ci
+  ne sait annoncer qu'une suite et se tait dès que le site en nomme plusieurs :
+  relevé sur les 782 guides, presque quatre cents fins de quête ne disaient
+  rien. La colonne est désormais montrée telle que le site la dessine.
+
+### Modifié
+
+- **L'arbre des succès s'ouvre dans le navigateur.** C'est la seule page du site
+  dans ce cas, et pour une raison : ce n'est pas une page qu'on lit mais un
+  outil qu'on déplie et qu'on parcourt. Elle s'ouvrait jusqu'ici dans une
+  fenêtre de l'application, correctement mais au prix d'une étape de plus avant
+  le bouton qui menait enfin au navigateur.
+
+- **L'indexation du guide dit ce qu'elle fait.** Une seule de ses cinq étapes
+  rapportait son avancement, et c'est la plus courte : le compteur atteignait
+  « 782 / 782 » en quelques secondes puis restait figé pendant les quatre
+  cinquièmes du temps. Les cinq se nomment désormais, l'arbre de la veille reste
+  affiché pendant la relecture au lieu d'annoncer zéro, les pages de rubrique se
+  lisent quatre de front, et la durée est enfin consignée : **14,7 secondes**
+  mesurées, contre les cinquante que le projet citait de mémoire.
 
 - **Une souris physique simulée, en dernier recours.** Elle ne passe pas par
   l'entrée Android que certaines surcouches bloquent. La case n'apparaît que

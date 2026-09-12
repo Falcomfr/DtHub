@@ -99,9 +99,12 @@ Exige(
     guides.Count,
     tolerance: 0.9);
 
-// Le bloc de progression, d'où viennent la quête précédente et la quête
-// suivante. C'est la seule source qui franchisse la borne d'un succès : le jour
-// où le site le renomme, les deux boutons se taisent sans que rien ne le dise.
+// Le bloc de progression. **Ce que ce contrôle protège a grossi.** Il portait
+// la quête précédente et la quête suivante du pied de fenêtre, seule source qui
+// franchisse la borne d'un succès. Il est désormais aussi montré tel quel dans
+// le guide, le pied ne sachant annoncer qu'une suite là où le site en nomme
+// souvent plusieurs. Le jour où le site le renomme, ce ne sont plus seulement
+// deux boutons qui se taisent : la fin du guide ne dit plus rien du tout.
 Exige(
     "chaque guide de quête porte le bloc de progression du site",
     guides.Count(p => p.Contains("pqt-progress__column--next", StringComparison.Ordinal)),
