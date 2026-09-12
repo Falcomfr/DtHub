@@ -7245,3 +7245,51 @@ coûte rien.
 l'application a constaté le refus toute seule, porte la mention ; le Mi 9T
 Pro, dont le port ne répond plus du tout, garde son « hors ligne » et rien
 d'autre.
+
+## D133 - Ce que l'application demande au téléphone pendant qu'on joue
+
+Demande : refaire un tour côté fluidité des fenêtres de jeu. Les deux
+téléphones attendant leur réassociation, la partie mesurable à l'écran est
+remise ; ce qui suit s'audite sans appareil.
+
+### Le compte
+
+Pendant une séance, palier moyen, par appareil :
+
+```
+ce qui réveille le téléphone      19,6 commandes/min
+ce qui reste sur le PC            44,0 commandes/min
+```
+
+La distinction compte, et je l'avais d'abord ratée : `adb devices` et
+`adb mdns services` sont servis par le serveur ADB local, ils ne traversent
+pas le réseau et ne réveillent rien. Ce qui coûte au téléphone, ce sont les
+`shell` et les `dumpsys`, pendant qu'il encode déjà un ou deux flux vidéo.
+
+### Deux gaspillages, supprimés
+
+**Le verrou, quinze fois par minute.** Le contrôle ajouté en D123 relit
+`dumpsys trust` toutes les quatre secondes, et seulement sur les appareils
+dont l'afficheur suit le verrouillage, c'est-à-dire les plus anciens et les
+plus faibles. Quatre secondes se justifient tant que le téléphone est
+verrouillé, pour que l'avertissement s'éteigne dans la foulée du
+déverrouillage ; une fois déverrouillé, il n'y a plus rien à éteindre. La
+fraîcheur suit donc la réponse précédente : quatre secondes verrouillé,
+trente déverrouillé.
+
+**Le balayage des annonces, douze fois par minute.** Il ne sert qu'à
+retrouver ce qui manque, et il interrogeait le réseau toutes les cinq
+secondes même quand tous les appareils connus répondaient. Espacé à trente
+secondes dans ce cas, et non supprimé : il rattrape aussi un téléphone associé
+autrefois qui se remet à s'annoncer.
+
+```
+téléphone   19,6  ->   6,6  (-66 %)
+PC          44,0  -> 34,0  (-23 %)
+```
+
+### Ce qui reste à mesurer, et qui demande un téléphone
+
+La cadence réellement obtenue, la latence du tampon d'affichage, le codec, et
+la définition de l'afficheur virtuel face à la taille de la fenêtre. Rien de
+tout cela ne se juge sans une fenêtre de jeu qui tourne.

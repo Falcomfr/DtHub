@@ -934,9 +934,26 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // s'annonce toujours et dont ADB garde la clé.
             var (known, discarded) = await _registry.GetSnapshotAsync(cancellationToken).ConfigureAwait(false);
 
-            var opened = await _pairing
-                .ConnectAnnouncedAsync(addresses, discarded, cancellationToken)
-                .ConfigureAwait(false);
+            // **Le balayage des annonces ne sert qu'à retrouver ce qui
+            // manque.** Tout étant connecté, il interrogeait quand même le
+            // réseau toutes les cinq secondes, soit douze fois par minute
+            // pendant qu'on joue. Il est espacé dans ce cas, et non
+            // supprimé : il rattrape aussi un téléphone associé autrefois
+            // qui se remet à s'annoncer.
+            var whole = known.Count > 0
+                && known.All(d => live.Devices.Any(l =>
+                    l.IsConnected && string.Equals(l.Id, d.Id, StringComparison.Ordinal)));
+
+            var opened = new AnnouncedConnections([], []);
+
+            if (!whole || DateTimeOffset.UtcNow - _lastAnnouncedScan >= IdleScanInterval)
+            {
+                _lastAnnouncedScan = DateTimeOffset.UtcNow;
+
+                opened = await _pairing
+                    .ConnectAnnouncedAsync(addresses, discarded, cancellationToken)
+                    .ConfigureAwait(false);
+            }
 
             var recovered = opened.Connected.Count;
 
@@ -1027,6 +1044,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     private static readonly TimeSpan ReconnectInterval = TimeSpan.FromSeconds(5);
+
+    /// <summary>
+    /// Rythme du balayage des annonces quand tous les appareils connus
+    /// répondent. Il n'a alors rien à retrouver, et une demi-minute suffit à
+    /// rattraper un téléphone qui reparaît de lui-même.
+    /// </summary>
+    private static readonly TimeSpan IdleScanInterval = TimeSpan.FromSeconds(30);
+
+    private DateTimeOffset _lastAnnouncedScan = DateTimeOffset.MinValue;
 
     private DateTimeOffset _lastReconnectAttempt = DateTimeOffset.MinValue;
 

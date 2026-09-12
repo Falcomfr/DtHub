@@ -92,6 +92,14 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Corrigé
 
+- **L'application réveillait le téléphone deux fois trop souvent pendant une
+  partie.** Le contrôle du verrou relisait l'appareil toutes les quatre
+  secondes même une fois déverrouillé, et le balayage des annonces réseau
+  tournait toutes les cinq secondes même quand tous les téléphones
+  répondaient. Les deux s'espacent quand il n'y a plus rien à surveiller :
+  deux tiers de commandes en moins pour le téléphone, qui encode pendant ce
+  temps.
+
 - **Un appareil hors ligne explique quoi vérifier.** « Hors ligne » ne disait
   pas si le téléphone était éteint, sur un autre réseau, son débogage sans fil
   coupé, ou s'il avait oublié ce PC. Le survol donne la liste, dans l'ordre où

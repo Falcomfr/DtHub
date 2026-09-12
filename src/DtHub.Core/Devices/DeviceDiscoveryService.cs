@@ -279,7 +279,13 @@ public sealed class DeviceDiscoveryService : IDisposable
             return null;
         }
 
-        if (_locked.TryGetValue(serial, out var garde) && garde.Vu.Elapsed < LockFreshness)
+        // **La fraîcheur suit la réponse précédente.** Verrouillé, on repose
+        // la question souvent : l'avertissement doit s'éteindre dans la foulée
+        // du déverrouillage. Déverrouillé, il n'y a plus rien à éteindre, et
+        // quinze questions par minute pendant une partie réveillent un
+        // téléphone qui encode déjà deux flux vidéo.
+        if (_locked.TryGetValue(serial, out var garde)
+            && garde.Vu.Elapsed < (garde.Locked == false ? OpenFreshness : LockFreshness))
         {
             return garde.Locked;
         }
@@ -355,6 +361,9 @@ public sealed class DeviceDiscoveryService : IDisposable
         new(StringComparer.Ordinal);
 
     private static readonly TimeSpan LockFreshness = TimeSpan.FromSeconds(4);
+
+    /// <summary>Une fois l'appareil déverrouillé, la question peut attendre.</summary>
+    private static readonly TimeSpan OpenFreshness = TimeSpan.FromSeconds(30);
 
     /// <summary>
     /// Le jeu est-il exempté d'économie d'énergie, par appareil.
