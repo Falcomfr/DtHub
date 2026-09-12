@@ -7689,3 +7689,82 @@ essai où j'avais utilisé un identifiant périmé.
 
 **Quand l'utilisateur maintient son constat contre une mesure, la mesure
 regarde autre chose que lui.** C'est elle qu'il faut déplacer, pas lui.
+
+## D139 - Ce que la quête débloque, montré en fin de quête
+
+Demande de l'utilisateur : « sur les guides papycha en bas de page y a la suite
+de la quête, des liens vers les quêtes suivantes, je veux que tu l'affiches en
+fin de quêtes ».
+
+### L'information était lue, puis jetée
+
+`QuestPageParser.ParseChain` lisait déjà la colonne « Quêtes et jalons
+suivants ». La vue-modèle n'en gardait qu'une, et seulement quand le site n'en
+nommait qu'une. Le commentaire disait pourquoi :
+
+```
+// Et jamais quand la colonne nomme plusieurs quêtes : en désigner une
+// mentirait.
+```
+
+**La règle est juste, et elle ne valait que pour un bouton.** Un bouton qui
+annonce « la suite » doit se taire s'il y en a trois. Une liste, elle, montre
+les trois sans rien trancher. Le même relevé sur les 782 guides qui justifiait
+la prudence chiffre ce qu'elle coûtait : 79 colonnes nomment plusieurs quêtes,
+213 ne nomment que le succès validé. Presque quatre cents fins de quête ne
+disaient rien.
+
+### Une trouvaille dans le relevé
+
+Le site ne publie pas une liste plate. Il range ses suites sous des objectifs :
+
+```
+<h3>Quêtes et jalons suivants</h3>
+  [Succès] Devenir une légende                    (hors groupe)
+  <section class="pqt-progress__objective-group">
+    Objectif : Dofus Cawotte obtenu
+      Un nouveau Dofus ?
+  <section class="pqt-progress__objective-group">
+    Objectif : Suite du parcours
+      La découverte d'un vaste monde !
+```
+
+L'analyseur aplatissait tout. Trois titres à la suite, sans savoir lequel mène
+où : c'est justement l'objectif qui rend la colonne lisible dès qu'elle en porte
+plusieurs. `QuestLink` gagne donc son `Objective`, et l'analyse repère les
+groupes puis situe chaque lien dans l'un d'eux. Lire la colonne dans l'ordre
+aurait suffi aujourd'hui, mais un lien peut précéder tout groupe, comme le
+succès validé, et rien ne garantit que le site n'en intercale pas d'autres.
+
+### Les choix, et ce qui les justifie
+
+**À la dernière étape seulement.** C'est la lecture littérale de la demande, et
+c'est le moment où la question se pose. Le reste du temps, ces lignes mangeraient
+la place d'une fenêtre qui sert à lire un guide. Un guide sans étapes les montre
+aussi : il est tout entier sa propre fin, et attendre une dernière étape qui
+n'existe pas n'y montrerait jamais rien.
+
+**Les trois natures, chacune marquée.** Quête, succès validé, jalon. Le site les
+distingue, `QuestLinkKind` les garde, et trier à sa place déciderait pour
+l'utilisateur ce qui l'intéresse. La nature n'est écrite que lorsqu'elle
+surprend : une quête est le cas ordinaire et n'a pas besoin qu'on la nomme.
+
+**L'ordre du site, tel quel.** Regrouper par nom d'objectif réordonnerait la
+colonne, et cet ordre est précisément ce qu'elle publie.
+
+**La quête ouverte ne se propose pas elle-même**, et un lien répété ne compte
+qu'une fois : le site range parfois la même quête sous deux objectifs, et la
+lire deux fois ferait croire à deux suites distinctes. Les adresses sont
+comparées réduites, le site servant la même page avec ou sans barre oblique
+finale et avec des ancres.
+
+### Où vit la décision
+
+Dans `QuestFollowUps`, noyau, parce que c'est la seule couche que les épreuves
+atteignent : le projet d'épreuves vise net10.0 quand l'application vise
+net10.0-windows. Même raison que `QuestNeighbourhood`, et même leçon : ce qui
+reste dans une vue-modèle ne s'éprouve pas.
+
+Huit épreuves, bâties sur le relevé réel de la page « Le Dragon d'Astrub ». Deux
+défauts prouvés par réintroduction : oublier l'objectif, et oublier le
+dédoublonnage.

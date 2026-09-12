@@ -493,6 +493,21 @@ Cross the tests: another device on this port, and this phone on another PC. You 
   <data name="GameLeftRunning" xml:space="preserve">
     <value>{0} closed, but the game is still running on the phone: it could not be reached. Close it from the phone.</value>
   </data>
+  <data name="QuestFollowUpsTitle" xml:space="preserve">
+    <value>Next quests and milestones</value>
+  </data>
+  <data name="QuestFollowUpsTip" xml:space="preserve">
+    <value>What this quest unlocks, as the guide lists it at the foot of its page. Click one to open it.</value>
+  </data>
+  <data name="QuestFollowUpObjective" xml:space="preserve">
+    <value>Goal: {0}</value>
+  </data>
+  <data name="QuestFollowUpSuccess" xml:space="preserve">
+    <value>achievement</value>
+  </data>
+  <data name="QuestFollowUpMilestone" xml:space="preserve">
+    <value>milestone</value>
+  </data>
   <data name="DeviceBatteryLow" xml:space="preserve">
     <value>The phone is down to {0} % and is not charging. Plug it in, or the session will end before you do.</value>
   </data>

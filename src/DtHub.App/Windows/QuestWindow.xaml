@@ -460,6 +460,69 @@
       </Grid>
     </Border>
 
+    <!-- Ce que la quête débloque, tel que le site le publie en pied d'article
+         sous « Quêtes et jalons suivants ».
+         Montré à la dernière étape seulement, et c'est le sens de l'ajout : la
+         barre du bas ne sait annoncer qu'une suite, et se tait dès que la
+         colonne en nomme plusieurs, parce qu'en désigner une mentirait. Une
+         liste, elle, peut tout montrer sans rien trancher. Relevé sur les 782
+         guides : 79 colonnes nomment plusieurs quêtes et 213 ne nomment que le
+         succès validé, soit presque quatre cents fins de quête muettes. -->
+    <Border DockPanel.Dock="Bottom" Padding="10,8"
+            Background="{DynamicResource SurfaceBrush}"
+            BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,1,0,0"
+            Visibility="{Binding ShowsFollowUps, Converter={StaticResource BoolToVisibility}}">
+      <StackPanel>
+        <TextBlock Text="{loc:T QuestFollowUpsTitle}" ToolTip="{loc:T QuestFollowUpsTip}"
+                   Style="{StaticResource Muted}" FontSize="{StaticResource FontTiny}"
+                   Margin="2,0,0,4" />
+
+        <!-- Une quête peut en débloquer beaucoup : la liste défile plutôt que
+             de pousser la barre du bas hors de la fenêtre. -->
+        <ScrollViewer MaxHeight="180" VerticalScrollBarVisibility="Auto">
+          <ItemsControl ItemsSource="{Binding FollowUps}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <StackPanel Margin="0,0,0,3">
+                  <TextBlock Text="{Binding ObjectiveText}" Margin="2,2,0,1"
+                             Style="{StaticResource Muted}" FontSize="{StaticResource FontTiny}"
+                             TextTrimming="CharacterEllipsis"
+                             Visibility="{Binding HasObjective,
+                                                  Converter={StaticResource BoolToVisibility}}" />
+
+                  <ItemsControl ItemsSource="{Binding Rows}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Button Style="{StaticResource QuietButton}" Padding="6,3"
+                                HorizontalAlignment="Left" HorizontalContentAlignment="Left"
+                                Tag="{Binding Link}" Click="OnFollowChain">
+                          <StackPanel Orientation="Horizontal">
+                            <Path Style="{StaticResource RowGlyph}" Data="M 6,3 L 10,7.5 L 6,12"
+                                  Margin="0,0,6,0" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding Title}" MaxWidth="300"
+                                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                            <!-- La nature n'est dite que lorsqu'elle surprend :
+                                 une quête est le cas ordinaire et n'a pas
+                                 besoin qu'on la nomme. -->
+                            <TextBlock Text="{Binding Kind}" Margin="8,0,0,0"
+                                       Style="{StaticResource Muted}" FontSize="{StaticResource FontTiny}"
+                                       VerticalAlignment="Center"
+                                       Visibility="{Binding Kind,
+                                                            Converter={StaticResource EmptyToVisibility},
+                                                            ConverterParameter=inverse}" />
+                          </StackPanel>
+                        </Button>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </StackPanel>
+    </Border>
+
     <!-- La page, et la liste déroulante par-dessus -->
     <Grid>
       <!-- Les prérequis épinglés. Un seul panneau pour toute la liste, et non

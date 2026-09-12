@@ -9,6 +9,13 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Ajouté
 
+- **La fin d'une quête dit ce qu'elle débloque.** Le guide publie en pied de
+  page une colonne « Quêtes et jalons suivants », rangée par objectif.
+  L'application la lisait déjà mais n'en gardait qu'une, et se taisait dès
+  qu'elle en nommait plusieurs. Elle est maintenant montrée en entier à la
+  dernière étape, quêtes, succès et jalons, chacun marqué. Relevé sur les 782
+  guides : presque quatre cents fins de quête ne disaient rien jusqu'ici.
+
 - **Une souris physique simulée, en dernier recours.** Elle ne passe pas par
   l'entrée Android que certaines surcouches bloquent. La case n'apparaît que
   sur un appareil dont le refus a été constaté, elle est éteinte par défaut,

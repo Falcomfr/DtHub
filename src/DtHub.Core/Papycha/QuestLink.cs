@@ -25,6 +25,16 @@ public sealed record QuestLink(string Title, string Url, QuestLinkKind Kind)
     /// ordinaire, et le bouton n'annonce alors rien de plus que le titre.
     /// </summary>
     public string? Series { get; init; }
+
+    /// <summary>
+    /// L'objectif sous lequel le site range ce lien en pied d'article, par
+    /// exemple « Dofus Cawotte obtenu » ou « Suite du parcours ». Vide pour un
+    /// lien posé hors de tout groupe, ce qui est le cas du succès validé.
+    ///
+    /// C'est ce qui rend la colonne lisible quand elle nomme plusieurs suites :
+    /// sans lui, trois titres se suivent sans qu'on sache lequel mène où.
+    /// </summary>
+    public string? Objective { get; init; }
 }
 
 /// <summary>
