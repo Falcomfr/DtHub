@@ -342,8 +342,7 @@
     <Border DockPanel.Dock="Bottom" Padding="10,6"
             Background="{DynamicResource AccentSoftBrush}"
             BorderBrush="{DynamicResource BevelBrush}" BorderThickness="0,1,0,0"
-            Visibility="{Binding SiteSearch, Converter={StaticResource EmptyToVisibility},
-                                 ConverterParameter=inverse}">
+            Visibility="{Binding ShowsSiteSearch, Converter={StaticResource BoolToVisibility}}">
       <Button Style="{StaticResource QuietButton}" HorizontalAlignment="Left"
               Padding="0" Background="Transparent" BorderThickness="0"
               ToolTip="{loc:T SearchOnSiteTip}"

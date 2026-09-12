@@ -101,11 +101,27 @@ public sealed partial class QuestViewModel : ObservableObject
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SiteSearchLabel))]
+    [NotifyPropertyChangedFor(nameof(ShowsSiteSearch))]
     private string _siteSearch = string.Empty;
 
     /// <summary>Ce que le lien annonce, le texte cherché compris.</summary>
     public string SiteSearchLabel =>
         SiteSearch.Length == 0 ? string.Empty : Strings.Format("SearchOnSite", SiteSearch);
+
+    /// <summary>
+    /// Vrai quand l'offre de chercher sur le site a lieu d'être.
+    ///
+    /// **Elle survivait au guide qu'on venait d'ouvrir.** Le texte cherché
+    /// n'est effacé qu'en descendant vers une rubrique ; ouvrir une quête
+    /// depuis un résultat le laisse en place, et le pied continuait donc de
+    /// proposer « Chercher … sur papycha.fr » au bas d'un guide déjà ouvert,
+    /// alors que la recherche était finie et avait abouti.
+    ///
+    /// Cette offre est faite pour l'écran des résultats, et surtout pour celui
+    /// qui annonce « aucun résultat » : c'est là qu'on veut aller voir
+    /// ailleurs. Devant un guide, elle n'offre rien que le lecteur cherche.
+    /// </summary>
+    public bool ShowsSiteSearch => SiteSearch.Length > 0 && !HasQuest;
 
     [ObservableProperty]
     private string _statusText = string.Empty;
@@ -131,6 +147,7 @@ public sealed partial class QuestViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(ShowsChain))]
     [NotifyPropertyChangedFor(nameof(CanReport))]
     [NotifyPropertyChangedFor(nameof(CanCloseList))]
+    [NotifyPropertyChangedFor(nameof(ShowsSiteSearch))]
     private bool _hasQuest;
 
     /// <summary>Ce qu'on lit tant qu'aucune quête n'est ouverte.</summary>
