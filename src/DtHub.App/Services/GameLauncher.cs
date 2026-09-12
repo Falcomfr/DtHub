@@ -118,6 +118,51 @@ public sealed partial class GameLauncher : IAsyncDisposable
         };
 
         _sessions.RequestClose = session => _windows.RequestClose(session);
+
+        // L'arrêt du jeu vise l'adresse du moment, pas celle du lancement. Le
+        // débogage sans fil change de port à chaque reprise, et l'ordre partait
+        // alors vers une adresse morte : la fenêtre se fermait, le jeu restait.
+        _sessions.CurrentSerial = deviceId =>
+            _serials.TryGetValue(deviceId, out var serial) ? serial : null;
+
+        _sessions.AppStopFailed += OnAppStopFailed;
+    }
+
+    /// <summary>
+    /// L'adresse ADB de chaque appareil, par identité stable, telle que le
+    /// dernier balayage l'a vue.
+    ///
+    /// Tenue ici et non demandée au registre : la fermeture d'une fenêtre, et
+    /// plus encore celle de l'application, se paie sur un budget compté, où
+    /// une lecture de fichier n'a pas sa place.
+    /// </summary>
+    private readonly Dictionary<string, string> _serials = new(StringComparer.Ordinal);
+
+    /// <summary>Retient où joindre chaque appareil joignable.</summary>
+    private void RememberSerials(DeviceDiscoveryResult discovery)
+    {
+        foreach (var device in discovery.Devices)
+        {
+            if (device.IsConnected && !string.IsNullOrWhiteSpace(device.Serial))
+            {
+                _serials[device.Id] = device.Serial;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Dit que le jeu est resté ouvert sur le téléphone.
+    ///
+    /// Se taire serait le pire des deux : la fenêtre a bien disparu, l'écran
+    /// n'a donc aucun moyen de montrer que le personnage est toujours en
+    /// ligne, et l'utilisateur le découvre au prochain lancement.
+    /// </summary>
+    private void OnAppStopFailed(object? sender, ScrcpySession session)
+    {
+        StopFailedNotice = Strings.Format("GameLeftRunning", session.Target.DisplayName);
+        _stopFailedAt = DateTimeOffset.UtcNow;
+
+        LogGameLeftRunning(session.Target.DisplayName, session.Serial);
     }
 
     /// <summary>Instances laissées de côté par les placements automatiques.</summary>
@@ -195,6 +240,20 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private static readonly TimeSpan RecoveryNoticeLife = TimeSpan.FromSeconds(45);
 
+    /// <summary>
+    /// Le jeu qu'on n'a pas pu refermer, ou <c>null</c>. Rejoint le bandeau de
+    /// la reprise, pour la même raison : il explique ce qui vient de se passer.
+    /// </summary>
+    public string? StopFailedNotice { get; private set; }
+
+    private DateTimeOffset _stopFailedAt;
+
+    /// <summary>
+    /// Ce qu'on accorde à l'avis. Assez pour être lu après la fermeture d'une
+    /// fenêtre, trop court pour survivre à la partie suivante.
+    /// </summary>
+    private static readonly TimeSpan StopFailedNoticeLife = TimeSpan.FromSeconds(45);
+
     /// <summary>Efface l'avis de reprise quand il a cessé d'être vrai.</summary>
     private void ExpireRecoveryNotice(DeviceDiscoveryResult discovery)
     {
@@ -211,6 +270,22 @@ public sealed partial class GameLauncher : IAsyncDisposable
         {
             RecoveryNotice = null;
             _recoveryDevice = null;
+        }
+    }
+
+    /// <summary>
+    /// Efface l'avis du jeu resté ouvert après son temps.
+    ///
+    /// Il ne dépend pas de la présence de l'appareil, contrairement à celui de
+    /// la reprise : un téléphone reparti ne rend pas l'avis faux, il le rend
+    /// justement plus vrai.
+    /// </summary>
+    private void ExpireStopFailedNotice()
+    {
+        if (StopFailedNotice is not null
+            && DateTimeOffset.UtcNow - _stopFailedAt >= StopFailedNoticeLife)
+        {
+            StopFailedNotice = null;
         }
     }
 
@@ -551,6 +626,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         var discovery = await _devices.RefreshAsync(cancellationToken).ConfigureAwait(false);
 
+        RememberSerials(discovery);
+
         var found = await _instances.DiscoverAsync(discovery.Devices, cancellationToken)
             .ConfigureAwait(false);
 
@@ -590,6 +667,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
         await EnsureKnownDevicesConnectedAsync(cancellationToken).ConfigureAwait(false);
 
         var discovery = await _devices.RefreshAsync(cancellationToken).ConfigureAwait(false);
+
+        RememberSerials(discovery);
 
         await RefreshHealthAsync(discovery, cancellationToken).ConfigureAwait(false);
 
@@ -673,6 +752,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         ArgumentNullException.ThrowIfNull(discovery);
 
         ExpireRecoveryNotice(discovery);
+        ExpireStopFailedNotice();
 
         await RefreshBatteriesAsync(discovery, cancellationToken).ConfigureAwait(false);
 
@@ -2844,4 +2924,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "La session {instance} s'est terminée seule ({state}) : {message}\n{output}")]
     private partial void LogSessionEnded(string instance, string state, string message, string output);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "Le jeu de {instance} n'a pas pu être arrêté : {serial} est resté injoignable.")]
+    private partial void LogGameLeftRunning(string instance, string serial);
 }

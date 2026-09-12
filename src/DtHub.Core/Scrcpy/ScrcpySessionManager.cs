@@ -98,6 +98,33 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     /// </summary>
     public TimeSpan StopAppTimeout { get; init; } = TimeSpan.FromSeconds(2);
 
+    /// <summary>
+    /// L'adresse ADB que porte un appareil maintenant, lue depuis son identité
+    /// stable. Tant qu'elle n'est pas fournie, on s'en tient à celle du
+    /// lancement.
+    ///
+    /// **Sans cela, fermer une fenêtre ne fermait pas toujours le jeu.** Une
+    /// session retient l'adresse qu'avait le téléphone quand elle s'est
+    /// ouverte, et le débogage sans fil change de port à chaque reprise.
+    /// Relevé dans le journal, deux fermetures du même jour :
+    ///
+    /// <code>
+    /// am force-stop … pour 192.168.1.23:41207 : adb.exe: device offline
+    /// am force-stop … pour 192.168.1.23:42557 : device '…:42557' not found
+    /// </code>
+    ///
+    /// Le téléphone était là, joignable, sous une troisième adresse. L'ordre
+    /// partait vers une adresse morte et le jeu restait ouvert.
+    /// </summary>
+    public Func<string, string?>? CurrentSerial { get; set; }
+
+    /// <summary>
+    /// Signalé quand le jeu n'a pas pu être arrêté sur le téléphone alors
+    /// qu'on l'avait demandé. La fenêtre, elle, est bien partie : c'est
+    /// précisément ce qui rend l'échec invisible sans cet avis.
+    /// </summary>
+    public event EventHandler<ScrcpySession>? AppStopFailed;
+
     /// <summary>Une seule ouverture à la fois par téléphone.</summary>
     private readonly DeviceStartupGate _gate = new();
 
@@ -425,20 +452,79 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     {
         using var deadline = new CancellationTokenSource(StopAppTimeout);
 
+        foreach (var serial in StopCandidates(session))
+        {
+            try
+            {
+                var stopped = await _appLauncher.ForceStopAsync(
+                    serial,
+                    session.Target.UserId,
+                    session.Target.PackageName,
+                    deadline.Token).ConfigureAwait(false);
+
+                if (stopped)
+                {
+                    return;
+                }
+
+                session.Record("Arrêt du jeu refusé par " + serial + ".");
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                // Rien n'est propagé : la méthode est appelée sur le chemin de
+                // fermeture, y compris celui de l'application entière, et une
+                // faute y serait sans destinataire. Une seconde adresse n'y
+                // changerait rien non plus, la cause étant le délai échu.
+                session.Record("Arrêt du jeu sur le téléphone impossible : " + exception.Message);
+                break;
+            }
+        }
+
+        AppStopFailed?.Invoke(this, session);
+    }
+
+    /// <summary>
+    /// Les adresses à essayer pour joindre le téléphone, la plus récente
+    /// d'abord.
+    ///
+    /// Deux au plus, et le plus souvent une seule, les deux se confondant tant
+    /// que l'appareil n'a pas changé d'adresse. La seconde sert quand la
+    /// première est à son tour dépassée : un balayage a lieu toutes les deux
+    /// secondes, et peut manquer de peu un changement de port.
+    /// </summary>
+    private IEnumerable<string> StopCandidates(ScrcpySession session)
+    {
+        var now = Resolve(session.Target.DeviceId);
+
+        if (!string.IsNullOrWhiteSpace(now))
+        {
+            yield return now;
+        }
+
+        if (!string.IsNullOrWhiteSpace(session.Serial)
+            && !string.Equals(now, session.Serial, StringComparison.Ordinal))
+        {
+            yield return session.Serial;
+        }
+    }
+
+    /// <summary>L'adresse du moment, ou <c>null</c> quand on ne l'a pas.</summary>
+    private string? Resolve(string deviceId)
+    {
+        if (CurrentSerial is not { } ask)
+        {
+            return null;
+        }
+
         try
         {
-            await _appLauncher.ForceStopAsync(
-                session.Serial,
-                session.Target.UserId,
-                session.Target.PackageName,
-                deadline.Token).ConfigureAwait(false);
+            return ask(deviceId);
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            // Silence assumé, et c'est le seul comportement tenable ici : la
-            // méthode est appelée sur le chemin de fermeture, y compris celui
-            // de l'application entière. Une faute y serait sans destinataire.
-            session.Record("Arrêt du jeu sur le téléphone impossible : " + exception.Message);
+            // Ne pas savoir où est l'appareil n'empêche pas d'essayer l'adresse
+            // du lancement, qui est souvent encore la bonne.
+            return null;
         }
     }
 
@@ -598,7 +684,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         // est, et le nouvel afficheur reste vide, donc la fenêtre grise. Arrêter
         // la tâche est le seul moyen sûr de la faire renaître au bon endroit ;
         // ouvrir une fenêtre redémarre le jeu de toute façon.
-        await _appLauncher.ForceStopAsync(
+        _ = await _appLauncher.ForceStopAsync(
             session.Serial,
             session.Target.UserId,
             session.Target.PackageName,

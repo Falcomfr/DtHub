@@ -72,7 +72,7 @@ public sealed class AndroidAppLauncher : IAppLauncher
             .ConfigureAwait(false);
     }
 
-    public async Task ForceStopAsync(
+    public async Task<bool> ForceStopAsync(
         string serial,
         int userId,
         string packageName,
@@ -85,10 +85,21 @@ public sealed class AndroidAppLauncher : IAppLauncher
                 ["am", "force-stop", "--user", Text(userId), packageName],
                 null,
                 cancellationToken).ConfigureAwait(false);
+
+            return true;
         }
         catch (AdbException)
         {
-            // L'application n'était peut-être pas lancée : rien à signaler.
+            // **Une faute ici ne dit jamais que le jeu n'était pas lancé.**
+            // Mesuré sur les deux téléphones : « am force-stop » répond 0 sur
+            // un paquet arrêté, et jusque sur un paquet qui n'existe pas. Il
+            // ne rend 1 que lorsque l'ordre n'a pas pu atteindre l'appareil,
+            // « device offline » ou « device not found ».
+            //
+            // Le tenir pour anodin était le défaut : la faute se perdait ici,
+            // et le jeu restait ouvert sur le téléphone après la fermeture de
+            // sa fenêtre, sans que rien ne le dise.
+            return false;
         }
     }
 

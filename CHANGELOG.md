@@ -97,6 +97,14 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Corrigé
 
+- **Le jeu restait ouvert sur le téléphone après la fermeture de sa fenêtre.**
+  Une session retenait l'adresse qu'avait le téléphone à son ouverture, et le
+  débogage sans fil change de port à chaque reprise : l'ordre d'arrêt partait
+  vers une adresse que le serveur ADB ne connaissait plus. Il vise maintenant
+  l'adresse du moment, avec repli sur celle du lancement. La faute était en
+  outre avalée sous un commentaire faux ; l'arrêt dit désormais s'il a abouti,
+  et un avis nomme le compte dont le jeu tourne encore.
+
 - **L'application plantait au démarrage quand aucune fenêtre ne s'ouvrait.**
   La règle « plus aucune fenêtre ni panneau : arrêt » se déclenchait pendant le
   lancement, fermait le panneau, et la suite du démarrage appelait Show sur une

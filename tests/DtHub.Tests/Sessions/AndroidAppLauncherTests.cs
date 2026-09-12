@@ -137,19 +137,25 @@ public class AndroidAppLauncherTests
     {
         var adb = new FakeAdbClient().WithShell("am force-stop", string.Empty);
 
-        await Build(adb).ForceStopAsync(Serial, 10, Package);
+        Assert.True(await Build(adb).ForceStopAsync(Serial, 10, Package));
 
         Assert.Contains("am force-stop --user 10 " + Package, adb.ShellCalls);
     }
 
     [Fact]
-    public async Task Un_arret_force_sur_une_application_qui_ne_tourne_pas_ne_leve_pas()
+    public async Task Un_arret_qui_n_atteint_pas_l_appareil_se_declare_manque()
     {
-        // Rien à signaler : l'arrêt précède le lancement, et l'application
-        // n'était peut-être pas ouverte.
+        // **Ce que l'épreuve d'avant affirmait à tort.** Elle lisait une faute
+        // comme « l'application n'était peut-être pas ouverte », et faisait
+        // donc passer pour un succès un ordre qui n'était jamais parti.
+        //
+        // Mesuré sur les deux téléphones, platform-tools 37.0.1 :
+        // « am force-stop » rend 0 sur un paquet arrêté, et jusque sur un
+        // paquet qui n'existe pas. Il ne rend 1 que sur « device offline » ou
+        // « device not found », c'est-à-dire quand le téléphone n'a rien reçu.
         var adb = new FakeAdbClient().FailShell("am force-stop", AdbErrorKind.DeviceOffline);
 
-        await Build(adb).ForceStopAsync(Serial, 10, Package);
+        Assert.False(await Build(adb).ForceStopAsync(Serial, 10, Package));
     }
 
     [Fact]

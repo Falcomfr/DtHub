@@ -490,6 +490,9 @@ Cruza las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
   <data name="SessionRecoveryGaveUp" xml:space="preserve">
     <value>{0} no pudo reabrirse tras varios intentos. Revisa el teléfono y vuelve a lanzarlo tú mismo.</value>
   </data>
+  <data name="GameLeftRunning" xml:space="preserve">
+    <value>{0} se cerró, pero el juego sigue abierto en el teléfono: no se pudo contactar. Ciérralo desde el teléfono.</value>
+  </data>
   <data name="DeviceBatteryLow" xml:space="preserve">
     <value>El teléfono está al {0} % y no está cargando. Enchúfalo o la sesión acabará antes que tú.</value>
   </data>

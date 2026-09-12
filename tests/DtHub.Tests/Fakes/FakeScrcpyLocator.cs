@@ -53,7 +53,13 @@ public sealed class FakeAppLauncher : IAppLauncher
         return Task.FromResult(Outcome);
     }
 
-    public Task ForceStopAsync(
+    /// <summary>
+    /// Adresses auxquelles l'ordre n'arrive pas. Sert à rejouer le téléphone
+    /// dont le débogage sans fil a changé de port.
+    /// </summary>
+    public HashSet<string> Unreachable { get; } = new(StringComparer.Ordinal);
+
+    public Task<bool> ForceStopAsync(
         string serial,
         int userId,
         string packageName,
@@ -61,6 +67,6 @@ public sealed class FakeAppLauncher : IAppLauncher
     {
         OnForceStop?.Invoke();
         ForceStops.Add($"{serial}|{userId}|{packageName}");
-        return Task.CompletedTask;
+        return Task.FromResult(!Unreachable.Contains(serial));
     }
 }

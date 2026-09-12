@@ -7489,3 +7489,95 @@ démarrage appelait `Show` sur une fenêtre déjà close.
 La règle ne s'applique plus avant la fin du démarrage, ce que le drapeau
 `_started` marquait déjà pour une autre raison. `RevealConfigurator` refuse en
 plus de remontrer une fenêtre close, ceinture et bretelles.
+
+## D137 - Le jeu survivait à sa fenêtre parce qu'on visait une adresse morte
+
+L'utilisateur : « fermer aussi le jeu sur le téléphone ne marche pas, le jeu
+tourne encore quand je ferme la fenêtre depuis le close ou le menu appareil ».
+
+Le réglage existait, le code l'appliquait, et une épreuve le tenait déjà. J'ai
+mesuré deux fois sur un vrai téléphone : fermer la fenêtre arrête bien le jeu,
+`pidof` est vide en deux à trois secondes. Le rapport restait pourtant vrai.
+
+### Ce que le journal disait
+
+Deux arrêts forcés du même jour, et ils disent la même chose :
+
+```
+11:33:57  am force-stop … pour 192.168.1.23:41207 : adb.exe: device offline
+11:38:40  am force-stop … pour 192.168.1.23:42557 : device '…:42557' not found
+```
+
+Deux adresses différentes, pour un seul téléphone. Le débogage sans fil change
+de port à chaque reprise, et une session retient l'adresse qu'elle avait à son
+ouverture. À la fermeture, l'ordre partait vers une adresse que le serveur ADB
+ne connaissait plus. Le même téléphone était là, joignable, sous une troisième
+adresse : au moment d'écrire ces lignes, `192.168.1.23:40787`.
+
+Mes essais ne pouvaient pas le voir : ils tenaient quelques minutes, sans
+changement de port entre l'ouverture et la fermeture.
+
+### Le mensonge qui rendait le défaut invisible
+
+`AndroidAppLauncher.ForceStopAsync` avalait toute faute ADB, avec ce
+commentaire : « L'application n'était peut-être pas lancée : rien à signaler. »
+
+Mesuré sur les deux téléphones, platform-tools 37.0.1 :
+
+| Ce qu'on demande | Code |
+| :-- | :-- |
+| `am force-stop` sur un paquet qui ne tourne pas | 0 |
+| `am force-stop` sur un paquet qui n'existe pas | 0 |
+| `am force-stop` sur une adresse périmée | 1, `device not found` |
+
+Le commentaire était donc faux de bout en bout. Une faute à cet endroit ne
+signifie jamais « le jeu n'était pas lancé » ; elle signifie que l'ordre n'est
+pas arrivé. Et une épreuve figeait la croyance, en simulant `DeviceOffline`
+sous le nom `Un_arret_force_sur_une_application_qui_ne_tourne_pas_ne_leve_pas`.
+
+**C'est le vrai enseignement.** Le défaut n'était pas difficile à voir : il
+était rendu impossible à voir, par un silence que rien ne remettait en cause.
+Le retour de la méthode dit maintenant si l'ordre est parti.
+
+### Viser l'adresse du moment
+
+`ScrcpySessionManager` reçoit un crochet `CurrentSerial`, qui traduit l'identité
+stable d'un appareil en l'adresse qu'il porte maintenant. Même patron que
+`OrderKey`, `RequestClose` et `PrepareWindow` : le noyau pose la question,
+l'application y répond, et l'épreuve y répond à sa place.
+
+`GameLauncher` tient la carte, alimentée à chaque balayage, donc au plus vieille
+de deux secondes. Une lecture du registre aurait été plus sûre sur le papier et
+pire en pratique : la fermeture de l'application se paie sur un budget compté,
+où une lecture de fichier n'a pas sa place.
+
+Deux adresses sont essayées, jamais plus : celle du moment, puis celle du
+lancement. La seconde couvre le cas inverse, un balayage qui manque de peu un
+changement de port et rend une adresse plus vieille que celle de la session.
+
+### Dire quand le jeu reste ouvert
+
+Reste le cas où le téléphone est vraiment parti. Rien ne peut plus arrêter le
+jeu, et c'est justement là qu'il faut parler : la fenêtre a disparu, donc plus
+rien à l'écran ne montre que le personnage est toujours en ligne. L'utilisateur
+le découvrait au lancement suivant.
+
+Un avis rejoint le bandeau de la reprise, quarante-cinq secondes, avec le nom du
+compte et la seule action qui reste : arrêter le jeu depuis le téléphone. Il ne
+dépend pas de la présence de l'appareil, contrairement à celui de la reprise
+(voir D134) : un téléphone reparti ne rend pas cet avis faux, il le rend plus
+vrai.
+
+### Les deux fautes, prouvées par réintroduction
+
+Les épreuves ont été vérifiées en remettant chaque défaut :
+
+```
+Le_jeu_s_arrete_a_l_adresse_du_moment_…
+  Attendu : 192.168.1.23:40787|10|com.ankama.dofustouch
+  Obtenu  : 192.168.1.23:41207|10|com.ankama.dofustouch
+
+Un_arret_qui_n_atteint_pas_l_appareil_se_declare_manque : Échoué
+```
+
+L'adresse obtenue est celle du journal de l'utilisateur, au caractère près.

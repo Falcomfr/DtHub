@@ -24,8 +24,15 @@ public interface IAppLauncher
         int? displayId,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Force l'arrêt de l'application sur un profil, avant relance.</summary>
-    Task ForceStopAsync(
+    /// <summary>
+    /// Force l'arrêt de l'application sur un profil.
+    ///
+    /// Rend vrai quand l'ordre est bien arrivé au téléphone, faux quand il n'a
+    /// pas pu partir. La nuance décide de ce qu'on peut affirmer : sans elle,
+    /// une fermeture qui laisse le jeu tourner ressemble trait pour trait à
+    /// une fermeture réussie.
+    /// </summary>
+    Task<bool> ForceStopAsync(
         string serial,
         int userId,
         string packageName,

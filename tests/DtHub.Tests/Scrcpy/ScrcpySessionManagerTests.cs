@@ -377,6 +377,115 @@ public class ScrcpySessionManagerTests
         Assert.Equal("USB0001|10|com.ankama.dofustouch", Assert.Single(appLauncher.ForceStops));
     }
 
+    /// <summary>L'adresse qu'avait le téléphone à l'ouverture de la session.</summary>
+    private const string AncienPort = "192.168.1.23:41207";
+
+    /// <summary>Celle qu'il porte à la fermeture, le port ayant changé.</summary>
+    private const string PortDuMoment = "192.168.1.23:40787";
+
+    [Fact]
+    public async Task Le_jeu_s_arrete_a_l_adresse_du_moment_et_non_a_celle_du_lancement()
+    {
+        // **Le défaut que cette épreuve tient.** Relevé dans le journal, sur un
+        // téléphone dont le débogage sans fil change de port à chaque reprise :
+        // « am force-stop … pour 192.168.1.23:41207 : adb.exe: device offline ».
+        // La session visait l'adresse notée à son ouverture, le téléphone en
+        // portait une autre, et le jeu survivait à sa fenêtre.
+        var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
+        var appLauncher = new FakeAppLauncher();
+
+        await using var manager = Manager(launcher, appLauncher);
+        manager.StopAppOnClose = true;
+
+        var session = await manager.StartAsync(
+            Target(userId: 10, serial: AncienPort), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        appLauncher.ForceStops.Clear();
+
+        // L'ancienne adresse est bel et bien morte : si elle était encore
+        // choisie, l'arrêt échouerait au lieu de viser ailleurs.
+        appLauncher.Unreachable.Add(AncienPort);
+        manager.CurrentSerial = _ => PortDuMoment;
+
+        await manager.StopAsync(session.Id, CancellationToken.None);
+
+        Assert.Equal(
+            PortDuMoment + "|10|com.ankama.dofustouch",
+            Assert.Single(appLauncher.ForceStops));
+    }
+
+    [Fact]
+    public async Task Une_adresse_du_moment_perimee_laisse_essayer_celle_du_lancement()
+    {
+        // Le balayage a lieu toutes les deux secondes : il peut manquer de peu
+        // un changement de port et rendre une adresse plus vieille que celle
+        // que la session porte. Renoncer là serait renoncer sur notre erreur.
+        var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
+        var appLauncher = new FakeAppLauncher();
+
+        await using var manager = Manager(launcher, appLauncher);
+        manager.StopAppOnClose = true;
+
+        var session = await manager.StartAsync(
+            Target(userId: 10), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        appLauncher.ForceStops.Clear();
+        appLauncher.Unreachable.Add(PortDuMoment);
+        manager.CurrentSerial = _ => PortDuMoment;
+
+        await manager.StopAsync(session.Id, CancellationToken.None);
+
+        Assert.Equal(
+            [PortDuMoment + "|10|com.ankama.dofustouch", "USB0001|10|com.ankama.dofustouch"],
+            appLauncher.ForceStops);
+    }
+
+    [Fact]
+    public async Task Un_jeu_qu_on_n_a_pas_pu_arreter_est_annonce()
+    {
+        // La fenêtre est partie : plus rien à l'écran ne peut montrer que le
+        // personnage est toujours en ligne. Se taire le laisserait découvrir au
+        // lancement suivant.
+        var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
+        var appLauncher = new FakeAppLauncher();
+
+        await using var manager = Manager(launcher, appLauncher);
+        manager.StopAppOnClose = true;
+
+        var session = await manager.StartAsync(
+            Target(userId: 10), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        appLauncher.ForceStops.Clear();
+        appLauncher.Unreachable.Add("USB0001");
+
+        ScrcpySession? annonce = null;
+        manager.AppStopFailed += (_, s) => annonce = s;
+
+        await manager.StopAsync(session.Id, CancellationToken.None);
+
+        Assert.Same(session, annonce);
+    }
+
+    [Fact]
+    public async Task Un_arret_qui_aboutit_n_annonce_rien()
+    {
+        var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
+        var appLauncher = new FakeAppLauncher();
+
+        await using var manager = Manager(launcher, appLauncher);
+        manager.StopAppOnClose = true;
+
+        var session = await manager.StartAsync(
+            Target(userId: 10), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        var annonces = 0;
+        manager.AppStopFailed += (_, _) => annonces++;
+
+        await manager.StopAsync(session.Id, CancellationToken.None);
+
+        Assert.Equal(0, annonces);
+    }
+
     [Fact]
     public async Task Le_reglage_decoche_laisse_le_jeu_tourner()
     {

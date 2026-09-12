@@ -486,6 +486,14 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 everything.Add(sameRecovery);
             }
 
+            // Le jeu resté ouvert sur le téléphone se dit là aussi : sa fenêtre
+            // a disparu, et plus rien d'autre à l'écran ne peut le signaler.
+            if (_launcher.StopFailedNotice is { Length: > 0 } left)
+            {
+                warnings.Add(left);
+                everything.Add(left);
+            }
+
             Problem = warnings.Count > 0 ? string.Join(" ", warnings) : null;
             ProblemDetail = everything.Count > 0
                 ? string.Join(Environment.NewLine, everything)

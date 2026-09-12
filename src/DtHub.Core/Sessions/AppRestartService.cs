@@ -60,7 +60,7 @@ public sealed class AppRestartService
 
         var target = session.Target;
 
-        await _apps.ForceStopAsync(target.Serial, target.UserId, target.PackageName, cancellationToken)
+        _ = await _apps.ForceStopAsync(target.Serial, target.UserId, target.PackageName, cancellationToken)
             .ConfigureAwait(false);
 
         await _delay(SettleDelay, cancellationToken).ConfigureAwait(false);
