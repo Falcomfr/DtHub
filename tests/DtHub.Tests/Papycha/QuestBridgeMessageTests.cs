@@ -204,4 +204,31 @@ public sealed class QuestBridgeMessageTests
             ],
             message.Steps);
     }
+    [Fact]
+    public void Le_bas_de_page_atteint_se_lit()
+    {
+        var message = QuestBridgeMessage.Parse(@"{""kind"":""end"",""at"":true}");
+
+        Assert.Equal(QuestBridgeMessage.End, message?.Kind);
+        Assert.True(message?.AtEnd);
+    }
+
+    [Fact]
+    public void Le_bas_de_page_quitte_se_lit_aussi()
+    {
+        // Les deux sens comptent : c'est ce message qui referme le bloc des
+        // suites quand on remonte dans le guide.
+        var message = QuestBridgeMessage.Parse(@"{""kind"":""end"",""at"":false}");
+
+        Assert.Equal(QuestBridgeMessage.End, message?.Kind);
+        Assert.False(message?.AtEnd);
+    }
+
+    [Fact]
+    public void Un_bas_de_page_sans_position_ne_dit_pas_qu_on_y_est()
+    {
+        // Ne rien savoir n'est pas être en bas : le bloc s'ouvrirait au milieu
+        // du guide.
+        Assert.False(QuestBridgeMessage.Parse(@"{""kind"":""end""}")?.AtEnd);
+    }
 }

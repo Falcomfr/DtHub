@@ -776,9 +776,10 @@ public sealed partial class QuestViewModel : ObservableObject
         _startsAtDeparture = false;
 
         // Le pied d'article de la quête qu'on quitte ne vaut plus rien : le
-        // garder proposerait, sous la dernière étape de la nouvelle, les suites
-        // de la précédente.
+        // garder proposerait, en bas de la nouvelle, les suites de la
+        // précédente. La position aussi se rouvre en haut.
         _chain = null;
+        _atEnd = false;
 
         SetNeighbours(quest);
 
@@ -1030,12 +1031,32 @@ public sealed partial class QuestViewModel : ObservableObject
     /// <summary>Le pied d'article de la page ouverte, gardé pour la fin.</summary>
     private QuestChain? _chain;
 
+    /// <summary>Vrai quand la page est arrivée en bas.</summary>
+    private bool _atEnd;
+
+    /// <summary>
+    /// Le guide est arrivé en bas, ou l'a quitté.
+    ///
+    /// **Le bas de page, et non la dernière étape.** Lier l'affichage à l'étape
+    /// le faisait clignoter pendant tout le défilement : le bloc rogne la
+    /// hauteur de la vue, ce qui déplace la page, ce qui change l'étape
+    /// détectée, ce qui referme le bloc, ce qui rend la hauteur. Le pont
+    /// annonce donc une position, avec deux seuils assez écartés pour que ce
+    /// déplacement ne puisse pas les retraverser.
+    /// </summary>
+    public void SetAtEnd(bool atEnd)
+    {
+        _atEnd = atEnd;
+
+        RefreshFollowUps();
+    }
+
     /// <summary>
     /// Rafraîchit la liste des suites et décide de la montrer.
     ///
-    /// La dernière étape, ou pas d'étape du tout : un guide sans étape est tout
-    /// entier sa propre fin, et attendre une dernière étape qui n'existe pas
-    /// n'y montrerait jamais rien.
+    /// Un guide trop court pour défiler est arrivé en bas dès son ouverture :
+    /// le pont l'annonce au chargement, sans attendre un défilement qui
+    /// n'aura jamais lieu.
     /// </summary>
     private void RefreshFollowUps()
     {
@@ -1048,7 +1069,7 @@ public sealed partial class QuestViewModel : ObservableObject
             FollowUps.Add(new QuestFollowUpGroupViewModel(group));
         }
 
-        ShowsFollowUps = !CanGoNextStep && FollowUps.Count > 0;
+        ShowsFollowUps = _atEnd && FollowUps.Count > 0;
     }
 
     /// <summary>

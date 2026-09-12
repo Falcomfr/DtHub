@@ -437,6 +437,10 @@ public partial class QuestWindow : Window
                 _viewModel.SetStep(message.Index);
                 break;
 
+            case QuestBridgeMessage.End:
+                _viewModel.SetAtEnd(message.AtEnd);
+                break;
+
             default:
                 break;
         }

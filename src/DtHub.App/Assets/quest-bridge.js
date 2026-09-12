@@ -714,6 +714,40 @@
         }
     }
 
+    // Le bas du guide, annonce à part.
+    //
+    // **Deux seuils, et l'écart entre eux est la correction d'un défaut.** La
+    // fenetre montre en bas de page ce que la quête débloque ; ce bloc rogne la
+    // hauteur de la vue, donc « window.innerHeight », donc la distance au bas de
+    // page, qui bondit de la hauteur du bloc. Avec un seuil unique, le bloc
+    // s'affichait, se faisait sortir par son propre effet, disparaissait, et
+    // l'écran clignotait pendant tout le défilement.
+    //
+    // Le seuil de retrait doit donc dépasser franchement la hauteur du bloc, au
+    // plus deux cent vingt pixels : six cents laissent la marge, et demandent de
+    // remonter d'un bon demi-ecran pour le refermer.
+    var REACH = 24;
+    var RELEASE = 600;
+    var ended = false;
+
+    function fromBottom() {
+        var doc = document.documentElement;
+        var height = Math.max(doc.scrollHeight || 0, document.body ? document.body.scrollHeight : 0);
+        var seen = (window.scrollY || doc.scrollTop || 0) + window.innerHeight;
+
+        return height - seen;
+    }
+
+    function reportEnd() {
+        var margin = ended ? RELEASE : REACH;
+        var now = fromBottom() <= margin;
+
+        if (now !== ended) {
+            ended = now;
+            post({ kind: 'end', at: now });
+        }
+    }
+
     var pending = false;
 
     window.addEventListener('scroll', function () {
@@ -730,6 +764,10 @@
 
             // Tant qu'une étape est retenue, chaque événement repousse le
             // relâchement : le défilement en cours est encore le nôtre.
+            // Le bas de page se rapporte même pendant un saut demandé : c'est
+            // une position, pas une étape, et la retenir n'aurait pas de sens.
+            reportEnd();
+
             if (held >= 0) {
                 holdStep(held);
 
@@ -799,6 +837,11 @@
         if (!framingOnly) {
             describe();
             reportStep();
+
+            // Annonce dès le départ : une page trop courte pour défiler est
+            // déjà tout entière sa propre fin, et n'émettra jamais d'événement
+            // de défilement.
+            reportEnd();
         }
     }
 

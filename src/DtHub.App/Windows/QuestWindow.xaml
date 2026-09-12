@@ -493,12 +493,19 @@
                   <ItemsControl ItemsSource="{Binding Rows}">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>
+                        <!-- Un succès ne se clique pas : son lien mène à la page
+                             d'arbre du site, hors du guide. La ligne reste, elle
+                             dit ce que la quête valide. -->
                         <Button Style="{StaticResource QuietButton}" Padding="6,3"
                                 HorizontalAlignment="Left" HorizontalContentAlignment="Left"
+                                IsHitTestVisible="{Binding IsFollowable}"
+                                Focusable="{Binding IsFollowable}"
                                 Tag="{Binding Link}" Click="OnFollowChain">
                           <StackPanel Orientation="Horizontal">
                             <Path Style="{StaticResource RowGlyph}" Data="M 6,3 L 10,7.5 L 6,12"
-                                  Margin="0,0,6,0" VerticalAlignment="Center" />
+                                  Margin="0,0,6,0" VerticalAlignment="Center"
+                                  Visibility="{Binding IsFollowable,
+                                                       Converter={StaticResource BoolToVisibility}}" />
                             <TextBlock Text="{Binding Title}" MaxWidth="300"
                                        TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                             <!-- La nature n'est dite que lorsqu'elle surprend :

@@ -7768,3 +7768,34 @@ reste dans une vue-modèle ne s'éprouve pas.
 Huit épreuves, bâties sur le relevé réel de la page « Le Dragon d'Astrub ». Deux
 défauts prouvés par réintroduction : oublier l'objectif, et oublier le
 dédoublonnage.
+
+### Deux défauts trouvés à la livraison
+
+**Le bloc clignotait pendant tout le défilement.** La cause est une boucle, et
+elle tenait au choix de le lier à la dernière étape : le bloc rogne la hauteur
+de la vue, ce qui déplace la page, ce qui change l'étape que le pont détecte, ce
+qui referme le bloc, ce qui rend la hauteur. L'étape était le mauvais signal,
+parce qu'elle dépend de ce que l'affichage fait à la page.
+
+L'affichage suit désormais une position, le bas de page, annoncée à part par le
+pont. Deux seuils, volontairement écartés :
+
+```
+apparition   24 px du bas
+retrait     600 px du bas
+```
+
+L'écart n'est pas du confort, c'est la correction elle-même : le bloc mesure au
+plus deux cent vingt pixels, et le déplacement qu'il provoque ne peut donc pas
+retraverser l'écart. Un guide trop court pour défiler est annoncé « en bas » dès
+son ouverture, faute de quoi aucun événement ne viendrait jamais.
+
+**Le lien d'un succès sortait du guide.** Il pointe vers la page d'arbre du
+site, que la fenêtre présente déjà à sa façon : le clic ressemblait à une suite
+et emmenait ailleurs. La ligne reste, l'utilisateur l'a confirmé, parce qu'elle
+dit ce que la quête valide ; elle ne se clique plus, et son chevron disparaît
+pour que la différence se voie. Seule une quête reste un lien.
+
+**Ce que les deux ont en commun** : le choix initial était raisonnable sur le
+papier et faux à l'écran. Ni l'un ni l'autre n'était visible sans ouvrir la
+fenêtre, que je n'ai aucun moyen de voir.

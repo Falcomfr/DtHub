@@ -31,6 +31,17 @@ public sealed class QuestFollowUpRowViewModel
     /// </summary>
     public string Kind { get; }
 
+    /// <summary>
+    /// Vrai quand la ligne mène quelque part qu'on veuille suivre.
+    ///
+    /// **Seule une quête en est une.** Le lien d'un succès pointe vers la page
+    /// d'arbre du site, qui sort du guide pour montrer un tableau que la
+    /// fenêtre présente déjà à sa façon : le clic ressemblait à une suite et
+    /// emmenait ailleurs. La ligne reste, parce qu'elle dit ce que la quête
+    /// valide, mais elle ne se clique plus.
+    /// </summary>
+    public bool IsFollowable => Link.Kind == QuestLinkKind.Quest;
+
     private static string KindLabel(QuestLinkKind kind) => kind switch
     {
         QuestLinkKind.Success => Strings.Get("QuestFollowUpSuccess"),
