@@ -9,6 +9,12 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Ajouté
 
+- **L'application dit quand un téléphone refuse les clics.** C'est le
+  symptôme le plus silencieux du terrain : la fenêtre montre le jeu et ne
+  répond à rien, sans la moindre erreur. La sonde qui le détecte existait,
+  mais il fallait aller l'ouvrir dans une fiche d'aide ; elle est maintenant
+  posée une fois par appareil, au moment où sa première fenêtre s'ouvre.
+
 - **« À réassocier » au lieu de « Hors ligne »** quand le téléphone est là,
   joignable, et refuse la clé de ce PC. Les trois échecs de connexion sans fil
   s'écrivent différemment : un port fermé et une machine absente portent un
