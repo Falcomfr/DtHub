@@ -168,6 +168,30 @@ public sealed class AndroidAppLauncher : IAppLauncher
         {
             arguments.Add("--display");
             arguments.Add(Text(display));
+
+            // **Sur un afficheur virtuel seulement, et c'est la clef.**
+            //
+            // Sans ce drapeau, fermer une fenêtre laissait une vignette vide en
+            // tête de la liste des applications du téléphone. Relevé :
+            //
+            //     pidof com.ankama.dofustouch   -> rien
+            //     No process found for: com.ankama.dofustouch
+            //     Recent #0: Task{#63 … sz=0}   <- elle restait
+            //
+            // Le jeu était bien fermé, mais rien ne distinguait cette carte
+            // d'une application vivante, et appuyer dessus relançait le jeu :
+            // l'utilisateur en concluait, à raison de ce qu'il voyait, que la
+            // fermeture ne marchait pas.
+            //
+            // Nettoyer après coup a été essayé et ne marche pas : une fois
+            // l'afficheur rendu, la pile a disparu de « am stack list » et
+            // « am stack remove » répond 0 sans rien faire. Il faut donc que la
+            // vignette ne naisse jamais.
+            //
+            // Réservé à l'afficheur virtuel : une fenêtre qui recopie l'écran
+            // du téléphone montre le jeu là où l'utilisateur s'attend à le
+            // retrouver dans sa liste.
+            arguments.Add("--activity-exclude-from-recents");
         }
 
         arguments.Add("-n");

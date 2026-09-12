@@ -119,6 +119,23 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     public Func<string, string?>? CurrentSerial { get; set; }
 
     /// <summary>
+    /// Va rechercher où est un appareil, au lieu de se souvenir.
+    ///
+    /// **Appelé seulement après un échec, et c'est tout l'intérêt.** Les deux
+    /// adresses connues viennent du passé : celle du dernier balayage, qui a
+    /// jusqu'à deux secondes de retard, et celle du lancement. Or deux secondes
+    /// est justement le temps qu'il faut à un port pour changer sans que
+    /// personne ne l'ait vu.
+    ///
+    /// Mesuré sur le téléphone, en périmant son adresse à la main : l'arrêt
+    /// partait à 14:52:26 vers l'adresse morte, et l'application connaissait la
+    /// bonne à 14:52:28. Deux secondes et demie de retard, et un jeu qui reste
+    /// ouvert. Redemander coûte une soixantaine de millisecondes, une seule
+    /// fois, et jamais sur le chemin qui marche.
+    /// </summary>
+    public Func<string, CancellationToken, Task<string?>>? LookUpSerial { get; set; }
+
+    /// <summary>
     /// Signalé quand le jeu n'a pas pu être arrêté sur le téléphone alors
     /// qu'on l'avait demandé. La fenêtre, elle, est bien partie : c'est
     /// précisément ce qui rend l'échec invisible sans cet avis.
@@ -452,35 +469,79 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     {
         using var deadline = new CancellationTokenSource(StopAppTimeout);
 
+        var tried = new HashSet<string>(StringComparer.Ordinal);
+
         foreach (var serial in StopCandidates(session))
         {
-            try
+            if (tried.Add(serial)
+                && await AttemptStopAsync(session, serial, deadline.Token).ConfigureAwait(false))
             {
-                var stopped = await _appLauncher.ForceStopAsync(
-                    serial,
-                    session.Target.UserId,
-                    session.Target.PackageName,
-                    deadline.Token).ConfigureAwait(false);
-
-                if (stopped)
-                {
-                    return;
-                }
-
-                session.Record("Arrêt du jeu refusé par " + serial + ".");
-            }
-            catch (Exception exception) when (exception is not OutOfMemoryException)
-            {
-                // Rien n'est propagé : la méthode est appelée sur le chemin de
-                // fermeture, y compris celui de l'application entière, et une
-                // faute y serait sans destinataire. Une seconde adresse n'y
-                // changerait rien non plus, la cause étant le délai échu.
-                session.Record("Arrêt du jeu sur le téléphone impossible : " + exception.Message);
-                break;
+                return;
             }
         }
 
+        // Les adresses connues ont échoué, et toutes deux viennent du passé. On
+        // redemande où est l'appareil, une fois, avant de renoncer.
+        var fresh = await LookUpAsync(session.Target.DeviceId, deadline.Token).ConfigureAwait(false);
+
+        if (fresh is { Length: > 0 }
+            && tried.Add(fresh)
+            && await AttemptStopAsync(session, fresh, deadline.Token).ConfigureAwait(false))
+        {
+            return;
+        }
+
         AppStopFailed?.Invoke(this, session);
+    }
+
+    /// <summary>Un essai d'arrêt à une adresse. Vrai si l'ordre est arrivé.</summary>
+    private async Task<bool> AttemptStopAsync(
+        ScrcpySession session,
+        string serial,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (await _appLauncher.ForceStopAsync(
+                    serial,
+                    session.Target.UserId,
+                    session.Target.PackageName,
+                    cancellationToken).ConfigureAwait(false))
+            {
+                return true;
+            }
+
+            session.Record("Arrêt du jeu refusé par " + serial + ".");
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // Rien n'est propagé : la méthode est appelée sur le chemin de
+            // fermeture, y compris celui de l'application entière, et une faute
+            // y serait sans destinataire.
+            session.Record("Arrêt du jeu sur le téléphone impossible : " + exception.Message);
+        }
+
+        return false;
+    }
+
+    /// <summary>L'adresse fraîchement cherchée, ou <c>null</c>.</summary>
+    private async Task<string?> LookUpAsync(string deviceId, CancellationToken cancellationToken)
+    {
+        if (LookUpSerial is not { } search)
+        {
+            return null;
+        }
+
+        try
+        {
+            return await search(deviceId, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // Le balayage peut échouer ou manquer de temps : c'est une dernière
+            // chance, pas une étape dont dépend la fermeture.
+            return null;
+        }
     }
 
     /// <summary>

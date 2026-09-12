@@ -7581,3 +7581,111 @@ Un_arret_qui_n_atteint_pas_l_appareil_se_declare_manque : Échoué
 ```
 
 L'adresse obtenue est celle du journal de l'utilisateur, au caractère près.
+
+## D138 - La vignette qui faisait croire que le jeu tournait encore
+
+L'utilisateur, après le correctif de la D137 : « ça ferme pas l'app », « le jeu
+est toujours actif sur le tel », « si l'app tourne en fond ». Trois fois, en
+maintenant sa version contre la mienne. Il avait raison, et j'ai mis longtemps à
+voir en quoi, parce que nous ne regardions pas la même chose.
+
+### Ce que la mesure disait, et pourquoi elle ne suffisait pas
+
+Un enregistreur posé sur le téléphone, une lecture toutes les demi-secondes, sur
+trois cycles complets. Le dernier :
+
+```
+15:18:09  scrcpy=1  p:(vide)     DT Hub ouvre la fenêtre
+15:18:10  scrcpy=1  p:14055      le jeu démarre
+15:18:16  scrcpy=0  p:(vide)     fenêtre fermée, processus mort
+15:18:28  scrcpy=0  p:(vide)     toujours mort
+```
+
+Et la preuve qui ne se discute pas :
+
+```
+dumpsys meminfo com.ankama.dofustouch
+  No process found for: com.ankama.dofustouch
+```
+
+Le jeu était bien fermé. Mais dans la liste des applications du téléphone :
+
+```
+Recent #0: Task{#63 … A=10260:com.ankama.dofustouch … sz=0}
+```
+
+**Une carte vide, en tête de liste, rien ne la distinguant d'une application
+vivante.** Et elle ne trompe pas seulement : elle piège. Appuyer dessus relance
+le jeu, avec le drapeau `FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY` que la trace a
+bien montré. L'utilisateur voyait donc « le jeu », le touchait, le jeu
+apparaissait, et concluait très raisonnablement que la fermeture n'avait jamais
+marché.
+
+### La cause
+
+Même téléphone, même jeu, deux essais :
+
+| Le jeu tournait sur | Après `am force-stop` |
+| :-- | :-- |
+| l'écran du téléphone | 0 vignette |
+| un afficheur virtuel de scrcpy | 1 vignette orpheline |
+
+C'est l'afficheur virtuel. Quand il disparaît, la tâche devient orpheline et
+Android garde sa vignette.
+
+### Un correctif écrit, puis retiré
+
+Premier remède tenté : retirer la pile d'activités à la fermeture. Il marchait
+dans mes essais, et pas chez l'utilisateur. La différence était ma méthode : je
+tuais scrcpy brutalement, ce qui laissait la pile en place. **DT Hub, lui, ferme
+scrcpy proprement**, l'afficheur est rendu, la pile disparaît de
+`am stack list`, et `am stack remove` répond `0` sans rien faire.
+
+Le code correspondant, un type de noyau et ses neuf épreuves, a été retiré plutôt
+que laissé en place. Du code qui ne marche pas sur le seul chemin qui compte est
+pire qu'absent : il rassure.
+
+### Ce qui marche
+
+`am start --activity-exclude-from-recents`, sur l'afficheur virtuel seulement.
+On n'efface plus la vignette, **on l'empêche de naître** :
+
+```
+avant             : 2 cartes
+pendant la partie : pid=32413  cartes=2   <- aucune créée
+après fermeture   : cartes=2
+```
+
+Réservé à l'afficheur virtuel, et c'est délibéré : une fenêtre qui recopierait
+l'écran du téléphone doit laisser le jeu là où l'utilisateur s'attend à le
+retrouver.
+
+### Ce que le drapeau ne dégrade pas
+
+La question posée, et elle était la bonne : une tâche cachée des récents
+devient-elle plus facile à tuer sous pression mémoire ? Ce serait grave sur le
+Mi 9T Pro, où la mémoire est déjà le facteur limitant. Mesuré sur le même
+afficheur, à quelques secondes d'intervalle :
+
+```
+sans drapeau  Proc # 0: vis+ 2 F/A/TOP  oom: curRaw=102 cur=102 set=102
+avec drapeau  Proc # 0: vis+ 2 F/A/TOP  oom: curRaw=102 cur=102 set=102
+```
+
+Identique au chiffre près. Le lancement ne coûte rien de plus non plus, 181 ms
+contre 267 ms, et sur deux fenêtres comparables de vingt-cinq secondes les
+saccades sont de 71,2 % avec contre 79,1 % sans. Aucune pile ne s'accumule :
+une seule pile vivante après une dizaine de cycles.
+
+La mémoire relevée au passage n'est pas retenue comme preuve : les deux
+processus n'avaient pas le même âge, et le jeu grossit en chargeant.
+
+### Ce qu'il faut en retenir
+
+Deux fois dans cette enquête, j'ai conclu trop vite à partir d'une mesure juste
+mais hors sujet. « Le processus est mort » était vrai et ne répondait pas à la
+question posée. « `am stack remove` ne peut rien » était faux, et venait d'un
+essai où j'avais utilisé un identifiant périmé.
+
+**Quand l'utilisateur maintient son constat contre une mesure, la mesure
+regarde autre chose que lui.** C'est elle qu'il faut déplacer, pas lui.

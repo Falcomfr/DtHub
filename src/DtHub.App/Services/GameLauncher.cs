@@ -125,6 +125,18 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _sessions.CurrentSerial = deviceId =>
             _serials.TryGetValue(deviceId, out var serial) ? serial : null;
 
+        // Quand les adresses connues ont toutes échoué, on redemande plutôt que
+        // de renoncer : elles viennent du passé, et un port change justement
+        // dans les deux secondes qui séparent deux balayages.
+        _sessions.LookUpSerial = async (deviceId, cancellationToken) =>
+        {
+            var live = await _devices.RefreshAsync(cancellationToken).ConfigureAwait(false);
+
+            RememberSerials(live);
+
+            return _serials.TryGetValue(deviceId, out var serial) ? serial : null;
+        };
+
         _sessions.AppStopFailed += OnAppStopFailed;
     }
 
@@ -136,7 +148,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// plus encore celle de l'application, se paie sur un budget compté, où
     /// une lecture de fichier n'a pas sa place.
     /// </summary>
-    private readonly Dictionary<string, string> _serials = new(StringComparer.Ordinal);
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _serials =
+        new(StringComparer.Ordinal);
 
     /// <summary>Retient où joindre chaque appareil joignable.</summary>
     private void RememberSerials(DeviceDiscoveryResult discovery)
@@ -146,6 +159,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
             if (device.IsConnected && !string.IsNullOrWhiteSpace(device.Serial))
             {
                 _serials[device.Id] = device.Serial;
+            }
+            else
+            {
+                // Un appareil parti n'a plus d'adresse : garder la dernière
+                // ferait viser un mort en croyant viser le présent.
+                _ = _serials.TryRemove(device.Id, out _);
             }
         }
     }

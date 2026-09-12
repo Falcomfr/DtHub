@@ -440,6 +440,68 @@ public class ScrcpySessionManagerTests
             appLauncher.ForceStops);
     }
 
+    /// <summary>Le nom mDNS sous lequel le téléphone reste joignable.</summary>
+    private const string NomMdns = "adb-96ca0f7b-rq6A0u._adb-tls-connect._tcp";
+
+    [Fact]
+    public async Task Quand_les_adresses_connues_echouent_on_redemande_ou_est_l_appareil()
+    {
+        // **Mesuré sur le téléphone, et c'est ce qui a fait manquer le premier
+        // correctif.** En périmant l'adresse à la main, l'arrêt est parti à
+        // 14:52:26 vers l'adresse morte, et l'application connaissait la bonne
+        // à 14:52:28. Les deux adresses connues viennent du passé : celle du
+        // balayage a jusqu'à deux secondes de retard, et c'est exactement le
+        // temps qu'il faut à un port pour changer.
+        var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
+        var appLauncher = new FakeAppLauncher();
+
+        await using var manager = Manager(launcher, appLauncher);
+        manager.StopAppOnClose = true;
+
+        var session = await manager.StartAsync(
+            Target(userId: 10, serial: AncienPort), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        appLauncher.ForceStops.Clear();
+
+        // Les deux souvenirs sont morts : celui du lancement et celui du
+        // dernier balayage, qui n'a pas encore vu le changement de port.
+        appLauncher.Unreachable.Add(AncienPort);
+        manager.CurrentSerial = _ => AncienPort;
+        manager.LookUpSerial = (_, _) => Task.FromResult<string?>(NomMdns);
+
+        await manager.StopAsync(session.Id, CancellationToken.None);
+
+        Assert.Equal(
+            [AncienPort + "|10|com.ankama.dofustouch", NomMdns + "|10|com.ankama.dofustouch"],
+            appLauncher.ForceStops);
+    }
+
+    [Fact]
+    public async Task On_ne_redemande_rien_quand_l_arret_a_abouti()
+    {
+        // La recherche coûte un balayage. Sur le chemin qui marche, et c'est
+        // l'immense majorité, elle ne doit pas avoir lieu.
+        var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
+        var appLauncher = new FakeAppLauncher();
+
+        await using var manager = Manager(launcher, appLauncher);
+        manager.StopAppOnClose = true;
+
+        var session = await manager.StartAsync(
+            Target(userId: 10), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        var recherches = 0;
+        manager.LookUpSerial = (_, _) =>
+        {
+            recherches++;
+            return Task.FromResult<string?>(NomMdns);
+        };
+
+        await manager.StopAsync(session.Id, CancellationToken.None);
+
+        Assert.Equal(0, recherches);
+    }
+
     [Fact]
     public async Task Un_jeu_qu_on_n_a_pas_pu_arreter_est_annonce()
     {

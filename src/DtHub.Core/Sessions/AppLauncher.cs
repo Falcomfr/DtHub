@@ -37,4 +37,5 @@ public interface IAppLauncher
         int userId,
         string packageName,
         CancellationToken cancellationToken = default);
+
 }

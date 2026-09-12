@@ -49,7 +49,9 @@ public class AndroidAppLauncherTests
         var result = await Build(adb).LaunchAsync(Serial, 999, Package, Component, 42);
 
         Assert.True(result.Succeeded);
-        Assert.Contains("am start --user 999 --display 42 -n " + Component, adb.ShellCalls);
+        Assert.Contains(
+            "am start --user 999 --display 42 --activity-exclude-from-recents -n " + Component,
+            adb.ShellCalls);
     }
 
     [Fact]
@@ -130,6 +132,44 @@ public class AndroidAppLauncherTests
         var result = await Build(adb).LaunchAsync(Serial, 999, Package, knownComponent: null, null);
 
         Assert.False(result.Succeeded);
+    }
+
+    [Fact]
+    public async Task Sur_un_afficheur_virtuel_le_jeu_est_tenu_hors_des_recents()
+    {
+        // **Sans ce drapeau, fermer une fenêtre laissait une vignette vide en
+        // tête de la liste des applications du téléphone.** Relevé sur le
+        // Mi 9T Pro, après une fermeture :
+        //
+        //     No process found for: com.ankama.dofustouch
+        //     Recent #0: Task{#63 … sz=0}
+        //
+        // Le jeu était bien fermé, mais appuyer sur la carte le relançait, et
+        // l'utilisateur en concluait, à raison de ce qu'il voyait, que la
+        // fermeture ne marchait pas. Nettoyer après coup a été essayé et échoue
+        // : l'afficheur rendu, « am stack remove » répond 0 sans rien faire.
+        var adb = new FakeAdbClient().WithShell("am start", "Status: ok");
+
+        _ = await Build(adb).LaunchAsync(Serial, 0, Package, Component, displayId: 7);
+
+        Assert.Contains(
+            adb.ShellCalls,
+            call => call.Contains("--activity-exclude-from-recents", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Sans_afficheur_virtuel_le_jeu_reste_dans_les_recents()
+    {
+        // Une fenêtre qui recopie l'écran du téléphone montre le jeu là où
+        // l'utilisateur s'attend à le retrouver dans sa liste : l'en cacher
+        // serait lui retirer quelque chose, pas le lui épargner.
+        var adb = new FakeAdbClient().WithShell("am start", "Status: ok");
+
+        _ = await Build(adb).LaunchAsync(Serial, 0, Package, Component, displayId: null);
+
+        Assert.DoesNotContain(
+            adb.ShellCalls,
+            call => call.Contains("--activity-exclude-from-recents", StringComparison.Ordinal));
     }
 
     [Fact]

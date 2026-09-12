@@ -97,6 +97,13 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Corrigé
 
+- **Le jeu laissait une vignette vide dans la liste des applications du
+  téléphone.** Le processus était bien arrêté, mais sa carte restait en tête de
+  liste, impossible à distinguer d'une application vivante, et y appuyer
+  relançait le jeu. Le jeu est maintenant lancé hors des récents quand il vit
+  sur un afficheur virtuel, si bien que la vignette ne se crée plus. Mesuré :
+  priorité du processus inchangée au chiffre près.
+
 - **Le jeu restait ouvert sur le téléphone après la fermeture de sa fenêtre.**
   Une session retenait l'adresse qu'avait le téléphone à son ouverture, et le
   débogage sans fil change de port à chaque reprise : l'ordre d'arrêt partait
