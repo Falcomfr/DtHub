@@ -90,19 +90,28 @@ h3 { font-size: 19px; margin: 0 0 6px; }
 p { margin: 10px 0; }
 .chapo { color: var(--doux); margin-top: 10px; }
 
-/* Une catégorie : un titre, deux phrases, une capture lisible. */
+/* Une catégorie : un titre, une liste de fonctions, une capture à côté.
+ *
+ * **Côte à côte et non l'une sous l'autre.** Empilées, l'image et la liste
+ * prenaient deux fois la hauteur, et la page devenait un long défilement où les
+ * captures écrasaient le texte. Posées l'une à côté de l'autre, elles occupent
+ * la même place et se lisent ensemble. Sous huit cents pixels de large, elles
+ * s'empilent faute de place, et c'est le seul cas où elles le font. */
 
-.categorie { margin-top: 46px; }
-.categorie:first-of-type { margin-top: 26px; }
-.categorie p { color: var(--doux); max-width: 68ch; margin: 6px 0 0; }
-.categorie figure { margin: 18px 0 0; }
+.categorie { margin-top: 34px; display: grid; grid-template-columns: 1fr 330px; gap: 30px; align-items: start; }
+.categorie:first-of-type { margin-top: 22px; }
+.categorie.large { grid-template-columns: 1fr; }
+.categorie h3 { margin: 0 0 8px; }
+.categorie figure { margin: 0; }
 .categorie img {
   display: block; max-width: 100%; height: auto;
   border: 1px solid var(--trait); border-radius: var(--rayon); background: var(--carte);
 }
-/* Les captures en hauteur tiennent moins de place qu'à pleine largeur, sans
-   quoi une fenêtre étroite mangerait deux écrans à elle seule. */
-.categorie img.debout { max-width: 460px; }
+.categorie ul.liste { margin-top: 0; }
+
+@media (max-width: 800px) {
+  .categorie { grid-template-columns: 1fr; gap: 18px; }
+}
 
 /* Listes */
 
