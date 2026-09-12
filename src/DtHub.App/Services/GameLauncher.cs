@@ -176,6 +176,45 @@ public sealed partial class GameLauncher : IAsyncDisposable
     public string? RecoveryNotice { get; private set; }
 
     /// <summary>
+    /// L'appareil et l'instant de l'avis de reprise en cours.
+    ///
+    /// **Un avis de reprise est un événement, pas un état.** Il promet une
+    /// fenêtre qui revient ; si le téléphone disparaît entre-temps, la promesse
+    /// ne tient plus, et l'avis restait pourtant à l'écran sous une ligne qui
+    /// disait « hors ligne ». Deux phrases qui se contredisent dans la même
+    /// colonne.
+    /// </summary>
+    private string? _recoveryDevice;
+
+    private DateTimeOffset _recoveryAt;
+
+    /// <summary>
+    /// Ce qu'on accorde à l'avis. Les trois tentatives s'étalent sur
+    /// vingt-deux secondes, plus le temps d'ouvrir une fenêtre : au-delà,
+    /// l'avis parle d'une reprise qui n'a plus lieu.
+    /// </summary>
+    private static readonly TimeSpan RecoveryNoticeLife = TimeSpan.FromSeconds(45);
+
+    /// <summary>Efface l'avis de reprise quand il a cessé d'être vrai.</summary>
+    private void ExpireRecoveryNotice(DeviceDiscoveryResult discovery)
+    {
+        if (RecoveryNotice is null)
+        {
+            return;
+        }
+
+        var present = _recoveryDevice is { Length: > 0 } id
+            && discovery.Devices.Any(d =>
+                d.IsConnected && string.Equals(d.Id, id, StringComparison.Ordinal));
+
+        if (!present || DateTimeOffset.UtcNow - _recoveryAt >= RecoveryNoticeLife)
+        {
+            RecoveryNotice = null;
+            _recoveryDevice = null;
+        }
+    }
+
+    /// <summary>
     /// Signalé quand une fenêtre perdue doit être rouverte.
     ///
     /// La fenêtre est reconstruite par l'application, pas ici : ce service ne
@@ -257,6 +296,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             if (already > 0 && SessionRecovery.Recoverable(session.End.Failure))
             {
                 RecoveryNotice = Strings.Format("SessionRecoveryGaveUp", instance.DisplayName);
+                (_recoveryDevice, _recoveryAt) = (instance.DeviceId, DateTimeOffset.UtcNow);
                 LogRecoveryGaveUp(instance.DisplayName, already);
             }
 
@@ -266,6 +306,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _recoveries[key] = (already + 1, DateTimeOffset.UtcNow);
 
         RecoveryNotice = Strings.Format("SessionRecovering", instance.DisplayName);
+        (_recoveryDevice, _recoveryAt) = (instance.DeviceId, DateTimeOffset.UtcNow);
 
         LogRecovering(instance.DisplayName, already + 1, (int)decision.Delay.TotalSeconds);
 
@@ -630,6 +671,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(discovery);
+
+        ExpireRecoveryNotice(discovery);
 
         await RefreshBatteriesAsync(discovery, cancellationToken).ConfigureAwait(false);
 

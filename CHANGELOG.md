@@ -85,6 +85,12 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Corrigé
 
+- **L'avis de reprise restait affiché après le départ du téléphone.** « La
+  liaison a lâché, sa fenêtre se rouvre » s'affichait sous une ligne « hors
+  ligne », donc sous un appareil où plus aucune fenêtre ne rouvrira. Il
+  s'efface maintenant quand l'appareil n'est plus joignable, ou passé le temps
+  des tentatives.
+
 - **L'application réveillait le téléphone deux fois trop souvent pendant une
   partie.** Le contrôle du verrou relisait l'appareil toutes les quatre
   secondes même une fois déverrouillé, et le balayage des annonces réseau

@@ -7359,3 +7359,26 @@ près. C'est le seul réglage de cette liste qui change quelque chose à l'oeil.
 
 Réserve honnête : mesuré sur l'écran de connexion, pas en combat. Le pic laisse
 de la marge, mais je ne peux pas affirmer des chiffres en jeu sans jouer.
+
+## D134 - Un avis de reprise est un événement, pas un état
+
+Signalé avec une capture : sous une ligne « Xiaomi Mi 9T Pro — Hors ligne »,
+le bandeau annonçait « La liaison avec Principal a lâché. Sa fenêtre se
+rouvre. » Deux phrases qui se contredisent dans la même colonne.
+
+Le message n'était pas faux quand il est apparu : la liaison avait bien lâché,
+et la reprise de D113 avait bien commencé. Il n'avait simplement **pas de
+fin**. Il ne s'effaçait qu'au retour d'une fenêtre, c'est-à-dire dans le seul
+cas où tout se passe bien ; le téléphone parti pour de bon, la promesse
+restait affichée indéfiniment.
+
+C'est le défaut inverse de ceux corrigés en D121 et D129, et la leçon est la
+même vue d'un autre côté : **un état se dit tant qu'il dure, un événement doit
+cesser de se dire.** Les constats du bilan d'appareil se recalculent toutes
+les deux secondes et disparaissent d'eux-mêmes ; l'avis de reprise, lui, était
+posé une fois et jamais repris.
+
+Il porte désormais l'appareil qu'il concerne et l'instant où il a été posé. Il
+s'efface quand cet appareil n'est plus joignable, la reprise n'ayant alors
+plus d'objet, ou au bout de quarante-cinq secondes, les trois tentatives
+s'étalant sur vingt-deux secondes plus le temps d'ouvrir une fenêtre.
