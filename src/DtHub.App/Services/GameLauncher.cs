@@ -733,11 +733,26 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 .IsBatteryExemptAsync(serial, DofusPackages.DofusTouch, cancellationToken)
                 .ConfigureAwait(false) == false;
 
+            // **La sonde d'entrée, une fois par appareil, à sa première
+            // fenêtre.** Elle envoie la touche « inconnue » d'Android, qui ne
+            // déclenche rien nulle part, et rend son verdict en une seconde.
+            //
+            // Le type qui la porte disait jusqu'ici qu'elle n'est envoyée que
+            // sur demande. La règle change ici, et le terrain l'a imposée :
+            // deux fois dans la même journée, des fenêtres ont montré le jeu
+            // sans répondre à rien, et le réglage fautif se décoche tout seul
+            // au redémarrage. Jamais pendant une partie, jamais à répétition :
+            // une question, au moment où la première fenêtre s'ouvre.
+            var dead = playing.Contains(serial, StringComparer.Ordinal)
+                && await Inputs(serial, cancellationToken).ConfigureAwait(false) == InputInjection.Denied;
+
             Trace(serial, heat, battery, storage);
             TraceLock(serial, locked);
             TracePreparation(serial, unprepared);
+            TraceDeadInput(serial, dead);
 
-            var seen = DeviceHealth.Review(heat, battery, storage, link, locked, unprepared);
+            var seen = DeviceHealth.Review(
+                heat, battery, storage, link, locked, unprepared, dead);
 
             if (DeviceHealth.Every(seen) is { } said)
             {
@@ -854,6 +869,54 @@ public sealed partial class GameLauncher : IAsyncDisposable
         else
         {
             _ = _loggedPreparation.Remove(serial);
+        }
+    }
+
+    /// <summary>Verdict d'entrée par appareil, posé une fois et gardé.</summary>
+    private readonly Dictionary<string, InputInjection> _inputs = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Le verdict d'entrée de cet appareil, demandé une seule fois.
+    ///
+    /// Gardé jusqu'à ce que l'appareil disparaisse : le réglage ne change pas
+    /// en cours de séance, et reposer la question reviendrait à envoyer des
+    /// touches pendant qu'on joue.
+    /// </summary>
+    private async Task<InputInjection> Inputs(string serial, CancellationToken cancellationToken)
+    {
+        if (_inputs.TryGetValue(serial, out var known))
+        {
+            return known;
+        }
+
+        var answer = await _devices.CheckInputInjectionAsync(serial, cancellationToken).ConfigureAwait(false);
+
+        // Un verdict incertain ne se garde pas : l'appareil était peut-être
+        // occupé, et la question se reposera à la prochaine fenêtre.
+        if (answer != InputInjection.Unknown)
+        {
+            _inputs[serial] = answer;
+        }
+
+        return answer;
+    }
+
+    /// <summary>Appareils dont le refus d'entrée a déjà été journalisé.</summary>
+    private readonly HashSet<string> _loggedDeadInput = new(StringComparer.Ordinal);
+
+    /// <summary>Journalise le refus d'entrée, une fois par épisode.</summary>
+    private void TraceDeadInput(string serial, bool dead)
+    {
+        if (dead)
+        {
+            if (_loggedDeadInput.Add(serial))
+            {
+                LogDeadInput(serial);
+            }
+        }
+        else
+        {
+            _ = _loggedDeadInput.Remove(serial);
         }
     }
 
@@ -2644,6 +2707,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "{serial} : le jeu n'est pas exempté d'économie d'énergie ; Android finira par le geler.")]
     private partial void LogUnprepared(string serial);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "{serial} : l'appareil refuse la simulation d'entrée ; ses fenêtres ne répondront pas.")]
+    private partial void LogDeadInput(string serial);
 
     [LoggerMessage(
         Level = LogLevel.Information,

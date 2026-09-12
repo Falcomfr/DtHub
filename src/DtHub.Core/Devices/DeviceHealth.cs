@@ -44,6 +44,10 @@ public static class DeviceHealth
     /// appareil, c'est-à-dire quand la préparation décrite dans l'aide n'y a
     /// jamais été faite.
     /// </param>
+    /// <param name="deadInput">
+    /// Vrai quand l'appareil refuse les entrées venues du PC : les fenêtres
+    /// montrent le jeu et ne répondent à rien.
+    /// </param>
     /// <param name="lockedWindows">
     /// Vrai quand les fenêtres de jeu de cet appareil montrent son écran de
     /// verrouillage au lieu du jeu, c'est-à-dire quand son afficheur virtuel
@@ -55,7 +59,8 @@ public static class DeviceHealth
         StorageReading? storage,
         WifiLink? link,
         bool lockedWindows = false,
-        bool unpreparedBattery = false)
+        bool unpreparedBattery = false,
+        bool deadInput = false)
     {
         List<HealthFinding> findings = [];
 
@@ -66,6 +71,14 @@ public static class DeviceHealth
         if (lockedWindows)
         {
             findings.Add(new HealthFinding(HealthSeverity.Serious, Strings.Get("DisplayStaysLocked")));
+        }
+
+        // Juste derrière le cadenas, et pour la même raison : la fenêtre a
+        // beau montrer le jeu, elle ne sert à rien. C'est le symptôme le plus
+        // silencieux du terrain, celui qu'on met une soirée à nommer.
+        if (deadInput)
+        {
+            findings.Add(new HealthFinding(HealthSeverity.Serious, Strings.Get("DeadInputFound")));
         }
 
         if (battery?.Describe() is { } power && battery.Concern is { } level)

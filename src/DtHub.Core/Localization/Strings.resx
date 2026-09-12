@@ -1871,4 +1871,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="ToPairAgainHow" xml:space="preserve">
     <value>Through "Pair a new device", above.</value>
   </data>
+  <data name="DeadInputFound" xml:space="preserve">
+    <value>This phone refuses clicks and keystrokes coming from the PC: its windows show the game and respond to nothing. The setting is called "USB debugging (Security settings)", and the help below says where. On Xiaomi it often needs a SIM card in the phone, and it does not survive a reboot without one.</value>
+  </data>
 </root>

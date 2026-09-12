@@ -1871,4 +1871,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="ToPairAgainHow" xml:space="preserve">
     <value>Por «Vincular un nuevo dispositivo», arriba.</value>
   </data>
+  <data name="DeadInputFound" xml:space="preserve">
+    <value>Este teléfono rechaza los clics y las teclas que vienen del PC: sus ventanas muestran el juego y no responden a nada. El ajuste se llama «Depuración USB (ajustes de seguridad)», y la ayuda de abajo dice dónde. En Xiaomi suele exigir una tarjeta SIM en el teléfono, y no sobrevive a un reinicio sin ella.</value>
+  </data>
 </root>

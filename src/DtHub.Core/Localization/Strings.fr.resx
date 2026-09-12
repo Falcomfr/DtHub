@@ -1871,4 +1871,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="ToPairAgainHow" xml:space="preserve">
     <value>Par « Associer un nouvel appareil », en haut.</value>
   </data>
+  <data name="DeadInputFound" xml:space="preserve">
+    <value>Ce téléphone refuse les clics et les frappes venus du PC : ses fenêtres montrent le jeu et ne répondent à rien. Le réglage s'appelle « Débogage USB (paramètres de sécurité) », et l'aide en bas dit où. Sur Xiaomi il réclame souvent une carte SIM dans le téléphone, et il ne survit pas à un redémarrage sans elle.</value>
+  </data>
 </root>

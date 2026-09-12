@@ -7362,7 +7362,7 @@ de la marge, mais je ne peux pas affirmer des chiffres en jeu sans jouer.
 
 ## D134 - Un avis de reprise est un événement, pas un état
 
-Signalé avec une capture : sous une ligne « Xiaomi Mi 9T Pro — Hors ligne »,
+Signalé avec une capture : sous une ligne disant le Xiaomi Mi 9T Pro hors ligne,
 le bandeau annonçait « La liaison avec Principal a lâché. Sa fenêtre se
 rouvre. » Deux phrases qui se contredisent dans la même colonne.
 
@@ -7382,3 +7382,63 @@ Il porte désormais l'appareil qu'il concerne et l'instant où il a été posé.
 s'efface quand cet appareil n'est plus joignable, la reprise n'ayant alors
 plus d'objet, ou au bout de quarante-cinq secondes, les trois tentatives
 s'étalant sur vingt-deux secondes plus le temps d'ouvrir une fenêtre.
+
+## D135 - Le verrou de MIUI, et la règle de la sonde qui change
+
+Le Mi 9T Pro réassocié, les clics ne passent toujours pas. Trois mesures ont
+fait le tour de la question.
+
+### La permission est accordée, et MIUI refuse quand même
+
+```
+android.permission.INJECT_EVENTS: granted=true      <- côté Android
+java.lang.SecurityException: Injecting to another
+application requires INJECT_EVENTS permission        <- ce que ça donne
+```
+
+Les deux ensemble ne peuvent vouloir dire qu'une chose : **le refus ne vient
+pas d'Android mais de la surcouche**, qui ajoute son propre contrôle par
+dessus la permission. C'est « Débogage USB (paramètres de sécurité) », et sur
+Xiaomi il réclame une carte SIM insérée, ce que la fiche de marque disait
+déjà.
+
+Le réglage a tenu une heure ce matin, puis le téléphone a redémarré et il
+n'est jamais revenu. Éteindre les trois interrupteurs, redémarrer, tout
+rallumer, la séquence que l'aide recommande : sans effet. Sans SIM, cet
+appareil reste en lecture seule.
+
+### La voie UHID existe, et ne convient pas ici
+
+scrcpy sait créer un clavier et une souris virtuels au niveau du noyau, qui
+ne passent pas par l'injection et donc pas par le verrou. Vérifié sur
+l'appareil, sans erreur :
+
+```
+Device 9: scrcpy       <- clavier virtuel
+Device 10: scrcpy      <- souris virtuelle
+```
+
+Le clavier convient, et l'application l'offre déjà sous le nom « clavier
+physique simulé ». La souris, non, et la documentation de scrcpy dit
+pourquoi : « In uhid and aoa modes, the computer mouse is captured ». Une
+souris HID est relative par nature, donc le poste perd la sienne, et il faut
+une touche pour la récupérer. Pour jongler entre plusieurs fenêtres, c'est
+inutilisable. Constaté par l'utilisateur dans la seconde.
+
+### La sonde d'entrée devient automatique
+
+`InputInjectionCheck` disait depuis toujours que sa touche n'est envoyée que
+sur demande, depuis la fiche d'aide. **Cette règle change ici, et c'est le
+terrain qui l'impose.** Deux fois dans la même journée, des fenêtres ont
+montré le jeu sans répondre à rien ; personne n'a de raison d'aller ouvrir
+une fiche d'aide devant une fenêtre qui a l'air normale, et le réglage fautif
+se décoche tout seul au redémarrage.
+
+La sonde est donc posée **une fois par appareil, au moment où sa première
+fenêtre s'ouvre**. Jamais pendant une partie, jamais à répétition : le
+verdict est gardé tant que l'appareil est là, et un verdict incertain n'est
+pas retenu, l'appareil ayant pu être occupé.
+
+Le constat rejoint le bilan, juste derrière le cadenas et pour la même
+raison : tant que le cadenas est là, on ne voit même pas le jeu, il n'y a
+rien où cliquer. L'ordre est tenu par une épreuve.

@@ -44,7 +44,28 @@ public class DeviceHealthTests
         Assert.Null(DeviceHealth.Every(DeviceHealth.Review(null, null, null, null)));
     }
 
-    [Fact]
+    [Fact]
+    public void Un_appareil_qui_refuse_les_clics_le_dit()
+    {
+        var mort = DeviceHealth.Review(null, null, null, null, deadInput: true);
+
+        Assert.Equal(HealthSeverity.Serious, Assert.Single(mort).Severity);
+        Assert.Empty(DeviceHealth.Review(null, null, null, null));
+    }
+
+    [Fact]
+    public void Le_cadenas_passe_devant_les_clics_morts()
+    {
+        // Les deux sont graves, mais tant que le cadenas est là on ne voit
+        // même pas le jeu : il n'y a rien où cliquer.
+        var deux = DeviceHealth.Review(null, null, null, null, lockedWindows: true, deadInput: true);
+        var cadenas = DeviceHealth.Review(null, null, null, null, lockedWindows: true);
+
+        Assert.Equal(2, deux.Count);
+        Assert.Equal(Assert.Single(cadenas).Message, deux[0].Message);
+    }
+
+    [Fact]
     public void Une_preparation_batterie_manquante_se_dit()
     {
         var sans = DeviceHealth.Review(null, null, null, null, unpreparedBattery: true);

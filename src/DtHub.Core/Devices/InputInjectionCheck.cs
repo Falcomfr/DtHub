@@ -25,8 +25,16 @@ public enum InputInjection
 ///
 /// La sonde envoie la touche « inconnue » d'Android, qui ne déclenche rien
 /// nulle part : ce n'est pas une commande de jeu, c'est une question posée au
-/// système. Elle n'est envoyée que sur demande de l'utilisateur, depuis la
-/// fiche d'aide, et jamais pendant une partie.
+/// système.
+///
+/// **Elle n'était envoyée que sur demande, depuis la fiche d'aide. Le
+/// terrain a fait changer la règle.** Deux fois dans la même journée, des
+/// fenêtres ont montré le jeu sans répondre à rien, et le réglage fautif se
+/// décoche tout seul au redémarrage sur les appareils sans carte SIM :
+/// personne n'a de raison d'aller ouvrir une fiche d'aide devant une fenêtre
+/// qui a l'air normale. Elle est donc posée une fois par appareil, au moment
+/// où sa première fenêtre s'ouvre, et jamais pendant une partie ni à
+/// répétition.
 ///
 /// Le verdict est prudent par construction. On ne dit « ça marche » que sur un
 /// silence complet, et « refusé » que sur un refus nommé. Tout le reste est
