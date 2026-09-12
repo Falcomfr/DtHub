@@ -106,6 +106,10 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             OnPropertyChanged(nameof(LinkSummary));
             OnPropertyChanged(nameof(DisplayFitSummary));
             OnPropertyChanged(nameof(CanArrange));
+
+            // Le verdict d'entrée se pose à l'ouverture de la première
+            // fenêtre : c'est donc ici que le remède peut apparaître.
+            OnPropertyChanged(nameof(ShowsSimulatedMouse));
         });
 
     /// <summary>
@@ -478,6 +482,35 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [ObservableProperty]
     private bool _simulatedPhysicalKeyboard;
 
+    /// <summary>
+    /// Souris présentée au téléphone comme une souris branchée.
+    ///
+    /// Dernier recours, et il ne paraît que sur un appareil dont le refus a
+    /// été constaté : voir <see cref="ShowsSimulatedMouse" />.
+    /// </summary>
+    [ObservableProperty]
+    private bool _simulatedPhysicalMouse;
+
+    /// <summary>
+    /// Vrai quand un appareil refuse la simulation d'entrée, donc quand cette
+    /// souris a un objet.
+    ///
+    /// **Caché le reste du temps, et c'est la demande même.** Une souris
+    /// simulée capture le curseur du poste ; la proposer à qui n'a pas la
+    /// panne serait vendre un remède pire que le mal.
+    /// </summary>
+    public bool ShowsSimulatedMouse => _launcher.AnyInputRefused;
+
+    partial void OnSimulatedPhysicalMouseChanged(bool value)
+    {
+        if (_loading)
+        {
+            return;
+        }
+
+        _ = ApplyStartupSettingAsync(() => _settings.SetSimulatedPhysicalMouseAsync(value));
+    }
+
     partial void OnSimulatedPhysicalKeyboardChanged(bool value)
     {
         if (_loading)
@@ -574,6 +607,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             UpdatesAutomatic = settings.UpdatesAutomatic;
             StopAppOnClose = settings.StopAppOnClose;
             SimulatedPhysicalKeyboard = settings.SimulatedPhysicalKeyboard;
+            SimulatedPhysicalMouse = settings.SimulatedPhysicalMouse;
             FluidityDiagnostics = settings.FluidityDiagnostics;
             Language = settings.Language;
             AudioEnabled = settings.AudioEnabled;

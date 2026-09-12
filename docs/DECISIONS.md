@@ -7442,3 +7442,50 @@ pas retenu, l'appareil ayant pu être occupé.
 Le constat rejoint le bilan, juste derrière le cadenas et pour la même
 raison : tant que le cadenas est là, on ne voit même pas le jeu, il n'y a
 rien où cliquer. L'ordre est tenu par une épreuve.
+
+## D136 - Une souris simulée, et seulement là où il n'y a plus rien d'autre
+
+Suite de D135. Puisque le verrou de MIUI ne cède pas sans carte SIM, reste la
+voie UHID, avec sa contrepartie. La demande était précise : « fais ça mais
+informe bien de la touche pour revenir, et propose ça seulement dans ce cas
+là, tu dois être sûr que le reste ne marche pas ».
+
+Les trois conditions sont tenues séparément.
+
+**Le réglage existe**, à côté du clavier simulé, et pose `--mouse=uhid`. Éteint
+par défaut, et une épreuve le vérifie : ce remède capture le curseur du poste,
+il ne doit jamais se choisir tout seul.
+
+**La touche est écrite sous la case**, pas en infobulle, et en orange :
+« le PC perd son propre curseur tant qu'une fenêtre de jeu a le focus… appuyez
+sur ALT GAUCHE pour récupérer le curseur, ou sur l'une des touches Windows ».
+Une infobulle se survole quand on hésite ; celle-ci doit se lire avant de
+cocher, sans quoi on croit son poste bloqué.
+
+**Il ne paraît que sur un appareil dont le refus a été constaté**, par la sonde
+de D135 et non par supposition. Ailleurs, la case n'existe pas : proposer à
+tout le monde un remède qui prend la souris du poste serait vendre pire que le
+mal.
+
+### Un plantage de démarrage attrapé au vol
+
+En vérifiant cela, l'application est morte au lancement. La pile dit tout :
+
+```
+ERROR: Server connection failed                       <- scrcpy, côté téléphone
+Lancement terminé : 0 fenêtre(s) ouverte(s), 1 problème(s)
+[FTL] Le démarrage a échoué.
+System.InvalidOperationException: Impossible de définir Visibility ou
+d'appeler Show […] après la fermeture d'une fenêtre
+   at DtHub.App.App.RevealConfigurator
+```
+
+C'est le défaut que j'avais signalé sans le comprendre : « quand toutes les
+fenêtres mémorisées échouent, l'application se ferme sans un mot ». Elle ne se
+ferme pas, **elle plante**. La règle « plus aucune fenêtre ni panneau : arrêt »
+se déclenchait pendant le démarrage, fermait le configurateur, et la suite du
+démarrage appelait `Show` sur une fenêtre déjà close.
+
+La règle ne s'applique plus avant la fin du démarrage, ce que le drapeau
+`_started` marquait déjà pour une autre raison. `RevealConfigurator` refuse en
+plus de remontrer une fenêtre close, ceinture et bretelles.

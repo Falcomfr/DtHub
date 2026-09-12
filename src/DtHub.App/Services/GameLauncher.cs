@@ -872,6 +872,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// Vrai quand au moins un appareil a refusé la simulation d'entrée.
+    ///
+    /// Décide de l'apparition du remède de dernier recours : une souris
+    /// simulée capture le curseur du poste, elle n'a donc rien à faire dans
+    /// les réglages de qui n'a pas la panne.
+    /// </summary>
+    public bool AnyInputRefused => _inputs.Values.Any(v => v == InputInjection.Denied);
+
     /// <summary>Verdict d'entrée par appareil, posé une fois et gardé.</summary>
     private readonly Dictionary<string, InputInjection> _inputs = new(StringComparer.Ordinal);
 

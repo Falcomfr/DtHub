@@ -51,6 +51,7 @@ public static class ScrcpyCommandBuilder
             Option("max-fps", sanitized.MaxFps.ToString(CultureInfo.InvariantCulture)),
             Option("video-bit-rate", sanitized.VideoBitrateArgument),
             Option("keyboard", sanitized.KeyboardMode == ScrcpyKeyboardMode.Uhid ? "uhid" : "sdk"),
+            Option("mouse", sanitized.MouseMode == ScrcpyMouseMode.Uhid ? "uhid" : "sdk"),
 
             // Les clics secondaires ne font rien par défaut. scrcpy associe
             // sinon le clic droit à RETOUR : sur un afficheur qui ne porte que

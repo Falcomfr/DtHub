@@ -9,6 +9,12 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Ajouté
 
+- **Une souris physique simulée, en dernier recours.** Elle ne passe pas par
+  l'entrée Android que certaines surcouches bloquent. La case n'apparaît que
+  sur un appareil dont le refus a été constaté, elle est éteinte par défaut,
+  et la touche qui rend le curseur au PC est écrite sous elle : le poste perd
+  sa souris tant qu'une fenêtre de jeu a le focus.
+
 - **L'application dit quand un téléphone refuse les clics.** C'est le
   symptôme le plus silencieux du terrain : la fenêtre montre le jeu et ne
   répond à rien, sans la moindre erreur. La sonde qui le détecte existait,
@@ -90,6 +96,11 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   et le débit, mais un compte en palier bas tournait toujours à soixante images.
 
 ### Corrigé
+
+- **L'application plantait au démarrage quand aucune fenêtre ne s'ouvrait.**
+  La règle « plus aucune fenêtre ni panneau : arrêt » se déclenchait pendant le
+  lancement, fermait le panneau, et la suite du démarrage appelait Show sur une
+  fenêtre déjà close. Elle ne s'applique plus avant la fin du démarrage.
 
 - **L'avis de reprise restait affiché après le départ du téléphone.** « La
   liaison a lâché, sa fenêtre se rouvre » s'affichait sous une ligne « hors

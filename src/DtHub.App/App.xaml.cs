@@ -382,6 +382,13 @@ public partial class App : Application, IDisposable
     /// </summary>
     private void RevealConfigurator(AppSettingsDocument document)
     {
+        // Ceinture et bretelles : une fenêtre close ne se remontre pas, et le
+        // démarrage ne doit pas mourir pour autant.
+        if (_configurator is null || !_configurator.IsLoaded && _quitting)
+        {
+            return;
+        }
+
         _configurator!.Opacity = 0;
         _configurator.Show();
         _configurator.RestorePlacement(document);
@@ -636,7 +643,14 @@ public partial class App : Application, IDisposable
         // à l'écran, ils reçoivent les raccourcis, et on les consulte fenêtres
         // de jeu fermées. Sans eux dans le compte, fermer la dernière fenêtre
         // de jeu emportait le guide qu'on était en train de lire.
-        if (_quitting || _configurator?.IsVisible == true || _quests?.IsVisible == true)
+        // **Jamais avant la fin du démarrage.** Une session qui meurt pendant
+        // le lancement, un téléphone qui ne répond pas, et cette règle fermait
+        // le configurateur avant même qu'il ait paru. La suite du démarrage
+        // appelait alors Show sur une fenêtre déjà close, ce que WPF refuse :
+        // l'application mourait sur « Le démarrage a échoué », sans un mot à
+        // l'écran. Relevé sur un vrai lancement, scrcpy ayant rendu « Server
+        // connection failed ».
+        if (!_started || _quitting || _configurator?.IsVisible == true || _quests?.IsVisible == true)
         {
             return;
         }

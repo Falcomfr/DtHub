@@ -566,6 +566,25 @@
                            TextWrapping="Wrap" Margin="24,2,0,8"
                            Text="{loc:T SimulatedKeyboardHelp}" />
 
+                <!-- Dernier recours, et il ne paraît que sur un appareil dont
+                     le refus a été constaté : cette souris capture le curseur
+                     du poste, la proposer à qui n'a pas la panne serait vendre
+                     un remède pire que le mal. La touche qui rend la souris
+                     est dite sous la case, pas en infobulle : sans elle, on
+                     croit son poste bloqué. -->
+                
+
+                <StackPanel Visibility="{Binding ShowsSimulatedMouse,
+                                                 Converter={StaticResource BoolToVisibility}}">
+                  <CheckBox Content="{loc:T SimulatedMouse}"
+                            IsChecked="{Binding SimulatedPhysicalMouse}"
+                            ToolTip="{loc:T SimulatedMouseTip}" />
+                  <TextBlock Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
+                             TextWrapping="Wrap" Margin="24,2,0,8"
+                             Foreground="{DynamicResource WarningBrush}"
+                             Text="{loc:T SimulatedMouseHelp}" />
+                </StackPanel>
+
                 <!-- Diagnostic, pas confort. Sous les réglages du téléphone,
                      parce que c'est de lui qu'on parle quand l'image saccade. -->
                 <CheckBox Content="{loc:T FluidityDiagnostics}"

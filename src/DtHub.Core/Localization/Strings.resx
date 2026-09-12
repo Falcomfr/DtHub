@@ -1874,4 +1874,13 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="DeadInputFound" xml:space="preserve">
     <value>This phone refuses clicks and keystrokes coming from the PC: its windows show the game and respond to nothing. The setting is called "USB debugging (Security settings)", and the help below says where. On Xiaomi it often needs a SIM card in the phone, and it does not survive a reboot without one.</value>
   </data>
+  <data name="SimulatedMouse" xml:space="preserve">
+    <value>Simulated physical mouse</value>
+  </data>
+  <data name="SimulatedMouseTip" xml:space="preserve">
+    <value>Last resort for a phone that refuses clicks from the PC: this mouse does not go through the Android input the manufacturer blocks.</value>
+  </data>
+  <data name="SimulatedMouseHelp" xml:space="preserve">
+    <value>In exchange, the PC loses its own cursor while a game window has the focus: a simulated mouse sends movements, not positions. Press LEFT ALT to get the cursor back, or one of the Windows keys. Fine for a single account, painful for several.</value>
+  </data>
 </root>

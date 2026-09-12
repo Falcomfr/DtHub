@@ -150,6 +150,19 @@ public sealed class AppSettingsDocument
     public bool SimulatedPhysicalKeyboard { get; set; }
 
     /// <summary>
+    /// Souris présentée au téléphone comme une souris branchée.
+    ///
+    /// Dernier recours pour un appareil dont la surcouche refuse l'injection :
+    /// la souris simulée ne passe pas par elle. **Elle capture le curseur du
+    /// poste**, ce qui la rend impraticable à plusieurs fenêtres, d'où
+    /// l'extinction par défaut et la contrepartie écrite à côté de la case.
+    ///
+    /// Absent de <see cref="StoredLaunchProfile" /> pour la même raison que le
+    /// clavier : c'est une habitude de celui qui joue.
+    /// </summary>
+    public bool SimulatedPhysicalMouse { get; set; }
+
+    /// <summary>
     /// Demande à scrcpy d'écrire sa cadence dans le journal, une ligne par
     /// seconde et par fenêtre.
     ///

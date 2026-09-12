@@ -1874,4 +1874,13 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="DeadInputFound" xml:space="preserve">
     <value>Este teléfono rechaza los clics y las teclas que vienen del PC: sus ventanas muestran el juego y no responden a nada. El ajuste se llama «Depuración USB (ajustes de seguridad)», y la ayuda de abajo dice dónde. En Xiaomi suele exigir una tarjeta SIM en el teléfono, y no sobrevive a un reinicio sin ella.</value>
   </data>
+  <data name="SimulatedMouse" xml:space="preserve">
+    <value>Ratón físico simulado</value>
+  </data>
+  <data name="SimulatedMouseTip" xml:space="preserve">
+    <value>Último recurso para un teléfono que rechaza los clics del PC: este ratón no pasa por la entrada de Android que bloquea el fabricante.</value>
+  </data>
+  <data name="SimulatedMouseHelp" xml:space="preserve">
+    <value>A cambio, el PC pierde su propio cursor mientras una ventana de juego tiene el foco: un ratón simulado envía desplazamientos, no posiciones. Pulsa ALT IZQUIERDO para recuperar el cursor, o una de las teclas Windows. Vale para una sola cuenta, molesto para varias.</value>
+  </data>
 </root>

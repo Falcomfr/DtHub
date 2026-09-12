@@ -1874,4 +1874,13 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="DeadInputFound" xml:space="preserve">
     <value>Ce téléphone refuse les clics et les frappes venus du PC : ses fenêtres montrent le jeu et ne répondent à rien. Le réglage s'appelle « Débogage USB (paramètres de sécurité) », et l'aide en bas dit où. Sur Xiaomi il réclame souvent une carte SIM dans le téléphone, et il ne survit pas à un redémarrage sans elle.</value>
   </data>
+  <data name="SimulatedMouse" xml:space="preserve">
+    <value>Souris physique simulée</value>
+  </data>
+  <data name="SimulatedMouseTip" xml:space="preserve">
+    <value>Dernier recours pour un téléphone qui refuse les clics venus du PC : cette souris ne passe pas par l'entrée Android que le constructeur bloque.</value>
+  </data>
+  <data name="SimulatedMouseHelp" xml:space="preserve">
+    <value>En échange, le PC perd son propre curseur tant qu'une fenêtre de jeu a le focus : une souris simulée envoie des déplacements, pas des positions. Appuyez sur ALT GAUCHE pour récupérer le curseur, ou sur l'une des touches Windows. Convient à un compte seul, pénible à plusieurs.</value>
+  </data>
 </root>

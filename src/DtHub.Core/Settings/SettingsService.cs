@@ -241,6 +241,9 @@ public sealed class SettingsService : IDisposable
             KeyboardMode = settings.SimulatedPhysicalKeyboard
                 ? ScrcpyKeyboardMode.Uhid
                 : ScrcpyKeyboardMode.Sdk,
+            MouseMode = settings.SimulatedPhysicalMouse
+                ? ScrcpyMouseMode.Uhid
+                : ScrcpyMouseMode.Sdk,
             VirtualDisplayWidth = settings.VirtualDisplayWidth,
             VirtualDisplayHeight = settings.VirtualDisplayHeight,
             VirtualDisplayDpi = settings.VirtualDisplayDpi,
@@ -305,6 +308,12 @@ public sealed class SettingsService : IDisposable
         bool simulated,
         CancellationToken cancellationToken = default) =>
         UpdateAsync(settings => settings.SimulatedPhysicalKeyboard = simulated, cancellationToken);
+
+    /// <summary>Retient le mode souris choisi.</summary>
+    public Task SetSimulatedPhysicalMouseAsync(
+        bool simulated,
+        CancellationToken cancellationToken = default) =>
+        UpdateAsync(settings => settings.SimulatedPhysicalMouse = simulated, cancellationToken);
 
     /// <summary>Retient la distance apparente choisie.</summary>
     public Task SetZoomAsync(GameZoom zoom, CancellationToken cancellationToken = default) =>

@@ -68,6 +68,26 @@ public class ScrcpyCommandBuilderTests
     }
 
     [Fact]
+    public void Le_mode_souris_materielle_est_transmis_quand_il_est_choisi()
+    {
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001", "Titre", ScrcpyOptions.Default with { MouseMode = ScrcpyMouseMode.Uhid });
+
+        Assert.Equal("uhid", ValueOf(arguments, "--mouse"));
+    }
+
+    [Fact]
+    public void La_souris_passe_par_l_injection_par_defaut()
+    {
+        // Le remède capture le curseur du poste : il ne doit jamais être
+        // choisi tout seul.
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001", "Titre", ScrcpyOptions.Default);
+
+        Assert.Equal("sdk", ValueOf(arguments, "--mouse"));
+    }
+
+    [Fact]
     public void L_audio_desactive_ajoute_l_option_correspondante()
     {
         var muted = ScrcpyCommandBuilder.BuildMirrorArguments("USB0001", "T", ScrcpyOptions.Default);

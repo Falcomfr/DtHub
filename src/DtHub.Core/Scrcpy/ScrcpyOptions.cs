@@ -12,6 +12,26 @@ public enum ScrcpyKeyboardMode
     Uhid,
 }
 
+/// <summary>Mode souris transmis à scrcpy.</summary>
+public enum ScrcpyMouseMode
+{
+    /// <summary>Injection par l'API Android. Le curseur du PC reste au PC.</summary>
+    Sdk,
+
+    /// <summary>
+    /// Souris physique simulée, au niveau du noyau, qui ne passe pas par
+    /// l'injection.
+    ///
+    /// **Elle capture la souris du poste**, et ce n'est pas un défaut de
+    /// scrcpy : une souris matérielle envoie des déplacements relatifs, donc
+    /// le poste perd son curseur le temps de la fenêtre. Une touche le lui
+    /// rend, Alt gauche ou une des touches Windows. Cela ne convient donc pas
+    /// à qui jongle entre plusieurs fenêtres, et convient très bien à un
+    /// téléphone dont la surcouche refuse l'injection, où c'est cela ou rien.
+    /// </summary>
+    Uhid,
+}
+
 /// <summary>
 /// Réglages d'une session scrcpy. Les valeurs par défaut visent un rendu
 /// fluide sans saturer le réseau ni l'encodeur du téléphone quand plusieurs
@@ -97,6 +117,11 @@ public sealed record ScrcpyOptions
     public string? IconDirectory { get; init; }
 
     public ScrcpyKeyboardMode KeyboardMode { get; init; } = ScrcpyKeyboardMode.Sdk;
+
+    /// <summary>
+    /// Mode souris. Par défaut l'injection, qui laisse le curseur au poste.
+    /// </summary>
+    public ScrcpyMouseMode MouseMode { get; init; } = ScrcpyMouseMode.Sdk;
 
     /// <summary>
     /// Privilégier la saisie de texte à l'injection de codes touches.
