@@ -1,260 +1,252 @@
 ﻿# Changelog
 
-Toutes les modifications notables de ce projet sont consignées ici.
+All notable changes to this project are recorded here.
 
-Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
-et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
+and the project uses [semantic versioning](https://semver.org/).
+
+Entries are written in English from 0.3.0 onward: they become the release notes
+published on GitHub and shown inside the application, and those exist in a
+single version. The 0.2.0 and 0.1.0 sections predate that rule and stay in
+French.
 
 ## [0.3.0] - 2026-09-12
 
-### Ajouté
+### Added
 
-- **La fin d'une quête dit ce qu'elle débloque.** Le guide publie en pied de
-  page une colonne « Quêtes et jalons suivants », rangée par objectif, que
-  l'application masquait au profit de son propre pied de fenêtre. Or celui-ci
-  ne sait annoncer qu'une suite et se tait dès que le site en nomme plusieurs :
-  relevé sur les 782 guides, presque quatre cents fins de quête ne disaient
-  rien. La colonne est désormais montrée telle que le site la dessine.
+- **A quest's end now says what it unlocks.** The guide site publishes a
+  "Next quests and milestones" column at the foot of the page, sorted by
+  objective, which the application was hiding in favour of its own window
+  footer. That footer can only announce one continuation and falls silent as
+  soon as the site names several: measured across the 782 guides, nearly four
+  hundred quest endings said nothing at all. The column is now shown exactly as
+  the site draws it.
 
-### Modifié
+### Changed
 
-- **L'arbre des succès s'ouvre dans le navigateur.** C'est la seule page du site
-  dans ce cas, et pour une raison : ce n'est pas une page qu'on lit mais un
-  outil qu'on déplie et qu'on parcourt. Elle s'ouvrait jusqu'ici dans une
-  fenêtre de l'application, correctement mais au prix d'une étape de plus avant
-  le bouton qui menait enfin au navigateur.
+- **The success tree opens in the browser.** It is the only page of the site
+  treated this way, and for a reason: it is not a page you read but a tool you
+  unfold and explore. Until now it opened in an application window, correctly,
+  but at the cost of one more step before the button that finally led to the
+  browser.
 
-- **L'indexation du guide dit ce qu'elle fait.** Une seule de ses cinq étapes
-  rapportait son avancement, et c'est la plus courte : le compteur atteignait
-  « 782 / 782 » en quelques secondes puis restait figé pendant les quatre
-  cinquièmes du temps. Les cinq se nomment désormais, l'arbre de la veille reste
-  affiché pendant la relecture au lieu d'annoncer zéro, les pages de rubrique se
-  lisent quatre de front, et la durée est enfin consignée : **14,7 secondes**
-  mesurées, contre les cinquante que le projet citait de mémoire.
+- **Guide indexing now says what it is doing.** Only one of its five stages
+  reported progress, and it was the shortest: the counter reached "782 / 782"
+  within seconds, then sat frozen for four fifths of the time. All five are now
+  named, the previous day's tree stays on screen during the rebuild instead of
+  announcing zero, section pages are read four at a time, and the duration is
+  finally recorded: **14.7 seconds** measured, against the fifty the project had
+  been quoting from memory.
 
-- **Une souris physique simulée, en dernier recours.** Elle ne passe pas par
-  l'entrée Android que certaines surcouches bloquent. La case n'apparaît que
-  sur un appareil dont le refus a été constaté, elle est éteinte par défaut,
-  et la touche qui rend le curseur au PC est écrite sous elle : le poste perd
-  sa souris tant qu'une fenêtre de jeu a le focus.
+- **A simulated physical mouse, as a last resort.** It bypasses the Android
+  input path that some manufacturer skins block. The checkbox appears only on a
+  device where the refusal has actually been observed, it is off by default, and
+  the key that gives the cursor back to the PC is written underneath it: the
+  desktop loses its mouse for as long as a game window has focus.
 
-- **L'application dit quand un téléphone refuse les clics.** C'est le
-  symptôme le plus silencieux du terrain : la fenêtre montre le jeu et ne
-  répond à rien, sans la moindre erreur. La sonde qui le détecte existait,
-  mais il fallait aller l'ouvrir dans une fiche d'aide ; elle est maintenant
-  posée une fois par appareil, au moment où sa première fenêtre s'ouvre.
+- **The application says when a phone refuses clicks.** This is the quietest
+  symptom in the field: the window shows the game and responds to nothing, with
+  no error whatsoever. The probe that detects it already existed, but you had to
+  go and open a help sheet to find it; it now runs once per device, the moment
+  its first window opens.
 
-- **« À réassocier » au lieu de « Hors ligne »** quand le téléphone est là,
-  joignable, et refuse la clé de ce PC. Les trois échecs de connexion sans fil
-  s'écrivent différemment : un port fermé et une machine absente portent un
-  code d'erreur réseau, une clé refusée n'en porte aucun, parce que la
-  connexion a bien abouti. Le survol dit quoi faire, et que rallumer le
-  débogage sans fil n'y suffira pas.
+- **"Needs pairing" instead of "Offline"** when the phone is present, reachable,
+  and refusing this PC's key. The three wireless connection failures are written
+  differently: a closed port and an absent machine carry a network error code, a
+  refused key carries none, because the connection did succeed. The tooltip says
+  what to do, and that turning wireless debugging off and on will not be enough.
 
-- **Un témoin de recherche au démarrage.** La liste restait vide et muette
-  pendant que l'application cherchait les téléphones mémorisés, ce qui peut
-  prendre plusieurs secondes quand l'un d'eux est éteint. Elle dit maintenant
-  « Recherche des téléphones… ».
+- **A search indicator at startup.** The list stayed empty and silent while the
+  application looked for remembered phones, which can take several seconds when
+  one of them is switched off. It now says "Looking for phones...".
 
-- **L'application vérifie enfin que la préparation batterie a été faite.**
-  Elle l'expliquait depuis longtemps sans jamais la contrôler, alors que le
-  téléphone le dit en une commande. Des deux appareils d'un même utilisateur,
-  seul celui qui ne se déconnecte pas était préparé.
+- **The application finally checks that the battery setup was done.** It had
+  been explaining it for a long time without ever verifying it, although the
+  phone answers in a single command. Of one user's two devices, only the one
+  that does not disconnect had been set up.
 
-- **Le bandeau montre tous les constats, un par ligne**, du plus grave au plus
-  anodin, au lieu du seul plus grave. Un téléphone en portait trois à la fois,
-  et il fallait corriger le premier pour apprendre l'existence du second.
+- **The banner shows every finding, one per line**, most serious first, instead
+  of the single worst one. One phone carried three at once, and you had to fix
+  the first to learn the second existed.
 
-- **Le niveau de batterie de chaque téléphone, en permanence.** Une jauge
-  dessinée et le pourcentage, à côté du nom de l'appareil, avec un éclair
-  quand il est branché. La lecture se faisait déjà toutes les minutes et seule
-  l'alerte des vingt pour cent en sortait ; le niveau se voit maintenant avant
-  de lancer cinq comptes, pas une fois qu'il est trop tard.
+- **Each phone's battery level, permanently.** A drawn gauge and the percentage,
+  next to the device name, with a bolt when it is plugged in. The reading was
+  already taken every minute and only the twenty percent alert came out of it;
+  the level is now visible before launching five accounts, not once it is too
+  late.
 
-- **Le bilan du téléphone, avant de lancer et pas seulement pendant.** La
-  batterie et la place libre s'ajoutent à la chaleur et à la bande Wi-Fi, et
-  les quatre parlent d'une seule voix, la plus grave d'abord. Un téléphone
-  branché ne dit rien : ce n'est pas le niveau qui inquiète, c'est le niveau
-  qui baisse.
+- **The phone's summary, before launching and not only during.** Battery and
+  free space join temperature and Wi-Fi band, and the four speak with one voice,
+  the most serious first. A plugged-in phone says nothing: it is not the level
+  that worries, it is the level going down.
 
-- **L'événement du mois dans la fenêtre Almanax**, lu sur la page déjà
-  chargée.
+- **The month's event in the Almanax window**, read from the page already
+  loaded.
 
-- **Un palier de qualité par compte.** Le principal en maximale, les mules en
-  basse : autant de processeur, de bande passante, de chaleur et de batterie
-  en moins. Chaque compte suit le réglage commun tant qu'on ne lui en donne
-  pas un, et le nouveau palier vaut à la prochaine ouverture de sa fenêtre.
+- **A quality tier per account.** The main account at maximum, the mules at low:
+  that much less processor, bandwidth, heat and battery. Each account follows
+  the shared setting until it is given one of its own, and a new tier applies
+  the next time its window opens.
 
-- **Un diagnostic de fluidité**, éteint par défaut. Il fait consigner dans le
-  journal la cadence réellement reçue par chaque fenêtre, et les encodeurs que
-  le téléphone propose. Zéro image par seconde n'est pas un défaut : scrcpy
-  n'encode que ce qui change.
+- **A fluidity diagnostic**, off by default. It records in the log the frame
+  rate each window actually receives, and the encoders the phone offers. Zero
+  frames per second is not a fault: scrcpy only encodes what changes.
 
-- **L'encodeur matériel est imposé quand l'appareil mettrait du logiciel
-  devant lui**, et seulement dans ce cas.
+- **The hardware encoder is forced when the device would put a software one
+  ahead of it**, and only in that case.
 
-- **Enregistrer et restaurer ses réglages** en un fichier, pour les emporter
-  sur un autre PC. La restauration refuse franchement un fichier écrit par une
-  version plus récente, plutôt que d'en perdre une partie en silence.
+- **Save and restore your settings** to a file, to carry them to another PC. A
+  restore plainly refuses a file written by a newer version, rather than
+  silently losing part of it.
 
-- **Le temps passé sur chaque compte cette semaine**, au survol de son icône.
-  Information seulement : aucune limite, aucun rappel.
+- **Time spent on each account this week**, on hovering its icon. Information
+  only: no limit, no reminder.
 
-- **Les avertissements tiennent sur une ligne.** Un triangle, jaune pour ce qui
-  gêne et rouge pour ce qui coupera la séance, puis une ligne coupée dont le
-  texte entier s'affiche au survol. Le message occupait deux à trois lignes au
-  milieu de la liste des comptes.
+- **Warnings fit on one line.** A triangle, yellow for what gets in the way and
+  red for what will cut the session short, then a truncated line whose full text
+  appears on hover. The message used to take two or three lines in the middle of
+  the account list.
 
-- **Le tampon d'affichage est propre à chaque téléphone.** Il était calculé sur
-  la liaison du premier appareil et appliqué à toutes les fenêtres. Avec deux
-  téléphones sur des bandes différentes, celui en 2,4 GHz recevait un tampon de
-  25 ms au lieu des 42 que sa liaison réclame.
+- **The display buffer is now per phone.** It was computed from the first
+  device's link and applied to every window. With two phones on different bands,
+  the one on 2.4 GHz received a 25 ms buffer instead of the 42 its link calls
+  for.
 
-- **Une fenêtre qui n'affichera que l'écran de verrouillage le dit.** Sur un
-  téléphone trop ancien, l'afficheur virtuel suit le verrouillage : la fenêtre
-  s'ouvrait sur une horloge et un cadenas, et le lancement annonçait « aucun
-  problème ».
+- **A window that will only ever show the lock screen says so.** On an older
+  phone, the virtual display follows the lock: the window opened on a clock and
+  a padlock, and the launch announced "no problem".
 
-- **Le palier d'un compte règle aussi sa cadence.** Il descendait la définition
-  et le débit, mais un compte en palier bas tournait toujours à soixante images.
+- **An account's tier now also sets its frame rate.** It lowered resolution and
+  bitrate, but an account on the low tier still ran at sixty frames.
 
-### Corrigé
+### Fixed
 
-- **L'application paraît quatre fois et demie plus tôt.** Elle lançait une
-  redécouverte complète de tous les profils de tous les téléphones avant de
-  regarder s'il y avait seulement quelque chose à ouvrir : trois secondes
-  d'écran vide pour conclure qu'aucune instance n'était cochée, réponse que les
-  réglages donnaient déjà. La fenêtre paraît maintenant en 840 ms au lieu de
-  3 950.
+- **The application appears four and a half times sooner.** It launched a full
+  rediscovery of every profile on every phone before looking at whether there
+  was anything to open at all: three seconds of empty screen to conclude that no
+  instance was ticked, an answer the settings already held. The window now
+  appears in 840 ms instead of 3,950.
 
-- **Oublier un appareil demandait deux clics, et mentait entre les deux.**
-  L'appareil restait affiché après le premier, étiqueté « Jeu non installé »
-  alors que ses comptes venaient simplement d'être effacés. Le rafraîchissement
-  final ne s'exécutait pas quand un balayage était déjà en cours, ce qui est le
-  cas presque à chaque fois. L'appareil quitte désormais la vue immédiatement,
-  et la rupture d'association laisse enfin une trace dans le journal.
+- **Forgetting a device took two clicks, and lied in between.** The device
+  stayed on screen after the first one, labelled "Game not installed" when its
+  accounts had simply just been erased. The final refresh did not run while a
+  scan was already in progress, which is the case nearly every time. The device
+  now leaves the view immediately, and unpairing finally leaves a trace in the
+  log.
 
-- **Le jeu laissait une vignette vide dans la liste des applications du
-  téléphone.** Le processus était bien arrêté, mais sa carte restait en tête de
-  liste, impossible à distinguer d'une application vivante, et y appuyer
-  relançait le jeu. Le jeu est maintenant lancé hors des récents quand il vit
-  sur un afficheur virtuel, si bien que la vignette ne se crée plus. Mesuré :
-  priorité du processus inchangée au chiffre près.
+- **The game left an empty card in the phone's running applications list.** The
+  process was indeed stopped, but its card stayed at the top of the list,
+  indistinguishable from a live application, and tapping it relaunched the game.
+  The game is now launched outside recents when it lives on a virtual display,
+  so the card is never created. Measured: process priority unchanged to the
+  digit.
 
-- **Le jeu restait ouvert sur le téléphone après la fermeture de sa fenêtre.**
-  Une session retenait l'adresse qu'avait le téléphone à son ouverture, et le
-  débogage sans fil change de port à chaque reprise : l'ordre d'arrêt partait
-  vers une adresse que le serveur ADB ne connaissait plus. Il vise maintenant
-  l'adresse du moment, avec repli sur celle du lancement. La faute était en
-  outre avalée sous un commentaire faux ; l'arrêt dit désormais s'il a abouti,
-  et un avis nomme le compte dont le jeu tourne encore.
+- **The game stayed open on the phone after its window was closed.** A session
+  held the address the phone had when it opened, and wireless debugging changes
+  port on every restart: the stop order went to an address the ADB server no
+  longer knew. It now targets the current address, falling back to the one used
+  at launch. The failure was also being swallowed under a false comment; the
+  stop now says whether it succeeded, and a notice names the account whose game
+  is still running.
 
-- **L'application plantait au démarrage quand aucune fenêtre ne s'ouvrait.**
-  La règle « plus aucune fenêtre ni panneau : arrêt » se déclenchait pendant le
-  lancement, fermait le panneau, et la suite du démarrage appelait Show sur une
-  fenêtre déjà close. Elle ne s'applique plus avant la fin du démarrage.
+- **The application crashed at startup when no window opened.** The rule "no
+  window or panel left, so quit" fired during launch, closed the panel, and the
+  rest of startup called Show on an already closed window. It no longer applies
+  before startup has finished.
 
-- **L'avis de reprise restait affiché après le départ du téléphone.** « La
-  liaison a lâché, sa fenêtre se rouvre » s'affichait sous une ligne « hors
-  ligne », donc sous un appareil où plus aucune fenêtre ne rouvrira. Il
-  s'efface maintenant quand l'appareil n'est plus joignable, ou passé le temps
-  des tentatives.
+- **The reconnection notice stayed on screen after the phone left.** "The link
+  dropped, its window is reopening" was displayed under an "offline" row, so
+  under a device where no window will reopen at all. It now clears when the
+  device is no longer reachable, or once the attempts have run out.
 
-- **L'application réveillait le téléphone deux fois trop souvent pendant une
-  partie.** Le contrôle du verrou relisait l'appareil toutes les quatre
-  secondes même une fois déverrouillé, et le balayage des annonces réseau
-  tournait toutes les cinq secondes même quand tous les téléphones
-  répondaient. Les deux s'espacent quand il n'y a plus rien à surveiller :
-  deux tiers de commandes en moins pour le téléphone, qui encode pendant ce
-  temps.
+- **The application woke the phone twice as often as needed during play.** The
+  lock check re-read the device every four seconds even once unlocked, and the
+  network announcement scan ran every five seconds even when every phone was
+  answering. Both space out when there is nothing left to watch: two thirds
+  fewer commands for the phone, which is encoding during that time.
 
-- **Un appareil hors ligne explique quoi vérifier.** « Hors ligne » ne disait
-  pas si le téléphone était éteint, sur un autre réseau, son débogage sans fil
-  coupé, ou s'il avait oublié ce PC. Le survol donne la liste, dans l'ordre où
-  chercher, et finit par celle qu'on ne devine pas : l'association perdue.
+- **An offline device explains what to check.** "Offline" did not say whether
+  the phone was switched off, on another network, its wireless debugging
+  disabled, or whether it had forgotten this PC. The tooltip gives the list, in
+  the order to look, and ends with the one you would not guess: the pairing is
+  gone.
 
-- **Le bouton qui oublie un appareil s'appelait « Rompre l'association »**, et
-  portait une chaîne rompue. Il
-  Il n'annule rien côté téléphone, il retire l'appareil de ce PC ; la phrase de
-  confirmation le disait déjà, et le nom du bouton prétendait le contraire.
-  D'autant plus troublant sur un téléphone qui n'est justement plus associé.
-  Il s'appelle « Oublier l'appareil » et porte la corbeille, celle qui sert
-  déjà à supprimer un profil.
+- **The button that forgets a device was called "Unpair"**, and carried a broken
+  chain. It cancels nothing on the phone's side, it removes the device from this
+  PC; the confirmation sentence already said so, and the button's name claimed
+  the opposite. All the more confusing on a phone that is precisely no longer
+  paired. It is now called "Forget device" and carries the bin, the same one
+  already used to delete a profile.
 
-- **Un appareil à réassocier dit par où.** Une ligne courte sous son nom,
-  « Par « Associer un nouvel appareil », en haut. », et seulement là où le
-  refus a été constaté.
+- **A device that needs pairing says where to go.** A short line under its name,
+  "Through 'Pair a new device', at the top.", and only where the refusal has
+  been observed.
 
-- **Le démarrage attendait les téléphones absents l'un après l'autre.** Les
-  reconnexions étaient séquentielles, au motif qu'ADB sérialise de toute façon
-  les connexions ; la mesure dit le contraire, deux connexions vers des
-  appareils absents prennent 19,3 s ensemble contre 22 s pour une seule. Elles
-  sont maintenant menées de front, et la dernière adresse connue n'a plus que
-  cinq secondes pour répondre avant que le balayage réseau ne prenne le relais,
-  au lieu des vingt-deux secondes que le système accorde à une machine éteinte.
+- **Startup waited for absent phones one after another.** Reconnections were
+  sequential, on the grounds that ADB serialises connections anyway; measurement
+  says otherwise, two connections to absent devices take 19.3 s together against
+  22 s for a single one. They are now made in parallel, and the last known
+  address has only five seconds to answer before the network scan takes over,
+  instead of the twenty-two seconds the system grants a switched-off machine.
 
-- **Le bilan de chaque appareil s'affiche sous son nom**, et non plus dans un
-  bandeau en bas de liste où il semblait parler du dernier appareil montré,
-  qui était justement celui qui n'avait rien. Un constat par ligne, sous
-  l'en-tête du téléphone concerné, le texte entier au survol. Le bandeau
-  garde ce qui ne vise aucun appareil, et les constats d'un appareil qui n'a
-  aucune ligne dans la liste, faute d'en-tête où les loger.
+- **Each device's summary appears under its name**, and no longer in a banner at
+  the foot of the list, where it seemed to be talking about the last device
+  shown, which was precisely the one with nothing wrong. One finding per line,
+  under the heading of the phone concerned, the full text on hover. The banner
+  keeps what targets no device, and the findings of a device that has no row in
+  the list, for want of a heading to put them under.
 
-- **Le bilan d'appareil ne disait pas de quel appareil il parlait.** Avec
-  deux téléphones connectés, « Android n'a pas ce jeu dans sa liste » laissait
-  deviner lequel des deux régler. Le nom passe devant dès qu'il y a plusieurs
-  appareils, comme le font déjà les avertissements de découverte.
+- **The device summary did not say which device it was talking about.** With two
+  phones connected, "Android does not have this game in its list" left you to
+  guess which of the two to fix. The name comes first as soon as there are
+  several devices, as discovery warnings already do.
 
-- **Le verdict de la sonde d'entrée s'affichait en noir sur fond sombre.**
-  Son style écrit à même l'élément n'héritait pas du style implicite du
-  thème : WPF remplace au lieu d'étendre quand « BasedOn » manque, et le
-  texte retombait sur le noir par défaut. Seul le verdict de refus se voyait,
-  parce que lui seul posait une couleur. Une épreuve garde désormais la
-  porte, sur tout le dossier des fenêtres.
+- **The input probe's verdict was drawn in black on a dark background.** Its
+  style, written on the element itself, did not inherit the theme's implicit
+  style: WPF replaces rather than extends when "BasedOn" is missing, and the
+  text fell back to the default black. Only the refusal verdict was visible,
+  because it alone set a colour. A test now guards the door, across the whole
+  windows folder.
 
-- **L'avertissement du cadenas criait quand tout allait bien, et se taisait
-  quand il fallait parler.** Il ne regardait que la capacité de l'appareil,
-  jamais l'état de son verrou : un téléphone déverrouillé, jeu à l'écran,
-  s'entendait dire qu'un Android plus récent était nécessaire. Et le message
-  ne vivait que deux secondes, le balayage suivant l'effaçant. Il est passé
-  dans le bilan d'appareil : il paraît tant qu'il est vrai, disparaît au
-  déverrouillage, et dit quoi faire.
+- **The padlock warning shouted when all was well, and fell silent when it
+  mattered.** It looked only at the device's capability, never at the state of
+  its lock: an unlocked phone, game on screen, was told a newer Android was
+  required. And the message lived only two seconds, the next scan erasing it. It
+  has moved into the device summary: it appears for as long as it is true,
+  disappears on unlocking, and says what to do.
 
-- **Le choix de la langue n'agissait pas.** Le réglage était lu, journalisé,
-  et l'application affichait quand même la langue de Windows : une culture
-  posée à l'intérieur d'une méthode asynchrone revient à sa valeur d'avant dès
-  que la méthode rend la main. Mesuré, réglage sur « en », trente
-  millisecondes après la pose : « fr-FR ». Les traductions anglaise et
-  espagnole étaient donc inatteignables depuis l'interface.
+- **The language setting had no effect.** It was read, logged, and the
+  application still displayed the Windows language: a culture set inside an
+  async method reverts to its previous value as soon as the method yields.
+  Measured, setting on "en", thirty milliseconds after it was set: "fr-FR". The
+  English and Spanish translations were therefore unreachable from the
+  interface.
 
-- **Dix textes affichés étaient écrits en français dans le code**, dont
-  « Connexion en cours… », le nom donné à un compte neuf, les trois cadences
-  du réglage de qualité, le nom du profil principal et le titre de la boîte
-  « Ajouter un compte », qui avait pourtant déjà sa clé de traduction. Une
-  épreuve garde désormais la porte.
+- **Ten displayed strings were written in French in the code**, including
+  "Connecting...", the name given to a new account, the three frame rates in the
+  quality setting, the name of the main profile and the title of the "Add an
+  account" dialog, which already had its translation key. A test now guards the
+  door.
 
-- **Trois textes d'aide disaient faux.** DT Hub ne maintient pas l'écran du
-  téléphone allumé mais l'écran virtuel où tourne le jeu ; le palier de
-  qualité haute est borné à 1440 et non à la définition de la fenêtre ; et le
-  même palier s'appelait « Haute » dans les réglages et « Max » dans le
-  sélecteur par compte.
+- **Three help texts were wrong.** DT Hub does not keep the phone's screen awake
+  but the virtual display where the game runs; the high quality tier is capped
+  at 1440 and not at the window's resolution; and the same tier was called
+  "High" in the settings and "Max" in the per-account picker.
 
-- **L'espagnol mélangeait le tutoiement et le vouvoiement**, jusque dans une
-  même phrase. Trente et une clés reviennent au tutoiement, qui est la forme
-  du reste du fichier.
+- **Spanish mixed familiar and formal address**, sometimes within a single
+  sentence. Thirty-one keys return to the familiar form, which is what the rest
+  of the file uses.
 
-- **Une liaison qui lâche ne ferme plus l'application.** Quand la dernière
-  fenêtre de jeu mourait sans qu'on l'ait demandé, DT Hub se fermait avec
-  elle. Un hoquet Wi-Fi suffisait, et les déconnexions sont la première
-  plainte des joueurs de DOFUS Touch. La fenêtre se rouvre maintenant d'elle
-  même, jusqu'à trois fois, en espaçant les tentatives, et le bandeau le dit.
-  Une fenêtre fermée à la main, elle, reste fermée : scrcpy sort proprement
-  dans ce cas, et en erreur quand la liaison tombe.
+- **A dropped link no longer closes the application.** When the last game window
+  died without being asked to, DT Hub closed with it. A Wi-Fi hiccup was enough,
+  and disconnections are the first complaint of DOFUS Touch players. The window
+  now reopens by itself, up to three times, spacing out the attempts, and the
+  banner says so. A window closed by hand stays closed: scrcpy exits cleanly in
+  that case, and with an error when the link drops.
 
-- **Une coupure de liaison est enfin reconnue comme telle.** scrcpy l'annonce
-  par un avertissement et non par une erreur, et l'application ne regardait
-  que les erreurs : la panne la plus fréquente passait pour une fermeture
-  voulue.
+- **A dropped link is finally recognised as one.** scrcpy announces it with a
+  warning and not an error, and the application looked only at errors: the most
+  frequent failure passed for a deliberate close.
 
 ## [0.2.0] - 2026-09-09
 

@@ -8016,3 +8016,36 @@ s'étend pourtant au cas présent : si rien n'est coché, aucune fenêtre ne peu
 s'ouvrir, donc le panneau paraîtra de toute façon. Le correctif ci-dessus rend
 la question sans objet, mais la règle mériterait d'être élargie le jour où le
 lancement redeviendra long pour une autre raison.
+
+## D144 - La note de version n'a pas de version française
+
+**Date** : 2026-09-12
+
+La règle posée aujourd'hui dit que ce qui ne peut pas exister dans les deux
+langues s'écrit en anglais. Le journal des modifications a été oublié dans
+l'application de cette règle, et c'est le pire endroit où l'oublier.
+
+**La note ne vit pas dans le dépôt seulement.** La chaîne de livraison extrait
+la section de la version livrée et en fait le corps de la publication GitHub.
+L'application, elle, lit cette publication pour sa fenêtre de mise à jour :
+`ReleaseNotes.Readable` en tire le texte affiché, et `UpdatePaths` le met en
+cache sous `notes-<version>.txt`. Une note en français est donc montrée telle
+quelle à un utilisateur anglais ou espagnol, dans une interface par ailleurs
+traduite. Les trois langues de l'interface existent ; la note, elle, n'a qu'une
+version, et c'est exactement le cas que la règle vise.
+
+**Ce qui a été fait.** La section 0.3.0 est traduite, ses quarante-deux entrées
+comprises, et la publication v0.3.0 est corrigée à partir d'elle. L'en-tête du
+fichier passe en anglais et annonce la règle, pour que la question ne se
+repose pas à la 0.4.0.
+
+**Ce qui reste en français, et pourquoi.** Les sections 0.2.0 et 0.1.0. Elles
+sont antérieures à la règle, elles ne sont jamais devenues une publication
+GitHub, aucune étiquette ne les désigne. Les réécrire serait retoucher un
+historique pour l'apparence, ce que le projet a déjà refusé de faire pour ses
+deux cent quatre-vingt-onze commits français.
+
+**Le défaut de méthode, encore le même.** La règle a été appliquée aux commits,
+puis au code, puis à la description du dépôt, et pas au seul texte de tous ceux
+là qui s'affiche dans l'application des utilisateurs. Une règle vérifiée aux
+endroits où on l'a écrite, et pas là où elle se voit.
