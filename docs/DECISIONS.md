@@ -5074,7 +5074,7 @@ rétablissant l'état après l'épreuve :
 adb disconnect 192.168.1.16:44477    →  disconnected
 adb devices  (30 s durant)           →  vide
 puis, plus tard, sans rien demander  →  192.168.1.16:44477              device
-                                        adb-CMBU79RCINVSFYUO-1V3FXQ...  device
+                                        adb-SERIAL0123456789-1V3FXQ...  device
 ```
 
 ### Deux transports, pas un
@@ -5091,8 +5091,8 @@ numéro de série du nom mDNS. Elle ne sautait rien : `HardwareSerialFrom` exige
 le suffixe de service, absent de la colonne « nom » de `adb mdns services`.
 
 ```
-adb devices        adb-CMBU79RCINVSFYUO-1V3FXQ._adb-tls-connect._tcp
-adb mdns services  adb-CMBU79RCINVSFYUO-1V3FXQ       _adb-tls-connect._tcp
+adb devices        adb-SERIAL0123456789-1V3FXQ._adb-tls-connect._tcp
+adb mdns services  adb-SERIAL0123456789-1V3FXQ       _adb-tls-connect._tcp
 ```
 
 Le suffixe reste exigé là où il tranche, dans `adb devices`, où il distingue une
@@ -5129,7 +5129,7 @@ d'avant rétabli ensuite sans qu'aucun code n'ait été redemandé :
 
 ```
 adb devices        →  192.168.1.16:44477  device
-registre           →  devices: [], discarded: ["CMBU79RCINVSFYUO"]
+registre           →  devices: [], discarded: ["SERIAL0123456789"]
 DT Hub             →  « Aucun appareil détecté »
 registre après     →  inchangé, aucune réinscription
 ```

@@ -313,7 +313,7 @@ public class DeviceDiscoveryServiceTests
             DevicesOutput = """
                 List of devices attached
                 192.168.1.16:44477                                device
-                adb-CMBU79RCINVSFYUO-1V3FXQ._adb-tls-connect._tcp  device
+                adb-SERIAL0123456789-1V3FXQ._adb-tls-connect._tcp  device
                 """,
         };
 
@@ -321,7 +321,7 @@ public class DeviceDiscoveryServiceTests
 
         var device = new AndroidDevice
         {
-            Id = "CMBU79RCINVSFYUO",
+            Id = "SERIAL0123456789",
             Serial = "192.168.1.16:44477",
             LastKnownAddress = "192.168.1.16",
             LastKnownPort = 44477,
@@ -330,7 +330,7 @@ public class DeviceDiscoveryServiceTests
         var cut = await service.DisconnectDeviceAsync(device, CancellationToken.None);
 
         Assert.Equal(
-            ["192.168.1.16:44477", "adb-CMBU79RCINVSFYUO-1V3FXQ._adb-tls-connect._tcp"],
+            ["192.168.1.16:44477", "adb-SERIAL0123456789-1V3FXQ._adb-tls-connect._tcp"],
             cut);
         Assert.Equal(cut, adb.Disconnected);
     }

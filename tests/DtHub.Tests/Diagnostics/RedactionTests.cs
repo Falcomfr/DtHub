@@ -105,12 +105,12 @@ public sealed class RedactionTests
     public void L_avertissement_de_chaleur_perd_aussi_l_appareil_nomme_par_mdns()
     {
         const string ligne =
-            "L'appareil adb-CMBU79RCINVSFYUO-1V3FXQ._adb-tls-connect._tcp se bride : "
+            "L'appareil adb-SERIAL0123456789-1V3FXQ._adb-tls-connect._tcp se bride : "
             + "état thermique 3, surface 34.279 °C.";
 
         var clean = Redaction.Apply(ligne);
 
-        Assert.DoesNotContain("CMBU79RCINVSFYUO", clean, StringComparison.Ordinal);
+        Assert.DoesNotContain("SERIAL0123456789", clean, StringComparison.Ordinal);
         Assert.Contains("état thermique 3", clean, StringComparison.Ordinal);
     }
 

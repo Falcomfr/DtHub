@@ -42,7 +42,7 @@ CATEGORIE_QUETES = 7
 SORTIE = Path(__file__).resolve().parent.parent / "assets" / "quest-successes.json"
 
 EN_TETES = {
-    "User-Agent": "DtHub/extraction (+https://github.com/falcom/dthub)",
+    "User-Agent": "DtHub/extraction (+https://github.com/Falcomfr/DtHub)",
 }
 
 
