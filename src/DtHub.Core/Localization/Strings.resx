@@ -1871,4 +1871,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="OfflineTip" xml:space="preserve">
     <value>The phone must be on, on the same Wi-Fi network as this PC, and its wireless debugging must be on. If all of that is true, then the pairing has been lost: pair it again with "Pair a new device". A phone forgets a PC on its own more often than you would think, and turning wireless debugging back on does not restore it.</value>
   </data>
+  <data name="ToPairAgainHow" xml:space="preserve">
+    <value>Through "Pair a new device", above.</value>
+  </data>
 </root>

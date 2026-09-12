@@ -105,6 +105,10 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
   Il s'appelle « Oublier l'appareil » et porte la corbeille, celle qui sert
   déjà à supprimer un profil.
 
+- **Un appareil à réassocier dit par où.** Une ligne courte sous son nom,
+  « Par « Associer un nouvel appareil », en haut. », et seulement là où le
+  refus a été constaté.
+
 - **Le démarrage attendait les téléphones absents l'un après l'autre.** Les
   reconnexions étaient séquentielles, au motif qu'ADB sérialise de toute façon
   les connexions ; la mesure dit le contraire, deux connexions vers des

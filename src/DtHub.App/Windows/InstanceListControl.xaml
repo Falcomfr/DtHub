@@ -424,7 +424,13 @@
                 <ColumnDefinition Width="Auto" />
               </Grid.ColumnDefinitions>
 
-              <Border Grid.Column="0" Width="8" Height="8" CornerRadius="4" Margin="0,0,6,0"
+              <!-- Une seconde rangée, vide tant qu'il n'y a rien à dire. -->
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+              </Grid.RowDefinitions>
+
+              <Border Grid.Row="0" Grid.Column="0" Width="8" Height="8" CornerRadius="4" Margin="0,0,6,0"
                       VerticalAlignment="Center"
                       BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="1"
                       Background="{Binding StatusBrushKey, Converter={StaticResource KeyToBrush}}" />
@@ -459,10 +465,22 @@
                       CommandParameter="{Binding}">
                 <Path Style="{StaticResource BinGlyph}" />
               </Button>
+
+              <!-- Où réparer, sur le seul appareil dont on a constaté le
+                   refus. Une ligne courte : « À réassocier » dit ce qui
+                   manque, celle-ci dit par où, et rien ne paraît tant que ce
+                   n'est pas établi. -->
+              <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource Muted}"
+                         FontSize="{StaticResource FontTiny}" Margin="0,1,0,2"
+                         Text="{loc:T ToPairAgainHow}"
+                         Foreground="{DynamicResource WarningBrush}"
+                         Visibility="{Binding NeedsPairing,
+                                              Converter={StaticResource BoolToVisibility}}" />
             </Grid>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
+
     </StackPanel>
 
     <!-- Le premier balayage cherche les téléphones mémorisés, et un

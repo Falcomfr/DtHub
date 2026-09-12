@@ -1871,4 +1871,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="OfflineTip" xml:space="preserve">
     <value>Le téléphone doit être allumé, sur le même réseau Wi-Fi que ce PC, et son débogage sans fil actif. Si tout cela est vrai, c'est que l'association a été perdue : réassociez-le avec « Associer un nouvel appareil ». Un téléphone oublie un PC tout seul plus souvent qu'on ne croit, et rallumer le débogage sans fil ne la rétablit pas.</value>
   </data>
+  <data name="ToPairAgainHow" xml:space="preserve">
+    <value>Par « Associer un nouvel appareil », en haut.</value>
+  </data>
 </root>

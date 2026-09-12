@@ -82,6 +82,16 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     /// </summary>
     private bool _needsPairing;
 
+    /// <summary>
+    /// Vrai quand il faut refaire l'association, et seulement alors.
+    ///
+    /// L'indication qui en découle tient sur une ligne courte, sous le seul
+    /// appareil concerné : une phrase sous chaque appareil hors ligne
+    /// prendrait la place de la liste pour répéter ce qui n'est vrai qu'une
+    /// fois sur quatre.
+    /// </summary>
+    public bool NeedsPairing => _needsPairing && !IsConnected;
+
     /// <summary>Pose le doute sur l'association, et prévient l'affichage.</summary>
     public void SetNeedsPairing(bool needed)
     {
@@ -92,6 +102,7 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
 
         _needsPairing = needed;
 
+        OnPropertyChanged(nameof(NeedsPairing));
         OnPropertyChanged(nameof(StatusText));
         OnPropertyChanged(nameof(StatusTip));
         OnPropertyChanged(nameof(StatusBrushKey));

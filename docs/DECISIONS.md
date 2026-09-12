@@ -7220,8 +7220,28 @@ pas. L'application avait déjà son dessin pour retirer une chose d'elle-même,
 la corbeille de la suppression de profil, tracée à même la fenêtre des
 profils.
 
-Elle devient un style nommé, `BinGlyph`, et sert aux trois boutons qui
-retirent quelque chose : les deux qui oublient un appareil et celui qui
-supprime un profil. Un geste, un dessin, écrit une fois. La chaîne rompue
-n'avait plus d'emploi et a été retirée, quarante-neuf lignes de gabarit en
-moins.
+Elle devient un style nommé, `BinGlyph`, et sert aux trois boutons qui
+retirent quelque chose : les deux qui oublient un appareil et celui qui
+supprime un profil. Un geste, un dessin, écrit une fois. La chaîne rompue
+n'avait plus d'emploi et a été retirée, quarante-neuf lignes de gabarit en
+moins.
+
+### Dire par où réparer, sans prendre la place
+
+Dernière demande, et elle porte trois contraintes : « faut pas que ça prenne
+trop de place, et ça s'affiche seulement quand il faut réassocier, et au
+niveau du téléphone concerné ».
+
+La première tentative les manquait toutes les trois : une phrase sous la liste
+entière, visible en permanence, rattachée à aucun appareil. Elle a été retirée.
+
+Ce qui reste tient en une ligne courte, sous le seul appareil dont le refus a
+été constaté : « Par « Associer un nouvel appareil », en haut. » Le statut dit
+déjà ce qui manque, cette ligne dit par où, et rien ne paraît sur un appareil
+simplement éteint. La liste des causes possibles reste au survol, où elle ne
+coûte rien.
+
+Éprouvé à l'écran, les deux téléphones côte à côte : le 13T Pro, dont
+l'application a constaté le refus toute seule, porte la mention ; le Mi 9T
+Pro, dont le port ne répond plus du tout, garde son « hors ligne » et rien
+d'autre.

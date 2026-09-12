@@ -1871,4 +1871,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="OfflineTip" xml:space="preserve">
     <value>El teléfono debe estar encendido, en la misma red Wi-Fi que este PC, y con la depuración inalámbrica activa. Si todo eso es cierto, la vinculación se ha perdido: vuelve a vincularlo con «Vincular un nuevo dispositivo». Un teléfono olvida un PC por su cuenta más a menudo de lo que parece, y volver a encender la depuración inalámbrica no la restablece.</value>
   </data>
+  <data name="ToPairAgainHow" xml:space="preserve">
+    <value>Por «Vincular un nuevo dispositivo», arriba.</value>
+  </data>
 </root>
