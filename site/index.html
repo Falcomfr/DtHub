@@ -3,23 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DT Hub, several DOFUS Touch accounts side by side on Windows</title>
-<meta name="description" content="Play several DOFUS Touch accounts side by side on Windows, from your own phones. Free, open source, no automation.">
+<title>DT Hub, play DOFUS Touch on PC, several accounts at once</title>
+<meta name="description" content="Play DOFUS Touch on your PC, several accounts side by side, from your own phones. Free, open source, no automation.">
 <link rel="icon" href="app.png">
 <link rel="alternate" hreflang="en" href="index.html">
 <link rel="alternate" hreflang="fr" href="index.fr.html">
 <link rel="stylesheet" href="style.css">
 <meta property="og:title" content="DT Hub">
-<meta property="og:description" content="Several DOFUS Touch accounts side by side on Windows, from your own phones.">
+<meta property="og:description" content="Play DOFUS Touch on PC, several accounts at once, from your own phones.">
 <meta property="og:image" content="screenshots/cadre-a-onglets.jpg">
 <script>
 // Les pages sont statiques : personne ne négocie la langue pour nous. L'anglais
-// est servi par défaut, et un navigateur qui réclame le français part sur la
-// page française.
-//
-// **Aucun stockage, aucun traceur, et le choix manuel l'emporte.** Les liens de
-// langue portent « ?lang= », et ce paramètre désarme la redirection : sans lui,
-// un francophone demandant l'anglais tournerait en rond.
+// est servi par défaut, un navigateur qui réclame le français part sur l'autre
+// page. Aucun stockage, aucun traceur : le paramètre « ?lang= » des liens de
+// langue désarme la redirection, sans quoi on tournerait en rond.
 (function () {
   if (location.search.indexOf('lang=') !== -1) { return; }
   var langues = navigator.languages || [navigator.language || ''];
@@ -45,16 +42,15 @@
 </div>
 
 <header class="hero">
-  <h1>Several DOFUS&nbsp;Touch accounts side by side on Windows</h1>
+  <h1>Play DOFUS&nbsp;Touch on PC, several accounts at once</h1>
   <p class="accroche">
-    From <strong>your own phones</strong>. Not an emulator: the game runs on your
-    phone, DT Hub mirrors it and arranges the windows. <strong>Written by a
-    DOFUS&nbsp;Touch player, for DOFUS&nbsp;Touch players.</strong>
+    From your own phones. Not an emulator.
+    <strong>Written by a DOFUS&nbsp;Touch player, for players.</strong>
   </p>
 
   <ul class="faits-cles">
-    <li><b>Free</b><span>No ads, no account to create, no paid feature.</span></li>
-    <li><b>Within the game's rules</b><span>No bot, no macro, no modification of the game. One gesture, one action, one account.</span></li>
+    <li><b>Free</b><span>No ads, no account, no paid feature.</span></li>
+    <li><b>Within the game's rules</b><span>No bot, no macro, no modification of the game.</span></li>
     <li><b>Guides with permission</b><span>Those of <a href="https://papycha.fr">papycha.fr</a>, with their agreement.</span></li>
     <li><b>Built with you</b><span>Every reported defect gets fixed.</span></li>
   </ul>
@@ -67,32 +63,27 @@
 
 <section id="built-for">
   <h2>Built for DOFUS&nbsp;Touch</h2>
-  <p class="chapo">
-    This is not a generic mirroring tool pointed at a game. Every setting comes
-    from a defect met while playing, and was measured on real phones.
-  </p>
   <ul class="liste">
-    <li><b>Windows are born at their final size.</b> <span class="note">The game fixes its scale and layout when it opens and does not always revisit them. Resizing afterwards cut the picture off.</span></li>
-    <li><b>The virtual display is cut for the game.</b> <span class="note">Resolution, frame rate and bitrate chosen for it, not left to a mirroring tool's defaults.</span></li>
-    <li><b>The game is found on every Android profile.</b> <span class="note">Whatever its id, and whatever the phone's brand.</span></li>
-    <li><b>Closing a window really closes the game.</b> <span class="note">Without that the character stayed connected to the servers, sometimes for hours, with nothing left on screen.</span></li>
-    <li><b>Guides and Almanax are filtered on DOFUS&nbsp;Touch.</b> <span class="note">Not on the PC version, which has neither the same quests nor the same events.</span></li>
-    <li><b>It warns before a long session goes wrong.</b> <span class="note">Battery dropping, phone heating up, 2.4 GHz Wi-Fi: the three things that end a multi-account session.</span></li>
+    <li>Windows are born at their final size, as the game requires</li>
+    <li>The display is cut for it, not left to a default setting</li>
+    <li>The game is found on every Android profile, whatever its id</li>
+    <li>Closing a window really disconnects the character</li>
+    <li>Guides and Almanax filtered on Touch, not the PC version</li>
+    <li>It warns before a long session goes wrong</li>
   </ul>
 </section>
 
 <section id="windows">
   <h2>The windows</h2>
-
   <div class="categorie">
     <div>
       <ul class="liste">
         <li>One account per Android profile, all found on their own</li>
-        <li>Every window at the same size and the same place</li>
-        <li>Or all of them in a tabbed frame, reordered by dragging</li>
+        <li>Every window at the same size and place</li>
+        <li>Or all of them in a tabbed frame</li>
         <li>Four sizes from the keyboard, plus full screen</li>
         <li>Tiling, and every window back to its place</li>
-        <li>A window can be locked, and the placements leave it alone</li>
+        <li>A window can be locked</li>
       </ul>
     </div>
     <figure><img src="screenshots/cadre-a-onglets.jpg" alt="A single window holding two tabs" loading="lazy"></figure>
@@ -101,16 +92,15 @@
 
 <section id="panel">
   <h2>The panel</h2>
-
   <div class="categorie">
     <div>
       <ul class="liste">
-        <li>Shown or hidden with <code>Ctrl+P</code></li>
-        <li>Your phones and the accounts each one hosts</li>
-        <li>The Android profile behind every account</li>
-        <li>The phone's battery level</li>
+        <li><code>Ctrl+P</code> shows or hides it</li>
+        <li>Your phones and their accounts</li>
+        <li>The Android profile behind each one</li>
+        <li>The battery level</li>
         <li>Open or close an account in one click</li>
-        <li>It says what is wrong: low battery, phone heating up, 2.4 GHz Wi-Fi, pairing to redo</li>
+        <li>Low battery, heat, slow Wi-Fi: it says so</li>
       </ul>
     </div>
     <figure><img src="screenshots/appareils.png" alt="The panel, one phone and its two accounts" loading="lazy"></figure>
@@ -119,11 +109,10 @@
 
 <section id="guides">
   <h2>The guides</h2>
-
   <div class="categorie">
     <div>
       <ul class="liste">
-        <li>The guides from <a href="https://papycha.fr">papycha.fr</a>, beside the game, with their agreement</li>
+        <li>The guides from <a href="https://papycha.fr">papycha.fr</a>, beside the game</li>
         <li><code>Ctrl+Q</code> shows or hides them</li>
         <li>782 quests, 83 dungeons, 2 raids, 8 lairs</li>
         <li>Sorted by level, size and area, coordinates included</li>
@@ -136,45 +125,39 @@
 
 <section id="almanax">
   <h2>The Almanax</h2>
-
   <div class="categorie">
     <div>
       <ul class="liste">
         <li>The day's offering and who to bring it to</li>
         <li>The bonus, written out in full</li>
-        <li>The quest and meryde that go with it</li>
-        <li>The week at a glance, and any date from the calendar</li>
-        <li>Read from the official Almanax, filtered down to what concerns DOFUS Touch</li>
-        <li>The window does not show the page: it reads it and draws itself</li>
+        <li>The quest and the meryde</li>
+        <li>The week at a glance</li>
+        <li>Any date from the calendar</li>
       </ul>
     </div>
     <figure><img src="screenshots/almanax.png" alt="The Almanax window, the day's offering and bonus" loading="lazy"></figure>
   </div>
 </section>
 
-<section id="rest">
-  <h2>The rest</h2>
+<section id="rules">
+  <h2>Within the game's rules</h2>
   <ul class="liste">
-    <li><b>One file to run.</b> <span class="note">No installer, no administrator rights, no .NET to install.</span></li>
-    <li><b>USB or Wi-Fi.</b> <span class="note">Over the air it finds the phone again at every launch, even when the port changed.</span></li>
-    <li><b>Clipboard both ways.</b></li>
-    <li><b>English, French and Spanish.</b> <span class="note">Following your Windows language.</span></li>
-    <li><b>An incident report ready to paste.</b> <span class="note">Stripped of your serial numbers, addresses and account names. Nothing is sent unless you decide to.</span></li>
+    <li>No bot, no macro, no input replay</li>
+    <li>No action repeated across several accounts</li>
+    <li>The game is not modified, nor is the phone</li>
+    <li>No reading of memory, no network interception</li>
+    <li>No game asset embedded</li>
   </ul>
 </section>
 
-<section id="rules">
-  <h2>Within the game's rules</h2>
-  <p class="chapo">
-    The game runs on your phone, exactly as Ankama publishes it. DT Hub shows
-    its screen and forwards your gestures. Nothing more, and that is deliberate.
-  </p>
+<section id="rest">
+  <h2>The rest</h2>
   <ul class="liste">
-    <li><b>No bot, no macro, no input replay.</b> <span class="note">Nothing ever plays for you, at any point.</span></li>
-    <li><b>No action repeated across several accounts.</b> <span class="note">A click goes to one window. That is a design refusal: proposals in that direction are closed without discussion.</span></li>
-    <li><b>The game is not modified, nor is the phone.</b> <span class="note">The installed app stays Ankama's own, untouched.</span></li>
-    <li><b>No reading of the game's memory, no network interception.</b> <span class="note">DT Hub only sees the picture the phone sends it.</span></li>
-    <li><b>No game asset embedded.</b> <span class="note">No image, no icon, no sound. The only images in the project are drawn for it.</span></li>
+    <li>One file, no installer, no administrator rights</li>
+    <li>USB or Wi-Fi, with automatic reconnection</li>
+    <li>Clipboard both ways</li>
+    <li>English, French and Spanish</li>
+    <li>An incident report ready to paste, stripped of what identifies you</li>
   </ul>
 </section>
 
@@ -190,22 +173,20 @@
   </div>
 
   <ul class="liste">
-    <li>Windows 10 or 11, 64 bit.</li>
-    <li>An Android 11 phone or later, with a cloned profile already created.</li>
-    <li>An internet connection on first launch: 19 MB of tools from Google and Genymobile, fingerprint checked before use.</li>
-    <li>Windows shows a warning on first run, the file not being signed yet. <span class="note">Click "More info", then "Run anyway". <a href="https://github.com/Falcomfr/DtHub/blob/main/docs/CONFIANCE.md">Why</a>, in French.</span></li>
+    <li>Windows 10 or 11, 64 bit</li>
+    <li>An Android 11 phone or later, with a cloned profile already created</li>
+    <li>An internet connection on first launch, for 19 MB of tools</li>
+    <li>Windows warns on first run, the file not being signed. <a href="https://github.com/Falcomfr/DtHub/blob/main/docs/CONFIANCE.md">Why</a>, in French</li>
   </ul>
 </section>
 
 <section id="thanks">
   <h2>Thanks</h2>
   <p>
-    To <a href="https://papycha.fr">papycha.fr</a>, whose guides are written and
-    kept up to date by one person, and shown here with their agreement. To
-    <a href="https://github.com/Genymobile/scrcpy">scrcpy</a>, which carries the
-    whole mirroring. And to the players who
-    <a href="https://github.com/Falcomfr/DtHub/issues">report what goes wrong</a>:
-    that is how the app moves forward.
+    To <a href="https://papycha.fr">papycha.fr</a>, whose guides are shown here
+    with their agreement. To <a href="https://github.com/Genymobile/scrcpy">scrcpy</a>,
+    which carries the whole mirroring. And to the players who
+    <a href="https://github.com/Falcomfr/DtHub/issues">report what goes wrong</a>.
   </p>
 </section>
 
@@ -224,7 +205,7 @@
   <p>
     <strong>Not affiliated with Ankama.</strong> DOFUS and DOFUS Touch are
     trademarks of Ankama. This project is not affiliated with, endorsed by or
-    supported by Ankama. It embeds no game asset and modifies nothing.
+    supported by Ankama.
   </p>
 </footer>
 
