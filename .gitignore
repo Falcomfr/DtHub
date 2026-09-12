@@ -193,6 +193,17 @@ publish/
 # Note: Comment the next line if you want to checkin your web deploy settings,
 # but database connection strings (with potential passwords) will be unencrypted
 *.pubxml
+
+# Sauf le nôtre. La règle au-dessus vient du modèle Visual Studio, où elle
+# protège des profils de publication web qui portent des identifiants. Le nôtre
+# n'en porte aucun : il ne décrit que la forme du fichier livré, et il se
+# déclare lui-même « seule source des options qui font le fichier livré ».
+#
+# Il a pourtant été ignoré jusqu'à la première livraison publique, qui a échoué
+# là-dessus : la chaîne publiait sans profil, donc sans « self-contained », et
+# rendait une centaine de fichiers en vrac au lieu d'un exécutable autonome.
+# Elle ne marchait que sur la machine de l'auteur, seule à posséder le fichier.
+!src/DtHub.App/Properties/PublishProfiles/*.pubxml
 *.publishproj
 
 # Microsoft Azure Web App publish settings. Comment the next line if you want to
