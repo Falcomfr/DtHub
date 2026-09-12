@@ -7247,8 +7247,8 @@ Seul le nom du bouton prétendait le contraire.
 Il s'appelle donc « Oublier l'appareil », dans les trois langues, et sa bulle
 ajoute que le téléphone n'est pas touché. Le bouton reste affiché sur un
 appareil non associé, et c'est voulu : c'est précisément là qu'on veut retirer
-une entrée devenue morte.
-
+une entrée devenue morte.
+
 ### Et le dessin suivait l'ancien nom
 
 Remarqué aussitôt après : « du coup l'icône est plus trop la même, non ? ».
@@ -7257,12 +7257,12 @@ pas. L'application avait déjà son dessin pour retirer une chose d'elle-même,
 la corbeille de la suppression de profil, tracée à même la fenêtre des
 profils.
 
-Elle devient un style nommé, `BinGlyph`, et sert aux trois boutons qui
-retirent quelque chose : les deux qui oublient un appareil et celui qui
-supprime un profil. Un geste, un dessin, écrit une fois. La chaîne rompue
-n'avait plus d'emploi et a été retirée, quarante-neuf lignes de gabarit en
-moins.
-
+Elle devient un style nommé, `BinGlyph`, et sert aux trois boutons qui
+retirent quelque chose : les deux qui oublient un appareil et celui qui
+supprime un profil. Un geste, un dessin, écrit une fois. La chaîne rompue
+n'avait plus d'emploi et a été retirée, quarante-neuf lignes de gabarit en
+moins.
+
 ### Dire par où réparer, sans prendre la place
 
 Dernière demande, et elle porte trois contraintes : « faut pas que ça prenne

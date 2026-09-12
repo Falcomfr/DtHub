@@ -16,7 +16,7 @@ on your real phone, DT Hub only mirrors it and arranges the windows.
 
 ---
 
-> **Status: early development (v0.1).** Usable, but rough edges remain. See
+> **Status: early development (v0.3).** Usable, but rough edges remain. See
 > [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).
 
 ## Download
@@ -196,12 +196,16 @@ dependency URL is listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 Shortcuts use `RegisterHotKey`, not a keyboard hook: only the combinations you
 configured are ever intercepted, and only while a DT Hub window is focused.
 
-## Contribuer, signaler
+## Contributing, reporting
 
-Les défauts se signalent par une [issue](https://github.com/Falcomfr/DtHub/issues/new/choose) ;
-l'application sait composer un rapport déjà biffé de ce qui vous identifie.
-Une faille se signale en privé, voir [SECURITY.md](SECURITY.md). Les conventions
-du dépôt sont dans [CONTRIBUTING.md](CONTRIBUTING.md) et `AGENTS.md`.
+Report a defect as an [issue](https://github.com/Falcomfr/DtHub/issues/new/choose);
+the app can compose a report with anything identifying you already redacted.
+Report a vulnerability privately, see [SECURITY.md](SECURITY.md).
+
+**The repository is written in French**: comments, documents, commit messages
+and issue templates. Identifiers are in English. Conventions are set out in
+[CONTRIBUTING.md](CONTRIBUTING.md) and `AGENTS.md`, both in French. This page is
+in English because it is the one a stranger reads first.
 
 ## Licences
 

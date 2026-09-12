@@ -46,6 +46,57 @@ jobs:
       - name: Éprouver
         run: dotnet test DtHub.slnx --configuration Release --nologo --no-build
 
+      # Un numéro de série de vrai téléphone a vécu des semaines dans une
+      # décision et deux fichiers d'épreuves, dont celui-là même qui vérifie que
+      # la biffure des rapports de diagnostic l'efface.
+      #
+      # **La liste blanche se tient à la main, et c'est voulu.** Aucune règle
+      # ne distingue de façon fiable un série inventé d'un série relevé : les
+      # deux ont la même forme. Exiger que chaque valeur soit déclarée ici
+      # oblige à se poser la question au moment où l'on ajoute un relevé, qui
+      # est le seul moment où l'on connaît la réponse.
+      #
+      # Le vrai série n'est jamais écrit dans ce fichier : on ne nomme que ce
+      # qu'on autorise.
+      - name: Contrôler qu'aucun numéro de série ne traîne
+        shell: pwsh
+        run: |
+          $connus = @(
+            'SERIAL0123456789'
+            'MATERIEL123'
+            'MATERIEL456'
+            'ABC-DEF-123'
+            '0123456789ABCDEF'
+            'R58M12ABCDE'
+          )
+
+          $motif = 'adb-(?!' + ($connus -join '|') + ')[A-Z0-9]{10,}-'
+
+          $fautifs = git ls-files |
+            Where-Object { $_ -notmatch '\.(png|ico|exe|dll)$' } |
+            Where-Object { (Get-Content $_ -Raw -ErrorAction SilentlyContinue) -cmatch $motif }
+
+          if ($fautifs) {
+            Write-Error "Numéro de série d'appareil non déclaré dans : $($fautifs -join ', ')"
+            exit 1
+          }
+
+          Write-Host 'Aucun numéro de série non déclaré dans les fichiers suivis.'
+
+      # Dependabot signale une fois par mois ; celui-ci signale à chaque
+      # poussée. Les deux se complètent : l'un propose une montée, l'autre
+      # refuse de laisser passer ce qui est déjà connu comme vulnérable.
+      - name: Contrôler les dépendances
+        shell: pwsh
+        run: |
+          $sortie = dotnet list DtHub.slnx package --vulnerable --include-transitive 2>&1 | Out-String
+          Write-Host $sortie
+
+          if ($sortie -match 'has the following vulnerable packages') {
+            Write-Error 'Dépendance vulnérable.'
+            exit 1
+          }
+
       # En dernier : un écart de forme ne doit pas masquer une épreuve rouge.
       # Le .editorconfig décrivait un projet qui n'existait pas, et ce contrôle
       # aurait échoué sur mille neuf cent cinquante-six faux positifs avant

@@ -7,6 +7,20 @@ indent_style = space
 indent_size = 4
 trim_trailing_whitespace = true
 
+# **Déclaré parce que le silence coûtait cher.** Le dépôt mélangeait les deux
+# fins de ligne, trois cent soixante-trois fichiers en LF contre vingt-six en
+# CRLF, sans qu'aucune règle ne tranche. « dotnet format » retombait alors sur
+# le défaut de la plateforme, CRLF sous Windows, et la porte du format passait
+# ou échouait selon ce qu'un changement de branche avait réécrit au passage.
+#
+# LF, parce que c'est déjà ce que git stocke sous « * text=auto ».
+end_of_line = lf
+
+# Sauf les scripts Windows, qu'un cmd.exe ancien lit de travers en LF.
+# Même règle que .gitattributes, qui les marque « eol=crlf ».
+[*.{cmd,ps1}]
+end_of_line = crlf
+
 [*.{json,yml,yaml,xml,csproj,props,targets,slnx}]
 indent_size = 2
 

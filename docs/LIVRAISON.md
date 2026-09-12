@@ -91,6 +91,44 @@ Ce que Windows et les antivirus en pensent, et comment le signer, sont dans
 nom, la description ou l'éditeur manquent, et signe si le secret
 `SIGNING_COMMAND` est posé sur le dépôt.
 
+## La livraison sort en brouillon, et il faut la publier
+
+**La chaîne ne diffuse rien toute seule.** `gh release create` passe `--draft`,
+et l'application interroge `/releases/latest`, qui ignore les brouillons : rien
+ne part chez personne tant que la commande suivante n'a pas été tapée.
+
+C'est la seule fenêtre où l'on peut examiner **l'artefact exact** que recevront
+les utilisateurs, et non une reconstruction locale qui n'aurait pas la même
+empreinte. Trois gestes, dans cet ordre :
+
+1. télécharger le binaire depuis le brouillon ;
+2. l'envoyer sur VirusTotal. **Attention, cet envoi le publie** auprès des
+   abonnés du service : sans conséquence pour un code déjà public, à ne pas
+   faire sur un binaire privé. Un ou deux moteurs marginaux sur un exécutable
+   .NET auto-extractible non signé est banal ; un moteur majeur, ou une
+   dizaine, s'élucide avant de publier ;
+3. le soumettre au portail « Submit a file for analysis » de Microsoft, sans
+   attendre une alerte. C'est gratuit, cela prend quelques jours, et Defender
+   décidera du sort de la grande majorité des téléchargements.
+
+Puis, seulement :
+
+```
+gh release edit v0.3.0 --draft=false
+```
+
+À cet instant la version devient visible pour la mise à jour automatique.
+
+## L'étiquette doit dire ce que le dépôt déclare
+
+La chaîne compare le numéro de l'étiquette au `VersionPrefix` de
+`Directory.Build.props` et refuse de livrer s'ils diffèrent.
+
+Ce n'est pas une précaution théorique : le dépôt a vécu avec un `VersionPrefix`
+à 0.2.0 et trente-sept commits de fonctionnalités par-dessus, tous décrits sous
+« Non publié ». Étiqueter `v0.2.0` aurait livré un binaire dont la note de
+version mentait.
+
 ## Vérifier une livraison à la main
 
 ```

@@ -45,6 +45,20 @@ jobs:
           ETIQUETTE: ${{ github.ref_name }}
         run: |
           $version = $env:ETIQUETTE -replace '^v', ''
+
+          # **L'étiquette doit dire ce que le dépôt déclare.** Le projet a
+          # vécu avec un VersionPrefix à 0.2.0 et trente-sept commits de
+          # fonctionnalités par-dessus : étiqueter v0.2.0 aurait livré un
+          # binaire dont la note de version mentait. La chaîne vérifie déjà la
+          # taille et l'identité du fichier ; elle vérifie maintenant aussi
+          # qu'elle livre le numéro qu'elle croit.
+          $declare = (Select-String -Path Directory.Build.props `
+            -Pattern '<VersionPrefix>(.+?)</VersionPrefix>').Matches[0].Groups[1].Value
+
+          if ($version -ne $declare) {
+            throw "L'étiquette dit $version, Directory.Build.props dit $declare."
+          }
+
           "numero=$version" >> $env:GITHUB_OUTPUT
 
       - name: Éprouver
@@ -156,9 +170,19 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           ETIQUETTE: ${{ github.ref_name }}
           VERSION: ${{ steps.version.outputs.numero }}
+        # **En brouillon, et c'est la fenêtre d'inspection antivirus.**
+        # L'application interroge « /releases/latest », qui ignore les
+        # brouillons : rien ne part chez personne tant qu'on n'a pas publié.
+        # C'est le seul moment où l'on peut envoyer sur VirusTotal l'artefact
+        # exact que recevront les utilisateurs, et non une reconstruction
+        # locale qui n'a pas le même empreinte.
+        #
+        # La publication se fait ensuite d'une ligne, consignée dans
+        # docs/LIVRAISON.md : gh release edit <étiquette> --draft=false
         run: >
           gh release create $env:ETIQUETTE
           publication/DtHub.exe
           publication/DtHub.exe.sha256
           --title "DT Hub $env:VERSION"
           --notes-file note.md
+          --draft
