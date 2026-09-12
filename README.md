@@ -45,6 +45,23 @@ You need Windows 10 version 1809 or later, 64 bit, and an internet connection
 the first time: DT Hub then fetches ADB and scrcpy from Google and Genymobile,
 19 MB in all, checking each archive against a known fingerprint before using it.
 
+## What it looks like
+
+<img src="assets/screenshots/cadre-a-onglets.jpg" alt="Two accounts as tabs inside one window" width="820">
+
+*Two accounts in one tabbed frame. They can also stand side by side, each in its
+own window.*
+
+<img src="assets/screenshots/appareils.png" alt="The configurator, one phone and its two accounts" width="380"> <img src="assets/screenshots/almanax.png" alt="The Almanax window" width="380">
+
+*The configurator, showing the Android profile behind each account, and the
+Almanax of the day.*
+
+<img src="assets/screenshots/liste-des-donjons.png" alt="The dungeon list sorted by level" width="560">
+
+*Dungeons sorted by level, size and area, with coordinates and prerequisites.
+That list is one DT Hub builds itself.*
+
 ## What it does
 
 You install DOFUS Touch once on your phone's main profile, and again on a

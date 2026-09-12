@@ -3,40 +3,38 @@
 Le versionnage suit [SemVer](https://semver.org/lang/fr/). Tant que la version
 majeure est `0`, l'interface et les formats de configuration peuvent changer.
 
-## v0.1 - Ce qui marche aujourd'hui
+## v0.3 - Ce qui marche aujourd'hui
 
 - Détection des téléphones en USB et en Wi-Fi, association assistée,
-  reconnexion automatique.
-- Détection des instances du jeu, une par profil Android.
+  reconnexion automatique même quand le port change après un redémarrage.
+- Détection des instances du jeu, une par profil Android, quel que soit le
+  numéro du profil.
 - Ouverture de chaque instance dans sa fenêtre, sur son propre afficheur
   virtuel.
 - Fenêtres superposées, ancrées sur une grille de neuf positions, ou réunies
   dans un cadre à onglets.
-- Configurateur flottant à trois onglets, rappelé par raccourci, dont la
-  position et la taille sont mémorisées.
-- Ordre des instances modifiable, qui détermine le parcours au clavier.
-- Suivi de quêtes adossé à papycha.fr, dans sa propre fenêtre.
-- Interface en français, anglais et espagnol, suivant la langue de Windows,
-  fiches d'aide par marque comprises.
+- Configurateur flottant à trois onglets, rappelé par raccourci.
+- Palier de qualité réglable, global ou par compte, définition et débit
+  compris.
+- Reprise d'une fenêtre que la liaison a fait tomber.
+- Bilan de l'appareil avant lancement : batterie, chaleur, place libre, bande
+  Wi-Fi, préparation de l'économie d'énergie.
+- Fenêtre de guides lisant papycha.fr, avec l'endroit où l'on s'est arrêté et
+  ce que chaque quête débloque.
+- Almanax du jour, lu sur le portail officiel et filtré sur DOFUS Touch.
+- Temps de jeu par compte.
+- Export et restauration des réglages.
 - Rapport d'incident biffé de ce qui identifie, à copier et à envoyer.
 - Publication en fichier unique, sans installateur, mise à jour depuis le
   dépôt, et intégration continue qui éprouve et livre.
+- Essai sur deux téléphones réels, Android 11 et Android 16.
 
-## v0.2 - Ce qui manque pour un usage quotidien confortable
-
-- Essai complet sur plusieurs comptes et plusieurs téléphones. Le code est déjà
-  par appareil de bout en bout, vérifié par la lecture ; ce qui manque est un
-  second téléphone.
-- Réglages de mirroring exposés dans l'interface : images par seconde, débit,
-  définition de l'écran virtuel.
-
-## v0.3 - Confort
+## v0.4 - Ce qui manque encore
 
 - Indication de l'instance active à l'écran.
-
-Livré depuis : la reprise d'une fenêtre que la liaison a fait tomber, le bilan
-de l'appareil avant lancement, un palier de qualité par compte, l'Almanax, une
-note et un temps de jeu par compte, et l'enregistrement des réglages.
+- Indexation du guide plus rapide : le filtre `modified_after` de l'API
+  n'attaque que les pages touchées, et les donjons pèsent les quatre
+  cinquièmes du temps. Voir D141.
 
 ## v1.0 - Stable
 
@@ -44,10 +42,12 @@ note et un temps de jeu par compte, et l'enregistrement des réglages.
 - Documentation utilisateur finalisée.
 - Diagnostic complet.
 
-## Envisagé, sans engagement
+## En cours, hors code
 
-- Signature Authenticode, si le programme est distribué au-delà d'un usage
-  personnel. Voir `docs/CONFIANCE.md`.
+- Publication du dépôt, page de présentation et première version téléchargeable.
+- Signature Authenticode par SignPath Foundation, gratuite pour les projets
+  libres, qui exige un dépôt public et une version déjà livrée. Voir
+  `docs/CONFIANCE.md`.
 
 ## Hors périmètre, définitivement
 
