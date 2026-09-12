@@ -10,17 +10,17 @@
 <link rel="alternate" hreflang="fr" href="index.fr.html">
 <link rel="stylesheet" href="style.css">
 <meta property="og:title" content="DT Hub">
-<meta property="og:description" content="Several DOFUS&nbsp;Touch accounts side by side on Windows, from your own phones.">
+<meta property="og:description" content="Several DOFUS Touch accounts side by side on Windows, from your own phones.">
 <meta property="og:image" content="screenshots/cadre-a-onglets.jpg">
 <script>
-// Les pages sont statiques : personne ne peut négocier la langue pour nous.
-// L'anglais est donc servi par défaut, et un lecteur dont le navigateur réclame
-// le français est envoyé sur la page française.
+// Les pages sont statiques : personne ne négocie la langue pour nous. L'anglais
+// est donc servi par défaut, et un lecteur dont le navigateur réclame le
+// français est envoyé sur la page française.
 //
 // **Aucun stockage, aucun traceur, et le choix manuel l'emporte.** Les liens de
-// langue portent « ?lang= », et la présence de ce paramètre suffit à désarmer
-// la redirection : quelqu'un qui demande l'anglais depuis la page française y
-// reste. Sans lui, on tomberait dans un aller-retour sans fin.
+// langue portent « ?lang= », et ce paramètre désarme la redirection : quelqu'un
+// qui demande l'anglais depuis la page française y reste. Sans cela, on
+// tournerait en rond.
 (function () {
   if (location.search.indexOf('lang=') !== -1) { return; }
   var langues = navigator.languages || [navigator.language || ''];
@@ -37,7 +37,7 @@
 <div class="page">
 
 <div class="barre">
-  <span class="marque"><img src="app.png" alt="" width="28" height="28">DT Hub</span>
+  <span class="marque"><img src="app.png" alt="" width="30" height="30">DT Hub</span>
   <nav>
     <a href="index.html?lang=en" aria-current="page">English</a>
     <a href="index.fr.html?lang=fr">Français</a>
@@ -46,120 +46,111 @@
 </div>
 
 <header class="hero">
-  <h1>Several DOFUS Touch accounts side by side on Windows</h1>
-  <p>
+  <h1>Several DOFUS&nbsp;Touch accounts side by side on Windows</h1>
+  <p class="accroche">
     From <strong>your own phones</strong>. Not an emulator: the game runs on your
     real phone, DT Hub mirrors it onto the PC and arranges the windows.
   </p>
 
   <ul class="faits-cles">
-    <li><b>Free</b><span>And it will stay that way. No ads, no account to create, no paid feature, no limit.</span></li>
-    <li><b>No automation</b><span>No bot, no macro, no input replay, no action mirrored across accounts. One gesture, one action, one account.</span></li>
+    <li><b>Free</b><span>And it will stay that way. No ads, no account to create, no paid feature.</span></li>
+    <li><b>You play, not the app</b><span>No bot, no macro, no action repeated across accounts. One gesture, one action, one account.</span></li>
     <li><b>Guides with permission</b><span>The guides it shows are those of <a href="https://papycha.fr">papycha.fr</a>, displayed with their agreement.</span></li>
-    <li><b>Built with you</b><span>Every reported defect is fixed and written down. The changelog says who found what.</span></li>
+    <li><b>Built with you</b><span>Every reported defect is fixed and written down in the changelog.</span></li>
   </ul>
 
   <div class="telecharger">
     <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe">Download DtHub.exe</a>
     <span class="sous-bouton">
-      Windows 10 1809 or later, 64 bit · nothing to install · MIT licence ·
+      Windows 10 64 bit · nothing to install · MIT licence ·
       <a href="https://github.com/Falcomfr/DtHub/releases">all releases</a>
     </span>
   </div>
 </header>
 
-<section id="rules">
-  <h2>What it does not do, and never will</h2>
-  <p class="chapo">
-    This is the most important thing on this page, and it comes before the
-    feature list.
-  </p>
-  <ul class="liste">
-    <li><b>No bot, no macro, no input replay.</b> <span class="note">Nothing ever plays for you, at any point.</span></li>
-    <li><b>No screen recognition for playing.</b> <span class="note">The app does not read the game, it displays it.</span></li>
-    <li><b>No way to repeat one action across several accounts.</b> <span class="note">A click goes to one window. That is a design refusal, not a missing feature: proposals in that direction are closed without discussion.</span></li>
-    <li><b>No game asset embedded, no modification of the game.</b> <span class="note">The phone is never modified, and scrcpy is used without a single change.</span></li>
-    <li><b>No antivirus disabled, no exclusion, no administrator rights.</b> <span class="note">An app that needs your antivirus disarmed is not an app you should trust.</span></li>
-    <li><b>Nothing is ever sent on its own.</b> <span class="note">Incident reports are composed for you, stripped of anything identifying, and you decide whether to send them.</span></li>
-  </ul>
-</section>
-
-<section id="features">
-  <h2>What it does</h2>
+<section id="windows">
+  <h2>Your accounts on screen</h2>
   <p class="chapo">
     You install DOFUS Touch on the phone's main profile, then again on a cloned
-    profile such as Xiaomi's Second Space or Dual Apps. Each profile holds its
-    own account, and DT Hub finds every one of them.
+    profile such as Second Space. Each profile holds its own account, and DT Hub
+    finds every one of them.
   </p>
-  <ul class="liste">
-    <li><b>One file to run.</b> <span class="note">No installer, no administrator rights, no .NET to install. Everything it keeps sits in one folder you can simply delete.</span></li>
-    <li><b>Stacked windows.</b> <span class="note">Every account opens at the same place and size, so they overlay exactly.</span></li>
-    <li><b>Or one window with tabs.</b> <span class="note">Any account docks into a single frame, is picked from a tab bar, dragged into another order, or pulled back out.</span></li>
-    <li><b>Any Android profile id.</b> <span class="note">A cloned profile is not always 999, and DT Hub never assumes it is.</span></li>
-    <li><b>USB or Wi-Fi.</b> <span class="note">Over the air it finds the phone on the network and reconnects on its own at every launch, even when the port changed after a reboot.</span></li>
-    <li><b>Placement and sizes from the keyboard.</b> <span class="note">Four absolute sizes, full screen, tiling, and every window back to its place.</span></li>
-    <li><b>Clipboard both ways.</b> <span class="note">Through scrcpy's own mechanism, into a docked tab as readily as a free window.</span></li>
-    <li><b>A quest guide.</b> <span class="note">782 quests, 83 dungeons, 2 raids and 8 lairs, sorted by level and area, remembering where you stopped.</span></li>
-    <li><b>An almanac.</b> <span class="note">The day's offering and bonus, without leaving the PC.</span></li>
-    <li><b>English, French and Spanish.</b> <span class="note">Following your Windows display language.</span></li>
-    <li><b>It tells you what is wrong.</b> <span class="note">Low battery, phone heating up, 2.4 GHz Wi-Fi, game missing from a profile, pairing to redo: each one is named under the device it concerns.</span></li>
-  </ul>
-</section>
 
-<section id="pictures">
-  <h2>In pictures</h2>
-  <div class="vignettes">
-    <a href="screenshots/deux-comptes.jpg"><img src="screenshots/deux-comptes.jpg" alt="Two game windows side by side" loading="lazy"><span>Two accounts side by side</span></a>
-    <a href="screenshots/cadre-a-onglets.jpg"><img src="screenshots/cadre-a-onglets.jpg" alt="One window with two tabs" loading="lazy"><span>Or one window with tabs</span></a>
-    <a href="screenshots/appareils.png"><img src="screenshots/appareils.png" alt="The configurator" loading="lazy"><span>The configurator</span></a>
-    <a href="screenshots/guide-de-quete.jpg"><img src="screenshots/guide-de-quete.jpg" alt="The guide window" loading="lazy"><span>Guides, beside the game</span></a>
-    <a href="screenshots/liste-des-donjons.png"><img src="screenshots/liste-des-donjons.png" alt="The dungeon list" loading="lazy"><span>Dungeons sorted by level</span></a>
+  <div class="categorie">
+    <h3>Side by side</h3>
+    <p>
+      Each account gets its own window, at the same size and place, so they
+      overlay exactly. <code>Ctrl+Tab</code> cycles through them.
+    </p>
+    <figure><img src="screenshots/deux-comptes.jpg" alt="Two game windows side by side" loading="lazy"></figure>
+  </div>
+
+  <div class="categorie">
+    <h3>Or inside one window</h3>
+    <p>
+      Any account docks into a tabbed frame, is reordered by dragging, or pulled
+      back out. Typing and the clipboard reach it exactly as they reach a free
+      window.
+    </p>
+    <figure><img src="screenshots/cadre-a-onglets.jpg" alt="A single window holding two tabs" loading="lazy"></figure>
   </div>
 </section>
 
-<section id="feedback">
-  <h2>Built with player feedback</h2>
+<section id="panel">
+  <h2>One panel to drive it all</h2>
   <p class="chapo">
-    Not a slogan. Here is what players' remarks changed, and what was measured
-    afterwards.
+    Shown or hidden with <code>Ctrl+P</code>. Your phones, the accounts each one
+    hosts, and a click to open or close any of them.
   </p>
-  <ul class="liste">
-    <li><b>"The game keeps running when I close the window."</b> <span class="note">The phone kept changing address and the stop order went nowhere. Fixed, and an empty card was also left behind in the phone's app list: it is no longer created.</span></li>
-    <li><b>"The app takes a while to start."</b> <span class="note">It rediscovered every profile before checking whether there was anything to open. The window now appears in 840 ms instead of 3,950.</span></li>
-    <li><b>"I have to click twice to forget a device."</b> <span class="note">One click is enough, and it no longer claims in between that the game is not installed.</span></li>
-    <li><b>"Indexing the guide takes time."</b> <span class="note">It reported only one of its five stages. All five are now named, yesterday's list stays on screen, and the whole thing dropped under fifteen seconds.</span></li>
-    <li><b>"I cannot click inside the window."</b> <span class="note">Some manufacturer layers refuse input injection despite the Android permission. The app detects it, says so, and offers the one workaround that does work.</span></li>
-  </ul>
-  <p class="chapo">
-    Everything is written down in the
-    <a href="https://github.com/Falcomfr/DtHub/blob/main/CHANGELOG.md">changelog</a>,
-    and the reasoning behind each decision in
-    <a href="https://github.com/Falcomfr/DtHub/blob/main/docs/DECISIONS.md">docs/DECISIONS.md</a>, in French.
-    <a href="https://github.com/Falcomfr/DtHub/issues">Report what bothers you</a>:
-    that is how the list above got written.
-  </p>
-</section>
 
-<section id="shortcuts">
-  <h2>Shortcuts</h2>
-  <p class="chapo">
-    They only apply while a DT Hub window is focused, so <code>Ctrl+Tab</code>
-    keeps working in your browser. All of them can be changed.
-  </p>
+  <div class="categorie">
+    <p>
+      It shows the Android profile behind each account, the phone's battery
+      level, and says what is wrong when something is: low battery, phone
+      heating up, 2.4 GHz Wi-Fi, pairing to redo.
+    </p>
+    <figure><img class="debout" src="screenshots/appareils.png" alt="The panel, one phone and its two accounts" loading="lazy"></figure>
+  </div>
+
+  <h3>From the keyboard</h3>
   <div class="defilant">
     <table>
       <thead><tr><th>Shortcut</th><th>Action</th></tr></thead>
       <tbody>
-        <tr><td>Ctrl+P</td><td>Show or hide the configurator</td></tr>
-        <tr><td>Ctrl+Tab</td><td>Next account, or next tab inside the frame</td></tr>
-        <tr><td>Ctrl+R</td><td>Put every window back in place</td></tr>
+        <tr><td>Ctrl+P</td><td>Show or hide the panel</td></tr>
+        <tr><td>Ctrl+Tab</td><td>Next account, or next tab</td></tr>
         <tr><td>Ctrl+T</td><td>Tile the windows side by side</td></tr>
-        <tr><td>Ctrl+1 … Ctrl+4</td><td>Four window sizes</td></tr>
-        <tr><td>Ctrl+5</td><td>Full screen</td></tr>
+        <tr><td>Ctrl+1 … Ctrl+5</td><td>Four sizes, then full screen</td></tr>
+        <tr><td>Ctrl+R</td><td>Put every window back in place</td></tr>
         <tr><td>Ctrl+Q</td><td>Show or hide the guides</td></tr>
-        <tr><td>Ctrl+0</td><td>Close every window</td></tr>
       </tbody>
     </table>
+  </div>
+  <p class="chapo">
+    They only act while a DT Hub window is focused, so <code>Ctrl+Tab</code>
+    keeps working in your browser. All of them can be changed.
+  </p>
+</section>
+
+<section id="guides">
+  <h2>Guides beside the game</h2>
+  <p class="chapo">
+    <code>Ctrl+Q</code> opens the guides from
+    <a href="https://papycha.fr">papycha.fr</a>, displayed with their agreement.
+    They follow a quest step by step and remember where you stopped.
+  </p>
+
+  <div class="categorie">
+    <figure><img class="debout" src="screenshots/guide-de-quete.jpg" alt="The guide window with a quest open" loading="lazy"></figure>
+  </div>
+
+  <div class="categorie">
+    <h3>And enough to find your way</h3>
+    <p>
+      782 quests, 83 dungeons, 2 raids and 8 lairs, sorted by level, size and
+      area, with their coordinates and their prerequisites.
+    </p>
+    <figure><img class="debout" src="screenshots/liste-des-donjons.png" alt="The dungeon list sorted by level" loading="lazy"></figure>
   </div>
 </section>
 
@@ -169,23 +160,18 @@
   <div class="telecharger">
     <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe">Download DtHub.exe</a>
     <span class="sous-bouton">
-      and its checksum, <a href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe.sha256">DtHub.exe.sha256</a><br>
-      <a href="https://github.com/Falcomfr/DtHub/releases">Every release and its notes</a> ·
-      <a href="https://github.com/Falcomfr/DtHub">the repository on GitHub</a>
+      and its <a href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe.sha256">checksum</a> ·
+      <a href="https://github.com/Falcomfr/DtHub/releases">all releases</a> ·
+      <a href="https://github.com/Falcomfr/DtHub">the repository</a>
     </span>
   </div>
 
-  <h3>Check what you downloaded</h3>
-  <p class="chapo">
-    The file is not signed: that checksum is the only way to know you have the
-    binary this repository built. One line in PowerShell, from the folder where
-    both files sit.
-  </p>
-  <pre><code>(Get-FileHash DtHub.exe -Algorithm SHA256).Hash -eq (Get-Content DtHub.exe.sha256).Split(' ')[0]</code></pre>
-  <p class="chapo">
-    <code>True</code> means it is the right file. The app then checks on its own
-    whether a newer version exists, and never installs anything without asking.
-  </p>
+  <h3>What you need</h3>
+  <ul class="liste">
+    <li>Windows 10 or 11, 64 bit.</li>
+    <li>An Android 11 phone or later, with a cloned profile already created. <span class="note">DT Hub does not create one.</span></li>
+    <li>An internet connection on first launch, once. <span class="note">19 MB of third party tools from Google and Genymobile, each checked against a known fingerprint before use.</span></li>
+  </ul>
 
   <div class="encart">
     <h3>Windows will warn you the first time</h3>
@@ -195,43 +181,46 @@
       <strong>Run anyway</strong>.
     </p>
     <p>
-      Why it is unsigned and what it would take to change that is written in
+      The file is not signed, so its checksum is the only way to verify what you
+      downloaded. One line in PowerShell, from the folder where both files sit:
+    </p>
+    <pre><code>(Get-FileHash DtHub.exe -Algorithm SHA256).Hash -eq (Get-Content DtHub.exe.sha256).Split(' ')[0]</code></pre>
+    <p>
+      <code>True</code> means it is the right file. Why it is unsigned is
+      written in
       <a href="https://github.com/Falcomfr/DtHub/blob/main/docs/CONFIANCE.md">docs/CONFIANCE.md</a>,
-      in French. Better said before the blue screen shows up.
+      in French.
     </p>
   </div>
-
-  <h3>What you need</h3>
-  <ul class="liste">
-    <li>Windows 10 version 1809 or later, 64 bit.</li>
-    <li>An Android 11 phone or later. <span class="note">USB reaches further back than wireless.</span></li>
-    <li>A cloned Android profile already created on the phone. <span class="note">DT Hub does not create one.</span></li>
-    <li>An internet connection on first launch, once. <span class="note">19 MB of third party tools from Google and Genymobile, each checked against a known fingerprint before use.</span></li>
-    <li>Microsoft WebView2 for the guide windows. <span class="note">Ships with Windows 11, reaches Windows 10 through Edge. Without it, everything else still works.</span></li>
-  </ul>
 </section>
 
 <section id="thanks">
   <h2>Thanks</h2>
-  <ul class="liste">
-    <li><b><a href="https://papycha.fr">papycha.fr</a></b> <span class="note">The guides DT Hub shows are theirs, written and kept up to date by one person, and displayed with their agreement. Nothing the guide window shows would exist without that work. Go and have a look: that is where everything is written.</span></li>
-    <li><b><a href="https://github.com/Genymobile/scrcpy">scrcpy</a></b> <span class="note">The whole mirroring rests on it, and it is used without a single modification.</span></li>
-    <li><b>The players who report</b> <span class="note">The section above would not exist without them.</span></li>
-  </ul>
+  <p>
+    The guides DT Hub shows are those of
+    <a href="https://papycha.fr">papycha.fr</a>, written and kept up to date by
+    one person, and shown with their agreement. Nothing the guide window holds
+    would exist without that work: go and have a look.
+  </p>
+  <p>
+    Thanks as well to <a href="https://github.com/Genymobile/scrcpy">scrcpy</a>,
+    which carries the whole mirroring, and to the players who report what goes
+    wrong. <a href="https://github.com/Falcomfr/DtHub/issues">Tell me what
+    bothers you</a>: that is how the app moves forward.
+  </p>
 </section>
 
 <footer>
   <div class="liens">
     <a href="https://github.com/Falcomfr/DtHub">Source code</a>
+    <a href="https://github.com/Falcomfr/DtHub/releases">Releases</a>
     <a href="https://github.com/Falcomfr/DtHub/blob/main/CHANGELOG.md">Changelog</a>
     <a href="https://github.com/Falcomfr/DtHub/issues">Report a defect</a>
-    <a href="https://github.com/Falcomfr/DtHub/blob/main/SECURITY.md">Report a vulnerability</a>
-    <a href="https://github.com/Falcomfr/DtHub/blob/main/THIRD-PARTY-NOTICES.md">Third party notices</a>
   </div>
   <p>
     Released under the <a href="https://github.com/Falcomfr/DtHub/blob/main/LICENSE">MIT licence</a>.
-    One file is not covered by it, <code>assets/quest-successes.json</code>:
-    quest titles compiled by papycha.fr, who keep their rights over them.
+    The quest titles in <code>quest-successes.json</code> remain the property of
+    papycha.fr.
   </p>
   <p>
     <strong>Not affiliated with Ankama.</strong> DOFUS and DOFUS Touch are
