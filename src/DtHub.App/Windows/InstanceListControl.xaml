@@ -375,12 +375,16 @@
                           </ToggleButton.Style>
 
                           <StackPanel Orientation="Horizontal">
-                            <!-- Une flèche à deux têtes : l'écartement, donc
-                                 la quantité de terrain que la fenêtre montre. -->
+                            <!-- Un cadre dans un cadre : la même fenêtre
+                                 montrant plus ou moins de terrain, qui est
+                                 exactement ce que le réglage fait. Trait plus
+                                 fin que celui du palier : deux rectangles
+                                 emboîtés dans treize pixels se referment sur
+                                 eux-mêmes si on les épaissit. -->
                             <Path Width="13" Height="13" Stretch="None" VerticalAlignment="Center"
-                                  Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.8"
-                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                  Data="M 1.5,6.5 H 11.5 M 4,4 L 1.5,6.5 L 4,9 M 9,4 L 11.5,6.5 L 9,9" />
+                                  Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.3"
+                                  StrokeLineJoin="Round"
+                                  Data="M 1.2,2.6 H 11.8 V 10.4 H 1.2 Z M 4.6,5.1 H 8.4 V 7.9 H 4.6 Z" />
 
                             <TextBlock Text="{Binding ZoomLabel}" Margin="4,0,0,0"
                                        VerticalAlignment="Center" TextWrapping="NoWrap"
