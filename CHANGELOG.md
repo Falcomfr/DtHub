@@ -35,6 +35,17 @@ French.
   are read as before; the value is ignored and disappears on the next save.
 
 ### Fixed
+- **A failed action vanished before it could be read, and a successful one
+  erased a warning that was still true.** The banner was rebuilt whole on every
+  sweep, every two to six seconds, from the health findings alone. A notice now
+  carries the moment it was raised and answers for itself whether it is still
+  true, so it survives a sweep and expires on its own. That also fixes notices
+  freezing while the panel is hidden: their expiry used to run only from the
+  sweep, so one raised just before hiding the panel was still there, word for
+  word, hours later.
+- **The simulated mouse stayed offered after the phone that needed it was
+  unplugged.** The per-device input verdict said it was kept until the device
+  disappeared, and nothing made that true.
 - **A launch failure never reached the screen.** The error banner of the
   account list took its visibility from one property, its text from a second
   and its colour from a third, each written by a different path. A failed

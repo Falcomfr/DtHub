@@ -137,12 +137,57 @@ public sealed partial class InstanceListViewModel : ObservableObject
     }
 
     /// <summary>
-    /// A single notice, grave by no construction: an action that
-    /// failed says what happened, it does not announce the end of a
-    /// session.
+    /// What the last action had to say, and when.
+    ///
+    /// **It has to outlive a sweep.** The banner was rewritten whole
+    /// every two to six seconds from the health findings alone, so a
+    /// launch failure was wiped before it could be read: the message
+    /// appeared and vanished between two glances. It is kept here
+    /// instead, and joins the findings for as long as it is true.
     /// </summary>
-    internal void ShowBanner(string? text) =>
-        ShowBanner(string.IsNullOrWhiteSpace(text) ? [] : [BannerLine.Of(text)]);
+    private TimedNotice _action;
+
+    /// <summary>
+    /// What an action's notice is granted. The same as the launcher's
+    /// two notices, and for the same reason: long enough to be read
+    /// after the window it talks about has gone, short enough not to
+    /// survive into the next attempt.
+    /// </summary>
+    private static readonly TimeSpan ActionNoticeLife = TimeSpan.FromSeconds(45);
+
+    /// <summary>
+    /// The findings of the last sweep, kept so that an action's notice
+    /// can be added to them without re-running the sweep.
+    /// </summary>
+    private IReadOnlyList<BannerLine> _health = [];
+
+    /// <summary>
+    /// Reports what an action just did, or clears that report when it
+    /// succeeded.
+    ///
+    /// **Clearing it leaves the findings alone.** A successful Stop
+    /// used to blank the whole banner, and with it a health notice
+    /// that was still true; it came back at the next sweep, up to six
+    /// seconds later, and not at all while the panel was hidden.
+    /// </summary>
+    internal void ShowBanner(string? text)
+    {
+        _action = string.IsNullOrWhiteSpace(text)
+            ? default
+            : TimedNotice.Raised(text, DateTimeOffset.UtcNow);
+
+        Render();
+    }
+
+    /// <summary>
+    /// Posts the findings and the action's notice together, the notice
+    /// last: it describes what has just happened, and that is what one
+    /// is looking for when one looks.
+    /// </summary>
+    private void Render() =>
+        ShowBanner(_action.LineAt(DateTimeOffset.UtcNow, ActionNoticeLife) is { } said
+            ? [.. _health, said]
+            : _health);
 
     /// <summary>
     /// True during a drag and drop. The periodic sweep then holds off
@@ -681,7 +726,8 @@ public sealed partial class InstanceListViewModel : ObservableObject
             lines.Add(BannerLine.Of(left));
         }
 
-        ShowBanner(lines);
+        _health = lines;
+        Render();
 
         foreach (var device in discovery.Devices)
         {

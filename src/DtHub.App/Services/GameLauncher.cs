@@ -209,8 +209,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private void OnAppStopFailed(object? sender, ScrcpySession session)
     {
-        StopFailedNotice = Strings.Format("GameLeftRunning", session.Target.DisplayName);
-        _stopFailedAt = DateTimeOffset.UtcNow;
+        _stopFailed = TimedNotice.Raised(
+            Strings.Format("GameLeftRunning", session.Target.DisplayName), DateTimeOffset.UtcNow);
 
         LogGameLeftRunning(session.Target.DisplayName, session.Serial);
     }
@@ -289,7 +289,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// banner as the heat: that is where one looks when something is
     /// wrong.
     /// </summary>
-    public string? RecoveryNotice { get; private set; }
+    public string? RecoveryNotice =>
+        _recovery.IsLiveAt(DateTimeOffset.UtcNow, RecoveryNoticeLife) ? _recovery.Text : null;
+
+    private TimedNotice _recovery;
 
     /// <summary>
     /// The device and the moment of the current recovery notice.
@@ -302,7 +305,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private string? _recoveryDevice;
 
-    private DateTimeOffset _recoveryAt;
 
     /// <summary>
     /// What the notice is granted. The three attempts spread over
@@ -317,9 +319,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// recovery banner, for the same reason: it explains what just
     /// happened.
     /// </summary>
-    public string? StopFailedNotice { get; private set; }
+    public string? StopFailedNotice =>
+        _stopFailed.IsLiveAt(DateTimeOffset.UtcNow, StopFailedNoticeLife) ? _stopFailed.Text : null;
 
-    private DateTimeOffset _stopFailedAt;
+    private TimedNotice _stopFailed;
 
     /// <summary>
     /// What the notice is granted. Enough to be read after a window
@@ -328,11 +331,25 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private static readonly TimeSpan StopFailedNoticeLife = TimeSpan.FromSeconds(45);
 
     /// <summary>
-    /// Clears the recovery notice once it has stopped being true.
+    /// Drops the recovery notice when the phone it promises a window
+    /// on has gone away.
+    ///
+    /// **Its age is no longer checked here**: the notice answers that
+    /// itself, at every read. Checking it here meant checking it from
+    /// the sweep, and the sweep is the one thing that stops when the
+    /// panel is hidden, so a notice raised just before hiding it was
+    /// still on screen, word for word, hours later.
+    ///
+    /// The departure of a device cannot be read from a timestamp, so
+    /// that half stays. A recovery notice is an event, not a state: it
+    /// promises a window that comes back, and if the phone is gone the
+    /// promise no longer holds. The notice about a game left running
+    /// has no such clause, and needs no sweep at all: a phone that has
+    /// gone away does not make it false, it makes it truer still.
     /// </summary>
-    private void ExpireRecoveryNotice(DeviceDiscoveryResult discovery)
+    private void ForgetRecoveryIfDeviceLeft(DeviceDiscoveryResult discovery)
     {
-        if (RecoveryNotice is null)
+        if (!_recovery.Exists)
         {
             return;
         }
@@ -341,27 +358,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
             && discovery.Devices.Any(d =>
                 d.IsConnected && string.Equals(d.Id, id, StringComparison.Ordinal));
 
-        if (!present || DateTimeOffset.UtcNow - _recoveryAt >= RecoveryNoticeLife)
+        if (!present)
         {
-            RecoveryNotice = null;
+            _recovery = default;
             _recoveryDevice = null;
-        }
-    }
-
-    /// <summary>
-    /// Clears the notice about the game left running once its time
-    /// is up.
-    ///
-    /// It does not depend on the device being present, unlike the
-    /// recovery one: a phone that has gone away does not make the
-    /// notice false, it makes it truer still.
-    /// </summary>
-    private void ExpireStopFailedNotice()
-    {
-        if (StopFailedNotice is not null
-            && DateTimeOffset.UtcNow - _stopFailedAt >= StopFailedNoticeLife)
-        {
-            StopFailedNotice = null;
         }
     }
 
@@ -387,7 +387,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // exhaust its credit.
         if (session.State == ScrcpySessionState.Running)
         {
-            RecoveryNotice = null;
+            _recovery = default;
         }
 
         if (session.IsAlive || _closing)
@@ -450,8 +450,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // not come back.
             if (already > 0 && SessionRecovery.Recoverable(session.End.Failure))
             {
-                RecoveryNotice = Strings.Format("SessionRecoveryGaveUp", instance.DisplayName);
-                (_recoveryDevice, _recoveryAt) = (instance.DeviceId, DateTimeOffset.UtcNow);
+                _recovery = TimedNotice.Raised(
+                    Strings.Format("SessionRecoveryGaveUp", instance.DisplayName),
+                    DateTimeOffset.UtcNow);
+                _recoveryDevice = instance.DeviceId;
                 LogRecoveryGaveUp(instance.DisplayName, already);
             }
 
@@ -460,8 +462,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         _recoveries[key] = (already + 1, DateTimeOffset.UtcNow);
 
-        RecoveryNotice = Strings.Format("SessionRecovering", instance.DisplayName);
-        (_recoveryDevice, _recoveryAt) = (instance.DeviceId, DateTimeOffset.UtcNow);
+        _recovery = TimedNotice.Raised(
+            Strings.Format("SessionRecovering", instance.DisplayName), DateTimeOffset.UtcNow);
+        _recoveryDevice = instance.DeviceId;
 
         LogRecovering(instance.DisplayName, already + 1, (int)decision.Delay.TotalSeconds);
 
@@ -865,8 +868,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(discovery);
 
-        ExpireRecoveryNotice(discovery);
-        ExpireStopFailedNotice();
+        ForgetRecoveryIfDeviceLeft(discovery);
 
         await RefreshBatteriesAsync(discovery, cancellationToken).ConfigureAwait(false);
 
@@ -1003,6 +1005,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
         foreach (var gone in _batteries.Keys.Where(s => !connected.Contains(s, StringComparer.Ordinal)).ToList())
         {
             _ = _batteries.Remove(gone);
+        }
+
+        // The input verdict says it is "kept until the device
+        // disappears", and nothing made that true: a phone that
+        // refused input once kept the simulated mouse offered in the
+        // settings long after it had been unplugged.
+        foreach (var gone in _inputs.Keys.Where(s => !connected.Contains(s, StringComparer.Ordinal)).ToList())
+        {
+            _ = _inputs.Remove(gone);
         }
 
         foreach (var serial in connected)

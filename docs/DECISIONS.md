@@ -8851,3 +8851,45 @@ péremption des avis suspendue quand le panneau est caché, les constats d'un
 téléphone inactif jamais élagués, et les quatre routages différents d'un échec
 de lancement. Ils sont traités à la suite, et deux d'entre eux demandent le
 même avis d'échec daté qui n'existe pas encore.
+
+## D161 - Un avis dit lui-même s'il est encore vrai
+
+**Date** : 2026-09-14
+
+Prolonge D160, qui a réuni les trois propriétés du bandeau et laissé ouverte la
+question de leur durée de vie.
+
+**Un échec de lancement ne tenait pas deux secondes.** Le bandeau était réécrit
+en entier à chaque balayage, toutes les 2 à 6 secondes selon le palier, à partir
+des seuls constats de santé. Le message d'un bouton apparaissait puis
+disparaissait entre deux regards. À l'inverse, un arrêt réussi écrivait `null` et
+effaçait un constat de santé encore vrai, qui ne revenait qu'au balayage suivant.
+
+**Et la péremption des avis ne tournait que depuis le balayage**, c'est-à-dire
+depuis la seule chose qui s'arrête quand on cache le panneau. Un avis levé juste
+avant de le cacher était encore là, mot pour mot, des heures plus tard.
+
+**`TimedNotice` porte son instant, pas un compte à rebours.** Il répond
+« suis-je encore vrai ? » à chaque lecture, pour le prix d'une soustraction et
+sans dépendre d'un minuteur vivant. Le relire ne le prolonge pas, et ne jamais le
+lire ne le maintient pas en vie. Il sert les trois avis à 45 secondes : la
+reprise d'une fenêtre perdue, le jeu resté ouvert sur le téléphone, et l'échec
+d'une action.
+
+Le bandeau se compose désormais des constats du dernier balayage plus l'avis de
+la dernière action, celui-ci en dernier : c'est ce qu'on cherche quand on
+regarde. Effacer l'avis d'action laisse les constats en place, ce qui règle
+l'arrêt réussi qui faisait table rase.
+
+**Une moitié reste au balayage, et c'est voulu.** L'avis de reprise promet une
+fenêtre qui revient ; si le téléphone s'en va, la promesse ne tient plus, et le
+départ d'un appareil ne se lit pas dans un horodatage. `ExpireRecoveryNotice` est
+devenue `ForgetRecoveryIfDeviceLeft` et ne fait plus que ça.
+`ExpireStopFailedNotice` a disparu : un téléphone parti ne rend pas cet avis-là
+faux, il le rend plus vrai encore.
+
+**Au passage**, `_inputs` disait « gardé jusqu'à ce que l'appareil disparaisse »
+et rien ne le rendait vrai. Un téléphone ayant refusé la simulation d'entrée
+gardait l'option de souris simulée offerte dans les réglages longtemps après
+avoir été débranché. Il s'élague là où `_health` et `_batteries` s'élaguaient
+déjà.
