@@ -1101,6 +1101,12 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
   <data name="PairedButPortUnknown" xml:space="preserve">
     <value>El teléfono está vinculado, pero no se ha encontrado su puerto de conexión en la red. Escribe el puerto que aparece en «Depuración inalámbrica» en el teléfono.</value>
   </data>
+  <data name="PairingAddressUnreachable" xml:space="preserve">
+    <value>La dirección anunciada en la red no responde, así que el código no se ha usado. Escribe la «dirección IP y puerto» que aparece en el teléfono, debajo del código de vinculación.</value>
+  </data>
+  <data name="PairingAddressLabel" xml:space="preserve">
+    <value>Dirección IP y puerto que aparecen en el teléfono</value>
+  </data>
   <data name="PairedAndConnected" xml:space="preserve">
     <value>Teléfono vinculado y conectado.</value>
   </data>

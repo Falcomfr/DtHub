@@ -10,6 +10,35 @@ published on GitHub and shown inside the application, and those exist in a
 single version. The 0.2.0 and 0.1.0 sections predate that rule and stay in
 French.
 
+## [Unreleased]
+
+### Fixed
+
+- **Pairing a new phone could become impossible, and the message sent you the
+  wrong way.** As soon as two phones announce themselves at once,
+  `adb mdns services` gives a single address to every instance it lists, so one
+  announcement carries the other device's address. The window then aimed at a
+  port that answered nowhere and reported a possibly expired code, which sent
+  the user to reopen the code screen on the phone. That draws a fresh port, so
+  every retry made the next one worse. Measured on a Mi 9T Pro at `.23` and a
+  13T Pro at `.16`, where pairing aimed at `.16` throughout. ADB returns the
+  very same "protocol fault" for an unreachable address and for a refused code,
+  so the address is now probed before the code is spent. The live addresses ADB
+  already knows are tried on the same port, and failing that the "IP address and
+  port" shown on the phone can be typed in. The code is kept in that case: it
+  was never sent.
+
+- **A phone whose address had changed stayed stuck on the old one.** The pairing
+  window recognised an announcement by its mDNS name, which never changes, and
+  kept the address and port first seen. A phone draws a fresh pairing port every
+  time its code screen is reopened, and DHCP can move it meanwhile, so the
+  window could aim at an address the phone had long left.
+
+- **A phone could be wrongly reported as having lost its pairing key.** A
+  refused connection counted as proof of that, and sent the user back to type a
+  code. Since an announcement can carry another device's address, a silence is
+  now nobody's fault: only a refusal from an address that answers is reported.
+
 ## [0.3.0] - 2026-09-12
 
 ### Added

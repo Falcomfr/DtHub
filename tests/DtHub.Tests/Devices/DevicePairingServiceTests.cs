@@ -22,6 +22,119 @@ public class DevicePairingServiceTests
             DiscoveryPollInterval = TimeSpan.Zero,
         };
 
+    private static DevicePairingService Service(FakeAdbClient adb, IAddressProbe probe) =>
+        new(adb, NoDelay, probe)
+        {
+            ConnectDiscoveryTimeout = TimeSpan.FromMilliseconds(1),
+            DiscoveryPollInterval = TimeSpan.Zero,
+        };
+
+    [Fact]
+    public async Task Une_adresse_annoncee_muette_n_est_jamais_soumise_a_l_appairage()
+    {
+        // Measured on two phones: "adb mdns services" gives a single address
+        // to every instance it lists, and the one that came out belonged to
+        // the other device. The pairing port then answered nowhere, but ADB
+        // returns the same "protocol fault" as for a refused code: only a
+        // probe tells the two apart.
+        var adb = new FakeAdbClient();
+        var probe = new FakeAddressProbe();
+
+        var result = await Service(adb, probe)
+            .PairAndConnectAsync("192.168.1.16", 43415, "123456", CancellationToken.None);
+
+        Assert.Equal(WirelessPairingStatus.AddressUnreachable, result.Status);
+        Assert.True(result.NeedsAddress);
+
+        // The code is not spent against an address known not to answer: that
+        // is what made an expired code look like the explanation.
+        Assert.Empty(adb.PairAttempts);
+    }
+
+    [Fact]
+    public async Task Le_port_d_appairage_est_retente_sur_les_adresses_qu_adb_connait()
+    {
+        // When the announcement carries another device's address, the right
+        // one is sometimes already at hand: "adb devices" lists live
+        // connections only, so it is the source that does not lie.
+        var adb = new FakeAdbClient
+        {
+            DevicesOutput = """
+                List of devices attached
+                192.168.1.23:43395	device product:raphael_eea model:Mi_9T_Pro device:raphael
+                """,
+        };
+
+        var probe = new FakeAddressProbe().Answering("192.168.1.23:43415");
+
+        await Service(adb, probe)
+            .PairAndConnectAsync("192.168.1.16", 43415, "123456", CancellationToken.None);
+
+        Assert.Equal("192.168.1.23:43415", Assert.Single(adb.PairAttempts));
+    }
+
+    [Fact]
+    public async Task Une_adresse_muette_ne_compte_pas_comme_un_appairage_acquis()
+    {
+        // "Paired" drives what follows: the window welcomes the device back
+        // and waits for its connection. None of that has any place when the
+        // phone never received the code.
+        var adb = new FakeAdbClient();
+
+        var result = await Service(adb, new FakeAddressProbe())
+            .PairAndConnectAsync("192.168.1.16", 43415, "123456", CancellationToken.None);
+
+        Assert.False(result.Paired);
+    }
+
+    [Fact]
+    public async Task Le_port_de_connexion_annonce_est_repris_sur_l_adresse_qui_a_repondu()
+    {
+        // The same defect strikes after pairing: the announced port is right,
+        // the host beside it belongs to another device. Comparing hosts then
+        // found nothing, and the window asked for a port the network had just
+        // handed over.
+        var adb = new FakeAdbClient();
+
+        adb.MdnsOutputs.Enqueue("""
+            List of discovered mdns services
+            adb-MATERIEL123-nJyLWZ	_adb-tls-connect._tcp	192.168.1.16:37845
+            """);
+
+        adb.ConnectableAddresses.Add("192.168.1.23:37845");
+
+        var probe = new FakeAddressProbe()
+            .Answering("192.168.1.23:43415")
+            .Answering("192.168.1.23:37845");
+
+        var result = await Service(adb, probe)
+            .PairAndConnectAsync("192.168.1.23", 43415, "123456", CancellationToken.None);
+
+        Assert.Equal(WirelessPairingStatus.Connected, result.Status);
+        Assert.Equal("192.168.1.23:37845", result.Address);
+    }
+
+    [Fact]
+    public async Task Une_annonce_dont_l_adresse_est_muette_n_accuse_pas_l_appareil()
+    {
+        // A refused connection counted as proof of a broken pairing, and sent
+        // the user back to type a code. Since the announced address can belong
+        // to another device, it is no longer proof: as long as nothing
+        // answers, there is nothing to hold against the phone.
+        var adb = new FakeAdbClient();
+
+        adb.MdnsOutputs.Enqueue("""
+            List of discovered mdns services
+            adb-MATERIEL123-nJyLWZ	_adb-tls-connect._tcp	192.168.1.16:37845
+            """);
+
+        var result = await Service(adb, new FakeAddressProbe())
+            .ConnectAnnouncedAsync([], null, CancellationToken.None);
+
+        Assert.Empty(result.Refused);
+        Assert.Empty(adb.ConnectAttempts);
+    }
+
     [Fact]
     public async Task Un_appairage_reussi_enchaine_sur_la_connexion()
     {

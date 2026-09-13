@@ -8170,3 +8170,71 @@ la mesure faite sur celui-là devient la règle de la marque entière. C'est
 l'inverse du travers habituel du projet : ici ce n'est pas une absence
 d'information présentée comme un constat, c'est un constat unique présenté
 comme une généralité. Le remède est le même : dire où la mesure a été prise.
+
+---
+
+## D148 - L'adresse annoncée par ADB n'est pas une preuve
+
+**Date** : 2026-09-13
+
+Associer un téléphone neuf était devenu impossible, et le message d'échec
+envoyait faire exactement ce qui l'aggravait.
+
+**Le symptôme.** La fenêtre visait `192.168.1.16:43415` alors que le téléphone
+à associer était en `192.168.1.23`. Le `.16` est l'adresse de l'autre
+téléphone, déjà connecté. L'appairage échouait, l'application annonçait un code
+peut-être expiré, l'utilisateur relançait l'écran du code sur le téléphone, ce
+qui tire un port neuf, et la fenêtre gardait l'ancien. Chaque tentative rendait
+la suivante plus fausse.
+
+**Deux défauts empilés.** Le premier est à nous : `AddDeviceViewModel`
+dédoublonnait les candidats sur le seul nom d'annonce mDNS et ne reprenait
+jamais l'adresse ni le port, tous deux gelés sur la première annonce vue. Le
+nom, lui, ne bouge jamais. Le second est dans ADB.
+
+**La mesure, et c'est elle qui compte.** `adb mdns services` donne **une seule
+adresse à toutes les instances qu'il liste**. Trois relevés successifs, sur un
+Mi 9T Pro en `.23` et un 13T Pro en `.16` :
+
+    1   les deux annonces sur .23    celle du 13T Pro est fausse
+    2   les deux annonces sur .16    celle du 9T Pro est fausse
+    3   le 9T Pro seul, sur .23      juste
+
+Un seul téléphone annoncé, la liste est juste. Deux, l'un des deux porte
+l'adresse de l'autre, et lequel change au fil du temps. Le même listing sait
+aussi se rendre vide alors que deux transports mDNS vivants existent. Le défaut
+est donc réservé au public de DT Hub, qui branche plusieurs téléphones.
+
+**Le texte d'erreur ne sépare rien.** `adb pair` rend
+`error: protocol fault (couldn't read status message)` aussi bien sur une
+adresse injoignable que sur un code refusé, mesuré des deux côtés sur une
+session vivante, ADB 37.0.0. On ne peut donc pas classer l'échec après coup :
+seule une sonde le peut.
+
+**Ce qui a été écarté.** Écrire une pile mDNS dans `Infrastructure` pour lire
+l'adresse source du paquet de réponse. Inutile : les deux transports
+`_adb-tls-connect._tcp` fonctionnent en même temps et atteignent chacun le bon
+téléphone, chacun rapportant sa propre adresse, pendant que le listing se
+trompe ou se vide. **La résolution mDNS d'ADB est juste, seul son listing
+textuel ment.** Écartée aussi, l'idée de classer l'échec sur le texte rendu par
+ADB, puisqu'il est identique dans les deux cas.
+
+**Le choix retenu.** Sonder l'adresse avant de s'en servir, aux trois endroits
+où elle était crue sur parole. À l'appairage, l'adresse annoncée est sondée,
+puis les adresses vivantes de `adb devices` avec le même port, et à défaut
+l'utilisateur saisit celle qu'affiche l'écran du code, le code n'ayant alors
+pas été dépensé. À la découverte du port de connexion, le port annoncé est
+repris sur l'adresse qui a répondu, au lieu de comparer des hôtes. À la
+reconnexion automatique, une adresse muette n'est plus imputée au téléphone.
+
+**Ce que ça coûte.** Une connexion TCP ouverte et refermée avant chaque
+appairage, deux secondes d'échéance au pire, et une interface de plus dans
+`Core` pour que la logique de choix reste pure et rejouable sans matériel.
+
+**Le défaut de méthode.** Le code affirmait en toutes lettres qu'une annonce
+fraîche ne peut pas porter une adresse périmée, puisque l'appareil dit lui-même
+sur quel port il écoute. C'était un raisonnement, pas une mesure, et il servait
+à conclure qu'un téléphone avait perdu sa clé et à renvoyer l'utilisateur
+retaper un code. Le commentaire est corrigé en même temps que le comportement :
+le laisser aurait suffi à faire refaire le même raisonnement au prochain
+lecteur.

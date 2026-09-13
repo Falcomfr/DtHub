@@ -18,6 +18,13 @@ public enum WirelessPairingStatus
 
     /// <summary>Appairage réussi mais la connexion a échoué.</summary>
     ConnectFailed,
+
+    /// <summary>
+    /// The pairing address does not answer, so the code was not spent. The
+    /// mDNS announcement pointed at the wrong device; the user can type the
+    /// address shown on the phone.
+    /// </summary>
+    AddressUnreachable,
 }
 
 /// <summary>Résultat complet d'un appairage, prêt à être affiché.</summary>
@@ -32,7 +39,9 @@ public sealed record WirelessPairingResult(
     /// connexion ensuite. Ne veut donc pas dire qu'il y a de quoi jouer : c'est
     /// <see cref="Connected"/> qui le dit.
     /// </summary>
-    public bool Paired => Status != WirelessPairingStatus.PairingFailed;
+    public bool Paired => Status
+        is not WirelessPairingStatus.PairingFailed
+        and not WirelessPairingStatus.AddressUnreachable;
 
     public bool Connected => Status == WirelessPairingStatus.Connected;
 
@@ -42,4 +51,11 @@ public sealed record WirelessPairingResult(
     /// l'appairage est acquis : il n'y a rien à refaire, rien qu'à le lire.
     /// </summary>
     public bool NeedsPort => Status == WirelessPairingStatus.ConnectPortNotFound;
+
+    /// <summary>
+    /// True when the address itself is what must be supplied. Nothing is
+    /// gained in that case, but nothing is lost either: the code was not used,
+    /// and the phone's screen shows the address, which does not lie.
+    /// </summary>
+    public bool NeedsAddress => Status == WirelessPairingStatus.AddressUnreachable;
 }

@@ -1101,6 +1101,12 @@ On a {0} device, the manual copy goes through: {1}.</value>
   <data name="PairedButPortUnknown" xml:space="preserve">
     <value>The phone is paired, but its connection port was not found on the network. Enter the port shown under “Wireless debugging” on the phone.</value>
   </data>
+  <data name="PairingAddressUnreachable" xml:space="preserve">
+    <value>The address announced on the network does not answer, so the code was not used. Enter the “IP address and port” shown on the phone, under the pairing code.</value>
+  </data>
+  <data name="PairingAddressLabel" xml:space="preserve">
+    <value>IP address and port shown on the phone</value>
+  </data>
   <data name="PairedAndConnected" xml:space="preserve">
     <value>Phone paired and connected.</value>
   </data>

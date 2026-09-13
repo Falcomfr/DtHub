@@ -228,12 +228,16 @@ public sealed class FakeAdbClient : IAdbClient
     /// <summary>Codes d'appairage vus, pour vérifier qu'ils ne fuitent pas.</summary>
     public List<string> PairingCodesSeen { get; } = [];
 
+    /// <summary>Addresses actually submitted to pairing, in order.</summary>
+    public List<string> PairAttempts { get; } = [];
+
     public Task<AdbPairResult> PairAsync(
         string host,
         int pairingPort,
         string pairingCode,
         CancellationToken cancellationToken = default)
     {
+        PairAttempts.Add($"{host}:{pairingPort}");
         PairingCodesSeen.Add(pairingCode);
         return Task.FromResult(PairOutcome);
     }

@@ -53,6 +53,18 @@
                    Text="{loc:T WaitingForDevice}" />
       </Border>
 
+      <!-- The address is only asked for when the one the network announced did
+           not answer. The code has not served then: it stays in its field, and
+           the same button retries against the address read on the phone. -->
+      <StackPanel Margin="0,0,0,12"
+                  Visibility="{Binding NeedsAddress, Converter={StaticResource BoolToVisibility}}">
+        <TextBlock Text="{loc:T PairingAddressLabel}" Style="{StaticResource Muted}"
+                   FontSize="{StaticResource FontSmall}" Margin="2,0,0,4" />
+        <TextBox Text="{Binding PairingAddress, UpdateSourceTrigger=PropertyChanged}"
+                 Width="220" HorizontalAlignment="Left"
+                 FontSize="{StaticResource FontLarge}" />
+      </StackPanel>
+
       <StackPanel Orientation="Horizontal"
                   Visibility="{Binding Candidates.Count, Converter={StaticResource EmptyToVisibility},
                                        ConverterParameter=inverse}">

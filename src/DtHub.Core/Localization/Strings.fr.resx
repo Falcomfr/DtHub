@@ -1101,6 +1101,12 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
   <data name="PairedButPortUnknown" xml:space="preserve">
     <value>Le téléphone est appairé, mais son port de connexion n'a pas été trouvé sur le réseau. Saisissez le port affiché sous « Débogage sans fil » sur le téléphone.</value>
   </data>
+  <data name="PairingAddressUnreachable" xml:space="preserve">
+    <value>L'adresse annoncée sur le réseau ne répond pas, le code n'a donc pas été utilisé. Saisissez l'« adresse IP et port » affichée sur le téléphone, sous le code d'association.</value>
+  </data>
+  <data name="PairingAddressLabel" xml:space="preserve">
+    <value>Adresse IP et port affichés sur le téléphone</value>
+  </data>
   <data name="PairedAndConnected" xml:space="preserve">
     <value>Téléphone appairé et connecté.</value>
   </data>

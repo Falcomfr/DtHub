@@ -14,7 +14,7 @@ public sealed partial class PairingCandidateViewModel : ObservableObject
 {
     public PairingCandidateViewModel(MdnsService service) => Service = service;
 
-    public MdnsService Service { get; }
+    public MdnsService Service { get; private set; }
 
     public string Address => Service.Address;
 
@@ -29,6 +29,23 @@ public sealed partial class PairingCandidateViewModel : ObservableObject
             var parts = Service.Name.Split('-');
             return parts.Length >= 2 ? parts[1] : Service.Name;
         }
+    }
+
+    /// <summary>
+    /// Takes up the current announcement of the same phone.
+    ///
+    /// The name does not move from one announcement to the next, the address
+    /// does: the phone draws a fresh port every time the code screen is
+    /// reopened, and the DHCP lease may have given it another address
+    /// meanwhile.
+    /// </summary>
+    public void Update(MdnsService service)
+    {
+        ArgumentNullException.ThrowIfNull(service);
+
+        Service = service;
+
+        OnPropertyChanged(nameof(Address));
     }
 }
 
@@ -87,6 +104,20 @@ public sealed partial class AddDeviceViewModel : ObservableObject
     [ObservableProperty]
     private string _connectPort = string.Empty;
 
+    /// <summary>
+    /// True when the announced address does not answer and the phone's own is
+    /// needed. That is when, and only when, the field appears.
+    /// </summary>
+    [ObservableProperty]
+    private bool _needsAddress;
+
+    /// <summary>
+    /// The "IP address and port" the user reads on the code screen. Once
+    /// filled in, it takes precedence over the network's announcement.
+    /// </summary>
+    [ObservableProperty]
+    private string _pairingAddress = string.Empty;
+
     /// <summary>Signalé après une association réussie.</summary>
     public event EventHandler? DevicePaired;
 
@@ -125,9 +156,23 @@ public sealed partial class AddDeviceViewModel : ObservableObject
 
             foreach (var service in found)
             {
-                if (!Candidates.Any(c => string.Equals(c.Service.Name, service.Name, StringComparison.Ordinal)))
+                // An already listed candidate is taken up, not left as it was.
+                // It used to be left alone, and the address kept was the one
+                // of the very first announcement seen: the failure said
+                // "expired code", the user reopened the code screen on the
+                // phone, which drew a fresh port the window never saw.
+                // Measured on the machine, a pairing turned impossible while
+                // aiming at 192.168.1.16:43415 when the phone announced .23.
+                var candidate = Candidates.FirstOrDefault(
+                    c => string.Equals(c.Service.Name, service.Name, StringComparison.Ordinal));
+
+                if (candidate is null)
                 {
                     Candidates.Add(new PairingCandidateViewModel(service));
+                }
+                else
+                {
+                    candidate.Update(service);
                 }
             }
 
@@ -197,12 +242,20 @@ public sealed partial class AddDeviceViewModel : ObservableObject
 
         try
         {
+            var (host, port) = AddressToUse(candidate);
+
             var result = await _pairing
-                .PairAndConnectAsync(candidate.Service.Host, candidate.Service.Port, code, cancellationToken)
+                .PairAndConnectAsync(host, port, code, cancellationToken)
                 .ConfigureAwait(true);
 
-            // Le code ne sert qu'une fois : il est effacé aussitôt.
-            PairingCode = string.Empty;
+            // A code serves once, so it is wiped at once. Except when the
+            // address never answered: the phone then received nothing, the
+            // code still holds, and making the user type it again while it
+            // runs towards its expiry would be losing it for good.
+            if (!result.NeedsAddress)
+            {
+                PairingCode = string.Empty;
+            }
 
             // Une association acceptée lève l'écart, et elle seule : c'est le
             // geste explicite par lequel on revient sur une rupture. Sans cela,
@@ -216,9 +269,11 @@ public sealed partial class AddDeviceViewModel : ObservableObject
 
             Settle(result);
 
-            // Le code est accepté mais la connexion n'est pas venue : on guette
-            // l'annonce du téléphone au lieu de laisser la fenêtre ouverte.
-            _awaitedHost = result.Paired && !result.Connected ? candidate.Service.Host : null;
+            // The code was accepted but the connection never came: we watch
+            // for the phone's announcement instead of leaving the window open.
+            // What is watched is the address that actually served, not the one
+            // the network announced: those are sometimes two different things.
+            _awaitedHost = result.Paired && !result.Connected ? host : null;
         }
         catch (AdbException exception)
         {
@@ -229,6 +284,26 @@ public sealed partial class AddDeviceViewModel : ObservableObject
             IsBusy = false;
             OnPropertyChanged(nameof(CanPair));
         }
+    }
+
+    /// <summary>
+    /// The address to submit to pairing: the one the user read on the phone
+    /// when it is filled in and readable, the network's announcement
+    /// otherwise.
+    ///
+    /// The code screen shows the address the phone holds as its own. It takes
+    /// precedence over the announcement, which can point at another device:
+    /// measured on two phones, where "adb mdns services" gave a single address
+    /// to all of its instances.
+    /// </summary>
+    private (string Host, int Port) AddressToUse(PairingCandidateViewModel candidate)
+    {
+        if (AdbOutputParser.SplitNetworkSerial(PairingAddress.Trim()) is { Host: { } host, Port: { } port })
+        {
+            return (host, port);
+        }
+
+        return (candidate.Service.Host, candidate.Service.Port);
     }
 
     /// <summary>
@@ -280,6 +355,11 @@ public sealed partial class AddDeviceViewModel : ObservableObject
     private void Settle(WirelessPairingResult result)
     {
         NeedsPort = result.NeedsPort;
+
+        // The address field stays once it is out: the user can mistype while
+        // copying, and pulling it back on every attempt would take away what
+        // was just handed to them.
+        NeedsAddress |= result.NeedsAddress;
 
         Status = result.Connected
             ? Strings.Get("PhonePaired")

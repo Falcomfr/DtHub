@@ -102,6 +102,7 @@ public static class AppServices
         services.AddSingleton<IDeviceRegistry, DeviceRegistry>();
         services.AddSingleton<IUsbEnumerationInspector, WindowsUsbInspector>();
         services.AddSingleton<DeviceDiscoveryService>();
+        services.AddSingleton<IAddressProbe, TcpAddressProbe>();
         services.AddSingleton<DevicePairingService>();
         services.AddSingleton<DeviceReconnectService>();
         services.AddSingleton<AndroidUserService>();

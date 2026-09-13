@@ -8,9 +8,11 @@ namespace DtHub.Core.Devices;
 /// </summary>
 /// <param name="Connected">Adresses désormais connectées.</param>
 /// <param name="Refused">
-/// Numéros de série des appareils qui s'annonçaient et ont refusé la
-/// connexion. Un refus sur une annonce fraîche ne s'explique pas par une
-/// adresse périmée : l'appareil ne reconnaît plus la clé de ce PC.
+/// Hardware serials of the devices whose address answered and which then
+/// refused the connection. Devices whose address stays silent are absent from
+/// this list: their announcement may carry another device's address, and
+/// silence accuses nobody. A refusal from a live address, on the other hand,
+/// says the device no longer recognises this PC's key.
 /// </param>
 public sealed record AnnouncedConnections(
     IReadOnlyList<string> Connected,
@@ -25,15 +27,24 @@ public sealed class DevicePairingService
 {
     private readonly IAdbClient _adb;
     private readonly Func<TimeSpan, CancellationToken, Task> _delay;
+    private readonly IAddressProbe? _probe;
 
     /// <param name="delay">
     /// Attente entre deux sondages mDNS. Injectable pour que les tests
     /// n'attendent pas réellement.
     /// </param>
-    public DevicePairingService(IAdbClient adb, Func<TimeSpan, CancellationToken, Task>? delay = null)
+    /// <param name="probe">
+    /// Address probe. Without it the announced address is taken at face value,
+    /// which is the behaviour that came before.
+    /// </param>
+    public DevicePairingService(
+        IAdbClient adb,
+        Func<TimeSpan, CancellationToken, Task>? delay = null,
+        IAddressProbe? probe = null)
     {
         _adb = adb;
         _delay = delay ?? ((duration, token) => Task.Delay(duration, token));
+        _probe = probe;
     }
 
     /// <summary>
@@ -54,7 +65,15 @@ public sealed class DevicePairingService
         string pairingCode,
         CancellationToken cancellationToken = default)
     {
-        var pairing = await _adb.PairAsync(host, pairingPort, pairingCode, cancellationToken)
+        if (await ReachableHostAsync(host, pairingPort, cancellationToken).ConfigureAwait(false)
+            is not { } reachable)
+        {
+            return new WirelessPairingResult(
+                WirelessPairingStatus.AddressUnreachable,
+                Strings.Get("PairingAddressUnreachable"));
+        }
+
+        var pairing = await _adb.PairAsync(reachable, pairingPort, pairingCode, cancellationToken)
             .ConfigureAwait(false);
 
         if (!pairing.Succeeded)
@@ -64,7 +83,7 @@ public sealed class DevicePairingService
                 AdbErrorInterpreter.Describe(AdbErrorKind.PairingFailed));
         }
 
-        var service = await WaitForConnectServiceAsync(host, cancellationToken).ConfigureAwait(false);
+        var service = await WaitForConnectServiceAsync(reachable, cancellationToken).ConfigureAwait(false);
 
         if (service is null)
         {
@@ -91,6 +110,46 @@ public sealed class DevicePairingService
     }
 
     /// <summary>
+    /// The address to actually pair against, or <c>null</c> when none answers.
+    /// Without a probe, the announced address is handed back untouched.
+    /// </summary>
+    private async Task<string?> ReachableHostAsync(
+        string host,
+        int pairingPort,
+        CancellationToken cancellationToken)
+    {
+        if (_probe is null)
+        {
+            return host;
+        }
+
+        if (await _probe.RespondsAsync(host, pairingPort, cancellationToken).ConfigureAwait(false))
+        {
+            return host;
+        }
+
+        // The fallback does not read the announcements again: they are the
+        // ones that lie. Only "adb devices" lists live connections, hence
+        // verified addresses. When the device being paired is not there yet,
+        // which is the case of a brand new phone, asking is all that is left.
+        var devices = await _adb.ListDevicesAsync(false, cancellationToken).ConfigureAwait(false);
+
+        foreach (var candidate in devices
+            .Select(entry => entry.Host)
+            .OfType<string>()
+            .Where(known => !string.Equals(known, host, StringComparison.OrdinalIgnoreCase))
+            .Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            if (await _probe.RespondsAsync(candidate, pairingPort, cancellationToken).ConfigureAwait(false))
+            {
+                return candidate;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Connexion directe à une adresse, pour le cas où l'utilisateur saisit
     /// lui-même le port parce que le mDNS est bloqué.
     /// </summary>
@@ -110,8 +169,14 @@ public sealed class DevicePairingService
     }
 
     /// <summary>
-    /// Sonde le mDNS jusqu'à voir le service de connexion annoncé par l'hôte
-    /// donné, ou jusqu'à expiration du délai.
+    /// Polls mDNS until the connect service of the given host shows up, or
+    /// until the deadline passes.
+    ///
+    /// The announcement is read for its port, not for its address. The two do
+    /// not always belong together: as soon as two phones announce themselves,
+    /// ADB gives a single address to every instance it lists, and one of them
+    /// carries the other device's. So the host handed back is the one that
+    /// answered, and the announced port is what gets tried on it.
     /// </summary>
     public async Task<MdnsService?> WaitForConnectServiceAsync(
         string host,
@@ -125,8 +190,17 @@ public sealed class DevicePairingService
 
             var services = await _adb.ListMdnsServicesAsync(cancellationToken).ConfigureAwait(false);
 
-            var match = services.FirstOrDefault(
-                s => s.IsConnect && string.Equals(s.Host, host, StringComparison.Ordinal));
+            var announced = services.Where(s => s.IsConnect).ToList();
+
+            var match = announced.FirstOrDefault(
+                s => string.Equals(s.Host, host, StringComparison.Ordinal));
+
+            if (match is not null)
+            {
+                return match;
+            }
+
+            match = await PortAnsweringOnAsync(host, announced, cancellationToken).ConfigureAwait(false);
 
             if (match is not null)
             {
@@ -140,6 +214,33 @@ public sealed class DevicePairingService
 
             await _delay(DiscoveryPollInterval, cancellationToken).ConfigureAwait(false);
         }
+    }
+
+    /// <summary>
+    /// The first announcement whose port answers on the given host, handed
+    /// back at that address rather than the one it carried.
+    ///
+    /// Nothing without a probe: an address is measured, never guessed.
+    /// </summary>
+    private async Task<MdnsService?> PortAnsweringOnAsync(
+        string host,
+        IReadOnlyList<MdnsService> announced,
+        CancellationToken cancellationToken)
+    {
+        if (_probe is null)
+        {
+            return null;
+        }
+
+        foreach (var service in announced)
+        {
+            if (await _probe.RespondsAsync(host, service.Port, cancellationToken).ConfigureAwait(false))
+            {
+                return service with { Host = host };
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -209,6 +310,21 @@ public sealed class DevicePairingService
                 continue;
             }
 
+            // An announcement's address is not proof. This file long claimed
+            // the opposite, that a device saying itself which port it listens
+            // on could not carry a stale address. That is wrong: as soon as
+            // two phones announce themselves, ADB gives a single address to
+            // every instance it lists, and one of them carries the other
+            // device's. An address that does not answer is therefore nobody's
+            // fault, and must be neither connected to nor held against the
+            // phone.
+            if (_probe is not null
+                && !await _probe.RespondsAsync(service.Host, service.Port, cancellationToken)
+                    .ConfigureAwait(false))
+            {
+                continue;
+            }
+
             var result = await _adb.ConnectAsync(service.Host, service.Port, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -219,11 +335,9 @@ public sealed class DevicePairingService
                 continue;
             }
 
-            // **Une annonce qui refuse la connexion est un fait, pas un
-            // hasard.** L'appareil dit lui-même, à l'instant, sur quel port il
-            // écoute : l'adresse ne peut pas être périmée. S'il refuse quand
-            // même, c'est qu'il ne reconnaît plus la clé de ce PC, et seule
-            // une nouvelle association la lui redonnera.
+            // An address that answers and still refuses, on the other hand,
+            // says something: the phone no longer recognises this PC's key,
+            // and only a fresh pairing will give it back.
             if (MdnsDeviceName.HardwareSerialFromInstance(service.Name) is { Length: > 0 } refusedBy)
             {
                 refused.Add(refusedBy);
