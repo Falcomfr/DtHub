@@ -159,9 +159,19 @@ public class DofusInstanceServiceTests
     /// </summary>
     private sealed class StatefulAdb : FakeAdbClientBase
     {
+        /// <summary>
+        /// What an unfiltered enumeration gives back. Every Android profile
+        /// owns packages: answering nothing here would make a profile that
+        /// answered look like one that could not, which is the very
+        /// distinction the service draws on.
+        /// </summary>
+        private const string Paquets = "package:android\npackage:com.android.settings";
+
         public override string Shell(string joined) => joined switch
         {
             var c when c.StartsWith("pm list users", StringComparison.Ordinal) => RealUsers,
+            var c when c.StartsWith("pm list packages", StringComparison.Ordinal)
+                       && !c.EndsWith("dofustouch", StringComparison.Ordinal) => Paquets,
             var c when c.Contains("--user 999", StringComparison.Ordinal)
                        && c.StartsWith("pm list packages", StringComparison.Ordinal) =>
                 "package:com.ankama.dofustouch",
@@ -243,6 +253,77 @@ public class DofusInstanceServiceTests
         await service.DiscoverAsync([Device()], CancellationToken.None);
 
         Assert.Empty(service.Warnings);
+    }
+
+    /// <summary>
+    /// Fake ADB whose profile list is given, where no profile has the game
+    /// and where an unfiltered enumeration answers normally.
+    /// </summary>
+    private sealed class ProfilsAdb(string users) : FakeAdbClientBase
+    {
+        public override string Shell(string joined) => joined switch
+        {
+            var c when c.StartsWith("pm list users", StringComparison.Ordinal) => users,
+            var c when c.StartsWith("pm list packages", StringComparison.Ordinal)
+                       && !c.EndsWith("dofustouch", StringComparison.Ordinal) =>
+                "package:android",
+            _ => string.Empty,
+        };
+    }
+
+    [Fact]
+    public async Task Un_profil_arrete_ne_declare_pas_l_absence_du_jeu()
+    {
+        // A stopped profile answers an empty package list with a zero exit
+        // code, which reads exactly like a profile that answered and has no
+        // game. Taken as a verdict, it had the account removed and put back
+        // elsewhere in the list, without the name the user had given it.
+        var adb = new ProfilsAdb("""
+            Users:
+            	UserInfo{0:Alice Martin:4c13} running
+            	UserInfo{999:XSpace:801010}
+            """);
+
+        var service = new DofusInstanceService(adb, new AndroidUserService(adb));
+
+        _ = await service.DiscoverOnDeviceAsync(Device(), CancellationToken.None);
+
+        Assert.DoesNotContain(999, service.ProfilesWithoutGame["MATERIEL123"]);
+    }
+
+    [Fact]
+    public async Task Un_profil_en_pause_ne_declare_pas_l_absence_du_jeu()
+    {
+        // Quiet mode, the 0x80 flag. The profile exists and is running, and
+        // still says nothing about its packages.
+        var adb = new ProfilsAdb("""
+            Users:
+            	UserInfo{0:Alice Martin:4c13} running
+            	UserInfo{999:XSpace:801090} running
+            """);
+
+        var service = new DofusInstanceService(adb, new AndroidUserService(adb));
+
+        _ = await service.DiscoverOnDeviceAsync(Device(), CancellationToken.None);
+
+        Assert.DoesNotContain(999, service.ProfilesWithoutGame["MATERIEL123"]);
+    }
+
+    [Fact]
+    public async Task Un_profil_dont_aucun_paquet_ne_repond_n_est_pas_declare_vide()
+    {
+        // No Android profile owns zero packages. An empty unfiltered
+        // enumeration is proof the question never reached the package state,
+        // whatever the reason, so nothing can be concluded from it.
+        var adb = new FakeAdbClient()
+            .WithShell("pm list users", RealUsers)
+            .WithShell("pm list packages", string.Empty);
+
+        var service = Service(adb);
+
+        _ = await service.DiscoverOnDeviceAsync(Device(), CancellationToken.None);
+
+        Assert.Empty(service.ProfilesWithoutGame["MATERIEL123"]);
     }
 
     [Fact]

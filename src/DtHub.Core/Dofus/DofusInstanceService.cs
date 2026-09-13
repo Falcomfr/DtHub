@@ -144,7 +144,13 @@ public sealed class DofusInstanceService
             // Null means "could not ask", and not "found nothing". Only an
             // empty response allows saying that this profile does not have the
             // game.
-            if (packages is { Count: 0 })
+            //
+            // And only from a profile that is in a state to answer. A stopped
+            // or paused profile says nothing about the game, it says something
+            // about itself; taken as a verdict, it had the account removed and
+            // put back elsewhere in the list, stripped of the name the user had
+            // given it.
+            if (packages is { Count: 0 } && user is { IsRunning: true, IsPaused: false })
             {
                 sansJeu.Add(user.Id);
             }
@@ -418,7 +424,53 @@ public sealed class DofusInstanceService
 
         matches.AddRange(found.Where(IsDerived).Order(StringComparer.Ordinal));
 
+        // Nothing matched, so the question becomes whether the profile
+        // answered at all. A stopped or paused profile returns an empty
+        // list with a zero exit code, which reads exactly like a profile
+        // that answered and has no game. Asking again without the filter
+        // separates the two: no Android profile owns zero packages, so an
+        // empty enumeration is proof the question never reached the
+        // package state, whatever the reason.
+        //
+        // The extra call only happens on a profile that already looked
+        // game-less, so at most twice per phone per sweep.
+        if (matches.Count == 0
+            && await TryEnumerateAsync(serial, userId, cancellationToken).ConfigureAwait(false) is null)
+        {
+            return null;
+        }
+
         return matches;
+    }
+
+    /// <summary>
+    /// Every package of a profile, or <c>null</c> when the profile did
+    /// not answer. Used only to tell an empty answer from an absent one.
+    /// </summary>
+    private async Task<IReadOnlyList<string>?> TryEnumerateAsync(
+        string serial,
+        int userId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var output = await _adb.ShellAsync(
+                serial,
+                ["pm", "list", "packages", "--user", Text(userId)],
+                Timeout,
+                cancellationToken).ConfigureAwait(false);
+
+            var all = PackageParser.ParsePackageList(output);
+
+            return all.Count > 0 ? all : null;
+        }
+        catch (AdbException)
+        {
+            // Same silence as the filtered listing above, and for the same
+            // reason: a profile that refuses the question tells us nothing,
+            // and nothing is exactly what must be concluded from it.
+            return null;
+        }
     }
 
     /// <summary>

@@ -8703,3 +8703,58 @@ nom.
 une faute du répartiteur pendant la fermeture du cadre n'allait nulle part. Il
 passe dans la même voie gardée que le rafraîchissement des titres, l'onglet
 d'abord, les fenêtres libres ensuite.
+
+## D158 - Un profil qui ne peut pas répondre ne répond pas « rien »
+
+**Date** : 2026-09-13
+
+Prolonge D150, qui posait la bonne règle et laissait une porte ouverte.
+
+« À un moment y a une app qui est passée en dessous de l'autre dans la liste
+alors que j'ai pas changé son ordre. »
+
+**La cause, en deux temps.** `pm list packages --user N dofustouch` rend une
+liste vide avec un code de sortie nul quand le profil est arrêté ou en mode
+silencieux. `TryListInstalledAsync` ne réservait `null` qu'à l'exception ADB,
+donc cette réponse-là était lue comme « ce profil a répondu, il n'a pas le
+jeu ». `ForgetMissingProfilesAsync` supprimait alors l'entrée et resserrait les
+rangs ; `MergeInstancesAsync` la recréait au balayage suivant, **après le
+dernier compte de son appareil** et **sans son nom personnalisé**.
+
+Deux symptômes pour une cause : le compte descend dans la liste, et il perd son
+nom. Relevé sur le poste : un téléphone est resté verrouillé toute une session,
+et les comptes de l'autre sont passés derrière lui.
+
+**D150 avait raison et ne suffisait pas.** Sa règle, « une liste vide reste une
+réponse, `null` n'en est pas une », tient toujours. Ce qui manquait, c'est que
+la liste vide n'en était pas une : elle était fabriquée à partir d'un profil qui
+n'avait pas répondu. On ne corrige pas la règle, on cesse de lui mentir en
+entrée.
+
+**Deux gardes, sur deux mécanismes différents.** Un profil n'est déclaré sans
+jeu que s'il est démarré et hors mode silencieux, ce que le relevé des profils
+sait déjà dire. Et une énumération **non filtrée** doit revenir non vide : aucun
+profil Android ne possède zéro paquet, donc une énumération vide prouve que la
+question n'a pas atteint l'état des paquets, quelle qu'en soit la raison. Les
+drapeaux attrapent le profil arrêté avant d'envoyer quoi que ce soit, la sonde
+attrape le reste.
+
+**Ce que ça coûte.** Un appel de plus, et seulement sur un profil qui paraissait
+déjà sans jeu : deux fois par téléphone et par balayage au pire.
+
+**Ce qui n'a pas été fait.** Le format de `settings.json` n'est pas touché. Un
+compte dont le jeu est réellement désinstallé perd toujours son nom et son rang
+s'il revient, faute d'un endroit où les mettre de côté. C'est un choix assumé :
+la cause signalée est traitée sans changer de version de schéma, et la mise de
+côté reste possible plus tard.
+
+**Un voisin laissé en l'état, à savoir.** `AddAccountAsync` réclame un
+emplacement de profil via `IsInstalledAsync`, qui transforme `null` en liste
+vide. Un profil muet y est donc lu comme « libre, sans jeu » et peut être
+réquisitionné, potentiellement un Second Space appartenant à quelqu'un. Ce
+chemin n'est pas couvert par les gardes ci-dessus.
+
+**Le faux ADB des épreuves rendait une chaîne vide pour tout ce qu'il ne
+connaissait pas**, donc l'énumération non filtrée y revenait vide et faisait
+passer l'épreuve du cas légitime pour de mauvaises raisons. Il répond désormais
+une liste de paquets plausible, ce qui le rend plus fidèle et non moins.

@@ -36,6 +36,15 @@ French.
 
 ### Fixed
 
+- **An account moved down the list on its own, and lost its name.** A stopped
+  or paused Android profile answers an empty package list with a zero exit
+  code, which reads exactly like a profile that answered and has no game. The
+  account was removed on that basis, then created again on the next sweep after
+  the last account of its phone, without the name you had given it. A profile
+  is now only declared game-less when it was in a state to answer: started, not
+  in quiet mode, and with an unfiltered enumeration that came back. An account
+  whose game really is uninstalled still leaves the list as before.
+
 - **A renamed account went back to its old name a few seconds later.** The
   list keeps the accounts it last discovered, and every setting written from a
   row throws that copy away so the next sweep cannot put the old value back.
