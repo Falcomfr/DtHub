@@ -8239,7 +8239,7 @@ retaper un code. Le commentaire est corrigé en même temps que le comportement 
 le laisser aurait suffi à faire refaire le même raisonnement au prochain
 lecteur.
 
-## D148 - La distance par compte, et l'asymétrie qu'elle rendait visible
+## D149 - La distance par compte, et l'asymétrie qu'elle rendait visible
 
 **Date** : 2026-09-13
 
