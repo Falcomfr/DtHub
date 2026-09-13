@@ -3,12 +3,18 @@
 Légende : **DONE** terminé et vérifié, **IN PROGRESS** en cours,
 **TODO** pas commencé, **BLOCKED** nécessite une action externe.
 
-Dernière mise à jour : 2026-09-04
+Dernière mise à jour : 2026-09-13
 
 ## Vérifié sur matériel réel
 
 Xiaomi 13T, Android 16, profil principal « Alice Martin » et profil cloné
 « XSpace » (999), DOFUS Touch installé sur les deux.
+
+Second appareil depuis le 2026-09-13 : Xiaomi Mi 9T Pro, Android 11, deux
+comptes. Les quatre comptes des deux téléphones ont été ouverts en une fois,
+afficheurs prêts en 689 et 1124 ms côté Mi 9T Pro. Le 13T Pro était alors
+enregistré deux fois par ADB, sous son adresse et sous son nom mDNS, et n'a
+paru qu'une fois dans la liste.
 
 | Élément | État |
 |---|---|
@@ -52,7 +58,7 @@ Xiaomi 13T, Android 16, profil principal « Alice Martin » et profil cloné
 | Fenêtre de mise en route, surveillance continue | DONE |
 | Panneau d'association Wi-Fi, pré-remplissage réseau | DONE |
 | Configurateur flottant, `Ctrl+P`, coin libre | DONE |
-| Onglet Général : position, taille, écran | DONE |
+| Onglet Fenêtres : position, taille, écran | DONE |
 | Onglet Appareils : état, coche, nom, relance | DONE |
 | Onglet Raccourcis : édition, conflits, restauration | DONE |
 | Thème sombre. Il n'existe pas de palette claire | DONE |
@@ -102,12 +108,12 @@ Audité le 2026-08-31, appareil par appareil et poste par poste.
 | Chemins de menu valables pour une tablette | DONE |
 | Windows sur ARM | BLOCKED (scrcpy n'y est pas distribué) |
 | Fiches de marques vérifiées ailleurs que sur Xiaomi | TODO |
-| Lancement sur profil secondaire vérifié sur un second appareil | TODO |
+| Lancement sur profil secondaire vérifié sur un second appareil | DONE |
 
 ## Reste à faire
 
 | Élément | État |
 |---|---|
 | Essai complet du lancement des deux comptes | DONE |
-| Options supplémentaires dans l'onglet Général | TODO (à définir) |
+| Options supplémentaires dans l'onglet Fenêtres | TODO (à définir) |
 | Réglages de mirroring exposés dans l'interface | TODO |
