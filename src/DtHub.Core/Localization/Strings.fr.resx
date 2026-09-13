@@ -535,6 +535,12 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
   <data name="InstanceQualityTip" xml:space="preserve">
     <value>La qualité de ce compte seul. Un compte principal mérite mieux que les mules qui le suivent, et ce qu'on leur épargne est autant de processeur, de bande passante, de chaleur et de batterie en moins.</value>
   </data>
+  <data name="InstanceZoomTip" xml:space="preserve">
+    <value>La distance de ce compte seul. Elle agit sur la densité de l'écran vu par Android : à taille de fenêtre égale, le jeu montre plus ou moins de terrain.</value>
+  </data>
+  <data name="InstanceZoomWaitsForReopen" xml:space="preserve">
+    <value>Vaut à la prochaine ouverture de cette fenêtre</value>
+  </data>
   <data name="FluidityDiagnostics" xml:space="preserve">
     <value>Consigner la cadence dans le journal</value>
   </data>

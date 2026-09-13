@@ -347,6 +347,18 @@ public sealed class StoredInstance
     public StreamQuality? Quality { get; set; }
 
     /// <summary>
+    /// Distance dans le jeu propre à ce compte, ou <c>null</c> pour suivre le
+    /// réglage commun.
+    ///
+    /// Elle se règle par compte pour la même raison que le palier, mais son
+    /// motif n'est pas le même : ce n'est pas une économie, c'est un usage. On
+    /// veut voir large sur le compte qu'on joue, et peu importe ce que montrent
+    /// les mules dont on ne regarde que la barre de vie. <c>null</c> par
+    /// défaut, comme le palier.
+    /// </summary>
+    public GameZoom? GameZoom { get; set; }
+
+    /// <summary>
     /// Temps de jeu par jour, en secondes, sur la semaine glissante. La clef
     /// est une date en ISO. Voir <see cref="PlaytimeLog" />.
     /// </summary>

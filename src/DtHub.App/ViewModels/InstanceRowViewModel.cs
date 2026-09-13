@@ -170,6 +170,9 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     /// <summary>Signalé quand le compte change de palier de qualité.</summary>
     public event EventHandler<InstanceRowViewModel>? QualityChanged;
 
+    /// <summary>Signalé quand le compte change de distance dans le jeu.</summary>
+    public event EventHandler<InstanceRowViewModel>? ZoomChanged;
+
     /// <summary>
     /// Le temps passé cette semaine, « 3 h 20 », ou <c>null</c> s'il n'y en a
     /// pas encore.
@@ -235,6 +238,77 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     private void FollowSharedQuality() => Quality = null;
 
     /// <summary>
+    /// Distance propre à ce compte, ou <c>null</c> pour suivre la commune.
+    ///
+    /// Le motif n'est pas celui du palier. Le palier économise ; la distance
+    /// décide de ce qu'on voit. On veut du terrain sur le compte qu'on joue,
+    /// et les mules dont on ne regarde que la barre de vie n'en ont pas besoin.
+    /// </summary>
+    [ObservableProperty]
+    private GameZoom? _zoom;
+
+    /// <summary>Vrai le temps que la distance soit écrite.</summary>
+    public bool IsZoomPending { get; set; }
+
+    /// <summary>Vrai quand le compte a sa propre distance, donc que ça se voit.</summary>
+    public bool HasOwnZoom => Zoom is not null;
+
+    /// <summary>Ce que le bouton affiche : la distance, ou rien si elle suit la commune.</summary>
+    public string ZoomLabel => Zoom switch
+    {
+        GameZoom.Widest => Strings.Get("ZoomVeryFar"),
+        GameZoom.Wide => Strings.Get("ZoomFar"),
+        GameZoom.Normal => Strings.Get("ZoomNormal"),
+        GameZoom.Close => Strings.Get("ZoomClose"),
+        _ => string.Empty,
+    };
+
+    /// <summary>
+    /// La distance avec laquelle sa fenêtre tourne en ce moment, ou
+    /// <c>null</c> quand elle est fermée.
+    ///
+    /// Posée par la liste, qui la tient du lanceur : la distance est un
+    /// argument de démarrage de scrcpy, figé pour toute la session, et le
+    /// réglage choisi peut donc différer de celui qui s'affiche.
+    /// </summary>
+    public GameZoom? RunningZoom
+    {
+        get => _runningZoom;
+        set
+        {
+            if (_runningZoom == value)
+            {
+                return;
+            }
+
+            _runningZoom = value;
+            OnPropertyChanged(nameof(ZoomWaitsForReopen));
+        }
+    }
+
+    private GameZoom? _runningZoom;
+
+    /// <summary>
+    /// Vrai quand la fenêtre ouverte tourne encore avec une autre distance que
+    /// celle choisie.
+    ///
+    /// **C'est la mention qui manquait.** Le réglage commun referme et rouvre
+    /// les fenêtres pour se montrer tout de suite ; celui d'un compte ne le
+    /// fait pas, parce que rouvrir déconnecte le personnage. Sans rien dire,
+    /// le réglage paraissait mort. Il ne l'est pas : il attend.
+    /// </summary>
+    public bool ZoomWaitsForReopen =>
+        RunningZoom is { } running && Zoom is { } wanted && running != wanted;
+
+    /// <summary>Donne sa distance au compte, ou la rend à la commune avec <c>null</c>.</summary>
+    [RelayCommand]
+    private void PickZoom(GameZoom? zoom) => Zoom = zoom;
+
+    /// <summary>Rend le compte à la distance commune.</summary>
+    [RelayCommand]
+    private void FollowSharedZoom() => Zoom = null;
+
+    /// <summary>
     /// Vrai tant que le nom saisi n'est pas écrit. Le balayage périodique ne
     /// doit pas le remplacer entre-temps par l'ancien : la saisie semblerait
     /// s'annuler toute seule.
@@ -294,6 +368,22 @@ public sealed partial class InstanceRowViewModel : ObservableObject
             }
         }
 
+        if (!IsZoomPending && Zoom != instance.Zoom)
+        {
+            // Écriture venue des réglages : la répercuter comme un choix de
+            // l'utilisateur relancerait une écriture à chaque balayage.
+            _applying = true;
+
+            try
+            {
+                Zoom = instance.Zoom;
+            }
+            finally
+            {
+                _applying = false;
+            }
+        }
+
         if (!IsManagedPending && IsManaged != instance.IsManaged)
         {
             // Écriture venue des réglages : la répercuter comme un choix de
@@ -344,6 +434,21 @@ public sealed partial class InstanceRowViewModel : ObservableObject
 
         IsQualityPending = true;
         QualityChanged?.Invoke(this, this);
+    }
+
+    partial void OnZoomChanged(GameZoom? value)
+    {
+        OnPropertyChanged(nameof(ZoomLabel));
+        OnPropertyChanged(nameof(HasOwnZoom));
+        OnPropertyChanged(nameof(ZoomWaitsForReopen));
+
+        if (_applying)
+        {
+            return;
+        }
+
+        IsZoomPending = true;
+        ZoomChanged?.Invoke(this, this);
     }
 
     partial void OnIsTabbedChanged(bool value)

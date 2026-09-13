@@ -355,6 +355,87 @@
                         </Popup>
                       </Grid>
 
+                      <!-- La distance de ce compte, à côté de son palier et
+                           sur le même modèle. Muette tant qu'elle suit la
+                           commune. Le réglage n'agissant qu'à l'ouverture, un
+                           point signale la fenêtre qui tourne encore avec
+                           l'ancienne. -->
+                      <Grid Margin="0,0,4,0" VerticalAlignment="Center">
+                        <ToggleButton x:Name="Distance" AllowDrop="False" Padding="6,3"
+                                      FontSize="{StaticResource FontSmall}"
+                                      ToolTip="{loc:T InstanceZoomTip}">
+                          <ToggleButton.Style>
+                            <Style TargetType="ToggleButton" BasedOn="{StaticResource OutlineToggle}">
+                              <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasOwnZoom}" Value="False">
+                                  <Setter Property="Opacity" Value="0.5" />
+                                </DataTrigger>
+                              </Style.Triggers>
+                            </Style>
+                          </ToggleButton.Style>
+
+                          <StackPanel Orientation="Horizontal">
+                            <!-- Une flèche à deux têtes : l'écartement, donc
+                                 la quantité de terrain que la fenêtre montre. -->
+                            <Path Width="13" Height="13" Stretch="None" VerticalAlignment="Center"
+                                  Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.8"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  Data="M 1.5,6.5 H 11.5 M 4,4 L 1.5,6.5 L 4,9 M 9,4 L 11.5,6.5 L 9,9" />
+
+                            <TextBlock Text="{Binding ZoomLabel}" Margin="4,0,0,0"
+                                       VerticalAlignment="Center" TextWrapping="NoWrap"
+                                       Visibility="{Binding ZoomLabel,
+                                                    Converter={StaticResource EmptyToVisibility},
+                                                    ConverterParameter=inverse}" />
+                          </StackPanel>
+                        </ToggleButton>
+
+                        <!-- Le point qui dit que la fenêtre ouverte tourne
+                             encore avec l'ancienne distance. Sans lui, le
+                             réglage paraissait mort. -->
+                        <Ellipse Width="6" Height="6" Margin="0,-2,-2,0"
+                                 HorizontalAlignment="Right" VerticalAlignment="Top"
+                                 Fill="{DynamicResource WarningBrush}"
+                                 ToolTip="{loc:T InstanceZoomWaitsForReopen}"
+                                 Visibility="{Binding ZoomWaitsForReopen,
+                                              Converter={StaticResource BoolToVisibility}}" />
+
+                        <Popup IsOpen="{Binding IsChecked, ElementName=Distance, Mode=TwoWay}" StaysOpen="False"
+                               Placement="Bottom" PlacementTarget="{Binding ElementName=Distance}"
+                               AllowsTransparency="True" PopupAnimation="Fade" HorizontalOffset="-110">
+                          <Border Background="{DynamicResource SurfaceBrush}"
+                                  BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                  CornerRadius="{StaticResource Radius}" Margin="0,4,0,0" Padding="4">
+                            <StackPanel MinWidth="170">
+                              <Button Style="{StaticResource QuietButton}" Padding="8,5"
+                                      HorizontalContentAlignment="Left"
+                                      Content="{loc:T QualityFollowShared}"
+                                      Command="{Binding FollowSharedZoomCommand}" />
+                              <Button Style="{StaticResource QuietButton}" Padding="8,5"
+                                      HorizontalContentAlignment="Left"
+                                      Content="{loc:T ZoomVeryFar}"
+                                      Command="{Binding PickZoomCommand}"
+                                      CommandParameter="{x:Static s:GameZoom.Widest}" />
+                              <Button Style="{StaticResource QuietButton}" Padding="8,5"
+                                      HorizontalContentAlignment="Left"
+                                      Content="{loc:T ZoomFar}"
+                                      Command="{Binding PickZoomCommand}"
+                                      CommandParameter="{x:Static s:GameZoom.Wide}" />
+                              <Button Style="{StaticResource QuietButton}" Padding="8,5"
+                                      HorizontalContentAlignment="Left"
+                                      Content="{loc:T ZoomNormal}"
+                                      Command="{Binding PickZoomCommand}"
+                                      CommandParameter="{x:Static s:GameZoom.Normal}" />
+                              <Button Style="{StaticResource QuietButton}" Padding="8,5"
+                                      HorizontalContentAlignment="Left"
+                                      Content="{loc:T ZoomClose}"
+                                      Command="{Binding PickZoomCommand}"
+                                      CommandParameter="{x:Static s:GameZoom.Close}" />
+                            </StackPanel>
+                          </Border>
+                        </Popup>
+                      </Grid>
+
                       <!-- Un triangle plein : la seule icône que personne
                            n'a besoin d'apprendre. -->
                       <Button Style="{StaticResource IconButton}" AllowDrop="False"

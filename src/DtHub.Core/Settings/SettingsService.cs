@@ -628,6 +628,55 @@ public sealed class SettingsService : IDisposable
             cancellationToken);
 
     /// <summary>
+    /// La distance qui s'applique à chaque compte, la sienne s'il en a une,
+    /// sinon la commune.
+    ///
+    /// Même forme que <see cref="GetInstanceQualitiesAsync"/>, et pour la même
+    /// raison : la règle est résolue ici, une fois, et le lanceur n'a plus qu'à
+    /// lire. Il n'y a pas de troisième source, un profil de lancement recopiant
+    /// ses valeurs dans le réglage commun avant le lancement.
+    /// </summary>
+    public async Task<IReadOnlyDictionary<string, GameZoom>> GetInstanceZoomsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
+
+        Dictionary<string, GameZoom> zooms = new(StringComparer.Ordinal);
+
+        foreach (var instance in settings.Instances)
+        {
+            zooms[instance.Key] = instance.GameZoom ?? settings.GameZoom;
+        }
+
+        return zooms;
+    }
+
+    /// <summary>
+    /// Donne sa propre distance à un compte, ou la rend au réglage commun avec
+    /// <c>null</c>.
+    /// </summary>
+    public Task SetInstanceZoomAsync(
+        string key,
+        GameZoom? zoom,
+        CancellationToken cancellationToken = default) =>
+        UpdateIfChangedAsync(
+            settings =>
+            {
+                var instance = settings.Instances
+                    .FirstOrDefault(i => string.Equals(i.Key, key, StringComparison.Ordinal));
+
+                if (instance is null || instance.GameZoom == zoom)
+                {
+                    return false;
+                }
+
+                instance.GameZoom = zoom;
+
+                return true;
+            },
+            cancellationToken);
+
+    /// <summary>
     /// Ajoute un temps de jeu au compte, pour aujourd'hui.
     ///
     /// Rien n'est écrit pour une session d'une poignée de secondes : ouvrir
@@ -901,6 +950,7 @@ public sealed class SettingsService : IDisposable
                     IsManaged = i.IsManaged,
                     IsTabbed = i.IsTabbed,
                     Quality = i.Quality,
+                    Zoom = i.GameZoom,
                     PlayedThisWeek = PlaytimeLog.Week(i.Playtime, DateOnly.FromDateTime(DateTime.Now)),
                     IsDeviceConnected = live.Contains(i.Key),
                 })];

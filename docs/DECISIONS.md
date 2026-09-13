@@ -8238,3 +8238,39 @@ sur quel port il écoute. C'était un raisonnement, pas une mesure, et il servai
 retaper un code. Le commentaire est corrigé en même temps que le comportement :
 le laisser aurait suffi à faire refaire le même raisonnement au prochain
 lecteur.
+
+## D148 - La distance par compte, et l'asymétrie qu'elle rendait visible
+
+**Date** : 2026-09-13
+
+Le palier de qualité se règle par compte depuis la 0.3.0 ; la distance dans le
+jeu ne se réglait que pour tout le monde. La demande était d'aligner les deux, et
+le chemin existait en entier : il n'y avait qu'à le suivre.
+
+**Le motif n'est pourtant pas le même, et c'est ce qui compte.** Le palier
+économise : ce qu'on retire aux mules est du processeur, de la bande passante,
+de la chaleur et de la batterie en moins. La distance ne fait économiser rien du
+tout. Elle décide de ce qu'on voit : du terrain sur le compte qu'on joue, et peu
+importe sur celles dont on ne regarde que la barre de vie.
+
+**La question qui a été posée, et sa réponse.** Le réglage commun referme et
+rouvre toutes les fenêtres dès qu'on le change, parce qu'un réglage qui ne
+montre rien passe pour mort. Le palier par compte, lui, attend la prochaine
+ouverture. Les deux frères ne se comportaient donc pas pareil, et la distance
+par compte devait choisir son camp.
+
+Elle attend, et le dit. Rouvrir passe par `RestartAsync`, qui arrête franchement
+le jeu sur le téléphone : le personnage est déconnecté. C'est sans conséquence
+sur une mule et brutal sur le compte qu'on joue, c'est à dire précisément celui
+dont on règle la distance. Un point orange sur la ligne annonce que la fenêtre
+ouverte tourne encore avec l'ancienne distance, ce qui répond à la plainte du
+réglage mort sans faire payer personne.
+
+**Le lanceur retient la distance de chaque fenêtre**, `_zoomsInUse`, parce
+qu'elle est figée à l'ouverture : scrcpy la reçoit en argument de démarrage. Sans
+ce relevé, comparer le choix à ce qui tourne était impossible, et la mention
+n'aurait pas su quand paraître.
+
+**Ce qui n'a pas été fait.** Le réglage commun n'a pas été touché. Il marche,
+il a été voulu ainsi, et l'asymétrie qu'il crée est désormais assumée et visible
+à l'écran, ce qui était le vrai défaut.

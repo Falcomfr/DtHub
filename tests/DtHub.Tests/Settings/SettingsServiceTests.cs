@@ -570,6 +570,68 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task La_distance_d_un_compte_l_emporte_et_se_relit()
+    {
+        await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
+        await _service.SetZoomAsync(GameZoom.Close, CancellationToken.None);
+
+        var mule = Instance(999).Key;
+
+        await _service.SetInstanceZoomAsync(mule, GameZoom.Widest, CancellationToken.None);
+        _service.Invalidate();
+
+        var zooms = await _service.GetInstanceZoomsAsync(CancellationToken.None);
+
+        Assert.Equal(GameZoom.Widest, zooms[mule]);
+        Assert.Equal(GameZoom.Close, zooms[Instance(0).Key]);
+    }
+
+    [Fact]
+    public async Task Rendre_un_compte_au_commun_efface_sa_distance()
+    {
+        await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
+
+        var mule = Instance(999).Key;
+
+        await _service.SetInstanceZoomAsync(mule, GameZoom.Widest, CancellationToken.None);
+        await _service.SetInstanceZoomAsync(mule, null, CancellationToken.None);
+
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.Null(Assert.Single(settings.Instances).GameZoom);
+    }
+
+    [Fact]
+    public async Task La_distance_d_un_compte_survit_a_un_rebalayage()
+    {
+        // Même exigence que pour le palier : la redécouverte ne recopie que ce
+        // que le téléphone rapporte, et ce que l'utilisateur a choisi doit la
+        // traverser sans une égratignure.
+        await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
+
+        var mule = Instance(999).Key;
+
+        await _service.SetInstanceZoomAsync(mule, GameZoom.Widest, CancellationToken.None);
+
+        await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
+
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.Equal(GameZoom.Widest, Assert.Single(settings.Instances).GameZoom);
+    }
+
+    [Fact]
+    public async Task Un_compte_sans_distance_propre_suit_le_commun()
+    {
+        await _service.MergeInstancesAsync([Instance(0)], CancellationToken.None);
+        await _service.SetZoomAsync(GameZoom.Wide, CancellationToken.None);
+
+        var zooms = await _service.GetInstanceZoomsAsync(CancellationToken.None);
+
+        Assert.Equal(GameZoom.Wide, zooms[Instance(0).Key]);
+    }
+
+    [Fact]
     public async Task Poser_deux_fois_le_meme_palier_n_ecrit_pas_le_fichier()
     {
         await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);

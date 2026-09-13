@@ -50,6 +50,12 @@ public sealed record DofusInstance
     /// </summary>
     public StreamQuality? Quality { get; init; }
 
+    /// <summary>
+    /// Distance dans le jeu propre à ce compte, ou <c>null</c> pour suivre le
+    /// réglage commun.
+    /// </summary>
+    public GameZoom? Zoom { get; init; }
+
     /// <summary>Temps de jeu de la semaine, en secondes.</summary>
     public int PlayedThisWeek { get; init; }
 

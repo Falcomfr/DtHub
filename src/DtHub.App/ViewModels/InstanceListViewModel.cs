@@ -893,6 +893,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 row.ManagedChanged += OnManagedChanged;
                 row.TabbedChanged += OnTabbedChanged;
                 row.QualityChanged += OnQualityChanged;
+                row.ZoomChanged += OnZoomChanged;
                 row.NameChanged += OnNameChanged;
                 Rows.Add(row);
             }
@@ -902,6 +903,11 @@ public sealed partial class InstanceListViewModel : ObservableObject
             }
 
             row.Device = _devices.GetValueOrDefault(instance.DeviceId);
+
+            // La distance avec laquelle sa fenêtre tourne, pour qu'un réglage
+            // qui attend la prochaine ouverture le dise au lieu de paraître
+            // mort. Rien à montrer quand la fenêtre est fermée.
+            row.RunningZoom = row.IsRunning ? _launcher.ZoomInUse(instance.Key) : null;
         }
 
         // Les lignes déjà présentes ne bougeaient pas : l'ordre enregistré ne
@@ -1221,6 +1227,28 @@ public sealed partial class InstanceListViewModel : ObservableObject
         finally
         {
             row.IsTabbedPending = false;
+        }
+    }
+
+    private async void OnZoomChanged(object? sender, InstanceRowViewModel row)
+    {
+        ArgumentNullException.ThrowIfNull(row);
+
+        try
+        {
+            await _settings.SetInstanceZoomAsync(row.Key, row.Zoom).ConfigureAwait(true);
+
+            // Même piège que pour le palier : sans cela le balayage suivant
+            // rendrait à la ligne son ancienne distance.
+            _instances = null;
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Problem = exception.Message;
+        }
+        finally
+        {
+            row.IsZoomPending = false;
         }
     }
 

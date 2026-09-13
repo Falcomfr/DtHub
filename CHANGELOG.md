@@ -12,6 +12,19 @@ French.
 
 ## [Unreleased]
 
+### Added
+
+- **The distance in the game is now set per account, like the quality tier.**
+  You want ground on the account you play, and the mules whose health bar is
+  all you watch do not need it. An account follows the shared distance until it
+  is given one of its own.
+
+  Changing it does not reopen the window. The shared setting does, because a
+  setting that shows nothing looks dead, but reopening force-stops the game and
+  disconnects the character, which is not a price to pay on the account you are
+  playing. A dot on the account instead says the open window is still running
+  with the previous distance.
+
 ### Fixed
 
 - **Pairing a new phone could become impossible, and the message sent you the

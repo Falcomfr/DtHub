@@ -237,6 +237,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private readonly Dictionary<string, DofusInstance> _launched = new(StringComparer.Ordinal);
 
+    /// <summary>
+    /// La distance avec laquelle chaque fenêtre a été ouverte.
+    ///
+    /// Elle est figée pour toute la session, scrcpy la recevant en argument de
+    /// démarrage. La liste des comptes s'en sert pour dire qu'une fenêtre
+    /// tourne encore avec l'ancienne, plutôt que de laisser croire au réglage
+    /// mort.
+    /// </summary>
+    private readonly Dictionary<string, GameZoom> _zoomsInUse = new(StringComparer.Ordinal);
+
     /// <summary>Tentatives de reprise par instance, et heure de la dernière.</summary>
     private readonly Dictionary<string, (int Count, DateTimeOffset Last)> _recoveries =
         new(StringComparer.Ordinal);
@@ -1359,6 +1369,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
         List<string> problems = [];
         // Une lecture pour tout le lancement : la table ne change pas pendant
         // qu'on ouvre les fenêtres.
+        var zooms = await _settings
+            .GetInstanceZoomsAsync(cancellationToken)
+            .ConfigureAwait(false);
+
         var qualities = await _settings
             .GetInstanceQualitiesAsync(cancellationToken)
             .ConfigureAwait(false);
@@ -1406,7 +1420,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // Le palier du compte, ou le commun s'il n'en a pas choisi.
             var quality = qualities.TryGetValue(instance.Key, out var own) ? own : _quality;
 
-            var display = WithDisplayFor(options, placement, stored, quality) with
+            // La distance du compte, ou la commune s'il n'en a pas choisi.
+            var zoom = zooms.TryGetValue(instance.Key, out var ownZoom) ? ownZoom : _zoom;
+
+            _zoomsInUse[instance.Key] = zoom;
+
+            var display = WithDisplayFor(options, placement, stored, quality, zoom) with
             {
                 // Propre à l'appareil : deux téléphones sur des bandes
                 // différentes n'ont pas besoin du même tampon.
@@ -2120,6 +2139,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// <summary>Vrai si l'instance a une fenêtre ouverte.</summary>
     public bool IsOpen(DofusInstance instance) => FindSession(instance) is not null;
 
+    /// <summary>
+    /// La distance avec laquelle la fenêtre de ce compte a été ouverte, ou
+    /// <c>null</c> s'il n'en a pas.
+    /// </summary>
+    public GameZoom? ZoomInUse(string key) =>
+        _zoomsInUse.TryGetValue(key, out var zoom) ? zoom : null;
+
     public ScreenRect? WorkArea() => _windows.WorkArea();
 
 
@@ -2307,7 +2333,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
         ScrcpyOptions options,
         ScrcpyWindowPlacement? placement,
         StoredWindowRect? remembered,
-        QualityProfile quality)
+        QualityProfile quality,
+        GameZoom zoom)
     {
         if (placement is not { Height: > 0 } window
             || _windows.MonitorBoundsFor(remembered) is not { } screen)
@@ -2328,7 +2355,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         {
             VirtualDisplayWidth = width,
             VirtualDisplayHeight = height,
-            VirtualDisplayDpi = ZoomProfile.DpiFor(height, _zoom),
+            VirtualDisplayDpi = ZoomProfile.DpiFor(height, zoom),
             VideoBitrateKbps = quality.BitrateFor(width, height),
 
             // La cadence aussi, et c'est elle qu'on oublie : la définition et

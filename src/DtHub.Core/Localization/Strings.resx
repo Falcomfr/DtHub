@@ -535,6 +535,12 @@ Cross the tests: another device on this port, and this phone on another PC. You 
   <data name="InstanceQualityTip" xml:space="preserve">
     <value>Quality for this account alone. A main account deserves more than the mules that follow it, and what you spare them is CPU, bandwidth, heat and battery saved.</value>
   </data>
+  <data name="InstanceZoomTip" xml:space="preserve">
+    <value>The distance for this account alone. It acts on the screen density Android sees: at the same window size, the game shows more or less ground.</value>
+  </data>
+  <data name="InstanceZoomWaitsForReopen" xml:space="preserve">
+    <value>Applies the next time this window opens</value>
+  </data>
   <data name="FluidityDiagnostics" xml:space="preserve">
     <value>Record the frame rate in the log</value>
   </data>
