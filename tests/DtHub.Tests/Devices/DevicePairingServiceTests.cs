@@ -12,6 +12,11 @@ public class DevicePairingServiceTests
         adb-MATERIEL123-nJyLWZ	_adb-tls-connect._tcp	192.168.1.25:37845
         """;
 
+    private const string ConnectAilleurs = """
+        List of discovered mdns services
+        adb-MATERIEL123-nJyLWZ	_adb-tls-connect._tcp	192.168.1.16:37845
+        """;
+
     /// <summary>Attente instantanée : les tests ne doivent rien attendre réellement.</summary>
     private static Task NoDelay(TimeSpan _, CancellationToken __) => Task.CompletedTask;
 
@@ -133,6 +138,33 @@ public class DevicePairingServiceTests
 
         Assert.Empty(result.Refused);
         Assert.Empty(adb.ConnectAttempts);
+    }
+
+    [Fact]
+    public async Task Une_adresse_deja_sondee_ne_l_est_pas_a_chaque_tour()
+    {
+        // A silent address costs the probe's whole deadline, measured at two
+        // seconds against a phone that drops instead of refusing. The loop
+        // polls until its own deadline, so retrying the same dead address on
+        // every turn buys nothing and stretches the wait.
+        var adb = new FakeAdbClient();
+
+        for (var turn = 0; turn < 6; turn++)
+        {
+            adb.MdnsOutputs.Enqueue(ConnectAilleurs);
+        }
+
+        var probe = new FakeAddressProbe();
+
+        var service = new DevicePairingService(adb, NoDelay, probe)
+        {
+            ConnectDiscoveryTimeout = TimeSpan.FromMilliseconds(30),
+            DiscoveryPollInterval = TimeSpan.Zero,
+        };
+
+        await service.WaitForConnectServiceAsync("192.168.1.23", CancellationToken.None);
+
+        Assert.Equal("192.168.1.23:37845", Assert.Single(probe.Probed));
     }
 
     [Fact]

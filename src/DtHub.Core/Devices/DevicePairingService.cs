@@ -184,6 +184,13 @@ public sealed class DevicePairingService
     {
         var deadline = DateTimeOffset.UtcNow + ConnectDiscoveryTimeout;
 
+        // Ports already probed on this host, across the whole wait. A silent
+        // address costs the probe's entire deadline, measured at two seconds
+        // against a phone that drops packets instead of refusing them, and the
+        // answer will not change within one wait. Without this the loop paid
+        // that price again on every turn.
+        var tried = new HashSet<int>();
+
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -200,7 +207,7 @@ public sealed class DevicePairingService
                 return match;
             }
 
-            match = await PortAnsweringOnAsync(host, announced, cancellationToken).ConfigureAwait(false);
+            match = await PortAnsweringOnAsync(host, announced, tried, cancellationToken).ConfigureAwait(false);
 
             if (match is not null)
             {
@@ -222,9 +229,14 @@ public sealed class DevicePairingService
     ///
     /// Nothing without a probe: an address is measured, never guessed.
     /// </summary>
+    /// <param name="tried">
+    /// Ports already probed on this host, added to as we go. A port that stayed
+    /// silent once is not asked again within the same wait.
+    /// </param>
     private async Task<MdnsService?> PortAnsweringOnAsync(
         string host,
         IReadOnlyList<MdnsService> announced,
+        HashSet<int> tried,
         CancellationToken cancellationToken)
     {
         if (_probe is null)
@@ -234,6 +246,11 @@ public sealed class DevicePairingService
 
         foreach (var service in announced)
         {
+            if (!tried.Add(service.Port))
+            {
+                continue;
+            }
+
             if (await _probe.RespondsAsync(host, service.Port, cancellationToken).ConfigureAwait(false))
             {
                 return service with { Host = host };
