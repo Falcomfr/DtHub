@@ -13,6 +13,13 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
+// Sizes are read in physical pixels, as capture-window.ps1 and list-windows.ps1
+// already report them. Without this, Windows virtualises every rectangle to the
+// primary monitor's scale: a 1920x1177 tabbed frame on a 150 % display came out
+// as 1280x785, which cannot be compared with what the application itself logs,
+// and reads as a layout defect that does not exist.
+_ = Natives.SetProcessDpiAwarenessContext(Natives.PerMonitorAwareV2);
+
 var secondes = 0;
 
 if (args.Contains("--suivre", StringComparer.Ordinal))
@@ -335,4 +342,10 @@ internal static class Natives
 
     [DllImport("user32.dll")]
     internal static extern bool EnumChildWindows(nint parent, EnumProc rappel, nint parametre);
+
+    /// <summary>DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2.</summary>
+    internal static readonly nint PerMonitorAwareV2 = -4;
+
+    [DllImport("user32.dll")]
+    internal static extern bool SetProcessDpiAwarenessContext(nint contexte);
 }
