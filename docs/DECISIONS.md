@@ -8129,3 +8129,44 @@ chaîne vide et sur les espaces.
 vivant. Le titre disait le nom du compte ; il disait le nom que le compte portait
 au lancement. Personne ne l'avait remarqué parce que les deux coïncident presque
 toujours.
+
+## D147 - Une aide qui parlait d'un seul téléphone au nom de toute une marque
+
+**Date** : 2026-09-13
+
+La fiche Xiaomi affirmait trois choses. Une seule tenait.
+
+**La carte SIM : vraie, mais pas partout.** Le relevé existe, il est dans D135,
+et il est net : sur le Mi 9T Pro sous **Android 11**, `gsm.sim.state =
+ABSENT,ABSENT`, le réglage de sécurité ne s'activait pas, et il ne survivait pas
+à un redémarrage. Mais c'est le seul appareil où il a été pris. Sur le 13T Pro
+en **HyperOS 3, Android 16**, rien de tel n'a jamais été constaté. La fiche
+présentait une mesure faite sur un téléphone de 2019 comme le comportement de
+la marque.
+
+**Le compte Xiaomi : démenti par notre propre mesure.** D135 note que le compte
+« est bien connecté » sur l'appareil qui refusait quand même. Il ne bloquait
+donc rien, et l'aide le donnait pourtant comme une condition. La phrase est
+retirée.
+
+**L'écriture manuscrite au stylet : jamais mesurée nulle part.** Elle
+n'apparaît dans aucune décision. Relevée aujourd'hui sur le 13T Pro,
+`stylus_handwriting_enabled = 0` : déjà éteinte, sur le téléphone qui marche.
+Elle n'a jamais empêché quoi que ce soit ici. Le réglage n'existant qu'à partir
+d'Android 14, le conseil ne voulait rien dire sur l'appareil où le défaut avait
+été observé, qui est en Android 11. Il est gardé, mais borné à Android 14 et
+plus, et il est désormais présenté pour ce qu'il est : un dernier recours.
+
+**Le reste des fiches a été relu, et tient.** « Android 11 au minimum » pour le
+sans-fil et l'écran virtuel, « Version HyperOS, ou Version MIUI sur les modèles
+plus anciens », « selon la version installée » chez OnePlus et vivo, « sur les
+versions sans services Google » chez Honor, « selon la version de Funtouch ou
+d'OriginOS » : toutes bornent déjà leur portée. Une seule ne le faisait pas, la
+note de batterie qui nommait HyperOS seul là où MIUI se comporte pareil ; elle
+nomme les deux.
+
+**Le défaut de méthode.** Deux téléphones, dont un seul présente le symptôme, et
+la mesure faite sur celui-là devient la règle de la marque entière. C'est
+l'inverse du travers habituel du projet : ici ce n'est pas une absence
+d'information présentée comme un constat, c'est un constat unique présenté
+comme une généralité. Le remède est le même : dire où la mesure a été prise.

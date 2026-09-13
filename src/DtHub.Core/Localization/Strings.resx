@@ -1653,7 +1653,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>Settings  ›  Apps  ›  Manage apps  ›  DOFUS Touch  ›  Battery saver</value>
   </data>
   <data name="BrandXiaomiBatteryNote" xml:space="preserve">
-    <value>This brand is the most aggressive of the lot. Lock the game in the recents view as well, by pulling its card down: without that lock, HyperOS closes it after a few minutes whatever the battery setting says.</value>
+    <value>This brand is the most aggressive of the lot. Lock the game in the recents view as well, by pulling its card down: without that lock, MIUI and HyperOS alike close it after a few minutes whatever the battery setting says.</value>
   </data>
   <data name="BrandXiaomiBuildNumberPath" xml:space="preserve">
     <value>Settings  ›  About phone, or About tablet</value>
@@ -1665,7 +1665,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>Settings  ›  Additional settings  ›  Developer options</value>
   </data>
   <data name="BrandXiaomiWarning" xml:space="preserve">
-    <value>Turn on USB debugging (security settings): without it the picture shows but the mouse and keyboard do nothing. USB debugging sometimes also asks for a SIM card and a signed-in Xiaomi account. If clicks stay dead, turn off Stylus handwriting, right at the bottom of the developer options.</value>
+    <value>Turn on USB debugging (security settings): without it the picture shows but the mouse and keyboard do nothing. On older versions, measured on Android 11, it also needed a SIM card in the phone, and the setting did not survive a reboot without one. Nothing of the sort on HyperOS 3 and Android 16. If clicks stay dead on Android 14 or later, turn off Stylus handwriting, right at the bottom of the developer options.</value>
   </data>
   <data name="BrandSamsungName" xml:space="preserve">
     <value>Samsung</value>
@@ -1890,7 +1890,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>Through "Pair a new device", above.</value>
   </data>
   <data name="DeadInputFound" xml:space="preserve">
-    <value>This phone refuses clicks and keystrokes coming from the PC: its windows show the game and respond to nothing. The setting is called "USB debugging (Security settings)", and the help below says where. On Xiaomi it often needs a SIM card in the phone, and it does not survive a reboot without one.</value>
+    <value>This phone refuses clicks and keystrokes coming from the PC: its windows show the game and respond to nothing. The setting is called "USB debugging (Security settings)", and the help below says where. On older Xiaomi versions, measured on Android 11, it also needs a SIM card in the phone and does not survive a reboot without one.</value>
   </data>
   <data name="SimulatedMouse" xml:space="preserve">
     <value>Simulated physical mouse</value>

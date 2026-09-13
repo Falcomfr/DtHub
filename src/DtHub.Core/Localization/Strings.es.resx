@@ -1653,7 +1653,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Ajustes  ›  Aplicaciones  ›  Administrar aplicaciones  ›  DOFUS Touch  ›  Ahorro de batería</value>
   </data>
   <data name="BrandXiaomiBatteryNote" xml:space="preserve">
-    <value>Esta marca es la más agresiva de todas. Bloquee también el juego en la vista de aplicaciones recientes, tirando de su tarjeta hacia abajo: sin ese bloqueo, HyperOS lo cierra a los pocos minutos pese al ajuste de batería.</value>
+    <value>Esta marca es la más agresiva de todas. Bloquee también el juego en la vista de aplicaciones recientes, tirando de su tarjeta hacia abajo: sin ese bloqueo, tanto MIUI como HyperOS lo cierran a los pocos minutos pese al ajuste de batería.</value>
   </data>
   <data name="BrandXiaomiBuildNumberPath" xml:space="preserve">
     <value>Ajustes  ›  Información del teléfono, o de la tableta</value>
@@ -1665,7 +1665,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Ajustes  ›  Ajustes adicionales  ›  Opciones de desarrollador</value>
   </data>
   <data name="BrandXiaomiWarning" xml:space="preserve">
-    <value>Activa « Depuración USB (ajustes de seguridad) »: sin ella la imagen se ve pero el ratón y el teclado no hacen nada. La depuración USB pide a veces además una tarjeta SIM y una cuenta Xiaomi conectada. Si los clics siguen muertos, desactiva « Escritura a mano con lápiz », al final de las opciones de desarrollo.</value>
+    <value>Activa « Depuración USB (ajustes de seguridad) »: sin ella la imagen se ve pero el ratón y el teclado no hacen nada. En las versiones antiguas, medido en Android 11, hacía falta además una tarjeta SIM, y el ajuste no sobrevivía a un reinicio sin ella. Nada de eso en HyperOS 3 y Android 16. Si los clics siguen muertos en Android 14 o posterior, desactiva « Escritura a mano con lápiz », al final de las opciones de desarrollo.</value>
   </data>
   <data name="BrandSamsungName" xml:space="preserve">
     <value>Samsung</value>
@@ -1890,7 +1890,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Por «Vincular un nuevo dispositivo», arriba.</value>
   </data>
   <data name="DeadInputFound" xml:space="preserve">
-    <value>Este teléfono rechaza los clics y las teclas que vienen del PC: sus ventanas muestran el juego y no responden a nada. El ajuste se llama «Depuración USB (ajustes de seguridad)», y la ayuda de abajo dice dónde. En Xiaomi suele exigir una tarjeta SIM en el teléfono, y no sobrevive a un reinicio sin ella.</value>
+    <value>Este teléfono rechaza los clics y las teclas que vienen del PC: sus ventanas muestran el juego y no responden a nada. El ajuste se llama «Depuración USB (ajustes de seguridad)», y la ayuda de abajo dice dónde. En las versiones antiguas de Xiaomi, medido en Android 11, exige además una tarjeta SIM y no sobrevive a un reinicio sin ella.</value>
   </data>
   <data name="SimulatedMouse" xml:space="preserve">
     <value>Ratón físico simulado</value>
