@@ -697,8 +697,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         RememberSerials(discovery);
 
-        await RefreshHealthAsync(discovery, cancellationToken).ConfigureAwait(false);
-
+        // The health pass is deliberately not run here. It asks each phone six
+        // questions in turn, measured at 2.2 seconds for two devices and
+        // growing with every phone added, and it held the list back that long
+        // before anything could be shown. The caller now displays what
+        // discovery found, then awaits RefreshHealthAsync and fills the gauges
+        // and the warnings in. Readings are cached for a minute, so this is
+        // paid once and not on every sweep.
         return discovery;
     }
 
@@ -771,10 +776,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
     ///
     /// Le journal ne parle qu'au changement de palier. La même ligne répétée
     /// trois cents fois en dix minutes noierait le reste.
+    ///
+    /// Called after the list is on screen, never before: the questions it asks
+    /// each phone take seconds, and nothing it produces is needed to show which
+    /// phones are there.
     /// </summary>
-    private async Task RefreshHealthAsync(
+    public async Task RefreshHealthAsync(
         DeviceDiscoveryResult discovery,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(discovery);
 

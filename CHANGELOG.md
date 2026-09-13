@@ -39,6 +39,17 @@ French.
   code. Since an announcement can carry another device's address, a silence is
   now nobody's fault: only a refusal from an address that answers is reported.
 
+### Changed
+
+- **The phone list no longer waits on the health readings.** Each phone is
+  asked six questions in turn, thermal, battery, storage, Wi-Fi link and two
+  more, measured at 2.2 seconds for two devices and growing with every phone
+  added. The list used to wait on all of it before showing anything, although
+  none of those answers say which phones are there. They are now gathered once
+  the list is on screen, and the gauges and warnings fill in a moment later.
+  Measured at launch: the list appeared 1.83 seconds sooner, and later sweeps
+  are unaffected, the readings being cached for a minute.
+
 ## [0.3.0] - 2026-09-12
 
 ### Added

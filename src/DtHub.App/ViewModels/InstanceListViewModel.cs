@@ -448,57 +448,6 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
             var instances = _instances;
 
-            // Les incidents de la découverte d'appareils et ceux du balayage
-            // d'instances partagent le même bandeau : un profil illisible est
-            // aussi utile à savoir qu'un appareil injoignable.
-            var warnings = discovery.Warnings.Concat(_launcher.InstanceWarnings).ToList();
-
-            // Deux listes des mêmes faits : celle du bandeau, qui s'arrête
-            // au plus grave, et celle de la bulle, qui les porte tous.
-            List<string> everything = [.. warnings];
-
-            // Le bilan de chaque appareil s'affiche sous son nom, plus dans
-            // ce bandeau. Sauf pour un appareil qui n'a aucune ligne dans la
-            // liste : il n'a pas d'en-tête où loger son constat, et le perdre
-            // serait pire que de le mettre au mauvais endroit. Celui-là est
-            // nommé, puisque rien autour ne le nomme.
-            var homeless = _launcher.HealthByDevice
-                .Where(pair => !instances.Any(i => Carries(discovery, pair.Key, i.DeviceId)))
-                .Select(pair => pair.Value.Device is { Length: > 0 } named
-                    ? Strings.Format("NamedFinding", named, pair.Value.Text)
-                    : pair.Value.Text)
-                .ToList();
-
-            warnings.AddRange(homeless);
-            everything.AddRange(homeless);
-
-            ProblemIsSerious = _launcher.HealthIsSerious;
-
-            // La reprise d'une fenêtre perdue se dit au même endroit, et pour
-            // la même raison : elle explique ce qui vient de se passer.
-            if (_launcher.RecoveryNotice is { Length: > 0 } recovery)
-            {
-                warnings.Add(recovery);
-            }
-
-            if (_launcher.RecoveryNotice is { Length: > 0 } sameRecovery)
-            {
-                everything.Add(sameRecovery);
-            }
-
-            // Le jeu resté ouvert sur le téléphone se dit là aussi : sa fenêtre
-            // a disparu, et plus rien d'autre à l'écran ne peut le signaler.
-            if (_launcher.StopFailedNotice is { Length: > 0 } left)
-            {
-                warnings.Add(left);
-                everything.Add(left);
-            }
-
-            Problem = warnings.Count > 0 ? string.Join(" ", warnings) : null;
-            ProblemDetail = everything.Count > 0
-                ? string.Join(Environment.NewLine, everything)
-                : null;
-
             // Seules les instances des téléphones joignables ont une ligne.
             // Les autres appareils ne disparaissent pas pour autant : ils
             // sont rappelés à part, avec la raison.
@@ -515,12 +464,6 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 }
 
                 view.Update(device);
-                view.SetBattery(_launcher.Batteries.GetValueOrDefault(device.Serial));
-
-                var found = _launcher.HealthByDevice.GetValueOrDefault(device.Serial);
-
-                view.SetProblems(found?.Text, found?.Serious ?? false);
-                view.SetNeedsPairing(_launcher.NeedsPairing.Contains(device.Id));
             }
 
             foreach (var gone in _devices.Keys
@@ -552,6 +495,21 @@ public sealed partial class InstanceListViewModel : ObservableObject
             await SyncProfilesAsync(cancellationToken).ConfigureAwait(true);
 
             RequestIcons();
+
+            // What discovery found is on screen now. The readings kept from the
+            // previous sweep are applied straight away, so a phone that already
+            // had a gauge does not lose it while the new one is fetched.
+            ApplyHealth(discovery, instances);
+
+            // Then the slow pass, off the critical path. It asks each phone six
+            // questions in turn, measured at 2.2 seconds for two devices, and
+            // it used to run before any of the above: the list waited on it for
+            // nothing, since none of its answers say which phones are there.
+            // Awaiting here hands the dispatcher back, so the list is painted
+            // before the questions are asked.
+            await _launcher.RefreshHealthAsync(discovery, cancellationToken).ConfigureAwait(true);
+
+            ApplyHealth(discovery, instances);
         }
         catch (AdbException exception)
         {
@@ -560,6 +518,82 @@ public sealed partial class InstanceListViewModel : ObservableObject
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    /// <summary>
+    /// Puts the health readings on screen: the banner, the bubble behind it,
+    /// and the gauge and findings under each phone.
+    ///
+    /// Called twice per sweep, once with whatever the previous pass left and
+    /// once with the fresh readings. The questions put to the phones take
+    /// seconds, and none of their answers say which phones are there, so the
+    /// list is shown first and this fills it in.
+    /// </summary>
+    private void ApplyHealth(
+        DeviceDiscoveryResult discovery,
+        IReadOnlyList<Core.Dofus.DofusInstance> instances)
+    {
+        // Les incidents de la découverte d'appareils et ceux du balayage
+        // d'instances partagent le même bandeau : un profil illisible est
+        // aussi utile à savoir qu'un appareil injoignable.
+        var warnings = discovery.Warnings.Concat(_launcher.InstanceWarnings).ToList();
+
+        // Deux listes des mêmes faits : celle du bandeau, qui s'arrête
+        // au plus grave, et celle de la bulle, qui les porte tous.
+        List<string> everything = [.. warnings];
+
+        // Le bilan de chaque appareil s'affiche sous son nom, plus dans
+        // ce bandeau. Sauf pour un appareil qui n'a aucune ligne dans la
+        // liste : il n'a pas d'en-tête où loger son constat, et le perdre
+        // serait pire que de le mettre au mauvais endroit. Celui-là est
+        // nommé, puisque rien autour ne le nomme.
+        var homeless = _launcher.HealthByDevice
+            .Where(pair => !instances.Any(i => Carries(discovery, pair.Key, i.DeviceId)))
+            .Select(pair => pair.Value.Device is { Length: > 0 } named
+                ? Strings.Format("NamedFinding", named, pair.Value.Text)
+                : pair.Value.Text)
+            .ToList();
+
+        warnings.AddRange(homeless);
+        everything.AddRange(homeless);
+
+        ProblemIsSerious = _launcher.HealthIsSerious;
+
+        // La reprise d'une fenêtre perdue se dit au même endroit, et pour
+        // la même raison : elle explique ce qui vient de se passer.
+        if (_launcher.RecoveryNotice is { Length: > 0 } recovery)
+        {
+            warnings.Add(recovery);
+            everything.Add(recovery);
+        }
+
+        // Le jeu resté ouvert sur le téléphone se dit là aussi : sa fenêtre
+        // a disparu, et plus rien d'autre à l'écran ne peut le signaler.
+        if (_launcher.StopFailedNotice is { Length: > 0 } left)
+        {
+            warnings.Add(left);
+            everything.Add(left);
+        }
+
+        Problem = warnings.Count > 0 ? string.Join(" ", warnings) : null;
+        ProblemDetail = everything.Count > 0
+            ? string.Join(Environment.NewLine, everything)
+            : null;
+
+        foreach (var device in discovery.Devices)
+        {
+            if (!_devices.TryGetValue(device.Id, out var view))
+            {
+                continue;
+            }
+
+            view.SetBattery(_launcher.Batteries.GetValueOrDefault(device.Serial));
+
+            var found = _launcher.HealthByDevice.GetValueOrDefault(device.Serial);
+
+            view.SetProblems(found?.Text, found?.Serious ?? false);
+            view.SetNeedsPairing(_launcher.NeedsPairing.Contains(device.Id));
         }
     }
 
