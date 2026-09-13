@@ -219,10 +219,13 @@ Report a defect as an [issue](https://github.com/Falcomfr/DtHub/issues/new/choos
 the app can compose a report with anything identifying you already redacted.
 Report a vulnerability privately, see [SECURITY.md](SECURITY.md).
 
-**The repository is written in French**: comments, documents, commit messages
-and issue templates. Identifiers are in English. Conventions are set out in
-[CONTRIBUTING.md](CONTRIBUTING.md) and `AGENTS.md`, both in French. This page is
-in English because it is the one a stranger reads first.
+**The repository is written in English**: documents, comments, commit messages
+and issue templates. Three things stay French and are not oversights: the
+commits made before 2026-09-12, which cannot change without rewriting a public
+history, the test method names, which are a specification read in test output,
+and the log messages, which are a diagnostic tool for whoever runs the
+application. Conventions are set out in [CONTRIBUTING.md](CONTRIBUTING.md) and
+`AGENTS.md`.
 
 ## Licences
 

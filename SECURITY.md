@@ -1,45 +1,45 @@
-# Signaler une faille
+# Report a vulnerability
 
-DT Hub télécharge deux outils tiers, se met à jour depuis GitHub, et pilote un
-téléphone par ADB. Si vous trouvez quelque chose qui touche à la sécurité,
-merci de le dire en privé plutôt que dans une issue publique.
+DT Hub downloads two third-party tools, updates itself from GitHub, and
+drives a phone over ADB. If you find something that affects security,
+please report it privately rather than in a public issue.
 
-**Comment.** Ouvrez un avis de sécurité privé sur le dépôt :
+**How.** Open a private security advisory on the repository:
 [Security > Report a vulnerability](https://github.com/Falcomfr/DtHub/security/advisories/new).
-GitHub le garde entre vous et moi jusqu'à ce qu'un correctif existe.
+GitHub keeps it between you and me until a fix exists.
 
-**Si ce formulaire ne s'ouvre pas**, c'est que le signalement privé n'est pas
-activé sur le dépôt. N'écrivez rien de technique en public pour autant : ouvrez
-une issue ordinaire disant seulement que vous avez trouvé quelque chose qui
-touche à la sécurité, sans le décrire, et j'ouvrirai le canal privé. Une
-politique de sécurité qui renvoie vers une porte fermée est pire que pas de
-politique du tout, d'où cette porte de secours.
+**If this form does not open**, private reporting is not enabled on the
+repository. Even so, do not write anything technical in public: open an
+ordinary issue saying only that you found something that affects
+security, without describing it, and I will open the private channel. A
+security policy that points to a closed door is worse than no policy at
+all, hence this fallback route.
 
-**Ce qui aide.** La version affichée par l'application, ce qui se passe, et ce
-qu'il faut faire pour le reproduire. Le rapport de diagnostic de l'application
-convient : il est déjà biffé de ce qui identifie.
+**What helps.** The version shown by the application, what happens, and
+what it takes to reproduce it. The application's diagnostic report is
+enough: it is already redacted of anything identifying.
 
-**Ce à quoi vous pouvez vous attendre.** Une réponse sous une semaine. DT Hub
-est écrit par une seule personne sur son temps libre : il n'y a ni astreinte,
-ni prime, ni promesse de délai de correction.
+**What you can expect.** A reply within a week. DT Hub is written by one
+person in their spare time: there is no on-call duty, no bug bounty, and
+no promised fix deadline.
 
-## Ce qui compte comme une faille ici
+## What counts as a vulnerability here
 
-- Un moyen de faire exécuter du code par DT Hub, ou de lui faire poser un
-  fichier qu'il n'a pas vérifié.
-- Un contournement des contrôles de mise en place : empreinte, taille, HTTPS.
-- Une donnée personnelle qui survit à la biffure du rapport de diagnostic, ou
-  qui atteint les journaux alors qu'elle ne le devrait pas. Les codes
-  d'appairage en font partie.
-- Une sortie du cloisonnement de la fenêtre des guides, qui ne doit jamais
-  quitter papycha.fr ni ouvrir autre chose que du HTTPS.
+- A way to make DT Hub execute code, or to make it place a file it has
+  not verified.
+- A bypass of the setup checks: hash, size, HTTPS.
+- Personal data that survives the diagnostic report's redaction, or that
+  reaches the logs when it should not. Pairing codes are included.
+- An escape from the sandboxing of the guides window, which must never
+  leave papycha.fr nor open anything other than HTTPS.
 
-## Ce qui n'en est pas une
+## What does not count as one
 
-- L'avertissement SmartScreen au premier lancement. Le binaire n'est pas signé
-  et `docs/CONFIANCE.md` explique pourquoi et ce qu'il faudrait pour y remédier.
-- Le fait que l'application interroge GitHub à chaque démarrage. C'est dit dans
-  le README, et rien n'est installé sans qu'on le demande.
-- Un antivirus qui s'inquiète d'un exécutable .NET auto-extractible non signé.
-  C'est attendu, c'est documenté, et la réponse n'est jamais d'ajouter une
+- The SmartScreen warning on first launch. The binary is not signed and
+  `docs/CONFIANCE.md` explains why, and what it would take to fix that.
+- The fact that the application queries GitHub on every startup. This is
+  stated in the README, and nothing is installed without being asked
+  for.
+- An antivirus that flags an unsigned, self-extracting .NET executable.
+  This is expected, it is documented, and the answer is never to add an
   exclusion.

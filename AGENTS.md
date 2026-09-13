@@ -1,299 +1,318 @@
 ﻿# AGENTS.md
 
-Guide destiné aux agents IA et aux contributeurs qui reprennent ce dépôt.
-Lis-le en entier avant de modifier quoi que ce soit.
+Guide for AI agents and contributors taking over this repository.
+Read it in full before changing anything.
 
-## Ce qu'est DT Hub
+## What DT Hub is
 
-Une application Windows qui ouvre plusieurs comptes DOFUS Touch côte à côte,
-chacun dans sa fenêtre, depuis de vrais téléphones Android. Ce n'est pas un
-émulateur : le jeu tourne sur le téléphone, DT Hub crée l'affichage, lance le
-jeu, organise les fenêtres et transmet les entrées.
+A Windows application that opens several DOFUS Touch accounts side by
+side, each in its own window, from real Android phones. It is not an
+emulator: the game runs on the phone, DT Hub creates the display,
+launches the game, arranges the windows and forwards the input.
 
-Chaque compte vit sur un profil Android différent du téléphone : le profil
-principal, et des profils qui lui sont **rattachés**, du type Applications
-dupliquées, profil professionnel, Shelter ou Island. DT Hub trouve toutes les
-installations du jeu et en ouvre une par profil.
+Each account lives on a different Android profile of the phone: the
+main profile, and profiles **attached** to it, such as duplicated
+apps, work profile, Shelter or Island. DT Hub finds every installation
+of the game and opens one per profile.
 
-Le rattachement n'est pas un détail de vocabulaire, il décide de tout. Un
-profil rattaché est visible dès que son parent l'est, donc il peut porter une
-fenêtre pendant que les autres comptes sont ouverts. Un **utilisateur complet**,
-ce que sont Second Space et ce que rendait `pm create-user` employé seul, ne le
-peut pas : mesuré sur un Xiaomi 23078PND5G sous Android 16, il remplace l'écran
-au lieu de s'ouvrir à côté. Second Space ne convient donc pas, contrairement à
-ce que ce document affirmait.
+Attachment is not a detail of vocabulary, it decides everything. An
+attached profile is visible as soon as its parent is, so it can carry
+a window while the other accounts are open. A **full user**, which is
+what Second Space is and what `pm create-user` run alone produces,
+cannot do this: measured on a Xiaomi 23078PND5G running Android 16, it
+replaces the screen instead of opening beside it. Second Space is
+therefore not suitable, contrary to what this document used to state.
 
-Le téléphone plafonne les deux voies à **un profil de chaque genre** par compte
-principal, soit trois fenêtres au maximum : le principal, un clone, un profil
-géré. Voir `AndroidUserHosting` pour la mesure et son détail.
+The phone caps both routes at **one profile of each kind** per main
+account, that is three windows at most: the main one, a clone, a
+managed profile. See `AndroidUserHosting` for the measurement and its
+detail.
 
-## Le fonctionnement, en deux cas
+## How it works, in two cases
 
-**Premier lancement.** Une fenêtre unique montre les téléphones connectés et,
-sous chacun, les instances du jeu trouvées. L'utilisateur coche, valide, et la
-question n'est plus jamais posée. S'il n'y a aucun téléphone, la fenêtre guide
-l'association Wi-Fi et se met à jour toute seule ; il n'y a pas de bouton
-« ajouter un appareil », brancher un câble suffit.
+**First launch.** A single window shows the connected phones and,
+under each one, the game instances found. The user ticks, confirms,
+and the question is never asked again. If there is no phone at all,
+the window guides the Wi-Fi pairing and updates itself on its own;
+there is no "add a device" button, plugging in a cable is enough.
 
-**Ensuite.** Les instances cochées s'ouvrent directement. Un configurateur
-flottant se pose dans un coin libre, et `Ctrl+P` l'affiche ou le masque. Il a
-trois onglets : Appareils, Fenêtres, Raccourcis. Rien d'autre n'existe.
+**After that.** The ticked instances open directly. A floating
+configurator settles into a free corner, and `Ctrl+P` shows or hides
+it. It has three tabs: Devices, Windows, Shortcuts. Nothing else
+exists.
 
-## Environnement de développement
+## Development environment
 
-Le dépôt vit sur le disque Windows, à `C:\Dev\DTHub`. WPF ne se compile et ne
-s'exécute que sous Windows. Depuis WSL, le chemin est `/mnt/c/Dev/DTHub` et un
-lien pratique existe à `~/dev/DT Hub`.
+The repository lives on the Windows disk, at `C:\Dev\DTHub`. WPF only
+compiles and runs on Windows. From WSL, the path is `/mnt/c/Dev/DTHub`
+and a handy link exists at `~/dev/DT Hub`.
 
-Depuis WSL, appelle le SDK Windows par interopérabilité : `dotnet.exe`, jamais
-`dotnet`. Place-toi dans un répertoire sous `/mnt/c` avant l'appel, sinon le
-répertoire courant ne se traduit pas côté Windows.
+From WSL, call the Windows SDK through interoperability: `dotnet.exe`,
+never `dotnet`. Move to a directory under `/mnt/c` before the call,
+otherwise the current directory does not translate on the Windows
+side.
 
-Prérequis : .NET SDK 10, Git, GitHub CLI. `winget` sert à les installer.
+Prerequisites: .NET SDK 10, Git, GitHub CLI. `winget` is used to
+install them.
 
-## Commandes
+## Commands
 
 ```bash
-dotnet.exe build DtHub.slnx                 # compilation complète
-dotnet.exe test  DtHub.slnx                 # tests unitaires
-dotnet.exe run --project src/DtHub.App      # lancer l'application
-# Couverture de code, à la demande. Le paquet coverlet est référencé pour cela.
-# Attention à la lecture : trente-six pour cent des lignes mesurées sont
-# engendrées par [GeneratedRegex] et tirent le chiffre vers le bas, et
-# DtHub.App n'est pas référencé par le projet d'épreuves, donc il n'y figure
-# pas du tout.
+dotnet.exe build DtHub.slnx                 # full build
+dotnet.exe test  DtHub.slnx                 # unit tests
+dotnet.exe run --project src/DtHub.App      # run the application
+# Code coverage, on demand. The coverlet package is referenced for this.
+# Read the figure with care: thirty-six percent of the measured lines are
+# generated by [GeneratedRegex] and pull the number down, and DtHub.App is
+# not referenced by the test project, so it does not appear there at all.
 dotnet.exe test tests/DtHub.Tests/DtHub.Tests.csproj -c Release \
   --collect:"XPlat Code Coverage" --results-directory "$TEMP/dthub-cov"
 
-python3 build/make-icon.py                  # régénérer assets/app.ico
-python3 build/extract-successes.py           # relever la carte des succès de papycha
+python3 build/make-icon.py                  # regenerate assets/app.ico
+python3 build/extract-successes.py           # collect papycha's achievement map
 
-# Vérifier que le site se lit encore comme l'application le suppose. Rend 1 en
-# cas d'écart avec build/sonde-papycha/reference.json. À lancer avant de livrer.
+# Check that the site still reads as the application assumes. Returns 1 when
+# it differs from build/sonde-papycha/reference.json. Run it before shipping.
 dotnet.exe run --project build/sonde-papycha
-dotnet.exe run --project build/sonde-papycha -- --benir   # rebénir le relevé
+dotnet.exe run --project build/sonde-papycha -- --benir   # accept the new reading
 
-# Ce que le pont retient comme étapes, sur les 782 guides. Elle ne porte pas la
-# règle : elle découpe le bloc de quest-bridge.js et l'exécute tel quel, si bien
-# que ses nombres sont ceux que la fenêtre affichera. Node est un outil de
-# développement, l'application n'en dépend pas.
+# What the bridge keeps as steps, across the 782 guides. It does not carry the
+# rule: it cuts the block out of quest-bridge.js and runs it as it is, so its
+# numbers are the ones the window will show. Node is a development tool, the
+# application does not depend on it.
 node build/sonde-papycha/audit-etapes.mjs
-node build/sonde-papycha/audit-etapes.mjs "découverte d'un destin"   # une quête en particulier
+node build/sonde-papycha/audit-etapes.mjs "découverte d'un destin"   # one quest only
 
-# Ce que l'application propose comme quête voisine, comparé au bloc de
-# progression que le site publie en pied d'article. Diagnostic, sans relevé de
-# référence : elle interroge le site à chaque fois.
+# What the application offers as a neighbouring quest, against the progression
+# block the site publishes at the foot of an article. Diagnostic, with no
+# reference reading: it queries the site every time.
 dotnet.exe run --project build/sonde-voisines
-dotnet.exe run --project build/sonde-voisines -- --lister     # nommer les écarts
-dotnet.exe run --project build/sonde-voisines -- "chevalier"  # une quête en particulier
+dotnet.exe run --project build/sonde-voisines -- --lister     # name the differences
+dotnet.exe run --project build/sonde-voisines -- "chevalier"  # one quest only
 
-# Qui tient le clavier, et quelles fenêtres sont logées dans le cadre. Sert à
-# vérifier le mode onglets : une fenêtre arrimée ne peut jamais être au premier
-# plan, seul ce relevé dit si le focus lui parvient. En lecture seule, et à
-# garder ainsi. Un script PowerShell faisant la même chose se fait bloquer par
-# l'antivirus, ce qui avait fait renoncer à la mesure une première fois.
+# Who holds the keyboard, and which windows are housed in the frame. Used to
+# check the tabbed mode: a docked window can never be in the foreground, and
+# only this reading says whether focus reaches it. Read only, and to be kept
+# that way. A PowerShell script doing the same thing gets blocked by the
+# antivirus, which is what made the measurement be given up the first time.
 dotnet.exe run --project build/sonde-focus
-dotnet.exe run --project build/sonde-focus -- --suivre 60   # n'imprimer que les changements
+dotnet.exe run --project build/sonde-focus -- --suivre 60   # print changes only
 
-# Ce que Windows reproche à ses périphériques USB, par le code livré. Sert à
-# vérifier qu'un défaut d'énumération se lit bien depuis un compte ordinaire :
-# c'est l'étage en dessous d'ADB, celui où un câble sans fils de données ne
-# produit aucune ligne dans « adb devices ».
+# What Windows holds against its USB devices, through the shipped code. Used to
+# check that an enumeration fault reads correctly from an ordinary account:
+# this is the layer below ADB, the one where a cable without data wires
+# produces no line at all in "adb devices".
 dotnet.exe run --project build/sonde-usb
 
-# Chercher ce qui se recouvre dans une page du site, cadrée comme la fenêtre
-# des guides la cadre. À coller dans la console d'un navigateur, à la largeur
-# de la fenêtre. Voir l'en-tête du fichier.
+# Look for what overlaps in a page of the site, framed the way the guide window
+# frames it. To be pasted into a browser console, at the width of the window.
+# See the header of the file.
 build/sonde-papycha/mise-en-page.js
 
-# Publier le fichier unique distribué à l'utilisateur. En Release, le projet
-# embarque ses symboles et écarte les fichiers annexes des paquets : le dossier
-# ne contient que DtHub.exe.
+# Publish the single file handed to the user. In Release, the project embeds
+# its symbols and leaves the companion files out of the packages: the folder
+# holds nothing but DtHub.exe.
 dotnet.exe publish src/DtHub.App -p:PublishProfile=win-x64 -o build\publish
 ```
 
-`build/lancer.cmd` rejoue cette publication puis ouvre l'application. C'est ce
-que vise le raccourci du bureau, et non le binaire : viser le binaire ne
-garantit rien, il date de la dernière publication et non de la dernière
-modification. Mesuré : 1,1 s quand rien n'a changé, 10,6 s sinon. Aucune étape
-n'est bloquante, un échec de publication lance quand même le binaire présent.
-`build/create-shortcut.ps1` pose ou met à jour ce raccourci.
+`build/lancer.cmd` replays this publish step and then opens the
+application. That is what the desktop shortcut targets, not the
+binary: targeting the binary guarantees nothing, it dates from the
+last publish and not from the last change. Measured: 1.1 s when
+nothing changed, 10.6 s otherwise. No step is blocking, a failed
+publish still launches the binary that is present.
+`build/create-shortcut.ps1` creates or updates this shortcut.
 
-Le dépôt doit rester compilable et les tests verts à chaque commit. Zéro
-avertissement est la cible : les analyseurs .NET sont actifs.
+The repository must stay buildable and the tests green at every
+commit. Zero warnings is the target: the .NET analyzers are active.
 
-`build/capture-window.ps1` capture la fenêtre de l'application dans un PNG.
-C'est l'outil qui permet de vérifier le rendu réel. Il se déclare conscient de
-la mise à l'échelle : sans cela, il mesure la fenêtre trop petite et rogne la
-capture, ce qui fait croire à un défaut de disposition inexistant.
-`build/list-windows.ps1` nomme les fenêtres ouvertes, ce qui sert à désigner
-celle qu'on veut capturer.
+`build/capture-window.ps1` captures the application's window into a
+PNG. It is the tool that lets the real rendering be checked. It
+declares itself aware of scaling: without that, it measures the
+window too small and crops the capture, which creates the false
+impression of a layout defect that does not exist.
+`build/list-windows.ps1` names the open windows, which is used to
+designate the one to capture.
 
-Ce sont les deux seuls scripts d'interface qui restent. Vingt-huit autres ont
-été retirés avant la publication : des sondes d'un jour que plus rien ne
-citait, et huit qui synthétisaient des frappes ou des clics. Ces derniers
-étaient des outils de développement et l'application n'en a jamais rien fait,
-mais dans un dépôt public de multi-comptes, de la synthèse d'entrées se lit mal
-et se lit vite. **Ne pas en réintroduire** : ce qui se pilote dans une épreuve
-se pilote par le code, pas par le clavier de quelqu'un d'autre.
+These are the only two interface scripts that remain. Twenty-eight
+others were removed before publication: one-day probes that nothing
+referenced any more, and eight that synthesized keystrokes or clicks.
+The latter were development tools and the application never made any
+use of them, but in a public multi-account repository, input
+synthesis reads badly and reads fast. **Do not reintroduce any of
+them**: whatever is driven in a test is driven by code, not by
+someone else's keyboard.
 
 ## Architecture
 
 ```
-src/DtHub.Core            net10.0          modèles, contrats, logique pure, parseurs
-src/DtHub.Infrastructure  net10.0          processus, ADB, scrcpy, Win32, persistance
-src/DtHub.App             net10.0-windows  WPF, MVVM, les deux fenêtres
+src/DtHub.Core            net10.0          models, contracts, pure logic, parsers
+src/DtHub.Infrastructure  net10.0          processes, ADB, scrcpy, Win32, storage
+src/DtHub.App             net10.0-windows  WPF, MVVM, the two windows
 tests/DtHub.Tests         net10.0          xUnit
 ```
 
-Règles de dépendance, non négociables :
+Dependency rules, non-negotiable:
 
-- `Core` ne référence rien. Aucun `System.Windows`, aucun P/Invoke, aucun
-  accès disque ni réseau direct. Les parseurs y vivent parce qu'ils sont purs
-  et testables sans téléphone.
-- `Infrastructure` référence `Core` et implémente ses interfaces.
-- `App` référence les deux et ne contient que de l'interface. Le code-behind
-  se limite à ce que XAML ne sait pas exprimer : capture de touches,
-  déplacement d'une fenêtre sans bordure, politique de fermeture.
-- `Tests` ne doit jamais avoir besoin d'un téléphone réel ni du réseau.
+- `Core` references nothing. No `System.Windows`, no P/Invoke, no
+  direct disk or network access. Parsers live there because they are
+  pure and testable without a phone.
+- `Infrastructure` references `Core` and implements its interfaces.
+- `App` references both and contains only interface. Code-behind is
+  limited to what XAML cannot express: key capture, moving a
+  borderless window, closing policy.
+- `Tests` must never need a real phone nor the network.
 
 ## ADB
 
-ADB n'est jamais supposé présent sur la machine de l'utilisateur. DT Hub
-utilise sa propre copie, invoquée par chemin absolu, obtenue depuis la source
-officielle Google et vérifiée. Ne jamais appeler `adb` via le `PATH`.
+ADB is never assumed to be present on the user's machine. DT Hub uses
+its own copy, invoked by absolute path, obtained from Google's
+official source and verified. Never call `adb` through the `PATH`.
 
-Toute exécution passe par `IProcessRunner`, ce qui permet de simuler ADB dans
-les tests. Aucune console ne doit apparaître à l'écran.
+Every execution goes through `IProcessRunner`, which allows ADB to be
+simulated in tests. No console must ever appear on screen.
 
-Chaque appel prend un délai maximal et un `CancellationToken`. Les erreurs
-sont traduites en messages compréhensibles ; le détail technique part dans les
-journaux.
+Every call takes a maximum delay and a `CancellationToken`. Errors
+are translated into understandable messages; the technical detail
+goes into the logs.
 
 ## scrcpy
 
-Une session scrcpy par instance, chacune sur son propre afficheur virtuel.
-DT Hub lit l'identifiant d'afficheur que scrcpy journalise à la création, puis
-lance le jeu par ADB avec `--user`. scrcpy n'est pas modifié : voir
-`third_party/scrcpy/MODIFICATIONS.md`.
+One scrcpy session per instance, each on its own virtual display. DT
+Hub reads the display identifier that scrcpy logs at creation, then
+launches the game through ADB with `--user`. scrcpy is not modified:
+see `third_party/scrcpy/MODIFICATIONS.md`.
 
-`--kill-adb-on-close` est délibérément absent : il couperait le serveur ADB
-pour toute la machine. Un test le vérifie.
+`--kill-adb-on-close` is deliberately absent: it would cut the ADB
+server for the whole machine. A test verifies this.
 
-## Ce qui est interdit
+## What is forbidden
 
-- Toute automatisation de jeu : robot, macro, répétition d'actions,
-  reconnaissance d'écran pour jouer, synchronisation d'entrées entre comptes,
-  contournement d'une limitation du jeu. Une entrée utilisateur correspond à
-  une action, sur un compte, et à une seule.
-- Embarquer ou redistribuer un logo, une image, une police, un son ou un
-  fichier de données extrait du jeu d'Ankama. DT Hub cite le nom du jeu pour
-  dire ce qu'il fait, et ses propres icônes sont dessinées par
+- Any game automation: bot, macro, repetition of actions, screen
+  recognition to play, input synchronization between accounts,
+  bypassing a game limitation. One user input corresponds to one
+  action, on one account, and only one.
+- Bundling or redistributing a logo, an image, a font, a sound or a
+  data file extracted from Ankama's game. DT Hub names the game to
+  say what it does, and its own icons are drawn by
   `build/make-icon.py`.
 
-  Trois choses sont permises, et il faut les nommer sous peine que la règle ne
-  protège plus rien. Afficher l'icône de l'application déjà installée sur
-  l'appareil, lue à l'exécution et gardée dans le cache de l'utilisateur : c'est
-  ce que fait tout gestionnaire d'applications, rien n'est copié ni diffusé.
-  Citer des titres de quêtes et de succès pour savoir dans quel ordre lire les
-  pages d'un guide, ce que fait `assets/quest-successes.json`, décrit et sorti
-  du champ de la licence MIT dans `THIRD-PARTY-NOTICES.md`. Montrer des captures
-  d'écran de l'application en fonctionnement dans sa documentation, où le jeu
-  qu'elle affiche paraît forcément.
-- PowerShell, AutoHotkey, Node.js ou Python à l'exécution de l'application.
-  Ces outils sont tolérés dans les scripts de développement uniquement.
-- Toucher à Windows Defender, créer des exclusions antivirus, demander
-  l'élévation.
-- Un crochet clavier de bas niveau. Les raccourcis passent par
-  `RegisterHotKey`, activé seulement quand une fenêtre de DT Hub est active.
-- Télécharger ou exécuter un binaire depuis une source non officielle. Les URL
-  sont centralisées dans `build/dependencies.json`.
-- Coder en dur un numéro de série, une adresse IP, un identifiant de profil
-  Android. Le profil cloné ne vaut pas toujours 999.
-- Écrire un code d'appairage dans les journaux.
+  Three things are allowed, and they must be named or the rule
+  protects nothing at all. Showing the icon of the application
+  already installed on the device, read at runtime and kept in the
+  user's cache: that is what every application manager does, nothing
+  is copied or distributed. Citing quest and achievement titles to
+  know in what order to read a guide's pages, which is what
+  `assets/quest-successes.json` does, described and carved out of
+  the MIT license's scope in `THIRD-PARTY-NOTICES.md`. Showing
+  screenshots of the application running in its documentation, where
+  the game it displays inevitably appears.
+- PowerShell, AutoHotkey, Node.js or Python at the application's
+  runtime. These tools are tolerated in development scripts only.
+- Touching Windows Defender, creating antivirus exclusions,
+  requesting elevation.
+- A low-level keyboard hook. Shortcuts go through `RegisterHotKey`,
+  active only when a DT Hub window is active.
+- Downloading or running a binary from an unofficial source. The
+  URLs are centralized in `build/dependencies.json`.
+- Hardcoding a serial number, an IP address, an Android profile
+  identifier. The cloned profile is not always 999.
+- Writing a pairing code into the logs.
 
 ## Conventions
 
-- Identifiants en anglais.
-- **Langue, depuis le 2026-09-12 :** ce qui ne peut pas exister dans les deux
-  langues s'écrit en anglais. Commits, commentaires neufs, notes de version.
-  L'existant reste français, `docs/DECISIONS.md` compris : voir
-  `CONTRIBUTING.md` pour le détail et la raison.
-- Pas de tiret cadratin dans les textes produits.
-- Fichiers en UTF-8, fins de ligne LF dans le dépôt.
-- `nullable` activé partout. Une erreur attrapée ressort : par le journal, par
-  l'écran, par un échec rendu à l'appelant, ou par un commentaire qui dit
-  pourquoi le silence est le bon choix. `CatchDisciplineTests` le vérifie sur
-  tout `src/`, et exige un filtre `when` sur tout `catch (Exception)`.
-- Tout appel pouvant durer est asynchrone et accepte un `CancellationToken`.
-- Nommage des tests : phrase descriptive en français avec underscores. Ceux qui
-  existent ne se renomment pas ; les nouveaux suivent les voisins du fichier.
-- Commits en anglais, à l'impératif, un sujet cohérent par commit.
-- **Aucun texte visible en dur.** Tout ce que l'utilisateur lit passe par
-  `src/DtHub.Core/Localization/Strings*.resx` : `{loc:T Cle}` en XAML,
-  `Strings.Get("Cle")` en C#. Une clé s'ajoute aux **trois** fichiers d'un
-  coup, sans quoi `StringsResourceTests` échoue. Les journaux, eux, restent
-  français et n'y passent pas.
+- Identifiers in English.
+- **Language:** the repository is written in English. Documents, code
+  comments, commit messages, changelog entries, issue templates. Three
+  things stay French and are not oversights: the commits made before
+  2026-09-12, which cannot change without rewriting a public history;
+  the test method names, which are a specification read in test output;
+  and the log messages, which are a diagnostic tool for whoever runs the
+  application. See `CONTRIBUTING.md` for the detail and the reason.
+- No em dash in produced texts.
+- Files in UTF-8, LF line endings in the repository.
+- `nullable` enabled everywhere. A caught error comes back out:
+  through the log, through the screen, through a failure returned to
+  the caller, or through a comment that says why silence is the
+  right choice. `CatchDisciplineTests` checks this across all of
+  `src/`, and requires a `when` filter on every `catch (Exception)`.
+- Every call that can take time is asynchronous and accepts a
+  `CancellationToken`.
+- Test naming: a descriptive sentence in French with underscores.
+  Existing ones are not renamed; new ones follow their neighbors in
+  the file.
+- Commits in English, in the imperative, one coherent subject per
+  commit.
+- **No hardcoded visible text.** Everything the user reads goes
+  through `src/DtHub.Core/Localization/Strings*.resx`: `{loc:T Cle}`
+  in XAML, `Strings.Get("Cle")` in C#. A key is added to all
+  **three** files at once, or `StringsResourceTests` fails. Logs,
+  however, remain French and do not go through this.
 
-## Pièges déjà rencontrés
+## Pitfalls already encountered
 
-Ils ont tous coûté du temps une fois. Ne pas les réintroduire.
+Each of them cost time once. Do not reintroduce them.
 
-- **`InvariantGlobalization` casse WPF.** La liaison de données appelle
-  `XmlLanguage.GetSpecificCulture`, qui échoue sans données de culture.
-- **Un pinceau dans un dictionnaire de ressources est gelé.** Un
-  `DynamicResource` sur sa couleur ne se résout jamais et l'interface
-  s'affiche en noir. Les palettes portent leurs couleurs littéralement.
-- **Un `ScrollViewer` mesure son contenu sur une largeur infinie** tant que
-  `HorizontalScrollBarVisibility` n'est pas à `Disabled`.
-- **Les convertisseurs doivent vivre au niveau application.** Une vue chargée
-  par modèle de données n'a pas de parent quand son XAML est analysé, et ne
-  verrait pas les ressources de la fenêtre.
-- **`dotnet test` ne reconstruit pas le projet d'interface.** Le projet de
-  tests ne référence que `DtHub.Core` et `DtHub.Infrastructure`. Lancer
-  l'exécutable après un `dotnet test` fait tourner un binaire périmé, et on
-  vérifie alors autre chose que ce qu'on vient d'écrire. Compiler
-  explicitement `src/DtHub.App/DtHub.App.csproj` avant de lancer.
-- **Un `Storyboard` déclenché depuis un gabarit ne voit pas son étendue de
-  noms.** Un `Storyboard.TargetName` désignant un élément du `ControlTemplate`
-  lève une exception à chaque affichage, pendant le `Loaded`, ce qui
-  interrompt le rendu. Viser l'élément qui porte le déclencheur, sans nom.
-- **Le `ComboBox` par défaut ignore le thème sombre.** Son gabarit est
-  remplacé dans `Themes/Controls.xaml`.
+- **`InvariantGlobalization` breaks WPF.** Data binding calls
+  `XmlLanguage.GetSpecificCulture`, which fails without culture data.
+- **A brush in a resource dictionary is frozen.** A `DynamicResource`
+  on its color never resolves and the interface shows up in black.
+  Palettes carry their colors literally.
+- **A `ScrollViewer` measures its content at infinite width** as
+  long as `HorizontalScrollBarVisibility` is not set to `Disabled`.
+- **Converters must live at the application level.** A view loaded
+  by data template has no parent when its XAML is parsed, and would
+  not see the window's resources.
+- **`dotnet test` does not rebuild the interface project.** The test
+  project only references `DtHub.Core` and `DtHub.Infrastructure`.
+  Running the executable after a `dotnet test` runs a stale binary,
+  and you then check something other than what you just wrote.
+  Build `src/DtHub.App/DtHub.App.csproj` explicitly before launching.
+- **A `Storyboard` triggered from a template does not see its name
+  scope.** A `Storyboard.TargetName` naming an element of the
+  `ControlTemplate` throws an exception every time it is shown,
+  during `Loaded`, which interrupts rendering. Target the element
+  that carries the trigger, unnamed.
+- **The default `ComboBox` ignores the dark theme.** Its template is
+  replaced in `Themes/Controls.xaml`.
 
-## Renommer le produit
+## Renaming the product
 
-Deux endroits : `Directory.Build.props` et `src/DtHub.Core/ProductInfo.cs`.
-Les espaces de noms `DtHub.*` restent des identifiants techniques et ne
-suivent pas le nom commercial.
+Two places: `Directory.Build.props` and
+`src/DtHub.Core/ProductInfo.cs`. The `DtHub.*` namespaces remain
+technical identifiers and do not follow the commercial name.
 
-## Données utilisateur
+## User data
 
-Tout est sous `%LOCALAPPDATA%\<ProductSlug>\` : `settings.json`,
+Everything is under `%LOCALAPPDATA%\<ProductSlug>\`: `settings.json`,
 `devices.json`, `cache/`, `logs/`, `tools/`.
 
-Un JSON illisible ne doit jamais faire planter l'application : le fichier
-fautif est archivé à côté et une configuration valide est recréée.
+An unreadable JSON file must never crash the application: the
+offending file is archived next to it and a valid configuration is
+recreated.
 
-## Méthode de travail
+## Working method
 
-Implémenter, compiler, tester, corriger, commiter, puis passer à la suite.
-Tenir `docs/IMPLEMENTATION_STATUS.md` à jour et consigner toute décision
-structurante dans `docs/DECISIONS.md`.
+Implement, build, test, fix, commit, then move on to the next thing.
+Keep `docs/IMPLEMENTATION_STATUS.md` up to date and record every
+structuring decision in `docs/DECISIONS.md`.
 
-Compiler ne prouve rien sur le rendu ni sur le comportement. Lancer
-l'application et capturer sa fenêtre fait partie de la vérification, pas des
-finitions.
+Building proves nothing about rendering or behavior. Launching the
+application and capturing its window is part of verification, not of
+the finishing touches.
 
-### Lancer l'application depuis WSL
+### Launching the application from WSL
 
-`Start-Process` doit recevoir un répertoire de travail Windows :
+`Start-Process` must receive a Windows working directory:
 
 ```
 powershell.exe -NoProfile -Command "Start-Process -FilePath 'C:\Dev\DTHub\build\publish\DtHub.exe' -WorkingDirectory 'C:\Dev\DTHub\build\publish'"
 ```
 
-Lancé depuis un chemin WSL, le processus hérite d'un répertoire courant UNC
-`\\wsl.localhost\...`. Il démarre, reste vivant et répond, mais se fige avant
-la première ligne de journal : la construction de l'hôte sonde ce chemin. Le
-symptôme trompe, car il ressemble à un plantage de l'application.
+Launched from a WSL path, the process inherits a UNC current
+directory, `\\wsl.localhost\...`. It starts, stays alive and
+responds, but freezes before the first log line: building the host
+probes this path. The symptom is misleading, because it looks like
+the application has crashed.
+</content>
+</invoke>

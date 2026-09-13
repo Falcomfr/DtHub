@@ -1,139 +1,144 @@
-﻿# Livrer une version
+﻿# Ship a release
 
-DT Hub se met à jour depuis les livraisons du dépôt. L'application demande la
-dernière au démarrage, la télécharge en fond si la case « Se mettre à jour toute
-seule » est cochée, vérifie son empreinte, et pose le nouvel exécutable quand on
-quitte. La note de version paraît au démarrage suivant, celui qui exécute enfin
-la nouvelle version.
+DT Hub updates itself from the repository's releases. The application asks
+for the latest one at startup, downloads it in the background if the
+"Update itself automatically" box is checked, verifies its checksum, and
+installs the new executable on exit. The release note appears at the next
+startup, the one that finally runs the new version.
 
-## Ce qu'il faut une seule fois
+## What only needs doing once
 
-Le dépôt doit être **public** : l'application interroge l'API sans jeton, et un
-jeton posé dans l'exécutable serait lisible par qui l'ouvre. Son compte et son
-nom sont écrits dans `src/DtHub.Core/Updates/ReleaseChannel.cs`.
+The repository must be **public**: the application queries the API without
+a token, and a token embedded in the executable would be readable by anyone
+who opens it. Its account and its name are written in
+`src/DtHub.Core/Updates/ReleaseChannel.cs`.
 
-Tant que le dépôt n'existe pas, la demande rend « rien à signaler » et
-l'application n'en sait pas plus : rien ne casse, rien ne s'affiche.
+As long as the repository does not exist, the request returns "nothing to
+report" and the application knows no more than that: nothing breaks,
+nothing is shown.
 
-## Livrer
+## Ship it
 
-0. Lancer la sonde : `dotnet run --project build/sonde-papycha`. Elle interroge
-   le vrai site et rend 1 si l'application n'y trouve plus ce qu'elle suppose.
-   Un écart légitime se rebénit avec `-- --benir`.
-1. Porter la version dans `Directory.Build.props`, champ `VersionPrefix`.
-2. Fermer la section `## [Non publié]` du journal : la renommer
-   `## [0.2.0] - 2026-09-02`. La chaîne de livraison y lit la note de version,
-   et refuse de livrer si elle ne l'y trouve pas.
-3. Valider les deux, puis étiqueter avec le même numéro :
+0. Run the probe: `dotnet run --project build/sonde-papycha`. It queries
+   the real site and returns 1 if the application no longer finds what it
+   assumes to be there. A legitimate discrepancy is reblessed with
+   `-- --benir`.
+1. Bump the version in `Directory.Build.props`, field `VersionPrefix`.
+2. Close the `## [Unreleased]` section of the changelog: rename it to
+   `## [0.2.0] - 2026-09-02`. The release pipeline reads the release note
+   there, and refuses to ship if it cannot find it.
+3. Commit both, then tag with the same number:
 
    ```
    git tag v0.2.0
    git push origin main --tags
    ```
 
-La chaîne éprouve, publie, calcule l'empreinte et crée la livraison avec deux
-fichiers : `DtHub.exe` et `DtHub.exe.sha256`. Ces deux noms sont ceux que
-l'application attend ; une livraison à laquelle il en manque un est ignorée.
+The pipeline builds, publishes, computes the checksum and creates the
+release with two files: `DtHub.exe` and `DtHub.exe.sha256`. These are the
+two names the application expects; a release missing either one is
+ignored.
 
-## Avec quoi le fichier est publié
+## What the file is published with
 
-Les options tiennent dans un seul fichier,
-`src/DtHub.App/Properties/PublishProfiles/win-x64.pubxml`, que la chaîne, le
-lanceur de développement et `AGENTS.md` désignent tous les trois :
+The options live in a single file,
+`src/DtHub.App/Properties/PublishProfiles/win-x64.pubxml`, which the
+pipeline, the development launcher and `AGENTS.md` all three point to:
 
 ```
 dotnet publish src/DtHub.App -p:PublishProfile=win-x64 -o publication
 ```
 
-Elles ont vécu recopiées dans ces trois endroits, sans que rien ne vérifie
-qu'ils concordaient. Une publication sans `SelfContained` sort un exécutable de
-cent cinquante kilooctets qui réclame le .NET installé sur le poste, en portant
-exactement les mêmes métadonnées Windows que le vrai : le contrôle d'identité,
-qui ne lit que ces métadonnées, le laissait passer.
+They used to live copied across these three places, with nothing checking
+that they agreed. A publish without `SelfContained` produces an executable
+of one hundred fifty kilobytes that requires .NET to be installed on the
+machine, while carrying exactly the same Windows metadata as the real one:
+the identity check, which only reads that metadata, let it through.
 
-La chaîne mesure donc aussi ce que le fichier est : un seul fichier dans le
-dossier de publication, et quarante mégaoctets au moins. Les deux ensemble
-suffisent, un binaire dépendant du framework pesant cent cinquante kilooctets et
-traînant une quarantaine de fichiers compagnons.
+So the pipeline also measures what the file is: a single file in the
+publish folder, and at least forty megabytes. The two together are enough,
+since a framework-dependent binary weighing one hundred fifty kilobytes
+drags along some forty companion files.
 
-Les traductions, elles, se contrôlent à la compilation et non sur le binaire :
-chercher `fr/DtHub.Core.resources.dll` dans les octets retombe sur le
-`deps.json` embarqué, qui cite les satellites même quand `SatelliteResourceLanguages`
-les a écartés. Vérifié : un fichier publié sans eux pèse un demi-mégaoctet de
-moins et passe pourtant la recherche. Le contrôle porte donc sur la propriété
-elle-même, dans `src/DtHub.App/DtHub.App.csproj`, avec ceux des ressources
-embarquées.
+Translations, meanwhile, are checked at build time and not on the binary:
+searching for `fr/DtHub.Core.resources.dll` in the bytes falls back on the
+embedded `deps.json`, which lists the satellites even when
+`SatelliteResourceLanguages` excluded them. Verified: a file published
+without them weighs half a megabyte less and still passes the search. So
+the check is on the property itself, in `src/DtHub.App/DtHub.App.csproj`,
+alongside the ones for embedded resources.
 
-## Ce que l'application fait de tout cela
+## What the application does with all this
 
-**Elle ne se met pas à jour depuis un arbre de sources.** Si le fichier de
-solution se trouve au-dessus de l'exécutable, la mise à jour est refusée : le
-lanceur de développement republie à chaque démarrage et l'écraserait dans la
-seconde, en faisant croire à une régression.
+**It does not update itself from a source tree.** If the solution file
+sits above the executable, the update is refused: the development launcher
+republishes on every startup and would overwrite it within seconds, giving
+the impression of a regression.
 
-**Elle vérifie avant de poser.** L'empreinte du fichier téléchargé est comparée
-à celle que la livraison annonce. Un écart, et le fichier est effacé sans avoir
-servi.
+**It verifies before installing.** The checksum of the downloaded file is
+compared against the one the release announces. On a mismatch, the file is
+deleted without having been used.
 
-**Elle ne se remplace jamais en pleine session.** Un exécutable qui tourne ne
-peut pas être écrasé, mais il peut être renommé : à l'arrêt, l'ancien s'écarte
-en `DtHub.exe.ancien`, le nouveau prend sa place, et le démarrage suivant
-balaie ce qui reste. Si la seconde moitié échoue, la première est défaite.
+**It never replaces itself mid session.** A running executable cannot be
+overwritten, but it can be renamed: on exit, the old one moves aside as
+`DtHub.exe.ancien`, the new one takes its place, and the next startup
+sweeps away what remains. If the second half fails, the first is undone.
 
-**Rien de tout cela n'est une panne.** Pas de réseau, dépôt absent, quota
-atteint, empreinte fausse, fichier verrouillé : l'application continue avec la
-version qu'elle a.
+**None of this counts as a failure.** No network, missing repository,
+quota reached, wrong checksum, locked file: the application carries on
+with the version it has.
 
-## Faire reconnaître le binaire
+## Getting the binary recognized
 
-Ce que Windows et les antivirus en pensent, et comment le signer, sont dans
-[CONFIANCE.md](CONFIANCE.md). La chaîne refuse déjà de livrer un binaire dont le
-nom, la description ou l'éditeur manquent, et signe si le secret
-`SIGNING_COMMAND` est posé sur le dépôt.
+What Windows and antivirus software make of it, and how to sign it, are in
+[CONFIANCE.md](CONFIANCE.md). The pipeline already refuses to ship a
+binary missing its name, description or publisher, and signs it if the
+`SIGNING_COMMAND` secret is set on the repository.
 
-## La livraison sort en brouillon, et il faut la publier
+## The release comes out as a draft, and it must be published
 
-**La chaîne ne diffuse rien toute seule.** `gh release create` passe `--draft`,
-et l'application interroge `/releases/latest`, qui ignore les brouillons : rien
-ne part chez personne tant que la commande suivante n'a pas été tapée.
+**The pipeline does not distribute anything by itself.**
+`gh release create` passes `--draft`, and the application queries
+`/releases/latest`, which ignores drafts: nothing reaches anyone until
+the next command has been typed.
 
-C'est la seule fenêtre où l'on peut examiner **l'artefact exact** que recevront
-les utilisateurs, et non une reconstruction locale qui n'aurait pas la même
-empreinte. Trois gestes, dans cet ordre :
+This is the only window in which one can examine **the exact artifact**
+that users will receive, rather than a local rebuild that would not carry
+the same checksum. Three steps, in this order:
 
-1. télécharger le binaire depuis le brouillon ;
-2. l'envoyer sur VirusTotal. **Attention, cet envoi le publie** auprès des
-   abonnés du service : sans conséquence pour un code déjà public, à ne pas
-   faire sur un binaire privé. Un ou deux moteurs marginaux sur un exécutable
-   .NET auto-extractible non signé est banal ; un moteur majeur, ou une
-   dizaine, s'élucide avant de publier ;
-3. le soumettre au portail « Submit a file for analysis » de Microsoft, sans
-   attendre une alerte. C'est gratuit, cela prend quelques jours, et Defender
-   décidera du sort de la grande majorité des téléchargements.
+1. download the binary from the draft;
+2. send it to VirusTotal. **Warning, this upload publishes it** to the
+   service's subscribers: no consequence for code that is already public,
+   but not to be done on a private binary. One or two marginal engines
+   flagging an unsigned self-extracting .NET executable is unremarkable;
+   a major engine, or a dozen, needs to be understood before publishing;
+3. submit it to Microsoft's "Submit a file for analysis" portal, without
+   waiting for an alert. It is free, it takes a few days, and Defender
+   will decide the fate of the large majority of downloads.
 
-Puis, seulement :
+Then, only then:
 
 ```
 gh release edit v0.3.0 --draft=false
 ```
 
-À cet instant la version devient visible pour la mise à jour automatique.
+At that moment the version becomes visible to automatic updates.
 
-## L'étiquette doit dire ce que le dépôt déclare
+## The tag must say what the repository declares
 
-La chaîne compare le numéro de l'étiquette au `VersionPrefix` de
-`Directory.Build.props` et refuse de livrer s'ils diffèrent.
+The pipeline compares the tag's number against the `VersionPrefix` in
+`Directory.Build.props` and refuses to ship if they differ.
 
-Ce n'est pas une précaution théorique : le dépôt a vécu avec un `VersionPrefix`
-à 0.2.0 et trente-sept commits de fonctionnalités par-dessus, tous décrits sous
-« Non publié ». Étiqueter `v0.2.0` aurait livré un binaire dont la note de
-version mentait.
+This is not a theoretical precaution: the repository once lived with a
+`VersionPrefix` of 0.2.0 and thirty seven feature commits on top of it,
+all described under "Unreleased". Tagging `v0.2.0` would have shipped a
+binary whose release note lied.
 
-## Vérifier une livraison à la main
+## Checking a release by hand
 
 ```
 gh release view v0.2.0
 sha256sum DtHub.exe
 ```
 
-L'empreinte affichée doit être celle du fichier `.sha256` de la livraison.
+The checksum shown must match the one in the release's `.sha256` file.

@@ -1,119 +1,119 @@
-﻿# État d'avancement
+﻿# Implementation status
 
-Légende : **DONE** terminé et vérifié, **IN PROGRESS** en cours,
-**TODO** pas commencé, **BLOCKED** nécessite une action externe.
+Legend: **DONE** finished and verified, **IN PROGRESS** underway,
+**TODO** not started, **BLOCKED** requires external action.
 
-Dernière mise à jour : 2026-09-13
+Last updated: 2026-09-13
 
-## Vérifié sur matériel réel
+## Verified on real hardware
 
-Xiaomi 13T, Android 16, profil principal « Alice Martin » et profil cloné
-« XSpace » (999), DOFUS Touch installé sur les deux.
+Xiaomi 13T, Android 16, primary profile "Alice Martin" and cloned
+profile "XSpace" (999), DOFUS Touch installed on both.
 
-Second appareil depuis le 2026-09-13 : Xiaomi Mi 9T Pro, Android 11, deux
-comptes. Les quatre comptes des deux téléphones ont été ouverts en une fois,
-afficheurs prêts en 689 et 1124 ms côté Mi 9T Pro. Le 13T Pro était alors
-enregistré deux fois par ADB, sous son adresse et sous son nom mDNS, et n'a
-paru qu'une fois dans la liste.
+Second device since 2026-09-13: Xiaomi Mi 9T Pro, Android 11, two
+accounts. All four accounts across the two phones were opened at once,
+with displays ready in 689 and 1124 ms on the Mi 9T Pro side. The 13T
+Pro was at the time registered twice by ADB, under its address and
+under its mDNS name, and appeared only once in the list.
 
-| Élément | État |
+| Element | Status |
 |---|---|
-| Téléchargement et vérification d'ADB depuis Google | DONE |
-| Détection du téléphone en Wi-Fi, y compris sous son nom mDNS | DONE |
-| Lecture des profils Android et classement des types | DONE |
-| Détection du jeu sur les deux profils, activité résolue | DONE |
-| Reconnexion automatique après coupure | DONE |
-| Affichage des instances dans la fenêtre de mise en route | DONE |
-| Ouverture effective des deux fenêtres de jeu | DONE |
-| Jeu affiché en plein écran virtuel, sans bande noire | DONE |
-| Superposition exacte, même position et même taille | DONE |
-| Ancrage du bloc de jeu et placement du configurateur | DONE |
-| Les douze raccourcis au clavier, trois contextes chacun | DONE |
+| Downloading and verifying ADB from Google | DONE |
+| Detecting the phone over Wi-Fi, including under its mDNS name | DONE |
+| Reading Android profiles and classifying their types | DONE |
+| Detecting the game on both profiles, activity resolved | DONE |
+| Automatic reconnection after a drop | DONE |
+| Displaying instances in the startup window | DONE |
+| Actually opening both game windows | DONE |
+| Game displayed full screen on the virtual display, no black bars | DONE |
+| Exact overlay, same position and same size | DONE |
+| Anchoring the game block and placing the configurator | DONE |
+| The twelve keyboard shortcuts, three contexts each | DONE |
 
-## Noyau
+## Core
 
-| Élément | État |
+| Element | Status |
 |---|---|
-| Exécution de processus sans console, bornée, annulable | DONE |
-| Processus durable avec lecture de sortie au fil de l'eau | DONE |
-| Client ADB, erreurs traduites en messages actionnables | DONE |
-| Parseurs `devices`, `getprop`, `mdns`, `pair`, `connect` | DONE |
-| Manifeste de dépendances vérifiées, ADB et scrcpy | DONE |
-| Persistance JSON tolérante à la corruption | DONE |
-| Découverte et mémorisation des téléphones | DONE |
-| Appairage Wi-Fi assisté, code jamais journalisé | DONE |
-| Reconnexion automatique en trois temps | DONE |
-| Profils Android, aucun identifiant supposé | DONE |
-| Découverte des instances du jeu par profil | DONE |
-| Lancement par ADB sur n'importe quel profil | DONE |
-| Sessions scrcpy indépendantes, afficheur virtuel par session | DONE |
-| Empilement des fenêtres, grille de neuf positions | DONE |
-| Raccourcis, validation, conflits, enregistrement Win32 | DONE |
-| Réglages, fusion des instances mémorisées | DONE |
+| Running processes without a console, bounded, cancellable | DONE |
+| Long-lived process with output read as it streams | DONE |
+| ADB client, errors translated into actionable messages | DONE |
+| Parsers for `devices`, `getprop`, `mdns`, `pair`, `connect` | DONE |
+| Manifest of verified dependencies, ADB and scrcpy | DONE |
+| JSON persistence tolerant of corruption | DONE |
+| Discovery and remembering of phones | DONE |
+| Assisted Wi-Fi pairing, code never logged | DONE |
+| Automatic reconnection in three stages | DONE |
+| Android profiles, no assumed identifier | DONE |
+| Discovery of game instances per profile | DONE |
+| Launching via ADB on any profile | DONE |
+| Independent scrcpy sessions, one virtual display per session | DONE |
+| Window stacking, nine-position grid | DONE |
+| Shortcuts, validation, conflicts, Win32 registration | DONE |
+| Settings, merging of remembered instances | DONE |
 
 ## Interface
 
-| Élément | État |
+| Element | Status |
 |---|---|
-| Fenêtre de mise en route, surveillance continue | DONE |
-| Panneau d'association Wi-Fi, pré-remplissage réseau | DONE |
-| Configurateur flottant, `Ctrl+P`, coin libre | DONE |
-| Onglet Fenêtres : position, taille, écran | DONE |
-| Onglet Appareils : état, coche, nom, relance | DONE |
-| Onglet Raccourcis : édition, conflits, restauration | DONE |
-| Thème sombre. Il n'existe pas de palette claire | DONE |
-| Barre de titre sombre sur les fenêtres qui gardent celle de Windows | DONE |
-| Échelle typographique nommée, six crans | DONE |
-| Journalisation avec rotation, dossier accessible | DONE |
-| Cadre à onglets : loger, réordonner, sortir, fermer | DONE |
-| Fenêtre de préparation au premier lancement, sources nommées | DONE |
-| Rapport d'incident biffé, à copier et à envoyer | DONE |
-| Interface en anglais, français et espagnol, fiches de marques comprises | DONE |
-| Suivi de quêtes adossé à papycha.fr, dans sa propre fenêtre | DONE |
-| Clavier : Entrée et Échap sur les boîtes de dialogue | DONE |
+| Startup window, continuous monitoring | DONE |
+| Wi-Fi pairing panel, network pre-fill | DONE |
+| Floating configurator, `Ctrl+P`, free corner | DONE |
+| Windows tab: position, size, screen | DONE |
+| Devices tab: status, checkbox, name, restart | DONE |
+| Shortcuts tab: editing, conflicts, restore | DONE |
+| Dark theme. There is no light palette | DONE |
+| Dark title bar on windows that keep Windows' native one | DONE |
+| Named type scale, six steps | DONE |
+| Logging with rotation, accessible folder | DONE |
+| Tabbed frame: dock, reorder, pop out, close | DONE |
+| First-launch preparation window, named sources | DONE |
+| Incident report, redacted, to copy and send | DONE |
+| Interface in English, French and Spanish, including brand sheets | DONE |
+| Quest tracking backed by papycha.fr, in its own window | DONE |
+| Keyboard: Enter and Escape on dialog boxes | DONE |
 
 ## Distribution
 
-| Élément | État |
+| Element | Status |
 |---|---|
-| Publication en fichier unique, 60 Mo, sans installateur | DONE |
-| Décision : pas d'installateur ni de Velopack | DONE |
-| Signature Authenticode | TODO (non nécessaire pour un usage personnel) |
-| Dépôt GitHub public | TODO |
-| Première livraison étiquetée | TODO |
-| GitHub Actions build et tests | DONE |
-| Chaîne : forme, permissions restreintes, actions épinglées | DONE |
-| Contrôles d'artefact : un seul fichier, plancher de poids | DONE |
-| Mise à jour depuis le dépôt, empreinte vérifiée | DONE |
-| Attribution de papycha.fr, hors du champ de la licence MIT | DONE |
-| Historique purgé des captures de développement | DONE |
+| Single-file publishing, 60 MB, no installer | DONE |
+| Decision: no installer and no Velopack | DONE |
+| Authenticode signing | TODO (not necessary for personal use) |
+| Public GitHub repository | TODO |
+| First tagged release | TODO |
+| GitHub Actions build and tests | DONE |
+| Pipeline: shape, restricted permissions, pinned actions | DONE |
+| Artifact checks: single file, minimum size floor | DONE |
+| Update from the repository, hash verified | DONE |
+| Attribution to papycha.fr, outside the scope of the MIT license | DONE |
+| History purged of development screenshots | DONE |
 
-## Compatibilité
+## Compatibility
 
-Audité le 2026-08-31, appareil par appareil et poste par poste.
+Audited on 2026-08-31, device by device and machine by machine.
 
-| Élément | État |
+| Element | Status |
 |---|---|
-| Aucun chemin, adresse IP ni numéro de série en dur | DONE |
-| Lecture des propriétés par listes de clés alternatives | DONE |
-| Définition de l'afficheur calculée sur le moniteur du PC, non sur l'appareil | DONE |
-| Aucun identifiant de profil Android déduit ou supposé | DONE |
-| Analyse numérique en culture invariante | DONE |
-| Version d'Android contrôlée avant le lancement | DONE |
-| Repli de définition descendant les paliers, jusqu'à 720 | DONE |
-| Refus de scrcpy rangés en catégories avant de retenter | DONE |
-| Copies du jeu à nom de paquet dérivé détectées | DONE |
-| Liste de profils illisible signalée | DONE |
-| Conscience de la mise à l'échelle écran par écran | DONE |
-| Chemins de menu valables pour une tablette | DONE |
-| Windows sur ARM | BLOCKED (scrcpy n'y est pas distribué) |
-| Fiches de marques vérifiées ailleurs que sur Xiaomi | TODO |
-| Lancement sur profil secondaire vérifié sur un second appareil | DONE |
+| No hardcoded path, IP address, or serial number | DONE |
+| Reading properties via lists of alternative keys | DONE |
+| Display resolution computed from the PC monitor, not the device | DONE |
+| No Android profile identifier inferred or assumed | DONE |
+| Numeric parsing under invariant culture | DONE |
+| Android version checked before launch | DONE |
+| Resolution fallback stepping down the tiers, down to 720 | DONE |
+| scrcpy refusals sorted into categories before retrying | DONE |
+| Game copies with a derived package name detected | DONE |
+| Unreadable profile list reported | DONE |
+| Awareness of per-screen scaling | DONE |
+| Menu paths valid for a tablet | DONE |
+| Windows on ARM | BLOCKED (scrcpy is not distributed there) |
+| Brand sheets verified on something other than Xiaomi | TODO |
+| Launch on a secondary profile verified on a second device | DONE |
 
-## Reste à faire
+## Remaining work
 
-| Élément | État |
+| Element | Status |
 |---|---|
-| Essai complet du lancement des deux comptes | DONE |
-| Options supplémentaires dans l'onglet Fenêtres | TODO (à définir) |
-| Réglages de mirroring exposés dans l'interface | TODO |
+| Full test of launching both accounts | DONE |
+| Additional options in the Windows tab | TODO (to be defined) |
+| Mirroring settings exposed in the interface | TODO |

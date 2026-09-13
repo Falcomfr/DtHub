@@ -1,50 +1,52 @@
-# Code de conduite
+# Code of Conduct
 
-## Ce qu'on attend
+## What is expected
 
-Ce dépôt est tenu par une seule personne, sur son temps libre. Les échanges y
-sont publics et durables : une issue se relit des années plus tard.
+This repository is maintained by one person, in their spare time.
+Exchanges here are public and lasting: an issue gets reread years
+later.
 
-Ce qui est attendu de chacun, moi compris :
+What is expected of everyone, myself included:
 
-- **Parler du travail, pas des personnes.** « Cette mesure est fausse, voici la
-  mienne » vaut mieux que « tu t'es trompé ».
-- **Dire ce qu'on a vérifié, et comment.** Un rapport qui donne la version, le
-  téléphone, la manipulation et ce qui s'est passé se traite. Un rapport qui dit
-  « ça marche pas » ne se traite pas.
-- **Accepter un refus.** Tout ce qui est proposé n'entre pas, et le dépôt a des
-  règles écrites dans `CONTRIBUTING.md`. Un refus motivé n'est pas une attaque.
-- **Laisser à l'autre le temps de répondre.** Il n'y a pas d'équipe derrière ce
-  dépôt, et personne n'est de garde.
+- **Talk about the work, not the people.** "This measurement is wrong,
+  here is mine" beats "you got it wrong."
+- **State what you checked, and how.** A report that gives the
+  version, the phone, the steps, and what happened gets handled. A
+  report that says "it doesn't work" does not.
+- **Accept a refusal.** Not everything proposed gets in, and the
+  repository has rules written in `CONTRIBUTING.md`. A justified
+  refusal is not an attack.
+- **Give the other person time to answer.** There is no team behind
+  this repository, and no one is on call.
 
-## Ce qui n'a pas sa place
+## What has no place here
 
-Les insultes, le harcèlement, les attaques personnelles, les propos haineux ou
-discriminatoires, la publication de données privées d'un tiers, et la relance
-insistante après un refus.
+Insults, harassment, personal attacks, hateful or discriminatory
+remarks, publishing a third party's private data, and pressing the
+issue after a refusal.
 
-**Un cas particulier à ce projet.** Les demandes d'automatisation de jeu, de
-synthèse d'entrées ou de multi-comptes automatisé sont closes sans discussion,
-comme l'annonce `CONTRIBUTING.md`. Insister après la fermeture relève de ce
-paragraphe.
+**A special case for this project.** Requests for game automation,
+input synthesis, or automated multi-accounting are closed without
+discussion, as `CONTRIBUTING.md` states. Insisting after the closure
+falls under this paragraph.
 
-## Signaler
+## Reporting
 
-Ouvrez un [avis de sécurité privé](https://github.com/Falcomfr/DtHub/security/advisories/new)
-si le sujet est sensible, ou une issue sinon. C'est la même personne qui lit les
-deux.
+Open a [private security advisory](https://github.com/Falcomfr/DtHub/security/advisories/new)
+if the matter is sensitive, or an issue otherwise. The same person
+reads both.
 
-Les réponses possibles vont du simple rappel au blocage du compte sur le dépôt,
-selon la gravité et la répétition. Une décision se prend une fois et s'explique
-en une phrase.
+Possible responses range from a simple reminder to blocking the
+account from the repository, depending on severity and repetition. A
+decision is made once and explained in one sentence.
 
-## Portée
+## Scope
 
-Ce texte vaut pour les issues, les demandes de tirage, les commentaires de
-commit et tout espace où quelqu'un parle au nom de ce projet.
+This text applies to issues, pull requests, commit comments, and any
+space where someone speaks on behalf of this project.
 
-## Origine
+## Origin
 
-Ce code de conduite s'inspire du [Contributor Covenant](https://www.contributor-covenant.org)
-version 2.1, resserré pour un projet à un seul auteur et rendu en français comme
-le reste du dépôt.
+This code of conduct is inspired by the [Contributor Covenant](https://www.contributor-covenant.org)
+version 2.1, tightened for a single-author project and rendered in
+English like the rest of the repository.

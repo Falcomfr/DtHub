@@ -1,56 +1,58 @@
-﻿# Feuille de route
+﻿# Roadmap
 
-Le versionnage suit [SemVer](https://semver.org/lang/fr/). Tant que la version
-majeure est `0`, l'interface et les formats de configuration peuvent changer.
+Versioning follows [SemVer](https://semver.org/). As long as the
+major version is `0`, the interface and the configuration formats can
+change.
 
-## v0.3 - Ce qui marche aujourd'hui
+## v0.3 - What works today
 
-- Détection des téléphones en USB et en Wi-Fi, association assistée,
-  reconnexion automatique même quand le port change après un redémarrage.
-- Détection des instances du jeu, une par profil Android, quel que soit le
-  numéro du profil.
-- Ouverture de chaque instance dans sa fenêtre, sur son propre afficheur
-  virtuel.
-- Fenêtres superposées, ancrées sur une grille de neuf positions, ou réunies
-  dans un cadre à onglets.
-- Configurateur flottant à trois onglets, rappelé par raccourci.
-- Palier de qualité réglable, global ou par compte, définition et débit
-  compris.
-- Reprise d'une fenêtre que la liaison a fait tomber.
-- Bilan de l'appareil avant lancement : batterie, chaleur, place libre, bande
-  Wi-Fi, préparation de l'économie d'énergie.
-- Fenêtre de guides lisant papycha.fr, avec l'endroit où l'on s'est arrêté et
-  ce que chaque quête débloque.
-- Almanax du jour, lu sur le portail officiel et filtré sur DOFUS Touch.
-- Temps de jeu par compte.
-- Export et restauration des réglages.
-- Rapport d'incident biffé de ce qui identifie, à copier et à envoyer.
-- Publication en fichier unique, sans installateur, mise à jour depuis le
-  dépôt, et intégration continue qui éprouve et livre.
-- Essai sur deux téléphones réels, Android 11 et Android 16.
+- Detection of phones over USB and Wi-Fi, assisted pairing, automatic
+  reconnection even when the port changes after a restart.
+- Detection of game instances, one per Android profile, whatever the
+  profile number.
+- Opening each instance in its own window, on its own virtual display.
+- Overlaid windows, anchored to a nine-position grid, or gathered into
+  a tabbed frame.
+- Floating configurator with three tabs, recalled by shortcut.
+- Adjustable quality tier, global or per account, including resolution
+  and bitrate.
+- Recovery of a window that the connection has dropped.
+- Device check before launch: battery, heat, free space, Wi-Fi band,
+  power-saving setup.
+- Guides window reading papycha.fr, with where you left off and what
+  each quest unlocks.
+- Today's Almanax, read from the official portal and filtered for
+  DOFUS Touch.
+- Play time per account.
+- Saving and restoring settings.
+- Incident report, redacted of anything identifying, to copy and send.
+- Single-file publishing, no installer, updates from the repository,
+  and continuous integration that tests and ships.
+- Tested on two real phones, Android 11 and Android 16.
 
-## v0.4 - Ce qui manque encore
+## v0.4 - What is still missing
 
-- Indication de l'instance active à l'écran.
-- Indexation du guide plus rapide : le filtre `modified_after` de l'API
-  n'attaque que les pages touchées, et les donjons pèsent les quatre
-  cinquièmes du temps. Voir D141.
+- On-screen indication of the active instance.
+- Faster guide indexing: the API's `modified_after` filter only hits
+  the pages that changed, and dungeons account for four fifths of the
+  time. See D141.
 
 ## v1.0 - Stable
 
-- Formats de configuration figés et migrations gérées.
-- Documentation utilisateur finalisée.
-- Diagnostic complet.
+- Configuration formats frozen and migrations handled.
+- User documentation finalized.
+- Full diagnostics.
 
-## En cours, hors code
+## In progress, outside the code
 
-- Publication du dépôt, page de présentation et première version téléchargeable.
-- Signature Authenticode par SignPath Foundation, gratuite pour les projets
-  libres, qui exige un dépôt public et une version déjà livrée. Voir
-  `docs/CONFIANCE.md`.
+- Publishing the repository, a presentation page, and a first
+  downloadable release.
+- Authenticode signing through SignPath Foundation, free for open
+  source projects, which requires a public repository and an already
+  shipped release. See `docs/CONFIANCE.md`.
 
-## Hors périmètre, définitivement
+## Out of scope, permanently
 
-Toute automatisation de jeu : robot, macro, répétition d'actions,
-reconnaissance d'écran pour jouer, synchronisation d'entrées entre comptes.
-Ce n'est pas une question de priorité, c'est une limite du projet.
+Any game automation: bots, macros, repeating actions, screen
+recognition to play, input synchronization between accounts. This is
+not a matter of priority, it is a limit of the project.

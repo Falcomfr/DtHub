@@ -1,67 +1,69 @@
-﻿# Contribuer
+﻿# Contributing
 
-Merci de l'intérêt. Ce dépôt a des conventions inhabituelles et fermement
-tenues : lisez `AGENTS.md` avant d'écrire une ligne. Il dit ce qui est interdit,
-et pourquoi.
+Thanks for the interest. This repository has unusual conventions, firmly
+held: read `AGENTS.md` before writing a line. It says what is forbidden, and
+why.
 
-## Ce qui n'entrera jamais
+## What will never get in
 
-**Toute automatisation de jeu.** Robot, macro, répétition d'actions,
-reconnaissance d'écran pour jouer, synchronisation d'entrées entre comptes,
-contournement d'une limitation du jeu. Une entrée utilisateur correspond à une
-action, sur un compte, et à une seule. Ce n'est pas une question de priorité,
-c'est la limite du projet, et une proposition dans ce sens sera close sans
-discussion.
+**Any game automation.** Bot, macro, action replay, screen recognition for
+playing, input mirrored across accounts, any way around a limit the game
+sets. One user input is one action, on one account, and on one only. This is
+not a matter of priority, it is the boundary of the project, and a proposal
+in that direction will be closed without discussion.
 
-Sont également exclus : les crochets clavier de bas niveau, toute demande
-d'élévation, toute manipulation de l'antivirus, et PowerShell, Node ou Python à
-l'exécution de l'application.
+Also excluded: low level keyboard hooks, any request for elevation, any
+handling of the antivirus, and PowerShell, Node or Python at application
+runtime.
 
-## Avant d'ouvrir une demande de tirage
+## Before opening a pull request
 
 ```
-dotnet build DtHub.slnx -warnaserror     # zéro avertissement, c'est la cible
-dotnet test DtHub.slnx                    # tout vert
+dotnet build DtHub.slnx -warnaserror     # zero warnings, that is the target
+dotnet test DtHub.slnx                    # all green
 ```
 
-La chaîne rejoue les deux. Une demande qui les casse ne sera pas relue.
+The pipeline replays both. A request that breaks them will not be reviewed.
 
-**Écrivez une épreuve.** Elle doit nommer un comportement, pas une méthode :
-`Un_mdns_muet_laisse_l_appairage_acquis_et_demande_le_port`, pas
-`TestPairing2`. Les épreuves de ce dépôt se lisent comme une spécification, et
-c'est ce qui les rend utiles.
+**Write a test.** It must name a behaviour, not a method:
+`Un_mdns_muet_laisse_l_appairage_acquis_et_demande_le_port`, not
+`TestPairing2`. The tests in this repository read as a specification, and
+that is what makes them useful.
 
-**Les conventions d'écriture.** Identifiants en anglais. Un commentaire dit
-*pourquoi*, jamais *quoi* : le code dit déjà ce qu'il fait. Jamais de tiret
-cadratin.
+**Writing conventions.** Identifiers in English. A comment says *why*, never
+*what*: the code already says what it does. Never an em dash.
 
-**La langue, depuis la publication du dépôt.** La règle est simple : *ce qui ne
-peut pas exister dans les deux langues s'écrit en anglais*. Un message de
-commit, un commentaire de code, une note de version n'ont qu'une version ; ils
-sont donc en anglais, à partir du 2026-09-12.
+**The language.** The repository is written in English: documents, code
+comments, commit messages, release notes, issue templates. What cannot exist
+in two versions is written once, in English.
 
-Ce qui existe déjà reste tel quel, et il faut le dire plutôt que de le cacher :
+Two things stay as they are, and it is better to say so than to hide it:
 
-- les **291 commits** antérieurs sont en français, et ne peuvent plus changer
-  sans réécrire un historique déjà public ;
-- `docs/DECISIONS.md`, 392 Ko, reste en français. Sa valeur tient à sa
-  précision, et une traduction en perdrait plus qu'elle n'apporterait ;
-- les **commentaires existants** restent en français. Les nouveaux sont en
-  anglais, et un fichier retouché en profondeur peut passer à l'anglais d'un
-  bloc plutôt que ligne à ligne.
+- the **291 commits** made before 2026-09-12 are in French, and cannot change
+  now without rewriting a history that is already public. The file listing on
+  GitHub shows the last commit that touched each path, so those French
+  subjects keep showing until each file is touched again;
+- **test method names** are French phrases with underscores, and they are not
+  renamed. They are a specification, they are read in test output rather than
+  by a stranger arriving on the repository, and renaming nine hundred of them
+  would be churn with no reader served;
+- **log messages** stay French. A log is a diagnostic tool for whoever runs
+  the application, not a shop window, and this one is read by its author.
 
-Le mélange se voit, et c'est le prix d'un choix fait après coup plutôt que
-d'une réécriture de l'histoire.
+What the user reads on screen never lives in the code at all: it goes through
+`src/DtHub.Core/Localization/Strings*.resx`, in the three languages the
+application ships.
 
-**Les décisions se consignent.** Un choix d'architecture, un compromis, un
-renoncement : cela va dans `docs/DECISIONS.md`, avec ce qui a été mesuré et ce
-qui a été écarté. C'est la mémoire du projet et c'est ce qui évite de refaire
-deux fois la même erreur.
+**Decisions get recorded.** An architecture choice, a trade off, something
+given up: that goes in `docs/DECISIONS.md`, with what was measured and what
+was set aside. It is the memory of the project and it is what keeps the same
+mistake from being made twice.
 
-## Signaler un problème
+## Reporting a problem
 
-Le modèle d'incident guide le nécessaire. L'application sait composer un
-rapport : le bouton « Signaler un problème » de l'onglet Fenêtres le met dans
-le presse-papiers, déjà biffé de ce qui vous identifie. Collez-le tel quel.
+The issue form guides you through what is needed. The application can compose
+a report for you: the "Report a problem" button in the Windows tab puts it in
+the clipboard, already stripped of anything that identifies you. Paste it as
+it is.
 
-Pour une faille, ne passez pas par une issue publique : voir `SECURITY.md`.
+For a vulnerability, do not go through a public issue: see `SECURITY.md`.

@@ -1,158 +1,167 @@
-﻿# Faire reconnaître l'application
+﻿# Getting the application recognized
 
-DT Hub est un exécutable de soixante mégaoctets, distribué hors des magasins,
-qui se met à jour tout seul et télécharge deux outils tiers. Chacun de ces
-traits est, pris isolément, ce que fait aussi un logiciel malveillant. Ce
-document dit ce qui est déjà fait, ce qui manque, et dans quel ordre le régler.
+DT Hub is a sixty megabyte executable, distributed outside the stores,
+that updates itself and downloads two third party tools. Each of these
+traits is, taken on its own, also what malicious software does. This
+document states what is already done, what is missing, and in what order
+to address it.
 
-**Ce qui ne sera jamais fait :** ajouter une exclusion à Windows Defender, ou
-demander à quelqu'un de le faire. Une application qui a besoin qu'on désarme
-l'antivirus n'est pas une application de confiance, c'est une application qui
-demande un privilège.
+**What will never be done:** adding an exclusion to Windows Defender, or
+asking someone to do so. An application that needs the antivirus disarmed
+is not a trustworthy application, it is an application asking for a
+privilege.
 
-## Où on en est, mesuré
+## Where things stand, measured
 
-| Point | État |
+| Point | State |
 |---|---|
-| Analyse Defender du binaire publié | Aucune menace |
-| Nom du produit dans le fichier | « DT Hub », conforme à ce que dit la fenêtre |
-| Description dans le fichier | Une phrase, pas un nom de fichier |
-| Éditeur | Falcomfr |
-| Signature Authenticode | **Absente** |
-| Réputation SmartScreen | **Aucune**, le fichier n'ayant jamais été distribué |
+| Defender scan of the published binary | No threat |
+| Product name in the file | "DT Hub", matching what the window says |
+| Description in the file | A sentence, not a file name |
+| Publisher | Falcomfr |
+| Authenticode signature | **Absent** |
+| SmartScreen reputation | **None**, the file never having been distributed |
 
-Le contrôle d'identité est rejoué à chaque livraison par la chaîne, qui refuse
-de livrer un binaire dont le nom, la description ou l'éditeur manquent. C'est
-ainsi qu'on a vu que le fichier annonçait « DT Touch » des semaines après le
-renommage.
+The identity check is replayed on every release by the pipeline, which
+refuses to ship a binary missing its name, description or publisher. That
+is how it was caught still announcing "DT Touch" weeks after the rename.
 
-## Ce qui déclenchera des alertes, et pourquoi
+## What will trigger alerts, and why
 
-**L'absence de signature, en premier.** Windows SmartScreen met en garde sur tout
-exécutable téléchargé qu'il ne connaît pas, signé ou non ; mais un binaire signé
-capitalise sa réputation sur le certificat, donc sur toutes ses versions à la
-fois, quand un binaire non signé repart de zéro à chaque livraison. Sans
-signature, l'avertissement « Windows a protégé votre PC » reviendra
-indéfiniment.
+**The lack of a signature, first.** Windows SmartScreen warns on any
+downloaded executable it does not know, signed or not; but a signed binary
+accumulates its reputation on the certificate, and therefore across all
+its versions at once, whereas an unsigned binary starts from zero at every
+release. Without a signature, the "Windows protected your PC" warning will
+keep coming back.
 
-**La mise à jour automatique.** Télécharger un exécutable et remplacer le sien
-est le comportement d'un installeur de charge utile. Ce qui l'en distingue ici :
-l'adresse est celle d'un dépôt public, l'empreinte est vérifiée avant que le
-fichier ne serve, et rien ne s'exécute avant le lancement suivant. Cela ne
-convaincra pas une heuristique, cela convaincra un analyste.
+**Automatic updates.** Downloading an executable and replacing one's own
+is the behavior of a payload installer. What sets this one apart: the
+address is that of a public repository, the checksum is verified before
+the file is used, and nothing runs before the next launch. This will not
+convince a heuristic, it will convince an analyst.
 
-Il faut dire ce que cette empreinte garantit et ce qu'elle ne garantit pas :
-elle est lue dans le fichier `.sha256` de la **même** livraison. Elle protège
-donc du transport, d'un téléchargement tronqué ou altéré en chemin. Elle ne
-protège pas de la publication d'une fausse livraison, qui porterait sa propre
-empreinte. Ce qui protège de cela est le code public, et la signature quand
-elle existera.
+It is worth stating what this checksum guarantees and what it does not:
+it is read from the `.sha256` file of the **same** release. It therefore
+protects against transport, against a download truncated or altered in
+transit. It does not protect against the publication of a fake release,
+which would carry its own checksum. What protects against that is the
+public code, and the signature once it exists.
 
-**Le téléchargement d'ADB et de scrcpy.** Dix-neuf mégaoctets d'outils tiers,
-pris aux sources officielles, empreintes vérifiées, adresses centralisées dans
-`build/dependencies.json`. Un analyste vérifiera ce fichier. L'utilisateur, lui,
-voit au premier lancement une fenêtre qui nomme chaque composant, son éditeur et
-l'adresse d'où il vient, puis montre le téléchargement et la vérification.
+**Downloading ADB and scrcpy.** Nineteen megabytes of third party tools,
+taken from official sources, checksums verified, addresses centralized in
+`build/dependencies.json`. An analyst will check this file. The user, for
+their part, sees at first launch a window naming each component, its
+publisher and the address it comes from, then shows the download and the
+verification.
 
-**Le fichier unique auto-extractible.** Un exécutable qui se décompresse
-ressemble à un binaire empaqueté. C'est la forme normale d'une application .NET
-autonome, et les moteurs la connaissent, mais elle compte dans un score.
+**The single self-extracting file.** An executable that decompresses
+itself looks like a packed binary. This is the normal shape of a
+self-contained .NET application, and the engines know it, but it still
+counts toward a score.
 
-## Ce qu'il reste à faire, par ordre d'effet
+## What remains to be done, in order of effect
 
-### 1. Signer, ce qui aide, mais pas comme on le croit
+### 1. Signing, which helps, but not the way people think
 
-**Aucun certificat ne fait taire SmartScreen le premier jour.** C'est la
-première chose à savoir, et elle contredit ce que vendent encore la plupart des
-revendeurs. Vérifié en septembre 2026.
+**No certificate silences SmartScreen on day one.** This is the first
+thing to know, and it contradicts what most resellers still sell.
+Verified in September 2026.
 
-Le certificat EV a longtemps accordé la réputation d'emblée. Microsoft a changé
-ce comportement en mars 2024 : EV reste le certificat de plus haut niveau de
-vérification, exigé pour les pilotes, mais il n'achète plus le silence de
-SmartScreen. Payer le supplément pour cette seule raison n'a plus de sens.
+The EV certificate long granted reputation from the start. Microsoft
+changed this behavior in March 2024: EV remains the highest level of
+verification certificate, required for drivers, but it no longer buys
+SmartScreen's silence. Paying the premium for that reason alone no longer
+makes sense.
 
-Ce que la signature achète vraiment, et qui vaut le prix :
+What signing actually buys, and what is worth the price:
 
-- le nom de l'éditeur à la place d'« Éditeur inconnu » dans l'avertissement ;
-- une réputation qui **s'accumule d'une version à l'autre** au lieu de repartir
-  de zéro à chaque livraison, ce qui est le sort d'un binaire non signé.
+- the publisher's name in place of "Unknown publisher" in the warning;
+- a reputation that **accumulates from one version to the next** instead
+  of starting from zero at every release, which is the fate of an
+  unsigned binary.
 
-Trois routes, à revérifier chez le fournisseur car les conditions bougent vite.
+Three routes, to be rechecked with the provider since conditions move
+fast.
 
-**SignPath Foundation, gratuit, et c'est la route à regarder en premier.** Elle
-signe gratuitement les projets libres, avec des certificats Sectigo de niveau OV.
-Son mécanisme est plus exigeant que l'achat d'un certificat, et c'est ce qui en
-fait la valeur : elle vérifie que le binaire a bien été bâti depuis le dépôt
-public, et engage son nom là-dessus.
+**SignPath Foundation, free, and the route to look at first.** It signs
+open source projects for free, with Sectigo OV level certificates. Its
+mechanism is more demanding than buying a certificate, and that is what
+gives it its value: it verifies that the binary was indeed built from the
+public repository, and stakes its name on it.
 
-Deux conditions bloquent aujourd'hui, et toutes deux figurent déjà dans ce qui
-reste à faire : le dépôt doit être **public**, et le projet doit **déjà avoir une
-livraison** dans la forme à signer. La licence MIT convient. L'examen du dossier
-prend de quelques jours à quelques semaines.
+Two conditions currently block this, and both already appear in what
+remains to be done: the repository must be **public**, and the project
+must **already have a release** in the form to be signed. The MIT license
+qualifies. Reviewing the application takes anywhere from a few days to a
+few weeks.
 
-Un point à vérifier sur leurs conditions avant de s'engager : l'éditeur affiché
-est celui de la fondation, qui se porte garante du projet, et non « Falcomfr ».
-C'est un choix, pas un détail.
+One point to check in their terms before committing: the publisher shown
+is the foundation's, which vouches for the project, and not "Falcomfr".
+That is a choice, not a detail.
 
-Les deux autres routes, payantes :
+The other two routes, paid:
 
-**Azure Artifact Signing**, chez Microsoft, renommé en 2026 et anciennement
-Trusted Signing. Environ dix dollars par mois pour cinq mille signatures, sans
-jeton matériel puisque la clef reste chez eux. Ouvert aux entreprises et aux
-**indépendants** vérifiés de l'Union européenne, du Royaume-Uni, des États-Unis
-et du Canada : c'est la première condition à vérifier, un particulier sans
-statut n'y entre pas. Comptez quelques jours ouvrés de vérification d'identité.
+**Azure Artifact Signing**, from Microsoft, renamed in 2026 and formerly
+Trusted Signing. About ten dollars a month for five thousand signatures,
+with no hardware token since the key stays with them. Open to businesses
+and verified **independents** from the European Union, the United
+Kingdom, the United States and Canada: that is the first condition to
+check, an individual without a registered status does not qualify. Expect
+a few business days of identity verification.
 
-Une réserve sérieuse, relevée en 2026 : Microsoft fait tourner ses autorités
-intermédiaires, et plusieurs utilisateurs voient l'avertissement SmartScreen
-réapparaître à chaque livraison parce que la nouvelle autorité n'a pas encore de
-réputation. La réputation d'un binaire signé chez eux n'est donc pas acquise une
-fois pour toutes.
+A serious caveat, noted in 2026: Microsoft rotates its intermediate
+authorities, and several users see the SmartScreen warning reappear at
+every release because the new authority does not yet have a reputation.
+The reputation of a binary signed with them is therefore never acquired
+once and for all.
 
-**Un certificat OV ou EV** chez une autorité de certification. De deux cent
-cinquante à six cents dollars par an, sur jeton matériel ou dans un coffre en
-nuage, les clefs logicielles n'étant plus admises. Depuis février 2026, la
-validité est plafonnée à un an, ce qui rend le renouvellement annuel obligatoire.
-La réputation se construit ensuite, sur quelques semaines et quelques centaines
-de téléchargements.
+**An OV or EV certificate** from a certificate authority. From two
+hundred fifty to six hundred dollars a year, on a hardware token or in a
+cloud vault, software keys no longer being accepted. Since February 2026,
+validity is capped at one year, which makes annual renewal mandatory.
+Reputation then builds up over a few weeks and a few hundred downloads.
 
-Une fois le certificat obtenu, rien à changer dans le dépôt : poser un secret
-`SIGNING_COMMAND` sur le dépôt GitHub, contenant la ligne de signature complète
-du fournisseur. La chaîne l'exécute sur le binaire publié, vérifie que la
-signature a pris, et refuse de livrer si elle n'a pas pris. Sans ce secret,
-l'étape est sautée et la livraison sort non signée.
+Once the certificate is obtained, nothing to change in the repository:
+set a `SIGNING_COMMAND` secret on the GitHub repository, containing the
+provider's full signing command line. The pipeline runs it on the
+published binary, verifies that the signature took, and refuses to ship
+if it did not. Without this secret, the step is skipped and the release
+ships unsigned.
 
-### 2. Vérifier avant de livrer
+### 2. Verify before shipping
 
-Avant la première diffusion, envoyer le binaire sur VirusTotal et regarder ce
-que les soixante moteurs en disent. **Attention : envoyer un fichier à
-VirusTotal le publie**, il devient accessible aux abonnés du service. Ce n'est
-pas un problème pour une application dont le code est public, c'en serait un
-pour un binaire privé.
+Before the first release, send the binary to VirusTotal and see what the
+sixty engines say about it. **Warning: sending a file to VirusTotal
+publishes it**, making it accessible to the service's subscribers. This
+is not a problem for an application whose code is public, but it would be
+one for a private binary.
 
-Un ou deux moteurs marginaux qui crient au loup sur un binaire .NET non signé
-est banal. Une dizaine, ou un moteur majeur, mérite d'être compris avant de
-diffuser.
+One or two marginal engines crying wolf over an unsigned .NET binary is
+unremarkable. A dozen, or a major engine, deserves to be understood
+before releasing.
 
-### 3. Faire lever une fausse alerte
+### 3. Getting a false alert lifted
 
-Si un moteur se trompe, chaque éditeur a un formulaire de soumission. Pour
-Microsoft, c'est le portail « Submit a file for analysis » du centre de sécurité,
-en choisissant « Faux positif ». Le délai est de quelques jours. Joindre le lien
-du dépôt et celui de la livraison : un code source public est l'argument le plus
-efficace.
+If an engine is wrong, every vendor has a submission form. For Microsoft,
+it is the "Submit a file for analysis" portal of the security center,
+choosing "False positive". The turnaround is a few days. Attach the link
+to the repository and to the release: public source code is the most
+effective argument.
 
-### 4. Ce qui aide sans rien coûter
+### 4. What helps at no cost
 
-- Livrer depuis le dépôt, avec l'empreinte à côté du binaire, ce qui est déjà
-  le cas. Quelqu'un doit pouvoir vérifier ce qu'il a téléchargé.
-- Garder le code public : c'est ce qui distingue une fausse alerte d'un doute.
-- Ne pas changer le nom du fichier d'une version à l'autre, la réputation s'y
-  attachant.
-- Ne jamais demander de droits administrateur, ce que l'application ne fait pas
-  et ne doit pas se mettre à faire.
+- Shipping from the repository, with the checksum next to the binary,
+  which is already the case. Someone must be able to verify what they
+  downloaded.
+- Keeping the code public: that is what distinguishes a false alert from
+  a real doubt.
+- Not changing the file name from one version to the next, since
+  reputation attaches to it.
+- Never asking for administrator rights, which the application does not
+  do and must not start doing.
 
-## Vérifier soi-même l'état d'un binaire
+## Checking a binary's state yourself
 
 ```powershell
 # Identité et signature
@@ -160,6 +169,6 @@ $f = 'chemin\DtHub.exe'
 (Get-Item $f).VersionInfo | Format-List ProductName, FileDescription, CompanyName, FileVersion
 Get-AuthenticodeSignature $f | Format-List Status, SignerCertificate
 
-# Analyse par Defender, sans rien modifier à ses réglages
+# Defender scan, without changing any of its settings
 & 'C:\Program Files\Windows Defender\MpCmdRun.exe' -Scan -ScanType 3 -File $f
 ```

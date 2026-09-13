@@ -1,39 +1,39 @@
-name: Signaler un problème
-description: Quelque chose ne fonctionne pas comme prévu.
-labels: ["bogue"]
+name: Report a problem
+description: Something is not working as expected.
+labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        Merci de prendre le temps. Le plus utile est le **rapport** que
-        l'application compose pour vous : dans DT Hub, onglet Fenêtres, bouton
-        « Signaler un problème », puis « Copier le rapport ».
+        Thank you for taking the time. The most useful thing is the
+        **report** that the application composes for you: in DT Hub, the
+        Windows tab, "Report a problem" button, then "Copy the report".
 
-        Il porte la version, vos écrans, l'erreur et les lignes utiles du
-        journal. Les numéros de série, les adresses et le nom de votre compte
-        Windows en sont retirés avant d'y entrer.
+        It carries the version, your screens, the error and the useful
+        lines from the log. Serial numbers, addresses and your Windows
+        account name are stripped from it before it is filled in.
 
   - type: textarea
     id: attendu
     attributes:
-      label: Ce que vous attendiez
-      placeholder: Ouvrir deux comptes côte à côte.
+      label: What you expected
+      placeholder: Open two accounts side by side.
     validations:
       required: true
 
   - type: textarea
     id: produit
     attributes:
-      label: Ce qui s'est produit
-      placeholder: La deuxième fenêtre s'ouvre puis se ferme aussitôt.
+      label: What happened
+      placeholder: The second window opens then closes immediately.
     validations:
       required: true
 
   - type: textarea
     id: rapport
     attributes:
-      label: Le rapport
-      description: Collé depuis le bouton « Copier le rapport ».
+      label: The report
+      description: Pasted from the "Copy the report" button.
       render: text
     validations:
       required: false
@@ -41,10 +41,10 @@ body:
   - type: markdown
     attributes:
       value: |
-        **Si le rapport ne suffit pas**, le journal complet du jour se trouve
-        par le bouton « Ouvrir le dossier des journaux », dans le même onglet.
-        Vous pouvez joindre le fichier `dthub-<date>.log` en le glissant ici.
+        **If the report is not enough**, today's full log can be found
+        through the "Open logs folder" button, in the same tab. You can
+        attach the `dthub-<date>.log` file by dragging it here.
 
-        Attention : ce fichier n'est **pas** biffé. Il porte l'adresse de votre
-        téléphone, son numéro de série et le nom de votre compte Windows. Ne le
-        joignez que si vous l'acceptez.
+        Warning: this file is **not** redacted. It carries your phone's
+        address, its serial number and your Windows account name. Only
+        attach it if you accept that.
