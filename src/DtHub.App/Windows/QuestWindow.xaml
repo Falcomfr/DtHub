@@ -11,35 +11,37 @@
         Background="{DynamicResource SurfaceAltBrush}"
         TextOptions.TextFormattingMode="Display">
 
-  <!-- Pas de WindowStyle="None" ni d'AllowsTransparency ici, contrairement au
-       configurateur : un WebView2 est une surface native et ne se dessine pas
-       dans une fenêtre transparente. Le chrome de Windows est le prix à payer
-       pour voir la page. -->
+  <!-- No WindowStyle="None" or AllowsTransparency here, unlike the
+       configurator: a WebView2 is a native surface and does not render
+       inside a transparent window. Windows' chrome is the price to pay
+       for seeing the page. -->
 
   <DockPanel>
 
-    <!-- Bandeau de recherche -->
+    <!-- Search bar -->
     <Border DockPanel.Dock="Top" Padding="10,8"
             Background="{StaticResource BrushedPanelBrush}"
             BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1">
       <StackPanel>
-        <!-- Le champ prend toute la largeur : le compte de quêtes qui l'amputait
-             ne dit rien qu'on ait envie de lire deux fois. -->
+        <!-- The field takes up the full width: the quest count that used
+             to cut into it didn't say anything worth reading twice. -->
         <Grid>
-          <!-- Le retrait de droite est plus large que les autres : il réserve
-               la place de la croix, qui se pose par-dessus le champ. Il vaut la
-               moitié de la largeur voulue, le champ appliquant son retrait deux
-               fois - une fois au porte-texte, une fois au texte lui-même. -->
+          <!-- The right padding is wider than the others: it reserves
+               room for the cross, which sits above the field. It's set
+               to half the width wanted, since the field applies its
+               padding twice - once to the text holder, once to the
+               text itself. -->
           <TextBox x:Name="SearchBox" Padding="7,4,16,4"
                    Text="{Binding Query, UpdateSourceTrigger=PropertyChanged, Delay=150}"
                    GotKeyboardFocus="OnSearchFocused"
                    PreviewMouseLeftButtonDown="OnSearchClicked"
                    PreviewKeyDown="OnSearchKey"
                    ToolTip="{loc:T SearchTip}"
-                   Tag="Cherchez une quête, une zone, un succès, un donjon ou un chemin" />
+                   Tag="{loc:T QuestSearchPlaceholder}" />
 
-          <!-- Dans le champ et non à côté : une croix posée en dehors se lisait
-               comme un bouton de la barre, sans dire ce qu'elle vidait. -->
+          <!-- Inside the field, not next to it: a cross placed outside
+               read like one of the bar's buttons, without saying what
+               it was clearing. -->
           <Button Style="{StaticResource IconButton}"
                   HorizontalAlignment="Right" Margin="0,0,3,0"
                   Click="OnClearQuery"
@@ -50,8 +52,8 @@
           </Button>
         </Grid>
 
-        <!-- Seulement quand il y a quelque chose à dire : une indexation en
-             cours, ou un incident. Rien le reste du temps. -->
+        <!-- Only when there's something to say: an indexing in progress,
+             or an error. Nothing the rest of the time. -->
         <ProgressBar Height="2" Margin="0,6,0,0" IsIndeterminate="True"
                      Background="Transparent" BorderThickness="0"
                      Foreground="{DynamicResource AccentBrush}"
@@ -65,10 +67,10 @@
       </StackPanel>
     </Border>
 
-    <!-- Bandeau de la quête ouverte : son nom, sa place dans le succès, et
-         les flèches d'étape. Il s'efface quand la liste s'ouvre, pour qu'elle
-         prenne toute la hauteur : on ne consulte pas une étape et une liste en
-         même temps. -->
+    <!-- Banner for the open quest: its name, its place within the
+         achievement, and the step arrows. It disappears when the list
+         opens, so the list can take up the full height: you don't
+         consult a step and a list at the same time. -->
     <Border DockPanel.Dock="Top" Padding="10,6"
             BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1"
             Visibility="{Binding ShowsQuestChrome, Converter={StaticResource BoolToVisibility}}">
@@ -79,10 +81,10 @@
             <ColumnDefinition Width="*" />
           </Grid.ColumnDefinitions>
 
-          <!-- Revenir d'où l'on vient. Une flèche courbe et non un chevron :
-               les chevrons de la ligne du dessous désignent l'étape précédente
-               et la suivante, et deux flèches gauche dans le même bandeau ne
-               diraient pas la même chose. -->
+          <!-- Going back where you came from. A curved arrow rather than
+               a chevron: the chevrons on the row below point to the
+               previous and next step, and two left-pointing arrows in
+               the same banner wouldn't say the same thing. -->
           <Button Grid.Column="0" Style="{StaticResource IconButton}"
                   Margin="0,0,4,0" VerticalAlignment="Center"
                   Click="OnGoBackPage"
@@ -94,18 +96,19 @@
                         M 3.5,6 H 9.5 C 12,6 12.5,7.6 12.5,9.6 V 12.5" />
           </Button>
 
-          <!-- La ligne du succès n'était pas déclarée comme un espacement, mais
-               elle en faisait office : quinze pixels de gris clair au-dessus du
-               titre. Plus de la moitié des quêtes n'en ont pas, et le titre
-               venait alors toucher le filet, d'autant que la page en dessous
-               s'offre douze pixels de marge. Le bloc rend donc un peu d'air
-               quand la ligne se replie, sans prétendre remplacer un texte
-               absent.
+          <!-- The achievement line wasn't declared as spacing, but it
+               acted as one: fifteen pixels of light grey above the
+               title. More than half of quests don't have one, and the
+               title then ended up touching the divider, especially
+               since the page below allows itself twelve pixels of
+               margin. The block therefore gives back a bit of room
+               when the line collapses, without pretending to replace
+               missing text.
 
-               Le déclencheur lit la visibilité de la ligne plutôt que la chaîne
-               elle-même : c'est la même notion de vide que le convertisseur, y
-               compris pour un texte nul ou blanc, et les deux ne peuvent pas
-               diverger. -->
+               The trigger reads the line's visibility rather than the
+               string itself: it's the same notion of emptiness as the
+               converter, including for a null or blank text, and the
+               two cannot diverge. -->
           <StackPanel Grid.Column="1">
             <StackPanel.Style>
               <Style TargetType="StackPanel">
@@ -127,7 +130,7 @@
           </StackPanel>
         </Grid>
 
-        <!-- Les étapes : deux flèches, le rang, et ce qu'il y a à faire. -->
+        <!-- The steps: two arrows, the rank, and what there is to do. -->
         <Grid Margin="0,6,0,0"
               Visibility="{Binding ShowsSteps, Converter={StaticResource BoolToVisibility}}">
           <Grid.ColumnDefinitions>
@@ -149,15 +152,16 @@
             <Path Style="{StaticResource RowGlyph}" Data="M 6,3 L 10,7.5 L 6,12" />
           </Button>
 
-          <!-- Le rang déplie la liste des étapes. Les deux flèches n'avancent
-               que d'une à la fois : revenir à la troisième d'un guide qui en
-               compte douze demandait neuf clics, et rien ne disait ce qu'on
-               trouverait en chemin. Le rang n'était qu'un texte, et rien ne
-               laissait deviner qu'il y avait autre chose à faire ici. -->
+          <!-- The rank unfolds the list of steps. The two arrows only
+               move one at a time: going back to the third step of a
+               guide with twelve of them took nine clicks, and nothing
+               said what you'd find along the way. The rank used to be
+               just text, and nothing hinted there was something else
+               to do here. -->
           <Grid Grid.Column="2" Margin="4,0,10,0">
-            <!-- Le rang en texte simple quand il n'y a qu'une étape : la pastille
-                 y dépliait une liste d'un seul élément, qui ne menait nulle
-                 part. -->
+            <!-- The rank in plain text when there's only one step: the
+                 chip would unfold a list with a single item, which led
+                 nowhere. -->
             <TextBlock VerticalAlignment="Center" Text="{Binding StepText}"
                        Margin="7,0,0,0" FontFamily="{StaticResource MonoFont}" FontSize="{StaticResource FontSmall}"
                        Foreground="{DynamicResource AccentBrush}"
@@ -189,8 +193,8 @@
               <Border Background="{DynamicResource SurfaceBrush}" Width="400"
                       BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
                       CornerRadius="{StaticResource Radius}" Margin="0,4,0,0" Padding="6">
-                <!-- Un guide de vingt étapes ne tient pas d'un coup : la liste
-                     défile plutôt que de sortir de l'écran. -->
+                <!-- A twenty-step guide doesn't fit all at once: the list
+                     scrolls rather than running off the screen. -->
                 <ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto">
                   <ItemsControl ItemsSource="{Binding Steps}">
                     <ItemsControl.ItemTemplate>
@@ -220,9 +224,10 @@
                                        FontFamily="{StaticResource MonoFont}" FontSize="{StaticResource FontSmall}"
                                        Foreground="{DynamicResource AccentBrush}" />
 
-                            <!-- Le plus souvent vide : seul un titre de section
-                                 s'écrit ici. La ligne garde sa hauteur et sa
-                                 zone cliquable par le remplissage du bouton. -->
+                            <!-- Most often empty: only a section title is
+                                 written here. The row keeps its height
+                                 and its clickable area through the
+                                 button's fill. -->
                             <TextBlock Grid.Column="1" Text="{Binding Label}"
                                        TextWrapping="Wrap" Style="{StaticResource Muted}"
                                        Visibility="{Binding Label,
@@ -238,10 +243,10 @@
             </Popup>
           </Grid>
 
-          <!-- La ligne reste pendant le chargement pour que le bandeau ne
-               saute pas d'une hauteur ; elle n'y montrait que deux flèches
-               éteintes, ce qui se lisait comme une page cassée. Elle dit
-               maintenant ce qu'elle attend. -->
+          <!-- The row stays during loading so the banner doesn't jump in
+               height; it used to show nothing but two greyed-out
+               arrows there, which read like a broken page. It now says
+               what it's waiting for. -->
           <TextBlock Grid.Column="3" VerticalAlignment="Center"
                      FontSize="{StaticResource FontSmall}"
                      TextTrimming="CharacterEllipsis"
@@ -251,17 +256,18 @@
                 <Setter Property="Text" Value="{Binding StepDetail}" />
 
                 <Style.Triggers>
-                  <!-- Rien à dire, rien à montrer : le rang se suffit. La
-                       visibilité est posée ici et non sur l'élément, une valeur
-                       locale l'emportant sur tout déclencheur de style. -->
+                  <!-- Nothing to say, nothing to show: the rank is enough
+                       on its own. The visibility is set here and not on
+                       the element, since a local value overrides any
+                       style trigger. -->
                   <DataTrigger Binding="{Binding StepDetail}" Value="">
                     <Setter Property="Visibility" Value="Collapsed" />
                   </DataTrigger>
 
-                  <!-- En dernier, donc l'emporte : l'attente se dit même quand
-                       l'étape n'a rien à afficher. -->
+                  <!-- Last, so it wins: the waiting state is shown even
+                       when the step has nothing to display. -->
                   <DataTrigger Binding="{Binding IsLoadingPage}" Value="True">
-                    <Setter Property="Text" Value="Chargement de la page…" />
+                    <Setter Property="Text" Value="{loc:T LoadingPage}" />
                     <Setter Property="Visibility" Value="Visible" />
                   </DataTrigger>
                 </Style.Triggers>
@@ -272,7 +278,7 @@
       </StackPanel>
     </Border>
 
-    <!-- La source, toujours citée, et un accès au vrai navigateur -->
+    <!-- The source, always credited, and access to the real browser -->
     <Border DockPanel.Dock="Bottom" Padding="10,6"
             Background="{StaticResource BrushedPanelBrush}"
             BorderBrush="{DynamicResource BevelBrush}" BorderThickness="0,1,0,0">
@@ -283,10 +289,10 @@
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
 
-        <!-- Le crédit porte la couleur d'accent : c'est le nom de ceux dont
-             on affiche le travail, il ne se lit pas comme une mention grise.
-             Il se laisse couper : les deux boutons passent avant lui dans une
-             fenêtre étroite. -->
+        <!-- The credit carries the accent colour: it's the name of those
+             whose work is displayed, it doesn't read as a grey
+             mention. It's allowed to be truncated: the two buttons
+             take priority over it in a narrow window. -->
         <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
           <Image Source="/assets/papycha.png" Width="14" Height="14" Margin="0,0,5,0"
                  VerticalAlignment="Center"
@@ -297,14 +303,14 @@
                      Text="{loc:T PapychaGuides}" />
         </StackPanel>
 
-        <!-- Le signalement porte les couleurs de l'accent, au repos et non au
-             seul survol : c'est le geste qu'on cherche dans cette barre, et un
-             dessin gris s'y confondait avec le reste.
+        <!-- The report button carries the accent colours, at rest and
+             not only on hover: it's the action people look for in this
+             bar, and a grey icon blended into the rest.
 
-             L'accès au navigateur passe donc en icône. Trois libellés écrits ne
-             tenaient pas ensemble dans une fenêtre étroite, et le crédit tombait
-             à « Guide… » : c'est le nom de ceux dont on affiche le travail, il
-             ne se laisse pas rogner. -->
+             Browser access therefore becomes an icon. Three written
+             labels didn't fit together in a narrow window, and the
+             credit would shrink to "Guide…": it's the name of those
+             whose work is displayed, it doesn't get to be trimmed. -->
         <Button Grid.Column="1" Style="{StaticResource OutlineButton}" Margin="0,0,6,0"
                 Padding="9,5" FontSize="{StaticResource FontBody}"
                 Background="{DynamicResource AccentSoftBrush}"
@@ -331,14 +337,15 @@
       </Grid>
     </Border>
 
-    <!-- La sortie de secours de la recherche, offerte sur un retour à la ligne.
-         Notre catalogue ne connaît que des titres ; le site cherche dans le
-         corps de ses articles, donc les objets, les monstres et les personnages.
+    <!-- The search's fallback exit, offered when you press Enter. Our
+         catalogue only knows titles; the site searches within the body
+         of its articles, so items, monsters and characters as well.
 
-         Sur sa propre ligne et non dans la barre du crédit : celle-ci porte
-         déjà trois éléments, et son commentaire dit ce qu'il advient d'un
-         quatrième dans une fenêtre étroite. Déclarée après elle, donc placée
-         au-dessus : un enfant ancré en bas se pose sur le précédent. -->
+         On its own line, not in the credit bar: the latter already
+         carries three elements, and its own comment explains what
+         happens to a fourth one in a narrow window. Declared after it,
+         so placed above it: a child anchored to the bottom sits above
+         the previous one. -->
     <Border DockPanel.Dock="Bottom" Padding="10,6"
             Background="{DynamicResource AccentSoftBrush}"
             BorderBrush="{DynamicResource BevelBrush}" BorderThickness="0,1,0,0"
@@ -356,18 +363,19 @@
                      Foreground="{DynamicResource AccentBrush}"
                      Text="{Binding SiteSearchLabel}" />
 
-          <!-- Le même dessin que l'accès au navigateur de la barre du dessous :
-               c'est le même geste, sortir de l'application. -->
+          <!-- The same icon as the browser access in the bar below: it's
+               the same action, leaving the application. -->
           <Path Style="{StaticResource RowGlyph}" Margin="7,0,0,0" VerticalAlignment="Center"
                 Data="M 7,3.5 H 3.5 V 12.5 H 12.5 V 9 M 9.5,3.5 H 12.5 V 6.5 M 12.5,3.5 L 7.8,8.2" />
         </StackPanel>
       </Button>
     </Border>
 
-    <!-- La suite du succès : d'où l'on vient, où l'on en est, où l'on va.
-         Ce sont les voisines de la liste, pas celles de la chaîne de prérequis
-         que le site publie en pied d'article : celle-là saute d'un succès à
-         l'autre et se ramifie. -->
+    <!-- The achievement's sequence: where you came from, where you are,
+         where you're going. These are the list's neighbours, not those
+         of the prerequisite chain the site publishes at the foot of
+         the article: that one jumps from one achievement to another
+         and branches off. -->
     <Border DockPanel.Dock="Bottom" Padding="10,6"
             BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,1,0,0"
             Visibility="{Binding ShowsChain, Converter={StaticResource BoolToVisibility}}">
@@ -391,15 +399,16 @@
                 ToolTip="{loc:T PreviousQuestTip}"
                 Visibility="{Binding PreviousQuest, Converter={StaticResource EmptyToVisibility},
                                      ConverterParameter=inverse}">
-          <!-- La série n'apparaît que lorsqu'on en change : suivre un prérequis
-               fait parfois entrer dans un autre succès, voire dans une autre
-               zone, et le titre seul laisserait croire qu'on poursuit la même
-               suite. -->
+          <!-- The series only appears when it changes: following a
+               prerequisite sometimes leads into another achievement,
+               or even another zone, and the title alone would suggest
+               you're continuing the same sequence. -->
           <StackPanel Orientation="Horizontal">
             <Path Style="{StaticResource RowGlyph}" Data="M 9,3 L 5,7.5 L 9,12"
                   Margin="0,0,4,0" VerticalAlignment="Center" />
-            <!-- Même mécanique qu'en tête de fenêtre : sans série, le titre
-                 remontait contre le bord du bouton. -->
+            <!-- Same mechanism as at the top of the window: without a
+                 series, the title used to ride up against the button's
+                 edge. -->
             <StackPanel>
               <StackPanel.Style>
                 <Style TargetType="StackPanel">
@@ -459,25 +468,27 @@
       </Grid>
     </Border>
 
-    <!-- La page, et la liste déroulante par-dessus -->
+    <!-- The page, and the drop-down list on top of it -->
     <Grid>
-      <!-- Les prérequis épinglés. Un seul panneau pour toute la liste, et non
-           un par ligne : soixante lignes en porteraient soixante, dont un seul
-           servirait. Il se ferme au premier clic ailleurs, et au second clic sur
-           le cadenas.
+      <!-- The pinned prerequisites. A single panel for the whole list,
+           rather than one per row: sixty rows would carry sixty of
+           them, of which only one would ever be used. It closes on the
+           first click elsewhere, and on the second click on the lock.
 
-           À gauche du cadenas et non dessous : posé dessous, il recouvrait les
-           lignes suivantes, et le décalage de deux cent soixante pixels qui le
-           ramenait dans la fenêtre était une mesure prise une fois, que la
-           largeur du panneau dément dès qu'un prérequis est long. À gauche, il
-           se cale tout seul sur le cadenas, quelle que soit sa taille.
+           To the left of the lock, not below it: placed below, it
+           covered the following rows, and the two hundred and sixty
+           pixel offset that pulled it back inside the window was a
+           measurement taken once, which the panel's width contradicts
+           as soon as a prerequisite is long. On the left, it lines
+           itself up on the lock alone, whatever its size.
 
-           Il tient ouvert et c'est la fenêtre qui le referme, au premier clic
-           hors du cadenas qui l'a ouvert. Laissé à lui-même, il se fermait au
-           clic sur ce cadenas, puis le clic rouvrait aussitôt : on ne pouvait
-           pas le refermer par où on l'avait ouvert. Sa fermeture ne prévenait
-           d'ailleurs personne, l'événement ne se déclenchant pas, ce qui ôtait
-           tout moyen de le savoir. -->
+           It stays open and it's the window that closes it, on the
+           first click outside the lock that opened it. Left to
+           itself, it used to close on a click on that same lock, and
+           the click would immediately reopen it: there was no way to
+           close it from where it had been opened. Its closing,
+           moreover, told no one, since the event never fired, which
+           removed any way of knowing about it. -->
       <Popup x:Name="PanneauPrerequis" StaysOpen="True"
              Placement="Left" HorizontalOffset="-6" VerticalOffset="-6"
              AllowsTransparency="True" PopupAnimation="Fade">
@@ -504,9 +515,9 @@
                              Margin="0,7,0,0"
                              Fill="{DynamicResource TextMutedBrush}" />
 
-                    <!-- Seuls les prérequis qui sont des quêtes se cliquent :
-                         un objet à rapporter ou un créneau horaire ne mène
-                         nulle part. -->
+                    <!-- Only prerequisites that are quests are clickable:
+                         an item to bring back or a time slot leads
+                         nowhere. -->
                     <Button Grid.Column="1" Style="{StaticResource LinkButton}"
                             Content="{Binding Text}" Tag="{Binding Quest}"
                             Click="OnFollowNeed"
@@ -526,12 +537,12 @@
         </Border>
       </Popup>
 
-      <!-- Un WebView2 est une fenêtre native : il se dessine au-dessus de tout
-           élément WPF du même châssis, quel que soit l'ordre de déclaration.
-           Sans ce retrait, la liste s'ouvrait derrière la page dès qu'une quête
-           était chargée, c'est-à-dire dans le cas le plus courant. La replier
-           la rend visible ; la page, elle, vit dans son propre processus et
-           retrouve sa position au retour. -->
+      <!-- A WebView2 is a native window: it draws itself above every WPF
+           element in the same frame, regardless of declaration order.
+           Without this collapsing, the list opened behind the page as
+           soon as a quest was loaded, which is the most common case.
+           Collapsing it makes it visible; the page, meanwhile, lives
+           in its own process and finds its position again on return. -->
       <wv:WebView2 x:Name="View"
                    Visibility="{Binding ShowsPage,
                                         Converter={StaticResource BoolToVisibility}}" />
@@ -542,32 +553,33 @@
                  Text="{Binding Placeholder}"
                  Visibility="{Binding HasQuest, Converter={StaticResource InverseBoolToVisibility}}" />
 
-      <!-- L'attente prend la place de la vue plutôt que de la recouvrir, pour
-           la raison dite plus haut.
+      <!-- The waiting indicator takes the view's place rather than
+           covering it, for the reason stated above.
 
-           En haut et non au centre : la fenêtre fait mille trois cents pixels
-           de haut, et un rond de vingt-deux pixels posé en son milieu tombe à
-           cinq cents pixels sous le bandeau, loin de l'œil, dans une étendue
-           vide qui se lit comme une panne. Il se pose donc là où le texte va
-           paraître.
+           At the top rather than centred: the window is thirteen
+           hundred pixels tall, and a twenty-two pixel circle placed in
+           its middle lands five hundred pixels below the banner, far
+           from the eye, in an empty expanse that reads as a failure.
+           It is therefore placed where the text is about to appear.
 
-           Sans le titre dessous : le bandeau le porte déjà, deux lignes plus
-           haut, et il s'y affiche pendant le chargement. -->
+           Without the title underneath: the banner already carries it,
+           two lines above, and it's shown there during loading. -->
       <Control Style="{StaticResource BusyIndicator}" Width="22" Height="22"
                HorizontalAlignment="Center" VerticalAlignment="Top"
                Margin="0,54,0,0"
                Visibility="{Binding ShowsLoader, Converter={StaticResource BoolToVisibility}}" />
 
-      <!-- Elle recouvre la page : la liste est un choix en cours, pas un
-           panneau permanent qui volerait de la place au guide. -->
+      <!-- It covers the page: the list is a choice in progress, not a
+           permanent panel that would steal space from the guide. -->
       <Border VerticalAlignment="Stretch"
               Background="{DynamicResource SurfaceBrush}"
               BorderBrush="{StaticResource BevelPressedBrush}" BorderThickness="0,0,0,1"
               Visibility="{Binding IsListOpen, Converter={StaticResource BoolToVisibility}}">
         <DockPanel>
-          <!-- Le fil d'Ariane et la fermeture partagent une ligne toujours
-               présente : le fil est vide à la racine, et une croix logée dans
-               son bloc y aurait disparu avec lui. -->
+          <!-- The breadcrumb and the close button share a line that's
+               always present: the breadcrumb is empty at the root, and
+               a cross lodged inside its block would have disappeared
+               along with it. -->
           <Grid DockPanel.Dock="Top" Margin="10,4,4,2">
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="*" />
@@ -586,9 +598,9 @@
             </Button>
           </Grid>
 
-          <!-- Le retour est fixe et non une ligne de la liste : il défilait avec
-               elle et disparaissait dès qu'on descendait dans une rubrique de
-               soixante quêtes. -->
+          <!-- The back button is fixed and not a row of the list: it
+               used to scroll with it and disappear as soon as you went
+               down into a section of sixty quests. -->
           <Button DockPanel.Dock="Top" Style="{StaticResource QuietButton}"
                   HorizontalAlignment="Left" HorizontalContentAlignment="Left"
                   Margin="1,0,0,2" Click="OnGoBack"
@@ -609,8 +621,9 @@
                    MouseLeftButtonUp="OnNodeChosen"
                    KeyDown="OnNodeKey">
             <ListBox.ItemContainerStyle>
-              <!-- Un intertitre n'est pas un choix : le clavier doit l'enjamber,
-                   sans quoi la flèche s'arrête dessus et Entrée ne fait rien. -->
+              <!-- A subheading is not a choice: the keyboard must skip
+                   over it, otherwise the arrow key stops on it and
+                   Enter does nothing. -->
               <Style TargetType="ListBoxItem">
                 <Setter Property="IsEnabled" Value="{Binding IsEnabled}" />
                 <Setter Property="Focusable" Value="{Binding IsEnabled}" />
@@ -620,10 +633,10 @@
             </ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>
               <DataTemplate>
-                <!-- La gouttière est fixe et non un voisin replié : dans une
-                     pile horizontale, un élément masqué ne réserve pas sa
-                     place, et les libellés cesseraient de s'aligner d'une
-                     ligne à l'autre. -->
+                <!-- The gutter is fixed rather than a collapsed
+                     neighbour: in a horizontal stack, a hidden element
+                     doesn't reserve its space, and the labels would
+                     stop lining up from one row to the next. -->
                 <Grid x:Name="Ligne" Margin="0,3" Background="Transparent"
                       IsEnabled="{Binding IsEnabled}">
                   <Grid.ColumnDefinitions>
@@ -632,26 +645,30 @@
                     <ColumnDefinition Width="Auto" />
                   </Grid.ColumnDefinitions>
 
-                  <!-- Le filet des titres de groupe. Une ligne pleine plutôt
-                       qu'un simple écart : dans une recherche, ces titres
-                       coiffent des succès qui sont eux-mêmes des intertitres,
-                       et l'écart seul ne suffisait pas à les distinguer. -->
+                  <!-- The divider under group titles. A solid line
+                       rather than a plain gap: in a search, these
+                       titles sit above achievements that are
+                       themselves subheadings, and the gap alone wasn't
+                       enough to tell them apart. -->
                   <Rectangle x:Name="Filet" Grid.ColumnSpan="3" Height="1"
                              VerticalAlignment="Top" Margin="0,-9,0,0"
                              Fill="{DynamicResource BorderBrush}"
                              Visibility="Collapsed" />
 
-                  <!-- Le filet qui relie les quêtes d'un succès.
+                  <!-- The line that connects the quests of an
+                       achievement.
 
-                       C'est lui, avec le décalage, qui dit l'appartenance :
-                       l'intertitre et ses quêtes étaient au même retrait, et une
-                       icône portait seule toute la distinction.
+                       It's this line, together with the indent, that
+                       shows membership: the subheading and its quests
+                       used to sit at the same indent, and a single
+                       icon carried the whole distinction.
 
-                       Pour qu'il ne se hache pas d'un rang à l'autre, une ligne
-                       de succès porte son écart au-dedans, sur son libellé, et
-                       non au-dehors comme les autres : un tracé débordant de la
-                       marge d'une ligne n'était pas dessiné, mesuré à
-                       quarante-cinq pixels de filet pour six de vide. -->
+                       So that it doesn't break up from one row to the
+                       next, an achievement row carries its gap on the
+                       inside, on its label, rather than on the outside
+                       like the others: a stroke overflowing a row's
+                       margin wasn't drawn, measured at forty-five
+                       pixels of line for six of gap. -->
                   <Rectangle x:Name="Trait" Grid.Column="0" Width="1"
                              HorizontalAlignment="Right" VerticalAlignment="Stretch"
                              Margin="0,-4,7,-4"
@@ -670,10 +687,11 @@
 
                   <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="10,0,0,0"
                               VerticalAlignment="Center">
-                    <!-- La clef exigée à l'entrée d'un donjon. Neuf sur
-                         quatre-vingt-deux n'en demandent pas, et n'ont donc pas
-                         d'icône : l'absence est une information. Son nom est
-                         trop long pour la colonne et vient au survol. -->
+                    <!-- The key required at a dungeon's entrance. Nine
+                         out of eighty-two don't require one, and
+                         therefore have no icon: the absence is
+                         information in itself. Its name is too long
+                         for the column and comes on hover. -->
                     <Border Background="Transparent"
                             VerticalAlignment="Center" Margin="0,0,5,0"
                             ToolTip="{Binding Dungeon.Key}"
@@ -692,29 +710,32 @@
                                VerticalAlignment="Center"
                                Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" />
 
-                    <!-- Un cadenas : ce qui tient la quête fermée. Une clé
-                         avait été essayée d'abord ; son anneau et sa tige en
-                         diagonale se lisaient comme une loupe, à quelques
-                         centimètres du champ de recherche. Le site donne ces
-                         prérequis pour
-                         six cent treize quêtes, contre cent dix-sept auxquelles
-                         il donne un niveau.
+                    <!-- A lock: what keeps the quest closed. A key had
+                         been tried first; its ring and its diagonal
+                         shank read like a magnifying glass, a few
+                         centimetres from the search field. The site
+                         attributes these prerequisites to six hundred
+                         and thirteen quests, against one hundred and
+                         seventeen to which it attributes a level.
 
-                         Ce n'est pas une liste de quêtes à faire avant : sur
-                         cinq cent soixante-sept prérequis distincts, on trouve
-                         des objets à apporter, un alignement, un nombre de
-                         joueurs, un niveau, et jusqu'à des créneaux horaires.
-                         Le mot qui les couvre tous est « prérequis ».
+                         This isn't a list of quests to complete
+                         beforehand: across five hundred and
+                         sixty-seven distinct prerequisites, you find
+                         items to bring, an alignment, a number of
+                         players, a level, and even time slots. The
+                         word that covers them all is "prerequisites".
 
-                         L'infobulle est portée par un conteneur au fond
-                         transparent, et non par le tracé : un tracé ouvert n'a
-                         pas de surface, si bien qu'un remplissage ne lui donne
-                         aucune prise et qu'il faudrait viser une ligne d'un
-                         pixel et demi. Mesuré : sur le tracé seul, le survol ne
-                         déclenchait rien.
+                         The tooltip is carried by a container with a
+                         transparent background, rather than by the
+                         stroke: an open stroke has no surface, so a
+                         fill gives it no purchase, and you'd have to
+                         aim for a line a pixel and a half wide.
+                         Measured: on the stroke alone, hovering
+                         triggered nothing.
 
-                         Elle tient longtemps affichée, parce qu'une liste de
-                         prérequis se lit moins vite que le mot d'un bouton. -->
+                         It stays displayed for a long time, because a
+                         list of prerequisites reads more slowly than a
+                         button's single word. -->
                     <Button x:Name="Cadenas" Style="{StaticResource IconButton}"
                             VerticalAlignment="Center" Margin="6,0,2,0"
                             Click="OnShowNeeds"
@@ -771,14 +792,15 @@
                 </Grid>
 
                 <DataTemplate.Triggers>
-                  <!-- D'abord ce que la ligne est : un intertitre se distingue
-                       de ce qu'il coiffe, sans quoi une rubrique se lirait
-                       comme une quête de plus. Le décalage porte sur la ligne
-                       entière, sinon l'icône resterait huit pixels trop haut.
+                  <!-- First, what the row is: a subheading is set apart
+                       from what it heads, otherwise a section would
+                       read as just another quest. The offset applies
+                       to the whole row, otherwise the icon would sit
+                       eight pixels too high.
 
-                       L'icône vient après, et se règle sur la nature de la
-                       ligne et non sur son genre : deux branches se déplient de
-                       la même façon sans désigner la même chose. -->
+                       The icon comes next, and is set by the row's
+                       nature rather than its kind: two branches unfold
+                       the same way without denoting the same thing. -->
                   <DataTrigger Binding="{Binding Kind}" Value="Header">
                     <Setter TargetName="Libelle" Property="FontWeight" Value="SemiBold" />
                     <Setter TargetName="Libelle" Property="Foreground"
@@ -795,10 +817,10 @@
                     <Setter TargetName="Ligne" Property="Margin" Value="0,11,0,3" />
                   </DataTrigger>
 
-                  <!-- Le titre d'un groupe de résultats domine tout le reste :
-                       plus grand, en pleine couleur de texte, précédé d'un
-                       filet. Il coiffe des succès qui portent déjà le bleu et
-                       la demi-graisse des intertitres. -->
+                  <!-- A results group's title dominates everything else:
+                       bigger, in full text colour, preceded by a
+                       divider. It heads achievements that already carry
+                       the blue and the semi-bold weight of subheadings. -->
                   <DataTrigger Binding="{Binding Kind}" Value="Section">
                     <Setter TargetName="Libelle" Property="FontWeight" Value="Bold" />
                     <Setter TargetName="Libelle" Property="Foreground"
@@ -808,14 +830,16 @@
                     <Setter TargetName="Filet" Property="Visibility" Value="Visible" />
                   </DataTrigger>
 
-                  <!-- Une quête de succès se décale et prend son filet. -->
+                  <!-- An achievement's quest is indented and gets its
+                       line. -->
                   <DataTrigger Binding="{Binding InSuccess}" Value="True">
                     <Setter TargetName="Trait" Property="Visibility" Value="Visible" />
                     <Setter TargetName="Ligne" Property="Margin" Value="0" />
                     <Setter TargetName="Libelle" Property="Margin" Value="9,3,0,3" />
                   </DataTrigger>
 
-                  <!-- Le blanc de rupture, posé sur la ligne qui précède. -->
+                  <!-- The break's blank space, placed on the row before
+                       it. -->
                   <DataTrigger Binding="{Binding Spaced}" Value="True">
                     <Setter TargetName="Ligne" Property="Margin" Value="0,3,0,14" />
                   </DataTrigger>
@@ -824,7 +848,7 @@
                     <Setter TargetName="Nature" Property="Visibility" Value="Visible" />
                     <Setter TargetName="Nature" Property="Stroke"
                             Value="{DynamicResource GlyphSuccessBrush}" />
-                    <!-- Une étoile : ce qu'on obtient. -->
+                    <!-- A star: what you obtain. -->
                     <Setter TargetName="Nature" Property="Data"
                             Value="M 7.5,2 L 9.2,5.9 L 13.3,6.4 L 10.3,9.2 L 11.1,13.2
                                    L 7.5,11.2 L 3.9,13.2 L 4.7,9.2 L 1.7,6.4 L 5.8,5.9 Z" />
@@ -834,7 +858,7 @@
                     <Setter TargetName="Nature" Property="Visibility" Value="Visible" />
                     <Setter TargetName="Nature" Property="Stroke"
                             Value="{DynamicResource GlyphPlaceBrush}" />
-                    <!-- Une épingle : un endroit où l'on va. -->
+                    <!-- A pin: a place you're going to. -->
                     <Setter TargetName="Nature" Property="Data"
                             Value="M 7.5,13.6 C 7.5,13.6 12.3,8.6 12.3,6.1
                                    A 4.8,4.8 0 1 0 2.7,6.1 C 2.7,8.6 7.5,13.6 7.5,13.6 Z
@@ -846,25 +870,27 @@
                     <Setter TargetName="Nature" Property="Visibility" Value="Visible" />
                     <Setter TargetName="Nature" Property="Stroke"
                             Value="{DynamicResource GlyphPlaceBrush}" />
-                    <!-- Bouts francs, contre les bouts ronds du reste de la
-                         liste : un bout rond déborde de trois quarts d'unité de
-                         chaque côté, et refermait les blancs de la ligne
-                         médiane, qui n'en font que deux. -->
+                    <!-- Flat caps, unlike the rounded ones on the rest of
+                         the list: a round cap overflows by three
+                         quarters of a unit on each side, and it was
+                         closing up the gaps in the middle line, which
+                         are only two units wide. -->
                     <Setter TargetName="Nature" Property="StrokeStartLineCap" Value="Flat" />
                     <Setter TargetName="Nature" Property="StrokeEndLineCap" Value="Flat" />
-                    <!-- Une route en perspective : deux bas-côtés qui se
-                         rapprochent, une ligne médiane en pointillés. L'épingle
-                         du lieu tenait la place, et un chemin n'est pas un
-                         lieu : il en joint deux.
+                    <!-- A road in perspective: two shoulders converging,
+                         a dashed centre line. The place pin used to
+                         hold this spot, and a route isn't a place: it
+                         joins two of them.
 
-                         Trois autres dessins ont été montés et regardés avant
-                         celui-ci, et aucun ne tenait à quinze unités : une
-                         courbe à un virage donnait un os, une courbe à deux
-                         virages un chevron, une flèche en pointillés une flèche
-                         pleine, ses blancs mangés par les bouts ronds. Un
-                         panneau indicateur se lisait, mais désignait la
-                         direction et non le chemin. Reste la route elle-même,
-                         qui n'est faite que de droites. -->
+                         Three other drawings were built and looked at
+                         before this one, and none of them held up at
+                         fifteen units: a curve with one bend gave a
+                         bone, a curve with two bends a chevron, a
+                         dashed arrow a solid arrow, its gaps eaten by
+                         the rounded caps. A signpost read fine, but it
+                         pointed to a direction, not a route. What
+                         remains is the road itself, made of nothing
+                         but straight lines. -->
                     <Setter TargetName="Nature" Property="Data"
                             Value="M 3.2,13.6 L 5.5,2.4
                                    M 11.8,13.6 L 9.5,2.4
@@ -877,38 +903,43 @@
                     <Setter TargetName="Nature" Property="Visibility" Value="Visible" />
                     <Setter TargetName="Nature" Property="Stroke"
                             Value="{DynamicResource GlyphFamilyBrush}" />
-                    <!-- Un marque-page : une famille de quêtes, qui range sans
-                         situer. -->
+                    <!-- A bookmark: a family of quests, which sorts
+                         without placing. -->
                     <Setter TargetName="Nature" Property="Data"
                             Value="M 4,2.4 L 11,2.4 L 11,12.9 L 7.5,10.1 L 4,12.9 Z" />
                   </DataTrigger>
 
-                  <!-- Les quatre entrées de la racine sont dessinées pleines
-                       et non au filet, contrairement au reste de la liste : ce
-                       sont des objets du jeu et non des repères de classement,
-                       et un trait d'un pixel et demi les rendait fades.
+                  <!-- The root's four entries are drawn solid rather
+                       than outlined, unlike the rest of the list: they
+                       are game objects, not sorting markers, and a
+                       stroke a pixel and a half wide made them look
+                       faded.
 
-                       Trois d'entre elles portent la même teinte : un donjon, un
-                       raid et une tanière sont le même genre de lieu, et la
-                       couleur dit le genre quand la forme dit lequel des trois.
-                       Les distinguer aussi par la teinte aurait porté la liste à
-                       huit couleurs, où six suffisent déjà à peine.
+                       Three of them carry the same tint: a dungeon, a
+                       raid and a lair are the same kind of place, and
+                       the colour states the kind while the shape
+                       states which of the three. Distinguishing them
+                       by tint too would have pushed the list to eight
+                       colours, where six is already barely enough.
 
-                       Les creux viennent de la règle de remplissage pair-impair,
-                       celle du langage de tracé par défaut : un contour intérieur
-                       perce celui qui l'entoure, sans qu'on ait à le dire. -->
+                       The holes come from the even-odd fill rule, the
+                       default rule of the drawing language: an inner
+                       outline punches through the one that surrounds
+                       it, without having to say so. -->
                   <DataTrigger Binding="{Binding Glyph}" Value="Quests">
                     <Setter TargetName="Nature" Property="Visibility" Value="Visible" />
                     <Setter TargetName="Nature" Property="Stroke" Value="{x:Null}" />
-                    <!-- La teinte neutre des trois autres lignes de l'accueil.
-                         Le parchemin y était le seul en couleur, et rien ne
-                         justifiait qu'une des quatre natures se distingue là où
-                         elles se valent. -->
+                    <!-- The neutral tint of the home screen's three other
+                         rows. The scroll used to be the only one in
+                         colour there, and nothing justified singling
+                         out one of the four kinds where they are all
+                         equal. -->
                     <Setter TargetName="Nature" Property="Fill"
                             Value="{DynamicResource GlyphDungeonBrush}" />
-                    <!-- Un parchemin : deux rouleaux en pilule, un corps, et
-                         deux lignes d'écriture évidées. Le dessin est à nous ;
-                         celui du site ne sera repris que s'ils l'accordent. -->
+                    <!-- A scroll: two pill-shaped rolls, a body, and two
+                         hollowed-out lines of writing. The drawing is
+                         ours; the site's own will only be reused if
+                         they grant it. -->
                     <Setter TargetName="Nature" Property="Data"
                             Value="M 3.7,2.7 H 11.3 A 1.05,1.05 0 0 1 11.3,4.8
                                    H 3.7 A 1.05,1.05 0 0 1 3.7,2.7 Z
@@ -924,16 +955,19 @@
                     <Setter TargetName="Nature" Property="Stroke" Value="{x:Null}" />
                     <Setter TargetName="Nature" Property="Fill"
                             Value="{DynamicResource GlyphDungeonBrush}" />
-                    <!-- Un donjon au sens propre : une tour crénelée, sa
-                         porte en arc et sa meurtrière évidées.
+                    <!-- A dungeon in the literal sense: a crenellated
+                         tower, its arched door and murder hole
+                         hollowed out.
 
-                         Une clef couchée avait tenu la place ; elle disait déjà
-                         autre chose. La colonne de droite marque d'une clef les
-                         soixante-treize donjons qui en exigent une, et une
-                         recherche montrait donc la même clef deux fois sur une
-                         seule ligne, à gauche pour dire « donjon » et à droite
-                         pour dire « il vous en faut une ». Mesuré sur
-                         « bworker ». La clef ne veut plus dire qu'une chose. -->
+                         A key lying on its side had held this spot; it
+                         was already saying something else. The
+                         right-hand column marks with a key the
+                         seventy-three dungeons that require one, and a
+                         search would therefore show the same key twice
+                         on a single row, on the left to say "dungeon"
+                         and on the right to say "you need one".
+                         Measured on "bworker". The key now means only
+                         one thing. -->
                     <Setter TargetName="Nature" Property="Data"
                             Value="M 3.5,2.3 H 5.7 V 4.6 H 6.4 V 2.3 H 8.6 V 4.6
                                    H 9.3 V 2.3 H 11.5 V 13.1 H 3.5 Z
@@ -947,15 +981,16 @@
                     <Setter TargetName="Nature" Property="Stroke" Value="{x:Null}" />
                     <Setter TargetName="Nature" Property="Fill"
                             Value="{DynamicResource GlyphDungeonBrush}" />
-                    <!-- Un crâne : le raid est le combat qui tue.
+                    <!-- A skull: the raid is the fight that kills.
 
-                         Deux épées croisées avaient été dessinées d'abord, et
-                         montées dans l'application pour être vues. À la taille
-                         réelle, vingt-deux pixels, la garde et le pommeau ne
-                         portent plus : il ne reste qu'une croix, à quelques
-                         centimètres de celle qui vide le champ de recherche.
-                         Le crâne tient parce qu'il n'est fait que de masses :
-                         une calotte, deux orbites, une mâchoire. -->
+                         Two crossed swords had been drawn first, and
+                         built into the application to be seen. At
+                         their actual size, twenty-two pixels, the
+                         guard and the pommel no longer read: all that's
+                         left is a cross, a few centimetres from the one
+                         that clears the search field. The skull holds
+                         up because it's made of nothing but masses: a
+                         skullcap, two eye sockets, a jaw. -->
                     <Setter TargetName="Nature" Property="Data"
                             Value="M 3.5,8 A 4,4.4 0 0 1 11.5,8 L 11.5,9.8 L 3.5,9.8 Z
                                    M 5.4,9.8 H 9.6 L 8.9,12.6 H 6.1 Z
@@ -972,9 +1007,9 @@
                     <Setter TargetName="Nature" Property="Stroke" Value="{x:Null}" />
                     <Setter TargetName="Nature" Property="Fill"
                             Value="{DynamicResource GlyphDungeonBrush}" />
-                    <!-- Une empreinte : la tanière est l'antre d'une bête, et
-                         c'est ce qui la sépare du donjon, bâti de main
-                         d'homme. -->
+                    <!-- A paw print: a lair is a beast's den, and that's
+                         what sets it apart from a dungeon, built by
+                         human hands. -->
                     <Setter TargetName="Nature" Property="Data"
                             Value="M 4.35,9.9 a 3.15,2.6 0 1 0 6.3,0
                                    a 3.15,2.6 0 1 0 -6.3,0 Z

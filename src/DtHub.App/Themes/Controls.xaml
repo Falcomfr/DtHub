@@ -2,22 +2,23 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
 
-  <!-- Les couleurs viennent de la palette, par référence dynamique. -->
+  <!-- Colours come from the palette, by dynamic reference. -->
 
-  <!-- L'échelle typographique. Les couleurs passaient toutes par la palette,
-       et pas une n'était écrite en dur ; les tailles, elles, étaient des
-       nombres anonymes semés dans les fenêtres, si bien qu'une fenêtre neuve en
-       choisissait un à l'œil.
+  <!-- The type scale. Colours all went through the palette, and not
+       one was hardcoded; sizes, on the other hand, were anonymous
+       numbers scattered across the windows, so much that a new window
+       would pick one by eye.
 
-       Six crans, et rien entre. Les valeurs sont celles qui étaient déjà
-       employées : nommer une échelle ne doit rien déplacer à l'écran.
+       Six steps, and nothing in between. The values are the ones that
+       were already in use: naming a scale must not move anything on
+       screen.
 
-       Trois tailles restent écrites en dur, et c'est voulu. Le nom du produit
-       dans l'en-tête du configurateur est une marque et non du texte courant.
-       La croix de fermeture et le chevron des fiches d'aide sont des signes,
-       dont la taille suit le dessin et non la lecture. Et MenuPathControl
-       dessine un écran d'Android : ses proportions sont celles de ce
-       téléphone-là, pas celles de notre interface. -->
+       Three sizes remain hardcoded, and that's deliberate. The product
+       name in the configurator's header is a brand, not body text.
+       The close cross and the chevron on the help sheets are signs,
+       whose size follows the artwork rather than reading. And
+       MenuPathControl draws an Android screen: its proportions are
+       those of that phone, not those of our interface. -->
   <sys:Double x:Key="FontTiny">10</sys:Double>
   <sys:Double x:Key="FontSmall">11</sys:Double>
   <sys:Double x:Key="FontBody">12</sys:Double>
@@ -27,28 +28,32 @@
 
   <FontFamily x:Key="UiFont">Segoe UI Variable Text, Segoe UI</FontFamily>
 
-  <!-- Police de tout ce qui se lit comme une valeur : raccourcis, pourcentages.
-       Un raccourci est une suite de touches, pas une phrase ; la chasse fixe le
-       dit, et aligne les colonnes sans qu'on ait à s'en occuper. -->
+  <!-- Font for everything that reads as a value: shortcuts,
+       percentages. A shortcut is a sequence of keys, not a sentence;
+       monospace says so, and lines up columns without anyone having
+       to worry about it. -->
   <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas</FontFamily>
 
-  <!-- Le rayon, en un seul endroit.
+  <!-- The corner radius, in a single place.
 
-       Il était écrit en dur à vingt-et-un endroits, de 4 à 10 selon l'humeur :
-       le prochain écran en aurait réintroduit un vingt-deuxième. Deux pixels
-       adoucissent l'angle sans arrondir la forme. -->
+       It used to be hardcoded in twenty-one places, from 4 to 10
+       depending on the mood: the next screen would have introduced a
+       twenty-second one. Two pixels soften the corner without
+       rounding the shape. -->
   <CornerRadius x:Key="Radius">2</CornerRadius>
   <CornerRadius x:Key="RadiusTop">2,2,0,0</CornerRadius>
 
-  <!-- Ce qui se presse est plus arrondi que ce qui porte : cinq pixels pour les
-       touches, deux pour les cartes et les bulles. La distinction se voit sans
-       qu'on ait à la nommer, et deux pixels sur une touche de trente de haut
-       lisaient comme un rectangle qu'on aurait oublié de finir. -->
+  <!-- What gets pressed is more rounded than what carries: five
+       pixels for buttons, two for cards and bubbles. The distinction
+       shows without having to name it, and two pixels on a button
+       thirty units tall read like a rectangle someone forgot to
+       finish. -->
   <CornerRadius x:Key="RadiusKey">5</CornerRadius>
 
-  <!-- La face d'une touche : un dégradé à peine perceptible, plus clair en
-       haut. Avec le biseau, c'est ce qui la fait paraître posée plutôt que
-       peinte. Deux valeurs prises de part et d'autre du fond des panneaux. -->
+  <!-- A button's face: a barely perceptible gradient, lighter at the
+       top. Along with the bevel, that's what makes it look placed
+       rather than painted. Two values taken on either side of the
+       panels' background. -->
   <LinearGradientBrush x:Key="KeyFaceBrush" StartPoint="0,0" EndPoint="0,1">
     <GradientStop Offset="0" Color="#FF21252C" />
     <GradientStop Offset="1" Color="#FF15181C" />
@@ -59,10 +64,10 @@
     <GradientStop Offset="1" Color="#FF1A1E23" />
   </LinearGradientBrush>
 
-  <!-- Le biseau : lumière en haut, ombre en bas, sur une bordure d'un pixel.
-       C'est tout le relief de l'interface, et il ne coûte aucune ombre portée.
-       Inversé, il enfonce au lieu de poser : c'est ce que fait un bouton
-       pressé. -->
+  <!-- The bevel: light on top, shadow at the bottom, on a one-pixel
+       border. It's the interface's entire sense of relief, and it
+       costs no drop shadow at all. Inverted, it recesses instead of
+       raising: that's what a pressed button does. -->
   <LinearGradientBrush x:Key="BevelBorderBrush" StartPoint="0,0" EndPoint="0,1">
     <GradientStop Offset="0" Color="#FF3A414D" />
     <GradientStop Offset="1" Color="#FF0A0C0F" />
@@ -73,15 +78,16 @@
     <GradientStop Offset="1" Color="#FF3A414D" />
   </LinearGradientBrush>
 
-  <!-- Panneau brossé : deux surfaces seulement, le bandeau de titre et la barre
-       du bas. Le fond général reste uni, sans quoi l'écran deviendrait bruyant. -->
+  <!-- Brushed panel: only two surfaces, the title bar and the bottom
+       bar. The general background stays flat, otherwise the screen
+       would become noisy. -->
   <LinearGradientBrush x:Key="BrushedPanelBrush" StartPoint="0,0" EndPoint="0,1">
     <GradientStop Offset="0" Color="#FF16191F" />
     <GradientStop Offset="1" Color="#FF0E1014" />
   </LinearGradientBrush>
 
-  <!-- Filet gravé : une rainure de deux pixels, l'ombre puis la lumière.
-       Remplace l'ancien Separator, qui n'était employé nulle part. -->
+  <!-- Engraved rule: a two-pixel groove, shadow then light. Replaces
+       the old Separator, which wasn't used anywhere. -->
   <Style x:Key="Groove" TargetType="Control">
     <Setter Property="Height" Value="2" />
     <Setter Property="Focusable" Value="False" />
@@ -127,8 +133,9 @@
     <Setter Property="Margin" Value="0,0,0,8" />
   </Style>
 
-  <!-- Panneau encastré. Le fond est plus sombre que le châssis et la bordure
-       porte le biseau : la carte se creuse au lieu de flotter. -->
+  <!-- Inset panel. The background is darker than the chassis and the
+       border carries the bevel: the card recesses instead of
+       floating. -->
   <Style x:Key="Card" TargetType="Border">
     <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
     <Setter Property="BorderBrush" Value="{StaticResource BevelPressedBrush}" />
@@ -157,17 +164,19 @@
             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
           </Border>
           <ControlTemplate.Triggers>
-            <!-- La face s'éclaircit sous le doigt, au lieu de s'effacer : une
-                 baisse d'opacité rapprochait la touche du fond, ce qui est le
-                 contraire de ce qu'un survol doit dire. -->
+            <!-- The face lightens under the finger, instead of fading:
+                 a drop in opacity brought the button closer to the
+                 background, which is the opposite of what a hover
+                 should say. -->
             <Trigger Property="IsMouseOver" Value="True">
               <Setter TargetName="Root" Property="Background"
                       Value="{StaticResource KeyFaceHoverBrush}" />
             </Trigger>
 
-            <!-- Le biseau s'inverse : la lumière passe en bas, et la touche
-                 paraît s'enfoncer sous le doigt. C'est une réponse au geste,
-                 là où il n'y avait qu'un changement d'opacité. -->
+            <!-- The bevel inverts: the light moves to the bottom, and
+                 the button appears to sink under the finger. It's a
+                 response to the action, where there used to be
+                 nothing but a change in opacity. -->
             <Trigger Property="IsPressed" Value="True">
               <Setter TargetName="Root" Property="BorderBrush"
                       Value="{StaticResource BevelPressedBrush}" />
@@ -185,7 +194,7 @@
 
   <Style TargetType="Button" BasedOn="{StaticResource BaseButton}" />
 
-  <!-- Le bleu porte du texte clair : trop sombre pour l'inverse. -->
+  <!-- The blue carries light text: too dark for the reverse. -->
   <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
     <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
     <Setter Property="BorderBrush" Value="{StaticResource BevelBorderBrush}" />
@@ -193,16 +202,17 @@
     <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
 
-  <!-- Deux touches de la même famille, l'une simple et l'autre à bascule.
-       Le geste d'association et l'ouverture des profils se tiennent sur la même
-       ligne : deux dessins différents y faisaient désordre, l'un cadré et
-       l'autre flottant sans bord.
+  <!-- Two buttons of the same family, one plain and the other a
+       toggle. The pairing action and opening the profiles sit on the
+       same line: two different looks made it messy there, one framed
+       and the other floating without a border.
 
-       Au repos, le fond du panneau et le biseau, comme les autres touches. Sous
-       le doigt, le bleu sourd et le bord d'accent, c'est-à-dire la couleur de
-       ce qu'on choisit, là où il n'y avait qu'une baisse d'opacité qui ne
-       disait rien. Le dessin de gauche, lui, reste toujours à l'accent : c'est
-       la marque de la touche, pas un état. -->
+       At rest, the panel's background and the bevel, like the other
+       buttons. Under the finger, the muted blue and the accent
+       border, that is, the colour of what you select, where there
+       used to be nothing but a drop in opacity that said nothing. The
+       icon on the left, though, always stays in the accent colour:
+       it's the button's mark, not a state. -->
   <Style x:Key="OutlineButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
     <Setter Property="Padding" Value="11,7" />
     <Setter Property="HorizontalContentAlignment" Value="Left" />
@@ -238,10 +248,11 @@
     </Setter>
   </Style>
 
-  <!-- La bascule du même dessin. Elle a son gabarit à elle et n'hérite de rien :
-       les styles ci-dessus ciblent Button, et les poser sur un ToggleButton lève
-       au chargement de la fenêtre, ce que la compilation ne voit pas. Ouverte,
-       elle garde le fond d'accent, pour qu'on sache d'où sort la bulle. -->
+  <!-- The toggle version of the same look. It has its own template
+       and inherits nothing: the styles above target Button, and
+       applying them to a ToggleButton throws when the window loads,
+       which the compiler doesn't see. Open, it keeps the accent
+       background, so you know where the bubble comes from. -->
   <Style x:Key="OutlineToggle" TargetType="ToggleButton">
     <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
     <Setter Property="FontSize" Value="{StaticResource FontMedium}" />
@@ -282,13 +293,15 @@
     </Setter>
   </Style>
 
-  <!-- Une touche d'un groupe : les trois gestes de rangement de la barre du
-       bas tiennent dans un seul cadre, séparés par un filet. Elles n'ont donc ni
-       bord ni angle à elles, et c'est le cadre qui les arrondit aux extrémités.
+  <!-- A button within a group: the bottom bar's three arranging
+       actions sit within a single frame, separated by a divider. They
+       therefore have no border or corner of their own, and it's the
+       frame that rounds them at the ends.
 
-       Elles portent leur nom : trois icônes seules obligeaient à survoler pour
-       savoir laquelle faisait quoi, et le raccourci écrit sous chacune répétait
-       « Ctrl + » trois fois dans une barre de trois cent soixante unités. -->
+       They carry their name: three icons alone forced you to hover to
+       know which did what, and the shortcut written under each one
+       repeated "Ctrl +" three times in a bar three hundred and sixty
+       units wide. -->
   <Style x:Key="GroupKey" TargetType="Button">
     <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
     <Setter Property="FontSize" Value="{StaticResource FontBody}" />
@@ -329,8 +342,9 @@
     <Setter Property="FontSize" Value="{StaticResource FontBody}" />
   </Style>
 
-  <!-- Un lien dans un texte : ni cadre ni fond, seulement la couleur et le
-       soulignement au survol. Sert aux prérequis qui mènent à une quête. -->
+  <!-- A link within text: no frame, no background, just the colour
+       and the underline on hover. Used for prerequisites that lead to
+       a quest. -->
   <Style x:Key="LinkButton" TargetType="Button">
     <Setter Property="Cursor" Value="Hand" />
     <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
@@ -375,19 +389,20 @@
                   BorderBrush="{TemplateBinding BorderBrush}"
                   BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{StaticResource Radius}">
             <Grid>
-              <!-- Le texte d'invite, quand le champ est vide et qu'on lui en a
-                   posé un dans son Tag.
+              <!-- The prompt text, when the field is empty and one has
+                   been set on its Tag.
 
-                   Dans le gabarit et non par-dessus le champ : superposé, il
-                   fallait deviner sa marge. Il partage ainsi la bordure et la
-                   fonte du champ.
+                   Inside the template rather than layered on top of
+                   the field: overlaid, its margin had to be guessed
+                   at. This way it shares the field's border and font.
 
-                   Le retrait est appliqué deux fois, en marge et en retrait
-                   propre, parce que le champ fait de même : la marge du gabarit
-                   écarte le porte-texte, et le champ écarte encore le texte à
-                   l'intérieur. Mesuré, l'invite tombait quatorze pixels à
-                   gauche de la saisie, soit exactement deux fois les sept
-                   pixels de retrait. -->
+                   The padding is applied twice, as margin and as its
+                   own padding, because the field does the same: the
+                   template's margin pushes the text holder away, and
+                   the field pushes the text further inward again.
+                   Measured, the prompt landed fourteen pixels to the
+                   left of the entry, exactly twice the seven pixels of
+                   padding. -->
               <TextBlock x:Name="Invite" Margin="{TemplateBinding Padding}"
                          Padding="{TemplateBinding Padding}"
                          Text="{TemplateBinding Tag}"
@@ -411,9 +426,9 @@
     </Setter>
   </Style>
 
-  <!-- Case à cocher. Elle gardait le gabarit de Windows, avec son bleu et ses
-       coins arrondis : le seul contrôle de la fenêtre de démarrage à ne pas
-       suivre le thème. -->
+  <!-- Checkbox. It used to keep Windows' template, with its blue and
+       its rounded corners: the only control on the startup window
+       that didn't follow the theme. -->
   <Style TargetType="CheckBox">
     <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
     <Setter Property="FontSize" Value="{StaticResource FontMedium}" />
@@ -453,8 +468,8 @@
     </Setter>
   </Style>
 
-  <!-- Liste déroulante : le gabarit par défaut de Windows ignore le thème
-       sombre, on le remplace entièrement. -->
+  <!-- Drop-down list: Windows' default template ignores the dark
+       theme, so it's replaced entirely. -->
   <Style x:Key="ComboItem" TargetType="ComboBoxItem">
     <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
     <Setter Property="Padding" Value="10,7" />
@@ -523,9 +538,9 @@
     </Setter>
   </Style>
 
-  <!-- Curseur de taille. Glissière en rainure gravée, poignée en petit bloc
-       biseauté avec une encoche : c'est le geste le plus employé de l'onglet
-       Fenêtres, et il rendait jusqu'ici le curseur bleu de Windows. -->
+  <!-- Size slider. Track in an engraved groove, thumb as a small
+       bevelled block with a notch: it's the most used action in the
+       Windows tab, and until now it rendered as Windows' blue slider. -->
   <Style TargetType="Slider">
     <Setter Property="VerticalAlignment" Value="Center" />
     <Setter Property="IsSnapToTickEnabled" Value="True" />
@@ -570,7 +585,7 @@
                               Background="{DynamicResource SurfaceAltBrush}"
                               BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
                               SnapsToDevicePixels="True">
-                        <!-- L'encoche : elle dit où l'on tient la poignée. -->
+                        <!-- The notch: it shows where you hold the thumb. -->
                         <Border Width="2" Height="9" HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
                                 Background="{DynamicResource AccentBrush}" />
@@ -596,17 +611,18 @@
     </Setter>
   </Style>
 
-  <!-- Barre de défilement. Elle n'avait aucun style et rendait donc celle de
-       Windows, flèches comprises : c'est ce qui trahissait le plus le thème.
-       Huit pixels de large, sans flèche, glissière gravée et poignée de
-       cuivre. Les six ScrollViewer réservent déjà dix pixels à droite. -->
+  <!-- Scrollbar. It had no style at all and therefore rendered as
+       Windows' own, arrows included: this is what gave the theme away
+       the most. Eight pixels wide, no arrows, an engraved track and a
+       copper thumb. The six ScrollViewers already reserve ten pixels
+       on the right. -->
   <Style x:Key="ScrollThumb" TargetType="Thumb">
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="Thumb">
-          <!-- Quatre pixels, gris au repos. La poignée occupe souvent presque
-               toute la piste : en cuivre plein, elle devenait une barre qui
-               tirait l'oeil plus que le contenu. -->
+          <!-- Four pixels, grey at rest. The thumb often takes up
+               nearly the whole track: in solid copper, it turned into
+               a bar that drew the eye more than the content did. -->
           <Border x:Name="Poignee" CornerRadius="{StaticResource Radius}"
                   Width="4" HorizontalAlignment="Center"
                   Background="{DynamicResource BorderBrush}" />
@@ -625,8 +641,8 @@
     </Setter>
   </Style>
 
-  <!-- Les boutons de piste sont neutralisés : un clic dans le vide fait défiler
-       d'une page, sans qu'aucune flèche ne paraisse. -->
+  <!-- The track buttons are neutralised: clicking in the empty space
+       scrolls by one page, with no arrow appearing at all. -->
   <Style x:Key="ScrollTrackButton" TargetType="RepeatButton">
     <Setter Property="Focusable" Value="False" />
     <Setter Property="IsTabStop" Value="False" />
@@ -649,8 +665,9 @@
             <Border Width="1" HorizontalAlignment="Center"
                     Background="{DynamicResource GrooveBrush}" />
 
-            <!-- Sans ces quatre liaisons, la piste ne sait pas quelle part du
-                 contenu est visible : la poignée occupe alors toute la hauteur. -->
+            <!-- Without these four bindings, the track doesn't know
+                 what portion of the content is visible: the thumb
+                 then takes up the whole height. -->
             <Track x:Name="PART_Track" IsDirectionReversed="True"
                    Minimum="{TemplateBinding Minimum}"
                    Maximum="{TemplateBinding Maximum}"
@@ -681,16 +698,15 @@
     </Style.Triggers>
   </Style>
 
-  <!-- Poignée de déplacement : une grille de points, dessinée comme le reste.
-       Elle seule déclenche le glissé, pour que le champ de renommage garde la
-       sélection de texte. -->
+  <!-- Drag handle: a grid of dots, drawn like everything else. It
+       alone triggers the drag, so the rename field can keep its text
+       selection. -->
   <Style x:Key="DragHandle" TargetType="Control">
     <Setter Property="Width" Value="14" />
     <Setter Property="Height" Value="20" />
     <Setter Property="Cursor" Value="SizeNS" />
     <Setter Property="Focusable" Value="False" />
     <Setter Property="Opacity" Value="0.55" />
-    <Setter Property="ToolTip" Value="Faites glisser vers le haut ou vers le bas pour changer l'ordre" />
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="Control">
@@ -714,14 +730,14 @@
     </Setter>
   </Style>
 
-  <!-- Verrou de position, en icône plutôt qu'en case à cocher : la ligne
-       d'une instance porte déjà une case, et deux cases côte à côte se
-       confondent.
+  <!-- Position lock, as an icon rather than a checkbox: an instance's
+       row already carries a checkbox, and two checkboxes side by side
+       would be confused with one another.
 
-       Éteint par défaut, et fermé quand il est allumé : le geste que
-       l'utilisateur fait est d'immobiliser une fenêtre, pas d'en libérer les
-       autres. Le dessin change, pas seulement la couleur, une icône seulement
-       pâlie se lisant « désactivée » et non « décochée ». -->
+       Off by default, and closed when it's on: the gesture the user
+       makes is to pin a window in place, not to free up the others.
+       The icon itself changes, not just the colour, since an icon
+       merely faded reads as "disabled" rather than "unchecked". -->
   <Style x:Key="LockToggle" TargetType="ToggleButton">
     <Setter Property="Width" Value="20" />
     <Setter Property="Height" Value="20" />
@@ -733,7 +749,7 @@
         <ControlTemplate TargetType="ToggleButton">
           <Border x:Name="Root" Background="Transparent" CornerRadius="{StaticResource Radius}" Padding="3">
             <Grid Width="14" Height="14" Opacity="0.5">
-              <!-- Anse ouverte : la branche gauche est en l'air. -->
+              <!-- Open shackle: the left arm is in the air. -->
               <Path x:Name="Shackle" Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.5"
                     StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                     Data="M 10,6.5 V 4.2 A 3,3 0 0 0 4,4.2" />
@@ -743,7 +759,8 @@
           </Border>
           <ControlTemplate.Triggers>
             <Trigger Property="IsChecked" Value="True">
-              <!-- Anse fermée : la branche gauche redescend sur le corps. -->
+              <!-- Closed shackle: the left arm comes back down onto the
+                   body. -->
               <Setter TargetName="Shackle" Property="Data"
                       Value="M 10,6.5 V 4.2 A 3,3 0 0 0 4,4.2 V 6.5" />
               <Setter TargetName="Shackle" Property="Stroke" Value="{DynamicResource AccentBrush}" />
@@ -759,10 +776,10 @@
     </Setter>
   </Style>
 
-  <!-- Nom d'instance : du texte, qui se modifie au clic.
-       Un champ encadré par ligne remplissait la liste de boîtes et coûtait une
-       douzaine de pixels de hauteur chacune. Le cadre n'apparaît qu'au survol
-       et à la saisie, là où il sert vraiment. -->
+  <!-- Instance name: text that becomes editable on click. A field
+       framed per row filled the list with boxes and cost a dozen
+       pixels of height each. The frame only appears on hover and
+       while typing, where it actually serves a purpose. -->
   <Style x:Key="InlineEdit" TargetType="TextBox">
     <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
     <Setter Property="FontSize" Value="{StaticResource FontBody}" />
@@ -790,10 +807,10 @@
     </Setter>
   </Style>
 
-  <!-- Bouton d'action réduit à son dessin. Trois par ligne, ils tenaient en
-       toutes lettres sur 400 de large mais mangeaient la place du nom, qui est
-       la seule chose qu'on lise vraiment dans cette liste. L'infobulle porte
-       ce que le libellé disait, en plus complet. -->
+  <!-- Action button reduced to its icon. Three per row, they used to
+       fit spelled out on a width of 400, but ate into the room for the
+       name, which is the only thing you really read in this list.
+       The tooltip carries what the label used to say, in fuller form. -->
   <Style x:Key="IconButton" TargetType="Button">
     <Setter Property="Width" Value="26" />
     <Setter Property="Height" Value="24" />
@@ -822,7 +839,7 @@
     </Setter>
   </Style>
 
-  <!-- Rompre une association efface des réglages : le survol le dit en rouge. -->
+  <!-- Breaking a pairing erases settings: the hover says so in red. -->
   <Style x:Key="DangerIconButton" TargetType="Button" BasedOn="{StaticResource IconButton}">
     <Style.Triggers>
       <Trigger Property="IsMouseOver" Value="True">
@@ -831,11 +848,12 @@
     </Style.Triggers>
   </Style>
 
-  <!-- Un arc qui tourne, pour dire qu'on travaille.
+  <!-- A rotating arc, to say something is working.
 
-       Il ne tourne que tant qu'il est à l'écran : une animation sans fin sur
-       un élément replié continue de réclamer une image à chaque rafraîchissement
-       pour rien, et cette carte disparaît au premier balayage rendu. -->
+       It only spins while it's on screen: an endless animation on a
+       collapsed element keeps demanding a frame at every refresh for
+       nothing, and this card disappears as soon as the first scan
+       completes. -->
   <Style x:Key="Spinner" TargetType="Control">
     <Setter Property="Width" Value="14" />
     <Setter Property="Height" Value="14" />
@@ -843,17 +861,17 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="Control">
-          <!-- Un seul centre de rotation. Les deux, « RenderTransformOrigin »
-               et « CenterX/CenterY », s'additionnent : posés ensemble, l'arc
-               tournait autour du coin bas-droit au lieu de tourner sur
-               lui-même. -->
+          <!-- A single centre of rotation. The two,
+               "RenderTransformOrigin" and "CenterX/CenterY", add up:
+               set together, the arc rotated around its bottom-right
+               corner instead of spinning on itself. -->
           <Canvas Width="14" Height="14">
             <Canvas.RenderTransform>
               <RotateTransform x:Name="Turn" CenterX="7" CenterY="7" />
             </Canvas.RenderTransform>
 
-            <!-- Trois quarts de cercle : l'ouverture est ce qui donne à voir
-                 que ça tourne. -->
+            <!-- Three quarters of a circle: the gap is what shows that
+                 it's turning. -->
             <Path Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.6"
                   StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                   Data="M 7,1.2 A 5.8,5.8 0 1 1 1.9,4.3" />
@@ -893,27 +911,29 @@
     <Setter Property="Stretch" Value="None" />
   </Style>
 
-  <!-- Une corbeille : ce qui retire une chose de l'application.
+  <!-- A bin: what removes something from the application.
 
-       Elle était dessinée à même la fenêtre des profils, et le bouton qui
-       oublie un appareil portait une chaîne rompue, héritée du temps où il
-       s'appelait « rompre l'association ». Il n'annule pourtant rien côté
-       téléphone : il retire l'appareil d'ici, exactement comme la suppression
-       d'un profil. Un seul geste, un seul dessin, écrit une seule fois. -->
+       It used to be drawn straight into the profiles window, and the
+       button that forgets a device carried a broken chain, inherited
+       from when it was called "break the pairing". Yet it cancels
+       nothing on the phone's side: it removes the device from here,
+       exactly like deleting a profile. One single gesture, one single
+       icon, written once. -->
   <Style x:Key="BinGlyph" TargetType="Path" BasedOn="{StaticResource RowGlyph}">
     <Setter Property="Data"
             Value="M 3,4.6 H 12 M 6,4.6 V 3.2 H 9 V 4.6 M 4.2,4.6 V 12.3 H 10.8 V 4.6 M 6.4,6.6 V 10.3 M 8.6,6.6 V 10.3" />
   </Style>
 
-  <!-- Le même dessin, mais dans une liste. RowGlyph prend sa couleur d'un
-       bouton ancêtre ; il n'y en a pas dans le gabarit d'une ligne, et le tracé
-       y resterait invisible. La couleur est donc posée ici. -->
+  <!-- The same icon, but within a list. RowGlyph takes its colour
+       from an ancestor button; there is none in a row's template, and
+       the stroke would stay invisible there. The colour is therefore
+       set here. -->
   <Style x:Key="ListGlyph" TargetType="Path" BasedOn="{StaticResource RowGlyph}">
     <Setter Property="Stroke" Value="{DynamicResource TextMutedBrush}" />
   </Style>
 
-  <!-- Nom d'appareil au-dessus d'une suite d'instances. Volontairement
-       discret : il situe, il ne se lit pas. -->
+  <!-- Device name above a run of instances. Deliberately understated:
+       it locates, it isn't meant to be read. -->
   <Style x:Key="DeviceHeader" TargetType="TextBlock">
     <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
     <Setter Property="FontSize" Value="{StaticResource FontSmall}" />
@@ -929,9 +949,9 @@
     <Setter Property="Margin" Value="0,2" />
   </Style>
 
-  <!-- Indicateur d'activité : un arc qui tourne. C'est la seule animation
-       du dépôt, volontairement discrète, pour les quelques secondes que dure
-       l'ouverture ou la relance d'une instance. -->
+  <!-- Activity indicator: a rotating arc. It's the only animation in
+       the repository, deliberately understated, for the few seconds
+       an instance takes to open or restart. -->
   <Style x:Key="BusyIndicator" TargetType="Control">
     <Setter Property="Width" Value="16" />
     <Setter Property="Height" Value="16" />
@@ -939,23 +959,24 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="Control">
-          <!-- Le dessin est fait à seize unités et mis à l'échelle, au lieu
-               d'être dessiné à la taille demandée.
+          <!-- The artwork is drawn at sixteen units and scaled, instead
+               of being drawn at the requested size.
 
-               L'arc était un tracé de coordonnées fixes, l'anneau une ellipse
-               qui remplissait la place : à seize pixels ils coïncidaient, et
-               nulle part ailleurs. Le suivi demande vingt-deux pixels, où l'arc
-               restait seize et se retrouvait décalé en haut à gauche d'un
-               anneau plus grand que lui. Mesuré à l'écran.
+               The arc was a stroke with fixed coordinates, the ring an
+               ellipse filling the space: at sixteen pixels they
+               coincided, and nowhere else. Tracking asks for
+               twenty-two pixels, where the arc stayed at sixteen and
+               ended up offset toward the top left of a ring bigger
+               than itself. Measured on screen.
 
-               L'anneau garde une unité de marge pour que son rayon soit celui
-               de l'arc, sept : sans elle il vaut huit, et le bleu passe à côté
-               du gris d'un pixel entier. -->
+               The ring keeps a one-unit margin so that its radius
+               matches the arc's, seven: without it, it's eight, and
+               the blue misses the grey by a full pixel. -->
           <Viewbox Stretch="Uniform">
-            <!-- L'animation vise l'élément qui porte le déclencheur, sans nom :
-                 un Storyboard déclenché depuis un gabarit ne voit pas l'étendue
-                 de noms de ce gabarit, et échouait à chaque affichage d'une
-                 ligne. -->
+            <!-- The animation targets the element that carries the
+                 trigger, unnamed: a Storyboard triggered from a
+                 template can't see that template's name scope, and it
+                 used to fail every time a row was displayed. -->
             <Grid Width="16" Height="16" Background="Transparent"
                   RenderTransformOrigin="0.5,0.5">
               <Grid.RenderTransform>
@@ -985,10 +1006,11 @@
     </Setter>
   </Style>
 
-  <!-- Onglets, et paliers de réglage.
+  <!-- Tabs, and setting tiers.
 
-       La pilule pleine devient un simple trait sous l'onglet actif. Rien
-       d'autre ne le distingue : ni fond, ni couleur de texte particulière. -->
+       The solid pill becomes a simple line under the active tab.
+       Nothing else sets it apart: no background, no particular text
+       colour. -->
   <Style x:Key="Tab" TargetType="RadioButton">
     <Setter Property="Cursor" Value="Hand" />
     <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
@@ -1003,8 +1025,9 @@
               <ContentPresenter HorizontalAlignment="Center" />
             </Border>
 
-            <!-- Le liseré occupe toujours la place, même éteint : un trait qui
-                 apparaît décalerait le texte au-dessus de lui. -->
+            <!-- The underline always takes up its space, even when
+                 off: a line that appears would shift the text above
+                 it. -->
             <Border x:Name="Mark" Height="2" VerticalAlignment="Bottom"
                     Background="{DynamicResource AccentBrush}" Opacity="0" />
           </Grid>
@@ -1024,9 +1047,9 @@
     </Setter>
   </Style>
 
-  <!-- Case de la grille de positions. C'est une commande, pas un réglage
-       affiché : cliquer regroupe les fenêtres à cet endroit, et rien ne reste
-       allumé ensuite. -->
+  <!-- Cell of the position grid. It's a command, not a displayed
+       setting: clicking gathers the windows at that spot, and nothing
+       stays lit afterward. -->
   <Style x:Key="AnchorCell" TargetType="Button" BasedOn="{StaticResource BaseButton}">
     <Setter Property="Width" Value="30" />
     <Setter Property="Height" Value="22" />
@@ -1053,12 +1076,12 @@
     </Setter>
   </Style>
 
-  <!-- Infobulle : le gabarit par défaut de Windows ignore le thème et donne
-       du texte clair sur fond clair, illisible. -->
-  <!-- Une infobulle qui porte autre chose qu'une phrase.
-       Le gabarit ordinaire verse son contenu dans le Text d'un TextBlock : tout
-       ce qui n'est pas une chaîne y afficherait son nom de type. Celui-ci
-       présente le contenu tel qu'il est. -->
+  <!-- Tooltip: Windows' default template ignores the theme and gives
+       light text on a light background, unreadable. -->
+  <!-- A tooltip that carries something other than a sentence.
+       The ordinary template pours its content into a TextBlock's
+       Text: anything that isn't a string would show its type name
+       there. This one presents the content as it is. -->
   <Style x:Key="RichToolTip" TargetType="ToolTip">
     <Setter Property="HasDropShadow" Value="False" />
     <Setter Property="Placement" Value="Bottom" />

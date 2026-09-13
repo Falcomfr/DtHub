@@ -741,6 +741,12 @@ On a {0} device, the manual copy goes through: {1}.</value>
   <data name="SearchTip" xml:space="preserve">
     <value>Click to unroll the list, or type a name. Accents do not count.</value>
   </data>
+  <data name="QuestSearchPlaceholder" xml:space="preserve">
+    <value>Search for a quest, an area, an achievement, a dungeon or a path</value>
+  </data>
+  <data name="LoadingPage" xml:space="preserve">
+    <value>Loading the page…</value>
+  </data>
   <data name="ClearSearchTip" xml:space="preserve">
     <value>Clear the search</value>
   </data>

@@ -741,6 +741,12 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
   <data name="SearchTip" xml:space="preserve">
     <value>Haz clic para desplegar la lista, o escribe un nombre. Los acentos no cuentan.</value>
   </data>
+  <data name="QuestSearchPlaceholder" xml:space="preserve">
+    <value>Busca una misión, una zona, un logro, una mazmorra o un camino</value>
+  </data>
+  <data name="LoadingPage" xml:space="preserve">
+    <value>Cargando la página…</value>
+  </data>
   <data name="ClearSearchTip" xml:space="preserve">
     <value>Vaciar la búsqueda</value>
   </data>

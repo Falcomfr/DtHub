@@ -741,6 +741,12 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
   <data name="SearchTip" xml:space="preserve">
     <value>Cliquez pour dérouler la liste, ou tapez un nom. Les accents ne comptent pas.</value>
   </data>
+  <data name="QuestSearchPlaceholder" xml:space="preserve">
+    <value>Cherchez une quête, une zone, un succès, un donjon ou un chemin</value>
+  </data>
+  <data name="LoadingPage" xml:space="preserve">
+    <value>Chargement de la page…</value>
+  </data>
   <data name="ClearSearchTip" xml:space="preserve">
     <value>Vider la recherche</value>
   </data>
