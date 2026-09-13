@@ -1,256 +1,266 @@
-﻿# Composants tiers
+﻿# Third-party components
 
-DT Hub est publié sous licence MIT. Il s'appuie sur des composants tiers qui
-conservent leur propre licence. Ce fichier recense ces composants, la manière
-dont ils arrivent chez l'utilisateur et les obligations qui en découlent.
+DT Hub is published under the MIT licence. It relies on third-party
+components that keep their own licence. This file lists those components,
+how they reach the user, and the obligations that follow from that.
 
-Aucune notice de copyright ni aucun texte de licence tiers ne doit être retiré.
+No copyright notice or third-party licence text may be removed.
 
-## Vue d'ensemble
+## Overview
 
-| Composant | Licence | Mode de distribution |
+| Component | Licence | Distribution mode |
 |---|---|---|
-| scrcpy | Apache License 2.0 | Téléchargé depuis GitHub au premier lancement |
-| Android SDK Platform Tools (adb) | Android SDK License Agreement | Téléchargé depuis Google au premier lancement |
-| .NET runtime | MIT | Inclus par la publication self-contained |
-| CommunityToolkit.Mvvm | MIT | Paquet NuGet |
-| Serilog et ses puits | Apache License 2.0 | Paquets NuGet |
-| Microsoft.Extensions.* | MIT | Paquets NuGet |
-| Microsoft.Web.WebView2 | Licence Microsoft, non libre | Paquet NuGet, moteur fourni par Windows |
-| Logo de papycha.fr | Accord de l'auteur, voir plus bas | Fichier embarqué dans l'exécutable |
-| Données de quêtes de papycha.fr | Non libre, voir plus bas | Fichier embarqué dans l'exécutable |
-| xUnit, coverlet | Apache License 2.0, MIT | Dépendances de test, non distribuées |
+| scrcpy | Apache License 2.0 | Downloaded from GitHub on first launch |
+| Android SDK Platform Tools (adb) | Android SDK License Agreement | Downloaded from Google on first launch |
+| .NET runtime | MIT | Included by the self-contained publish |
+| CommunityToolkit.Mvvm | MIT | NuGet package |
+| Serilog and its sinks | Apache License 2.0 | NuGet packages |
+| Microsoft.Extensions.* | MIT | NuGet packages |
+| Microsoft.Web.WebView2 | Proprietary Microsoft licence | NuGet package, engine provided by Windows |
+| papycha.fr logo | Author's agreement, see below | File embedded in the executable |
+| papycha.fr quest data | Proprietary, see below | File embedded in the executable |
+| xUnit, coverlet | Apache License 2.0, MIT | Test dependencies, not distributed |
 
 ## scrcpy
 
-- Projet : https://github.com/Genymobile/scrcpy
-- Copyright : Copyright (C) 2018 Genymobile, Copyright (C) 2018-2026 Romain Vimont
-- Licence : Apache License 2.0
+- Project: https://github.com/Genymobile/scrcpy
+- Copyright: Copyright (C) 2018 Genymobile, Copyright (C) 2018-2026 Romain Vimont
+- Licence: Apache License 2.0
 
-La licence Apache 2.0 autorise la redistribution. DT Hub télécharge tout de
-même scrcpy chez l'utilisateur, depuis l'archive officielle publiée par le
-projet sur GitHub, par le même mécanisme vérifié que pour ADB. Deux raisons :
-l'installateur reste léger, et il n'y a qu'un seul chemin de mise en place à
-maintenir et à tester.
+The Apache 2.0 licence allows redistribution. DT Hub still downloads
+scrcpy on the user's machine, from the official archive published by the
+project on GitHub, through the same verified mechanism as for ADB. Two
+reasons: the installer stays light, and there is only one setup path to
+maintain and to test.
 
-Les obligations correspondantes sont remplies ainsi :
+The corresponding obligations are met as follows:
 
-- l'archive amont contient son propre `LICENSE.txt`, extrait tel quel et
-  conservé à côté de l'exécutable ;
-- DT Hub ne modifie aucun fichier de scrcpy. Le fonctionnement retenu pour
-  lancer une application sur un utilisateur Android secondaire n'exige aucune
-  modification, comme expliqué dans `docs/DECISIONS.md` et
-  `third_party/scrcpy/MODIFICATIONS.md` ;
-- si une modification devenait nécessaire, elle serait signalée dans ce même
-  fichier, accompagnée du patch reproductible.
+- the upstream archive contains its own `LICENSE.txt`, extracted as is
+  and kept next to the executable;
+- DT Hub does not modify any scrcpy file. The approach used to launch an
+  application on a secondary Android user requires no modification, as
+  explained in `docs/DECISIONS.md` and
+  `third_party/scrcpy/MODIFICATIONS.md`;
+- should a modification ever become necessary, it would be recorded in
+  that same file, together with a reproducible patch.
 
-L'archive Windows de scrcpy contient elle-même une copie d'`adb.exe`. DT Hub
-ne s'en sert pas : il utilise la sienne, obtenue directement chez Google, dont
-il maîtrise la version. Le chemin lui en est indiqué par la variable
-d'environnement `ADB`, que scrcpy honore.
+scrcpy's Windows archive itself contains a copy of `adb.exe`. DT Hub does
+not use it: it uses its own, obtained directly from Google, whose version
+it controls. The path to it is given by the `ADB` environment variable,
+which scrcpy honours.
 
-DT Hub n'est pas affilié à Genymobile ni aux auteurs de scrcpy et n'utilise
-pas leur nom ni leurs logos comme élément de sa propre identité.
+DT Hub is not affiliated with Genymobile or the scrcpy authors, and does
+not use their name or logos as part of its own identity.
 
 ## Android SDK Platform Tools (adb)
 
-- Éditeur : Google LLC
-- Licence : Android Software Development Kit License Agreement
-- Source officielle, versionnée et donc au contenu immuable :
+- Publisher: Google LLC
+- Licence: Android Software Development Kit License Agreement
+- Official, versioned source, and therefore of immutable content:
   https://dl.google.com/android/repository/platform-tools_r37.0.1-win.zip
 
-  L'adresse « latest » n'est pas employée : son contenu change sans prévenir,
-  et l'empreinte déclarée dans `build/dependencies.json` ne vaudrait plus rien.
+  The "latest" address is not used: its content changes without notice,
+  and the checksum recorded in `build/dependencies.json` would no longer
+  mean anything.
 
-Le contrat de licence du SDK Android n'autorise pas la redistribution des
-binaires. Les platform tools ne sont donc **pas** inclus dans le dépôt ni dans
-l'installateur. DT Hub les télécharge depuis l'URL officielle ci-dessus, au
-premier lancement, dans le dossier de données de l'utilisateur, et vérifie
-l'archive avant de l'extraire.
+The Android SDK's licence agreement does not allow redistribution of the
+binaries. The platform tools are therefore **not** included in the
+repository or in the installer. DT Hub downloads them from the official
+URL above, on first launch, into the user's data folder, and verifies
+the archive before extracting it.
 
-L'utilisateur en est informé : au premier lancement, une fenêtre nomme chaque
-composant, sa version et l'adresse d'où il vient, et montre l'avancement du
-téléchargement puis de la vérification. Aucune autre source n'est utilisée.
+The user is informed of this: on first launch, a window names each
+component, its version and the address it comes from, and shows the
+progress of the download and then of the verification. No other source
+is used.
 
 ## .NET
 
-- Éditeur : Microsoft Corporation
-- Licence : MIT
+- Publisher: Microsoft Corporation
+- Licence: MIT
 - https://github.com/dotnet/runtime
 
-DT Hub est publié en self-contained : le runtime .NET est inclus dans
-l'application, ce que la licence MIT autorise.
+DT Hub is published self-contained: the .NET runtime is included in the
+application, which the MIT licence allows.
 
 ## CommunityToolkit.Mvvm
 
-- Projet : https://github.com/CommunityToolkit/dotnet
-- Licence : MIT
+- Project: https://github.com/CommunityToolkit/dotnet
+- Licence: MIT
 
 ## Serilog
 
-- Projet : https://github.com/serilog/serilog
-- Licence : Apache License 2.0
-- Paquets employés : `Serilog.Extensions.Hosting`, `Serilog.Sinks.File`,
+- Project: https://github.com/serilog/serilog
+- Licence: Apache License 2.0
+- Packages used: `Serilog.Extensions.Hosting`, `Serilog.Sinks.File`,
   `Serilog.Sinks.Debug`
 
-Journalisation de l'application. Distribué avec l'exécutable.
+Application logging. Distributed with the executable.
 
-## Microsoft.Extensions.Hosting et Microsoft.Extensions.Logging.Abstractions
+## Microsoft.Extensions.Hosting and Microsoft.Extensions.Logging.Abstractions
 
-- Projet : https://github.com/dotnet/runtime
-- Licence : MIT
+- Project: https://github.com/dotnet/runtime
+- Licence: MIT
 
-Hôte générique et abstractions de journalisation, du même dépôt que le runtime
-.NET. Distribués avec l'exécutable.
+Generic host and logging abstractions, from the same repository as the
+.NET runtime. Distributed with the executable.
 
 ## Microsoft.Web.WebView2
 
-- Éditeur : Microsoft Corporation
-- Projet : https://developer.microsoft.com/microsoft-edge/webview2/
-- Licence : conditions de distribution Microsoft, **qui ne sont pas une licence
-  libre**. Voir le fichier de licence livré avec le paquet NuGet.
+- Publisher: Microsoft Corporation
+- Project: https://developer.microsoft.com/microsoft-edge/webview2/
+- Licence: Microsoft distribution terms, **which are not a free**
+  **licence**. See the licence file shipped with the NuGet package.
 
-C'est la seule dépendance de ce type. Deux choses distinctes en découlent : le
-paquet NuGet, qui n'apporte que l'amorce et les liaisons managées, est distribué
-avec l'exécutable ; le moteur de rendu lui-même n'est **pas** distribué par
-DT Hub, il est fourni avec Windows 11 et arrive sur Windows 10 par Microsoft
-Edge. Son absence est détectée et dite à l'utilisateur, elle n'empêche que les
-fenêtres de guides.
+This is the only dependency of this kind. Two distinct things follow
+from that: the NuGet package, which only brings the bootstrapper and the
+managed bindings, is distributed with the executable; the rendering
+engine itself is **not** distributed by DT Hub, it is provided with
+Windows 11 and reaches Windows 10 through Microsoft Edge. Its absence is
+detected and reported to the user; it only prevents the guide windows.
 
-## Logo de papycha.fr
+## papycha.fr logo
 
-- Source : https://papycha.fr/wp-content/uploads/2022/04/cropped-luis-192x192.png
-- Fichier : `assets/papycha.png`, embarqué dans l'exécutable
-- Relevé le 2026-09-09, **avec l'accord de papycha.fr**
+- Source: https://papycha.fr/wp-content/uploads/2022/04/cropped-luis-192x192.png
+- File: `assets/papycha.png`, embedded in the executable
+- Recorded on 2026-09-09, **with papycha.fr's agreement**
 
-C'est l'icône de site de papycha.fr, celle qui identifie leurs pages dans un
-onglet de navigateur, et la mascotte qui figure dans leur propre logotype. Elle
-marque le bouton des guides et le crédit de la fenêtre de guides : aux deux
-endroits où l'on montre leur travail.
+This is papycha.fr's site icon, the one that identifies their pages in a
+browser tab, and the mascot that appears in their own logotype. It marks
+the guides button and the credit in the guides window: the two places
+where their work is shown.
 
-**Ce fichier n'est pas couvert par la licence MIT de DT Hub.** L'accord vaut
-pour DT Hub et non pour quiconque réutiliserait ce dépôt, qui doit s'adresser à
-papycha.fr.
+**This file is not covered by DT Hub's MIT licence.** The agreement
+applies to DT Hub, not to anyone reusing this repository, who must
+contact papycha.fr.
 
-**L'accord couvre aussi les captures d'écran de la documentation.** L'une
-d'elles, `assets/screenshots/guide-de-quete.jpg`, montre la fenêtre de guides en
-usage, et donc deux illustrations de papycha.fr dans le corps d'un de leurs
-guides. Elles ne sont pas extraites ni réemployées : on montre la fenêtre telle
-qu'elle est, avec son crédit « Guides de papycha.fr » visible en pied. La même
-réserve vaut : cet accord ne se transmet pas à un fork.
+**The agreement also covers the documentation's screenshots.** One of
+them, `assets/screenshots/guide-de-quete.jpg`, shows the guides window
+in use, and therefore two of papycha.fr's illustrations within one of
+their guides. They are not extracted or reused: the window is shown as
+it is, with its "Guides de papycha.fr" (papycha.fr's guides) credit
+visible at the bottom. The same reservation applies: this agreement
+does not carry over to a fork.
 
-**La bannière du site est écartée, et le restera.** Elle porte le logo déposé de
-DOFUS Touch, son symbole ® et l'illustration officielle d'Ankama. Aucun accord
-de papycha ne peut céder ce qui ne leur appartient pas, et le projet ne
-redistribue aucune ressource d'Ankama.
+**The site's banner is excluded, and will stay excluded.** It carries
+DOFUS Touch's registered logo, its ® symbol and Ankama's official
+artwork. No agreement from papycha can hand over what does not belong
+to them, and the project does not redistribute any Ankama resource.
 
-## Almanax du portail d'Ankama
+## The Almanax on Ankama's portal
 
-- Source : https://krosmoz.com, page de l'Almanax du jour
-- Rien n'est embarqué : la page est lue au moment où la fenêtre s'ouvre
+- Source: https://krosmoz.com, the Almanax of the day page
+- Nothing is embedded: the page is read when the window opens
 
-**Aucune ressource n'est copiée ni redistribuée.** La fenêtre n'affiche pas la
-page : elle la lit et se dessine elle-même. Le portail rend une page de bureau
-entière, avec son décor et ses textes d'ambiance, dont rien n'aide à savoir quoi
-apporter aujourd'hui ; on en retient l'offrande, le bonus, la quête et le
-méryde, qui sont des faits de jeu et non des créations graphiques. Le pied de la
-fenêtre nomme la source à l'écran, « Almanax officiel, krosmoz.com ».
+**No resource is copied or redistributed.** The window does not display
+the page: it reads it and draws itself. The portal renders a whole
+desktop page, with its background art and mood text, none of which
+helps to know what to bring today; only the offering, the bonus, the
+quest and the méryde are kept, which are game facts and not graphical
+creations. The window's footer names the source on screen, "Almanax
+officiel, krosmoz.com".
 
-**Ce que cela n'autorise pas.** Ni image, ni icône d'objet, ni bandeau du
-portail. La règle générale plus bas vaut ici comme ailleurs : aucune ressource
-graphique d'Ankama n'entre dans ce dépôt.
+**What this does not authorise.** No image, no item icon, no portal
+banner. The general rule further below applies here as everywhere else:
+no Ankama graphical resource enters this repository.
 
-## Données de quêtes issues de papycha.fr
+## Quest data from papycha.fr
 
-- Source : https://papycha.fr
-- Fichier : `assets/quest-successes.json`, embarqué dans l'exécutable
-- Relevé le 2026-08-30 par `build/extract-successes.py`
+- Source: https://papycha.fr
+- File: `assets/quest-successes.json`, embedded in the executable
+- Recorded on 2026-08-30 by `build/extract-successes.py`
 
-**Ce fichier n'est pas couvert par la licence MIT de DT Hub.** Il contient 719
-entrées indexées par adresse de page, portant le nom du succès auquel une quête
-appartient, son rang, et les titres des quêtes prérequises. Ce sont des titres
-d'œuvre du jeu DOFUS Touch, et surtout une structure de progression que
-papycha.fr a établie par un travail éditorial qui lui appartient.
+**This file is not covered by DT Hub's MIT licence.** It contains 719
+entries indexed by page address, carrying the name of the achievement a
+quest belongs to, its rank, and the titles of the prerequisite quests.
+These are titles of works from the DOFUS Touch game, and above all a
+progression structure that papycha.fr established through editorial
+work that belongs to them.
 
-Aucun texte de quête, aucune description, aucune solution n'est repris : le
-fichier ne sert qu'à savoir dans quel ordre lire les pages du site, et
-l'application renvoie toujours au site pour le contenu lui-même.
+No quest text, no description, no walkthrough is reproduced: the file
+only serves to know in which order to read the site's pages, and the
+application always points back to the site for the content itself.
 
-DT Hub n'est affilié ni à papycha.fr ni à Ankama. Quiconque réutilise ce dépôt
-sous licence MIT doit traiter ce fichier à part et s'adresser à papycha.fr.
+DT Hub is not affiliated with papycha.fr or with Ankama. Anyone reusing
+this repository under the MIT licence must treat this file separately
+and contact papycha.fr.
 
 ## xUnit
 
-- Projet : https://github.com/xunit/xunit
-- Licence : Apache License 2.0
+- Project: https://github.com/xunit/xunit
+- Licence: Apache License 2.0
 
-Dépendance de test uniquement, absente de l'application distribuée.
+Test dependency only, absent from the distributed application.
 
-## Marques et contenus des applications mirrorées
+## Trademarks and content of mirrored applications
 
-Les icônes et les noms des applications installées sur le téléphone sont lus
-sur l'appareil et affichés localement dans le sélecteur, uniquement pour
-permettre à l'utilisateur de reconnaître ses propres applications. Ils ne sont
-ni redistribués, ni stockés hors de la machine de l'utilisateur, ni utilisés
-comme éléments de communication de DT Hub.
+The icons and names of the applications installed on the phone are read
+from the device and displayed locally in the picker, solely so the user
+can recognise their own applications. They are neither redistributed
+nor stored outside the user's machine, nor used as communication
+material for DT Hub.
 
-DT Hub n'embarque aucun logo ni aucune ressource graphique appartenant à un
-éditeur d'application tiers. Les deux seules images du dépôt, `assets/app.png`
-et `assets/app.ico`, sont dessinées par `build/make-icon.py`.
+DT Hub does not embed any logo or graphical resource belonging to a
+third-party application publisher. The only two images in the
+repository, `assets/app.png` and `assets/app.ico`, are drawn by
+`build/make-icon.py`.
 
-Deux exceptions, nommées ici parce qu'une règle qui ne dit pas ses exceptions ne
-protège plus rien : les titres de quêtes du fichier décrit plus haut, et les
-captures d'écran, qui montrent l'application en fonctionnement et donc le jeu
-qu'elle affiche. Les unes servent l'interopérabilité, les autres illustrent la
-documentation.
+Two exceptions, named here because a rule that does not state its
+exceptions no longer protects anything: the quest titles from the file
+described above, and the screenshots, which show the application
+running and therefore the game it displays. The former serve
+interoperability, the latter illustrate the documentation.
 
-Les captures sont nommées, puisque le principe est de nommer :
+The screenshots are named, since the principle is to name things:
 
-| Fichier | Ce qu'on y voit |
+| File | What it shows |
 |---|---|
-| `assets/screenshots/deux-comptes.jpg` | deux fenêtres de jeu côte à côte |
-| `assets/screenshots/cadre-a-onglets.jpg` | les deux mêmes en onglets |
-| `assets/screenshots/guide-de-quete.jpg` | la fenêtre de guides, et donc une page de papycha.fr |
-| `assets/screenshots/appareils.png` | le configurateur seul, aucune ressource tierce |
-| `assets/screenshots/liste-des-donjons.png` | la liste que DT Hub compose lui-même, aucune ressource tierce |
-| `assets/screenshots/almanax.png` | la fenêtre de l'Almanax, qui se dessine elle-même à partir des faits du jour |
+| `assets/screenshots/deux-comptes.jpg` | two game windows side by side |
+| `assets/screenshots/cadre-a-onglets.jpg` | the same two, tabbed |
+| `assets/screenshots/guide-de-quete.jpg` | the guides window, and therefore a papycha.fr page |
+| `assets/screenshots/appareils.png` | the device configurator alone, no third-party resource |
+| `assets/screenshots/liste-des-donjons.png` | the list DT Hub composes itself, no third-party resource |
+| `assets/screenshots/almanax.png` | the Almanax window, which draws itself from the day's facts |
 
-Aucune ne sert d'identité au projet : ni icône, ni favicon, ni image d'aperçu.
-Celles-là sont dessinées par `build/make-icon.py`. Et toutes sont retirables
-sans que la documentation cesse de se lire.
+None serves as the project's identity: no icon, no favicon, no preview
+image. Those are drawn by `build/make-icon.py`. And all of them are
+removable without the documentation ceasing to read properly.
 
-## Ce que l'équipe DOFUS Touch a répondu
+## What the DOFUS Touch team said in response
 
-Le projet lui a été présenté avant toute publication, vidéo de démonstration à
-l'appui, le 2026-09-07. La réponse est arrivée le lendemain, 2026-09-08.
+The project was presented to them before any publication, with a
+demonstration video, on 2026-09-07. The reply came the next day,
+2026-09-08.
 
-**Ce qu'elle dit.** Qu'en l'état, l'équipe ne voit pas de difficulté, à deux
-conditions : que le jeu ne soit pas altéré, et qu'aucune solution
-d'automatisation ne soit proposée. Ce sont exactement les deux limites que
-`CONTRIBUTING.md` pose déjà et que la feuille de route déclare hors périmètre
-pour toujours.
+**What it says.** That as it stands, the team sees no difficulty, on
+two conditions: that the game not be altered, and that no automation
+solution be offered. These are exactly the two limits that
+`CONTRIBUTING.md` already sets and that the roadmap declares out of
+scope for good.
 
-**Ce qu'elle ne dit pas, et qu'il ne faut pas lui faire dire.** Ce n'est ni une
-validation, ni un partenariat, ni une approbation. L'équipe a précisé qu'elle ne
-ferait aucune promotion du projet, n'ayant aucun droit de regard dessus. DT Hub
-n'est pas affilié à Ankama, et la mention légale du README le dit dès sa
-première ligne.
+**What it does not say, and must not be made to say.** This is neither
+a validation, nor a partnership, nor an endorsement. The team made
+clear it would give the project no promotion, having no say over it.
+DT Hub is not affiliated with Ankama, and the README's legal notice
+says so from its very first line.
 
-**« En l'état » est le mot qui compte.** L'absence d'objection porte sur
-l'application telle qu'elle a été montrée. Toute fonctionnalité qui altérerait
-le jeu ou automatiserait une action la ferait tomber. C'est pourquoi ces deux
-limites ne sont pas des priorités qu'on arbitre, mais des bornes du projet.
+**"As it stands" is the phrase that matters.** The absence of
+objection concerns the application as it was shown. Any feature that
+altered the game or automated an action would fall outside it. That is
+why these two limits are not priorities to be weighed, but boundaries
+of the project.
 
-La personne qui a répondu n'est pas nommée : elle l'a fait au titre de son
-équipe, et son pseudonyme n'a rien à faire dans un dépôt public.
+The person who replied is not named: they did so on behalf of their
+team, and their handle has no place in a public repository.
 
-## Ajouter une dépendance
+## Adding a dependency
 
-Avant d'ajouter un composant tiers :
+Before adding a third-party component:
 
-1. vérifier que sa licence autorise l'usage envisagé, redistribution comprise ;
-2. si la redistribution n'est pas autorisée, préférer un téléchargement depuis
-   la source officielle, avec vérification ;
-3. ajouter une entrée dans ce fichier, avec le lien, la licence et le mode de
-   distribution ;
-4. conserver les fichiers de licence et de notice fournis en amont.
+1. check that its licence allows the intended use, including
+   redistribution;
+2. if redistribution is not allowed, prefer downloading from the
+   official source, with verification;
+3. add an entry in this file, with the link, the licence and the
+   distribution mode;
+4. keep the licence and notice files provided upstream.

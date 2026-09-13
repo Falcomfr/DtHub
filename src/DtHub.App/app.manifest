@@ -2,17 +2,17 @@
 <assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
 
   <!--
-    Conscience de la mise à l'échelle, écran par écran.
+    DPI awareness, monitor by monitor.
 
-    Sans ce manifeste, Windows tient l'application pour consciente du seul
-    facteur du moniteur principal : sur un poste à deux écrans réglés à des
-    facteurs différents, il redimensionne d'office les fenêtres déplacées vers
-    le second, qui deviennent floues. Le placement des fenêtres de jeu, lui,
-    interroge déjà GetDpiForMonitor et restait juste ; c'est le dessin de nos
-    propres fenêtres qui souffrait.
+    Without this manifest, Windows treats the application as aware of
+    only the main monitor's scale factor: on a machine with two monitors
+    set to different scale factors, it automatically resizes windows
+    moved to the second one, which turn blurry. The placement of the
+    game windows already queries GetDpiForMonitor and stayed correct; it
+    was the rendering of our own windows that suffered.
 
-    PerMonitorV2 plutôt que PerMonitor : c'est lui qui étend la mise à l'échelle
-    aux boîtes de dialogue et aux cadres non clients.
+    PerMonitorV2 rather than PerMonitor: it is the one that extends
+    scaling to dialog boxes and to non-client frames.
   -->
   <application xmlns="urn:schemas-microsoft-com:asm.v3">
     <windowsSettings>
@@ -22,13 +22,13 @@
   </application>
 
   <!--
-    Versions de Windows déclarées compatibles. Le socle réel est Windows 10
-    1809, imposé par WebView2 et par .NET 10 ; les déclarer évite que Windows
-    applique des compatibilités d'anciennes versions.
+    Windows versions declared compatible. The real baseline is Windows 10
+    1809, required by WebView2 and by .NET 10; declaring them stops
+    Windows from applying compatibility shims for older versions.
   -->
   <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
     <application>
-      <!-- Windows 10 et Windows 11 -->
+      <!-- Windows 10 and Windows 11 -->
       <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}" />
     </application>
   </compatibility>

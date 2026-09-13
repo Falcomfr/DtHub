@@ -37,8 +37,8 @@
         <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,14"
                    Text="{loc:T FrenchLabelsNotice}" />
 
-        <!-- Le test passe avant les remèdes : il dit lequel est le bon, et
-             évite d'en essayer trois au hasard. -->
+        <!-- The test comes before the remedies: it says which one is
+             right, and avoids trying three at random. -->
         <Border Style="{StaticResource Card}">
           <StackPanel>
             <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T DeadInputTest}" />
@@ -54,8 +54,9 @@
                          Visibility="{Binding IsTesting, Converter={StaticResource BoolToVisibility}}" />
             </StackPanel>
 
-            <!-- Le verdict qui désigne la cause se distingue des deux autres :
-                 c'est le seul sur lequel il y a quelque chose à faire. -->
+            <!-- The verdict that names the cause stands apart from the
+                 other two: it's the only one where there is something
+                 to act on. -->
             <TextBlock TextWrapping="Wrap" Margin="0,10,0,0" Text="{Binding Verdict}"
                        Visibility="{Binding HasVerdict, Converter={StaticResource BoolToVisibility}}">
               <TextBlock.Style>
@@ -72,9 +73,10 @@
           </StackPanel>
         </Border>
 
-        <!-- La cause principale, et de loin. Le sous-titre du réglage est
-             recopié tel quel : c'est lui qui permet de le reconnaître à
-             l'écran, son intitulé variant d'une surcouche à l'autre. -->
+        <!-- The main cause, by far. The setting's subtitle is copied
+             verbatim: it's what lets you recognise it on screen, since
+             its wording varies from one manufacturer overlay to
+             another. -->
         <Border Style="{StaticResource Card}">
           <StackPanel>
             <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T DeadInputSecuritySetting}" />
@@ -95,11 +97,12 @@
           </StackPanel>
         </Border>
 
-        <!-- Le remède que le terrain donne le plus souvent après le réglage
-             lui-même, et qui manquait ici : deux personnes du salon d'entraide
-             concurrent le donnent l'une après l'autre, et c'est lui qui a
-             débloqué le cas rapporté. Il vient donc avant la bascule du mode
-             développeur, qui produit le même effet par un chemin plus long. -->
+        <!-- The remedy that the field most often gives after the setting
+             itself, and which was missing here: two people in the
+             rival help forum gave it one after the other, and it's
+             the one that unblocked the reported case. It therefore
+             comes before toggling developer mode, which produces the
+             same effect by a longer route. -->
         <Border Style="{StaticResource Card}">
           <StackPanel>
             <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T DeadInputRevoke}" />

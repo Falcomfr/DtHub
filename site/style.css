@@ -1,16 +1,16 @@
-/* Feuille de la page de présentation de DT Hub.
+/* Stylesheet for the DT Hub presentation page.
  *
- * Aucune police distante, aucun traceur, aucune mesure d'audience : le projet
- * promet de ne rien envoyer sans qu'on le demande, et sa page tient la même
- * ligne.
+ * No remote font, no tracker, no audience measurement: the project promises
+ * to send nothing without being asked, and its page holds to that same
+ * line.
  *
- * Un seul thème, sombre : l'application l'est, les captures aussi, et une page
- * claire ferait de chaque image un trou de lumière.
+ * A single theme, dark: the application is dark, so are the screenshots, and
+ * a light page would turn every image into a hole of light.
  *
- * **Les captures portent la page.** Deux essais l'ont appris : d'abord trop
- * grandes au milieu de longs paragraphes, ensuite réduites à des vignettes
- * qu'on ne pouvait plus lire. Elles sont maintenant à une taille où le texte de
- * l'application se lit, et chacune ouvre une section. */
+ * **The screenshots carry the page.** Two attempts taught this: first too
+ * large in the middle of long paragraphs, then shrunk to thumbnails that
+ * could no longer be read. They are now at a size where the application's
+ * text can be read, and each one opens a section. */
 
 :root {
   --fond: #14161a;
@@ -41,7 +41,7 @@ body {
 a { color: var(--lien); text-underline-offset: 2px; }
 a:hover { color: #a8cfff; }
 
-/* Barre du haut */
+/* Top bar */
 
 .barre {
   display: flex; align-items: center; justify-content: space-between;
@@ -52,7 +52,7 @@ a:hover { color: #a8cfff; }
 .barre nav { display: flex; gap: 16px; }
 .barre nav a[aria-current] { color: var(--doux); text-decoration: none; }
 
-/* En-tête */
+/* Header */
 
 header.hero { padding: 44px 0 0; }
 header.hero h1 {
@@ -71,7 +71,7 @@ ul.faits-cles li { background: var(--carte); padding: 13px 18px; display: flex; 
 ul.faits-cles b { color: var(--vert); font-weight: 650; white-space: nowrap; font-size: 15px; }
 ul.faits-cles span { color: var(--doux); font-size: 16px; flex: 1 1 340px; }
 
-/* Téléchargement */
+/* Download */
 
 .telecharger { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin: 28px 0 0; }
 .bouton {
@@ -82,7 +82,7 @@ ul.faits-cles span { color: var(--doux); font-size: 16px; flex: 1 1 340px; }
 .bouton:hover { background: #ffc844; color: #1a1205; }
 .sous-bouton { color: var(--doux); font-size: 15px; }
 
-/* Sections et catégories */
+/* Sections and categories */
 
 section { margin-top: 64px; }
 h2 { font-size: 24px; margin: 0 0 6px; letter-spacing: -0.01em; padding-bottom: 10px; border-bottom: 1px solid var(--trait); }
@@ -90,13 +90,13 @@ h3 { font-size: 19px; margin: 0 0 6px; }
 p { margin: 10px 0; }
 .chapo { color: var(--doux); margin-top: 10px; }
 
-/* Une catégorie : un titre, une liste de fonctions, une capture à côté.
+/* A category: a title, a list of features, a screenshot beside it.
  *
- * **Côte à côte et non l'une sous l'autre.** Empilées, l'image et la liste
- * prenaient deux fois la hauteur, et la page devenait un long défilement où les
- * captures écrasaient le texte. Posées l'une à côté de l'autre, elles occupent
- * la même place et se lisent ensemble. Sous huit cents pixels de large, elles
- * s'empilent faute de place, et c'est le seul cas où elles le font. */
+ * **Side by side, not one below the other.** Stacked, the image and the list
+ * took up twice the height, and the page became a long scroll where the
+ * screenshots crowded out the text. Placed side by side, they take up the
+ * same space and read together. Below eight hundred pixels wide, they stack
+ * for lack of room, and that is the only case where they do. */
 
 .categorie { margin-top: 34px; display: grid; grid-template-columns: 1fr 330px; gap: 30px; align-items: start; }
 .categorie:first-of-type { margin-top: 22px; }
@@ -113,7 +113,7 @@ p { margin: 10px 0; }
   .categorie { grid-template-columns: 1fr; gap: 18px; }
 }
 
-/* Listes */
+/* Lists */
 
 ul.liste { list-style: none; padding: 0; margin: 14px 0 0; }
 ul.liste li { padding: 9px 0 9px 22px; position: relative; border-bottom: 1px solid var(--trait); }
@@ -121,7 +121,7 @@ ul.liste li:last-child { border-bottom: none; }
 ul.liste li::before { content: "›"; position: absolute; left: 4px; top: 9px; color: var(--accent); font-weight: 700; }
 ul.liste .note { color: var(--doux); }
 
-/* Encart */
+/* Callout box */
 
 .encart { background: var(--accent-fond); border: 1px solid rgba(240, 180, 41, 0.32); border-radius: var(--rayon); padding: 16px 20px; margin-top: 22px; }
 .encart h3 { margin-top: 0; }
@@ -133,7 +133,7 @@ pre { background: var(--releve); border: 1px solid var(--trait); border-radius: 
 code { font-family: var(--mono); font-size: 0.9em; }
 p code, li code, td code { background: var(--releve); padding: 2px 6px; border-radius: 5px; }
 
-/* Tableau */
+/* Table */
 
 .defilant { overflow-x: auto; margin-top: 16px; }
 table { border-collapse: collapse; width: 100%; font-size: 16px; }
@@ -141,7 +141,7 @@ th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--tra
 th { color: var(--doux); font-weight: 600; font-size: 14px; }
 td:first-child { white-space: nowrap; font-family: var(--mono); color: var(--accent); }
 
-/* Pied */
+/* Footer */
 
 footer { margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--trait); color: var(--doux); font-size: 15px; }
 footer p { margin: 10px 0; }

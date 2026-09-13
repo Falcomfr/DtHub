@@ -12,9 +12,9 @@
 
   <StackPanel Margin="20">
 
-    <!-- Ce qui a échoué, en clair. La boîte d'avant n'en montrait qu'un chemin
-         de dossier : le message de l'exception, qui dit ce qui s'est passé,
-         n'atteignait jamais l'écran. -->
+    <!-- What failed, in plain language. The previous dialog only showed a
+         folder path: the exception message, which says what happened,
+         never reached the screen. -->
     <TextBlock x:Name="Headline" FontSize="{StaticResource FontLarge}" FontWeight="SemiBold"
                TextWrapping="Wrap" Margin="0,0,0,10"
                Foreground="{DynamicResource TextBrush}" />
@@ -25,8 +25,8 @@
     <TextBlock Text="{loc:T ReportContents}" Style="{StaticResource Muted}"
                FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" Margin="0,0,0,12" />
 
-    <!-- Le rapport lui-même, replié. On ne demande à personne d'envoyer un
-         texte qu'il ne peut pas lire. -->
+    <!-- The report itself, collapsed. We don't ask anyone to send text
+         they cannot read. -->
     <Expander Header="{loc:T ShowTheReport}" Margin="0,0,0,14">
       <Border Background="{DynamicResource SurfaceBrush}"
               BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
@@ -46,8 +46,8 @@
                FontSize="{StaticResource FontSmall}" Margin="0,0,0,8" Visibility="Collapsed"
                Foreground="{DynamicResource SuccessBrush}" />
 
-    <!-- Quatre touches dont deux au long nom : elles passent à la ligne
-         plutôt que de se faire couper. -->
+    <!-- Four buttons, two of them with long names: they wrap onto a new
+         line rather than getting cut off. -->
     <WrapPanel HorizontalAlignment="Right">
       <Button Content="{loc:T OpenLogFolder}" Style="{StaticResource QuietButton}"
               Padding="12,6" Margin="0,0,8,4" Click="OnOpenLogs" />

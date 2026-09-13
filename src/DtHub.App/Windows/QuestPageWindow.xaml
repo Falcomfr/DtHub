@@ -9,12 +9,12 @@
         Background="{DynamicResource SurfaceBrush}"
         Foreground="{DynamicResource TextBrush}">
 
-  <!-- Une page ouverte depuis un guide, hors du suivi de quêtes : ni recherche,
-       ni étapes, ni succès. Elle ne se rattache à rien de ce que la fenêtre de
-       quêtes affiche, et lui emprunter son cadre le laisserait croire.
+  <!-- A page opened from a guide, outside quest tracking: no search, no
+       steps, no success. It has no connection to anything the quest
+       window shows, and borrowing its frame would suggest otherwise.
 
-       Pas de WindowStyle="None" ni d'AllowsTransparency : un WebView2 est une
-       surface native et ne se dessine pas dans une fenêtre transparente. -->
+       No WindowStyle="None" or AllowsTransparency: a WebView2 is a
+       native surface and does not render inside a transparent window. -->
   <DockPanel>
 
     <Border DockPanel.Dock="Bottom" Padding="10,6"

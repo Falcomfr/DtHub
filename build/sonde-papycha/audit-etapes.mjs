@@ -1,22 +1,22 @@
-// Sonde de développement : ce que le pont retient comme étapes, sur les 782
-// guides du site.
+// Development probe: what the bridge keeps as steps, across the site's 782
+// guides.
 //
-// Elle n'est pas un portage. Elle découpe dans quest-bridge.js le bloc qui
-// porte la règle et l'exécute tel quel : ce qu'elle mesure est donc exactement
-// ce que la fenêtre affichera, et non une redite qui pourrait diverger. C'est
-// ce qui manquait à l'audit de D76, dont les nombres n'ont jamais pu être
-// rejoués.
+// It is not a port. It cuts out of quest-bridge.js the block that carries
+// the rule and runs it as is: what it measures is therefore exactly what
+// the window will display, and not a restatement that could diverge. This
+// is what the D76 audit lacked, whose numbers could never be replayed.
 //
-// Node sert au développement seulement. L'application n'en dépend pas, et rien
-// de ce fichier n'est embarqué.
+// Node is used for development only. The application does not depend on
+// it, and nothing in this file is embedded.
 //
-// Le corpus est mis en cache au premier passage, et relu ensuite : la règle se
-// règle par essais successifs, et refaire huit requêtes au site à chaque essai
-// serait payer le réseau pour rien. « --relire » force la reprise en ligne.
+// The corpus is cached on the first run, and read back afterwards: the
+// rule is tuned through successive trials, and redoing eight requests to
+// the site on every trial would mean paying the network for nothing.
+// "--relire" forces a fresh fetch online.
 //
-// Le détail part dans etapes.json, une ligne par étape retenue avec son guide,
-// son texte entier et ce qui l'a retenue. D76 regrette de n'avoir pas fait
-// cela : ses 3 293 étapes n'ont jamais pu être retrouvées.
+// The detail goes into etapes.json, one line per retained step with its
+// guide, its full text and what retained it. D76 regrets not having done
+// this: its 3 293 steps could never be found again.
 //
 //   node build/sonde-papycha/audit-etapes.mjs
 //   node build/sonde-papycha/audit-etapes.mjs "découverte d'un destin"
@@ -28,7 +28,7 @@ import { dirname, join } from 'node:path';
 const ici = dirname(fileURLToPath(import.meta.url));
 const pont = join(ici, '..', '..', 'src', 'DtHub.App', 'Assets', 'quest-bridge.js');
 
-// La règle, prise dans le pont entre ses deux bornes stables.
+// The rule, taken from the bridge between its two stable boundaries.
 function regleDuPont() {
     const source = readFileSync(pont, 'utf8');
     const debut = source.indexOf('    var ETIQUETTES');
@@ -46,12 +46,12 @@ function regleDuPont() {
         bloc + '\nreturn { isNoise, orders, COORDONNEES, IRREGULIERS, SUJETS, FAUX_AMIS, PRONOMS };')();
 }
 
-// Les enfants directs du contenu, avec leur texte.
+// The content's direct children, with their text.
 //
-// Une pile explicite, et non un compteur de profondeur : le site laisse
-// traîner des balises fermantes orphelines, et un simple compteur tombait à
-// zéro au milieu du document, ce qui faisait passer tout le reste pour du
-// premier niveau. Le défaut est silencieux et fausse tous les nombres.
+// An explicit stack, not a depth counter: the site leaves stray orphan
+// closing tags lying around, and a simple counter used to fall to zero
+// halfway through the document, which made everything after that pass for
+// top level. The flaw is silent and skews every count.
 const VIDES = new Set(
     ['img', 'br', 'hr', 'input', 'meta', 'link', 'source', 'col', 'area', 'wbr', 'embed']);
 
@@ -75,7 +75,7 @@ function premierNiveau(html) {
 
         if (m[0].startsWith('</')) {
             if (!pile.includes(nom)) { continue; }
-            while (pile.length && pile.pop() !== nom) { /* remonter */ }
+            while (pile.length && pile.pop() !== nom) { /* unwind */ }
             if (pile.length === 0 && courant) {
                 courant.balisage = html.slice(courant.debut, jeton.lastIndex);
                 blocs.push(courant);
@@ -93,8 +93,8 @@ function premierNiveau(html) {
     return blocs;
 }
 
-// Le site rend ses titres avec des entités : « d&rsquo;un » et non « d'un ».
-// Sans quoi la recherche par titre ne trouve jamais rien.
+// The site renders its titles with entities: "d&rsquo;un" and not "d'un".
+// Without this, searching by title would never find anything.
 function lisible(titre) {
     return titre
         .replace(/&(?:rsquo|#8217|#x2019);/g, '\u2019')
@@ -105,8 +105,8 @@ function lisible(titre) {
         .replace(/&(?:quot|#34);/g, '"');
 }
 
-// Les apostrophes typographiques et droites doivent se répondre, sinon
-// chercher « d'un destin » ne trouve pas « d\u2019un destin ».
+// Typographic and straight apostrophes must match each other, otherwise
+// searching for "d'un destin" would not find "d\u2019un destin".
 function pliee(texte) {
     return lisible(texte).toLowerCase().replace(/[\u2018\u2019]/g, "'");
 }
@@ -149,30 +149,31 @@ async function guides() {
 
 const regle = regleDuPont();
 
-// La marque d'autrefois : du gras ou une couleur. Elle ne commande plus rien,
-// et n'est gardée ici que pour dire d'une seule voix ce que la règle rendait
-// avant et ce qu'elle rend maintenant. Voir la reprise de D76.
+// The old marker: bold or a color. It no longer controls anything, and is
+// kept here only to state in one voice what the rule used to produce
+// before and what it produces now. See the D76 rerun.
 function marquee(balisage) {
     return /<(strong|b)[\s>]/i.test(balisage)
         || /class="[^"]*has-text-color/.test(balisage)
         || /style="[^"]*color:/.test(balisage);
 }
 
-// Le verbe qui a déclenché l'ordre, pour le rapport seulement.
+// The verb that triggered the order, for the report only.
 //
-// La boucle redit celle de la règle, mais elle emprunte ses trois listes plutôt
-// que d'en recopier le contenu : si un faux ami y est ajouté demain, le rapport
-// le sait le jour même. Ce nom ne décide de rien, il explique.
+// The loop restates the rule's own loop, but it borrows its three lists
+// rather than copying their contents: if a false friend is added to them
+// tomorrow, the report knows it the same day. This name decides nothing,
+// it explains.
 function verbeDeclencheur(texte) {
     const mots = texte.match(/[\p{L}\p{M}]+/gu) || [];
 
     for (let i = 0; i < mots.length; i++) {
         const mot = mots[i].toLowerCase();
 
-        // Le même franchissement des pronoms que la règle. Il a manqué ici une
-        // première fois, et le rapport nommait alors un verbe que la règle
-        // avait écarté : un instrument qui se trompe est pire que pas
-        // d'instrument, puisqu'on le croit.
+        // The same pronoun crossing as the rule. It was missing here once
+        // before, and the report then named a verb the rule had
+        // discarded: an instrument that is wrong is worse than no
+        // instrument at all, since it is believed.
         let j = i - 1;
 
         while (j >= 0
@@ -215,32 +216,34 @@ function etapes(html, exigerLaMarque) {
 }
 
 
-// Ce que la règle doit dire, sur des paragraphes tirés du site tels quels.
+// What the rule must say, on paragraphs taken from the site as is.
 //
-// La règle n'avait aucune épreuve : elle est en JavaScript, et le dépôt n'a pas
-// de quoi en exécuter dans sa suite. Cette table est le garde-fou qu'on peut
-// rejouer d'une commande. Chaque cas vient du corpus, jamais d'une invention :
-// une épreuve écrite de mémoire ne protège que de ce qu'on avait en tête.
+// The rule had no test: it is written in JavaScript, and the repository
+// has nothing to run it in its test suite. This table is the safety net
+// that can be replayed with one command. Every case comes from the
+// corpus, never from invention: a test written from memory only protects
+// against what was already in mind.
 const CAS = [
-    // Du récit, que le garde des sujets doit franchir pour reconnaître.
+    // Narration, which the subject guard must cross over to recognize.
     [false, 'Jerael prépare le repas avec le bouftou que vous lui avez ramené.'],
     [false, 'Ce dernier vous confie qu\u2019il est dans le donjon, et vous lui faites part '
         + 'du mal être de Tira.'],
     [false, 'Le Baron semble content de vous, il espère tirer quelque chose de la trouvaille. '
         + 'Vous avez su lui montrer que vous n\u2019aviez pas les yeux dans la poche.'],
 
-    // De vrais ordres, que le resserrement ne doit pas emporter.
+    // Genuine orders, which the narrowing must not sweep away.
     [true, 'Rendez-vous en [13,-28] auprès de Capitaine Igloute. Demandez-lui où est passé Tira.'],
     [true, 'Faites le lit dans la première chambre.'],
     [true, 'Remerciez Marc Azin.'],
     [true, 'N\u2019oubliez pas de lui reparler une seconde fois!'],
     [true, 'Venez en à bout pour le ramener au Captain Amakna.'],
 
-    // Une coordonnée suffit : dire où ramasser un objet est bien une étape.
+    // A coordinate alone is enough: saying where to pick up an object is
+    // indeed a step.
     [true, 'La Page de journal trempée de bave se trouve en [21,8] dans le coffre à côté '
         + 'du bateau.'],
 
-    // Le bruit que le site écrit sans que ce soit une consigne.
+    // The noise the site writes without it being an instruction.
     [false, 'Attention : le combat se lance immédiatement, préparez vos sorts.'],
     [false, '(Vous pouvez aussi y aller plus tard, cela ne change rien.)'],
 ];

@@ -1,13 +1,13 @@
-# **« eol=lf » et non « text=auto » seul, et c'est une correction.**
+﻿# **"eol=lf" and not "text=auto" alone, and that is a fix.**
 #
-# Avec « text=auto », git stocke bien du LF mais laisse chaque machine décider
-# de ce qu'elle écrit sur le disque. Les exécuteurs Windows de GitHub ont
-# « core.autocrlf=true » : ils convertissaient donc en CRLF à la récupération,
-# et la porte du format, qui suit le « end_of_line = lf » de .editorconfig,
-# tombait en rouge sur la chaîne alors qu'elle passait en local.
+# With "text=auto", git does store LF but leaves each machine to decide what
+# it writes on disk. GitHub's Windows runners have "core.autocrlf=true", so
+# they converted to CRLF on checkout, and the format gate, which follows the
+# "end_of_line = lf" of .editorconfig, went red on the pipeline while it
+# passed locally.
 #
-# « eol=lf » tranche pour tout le monde, quelle que soit la configuration de
-# celui qui clone.
+# "eol=lf" settles it for everyone, whatever the configuration of whoever
+# clones.
 * text=auto eol=lf
 *.sh text eol=lf
 *.py text eol=lf

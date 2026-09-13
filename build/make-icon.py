@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""Genere assets/app.ico et assets/app.png.
+"""Generates assets/app.ico and assets/app.png.
 
-Marque : la rune de passage. Un anneau central, deux cercles concentriques
-plus petits, et huit pales incurvees disposees en couronne. Le motif est
-entierement geometrique, calcule ci-dessous a partir d'une quinzaine de
-nombres. Aucune ressource d'Ankama n'est utilisee, ni copiee, ni imitee au
-trait : seules des courbes et des cercles, dans deux jaunes.
+Mark: the passage rune. A central ring, two smaller concentric circles,
+and eight curved blades arranged in a crown. The motif is entirely
+geometric, computed below from about fifteen numbers. No Ankama asset is
+used, copied, or imitated stroke for stroke: only curves and circles, in
+two shades of yellow.
 
-Le fond est transparent. L'icone se pose donc aussi bien sur la barre des
-taches sombre que sur un explorateur clair.
+The background is transparent. The icon therefore sits well both on a
+dark taskbar and on a light file explorer.
 
-Aucune dependance externe : rasteriseur, degrades et PNG sont ecrits ici,
-zlib mis a part. Executer depuis la racine du depot :
+No external dependency: rasterizer, gradients and PNG are written here,
+zlib aside. Run from the repository root:
 
     python3 build/make-icon.py
 """
@@ -20,21 +20,22 @@ import os
 import struct
 import zlib
 
-# --- Geometrie, en coordonnees d'un carre de 256 -----------------------------
+# --- Geometry, in coordinates of a 256 square -------------------------------
 
 CANVAS = 256.0
 CENTER = 128.0
 
-# Les trois cercles, du plus grand au plus petit. Le premier est sombre, le
-# deuxieme clair, le troisieme sombre : c'est cette alternance qui fait lire
-# trois anneaux la ou il n'y a que des disques empiles.
+# The three circles, from largest to smallest. The first is dark, the
+# second light, the third dark: it is this alternation that reads as
+# three rings where there are only stacked discs.
 C_OUT, C_MID, C_IN = 67.24, 32.76, 14.66
 
-# Les pales partent au-dela du grand cercle et vont jusqu'au bord du carre.
+# The blades start beyond the large circle and reach the edge of the
+# square.
 R_IN, R_OUT = 70.69, 125.0
-BLADE_HALF_ANGLE = 13.0     # demi-largeur a la base, en degres
-BLADE_BEND = 13.0           # inclinaison de la pointe vers la gauche
-BLADE_HOOK = 1.1            # profondeur du creux sous la pointe
+BLADE_HALF_ANGLE = 13.0     # half-width at the base, in degrees
+BLADE_BEND = 13.0           # tilt of the tip toward the left
+BLADE_HOOK = 1.1            # depth of the notch under the tip
 
 INK = (0x33 / 255, 0x28 / 255, 0x0a / 255)
 INK_ALPHA = 0.65
@@ -43,33 +44,36 @@ CIRCLE_STROKE = 2.6
 SHADOW_OFFSET = (1.4, 2.0)
 SHADOW_ALPHA = 0.25
 
-# Jaune clair : degrade lineaire en diagonale. Jaune sombre : degrade radial
-# decale vers le haut a gauche, ce qui donne le bombe des pieces frappees.
+# Light yellow: diagonal linear gradient. Dark yellow: radial gradient
+# offset toward the upper left, which gives the embossed look of struck
+# coins.
 LIGHT_STOPS = ((0.0, (0xff, 0xef, 0xb4)), (0.5, (0xef, 0xd5, 0x77)), (1.0, (0xc4, 0xa6, 0x3f)))
 LIGHT_AXIS = (0.2, 0.1, 0.8, 0.95)
 DARK_STOPS = ((0.0, (0xa6, 0x8e, 0x33)), (0.55, (0x83, 0x6d, 0x1e)), (1.0, (0x54, 0x43, 0x12)))
 DARK_FOCUS = (0.38, 0.32, 0.76)
 
-# Voile diagonal pose sur l'ensemble : clair en haut a gauche, sombre en bas a
-# droite. C'est lui qui donne l'unite d'eclairage entre pales et cercles.
+# Diagonal veil laid over the whole: light at the upper left, dark at the
+# lower right. It is what gives the unity of lighting between blades and
+# circles.
 SHADE_AXIS = (0.2, 0.0, 0.85, 1.0)
 
-GRAIN_ALPHA = 0.17          # ignore en dessous de GRAIN_MIN_SIZE
+GRAIN_ALPHA = 0.17          # ignored below GRAIN_MIN_SIZE
 GRAIN_MIN_SIZE = 64
 
 
 def polar(radius, angle_deg):
-    """Point du cercle, angle compte depuis le haut et croissant vers la droite."""
+    """Point on the circle, angle counted from the top and increasing to
+    the right."""
     angle = math.radians(angle_deg - 90.0)
     return CENTER + radius * math.cos(angle), CENTER + radius * math.sin(angle)
 
 
 def blade(angle_deg):
-    """Une pale : deux courbes cubiques dos a dos.
+    """A blade: two cubic curves back to back.
 
-    Le bord avant est bombe, le dessous creuse, la pointe part vers la gauche.
-    C'est le profil d'un bec, et c'est ce qui distingue la couronne d'une
-    simple etoile a huit branches.
+    The leading edge is convex, the underside concave, the tip points to
+    the left. It is the profile of a beak, and it is what distinguishes
+    the crown from a plain eight-pointed star.
     """
     length = R_OUT - R_IN
     half, bend = BLADE_HALF_ANGLE, BLADE_BEND
@@ -87,7 +91,7 @@ def blade(angle_deg):
 
 
 def flatten(curves, steps=28):
-    """Transforme une suite de cubiques en polygone ferme."""
+    """Turns a sequence of cubics into a closed polygon."""
     points = []
     for p0, p1, p2, p3 in curves:
         for i in range(steps):
@@ -100,11 +104,11 @@ def flatten(curves, steps=28):
 
 
 BLADES = [flatten(blade(i * 45.0)) for i in range(8)]
-# Une pale sur deux est claire : c'est l'alternance vue en jeu.
+# Every other blade is light: this is the alternation seen in the game.
 BLADE_IS_LIGHT = [i % 2 == 0 for i in range(8)]
 
 
-# --- Rasteriseur --------------------------------------------------------------
+# --- Rasterizer ---------------------------------------------------------------
 
 def bounds(points):
     xs = [p[0] for p in points]
@@ -113,10 +117,10 @@ def bounds(points):
 
 
 def fill_polygon(width, polygon, scale, samples=4):
-    """Couverture [0,1] d'un polygone, par balayage de lignes.
+    """[0,1] coverage of a polygon, by scanline sweep.
 
-    L'horizontale est exacte, la verticale echantillonnee : c'est le meilleur
-    rapport qualite sur temps de calcul quand tout est ecrit en Python.
+    The horizontal is exact, the vertical sampled: it is the best
+    quality-to-compute-time ratio when everything is written in Python.
     """
     cover = [0.0] * (width * width)
     pts = [(x * scale, y * scale) for x, y in polygon]
@@ -173,7 +177,7 @@ def fill_polygon(width, polygon, scale, samples=4):
 
 
 def fill_disc(width, radius, scale):
-    """Couverture d'un disque, calculee par distance : bord parfaitement lisse."""
+    """Coverage of a disc, computed by distance: a perfectly smooth edge."""
     cover = [0.0] * (width * width)
     cx = cy = CENTER * scale
     r = radius * scale
@@ -196,10 +200,11 @@ def fill_disc(width, radius, scale):
 
 
 def stroke_polyline(width, polygon, thickness, scale, closed=True):
-    """Trait epais : distance a chaque segment, dans sa seule boite englobante.
+    """Thick stroke: distance to each segment, within its own bounding box
+    only.
 
-    Les jonctions sont arrondies sans effort puisque la distance a un segment
-    inclut ses extremites.
+    Joins come out rounded with no extra effort since the distance to a
+    segment includes its endpoints.
     """
     cover = [0.0] * (width * width)
     half = max(0.45, thickness * scale / 2.0)
@@ -234,7 +239,7 @@ def stroke_polyline(width, polygon, thickness, scale, closed=True):
 
 
 def stroke_circle(width, radius, thickness, scale):
-    """Anneau fin : meme principe que le disque, sur une couronne."""
+    """Thin ring: same principle as the disc, applied to an annulus."""
     cover = [0.0] * (width * width)
     cx = cy = CENTER * scale
     r = radius * scale
@@ -256,7 +261,7 @@ def stroke_circle(width, radius, thickness, scale):
     return cover
 
 
-# --- Peinture -----------------------------------------------------------------
+# --- Painting --------------------------------------------------------------
 
 def sample_stops(stops, t):
     t = 0.0 if t < 0.0 else (1.0 if t > 1.0 else t)
@@ -272,7 +277,7 @@ def sample_stops(stops, t):
 
 
 def linear_paint(box, axis, stops):
-    """Degrade lineaire exprime dans la boite de la forme, comme en SVG."""
+    """Linear gradient expressed within the shape's box, as in SVG."""
     x0, y0, x1, y1 = box
     w = max(1e-6, x1 - x0)
     h = max(1e-6, y1 - y0)
@@ -303,7 +308,7 @@ def radial_paint(box, focus, stops):
 
 
 def compose(dest, cover, paint, scale, alpha=1.0, flat=None):
-    """Pose une couverture sur le tampon RGBA, en « source over »."""
+    """Lays a coverage onto the RGBA buffer, in "source over" mode."""
     width = int(math.isqrt(len(cover)))
     for index, value in enumerate(cover):
         if value <= 0.0:
@@ -325,18 +330,18 @@ def compose(dest, cover, paint, scale, alpha=1.0, flat=None):
 
 
 def noise(x, y):
-    """Bruit deterministe, sans dependance : un melange entier suffit."""
+    """Deterministic noise, no dependency: an integer mix is enough."""
     n = (x * 374761393 + y * 668265263) & 0xFFFFFFFF
     n = (n ^ (n >> 13)) * 1274126177 & 0xFFFFFFFF
     return ((n ^ (n >> 16)) & 0xFFFF) / 65535.0
 
 
 def smooth_noise(x, y, cell):
-    """Bruit de valeur interpole : du grain de pierre, pas de la neige.
+    """Interpolated value noise: stone grain, not snow.
 
-    Le bruit brut d'un pixel sur l'autre se lit comme du bruit de capteur. En
-    l'echantillonnant tous les `cell` pixels et en interpolant, on obtient des
-    grumeaux de la taille voulue.
+    Raw noise from one pixel to the next reads like sensor noise. By
+    sampling it every `cell` pixels and interpolating, we get clumps of
+    the desired size.
     """
     fx, fy = x / cell, y / cell
     ix, iy = int(fx), int(fy)
@@ -351,11 +356,11 @@ def smooth_noise(x, y, cell):
 
 
 def apply_grain(dest, width, strength, scale):
-    """Grain de pierre, en fusion « incrustation », la ou il y a de la matiere.
+    """Stone grain, blended in overlay mode, wherever there is material.
 
-    Deux octaves : une marbrure large qui donne les zones, un grain fin qui
-    donne la surface. Les tailles sont exprimees dans le carre de 256 pour que
-    l'aspect ne change pas d'une taille d'icone a l'autre.
+    Two octaves: a broad marbling that gives the zones, a fine grain that
+    gives the surface. The sizes are expressed within the 256 square so
+    that the look does not change from one icon size to another.
     """
     coarse = max(1.0, 26.0 * scale)
     fine = max(1.0, 3.0 * scale)
@@ -372,7 +377,7 @@ def apply_grain(dest, width, strength, scale):
 
 
 def apply_shade(dest, width, scale):
-    """Voile diagonal : eclaire un coin, assombrit l'autre."""
+    """Diagonal veil: lightens one corner, darkens the other."""
     ax, ay, bx, by = SHADE_AXIS
     sx, sy = ax * CANVAS, ay * CANVAS
     dx, dy = (bx - ax) * CANVAS, (by - ay) * CANVAS
@@ -395,17 +400,17 @@ def apply_shade(dest, width, scale):
                 dest[base + k] *= 1.0 - amount
 
 
-# --- Rendu --------------------------------------------------------------------
+# --- Rendering ---------------------------------------------------------------
 
 def render(size):
-    """Rend la rune sur un carre de `size` pixels, fond transparent."""
+    """Renders the rune on a `size`-pixel square, transparent background."""
     scale = size / CANVAS
     dest = [0.0] * (size * size * 4)
 
     circles = ((C_OUT, False), (C_MID, True), (C_IN, False))
     outline = size >= 24
 
-    # Les ombres portees des pales, d'abord, pour qu'elles restent dessous.
+    # The blades' cast shadows, first, so they stay underneath.
     if size >= 32:
         shift = (SHADOW_OFFSET[0], SHADOW_OFFSET[1])
         for polygon in BLADES:
@@ -451,7 +456,7 @@ def render(size):
 
 
 def png(size, rows):
-    """Encode des lignes RGBA en PNG (filtre 0)."""
+    """Encodes RGBA rows into PNG (filter 0)."""
     raw = b"".join(b"\x00" + r for r in rows)
 
     def chunk(tag, data):
@@ -481,7 +486,7 @@ def main():
     with open(os.path.join(assets, "app.png"), "wb") as f:
         f.write(images[256])
 
-    # ICONDIR + ICONDIRENTRY*n + charges utiles PNG.
+    # ICONDIR + ICONDIRENTRY*n + PNG payloads.
     offset = 6 + 16 * len(sizes)
     header = struct.pack("<HHH", 0, 1, len(sizes))
     entries, blobs = b"", b""

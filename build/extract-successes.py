@@ -1,28 +1,28 @@
 #!/usr/bin/env python3
-"""Extrait de papycha.fr la carte « quête -> succès » embarquée dans DT Hub.
+"""Extracts from papycha.fr the "quest -> success" map embedded in DT Hub.
 
-Pourquoi une donnée figée plutôt qu'une lecture à l'exécution : le succès d'une
-quête n'est lisible que dans le bloc d'intro de sa page, et lire les sept cent
-quatre-vingt-deux pages coûte treize mégaoctets. Le faire chaque semaine, sur
-chaque poste, pèserait sur leur site pour une information qui ne bouge qu'aux
-mises à jour du jeu. On le fait donc une fois, ici, et on livre le résultat :
-trente-six kilooctets.
+Why frozen data rather than a read at run time: a quest's success can only
+be read from the intro block of its page, and reading the seven hundred
+eighty-two pages costs thirteen megabytes. Doing this every week, on every
+machine, would put a strain on their site for information that only
+changes with the game's updates. So it is done once, here, and the result
+is shipped: thirty-six kilobytes.
 
-Deux sources, et il en faut deux :
+Two sources, and both are needed:
 
-  - le bloc d'intro de chaque quête, qui en couvre 459 ;
-  - les intertitres des pages de rubrique, que l'application lit déjà à chaque
-    indexation, qui en couvrent 373.
+  - each quest's intro block, which covers 459 of them;
+  - the category pages' subheadings, which the application already reads
+    at every indexing pass, which cover 373 of them.
 
-Leur union en couvre 498. La liste de succès du site, elle, n'en annonce que
-475 au total : les 284 quêtes restantes n'ont pas de succès, ce n'est pas une
-lacune de la mesure.
+Their union covers 498. The site's own success list, however, announces
+only 475 in total: the remaining 284 quests have no success, this is not
+a gap in the measurement.
 
-Les deux sources ne s'accordent pas toujours sur l'orthographe : apostrophe
-droite ou courbe, majuscule, accent. On regroupe donc sur une forme réduite et
-on retient l'orthographe de la liste officielle des succès quand elle existe.
+The two sources do not always agree on spelling: straight or curly
+apostrophe, capitalization, accent. We therefore group on a reduced form
+and keep the spelling from the official success list when it exists.
 
-Usage :
+Usage:
     python3 build/extract-successes.py
 """
 
@@ -57,13 +57,13 @@ def json_de(url: str):
 
 
 def texte(html: str) -> str:
-    """Retire les balises et les échappements, y compris ceux que le site
-    laisse traîner : certaines pages portent une apostrophe échappée."""
+    """Strips tags and escape sequences, including the ones the site
+    leaves lying around: some pages carry an escaped apostrophe."""
     return unescape(re.sub("<[^>]+>", " ", html)).replace("\\'", "'").strip()
 
 
 def reduire(nom: str) -> str:
-    """Forme comparable : sans accent, sans ponctuation, sans casse."""
+    """Comparable form: without accent, without punctuation, without case."""
     sans = unicodedata.normalize("NFD", nom.lower())
     sans = "".join(c for c in sans if unicodedata.category(c) != "Mn")
     return re.sub(r"[^a-z0-9]+", " ", sans).strip()
@@ -81,16 +81,16 @@ def fait(bloc: str, nom: str) -> str | None:
 
 
 def separer(brut: str, connus: dict[str, str]) -> list[str]:
-    """Sépare les succès d'une quête qui en relève de plusieurs.
+    """Splits the successes of a quest that grants more than one.
 
-    Le site les joint par une virgule et n'offre aucun repère structurel :
-    « Agriculture et Alchimie, La maire dénie » en désigne deux, mais
-    « À l'ombre, depuis trop longtemps » et « Un piou, c'est tout ! » n'en
-    désignent qu'un. Sur les 459 blocs lus, vingt-cinq portent une virgule et
-    un seul joint réellement deux succès.
+    The site joins them with a comma and offers no structural landmark:
+    "Agriculture et Alchimie, La maire dénie" names two, but "À l'ombre,
+    depuis trop longtemps" and "Un piou, c'est tout !" name only one. Of
+    the 459 blocks read, twenty-five carry a comma and only one actually
+    joins two successes.
 
-    On ne coupe donc que si chaque morceau est un succès que le site nomme
-    ailleurs. Sinon la virgule fait partie du nom.
+    So we only split if each piece is a success the site names elsewhere.
+    Otherwise the comma is part of the name.
     """
     entier = brut.strip()
 
@@ -110,7 +110,8 @@ def noms_de(carte: dict[str, tuple[str, int]]) -> dict[str, str]:
 
 
 def succes_officiels() -> dict[str, str]:
-    """Succès nommés par la page « Succès », pour savoir lesquels existent."""
+    """Successes named by the "Succès" ("Successes") page, to know which
+    ones exist."""
     pages = json_de(f"{API}/pages?slug=succes&_fields=content")
 
     if not pages:
@@ -132,16 +133,17 @@ def succes_officiels() -> dict[str, str]:
 
 
 def sans_marque(titre: str) -> str:
-    """Nom de la quête que désigne un intitulé de prérequis.
+    """Name of the quest that a prerequisite label designates.
 
-    Un jalon n'est pas une quête mais l'état qu'elle laisse. Le site l'écrivait
-    « [FIN] L'essentiel est dans le Lac gelé » ; il écrit maintenant
-    « L'essentiel est dans le Lac gelé atteint », et « Succès X réalisé » pour
-    un succès. Mesuré sur les 584 items de la colonne « précédents » : plus
-    aucun ne porte de crochets, trente-cinq finissent par « atteint » et
-    trente-huit sont de la forme « Succès … réalisé ». La règle au préfixe ne
-    retirait donc plus rien, et douze arêtes du graphe d'ordre de jeu se
-    perdaient.
+    A milestone is not a quest but the state it leaves behind. The site
+    used to write it "[FIN] L'essentiel est dans le Lac gelé"; it now
+    writes "L'essentiel est dans le Lac gelé atteint" ("... reached"), and
+    "Succès X réalisé" ("Success X achieved") for a success. Measured on
+    the 584 items of the "précédents" ("previous") column: none carries
+    brackets anymore, thirty-five end with "atteint" ("reached") and
+    thirty-eight are of the form "Succès ... réalisé" ("Success ...
+    achieved"). The prefix-based rule therefore no longer stripped
+    anything, and twelve edges of the play-order graph were lost.
     """
     valeur = re.sub(r"^\[[^\]]*\]\s*", "", titre).strip()
     valeur = re.sub(r"^Succ[èe]s\s+(?P<nom>.+?)\s+r[ée]alis[ée]$", r"\g<nom>", valeur, flags=re.I)
@@ -151,12 +153,12 @@ def sans_marque(titre: str) -> str:
 
 
 def prerequis(contenu: str) -> list[tuple[str, str]]:
-    """Prérequis d'une quête : ce qu'il faut avoir fait avant elle.
+    """A quest's prerequisites: what must have been done before it.
 
-    Le site les publie dans la colonne « précédents » de son bloc de
-    progression. Rend pour chacun le libellé tel qu'il s'affiche et le nom de
-    la quête qu'il désigne, le second servant à ordonner les quêtes d'un succès
-    et le premier à les montrer à l'utilisateur.
+    The site publishes them in the "précédents" ("previous") column of its
+    progress block. Returns for each one the label as it is displayed and
+    the name of the quest it designates, the latter used to order a
+    success's quests and the former to show them to the user.
     """
     bloc = re.search(
         r'pqt-progress__column--previous\b(?P<corps>.*?)</section>', contenu, re.S
@@ -182,11 +184,11 @@ def depuis_les_quetes(
     titres: dict[str, str],
     avant: dict[str, list[str]],
 ) -> dict[str, tuple[str, int]]:
-    """Succès et rang de chaîne, lus dans le bloc d'intro de chaque quête.
+    """Successes and chain rank, read from each quest's intro block.
 
-    Remplit au passage <paramref name="titres"/> et <paramref name="avant"/> :
-    le titre de chaque quête et les intitulés dont elle dépend, qui servent à
-    ordonner les quêtes d'un succès.
+    Along the way, fills <paramref name="titres"/> and <paramref
+    name="avant"/>: each quest's title and the labels it depends on, which
+    are used to order a success's quests.
     """
     carte: dict[str, tuple[str, int]] = {}
 
@@ -217,11 +219,12 @@ def depuis_les_quetes(
                 if noms := separer(brut, connus):
                     rang = 0
 
-                    # « Étape 6/7 » situe la quête dans sa chaîne de prérequis,
-                    # non dans son succès : les trois quêtes de « De la
-                    # caillasse plein les poches » y valent 1, 6 et 6. C'est
-                    # tout de même le seul ordre de jeu que le site publie, et
-                    # il vaut mieux que l'ordre alphabétique.
+                    # "Étape 6/7" ("Step 6/7") places the quest within its
+                    # prerequisite chain, not within its success: the three
+                    # quests of "De la caillasse plein les poches" are worth
+                    # 1, 6 and 6 there. It is nonetheless the only play
+                    # order the site publishes, and it is better than
+                    # alphabetical order.
                     if etape := fait(intro.group(0), "step"):
                         if chiffre := re.search(r"(\d+)", etape):
                             rang = int(chiffre.group(1))
@@ -238,8 +241,9 @@ def depuis_les_quetes(
 
 
 def depuis_les_rubriques() -> dict[str, str]:
-    """Succès lu sur les intertitres des pages de rubrique, comme le fait
-    l'application à chaque indexation. Sert à combler et à recouper."""
+    """Success read from the category pages' subheadings, the way the
+    application does at every indexing pass. Used to fill gaps and
+    cross-check."""
     racine = json_de(f"{API}/pages?slug=quetes&_fields=content")[0]["content"]["rendered"]
     tableau = re.search(r"<table.*?</table>", racine, re.S)
 
@@ -292,14 +296,14 @@ def ordonner(
     titres: dict[str, str],
     avant: dict[str, list[str]],
 ) -> dict[str, int]:
-    """Range les quêtes de chaque succès dans l'ordre où on les joue.
+    """Sorts each success's quests into the order they are played in.
 
-    Le site ne publie cet ordre nulle part pour la plupart des succès : ni la
-    liste officielle, ni les pages de rubrique quand elles ne les coiffent pas.
-    Ne restent que les prérequis, qui donnent un ordre partiel : « Les rescapés
-    de Frigost » exige « [FIN] L'essentiel est dans le Lac gelé », donc celle-ci
-    vient avant. On complète par le rang de chaîne, puis par le titre, pour que
-    l'ordre soit total et toujours le même.
+    The site publishes this order nowhere for most successes: neither the
+    official list, nor the category pages when they do not head them. Only
+    the prerequisites remain, which give a partial order: "Les rescapés de
+    Frigost" requires "[FIN] L'essentiel est dans le Lac gelé", so the
+    latter comes first. We complete it with the chain rank, then with the
+    title, so that the order is total and always the same.
     """
     par_titre = {reduire(t): url for url, t in titres.items()}
     rangs: dict[str, int] = {}
@@ -312,8 +316,8 @@ def ordonner(
     for membres in groupes.values():
         dedans = set(membres)
 
-        # Arêtes du graphe, restreintes au succès : un prérequis extérieur ne
-        # dit rien de l'ordre interne.
+        # Graph edges, restricted to the success: an outside prerequisite
+        # says nothing about the internal order.
         requis = {
             url: {
                 par_titre[reduire(nom)]
@@ -332,10 +336,11 @@ def ordonner(
         rang = 0
 
         while reste:
-            # Les quêtes dont tous les prérequis internes sont déjà placés.
+            # The quests whose internal prerequisites are all already
+            # placed.
             prets = [u for u in reste if not (requis[u] & reste)]
 
-            # Un cycle ne doit pas bloquer : on prend alors le meilleur restant.
+            # A cycle must not block: we then take the best one remaining.
             if not prets:
                 prets = list(reste)
 
@@ -360,17 +365,18 @@ def main() -> int:
     print("Intertitres des pages de rubrique…", file=sys.stderr)
     par_rubrique = depuis_les_rubriques()
 
-    # Le bloc d'intro fait foi : il est porté par la quête elle-même. Les
-    # intertitres complètent ce qu'il ne dit pas.
+    # The intro block is authoritative: it is carried by the quest itself.
+    # The subheadings fill in what it does not say.
     union = {url: (nom, 0) for url, nom in par_rubrique.items()}
     union.update(par_quete)
 
-    # Les deux sources n'écrivent pas toujours pareil : apostrophe droite ou
-    # courbe, majuscule, accent. On regroupe sur la forme réduite et on retient
-    # l'orthographe la plus répandue parmi les blocs d'intro, qui est celle que
-    # la page de la quête affiche. La liste officielle sert seulement à
-    # départager quand les blocs ne tranchent pas : elle porte ses propres
-    # coquilles, « Se mettre la Cité dor à dos » pour n'en citer qu'une.
+    # The two sources do not always write the same way: straight or curly
+    # apostrophe, capitalization, accent. We group on the reduced form and
+    # keep the spelling most common among the intro blocks, which is the
+    # one the quest's page displays. The official list is used only to
+    # break ties when the blocks do not settle it: it carries its own
+    # typos, "Se mettre la Cité dor à dos" (missing the apostrophe in
+    # "d'or") to name just one.
     graphies: dict[str, dict[str, int]] = {}
 
     for source, poids in ((noms_de(par_quete), 2), (par_rubrique, 1)):
@@ -394,10 +400,10 @@ def main() -> int:
     for url, rang in ordonner(carte, titres, avant).items():
         carte[url]["o"] = rang
 
-    # Les prérequis, pour les montrer au survol dans la liste. Ils couvrent
-    # cinq fois plus de quêtes que le niveau que le site renseigne : 527 par
-    # cette colonne contre 117 niveaux. Une quête peut en avoir sans relever
-    # d'aucun succès : elle entre alors dans la carte pour ce seul motif.
+    # The prerequisites, to show on hover in the list. They cover five
+    # times more quests than the level the site provides: 527 through this
+    # column against 117 levels. A quest can have some without belonging
+    # to any success: it then enters the map for this reason alone.
     for url, items in sorted(avant.items()):
         libelles = [libelle for libelle, _ in items if libelle]
 

@@ -15,15 +15,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Le manifeste de dépendances est embarqué : la CI et l'exécution
-         partagent exactement le même fichier. -->
+    <!-- The dependencies manifest is embedded: the CI and the runtime
+         share exactly the same file. -->
     <EmbeddedResource Include="..\..\build\dependencies.json" LogicalName="DtHub.Infrastructure.dependencies.json" />
 
-    <!-- Carte « quête -> succès » relevée sur papycha par
-         build/extract-successes.py. Embarquée plutôt que lue à chaque
-         indexation : le succès n'est lisible que dans le bloc d'intro de
-         chaque quête, ce qui coûte treize mégaoctets, pour une information qui
-         ne bouge qu'aux mises à jour du jeu. -->
+    <!-- Quest -> achievement map recorded from papycha by
+         build/extract-successes.py. Embedded rather than read on each
+         indexing pass: the achievement is only readable in the intro
+         block of each quest, which costs thirteen megabytes, for
+         information that only changes when the game is updated. -->
     <EmbeddedResource Include="..\..\assets\quest-successes.json" LogicalName="DtHub.Infrastructure.quest-successes.json" />
   </ItemGroup>
 

@@ -18,7 +18,7 @@
           CornerRadius="{StaticResource Radius}">
     <DockPanel>
 
-      <!-- Bandeau : sert aussi de poignée de déplacement. -->
+      <!-- Header bar: also serves as a drag handle. -->
       <Border DockPanel.Dock="Top" Background="{StaticResource BrushedPanelBrush}"
               CornerRadius="{StaticResource RadiusTop}" Padding="12,8"
               BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1"
@@ -33,11 +33,12 @@
           <Image Grid.Column="0" Source="/assets/app.png" Width="26" Height="26" VerticalAlignment="Center" />
 
           <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
-            <!-- Le nom du jeu dit ici, une fois, sur la ligne du produit : il ne
-                 coûte aucune hauteur et se voit sur les trois onglets. -->
+            <!-- The game's name is stated here, once, on the product's line:
+                 it costs no extra height and is visible on all three
+                 tabs. -->
             <TextBlock>
-              <!-- Hors échelle, et c'est voulu : le nom du produit est une marque,
-                   pas du texte courant. -->
+              <!-- Out of scale, and that's deliberate: the product name is a
+                   brand, not body text. -->
               <Run Text="{Binding ProductName, Mode=OneWay}" FontSize="17" FontWeight="SemiBold" />
               <Run Text="{loc:T AppSubtitleForGame}" FontSize="{StaticResource FontSmall}"
                    Foreground="{DynamicResource TextMutedBrush}" />
@@ -55,9 +56,10 @@
         </Grid>
       </Border>
 
-      <!-- Ce que la prochaine version apporte. Le bandeau ne paraît que
-           lorsqu'il y a quelque chose à dire, et il le dit en une ligne : la
-           note complète tient dans sa propre fenêtre, qu'on ouvre si on veut. -->
+      <!-- What the next version brings. The banner only appears when
+           there is something to say, and it says it in one line: the
+           full note lives in its own window, which you open if you
+           want. -->
       <Border DockPanel.Dock="Top" Padding="12,7"
               Background="{StaticResource BrushedPanelBrush}"
               BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1"
@@ -79,7 +81,7 @@
         </Grid>
       </Border>
 
-      <!-- Barre du bas : outils à gauche, quitter à droite. -->
+      <!-- Bottom bar: tools on the left, quit on the right. -->
       <Border DockPanel.Dock="Bottom" Padding="10,8"
               Background="{StaticResource BrushedPanelBrush}"
               BorderBrush="{DynamicResource BevelBrush}" BorderThickness="0,1,0,0">
@@ -89,18 +91,20 @@
             <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
 
-          <!-- Deux groupes et non un seul. Les guides ne rangent rien : les
-               mettre dans le même cadre que l'empilement et le côte à côte les
-               donnait pour trois gestes de même nature, alors que c'est le
-               seul des trois qui ouvre quelque chose. Ils gardent donc leur
-               nom, et le cadre de rangement se réduit à deux dessins.
+          <!-- Two groups, not one. The guides don't arrange anything:
+               putting them in the same frame as stacking and side by
+               side made them look like three gestures of the same
+               kind, when it's the only one of the three that opens
+               something. They therefore keep their name, and the
+               arranging frame is reduced to two icons.
 
-               Les touches étaient trois icônes flottantes surmontant chacune
-               son raccourci en chasse fixe. « Ctrl + » y paraissait trois fois
-               dans une barre de trois cent soixante unités, et c'était la chose
-               la plus voyante d'un pied de fenêtre qui ne demande qu'à se faire
-               oublier. Les raccourcis se lisent dans l'onglet qui leur est
-               consacré, et l'infobulle dit ce que chaque touche fait. -->
+               The buttons used to be three floating icons, each topped
+               by its shortcut in monospace type. "Ctrl +" appeared
+               three times in a bar three hundred and sixty units wide,
+               and it was the most conspicuous thing on a window footer
+               that only wants to go unnoticed. The shortcuts are
+               listed in the tab dedicated to them, and the tooltip
+               says what each button does. -->
           <StackPanel Grid.Column="0" Orientation="Horizontal"
                       VerticalAlignment="Center" HorizontalAlignment="Left"
                       Margin="0,0,10,0">
@@ -112,11 +116,12 @@
                       ToolTip="{loc:T GuidesTip}"
                       Command="{Binding QuestsCommand}">
                 <StackPanel Orientation="Horizontal">
-                  <!-- Le logo du site, employé avec l'accord de papycha.fr. Il
-                       remplace le parchemin que nous dessinions en attendant cet
-                       accord. La bannière du site est écartée : elle porte le
-                       logo déposé de DOFUS Touch, qu'aucun accord de papycha ne
-                       peut nous céder. Voir THIRD-PARTY-NOTICES.md. -->
+                  <!-- The site's logo, used with papycha.fr's agreement. It
+                       replaces the scroll we were drawing while waiting
+                       for that agreement. The site's banner is ruled
+                       out: it carries DOFUS Touch's registered logo,
+                       which no agreement from papycha can grant us. See
+                       THIRD-PARTY-NOTICES.md. -->
                   <Image Source="/assets/papycha.png" Width="16" Height="16"
                          Margin="0,0,6,0" VerticalAlignment="Center"
                          RenderOptions.BitmapScalingMode="HighQuality" />
@@ -125,10 +130,11 @@
               </Button>
             </Border>
 
-            <!-- L'Almanax à côté des guides : ce sont les deux touches qui
-                 ouvrent quelque chose à lire, par opposition au rangement de
-                 fenêtres qui suit. Un calendrier dessiné et non un logo : la
-                 page vient d'Ankama, dont nous n'affichons aucune marque. -->
+            <!-- The Almanax next to the guides: these are the two buttons
+                 that open something to read, as opposed to the window
+                 arranging that follows. A drawn calendar rather than a
+                 logo: the page comes from Ankama, none of whose
+                 branding we display. -->
             <Border Margin="8,0,0,0"
                     Background="{StaticResource KeyFaceBrush}"
                     BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
@@ -147,11 +153,12 @@
               </Button>
             </Border>
 
-            <!-- Le rangement ne paraît qu'avec de quoi ranger : deux fenêtres
-                 au moins, et que les placements peuvent bouger. Une seule
-                 fenêtre, ou deux logées dans le cadre à onglets, et presser ces
-                 touches ne faisait rien. Sans texte : leur dessin dit ce
-                 qu'elles font, et le pied de fenêtre respire. -->
+            <!-- Arranging only appears when there's something to arrange:
+                 at least two windows, and only when placements can
+                 move. A single window, or two docked in the tabbed
+                 frame, and pressing these buttons did nothing. No text:
+                 their icon says what they do, and the window footer
+                 gets some breathing room. -->
             <Border Margin="8,0,0,0"
                     Background="{StaticResource KeyFaceBrush}"
                     BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
@@ -162,8 +169,8 @@
                 <Button Style="{StaticResource GroupKey}"
                         ToolTip="{loc:T StackTip}"
                         Command="{Binding RearrangeCommand}">
-                  <!-- Deux fenêtres superposées : c'est exactement ce que fait
-                       l'action, et aucun glyphe ne le dit clairement. -->
+                  <!-- Two overlapping windows: that's exactly what the
+                       action does, and no glyph said it clearly. -->
                   <Path Style="{StaticResource RowGlyph}" VerticalAlignment="Center"
                         Data="M 1.8,2.2 H 10.2 V 8.4 H 1.8 Z M 4.8,6.6 H 13.2 V 12.8 H 4.8 Z" />
                 </Button>
@@ -173,9 +180,9 @@
                 <Button Style="{StaticResource GroupKey}"
                         ToolTip="{loc:T SideBySideTip}"
                         Command="{Binding TileCommand}">
-                  <!-- Une fenêtre partagée en deux : les deux panneaux
-                       séparés se remplissaient de leur propre trait à cette
-                       taille, et l'icône devenait deux pavés blancs. -->
+                  <!-- One window split in two: the two separate panels
+                       filled in with their own stroke at this size, and
+                       the icon turned into two blank blocks. -->
                   <Path Style="{StaticResource RowGlyph}" VerticalAlignment="Center"
                         Data="M 2,2.6 H 13 V 12.4 H 2 Z M 7.5,2.6 V 12.4" />
                 </Button>
@@ -191,7 +198,7 @@
         </Grid>
       </Border>
 
-      <!-- Onglets -->
+      <!-- Tabs -->
       <Grid Margin="10,8,10,0">
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto" />
@@ -200,14 +207,14 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
-          <!-- L'ordre va du concret au réglage : l'appareil d'abord, puis ses
-               fenêtres, puis les touches. Les panneaux de contenu suivent les
-               liaisons par nom et non cet ordre : les retourner ici ne les
-               déplace pas. -->
-          <!-- Le premier onglet est aussi celui qui s'ouvre : c'est là qu'on
-               agit, alors que les raccourcis se lisent une fois. L'ouverture
-               n'est pas mémorisée d'une session à l'autre, ce choix vaut donc à
-               chaque démarrage. -->
+          <!-- The order goes from the concrete to the setting: the device
+               first, then its windows, then the shortcuts. The content
+               panels follow the bindings by name, not this order:
+               reordering them here doesn't move them. -->
+          <!-- The first tab is also the one that opens: that's where you
+               act, while shortcuts are read once. Which tab is open
+               isn't remembered from one session to the next, so this
+               choice applies at every launch. -->
           <RadioButton x:Name="TabDevices" Style="{StaticResource Tab}" Content="{loc:T TabDevices}"
                        GroupName="Tabs" IsChecked="True" />
           <RadioButton x:Name="TabGeneral" Style="{StaticResource Tab}" Content="{loc:T TabWindows}" GroupName="Tabs" />
@@ -218,7 +225,7 @@
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,10,0">
           <Grid>
 
-            <!-- Onglet Raccourcis, en lecture seule -->
+            <!-- Shortcuts tab, read-only -->
             <StackPanel Visibility="{Binding IsChecked, ElementName=TabHotkeys,
                                              Converter={StaticResource BoolToVisibility}}">
               <Border Style="{StaticResource Card}">
@@ -253,7 +260,7 @@
               </Border>
             </StackPanel>
 
-            <!-- Onglet Fenêtres : replacement rapide et taille -->
+            <!-- Windows tab: quick placement and size -->
             <StackPanel Visibility="{Binding IsChecked, ElementName=TabGeneral,
                                              Converter={StaticResource BoolToVisibility}}">
 
@@ -298,8 +305,9 @@
                             SmallChange="1" LargeChange="5"
                             Value="{Binding SizePercent}" />
 
-                    <!-- En chasse fixe : le nombre ne danse plus d'un pixel à
-                         l'autre quand il change de chiffre. -->
+                    <!-- In monospace: the number no longer jitters by a
+                         pixel from one digit to another when it
+                         changes. -->
                     <TextBlock Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0"
                                MinWidth="46" TextAlignment="Right" FontWeight="SemiBold"
                                FontFamily="{StaticResource MonoFont}"
@@ -312,10 +320,10 @@
 
               <Border Style="{StaticResource Card}">
                 <StackPanel>
-                  <!-- Le rouage sur la ligne du titre, et non sous les
-                       paliers : là il retombait à la ligne, seul, et faisait
-                       gagner une rangée à la carte. Ici il tient dans la
-                       hauteur que l'intertitre occupe déjà. -->
+                  <!-- The gear on the title's line, not under the tiers:
+                       there it wrapped to its own line, alone, and cost
+                       the card an extra row. Here it fits within the
+                       height the subheading already takes up. -->
                   <Grid>
                     <TextBlock Text="{loc:T QualityHeading}" Style="{StaticResource SectionLabel}" />
 
@@ -347,8 +355,8 @@
                     </ToggleButton>
                   </Grid>
 
-                  <!-- Repliés comme la distance juste en dessous : quatre
-                       paliers ne tiennent plus sur la largeur de la fenêtre. -->
+                  <!-- Wrapped like the zoom distance just below: four
+                       tiers no longer fit across the window's width. -->
                   <WrapPanel Margin="0,0,0,5">
                     <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="{loc:T QualityLow}"
                                  Margin="0,0,5,0"
@@ -457,18 +465,20 @@
                                    Foreground="{DynamicResource AccentBrush}"
                                    ToolTip="{loc:T BitsPerPixelTip}" />
 
-                        <!-- Plusieurs comptes ouverts, ce sont plusieurs flux
-                             sur la même liaison et le même encodeur. Un miroir
-                             simple n&apos;a pas ce souci ; celui-ci l&apos;a, et le dit. -->
+                        <!-- Several open accounts mean several streams over
+                             the same link and the same encoder. A simple
+                             mirror doesn't have this concern; this one
+                             does, and says so. -->
                         <TextBlock Text="{Binding LinkSummary}" Style="{StaticResource Muted}"
                                    FontFamily="{StaticResource MonoFont}" FontSize="{StaticResource FontSmall}"
                                    TextWrapping="Wrap"
                                    ToolTip="{loc:T BitrateTip}" />
 
-                        <!-- Le palier retenu est le premier au-dessus de la
-                             fenêtre : au-delà, monter le plafond ne demande
-                             rien de plus et ne coûte rien de plus. Mesuré,
-                             c'est le piège le moins visible du panneau. -->
+                        <!-- The tier chosen is the first one above the
+                             window: beyond that, raising the ceiling
+                             asks for nothing more and costs nothing
+                             more. Measured, it's the panel's least
+                             visible trap. -->
                         <TextBlock Text="{Binding DisplayFitSummary}" Style="{StaticResource Muted}"
                                    FontFamily="{StaticResource MonoFont}" FontSize="{StaticResource FontSmall}"
                                    TextWrapping="Wrap"
@@ -484,9 +494,9 @@
                   <TextBlock Text="{loc:T GameDistanceHeading}" Style="{StaticResource SectionLabel}"
                              ToolTip="{loc:T GameDistanceTip}" />
 
-                  <!-- Repliés plutôt qu'alignés : cinq paliers ne tiennent
-                       plus sur la largeur de la fenêtre, et rogner un libellé
-                       le rendrait indéchiffrable. -->
+                  <!-- Wrapped rather than aligned: five tiers no longer fit
+                       across the window's width, and trimming a label
+                       would make it unreadable. -->
                   <WrapPanel Margin="0,0,0,5">
                     <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="{loc:T ZoomVeryFar}"
                                  Margin="0,0,5,0"
@@ -516,9 +526,10 @@
               </Border>
 
               <StackPanel Margin="2,4,0,10">
-                <!-- La langue suit Windows sans qu'on ait rien à dire. Le choix
-                     n'est là que pour la contredire : un Windows anglais chez
-                     un francophone, ou l'inverse, est un cas courant. -->
+                <!-- The language follows Windows without anyone having to
+                     say anything. The choice is there only to override
+                     that: an English Windows for a French speaker, or
+                     the reverse, is a common case. -->
                 <TextBlock Text="{loc:T LanguageHeading}" Style="{StaticResource SectionLabel}"
                            ToolTip="{loc:T LanguageTip}" />
 
@@ -538,27 +549,29 @@
                            Visibility="{Binding LanguageRestartNeeded,
                                                 Converter={StaticResource BoolToVisibility}}" />
 
-                <!-- Le téléchargement se fait en fond, l'échange à l'arrêt : une
-                     application ne se remplace pas sous les doigts de celui qui
-                     s'en sert. -->
-                <!-- Le son du téléphone entier, non celui d'un compte : Android
-                     ne sait pas l'isoler par application. Une seule fenêtre par
-                     appareil le porte, sans quoi le même flux reviendrait en
-                     plusieurs exemplaires. -->
+                <!-- The download happens in the background, the swap on
+                     shutdown: an application doesn't get replaced under
+                     the fingers of the person using it. -->
+                <!-- The whole phone's sound, not one account's: Android
+                     doesn't know how to isolate it per application.
+                     Only one window per device carries it, otherwise
+                     the same stream would come back in several copies. -->
                 <CheckBox Content="{loc:T PhoneAudio}" Margin="0,0,0,8"
                           IsChecked="{Binding AudioEnabled}"
                           ToolTip="{loc:T PhoneAudioTip}" />
 
-                <!-- Placée avec le son plutôt qu'avec les mises à jour : elle
-                     décrit ce qui arrive au téléphone, pas à l'application. -->
+                <!-- Placed with the sound rather than with updates: it
+                     describes what happens to the phone, not to the
+                     application. -->
                 <CheckBox Content="{loc:T StopAppOnClose}" Margin="0,0,0,8"
                           IsChecked="{Binding StopAppOnClose}"
                           ToolTip="{loc:T StopAppOnCloseTip}" />
 
-                <!-- Placée avec le son et l'arrêt du jeu : elle décrit elle
-                     aussi ce qui arrive au téléphone. Le piège de la
-                     disposition est dit sous la case, pas en infobulle : il
-                     décide du réglage, il ne le commente pas. -->
+                <!-- Placed with the sound and stopping the game: it too
+                     describes what happens to the phone. The layout's
+                     trap is stated under the checkbox, not in a
+                     tooltip: it decides the setting, it doesn't just
+                     comment on it. -->
                 <CheckBox Content="{loc:T SimulatedKeyboard}"
                           IsChecked="{Binding SimulatedPhysicalKeyboard}"
                           ToolTip="{loc:T SimulatedKeyboardTip}" />
@@ -566,12 +579,14 @@
                            TextWrapping="Wrap" Margin="24,2,0,8"
                            Text="{loc:T SimulatedKeyboardHelp}" />
 
-                <!-- Dernier recours, et il ne paraît que sur un appareil dont
-                     le refus a été constaté : cette souris capture le curseur
-                     du poste, la proposer à qui n'a pas la panne serait vendre
-                     un remède pire que le mal. La touche qui rend la souris
-                     est dite sous la case, pas en infobulle : sans elle, on
-                     croit son poste bloqué. -->
+                <!-- Last resort, and it only appears on a device where the
+                     refusal has been observed: this mouse captures the
+                     computer's cursor, offering it to someone without
+                     the fault would be selling a remedy worse than the
+                     disease. The key that gives the mouse back is
+                     stated under the checkbox, not in a tooltip:
+                     without it, you'd think your computer was locked
+                     up. -->
                 
 
                 <StackPanel Visibility="{Binding ShowsSimulatedMouse,
@@ -585,8 +600,9 @@
                              Text="{loc:T SimulatedMouseHelp}" />
                 </StackPanel>
 
-                <!-- Diagnostic, pas confort. Sous les réglages du téléphone,
-                     parce que c'est de lui qu'on parle quand l'image saccade. -->
+                <!-- Diagnostics, not comfort. Under the phone's settings,
+                     because it's the phone we're talking about when the
+                     picture stutters. -->
                 <CheckBox Content="{loc:T FluidityDiagnostics}"
                           IsChecked="{Binding FluidityDiagnostics}"
                           ToolTip="{loc:T FluidityDiagnosticsTip}" />
@@ -603,19 +619,20 @@
                   <Run Text="{Binding Version, Mode=OneWay}" />
                 </TextBlock>
                 <TextBlock Text="{Binding Disclaimer}" Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" />
-                <!-- Une faute hors du fil d'interface ne s'affiche pas : elle
-                     se compte, et cette ligne est le seul endroit où elle se
-                     voit. Elle se laisse ignorer, ce qu'une boîte ne ferait pas
-                     pour une faute qui se répète. -->
+                <!-- A fault outside the UI thread doesn't get displayed: it
+                     gets counted, and this line is the only place where
+                     it shows. It can be ignored, which a dialog box
+                     would not allow for a fault that repeats. -->
                 <TextBlock Text="{loc:T IncidentNoticed}" Style="{StaticResource Muted}"
                            FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" Margin="0,8,0,0"
                            Foreground="{DynamicResource WarningBrush}"
                            Visibility="{Binding HasIncident,
                                                 Converter={StaticResource BoolToVisibility}}" />
 
-                <!-- Deux touches sur une ligne de trois cent soixante unités,
-                     et la seconde se faisait couper : elles passent à la ligne
-                     plutôt que de mentir sur leur nom. -->
+                <!-- Two buttons on a line three hundred and sixty units
+                     wide, and the second one was getting cut off: they
+                     wrap onto a new line rather than lying about their
+                     name. -->
                 <WrapPanel Margin="-9,4,0,0">
                   <Button Content="{loc:T OpenLogFolder}" Style="{StaticResource QuietButton}"
                           Command="{Binding OpenLogsCommand}" />
@@ -624,8 +641,8 @@
                           Command="{Binding ReportProblemCommand}"
                           ToolTip="{loc:T ReportProblemTip}" />
 
-                  <!-- Emporter ses réglages d'un poste à l'autre, et les
-                       retrouver si le fichier s'abîme. -->
+                  <!-- Take your settings from one computer to another, and
+                       get them back if the file gets corrupted. -->
                   <Button Content="{loc:T ExportSettings}" Style="{StaticResource QuietButton}"
                           Command="{Binding ExportSettingsCommand}"
                           ToolTip="{loc:T ExportSettingsTip}" />
@@ -638,21 +655,22 @@
 
             </StackPanel>
 
-            <!-- Onglet Appareils -->
+            <!-- Devices tab -->
             <StackPanel Visibility="{Binding IsChecked, ElementName=TabDevices,
                                              Converter={StaticResource BoolToVisibility}}">
 
-              <!-- L'état de la liaison, dit avant qu'on ait lancé quoi que ce
-                   soit. Les messages d'échec existaient déjà, mais ils ne
-                   paraissaient qu'en réponse à une action : tant qu'on ne
-                   lançait rien, l'application ne disait ni ce qu'elle voyait,
-                   ni ce qui manquait.
+              <!-- The connection's state, stated before anything has been
+                   launched. Failure messages already existed, but they
+                   only appeared in response to an action: as long as
+                   nothing was launched, the application said neither
+                   what it saw nor what was missing.
 
-                   Le bloc s'efface quand le téléphone répond : il n'a alors
-                   rien à apprendre à personne. Il reste également muet tant
-                   que la liaison n'a pas été examinée, faute de quoi il
-                   annonçait « aucun téléphone » à l'ouverture du panneau pour
-                   se dédire au premier sondage. -->
+                   The block disappears once the phone responds: it
+                   then has nothing left to tell anyone. It also stays
+                   silent as long as the connection hasn't been checked
+                   yet, otherwise it would announce "no phone" when the
+                   panel opened, only to take it back at the first
+                   poll. -->
               <Border Style="{StaticResource Card}" Padding="10,8" Margin="0,0,0,12"
                       Visibility="{Binding ShowsConnection,
                                            Converter={StaticResource BoolToVisibility}}">
@@ -680,10 +698,10 @@
                 </StackPanel>
               </Border>
 
-              <!-- Les profils partagent la ligne du bouton d'association, qui
-                   avait de la place à droite. Dépliés dans la page, ils
-                   prenaient quarante-sept pixels à la liste des comptes, qui
-                   en manque déjà dans une fenêtre courte. -->
+              <!-- Profiles share the pairing button's line, which had room
+                   to spare on the right. Unfolded in the page, they
+                   took forty-seven pixels away from the account list,
+                   which is already short of them in a short window. -->
               <Grid Margin="0,0,0,12">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="Auto" />
@@ -695,10 +713,11 @@
                         ToolTip="{loc:T PairDeviceTip}"
                         Click="OnAddDevice">
                   <StackPanel Orientation="Horizontal">
-                    <!-- Un plus tracé, du même trait que le signet de la touche
-                         voisine : la pastille qui l'entourait lui donnait un
-                         poids que l'autre n'avait pas, et les deux touches de la
-                         ligne ne se ressemblaient plus. -->
+                    <!-- A plus sign drawn with the same stroke as the
+                         neighbouring button's bookmark: the chip that
+                         used to surround it gave it a weight the other
+                         one didn't have, and the two buttons on the
+                         line no longer looked alike. -->
                     <Path Width="15" Height="15" Stretch="None" Margin="0,0,8,0"
                           VerticalAlignment="Center"
                           Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.6"
@@ -713,20 +732,21 @@
                               VerticalAlignment="Center"
                               ToolTip="{Binding Instances.ProfilesTooltip}">
                   <StackPanel Orientation="Horizontal">
-                    <!-- Un signet : ce qu'on met de côté pour y revenir. Le
-                         chevron dit que la bulle s'ouvre en dessous ; il était
-                         écrit en caractère de fonte à chasse fixe, et pendait
-                         sous la ligne de texte.
+                    <!-- A bookmark: what you set aside to come back to.
+                         The chevron says the bubble opens below; it
+                         used to be written in monospace type, and hung
+                         below the line of text.
 
-                         Le signet se remplit quand un profil est retenu pour le
-                         démarrage. C'est le même signal que l'étoile pleine de
-                         la ligne concernée, plus bas dans la bulle : un profil
-                         par défaut décide des comptes, de la qualité et du
-                         zoom, et cela doit se voir sans rien ouvrir.
+                         The bookmark fills in when a profile is set for
+                         launch. It's the same signal as the filled star
+                         on the row concerned, further down in the
+                         bubble: a default profile decides the accounts,
+                         the quality and the zoom, and that must be
+                         visible without opening anything.
 
-                         Deux tracés superposés plutôt qu'un convertisseur de
-                         pinceau : les convertisseurs de visibilité existent
-                         déjà, un convertisseur de couleur non. -->
+                         Two overlaid shapes rather than a brush
+                         converter: visibility converters already exist,
+                         a colour converter doesn't. -->
                     <Grid Margin="0,0,8,0" VerticalAlignment="Center">
                       <Path Width="11" Height="13" Stretch="None"
                             StrokeLineJoin="Round"
@@ -744,9 +764,10 @@
                                                  Converter={StaticResource BoolToVisibility}}" />
                     </Grid>
 
-                    <!-- Le nom du profil retenu, coupé s'il déborde : un nom va
-                         jusqu'à quarante caractères, et le laisser pousser
-                         chasserait le chevron hors du bouton. -->
+                    <!-- The chosen profile's name, truncated if it
+                         overflows: a name can run up to forty
+                         characters, and letting it grow would push the
+                         chevron out of the button. -->
                     <TextBlock Text="{Binding Instances.ProfilesButtonText}"
                                VerticalAlignment="Center"
                                MaxWidth="150" TextTrimming="CharacterEllipsis" />
@@ -767,19 +788,22 @@
                     <StackPanel>
                       <TextBlock Text="{loc:T LaunchProfilesHeading}" Style="{StaticResource SectionLabel}" />
 
-                      <!-- Un panneau vide ne distingue pas « aucun profil » de
-                           « la liste n'a pas chargé », et c'est justement la
-                           question qu'on se pose en l'ouvrant. -->
+                      <!-- An empty panel doesn't distinguish "no profile"
+                           from "the list hasn't loaded", and that's
+                           exactly the question you ask yourself when
+                           opening it. -->
                       <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"
                                  Text="{loc:T NoProfilesYet}"
                                  Visibility="{Binding Instances.HasProfiles,
                                                       Converter={StaticResource InverseBoolToVisibility}}" />
 
-                      <!-- La liste est montrée, non repliée dans un champ : on
-                           voit ce qu'on a sans rien ouvrir, et surtout désigner
-                           une ligne ne l'ouvre plus. Avant, choisir dans la
-                           liste déroulante fermait les fenêtres de jeu, ce qui
-                           faisait d'un clic d'exploration une partie perdue. -->
+                      <!-- The list is shown, not tucked away in a field:
+                           you see what you have without opening
+                           anything, and above all, pointing at a row no
+                           longer opens it. Before, picking from the
+                           drop-down closed the game windows, which
+                           turned an exploratory click into a lost
+                           game. -->
                       <ItemsControl ItemsSource="{Binding Instances.Profiles}" Margin="0,2,0,0">
                         <ItemsControl.ItemTemplate>
                           <DataTemplate>
@@ -807,11 +831,12 @@
                                       Data="M 5.5,3.5 L 12,7.5 L 5.5,11.5 Z" />
                               </Button>
 
-                              <!-- Un bouton, non une bascule : « QuietButton »
-                                   et ses pareils ciblent Button, et les poser
-                                   sur un ToggleButton lève au chargement sans
-                                   que la compilation le voie. L'état se dit par
-                                   l'étoile pleine. -->
+                              <!-- A button, not a toggle: "QuietButton" and
+                                   its kin target Button, and applying
+                                   them to a ToggleButton throws at load
+                                   time without the compiler seeing it.
+                                   The state is conveyed by the filled
+                                   star. -->
                               <Button Grid.Column="2" Style="{StaticResource IconButton}"
                                       ToolTip="{loc:T DefaultProfileTip}"
                                       Command="{Binding DataContext.Instances.ToggleDefaultProfileCommand,
@@ -867,26 +892,27 @@
           </Grid>
         </ScrollViewer>
 
-        <!-- Astuces de l'onglet Appareils, hors du contenu défilant : elles
-             restent collées en bas de la page quelle que soit la longueur de
-             la liste. La marge négative annule le remplissage et la bordure du
-             bouton, neuf pixels, pour que le texte parte du même bord que la
-             liste au-dessus. -->
+        <!-- Tips for the Devices tab, outside the scrolling content: they
+             stay pinned to the bottom of the page no matter how long
+             the list is. The negative margin cancels the button's
+             padding and border, nine pixels, so the text starts from
+             the same edge as the list above. -->
         <StackPanel Grid.Row="2" Margin="0,6,0,0"
                     Visibility="{Binding IsChecked, ElementName=TabDevices,
                                          Converter={StaticResource BoolToVisibility}}">
-          <!-- Deux conditions, donc deux panneaux : l'onglet dehors, le
-               téléphone dedans. Elles ne se remplacent pas, elles s'ajoutent.
-               Sans téléphone joignable il n'y a pas de fenêtre de jeu, et ces
-               deux lignes ne parleraient de rien. -->
+          <!-- Two conditions, so two panels: the tab outside, the phone
+               inside. They don't replace each other, they add up.
+               Without a reachable phone there's no game window, and
+               these two lines would have nothing to talk about. -->
           <StackPanel Visibility="{Binding Instances.ShowsWindowHelp,
                                            Converter={StaticResource BoolToVisibility}}">
             <Button Content="{loc:T FrozenWindowHelp}"
                     Style="{StaticResource QuietButton}" HorizontalAlignment="Left"
                     Margin="-9,0,0,0" Click="OnSleepHelp" />
 
-            <!-- Le symptôme le plus fréquent du terrain, et le plus démuni :
-                 rien n'échoue, rien ne s'affiche, et le clic ne fait rien. -->
+            <!-- The most frequent symptom reported from the field, and the
+                 most helpless one: nothing fails, nothing shows, and
+                 the click does nothing. -->
             <Button Content="{loc:T DeadInputHelp}"
                     Style="{StaticResource QuietButton}" HorizontalAlignment="Left"
                     Margin="-9,0,0,0" Click="OnInputHelp" />

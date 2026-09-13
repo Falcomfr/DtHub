@@ -4,9 +4,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:loc="clr-namespace:DtHub.App.Localization"
              xmlns:s="clr-namespace:DtHub.Core.Settings;assembly=DtHub.Core">
-  <!-- Liste unique des instances, tous appareils confondus. Le nom d'un
-       téléphone n'apparaît qu'aux endroits où il change. Partagée par la
-       fenêtre de mise en route et par l'onglet Appareils. -->
+  <!-- A single list of instances, across all devices. A phone's name
+       only appears where it changes. Shared by the setup window and by
+       the Devices tab. -->
   <StackPanel>
 
     <StackPanel Visibility="{Binding HasRows, Converter={StaticResource BoolToVisibility}}">
@@ -15,10 +15,10 @@
           <DataTemplate>
             <StackPanel>
 
-              <!-- En-tête d'appareil. Hors de la surface de dépôt : l'inclure
-                   décalerait vers le bas le milieu qui départage « au-dessus »
-                   et « en dessous », et seule la première ligne d'un appareil
-                   en souffrirait. -->
+              <!-- Device header. Outside the drop surface: including it
+                   would push down the midpoint that decides between
+                   "above" and "below", and only the first row of a
+                   device would suffer from it. -->
               <Grid Margin="0,6,0,3"
                     Visibility="{Binding ShowDeviceHeader, Converter={StaticResource BoolToVisibility}}">
                 <Grid.ColumnDefinitions>
@@ -37,18 +37,19 @@
                              Style="{StaticResource DeviceHeader}" VerticalAlignment="Center"
                              ToolTip="{Binding Device.StatusText}" />
 
-                  <!-- En toutes lettres seulement là où on choisit ce qu'on
-                       lance : ailleurs le point de couleur suffit. -->
+                  <!-- Spelled out only where you're choosing what to
+                       launch: elsewhere the coloured dot is enough. -->
                   <TextBlock Text="{Binding Device.StatusText}" Style="{StaticResource Muted}"
                              FontSize="{StaticResource FontTiny}" Margin="8,1,0,0" VerticalAlignment="Center"
                              Visibility="{Binding ShowDeviceStatus,
                                                   RelativeSource={RelativeSource AncestorType=UserControl},
                                                   Converter={StaticResource BoolToVisibility}}" />
 
-                  <!-- Le niveau de batterie. Dessiné et pas seulement chiffré :
-                       une jauge se lit sans se lire, et c'est le propre d'une
-                       information qu'on veut voir du coin de l'oeil. Rien ne
-                       paraît tant que l'appareil n'a pas répondu. -->
+                  <!-- The battery level. Drawn, not just given as a number:
+                       a gauge reads without being read, and that's the
+                       nature of information you want to catch out of
+                       the corner of your eye. Nothing appears until
+                       the device has responded. -->
                   <StackPanel Orientation="Horizontal" Margin="10,1,0,0" VerticalAlignment="Center"
                               ToolTip="{Binding Device.BatterySummary}"
                               Visibility="{Binding Device.HasBattery,
@@ -63,13 +64,15 @@
                                                 Converter={StaticResource KeyToBrush}}" />
                     </Border>
 
-                    <!-- La borne du petit bout, qui fait lire une pile. -->
+                    <!-- The little nub at the tip, which makes it read as a
+                         battery. -->
                     <Border Width="2" Height="4" CornerRadius="0,1,1,0" Margin="1,0,0,0"
                             VerticalAlignment="Center"
                             Background="{DynamicResource TextMutedBrush}" />
 
-                    <!-- L'éclair dit pourquoi un téléphone à douze pour cent
-                         n'avertit de rien : il est branché. -->
+                    <!-- The lightning bolt says why a phone at twelve
+                         percent isn't warning about anything: it's
+                         plugged in. -->
                     <Path Width="5" Height="8" Margin="5,0,0,0" Stretch="Uniform"
                           VerticalAlignment="Center"
                           Data="M 3.2,0 L 0,4.6 L 2.2,4.6 L 1.8,8 L 5,3.4 L 2.8,3.4 Z"
@@ -87,10 +90,11 @@
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
 
-                <!-- Ajouter un compte : un profil Android neuf, le jeu dedans.
-                     C'est le mécanisme des comptes multiples d'Android, celui
-                     que la surcouche du téléphone emploie elle-même. Une croix
-                     pleine, parce qu'ajouter n'a pas d'autre dessin. -->
+                <!-- Add an account: a fresh Android profile, with the game
+                     inside. It's Android's own multiple-user mechanism,
+                     the same one the phone's manufacturer overlay uses
+                     itself. A solid plus sign, because adding has no
+                     other icon. -->
                 <Button Style="{StaticResource IconButton}" AllowDrop="False"
                         IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"
                         ToolTip="{loc:T AddAccountTip}"
@@ -109,10 +113,10 @@
                   </Button.Visibility>
                 </Button>
 
-                <!-- Rompre l'association ne vaut que pour l'appareil : sur son
-                     premier morceau seulement, sans quoi le bouton paraîtrait
-                     deux fois pour le même téléphone. -->
-                <!-- Un maillon rompu, dessiné comme deux anneaux écartés. -->
+                <!-- Breaking the pairing only applies at the device level:
+                     on its first row only, otherwise the button would
+                     appear twice for the same phone. -->
+                <!-- A broken link, drawn as two separated rings. -->
                 <Button Style="{StaticResource DangerIconButton}"
                         AllowDrop="False"
                         ToolTip="{loc:T ForgetDeviceTip}"
@@ -132,16 +136,17 @@
                 </StackPanel>
               </Grid>
 
-              <!-- Ce que cet appareil a de travers, sous son nom.
+              <!-- What's wrong with this device, under its name.
 
-                   Ces constats vivaient dans un bandeau unique en bas de la
-                   liste, où ils semblaient parler du dernier appareil affiché,
-                   qui était justement celui qui n'avait rien. La place du
-                   message était la moitié du message.
+                   These findings used to live in a single banner at the
+                   bottom of the list, where they seemed to talk about
+                   the last device shown, which happened to be the one
+                   with nothing wrong. The message's placement was half
+                   the message.
 
-                   Un constat par ligne, chacune coupée, le texte entier au
-                   survol : le nombre de lignes suit celui des vrais problèmes,
-                   qui est zéro la plupart du temps. -->
+                   One finding per row, each one truncated, full text on
+                   hover: the number of rows follows that of the actual
+                   problems, which is zero most of the time. -->
               <Grid Margin="16,0,0,4" ToolTip="{Binding Device.Problems}">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="Auto" />
@@ -167,7 +172,7 @@
                                                 Converter={StaticResource KeyToBrush}}" />
               </Grid>
 
-              <!-- Surface de dépôt : la ligne et ses deux repères, rien d'autre. -->
+              <!-- Drop surface: the row and its two markers, nothing else. -->
               <StackPanel AllowDrop="True"
                           Opacity="{Binding IsDragging, Converter={StaticResource DraggedOpacity}}"
                           DragOver="OnDragOver" Drop="OnDrop" DragLeave="OnDragLeave">
@@ -200,9 +205,9 @@
                     </Control.Visibility>
                   </Control>
 
-                  <!-- Verrouillée, la fenêtre est laissée où elle est : le
-                       parcours au clavier, l'empilement, le côte à côte et les
-                       tailles l'ignorent. -->
+                  <!-- Locked, the window is left where it is: keyboard
+                       navigation, stacking, side by side, and the
+                       sizing presets all ignore it. -->
                   <ToggleButton Grid.Column="2" Style="{StaticResource LockToggle}"
                                 IsChecked="{Binding IsLocked}" AllowDrop="False"
                                 Margin="0,0,4,0" VerticalAlignment="Center"
@@ -211,13 +216,14 @@
                                                      RelativeSource={RelativeSource AncestorType=UserControl},
                                                      Converter={StaticResource BoolToVisibility}}" />
 
-                  <!-- L'icône réelle du jeu, tirée d'une seule entrée de son
-                       archive. La place est tenue même quand il n'y en a pas :
-                       une hauteur et une largeur fixes font que la colonne ne
-                       bouge pas, et qu'une icône arrivée après le balayage ne
-                       décale pas le nom de toutes les lignes. -->
-                  <!-- Met le compte dans le cadre à onglets, ou l'en retire. La fenêtre
-                       n'est ni fermée ni rouverte : elle est logée telle quelle. -->
+                  <!-- The game's actual icon, pulled from a single entry in
+                       its archive. The space is held even when there is
+                       none: a fixed height and width mean the column
+                       doesn't move, and an icon arriving after the scan
+                       doesn't shift the name of every row. -->
+                  <!-- Puts the account in the tabbed frame, or takes it
+                       out. The window is neither closed nor reopened:
+                       it is docked as is. -->
                   <ToggleButton Grid.Column="3" AllowDrop="False" Cursor="Hand"
                                 Margin="0,0,5,0" VerticalAlignment="Center"
                                 IsChecked="{Binding IsTabbed}"
@@ -247,11 +253,11 @@
                     </ToggleButton.Template>
                   </ToggleButton>
 
-                  <!-- Le temps de la semaine se lit au survol de l'icône :
-                       c'est un renseignement qu'on va chercher, pas un état
-                       qu'on surveille, et la ligne est déjà pleine. Rien ne
-                       paraît tant qu'il n'y a rien à dire, la valeur étant
-                       nulle et non vide. -->
+                  <!-- The week's playtime is read by hovering over the
+                       icon: it's information you go looking for, not a
+                       state you keep watch on, and the row is already
+                       full. Nothing appears as long as there is nothing
+                       to say, the value being null rather than empty. -->
                   <Image Grid.Column="4" Width="20" Height="20" Margin="0,0,7,0"
                          VerticalAlignment="Center" Stretch="Uniform"
                          RenderOptions.BitmapScalingMode="HighQuality"
@@ -263,18 +269,19 @@
                              Style="{StaticResource InlineEdit}"
                              ToolTip="{loc:T RenameTip}" />
 
-                    <!-- Le profil ne s'affiche qu'après un renommage : c'est
-                         alors le seul moyen de savoir lequel est lequel. Sans
-                         renommage, il répète le nom déjà affiché. -->
+                    <!-- The profile only shows after a rename: at that
+                         point it's the only way to tell which is which.
+                         Without a rename, it would just repeat the name
+                         already shown. -->
                     <TextBlock Text="{Binding UserLabel}" Style="{StaticResource Muted}"
                                FontSize="{StaticResource FontTiny}" Margin="2,1,0,0"
                                Visibility="{Binding ShowUserLabel,
                                                     Converter={StaticResource BoolToVisibility}}" />
                   </StackPanel>
 
-                  <!-- Les boutons disent à eux seuls l'état de l'instance :
-                       « Lancer » quand elle est fermée, « Relancer » et
-                       « Fermer » quand elle est ouverte. -->
+                  <!-- The buttons alone tell the instance's state:
+                       "Launch" when it's closed, "Restart" and "Close"
+                       when it's open. -->
                   <Grid Grid.Column="6" Margin="8,0,0,0"
                         Visibility="{Binding ShowActions,
                                              RelativeSource={RelativeSource AncestorType=UserControl},
@@ -287,10 +294,11 @@
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
                                 Visibility="{Binding IsBusy,
                                                      Converter={StaticResource InverseBoolToVisibility}}">
-                      <!-- Le palier de ce compte. Muet tant qu'il suit le
-                           réglage commun, ce qui est le cas de tout le monde
-                           par défaut : cinq lignes affichant « Moyenne » pour
-                           cinq comptes réglés pareil n'apprendraient rien. -->
+                      <!-- This account's quality tier. Silent as long as it
+                           follows the shared setting, which is the case
+                           for everyone by default: five rows showing
+                           "Medium" for five accounts set the same way
+                           would teach nothing. -->
                       <Grid Margin="0,0,4,0" VerticalAlignment="Center">
                         <ToggleButton x:Name="Palier" AllowDrop="False" Padding="6,3"
                                       FontSize="{StaticResource FontSmall}"
@@ -298,9 +306,10 @@
                           <ToggleButton.Style>
                             <Style TargetType="ToggleButton" BasedOn="{StaticResource OutlineToggle}">
                               <Style.Triggers>
-                                <!-- Un compte qui suit le commun s'efface, mais
-                                     son dessin reste : un bouton qu'on ne voit
-                                     pas est un bouton que personne ne trouve. -->
+                                <!-- An account that follows the common
+                                     setting fades out, but its shape
+                                     stays: a button no one can see is a
+                                     button no one finds. -->
                                 <DataTrigger Binding="{Binding HasOwnQuality}" Value="False">
                                   <Setter Property="Opacity" Value="0.5" />
                                 </DataTrigger>
@@ -309,8 +318,8 @@
                           </ToggleButton.Style>
 
                           <StackPanel Orientation="Horizontal">
-                            <!-- Trois barres montantes : le dessin universel
-                                 d'un niveau, qui n'a pas besoin d'être appris. -->
+                            <!-- Three rising bars: the universal icon for a
+                                 level, one that needs no learning. -->
                             <Path Width="13" Height="13" Stretch="None" VerticalAlignment="Center"
                                   Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.8"
                                   StrokeStartLineCap="Round" StrokeEndLineCap="Round"
@@ -355,11 +364,12 @@
                         </Popup>
                       </Grid>
 
-                      <!-- La distance de ce compte, à côté de son palier et
-                           sur le même modèle. Muette tant qu'elle suit la
-                           commune. Le réglage n'agissant qu'à l'ouverture, un
-                           point signale la fenêtre qui tourne encore avec
-                           l'ancienne. -->
+                      <!-- This account's zoom distance, next to its quality
+                           tier and built the same way. Silent as long
+                           as it follows the common one. Since the
+                           setting only takes effect on opening, a dot
+                           flags the window that is still running with
+                           the old one. -->
                       <Grid Margin="0,0,4,0" VerticalAlignment="Center">
                         <ToggleButton x:Name="Distance" AllowDrop="False" Padding="6,3"
                                       FontSize="{StaticResource FontSmall}"
@@ -375,12 +385,13 @@
                           </ToggleButton.Style>
 
                           <StackPanel Orientation="Horizontal">
-                            <!-- Un cadre dans un cadre : la même fenêtre
-                                 montrant plus ou moins de terrain, qui est
-                                 exactement ce que le réglage fait. Trait plus
-                                 fin que celui du palier : deux rectangles
-                                 emboîtés dans treize pixels se referment sur
-                                 eux-mêmes si on les épaissit. -->
+                            <!-- A frame within a frame: the same window
+                                 showing more or less of the field of
+                                 view, which is exactly what the setting
+                                 does. A thinner stroke than the quality
+                                 tier's: two rectangles nested within
+                                 thirteen pixels close in on themselves
+                                 if you thicken them. -->
                             <Path Width="13" Height="13" Stretch="None" VerticalAlignment="Center"
                                   Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.3"
                                   StrokeLineJoin="Round"
@@ -394,9 +405,9 @@
                           </StackPanel>
                         </ToggleButton>
 
-                        <!-- Le point qui dit que la fenêtre ouverte tourne
-                             encore avec l'ancienne distance. Sans lui, le
-                             réglage paraissait mort. -->
+                        <!-- The dot that says the open window is still
+                             running with the old zoom distance. Without
+                             it, the setting looked dead. -->
                         <Ellipse Width="6" Height="6" Margin="0,-2,-2,0"
                                  HorizontalAlignment="Right" VerticalAlignment="Top"
                                  Fill="{DynamicResource WarningBrush}"
@@ -440,8 +451,8 @@
                         </Popup>
                       </Grid>
 
-                      <!-- Un triangle plein : la seule icône que personne
-                           n'a besoin d'apprendre. -->
+                      <!-- A solid triangle: the one icon nobody needs to
+                           learn. -->
                       <Button Style="{StaticResource IconButton}" AllowDrop="False"
                               ToolTip="{loc:T OpenInstanceTip}"
                               Visibility="{Binding IsRunning, Converter={StaticResource InverseBoolToVisibility}}"
@@ -453,8 +464,8 @@
                               Width="15" Height="15" Stretch="None" />
                       </Button>
 
-                      <!-- Une flèche qui reboucle : le jeu redémarre, la
-                           fenêtre reste. -->
+                      <!-- An arrow that loops back: the game restarts, the
+                           window stays. -->
                       <Button Style="{StaticResource IconButton}" AllowDrop="False"
                               ToolTip="{loc:T RestartTip}"
                               Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"
@@ -465,11 +476,11 @@
                               Data="M 13,7.5 A 5.5,5.5 0 1 1 11.1,3.3 M 13,1.5 V 4.2 H 10.3" />
                       </Button>
 
-                      <!-- Un carré plein, en paire avec le triangle : lecture
-                           et arrêt. C'était une croix, et dans une liste une
-                           croix veut dire « supprimer cette ligne » pour à peu
-                           près tout le monde. Rien n'est supprimé ici, et
-                           l'infobulle le dit maintenant aussi. -->
+                      <!-- A solid square, paired with the triangle: play
+                           and stop. It used to be a cross, and in a list
+                           a cross means "delete this row" to almost
+                           everyone. Nothing is deleted here, and the
+                           tooltip says so now too. -->
                       <Button Style="{StaticResource IconButton}" AllowDrop="False"
                               ToolTip="{loc:T CloseWindowTip}"
                               Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"
@@ -494,9 +505,9 @@
       </ItemsControl>
     </StackPanel>
 
-    <!-- Appareils sans aucune instance : hors ligne, ou joignables mais sans
-         le jeu. Sans ce rappel, brancher un téléphone où le jeu manque ne
-         produirait rien du tout à l'écran. -->
+    <!-- Devices with no instance at all: offline, or reachable but
+         without the game. Without this reminder, plugging in a phone
+         missing the game would produce nothing at all on screen. -->
     <StackPanel Margin="0,6,0,4"
                 Visibility="{Binding HasInactiveDevices, Converter={StaticResource BoolToVisibility}}">
       <ItemsControl ItemsSource="{Binding InactiveDevices}">
@@ -509,7 +520,7 @@
                 <ColumnDefinition Width="Auto" />
               </Grid.ColumnDefinitions>
 
-              <!-- Une seconde rangée, vide tant qu'il n'y a rien à dire. -->
+              <!-- A second row, empty as long as there's nothing to say. -->
               <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -523,9 +534,10 @@
               <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock Text="{Binding Name}" Style="{StaticResource DeviceHeader}" />
 
-                <!-- Hors ligne, le point gris suffit dans la liste ordinaire.
-                     Un jeu manquant, lui, ne se devine pas. Et là où l'on
-                     choisit ce qu'on lance, les deux cas se disent. -->
+                <!-- Offline, the grey dot is enough in the ordinary list.
+                     A missing game, though, can't be guessed. And where
+                     you're choosing what to launch, both cases get
+                     spelled out. -->
                 <TextBlock Text="{Binding StatusText}" Style="{StaticResource Muted}"
                            FontSize="{StaticResource FontTiny}" Margin="8,1,0,0"
                            Foreground="{Binding StatusBrushKey, Converter={StaticResource KeyToBrush}}"
@@ -551,10 +563,10 @@
                 <Path Style="{StaticResource BinGlyph}" />
               </Button>
 
-              <!-- Où réparer, sur le seul appareil dont on a constaté le
-                   refus. Une ligne courte : « À réassocier » dit ce qui
-                   manque, celle-ci dit par où, et rien ne paraît tant que ce
-                   n'est pas établi. -->
+              <!-- Where to fix it, on the only device where the refusal
+                   was observed. A short line: "To pair again" says
+                   what's missing, this one says how, and nothing shows
+                   until that's established. -->
               <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource Muted}"
                          FontSize="{StaticResource FontTiny}" Margin="0,1,0,2"
                          Text="{loc:T ToPairAgainHow}"
@@ -568,8 +580,8 @@
 
     </StackPanel>
 
-    <!-- Le premier balayage cherche les téléphones mémorisés, et un
-         téléphone éteint le fait attendre. Un mot vaut mieux qu'un vide. -->
+    <!-- The first scan looks for remembered phones, and a phone that's
+         turned off makes it wait. A word is better than emptiness. -->
     <Border Style="{StaticResource Card}" Padding="10,8"
             Visibility="{Binding ShowsSearching, Converter={StaticResource BoolToVisibility}}">
       <StackPanel Orientation="Horizontal">
@@ -579,7 +591,7 @@
       </StackPanel>
     </Border>
 
-    <!-- Aucun appareil du tout : il faut dire pourquoi la liste est vide. -->
+    <!-- No device at all: we need to say why the list is empty. -->
     <Border Style="{StaticResource Card}" Padding="10,8"
             Visibility="{Binding ShowsNoDeviceCard, Converter={StaticResource BoolToVisibility}}">
       <StackPanel>
@@ -589,20 +601,20 @@
       </StackPanel>
     </Border>
 
-    <!-- Un constat par ligne, chacune coupée, et le texte entier au survol.
-         Le message pleine largeur prenait deux ou trois lignes à lui seul au
-         milieu de la liste des comptes. Le réduire à un sigle seul aurait été
-         pire : ces messages annoncent une batterie qui lâche, un téléphone
-         qui se bride ou une fenêtre qui n'affichera qu'un cadenas, et un
-         avertissement qu'il faut survoler pour découvrir est un avertissement
-         que personne ne lit.
+    <!-- One finding per row, each one truncated, with the full text on
+         hover. The full-width message took two or three lines by
+         itself in the middle of the account list. Reducing it to a
+         single icon would have been worse: these messages announce a
+         battery that's failing, a phone that's throttling itself, or a
+         window that will only show a padlock, and a warning you have
+         to hover over to discover is a warning nobody reads.
 
-         Et pour la même raison, le bandeau les montre tous : n'afficher que
-         le plus grave cachait les autres aussi sûrement qu'un survol. Un
-         téléphone en a porté trois à la fois, et il fallait corriger le
-         premier pour apprendre l'existence du second. Chaque ligne reste une
-         ligne ; leur nombre suit celui des vrais problèmes, qui est zéro la
-         plupart du temps. -->
+         And for the same reason, the banner shows all of them:
+         displaying only the most serious one hid the others just as
+         surely as a hover would. One phone carried three at once, and
+         the first one had to be fixed before learning the second one
+         existed. Each row stays a row; their number follows that of
+         the actual problems, which is zero most of the time. -->
     <Grid Margin="2,0,0,4"
           ToolTip="{Binding AllProblems}"
           Visibility="{Binding Problem, Converter={StaticResource EmptyToVisibility},
@@ -612,8 +624,8 @@
         <ColumnDefinition Width="*" />
       </Grid.ColumnDefinitions>
 
-      <!-- Le triangle passe du jaune au rouge quand le constat coupera la
-           séance au lieu de la gêner. -->
+      <!-- The triangle turns from yellow to red when the finding will
+           cut the session short instead of just being a nuisance. -->
       <Path Grid.Column="0" Width="13" Height="13" Stretch="None" Margin="0,1,5,0"
             VerticalAlignment="Top" StrokeLineJoin="Round"
             StrokeThickness="1.3"

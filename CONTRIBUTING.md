@@ -37,7 +37,7 @@ that is what makes them useful.
 comments, commit messages, release notes, issue templates. What cannot exist
 in two versions is written once, in English.
 
-Four things stay French on purpose, and it is better to name them than to
+Five things stay French on purpose, and it is better to name them than to
 let them read as oversights:
 
 - the **291 commits** made before 2026-09-12, which cannot change now without
@@ -54,7 +54,11 @@ let them read as oversights:
   forty-nine entries. Its worth is its precision, and a translation would
   lose more of that than it would gain: it is the memory of the project,
   read by whoever maintains it rather than by a visitor. New entries are
-  written in French too, so the file stays of a piece.
+  written in French too, so the file stays of a piece;
+- the **0.1.0 and 0.2.0 sections of the changelog**, which predate the rule
+  and were published as they are. A release note exists in one version only,
+  and rewriting one after it has been read serves nobody. Every section from
+  0.3.0 onward is English.
 
 What the user reads on screen never lives in the code at all: it goes through
 `src/DtHub.Core/Localization/Strings*.resx`, in the three languages the

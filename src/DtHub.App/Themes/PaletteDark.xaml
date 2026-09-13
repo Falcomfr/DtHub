@@ -1,47 +1,49 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <!-- La palette de l'application. Il n'y en a qu'une : le thème clair a été
-       retiré plutôt que maintenu à moitié, et l'application ne suit plus le
-       réglage de Windows.
+  <!-- The application's palette. There is only one: the light theme was
+       removed rather than kept half working, and the application no
+       longer follows Windows' setting.
 
-       Les couleurs sont écrites littéralement dans chaque pinceau, sans
-       référence dynamique intermédiaire : un SolidColorBrush placé dans un
-       dictionnaire de ressources est gelé, et un DynamicResource sur sa
-       couleur ne se résout jamais, ce qui rendait toute l'interface noire.
+       Colours are written literally in each brush, with no
+       intermediate dynamic reference: a SolidColorBrush placed in a
+       resource dictionary is frozen, and a DynamicResource on its
+       colour never resolves, which made the whole interface black.
 
-       Le panneau est plus sombre que le châssis qui le porte : il s'enfonce
-       plutôt qu'il ne se pose. C'est le parti pris de l'appareil, et le biseau
-       le confirme, lumière en haut et ombre en bas. -->
+       The panel is darker than the chassis that holds it: it recedes
+       rather than sitting on top. That is the deliberate design of
+       the device, and the bevel confirms it, light on top and shadow
+       below. -->
 
   <SolidColorBrush x:Key="SurfaceBrush" Color="#FF121419" />
   <SolidColorBrush x:Key="SurfaceAltBrush" Color="#FF1A1D22" />
   <SolidColorBrush x:Key="SidebarBrush" Color="#FF0E1014" />
   <SolidColorBrush x:Key="BorderBrush" Color="#FF2E333C" />
 
-  <!-- Les deux arêtes d'un biseau. Employées ensemble et dans cet ordre :
-       la lumière vient d'en haut, comme sur tout appareil posé sur un bureau. -->
+  <!-- The two edges of a bevel. Used together and in this order: light
+       comes from above, as on any device sitting on a desk. -->
   <SolidColorBrush x:Key="BevelBrush" Color="#FF3A414D" />
   <SolidColorBrush x:Key="GrooveBrush" Color="#FF0A0C0F" />
 
   <SolidColorBrush x:Key="TextBrush" Color="#FFE8EAEE" />
   <SolidColorBrush x:Key="TextMutedBrush" Color="#FF939BA8" />
 
-  <!-- Bleu d'acier : la couleur de ce qu'on choisit et de ce qu'on touche.
-       Plus froid et plus profond que l'ancien, qui tirait sur le violet, et
-       assez loin du bleu de Windows pour ne pas s'y confondre. -->
+  <!-- Steel blue: the colour of what you select and what you touch.
+       Colder and deeper than the previous one, which leaned toward
+       purple, and far enough from Windows blue not to be confused
+       with it. -->
   <SolidColorBrush x:Key="AccentBrush" Color="#FF3D82BE" />
   <SolidColorBrush x:Key="AccentHoverBrush" Color="#FF5098D6" />
   <SolidColorBrush x:Key="AccentSoftBrush" Color="#FF16222E" />
 
-  <!-- Les pastilles des écrans dessinés dans l'aide. Android range ses
-       réglages derrière des icônes de couleur, et c'est ce qui distingue une
-       liste de réglages de n'importe quelle autre liste : le dessin le reprend.
-       Elles ne disent pas la couleur d'un réglage en particulier, que la fiche
-       de marque ne donne pas, mais qu'il y en a une.
+  <!-- The dots for the screens drawn in the help. Android files its
+       settings behind coloured icons, and that is what tells a
+       settings list apart from any other list: the artwork echoes it.
+       They do not claim the colour of any particular setting, which
+       the brand sheet does not give anyway, only that it has one.
 
-       Le bleu de l'accent n'y figure pas : c'est la teinte de la ligne à
-       toucher, et elle doit rester la seule de sa sorte. -->
+       The accent blue does not appear among them: it is the colour of
+       the line to tap, and it must remain the only one of its kind. -->
   <SolidColorBrush x:Key="MenuTintA" Color="#FF2F6E66" />
   <SolidColorBrush x:Key="MenuTintB" Color="#FF4C7A47" />
   <SolidColorBrush x:Key="MenuTintC" Color="#FF8F6B33" />
@@ -49,23 +51,24 @@
   <SolidColorBrush x:Key="MenuTintE" Color="#FF63508C" />
   <SolidColorBrush x:Key="MenuTintF" Color="#FF4A5566" />
 
-  <!-- Les trois diodes d'état. -->
+  <!-- The three status LEDs. -->
   <SolidColorBrush x:Key="SuccessBrush" Color="#FF46B478" />
   <SolidColorBrush x:Key="WarningBrush" Color="#FFE8C24A" />
   <SolidColorBrush x:Key="DangerBrush" Color="#FFE06A6A" />
 
-  <!-- Les couleurs des icônes de la liste de quêtes.
-       Nommées par ce qu'elles désignent et non par leur teinte : elles servent
-       à distinguer des natures de ligne, pas à annoncer un état, et emprunter
-       pour cela les diodes ci-dessus aurait brouillé les deux usages.
+  <!-- The colours of the quest list icons.
+       Named for what they denote rather than their hue: they serve to
+       distinguish kinds of row, not to announce a state, and
+       borrowing the LEDs above for that would have blurred the two
+       uses.
 
-       Quatre teintes distinctes, pas une de plus : au-delà, une liste de
-       soixante lignes se lit comme un vitrail. Toutes sont désaturées pour tenir
-       sur le fond sombre sans vibrer.
+       Four distinct hues, not one more: beyond that, a list of sixty
+       rows reads like a stained-glass window. All are desaturated to
+       sit on the dark background without vibrating.
 
-       Le parchemin des quêtes en avait une cinquième, verte. Il était le seul
-       en couleur sur l'accueil, où les quatre lignes se valent, et il prend
-       donc la teinte neutre des lieux. -->
+       The quest scroll had a fifth, green. It was the only one in
+       colour on the home screen, where the four rows are equal, so it
+       takes on the neutral hue of the place. -->
   <SolidColorBrush x:Key="GlyphDungeonBrush" Color="#FF8590A0" />
   <SolidColorBrush x:Key="GlyphPlaceBrush" Color="#FFD9A05E" />
   <SolidColorBrush x:Key="GlyphFamilyBrush" Color="#FF9D8ACF" />

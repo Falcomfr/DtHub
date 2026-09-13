@@ -5,10 +5,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
 
-  <!-- Le chemin de menu, montré comme la suite d'écrans qu'il décrit. Chaque
-       écran porte son nom en titre et, sur l'une de ses lignes, le vrai libellé
-       de ce qu'on y touche. Les autres lignes restent muettes : inventer le
-       reste du menu montrerait ce que la fiche de marque ne dit pas. -->
+  <!-- The menu path, shown as the sequence of screens it describes. Each
+       screen carries its name as a title and, on one of its rows, the
+       real label of what you tap there. The other rows stay blank:
+       making up the rest of the menu would show what the brand sheet
+       does not say. -->
   <ItemsControl x:Name="Ecrans" Focusable="False">
     <ItemsControl.ItemsPanel>
       <ItemsPanelTemplate>
@@ -20,16 +21,17 @@
       <DataTemplate>
         <StackPanel Orientation="Horizontal" VerticalAlignment="Top" Margin="0,3,0,9">
 
-          <!-- L'écran du téléphone : fond sombre, coins arrondis, barre d'état
-               en haut. Ce sont ces trois marques qui le font reconnaître d'un
-               coup d'oeil pour ce qu'il est. -->
+          <!-- The phone screen: dark background, rounded corners, status
+               bar on top. These three marks are what make it
+               recognisable at a glance for what it is. -->
           <Border Width="164" CornerRadius="11" BorderThickness="1"
                   Background="{DynamicResource SurfaceBrush}"
                   BorderBrush="{DynamicResource BorderBrush}">
             <StackPanel>
 
-              <!-- La barre d'état. Rien n'y est écrit : l'heure et le niveau
-                   de batterie seraient inventés, et la silhouette suffit. -->
+              <!-- The status bar. Nothing is written on it: the time and
+                   battery level would be made up, and the silhouette
+                   is enough. -->
               <Grid Margin="10,7,10,0" Height="7">
                 <Border Width="17" Height="5" CornerRadius="2"
                         HorizontalAlignment="Left" VerticalAlignment="Center"
@@ -45,10 +47,11 @@
                 </StackPanel>
               </Grid>
 
-              <!-- La flèche de retour et le grand titre, comme les réglages
-                   d'Android les posent depuis leur douzième version. Le titre
-                   est, avec la ligne à toucher, le seul texte de l'écran :
-                   c'est ce qu'on cherche des yeux. -->
+              <!-- The back arrow and the large title, the way Android's
+                   settings have laid them out since its twelfth
+                   version. The title is, along with the row to tap,
+                   the only text on the screen: it's what the eye
+                   looks for. -->
               <TextBlock Text="&#x2190;" FontSize="13" Margin="11,7,0,0"
                          Foreground="{DynamicResource TextMutedBrush}" />
 
@@ -56,21 +59,21 @@
                          Margin="11,3,11,0" TextWrapping="Wrap"
                          Foreground="{DynamicResource TextBrush}" />
 
-              <!-- La liste, dans sa carte : Android groupe ses réglages dans
-                   un pavé arrondi plus clair que la page. -->
+              <!-- The list, in its card: Android groups its settings in a
+                   rounded block lighter than the page. -->
               <Border CornerRadius="9" Margin="7,9,7,8" Padding="0,4"
                       Background="{DynamicResource SurfaceAltBrush}">
                 <ItemsControl ItemsSource="{Binding Lignes}" Focusable="False">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                      <!-- La hauteur suit le texte : un libellé tronqué ne
-                           montrerait pas ce qu'on cherche, et c'est tout
-                           l'objet du dessin. -->
+                      <!-- The height follows the text: a truncated label
+                           would not show what you're looking for, and
+                           that's the whole point of the drawing. -->
                       <Grid MinHeight="25">
 
-                        <!-- Le fond de la ligne à toucher. Il court sur toute
-                             la ligne, icône comprise : c'est ainsi qu'un
-                             réglage se montre désigné. -->
+                        <!-- The background of the row to tap. It runs across
+                             the whole row, icon included: that's how a
+                             setting is shown as designated. -->
                         <Border CornerRadius="7" Margin="4,1"
                                 Background="{DynamicResource AccentSoftBrush}"
                                 BorderThickness="1"
@@ -85,11 +88,12 @@
                             <ColumnDefinition Width="Auto" />
                           </Grid.ColumnDefinitions>
 
-                          <!-- La pastille. Android range ses réglages derrière
-                               des icônes de couleur, et c'est ce qui distingue
-                               une liste de réglages de n'importe quelle autre
-                               liste. Le dessin qu'elle porte reste muet : la
-                               fiche de marque ne dit pas lequel. -->
+                          <!-- The dot. Android files its settings behind
+                               coloured icons, and that's what
+                               distinguishes a settings list from any
+                               other list. The artwork it carries stays
+                               blank: the brand sheet doesn't say which
+                               one. -->
                           <Border Grid.Column="0" Width="16" Height="16" CornerRadius="5"
                                   Margin="0,0,7,0" VerticalAlignment="Center"
                                   Background="{Binding Teinte,
@@ -103,10 +107,11 @@
                                   Visibility="{Binding EstCelleQuOnTouche,
                                                        Converter={StaticResource BoolToVisibility}}" />
 
-                          <!-- Une ligne muette : une barre, et parfois une
-                               seconde plus courte, comme les réglages qui
-                               annoncent leur état sous leur nom. Inventer le
-                               texte montrerait ce que la fiche ne dit pas. -->
+                          <!-- A blank row: one bar, and sometimes a shorter
+                               second one, like settings that state
+                               their status under their name. Making up
+                               the text would show what the sheet
+                               doesn't say. -->
                           <StackPanel Grid.Column="1" Margin="0,0,8,0"
                                       VerticalAlignment="Center"
                                       Visibility="{Binding EstCelleQuOnTouche,
@@ -130,11 +135,11 @@
                                      Visibility="{Binding EstCelleQuOnTouche,
                                                           Converter={StaticResource BoolToVisibility}}" />
 
-                          <!-- À droite, ce que porte la ligne : un chevron
-                               quand elle mène ailleurs, un interrupteur quand
-                               elle bascule quelque chose. Une liste qui n'aurait
-                               que des chevrons ne ressemblerait à aucun écran
-                               de réglages. -->
+                          <!-- On the right, what the row carries: a chevron
+                               when it leads elsewhere, a switch when
+                               it toggles something. A list with
+                               nothing but chevrons would not look like
+                               any settings screen. -->
                           <Grid Grid.Column="2" VerticalAlignment="Center">
                             <TextBlock Text="&#x203A;" FontSize="11" Margin="0,-1,0,0"
                                        Opacity="0.5"
@@ -148,8 +153,9 @@
                                                             Converter={StaticResource BoolToVisibility}}" />
                           </Grid>
 
-                          <!-- L'interrupteur, au repos : c'est l'état où l'on
-                               trouve un réglage qu'on n'a pas encore touché. -->
+                          <!-- The switch, at rest: that's the state in which
+                               you find a setting you haven't touched
+                               yet. -->
                           <Border Grid.Column="2" Width="18" Height="10" CornerRadius="5"
                                   VerticalAlignment="Center"
                                   Background="{DynamicResource BevelBrush}" Opacity="0.5"
@@ -168,8 +174,8 @@
             </StackPanel>
           </Border>
 
-          <!-- Le chevron ne suit pas le dernier écran : il n'y a plus rien
-               après, et le tracer laisserait croire à une étape manquante. -->
+          <!-- The chevron doesn't follow the last screen: there's nothing
+               after it, and drawing it would suggest a missing step. -->
           <TextBlock Text="&#x203A;" FontSize="16" Margin="6,52,6,0" VerticalAlignment="Top"
                      Foreground="{DynamicResource TextMutedBrush}"
                      Visibility="{Binding SuitQuelqueChose,

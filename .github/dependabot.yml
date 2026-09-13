@@ -1,6 +1,6 @@
-# Les mises à jour arrivent en demande de tirage, où la chaîne les éprouve.
-# Regroupées, parce qu'un dépôt tenu par une seule personne n'a rien à gagner
-# à recevoir sept demandes le même matin.
+# Updates arrive as pull requests, where the pipeline tests them. Grouped,
+# because a repository kept by one person has nothing to gain from getting
+# seven of them on the same morning.
 version: 2
 updates:
   - package-ecosystem: nuget

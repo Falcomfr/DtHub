@@ -1,9 +1,9 @@
-﻿# Capture une fenetre de l'application dans un PNG.
-# Outil de developpement uniquement : jamais utilise par l'application.
+﻿# Captures a window of the application into a PNG.
+# Development tool only: never used by the application.
 #
-# PrintWindow capture le contenu meme si la fenetre n'est pas au premier plan.
-# Le processus se declare conscient de la mise a l'echelle : sans cela, il
-# mesure la fenetre trop petite et la capture est rognee.
+# PrintWindow captures the content even if the window is not in the foreground.
+# The process declares itself DPI aware: without that, it measures the
+# window too small and the capture ends up cropped.
 param(
     [int]$ProcessId = 0,
     [string]$ProcessName = "DtHub",
@@ -32,7 +32,7 @@ public class Win {
 
     [StructLayout(LayoutKind.Sequential)] public struct RECT { public int L, T, R, B; }
 
-    // Toutes les fenetres visibles d'un processus, pas seulement la principale.
+    // Every visible window of a process, not just the main one.
     public static List<KeyValuePair<IntPtr, string>> WindowsOf(uint targetPid) {
         var found = new List<KeyValuePair<IntPtr, string>>();
         EnumWindows((h, l) => {
@@ -50,12 +50,12 @@ public class Win {
 }
 "@
 
-# Par ecran et non par systeme : l application est PerMonitorV2, et un
-# outil qui ne l est pas dessine la fenetre dans un canevas trop grand.
+# Per monitor and not per system: the application is PerMonitorV2, and a
+# tool that is not paints the window into an oversized canvas.
 [void][Win]::SetProcessDpiAwarenessContext([IntPtr]::new(-4))
 
-# Un identifiant de processus permet de viser une fenetre precise quand
-# plusieurs instances du meme programme tournent.
+# A process ID lets you target a specific window when several
+# instances of the same program are running.
 $proc = if ($ProcessId -gt 0) {
     Get-Process -Id $ProcessId -ErrorAction SilentlyContinue
 } else {
@@ -88,7 +88,7 @@ if ($w -le 0 -or $h -le 0) { Write-Output "FENETRE VIDE"; exit 1 }
 $bmp = New-Object System.Drawing.Bitmap $w, $h
 $g = [System.Drawing.Graphics]::FromImage($bmp)
 $hdc = $g.GetHdc()
-# 2 = PW_RENDERFULLCONTENT, necessaire pour les fenetres composees comme WPF.
+# 2 = PW_RENDERFULLCONTENT, necessary for composited windows like WPF.
 [void][Win]::PrintWindow($handle, $hdc, 2)
 $g.ReleaseHdc($hdc)
 $bmp.Save($Output, [System.Drawing.Imaging.ImageFormat]::Png)

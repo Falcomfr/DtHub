@@ -13,10 +13,10 @@
 <meta property="og:description" content="Play DOFUS Touch on PC, several accounts at once, from your own phones.">
 <meta property="og:image" content="screenshots/cadre-a-onglets.jpg">
 <script>
-// Les pages sont statiques : personne ne négocie la langue pour nous. L'anglais
-// est servi par défaut, un navigateur qui réclame le français part sur l'autre
-// page. Aucun stockage, aucun traceur : le paramètre « ?lang= » des liens de
-// langue désarme la redirection, sans quoi on tournerait en rond.
+// The pages are static: nobody negotiates the language for us. English is
+// served by default, a browser asking for French is sent to the other
+// page. No storage, no tracker: the "?lang=" parameter on language links
+// disarms the redirect, without which we would go in circles.
 (function () {
   if (location.search.indexOf('lang=') !== -1) { return; }
   var langues = navigator.languages || [navigator.language || ''];

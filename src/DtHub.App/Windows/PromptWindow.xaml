@@ -11,10 +11,10 @@
     <TextBlock x:Name="Question" Style="{StaticResource Muted}" TextWrapping="Wrap"
                Margin="0,0,0,10" />
 
-    <!-- Ce que le geste va retenir, quand l'appelant a de quoi le dire. Une
-         question seule ne l'annonce pas : « sous quel nom » ne prévient pas
-         qu'on enregistre aussi des positions et des réglages. Replié tant que
-         personne ne remplit ce texte. -->
+    <!-- What the action will remember, when the caller has something to
+         tell about it. A question alone does not say so: "under what
+         name" does not warn that positions and settings are saved too.
+         Collapsed as long as nothing fills this text in. -->
     <Border x:Name="DetailsBox" Visibility="Collapsed"
             Background="{DynamicResource SurfaceBrush}"
             BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
@@ -24,8 +24,8 @@
                  TextWrapping="Wrap" LineHeight="18" />
     </Border>
 
-    <!-- Le champ prend le focus à l'ouverture : on vient ici pour taper, et
-         cliquer d'abord dans la case serait un geste de trop. -->
+    <!-- The field takes focus on opening: this is where you come to type,
+         and clicking into the box first would be one gesture too many. -->
     <TextBox x:Name="Entry" FontSize="{StaticResource FontLarge}" MaxLength="40"
              KeyDown="OnEntryKeyDown" />
 

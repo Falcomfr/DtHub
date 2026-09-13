@@ -1,19 +1,19 @@
 @echo off
 chcp 65001 >nul
 rem ---------------------------------------------------------------------------
-rem Lance DT Hub en s'assurant d'abord que le binaire est à jour.
+rem Launches DT Hub after first making sure the binary is up to date.
 rem
-rem Le raccourci du bureau visait directement build\publish\DtHub.exe. Rien ne
-rem garantissait que ce fichier corresponde au code : il datait de la dernière
-rem publication, pas de la dernière modification, et on pouvait jouer des heures
-rem sur une version périmée sans s'en douter.
+rem The desktop shortcut used to target build\publish\DtHub.exe directly.
+rem Nothing guaranteed that this file matched the code: it dated from the
+rem last publish, not from the last edit, and you could play for hours on
+rem a stale version without noticing.
 rem
-rem La republication est incrémentale. Mesuré sur ce poste : 1,1 s quand rien
-rem n'a changé, 10,6 s après une modification. Le prix d'une certitude.
+rem The republish is incremental. Measured on this machine: 1.1 s when
+rem nothing changed, 10.6 s after an edit. The price of certainty.
 rem
-rem Aucune étape n'est bloquante : SDK absent, compilation en échec, fichier
-rem verrouillé par une instance déjà ouverte, on lance quand même ce qui est là.
-rem Mieux vaut une version d'hier que pas d'application du tout.
+rem No step is blocking: SDK missing, build failed, file locked by an
+rem instance already open, it launches whatever is there anyway.
+rem Better yesterday's version than no application at all.
 rem ---------------------------------------------------------------------------
 
 setlocal
@@ -37,7 +37,7 @@ if not exist "%BINAIRE%" (
   exit /b 1
 )
 
-rem Le repertoire de travail doit etre un chemin Windows : lance depuis un
-rem chemin UNC, l'application se fige avant sa premiere ligne de journal.
+rem The working directory must be a Windows path: launched from a UNC
+rem path, the application freezes before its first log line.
 start "" /d "%SORTIE%" "%BINAIRE%"
 endlocal

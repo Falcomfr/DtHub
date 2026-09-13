@@ -1,56 +1,56 @@
-# Modifications apportées à scrcpy
+# Modifications made to scrcpy
 
-**État au 2026-08-29, scrcpy v4.1 : aucune modification.**
+**Status as of 2026-08-29, scrcpy v4.1: no modification.**
 
-DT Hub utilise scrcpy tel qu'il est publié par le projet amont. L'archive
-officielle est téléchargée, son empreinte vérifiée, et extraite sans altérer
-un seul fichier. Le `LICENSE.txt` fourni en amont est conservé à côté de
-l'exécutable.
+DT Hub uses scrcpy as published by the upstream project. The official
+archive is downloaded, its checksum verified, and extracted without altering
+a single file. The `LICENSE.txt` provided upstream is kept alongside the
+executable.
 
-Ce fichier existe pour deux raisons : documenter cette absence de
-modification, et fixer la procédure à suivre si elle devenait nécessaire, la
-licence Apache 2.0 imposant de signaler tout fichier modifié.
+This file exists for two reasons: to document this absence of modification,
+and to set out the procedure to follow should one become necessary, since
+the Apache 2.0 licence requires that any modified file be flagged.
 
-## Pourquoi aucune modification n'est nécessaire
+## Why no modification is necessary
 
-Le besoin qui aurait pu l'exiger est de lancer une application sur un
-utilisateur Android autre que le principal : clone, profil géré, second
-espace. L'option `--start-app` de scrcpy ne prend pas d'identifiant
-d'utilisateur, et la faire évoluer demanderait un fork du serveur Java, donc
-une chaîne de compilation Android et un suivi permanent de l'amont.
+The need that could have required one is launching an application on an
+Android user other than the main one: a clone, a managed profile, a second
+space. scrcpy's `--start-app` option does not take a user id, and evolving
+it would require forking the Java server, hence an Android build toolchain
+and permanent tracking of upstream.
 
-Ce n'est pas nécessaire, car scrcpy sait créer un afficheur virtuel et publie
-son identifiant. Dans `NewDisplayCapture.java`, à la création de l'afficheur :
+This is not necessary, because scrcpy can create a virtual display and
+publishes its id. In `NewDisplayCapture.java`, when the display is created:
 
 ```java
 Ln.i("New display: " + width + "x" + height + "/" + dpi + " (id=" + virtualDisplayId + ")");
 ```
 
-Cette ligne est relayée au client, donc lisible sur la sortie du processus.
+This line is relayed to the client, so it is readable in the process's
+output.
 
-DT Hub procède donc ainsi :
+DT Hub therefore proceeds as follows:
 
-1. `scrcpy --new-display=<taille>/<densité> --no-vd-system-decorations` ;
-2. lecture de l'identifiant d'afficheur dans la sortie de scrcpy ;
-3. `adb shell am start --user <identifiant> --display <afficheur> -n <composant>`.
+1. `scrcpy --new-display=<size>/<density> --no-vd-system-decorations`;
+2. read the display id from scrcpy's output;
+3. `adb shell am start --user <id> --display <display> -n <component>`.
 
-Le lancement de l'application est fait par ADB, qui accepte `--user` depuis
-toujours. N'importe quel identifiant d'utilisateur entier fonctionne, sans
-valeur particulière supposée.
+The application is launched by ADB, which has always accepted `--user`.
+Any integer user id works, with no particular value assumed.
 
-Cette voie ne touche ni à scrcpy, ni à l'application Android ciblée.
+This path touches neither scrcpy nor the targeted Android application.
 
-## Si une modification devenait nécessaire
+## If a modification became necessary
 
-À faire, dans cet ordre :
+To do, in this order:
 
-1. décrire ici le besoin et pourquoi aucune autre voie ne convient ;
-2. produire un patch reproductible et le déposer dans ce dossier, sous la
-   forme `NNNN-description.patch`, applicable sur un tag amont précis ;
-3. indiquer ici le tag amont concerné, la commande d'application, et la
-   procédure de reconstruction ;
-4. signaler les fichiers modifiés en tête de ceux-ci, comme l'exige la section
-   4b de la licence Apache 2.0 ;
-5. mettre à jour `THIRD-PARTY-NOTICES.md` et `docs/DECISIONS.md`.
+1. describe here the need and why no other path is suitable;
+2. produce a reproducible patch and place it in this folder, in the form
+   `NNNN-description.patch`, applicable to a specific upstream tag;
+3. state here the upstream tag concerned, the command to apply it, and the
+   rebuild procedure;
+4. flag the modified files at the top of each one, as required by section
+   4b of the Apache 2.0 licence;
+5. update `THIRD-PARTY-NOTICES.md` and `docs/DECISIONS.md`.
 
-Sans ces cinq points, la modification ne doit pas être fusionnée.
+Without these five points, the modification must not be merged.

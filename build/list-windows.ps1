@@ -1,5 +1,5 @@
-﻿# Liste les fenetres visibles d'un processus, avec leur position et leur taille.
-# Outil de developpement uniquement.
+﻿# Lists the visible windows of a process, with their position and their size.
+# Development tool only.
 param([string]$ProcessName = "scrcpy")
 
 Add-Type @"
@@ -36,8 +36,8 @@ public class WinList {
 }
 "@
 
-# Par ecran et non par systeme : l application est PerMonitorV2, et un
-# outil qui ne l est pas mesure des coordonnees mises a l echelle.
+# Per monitor and not per system: the application is PerMonitorV2, and a
+# tool that is not measures coordinates that Windows has rescaled.
 [void][WinList]::SetProcessDpiAwarenessContext([IntPtr]::new(-4))
 
 $pids = New-Object 'System.Collections.Generic.HashSet[uint32]'

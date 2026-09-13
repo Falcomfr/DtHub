@@ -23,8 +23,8 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                   Padding="0,0,10,0">
-      <!-- La note vient du dépôt et n'est pas de nous : elle s'affiche telle
-           qu'elle est écrite, sans mise en forme inventée. -->
+      <!-- The note comes from the repository and is not ours: it is
+           displayed exactly as written, with no invented formatting. -->
       <TextBlock Text="{Binding Notes}" TextWrapping="Wrap" LineHeight="19"
                  Foreground="{DynamicResource TextBrush}" />
     </ScrollViewer>

@@ -1,15 +1,15 @@
-# Publie la page de présentation sur GitHub Pages.
+# Publishes the presentation page to GitHub Pages.
 #
-# La page vit dans site/, et non dans docs/ : ce dernier porte quatre cents
-# kilooctets de raisonnement interne en français, et le servir publierait une
-# documentation d'ingénierie à la place d'une page de téléchargement.
+# The page lives in site/, and not in docs/: that one carries four hundred
+# kilobytes of internal reasoning in French, and serving it would publish an
+# engineering document in place of a download page.
 #
-# Pas de branche gh-pages non plus : une branche de plus à tenir pour trois
-# fichiers. La route « GitHub Actions » sert l'artefact tel quel, sans passer
-# par Jekyll, donc sans .nojekyll ni _config.yml.
+# No gh-pages branch either: one more branch to keep for three files. The
+# "GitHub Actions" route serves the artifact as it is, without going through
+# Jekyll, so without .nojekyll or _config.yml.
 #
-# **Gratuite sur un dépôt public seulement.** Sur un dépôt privé, Pages demande
-# un abonnement payant.
+# **Free on a public repository only.** On a private one, Pages requires a
+# paid plan.
 name: Page
 
 on:
@@ -34,8 +34,8 @@ jobs:
       id-token: write
       contents: read
 
-    # Deux publications ne se doublent pas, et la seconde n'annule pas la
-    # première : une page à moitié déployée serait pire qu'une page en retard.
+    # Two deployments do not overlap, and the second does not cancel the
+    # first: a half deployed page would be worse than a late one.
     concurrency:
       group: pages
       cancel-in-progress: false
@@ -45,16 +45,16 @@ jobs:
       url: ${{ steps.deployer.outputs.page_url }}
 
     steps:
-      # Épinglées par empreinte, comme les trois autres chaînes, et toutes sous
-      # l'organisation « actions » : la règle du dépôt est de n'emprunter de
-      # code à personne d'autre que GitHub.
+      # Pinned by digest, like the three other pipelines, and all under the
+      # "actions" organisation: the repository's rule is to borrow code from
+      # nobody but GitHub.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      # Les images vivent dans assets/, seul dossier d'images versionné, et la
-      # page les désigne en chemin relatif : il faut donc les poser à côté
-      # d'elle avant l'envoi. Le site est servi sous /DtHub/, et une barre
-      # oblique initiale y donnerait des 404.
-      - name: Rassembler la page et ses images
+      # The images live in assets/, the only versioned image folder, and the
+      # page points at them by relative path: they have to be placed next to
+      # it before the upload. The site is served under /DtHub/, where a
+      # leading slash would give 404s.
+      - name: Gather the page and its images
         run: |
           mkdir -p site/screenshots
           cp assets/screenshots/* site/screenshots/

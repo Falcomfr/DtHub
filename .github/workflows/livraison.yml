@@ -1,13 +1,12 @@
-# Publie une version quand une étiquette « v… » est poussée.
+# Publishes a release when a "v..." tag is pushed.
 #
-# Rien d'automatique sur les commits : c'est l'étiquette qui décide. La marche
-# à suivre est dans docs/LIVRAISON.md.
+# Nothing automatic on commits: the tag decides. The procedure is in
+# docs/LIVRAISON.md.
 #
-# Aucune action tierce : seules celles de GitHub, plus son propre outil en
-# ligne de commande, déjà présent sur la machine de compilation. Une chaîne de
-# livraison qui pose l'exécutable que des gens vont exécuter n'emprunte pas de
-# code à des inconnus.
-name: Livraison
+# No third party action: only GitHub's own, plus its command line tool,
+# already present on the build machine. A release pipeline that lays down the
+# executable people are going to run does not borrow code from strangers.
+name: Release
 
 on:
   push:
@@ -21,8 +20,8 @@ jobs:
   livrer:
     runs-on: windows-latest
 
-    # Le secret est copié ici parce qu'un « if » d'étape ne peut pas lire le
-    # contexte des secrets. Vide, l'étape de signature est sautée.
+    # The secret is copied here because a step "if" cannot read the secrets
+    # context. Empty, the signing step is skipped.
     env:
       SIGNING_COMMAND: ${{ secrets.SIGNING_COMMAND }}
 
@@ -33,12 +32,12 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      # L'étiquette passe par l'environnement, jamais par interpolation dans
-      # le corps du script : un nom d'étiquette autorise le guillemet et le
-      # point-virgule, et PowerShell exécuterait ce qu'on y aurait mis. Il faut
-      # déjà le droit de pousser une étiquette pour en profiter, donc ce n'est
-      # pas une élévation, mais la forme sûre ne coûte rien.
-      - name: Version portée par l'étiquette
+      # The tag travels through the environment, never by interpolation into
+      # the body of the script: a tag name allows a quote and a semicolon, and
+      # PowerShell would run whatever had been put there. It already takes the
+      # right to push a tag to make use of that, so this is not an elevation,
+      # but the safe form costs nothing.
+      - name: Version carried by the tag
         id: version
         shell: pwsh
         env:
@@ -46,26 +45,26 @@ jobs:
         run: |
           $version = $env:ETIQUETTE -replace '^v', ''
 
-          # **L'étiquette doit dire ce que le dépôt déclare.** Le projet a
-          # vécu avec un VersionPrefix à 0.2.0 et trente-sept commits de
-          # fonctionnalités par-dessus : étiqueter v0.2.0 aurait livré un
-          # binaire dont la note de version mentait. La chaîne vérifie déjà la
-          # taille et l'identité du fichier ; elle vérifie maintenant aussi
-          # qu'elle livre le numéro qu'elle croit.
+          # **The tag must say what the repository declares.** The project
+          # lived with a VersionPrefix at 0.2.0 and thirty-seven feature
+          # commits on top: tagging v0.2.0 would have shipped a binary whose
+          # release notes lied. The pipeline already checks the size and the
+          # identity of the file; it now also checks that it ships the number
+          # it believes it does.
           $declare = (Select-String -Path Directory.Build.props `
             -Pattern '<VersionPrefix>(.+?)</VersionPrefix>').Matches[0].Groups[1].Value
 
           if ($version -ne $declare) {
-            throw "L'étiquette dit $version, Directory.Build.props dit $declare."
+            throw "The tag says $version, Directory.Build.props says $declare."
           }
 
           "numero=$version" >> $env:GITHUB_OUTPUT
 
-      - name: Éprouver
+      - name: Test
         run: dotnet test DtHub.slnx --configuration Release --nologo
 
-      # Les options vivent dans le profil, seul endroit où elles sont écrites.
-      - name: Publier
+      # The options live in the profile, the only place they are written.
+      - name: Publish
         shell: pwsh
         env:
           VERSION: ${{ steps.version.outputs.numero }}
@@ -76,80 +75,81 @@ jobs:
           --output publication
           --nologo
 
-      # Le contrôle d'identité qui suit ne lit que des métadonnées Windows :
-      # un binaire dépendant du framework les porte à l'identique. Ces trois
-      # mesures-ci regardent ce que le fichier est vraiment.
-      - name: Contrôler que le binaire est autonome
+      # The identity check that follows only reads Windows metadata: a
+      # framework dependent binary carries it identically. These three
+      # measurements look at what the file really is.
+      - name: Check that the binary is self-contained
         shell: pwsh
         run: |
           $fichiers = @(Get-ChildItem publication -File)
           if ($fichiers.Count -ne 1) {
-            throw "La publication doit rendre un seul fichier, elle en rend $($fichiers.Count) : $($fichiers.Name -join ', ')"
+            throw "The publish must produce a single file, it produced $($fichiers.Count): $($fichiers.Name -join ', ')"
           }
 
-          # Un exécutable dépendant du .NET installé pèse environ cent
-          # cinquante kilooctets. Le nôtre en fait soixante millions.
+          # An executable depending on the installed .NET weighs about a
+          # hundred and fifty kilobytes. Ours weighs sixty million.
           $poids = (Get-Item publication/DtHub.exe).Length
           if ($poids -lt 40MB) {
-            throw "DtHub.exe ne pèse que $([math]::Round($poids / 1MB, 1)) Mo : il n'embarque pas le runtime."
+            throw "DtHub.exe only weighs $([math]::Round($poids / 1MB, 1)) MB: it does not embed the runtime."
           }
 
-          Write-Host "Un seul fichier, $([math]::Round($poids / 1MB, 1)) Mo, runtime embarqué."
+          Write-Host "A single file, $([math]::Round($poids / 1MB, 1)) MB, runtime embedded."
 
-      - name: Contrôler l'identité du binaire
+      - name: Check the identity of the binary
         shell: pwsh
         run: |
-          # Ce que Windows montre dans les propriétés du fichier, et ce que
-          # SmartScreen cite quand il met en garde. Un exécutable qui ne porte
-          # pas son nom se défend mal, et « DT Touch » a traîné là des semaines
-          # après un renommage sans que rien ne le dise.
+          # What Windows shows in the file properties, and what SmartScreen
+          # quotes when it warns. An executable that does not carry its name
+          # defends itself poorly, and "DT Touch" lingered there for weeks
+          # after a rename with nothing to say so.
           $v = (Get-Item publication/DtHub.exe).VersionInfo
           $manques = @()
 
           if (-not $v.ProductName)     { $manques += 'ProductName' }
           if (-not $v.FileDescription) { $manques += 'FileDescription' }
           if (-not $v.CompanyName)     { $manques += 'CompanyName' }
-          if ($v.FileDescription -eq 'DtHub') { $manques += 'FileDescription (nom de fichier au lieu d une phrase)' }
+          if ($v.FileDescription -eq 'DtHub') { $manques += 'FileDescription (file name instead of a sentence)' }
 
           Write-Host "ProductName     $($v.ProductName)"
           Write-Host "FileDescription $($v.FileDescription)"
           Write-Host "CompanyName     $($v.CompanyName)"
           Write-Host "FileVersion     $($v.FileVersion)"
 
-          if ($manques) { throw "Identité incomplète : $($manques -join ', ')" }
+          if ($manques) { throw "Incomplete identity: $($manques -join ', ')" }
 
-      - name: Signer
-        # Inerte tant qu'aucun certificat n'est configuré : la livraison sort
-        # alors non signée, et Windows met en garde le temps que la réputation
-        # se construise. Voir docs/CONFIANCE.md.
+      - name: Sign
+        # Inert as long as no certificate is configured: the release then
+        # comes out unsigned, and Windows warns until the reputation builds
+        # up. See docs/CONFIANCE.md.
         #
-        # Le secret SIGNING_COMMAND porte la ligne de signature complète, ce qui
-        # laisse le choix du fournisseur sans rien changer ici : signtool avec un
-        # certificat en nuage, ou l outil du prestataire.
+        # The SIGNING_COMMAND secret carries the complete signing line, which
+        # leaves the choice of provider without changing anything here:
+        # signtool with a cloud certificate, or the provider's own tool.
         if: env.SIGNING_COMMAND != ''
         shell: pwsh
         run: |
           Invoke-Expression "$env:SIGNING_COMMAND publication/DtHub.exe"
 
           $s = Get-AuthenticodeSignature publication/DtHub.exe
-          Write-Host "Signature : $($s.Status) $($s.SignerCertificate.Subject)"
+          Write-Host "Signature: $($s.Status) $($s.SignerCertificate.Subject)"
 
-          if ($s.Status -ne 'Valid') { throw "La signature n a pas pris : $($s.Status)" }
+          if ($s.Status -ne 'Valid') { throw "The signature did not take: $($s.Status)" }
 
-      - name: Empreinte
+      - name: Checksum
         shell: pwsh
         run: |
           $hash = (Get-FileHash publication/DtHub.exe -Algorithm SHA256).Hash.ToLowerInvariant()
           "$hash  DtHub.exe" | Set-Content -NoNewline publication/DtHub.exe.sha256
           Write-Host "SHA256 $hash"
 
-      - name: Note de version
+      - name: Release notes
         shell: pwsh
         env:
           VERSION: ${{ steps.version.outputs.numero }}
         run: |
-          # La note vient du journal des modifications, section de la version
-          # livrée. Écrite une fois, lue par le dépôt et par l'application.
+          # The notes come from the changelog, the section of the version
+          # being shipped. Written once, read by the repository and by the
+          # application.
           $lignes = Get-Content CHANGELOG.md
           $debut = $null
           $note = @()
@@ -160,25 +160,25 @@ jobs:
             if ($debut) { $note += $ligne }
           }
 
-          if (-not $debut) { throw "Le journal ne décrit pas la version $env:VERSION." }
+          if (-not $debut) { throw "The changelog does not describe version $env:VERSION." }
 
           ($note -join "`n").Trim() | Set-Content note.md
 
-      - name: Livrer
+      - name: Create the release
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
           ETIQUETTE: ${{ github.ref_name }}
           VERSION: ${{ steps.version.outputs.numero }}
-        # **En brouillon, et c'est la fenêtre d'inspection antivirus.**
-        # L'application interroge « /releases/latest », qui ignore les
-        # brouillons : rien ne part chez personne tant qu'on n'a pas publié.
-        # C'est le seul moment où l'on peut envoyer sur VirusTotal l'artefact
-        # exact que recevront les utilisateurs, et non une reconstruction
-        # locale qui n'a pas le même empreinte.
+        # **As a draft, and that is the antivirus inspection window.**
+        # The application queries "/releases/latest", which ignores drafts:
+        # nothing reaches anyone until it has been published. That is the only
+        # moment when the exact artifact users will receive can be sent to
+        # VirusTotal, rather than a local rebuild that does not have the same
+        # checksum.
         #
-        # La publication se fait ensuite d'une ligne, consignée dans
-        # docs/LIVRAISON.md : gh release edit <étiquette> --draft=false
+        # Publishing is then one line, recorded in docs/LIVRAISON.md:
+        # gh release edit <tag> --draft=false
         run: >
           gh release create $env:ETIQUETTE
           publication/DtHub.exe

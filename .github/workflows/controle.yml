@@ -1,27 +1,27 @@
-# Compile et éprouve à chaque poussée.
+# Builds and tests on every push.
 #
-# La chaîne de livraison ne se déclenche que sur une étiquette de version.
-# Entre deux livraisons, une compilation cassée ou un test rouge ne se voyait
-# que sur la machine de celui qui avait écrit le code.
+# The release pipeline only fires on a version tag. Between two releases, a
+# broken build or a red test was visible only on the machine of whoever had
+# written the code.
 #
-# Les avertissements sont traités en erreurs : le dépôt en compte zéro
-# aujourd'hui, et c'est un état qui ne se tient que s'il est exigé.
-name: Contrôle
+# Warnings are treated as errors: the repository has zero of them today, and
+# that is a state which only holds if it is demanded.
+name: Check
 
-# Toutes les branches, et non la seule principale : une poussée sur une branche
-# de travail n'était contrôlée qu'au moment d'ouvrir une demande de tirage.
+# Every branch, and not the main one alone: a push on a working branch was
+# only checked at the moment a pull request was opened.
 on:
   push:
   pull_request:
 
-# Le jeton n'a rien à écrire. Sans ce bloc, il hérite du réglage du dépôt, qui
-# accorde souvent l'écriture, et cette chaîne se déclenche sur du code de
-# contributeur.
+# The token has nothing to write. Without this block it inherits the
+# repository setting, which often grants write, and this pipeline fires on
+# contributor code.
 permissions:
   contents: read
 
-# Une poussée qui en suit une autre annule la précédente : rien ne sert
-# d'éprouver un état déjà dépassé.
+# A push that follows another cancels the previous one: there is no point
+# testing a state that is already out of date.
 concurrency:
   group: controle-${{ github.ref }}
   cancel-in-progress: true
@@ -31,34 +31,33 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      # Épinglées par empreinte et non par étiquette : une étiquette se
-      # déplace, et l'en-tête de la chaîne de livraison se félicite de
-      # n'emprunter de code à personne.
+      # Pinned by digest and not by tag: a tag moves, and the header of the
+      # release pipeline prides itself on borrowing code from nobody.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           dotnet-version: '10.0.x'
 
-      - name: Compiler
+      - name: Build
         run: dotnet build DtHub.slnx --configuration Release --nologo -warnaserror
 
-      - name: Éprouver
+      - name: Test
         run: dotnet test DtHub.slnx --configuration Release --nologo --no-build
 
-      # Un numéro de série de vrai téléphone a vécu des semaines dans une
-      # décision et deux fichiers d'épreuves, dont celui-là même qui vérifie que
-      # la biffure des rapports de diagnostic l'efface.
+      # A real phone's serial number lived for weeks in a decision and two
+      # test files, one of them the very test checking that the redaction of
+      # diagnostic reports wipes it.
       #
-      # **La liste blanche se tient à la main, et c'est voulu.** Aucune règle
-      # ne distingue de façon fiable un série inventé d'un série relevé : les
-      # deux ont la même forme. Exiger que chaque valeur soit déclarée ici
-      # oblige à se poser la question au moment où l'on ajoute un relevé, qui
-      # est le seul moment où l'on connaît la réponse.
+      # **The allow list is kept by hand, and that is deliberate.** No rule
+      # tells an invented serial from a recorded one reliably: the two have
+      # the same shape. Requiring every value to be declared here forces the
+      # question to be asked when a reading is added, which is the only
+      # moment the answer is known.
       #
-      # Le vrai série n'est jamais écrit dans ce fichier : on ne nomme que ce
-      # qu'on autorise.
-      - name: Contrôler qu'aucun numéro de série ne traîne
+      # The real serial is never written in this file: only what is allowed
+      # gets named.
+      - name: Check that no device serial is left lying around
         shell: pwsh
         run: |
           $connus = @(
@@ -77,29 +76,29 @@ jobs:
             Where-Object { (Get-Content $_ -Raw -ErrorAction SilentlyContinue) -cmatch $motif }
 
           if ($fautifs) {
-            Write-Error "Numéro de série d'appareil non déclaré dans : $($fautifs -join ', ')"
+            Write-Error "Undeclared device serial number in: $($fautifs -join ', ')"
             exit 1
           }
 
-          Write-Host 'Aucun numéro de série non déclaré dans les fichiers suivis.'
+          Write-Host 'No undeclared device serial number in the tracked files.'
 
-      # Dependabot signale une fois par mois ; celui-ci signale à chaque
-      # poussée. Les deux se complètent : l'un propose une montée, l'autre
-      # refuse de laisser passer ce qui est déjà connu comme vulnérable.
-      - name: Contrôler les dépendances
+      # Dependabot reports once a month, this one reports on every push. The
+      # two complete each other: one proposes an upgrade, the other refuses
+      # to let through what is already known to be vulnerable.
+      - name: Check the dependencies
         shell: pwsh
         run: |
           $sortie = dotnet list DtHub.slnx package --vulnerable --include-transitive 2>&1 | Out-String
           Write-Host $sortie
 
           if ($sortie -match 'has the following vulnerable packages') {
-            Write-Error 'Dépendance vulnérable.'
+            Write-Error 'Vulnerable dependency.'
             exit 1
           }
 
-      # En dernier : un écart de forme ne doit pas masquer une épreuve rouge.
-      # Le .editorconfig décrivait un projet qui n'existait pas, et ce contrôle
-      # aurait échoué sur mille neuf cent cinquante-six faux positifs avant
-      # qu'il soit remis d'aplomb.
-      - name: Contrôler la forme
+      # Last: a formatting difference must not hide a red test. The
+      # .editorconfig described a project that did not exist, and this check
+      # would have failed on one thousand nine hundred and fifty-six false
+      # positives before it was put right.
+      - name: Check the formatting
         run: dotnet format DtHub.slnx --verify-no-changes --no-restore

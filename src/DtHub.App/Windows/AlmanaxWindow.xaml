@@ -9,20 +9,21 @@
         Background="{DynamicResource SurfaceAltBrush}"
         Foreground="{DynamicResource TextBrush}">
 
-  <!-- L'Almanax réduit à ce qu'on vient y chercher. La page du portail est
-       lue, pas affichée : « almanax-bridge.js » en tire les champs utiles, et
-       cette fenêtre les dessine elle-même.
+  <!-- The Almanax reduced to what you come here for. The portal page is
+       read, not displayed: "almanax-bridge.js" pulls the useful fields
+       from it, and this window draws them itself.
 
-       Pas de WindowStyle="None" ni d'AllowsTransparency : un WebView2 est une
-       surface native et ne se dessine pas dans une fenêtre transparente. -->
+       No WindowStyle="None" or AllowsTransparency: a WebView2 is a
+       native surface and does not render inside a transparent window. -->
 
   <Window.Resources>
 
-    <!-- La pastille d'un jour de la bande.
+    <!-- The chip for a day in the strip.
 
-         Le jour choisi se marque par le fond et le contour ; aujourd'hui, par
-         un point sous le nombre. Deux contours se seraient disputé la même
-         case le jour même, et rien n'aurait dit lequel voulait dire quoi. -->
+         The chosen day is marked by the background and outline; today,
+         by a dot under the number. Two outlines would have collided
+         on the same cell on that same day, and nothing would have
+         told which one meant what. -->
     <Style x:Key="DayChip" TargetType="Button" BasedOn="{StaticResource OutlineButton}">
       <Setter Property="Padding" Value="0,6" />
       <Setter Property="Margin" Value="2,0" />
@@ -37,9 +38,10 @@
       </Style.Triggers>
     </Style>
 
-    <!-- Une case du calendrier déroulant. Même grammaire que la pastille :
-         fond et contour pour le jour choisi, point pour aujourd'hui. Les
-         débords du mois voisin s'effacent sans cesser d'être cliquables. -->
+    <!-- A cell of the drop-down calendar. Same grammar as the chip:
+         background and outline for the chosen day, dot for today. The
+         overflow days from the neighbouring month fade out without
+         ceasing to be clickable. -->
     <Style x:Key="DayCell" TargetType="Button" BasedOn="{StaticResource OutlineButton}">
       <Setter Property="Padding" Value="0,5" />
       <Setter Property="Margin" Value="1" />
@@ -52,8 +54,8 @@
           <Setter Property="Opacity" Value="0.4" />
         </DataTrigger>
 
-        <!-- Hors des bornes consultables : la case garde sa place pour que la
-             grille garde sa forme, mais elle ne répond plus. -->
+        <!-- Outside the browsable range: the cell keeps its place so the
+             grid keeps its shape, but it no longer responds. -->
         <DataTrigger Binding="{Binding IsReachable}" Value="False">
           <Setter Property="Opacity" Value="0.2" />
           <Setter Property="IsEnabled" Value="False" />
@@ -66,7 +68,7 @@
       </Style.Triggers>
     </Style>
 
-    <!-- Le point d'aujourd'hui, partagé par la bande et le calendrier. -->
+    <!-- The dot for today, shared by the strip and the calendar. -->
     <Style x:Key="TodayDot" TargetType="Ellipse">
       <Setter Property="Width" Value="3" />
       <Setter Property="Height" Value="3" />
@@ -81,8 +83,9 @@
       </Style.Triggers>
     </Style>
 
-    <!-- L'intitulé qui coiffe une valeur : petit, en accent, avec de l'air
-         entre les lettres. C'est ce qui donne son rythme à la fiche. -->
+    <!-- The heading that tops a value: small, in accent colour, with
+         some air between the letters. That's what gives the sheet its
+         rhythm. -->
     <Style x:Key="FieldLabel" TargetType="TextBlock">
       <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
       <Setter Property="FontSize" Value="{StaticResource FontSmall}" />
@@ -93,8 +96,9 @@
 
   <DockPanel>
 
-    <!-- La bande des jours, en tête : un Almanax se prépare, et savoir ce
-         qu'il faudra demain permet de l'avoir en poche. -->
+    <!-- The strip of days, up top: an Almanax is something you prepare
+         for, and knowing what tomorrow requires lets you have it
+         ready. -->
     <Border DockPanel.Dock="Top" Padding="8,8"
             Background="{StaticResource BrushedPanelBrush}"
             BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1">
@@ -105,10 +109,10 @@
           <Path Style="{StaticResource RowGlyph}" Data="M 9,3 L 5,7.5 L 9,12" />
         </Button>
 
-        <!-- Le retour à aujourd'hui ne paraît que lorsqu'on s'en est écarté :
-             une touche qui ne fait rien est une touche de trop. Le plus à
-             droite, donc le dernier atteint : c'est un recours, pas un geste
-             courant. -->
+        <!-- The return to today only appears once you've moved away from
+             it: a button that does nothing is one button too many.
+             Furthest to the right, so the last one reached: it's a
+             fallback, not a routine gesture. -->
         <Button DockPanel.Dock="Right" Style="{StaticResource QuietButton}"
                 VerticalAlignment="Center" Margin="4,0,0,0" Padding="8,5"
                 FontSize="{StaticResource FontSmall}"
@@ -116,8 +120,8 @@
                 Command="{Binding TodayCommand}"
                 Visibility="{Binding CanGoToday, Converter={StaticResource BoolToVisibility}}" />
 
-        <!-- Aller loin, en avant comme en arrière : la bande couvre la
-             semaine, le calendrier couvre le reste. -->
+        <!-- Going far, forward as well as back: the strip covers the
+             week, the calendar covers the rest. -->
         <Grid DockPanel.Dock="Right" VerticalAlignment="Center">
           <ToggleButton x:Name="CalendarToggle" Style="{StaticResource OutlineToggle}"
                         Padding="7,6" Margin="4,0,0,0"
@@ -137,7 +141,7 @@
                     CornerRadius="{StaticResource RadiusKey}" Margin="0,5,0,0" Padding="10">
               <StackPanel Width="262">
 
-                <!-- La tête du mois : reculer, le mois, avancer. -->
+                <!-- The month header: go back, the month, go forward. -->
                 <DockPanel Margin="0,0,0,8">
                   <Button DockPanel.Dock="Left" Style="{StaticResource IconButton}"
                           Command="{Binding PreviousMonthCommand}">
@@ -231,8 +235,9 @@
       </DockPanel>
     </Border>
 
-    <!-- La source, citée comme celle des guides l'est : la fenêtre ne montre
-         pas la page, donc rien d'autre ne dit d'où vient ce qu'on lit. -->
+    <!-- The source, credited the way the guides' source is: the window
+         doesn't show the page, so nothing else says where what you're
+         reading comes from. -->
     <Border DockPanel.Dock="Bottom" Padding="10,6"
             Background="{StaticResource BrushedPanelBrush}"
             BorderBrush="{DynamicResource BevelBrush}" BorderThickness="0,1,0,0">
@@ -256,21 +261,22 @@
       </Grid>
     </Border>
 
-    <!-- Le lecteur. Il n'a pas de hauteur : il n'est pas là pour être vu, il
-         est là pour charger la page et la laisser lire au pont. Le retirer de
-         l'arbre l'endormirait, et il n'y aurait plus rien à lire. -->
+    <!-- The reader. It has no height: it isn't there to be seen, it's
+         there to load the page and let the bridge read it. Removing it
+         from the tree would put it to sleep, and there would be
+         nothing left to read. -->
     <wv:WebView2 x:Name="View" DockPanel.Dock="Bottom" Height="0" />
 
-    <!-- Le chargement se dit ici, sous la bande : le contenu du dessous
-         s'estompe le temps de la lecture plutôt que de disparaître, pour que
-         la fenêtre ne saute pas d'une hauteur à chaque changement de jour. -->
+    <!-- Loading is shown here, under the strip: the content below fades
+         out for the duration of the read rather than disappearing, so
+         the window doesn't jump in height with every change of day. -->
     <ProgressBar DockPanel.Dock="Top" Height="2" IsIndeterminate="True"
                  Background="Transparent" BorderThickness="0"
                  Foreground="{DynamicResource AccentBrush}"
                  Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}" />
 
     <Grid>
-      <!-- L'attente, seule, tant que rien n'a jamais été lu. -->
+      <!-- The waiting state, alone, as long as nothing has ever been read. -->
       <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center"
                  Style="{StaticResource Muted}" Text="{loc:T AlmanaxLoading}"
                  Visibility="{Binding ShowsWaiting, Converter={StaticResource BoolToVisibility}}" />
@@ -289,8 +295,8 @@
 
         <StackPanel Margin="16,14,16,16">
 
-          <!-- La date à gauche, le jour dofusien à droite : deux façons de
-               nommer le même jour, elles vont sur la même ligne. -->
+          <!-- The date on the left, the Dofusian day on the right: two
+               ways of naming the same day, they sit on the same line. -->
           <DockPanel>
             <Border DockPanel.Dock="Right" Padding="7,2" Margin="8,0,0,0"
                     VerticalAlignment="Center"
@@ -310,9 +316,10 @@
                        Foreground="{DynamicResource TextMutedBrush}" />
           </DockPanel>
 
-          <!-- L'offrande : la seule chose qu'on vient vraiment chercher, donc
-               la seule qui a droit à ce corps-là. Le nombre porte l'accent :
-               c'est lui qu'on vérifie d'un coup d'œil dans son sac. -->
+          <!-- The offering: the only thing you really come here for, so
+               the only one entitled to that body size. The number
+               carries the accent: it's the one you check at a glance
+               against your bag. -->
           <TextBlock Text="{loc:T AlmanaxOffering}" Style="{StaticResource FieldLabel}"
                      Margin="0,18,0,0" />
 
@@ -340,8 +347,8 @@
                      Visibility="{Binding OfferingDetail, Converter={StaticResource EmptyToVisibility},
                                           ConverterParameter=inverse}" />
 
-          <!-- Le bonus, ensuite : il vaut pour la journée entière, pas
-               seulement pour la quête. -->
+          <!-- The bonus, next: it applies to the whole day, not just to
+               the quest. -->
           <Border Margin="0,18,0,0" Padding="12,10"
                   Background="{DynamicResource SurfaceBrush}"
                   BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="1"
@@ -360,8 +367,8 @@
             </StackPanel>
           </Border>
 
-          <!-- La quête et le Méryde ferment la marche, séparés par un filet :
-               ce sont des repères, pas des choses à faire. -->
+          <!-- The quest and the Meryde close the list, separated by a
+               thin rule: they are reference points, not things to do. -->
           <Rectangle Height="1" Margin="0,16,0,0"
                      Fill="{DynamicResource GrooveBrush}" />
 
@@ -392,8 +399,9 @@
             </StackPanel>
           </Grid>
 
-          <!-- L'événement du mois, le même tout le mois durant : il ne
-               concerne pas la journée, il aide à préparer les suivantes. -->
+          <!-- The event of the month, the same all month long: it
+               doesn't concern today, it helps prepare for the days
+               ahead. -->
           <StackPanel Margin="0,12,0,0"
                       Visibility="{Binding MonthEvent, Converter={StaticResource EmptyToVisibility},
                                            ConverterParameter=inverse}">
@@ -407,8 +415,9 @@
         </StackPanel>
       </ScrollViewer>
 
-      <!-- L'incident se pose par-dessus ce qui était affiché plutôt que de
-           l'effacer : un jour lu reste lisible même si le suivant échoue. -->
+      <!-- The error overlays what was already displayed rather than
+           erasing it: a day already read stays readable even if the
+           next one fails. -->
       <Border VerticalAlignment="Bottom" Margin="12" Padding="12,10"
               Background="{DynamicResource SurfaceBrush}"
               BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"

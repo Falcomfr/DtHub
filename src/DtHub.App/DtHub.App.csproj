@@ -10,67 +10,68 @@
     <ApplicationIcon>..\..\assets\app.ico</ApplicationIcon>
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <PlatformTarget>x64</PlatformTarget>
-    <!-- Ce filtre est là pour que les paquets tiers ne sèment pas leurs
-         traductions à côté de l'exécutable. Il vaut aussi pour les nôtres :
-         omettre « fr » et « es » les supprimerait sans rien dire. -->
+    <!-- This filter is here so third-party packages do not scatter their
+         translations next to the executable. It also applies to our own:
+         omitting "fr" and "es" would drop them without a word. -->
     <SatelliteResourceLanguages>en;fr;es</SatelliteResourceLanguages>
   </PropertyGroup>
 
-  <!-- La publication ne doit rendre qu'un fichier : c'est ce qu'on donne à
-       l'utilisateur, et six fichiers traînaient à côté, trois de symboles et
-       trois de documentation d'un paquet tiers.
+  <!-- The publish must produce only one file: that is what we hand to the
+       user, and six files used to trail alongside it, three of symbols and
+       three of documentation from a third-party package.
 
-       Les symboles sont embarqués plutôt que supprimés : un fichier de moins,
-       et les journaux gardent leurs numéros de ligne, ce qu'ils perdraient
-       avec « none ». -->
+       Symbols are embedded rather than dropped: one file fewer, and the
+       logs keep their line numbers, which they would lose with
+       "none". -->
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <DebugType>embedded</DebugType>
     <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- L'image de marque est embarquée comme ressource pour être adressable
-         par URI depuis le XAML. -->
+    <!-- The brand image is embedded as a resource so it can be addressed
+         by URI from the XAML. -->
     <Resource Include="..\..\assets\app.png" Link="assets\app.png" />
 
-    <!-- Le logo de papycha.fr, employé avec leur accord. Voir
-         THIRD-PARTY-NOTICES.md : il ne relève pas de la licence MIT. -->
+    <!-- The papycha.fr logo, used with their agreement. See
+         THIRD-PARTY-NOTICES.md: it is not covered by the MIT licence. -->
     <Resource Include="..\..\assets\papycha.png" Link="assets\papycha.png" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Le pont est embarqué : il doit suivre l'exécutable, pas traîner à côté. -->
+    <!-- The bridge is embedded: it must travel with the executable, not
+         trail alongside it. -->
     <EmbeddedResource Include="Assets\quest-bridge.js" LogicalName="DtHub.App.quest-bridge.js" />
     <EmbeddedResource Include="Assets\papycha-report.js" LogicalName="DtHub.App.papycha-report.js" />
     <EmbeddedResource Include="Assets\almanax-bridge.js" LogicalName="DtHub.App.almanax-bridge.js" />
   </ItemGroup>
 
-  <!-- Ces trois-là ne se voient nulle part si elles disparaissent : le pont et
-       la sonde ne sont lus qu'à l'ouverture d'un guide, et l'icône qu'au
-       premier lancement de scrcpy. Une ligne retirée par mégarde ne se serait
-       vue que chez la personne qui a téléchargé l'application. -->
-  <!-- Après la compilation XAML et non avant : WPF rejoue le projet dans une
-       copie temporaire qui ne porte pas les mêmes items, et le contrôle y
-       tombait à faux. -->
+  <!-- These three show up nowhere if they disappear: the bridge and the
+       probe are only read when a guide opens, and the icon only on
+       scrcpy's first launch. A line dropped by mistake would only have
+       shown up for the person who downloaded the application. -->
+  <!-- After the XAML compilation and not before: WPF replays the project
+       in a temporary copy that does not carry the same items, and the
+       check used to misfire there. -->
   <Target Name="ControlerLesRessourcesEmbarquees" BeforeTargets="Build"
           Condition="'$(_TargetAssemblyProjectName)' == ''">
     <Error Condition="'@(EmbeddedResource->WithMetadataValue('LogicalName', 'DtHub.App.quest-bridge.js'))' == ''"
-           Text="Le pont des guides n'est plus embarqué : quest-bridge.js manque aux EmbeddedResource." />
+           Text="The guide bridge is no longer embedded: quest-bridge.js is missing from EmbeddedResource." />
     <Error Condition="'@(EmbeddedResource->WithMetadataValue('LogicalName', 'DtHub.App.papycha-report.js'))' == ''"
-           Text="La sonde de signalement n'est plus embarquée : papycha-report.js manque aux EmbeddedResource." />
+           Text="The report probe is no longer embedded: papycha-report.js is missing from EmbeddedResource." />
     <Error Condition="'@(EmbeddedResource->WithMetadataValue('LogicalName', 'DtHub.App.almanax-bridge.js'))' == ''"
-           Text="Le pont de l'Almanax n'est plus embarqué : almanax-bridge.js manque aux EmbeddedResource." />
+           Text="The Almanax bridge is no longer embedded: almanax-bridge.js is missing from EmbeddedResource." />
     <Error Condition="'@(Resource->WithMetadataValue('Link', 'assets\app.png'))' == ''"
-           Text="L'icône donnée à scrcpy n'est plus embarquée : app.png manque aux Resource." />
+           Text="The icon handed to scrcpy is no longer embedded: app.png is missing from Resource." />
     <Error Condition="'@(Resource->WithMetadataValue('Link', 'assets\papycha.png'))' == ''"
-           Text="Le logo des guides n'est plus embarqué : papycha.png manque aux Resource." />
+           Text="The guide logo is no longer embedded: papycha.png is missing from Resource." />
 
-    <!-- Le filtre plus haut supprime les traductions « sans rien dire », et
-         rien dans le binaire publié ne permet de s'en apercevoir : le
-         deps.json embarqué cite les satellites même quand ils ont été
-         écartés. Le contrôle se fait donc ici, sur la propriété elle-même. -->
+    <!-- The filter above drops the translations "without a word", and
+         nothing in the published binary lets you notice it: the embedded
+         deps.json cites the satellites even when they have been left
+         out. The check is therefore done here, on the property itself. -->
     <Error Condition="!$(SatelliteResourceLanguages.Contains('fr')) or !$(SatelliteResourceLanguages.Contains('es'))"
-           Text="SatelliteResourceLanguages vaut « $(SatelliteResourceLanguages) » : les traductions fr et es ne seraient pas publiées." />
+           Text="SatelliteResourceLanguages is &quot;$(SatelliteResourceLanguages)&quot;: the fr and es translations would not be published." />
   </Target>
 
   <ItemGroup>

@@ -1,6 +1,6 @@
-<Project>
-  <!-- Gestion centralisée des versions : une seule source de vérité pour tout
-       le dépôt, ce qui évite les divergences entre projets. -->
+﻿<Project>
+  <!-- Versions managed in one place: a single source of truth for the whole
+       repository, which keeps projects from drifting apart. -->
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
@@ -8,9 +8,9 @@
   <ItemGroup Label="Runtime">
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.11" />
-    <!-- Le SDK est aligné sur le moteur d'exécution vérifié sur la machine de
-         développement (151.0.4129.107). Un moteur plus récent reste compatible ;
-         l'inverse ne l'est pas, et on n'emploie que des API de longue date. -->
+    <!-- The SDK is aligned on the runtime checked on the development
+         machine (151.0.4129.107). A newer runtime stays compatible, the
+         reverse is not, and only long standing APIs are used here. -->
     <PackageVersion Include="Microsoft.Web.WebView2" Version="1.0.4129.50" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.11" />
     <PackageVersion Include="Serilog.Extensions.Hosting" Version="10.0.0" />

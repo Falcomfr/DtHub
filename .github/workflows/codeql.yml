@@ -1,22 +1,22 @@
-# Analyse de code, par GitHub.
+# Code analysis, by GitHub.
 #
-# Elle ne remplace pas les épreuves : elle cherche des motifs de faille que
-# personne n'écrit exprès, injection, désérialisation, chemin non validé. Sur un
-# projet qui pilote un téléphone par ADB, télécharge deux outils tiers et se
-# remplace lui-même, c'est un second regard qui ne coûte rien.
+# It does not replace the tests: it looks for vulnerability patterns nobody
+# writes on purpose, injection, deserialization, an unvalidated path. On a
+# project that drives a phone over ADB, downloads two third party tools and
+# replaces itself, that is a second pair of eyes at no cost.
 #
-# **Gratuite sur un dépôt public seulement.** Sur un dépôt privé elle demande
-# GitHub Advanced Security : c'est l'une des raisons de publier directement en
-# public plutôt que de passer par une phase privée.
-name: Analyse
+# **Free on a public repository only.** On a private one it requires GitHub
+# Advanced Security: that is one of the reasons for publishing straight to
+# public rather than going through a private phase.
+name: Analysis
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-  # Une faille connue après coup ne se découvre pas à la poussée suivante :
-  # les bases de motifs de CodeQL sont mises à jour sans que le code bouge.
+  # A flaw found out after the fact is not discovered on the next push:
+  # CodeQL's pattern databases are updated without the code moving.
   schedule:
     - cron: '17 4 * * 1'
 
@@ -32,13 +32,12 @@ jobs:
     runs-on: windows-latest
 
     permissions:
-      # Les seules que réclame le dépôt des résultats.
+      # The only ones filing the results calls for.
       security-events: write
       contents: read
 
     steps:
-      # Épinglées par empreinte, comme les deux autres chaînes : une étiquette
-      # se déplace.
+      # Pinned by digest, like the two other pipelines: a tag moves.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
@@ -48,13 +47,14 @@ jobs:
       - uses: github/codeql-action/init@faaca9a8f6edddba5725ffe5adefdab6669a2eca # v3
         with:
           languages: csharp
-          # Manuel et non automatique : la compilation automatique de CodeQL ne
-          # connaît pas le format .slnx, et échouerait à trouver quoi bâtir.
+          # Manual and not automatic: CodeQL's automatic build does not know
+          # the .slnx format, and would fail to find what to build.
           build-mode: manual
 
-      # Sans « -warnaserror » : l'analyse n'a pas à tomber sur un écart de forme
-      # que la chaîne de contrôle attrape déjà mieux et plus vite.
-      - name: Compiler
+      # Without "-warnaserror": the analysis has no business failing on a
+      # formatting difference that the check pipeline already catches better
+      # and faster.
+      - name: Build
         run: dotnet build DtHub.slnx --configuration Release --nologo
 
       - uses: github/codeql-action/analyze@faaca9a8f6edddba5725ffe5adefdab6669a2eca # v3

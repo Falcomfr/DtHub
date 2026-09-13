@@ -1,23 +1,24 @@
-﻿# Pose ou met à jour le raccourci « DT Hub » du bureau.
+﻿# Creates or refreshes the "DT Hub" desktop shortcut.
 #
-# Le raccourci vise le lanceur, non le binaire. Viser le binaire directement ne
-# garantissait rien : il datait de la dernière publication, pas de la dernière
-# modification, et on pouvait jouer des heures sur une version périmée sans
-# s'en douter. Le lanceur republie d'abord, ce qui coûte une seconde quand rien
-# n'a changé.
+# The shortcut targets the launcher, not the binary. Targeting the binary
+# directly guaranteed nothing: it dated from the last publish, not from
+# the last edit, and you could play for hours on a stale version without
+# noticing. The launcher republishes first, which costs one second when
+# nothing has changed.
 #
 #   powershell -ExecutionPolicy Bypass -File build\create-shortcut.ps1
 #
-# Si le bureau continue d'afficher l'ancienne icône, ce n'est pas ce script :
-# Windows garde une copie de l'icône dans son propre cache, indexée sur le
-# chemin du fichier. Le contenu de assets\app.ico a changé, le chemin non, donc
-# le cache n'a rien vu passer. Mesuré : réécrire le raccourci ne suffit pas, et
-# « ie4uinit.exe -show » non plus, alors que l'API du shell rendait déjà la
-# bonne icône. Seul le redémarrage de l'explorateur l'a emporté :
+# If the desktop keeps showing the old icon, it is not this script:
+# Windows keeps a copy of the icon in its own cache, indexed on the
+# file's path. The content of assets\app.ico changed, the path did not,
+# so the cache never saw anything go by. Measured: rewriting the
+# shortcut is not enough, and neither is "ie4uinit.exe -show", even
+# though the shell API was already returning the right icon. Only
+# restarting Explorer won out:
 #
 #   Stop-Process -Name explorer -Force ; Start-Process explorer.exe
 #
-# Les fenêtres de dossiers se ferment, rien d'autre n'est touché.
+# Folder windows close, nothing else is touched.
 
 param(
     [string]$Target = (Join-Path $PSScriptRoot 'lancer.cmd'),
@@ -37,8 +38,8 @@ $shortcut.TargetPath = (Resolve-Path $Target).Path
 $shortcut.WorkingDirectory = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $shortcut.IconLocation = (Resolve-Path $Icon).Path
 
-# Réduite : la republication ouvre une console une seconde, elle n'a pas à
-# passer devant le jeu.
+# Minimised: the republish opens a console for a second, it should not
+# come up over the game.
 $shortcut.WindowStyle = 7
 
 $shortcut.Description = 'Ouvrir plusieurs comptes DOFUS Touch, toujours à la dernière version'

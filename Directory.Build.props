@@ -1,22 +1,22 @@
 ﻿<Project>
 
   <!--
-    Identité produit centralisée.
-    Pour renommer l'application, il suffit de modifier ce fichier
-    et src/DtHub.Core/ProductInfo.cs (voir AGENTS.md, section "Renommer le produit").
+    Product identity, kept in one place.
+    To rename the application, change this file and
+    src/DtHub.Core/ProductInfo.cs (see AGENTS.md, "Renaming the product").
   -->
   <PropertyGroup Label="Product">
-    <!-- Ce que Windows montre dans les propriétés du fichier, et ce que
-         SmartScreen cite quand il met en garde. Il doit dire exactement ce que
-         l'application dit d'elle-même : « DT Touch » traînait ici depuis un
-         renommage, quand la fenêtre annonce « DT Hub ». Un exécutable qui ne
-         porte pas son propre nom se défend mal. -->
+    <!-- What Windows shows in the file properties, and what SmartScreen
+         quotes when it warns. It must say exactly what the application says
+         of itself: "DT Touch" had been left here by a rename, while the
+         window announces "DT Hub". An executable that does not carry its own
+         name defends itself poorly. -->
     <Product>DT Hub</Product>
     <ProductSlug>DtHub</ProductSlug>
 
-    <!-- La description est ce que Windows affiche en premier, dans la mise en
-         garde de SmartScreen comme dans le gestionnaire des tâches. Sans elle,
-         il n'y a que le nom du fichier. -->
+    <!-- The description is what Windows shows first, in the SmartScreen
+         warning as in Task Manager. Without it there is only the file
+         name. -->
     <AssemblyTitle>DT Hub, several DOFUS Touch accounts side by side</AssemblyTitle>
     <Description>Opens several DOFUS Touch accounts side by side from real Android devices, with guide tracking.</Description>
     <Company>Falcomfr</Company>

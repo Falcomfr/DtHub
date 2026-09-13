@@ -1,21 +1,20 @@
-﻿// Sonde de mise en page. Outil de développement, jamais employé par
-// l'application.
+﻿// Layout probe. Development tool, never used by the application.
 //
-// Elle cherche ce qui se recouvre dans une page du site une fois cadrée comme
-// la fenêtre des guides la cadre. C'est ainsi qu'a été trouvé le défaut de la
-// carte des donjons : une marge haute de moins quatre-vingt-quatorze pixels,
-// dans une mise en page à deux colonnes que le site n'atteint jamais chez lui,
-// sa colonne de guide faisant six cent cinquante pixels quand le seuil est à
-// huit cent quatre-vingts. Nous écartons son volet latéral, la colonne prend
-// toute la place, et nous tombons dans une branche qu'il n'éprouve pas.
+// It looks for what overlaps in a site page once framed the way the
+// guides window frames it. This is how the dungeon map defect was found:
+// a top margin of minus ninety-four pixels, in a two-column layout the
+// site never reaches on its own, its guide column being six hundred fifty
+// pixels wide when the threshold is eight hundred eighty. We discard its
+// side panel, the column takes all the room, and we fall into a branch
+// it never exercises.
 //
-// Emploi : ouvrir une page du site dans un navigateur, régler la fenêtre à la
-// largeur de la fenêtre des guides, coller ceci dans la console.
+// Usage: open a site page in a browser, set the window to the width of
+// the guides window, paste this into the console.
 //
-// Ce qu'elle relève :
-//   - les marges négatives, mécanisme du seul défaut connu à ce jour ;
-//   - ce qui déborde de la colonne ;
-//   - les frères de premier rang qui se chevauchent verticalement.
+// What it reports:
+//   - negative margins, the mechanism of the only known defect so far;
+//   - what overflows the column;
+//   - top-level siblings that overlap vertically.
 (function () {
     function cadrer() {
         var noeud = document.querySelector('.entry-content')
