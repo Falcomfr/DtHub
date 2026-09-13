@@ -8649,3 +8649,57 @@ fonctionne là-bas, mesuré sur ce même 9T Pro une fois déverrouillé. Le nive
 vient de la découverte, qui l'a déjà lu, et `ScrcpyOptions.DeviceSdkVersion` le
 porte jusqu'au constructeur de commande. Inconnu, on ne demande rien : c'est la
 bonne réponse pour un appareil dont on ne sait rien.
+
+## D157 - Une étiquette se dérive à sa naissance, elle ne se recopie pas
+
+**Date** : 2026-09-13
+
+Prolonge D146, qui se croyait complète. « En mode tab ça n'affiche pas le
+nouveau nom. »
+
+**D146 avait bouché une porte, il y en avait deux.** Elle a corrigé le chemin
+du *renommage* : `InstanceRenames.Pending` compare, `ApplyRenames` réécrit
+l'étiquette des onglets déjà posés. Elle n'a pas touché au chemin de
+l'*ancrage*. `AttachToTabsAsync` semait l'étiquette avec `session.DisplayName`,
+c'est-à-dire `LaunchTarget.DisplayName`, figé au démarrage de scrcpy.
+
+**La reproduction, en trois gestes.** Ouvrir un compte sans cocher les onglets,
+le renommer, puis cocher les onglets. Le titre de la fenêtre libre se corrige,
+parce que c'est le chemin que D146 a réparé. L'onglet naît avec le nom d'avant,
+et plus rien ne le réécrira de la session.
+
+**Pourquoi plus rien.** `ApplyRenames` met à jour sa copie `_launched` pour
+toutes les clés en attente, puis demande le renommage des onglets sans savoir
+s'il aboutit : quand aucun onglet n'existe encore, `Rename` ne trouve rien et
+ne dit rien. Au renommage suivant, `Pending` compare le nom voulu à `_launched`,
+les trouve égaux, et rend un dictionnaire vide. Le détecteur s'est tu pour de
+bon.
+
+**La règle retenue : une surface qui montre un nom le dérive des réglages au
+moment où elle naît, jamais d'une copie prise au lancement.** `AttachToTabsAsync`
+lit le document qu'il chargeait déjà pour l'ordre des onglets, et
+`CurrentName` fait de même pour les titres des fenêtres libres. Après quoi
+aucune surface d'affichage ne dépend d'`ApplyRenames` : le reçu peut être faux,
+il n'a plus de lecteur.
+
+**Ce qu'est vraiment l'écriture dans `_launched`.** Un reçu de suppression, pas
+un accusé de livraison. Il existe pour que `Pending` rende vide sur les écritures
+de réglages qui partent à chaque déplacement de fenêtre, ce que D146 explique.
+Il reste inconditionnel, et son commentaire le dit désormais, parce que c'est
+précisément la lecture inverse qui a produit ce défaut.
+
+**`LaunchTarget.DisplayName` reste figé, et ce n'est pas un oubli.** C'est
+l'argument réellement passé à scrcpy : il décrit ce qui a été lancé, pas ce qui
+s'appelle comment aujourd'hui. Il sert aussi de repli pour une session qui
+n'est pas passée par le lanceur, rôle qui exige qu'il ne bouge pas.
+
+**Une seule règle, une seule fonction.** `InstanceRenames.NameNow` porte le
+calcul, `Pending` s'en sert, l'ancrage aussi. D146 disait avoir tué les deux
+copies de la règle de nommage ; il en restait une troisième, à l'ancrage. Une
+épreuve affirme maintenant que poser un onglet et le renommer donnent le même
+nom.
+
+**Ramassé au passage.** Le saut vers le fil d'interface était lancé et jeté :
+une faute du répartiteur pendant la fermeture du cadre n'allait nulle part. Il
+passe dans la même voie gardée que le rafraîchissement des titres, l'onglet
+d'abord, les fenêtres libres ensuite.

@@ -34,6 +34,30 @@ public readonly record struct OpenInstance(string Key, string UserName, string S
 public static class InstanceRenames
 {
     /// <summary>
+    /// The name an account must carry right now.
+    ///
+    /// **The one place the rule lives.** A surface that shows a name
+    /// derives it from here when it is born, and never from a copy taken
+    /// at launch. The defect this type was created for came back through
+    /// the other door: the label was fixed when an account was renamed,
+    /// but a tab opened after the renaming was still seeded from the name
+    /// frozen when scrcpy started, so renaming a free window and then
+    /// docking it showed the old name for the rest of the session.
+    /// </summary>
+    /// <param name="key">Instance key.</param>
+    /// <param name="userName">Android profile name, the fallback name.</param>
+    /// <param name="customNameFor">
+    /// The name chosen by the user for this key, as the settings now
+    /// carry it, or <c>null</c> if there is none.
+    /// </param>
+    public static string NameNow(string key, string userName, Func<string, string?> customNameFor)
+    {
+        ArgumentNullException.ThrowIfNull(customNameFor);
+
+        return DofusInstance.NameOf(customNameFor(key), userName);
+    }
+
+    /// <summary>
     /// Open accounts whose displayed name no longer matches the
     /// settings, and the name they must now carry.
     ///
@@ -56,7 +80,7 @@ public static class InstanceRenames
 
         foreach (var instance in open)
         {
-            var wanted = DofusInstance.NameOf(customNameFor(instance.Key), instance.UserName);
+            var wanted = NameNow(instance.Key, instance.UserName, customNameFor);
 
             if (!string.Equals(wanted, instance.Shown, StringComparison.Ordinal))
             {

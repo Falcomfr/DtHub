@@ -2320,10 +2320,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
     public async Task<int> RefreshWindowTitlesAsync(CancellationToken cancellationToken = default)
     {
         var hint = await BuildTitleHintAsync(cancellationToken).ConfigureAwait(false);
+        var settings = await _settings.GetAsync(cancellationToken).ConfigureAwait(false);
 
         return _windows.Retitle(
             _sessions.ActiveSessions,
-            session => ScrcpyCommandBuilder.BuildWindowTitle(CurrentName(session), hint));
+            session => ScrcpyCommandBuilder.BuildWindowTitle(CurrentName(session, settings), hint));
     }
 
     /// <summary>
@@ -2335,11 +2336,24 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// it to rewrite a title would put the old name back, which is
     /// exactly what the refresh following a shortcut change already
     /// did.
+    ///
+    /// The chosen name is read from the settings rather than from the
+    /// launched copy, so that no surface that shows a name depends on
+    /// <see cref="ApplyRenames" /> having run first. The launched copy
+    /// still gives the Android profile name, which is the fallback when
+    /// no name was chosen, and the target still answers for a session
+    /// that never went through the launcher.
     /// </summary>
-    private string CurrentName(ScrcpySession session) =>
+    private string CurrentName(ScrcpySession session, AppSettingsDocument document) =>
         _launched.TryGetValue(session.Target.Key, out var instance)
-            ? instance.DisplayName
+            ? InstanceRenames.NameNow(instance.Key, instance.UserName, ChosenNameIn(document))
             : session.Target.DisplayName;
+
+    /// <summary>Reads a chosen name out of a settings document.</summary>
+    private static Func<string, string?> ChosenNameIn(AppSettingsDocument document) =>
+        key => document.Instances
+            .Find(i => string.Equals(i.Key, key, StringComparison.Ordinal))
+            ?.CustomName;
 
     /// <summary>
     /// Carries onto the open windows the names the settings have
@@ -2362,11 +2376,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             .Select(i => new OpenInstance(i.Key, i.UserName, i.DisplayName))
             .ToList();
 
-        var pending = InstanceRenames.Pending(
-            open,
-            key => document.Instances
-                .Find(i => string.Equals(i.Key, key, StringComparison.Ordinal))
-                ?.CustomName);
+        var pending = InstanceRenames.Pending(open, ChosenNameIn(document));
 
         if (pending.Count == 0)
         {
@@ -2390,18 +2400,21 @@ public sealed partial class GameLauncher : IAsyncDisposable
             }
         }
 
-        _ = OnUiAsync(() =>
-        {
-            foreach (var (key, name) in pending)
-            {
-                _tabs?.Rename(key, name);
-            }
-        });
-
+        // One guarded path rather than two, the tab first and the free
+        // windows after. The tab hop used to be started and dropped, so a
+        // dispatcher fault while the frame was closing went nowhere.
         _ = Task.Run(async () =>
         {
             try
             {
+                await OnUiAsync(() =>
+                {
+                    foreach (var (key, name) in pending)
+                    {
+                        _tabs?.Rename(key, name);
+                    }
+                }).ConfigureAwait(false);
+
                 _ = await RefreshWindowTitlesAsync().ConfigureAwait(false);
             }
             catch (Exception exception) when (exception is not OutOfMemoryException)
@@ -2668,18 +2681,28 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private async Task AttachToTabsAsync(ScrcpySession session, CancellationToken cancellationToken)
     {
+        // Read before the window is resolved, so that the name below is the
+        // one the settings carry now. A tab used to be seeded from
+        // <c>session.DisplayName</c>, frozen when scrcpy started: renaming an
+        // account whose window was open but not docked, then docking it, gave
+        // the tab the name from before the rename, and nothing ever wrote it
+        // again for the rest of the session.
+        var settings = await _settings.GetAsync(cancellationToken).ConfigureAwait(false);
+
+        var name = InstanceRenames.NameNow(
+            session.Target.Key,
+            _launched.TryGetValue(session.Target.Key, out var launched)
+                ? launched.UserName
+                : session.DisplayName,
+            ChosenNameIn(settings));
+
         var handle = await _windows.ResolveWindowAsync(session, cancellationToken).ConfigureAwait(false);
 
         if (handle == 0)
         {
-            LogTabWindowMissing(session.DisplayName);
+            LogTabWindowMissing(name);
             return;
         }
-
-        // On the UI thread, not the one that got us here: a WPF
-        // window can only be created on an STA-mode thread, and the
-        // launcher's async chain is not one.
-        var settings = await _settings.GetAsync(cancellationToken).ConfigureAwait(false);
 
         // The intended order is reapplied after every arrival, and
         // not left to the order of arrivals. Displays do not get
@@ -2697,7 +2720,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             frame.Attach(
                 session.Target.Key,
-                session.DisplayName,
+                name,
                 IconFor(session),
                 handle,
                 session.SourceAspectRatio);

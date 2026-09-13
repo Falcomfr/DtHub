@@ -45,6 +45,14 @@ French.
   sixty seconds later. A rename that fails to save now says so, as the other
   settings already did.
 
+- **A tab kept the old name after a rename.** The label was copied from the
+  name the account carried when scrcpy started, and only the rename path wrote
+  it again. Renaming an account whose window was open but not docked, then
+  docking it, gave the tab the name from before the rename and nothing ever
+  corrected it. A tab now takes its name from the settings at the moment it is
+  created, as the window titles do, so no label depends on having been told
+  about a rename.
+
 - **Pressing Enter on a renamed account did nothing.** The field wrote when it
   lost focus, so a name was only applied by clicking somewhere else. Enter
   applies it now, and Escape puts the stored name back rather than leaving you

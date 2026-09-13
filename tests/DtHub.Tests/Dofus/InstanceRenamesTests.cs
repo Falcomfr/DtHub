@@ -96,4 +96,45 @@ public class InstanceRenamesTests
     {
         Assert.Empty(InstanceRenames.Pending([], _ => "Cra, Enu"));
     }
+
+    [Fact]
+    public void Le_nom_a_montrer_est_celui_des_reglages_et_non_celui_du_lancement()
+    {
+        // A tab was seeded with the name frozen when scrcpy started.
+        // Renaming a window that was open but not docked, then docking
+        // it, showed the name from before the rename for the rest of
+        // the session.
+        Assert.Equal(
+            "Cra, Enu",
+            InstanceRenames.NameNow("tel|0|jeu", "Principal", _ => "Cra, Enu"));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Sans_nom_choisi_l_ancrage_rend_celui_du_profil_android(string? efface)
+    {
+        // The trap on the other side: a cleared name must fall back to
+        // the Android profile, not leave the tab blank.
+        Assert.Equal(
+            "Principal",
+            InstanceRenames.NameNow("tel|0|jeu", "Principal", _ => efface));
+    }
+
+    [Fact]
+    public void Le_meme_calcul_sert_a_poser_un_onglet_et_a_le_renommer()
+    {
+        // The defect this type exists to catch came back through the
+        // other door once already, because the label was computed in two
+        // places. One function, used by both, is what keeps it from
+        // happening a third time.
+        var pending = InstanceRenames.Pending(
+            [Ouvert("tel|0|jeu", "Principal", "Principal")],
+            _ => "Cra, Enu");
+
+        Assert.Equal(
+            pending["tel|0|jeu"],
+            InstanceRenames.NameNow("tel|0|jeu", "Principal", _ => "Cra, Enu"));
+    }
 }
