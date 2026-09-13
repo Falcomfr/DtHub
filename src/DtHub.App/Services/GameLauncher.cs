@@ -522,10 +522,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
         IReadOnlyList<DofusInstance> instances,
         Dictionary<string, AndroidDevice> devices)
     {
-        foreach (var serial in instances
-                     .Select(i => devices.TryGetValue(i.DeviceId, out var d) ? d.Serial : null)
-                     .Where(s => !string.IsNullOrWhiteSpace(s))
-                     .Distinct(StringComparer.Ordinal)
+        foreach (var (deviceId, serial) in instances
+                     .Select(i => (i.DeviceId, Serial: devices.TryGetValue(i.DeviceId, out var d) ? d.Serial : null))
+                     .Where(p => !string.IsNullOrWhiteSpace(p.Serial))
+                     .DistinctBy(p => p.Serial, StringComparer.Ordinal)
                      .ToList())
         {
             if (!_encodersAsked.Add(serial!))
@@ -535,7 +535,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             _ = Task.Run(async () =>
             {
-                var found = await _sessions.ListEncodersAsync(serial!).ConfigureAwait(false);
+                var found = await _sessions.ListEncodersAsync(deviceId, serial!).ConfigureAwait(false);
 
                 if (found.Count == 0)
                 {
@@ -1528,6 +1528,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
             {
                 display = display with { VideoEncoder = forced };
             }
+
+            // The audio source depends on the phone's API level, and
+            // discovery has already read it. Below Android 13 the
+            // playback source does not exist and asking for it removes
+            // the sound instead of falling back.
+            display = display with { DeviceSdkVersion = device.SdkVersion };
 
             // The captured sound is that of the whole phone:
             // Android cannot isolate it per application. Only one

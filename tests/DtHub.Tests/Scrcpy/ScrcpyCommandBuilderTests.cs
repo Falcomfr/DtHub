@@ -197,6 +197,75 @@ public class ScrcpyCommandBuilderTests
     }
 
     [Fact]
+    public void Le_son_est_pris_sur_la_lecture_et_non_sur_la_sortie()
+    {
+        // Measured on the real device, 13T Pro under Android 16, the game
+        // playing its music, reading the peak of the Windows output:
+        //
+        //   --audio-source=output    (scrcpy's default)   0.0000
+        //   --audio-source=playback                       0.0945
+        //   --audio-source=mic       (control)            0.7633
+        //
+        // "output" routes the sound through Android's remote_submix
+        // device, whose music volume reads 0 on this phone: the capture
+        // starts, reports nothing, and hands over silence. It also mutes
+        // the phone's own speaker, which is not wanted next to a PC.
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001",
+            "T",
+            ScrcpyOptions.Default with { AudioEnabled = true, DeviceSdkVersion = 36 });
+
+        Assert.Contains("--audio-source=playback", arguments);
+        Assert.DoesNotContain("--no-audio", arguments);
+    }
+
+    [Theory]
+    [InlineData(30)]
+    [InlineData(32)]
+    [InlineData(null)]
+    public void Avant_android_13_la_source_de_lecture_n_existe_pas(int? sdk)
+    {
+        // Measured on the Mi 9T Pro under Android 11, once the playback
+        // source had been asked for on every phone:
+        //
+        //   [server] WARN: Audio disabled: audio playback capture source
+        //                  not supported before Android 13
+        //
+        // The sound did not fail over, it went away altogether. Below
+        // that level scrcpy's own default is left alone: it works there,
+        // measured on the same phone once unlocked.
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001",
+            "T",
+            ScrcpyOptions.Default with { AudioEnabled = true, DeviceSdkVersion = sdk });
+
+        Assert.DoesNotContain(arguments, a => a.StartsWith("--audio-source", StringComparison.Ordinal));
+        Assert.DoesNotContain("--no-audio", arguments);
+    }
+
+    [Fact]
+    public void Sans_son_la_source_ne_sert_a_rien_et_ne_parait_pas()
+    {
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001", "T", ScrcpyOptions.Default with { AudioEnabled = false });
+
+        Assert.Contains("--no-audio", arguments);
+        Assert.DoesNotContain(arguments, a => a.StartsWith("--audio-source", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Le_son_n_est_jamais_exige()
+    {
+        // The premise of Une_erreur_de_son_n_est_pas_une_fin. Without
+        // --require-audio, scrcpy carries on when the capture is
+        // refused, so an audio error can never be the reason a session
+        // ended. Passing this flag would make that reasoning false.
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments("USB0001", "T", ScrcpyOptions.Default);
+
+        Assert.DoesNotContain("--require-audio", arguments);
+    }
+
+    [Fact]
     public void Des_reglages_aberrants_sont_corriges_plutot_que_refuses()
     {
         var options = ScrcpyOptions.Default with
@@ -316,13 +385,24 @@ public class ScrcpyCommandBuilderTests
     }
 
     [Fact]
-    public void L_encodeur_et_la_cadence_ne_paraissent_que_si_on_les_demande()
+    public void L_encodeur_ne_parait_que_si_on_le_demande()
     {
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "Titre", ScrcpyOptions.Default);
 
         Assert.DoesNotContain(arguments, a => a.StartsWith("--video-encoder", StringComparison.Ordinal));
-        Assert.DoesNotContain(arguments, a => string.Equals(a, "--print-fps", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void La_cadence_n_est_plus_jamais_demandee()
+    {
+        // The setting that asked for it is gone: the frame rate claimed
+        // to bring the encoder listing along, which happened without it,
+        // and scrcpy writes one line per second and per window for a
+        // number whose zero reads as a fault when it is not one.
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments("USB0001", "T", ScrcpyOptions.Default);
+
+        Assert.DoesNotContain(arguments, a => a.Contains("print-fps", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -334,15 +414,6 @@ public class ScrcpyCommandBuilderTests
             ScrcpyOptions.Default with { VideoEncoder = "c2.mtk.avc.encoder" });
 
         Assert.Contains("--video-encoder=c2.mtk.avc.encoder", arguments);
-    }
-
-    [Fact]
-    public void Le_diagnostic_de_fluidite_arrive_dans_la_commande()
-    {
-        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
-            "USB0001", "Titre", ScrcpyOptions.Default with { PrintFps = true });
-
-        Assert.Contains("--print-fps", arguments);
     }
 
     [Fact]

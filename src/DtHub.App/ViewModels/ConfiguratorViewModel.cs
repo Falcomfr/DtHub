@@ -548,29 +548,6 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Makes scrcpy write its frame rate to the log.
-    ///
-    /// Diagnostic, not comfort: it is the answer to "it is
-    /// stuttering". Zero frames per second is not a fault, since
-    /// scrcpy only encodes what changes.
-    /// </summary>
-    [ObservableProperty]
-    private bool _fluidityDiagnostics;
-
-    partial void OnFluidityDiagnosticsChanged(bool value)
-    {
-        if (_loading)
-        {
-            return;
-        }
-
-        // This is a scrcpy startup argument, like the keyboard mode:
-        // without reopening, the setting would look dead until the
-        // next session.
-        _ = ApplyStartupSettingAsync(() => _settings.SetFluidityDiagnosticsAsync(value));
-    }
-
-    /// <summary>
     /// Rearrangement shortcut, shown next to the button. Empty when
     /// no shortcut is bound to the action.
     /// </summary>
@@ -637,7 +614,6 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             StopAppOnClose = settings.StopAppOnClose;
             SimulatedPhysicalKeyboard = settings.SimulatedPhysicalKeyboard;
             SimulatedPhysicalMouse = settings.SimulatedPhysicalMouse;
-            FluidityDiagnostics = settings.FluidityDiagnostics;
             Language = settings.Language;
             AudioEnabled = settings.AudioEnabled;
             ReadCustomQuality(settings);

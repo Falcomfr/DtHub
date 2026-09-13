@@ -600,16 +600,6 @@
                              Text="{loc:T SimulatedMouseHelp}" />
                 </StackPanel>
 
-                <!-- Diagnostics, not comfort. Under the phone's settings,
-                     because it's the phone we're talking about when the
-                     picture stutters. -->
-                <CheckBox Content="{loc:T FluidityDiagnostics}"
-                          IsChecked="{Binding FluidityDiagnostics}"
-                          ToolTip="{loc:T FluidityDiagnosticsTip}" />
-                <TextBlock Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
-                           TextWrapping="Wrap" Margin="24,2,0,8"
-                           Text="{loc:T FluidityDiagnosticsHelp}" />
-
                 <CheckBox Content="{loc:T AutomaticUpdates}" Margin="0,0,0,8"
                           IsChecked="{Binding UpdatesAutomatic}"
                           ToolTip="{loc:T AutomaticUpdatesTip}" />

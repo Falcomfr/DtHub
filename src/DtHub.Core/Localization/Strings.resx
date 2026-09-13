@@ -541,15 +541,6 @@ Cross the tests: another device on this port, and this phone on another PC. You 
   <data name="InstanceZoomWaitsForReopen" xml:space="preserve">
     <value>Applies the next time this window opens</value>
   </data>
-  <data name="FluidityDiagnostics" xml:space="preserve">
-    <value>Record the frame rate in the log</value>
-  </data>
-  <data name="FluidityDiagnosticsTip" xml:space="preserve">
-    <value>Asks scrcpy to write how many frames per second each window actually receives. Turn it on only to investigate stuttering.</value>
-  </data>
-  <data name="FluidityDiagnosticsHelp" xml:space="preserve">
-    <value>Zero frames per second is not a fault: scrcpy only encodes what changes, so a still picture produces nothing. The log also records which encoders the phone offers.</value>
-  </data>
   <data name="PlaytimeHours" xml:space="preserve">
     <value>{0} h {1} this week</value>
   </data>

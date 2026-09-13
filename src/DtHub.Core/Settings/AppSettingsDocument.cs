@@ -168,17 +168,6 @@ public sealed class AppSettingsDocument
     /// as the keyboard: it is a habit of the person playing.
     /// </summary>
     public bool SimulatedPhysicalMouse { get; set; }
-
-    /// <summary>
-    /// Asks scrcpy to write its frame rate to the log, one line per
-    /// second and per window.
-    ///
-    /// Off by default, and for diagnostics only: it is the answer to "it
-    /// stutters", not a comfort setting. **Zero frames per second is not
-    /// a fault**: scrcpy only encodes what changes, and a still screen
-    /// produces nothing.
-    /// </summary>
-    public bool FluidityDiagnostics { get; set; }
     // The game displays in landscape: a vertical virtual display would
     // center it in 16:9 amid a tall window, with two wide black bars.
     public int VirtualDisplayWidth { get; set; } = 1920;

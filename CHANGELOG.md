@@ -25,7 +25,51 @@ French.
   playing. A dot on the account instead says the open window is still running
   with the previous distance.
 
+### Removed
+
+- **The "Log the frame rate" setting is gone.** Half of what it promised was
+  untrue: its help said the log would also note the encoders the phone offers,
+  and that happens on every launch whether the box is ticked or not. What was
+  left was one log line per second and per window, for a number whose zero reads
+  as a fault when it is not one. Settings files that still carry the old value
+  are read as before; the value is ignored and disappears on the next save.
+
 ### Fixed
+
+- **The first launch on a phone sometimes did nothing and had to be clicked
+  again.** Opening a window asks the phone once per run what it can encode, and
+  that question starts a scrcpy server just as an opening does. The two were
+  fired together and the opening lost, reporting that the connection with the
+  phone had failed. The question now waits its turn in the same queue as the
+  openings on that phone. Reproduced on a real device: two openings started
+  together fail one out of two, spaced by a second and a half they both succeed.
+
+- **The phone's sound never reached the PC.** scrcpy's default audio source
+  forwards the whole output through an Android device whose music volume reads
+  zero on the phones measured here, so what arrived was silence, and scrcpy
+  reported no error because the capture had started. The sound is now taken from
+  the playback instead, which also leaves the phone its own speaker. An
+  application that opts out of capture, a video service for instance, stays
+  silent on the PC and nothing can change that. Phones below Android 13 keep
+  scrcpy's own source, which works there and which the new one would have
+  replaced with silence.
+
+- **The desktop shortcut opened a console on every launch.** It targeted the
+  batch file that republishes before opening, and Windows has to open a console
+  to interpret a batch file: the shortcut's "minimised" decides how that window
+  shows, not whether it exists. It now targets a compiled launcher that has no
+  console at all, republishes without a window and then opens the application.
+  The guarantee that you always play the current build is kept, which targeting
+  the binary directly would have lost.
+
+- **Closing the game on a phone under Android 11 reopened its window by
+  itself.** scrcpy cannot capture the sound there and says so with two errors at
+  startup, then mirrors normally for as long as you like. Those two lines were
+  counted as a refusal, and the session carried that verdict from its first
+  second: closing the window by hand was read as a link that had dropped, and
+  the window came back three times before the application gave up. A line about
+  sound is no longer an end. A phone that goes away while playing announces
+  itself on its own line, which still closes the session.
 
 - **Both phones announced "Game not installed" several times a minute.** The
   accounts list invalidates its cache on ten ordinary gestures, Launch and

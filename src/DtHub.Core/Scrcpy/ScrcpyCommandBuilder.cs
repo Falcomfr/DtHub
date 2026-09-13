@@ -1,5 +1,7 @@
 ﻿using System.Globalization;
 
+using DtHub.Core.Devices;
+
 namespace DtHub.Core.Scrcpy;
 
 /// <summary>
@@ -94,6 +96,38 @@ public static class ScrcpyCommandBuilder
         {
             arguments.Add("--no-audio");
         }
+        else
+        {
+            // **Measured on a real device**, 13T Pro under Android 16, the
+            // game playing its music, reading the peak of the Windows
+            // output while scrcpy ran:
+            //
+            //   --audio-source=output    (scrcpy's default)   0.0000
+            //   --audio-source=playback                       0.0945
+            //   --audio-source=mic       (control)            0.7633
+            //
+            // The control matters: it proves the path from scrcpy to the
+            // PC speakers works, and that the silence comes from the
+            // phone's side.
+            //
+            // "output" forwards the whole sound through Android's
+            // remote_submix device. On this phone "dumpsys audio" reads
+            // "remote_submix): 0" for the music stream, so what is
+            // forwarded is silence, and scrcpy reports no error at all
+            // because the capture did start. "output" also mutes the
+            // phone's own speaker, which nobody asked for when the phone
+            // sits next to the PC.
+            //
+            // "playback" leaves the phone its sound and captures what the
+            // applications allow. The game allows it, which is what this
+            // is for. An application that opts out, a video service for
+            // instance, stays silent on the PC and there is nothing to be
+            // done about that.
+            if (sanitized.DeviceSdkVersion >= AndroidRequirements.PlaybackAudioSdk)
+            {
+                arguments.Add("--audio-source=playback");
+            }
+        }
 
         if (!sanitized.ClipboardSyncEnabled)
         {
@@ -116,13 +150,6 @@ public static class ScrcpyCommandBuilder
         if (!string.IsNullOrWhiteSpace(sanitized.VideoEncoder))
         {
             arguments.Add(Option("video-encoder", sanitized.VideoEncoder));
-        }
-
-        // Diagnostics only: the frame rate goes to the log, not to
-        // the screen.
-        if (sanitized.PrintFps)
-        {
-            arguments.Add("--print-fps");
         }
 
         if (sanitized.UseVirtualDisplay)

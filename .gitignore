@@ -505,8 +505,14 @@ build/app-*.png
 build/dpi-*.png
 build/ingame-*.png
 
-# Log of the republish done by build/lancer.cmd
+# Log of the republish, written by build/lanceur.exe and build/lancer.cmd
 build/publication.log
+
+# The compiled launcher the desktop shortcut targets, and its build output.
+# It is published from build/lanceur/, which is versioned.
+build/lanceur.exe
+build/lanceur/bin/
+build/lanceur/obj/
 
 # Development captures: produced by build/capture-*.ps1 and the probes, they
 # serve a single check and are never read by the project.

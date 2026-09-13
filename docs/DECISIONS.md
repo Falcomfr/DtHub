@@ -8339,3 +8339,313 @@ d'appel, et c'est la plus grosse réduction de risque du correctif.
 Les lignes ne sont d'ailleurs plus reconstruites du tout sur un passage non
 autoritaire. Les laisser telles que le dernier passage autoritaire les a bâties
 est à la fois correct et sans clignotement.
+
+## D151 - Un refus de son gelait le verdict de toute la session
+
+**Date** : 2026-09-13
+
+« Quand je ferme l'app du 9T Pro, ça me met "la liaison avec Principal a lâché,
+sa fenêtre se rouvre" et ça réouvre. Je ferme l'app, je veux pas qu'elle se
+rouvre. »
+
+**La cause, et la comparaison qui la prouve.** Le journal du 13/09 tient les
+deux cas à huit secondes d'écart, dans le même lancement de l'application. À
+18:53:05, le Mi 9T Pro : session terminée `Stopped`, aucun message, et pourtant
+« Fenêtre perdue, réouverture de Principal dans 2 s ». À 18:53:07, le 13T Pro :
+session terminée `Stopped`, aucun message, et rien. Une seule chose sépare les
+deux relevés, et elle est à l'ouverture :
+
+```
+[server] ERROR: Failed to start audio capture
+[server] ERROR: On Android 11, audio capture must be started in the foreground, ...
+```
+
+`IsFatal` tenait pour une fin toute ligne portant `ERROR:`. `Classify` ne
+reconnaissait pas celle-ci et rendait `Unknown`, que `Describe` ne traduit pas :
+`FailureMessage` restait nul, la session passait donc bien en `Stopped`, mais
+`FailureKind` était figé sur `Unknown` dès la première seconde. Onze secondes ou
+six heures plus tard, `session.End` le rendait tel quel, et
+`SessionRecovery.Recoverable(Unknown)` vaut vrai. Une fermeture volontaire était
+lue comme une liaison tombée, trois fois de suite avant l'abandon.
+
+Le 13T Pro tourne sous Android 16 et n'écrit pas ces lignes : son verdict
+restait `None` et sa fenêtre restait fermée. Le défaut ne visait donc pas un
+téléphone, mais un Android.
+
+**Le correctif.** Une ligne qui parle de son n'est plus une fin. scrcpy
+n'abandonne sur le son que si on lui passe `--require-audio`, et
+`ScrcpyCommandBuilder` ne le passe jamais : un test le garde, sans quoi le
+raisonnement cesserait d'être vrai sans que rien ne le dise. Une coupure de
+liaison, elle, s'annonce sur sa propre ligne, qui ne parle pas de son et termine
+toujours la session.
+
+**Pourquoi pas le code de sortie.** L'intention écrite dans `SessionRecovery`
+est « ne rouvrir que sur un refus déclaré, jamais sur une sortie propre », ce
+qui invite à faire du code de sortie l'arbitre. Il n'est pas journalisé, et les
+deux relevés du 13/09 ne permettent pas de le départager : `Stopped` s'atteint
+aussi bien par `exitCode == 0` que par un message non reconnu. Corriger là
+aurait reposé sur une valeur supposée. Le correctif retenu se vérifie, lui, par
+la comparaison entre les deux téléphones.
+
+**Ce qui n'a pas été fait.** `FailureKind` retient toujours la première erreur
+vue, et non la cause de la mort. Une autre erreur anodine à l'ouverture
+empoisonnerait le verdict de la même façon. Le remède de fond serait d'oublier
+ce qui a été vu avant que la session ne passe `Running`, puisqu'une session qui
+tourne a prouvé que son ouverture avait abouti. Il n'est pas appliqué ici : il
+change le sort de pannes qu'aucun relevé n'a produites, et le défaut décrit se
+ferme sans lui.
+
+## D152 - Le raccourci du bureau ouvrait une console, et avant cela mentait
+
+**Date** : 2026-09-13
+
+« Pourquoi l'icône du bureau lance un terminal ? Pas possible de juste lancer
+l'app build ? »
+
+**Deux défauts, et ils ne peuvent pas se corriger l'un par l'autre.** Le
+raccourci a visé le binaire, puis `lancer.cmd`, et chacune des deux cibles avait
+son vice.
+
+Viser `build\publish\DtHub.exe` ne garantit rien : le fichier date de la
+dernière publication, pas de la dernière modification. Relevé le 13/09, le
+raccourci pointait en fait sur `C:\Dev\essai-liste\DtHub.exe`, une copie
+construite à la main pour un essai de mise à jour, annoncée 0.3.1 alors que le
+dépôt est en 0.3.0. L'utilisateur jouait depuis des heures sur un binaire qui
+n'était plus le code, et rien à l'écran ne le disait. C'est ce que D-antérieures
+appelaient déjà le piège de la version périmée ; il s'est reproduit tel quel.
+
+Viser `lancer.cmd` referme ce piège et coûte une console. Windows doit en ouvrir
+une pour interpréter un `.cmd` : le `WindowStyle = 7` du raccourci décide
+seulement de la façon dont cette fenêtre s'affiche, réduite, pas de son
+existence. Elle vit le temps de la republication, une seconde quand rien n'a
+changé, dix après une modification, et elle prend le focus au passage.
+
+**Le correctif.** `build/lanceur/`, un projet `WinExe` en net10.0-windows.
+Sous-système PE 2, vérifié sur le fichier produit : Windows ne lui alloue pas de
+console, jamais. Il republie sans fenêtre, journalise dans `build/publication.log`
+puis ouvre l'application. La garantie de fraîcheur est conservée et le terminal
+disparaît, ce que ni l'une ni l'autre des deux cibles précédentes ne savait
+faire.
+
+**Pourquoi pas un enrobage VBScript**, qui aurait tenu en quatre lignes :
+VBScript est déprécié sur Windows 11 et sera retiré, et AGENTS.md note déjà
+qu'un script PowerShell s'est fait bloquer ici par l'antivirus. Un lanceur `.vbs`
+attire exactement le même soupçon.
+
+**Ce qu'il ne fait pas, volontairement.** Aucune étape n'est bloquante, comme
+dans `lancer.cmd` : SDK absent, publication en échec, binaire verrouillé par une
+instance déjà ouverte, il ouvre quand même ce qui existe. Le seul cas sans issue,
+aucun binaire du tout, délègue à `lancer.cmd`, qui porte le message et l'attente
+dans la console que Windows lui donne. C'est le seul moment où une console
+paraît, et c'est précisément celui où on veut la lire.
+
+**Publication à la main, et pas dans `build/`.** MSBuild exclut le dossier de
+sortie des sources ; publier dans `build/` exclut `build/lanceur/Program.cs` et
+la compilation échoue sur CS5001, sans dire pourquoi. On publie à l'emplacement
+par défaut et on copie le fichier unique. Le projet est dans la solution, pour la
+raison de D49 : hors d'elle, il pourrirait sans témoin.
+
+**Ce qui n'a pas été fait.** `lancer.cmd` reste, et reste fonctionnel : il sert
+encore depuis un terminal, et il porte le message du cas sans binaire. Le
+raccourci a gardé son nom, « DT Hub (essai) », qui ne décrit plus ce qu'il fait.
+Renommer une icône du bureau appartient à son propriétaire.
+
+## D153 - Le diagnostic de fluidité promettait ce qu'il ne faisait pas
+
+**Date** : 2026-09-13
+
+« On devait pas enlever ça ? » Non : rien dans ce fichier, le changelog,
+`IMPLEMENTATION_STATUS.md` ou l'historique git ne l'avait décidé. Le seul commit
+qui touchait ce réglage était `ed45cc6`, celui qui l'a créé, et D117 défendait le
+choix. La vérification a pourtant donné raison à la question, pour une autre
+raison que celle attendue.
+
+**La moitié de ce qu'il annonçait était fausse.** Son texte d'aide finissait par
+« Le journal note aussi les encodeurs que le téléphone propose ».
+`GameLauncher.ProbeEncoders` ne regarde pas le réglage : il interroge chaque
+appareil une fois par lancement et journalise le résultat quoi qu'il arrive.
+Mesuré le 13/09 sur la machine de l'utilisateur, `"fluidityDiagnostics": false`
+dans `settings.json` :
+
+| Relevé | Nombre |
+|---|---|
+| Lignes « déclare N encodeurs vidéo » | 28 |
+| Lignes de cadence scrcpy | 0 |
+
+La case décochée, la partie cadence se taisait correctement et la partie
+encodeurs écrivait quand même. Le réglage s'attribuait un effet qui se produit
+sans lui.
+
+**Trois issues étaient possibles** : corriger la phrase, soumettre la ligne de
+journal des encodeurs à la case, ou retirer le réglage. La troisième a été
+retenue.
+
+**Ce que D117 défendait tient toujours, et ne suffisait plus.** Zéro image par
+seconde n'est pas un défaut, une jauge permanente aurait alarmé pour rien, et
+c'est pourquoi la cadence partait au journal. Le raisonnement est intact. Mais
+il justifiait la *forme* du réglage, pas son existence : un diagnostic qui écrit
+une ligne par seconde et par fenêtre, dont le nombre se lit à tort comme une
+panne, et dont la seconde promesse était fausse, coûte plus qu'il ne rend. C'est
+le même écartement de poids mort que D116 sur le réglage fin par compte.
+
+**Ce qui a été retiré**, en une fois : les trois clés dans les trois `.resx`, la
+case et son aide dans `ConfiguratorWindow.xaml`, la propriété et son gestionnaire
+dans `ConfiguratorViewModel`, `SetFluidityDiagnosticsAsync` et le mappage dans
+`SettingsService`, le champ persisté de `AppSettingsDocument`,
+`ScrcpyOptions.PrintFps` et le `--print-fps` du constructeur de commande.
+
+**Les réglages déjà enregistrés ne cassent pas.** `JsonDocumentStore` ne fixe pas
+`UnmappedMemberHandling`, donc la valeur par défaut, `Skip`, s'applique : le
+`"fluidityDiagnostics": false` resté dans les fichiers existants est ignoré à la
+lecture et disparaît à la prochaine écriture. Vérifié avant le retrait, parce que
+le commentaire de ce fichier garde la trace d'un cas où retirer un palier de
+qualité avait effacé les instances, les raccourcis et la géométrie des fenêtres
+de tous ceux qui l'avaient choisi.
+
+**Un test garde la porte.** `La_cadence_n_est_plus_jamais_demandee` vérifie
+qu'aucun `print-fps` ne repart dans la commande. Sans lui, le drapeau
+reviendrait le jour où quelqu'un relirait D117 sans lire ceci.
+
+**Ce qui n'a pas été fait.** `ProbeEncoders` reste inconditionnel et continue de
+journaliser ses 28 lignes. Ce n'est pas un diagnostic de confort : la liste sert
+à imposer un encodeur matériel au lancement suivant quand l'appareil met du
+logiciel devant, ce que D117 établit. La soumettre à une case l'aurait cassée.
+
+## D154 - Le son partait dans un périphérique dont le volume est à zéro
+
+**Date** : 2026-09-13
+
+« Son du tél envoyé sur le PC, j'ai l'impression que ça fonctionne pas. »
+
+**Le PC a été mis hors de cause en premier**, parce que deux téléphones muets à
+la fois le désignent. Sortie par défaut « Haut-parleurs », Realtek ALC897, seul
+point de sortie actif, non muet, à 74 %. Volume média des deux téléphones non
+nul, aucun mode Ne pas déranger. L'affectation de périphérique par application
+trouvée dans la base de registre pour le scrcpy de DT Hub pointe sur ce même
+Realtek : sans effet.
+
+**Une première lecture avait pourtant conclu l'inverse**, « muet, 0 % ». Elle
+était fausse : la déclaration de `IAudioEndpointVolume` portait un emplacement de
+trop, ce qui décale toute la table virtuelle, et `GetMute` lisait une autre
+méthode. L'exception levée au même moment le disait. Table remise dans l'ordre de
+`endpointvolume.h`, la mesure s'est inversée. **Un relevé qui lève une exception
+n'est pas un relevé.**
+
+**La mesure qui tranche**, sur le 13T Pro sous Android 16, le jeu jouant sa
+musique, en lisant la crête de la sortie Windows pendant que scrcpy tourne :
+
+| `--audio-source` | Crête Windows |
+|---|---|
+| `output`, le défaut de scrcpy | **0,0000** |
+| `playback` | **0,0945** |
+| `mic`, témoin | **0,7633** |
+
+Le témoin au micro porte tout le raisonnement : il prouve que le chemin de scrcpy
+jusqu'aux haut-parleurs du PC fonctionne, donc que le silence vient du téléphone.
+Sans lui, zéro ne voulait rien dire. Un second témoin, un fichier WAV joué sur le
+PC pendant la mesure, avait d'abord établi que le crête-mètre lui-même détecte
+quelque chose : 0,3562.
+
+**La cause.** `output` transfère tout le son en passant par le périphérique
+`remote_submix` d'Android. Sur ce téléphone, `dumpsys audio` donne pour le flux
+musique :
+
+```
+Current: 2 (speaker): 10, ... 8000 (remote_submix): 0, ...
+```
+
+Zéro. Ce qui est transféré est donc du silence, et **scrcpy ne signale rien**,
+puisque la capture a bel et bien démarré. DT Hub ne passait pas `--audio-source`
+et héritait de ce défaut.
+
+**Le correctif** : `--audio-source=playback` dès que le son est demandé. Le
+téléphone garde son haut-parleur, ce que `output` lui retire sans que personne
+l'ait demandé, et la capture rend ce que les applications autorisent. Le jeu
+autorise, c'est ce qui compte ici. Une application qui s'y soustrait, un service
+vidéo par exemple, restera muette sur le PC et rien n'y changera : YouTube a
+donné 0,0000 dans les mêmes conditions.
+
+**Le 9T Pro, sous Android 11, avait une autre cause**, établie séparément par un
+test à une seule variable : verrouillé, la capture est refusée avec
+`Failed to start audio capture` et le renvoi explicite d'Android 11 vers le
+déverrouillage ; déverrouillé, elle démarre sans un mot. Le téléphone était
+verrouillé aux dix lancements de la journée, ce que le journal de DT Hub dit déjà
+par ailleurs pour l'affichage.
+
+**Ce qui reste à faire, et qui n'est pas fait ici.** DT Hub ne dit toujours rien
+quand le son est refusé. Le mécanisme d'avis existe, c'est celui de
+`RecoveryNotice`, mais rien ne le déclenche pour l'audio. Sur le 9T Pro
+l'application a pourtant les deux moitiés de la réponse : elle lit l'état de
+verrouillage, et elle voit passer l'erreur de scrcpy. C'est un ajout distinct,
+pas un morceau de ce correctif.
+
+## D155 - La sonde d'encodeurs tuait le lancement qui l'avait déclenchée
+
+**Date** : 2026-09-13
+
+« Quand je lance une app du 9T Pro, ça me dit "Principal : la connexion avec le
+téléphone a échoué", et l'app ne se lance pas, je dois recliquer. »
+
+**Le défaut est antérieur au jour** : 24 occurrences de
+`ERROR: Server connection failed` dans le journal du 10/09, 15 le 12/09, 34 le
+13/09. Rien des changements du jour ne l'a causé, et il fallait le vérifier
+avant tout.
+
+**La première hypothèse était fausse**, et c'est ce qui a fait avancer. Sonde
+d'encodeurs lancée en même temps qu'une session ordinaire : trois essais, aucun
+échec. L'essai ne portait pas `--new-display`, que DT Hub passe toujours.
+
+**La reproduction, sur le Mi 9T Pro.** Deux ouvertures d'afficheur virtuel
+simultanées sur le même téléphone : une des deux échoue, **quatre fois sur
+quatre**. Espacées de 1,5 s : aucune, quatre fois sur quatre. Puis la
+combinaison réelle, `scrcpy --list-encoders` contre une session à afficheur
+virtuel : la session échoue **deux fois sur quatre**, la sonde survit toujours.
+
+Le journal dit la même chose à la milliseconde près : sonde terminée à
+20:49:42.267 sur `192.168.1.23:39365`, session échouée à 20:49:42.642 sur le
+même appareil.
+
+**La cause.** `GameLauncher.ProbeEncoders` démarre un scrcpy sur le téléphone,
+en `Task.Run` détaché, juste avant la boucle qui ouvre les fenêtres. La sonde
+pousse et démarre un serveur scrcpy exactement comme une ouverture, mais elle
+ne passait pas par `DeviceStartupGate`, qui sérialise précisément cela. Les
+deux partaient donc ensemble, et celle qui crée un afficheur perdait.
+
+**Pourquoi « je dois recliquer » était la description exacte.** La sonde est
+demandée une fois par appareil et par exécution, `_encodersAsked`. Elle ne
+pouvait donc coûter que le **premier** lancement sur chaque téléphone ; au
+second clic il n'y avait plus de sonde, et ça marchait.
+
+**Le correctif** : la sonde entre dans la même file que les ouvertures.
+`ListEncodersAsync` prend l'identifiant d'appareil en plus du numéro de série et
+acquiert le verrou. Elle attend son tour, ou fait attendre une ouverture d'une
+seconde, ce qui vaut mieux qu'un lancement perdu.
+
+**Ce qui n'a pas été fait.** L'avis reste affiché en bas de la liste et non sur
+la ligne concernée, ce qui a fait lire à l'utilisateur que le défaut venait du
+13T Pro alors que le journal désigne le 9T Pro. C'est un défaut de placement,
+distinct de celui-ci.
+
+## D156 - La source de son demandée n'existe pas avant Android 13
+
+**Date** : 2026-09-13
+
+Correction d'une régression introduite le jour même par D154. Le passage à
+`--audio-source=playback` a été appliqué à tous les téléphones. Sur le Mi 9T Pro
+sous Android 11, scrcpy répond :
+
+```
+[server] WARN: Audio disabled: audio playback capture source not supported before Android 13
+```
+
+**Il ne se rabat pas, il retire le son.** D154 avait corrigé le 13T Pro et cassé
+le 9T Pro, sans que rien à l'écran le dise, ce qui est exactement le travers que
+D154 dénonçait chez `output`.
+
+`--audio-source=playback` n'est donc demandé qu'à partir du niveau d'API 33,
+constante `AndroidRequirements.PlaybackAudioSdk`, à côté de celle qui garde déjà
+l'afficheur virtuel. En dessous, le défaut de scrcpy est laissé tel quel : il
+fonctionne là-bas, mesuré sur ce même 9T Pro une fois déverrouillé. Le niveau
+vient de la découverte, qui l'a déjà lu, et `ScrcpyOptions.DeviceSdkVersion` le
+porte jusqu'au constructeur de commande. Inconnu, on ne demande rien : c'est la
+bonne réponse pour un appareil dont on ne sait rien.

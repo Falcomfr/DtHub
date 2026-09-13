@@ -608,6 +608,69 @@ public class ScrcpySessionManagerTests
     }
 
     [Fact]
+    public async Task La_sonde_d_encodeurs_prend_le_verrou_de_l_appareil()
+    {
+        // Reproduced on the real device, Mi 9T Pro: "scrcpy
+        // --list-encoders" started at the same moment as a session that
+        // creates a virtual display makes the session fail, two times out
+        // of four, with "ERROR: Server connection failed". The probe
+        // always survives, the opening never does. Spacing the two by
+        // 1.5 s was enough for both to succeed, four times out of four.
+        //
+        // The probe pushes and starts a scrcpy server exactly as an
+        // opening does, so it belongs in the same queue. Outside it, the
+        // first launch touching a device would lose to the probe that the
+        // same click had just fired.
+        var process = new FakeProcessSession();
+        var launcher = new FakeProcessLauncher().Prepare(process);
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var probe = manager.ListEncodersAsync("MATERIEL123", "USB0001");
+
+        Assert.True(
+            await Eventually(() => manager.IsDeviceBusy("MATERIEL123")).ConfigureAwait(true),
+            "la sonde n'a pas pris le verrou de l'appareil.");
+
+        process.Exit(0);
+        await probe.ConfigureAwait(true);
+
+        Assert.True(
+            await Eventually(() => !manager.IsDeviceBusy("MATERIEL123")).ConfigureAwait(true),
+            "la sonde n'a pas rendu le verrou.");
+    }
+
+    [Fact]
+    public async Task Une_erreur_de_son_au_demarrage_ne_fait_pas_passer_la_fermeture_pour_une_panne()
+    {
+        // Captured on the real device, Mi 9T Pro under Android 11: scrcpy
+        // logs two audio errors at startup, opens all the same and mirrors
+        // for as long as one likes. Closing the game by hand then ended a
+        // session whose failure kind had stayed on Unknown since the first
+        // second, which reads as a link that dropped: the window reopened
+        // by itself, three times over.
+        var process = new FakeProcessSession().Emit(NewDisplayLine);
+        process.Emit("[server] ERROR: Failed to start audio capture", isError: true);
+        process.Emit(
+            "[server] ERROR: On Android 11, audio capture must be started in the foreground, "
+            + "make sure that the device is unlocked when starting scrcpy.",
+            isError: true);
+
+        var launcher = new FakeProcessLauncher().Prepare(process);
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var session = await manager
+            .StartAsync(Target(), ScrcpyOptions.Default, null, CancellationToken.None)
+            .ConfigureAwait(true);
+
+        process.Exit(0);
+
+        Assert.True(await Eventually(() => !session.IsAlive).ConfigureAwait(true), "la session est restée vivante.");
+        Assert.Equal(ScrcpySessionState.Stopped, session.State);
+        Assert.Equal(ScrcpyFailureKind.None, session.End.Failure);
+        Assert.False(SessionRecovery.Decide(session.End, attemptsAlready: 0).Retry);
+    }
+
+    [Fact]
     public async Task Une_session_qui_n_a_jamais_ouvert_ne_pretend_pas_avoir_tourne()
     {
         // No display line: startup times out without the session ever having

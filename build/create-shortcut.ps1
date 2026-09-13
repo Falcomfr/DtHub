@@ -1,10 +1,22 @@
 ﻿# Creates or refreshes the "DT Hub" desktop shortcut.
 #
-# The shortcut targets the launcher, not the binary. Targeting the binary
-# directly guaranteed nothing: it dated from the last publish, not from
-# the last edit, and you could play for hours on a stale version without
-# noticing. The launcher republishes first, which costs one second when
-# nothing has changed.
+# The shortcut targets build\lanceur.exe, not the binary and no longer
+# lancer.cmd. Targeting the binary guaranteed nothing: it dated from the
+# last publish, not from the last edit, and you could play for hours on a
+# stale version without noticing. Targeting the batch file fixed that and
+# cost a console, because Windows has to open one to interpret a .cmd and
+# the shortcut's "minimised" only decides how that window shows, not
+# whether it exists. The launcher is a WinExe: it republishes with no
+# window at all, which costs one second when nothing has changed.
+#
+# Publish it with:
+#
+#   dotnet publish build\lanceur\lanceur.csproj -c Release -r win-x64 `
+#     --self-contained false -p:PublishSingleFile=true
+#
+# then copy the single file to build\lanceur.exe. Publishing straight into
+# build\ does not work: MSBuild excludes the output folder from the
+# sources, and build\ holds the launcher's own source.
 #
 #   powershell -ExecutionPolicy Bypass -File build\create-shortcut.ps1
 #
@@ -21,13 +33,13 @@
 # Folder windows close, nothing else is touched.
 
 param(
-    [string]$Target = (Join-Path $PSScriptRoot 'lancer.cmd'),
+    [string]$Target = (Join-Path $PSScriptRoot 'lanceur.exe'),
     [string]$Icon = (Join-Path $PSScriptRoot '..\assets\app.ico'),
     [string]$Name = 'DtHub'
 )
 
 if (-not (Test-Path $Target)) {
-    Write-Error "Lanceur introuvable : $Target."
+    Write-Error "Lanceur introuvable : $Target. Publiez build\lanceur\lanceur.csproj."
     exit 1
 }
 
@@ -38,9 +50,9 @@ $shortcut.TargetPath = (Resolve-Path $Target).Path
 $shortcut.WorkingDirectory = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $shortcut.IconLocation = (Resolve-Path $Icon).Path
 
-# Minimised: the republish opens a console for a second, it should not
-# come up over the game.
-$shortcut.WindowStyle = 7
+# Normal. The launcher shows nothing, and the application places its own
+# window: there is no console left to hide.
+$shortcut.WindowStyle = 1
 
 $shortcut.Description = 'Ouvrir plusieurs comptes DOFUS Touch, toujours à la dernière version'
 $shortcut.Save()

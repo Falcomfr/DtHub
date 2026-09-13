@@ -73,6 +73,16 @@ public sealed record ScrcpyOptions
     /// </summary>
     public bool AudioEnabled { get; init; }
 
+    /// <summary>
+    /// API level of the phone this session targets, when it is known.
+    ///
+    /// Only the audio source depends on it, and only upwards: unknown
+    /// leaves scrcpy its own default, which is the safe answer for a
+    /// device we know nothing about. The launcher fills it from
+    /// discovery, which has already read it.
+    /// </summary>
+    public int? DeviceSdkVersion { get; init; }
+
     /// <summary>Two-way clipboard synchronisation.</summary>
     public bool ClipboardSyncEnabled { get; init; } = true;
 
@@ -172,16 +182,6 @@ public sealed record ScrcpyOptions
     /// hardware one. See <see cref="ScrcpyEncoders.Force" />.
     /// </summary>
     public string? VideoEncoder { get; init; }
-
-    /// <summary>
-    /// Asks scrcpy to write its frame rate, one line per second.
-    ///
-    /// Diagnostics only, off by default. **Zero frames per second is not a
-    /// fault**: scrcpy only encodes what changes, and a still screen produces
-    /// nothing. That is why this number goes to the log and not into a gauge,
-    /// which would raise an alarm for nothing.
-    /// </summary>
-    public bool PrintFps { get; init; }
 
     /// <summary>
     /// Codecs that scrcpy 4.1 accepts. A name outside this list makes it exit

@@ -134,6 +134,26 @@ public class ScrcpyOutputParserTests
     }
 
     [Theory]
+    [InlineData("[server] ERROR: Failed to start audio capture")]
+    [InlineData("[server] ERROR: On Android 11, audio capture must be started in the foreground, make sure that the device is unlocked when starting scrcpy.")]
+    [InlineData("ERROR: Demuxer 'audio': could not open codec")]
+    public void Une_erreur_de_son_n_est_pas_une_fin(string line)
+    {
+        // Captured on the real device, scrcpy 4.1, Mi 9T Pro under
+        // Android 11: the audio capture is refused at startup, the
+        // session opens anyway and runs on for as long as one likes.
+        // scrcpy only ends over audio when --require-audio is passed,
+        // and Le_son_n_est_jamais_exige guards that we never do.
+        //
+        // Taken for a refusal, this line used to set the failure kind
+        // to Unknown for the whole session, and closing the window by
+        // hand was then read as a link that had dropped: the window
+        // reopened three times before the application gave up.
+        Assert.True(ScrcpyOutputParser.IsError(line));
+        Assert.False(ScrcpyOutputParser.IsFatal(line));
+    }
+
+    [Theory]
     [InlineData("WARN: Frame skipped")]
     [InlineData("WARN: Demuxer error")]
     [InlineData("INFO: New display: 800x600/240 (id=33)")]

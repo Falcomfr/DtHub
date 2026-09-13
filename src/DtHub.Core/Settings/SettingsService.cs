@@ -269,7 +269,6 @@ public sealed class SettingsService : IDisposable
             // is recalculated at launch on the resolution actually
             // used, which follows the window size: that is where it
             // takes on its meaning.
-            PrintFps = settings.FluidityDiagnostics,
             MaxFps = profile.MaxFps,
             VideoBitrateKbps = profile.BitrateFor(
                 settings.VirtualDisplayWidth,
@@ -296,22 +295,6 @@ public sealed class SettingsService : IDisposable
     /// </summary>
     public Task SetAudioEnabledAsync(bool enabled, CancellationToken cancellationToken = default) =>
         UpdateAsync(settings => settings.AudioEnabled = enabled, cancellationToken);
-
-    /// <summary>Turns the fluidity diagnostics on or off.</summary>
-    public Task SetFluidityDiagnosticsAsync(bool value, CancellationToken cancellationToken = default) =>
-        UpdateIfChangedAsync(
-            settings =>
-            {
-                if (settings.FluidityDiagnostics == value)
-                {
-                    return false;
-                }
-
-                settings.FluidityDiagnostics = value;
-
-                return true;
-            },
-            cancellationToken);
 
     /// <summary>Remembers the chosen keyboard mode.</summary>
     public Task SetSimulatedPhysicalKeyboardAsync(

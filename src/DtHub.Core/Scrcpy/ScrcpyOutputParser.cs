@@ -109,6 +109,11 @@ public static partial class ScrcpyOutputParser
     /// </summary>
     public static bool IsFatal(string? line)
     {
+        if (IsAudio(line))
+        {
+            return false;
+        }
+
         if (IsError(line))
         {
             return true;
@@ -121,6 +126,35 @@ public static partial class ScrcpyOutputParser
 
         return line.Contains("device disconnected", StringComparison.OrdinalIgnoreCase);
     }
+
+    /// <summary>
+    /// True if the line speaks about sound and nothing else.
+    ///
+    /// **Measured on a real device**, scrcpy 4.1, Mi 9T Pro under
+    /// Android 11:
+    ///
+    /// <code>
+    /// [server] ERROR: Failed to start audio capture
+    /// [server] ERROR: On Android 11, audio capture must be started in the foreground, ...
+    /// </code>
+    ///
+    /// The word is "ERROR", and yet the session opens, mirrors and
+    /// keeps going for as long as one likes: scrcpy only gives up
+    /// over sound when <c>--require-audio</c> is passed, and
+    /// <c>ScrcpyCommandBuilder</c> never passes it. Counted as a
+    /// refusal, this startup line settled the failure kind on
+    /// <see cref="ScrcpyFailureKind.Unknown" /> for the whole
+    /// session, and closing the window by hand hours later was then
+    /// read as a link that had dropped. The window reopened by
+    /// itself, three times, before the application gave up.
+    ///
+    /// A phone that goes away while playing announces itself on its
+    /// own line, which does not speak about sound and still ends the
+    /// session.
+    /// </summary>
+    private static bool IsAudio(string? line) =>
+        !string.IsNullOrWhiteSpace(line)
+        && line.Contains("audio", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Sorts a scrcpy error line into a category. Recognition is

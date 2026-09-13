@@ -115,13 +115,28 @@ build/sonde-papycha/mise-en-page.js
 dotnet.exe publish src/DtHub.App -p:PublishProfile=win-x64 -o build\publish
 ```
 
-`build/lancer.cmd` replays this publish step and then opens the
+`build/lanceur.exe` replays this publish step and then opens the
 application. That is what the desktop shortcut targets, not the
 binary: targeting the binary guarantees nothing, it dates from the
 last publish and not from the last change. Measured: 1.1 s when
 nothing changed, 10.6 s otherwise. No step is blocking, a failed
 publish still launches the binary that is present.
 `build/create-shortcut.ps1` creates or updates this shortcut.
+
+It is a `WinExe`, and that is its reason for being: Windows opens a
+console to interpret a `.cmd`, and a shortcut's "minimised" decides
+only how that window shows, not whether it exists. `build/lancer.cmd`
+does the same work and remains for whoever launches from a terminal.
+
+The launcher is published by hand, and not into `build/`: MSBuild
+excludes the output folder from the sources, and `build/` holds the
+launcher's own source. Publish it, then copy the single file:
+
+```bash
+dotnet.exe publish build/lanceur/lanceur.csproj -c Release -r win-x64 \
+  --self-contained false -p:PublishSingleFile=true
+cp build/lanceur/bin/Release/net10.0-windows/win-x64/publish/lanceur.exe build/
+```
 
 The repository must stay buildable and the tests green at every
 commit. Zero warnings is the target: the .NET analyzers are active.

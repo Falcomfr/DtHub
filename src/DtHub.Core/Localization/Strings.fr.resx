@@ -541,15 +541,6 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
   <data name="InstanceZoomWaitsForReopen" xml:space="preserve">
     <value>Vaut à la prochaine ouverture de cette fenêtre</value>
   </data>
-  <data name="FluidityDiagnostics" xml:space="preserve">
-    <value>Consigner la cadence dans le journal</value>
-  </data>
-  <data name="FluidityDiagnosticsTip" xml:space="preserve">
-    <value>Demande à scrcpy d'écrire combien d'images par seconde chaque fenêtre reçoit réellement. À allumer seulement pour chercher d'où vient une saccade.</value>
-  </data>
-  <data name="FluidityDiagnosticsHelp" xml:space="preserve">
-    <value>Zéro image par seconde n'est pas un défaut : scrcpy n'encode que ce qui change, donc une image immobile ne produit rien. Le journal note aussi les encodeurs que le téléphone propose.</value>
-  </data>
   <data name="PlaytimeHours" xml:space="preserve">
     <value>{0} h {1} cette semaine</value>
   </data>

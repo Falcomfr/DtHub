@@ -329,6 +329,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     /// information, not a launch step.
     /// </summary>
     public async Task<IReadOnlyList<VideoEncoder>> ListEncodersAsync(
+        string deviceId,
         string serial,
         CancellationToken cancellationToken = default)
     {
@@ -348,6 +349,23 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                 Arguments = ScrcpyCommandBuilder.BuildListEncodersArguments(serial),
                 Environment = new Dictionary<string, string?> { ["ADB"] = adbPath },
             };
+
+            // The same queue as an opening, and for the same reason:
+            // this pushes and starts a scrcpy server on the phone.
+            //
+            // **Measured on a real device**, Mi 9T Pro: started at the
+            // same moment as a session that creates a virtual display,
+            // the probe survives and the session dies with
+            // "ERROR: Server connection failed", two times out of four.
+            // Spaced by 1.5 s, both succeed, four times out of four.
+            //
+            // The probe is asked once per device and per run, right
+            // before the loop that opens the windows, so what it used to
+            // cost was precisely the first launch on each phone. The
+            // second click worked, which is how this was reported.
+            await using var lease = await _gate
+                .EnterAsync(deviceId, cancellationToken)
+                .ConfigureAwait(false);
 
             await using var process = _launcher.Start(request);
 

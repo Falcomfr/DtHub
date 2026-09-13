@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- WinExe is the whole point of this project. Windows cannot run a
+         .cmd without opening a console to interpret it, so the shortcut
+         showed one on every launch: minimised, but present, and it took
+         the focus on its way past. A WinExe has no console at all. -->
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+
+    <!-- The symbols travel inside the file: what is published next to
+         DtHub.exe is one executable and nothing else. -->
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+</Project>

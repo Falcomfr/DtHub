@@ -541,15 +541,6 @@ Cruza las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
   <data name="InstanceZoomWaitsForReopen" xml:space="preserve">
     <value>Se aplicará la próxima vez que se abra esta ventana</value>
   </data>
-  <data name="FluidityDiagnostics" xml:space="preserve">
-    <value>Registrar la cadencia en el registro</value>
-  </data>
-  <data name="FluidityDiagnosticsTip" xml:space="preserve">
-    <value>Pide a scrcpy que escriba cuántas imágenes por segundo recibe realmente cada ventana. Actívalo solo para investigar un tirón.</value>
-  </data>
-  <data name="FluidityDiagnosticsHelp" xml:space="preserve">
-    <value>Cero imágenes por segundo no es un fallo: scrcpy solo codifica lo que cambia, así que una imagen inmóvil no produce nada. El registro anota también los codificadores que ofrece el teléfono.</value>
-  </data>
   <data name="PlaytimeHours" xml:space="preserve">
     <value>{0} h {1} esta semana</value>
   </data>

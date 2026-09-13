@@ -22,6 +22,17 @@ public static class AndroidRequirements
     /// </summary>
     public const int VirtualDisplaySdk = 30;
 
+    /// <summary>
+    /// Level from which scrcpy accepts <c>--audio-source=playback</c>.
+    ///
+    /// Below it the option does not fall back, it removes the sound:
+    /// measured on a Mi 9T Pro under Android 11, scrcpy answers
+    /// "Audio disabled: audio playback capture source not supported
+    /// before Android 13" and the session runs on in silence. Its own
+    /// default works there, so it is left alone.
+    /// </summary>
+    public const int PlaybackAudioSdk = 33;
+
     /// <summary>Name of this version, as it is said to the user.</summary>
     public const string VirtualDisplayVersion = "Android 11";
 
