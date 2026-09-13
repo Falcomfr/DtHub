@@ -219,6 +219,31 @@ Aucune ne sert d'identité au projet : ni icône, ni favicon, ni image d'aperçu
 Celles-là sont dessinées par `build/make-icon.py`. Et toutes sont retirables
 sans que la documentation cesse de se lire.
 
+## Ce que l'équipe DOFUS Touch a répondu
+
+Le projet lui a été présenté avant toute publication, vidéo de démonstration à
+l'appui, le 2026-09-07. La réponse est arrivée le lendemain, 2026-09-08.
+
+**Ce qu'elle dit.** Qu'en l'état, l'équipe ne voit pas de difficulté, à deux
+conditions : que le jeu ne soit pas altéré, et qu'aucune solution
+d'automatisation ne soit proposée. Ce sont exactement les deux limites que
+`CONTRIBUTING.md` pose déjà et que la feuille de route déclare hors périmètre
+pour toujours.
+
+**Ce qu'elle ne dit pas, et qu'il ne faut pas lui faire dire.** Ce n'est ni une
+validation, ni un partenariat, ni une approbation. L'équipe a précisé qu'elle ne
+ferait aucune promotion du projet, n'ayant aucun droit de regard dessus. DT Hub
+n'est pas affilié à Ankama, et la mention légale du README le dit dès sa
+première ligne.
+
+**« En l'état » est le mot qui compte.** L'absence d'objection porte sur
+l'application telle qu'elle a été montrée. Toute fonctionnalité qui altérerait
+le jeu ou automatiserait une action la ferait tomber. C'est pourquoi ces deux
+limites ne sont pas des priorités qu'on arbitre, mais des bornes du projet.
+
+La personne qui a répondu n'est pas nommée : elle l'a fait au titre de son
+équipe, et son pseudonyme n'a rien à faire dans un dépôt public.
+
 ## Ajouter une dépendance
 
 Avant d'ajouter un composant tiers :
