@@ -35,6 +35,12 @@ French.
   are read as before; the value is ignored and disappears on the next save.
 
 ### Fixed
+- **A launch that opened some windows said nothing about the ones it failed to
+  open.** Three out of five counted as a success. The two paths nobody watches,
+  the session resumed at startup and the window reopened after a drop, threw
+  their report away entirely: silence there was indistinguishable from success.
+  A launch report now always reaches the log, and the paths where someone is
+  waiting still say it on screen as well.
 - **A failed action vanished before it could be read, and a successful one
   erased a warning that was still true.** The banner was rebuilt whole on every
   sweep, every two to six seconds, from the health findings alone. A notice now

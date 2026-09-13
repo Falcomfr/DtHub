@@ -327,6 +327,14 @@ public partial class App : Application, IDisposable
                     ? string.Join(" ", report.Problems)
                     : "aucune instance à ouvrir.");
         }
+        else
+        {
+            // **A launch that opened something was silent about what
+            // it failed to open.** Three windows out of five counted
+            // as a success, and the two missing ones were explained
+            // nowhere.
+            LogLaunchProblems("Ouverture partielle", report);
+        }
     }
 
     /// <summary>
@@ -788,11 +796,34 @@ public partial class App : Application, IDisposable
 
         try
         {
-            await launcher.LaunchEnabledAsync().ConfigureAwait(true);
+            LogLaunchProblems(
+                "La reprise de la session",
+                await launcher.LaunchEnabledAsync().ConfigureAwait(true));
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
             Log.Warning(exception, "La reprise de la session a échoué.");
+        }
+    }
+
+    /// <summary>
+    /// Records what a launch reported, whoever asked for it.
+    ///
+    /// **A launch report is never discarded.** It used to go to the
+    /// banner from a button, to a dialog from another, to the log only
+    /// when nothing at all had opened, and nowhere from the two paths
+    /// nobody watches: the session resumed at startup and the window
+    /// reopened after a drop. Silence there is indistinguishable from
+    /// success.
+    ///
+    /// The log is the floor, not the ceiling: the paths where someone
+    /// is waiting also say it on screen.
+    /// </summary>
+    private static void LogLaunchProblems(string what, LaunchReport report)
+    {
+        if (report.Problems.Count > 0)
+        {
+            Log.Warning("{What} : {Problems}", what, string.Join(" ", report.Problems));
         }
     }
 
@@ -872,7 +903,9 @@ public partial class App : Application, IDisposable
         {
             await Task.Delay(request.Delay).ConfigureAwait(true);
 
-            _ = await launcher.LaunchAsync([request.Instance]).ConfigureAwait(true);
+            LogLaunchProblems(
+                "La réouverture",
+                await launcher.LaunchAsync([request.Instance]).ConfigureAwait(true));
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
