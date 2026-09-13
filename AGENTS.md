@@ -223,12 +223,14 @@ server for the whole machine. A test verifies this.
 
 - Identifiers in English.
 - **Language:** the repository is written in English. Documents, code
-  comments, commit messages, changelog entries, issue templates. Three
+  comments, commit messages, changelog entries, issue templates. Four
   things stay French and are not oversights: the commits made before
   2026-09-12, which cannot change without rewriting a public history;
   the test method names, which are a specification read in test output;
-  and the log messages, which are a diagnostic tool for whoever runs the
-  application. See `CONTRIBUTING.md` for the detail and the reason.
+  the log messages, which are a diagnostic tool for whoever runs the
+  application; and `docs/DECISIONS.md`, whose worth is its precision and
+  which new entries keep extending in French. See `CONTRIBUTING.md` for
+  the detail and the reason.
 - No em dash in produced texts.
 - Files in UTF-8, LF line endings in the repository.
 - `nullable` enabled everywhere. A caught error comes back out:

@@ -220,12 +220,13 @@ the app can compose a report with anything identifying you already redacted.
 Report a vulnerability privately, see [SECURITY.md](SECURITY.md).
 
 **The repository is written in English**: documents, comments, commit messages
-and issue templates. Three things stay French and are not oversights: the
+and issue templates. Four things stay French and are not oversights: the
 commits made before 2026-09-12, which cannot change without rewriting a public
 history, the test method names, which are a specification read in test output,
-and the log messages, which are a diagnostic tool for whoever runs the
-application. Conventions are set out in [CONTRIBUTING.md](CONTRIBUTING.md) and
-`AGENTS.md`.
+the log messages, which are a diagnostic tool for whoever runs the application,
+and [docs/DECISIONS.md](docs/DECISIONS.md), the project's own memory, whose
+worth is its precision. Conventions are set out in
+[CONTRIBUTING.md](CONTRIBUTING.md) and `AGENTS.md`.
 
 ## Licences
 

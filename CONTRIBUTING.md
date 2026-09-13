@@ -37,27 +37,33 @@ that is what makes them useful.
 comments, commit messages, release notes, issue templates. What cannot exist
 in two versions is written once, in English.
 
-Two things stay as they are, and it is better to say so than to hide it:
+Four things stay French on purpose, and it is better to name them than to
+let them read as oversights:
 
-- the **291 commits** made before 2026-09-12 are in French, and cannot change
-  now without rewriting a history that is already public. The file listing on
-  GitHub shows the last commit that touched each path, so those French
-  subjects keep showing until each file is touched again;
-- **test method names** are French phrases with underscores, and they are not
-  renamed. They are a specification, they are read in test output rather than
-  by a stranger arriving on the repository, and renaming nine hundred of them
-  would be churn with no reader served;
-- **log messages** stay French. A log is a diagnostic tool for whoever runs
-  the application, not a shop window, and this one is read by its author.
+- the **291 commits** made before 2026-09-12, which cannot change now without
+  rewriting a history that is already public. The file listing on GitHub
+  shows the last commit that touched each path, so those French subjects keep
+  showing until each file is touched again;
+- **test method names**, French phrases with underscores. They are a
+  specification, they are read in test output rather than by a stranger
+  arriving on the repository, and renaming nine hundred of them would be
+  churn with no reader served;
+- **log messages**. A log is a diagnostic tool for whoever runs the
+  application, not a shop window, and this one is read by its author;
+- **`docs/DECISIONS.md`**, four hundred kilobytes across a hundred and
+  forty-nine entries. Its worth is its precision, and a translation would
+  lose more of that than it would gain: it is the memory of the project,
+  read by whoever maintains it rather than by a visitor. New entries are
+  written in French too, so the file stays of a piece.
 
 What the user reads on screen never lives in the code at all: it goes through
 `src/DtHub.Core/Localization/Strings*.resx`, in the three languages the
 application ships.
 
 **Decisions get recorded.** An architecture choice, a trade off, something
-given up: that goes in `docs/DECISIONS.md`, with what was measured and what
-was set aside. It is the memory of the project and it is what keeps the same
-mistake from being made twice.
+given up: that goes in `docs/DECISIONS.md`, in French like the rest of that
+file, with what was measured and what was set aside. It is the memory of the
+project and it is what keeps the same mistake from being made twice.
 
 ## Reporting a problem
 
