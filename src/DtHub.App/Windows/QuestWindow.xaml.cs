@@ -881,6 +881,8 @@ public partial class QuestWindow : Window
         }
     }
 
+    private bool _indexingReported;
+
     /// <summary>
     /// Indexe, puis consigne la durée quand il y a eu quelque chose à indexer.
     ///
@@ -896,8 +898,15 @@ public partial class QuestWindow : Window
     {
         await _viewModel.InitializeAsync().ConfigureAwait(true);
 
-        if (_viewModel.LastIndexing is { } duree)
+        // Reported once, because LastIndexing stays set for the whole session
+        // while this method runs twice on the restore path: Show() raises
+        // Loaded, which indexes, and RestoreAsync then awaits IndexAsync again
+        // to be sure the catalogue is there. The second call indexes nothing
+        // and used to log the first call's duration a second time, which read
+        // as two indexings.
+        if (!_indexingReported && _viewModel.LastIndexing is { } duree)
         {
+            _indexingReported = true;
             LogIndexed(duree.TotalSeconds);
         }
     }
