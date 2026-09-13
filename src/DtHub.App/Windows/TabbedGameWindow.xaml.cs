@@ -200,6 +200,24 @@ public partial class TabbedGameWindow : Window
         Close();
     }
 
+    /// <summary>
+    /// Renomme un onglet déjà logé. Sans effet si ce compte n'est pas dans le
+    /// cadre, ce qui est le cas ordinaire d'une fenêtre libre.
+    ///
+    /// Le titre du cadre est repris ensuite : il porte le nom de l'onglet
+    /// montré, qui peut être celui qu'on vient de renommer.
+    /// </summary>
+    public void Rename(string key, string title)
+    {
+        if (Find(key) is not { } tab)
+        {
+            return;
+        }
+
+        tab.Title = title;
+        Retitle();
+    }
+
     private GameTabViewModel? Find(string key) =>
         Items.FirstOrDefault(t => string.Equals(t.Key, key, StringComparison.Ordinal));
 

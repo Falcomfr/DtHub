@@ -94,7 +94,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // lancement : sans cet abonnement, décocher la case en cours de partie
         // n'aurait rien changé avant le lancement suivant, et la fenêtre qu'on
         // ferme juste après aurait quand même tué le jeu.
-        _settings.Changed += (_, document) => _sessions.StopAppOnClose = document.StopAppOnClose;
+        // Renommer un compte se voyait dans la liste et nulle part ailleurs :
+        // le libellé de l'onglet était une copie prise au moment où la fenêtre
+        // avait été logée, et le titre d'une fenêtre libre venait de scrcpy au
+        // lancement. Il fallait fermer et rouvrir pour voir le nouveau nom.
+        _settings.Changed += (_, document) =>
+        {
+            _sessions.StopAppOnClose = document.StopAppOnClose;
+            ApplyRenames(document);
+        };
 
         // La fenêtre est placée avant l'ouverture du jeu, pour qu'il naisse à
         // la taille définitive.
@@ -2130,7 +2138,89 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         return _windows.Retitle(
             _sessions.ActiveSessions,
-            session => ScrcpyCommandBuilder.BuildWindowTitle(session.Target.DisplayName, hint));
+            session => ScrcpyCommandBuilder.BuildWindowTitle(CurrentName(session), hint));
+    }
+
+    /// <summary>
+    /// Le nom que porte ce compte maintenant, et non celui qu'il portait au
+    /// lancement.
+    ///
+    /// <c>LaunchTarget.DisplayName</c> est figé à l'ouverture, par construction :
+    /// c'est une cible, elle décrit ce qu'on a lancé. S'en servir pour réécrire
+    /// un titre reposait l'ancien nom, ce que faisait déjà le rafraîchissement
+    /// qui suit une modification de raccourci.
+    /// </summary>
+    private string CurrentName(ScrcpySession session) =>
+        _launched.TryGetValue(session.Target.Key, out var instance)
+            ? instance.DisplayName
+            : session.Target.DisplayName;
+
+    /// <summary>
+    /// Porte sur les fenêtres ouvertes les noms que les réglages viennent
+    /// d'écrire.
+    ///
+    /// **Rien n'est fait dans le cas ordinaire**, et il faut le dire : cet
+    /// évènement se lève à chaque écriture des réglages, dont la géométrie
+    /// d'une fenêtre qu'on déplace. Sans la comparaison que fait
+    /// <see cref="InstanceRenames"/>, un simple glissement de fenêtre ferait
+    /// réécrire tous les titres de toutes les fenêtres.
+    ///
+    /// Le geste ne s'attend pas : l'écriture des réglages n'a pas à retenir
+    /// l'interface, et une faute ici ne doit pas remonter dans le chemin de
+    /// sauvegarde.
+    /// </summary>
+    private void ApplyRenames(AppSettingsDocument document)
+    {
+        var open = _launched.Values
+            .Select(i => new OpenInstance(i.Key, i.UserName, i.DisplayName))
+            .ToList();
+
+        var pending = InstanceRenames.Pending(
+            open,
+            key => document.Instances
+                .Find(i => string.Equals(i.Key, key, StringComparison.Ordinal))
+                ?.CustomName);
+
+        if (pending.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var key in pending.Keys)
+        {
+            if (_launched.TryGetValue(key, out var instance))
+            {
+                // Le nom brut des réglages, et non celui qu'on affiche : un nom
+                // effacé doit rester effacé, pour que le repli sur le profil
+                // Android continue de valoir au renommage suivant.
+                _launched[key] = instance with
+                {
+                    CustomName = document.Instances
+                        .Find(i => string.Equals(i.Key, key, StringComparison.Ordinal))
+                        ?.CustomName,
+                };
+            }
+        }
+
+        _ = OnUiAsync(() =>
+        {
+            foreach (var (key, name) in pending)
+            {
+                _tabs?.Rename(key, name);
+            }
+        });
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                _ = await RefreshWindowTitlesAsync().ConfigureAwait(false);
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                LogRenameFailure(exception);
+            }
+        });
     }
 
     public async ValueTask DisposeAsync()
@@ -2962,6 +3052,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "Un geste sur le cadre à onglets n'a pas pu être traité.")]
     private partial void LogTabsFailure(Exception exception);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "Le nouveau nom n'a pas pu être posé sur les fenêtres ouvertes.")]
+    private partial void LogRenameFailure(Exception exception);
 
 
     [LoggerMessage(

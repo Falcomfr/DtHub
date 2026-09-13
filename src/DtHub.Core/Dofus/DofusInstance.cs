@@ -68,7 +68,17 @@ public sealed record DofusInstance
     /// même téléphone. Le nom du produit n'y figure pas : il est ajouté au
     /// titre de la fenêtre de jeu, pas ici.
     /// </summary>
-    public string DisplayName => string.IsNullOrWhiteSpace(CustomName)
-        ? UserName
-        : CustomName.Trim();
+    public string DisplayName => NameOf(CustomName, UserName);
+
+    /// <summary>
+    /// La règle de nom, seule et nommée, parce qu'elle sert aussi loin d'ici :
+    /// une fenêtre déjà ouverte doit pouvoir recalculer son titre à partir du
+    /// réglage qui vient de changer, sans avoir l'instance sous la main. Deux
+    /// copies de la règle, et un compte renommé porterait un nom dans la liste
+    /// et un autre sur sa fenêtre.
+    /// </summary>
+    /// <param name="customName">Le nom choisi par l'utilisateur, s'il y en a un.</param>
+    /// <param name="userName">Le nom du profil Android, qui sert de repli.</param>
+    public static string NameOf(string? customName, string userName) =>
+        string.IsNullOrWhiteSpace(customName) ? userName : customName.Trim();
 }

@@ -8082,3 +8082,50 @@ codée en dur, qui mentirait à la livraison suivante.
 **Le défaut attrapé, une fois de plus le même.** Trois documents affirmaient un
 comportement déduit. Il se trouve qu'ils avaient raison sur le fond, mais rien
 ne le garantissait, et ils avaient tort sur le détail.
+
+## D146 - Un nom affiché qui était une copie, et personne pour la tenir à jour
+
+**Date** : 2026-09-13
+
+Renommer un compte s'écrivait bien dans les réglages, se voyait dans la liste,
+et nulle part ailleurs. La fenêtre déjà ouverte gardait l'ancien nom jusqu'à sa
+réouverture.
+
+**Ce qui a trompé le relevé.** Deux comptes renommés, un seul faux. On pouvait
+croire à un cas particulier, à une course, à un compte abîmé. Ce n'était rien de
+tout cela : celui qui paraissait juste avait été renommé **avant** l'ouverture
+de sa fenêtre. Renommer avec la fenêtre ouverte ne remonte jamais, et renommer
+fenêtre fermée marche toujours. Deux situations, pas un hasard.
+
+**La cause.** `GameTabViewModel.Title` était posé dans le constructeur, à partir
+de `session.DisplayName`, lui-même une photographie de `LaunchTarget.DisplayName`
+qui est `init`. Aucun code ne réécrivait ce titre ensuite. L'évènement
+`SettingsService.Changed` existait pourtant, et `GameLauncher` y était déjà
+abonné : pour un seul champ, `StopAppOnClose`.
+
+**Le défaut était plus large que le symptôme rapporté.** En fenêtre libre, le
+titre vient de `--window-title` passé à scrcpy au lancement. Pire,
+`RefreshWindowTitlesAsync`, qui réécrit ces titres après une modification de
+raccourci, lisait lui aussi `Target.DisplayName` : il **reposait l'ancien nom**.
+Un compte renommé puis un raccourci modifié, et le nom revenait en arrière. Ce
+défaut-là n'a jamais été rapporté par personne.
+
+**La règle de nom est passée en un seul endroit.** `DofusInstance.NameOf` la
+porte, `DisplayName` l'appelle, et le recalcul d'une fenêtre ouverte aussi. Deux
+copies de cette règle et un compte porterait un nom dans la liste et un autre
+sur sa fenêtre, ce qui est exactement le défaut qu'on corrige.
+
+**Pourquoi `InstanceRenames` compare avant de rendre.** L'évènement des réglages
+se lève à chaque écriture, dont la géométrie d'une fenêtre qu'on déplace, c'est
+à dire plusieurs fois par minute. Sans comparaison, un glissement de souris
+ferait réécrire tous les titres de toutes les fenêtres ouvertes. Le cas ordinaire
+de cette fonction est de ne rien rendre.
+
+**Le piège éprouvé.** Effacer le nom ne doit pas laisser un onglet sans titre :
+il rend le nom du profil Android. Trois épreuves le tiennent, sur `null`, sur la
+chaîne vide et sur les espaces.
+
+**La famille de défaut, encore elle.** Une photographie présentée comme un état
+vivant. Le titre disait le nom du compte ; il disait le nom que le compte portait
+au lancement. Personne ne l'avait remarqué parce que les deux coïncident presque
+toujours.
