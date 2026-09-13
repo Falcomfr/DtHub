@@ -266,6 +266,7 @@
 
                   <StackPanel Grid.Column="5" VerticalAlignment="Center">
                     <TextBox Text="{Binding Name, UpdateSourceTrigger=LostFocus}" AllowDrop="False"
+                             KeyDown="OnRenameKey"
                              Style="{StaticResource InlineEdit}"
                              ToolTip="{loc:T RenameTip}" />
 

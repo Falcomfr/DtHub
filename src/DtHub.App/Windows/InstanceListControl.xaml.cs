@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -215,4 +216,37 @@ public partial class InstanceListControl : UserControl
 
     private static InstanceRowViewModel? Dragged(DragEventArgs e) =>
         e.Data.GetData(typeof(InstanceRowViewModel)) as InstanceRowViewModel;
+
+    /// <summary>
+    /// Applies the name being typed, or gives it up.
+    ///
+    /// The field writes on lost focus, which is what a TextBox does by
+    /// default, and nothing was bound to Enter. Applying a new name
+    /// therefore meant clicking somewhere else, and pressing Enter looked
+    /// like the rename had been ignored.
+    /// </summary>
+    private void OnRenameKey(object sender, KeyEventArgs e)
+    {
+        ArgumentNullException.ThrowIfNull(e);
+
+        if (sender is not TextBox field
+            || BindingOperations.GetBindingExpression(field, TextBox.TextProperty) is not { } binding)
+        {
+            return;
+        }
+
+        if (e.Key == Key.Enter)
+        {
+            binding.UpdateSource();
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Escape)
+        {
+            // Puts the stored name back in the field. Without it, giving up
+            // on a half typed name means remembering the old one and typing
+            // it again.
+            binding.UpdateTarget();
+            e.Handled = true;
+        }
+    }
 }

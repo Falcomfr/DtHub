@@ -36,6 +36,20 @@ French.
 
 ### Fixed
 
+- **A renamed account went back to its old name a few seconds later.** The
+  list keeps the accounts it last discovered, and every setting written from a
+  row throws that copy away so the next sweep cannot put the old value back.
+  The rename was the one that did not, so two to six seconds later the row was
+  handed the stale copy and quietly took its old name again. The name on disk
+  was right the whole time, which is why it came back on its own fifteen to
+  sixty seconds later. A rename that fails to save now says so, as the other
+  settings already did.
+
+- **Pressing Enter on a renamed account did nothing.** The field wrote when it
+  lost focus, so a name was only applied by clicking somewhere else. Enter
+  applies it now, and Escape puts the stored name back rather than leaving you
+  to remember what it was.
+
 - **The first launch on a phone sometimes did nothing and had to be clicked
   again.** Opening a window asks the phone once per run what it can encode, and
   that question starts a scrcpy server just as an opening does. The two were

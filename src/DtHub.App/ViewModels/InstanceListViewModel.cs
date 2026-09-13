@@ -1366,9 +1366,26 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
     private async void OnNameChanged(object? sender, InstanceRowViewModel row)
     {
+        ArgumentNullException.ThrowIfNull(row);
+
         try
         {
             await _settings.RenameInstanceAsync(row.Key, row.Name).ConfigureAwait(true);
+
+            // Same trap as for the tier and the distance, and the one this
+            // handler was the only one not to avoid. The cached list still
+            // carries the old name, and Update puts it back on the row at the
+            // next sweep, two to six seconds later; the written name then only
+            // returns at the next full rediscovery, fifteen to sixty seconds
+            // further on. D150 named this trap and spared the other settings
+            // from it.
+            _instances = null;
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // The siblings all report a failed write. This one swallowed it,
+            // so a rename that never reached the disk looked like one that had.
+            Problem = exception.Message;
         }
         finally
         {
