@@ -1,15 +1,17 @@
 ﻿namespace DtHub.Core.Devices;
 
 /// <summary>
-/// Lecture des propriétés système d'un téléphone. Chaque information utile
-/// existe sous plusieurs clés selon le constructeur : on les essaie dans
-/// l'ordre plutôt que de supposer un fabricant particulier.
+/// Reading a phone's system properties. Each useful piece of
+/// information exists under several keys depending on the
+/// manufacturer: they are tried in order rather than assuming a
+/// particular manufacturer.
 /// </summary>
 public static class DeviceProperties
 {
     /// <summary>
-    /// Numéro de série matériel. C'est la seule identité qui survit au passage
-    /// de l'USB au Wi-Fi, où le numéro de série ADB devient une adresse.
+    /// Hardware serial number. It is the only identity that
+    /// survives the move from USB to Wi-Fi, where the ADB serial
+    /// number becomes an address.
     /// </summary>
     public static readonly string[] SerialKeys =
     [
@@ -19,8 +21,8 @@ public static class DeviceProperties
     ];
 
     /// <summary>
-    /// Nom commercial. Absent chez plusieurs constructeurs, d'où le repli
-    /// final sur le modèle technique.
+    /// Commercial name. Missing for several manufacturers, hence
+    /// the final fallback to the technical model.
     /// </summary>
     public static readonly string[] MarketNameKeys =
     [
@@ -57,8 +59,9 @@ public static class DeviceProperties
     public const string SdkVersionKey = "ro.build.version.sdk";
 
     /// <summary>
-    /// Première valeur non vide parmi les clés proposées. Les valeurs de
-    /// remplissage renvoyées par Android, comme <c>unknown</c>, sont écartées.
+    /// First non-empty value among the proposed keys. Placeholder
+    /// values returned by Android, such as <c>unknown</c>, are
+    /// discarded.
     /// </summary>
     public static string? FirstValue(
         IReadOnlyDictionary<string, string>? properties,
@@ -80,7 +83,9 @@ public static class DeviceProperties
         return null;
     }
 
-    /// <summary>Numéro de série matériel, ou <c>null</c> s'il est masqué.</summary>
+    /// <summary>
+    /// Hardware serial number, or <c>null</c> if it is hidden.
+    /// </summary>
     public static string? ReadHardwareSerial(IReadOnlyDictionary<string, string>? properties) =>
         FirstValue(properties, SerialKeys);
 
@@ -99,7 +104,10 @@ public static class DeviceProperties
     public static string? ReadAndroidRelease(IReadOnlyDictionary<string, string>? properties) =>
         FirstValue(properties, AndroidReleaseKey);
 
-    /// <summary>Niveau d'API, ou <c>null</c> si la propriété est absente ou illisible.</summary>
+    /// <summary>
+    /// API level, or <c>null</c> if the property is missing or
+    /// unreadable.
+    /// </summary>
     public static int? ReadSdkVersion(IReadOnlyDictionary<string, string>? properties)
     {
         var raw = FirstValue(properties, SdkVersionKey);

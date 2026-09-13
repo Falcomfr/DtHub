@@ -14,8 +14,8 @@ using Serilog;
 namespace DtHub.App.Windows;
 
 /// <summary>
-/// Le configurateur : une fenêtre flottante, au-dessus des fenêtres de jeu,
-/// que le raccourci affiche ou masque. La fermer ne quitte pas l'application.
+/// The configurator: a floating window, above the game windows, that the
+/// shortcut shows or hides. Closing it does not quit the application.
 /// </summary>
 public partial class ConfiguratorWindow : Window
 {
@@ -39,16 +39,16 @@ public partial class ConfiguratorWindow : Window
 
         Loaded += async (_, _) => await _viewModel.LoadAsync(CancellationToken.None).ConfigureAwait(true);
 
-        // Le sondage suit la visibilité, et non le chargement. Il ne s'arrêtait
-        // jamais : la croix masque au lieu de fermer, donc OnClosing rendait la
-        // main avant le Stop, et Toggle masque sans passer par là du tout. Un
-        // panneau caché continuait donc d'interroger le téléphone.
+        // The polling follows visibility, not loading. It used to never stop:
+        // the close button hides instead of closing, so OnClosing returned
+        // control before Stop, and Toggle hides without going through there
+        // at all. A hidden panel therefore kept polling the phone.
         //
-        // Ce que cela coûtait, mesuré : un tic déclenche jusqu'à sept appels à
-        // adb.exe, à cinquante-cinq millisecondes pièce. Sur une soirée de
-        // quatre heures avec le panneau masqué, cela fait des milliers de
-        // lancements pour une fenêtre que personne ne regarde, chacun
-        // réveillant le gestionnaire de paquets du téléphone.
+        // What this cost, measured: one tick triggers up to seven calls to
+        // adb.exe, at fifty-five milliseconds each. Over a four-hour evening
+        // with the panel hidden, that is thousands of launches for a window
+        // nobody is looking at, each one waking up the phone's package
+        // manager.
         IsVisibleChanged += async (_, e) =>
         {
             if (e.NewValue is not true)
@@ -59,20 +59,20 @@ public partial class ConfiguratorWindow : Window
 
             _poll.Start();
 
-            // Et tout de suite, sans attendre le premier tic : celui-ci vient
-            // trois secondes plus tard, et pendant ces trois secondes le
-            // panneau n'aurait rien à dire de la liaison alors que c'est la
-            // première chose qu'on vient y lire.
+            // And right away, without waiting for the first tick: that one
+            // comes three seconds later, and during those three seconds the
+            // panel would have nothing to say about the connection, when
+            // that is the very first thing one comes here to read.
             await PollSafelyAsync().ConfigureAwait(true);
         };
 
         _poll.Interval = _viewModel.Instances.PollInterval;
         _poll.Tick += async (_, _) =>
         {
-            // La cadence suit le palier de qualité, qui se change en cours de
-            // route : posée une fois pour toutes au démarrage, elle gardait sa
-            // valeur d'origine jusqu'à la prochaine exécution, et le réglage
-            // n'avait aucun effet.
+            // The rate follows the quality tier, which can change while
+            // running: set once and for all at startup, it kept its original
+            // value until the next run, and the setting had no effect at
+            // all.
             if (_poll.Interval != _viewModel.Instances.PollInterval)
             {
                 _poll.Interval = _viewModel.Instances.PollInterval;
@@ -81,10 +81,10 @@ public partial class ConfiguratorWindow : Window
             await PollSafelyAsync().ConfigureAwait(true);
         };
 
-        // Le temps mort après un branchement absorbe la rafale : Windows
-        // diffuse le changement plusieurs fois pendant qu'il énumère, et il
-        // faut de toute façon le laisser finir avant qu'ADB ait quelque chose
-        // à voir. Une seconde, une seule interrogation.
+        // The dead time after a connection absorbs the burst: Windows
+        // broadcasts the change several times while it enumerates, and it
+        // has to be allowed to finish anyway before ADB has anything to see.
+        // One second, one single poll.
         _afterDeviceChange.Tick += async (_, _) =>
         {
             _afterDeviceChange.Stop();
@@ -98,12 +98,12 @@ public partial class ConfiguratorWindow : Window
     private readonly DispatcherTimer _afterDeviceChange = new() { Interval = TimeSpan.FromSeconds(1) };
 
     /// <summary>
-    /// Un balayage borné, et c'est le rythme qui l'exige. Le balayage n'attrape
-    /// que les fautes d'ADB ; toute autre s'échapperait d'une lambda
-    /// « async void », atteindrait le garde-fou du répartiteur, et ouvrirait
-    /// une fenêtre d'erreur toutes les trois secondes. Une panne durable
-    /// rendrait alors l'application inutilisable par son propre message. Le
-    /// journal la retient, le tic suivant réessaie.
+    /// A bounded poll, and it is the pace that demands it. The poll only
+    /// catches ADB failures; any other would escape an "async void" lambda,
+    /// reach the dispatcher's safety net, and open an error window every
+    /// three seconds. A lasting failure would then make the application
+    /// unusable by its own message. The log keeps it, the next tick
+    /// retries.
     /// </summary>
     private async Task PollSafelyAsync()
     {
@@ -118,20 +118,23 @@ public partial class ConfiguratorWindow : Window
     }
 
     /// <summary>
-    /// Handle natif, retenu une fois pour toutes. Il est consulté depuis le
-    /// fil des raccourcis, qui n'a pas le droit d'interroger une fenêtre WPF.
+    /// Native handle, kept once and for all. It is read from the hotkey
+    /// thread, which is not allowed to query a WPF window.
     /// </summary>
     public nint Handle { get; private set; }
 
     private readonly WindowPlacements _placements;
 
     /// <summary>
-    /// Vrai quand la fenêtre a retrouvé une place retenue. Le placement par
-    /// défaut, qui l'écarte du bloc de jeu, s'efface alors devant elle.
+    /// True when the window has recovered a remembered placement. The
+    /// default placement, which moves it away from the game block, then
+    /// gives way to it.
     /// </summary>
     public bool Placed { get; private set; }
 
-    /// <summary>Remet la fenêtre où elle était, et dit si elle l'a été.</summary>
+    /// <summary>
+    /// Puts the window back where it was, and says whether it was.
+    /// </summary>
     public bool RestorePlacement(AppSettingsDocument document)
     {
         Placed = _placements.Restore(this, WindowPlacements.Configurator, document);
@@ -139,24 +142,24 @@ public partial class ConfiguratorWindow : Window
         return Placed;
     }
 
-    /// <summary>Retient où est la fenêtre.</summary>
+    /// <summary>Remembers where the window is.</summary>
     public Task SavePlacementAsync() =>
         _placements.SaveAsync(this, WindowPlacements.Configurator);
 
     /// <summary>
-    /// Branche un téléphone, et le balayage part tout de suite.
+    /// Plug in a phone, and the poll starts right away.
     ///
-    /// Le sondage périodique suit la visibilité du panneau, pour de bonnes
-    /// raisons dites plus haut : un tic déclenche jusqu'à sept lancements
-    /// d'adb.exe, et des milliers par soirée pour une fenêtre que personne ne
-    /// regarde. Mais panneau masqué, plus rien ne regardait non plus : un câble
-    /// branché n'était vu qu'au retour du panneau. Relevé sur un cas réel, un
-    /// branchement n'a laissé aucune ligne de journal.
+    /// The periodic poll follows the panel's visibility, for the good
+    /// reasons stated above: one tick triggers up to seven launches of
+    /// adb.exe, and thousands per evening for a window nobody is looking
+    /// at. But with the panel hidden, nothing was watching either: a
+    /// plugged-in cable was only seen once the panel came back. Recorded
+    /// on a real case, a connection left no log line at all.
     ///
-    /// Ce message-ci ne coûte rien tant qu'il ne se passe rien : Windows le
-    /// diffuse, nous n'interrogeons personne. Il rend donc au panneau masqué
-    /// exactement ce qui lui manquait, sans reprendre ce que la mesure avait
-    /// fait retirer.
+    /// This message costs nothing as long as nothing happens: Windows
+    /// broadcasts it, we query nobody. It therefore gives the hidden panel
+    /// exactly what it was missing, without taking back what the
+    /// measurement had removed.
     /// </summary>
     private nint OnWindowMessage(nint hwnd, int msg, nint wParam, nint lParam, ref bool handled)
     {
@@ -169,7 +172,7 @@ public partial class ConfiguratorWindow : Window
         return 0;
     }
 
-    /// <summary>Affiche ou masque la fenêtre, selon son état.</summary>
+    /// <summary>Shows or hides the window, depending on its state.</summary>
     public void Toggle()
     {
         if (IsVisible)
@@ -183,13 +186,13 @@ public partial class ConfiguratorWindow : Window
     }
 
     /// <summary>
-    /// Pose la fenêtre dans un coin libre, à l'opposé du bloc de jeu, pour
-    /// qu'elle ne recouvre pas les fenêtres du jeu.
+    /// Places the window in a free corner, opposite the game block, so
+    /// that it does not cover the game windows.
     /// </summary>
     public void PlaceAwayFrom(WindowAnchor gameAnchor)
     {
-        // Une place retenue l'emporte : elle vient d'un déplacement voulu,
-        // tandis que celle-ci n'est qu'un défaut raisonnable.
+        // A remembered placement wins: it comes from a deliberate move,
+        // whereas this one is only a reasonable default.
         if (Placed)
         {
             return;
@@ -207,17 +210,18 @@ public partial class ConfiguratorWindow : Window
 
         var rect = WindowLayoutCalculator.Place(area, width, height, WindowAnchors.Opposite(gameAnchor));
 
-        // Une petite marge évite que la fenêtre colle au bord de l'écran.
+        // A small margin keeps the window from sticking to the screen edge.
         const int margin = 12;
 
         Left = (rect.X + (rect.X > area.X ? -margin : margin)) / scale.DpiScaleX;
         Top = (rect.Y + margin) / scale.DpiScaleY;
     }
 
-    /// <summary>Ferme réellement l'application.</summary>
+    /// <summary>Actually closes the application.</summary>
     /// <summary>
-    /// Quitte l'application. L'état de la session est enregistré avant, et
-    /// l'attente est nécessaire : l'arrêt courrait sinon contre l'écriture.
+    /// Quits the application. The session state is saved beforehand, and
+    /// the wait is necessary: otherwise the shutdown would race against
+    /// the write.
     /// </summary>
     private async void OnQuit(object sender, RoutedEventArgs e)
     {
@@ -236,9 +240,9 @@ public partial class ConfiguratorWindow : Window
     }
 
     /// <summary>
-    /// Que faire quand l'image passe mais que rien ne répond. Le symptôme est
-    /// silencieux par nature : aucune erreur n'est levée, et sans cette porte
-    /// la personne n'a rien à quoi se raccrocher.
+    /// What to do when the picture comes through but nothing responds. The
+    /// symptom is silent by nature: no error is raised, and without this
+    /// door the person has nothing to hold on to.
     /// </summary>
     private void OnInputHelp(object sender, RoutedEventArgs e)
     {
@@ -247,7 +251,7 @@ public partial class ConfiguratorWindow : Window
         help.ShowDialog();
     }
 
-    /// <summary>Ouvre l'éditeur de raccourcis, puis relit ce qui a changé.</summary>
+    /// <summary>Opens the hotkey editor, then rereads what changed.</summary>
     private async void OnEditHotkeys(object sender, RoutedEventArgs e)
     {
         var editor = AppHost.Services.GetRequiredService<HotkeyEditorWindow>();
@@ -257,10 +261,10 @@ public partial class ConfiguratorWindow : Window
         await _viewModel.RefreshHotkeysAsync(CancellationToken.None).ConfigureAwait(true);
     }
 
-    /// <summary>Ouvre la fenêtre d'ajout, puis rafraîchit la liste.</summary>
+    /// <summary>Opens the add window, then refreshes the list.</summary>
     /// <summary>
-    /// Ouvre le panneau sur l'onglet des appareils. Employé au premier
-    /// lancement, où c'est le seul endroit qui ait quelque chose à dire.
+    /// Opens the panel on the devices tab. Used on first launch, where
+    /// it is the only place that has anything to say.
     /// </summary>
     public void ShowDevices()
     {
@@ -271,11 +275,11 @@ public partial class ConfiguratorWindow : Window
     }
 
     /// <summary>
-    /// Ouvre la fenêtre d'association, comme le ferait le bouton.
+    /// Opens the pairing window, as the button would.
     ///
-    /// Différée : appelée pendant le démarrage, elle bloquerait la suite sur sa
-    /// boucle modale, et le suivi de quêtes comme la mise à jour attendraient
-    /// qu'on ait fini d'associer un téléphone.
+    /// Deferred: called during startup, it would block what follows on its
+    /// modal loop, and quest tracking as well as the update would wait
+    /// until pairing a phone was finished.
     /// </summary>
     public void BeginPairing() =>
         _ = Dispatcher.BeginInvoke(
@@ -300,9 +304,9 @@ public partial class ConfiguratorWindow : Window
     }
 
     /// <summary>
-    /// Message que Windows diffuse quand l'arborescence des périphériques
-    /// change. Il arrive aux fenêtres de premier niveau sans inscription
-    /// préalable, et une fenêtre masquée le reçoit comme les autres.
+    /// Message that Windows broadcasts when the device tree changes. It
+    /// reaches top-level windows without prior registration, and a hidden
+    /// window receives it just like the others.
     /// </summary>
     private const int WmDeviceChange = 0x0219;
 
@@ -322,7 +326,7 @@ public partial class ConfiguratorWindow : Window
 
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
-        // La croix masque, elle ne quitte pas : le jeu continue de tourner.
+        // The close button hides, it does not quit: the game keeps running.
         if (!_quitting)
         {
             e.Cancel = true;

@@ -1,31 +1,35 @@
 ﻿namespace DtHub.Core.Adb;
 
 /// <summary>
-/// État rapporté par <c>adb devices</c>. La valeur brute est conservée à côté
-/// pour ne rien perdre lorsqu'ADB introduit un état que nous ne connaissons
-/// pas encore.
+/// State reported by <c>adb devices</c>. The raw value is kept
+/// alongside so nothing is lost when ADB introduces a state we do
+/// not know yet.
 /// </summary>
 public enum AdbDeviceState
 {
-    /// <summary>État non reconnu. La chaîne d'origine reste disponible.</summary>
+    /// <summary>
+    /// Unrecognized state. The original string remains available.
+    /// </summary>
     Unknown = 0,
 
-    /// <summary>Prêt à recevoir des commandes.</summary>
+    /// <summary>Ready to receive commands.</summary>
     Device,
 
-    /// <summary>Connu mais injoignable : câble débranché, Wi-Fi coupé, veille.</summary>
+    /// <summary>
+    /// Known but unreachable: cable unplugged, Wi-Fi off, sleep.
+    /// </summary>
     Offline,
 
-    /// <summary>La clé RSA n'a pas encore été acceptée sur le téléphone.</summary>
+    /// <summary>The RSA key has not yet been accepted on the phone.</summary>
     Unauthorized,
 
-    /// <summary>Autorisation en cours de négociation.</summary>
+    /// <summary>Authorization currently being negotiated.</summary>
     Authorizing,
 
-    /// <summary>Connexion TCP en cours.</summary>
+    /// <summary>TCP connection in progress.</summary>
     Connecting,
 
-    /// <summary>Le pilote USB refuse l'accès à l'appareil.</summary>
+    /// <summary>The USB driver refuses access to the device.</summary>
     NoPermissions,
 
     Bootloader,
@@ -34,6 +38,6 @@ public enum AdbDeviceState
     Rescue,
     Host,
 
-    /// <summary>Le port existe mais aucun appareil ne répond.</summary>
+    /// <summary>The port exists but no device responds.</summary>
     Detached,
 }

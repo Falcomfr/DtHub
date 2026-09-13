@@ -1,16 +1,22 @@
 ﻿namespace DtHub.Core.Adb;
 
-/// <summary>Manière dont l'appareil est rattaché à l'hôte.</summary>
+/// <summary>How the device is attached to the host.</summary>
 public enum AdbConnectionKind
 {
     Unknown = 0,
 
-    /// <summary>Câble USB.</summary>
+    /// <summary>USB cable.</summary>
     Usb,
 
-    /// <summary>Débogage sans fil, le numéro de série est une adresse et un port.</summary>
+    /// <summary>
+    /// Wireless debugging, the serial number is an address and a
+    /// port.
+    /// </summary>
     Wireless,
 
-    /// <summary>Émulateur local, hors périmètre fonctionnel mais détecté proprement.</summary>
+    /// <summary>
+    /// Local emulator, outside the functional scope but detected
+    /// cleanly.
+    /// </summary>
     Emulator,
 }

@@ -5,8 +5,8 @@ using DtHub.Core.Localization;
 namespace DtHub.App.Services;
 
 /// <summary>
-/// Boîtes de dialogue, isolées derrière une interface pour que les vues-modèles
-/// n'appellent pas directement l'interface graphique.
+/// Dialog boxes, isolated behind an interface so that view models
+/// do not call the graphical interface directly.
 /// </summary>
 public interface IDialogService
 {
@@ -16,39 +16,42 @@ public interface IDialogService
 
     bool Confirm(string message, string? title = null);
 
-    /// <summary>Demande une réponse à trois branches, pour la politique de sortie.</summary>
+    /// <summary>Asks for a three-way answer, for the exit policy.</summary>
     bool? ConfirmWithCancel(string message, string? title = null);
 
-    /// <summary>Ouvre l'explorateur sur un dossier.</summary>
+    /// <summary>Opens the file explorer on a folder.</summary>
     void OpenFolder(string path);
 
     /// <summary>
-    /// Demande où écrire un fichier, ou <c>null</c> si l'on renonce.
+    /// Asks where to write a file, or <c>null</c> if canceled.
     /// </summary>
     string? AskWhereToSave(string suggestedName, string filter, string title);
 
     /// <summary>
-    /// Demande quel fichier lire, ou <c>null</c> si l'on renonce.
+    /// Asks which file to read, or <c>null</c> if canceled.
     /// </summary>
     string? AskWhichFileToRead(string filter, string title);
 
-    /// <summary>Ouvre une adresse dans le navigateur par défaut.</summary>
+    /// <summary>Opens an address in the default browser.</summary>
     void OpenUrl(string url);
 
-    /// <summary>Place un texte dans le presse-papiers de Windows.</summary>
+    /// <summary>Places text on the Windows clipboard.</summary>
     void CopyToClipboard(string text);
 
     /// <summary>
-    /// Demande une ligne de texte, ou <c>null</c> si l'on renonce.
+    /// Asks for a line of text, or <c>null</c> if canceled.
     ///
-    /// Rend la saisie telle quelle : c'est à l'appelant de décider ce qu'un
-    /// texte vide ou trop long veut dire chez lui.
+    /// Returns the input as-is: it is up to the caller to decide
+    /// what an empty or overly long text means for it.
     /// </summary>
     /// <param name="details">
-    /// Ce que le geste va retenir, annoncé au-dessus du champ. Facultatif :
-    /// une question qui se suffit à elle-même n'en a pas besoin.
+    /// What the action will remember, announced above the field.
+    /// Optional: a question that is self-sufficient does not need
+    /// it.
     /// </param>
-    /// <param name="acceptLabel">Le mot du bouton, « Enregistrer » à défaut.</param>
+    /// <param name="acceptLabel">
+    /// The button's word, "Save" by default.
+    /// </param>
     string? PromptText(
         string question,
         string? initial = null,
@@ -57,7 +60,7 @@ public interface IDialogService
         string? acceptLabel = null);
 }
 
-/// <summary>Implémentation WPF.</summary>
+/// <summary>WPF implementation.</summary>
 public sealed class DialogService : IDialogService
 {
     public string? PromptText(
@@ -139,8 +142,8 @@ public sealed class DialogService : IDialogService
 
     public void OpenUrl(string url)
     {
-        // Seules les adresses sécurisées sont ouvertes : rien ne justifie
-        // d'envoyer l'utilisateur sur du texte clair.
+        // Only secure addresses are opened: nothing justifies
+        // sending the user to plain text.
         if (Uri.TryCreate(url, UriKind.Absolute, out var uri)
             && string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.Ordinal))
         {
@@ -156,8 +159,8 @@ public sealed class DialogService : IDialogService
         }
         catch (System.Runtime.InteropServices.COMException)
         {
-            // Le presse-papiers est momentanément verrouillé par un autre
-            // logiciel : ce n'est pas une raison de faire échouer l'action.
+            // The clipboard is momentarily locked by another
+            // program: that is not a reason to fail the action.
             ShowWarning(Strings.Get("ClipboardBusy"));
         }
     }

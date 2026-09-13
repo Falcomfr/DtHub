@@ -11,17 +11,18 @@ using Microsoft.Extensions.Logging;
 namespace DtHub.Infrastructure.Android;
 
 /// <summary>
-/// Extrait l'icône d'une application depuis son archive sur le téléphone, et
-/// la garde.
+/// Extracts an application's icon from its archive on the phone,
+/// and keeps it.
 ///
-/// Trois commandes suffisent, et aucune ne transfère l'archive : <c>pm path</c>
-/// dit où elle est, <c>unzip -l</c> dit ce qu'elle contient, et
-/// <c>exec-out unzip -p</c> en tire la seule entrée voulue. Mesuré sur le jeu
-/// visé, dix-sept kilooctets passent pour une archive de quatorze mégaoctets
-/// qui, elle, ne bouge pas.
+/// Three commands are enough, and none of them transfers the
+/// archive: <c>pm path</c> says where it is, <c>unzip -l</c> says
+/// what it contains, and <c>exec-out unzip -p</c> pulls out just
+/// the one entry we want. Measured on the targeted game, seventeen
+/// kilobytes pass through for a fourteen-megabyte archive that,
+/// itself, never moves.
 ///
-/// Rien de tout cela n'est indispensable, et c'est ce qui dicte la forme :
-/// chaque échec rend <c>null</c> en silence.
+/// None of this is essential, and that is what dictates the shape:
+/// every failure silently returns <c>null</c>.
 /// </summary>
 public sealed partial class AppIconProvider : IAppIconProvider
 {
@@ -42,13 +43,16 @@ public sealed partial class AppIconProvider : IAppIconProvider
     }
 
     /// <summary>
-    /// Délai avant de retenter une extraction qui a échoué pour une raison
-    /// passagère. Un téléphone en pleine reconnexion ne doit pas condamner son
-    /// icône jusqu'au prochain lancement.
+    /// Delay before retrying an extraction that failed for a
+    /// transient reason. A phone in the middle of reconnecting
+    /// should not doom its icon until the next launch.
     /// </summary>
     public TimeSpan RetryDelay { get; init; } = TimeSpan.FromMinutes(5);
 
-    /// <summary>Le temps laissé à chaque commande. L'archive est lue, pas transférée.</summary>
+    /// <summary>
+    /// The time allotted to each command. The archive is read, not
+    /// transferred.
+    /// </summary>
     public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(30);
 
     public string? Find(string deviceId, string packageName)
@@ -96,8 +100,9 @@ public sealed partial class AppIconProvider : IAppIconProvider
 
         lock (_gate)
         {
-            // Une absence définitive ne se retente pas : le téléphone ne
-            // changera pas d'avis sur une archive sans icône matricielle.
+            // A permanent absence is not retried: the phone will
+            // not change its mind about an archive with no raster
+            // icon.
             if (_absent.TryGetValue(key, out var since))
             {
                 if (since is null || DateTimeOffset.UtcNow - since.Value < RetryDelay)
@@ -108,8 +113,9 @@ public sealed partial class AppIconProvider : IAppIconProvider
                 _absent.Remove(key);
             }
 
-            // Deux profils du même téléphone demandent la même icône au même
-            // instant : une seule extraction part, les deux l'attendent.
+            // Two profiles on the same phone request the same icon
+            // at the same instant: only one extraction runs, and
+            // both wait on it.
             if (_running.TryGetValue(key, out var running))
             {
                 return running;
@@ -143,8 +149,9 @@ public sealed partial class AppIconProvider : IAppIconProvider
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            // Y compris une annulation : l'appelant ne l'attend pas, et rien
-            // ne doit remonter d'une tâche que personne ne surveille.
+            // Including a cancellation: the caller is not awaiting
+            // it, and nothing should escape from a task nobody is
+            // watching.
             LogFailed(request.PackageName, exception.Message);
 
             lock (_gate)
@@ -189,9 +196,10 @@ public sealed partial class AppIconProvider : IAppIconProvider
 
             var quoted = AndroidShell.Quote(apk);
 
-            // Le listage est restreint aux dossiers d'icônes : une archive de
-            // quatorze mégaoctets en compte des milliers d'entrées, et les
-            // faire toutes transiter pour en garder six serait absurde.
+            // The listing is restricted to the icon folders: a
+            // fourteen-megabyte archive holds thousands of entries,
+            // and shipping all of them across just to keep six
+            // would be absurd.
             var listing = await _adb.ShellAsync(
                 request.Serial,
                 ["unzip", "-l", quoted, "'res/mipmap*'"],
@@ -203,13 +211,14 @@ public sealed partial class AppIconProvider : IAppIconProvider
                 continue;
             }
 
-            // Sans citation, contrairement au listage juste au-dessus, et ce
-            // n'est pas un oubli. « adb shell » fait passer la commande par un
-            // shell qui retire les citations ; « adb exec-out » remet les
-            // arguments tels quels, si bien qu'une apostrophe ajoutée devient
-            // une partie du nom de fichier. Mesuré : citée, l'archive rendait
-            // « couldn't open ... : I/O error » ; nue, elle rend ses cinquante
-            // et un kilooctets. C'est aussi plus sûr, rien n'étant réinterprété.
+            // Unquoted, unlike the listing just above, and that is
+            // not an oversight. "adb shell" passes the command
+            // through a shell that strips quotes; "adb exec-out"
+            // hands the arguments back as they are, so an added
+            // quote mark becomes part of the file name. Measured:
+            // quoted, the archive returned "couldn't open ... : I/O
+            // error"; bare, it returns its fifty-one kilobytes.
+            // This is also safer, since nothing gets reinterpreted.
             var bytes = await _adb.ExecOutAsync(
                 request.Serial,
                 ["unzip", "-p", apk, entry],
@@ -237,8 +246,8 @@ public sealed partial class AppIconProvider : IAppIconProvider
     }
 
     /// <summary>
-    /// Retient une absence définitive : ni le paquet ni son archive ne
-    /// changeront tant que l'application tourne.
+    /// Remembers a permanent absence: neither the package nor its
+    /// archive will change while the application is running.
     /// </summary>
     private void Forget(string key, string reason, string packageName)
     {
@@ -251,9 +260,10 @@ public sealed partial class AppIconProvider : IAppIconProvider
     }
 
     /// <summary>
-    /// Un PNG et rien d'autre. Sans ce contrôle, le message d'erreur qu'un
-    /// <c>unzip</c> écrit sur sa sortie standard finirait dans un fichier
-    /// nommé « .png » que l'affichage refuserait ensuite en silence.
+    /// A PNG and nothing else. Without this check, the error
+    /// message an <c>unzip</c> writes to its standard output would
+    /// end up in a file named ".png" that the display would then
+    /// silently refuse.
     /// </summary>
     private static bool IsPng(byte[] content) =>
         content.Length > 8
@@ -286,13 +296,15 @@ public sealed partial class AppIconProvider : IAppIconProvider
         deviceId + "|" + packageName;
 
     /// <summary>
-    /// Un nom de fichier lisible, suivi d'une empreinte de la clef exacte.
+    /// A readable file name, followed by a hash of the exact key.
     ///
-    /// Lisible pour qu'on sache de quoi il s'agit en ouvrant le dossier ;
-    /// suivi d'une empreinte parce que l'identité d'un appareil sans fil qui
-    /// n'a jamais répondu est son adresse, « 192.168.1.25:5555 », dont les
-    /// deux-points sont interdits dans un nom de fichier Windows. Les remplacer
-    /// ferait se confondre deux appareils voisins ; l'empreinte les sépare.
+    /// Readable so that you know what it is when opening the
+    /// folder; followed by a hash because the identity of a
+    /// wireless device that has never answered is its address,
+    /// "192.168.1.25:5555", whose colons are forbidden in a
+    /// Windows file name. Replacing them would make two
+    /// neighboring devices indistinguishable; the hash keeps them
+    /// apart.
     /// </summary>
     private static string Readable(string key)
     {

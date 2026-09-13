@@ -1,30 +1,33 @@
 ﻿namespace DtHub.Core.Processes;
 
 /// <summary>
-/// Description d'un processus à exécuter. Les arguments sont passés sous forme
-/// de liste et jamais concaténés par l'appelant : c'est l'implémentation qui
-/// gère l'échappement, ce qui évite toute injection via un nom de package ou
-/// un chemin contenant des espaces.
+/// Description of a process to run. Arguments are passed as a list
+/// and never concatenated by the caller: it is the implementation
+/// that handles escaping, which prevents any injection through a
+/// package name or a path containing spaces.
 /// </summary>
 public sealed record ProcessRequest
 {
-    /// <summary>Chemin absolu de l'exécutable. Le PATH n'est jamais utilisé.</summary>
+    /// <summary>Absolute path of the executable. PATH is never used.</summary>
     public required string FileName { get; init; }
 
     public IReadOnlyList<string> Arguments { get; init; } = [];
 
-    /// <summary>Délai au-delà duquel le processus est tué. <c>null</c> signifie aucun.</summary>
+    /// <summary>
+    /// Delay beyond which the process is killed. <c>null</c> means
+    /// none.
+    /// </summary>
     public TimeSpan? Timeout { get; init; }
 
     public string? WorkingDirectory { get; init; }
 
-    /// <summary>Variables d'environnement ajoutées ou remplacées.</summary>
+    /// <summary>Environment variables added or replaced.</summary>
     public IReadOnlyDictionary<string, string?> Environment { get; init; }
         = new Dictionary<string, string?>();
 
     /// <summary>
-    /// Valeurs à masquer dans <see cref="ToDisplayString"/>. Un code
-    /// d'appairage ne doit jamais atteindre un fichier de journal.
+    /// Values to hide in <see cref="ToDisplayString"/>. A pairing
+    /// code must never reach a log file.
     /// </summary>
     public IReadOnlyCollection<string> SensitiveValues { get; init; } = [];
 
@@ -38,8 +41,8 @@ public sealed record ProcessRequest
     }
 
     /// <summary>
-    /// Ligne de commande lisible, pour les journaux et le diagnostic. Les
-    /// valeurs déclarées sensibles y sont remplacées par des astérisques.
+    /// Readable command line, for logs and diagnostics. Values
+    /// declared sensitive are replaced with asterisks there.
     /// </summary>
     public string ToDisplayString() =>
         string.Join(' ', [Quote(FileName), .. Arguments.Select(argument => Quote(Redact(argument)))]);

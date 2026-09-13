@@ -2,98 +2,104 @@
 
 namespace DtHub.Core.Settings;
 
-/// <summary>Compromis entre finesse de l'image et charge de la machine.</summary>
+/// <summary>
+/// Trade-off between image detail and the machine's load.
 ///
-/// Un palier retiré du code retombe sur le suivant vers le haut, jamais vers
-/// le bas : personne ne doit voir son image se dégrader sans l'avoir demandé.
+/// A tier removed from the code falls back to the next one up, never down:
+/// nobody should see their image degrade without having asked for it.
+/// </summary>
 [JsonFallback(Maximum)]
 public enum StreamQuality
 {
-    /// <summary>Le plus léger : pour les machines et les téléphones modestes.</summary>
+    /// <summary>The lightest: for modest machines and phones.</summary>
     Low,
 
-    /// <summary>Réglage d'origine.</summary>
+    /// <summary>Default setting.</summary>
     Medium,
 
     /// <summary>
-    /// Sans ménagement pour le téléphone : 1440p, débit et images par seconde
-    /// au maximum. Demande un appareil récent et, en Wi-Fi, un réseau qui suit.
+    /// No mercy for the phone: 1440p, bitrate and frame rate at their maximum.
+    /// Requires a recent device and, over Wi-Fi, a network that keeps up.
     ///
-    /// La définition était sans borne, et suivait donc la taille de la fenêtre,
-    /// c'est-à-dire l'écran du PC. Le même palier coûtait alors deux fois plus
-    /// sur un écran 4K que sur un 1080p, sans que rien ne le dise. Un palier
-    /// doit désigner une charge, pas hériter de celle de l'écran.
+    /// The resolution used to be unbounded, and therefore followed the
+    /// window's size, that is, the PC's screen. The same tier then cost twice
+    /// as much on a 4K screen as on a 1080p one, without anything saying so. A
+    /// tier must denote a load, not inherit the screen's.
     ///
-    /// Trois paliers, pas quatre : entre deux voisins trop proches, personne
-    /// ne sait lequel choisir, et l'écart ne se voit pas.
+    /// Three tiers, not four: between two neighbours too close together,
+    /// nobody knows which to choose, and the difference is not visible.
     /// </summary>
     Maximum,
 
     /// <summary>
-    /// Les valeurs choisies à la main.
+    /// Values chosen by hand.
     ///
-    /// Ce n'est pas un quatrième barreau de l'échelle, et cela ne contredit
-    /// donc pas la règle des trois paliers énoncée juste au-dessus : c'est une
-    /// sortie de route. Les trois paliers restent le chemin ordinaire, celui
-    /// où l'on n'a rien à savoir ; celui-ci sert à qui sait déjà ce qu'il veut.
+    /// This is not a fourth rung on the ladder, and it therefore does not
+    /// contradict the rule of three tiers stated just above: it is a detour
+    /// off the road. The three tiers remain the ordinary route, the one where
+    /// there is nothing to know; this one serves whoever already knows what
+    /// they want.
     ///
-    /// Ajouté en dernier, et à ne jamais réordonner : d'anciens fichiers de
-    /// réglages portent encore ces valeurs sous forme de nombre.
+    /// Added last, and never to be reordered: old settings files still carry
+    /// these values as a number.
     /// </summary>
     Custom,
 }
 
 /// <summary>
-/// Les quatre valeurs du palier personnalisé.
+/// The four values of the custom tier.
 ///
-/// Le DPI n'en fait pas partie : il se règle déjà sous le nom de « distance
-/// dans le jeu », qui dit ce qu'il fait au joueur plutôt que ce qu'il est. Le
-/// proposer ici en plus ferait deux réglages pour une seule chose.
+/// DPI is not one of them: it is already adjusted under the name "distance in
+/// the game", which says what it does for the player rather than what it is.
+/// Offering it here as well would make two settings for a single thing.
 /// </summary>
 public sealed record CustomQuality
 {
-    /// <summary>Valeurs de départ : celles du palier moyen, qui est l'origine.</summary>
+    /// <summary>
+    /// Starting values: those of the medium tier, the default one.
+    /// </summary>
     public static readonly CustomQuality Default = new();
 
-    /// <summary>Plafond de hauteur de l'afficheur, comme pour les paliers.</summary>
+    /// <summary>Ceiling on the display's height, as for the tiers.</summary>
     public int MaximumDisplayHeight { get; init; } = 1080;
 
     public int MaxFps { get; init; } = 60;
 
     /// <summary>
-    /// Finesse d'image, en bits par pixel et par image.
+    /// Image detail, in bits per pixel per frame.
     ///
-    /// Et non un débit en mégabits, contrairement à ce que proposent les
-    /// interfaces qui ne pilotent qu'un seul miroir. Ici la définition de
-    /// l'afficheur suit la taille de la fenêtre : un débit absolu servirait
-    /// grassement une petite fenêtre et affamerait une grande, ce que le reste
-    /// du code a précisément appris à ne plus faire. La finesse, elle, garde
-    /// son sens à toute taille, et c'est déjà l'unité des trois paliers.
+    /// And not a bitrate in megabits, unlike what interfaces that drive only a
+    /// single mirror offer. Here the display's resolution follows the window's
+    /// size: an absolute bitrate would feast generously on a small window and
+    /// starve a large one, exactly what the rest of the code has learned not
+    /// to do anymore. Detail, on the other hand, keeps its meaning at any
+    /// size, and it is already the unit used by the three tiers.
     /// </summary>
     public double BitsPerPixel { get; init; } = 0.09;
 
     /// <summary>
-    /// H.264 ou H.265, et rien d'autre.
+    /// H.264 or H.265, and nothing else.
     ///
-    /// Ce ne sont pas les seuls codecs que scrcpy accepte, mais ce sont les
-    /// seuls que le téléphone de référence encode en matériel : relevé par
-    /// <c>scrcpy --list-encoders</c>, AV1 et VP8 n'y ont qu'un encodeur
-    /// logiciel. Les proposer serait un piège, l'encodage logiciel à soixante
-    /// images par seconde coûtant bien plus qu'il ne rend.
+    /// These are not the only codecs scrcpy accepts, but they are the only
+    /// ones the reference phone encodes in hardware: as found with
+    /// <c>scrcpy --list-encoders</c>, AV1 and VP8 only have a software encoder
+    /// there. Offering them would be a trap, software encoding at sixty frames
+    /// per second costing far more than it delivers.
     /// </summary>
     public string VideoCodec { get; init; } = "h264";
 
     /// <summary>
-    /// Rend une copie aux valeurs tenables. Le fichier de réglages se modifie
-    /// à la main : on corrige plutôt que de refuser de démarrer.
+    /// Returns a copy with workable values. The settings file can be edited by
+    /// hand: it gets corrected rather than refusing to start.
     /// </summary>
     public CustomQuality Sanitized() => this with
     {
         MaximumDisplayHeight = Math.Clamp(MaximumDisplayHeight, 240, 7680),
         MaxFps = Math.Clamp(MaxFps, 1, 240),
 
-        // Bornes larges : 0,03 rend une image en bouillie, 0,30 dépasse de loin
-        // ce que l'oeil distingue. Entre les deux, c'est le choix de qui règle.
+        // Wide bounds: 0.03 turns an image to mush, 0.30 goes far beyond what
+        // the eye can distinguish. Between the two, it is the choice of
+        // whoever adjusts it.
         BitsPerPixel = Math.Clamp(BitsPerPixel, 0.03, 0.30),
         VideoCodec = string.Equals(VideoCodec?.Trim(), "h265", StringComparison.OrdinalIgnoreCase)
             ? "h265"
@@ -102,41 +108,39 @@ public sealed record CustomQuality
 }
 
 /// <summary>
-/// Ce que chaque qualité change, en un seul endroit.
+/// What each quality changes, in a single place.
 ///
-/// Le poste le plus lourd n'est pas l'image : c'est l'interrogation du
-/// téléphone, qui liste les profils et les paquets installés. La qualité basse
-/// allège donc les deux, sans quoi elle ne soulagerait que la moitié du
-/// problème.
+/// The heaviest cost is not the image: it is querying the phone, which lists
+/// the installed profiles and packages. The low quality therefore lightens
+/// both, without which it would only relieve half of the problem.
 ///
-/// Les trois paliers bornent la définition, et pas seulement le plus bas. Sans
-/// borne de définition, moyenne et maximale auraient été indiscernables.
+/// The three tiers bound the resolution, and not just the lowest one. Without
+/// a resolution bound, medium and maximum would have been indistinguishable.
 ///
 /// <para>
-/// Le débit ne se fixe pas par palier : il se calcule. Un débit fixe par palier
-/// donnait l'échelle à l'envers, mesurée en bits par pixel et par image, ce
-/// qu'un encodeur reçoit vraiment :
+/// The bitrate is not fixed per tier: it is calculated. A fixed bitrate per
+/// tier gave the scale backwards, measured in bits per pixel per frame, which
+/// is what an encoder actually receives:
 /// </para>
 ///
 /// <code>
-/// Basse     1280x720  à  30 ips,  2500 kb/s  ->  0,090 bpp
-/// Moyenne   1920x1080 à  60 ips,  6000 kb/s  ->  0,048 bpp
-/// Maximale  3840x2160 à 120 ips, 16000 kb/s  ->  0,016 bpp
+/// Low       1280x720 at  30 fps,  2500 kb/s  ->  0.090 bpp
+/// Medium   1920x1080 at  60 fps,  6000 kb/s  ->  0.048 bpp
+/// Maximum  3840x2160 at 120 fps, 16000 kb/s  ->  0.016 bpp
 /// </code>
 ///
 /// <para>
-/// La définition et la cadence étaient multipliées par quinze du bas en haut,
-/// le débit par six seulement : le palier « maximale » recevait cinq fois et
-/// demie moins de bits par pixel que le palier « basse », et rendait donc une
-/// image plus grossière en mouvement. C'est l'inverse de ce qu'il promet.
+/// The resolution and frame rate were multiplied by fifteen from bottom to
+/// top, the bitrate by only six: the "maximum" tier received five and a half
+/// times fewer bits per pixel than the "low" tier, and therefore rendered a
+/// coarser image in motion. This is the opposite of what it promises.
 /// </para>
 ///
 /// <para>
-/// Le débit suit maintenant la définition et la cadence réellement retenues,
-/// à raison de tant de bits par pixel et par image. La référence pour du H.264
-/// de bonne facture tourne autour de 0,10 bpp à toute définition : YouTube
-/// demande 12 Mb/s en 1080p60, 24 en 1440p60 et 53 en 2160p60, soit 0,096,
-/// 0,108 et 0,106.
+/// The bitrate now follows the resolution and frame rate actually retained, at
+/// a given number of bits per pixel per frame. The benchmark for well-made
+/// H.264 sits around 0.10 bpp at any resolution: YouTube asks for 12 Mb/s at
+/// 1080p60, 24 at 1440p60 and 53 at 2160p60, that is 0.096, 0.108 and 0.106.
 /// </para>
 /// </summary>
 public sealed record QualityProfile(
@@ -149,20 +153,20 @@ public sealed record QualityProfile(
     TimeSpan WindowWatch)
 {
     /// <summary>
-    /// Plancher de débit. Sous ce seuil, une petite fenêtre rendrait une bouillie
-    /// que personne ne veut, et l'économie ne se sentirait sur rien.
+    /// Bitrate floor. Below this threshold, a small window would render mush
+    /// that nobody wants, and the saving would not be felt on anything.
     /// </summary>
     public const int FloorKbps = 1500;
 
     /// <summary>
-    /// Débit à demander pour une définition donnée, en kb/s.
+    /// Bitrate to request for a given resolution, in kb/s.
     ///
-    /// Le plafond compte autant que le calcul, et pour une raison qui ne se
-    /// devine pas depuis le code : deux comptes ouverts, ce sont deux flux sur
-    /// la même liaison. Un téléphone en Wi-Fi 2,4 GHz annonce cent quarante-
-    /// quatre mégabits de lien brut, dont on tire la moitié en pratique.
-    /// Demander cinquante mégabits par session ne donnerait pas une image
-    /// magnifique, mais des pertes et des saccades.
+    /// The ceiling matters as much as the calculation, and for a reason that
+    /// cannot be guessed from the code alone: two open accounts are two
+    /// streams on the same link. A phone on 2.4 GHz Wi-Fi advertises one
+    /// hundred and forty-four megabits of raw link, of which about half is
+    /// achieved in practice. Asking for fifty megabits per session would not
+    /// give a magnificent image, but losses and stutter.
     /// </summary>
     public int BitrateFor(int width, int height)
     {
@@ -177,20 +181,20 @@ public sealed record QualityProfile(
     }
 
     /// <summary>
-    /// Réglages d'une qualité donnée.
+    /// Settings for a given quality.
     ///
-    /// <paramref name="custom"/> n'est lu que pour <see cref="StreamQuality.Custom"/>,
-    /// et vaut alors ses valeurs d'origine s'il manque : un fichier de réglages
-    /// qui annonce le palier personnalisé sans en porter les valeurs doit rendre
-    /// une session qui s'ouvre, pas une exception.
+    /// <paramref name="custom"/> is only read for
+    /// <see cref="StreamQuality.Custom"/>, and then takes its default values
+    /// if missing: a settings file that announces the custom tier without
+    /// carrying its values must yield a session that opens, not an exception.
     /// </summary>
     public static QualityProfile For(StreamQuality quality, CustomQuality? custom = null) => quality switch
     {
         StreamQuality.Custom => Personalised(custom ?? CustomQuality.Default),
 
-        // Le palier léger l'est par la définition et la cadence, non par une
-        // image dégradée : brider les bits par pixel donnerait du flou sans
-        // soulager ni le téléphone ni le poste.
+        // The light tier is light through resolution and frame rate, not
+        // through a degraded image: capping bits per pixel would give blur
+        // without relieving either the phone or the PC.
         StreamQuality.Low => new QualityProfile(
             MaxFps: 30,
             BitsPerPixel: 0.08,
@@ -200,16 +204,17 @@ public sealed record QualityProfile(
             InstanceRediscovery: TimeSpan.FromSeconds(60),
             WindowWatch: TimeSpan.FromSeconds(1)),
 
-        // Soixante images et non cent vingt : mesuré sur le jeu, il en rend
-        // trente-huit. Les cent vingt ne servaient qu'à diviser par deux les
-        // bits accordés à chaque image qui existe vraiment.
+        // Sixty frames and not one hundred and twenty: measured on the game,
+        // it renders thirty-eight. The one hundred and twenty only served to
+        // halve the bits granted to each frame that actually exists.
         StreamQuality.Maximum => new QualityProfile(
             MaxFps: 60,
             BitsPerPixel: 0.11,
             CeilingKbps: 25000,
 
-            // 1440p, et non la définition de la fenêtre : voir StreamQuality.Maximum.
-            // Au-dessus du palier moyen, qui borne à 1080p, et l'écart reste net.
+            // 1440p, and not the window's resolution: see
+            // StreamQuality.Maximum. Above the medium tier, which bounds at
+            // 1080p, and the gap stays clear.
             MaximumDisplayHeight: 1440,
             DevicePoll: TimeSpan.FromSeconds(2),
             InstanceRediscovery: TimeSpan.FromSeconds(15),
@@ -226,11 +231,12 @@ public sealed record QualityProfile(
     };
 
     /// <summary>
-    /// Le profil bâti sur des valeurs choisies à la main.
+    /// The profile built from values chosen by hand.
     ///
-    /// Les cadences de sondage sont celles du palier moyen : elles pèsent sur
-    /// le téléphone, non sur l'image, et ne regardent donc pas celui qui règle
-    /// sa vidéo. Les bits par pixel n'y servent à rien, le débit étant donné.
+    /// The polling rates are those of the medium tier: they weigh on the
+    /// phone, not on the image, and therefore do not concern whoever is
+    /// adjusting their video. Bits per pixel are of no use there, since the
+    /// bitrate is given directly.
     /// </summary>
     private static QualityProfile Personalised(CustomQuality custom)
     {
@@ -242,11 +248,11 @@ public sealed record QualityProfile(
             MaximumDisplayHeight = wanted.MaximumDisplayHeight,
             BitsPerPixel = wanted.BitsPerPixel,
 
-            // Le plafond reste, et c'est celui du palier le plus haut. Il ne
-            // protège pas de l'utilisateur mais de la liaison : plusieurs
-            // comptes ouverts, ce sont plusieurs flux sur le même Wi-Fi, et
-            // régler finement une fenêtre ne dit rien de ce que les autres
-            // demanderont en même temps.
+            // The ceiling stays, and it is that of the highest tier. It
+            // protects not from the user but from the link: several open
+            // accounts are several streams on the same Wi-Fi, and finely
+            // tuning one window says nothing about what the others will ask
+            // for at the same time.
             CeilingKbps = For(StreamQuality.Maximum).CeilingKbps,
         };
     }

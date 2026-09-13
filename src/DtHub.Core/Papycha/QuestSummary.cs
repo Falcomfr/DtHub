@@ -1,133 +1,145 @@
 ﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Une quête, telle que le catalogue la retient.
+/// A quest, as the catalog keeps it.
 ///
-/// Volontairement sans le corps de l'article : l'indexer coûterait vingt-deux
-/// mégaoctets et trente fois plus de transfert, pour une information qu'on
-/// obtient gratuitement en ouvrant la page. Ce qui est ici suffit à chercher
-/// et à ranger.
+/// Deliberately without the article body: indexing it would cost
+/// twenty-two megabytes and thirty times more transfer, for
+/// information obtained for free by opening the page. What is here
+/// is enough to search and to file.
 /// </summary>
 public sealed record QuestSummary
 {
-    /// <summary>Identifiant de l'article sur le site.</summary>
+    /// <summary>Id of the article on the site.</summary>
     public int Id { get; init; }
 
-    /// <summary>Titre affiché.</summary>
+    /// <summary>Displayed title.</summary>
     public string Title { get; init; } = string.Empty;
 
-    /// <summary>Adresse de la page.</summary>
+    /// <summary>Address of the page.</summary>
     public string Url { get; init; } = string.Empty;
 
-    /// <summary>Niveau conseillé, ou zéro quand le site ne le donne pas.</summary>
+    /// <summary>
+    /// Recommended level, or zero when the site does not give it.
+    /// </summary>
     public int Level { get; init; }
 
-    /// <summary>Catégories du site, dont la zone.</summary>
+    /// <summary>Categories from the site, including the zone.</summary>
     public IReadOnlyList<int> Categories { get; init; } = [];
 
-    /// <summary>Types de quête, au sens de la taxonomie du site.</summary>
+    /// <summary>Quest types, in the sense of the site's taxonomy.</summary>
     public IReadOnlyList<int> Types { get; init; } = [];
 
-    /// <summary>Titre réduit à une forme comparable, calculé une fois.</summary>
+    /// <summary>Title reduced to a comparable form, computed once.</summary>
     public string SearchKey { get; init; } = string.Empty;
 
     /// <summary>
-    /// Rubrique retenue pour situer la quête dans une liste de recherche.
+    /// Section chosen to place the quest in a search list.
     ///
-    /// La plus petite de celles auxquelles elle appartient : c'est la plus
-    /// précise, donc celle qui situe. « Astrub » situe mieux que « Quêtes ».
+    /// The smallest of those it belongs to: it is the most precise,
+    /// and therefore the one that situates. "Astrub" situates better
+    /// than "Quêtes".
     /// </summary>
     public int SectionId { get; init; }
 
     /// <summary>
-    /// Toutes les rubriques auxquelles la quête appartient.
+    /// All the sections the quest belongs to.
     ///
-    /// Une seule ne suffisait pas. Le site range « Le dragon d'Astrub » à la
-    /// fois dans ses quêtes principales et dans celles d'Astrub : une quête est
-    /// un lieu et un cheminement, et forcer un choix vidait les rubriques
-    /// transversales. Mesuré : la page des quêtes principales en énumère
-    /// soixante-treize, dont douze seulement n'avaient pas de zone et étaient
-    /// donc les seules à y rester.
+    /// One alone was not enough. The site files "Le dragon d'Astrub"
+    /// both under its main quests and under those of Astrub: a quest
+    /// is both a place and a path, and forcing a single choice emptied
+    /// the cross-cutting sections. Measured: the main quests page
+    /// lists seventy-three, of which only twelve had no zone and were
+    /// therefore the only ones left to stay there.
     /// </summary>
     public IReadOnlyList<int> SectionIds { get; init; } = [];
 
     /// <summary>
-    /// Succès dont la quête fait partie, vide quand le site ne le dit pas.
+    /// Achievement the quest is part of, empty when the site does not
+    /// say so.
     ///
-    /// Le rattachement se lit sur les pages de rubrique, qui groupent leurs
-    /// quêtes sous des intertitres. Mesuré : trois cent soixante-treize quêtes
-    /// sur sept cent quatre-vingt-deux en portent un. Les autres n'en portent
-    /// pas, et rien ne doit leur en inventer.
+    /// The attachment is read on the section pages, which group their
+    /// quests under subheadings. Measured: three hundred seventy-three
+    /// quests out of seven hundred eighty-two carry one. The others
+    /// carry none, and nothing should invent one for them.
     /// </summary>
     public string SuccessName { get; init; } = string.Empty;
 
     /// <summary>
-    /// Place de la quête dans sa chaîne de prérequis, zéro si le site ne la
-    /// donne pas.
+    /// Place of the quest in its prerequisite chain, zero if the site
+    /// does not give it.
     ///
-    /// Ce n'est pas sa place dans son succès : les trois quêtes de « De la
-    /// caillasse plein les poches » y valent 1, 6 et 6, et la chaîne qui
-    /// compte sept étapes traverse plusieurs succès. C'est tout de même le seul
-    /// ordre de jeu que le site publie, et il vaut mieux que l'ordre
-    /// alphabétique pour présenter les quêtes d'un succès.
+    /// This is not its place within its achievement: the three quests
+    /// of "De la caillasse plein les poches" are worth 1, 6 and 6
+    /// there, and the chain, which counts seven steps, crosses several
+    /// achievements. It is nonetheless the only play order the site
+    /// publishes, and it is better than alphabetical order for
+    /// presenting the quests of an achievement.
     /// </summary>
     public int ChainStep { get; init; }
 
     /// <summary>
-    /// Place de la quête dans son succès, zéro si on ne la connaît pas.
+    /// Place of the quest within its achievement, zero if it is not
+    /// known.
     ///
-    /// Calculée à partir des prérequis que le site publie, qui donnent un ordre
-    /// partiel : « Les rescapés de Frigost » exige « [FIN] L'essentiel est dans
-    /// le Lac gelé », donc celle-ci vient avant. Le site ne publie cet ordre
-    /// nulle part ailleurs pour la plupart des succès.
+    /// Computed from the prerequisites the site publishes, which give
+    /// a partial order: "Les rescapés de Frigost" requires "[FIN]
+    /// L'essentiel est dans le Lac gelé", so the latter comes first.
+    /// The site publishes this order nowhere else for most
+    /// achievements.
     /// </summary>
     public int PlayOrder { get; init; }
 
     /// <summary>
-    /// Position en jeu où la quête se lance, « [4,-6] », vide si le site ne la
-    /// donne pas. Renseignée sur 687 quêtes sur 782.
+    /// In-game position where the quest starts, "[4,-6]", empty if the
+    /// site does not give it. Filled in on 687 quests out of 782.
     /// </summary>
     public string StartPosition { get; init; } = string.Empty;
 
     /// <summary>
-    /// Personnage auprès de qui la quête se lance, vide si le site ne le donne
-    /// pas. Renseigné sur 693 quêtes sur 782.
+    /// Character the quest starts with, empty if the site does not
+    /// give it. Filled in on 693 quests out of 782.
     ///
-    /// Avec la position, de quoi composer la première étape sans lire la prose :
-    /// « Rendez-vous en [4,-6], parlez à Yse Vewibad ».
+    /// With the position, enough to compose the first step without
+    /// reading the prose: "Rendez-vous en [4,-6], parlez à Yse
+    /// Vewibad".
     /// </summary>
     public string StartPerson { get; init; } = string.Empty;
 
     /// <summary>
-    /// Ce qu'il faut avoir fait avant cette quête, tel que le site l'affiche.
+    /// What must have been done before this quest, as the site
+    /// displays it.
     ///
-    /// De deux sources réunies : les métadonnées du site, qui donnent un texte
-    /// libre court pour 130 quêtes, et la colonne « précédents » de la page,
-    /// qui nomme les quêtes et les jalons pour 527. Ensemble, 613 quêtes sur
-    /// 782, là où le niveau n'en renseigne que 117.
+    /// From two sources combined: the site's metadata, which gives a
+    /// short free text for 130 quests, and the page's "précédents"
+    /// column, which names the quests and milestones for 527.
+    /// Together, 613 quests out of 782, where the level alone informs
+    /// only 117.
     /// </summary>
     public IReadOnlyList<string> Prerequisites { get; init; } = [];
 }
 
-/// <summary>Une rubrique de l'arbre : une catégorie ou un type du site.</summary>
+/// <summary>
+/// A section of the tree: a category or a type from the site.
+/// </summary>
 public sealed record QuestSection
 {
     public int Id { get; init; }
 
     public string Name { get; init; } = string.Empty;
 
-    /// <summary>Rubrique parente, ou zéro à la racine.</summary>
+    /// <summary>Parent section, or zero at the root.</summary>
     public int Parent { get; init; }
 
-    /// <summary>Nombre de quêtes rangées directement dessous.</summary>
+    /// <summary>Number of quests filed directly under it.</summary>
     public int Count { get; init; }
 
     /// <summary>
-    /// La page du site qui présente cette rubrique, quand elle en a une.
+    /// The site's page presenting this section, when it has one.
     ///
-    /// Ce n'est pas l'archive de la catégorie WordPress, qui n'est qu'une liste
-    /// d'articles : c'est la page rédigée, celle que le tableau de « Quêtes »
-    /// désigne. Vide pour une rubrique que ce tableau ne nomme pas.
+    /// This is not the WordPress category archive, which is only a
+    /// list of articles: it is the written page, the one the "Quêtes"
+    /// table designates. Empty for a section this table does not name.
     /// </summary>
     public string Url { get; init; } = string.Empty;
 

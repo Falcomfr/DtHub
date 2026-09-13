@@ -1,11 +1,11 @@
-﻿// Sonde de développement : passe un vrai fichier de réglages par la lecture et
-// les migrations livrées, et dit ce qu'il devient.
+﻿// Development probe: passes a real settings file through the shipped
+// reading and migration logic, and reports what becomes of it.
 //
-// Elle sert à éprouver un fichier qu'on ne peut pas verser au dépôt : celui de
-// l'utilisateur porte des identifiants d'appareil, et rien de tout cela n'a à
-// figurer dans un test.
+// It serves to put to the test a file that cannot be committed to
+// the repository: the user's file carries device identifiers, and
+// none of that belongs in a test.
 //
-// À lancer : dotnet run --project build/sonde-reglages -- <chemin du fichier>
+// To run: dotnet run --project build/sonde-reglages -- <file path>
 using DtHub.Core.Settings;
 using DtHub.Infrastructure.Storage;
 
@@ -27,8 +27,8 @@ if (!File.Exists(source))
     return 1;
 }
 
-// Une copie, dans un dossier à jeter : la lecture réécrit le fichier migré, et
-// il n'est pas question de toucher à l'original.
+// A copy, in a folder to be discarded: reading rewrites the migrated
+// file, and there is no question of touching the original.
 var directory = Path.Combine(Path.GetTempPath(), "dthub-sonde-" + Guid.NewGuid().ToString("N"));
 Directory.CreateDirectory(directory);
 

@@ -1,35 +1,40 @@
 ﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Un chemin du site : l'itinéraire pour atteindre un lieu.
+/// A path from the site: the route to reach a place.
 ///
-/// Les chemins ne forment pas une famille à part dans la fenêtre. Certains
-/// mènent à un donjon, les autres à une île, un zaap ou un souterrain, et
-/// servent alors une quête : ils se rangent donc dans l'une ou l'autre des deux
-/// branches, selon ce que <see cref="PathTarget"/> décide.
+/// Paths do not form a separate family in the window. Some lead to
+/// a dungeon, others to an island, a zaap or an underground area,
+/// and then serve a quest: they are therefore sorted into one or
+/// the other of the two branches, according to what
+/// <see cref="PathTarget"/> decides.
 /// </summary>
 public sealed record PathSummary
 {
     public int Id { get; init; }
 
-    /// <summary>Nom du chemin, sans le préfixe que le site met à ses titres.</summary>
+    /// <summary>
+    /// Path name, without the prefix the site adds to its titles.
+    /// </summary>
     public string Title { get; init; } = string.Empty;
 
     public string Url { get; init; } = string.Empty;
 
-    /// <summary>Titre normalisé, pour la recherche.</summary>
+    /// <summary>Normalized title, for search.</summary>
     public string SearchKey { get; init; } = string.Empty;
 
-    /// <summary>La branche où le chemin se range.</summary>
+    /// <summary>The branch the path is sorted into.</summary>
     public PathSide Side { get; init; }
 }
 
-/// <summary>De quel côté un chemin se range.</summary>
+/// <summary>Which side a path is sorted into.</summary>
 public enum PathSide
 {
-    /// <summary>Il mène à une île, un zaap, un lieu : il sert les quêtes.</summary>
+    /// <summary>
+    /// It leads to an island, a zaap, a place: it serves quests.
+    /// </summary>
     Quests,
 
-    /// <summary>Il mène à un donjon.</summary>
+    /// <summary>It leads to a dungeon.</summary>
     Dungeons,
 }

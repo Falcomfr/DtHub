@@ -4,8 +4,8 @@ using DtHub.Core.Storage;
 namespace DtHub.Infrastructure.Storage;
 
 /// <summary>
-/// Implémentation ancrée sur <c>%LOCALAPPDATA%</c>. La racine est
-/// paramétrable pour que les tests écrivent dans un dossier temporaire.
+/// Implementation anchored on <c>%LOCALAPPDATA%</c>. The root is
+/// configurable so that tests write to a temporary folder.
 /// </summary>
 public sealed class AppPaths : IAppPaths
 {

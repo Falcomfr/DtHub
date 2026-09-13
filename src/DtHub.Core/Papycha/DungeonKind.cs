@@ -1,20 +1,22 @@
 ﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Ce qu'un lieu de combat est, selon la catégorie où le site le range.
+/// What a combat location is, according to the category the site
+/// files it under.
 ///
-/// Un donjon, un raid et une tanière sont la même chose : un lieu qu'on nettoie,
-/// à un niveau donné. Un genre plutôt que trois types presque identiques ; ce
-/// qui les sépare est la section où on les cherche, pas leur forme.
+/// A dungeon, a raid and a lair are the same thing: a place you
+/// clear, at a given level. One kind rather than three nearly
+/// identical types; what separates them is the section where you
+/// look for them, not their shape.
 /// </summary>
 public enum DungeonKind
 {
-    /// <summary>Un donjon. Quatre-vingt-trois sur le site.</summary>
+    /// <summary>A dungeon. Eighty-three on the site.</summary>
     Dungeon,
 
-    /// <summary>Un raid, qui se mène à plusieurs. Deux sur le site.</summary>
+    /// <summary>A raid, done as a group. Two on the site.</summary>
     Raid,
 
-    /// <summary>Une tanière. Huit sur le site.</summary>
+    /// <summary>A lair. Eight on the site.</summary>
     Lair,
 }

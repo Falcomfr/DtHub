@@ -10,8 +10,7 @@ using DtHub.Core.Papycha;
 namespace DtHub.App.ViewModels;
 
 /// <summary>
-/// Ce que la fenêtre de quêtes affiche : la recherche, ses résultats, et la
-/// quête ouverte.
+/// What the quest window shows: the search, its results, and the open quest.
 /// </summary>
 public sealed partial class QuestViewModel : ObservableObject
 {
@@ -26,21 +25,23 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Ce que la liste déroulante montre à cet instant : les branches, les
-    /// quêtes d'une rubrique, ou les résultats d'une recherche.
+    /// What the dropdown list shows at this moment: the branches, the quests
+    /// of a section, or the results of a search.
     /// </summary>
     public ObservableCollection<QuestNode> Nodes { get; } = [];
 
-    /// <summary>Nombre de quêtes du catalogue rangées dans chaque rubrique.</summary>
+    /// <summary>Number of catalogue quests filed under each section.</summary>
     private readonly Dictionary<int, int> _sectionCounts = [];
 
-    /// <summary>Les branches, bâties depuis le catalogue et ce décompte.</summary>
+    /// <summary>
+    /// The branches, built from the catalogue and this tally.
+    /// </summary>
     private readonly QuestTree _tree;
 
-    /// <summary>Combien d'étapes la page ouverte annonce.</summary>
+    /// <summary>How many steps the open page announces.</summary>
     public int StepCount => _steps.Count;
 
-    /// <summary>Pose dans la liste les lignes que l'arbre compose.</summary>
+    /// <summary>Places in the list the rows the tree builds.</summary>
     private void AddBySuccess(IReadOnlyList<QuestSummary> quests)
     {
         foreach (var node in _tree.BySuccess(quests))
@@ -49,37 +50,38 @@ public sealed partial class QuestViewModel : ObservableObject
         }
     }
 
-    /// <summary>Rubrique ouverte, ou zéro à la racine.</summary>
+    /// <summary>Open section, or zero at the root.</summary>
     private int _section;
 
-    /// <summary>La quête affichée, quand il y en a une.</summary>
+    /// <summary>The displayed quest, when there is one.</summary>
     private QuestSummary? _current;
 
-    /// <summary>Le donjon affiché, quand c'en est un.</summary>
+    /// <summary>The displayed dungeon, when it is one.</summary>
     private DungeonSummary? _currentDungeon;
 
-    /// <summary>Le chemin affiché, quand c'en est un.</summary>
+    /// <summary>The displayed path, when it is one.</summary>
     private PathSummary? _currentPath;
 
     /// <summary>
-    /// Les quêtes quittées en suivant un lien, la dernière au sommet.
+    /// The quests left behind by following a link, the most recent on top.
     ///
-    /// Seuls les liens comptent : ceux du guide et ceux des prérequis, qui
-    /// mènent ailleurs sans qu'on l'ait cherché et dont rien ne ramenait. Une
-    /// voisine choisie au pied ou une quête prise dans la liste n'y entrent
-    /// pas : on sait d'où l'on vient quand c'est soi qui a désigné où aller.
+    /// Only links count: those in the guide and those in the prerequisites,
+    /// which lead elsewhere without having been sought, and from which nothing
+    /// brings you back. A neighbour picked at the foot, or a quest picked from
+    /// the list, does not belong here: we know where we came from when it is
+    /// ourselves who chose where to go.
     /// </summary>
     private readonly Stack<string> _visited = new();
 
     /// <summary>
-    /// Ce sur quoi la liste se repose : la rubrique et l'adresse de la dernière
-    /// page qu'on a désignée soi-même, dans la liste ou par les boutons du pied.
+    /// What the list rests on: the section and the address of the last page we
+    /// designated ourselves, from the list or from the footer buttons.
     ///
-    /// Un lien suivi dans le guide ne les déplace pas : on va voir un chemin ou
-    /// un donjon, et l'on veut retrouver la fiche d'où l'on vient en rouvrant le
-    /// panneau. Sans ce repère, ouvrir un chemin depuis une quête rouvrait la
-    /// liste sur la branche des chemins, et plus rien ne disait d'où l'on
-    /// venait.
+    /// A link followed in the guide does not move them: we go to look at a
+    /// path or a dungeon, and we want to get back to the page we came from
+    /// when reopening the panel. Without this marker, opening a path from a
+    /// quest reopened the list on the paths branch, and nothing said any more
+    /// where we had come from.
     /// </summary>
     private int? _anchorSection;
 
@@ -89,46 +91,46 @@ public sealed partial class QuestViewModel : ObservableObject
     private string _query = string.Empty;
 
     /// <summary>
-    /// Le texte pour lequel on propose la recherche du site, vide quand on ne
-    /// cherche rien.
+    /// The text for which the site search is offered, empty when nothing is
+    /// being searched.
     ///
-    /// Notre catalogue ne connaît que des titres. Chercher un objet, un monstre
-    /// ou un personnage n'y donne rien, alors que le site le trouve : il cherche
-    /// dans le corps de ses articles. L'offre suit donc la recherche, dès la
-    /// première lettre : elle a d'abord paru sur un retour à la ligne, et l'écran
-    /// qui en avait le plus besoin, celui qui annonce « aucun résultat », était
-    /// justement celui qui ne l'avait pas.
+    /// Our catalogue knows only titles. Searching for an item, a monster or a
+    /// character gives nothing there, whereas the site finds it: it searches
+    /// inside the body of its articles. The offer therefore follows the
+    /// search, from the first letter: it first appeared on a line break, and
+    /// the screen that needed it most, the one announcing "No result", was
+    /// precisely the one that did not have it.
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SiteSearchLabel))]
     [NotifyPropertyChangedFor(nameof(ShowsSiteSearch))]
     private string _siteSearch = string.Empty;
 
-    /// <summary>Ce que le lien annonce, le texte cherché compris.</summary>
+    /// <summary>What the link announces, the searched text included.</summary>
     public string SiteSearchLabel =>
         SiteSearch.Length == 0 ? string.Empty : Strings.Format("SearchOnSite", SiteSearch);
 
     /// <summary>
-    /// Vrai quand l'offre de chercher sur le site a lieu d'être : un texte
-    /// cherché, et la liste sous les yeux.
+    /// True when the offer to search the site makes sense: a searched text,
+    /// and the list in view.
     ///
-    /// **Elle survivait au guide qu'on venait d'ouvrir.** Le texte cherché
-    /// n'est effacé qu'en descendant vers une rubrique ; ouvrir une quête
-    /// depuis un résultat le laisse en place, et le pied continuait donc de
-    /// proposer « Chercher … sur papycha.fr » au bas d'un guide déjà ouvert,
-    /// alors que la recherche était finie et avait abouti.
+    /// **It used to survive the guide we had just opened.** The searched text
+    /// is cleared only when going down into a section; opening a quest from a
+    /// result leaves it in place, and the footer therefore kept offering
+    /// "Search … on papycha.fr" at the bottom of a guide already open, even
+    /// though the search was finished and had succeeded.
     ///
-    /// **Le premier remède visait à côté.** Il exigeait qu'aucune quête ne soit
-    /// ouverte, et faisait donc disparaître l'offre dès qu'on cherchait depuis
-    /// un guide, ce qui est le geste le plus courant : on lit, on veut autre
-    /// chose, on tape. La question n'est pas de savoir si une page est ouverte
-    /// mais si la liste est à l'écran.
+    /// **The first fix aimed wide.** It required that no quest be open, and so
+    /// made the offer disappear as soon as we searched from within a guide,
+    /// which is the most common gesture: we read, we want something else, we
+    /// type. The question is not whether a page is open but whether the list
+    /// is on screen.
     ///
-    /// <see cref="IsListOpen" /> répond exactement à cela, et taper du texte le
-    /// pose. L'offre paraît donc sur l'écran des résultats, et surtout sur
-    /// celui qui annonce « aucun résultat » : c'est là qu'on veut aller voir
-    /// ailleurs. Devant un guide seul, elle n'offre rien que le lecteur
-    /// cherche.
+    /// <see cref="IsListOpen" /> answers exactly this, and typing
+    /// text sets it. The offer therefore appears on the results screen, and
+    /// especially on the one announcing "No result": that is where we want to
+    /// go look elsewhere. In front of a guide alone, it offers nothing that
+    /// the reader is searching for.
     /// </summary>
     public bool ShowsSiteSearch => SiteSearch.Length > 0 && IsListOpen;
 
@@ -142,15 +144,15 @@ public sealed partial class QuestViewModel : ObservableObject
     private string _chainText = string.Empty;
 
     /// <summary>
-    /// Place de la quête dans sa chaîne de prérequis, « 6 / 7 ». Affichée au
-    /// pied, entre la précédente et la suivante : c'est de cette chaîne qu'elle
-    /// parle, et non du succès.
+    /// Position of the quest in its prerequisite chain, "6 / 7". Shown in the
+    /// footer, between the previous and the next: it is this chain that it
+    /// talks about, not the achievement.
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsChain))]
     private string _chainStep = string.Empty;
 
-    /// <summary>Vrai quand une page est ouverte dans la vue.</summary>
+    /// <summary>True when a page is open in the view.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsQuestChrome))]
     [NotifyPropertyChangedFor(nameof(ShowsChain))]
@@ -158,20 +160,19 @@ public sealed partial class QuestViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(CanCloseList))]
     private bool _hasQuest;
 
-    /// <summary>Ce qu'on lit tant qu'aucune quête n'est ouverte.</summary>
+    /// <summary>What is shown as long as no quest is open.</summary>
     [ObservableProperty]
     private string _placeholder = Strings.Get("SearchPlaceholder");
 
     /// <summary>
-    /// Ligne à mettre en évidence quand le panneau s'ouvre : celle de la quête
-    /// affichée. La sélection n'était posée qu'à la flèche du bas depuis la
-    /// recherche, si bien que rouvrir la liste surlignait une quête qu'on avait
-    /// quittée depuis longtemps.
+    /// Row to highlight when the panel opens: the one for the displayed quest.
+    /// The selection used to be set only by the down arrow from the search, so
+    /// reopening the list highlighted a quest we had left long before.
     /// </summary>
     [ObservableProperty]
     private QuestNode? _selectedNode;
 
-    /// <summary>Vrai quand la liste déroulante est ouverte.</summary>
+    /// <summary>True when the dropdown list is open.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsQuestChrome))]
     [NotifyPropertyChangedFor(nameof(ShowsChain))]
@@ -183,11 +184,11 @@ public sealed partial class QuestViewModel : ObservableObject
     private bool _isListOpen;
 
     /// <summary>
-    /// Vrai le temps qu'une page de guide arrive.
+    /// True for as long as it takes a guide page to arrive.
     ///
-    /// Le bandeau annonce la nouvelle quête dès le clic, mais la vue montre
-    /// encore l'ancien guide pendant une seconde ou deux : on croyait que le
-    /// clic n'avait rien fait, ou pire, on lisait la mauvaise page.
+    /// The banner announces the new quest as soon as we click, but the view
+    /// still shows the previous guide for a second or two: we would think the
+    /// click had done nothing, or worse, we would be reading the wrong page.
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsPage))]
@@ -196,80 +197,85 @@ public sealed partial class QuestViewModel : ObservableObject
     private bool _isLoadingPage;
 
     /// <summary>
-    /// Vrai quand la fenêtre est à l'écran.
+    /// True when the window is on screen.
     ///
-    /// Il ne sert qu'à retirer la vue web quand la fenêtre se masque, ce qui est
-    /// la condition pour endormir le moteur de rendu : il refuse de dormir tant
-    /// qu'il se croit visible, et le dit par une erreur d'état.
+    /// It is only used to remove the web view when the window is hidden, which
+    /// is the condition for putting the rendering engine to sleep: it refuses
+    /// to sleep as long as it believes itself visible, and says so with a
+    /// state error.
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsPage))]
     private bool _isWindowVisible = true;
 
-    /// <summary>Vrai pendant l'indexation, pour montrer que ça travaille.</summary>
+    /// <summary>True during indexing, to show that it is working.</summary>
     [ObservableProperty]
     private bool _isBusy;
 
     /// <summary>
-    /// Vrai quand le bandeau d'étape doit se voir.
+    /// True when the step banner should be visible.
     ///
-    /// Il s'efface tant que la liste est ouverte : elle prend alors toute la
-    /// hauteur, et on ne consulte pas une étape et une liste en même temps.
+    /// It disappears while the list is open: the list then takes up the whole
+    /// height, and we do not consult a step and a list at the same time.
     /// </summary>
     public bool ShowsQuestChrome => HasQuest && !IsListOpen;
 
     /// <summary>
-    /// Vrai si refermer la liste mène quelque part.
+    /// True if closing the list leads somewhere.
     ///
-    /// La croix rend la place au guide qu'on lisait. Sans guide ouvert, elle ne
-    /// rend rien : elle échange une liste utilisable contre une fenêtre vide
-    /// qui invite à rouvrir cette même liste. Une commande dont le seul effet
-    /// est d'annuler ce qu'on vient de faire n'a pas à être proposée.
+    /// The cross gives back the place to the guide we were reading. With no
+    /// guide open, it gives back nothing: it trades a usable list for an empty
+    /// window that invites us to reopen that same list. A command whose only
+    /// effect is to undo what we just did should not be offered.
     /// </summary>
     public bool CanCloseList => IsListOpen && HasQuest;
 
     /// <summary>
-    /// Vrai quand le pied de succès a quelque chose à dire.
+    /// True when the achievement footer has something to say.
     ///
-    /// Un donjon, un raid, une tanière et un chemin n'appartiennent à aucune
-    /// suite : ils n'ont ni quête avant, ni quête après, ni rang dans un succès,
-    /// et le pied ne montrait pour eux qu'un filet et une bande vide.
+    /// A dungeon, a raid, a lair and a path belong to no sequence: they have
+    /// no quest before, no quest after, no rank in an achievement, and the
+    /// footer used to show for them only a thin line and an empty bar.
     /// </summary>
     public bool ShowsChain =>
         ShowsQuestChrome
         && (PreviousQuest is not null || NextQuest is not null || ChainStep.Length > 0);
 
     /// <summary>
-    /// Vrai quand la vue web doit se voir. Elle est retirée pendant un
-    /// chargement, et non recouverte : une fenêtre native se dessine au-dessus
-    /// de tout élément WPF du même châssis, et un voile posé dessus resterait
-    /// invisible. C'est du reste ce que fait déjà la liste déroulante.
+    /// True when the web view should be visible. It is removed during loading,
+    /// not covered: a native window draws itself above every WPF element in
+    /// the same shell, so a veil placed over it would stay invisible. This is,
+    /// moreover, what the dropdown list already does.
     /// </summary>
     public bool ShowsPage => !IsListOpen && !IsLoadingPage && IsWindowVisible;
 
-    /// <summary>Vrai quand la place de la vue revient à l'indicateur d'attente.</summary>
+    /// <summary>
+    /// True when the view's place is taken over by the loading indicator.
+    /// </summary>
     public bool ShowsLoader => IsLoadingPage && !IsListOpen;
 
     /// <summary>
-    /// Vrai quand la ligne d'étape doit se voir.
+    /// True when the step row should be visible.
     ///
-    /// Elle tient sa place pendant le chargement, où l'on ne connaît pas encore
-    /// les étapes : sans cela le bandeau perdait une ligne puis la reprenait, et
-    /// sautait à chaque changement de quête. Ce qu'elle montre alors est le
-    /// départ, qui vient des métadonnées et n'attend pas la page.
+    /// It holds its place during loading, when the steps are not yet known:
+    /// without this the banner used to lose a row and then get it back,
+    /// jumping at every quest change. What it shows then is the start, which
+    /// comes from the metadata and does not wait for the page.
     /// </summary>
     public bool ShowsSteps => HasSteps || IsLoadingPage;
 
-    /// <summary>Où l'on se trouve dans l'arbre, affiché au-dessus de la liste.</summary>
+    /// <summary>Where we stand in the tree, shown above the list.</summary>
     [ObservableProperty]
     private string _breadcrumb = string.Empty;
 
-    /// <summary>Adresse de la page ouverte, pour la rouvrir dans le navigateur.</summary>
+    /// <summary>
+    /// Address of the open page, to reopen it in the browser.
+    /// </summary>
     public string? CurrentUrl { get; private set; }
 
     /// <summary>
-    /// Prépare le catalogue. La fenêtre reste utilisable pendant l'indexation :
-    /// elle dure quelques secondes la première fois, et rien ensuite.
+    /// Prepares the catalogue. The window stays usable during indexing: it
+    /// takes a few seconds the first time, and nothing afterwards.
     /// </summary>
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
@@ -277,12 +283,12 @@ public sealed partial class QuestViewModel : ObservableObject
 
         IsBusy = true;
 
-        // **L'arbre d'hier vaut mieux qu'un arbre vide.** Le catalogue en cache
-        // est déjà chargé en mémoire quand on arrive ici, et pourtant la
-        // fenêtre affichait « Quêtes 0 » pendant toute la relecture : elle
-        // attendait la fin d'une lecture réseau pour montrer ce qu'elle avait
-        // déjà sur le disque. On le montre tout de suite, la ligne d'état
-        // disant par ailleurs qu'une mise à jour est en cours.
+        // **Yesterday's tree is better than an empty tree.** The cached
+        // catalogue is already loaded in memory by the time we get here, and
+        // yet the window used to show "Quests 0" throughout the whole reread:
+        // it was waiting for a network read to finish before showing what it
+        // already had on disk. We show it right away, with the status line
+        // saying elsewhere that an update is in progress.
         if (before.Quests > 0)
         {
             CountSections();
@@ -300,13 +306,13 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Durée de la dernière indexation complète, ou <c>null</c> s'il n'y en a
-    /// pas eu. Journalisée par la fenêtre, la vue-modèle n'ayant pas de journal.
+    /// Duration of the last full indexing, or <c>null</c> if there has not
+    /// been one. Logged by the window, since the view model has no logger.
     /// </summary>
     public TimeSpan? LastIndexing => _catalog.LastIndexing;
 
     /// <summary>
-    /// Range ce qui suit une lecture : la chaîne et l'état affiché.
+    /// Settles what follows a read: the chain and the displayed status.
     /// </summary>
     private void Settle(QuestCatalogDocument catalog, QuestTally before)
     {
@@ -314,13 +320,12 @@ public sealed partial class QuestViewModel : ObservableObject
 
         IsBusy = false;
 
-        // Ce que la relecture a rapporté, quand il y avait quelque chose avant
-        // à quoi le comparer. La première indexation se tait : annoncer « sept
-        // cent quatre-vingt-deux quêtes de plus » n'apprendrait rien.
+        // What the reread brought back, when there was something before to
+        // compare it with. The first indexing stays silent: announcing "seven
+        // hundred and eighty-two quests more" would teach nothing.
         //
-        // C'est dit sans qu'on l'ait demandé, parce que personne ne demande une
-        // relecture : la sentinelle décide, et l'on veut savoir ce qu'elle a
-        // trouvé.
+        // This is said without being asked, because nobody asks for a reread:
+        // the sentinel decides, and we want to know what it found.
         StatusText = catalog.Quests.Count == 0
             ? Strings.Get("NoQuestSiteDown")
             : _catalog.LastFailure is not null
@@ -329,13 +334,13 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Compte les quêtes par rubrique à partir du catalogue, et non des
-    /// nombres du site : celui-ci compte aussi ce qui n'est pas une quête, et
-    /// proposerait des rubriques qui s'ouvriraient sur rien.
+    /// Counts the quests by section from the catalogue, not from the site's
+    /// own numbers: the site also counts what is not a quest, and would offer
+    /// sections that opened onto nothing.
     ///
-    /// Sur toutes les rubriques auxquelles la quête appartient, comme la liste
-    /// les montre : le site range « Le dragon d'Astrub » dans ses quêtes
-    /// principales comme dans celles d'Astrub.
+    /// On every section the quest belongs to, the way the list shows them: the
+    /// site files "Le dragon d'Astrub" under its main quests as well as under
+    /// those of Astrub.
     /// </summary>
     private void CountSections()
     {
@@ -352,26 +357,26 @@ public sealed partial class QuestViewModel : ObservableObject
 
     partial void OnQueryChanged(string value)
     {
-        // L'offre suit le texte tapé, mot à mot : c'est la même chose que ce
-        // qu'on cherche, donc elle ne peut pas s'en écarter.
+        // The offer follows the typed text, word for word: it is the same
+        // thing as what we are searching for, so it cannot depart from it.
         SiteSearch = string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
 
         if (string.IsNullOrWhiteSpace(value))
         {
-            // Effacer la recherche ramène là où l'on était, plutôt qu'à la
-            // racine : on efface souvent pour corriger une faute de frappe.
+            // Clearing the search brings us back to where we were, rather than
+            // to the root: we often clear it to fix a typo.
             ShowSection(_section);
             return;
         }
 
         ShowSearch(value);
 
-        // Chercher sans voir les résultats n'a pas de sens : jusqu'ici taper du
-        // texte reconstruisait la liste sans la déployer.
+        // Searching without seeing the results makes no sense: until now,
+        // typing text rebuilt the list without unrolling it.
         IsListOpen = true;
     }
 
-    /// <summary>Ouvre la liste sur ce qui était affiché.</summary>
+    /// <summary>Opens the list on what was displayed.</summary>
     public void OpenList()
     {
         if (Nodes.Count == 0)
@@ -379,15 +384,14 @@ public sealed partial class QuestViewModel : ObservableObject
             ShowRoot();
         }
 
-        // La liste rouvre sur la rubrique de la quête affichée, sauf si elle y
-        // est déjà : elle garde alors ses succès dépliés et ce qu'on y avait
-        // déroulé, on y retrouve seulement où l'on en est.
+        // The list reopens on the section of the displayed quest, unless it is
+        // already there: it then keeps its achievements unrolled and what had
+        // been expanded, and we only find again where we stand.
         //
-        // Sans cela, on rouvrait sur « Quêtes / Donjons » ou sur les résultats
-        // d'une recherche alors qu'un guide était affiché, et il fallait
-        // redescendre l'arbre pour retrouver les voisines de ce qu'on lisait.
-        // Un donjon n'appartient à aucune rubrique du site : sa branche est la
-        // sienne.
+        // Without this, it used to reopen on "Quests / Dungeons" or on the
+        // results of a search while a guide was displayed, and we had to climb
+        // back down the tree to find the neighbours of what we were reading. A
+        // dungeon belongs to no section of the site: its branch is its own.
         var section = _anchorSection ?? SectionOfPage();
 
         if (section is { } target && (_section != target || Query.Length > 0))
@@ -401,7 +405,9 @@ public sealed partial class QuestViewModel : ObservableObject
         IsListOpen = true;
     }
 
-    /// <summary>Pose le repère de la liste sur la page qu'on vient de désigner.</summary>
+    /// <summary>
+    /// Sets the list's marker on the page we just designated.
+    /// </summary>
     private void Anchor(int section, string url)
     {
         _anchorSection = section;
@@ -409,28 +415,29 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// La rubrique sous laquelle une quête se lit : celle qu'on parcourt quand
-    /// elle en fait partie, sinon celle que le catalogue lui a retenue.
+    /// The section under which a quest is read: the one we are browsing when
+    /// it belongs to it, otherwise the one the catalogue has kept for it.
     ///
-    /// Une quête peut appartenir à plusieurs rubriques, et le catalogue n'en
-    /// garde qu'une dans <c>SectionId</c>, la moins peuplée. Rouvrir la liste
-    /// depuis une quête répétable lue dans Frigost basculait donc sur « Quêtes
-    /// répétables », alors qu'on venait de Frigost. Relevé sur le catalogue :
-    /// 215 quêtes sur 782 appartiennent à plus d'une rubrique, dont 93 qu'une
-    /// rubrique transverse emporte et 80 dans l'autre sens.
+    /// A quest can belong to several sections, and the catalogue keeps only
+    /// one in <c>SectionId</c>, the least populated one. Reopening the list
+    /// from a repeatable quest read in Frigost therefore used to switch to
+    /// "Quêtes répétables", even though we had come from Frigost. Measured on
+    /// the catalogue: 215 quests out of 782 belong to more than one section,
+    /// of which 93 are claimed by a cross-cutting section and 80 go the other
+    /// way.
     /// </summary>
     private int SectionSeen(QuestSummary quest) =>
         quest.SectionIds.Contains(_section) ? _section : quest.SectionId;
 
     /// <summary>
-    /// Pose la sélection sur la quête affichée, si elle est dans la liste.
-    /// Ne touche à rien quand elle n'y est pas : la liste montre peut-être une
-    /// autre rubrique, et la vider serait pire que de ne rien surligner.
+    /// Sets the selection on the displayed quest, if it is in the list.
+    /// Touches nothing when it is not there: the list may be showing another
+    /// section, and clearing it would be worse than not highlighting anything.
     /// </summary>
     public void SelectCurrent()
     {
-        // Le repère plutôt que la page courante : après un lien suivi, c'est la
-        // fiche d'où l'on vient qu'on veut retrouver surlignée.
+        // The marker rather than the current page: after following a link, it
+        // is the page we came from that we want to find highlighted again.
         var vise = _anchorUrl ?? CurrentUrl;
 
         if (string.IsNullOrEmpty(vise))
@@ -442,7 +449,7 @@ public sealed partial class QuestViewModel : ObservableObject
             n.Url is { } url && string.Equals(url, vise, StringComparison.Ordinal));
     }
 
-    /// <summary>Le premier niveau : les grandes branches.</summary>
+    /// <summary>The first level: the main branches.</summary>
     public void ShowRoot()
     {
         _section = 0;
@@ -478,8 +485,8 @@ public sealed partial class QuestViewModel : ObservableObject
 
 
     /// <summary>
-    /// Le contenu d'une rubrique. À la racine des quêtes, ce sont les autres
-    /// rubriques ; plus bas, ce sont les quêtes elles-mêmes.
+    /// The content of a section. At the quests root, these are the other
+    /// sections; further down, these are the quests themselves.
     /// </summary>
     public void ShowSection(int section)
     {
@@ -515,8 +522,8 @@ public sealed partial class QuestViewModel : ObservableObject
             Breadcrumb = Strings.Get(section == QuestTree.RaidSection ? "Raids" : "Lairs");
             SetBack(target: 0);
 
-            // Sans paliers : dix lignes se lisent d'un trait, et les couper
-            // n'aiderait personne.
+            // With no tiers: ten rows are read in one go, and splitting them
+            // would help no one.
             foreach (var place in _tree.Fighting(kind).OrderBy(d => d.Level)
                          .ThenBy(d => d.Title, StringComparer.CurrentCulture))
             {
@@ -565,16 +572,18 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Rubrique où le retour ramène, quand il y a un cran au-dessus.
+    /// Section the back button leads back to, when there is a level above.
     ///
-    /// Le retour était une ligne de la liste comme une autre : il défilait avec
-    /// elle et disparaissait dès qu'on descendait dans une rubrique de soixante
-    /// quêtes. Il est maintenant fixe, au-dessus de la liste.
+    /// The back button used to be a row of the list like any other: it
+    /// scrolled along with it and disappeared as soon as we went down into a
+    /// section of sixty quests. It is now fixed, above the list.
     /// </summary>
     [ObservableProperty]
     private bool _canGoBack;
 
-    /// <summary>Vrai quand l'historique des pages lues a de quoi revenir.</summary>
+    /// <summary>
+    /// True when the history of read pages has somewhere to go back to.
+    /// </summary>
     [ObservableProperty]
     private bool _canGoBackPage;
 
@@ -589,11 +598,12 @@ public sealed partial class QuestViewModel : ObservableObject
     private void ClearBack() => CanGoBack = false;
 
     /// <summary>
-    /// Revient sur la quête d'où l'on vient, et rend son adresse pour que la
-    /// fenêtre la charge. Rend <c>null</c> quand l'historique est vide.
+    /// Goes back to the quest we came from, and returns its address for the
+    /// window to load. Returns <c>null</c> when the history is empty.
     ///
-    /// Le retour ne s'empile pas lui-même : seul un lien suivi sur place le
-    /// fait, sans quoi la flèche ferait la navette entre deux quêtes.
+    /// Going back does not push itself onto the stack: only a link followed in
+    /// place does, otherwise the arrow would shuttle back and forth between
+    /// two quests.
     /// </summary>
     public string? GoBackPage()
     {
@@ -606,8 +616,9 @@ public sealed partial class QuestViewModel : ObservableObject
 
         CanGoBackPage = _visited.Count > 0;
 
-        // Par la même porte que l'aller : seules des adresses que le catalogue
-        // sait rouvrir sont empilées, et c'est lui qui décide de la nature.
+        // Through the same door as the forward trip: only addresses the
+        // catalogue knows how to reopen are pushed onto the stack, and it is
+        // the catalogue that decides the nature.
         TryFollowUrl(url);
 
         IsListOpen = false;
@@ -615,7 +626,7 @@ public sealed partial class QuestViewModel : ObservableObject
         return url;
     }
 
-    /// <summary>Remonte d'un cran.</summary>
+    /// <summary>Goes back up one level.</summary>
     public void GoBack()
     {
         if (!CanGoBack)
@@ -628,8 +639,8 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Résultats d'une recherche. Elle porte sur toutes les quêtes, quelle que
-    /// soit la rubrique ouverte : on cherche un nom, pas un rangement.
+    /// Results of a search. It covers every quest, whatever section is open:
+    /// we are searching for a name, not a filing.
     /// </summary>
     private void ShowSearch(string query)
     {
@@ -662,8 +673,9 @@ public sealed partial class QuestViewModel : ObservableObject
                 Strings.Get("Achievements"),
                 QuestTree.Combien(found.Successes.Count, "WordAchievement", "WordAchievements")));
 
-            // Un succès ne se choisit pas : ce qu'on veut, ce sont ses quêtes.
-            // Elles suivent donc son nom, dans l'ordre où l'on y joue.
+            // An achievement is not something you pick: what is wanted is its
+            // quests. They therefore follow its name, in the order in which
+            // they are played.
             foreach (var success in found.Successes)
             {
                 List<QuestSummary> quests =
@@ -685,8 +697,8 @@ public sealed partial class QuestViewModel : ObservableObject
             }
         }
 
-        // Un groupe par nature, et seulement s'il a trouvé quelque chose : une
-        // recherche ordinaire en montre un ou deux.
+        // One group per kind, and only if it found something: an ordinary
+        // search shows one or two of them.
         foreach (var (kind, titre, un, plusieurs) in QuestTree.DungeonGroups)
         {
             List<DungeonSummary> places = [.. found.Of(kind)];
@@ -736,22 +748,22 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Les trois groupes de lieux de combat, dans l'ordre de la racine. Les
-    /// quatre textes sont des clés de traduction et non des libellés : la
-    /// table est statique, et la langue n'est connue qu'à l'affichage.
+    /// The three groups of combat locations, in the order of the root. The
+    /// four texts are translation keys and not labels: the table is static,
+    /// and the language is known only at display time.
     /// </summary>
 
 
-    /// <summary>Ce qui sépare deux niveaux d'un fil d'Ariane.</summary>
+    /// <summary>What separates two levels of a breadcrumb trail.</summary>
     private const string Separator = QuestTree.Separator;
 
 
     /// <summary>
-    /// Donne suite à un clic dans la liste. Rend l'adresse à charger, ou null
-    /// quand le clic ne fait que déplier une branche.
+    /// Follows up on a click in the list. Returns the address to load, or null
+    /// when the click only unrolls a branch.
     ///
-    /// Une adresse et non une quête : la liste mène aussi bien à un donjon, et
-    /// la fenêtre n'a besoin que de savoir quoi ouvrir.
+    /// An address and not a quest: the list can just as well lead to a
+    /// dungeon, and the window only needs to know what to open.
     /// </summary>
     public string? Activate(QuestNode? node)
     {
@@ -760,9 +772,9 @@ public sealed partial class QuestViewModel : ObservableObject
             return null;
         }
 
-        // Choisir dans la liste efface la piste : on a désigné où aller, et ce
-        // qu'on lisait avant ne veut plus rien dire. La flèche restait sinon
-        // allumée, pointant une page sans rapport.
+        // Picking from the list clears the trail: we have designated where to
+        // go, and what we were reading before no longer means anything.
+        // Otherwise the arrow stayed lit, pointing to an unrelated page.
         _visited.Clear();
         CanGoBackPage = false;
 
@@ -793,10 +805,12 @@ public sealed partial class QuestViewModel : ObservableObject
         }
     }
 
-    /// <summary>Retient la quête ouverte, pour le pied de fenêtre et le titre.</summary>
+    /// <summary>
+    /// Remembers the open quest, for the window footer and the title.
+    /// </summary>
     /// <param name="anchor">
-    /// Faux quand on suit un lien du guide : la page s'affiche, mais le repère
-    /// de la liste reste sur la fiche d'où l'on vient.
+    /// False when following a link in the guide: the page is displayed, but
+    /// the list's marker stays on the page we came from.
     /// </param>
     public void SetCurrent(QuestSummary quest, bool anchor = true)
     {
@@ -819,9 +833,10 @@ public sealed partial class QuestViewModel : ObservableObject
 
         SetNeighbours(quest);
 
-        // La page suivante n'est pas encore chargée : garder les étapes de la
-        // précédente afficherait un objectif qui n'a plus rien à voir. Le
-        // départ, lui, se sait déjà et tient la ligne en attendant.
+        // The next page is not loaded yet: keeping the previous one's steps
+        // would show an objective that no longer has anything to do with it.
+        // The start, however, is already known and holds the row in the
+        // meantime.
         ResetSteps([]);
         SetStep(-1);
 
@@ -829,14 +844,14 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Ouvre un donjon.
+    /// Opens a dungeon.
     ///
-    /// Il n'a ni succès ni voisines : on n'enchaîne pas les donjons comme les
-    /// quêtes d'une série, on en choisit un. Le bandeau ne porte donc que son
-    /// nom et son départ, que le site donne dans ses métadonnées comme pour une
-    /// quête.
+    /// It has neither an achievement nor neighbours: dungeons are not chained
+    /// together like the quests of a series, we pick one. The banner therefore
+    /// carries only its name and its start, which the site gives in its
+    /// metadata as it does for a quest.
     /// </summary>
-    /// <param name="anchor">Voir la surcharge des quêtes.</param>
+    /// <param name="anchor">See the quests overload.</param>
     public void SetCurrent(DungeonSummary dungeon, bool anchor = true)
     {
         ArgumentNullException.ThrowIfNull(dungeon);
@@ -868,13 +883,13 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Ouvre un chemin.
+    /// Opens a path.
     ///
-    /// Il n'a ni niveau ni voisines, et pas de départ à composer : un itinéraire
-    /// commence là où on se trouve. Le bandeau ne porte donc que son nom, et les
-    /// étapes viendront de ses titres de sections.
+    /// It has neither a level nor neighbours, and no start to compose: an
+    /// itinerary begins wherever we are. The banner therefore carries only its
+    /// name, and the steps will come from its section titles.
     /// </summary>
-    /// <param name="anchor">Voir la surcharge des quêtes.</param>
+    /// <param name="anchor">See the quests overload.</param>
     public void SetCurrent(PathSummary path, bool anchor = true)
     {
         ArgumentNullException.ThrowIfNull(path);
@@ -908,16 +923,19 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Établit le succès de la quête ouverte, sa place et ses voisines.
+    /// Establishes the achievement of the open quest, its rank and its
+    /// neighbours.
     ///
-    /// Le choix des voisines est dans le noyau, <see cref="QuestNeighbourhood"/> ;
-    /// il ne reste ici que l'habillage, qui demande de savoir quelle rubrique
-    /// on parcourt. Ce sont les voisines que le catalogue connaît : la page,
-    /// quand elle arrivera, dira ce que le site publie et l'emportera.
+    /// The choice of neighbours is in the core,
+    /// <see cref="QuestNeighbourhood"/> ; only the dressing is left here,
+    /// which requires knowing which section we are browsing. These are the
+    /// neighbours the catalogue knows: the page, once it arrives, will say
+    /// what the site publishes and will take precedence.
     /// </summary>
     /// <summary>
-    /// Ce que le catalogue a décidé pour la quête ouverte. Retenu parce que la
-    /// page, en arrivant, doit savoir si la liste du succès avait déjà tranché.
+    /// What the catalogue decided for the open quest. Kept because the page,
+    /// on arriving, needs to know whether the achievement's list had already
+    /// settled it.
     /// </summary>
     private QuestNeighbours _neighbours;
 
@@ -938,12 +956,13 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Le lien vers une quête voisine, annoncé par sa série quand on en change.
+    /// The link to a neighbouring quest, announced by its series when we
+    /// change series.
     ///
-    /// Suivre un prérequis fait parfois entrer dans un autre succès, voire dans
-    /// une autre zone. Le titre seul laisserait croire qu'on poursuit la même
-    /// suite ; le nom du succès - à défaut celui de la zone - dit qu'on en
-    /// commence une autre.
+    /// Following a prerequisite sometimes takes us into another achievement,
+    /// or even another area. The title alone would suggest that we are
+    /// continuing the same sequence; the name of the achievement (or, failing
+    /// that, that of the area) tells us that we are starting a different one.
     /// </summary>
     private QuestLink? ToLink(QuestSummary? target, QuestSummary from)
     {
@@ -956,9 +975,9 @@ public sealed partial class QuestViewModel : ObservableObject
 
         if (string.Equals(target.SuccessName, from.SuccessName, StringComparison.Ordinal))
         {
-            // Par la rubrique qu'on parcourt, et non par celle que le catalogue
-            // a retenue : deux quêtes de la même zone s'annonçaient d'une série
-            // différente parce que l'une est aussi répétable.
+            // By the section we are browsing, not the one the catalogue kept:
+            // two quests from the same area used to be announced as being from
+            // a different series because one of them is also repeatable.
             return SectionSeen(target) == SectionSeen(from)
                 ? link
                 : link with { Series = _tree.NameOf(SectionSeen(target)) };
@@ -974,13 +993,13 @@ public sealed partial class QuestViewModel : ObservableObject
         new(quest.Title, quest.Url, QuestLinkKind.Quest);
 
     /// <summary>
-    /// La voisine que le site nomme, rendue avec son étiquette de série quand
-    /// le catalogue la connaît.
+    /// The neighbour the site names, rendered with its series label when the
+    /// catalogue knows it.
     ///
-    /// Il la connaît presque toujours, et l'étiquette est ce qui prévient qu'on
-    /// change de succès ou de zone. Quand il ne la connaît pas, on garde le
-    /// titre et l'adresse du site plutôt que de taire la suite : le bouton
-    /// mène alors à une page que la fenêtre ouvrira à part.
+    /// It knows it almost always, and the label is what warns that we are
+    /// changing achievement or area. When it does not know it, we keep the
+    /// site's title and address rather than silencing the sequence: the button
+    /// then leads to a page the window will open on its own.
     /// </summary>
     private QuestLink? Published(QuestLink? published, QuestSummary from)
     {
@@ -997,36 +1016,37 @@ public sealed partial class QuestViewModel : ObservableObject
         return target is null ? published : ToLink(target, from);
     }
 
-    /// <summary>Étapes repérées dans la page ouverte.</summary>
+    /// <summary>Steps found in the open page.</summary>
     private IReadOnlyList<QuestStep> _steps = [];
 
     /// <summary>
-    /// Les étapes du guide, telles qu'on les choisit dans la liste que le rang
-    /// déplie. Les deux flèches n'avancent que d'une à la fois.
+    /// The guide's steps, as picked from the list the rank unrolls. The two
+    /// arrows only move one at a time.
     /// </summary>
     public System.Collections.ObjectModel.ObservableCollection<QuestStepRowViewModel> Steps { get; } = [];
 
     /// <summary>
-    /// Raccourci de la première étape, composé des métadonnées de la quête
-    /// ouverte. Null quand le site ne dit ni où ni auprès de qui elle se lance.
+    /// Shortcut for the first step, composed from the metadata of the open
+    /// quest. Null when the site says neither where nor with whom it is
+    /// started.
     /// </summary>
     private string? _start;
 
     /// <summary>
-    /// Vrai quand la première étape est le départ de la quête et non un
-    /// paragraphe du guide. Le pont l'annonce, parce que lui seul voit si la
-    /// page porte un bloc de départ.
+    /// True when the first step is the quest's start and not a paragraph of
+    /// the guide. The bridge announces it, because only it can see whether the
+    /// page carries a start block.
     /// </summary>
     private bool _startsAtDeparture;
 
     [ObservableProperty]
     private int _stepIndex = -1;
 
-    /// <summary>« Étape 3 / 7 », ou rien quand la page n'a pas d'étape.</summary>
+    /// <summary>"Step 3 / 7", or nothing when the page has no step.</summary>
     [ObservableProperty]
     private string _stepText = string.Empty;
 
-    /// <summary>Ce qu'il y a à faire à cette étape, en une ligne.</summary>
+    /// <summary>What there is to do at this step, in one line.</summary>
     [ObservableProperty]
     private string _stepDetail = string.Empty;
 
@@ -1040,18 +1060,22 @@ public sealed partial class QuestViewModel : ObservableObject
     [ObservableProperty]
     private bool _canGoNextStep;
 
-    /// <summary>Quête suivante du succès, s'il y en a une après celle-ci.</summary>
+    /// <summary>
+    /// Next quest of the achievement, if there is one after this one.
+    /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsChain))]
     private QuestLink? _nextQuest;
 
-    /// <summary>Quête précédente du succès, s'il y en a une avant celle-ci.</summary>
+    /// <summary>
+    /// Previous quest of the achievement, if there is one before this one.
+    /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsChain))]
     private QuestLink? _previousQuest;
 
     /// <summary>
-    /// Ce que la page vient de livrer : ses blocs structurés et ses étapes.
+    /// What the page has just delivered: its structured blocks and its steps.
     /// </summary>
     public void SetPage(
         string? introHtml,
@@ -1066,21 +1090,23 @@ public sealed partial class QuestViewModel : ObservableObject
         var facts = QuestPageParser.ParseFacts(introHtml);
         var chain = QuestPageParser.ParseChain(chainHtml);
 
-        // Le site publie en pied d'article ce qui précède et ce qui suit, et
-        // c'est lui qui fait foi **là où nous n'avons rien** : aux bornes d'un
-        // succès et pour les quêtes qui n'en ont pas. SetCurrent a posé notre
-        // ordre avant que la page arrive, pour que les boutons répondent
-        // pendant le chargement ; la page le complète en arrivant.
+        // The site publishes at the foot of the article what comes before and
+        // what comes after, and it is the site that is authoritative **where
+        // we have nothing**: at the edges of an achievement and for quests
+        // that have none. SetCurrent has set our order before the page
+        // arrives, so that the buttons respond during loading; the page
+        // completes it on arrival.
         //
-        // Mais elle ne le remplace plus à l'intérieur d'une liste. Cette
-        // colonne s'intitule « Quêtes et jalons suivants » : elle dit ce que la
-        // quête débloque, non l'ordre où on lit un succès. Dans « Le théâtre
-        // des gobelins », celle de « Titi Gobelait le magobelin » ne nomme que
-        // « Manque de moule », qui l'exige, et suivre la colonne sautait « Un
-        // avenir de krotte de Trooll », qui vient avant et n'exige rien.
+        // But it no longer replaces it inside a list. This column is titled
+        // "Quêtes et jalons suivants": it says what the quest unlocks, not the
+        // order in which an achievement is read. In "Le théâtre des gobelins",
+        // the one for "Titi Gobelait le magobelin" names only "Manque de
+        // moule", which requires it, and following the column skipped "Un
+        // avenir de krotte de Trooll", which comes before and requires
+        // nothing.
         //
-        // Et jamais quand la colonne nomme plusieurs quêtes : en désigner une
-        // mentirait.
+        // And never when the column names several quests: naming just one
+        // would lie.
         if (_current is { } ouverte)
         {
             if (!_neighbours.PreviousFromList)
@@ -1094,9 +1120,9 @@ public sealed partial class QuestViewModel : ObservableObject
             }
         }
 
-        // Le nom du succès vient du catalogue, afin que la liste et la page
-        // s'accordent. On ne retombe sur celui de la page que pour une quête
-        // que le catalogue ne rattache à rien.
+        // The achievement's name comes from the catalogue, so that the list
+        // and the page agree. We fall back to the page's own name only for a
+        // quest the catalogue attaches to nothing.
         if (ChainText.Length == 0)
         {
             ChainText = facts.Success ?? string.Empty;
@@ -1108,7 +1134,9 @@ public sealed partial class QuestViewModel : ObservableObject
         SetStep(steps.Count > 0 ? 0 : -1);
     }
 
-    /// <summary>Le défilement a changé d'étape, ou l'utilisateur en a choisi une.</summary>
+    /// <summary>
+    /// Scrolling has changed step, or the user has picked one.
+    /// </summary>
     public void SetStep(int index)
     {
         StepIndex = index;
@@ -1129,15 +1157,15 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Ce qu'on écrit à côté du rang d'une étape. La décision est dans le
-    /// noyau, où elle s'éprouve ; il ne reste ici que le calcul du rang.
+    /// What is written next to a step's rank. The decision is in the core,
+    /// where it is put to the test; only the rank's computation is left here.
     /// </summary>
     private string StepLabel(int index) =>
         QuestStepLabel.For(_steps[index], IsDeparture(index), _start);
 
     /// <summary>
-    /// Le rang tel qu'il se lit : « Étape 2 / 5 », ou « Départ » pour le
-    /// lancement, qui n'est pas une étape du parcours et ne se compte donc pas.
+    /// The rank as it reads: "Step 2 / 5", or "Start" for the launch, which is
+    /// not a step of the journey and so is not counted.
     /// </summary>
     private string StepRank(int index) =>
         QuestStepLabel.Numbering(index, _steps.Count, HasDeparture) is { } numbering
@@ -1145,34 +1173,34 @@ public sealed partial class QuestViewModel : ObservableObject
             : Strings.Get("StepStart");
 
     /// <summary>
-    /// Le seul numéro, pour la colonne étroite de la liste. Le départ n'en a
-    /// pas : sa ligne se reconnaît à ce qu'elle dit, « Rendez-vous en… », et
-    /// écrire « Départ » dans vingt-six pixels était impossible.
+    /// The number alone, for the list's narrow column. The start has none: its
+    /// row is recognisable by what it says, "Rendez-vous en…", and writing
+    /// "Start" in twenty-six pixels was impossible.
     /// </summary>
     private string StepNumber(int index) =>
         QuestStepLabel.Numbering(index, _steps.Count, HasDeparture) is { } numbering
             ? numbering.Rank.ToString(System.Globalization.CultureInfo.InvariantCulture)
             : string.Empty;
 
-    /// <summary>Vrai quand la première étape rendue est le lancement.</summary>
+    /// <summary>True when the first rendered step is the launch.</summary>
     private bool HasDeparture => _steps.Count > 0 && IsDeparture(0);
 
     private bool IsDeparture(int index) =>
         QuestStepLabel.IsDeparture(_steps[index], index == 0, _startsAtDeparture);
 
     /// <summary>
-    /// Vrai quand il y a de quoi choisir : à partir de deux étapes.
+    /// True when there is something to choose from: starting at two steps.
     ///
-    /// Sur un guide d'une seule étape, la pastille dépliait une liste d'un
-    /// élément, ce qui ne menait nulle part.
+    /// On a guide with a single step, the badge used to unroll a list of one
+    /// item, which led nowhere.
     /// </summary>
     public bool CanPickStep => _steps.Count > 1;
 
     /// <summary>
-    /// Repose les étapes, et la liste où on les choisit avec elles.
+    /// Resets the steps, and the list where they are picked, together.
     ///
-    /// Une seule porte pour les deux : la liste et le compte se contredisaient
-    /// dès qu'un chemin oubliait l'une des deux lignes.
+    /// A single door for both: the list and the count used to contradict each
+    /// other as soon as one code path forgot one of the two lines.
     /// </summary>
     private void ResetSteps(IReadOnlyList<QuestStep> steps)
     {
@@ -1189,14 +1217,15 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// On suit un lien de succès. Le titre est repris tout de suite : la page
-    /// met une seconde à répondre, et un bandeau qui garde l'ancien nom pendant
-    /// ce temps laisse croire que le clic n'a rien fait.
+    /// We follow an achievement link. The title is picked up right away: the
+    /// page takes a second to respond, and a banner that keeps the old name
+    /// during that time gives the impression the click did nothing.
     ///
-    /// La quête est retrouvée dans le catalogue par son adresse, pour que le
-    /// pied reste peuplé. Il ne l'était pas : la méthode effaçait la précédente
-    /// et la suivante sans jamais les rétablir, si bien qu'après un seul saut
-    /// la navigation s'éteignait et qu'il fallait repasser par la liste.
+    /// The quest is found again in the catalogue by its address, so that the
+    /// footer stays populated. It used not to be: the method cleared the
+    /// previous and next quests without ever restoring them, so that after a
+    /// single jump the navigation went dead and we had to go back through the
+    /// list.
     /// </summary>
     public void Follow(QuestLink link)
     {
@@ -1207,13 +1236,13 @@ public sealed partial class QuestViewModel : ObservableObject
             return;
         }
 
-        // Une adresse que le catalogue ne connaît pas : on ouvre quand même,
-        // sans voisines, plutôt que de ne rien faire.
+        // An address the catalogue does not know: we open it anyway, with no
+        // neighbours, rather than doing nothing.
         //
-        // Les trois champs d'état sont vidés : ils désignaient encore la page
-        // d'avant, et tout ce qui s'en sert mentait donc. La liste rouvrait sur
-        // la rubrique de l'ancienne quête, et le signalement la nommait à la
-        // place de celle qu'on lisait.
+        // The three state fields are cleared: they still designated the
+        // previous page, so everything that used them was therefore lying. The
+        // list used to reopen on the section of the old quest, and the report
+        // form named it instead of the one we were reading.
         _current = null;
         _currentDungeon = null;
         _currentPath = null;
@@ -1234,13 +1263,13 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Suit une adresse sur place quand le catalogue la connaît, et dit si elle
-    /// l'était.
+    /// Follows an address in place when the catalogue knows it, and says
+    /// whether it did.
     ///
-    /// Un guide renvoie vers ses quêtes voisines par de simples liens : un clic
-    /// dessus ouvrait une seconde fenêtre alors que le bouton « précédente »,
-    /// qui mène au même endroit, restait sur place. Le catalogue tranche : ce
-    /// qu'il connaît se suit ici, le reste part à part.
+    /// A guide links to its neighbouring quests through plain links: clicking
+    /// one used to open a second window, whereas the "previous" button, which
+    /// leads to the same place, stayed in place. The catalogue settles it:
+    /// what it knows is followed here, the rest goes elsewhere.
     /// </summary>
     public bool TryFollowUrl(string? url, bool remember = false)
     {
@@ -1251,9 +1280,9 @@ public sealed partial class QuestViewModel : ObservableObject
             return false;
         }
 
-        // Un donjon, un raid, une tanière et un chemin se suivent comme une
-        // quête : ce sont des pages du site que le catalogue connaît. Sans cela,
-        // le lien d'un guide vers l'une d'elles partait dans une fenêtre à part.
+        // A dungeon, a raid, a lair and a path are followed just like a quest:
+        // they are pages of the site the catalogue knows. Without this, a
+        // guide's link to one of them used to open in a separate window.
         var quest = _catalog.Catalog.Quests.FirstOrDefault(q =>
             string.Equals(UrlKey(q.Url), key, StringComparison.Ordinal));
 
@@ -1272,14 +1301,14 @@ public sealed partial class QuestViewModel : ObservableObject
             return false;
         }
 
-        // L'empilement se fait ici, avant l'aiguillage, et vaut donc pour les
-        // quatre natures. Il ne se faisait que dans la branche des quêtes : un
-        // lien vers un chemin ou un donjon n'entrait jamais dans l'historique,
-        // et la flèche de retour ne paraissait pas.
+        // The push onto the stack happens here, before the routing, and
+        // therefore applies to all four kinds. It used to happen only in the
+        // quests branch: a link to a path or a dungeon never entered the
+        // history, and the back arrow did not appear.
         //
-        // Seule une page que le catalogue sait rouvrir est empilée : le retour
-        // repasse par cette même porte, et une adresse qu'elle refuserait
-        // laisserait la flèche sans effet.
+        // Only a page the catalogue knows how to reopen is pushed: going back
+        // passes through this same door again, and an address it would refuse
+        // would leave the arrow with no effect.
         if (remember
             && CurrentUrl is { Length: > 0 } quittee
             && (_current is not null || _currentDungeon is not null || _currentPath is not null)
@@ -1289,10 +1318,10 @@ public sealed partial class QuestViewModel : ObservableObject
             CanGoBackPage = true;
         }
 
-        // Un lien suivi dans le guide ne déplace pas le repère de la liste : on
-        // va voir un chemin, et l'on veut retrouver la quête en rouvrant le
-        // panneau. Tout le reste, choix dans la liste ou bouton du pied, le
-        // déplace.
+        // A link followed in the guide does not move the list's marker: we go
+        // to look at a path, and we want to find the quest again by reopening
+        // the panel. Everything else, a pick from the list or a footer button,
+        // moves it.
         var anchor = !remember;
 
         if (dungeon is not null)
@@ -1318,20 +1347,21 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Adresse réduite à ce qui l'identifie.
+    /// Address reduced to what identifies it.
     ///
-    /// Le site écrit ses liens tantôt avec la barre finale, tantôt sans, et la
-    /// comparaison stricte manquait alors une quête pourtant au catalogue.
+    /// The site writes its links sometimes with a trailing slash, sometimes
+    /// without, and a strict comparison used to miss a quest that was
+    /// nonetheless in the catalogue.
     /// </summary>
     private static string UrlKey(string? url)
     {
         var text = (url ?? string.Empty).Trim();
 
-        // Le fragment part : le site renvoie parfois vers une ancre d'une page
-        // qu'il connaît, « …/quete-x/#etape-3 », et la comparaison stricte la
-        // prenait pour une page inconnue qui partait en fenêtre annexe. La
-        // chaîne de requête, elle, reste : au moins une adresse du catalogue en
-        // fait son identité.
+        // The fragment is dropped: the site sometimes points to an anchor on a
+        // page it knows, "…/quete-x/#etape-3", and a strict comparison used to
+        // mistake it for an unknown page that opened in a side window. The
+        // query string, however, stays: at least one address in the catalogue
+        // makes it part of its identity.
         var anchor = text.IndexOf('#', StringComparison.Ordinal);
 
         if (anchor >= 0)
@@ -1343,8 +1373,8 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Rang de la première ligne qui se choisit, en enjambant les intertitres.
-    /// Rend -1 si la liste n'offre rien.
+    /// Rank of the first row that can be picked, stepping over the
+    /// subheadings. Returns -1 if the list offers nothing.
     /// </summary>
     public int FirstSelectable()
     {
@@ -1359,7 +1389,9 @@ public sealed partial class QuestViewModel : ObservableObject
         return -1;
     }
 
-    /// <summary>Étape visée par une flèche, ou -1 s'il n'y a nulle part où aller.</summary>
+    /// <summary>
+    /// Step targeted by an arrow, or -1 if there is nowhere to go.
+    /// </summary>
     public int StepTarget(int direction)
     {
         var target = StepIndex + direction;
@@ -1368,11 +1400,11 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Le navigateur embarqué n'a pas pu se mettre en route.
+    /// The embedded browser could not start up.
     ///
-    /// Le message de l'incident porte déjà sa cause quand elle est connue :
-    /// l'environnement dit lui-même que le composant WebView2 manque, et
-    /// où le prendre. On n'y ajoute que le repli, qui vaut dans tous les cas.
+    /// The incident's message already carries its cause when it is known: the
+    /// environment itself says that the WebView2 component is missing, and
+    /// where to get it. We only add the fallback, which holds in every case.
     /// </summary>
     public void ReportViewFailure(Exception exception)
     {
@@ -1384,30 +1416,30 @@ public sealed partial class QuestViewModel : ObservableObject
             exception.Message + Strings.Get("BrowserFallback");
     }
 
-    /// <summary>L'accueil du site.</summary>
+    /// <summary>The site's home page.</summary>
     private const string HomeUrl = "https://papycha.fr/";
 
-    /// <summary>La page du site qui énumère les zones de quêtes.</summary>
+    /// <summary>The site page that lists the quest areas.</summary>
     private const string IndexUrl = "https://papycha.fr/quetes/";
 
     /// <summary>
-    /// Rouvre sur le site ce que la fenêtre montre, et non la quête en toutes
-    /// circonstances.
+    /// Reopens on the site what the window shows, not the quest in every
+    /// circumstance.
     ///
-    /// Le bouton menait toujours à la quête courante, y compris quand la liste
-    /// couvrait l'écran sur une rubrique qu'on parcourait : il ouvrait alors
-    /// autre chose que ce qu'on avait sous les yeux, ou rien du tout tant
-    /// qu'aucune quête n'avait été choisie.
+    /// The button always used to lead to the current quest, including when the
+    /// list covered the screen on a section being browsed: it then opened
+    /// something other than what was in front of us, or nothing at all as long
+    /// as no quest had been picked.
     ///
-    /// Une recherche fait exception : elle ne montre pas de rubrique, et ce
-    /// qu'on lisait avant de la lancer reste la quête.
+    /// A search is an exception: it shows no section, and what we were reading
+    /// before launching it remains the quest.
     /// </summary>
     /// <summary>
-    /// Ouvre la recherche du site dans le navigateur.
+    /// Opens the site's search in the browser.
     ///
-    /// Dans le vrai navigateur et non dans nos fenêtres : une page de résultats
-    /// n'est pas un guide, elle n'a ni étapes ni chaîne, et notre cadrage n'y
-    /// laisserait qu'une colonne de liens sans en-tête.
+    /// In the real browser and not in our windows: a results page is not a
+    /// guide, it has neither steps nor a chain, and our frame would leave it
+    /// as nothing but a column of links with no header.
     /// </summary>
     public void OpenSiteSearch()
     {
@@ -1428,15 +1460,15 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Ce qu'il faut pour signaler une erreur sur ce qu'on a sous les yeux :
-    /// la page, et le repère à porter dans le formulaire du site.
+    /// What is needed to report an error on what is in front of us: the page,
+    /// and the marker to carry into the site's form.
     ///
-    /// Le repère est la zone, la quête et son succès, c'est-à-dire ce que le site
-    /// nomme lui-même. Le succès vient de la quête et non de <c>ChainText</c>,
-    /// que le bandeau détourne pour dire « Chemin » sur un chemin et la clef sur
-    /// un donjon. Le rang de l'étape y figurait d'abord ; c'est une numérotation
-    /// qui n'existe que dans cette fenêtre, et elle ne désignait donc rien pour
-    /// qui reçoit le signalement.
+    /// The marker is the area, the quest and its achievement, that is to say
+    /// what the site itself names. The achievement comes from the quest and
+    /// not from <c>ChainText</c>, which the banner diverts to say "Path" on a
+    /// path and the key on a dungeon. The step's rank used to appear there
+    /// first; that is a numbering that exists only in this window, and so it
+    /// designated nothing to whoever receives the report.
     /// </summary>
     public (string Url, string Location)? ErrorReport() =>
         CanReport
@@ -1444,19 +1476,19 @@ public sealed partial class QuestViewModel : ObservableObject
             : null;
 
     /// <summary>
-    /// Le nom de la rubrique sous laquelle on lit, ou vide quand la page n'en a
-    /// pas. La même règle que la liste : celle qu'on parcourt si la quête y
-    /// figure, sinon celle que le catalogue lui a retenue.
+    /// The name of the section we are reading under, or empty when the page
+    /// has none. The same rule as the list: the one being browsed if the quest
+    /// is in it, otherwise the one the catalogue has kept for it.
     /// </summary>
     private string ZoneName() =>
         SectionOfPage() is { } id ? _tree.NameOf(id) : string.Empty;
 
     /// <summary>
-    /// La rubrique de la page qu'on lit, quelle qu'en soit la nature.
+    /// The section of the page we are reading, whatever its kind.
     ///
-    /// Les trois cas vivaient en double, ici et dans le repère de la liste, et
-    /// ils avaient divergé : le signalement ignorait les chemins et n'en
-    /// nommait aucune rubrique. Un seul endroit, désormais.
+    /// The three cases used to live in duplicate, here and in the list's
+    /// marker, and they had diverged: the report used to ignore paths and
+    /// named no section for them. A single place now, for both.
     /// </summary>
     private int? SectionOfPage() =>
         (_current is { } lue ? SectionSeen(lue) : (int?)null)
@@ -1466,18 +1498,19 @@ public sealed partial class QuestViewModel : ObservableObject
             : (int?)null);
 
     /// <summary>
-    /// Vrai quand il y a un formulaire à ouvrir, c'est-à-dire quand un guide
-    /// est sous les yeux.
+    /// True when there is a form to open, meaning when a guide is in front of
+    /// us.
     ///
-    /// Le site ne met de formulaire de signalement qu'en pied d'article, mesuré
-    /// page par page : les rubriques n'en ont pas, et il n'en existe pas de
-    /// général. Le bouton disparaît donc plutôt que de mener nulle part.
+    /// The site puts a report form only at the foot of an article, measured
+    /// page by page: sections have none, and there is no general one. The
+    /// button therefore disappears rather than leading nowhere.
     /// </summary>
     public bool CanReport => !IsListOpen && HasQuest && PapychaSite.Owns(CurrentUrl);
 
     /// <summary>
-    /// La page de ce que la liste parcourt, ou <c>null</c> si elle ne parcourt
-    /// rien : liste fermée, recherche en cours, ou rubrique sans page rédigée.
+    /// The page of what the list is browsing, or <c>null</c> if it is browsing
+    /// nothing: list closed, search in progress, or section with no page
+    /// written.
     /// </summary>
     private string? Browsed()
     {
@@ -1486,9 +1519,9 @@ public sealed partial class QuestViewModel : ObservableObject
             return null;
         }
 
-        // La racine du menu n'est pas la liste des zones : elle annonce les
-        // quêtes et les donjons, soit tout ce que le site offre. C'est donc son
-        // accueil qu'elle ouvre, et la page des zones un cran plus bas.
+        // The root of the menu is not the list of areas: it announces quests
+        // and dungeons, that is everything the site offers. So it is the
+        // site's home page that it opens, with the areas page one level down.
         if (_section == 0)
         {
             return HomeUrl;
@@ -1501,10 +1534,10 @@ public sealed partial class QuestViewModel : ObservableObject
 
         var url = _catalog.Catalog.Sections.FirstOrDefault(s => s.Id == _section)?.Url;
 
-        // Trois rubriques sur vingt-cinq n'ont pas de page à elles : le tableau
-        // du site ne les nomme pas. On reste alors sur celle qui les énumère
-        // toutes, plutôt que de renvoyer vers une quête dont il n'est pas
-        // question à l'écran.
+        // Three sections out of twenty-five have no page of their own: the
+        // site's table does not name them. We then stay on the one that lists
+        // them all, rather than sending back to a quest that is not in
+        // question on screen.
         return string.IsNullOrWhiteSpace(url) ? IndexUrl : url;
     }
 }

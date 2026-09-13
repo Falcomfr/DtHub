@@ -1,18 +1,23 @@
 ﻿namespace DtHub.Core.Adb;
 
 /// <summary>
-/// Une ligne de <c>adb devices</c> ou <c>adb devices -l</c>, transcrite telle
-/// quelle. C'est une vue brute du transport ADB : l'appareil enrichi par
-/// <c>getprop</c> et par les réglages de l'utilisateur est un autre modèle.
+/// A line from <c>adb devices</c> or <c>adb devices -l</c>,
+/// transcribed as is. This is a raw view of the ADB transport: the
+/// device enriched by <c>getprop</c> and by the user's settings is a
+/// different model.
 /// </summary>
 public sealed record AdbDeviceEntry
 {
-    /// <summary>Numéro de série ADB, ou <c>adresse:port</c> en sans-fil.</summary>
+    /// <summary>
+    /// ADB serial number, or <c>address:port</c> over wireless.
+    /// </summary>
     public required string Serial { get; init; }
 
     public required AdbDeviceState State { get; init; }
 
-    /// <summary>Libellé d'état brut, utile lorsque <see cref="State"/> vaut Unknown.</summary>
+    /// <summary>
+    /// Raw state label, useful when <see cref="State"/> is Unknown.
+    /// </summary>
     public required string RawState { get; init; }
 
     public AdbConnectionKind ConnectionKind { get; init; }
@@ -22,18 +27,29 @@ public sealed record AdbDeviceEntry
     public string? Device { get; init; }
     public string? TransportId { get; init; }
 
-    /// <summary>Chemin USB rapporté par <c>adb devices -l</c>, par exemple <c>1-2</c>.</summary>
+    /// <summary>
+    /// USB path reported by <c>adb devices -l</c>, for example
+    /// <c>1-2</c>.
+    /// </summary>
     public string? UsbPath { get; init; }
 
-    /// <summary>Hôte extrait du numéro de série en connexion sans fil.</summary>
+    /// <summary>
+    /// Host extracted from the serial number over a wireless
+    /// connection.
+    /// </summary>
     public string? Host { get; init; }
 
-    /// <summary>Port extrait du numéro de série en connexion sans fil.</summary>
+    /// <summary>
+    /// Port extracted from the serial number over a wireless
+    /// connection.
+    /// </summary>
     public int? Port { get; init; }
 
-    /// <summary>Vrai si l'appareil accepte des commandes maintenant.</summary>
+    /// <summary>True if the device accepts commands now.</summary>
     public bool IsReady => State == AdbDeviceState.Device;
 
-    /// <summary>Nom lisible de repli tant que <c>getprop</c> n'a pas répondu.</summary>
+    /// <summary>
+    /// Readable fallback name until <c>getprop</c> has answered.
+    /// </summary>
     public string DisplayName => Model?.Replace('_', ' ') ?? Serial;
 }

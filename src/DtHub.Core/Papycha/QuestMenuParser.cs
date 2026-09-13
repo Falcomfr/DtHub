@@ -1,27 +1,30 @@
 ﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Rapproche deux intitulés de rubrique qui désignent le même endroit.
+/// Brings together two section titles that designate the same place.
 ///
-/// Le site ne nomme jamais deux fois pareil : sa page dit « Quêtes de Frigost »
-/// là où sa catégorie dit « Île de Frigost ». Une égalité ne se produirait
-/// jamais et une simple inclusion échouerait. On compare donc sur les mots qui
-/// distinguent.
+/// The site never names something the same way twice: its page says
+/// "Quêtes de Frigost" (Frigost Quests) where its category says "Île
+/// de Frigost" (Frigost Island). An equality would never occur and a
+/// simple inclusion check would fail. So we compare on the words
+/// that distinguish them.
 ///
-/// Fonction pure : elle se vérifie sur un fragment enregistré.
+/// Pure function: it is checked against a saved fragment.
 /// </summary>
 public static class QuestMenuParser
 {
     /// <summary>
-    /// Nombre de mots distinctifs que deux intitulés ont en commun, zéro s'ils
-    /// ne parlent pas du même endroit.
+    /// Number of distinctive words that two titles have in common,
+    /// zero if they do not talk about the same place.
     ///
-    /// Sert à rapprocher une page du site d'une catégorie : « Quêtes de
-    /// Frigost » et « Île de Frigost » désignent la même chose, et en faire
-    /// deux rubriques distinctes serait un doublon. Le compte, plutôt qu'un
-    /// simple oui ou non, départage « Quêtes du Château d'Amakna » entre les
-    /// catégories « Château d'Amakna » et « Amakna » : la première partage deux
-    /// mots, la seconde un seul.
+    /// Used to match a site page to a category: "Quêtes de Frigost"
+    /// (Frigost Quests) and "Île de Frigost" (Frigost Island)
+    /// designate the same thing, and turning them into two separate
+    /// sections would be a duplicate. The count, rather than a
+    /// simple yes or no, decides between "Quêtes du Château
+    /// d'Amakna" (Amakna Castle Quests) and the categories "Château
+    /// d'Amakna" (Amakna Castle) and "Amakna": the first shares two
+    /// words, the second only one.
     /// </summary>
     public static int Kinship(string? firstKey, string? secondKey)
     {
@@ -34,9 +37,9 @@ public static class QuestMenuParser
     }
 
     /// <summary>
-    /// Rang d'une rubrique dans le classement du site, ou un rang de fin s'il
-    /// ne la mentionne pas. Les rubriques qu'il ne nomme pas viennent après
-    /// celles qu'il nomme, sans jamais se glisser au milieu.
+    /// Rank of a section in the site's ordering, or an end-of-list
+    /// rank if it does not mention it. Sections it does not name
+    /// come after those it names, never slipping in between.
     /// </summary>
     public static int RankOf(IReadOnlyList<string> order, string sectionKey)
     {
@@ -54,13 +57,15 @@ public static class QuestMenuParser
     }
 
     /// <summary>
-    /// Mots distinctifs que le second intitulé porte en plus du premier.
+    /// Distinctive words that the second title carries in addition
+    /// to the first.
     ///
-    /// Départage deux rubriques que le même mot rapproche. « Quêtes d'Amakna »
-    /// partage « amakna » avec la catégorie « Amakna » comme avec « Château
-    /// d'Amakna », et le nombre de mots partagés ne tranche pas. Celui qui en
-    /// ajoute le moins est le plus proche : « Amakna » n'ajoute rien, « Château
-    /// d'Amakna » ajoute un mot.
+    /// Decides between two sections brought together by the same
+    /// word. "Quêtes d'Amakna" (Amakna Quests) shares "amakna" with
+    /// the category "Amakna" just as much as with "Château d'Amakna"
+    /// (Amakna Castle), and the number of shared words does not
+    /// settle it. Whichever adds the fewest is the closest: "Amakna"
+    /// adds nothing, "Château d'Amakna" adds one word.
     /// </summary>
     public static int Surplus(string? firstKey, string? secondKey)
     {
@@ -71,11 +76,12 @@ public static class QuestMenuParser
     }
 
     /// <summary>
-    /// Mots d'un nom de rubrique qui la distinguent vraiment.
+    /// Words of a section name that truly distinguish it.
     ///
-    /// « Île », « quêtes », « de » se retrouvent partout et rapprocheraient
-    /// n'importe quoi de n'importe quoi. Ne restent que les noms propres et les
-    /// mots assez longs pour être parlants.
+    /// "Île" (Island), "quêtes" (quests), "de" (of) are found
+    /// everywhere and would bring anything together with anything.
+    /// Only proper nouns and words long enough to be meaningful
+    /// remain.
     /// </summary>
     private static IReadOnlyList<string> Distinctive(string? sectionKey)
     {

@@ -7,8 +7,8 @@ using DtHub.Core.Guidance;
 namespace DtHub.App.ViewModels;
 
 /// <summary>
-/// Fenêtre d'aide : la marche à suivre sur le téléphone, adaptée à sa marque.
-/// Séparée de l'association pour que celle-ci reste courte.
+/// Help window: the steps to follow on the phone, adapted to its
+/// brand. Kept separate from pairing so that it stays short.
 /// </summary>
 public sealed partial class HelpViewModel : ObservableObject
 {
@@ -20,7 +20,7 @@ public sealed partial class HelpViewModel : ObservableObject
         _brand = PhoneBrands.Standard;
     }
 
-    /// <summary>Marques proposées, regroupées par procédure identique.</summary>
+    /// <summary>Brands offered, grouped by identical procedure.</summary>
     public IReadOnlyList<PhoneBrand> Brands { get; } = PhoneBrands.All;
 
     [ObservableProperty]
@@ -29,8 +29,8 @@ public sealed partial class HelpViewModel : ObservableObject
     public bool HasWarning => !string.IsNullOrWhiteSpace(Brand.Warning);
 
     /// <summary>
-    /// Présélectionne la marque d'un téléphone déjà connu : on ajoute souvent
-    /// un second appareil de la même marque.
+    /// Preselects the brand of an already known phone: a second
+    /// device of the same brand is often added.
     /// </summary>
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
@@ -49,7 +49,7 @@ public sealed partial class HelpViewModel : ObservableObject
         }
         catch (AdbException)
         {
-            // Sans appareil connu, la procédure standard convient.
+            // Without a known device, the standard procedure will do.
         }
     }
 

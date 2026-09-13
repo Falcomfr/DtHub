@@ -3,21 +3,21 @@
 namespace DtHub.Infrastructure.Processes;
 
 /// <summary>
-/// Ramasse les processus laissés par une exécution précédente.
+/// Cleans up processes left behind by a previous run.
 ///
-/// Une fin anormale de l'application laissait ses fenêtres de mirroring
-/// ouvertes. Au lancement suivant elles n'étaient pas reconnues, et de
-/// nouvelles venaient s'y ajouter : après quelques incidents, l'écran se
-/// couvrait de fenêtres identiques.
+/// An abnormal end of the application used to leave its mirroring
+/// windows open. On the next launch they were not recognized, and
+/// new ones kept being added: after a few incidents, the screen
+/// would be covered in identical windows.
 /// </summary>
 public static class OrphanProcesses
 {
     /// <summary>
-    /// Arrête les processus issus de l'exécutable donné. Seul le nôtre est
-    /// visé, comparé par chemin complet : une copie de scrcpy installée par
-    /// l'utilisateur ne doit jamais être touchée.
+    /// Stops the processes spawned from the given executable. Only
+    /// ours is targeted, matched by full path: a copy of scrcpy
+    /// installed by the user must never be touched.
     /// </summary>
-    /// <returns>Nombre de processus arrêtés.</returns>
+    /// <returns>Number of processes stopped.</returns>
     public static int KillFrom(string executablePath)
     {
         if (string.IsNullOrWhiteSpace(executablePath))
@@ -46,8 +46,8 @@ public static class OrphanProcesses
                     or System.ComponentModel.Win32Exception
                     or NotSupportedException)
             {
-                // Le processus a pu disparaître entre-temps, ou appartenir à
-                // une autre session. Rien à signaler.
+                // The process may have disappeared in the meantime, or
+                // belong to another session. Nothing to report.
                 _ = exception;
             }
             finally
@@ -69,8 +69,8 @@ public static class OrphanProcesses
         catch (Exception exception) when (
             exception is System.ComponentModel.Win32Exception or InvalidOperationException)
         {
-            // Le chemin d'un processus d'une autre session est illisible.
-            // Dans le doute, on n'y touche pas.
+            // The path of a process from another session is
+            // unreadable. When in doubt, it is left untouched.
             return false;
         }
     }

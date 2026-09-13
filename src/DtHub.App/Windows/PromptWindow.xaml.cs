@@ -4,11 +4,11 @@ using System.Windows.Input;
 namespace DtHub.App.Windows;
 
 /// <summary>
-/// Demande une ligne de texte. Il n'y en avait aucune : le service de dialogues
-/// ne savait qu'informer, avertir et faire confirmer.
+/// Asks for a line of text. There was none: the dialog service
+/// could only inform, warn and confirm.
 ///
-/// Volontairement minuscule, et sans vue-modèle : une fenêtre qui pose une
-/// question et rend une réponse n'a pas d'état à tenir.
+/// Deliberately tiny, and without a view model: a window that asks
+/// a question and returns an answer has no state to hold.
 /// </summary>
 public partial class PromptWindow : Window
 {
@@ -19,8 +19,9 @@ public partial class PromptWindow : Window
         Question.Text = question;
         Entry.Text = initial ?? string.Empty;
 
-        // Le cadre explicatif ne paraît que si l'appelant a quelque chose à
-        // annoncer : une boîte vide coûterait de la hauteur pour rien.
+        // The explanatory box only appears if the caller has
+        // something to announce: an empty box would cost height
+        // for nothing.
         if (!string.IsNullOrWhiteSpace(details))
         {
             Details.Text = details;
@@ -32,8 +33,8 @@ public partial class PromptWindow : Window
             Accept.Content = acceptLabel;
         }
 
-        // Tout est sélectionné : la réponse la plus fréquente à une valeur
-        // proposée est de la remplacer, non de la compléter.
+        // Everything is selected: the most frequent response to a
+        // suggested value is to replace it, not to complete it.
         Loaded += (_, _) =>
         {
             Entry.Focus();
@@ -41,7 +42,7 @@ public partial class PromptWindow : Window
         };
     }
 
-    /// <summary>Le texte saisi, une fois la fenêtre acceptée.</summary>
+    /// <summary>The entered text, once the window is accepted.</summary>
     public string Answer { get; private set; } = string.Empty;
 
     private void OnAccept(object sender, RoutedEventArgs e)
@@ -51,9 +52,10 @@ public partial class PromptWindow : Window
     }
 
     /// <summary>
-    /// Entrée valide, comme le bouton par défaut. Le gestionnaire existe parce
-    /// que la touche doit fonctionner depuis le champ lui-même, où le bouton
-    /// par défaut ne reçoit pas toujours la frappe.
+    /// Enter validates, like the default button. The handler
+    /// exists because the key must work from the field itself,
+    /// where the default button does not always receive the
+    /// keystroke.
     /// </summary>
     private void OnEntryKeyDown(object sender, KeyEventArgs e)
     {

@@ -5,12 +5,12 @@ using DtHub.Core.Android;
 namespace DtHub.Core.Users;
 
 /// <summary>
-/// Liste les utilisateurs et profils Android d'un téléphone. La liste change
-/// rarement, elle est donc mise en cache et rafraîchie sur demande.
+/// Lists a phone's Android users and profiles. The list changes
+/// rarely, so it is cached and refreshed on request.
 /// </summary>
 public sealed class AndroidUserService
 {
-    /// <summary>Utilisateur présent sur tout appareil Android.</summary>
+    /// <summary>User present on every Android device.</summary>
     public static readonly AndroidUser PrimaryFallback = new()
     {
         Id = 0,
@@ -20,13 +20,13 @@ public sealed class AndroidUserService
     };
 
     /// <summary>
-    /// Vrai si cette liste est le repli, faute d'avoir pu interroger l'appareil,
-    /// et non une liste réellement lue.
+    /// True if this list is the fallback, for lack of having been able
+    /// to query the device, and not a list that was actually read.
     ///
-    /// La distinction compte : un appareil dont la surcouche bride
-    /// <c>pm list users</c> et un appareil qui n'a vraiment qu'un profil
-    /// donnaient jusqu'ici exactement la même chose à l'écran, une seule
-    /// instance et aucune explication.
+    /// The distinction matters: a device whose overlay restricts
+    /// <c>pm list users</c> and a device that truly has only one
+    /// profile used to show exactly the same thing on screen, a single
+    /// instance and no explanation.
     /// </summary>
     public static bool IsFallback(IReadOnlyList<AndroidUser> users) =>
         users is { Count: 1 } && ReferenceEquals(users[0], PrimaryFallback);
@@ -37,9 +37,9 @@ public sealed class AndroidUserService
     public AndroidUserService(IAdbClient adb) => _adb = adb;
 
     /// <summary>
-    /// Utilisateurs du téléphone. En cas d'échec de la commande, rend
-    /// l'utilisateur principal seul plutôt que rien : le téléphone reste
-    /// utilisable pour ses applications ordinaires.
+    /// Users of the phone. If the command fails, returns the primary
+    /// user alone rather than nothing: the phone stays usable for its
+    /// ordinary applications.
     /// </summary>
     public async Task<IReadOnlyList<AndroidUser>> GetUsersAsync(
         string serial,
@@ -70,9 +70,9 @@ public sealed class AndroidUserService
         }
         catch (AdbException)
         {
-            // Un téléphone qui refuse la commande garde au moins son
-            // utilisateur principal, sans quoi l'application deviendrait
-            // inutilisable pour lui.
+            // A phone that refuses the command still keeps its
+            // primary user, without which the application would
+            // become unusable for it.
             return [PrimaryFallback];
         }
 
@@ -91,7 +91,7 @@ public sealed class AndroidUserService
         return users;
     }
 
-    /// <summary>Utilisateur correspondant à un identifiant, ou <c>null</c>.</summary>
+    /// <summary>User matching an identifier, or <c>null</c>.</summary>
     public async Task<AndroidUser?> FindAsync(
         string serial,
         int userId,
@@ -103,10 +103,10 @@ public sealed class AndroidUserService
     }
 
     /// <summary>
-    /// Démarre un utilisateur arrêté. Une application ne peut pas s'ouvrir sur
-    /// un profil qui ne tourne pas.
+    /// Starts a stopped user. An application cannot open on a profile
+    /// that is not running.
     /// </summary>
-    /// <returns>Vrai si l'utilisateur tourne à l'issue de l'appel.</returns>
+    /// <returns>True if the user is running once the call returns.</returns>
     public async Task<bool> TryStartUserAsync(
         string serial,
         int userId,
@@ -134,16 +134,17 @@ public sealed class AndroidUserService
         }
         catch (AdbException)
         {
-            // Silence assumé : le faux dit « le profil n'a pas démarré », et
-            // l'appelant en fait un refus nommé, « Ouvrez-le une fois sur le
-            // téléphone ». Le motif technique, lui, part au journal d'ADB.
+            // Silence assumed: false says "the profile did not start",
+            // and the caller turns it into a named refusal, "Open it
+            // once on the phone." The technical reason itself goes to
+            // the ADB log.
             return false;
         }
     }
 
     /// <summary>
-    /// Nombre de profils que l'appareil accepte en tout, ou <c>null</c> s'il ne
-    /// le dit pas. Le principal compte dans ce total.
+    /// Number of profiles the device accepts in total, or <c>null</c>
+    /// if it does not say. The primary user counts in this total.
     /// </summary>
     public async Task<int?> GetMaxUsersAsync(
         string serial,
@@ -161,39 +162,44 @@ public sealed class AndroidUserService
         }
         catch (AdbException)
         {
-            // Silence assumé : le vide dit « ce téléphone ne dit pas sa
-            // limite », ce qui est aussi le cas de ceux qui ne connaissent pas
-            // la commande. On ne refuse alors pas d'ajouter un compte.
+            // Silence assumed: empty means "this phone does not state
+            // its limit", which is also true of those that do not
+            // know the command. Adding an account is then not refused.
             return null;
         }
     }
 
     /// <summary>
-    /// Crée un profil Android rattaché à <paramref name="parentUserId"/> et
-    /// rend son identifiant.
+    /// Creates an Android profile attached to
+    /// <paramref name="parentUserId"/> and returns its identifier.
     ///
-    /// C'est le mécanisme que le téléphone emploie lui-même pour ses comptes
-    /// multiples : rien n'est recopié, rien n'est modifié, l'application reste
-    /// celle de l'éditeur, signée par lui. Le profil naît vide, avec son propre
-    /// espace de données.
+    /// This is the mechanism the phone itself uses for its multiple
+    /// accounts: nothing is copied, nothing is modified, the
+    /// application stays the publisher's own, signed by them. The
+    /// profile is born empty, with its own data space.
     ///
-    /// Le profil est <b>rattaché</b>, et non détaché. La distinction décide de
-    /// tout : mesuré sur un Xiaomi sous Android 16, un profil rattaché
-    /// s'affiche sur un afficheur virtuel pendant que les autres comptes sont
-    /// ouverts, tandis qu'un utilisateur complet, celui que rendait
-    /// <c>pm create-user</c> seul, ne s'affiche jamais. Il répondait pourtant
-    /// <c>Status: ok</c>, puis pendait sans rien montrer.
+    /// The profile is <b>attached</b>, not detached. The distinction
+    /// decides everything: measured on a Xiaomi running Android 16, an
+    /// attached profile displays on a virtual display while the other
+    /// accounts are open, whereas a full user, the kind that
+    /// <c>pm create-user</c> alone used to produce, never displays. It
+    /// still answered <c>Status: ok</c>, then hung without showing
+    /// anything.
     ///
-    /// Voir <see cref="AndroidUserHosting"/> pour la mesure et son détail.
+    /// See <see cref="AndroidUserHosting"/> for the measurement and
+    /// its detail.
     /// </summary>
-    /// <returns>L'identifiant du profil, ou <c>null</c> si la création a été refusée.</returns>
+    /// <returns>
+    /// The profile's identifier, or <c>null</c> if creation was refused.
+    /// </returns>
     /// <summary>
-    /// Le nom du type tel qu'Android l'attend sur la ligne de commande.
+    /// The type name as Android expects it on the command line.
     ///
-    /// Relevé dans l'aide de <c>pm create-user</c> du téléphone de référence :
-    /// « --managed is shorthand for --user-type
-    /// android.os.usertype.profile.MANAGED ». Le raccourci est donc écarté au
-    /// profit du nom complet, qui dit lequel des deux on demande.
+    /// Found in the help of <c>pm create-user</c> on the reference
+    /// phone: "--managed is shorthand for --user-type
+    /// android.os.usertype.profile.MANAGED". The shorthand is
+    /// therefore avoided in favor of the full name, which says which
+    /// of the two is being requested.
     /// </summary>
     private static string TypeName(AndroidUserType type) => type switch
     {
@@ -241,14 +247,15 @@ public sealed class AndroidUserService
         }
         catch (AdbException)
         {
-            // Silence assumé : le vide dit « aucun profil créé », et l'appelant
-            // en fait le refus « Le téléphone a refusé de créer un profil »,
-            // qui nomme les surcouches qui l'interdisent.
+            // Silence assumed: empty means "no profile created", and
+            // the caller turns it into the refusal "The phone refused
+            // to create a profile", which names the overlays that
+            // forbid it.
             return null;
         }
     }
 
-    /// <summary>Force la relecture des utilisateurs au prochain appel.</summary>
+    /// <summary>Forces users to be reread on the next call.</summary>
     public void InvalidateCache(string? serial = null)
     {
         lock (_cache)
@@ -265,16 +272,16 @@ public sealed class AndroidUserService
     }
 
     /// <summary>
-    /// Complète le classement avec <c>dumpsys user</c>, qui distingue un
-    /// profil de clonage d'un profil d'entreprise là où les drapeaux ne le
-    /// permettent pas. L'absence de réponse n'est pas une erreur.
+    /// Refines the classification with <c>dumpsys user</c>, which
+    /// tells a clone profile apart from a managed profile where the
+    /// flags cannot. The absence of a response is not an error.
     /// </summary>
     private async Task<IReadOnlyList<AndroidUser>> RefineTypesAsync(
         string serial,
         IReadOnlyList<AndroidUser> users,
         CancellationToken cancellationToken)
     {
-        // Inutile d'interroger dumpsys si aucun type n'est ambigu.
+        // No point querying dumpsys if no type is ambiguous.
         if (!users.Any(u => u.Type is AndroidUserType.ManagedProfile or AndroidUserType.CloneProfile))
         {
             return users;
@@ -289,9 +296,10 @@ public sealed class AndroidUserService
         }
         catch (AdbException)
         {
-            // Silence assumé : la nature des profils est un enrichissement. Sans
-            // « dumpsys user » on rend la liste telle quelle, et l'appelant
-            // reconnaît ce repli pour ce qu'il est.
+            // Silence assumed: the nature of the profiles is an
+            // enrichment. Without "dumpsys user" the list is returned
+            // as is, and the caller recognizes this fallback for what
+            // it is.
             return users;
         }
     }

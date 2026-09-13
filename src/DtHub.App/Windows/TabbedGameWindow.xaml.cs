@@ -12,17 +12,17 @@ using DtHub.Core.Windows;
 namespace DtHub.App.Windows;
 
 /// <summary>
-/// Le cadre à onglets : plusieurs fenêtres de jeu logées dans un seul châssis,
-/// dont une seule paraît à la fois.
+/// The tabbed frame: several game windows housed in a single chassis, only one
+/// of which shows at a time.
 ///
-/// Les fenêtres ne sont ni recréées ni redessinées ici : elles sont arrimées
-/// telles quelles par <see cref="IWindowController.Dock"/>, et le cadre ne fait
-/// que les placer et les montrer. Mesuré sur une vraie session, une fenêtre
-/// scrcpy arrimée continue de rendre l'image et reçoit le pointeur.
+/// Windows are neither recreated nor redrawn here: they are docked as-is by
+/// <see cref="IWindowController.Dock"/>, and the frame only places and shows
+/// them. Measured on a real session, a docked scrcpy window keeps rendering
+/// the picture and receiving the pointer.
 /// </summary>
 public partial class TabbedGameWindow : Window
 {
-    /// <summary>Windows demande sa taille à une fenêtre qu'on étire.</summary>
+    /// <summary>Windows asks a window being resized for its size.</summary>
     private const int WmSizing = 0x0214;
 
     private readonly IWindowController _windows;
@@ -42,27 +42,27 @@ public partial class TabbedGameWindow : Window
         Items.CollectionChanged += (_, _) => Retitle();
     }
 
-    /// <summary>Les onglets, dans l'ordre où ils paraissent.</summary>
+    /// <summary>The tabs, in the order they appear.</summary>
     public ObservableCollection<GameTabViewModel> Items { get; } = [];
 
-    /// <summary>Signalé quand l'utilisateur a réordonné les onglets.</summary>
+    /// <summary>Raised when the user has reordered the tabs.</summary>
     public event EventHandler<(string Moved, string Onto, bool Before)>? Reordered;
 
     /// <summary>
-    /// Handle natif du cadre, retenu une fois pour toutes.
+    /// Native handle of the frame, retained once and for all.
     ///
-    /// Il était recalculé à chaque lecture, ce qui interroge une fenêtre WPF et
-    /// n'est permis que sur son fil. Le configurateur et la fenêtre des guides
-    /// avaient déjà été corrigés ainsi ; celui-ci avait été oublié, et il est
-    /// désormais consulté depuis le guet du premier plan, qui ne vit pas sur ce
-    /// fil. C'est exactement le chemin de la faute qui s'était répétée deux cent
-    /// soixante-quatre fois.
+    /// It used to be recomputed on every read, which queries a WPF window and
+    /// is only allowed on its own thread. The configurator and the guides
+    /// window had already been fixed this way; this one had been forgotten,
+    /// and it is now read from the foreground watcher, which does not live on
+    /// that thread. This is exactly the path of the bug that had repeated
+    /// itself two hundred sixty-four times.
     /// </summary>
     public nint Handle { get; private set; }
 
     /// <summary>
-    /// Loge une fenêtre de jeu et lui ajoute son onglet. Sans effet si elle
-    /// s'y trouve déjà.
+    /// Docks a game window and adds its tab. Has no effect if it is already
+    /// there.
     /// </summary>
     public bool Attach(string key, string title, string? iconPath, nint window, double aspect)
     {
@@ -80,8 +80,8 @@ public partial class TabbedGameWindow : Window
         tab.PropertyChanged += OnTabChanged;
         Items.Add(tab);
 
-        // Le premier arrivé se montre : un cadre ouvert sur du vide n'aurait
-        // aucun sens.
+        // The first one to arrive gets shown: a frame open on emptiness would
+        // make no sense.
         Select(Items.Count == 1 ? tab : Items.First(t => t.IsSelected));
 
         _ = Dispatcher.BeginInvoke(DispatcherPriority.Loaded, Settle);
@@ -89,17 +89,21 @@ public partial class TabbedGameWindow : Window
         return true;
     }
 
-    /// <summary>Signalé à la fermeture du cadre, avec les comptes qu'il logeait.</summary>
+    /// <summary>
+    /// Raised when the frame closes, with the accounts it was
+    /// housing.
+    /// </summary>
     public event EventHandler<IReadOnlyList<string>>? CloseRequested;
 
     /// <summary>
-    /// Ressort une fenêtre du cadre et lui rend son état d'avant.
+    /// Takes a window back out of the frame and gives it back its previous
+    /// state.
     /// </summary>
-    /// <param name="key">Le compte à ressortir.</param>
+    /// <param name="key">The account to take back out.</param>
     /// <param name="reveal">
-    /// Faux pour la laisser masquée. Sert à la fermeture du cadre : la fenêtre
-    /// doit quitter le cadre pour ne pas mourir avec lui, mais la montrer une
-    /// fraction de seconde avant de la fermer ne servirait qu'à clignoter.
+    /// False to leave it hidden. Used when the frame closes: the window must
+    /// leave the frame so it does not die with it, but showing it for a split
+    /// second before closing it would only make it flicker.
     /// </param>
     public bool Detach(string key, bool reveal = true)
     {
@@ -128,7 +132,7 @@ public partial class TabbedGameWindow : Window
         return true;
     }
 
-    /// <summary>Ressort toutes les fenêtres.</summary>
+    /// <summary>Takes all windows back out.</summary>
     public void DetachAll(bool reveal = true)
     {
         foreach (var key in Items.Select(t => t.Key).ToList())
@@ -138,12 +142,12 @@ public partial class TabbedGameWindow : Window
     }
 
     /// <summary>
-    /// Ne garde que les onglets de cette liste, et ressort les autres.
+    /// Keeps only the tabs on this list, and takes the others back out.
     ///
-    /// Une session peut mourir sans passer par nous : la fenêtre du jeu fermée
-    /// à la main, le téléphone débranché. L'onglet restait alors dans la barre
-    /// et désignait une fenêtre disparue ; pire, rouvrir le compte ne le
-    /// relogeait plus, l'onglet fantôme faisant croire qu'il y était déjà.
+    /// A session can die without going through us: the game window closed by
+    /// hand, the phone unplugged. The tab then stayed in the bar and pointed
+    /// to a window that was gone; worse, reopening the account no longer
+    /// docked it, the ghost tab making it look as if it were already there.
     /// </summary>
     public void KeepOnly(IReadOnlyCollection<string> keys)
     {
@@ -155,10 +159,10 @@ public partial class TabbedGameWindow : Window
         }
     }
 
-    /// <summary>Vrai si ce compte est logé ici.</summary>
+    /// <summary>True if this account is housed here.</summary>
     public bool Holds(string key) => Find(key) is not null;
 
-    /// <summary>Montre l'onglet de ce compte, s'il est logé.</summary>
+    /// <summary>Shows this account's tab, if it is housed here.</summary>
     public void Show(string key)
     {
         if (Find(key) is { } tab)
@@ -167,7 +171,9 @@ public partial class TabbedGameWindow : Window
         }
     }
 
-    /// <summary>Range les onglets dans cet ordre, celui de la liste des comptes.</summary>
+    /// <summary>
+    /// Sorts the tabs in this order, that of the accounts list.
+    /// </summary>
     public void Reorder(IReadOnlyList<string> keys)
     {
         ArgumentNullException.ThrowIfNull(keys);
@@ -184,10 +190,11 @@ public partial class TabbedGameWindow : Window
     }
 
     /// <summary>
-    /// Referme le cadre dès qu'il ne loge plus rien.
+    /// Closes the frame as soon as it no longer houses anything.
     ///
-    /// Un cadre vide n'a rien à montrer et ne dit pas ce qu'il attend. Sa
-    /// position est rendue au lanceur avant de partir, qui la retient.
+    /// An empty frame has nothing to show and does not say what it is waiting
+    /// for. Its position is handed back to the launcher before it goes, which
+    /// remembers it.
     /// </summary>
     private void CloseIfEmpty()
     {
@@ -201,11 +208,11 @@ public partial class TabbedGameWindow : Window
     }
 
     /// <summary>
-    /// Renomme un onglet déjà logé. Sans effet si ce compte n'est pas dans le
-    /// cadre, ce qui est le cas ordinaire d'une fenêtre libre.
+    /// Renames a tab that is already housed. Has no effect if this account is
+    /// not in the frame, which is the ordinary case for a free window.
     ///
-    /// Le titre du cadre est repris ensuite : il porte le nom de l'onglet
-    /// montré, qui peut être celui qu'on vient de renommer.
+    /// The frame's title is then refreshed: it carries the name of the shown
+    /// tab, which may be the one that was just renamed.
     /// </summary>
     public void Rename(string key, string title)
     {
@@ -231,10 +238,10 @@ public partial class TabbedGameWindow : Window
     }
 
     /// <summary>
-    /// Montre une fenêtre et cache les autres.
+    /// Shows one window and hides the others.
     ///
-    /// Cacher plutôt que détacher : revenir sur un onglet doit être immédiat,
-    /// et une fenêtre détachée puis rattachée perdrait sa place à chaque fois.
+    /// Hiding rather than detaching: coming back to a tab must be immediate,
+    /// and a window detached then reattached would lose its place every time.
     /// </summary>
     private void Select(GameTabViewModel tab)
     {
@@ -248,19 +255,19 @@ public partial class TabbedGameWindow : Window
         Place(tab);
         Retitle();
 
-        // Le clavier ne suit pas l'onglet tout seul. Une fenêtre logée est
-        // fille du cadre, donc hors d'atteinte du premier plan : sans cet
-        // appel, l'image s'affiche et la souris passe, mais rien de ce qu'on
-        // tape n'arrive, le collage compris puisque scrcpy colle en frappant.
+        // The keyboard does not follow the tab on its own. A docked window is
+        // a child of the frame, hence out of reach of the foreground: without
+        // this call, the picture shows and the mouse works, but nothing that
+        // is typed arrives, paste included since scrcpy pastes by typing.
         _ = _windows.GiveKeyboardFocus(tab.Window);
     }
 
     /// <summary>
-    /// Passe à l'onglet suivant, ou au précédent. Le parcours boucle, comme
-    /// celui des fenêtres libres, pour que Ctrl+Tab veuille dire la même chose
-    /// dans les deux modes.
+    /// Moves to the next tab, or the previous one. The traversal loops, like
+    /// that of free windows, so that Ctrl+Tab means the same thing in both
+    /// modes.
     /// </summary>
-    /// <returns>Faux s'il n'y a pas de quoi tourner.</returns>
+    /// <returns>False if there is nothing to cycle through.</returns>
     public bool Cycle(bool forward)
     {
         if (Items.Count < 2)
@@ -272,30 +279,30 @@ public partial class TabbedGameWindow : Window
         var pas = forward ? 1 : -1;
         var voulu = ((Items.IndexOf(courant) + pas) % Items.Count + Items.Count) % Items.Count;
 
-        // Cocher suffit : le changement passe par OnTabChanged, comme un clic.
+        // Checking it is enough: the change goes through OnTabChanged, like a
+        // click.
         Items[voulu].IsSelected = true;
 
         return true;
     }
 
     /// <summary>
-    /// Le rapport de l'onglet actif, ou <c>null</c> si le cadre est vide ou si
-    /// l'afficheur n'en impose aucun.
+    /// The active tab's aspect ratio, or <c>null</c> if the frame is empty or
+    /// the display does not impose one.
     ///
-    /// Publié pour que les commandes de géométrie puissent calculer un
-    /// rectangle qui donne au jeu sa forme, comme elles le font pour une
-    /// fenêtre libre.
+    /// Published so that the geometry commands can compute a rectangle that
+    /// gives the game its shape, as they do for a free window.
     /// </summary>
     public double? SelectedAspect => Aspect();
 
     /// <summary>
-    /// L'encombrement du châssis, bordures, barre de titre et barre d'onglets
-    /// comprises. C'est ce qu'il faut retirer avant d'appliquer un rapport,
-    /// puisque le rapport vaut pour la zone de jeu et non pour la fenêtre.
+    /// The chassis's footprint, borders, title bar and tab bar included. This
+    /// is what must be subtracted before applying an aspect ratio, since the
+    /// ratio holds for the game area, not for the window.
     /// </summary>
     public (int Width, int Height)? Chassis => Chrome();
 
-    /// <summary>Vrai quand le cadre couvre l'écran entier.</summary>
+    /// <summary>True when the frame covers the whole screen.</summary>
     public bool IsFullscreen => _fullscreen;
 
     private bool _fullscreen;
@@ -304,12 +311,12 @@ public partial class TabbedGameWindow : Window
     private ScreenRect _boundsBefore;
 
     /// <summary>
-    /// Pose le cadre à l'endroit et à la taille demandés, en pixels du bureau.
+    /// Places the frame at the requested location and size, in desktop pixels.
     ///
-    /// C'est le seul point d'entrée des commandes de géométrie. Rien n'est
-    /// jamais appliqué à la fenêtre logée elle-même : elle est fille du cadre,
-    /// ses coordonnées ne sont pas celles de l'écran, et lui rendre une
-    /// bordure la doterait d'une barre de titre à l'intérieur du cadre.
+    /// This is the only entry point for geometry commands. Nothing is ever
+    /// applied to the docked window itself: it is a child of the frame, its
+    /// coordinates are not those of the screen, and giving it back a border
+    /// would fit it with a title bar inside the frame.
     /// </summary>
     public void ApplyRect(ScreenRect outer)
     {
@@ -320,14 +327,14 @@ public partial class TabbedGameWindow : Window
 
         _windows.MoveWindow(Handle, outer);
 
-        // Deux fois, la seconde une fois la boucle de messages passée. Franchir
-        // un écran d'une autre densité fait reproportionner la taille par WPF,
-        // et la première pose arrive dans la densité de l'écran de départ :
-        // c'est le piège déjà rencontré à la restauration d'un placement.
+        // Twice, the second time once the message loop has passed. Crossing
+        // into a screen with a different density makes WPF rescale the size,
+        // and the first placement lands in the density of the starting screen:
+        // this is the trap already met when restoring a placement.
         //
-        // La forme est reprise à ce moment-là seulement : un rectangle venu
-        // d'ailleurs, celui d'une fenêtre libre qu'on empile par exemple, n'a
-        // aucune raison d'avoir déjà celle du jeu.
+        // The shape is only picked up again at that point: a rectangle coming
+        // from elsewhere, that of a free window being stacked for instance,
+        // has no reason to already have the game's shape.
         _ = Dispatcher.BeginInvoke(
             DispatcherPriority.Loaded,
             () =>
@@ -343,15 +350,15 @@ public partial class TabbedGameWindow : Window
     }
 
     /// <summary>
-    /// Redonne au cadre la forme de l'onglet montré, une fois la disposition
-    /// retombée.
+    /// Gives the frame back the shape of the shown tab, once the layout has
+    /// settled.
     ///
-    /// Différé à dessein. La restauration de la place du cadre repose la taille
-    /// enregistrée une seconde fois par le répartiteur, à cette même priorité,
-    /// donc après le <see cref="Fit"/> de <see cref="Select"/> : le cadre
-    /// gardait une forme qui ne correspondait à aucun onglet, et la fenêtre
-    /// logée était simplement recentrée avec ses bandes noires. Mise en file
-    /// après elle, la reprise a le dernier mot.
+    /// Deferred on purpose. Restoring the frame's placement reapplies the
+    /// saved size a second time through the dispatcher, at this same priority,
+    /// hence after the <see cref="Fit"/> call from <see cref="Select"/>: the
+    /// frame used to keep a shape that matched no tab, and the docked window
+    /// was simply recentered with its black bars. Queued after it, the reapply
+    /// gets the last word.
     /// </summary>
     private void Settle()
     {
@@ -365,24 +372,24 @@ public partial class TabbedGameWindow : Window
     }
 
     /// <summary>
-    /// Fait couvrir un rectangle entier au cadre, châssis retiré, ou lui rend
-    /// son châssis et sa place.
+    /// Makes the frame cover an entire rectangle, chassis removed, or gives it
+    /// back its chassis and its place.
     ///
-    /// Le style est retiré par WPF, le rectangle posé par nous. C'est le seul
-    /// partage qui tienne : retirer les styles de bordure par Win32 mettrait
-    /// la fenêtre en désaccord avec son propre gestionnaire de zone non
-    /// cliente, qui les réécrit à la moindre occasion ; et laisser WPF poser la
-    /// géométrie par <c>Maximized</c> ne couvrirait pas la barre des tâches, là
-    /// où le plein écran des fenêtres libres prend les bornes entières de
-    /// l'écran. L'état reste donc <c>Normal</c>, et c'est pourquoi
-    /// <see cref="Fit"/> doit renoncer sur le drapeau plutôt que sur l'état.
+    /// The style is removed by WPF, the rectangle placed by us. This is the
+    /// only split that holds up: removing the border styles through Win32
+    /// would put the window at odds with its own non-client area manager,
+    /// which rewrites them at the slightest occasion; and letting WPF place
+    /// the geometry through <c>Maximized</c> would not cover the taskbar,
+    /// whereas full screen for free windows takes the screen's entire bounds.
+    /// The state therefore stays <c>Normal</c>, which is why <see cref="Fit"/>
+    /// must back off on the flag rather than on the state.
     ///
-    /// Le style d'abord, la géométrie ensuite : posée avant, elle serait
-    /// reprise par le retour du châssis.
+    /// The style first, the geometry next: applied before, it would be undone
+    /// by the chassis coming back.
     /// </summary>
-    /// <param name="on">Vrai pour couvrir, faux pour rendre.</param>
+    /// <param name="on">True to cover, false to give back.</param>
     /// <param name="target">
-    /// Les bornes de l'écran en entrant, le rectangle à rendre en sortant.
+    /// The screen's bounds going in, the rectangle to give back coming out.
     /// </param>
     public void SetFullscreen(bool on, ScreenRect target)
     {
@@ -395,9 +402,9 @@ public partial class TabbedGameWindow : Window
 
         if (on)
         {
-            // D'où l'on vient, retenu ici et non chez l'appelant : c'est le
-            // cadre qui sait ce qu'il occupait, et l'appelant ne peut pas le
-            // relire une fois la pose faite.
+            // Where we came from, kept here and not with the caller: it is the
+            // frame that knows what it occupied, and the caller cannot read it
+            // back once the placement is done.
             _boundsBefore = _windows.GetWindowRect(Handle) ?? default;
             _styleBefore = WindowStyle;
             _resizeBefore = ResizeMode;
@@ -425,8 +432,8 @@ public partial class TabbedGameWindow : Window
             return;
         }
 
-        // En sortant seulement : le cadre reprend la forme du jeu, ce qu'il ne
-        // doit surtout pas faire tant qu'il couvre l'écran.
+        // Only on the way out: the frame takes back the game's shape, which it
+        // must absolutely not do while it covers the screen.
         if (!on)
         {
             Fit(tab);
@@ -444,13 +451,13 @@ public partial class TabbedGameWindow : Window
     }
 
     /// <summary>
-    /// La zone d'accueil, en pixels et dans les coordonnées de la zone client
-    /// du cadre, c'est-à-dire celles qu'attend une fenêtre logée.
+    /// The hosting area, in pixels and in the coordinates of the frame's
+    /// client area, that is, the ones a docked window expects.
     ///
-    /// Les points sont demandés à WPF plutôt que calculés : convertir soi-même
-    /// les unités indépendantes de la densité s'est révélé faux sur un écran à
-    /// cent cinquante pour cent, et la fenêtre se posait cent pixels trop bas
-    /// et trop à droite.
+    /// The points are asked from WPF rather than computed: converting the
+    /// density-independent units ourselves turned out wrong on a screen at one
+    /// hundred fifty percent, and the window landed one hundred pixels too low
+    /// and too far right.
     /// </summary>
     private ScreenRect? HostArea()
     {
@@ -471,9 +478,9 @@ public partial class TabbedGameWindow : Window
     }
 
     /// <summary>
-    /// Ce que le châssis prend autour de la zone de jeu : bordures, barre de
-    /// titre et barre d'onglets. Constant, donc mesurable sur la taille
-    /// courante et réutilisable pour toute autre.
+    /// What the chassis takes up around the game area: borders, title bar, and
+    /// tab bar. Constant, hence measurable on the current size and reusable
+    /// for any other.
     /// </summary>
     private (int Width, int Height)? Chrome()
     {
@@ -488,15 +495,18 @@ public partial class TabbedGameWindow : Window
         return (outer.Width - zone.Width, outer.Height - zone.Height);
     }
 
-    /// <summary>Le rapport de l'onglet montré, ou <c>null</c> s'il n'y en a pas.</summary>
+    /// <summary>
+    /// The shown tab's aspect ratio, or <c>null</c> if there is
+    /// none.
+    /// </summary>
     private double? Aspect() =>
         Items.FirstOrDefault(t => t.IsSelected) is { Aspect: > 0 } tab ? tab.Aspect : null;
 
     /// <summary>
-    /// Garde la forme de l'image pendant qu'on étire la fenêtre : le cadre
-    /// s'attrape par n'importe quel bord, comme une fenêtre de jeu libre. La
-    /// règle est dans <see cref="AspectSizing"/>, où elle se vérifie sans
-    /// ouvrir d'interface.
+    /// Keeps the picture's shape while the window is being resized: the frame
+    /// can be grabbed from any edge, like a free game window. The rule lives
+    /// in <see cref="AspectSizing"/>, where it can be checked without opening
+    /// a UI.
     /// </summary>
     private nint OnWindowMessage(nint hwnd, int msg, nint wParam, nint lParam, ref bool handled)
     {
@@ -530,9 +540,9 @@ public partial class TabbedGameWindow : Window
     }
 
     /// <summary>
-    /// Donne au cadre la forme de l'image, quand ce n'est pas la souris qui
-    /// décide : à l'arrivée d'un onglet, ou quand on passe à un onglet dont
-    /// l'afficheur n'a pas la même forme.
+    /// Gives the frame the picture's shape, when it is not the mouse deciding:
+    /// when a tab arrives, or when switching to a tab whose display does not
+    /// have the same shape.
     /// </summary>
     private void Fit(GameTabViewModel tab)
     {
@@ -549,9 +559,9 @@ public partial class TabbedGameWindow : Window
         var dpi = VisualTreeHelper.GetDpi(this);
         var wanted = ((zone.Width / dpi.DpiScaleX) / tab.Aspect) + (chrome.Height / dpi.DpiScaleY);
 
-        // Deux pixels de tolérance : l'arrondi du rapport ne justifie pas de
-        // redimensionner la fenêtre à chaque passage, ce qui la ferait
-        // trembler sans jamais se poser.
+        // Two pixels of tolerance: rounding of the aspect ratio does not
+        // justify resizing the window on every pass, which would make it shake
+        // without ever settling.
         if (Math.Abs(wanted - Height) <= 2)
         {
             return;
@@ -569,9 +579,9 @@ public partial class TabbedGameWindow : Window
                 return;
             }
 
-            // Plus de place en hauteur : c'est la largeur qui cède. Rogner
-            // encore la hauteur donnerait un cadre écrasé, et il a déjà été
-            // trouvé trop court une fois.
+            // No more room in height: the width gives way instead. Trimming
+            // the height further would give a squashed frame, and it has
+            // already been found too short once.
             Height = place;
             Width = Math.Max(
                 MinWidth,
@@ -584,8 +594,8 @@ public partial class TabbedGameWindow : Window
     }
 
     /// <summary>
-    /// Hauteur utilisable de l'écran qui porte le cadre, barre des tâches
-    /// exclue, en unités de WPF.
+    /// Usable height of the screen carrying the frame, taskbar excluded, in
+    /// WPF units.
     /// </summary>
     private double WorkAreaHeight(DpiScale dpi)
     {
@@ -601,7 +611,9 @@ public partial class TabbedGameWindow : Window
         return screen.WorkArea.Height / dpi.DpiScaleY;
     }
 
-    /// <summary>Pose la fenêtre logée sur toute la zone d'accueil.</summary>
+    /// <summary>
+    /// Places the docked window over the whole hosting area.
+    /// </summary>
     private void Place(GameTabViewModel tab)
     {
         if (HostArea() is not { } zone || zone.Width <= 0 || zone.Height <= 0)
@@ -611,11 +623,11 @@ public partial class TabbedGameWindow : Window
 
         _windows.MoveWindow(tab.Window, zone);
 
-        // Filet : le cadre a normalement déjà la forme de l'image, mais il
-        // reste l'arrondi, et le cas où il est agrandi ou trop petit pour s'y
-        // conformer. La fenêtre ressort alors plus petite que demandé et collée
-        // en haut à gauche ; on la recentre, faute de quoi le reste noir se
-        // retrouve tout entier d'un seul côté.
+        // Safety net: the frame normally already has the picture's shape, but
+        // there is still the rounding, and the case where it is enlarged or
+        // too small to conform to it. The window then comes out smaller than
+        // requested and stuck to the top left; we recenter it, or else the
+        // black remainder ends up entirely on one side.
         if (_windows.GetWindowRect(tab.Window) is not { } pris
             || (pris.Width >= zone.Width && pris.Height >= zone.Height))
         {
@@ -636,7 +648,7 @@ public partial class TabbedGameWindow : Window
             ? $"{Core.ProductInfo.Name}  ·  {tab.Title}"
             : $"{Core.ProductInfo.Name}  ·  onglets";
 
-    // Glissement d'un onglet, sur le modèle de la liste des comptes.
+    // Dragging a tab, on the model of the accounts list.
 
     private void OnTabPressed(object sender, MouseButtonEventArgs e)
     {
@@ -651,8 +663,8 @@ public partial class TabbedGameWindow : Window
             return;
         }
 
-        // Seul l'écart horizontal compte : la barre est horizontale, et le
-        // tremblement vertical d'un simple clic partait sinon en glissement.
+        // Only the horizontal distance counts: the bar is horizontal, and the
+        // vertical jitter of a plain click would otherwise turn into a drag.
         if (Math.Abs(e.GetPosition(this).X - _origin.X) < SystemParameters.MinimumHorizontalDragDistance)
         {
             return;
@@ -712,9 +724,9 @@ public partial class TabbedGameWindow : Window
         Rearrange(moved, onto, Before(sender, e));
     }
 
-    // Le reste de la barre, après le dernier onglet : y lâcher range en fin
-    // de liste. Sans cela il fallait viser un onglet, et lâcher à côté ne
-    // faisait rien sans dire pourquoi.
+    // The rest of the bar, past the last tab: dropping there sorts it to the
+    // end of the list. Without this you had to aim for a tab, and dropping
+    // beside one did nothing without saying why.
 
     private void OnStripDragOver(object sender, DragEventArgs e)
     {
@@ -777,11 +789,11 @@ public partial class TabbedGameWindow : Window
     }
 
     /// <summary>
-    /// Range l'onglet tout de suite, puis fait suivre la liste des comptes.
+    /// Sorts the tab right away, then makes the accounts list follow.
     ///
-    /// Tout de suite, et non au retour de l'enregistrement : le trajet par les
-    /// réglages prenait un instant pendant lequel l'onglet restait où il
-    /// était, et le geste paraissait n'avoir rien fait.
+    /// Right away, and not once the save comes back: the round trip through
+    /// settings took a moment during which the tab stayed where it was, and
+    /// the gesture looked like it had done nothing.
     /// </summary>
     private void Rearrange(GameTabViewModel moved, GameTabViewModel onto, bool before)
     {
@@ -821,10 +833,11 @@ public partial class TabbedGameWindow : Window
     }
 
     /// <summary>
-    /// Le cadre reprend la main : le clavier retourne à l'onglet actif.
+    /// The frame takes back control: the keyboard returns to the active tab.
     ///
-    /// Sans cela, revenir par Alt+Tab rendrait l'activation au cadre, qui n'a
-    /// rien à saisir, et les frappes tomberaient à côté du jeu.
+    /// Without this, coming back through Alt+Tab would give activation to the
+    /// frame, which has nothing to capture, and keystrokes would land beside
+    /// the game instead of on it.
     /// </summary>
     protected override void OnActivated(EventArgs e)
     {
@@ -837,11 +850,11 @@ public partial class TabbedGameWindow : Window
 
         _ = _windows.GiveKeyboardFocus(tab.Window);
 
-        // Deux fois, et ce n'est pas une précaution en l'air : WPF rend le
-        // focus à son propre arbre en traitant WM_SETFOCUS, qui arrive après
-        // l'activation. Le premier appel sert au cas ordinaire, le second
-        // repasse derrière lui. Désigner deux fois la même fenêtre ne coûte
-        // rien, aucune file n'étant touchée.
+        // Twice, and this is not a precaution taken lightly: WPF gives focus
+        // back to its own tree while handling WM_SETFOCUS, which arrives after
+        // activation. The first call covers the ordinary case, the second one
+        // follows up behind it. Naming the same window twice costs nothing,
+        // since no queue is touched.
         _ = Dispatcher.BeginInvoke(
             DispatcherPriority.Input,
             () =>
@@ -855,14 +868,15 @@ public partial class TabbedGameWindow : Window
 
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
-        // Fermer le cadre ferme ce qu'il contient. Les fenêtres en ressortaient
-        // libres, et l'on se retrouvait avec autant de fenêtres de jeu éparses
-        // qu'on croyait venir de fermer : le geste ne faisait pas ce qu'il dit.
+        // Closing the frame closes what it contains. Windows used to come back
+        // out free, and you would end up with as many scattered game windows
+        // as you thought you had just closed: the gesture did not do what it
+        // says.
         //
-        // Elles quittent tout de même le cadre d'abord, et masquées : une
-        // fenêtre logée est fille de celui-ci, et Windows détruirait ses
-        // enfants avec lui sans laisser à scrcpy le temps de s'arrêter
-        // proprement. Les montrer entre-temps ne ferait que clignoter.
+        // They still leave the frame first, though hidden: a docked window is
+        // a child of it, and Windows would destroy its children along with it
+        // without giving scrcpy time to stop cleanly. Showing them in the
+        // meantime would only make them flicker.
         _closing = true;
 
         List<string> loges = [.. Items.Select(t => t.Key)];
@@ -875,8 +889,8 @@ public partial class TabbedGameWindow : Window
     }
 
     /// <summary>
-    /// Le rectangle que Windows passe dans WM_SIZING. Nommé à part de
-    /// <c>System.Windows.Rect</c>, avec lequel il n'a en commun que l'idée.
+    /// The rectangle Windows passes in WM_SIZING. Named apart from
+    /// <c>System.Windows.Rect</c>, with which it shares nothing but the idea.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     private struct SizingRect

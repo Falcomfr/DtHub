@@ -2,54 +2,56 @@
 
 namespace DtHub.Core.Hotkeys;
 
-/// <summary>Raison pour laquelle un raccourci est refusé.</summary>
+/// <summary>Reason why a hotkey is rejected.</summary>
 public enum HotkeyValidationResult
 {
     Valid,
 
-    /// <summary>Aucune touche principale n'a été saisie.</summary>
+    /// <summary>No main key was entered.</summary>
     NoKey,
 
-    /// <summary>La touche principale est une touche de modification.</summary>
+    /// <summary>The main key is a modifier key.</summary>
     ModifierOnly,
 
     /// <summary>
-    /// Sans modificateur, le raccourci se déclencherait à chaque frappe dans
-    /// l'application mirrorée.
+    /// Without a modifier, the hotkey would trigger on every
+    /// keystroke in the mirrored application.
     /// </summary>
     MissingModifier,
 
-    /// <summary>Combinaison réservée par Windows, impossible à intercepter.</summary>
+    /// <summary>
+    /// Combination reserved by Windows, impossible to intercept.
+    /// </summary>
     ReservedBySystem,
 
     /// <summary>
-    /// Touche d'édition universelle. Elle serait bien interceptée, et c'est
-    /// justement le problème : <c>RegisterHotKey</c> la confisquerait partout,
-    /// jeu compris.
+    /// Universal editing key. It would indeed be intercepted, and
+    /// that is exactly the problem: <c>RegisterHotKey</c> would
+    /// hijack it everywhere, including in the game.
     /// </summary>
     ReservedForEditing,
 
-    /// <summary>Déjà attribuée à une autre action.</summary>
+    /// <summary>Already assigned to another action.</summary>
     Duplicate,
 }
 
-/// <summary>Un raccourci clavier associé à une action.</summary>
+/// <summary>A keyboard shortcut associated with an action.</summary>
 public sealed record HotkeyBinding
 {
     public required HotkeyAction Action { get; init; }
 
-    /// <summary>Code de touche virtuelle Windows.</summary>
+    /// <summary>Windows virtual key code.</summary>
     public required int VirtualKey { get; init; }
 
     public HotkeyModifiers Modifiers { get; init; } = HotkeyModifiers.None;
 
     /// <summary>
-    /// Un raccourci peut être volontairement vide : l'utilisateur a le droit
-    /// de désactiver une action.
+    /// A hotkey can be deliberately empty: the user has the right to
+    /// disable an action.
     /// </summary>
     public bool IsAssigned => VirtualKey != 0;
 
-    /// <summary>Représentation affichée, du type « Ctrl + Tab ».</summary>
+    /// <summary>Displayed representation, of the form "Ctrl + Tab".</summary>
     public string DisplayText
     {
         get
@@ -87,13 +89,16 @@ public sealed record HotkeyBinding
         }
     }
 
-    /// <summary>Clé de comparaison entre raccourcis, indépendante de l'action.</summary>
+    /// <summary>
+    /// Comparison key between hotkeys, independent of the action.
+    /// </summary>
     public (int Key, HotkeyModifiers Modifiers) Combination => (VirtualKey, Modifiers);
 
-    /// <summary>Libellé de l'action, pour l'éditeur de raccourcis.</summary>
+    /// <summary>Label of the action, for the hotkey editor.</summary>
     /// <summary>
-    /// Ce que fait l'action, en une ligne. Le libellé doit nommer sa référence
-    /// quand elle en a une : « remettre en place » ne disait pas sur quoi.
+    /// What the action does, in one line. The label must name its
+    /// reference when it has one: "remettre en place" (put back in
+    /// place) did not say on what.
     /// </summary>
     public static string DescribeAction(HotkeyAction action) => action switch
     {
@@ -114,8 +119,9 @@ public sealed record HotkeyBinding
     };
 
     /// <summary>
-    /// Ce que l'action fait vraiment, pour l'infobulle. Le libellé tient sur
-    /// une ligne et ne peut pas tout dire ; ce qu'il tait se lit ici.
+    /// What the action really does, for the tooltip. The label fits
+    /// on one line and cannot say everything; what it leaves unsaid
+    /// can be read here.
     /// </summary>
     public static string DetailAction(HotkeyAction action) => action switch
     {

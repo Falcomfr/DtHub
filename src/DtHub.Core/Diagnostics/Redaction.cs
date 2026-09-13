@@ -3,38 +3,38 @@
 namespace DtHub.Core.Diagnostics;
 
 /// <summary>
-/// Retire d'un texte ce qui désigne une personne ou son matériel, avant qu'il
-/// ne parte dans un rapport.
+/// Removes from a text whatever identifies a person or their hardware,
+/// before it goes out in a report.
 ///
-/// Le besoin est mesuré, non supposé. Sur sept fichiers de journal réels, sept
-/// mille huit cent soixante-dix lignes, près de trois lignes sur dix portent une
-/// donnée identifiante : l'adresse et le port du téléphone, son numéro de série
-/// matériel, le nom d'utilisateur Windows dans un chemin. Les erreurs, elles,
-/// font sept lignes sur cent. Envoyer le journal tel quel reviendrait à livrer
-/// tout le reste pour obtenir celles-là.
+/// The need is measured, not assumed. Across seven real log files, seven
+/// thousand eight hundred and seventy lines, close to three lines in ten
+/// carry identifying data: the phone's address and port, its hardware
+/// serial number, the Windows username inside a path. Errors, for their
+/// part, make up seven lines in a hundred. Sending the log as is would
+/// mean delivering everything else just to obtain those.
 ///
-/// Le numéro de série arrive par un chemin que personne n'a voulu : scrcpy
-/// l'imprime dans sa sortie, et l'application recopie cette sortie mot pour mot
-/// dans son journal. C'est pourquoi la biffure travaille sur le texte fini et
-/// non à la source.
+/// The serial number arrives through a path nobody chose: scrcpy prints
+/// it in its output, and the application copies that output word for
+/// word into its log. That is why the redaction works on the finished
+/// text, not at the source.
 ///
-/// <see cref="Processes.ProcessRequest"/> masque déjà les codes d'appairage,
-/// mais par égalité exacte : la règle ne mordrait pas sur « --serial=… », où la
-/// valeur est collée à son option. Ici la biffure se fait par motif.
+/// <see cref="Processes.ProcessRequest"/> already masks pairing codes,
+/// but by exact match: the rule would not catch on "--serial=...", where
+/// the value is stuck to its option. Here the redaction works by pattern.
 /// </summary>
 public static partial class Redaction
 {
-    /// <summary>Ce qui remplace une valeur retirée.</summary>
+    /// <summary>What replaces a removed value.</summary>
     public const string Placeholder = "…";
 
     /// <summary>
-    /// Rend le texte débarrassé de ce qui identifie.
+    /// Returns the text stripped of anything that identifies.
     /// </summary>
-    /// <param name="text">Le texte à nettoyer.</param>
+    /// <param name="text">The text to clean.</param>
     /// <param name="secrets">
-    /// Valeurs que l'application connaît et qui doivent partir où qu'elles
-    /// soient : numéros de série des appareils, adresses relevées, noms que la
-    /// personne a donnés à ses comptes.
+    /// Values the application knows and that must go wherever they
+    /// appear: device serial numbers, addresses recorded, names the
+    /// person gave to their accounts.
     /// </param>
     public static string Apply(string? text, IEnumerable<string>? secrets = null)
     {
@@ -43,11 +43,11 @@ public static partial class Redaction
             return string.Empty;
         }
 
-        // Les formes reconnaissables d'abord. L'ordre compte : biffer un
-        // numéro de série connu avant de reconnaître le nom mDNS qui le
-        // contient casserait la forme de ce nom, et le reste du nom
-        // survivrait. Chaque motif emporte donc son tout avant qu'on ne
-        // s'attaque aux morceaux.
+        // Recognizable shapes first. Order matters: redacting a known
+        // serial number before recognizing the mDNS name that contains
+        // it would break the shape of that name, and the rest of the
+        // name would survive. Each pattern therefore takes its whole
+        // match before we tackle the pieces.
         var clean = MdnsPattern().Replace(text, Placeholder);
 
         clean = AddressPattern().Replace(clean, Placeholder);
@@ -55,8 +55,9 @@ public static partial class Redaction
         clean = DisplayPattern().Replace(clean, Placeholder);
         clean = UserPathPattern().Replace(clean, @"C:\Users\" + Placeholder + @"\");
 
-        // Puis ce que l'application sait d'avance, par la chaîne la plus longue
-        // pour la même raison : un nom contenu dans un autre part avec lui.
+        // Then what the application already knows, by the longest
+        // string first, for the same reason: a name contained inside
+        // another leaves along with it.
         if (secrets is not null)
         {
             foreach (var secret in secrets
@@ -73,34 +74,37 @@ public static partial class Redaction
     }
 
     /// <summary>
-    /// Le nom du débogage sans fil, « adb-XXXX-YYYY._adb-tls-connect._tcp ».
-    /// Il porte le numéro de série matériel, identifiant stable de l'appareil,
-    /// et le dépôt le sait déjà : <c>MdnsDeviceName.HardwareSerialFrom</c> l'en
-    /// extrait. Relevé quatre-vingt-quatorze fois dans les journaux.
+    /// The wireless debugging name, "adb-XXXX-YYYY._adb-tls-connect._tcp".
+    /// It carries the hardware serial number, the device's stable
+    /// identifier, and the codebase already knows it:
+    /// <c>MdnsDeviceName.HardwareSerialFrom</c> extracts it from there.
+    /// Found ninety-four times in the logs.
     /// </summary>
     [GeneratedRegex(@"adb-[A-Za-z0-9]+-[A-Za-z0-9]+\._adb-tls-[a-z]+\._tcp", RegexOptions.None, 500)]
     private static partial Regex MdnsPattern();
 
-    /// <summary>Une adresse IPv4, son port s'il en porte un.</summary>
+    /// <summary>An IPv4 address, with its port if it carries one.</summary>
     [GeneratedRegex(@"\b\d{1,3}(?:\.\d{1,3}){3}(?::\d{1,5})?\b", RegexOptions.None, 500)]
     private static partial Regex AddressPattern();
 
-    /// <summary>La valeur collée à « --serial= », que l'égalité exacte manque.</summary>
+    /// <summary>
+    /// The value stuck to "--serial=", which the exact match misses.
+    /// </summary>
     [GeneratedRegex(@"--serial=\S+", RegexOptions.None, 500)]
     private static partial Regex SerialOptionPattern();
 
     /// <summary>
-    /// Le nom de périphérique d'un écran, « \\.\DISPLAY11 ». C'est une
-    /// empreinte de machine sans valeur de diagnostic : la définition et la
-    /// position, qui restent, disent tout ce qu'un placement demande.
+    /// A display's device name, "\\.\DISPLAY11". This is a machine
+    /// fingerprint with no diagnostic value: the definition and the
+    /// position, which remain, say everything a placement needs.
     /// </summary>
     [GeneratedRegex(@"\\\\[.?]\\DISPLAY\d+", RegexOptions.IgnoreCase, 500)]
     private static partial Regex DisplayPattern();
 
     /// <summary>
-    /// Le nom du compte Windows dans un chemin. Il arrive sans que personne
-    /// l'écrive, par les chemins sous le profil de l'utilisateur : cent douze
-    /// lignes des journaux relevés.
+    /// The Windows account name inside a path. It shows up without
+    /// anyone writing it, through paths under the user's profile: a
+    /// hundred and twelve lines in the logs recorded.
     /// </summary>
     [GeneratedRegex(@"[A-Za-z]:\\Users\\[^\\/:*?""<>|\r\n]+\\", RegexOptions.IgnoreCase, 500)]
     private static partial Regex UserPathPattern();

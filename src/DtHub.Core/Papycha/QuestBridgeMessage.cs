@@ -3,52 +3,59 @@
 namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Ce que le script posé dans la page dit à la fenêtre, une fois lu.
+/// What the script placed in the page tells the window, once parsed.
 ///
-/// La lecture est ici, hors de la fenêtre, parce qu'elle doit tenir devant
-/// n'importe quoi. Le script est posé sur tout document que la fenêtre charge,
-/// et n'importe quelle page peut poster son propre message : le pont n'est pas
-/// une conversation avec nous-mêmes.
+/// Parsing lives here, outside the window, because it has to hold up
+/// against anything. The script is placed on every document the
+/// window loads, and any page can post its own message: the bridge is
+/// not a conversation with ourselves.
 ///
-/// La fenêtre lisait « kind » sans précaution. Un message qui n'a pas ce champ
-/// levait donc une exception dans un gestionnaire d'événement, où personne ne
-/// la rattrape, ce qui emportait l'application ; un message qui n'est pas du
-/// texte la levait avant même d'être lu. Trois lignes de JavaScript sur une
-/// page du site suffisaient.
+/// The window used to read "kind" without precaution. A message
+/// lacking that field would then raise an exception in an event
+/// handler, where nobody catches it, which took the application down
+/// with it; a message that was not text would raise one even before
+/// being read. Three lines of JavaScript on a page of the site were
+/// enough.
 /// </summary>
 public sealed record QuestBridgeMessage
 {
-    /// <summary>Le guide est cadré et lu : voici ce qu'il contient.</summary>
+    /// <summary>
+    /// The guide is framed and read: here is what it contains.
+    /// </summary>
     public const string Loaded = "loaded";
 
-    /// <summary>On a fait défiler la page jusqu'à une autre étape.</summary>
+    /// <summary>The page has been scrolled to another step.</summary>
     public const string Step = "step";
 
-    /// <summary>Ce que le message annonce, « loaded » ou « step ».</summary>
+    /// <summary>What the message announces, "loaded" or "step".</summary>
     public string Kind { get; init; } = string.Empty;
 
-    /// <summary>Bloc d'introduction du guide, tel quel.</summary>
+    /// <summary>The guide's introduction block, as is.</summary>
     public string? Intro { get; init; }
 
-    /// <summary>Bloc de chaîne du guide, tel quel.</summary>
+    /// <summary>The guide's chain block, as is.</summary>
     public string? Chain { get; init; }
 
-    /// <summary>Chaque étape, avec sa nature.</summary>
+    /// <summary>Each step, with its nature.</summary>
     public IReadOnlyList<QuestStep> Steps { get; init; } = [];
 
-    /// <summary>Vrai quand la première étape est bien le départ de la quête.</summary>
+    /// <summary>
+    /// True when the first step is indeed the quest's starting point.
+    /// </summary>
     public bool Departure { get; init; }
 
-    /// <summary>Rang de l'étape atteinte.</summary>
+    /// <summary>Rank of the step reached.</summary>
     public int Index { get; init; }
 
 
     /// <summary>
-    /// Lit un message, ou rend <c>null</c> quand il n'y a rien à en tirer.
+    /// Parses a message, or returns <c>null</c> when there is nothing
+    /// to get from it.
     ///
-    /// Rien n'est exigé sinon le genre, et le rang pour un message d'étape :
-    /// tout le reste manque par endroits sur le site lui-même, une page de
-    /// donjon n'ayant ni bloc de départ ni chaîne.
+    /// Nothing is required besides the kind, and the rank for a step
+    /// message: everything else is missing in places on the site
+    /// itself, a dungeon page having neither a starting block nor a
+    /// chain.
     /// </summary>
     public static QuestBridgeMessage? Parse(string? json)
     {
@@ -65,9 +72,10 @@ public sealed record QuestBridgeMessage
         }
         catch (JsonException)
         {
-            // Silence assumé : un message que le pont n'a pas écrit, ou qu'il a
-            // écrit de travers, ne dit rien de la page. On l'ignore plutôt que
-            // de faire tomber la fenêtre sur du texte venu du site.
+            // Silence assumed: a message the bridge did not write, or
+            // wrote wrong, says nothing about the page. It is ignored
+            // rather than letting the window crash on text coming
+            // from the site.
             return null;
         }
 
@@ -124,14 +132,16 @@ public sealed record QuestBridgeMessage
     }
 
     /// <summary>
-    /// Lit une étape, sous l'une ou l'autre des deux formes.
+    /// Parses a step, under either of the two forms.
     ///
-    /// Le pont l'écrit en objet, texte et nature. Une chaîne nue est acceptée
-    /// pour ce qu'elle est, une étape sans nature déclarée, donc une consigne :
-    /// c'est la forme qu'écrivait le pont avant qu'il ne porte la nature, et
-    /// c'est aussi tout ce qu'une page du site saurait poster d'elle-même. Le
-    /// rang, lui, est gardé quoi qu'il arrive : une étape illisible devient une
-    /// étape vide et non une étape en moins, sans quoi les rangs glisseraient.
+    /// The bridge writes it as an object, with text and a nature. A
+    /// bare string is accepted for what it is, a step with no
+    /// declared nature, hence an instruction: this is the form the
+    /// bridge wrote before it carried the nature, and it is also all
+    /// that a page of the site could post on its own. The rank, for
+    /// its part, is kept no matter what: an unreadable step becomes an
+    /// empty step and not one step fewer, otherwise the ranks would
+    /// shift.
     /// </summary>
     private static QuestStep StepOf(JsonElement step) => step.ValueKind switch
     {
@@ -144,14 +154,18 @@ public sealed record QuestBridgeMessage
 }
 
 /// <summary>
-/// Une étape d'un guide, telle que le pont la rapporte.
+/// A step of a guide, as the bridge reports it.
 ///
-/// La nature commande l'affichage. Un titre de section expose et se montre tel
-/// quel ; une consigne ordonne, et la fenêtre n'en montre rien, le rang suffisant
-/// à s'y rendre. La distinction vient du site : une fiche de donjon, de raid, de
-/// tanière ou de chemin se lit par ses titres, un guide de quête par ses
-/// paragraphes.
+/// The nature drives the display. A section title exposes and shows
+/// itself as is; an instruction directs, and the window shows nothing
+/// of it, the rank being enough to get there. The distinction comes
+/// from the site: a dungeon, raid, lair or path page reads through
+/// its titles, a quest guide through its paragraphs.
 /// </summary>
-/// <param name="Text">Le texte de l'étape, vide pour le départ d'un lieu.</param>
-/// <param name="IsTitle">Vrai quand l'étape est un titre de section du site.</param>
+/// <param name="Text">
+/// The step's text, empty for the starting point of a place.
+/// </param>
+/// <param name="IsTitle">
+/// True when the step is a section title from the site.
+/// </param>
 public readonly record struct QuestStep(string Text, bool IsTitle);

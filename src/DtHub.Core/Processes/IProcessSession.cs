@@ -2,23 +2,24 @@
 
 namespace DtHub.Core.Processes;
 
-/// <summary>Flux d'où provient une ligne de sortie.</summary>
+/// <summary>Stream a line of output comes from.</summary>
 public enum ProcessStreamKind
 {
     Output,
     Error,
 }
 
-/// <summary>Une ligne lue sur la sortie d'un processus en cours.</summary>
+/// <summary>A line read from the output of a running process.</summary>
 public readonly record struct ProcessOutputLine(ProcessStreamKind Stream, string Text)
 {
     public bool IsError => Stream == ProcessStreamKind.Error;
 }
 
 /// <summary>
-/// Un processus qui dure, dont on lit la sortie au fil de l'eau. C'est ce
-/// qu'il faut pour scrcpy : il tourne tant que la fenêtre est ouverte, et il
-/// annonce sur sa sortie l'identifiant de l'afficheur qu'il vient de créer.
+/// A long-running process, whose output is read as it streams in.
+/// This is what scrcpy needs: it runs as long as the window is
+/// open, and it announces on its output the id of the display it
+/// has just created.
 /// </summary>
 public interface IProcessSession : IAsyncDisposable
 {
@@ -26,28 +27,32 @@ public interface IProcessSession : IAsyncDisposable
 
     bool HasExited { get; }
 
-    /// <summary>Code de retour une fois le processus terminé, <c>null</c> avant.</summary>
+    /// <summary>
+    /// Exit code once the process has ended, <c>null</c> before.
+    /// </summary>
     int? ExitCode { get; }
 
     /// <summary>
-    /// Lignes de sortie, dans l'ordre d'arrivée. Le canal se termine quand le
-    /// processus s'arrête et que ses flux sont vidés.
+    /// Output lines, in arrival order. The channel completes when
+    /// the process stops and its streams have been drained.
     /// </summary>
     ChannelReader<ProcessOutputLine> Output { get; }
 
     Task<int> WaitForExitAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Termine le processus. Ne touche pas à ses éventuels processus enfants
-    /// déjà détachés : le serveur ADB est partagé avec le reste de la machine
-    /// et ne doit pas tomber avec une session.
+    /// Ends the process. Does not touch any child processes that
+    /// are already detached: the ADB server is shared with the
+    /// rest of the machine and must not go down with a session.
     /// </summary>
     void Kill();
 }
 
-/// <summary>Démarre un processus qui dure.</summary>
+/// <summary>Starts a long-running process.</summary>
 public interface IProcessLauncher
 {
-    /// <exception cref="ProcessLaunchException">Le processus n'a pas pu démarrer.</exception>
+    /// <exception cref="ProcessLaunchException">
+    /// The process could not start.
+    /// </exception>
     IProcessSession Start(ProcessRequest request);
 }

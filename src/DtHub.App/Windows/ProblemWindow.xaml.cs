@@ -6,17 +6,18 @@ using DtHub.Core.Localization;
 namespace DtHub.App.Windows;
 
 /// <summary>
-/// Ce qu'on montre quand quelque chose a échoué.
+/// What is shown when something has failed.
 ///
-/// L'ancienne boîte affichait une phrase et le chemin du dossier de journaux,
-/// avec un seul bouton « OK ». Le message de l'exception n'atteignait jamais
-/// l'écran, le chemin ne se cliquait pas, et il n'y avait rien à envoyer à
-/// personne.
+/// The old dialog box displayed a sentence and the log folder
+/// path, with a single "OK" button. The exception message never
+/// reached the screen, the path could not be clicked, and there
+/// was nothing to send to anyone.
 ///
-/// Celle-ci montre la faute, laisse lire le rapport avant de le copier, et
-/// ouvre le formulaire de signalement du dépôt. **Rien ne part d'ici** : le
-/// rapport va dans le presse-papiers, et c'est la personne qui décide. C'est la
-/// ligne que suit déjà le signalement vers papycha.fr.
+/// This one shows the fault, lets the report be read before it is
+/// copied, and opens the repository's report form. **Nothing
+/// leaves from here**: the report goes to the clipboard, and it is
+/// the person who decides. This is the same line the report to
+/// papycha.fr already follows.
 /// </summary>
 public partial class ProblemWindow : Window
 {
@@ -34,8 +35,9 @@ public partial class ProblemWindow : Window
         _report = report;
         _headline = headline;
 
-        // Le titre suit ce qu'on montre : « un problème est survenu » mentirait
-        // quand c'est la personne qui vient raconter quelque chose d'elle-même.
+        // The title follows what is shown: "a problem occurred"
+        // would lie when it is the person who comes to report
+        // something about themselves.
         Title = headline;
         Headline.Text = headline;
         Report.Text = report;
@@ -55,16 +57,16 @@ public partial class ProblemWindow : Window
 
     private void OnReport(object sender, RoutedEventArgs e)
     {
-        // Le rapport part au presse-papiers avant l'ouverture : le formulaire
-        // demande de le coller, et l'avoir déjà sous la main évite un aller et
-        // retour entre deux fenêtres.
+        // The report goes to the clipboard before opening: the
+        // form asks for it to be pasted, and already having it at
+        // hand avoids a back and forth between two windows.
         _dialogs.CopyToClipboard(_report);
         Copied.Visibility = Visibility.Visible;
 
         _dialogs.OpenUrl(DiagnosticReporter.IssueUrl(_headline));
     }
 
-    /// <summary>Le dossier des journaux, posé par l'appelant.</summary>
+    /// <summary>The logs folder, set by the caller.</summary>
     public required string Logs { get; init; }
 
 }

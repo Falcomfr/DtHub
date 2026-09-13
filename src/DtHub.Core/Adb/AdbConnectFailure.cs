@@ -1,44 +1,51 @@
 ﻿namespace DtHub.Core.Adb;
 
 /// <summary>
-/// Lit ce qu'ADB dit d'une connexion sans fil qui a échoué.
+/// Reads what ADB says about a wireless connection that has failed.
 ///
-/// **Trois échecs très différents s'écrivent presque pareil**, et la
-/// différence décide de ce qu'on conseille à l'utilisateur. Relevés au
-/// caractère près sur un poste français, contre un vrai téléphone :
+/// **Three very different failures are written almost the same
+/// way**, and the difference decides what we advise the user to do.
+/// Recorded character for character on a French machine, against a
+/// real phone:
 ///
 /// <code>
-/// port fermé        cannot connect to 192.168.1.16:45573: … (10061)
-/// machine absente   cannot connect to 192.168.1.99:40000: … (10060)
-/// clé refusée       failed to connect to 192.168.1.16:37697
+/// closed port          cannot connect to 192.168.1.16:45573: … (10061)
+/// machine unreachable  cannot connect to 192.168.1.99:40000: … (10060)
+/// key refused          failed to connect to 192.168.1.16:37697
 /// </code>
 ///
-/// Les deux premiers portent un code d'erreur réseau : la connexion TCP n'a
-/// même pas abouti, le téléphone est éteint, hors du réseau, ou son débogage
-/// sans fil a changé de port. Le troisième n'en porte aucun, parce qu'il n'y a
-/// pas eu de faute réseau : **le téléphone a accepté la connexion puis refusé
-/// la poignée de main.** Il est là, il écoute, et il ne reconnaît plus la clé
-/// de ce PC.
+/// The first two carry a network error code: the TCP connection did
+/// not even go through, the phone is off, out of network range, or
+/// its wireless debugging changed port. The third carries none,
+/// because there was no network fault: **the phone accepted the
+/// connection then refused the handshake.** It is there, it is
+/// listening, and it no longer recognizes this PC's key.
 ///
-/// C'est la seule cause qu'une nouvelle association répare, et la seule qu'on
-/// ne devine pas : rien n'a été désassocié à la main, et rallumer le débogage
-/// sans fil n'y change rien.
+/// This is the only cause a new pairing fixes, and the only one we
+/// cannot guess: nothing was unpaired by hand, and turning wireless
+/// debugging off and back on changes nothing about it.
 /// </summary>
 public static class AdbConnectFailure
 {
-    /// <summary>Ce qu'ADB écrit quand la connexion réseau elle-même a échoué.</summary>
+    /// <summary>
+    /// What ADB writes when the network connection itself has
+    /// failed.
+    /// </summary>
     private const string NetworkFault = "cannot connect to";
 
-    /// <summary>Ce qu'il écrit quand la connexion a abouti et la suite non.</summary>
+    /// <summary>
+    /// What it writes when the connection went through but what
+    /// follows did not.
+    /// </summary>
     private const string Handshake = "failed to connect to";
 
     /// <summary>
-    /// Vrai quand l'échec dit que l'appareil a refusé ce PC, et non que le
-    /// réseau a manqué.
+    /// True when the failure says the device refused this PC, and
+    /// not that the network was missing.
     ///
-    /// Faux sur tout le reste, y compris sur une réponse qu'on ne comprend
-    /// pas : conseiller une association là où le téléphone est simplement
-    /// éteint enverrait l'utilisateur à la mauvaise page.
+    /// False on everything else, including a response we do not
+    /// understand: advising a pairing when the phone is simply off
+    /// would send the user to the wrong page.
     /// </summary>
     public static bool MeansRefusedKey(string? failureReason)
     {

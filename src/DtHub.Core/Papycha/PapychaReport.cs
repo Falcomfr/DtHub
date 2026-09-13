@@ -1,37 +1,40 @@
 ﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Ce qu'on remplit à la place du lecteur dans le formulaire de signalement du
-/// site, et rien de plus.
+/// What we fill in on the reader's behalf in the site's report form,
+/// and nothing more.
 ///
-/// Le formulaire demande où se trouve l'erreur. L'application y porte la zone,
-/// la quête et son succès, c'est-à-dire ce que le site nomme lui-même. Elle y
-/// mettait d'abord le rang de l'étape ; ce rang est une numérotation qui n'existe
-/// que chez nous, et il ne désignait donc rien pour qui reçoit le signalement.
+/// The form asks where the error is. The application puts in it the
+/// zone, the quest and its achievement, that is to say what the site
+/// itself names. It used to put the step's rank there first; that
+/// rank is a numbering that only exists on our side, and so it
+/// designated nothing for whoever receives the report.
 ///
-/// La description, elle, reste vide : c'est ce que le lecteur a vu, et l'écrire
-/// pour lui reviendrait à signaler quelque chose qu'il n'a pas dit.
+/// The description, for its part, stays empty: it is what the reader
+/// saw, and writing it for them would amount to reporting something
+/// they did not say.
 /// </summary>
 public static class PapychaReport
 {
     /// <summary>
-    /// Longueur du champ « Où se trouve l'erreur ? » sur le site. Au-delà, le
-    /// navigateur coupe la saisie et le début seul partirait.
+    /// Length of the "Où se trouve l'erreur ?" (Where is the error?)
+    /// field on the site. Beyond that, the browser cuts off the
+    /// input and only the beginning would be sent.
     /// </summary>
     public const int MaxLocationLength = 250;
 
     /// <summary>
-    /// Le chevron du fil d'Ariane de la fenêtre, pour que le repère se lise
-    /// comme la liste où on l'a trouvé.
+    /// The window's breadcrumb chevron, so the landmark reads like
+    /// the list where it was found.
     /// </summary>
     private const string Separator = QuestTree.Separator;
 
     /// <summary>
-    /// Où l'on lisait, dans les termes du site : la zone, la quête, et le succès
-    /// entre parenthèses.
+    /// Where we were reading, in the site's own terms: the zone, the
+    /// quest, and the achievement in parentheses.
     ///
-    /// Vide quand on ne sait rien : un repère inventé vaudrait moins que le
-    /// champ laissé libre.
+    /// Empty when nothing is known: a made-up landmark would be
+    /// worth less than the field left blank.
     /// </summary>
     public static string Location(string? zone, string? quest, string? success = null)
     {
@@ -44,9 +47,9 @@ public static class PapychaReport
             return Cut(rubrique);
         }
 
-        // Le succès accompagne la quête, non la zone : c'est d'elle qu'il dit
-        // quelque chose. Une page qui n'en a pas ne montre pas de parenthèse
-        // vide.
+        // The achievement goes with the quest, not the zone: it is
+        // the quest it says something about. A page that has none
+        // does not show an empty parenthesis.
         if (achievement.Length > 0)
         {
             title += $" ({achievement})";
@@ -55,7 +58,9 @@ public static class PapychaReport
         return Cut(rubrique.Length == 0 ? title : rubrique + Separator + title);
     }
 
-    /// <summary>Le texte sur une seule ligne, sans blancs de bord ni doublons.</summary>
+    /// <summary>
+    /// The text on a single line, without edge blanks or duplicates.
+    /// </summary>
     private static string Flatten(string? text) =>
         string.Join(
             ' ',
@@ -64,9 +69,9 @@ public static class PapychaReport
                 StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
 
     /// <summary>
-    /// Ramené à ce que le champ accepte. Le cas ne devrait pas se produire, un
-    /// nom de zone et un titre de quête tenant très en deçà ; c'est un garde-fou
-    /// contre une saisie tronquée par le navigateur.
+    /// Brought down to what the field accepts. This case should not
+    /// occur, a zone name and a quest title fitting well within it;
+    /// it is a safeguard against input truncated by the browser.
     /// </summary>
     private static string Cut(string text) =>
         text.Length <= MaxLocationLength ? text : text[..MaxLocationLength].TrimEnd();

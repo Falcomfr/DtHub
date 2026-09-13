@@ -4,7 +4,9 @@ using DtHub.App.ViewModels;
 
 namespace DtHub.App.Windows;
 
-/// <summary>Aide : la marche à suivre sur le téléphone, adaptée à sa marque.</summary>
+/// <summary>
+/// Help: the steps to follow on the phone, adapted to its brand.
+/// </summary>
 public partial class HelpWindow : Window
 {
     private readonly HelpViewModel _viewModel;

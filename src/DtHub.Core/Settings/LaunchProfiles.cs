@@ -5,31 +5,35 @@ using DtHub.Core.Localization;
 namespace DtHub.Core.Settings;
 
 /// <summary>
-/// Les règles des sessions nommées, sans état ni entrée-sortie.
+/// The rules for named sessions, with no state and no input or output.
 ///
-/// Un profil est une liste de comptes, tenue à part de l'ensemble de démarrage.
-/// La distinction est le fond de l'affaire : cet ensemble se déforme à chaque
-/// geste, un lancement réussi y ajoutant les comptes ouverts et le bouton
-/// « fermer » les en retirant. Un profil déduit à la volée de cet ensemble se
-/// serait donc réécrit tout seul, et n'aurait rien retenu du tout.
+/// A profile is a list of accounts, kept apart from the startup set.
+/// The distinction is the whole point: this set changes shape with
+/// every action, a successful launch adding the opened accounts to it
+/// and the "close" button removing them. A profile derived on the fly
+/// from this set would therefore rewrite itself, and would have kept
+/// nothing at all.
 /// </summary>
 public static class LaunchProfiles
 {
     /// <summary>
-    /// Au-delà, le nom déborde de la liste déroulante. La coupe vaut mieux que
-    /// le refus : personne ne compte les lettres en tapant.
+    /// Beyond this, the name overflows the drop-down list. Truncating
+    /// is better than refusing: nobody counts letters while typing.
     /// </summary>
     public const int MaxNameLength = 40;
 
-    /// <summary>Nombre de comptes nommés dans un résumé avant de les compter.</summary>
+    /// <summary>
+    /// Number of accounts named in a summary before counting them
+    /// instead.
+    /// </summary>
     private const int NamedAtMost = 3;
 
     /// <summary>
-    /// Le nom tel qu'il sera retenu, ou <c>null</c> s'il n'en est pas un.
+    /// The name as it will be kept, or <c>null</c> if it is not one.
     ///
-    /// Les espaces de bord partent : « Duo » et « Duo  » sont le même profil, et
-    /// laisser passer la différence en créerait deux qu'on ne saurait pas
-    /// distinguer à l'écran.
+    /// Edge spaces are dropped: "Duo" and "Duo  " are the same profile,
+    /// and letting the difference through would create two that could
+    /// not be told apart on screen.
     /// </summary>
     public static string? Normalize(string? name)
     {
@@ -44,30 +48,32 @@ public static class LaunchProfiles
     }
 
     /// <summary>
-    /// Ce que porte le bouton des profils.
+    /// What the profiles button carries.
     ///
-    /// Le nom du profil retenu pour le démarrage quand il y en a un, le mot
-    /// générique sinon. Rien ne distinguait « aucune session nommée » de
-    /// « Duo haute s'appliquera au prochain démarrage », et il fallait ouvrir la
-    /// bulle pour le savoir. Un profil décide pourtant des comptes qui
-    /// s'ouvrent, de la qualité, du zoom et de l'ancrage : nous avons nous-mêmes
-    /// cherché longtemps pourquoi la qualité repassait en maximale à chaque
-    /// lancement, faute que rien ne le laisse voir.
+    /// The name of the profile selected for startup when there is
+    /// one, the generic word otherwise. Nothing used to distinguish
+    /// "no named session" from "Duo high quality will apply at the
+    /// next startup", and the bubble had to be opened to find out. Yet
+    /// a profile decides which accounts open, the quality, the
+    /// distance and the anchoring: we ourselves spent a long time
+    /// looking for why quality went back to maximum at every launch,
+    /// for lack of anything showing it.
     ///
-    /// Le nom passe par <see cref="Normalize" />, qui écarte les espaces de bord
-    /// et un nom vide : un bouton qui n'afficherait que du blanc serait pire que
-    /// le mot générique.
+    /// The name goes through <see cref="Normalize" />, which discards
+    /// edge spaces and an empty name: a button that would show
+    /// nothing but blank would be worse than the generic word.
     /// </summary>
     public static string ButtonLabel(string? defaultProfile) =>
         Normalize(defaultProfile) ?? Strings.Get("Profiles");
 
     /// <summary>
-    /// Le profil de ce nom, ou <c>null</c>.
+    /// The profile with this name, or <c>null</c>.
     ///
-    /// La casse est ignorée : « Duo » et « duo » seraient deux entrées
-    /// indiscernables dans la liste, et l'on ne saurait plus laquelle on ouvre.
-    /// Ordinale, et non culturelle : un nom de profil est un identifiant, non du
-    /// texte à trier, et le repli d'une culture à l'autre n'a rien à y faire.
+    /// Case is ignored: "Duo" and "duo" would be two indistinguishable
+    /// entries in the list, and one would no longer know which one is
+    /// being opened. Ordinal, not culture aware: a profile name is an
+    /// identifier, not text to sort, and falling back from one
+    /// culture to another has no business here.
     /// </summary>
     public static StoredLaunchProfile? Find(
         IEnumerable<StoredLaunchProfile>? profiles,
@@ -83,11 +89,12 @@ public static class LaunchProfiles
     }
 
     /// <summary>
-    /// Les comptes de ce profil qui existent encore.
+    /// The accounts of this profile that still exist.
     ///
-    /// Un profil peut nommer un compte supprimé du téléphone depuis. L'écarter
-    /// plutôt que d'échouer est le seul comportement tenable : le profil garde
-    /// sa raison d'être, et les comptes restants s'ouvrent.
+    /// A profile can name an account since removed from the phone.
+    /// Discarding it rather than failing is the only workable
+    /// behavior: the profile keeps its purpose, and the remaining
+    /// accounts open.
     /// </summary>
     public static IReadOnlyList<string> KeysFor(
         IEnumerable<StoredLaunchProfile>? profiles,
@@ -106,10 +113,10 @@ public static class LaunchProfiles
     }
 
     /// <summary>
-    /// Ce que le profil contient, en une ligne montrable.
+    /// What the profile contains, in one showable line.
     ///
-    /// Les noms tant qu'ils tiennent, un compte au-delà : « XSpace + Principal »
-    /// se lit, « A + B + C + D + E » ne se lit plus.
+    /// Names for as long as they fit, a count beyond that: "XSpace +
+    /// Main" reads well, "A + B + C + D + E" no longer does.
     /// </summary>
     public static string Describe(
         StoredLaunchProfile? profile,
@@ -136,21 +143,22 @@ public static class LaunchProfiles
             ? string.Join(" + ", names)
             : Strings.Format("AccountCount", names.Count);
 
-        // La qualité n'est dite que si elle sort de l'ordinaire : la rappeler à
-        // chaque profil noierait le nom des comptes, qui est ce qu'on cherche.
+        // Quality is only stated if it is out of the ordinary:
+        // repeating it for every profile would drown out the account
+        // names, which is what we are looking for.
         return profile.Quality == StreamQuality.Medium
             ? accountsText
             : $"{accountsText}, {QualityLabel(profile.Quality)}";
     }
 
     /// <summary>
-    /// Ce qu'un profil s'apprête à retenir, dit avant de le créer.
+    /// What a profile is about to keep, said before creating it.
     ///
-    /// « Enregistrer » ne laissait rien deviner de ce qui part avec le nom :
-    /// on croyait ne retenir que des comptes, et l'ouverture du profil
-    /// replaçait les fenêtres et changeait la qualité. La phrase le dit à
-    /// l'avance, avec les valeurs du moment plutôt qu'une liste figée, pour
-    /// qu'on reconnaisse son propre réglage.
+    /// "Save" gave no hint of what left along with the name: people
+    /// thought only accounts were being kept, and opening the profile
+    /// would reposition windows and change the quality. The sentence
+    /// says it in advance, with the current values rather than a
+    /// fixed list, so that people recognize their own settings.
     /// </summary>
     public static string Announce(
         int accounts,
@@ -159,10 +167,11 @@ public static class LaunchProfiles
         int tabbed,
         bool audio)
     {
-        // L'article vit dans le gabarit de chaque langue et non dans
-        // l'étiquette : « la qualité haute » en français, « high quality » sans
-        // article en anglais. Coller l'article au mot rendait la phrase
-        // intraduisible, le genre n'étant pas le même d'une langue à l'autre.
+        // The article lives in each language's template, not in the
+        // label: "la qualité haute" ("the high quality") in French,
+        // "high quality" with no article in English. Attaching the
+        // article to the word made the sentence untranslatable, since
+        // gender is not the same from one language to another.
         var accountsText = accounts <= 1
             ? Strings.Get("ProfileAccountsOne")
             : Strings.Format("ProfileAccountsMany", accounts);
@@ -186,7 +195,9 @@ public static class LaunchProfiles
         return $"{phrase} {onglets}";
     }
 
-    /// <summary>Le mot de la distance, tel qu'il paraît dans le panneau.</summary>
+    /// <summary>
+    /// The word for distance, as it appears in the panel.
+    /// </summary>
     private static string ZoomLabel(GameZoom zoom) => zoom switch
     {
         GameZoom.Widest => Strings.Get("ZoomVeryFarWord"),
@@ -195,7 +206,9 @@ public static class LaunchProfiles
         _ => Strings.Get("ZoomNormalWord"),
     };
 
-    /// <summary>Le mot du palier, tel qu'il paraît dans le panneau.</summary>
+    /// <summary>
+    /// The word for the quality tier, as it appears in the panel.
+    /// </summary>
     private static string QualityLabel(StreamQuality quality) => quality switch
     {
         StreamQuality.Low => Strings.Get("QualityLowWord"),
@@ -204,7 +217,10 @@ public static class LaunchProfiles
         _ => Strings.Get("QualityMediumWord"),
     };
 
-    /// <summary>Le nom choisi par l'utilisateur, à défaut celui du profil Android.</summary>
+    /// <summary>
+    /// The name chosen by the user, or the Android profile's name
+    /// otherwise.
+    /// </summary>
     private static string NameOf(StoredInstance instance) =>
         string.IsNullOrWhiteSpace(instance.CustomName)
             ? instance.UserName

@@ -3,50 +3,51 @@
 namespace DtHub.Core.Users;
 
 /// <summary>
-/// Ce qu'un profil Android peut faire apparaître à l'écran pendant que les
-/// autres sont ouverts.
+/// What an Android profile is allowed to put on screen while the other
+/// profiles are open.
 ///
-/// La règle n'est pas une opinion : elle vient d'une mesure faite sur un
-/// Xiaomi 23078PND5G sous Android 16, afficheur virtuel créé par scrcpy, en
-/// interrogeant l'oracle qu'Android publie lui-même,
+/// The rule is not an opinion: it comes from a measurement made on a
+/// Xiaomi 23078PND5G running Android 16, using a virtual display
+/// created by scrcpy, by querying the oracle Android itself publishes,
 /// <c>cmd user is-user-visible --display D N</c>.
 ///
 /// <list type="table">
 ///   <item>
-///     <term>Profil géré, identifiant 15, drapeaux 0x1030</term>
-///     <description>visible : vrai. Le jeu s'ouvre en quatre secondes,
-///     <c>LaunchState: COLD</c>, écran de connexion complet.</description>
+///     <term>Managed profile, id 15, flags 0x1030</term>
+///     <description>visible: true. The game opens in four seconds,
+///     <c>LaunchState: COLD</c>, full login screen.</description>
 ///   </item>
 ///   <item>
-///     <term>Utilisateur complet, identifiant 14, drapeaux 0x400</term>
-///     <description>visible : faux. <c>am start</c> répond pourtant
-///     <c>Status: ok</c>, puis pend soixante-dix secondes sans rien
-///     afficher.</description>
+///     <term>Full user, id 14, flags 0x400</term>
+///     <description>visible: false. <c>am start</c> nonetheless
+///     replies <c>Status: ok</c>, then hangs for seventy seconds
+///     showing nothing.</description>
 ///   </item>
 /// </list>
 ///
-/// C'est la raison d'être de ce fichier : <c>am start</c> annonce un succès là
-/// où rien ne s'affichera jamais. Se fier à lui revient à promettre une fenêtre
-/// qui ne viendra pas.
+/// This is the reason this file exists: <c>am start</c> reports
+/// success where nothing will ever display. Trusting it amounts to
+/// promising a window that will never come.
 ///
-/// Un profil suit toujours son parent : dès que l'utilisateur principal est
-/// visible, ses profils le sont aussi, sur n'importe quel afficheur. Un
-/// utilisateur complet, lui, ne peut être visible en arrière-plan que si
-/// l'appareil l'autorise, ce que dit
-/// <c>cmd user is-visible-background-users-supported</c> : faux sur un
-/// téléphone ordinaire, vrai sur les systèmes embarqués automobiles.
+/// A profile always follows its parent: as soon as the primary user is
+/// visible, its profiles are too, on any display. A full user, on the
+/// other hand, can only be visible in the background if the device
+/// allows it, which is what
+/// <c>cmd user is-visible-background-users-supported</c> says: false
+/// on an ordinary phone, true on automotive embedded systems.
 /// </summary>
 public static class AndroidUserHosting
 {
     /// <summary>
-    /// Dit si ce profil peut porter une fenêtre de jeu pendant que les autres
-    /// sont ouverts, et sinon pourquoi.
+    /// States whether this profile can host a game window while the
+    /// others are open, and if not, why.
     /// </summary>
-    /// <param name="user">Le profil examiné.</param>
+    /// <param name="user">The profile being examined.</param>
     /// <param name="visibleBackgroundUsers">
-    /// Ce que l'appareil répond à <c>is-visible-background-users-supported</c>.
-    /// <c>null</c> quand la question n'a pas été posée ou n'a pas abouti :
-    /// on s'en tient alors au comportement des téléphones ordinaires.
+    /// What the device answers to
+    /// <c>is-visible-background-users-supported</c>. <c>null</c> when
+    /// the question was not asked or did not succeed: we then default
+    /// to the behavior of ordinary phones.
     /// </param>
     public static AndroidUserHosting.Verdict Describe(
         AndroidUser user,
@@ -54,8 +55,8 @@ public static class AndroidUserHosting
     {
         ArgumentNullException.ThrowIfNull(user);
 
-        // La pause passe avant le type : un profil professionnel en pause ne
-        // lance rien, quelle que soit sa nature par ailleurs.
+        // Pause takes precedence over type: a paused work profile
+        // launches nothing, whatever its nature otherwise.
         if (user.IsPaused)
         {
             return new Verdict(
@@ -95,8 +96,9 @@ public static class AndroidUserHosting
     }
 
     /// <summary>
-    /// Réponse de la règle. <see cref="Reason"/> est vide quand le profil
-    /// convient, et porte sinon une phrase montrable telle quelle.
+    /// Result of the rule. <see cref="Reason"/> is empty when the
+    /// profile is suitable, and otherwise carries a sentence that can
+    /// be shown as is.
     /// </summary>
     public readonly record struct Verdict(bool CanHostWindow, string Reason);
 }

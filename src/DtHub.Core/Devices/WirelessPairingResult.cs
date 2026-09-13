@@ -1,22 +1,26 @@
 ﻿namespace DtHub.Core.Devices;
 
-/// <summary>Issue d'un appairage sans fil, du point de vue de l'utilisateur.</summary>
+/// <summary>
+/// Outcome of a wireless pairing, from the user's point of view.
+/// </summary>
 public enum WirelessPairingStatus
 {
-    /// <summary>Appairé et connecté : il n'y a plus rien à faire.</summary>
+    /// <summary>Paired and connected: there is nothing left to do.</summary>
     Connected,
 
-    /// <summary>Le téléphone a refusé le code, ou l'appairage n'a pas abouti.</summary>
+    /// <summary>
+    /// The phone refused the code, or the pairing did not succeed.
+    /// </summary>
     PairingFailed,
 
     /// <summary>
-    /// Appairage réussi, mais le port de connexion n'a pas été découvert. Le
-    /// réseau bloque probablement le mDNS ; l'utilisateur peut saisir le port
-    /// affiché sur le téléphone.
+    /// Pairing succeeded, but the connection port was not
+    /// discovered. The network is probably blocking mDNS; the user
+    /// can enter the port shown on the phone.
     /// </summary>
     ConnectPortNotFound,
 
-    /// <summary>Appairage réussi mais la connexion a échoué.</summary>
+    /// <summary>Pairing succeeded but the connection failed.</summary>
     ConnectFailed,
 
     /// <summary>
@@ -27,7 +31,7 @@ public enum WirelessPairingStatus
     AddressUnreachable,
 }
 
-/// <summary>Résultat complet d'un appairage, prêt à être affiché.</summary>
+/// <summary>Full result of a pairing, ready to be displayed.</summary>
 public sealed record WirelessPairingResult(
     WirelessPairingStatus Status,
     string UserMessage,
@@ -35,9 +39,9 @@ public sealed record WirelessPairingResult(
     string? DeviceGuid = null)
 {
     /// <summary>
-    /// Vrai quand le téléphone a accepté le code, quoi qu'il soit advenu de la
-    /// connexion ensuite. Ne veut donc pas dire qu'il y a de quoi jouer : c'est
-    /// <see cref="Connected"/> qui le dit.
+    /// True when the phone accepted the code, whatever happened to
+    /// the connection afterwards. Does not therefore mean there is
+    /// anything to play: <see cref="Connected"/> is what says that.
     /// </summary>
     public bool Paired => Status
         is not WirelessPairingStatus.PairingFailed
@@ -46,9 +50,10 @@ public sealed record WirelessPairingResult(
     public bool Connected => Status == WirelessPairingStatus.Connected;
 
     /// <summary>
-    /// Vrai quand il ne manque plus que le port. Le réseau n'a rien annoncé,
-    /// mais le téléphone affiche ce port sous « Débogage sans fil », et
-    /// l'appairage est acquis : il n'y a rien à refaire, rien qu'à le lire.
+    /// True when only the port is missing. The network announced
+    /// nothing, but the phone shows that port under "Wireless
+    /// debugging", and the pairing is already done: there is
+    /// nothing left to redo, only to read it.
     /// </summary>
     public bool NeedsPort => Status == WirelessPairingStatus.ConnectPortNotFound;
 

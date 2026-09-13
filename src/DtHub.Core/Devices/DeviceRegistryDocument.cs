@@ -1,9 +1,10 @@
 ﻿namespace DtHub.Core.Devices;
 
 /// <summary>
-/// Forme persistée de <c>devices.json</c>. Volontairement distincte du modèle
-/// de domaine : le format de fichier peut évoluer sans contraindre le code, et
-/// <see cref="SchemaVersion"/> permettra une migration explicite le jour venu.
+/// Persisted shape of <c>devices.json</c>. Deliberately distinct from
+/// the domain model: the file format can evolve without constraining
+/// the code, and <see cref="SchemaVersion"/> will allow an explicit
+/// migration on the day it is needed.
 /// </summary>
 public sealed class DeviceRegistryDocument
 {
@@ -14,33 +15,36 @@ public sealed class DeviceRegistryDocument
     public List<StoredDevice> Devices { get; set; } = [];
 
     /// <summary>
-    /// Appareils dont l'association a été rompue, par identifiant matériel.
+    /// Devices whose pairing has been broken, by hardware identifier.
     ///
-    /// Effacer un appareil ne suffisait pas à s'en défaire. Le téléphone
-    /// continue de s'annoncer sur le réseau, ADB garde sa clé et s'y reconnecte,
-    /// et le balayage suivant le réinscrit ici comme une découverte ordinaire.
-    /// Oublier, c'était ne plus rien savoir, donc ne plus rien pouvoir refuser.
+    /// Deleting a device was not enough to get rid of it. The phone
+    /// keeps announcing itself on the network, ADB keeps its key and
+    /// reconnects to it, and the next scan registers it here again as
+    /// an ordinary discovery. Forgetting meant no longer knowing
+    /// anything, and therefore no longer being able to refuse anything.
     ///
-    /// Cette liste est la mémoire de la rupture. Un appareil qui y figure n'est
-    /// ni réinscrit ni reconnecté, jusqu'à ce qu'on l'associe de nouveau depuis
-    /// la fenêtre prévue pour cela.
+    /// This list is the memory of the break. A device listed here is
+    /// neither re-registered nor reconnected, until it is paired again
+    /// from the window meant for that.
     ///
-    /// Des identifiants matériels et non des adresses : une adresse change à
-    /// chaque bail réseau, et la rupture doit y survivre.
+    /// Hardware identifiers and not addresses: an address changes with
+    /// every network lease, and the break must survive it.
     /// </summary>
     public List<string> Discarded { get; set; } = [];
 
     /// <summary>
-    /// Réunit les doublons laissés par la version 1, et rend vrai si le fichier
-    /// a changé.
+    /// Merges the duplicates left by version 1, and returns true if the
+    /// file changed.
     ///
-    /// Un téléphone joignable était retenu sous son numéro de série, et le même
-    /// téléphone injoignable sous le nom mDNS de son débogage sans fil : deux
-    /// entrées pour un seul appareil, dont l'une éternellement hors ligne. Le
-    /// nom mDNS porte pourtant ce numéro de série, et il est désormais lu.
+    /// A reachable phone was kept under its serial number, and the same
+    /// phone, unreachable, under the mDNS name of its wireless
+    /// debugging: two entries for a single device, one of them forever
+    /// offline. The mDNS name does carry that serial number though, and
+    /// it is now read.
     ///
-    /// La plus récemment vue l'emporte, mais ce que l'utilisateur a nommé ou
-    /// appairé est repris de l'autre : ce sont des choix, pas des découvertes.
+    /// The most recently seen one wins, but whatever the user named or
+    /// paired is carried over from the other one: those are choices,
+    /// not discoveries.
     /// </summary>
     public bool MergeDuplicates()
     {
@@ -78,7 +82,7 @@ public sealed class DeviceRegistryDocument
     }
 }
 
-/// <summary>Un appareil mémorisé entre deux lancements.</summary>
+/// <summary>A device remembered between two launches.</summary>
 public sealed class StoredDevice
 {
     public string Id { get; set; } = string.Empty;
@@ -90,7 +94,7 @@ public sealed class StoredDevice
     public string? AndroidVersion { get; set; }
     public int? SdkVersion { get; set; }
 
-    /// <summary>Nom donné par l'utilisateur.</summary>
+    /// <summary>Name given by the user.</summary>
     public string? CustomName { get; set; }
 
     public string? LastKnownAddress { get; set; }
@@ -123,8 +127,8 @@ public sealed class StoredDevice
     }
 
     /// <summary>
-    /// Reconstruit le modèle de domaine. L'état n'est pas persisté : un
-    /// appareil mémorisé est hors ligne tant que la découverte ne l'a pas revu.
+    /// Rebuilds the domain model. State is not persisted: a remembered
+    /// device is offline until discovery has seen it again.
     /// </summary>
     public AndroidDevice ToDevice() => new()
     {

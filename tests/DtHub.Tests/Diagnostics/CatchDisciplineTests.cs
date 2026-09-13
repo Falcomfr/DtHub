@@ -75,7 +75,7 @@ public sealed class CatchDisciplineTests
     /// délibérée, à l'endroit où on la lira.
     /// </summary>
     /// <summary>La phrase qui déclare une dérogation assumée, sous le bloc.</summary>
-    private const string Derogation = "Sans filtre, et c'est voulu";
+    private const string Derogation = "No filter, and that is intentional";
 
     [Fact]
     public void Attraper_tout_se_borne_par_un_filtre()

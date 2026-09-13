@@ -3,34 +3,40 @@
 namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Ce qu'un intitulé de prérequis désigne vraiment.
+/// What a prerequisite label really designates.
 ///
-/// Le site en écrit de trois formes, et deux d'entre elles ne sont pas des
-/// titres de quête. Un jalon n'est pas une quête mais l'état qu'elle laisse :
-/// « L'essentiel est dans le Lac gelé atteint ». Et un succès entier se cite
-/// « Succès Un nouveau départ réalisé ». Relevé sur les 584 prérequis du
-/// catalogue : 511 titres nus, 35 jalons, 38 succès. Les crochets d'autrefois,
-/// « [FIN] … », ont disparu du site mais la règle reste, le catalogue embarqué
-/// pouvant dater d'avant.
+/// The site writes these in three forms, and two of them are not
+/// quest titles. A milestone is not a quest but the state it leaves
+/// behind: "L'essentiel est dans le Lac gelé atteint" (roughly "The
+/// essentials are in the Frozen Lake, reached"). And a whole
+/// achievement is quoted as "Succès Un nouveau départ réalisé"
+/// ("Achievement A new start, completed"). Measured over the
+/// catalog's 584 prerequisites: 511 bare titles, 35 milestones, 38
+/// achievements. The old brackets, "[FIN] ..." (French for "end"),
+/// have disappeared from the site but the rule stays, since the
+/// embedded catalog may date from before.
 ///
-/// Les rapprocher tels quels laissait donc **un prérequis sur huit** sans
-/// suite : c'est ainsi que « La légende du Chevalier de l'Automne » n'avait
-/// aucune quête suivante, la seule arête qui mène au succès d'après étant
-/// portée par un libellé de succès.
+/// Matching them as is therefore left **one prerequisite in eight**
+/// without a follow-up: that is how "La légende du Chevalier de
+/// l'Automne" ("The Legend of the Autumn Knight") had no next quest,
+/// the only edge leading to the following achievement being carried
+/// by an achievement label.
 ///
-/// La règle est la même que celle du script d'extraction,
-/// <c>build/extract-successes.py</c>, fonction <c>sans_marque</c>. Elle vivait
-/// jusqu'ici du seul côté Python, qui ne recopiait pas son résultat dans le
-/// fichier : l'application ne pouvait pas la connaître.
+/// The rule is the same as the one in the extraction script,
+/// <c>build/extract-successes.py</c>, function <c>sans_marque</c>.
+/// Until now it only lived on the Python side, which did not copy
+/// its result into the file: the application had no way to know it.
 /// </summary>
 public static partial class PrerequisiteLabel
 {
-    /// <summary>Ce qu'un intitulé de prérequis nomme.</summary>
-    /// <param name="Name">Le nom, marques retirées.</param>
-    /// <param name="IsSuccess">Vrai quand c'est un succès entier, non une quête.</param>
+    /// <summary>What a prerequisite label names.</summary>
+    /// <param name="Name">The name, with markers removed.</param>
+    /// <param name="IsSuccess">
+    /// True when this is a whole achievement, not a quest.
+    /// </param>
     public readonly record struct Target(string Name, bool IsSuccess);
 
-    /// <summary>Lit un intitulé de prérequis.</summary>
+    /// <summary>Reads a prerequisite label.</summary>
     public static Target Of(string? label)
     {
         if (string.IsNullOrWhiteSpace(label))

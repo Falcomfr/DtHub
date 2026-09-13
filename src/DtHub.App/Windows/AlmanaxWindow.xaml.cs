@@ -11,19 +11,20 @@ using Serilog;
 namespace DtHub.App.Windows;
 
 /// <summary>
-/// L'Almanax du jour, lu sur le portail d'Ankama et redessiné ici.
+/// Today's Almanax, read from Ankama's portal and redrawn here.
 ///
-/// La page n'est pas affichée : c'est une page de bureau entière, avec son
-/// décor, ses encarts et ses textes d'ambiance, dont rien n'aide à savoir quoi
-/// apporter aujourd'hui. Le moteur la charge, le pont en tire les quatre
-/// champs utiles, et la fenêtre les dessine à sa façon.
+/// The page is not shown: it is a whole desktop page, with its decor,
+/// its inserts and its mood text, none of which helps in knowing what
+/// to bring today. The engine loads it, the bridge pulls the four
+/// useful fields out of it, and the window draws them its own way.
 ///
-/// Dans une fenêtre à part et non dans celle des guides : celle-ci tient une
-/// recherche, un bandeau de quête et une chaîne de succès, et rien de tout
-/// cela ne vaut pour l'Almanax, qui n'est pas une quête du catalogue et ne
-/// vient pas du même site.
+/// In a separate window and not in the guides' one: that one holds a
+/// search, a quest banner and an achievement chain, and none of that
+/// applies to the Almanax, which is not a quest from the catalogue and
+/// does not come from the same site.
 ///
-/// <see cref="AlmanaxCalendar" /> dit pourquoi c'est la seule source juste.
+/// <see cref="AlmanaxCalendar" /> says why it is the only accurate
+/// source.
 /// </summary>
 public partial class AlmanaxWindow : Window
 {
@@ -34,27 +35,29 @@ public partial class AlmanaxWindow : Window
     private readonly AlmanaxViewModel _model = new();
 
     /// <summary>
-    /// Les journées déjà lues, le temps de la session.
+    /// The days already read, for the duration of the session.
     ///
-    /// Le calendrier est fixe : une journée lue ne changera plus. Revenir sur
-    /// un jour déjà vu se fait donc sans recharger la page, ce qui rend la
-    /// bande utilisable au lieu d'imposer une seconde d'attente par jour.
+    /// The calendar is fixed: a day once read will not change again.
+    /// Going back to a day already seen is therefore done without
+    /// reloading the page, which makes the strip usable instead of
+    /// imposing a second's wait per day.
     ///
-    /// En mémoire et non sur le disque : rien de la page n'est conservé après
-    /// la session.
+    /// In memory and not on disk: nothing from the page is kept after
+    /// the session.
     /// </summary>
     private readonly Dictionary<DateOnly, AlmanaxDay> _read = [];
 
     private DateOnly _wanted = DateOnly.FromDateTime(DateTime.Now);
     private string _url = string.Empty;
     /// <summary>
-    /// Le gréage, une fois et une seule.
+    /// The setup, once and only once.
     ///
-    /// Un simple drapeau posé à la fin ne suffisait pas : il y a deux attentes
-    /// avant lui, et deux clics rapprochés entraient tous deux avant que le
-    /// premier ne l'ait posé. Le moteur recevait alors deux fois son pont et
-    /// deux fois ses abonnements, et postait chaque lecture en double. On
-    /// retient donc la tâche elle-même, que le second clic attend.
+    /// A simple flag set at the end was not enough: there are two
+    /// waits before it, and two clicks close together would both get
+    /// in before the first one had set it. The engine then received
+    /// its bridge twice and its subscriptions twice, and posted every
+    /// reading twice over. So the task itself is kept, and the second
+    /// click awaits it.
     /// </summary>
     private Task? _preparing;
 
@@ -77,14 +80,15 @@ public partial class AlmanaxWindow : Window
     }
 
     /// <summary>
-    /// Poignées des fenêtres ouvertes, pour que les raccourcis restent vivants
-    /// quand l'une d'elles a le focus. Même raison que pour les pages liées :
-    /// la question vient du guet du premier plan, qui ne vit pas sur le fil de
-    /// l'interface et ne peut donc pas toucher une fenêtre WPF.
+    /// Handles of the open windows, so shortcuts stay alive when one
+    /// of them has focus. Same reason as for the linked pages: the
+    /// question comes from the foreground watcher, which does not
+    /// live on the interface thread and therefore cannot touch a WPF
+    /// window.
     /// </summary>
     private static readonly HashSet<nint> Handles = [];
 
-    /// <summary>Vrai si cette poignée est celle d'un Almanax ouvert.</summary>
+    /// <summary>True if this handle is that of an open Almanax.</summary>
     public static bool Owns(nint handle)
     {
         lock (Handles)
@@ -117,8 +121,9 @@ public partial class AlmanaxWindow : Window
     }
 
     /// <summary>
-    /// La place se retient ici et non dans <c>OnClosed</c> : la poignée n'existe
-    /// déjà plus à ce moment-là, et il n'y aurait plus rien à interroger.
+    /// The place is remembered here and not in <c>OnClosed</c>: the
+    /// handle no longer exists by then, and there would be nothing
+    /// left to query.
     /// </summary>
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
@@ -141,7 +146,7 @@ public partial class AlmanaxWindow : Window
         base.OnClosed(e);
     }
 
-    /// <summary>Ouvre la fenêtre sur l'Almanax du jour.</summary>
+    /// <summary>Opens the window on today's Almanax.</summary>
     public async Task ShowAlmanaxAsync()
     {
         Show();
@@ -151,7 +156,8 @@ public partial class AlmanaxWindow : Window
     }
 
     /// <summary>
-    /// Charge une journée, du cache si on l'a déjà lue, de la page sinon.
+    /// Loads a day, from the cache if it has already been read, from
+    /// the page otherwise.
     /// </summary>
     private async Task LoadAsync(DateOnly date)
     {
@@ -169,8 +175,9 @@ public partial class AlmanaxWindow : Window
             return;
         }
 
-        // « BeginLoading » et non « Go » : « Go » lève la demande que cette
-        // méthode écoute, et les deux se relanceraient l'un l'autre.
+        // "BeginLoading" and not "Go": "Go" raises the request that
+        // this method listens to, and the two would end up
+        // triggering each other again.
         _model.BeginLoading(date);
 
         try
@@ -185,8 +192,9 @@ public partial class AlmanaxWindow : Window
         {
             Log.Warning(exception, "L'Almanax n'a pas pu être chargé.");
 
-            // La tâche de gréage est oubliée : gardée en l'état, elle reste en
-            // échec et toute nouvelle tentative échouerait sans même essayer.
+            // The setup task is forgotten: kept as is, it remains
+            // failed and any new attempt would fail without even
+            // trying.
             _preparing = null;
 
             _model.Fail();
@@ -194,18 +202,18 @@ public partial class AlmanaxWindow : Window
     }
 
     /// <summary>
-    /// Le moteur, prêt et gréé, une seule fois.
+    /// The engine, ready and set up, only once.
     ///
-    /// Le pont s'injecte à la création du document : posé après coup, il
-    /// arriverait sur une page déjà bâtie et n'aurait rien à quoi s'accrocher
-    /// pour la suivante.
+    /// The bridge injects itself when the document is created: set up
+    /// after the fact, it would arrive on an already-built page and
+    /// would have nothing to hook onto for the next one.
     /// </summary>
     private Task PrepareAsync() => _preparing ??= SetUpEngineAsync();
 
     private async Task SetUpEngineAsync()
     {
-        // Le même environnement que les autres fenêtres à page : un seul
-        // profil, un seul cache, au même endroit.
+        // The same environment as the other page windows: one single
+        // profile, one single cache, in the same place.
         await View
             .EnsureCoreWebView2Async(await _engine.GetAsync().ConfigureAwait(true))
             .ConfigureAwait(true);
@@ -220,12 +228,13 @@ public partial class AlmanaxWindow : Window
     }
 
     /// <summary>
-    /// Ce que le pont a lu de la page.
+    /// What the bridge read from the page.
     ///
-    /// Le message est refusé net si le bloc n'est pas celui de DOFUS Touch :
-    /// le portail sert les deux jeux sur la même page, et l'Almanax de DOFUS
-    /// demande d'autres objets. Mieux vaut dire qu'on n'a pas pu lire que
-    /// donner l'offrande d'un autre jeu.
+    /// The message is flatly refused if the block is not that of
+    /// DOFUS Touch: the portal serves both games on the same page,
+    /// and the DOFUS Almanax asks for different objects. Better to
+    /// say that reading failed than to give the offering of another
+    /// game.
     /// </summary>
     private void OnBridgeMessage(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
     {
@@ -237,8 +246,8 @@ public partial class AlmanaxWindow : Window
         }
         catch (ArgumentException)
         {
-            // Le message n'est pas du texte. Le pont n'en poste jamais
-            // d'autre, mais toute page peut appeler « postMessage ».
+            // The message is not text. The bridge never posts any
+            // other kind, but any page can call "postMessage".
             return;
         }
 
@@ -253,9 +262,9 @@ public partial class AlmanaxWindow : Window
 
         _read[day.Date] = day;
 
-        // Seulement si c'est encore le jour demandé : on a pu cliquer ailleurs
-        // pendant le chargement, et la page qui finit n'est plus celle qu'on
-        // attend.
+        // Only if it is still the requested day: one might have
+        // clicked elsewhere during the loading, and the page that
+        // finishes is no longer the one being waited for.
         if (day.Date == _wanted)
         {
             _model.Show(day);
@@ -263,8 +272,8 @@ public partial class AlmanaxWindow : Window
     }
 
     /// <summary>
-    /// Le pont ne postera rien si la page n'est pas arrivée : c'est ici qu'on
-    /// le sait, et pas ailleurs.
+    /// The bridge will post nothing if the page has not arrived: this
+    /// is where that is known, and nowhere else.
     /// </summary>
     private void OnNavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
     {
@@ -277,10 +286,10 @@ public partial class AlmanaxWindow : Window
     }
 
     /// <summary>
-    /// « target="_blank" », que le moteur ouvrirait sinon dans une fenêtre à
-    /// lui, hors de tout contrôle et sans rien qui la rattache à nous. La page
-    /// n'est pas affichée, donc personne ne peut cliquer, mais elle garde son
-    /// propre script et rien n'oblige à lui faire confiance.
+    /// target="_blank", which the engine would otherwise open in a
+    /// window of its own, outside any control and with nothing tying
+    /// it back to us. The page is not shown, so nobody can click, but
+    /// it keeps its own script and nothing requires trusting it.
     /// </summary>
     private void OnNewWindowRequested(object? sender, CoreWebView2NewWindowRequestedEventArgs e)
     {
@@ -289,7 +298,9 @@ public partial class AlmanaxWindow : Window
         _dialogs.OpenUrl(e.Uri);
     }
 
-    /// <summary>La page entière, pour qui veut le décor et les textes d'ambiance.</summary>
+    /// <summary>
+    /// The whole page, for whoever wants the decor and the mood text.
+    /// </summary>
     private void OnOpenInBrowser(object sender, RoutedEventArgs e) =>
         _dialogs.OpenUrl(_url.Length > 0
             ? _url

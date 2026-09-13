@@ -1,9 +1,11 @@
-﻿// Sonde de développement : extrait l'icône d'une application par le code livré.
+﻿// Development probe: extracts an application's icon through the
+// shipped code.
 //
-// Elle court-circuite la mise en place d'ADB, déjà faite sur cette machine, et
-// n'éprouve donc que ce qui nous intéresse : les trois commandes et l'écriture.
+// It bypasses ADB setup, already done on this machine, and so only
+// puts to the test what interests us: the three commands and the
+// write.
 //
-// dotnet run --project build/sonde-icone -- <serial> [paquet]
+// dotnet run --project build/sonde-icone -- <serial> [package]
 using DtHub.Core.Adb;
 using DtHub.Core.Android;
 using DtHub.Infrastructure.Adb;
@@ -28,7 +30,8 @@ Console.WriteLine($"adb     : {adbPath} ({(File.Exists(adbPath) ? "présent" : "
 Console.WriteLine($"serial  : {serial}");
 Console.WriteLine($"paquet  : {package}");
 
-// Les trois commandes, une par une, pour voir laquelle bloque le cas échéant.
+// The three commands, one by one, to see which one blocks if that
+// happens.
 var listing = await adb.ShellAsync(serial, ["pm", "path", "--user", "0", package], null, default);
 Console.WriteLine($"pm path : {ApkListing.ParsePaths(listing).Count} archive(s)");
 
@@ -41,7 +44,7 @@ foreach (var apk in ApkListing.ParsePaths(listing))
     Console.WriteLine($"  {apk[(apk.LastIndexOf('/') + 1)..]} : {entries.Count} entrée(s), choix = {LauncherIconChoice.Choose(entries) ?? "(aucun)"}");
 }
 
-// L'extraction elle-même, en détail.
+// The extraction itself, in detail.
 foreach (var apk in ApkListing.ParsePaths(listing).Take(1))
 {
     var quoted = AndroidShell.Quote(apk);
@@ -73,7 +76,7 @@ if (path is not null && File.Exists(path))
 
 return path is null ? 1 : 0;
 
-/// <summary>Un chemin d'ADB déjà connu, sans mise en place.</summary>
+/// <summary>A known ADB path already in place, without setup.</summary>
 internal sealed class FixedLocator(string path) : IAdbLocator
 {
     public string? TryGetInstalledPath() => path;

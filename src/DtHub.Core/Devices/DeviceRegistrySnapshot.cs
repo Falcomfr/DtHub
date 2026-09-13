@@ -1,15 +1,15 @@
 ﻿namespace DtHub.Core.Devices;
 
 /// <summary>
-/// Ce que le registre sait, rendu en une seule lecture : les appareils
-/// mémorisés et ceux dont l'association a été rompue.
+/// What the registry knows, rendered in a single read: the
+/// remembered devices and those whose pairing has been broken.
 ///
-/// Les deux vivent dans le même fichier, et le registre le relit à chaque
-/// demande. Les réclamer séparément le faisait donc lire deux fois par
-/// balayage, pour rien.
+/// Both live in the same file, and the registry rereads it on every
+/// request. Requesting them separately therefore made it read
+/// twice per scan, for nothing.
 /// </summary>
-/// <param name="Known">Appareils mémorisés, connectés ou non.</param>
-/// <param name="Discarded">Identifiants des appareils écartés.</param>
+/// <param name="Known">Remembered devices, connected or not.</param>
+/// <param name="Discarded">Identifiers of discarded devices.</param>
 public readonly record struct DeviceRegistrySnapshot(
     IReadOnlyList<AndroidDevice> Known,
     IReadOnlySet<string> Discarded);

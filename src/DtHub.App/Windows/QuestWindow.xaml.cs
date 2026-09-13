@@ -16,8 +16,8 @@ using Microsoft.Web.WebView2.Core;
 namespace DtHub.App.Windows;
 
 /// <summary>
-/// Fenêtre de suivi des quêtes : une recherche, et la page du guide affichée
-/// telle que le site la rend.
+/// Quest tracking window: a search, and the guide page displayed just as
+/// the site renders it.
 /// </summary>
 public partial class QuestWindow : Window
 {
@@ -46,23 +46,25 @@ public partial class QuestWindow : Window
         _logger = logger;
         DataContext = viewModel;
 
-        // Le moteur de rendu garde six processus et un demi-gigaoctet quand la
-        // fenêtre est masquée, ce qui est le cas la plupart du temps : on ouvre
-        // les guides pour lire une étape, puis on retourne au jeu. Il sait se
-        // mettre en sommeil, à condition qu'on ne lui demande rien d'autre.
+        // The rendering engine keeps six processes and half a gigabyte
+        // when the window is hidden, which is the case most of the time:
+        // guides are opened to read a step, then play resumes. It can go
+        // to sleep, provided nothing else is asked of it.
         IsVisibleChanged += (_, _) => OnVisibilityChanged();
 
         Loaded += async (_, _) => await IndexAsync().ConfigureAwait(true);
     }
 
-    /// <summary>Montre la fenêtre si elle est masquée, la masque sinon.</summary>
+    /// <summary>
+    /// Shows the window if it is hidden, hides it otherwise.
+    /// </summary>
     public void Toggle()
     {
         if (IsVisible)
         {
-            // La place est retenue au moment où l'on masque : on ne la
-            // retrouverait plus après, la fenêtre n'ayant plus de position à
-            // l'écran qui vaille.
+            // The spot is saved at the moment the window is hidden: it
+            // could no longer be recovered afterward, since the window
+            // no longer has a screen position worth keeping.
             _ = _placements.SaveAsync(this, WindowPlacements.Quests);
 
             Hide();
@@ -72,31 +74,32 @@ public partial class QuestWindow : Window
         Show();
         Activate();
 
-        // Le curseur dans la recherche et la liste déroulée : on ouvre cette
-        // fenêtre pour trouver une quête, jamais pour regarder du vide.
+        // The cursor in the search box, and the list expanded: this
+        // window is opened to find a quest, never to look at emptiness.
         SearchBox.Focus();
         _viewModel.OpenList();
     }
 
     /// <summary>
-    /// Rouvre la fenêtre sur la quête qu'on lisait au dernier arrêt.
+    /// Reopens the window on the quest that was being read at the last
+    /// stop.
     ///
-    /// La liste ne se déroule pas dans ce cas : on retrouve la page où on
-    /// l'avait laissée, ce qui est justement ce qu'on venait chercher.
+    /// The list does not expand in this case: the page is found where it
+    /// was left, which is exactly what was being sought.
     /// </summary>
     public async Task RestoreAsync(string? url, int step = 0)
     {
         Show();
 
-        // L'étape attend que la page ait dit combien elle en a : le pont ne le
-        // rapporte qu'une fois le document lu, et sauter avant ne mènerait
-        // nulle part.
+        // The step waits until the page has said how many it has: the
+        // bridge only reports this once the document is read, and
+        // jumping before that would lead nowhere.
         _pendingStep = step;
 
-        // Le catalogue doit être là avant qu'on lui demande une quête. Il se
-        // charge d'ordinaire au premier affichage, mais rien ne garantit qu'il
-        // ait fini : sans cette attente, l'adresse retenue tombait à côté et la
-        // fenêtre s'ouvrait sur sa liste.
+        // The catalogue must be there before a quest is requested from
+        // it. It ordinarily loads on first display, but nothing
+        // guarantees it has finished: without this wait, the saved
+        // address missed its mark and the window opened on its list.
         await IndexAsync().ConfigureAwait(true);
 
         if (string.IsNullOrWhiteSpace(url) || !_viewModel.TryFollowUrl(url))
@@ -118,13 +121,20 @@ public partial class QuestWindow : Window
         }
     }
 
-    /// <summary>L'adresse de ce qu'on lisait, pour la retrouver au prochain lancement.</summary>
+    /// <summary>
+    /// The address of what was being read, to find it again on the
+    /// next launch.
+    /// </summary>
     public string? LastQuestUrl => _viewModel.CurrentUrl;
 
-    /// <summary>L'étape où l'on en était, pour y revenir au prochain lancement.</summary>
+    /// <summary>
+    /// The step reached, to return to it on the next launch.
+    /// </summary>
     public int LastQuestStep => _viewModel.StepIndex;
 
-    /// <summary>L'étape à retrouver, le temps que la page annonce les siennes.</summary>
+    /// <summary>
+    /// The step to restore, until the page announces its own.
+    /// </summary>
     private int _pendingStep;
 
     private void OnOpenInBrowser(object sender, RoutedEventArgs e) => _viewModel.OpenInBrowser();
@@ -132,11 +142,11 @@ public partial class QuestWindow : Window
     private void OnSearchOnSite(object sender, RoutedEventArgs e) => _viewModel.OpenSiteSearch();
 
     /// <summary>
-    /// Ouvre le formulaire de signalement du site sur la page qu'on lit.
+    /// Opens the site's report form on the page being read.
     ///
-    /// Dans une fenêtre à part, et non dans celle-ci : la fenêtre de quêtes
-    /// tient un bandeau, des étapes et une chaîne qui décrivent la quête, et
-    /// rien de tout cela ne vaut pour un formulaire.
+    /// In a separate window, not this one: the quest window holds a
+    /// banner, steps, and a chain describing the quest, and none of that
+    /// applies to a form.
     /// </summary>
     private async void OnReportError(object sender, RoutedEventArgs e)
     {
@@ -167,18 +177,19 @@ public partial class QuestWindow : Window
     private partial void LogReportOpened(string url);
 
     /// <summary>
-    /// Cliquer dans la recherche déroule la liste, comme le ferait une liste
-    /// déroulante ordinaire : c'est le geste qu'on fait sans y penser quand on
-    /// ne sait pas encore ce qu'on cherche.
+    /// Clicking in the search box expands the list, as an ordinary
+    /// dropdown list would: it is the gesture made without thinking when
+    /// one does not yet know what one is looking for.
     /// </summary>
     private void OnSearchClicked(object sender, MouseButtonEventArgs e) => OpenList();
 
     private void OnSearchFocused(object sender, KeyboardFocusChangedEventArgs e) => OpenList();
 
     /// <summary>
-    /// Déploie la liste, puis amène la quête ouverte sous les yeux. Le
-    /// défilement passe par la file du répartiteur : les conteneurs de lignes
-    /// ne sont créés qu'après le rendu, et défiler avant ne mène nulle part.
+    /// Expands the list, then brings the open quest into view.
+    /// Scrolling goes through the dispatcher queue: row containers are
+    /// only created after rendering, and scrolling before that leads
+    /// nowhere.
     /// </summary>
     private void OpenList()
     {
@@ -190,9 +201,9 @@ public partial class QuestWindow : Window
     private void OnNodeChosen(object sender, MouseButtonEventArgs e) => ChooseSelected();
 
     /// <summary>
-    /// Depuis la recherche, la flèche du bas entre dans la liste : c'est le
-    /// geste attendu de toute liste déroulante, et il évite de lâcher le
-    /// clavier pour prendre la souris.
+    /// From the search box, the down arrow enters the list: it is the
+    /// expected gesture of any dropdown list, and it avoids letting go
+    /// of the keyboard to reach for the mouse.
     /// </summary>
     private void OnSearchKey(object sender, KeyEventArgs e)
     {
@@ -212,8 +223,8 @@ public partial class QuestWindow : Window
 
         _viewModel.OpenList();
 
-        // La première ligne peut être un intertitre : on descend jusqu'à la
-        // première qui se choisit vraiment.
+        // The first row can be a subheading: we go down to the first
+        // one that can actually be selected.
         var index = _viewModel.FirstSelectable();
 
         if (index < 0)
@@ -232,7 +243,10 @@ public partial class QuestWindow : Window
         e.Handled = true;
     }
 
-    /// <summary>Entrée vaut clic : la liste se parcourt aussi au clavier.</summary>
+    /// <summary>
+    /// Enter counts as a click: the list can also be browsed with the
+    /// keyboard.
+    /// </summary>
     private void OnNodeKey(object sender, KeyEventArgs e)
     {
         ArgumentNullException.ThrowIfNull(e);
@@ -259,7 +273,9 @@ public partial class QuestWindow : Window
 
     private bool _bridgeReady;
 
-    /// <summary>Charge la page d'une quête, en s'assurant que le moteur est prêt.</summary>
+    /// <summary>
+    /// Loads a quest's page, making sure the engine is ready.
+    /// </summary>
     private async void Open(string url)
     {
         try
@@ -270,23 +286,25 @@ public partial class QuestWindow : Window
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            // Sans moteur d'exécution, la fenêtre ne peut rien montrer : le
-            // dire vaut mieux que laisser une zone vide. ReportViewFailure
-            // baisse aussi l'attente, qui vient peut-être d'être levée.
+            // Without a running engine, the window cannot show anything:
+            // saying so is better than leaving an empty area.
+            // ReportViewFailure also lowers the waiting flag, which may
+            // have just been raised.
             _viewModel.ReportViewFailure(exception);
         }
     }
 
     /// <summary>
-    /// Met le moteur en route et y installe le pont, une seule fois.
+    /// Starts the engine and installs the bridge in it, only once.
     ///
-    /// Le script est posé avant tout chargement de document : posé après, il
-    /// laisserait voir le décor du site le temps d'une image.
+    /// The script is set before any document loads: set afterward, it
+    /// would let the site's own look show through for an instant.
     /// </summary>
     private async Task PrepareAsync()
     {
-        // L'environnement dit au moteur où écrire et combien garder. Sans lui,
-        // il pose son cache à côté de l'exécutable et le laisse enfler.
+        // The environment tells the engine where to write and how much
+        // to keep. Without it, it puts its cache next to the executable
+        // and lets it grow.
         await View
             .EnsureCoreWebView2Async(await _engine.GetAsync().ConfigureAwait(true))
             .ConfigureAwait(true);
@@ -300,14 +318,15 @@ public partial class QuestWindow : Window
 
         View.CoreWebView2.WebMessageReceived += OnBridgeMessage;
 
-        // Un clic sur un lien du guide faisait naviguer cette fenêtre en place :
-        // le bandeau gardait l'ancienne quête, les étapes devenaient celles de
-        // la nouvelle page. Toute navigation qu'on n'a pas demandée part donc
-        // dans une fenêtre à part.
+        // Clicking a link in the guide used to navigate this window in
+        // place: the banner kept the old quest while the steps became
+        // those of the new page. Any navigation not requested therefore
+        // now goes to a separate window.
         View.CoreWebView2.NavigationStarting += OnNavigationStarting;
 
-        // Et « target="_blank" », que le runtime ouvrirait dans une fenêtre
-        // hors de tout contrôle, sans notre cadre ni notre premier plan.
+        // And target="_blank", which the runtime would open in a window
+        // outside any control, without our frame or our foreground
+        // state.
         View.CoreWebView2.NewWindowRequested += OnNewWindowRequested;
 
         View.CoreWebView2.NavigationCompleted += OnNavigationCompleted;
@@ -329,11 +348,12 @@ public partial class QuestWindow : Window
     }
 
     /// <summary>
-    /// Charge une page du site en disant qu'on l'attend.
+    /// Loads a page of the site, marking that it is awaited.
     ///
-    /// Seule porte : quatre chemins menaient à Navigate, et l'attente devait
-    /// être levée aux quatre. Elle retombe au message du pont, qui ne vient
-    /// qu'une fois la page cadrée, ou à défaut à la fin de la navigation.
+    /// A single gate: four paths used to lead to Navigate, and the wait
+    /// had to be lifted at all four. It now rests on the bridge message,
+    /// which only comes once the page is framed, or failing that, at
+    /// the end of navigation.
     /// </summary>
     private void NavigateTo(string url)
     {
@@ -343,30 +363,31 @@ public partial class QuestWindow : Window
 
         View.CoreWebView2?.Navigate(url);
 
-        // Un garde-fou, et non un correctif : la page annonce sa venue par deux
-        // chemins, le pont et la fin de navigation, et il a suffi qu'aucun des
-        // deux ne parle pour que l'indicateur tourne sans fin. Passé ce délai,
-        // on rend la vue plutôt que de laisser tourner ; le journal dit alors
-        // qu'on a attendu pour rien.
+        // A safeguard, not a fix: the page announces its arrival through
+        // two paths, the bridge and the end of navigation, and it took
+        // only neither of them speaking up for the indicator to spin
+        // forever. Past this delay, the view is released rather than
+        // left spinning; the log then says the wait was for nothing.
         _watchdog.Stop();
         _watchdog.Start();
     }
 
     /// <summary>
-    /// Délai au-delà duquel on cesse d'attendre une page. Vingt secondes : une
-    /// page du site en met une ou deux, et l'on ne coupe donc jamais une
-    /// attente légitime, même sur une connexion lente.
+    /// Delay beyond which a page is no longer waited for. Twenty
+    /// seconds: a page of the site takes one or two, so a legitimate
+    /// wait is never cut short, even on a slow connection.
     /// </summary>
     private readonly DispatcherTimer _watchdog = new() { Interval = TimeSpan.FromSeconds(20) };
 
     /// <summary>
-    /// Identifiant de la navigation qu'on attend. Zéro quand on n'attend rien.
+    /// Identifier of the navigation being waited for. Zero when nothing
+    /// is awaited.
     ///
-    /// Toutes les navigations ne sont pas les nôtres : un lien de quête cliqué
-    /// dans le guide est refusé, puis relancé par nos soins. La navigation
-    /// refusée signale sa fin, et elle le faisait après que la nôtre avait
-    /// commencé : l'attente s'éteignait aussitôt, et l'ancien guide restait à
-    /// l'écran sans que rien n'indique qu'une page arrivait.
+    /// Not every navigation is ours: a quest link clicked in the guide
+    /// is refused, then relaunched by us. The refused navigation signals
+    /// its own end, and it used to do so after ours had already started:
+    /// the wait would switch off at once, and the old guide would stay
+    /// on screen with nothing indicating a page was on its way.
     /// </summary>
     private ulong _awaited;
 
@@ -378,8 +399,9 @@ public partial class QuestWindow : Window
 
         LogNavigationCompleted(e.NavigationId, _awaited, e.IsSuccess, e.WebErrorStatus.ToString());
 
-        // Le filet : une page en erreur, un réseau coupé, et le pont ne dira
-        // jamais rien. L'indicateur tournerait alors sans fin.
+        // The safety net: a page in error, a cut network, and the
+        // bridge will never say anything. The indicator would then
+        // spin forever.
         if (e.NavigationId != _awaited)
         {
             return;
@@ -388,12 +410,12 @@ public partial class QuestWindow : Window
         _watchdog.Stop();
         _viewModel.IsLoadingPage = false;
 
-        // Rien de plus n'est annoncé, et c'est délibéré : le moteur pose sa
-        // propre page d'erreur, en français, avec un bouton pour réessayer.
-        // Mesuré sur une adresse injoignable, elle s'affiche bel et bien. Y
-        // superposer un message à nous était impossible de toute façon, la vue
-        // web étant une fenêtre native qui se dessine au-dessus de tout élément
-        // WPF du même châssis.
+        // Nothing more is reported, and that is deliberate: the engine
+        // shows its own error page, in French, with a retry button.
+        // Measured against an unreachable address, it does show up.
+        // Overlaying a message of our own was impossible anyway, since
+        // the web view is a native window drawn on top of every WPF
+        // element in the same frame.
     }
 
     private void OnBridgeMessage(object? sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs e)
@@ -406,9 +428,10 @@ public partial class QuestWindow : Window
         }
         catch (ArgumentException)
         {
-            // Le message n'est pas du texte. Le pont n'en poste jamais d'autre,
-            // mais il est posé sur tout document que cette fenêtre charge, et
-            // toute page peut appeler « postMessage » avec ce qu'elle veut.
+            // The message is not text. The bridge never posts anything
+            // else, but it is installed on every document this window
+            // loads, and any page can call "postMessage" with whatever
+            // it wants.
             return;
         }
 
@@ -444,9 +467,9 @@ public partial class QuestWindow : Window
     }
 
     /// <summary>
-    /// Reprend le guide à l'étape où on l'avait laissé, une seule fois, et
-    /// seulement si elle existe encore : le site peut avoir raccourci la page
-    /// depuis, et sauter à une étape absente ne mènerait nulle part.
+    /// Resumes the guide at the step where it was left, only once, and
+    /// only if that step still exists: the site may have shortened the
+    /// page since, and jumping to a missing step would lead nowhere.
     /// </summary>
     private void ResumeStep()
     {
@@ -461,33 +484,36 @@ public partial class QuestWindow : Window
     }
 
     /// <summary>
-    /// Endort ou réveille le moteur de rendu selon que la fenêtre se montre ou
-    /// se masque.
+    /// Puts the rendering engine to sleep or wakes it, depending on
+    /// whether the window shows or hides.
     ///
-    /// Mesuré : quatre cent soixante-trois mégaoctets fenêtre ouverte, quatre
-    /// cent dix-neuf une fois endormi, soit quarante-quatre rendus. Les six
-    /// processus restent, seule leur mémoire de travail se relâche : c'est
-    /// moins que ce qu'on pouvait espérer, et c'est gratuit. La page revient
-    /// telle qu'on l'a laissée, défilement compris.
+    /// Measured: four hundred and sixty-three megabytes with the window
+    /// open, four hundred and nineteen once asleep, that is forty-four
+    /// megabytes freed. The six processes remain, only their working
+    /// memory relaxes: it is less than one could hope for, and it is
+    /// free. The page comes back exactly as it was left, scroll
+    /// position included.
     ///
-    /// Le moteur refuse de dormir tant qu'il se croit visible, et le dit par
-    /// une erreur d'état, 0x8007139F. La vue est donc retirée avant, ce que le
-    /// drapeau de visibilité de la fenêtre gouverne déjà.
+    /// The engine refuses to sleep as long as it believes itself
+    /// visible, and says so with a state error, 0x8007139F. The view is
+    /// therefore removed beforehand, which the window's visibility flag
+    /// already governs.
     ///
-    /// Sans moteur démarré, il n'y a rien à endormir : la fenêtre peut être
-    /// masquée avant d'avoir jamais montré une page.
+    /// With no engine started, there is nothing to put to sleep: the
+    /// window can be hidden before it has ever shown a page.
     /// </summary>
     private void OnVisibilityChanged()
     {
         var visible = IsVisible;
 
-        // La vue est retirée avant qu'on demande le sommeil, et remise avant
-        // qu'on réveille : le moteur refuse de dormir tant qu'il se croit
-        // visible, et rend alors une erreur d'état, mesurée.
+        // The view is removed before sleep is requested, and put back
+        // before waking: the engine refuses to sleep as long as it
+        // believes itself visible, and returns a state error, as
+        // measured.
         _viewModel.IsWindowVisible = visible;
 
-        // Après la passe de mise en page, faute de quoi la vue serait encore
-        // visible au moment de la demande.
+        // After the layout pass, otherwise the view would still be
+        // visible at the moment of the request.
         _ = Dispatcher.BeginInvoke(
             DispatcherPriority.Loaded, () => Doze(asleep: !visible));
     }
@@ -513,13 +539,13 @@ public partial class QuestWindow : Window
         catch (Exception exception) when (exception is InvalidOperationException
             or System.Runtime.InteropServices.COMException or ObjectDisposedException)
         {
-            // Un moteur qui refuse de dormir ne coûte que de la mémoire ; le
-            // réveiller de force ou s'en plaindre coûterait la fenêtre.
+            // An engine that refuses to sleep only costs memory; forcing
+            // it awake or complaining about it would cost the window.
             LogDozeFailed(exception);
         }
     }
 
-    /// <summary>Fait défiler la page jusqu'à une étape.</summary>
+    /// <summary>Scrolls the page to a step.</summary>
     private async void GoToStep(int index)
     {
         if (index < 0)
@@ -541,7 +567,10 @@ public partial class QuestWindow : Window
         }
     }
 
-    /// <summary>Une étape choisie dans la liste : on s'y rend, et la liste se referme.</summary>
+    /// <summary>
+    /// A step chosen from the list: it is navigated to, and the list
+    /// closes.
+    /// </summary>
     private void OnPickStep(object sender, RoutedEventArgs e)
     {
         StepsToggle.IsChecked = false;
@@ -557,12 +586,12 @@ public partial class QuestWindow : Window
     private void OnNextStep(object sender, RoutedEventArgs e) => GoToStep(_viewModel.StepTarget(1));
 
     /// <summary>
-    /// Détourne vers une fenêtre à part toute navigation qui n'est pas la page
-    /// qu'on a demandée.
+    /// Diverts to a separate window any navigation that is not the page
+    /// that was requested.
     ///
-    /// La comparaison se fait sans la barre finale : le site rend tantôt l'une,
-    /// tantôt l'autre, et s'en tenir à l'égalité stricte détournerait la page
-    /// qu'on vient d'ouvrir.
+    /// The comparison is made without the trailing slash: the site
+    /// renders sometimes one form, sometimes the other, and sticking to
+    /// strict equality would divert the page just opened.
     /// </summary>
     private void OnNavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
     {
@@ -572,7 +601,7 @@ public partial class QuestWindow : Window
 
         if (ours)
         {
-            // Celle-ci est la nôtre : c'est sa fin qui lèvera l'attente.
+            // This one is ours: it is its end that will lift the wait.
             _awaited = e.NavigationId;
 
             return;
@@ -591,15 +620,16 @@ public partial class QuestWindow : Window
     }
 
     /// <summary>
-    /// Envoie une adresse là où elle se lit le mieux : sur place si c'est une
-    /// quête du catalogue, dans une fenêtre à part sinon.
+    /// Sends an address wherever it reads best: in place if it is a
+    /// quest from the catalogue, in a separate window otherwise.
     /// </summary>
     private void Route(string url)
     {
-        // Hors du site, rien n'entre dans nos fenêtres : elles n'ont pas de
-        // barre d'adresse, elles portent notre cadre, et le pont y est posé sur
-        // tout document. Un guide qui renvoie au wiki ou à une vidéo s'ouvre
-        // donc dans le navigateur, où l'on voit où l'on va.
+        // Outside the site, nothing enters our windows: they have no
+        // address bar, they carry our frame, and the bridge is set on
+        // every document there. A guide linking to the wiki or to a
+        // video therefore opens in the browser, where one can see where
+        // one is going.
         if (!PapychaSite.Owns(url))
         {
             LogSentOutside(url);
@@ -608,11 +638,12 @@ public partial class QuestWindow : Window
             return;
         }
 
-        // L'arbre des succès part au navigateur, et c'est la seule page du site
-        // dans ce cas. Elle n'est pas un guide mais un outil qu'on déplie et
-        // qu'on parcourt : ouverte dans une de nos fenêtres, elle s'affichait
-        // bien mais imposait une étape de plus avant le bouton qui menait enfin
-        // là où l'on voulait aller. Voir PapychaSite.IsSuccessTree.
+        // The success tree goes to the browser, and it is the only page
+        // of the site in this case. It is not a guide but a tool that
+        // is expanded and browsed through: opened in one of our
+        // windows, it displayed fine but imposed one more step before
+        // the button that finally led where one wanted to go. See
+        // PapychaSite.IsSuccessTree.
         if (PapychaSite.IsSuccessTree(url))
         {
             LogTreeSentOutside(url);
@@ -628,23 +659,23 @@ public partial class QuestWindow : Window
             return;
         }
 
-        // Le modèle est à jour, la page ne l'est pas : la navigation qui nous a
-        // amenés ici vient d'être annulée, et il n'y a personne d'autre pour la
-        // relancer. Sans cela le bandeau annonçait la nouvelle quête au-dessus
-        // du guide de l'ancienne.
+        // The model is up to date, the page is not: the navigation
+        // that brought us here has just been cancelled, and there is
+        // no one else to relaunch it. Without this the banner would
+        // announce the new quest above the old one's guide.
         //
-        // Différée, parce qu'on est encore dans le gestionnaire qui vient de
-        // refuser cette même navigation.
+        // Deferred, because we are still inside the handler that just
+        // refused this same navigation.
         _ = Dispatcher.BeginInvoke(() => NavigateTo(url));
     }
 
     /// <summary>
-    /// Vrai quand deux adresses ne diffèrent que par leur ancre.
+    /// True when two addresses differ only by their anchor.
     ///
-    /// Une page de donjon propose « Aller directement à la mécanique du
-    /// donjon », qui est une ancre. Le moteur l'annonce comme une navigation,
-    /// et la traiter comme étrangère ouvrait une seconde fenêtre sur la page
-    /// qu'on était déjà en train de lire.
+    /// A dungeon page offers "Aller directement à la mécanique du
+    /// donjon", which is an anchor. The engine reports it as a
+    /// navigation, and treating it as foreign would open a second
+    /// window on the page already being read.
     /// </summary>
     private static bool SamePage(string? first, string? second) =>
         Same(WithoutFragment(first), WithoutFragment(second));
@@ -664,11 +695,11 @@ public partial class QuestWindow : Window
             StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
-    /// Ouvre une adresse dans sa propre fenêtre, au-dessus des autres.
+    /// Opens an address in its own window, above the others.
     ///
-    /// L'échec est journalisé : lancée sans être attendue, cette tâche
-    /// emporterait sinon son exception en silence, et le clic resterait sans
-    /// effet ni explication.
+    /// The failure is logged: launched without being awaited, this task
+    /// would otherwise carry off its exception in silence, and the
+    /// click would remain without effect or explanation.
     /// </summary>
     private async Task OpenAsideAsync(string url)
     {
@@ -695,10 +726,10 @@ public partial class QuestWindow : Window
     private partial void LogSentOutside(string url);
 
     /// <summary>
-    /// L'arbre des succès, seule page du site qu'on confie au navigateur. Sa
-    /// propre ligne, parce que la précédente disait « hors du site » d'une
-    /// adresse qui, elle, en fait partie : un journal qui ment sur ce qu'il a
-    /// fait vaut moins qu'un journal muet.
+    /// The success tree, the only page of the site handed to the
+    /// browser. Its own line, because the previous one said "outside
+    /// the site" of an address that, in fact, is part of it: a log that
+    /// lies about what it did is worth less than a silent log.
     /// </summary>
     [LoggerMessage(
         Level = LogLevel.Information,
@@ -713,9 +744,10 @@ public partial class QuestWindow : Window
         Message = "La place du suivi de quêtes n'a pas pu être rétablie.")]
     private partial void LogPlacementFailed(Exception exception);
 
-    // Le chemin de chargement d'une page, tracé de bout en bout : l'indicateur
-    // d'attente s'est déjà bloqué deux fois, et sans ces traces il a fallu
-    // deviner. Elles disent qui demande, qui commence, qui finit.
+    // The loading path of a page, traced end to end: the waiting
+    // indicator has already gotten stuck twice, and without these
+    // traces it had to be guessed. They say who requests, who starts,
+    // who finishes.
     [LoggerMessage(Level = LogLevel.Information, Message = "Chargement demandé : {url} (moteur prêt : {ready})")]
     private partial void LogNavigate(string url, bool ready);
 
@@ -750,8 +782,8 @@ public partial class QuestWindow : Window
 
 
     /// <summary>
-    /// Amène la ligne sélectionnée sous les yeux. La poser ne suffit pas : sur
-    /// une rubrique de soixante quêtes, elle reste hors de l'écran.
+    /// Brings the selected row into view. Setting it is not enough: in
+    /// a category of sixty quests, it stays off screen.
     /// </summary>
     private void ScrollToSelection()
     {
@@ -763,7 +795,7 @@ public partial class QuestWindow : Window
 
     private void OnGoBack(object sender, RoutedEventArgs e) => _viewModel.GoBack();
 
-    /// <summary>Revient sur la quête d'où l'on vient.</summary>
+    /// <summary>Goes back to the quest we came from.</summary>
     private void OnGoBackPage(object sender, RoutedEventArgs e)
     {
         if (_viewModel.GoBackPage() is { } url)
@@ -782,12 +814,13 @@ public partial class QuestWindow : Window
     private void OnCloseList(object sender, RoutedEventArgs e) => _viewModel.IsListOpen = false;
 
     /// <summary>
-    /// Ouvre les prérequis d'une ligne, ou les referme si ce sont déjà ceux-là.
-    /// On peut alors les lire sans tenir la souris, et cliquer ceux qui mènent
-    /// à une quête.
+    /// Opens a row's prerequisites, or closes them if they are already
+    /// the ones shown. They can then be read without holding the mouse,
+    /// and the ones that lead to a quest can be clicked.
     ///
-    /// L'infobulle du même bouton est éteinte le temps du panneau : elle
-    /// s'ouvrirait par-dessus et dirait la même chose sans les liens.
+    /// The same button's tooltip is switched off while the panel is
+    /// open: it would otherwise open on top and say the same thing
+    /// without the links.
     /// </summary>
     private void OnShowNeeds(object sender, RoutedEventArgs e)
     {
@@ -812,12 +845,12 @@ public partial class QuestWindow : Window
     }
 
     /// <summary>
-    /// Referme les prérequis dès qu'on clique ailleurs que sur le cadenas qui
-    /// les a ouverts.
+    /// Closes the prerequisites as soon as a click lands anywhere other
+    /// than the lock that opened them.
     ///
-    /// Le clic sur ce cadenas est laissé passer : c'est lui qui referme, et le
-    /// fermer ici le rouvrirait aussitôt. Un clic dans le panneau lui-même ne
-    /// vient jamais jusqu'ici, une fenêtre surgissante ayant la sienne.
+    /// A click on that lock is let through: it is the one that closes,
+    /// and closing it here would reopen it at once. A click inside the
+    /// panel itself never reaches here, a popup window having its own.
     /// </summary>
     private void OnWindowPressed(object sender, MouseButtonEventArgs e)
     {
@@ -831,7 +864,9 @@ public partial class QuestWindow : Window
         CloseNeeds();
     }
 
-    /// <summary>Vrai si le second élément est dans l'arbre visuel du premier.</summary>
+    /// <summary>
+    /// True if the second element is in the visual tree of the first.
+    /// </summary>
     private static bool Owns(DependencyObject? parent, DependencyObject? child)
     {
         if (parent is null)
@@ -860,7 +895,7 @@ public partial class QuestWindow : Window
         PanneauPrerequis.IsOpen = false;
     }
 
-    /// <summary>Ouvre la quête qu'un prérequis nomme.</summary>
+    /// <summary>Opens the quest a prerequisite names.</summary>
     private void OnFollowNeed(object sender, RoutedEventArgs e)
     {
         PanneauPrerequis.IsOpen = false;
@@ -871,7 +906,9 @@ public partial class QuestWindow : Window
         }
     }
 
-    /// <summary>Suit un lien de chaîne : la quête précédente ou la suivante.</summary>
+    /// <summary>
+    /// Follows a chain link: the previous quest or the next one.
+    /// </summary>
     private void OnFollowChain(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.Tag is QuestLink link)
@@ -884,15 +921,16 @@ public partial class QuestWindow : Window
     private bool _indexingReported;
 
     /// <summary>
-    /// Indexe, puis consigne la durée quand il y a eu quelque chose à indexer.
+    /// Indexes, then logs the duration when there was something to
+    /// index.
     ///
-    /// **Rien ne chronométrait l'indexation**, et les cinquante secondes citées
-    /// de mémoire dans les décisions du projet dataient d'une époque où elle
-    /// faisait huit requêtes au lieu d'une cinquantaine. Toute amélioration se
-    /// jugeait donc à l'impression.
+    /// **Nothing used to time indexing**, and the fifty seconds cited
+    /// from memory in the project's decisions dated from a time when it
+    /// made eight requests instead of some fifty. Any improvement was
+    /// therefore judged by feel.
     ///
-    /// Muet quand le cache a suffi, ce qui est le cas ordinaire : une ligne par
-    /// ouverture de fenêtre ne dirait rien d'utile.
+    /// Silent when the cache was enough, which is the ordinary case: a
+    /// line per window opening would say nothing useful.
     /// </summary>
     private async Task IndexAsync()
     {
@@ -912,18 +950,18 @@ public partial class QuestWindow : Window
     }
 
     /// <summary>
-    /// Poignée native, retenue une fois pour toutes. Elle est consultée depuis
-    /// le guet du premier plan, qui n'a pas le droit d'interroger une fenêtre
-    /// WPF : l'interroger levait à chaque changement de fenêtre, et le
-    /// raccourci mourait sans que rien ne le dise. Le configurateur prenait
-    /// déjà cette précaution, pas celle-ci.
+    /// Native handle, kept once and for all. It is read from the
+    /// foreground watcher, which is not allowed to query a WPF window:
+    /// querying it used to throw on every window change, and the
+    /// hotkey would die without anything saying so. The configurator
+    /// already took this precaution, this one had not.
     /// </summary>
     public nint Handle { get; private set; }
 
     /// <summary>
-    /// La fenêtre vient d'obtenir sa poignée : c'est le moment de la remettre
-    /// où elle était. Plus tôt il n'y aurait rien à placer, plus tard on la
-    /// verrait sauter.
+    /// The window has just obtained its handle: this is the moment to
+    /// put it back where it was. Any earlier there would be nothing to
+    /// place, any later it would be seen jumping.
     /// </summary>
     protected override async void OnSourceInitialized(EventArgs e)
     {
@@ -944,15 +982,16 @@ public partial class QuestWindow : Window
     }
 
     /// <summary>
-    /// La croix masque, elle ne ferme pas : la fenêtre est un outil qu'on
-    /// rappelle au raccourci, comme le configurateur.
+    /// The close button hides, it does not close: the window is a tool
+    /// brought back with the hotkey, like the configurator.
     /// </summary>
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
         ArgumentNullException.ThrowIfNull(e);
 
-        // La croix masque, elle ne ferme pas : la place est donc retenue ici,
-        // faute de quoi fermer la fenêtre à la croix l'oublierait.
+        // The close button hides, it does not close: the spot is
+        // therefore saved here, otherwise closing the window with the
+        // close button would forget it.
         _ = _placements.SaveAsync(this, WindowPlacements.Quests);
 
         e.Cancel = true;

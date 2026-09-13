@@ -1,66 +1,70 @@
 ﻿namespace DtHub.Core.Devices;
 
 /// <summary>
-/// L'afficheur virtuel créé par scrcpy est-il déverrouillé.
+/// Is the virtual display created by scrcpy unlocked.
 ///
-/// **Le défaut que ce type existe pour attraper.** Sur un téléphone trop
-/// ancien, scrcpy crée bien son afficheur, l'annonce, la fenêtre s'ouvre, et
-/// l'application dit « 0 problème ». Mais l'afficheur n'est pas déverrouillé :
-/// le système y impose l'écran de verrouillage, et le jeu ne peut pas s'y
-/// lancer. Ce qu'on voit est une horloge et un cadenas.
+/// **The defect this type exists to catch.** On a phone that is too old,
+/// scrcpy does create its display, announces it, the window opens, and
+/// the application says "0 problems". But the display is not unlocked:
+/// the system forces the lock screen onto it, and the game cannot launch
+/// there. What we see is a clock and a padlock.
 ///
-/// Mesuré sur deux appareils, mêmes options, même version de scrcpy :
+/// Measured on two devices, same options, same scrcpy version:
 ///
 /// <code>
-/// Mi 9T Pro, Android 11 : FLAG_ROTATES_WITH_CONTENT, FLAG_PRESENTATION,
-///                         FLAG_OWN_CONTENT_ONLY
-/// 13T Pro,   Android 16 : … FLAG_TRUSTED, FLAG_ALWAYS_UNLOCKED, FLAG_OWN_FOCUS …
+/// Mi 9T Pro, Android 11: FLAG_ROTATES_WITH_CONTENT, FLAG_PRESENTATION,
+///                        FLAG_OWN_CONTENT_ONLY
+/// 13T Pro,   Android 16: … FLAG_TRUSTED, FLAG_ALWAYS_UNLOCKED, FLAG_OWN_FOCUS …
 /// </code>
 ///
-/// **On mesure au lieu de supposer une version.** Le niveau d'API exact à
-/// partir duquel le drapeau apparaît dépend d'Android et du constructeur, et
-/// deux appareils ne suffisent pas à le fixer. Le drapeau, lui, se lit : il
-/// est là ou il ne l'est pas, sur l'appareil qu'on a devant soi.
+/// **We measure instead of assuming a version.** The exact API level
+/// from which the flag appears depends on Android and the manufacturer,
+/// and two devices are not enough to pin it down. The flag itself can be
+/// read: it is there or it is not, on the device in front of us.
 /// </summary>
 public static class VirtualDisplayTrust
 {
-    /// <summary>Le drapeau qui décide : sans lui, l'afficheur suit le verrouillage.</summary>
+    /// <summary>
+    /// The flag that decides: without it, the display follows the lock
+    /// screen.
+    /// </summary>
     public const string UnlockedFlag = "FLAG_ALWAYS_UNLOCKED";
 
     /// <summary>
-    /// Le drapeau qui décide si plusieurs comptes peuvent vivre ensemble.
+    /// The flag that decides whether several accounts can live together.
     ///
-    /// Un afficheur qui a son propre groupe a sa propre activité de tête.
-    /// Sans lui, tous les afficheurs partagent la même, et le système n'en
-    /// garde qu'une seule au premier plan : les autres passent en cache, où
-    /// ils perdent la main et peuvent être fermés.
+    /// A display that has its own group has its own top activity.
+    /// Without it, all displays share the same one, and the system keeps
+    /// only one of them in the foreground: the others move to the cache,
+    /// where they lose focus and can be closed.
     ///
-    /// Mesuré, deux comptes ouverts sur chaque téléphone,
-    /// <c>dumpsys activity processes</c> :
+    /// Measured, two accounts open on each phone,
+    /// <c>dumpsys activity processes</c>:
     ///
     /// <code>
-    /// Mi 9T Pro, Android 11 : vis+ … u10a260 (vis-activity)
-    ///                         cch  … u0a260  (cch-rec)      &lt;- en cache
-    /// 13T Pro,   Android 16 : fg   … u999a475 (top-activity)
-    ///                         vis+ … u0a475   (vis-activity) &lt;- les deux vivants
+    /// Mi 9T Pro, Android 11: vis+ … u10a260 (vis-activity)
+    ///                        cch  … u0a260  (cch-rec)      &lt;- cached
+    /// 13T Pro,   Android 16: fg   … u999a475 (top-activity)
+    ///                        vis+ … u0a475   (vis-activity) &lt;- both alive
     /// </code>
     /// </summary>
     public const string GroupFlag = "FLAG_OWN_DISPLAY_GROUP";
 
     /// <summary>
-    /// Vrai si l'afficheur virtuel de scrcpy est déverrouillé, <c>null</c> si
-    /// on ne le trouve pas.
+    /// True if scrcpy's virtual display is unlocked, <c>null</c> if it
+    /// cannot be found.
     ///
-    /// <c>null</c> et non faux : aucun afficheur trouvé veut dire que scrcpy
-    /// n'en a pas créé, ou que la sortie a changé de forme. Alarmer sur une
-    /// ignorance serait pire que se taire.
+    /// <c>null</c> and not false: no display found means either that
+    /// scrcpy did not create one, or that the output changed shape.
+    /// Raising an alarm over ignorance would be worse than staying
+    /// silent.
     /// </summary>
     public static bool? IsUnlocked(string? dumpsysDisplay) => Flag(dumpsysDisplay, UnlockedFlag);
 
     /// <summary>
-    /// Vrai si l'afficheur virtuel a son propre groupe d'affichage, donc si ce
-    /// téléphone peut garder plusieurs comptes actifs à la fois. <c>null</c>
-    /// quand aucun afficheur n'est trouvé.
+    /// True if the virtual display has its own display group, meaning
+    /// this phone can keep several accounts active at the same time.
+    /// <c>null</c> when no display is found.
     /// </summary>
     public static bool? HasOwnGroup(string? dumpsysDisplay) => Flag(dumpsysDisplay, GroupFlag);
 
@@ -71,8 +75,8 @@ public static class VirtualDisplayTrust
             return null;
         }
 
-        // La ligne de l'afficheur de scrcpy se reconnaît à son nom, que scrcpy
-        // donne lui-même, et à son type virtuel.
+        // The line for scrcpy's display is recognized by its name, which
+        // scrcpy gives itself, and by its virtual type.
         foreach (var line in dumpsysDisplay.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
         {
             if (line.Contains("DisplayDeviceInfo{\"scrcpy\"", StringComparison.Ordinal)

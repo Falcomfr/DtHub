@@ -3,9 +3,9 @@
 namespace DtHub.Core.Windows;
 
 /// <summary>
-/// Les neuf positions de la grille, dans l'ordre de lecture. C'est le
-/// « système de flèches » : on désigne un coin ou un bord, et le bloc de
-/// fenêtres s'y colle.
+/// The nine positions of the grid, in reading order. This is the
+/// "arrow system": a corner or an edge is designated, and the block
+/// of windows snaps to it.
 /// </summary>
 public enum WindowAnchor
 {
@@ -20,10 +20,10 @@ public enum WindowAnchor
     BottomRight,
 }
 
-/// <summary>Aides d'affichage pour la grille de positions.</summary>
+/// <summary>Display helpers for the position grid.</summary>
 public static class WindowAnchors
 {
-    /// <summary>Toutes les positions, dans l'ordre d'affichage de la grille.</summary>
+    /// <summary>All positions, in the grid's display order.</summary>
     public static readonly IReadOnlyList<WindowAnchor> All =
     [
         WindowAnchor.TopLeft, WindowAnchor.TopCenter, WindowAnchor.TopRight,
@@ -31,7 +31,7 @@ public static class WindowAnchors
         WindowAnchor.BottomLeft, WindowAnchor.BottomCenter, WindowAnchor.BottomRight,
     ];
 
-    /// <summary>Libellé court, pour les infobulles.</summary>
+    /// <summary>Short label, for tooltips.</summary>
     public static string Describe(WindowAnchor anchor) => anchor switch
     {
         WindowAnchor.TopLeft => Strings.Get("AnchorTopLeft"),
@@ -47,8 +47,8 @@ public static class WindowAnchors
     };
 
     /// <summary>
-    /// Coin le plus éloigné d'une position donnée. Sert à poser le
-    /// configurateur là où il ne recouvre pas les fenêtres de jeu.
+    /// Corner farthest from a given position. Used to place the
+    /// configurator where it does not overlap the game windows.
     /// </summary>
     public static WindowAnchor Opposite(WindowAnchor anchor) => anchor switch
     {

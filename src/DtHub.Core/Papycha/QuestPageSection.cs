@@ -1,51 +1,60 @@
 ﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Une rubrique telle que le site la présente sur sa page « Quêtes ».
+/// A section as the site presents it on its "Quêtes" (Quests) page.
 ///
-/// Ce ne sont pas des catégories WordPress mais des pages tenues à la main.
-/// La distinction compte : mesuré sur les 782 quêtes, les catégories en
-/// rangent 632 et laissent les 150 autres sans rubrique, atteignables par la
-/// seule recherche. Ces pages en réclament 120 de plus et nomment des
-/// ensembles qu'aucune catégorie ne porte, comme le Krosmoz, Sufokia ou les
-/// Bulles Temporelles.
+/// These are not WordPress categories but hand-maintained pages. The
+/// distinction matters: measured across the 782 quests, the
+/// categories file 632 and leave the other 150 without a section,
+/// reachable only through search. These pages claim 120 more and
+/// name groupings that no category carries, such as the Krosmoz,
+/// Sufokia, or the Bulles Temporelles (Temporal Bubbles).
 /// </summary>
 public sealed record QuestPageSection
 {
-    /// <summary>Intitulé donné par le site, « Quêtes du Krosmoz » par exemple.</summary>
+    /// <summary>
+    /// Title given by the site, "Quêtes du Krosmoz" (Krosmoz Quests)
+    /// for example.
+    /// </summary>
     public string Name { get; init; } = string.Empty;
 
-    /// <summary>Adresse de la page.</summary>
+    /// <summary>Page address.</summary>
     public string Url { get; init; } = string.Empty;
 
-    /// <summary>Adresses des quêtes qu'elle énumère.</summary>
+    /// <summary>Addresses of the quests it lists.</summary>
     public IReadOnlyList<string> QuestUrls { get; init; } = [];
 
-    /// <summary>Groupes de la page, dans son ordre.</summary>
+    /// <summary>Groups on the page, in its order.</summary>
     public IReadOnlyList<QuestPageGroup> Groups { get; init; } = [];
 }
 
 /// <summary>
-/// Un intertitre d'une page de rubrique et les quêtes qu'il coiffe.
+/// A subheading on a section page and the quests it heads.
 ///
-/// Le site groupe ses quêtes par succès, sous la forme
-/// <c>&lt;strong&gt;[Succès] Nom :&lt;/strong&gt;</c> suivie d'une liste. C'est
-/// le seul endroit où le rattachement d'une quête à son succès soit lisible
-/// sans ouvrir la page de la quête : le bloc d'intro le porte aussi, mais il
-/// faudrait sept cent quatre-vingt-deux requêtes pour le lire partout.
+/// The site groups its quests by achievement, in the form
+/// <c>&lt;strong&gt;[Succès] Nom :&lt;/strong&gt;</c> (French for
+/// "[Achievement] Name:") followed by a list. This is the only place
+/// where a quest's link to its achievement is readable without
+/// opening the quest's page: the intro block carries it too, but it
+/// would take seven hundred and eighty two requests to read it
+/// everywhere.
 ///
-/// Tous les intertitres ne sont pas des succès : une page dit aussi « Divers »
-/// ou « Quêtes des Calanques d'Astrub ». Seuls les succès sont retenus comme
-/// tels, le reste ne prétend pas en être.
+/// Not every subheading is an achievement: a page also says "Divers"
+/// (Miscellaneous) or "Quêtes des Calanques d'Astrub" (Astrub Coves
+/// Quests). Only achievements are treated as such, the rest does not
+/// claim to be one.
 /// </summary>
 public sealed record QuestPageGroup
 {
-    /// <summary>Intitulé, sans la marque « [Succès] » ni le deux-points final.</summary>
+    /// <summary>
+    /// Title, without the "[Succès]" (Achievement) marker or the
+    /// trailing colon.
+    /// </summary>
     public string Name { get; init; } = string.Empty;
 
-    /// <summary>Vrai si l'intertitre annonce un succès.</summary>
+    /// <summary>True if the subheading announces an achievement.</summary>
     public bool IsSuccess { get; init; }
 
-    /// <summary>Adresses des quêtes qu'il coiffe.</summary>
+    /// <summary>Addresses of the quests it heads.</summary>
     public IReadOnlyList<string> QuestUrls { get; init; } = [];
 }

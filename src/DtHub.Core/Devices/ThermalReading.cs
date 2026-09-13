@@ -6,38 +6,50 @@ using DtHub.Core.Localization;
 namespace DtHub.Core.Devices;
 
 /// <summary>
-/// Ce que l'appareil dit de sa chaleur.
+/// What the device says about its heat.
 ///
-/// C'est la vraie limite du multicompte sur tablette, et elle est silencieuse
-/// comme le refus d'injection : rien n'échoue, tout ralentit. Relevé sur le
-/// salon d'entraide d'un produit concurrent, où plusieurs personnes décrivent
-/// la même chose : « dès que le SoC dépasse 65 °, il coupe le multitâche et
-/// demande d'attendre que ça refroidisse ».
+/// This is the real limit of multi-accounting on a tablet, and it is
+/// silent like the input injection refusal: nothing fails, everything
+/// slows down. Noted on a competing product's support forum, where
+/// several people describe the same thing: "dès que le SoC dépasse
+/// 65 °, il coupe le multitâche et demande d'attendre que ça
+/// refroidisse" (as soon as the SoC goes above 65 °, it cuts
+/// multitasking and asks to wait for it to cool down).
 ///
-/// Le verdict se lit sur <c>Thermal Status</c>, l'échelle de zéro à six que
-/// tout Android expose depuis la version 10. Les températures nommées, elles,
-/// varient d'un constructeur à l'autre et ne servent qu'au journal : sur le
-/// téléphone de référence, le processeur affiche 84 ° alors que l'état vaut
-/// zéro et que rien n'est bridé. Un nombre pareil dans un message alarmerait
-/// pour rien.
+/// The verdict is read from <c>Thermal Status</c>, the scale from
+/// zero to six that every Android has exposed since version 10. The
+/// named temperatures, on the other hand, vary from one manufacturer
+/// to another and are only useful for the log: on the reference
+/// phone, the processor shows 84 ° while the status is zero and
+/// nothing is throttled. A number like that in a message would raise
+/// a false alarm for nothing.
 /// </summary>
-/// <param name="Status">État thermique, de 0 (rien) à 6 (extinction).</param>
-/// <param name="SkinCelsius">Température de surface, pour le journal, si elle est dite.</param>
+/// <param name="Status">
+/// Thermal state, from 0 (nothing) to 6 (shutdown).
+/// </param>
+/// <param name="SkinCelsius">
+/// Surface temperature, for the log, if it is given.
+/// </param>
 public sealed partial record ThermalReading(int Status, double? SkinCelsius)
 {
-    /// <summary>À partir d'ici, Android bride et cela peut se voir.</summary>
+    /// <summary>
+    /// From here on, Android throttles and it can be noticed.
+    /// </summary>
     public const int Throttling = 2;
 
-    /// <summary>À partir d'ici, le bridage est lourd.</summary>
+    /// <summary>From here on, the throttling is heavy.</summary>
     public const int Severe = 3;
 
-    /// <summary>Vrai quand l'appareil bride assez pour que ça se voie.</summary>
+    /// <summary>
+    /// True when the device throttles enough for it to be noticeable.
+    /// </summary>
     public bool IsThrottling => Status >= Throttling;
 
     /// <summary>
-    /// Lit la sortie de <c>dumpsys thermalservice</c>. Rend <c>null</c> dès que
-    /// l'état manque : ne rien savoir de la chaleur est un cas ordinaire, et
-    /// l'appelant s'en passe.
+    /// Reads the output of <c>dumpsys thermalservice</c>. Returns
+    /// <c>null</c> as soon as the state is missing: knowing nothing
+    /// about the heat is an ordinary case, and the caller does without
+    /// it.
     /// </summary>
     public static ThermalReading? Parse(string? dumpsys)
     {
@@ -58,7 +70,8 @@ public sealed partial record ThermalReading(int Status, double? SkinCelsius)
     }
 
     /// <summary>
-    /// Ce qu'il y a à dire au joueur, ou <c>null</c> s'il n'y a rien à dire.
+    /// What there is to tell the player, or <c>null</c> if there is
+    /// nothing to say.
     /// </summary>
     public string? Describe() => Status switch
     {
@@ -68,20 +81,21 @@ public sealed partial record ThermalReading(int Status, double? SkinCelsius)
     };
 
     /// <summary>
-    /// Température de surface. Le type 3 est celui de la peau dans l'API
-    /// Android : le nom, lui, change d'un constructeur à l'autre.
+    /// Surface temperature. Type 3 is the skin type in the Android API:
+    /// the name, however, changes from one manufacturer to another.
     ///
-    /// La sortie en donne deux, et prendre la première serait faux. Relevé sur
-    /// le téléphone de référence : la section « Cached temperatures » annonçait
-    /// 48,5 ° quand la section « Current temperatures from HAL » en donnait
-    /// 34,4. C'est la seconde qui dit l'instant.
+    /// The output gives two, and taking the first would be wrong.
+    /// Noted on the reference phone: the "Cached temperatures" section
+    /// announced 48.5 ° while the "Current temperatures from HAL"
+    /// section gave 34.4. It is the second one that reflects the
+    /// instant.
     /// </summary>
     private static double? Skin(string dumpsys)
     {
         var current = dumpsys.IndexOf("Current temperatures", StringComparison.OrdinalIgnoreCase);
 
-        // Une version d'Android qui ne sépare pas les deux sections retombe sur
-        // la lecture unique, qui est alors la bonne.
+        // An Android version that does not separate the two sections
+        // falls back to the single reading, which is then correct.
         var skin = SkinPattern().Match(current >= 0 ? dumpsys[current..] : dumpsys);
 
         return skin.Success

@@ -1,25 +1,28 @@
 ﻿namespace DtHub.Core;
 
 /// <summary>
-/// Identité du produit. Point unique de renommage côté code.
-/// Le pendant MSBuild se trouve dans Directory.Build.props (voir AGENTS.md).
+/// Product identity. Single point of renaming on the code side.
+/// The MSBuild counterpart is in Directory.Build.props (see AGENTS.md).
 /// </summary>
 public static class ProductInfo
 {
-    /// <summary>Nom affiché dans l'interface, l'installateur et les fenêtres.</summary>
+    /// <summary>
+    /// Name shown in the interface, the installer and the windows.
+    /// </summary>
     public const string Name = "DT Hub";
 
     /// <summary>
-    /// Identifiant technique sans espace : nom du dossier de données et de
-    /// l'exécutable. Volontairement dissocié du nom affiché, pour qu'un
-    /// changement de nom ne déplace pas les réglages de l'utilisateur.
+    /// Technical identifier without spaces: name of the data folder
+    /// and of the executable. Deliberately kept separate from the
+    /// displayed name, so that a name change does not move the
+    /// user's settings.
     /// </summary>
     public const string Slug = "DtHub";
 
-    /// <summary>Dépôt public, utilisé par la vérification de mises à jour.</summary>
+    /// <summary>Public repository, used by the update check.</summary>
     public const string RepositoryUrl = "https://github.com/Falcomfr/DtHub";
 
-    /// <summary>Version affichée, alimentée par l'assembly à l'exécution.</summary>
+    /// <summary>Displayed version, fed by the assembly at runtime.</summary>
     public static string Version { get; } =
         typeof(ProductInfo).Assembly
             .GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)

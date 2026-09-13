@@ -1,33 +1,36 @@
 ﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// L'ordre dans lequel on joue les quêtes d'un succès.
+/// The order in which an achievement's quests are played.
 ///
-/// Les prérequis d'abord : une quête qui en réclame une autre du même succès
-/// passe après elle, quoi que dise le reste. C'est la seule règle que le
-/// lecteur puisse vérifier lui-même, et la seule qu'il remarque quand elle est
-/// enfreinte.
+/// Prerequisites come first: a quest that requires another one from
+/// the same achievement comes after it, whatever the rest says. This
+/// is the only rule the reader can verify for themselves, and the
+/// only one they notice when it is broken.
 ///
-/// À défaut de prérequis, l'ordre d'avant, qui départage aussi les quêtes
-/// qu'aucun prérequis ne sépare : la place dans le succès, calculée à
-/// l'indexation ; le rang de chaîne ensuite, pour les quêtes que la carte ne
-/// connaît pas ; le titre en dernier, pour que l'ordre soit total et toujours
-/// le même.
+/// Failing a prerequisite, the previous order, which also breaks ties
+/// between quests that no prerequisite separates: the place within
+/// the achievement, computed at indexing time; then the chain rank,
+/// for quests the map does not know; the title last, so the order is
+/// total and always the same.
 ///
-/// Un zéro ne dit pas « premier » mais « on ne sait pas », et passe donc en
-/// queue. La chaîne de quêtes le triait pourtant à l'endroit, si bien qu'une
-/// quête de rang inconnu passait pour la première de son succès et se donnait
-/// pour la suite de la série précédente.
+/// A zero does not mean "first" but "unknown", and is therefore
+/// placed at the end. The quest chain used to sort it in place
+/// however, so that a quest of unknown rank passed for the first of
+/// its achievement and presented itself as the continuation of the
+/// previous series.
 ///
-/// La place calculée à l'indexation vient d'un tri topologique fait en Python,
-/// et treize quêtes du catalogue la contredisent : « L'île Céleste » y porte le
-/// rang 2 quand « Le voyage vers Incarnam », qu'elle exige, porte le rang 3.
-/// Refaire le tri ici, sur les prérequis que l'application lit de toute façon,
-/// rend la liste vraie sans dépendre de ce que la carte a retenu.
+/// The place computed at indexing time comes from a topological sort
+/// done in Python, and thirteen quests in the catalog contradict it:
+/// "L'île Céleste" ("The Celestial Island") holds rank 2 there while
+/// "Le voyage vers Incarnam" ("The journey to Incarnam"), which it
+/// requires, holds rank 3. Redoing the sort here, on the
+/// prerequisites the application reads anyway, makes the list true
+/// without depending on what the map retained.
 /// </summary>
 public static class QuestPlayOrder
 {
-    /// <summary>Les quêtes rangées dans l'ordre où l'on y joue.</summary>
+    /// <summary>The quests arranged in the order they are played.</summary>
     public static IReadOnlyList<QuestSummary> Sorted(IEnumerable<QuestSummary> quests)
     {
         ArgumentNullException.ThrowIfNull(quests);
@@ -39,8 +42,8 @@ public static class QuestPlayOrder
             return all;
         }
 
-        // Le départage : l'ordre d'avant, employé tel quel quand aucun
-        // prérequis ne sépare deux quêtes, et pour trancher une boucle.
+        // The tiebreaker: the previous order, used as is when no
+        // prerequisite separates two quests, and to break a cycle.
         var keys = new (int Play, int Chain, string Title, int Index)[all.Count];
 
         Dictionary<string, int> byTitle = new(StringComparer.Ordinal);
@@ -72,10 +75,12 @@ public static class QuestPlayOrder
 
                 if (named.IsSuccess)
                 {
-                    // Une quête qui réclame son propre succès le réclame en
-                    // entier : elle passe donc après tout le reste du bloc.
-                    // « En route pour Plantala » est dans ce cas, seule sur les
-                    // sept cent quatre-vingt-deux quêtes.
+                    // A quest that requires its own achievement
+                    // requires it whole: it therefore comes after all
+                    // the rest of the block. "En route pour Plantala"
+                    // ("On the way to Plantala") is in this case, the
+                    // only one among the seven hundred and
+                    // eighty-two quests.
                     if (string.Equals(named.Name, all[i].SuccessName, StringComparison.OrdinalIgnoreCase))
                     {
                         for (var other = 0; other < all.Count; other++)
@@ -87,8 +92,8 @@ public static class QuestPlayOrder
                         }
                     }
 
-                    // Tout autre succès désigne un autre bloc : il ne range
-                    // rien à l'intérieur de celui-ci.
+                    // Any other achievement designates a different
+                    // block: it orders nothing within this one.
                     continue;
                 }
 
@@ -107,9 +112,9 @@ public static class QuestPlayOrder
     }
 
     /// <summary>
-    /// Le tri topologique, avec repli sur boucle : on prend alors la plus
-    /// petite quête restante au sens du départage et l'on continue, pour que
-    /// l'ordre reste total plutôt que tronqué.
+    /// The topological sort, with a fallback on cycles: we then take
+    /// the smallest remaining quest in the sense of the tiebreaker
+    /// and continue, so the order stays total rather than truncated.
     /// </summary>
     private static List<QuestSummary> Sort(
         List<QuestSummary> all,
@@ -117,10 +122,10 @@ public static class QuestPlayOrder
         List<HashSet<int>> after,
         int[] waiting)
     {
-        // Le titre se compare par la culture, comme partout où le site est lu :
-        // ses titres sont français et pleins d'accents. La comparaison de
-        // n-uplets s'en charge, et c'est celle qu'emploie déjà le rangement des
-        // zones.
+        // The title is compared using culture rules, as everywhere
+        // the site is read: its titles are French and full of
+        // accents. Tuple comparison takes care of this, and it is
+        // the same one already used by the zone ordering.
         var order = Comparer<int>.Create((first, second) => keys[first].CompareTo(keys[second]));
 
         SortedSet<int> left = new(order);

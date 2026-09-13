@@ -1,41 +1,42 @@
 ﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Ce qui appartient au site des guides, et ce qui n'en est pas.
+/// What belongs to the guide site, and what does not.
 ///
-/// La question se posait déjà pour lire les pages de rubrique, qui citent aussi
-/// le wiki et les réseaux sociaux. Elle se pose surtout pour décider ce que nos
-/// fenêtres acceptent de charger : elles n'ont pas de barre d'adresse, elles
-/// portent notre cadre, et le pont y est posé sur tout document. Une page qui
-/// nous tendait un lien y faisait donc ouvrir n'importe quelle adresse, de
-/// n'importe quel hôte, jusqu'à « file:// », sous nos couleurs et sans que rien
-/// ne dise où l'on était.
+/// The question already came up when reading category pages, which
+/// also cite the wiki and social networks. It matters most for
+/// deciding what our windows are allowed to load: they have no
+/// address bar, they carry our frame, and the bridge sits on every
+/// document there. A page handing us a link would then open any
+/// address, from any host, up to "file://", under our colors and
+/// without anything saying where we were.
 ///
-/// La comparaison porte sur l'hôte que rend l'analyseur d'adresses, et non sur
-/// le début du texte : « https://papycha.fr@ailleurs.example/ » commence bien
-/// par le nom du site sans lui appartenir, et l'analyseur rend « ailleurs ».
+/// The comparison is on the host the address parser returns, not on
+/// the start of the text: "https://papycha.fr@ailleurs.example/"
+/// does start with the site's name without belonging to it, and the
+/// parser returns "ailleurs".
 /// </summary>
 public static class PapychaSite
 {
-    /// <summary>Nom d'hôte du site.</summary>
+    /// <summary>Host name of the site.</summary>
     public const string Host = "papycha.fr";
 
-    /// <summary>Racine du site.</summary>
+    /// <summary>Root of the site.</summary>
     public const string Root = "https://" + Host + "/";
 
     /// <summary>
-    /// Adresse de la recherche du site pour ce texte, ou <c>null</c> quand il
-    /// n'y a rien à chercher.
+    /// Search URL of the site for this text, or <c>null</c> when
+    /// there is nothing to search for.
     ///
-    /// Notre catalogue ne connaît que des titres : des quêtes, des zones, des
-    /// succès, des donjons et des chemins. Le site, lui, cherche dans le corps
-    /// de ses articles, donc dans les objets, les monstres et les personnages
-    /// qu'on n'indexe pas. C'est la sortie de secours quand on cherche quelque
-    /// chose que nous n'avons pas.
+    /// Our catalog only knows titles: quests, zones, achievements,
+    /// dungeons and paths. The site, for its part, searches inside
+    /// the body of its articles, so in items, monsters and
+    /// characters that we do not index. This is the fallback when
+    /// searching for something we do not have.
     ///
-    /// La forme est celle de WordPress, <c>?s=</c>, éprouvée sur le site : elle
-    /// rend « Search results for: … ». La forme en chemin, <c>/search/…</c>,
-    /// répond aussi, mais la première est la canonique.
+    /// The form is WordPress's, <c>?s=</c>, proven on the site: it
+    /// returns "Search results for: …". The path form, <c>/search/…</c>,
+    /// also responds, but the former is the canonical one.
     /// </summary>
     public static string? SearchUrl(string? query)
     {
@@ -45,15 +46,16 @@ public static class PapychaSite
     }
 
     /// <summary>
-    /// Vrai quand l'adresse est une page du site, en clair une adresse sûre de
-    /// l'hôte du site ou d'un de ses sous-domaines.
+    /// True when the address is a page of the site, in plain terms
+    /// a secure address of the site's host or one of its subdomains.
     ///
-    /// Les sous-domaines sont admis parce que le site en emploie au moins un :
-    /// « www » redirige vers le nom nu, et la redirection est annoncée comme
-    /// une navigation avant d'être suivie.
+    /// Subdomains are allowed because the site itself uses at least
+    /// one: "www" redirects to the bare name, and the redirect is
+    /// announced as a navigation before it is followed.
     ///
-    /// Le clair est refusé, comme il l'est pour le navigateur : les neuf cent
-    /// dix-huit adresses du catalogue sont toutes en « https ».
+    /// Plain HTTP is refused, as it is for the browser: the nine
+    /// hundred and eighteen addresses in the catalog are all in
+    /// "https".
     /// </summary>
     public static bool Owns(string? url) =>
         Uri.TryCreate((url ?? string.Empty).Trim(), UriKind.Absolute, out var uri)
@@ -61,26 +63,31 @@ public static class PapychaSite
         && (string.Equals(uri.Host, Host, StringComparison.OrdinalIgnoreCase)
             || uri.Host.EndsWith("." + Host, StringComparison.OrdinalIgnoreCase));
 
-    /// <summary>Chemin de la page d'arbre des succès, sans ses barres obliques.</summary>
+    /// <summary>
+    /// Path of the achievement tree page, without its slashes.
+    /// </summary>
     private const string SuccessPath = "succes";
 
     /// <summary>
-    /// Vrai quand l'adresse est la page d'arbre des succès du site.
+    /// True when the address is the site's achievement tree page.
     ///
-    /// **La seule page du site qu'on renvoie au navigateur**, et l'exception
-    /// mérite sa raison. Tout le reste s'ouvre chez nous : nos fenêtres cadrent
-    /// la page, retirent le décor et gardent le lecteur dans son guide.
+    /// **The only page of the site that we send back to the
+    /// browser**, and the exception deserves its reason. Everything
+    /// else opens in our own windows: our windows frame the page,
+    /// strip the chrome and keep the reader inside their guide.
     ///
-    /// Celle-ci n'est pas un guide mais un outil. C'est un arbre qu'on déplie,
-    /// qu'on parcourt, dont on suit les branches, et il se manipule mieux dans
-    /// un vrai navigateur, avec ses onglets et son historique. Ouverte chez
-    /// nous, elle s'affichait pourtant correctement : ce n'est pas un défaut
-    /// d'affichage qu'on corrige, c'est une fenêtre de trop avant le bouton qui
-    /// menait enfin là où l'on voulait aller.
+    /// This one is not a guide but a tool. It is a tree you unfold,
+    /// that you browse, whose branches you follow, and it is easier
+    /// to handle in a real browser, with its tabs and its history.
+    /// Opened in ours, it still displayed correctly though: this is
+    /// not a display defect we are fixing, it is one window too
+    /// many before the button that finally led where the user
+    /// wanted to go.
     ///
-    /// La comparaison porte sur le chemin seul. La page vit sous
-    /// <c>/succes/?pqt_success=…#succes-selectionne</c> : ni la chaîne de
-    /// requête, qui nomme le succès choisi, ni l'ancre ne changent sa nature.
+    /// The comparison is on the path alone. The page lives at
+    /// <c>/succes/?pqt_success=…#succes-selectionne</c>: neither
+    /// the query string, which names the chosen achievement, nor
+    /// the anchor change its nature.
     /// </summary>
     public static bool IsSuccessTree(string? url) =>
         Owns(url)

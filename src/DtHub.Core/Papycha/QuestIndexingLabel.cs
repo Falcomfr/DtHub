@@ -3,27 +3,29 @@
 namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Ce qu'on écrit pendant une indexation.
+/// What is written during indexing.
 ///
-/// **Le libellé d'avant mentait par omission.** Il valait « Indexation {0} /
-/// {1} » et n'était posé que par l'étape des quêtes. Le compteur atteignait
-/// « 782 / 782 » en quelques secondes, puis restait là sans bouger pendant tout
-/// le reste : rubriques, donjons, chemins, rangement. Rien ne disait que le
-/// travail continuait, et les donjons pèsent à eux seuls quatre mégaoctets.
+/// **The previous label lied by omission.** It read "Indexing {0}
+/// / {1}" and was only set by the quests step. The counter reached
+/// "782 / 782" within a few seconds, then stayed there without
+/// moving for the rest of it all: sections, dungeons, paths,
+/// sorting. Nothing said that the work was continuing, and dungeons
+/// alone weigh four megabytes.
 ///
-/// La décision est ici et non dans la vue-modèle parce que c'est la seule
-/// couche que les épreuves atteignent, le projet d'épreuves visant net10.0
-/// quand l'application vise net10.0-windows. Même raison que
-/// <see cref="QuestStepLabel" />.
+/// The decision sits here and not in the view model because this
+/// is the only layer the tests reach, the test project targeting
+/// net10.0 while the application targets net10.0-windows. Same
+/// reason as <see cref="QuestStepLabel" />.
 /// </summary>
 public static class QuestIndexingLabel
 {
     /// <summary>
-    /// La phrase d'attente, jamais vide.
+    /// The waiting sentence, never empty.
     ///
-    /// Le décompte n'apparaît que là où il existe. Les quêtes se comptent, le
-    /// site annonçant son total ; les autres étapes sont des lectures d'un seul
-    /// tenant, et un « 0 / 0 » y serait pire que rien.
+    /// The count only appears where it exists. Quests are counted,
+    /// the site announcing its total; the other steps are single,
+    /// indivisible reads, and a "0 / 0" there would be worse than
+    /// nothing.
     /// </summary>
     public static string For(QuestIndexingProgress progress) => progress.Phase switch
     {

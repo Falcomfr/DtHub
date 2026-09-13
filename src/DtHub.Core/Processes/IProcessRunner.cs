@@ -1,30 +1,41 @@
 ﻿namespace DtHub.Core.Processes;
 
 /// <summary>
-/// Point d'entrée unique pour lancer un processus externe. Toute la couche ADB
-/// et scrcpy passe par cette interface, ce qui permet de simuler les sorties
-/// dans les tests sans le moindre téléphone.
+/// Single entry point for launching an external process. The
+/// entire ADB and scrcpy layer goes through this interface, which
+/// allows simulating output in tests without a single phone.
 /// </summary>
 public interface IProcessRunner
 {
     /// <summary>
-    /// Exécute le processus et attend sa fin. Ne lève pas d'exception sur un
-    /// code de retour non nul : c'est un résultat, pas une erreur technique.
+    /// Runs the process and waits for it to finish. Does not throw
+    /// on a nonzero exit code: that is a result, not a technical
+    /// error.
     /// </summary>
-    /// <exception cref="ProcessLaunchException">Le processus n'a pas pu démarrer.</exception>
-    /// <exception cref="OperationCanceledException">Annulation demandée par l'appelant.</exception>
+    /// <exception cref="ProcessLaunchException">
+    /// The process could not start.
+    /// </exception>
+    /// <exception cref="OperationCanceledException">
+    /// Cancellation requested by the caller.
+    /// </exception>
     Task<ProcessResult> RunAsync(ProcessRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Exécute le processus et rend sa sortie standard telle quelle, en octets.
+    /// Runs the process and returns its standard output as-is, in
+    /// bytes.
     ///
-    /// Une voie distincte, et non une option de la précédente : celle-ci décode
-    /// en UTF-8 et découpe en lignes, ce qui mutile une image. Elle sert à un
-    /// seul besoin, extraire un fichier d'une archive sur l'appareil, et il n'y
-    /// a pas lieu de l'élargir sans raison.
+    /// A distinct path, not an option of the previous one: that one
+    /// decodes UTF-8 and splits into lines, which mutilates an
+    /// image. It serves a single need, extracting a file from an
+    /// archive on the device, and there is no reason to broaden it
+    /// without cause.
     /// </summary>
-    /// <exception cref="ProcessLaunchException">Le processus n'a pas pu démarrer.</exception>
-    /// <exception cref="OperationCanceledException">Annulation demandée par l'appelant.</exception>
+    /// <exception cref="ProcessLaunchException">
+    /// The process could not start.
+    /// </exception>
+    /// <exception cref="OperationCanceledException">
+    /// Cancellation requested by the caller.
+    /// </exception>
     Task<ProcessBytes> RunForBytesAsync(
         ProcessRequest request,
         CancellationToken cancellationToken = default);

@@ -1,12 +1,15 @@
 ﻿namespace DtHub.Infrastructure.Updates;
 
 /// <summary>
-/// Ce que la mise à jour vise : la version qui tourne et le fichier qui la
-/// porte.
+/// What the update targets: the version that is running and the
+/// file that carries it.
 ///
-/// Passés plutôt que devinés à l'exécution : c'est ce qui rend la pose de la
-/// mise à jour éprouvable ailleurs que sur la machine de celui qui l'écrit.
+/// Passed in rather than guessed at runtime: this is what makes
+/// applying the update testable somewhere other than the machine of
+/// whoever writes it.
 /// </summary>
-/// <param name="Running">La version en cours.</param>
-/// <param name="ExecutablePath">Le chemin complet de l'exécutable en cours.</param>
+/// <param name="Running">The current version.</param>
+/// <param name="ExecutablePath">
+/// The full path of the current executable.
+/// </param>
 public sealed record UpdateTarget(Version Running, string ExecutablePath);

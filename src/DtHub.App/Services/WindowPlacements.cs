@@ -11,33 +11,36 @@ using Serilog;
 namespace DtHub.App.Services;
 
 /// <summary>
-/// Retient et restitue la place des fenêtres de l'application.
+/// Remembers and restores the position of the application's
+/// windows.
 ///
-/// Par l'API de Windows plutôt que par les propriétés de WPF : celles-ci sont
-/// exprimées dans l'échelle de l'écran qui porte la fenêtre, si bien qu'un même
-/// chiffre ne désigne pas le même endroit d'un écran à l'autre. Déplacer une
-/// fenêtre sur un second écran d'une autre densité, puis la rouvrir, la
-/// ramenait ailleurs. L'API, elle, travaille en coordonnées du bureau et ramène
-/// d'elle-même sur un écran présent une fenêtre enregistrée sur un écran depuis
-/// débranché.
+/// Through the Windows API rather than WPF's properties: the
+/// latter are expressed in the scale of the screen carrying the
+/// window, so the same number does not designate the same spot
+/// from one screen to another. Moving a window to a second screen
+/// of a different density, then reopening it, used to bring it
+/// back somewhere else. The API, for its part, works in desktop
+/// coordinates and brings back by itself, onto a screen that is
+/// present, a window that was saved on a screen since unplugged.
 /// </summary>
 public sealed class WindowPlacements(IWindowController windows, SettingsService settings)
 {
-    /// <summary>Le suivi de quêtes.</summary>
+    /// <summary>Quest tracking.</summary>
     public const string Quests = "quests";
 
-    /// <summary>La fenêtre des pages ouvertes depuis un guide.</summary>
+    /// <summary>The window for pages opened from a guide.</summary>
     public const string LinkedPage = "page";
 
-    /// <summary>L'Almanax du jour.</summary>
+    /// <summary>Today's Almanax.</summary>
     public const string Almanax = "almanax";
 
-    /// <summary>Le panneau de réglages.</summary>
+    /// <summary>The settings panel.</summary>
     public const string Configurator = "configurator";
 
     /// <summary>
-    /// Le cadre à onglets. La clé vient des réglages, où les profils la
-    /// retiennent aussi : deux orthographes auraient donné deux entrées.
+    /// The tabbed frame. The key comes from the settings, where
+    /// profiles keep it too: two spellings would have produced two
+    /// entries.
     /// </summary>
     public const string Tabs = SettingsService.TabsPlacementKey;
 
@@ -45,10 +48,11 @@ public sealed class WindowPlacements(IWindowController windows, SettingsService 
     private readonly SettingsService _settings = settings;
 
     /// <summary>
-    /// Remet une fenêtre où elle était, et dit si elle a pu l'être.
+    /// Puts a window back where it was, and says whether it could
+    /// be.
     ///
-    /// À appeler une fois la fenêtre reliée à Windows, jamais avant : sans
-    /// poignée, il n'y a rien à placer.
+    /// Call this only once the window is connected to Windows,
+    /// never before: without a handle, there is nothing to place.
     /// </summary>
     public bool Restore(Window window, string key, AppSettingsDocument document)
     {
@@ -67,15 +71,17 @@ public sealed class WindowPlacements(IWindowController windows, SettingsService 
             return false;
         }
 
-        // Deux fois, et la seconde une fois la boucle de messages passée.
+        // Twice, and the second time once the message loop has
+        // passed.
         //
-        // Le premier appel déplace la fenêtre, ce qui la fait changer d'écran
-        // donc de densité. La taille, elle, vient d'être appliquée dans la
-        // densité de l'écran de départ, et WPF la reproportionne en encaissant
-        // le changement : mesuré sur un second écran à cent cinquante pour
-        // cent, une fenêtre de 800 x 620 revenait à 533 x 413. Le second appel,
-        // la fenêtre étant arrivée, rend la bonne taille. La position, elle,
-        // était juste dès le premier.
+        // The first call moves the window, which makes it change
+        // screen and therefore density. The size, meanwhile, was
+        // just applied at the starting screen's density, and WPF
+        // rescales it while absorbing the change: measured on a
+        // second screen at a hundred and fifty percent, an 800 x
+        // 620 window came back as 533 x 413. The second call, once
+        // the window has arrived, gives the correct size. The
+        // position, for its part, was right from the first call.
         _ = window.Dispatcher.BeginInvoke(
             new Action(() => _windows.SetPlacement(handle, placement)),
             DispatcherPriority.Loaded);
@@ -83,7 +89,10 @@ public sealed class WindowPlacements(IWindowController windows, SettingsService 
         return true;
     }
 
-    /// <summary>Retient où est une fenêtre. Sans effet si elle n'existe plus.</summary>
+    /// <summary>
+    /// Remembers where a window is. No effect if it no longer
+    /// exists.
+    /// </summary>
     public async Task SaveAsync(Window? window, string key)
     {
         if (window is null)

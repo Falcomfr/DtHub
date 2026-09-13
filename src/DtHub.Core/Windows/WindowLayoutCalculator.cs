@@ -3,23 +3,23 @@
 namespace DtHub.Core.Windows;
 
 /// <summary>
-/// Calcule la position et la taille des fenêtres. Fonctions pures : la
-/// disposition se vérifie entièrement sans écran ni fenêtre réelle.
+/// Computes the position and size of windows. Pure functions: the
+/// layout can be verified entirely without a real screen or window.
 /// </summary>
 public static class WindowLayoutCalculator
 {
     /// <summary>
-    /// Rectangle d'une fenêtre de jeu : une part de la zone utilisable,
-    /// au rapport d'affichage de l'écran virtuel Android, collée à la
-    /// position demandée.
+    /// Rectangle of a game window: a share of the usable area, at the
+    /// Android virtual screen's aspect ratio, stuck to the requested
+    /// position.
     /// </summary>
-    /// <param name="monitor">Écran visé.</param>
-    /// <param name="sizePercent">Part de la zone utilisable, en pourcentage.</param>
+    /// <param name="monitor">The target screen.</param>
+    /// <param name="sizePercent">Share of the usable area, in percent.</param>
     /// <param name="sourceAspectRatio">
-    /// Rapport largeur sur hauteur de la source. Zéro remplit sans contrainte
-    /// de forme.
+    /// Width over height ratio of the source. Zero fills without any
+    /// shape constraint.
     /// </param>
-    /// <param name="anchor">Position dans la grille.</param>
+    /// <param name="anchor">Position within the grid.</param>
     public static ScreenRect Calculate(
         MonitorInfo monitor,
         int sizePercent,
@@ -42,8 +42,8 @@ public static class WindowLayoutCalculator
     }
 
     /// <summary>
-    /// Colle un rectangle de taille donnée à une position de la grille, à
-    /// l'intérieur d'une zone.
+    /// Sticks a rectangle of a given size to a grid position, inside
+    /// an area.
     /// </summary>
     public static ScreenRect Place(ScreenRect area, int width, int height, WindowAnchor anchor)
     {
@@ -76,8 +76,8 @@ public static class WindowLayoutCalculator
     }
 
     /// <summary>
-    /// Plus grande taille respectant le rapport demandé et tenant dans les
-    /// bornes fournies.
+    /// Largest size that respects the requested ratio and fits within
+    /// the given bounds.
     /// </summary>
     public static (int Width, int Height) FitToAspect(int maxWidth, int maxHeight, double aspectRatio)
     {
@@ -94,8 +94,8 @@ public static class WindowLayoutCalculator
     }
 
     /// <summary>
-    /// Écran désigné par son nom dans les réglages, avec repli sur l'écran
-    /// principal si celui qui était choisi a été débranché.
+    /// Screen designated by its name in the settings, falling back to
+    /// the primary screen if the chosen one was unplugged.
     /// </summary>
     public static MonitorInfo ChooseMonitor(IReadOnlyList<MonitorInfo> monitors, string? preferredDeviceName)
     {
@@ -120,7 +120,10 @@ public static class WindowLayoutCalculator
         return monitors.FirstOrDefault(m => m.IsPrimary) ?? monitors[0];
     }
 
-    /// <summary>Écran contenant le point donné, ou l'écran principal à défaut.</summary>
+    /// <summary>
+    /// Screen containing the given point, or the primary screen
+    /// otherwise.
+    /// </summary>
     public static MonitorInfo ChooseMonitor(IReadOnlyList<MonitorInfo> monitors, int x, int y)
     {
         ArgumentNullException.ThrowIfNull(monitors);
@@ -135,7 +138,9 @@ public static class WindowLayoutCalculator
                ?? monitors[0];
     }
 
-    /// <summary>Rectangle transposé d'un écran à un autre, proportionnellement.</summary>
+    /// <summary>
+    /// Rectangle transposed proportionally from one screen to another.
+    /// </summary>
     public static ScreenRect Rescale(ScreenRect rect, ScreenRect from, ScreenRect to)
     {
         if (from.IsEmpty || to.IsEmpty)
@@ -154,8 +159,8 @@ public static class WindowLayoutCalculator
     }
 
     /// <summary>
-    /// Ramène un rectangle entièrement dans une zone, en le rétrécissant s'il
-    /// est trop grand pour y tenir.
+    /// Brings a rectangle entirely within an area, shrinking it if it
+    /// is too large to fit.
     /// </summary>
     public static ScreenRect ClampInto(ScreenRect rect, ScreenRect area)
     {
@@ -175,13 +180,14 @@ public static class WindowLayoutCalculator
     }
 
     /// <summary>
-    /// Rectangle utilisable pour une géométrie mémorisée, ou <c>null</c> quand
-    /// rien de sensé ne peut en être tiré : l'appelant retombe alors sur le
-    /// placement calculé depuis l'ancrage.
+    /// Usable rectangle for a remembered geometry, or <c>null</c> when
+    /// nothing sensible can be drawn from it: the caller then falls
+    /// back to the placement computed from the anchor.
     ///
-    /// L'écran est reconnu par ses bornes autant que par son nom, car ce nom
-    /// est positionnel : débrancher un écran renumérote les suivants, et une
-    /// fenêtre se retrouverait restaurée sur le mauvais.
+    /// The screen is recognized by its bounds as much as by its name,
+    /// because that name is positional: unplugging a screen renumbers
+    /// the following ones, and a window could end up restored onto
+    /// the wrong one.
     /// </summary>
     public static ScreenRect? RestoreRemembered(
         ScreenRect remembered,
@@ -199,23 +205,23 @@ public static class WindowLayoutCalculator
         var named = monitors.FirstOrDefault(
             m => string.Equals(m.DeviceName, monitorDeviceName, StringComparison.Ordinal));
 
-        // Même écran, mêmes bornes : le rectangle vaut encore, à condition de
-        // tomber réellement dessus. Une fenêtre qui était réduite au moment de
-        // la capture rend un rectangle en (-32000, -32000), qu'il ne faut
-        // surtout pas restaurer.
+        // Same screen, same bounds: the rectangle still holds, provided
+        // it actually falls on it. A window that was minimized at the
+        // time of capture returns a rectangle at (-32000, -32000),
+        // which must absolutely not be restored.
         if (named is not null && named.Bounds == monitorBounds && IsMostlyOn(remembered, named))
         {
             return remembered;
         }
 
-        // Définition ou disposition changée : on transpose proportionnellement.
+        // Resolution or layout changed: we transpose proportionally.
         if (named is not null && named.Bounds != monitorBounds && !monitorBounds.IsEmpty)
         {
             return ClampInto(Rescale(remembered, monitorBounds, named.Bounds), UsableArea(named));
         }
 
-        // L'écran d'origine a disparu ou changé de rang. Si un écran porte
-        // encore l'essentiel de la fenêtre, elle y reste.
+        // The original screen has disappeared or changed rank. If a
+        // screen still carries most of the window, it stays there.
         var host = monitors
             .OrderByDescending(m => m.Bounds.Intersect(remembered).Area)
             .First();
@@ -223,7 +229,9 @@ public static class WindowLayoutCalculator
         return IsMostlyOn(remembered, host) ? ClampInto(remembered, UsableArea(host)) : null;
     }
 
-    /// <summary>Vrai si au moins la moitié du rectangle tombe sur cet écran.</summary>
+    /// <summary>
+    /// True if at least half the rectangle falls on this screen.
+    /// </summary>
     private static bool IsMostlyOn(ScreenRect rect, MonitorInfo monitor) =>
         monitor.Bounds.Intersect(rect).Area * 2 >= rect.Area;
 
@@ -231,9 +239,9 @@ public static class WindowLayoutCalculator
         monitor.WorkArea.IsEmpty ? monitor.Bounds : monitor.WorkArea;
 
     /// <summary>
-    /// Indice de la session suivante, en boucle. Fonctionne pour deux
-    /// instances comme pour dix, et repart du début quand la session courante
-    /// n'est plus dans la liste.
+    /// Index of the next session, wrapping around. Works for two
+    /// instances as well as ten, and starts over from the beginning
+    /// when the current session is no longer in the list.
     /// </summary>
     public static int NextIndex(int count, int currentIndex)
     {
@@ -247,7 +255,7 @@ public static class WindowLayoutCalculator
             : currentIndex + 1;
     }
 
-    /// <summary>Indice de la session précédente, en boucle.</summary>
+    /// <summary>Index of the previous session, wrapping around.</summary>
     public static int PreviousIndex(int count, int currentIndex)
     {
         if (count <= 0)

@@ -4,20 +4,22 @@ using System.Text.RegularExpressions;
 namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Lit le classement que le site tient à la main : le tableau de sa page
-/// « Quêtes », puis les quêtes que chacune des pages ainsi listées énumère.
+/// Reads the classification the site maintains by hand: the table
+/// on its "Quêtes" (Quests) page, then the quests each of the pages
+/// it lists enumerates.
 ///
-/// Fonctions pures : elles se vérifient sur des fragments enregistrés, sans
-/// réseau.
+/// Pure functions: they can be verified on recorded fragments,
+/// without a network.
 /// </summary>
 public static partial class QuestSectionPageParser
 {
     /// <summary>
-    /// Rubriques du tableau de la page « Quêtes », dans l'ordre où le site les
-    /// range.
+    /// Sections of the table on the "Quêtes" (Quests) page, in the
+    /// order the site arranges them.
     ///
-    /// Le tableau est le seul endroit du site où ce classement existe : ni
-    /// l'API ni les catégories ne le portent.
+    /// The table is the only place on the site where this
+    /// classification exists: neither the API nor the categories
+    /// carry it.
     /// </summary>
     public static IReadOnlyList<QuestPageSection> ParseIndex(string? html)
     {
@@ -61,11 +63,11 @@ public static partial class QuestSectionPageParser
     }
 
     /// <summary>
-    /// Adresses des quêtes énumérées par une page de rubrique.
+    /// Addresses of the quests listed by a section page.
     ///
-    /// Le contenu est celui que rend l'API, sans menu ni pied de page : tout
-    /// lien vers le site y est un lien de la rubrique, et il n'y a pas à
-    /// deviner où commence l'article.
+    /// The content is what the API returns, without menu or footer:
+    /// any link to the site there is a link of the section, and
+    /// there is no need to guess where the article begins.
     /// </summary>
     public static IReadOnlyList<string> ParseQuestLinks(string? content)
     {
@@ -90,13 +92,14 @@ public static partial class QuestSectionPageParser
     }
 
     /// <summary>
-    /// Groupes d'une page de rubrique : un intertitre en gras, puis les quêtes
-    /// qu'il coiffe jusqu'à l'intertitre suivant.
+    /// Groups within a section page: a bold subheading, then the
+    /// quests it heads until the next subheading.
     ///
-    /// Mesuré sur les vingt-deux pages : quatre-vingt-dix-neuf succès, qui
-    /// rattachent trois cent soixante-treize quêtes sur sept cent quatre-vingt-
-    /// deux. Le reste des quêtes n'est coiffé par aucun intertitre, et rien ne
-    /// doit prétendre le contraire.
+    /// Measured across the twenty-two pages: ninety-nine
+    /// achievements, which attach three hundred and seventy-three
+    /// quests out of seven hundred and eighty-two. The rest of the
+    /// quests are headed by no subheading at all, and nothing
+    /// should claim otherwise.
     /// </summary>
     public static IReadOnlyList<QuestPageGroup> ParseGroups(string? content)
     {
@@ -109,9 +112,9 @@ public static partial class QuestSectionPageParser
 
         List<QuestPageGroup> groups = [];
 
-        // Le premier morceau précède le premier intertitre : il ne relève
-        // d'aucun groupe. Ensuite les morceaux vont par deux, l'intitulé puis
-        // ce qu'il coiffe.
+        // The first piece comes before the first subheading: it
+        // belongs to no group. After that, pieces come in pairs,
+        // the heading then what it covers.
         for (var i = 1; i + 1 < parts.Length; i += 2)
         {
             var raw = Text(parts[i]).TrimEnd(':', ' ', ' ').Trim();
@@ -150,12 +153,13 @@ public static partial class QuestSectionPageParser
     }
 
     /// <summary>
-    /// Adresse ramenée à une forme comparable. Ni l'ancre ni la barre finale ne
-    /// doivent décider si deux liens désignent la même page.
+    /// Address reduced to a comparable form. Neither the anchor nor
+    /// the trailing slash should decide whether two links point to
+    /// the same page.
     ///
-    /// Sans filtre de domaine : rapprocher deux adresses et décider si un lien
-    /// mène au site sont deux questions distinctes, et les mêler ferait que le
-    /// rapprochement dépend de l'hébergeur.
+    /// Without a domain filter: matching two addresses and deciding
+    /// whether a link leads to the site are two distinct questions,
+    /// and mixing them would make the matching depend on the host.
     /// </summary>
     public static string Key(string? url)
     {
@@ -176,9 +180,10 @@ public static partial class QuestSectionPageParser
     }
 
     /// <summary>
-    /// Adresse d'un lien du site, ramenée à sa forme comparable, ou une chaîne
-    /// vide s'il mène ailleurs. Une page de rubrique cite aussi le wiki et les
-    /// réseaux sociaux : eux ne rangent aucune quête.
+    /// Address of a site link, reduced to its comparable form, or
+    /// an empty string if it leads elsewhere. A section page also
+    /// cites the wiki and social networks: those do not classify
+    /// any quest.
     /// </summary>
     private static string Internal(string? url)
     {

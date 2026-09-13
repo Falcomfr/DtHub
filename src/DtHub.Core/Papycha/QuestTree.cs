@@ -3,25 +3,25 @@
 namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Bâtit les branches de la liste des guides à partir du catalogue.
+/// Builds the branches of the guide list from the catalogue.
 ///
-/// Ces règles vivaient dans la vue-modèle de la fenêtre, mêlées à la pile de
-/// navigation et à la recherche. Elles sont pourtant pures : elles ne touchent
-/// ni à WPF, ni au réseau, ni au disque, et rendent des objets de données à
-/// partir d'un catalogue et d'un décompte. Les laisser là revenait à les
-/// laisser hors de portée des épreuves, dans un projet qu'aucune n'atteint.
+/// These rules used to live in the window's view model, mixed in with the
+/// navigation stack and the search. Yet they are pure: they touch neither WPF,
+/// nor the network, nor the disk, and they return data objects built from a
+/// catalogue and a tally. Leaving them there amounted to keeping them out of
+/// the reach of tests, in a project that none of them reaches.
 ///
-/// La navigation reste où elle est : elle tient un état de fenêtre, et c'est
-/// bien le métier d'une vue-modèle.
+/// Navigation stays where it is: it holds a window's state, and that is indeed
+/// a view model's job.
 /// </summary>
 public sealed class QuestTree
 {
-    /// <summary>Catégorie du site qui range toutes les quêtes.</summary>
+    /// <summary>The site's category that holds all the quests.</summary>
     public const int RootSection = 7;
 
     /// <summary>
-    /// Branches qui ne viennent pas des catégories du site. Leurs identifiants
-    /// sont négatifs, hors de portée de celles-ci, qui sont positives.
+    /// Branches that do not come from the site's categories. Their identifiers
+    /// are negative, out of reach of the site's, which are positive.
     /// </summary>
     public const int DungeonSection = -100;
     public const int RaidSection = -101;
@@ -30,17 +30,17 @@ public sealed class QuestTree
     public const int DungeonPathSection = -104;
 
     /// <summary>
-    /// Le chevron qui sépare les rangs d'un fil d'Ariane. Il vit ici parce que
-    /// trois endroits l'écrivaient chacun de leur côté : la fenêtre, le repère
-    /// d'un signalement, et le nom d'une rubrique à deux rangs. Ils doivent se
-    /// lire pareil, le repère servant justement à retrouver la page dans la
-    /// liste.
+    /// The chevron that separates the levels of a breadcrumb trail. It lives
+    /// here because three places used to write it each on their own: the
+    /// window, a report's landmark, and the name of a two-level section. They
+    /// must read the same way, the landmark serving precisely to find the page
+    /// again in the list.
     /// </summary>
     public const string Separator = "  \u203a  ";
 
     /// <summary>
-    /// Les trois sortes de lieux de combat, dans l'ordre où la racine les
-    /// présente, avec leur titre et les mots du compte.
+    /// The three kinds of combat locations, in the order the root presents
+    /// them, with their title and the count's words.
     /// </summary>
     public static readonly (DungeonKind Kind, string Title, string One, string Many)[] DungeonGroups =
     [
@@ -53,16 +53,16 @@ public sealed class QuestTree
     private readonly IReadOnlyDictionary<int, int> _sectionCounts;
 
     /// <summary>
-    /// Ce que les prérequis relient, posé par l'appelant à chaque catalogue.
-    /// Sert à rattacher un prérequis à la quête qu'il nomme.
+    /// What prerequisites link to, set by the caller for each catalogue. Used
+    /// to attach a prerequisite to the quest it names.
     /// </summary>
     public QuestChainIndex? Chain { get; set; }
 
-    /// <param name="catalog">Le catalogue lu sur le site.</param>
+    /// <param name="catalog">The catalogue read from the site.</param>
     /// <param name="sectionCounts">
-    /// Le nombre de quêtes par rubrique. Le dictionnaire est celui de la
-    /// vue-modèle, qui le recompte quand le catalogue change : le passer par
-    /// référence évite de le recopier à chaque affichage.
+    /// The number of quests per section. The dictionary is the view model's
+    /// own, which recounts it when the catalogue changes: passing it by
+    /// reference avoids copying it on every display.
     /// </param>
     public QuestTree(QuestCatalogService catalog, IReadOnlyDictionary<int, int> sectionCounts)
     {
@@ -71,8 +71,8 @@ public sealed class QuestTree
     }
 
     /// <summary>
-    /// Les quatre entrées de la racine : les quêtes, et les trois sortes de
-    /// lieux de combat.
+    /// The root's four entries: the quests, and the three kinds of combat
+    /// locations.
     /// </summary>
     public IReadOnlyList<QuestNode> Root() =>
     [
@@ -90,7 +90,7 @@ public sealed class QuestTree
             Id: LairSection, Glyph: QuestNodeGlyph.Lairs),
     ];
 
-    /// <summary>La branche où un lieu de combat se trouve.</summary>
+    /// <summary>The branch where a combat location belongs.</summary>
     public static int SectionOf(DungeonSummary place) => place.Kind switch
     {
         DungeonKind.Raid => RaidSection,
@@ -98,20 +98,20 @@ public sealed class QuestTree
         _ => DungeonSection,
     };
 
-    /// <summary>Les lieux de combat d'un genre, dans l'ordre du site.</summary>
+    /// <summary>The combat locations of a kind, in the site's order.</summary>
     public IReadOnlyList<DungeonSummary> Fighting(DungeonKind kind) =>
         [.. _catalog.Catalog.Dungeons.Where(d => d.Kind == kind)];
 
-    /// <summary>Les chemins d'un côté.</summary>
+    /// <summary>The paths on one side.</summary>
     public IReadOnlyList<PathSummary> Paths(PathSide side) =>
         [.. _catalog.Catalog.Paths.Where(p => p.Side == side)];
 
     /// <summary>
-    /// La sous-branche des chemins, en tête de la branche qu'elle sert.
+    /// The paths sub-branch, at the head of the branch it serves.
     ///
-    /// Un dossier plutôt qu'un groupe à la suite : un chemin ne se compare ni à
-    /// une zone ni à un donjon, et les mêler allongerait une liste qu'on
-    /// parcourt déjà longuement.
+    /// A folder rather than a group tacked on after: a path compares neither
+    /// to a zone nor to a dungeon, and mixing them would lengthen a list that
+    /// is already long to go through.
     /// </summary>
     public QuestNode PathBranch(PathSide side, int section) => new(
         QuestNodeKind.Branch,
@@ -121,13 +121,13 @@ public sealed class QuestTree
         Glyph: QuestNodeGlyph.Route);
 
     /// <summary>
-    /// Les donjons, du plus abordable au plus exigeant, coupés par paliers de
-    /// cinquante niveaux.
+    /// The dungeons, from the most approachable to the most demanding, cut
+    /// into bands of fifty levels.
     ///
-    /// Quatre-vingt-trois lignes ne se parcourent pas d'un œil : on y cherche
-    /// ce qui est à sa portée, et les paliers évitent de compter. Ceux dont le
-    /// site ne donne pas le niveau ferment la marche sous leur propre
-    /// intertitre, plutôt que de passer pour du niveau zéro.
+    /// Eighty-three lines cannot be scanned in one glance: one looks there for
+    /// what is within reach, and the bands save counting. Those for which the
+    /// site does not give a level bring up the rear under their own header,
+    /// rather than passing for level zero.
     /// </summary>
     public IEnumerable<QuestNode> DungeonNodes()
     {
@@ -156,8 +156,8 @@ public sealed class QuestTree
     }
 
     /// <summary>
-    /// Une ligne de donjon : son nom avec son niveau, et à droite ce qu'il faut
-    /// savoir avant d'y aller.
+    /// A dungeon line: its name with its level, and on the right what needs to
+    /// be known before going there.
     /// </summary>
     public static QuestNode NodeOf(DungeonSummary dungeon) => new(
         QuestNodeKind.Quest,
@@ -168,9 +168,9 @@ public sealed class QuestTree
         Dungeon: dungeon);
 
     /// <summary>
-    /// Ce que la colonne de droite dit d'un donjon : la pierre d'âme et la
-    /// position, précédées d'une clef quand il en faut une. Le nom de la clef
-    /// vient au survol : il est trop long pour la colonne.
+    /// What the right-hand column says about a dungeon: the soul stone and the
+    /// position, preceded by a key when one is needed. The key's name comes on
+    /// hover: it is too long for the column.
     /// </summary>
     public static string Detail(DungeonSummary dungeon)
     {
@@ -178,8 +178,9 @@ public sealed class QuestTree
 
         if (dungeon.SoulStone.Length > 0)
         {
-            // « gigantesque pierre d'âme » dit deux fois « pierre d'âme » dans
-            // une colonne où toutes les lignes en portent une : la taille suffit.
+            // "gigantesque pierre d'âme" ("gigantic soul stone") says "pierre
+            // d'âme" ("soul stone") twice in a column where every line already
+            // carries one: the size is enough.
             parts.Add(dungeon.SoulStone.Replace(" pierre d’âme", string.Empty, StringComparison.Ordinal));
         }
 
@@ -192,12 +193,12 @@ public sealed class QuestTree
     }
 
     /// <summary>
-    /// Rubriques qui contiennent au moins une quête, dans l'ordre où le site
-    /// les range.
+    /// Sections that contain at least one quest, in the order the site files
+    /// them.
     ///
-    /// Le catalogue les rend déjà ordonnées ; les reclasser par nombre de
-    /// quêtes, comme on le faisait, revenait à ignorer l'ordre du site après
-    /// être allé le chercher.
+    /// The catalogue already returns them ordered; resorting them by quest
+    /// count, as used to be done, amounted to ignoring the site's order after
+    /// having gone to fetch it.
     /// </summary>
     public IEnumerable<QuestNode> Branches()
     {
@@ -213,8 +214,8 @@ public sealed class QuestTree
         {
             var zone = ordered[i];
 
-            // Ce qui ne relève pas de la progression vient après un intertitre,
-            // pour que la liste ne mélange pas un lieu et un cheminement.
+            // Whatever is not part of progression comes after a header, so
+            // that the list does not mix a place with a track.
             if (!separated && QuestZoneOrder.IsExtra(zone.Name))
             {
                 separated = true;
@@ -225,12 +226,12 @@ public sealed class QuestTree
                     Glyph: QuestNodeGlyph.Family);
             }
 
-            // Un blanc là où l'on passe d'une famille de quêtes aux lieux :
-            // « Quêtes principales » ouvre la liste sans être un endroit, et
-            // sans cette respiration elle se lit comme la première zone du
-            // monde. Le blanc appartient à la ligne qui précède la rupture, et
-            // non à celle qui la suit, pour ne pas doubler celui de
-            // l'intertitre plus bas.
+            // A blank line where one goes from a family of quests to places:
+            // "Quêtes principales" ("Main quests") opens the list without
+            // being a place, and without this breathing space it reads as the
+            // world's first zone. The blank belongs to the row that precedes
+            // the break, and not to the one that follows it, so as not to
+            // double the one from the header further below.
             var next = i + 1 < ordered.Count ? ordered[i + 1] : null;
 
             yield return new QuestNode(
@@ -249,19 +250,19 @@ public sealed class QuestTree
         value.ToString(System.Globalization.CultureInfo.CurrentCulture);
 
     /// <summary>
-    /// Ajoute les quêtes d'une rubrique dans l'ordre où l'on y joue.
+    /// Adds a section's quests in the order they are played.
     ///
-    /// C'est ainsi que le site les présente, et c'est ainsi qu'on les joue :
-    /// une quête isolée dit rarement à quoi elle sert. Le rangement est celui
-    /// de <see cref="QuestZonePlan"/>, qui suit les prérequis.
+    /// This is how the site presents them, and how they are played: an
+    /// isolated quest rarely says what it is for. The sorting is that of
+    /// <see cref="QuestZonePlan"/>, which follows the prerequisites.
     /// </summary>
     public IEnumerable<QuestNode> BySuccess(IReadOnlyList<QuestSummary> quests)
     {
         var plan = QuestZonePlan.Of(quests, _catalog.Catalog.SuccessOrder);
 
-        // Le compte annoncé est celui du succès entier, non celui du morceau :
-        // une série coupée par une quête seule reste une seule série, et son
-        // premier intertitre doit dire combien de quêtes elle porte en tout.
+        // The count announced is that of the whole achievement, not that of
+        // the fragment: a series cut by a lone quest remains a single series,
+        // and its first header must say how many quests it carries in total.
         var total = plan
             .Where(b => b.IsSuccess)
             .GroupBy(b => b.SuccessName, StringComparer.Ordinal)
@@ -282,8 +283,8 @@ public sealed class QuestTree
 
             foreach (var quest in block.Quests)
             {
-                // Le décalage dit l'appartenance : une quête au ras de la marge
-                // n'est réclamée par aucun succès.
+                // The indentation says the belonging: a quest flush with the
+                // margin is not claimed by any achievement.
                 yield return NodeOf(quest) with { InSuccess = block.IsSuccess };
             }
         }
@@ -291,13 +292,14 @@ public sealed class QuestTree
 
 
     /// <summary>
-    /// Une ligne de quête.
+    /// A quest line.
     ///
-    /// La colonne de droite ne porte plus le niveau : le site ne le renseigne
-    /// que sur cent dix-sept quêtes sur sept cent quatre-vingt-deux, et une
-    /// colonne vide neuf fois sur dix ne mérite pas sa place. Elle porte les
-    /// prérequis, qui en couvrent six cent treize, et qui disent quelque chose
-    /// d'utile avant de partir : ce qu'il faut avoir fait.
+    /// The right-hand column no longer carries the level: the site only gives
+    /// it for one hundred and seventeen quests out of seven hundred and
+    /// eighty-two, and a column empty nine times out of ten does not earn its
+    /// place. It carries the prerequisites instead, which cover six hundred
+    /// and thirteen of them, and which say something useful before setting
+    /// off: what needs to have been done.
     /// </summary>
     public QuestNode NodeOf(QuestSummary quest) => new(
         QuestNodeKind.Quest,
@@ -306,10 +308,10 @@ public sealed class QuestTree
         Needs: NeedsOf(quest));
 
     /// <summary>
-    /// Les prérequis d'une quête, chacun rattaché à la quête qu'il nomme quand
-    /// c'en est une. Sur cinq cent soixante-sept prérequis distincts, beaucoup
-    /// sont des objets, un alignement ou un créneau horaire : ceux-là restent
-    /// du texte, et seuls les autres deviendront des liens.
+    /// A quest's prerequisites, each attached to the quest it names when it is
+    /// one. Out of five hundred and sixty-seven distinct prerequisites, many
+    /// are items, an alignment or a time slot: those stay as text, and only
+    /// the others become links.
     /// </summary>
     public IReadOnlyList<QuestNeed> NeedsOf(QuestSummary quest) =>
         quest.Prerequisites.Count == 0
@@ -317,16 +319,19 @@ public sealed class QuestTree
             : [.. quest.Prerequisites.Select(need => new QuestNeed(need, Chain?.Find(need)))];
 
 
-    /// <summary>L'icône d'une rubrique, selon qu'elle situe ou qu'elle range.</summary>
+    /// <summary>
+    /// A section's icon, depending on whether it locates a place or files a
+    /// family.
+    /// </summary>
     public static QuestNodeGlyph GlyphOf(string? zone) =>
         QuestZoneOrder.IsPlace(zone) ? QuestNodeGlyph.Place : QuestNodeGlyph.Family;
 
     /// <summary>
-    /// L'icône d'un lieu de combat, qui dit lequel des trois on regarde.
+    /// A combat location's icon, which says which of the three is being looked
+    /// at.
     ///
-    /// Les trois se ressemblent assez pour partager un type ; ils ne se
-    /// ressemblent pas assez pour partager une icône, la recherche pouvant
-    /// rendre les trois d'un coup.
+    /// The three are similar enough to share a type; they are not similar
+    /// enough to share an icon, since a search can return all three at once.
     /// </summary>
     public static QuestNodeGlyph GlyphOf(DungeonKind kind) => kind switch
     {
@@ -336,18 +341,18 @@ public sealed class QuestTree
     };
 
     /// <summary>
-    /// Le nom d'une rubrique, tel que la fenêtre l'affiche au-dessus d'elle.
+    /// A section's name, as the window displays it above itself.
     ///
-    /// Les quatre branches qui ne viennent pas du site n'ont pas de nom à y
-    /// chercher, et le repli les nommait toutes « Rubrique » : un signalement
-    /// sur le Minotoror portait « Rubrique › Minotoror » au lieu de
-    /// « Donjons › Minotoror », et ne disait donc pas où regarder. Les chemins
-    /// gardent leurs deux rangs, comme le fil d'Ariane les montre.
+    /// The four branches that do not come from the site have no name to look
+    /// up there, and the fallback used to name them all "Section": a report
+    /// about the Minotoror carried "Section › Minotoror" instead of "Dungeons
+    /// › Minotoror", and therefore did not say where to look. Paths keep their
+    /// two levels, as the breadcrumb trail shows them.
     /// </summary>
     public string NameOf(int section) => section switch
     {
-        // RootSection n'est pas de la partie : c'est une vraie catégorie du
-        // site, et son nom se lit dans le catalogue comme les autres.
+        // RootSection is not part of this: it is a real category from the
+        // site, and its name is read from the catalogue like the others.
         DungeonSection => Strings.Get("Dungeons"),
         RaidSection => Strings.Get("Raids"),
         LairSection => Strings.Get("Lairs"),
@@ -363,9 +368,8 @@ public sealed class QuestTree
     public static string Nombre(int count) => Combien(count, "WordQuest", "WordQuests");
 
     /// <summary>
-    /// Compte d'un intertitre de recherche. Le mot suit la nature : annoncer
-    /// « 1 quête » au-dessus d'une zone ferait mentir l'intertitre juste
-    /// au-dessus de ce qu'il coiffe.
+    /// Count for a search header. The word follows the kind: announcing "1
+    /// quest" above a zone would make the header lie right above what it caps.
     /// </summary>
     public static string Combien(int count, string singulier, string pluriel) =>
         Strings.Format("Count", count, Strings.Get(count == 1 ? singulier : pluriel));

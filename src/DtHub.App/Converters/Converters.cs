@@ -7,7 +7,7 @@ using System.Windows.Media.Imaging;
 
 namespace DtHub.App.Converters;
 
-/// <summary>Vrai devient Visible, faux devient Collapsed.</summary>
+/// <summary>True becomes Visible, false becomes Collapsed.</summary>
 public sealed class BoolToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
@@ -17,11 +17,14 @@ public sealed class BoolToVisibilityConverter : IValueConverter
         value is Visibility.Visible;
 }
 
-/// <summary>Inverse un booléen. Sert à griser ce qui doit l'être pendant un chargement.</summary>
 /// <summary>
-/// Vrai si la valeur correspond au nom passé en paramètre, et repose ce nom
-/// quand la case est cochée. Sert aux boutons radio d'une énumération, qu'un
-/// simple test d'égalité ne saurait pas rendre bidirectionnel.
+/// Inverts a boolean. Used to grey out what should be greyed out
+/// during a loading.
+/// </summary>
+/// <summary>
+/// True if the value matches the name passed as parameter, and puts
+/// that name back when the box is checked. Used for the radio buttons
+/// of an enum, which a plain equality test could not make two-way.
 /// </summary>
 public sealed class EnumMatchConverter : IValueConverter
 {
@@ -43,7 +46,7 @@ public sealed class InverseBoolConverter : IValueConverter
         value is not true;
 }
 
-/// <summary>Faux devient Visible : utile pour les états vides.</summary>
+/// <summary>False becomes Visible: useful for empty states.</summary>
 public sealed class InverseBoolToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
@@ -54,8 +57,8 @@ public sealed class InverseBoolToVisibilityConverter : IValueConverter
 }
 
 /// <summary>
-/// Résout une clé de ressource en pinceau. Les vues-modèles nomment une
-/// couleur du thème sans dépendre de WPF.
+/// Resolves a resource key into a brush. View models name a theme
+/// color without depending on WPF.
 /// </summary>
 public sealed class ResourceKeyToBrushConverter : IValueConverter
 {
@@ -73,7 +76,7 @@ public sealed class ResourceKeyToBrushConverter : IValueConverter
         throw new NotSupportedException();
 }
 
-/// <summary>Convertit une couleur hexadécimale en pinceau.</summary>
+/// <summary>Converts a hexadecimal color into a brush.</summary>
 public sealed class HexToBrushConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -91,19 +94,21 @@ public sealed class HexToBrushConverter : IValueConverter
         throw new NotSupportedException();
 }
 
-/// <summary>Vrai si la valeur est égale au paramètre. Sert aux boutons de filtre.</summary>
 /// <summary>
-/// Charge une icône du cache et la garde.
+/// True if the value equals the parameter. Used for filter buttons.
+/// </summary>
+/// <summary>
+/// Loads an icon from the cache and keeps it.
 ///
-/// Trois choses comptent. « OnLoad » referme le fichier tout de suite, sans
-/// quoi une nouvelle extraction ne pourrait plus le réécrire. L'image est
-/// gelée, donc partageable entre lignes et entre fils. Et le décodage est
-/// mémorisé par chemin, si bien que dix instances du même jeu ne décodent
-/// qu'une seule image.
+/// Three things matter. "OnLoad" closes the file right away, or a new
+/// extraction could no longer overwrite it. The image is frozen, so
+/// it can be shared between rows and between threads. And the
+/// decoding is cached by path, so ten instances of the same game only
+/// decode a single image.
 ///
-/// Un chemin absent, un fichier illisible ou une image abîmée rendent
-/// <c>null</c> : la place est tenue par la mise en page, et il ne s'affiche
-/// rien.
+/// A missing path, an unreadable file or a damaged image return
+/// <c>null</c>: the spot is held by the layout, and nothing is
+/// displayed.
 /// </summary>
 public sealed class IconPathToImageConverter : IValueConverter
 {
@@ -140,9 +145,9 @@ public sealed class IconPathToImageConverter : IValueConverter
             image.CacheOption = BitmapCacheOption.OnLoad;
             image.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
 
-            // Le double de la place à l'écran : net jusqu'à deux cents pour
-            // cent de mise à l'échelle, sans décoder cent quatre-vingt-douze
-            // pixels pour en montrer vingt.
+            // Double the space on screen: sharp up to two hundred
+            // percent scaling, without decoding one hundred and
+            // ninety-two pixels to show twenty.
             image.DecodePixelWidth = 40;
             image.UriSource = new Uri(path, UriKind.Absolute);
             image.EndInit();
@@ -154,9 +159,10 @@ public sealed class IconPathToImageConverter : IValueConverter
             when (exception is IOException or UnauthorizedAccessException
                       or NotSupportedException or UriFormatException)
         {
-            // Silence assumé : un convertisseur qui lève casse la liaison et
-            // laisse la ligne vide sans rien dire. L'icône est un confort, son
-            // absence se voit à l'écran, et le fichier vient de notre cache.
+            // Silence is intentional: a converter that throws breaks
+            // the binding and leaves the row empty without saying
+            // anything. The icon is a comfort, its absence shows on
+            // screen, and the file comes from our own cache.
             return null;
         }
     }
@@ -175,9 +181,9 @@ public sealed class EqualityConverter : IValueConverter
 }
 
 /// <summary>
-/// Vrai si les deux valeurs désignent le même objet. Sert à cocher l'entrée de
-/// navigation correspondant à la page courante, ce qu'un simple paramètre de
-/// convertisseur ne permet pas d'exprimer.
+/// True if the two values designate the same object. Used to check
+/// the navigation entry matching the current page, which a plain
+/// converter parameter cannot express.
 /// </summary>
 public sealed class SameInstanceConverter : IMultiValueConverter
 {
@@ -188,7 +194,7 @@ public sealed class SameInstanceConverter : IMultiValueConverter
         throw new NotSupportedException();
 }
 
-/// <summary>Libellé d'une position de la grille.</summary>
+/// <summary>Label of a grid position.</summary>
 public sealed class AnchorLabelConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
@@ -201,9 +207,9 @@ public sealed class AnchorLabelConverter : IValueConverter
 }
 
 /// <summary>
-/// Vrai si les deux valeurs sont égales. Sert à cocher la case de la grille
-/// qui correspond à la position retenue, ce qu'un paramètre de convertisseur
-/// ne permet pas d'exprimer.
+/// True if the two values are equal. Used to check the grid cell that
+/// matches the chosen position, which a converter parameter cannot
+/// express.
 /// </summary>
 public sealed class SameValueConverter : IMultiValueConverter
 {
@@ -214,7 +220,9 @@ public sealed class SameValueConverter : IMultiValueConverter
         throw new NotSupportedException();
 }
 
-/// <summary>Rend Visible si la collection ou la chaîne est vide.</summary>
+/// <summary>
+/// Returns Visible if the collection or the string is empty.
+/// </summary>
 public sealed class EmptyToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -224,16 +232,18 @@ public sealed class EmptyToVisibilityConverter : IValueConverter
             null => true,
             string text => string.IsNullOrWhiteSpace(text),
 
-            // Lier directement une collection ne fonctionne pas : sa référence
-            // ne change jamais, donc la liaison ne se réévalue pas quand on y
-            // ajoute un élément. On lie son compteur, qui lui est notifié.
+            // Binding a collection directly does not work: its
+            // reference never changes, so the binding never
+            // re-evaluates when an item is added to it. Its count is
+            // bound instead, which does get notified.
             int count => count == 0,
             System.Collections.ICollection collection => collection.Count == 0,
             _ => false,
         };
 
-        // Le paramètre « inverse » sert à afficher au contraire quand il y a
-        // quelque chose, sans avoir à écrire un second convertisseur.
+        // The "inverse" parameter is used to show the opposite, when
+        // there is something, without having to write a second
+        // converter.
         var inverted = string.Equals(parameter as string, "inverse", StringComparison.OrdinalIgnoreCase);
 
         return empty != inverted ? Visibility.Visible : Visibility.Collapsed;
@@ -244,8 +254,8 @@ public sealed class EmptyToVisibilityConverter : IValueConverter
 }
 
 /// <summary>
-/// Rend l'élément que l'on déplace translucide, pour qu'on voie qu'il a
-/// quitté sa place le temps du glissé.
+/// Makes the element being dragged translucent, so it is clear it has
+/// left its place for the duration of the drag.
 /// </summary>
 public sealed class DraggedOpacityConverter : IValueConverter
 {
@@ -257,9 +267,9 @@ public sealed class DraggedOpacityConverter : IValueConverter
 }
 
 /// <summary>
-/// Visible seulement si toutes les conditions sont vraies. Sert là où une
-/// visibilité dépend à la fois d'un réglage de la vue et de l'état des
-/// données, sans avoir à mélanger les deux dans le modèle de vue.
+/// Visible only if every condition is true. Used where visibility
+/// depends on both a view setting and the data's state, without
+/// having to mix the two in the view model.
 /// </summary>
 public sealed class AllTrueToVisibilityConverter : IMultiValueConverter
 {
@@ -271,8 +281,9 @@ public sealed class AllTrueToVisibilityConverter : IMultiValueConverter
 }
 
 /// <summary>
-/// Visible dès qu'une des conditions est vraie. Pendant du précédent, pour les
-/// cas où deux raisons distinctes justifient chacune l'affichage.
+/// Visible as soon as one of the conditions is true. Counterpart to
+/// the previous one, for cases where two distinct reasons each
+/// justify showing it.
 /// </summary>
 public sealed class AnyTrueToVisibilityConverter : IMultiValueConverter
 {
@@ -284,9 +295,10 @@ public sealed class AnyTrueToVisibilityConverter : IMultiValueConverter
 }
 
 /// <summary>
-/// Rend un élément visible sans jamais changer la mise en page. Un repère qui
-/// apparaît et disparaît déplacerait ce qui l'entoure, donc le milieu de
-/// l'élément survolé, donc le repère lui-même.
+/// Makes an element visible without ever changing the layout. A
+/// marker that appears and disappears would shift what surrounds it,
+/// and therefore the center of the hovered element, and therefore the
+/// marker itself.
 /// </summary>
 public sealed class BoolToOpacityConverter : IValueConverter
 {

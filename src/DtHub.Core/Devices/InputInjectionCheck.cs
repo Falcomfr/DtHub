@@ -1,61 +1,69 @@
 ﻿namespace DtHub.Core.Devices;
 
-/// <summary>Ce que le téléphone fait d'un événement d'entrée qu'on lui envoie.</summary>
+/// <summary>
+/// What the phone does with an input event we send it.
+/// </summary>
 public enum InputInjection
 {
-    /// <summary>On n'a pas su conclure, et on ne conclut donc pas.</summary>
+    /// <summary>We could not tell, and so we do not conclude.</summary>
     Unknown = 0,
 
-    /// <summary>L'appareil accepte la simulation d'entrée.</summary>
+    /// <summary>The device accepts simulated input.</summary>
     Works,
 
-    /// <summary>L'appareil la refuse : l'image passera, les clics non.</summary>
+    /// <summary>
+    /// The device refuses it: the picture will get through, clicks
+    /// will not.
+    /// </summary>
     Denied,
 }
 
 /// <summary>
-/// Éprouve la seule chose qu'aucun message n'annonce : le droit d'injecter une
-/// entrée.
+/// Tests the one thing no message ever announces: the right to
+/// inject input.
 ///
-/// C'est le symptôme le plus fréquent du terrain et le plus démuni. scrcpy
-/// n'échoue pas, aucune erreur ne paraît, la fenêtre s'ouvre et le clic ne fait
-/// rien. La cause tient à un réglage des surcouches Xiaomi, Oppo, realme et
-/// vivo, « Accorder les autorisations et simulation d'entrée via le débogage
-/// USB ». Sans lui, ADB affiche mais n'injecte pas.
+/// This is the most common symptom in the field, and the most
+/// helpless one. scrcpy does not fail, no error appears, the window
+/// opens and the click does nothing. The cause lies in a setting on
+/// Xiaomi, Oppo, realme and vivo overlays, "Grant permissions and
+/// simulate input via USB debugging". Without it, ADB displays but
+/// does not inject.
 ///
-/// La sonde envoie la touche « inconnue » d'Android, qui ne déclenche rien
-/// nulle part : ce n'est pas une commande de jeu, c'est une question posée au
-/// système.
+/// The probe sends Android's "unknown" key, which triggers nothing
+/// anywhere: it is not a game command, it is a question asked of
+/// the system.
 ///
-/// **Elle n'était envoyée que sur demande, depuis la fiche d'aide. Le
-/// terrain a fait changer la règle.** Deux fois dans la même journée, des
-/// fenêtres ont montré le jeu sans répondre à rien, et le réglage fautif se
-/// décoche tout seul au redémarrage sur les appareils sans carte SIM :
-/// personne n'a de raison d'aller ouvrir une fiche d'aide devant une fenêtre
-/// qui a l'air normale. Elle est donc posée une fois par appareil, au moment
-/// où sa première fenêtre s'ouvre, et jamais pendant une partie ni à
-/// répétition.
+/// **It used to be sent only on request, from the help page. The
+/// field made us change the rule.** Twice on the same day, windows
+/// showed the game without responding to anything, and the faulty
+/// setting unchecks itself on restart on devices without a SIM
+/// card: nobody has a reason to go open a help page in front of a
+/// window that looks normal. It is therefore asked once per device,
+/// the moment its first window opens, and never during a game
+/// session nor repeatedly.
 ///
-/// Le verdict est prudent par construction. On ne dit « ça marche » que sur un
-/// silence complet, et « refusé » que sur un refus nommé. Tout le reste est
-/// <see cref="InputInjection.Unknown"/> : se tromper de diagnostic coûterait
-/// plus cher que de n'en donner aucun.
+/// The verdict is cautious by design. We only say "it works" on
+/// complete silence, and "refused" only on a named refusal.
+/// Everything else is <see cref="InputInjection.Unknown"/>: getting
+/// the diagnosis wrong would cost more than giving none at all.
 /// </summary>
 public static class InputInjectionCheck
 {
     /// <summary>
-    /// Touche « inconnue ». Android l'accepte partout et n'en fait rien : c'est
-    /// ce qui permet de poser la question sans agir sur l'appareil.
+    /// The "unknown" key. Android accepts it everywhere and does
+    /// nothing with it: that is what lets us ask the question
+    /// without acting on the device.
     /// </summary>
     public const string ProbeKeyCode = "0";
 
-    /// <summary>Commande envoyée au shell de l'appareil.</summary>
+    /// <summary>Command sent to the device's shell.</summary>
     public static IReadOnlyList<string> ProbeCommand { get; } =
         ["shell", "input", "keyevent", ProbeKeyCode];
 
     /// <summary>
-    /// Ce qu'Android écrit quand il refuse. La formulation varie d'une version
-    /// et d'une surcouche à l'autre : on cherche donc ce qui ne varie pas.
+    /// What Android writes when it refuses. The wording varies from
+    /// one version and one overlay to another: so we look for what
+    /// does not vary.
     /// </summary>
     private static readonly string[] Refusals =
     [
@@ -65,7 +73,7 @@ public static class InputInjectionCheck
         "not allowed to inject",
     ];
 
-    /// <summary>Ce qui dit un refus sans nommer l'injection.</summary>
+    /// <summary>What states a refusal without naming injection.</summary>
     private static readonly string[] Denials =
     [
         "securityexception",
@@ -73,10 +81,10 @@ public static class InputInjectionCheck
         "permission denied",
     ];
 
-    /// <summary>Lit le verdict dans ce que la sonde a rendu.</summary>
-    /// <param name="exitCode">Code de sortie de la commande.</param>
-    /// <param name="standardOutput">Sortie standard.</param>
-    /// <param name="standardError">Sortie d'erreur.</param>
+    /// <summary>Reads the verdict from what the probe returned.</summary>
+    /// <param name="exitCode">Exit code of the command.</param>
+    /// <param name="standardOutput">Standard output.</param>
+    /// <param name="standardError">Error output.</param>
     public static InputInjection Read(int exitCode, string? standardOutput, string? standardError)
     {
         var said = ((standardOutput ?? string.Empty) + "\n" + (standardError ?? string.Empty))
@@ -87,17 +95,19 @@ public static class InputInjectionCheck
             return InputInjection.Denied;
         }
 
-        // Un refus générique ne compte que s'il parle bien d'entrée : le shell
-        // rend la même famille d'erreur pour un dossier sécurisé verrouillé,
-        // qui n'a rien à voir avec la souris.
+        // A generic refusal only counts if it actually talks about
+        // input: the shell returns the same family of error for a
+        // locked secure folder, which has nothing to do with the
+        // mouse.
         if (Denials.Any(d => said.Contains(d, StringComparison.Ordinal))
             && said.Contains("input", StringComparison.Ordinal))
         {
             return InputInjection.Denied;
         }
 
-        // Le succès est muet : la touche inconnue ne produit aucune sortie.
-        // Une commande qui parle sans qu'on sache de quoi ne prouve rien.
+        // Success is silent: the unknown key produces no output. A
+        // command producing output we cannot interpret proves
+        // nothing.
         return exitCode == 0 && string.IsNullOrWhiteSpace(said)
             ? InputInjection.Works
             : InputInjection.Unknown;

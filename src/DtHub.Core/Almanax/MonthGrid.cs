@@ -1,28 +1,30 @@
 ﻿namespace DtHub.Core.Almanax;
 
 /// <summary>
-/// La grille d'un mois, telle qu'un calendrier la montre.
+/// The grid of a month, as a calendar shows it.
 ///
-/// Six semaines et non cinq : un mois de trente et un jours qui commence le
-/// dernier jour de la semaine s'étale sur six lignes, et une grille de taille
-/// variable ferait sauter la hauteur de la fenêtre d'un mois à l'autre. Six
-/// lignes couvrent tous les cas et n'en changent aucun.
+/// Six weeks and not five: a thirty-one-day month that starts on
+/// the last day of the week spreads across six rows, and a grid of
+/// variable size would make the window's height jump from one month
+/// to the next. Six rows cover every case and change none of them.
 ///
-/// Le premier jour de la semaine vient de la culture : lundi en France,
-/// dimanche aux États-Unis. Le supposer aurait décalé la grille d'un cran pour
-/// une moitié du monde, et un décalage d'un cran ne se voit pas, il se subit.
+/// The first day of the week comes from culture: Monday in France,
+/// Sunday in the United States. Assuming one would have shifted the
+/// grid by one slot for half the world, and a one-slot shift does
+/// not show, it is simply endured.
 /// </summary>
 public static class MonthGrid
 {
-    /// <summary>Lignes de la grille.</summary>
+    /// <summary>Rows of the grid.</summary>
     public const int Weeks = 6;
 
-    /// <summary>Colonnes de la grille, soit les jours d'une semaine.</summary>
+    /// <summary>Columns of the grid, i.e. the days of a week.</summary>
     public const int Span = 7;
 
     /// <summary>
-    /// Les quarante-deux jours de la grille, débords compris : la fin du mois
-    /// précédent et le début du suivant remplissent les cases des bords.
+    /// The forty-two days of the grid, overflow included: the end of
+    /// the previous month and the start of the next one fill the
+    /// edge cells.
     /// </summary>
     public static IReadOnlyList<DateOnly> For(int year, int month, DayOfWeek firstDayOfWeek)
     {
@@ -41,8 +43,8 @@ public static class MonthGrid
     }
 
     /// <summary>
-    /// Les jours de la semaine, du premier au dernier selon la culture, pour
-    /// coiffer les colonnes.
+    /// The days of the week, from first to last according to
+    /// culture, to head the columns.
     /// </summary>
     public static IReadOnlyList<DayOfWeek> Header(DayOfWeek firstDayOfWeek)
     {

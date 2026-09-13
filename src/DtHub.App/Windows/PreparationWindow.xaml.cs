@@ -9,16 +9,17 @@ using DtHub.Core.Localization;
 namespace DtHub.App.Windows;
 
 /// <summary>
-/// Le premier lancement, quand il y a quelque chose à mettre en place.
+/// The first launch, when there is something to set up.
 ///
-/// Dix-neuf mégaoctets se téléchargeaient jusqu'ici avant la première fenêtre,
-/// sans rien à l'écran et avec un délai réseau de dix minutes : sur une ligne
-/// lente, l'exécutable semblait mort. La fenêtre nomme ce qui manque, d'où ça
-/// vient, et montre l'avancement que le provisionneur savait déjà rapporter.
+/// Until now, nineteen megabytes used to download before the first
+/// window, with nothing on screen and a network timeout of ten
+/// minutes: on a slow line, the executable seemed dead. The window
+/// names what is missing, where it comes from, and shows the
+/// progress that the provisioner already knew how to report.
 ///
-/// Elle ne demande rien : le téléchargement est ce que l'application est venue
-/// faire, et une question dont la seule réponse utile est « oui » n'est pas un
-/// consentement. Elle informe, et se ferme d'elle-même.
+/// It asks nothing: the download is what the application came to
+/// do, and a question whose only useful answer is "yes" is not
+/// consent. It informs, and closes itself.
 /// </summary>
 public partial class PreparationWindow : Window
 {
@@ -53,13 +54,16 @@ public partial class PreparationWindow : Window
         Rows.ItemsSource = _rows;
     }
 
-    /// <summary>Achevé quand tout est posé, ou quand la personne renonce.</summary>
+    /// <summary>
+    /// Completed when everything is set up, or when the person gives
+    /// up.
+    /// </summary>
     public Task Completed => _completed.Task;
 
     /// <summary>
-    /// Met en place ce qui manque, s'il manque quelque chose. Rend la main sans
-    /// rien afficher quand les deux outils sont déjà là, c'est-à-dire à tous
-    /// les lancements sauf le premier.
+    /// Sets up what is missing, if anything is missing. Returns
+    /// control without showing anything when both tools are already
+    /// there, that is to say on every launch except the first.
     /// </summary>
     public static async Task RunAsync(ToolPreparation preparation)
     {
@@ -92,8 +96,9 @@ public partial class PreparationWindow : Window
 
     protected override void OnClosed(EventArgs e)
     {
-        // Fermer la fenêtre à la croix vaut « continuer » : l'application sait
-        // vivre sans ces outils, et rien ne doit rester en attente.
+        // Closing the window via the X counts as "continue": the
+        // application knows how to live without these tools, and
+        // nothing must be left waiting.
         _completed.TrySetResult();
         base.OnClosed(e);
     }
@@ -108,9 +113,9 @@ public partial class PreparationWindow : Window
             row.IsBusy = true;
             row.Status = Strings.Get("PreparationDownloading");
 
-            // Créé sur le fil d'interface : Progress<T> retient son contexte de
-            // synchronisation, les rapports du téléchargement reviennent donc
-            // ici sans que rien n'ait à basculer de fil.
+            // Created on the UI thread: Progress<T> keeps its
+            // synchronization context, so the download reports come
+            // back here without anything having to switch threads.
             var progress = new Progress<ProvisioningProgress>(step => Show(row, dependency, step));
 
             try
@@ -142,8 +147,9 @@ public partial class PreparationWindow : Window
             _ => Strings.Get("PreparationDone"),
         };
 
-        // La barre ne s'anime que tant qu'on ignore où on en est : dès que la
-        // taille est connue, elle avance pour de bon.
+        // The bar only animates as long as we do not know where
+        // things stand: as soon as the size is known, it advances
+        // for real.
         if (step.Stage == ProvisioningStage.Downloading && step.Fraction is { } fraction)
         {
             row.Fraction = fraction;
@@ -155,13 +161,16 @@ public partial class PreparationWindow : Window
         }
     }
 
-    /// <summary>« 7,2 / 11,3 Mo », dans les formats de la région.</summary>
+    /// <summary>
+    /// "7,2 / 11,3 Mo" (7.2 / 11.3 MB), in the region's formats.
+    /// </summary>
     private static string Weight(ProvisioningProgress step, ExternalDependency dependency)
     {
         const double Megabyte = 1024 * 1024;
 
-        // La taille attendue est déclarée dans le manifeste : elle sert de
-        // repli quand le serveur ne l'annonce pas dans sa réponse.
+        // The expected size is declared in the manifest: it serves
+        // as a fallback when the server does not announce it in its
+        // response.
         var total = step.TotalBytes ?? dependency.SizeBytes;
 
         return Strings.Format(
@@ -190,7 +199,9 @@ public partial class PreparationWindow : Window
 
     private void OnSkip(object sender, RoutedEventArgs e) => _completed.TrySetResult();
 
-    /// <summary>Un composant et son avancement, tels que la fenêtre les montre.</summary>
+    /// <summary>
+    /// A component and its progress, as the window shows them.
+    /// </summary>
     private sealed partial class ToolRow : ObservableObject
     {
         public required string Name { get; init; }

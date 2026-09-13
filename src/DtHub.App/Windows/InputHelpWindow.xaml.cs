@@ -4,7 +4,7 @@ using DtHub.App.ViewModels;
 
 namespace DtHub.App.Windows;
 
-/// <summary>Explique pourquoi rien ne répond dans la fenêtre de jeu.</summary>
+/// <summary>Explains why nothing responds in the game window.</summary>
 public partial class InputHelpWindow : Window
 {
     public InputHelpWindow(InputHelpViewModel viewModel)

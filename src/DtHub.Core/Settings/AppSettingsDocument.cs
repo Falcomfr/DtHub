@@ -6,103 +6,109 @@ using DtHub.Core.Windows;
 namespace DtHub.Core.Settings;
 
 /// <summary>
-/// Forme persistée de <c>settings.json</c>. Les valeurs par défaut sont
-/// viables : un fichier absent, partiel ou modifié à la main doit donner une
-/// configuration utilisable.
+/// Persisted shape of <c>settings.json</c>. The default values are viable:
+/// a missing, partial, or hand-edited file must still produce a usable
+/// configuration.
 /// </summary>
 public sealed class AppSettingsDocument
 {
     public const int CurrentSchemaVersion = 9;
 
-    /// <summary>Tailles livrées d'origine, en pourcentage de la zone utilisable.</summary>
+    /// <summary>
+    /// Default shipped sizes, as a percentage of the usable area.
+    /// </summary>
     public static readonly int[] DefaultSizePercentages = [40, 60, 80, 100];
 
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 
-    /// <summary>Instances mémorisées, y compris celles qui ne sont pas cochées.</summary>
+    /// <summary>
+    /// Stored instances, including those that are not checked.
+    /// </summary>
     public List<StoredInstance> Instances { get; set; } = [];
 
     /// <summary>
-    /// Sessions nommées : des ensembles de comptes qu'on ouvre d'un geste.
+    /// Named sessions: groups of accounts opened with a single gesture.
     ///
-    /// Tenues à part de l'ensemble de démarrage, et c'est le fond de l'affaire :
-    /// celui-ci se déforme à chaque geste, un lancement y ajoutant les comptes
-    /// ouverts et le bouton « fermer » les en retirant. Un profil qui s'en
-    /// déduirait se réécrirait tout seul.
+    /// Kept apart from the startup set, and that is the whole point: the
+    /// startup set reshapes itself with every gesture, a launch adding the
+    /// opened accounts to it and the "close" button removing them. A
+    /// profile derived from it would keep rewriting itself.
     /// </summary>
     public List<StoredLaunchProfile> LaunchProfiles { get; set; } = [];
 
     /// <summary>
-    /// Profil ouvert au démarrage. Vide : aucun, et l'on rouvre ce qui était
-    /// ouvert la fois d'avant, comme l'application l'a toujours fait.
+    /// Profile opened at startup. Empty: none, and what was open last time
+    /// reopens instead, as the application has always done.
     /// </summary>
     public string DefaultLaunchProfile { get; set; } = string.Empty;
 
-    // Fenêtres
+    // Windows
 
-    /// <summary>Position du bloc de fenêtres de jeu dans l'écran.</summary>
+    /// <summary>Position of the block of game windows on the screen.</summary>
     public WindowAnchor GameAnchor { get; set; } = WindowAnchor.MiddleLeft;
 
     /// <summary>
-    /// Tailles proposées, en pourcentage de la zone utilisable de l'écran.
-    /// Elles sont donc proportionnelles à l'écran employé.
+    /// Proposed sizes, as a percentage of the screen's usable area. They
+    /// are therefore proportional to the screen in use.
     /// </summary>
     public List<int> SizePercentages { get; set; } = [.. DefaultSizePercentages];
 
-    /// <summary>Taille retenue, par son indice. La dernière est le plein écran.</summary>
+    /// <summary>
+    /// Chosen size, by its index. The last one is full screen.
+    /// </summary>
     public int SizeIndex { get; set; } = 1;
 
     /// <summary>
-    /// Taille posée au curseur, en pourcentage. Zéro quand c'est un raccourci
-    /// qui a décidé, et que l'indice fait donc foi.
+    /// Size set by the cursor, in percent. Zero when a hotkey decided it,
+    /// in which case the index is authoritative.
     /// </summary>
     public int CustomSizePercent { get; set; }
 
     /// <summary>
-    /// Vrai si le configurateur était affiché à la sortie. Il retrouve cet
-    /// état au lancement suivant.
+    /// True if the configurator was shown on exit. It restores that state
+    /// on the next launch.
     /// </summary>
     public bool ConfiguratorVisible { get; set; } = true;
 
     /// <summary>
-    /// Vrai si le suivi de quêtes était affiché à la sortie. Il rouvre alors
-    /// au lancement suivant, sur la dernière quête lue.
+    /// True if the quest tracker was shown on exit. It then reopens on
+    /// the next launch, on the last quest that was read.
     /// </summary>
     public bool QuestsVisible { get; set; }
 
     /// <summary>
-    /// La dernière quête ouverte dans le suivi. Vide tant qu'aucune ne l'a été,
-    /// et la fenêtre rouvre alors sur sa liste.
+    /// The last quest opened in the tracker. Empty until one has been, in
+    /// which case the window reopens on its list.
     /// </summary>
     public string LastQuestUrl { get; set; } = string.Empty;
 
     /// <summary>
-    /// L'étape où l'on était dans ce guide. Seule l'adresse était retenue : on
-    /// rouvrait le bon guide à sa première étape, et il fallait refaire le
-    /// chemin. Zéro vaut « la première », qui est aussi le repli quand la page
-    /// en compte moins qu'avant.
+    /// The step reached in that guide. Only the address used to be kept:
+    /// the right guide reopened at its first step, and the path had to be
+    /// walked again. Zero means "the first one", which is also the
+    /// fallback when the page has fewer steps than before.
     /// </summary>
     public int LastQuestStep { get; set; }
 
     /// <summary>
-    /// Vrai quand l'application se met à jour toute seule : elle télécharge la
-    /// livraison en fond et l'installe en quittant, jamais en pleine session.
-    /// Décoché, elle se contente de dire qu'une version existe.
+    /// True when the application updates itself: it downloads the release
+    /// in the background and installs it on exit, never in the middle of
+    /// a session. Unchecked, it only reports that a new version exists.
     /// </summary>
     public bool UpdatesAutomatic { get; set; } = true;
 
     /// <summary>
-    /// La langue de l'interface, en deux lettres. Vide pour suivre la langue
-    /// d'affichage de Windows, ce qui est le cas ordinaire : le réglage n'est
-    /// là que pour la contredire.
+    /// The interface language, as two letters. Empty to follow Windows's
+    /// display language, which is the ordinary case: this setting exists
+    /// only to override it.
     /// </summary>
     public string Language { get; set; } = string.Empty;
 
     /// <summary>
-    /// Où sont les fenêtres de l'application, par nom.
+    /// Where the application's windows are, by name.
     ///
-    /// Une table plutôt qu'un champ par fenêtre : elles se ressemblent toutes
-    /// sur ce point, et une nouvelle n'a alors rien à ajouter ici.
+    /// A table rather than one field per window: they all look alike on
+    /// this point, and a new one then has nothing to add here.
     /// </summary>
     public Dictionary<string, WindowPlacement> WindowPlacements { get; set; } = [];
 
@@ -112,106 +118,111 @@ public sealed class AppSettingsDocument
     public bool ClipboardSyncEnabled { get; set; } = true;
 
     /// <summary>
-    /// Vrai si fermer une fenêtre de jeu arrête aussi le jeu sur le téléphone.
+    /// True if closing a game window also stops the game on the phone.
     ///
-    /// Sans cela le jeu survit à sa fenêtre, indéfiniment : un compte fermé
-    /// gardait deux cent vingt mégaoctets et sa connexion aux serveurs du jeu,
-    /// et les oubliés s'accumulaient d'un lancement à l'autre.
+    /// Without this the game survives its window, indefinitely: a closed
+    /// account kept two hundred and twenty megabytes and its connection to
+    /// the game's servers, and forgotten ones piled up from one launch to
+    /// the next.
     ///
-    /// Vrai par défaut. Le faux rend l'ancien comportement, qui a son mérite :
-    /// une fenêtre refermée puis rouverte retrouve le personnage toujours en
-    /// jeu, sans reconnexion.
+    /// True by default. False restores the previous behavior, which has
+    /// its merit: a window closed and reopened finds the character still
+    /// in game, with no reconnection.
     ///
-    /// Volontairement absent de <see cref="StoredLaunchProfile" /> : une session
-    /// nommée décrit un environnement de jeu, pas les habitudes de celui qui
-    /// s'en sert, et un profil qui réimposerait ce choix à chaque lancement
-    /// serait exactement le piège déjà rencontré avec la qualité.
+    /// Deliberately absent from <see cref="StoredLaunchProfile" />: a named
+    /// session describes a game environment, not the habits of the person
+    /// using it, and a profile that reimposed this choice on every launch
+    /// would be exactly the trap already met with quality.
     /// </summary>
     public bool StopAppOnClose { get; set; } = true;
 
     /// <summary>
-    /// Vrai si le clavier est présenté au téléphone comme un clavier physique
-    /// branché, plutôt qu'injecté par l'API Android.
+    /// True if the keyboard is presented to the phone as a physical
+    /// keyboard plugged in, rather than injected through the Android API.
     ///
-    /// L'injection par l'API passe par le clavier virtuel de l'appareil, et
-    /// plusieurs surcouches en fournissent un qui avale les caractères : la
-    /// fenêtre répond à la souris mais rien ne s'écrit. Un clavier physique
-    /// simulé le court-circuite entièrement.
+    /// Injection through the API goes by way of the device's virtual
+    /// keyboard, and several vendor overlays supply one that swallows
+    /// characters: the window responds to the mouse but nothing gets
+    /// typed. A simulated physical keyboard bypasses it entirely.
     ///
-    /// Faux par défaut, et pour une raison qui ne se devine pas : un clavier
-    /// physique est interprété selon la disposition réglée dans Android. Si
-    /// elle ne correspond pas à celle du PC, un AZERTY tape en QWERTY. Le
-    /// remède ne doit donc pas s'imposer à ceux qui n'ont pas la panne.
+    /// False by default, for a reason that is not obvious: a physical
+    /// keyboard is interpreted according to the layout set in Android. If
+    /// it does not match the PC's, an AZERTY types as QWERTY. The remedy
+    /// must therefore not be forced on those who do not have the problem.
     ///
-    /// Volontairement absent de <see cref="StoredLaunchProfile" />, comme
-    /// l'arrêt du jeu à la fermeture : c'est une habitude de celui qui joue,
-    /// pas une description de son environnement de jeu.
+    /// Deliberately absent from <see cref="StoredLaunchProfile" />, like
+    /// stopping the game on close: it is a habit of the person playing,
+    /// not a description of their game environment.
     /// </summary>
     public bool SimulatedPhysicalKeyboard { get; set; }
 
     /// <summary>
-    /// Souris présentée au téléphone comme une souris branchée.
+    /// Mouse presented to the phone as a mouse plugged in.
     ///
-    /// Dernier recours pour un appareil dont la surcouche refuse l'injection :
-    /// la souris simulée ne passe pas par elle. **Elle capture le curseur du
-    /// poste**, ce qui la rend impraticable à plusieurs fenêtres, d'où
-    /// l'extinction par défaut et la contrepartie écrite à côté de la case.
+    /// Last resort for a device whose overlay refuses injection: the
+    /// simulated mouse does not go through it. **It captures the machine's
+    /// cursor**, which makes it impractical with several windows, hence
+    /// the default off state and the trade-off noted next to the checkbox.
     ///
-    /// Absent de <see cref="StoredLaunchProfile" /> pour la même raison que le
-    /// clavier : c'est une habitude de celui qui joue.
+    /// Absent from <see cref="StoredLaunchProfile" /> for the same reason
+    /// as the keyboard: it is a habit of the person playing.
     /// </summary>
     public bool SimulatedPhysicalMouse { get; set; }
 
     /// <summary>
-    /// Demande à scrcpy d'écrire sa cadence dans le journal, une ligne par
-    /// seconde et par fenêtre.
+    /// Asks scrcpy to write its frame rate to the log, one line per
+    /// second and per window.
     ///
-    /// Éteint par défaut, et diagnostic seulement : c'est la réponse à « ça
-    /// saccade », pas un réglage de confort. **Zéro image par seconde n'est
-    /// pas un défaut** : scrcpy n'encode que ce qui change, et un écran
-    /// immobile ne produit rien.
+    /// Off by default, and for diagnostics only: it is the answer to "it
+    /// stutters", not a comfort setting. **Zero frames per second is not
+    /// a fault**: scrcpy only encodes what changes, and a still screen
+    /// produces nothing.
     /// </summary>
     public bool FluidityDiagnostics { get; set; }
-    // Le jeu s'affiche en paysage : un écran virtuel vertical le centrerait
-    // en 16:9 au milieu d'une fenêtre haute, avec deux larges bandes noires.
+    // The game displays in landscape: a vertical virtual display would
+    // center it in 16:9 amid a tall window, with two wide black bars.
     public int VirtualDisplayWidth { get; set; } = 1920;
     public int VirtualDisplayHeight { get; set; } = 1080;
     public int VirtualDisplayDpi { get; set; } = 240;
 
     /// <summary>
-    /// Compromis entre finesse de l'image et charge de la machine. La valeur
-    /// moyenne est celle d'origine : rien ne change tant qu'on n'y touche pas.
+    /// Trade-off between image sharpness and load on the machine. The
+    /// medium value is the original one: nothing changes until it is
+    /// touched.
     /// </summary>
     public StreamQuality Quality { get; set; } = StreamQuality.Medium;
 
     /// <summary>
-    /// Les valeurs du palier personnalisé. Elles ne servent que si
-    /// <see cref="Quality"/> vaut <see cref="StreamQuality.Custom"/>, mais sont
-    /// gardées même quand un autre palier est choisi : celui qui revient au
-    /// personnalisé retrouve ses réglages plutôt que de tout ressaisir.
+    /// The values of the custom tier. They matter only when
+    /// <see cref="Quality"/> is <see cref="StreamQuality.Custom"/>, but
+    /// are kept even when another tier is chosen: whoever switches back
+    /// to custom finds their settings again instead of retyping them all.
     /// </summary>
     public CustomQuality CustomQuality { get; set; } = new();
 
     /// <summary>
-    /// Distance apparente dans le jeu. Comme la qualité, elle est figée à
-    /// l'ouverture d'une session : la changer rouvre les fenêtres.
+    /// Apparent distance in the game. Like quality, it is fixed when a
+    /// session opens: changing it reopens the windows.
     /// </summary>
     public GameZoom GameZoom { get; set; } = GameZoom.Normal;
 
-    /// <summary>Paquet du jeu. Réglable pour survivre à un changement amont.</summary>
+    /// <summary>
+    /// Game package. Configurable to survive an upstream change.
+    /// </summary>
     public string PackageName { get; set; } = Dofus.DofusPackages.DofusTouch;
 
-    // Raccourcis
+    // Hotkeys
     public List<StoredHotkey> Hotkeys { get; set; } = [];
 }
 
 /// <summary>
-/// Une session nommée : un nom, et les comptes qu'elle ouvre.
+/// A named session: a name, and the accounts it opens.
 ///
-/// Les comptes sont désignés par la clé de <see cref="StoredInstance.Key"/>,
-/// déjà stable d'un lancement à l'autre et déjà employée partout ailleurs. Une
-/// clé dont l'instance a disparu est simplement ignorée à l'ouverture : le
-/// profil garde sa raison d'être, et les comptes restants s'ouvrent.
+/// Accounts are designated by the key from
+/// <see cref="StoredInstance.Key"/>, already stable from one launch to
+/// the next and already used everywhere else. A key whose instance has
+/// disappeared is simply ignored on opening: the profile keeps its
+/// purpose, and the remaining accounts open.
 /// </summary>
 public sealed class StoredLaunchProfile
 {
@@ -220,21 +231,21 @@ public sealed class StoredLaunchProfile
     public List<string> InstanceKeys { get; set; } = [];
 
     /// <summary>
-    /// Où chaque fenêtre se pose, par clé d'instance.
+    /// Where each window sits, by instance key.
     ///
-    /// C'est ce qui fait d'un profil autre chose qu'une liste de comptes :
-    /// « solo donjon » ouvre une fenêtre en grand, « duo pêche » deux côte à
-    /// côte. Vide sur un profil enregistré avant que les profils ne portent les
-    /// positions ; ses comptes s'ouvrent alors où ils étaient.
+    /// This is what makes a profile more than a list of accounts: "solo
+    /// dungeon" opens one window full size, "duo fishing" opens two side
+    /// by side. Empty on a profile saved before profiles carried
+    /// positions; its accounts then open wherever they were.
     /// </summary>
     public Dictionary<string, StoredWindowRect> Windows { get; set; } = [];
 
     /// <summary>
-    /// Les réglages restitués avec le profil.
+    /// The settings restored with the profile.
     ///
-    /// Ils sont figés à l'ouverture de scrcpy, donc les changer demande de
-    /// rouvrir les fenêtres. Passer d'un profil à l'autre les rouvre de toute
-    /// façon : cela ne coûte donc rien de plus.
+    /// They are fixed when scrcpy opens, so changing them requires
+    /// reopening the windows. Switching from one profile to another
+    /// reopens them anyway: so this costs nothing extra.
     /// </summary>
     public StreamQuality Quality { get; set; } = StreamQuality.Medium;
 
@@ -242,7 +253,9 @@ public sealed class StoredLaunchProfile
 
     public GameZoom GameZoom { get; set; } = GameZoom.Normal;
 
-    /// <summary>Ancrage et taille : ce dont vivent les replacements automatiques.</summary>
+    /// <summary>
+    /// Anchor and size: what automatic replacements rely on.
+    /// </summary>
     public WindowAnchor GameAnchor { get; set; } = WindowAnchor.MiddleLeft;
 
     public int SizeIndex { get; set; } = 1;
@@ -250,133 +263,140 @@ public sealed class StoredLaunchProfile
     public int CustomSizePercent { get; set; }
 
     /// <summary>
-    /// Le son du jeu renvoyé sur le PC, et le presse-papiers partagé avec le
-    /// téléphone.
+    /// The game's sound sent back to the PC, and the clipboard shared
+    /// with the phone.
     ///
-    /// Ils font partie de l'environnement autant que la qualité : on ne joue
-    /// pas de la même façon avec et sans le son, et un profil qui ne les
-    /// retiendrait pas ne rendrait pas tout à fait la même place de travail.
+    /// They are as much part of the environment as quality: play is not
+    /// the same with and without sound, and a profile that did not keep
+    /// them would not quite reproduce the same workspace.
     /// </summary>
     public bool AudioEnabled { get; set; }
 
     public bool ClipboardSyncEnabled { get; set; } = true;
 
     /// <summary>
-    /// Où était le cadre à onglets, quand le profil en employait un.
+    /// Where the tabbed frame was, when the profile used one.
     ///
-    /// Sans lui, un profil en onglets rouvrait son cadre à la place que Windows
-    /// voulait bien lui donner : les positions retenues pour chaque compte ne
-    /// disent rien du cadre, une fenêtre logée n'ayant plus de place à elle.
-    /// <c>null</c> sur un profil sans onglets, ou enregistré avant.
+    /// Without it, a tabbed profile would reopen its frame wherever
+    /// Windows chose to put it: the positions kept for each account say
+    /// nothing about the frame, since a docked window no longer has a
+    /// place of its own. <c>null</c> on a profile without tabs, or saved
+    /// before tabs existed.
     /// </summary>
     public WindowPlacement? TabsWindow { get; set; }
 
     /// <summary>
-    /// Les comptes qui étaient dans le cadre à onglets. Vide sur un profil
-    /// enregistré avant le mode onglets : ses comptes s'ouvrent alors en
-    /// fenêtres libres, comme ils le faisaient.
+    /// The accounts that were in the tabbed frame. Empty on a profile
+    /// saved before tab mode existed: its accounts then open in free
+    /// windows, as they used to.
     /// </summary>
     public List<string> TabbedKeys { get; set; } = [];
 }
 
-/// <summary>Une instance mémorisée entre deux lancements.</summary>
+/// <summary>An instance remembered between two launches.</summary>
 public sealed class StoredInstance
 {
     public string DeviceId { get; set; } = string.Empty;
     public int UserId { get; set; }
     public string PackageName { get; set; } = string.Empty;
 
-    /// <summary>Nom du profil Android au moment de la découverte, pour l'affichage hors ligne.</summary>
+    /// <summary>
+    /// Android profile name at discovery time, for offline display.
+    /// </summary>
     public string UserName { get; set; } = string.Empty;
 
     public string DeviceName { get; set; } = string.Empty;
 
-    /// <summary>Nom choisi par l'utilisateur.</summary>
+    /// <summary>Name chosen by the user.</summary>
     public string? CustomName { get; set; }
 
     public string? LaunchComponent { get; set; }
 
-    /// <summary>Vrai si l'instance fait partie du lancement automatique.</summary>
+    /// <summary>
+    /// True if the instance is part of the automatic launch.
+    /// </summary>
     public bool IsEnabled { get; set; }
 
     /// <summary>
-    /// Vrai si la fenêtre suit les placements automatiques : parcours au
-    /// clavier, replacement, côte à côte, changements de taille.
+    /// True if the window follows automatic placements: keyboard
+    /// traversal, repositioning, side by side, size changes.
     ///
-    /// Décochée, la fenêtre est laissée où elle est et le reste s'arrange sans
-    /// elle. Elle s'ouvre et se ferme comme les autres.
+    /// Unchecked, the window is left where it is and everything else
+    /// arranges itself without it. It still opens and closes like the
+    /// others.
     /// </summary>
     public bool IsManaged { get; set; } = true;
 
     /// <summary>
-    /// Vrai si ce compte s'ouvre dans le cadre à onglets plutôt qu'en fenêtre
-    /// libre.
+    /// True if this account opens in the tabbed frame rather than in a
+    /// free window.
     ///
-    /// La fenêtre reste la même : elle est logée dans le cadre, non recréée.
-    /// Un compte logé échappe aux placements automatiques, qui lutteraient
-    /// contre le cadre.
+    /// The window stays the same: it is docked into the frame, not
+    /// recreated. A docked account escapes automatic placements, which
+    /// would otherwise fight the frame.
     /// </summary>
     public bool IsTabbed { get; set; }
 
     /// <summary>
-    /// Rang de l'instance dans la liste unique, dense de 0 à n-1.
+    /// Rank of the instance in the single list, dense from 0 to n-1.
     ///
-    /// C'est la seule donnée d'ordre : les instances se trient librement entre
-    /// elles, quel que soit leur appareil. Trier là-dessus suffit donc à
-    /// obtenir l'ordre d'affichage, d'ouverture et de parcours au clavier.
-    /// C'est <see cref="InstanceOrdering.Normalize"/> qui maintient la densité.
+    /// This is the only ordering data: instances sort freely among
+    /// themselves, regardless of their device. Sorting on this alone is
+    /// therefore enough to get the display order, the opening order, and
+    /// the keyboard traversal order.
+    /// <see cref="InstanceOrdering.Normalize"/> is what keeps it dense.
     /// </summary>
     public int Order { get; set; }
 
     /// <summary>
-    /// Où la fenêtre a été laissée. <c>null</c> tant qu'elle n'a jamais été
-    /// ouverte : le placement retombe alors sur l'ancrage et la taille.
+    /// Where the window was left. <c>null</c> as long as it has never
+    /// been opened: placement then falls back to the anchor and size.
     /// </summary>
     public StoredWindowRect? Window { get; set; }
 
     /// <summary>
-    /// Palier de qualité propre à ce compte, ou <c>null</c> pour suivre le
-    /// réglage commun.
+    /// Quality tier specific to this account, or <c>null</c> to follow
+    /// the shared setting.
     ///
-    /// Un compte principal mérite soixante images et un gros débit ; quatre
-    /// mules qui suivent n'en ont pas besoin, et ce qu'on leur épargne est
-    /// autant de processeur, de bande passante, de chaleur et de batterie en
-    /// moins. <c>null</c> par défaut : personne n'a à régler cinq comptes pour
-    /// que l'application marche.
+    /// A main account deserves sixty frames and a high bitrate; four
+    /// mules following along do not need that, and what is spared them
+    /// is that much less processor, bandwidth, heat, and battery.
+    /// <c>null</c> by default: nobody has to configure five accounts for
+    /// the application to work.
     /// </summary>
     public StreamQuality? Quality { get; set; }
 
     /// <summary>
-    /// Distance dans le jeu propre à ce compte, ou <c>null</c> pour suivre le
-    /// réglage commun.
+    /// In-game distance specific to this account, or <c>null</c> to
+    /// follow the shared setting.
     ///
-    /// Elle se règle par compte pour la même raison que le palier, mais son
-    /// motif n'est pas le même : ce n'est pas une économie, c'est un usage. On
-    /// veut voir large sur le compte qu'on joue, et peu importe ce que montrent
-    /// les mules dont on ne regarde que la barre de vie. <c>null</c> par
-    /// défaut, comme le palier.
+    /// It is set per account for the same reason as the tier, but its
+    /// motive differs: this is not a saving, it is a use. One wants a
+    /// wide view on the account being played, and it hardly matters what
+    /// the mules show when only their health bar is watched. <c>null</c>
+    /// by default, like the tier.
     /// </summary>
     public GameZoom? GameZoom { get; set; }
 
     /// <summary>
-    /// Temps de jeu par jour, en secondes, sur la semaine glissante. La clef
-    /// est une date en ISO. Voir <see cref="PlaytimeLog" />.
+    /// Playtime per day, in seconds, over the rolling week. The key is
+    /// an ISO date. See <see cref="PlaytimeLog" />.
     /// </summary>
     public Dictionary<string, int> Playtime { get; set; } = [];
 
     /// <summary>
-    /// Clé stable de l'instance. Exclue du fichier : elle se déduit des trois
-    /// champs qui la composent, et l'écrire n'ajouterait qu'une redondance
-    /// qu'une modification à la main pourrait contredire.
+    /// Stable key of the instance. Excluded from the file: it is derived
+    /// from the three fields that make it up, and writing it would only
+    /// add a redundancy that a hand edit could contradict.
     /// </summary>
     [JsonIgnore]
     public string Key => $"{DeviceId}|{UserId}|{PackageName}";
 }
 
 /// <summary>
-/// Géométrie retenue d'une fenêtre de jeu. L'écran est mémorisé avec elle :
-/// un rectangle valable hier peut se retrouver hors de tout écran aujourd'hui,
-/// et il ne faut pas y rouvrir une fenêtre invisible.
+/// Retained geometry of a game window. The screen is stored along with
+/// it: a rectangle valid yesterday can end up off every screen today,
+/// and a window must not be reopened there invisibly.
 /// </summary>
 public sealed class StoredWindowRect
 {
@@ -386,9 +406,9 @@ public sealed class StoredWindowRect
     public int Height { get; set; }
 
     /// <summary>
-    /// Écran sur lequel la fenêtre se trouvait. Ce nom est positionnel :
-    /// débrancher un écran renumérote les suivants. Il ne suffit donc pas, et
-    /// les bornes sont mémorisées avec lui.
+    /// Screen the window was on. This name is positional: unplugging a
+    /// screen renumbers the following ones. It is therefore not enough
+    /// on its own, and the bounds are stored alongside it.
     /// </summary>
     public string? MonitorDeviceName { get; set; }
 
@@ -397,11 +417,11 @@ public sealed class StoredWindowRect
     public int MonitorWidth { get; set; }
     public int MonitorHeight { get; set; }
 
-    /// <summary>Rectangle extérieur de la fenêtre.</summary>
+    /// <summary>Outer rectangle of the window.</summary>
     [JsonIgnore]
     public Windows.ScreenRect Bounds => new(X, Y, Width, Height);
 
-    /// <summary>Bornes de l'écran au moment de la capture.</summary>
+    /// <summary>Screen bounds at the moment of capture.</summary>
     [JsonIgnore]
     public Windows.ScreenRect Monitor => new(MonitorX, MonitorY, MonitorWidth, MonitorHeight);
 
@@ -424,7 +444,7 @@ public sealed class StoredWindowRect
     }
 }
 
-/// <summary>Forme persistée d'un raccourci.</summary>
+/// <summary>Persisted shape of a hotkey.</summary>
 public sealed class StoredHotkey
 {
     public string Action { get; set; } = string.Empty;
@@ -444,14 +464,14 @@ public sealed class StoredHotkey
     }
 
     /// <summary>
-    /// Reconstruit un raccourci, ou rend <c>null</c> si l'action n'existe
-    /// plus. Un fichier écrit par une autre version ne doit pas faire échouer
-    /// la lecture.
+    /// Rebuilds a hotkey, or returns <c>null</c> if the action no longer
+    /// exists. A file written by another version must not make reading
+    /// fail.
     /// </summary>
     public HotkeyBinding? ToBinding()
     {
-        // « CloseAll » est l'ancien nom de « Quit ». Sans cette équivalence, la
-        // combinaison choisie par l'utilisateur serait perdue au renommage.
+        // "CloseAll" is the old name for "Quit". Without this mapping,
+        // the combination the user chose would be lost at the rename.
         var name = string.Equals(Action, "CloseAll", StringComparison.OrdinalIgnoreCase)
             ? nameof(HotkeyAction.Quit)
             : Action;

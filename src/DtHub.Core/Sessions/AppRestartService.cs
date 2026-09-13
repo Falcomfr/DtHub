@@ -2,30 +2,36 @@
 
 namespace DtHub.Core.Sessions;
 
-/// <summary>Issue d'une relance courte.</summary>
+/// <summary>Outcome of a short restart.</summary>
 public enum AppRestartOutcome
 {
-    /// <summary>Le jeu est reparti sur le même afficheur.</summary>
+    /// <summary>The game restarted on the same display.</summary>
     Restarted,
 
-    /// <summary>L'afficheur n'est pas connu : il faut rouvrir la session.</summary>
+    /// <summary>
+    /// The display is not known: the session must be reopened.
+    /// </summary>
     NoDisplay,
 
-    /// <summary>Android a refusé le démarrage.</summary>
+    /// <summary>Android refused the launch.</summary>
     Failed,
 }
 
-/// <summary>Résultat d'une relance courte, avec le motif d'un refus.</summary>
+/// <summary>
+/// Result of a short restart, with the reason for a refusal.
+/// </summary>
 public sealed record AppRestartResult(AppRestartOutcome Outcome, string? UserMessage = null);
 
 /// <summary>
-/// Relance le jeu d'une session sans toucher à sa fenêtre : arrêt forcé côté
-/// Android, puis nouveau démarrage sur le même afficheur.
+/// Restarts a session's game without touching its window: forced
+/// stop on the Android side, then a fresh launch on the same
+/// display.
 ///
-/// Rouvrir la session ferait disparaître la fenêtre et recréerait l'afficheur,
-/// ce qui n'a pas lieu d'être quand seul le jeu doit repartir. L'afficheur
-/// étant conservé, la définition ne change pas : passer à un autre palier
-/// demande de fermer puis de rouvrir.
+/// Reopening the session would make the window disappear and would
+/// recreate the display, which has no reason to happen when only
+/// the game needs to restart. Since the display is kept, the
+/// resolution does not change: moving to another size tier
+/// requires closing then reopening.
 /// </summary>
 public sealed class AppRestartService
 {
@@ -41,12 +47,14 @@ public sealed class AppRestartService
     }
 
     /// <summary>
-    /// Délai laissé à l'arrêt forcé. Il n'est pas instantané : redémarrer trop
-    /// vite rouvrirait l'ancienne instance.
+    /// Delay left for the forced stop. It is not instantaneous:
+    /// restarting too quickly would reopen the old instance.
     /// </summary>
     public TimeSpan SettleDelay { get; init; } = TimeSpan.FromMilliseconds(600);
 
-    /// <summary>Arrête puis redémarre le jeu d'une session, sur son afficheur.</summary>
+    /// <summary>
+    /// Stops then restarts a session's game, on its display.
+    /// </summary>
     public async Task<AppRestartResult> RestartAsync(
         ScrcpySession session,
         CancellationToken cancellationToken = default)

@@ -1,52 +1,64 @@
 ﻿namespace DtHub.Core.Localization;
 
 /// <summary>
-/// Choisit la langue de l'interface.
+/// Chooses the interface language.
 ///
-/// La règle est celle qu'on peut expliquer en une phrase : la langue
-/// d'affichage de Windows si on la sert, l'anglais sinon, et un réglage
-/// manuel qui l'emporte sur les deux. La comparaison se fait sur les deux
-/// premières lettres : « fr-BE » et « es-419 » sont servis comme « fr » et
-/// « es », ce qui évite d'énumérer les variantes régionales.
+/// The rule is one that can be explained in one sentence: Windows'
+/// display language if we serve it, English otherwise, and a manual
+/// setting that overrides both. The comparison is done on the first
+/// two letters: "fr-BE" and "es-419" are served as "fr" and "es",
+/// which avoids enumerating regional variants.
 /// </summary>
 public static class AppLanguage
 {
-    /// <summary>La langue embarquée dans l'assembly, celle qui reste quand rien ne correspond.</summary>
+    /// <summary>
+    /// The language embedded in the assembly, the one that remains
+    /// when nothing matches.
+    /// </summary>
     public const string Neutral = "en";
 
-    /// <summary>Les langues traduites, la neutre en tête.</summary>
+    /// <summary>
+    /// The translated languages, with the neutral one first.
+    /// </summary>
     public static readonly IReadOnlyList<string> Supported = [Neutral, "fr", "es"];
 
     /// <summary>
-    /// Rend la langue à poser, à partir du réglage de l'application
-    /// (vide pour « suivre Windows ») et de la langue d'affichage de Windows.
+    /// Returns the language to apply, from the application setting
+    /// (empty to follow Windows) and Windows' display language.
     /// </summary>
     public static string Choose(string? preferred, string? windows)
         => Match(preferred) ?? Match(windows) ?? Neutral;
 
     /// <summary>
-    /// Vrai s'il faut relancer pour que le choix se voie, c'est-à-dire si la
-    /// langue qu'il désigne n'est pas celle qui est déjà affichée.
+    /// True when a restart is needed for the choice to show, that is,
+    /// when the language it designates is not the one already
+    /// displayed.
     ///
-    /// Le message d'invitation se levait auparavant à tout changement de
-    /// réglage et ne redescendait jamais : revenir à la langue du départ, donc
-    /// renoncer, laissait pourtant l'invitation, pour une application qui
-    /// n'avait plus rien à changer. Ce qui compte n'est pas qu'on ait touché au
-    /// réglage, mais que le choix s'écarte de ce qui est affiché.
+    /// The prompt used to appear on any setting change and never
+    /// went back down: reverting to the starting language, in other
+    /// words backing out, still left the prompt showing, for an
+    /// application that had nothing left to change. What matters is
+    /// not whether the setting was touched, but whether the choice
+    /// differs from what is displayed.
     ///
-    /// « Suivre Windows » est résolu comme au démarrage : le choisir alors que
-    /// Windows parle déjà la langue affichée ne demande donc rien non plus.
+    /// "Follow Windows" is resolved the same way as at startup:
+    /// choosing it while Windows already speaks the displayed
+    /// language therefore asks for nothing either.
     /// </summary>
-    /// <param name="preferred">Le réglage choisi, vide pour « suivre Windows ».</param>
-    /// <param name="windows">La langue d'affichage de Windows.</param>
-    /// <param name="inForce">La langue actuellement affichée.</param>
+    /// <param name="preferred">
+    /// The chosen setting, empty to follow Windows.
+    /// </param>
+    /// <param name="windows">Windows' display language.</param>
+    /// <param name="inForce">The language currently displayed.</param>
     public static bool NeedsRestart(string? preferred, string? windows, string? inForce) =>
         !string.Equals(Choose(preferred, windows), Choose(inForce, null), StringComparison.Ordinal);
 
-    /// <summary>Vrai si cette langue est traduite.</summary>
+    /// <summary>True if this language is translated.</summary>
     public static bool Serves(string? culture) => Match(culture) is not null;
 
-    /// <summary>Rend la langue servie pour cette culture, ou rien.</summary>
+    /// <summary>
+    /// Returns the language served for this culture, or nothing.
+    /// </summary>
     private static string? Match(string? culture)
     {
         if (string.IsNullOrWhiteSpace(culture))
@@ -54,8 +66,8 @@ public static class AppLanguage
             return null;
         }
 
-        // « fr-BE », « es_MX » : seule la partie qui précède le séparateur
-        // nomme la langue.
+        // "fr-BE", "es_MX": only the part before the separator names
+        // the language.
         var language = culture.Trim();
         var separator = language.IndexOfAny(['-', '_']);
 

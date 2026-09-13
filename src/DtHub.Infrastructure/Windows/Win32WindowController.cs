@@ -5,9 +5,9 @@ using DtHub.Core.Windows;
 namespace DtHub.Infrastructure.Windows;
 
 /// <summary>
-/// Accès aux fenêtres par l'API Windows. Toutes les fonctions sont tolérantes
-/// à la disparition d'une fenêtre entre le moment où on la trouve et celui où
-/// on agit dessus : une session peut se fermer à tout instant.
+/// Access to windows through the Windows API. All functions tolerate a
+/// window disappearing between the moment it is found and the moment
+/// it is acted upon: a session can close at any instant.
 /// </summary>
 public sealed partial class Win32WindowController : IWindowController
 {
@@ -47,8 +47,8 @@ public sealed partial class Win32WindowController : IWindowController
                 return true;
             }
 
-            // Le fil d'exécution ne nous intéresse pas ; seul le processus
-            // propriétaire compte.
+            // The execution thread does not interest us; only the owning
+            // process matters.
             var thread = GetWindowThreadProcessId(handle, out var owner);
             if (thread == 0 || owner != (uint)processId)
             {
@@ -87,9 +87,9 @@ public sealed partial class Win32WindowController : IWindowController
 
     public ScreenRect? GetWindowRect(nint handle)
     {
-        // Une fenêtre réduite rend un rectangle en (-32000, -32000). Le
-        // mémoriser détruirait la géométrie retenue, et le restaurer placerait
-        // la fenêtre hors de tout écran.
+        // A minimized window returns a rectangle at (-32000, -32000).
+        // Remembering it would destroy the kept geometry, and restoring
+        // it would place the window off any screen.
         if (handle == 0 || IsIconic(handle) || !GetWindowRectCore(handle, out var rect))
         {
             return null;
@@ -109,13 +109,13 @@ public sealed partial class Win32WindowController : IWindowController
     }
 
     /// <summary>
-    /// Encombrement du cadre d'une fenêtre ordinaire, mesuré sans qu'aucune
-    /// fenêtre n'existe.
+    /// Footprint of an ordinary window's chrome, measured without any
+    /// window existing.
     ///
-    /// scrcpy ouvre une fenêtre redimensionnable avec barre de titre, donc le
-    /// style le plus courant. La mise à l'échelle de l'écran visé est prise en
-    /// compte : sur un écran à 150 pour cent, le cadre est une fois et demie
-    /// plus épais.
+    /// scrcpy opens a resizable window with a title bar, hence the most
+    /// common style. The scaling of the targeted screen is taken into
+    /// account: on a screen at 150 percent, the chrome is one and a half
+    /// times thicker.
     /// </summary>
     public WindowFrame GetWindowChrome(string? monitorDeviceName)
     {
@@ -128,8 +128,9 @@ public sealed partial class Win32WindowController : IWindowController
             return WindowFrame.None;
         }
 
-        // Le rectangle rendu déborde du client : ses bords gauche et haut sont
-        // négatifs, et leur opposé est l'épaisseur cherchée.
+        // The returned rectangle overflows the client area: its left and
+        // top edges are negative, and their opposite is the thickness
+        // being sought.
         return new WindowFrame(
             Left: -frame.Left,
             Top: -frame.Top,
@@ -137,7 +138,9 @@ public sealed partial class Win32WindowController : IWindowController
             Height: frame.Bottom - frame.Top - 1000);
     }
 
-    /// <summary>Points par pouce de l'écran visé, ou ceux du système à défaut.</summary>
+    /// <summary>
+    /// Dots per inch of the targeted screen, or the system's by default.
+    /// </summary>
     private uint DpiOf(string? monitorDeviceName)
     {
         var monitors = GetMonitors();
@@ -170,8 +173,8 @@ public sealed partial class Win32WindowController : IWindowController
             return;
         }
 
-        // Une fenêtre réduite ignorerait le déplacement : on la restaure
-        // d'abord, sans lui voler le focus.
+        // A minimized window would ignore the move: it is restored first,
+        // without stealing its focus.
         if (IsIconic(handle))
         {
             _ = ShowWindow(handle, ShowWindowRestore);
@@ -253,13 +256,13 @@ public sealed partial class Win32WindowController : IWindowController
 
         _ = SetWindowLong(handle, GwlStyle, updated);
 
-        // Sans ce rafraîchissement, la zone non cliente reste dessinée.
+        // Without this refresh, the non-client area stays drawn.
         _ = SetWindowPos(handle, 0, 0, 0, 0, 0, SwpNoMove | SwpNoSize | SwpNoZOrder | SwpFrameChanged | SwpNoActivate);
     }
 
     /// <summary>
-    /// Ce qu'une fenêtre était avant d'être logée : de quoi la rendre à
-    /// l'identique.
+    /// What a window was before being docked: enough to restore it
+    /// identically.
     /// </summary>
     private readonly record struct DockedWindow(nint Parent, int Style, ScreenRect Rect);
 
@@ -280,13 +283,13 @@ public sealed partial class Win32WindowController : IWindowController
             return false;
         }
 
-        // Retenu avant de toucher à quoi que ce soit : une fenêtre rendue avec
-        // un style deviné ne se comporterait plus comme les autres.
+        // Kept before touching anything at all: a window restored with a
+        // guessed style would no longer behave like the others.
         _docked[child] = new DockedWindow(GetParent(child), style, before);
 
-        // Le cadre et la barre de titre partent, WS_CHILD arrive. L'ordre
-        // compte : changer le style avant d'attacher évite un clignotement de
-        // fenêtre principale sans cadre.
+        // The frame and title bar leave, WS_CHILD arrives. The order
+        // matters: changing the style before attaching avoids a flicker
+        // of a frameless main window.
         _ = SetWindowLong(child, GwlStyle, (style & ~(WsPopup | WsCaption | WsThickFrame)) | WsChild);
         _ = SetParent(child, host);
         _ = SetWindowPos(child, 0, 0, 0, 0, 0, SwpNoMove | SwpNoSize | SwpNoZOrder | SwpFrameChanged | SwpNoActivate);
@@ -309,8 +312,8 @@ public sealed partial class Win32WindowController : IWindowController
         _ = SetParent(child, before.Parent);
         _ = SetWindowLong(child, GwlStyle, before.Style);
 
-        // La géométrie est rendue en dernier : posée avant le style, elle
-        // serait reprise par le retour du cadre.
+        // The geometry is restored last: set before the style, it would
+        // be overridden by the frame's return.
         MoveWindow(child, before.Rect);
         _ = SetWindowPos(child, 0, 0, 0, 0, 0, SwpNoMove | SwpNoSize | SwpNoZOrder | SwpFrameChanged | SwpNoActivate);
 
@@ -328,19 +331,20 @@ public sealed partial class Win32WindowController : IWindowController
     }
 
     /// <summary>
-    /// Rend le clavier à une fenêtre logée.
+    /// Gives the keyboard back to a docked window.
     ///
-    /// Un seul appel suffit, et c'est une mesure qui le dit : comparées côte
-    /// à côte, la file d'entrée d'une fenêtre scrcpy libre et la nôtre sont
-    /// séparées, alors qu'une fois la fenêtre arrimée elles n'en font plus
-    /// qu'une, sans que rien ici ne les ait jointes. C'est SetParent qui les
-    /// attache. Il ne restait donc qu'à désigner la fenêtre : le focus, lui,
-    /// demeurait sur la fenêtre WPF, et toutes les frappes avec lui.
+    /// A single call is enough, and a measurement is what says so:
+    /// compared side by side, the input queue of a free scrcpy window
+    /// and ours are separate, whereas once the window is docked they
+    /// become only one, without anything here having joined them. It is
+    /// SetParent that attaches them. All that remained was to designate
+    /// the window: the focus, for its part, stayed on the WPF window,
+    /// and every keystroke with it.
     ///
-    /// Le chemin le plus court se trouve être le plus sûr.
-    /// <c>AttachThreadInput</c> remettrait l'état des touches à zéro à chaque
-    /// appel, perdant le Ctrl d'un Ctrl+V en cours, et le défaire couperait
-    /// ce dont l'arrimage dépend.
+    /// The shortest path turns out to be the safest one.
+    /// <c>AttachThreadInput</c> would reset the state of the keys to
+    /// zero on every call, losing the Ctrl of a Ctrl+V in progress, and
+    /// undoing it would cut what the docking depends on.
     /// </summary>
     public bool GiveKeyboardFocus(nint child)
     {
@@ -351,11 +355,12 @@ public sealed partial class Win32WindowController : IWindowController
 
         _ = SetFocus(child);
 
-        // On relit plutôt que de croire la valeur rendue : SetFocus rend NULL
-        // aussi bien s'il échoue que si aucune fenêtre n'avait le focus, et le
-        // second cas est le nôtre au premier arrimage. GetFocus interroge la
-        // file du fil appelant, celle-là même que l'arrimage a jointe à celle
-        // du jeu : si la réponse est la fenêtre logée, le clavier lui va.
+        // We reread rather than trust the returned value: SetFocus
+        // returns NULL both if it fails and if no window had focus, and
+        // the second case is ours on the first docking. GetFocus queries
+        // the calling thread's queue, the very one docking joined to the
+        // game's: if the answer is the docked window, the keyboard goes
+        // to it.
         return GetFocus() == child;
     }
 
@@ -364,7 +369,7 @@ public sealed partial class Win32WindowController : IWindowController
     private static ScreenRect ToRect(Rect rect) =>
         new(rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top);
 
-    // Constantes de l'API Windows.
+    // Windows API constants.
     private const uint MonitorPrimary = 0x00000001;
     private const int GwlStyle = -16;
     private const int WsCaption = 0x00C00000;
@@ -415,15 +420,19 @@ public sealed partial class Win32WindowController : IWindowController
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool GetMonitorInfo(nint monitor, ref MonitorInfoEx info);
 
-    /// <summary>Style d'une fenêtre ordinaire redimensionnable : WS_OVERLAPPEDWINDOW.</summary>
+    /// <summary>
+    /// Style of an ordinary resizable window: WS_OVERLAPPEDWINDOW.
+    /// </summary>
     private const uint OverlappedWindow = 0x00CF0000;
 
-    /// <summary>Densité de référence de Windows, cent pour cent.</summary>
+    /// <summary>Windows' reference density, one hundred percent.</summary>
     private const uint DefaultDpi = 96;
 
     private const uint MonitorDefaultToNearest = 2;
 
-    /// <summary>MDT_EFFECTIVE_DPI : la densité telle que la voit l'application.</summary>
+    /// <summary>
+    /// MDT_EFFECTIVE_DPI: the density as the application sees it.
+    /// </summary>
     private const int MonitorDpiEffective = 0;
 
     [StructLayout(LayoutKind.Sequential)]
@@ -518,16 +527,17 @@ public sealed partial class Win32WindowController : IWindowController
     private static extern bool ShowWindow(nint handle, int command);
 
     /// <summary>
-    /// Où se trouve une fenêtre, en pixels du bureau.
+    /// Where a window is, in desktop pixels.
     ///
-    /// Le rectangle vient de GetWindowRect et non du rectangle « normal » de
-    /// WINDOWPLACEMENT : celui-ci est exprimé dans la densité de l'écran
-    /// principal, si bien qu'une fenêtre posée sur un second écran à cent
-    /// cinquante pour cent revenait à deux tiers de sa taille. Mesuré :
-    /// 780 x 1140 à l'enregistrement, 570 x 761 à la relecture.
+    /// The rectangle comes from GetWindowRect and not from
+    /// WINDOWPLACEMENT's "normal" rectangle: the latter is expressed in
+    /// the main screen's density, so that a window placed on a second
+    /// screen at one hundred fifty percent would come back at two
+    /// thirds of its size. Measured: 780 x 1140 on saving, 570 x 761 on
+    /// reading back.
     ///
-    /// De WINDOWPLACEMENT on ne garde que l'état d'affichage, qui ne dépend
-    /// d'aucune échelle.
+    /// From WINDOWPLACEMENT only the display state is kept, which does
+    /// not depend on any scale.
     /// </summary>
     public WindowPlacement? GetPlacement(nint handle)
     {
@@ -549,9 +559,9 @@ public sealed partial class Win32WindowController : IWindowController
     }
 
     /// <summary>
-    /// Remet une fenêtre où elle était, si tant est qu'un écran s'y trouve
-    /// encore. Sinon elle garde sa place par défaut, ce qui vaut mieux que de
-    /// s'ouvrir hors de vue.
+    /// Puts a window back where it was, provided a screen is still
+    /// there. Otherwise it keeps its default place, which is better
+    /// than opening out of view.
     /// </summary>
     public bool SetPlacement(nint handle, WindowPlacement placement)
     {

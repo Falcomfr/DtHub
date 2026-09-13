@@ -5,14 +5,16 @@ using DtHub.Core.Windows;
 namespace DtHub.Infrastructure.Windows;
 
 /// <summary>
-/// Écrit un raccourci par l'interface du shell de Windows.
+/// Writes a shortcut through the Windows shell interface.
 ///
-/// C'est la seule voie depuis l'application : le script PowerShell du dépôt
-/// fait la même chose, mais PowerShell est proscrit à l'exécution.
+/// This is the only path from the application: the repository's
+/// PowerShell script does the same thing, but PowerShell is
+/// forbidden at runtime.
 ///
-/// Le raccourci vise l'exécutable là où il se trouve, sans rien copier ni
-/// déplacer. L'application le récrit à chaque démarrage : déplacer le fichier
-/// suffit alors à corriger le raccourci, sans rien demander à personne.
+/// The shortcut targets the executable wherever it is, without
+/// copying or moving anything. The application rewrites it on
+/// every startup: moving the file is then enough to fix the
+/// shortcut, without asking anyone anything.
 /// </summary>
 public sealed class Win32ShortcutWriter : IShortcutWriter
 {
@@ -48,16 +50,17 @@ public sealed class Win32ShortcutWriter : IShortcutWriter
         catch (Exception exception) when (exception is COMException
             or IOException or UnauthorizedAccessException or NotSupportedException)
         {
-            // Silence assumé : le faux rend l'échec à l'appelant, qui le
-            // journalise. Un raccourci de menu Démarrer absent n'empêche rien.
+            // Deliberate silence: returning false reports the
+            // failure to the caller, who logs it. A missing Start
+            // menu shortcut prevents nothing.
             return false;
         }
     }
 
     [ComImport]
-    // Non scellée : le compilateur refuse de convertir une classe scellée vers
-    // une interface qu'elle ne déclare pas, alors que c'est précisément ainsi
-    // qu'on obtient un objet du shell.
+    // Not sealed: the compiler refuses to convert a sealed class to
+    // an interface it does not declare, even though that is exactly
+    // how a shell object is obtained.
     [Guid("00021401-0000-0000-C000-000000000046")]
     private class ShellLink
     {

@@ -1,44 +1,49 @@
 ﻿namespace DtHub.Core.Dofus;
 
-/// <summary>Un compte dont la fenêtre est ouverte, et le nom qu'elle affiche.</summary>
-/// <param name="Key">Clé de l'instance.</param>
-/// <param name="UserName">Nom du profil Android, le nom de repli.</param>
-/// <param name="Shown">Nom actuellement affiché sur l'onglet ou le titre.</param>
+/// <summary>
+/// An account whose window is open, and the name it displays.
+/// </summary>
+/// <param name="Key">Instance key.</param>
+/// <param name="UserName">Android profile name, the fallback name.</param>
+/// <param name="Shown">Name currently shown on the tab or the title.</param>
 public readonly record struct OpenInstance(string Key, string UserName, string Shown);
 
 /// <summary>
-/// Ce qu'il faut réécrire quand un compte change de nom.
+/// What must be rewritten when an account changes name.
 ///
-/// **Le défaut que ce type existe pour attraper.** Le libellé d'un onglet était
-/// une copie du nom prise au moment où la fenêtre était logée dans le cadre, et
-/// rien ne l'écrivait plus ensuite. Renommer un compte écrivait bien le réglage,
-/// et la fenêtre gardait l'ancien nom jusqu'à sa réouverture. Deux comptes
-/// renommés le même jour n'avaient pas le même sort : celui dont la fenêtre
-/// avait été ouverte après son renommage paraissait juste, et faisait croire
-/// que l'autre était un cas particulier.
+/// **The defect this type exists to catch.** A tab's label was a copy
+/// of the name taken at the moment the window was docked into the
+/// frame, and nothing wrote it again afterwards. Renaming an account
+/// did write the setting, and the window kept the old name until it
+/// was reopened. Two accounts renamed on the same day did not share
+/// the same fate: the one whose window had been opened after its
+/// renaming looked correct, and made the other one look like a
+/// special case.
 ///
-/// **Pourquoi le calcul est ici et non dans le service qui pose les titres.**
-/// C'est la partie qui décide, donc celle qu'on éprouve. Poser un titre sur une
-/// fenêtre Windows ne s'éprouve pas ; savoir lequel, si.
+/// **Why the computation lives here and not in the service that sets
+/// the titles.** This is the part that decides, so the part we put to
+/// the test. Setting a title on a Windows window cannot be tested;
+/// knowing which one, it can.
 ///
-/// **Et pourquoi il compare avant de rendre.** L'évènement des réglages se lève
-/// à chaque écriture, dont la géométrie d'une fenêtre qu'on déplace, c'est à
-/// dire souvent. Rendre tous les comptes à chaque fois ferait réécrire tous les
-/// titres de toutes les fenêtres ouvertes pour un déplacement de souris.
+/// **And why it compares before returning.** The settings event fires
+/// on every write, including the geometry of a window being moved,
+/// which is to say often. Returning every account every time would
+/// rewrite the titles of every open window for a single mouse
+/// movement.
 /// </summary>
 public static class InstanceRenames
 {
     /// <summary>
-    /// Les comptes ouverts dont le nom affiché ne correspond plus aux réglages,
-    /// et le nom qu'ils doivent désormais porter.
+    /// Open accounts whose displayed name no longer matches the
+    /// settings, and the name they must now carry.
     ///
-    /// Rend un dictionnaire vide quand rien n'a bougé, ce qui est le cas
-    /// ordinaire.
+    /// Returns an empty dictionary when nothing has moved, which is
+    /// the ordinary case.
     /// </summary>
-    /// <param name="open">Les comptes dont une fenêtre est ouverte.</param>
+    /// <param name="open">Accounts whose window is open.</param>
     /// <param name="customNameFor">
-    /// Le nom choisi par l'utilisateur pour cette clé, tel que les réglages le
-    /// portent maintenant, ou <c>null</c> s'il n'y en a pas.
+    /// The name chosen by the user for this key, as the settings now
+    /// carry it, or <c>null</c> if there is none.
     /// </param>
     public static Dictionary<string, string> Pending(
         IEnumerable<OpenInstance> open,

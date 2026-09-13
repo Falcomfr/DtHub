@@ -9,37 +9,39 @@ using Microsoft.Web.WebView2.Core;
 namespace DtHub.App.Services;
 
 /// <summary>
-/// Le moteur de rendu, préparé une fois pour toutes les fenêtres qui en portent
-/// un.
+/// The rendering engine, prepared once for every window that
+/// carries one.
 ///
-/// Il sert deux choses que le réglage par défaut fait mal.
+/// It serves two things the default setting handles poorly.
 ///
-/// **Où il écrit.** Sans adresse, il pose son cache à côté de l'exécutable.
-/// Mesuré sur un dossier vierge, vingt-quatre mégaoctets après une session ; sur
-/// un dossier de développement de quelques semaines, trois cent
-/// quatre-vingt-dix-neuf. Un fichier unique qu'on donne à quelqu'un ne laisse pas
-/// cela derrière lui : tout va dans le dossier de l'utilisateur, avec le reste.
+/// **Where it writes.** Without an address, it drops its cache next
+/// to the executable. Measured on a fresh folder, twenty-four
+/// megabytes after one session; on a development folder several
+/// weeks old, three hundred and ninety-nine. A single file handed
+/// to someone does not leave that behind: everything goes into the
+/// user's folder, with the rest.
 ///
-/// **Combien il garde.** Trois cent trente-huit de ces trois cent
-/// quatre-vingt-dix-neuf mégaoctets sont du cache web, les images des guides.
-/// Chromium dimensionne son cache sur la place libre du disque, ce qui est
-/// démesuré ici : on le borne.
+/// **How much it keeps.** Three hundred and thirty-eight of those
+/// three hundred and ninety-nine megabytes are web cache, the
+/// guides' images. Chromium sizes its cache on the disk's free
+/// space, which is excessive here: we cap it.
 /// </summary>
 public sealed partial class WebViewEnvironment(IAppPaths paths, ILogger<WebViewEnvironment> logger)
 {
     /// <summary>
-    /// Ce qu'on accorde au cache du moteur. Cent mégaoctets tiennent des
-    /// centaines de pages de guide, images comprises, et rendent une page déjà
-    /// vue immédiate.
+    /// What we grant to the engine's cache. A hundred megabytes hold
+    /// hundreds of guide pages, images included, and make a page
+    /// already seen load instantly.
     /// </summary>
     private const long CacheBytes = 100L * 1024 * 1024;
 
     /// <summary>
-    /// Au-delà de cette taille, le cache est balayé au démarrage.
+    /// Beyond this size, the cache is swept on startup.
     ///
-    /// Filet : la documentation du moteur prévient que certains commutateurs de
-    /// ligne de commande sont ignorés, et la borne pourrait donc ne pas prendre.
-    /// Le seuil est plus haut qu'elle, pour ne balayer que si elle a échoué.
+    /// Safety net: the engine's documentation warns that some
+    /// command-line switches are ignored, so the cap might not take
+    /// effect. The threshold is set higher than it, so we only
+    /// sweep if the cap has failed.
     /// </summary>
     private const long SweepBytes = 200L * 1024 * 1024;
 
@@ -49,8 +51,9 @@ public sealed partial class WebViewEnvironment(IAppPaths paths, ILogger<WebViewE
     private Task<CoreWebView2Environment>? _ready;
 
     /// <summary>
-    /// L'environnement, créé au premier besoin puis partagé. Les deux fenêtres
-    /// écrivent ainsi dans le même profil au lieu d'en ouvrir chacune un.
+    /// The environment, created on first need then shared. Both
+    /// windows thus write into the same profile instead of each
+    /// opening one.
     /// </summary>
     public Task<CoreWebView2Environment> GetAsync() => _ready ??= CreateAsync();
 
@@ -73,15 +76,18 @@ public sealed partial class WebViewEnvironment(IAppPaths paths, ILogger<WebViewE
     }
 
     /// <summary>
-    /// Vérifie que le composant est là, et le dit clairement s'il ne l'est pas.
+    /// Checks that the component is present, and says so clearly if
+    /// it is not.
     ///
-    /// C'est la seule dépendance externe de l'application. Il est fourni avec
-    /// Windows 11 et les Windows 10 tenus à jour ; absent, la fenêtre des guides
-    /// restait vide et l'incident ne se lisait que dans un journal.
+    /// This is the application's only external dependency. It ships
+    /// with Windows 11 and Windows 10 kept up to date; when missing,
+    /// the guides window used to stay blank and the incident could
+    /// only be read in a log.
     ///
-    /// Le contrôle est ici et non dans les fenêtres : les deux passent par cet
-    /// environnement, ce qui en fait le seul endroit à tenir. Le message remonte
-    /// par l'exception, que la fenêtre affiche déjà à la place de la page.
+    /// The check lives here rather than in the windows: both go
+    /// through this environment, which makes it the only place to
+    /// maintain. The message travels up through the exception, which
+    /// the window already shows in place of the page.
     /// </summary>
     private void Available()
     {
@@ -93,8 +99,9 @@ public sealed partial class WebViewEnvironment(IAppPaths paths, ILogger<WebViewE
         }
         catch (WebView2RuntimeNotFoundException)
         {
-            // Silence assumé : l'absence du moteur est la réponse, non une
-            // faute. C'est l'appelant qui la transforme en message.
+            // Silence is deliberate here: the engine's absence is
+            // the answer, not a fault. It is the caller that turns
+            // it into a message.
             version = null;
         }
 
@@ -112,8 +119,9 @@ public sealed partial class WebViewEnvironment(IAppPaths paths, ILogger<WebViewE
     }
 
     /// <summary>
-    /// Efface le cache s'il a débordé, avant que le moteur ne démarre. Il le
-    /// rebâtit sans se plaindre ; on n'y perd qu'un chargement.
+    /// Clears the cache if it has overflowed, before the engine
+    /// starts. It rebuilds it without complaint; all that is lost
+    /// is one load.
     /// </summary>
     private void Sweep()
     {
@@ -140,8 +148,9 @@ public sealed partial class WebViewEnvironment(IAppPaths paths, ILogger<WebViewE
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            // Un cache qu'on n'arrive pas à effacer ne mérite pas d'empêcher
-            // l'application de démarrer : il sera repris au lancement suivant.
+            // A cache we fail to clear does not deserve to stop the
+            // application from starting: it will be picked up again
+            // at the next launch.
             LogSweepFailed(exception);
         }
     }

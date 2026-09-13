@@ -3,44 +3,46 @@
 namespace DtHub.Core.Users;
 
 /// <summary>
-/// Un utilisateur ou profil Android d'un téléphone. Chaque utilisateur a son
-/// propre jeu d'applications installées, ce qui permet de lancer deux fois la
-/// même application dans deux sessions distinctes.
+/// An Android user or profile of a phone. Each user has its own set
+/// of installed applications, which allows the same application to
+/// be launched twice in two separate sessions.
 /// </summary>
 public sealed record AndroidUser
 {
     /// <summary>
-    /// Identifiant Android. N'importe quel entier positif est valide : aucune
-    /// valeur particulière ne doit être supposée.
+    /// Android identifier. Any positive integer is valid: no
+    /// particular value should be assumed.
     /// </summary>
     public required int Id { get; init; }
 
-    /// <summary>Nom tel que le téléphone le rapporte, souvent traduit.</summary>
+    /// <summary>Name as the phone reports it, often translated.</summary>
     public required string Name { get; init; }
 
-    /// <summary>Drapeaux bruts, conservés pour le diagnostic.</summary>
+    /// <summary>Raw flags, kept for diagnostics.</summary>
     public int Flags { get; init; }
 
     public AndroidUserType Type { get; init; } = AndroidUserType.Unknown;
 
     /// <summary>
-    /// Un utilisateur arrêté ne peut pas lancer d'application tant qu'il n'a
-    /// pas été démarré.
+    /// A stopped user cannot launch an application until it has been
+    /// started.
     /// </summary>
     public bool IsRunning { get; init; }
 
     /// <summary>
-    /// Un profil en pause existe, se liste, et ne lance rien. C'est
-    /// l'interrupteur du profil professionnel, et la fonction principale de
-    /// Shelter et d'Island. Le téléphone seul peut le rallumer : aucune
-    /// commande ADB ne le permet, vérifié sur Android 16 où
-    /// <c>cmd user set-quiet-mode</c> n'existe pas.
+    /// A paused profile exists, is listed, and launches nothing. This
+    /// is the work profile's switch, and the main function of
+    /// Shelter and Island. Only the phone itself can turn it back
+    /// on: no ADB command allows it, verified on Android 16 where
+    /// <c>cmd user set-quiet-mode</c> does not exist.
     /// </summary>
     public bool IsPaused { get; init; }
 
     public bool IsPrimary => Type == AndroidUserType.Primary;
 
-    /// <summary>Libellé court du type, pour les infobulles et le diagnostic.</summary>
+    /// <summary>
+    /// Short label for the type, for tooltips and diagnostics.
+    /// </summary>
     public string TypeLabel => Type switch
     {
         AndroidUserType.Primary => Strings.Get("UserTypePrimary"),
@@ -53,14 +55,16 @@ public sealed record AndroidUser
     };
 
     /// <summary>
-    /// Nom affiché dans les listes. Le téléphone nomme lui-même ses profils,
-    /// souvent mieux que nous ne saurions le faire : « Applications
-    /// dupliquées », « Second espace ». On lui laisse la main, sauf pour
-    /// l'utilisateur principal où un libellé stable est plus clair.
+    /// Name shown in lists. The phone names its own profiles itself,
+    /// often better than we could: "Applications dupliquées"
+    /// ("Duplicate apps"), "Second espace" ("Second space"). We let
+    /// it decide, except for the primary user where a stable label
+    /// is clearer.
     ///
-    /// Ce libellé suit la langue de l'interface. Il sert de premier nom au
-    /// compte, que l'utilisateur peut renommer et qui est alors retenu tel
-    /// quel : changer de langue ne renomme donc rien de ce qui existe déjà.
+    /// This label follows the interface language. It serves as the
+    /// account's first name, which the user can rename, and which is
+    /// then kept as is: changing language therefore renames nothing
+    /// that already exists.
     /// </summary>
     public string DisplayName => Type == AndroidUserType.Primary
         ? Strings.Get("UserTypePrimary")

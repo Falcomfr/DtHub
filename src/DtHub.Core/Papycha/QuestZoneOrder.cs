@@ -1,20 +1,23 @@
 ﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Nom d'affichage et ordre de parcours des zones de quêtes.
+/// Display name and traversal order of the quest zones.
 ///
-/// Le site nomme et range ses rubriques pour un lecteur qui arrive par un
-/// moteur de recherche : « Quêtes du Port de Madrestam » se lit bien dans une
-/// page, mal dans une liste où toutes les lignes sont des quêtes. Et son ordre
-/// est celui de son propre tableau, qui ne suit pas la progression du jeu.
+/// The site names and organizes its sections for a reader arriving
+/// from a search engine: "Quêtes du Port de Madrestam" ("Quests of
+/// Port Madrestam") reads well on a page, poorly in a list where
+/// every line is already a quest. And its order is that of its own
+/// table, which does not follow the game's progression.
 ///
-/// Fonctions pures : elles se vérifient sans réseau ni catalogue.
+/// Pure functions: they can be checked without a network or a
+/// catalog.
 /// </summary>
 public static class QuestZoneOrder
 {
     /// <summary>
-    /// Zones du monde, dans l'ordre où l'on y joue. Les quêtes principales
-    /// ouvrent la marche, puis la progression géographique d'Albuera à Frigost.
+    /// Zones of the world, in the order they are played. The main
+    /// quests lead the way, then the geographic progression from
+    /// Albuera to Frigost.
     /// </summary>
     private static readonly string[] Progression =
     [
@@ -37,9 +40,9 @@ public static class QuestZoneOrder
     ];
 
     /// <summary>
-    /// Ce qui ne relève pas de la progression : les chemins d'alignement, les
-    /// contenus saisonniers, et ce qu'aucune zone ne réclame. Rangé après un
-    /// intertitre pour que la liste ne mélange pas deux choses.
+    /// What does not belong to the progression: alignment paths,
+    /// seasonal content, and what no zone claims. Placed after a
+    /// subheading so the list does not mix two different things.
     /// </summary>
     private static readonly string[] Extras =
     [
@@ -54,15 +57,18 @@ public static class QuestZoneOrder
         "Autres quêtes",
     ];
 
-    /// <summary>Intertitre qui sépare la progression du reste.</summary>
+    /// <summary>
+    /// Subheading that separates the progression from the rest.
+    /// </summary>
     public const string ExtrasHeader = "Quêtes supplémentaires";
 
     /// <summary>
-    /// Rang d'une zone dans la liste, ou un rang de fin si on ne la connaît pas.
+    /// Rank of a zone in the list, or a trailing rank if it is not
+    /// known.
     ///
-    /// Une zone inconnue se range à la fin de la progression et non au milieu :
-    /// le site peut en ajouter, et une nouveauté doit se voir sans dérégler ce
-    /// qui la précède.
+    /// An unknown zone is placed at the end of the progression and
+    /// not in the middle: the site can add to it, and a newcomer must
+    /// be visible without disturbing what precedes it.
     /// </summary>
     public static int RankOf(string? name)
     {
@@ -71,38 +77,46 @@ public static class QuestZoneOrder
         return key.Length > 0 && Ranks.TryGetValue(key, out var rank) ? rank : UnknownRank;
     }
 
-    /// <summary>Rang donné aux zones que la table ne nomme pas.</summary>
+    /// <summary>Rank given to zones the table does not name.</summary>
     public static int UnknownRank => Progression.Length;
 
-    /// <summary>Vrai si la zone appartient au bloc qui suit l'intertitre.</summary>
+    /// <summary>
+    /// True if the zone belongs to the block after the subheading.
+    /// </summary>
     public static bool IsExtra(string? name) => RankOf(name) > UnknownRank;
 
-    /// <summary>Nom de la rubrique qui ouvre la progression sans être un lieu.</summary>
+    /// <summary>
+    /// Name of the section that opens the progression without being
+    /// a place.
+    /// </summary>
     private const string MainQuests = "Quêtes principales";
 
     /// <summary>
-    /// Vrai si la rubrique désigne un endroit du monde plutôt qu'une famille de
-    /// quêtes.
+    /// True if the section designates a place in the world rather
+    /// than a family of quests.
     ///
-    /// Ce qui suit l'intertitre n'en est pas : alignements, saisons, répétables.
-    /// « Quêtes principales » non plus, bien qu'elle ouvre la progression : ce
-    /// n'est pas un endroit mais un fil qui les traverse tous.
+    /// What follows the subheading is not one: alignments, seasons,
+    /// repeatables. Nor is "Quêtes principales" ("Main quests"),
+    /// even though it opens the progression: it is not a place but a
+    /// thread running through all of them.
     ///
-    /// La distinction ne change rien au classement, seulement à l'icône : une
-    /// liste où tout porte le même signe ne dit rien de plus qu'une liste sans
-    /// aucun signe.
+    /// The distinction changes nothing about the ordering, only the
+    /// icon: a list where everything carries the same mark says no
+    /// more than a list with no mark at all.
     /// </summary>
     public static bool IsPlace(string? name) =>
         !IsExtra(name) && RankOf(name) != RankOf(MainQuests);
 
     /// <summary>
-    /// Nom tel qu'on veut le lire dans la liste.
+    /// Name as we want it to read in the list.
     ///
-    /// Le préfixe « Quêtes » ne disparaît que s'il est suivi d'un article : ce
-    /// qui reste est alors un lieu, « Quêtes du Port de Madrestam » donnant
-    /// « Port de Madrestam ». Sans article, le mot fait partie du nom et reste :
-    /// « Quêtes principales » et « Quêtes répétables » ne désignent pas un
-    /// endroit mais une sorte de quête.
+    /// The "Quêtes" ("Quests") prefix only disappears if it is
+    /// followed by an article: what remains is then a place, "Quêtes
+    /// du Port de Madrestam" yielding "Port de Madrestam". Without an
+    /// article, the word is part of the name and stays: "Quêtes
+    /// principales" ("Main quests") and "Quêtes répétables"
+    /// ("Repeatable quests") do not designate a place but a kind of
+    /// quest.
     /// </summary>
     public static string DisplayName(string? name)
     {
@@ -132,9 +146,9 @@ public static class QuestZoneOrder
     }
 
     /// <summary>
-    /// Articles reconnus, du plus long au plus court : « de la » doit être
-    /// essayé avant « de », sans quoi « Quêtes de la Sain Ballotin » donnerait
-    /// « la Sain Ballotin ».
+    /// Recognized articles, from longest to shortest: "de la" ("of
+    /// the") must be tried before "de" ("of"), otherwise "Quêtes de
+    /// la Sain Ballotin" would yield "la Sain Ballotin".
     /// </summary>
     private static readonly string[] Articles =
     [
@@ -147,9 +161,10 @@ public static class QuestZoneOrder
     ];
 
     /// <summary>
-    /// Déclaré après <see cref="Articles"/> : les champs statiques s'initialisent
-    /// dans l'ordre du fichier, et construire la table avant de connaître les
-    /// articles la faisait échouer sur une référence nulle.
+    /// Declared after <see cref="Articles"/>: static fields
+    /// initialize in the order of the file, and building the table
+    /// before the articles were known made it fail on a null
+    /// reference.
     /// </summary>
     private static readonly Dictionary<string, int> Ranks = BuildRanks();
 
@@ -162,8 +177,9 @@ public static class QuestZoneOrder
             ranks[QuestSearch.Normalize(DisplayName(Progression[i]))] = i;
         }
 
-        // Après le rang réservé aux zones inconnues, pour que celles-ci restent
-        // dans la progression plutôt que de tomber dans le supplément.
+        // After the rank reserved for unknown zones, so that these
+        // stay within the progression rather than falling into the
+        // supplement.
         for (var i = 0; i < Extras.Length; i++)
         {
             ranks[QuestSearch.Normalize(DisplayName(Extras[i]))] = Progression.Length + 1 + i;

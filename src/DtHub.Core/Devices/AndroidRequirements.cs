@@ -5,28 +5,33 @@ using DtHub.Core.Localization;
 namespace DtHub.Core.Devices;
 
 /// <summary>
-/// Ce que DT Hub exige de l'appareil, et de quoi le dire avant d'essayer.
+/// What DT Hub requires from the device, and how to say so before
+/// trying.
 ///
-/// L'exigence n'est pas la nôtre : c'est celle de l'afficheur virtuel, qu'Android
-/// n'expose qu'à partir de la version 11. Sans ce contrôle, un appareil plus
-/// ancien va jusqu'au bout du lancement, attend le délai complet, et reçoit un
-/// message deviné à partir de la sortie anglaise de scrcpy, parfois le mauvais.
-/// Le niveau d'API est déjà lu à la découverte : autant s'en servir.
+/// The requirement is not ours: it is the virtual display's, which
+/// Android only exposes starting with version 11. Without this
+/// check, an older device goes all the way through the launch,
+/// waits out the full timeout, and receives a message guessed from
+/// scrcpy's English output, sometimes the wrong one. The API level
+/// is already read at discovery: it may as well be put to use.
 /// </summary>
 public static class AndroidRequirements
 {
-    /// <summary>Niveau d'API d'Android 11, où paraît l'afficheur virtuel.</summary>
+    /// <summary>
+    /// API level of Android 11, where the virtual display appears.
+    /// </summary>
     public const int VirtualDisplaySdk = 30;
 
-    /// <summary>Nom de cette version, tel qu'on le dit à l'utilisateur.</summary>
+    /// <summary>Name of this version, as it is said to the user.</summary>
     public const string VirtualDisplayVersion = "Android 11";
 
     /// <summary>
-    /// Raison pour laquelle cet appareil ne peut pas ouvrir de fenêtre de jeu,
-    /// ou <c>null</c> s'il le peut.
+    /// Reason why this device cannot open a game window, or
+    /// <c>null</c> if it can.
     ///
-    /// Rend aussi <c>null</c> quand le niveau d'API n'a pas pu être lu : on ne
-    /// refuse pas un appareil sur une ignorance, on le laisse essayer.
+    /// Also returns <c>null</c> when the API level could not be
+    /// read: a device is not refused out of ignorance, it is
+    /// allowed to try.
     /// </summary>
     public static string? DescribeVirtualDisplayShortfall(int? sdkVersion, string? androidVersion)
     {

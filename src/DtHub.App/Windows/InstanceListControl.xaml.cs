@@ -9,19 +9,19 @@ using DtHub.App.ViewModels;
 namespace DtHub.App.Windows;
 
 /// <summary>
-/// Liste des téléphones et de leurs instances. Le contexte de données attendu
-/// est un <see cref="InstanceListViewModel"/>.
+/// List of phones and their instances. The expected data context
+/// is an <see cref="InstanceListViewModel"/>.
 ///
-/// Le glisser-déposer vit ici, et non dans le modèle de vue : XAML ne sait pas
-/// l'exprimer, et il n'existe aucun conteneur sélectionnable dans cette liste,
-/// qui est un simple <c>ItemsControl</c>. Une seule nature d'objet s'y
-/// déplace, l'instance : les appareils ne se trient plus.
+/// Drag and drop lives here, not in the view model: XAML cannot
+/// express it, and there is no selectable container in this list,
+/// which is a plain <c>ItemsControl</c>. Only one kind of object
+/// moves within it, the instance: devices are no longer sortable.
 /// </summary>
 public partial class InstanceListControl : UserControl
 {
     /// <summary>
-    /// Montre les commandes de réordonnancement. Absentes de la fenêtre de
-    /// premier lancement, où rien n'est encore ouvert.
+    /// Shows the reordering commands. Absent from the first-launch
+    /// window, where nothing is open yet.
     /// </summary>
     public static readonly DependencyProperty ShowOrderingProperty =
         DependencyProperty.Register(
@@ -31,11 +31,12 @@ public partial class InstanceListControl : UserControl
             new PropertyMetadata(true));
 
     /// <summary>
-    /// Montre l'état de chaque appareil en toutes lettres, et non par le seul
-    /// point de couleur.
+    /// Shows each device's state spelled out in full, not just
+    /// through the color dot.
     ///
-    /// Vrai dans la fenêtre de démarrage : on y choisit ce qu'on lance, et
-    /// savoir pourquoi une ligne manque compte plus qu'une liste sobre.
+    /// True in the startup window: it is where you choose what to
+    /// launch, and knowing why a row is missing matters more than
+    /// a clean list.
     /// </summary>
     public static readonly DependencyProperty ShowDeviceStatusProperty =
         DependencyProperty.Register(
@@ -45,9 +46,10 @@ public partial class InstanceListControl : UserControl
             new PropertyMetadata(false));
 
     /// <summary>
-    /// Montre les boutons d'action de chaque instance. Coupé dans la fenêtre
-    /// de mise en route : on y coche ce qui doit s'ouvrir, et c'est le bouton
-    /// « Enregistrer et lancer » qui décide, pas un bouton par ligne.
+    /// Shows each instance's action buttons. Turned off in the
+    /// setup window: there you check what should open, and it is
+    /// the "Save and launch" button that decides, not a button per
+    /// row.
     /// </summary>
     public static readonly DependencyProperty ShowActionsProperty =
         DependencyProperty.Register(
@@ -82,9 +84,9 @@ public partial class InstanceListControl : UserControl
     private InstanceListViewModel? ViewModel => DataContext as InstanceListViewModel;
 
     /// <summary>
-    /// Retient le point de départ. Seule la poignée déclenche un glissé : une
-    /// ligne entière rendrait impossible la sélection de texte dans le champ
-    /// de renommage.
+    /// Remembers the starting point. Only the handle triggers a
+    /// drag: an entire row would make it impossible to select text
+    /// in the rename field.
     /// </summary>
     private void OnDragSourcePressed(object sender, MouseButtonEventArgs e)
     {
@@ -112,8 +114,9 @@ public partial class InstanceListControl : UserControl
         var payload = _pending;
         _pending = null;
 
-        // Le balayage périodique reconstruit la liste : le suspendre évite
-        // qu'une carte disparaisse sous le curseur en plein glissé.
+        // The periodic sweep rebuilds the list: suspending it
+        // prevents a card from disappearing under the cursor in
+        // the middle of a drag.
         model.IsReordering = true;
         payload.IsDragging = true;
 
@@ -129,8 +132,9 @@ public partial class InstanceListControl : UserControl
     }
 
     /// <summary>
-    /// Montre où l'élément se posera : un trait au-dessus ou en dessous de
-    /// celui que l'on survole, selon la moitié où se trouve le curseur.
+    /// Shows where the item will land: a line above or below the
+    /// one being hovered over, depending on which half the cursor
+    /// is in.
     /// </summary>
     private void OnDragOver(object sender, DragEventArgs e)
     {
@@ -143,9 +147,10 @@ public partial class InstanceListControl : UserControl
             return;
         }
 
-        // Au-dessus de l'élément déplacé lui-même, aucun repère : le poser là
-        // n'aurait pas de sens, et l'omettre laisserait le précédent figé au
-        // mauvais endroit après un aller-retour.
+        // Above the item being dragged itself, no marker: dropping
+        // it there would make no sense, and omitting this check
+        // would leave the previous marker stuck in the wrong place
+        // after a round trip.
         if (ReferenceEquals(onto, Dragged(e)))
         {
             model.ClearDropHints();
@@ -156,18 +161,19 @@ public partial class InstanceListControl : UserControl
     }
 
     /// <summary>
-    /// Le repère n'est pas effacé en quittant un élément. Passer d'une ligne à
-    /// sa voisine, ou simplement survoler un champ de saisie, fait sortir puis
-    /// entrer : effacer à chaque fois faisait clignoter le trait. Il n'est
-    /// retiré qu'à la fin du glissé.
+    /// The marker is not cleared on leaving an item. Moving from
+    /// one row to its neighbor, or simply hovering over an input
+    /// field, triggers a leave then an enter: clearing it every
+    /// time made the line flicker. It is only removed at the end
+    /// of the drag.
     /// </summary>
     private void OnDragLeave(object sender, DragEventArgs e) => e.Handled = true;
 
     /// <summary>
-    /// Garde le curseur habituel pendant le glissé. Les curseurs de
-    /// glisser-déposer de Windows changent au passage de chaque élément, ce
-    /// qui donne l'impression que quelque chose ne va pas, alors que seul le
-    /// trait de position compte ici.
+    /// Keeps the usual cursor during the drag. Windows's
+    /// drag-and-drop cursors change as they pass over each item,
+    /// which gives the impression that something is wrong, when
+    /// only the position line matters here.
     /// </summary>
     private void OnGiveFeedback(object sender, GiveFeedbackEventArgs e)
     {
@@ -195,12 +201,15 @@ public partial class InstanceListControl : UserControl
         await model.ReorderAsync(dragged, onto, above).ConfigureAwait(true);
     }
 
-    /// <summary>Vrai si le curseur est dans la moitié haute de la cible.</summary>
+    /// <summary>True if the cursor is in the target's upper half.</summary>
     private static bool IsUpperHalf(object sender, DragEventArgs e) =>
         sender is FrameworkElement target
         && e.GetPosition(target).Y < target.ActualHeight / 2;
 
-    /// <summary>Ligne survolée, ou <c>null</c> si le curseur n'est sur aucune.</summary>
+    /// <summary>
+    /// Row being hovered over, or <c>null</c> if the cursor is on
+    /// none.
+    /// </summary>
     private static InstanceRowViewModel? Hovered(object sender) =>
         sender is FrameworkElement { DataContext: InstanceRowViewModel row } ? row : null;
 

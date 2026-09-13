@@ -1,7 +1,8 @@
-﻿// Sonde de développement : combien de succès le site range vraiment.
+﻿// Development probe: how many achievements the site actually ranks.
 //
-// Elle passe par le service, donc par le code livré, et non par une
-// réimplémentation qui pourrait se tromper d'accord avec elle-même.
+// It goes through the service, hence through the shipped code,
+// rather than through a reimplementation that could be wrong in a
+// way that agrees with itself.
 using DtHub.Core.Papycha;
 using DtHub.Core.Storage;
 using DtHub.Infrastructure.Papycha;
@@ -41,8 +42,9 @@ foreach (var nom in succes.Except(reels, StringComparer.Ordinal).Order(StringCom
     Console.WriteLine($"   sans rang : {nom}");
 }
 
-// Ce que la liste d'une zone range encore par ordre alphabétique : un succès
-// sans rang que nul prérequis ne relie, ni en amont ni en aval.
+// What a zone's list still ranks alphabetically: an unranked
+// achievement that no prerequisite links, neither upstream nor
+// downstream.
 var sansRang = 0;
 var alphabetiques = 0;
 

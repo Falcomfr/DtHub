@@ -10,20 +10,21 @@ using DtHub.Core.Localization;
 namespace DtHub.App.ViewModels;
 
 /// <summary>
-/// La culture qui met en forme dates et nombres dans cette fenêtre.
+/// The culture that formats dates and numbers in this window.
 ///
-/// « CurrentUICulture » choisit les textes traduits et ne doit pas servir à
-/// mettre en forme : l'analyseur le refuse, et il a raison, ce sont deux
-/// réglages distincts. On en tire donc une culture de mise en forme, pour que
-/// les noms de jours suivent la langue de l'application plutôt que la région
-/// de Windows : qui a choisi l'anglais veut « Thu », pas « jeu. »
+/// "CurrentUICulture" picks the translated texts and must not be used
+/// for formatting: the analyzer refuses it, and it is right, these are
+/// two distinct settings. A formatting culture is therefore derived
+/// from it, so that day names follow the application's language rather
+/// than Windows' region: someone who chose English wants "Thu", not
+/// "jeu."
 /// </summary>
 internal static class DisplayCulture
 {
     public static CultureInfo Current => CultureInfo.GetCultureInfo(CultureInfo.CurrentUICulture.Name);
 }
 
-/// <summary>Un jour de la bande, tel qu'il se présente et se choisit.</summary>
+/// <summary>A day of the strip, as it is shown and chosen.</summary>
 public sealed partial class AlmanaxChip : ObservableObject
 {
     public AlmanaxChip(DateOnly date, bool today)
@@ -39,20 +40,26 @@ public sealed partial class AlmanaxChip : ObservableObject
 
     public DateOnly Date { get; }
 
-    /// <summary>Le jour de la semaine, abrégé dans la langue de l'application.</summary>
+    /// <summary>
+    /// The day of the week, abbreviated in the application's language.
+    /// </summary>
     public string Weekday { get; }
 
-    /// <summary>Le quantième, seul : le mois se lit dans le bandeau du dessous.</summary>
+    /// <summary>
+    /// The day number alone: the month is read in the banner below.
+    /// </summary>
     public string Number { get; }
 
-    /// <summary>Vrai pour aujourd'hui, qui se marque même quand un autre est choisi.</summary>
+    /// <summary>
+    /// True for today, which is marked even when another day is chosen.
+    /// </summary>
     public bool IsToday { get; }
 
     [ObservableProperty]
     private bool _isSelected;
 }
 
-/// <summary>Une case du calendrier déroulant.</summary>
+/// <summary>A cell of the drop-down calendar.</summary>
 public sealed partial class AlmanaxCell : ObservableObject
 {
     public AlmanaxCell(DateOnly date, bool inMonth, bool today, bool selected, bool reachable)
@@ -69,14 +76,17 @@ public sealed partial class AlmanaxCell : ObservableObject
 
     public string Number { get; }
 
-    /// <summary>Faux pour les débords du mois voisin, qu'on montre en retrait.</summary>
+    /// <summary>
+    /// False for the days that spill over from the neighboring month,
+    /// which are shown muted.
+    /// </summary>
     public bool InMonth { get; }
 
     public bool IsToday { get; }
 
     /// <summary>
-    /// Faux hors des bornes consultables. La case reste visible pour que la
-    /// grille garde sa forme, mais elle ne se choisit pas.
+    /// False outside the browsable bounds. The cell stays visible so that
+    /// the grid keeps its shape, but it cannot be chosen.
     /// </summary>
     public bool IsReachable { get; }
 
@@ -85,22 +95,22 @@ public sealed partial class AlmanaxCell : ObservableObject
 }
 
 /// <summary>
-/// L'Almanax du jour, réduit à ce qu'on vient y chercher.
+/// The Almanax of the day, reduced to what one comes here to look for.
 ///
-/// La page du portail est une page de bureau entière : décor, protecteur du
-/// mois, signe du zodiaque, Rubrikabrax et leurs textes d'ambiance. Une seule
-/// question s'y pose vraiment, « qu'est-ce que j'apporte aujourd'hui », et
-/// c'est celle-là qu'on met en tête.
+/// The portal page is an entire desktop page: scenery, guardian of the
+/// month, zodiac sign, Rubrikabrax and their mood texts. Only one
+/// question truly belongs here, "what do I bring today", and that is
+/// the one put first.
 ///
-/// La bande des jours vient d'abord parce qu'un Almanax se prépare : on veut
-/// savoir ce qu'il faudra demain pour l'avoir en poche.
+/// The day strip comes first because an Almanax is prepared ahead: one
+/// wants to know what will be needed tomorrow to have it in the bag.
 /// </summary>
 public sealed partial class AlmanaxViewModel : ObservableObject
 {
     /// <summary>
-    /// Sept jours, à partir d'aujourd'hui. C'est l'horizon que le portail
-    /// lui-même propose, « voir les 7 prochains jours », et celui qui suffit à
-    /// préparer ses offrandes sans encombrer la bande.
+    /// Seven days, starting from today. This is the horizon the portal
+    /// itself offers, "see the next 7 days", and the one that is enough
+    /// to prepare one's offerings without cluttering the strip.
     /// </summary>
     private const int Span = 7;
 
@@ -113,10 +123,10 @@ public sealed partial class AlmanaxViewModel : ObservableObject
         RebuildDays();
     }
 
-    /// <summary>Les sept jours de la bande.</summary>
+    /// <summary>The seven days of the strip.</summary>
     public ObservableCollection<AlmanaxChip> Days { get; } = [];
 
-    /// <summary>Demandé quand il faut aller lire un autre jour.</summary>
+    /// <summary>Raised when another day needs to be read.</summary>
     public event EventHandler<DateOnly>? DateRequested;
 
     [ObservableProperty]
@@ -134,18 +144,23 @@ public sealed partial class AlmanaxViewModel : ObservableObject
     [ObservableProperty]
     private string _dofusianDay = string.Empty;
 
-    /// <summary>Combien en apporter. Vide quand la phrase ne s'est pas laissé lire.</summary>
+    /// <summary>
+    /// How many to bring. Empty when the sentence could not be parsed.
+    /// </summary>
     [ObservableProperty]
     private string _offeringCount = string.Empty;
 
     /// <summary>
-    /// Quoi apporter, ou la phrase entière quand elle ne s'est pas laissé
-    /// lire : dans les deux cas la ligne dit ce qu'il faut faire.
+    /// What to bring, or the whole sentence when it could not be parsed:
+    /// in both cases the line says what needs to be done.
     /// </summary>
     [ObservableProperty]
     private string _offeringItem = string.Empty;
 
-    /// <summary>La phrase du portail, sous le titre, quand elle apporte plus que lui.</summary>
+    /// <summary>
+    /// The portal's sentence, under the title, when it brings more than
+    /// the title does.
+    /// </summary>
     [ObservableProperty]
     private string _offeringDetail = string.Empty;
 
@@ -161,25 +176,33 @@ public sealed partial class AlmanaxViewModel : ObservableObject
     [ObservableProperty]
     private string _meryde = string.Empty;
 
-    /// <summary>L'événement du mois, le même tout le mois durant.</summary>
+    /// <summary>
+    /// The event of the month, the same throughout the month.
+    /// </summary>
     [ObservableProperty]
     private string _monthEvent = string.Empty;
 
-    /// <summary>Vrai quand une journée est affichée, donc qu'il y a autre chose qu'une attente.</summary>
+    /// <summary>
+    /// True when a day is displayed, meaning there is something other
+    /// than a wait.
+    /// </summary>
     [ObservableProperty]
     private bool _hasDay;
 
-    /// <summary>Vrai quand le jour choisi n'est pas aujourd'hui : le retour se propose alors.</summary>
+    /// <summary>
+    /// True when the chosen day is not today: the return option is then
+    /// offered.
+    /// </summary>
     public bool CanGoToday => Selected != DateOnly.FromDateTime(DateTime.Now);
 
     /// <summary>
-    /// L'attente seule, tant que rien n'a jamais été lu. Une fois une journée
-    /// affichée, changer de jour ne la remplace pas par un message : la
-    /// fenêtre ne clignote pas entre deux lectures.
+    /// The wait alone, as long as nothing has ever been read. Once a day
+    /// is displayed, changing day does not replace it with a message: the
+    /// window does not flicker between two reads.
     /// </summary>
     public bool ShowsWaiting => IsLoading && !HasDay;
 
-    /// <summary>Montre la journée lue.</summary>
+    /// <summary>Shows the day that was read.</summary>
     public void Show(AlmanaxDay day)
     {
         Selected = day.Date;
@@ -189,10 +212,11 @@ public sealed partial class AlmanaxViewModel : ObservableObject
 
         DofusianDay = day.DofusianDay;
 
-        // Le nombre et l'objet quand la phrase s'est laissé lire, la phrase
-        // entière sinon : dans les deux cas le lecteur sait quoi apporter. Les
-        // deux sont séparés pour que la fenêtre puisse donner au nombre le
-        // poids qu'il mérite, c'est lui qu'on vérifie d'un coup d'œil.
+        // The number and the item when the sentence could be parsed, the
+        // whole sentence otherwise: in both cases the reader knows what to
+        // bring. The two are kept separate so that the window can give the
+        // number the weight it deserves, since it is the one checked at a
+        // glance.
         var read = day.Item is { Length: > 0 };
 
         OfferingCount = read ? day.Quantity?.ToString(DisplayCulture.Current) ?? string.Empty : string.Empty;
@@ -210,7 +234,9 @@ public sealed partial class AlmanaxViewModel : ObservableObject
         IsLoading = false;
     }
 
-    /// <summary>Dit qu'on n'a pas pu lire, sans effacer ce qui était affiché.</summary>
+    /// <summary>
+    /// Says that reading failed, without erasing what was displayed.
+    /// </summary>
     public void Fail()
     {
         Problem = Strings.Get("AlmanaxUnavailable");
@@ -218,24 +244,25 @@ public sealed partial class AlmanaxViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Demande une journée. **Ne fait que demander.**
+    /// Requests a day. **Only requests.**
     ///
-    /// Cette méthode lève l'événement et rien d'autre, et la fenêtre qui
-    /// l'écoute ne doit jamais la rappeler : elle l'a fait, et chargement et
-    /// événement se sont relancés l'un l'autre jusqu'à épuisement de la pile.
-    /// La fenêtre passe donc par <see cref="BeginLoading" />, qui pose l'état
-    /// sans rien lever. Deux méthodes plutôt qu'un garde-fou : un garde-fou
-    /// se contourne à la modification suivante, une méthode qui ne lève rien
-    /// ne peut pas boucler.
+    /// This method raises the event and nothing else, and the window
+    /// listening to it must never call it back: it did, once, and loading
+    /// and the event kept relaunching each other until the stack was
+    /// exhausted. The window therefore goes through
+    /// <see cref="BeginLoading" />, which sets the state without raising
+    /// anything. Two methods rather than a safety rail: a safety rail can
+    /// be bypassed at the next change, a method that raises nothing cannot
+    /// loop.
     /// </summary>
     public void Go(DateOnly date)
     {
         var today = DateOnly.FromDateTime(DateTime.Now);
 
-        // Rien hors des bornes ne part au portail : interrogé sur une date
-        // qu'il ne sait pas traiter, il rend la journée du jour sans se
-        // plaindre, et le bandeau annoncerait une date en montrant l'offrande
-        // d'une autre. Voir « AlmanaxRange ».
+        // Nothing outside the bounds goes to the portal: when asked about a
+        // date it does not know how to handle, it returns today's day
+        // without complaining, and the banner would announce one date
+        // while showing the offering of another. See "AlmanaxRange".
         if (AlmanaxRange.Contains(date, today))
         {
             DateRequested?.Invoke(this, date);
@@ -243,8 +270,8 @@ public sealed partial class AlmanaxViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Pose l'attente sur cette journée, sans rien demander à personne.
-    /// Appelée par la fenêtre quand elle part vraiment lire.
+    /// Sets the wait on this day, without asking anyone for anything.
+    /// Called by the window when it actually goes to read.
     /// </summary>
     public void BeginLoading(DateOnly date)
     {
@@ -254,39 +281,45 @@ public sealed partial class AlmanaxViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Vrai quand cette journée est déjà sous les yeux, sans incident et sans
-    /// chargement en cours : il n'y a alors rien à refaire.
+    /// True when this day is already in view, without incident and
+    /// without a load in progress: there is then nothing to redo.
     /// </summary>
     public bool AlreadyShowing(DateOnly date) =>
         HasDay && !IsLoading && Problem.Length == 0 && date == Selected;
 
-    /// <summary>Vrai quand le calendrier déroulant est ouvert.</summary>
+    /// <summary>True when the drop-down calendar is open.</summary>
     [ObservableProperty]
     private bool _isCalendarOpen;
 
-    /// <summary>Le mois montré par le calendrier, qui n'est pas forcément celui du jour choisi.</summary>
+    /// <summary>
+    /// The month shown by the calendar, which is not necessarily that of
+    /// the chosen day.
+    /// </summary>
     private DateOnly _month = new(DateTime.Now.Year, DateTime.Now.Month, 1);
 
-    /// <summary>Les quarante-deux cases du mois montré.</summary>
+    /// <summary>The forty-two cells of the shown month.</summary>
     public ObservableCollection<AlmanaxCell> MonthDays { get; } = [];
 
-    /// <summary>Les initiales des jours, du premier de la semaine au dernier selon la culture.</summary>
+    /// <summary>
+    /// The initials of the days, from the first day of the week to the
+    /// last according to the culture.
+    /// </summary>
     public ObservableCollection<string> Weekdays { get; } = [];
 
-    /// <summary>« septembre 2026 », en tête du calendrier.</summary>
+    /// <summary>"September 2026", at the top of the calendar.</summary>
     [ObservableProperty]
     private string _monthLabel = string.Empty;
 
     /// <summary>
-    /// À l'ouverture, le calendrier se pose sur le mois du jour choisi.
+    /// On opening, the calendar settles on the month of the chosen day.
     ///
-    /// Sur celui du jour choisi et non sur celui d'aujourd'hui : on ouvre le
-    /// calendrier pour aller plus loin, et repartir chaque fois du mois
-    /// courant obligerait à refaire le chemin.
+    /// On that of the chosen day and not on that of today: the calendar
+    /// is opened to go further, and starting over each time from the
+    /// current month would force retracing the path.
     ///
-    /// Ici et non dans une commande de la bascule : la bascule appelait sa
-    /// commande à la fermeture comme à l'ouverture, et refermer le calendrier
-    /// le rouvrait aussitôt.
+    /// Here and not in a toggle command: the toggle used to call its
+    /// command on closing as well as on opening, and closing the calendar
+    /// would immediately reopen it.
     /// </summary>
     partial void OnIsCalendarOpenChanged(bool value)
     {
@@ -316,7 +349,10 @@ public sealed partial class AlmanaxViewModel : ObservableObject
         RebuildMonth();
     }
 
-    /// <summary>Choisir une case ferme le calendrier : on l'a ouvert pour choisir.</summary>
+    /// <summary>
+    /// Choosing a cell closes the calendar: it was opened in order to
+    /// choose.
+    /// </summary>
     [RelayCommand]
     private void PickDay(AlmanaxCell? cell)
     {
@@ -358,10 +394,14 @@ public sealed partial class AlmanaxViewModel : ObservableObject
         }
     }
 
-    /// <summary>Vrai tant qu'il reste un jour en arrière dans les bornes.</summary>
+    /// <summary>
+    /// True as long as a day remains backward within the bounds.
+    /// </summary>
     public bool CanGoPrevious => Selected > AlmanaxRange.Earliest(DateOnly.FromDateTime(DateTime.Now));
 
-    /// <summary>Vrai tant qu'il reste un jour en avant dans les bornes.</summary>
+    /// <summary>
+    /// True as long as a day remains forward within the bounds.
+    /// </summary>
     public bool CanGoNext => Selected < AlmanaxRange.Latest(DateOnly.FromDateTime(DateTime.Now));
 
     [RelayCommand(CanExecute = nameof(CanGoPrevious))]
@@ -383,9 +423,10 @@ public sealed partial class AlmanaxViewModel : ObservableObject
     }
 
     /// <summary>
-    /// La bande suit le jour choisi plutôt que de rester sur aujourd'hui :
-    /// avancer de sept jours avec la flèche laissait sinon la bande derrière,
-    /// et le jour affiché n'y était plus marqué nulle part.
+    /// The strip follows the chosen day rather than staying on today:
+    /// advancing seven days with the arrow would otherwise leave the
+    /// strip behind, and the displayed day would no longer be marked
+    /// anywhere in it.
     /// </summary>
     partial void OnSelectedChanged(DateOnly value)
     {

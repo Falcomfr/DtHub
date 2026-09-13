@@ -5,23 +5,25 @@ using System.Text.Json;
 namespace DtHub.App.Windows;
 
 /// <summary>
-/// Le script injecté dans les pages du site.
+/// The script injected into the site's pages.
 ///
-/// Il rend deux services que rien n'oblige à prendre ensemble : le cadrage, qui
-/// retire le décor du site pour qu'une page tienne dans une fenêtre étroite, et
-/// le suivi d'étapes, qui n'a de sens que sur un guide de quête. La fenêtre des
-/// pages liées ne prend que le premier : ce qu'elle affiche est aussi bien une
-/// rubrique qu'une carte, où il n'y a ni étape à décrire ni chaîne à suivre.
+/// It provides two services that nothing forces to be taken
+/// together: framing, which strips the site's decoration so a page
+/// fits in a narrow window, and step tracking, which only makes
+/// sense on a quest guide. The linked pages window only takes the
+/// first one: what it shows is just as much a category page as a
+/// map, where there is neither a step to describe nor a chain to
+/// follow.
 /// </summary>
 internal static class QuestBridge
 {
     /// <summary>
-    /// Le pont, tel qu'on l'injecte avant la création du document.
+    /// The bridge, as injected before the document is created.
     /// </summary>
     /// <param name="framingOnly">
-    /// Vrai pour ne garder que le cadrage. Le titre de l'article est alors
-    /// conservé : sur une page de rubrique c'est le seul repère, et cette
-    /// fenêtre-là n'en réaffiche aucun dans son propre bandeau.
+    /// True to keep only the framing. The article's title is then
+    /// kept: on a category page it is the only landmark, and that
+    /// window does not show any other title in its own banner.
     /// </param>
     public static string Script(bool framingOnly = false)
     {
@@ -31,15 +33,16 @@ internal static class QuestBridge
     }
 
     /// <summary>
-    /// Le script qui prépare le formulaire de signalement du site.
+    /// The script that prepares the site's report form.
     ///
-    /// Il ne va pas avec le pont, il le remplace : le pont masque le pied
-    /// d'article, et c'est justement là que le formulaire se trouve.
+    /// It does not go alongside the bridge, it replaces it: the
+    /// bridge hides the article footer, and that is exactly where
+    /// the form is found.
     ///
-    /// Le repère d'étape passe par une chaîne JSON, produite par le
-    /// sérialiseur : c'est aussi une chaîne JavaScript valide, et un texte de
-    /// guide contient guillemets et apostrophes qu'il faudrait sinon échapper à
-    /// la main, en oubliant un cas.
+    /// The step marker goes through a JSON string, produced by the
+    /// serializer: it is also a valid JavaScript string, and a
+    /// guide's text contains quotes and apostrophes that would
+    /// otherwise need to be escaped by hand, missing a case.
     /// </summary>
     public static string ReportScript(string? location) =>
         Read("DtHub.App.papycha-report.js")

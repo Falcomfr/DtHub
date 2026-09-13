@@ -7,20 +7,22 @@ using Microsoft.Extensions.Logging;
 namespace DtHub.Infrastructure.Papycha;
 
 /// <summary>
-/// Lit la carte des succès embarquée dans l'assemblage.
+/// Reads the achievement map embedded in the assembly.
 ///
-/// Embarquée et non posée à côté : un fichier voisin peut manquer, être
-/// remplacé ou vieillir seul, alors que la ressource suit l'exécutable.
+/// Embedded rather than placed alongside: a neighboring file can go
+/// missing, get replaced, or age on its own, whereas the resource
+/// follows the executable.
 /// </summary>
 public sealed partial class EmbeddedQuestSuccessSeed : IQuestSuccessSeed
 {
     private const string ResourceName = "DtHub.Infrastructure.quest-successes.json";
 
     /// <summary>
-    /// Les clés du fichier sont écrites en minuscules, les propriétés en C# ne
-    /// le sont pas. Sans cette tolérance, la lecture rendait une carte vide
-    /// sans lever la moindre erreur : chaque entrée était bien lue, mais
-    /// dépourvue de son succès, et le compte tombait à zéro en silence.
+    /// The file's keys are written in lowercase, the C# properties
+    /// are not. Without this tolerance, reading returned an empty
+    /// map without raising the slightest error: every entry was read
+    /// correctly, but stripped of its achievement, and the count
+    /// silently fell to zero.
     /// </summary>
     private static readonly JsonSerializerOptions Json = new()
     {
@@ -55,9 +57,10 @@ public sealed partial class EmbeddedQuestSuccessSeed : IQuestSuccessSeed
 
             var raw = JsonSerializer.Deserialize<Dictionary<string, Entry>>(stream, Json) ?? [];
 
-            // Une entrée sans succès n'est pas vide : elle peut ne porter que
-            // des prérequis. La filtrer sur le succès seul en aurait écarté
-            // deux cent quatorze, en silence.
+            // An entry without an achievement is not empty: it can
+            // carry only prerequisites. Filtering on the achievement
+            // alone would have silently discarded two hundred
+            // fourteen of them.
             var map = raw
                 .Where(pair => !string.IsNullOrWhiteSpace(pair.Value.S) || pair.Value.P is { Count: > 0 })
                 .ToDictionary(
@@ -71,8 +74,9 @@ public sealed partial class EmbeddedQuestSuccessSeed : IQuestSuccessSeed
 
             if (map.Count == 0 && raw.Count > 0)
             {
-                // Le fichier est là et se lit, mais aucune entrée n'a de
-                // succès : c'est un désaccord de forme, pas une carte vide.
+                // The file is there and readable, but no entry has
+                // an achievement: this is a format mismatch, not an
+                // empty map.
                 LogUnavailable($"{raw.Count} entrée(s) sans succès lisible");
             }
             else
@@ -84,8 +88,8 @@ public sealed partial class EmbeddedQuestSuccessSeed : IQuestSuccessSeed
         }
         catch (JsonException exception)
         {
-            // Une carte illisible ne doit pas empêcher l'indexation : elle ne
-            // fait que compléter ce que les pages de rubrique donnent déjà.
+            // An unreadable map must not prevent indexing: it only
+            // supplements what the category pages already provide.
             LogUnavailable(exception.Message);
 
             return _cache = new Dictionary<string, QuestSeedEntry>(StringComparer.Ordinal);
@@ -93,8 +97,8 @@ public sealed partial class EmbeddedQuestSuccessSeed : IQuestSuccessSeed
     }
 
     /// <summary>
-    /// Forme du fichier : « s » le succès, « n » le rang de chaîne, « o » la
-    /// place dans le succès, « p » les prérequis.
+    /// File format: "s" the achievement, "n" the chain rank, "o" the
+    /// place within the achievement, "p" the prerequisites.
     /// </summary>
     private sealed class Entry
     {

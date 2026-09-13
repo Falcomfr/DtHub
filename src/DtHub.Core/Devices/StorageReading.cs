@@ -5,46 +5,49 @@ using DtHub.Core.Localization;
 namespace DtHub.Core.Devices;
 
 /// <summary>
-/// Ce que l'appareil dit de sa place libre.
+/// What the device says about its free space.
 ///
-/// Le manque de place est une cause documentée de plantages de DOFUS Touch,
-/// et elle est trompeuse : le jeu ne dit pas qu'il manque de place, il ferme.
+/// Lack of space is a documented cause of DOFUS Touch crashes, and it
+/// is misleading: the game does not say it is short on space, it
+/// just closes.
 ///
-/// **Honnêtement, c'est une assurance plus qu'un besoin.** L'appareil de
-/// référence a près de trois cents gigaoctets libres, et l'avertissement n'y
-/// paraîtra jamais. Il coûte une lecture et une analyse, et il sert le jour où
-/// quelqu'un joue sur un téléphone plein.
+/// **Honestly, this is insurance more than a need.** The reference
+/// device has close to three hundred gigabytes free, and the warning
+/// will never appear there. It costs one read and one analysis, and
+/// it earns its keep the day someone plays on a full phone.
 /// </summary>
-/// <param name="FreeBytes">Octets libres sur la partition des données.</param>
+/// <param name="FreeBytes">Free bytes on the data partition.</param>
 public sealed record StorageReading(long FreeBytes)
 {
-    /// <summary>En dessous, le jeu peut échouer sans dire pourquoi.</summary>
+    /// <summary>Below this, the game can fail without saying why.</summary>
     public const long Low = 2L * 1024 * 1024 * 1024;
 
-    /// <summary>En dessous, il échouera.</summary>
+    /// <summary>Below this, it will fail.</summary>
     public const long Critical = 512L * 1024 * 1024;
 
-    /// <summary>La place libre en gigaoctets, arrondie au dixième.</summary>
+    /// <summary>Free space in gigabytes, rounded to one decimal.</summary>
     public double FreeGigabytes => Math.Round(FreeBytes / (1024.0 * 1024 * 1024), 1);
 
-    /// <summary>Vrai quand la place mérite qu'on en parle.</summary>
+    /// <summary>True when the space is worth mentioning.</summary>
     public bool IsLow => FreeBytes <= Low;
 
     /// <summary>
-    /// Lit la sortie de <c>df /data</c>. Rend <c>null</c> dès que la colonne
-    /// manque : ne rien savoir est un cas ordinaire.
+    /// Reads the output of <c>df /data</c>. Returns <c>null</c> as
+    /// soon as the column is missing: knowing nothing is an ordinary
+    /// case.
     ///
-    /// Relevé sur l'appareil de référence, en blocs d'un kilooctet :
+    /// Recorded on the reference device, in one-kilobyte blocks:
     ///
     /// <code>
     /// Filesystem       1K-blocks      Used Available Use% Mounted on
     /// /dev/block/dm-59 485636064 171563720 313535476  36% /data/user/0
     /// </code>
     ///
-    /// La colonne se cherche par son intitulé et non par son rang : le nom du
-    /// volume peut contenir un espace, et compter les colonnes depuis la
-    /// gauche décalerait tout. On lit donc l'en-tête pour savoir où regarder,
-    /// en comptant **depuis la droite**, la fin des lignes étant régulière.
+    /// The column is looked up by its heading and not by its rank:
+    /// the volume name can contain a space, and counting columns
+    /// from the left would shift everything. So we read the header
+    /// to know where to look, counting **from the right**, since the
+    /// end of the lines is regular.
     /// </summary>
     public static StorageReading? Parse(string? df)
     {
@@ -68,9 +71,10 @@ public sealed record StorageReading(long FreeBytes)
             return null;
         }
 
-        // Depuis la droite : « Mounted on » compte pour deux mots dans
-        // l'en-tête et pour un chemin dans la ligne, et le nom du volume peut
-        // contenir un espace. Le rang depuis la fin, lui, est stable.
+        // From the right: "Mounted on" counts as two words in the
+        // header and as one path in the line, and the volume name
+        // can contain a space. The rank from the end, however, is
+        // stable.
         var fromEnd = header.Length - column;
 
         foreach (var line in lines[1..])
@@ -82,8 +86,8 @@ public sealed record StorageReading(long FreeBytes)
                 continue;
             }
 
-            // L'en-tête compte « Mounted on » pour deux mots, la ligne pour un
-            // seul chemin : un cran d'écart, toujours le même.
+            // The header counts "Mounted on" as two words, the line
+            // as a single path: one notch of gap, always the same.
             var at = cells.Length - fromEnd + 1;
 
             if (at >= 0
@@ -97,7 +101,10 @@ public sealed record StorageReading(long FreeBytes)
         return null;
     }
 
-    /// <summary>Ce qu'il y a à dire, ou <c>null</c> quand il n'y a rien à dire.</summary>
+    /// <summary>
+    /// What there is to say, or <c>null</c> when there is nothing to
+    /// say.
+    /// </summary>
     public string? Describe() => FreeBytes <= Critical
         ? Strings.Format("DeviceStorageCritical", FreeGigabytes)
         : IsLow

@@ -2,24 +2,25 @@
 
 namespace DtHub.Core.Scrcpy;
 
-/// <summary>Un appareil vient de changer d'état d'occupation.</summary>
+/// <summary>A device has just changed its busy state.</summary>
 public sealed class DeviceBusyChangedEventArgs(string deviceId, bool isBusy) : EventArgs
 {
-    /// <summary>Appareil dont l'état vient de changer.</summary>
+    /// <summary>Device whose state has just changed.</summary>
     public string DeviceId { get; } = deviceId;
 
-    /// <summary>Vrai tant qu'une ouverture est en cours sur cet appareil.</summary>
+    /// <summary>True while an opening is in progress on this device.</summary>
     public bool IsBusy { get; } = isBusy;
 }
 
 /// <summary>
-/// Sérialise les ouvertures de session appareil par appareil, et annonce
-/// lesquels sont occupés.
+/// Serializes session openings device by device, and announces which
+/// ones are busy.
 ///
-/// Deux ouvertures qui se chevauchent sur un même téléphone se cassent : la
-/// première meurt sur « Server connection failed » alors qu'elle avait déjà
-/// poussé son serveur. Deux téléphones différents, eux, n'ont aucune raison de
-/// s'attendre : le verrou est donc par appareil, jamais global.
+/// Two openings that overlap on the same phone break: the first one
+/// dies on "Server connection failed" even though it had already
+/// pushed its server. Two different phones, on the other hand, have
+/// no reason to wait for each other: the lock is therefore per
+/// device, never global.
 /// </summary>
 public sealed class DeviceStartupGate : IDisposable
 {
@@ -31,16 +32,17 @@ public sealed class DeviceStartupGate : IDisposable
         _delay = delay ?? ((duration, token) => Task.Delay(duration, token));
 
     /// <summary>
-    /// Repos laissé après une ouverture, avant d'en autoriser une autre sur le
-    /// même appareil. Nul par défaut : le verrou impose déjà l'espacement d'une
-    /// ouverture complète, et un chiffre inventé ne vaudrait rien.
+    /// Rest left after an opening, before allowing another one on
+    /// the same device. Zero by default: the lock already imposes
+    /// the spacing of a full opening, and a made up figure would be
+    /// worthless.
     /// </summary>
     public TimeSpan Cooldown { get; set; } = TimeSpan.Zero;
 
-    /// <summary>Signalé à chaque prise et à chaque libération.</summary>
+    /// <summary>Raised on every acquisition and every release.</summary>
     public event EventHandler<DeviceBusyChangedEventArgs>? BusyChanged;
 
-    /// <summary>Vrai si une ouverture est en cours sur cet appareil.</summary>
+    /// <summary>True if an opening is in progress on this device.</summary>
     public bool IsBusy(string deviceId)
     {
         lock (_busy)
@@ -50,8 +52,8 @@ public sealed class DeviceStartupGate : IDisposable
     }
 
     /// <summary>
-    /// Attend son tour sur cet appareil. Le jeton rendu libère la place, après
-    /// le repos, quand il est disposé.
+    /// Waits its turn on this device. The returned token releases the
+    /// slot, after the rest period, when it is disposed.
     /// </summary>
     public async Task<IAsyncDisposable> EnterAsync(
         string deviceId,
@@ -91,9 +93,9 @@ public sealed class DeviceStartupGate : IDisposable
     }
 
     /// <summary>
-    /// Place réservée sur un appareil. Le repos est appliqué avant de rendre la
-    /// place, et non après : le suivant attend donc réellement, et l'indicateur
-    /// d'activité reste allumé pendant ce temps.
+    /// Slot reserved on a device. The rest period is applied before
+    /// releasing the slot, not after: the next one therefore really
+    /// waits, and the activity indicator stays lit during that time.
     /// </summary>
     private sealed class Lease(DeviceStartupGate gate, string deviceId, SemaphoreSlim semaphore)
         : IAsyncDisposable

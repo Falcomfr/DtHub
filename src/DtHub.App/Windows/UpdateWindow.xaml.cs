@@ -2,7 +2,9 @@
 
 namespace DtHub.App.Windows;
 
-/// <summary>Montre ce qu'une version apporte, telle que le dépôt l'annonce.</summary>
+/// <summary>
+/// Shows what a version brings, as announced by the repository.
+/// </summary>
 public partial class UpdateWindow : Window
 {
     public UpdateWindow(string heading, string lead, string notes)

@@ -8,14 +8,15 @@ using Microsoft.Extensions.Logging;
 namespace DtHub.Infrastructure.Hotkeys;
 
 /// <summary>
-/// Enregistre les raccourcis avec <c>RegisterHotKey</c>, sur un fil dédié
-/// muni de sa propre boucle de messages.
+/// Registers hotkeys with <c>RegisterHotKey</c>, on a dedicated
+/// thread equipped with its own message loop.
 ///
-/// Le choix de <c>RegisterHotKey</c> plutôt que d'un crochet clavier de bas
-/// niveau est délibéré : un tel crochet verrait toutes les frappes du système,
-/// ce qui serait disproportionné pour le besoin et impossible à distinguer
-/// d'un enregistreur de frappe. Ici, seules les combinaisons déclarées sont
-/// interceptées, et uniquement pendant qu'une fenêtre de DT Hub est active.
+/// The choice of <c>RegisterHotKey</c> over a low level keyboard
+/// hook is deliberate: such a hook would see every keystroke on the
+/// system, which would be disproportionate for the need and
+/// impossible to distinguish from a keylogger. Here, only the
+/// declared combinations are intercepted, and only while a DT Hub
+/// window is active.
 /// </summary>
 public sealed partial class Win32HotkeyRegistrar : IHotkeyRegistrar
 {
@@ -123,16 +124,17 @@ public sealed partial class Win32HotkeyRegistrar : IHotkeyRegistrar
         _thread.Join(TimeSpan.FromSeconds(2));
     }
 
-    /// <summary>Boucle de messages du fil dédié aux raccourcis.</summary>
+    /// <summary>Message loop of the thread dedicated to hotkeys.</summary>
     private void RunMessageLoop()
     {
         _threadId = GetCurrentThreadId();
 
-        // Force la création de la file de messages avant tout envoi.
+        // Forces the creation of the message queue before anything
+        // is sent.
         _ = PeekMessage(out _, 0, 0, 0, PmNoRemove);
 
-        // Le crochet d'événement système sert uniquement à savoir quelle
-        // fenêtre est au premier plan : aucune frappe n'y transite.
+        // The system event hook is only used to know which window is
+        // in the foreground: no keystrokes pass through it.
         _foregroundCallback = OnForegroundChanged;
         _winEventHook = SetWinEventHook(
             EventSystemForeground, EventSystemForeground, 0, _foregroundCallback, 0, 0, WinEventOutOfContext);
@@ -180,8 +182,8 @@ public sealed partial class Win32HotkeyRegistrar : IHotkeyRegistrar
         {
             var id = _nextId++;
 
-            // MOD_NOREPEAT évite qu'une touche maintenue déclenche l'action
-            // des dizaines de fois par seconde.
+            // MOD_NOREPEAT prevents a held key from triggering the
+            // action dozens of times per second.
             var modifiers = ToNativeModifiers(binding.Modifiers) | ModNoRepeat;
 
             if (RegisterHotKey(0, id, modifiers, (uint)binding.VirtualKey))
@@ -227,10 +229,11 @@ public sealed partial class Win32HotkeyRegistrar : IHotkeyRegistrar
             }
             catch (Exception exception)
             {
-                // Sans filtre, et c'est voulu : ce bloc ne traite pas la faute,
-                // il la fait voyager du fil des raccourcis vers celui qui
-                // attend. La borner ici la ferait disparaître au lieu d'arriver
-                // à qui peut la traiter.
+                // No filter, and that is intentional: this block
+                // does not handle the fault, it makes it travel from
+                // the hotkey thread to the one waiting. Catching it
+                // here would make it disappear instead of reaching
+                // whoever can handle it.
                 completion.TrySetException(exception);
             }
         });
@@ -270,8 +273,8 @@ public sealed partial class Win32HotkeyRegistrar : IHotkeyRegistrar
         Message = "Le raccourci {shortcut} pour « {action} » est refusé par Windows ; un autre logiciel le détient probablement.")]
     private partial void LogRefused(string action, string shortcut);
 
-    // Le délégué est conservé pour que le ramasse-miettes ne le libère pas
-    // pendant que Windows détient le pointeur.
+    // The delegate is kept so the garbage collector does not
+    // release it while Windows holds the pointer.
     private WinEventProc? _foregroundCallback;
 
     private const uint WmQuit = 0x0012;

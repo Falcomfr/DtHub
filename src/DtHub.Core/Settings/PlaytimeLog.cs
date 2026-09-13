@@ -3,33 +3,36 @@
 namespace DtHub.Core.Settings;
 
 /// <summary>
-/// Le temps passé sur un compte, jour par jour, sur une semaine glissante.
+/// Time spent on an account, day by day, over a rolling week.
 ///
-/// Information seulement : aucune limite, aucun rappel, aucun jugement. Qui
-/// joue cinq comptes finit par ne plus savoir lequel il fait vraiment tourner,
-/// et c'est la seule question à laquelle ce relevé répond.
+/// Information only: no limit, no reminder, no judgment. Someone
+/// playing five accounts ends up no longer knowing which one they
+/// are really running, and that is the only question this log
+/// answers.
 ///
-/// **Sept jours, pas plus.** Un cumul depuis toujours ne dit rien d'utile et
-/// grossit sans fin dans le fichier de réglages ; une semaine tient en sept
-/// entrées et suffit à voir où le temps passe.
+/// **Seven days, no more.** A running total since forever says
+/// nothing useful and grows forever in the settings file; a week
+/// fits in seven entries and is enough to see where the time goes.
 ///
-/// La clef est la date en ISO, « 2026-09-10 ». C'est le seul format qui se
-/// trie comme il se lit et qui ne dépende d'aucune culture.
+/// The key is the date in ISO format, "2026-09-10". It is the only
+/// format that sorts the way it reads and does not depend on any
+/// culture.
 /// </summary>
 public static class PlaytimeLog
 {
-    /// <summary>Jours retenus.</summary>
+    /// <summary>Days kept.</summary>
     public const int Days = 7;
 
-    /// <summary>La clef d'un jour.</summary>
+    /// <summary>The key for a day.</summary>
     public static string KeyOf(DateOnly day) => day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
     /// <summary>
-    /// Ajoute un temps au jour donné et écarte ce qui sort de la semaine.
+    /// Adds a duration to the given day and discards whatever falls
+    /// outside the week.
     ///
-    /// Rend un relevé neuf plutôt que de modifier celui reçu : l'appelant
-    /// écrit dans un document de réglages, et une modification en place y
-    /// passerait inaperçue.
+    /// Returns a new log rather than modifying the one received: the
+    /// caller writes into a settings document, and an in-place
+    /// modification would go unnoticed there.
     /// </summary>
     public static IReadOnlyDictionary<string, int> Add(
         IReadOnlyDictionary<string, int>? existing,
@@ -51,8 +54,8 @@ public static class PlaytimeLog
     }
 
     /// <summary>
-    /// Écarte les jours antérieurs à la semaine qui finit le jour donné, et
-    /// ceux dont la clef n'est pas une date.
+    /// Discards days earlier than the week ending on the given day,
+    /// and those whose key is not a date.
     /// </summary>
     public static IReadOnlyDictionary<string, int> Trim(
         IReadOnlyDictionary<string, int>? log,
@@ -69,9 +72,9 @@ public static class PlaytimeLog
 
         foreach (var (key, seconds) in log)
         {
-            // Une clef illisible s'en va : c'est un fichier que quelqu'un peut
-            // avoir modifié à la main, et un relevé n'a pas à survivre à sa
-            // propre corruption.
+            // An unreadable key is dropped: this is a file someone
+            // may have edited by hand, and a log does not need to
+            // survive its own corruption.
             if (seconds > 0 && Parse(key) is { } day && day >= first && day <= today)
             {
                 kept[key] = seconds;
@@ -81,7 +84,9 @@ public static class PlaytimeLog
         return kept;
     }
 
-    /// <summary>Le total de la semaine qui finit le jour donné, en secondes.</summary>
+    /// <summary>
+    /// The total for the week ending on the given day, in seconds.
+    /// </summary>
     public static int Week(IReadOnlyDictionary<string, int>? log, DateOnly today) =>
         Trim(log, today).Values.Sum();
 

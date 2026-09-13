@@ -1,37 +1,36 @@
 ﻿namespace DtHub.Core.Hotkeys;
 
 /// <summary>
-/// Les actions auxquelles un raccourci peut être associé. Volontairement peu
-/// nombreuses : tout ce qui se règle une fois vit dans le configurateur, pas
-/// dans un raccourci.
+/// The actions a hotkey can be associated with. Deliberately few:
+/// anything set once lives in the configurator, not in a hotkey.
 ///
-/// L'énumération est persistée par son nom : ne jamais renommer un membre
-/// existant sans prévoir une migration.
+/// The enum is persisted by its name: never rename an existing
+/// member without planning a migration.
 /// </summary>
 public enum HotkeyAction
 {
-    /// <summary>Afficher ou masquer le configurateur.</summary>
+    /// <summary>Show or hide the configurator.</summary>
     ToggleConfigurator,
 
-    /// <summary>Passer à l'instance suivante.</summary>
+    /// <summary>Move to the next instance.</summary>
     NextInstance,
 
-    /// <summary>Revenir à l'instance précédente.</summary>
+    /// <summary>Go back to the previous instance.</summary>
     PreviousInstance,
 
-    /// <summary>Remettre toutes les fenêtres en place.</summary>
+    /// <summary>Put all windows back in place.</summary>
     Rearrange,
 
-    /// <summary>Deux fenêtres, chacune sur une moitié de l'écran.</summary>
+    /// <summary>Two windows, each on half the screen.</summary>
     Tile,
 
-    /// <summary>Afficher ou masquer le suivi de quêtes.</summary>
+    /// <summary>Show or hide quest tracking.</summary>
     Quests,
 
-    /// <summary>Ouvrir l'Almanax du jour.</summary>
+    /// <summary>Open today's Almanax.</summary>
     Almanax,
 
-    /// <summary>Première taille, la plus petite.</summary>
+    /// <summary>First size, the smallest.</summary>
     Size1,
 
     Size2,
@@ -40,18 +39,18 @@ public enum HotkeyAction
 
     Size4,
 
-    /// <summary>Plein écran sans bordure.</summary>
+    /// <summary>Borderless fullscreen.</summary>
     Fullscreen,
 
     /// <summary>
-    /// Quitter l'application, fenêtres de jeu comprises. Fermer les fenêtres
-    /// sans quitter n'avait pas d'usage propre : les laisser fermées revenait
-    /// à quitter, sans en retenir l'état.
+    /// Quit the application, including the game windows. Closing the
+    /// windows without quitting had no use of its own: leaving them
+    /// closed amounted to quitting, without remembering the state.
     /// </summary>
     Quit,
 }
 
-/// <summary>Touches de modification, combinables.</summary>
+/// <summary>Modifier keys, combinable.</summary>
 [Flags]
 public enum HotkeyModifiers
 {
@@ -60,6 +59,9 @@ public enum HotkeyModifiers
     Control = 2,
     Shift = 4,
 
-    /// <summary>Touche Windows. Déconseillée : le système en réserve beaucoup.</summary>
+    /// <summary>
+    /// Windows key. Not recommended: the system reserves many of
+    /// them.
+    /// </summary>
     Windows = 8,
 }

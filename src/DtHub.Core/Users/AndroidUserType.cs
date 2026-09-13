@@ -1,30 +1,30 @@
 ﻿namespace DtHub.Core.Users;
 
 /// <summary>
-/// Nature d'un utilisateur Android. Elle est déduite des drapeaux rapportés
-/// par <c>pm list users</c>, affinée par <c>dumpsys user</c> quand celui-ci
-/// répond. Rien n'est déduit de l'identifiant : un clone ne vaut pas toujours
-/// 999, ni un profil professionnel toujours 10.
+/// Nature of an Android user. It is inferred from the flags reported
+/// by <c>pm list users</c>, refined by <c>dumpsys user</c> when that
+/// one responds. Nothing is inferred from the identifier: a clone is
+/// not always 999, nor is a work profile always 10.
 /// </summary>
 public enum AndroidUserType
 {
-    /// <summary>Drapeaux inconnus ou illisibles.</summary>
+    /// <summary>Unknown or unreadable flags.</summary>
     Unknown = 0,
 
-    /// <summary>Utilisateur principal du téléphone.</summary>
+    /// <summary>Primary user of the phone.</summary>
     Primary,
 
     /// <summary>
-    /// Profil géré. Android range sous ce type aussi bien un profil
-    /// professionnel qu'une duplication d'applications selon les surcouches
-    /// constructeur, d'où un libellé neutre.
+    /// Managed profile. Android files under this type both a work
+    /// profile and an app duplication feature, depending on the
+    /// manufacturer's overlay, hence a neutral label.
     /// </summary>
     ManagedProfile,
 
-    /// <summary>Profil de clonage d'applications.</summary>
+    /// <summary>App cloning profile.</summary>
     CloneProfile,
 
-    /// <summary>Second espace ou utilisateur secondaire complet.</summary>
+    /// <summary>Second space or full secondary user.</summary>
     Secondary,
 
     Guest,

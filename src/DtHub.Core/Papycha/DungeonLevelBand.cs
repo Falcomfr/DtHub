@@ -3,31 +3,34 @@
 namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Range les donjons par palier de cinquante niveaux.
+/// Groups dungeons into tiers of fifty levels.
 ///
-/// Quatre-vingt-trois donjons de douze à deux cents ne se parcourent pas d'un
-/// œil : on y cherche ce qui est à sa portée. Les paliers coupent la liste comme
-/// les succès coupent celle des quêtes, sans changer l'ordre.
+/// Eighty-three dungeons from twelve to two hundred cannot be
+/// scanned at a glance: you look for what is within reach. Tiers cut
+/// the list the way achievements cut the quest list, without
+/// changing the order.
 ///
-/// Fonction pure : elle se vérifie aux bornes, qui sont le seul endroit où l'on
-/// se trompe.
+/// Pure function: it is checked at the boundaries, the only place
+/// where mistakes happen.
 /// </summary>
 public static class DungeonLevelBand
 {
-    /// <summary>Largeur d'un palier.</summary>
+    /// <summary>Width of a tier.</summary>
     private const int Width = 50;
 
     /// <summary>
-    /// Rang du palier d'un niveau, à partir de zéro. Rend <see cref="Unknown"/>
-    /// quand le site ne renseigne pas de niveau.
+    /// Tier rank of a level, starting from zero. Returns
+    /// <see cref="Unknown"/> when the site does not report a level.
     /// </summary>
     public static int RankOf(int level) =>
         level <= 0 ? Unknown : (level - 1) / Width;
 
-    /// <summary>Rang des donjons sans niveau, qui ferment la marche.</summary>
+    /// <summary>
+    /// Rank of dungeons without a level, which close the line.
+    /// </summary>
     public static int Unknown => int.MaxValue;
 
-    /// <summary>Intitulé du palier, « Niveau 51 à 100 ».</summary>
+    /// <summary>Tier heading, "Level 51 to 100".</summary>
     public static string NameOf(int level)
     {
         var rank = RankOf(level);

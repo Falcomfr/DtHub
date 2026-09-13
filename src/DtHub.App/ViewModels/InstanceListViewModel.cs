@@ -13,9 +13,9 @@ using DtHub.Core.Settings;
 namespace DtHub.App.ViewModels;
 
 /// <summary>
-/// Liste des téléphones et de leurs instances, partagée par la fenêtre de mise
-/// en route et par l'onglet Appareils du configurateur. Elle se met à jour
-/// toute seule : brancher un téléphone suffit à le voir apparaître.
+/// List of phones and their instances, shared by the startup window and
+/// by the Devices tab of the configurator. It updates on its own:
+/// plugging in a phone is enough to make it appear.
 /// </summary>
 public sealed partial class InstanceListViewModel : ObservableObject
 {
@@ -34,9 +34,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
         _dialogs = dialogs;
         _icons = icons;
 
-        // Fermer une fenêtre de jeu doit se voir tout de suite. Attendre le
-        // balayage laissait jusqu'à trois secondes pendant lesquelles la liste
-        // annonçait une fenêtre qui n'existait plus.
+        // Closing a game window has to show at once. Waiting for the sweep
+        // left the list announcing, for up to three seconds, a window that
+        // no longer existed.
         _launcher.SessionChanged += OnSessionChanged;
         _launcher.DeviceBusyChanged += OnDeviceBusyChanged;
     }
@@ -54,27 +54,33 @@ public sealed partial class InstanceListViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Toutes les instances des appareils joignables, dans l'ordre voulu.
+    /// All the instances of reachable devices, in the intended order.
     ///
-    /// Une seule liste, sans distinction d'appareil : le nom du téléphone
-    /// n'apparaît qu'aux endroits où il change.
+    /// A single list, with no distinction by device: the phone's name
+    /// appears only where it changes.
     /// </summary>
     public ObservableCollection<InstanceRowViewModel> Rows { get; } = [];
 
     /// <summary>
-    /// Appareils connus qui n'ont aucune ligne dans la liste : hors ligne, ou
-    /// joignables mais sans le jeu. Sans ce rappel, brancher un téléphone où
-    /// le jeu manque ne produirait rien du tout à l'écran.
+    /// Known devices with no row in the list: offline, or reachable but
+    /// without the game. Without this reminder, plugging in a phone where
+    /// the game is missing would produce nothing at all on screen.
     /// </summary>
     public ObservableCollection<DeviceGroupViewModel> InactiveDevices { get; } = [];
 
-    /// <summary>Appareils vus, par identifiant. Chacun est partagé par ses lignes.</summary>
+    /// <summary>
+    /// Devices seen, by identifier. Each one is shared by its rows.
+    /// </summary>
     private readonly Dictionary<string, DeviceGroupViewModel> _devices = new(StringComparer.Ordinal);
 
-    /// <summary>Dernière découverte d'instances, réutilisée entre deux balayages.</summary>
+    /// <summary>
+    /// Last discovery of instances, reused between two sweeps.
+    /// </summary>
     private IReadOnlyList<Core.Dofus.DofusInstance>? _instances;
 
-    /// <summary>Empreinte des appareils vus, pour savoir quand redécouvrir.</summary>
+    /// <summary>
+    /// Fingerprint of devices seen, to know when to rediscover.
+    /// </summary>
     private string? _signature;
 
     /// <summary>
@@ -96,30 +102,30 @@ public sealed partial class InstanceListViewModel : ObservableObject
     private string? _problem;
 
     /// <summary>
-    /// Le même signalement, mais entier : tous les constats, un par ligne.
+    /// The same notice, but in full: every finding, one per line.
     ///
-    /// Le bandeau tient sur une ligne et ne montre donc que le plus grave.
-    /// Ce qu'il laisse de côté se lit au survol, faute de quoi il faudrait
-    /// corriger le premier problème pour apprendre l'existence du second.
+    /// The banner fits on one line and so shows only the most serious
+    /// one. What it leaves out can be read on hover: otherwise you would
+    /// have to fix the first problem just to learn that a second exists.
     /// </summary>
     [ObservableProperty]
     private string? _problemDetail;
 
     /// <summary>
-    /// Ce que montre le bandeau : tous les constats s'il y en a plusieurs, la
-    /// ligne seule sinon.
+    /// What the banner shows: every finding when there are several, the
+    /// single line otherwise.
     ///
-    /// **Un constat par ligne, et non le pire suivi d'une bulle.** Un
-    /// téléphone a porté trois constats en même temps, verrou, encombrement
-    /// et batterie non préparée : un seul paraissait, et il fallait corriger
-    /// le premier pour apprendre l'existence du second. C'est exactement le
-    /// défaut que D120 refusait en gardant le texte visible plutôt que caché
-    /// au survol ; le cacher par le nombre plutôt que par le survol revenait
-    /// au même. Chaque ligne reste tronquée à une ligne, et le survol donne
-    /// le texte entier.
+    /// **One finding per line, not the worst one followed by a bubble.**
+    /// A phone once carried three findings at once: lock, clutter, and
+    /// an unready battery. Only one showed, and fixing the first one was
+    /// needed just to learn that a second existed. That is exactly the
+    /// flaw D120 refused by keeping the text visible rather than hidden
+    /// on hover: hiding it behind a count instead of behind hover came
+    /// to the same thing. Each line still stays truncated to one line,
+    /// and hovering gives the full text.
     ///
-    /// Le repli sur <see cref="Problem" /> compte : plusieurs chemins posent
-    /// un signalement sans détail, une erreur attrapée par exemple.
+    /// The fallback to <see cref="Problem" /> matters: several paths raise
+    /// a notice with no detail, a caught error for instance.
     /// </summary>
     public string? AllProblems => string.IsNullOrEmpty(ProblemDetail) ? Problem : ProblemDetail;
 
@@ -128,131 +134,142 @@ public sealed partial class InstanceListViewModel : ObservableObject
     partial void OnProblemDetailChanged(string? value) => OnPropertyChanged(nameof(AllProblems));
 
     /// <summary>
-    /// Vrai quand ce qui est signalé coupera la séance, par opposition à un
-    /// simple désagrément. Seule la couleur du sigle en dépend : le texte, lui,
-    /// reste le même.
+    /// True when what is reported will cut the session short, as
+    /// opposed to a mere annoyance. Only the icon's colour depends on
+    /// it: the text itself stays the same.
     /// </summary>
     [ObservableProperty]
     private bool _problemIsSerious;
 
     /// <summary>
-    /// Vrai pendant un glisser-déposer. Le balayage périodique s'abstient
-    /// alors de reconstruire la liste, faute de quoi une carte disparaîtrait
-    /// sous le curseur.
+    /// True during a drag and drop. The periodic sweep then holds off
+    /// rebuilding the list, otherwise a card would disappear under the
+    /// cursor.
     /// </summary>
     public bool IsReordering { get; set; }
 
-    /// <summary>Rythme du balayage des appareils, selon la qualité choisie.</summary>
+    /// <summary>
+    /// Pace of the device sweep, based on the chosen quality.
+    /// </summary>
     public TimeSpan PollInterval => _launcher.Quality.DevicePoll;
 
-    /// <summary>Vrai tant qu'aucun téléphone n'est joignable.</summary>
+    /// <summary>True as long as no phone is reachable.</summary>
     public bool HasNoConnectedDevice => !_devices.Values.Any(d => d.IsConnected);
 
     /// <summary>
-    /// Faux tant qu'aucun balayage n'a eu lieu.
+    /// False as long as no sweep has taken place yet.
     ///
-    /// Une liste vide avant le premier balayage ressemble en tout point à une
-    /// liste vide après : dans les deux cas rien n'est là. Seule la différence
-    /// entre « je n'ai pas regardé » et « j'ai regardé, il n'y a rien »
-    /// autorise à l'écrire à l'écran, et elle ne se lit nulle part ailleurs.
+    /// An empty list before the first sweep looks, in every way, like an
+    /// empty list afterward: in both cases nothing is there. Only the
+    /// difference between "I have not looked" and "I looked, there is
+    /// nothing" allows writing it on screen, and it is read nowhere else.
     /// </summary>
     private bool _scanned;
 
     /// <summary>
-    /// L'état de chaque appareil vu, pour le verdict de connexion. Les
-    /// appareils seulement mémorisés y figurent hors ligne, ce qui est juste :
-    /// un téléphone qu'on a connu et qui ne répond pas n'est pas un téléphone
-    /// détecté.
+    /// The state of each device seen, for the connection verdict. Devices
+    /// only remembered show up there as offline, which is fair: a phone
+    /// that has been known and does not answer is not a detected phone.
     /// </summary>
     public IReadOnlyList<AdbDeviceState> DeviceStates => [.. _devices.Values.Select(d => d.State)];
 
-    /// <summary>Vrai si au moins un téléphone répond.</summary>
+    /// <summary>True if at least one phone answers.</summary>
     public bool HasConnectedDevice => !HasNoConnectedDevice;
 
-    /// <summary>Vrai s'il y a plus d'une instance à ordonner.</summary>
+    /// <summary>True if there is more than one instance to reorder.</summary>
     public bool CanReorder => Rows.Count > 1;
 
-    /// <summary>Vrai s'il y a au moins une instance à montrer.</summary>
+    /// <summary>True if there is at least one instance to show.</summary>
     public bool HasRows => Rows.Count > 0;
 
-    /// <summary>Vrai s'il y a au moins un appareil sans instance à signaler.</summary>
+    /// <summary>
+    /// True if there is at least one device with no instance to report.
+    /// </summary>
     public bool HasInactiveDevices => InactiveDevices.Count > 0;
 
     /// <summary>
-    /// Vrai quand la carte « aucun appareil détecté » a lieu d'être.
+    /// True when the "no device found" card is warranted.
     ///
-    /// Elle s'affichait dès qu'aucun appareil ne répondait, y compris quand un
-    /// téléphone était nommé juste au-dessus, en orange, avec la mention « à
-    /// autoriser sur le téléphone ». L'écran se contredisait alors dans la
-    /// même colonne. Un appareil vu, même muet, vaut mieux que le mot
-    /// « aucun » : la ligne qui le nomme dit déjà ce qui manque.
+    /// It used to show as soon as no device answered, including when a
+    /// phone was named right above, in orange, with the note "to be
+    /// authorised on the phone". The screen then contradicted itself in
+    /// the same column. A device seen, even silent, is worth more than
+    /// the word "none": the row that names it already says what is
+    /// missing.
     /// </summary>
     public bool ShowsNoDeviceCard => _scanned && HasNoConnectedDevice && !HasInactiveDevices;
 
     /// <summary>
-    /// Vrai quand les astuces sur les fenêtres de jeu ont un objet.
+    /// True when the tips about the game windows have something to
+    /// point to.
     ///
-    /// Elles parlent d'une fenêtre qui se fige et d'une fenêtre où la souris ne
-    /// fait rien. Sans téléphone joignable il n'y a pas de fenêtre, et ces deux
-    /// lignes ne sont plus que du texte de plus sur un écran qui n'a rien à
-    /// dire. Comme pour les autres blocs, rien n'est affirmé avant le premier
-    /// balayage.
+    /// They talk about a window that freezes and a window where the
+    /// mouse does nothing. With no phone reachable there is no window,
+    /// and these two lines become just more text on a screen that has
+    /// nothing to say. As with the other blocks, nothing is asserted
+    /// before the first sweep.
     /// </summary>
     public bool ShowsWindowHelp => _scanned && !HasNoConnectedDevice;
 
     /// <summary>
-    /// Vrai tant que le premier balayage n'a rien rendu.
+    /// True as long as the first sweep has produced nothing yet.
     ///
-    /// **La liste ne reste pas vide sans rien dire.** Au premier lancement,
-    /// l'application tente de rejoindre chaque téléphone mémorisé à sa
-    /// dernière adresse, et un téléphone éteint fait attendre le système
-    /// plusieurs secondes. Pendant ce temps, l'écran n'avait ni appareil, ni
-    /// carte « aucun appareil », qu'on se garde bien d'afficher avant de
-    /// savoir : rien du tout, donc, et rien ne disait que ça travaillait.
+    /// **The list does not stay empty without saying so.** On first
+    /// launch, the application tries to reach every remembered phone at
+    /// its last address, and a phone that is off makes the system wait
+    /// several seconds. During that time, the screen had neither a
+    /// device nor the "no device found" card, which is carefully not
+    /// shown before knowing: nothing at all, then, and nothing said
+    /// that it was working.
     /// </summary>
     public bool ShowsSearching => !_scanned;
 
-    /// <summary>Nombre d'instances cochées pour le lancement.</summary>
+    /// <summary>Number of instances checked for launch.</summary>
     public int EnabledCount => Rows.Count(i => i.IsEnabled);
 
-    // Profils de lancement
+    // Launch profiles
 
-    /// <summary>Les profils enregistrés, tels qu'ils paraissent dans le panneau.</summary>
+    /// <summary>The saved profiles, as they appear in the panel.</summary>
     public ObservableCollection<LaunchProfileRowViewModel> Profiles { get; } = [];
 
-    /// <summary>Vrai s'il y a au moins un profil à montrer.</summary>
+    /// <summary>True if there is at least one profile to show.</summary>
     public bool HasProfiles => Profiles.Count > 0;
 
     /// <summary>
-    /// Nom du profil retenu pour le démarrage, vide s'il n'y en a pas.
+    /// Name of the profile kept for startup, empty if there is none.
     ///
-    /// Pris sur la ligne elle-même et non sur le réglage : c'est ainsi que le
-    /// bouton dit exactement ce que la liste montre en accent, sans qu'une
-    /// différence de casse ou d'espaces puisse les faire diverger.
+    /// Taken from the row itself and not from the setting: this is how
+    /// the button says exactly what the list shows in its accent,
+    /// without a difference in case or spaces being able to make them
+    /// diverge.
     /// </summary>
     public string ActiveProfileName { get; private set; } = string.Empty;
 
-    /// <summary>Vrai quand un profil est retenu pour le démarrage.</summary>
+    /// <summary>True when a profile is kept for startup.</summary>
     public bool HasActiveProfile => ActiveProfileName.Length > 0;
 
-    /// <summary>Ce que porte le bouton : le nom du profil, ou le mot générique.</summary>
+    /// <summary>
+    /// What the button carries: the profile's name, or the generic
+    /// word.
+    /// </summary>
     public string ProfilesButtonText => LaunchProfiles.ButtonLabel(ActiveProfileName);
 
     /// <summary>
-    /// L'info-bulle du bouton. Elle nomme le profil en entier quand il y en a
-    /// un, puisque le bouton, lui, coupe les noms longs.
+    /// The button's tooltip. It names the profile in full when there is
+    /// one, since the button itself truncates long names.
     /// </summary>
     public string ProfilesTooltip => HasActiveProfile
         ? Strings.Format("ProfilesActiveTip", ActiveProfileName)
         : Strings.Get("ProfilesTip");
 
     /// <summary>
-    /// Reprend les profils enregistrés.
+    /// Refreshes the saved profiles.
     ///
-    /// Rien n'est sélectionné ici : chaque ligne porte ses propres gestes, et
-    /// c'est le bouton qui ouvre, non le fait de désigner la ligne. La liste
-    /// peut donc se reconstruire à chaque balayage sans rien déclencher, ce
-    /// qui n'était pas le cas quand choisir valait ouvrir.
+    /// Nothing is selected here: each row carries its own actions, and
+    /// it is the button that opens, not the act of picking the row. The
+    /// list can therefore rebuild itself on every sweep without
+    /// triggering anything, which was not the case when selecting used
+    /// to mean opening.
     /// </summary>
     private async Task SyncProfilesAsync(CancellationToken cancellationToken = default)
     {
@@ -279,8 +296,8 @@ public sealed partial class InstanceListViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Ouvre un profil : ce qui n'en fait pas partie se ferme, ce qui y
-    /// manque s'ouvre.
+    /// Opens a profile: whatever is not part of it closes, whatever it
+    /// is missing opens.
     /// </summary>
     [RelayCommand]
     private async Task OpenProfileAsync(LaunchProfileRowViewModel? profile)
@@ -290,8 +307,8 @@ public sealed partial class InstanceListViewModel : ObservableObject
             return;
         }
 
-        // Fermer des fenêtres de jeu ne se fait pas sans le dire : on peut être
-        // en pleine partie, et un clic n'est pas un consentement.
+        // Closing game windows is not done without saying so: you could
+        // be in the middle of a game, and a click is not consent.
         if (_launcher.ActiveSessions.Count > 0
             && !_dialogs.Confirm(
                 Strings.Format("OpenProfileQuestion", profile.Name)
@@ -305,9 +322,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
         try
         {
-            // Fermer d'abord, appliquer ensuite : la fermeture commence par
-            // relever la géométrie des fenêtres ouvertes, et écraserait donc
-            // les positions que le profil vient de poser.
+            // Close first, apply after: closing starts by recording the
+            // geometry of the open windows, and would therefore overwrite
+            // the positions the profile has just set.
             await _launcher.CloseAllAsync().ConfigureAwait(true);
             await _settings.ApplyLaunchProfileAsync(profile.Name).ConfigureAwait(true);
 
@@ -326,13 +343,17 @@ public sealed partial class InstanceListViewModel : ObservableObject
         await RefreshAsync().ConfigureAwait(true);
     }
 
-    /// <summary>Retient les comptes ouverts, leurs positions et les réglages, sous un nom.</summary>
+    /// <summary>
+    /// Remembers the open accounts, their positions and the settings,
+    /// under a name.
+    /// </summary>
     [RelayCommand]
     private async Task CreateProfileAsync()
     {
-        // La géométrie est relevée avant l'instantané, sans quoi le profil
-        // retiendrait les positions de l'ouverture et non celles du moment :
-        // déplacer une fenêtre puis créer n'aurait rien retenu.
+        // The geometry is recorded before the snapshot; otherwise the
+        // profile would remember the positions from opening and not
+        // those of the moment: moving a window and then creating would
+        // have remembered nothing.
         await _launcher.CaptureGeometriesAsync().ConfigureAwait(true);
 
         var settings = await _settings.GetAsync().ConfigureAwait(true);
@@ -342,8 +363,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
             .Distinct(StringComparer.Ordinal)
             .ToList();
 
-        // À défaut de fenêtre ouverte, l'ensemble de démarrage fait foi : c'est
-        // lui qui rouvrira, et c'est donc lui que l'on enregistre.
+        // Failing an open window, the startup set is authoritative: it
+        // is the one that will reopen, and so it is the one that gets
+        // saved.
         if (open.Count == 0)
         {
             open = [.. settings.Instances.Where(i => i.IsEnabled).Select(i => i.Key)];
@@ -385,7 +407,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         await SyncProfilesAsync().ConfigureAwait(true);
     }
 
-    /// <summary>Désigne le profil du démarrage, ou le retire.</summary>
+    /// <summary>Sets the startup profile, or removes it.</summary>
     [RelayCommand]
     private async Task ToggleDefaultProfileAsync(LaunchProfileRowViewModel? profile)
     {
@@ -401,7 +423,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         await SyncProfilesAsync().ConfigureAwait(true);
     }
 
-    /// <summary>Supprime un profil, après confirmation.</summary>
+    /// <summary>Deletes a profile, after confirmation.</summary>
     [RelayCommand]
     private async Task DeleteProfileAsync(LaunchProfileRowViewModel? profile)
     {
@@ -419,8 +441,10 @@ public sealed partial class InstanceListViewModel : ObservableObject
         await SyncProfilesAsync().ConfigureAwait(true);
     }
 
-    /// <summary>Balaye les téléphones et reconstruit la liste.</summary>
-    /// <summary>Vrai si ce numéro de série est celui de l'appareil de cette instance.</summary>
+    /// <summary>Sweeps the phones and rebuilds the list.</summary>
+    /// <summary>
+    /// True if this serial number is that of this instance's device.
+    /// </summary>
     private static bool Carries(DeviceDiscoveryResult discovery, string serial, string deviceId) =>
         discovery.Devices.Any(d =>
             string.Equals(d.Id, deviceId, StringComparison.Ordinal)
@@ -457,10 +481,10 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 _devices.Remove(gone);
             }
 
-            // Lister les appareils est bon marché ; redécouvrir les instances
-            // ne l'est pas, chaque profil de chaque appareil demandant deux
-            // commandes au téléphone. On ne le refait donc que si l'ensemble
-            // des appareils a changé, ou après un long moment.
+            // Listing devices is cheap; rediscovering instances is not,
+            // each profile of each device asking the phone two commands.
+            // So it is only redone if the set of devices has changed, or
+            // after a long while.
             var signature = string.Join(
                 "|",
                 discovery.Devices.Select(d => $"{d.Id}:{d.State}").Order(StringComparer.Ordinal));
@@ -518,8 +542,8 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 view.IsLookingForGames = false;
             }
 
-            // Les résumés de sessions citent les noms des comptes : ils se
-            // refont ici, après que la liste a été reconstruite.
+            // Session summaries quote the account names: they are redone
+            // here, after the list has been rebuilt.
             await SyncProfilesAsync(cancellationToken).ConfigureAwait(true);
 
             RequestIcons();
@@ -560,9 +584,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
         DeviceDiscoveryResult discovery,
         IReadOnlyList<Core.Dofus.DofusInstance> instances)
     {
-        // Seules les instances des téléphones joignables ont une ligne.
-        // Les autres appareils ne disparaissent pas pour autant : ils
-        // sont rappelés à part, avec la raison.
+        // Only the instances of reachable phones have a row. The other
+        // devices do not disappear for all that: they are recalled
+        // separately, with the reason.
         var connected = discovery.Devices
             .Where(d => d.IsConnected)
             .ToDictionary(d => d.Id, StringComparer.Ordinal);
@@ -598,20 +622,20 @@ public sealed partial class InstanceListViewModel : ObservableObject
         DeviceDiscoveryResult discovery,
         IReadOnlyList<Core.Dofus.DofusInstance> instances)
     {
-        // Les incidents de la découverte d'appareils et ceux du balayage
-        // d'instances partagent le même bandeau : un profil illisible est
-        // aussi utile à savoir qu'un appareil injoignable.
+        // The incidents from device discovery and those from the
+        // instance sweep share the same banner: an unreadable profile is
+        // just as worth knowing as an unreachable device.
         var warnings = discovery.Warnings.Concat(_launcher.InstanceWarnings).ToList();
 
-        // Deux listes des mêmes faits : celle du bandeau, qui s'arrête
-        // au plus grave, et celle de la bulle, qui les porte tous.
+        // Two lists of the same facts: the banner's, which stops at the
+        // most serious one, and the bubble's, which carries them all.
         List<string> everything = [.. warnings];
 
-        // Le bilan de chaque appareil s'affiche sous son nom, plus dans
-        // ce bandeau. Sauf pour un appareil qui n'a aucune ligne dans la
-        // liste : il n'a pas d'en-tête où loger son constat, et le perdre
-        // serait pire que de le mettre au mauvais endroit. Celui-là est
-        // nommé, puisque rien autour ne le nomme.
+        // Each device's summary shows under its name, in addition to
+        // this banner. Except for a device with no row in the list: it
+        // has no header to lodge its finding under, and losing it would
+        // be worse than putting it in the wrong place. That one is
+        // named, since nothing around it names it.
         var homeless = _launcher.HealthByDevice
             .Where(pair => !instances.Any(i => Carries(discovery, pair.Key, i.DeviceId)))
             .Select(pair => pair.Value.Device is { Length: > 0 } named
@@ -624,16 +648,17 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
         ProblemIsSerious = _launcher.HealthIsSerious;
 
-        // La reprise d'une fenêtre perdue se dit au même endroit, et pour
-        // la même raison : elle explique ce qui vient de se passer.
+        // The recovery of a lost window is said in the same place, and
+        // for the same reason: it explains what has just happened.
         if (_launcher.RecoveryNotice is { Length: > 0 } recovery)
         {
             warnings.Add(recovery);
             everything.Add(recovery);
         }
 
-        // Le jeu resté ouvert sur le téléphone se dit là aussi : sa fenêtre
-        // a disparu, et plus rien d'autre à l'écran ne peut le signaler.
+        // The game left running on the phone is said there too: its
+        // window has disappeared, and nothing else on screen can report
+        // it.
         if (_launcher.StopFailedNotice is { Length: > 0 } left)
         {
             warnings.Add(left);
@@ -664,13 +689,13 @@ public sealed partial class InstanceListViewModel : ObservableObject
     private readonly IAppIconProvider _icons;
 
     /// <summary>
-    /// Demande l'icône des lignes qui n'en ont pas encore.
+    /// Requests the icon for rows that do not have one yet.
     ///
-    /// Ce qui est déjà connu est posé sur-le-champ, sans rien demander au
-    /// téléphone : le balayage passe toutes les trois secondes et ne doit pas
-    /// s'allonger d'une seule commande. Le reste part en tâche de fond, que
-    /// personne n'attend, ce que seule autorise la promesse du fournisseur de
-    /// ne jamais lever.
+    /// What is already known is set right away, without asking the phone
+    /// anything: the sweep runs every three seconds and must not be
+    /// lengthened by a single command. The rest goes off as a background
+    /// task that nothing awaits, which only the provider's promise never
+    /// to throw allows.
     /// </summary>
     private void RequestIcons()
     {
@@ -713,7 +738,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
     private InstanceRowViewModel? _hinted;
     private bool _hintedAbove;
 
-    /// <summary>Efface tous les repères de dépôt.</summary>
+    /// <summary>Clears all the drop hints.</summary>
     public void ClearDropHints()
     {
         _hinted = null;
@@ -727,12 +752,12 @@ public sealed partial class InstanceListViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Marque l'endroit où le dépôt insérerait, au-dessus ou en dessous de la
-    /// ligne survolée. Un seul repère est visible à la fois.
+    /// Marks the spot where the drop would insert, above or below the
+    /// row being hovered. Only one hint is visible at a time.
     ///
-    /// Rien n'est touché quand le repère n'a pas changé de place : le survol
-    /// déclenche des dizaines d'événements par seconde, et tout remettre à
-    /// zéro à chacun faisait clignoter le trait.
+    /// Nothing is touched when the hint has not changed place: hovering
+    /// triggers dozens of events per second, and resetting everything on
+    /// each one made the line flicker.
     /// </summary>
     public void ShowDropHint(InstanceRowViewModel onto, bool above)
     {
@@ -752,7 +777,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
         onto.DropBelow = !above;
     }
 
-    /// <summary>Dépose une instance juste avant ou juste après une autre.</summary>
+    /// <summary>
+    /// Drops an instance just before or just after another one.
+    /// </summary>
     public async Task ReorderAsync(InstanceRowViewModel dragged, InstanceRowViewModel onto, bool above)
     {
         ArgumentNullException.ThrowIfNull(dragged);
@@ -765,24 +792,24 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
         if (await _settings.MoveInstanceAsync(dragged.Key, onto.Key, above).ConfigureAwait(true))
         {
-            // Le cache de découverte porte l'ancien ordre : le garder ferait
-            // revenir la ligne à sa place sous le curseur. Toute écriture dans
-            // les réglages doit l'invalider.
+            // The discovery cache carries the old order: keeping it
+            // would bring the row back to its place under the cursor. Any
+            // write to the settings must invalidate it.
             _instances = null;
 
-            // L'ordre de la liste commande l'ordre des fenêtres : sans cela,
-            // déplacer une ligne ne changeait que le parcours au clavier.
+            // The order of the list drives the order of the windows:
+            // without this, moving a row only changed the keyboard path.
             await _launcher.RefreshRanksAsync().ConfigureAwait(true);
 
             await RefreshAsync().ConfigureAwait(true);
 
-            // Les fenêtres ouvertes sont rouvertes dans le nouvel ordre.
+            // The open windows are reopened in the new order.
             //
-            // Remonter la pile suffisait pour Alt+Tab, mais pas pour les
-            // vignettes de la barre des tâches : Windows les range dans
-            // l'ordre de création et n'expose rien pour le changer. Les
-            // recréer est le seul moyen, et c'est ce que l'utilisateur a
-            // demandé en connaissance de cause.
+            // Bringing the stack back up was enough for Alt+Tab, but not
+            // for the taskbar thumbnails: Windows arranges them in
+            // creation order and exposes nothing to change it. Recreating
+            // them is the only way, and it is what the user knowingly
+            // asked for.
             await _launcher.ReopenAsync().ConfigureAwait(true);
             await _launcher.ApplyWindowOrderAsync().ConfigureAwait(true);
         }
@@ -801,9 +828,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
         _ = dispatcher.BeginInvoke(() =>
         {
-            // Le verrou vient de se prendre : il sait mieux que nous, et
-            // surtout il se rendra plus tôt. L'engagement ne couvrait que
-            // l'attente avant lui, et n'a plus rien à dire.
+            // The lock has just been taken: it knows better than we do,
+            // and above all it will release sooner. The engagement only
+            // covered the wait before it, and has nothing left to say.
             if (args.IsBusy)
             {
                 _ = _engages.Remove(args.DeviceId);
@@ -814,11 +841,11 @@ public sealed partial class InstanceListViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Rallume l'indicateur des lignes dont le téléphone est occupé.
+    /// Turns the indicator back on for rows whose phone is busy.
     ///
-    /// L'état est relu du lanceur à chaque passage, jamais mémorisé ici : la
-    /// liste se reconstruit toutes les quelques secondes, et une ligne neuve
-    /// doit naître dans le bon état.
+    /// The state is reread from the launcher on every pass, never
+    /// remembered here: the list rebuilds itself every few seconds, and
+    /// a new row must be born in the right state.
     /// </summary>
     public void RefreshBusyState()
     {
@@ -829,23 +856,27 @@ public sealed partial class InstanceListViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Appareils sur lesquels une action vient d'être demandée, mais dont le
-    /// verrou d'ouverture n'est pas encore pris.
+    /// Devices on which an action has just been requested, but whose
+    /// opening lock is not yet taken.
     ///
-    /// Le verrou ne se prend qu'au bout du préambule d'ouverture : relecture
-    /// des comptes, découverte des appareils, lecture de la liaison. Mesuré sur
-    /// le poste, deux secondes et trois dixièmes entre le clic et la prise.
-    /// Pendant tout ce temps, l'appareil n'était officiellement pas occupé, et
-    /// les boutons des autres comptes restaient donc cliquables alors qu'une
-    /// ouverture était déjà en route.
+    /// The lock is only taken at the end of the opening preamble:
+    /// rereading the accounts, discovering the devices, reading the
+    /// connection. Measured on this machine, two seconds and three
+    /// tenths between the click and the taking. During all that time,
+    /// the device was not officially busy, and the buttons of the other
+    /// accounts therefore stayed clickable while an opening was already
+    /// under way.
     ///
-    /// L'engagement est pris à l'instant du clic, sans rien attendre, et rendu
-    /// quand l'action se termine. Le verrou reste seul juge de qui passe : ceci
-    /// ne fait que dire à l'écran ce qui est déjà décidé.
+    /// The engagement is taken the instant of the click, without waiting
+    /// for anything, and released when the action ends. The lock remains
+    /// the sole judge of who goes through: this only tells the screen
+    /// what is already decided.
     /// </summary>
     private readonly HashSet<string> _engages = new(StringComparer.Ordinal);
 
-    /// <summary>Rafraîchit uniquement l'état ouvert ou fermé de chaque instance.</summary>
+    /// <summary>
+    /// Refreshes only the open or closed state of each instance.
+    /// </summary>
     public void RefreshRunningState()
     {
         foreach (var row in Rows)
@@ -854,22 +885,23 @@ public sealed partial class InstanceListViewModel : ObservableObject
         }
     }
 
-    /// <summary>Ouvre une instance qui ne l'est pas encore.</summary>
+    /// <summary>Opens an instance that is not open yet.</summary>
     [RelayCommand(AllowConcurrentExecutions = true)]
     private Task LaunchInstanceAsync(InstanceRowViewModel? row) =>
         ActOnAsync(row, instance => _launcher.LaunchAsync([instance]), engageDevice: true);
 
-    /// <summary>Ferme le jeu sur l'appareil puis le rouvre.</summary>
+    /// <summary>Closes the game on the device, then reopens it.</summary>
     [RelayCommand(AllowConcurrentExecutions = true)]
     private Task RestartAsync(InstanceRowViewModel? row) =>
         ActOnAsync(row, instance => _launcher.RestartAsync(instance), engageDevice: true);
 
     /// <summary>
-    /// Ferme la fenêtre d'une instance.
+    /// Closes an instance's window.
     ///
-    /// Sans engager l'appareil : fermer ne passe pas par le verrou
-    /// d'ouverture, deux fermetures ne se gênent pas, et griser les voisines
-    /// obligerait à fermer un compte à la fois.
+    /// Without engaging the device: closing does not go through the
+    /// opening lock, two closures do not get in each other's way, and
+    /// greying out the neighbours would force closing one account at a
+    /// time.
     /// </summary>
     [RelayCommand(AllowConcurrentExecutions = true)]
     private Task StopAsync(InstanceRowViewModel? row) =>
@@ -883,25 +915,25 @@ public sealed partial class InstanceListViewModel : ObservableObject
             engageDevice: false);
 
     /// <summary>
-    /// Exécute une action sur une instance et en répercute le résultat sur la
-    /// liste. Le garde-fou est le même pour les trois boutons : ils parlent à
-    /// l'appareil, et deux actions concurrentes laisseraient l'état affiché en
-    /// désaccord avec les fenêtres réellement ouvertes.
+    /// Runs an action on an instance and reflects the result onto the
+    /// list. The safeguard is the same for the three buttons: they talk
+    /// to the device, and two concurrent actions would leave the
+    /// displayed state out of step with the windows actually open.
     /// </summary>
     /// <param name="engageDevice">
-    /// Vrai pour les actions qui prendront le verrou d'ouverture. Elles seules
-    /// grisent les voisines du même téléphone, et seulement jusqu'à ce que le
-    /// verrou prenne le relais.
+    /// True for the actions that will take the opening lock. Only they
+    /// grey out the neighbours of the same phone, and only until the
+    /// lock takes over.
     /// </param>
     private async Task ActOnAsync(
         InstanceRowViewModel? row,
         Func<Core.Dofus.DofusInstance, Task<LaunchReport>> action,
         bool engageDevice)
     {
-        // Le garde-fou est propre à la ligne, et non à la liste entière. Un
-        // verrou global avalait le clic quand une autre instance travaillait,
-        // ou simplement pendant le balayage périodique : il fallait alors
-        // cliquer une seconde fois.
+        // The safeguard belongs to the row, not to the whole list. A
+        // global lock used to swallow the click when another instance was
+        // working, or simply during the periodic sweep: you then had to
+        // click a second time.
         if (row is null || row.IsWorking)
         {
             return;
@@ -909,9 +941,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
         row.IsWorking = true;
 
-        // Avant le premier await : c'est tout l'intérêt. Les voisines du même
-        // téléphone se grisent dans le même coup de peinture que la ligne
-        // cliquée, et non deux secondes plus tard.
+        // Before the first await: that is the whole point. The
+        // neighbours of the same phone grey out in the same paint pass as
+        // the clicked row, and not two seconds later.
         if (engageDevice)
         {
             _ = _engages.Add(row.DeviceId);
@@ -933,13 +965,13 @@ public sealed partial class InstanceListViewModel : ObservableObject
             row.IsWorking = false;
             _ = _engages.Remove(row.DeviceId);
 
-            // L'état est relu plutôt que déduit de l'action : une session peut
-            // s'être arrêtée d'elle-même entre-temps.
+            // The state is reread rather than deduced from the action: a
+            // session may have stopped on its own in the meantime.
             RefreshRunningState();
             RefreshBusyState();
 
-            // Une action a pu changer ce que porte l'appareil : le prochain
-            // balayage redécouvre plutôt que de reprendre le cache.
+            // An action may have changed what the device carries: the
+            // next sweep rediscovers rather than reusing the cache.
             _instances = null;
         }
     }
@@ -968,15 +1000,15 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
             row.Device = _devices.GetValueOrDefault(instance.DeviceId);
 
-            // La distance avec laquelle sa fenêtre tourne, pour qu'un réglage
-            // qui attend la prochaine ouverture le dise au lieu de paraître
-            // mort. Rien à montrer quand la fenêtre est fermée.
+            // The distance at which its window runs, so that a setting
+            // waiting for the next opening says so instead of looking
+            // dead. Nothing to show when the window is closed.
             row.RunningZoom = row.IsRunning ? _launcher.ZoomInUse(instance.Key) : null;
         }
 
-        // Les lignes déjà présentes ne bougeaient pas : l'ordre enregistré ne
-        // se voyait donc qu'au prochain démarrage. Déplacer plutôt que vider :
-        // un Clear casserait un glisser-déposer en cours.
+        // Rows already present did not move: the saved order therefore
+        // only showed at the next startup. Moving rather than clearing: a
+        // Clear would break a drag and drop in progress.
         for (var position = 0; position < instances.Count; position++)
         {
             var row = Rows.FirstOrDefault(
@@ -996,8 +1028,8 @@ public sealed partial class InstanceListViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Rappelle les appareils qui n'ont aucune ligne, avec la raison : hors
-    /// ligne, ou joignable mais sans le jeu.
+    /// Recalls the devices with no row, with the reason: offline, or
+    /// reachable but without the game.
     /// </summary>
     private void SyncInactiveDevices(
         IReadOnlyList<Core.Devices.AndroidDevice> devices,
@@ -1044,8 +1076,8 @@ public sealed partial class InstanceListViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Pose le nom d'appareil là où l'appareil change, et ce qui ne vaut qu'une
-    /// fois par téléphone sur son premier morceau.
+    /// Sets the device name where the device changes, and what only
+    /// holds once per phone, on its first segment.
     /// </summary>
     private void RefreshDeviceHeaders()
     {
@@ -1062,19 +1094,22 @@ public sealed partial class InstanceListViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Ajoute un compte sur ce téléphone.
+    /// Adds an account on this phone.
     ///
-    /// Un profil Android neuf, avec le jeu dedans. C'est le mécanisme des
-    /// comptes multiples d'Android, celui que la surcouche du téléphone emploie
-    /// elle-même : rien n'est recopié, l'application reste celle de l'éditeur.
+    /// A fresh Android profile, with the game inside it. This is the
+    /// mechanism of Android's multiple accounts, the very one the
+    /// phone's overlay uses itself: nothing is copied, the application
+    /// stays the publisher's own.
     ///
-    /// Le nom est posé d'office et se change ensuite comme celui des autres
-    /// instances : demander un nom avant même de savoir si le téléphone
-    /// acceptera ferait taper pour rien.
+    /// The name is set by default and can then be changed like that of
+    /// the other instances: asking for a name before even knowing
+    /// whether the phone will accept it would make you type for
+    /// nothing.
     ///
-    /// Une confirmation est demandée, parce que cela touche le téléphone et
-    /// que le profil naît vide : le jeu y redemandera ses ressources et la
-    /// connexion, ce qui n'est pas ce qu'on attend d'un clic sur un plus.
+    /// A confirmation is asked, because this touches the phone and the
+    /// profile is born empty: the game will ask again for its resources
+    /// and the login, which is not what you expect from a click on a
+    /// plus sign.
     /// </summary>
     [RelayCommand]
     private async Task AddAccountAsync(DeviceGroupViewModel? device)
@@ -1116,19 +1151,21 @@ public sealed partial class InstanceListViewModel : ObservableObject
             device.IsBusy = false;
         }
 
-        // Le cache est jeté avant de rafraîchir : sans cela le balayage reprend
-        // ce qu'il connaît déjà, et le compte tout juste créé n'apparaît qu'au
-        // bout de l'intervalle de redécouverte, quinze à soixante secondes
-        // selon le palier. Le même geste existe déjà dans ActOnAsync.
+        // The cache is discarded before refreshing: otherwise the sweep
+        // resumes what it already knows, and the account just created
+        // only appears after the rediscovery interval, fifteen to sixty
+        // seconds depending on the tier. The same gesture already exists
+        // in ActOnAsync.
         _instances = null;
 
         await RefreshAsync().ConfigureAwait(true);
     }
 
     /// <summary>
-    /// Un nom libre pour le prochain compte de ce téléphone. Le numéro suit ce
-    /// qui existe déjà, sans jamais retomber sur un nom pris : deux profils du
-    /// même nom seraient indiscernables dans la liste comme sur le téléphone.
+    /// A free name for the next account on this phone. The number
+    /// follows what already exists, never falling back onto a name
+    /// already taken: two profiles with the same name would be
+    /// indistinguishable in the list as on the phone.
     /// </summary>
     private string NextAccountName(string deviceId)
     {
@@ -1149,9 +1186,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Rompt l'association d'un appareil. Ses fenêtres se ferment, ses
-    /// instances et leurs réglages sont effacés : il faudra l'associer de
-    /// nouveau pour s'en resservir.
+    /// Breaks the association with a device. Its windows close, its
+    /// instances and their settings are erased: it will have to be
+    /// paired again to be used once more.
     /// </summary>
     [RelayCommand]
     private async Task ForgetDeviceAsync(DeviceGroupViewModel? device)
@@ -1168,39 +1205,42 @@ public sealed partial class InstanceListViewModel : ObservableObject
         await _launcher.ForgetDeviceAsync(device.DeviceId).ConfigureAwait(true);
         await _settings.ForgetDeviceAsync(device.DeviceId).ConfigureAwait(true);
 
-        // **L'appareil quitte la vue ici, et non au prochain balayage.**
+        // **The device leaves the view here, and not at the next
+        // sweep.**
         //
-        // Il fallait cliquer deux fois pour l'enlever, et il s'affichait entre
-        // les deux « Jeu non installé », ce qui était faux. Les deux symptômes
-        // ont la même cause : « RefreshAsync » rend la main sans rien faire
-        // quand un balayage est déjà en cours, et il en part un toutes les deux
-        // secondes. L'appel ci-dessous ne s'exécutait donc presque jamais, et
-        // l'appelant croyait pourtant avoir rafraîchi.
+        // It used to take clicking twice to remove it, and it showed up
+        // between the two "game not installed" entries, which was
+        // wrong. The two symptoms share the same cause: "RefreshAsync"
+        // returns without doing anything when a sweep is already under
+        // way, and one leaves every two seconds. The call below
+        // therefore almost never ran, and yet the caller believed it had
+        // refreshed.
         //
-        // Le balayage en vol, lui, finissait avec la liste d'appareils d'avant
-        // la rupture mais les instances déjà effacées : l'appareil reparaissait
-        // sans aucun compte, donc marqué comme dépourvu du jeu. Une absence
-        // d'information montrée comme un constat.
+        // The sweep in flight, for its part, finished with the device
+        // list from before the break but the instances already erased:
+        // the device reappeared with no account at all, so marked as
+        // lacking the game. An absence of information shown as a
+        // finding.
         //
-        // On sait ce qu'on vient de faire : on le retire, sans rien attendre
-        // de personne.
+        // We know what we have just done: we remove it, without waiting
+        // for anyone.
         Forget(device);
 
-        // Le cache est jeté, sans quoi le balayage reprend ce qu'il connaît
-        // déjà et les lignes de l'appareil restent à l'écran jusqu'à
-        // l'intervalle de redécouverte. Même geste que pour l'ajout d'un compte.
+        // The cache is discarded, otherwise the sweep resumes what it
+        // already knows and the device's rows stay on screen until the
+        // rediscovery interval. Same gesture as for adding an account.
         _instances = null;
 
         await RefreshAsync().ConfigureAwait(true);
     }
 
     /// <summary>
-    /// Retire de la vue tout ce qui appartenait à un appareil.
+    /// Removes from the view everything that belonged to a device.
     ///
-    /// Les trois collections, parce qu'un appareil peut être dans n'importe
-    /// laquelle : ses comptes dans <see cref="Rows" />, sa fiche dans
-    /// <see cref="InactiveDevices" /> quand il n'en a aucun, et son entrée dans
-    /// l'index qui sert à les retrouver.
+    /// The three collections, because a device can be in any of them:
+    /// its accounts in <see cref="Rows" />, its card in
+    /// <see cref="InactiveDevices" /> when it has none, and its entry in
+    /// the index used to find them.
     /// </summary>
     private void Forget(DeviceGroupViewModel device)
     {
@@ -1219,8 +1259,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
         {
             await _settings.SetInstanceEnabledAsync(row.Key, row.IsEnabled).ConfigureAwait(true);
 
-            // Le cache de découverte porte l'ancienne valeur : le garder ferait
-            // revenir la case à son état d'avant au prochain balayage.
+            // The discovery cache carries the old value: keeping it
+            // would bring the checkbox back to its previous state at the
+            // next sweep.
             _instances = null;
         }
         finally
@@ -1237,12 +1278,13 @@ public sealed partial class InstanceListViewModel : ObservableObject
         {
             await _settings.SetInstanceManagedAsync(row.Key, row.IsManaged).ConfigureAwait(true);
 
-            // Même piège que pour le tri et pour les cases : toute écriture dans
-            // les réglages doit invalider le cache, sans quoi le verrou se
-            // rouvre tout seul au balayage suivant.
+            // Same trap as for sorting and for the checkboxes: any write
+            // to the settings must invalidate the cache, otherwise the
+            // lock reopens on its own at the next sweep.
             _instances = null;
 
-            // Le lanceur relit la liste des mises de côté au prochain placement.
+            // The launcher rereads the list of set-aside ones at the
+            // next placement.
             await _launcher.RefreshRanksAsync().ConfigureAwait(true);
         }
         finally
@@ -1252,17 +1294,18 @@ public sealed partial class InstanceListViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Le compte entre dans le cadre à onglets ou en sort.
+    /// The account enters the tabbed frame or leaves it.
     ///
-    /// Le lanceur s'occupe de tout : il écrit le réglage, puis loge ou ressort
-    /// la fenêtre si elle est ouverte. Rien n'est rouvert.
+    /// The launcher takes care of everything: it writes the setting,
+    /// then docks or undocks the window if it is open. Nothing is
+    /// reopened.
     /// </summary>
     /// <summary>
-    /// Écrit le palier propre à un compte.
+    /// Writes the quality tier specific to an account.
     ///
-    /// Le nouveau palier ne vaudra qu'à la prochaine ouverture de la fenêtre :
-    /// la définition et le débit sont fixés au lancement de scrcpy, et une
-    /// session en cours ne se renégocie pas.
+    /// The new tier will only take effect the next time the window
+    /// opens: the resolution and the bitrate are fixed when scrcpy
+    /// launches, and a session already running does not renegotiate.
     /// </summary>
     private async void OnQualityChanged(object? sender, InstanceRowViewModel row)
     {
@@ -1272,8 +1315,8 @@ public sealed partial class InstanceListViewModel : ObservableObject
         {
             await _settings.SetInstanceQualityAsync(row.Key, row.Quality).ConfigureAwait(true);
 
-            // Même piège que pour le verrou : sans cela le balayage suivant
-            // rendrait à la ligne son ancien palier.
+            // Same trap as for the lock: without this the next sweep
+            // would give the row back its old tier.
             _instances = null;
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
@@ -1292,8 +1335,8 @@ public sealed partial class InstanceListViewModel : ObservableObject
         {
             await _launcher.SetTabbedAsync(row.Instance, row.IsTabbed).ConfigureAwait(true);
 
-            // Même piège que pour le verrou : sans cela le balayage suivant
-            // rendrait à la ligne son ancien état.
+            // Same trap as for the lock: without this the next sweep
+            // would give the row back its old state.
             _instances = null;
         }
         catch (AdbException exception)
@@ -1314,8 +1357,8 @@ public sealed partial class InstanceListViewModel : ObservableObject
         {
             await _settings.SetInstanceZoomAsync(row.Key, row.Zoom).ConfigureAwait(true);
 
-            // Même piège que pour le palier : sans cela le balayage suivant
-            // rendrait à la ligne son ancienne distance.
+            // Same trap as for the tier: without this the next sweep
+            // would give the row back its old distance.
             _instances = null;
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
@@ -1336,7 +1379,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         }
         finally
         {
-            // Le nom est écrit : le balayage peut de nouveau faire foi.
+            // The name is written: the sweep can be trusted again.
             row.IsRenaming = false;
         }
     }

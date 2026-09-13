@@ -1,9 +1,9 @@
 ﻿namespace DtHub.Core.Devices;
 
 /// <summary>
-/// Résultat d'un balayage. Les avertissements portent les incidents non
-/// bloquants : un appareil dont les propriétés n'ont pas pu être lues apparaît
-/// quand même, avec ce qu'on sait déjà de lui.
+/// Result of a scan. Warnings carry the non-blocking incidents: a
+/// device whose properties could not be read still appears, with
+/// what is already known about it.
 /// </summary>
 public sealed record DeviceDiscoveryResult(
     IReadOnlyList<AndroidDevice> Devices,

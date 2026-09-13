@@ -3,7 +3,7 @@
 namespace DtHub.App.ViewModels;
 
 /// <summary>
-/// Un onglet du cadre : le compte qu'il montre, et la fenêtre qu'il loge.
+/// A frame tab: the account it shows, and the window it hosts.
 /// </summary>
 public sealed partial class GameTabViewModel : ObservableObject
 {
@@ -16,17 +16,19 @@ public sealed partial class GameTabViewModel : ObservableObject
         Aspect = aspect;
     }
 
-    /// <summary>Clé de l'instance. Identifie l'onglet : elle ne change pas.</summary>
+    /// <summary>
+    /// Instance key. Identifies the tab: it does not change.
+    /// </summary>
     public string Key { get; }
 
-    /// <summary>Fenêtre de jeu logée, telle que Windows la désigne.</summary>
+    /// <summary>Docked game window, as Windows designates it.</summary>
     public nint Window { get; }
 
     /// <summary>
-    /// Rapport largeur sur hauteur de l'afficheur, celui que scrcpy verrouille.
+    /// Width-to-height ratio of the display, the one scrcpy locks.
     ///
-    /// C'est lui qui donne sa forme au cadre : une zone d'accueil d'une autre
-    /// forme laisserait une bande noire sur les côtés.
+    /// It is what gives the frame its shape: a hosting area of a
+    /// different shape would leave a black band on the sides.
     /// </summary>
     public double Aspect { get; }
 
@@ -37,18 +39,20 @@ public sealed partial class GameTabViewModel : ObservableObject
     private string? _iconPath;
 
     /// <summary>
-    /// Vrai pour l'onglet montré. Un seul l'est à la fois : les autres
-    /// fenêtres sont cachées, non détruites, pour qu'y revenir soit immédiat.
+    /// True for the tab shown. Only one is at a time: the other
+    /// windows are hidden, not destroyed, so that returning to them
+    /// is instant.
     /// </summary>
     [ObservableProperty]
     private bool _isSelected;
 
     /// <summary>
-    /// Où l'onglet glissé se posera, montré par un trait à gauche ou à droite
-    /// de celui que l'on survole.
+    /// Where the dragged tab will land, shown by a line to the
+    /// left or right of the one being hovered.
     ///
-    /// Sans ce trait, on lâchait à l'aveugle : rien ne disait de quel côté le
-    /// dépôt tomberait, et il fallait recommencer pour comprendre.
+    /// Without this line, the drop was blind: nothing said on
+    /// which side it would fall, and one had to try again just to
+    /// understand.
     /// </summary>
     [ObservableProperty]
     private bool _dropBefore;
@@ -56,7 +60,7 @@ public sealed partial class GameTabViewModel : ObservableObject
     [ObservableProperty]
     private bool _dropAfter;
 
-    /// <summary>Efface les deux repères de dépôt.</summary>
+    /// <summary>Clears both drop hints.</summary>
     public void ClearDropHint()
     {
         DropBefore = false;

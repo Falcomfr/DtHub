@@ -1,147 +1,169 @@
 ﻿namespace DtHub.Core.Windows;
 
-/// <summary>Une fenêtre de premier niveau appartenant à un processus.</summary>
+/// <summary>A top-level window belonging to a process.</summary>
 public readonly record struct WindowHandleInfo(nint Handle, string Title, int ProcessId);
 
 /// <summary>
-/// Accès aux fenêtres du bureau. Isolé derrière une interface pour que la
-/// logique de disposition reste testable sans manipuler de vraies fenêtres.
+/// Access to desktop windows. Isolated behind an interface so that the
+/// layout logic stays testable without manipulating real windows.
 /// </summary>
 public interface IWindowController
 {
-    /// <summary>Écrans connectés, avec leur zone utilisable.</summary>
+    /// <summary>Connected screens, with their usable area.</summary>
     IReadOnlyList<MonitorInfo> GetMonitors();
 
-    /// <summary>Fenêtres visibles de premier niveau appartenant à un processus.</summary>
+    /// <summary>
+    /// Visible top-level windows belonging to a process.
+    /// </summary>
     IReadOnlyList<WindowHandleInfo> FindWindows(int processId);
 
-    /// <summary>Vrai si le handle désigne encore une fenêtre existante.</summary>
+    /// <summary>
+    /// True if the handle still designates an existing window.
+    /// </summary>
     bool IsWindow(nint handle);
 
     /// <summary>
-    /// Où se trouve une fenêtre, telle que Windows la retient. Rend
-    /// <c>null</c> si la fenêtre n'existe plus.
+    /// Where a window is, as Windows remembers it. Returns
+    /// <c>null</c> if the window no longer exists.
     /// </summary>
     WindowPlacement? GetPlacement(nint handle);
 
     /// <summary>
-    /// Remet une fenêtre où elle était.
+    /// Puts a window back where it was.
     ///
-    /// Windows se charge de la ramener sur un écran présent : un rectangle
-    /// enregistré sur un écran depuis débranché n'envoie pas la fenêtre dans
-    /// le vide, contrairement à une position posée à la main.
+    /// Windows takes care of bringing it back onto a screen that is
+    /// present: a rectangle saved on a screen since unplugged does not
+    /// send the window into the void, unlike a position set by hand.
     /// </summary>
     bool SetPlacement(nint handle, WindowPlacement placement);
 
     /// <summary>
-    /// Processus propriétaire d'une fenêtre, ou zéro si elle a disparu.
+    /// Owning process of a window, or zero if it has disappeared.
     ///
-    /// Sert à reconnaître nos fenêtres sans dépendre du handle que nous avons
-    /// retenu : celui d'une session fraîchement rouverte n'est pas encore
-    /// résolu, et les raccourcis se croyaient alors hors de chez eux.
+    /// Used to recognize our windows without depending on the handle we
+    /// have kept: that of a freshly reopened session is not yet resolved,
+    /// and the shortcuts would then believe themselves to be away from
+    /// home.
     /// </summary>
     int GetWindowProcessId(nint handle);
 
-    /// <summary>Position et taille actuelles, ou <c>null</c> si la fenêtre a disparu.</summary>
+    /// <summary>
+    /// Current position and size, or <c>null</c> if the window has
+    /// disappeared.
+    /// </summary>
     ScreenRect? GetWindowRect(nint handle);
 
     /// <summary>
-    /// Taille de la zone client, hors barre de titre et bordures. C'est elle
-    /// que scrcpy remplit : calculer le rapport sur le rectangle extérieur
-    /// laisserait des bandes noires.
+    /// Size of the client area, excluding title bar and borders. This is
+    /// the one scrcpy fills: computing the ratio on the outer rectangle
+    /// would leave black bars.
     /// </summary>
     ScreenRect? GetClientRect(nint handle);
 
-    /// <summary>Déplace et redimensionne une fenêtre.</summary>
+    /// <summary>Moves and resizes a window.</summary>
     void MoveWindow(nint handle, ScreenRect rect, bool bringToFront = false);
 
     /// <summary>
-    /// Cadre d'une fenêtre ordinaire sur l'écran donné : bordures et barre de
-    /// titre, en épaisseur comme en décalage du coin.
+    /// Chrome of an ordinary window on the given screen: borders and
+    /// title bar, in both thickness and corner offset.
     ///
-    /// Il faut le connaître avant qu'aucune fenêtre n'existe, pour demander à
-    /// scrcpy un afficheur de la taille exacte de la zone client. Le jeu fige
-    /// la hauteur de sa mise en page à son initialisation : la corriger après
-    /// coup ne rattrape rien. Le décalage sert au même moment et pour la même
-    /// raison : scrcpy positionne aussi sa fenêtre par l'intérieur.
+    /// It must be known before any window exists, in order to ask scrcpy
+    /// for a display of the exact size of the client area. The game
+    /// freezes its layout height at initialization: fixing it afterward
+    /// does not make up for anything. The offset serves at the same
+    /// moment and for the same reason: scrcpy also positions its window
+    /// from the inside.
     /// </summary>
     WindowFrame GetWindowChrome(string? monitorDeviceName);
 
-    /// <summary>Met une fenêtre au premier plan et lui donne le focus clavier.</summary>
+    /// <summary>
+    /// Brings a window to the foreground and gives it keyboard focus.
+    /// </summary>
     void Focus(nint handle);
 
     /// <summary>
-    /// Demande poliment la fermeture d'une fenêtre, comme le ferait un clic
-    /// sur sa croix.
+    /// Politely requests the closing of a window, as a click on its close
+    /// button would.
     ///
-    /// C'est ce qui permet à scrcpy de prévenir son serveur avant de partir.
-    /// Tuer le client suffisait tant que la liaison était en USB ; sur une
-    /// liaison Wi-Fi, le serveur ne voit pas tout de suite la socket rompue,
-    /// survit sur le téléphone et garde son afficheur virtuel ouvert.
+    /// This is what allows scrcpy to notify its server before leaving.
+    /// Killing the client was enough as long as the connection was over
+    /// USB; on a Wi-Fi connection, the server does not immediately see
+    /// the broken socket, survives on the phone and keeps its virtual
+    /// display open.
     /// </summary>
     void RequestClose(nint handle);
 
     /// <summary>
-    /// Remonte une fenêtre au sommet de la pile sans lui donner le focus.
+    /// Brings a window back to the top of the stack without giving it
+    /// focus.
     ///
-    /// C'est ce qui permet de faire suivre l'ordre de la liste à l'ordre des
-    /// fenêtres, donc à celui d'Alt+Tab, sans arracher le clavier à la fenêtre
-    /// où l'utilisateur est en train de jouer.
+    /// This is what allows the order of the list to be followed by the
+    /// order of the windows, hence by that of Alt+Tab, without tearing
+    /// the keyboard away from the window where the user is currently
+    /// playing.
     /// </summary>
     void Raise(nint handle);
 
     /// <summary>
-    /// Change le titre d'une fenêtre. Le rappel du raccourci y figure, et doit
-    /// suivre une modification faite dans l'éditeur : scrcpy ne fixe son titre
-    /// qu'au démarrage.
+    /// Changes a window's title. The shortcut reminder appears in it, and
+    /// must follow a change made in the editor: scrcpy only sets its
+    /// title at startup.
     /// </summary>
     void SetTitle(nint handle, string title);
 
-    /// <summary>Retire ou rétablit la bordure, pour le mode plein écran sans bordure.</summary>
+    /// <summary>
+    /// Removes or restores the border, for borderless full-screen mode.
+    /// </summary>
     void SetBorderless(nint handle, bool borderless);
 
-    /// <summary>Handle de la fenêtre active, tous processus confondus.</summary>
+    /// <summary>Handle of the active window, across all processes.</summary>
     nint GetForegroundWindow();
 
     /// <summary>
-    /// Loge une fenêtre dans une autre, comme un onglet dans son cadre.
+    /// Docks a window inside another, like a tab in its frame.
     ///
-    /// La fenêtre perd son cadre et devient fille : elle ne paraît plus dans
-    /// la barre des tâches, ne s'aligne plus toute seule, et suit son hôte.
-    /// Mesuré sur une fenêtre scrcpy, elle continue de rendre l'image et
-    /// Windows lui adresse toujours le pointeur. Le clavier, lui, ne suit pas
-    /// tout seul : il faut <see cref="GiveKeyboardFocus"/>.
+    /// The window loses its frame and becomes a child: it no longer
+    /// appears in the taskbar, no longer aligns on its own, and follows
+    /// its host. Measured on a scrcpy window, it keeps rendering the
+    /// picture and Windows still routes the pointer to it. The keyboard,
+    /// however, does not follow on its own: <see cref="GiveKeyboardFocus"/>
+    /// is needed.
     ///
-    /// L'état d'origine est retenu par l'implémentation, pour que
-    /// <see cref="Undock"/> puisse le rendre exactement. Le recalculer
-    /// laisserait une fenêtre qui ne se comporte plus comme les autres.
+    /// The original state is kept by the implementation, so that
+    /// <see cref="Undock"/> can restore it exactly. Recomputing it would
+    /// leave a window that no longer behaves like the others.
     /// </summary>
-    /// <returns>Faux si la fenêtre ou l'hôte n'existe pas.</returns>
+    /// <returns>False if the window or the host does not exist.</returns>
     bool Dock(nint child, nint host);
 
     /// <summary>
-    /// Ressort une fenêtre de son cadre et lui rend son état d'avant, style,
-    /// parent et géométrie compris. Sans effet si elle n'était pas logée.
+    /// Takes a window back out of its frame and restores its previous
+    /// state, style, parent and geometry included. No effect if it was
+    /// not docked.
     /// </summary>
     bool Undock(nint child);
 
-    /// <summary>Vrai si cette fenêtre est actuellement logée dans un cadre.</summary>
+    /// <summary>True if this window is currently docked in a frame.</summary>
     bool IsDocked(nint child);
 
-    /// <summary>Montre ou cache une fenêtre logée, pour passer d'un onglet à l'autre.</summary>
+    /// <summary>
+    /// Shows or hides a docked window, to switch from one tab to another.
+    /// </summary>
     void SetVisible(nint handle, bool visible);
 
     /// <summary>
-    /// Rend le clavier à une fenêtre logée.
+    /// Gives the keyboard back to a docked window.
     ///
-    /// <see cref="Dock"/> en fait la fille d'un cadre tenu par un autre
-    /// processus. Windows joint alors les deux files d'entrée, si bien que le
-    /// clavier est atteignable ; seulement le focus reste sur la fenêtre de
-    /// l'hôte, et rien de ce qu'on tape n'arrive au jeu, le collage compris
-    /// puisque scrcpy colle en frappant. C'est le seul geste qui manquait, et
-    /// le mode onglets a vécu sans jusqu'ici : validé sur l'image et sur la
-    /// souris, jamais sur le clavier.
+    /// <see cref="Dock"/> makes it the child of a frame held by another
+    /// process. Windows then joins the two input queues, so that the
+    /// keyboard becomes reachable; only the focus stays on the host
+    /// window, and nothing that is typed reaches the game, paste included
+    /// since scrcpy pastes by typing. This is the only gesture that was
+    /// missing, and tabbed mode has lived without it until now: validated
+    /// on the picture and on the mouse, never on the keyboard.
     /// </summary>
-    /// <returns>Faux si la fenêtre a disparu ou n'est pas logée.</returns>
+    /// <returns>
+    /// False if the window has disappeared or is not docked.
+    /// </returns>
     bool GiveKeyboardFocus(nint child);
 }

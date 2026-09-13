@@ -3,14 +3,15 @@
 namespace DtHub.Core.Android;
 
 /// <summary>
-/// Lecture des sorties du gestionnaire de paquets Android. Fonctions pures,
-/// vérifiables sur des sorties enregistrées.
+/// Reading the output of the Android package manager. Pure
+/// functions, checkable against recorded output.
 /// </summary>
 public static partial class PackageParser
 {
     /// <summary>
-    /// Lit <c>pm list packages</c>. Gère la forme simple <c>package:nom</c> et
-    /// la forme détaillée <c>package:/chemin/base.apk=nom</c>.
+    /// Reads <c>pm list packages</c>. Handles the simple form
+    /// <c>package:name</c> and the detailed form
+    /// <c>package:/path/base.apk=name</c>.
     /// </summary>
     public static IReadOnlyList<string> ParsePackageList(string? output)
     {
@@ -30,7 +31,7 @@ public static partial class PackageParser
 
             var value = line["package:".Length..].Trim();
 
-            // Avec -f, le chemin de l'APK précède le nom, séparé par « = ».
+            // With -f, the APK path precedes the name, separated by "=".
             var separator = value.LastIndexOf('=');
             if (separator >= 0)
             {
@@ -47,10 +48,11 @@ public static partial class PackageParser
     }
 
     /// <summary>
-    /// Lit les composants lançables rapportés par
-    /// <c>cmd package query-activities</c> ou <c>resolve-activity</c>. Le
-    /// format varie selon les versions d'Android, on cherche donc les jetons
-    /// ayant la forme d'un composant plutôt que de suivre une mise en page.
+    /// Reads the launchable components reported by
+    /// <c>cmd package query-activities</c> or
+    /// <c>resolve-activity</c>. The format varies across Android
+    /// versions, so tokens that have the shape of a component are
+    /// looked for rather than following a layout.
     /// </summary>
     public static IReadOnlyList<AppComponent> ParseComponents(string? output)
     {
@@ -74,7 +76,9 @@ public static partial class PackageParser
         return [.. components.DistinctBy(c => c.Value, StringComparer.Ordinal)];
     }
 
-    /// <summary>Lit un jeton <c>paquet/activité</c>, ou rend <c>null</c>.</summary>
+    /// <summary>
+    /// Reads a <c>package/activity</c> token, or returns <c>null</c>.
+    /// </summary>
     public static AppComponent? TryParseComponent(string? token)
     {
         if (string.IsNullOrWhiteSpace(token))
@@ -98,7 +102,8 @@ public static partial class PackageParser
             return null;
         }
 
-        // La forme abrégée « .Activité » désigne une classe du paquet.
+        // The abbreviated form ".Activity" designates a class from
+        // the package.
         if (className.StartsWith('.'))
         {
             className = package + className;
@@ -107,7 +112,9 @@ public static partial class PackageParser
         return IsClassName(className) ? new AppComponent(package, className) : null;
     }
 
-    /// <summary>Vrai si la chaîne a la forme d'un nom de paquet Android.</summary>
+    /// <summary>
+    /// True if the string has the shape of an Android package name.
+    /// </summary>
     public static bool IsPackageName(string? value) =>
         !string.IsNullOrWhiteSpace(value) && PackageName().IsMatch(value);
 

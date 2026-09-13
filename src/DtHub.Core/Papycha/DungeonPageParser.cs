@@ -4,30 +4,30 @@ using System.Text.RegularExpressions;
 namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Lit le bloc structuré d'une page de donjon.
+/// Reads the structured block of a dungeon page.
 ///
-/// Comme pour les quêtes, on ne lit que ce que le site engendre lui-même :
-/// « section.pcd-info » est un bloc maison dont les classes sont du code, là où
-/// le corps de l'article est écrit à la main. L'analyse s'appuie donc sur les
-/// classes et jamais sur les libellés - « Clef : » peut être réécrit, la classe
-/// « pcd-info__row--key » non.
+/// As with quests, we only read what the site itself generates:
+/// "section.pcd-info" is a homemade block whose classes are code, whereas
+/// the body of the article is written by hand. The analysis therefore
+/// relies on the classes and never on the labels: "Clef : " (French for
+/// "Key: ") can be rewritten, the class "pcd-info__row--key" cannot.
 ///
-/// Fonctions pures, sans réseau : elles se vérifient sur des fragments
-/// enregistrés.
+/// Pure functions, no network: they are checked against saved fragments.
 /// </summary>
 public static partial class DungeonPageParser
 {
     /// <summary>
-    /// Taille de la pierre d'âme, telle que le site l'écrit. Vide quand la page
-    /// n'a pas le bloc, ce qui arrive sur un donjon des quatre-vingt-trois.
+    /// Size of the soul stone, exactly as the site writes it. Empty when
+    /// the page does not have the block, which happens on one dungeon out
+    /// of the eighty-three.
     /// </summary>
     public static string ParseSoulStone(string? html) =>
         Clean(SoulStonePattern().Match(html ?? string.Empty).Groups["value"].Value);
 
     /// <summary>
-    /// Clef exigée à l'entrée, débarrassée du « Clef : » que le site pose à
-    /// l'usage des lecteurs d'écran. Vide sur les neuf donjons qui n'en
-    /// demandent pas.
+    /// Key required at the entrance, stripped of the "Clef : " (French
+    /// for "Key: ") label that the site adds for screen readers. Empty on
+    /// the nine dungeons that do not require one.
     /// </summary>
     public static string ParseKey(string? html)
     {
@@ -38,20 +38,21 @@ public static partial class DungeonPageParser
             return string.Empty;
         }
 
-        // Le libellé de lecture d'écran est retiré avant le nettoyage : une fois
-        // le balisage tombé, plus rien ne le distinguerait du nom de la clef.
+        // The screen reader label is removed before cleanup: once the
+        // markup falls away, nothing would distinguish it from the key's
+        // name anymore.
         var value = ScreenReaderPattern().Replace(row.Groups["value"].Value, " ");
 
         return Clean(value);
     }
 
     /// <summary>
-    /// Niveau écrit dans la prose, « Niveau : 190 ». Zéro quand la page n'en
-    /// donne pas.
+    /// Level written in the prose, "Niveau : 190" (French for "Level:
+    /// 190"). Zero when the page does not give one.
     ///
-    /// Les donjons le mettent dans leurs métadonnées ; les raids et les
-    /// tanières, sauf une, l'écrivent en clair dans leurs premiers paragraphes.
-    /// C'est le seul endroit où on le trouve pour neuf des dix.
+    /// Dungeons put it in their metadata; raids and lairs, except one,
+    /// write it plainly in their first paragraphs. It is the only place
+    /// we find it for nine out of ten.
     /// </summary>
     public static int ParseLevel(string? html)
     {
@@ -65,15 +66,16 @@ public static partial class DungeonPageParser
     }
 
     /// <summary>
-    /// Titres des sections de la page, dans leur ordre.
+    /// Section titles of the page, in their order.
     ///
-    /// Une page de donjon n'est pas une suite de consignes mais un dossier :
-    /// les monstres, les salles, le boss, la mécanique, les succès. Ce sont ces
-    /// titres qu'on parcourt, et non des paragraphes à résumer.
+    /// A dungeon page is not a series of instructions but a dossier: the
+    /// monsters, the rooms, the boss, the mechanics, the achievements.
+    /// These are the titles we go through, not paragraphs to summarize.
     ///
-    /// Deux sont écartés. « Position du PNJ sur la carte » double la carte que
-    /// le bloc d'en-tête porte déjà ; « Papycha remercie » est le pied de page,
-    /// que la fenêtre masque de toute façon.
+    /// Two are excluded. "Position du PNJ sur la carte" (NPC position on
+    /// the map) duplicates the map that the header block already carries;
+    /// "Papycha remercie" (Papycha's thanks section) is the page footer,
+    /// which the window hides anyway.
     /// </summary>
     public static IReadOnlyList<string> ParseSections(string? html)
     {
@@ -98,7 +100,7 @@ public static partial class DungeonPageParser
         title.StartsWith("Position du PNJ", StringComparison.OrdinalIgnoreCase)
         || title.StartsWith("Papycha remercie", StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>Retire le balisage, décode les entités et resserre les espaces.</summary>
+    /// <summary>Strips markup, decodes entities and tightens spaces.</summary>
     private static string Clean(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -111,8 +113,8 @@ public static partial class DungeonPageParser
         return SpacePattern().Replace(text, " ").Trim();
     }
 
-    // Le délai de deux secondes posé sur chaque expression : une page mal
-    // formée ne doit pas la faire tourner sans fin et bloquer la fenêtre.
+    // The two second timeout set on each expression: a malformed page
+    // must not make it run forever and freeze the window.
     [GeneratedRegex(
         @"class=""[^""]*\bpcd-info__soul-stone\b[^""]*""[^>]*>(?<value>.*?)</span>",
         RegexOptions.Singleline | RegexOptions.IgnoreCase,

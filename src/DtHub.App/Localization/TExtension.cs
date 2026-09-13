@@ -4,11 +4,11 @@ using DtHub.Core.Localization;
 namespace DtHub.App.Localization;
 
 /// <summary>
-/// Rend un texte traduit depuis le XAML : <c>Content="{loc:T Quit}"</c>.
+/// Renders a translated text from XAML: <c>Content="{loc:T Quit}"</c>.
 ///
-/// WPF retire le suffixe « Extension » du nom : la classe s'appelle
-/// <c>TExtension</c> et s'écrit <c>T</c> dans le balisage. Le nom est court
-/// parce qu'il paraît sur chaque libellé de chaque fenêtre.
+/// WPF strips the "Extension" suffix from the name: the class is
+/// called <c>TExtension</c> and is written <c>T</c> in markup. The
+/// name is short because it appears on every label of every window.
 /// </summary>
 [MarkupExtensionReturnType(typeof(string))]
 public sealed class TExtension : MarkupExtension

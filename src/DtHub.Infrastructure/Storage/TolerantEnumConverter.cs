@@ -6,8 +6,9 @@ using DtHub.Core.Storage;
 namespace DtHub.Infrastructure.Storage;
 
 /// <summary>
-/// Lit les énumérations en clair comme le convertisseur standard, mais ne
-/// refuse pas un nom inconnu : il retombe sur le repli déclaré.
+/// Reads enumerations in plain text like the standard converter, but
+/// does not reject an unknown name: it falls back to the declared
+/// fallback.
 /// </summary>
 public sealed class TolerantEnumConverter<TEnum> : JsonConverter<TEnum>
     where TEnum : struct, Enum
@@ -20,8 +21,8 @@ public sealed class TolerantEnumConverter<TEnum> : JsonConverter<TEnum>
 
     public override TEnum Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        // Les nombres restent acceptés : d'anciens fichiers en portent, et un
-        // fichier modifié à la main aussi.
+        // Numbers are still accepted: old files carry them, and so
+        // does a hand-edited file.
         if (reader.TokenType == JsonTokenType.Number && reader.TryGetInt64(out var number))
         {
             var value = (TEnum)Enum.ToObject(typeof(TEnum), number);
@@ -40,7 +41,7 @@ public sealed class TolerantEnumConverter<TEnum> : JsonConverter<TEnum>
         writer.WriteStringValue(value.ToString());
 }
 
-/// <summary>Fabrique le convertisseur pour n'importe quelle énumération.</summary>
+/// <summary>Builds the converter for any enumeration.</summary>
 public sealed class TolerantEnumConverterFactory : JsonConverterFactory
 {
     public override bool CanConvert(Type typeToConvert) => typeToConvert.IsEnum;

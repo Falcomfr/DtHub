@@ -9,9 +9,9 @@ using DtHub.Core.Users;
 namespace DtHub.Core.Dofus;
 
 /// <summary>
-/// Trouve les instances du jeu sur les téléphones connectés : une par profil
-/// Android où le paquet est installé. C'est tout ce que l'application a besoin
-/// de savoir des applications installées, elle ne dresse aucun catalogue.
+/// Finds the game's instances on the connected phones: one per Android profile
+/// where the package is installed. This is all the application needs to know
+/// about installed applications; it keeps no catalogue of its own.
 /// </summary>
 public sealed class DofusInstanceService
 {
@@ -25,58 +25,60 @@ public sealed class DofusInstanceService
     }
 
     /// <summary>
-    /// Paquet recherché. Réglable pour survivre à un changement côté éditeur,
-    /// mais l'application est pensée pour celui-ci.
+    /// The package being sought. Adjustable to survive a change on the
+    /// publisher's side, but the application is designed for this one.
     /// </summary>
     public string PackageName { get; set; } = DofusPackages.DofusTouch;
 
-    /// <summary>Un balayage de paquets peut traîner sur un téléphone chargé.</summary>
+    /// <summary>
+    /// A package scan can drag on when a phone is under load.
+    /// </summary>
     public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(45);
 
     private readonly List<string> _warnings = [];
 
     /// <summary>
-    /// Incidents non bloquants du dernier balayage. Un appareil dont la liste
-    /// de profils n'a pas pu être lue rend quand même une instance, celle du
-    /// profil principal : sans un mot, rien ne distingue ce cas d'un appareil
-    /// qui n'a réellement qu'un profil, et le second compte semble avoir
-    /// disparu.
+    /// Non-blocking issues from the last scan. A device whose profile list
+    /// could not be read still yields an instance, that of the main profile:
+    /// without a word about it, nothing distinguishes this case from a device
+    /// that genuinely has only one profile, and the second account seems to
+    /// have disappeared.
     /// </summary>
     public IReadOnlyList<string> Warnings => _warnings;
 
     private readonly Dictionary<string, IReadOnlyList<int>> _profiles = new(StringComparer.Ordinal);
 
     /// <summary>
-    /// Les profils Android relevés sur chaque téléphone, par identifiant
-    /// d'appareil, du dernier balayage.
+    /// The Android profiles found on each phone, by device identifier, from
+    /// the last scan.
     ///
-    /// Seulement les téléphones dont la liste a été lue pour de bon : un
-    /// appareil qui n'a pas répondu n'y figure pas, et l'on ne conclura donc
-    /// rien de son absence. C'est ce qui permet de distinguer « ce profil a
-    /// disparu » de « on n'a pas pu regarder ».
+    /// Only the phones whose list was actually read: a device that did not
+    /// respond does not appear here, and nothing will therefore be concluded
+    /// from its absence. This is what makes it possible to tell "this profile
+    /// has disappeared" apart from "we could not look".
     /// </summary>
     public IReadOnlyDictionary<string, IReadOnlyList<int>> ScannedProfiles => _profiles;
 
     /// <summary>
-    /// Profils qui ont répondu et qui n'ont pas le jeu, par appareil.
+    /// Profiles that responded and do not have the game, by device.
     ///
-    /// Répondu est le mot qui compte. Interroger les paquets d'un profil peut
-    /// échouer, et l'échec rendait jusqu'ici une liste vide, exactement comme
-    /// une réponse disant « rien ». Les deux étaient donc indiscernables, et
-    /// c'est pourquoi rien ne pouvait être conclu d'une absence : effacer un
-    /// compte sur cette foi l'aurait perdu au premier hoquet d'ADB.
+    /// Responded is the word that matters. Asking a profile for its packages
+    /// can fail, and until now the failure returned an empty list, exactly
+    /// like a response saying "nothing". The two were therefore
+    /// indistinguishable, and that is why nothing could be concluded from an
+    /// absence: erasing an account on that basis would have lost it at ADB's
+    /// first hiccup.
     ///
-    /// Ce relevé ne retient que les profils dont la question a abouti. Un
-    /// profil qui a refusé de répondre n'y figure pas, et l'on ne conclura donc
-    /// rien de son silence. Même prudence que <see cref="ScannedProfiles" />,
-    /// pour la même raison.
+    /// This record only keeps the profiles whose question succeeded. A profile
+    /// that refused to answer does not appear here, and nothing will therefore
+    /// be concluded from its silence. Same caution as
+    /// <see cref="ScannedProfiles" />, for the same reason.
     /// </summary>
     public IReadOnlyDictionary<string, IReadOnlyList<int>> ProfilesWithoutGame => _without;
 
     /// <summary>
-    /// Instances présentes sur les téléphones donnés. Un téléphone hors ligne
-    /// n'est pas interrogé : ses instances mémorisées sont réinjectées par
-    /// l'appelant.
+    /// Instances present on the given phones. An offline phone is not queried:
+    /// its remembered instances are reinjected by the caller.
     /// </summary>
     private readonly Dictionary<string, IReadOnlyList<int>> _without = new(StringComparer.Ordinal);
 
@@ -102,7 +104,7 @@ public sealed class DofusInstanceService
         return instances;
     }
 
-    /// <summary>Instances présentes sur un téléphone précis.</summary>
+    /// <summary>Instances present on a specific phone.</summary>
     public async Task<IReadOnlyList<DofusInstance>> DiscoverOnDeviceAsync(
         AndroidDevice device,
         CancellationToken cancellationToken = default)
@@ -111,10 +113,10 @@ public sealed class DofusInstanceService
 
         List<DofusInstance> instances = [];
 
-        // Relus à chaque balayage, et non pris au cache : un profil supprimé
-        // sur le téléphone restait sinon connu indéfiniment, et sa ligne ne
-        // quittait jamais la liste. La commande est légère au regard du reste
-        // du balayage, qui interroge les paquets de chaque profil.
+        // Re-read on every scan, and not taken from cache: a profile deleted
+        // on the phone would otherwise stay known indefinitely, and its line
+        // would never leave the list. The command is light compared to the
+        // rest of the scan, which queries the packages of each profile.
         var users = await _users.GetUsersAsync(device.Serial, refresh: true, cancellationToken)
             .ConfigureAwait(false);
 
@@ -125,8 +127,8 @@ public sealed class DofusInstanceService
         }
         else
         {
-            // Lue pour de bon : on saura dire qu'un profil a disparu, et non
-            // seulement qu'on ne l'a pas vu.
+            // Read for real: we will be able to say that a profile has
+            // disappeared, and not merely that we did not see it.
             _profiles[device.Id] = [.. users.Select(u => u.Id)];
         }
 
@@ -139,8 +141,9 @@ public sealed class DofusInstanceService
             var packages = await TryListInstalledAsync(device.Serial, user.Id, cancellationToken)
                 .ConfigureAwait(false);
 
-            // Null veut dire « pas su demander », et non « rien trouvé ». Seule
-            // une réponse vide autorise à dire que ce profil n'a pas le jeu.
+            // Null means "could not ask", and not "found nothing". Only an
+            // empty response allows saying that this profile does not have the
+            // game.
             if (packages is { Count: 0 })
             {
                 sansJeu.Add(user.Id);
@@ -164,8 +167,8 @@ public sealed class DofusInstanceService
             }
         }
 
-        // Posé seulement si la liste des profils elle-même a été lue pour de
-        // bon : sans elle, on ne sait même pas de quels profils on parle.
+        // Only set if the profile list itself was actually read: without it,
+        // we do not even know which profiles we are talking about.
         if (_profiles.ContainsKey(device.Id))
         {
             _without[device.Id] = sansJeu;
@@ -174,21 +177,23 @@ public sealed class DofusInstanceService
         return instances;
     }
 
-    /// <summary>Vrai si le jeu est installé pour ce profil Android.</summary>
     /// <summary>
-    /// Ajoute un compte : un profil Android neuf, le jeu dedans, et le profil
-    /// démarré pour qu'on puisse l'ouvrir tout de suite.
+    /// True if the game is installed for this Android profile.
+    /// </summary>
+    /// <summary>
+    /// Adds an account: a fresh Android profile, the game inside it, and the
+    /// profile started so it can be opened right away.
     ///
-    /// C'est le mécanisme des comptes multiples d'Android, celui-là même que la
-    /// surcouche du téléphone emploie pour son « espace secondaire ». Rien
-    /// n'est recopié ni modifié : <c>install-existing</c> rend au nouveau
-    /// profil l'application déjà présente, signée par son éditeur. Le profil
-    /// naît en revanche avec son propre espace de données, vide : le jeu y
-    /// redemandera ses ressources et sa connexion.
+    /// This is the mechanism behind Android's multiple accounts, the very one
+    /// the phone's overlay uses for its "second space". Nothing is copied or
+    /// modified: <c>install-existing</c> hands the new profile the application
+    /// that is already there, signed by its publisher. The profile is born,
+    /// however, with its own data space, empty: the game will ask it again for
+    /// its resources and its connection.
     ///
-    /// La place est vérifiée d'abord. Un téléphone plafonne le nombre de
-    /// profils, quatre sur celui de référence, et laisser la création échouer
-    /// rendrait un message d'ADB que personne ne comprend.
+    /// The room is checked first. A phone caps the number of profiles, four on
+    /// the reference one, and letting creation fail would return an ADB
+    /// message that nobody understands.
     /// </summary>
     public async Task<AccountAddition> AddAccountAsync(
         string serial,
@@ -210,9 +215,8 @@ public sealed class DofusInstanceService
                 Strings.Format("ProfileLimitReached", limit));
         }
 
-        // Le profil se rattache à l'utilisateur principal. Aucun identifiant
-        // n'est supposé : c'est le téléphone qui dit lequel de ses comptes est
-        // le principal.
+        // The profile attaches to the main user. No identifier is assumed: it
+        // is the phone that says which of its accounts is the main one.
         if (existing.FirstOrDefault(user => user.IsPrimary) is not { } parent)
         {
             return new AccountAddition(
@@ -220,22 +224,21 @@ public sealed class DofusInstanceService
                 Strings.Get("NoPrimaryProfile"));
         }
 
-        // Android plafonne chaque type de profil à un par compte principal,
-        // relevé sur le téléphone de référence : « mMaxAllowedPerParent: 1 »
-        // pour le cloné comme pour le professionnel. Deux places, donc, et
-        // elles ne se valent pas.
+        // Android caps each profile type at one per main account, found on the
+        // reference phone: "mMaxAllowedPerParent: 1" for the cloned as for the
+        // work one. Two slots, then, and they are not equal.
         var clone = existing.FirstOrDefault(user => user.Type == AndroidUserType.CloneProfile);
         var managed = existing.FirstOrDefault(user => user.Type == AndroidUserType.ManagedProfile);
 
-        // Le profil cloné d'abord, et de loin. C'est celui que les surcouches
-        // emploient pour dupliquer une application : le téléphone n'y installe
-        // presque rien, et ses icônes ne portent aucune marque particulière.
+        // The cloned profile first, and by far. It is the one overlays use to
+        // duplicate an application: the phone installs almost nothing into it,
+        // and its icons carry no particular mark.
         //
-        // Le professionnel, lui, est fait pour un téléphone d'entreprise :
-        // Android le garnit tout seul de son environnement complet. Relevé sur
-        // le téléphone de référence, 359 paquets contre 22 pour le cloné, et
-        // une quinzaine d'icônes à valise apparues sur l'écran d'accueil sans
-        // que personne ne les ait demandées.
+        // The work one, meanwhile, is made for a company phone: Android fills
+        // it in on its own with its full environment. Found on the reference
+        // phone, 359 packages against 22 for the cloned one, and about fifteen
+        // briefcase icons appeared on the home screen without anyone asking
+        // for them.
         if (clone is null
             && await _users
                 .TryCreateUserAsync(serial, name, parent.Id, AndroidUserType.CloneProfile, cancellationToken)
@@ -248,9 +251,8 @@ public sealed class DofusInstanceService
                 cancellationToken).ConfigureAwait(false);
         }
 
-        // Le repli. Il marche, mais il ne se fait pas en silence : ce qu'il
-        // change se voit sur l'écran d'accueil, et personne ne devinerait
-        // pourquoi.
+        // The fallback. It works, but it does not happen silently: what it
+        // changes is visible on the home screen, and nobody would guess why.
         if (managed is null
             && await _users
                 .TryCreateUserAsync(serial, name, parent.Id, AndroidUserType.ManagedProfile, cancellationToken)
@@ -263,20 +265,21 @@ public sealed class DofusInstanceService
                 cancellationToken).ConfigureAwait(false);
         }
 
-        // Une place restait libre et la création a pourtant échoué : c'est le
-        // téléphone qui a refusé, et le dire vaut mieux que de bricoler.
+        // A slot remained free and creation nonetheless failed: it is the
+        // phone that refused, and saying so is better than working around it.
         if (clone is null || managed is null)
         {
             return new AccountAddition(false, Strings.Get("ProfileCreationRefused"));
         }
 
-        // Les deux places sont prises. Reste le cas d'un profil qui en occupe
-        // une sans rien porter : son jeu a été désinstallé, il ne sert plus à
-        // rien, et refuser laisserait sans recours. On le reprend alors.
+        // Both slots are taken. There remains the case of a profile that
+        // occupies one without carrying anything: its game was uninstalled, it
+        // no longer serves any purpose, and refusing would leave no recourse.
+        // It is then reclaimed.
         //
-        // Jamais tant qu'une place est libre : créer un profil vaut mieux que
-        // réquisitionner celui de quelqu'un, un Second Space existant souvent
-        // pour de tout autres raisons que les nôtres.
+        // Never while a slot is free: creating a profile is better than
+        // commandeering someone else's, a Second Space often existing for
+        // entirely different reasons than ours.
         foreach (var idle in new[] { clone, managed })
         {
             if (!await IsInstalledAsync(serial, idle.Id, cancellationToken).ConfigureAwait(false))
@@ -293,11 +296,11 @@ public sealed class DofusInstanceService
     }
 
     /// <summary>
-    /// Pose le jeu sur un profil et le démarre.
+    /// Installs the game on a profile and starts it.
     ///
-    /// Partagé par le profil qu'on vient de créer et par celui qu'on reprend :
-    /// les deux ont besoin exactement de la même chose, et les tenir ensemble
-    /// évite qu'une reprise oublie le démarrage ou la vérification.
+    /// Shared by the profile just created and by the one being reclaimed: both
+    /// need exactly the same thing, and keeping them together avoids a reclaim
+    /// forgetting the start or the check.
     /// </summary>
     private async Task<AccountAddition> FillProfileAsync(
         string serial,
@@ -321,9 +324,9 @@ public sealed class DofusInstanceService
         }
         catch (AdbException exception)
         {
-            // L'erreur remonte : le refus d'ADB devient le message que la
-            // personne lit, « Le profil est créé mais le jeu n'a pas pu y être
-            // installé », suivi de sa raison.
+            // The error propagates: ADB's refusal becomes the message the
+            // person reads, "Le profil est créé mais le jeu n'a pas pu y être
+            // installé", followed by its reason.
             return new AccountAddition(
                 false,
                 Strings.Format("ProfileMadeGameNotInstalled", exception.UserMessage),
@@ -338,9 +341,9 @@ public sealed class DofusInstanceService
                 userId);
         }
 
-        // Démarré tout de suite : une application ne s'ouvre pas sur un profil
-        // qui ne tourne pas, et l'utilisateur vient de demander un compte pour
-        // s'en servir.
+        // Started right away: an application does not open on a profile that
+        // is not running, and the user has just asked for an account in order
+        // to use it.
         await _users.TryStartUserAsync(serial, userId, cancellationToken).ConfigureAwait(false);
 
         return new AccountAddition(true, success, userId);
@@ -353,14 +356,14 @@ public sealed class DofusInstanceService
         (await ListInstalledAsync(serial, userId, cancellationToken).ConfigureAwait(false)).Count > 0;
 
     /// <summary>
-    /// Paquets du jeu présents pour ce profil Android.
+    /// Game packages present for this Android profile.
     ///
-    /// Le nom exact d'abord, qui est le cas de très loin le plus courant : le
-    /// clonage par profil, celui que l'application vise, garde le nom du paquet
-    /// intact. Mais certaines surcouches installent leur copie sous un nom
-    /// dérivé, et la comparaison stricte les rendait invisibles alors que la
-    /// commande les avait bien rapportées. On les accepte donc en second, à
-    /// condition que le nom contienne le paquet cherché ou son dernier segment.
+    /// The exact name first, which by far is the most common case: cloning by
+    /// profile, the one the application targets, keeps the package name
+    /// intact. But some overlays install their copy under a derived name, and
+    /// a strict comparison made them invisible even though the command had
+    /// reported them correctly. They are therefore accepted second, provided
+    /// the name contains the sought package or its last segment.
     /// </summary>
     public async Task<IReadOnlyList<string>> ListInstalledAsync(
         string serial,
@@ -369,15 +372,15 @@ public sealed class DofusInstanceService
         await TryListInstalledAsync(serial, userId, cancellationToken).ConfigureAwait(false) ?? [];
 
     /// <summary>
-    /// Les paquets du jeu de ce profil, ou <c>null</c> si la question n'a pas
-    /// abouti.
+    /// The game's packages for this profile, or <c>null</c> if the question
+    /// did not succeed.
     ///
-    /// La distinction est tout l'objet de cette méthode. Une liste vide dit
-    /// « ce profil a répondu, et il n'a pas le jeu », ce dont on peut conclure
-    /// quelque chose. <c>null</c> dit « on n'a pas su demander », ce dont on ne
-    /// conclut rien. Les confondre revenait à effacer des comptes au premier
-    /// hoquet d'ADB, et c'est pourquoi l'absence du jeu ne servait jusqu'ici à
-    /// rien.
+    /// The distinction is the whole point of this method. An empty list says
+    /// "this profile responded, and it does not have the game", from which
+    /// something can be concluded. <c>null</c> says "we could not ask", from
+    /// which nothing is concluded. Confusing the two amounted to erasing
+    /// accounts at ADB's first hiccup, and that is why the game's absence used
+    /// to be of no use at all.
     /// </summary>
     public async Task<IReadOnlyList<string>?> TryListInstalledAsync(
         string serial,
@@ -388,8 +391,8 @@ public sealed class DofusInstanceService
 
         try
         {
-            // « pm list packages » filtre par sous-chaîne : le dernier segment
-            // ramène aussi bien le paquet officiel que ses copies renommées.
+            // "pm list packages" filters by substring: the last segment brings
+            // back the official package as well as its renamed copies.
             var output = await _adb.ShellAsync(
                 serial,
                 ["pm", "list", "packages", "--user", Text(userId), BaseToken],
@@ -400,9 +403,9 @@ public sealed class DofusInstanceService
         }
         catch (AdbException)
         {
-            // Un profil qui refuse la question ne fait pas échouer le balayage,
-            // et ne produit aucune instance. Il n'est simplement pas déclaré
-            // dépourvu du jeu : on n'en sait rien.
+            // A profile that refuses the question does not make the scan fail,
+            // and produces no instance. It is simply not declared as lacking
+            // the game: we know nothing about it.
             return null;
         }
 
@@ -418,7 +421,9 @@ public sealed class DofusInstanceService
         return matches;
     }
 
-    /// <summary>Résout l'activité à lancer pour un profil Android.</summary>
+    /// <summary>
+    /// Resolves the activity to launch for an Android profile.
+    /// </summary>
     public async Task<AppComponent?> ResolveComponentAsync(
         string serial,
         int userId,
@@ -427,9 +432,9 @@ public sealed class DofusInstanceService
             .ConfigureAwait(false);
 
     /// <summary>
-    /// Résout l'activité à lancer pour un profil Android et un paquet précis.
-    /// Une copie renommée n'a pas le nom du paquet de référence : la résoudre
-    /// sous ce nom-là ne donnerait rien.
+    /// Resolves the activity to launch for an Android profile and a specific
+    /// package. A renamed copy does not have the reference package's name:
+    /// resolving it under that name would give nothing.
     /// </summary>
     public async Task<AppComponent?> ResolveComponentAsync(
         string serial,
@@ -457,16 +462,17 @@ public sealed class DofusInstanceService
         }
         catch (AdbException)
         {
-            // Silence assumé : le composant de lancement est une commodité, et
-            // l'absence de réponse se traite comme une absence de composant.
-            // L'appelant a son propre message pour le dire.
+            // Silence assumed: the launch component is a convenience, and the
+            // absence of a response is treated as the absence of a component.
+            // The caller has its own message to say so.
             return null;
         }
     }
 
     /// <summary>
-    /// Dernier segment du nom de paquet, celui qui identifie le jeu sans
-    /// l'éditeur. Sert de filtre à la commande et de marque des copies.
+    /// Last segment of the package name, the one that identifies the game
+    /// without the publisher. Used as a filter for the command and as a mark
+    /// of the copies.
     /// </summary>
     private string BaseToken
     {
@@ -480,7 +486,9 @@ public sealed class DofusInstanceService
         }
     }
 
-    /// <summary>Vrai pour une copie du jeu installée sous un nom dérivé.</summary>
+    /// <summary>
+    /// True for a copy of the game installed under a derived name.
+    /// </summary>
     private bool IsDerived(string package) =>
         !string.Equals(package, PackageName, StringComparison.Ordinal)
         && (package.Contains(PackageName, StringComparison.Ordinal)
@@ -489,9 +497,9 @@ public sealed class DofusInstanceService
     private static string Text(int value) => value.ToString(CultureInfo.InvariantCulture);
 }
 
-/// <summary>Paquets du jeu.</summary>
+/// <summary>Game packages.</summary>
 public static class DofusPackages
 {
-    /// <summary>Paquet officiel de DOFUS Touch.</summary>
+    /// <summary>Official package of DOFUS Touch.</summary>
     public const string DofusTouch = "com.ankama.dofustouch";
 }

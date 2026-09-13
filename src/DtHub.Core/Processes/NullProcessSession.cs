@@ -3,9 +3,9 @@
 namespace DtHub.Core.Processes;
 
 /// <summary>
-/// Session de processus inexistante, utilisée pour représenter un lancement
-/// qui a échoué avant même de démarrer. Évite d'avoir à manipuler des
-/// références nulles dans le suivi des sessions.
+/// Nonexistent process session, used to represent a launch that
+/// failed before it even started. Avoids having to handle null
+/// references in session tracking.
 /// </summary>
 public sealed class NullProcessSession : IProcessSession
 {

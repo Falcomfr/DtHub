@@ -3,53 +3,61 @@
 namespace DtHub.Core.Almanax;
 
 /// <summary>
-/// L'Almanax de DOFUS Touch, chez Ankama.
+/// The Almanax of DOFUS Touch, at Ankama.
 ///
-/// **Touch n'a pas le même Almanax que DOFUS**, et c'est le seul vrai piège de
-/// cette fonction : une offrande fausse coûte une journée de quête à qui la
-/// suit. Mesuré sur l'officiel le 10 septembre 2026, la même page selon le
-/// filtre : « 1 Aile de dragodinde » pour DOFUS, « 1 Dent de Dragodinde » pour
-/// Touch. Le 11, « 2 Corne de Dragoeuf Guerrier » côté Touch.
+/// **Touch does not have the same Almanax as DOFUS**, and that is the
+/// only real trap in this function: a wrong offering costs a day of
+/// questing to whoever follows it. Measured on the official site on
+/// September 10, 2026, the same page depending on the filter: "1 Aile
+/// de dragodinde" ("1 Dragon Turkey Wing") for DOFUS, "1 Dent de
+/// Dragodinde" ("1 Dragon Turkey Tooth") for Touch. On the 11th, "2
+/// Corne de Dragoeuf Guerrier" ("2 Warrior Dragoegg Horns") on the
+/// Touch side.
 ///
-/// **Aucune API ne sert Touch.** Sondé, « api.dofusdu.de » ne répond que pour
-/// « dofus3 » ; « dofustouch », « touch » et « retro » sont des routes
-/// inconnues. La seule application dédiée, Almafus, a quitté le Play Store en
-/// 2024. Les bibliothèques du milieu grattent toutes le même portail, sans son
-/// filtre, et rendent donc l'Almanax de DOFUS.
+/// **No API serves Touch.** When probed, "api.dofusdu.de" only
+/// responds for "dofus3"; "dofustouch", "touch" and "retro" are
+/// unknown routes. The one dedicated application, Almafus, left the
+/// Play Store in 2024. The libraries out there all scrape the same
+/// portal, without its filter, and therefore return the Almanax of
+/// DOFUS.
 ///
-/// **Lire le calendrier depuis le téléphone a été essayé, et ne marche pas.**
-/// Le client Touch est une enveloppe Cordova de quinze mégaoctets qui télécharge
-/// ses actifs et les range dans son stockage interne. Sondé sur un appareil
-/// réel : le stockage externe de l'application est vide, il n'y a pas d'OBB,
-/// rien d'Ankama ailleurs sur la carte, « /data/data » refuse, et « run-as »
-/// répond que le paquet n'est pas déboguable. C'est vrai de tout téléphone non
-/// rooté, donc de celui de tout le monde.
+/// **Reading the calendar from the phone was tried, and does not
+/// work.** The Touch client is a fifteen-megabyte Cordova wrapper that
+/// downloads its assets and stores them in its internal storage.
+/// Probed on a real device: the application's external storage is
+/// empty, there is no OBB, nothing from Ankama elsewhere on the card,
+/// "/data/data" refuses, and "run-as" answers that the package is not
+/// debuggable. This holds for every non-rooted phone, hence for
+/// everyone's.
 ///
-/// Reste la page d'Ankama, qu'on affiche telle quelle. Rien n'est copié, rien
-/// n'est hébergé, rien ne peut donc se périmer en silence : c'est la source qui
-/// fait foi qui s'affiche, et le filtre est dans l'adresse.
+/// What remains is Ankama's page, which is shown as is. Nothing is
+/// copied, nothing is hosted, so nothing can go stale in silence: the
+/// authoritative source itself is displayed, and the filter is in the
+/// address.
 /// </summary>
 public static class AlmanaxCalendar
 {
-    /// <summary>Nom d'hôte du portail qui publie l'Almanax.</summary>
+    /// <summary>Host name of the portal that publishes the Almanax.</summary>
     public const string Host = "krosmoz.com";
 
     /// <summary>
-    /// Le filtre qui bascule la page sur DOFUS Touch.
+    /// The filter that switches the page to DOFUS Touch.
     ///
-    /// Le portail retient le choix en session, mais l'adresse le porte aussi,
-    /// et c'est cette forme qu'on emploie : une fenêtre qui dépendrait d'un
-    /// témoin déjà posé montrerait l'Almanax de DOFUS à la première ouverture,
-    /// c'est-à-dire l'offrande d'un autre jeu, sans que rien ne le dise.
+    /// The portal remembers the choice for the session, but the
+    /// address carries it too, and that is the form we use: a window
+    /// that depended on a cookie already set would show the Almanax
+    /// of DOFUS on first opening, that is, the offering for a
+    /// different game, with nothing saying so.
     /// </summary>
     public const string TouchFilter = "?game=dofustouch";
 
     /// <summary>
-    /// L'adresse de l'Almanax du jour, dans la langue demandée.
+    /// The address of today's Almanax, in the requested language.
     ///
-    /// Le portail publie en huit langues et l'application en parle trois : la
-    /// correspondance est directe, et tout ce qu'on ne connaît pas retombe sur
-    /// la langue neutre plutôt que d'inventer un chemin qui n'existe pas.
+    /// The portal publishes in eight languages and the application
+    /// speaks three of them: the mapping is direct, and anything we
+    /// do not know falls back to the neutral language rather than
+    /// inventing a path that does not exist.
     /// </summary>
     public static string UrlFor(string? language)
     {
@@ -66,13 +74,14 @@ public static class AlmanaxCalendar
     }
 
     /// <summary>
-    /// L'adresse d'un jour précis.
+    /// The address of a specific day.
     ///
-    /// Le portail accepte la date dans le chemin, au format ISO. On la pose
-    /// toujours, même pour aujourd'hui : l'adresse nue rend bien le jour
-    /// courant, mais elle le rend selon l'horloge du serveur, et la fenêtre
-    /// annonce une date lue sur celle du poste. Les deux se croisent autour de
-    /// minuit, et la date affichée ne serait alors plus celle des données.
+    /// The portal accepts the date in the path, in ISO format. It is
+    /// always included, even for today: the bare address does return
+    /// the current day, but it does so according to the server's
+    /// clock, and the window states a date read from the machine's
+    /// own clock. The two cross paths around midnight, and the date
+    /// shown would then no longer be that of the data.
     /// </summary>
     public static string UrlFor(string? language, DateOnly date)
     {
@@ -87,16 +96,18 @@ public static class AlmanaxCalendar
     }
 
     /// <summary>
-    /// Vrai quand l'adresse est une page de l'Almanax du portail.
+    /// True when the address is an Almanax page of the portal.
     ///
-    /// La fenêtre n'a pas de barre d'adresse : on y voit une page sans savoir
-    /// d'où elle vient, sous notre titre et notre icône. Elle ne reçoit donc
-    /// que l'Almanax, et le reste part au navigateur. C'est la même réserve que
-    /// pour les pages de guides, et pour la même raison.
+    /// The window has no address bar: a page is seen there without
+    /// knowing where it comes from, under our title and our icon. It
+    /// therefore only receives the Almanax, and the rest goes to the
+    /// browser. This is the same caution as for guide pages, and for
+    /// the same reason.
     ///
-    /// La comparaison porte sur l'hôte que rend l'analyseur d'adresses et non
-    /// sur le début du texte : « https://krosmoz.com@ailleurs.example/ »
-    /// commence bien par le nom du portail sans lui appartenir.
+    /// The comparison is against the host the address parser returns,
+    /// not against the start of the text: "https://krosmoz.com@
+    /// ailleurs.example/" ("ailleurs" means "elsewhere") does start
+    /// with the portal's name without belonging to it.
     /// </summary>
     public static bool Owns(string? url)
     {
@@ -114,9 +125,10 @@ public static class AlmanaxCalendar
             return false;
         }
 
-        // « /fr/almanax », « /fr/almanax/2026-09-10 », « /fr/almanax/aide » : la
-        // langue d'abord, la rubrique ensuite. Le reste du portail, ses forums
-        // et sa boutique, n'a rien à faire dans une fenêtre qui dit « Almanax ».
+        // "/fr/almanax", "/fr/almanax/2026-09-10", "/fr/almanax/aide"
+        // ("help"): the language first, the section next. The rest of
+        // the portal, its forums and its shop, has no business in a
+        // window that says "Almanax".
         var parts = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
 
         return parts.Length >= 2 && string.Equals(parts[1], "almanax", StringComparison.OrdinalIgnoreCase);

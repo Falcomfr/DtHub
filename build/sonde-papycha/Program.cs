@@ -1,15 +1,15 @@
-﻿// Sonde de développement. Jamais employée par l'application.
+﻿// Development probe. Never used by the application.
 //
-// Elle interroge le vrai site et vérifie non pas des nombres figés, mais les
-// suppositions dont l'application dépend. Deux défauts trouvés à l'œil et par
-// hasard, les tanières à une seule étape et les raids à aucune, avaient vécu
-// des semaines : ce sont eux qu'elle est faite pour attraper.
+// It queries the real site and checks not fixed numbers, but the
+// assumptions the application depends on. Two flaws found by eye and
+// by chance, lairs with only one step and raids with none, had lived
+// for weeks: these are what it is built to catch.
 //
-// Elle rend zéro si tout tient, un sinon. Le relevé de référence est
-// reference.json, versionné à côté ; on le rebénit à la main avec --benir
-// quand un écart est légitime.
+// It returns zero if everything holds, one otherwise. The reference
+// reading is reference.json, versioned alongside; it is re-blessed by
+// hand with --benir when a discrepancy is legitimate.
 //
-// À lancer avant de livrer : dotnet run --project build/sonde-papycha
+// To run before shipping: dotnet run --project build/sonde-papycha
 using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -32,7 +32,7 @@ var mesures = new Dictionary<string, int>(StringComparer.Ordinal);
 Console.WriteLine("Lecture du site…\n");
 
 // ---------------------------------------------------------------------------
-// Ce que le client rend, par la voie que l'application emprunte.
+// What the client returns, through the path the application uses.
 // ---------------------------------------------------------------------------
 var quetes = await client.GetQuestsAsync();
 var rubriques = await client.GetSectionsAsync();
@@ -55,14 +55,14 @@ mesures["quetes-avec-prerequis"] = quetes.Count(q => q.Prerequisites.Count > 0);
 mesures["lieux-avec-niveau"] = lieux.Count(d => d.Level > 0);
 
 // ---------------------------------------------------------------------------
-// Les suppositions de forme, vérifiées sur les pages rendues.
+// The shape assumptions, checked on the rendered pages.
 // ---------------------------------------------------------------------------
 var donjons = await Pages(6);
 var raids = await Pages(741);
 var tanieres = await Pages(721);
-// Cent guides suffisent à dire si la forme des pages de quête a bougé : les
-// sept cent quatre-vingt-deux sont écrites de la même main. Cent est aussi le
-// maximum que le site accorde en une demande.
+// A hundred guides are enough to say whether the shape of quest pages
+// has moved: the seven hundred eighty-two are written by the same
+// hand. A hundred is also the maximum the site grants in one request.
 var guides = await Pages(7);
 
 Exige(
@@ -75,11 +75,11 @@ Exige(
     raids.Concat(tanieres).Count(p => Sommaire(p).Count > 0),
     raids.Count + tanieres.Count);
 
-// Ces deux-là ne sont pas des exigences mais des mesures : un donjon sur
-// quatre-vingt-trois n'a pas le bloc d'en-tête, et six liens de sommaire sur
-// quarante pointent une ancre absente. C'est l'état du site, pas un défaut de
-// l'application, et l'application s'en accommode. Ce qui compte est que ces
-// nombres ne se dégradent pas.
+// These two are not requirements but measurements: one dungeon out of
+// eighty-three does not have the header block, and six summary links
+// out of forty point to a missing anchor. This is the state of the
+// site, not a flaw of the application, and the application copes with
+// it. What matters is that these numbers do not get worse.
 mesures["donjons-avec-bloc"] = donjons.Count(p => p.Contains("pcd-info", StringComparison.Ordinal));
 mesures["ancres-de-sommaire-valides"] =
     raids.Concat(tanieres).Sum(p => Sommaire(p).Count(a => Ancres(p).Contains(a)));
@@ -89,57 +89,64 @@ Exige(
     guides.Count(p => Sommaire(p).Count == 0),
     guides.Count);
 
-// La fenêtre des quêtes masque ce bandeau en entier, son propre bandeau le
-// reprenant. Le jour où le site le renomme, le masquage devient muet et
-// l'encart « Type : Principale » reparaît en tête de guide, à l'endroit même
-// où la première étape est ancrée.
+// The quest window hides this banner entirely, replacing it with its
+// own banner. The day the site renames it, the hiding goes silent and
+// the "Type : Principale" box reappears at the top of the guide, at
+// the very spot where the first step is anchored.
 Exige(
     "chaque guide de quête porte le bandeau d'intro que la fenêtre masque",
     guides.Count(p => p.Contains("pqa-quest-intro", StringComparison.Ordinal)),
     guides.Count,
     tolerance: 0.9);
 
-// Le bloc de progression. **Ce que ce contrôle protège a grossi.** Il portait
-// la quête précédente et la quête suivante du pied de fenêtre, seule source qui
-// franchisse la borne d'un succès. Il est désormais aussi montré tel quel dans
-// le guide, le pied ne sachant annoncer qu'une suite là où le site en nomme
-// souvent plusieurs. Le jour où le site le renomme, ce ne sont plus seulement
-// deux boutons qui se taisent : la fin du guide ne dit plus rien du tout.
+// The progress block. **What this check protects has grown.** It used
+// to carry the previous quest and the next quest from the window
+// footer, the only source that crosses the boundary of an achievement.
+// It is now also shown as is in the guide, the footer being able to
+// announce only one follow-up where the site often names several. The
+// day the site renames it, it will not only be two buttons that fall
+// silent: the end of the guide will say nothing at all anymore.
 Exige(
     "chaque guide de quête porte le bloc de progression du site",
     guides.Count(p => p.Contains("pqt-progress__column--next", StringComparison.Ordinal)),
     guides.Count,
     tolerance: 0.8);
 
-// Combien de ces blocs nomment vraiment une quête suivante, et une seule. Une
-// mesure et non une exigence : deux guides sur cinq n'ont pour suite qu'un
-// succès validé, et c'est l'état du site. Elle passe par le code livré, pour
-// que l'écart se voie ici et non à l'écran.
+// How many of these blocks truly name a next quest, and only one. A
+// measurement and not a requirement: two guides out of five have only
+// a validated achievement as their follow-up, and that is the state of
+// the site. It goes through the shipped code, so that the discrepancy
+// shows here and not on screen.
 mesures["guides-avec-suivante"] =
     guides.Count(p => QuestPageParser.ParseChain(p).OnlyNextQuest is not null);
 
-// Ce que le pont repère comme consignes. C'est le nombre qui dit si la règle
-// mord encore : elle ne tient plus qu'à la grammaire, l'impératif de la
-// deuxième personne du pluriel ou des coordonnées, le bruit écarté. Le jour où
-// le site tournera ses consignes autrement, ce nombre s'effondrera et c'est ici
-// qu'on le verra, plutôt que sur un guide vide à l'écran.
+// What the bridge spots as instructions. This is the number that says
+// whether the rule still bites: it now rests only on grammar, the
+// imperative of the second person plural or on coordinates, with noise
+// set aside. The day the site turns its instructions another way, this
+// number will collapse and it is here that it will be seen, rather
+// than on an empty guide on screen.
 //
-// Deux mesures et non des exigences : trente et un guides sur les 782 n'ont
-// vraiment aucune consigne à l'impératif, quêtes répétables ou de collecte de
-// trois à neuf paragraphes, et c'est l'état du site.
+// Two measurements and not requirements: thirty-one guides out of the
+// 782 truly have no instruction at all in the imperative, repeatable
+// or gathering quests of three to nine paragraphs, and that is the
+// state of the site.
 //
-// La règle est redite ici, comme l'est déjà l'annonce de départ juste en
-// dessous : le pont vit en JavaScript, cette sonde en C#, et rien ne peut les
-// lier. La redite est donc approximative à dessein, et suffit à un guet. Le
-// relevé exact se refait avec build/sonde-papycha/audit-etapes.mjs, qui exécute
-// le code du pont lui-même sur les 782 guides.
+// The rule is restated here, as the departure announcement is already
+// restated just below: the bridge lives in JavaScript, this probe in
+// C#, and nothing can link them. The restatement is therefore
+// deliberately approximate, and is enough for a watch. The exact
+// reading is redone with build/sonde-papycha/audit-etapes.mjs, which
+// runs the bridge's own code on the 782 guides.
 mesures["consignes-reperees"] = guides.Sum(Consigne.Dans);
 mesures["guides-avec-consigne"] = guides.Count(p => Consigne.Dans(p) > 0);
 
-// L'annonce du départ écrite en prose, que le pont écarte de ses étapes parce
-// que le bandeau la donne déjà : « La quête se lance en [2,-16] en parlant à
-// Kerubim Crépin. » Une mesure et non une exigence : le jour où le site tourne
-// la phrase autrement, l'exclusion ne mord plus et le nombre s'effondre.
+// The departure announcement written in prose, which the bridge
+// excludes from its steps because the banner already gives it:
+// "La quête se lance en [2,-16] en parlant à Kerubim Crépin." A
+// measurement and not a requirement: the day the site turns the
+// sentence another way, the exclusion no longer bites and the number
+// collapses.
 mesures["annonces-de-depart-en-prose"] = guides.Sum(Annonces);
 
 // ---------------------------------------------------------------------------
@@ -159,8 +166,8 @@ foreach (var (nom, valeur) in mesures.OrderBy(m => m.Key, StringComparer.Ordinal
         continue;
     }
 
-    // Une baisse est un signal : le site supprime rarement, l'application
-    // cesse de lire souvent. Une hausse est la vie normale du site.
+    // A drop is a signal: the site rarely removes, the application often
+    // stops reading. A rise is the site's normal life.
     var chute = avant > 0 && valeur < avant * 0.95;
 
     constats.Add(new Constat(
@@ -219,8 +226,9 @@ async Task<List<string>> Pages(int categorie, int limite = 100)
     ];
 }
 
-// Les paragraphes qui annoncent le départ de la quête, dans les termes que le
-// pont écarte. La même expression que la sienne, ancrée en tête de paragraphe.
+// The paragraphs that announce the quest's departure, in the terms
+// the bridge excludes. The same expression as its own, anchored at the
+// start of the paragraph.
 static int Annonces(string html) =>
     Regex.Matches(html, "<p\\b.*?</p>", RegexOptions.Singleline)
         .Select(Consigne.Texte)
@@ -258,25 +266,28 @@ static HashSet<string> Ancres(string html) =>
 internal sealed record Constat(bool Bon, string Texte);
 
 /// <summary>
-/// Ce que le pont retient comme consigne, redit ici pour pouvoir le compter.
+/// What the bridge keeps as an instruction, restated here so it can be
+/// counted.
 ///
-/// Volontairement plus grossier que lui : les paragraphes sont pris à
-/// l'expression régulière et non par la place qu'ils occupent dans le document,
-/// si bien qu'un paragraphe imbriqué compte alors que le pont l'ignore. C'est
-/// un guet, pas une mesure : ce qui importe est que le nombre ne s'effondre
-/// pas le jour où le site change sa façon d'écrire.
+/// Deliberately coarser than it: paragraphs are captured by the
+/// regular expression and not by the place they occupy in the
+/// document, so that a nested paragraph counts here while the bridge
+/// ignores it. This is a watch, not a measurement: what matters is
+/// that the number does not collapse the day the site changes the way
+/// it writes.
 /// </summary>
 internal static class Consigne
 {
-    // Verbes à l'impératif que leur terminaison ne trahit pas.
+    // Imperative verbs that their ending does not betray.
     private static readonly string[] Irreguliers =
         ["faites", "dites", "soyez", "ayez", "sachez", "veuillez"];
 
-    // Mots après lesquels un « -ez » est un présent et non un ordre.
+    // Words after which an "-ez" is a present tense and not a command.
     private static readonly string[] Sujets = ["vous", "ne", "n", "qui", "que", "qu", "et"];
 
-    // Mots en « -ez » qui n'ordonnent rien : des noms, et les futurs d'avoir et
-    // d'être, dont les impératifs figurent déjà parmi les irréguliers.
+    // Words ending in "-ez" that order nothing: nouns, and the futures
+    // of "avoir" and "être", whose imperatives already appear among the
+    // irregulars.
     private static readonly string[] FauxAmis = ["chez", "assez", "nez", "rez", "aurez", "serez"];
 
     private static readonly Regex Paragraphe = new("<p\\b.*?</p>", RegexOptions.Singleline);
@@ -290,7 +301,7 @@ internal static class Consigne
 
     private static readonly Regex Mots = new(@"[\p{L}\p{M}]+");
 
-    /// <summary>Combien de paragraphes de cette page donnent un ordre.</summary>
+    /// <summary>How many paragraphs on this page give a command.</summary>
     internal static int Dans(string html) =>
         Paragraphe.Matches(html).Select(Texte).Count(EstUneConsigne);
 
@@ -323,8 +334,9 @@ internal static class Consigne
     }
 
     /// <summary>
-    /// L'annonce du départ, que le bandeau donne déjà et que le guide répète en
-    /// prose. La même expression que celle du pont, ancrée en tête.
+    /// The departure announcement, which the banner already gives and
+    /// which the guide repeats in prose. The same expression as the
+    /// bridge's, anchored at the start.
     /// </summary>
     internal static readonly Regex Depart = new(
         @"^(la|cette)\s+qu[eê]te\b[\s\S]{0,90}?\b(se\s+(lance|d[ée]clenche|d[ée]bloque)"
@@ -333,8 +345,8 @@ internal static class Consigne
 
     private static bool Ordonne(string texte)
     {
-        // Le découpage doit être unicode : « \W » ne connaît que l'ASCII, et
-        // « Protégez » y devient « Prot » et « gez ».
+        // The splitting must be Unicode: "\W" only knows ASCII, and
+        // "Protégez" becomes "Prot" and "gez" there.
         var mots = Mots.Matches(texte).Select(m => m.Value.ToLowerInvariant()).ToList();
 
         for (var i = 0; i < mots.Count; i++)
@@ -349,7 +361,7 @@ internal static class Consigne
                 return true;
             }
 
-            // Quatre lettres et non cinq : « Tuez » en fait quatre.
+            // Four letters and not five: "Tuez" makes four of them.
             if (mots[i].Length >= 4
                 && mots[i].EndsWith("ez", StringComparison.Ordinal)
                 && !FauxAmis.Contains(mots[i], StringComparer.Ordinal))

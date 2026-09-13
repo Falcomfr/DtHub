@@ -3,36 +3,38 @@
 namespace DtHub.Infrastructure.Storage;
 
 /// <summary>
-/// Les dossiers laissés dans %TEMP% par les versions précédentes.
+/// The folders left in %TEMP% by previous versions.
 ///
-/// Le fichier unique compresse ses composants managés et les décompresse en
-/// mémoire, mais les six bibliothèques natives de WPF et l'amorce WebView2
-/// exigent un vrai chemin sur disque. L'hôte les pose donc sous
-/// %TEMP%\.net\DtHub\{identifiant}, où l'identifiant est recalculé à chaque
-/// publication. Une mise à jour laisse ainsi le dossier de la version d'avant
-/// derrière elle, huit mégaoctets chacun, et rien ne les reprend jamais :
-/// mesuré à cent soixante et un dossiers pour un giga-octet et trois cents
-/// mégaoctets sur le poste de développement.
+/// The single file compresses its managed components and
+/// decompresses them in memory, but WPF's six native libraries and
+/// the WebView2 bootstrapper require a real path on disk. The host
+/// therefore drops them under %TEMP%\.net\DtHub\{identifier}, where
+/// the identifier is recomputed with every publish. An update thus
+/// leaves the previous version's folder behind, eight megabytes
+/// each, and nothing ever picks them up again: measured at a
+/// hundred and sixty-one folders for one gigabyte and three
+/// hundred megabytes on the development machine.
 ///
-/// Le README affirmait que supprimer le fichier ne laissait rien : c'était vrai
-/// du dossier de données, faux de celui-ci.
+/// The README claimed that deleting the file left nothing behind:
+/// that was true of the data folder, false of this one.
 /// </summary>
 public static class BundleLeftovers
 {
     /// <summary>
-    /// Le dossier où l'hôte pose les bibliothèques natives : c'est celui d'une
-    /// bibliothèque effectivement chargée, et non un chemin recomposé.
+    /// The folder where the host drops the native libraries: it is
+    /// that of a library actually loaded, not a reconstructed path.
     /// </summary>
     private static readonly string Mark =
         $"{Path.DirectorySeparatorChar}.net{Path.DirectorySeparatorChar}";
 
     /// <summary>
-    /// Dossier d'extraction de la version en cours, ou <c>null</c> hors fichier
-    /// unique. En développement rien n'est extrait, et il n'y a rien à balayer.
+    /// Extraction folder of the current version, or <c>null</c>
+    /// outside the single file. In development nothing is
+    /// extracted, and there is nothing to sweep.
     ///
-    /// La reconnaissance ne vise aucune bibliothèque en particulier : elles se
-    /// chargent à la demande, et viser wpfgfx_cor3.dll ne trouvait rien tant
-    /// que la première fenêtre n'avait pas été dessinée.
+    /// The detection does not target any particular library: they
+    /// load on demand, and targeting wpfgfx_cor3.dll found nothing
+    /// until the first window had been drawn.
     /// </summary>
     public static string? CurrentDirectory()
     {
@@ -54,9 +56,9 @@ public static class BundleLeftovers
     }
 
     /// <summary>
-    /// Les dossiers frères à retirer : tous sauf celui de la version en cours.
-    /// La comparaison est celle du système de fichiers de Windows, qui ne
-    /// distingue pas la casse.
+    /// The sibling folders to remove: all except the current
+    /// version's. The comparison follows Windows's file system,
+    /// which is not case-sensitive.
     /// </summary>
     public static IReadOnlyList<string> Stale(IEnumerable<string> siblings, string current)
     {
@@ -69,12 +71,12 @@ public static class BundleLeftovers
     }
 
     /// <summary>
-    /// Retire ce que les versions précédentes ont laissé. Rend le nombre de
-    /// dossiers effacés.
+    /// Removes what previous versions left behind. Returns the
+    /// number of folders deleted.
     ///
-    /// Un dossier encore utilisé résiste de lui-même : Windows refuse d'effacer
-    /// une bibliothèque chargée. L'échec est donc avalé, il ne dit rien d'autre
-    /// que « pas celui-ci ».
+    /// A folder still in use resists on its own: Windows refuses to
+    /// delete a loaded library. The failure is therefore swallowed,
+    /// it says nothing more than "not this one".
     /// </summary>
     public static int Sweep()
     {
@@ -100,8 +102,8 @@ public static class BundleLeftovers
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
-                // Dossier d'une instance encore vivante, ou verrouillé par
-                // l'antivirus : il attendra le prochain démarrage.
+                // Folder of an instance still alive, or locked by
+                // the antivirus: it will wait for the next startup.
             }
         }
 

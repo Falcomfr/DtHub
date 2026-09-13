@@ -1,31 +1,37 @@
 ﻿namespace DtHub.Core.Updates;
 
 /// <summary>
-/// Où se posent les fichiers d'une mise à jour, et quand elle a le droit de se
-/// faire.
+/// Where an update's files are placed, and when it is allowed to
+/// happen.
 ///
-/// Le calcul est ici, et non dans le service qui remplace le fichier : c'est la
-/// partie qui décide, donc celle qu'on éprouve.
+/// The calculation lives here, not in the service that replaces the
+/// file: this is the part that decides, and therefore the part that
+/// gets tested.
 /// </summary>
 public static class UpdatePaths
 {
-    /// <summary>Le nom de l'exécutable livré.</summary>
+    /// <summary>The name of the shipped executable.</summary>
     public const string Executable = "DtHub.exe";
 
-    /// <summary>Ce qui reste de l'ancien exécutable le temps d'un redémarrage.</summary>
+    /// <summary>
+    /// What remains of the old executable for the duration of a
+    /// restart.
+    /// </summary>
     public const string Retired = "DtHub.exe.ancien";
 
     /// <summary>
-    /// Vrai si l'exécutable en cours peut être remplacé.
+    /// True if the currently running executable can be replaced.
     ///
-    /// Il ne le peut pas quand il sort d'un arbre de sources : le lanceur de
-    /// développement republie à chaque démarrage, et une mise à jour posée là
-    /// serait écrasée à la seconde suivante par la compilation locale. Pire,
-    /// elle ferait croire à une régression. La marque est le fichier de
-    /// solution, deux niveaux au-dessus de la sortie de publication.
+    /// It cannot when it comes from a source tree: the development
+    /// launcher republishes on every startup, and an update placed
+    /// there would be overwritten a second later by the local build.
+    /// Worse, it would look like a regression. The marker is the
+    /// solution file, two levels above the publish output.
     /// </summary>
-    /// <param name="executablePath">Le chemin complet de l'exécutable en cours.</param>
-    /// <param name="exists">De quoi savoir qu'un fichier est là.</param>
+    /// <param name="executablePath">
+    /// The full path of the currently running executable.
+    /// </param>
+    /// <param name="exists">A way to know that a file is there.</param>
     public static bool CanReplace(string? executablePath, Func<string, bool> exists)
     {
         ArgumentNullException.ThrowIfNull(exists);
@@ -48,18 +54,19 @@ public static class UpdatePaths
         return true;
     }
 
-    /// <summary>Le fichier où se pose l'exécutable téléchargé.</summary>
+    /// <summary>The file where the downloaded executable is placed.</summary>
     public static string Staged(string folder, Version version) =>
         Path.Combine(
             folder ?? string.Empty,
             $"DtHub-{Text(version)}.exe");
 
     /// <summary>
-    /// Le fichier où se pose la note de version, à côté de l'exécutable.
+    /// The file where the release notes are placed, next to the
+    /// executable.
     ///
-    /// Elle survit à l'échange et n'est lue qu'au démarrage suivant, celui qui
-    /// exécute enfin la nouvelle version : c'est là qu'annoncer ce qui change a
-    /// un sens.
+    /// It survives the swap and is only read on the following
+    /// startup, the one that finally runs the new version: that is
+    /// where announcing what changed makes sense.
     /// </summary>
     public static string Notes(string folder, Version version) =>
         Path.Combine(

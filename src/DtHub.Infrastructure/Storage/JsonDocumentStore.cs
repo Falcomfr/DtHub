@@ -9,23 +9,24 @@ using Microsoft.Extensions.Logging;
 namespace DtHub.Infrastructure.Storage;
 
 /// <summary>
-/// Stockage JSON d'un document de configuration. L'écriture passe par un
-/// fichier temporaire puis un remplacement, de sorte qu'une coupure ne laisse
-/// jamais un fichier tronqué. Un contenu illisible est archivé à côté plutôt
-/// que supprimé : l'utilisateur garde une chance de récupérer ses réglages.
+/// JSON storage for a configuration document. Writing goes through a
+/// temporary file then a replacement, so that an interruption never
+/// leaves a truncated file. Unreadable content is archived alongside
+/// rather than deleted: the user keeps a chance to recover their
+/// settings.
 /// </summary>
 public sealed partial class JsonDocumentStore<T> : IDocumentStore<T>, IDisposable
     where T : class, new()
 {
     /// <summary>
-    /// Options partagées. Les fichiers sont indentés et les énumérations
-    /// écrites en clair : ils restent lisibles et modifiables à la main.
+    /// Shared options. Files are indented and enums are written as
+    /// plain text: they stay readable and editable by hand.
     ///
-    /// Un nom d'énumération inconnu ne fait pas échouer la lecture. Le
-    /// convertisseur standard, lui, refusait le fichier entier sur ce seul
-    /// mot : retirer un palier de qualité effaçait les instances, les
-    /// raccourcis et la géométrie des fenêtres de tous ceux qui l'avaient
-    /// choisi.
+    /// An unknown enum name does not fail the read. The standard
+    /// converter, for its part, used to reject the entire file over
+    /// that one word: removing a quality tier wiped out the
+    /// instances, hotkeys and window geometry of everyone who had
+    /// chosen it.
     /// </summary>
     public static readonly JsonSerializerOptions SerializerOptions = new()
     {
@@ -110,8 +111,9 @@ public sealed partial class JsonDocumentStore<T> : IDocumentStore<T>, IDisposabl
         }
         catch (JsonException)
         {
-            // Le contrat le dit : cette méthode ne lève pas. L'appelant a déjà
-            // inspecté la forme, et un champ mal typé reste possible.
+            // The contract says so: this method does not throw. The
+            // caller has already inspected the shape, and a mistyped
+            // field remains possible.
             return null;
         }
     }
@@ -134,8 +136,9 @@ public sealed partial class JsonDocumentStore<T> : IDocumentStore<T>, IDisposabl
 
             await File.WriteAllTextAsync(temporary, json, cancellationToken).ConfigureAwait(false);
 
-            // Remplacement en une opération : le fichier définitif est soit
-            // l'ancien, soit le nouveau, jamais un mélange des deux.
+            // Replacement in a single operation: the final file is
+            // either the old one or the new one, never a mix of the
+            // two.
             File.Move(temporary, FilePath, overwrite: true);
         }
         finally
@@ -147,7 +150,8 @@ public sealed partial class JsonDocumentStore<T> : IDocumentStore<T>, IDisposabl
     public void Dispose() => _gate.Dispose();
 
     /// <summary>
-    /// Met le fichier fautif de côté sous un nom horodaté et rend son chemin.
+    /// Sets the faulty file aside under a timestamped name and
+    /// returns its path.
     /// </summary>
     private string? Quarantine()
     {
@@ -161,9 +165,10 @@ public sealed partial class JsonDocumentStore<T> : IDocumentStore<T>, IDisposabl
         }
         catch (IOException)
         {
-            // Silence assumé pour les deux : l'archivage d'un fichier corrompu
-            // est un secours. S'il échoue, l'appelant dit quand même que le
-            // fichier était illisible, avec la raison.
+            // Silence is intentional for both: archiving a corrupted
+            // file is a fallback. If it fails, the caller still
+            // reports that the file was unreadable, along with the
+            // reason.
             return null;
         }
         catch (UnauthorizedAccessException)

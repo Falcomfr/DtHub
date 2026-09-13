@@ -1,9 +1,11 @@
 ﻿namespace DtHub.Core.Android;
 
-/// <summary>Un composant Android lançable, sous la forme <c>paquet/activité</c>.</summary>
+/// <summary>
+/// A launchable Android component, in the form <c>package/activity</c>.
+/// </summary>
 public sealed record AppComponent(string PackageName, string ClassName)
 {
-    /// <summary>Notation attendue par <c>am start -n</c>.</summary>
+    /// <summary>Notation expected by <c>am start -n</c>.</summary>
     public string Value => $"{PackageName}/{ClassName}";
 
     public override string ToString() => Value;

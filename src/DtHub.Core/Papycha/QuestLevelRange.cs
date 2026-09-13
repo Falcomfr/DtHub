@@ -5,22 +5,24 @@ using DtHub.Core.Localization;
 namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// La plage de niveaux d'un ensemble de quêtes, telle qu'on la montre, ou rien
-/// quand ce qu'on en dirait serait faux.
+/// The level range of a set of quests, as it is shown, or nothing
+/// when what would be said about it would be false.
 ///
-/// Le site ne renseigne le niveau que sur cent dix-sept quêtes sur sept cent
-/// quatre-vingt-deux, et sur plusieurs zones aucune. Une plage tirée d'une
-/// seule quête sur vingt-trois passerait pour la plage de la zone.
+/// The site only provides the level for a hundred and seventeen
+/// quests out of seven hundred and eighty-two, and none at all on
+/// several zones. A range drawn from a single quest out of
+/// twenty-three would pass for the zone's range.
 /// </summary>
 public static class QuestLevelRange
 {
     /// <summary>
-    /// La plage, ou <c>null</c> quand trop peu de quêtes portent un niveau.
+    /// The range, or <c>null</c> when too few quests carry a level.
     ///
-    /// Le seuil est de trois quêtes renseignées, sauf si elles le sont toutes :
-    /// une zone de deux quêtes qui portent toutes deux leur niveau dit une
-    /// plage juste. Le nombre de quêtes sur lequel la plage repose est rappelé
-    /// dès qu'il est partiel, pour qu'on sache ce qu'on lit.
+    /// The threshold is three quests with a level, unless all of
+    /// them have one: a zone of two quests that both carry their
+    /// level gives an accurate range. The number of quests the
+    /// range rests on is recalled whenever it is partial, so that
+    /// what is being read is clear.
     /// </summary>
     public static string? Of(IReadOnlyList<QuestSummary> quests)
     {

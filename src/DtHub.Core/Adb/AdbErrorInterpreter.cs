@@ -3,15 +3,14 @@
 namespace DtHub.Core.Adb;
 
 /// <summary>
-/// Traduit la sortie d'ADB en une erreur exploitable. Fonction pure, donc
-/// testable ligne par ligne à partir de sorties réelles relevées sur le
-/// terrain.
+/// Translates ADB output into a usable error. Pure function, so
+/// testable line by line from real output collected in the field.
 /// </summary>
 public static class AdbErrorInterpreter
 {
     /// <summary>
-    /// Détermine la nature d'un échec à partir de la sortie brute d'ADB.
-    /// Retourne <c>null</c> lorsque rien n'indique une erreur connue.
+    /// Determines the nature of a failure from ADB's raw output.
+    /// Returns <c>null</c> when nothing indicates a known error.
     /// </summary>
     public static AdbErrorKind? Classify(string? output)
     {
@@ -59,31 +58,35 @@ public static class AdbErrorInterpreter
             return AdbErrorKind.PairingFailed;
         }
 
-        // Un profil en pause se reconnaît avant tout le reste : c'est l'état
-        // ordinaire de Shelter et d'Island, et le téléphone répond alors des
-        // choses qui ressemblent à une application manquante.
+        // A paused profile is recognized before everything else: it
+        // is the ordinary state of Shelter and Island, and the phone
+        // then responds with things that look like a missing
+        // application.
         if (Contains(text, "quiet mode") || Contains(text, "user is paused"))
         {
             return AdbErrorKind.ProfilePaused;
         }
 
-        // Avant le refus générique, et l'ordre est tout : le shell qui n'atteint
-        // pas un profil rend lui aussi une SecurityException, mais les remèdes
-        // n'ont rien à voir. Relevé au caractère près sur un vrai poste :
-        // « Exception occurred while executing 'install-existing' :
-        // java.lang.SecurityException: Shell does not have permission to access
-        // user 150 ». L'utilisateur 150 est le dossier sécurisé Samsung, qu'il
-        // faut déverrouiller avant. Rangé en refus de permission, le message
-        // parlait de profils d'entreprise et envoyait chercher ailleurs.
+        // Before the generic refusal, and the order matters above
+        // all: the shell that cannot reach a profile also returns a
+        // SecurityException, but the remedies have nothing to do
+        // with each other. Recorded character for character on a
+        // real device: "Exception occurred while executing
+        // 'install-existing' : java.lang.SecurityException: Shell
+        // does not have permission to access user 150". User 150 is
+        // the Samsung secure folder, which must be unlocked first.
+        // Filed under permission refusal, the message talked about
+        // enterprise profiles and sent looking elsewhere.
         if (Contains(text, "does not have permission to access user")
             || Contains(text, "shell does not have permission"))
         {
             return AdbErrorKind.ShellUserAccessDenied;
         }
 
-        // Un refus de permission ne dit rien de l'installation. Le confondre
-        // avec une application absente envoyait réinstaller un jeu bien
-        // présent, ce que rend le Dossier sécurisé de Samsung.
+        // A permission refusal says nothing about the installation.
+        // Confusing it with a missing application used to send a
+        // reinstall of a game that was already present, which is
+        // what the Samsung Secure Folder causes.
         if (Contains(text, "permission denial") || Contains(text, "securityexception")
             || Contains(text, "permission denied"))
         {
@@ -105,7 +108,7 @@ public static class AdbErrorInterpreter
         return null;
     }
 
-    /// <summary>Message court et actionnable, destiné à l'interface.</summary>
+    /// <summary>Short, actionable message, meant for the interface.</summary>
     public static string Describe(AdbErrorKind kind, string? deviceName = null)
     {
         var device = string.IsNullOrWhiteSpace(deviceName) ? Strings.Get("ThePhone") : deviceName;

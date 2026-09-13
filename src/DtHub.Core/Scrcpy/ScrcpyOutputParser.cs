@@ -6,55 +6,64 @@ using DtHub.Core.Localization;
 namespace DtHub.Core.Scrcpy;
 
 /// <summary>
-/// Nature d'un refus de scrcpy. Le message affiché ne suffit pas : il faut aussi
-/// savoir si une seconde tentative a une chance d'aboutir. Retenter à une
-/// définition plus modeste répare un encodeur saturé, et ne répare rien du tout
-/// quand le téléphone est débranché : ce serait trente secondes d'attente de
-/// plus pour le même échec.
+/// Nature of a scrcpy refusal. The displayed message is not enough:
+/// we also need to know whether a second attempt has a chance of
+/// succeeding. Retrying at a more modest resolution fixes a saturated
+/// encoder, and fixes nothing at all when the phone is unplugged:
+/// that would be thirty more seconds of waiting for the same failure.
 /// </summary>
 public enum ScrcpyFailureKind
 {
-    /// <summary>Aucun refus.</summary>
+    /// <summary>No refusal.</summary>
     None = 0,
 
-    /// <summary>Refus non reconnu. La définition en fait partie des causes possibles.</summary>
+    /// <summary>
+    /// Unrecognized refusal. The resolution is one of its possible
+    /// causes.
+    /// </summary>
     Unknown,
 
-    /// <summary>L'afficheur virtuel n'est jamais apparu dans le temps imparti.</summary>
+    /// <summary>
+    /// The virtual display never appeared within the allotted time.
+    /// </summary>
     Timeout,
 
-    /// <summary>L'encodeur vidéo a refusé la définition ou le débit demandés.</summary>
+    /// <summary>
+    /// The video encoder refused the requested resolution or bitrate.
+    /// </summary>
     Encoder,
 
-    /// <summary>L'appareil a refusé de créer l'afficheur virtuel.</summary>
+    /// <summary>The device refused to create the virtual display.</summary>
     VirtualDisplayRefused,
 
-    /// <summary>L'appareil n'a jamais été trouvé.</summary>
+    /// <summary>The device was never found.</summary>
     DeviceGone,
 
-    /// <summary>L'appareil s'est déconnecté en cours de session.</summary>
+    /// <summary>The device disconnected during the session.</summary>
     DeviceDisconnected,
 
-    /// <summary>L'appareil n'a pas autorisé ce PC.</summary>
+    /// <summary>The device did not authorize this PC.</summary>
     Unauthorized,
 
-    /// <summary>La liaison avec l'appareil n'a pas pu s'établir.</summary>
+    /// <summary>The link with the device could not be established.</summary>
     ConnectionFailed,
 
-    /// <summary>scrcpy ou ADB manque, ou n'a pas pu démarrer sur ce PC.</summary>
+    /// <summary>
+    /// scrcpy or ADB is missing, or could not start on this PC.
+    /// </summary>
     Environment,
 }
 
 /// <summary>
-/// Lecture de la sortie de scrcpy. Deux informations comptent : l'identifiant
-/// de l'afficheur virtuel qu'il vient de créer, et les erreurs à traduire pour
-/// l'utilisateur.
+/// Reading scrcpy's output. Two pieces of information matter: the
+/// identifier of the virtual display it has just created, and the
+/// errors to translate for the user.
 /// </summary>
 public static partial class ScrcpyOutputParser
 {
     /// <summary>
-    /// Extrait l'identifiant de l'afficheur virtuel. scrcpy le journalise à la
-    /// création, sous la forme
+    /// Extracts the virtual display's identifier. scrcpy logs it at
+    /// creation, in the form
     /// <c>[server] INFO: New display: 1080x1920/320 (id=2)</c>.
     /// </summary>
     public static int? TryParseVirtualDisplayId(string? line)
@@ -72,31 +81,31 @@ public static partial class ScrcpyOutputParser
             : null;
     }
 
-    /// <summary>Vrai si la ligne est une erreur signalée par scrcpy.</summary>
+    /// <summary>True if the line is an error reported by scrcpy.</summary>
     public static bool IsError(string? line) =>
         !string.IsNullOrWhiteSpace(line)
         && line.Contains("ERROR:", StringComparison.Ordinal);
 
     /// <summary>
-    /// Vrai si la ligne annonce la fin de la session, avec ou sans le mot
-    /// « ERROR ».
+    /// True if the line announces the end of the session, with or
+    /// without the word "ERROR".
     ///
-    /// **Mesuré sur l'appareil réel**, scrcpy 4.1, liaison Wi-Fi coupée en
-    /// pleine session par un « adb disconnect » :
+    /// **Measured on a real device**, scrcpy 4.1, Wi-Fi link cut in
+    /// the middle of a session by an "adb disconnect":
     ///
     /// <code>
     /// WARN: Device disconnected
     /// </code>
     ///
-    /// puis le processus s'arrête. Le mot n'est pas « ERROR », et pourtant
-    /// c'est la panne la plus fréquente, celle dont les joueurs se plaignent
-    /// le plus. Ne regarder que « ERROR: » revenait à ne jamais la voir : le
-    /// refus restait « aucun », et la session passait pour une fermeture
-    /// propre, c'est-à-dire pour une fenêtre fermée à la main.
+    /// and then the process stops. The word is not "ERROR", and yet
+    /// this is the most frequent failure, the one players complain
+    /// about the most. Looking only for "ERROR:" amounted to never
+    /// seeing it: the refusal stayed "none", and the session passed
+    /// for a clean shutdown, that is, for a window closed by hand.
     ///
-    /// Le contrôle reste étroit à dessein. scrcpy émet des avertissements
-    /// anodins, et les prendre tous pour des pannes ferait rouvrir des
-    /// fenêtres que personne n'a perdues.
+    /// The check stays narrow on purpose. scrcpy emits harmless
+    /// warnings, and treating them all as failures would reopen
+    /// windows that nobody lost.
     /// </summary>
     public static bool IsFatal(string? line)
     {
@@ -114,10 +123,11 @@ public static partial class ScrcpyOutputParser
     }
 
     /// <summary>
-    /// Range une ligne d'erreur de scrcpy dans une catégorie. La reconnaissance
-    /// porte sur la sortie anglaise de scrcpy, qui n'est pas contractuelle :
-    /// tout ce qui n'est pas reconnu devient <see cref="ScrcpyFailureKind.Unknown"/>,
-    /// jamais une catégorie devinée.
+    /// Sorts a scrcpy error line into a category. Recognition is
+    /// based on scrcpy's English output, which is not contractual:
+    /// anything not recognized becomes
+    /// <see cref="ScrcpyFailureKind.Unknown"/>, never a guessed
+    /// category.
     /// </summary>
     public static ScrcpyFailureKind Classify(string? line)
     {
@@ -166,13 +176,14 @@ public static partial class ScrcpyOutputParser
     }
 
     /// <summary>
-    /// Traduit une ligne d'erreur de scrcpy en message compréhensible. Rend
-    /// <c>null</c> quand la ligne n'est pas une erreur reconnue, auquel cas
-    /// l'appelant conserve un message générique et met le détail au journal.
+    /// Translates a scrcpy error line into an understandable message.
+    /// Returns <c>null</c> when the line is not a recognized error, in
+    /// which case the caller keeps a generic message and puts the
+    /// detail in the log.
     /// </summary>
     public static string? DescribeError(string? line) => Describe(Classify(line));
 
-    /// <summary>Message correspondant à une catégorie de refus.</summary>
+    /// <summary>Message corresponding to a refusal category.</summary>
     public static string? Describe(ScrcpyFailureKind kind) => kind switch
     {
         ScrcpyFailureKind.DeviceGone => Strings.Get("ScrcpyDeviceGone"),
@@ -185,9 +196,9 @@ public static partial class ScrcpyOutputParser
     };
 
     /// <summary>
-    /// Vrai si une seconde tentative à une définition plus modeste a une chance
-    /// d'aboutir. Un appareil débranché ou non autorisé le restera : insister
-    /// ne ferait qu'ajouter une attente à l'échec.
+    /// True if a second attempt at a more modest resolution has a
+    /// chance of succeeding. An unplugged or unauthorized device will
+    /// stay that way: insisting would only add a wait to the failure.
     /// </summary>
     public static bool CanRetrySmaller(ScrcpyFailureKind kind) => kind
         is ScrcpyFailureKind.Encoder

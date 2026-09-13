@@ -4,9 +4,9 @@ using DtHub.Core.Localization;
 namespace DtHub.Core.Hotkeys;
 
 /// <summary>
-/// Codes de touches virtuelles Windows et leur libellé. Les raccourcis sont
-/// stockés sous forme de code plutôt que d'énumération WPF, pour que le noyau
-/// reste indépendant de l'interface.
+/// Windows virtual key codes and their label. Hotkeys are stored as
+/// codes rather than as a WPF enumeration, so that the core stays
+/// independent of the interface.
 /// </summary>
 public static class VirtualKeys
 {
@@ -55,8 +55,8 @@ public static class VirtualKeys
     public const int F24 = 0x87;
 
     /// <summary>
-    /// Vrai si le code désigne une touche de modification. Une telle touche ne
-    /// peut pas servir de touche principale à un raccourci.
+    /// True if the code designates a modifier key. Such a key cannot
+    /// serve as the main key of a hotkey.
     /// </summary>
     public static bool IsModifierKey(int virtualKey) => virtualKey switch
     {
@@ -65,10 +65,10 @@ public static class VirtualKeys
         _ => false,
     };
 
-    /// <summary>Vrai si le code désigne une touche de fonction.</summary>
+    /// <summary>True if the code designates a function key.</summary>
     public static bool IsFunctionKey(int virtualKey) => virtualKey is >= F1 and <= F24;
 
-    /// <summary>Libellé affiché pour une touche.</summary>
+    /// <summary>Label displayed for a key.</summary>
     public static string Describe(int virtualKey) => virtualKey switch
     {
         0 => Strings.Get("KeyNone"),

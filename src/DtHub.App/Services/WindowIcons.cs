@@ -6,21 +6,21 @@ using DtHub.Core.Storage;
 namespace DtHub.App.Services;
 
 /// <summary>
-/// Prépare l'icône que porteront les fenêtres de jeu.
+/// Prepares the icon the game windows will carry.
 ///
-/// scrcpy la lit dans un dossier désigné par une variable d'environnement, et
-/// y cherche un fichier au nom fixe. L'image est extraite des ressources de
-/// l'application : dans une publication en fichier unique, il n'y a pas de
-/// fichier sur le disque à désigner.
+/// scrcpy reads it from a folder designated by an environment
+/// variable, and looks there for a file with a fixed name. The
+/// image is extracted from the application's resources: in a
+/// single-file publish, there is no file on disk to point to.
 /// </summary>
 public static class WindowIcons
 {
     private const string IconFile = "scrcpy.png";
 
     /// <summary>
-    /// Dossier prêt à l'emploi, ou <c>null</c> si l'icône n'a pas pu être
-    /// écrite. Les fenêtres gardent alors celle de scrcpy : ce n'est pas une
-    /// raison de refuser de démarrer.
+    /// Folder ready for use, or <c>null</c> if the icon could not
+    /// be written. The windows then keep scrcpy's own icon: this
+    /// is not a reason to refuse to start.
     /// </summary>
     public static string? EnsureDirectory(IAppPaths paths)
     {
@@ -31,8 +31,8 @@ public static class WindowIcons
             var directory = Path.Combine(paths.CacheDirectory, "icons");
             var target = Path.Combine(directory, IconFile);
 
-            // Réécrit à chaque démarrage : garder la première copie figerait
-            // l'ancienne image après un changement de marque.
+            // Rewritten on every startup: keeping the first copy
+            // would freeze the old image after a rebrand.
             var source = Application.GetResourceStream(new Uri("assets/app.png", UriKind.Relative));
 
             if (source is null)
@@ -50,8 +50,9 @@ public static class WindowIcons
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            // Silence assumé : l'icône est un confort. Sans elle la fenêtre
-            // garde celle du système, et rien d'autre n'en dépend.
+            // Deliberate silence: the icon is a convenience.
+            // Without it the window keeps the system's own, and
+            // nothing else depends on it.
             return null;
         }
     }

@@ -1,16 +1,21 @@
 ﻿namespace DtHub.Core.Adb;
 
 /// <summary>
-/// Un service annoncé par le débogage sans fil sur le réseau local. Le nom
-/// contient le numéro de série du téléphone, ce qui permet de rattacher une
-/// annonce à un appareil déjà connu.
+/// A service advertised by wireless debugging on the local network.
+/// The name contains the phone's serial number, which allows an
+/// advertisement to be linked to an already known device.
 /// </summary>
 public sealed record MdnsService(string Name, string ServiceType, string Host, int Port)
 {
-    /// <summary>Service d'appairage, annoncé le temps que le code est affiché.</summary>
+    /// <summary>
+    /// Pairing service, advertised for as long as the code is shown.
+    /// </summary>
     public const string PairingType = "_adb-tls-pairing._tcp";
 
-    /// <summary>Service de connexion, annoncé en permanence quand le débogage sans fil est actif.</summary>
+    /// <summary>
+    /// Connection service, advertised continuously while wireless
+    /// debugging is active.
+    /// </summary>
     public const string ConnectType = "_adb-tls-connect._tcp";
 
     public string Address => $"{Host}:{Port}";
@@ -20,8 +25,9 @@ public sealed record MdnsService(string Name, string ServiceType, string Host, i
     public bool IsConnect => ServiceType.StartsWith(ConnectType, StringComparison.Ordinal);
 
     /// <summary>
-    /// Vrai si l'annonce paraît provenir de l'appareil dont le numéro de série
-    /// est donné. Le nom mDNS a la forme <c>adb-&lt;série&gt;-&lt;aléa&gt;</c>.
+    /// True if the advertisement appears to come from the device
+    /// whose serial number is given. The mDNS name has the form
+    /// <c>adb-&lt;serial&gt;-&lt;random&gt;</c>.
     /// </summary>
     public bool MatchesSerial(string? serial) =>
         !string.IsNullOrWhiteSpace(serial)

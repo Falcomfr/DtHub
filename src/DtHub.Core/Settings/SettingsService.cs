@@ -8,12 +8,14 @@ using DtHub.Core.Windows;
 namespace DtHub.Core.Settings;
 
 /// <summary>
-/// Point d'accès unique aux réglages. Chargés une fois, tenus en mémoire, et
-/// écrits à chaque modification : il n'y a pas de bouton Enregistrer à oublier.
+/// Single access point for settings. Loaded once, kept in memory, and
+/// written on every change: there is no Save button to forget.
 /// </summary>
 public sealed class SettingsService : IDisposable
 {
-    /// <summary>Tailles livrées jusqu'au schéma 3. La première était trop grande.</summary>
+    /// <summary>
+    /// Sizes shipped up to schema 3. The first one was too large.
+    /// </summary>
     private static readonly int[] LegacySizePercentages = [55, 70, 85, 100];
 
     private readonly IDocumentStore<AppSettingsDocument> _store;
@@ -23,7 +25,7 @@ public sealed class SettingsService : IDisposable
 
     public SettingsService(IDocumentStore<AppSettingsDocument> store) => _store = store;
 
-    /// <summary>Déclenché après chaque écriture réussie.</summary>
+    /// <summary>Fired after every successful write.</summary>
     public event EventHandler<AppSettingsDocument>? Changed;
 
     public async Task<AppSettingsDocument> GetAsync(CancellationToken cancellationToken = default)
@@ -45,11 +47,12 @@ public sealed class SettingsService : IDisposable
     }
 
     /// <summary>
-    /// Charge le document en le migrant si besoin. À appeler sous verrou.
+    /// Loads the document, migrating it if needed. Must be called under
+    /// the lock.
     ///
-    /// C'est le seul chemin de chargement : une écriture qui contournerait la
-    /// migration estamperait le fichier à la version courante sans l'avoir
-    /// converti, et la migration serait alors perdue pour toujours.
+    /// This is the only loading path: a write that bypassed the migration
+    /// would stamp the file at the current version without having
+    /// converted it, and the migration would then be lost forever.
     /// </summary>
     private async Task<AppSettingsDocument> LoadOrMigrateAsync(CancellationToken cancellationToken)
     {
@@ -69,21 +72,21 @@ public sealed class SettingsService : IDisposable
     }
 
     /// <summary>
-    /// Met à jour un fichier écrit par une version antérieure. Rend vrai s'il
-    /// a été modifié et doit être réécrit.
+    /// Updates a file written by an earlier version. Returns true if it
+    /// was modified and must be rewritten.
     /// </summary>
     /// <remarks>
-    /// Version 3 : l'écran virtuel passe en paysage. Le jeu s'affiche en
-    /// paysage, et un écran vertical le réduisait à une bande au milieu de la
-    /// fenêtre. Seule la définition d'origine est corrigée : un réglage
-    /// choisi par l'utilisateur est respecté.
+    /// Version 3: the virtual display switches to landscape. The game
+    /// renders in landscape, and a portrait display used to shrink it to
+    /// a strip in the middle of the window. Only the original resolution
+    /// is corrected: a setting chosen by the user is respected.
     ///
-    /// Version 4 : la première taille rapetisse, l'ordre des appareils est
-    /// déduit de celui des instances, et les rangs sont resserrés. Ils étaient
-    /// creux, faute d'avoir jamais été renumérotés après un oubli d'appareil,
-    /// et deux instances pouvaient porter le même. Les cases cochées ne sont
-    /// pas touchées : elles restent l'ensemble de démarrage jusqu'à la
-    /// première sortie par le bouton Quitter, qui le réécrira.
+    /// Version 4: the first size shrinks, device order is derived from
+    /// instance order, and ranks are compacted. They used to have gaps,
+    /// since they were never renumbered after a missed device, and two
+    /// instances could carry the same rank. The checked boxes are not
+    /// touched: they remain the startup set until the first exit through
+    /// the Quit button, which rewrites them.
     /// </remarks>
     private static bool Migrate(AppSettingsDocument settings)
     {
@@ -111,43 +114,44 @@ public sealed class SettingsService : IDisposable
 
         if (settings.SchemaVersion < 5)
         {
-            // Le mode « largeur libre » est retiré. Il ne pouvait pas tenir sa
-            // promesse : le jeu fige la hauteur de sa mise en page à son
-            // initialisation, donc changer la hauteur d'une fenêtre rognait
-            // l'image ou laissait une bande. Le réglage disparaît du fichier
-            // à la réécriture, sans que rien ne soit à décider.
+            // The "free width" mode is removed. It could not keep its
+            // promise: the game locks its layout height at startup, so
+            // changing a window's height would crop the image or leave
+            // a strip. The setting disappears from the file on rewrite,
+            // with nothing left to decide.
             changed = true;
         }
 
         if (settings.SchemaVersion < 6)
         {
-            // Les appareils ne se trient plus : l'ordre est global et libre,
-            // porté par le seul rang de chaque instance. La liste des appareils
-            // disparaît du fichier à la réécriture, sans rien à décider, les
-            // rangs portant déjà l'ordre voulu.
+            // Devices are no longer sorted: order is global and free,
+            // carried solely by each instance's rank. The device list
+            // disappears from the file on rewrite, with nothing to
+            // decide, since the ranks already carry the desired order.
             InstanceOrdering.Normalize(settings);
             changed = true;
         }
 
         if (settings.SchemaVersion < 7)
         {
-            // La densité de l'afficheur devient un réglage de zoom, calculé à
-            // partir de la définition retenue. La valeur fixe du fichier n'a
-            // plus d'effet et disparaît à la réécriture ; le zoom démarre au
-            // réglage d'origine, qui donne la même chose qu'avant.
+            // Display density becomes a zoom setting, computed from the
+            // chosen resolution. The fixed value in the file no longer
+            // has any effect and disappears on rewrite; zoom starts at
+            // the original setting, which gives the same result as
+            // before.
             settings.GameZoom = GameZoom.Normal;
             changed = true;
         }
 
-        // Les paliers retirés, huitième et neuvième versions : la qualité
-        // « Haute » fondue dans la maximale, le zoom « très proche » fondu dans
-        // « proche ». Il n'y a rien à faire ici, et il ne le faut pas : le
-        // convertisseur tolérant a déjà remplacé la valeur inconnue à la
-        // lecture, par le repli déclaré sur l'énumération, si bien qu'un
-        // Enum.IsDefined placé ici est toujours vrai et que la branche ne tirait
-        // jamais. Deux migrations mortes, dont une qui mentait : un fichier
-        // portant « Closest » retombait sur le réglage d'origine et non sur
-        // « proche ». Les deux replis portent maintenant la décision.
+        // Removed tiers, eighth and ninth versions: the "High" quality
+        // merged into the maximum, the "very close" zoom merged into
+        // "close". There is nothing to do here, and there must not be:
+        // the lenient converter has already replaced the unknown value
+        // on read, with the fallback declared on the enum, so an
+        // Enum.IsDefined placed here is always true and the branch
+        // never fired. Two dead migrations, one of which lied: a file
+        // carrying "Closest" used to fall back to the original setting
+        // and not to "close". The two fallbacks now carry the decision.
 
         if (settings.SchemaVersion != AppSettingsDocument.CurrentSchemaVersion)
         {
@@ -158,7 +162,7 @@ public sealed class SettingsService : IDisposable
         return changed;
     }
 
-    /// <summary>Modifie les réglages et les écrit.</summary>
+    /// <summary>Modifies the settings and writes them.</summary>
     public async Task UpdateAsync(
         Action<AppSettingsDocument> mutate,
         CancellationToken cancellationToken = default)
@@ -173,8 +177,9 @@ public sealed class SettingsService : IDisposable
             document = await LoadOrMigrateAsync(cancellationToken).ConfigureAwait(false);
             mutate(document);
 
-            // L'estampille est posée par la migration, et par elle seule : la
-            // poser ici marquerait à jour un document qui ne l'est pas.
+            // The stamp is set by the migration, and only by it:
+            // setting it here would mark as up to date a document
+            // that is not.
             await _store.SaveAsync(document, cancellationToken).ConfigureAwait(false);
         }
         finally
@@ -186,12 +191,13 @@ public sealed class SettingsService : IDisposable
     }
 
     /// <summary>
-    /// Modifie les réglages et ne les écrit que si quelque chose a changé.
+    /// Modifies the settings and writes them only if something changed.
     ///
-    /// Réaffirmer un état déjà en place, ce que fait chaque lancement,
-    /// réécrivait le fichier et prévenait tout le monde pour rien.
+    /// Reasserting a state already in place, which is what every
+    /// startup does, used to rewrite the file and notify everyone for
+    /// nothing.
     /// </summary>
-    /// <returns>Vrai si le fichier a été réécrit.</returns>
+    /// <returns>True if the file was rewritten.</returns>
     public async Task<bool> UpdateIfChangedAsync(
         Func<AppSettingsDocument, bool> mutate,
         CancellationToken cancellationToken = default)
@@ -222,10 +228,10 @@ public sealed class SettingsService : IDisposable
         return true;
     }
 
-    /// <summary>Force la relecture depuis le disque au prochain accès.</summary>
+    /// <summary>Forces a reread from disk on the next access.</summary>
     public void Invalidate() => _current = null;
 
-    /// <summary>Réglages de mirroring dérivés des préférences.</summary>
+    /// <summary>Mirroring settings derived from the preferences.</summary>
     public async Task<ScrcpyOptions> GetScrcpyOptionsAsync(CancellationToken cancellationToken = default)
     {
         var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
@@ -236,8 +242,9 @@ public sealed class SettingsService : IDisposable
             AudioEnabled = settings.AudioEnabled,
             ClipboardSyncEnabled = settings.ClipboardSyncEnabled,
 
-            // Le clavier physique simulé court-circuite le clavier virtuel de
-            // l'appareil, qui avale les caractères sur plusieurs surcouches.
+            // The simulated physical keyboard bypasses the device's
+            // virtual keyboard, which swallows characters across
+            // several layers.
             KeyboardMode = settings.SimulatedPhysicalKeyboard
                 ? ScrcpyKeyboardMode.Uhid
                 : ScrcpyKeyboardMode.Sdk,
@@ -248,19 +255,20 @@ public sealed class SettingsService : IDisposable
             VirtualDisplayHeight = settings.VirtualDisplayHeight,
             VirtualDisplayDpi = settings.VirtualDisplayDpi,
 
-            // Le codec ne se choisit qu'au palier personnalisé. Ailleurs il
-            // reste nul, et scrcpy décide : c'est lui qui sait ce que
-            // l'appareil encode en matériel.
+            // The codec is only chosen at the custom tier. Elsewhere
+            // it stays null, and scrcpy decides: it is the one that
+            // knows what the device encodes in hardware.
             VideoCodec = settings.Quality == StreamQuality.Custom
                 ? settings.CustomQuality.Sanitized().VideoCodec
                 : null,
-            // Les images par seconde et le débit ne viennent que de la
-            // qualité choisie : deux sources pour un même réglage auraient
-            // fini par diverger.
+            // Frames per second and bitrate come only from the chosen
+            // quality: two sources for the same setting would have
+            // ended up diverging.
             //
-            // Le débit est ici celui de la définition mémorisée. Il est
-            // recalculé au lancement sur la définition réellement retenue, qui
-            // suit la taille de la fenêtre : c'est là qu'il prend son sens.
+            // The bitrate here is the one for the stored resolution. It
+            // is recalculated at launch on the resolution actually
+            // used, which follows the window size: that is where it
+            // takes on its meaning.
             PrintFps = settings.FluidityDiagnostics,
             MaxFps = profile.MaxFps,
             VideoBitrateKbps = profile.BitrateFor(
@@ -269,11 +277,11 @@ public sealed class SettingsService : IDisposable
         }.Sanitized();
     }
 
-    /// <summary>Retient la qualité choisie.</summary>
+    /// <summary>Remembers the chosen quality.</summary>
     public Task SetQualityAsync(StreamQuality quality, CancellationToken cancellationToken = default) =>
         UpdateAsync(settings => settings.Quality = quality, cancellationToken);
 
-    /// <summary>Retient les valeurs du palier personnalisé.</summary>
+    /// <summary>Remembers the values of the custom tier.</summary>
     public Task SetCustomQualityAsync(
         CustomQuality custom,
         CancellationToken cancellationToken = default)
@@ -283,12 +291,14 @@ public sealed class SettingsService : IDisposable
         return UpdateAsync(settings => settings.CustomQuality = custom.Sanitized(), cancellationToken);
     }
 
-    /// <summary>Retient si le son du téléphone doit sortir sur le PC.</summary>
+    /// <summary>
+    /// Remembers whether the phone's sound should play on the PC.
+    /// </summary>
     public Task SetAudioEnabledAsync(bool enabled, CancellationToken cancellationToken = default) =>
         UpdateAsync(settings => settings.AudioEnabled = enabled, cancellationToken);
 
-    /// <summary>Retient le mode clavier choisi.</summary>
-    /// <summary>Allume ou éteint le diagnostic de fluidité.</summary>
+    /// <summary>Remembers the chosen keyboard mode.</summary>
+    /// <summary>Turns the fluidity diagnostics on or off.</summary>
     public Task SetFluidityDiagnosticsAsync(bool value, CancellationToken cancellationToken = default) =>
         UpdateIfChangedAsync(
             settings =>
@@ -309,46 +319,52 @@ public sealed class SettingsService : IDisposable
         CancellationToken cancellationToken = default) =>
         UpdateAsync(settings => settings.SimulatedPhysicalKeyboard = simulated, cancellationToken);
 
-    /// <summary>Retient le mode souris choisi.</summary>
+    /// <summary>Remembers the chosen mouse mode.</summary>
     public Task SetSimulatedPhysicalMouseAsync(
         bool simulated,
         CancellationToken cancellationToken = default) =>
         UpdateAsync(settings => settings.SimulatedPhysicalMouse = simulated, cancellationToken);
 
-    /// <summary>Retient la distance apparente choisie.</summary>
+    /// <summary>Remembers the chosen apparent distance.</summary>
     public Task SetZoomAsync(GameZoom zoom, CancellationToken cancellationToken = default) =>
         UpdateAsync(settings => settings.GameZoom = zoom, cancellationToken);
 
-    // Sessions nommées
+    // Named sessions
 
-    /// <summary>Les profils enregistrés, dans l'ordre où ils ont été créés.</summary>
+    /// <summary>
+    /// The saved profiles, in the order they were created.
+    /// </summary>
     public async Task<IReadOnlyList<StoredLaunchProfile>> GetLaunchProfilesAsync(
         CancellationToken cancellationToken = default) =>
         [.. (await GetAsync(cancellationToken).ConfigureAwait(false)).LaunchProfiles];
 
     /// <summary>
-    /// Sous quel nom la place du cadre à onglets est retenue.
+    /// The name under which the tabbed frame's placement is remembered.
     ///
-    /// La même clé que celle du service d'interface qui l'enregistre : les
-    /// profils y touchent aussi, et deux orthographes auraient donné deux
-    /// entrées dont une seule aurait servi.
+    /// The same key as the one the UI service uses to save it: the
+    /// profiles touch it too, and two spellings would have produced two
+    /// entries, only one of which would have ever been used.
     /// </summary>
     public const string TabsPlacementKey = "tabs";
 
-    /// <summary>Nom du profil ouvert au démarrage, ou <c>null</c> s'il n'y en a pas.</summary>
+    /// <summary>
+    /// Name of the profile opened at startup, or <c>null</c> if there
+    /// is none.
+    /// </summary>
     public async Task<string?> GetDefaultLaunchProfileAsync(
         CancellationToken cancellationToken = default) =>
         LaunchProfiles.Normalize(
             (await GetAsync(cancellationToken).ConfigureAwait(false)).DefaultLaunchProfile);
 
     /// <summary>
-    /// Retient une session sous ce nom, en remplaçant celle qui le portait.
+    /// Remembers a session under this name, replacing the one that
+    /// held it.
     ///
-    /// Remplacer plutôt que refuser : enregistrer deux fois sous le même nom
-    /// est le geste naturel pour corriger un profil, et rendre une erreur
-    /// obligerait à supprimer d'abord.
+    /// Replacing rather than refusing: saving twice under the same
+    /// name is the natural gesture to fix a profile, and returning an
+    /// error would force deleting it first.
     /// </summary>
-    /// <returns>Faux si le nom n'en est pas un.</returns>
+    /// <returns>False if the name is not one.</returns>
     public async Task<bool> SaveLaunchProfileAsync(
         string? name,
         IReadOnlyCollection<string> keys,
@@ -371,10 +387,10 @@ public sealed class SettingsService : IDisposable
                     settings.LaunchProfiles.Remove(existing);
                 }
 
-                // Dans l'ordre où les comptes sont rangés, et non dans celui
-                // où l'appelant les donne : c'est cet ordre que la liste montre
-                // et que les onglets suivent, et c'est donc lui que le profil
-                // doit rendre en s'ouvrant.
+                // In the order the accounts are arranged, not the one
+                // the caller gives them: this is the order the list
+                // shows and the tabs follow, so it is the one the
+                // profile must restore when it opens.
                 var voulus = keys.Distinct(StringComparer.Ordinal).ToHashSet(StringComparer.Ordinal);
 
                 var retenus = settings.Instances
@@ -383,15 +399,17 @@ public sealed class SettingsService : IDisposable
                     .Select(i => i.Key)
                     .ToList();
 
-                // Un compte cité par l'appelant que le document ne connaît pas
-                // garde sa place : le profil vaut mieux amputé que refusé.
+                // An account named by the caller that the document
+                // does not know keeps its place: a profile is better
+                // trimmed than refused.
                 retenus.AddRange(voulus.Where(k => !retenus.Contains(k, StringComparer.Ordinal)));
 
-                // L'instantané se prend dans le document lui-même : la
-                // géométrie y est déjà, relevée juste avant par l'appelant, et
-                // les réglages y vivent en permanence. Les passer en paramètres
-                // aurait ouvert la porte à un profil qui retient autre chose
-                // que ce que l'écran montre.
+                // The snapshot is taken from the document itself: the
+                // geometry is already there, recorded just before by
+                // the caller, and the settings live there permanently.
+                // Passing them as parameters would have opened the
+                // door to a profile that remembers something other
+                // than what the screen shows.
                 settings.LaunchProfiles.Add(new StoredLaunchProfile
                 {
                     Name = wanted,
@@ -413,9 +431,10 @@ public sealed class SettingsService : IDisposable
                         .OrderBy(i => i.Order)
                         .Select(i => i.Key)],
 
-                    // La place du cadre n'est retenue que si le profil loge
-                    // quelque chose : la garder sur un profil sans onglets
-                    // déplacerait le cadre d'un autre profil en l'ouvrant.
+                    // The frame's placement is only remembered if the
+                    // profile houses something: keeping it on a profile
+                    // with no tabs would move another profile's frame
+                    // when it opens.
                     TabsWindow = settings.Instances.Any(
                         i => i.IsTabbed && retenus.Contains(i.Key, StringComparer.Ordinal))
                         ? settings.WindowPlacements.GetValueOrDefault(TabsPlacementKey)
@@ -428,10 +447,12 @@ public sealed class SettingsService : IDisposable
     }
 
     /// <summary>
-    /// Retire un profil, et le démarrage avec lui s'il le désignait.
+    /// Removes a profile, and the startup default with it if it
+    /// pointed to it.
     ///
-    /// Laisser un défaut qui pointe sur rien donnerait un démarrage qui
-    /// n'ouvre pas ce qu'on attend, sans que rien ne l'explique.
+    /// Leaving a default that points to nothing would give a startup
+    /// that does not open what is expected, with nothing to explain
+    /// it.
     /// </summary>
     public Task DeleteLaunchProfileAsync(string? name, CancellationToken cancellationToken = default) =>
         UpdateIfChangedAsync(
@@ -454,8 +475,8 @@ public sealed class SettingsService : IDisposable
             cancellationToken);
 
     /// <summary>
-    /// Désigne le profil du démarrage. <c>null</c> remet à « aucun », et
-    /// l'application rouvre alors ce qui était ouvert, comme avant.
+    /// Sets the startup profile. <c>null</c> resets it to "none", and
+    /// the application then reopens whatever was open, as before.
     /// </summary>
     public Task SetDefaultLaunchProfileAsync(
         string? name,
@@ -477,10 +498,12 @@ public sealed class SettingsService : IDisposable
             cancellationToken);
 
     /// <summary>
-    /// Fait de ce profil l'ensemble de démarrage : ses comptes sont cochés, les
-    /// autres décochés.
+    /// Makes this profile the startup set: its accounts are checked,
+    /// the others unchecked.
     /// </summary>
-    /// <returns>Les comptes du profil, ou une liste vide s'il n'existe pas.</returns>
+    /// <returns>
+    /// The profile's accounts, or an empty list if it does not exist.
+    /// </returns>
     public async Task<IReadOnlyList<string>> ApplyLaunchProfileAsync(
         string? name,
         CancellationToken cancellationToken = default)
@@ -496,9 +519,10 @@ public sealed class SettingsService : IDisposable
 
         var profile = LaunchProfiles.Find(settings.LaunchProfiles, name)!;
 
-        // Une seule écriture, et non trois : des appels successifs
-        // préviendraient à chaque fois, et la liste se rafraîchirait sur un état
-        // intermédiaire où les comptes sont posés mais pas encore les positions.
+        // A single write, not three: successive calls would notify
+        // every time, and the list would refresh on an intermediate
+        // state where the accounts are set but the positions are not
+        // yet.
         await UpdateAsync(
             document =>
             {
@@ -510,29 +534,32 @@ public sealed class SettingsService : IDisposable
                 {
                     instance.IsEnabled = keys.Contains(instance.Key);
 
-                    // Un profil d'avant le mode onglets n'en cite aucun : ses
-                    // comptes gardent alors leur mode, faute de quoi il les
-                    // sortirait tous du cadre sans qu'on l'ait demandé.
+                    // A profile from before tabbed mode names none of
+                    // them: its accounts then keep their mode,
+                    // otherwise it would take them all out of the
+                    // frame without being asked to.
                     if (profile.TabbedKeys.Count > 0)
                     {
                         instance.IsTabbed = housed.Contains(instance.Key);
                     }
 
-                    // La position du profil l'emporte. Un compte que le profil
-                    // ne place pas garde la sienne : un profil d'avant les
-                    // positions ne doit pas tout renvoyer à l'ancrage.
+                    // The profile's position wins. An account the
+                    // profile does not place keeps its own: a profile
+                    // from before positions must not send everything
+                    // back to the anchor.
                     if (profile.Windows.TryGetValue(instance.Key, out var rect))
                     {
                         instance.Window = rect;
                     }
                 }
 
-                // L'ordre des comptes n'est PAS rendu par le profil, et c'est
-                // voulu : c'est un réglage général, celui de la liste comme
-                // celui des onglets. Un profil qui le rejouerait défairait le
-                // rangement à la souris dès le démarrage suivant, le profil de
-                // démarrage s'ouvrant tout seul. Le profil le retient pour être
-                // lisible, il ne l'impose pas.
+                // The account order is NOT restored by the profile,
+                // and that is deliberate: it is a general setting,
+                // shared by the list and by the tabs. A profile that
+                // replayed it would undo the mouse arrangement as soon
+                // as the next startup, with the startup profile
+                // opening on its own. The profile remembers it to stay
+                // readable; it does not impose it.
 
                 document.Quality = profile.Quality;
                 document.CustomQuality = profile.CustomQuality.Sanitized();
@@ -541,9 +568,9 @@ public sealed class SettingsService : IDisposable
                 document.AudioEnabled = profile.AudioEnabled;
                 document.ClipboardSyncEnabled = profile.ClipboardSyncEnabled;
 
-                // Un profil sans place de cadre laisse celle qui est retenue :
-                // c'est le cas des profils enregistrés avant, et de ceux qui ne
-                // logent rien.
+                // A profile with no frame placement leaves the one
+                // that is remembered: this is the case for profiles
+                // saved before, and for those that house nothing.
                 if (profile.TabsWindow is { IsSized: true } cadre)
                 {
                     document.WindowPlacements[TabsPlacementKey] = cadre;
@@ -557,7 +584,7 @@ public sealed class SettingsService : IDisposable
         return wanted;
     }
 
-    /// <summary>Fait entrer ou sortir un compte du cadre à onglets.</summary>
+    /// <summary>Moves an account into or out of the tabbed frame.</summary>
     public Task SetInstanceTabbedAsync(
         string key,
         bool tabbed,
@@ -577,12 +604,12 @@ public sealed class SettingsService : IDisposable
             cancellationToken);
 
     /// <summary>
-    /// Le profil de qualité de chaque compte : le sien s'il en a choisi un,
-    /// le commun sinon.
+    /// Each account's quality profile: its own if it chose one, the
+    /// shared one otherwise.
     ///
-    /// Résolu ici plutôt que chez l'appelant : c'est le seul endroit qui voie
-    /// à la fois les comptes et le réglage commun, et la règle de préséance
-    /// n'a pas à être répétée ailleurs.
+    /// Resolved here rather than at the caller: this is the only place
+    /// that sees both the accounts and the shared setting, and the
+    /// precedence rule does not need to be repeated elsewhere.
     /// </summary>
     public async Task<IReadOnlyDictionary<string, QualityProfile>> GetInstanceQualitiesAsync(
         CancellationToken cancellationToken = default)
@@ -603,8 +630,8 @@ public sealed class SettingsService : IDisposable
     }
 
     /// <summary>
-    /// Donne son propre palier à un compte, ou le rend au réglage commun avec
-    /// <c>null</c>.
+    /// Gives an account its own tier, or returns it to the shared
+    /// setting with <c>null</c>.
     /// </summary>
     public Task SetInstanceQualityAsync(
         string key,
@@ -628,13 +655,14 @@ public sealed class SettingsService : IDisposable
             cancellationToken);
 
     /// <summary>
-    /// La distance qui s'applique à chaque compte, la sienne s'il en a une,
-    /// sinon la commune.
+    /// The distance that applies to each account, its own if it has
+    /// one, otherwise the shared one.
     ///
-    /// Même forme que <see cref="GetInstanceQualitiesAsync"/>, et pour la même
-    /// raison : la règle est résolue ici, une fois, et le lanceur n'a plus qu'à
-    /// lire. Il n'y a pas de troisième source, un profil de lancement recopiant
-    /// ses valeurs dans le réglage commun avant le lancement.
+    /// Same shape as <see cref="GetInstanceQualitiesAsync"/>, and for
+    /// the same reason: the rule is resolved here, once, and the
+    /// launcher only has to read it. There is no third source, a
+    /// launch profile copying its values into the shared setting
+    /// before launch.
     /// </summary>
     public async Task<IReadOnlyDictionary<string, GameZoom>> GetInstanceZoomsAsync(
         CancellationToken cancellationToken = default)
@@ -652,8 +680,8 @@ public sealed class SettingsService : IDisposable
     }
 
     /// <summary>
-    /// Donne sa propre distance à un compte, ou la rend au réglage commun avec
-    /// <c>null</c>.
+    /// Gives an account its own distance, or returns it to the shared
+    /// setting with <c>null</c>.
     /// </summary>
     public Task SetInstanceZoomAsync(
         string key,
@@ -677,11 +705,11 @@ public sealed class SettingsService : IDisposable
             cancellationToken);
 
     /// <summary>
-    /// Ajoute un temps de jeu au compte, pour aujourd'hui.
+    /// Adds playtime to the account, for today.
     ///
-    /// Rien n'est écrit pour une session d'une poignée de secondes : ouvrir
-    /// puis refermer aussitôt n'est pas du temps de jeu, et l'écrire ferait
-    /// une écriture de fichier pour rien.
+    /// Nothing is written for a session of a handful of seconds:
+    /// opening and immediately closing again is not playtime, and
+    /// writing it would make a file write for nothing.
     /// </summary>
     public Task AddPlaytimeAsync(
         string key,
@@ -711,15 +739,17 @@ public sealed class SettingsService : IDisposable
             },
             cancellationToken);
 
-    /// <summary>En dessous, la session ne compte pas comme du temps de jeu.</summary>
+    /// <summary>Below this, the session does not count as playtime.</summary>
     public const int MinimumCountedPlaytimeSeconds = 30;
 
     /// <summary>
-    /// Les réglages, tels qu'on les emporte : le fichier lui-même.
+    /// The settings, exactly as they are carried out: the file
+    /// itself.
     ///
-    /// Le fichier et non un extrait recomposé : ce qui se relit est ce qui a
-    /// été écrit, et un format d'export à part serait un second format à
-    /// maintenir, qui finirait par diverger du premier.
+    /// The file, not a recomposed excerpt: what gets read back is
+    /// exactly what was written, and a separate export format would be
+    /// a second format to maintain, which would eventually diverge
+    /// from the first.
     /// </summary>
     public async Task<string> ExportAsync(CancellationToken cancellationToken = default)
     {
@@ -729,11 +759,12 @@ public sealed class SettingsService : IDisposable
     }
 
     /// <summary>
-    /// Remplace les réglages par ceux d'un fichier, s'il est lisible.
+    /// Replaces the settings with those from a file, if it is
+    /// readable.
     ///
-    /// Rien n'est appliqué tant que l'inspection n'a pas conclu : un fichier
-    /// venu d'une version plus récente serait ramené en arrière par le chemin
-    /// ordinaire, et l'utilisateur croirait avoir restauré. Voir
+    /// Nothing is applied until the inspection has concluded: a file
+    /// from a newer version would be rolled back through the ordinary
+    /// path, and the user would believe the restore had worked. See
     /// <see cref="SettingsBackup" />.
     /// </summary>
     public async Task<BackupVerdict> ImportAsync(
@@ -749,9 +780,9 @@ public sealed class SettingsService : IDisposable
 
         if (_store.Deserialize(json!) is not { } incoming)
         {
-            // L'inspection a dit que la forme tenait ; un champ mal typé peut
-            // encore faire échouer la lecture complète. On refuse plutôt que
-            // d'appliquer à moitié.
+            // The inspection said the shape held; a wrongly typed
+            // field can still make the full read fail. We refuse
+            // rather than apply it halfway.
             return BackupVerdict.Unreadable;
         }
 
@@ -759,8 +790,8 @@ public sealed class SettingsService : IDisposable
 
         try
         {
-            // Migré comme n'importe quel fichier : un export plus ancien a
-            // droit aux mêmes conversions qu'un fichier local.
+            // Migrated like any other file: an older export is
+            // entitled to the same conversions as a local file.
             _ = Migrate(incoming);
 
             _current = incoming;
@@ -777,7 +808,9 @@ public sealed class SettingsService : IDisposable
         return BackupVerdict.Usable;
     }
 
-    /// <summary>Tailles configurées, corrigées si le fichier est incohérent.</summary>
+    /// <summary>
+    /// Configured sizes, corrected if the file is inconsistent.
+    /// </summary>
     public async Task<WindowSizePresets> GetSizePresetsAsync(CancellationToken cancellationToken = default)
     {
         var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
@@ -785,7 +818,9 @@ public sealed class SettingsService : IDisposable
         return new WindowSizePresets { Percentages = settings.SizePercentages }.Sanitized();
     }
 
-    /// <summary>Raccourcis configurés, réparés si le fichier est incohérent.</summary>
+    /// <summary>
+    /// Configured hotkeys, repaired if the file is inconsistent.
+    /// </summary>
     public async Task<HotkeySet> GetHotkeysAsync(CancellationToken cancellationToken = default)
     {
         var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
@@ -809,25 +844,27 @@ public sealed class SettingsService : IDisposable
     }
 
     /// <summary>
-    /// Oublie les instances dont le profil Android n'existe plus.
+    /// Forgets instances whose Android profile no longer exists.
     ///
-    /// Une instance mémorisée survit à une déconnexion, et c'est voulu : un
-    /// téléphone débranché doit garder ses lignes. Elle survivait aussi à la
-    /// suppression du profil, ce qui laissait dans la liste un compte qui
-    /// n'existe nulle part, qu'aucun bouton ne pouvait retirer.
+    /// A remembered instance survives a disconnection, and that is
+    /// deliberate: an unplugged phone must keep its rows. It also used
+    /// to survive the profile's deletion, which left in the list an
+    /// account that exists nowhere, that no button could remove.
     ///
-    /// On ne se fie pas à l'absence du jeu, qui peut n'être qu'un échec de
-    /// commande passager : on se fie à la disparition du profil. Seuls les
-    /// téléphones dont la liste de profils a été lue pour de bon sont
-    /// concernés, les autres ne prouvent rien.
+    /// We do not rely on the game's absence, which could be just a
+    /// passing command failure: we rely on the profile's disappearance.
+    /// Only phones whose profile list was actually read are concerned;
+    /// the others prove nothing.
     /// </summary>
-    /// <param name="profiles">Profils relevés, par identifiant d'appareil.</param>
-    /// <param name="withoutGame">
-    /// Profils qui ont répondu et qui n'ont pas le jeu, par identifiant
-    /// d'appareil. Seuls ceux-là comptent : un profil qui n'a pas su répondre
-    /// n'y figure pas, et son silence ne prouve rien.
+    /// <param name="profiles">
+    /// Profiles collected, by device identifier.
     /// </param>
-    /// <returns>Le nombre d'instances oubliées.</returns>
+    /// <param name="withoutGame">
+    /// Profiles that responded and do not have the game, by device
+    /// identifier. Only those count: a profile that failed to respond
+    /// does not appear here, and its silence proves nothing.
+    /// </param>
+    /// <returns>The number of instances forgotten.</returns>
     public async Task<int> ForgetMissingProfilesAsync(
         IReadOnlyDictionary<string, IReadOnlyList<int>> profiles,
         IReadOnlyDictionary<string, IReadOnlyList<int>>? withoutGame = null,
@@ -842,11 +879,12 @@ public sealed class SettingsService : IDisposable
 
         var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
 
-        // Deux motifs d'oubli, et une seule garde commune : le téléphone doit
-        // avoir répondu. Le profil a disparu de la liste, ou bien il est
-        // toujours là et a dit lui-même qu'il n'avait plus le jeu. Désinstaller
-        // le jeu d'un profil qu'on garde laissait sinon un compte fantôme dans
-        // la liste, indéfiniment et jusque par-delà les redémarrages.
+        // Two reasons to forget, and a single shared guard: the phone
+        // must have responded. Either the profile has disappeared from
+        // the list, or it is still there and has itself said it no
+        // longer has the game. Uninstalling the game from a profile we
+        // keep would otherwise leave a ghost account in the list,
+        // indefinitely and even across restarts.
         var gone = settings.Instances
             .Where(i => profiles.TryGetValue(i.DeviceId, out var live) && !live.Contains(i.UserId))
             .Select(i => i.Key)
@@ -864,8 +902,8 @@ public sealed class SettingsService : IDisposable
             }
         }
 
-        // Rien à retirer : on n'écrit pas. Une écriture sans changement à
-        // chaque balayage userait le fichier pour rien.
+        // Nothing to remove: we do not write. A write with no change
+        // on every sweep would wear out the file for nothing.
         if (gone.Count == 0)
         {
             return 0;
@@ -874,9 +912,9 @@ public sealed class SettingsService : IDisposable
         await UpdateAsync(
             document =>
             {
-                // La géométrie de la fenêtre part avec l'instance : elle est
-                // portée par l'entrée elle-même, et non par le dictionnaire des
-                // places, qui ne connaît que nos propres fenêtres.
+                // The window's geometry leaves with the instance: it
+                // is carried by the entry itself, not by the placement
+                // dictionary, which only knows our own windows.
                 _ = document.Instances.RemoveAll(i => gone.Contains(i.Key));
 
                 InstanceOrdering.Normalize(document);
@@ -887,9 +925,9 @@ public sealed class SettingsService : IDisposable
     }
 
     /// <summary>
-    /// Fusionne les instances découvertes avec celles qui étaient mémorisées.
-    /// Le nom choisi par l'utilisateur et la case de lancement lui
-    /// appartiennent : une redécouverte ne les écrase jamais.
+    /// Merges the discovered instances with those that were
+    /// remembered. The name chosen by the user and the launch checkbox
+    /// belong to it: a rediscovery never overwrites them.
     /// </summary>
     public async Task<IReadOnlyList<DofusInstance>> MergeInstancesAsync(
         IReadOnlyList<DofusInstance> discovered,
@@ -924,9 +962,9 @@ public sealed class SettingsService : IDisposable
                     IsEnabled = false,
                 };
 
-                // À la suite de celles de son appareil : une instance neuve
-                // doit apparaître près de ses sœurs, pas au bout d'une longue
-                // liste où on ne la verrait pas.
+                // Right after those of its device: a new instance must
+                // appear near its siblings, not at the end of a long
+                // list where it would go unseen.
                 InstanceOrdering.Add(settings, entry);
                 stored[entry.Key] = entry;
             }
@@ -959,7 +997,9 @@ public sealed class SettingsService : IDisposable
         return merged;
     }
 
-    /// <summary>Coche ou décoche une instance pour le lancement automatique.</summary>
+    /// <summary>
+    /// Checks or unchecks an instance for automatic launch.
+    /// </summary>
     public Task SetInstanceEnabledAsync(string key, bool enabled, CancellationToken cancellationToken = default) =>
         UpdateAsync(settings =>
         {
@@ -970,7 +1010,10 @@ public sealed class SettingsService : IDisposable
             }
         }, cancellationToken);
 
-    /// <summary>Renomme une instance. Un nom vide rétablit le nom du profil Android.</summary>
+    /// <summary>
+    /// Renames an instance. An empty name restores the Android
+    /// profile's name.
+    /// </summary>
     public Task RenameInstanceAsync(string key, string? name, CancellationToken cancellationToken = default) =>
         UpdateAsync(settings =>
         {
@@ -981,20 +1024,23 @@ public sealed class SettingsService : IDisposable
             }
         }, cancellationToken);
 
-    /// <summary>Oublie les instances d'un téléphone retiré, et son rang.</summary>
+    /// <summary>
+    /// Forgets the instances of a removed phone, and its rank.
+    /// </summary>
     public Task ForgetDeviceAsync(string deviceId, CancellationToken cancellationToken = default) =>
         UpdateAsync(settings =>
         {
             settings.Instances.RemoveAll(i => string.Equals(i.DeviceId, deviceId, StringComparison.Ordinal));
 
-            // La géométrie mémorisée part avec les instances : elle y est
-            // imbriquée. Restent les rangs, qu'il faut resserrer.
+            // The remembered geometry leaves with the instances: it is
+            // nested inside them. What remains is the ranks, which
+            // must be compacted.
             InstanceOrdering.Normalize(settings);
         }, cancellationToken);
 
-    // Géométrie des fenêtres
+    // Window geometry
 
-    /// <summary>Géométries mémorisées, par clé d'instance.</summary>
+    /// <summary>Remembered geometries, by instance key.</summary>
     public async Task<IReadOnlyDictionary<string, StoredWindowRect>> GetWindowRectsAsync(
         CancellationToken cancellationToken = default)
     {
@@ -1006,9 +1052,9 @@ public sealed class SettingsService : IDisposable
     }
 
     /// <summary>
-    /// Enregistre plusieurs géométries en une seule écriture. Les instances
-    /// absentes du dictionnaire gardent la leur : une fenêtre qui n'était pas
-    /// ouverte ne doit pas perdre l'endroit où elle avait été laissée.
+    /// Saves several geometries in a single write. Instances absent
+    /// from the dictionary keep their own: a window that was not open
+    /// must not lose the place where it had been left.
     /// </summary>
     public Task SaveWindowRectsAsync(
         IReadOnlyDictionary<string, StoredWindowRect> rects,
@@ -1031,9 +1077,11 @@ public sealed class SettingsService : IDisposable
         }, cancellationToken);
     }
 
-    // Ordre
+    // Order
 
-    /// <summary>Rang de chaque instance, par sa clé, pour trier des sessions.</summary>
+    /// <summary>
+    /// Rank of each instance, by its key, to sort sessions.
+    /// </summary>
     public async Task<IReadOnlyDictionary<string, int>> GetInstanceRanksAsync(
         CancellationToken cancellationToken = default)
     {
@@ -1043,8 +1091,8 @@ public sealed class SettingsService : IDisposable
     }
 
     /// <summary>
-    /// Place une instance juste avant ou juste après une autre, quel que soit
-    /// leur appareil. Rend faux si rien ne bouge.
+    /// Places an instance just before or just after another,
+    /// regardless of their device. Returns false if nothing moves.
     /// </summary>
     public async Task<bool> MoveInstanceAsync(
         string key,
@@ -1061,15 +1109,16 @@ public sealed class SettingsService : IDisposable
         return moved;
     }
 
-    // Démarrage
+    // Startup
 
     /// <summary>
-    /// Marque des instances comme faisant partie du lancement suivant, ou les
-    /// en retire.
+    /// Marks instances as part of the next launch, or removes them
+    /// from it.
     ///
-    /// Lancer une instance l'y met, la fermer par le bouton l'en retire, et
-    /// rien d'autre n'y touche : fermer une fenêtre de jeu à la main, quitter
-    /// l'application ou perdre le téléphone laissent l'ensemble intact.
+    /// Launching an instance puts it in, closing it through the button
+    /// takes it out, and nothing else touches it: closing a game
+    /// window by hand, quitting the application, or losing the phone
+    /// all leave the set intact.
     /// </summary>
     public async Task SetInstancesEnabledAsync(
         IReadOnlyCollection<string> keys,
@@ -1105,7 +1154,7 @@ public sealed class SettingsService : IDisposable
     }
 
     /// <summary>
-    /// Retient si une fenêtre suit les placements automatiques.
+    /// Remembers whether a window follows automatic placements.
     /// </summary>
     public Task SetInstanceManagedAsync(
         string key,
@@ -1128,7 +1177,7 @@ public sealed class SettingsService : IDisposable
             },
             cancellationToken);
 
-    /// <summary>Instances laissées de côté par les placements automatiques.</summary>
+    /// <summary>Instances left aside by automatic placements.</summary>
     public async Task<IReadOnlySet<string>> GetUnmanagedKeysAsync(
         CancellationToken cancellationToken = default)
     {
@@ -1140,17 +1189,19 @@ public sealed class SettingsService : IDisposable
             .ToHashSet(StringComparer.Ordinal);
     }
 
-    /// <summary>Retient la taille posée au curseur.</summary>
+    /// <summary>Remembers the size set at the cursor.</summary>
     public Task SaveCustomSizePercentAsync(int percent, CancellationToken cancellationToken = default) =>
         UpdateAsync(settings => settings.CustomSizePercent = Math.Clamp(percent, 0, 100), cancellationToken);
 
-    /// <summary>Retient si le configurateur était affiché à la sortie.</summary>
+    /// <summary>
+    /// Remembers whether the configurator was shown on exit.
+    /// </summary>
     public Task SetConfiguratorVisibleAsync(bool visible, CancellationToken cancellationToken = default) =>
         UpdateAsync(settings => settings.ConfiguratorVisible = visible, cancellationToken);
 
     /// <summary>
-    /// Retient si le suivi de quêtes était ouvert et sur quelle quête, pour le
-    /// rouvrir tel quel au lancement suivant.
+    /// Remembers whether the quest tracker was open and on which
+    /// quest, to reopen it exactly the same way on the next launch.
     /// </summary>
     public Task SetQuestsStateAsync(
         bool visible,
@@ -1162,17 +1213,17 @@ public sealed class SettingsService : IDisposable
             {
                 settings.QuestsVisible = visible;
 
-                // L'étape suit l'adresse : retenir un rang sans le guide auquel
-                // il appartient ferait rouvrir une autre quête à une étape qui
-                // n'est pas la sienne.
+                // The step follows the address: remembering a rank
+                // without the guide it belongs to would reopen a
+                // different quest at a step that is not its own.
                 if (!string.IsNullOrWhiteSpace(lastQuestUrl))
                 {
                     settings.LastQuestStep = lastQuestStep < 0 ? 0 : lastQuestStep;
                 }
 
-                // Une adresse vide n'efface pas la précédente : fermer la
-                // fenêtre sur sa liste ne doit pas faire oublier la quête qu'on
-                // y lisait avant.
+                // An empty address does not erase the previous one:
+                // closing the window on its list must not make it
+                // forget the quest that was being read there before.
                 if (!string.IsNullOrWhiteSpace(lastQuestUrl))
                 {
                     settings.LastQuestUrl = lastQuestUrl;
@@ -1181,8 +1232,8 @@ public sealed class SettingsService : IDisposable
             cancellationToken);
 
     /// <summary>
-    /// Retient où était une fenêtre. Une place sans surface n'est pas
-    /// enregistrée : c'est ce que rend une fenêtre jamais affichée.
+    /// Remembers where a window was. A placement with no size is not
+    /// saved: that is what a window that was never shown returns.
     /// </summary>
     public Task SetWindowPlacementAsync(
         string key,

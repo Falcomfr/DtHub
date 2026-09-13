@@ -9,21 +9,23 @@ using DtHub.Core.Localization;
 namespace DtHub.App.ViewModels;
 
 /// <summary>
-/// Que faire quand l'image s'affiche mais que rien ne répond.
+/// What to do when the image shows but nothing responds.
 ///
-/// C'est le symptôme le plus fréquent du terrain, et le plus démuni : scrcpy
-/// n'échoue pas, aucun message n'apparaît, le clic ne fait simplement rien.
-/// Relevé sur le salon d'entraide d'un produit concurrent qui emprunte le même
-/// chemin, une dizaine de personnes le posent sur plusieurs semaines, et la
-/// réponse circule de bouche à oreille sans jamais être écrite nulle part.
+/// This is the most common symptom in the field, and the most
+/// helpless one: scrcpy does not fail, no message appears, the click
+/// simply does nothing. Noted on a competing product's support forum
+/// that takes the same path, about a dozen people raise it over
+/// several weeks, and the answer travels by word of mouth without
+/// ever being written down anywhere.
 ///
-/// La cause tient à un réglage dont le sous-titre dit tout : « Accorder les
-/// autorisations et simulation d'entrée via le débogage USB ». Sans lui, ADB
-/// affiche mais n'injecte pas.
+/// The cause comes down to a setting whose subtitle says it all:
+/// "Accorder les autorisations et simulation d'entrée via le
+/// débogage USB" (Grant permissions and input simulation via USB
+/// debugging). Without it, ADB displays but does not inject.
 ///
-/// La fiche nommait la cause sans savoir la constater. Elle sait maintenant
-/// poser la question à l'appareil, sur demande, et rendre l'un des trois seuls
-/// verdicts qu'elle peut tenir.
+/// The help page used to name the cause without being able to
+/// confirm it. It can now ask the device the question, on demand,
+/// and return one of the only three verdicts it can hold to.
 /// </summary>
 public sealed partial class InputHelpViewModel : ObservableObject
 {
@@ -35,16 +37,20 @@ public sealed partial class InputHelpViewModel : ObservableObject
         _brand = PhoneBrands.Standard;
     }
 
-    /// <summary>Marques proposées, regroupées quand la procédure est la même.</summary>
+    /// <summary>
+    /// Brands offered, grouped when the procedure is the same.
+    /// </summary>
     public IReadOnlyList<PhoneBrand> Brands { get; } = PhoneBrands.All;
 
     [ObservableProperty]
     private PhoneBrand _brand;
 
-    /// <summary>Vrai quand la marque ajoute un piège qui lui est propre.</summary>
+    /// <summary>True when the brand adds a pitfall of its own.</summary>
     public bool HasWarning => !string.IsNullOrWhiteSpace(Brand.Warning);
 
-    /// <summary>Numéro de série de l'appareil interrogé, vide s'il n'y en a pas.</summary>
+    /// <summary>
+    /// Serial number of the queried device, empty if there is none.
+    /// </summary>
     private string _serial = string.Empty;
 
     [ObservableProperty]
@@ -53,14 +59,18 @@ public sealed partial class InputHelpViewModel : ObservableObject
     [ObservableProperty]
     private string _verdict = string.Empty;
 
-    /// <summary>Vrai quand un verdict est là et mérite d'être montré.</summary>
+    /// <summary>
+    /// True when a verdict is there and deserves to be shown.
+    /// </summary>
     public bool HasVerdict => !string.IsNullOrWhiteSpace(Verdict);
 
-    /// <summary>Vrai quand le verdict est celui qui désigne la cause.</summary>
+    /// <summary>
+    /// True when the verdict is the one that names the cause.
+    /// </summary>
     [ObservableProperty]
     private bool _verdictIsRefusal;
 
-    /// <summary>Présélectionne la marque de l'appareil branché.</summary>
+    /// <summary>Preselects the brand of the connected device.</summary>
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -82,16 +92,18 @@ public sealed partial class InputHelpViewModel : ObservableObject
         }
         catch (AdbException)
         {
-            // Sans appareil joignable, la procédure standard fait l'affaire.
+            // Without a reachable device, the standard procedure
+            // will do.
         }
     }
 
     /// <summary>
-    /// Demande à l'appareil s'il accepte la simulation d'entrée.
+    /// Asks the device whether it accepts input simulation.
     ///
-    /// L'appareil est relu à chaque test : entre l'ouverture de la fiche et le
-    /// clic, on a pu brancher le câble ou changer le réglage, et c'est
-    /// justement ce qu'on vient vérifier.
+    /// The device is read again on every test: between opening the
+    /// help page and the click, the cable may have been plugged in
+    /// or the setting changed, and that is exactly what we have come
+    /// to check.
     /// </summary>
     [RelayCommand]
     private async Task TestAsync(CancellationToken cancellationToken)

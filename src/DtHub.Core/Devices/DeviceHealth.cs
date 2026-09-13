@@ -2,56 +2,61 @@
 
 namespace DtHub.Core.Devices;
 
-/// <summary>Gravité d'un constat, du plus anodin au plus urgent.</summary>
+/// <summary>
+/// Severity of a finding, from the most trivial to the most urgent.
+/// </summary>
 public enum HealthSeverity
 {
-    /// <summary>Mérite d'être su, n'empêche rien.</summary>
+    /// <summary>Worth knowing, does not prevent anything.</summary>
     Notice,
 
-    /// <summary>Va gêner, et se corrige.</summary>
+    /// <summary>Will get in the way, and can be fixed.</summary>
     Warning,
 
-    /// <summary>Va couper la séance si rien n'est fait.</summary>
+    /// <summary>Will end the session if nothing is done.</summary>
     Serious,
 }
 
-/// <summary>Un constat sur l'état d'un appareil.</summary>
+/// <summary>A finding about a device's state.</summary>
 public readonly record struct HealthFinding(HealthSeverity Severity, string Message);
 
 /// <summary>
-/// Le bilan d'un appareil, avant de lancer quoi que ce soit.
+/// The health check of a device, before launching anything.
 ///
-/// L'application lisait déjà la chaleur, la liaison, et maintenant la batterie
-/// et la place libre. **Chacune parlait dans son coin**, et aucune ne parlait
-/// avant le lancement : on découvrait le problème une fois les fenêtres
-/// ouvertes, c'est-à-dire trop tard pour l'éviter.
+/// The application already read temperature and the link, and now the
+/// battery and free space. **Each spoke on its own**, and none spoke
+/// before launch: the problem was discovered once the windows were
+/// open, that is, too late to avoid it.
 ///
-/// Le bilan les met en file, du plus grave au plus anodin. Il ne décide rien
-/// et n'empêche rien : il dit ce qui va gêner, à qui veut le lire.
+/// The health check lines them up, from the most serious to the most
+/// trivial. It decides nothing and prevents nothing: it says what is
+/// going to get in the way, to whoever wants to read it.
 ///
-/// **Les messages viennent des lectures elles-mêmes**, pas d'ici. Réécrire ce
-/// que <see cref="ThermalReading.Describe" /> dit déjà donnerait deux textes
-/// pour un même fait, qui finiraient par diverger.
+/// **The messages come from the readings themselves**, not from here.
+/// Rewriting what <see cref="ThermalReading.Describe" /> already says
+/// would give two texts for the same fact, which would eventually
+/// drift apart.
 /// </summary>
 public static class DeviceHealth
 {
     /// <summary>
-    /// Les constats, du plus grave au plus anodin, à gravité égale dans
-    /// l'ordre où ils comptent : ce qui coupe la séance, puis ce qui la gêne.
+    /// The findings, from the most serious to the most trivial, at
+    /// equal severity in the order they matter: what ends the
+    /// session, then what gets in its way.
     /// </summary>
     /// <param name="unpreparedBattery">
-    /// Vrai quand le jeu n'est pas à l'abri de l'économie d'énergie sur cet
-    /// appareil, c'est-à-dire quand la préparation décrite dans l'aide n'y a
-    /// jamais été faite.
+    /// True when the game is not shielded from battery saving on this
+    /// device, that is, when the preparation described in the help
+    /// was never done on it.
     /// </param>
     /// <param name="deadInput">
-    /// Vrai quand l'appareil refuse les entrées venues du PC : les fenêtres
-    /// montrent le jeu et ne répondent à rien.
+    /// True when the device refuses input coming from the PC: the
+    /// windows show the game and respond to nothing.
     /// </param>
     /// <param name="lockedWindows">
-    /// Vrai quand les fenêtres de jeu de cet appareil montrent son écran de
-    /// verrouillage au lieu du jeu, c'est-à-dire quand son afficheur virtuel
-    /// suit le verrouillage et qu'il est verrouillé.
+    /// True when this device's game windows show its lock screen
+    /// instead of the game, that is, when its virtual display follows
+    /// the lock state and it is locked.
     /// </param>
     public static IReadOnlyList<HealthFinding> Review(
         ThermalReading? heat,
@@ -64,18 +69,19 @@ public static class DeviceHealth
     {
         List<HealthFinding> findings = [];
 
-        // En tête parce que rien d'autre ne compte tant qu'il dure : les
-        // fenêtres sont ouvertes et ne montrent pas le jeu. Et ici plutôt
-        // qu'au lancement, où le message ne vivait que deux secondes avant
-        // que le balayage suivant ne le remplace.
+        // First because nothing else matters while it lasts: the
+        // windows are open and do not show the game. And here rather
+        // than at launch, where the message only lived for two
+        // seconds before the next sweep replaced it.
         if (lockedWindows)
         {
             findings.Add(new HealthFinding(HealthSeverity.Serious, Strings.Get("DisplayStaysLocked")));
         }
 
-        // Juste derrière le cadenas, et pour la même raison : la fenêtre a
-        // beau montrer le jeu, elle ne sert à rien. C'est le symptôme le plus
-        // silencieux du terrain, celui qu'on met une soirée à nommer.
+        // Right behind the lock, and for the same reason: the window
+        // may well show the game, it is still useless. It is the most
+        // silent symptom found in the field, the one that takes an
+        // evening to name.
         if (deadInput)
         {
             findings.Add(new HealthFinding(HealthSeverity.Serious, Strings.Get("DeadInputFound")));
@@ -100,18 +106,20 @@ public static class DeviceHealth
                 warm));
         }
 
-        // Après tout ce qui gêne déjà, avant ce qui ne gêne pas encore : le
-        // jeu tourne, et rien ne se voit tant qu'Android ne s'en mêle pas.
-        // Mais c'est la première cause des fenêtres qui se figent, et
-        // l'application le savait sans jamais le vérifier.
+        // After everything that already gets in the way, before what
+        // does not get in the way yet: the game runs, and nothing
+        // shows as long as Android does not step in. But it is the
+        // top cause of windows that freeze, and the application knew
+        // it without ever checking.
         if (unpreparedBattery)
         {
             findings.Add(new HealthFinding(HealthSeverity.Warning, Strings.Get("BatteryNotPrepared")));
         }
 
-        // La liaison ne casse rien et se compense déjà toute seule par le
-        // tampon vidéo. Elle est dite pour que « ça saccade » ait une réponse,
-        // pas pour alarmer : d'où le rang le plus bas.
+        // The link breaks nothing and is already compensated for on
+        // its own by the video buffer. It is stated so that "it
+        // stutters" has an answer, not to alarm: hence the lowest
+        // rank.
         if (link is { Is24GHz: true })
         {
             findings.Add(new HealthFinding(HealthSeverity.Notice, Strings.Get("DeviceOn24GHz")));
@@ -121,10 +129,11 @@ public static class DeviceHealth
     }
 
     /// <summary>
-    /// Le constat qui parle pour tous, ou <c>null</c> quand tout va bien.
+    /// The finding that speaks for all, or <c>null</c> when
+    /// everything is fine.
     ///
-    /// Un seul : deux avertissements côte à côte dans le même bandeau se
-    /// liraient comme un seul, plus long.
+    /// Just one: two warnings side by side in the same banner would
+    /// read as a single, longer one.
     /// </summary>
     public static string? Worst(IReadOnlyList<HealthFinding> findings)
     {
@@ -134,14 +143,15 @@ public static class DeviceHealth
     }
 
     /// <summary>
-    /// Tous les constats, un par ligne, ou <c>null</c> quand il n'y en a pas.
+    /// All the findings, one per line, or <c>null</c> when there are
+    /// none.
     ///
-    /// **Le bandeau montre le pire, la bulle montre tout**, et la nuance a
-    /// été payée cher : un téléphone a porté trois constats en même temps,
-    /// verrou, encombrement et batterie non préparée, dont un seul paraissait.
-    /// Les deux autres n'étaient nulle part, pas même au survol : il fallait
-    /// corriger le premier pour découvrir le second. Une ligne reste une
-    /// ligne, mais ce qu'elle cache doit rester atteignable.
+    /// **The banner shows the worst, the tooltip shows everything**,
+    /// and that distinction was paid for dearly: a phone carried three
+    /// findings at once, lock, low storage and unprepared battery, of
+    /// which only one showed. The other two were nowhere, not even on
+    /// hover: the first had to be fixed to discover the second. A
+    /// line stays a line, but what it hides must stay reachable.
     /// </summary>
     public static string? Every(IReadOnlyList<HealthFinding> findings)
     {

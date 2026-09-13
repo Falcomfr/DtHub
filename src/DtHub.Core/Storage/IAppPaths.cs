@@ -1,8 +1,8 @@
 ﻿namespace DtHub.Core.Storage;
 
 /// <summary>
-/// Emplacements des données de l'utilisateur. Tout est regroupé sous un seul
-/// dossier pour qu'une désinstallation propre reste simple à expliquer.
+/// User data locations. Everything is grouped under a single folder
+/// so a clean uninstall stays simple to explain.
 /// </summary>
 public interface IAppPaths
 {
@@ -13,41 +13,43 @@ public interface IAppPaths
     string DevicesFile { get; }
     string ProfilesFile { get; }
 
-    /// <summary>Métadonnées et icônes d'applications mises en cache.</summary>
+    /// <summary>Cached application metadata and icons.</summary>
     string CacheDirectory { get; }
 
     /// <summary>
-    /// Catalogue des quêtes de papycha. Rangé dans le cache et non près des
-    /// réglages : ce n'est pas un choix de l'utilisateur, et le perdre ne coûte
-    /// qu'une réindexation.
+    /// Papycha quest catalog. Stored in the cache and not near the
+    /// settings: this is not a user choice, and losing it only costs
+    /// a reindex.
     /// </summary>
     string QuestCatalogFile { get; }
 
-    /// <summary>Journaux avec rotation.</summary>
+    /// <summary>Logs with rotation.</summary>
     string LogsDirectory { get; }
 
-    /// <summary>Composants tiers téléchargés, un sous-dossier par version.</summary>
+    /// <summary>
+    /// Downloaded third-party components, one subfolder per version.
+    /// </summary>
     string ToolsDirectory { get; }
 
     /// <summary>
-    /// Mises à jour téléchargées, en attente d'être posées à l'arrêt. Dans le
-    /// dossier de l'utilisateur et non près de l'exécutable : c'est le seul
-    /// endroit où écrire ne demande aucun droit particulier.
+    /// Downloaded updates, waiting to be applied on exit. In the
+    /// user's folder and not near the executable: this is the only
+    /// place where writing requires no special rights.
     /// </summary>
     string UpdatesDirectory { get; }
 
     /// <summary>
-    /// Ce que le moteur de rendu écrit pour lui : son cache, ses cookies, ses
-    /// préférences.
+    /// What the rendering engine writes for itself: its cache, its
+    /// cookies, its preferences.
     ///
-    /// Sans cette adresse, il le pose à côté de l'exécutable. Mesuré sur un
-    /// dossier vierge, vingt-quatre mégaoctets après une seule session ; sur un
-    /// dossier de développement de quelques semaines, trois cent
-    /// quatre-vingt-dix-neuf. Un fichier unique qu'on peut donner à quelqu'un ne
-    /// laisse pas cela derrière lui.
+    /// Without this path, it drops them next to the executable.
+    /// Measured on a blank folder, twenty-four megabytes after a
+    /// single session; on a development folder a few weeks old,
+    /// three hundred ninety-nine. A single file that can be handed
+    /// to someone should not leave that behind.
     /// </summary>
     string WebViewDirectory { get; }
 
-    /// <summary>Crée les dossiers manquants. Idempotent.</summary>
+    /// <summary>Creates the missing folders. Idempotent.</summary>
     void EnsureCreated();
 }

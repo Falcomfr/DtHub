@@ -1,35 +1,35 @@
 ﻿namespace DtHub.Core.Hotkeys;
 
 /// <summary>
-/// Enregistre les raccourcis auprès du système. L'enregistrement est
-/// volontairement conditionnel : hors des fenêtres de DT Hub, les
-/// combinaisons doivent revenir aux autres logiciels, sans quoi Ctrl+Tab
-/// cesserait de fonctionner dans un navigateur.
+/// Registers hotkeys with the system. Registration is deliberately
+/// conditional: outside DT Hub's windows, the combinations must
+/// revert to other software, otherwise Ctrl+Tab would stop working
+/// in a browser.
 /// </summary>
 public interface IHotkeyRegistrar : IDisposable
 {
-    /// <summary>Déclenché quand une combinaison enregistrée est pressée.</summary>
+    /// <summary>Fired when a registered combination is pressed.</summary>
     event EventHandler<HotkeyAction>? HotkeyPressed;
 
     /// <summary>
-    /// Déclenché quand la fenêtre active du bureau change. L'appelant décide
-    /// alors s'il faut activer ou désactiver les raccourcis.
+    /// Fired when the desktop's active window changes. The caller
+    /// then decides whether to enable or disable the hotkeys.
     /// </summary>
     event EventHandler<nint>? ForegroundWindowChanged;
 
-    /// <summary>Vrai si les raccourcis sont actuellement enregistrés.</summary>
+    /// <summary>True if the hotkeys are currently registered.</summary>
     bool IsEnabled { get; }
 
     /// <summary>
-    /// Définit les raccourcis à enregistrer. Prend effet immédiatement si les
-    /// raccourcis sont actifs.
+    /// Sets the hotkeys to register. Takes effect immediately if
+    /// the hotkeys are active.
     /// </summary>
     /// <returns>
-    /// Actions dont le raccourci a été refusé par le système, généralement
-    /// parce qu'un autre logiciel le détient déjà.
+    /// Actions whose hotkey was refused by the system, usually
+    /// because another program already holds it.
     /// </returns>
     Task<IReadOnlyList<HotkeyAction>> ApplyAsync(HotkeySet hotkeys);
 
-    /// <summary>Active ou désactive l'interception.</summary>
+    /// <summary>Enables or disables interception.</summary>
     Task SetEnabledAsync(bool enabled);
 }

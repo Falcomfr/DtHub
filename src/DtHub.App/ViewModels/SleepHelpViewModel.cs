@@ -7,9 +7,10 @@ using DtHub.Core.Guidance;
 namespace DtHub.App.ViewModels;
 
 /// <summary>
-/// Comment empêcher Android d'endormir le jeu. Comme pour la duplication, le
-/// réglage existe partout mais chaque constructeur l'a nommé autrement et
-/// rangé ailleurs, et plusieurs en ajoutent un second.
+/// How to prevent Android from putting the game to sleep. As with
+/// app duplication, the setting exists everywhere but each
+/// manufacturer has named it differently and put it somewhere else,
+/// and several add a second one.
 /// </summary>
 public sealed partial class SleepHelpViewModel : ObservableObject
 {
@@ -21,7 +22,10 @@ public sealed partial class SleepHelpViewModel : ObservableObject
         _brand = PhoneBrands.Standard;
     }
 
-    /// <summary>Marques proposées, regroupées quand la procédure est la même.</summary>
+    /// <summary>
+    /// Brands offered, grouped together when the procedure is the
+    /// same.
+    /// </summary>
     public IReadOnlyList<PhoneBrand> Brands { get; } = PhoneBrands.All;
 
     [ObservableProperty]
@@ -29,7 +33,7 @@ public sealed partial class SleepHelpViewModel : ObservableObject
 
     public bool HasNote => !string.IsNullOrWhiteSpace(Brand.BatteryNote);
 
-    /// <summary>Présélectionne la marque de l'appareil branché.</summary>
+    /// <summary>Preselects the brand of the connected device.</summary>
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -47,7 +51,7 @@ public sealed partial class SleepHelpViewModel : ObservableObject
         }
         catch (AdbException)
         {
-            // Sans appareil joignable, la procédure standard fait l'affaire.
+            // Without a reachable device, the standard procedure will do.
         }
     }
 

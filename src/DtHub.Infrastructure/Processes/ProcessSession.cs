@@ -8,9 +8,10 @@ using DtHub.Core.Processes;
 namespace DtHub.Infrastructure.Processes;
 
 /// <summary>
-/// Processus durable dont la sortie est publiée ligne par ligne dans un canal.
-/// Aucune console n'apparaît, et les deux flux sont lus en continu pour ne
-/// jamais bloquer le processus fils sur un tampon plein.
+/// Durable process whose output is published line by line into a
+/// channel. No console window appears, and both streams are read
+/// continuously so the child process is never blocked on a full
+/// buffer.
 /// </summary>
 public sealed class ProcessSession : IProcessSession
 {
@@ -40,9 +41,9 @@ public sealed class ProcessSession : IProcessSession
             }
             catch (InvalidOperationException)
             {
-                // Silence assumé : un processus dont on ne peut plus lire
-                // l'état ne tourne plus. Répondre « vivant » retiendrait la
-                // session indéfiniment.
+                // Silence is intentional: a process whose state can
+                // no longer be read is no longer running. Answering
+                // "alive" would keep the session around indefinitely.
                 return true;
             }
         }
@@ -52,7 +53,9 @@ public sealed class ProcessSession : IProcessSession
 
     public ChannelReader<ProcessOutputLine> Output => _channel.Reader;
 
-    /// <summary>Démarre le processus et commence aussitôt à lire ses sorties.</summary>
+    /// <summary>
+    /// Starts the process and immediately begins reading its output.
+    /// </summary>
     public static ProcessSession Start(ProcessRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -113,8 +116,9 @@ public sealed class ProcessSession : IProcessSession
 
         session.ProcessId = process.Id;
 
-        // Rattaché tout de suite : si l'application meurt sans passer par sa
-        // fermeture propre, Windows arrêtera ce processus avec elle.
+        // Attached right away: if the application dies without
+        // going through its clean shutdown, Windows will stop this
+        // process along with it.
         ChildProcessJob.Adopt(process.Handle);
 
         process.BeginOutputReadLine();
@@ -132,18 +136,19 @@ public sealed class ProcessSession : IProcessSession
         {
             if (!_process.HasExited)
             {
-                // Volontairement sans l'arbre de processus : scrcpy a pu
-                // démarrer le serveur ADB, partagé avec toute la machine.
+                // Deliberately without the process tree: scrcpy may
+                // have started the ADB server, which is shared with
+                // the whole machine.
                 _process.Kill(entireProcessTree: false);
             }
         }
         catch (InvalidOperationException)
         {
-            // Le processus n'existe plus.
+            // The process no longer exists.
         }
         catch (System.ComponentModel.Win32Exception)
         {
-            // Terminaison déjà en cours côté système.
+            // Termination already in progress on the system side.
         }
     }
 
@@ -156,15 +161,17 @@ public sealed class ProcessSession : IProcessSession
 
         Kill();
 
-        // Laisser au processus le temps de rendre la main avant de libérer le
-        // handle, sans quoi le code de retour serait perdu.
+        // Give the process time to hand back control before
+        // releasing the handle, otherwise the return code would be
+        // lost.
         try
         {
             await _exited.Task.WaitAsync(TimeSpan.FromSeconds(5), CancellationToken.None).ConfigureAwait(false);
         }
         catch (TimeoutException)
         {
-            // Le processus n'a pas rendu la main : on libère quand même.
+            // The process did not hand back control: we release it
+            // anyway.
         }
 
         _channel.Writer.TryComplete();
@@ -175,8 +182,8 @@ public sealed class ProcessSession : IProcessSession
     {
         if (data is null)
         {
-            // Fin d'un flux : le canal ne se ferme que lorsque les deux sont
-            // épuisés, sinon des lignes seraient perdues.
+            // End of a stream: the channel only closes once both are
+            // exhausted, otherwise lines would be lost.
             if (Interlocked.Decrement(ref _openStreams) == 0)
             {
                 _channel.Writer.TryComplete();
@@ -197,14 +204,17 @@ public sealed class ProcessSession : IProcessSession
         }
         catch (InvalidOperationException)
         {
-            // Code indisponible : on rend -1, ce qui vaut échec.
+            // Code unavailable: we return -1, which counts as
+            // failure.
         }
 
         _exited.TrySetResult(code);
     }
 }
 
-/// <summary>Lanceur de processus durables adossé à <see cref="ProcessSession"/>.</summary>
+/// <summary>
+/// Launcher for durable processes backed by <see cref="ProcessSession"/>.
+/// </summary>
 public sealed class ProcessLauncher : IProcessLauncher
 {
     public IProcessSession Start(ProcessRequest request) => ProcessSession.Start(request);

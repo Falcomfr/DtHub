@@ -4,47 +4,54 @@ using System.Resources;
 namespace DtHub.Core.Localization;
 
 /// <summary>
-/// Les textes montrés à l'utilisateur, dans la langue courante.
+/// The text shown to the user, in the current language.
 ///
-/// Les ressources vivent dans ce projet et non dans celui de l'interface :
-/// les deux tiers du texte visible sont écrits ici, dans le domaine, et un
-/// jeu de ressources logé côté fenêtres leur serait hors d'atteinte.
+/// The resources live in this project and not in the interface
+/// one: two thirds of the visible text is written here, in the
+/// domain, and a resource set hosted on the windows side would be
+/// out of their reach.
 ///
-/// La clé manquante se rend telle quelle plutôt que de lever : une étiquette
-/// bizarre à l'écran vaut mieux qu'une fenêtre qui ne s'ouvre pas, et
-/// <c>StringsResourceTests</c> garantit qu'aucune ne manque.
+/// A missing key is returned as-is rather than throwing: a strange
+/// label on screen is better than a window that does not open, and
+/// <c>StringsResourceTests</c> guarantees that none are missing.
 /// </summary>
 public static class Strings
 {
     private static readonly ResourceManager Manager =
         new("DtHub.Core.Localization.Strings", typeof(Strings).Assembly);
 
-    /// <summary>Rend le texte de cette clé dans la langue de l'interface.</summary>
+    /// <summary>
+    /// Returns the text of this key in the interface language.
+    /// </summary>
     public static string Get(string key)
         => Manager.GetString(key, CultureInfo.CurrentUICulture) ?? key;
 
     /// <summary>
-    /// Rend le texte de cette clé, ou <c>null</c> si elle n'est pas déclarée.
-    /// Sert aux textes facultatifs, où l'absence est une réponse : une fiche de
-    /// marque qui n'a pas d'avertissement particulier n'en affiche pas.
+    /// Returns the text of this key, or <c>null</c> if it is not
+    /// declared. Used for optional text, where absence is itself an
+    /// answer: a brand sheet with no particular warning does not
+    /// show one.
     /// </summary>
     public static string? Optional(string key)
         => Manager.GetString(key, CultureInfo.CurrentUICulture);
 
     /// <summary>
-    /// Rend le texte de cette clé, ses trous remplis. Les nombres et les dates
-    /// y prennent le format du pays, qui est un réglage distinct de la langue.
+    /// Returns the text of this key, with its placeholders filled
+    /// in. Numbers and dates take the country's format there, which
+    /// is a setting distinct from the language.
     /// </summary>
     public static string Format(string key, params object?[] arguments)
         => string.Format(CultureInfo.CurrentCulture, Get(key), arguments);
 
     /// <summary>
-    /// Rend le texte de cette clé dans une langue nommée. Sert aux épreuves,
-    /// qui doivent pouvoir lire une langue sans changer celle du fil.
+    /// Returns the text of this key in a named language. Used by
+    /// tests, which must be able to read a language without
+    /// changing the thread's own.
     ///
-    /// Le nom diffère de <see cref="Get(string)"/> à dessein : en surcharge,
-    /// l'analyse exigerait de passer une culture partout, alors que suivre
-    /// celle de l'interface est justement ce qu'on veut à l'écran.
+    /// The name differs from <see cref="Get(string)"/> on purpose:
+    /// as an overload, analysis would require passing a culture
+    /// everywhere, while following the interface's own is exactly
+    /// what is wanted on screen.
     /// </summary>
     public static string GetIn(string key, CultureInfo culture)
         => Manager.GetString(key, culture) ?? key;

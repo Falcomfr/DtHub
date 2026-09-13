@@ -4,49 +4,56 @@ using DtHub.Core.Localization;
 
 namespace DtHub.Core.Settings;
 
-/// <summary>Ce que vaut un débit, une fois rapporté à ce qu'il doit couvrir.</summary>
+/// <summary>
+/// What a bitrate is worth, once weighed against what it must cover.
+/// </summary>
 public enum BitrateVerdict
 {
-    /// <summary>L'image se délitera dès que la scène bouge.</summary>
+    /// <summary>
+    /// The image will fall apart as soon as the scene moves.
+    /// </summary>
     Insufficient,
 
-    /// <summary>Regardable, mais les mouvements rapides marqueront.</summary>
+    /// <summary>Watchable, but fast movement will show artifacts.</summary>
     Tight,
 
-    /// <summary>Le bon compromis.</summary>
+    /// <summary>The good compromise.</summary>
     Comfortable,
 
-    /// <summary>Au-delà de ce que l'oeil distingue : du réseau dépensé pour rien.</summary>
+    /// <summary>
+    /// Beyond what the eye can make out: network spent for nothing.
+    /// </summary>
     Generous,
 }
 
 /// <summary>
-/// Juge un débit à l'aune de ce qu'il doit couvrir : une définition et une
-/// cadence.
+/// Judges a bitrate against what it must cover: a resolution and a
+/// frame rate.
 ///
-/// Un débit nu ne veut rien dire. Seize mégabits sont généreux en 720p et
-/// misérables en 2160p, et c'est précisément l'erreur dans laquelle ce projet
-/// est tombé : les paliers de qualité avaient le débit à l'envers, « maximale »
-/// recevant cinq fois et demie moins de bits par pixel que « basse ». Personne
-/// ne l'avait vu, parce que les nombres pris un à un semblaient tous
-/// raisonnables.
+/// A bare bitrate means nothing. Sixteen megabits are generous at 720p
+/// and miserable at 2160p, and that is exactly the mistake this project
+/// fell into: the quality tiers had the bitrate backwards, "maximum"
+/// receiving five and a half times fewer bits per pixel than "low".
+/// Nobody had noticed, because the numbers taken one by one all seemed
+/// reasonable.
 ///
-/// La mesure qui compte est le <b>bit par pixel et par image</b>, celle que
-/// l'encodeur reçoit vraiment. Les références publiées par YouTube pour du
-/// H.264 de bonne facture tournent toutes autour de 0,10 : 12 Mb/s en 1080p60
-/// donnent 0,096, 24 en 1440p60 donnent 0,108, 53 en 2160p60 donnent 0,106.
-/// C'est de là que viennent les seuils.
+/// The measure that matters is the <b>bit per pixel per frame</b>, the
+/// one the encoder actually receives. The reference values published by
+/// YouTube for well-made H.264 all sit around 0.10: 12 Mb/s at 1080p60
+/// gives 0.096, 24 at 1440p60 gives 0.108, 53 at 2160p60 gives 0.106.
+/// That is where the thresholds come from.
 /// </summary>
 public static class BitrateAdvice
 {
     /// <summary>
-    /// Ce que H.265 rend pour un même débit, comparé à H.264.
+    /// What H.265 gives for the same bitrate, compared to H.264.
     ///
-    /// À qualité égale, H.265 demande environ un tiers de bits en moins. Sans
-    /// en tenir compte, le verdict punirait le bon choix : un utilisateur qui
-    /// passe à H.265 verrait son réglage se faire traiter de juste alors qu'il
-    /// vient de l'améliorer. La valeur est un ordre de grandeur admis, pas une
-    /// mesure faite ici, et elle ne sert qu'à nuancer une appréciation.
+    /// At equal quality, H.265 needs about a third fewer bits. Without
+    /// accounting for it, the verdict would punish the right choice: a
+    /// user who switches to H.265 would see their setting labeled as
+    /// merely adequate just after improving it. The value is an
+    /// accepted order of magnitude, not a measurement made here, and it
+    /// only serves to nuance an assessment.
     /// </summary>
     public const double Hevc = 0.65;
 
@@ -55,10 +62,10 @@ public static class BitrateAdvice
     private const double Generous = 0.160;
 
     /// <summary>
-    /// Lit un réglage et rend de quoi l'afficher tel quel.
+    /// Reads a setting and returns what is needed to display it as is.
     ///
-    /// Les valeurs aberrantes ne lèvent pas : le panneau appelle cette fonction
-    /// à chaque frappe, y compris sur un champ à demi effacé.
+    /// Outlandish values do not throw: the panel calls this function on
+    /// every keystroke, including on a half-erased field.
     /// </summary>
     public static BitrateReading Read(int width, int height, int fps, int kbps, string? codec = null)
     {
@@ -69,27 +76,32 @@ public static class BitrateAdvice
 
         var raw = kbps * 1000.0 / ((double)width * height * fps);
 
-        // Rapporté à H.264, qui est l'étalon des seuils : à débit égal, H.265
-        // en donne davantage, et le verdict doit le refléter.
+        // Weighed against H.264, which is the threshold reference: at
+        // equal bitrate, H.265 gives more, and the verdict must
+        // reflect that.
         var effective = IsHevc(codec) ? raw / Hevc : raw;
 
         return new BitrateReading(raw, effective, Judge(raw, codec), Sentence(raw, Judge(raw, codec)));
     }
 
     /// <summary>
-    /// Ce qu'une finesse choisie donnera vraiment, une fois rapportée à la
-    /// définition, à la cadence, et <b>au nombre de fenêtres ouvertes</b>.
+    /// What a chosen detail level will really give, once weighed
+    /// against the resolution, the frame rate, and <b>the number of
+    /// open windows</b>.
     ///
-    /// Ce dernier point est propre à cette application, et c'est lui qui
-    /// distingue le conseil d'un simple calcul : plusieurs comptes ouverts, ce
-    /// sont plusieurs flux sur la même liaison et le même encodeur. Juger un
-    /// flux isolé dirait « confortable » pendant que le téléphone s'étrangle.
+    /// This last point is specific to this application, and it is what
+    /// sets the advice apart from a plain calculation: several open
+    /// accounts mean several streams on the same link and the same
+    /// encoder. Judging a single stream in isolation would say
+    /// "comfortable" while the phone chokes.
     /// </summary>
     /// <param name="windows">
-    /// Fenêtres ouvertes sur le téléphone. Zéro et une donnent le même compte :
-    /// on annonce alors ce que coûtera la première.
+    /// Windows open on the phone. Zero and one give the same count:
+    /// what is announced then is what the first one will cost.
     /// </param>
-    /// <param name="ceilingKbps">Plafond du profil, qui borne chaque flux.</param>
+    /// <param name="ceilingKbps">
+    /// Ceiling of the profile, which bounds each stream.
+    /// </param>
     public static BitratePlan Plan(
         double bitsPerPixel,
         int width,
@@ -113,9 +125,9 @@ public static class BitrateAdvice
 
         var count = Math.Max(1, windows);
 
-        // La finesse servie peut être moindre que celle demandée : le plafond
-        // rabote les grandes définitions. C'est celle-là qu'il faut juger, non
-        // celle qui a été cochée.
+        // The detail level served can be lower than the one requested:
+        // the ceiling trims down large resolutions. That is the one
+        // that must be judged, not the one that was checked.
         var served = perWindow * 1000.0 / pixels;
         var verdict = Judge(served, codec);
 
@@ -127,7 +139,7 @@ public static class BitrateAdvice
             LinkSentence(perWindow, count));
     }
 
-    /// <summary>Mot du verdict, tel qu'il s'affiche.</summary>
+    /// <summary>The verdict's word, as it is displayed.</summary>
     public static string Label(BitrateVerdict verdict) => verdict switch
     {
         BitrateVerdict.Insufficient => Strings.Get("BitrateInsufficient"),
@@ -140,8 +152,9 @@ public static class BitrateAdvice
         codec is not null && codec.Trim().Equals("h265", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
-    /// Le verdict, une fois la finesse ramenée à ce que H.264 aurait demandé
-    /// pour le même rendu : c'est lui l'étalon des seuils.
+    /// The verdict, once the detail level is brought back to what
+    /// H.264 would have asked for the same output: that is the
+    /// threshold reference.
     /// </summary>
     private static BitrateVerdict Judge(double bitsPerPixel, string? codec) =>
         (IsHevc(codec) ? bitsPerPixel / Hevc : bitsPerPixel) switch
@@ -153,24 +166,27 @@ public static class BitrateAdvice
         };
 
     /// <summary>
-    /// Ce que la liaison recevra. Le total ne paraît qu'à partir de deux
-    /// fenêtres : à une seule, le répéter ne dirait rien de plus.
+    /// What the link will receive. The total only appears from two
+    /// windows onward: with just one, repeating it would say nothing
+    /// more.
     /// </summary>
     private static string LinkSentence(int perWindowKbps, int windows)
     {
         var each = perWindowKbps / 1000.0;
 
-        // Le format des nombres suit le pays et non la langue : « 8,4 » en
-        // France, « 8.4 » aux États-Unis, et ce sont deux réglages distincts
-        // de Windows. Strings.Format s'en charge.
+        // Number formatting follows the country, not the language:
+        // "8,4" in France, "8.4" in the United States, and these are
+        // two separate Windows settings. Strings.Format takes care of
+        // it.
         return windows <= 1
             ? Strings.Format("BitrateLinkOne", Arrondi(each))
             : Strings.Format("BitrateLinkMany", Arrondi(each), Arrondi(each * windows), windows);
     }
 
     /// <summary>
-    /// La phrase montrée sous les réglages. En français explicite : la virgule
-    /// décimale n'est pas un détail quand le nombre tient en trois chiffres.
+    /// The sentence shown under the settings. Explicit about locale:
+    /// the decimal comma is not a detail when the number holds in
+    /// three digits.
     /// </summary>
     private static string Sentence(double bitsPerPixel, BitrateVerdict verdict) =>
         Strings.Format(
@@ -178,21 +194,25 @@ public static class BitrateAdvice
             bitsPerPixel.ToString("0.000", CultureInfo.CurrentCulture),
             Label(verdict));
 
-    /// <summary>Un mégabit à la décimale près, dans le format du pays.</summary>
+    /// <summary>
+    /// A megabit to the nearest decimal, in the country's format.
+    /// </summary>
     private static string Arrondi(double megabits) =>
         megabits.ToString("0.#", CultureInfo.CurrentCulture);
 }
 
 /// <summary>
-/// Ce que rend <see cref="BitrateAdvice.Read"/>.
+/// What <see cref="BitrateAdvice.Read"/> returns.
 /// </summary>
-/// <param name="BitsPerPixel">La mesure brute, telle quelle.</param>
+/// <param name="BitsPerPixel">The raw measurement, as is.</param>
 /// <param name="EffectiveBitsPerPixel">
-/// La même, ramenée à ce que H.264 aurait demandé pour ce rendu. C'est elle qui
-/// décide du verdict.
+/// The same value, brought back to what H.264 would have asked for
+/// this rendering. It is the one that decides the verdict.
 /// </param>
-/// <param name="Verdict">L'appréciation.</param>
-/// <param name="Summary">La phrase à afficher, vide si le réglage est incomplet.</param>
+/// <param name="Verdict">The assessment.</param>
+/// <param name="Summary">
+/// The sentence to display, empty if the setting is incomplete.
+/// </param>
 public readonly record struct BitrateReading(
     double BitsPerPixel,
     double EffectiveBitsPerPixel,
@@ -200,13 +220,19 @@ public readonly record struct BitrateReading(
     string Summary);
 
 /// <summary>
-/// Ce que rend <see cref="BitrateAdvice.Plan"/>.
+/// What <see cref="BitrateAdvice.Plan"/> returns.
 /// </summary>
-/// <param name="Verdict">L'appréciation de la finesse réellement servie.</param>
-/// <param name="KbpsPerWindow">Le débit demandé pour une fenêtre.</param>
-/// <param name="TotalKbps">Ce que toutes les fenêtres demanderont ensemble.</param>
-/// <param name="Summary">La finesse et son verdict, à afficher.</param>
-/// <param name="LinkSummary">Ce que la liaison recevra, à afficher.</param>
+/// <param name="Verdict">
+/// The assessment of the detail level actually served.
+/// </param>
+/// <param name="KbpsPerWindow">The bitrate requested for one window.</param>
+/// <param name="TotalKbps">
+/// What all the windows will request together.
+/// </param>
+/// <param name="Summary">
+/// The detail level and its verdict, to display.
+/// </param>
+/// <param name="LinkSummary">What the link will receive, to display.</param>
 public readonly record struct BitratePlan(
     BitrateVerdict Verdict,
     int KbpsPerWindow,

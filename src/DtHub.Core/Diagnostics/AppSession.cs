@@ -1,29 +1,32 @@
 ﻿namespace DtHub.Core.Diagnostics;
 
 /// <summary>
-/// L'identifiant de ce lancement, porté par chaque ligne de journal.
+/// The identifier of this launch, carried by every log line.
 ///
-/// Le gabarit n'en avait aucun, et quatre cent huit démarrages relevés en six
-/// jours se mêlaient dans sept fichiers. Un rapport qui prend « les dernières
-/// lignes » emportait donc les fautes de la veille, et celui qui prend « les
-/// erreurs du fichier » en emportait des centaines sans rapport.
+/// The template had none, and four hundred and eight startups
+/// recorded over six days got mixed together in seven files. A
+/// report that takes "the last lines" would then carry off the
+/// previous day's errors, and one that takes "the errors in the
+/// file" would carry off hundreds that were unrelated.
 ///
-/// Six caractères suffisent : l'identifiant ne sert qu'à découper un fichier
-/// d'une journée, non à distinguer deux machines. Il ne dit rien de personne :
-/// il est tiré au hasard à chaque lancement et ne survit pas à la fermeture.
+/// Six characters are enough: the identifier is only used to split a
+/// single day's file, not to tell two machines apart. It reveals
+/// nothing about anyone: it is drawn at random on each launch and
+/// does not survive being closed.
 /// </summary>
 public static class AppSession
 {
-    /// <summary>Longueur de l'identifiant.</summary>
+    /// <summary>Length of the identifier.</summary>
     public const int Length = 6;
 
-    /// <summary>L'identifiant de ce lancement.</summary>
+    /// <summary>The identifier of this launch.</summary>
     public static string Id { get; } = Mint();
 
     private static string Mint()
     {
-        // Sans lettre ambiguë ni voyelle : un identifiant qu'on relit dans un
-        // journal ne doit ni se confondre avec un mot ni se lire de travers.
+        // Without any ambiguous letter or vowel: an identifier that
+        // gets read back in a log must neither be mistaken for a
+        // word nor be misread.
         const string alphabet = "0123456789bcdfghjkmnpqrstvwxz";
 
         return string.Create(

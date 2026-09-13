@@ -8,16 +8,16 @@ using Microsoft.Extensions.Logging;
 namespace DtHub.Infrastructure.Updates;
 
 /// <summary>
-/// Les livraisons publiées sur le dépôt.
+/// Releases published on the repository.
 ///
-/// Sans jeton : l'API du dépôt rend les livraisons publiques à qui les demande,
-/// soixante fois par heure et par adresse, ce qui dépasse de loin une
-/// vérification par démarrage. Un jeton posé dans l'exécutable serait de toute
-/// façon lisible par qui l'ouvre.
+/// No token: the repository's API returns public releases to
+/// anyone who asks, sixty times per hour and per address, which is
+/// far more than a check per startup. A token embedded in the
+/// executable would be readable by anyone who opened it anyway.
 ///
-/// Rien de ce qui rate ici n'est une panne : pas de réseau, dépôt encore
-/// absent, quota atteint, l'application continue sans mise à jour. C'est un
-/// service de confort, pas une dépendance.
+/// Nothing that fails here is an outage: no network, repository not
+/// yet there, quota reached, the application keeps running without
+/// an update. This is a convenience service, not a dependency.
 /// </summary>
 public sealed partial class GitHubReleaseSource(
     HttpClient client,
@@ -39,7 +39,8 @@ public sealed partial class GitHubReleaseSource(
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
 
-            // L'API refuse une demande anonyme : elle veut savoir qui parle.
+            // The API refuses an anonymous request: it wants to
+            // know who is speaking.
             request.Headers.UserAgent.Add(new ProductInfoHeaderValue("DtHub", "1.0"));
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
 
@@ -49,8 +50,9 @@ public sealed partial class GitHubReleaseSource(
 
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
-                // Ni dépôt ni livraison : l'application est simplement seule au
-                // monde, ce qui est le cas tant que rien n'est publié.
+                // Neither repository nor release: the application
+                // is simply alone in the world, which is the case
+                // as long as nothing is published.
                 return null;
             }
 

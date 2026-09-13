@@ -15,18 +15,19 @@ using Serilog;
 namespace DtHub.App.Services;
 
 /// <summary>
-/// Ce qu'on fait d'une faute que personne n'a rattrapée.
+/// What we do with a fault that nobody caught.
 ///
-/// Quatre portes y mènent : le fil d'interface, le domaine, une tâche dont
-/// personne n'attendait le résultat, et le garde-fou du démarrage. Elles
-/// vivaient au milieu du point d'entrée de l'application, avec la séquence de
-/// démarrage, celle d'arrêt et la place unique, quatre métiers qui ne se
-/// parlent pas. Ici, elles se lisent d'un bloc.
+/// Four doors lead here: the interface thread, the domain, a task
+/// whose result nobody was waiting for, and the startup safety net.
+/// They used to live in the middle of the application's entry point,
+/// along with the startup sequence, the shutdown sequence and the
+/// single-instance guard, four unrelated concerns that do not talk to
+/// each other. Here, they can be read as one block.
 ///
-/// La classe ne connaît ni l'hôte ni les fenêtres : elle les demande au moment
-/// où elle en a besoin. C'est ce qui lui permet de servir aussi quand la
-/// construction du conteneur a échoué, cas où le message qu'elle affiche est le
-/// seul que la personne verra.
+/// The class knows neither the host nor the windows: it asks for them
+/// at the moment it needs them. That is what lets it also serve when
+/// the container's construction has failed, a case where the message
+/// it shows is the only one the person will see.
 /// </summary>
 internal sealed class FaultReporting
 {
@@ -34,11 +35,11 @@ internal sealed class FaultReporting
     private readonly Func<Window?> _owner;
 
     /// <param name="services">
-    /// Le conteneur, ou <c>null</c> tant qu'il n'existe pas.
+    /// The container, or <c>null</c> for as long as it does not exist.
     /// </param>
     /// <param name="owner">
-    /// La fenêtre qui doit porter la boîte, ou <c>null</c> s'il n'y en a pas de
-    /// visible.
+    /// The window that must carry the box, or <c>null</c> if there is
+    /// no visible one.
     /// </param>
     public FaultReporting(Func<IServiceProvider?> services, Func<Window?> owner)
     {
@@ -46,7 +47,9 @@ internal sealed class FaultReporting
         _owner = owner;
     }
 
-    /// <summary>Branche les trois gardes qui ne passent pas par le démarrage.</summary>
+    /// <summary>
+    /// Wires up the three guards that do not go through startup.
+    /// </summary>
     public void Arm(Application application)
     {
         ArgumentNullException.ThrowIfNull(application);
@@ -58,16 +61,16 @@ internal sealed class FaultReporting
 
     private void OnDispatcherException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        // L'interface reste vivante : une erreur d'affichage ne doit pas
-        // fermer les fenêtres de jeu.
+        // The interface stays alive: a display error must not close
+        // the game windows.
         e.Handled = true;
         Show(e.Exception, Strings.Get("UnexpectedError"));
     }
 
     /// <summary>
-    /// Une faute que personne n'a rattrapée. Le processus s'arrête après :
-    /// ouvrir une fenêtre ici n'aboutirait pas toujours, mais la retenir permet
-    /// au rapport du prochain démarrage de la porter.
+    /// A fault that nobody caught. The process stops afterward:
+    /// opening a window here would not always succeed, but recording
+    /// it lets the next startup's report carry it.
     /// </summary>
     private void OnDomainException(object sender, UnhandledExceptionEventArgs e)
     {
@@ -79,8 +82,9 @@ internal sealed class FaultReporting
     }
 
     /// <summary>
-    /// Une tâche a échoué sans que personne n'attende son résultat. C'est par
-    /// là que passent ADB, scrcpy et le réseau, et cela ne se voyait pas.
+    /// A task failed without anyone waiting for its result. This is
+    /// where ADB, scrcpy and the network pass through, and it used to
+    /// go unseen.
     /// </summary>
     private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
@@ -90,8 +94,9 @@ internal sealed class FaultReporting
     }
 
     /// <summary>
-    /// Retient une faute pour le rapport et pour la ligne du panneau. Muet si
-    /// l'hôte n'est pas encore là : au tout début, le journal suffit.
+    /// Records a fault for the report and for the panel's line. Silent
+    /// if the host is not there yet: at the very start, the log is
+    /// enough.
     /// </summary>
     public void Note(Exception exception, string headline)
     {
@@ -105,15 +110,16 @@ internal sealed class FaultReporting
 
 
     /// <summary>
-    /// Montre une faute et donne de quoi la raconter.
+    /// Shows a fault and gives something to describe it with.
     ///
-    /// La boîte d'avant affichait le chemin du dossier de journaux et un bouton
-    /// « OK ». Le message de l'exception, qui dit ce qui s'est passé, n'y
-    /// atteignait jamais l'écran, et il n'y avait rien à envoyer à personne.
+    /// The previous box showed the path to the logs folder and an
+    /// "OK" button. The exception's message, which says what
+    /// happened, never made it to the screen, and there was nothing
+    /// to send to anyone.
     ///
-    /// Le repli sur une boîte simple est gardé : si la fenêtre de signalement
-    /// ne peut pas s'ouvrir, ce qui arrive quand la faute vient du démarrage
-    /// lui-même, il vaut mieux une phrase que rien.
+    /// The fallback to a simple box is kept: if the reporting window
+    /// cannot open, which happens when the fault comes from startup
+    /// itself, a sentence is better than nothing.
     /// </summary>
     public void Show(Exception exception, string headline)
     {
@@ -121,10 +127,11 @@ internal sealed class FaultReporting
 
         var services = _services();
 
-        // Pas par le conteneur : quand c'est sa construction qui a échoué, il
-        // n'y a rien à lui demander, et c'est justement le cas où le message
-        // qui suit est le seul que la personne verra. AppPaths ne fait que
-        // calculer des chemins, il ne crée rien.
+        // Not through the container: when it is its own construction
+        // that failed, there is nothing to ask it, and this is
+        // precisely the case where the message that follows is the
+        // only one the person will see. AppPaths only computes paths,
+        // it creates nothing.
         var logs = services?.GetService<IAppPaths>()?.LogsDirectory
             ?? Quietly(static () => new AppPaths().LogsDirectory);
 
@@ -145,15 +152,16 @@ internal sealed class FaultReporting
         }
         catch (Exception second) when (second is not OutOfMemoryException)
         {
-            // La fenêtre de signalement a échoué à son tour. On ne repart pas
-            // dans le même chemin : la boîte du système, elle, s'ouvrira.
+            // The reporting window has in turn failed. We do not go
+            // down the same path again: the system's box will open.
             Log.Error(second, "La fenêtre de signalement n'a pas pu s'ouvrir.");
         }
 
-        // La boîte du système, en dernier recours. Elle ne montrait que le
-        // titre : « Le démarrage a échoué », sans dire de quoi. Le message de
-        // l'exception est le seul indice quand le journal n'a pas pu naître,
-        // ce qui est précisément le cas d'un dossier de données inaccessible.
+        // The system's box, as a last resort. It used to show only
+        // the title: "Startup failed", without saying of what. The
+        // exception's message is the only clue when the log could not
+        // come into being, which is precisely the case of an
+        // inaccessible data folder.
         MessageBox.Show(
             headline
                 + Environment.NewLine + Environment.NewLine + exception.Message
@@ -163,7 +171,7 @@ internal sealed class FaultReporting
             MessageBoxImage.Warning);
     }
 
-    /// <summary>Ce que rend l'appel, ou <c>null</c> s'il échoue.</summary>
+    /// <summary>What the call returns, or <c>null</c> if it fails.</summary>
     private static string? Quietly(Func<string> read)
     {
         try
@@ -172,8 +180,9 @@ internal sealed class FaultReporting
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            // Un dernier recours qui lève laisserait la personne sans message
-            // du tout : c'est le seul endroit où le silence est le bon choix.
+            // A last resort that throws would leave the person with no
+            // message at all: this is the one place where silence is
+            // the right choice.
             return null;
         }
     }

@@ -6,14 +6,16 @@ using DtHub.Infrastructure.Dependencies;
 namespace DtHub.App.Services;
 
 /// <summary>
-/// Sait quels composants tiers manquent, et les met en place.
+/// Knows which third-party components are missing, and sets them
+/// up.
 ///
-/// Ils arrivaient jusqu'ici par accident : le ramassage des fenêtres restées
-/// demandait le chemin de scrcpy, et le lancement des instances demandait celui
-/// d'ADB. Dix-neuf mégaoctets se téléchargeaient donc avant la première
-/// fenêtre, sans que rien ne l'annonce, avec un délai réseau réglé à dix
-/// minutes. Le premier lancement passe désormais par ici, où la mise en place
-/// est demandée pour elle-même et peut se montrer.
+/// Until now they arrived by accident: cleaning up leftover
+/// windows needed scrcpy's path, and launching instances needed
+/// ADB's. Nineteen megabytes were therefore downloaded before the
+/// first window, with nothing announcing it, with a network
+/// timeout set to ten minutes. The first launch now goes through
+/// here, where the setup is requested for its own sake and can be
+/// shown.
 /// </summary>
 public sealed class ToolPreparation
 {
@@ -32,8 +34,9 @@ public sealed class ToolPreparation
     }
 
     /// <summary>
-    /// Les composants absents, dans l'ordre où ils serviront. Liste vide à tous
-    /// les lancements sauf le premier, et alors rien ne doit s'afficher.
+    /// The missing components, in the order they will be used.
+    /// Empty list on every launch except the first, and then
+    /// nothing should be displayed.
     /// </summary>
     public IReadOnlyList<ExternalDependency> Missing()
     {
@@ -53,12 +56,13 @@ public sealed class ToolPreparation
     }
 
     /// <summary>
-    /// Met un composant en place. Le provisionneur est appelé directement
-    /// plutôt que par les localisateurs : eux ne savent pas rendre compte de
-    /// l'avancement, et ils retrouveront le fichier posé sans rien retélécharger.
+    /// Sets up a component. The provisioner is called directly
+    /// rather than through the locators: they cannot report
+    /// progress, and they will find the file already in place
+    /// without downloading it again.
     /// </summary>
     /// <exception cref="DependencyProvisioningException">
-    /// Téléchargement impossible, empreinte non conforme, ou extraction en échec.
+    /// Download impossible, hash mismatch, or extraction failed.
     /// </exception>
     public Task<string> InstallAsync(
         ExternalDependency dependency,

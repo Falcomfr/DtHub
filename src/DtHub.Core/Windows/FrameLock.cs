@@ -1,28 +1,31 @@
 ﻿namespace DtHub.Core.Windows;
 
 /// <summary>
-/// Dit si le cadre à onglets doit rester où il est.
+/// States whether the tabbed frame should stay where it is.
 ///
-/// Le cadenas d'un compte promet que sa fenêtre « ne bougera plus lors d'un
-/// empilement, d'une mise côte à côte ou d'un changement de taille ». Logé dans
-/// le cadre, un compte n'a plus de géométrie à lui : c'est le cadre qui
-/// commande, et le redimensionner redimensionne forcément tout ce qu'il loge.
-/// Le verrou n'y protégeait donc de rien, alors que les deux bascules sont
-/// indépendantes et qu'un compte peut très bien être verrouillé et logé.
+/// An account's lock promises that its window "will no longer move
+/// on a stack, a side-by-side or a size change". Once housed in the
+/// frame, an account no longer has a geometry of its own: the frame
+/// is in charge, and resizing it necessarily resizes everything it
+/// holds. The lock therefore protected nothing there, even though
+/// the two toggles are independent and an account can very well be
+/// both locked and tabbed.
 ///
-/// La règle retenue est celle qui tient la promesse : **un seul compte logé
-/// verrouillé fige le cadre entier**. Un verrou est une protection, et un
-/// voisin ne lève pas la protection d'un autre. Le prix est assumé : un seul
-/// cadenas immobilise le cadre de tous ceux qui s'y trouvent.
+/// The rule adopted is the one that keeps the promise: **a single
+/// tabbed account that is locked freezes the whole frame**. A lock
+/// is a protection, and a neighbor does not lift another's
+/// protection. The cost is accepted: a single lock immobilizes the
+/// frame for everyone inside it.
 /// </summary>
 public static class FrameLock
 {
     /// <summary>
-    /// Vrai si le cadre doit être laissé en place par les commandes de
-    /// géométrie.
+    /// True if the frame must be left in place by geometry commands.
     /// </summary>
-    /// <param name="locked">Clefs des comptes dont la fenêtre est verrouillée.</param>
-    /// <param name="tabbed">Clefs des comptes logés dans le cadre.</param>
+    /// <param name="locked">
+    /// Keys of the accounts whose window is locked.
+    /// </param>
+    /// <param name="tabbed">Keys of the accounts housed in the frame.</param>
     public static bool Freezes(IEnumerable<string> locked, IEnumerable<string> tabbed)
     {
         ArgumentNullException.ThrowIfNull(locked);

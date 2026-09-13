@@ -1,31 +1,37 @@
 ﻿namespace DtHub.Core.Windows;
 
 /// <summary>
-/// Le partage de l'écran en deux moitiés, pour le rangement côte à côte.
+/// Splitting the screen into two halves, for side-by-side tiling.
 ///
-/// Sorti de <see cref="WindowManagerService"/> pour que le cadre à onglets
-/// puisse être rangé comme une fenêtre de jeu : le service ne connaît que des
-/// sessions, et le cadre n'en est pas une. Le calcul, lui, ne dépend de rien
-/// d'autre que de la zone utile et de ce qu'on range.
+/// Pulled out of <see cref="WindowManagerService"/> so the tabbed
+/// frame can be tiled like a game window: the service only knows
+/// sessions, and the frame is not one. The calculation itself
+/// depends on nothing other than the usable area and what is being
+/// tiled.
 /// </summary>
 public static class TileLayout
 {
     /// <summary>
-    /// La moitié d'écran qui revient à une fenêtre.
+    /// The half of the screen that goes to one window.
     ///
-    /// La référence prend la droite, tout le reste se pose à gauche : au-delà
-    /// de deux fenêtres, celles de gauche s'empilent. C'est la règle d'origine,
-    /// et elle vaut ce que vaut un écran partagé en deux.
+    /// The reference window takes the right side, everything else
+    /// lands on the left: beyond two windows, the ones on the left
+    /// stack up. This is the original rule, and it is worth what a
+    /// screen split in two is worth.
     ///
-    /// La hauteur suit le rapport de la source, appliqué à la zone client :
-    /// c'est elle que scrcpy remplit, et l'ignorer laisserait des bandes noires
-    /// de la largeur exacte du châssis. Sans rapport connu, la moitié est prise
-    /// sur toute la hauteur.
+    /// The height follows the source's aspect ratio, applied to the
+    /// client area: that is what scrcpy fills, and ignoring it would
+    /// leave black bars of the exact width of the frame chrome. With
+    /// no known ratio, the half is taken over the full height.
     /// </summary>
-    /// <param name="work">Zone utilisable de l'écran visé.</param>
-    /// <param name="onRight">Vrai pour la fenêtre de référence.</param>
-    /// <param name="aspectRatio">Rapport de la source, zéro s'il est inconnu.</param>
-    /// <param name="chrome">Encombrement du châssis, bordures et barres comprises.</param>
+    /// <param name="work">Usable area of the targeted screen.</param>
+    /// <param name="onRight">True for the reference window.</param>
+    /// <param name="aspectRatio">
+    /// Aspect ratio of the source, zero if unknown.
+    /// </param>
+    /// <param name="chrome">
+    /// Frame chrome size, borders and bars included.
+    /// </param>
     public static ScreenRect Half(
         ScreenRect work,
         bool onRight,

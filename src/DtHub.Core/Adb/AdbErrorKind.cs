@@ -1,66 +1,79 @@
 ﻿namespace DtHub.Core.Adb;
 
 /// <summary>
-/// Familles d'échecs ADB, telles qu'un utilisateur peut les comprendre. Sert à
-/// afficher un message utile et à décider si une action de rattrapage est
-/// possible, sans jamais montrer la sortie brute d'ADB dans l'interface.
+/// Families of ADB failures, as a user can understand them. Used to
+/// display a useful message and decide whether a recovery action is
+/// possible, without ever showing ADB's raw output in the interface.
 /// </summary>
 public enum AdbErrorKind
 {
     Unknown = 0,
 
-    /// <summary>Aucun appareil ne correspond au numéro de série demandé.</summary>
+    /// <summary>No device matches the requested serial number.</summary>
     DeviceNotFound,
 
-    /// <summary>L'appareil est connu mais ne répond pas.</summary>
+    /// <summary>The device is known but does not respond.</summary>
     DeviceOffline,
 
-    /// <summary>L'autorisation de débogage n'a pas été accordée sur le téléphone.</summary>
+    /// <summary>
+    /// Debugging authorization has not been granted on the phone.
+    /// </summary>
     DeviceUnauthorized,
 
-    /// <summary>Plusieurs appareils sont branchés et aucun n'a été désigné.</summary>
+    /// <summary>
+    /// Several devices are connected and none has been designated.
+    /// </summary>
     AmbiguousDevice,
 
-    /// <summary>La connexion réseau vers l'appareil a échoué.</summary>
+    /// <summary>The network connection to the device failed.</summary>
     ConnectionFailed,
 
-    /// <summary>Le code d'appairage a été refusé ou a expiré.</summary>
+    /// <summary>The pairing code was refused or expired.</summary>
     PairingFailed,
 
-    /// <summary>Le paquet demandé n'existe pas pour cet utilisateur Android.</summary>
+    /// <summary>
+    /// The requested package does not exist for this Android user.
+    /// </summary>
     PackageNotFound,
 
-    /// <summary>L'utilisateur Android visé n'existe pas ou n'est pas démarré.</summary>
+    /// <summary>
+    /// The targeted Android user does not exist or is not started.
+    /// </summary>
     UserNotAvailable,
 
     /// <summary>
-    /// Le téléphone a refusé l'opération faute de permission. Le Dossier
-    /// sécurisé de Samsung et les profils tenus par une politique
-    /// d'entreprise répondent ainsi, et le jeu est pourtant bien installé.
+    /// The phone refused the operation for lack of permission.
+    /// Samsung's Secure Folder and profiles managed by an enterprise
+    /// policy respond this way, and yet the game is properly
+    /// installed.
     /// </summary>
     PermissionDenied,
 
     /// <summary>
-    /// Le shell ADB n'a pas le droit d'atteindre ce profil Android.
+    /// The ADB shell does not have the right to reach this Android
+    /// profile.
     ///
-    /// Distinct du refus de permission ordinaire, parce que les remèdes n'ont
-    /// rien à voir. Deux causes, toutes deux relevées sur le terrain : le
-    /// dossier sécurisé Samsung qu'il faut déverrouiller avant, et le réglage
-    /// « Débogage USB (paramètres de sécurité) » que les surcouches Xiaomi,
-    /// Oppo et Realme exigent pour installer dans un autre profil.
+    /// Distinct from an ordinary permission refusal, because the
+    /// remedies have nothing in common. Two causes, both observed in
+    /// the field: Samsung's secure folder, which must be unlocked
+    /// first, and the "Débogage USB (paramètres de sécurité)" (USB
+    /// debugging (Security settings)) setting that the Xiaomi, Oppo
+    /// and Realme overlays require to install into another profile.
     /// </summary>
     ShellUserAccessDenied,
 
     /// <summary>
-    /// Le profil est en pause. C'est l'état normal d'un profil professionnel
-    /// dont l'interrupteur est éteint, et la fonction principale de Shelter et
-    /// d'Island.
+    /// The profile is paused. This is the normal state of a work
+    /// profile whose switch is off, and the main function of Shelter
+    /// and Island.
     /// </summary>
     ProfilePaused,
 
-    /// <summary>La commande n'a pas répondu dans le délai imparti.</summary>
+    /// <summary>
+    /// The command did not respond within the allotted time.
+    /// </summary>
     Timeout,
 
-    /// <summary>L'exécutable ADB est absent ou n'a pas pu démarrer.</summary>
+    /// <summary>The ADB executable is missing or could not start.</summary>
     AdbUnavailable,
 }

@@ -8,16 +8,17 @@ using DtHub.Core.Windows;
 namespace DtHub.App.Services;
 
 /// <summary>
-/// Rassemble de quoi raconter un incident, et le met en forme.
+/// Gathers what is needed to describe an incident, and formats it.
 ///
-/// Rien n'est envoyé d'ici : le rapport se copie dans le presse-papiers, et
-/// c'est la personne qui décide de le coller quelque part. C'est la ligne que
-/// suit déjà le signalement vers papycha.fr, où l'application ne remplit que le
-/// repère de lieu et n'appuie jamais sur le bouton d'envoi.
+/// Nothing is sent from here: the report is copied to the clipboard,
+/// and it is the person who decides where to paste it. This is the
+/// same line already followed by reporting to papycha.fr, where the
+/// application only fills in the placeholder and never presses the
+/// send button.
 ///
-/// Le lanceur est posé après coup plutôt qu'injecté : il connaît les sessions
-/// ouvertes, mais il dépend lui-même de la moitié de l'application, et
-/// l'injecter ici fermerait une boucle. C'est la même façon de faire que
+/// The launcher is set afterward rather than injected: it knows the
+/// open sessions, but it itself depends on half the application, and
+/// injecting it here would close a loop. This is the same approach as
 /// <c>GameLauncher.OwnsWindow</c>.
 /// </summary>
 public sealed class DiagnosticReporter
@@ -31,41 +32,46 @@ public sealed class DiagnosticReporter
         _windows = windows;
     }
 
-    /// <summary>Ce que l'application sait des sessions ouvertes, quand elle le sait.</summary>
+    /// <summary>
+    /// What the application knows about open sessions, when it
+    /// knows it.
+    /// </summary>
     public GameLauncher? Launcher { get; set; }
 
-    /// <summary>Le dernier refus technique relevé, s'il y en a eu un.</summary>
+    /// <summary>The last technical refusal noted, if there was one.</summary>
     public string? LastFailure { get; set; }
 
     /// <summary>
-    /// Les noms que la personne a choisis : ses comptes, ses profils de
-    /// lancement. Ils ne se devinent par aucun motif, et rien n'empêche
-    /// quelqu'un d'y mettre son pseudonyme de jeu.
+    /// The names the person has chosen: their accounts, their launch
+    /// profiles. They cannot be guessed by any pattern, and nothing
+    /// stops someone from putting their in-game nickname there.
     ///
-    /// Ils sont posés du dehors plutôt que lus ici : le panneau reçoit déjà les
-    /// réglages à chaque écriture, et un rapport n'a pas à attendre une lecture
-    /// de fichier.
+    /// They are set from the outside rather than read here: the panel
+    /// already receives the settings on every write, and a report
+    /// should not have to wait for a file read.
     /// </summary>
     public IReadOnlyList<string> Names { get; set; } = [];
 
-    /// <summary>Combien d'incidents ont été relevés depuis le démarrage.</summary>
+    /// <summary>How many incidents have been recorded since startup.</summary>
     public int Incidents { get; private set; }
 
-    /// <summary>Signalé quand un incident vient d'être relevé.</summary>
+    /// <summary>Raised when an incident has just been recorded.</summary>
     public event EventHandler? IncidentRecorded;
 
     /// <summary>
-    /// Retient une faute qui n'a pas été montrée.
+    /// Records a fault that was not shown.
     ///
-    /// Deux gestionnaires de l'application journalisaient sans rien afficher :
-    /// celui du domaine et celui des tâches non observées. Or c'est par là que
-    /// passent les fautes hors du fil d'interface, c'est-à-dire ADB, scrcpy et
-    /// le réseau. Deux cent soixante-quatre d'entre elles ont été relevées dans
-    /// les journaux sans qu'aucune n'ait jamais paru à l'écran.
+    /// Two of the application's handlers used to log without
+    /// displaying anything: the domain one and the unobserved tasks
+    /// one. And this is where faults outside the interface thread pass
+    /// through, meaning ADB, scrcpy and the network. Two hundred and
+    /// sixty-four of them were found in the logs without a single one
+    /// ever appearing on screen.
     ///
-    /// On n'ouvre pas une boîte pour autant : une faute de ce genre se répète,
-    /// et la boîte deviendrait le vrai problème. Elle est retenue, comptée, et
-    /// le panneau la signale d'une ligne qu'on peut ignorer.
+    /// A box is not opened for all that: a fault of this kind repeats
+    /// itself, and the box would become the real problem. It is
+    /// recorded, counted, and the panel reports it with a line that
+    /// can be ignored.
     /// </summary>
     public void Note(Exception? error, string headline)
     {
@@ -79,13 +85,13 @@ public sealed class DiagnosticReporter
         IncidentRecorded?.Invoke(this, EventArgs.Empty);
     }
 
-    /// <summary>Compose le rapport d'un incident.</summary>
-    /// <param name="headline">Ce qui a échoué, en une ligne.</param>
-    /// <param name="error">L'exception, s'il y en a une.</param>
+    /// <summary>Composes the report of an incident.</summary>
+    /// <param name="headline">What failed, in one line.</param>
+    /// <param name="error">The exception, if there is one.</param>
     public string Compose(string? headline, Exception? error = null) =>
         DiagnosticReport.Compose(headline, Facts(), error, LastFailure, Log(), Secrets());
 
-    /// <summary>L'adresse d'un signalement neuf sur le dépôt.</summary>
+    /// <summary>The address of a new report on the repository.</summary>
     public static string IssueUrl(string? headline) =>
         DiagnosticReport.IssueUrl(Core.ProductInfo.RepositoryUrl, headline);
 
@@ -93,9 +99,10 @@ public sealed class DiagnosticReporter
     {
         var sessions = Launcher?.ActiveSessions.Count ?? 0;
 
-        // Le compte des logés, et non la différence avec les fenêtres que les
-        // placements peuvent ranger : celle-ci écarte aussi les verrouillées,
-        // qu'elle faisait donc passer pour des onglets.
+        // The count of hosted sessions, not the difference with the
+        // windows that placements can arrange: the latter also
+        // excludes the locked ones, which it therefore passed off as
+        // tabbed.
         var tabbed = Launcher?.HousedCount ?? 0;
 
         return new DiagnosticFacts(
@@ -111,9 +118,10 @@ public sealed class DiagnosticReporter
     }
 
     /// <summary>
-    /// Les écrans, dans la même forme que celle déjà journalisée à chaque
-    /// lancement. Leur nom de périphérique Windows n'y entre pas : c'est une
-    /// empreinte de machine, et la définition suffit à comprendre un placement.
+    /// The screens, in the same form already logged at every launch.
+    /// Their Windows device name has no place here: it is a machine
+    /// fingerprint, and the resolution is enough to understand a
+    /// placement.
     /// </summary>
     private string Screens()
     {
@@ -128,8 +136,9 @@ public sealed class DiagnosticReporter
     }
 
     /// <summary>
-    /// Les appareils ouverts, comptés et non nommés : leur nombre et leur
-    /// version d'Android expliquent un incident, leur identité non.
+    /// The open devices, counted and not named: their number and
+    /// their Android version explain an incident, their identity
+    /// does not.
     /// </summary>
     private string Devices()
     {
@@ -149,8 +158,8 @@ public sealed class DiagnosticReporter
     }
 
     /// <summary>
-    /// Les lignes du journal du jour qui valent la peine, celles de cette
-    /// session seulement.
+    /// The worthwhile lines from today's log, those of this session
+    /// only.
     /// </summary>
     private string Log()
     {
@@ -166,7 +175,7 @@ public sealed class DiagnosticReporter
                 return string.Empty;
             }
 
-            // Partagé : Serilog écrit dans le même fichier au même moment.
+            // Shared: Serilog writes to the same file at the same time.
             using var stream = new FileStream(
                 today, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             using var reader = new StreamReader(stream);
@@ -175,16 +184,18 @@ public sealed class DiagnosticReporter
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            // Le journal manque : le rapport vaut quand même par son en-tête et
-            // par l'exception. Le dire plutôt que rendre un blanc.
+            // The log is missing: the report still has value through
+            // its header and the exception. Say so rather than
+            // return a blank.
             return "(journal illisible : " + exception.GetType().Name + ")";
         }
     }
 
     /// <summary>
-    /// Ce que l'application sait devoir masquer : les identités de ses
-    /// appareils et les noms que la personne a donnés à ses comptes. Les formes
-    /// reconnaissables, elles, partent toutes seules.
+    /// What the application knows it must hide: the identities of its
+    /// devices and the names the person has given their accounts.
+    /// Recognizable patterns, for their part, are redacted on their
+    /// own.
     /// </summary>
     private IEnumerable<string> Secrets()
     {

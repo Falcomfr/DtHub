@@ -6,39 +6,48 @@ using DtHub.Core.Localization;
 namespace DtHub.Core.Devices;
 
 /// <summary>
-/// Ce que l'appareil dit de sa batterie.
+/// What the device says about its battery.
 ///
-/// C'est la limite dont personne ne parle et qui arrête pourtant les longues
-/// séances. Le jeu consomme trente à cinquante pour cent par heure sur un
-/// téléphone, et en Wi-Fi l'appareil n'est pas branché : une séance de trois
-/// heures se termine par un téléphone éteint, au milieu d'un donjon.
+/// This is the limit nobody talks about, and yet it is the one
+/// that stops long sessions. The game uses thirty to fifty percent
+/// per hour on a phone, and over Wi-Fi the device is not plugged
+/// in: a three-hour session ends with a dead phone, in the middle
+/// of a dungeon.
 ///
-/// L'application lisait déjà la chaleur et la liaison, mais pas cela.
+/// The application already read heat and connection, but not this.
 ///
-/// **Rien n'est dit quand l'appareil est en charge.** Un téléphone branché
-/// descend rarement, et un bandeau qui annonce quarante pour cent alors que la
-/// prise est mise parle pour ne rien dire. Ce qui compte n'est pas le niveau,
-/// c'est le niveau qui baisse.
+/// **Nothing is said while the device is charging.** A plugged-in
+/// phone rarely drops, and a banner announcing forty percent while
+/// the charger is connected talks without saying anything. What
+/// matters is not the level, it is the level dropping.
 /// </summary>
-/// <param name="Percent">Niveau de charge, de 0 à 100.</param>
-/// <param name="Charging">Vrai si l'appareil se recharge, ou est plein sur secteur.</param>
-/// <param name="Celsius">Température de la batterie, pour le journal, si elle est dite.</param>
+/// <param name="Percent">Charge level, from 0 to 100.</param>
+/// <param name="Charging">
+/// True if the device is charging, or full while on mains power.
+/// </param>
+/// <param name="Celsius">
+/// Battery temperature, for the log, if it is reported.
+/// </param>
 public sealed partial record BatteryReading(int Percent, bool Charging, double? Celsius)
 {
-    /// <summary>En dessous, la séance ne tiendra pas la soirée.</summary>
+    /// <summary>Below this, the session will not last the evening.</summary>
     public const int Low = 20;
 
-    /// <summary>En dessous, il reste quelques minutes.</summary>
+    /// <summary>Below this, only a few minutes remain.</summary>
     public const int Critical = 10;
 
-    /// <summary>Vrai quand le niveau mérite qu'on en parle, charge exclue.</summary>
+    /// <summary>
+    /// True when the level deserves mention, charging excluded.
+    /// </summary>
     public bool IsLow => !Charging && Percent <= Low;
 
     /// <summary>
-    /// Le palier d'attention, ou <c>null</c> quand il n'y a rien à signaler.
+    /// The concern tier, or <c>null</c> when there is nothing to
+    /// report.
     ///
-    /// Deux lectures s'en servent, l'avertissement et la couleur de la jauge :
-    /// les seuils se décident donc une fois, ici, et pas de chaque côté.
+    /// Two readers use it, the warning and the gauge's color: the
+    /// thresholds are therefore decided once, here, and not on each
+    /// side separately.
     /// </summary>
     public HealthSeverity? Concern => !Charging && Percent <= Critical
         ? HealthSeverity.Serious
@@ -46,24 +55,27 @@ public sealed partial record BatteryReading(int Percent, bool Charging, double? 
             ? HealthSeverity.Warning
             : null;
 
-    /// <summary>Le niveau seul, tel qu'il tient à côté du nom de l'appareil.</summary>
+    /// <summary>
+    /// The level alone, as it fits next to the device's name.
+    /// </summary>
     public string Label => Strings.Format("BatteryPercent", Percent);
 
     /// <summary>
-    /// Le niveau en une phrase, pour la bulle d'aide.
+    /// The level in one sentence, for the tooltip.
     ///
-    /// La charge y est dite, et c'est le point : un téléphone à douze pour
-    /// cent qui ne déclenche aucun avertissement doit pouvoir expliquer
-    /// pourquoi sans qu'on aille chercher.
+    /// The charging state is stated here, and that is the point: a
+    /// phone at twelve percent that triggers no warning must be
+    /// able to explain why, without anyone having to dig for it.
     /// </summary>
     public string Summary => Charging
         ? Strings.Format("BatteryChargingAt", Percent)
         : Strings.Format("BatteryAt", Percent);
 
     /// <summary>
-    /// Lit la sortie de <c>dumpsys battery</c>. Rend <c>null</c> dès que le
-    /// niveau manque : ne rien savoir est un cas ordinaire, et l'appelant s'en
-    /// passe, comme pour la chaleur.
+    /// Parses the output of <c>dumpsys battery</c>. Returns
+    /// <c>null</c> as soon as the level is missing: knowing nothing
+    /// is an ordinary case, and the caller does without it, as with
+    /// temperature.
     /// </summary>
     public static BatteryReading? Parse(string? dumpsys)
     {
@@ -77,8 +89,9 @@ public sealed partial record BatteryReading(int Percent, bool Charging, double? 
             return null;
         }
 
-        // L'échelle vaut cent partout où on l'a vue, mais elle est déclarée :
-        // s'en remettre à cent serait supposer ce que l'appareil dit déjà.
+        // The scale is a hundred everywhere it has been seen, but
+        // it is reported explicitly: relying on a hundred would
+        // mean assuming what the device already states.
         var scale = Number(dumpsys, ScalePattern()) ?? 100;
 
         if (scale <= 0)
@@ -92,7 +105,8 @@ public sealed partial record BatteryReading(int Percent, bool Charging, double? 
     }
 
     /// <summary>
-    /// Ce qu'il y a à dire, ou <c>null</c> quand il n'y a rien à dire.
+    /// What there is to say, or <c>null</c> when there is nothing
+    /// to say.
     /// </summary>
     public string? Describe() => !Charging && Percent <= Critical
         ? Strings.Format("DeviceBatteryCritical", Percent)
@@ -101,19 +115,21 @@ public sealed partial record BatteryReading(int Percent, bool Charging, double? 
             : null;
 
     /// <summary>
-    /// Vrai si l'appareil reçoit du courant.
+    /// True if the device is receiving power.
     ///
-    /// **Les lignes « … powered » ont le dernier mot**, parce qu'elles disent
-    /// la prise elle-même. L'état numérique vaut 2 en charge et 5 quand la
-    /// batterie est pleine, mais il traîne : un appareil qu'on vient de
-    /// débrancher le garde le temps d'une lecture au moins.
+    /// **The "... powered" lines have the final word**, because
+    /// they state the connection itself. The numeric status is 2
+    /// while charging and 5 when the battery is full, but it
+    /// lingers: a device that was just unplugged keeps it for at
+    /// least one more reading.
     ///
-    /// Mesuré : un Mi 9T Pro débranché annonce les quatre prises à faux et
-    /// « status: 2 » en même temps. Croire les deux à égalité, c'était taire
-    /// l'alerte de batterie basse d'un téléphone débranché.
+    /// Measured: an unplugged Mi 9T Pro reports all four power
+    /// lines as false and "status: 2" at the same time. Trusting
+    /// both equally would have meant silencing the low battery
+    /// alert on an unplugged phone.
     ///
-    /// L'état numérique ne sert donc que de repli, pour un appareil qui
-    /// n'écrirait aucune ligne de prise.
+    /// The numeric status therefore only serves as a fallback, for
+    /// a device that would write no power line at all.
     /// </summary>
     private static bool IsCharging(string dumpsys)
     {
@@ -139,7 +155,7 @@ public sealed partial record BatteryReading(int Percent, bool Charging, double? 
         return (end < 0 ? line : line[..end]).Contains("true", StringComparison.OrdinalIgnoreCase);
     }
 
-    /// <summary>La température, donnée en dixièmes de degré.</summary>
+    /// <summary>The temperature, given in tenths of a degree.</summary>
     private static double? Temperature(string dumpsys) =>
         Number(dumpsys, TemperaturePattern()) is { } tenths ? tenths / 10.0 : null;
 

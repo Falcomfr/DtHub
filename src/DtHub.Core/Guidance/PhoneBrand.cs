@@ -3,64 +3,65 @@
 namespace DtHub.Core.Guidance;
 
 /// <summary>
-/// Marche à suivre pour activer le débogage, propre à une marque. Les chemins
-/// de menu diffèrent assez d'une surcouche à l'autre pour qu'une explication
-/// générique laisse l'utilisateur chercher.
+/// Steps to follow to enable debugging, specific to a brand. Menu
+/// paths differ enough from one overlay to another that a generic
+/// explanation would leave the user searching.
 /// </summary>
 public sealed record PhoneBrand
 {
     /// <summary>
-    /// Identifiant de la fiche. Il compose les clés de ressources, sur la forme
-    /// <c>Brand{Key}{Champ}</c>, et n'est jamais montré.
+    /// Identifier of the entry. It builds resource keys, in the form
+    /// <c>Brand{Key}{Field}</c>, and is never shown.
     /// </summary>
     public required string Key { get; init; }
 
     /// <summary>
-    /// Fragments du nom du constructeur permettant de reconnaître la marque à
-    /// partir de <c>ro.product.manufacturer</c>. Seule donnée de cette fiche qui
-    /// ne soit pas du texte : elle ne se traduit pas.
+    /// Fragments of the manufacturer's name used to recognize the
+    /// brand from <c>ro.product.manufacturer</c>. The only data in
+    /// this entry that is not text: it is not translated.
     /// </summary>
     public IReadOnlyList<string> Manufacturers { get; init; } = [];
 
-    /// <summary>Nom affiché dans le sélecteur.</summary>
+    /// <summary>Name shown in the selector.</summary>
     public string Name => Text(nameof(Name));
 
-    /// <summary>Chemin de menu menant à la ligne à taper sept fois.</summary>
+    /// <summary>Menu path leading to the line to tap seven times.</summary>
     public string BuildNumberPath => Text(nameof(BuildNumberPath));
 
-    /// <summary>Nom exact de cette ligne sur cette surcouche.</summary>
+    /// <summary>Exact name of this line on this overlay.</summary>
     public string BuildNumberLabel => Text(nameof(BuildNumberLabel));
 
-    /// <summary>Chemin de menu des options pour les développeurs.</summary>
+    /// <summary>Menu path to the developer options.</summary>
     public string DeveloperOptionsPath => Text(nameof(DeveloperOptionsPath));
 
-    /// <summary>Particularité de la marque, quand il y en a une.</summary>
+    /// <summary>Peculiarity of the brand, when it has one.</summary>
     public string? Warning => Maybe(nameof(Warning));
 
     /// <summary>
-    /// Nom que porte, sur cette surcouche, la fonction qui installe une
-    /// seconde copie d'une application. Chaque constructeur l'a nommée
-    /// autrement, et c'est ce nom qu'il faut chercher dans les menus.
+    /// Name carried, on this overlay, by the feature that installs a
+    /// second copy of an application. Each manufacturer named it
+    /// differently, and this is the name to look for in the menus.
     /// </summary>
     public string CloneFeature => Text(nameof(CloneFeature));
 
-    /// <summary>Chemin de menu menant à cette fonction.</summary>
+    /// <summary>Menu path leading to this feature.</summary>
     public string ClonePath => Text(nameof(ClonePath));
 
-    /// <summary>Ce qu'il faut savoir avant de s'y prendre sur cette marque.</summary>
+    /// <summary>What to know before doing this on this brand.</summary>
     public string? CloneNote => Maybe(nameof(CloneNote));
 
     /// <summary>
-    /// Nom que porte, sur cette surcouche, le réglage qui dispense une
-    /// application des économies de batterie. Sans lui, Android suspend le jeu
-    /// dès qu'il cesse d'être au premier plan, et la fenêtre se fige.
+    /// Name carried, on this overlay, by the setting that exempts an
+    /// application from battery savings. Without it, Android suspends
+    /// the game as soon as it stops being in the foreground, and the
+    /// window freezes.
     /// </summary>
     public string BatteryFeature => Text(nameof(BatteryFeature));
 
-    /// <summary>Chemin de menu menant à ce réglage.</summary>
+    /// <summary>Menu path leading to this setting.</summary>
     public string BatteryPath => Text(nameof(BatteryPath));
 
-    /// <summary>Second réglage à désactiver, quand la marque en ajoute un.</summary>
+    /// <summary>Second setting to disable, when the brand adds one.</summary>
     public string? BatteryNote => Maybe(nameof(BatteryNote));
 
     private string Text(string field) => Strings.Get($"Brand{Key}{field}");
@@ -68,17 +69,18 @@ public sealed record PhoneBrand
     private string? Maybe(string field) => Strings.Optional($"Brand{Key}{field}");
 }
 
-/// <summary>Marques connues, avec leurs chemins de menu.</summary>
+/// <summary>Known brands, with their menu paths.</summary>
 public static class PhoneBrands
 {
     /// <summary>
-    /// Procédure d'Android sans surcouche. Sert aussi de repli.
+    /// Procedure for Android with no overlay. Also serves as the
+    /// fallback.
     ///
-    /// La liste de constructeurs n'est pas décorative : elle évite que des
-    /// marques dont les chemins sont bel et bien ceux d'AOSP soient traitées
-    /// comme des inconnues. TCL, ZTE, HMD, Fairphone, ASUS et les marques du
-    /// groupe Transsion s'écartent peu d'Android nu, et les fabricants de
-    /// tablettes d'entrée de gamme encore moins.
+    /// The list of manufacturers is not decorative: it keeps brands
+    /// whose paths are indeed those of AOSP from being treated as
+    /// unknown. TCL, ZTE, HMD, Fairphone, ASUS and the brands of the
+    /// Transsion group stray little from stock Android, and entry
+    /// level tablet makers even less.
     /// </summary>
     public static readonly PhoneBrand Standard = new()
     {
@@ -93,17 +95,18 @@ public static class PhoneBrands
     };
 
     /// <summary>
-    /// Marques regroupées par procédure. Les distinguer quand les chemins de
-    /// menu sont identiques n'apporterait rien et allongerait la liste.
+    /// Brands grouped by procedure. Telling them apart when the menu
+    /// paths are identical would add nothing and would lengthen the
+    /// list.
     ///
-    /// Les textes de chaque fiche vivent dans les ressources, sous les clés
-    /// <c>Brand{Key}{Champ}</c> : ils étaient écrits ici en français, et une
-    /// personne dont l'interface est en espagnol recevait l'aide en français au
-    /// moment précis où elle ne s'en sortait pas.
+    /// The text of each entry lives in the resources, under the keys
+    /// <c>Brand{Key}{Field}</c>: it used to be written here in
+    /// French, and a person whose interface was in Spanish received
+    /// the help in French at the precise moment they were stuck.
     ///
-    /// Seuls les chemins de Xiaomi sont vérifiés sur un vrai téléphone, ce que
-    /// dit déjà docs/DECISIONS.md. Les autres sont donnés de bonne foi, dans
-    /// les trois langues.
+    /// Only Xiaomi's paths are verified on a real phone, as
+    /// docs/DECISIONS.md already states. The others are given in good
+    /// faith, in all three languages.
     /// </summary>
     public static readonly IReadOnlyList<PhoneBrand> All =
     [
@@ -117,9 +120,9 @@ public static class PhoneBrands
     ];
 
     /// <summary>
-    /// Devine la marque à partir du constructeur rapporté par le téléphone.
-    /// Sert à présélectionner la bonne explication plutôt que de la faire
-    /// chercher.
+    /// Guesses the brand from the manufacturer reported by the phone.
+    /// Used to preselect the right explanation rather than making the
+    /// user search for it.
     /// </summary>
     public static PhoneBrand FromManufacturer(string? manufacturer)
     {

@@ -3,88 +3,101 @@
 namespace DtHub.Core.Dofus;
 
 /// <summary>
-/// Une instance du jeu : un téléphone, un profil Android, une installation.
-/// Deux instances sur le même téléphone correspondent au profil principal et à
-/// un profil cloné, chacune avec son propre compte.
+/// An instance of the game: a phone, an Android profile, an
+/// installation. Two instances on the same phone correspond to the
+/// main profile and a cloned profile, each with its own account.
 /// </summary>
 public sealed record DofusInstance
 {
-    /// <summary>Identité stable du téléphone, indépendante du mode de connexion.</summary>
+    /// <summary>
+    /// Stable identity of the phone, independent of the connection
+    /// mode.
+    /// </summary>
     public required string DeviceId { get; init; }
 
-    /// <summary>Nom du téléphone, tel qu'affiché.</summary>
+    /// <summary>Name of the phone, as displayed.</summary>
     public required string DeviceName { get; init; }
 
-    /// <summary>Profil Android. N'importe quel entier positif est valide.</summary>
+    /// <summary>Android profile. Any positive integer is valid.</summary>
     public required int UserId { get; init; }
 
-    /// <summary>Nom du profil Android tel que le téléphone le rapporte.</summary>
+    /// <summary>Name of the Android profile as the phone reports it.</summary>
     public required string UserName { get; init; }
 
     public required string PackageName { get; init; }
 
-    /// <summary>Composant à lancer, résolu à la découverte.</summary>
+    /// <summary>Component to launch, resolved upon discovery.</summary>
     public string? LaunchComponent { get; init; }
 
-    /// <summary>Nom choisi par l'utilisateur, affiché dans le titre de la fenêtre.</summary>
+    /// <summary>
+    /// Name chosen by the user, shown in the window's title.
+    /// </summary>
     public string? CustomName { get; init; }
 
-    /// <summary>Vrai si l'instance fait partie du lancement automatique.</summary>
+    /// <summary>True if the instance is part of automatic launch.</summary>
     public bool IsEnabled { get; init; }
 
     /// <summary>
-    /// Vrai si la fenêtre suit les placements automatiques. Décochée, elle
-    /// reste où elle est et le reste s'arrange sans elle.
+    /// True if the window follows automatic placement. Unchecked, it
+    /// stays where it is and the rest arranges itself around it.
     /// </summary>
     public bool IsManaged { get; init; } = true;
 
     /// <summary>
-    /// Vrai si ce compte s'ouvre dans le cadre à onglets plutôt qu'en fenêtre
-    /// libre. Un compte logé échappe aux placements automatiques.
+    /// True if this account opens in the tabbed frame rather than in
+    /// a free-floating window. A tabbed account escapes automatic
+    /// placement.
     /// </summary>
     public bool IsTabbed { get; init; }
 
     /// <summary>
-    /// Palier de qualité propre à ce compte, ou <c>null</c> pour suivre le
-    /// réglage commun.
+    /// Quality tier specific to this account, or <c>null</c> to
+    /// follow the common setting.
     /// </summary>
     public StreamQuality? Quality { get; init; }
 
     /// <summary>
-    /// Distance dans le jeu propre à ce compte, ou <c>null</c> pour suivre le
-    /// réglage commun.
+    /// In-game distance specific to this account, or <c>null</c> to
+    /// follow the common setting.
     /// </summary>
     public GameZoom? Zoom { get; init; }
 
-    /// <summary>Temps de jeu de la semaine, en secondes.</summary>
+    /// <summary>Play time for the week, in seconds.</summary>
     public int PlayedThisWeek { get; init; }
 
-    /// <summary>Vrai si le téléphone est joignable maintenant.</summary>
+    /// <summary>True if the phone is reachable right now.</summary>
     public bool IsDeviceConnected { get; init; }
 
     /// <summary>
-    /// Clé stable de l'instance. Sert à la mémoriser et à la retrouver entre
-    /// deux lancements, y compris quand le téléphone change d'adresse.
+    /// Stable key of the instance. Used to remember it and find it
+    /// again between two launches, even when the phone changes
+    /// address.
     /// </summary>
     public string Key => $"{DeviceId}|{UserId}|{PackageName}";
 
     /// <summary>
-    /// Nom modifiable de l'instance. Le choix de l'utilisateur prime ; à
-    /// défaut, le nom du profil Android, qui distingue déjà les instances d'un
-    /// même téléphone. Le nom du produit n'y figure pas : il est ajouté au
-    /// titre de la fenêtre de jeu, pas ici.
+    /// Editable name of the instance. The user's choice takes
+    /// priority; failing that, the Android profile's name, which
+    /// already distinguishes instances on the same phone. The
+    /// product's name does not appear here: it is added to the game
+    /// window's title, not here.
     /// </summary>
     public string DisplayName => NameOf(CustomName, UserName);
 
     /// <summary>
-    /// La règle de nom, seule et nommée, parce qu'elle sert aussi loin d'ici :
-    /// une fenêtre déjà ouverte doit pouvoir recalculer son titre à partir du
-    /// réglage qui vient de changer, sans avoir l'instance sous la main. Deux
-    /// copies de la règle, et un compte renommé porterait un nom dans la liste
-    /// et un autre sur sa fenêtre.
+    /// The naming rule, kept on its own and named, because it is
+    /// also used far from here: a window already open must be able
+    /// to recompute its title from the setting that just changed,
+    /// without having the instance at hand. Two copies of the rule,
+    /// and a renamed account would carry one name in the list and
+    /// another on its window.
     /// </summary>
-    /// <param name="customName">Le nom choisi par l'utilisateur, s'il y en a un.</param>
-    /// <param name="userName">Le nom du profil Android, qui sert de repli.</param>
+    /// <param name="customName">
+    /// The name chosen by the user, if there is one.
+    /// </param>
+    /// <param name="userName">
+    /// The Android profile's name, which serves as a fallback.
+    /// </param>
     public static string NameOf(string? customName, string userName) =>
         string.IsNullOrWhiteSpace(customName) ? userName : customName.Trim();
 }

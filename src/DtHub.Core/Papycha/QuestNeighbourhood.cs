@@ -1,10 +1,19 @@
 ﻿namespace DtHub.Core.Papycha;
 
-/// <summary>Ce qui précède et ce qui suit une quête, et son rang dans son succès.</summary>
-/// <param name="Previous">La quête d'avant, ou <c>null</c>.</param>
-/// <param name="Next">La quête d'après, ou <c>null</c>.</param>
-/// <param name="Rank">Rang dans le succès, à partir de 1. Zéro hors succès.</param>
-/// <param name="Count">Nombre de quêtes du succès. Zéro hors succès.</param>
+/// <summary>
+/// What precedes and what follows a quest, and its rank within its
+/// achievement.
+/// </summary>
+/// <param name="Previous">The quest before, or <c>null</c>.</param>
+/// <param name="Next">The quest after, or <c>null</c>.</param>
+/// <param name="Rank">
+/// Rank within the achievement, starting at 1. Zero outside an
+/// achievement.
+/// </param>
+/// <param name="Count">
+/// Number of quests in the achievement. Zero outside an
+/// achievement.
+/// </param>
 public readonly record struct QuestNeighbours(
     QuestSummary? Previous,
     QuestSummary? Next,
@@ -12,43 +21,50 @@ public readonly record struct QuestNeighbours(
     int Count)
 {
     /// <summary>
-    /// Vrai quand la liste du succès a désigné elle-même la suivante, parce que
-    /// la quête ouverte n'est pas la dernière de la liste.
+    /// True when the achievement's list itself designated the next
+    /// one, because the open quest is not the last in the list.
     ///
-    /// Sert à savoir qui a le dernier mot. La colonne que le site publie en
-    /// pied d'article s'intitule « Quêtes et jalons suivants » : elle dit ce que
-    /// cette quête débloque, c'est-à-dire le graphe des prérequis, et non
-    /// l'ordre dans lequel on lit un succès. Les deux se ressemblent souvent et
-    /// diffèrent parfois : dans « Le théâtre des gobelins », la colonne de
-    /// « Titi Gobelait le magobelin » ne nomme que « Manque de moule », qui
-    /// l'exige, alors que la liste passe d'abord par « Un avenir de krotte de
-    /// Trooll », qui n'exige rien. Suivre la colonne sautait une quête.
+    /// Used to know who has the final say. The column the site
+    /// publishes at the foot of the article is titled "Quêtes et
+    /// jalons suivants" (Next quests and milestones): it states
+    /// what this quest unlocks, that is, the prerequisite graph,
+    /// not the order in which an achievement is read. The two
+    /// often look alike and sometimes differ: in "Le théâtre des
+    /// gobelins", the column for "Titi Gobelait le magobelin" names
+    /// only "Manque de moule", which requires it, while the list
+    /// first goes through "Un avenir de krotte de Trooll", which
+    /// requires nothing. Following the column would skip a quest.
     /// </summary>
     public bool NextFromList => Rank > 0 && Rank < Count;
 
     /// <summary>
-    /// Vrai quand la liste du succès a désigné elle-même la précédente, parce
-    /// que la quête ouverte n'en est pas la première.
+    /// True when the achievement's list itself designated the
+    /// previous one, because the open quest is not its first.
     /// </summary>
     public bool PreviousFromList => Rank > 1;
 }
 
 /// <summary>
-/// Décide des voisines d'une quête.
+/// Decides a quest's neighbours.
 ///
-/// Deux sources, dans cet ordre. La liste du succès d'abord : la précédente est
-/// celle qu'on voit au-dessus, la suivante celle d'en dessous, et c'est ce
-/// qu'on attend en parcourant une liste. Le graphe des prérequis ensuite, là où
-/// la liste s'arrête : la première quête d'un succès n'a pas de précédente, la
-/// dernière pas de suivante, et le site, lui, continue.
+/// Two sources, in this order. The achievement's list first: the
+/// previous one is the one seen above, the next one the one below,
+/// which is what you expect when browsing a list. The prerequisite
+/// graph next, where the list stops: an achievement's first quest
+/// has no previous one, its last has no next one, and yet the site
+/// keeps going.
 ///
-/// Le calcul est dans le noyau et non dans la vue : c'est la seule couche que
-/// les épreuves atteignent, le projet d'épreuves visant net10.0 quand
-/// l'application vise net10.0-windows. Il y vivait, et rien ne l'éprouvait.
+/// The computation lives in the core, not in the view: that is the
+/// only layer the tests reach, the test project targeting net10.0
+/// while the application targets net10.0-windows. It used to live
+/// there, and nothing tested it.
 /// </summary>
 public static class QuestNeighbourhood
 {
-    /// <summary>Les voisines de cette quête, index des chaînes à l'appui s'il existe.</summary>
+    /// <summary>
+    /// This quest's neighbours, backed by the chain index if one
+    /// exists.
+    /// </summary>
     public static QuestNeighbours Of(
         QuestSummary? quest,
         IEnumerable<QuestSummary>? quests,
@@ -97,8 +113,9 @@ public static class QuestNeighbourhood
             previous ??= chain.PreviousOf(quest);
             next ??= chain.NextOf(quest);
 
-            // Et si rien ne pend à cette quête, la série suivante, cherchée
-            // dans tout le succès : elle ne part pas toujours de sa dernière.
+            // And if nothing hangs off this quest, the next series,
+            // searched across the whole achievement: it does not
+            // always start from its last quest.
             next ??= chain.NextSeriesOf(quest);
         }
 

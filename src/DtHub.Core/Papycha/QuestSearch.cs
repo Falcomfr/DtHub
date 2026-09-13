@@ -4,23 +4,25 @@ using System.Text;
 namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Filtrage des quêtes et des rubriques à la frappe.
+/// Filtering quests and sections as you type.
 ///
-/// Les titres du site sont en français et pleins d'accents et d'apostrophes
-/// typographiques : « Le dragon d'Astrub » avec une apostrophe courbe,
-/// « Complètement givré ». Personne ne les tape ainsi. La comparaison se fait
-/// donc sur une forme réduite, sans accent, sans ponctuation, en minuscules.
+/// The site's titles are in French and full of accents and typographic
+/// apostrophes: "Le dragon d'Astrub" (The Astrub Dragon) with a curly
+/// apostrophe, "Complètement givré" (Totally Frosted). Nobody types
+/// them that way. The comparison is therefore done on a reduced form,
+/// without accents, without punctuation, in lowercase.
 ///
-/// Fonction pure : elle se vérifie sans réseau ni catalogue réel.
+/// Pure function: it is checked without network or a real catalog.
 /// </summary>
 public static class QuestSearch
 {
     /// <summary>
-    /// Réduit un texte à ce qui sert à le reconnaître.
+    /// Reduces a text to what serves to recognize it.
     ///
-    /// La décomposition Unicode sépare la lettre de son accent, qu'on écarte
-    /// ensuite : « é » devient « e ». Tout ce qui n'est ni lettre ni chiffre
-    /// devient une espace, et les espaces sont resserrées.
+    /// Unicode decomposition separates the letter from its accent,
+    /// which is then discarded: "é" becomes "e". Everything that is
+    /// neither a letter nor a digit becomes a space, and spaces are
+    /// tightened.
     /// </summary>
     public static string Normalize(string? text)
     {
@@ -58,9 +60,9 @@ public static class QuestSearch
     }
 
     /// <summary>
-    /// Vrai si la clé contient tous les mots demandés, dans n'importe quel
-    /// ordre. « dragon astrub » trouve donc « Le dragon d'Astrub », et
-    /// « astrub dragon » aussi.
+    /// True if the key contains all the requested words, in any order.
+    /// "dragon astrub" therefore finds "Le dragon d'Astrub" (The Astrub
+    /// Dragon), and "astrub dragon" too.
     /// </summary>
     public static bool Matches(string searchKey, IReadOnlyList<string> terms)
     {
@@ -83,15 +85,15 @@ public static class QuestSearch
     }
 
     /// <summary>
-    /// Vrai si chaque mot se trouve dans le titre de la quête.
+    /// True if each word is found in the quest's title.
     ///
-    /// Le titre seul, et non plus la rubrique. Une quête retenue parce que sa
-    /// zone porte le mot noyait celles qu'on cherchait : « frigost » en rendait
-    /// cent soixante-dix-sept, dont cent soixante-treize par la seule rubrique,
-    /// et cinquante-six des soixante lignes affichées en relevaient. Cette
-    /// intention-là, « montre-moi tout Frigost », est désormais servie par le
-    /// groupe des zones, qui n'existait pas quand la rubrique a été ajoutée
-    /// ici.
+    /// The title alone, and no longer the section. A quest kept because
+    /// its zone carried the word drowned out the ones we were actually
+    /// looking for: "frigost" used to return a hundred and seventy
+    /// seven, a hundred and seventy three of them through the section
+    /// alone, and fifty six of the sixty displayed lines belonged to
+    /// it. That intent, "show me all of Frigost", is now served by the
+    /// zone group, which did not exist when the section was added here.
     /// </summary>
     public static bool Matches(QuestSummary quest, IReadOnlyList<string> terms)
     {
@@ -101,17 +103,19 @@ public static class QuestSearch
     }
 
     /// <summary>
-    /// Rang d'un résultat : ce qui commence par le mot cherché passe devant.
+    /// Rank of a result: whatever starts with the searched word goes
+    /// first.
     ///
-    /// Chercher « dragon » doit proposer « Dragon Cochon » avant « Le dragon
-    /// d'Astrub », dont le titre commence par un article.
+    /// Searching for "dragon" must offer "Dragon Cochon" (Dragon Pig)
+    /// before "Le dragon d'Astrub" (The Astrub Dragon), whose title
+    /// starts with an article.
     /// </summary>
     private static int Rank(QuestSummary quest, IReadOnlyList<string> terms) =>
         terms.Count > 0 && quest.SearchKey.StartsWith(terms[0], StringComparison.Ordinal)
             ? 0
             : 1;
 
-    /// <summary>Découpe une saisie en mots comparables.</summary>
+    /// <summary>Splits an input into comparable words.</summary>
     public static IReadOnlyList<string> Terms(string? query)
     {
         var normalized = Normalize(query);
@@ -122,12 +126,12 @@ public static class QuestSearch
     }
 
     /// <summary>
-    /// Quêtes correspondant à la saisie, les titres qui commencent par la
-    /// recherche d'abord.
+    /// Quests matching the input, titles that start with the search
+    /// first.
     ///
-    /// Chercher « dofus » doit proposer « Dofus Cawotte » avant « Un nouveau
-    /// Dofus ? » : on lit de gauche à droite, et le début d'un titre pèse plus
-    /// que son milieu.
+    /// Searching for "dofus" must offer "Dofus Cawotte" before "Un
+    /// nouveau Dofus ?" (A new Dofus?): we read from left to right, and
+    /// the start of a title weighs more than its middle.
     /// </summary>
     public static IReadOnlyList<QuestSummary> Filter(
         IEnumerable<QuestSummary> quests,
@@ -149,11 +153,12 @@ public static class QuestSearch
     }
 
     /// <summary>
-    /// Cherche dans les trois natures à la fois, où que l'on soit dans l'arbre.
+    /// Searches all three kinds at once, wherever we are in the tree.
     ///
-    /// Chercher, c'est vouloir aller ailleurs : la rubrique ouverte ne doit pas
-    /// borner ce qu'on trouve. Les succès n'étaient jusqu'ici cherchables par
-    /// aucun chemin, alors que le catalogue en porte plus de cent.
+    /// Searching means wanting to go elsewhere: the open section must
+    /// not bound what we find. Achievements were until now not
+    /// searchable through any path, even though the catalog carries
+    /// more than a hundred of them.
     /// </summary>
     public static QuestSearchResults Search(
         IReadOnlyList<QuestSummary> quests,
@@ -182,8 +187,9 @@ public static class QuestSearch
                 .Take(limit),
         ];
 
-        // Un succès n'existe que par les quêtes qui le portent : on le retient
-        // au premier passage, avec l'orthographe de la première rencontrée.
+        // An achievement only exists through the quests that carry it:
+        // we keep it on the first pass, with the spelling of the first
+        // one encountered.
         Dictionary<string, string> successes = new(StringComparer.Ordinal);
 
         foreach (var quest in quests)

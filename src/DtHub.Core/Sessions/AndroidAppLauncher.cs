@@ -8,9 +8,9 @@ using DtHub.Core.Users;
 namespace DtHub.Core.Sessions;
 
 /// <summary>
-/// Ouvre le jeu par ADB. Le composant mémorisé est revalidé si le lancement
-/// échoue : une mise à jour peut avoir renommé l'activité principale. Un
-/// profil Android arrêté est démarré puis réessayé.
+/// Opens the game via ADB. The stored component is revalidated if the
+/// launch fails: an update may have renamed the main activity. A
+/// stopped Android profile is started and then retried.
 /// </summary>
 public sealed class AndroidAppLauncher : IAppLauncher
 {
@@ -50,8 +50,9 @@ public sealed class AndroidAppLauncher : IAppLauncher
             return first;
         }
 
-        // Sous le nom du paquet de cette instance, et non celui de référence :
-        // une copie renommée par la surcouche ne se résout pas sous l'autre.
+        // Under this instance's package name, not the reference one:
+        // a copy renamed by the overlay does not resolve under the
+        // other one.
         var resolved = await _instances
             .ResolveComponentAsync(serial, userId, packageName, cancellationToken)
             .ConfigureAwait(false);
@@ -90,28 +91,31 @@ public sealed class AndroidAppLauncher : IAppLauncher
         }
         catch (AdbException)
         {
-            // **Une faute ici ne dit jamais que le jeu n'était pas lancé.**
-            // Mesuré sur les deux téléphones : « am force-stop » répond 0 sur
-            // un paquet arrêté, et jusque sur un paquet qui n'existe pas. Il
-            // ne rend 1 que lorsque l'ordre n'a pas pu atteindre l'appareil,
-            // « device offline » ou « device not found ».
+            // **A fault here never means the game was not running.**
+            // Measured on both phones: "am force-stop" returns 0 for
+            // a stopped package, and even for a package that does
+            // not exist. It only returns 1 when the command could not
+            // reach the device, "device offline" or "device not
+            // found".
             //
-            // Le tenir pour anodin était le défaut : la faute se perdait ici,
-            // et le jeu restait ouvert sur le téléphone après la fermeture de
-            // sa fenêtre, sans que rien ne le dise.
+            // Treating it as harmless was the previous default: the
+            // fault used to get lost here, and the game stayed open
+            // on the phone after its window closed, with nothing
+            // saying so.
             return false;
         }
     }
 
     /// <summary>
-    /// Prépare le profil Android, ou dit pourquoi il ne peut pas porter de
-    /// fenêtre. Rend <c>null</c> quand la voie est libre, et sinon une phrase
-    /// montrable.
+    /// Prepares the Android profile, or says why it cannot host a
+    /// window. Returns <c>null</c> when the way is clear, and
+    /// otherwise a showable sentence.
     ///
-    /// Le contrôle a lieu ici parce qu'<c>am start</c> ne le fait pas :
-    /// mesuré sur le téléphone de référence, il répond <c>Status: ok</c> pour
-    /// un utilisateur complet, puis pend soixante-dix secondes sans rien
-    /// afficher. Refuser tôt vaut mieux qu'une fenêtre qui ne vient jamais.
+    /// The check happens here because <c>am start</c> does not do
+    /// it: measured on the reference phone, it answers
+    /// <c>Status: ok</c> for a full user, then hangs for seventy
+    /// seconds without showing anything. Refusing early is better
+    /// than a window that never comes.
     /// </summary>
     private async Task<string?> PrepareUserAsync(
         string serial,
@@ -140,9 +144,9 @@ public sealed class AndroidAppLauncher : IAppLauncher
             return null;
         }
 
-        // Le résultat du démarrage compte : l'ignorer laissait « am start »
-        // échouer plus loin, sur un message que personne ne rattachait au
-        // profil.
+        // The startup result matters: ignoring it left "am start"
+        // failing further down, on a message nobody connected back
+        // to the profile.
         return await _users.TryStartUserAsync(serial, userId, cancellationToken).ConfigureAwait(false)
             ? null
             : Strings.Format("ProfileCouldNotStart", user.DisplayName);
@@ -169,28 +173,29 @@ public sealed class AndroidAppLauncher : IAppLauncher
             arguments.Add("--display");
             arguments.Add(Text(display));
 
-            // **Sur un afficheur virtuel seulement, et c'est la clef.**
+            // **On a virtual display only, and that is the key point.**
             //
-            // Sans ce drapeau, fermer une fenêtre laissait une vignette vide en
-            // tête de la liste des applications du téléphone. Relevé :
+            // Without this flag, closing a window left an empty
+            // thumbnail at the top of the phone's app list. Observed:
             //
-            //     pidof com.ankama.dofustouch   -> rien
+            //     pidof com.ankama.dofustouch   -> nothing
             //     No process found for: com.ankama.dofustouch
-            //     Recent #0: Task{#63 … sz=0}   <- elle restait
+            //     Recent #0: Task{#63 … sz=0}   <- it stayed
             //
-            // Le jeu était bien fermé, mais rien ne distinguait cette carte
-            // d'une application vivante, et appuyer dessus relançait le jeu :
-            // l'utilisateur en concluait, à raison de ce qu'il voyait, que la
-            // fermeture ne marchait pas.
+            // The game was indeed closed, but nothing set this card
+            // apart from a live application, and tapping it relaunched
+            // the game: the user concluded, rightly given what they
+            // saw, that closing did not work.
             //
-            // Nettoyer après coup a été essayé et ne marche pas : une fois
-            // l'afficheur rendu, la pile a disparu de « am stack list » et
-            // « am stack remove » répond 0 sans rien faire. Il faut donc que la
-            // vignette ne naisse jamais.
+            // Cleaning up after the fact was tried and does not work:
+            // once the display is returned, the stack has vanished
+            // from "am stack list" and "am stack remove" returns 0
+            // without doing anything. The thumbnail must therefore
+            // never be born in the first place.
             //
-            // Réservé à l'afficheur virtuel : une fenêtre qui recopie l'écran
-            // du téléphone montre le jeu là où l'utilisateur s'attend à le
-            // retrouver dans sa liste.
+            // Reserved for the virtual display: a window that mirrors
+            // the phone's screen shows the game where the user
+            // expects to find it in their list.
             arguments.Add("--activity-exclude-from-recents");
         }
 
@@ -202,15 +207,16 @@ public sealed class AndroidAppLauncher : IAppLauncher
             var output = await _adb.ShellAsync(serial, arguments, null, cancellationToken)
                 .ConfigureAwait(false);
 
-            // « am start » rend zéro même lorsqu'il échoue : c'est la sortie
-            // qui fait foi.
+            // "am start" returns zero even when it fails: the output
+            // is what counts.
             if (output.Contains("Error", StringComparison.OrdinalIgnoreCase)
                 || output.Contains("Exception", StringComparison.Ordinal))
             {
-                // Un échec inconnu reste inconnu. Le supposer « application
-                // absente » envoyait réinstaller un jeu bien présent chaque
-                // fois que le téléphone refusait pour une autre raison, un
-                // refus de permission au premier chef.
+                // An unknown failure stays unknown. Assuming
+                // "application missing" used to send people to
+                // reinstall a perfectly present game every time the
+                // phone refused for another reason, a permission
+                // refusal first and foremost.
                 var kind = AdbErrorInterpreter.Classify(output) ?? AdbErrorKind.Unknown;
                 return AppLaunchResult.Failure(AdbErrorInterpreter.Describe(kind), output.Trim());
             }

@@ -4,42 +4,45 @@ using System.Text.RegularExpressions;
 namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Ramène le texte d'une étape à une phrase qu'on lit d'un coup d'œil.
+/// Brings a step's text down to a sentence that can be read at a glance.
 ///
-/// Le site écrit pour qu'on lise, pas pour qu'on exécute : « Pour lancer la
-/// quête, rendez vous au Château d'Amakna en [4,-6] pour parler à Yse Vewibad »
-/// tient en une ligne du bandeau, mais on n'y voit ni où aller ni à qui parler.
-/// Ce qu'il faut retenir, c'est « Rendez-vous en [4,-6], parlez à Yse Vewibad ».
+/// The site writes for reading, not for executing: "Pour lancer la quête,
+/// rendez vous au Château d'Amakna en [4,-6] pour parler à Yse Vewibad" fits
+/// on one line of the banner, but it does not show where to go or whom to talk
+/// to. What needs to be remembered is "Rendez-vous en [4,-6], parlez à Yse
+/// Vewibad".
 ///
-/// Trois recours, du plus sûr au plus grossier :
+/// Three approaches, from the safest to the crudest:
 ///
-/// 1. les coordonnées et le nom du PNJ, quand le texte les porte ;
-/// 2. le verbe d'action et son complément ;
-/// 3. la première phrase, débarrassée de ses tournures d'introduction.
+/// 1. the coordinates and the NPC's name, when the text carries them;
+/// 2. the action verb and its object;
+/// 3. the first sentence, stripped of its introductory turns of phrase.
 ///
-/// Jamais de vide : une étape sans résumé vaut moins qu'une étape mal résumée,
-/// parce qu'elle laisse croire qu'il n'y a rien à faire.
+/// Never empty: a step with no summary is worse than a step poorly summarised,
+/// because it suggests there is nothing to do.
 ///
-/// Fonction pure : elle se vérifie sur des textes enregistrés.
+/// Pure function: it is verified against recorded texts.
 ///
 /// <para>
-/// **<see cref="Of"/> n'est plus branché sur l'interface.** Le résumé des
-/// étapes a été retiré du bandeau et de la liste : la page a le paragraphe en
-/// entier juste au-dessus, et le rang suffit à s'y rendre. Voir
-/// <see cref="QuestStepLabel"/>. Seul <see cref="OfStart"/> sert encore, pour le
-/// départ d'une quête, qui ne vient pas de la prose du site mais de ses
-/// métadonnées. Le reste est conservé avec ses épreuves plutôt que démantelé à
-/// la hâte : les deux points d'entrée partagent leur machinerie, et le tri
-/// mérite d'être fait à part.
+/// **<see cref="Of"/> is no longer wired to the interface.** The step summary
+/// was removed from the banner and the list: the page has the full paragraph
+/// right above, and the rank is enough to get there. See
+/// <see cref="QuestStepLabel"/>. Only <see cref="OfStart"/> is still used, for
+/// a quest's start, which does not come from the site's prose but from its
+/// metadata. The rest is kept along with its tests rather than dismantled in
+/// haste: the two entry points share their machinery, and the sorting deserves
+/// to be done separately.
 /// </para>
 /// </summary>
 public static partial class QuestStepSummary
 {
-    /// <summary>Au-delà, le bandeau tronque : autant couper nous-mêmes, proprement.</summary>
+    /// <summary>
+    /// Beyond this, the banner truncates: better to cut it ourselves, cleanly.
+    /// </summary>
     private const int MaxLength = 110;
 
     /// <summary>
-    /// Résumé d'un texte d'étape.
+    /// Summary of a step's text.
     /// </summary>
     public static string Of(string? text)
     {
@@ -50,9 +53,10 @@ public static partial class QuestStepSummary
 
         var clean = Whitespace().Replace(text, " ").Trim();
 
-        // Une étape déjà courte et qui commence par un ordre se suffit : la
-        // recomposer perdrait ce qu'elle dit de plus. « Rendez-vous en [0,-11],
-        // touchez la tombe » vaut mieux que « Rendez-vous en [0,-11] ».
+        // A step that is already short and starts with an order is enough on
+        // its own: recomposing it would lose what it says beyond that.
+        // "Rendez-vous en [0,-11], touchez la tombe" is better than
+        // "Rendez-vous en [0,-11]".
         if (clean.Length <= MaxLength && Instruction().IsMatch(clean))
         {
             return Shortened(clean);
@@ -62,12 +66,12 @@ public static partial class QuestStepSummary
     }
 
     /// <summary>
-    /// Résumé du départ d'une quête, composé de ce que le site en dit dans ses
-    /// métadonnées plutôt que dans sa prose.
+    /// Summary of a quest's start, composed from what the site says about it
+    /// in its metadata rather than in its prose.
     ///
-    /// Bien plus sûr que la lecture du texte : la position de départ est
-    /// renseignée sur 687 quêtes sur 782 et le personnage sur 693. Rend
-    /// <c>null</c> quand ni l'une ni l'autre ne l'est.
+    /// Far more reliable than reading the text: the starting position is given
+    /// for 687 quests out of 782 and the character for 693. Returns
+    /// <c>null</c> when neither one is.
     /// </summary>
     public static string? OfStart(string? position, string? person)
     {
@@ -95,17 +99,17 @@ public static partial class QuestStepSummary
     }
 
     /// <summary>
-    /// Le personnage de départ, tel qu'on accepte de le nommer.
+    /// The starting character, as far as it can be safely named.
     ///
-    /// La donnée est propre presque partout - sur six cent quatre-vingt-treize
-    /// quêtes, deux seulement dépassent six mots - mais elle n'était pas
-    /// relue, et « bateau pour vous rendre au village d'Albuera. » donnait
-    /// « Parlez à bateau pour vous rendre au village d'Albuera. ».
+    /// The data is clean almost everywhere (out of six hundred and
+    /// ninety-three quests, only two exceed six words), but it was not
+    /// proofread, and "bateau pour vous rendre au village d'Albuera." used to
+    /// give "Parlez à bateau pour vous rendre au village d'Albuera.".
     ///
-    /// Deux garde-fous : la même borne que pour la prose, et la majuscule. Un
-    /// personnage porte un nom propre ; « clef secrète des crocs de verre » et
-    /// « bateau » n'en sont pas, et il vaut mieux ne rien dire du départ que
-    /// d'inviter à parler à un bateau.
+    /// Two safeguards: the same limit as for the prose, and the capital
+    /// letter. A character has a proper name; "clef secrète des crocs de
+    /// verre" and "bateau" do not, and it is better to say nothing about the
+    /// start than to invite talking to a boat.
     /// </summary>
     private static string StartPerson(string? person)
     {
@@ -115,13 +119,15 @@ public static partial class QuestStepSummary
         return name.Length > 0 && char.IsUpper(name[0]) ? name : string.Empty;
     }
 
-    /// <summary>Article qui précède parfois le nom, « l'Agent de la compagnie ».</summary>
+    /// <summary>
+    /// Article that sometimes precedes the name, "l'Agent de la compagnie".
+    /// </summary>
     [GeneratedRegex(@"^(?:l[e]?s?\s+|l['’]|un[e]?\s+|d[eu]\s+|des\s+)", RegexOptions.IgnoreCase)]
     private static partial Regex Article();
 
     /// <summary>
-    /// Phrase composée à partir de ce que le texte porte de repérable, ou
-    /// <c>null</c> quand il n'en porte rien.
+    /// Sentence composed from whatever identifiable elements the text carries,
+    /// or <c>null</c> when it carries none.
     /// </summary>
     private static string? Composed(string text)
     {
@@ -150,14 +156,14 @@ public static partial class QuestStepSummary
             }
         }
 
-        // La phrase composée passe par la même coupe que l'autre : rien de ce
-        // qui sort d'ici ne doit finir au milieu d'un mot.
+        // The composed sentence goes through the same cut as the other one:
+        // nothing that comes out of here should end in the middle of a word.
         return summary.Length > 0 ? Clipped(summary.Append('.').ToString()) : null;
     }
 
     /// <summary>
-    /// Coupe un texte au dernier mot entier qui tient, et le marque d'un point
-    /// de suspension. En deçà du plafond, il ressort tel quel.
+    /// Cuts a text at the last whole word that fits, and marks it with an
+    /// ellipsis. Below the ceiling, it comes back out unchanged.
     /// </summary>
     private static string Clipped(string text)
     {
@@ -172,10 +178,10 @@ public static partial class QuestStepSummary
     }
 
     /// <summary>
-    /// Première phrase, sans sa tournure d'introduction et coupée court.
+    /// First sentence, without its introductory turn of phrase and cut short.
     ///
-    /// « Pour lancer la quête, » et ses semblables n'apprennent rien : la même
-    /// formule ouvre des centaines d'étapes.
+    /// "Pour lancer la quête," and its kin teach nothing: the same formula
+    /// opens hundreds of steps.
     /// </summary>
     private static string Shortened(string text)
     {
@@ -205,17 +211,17 @@ public static partial class QuestStepSummary
     }
 
     /// <summary>
-    /// Le nom, borné au premier mot qui ouvre une autre proposition.
+    /// The name, bounded by the first word that opens another clause.
     ///
-    /// La capture s'arrête à la ponctuation, et une phrase sans virgule n'en
-    /// offre aucune : « auprès du Grand jarl Ordyn et en vous mettant en route »
-    /// donnait « Grand jarl Ordyn et en vous mettant en ro », coupé net au
-    /// quarantième caractère. Mesuré sur dix-huit captures, seize débordaient
-    /// ainsi et onze finissaient au milieu d'un mot.
+    /// The capture stops at punctuation, and a sentence with no comma offers
+    /// none: "auprès du Grand jarl Ordyn et en vous mettant en route" used to
+    /// give "Grand jarl Ordyn et en vous mettant en ro", cut clean at the
+    /// fortieth character. Measured over eighteen captures, sixteen overran
+    /// this way and eleven ended in the middle of a word.
     ///
-    /// Couper au premier mot de rupture les ramène toutes, sans abîmer les noms
-    /// qui portent une particule : « Gardien du Donjon de Belladone » n'en
-    /// contient aucun.
+    /// Cutting at the first breaking word brings all of them back, without
+    /// damaging names that carry a particle: "Gardien du Donjon de Belladone"
+    /// contains none.
     /// </summary>
     private static string NameOf(string capture)
     {
@@ -230,16 +236,16 @@ public static partial class QuestStepSummary
 
             kept.Add(word);
 
-            // Aucun personnage du site ne porte plus de six mots : au-delà, la
-            // capture a forcément débordé sur autre chose.
+            // No character on the site has a name of more than six words:
+            // beyond that, the capture must have overrun onto something else.
             if (kept.Count == MaxNameWords)
             {
                 break;
             }
         }
 
-        // Une particule ne termine pas un nom : « Gardien du Donjon de » vient
-        // d'une capture coupée trop tard.
+        // A particle does not end a name: "Gardien du Donjon de" comes from a
+        // capture cut too late.
         while (kept.Count > 0 && Particles.Contains(Bare(kept[^1]), StringComparer.OrdinalIgnoreCase))
         {
             kept.RemoveAt(kept.Count - 1);
@@ -251,56 +257,61 @@ public static partial class QuestStepSummary
     private static string Bare(string word) =>
         word.Trim(',', ';', ':', '.', '!', '?', '’', '\'', '-', '(', ')');
 
-    /// <summary>Au-delà, la capture a débordé sur la suite de la phrase.</summary>
+    /// <summary>
+    /// Beyond this, the capture has overrun onto the rest of the sentence.
+    /// </summary>
     private const int MaxNameWords = 6;
 
     /// <summary>
-    /// Mots qui ne se trouvent jamais au milieu d'un nom propre.
+    /// Words that are never found in the middle of a proper name.
     ///
-    /// C'est une classe fermée de la langue - conjonctions, prépositions,
-    /// déterminants, pronoms, quelques adverbes de liaison - et non une liste
-    /// tirée des cas rencontrés : celle-ci s'allongerait à chaque guide, et le
-    /// premier mot oublié rendrait « Truffo lors de votre première visite ».
+    /// This is a closed class of the language (conjunctions, prepositions,
+    /// determiners, pronouns, a few linking adverbs), not a list drawn from
+    /// encountered cases: that kind would grow longer with every guide, and
+    /// the first forgotten word would give "Truffo lors de votre première
+    /// visite".
     ///
-    /// Les particules qui appartiennent bel et bien aux noms en sont exclues et
-    /// figurent plus bas : « Gardien du Donjon de Belladone » doit survivre.
+    /// Particles that genuinely belong to names are excluded from it and
+    /// appear further below: "Gardien du Donjon de Belladone" must survive.
     /// </summary>
     private static readonly string[] Breakers =
     [
-        // Conjonctions
+        // Conjunctions
         "et", "ou", "mais", "donc", "or", "ni", "car", "que", "qui", "quoi",
         "quand", "lorsque", "comme", "si", "puisque", "parce",
 
-        // Prépositions
+        // Prepositions
         "à", "a", "en", "dans", "sur", "sous", "vers", "avec", "sans", "pour",
         "par", "chez", "entre", "contre", "depuis", "pendant", "avant", "après",
         "apres", "jusqu", "lors", "malgré", "selon", "près", "hors", "afin",
 
-        // Déterminants
+        // Determiners
         "un", "une", "ce", "cet", "cette", "ces", "mon", "ma", "mes", "ton",
         "ta", "tes", "son", "sa", "ses", "notre", "nos", "votre", "vos",
         "leur", "leurs", "tout", "toute", "tous", "toutes", "quelques",
         "plusieurs", "aucun", "aucune", "chaque",
 
-        // Pronoms
+        // Pronouns
         "je", "tu", "il", "elle", "on", "nous", "vous", "ils", "elles", "se",
         "y", "lui", "cela", "ça", "ceci", "celui", "celle",
 
-        // Adverbes de liaison
+        // Linking adverbs
         "ensuite", "puis", "enfin", "alors", "ainsi", "aussi", "encore",
         "déjà", "toujours", "jamais", "plus", "moins", "très", "bien",
     ];
 
     /// <summary>
-    /// Mots qui appartiennent à un nom quand ils sont suivis d'autre chose,
-    /// mais qui ne le terminent jamais.
+    /// Words that belong to a name when followed by something else, but that
+    /// never end it.
     /// </summary>
     private static readonly string[] Particles =
     [
         "de", "du", "des", "le", "la", "les", "au", "aux", "d", "l",
     ];
 
-    /// <summary>Coordonnées resserrées : « [ 4 , -6 ] » se lit « [4,-6] ».</summary>
+    /// <summary>
+    /// Tightened coordinates: "[ 4 , -6 ]" reads as "[4,-6]".
+    /// </summary>
     private static string Tidy(string coordinates) =>
         Whitespace().Replace(coordinates, string.Empty);
 
@@ -316,24 +327,23 @@ public static partial class QuestStepSummary
     private static partial Regex Coordinates();
 
     /// <summary>
-    /// Nom d'un personnage, reconnu à ce qui l'annonce.
+    /// A character's name, recognised by what introduces it.
     ///
-    /// Les amorces sont relevées, pas devinées : sur dix-huit guides, « parlez »
-    /// vingt-trois fois, « parlant » quatre, « reparlez » quatre, « parler »
-    /// deux, puis « adieux à » et « présentez-vous à ». Trois de ces formes
-    /// manquaient, d'où des résumés qui donnaient les coordonnées sans dire à
-    /// qui parler.
+    /// The lead-ins were recorded, not guessed: across eighteen guides,
+    /// "parlez" twenty-three times, "parlant" four, "reparlez" four, "parler"
+    /// two, then "adieux à" and "présentez-vous à". Three of these forms were
+    /// missing, hence summaries that gave the coordinates without saying whom
+    /// to talk to.
     ///
-    /// Ce qui n'y figure pas n'y figure pas par choix : « vous emmène à
-    /// Astrub », « vous déposer au Temple », « vous êtes à Albuera » annoncent
-    /// des lieux. Accepter « à » suivi d'une majuscule ferait passer un lieu
-    /// pour un personnage.
+    /// What is not in it is not in it by choice: "vous emmène à Astrub", "vous
+    /// déposer au Temple", "vous êtes à Albuera" announce places. Accepting
+    /// "à" followed by a capital letter would pass off a place as a character.
     ///
-    /// La majuscule initiale est explicitement sensible à la casse. Sans cela
-    /// elle ne borne rien : en .NET, l'option d'indifférence à la casse
-    /// s'applique aussi aux catégories Unicode, et « \p{Lu} » accepte alors les
-    /// minuscules. « parlez de nouveau à Waldos » capturait « de nouveau à
-    /// Waldos ».
+    /// The initial capital letter is explicitly case-sensitive. Without this
+    /// it would bound nothing: in .NET, the case-insensitive option also
+    /// applies to Unicode categories, and "\p{Lu}" then accepts lowercase
+    /// letters too. "parlez de nouveau à Waldos" used to capture "de nouveau à
+    /// Waldos".
     /// </summary>
     [GeneratedRegex(
         @"\b(?:reparlez|parlez?|parler|parlant|voir|aupr[èe]s d[eu]"
@@ -346,8 +356,8 @@ public static partial class QuestStepSummary
     private static partial Regex Person();
 
     /// <summary>
-    /// Texte qui commence par un ordre donné au lecteur. C'est la marque d'une
-    /// étape déjà écrite comme une consigne.
+    /// Text that starts with an order given to the reader. This is the mark of
+    /// a step already written as an instruction.
     /// </summary>
     [GeneratedRegex(
         @"^(?:rendez[- ]?vous|allez|retournez|parlez|fouillez|touchez|entrez|sortez"
@@ -357,13 +367,15 @@ public static partial class QuestStepSummary
         RegexOptions.IgnoreCase)]
     private static partial Regex Instruction();
 
-    /// <summary>Première phrase, bornée par un point suivi d'une espace.</summary>
+    /// <summary>
+    /// First sentence, bounded by a period followed by a space.
+    /// </summary>
     [GeneratedRegex(@"^(?<first>.+?[.!?])(?:\s|$)")]
     private static partial Regex Sentence();
 
     /// <summary>
-    /// Tournures qui ouvrent une étape sans rien en dire. Relevées sur le site,
-    /// pas devinées.
+    /// Turns of phrase that open a step without saying anything. Recorded from
+    /// the site, not guessed.
     /// </summary>
     [GeneratedRegex(
         @"^(?:pour\s+(?:lancer|commencer|d[ée]marrer|terminer|finir|ce\s+faire|cela)[^,]{0,40},\s*"

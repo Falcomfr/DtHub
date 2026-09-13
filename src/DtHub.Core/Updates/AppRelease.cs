@@ -1,16 +1,18 @@
 ﻿namespace DtHub.Core.Updates;
 
 /// <summary>
-/// Une livraison publiée, telle que le dépôt la décrit.
+/// A published release, as described by the repository.
 /// </summary>
-/// <param name="Version">Sa version, tirée de l'étiquette.</param>
-/// <param name="Notes">Ce qui change, écrit dans le corps de la livraison.</param>
-/// <param name="DownloadUrl">L'adresse de l'exécutable.</param>
-/// <param name="SizeBytes">Sa taille, pour dire l'attente avant de la subir.</param>
+/// <param name="Version">Its version, taken from the tag.</param>
+/// <param name="Notes">What changes, written in the release body.</param>
+/// <param name="DownloadUrl">The address of the executable.</param>
+/// <param name="SizeBytes">
+/// Its size, so we can state the wait before enduring it.
+/// </param>
 /// <param name="DigestUrl">
-/// L'adresse du fichier d'empreinte qui l'accompagne. Un exécutable de
-/// soixante mégaoctets qui remplace le nôtre ne s'exécute pas sur la foi d'un
-/// téléchargement : son empreinte est vérifiée avant qu'il ne serve.
+/// The address of the accompanying digest file. A sixty-megabyte
+/// executable that replaces ours is not run on faith after a
+/// download: its digest is verified before it is used.
 /// </param>
 public sealed record AppRelease(
     Version Version,

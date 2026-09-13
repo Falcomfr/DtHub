@@ -5,25 +5,29 @@ using System.Text.RegularExpressions;
 namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Lit les blocs structurés d'une page de quête : l'introduction et la
-/// progression.
+/// Reads the structured blocks of a quest page: the introduction and
+/// the progression.
 ///
-/// On ne lit que ce que le site engendre lui-même. Le corps de l'article est
-/// écrit à la main par des contributeurs et son balisage varie d'une quête à
-/// l'autre : une quête met ses objectifs en vert, une autre en gras. Vouloir
-/// le découper serait deviner. Les deux blocs traités ici viennent au contraire
-/// de blocs maison, et leur balisage est le même partout, vérifié sur des
-/// quêtes de types différents.
+/// We only read what the site itself generates. The body of the
+/// article is written by hand by contributors and its markup varies
+/// from one quest to another: one quest puts its objectives in
+/// green, another in bold. Trying to parse it would be guessing. The
+/// two blocks handled here, by contrast, come from homemade blocks,
+/// and their markup is the same everywhere, checked on quests of
+/// different types.
 ///
-/// L'analyse s'appuie sur les classes, jamais sur les libellés : « Succès
-/// associé » peut être réécrit, la classe « pqa-quest-intro__fact--successes »
-/// est du code.
+/// The analysis relies on the classes, never on the labels: "Succès
+/// associé" (Related achievement) can be rewritten, the class
+/// "pqa-quest-intro__fact--successes" is code.
 ///
-/// Fonction pure, sans réseau : elle se vérifie sur des fragments enregistrés.
+/// Pure function, no network: it is checked against saved fragments.
 /// </summary>
 public static partial class QuestPageParser
 {
-    /// <summary>Lit le bloc d'introduction. Rend des faits vides s'il manque.</summary>
+    /// <summary>
+    /// Reads the introduction block. Returns empty facts if it is
+    /// missing.
+    /// </summary>
     public static QuestFacts ParseFacts(string? html)
     {
         if (string.IsNullOrWhiteSpace(html))
@@ -44,7 +48,10 @@ public static partial class QuestPageParser
         };
     }
 
-    /// <summary>Lit le bloc de progression. Rend une chaîne vide s'il manque.</summary>
+    /// <summary>
+    /// Reads the progression block. Returns an empty chain if it is
+    /// missing.
+    /// </summary>
     public static QuestChain ParseChain(string? html)
     {
         if (string.IsNullOrWhiteSpace(html))
@@ -60,10 +67,10 @@ public static partial class QuestPageParser
     }
 
     /// <summary>
-    /// Valeur d'un fait, désignée par le suffixe de sa classe.
+    /// Value of a fact, designated by its class suffix.
     ///
-    /// Le conteneur porte « pqa-quest-intro__fact--&lt;nom&gt; » et la valeur vit
-    /// dans le &lt;dd&gt; qui suit.
+    /// The container carries "pqa-quest-intro__fact--&lt;name&gt;"
+    /// and the value lives in the &lt;dd&gt; that follows.
     /// </summary>
     private static string? FactValue(string html, string name)
     {
@@ -77,10 +84,10 @@ public static partial class QuestPageParser
     }
 
     /// <summary>
-    /// Valeur d'un classement, désignée par son intitulé.
+    /// Value of a classification, designated by its heading.
     ///
-    /// Contrairement aux faits, ces couples n'ont pas de classe distinctive :
-    /// il faut bien s'appuyer sur le libellé, faute de mieux.
+    /// Unlike facts, these pairs have no distinctive class: we do
+    /// have to rely on the label, for lack of anything better.
     /// </summary>
     private static string? TaxonomyValue(string html, string label)
     {
@@ -116,8 +123,8 @@ public static partial class QuestPageParser
     }
 
     /// <summary>
-    /// « Étape 3/4 » devient (3, 4). Tout autre texte rend (0, 0) : mieux vaut
-    /// pas de chaîne du tout qu'une position inventée.
+    /// "Étape 3/4" (Step 3/4) becomes (3, 4). Any other text returns
+    /// (0, 0): better no chain at all than a made-up position.
     /// </summary>
     private static (int Step, int Count) ParseStep(string? text)
     {
@@ -180,7 +187,7 @@ public static partial class QuestPageParser
         _ => QuestLinkKind.Milestone,
     };
 
-    /// <summary>Retire le balisage, décode les entités et resserre les espaces.</summary>
+    /// <summary>Strips markup, decodes entities and tightens spaces.</summary>
     private static string? Clean(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -194,8 +201,9 @@ public static partial class QuestPageParser
     }
 
     /// <summary>
-    /// Une page mal formée ne doit pas faire tourner l'expression sans fin :
-    /// au-delà, on rend ce qu'on a plutôt que de bloquer la fenêtre.
+    /// A malformed page must not make the expression run forever:
+    /// beyond that, we return what we have rather than freeze the
+    /// window.
     /// </summary>
     private static readonly TimeSpan MatchTimeout = TimeSpan.FromSeconds(2);
 

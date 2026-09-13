@@ -1,36 +1,38 @@
 ﻿namespace DtHub.Core.Papycha;
 
-/// <summary>Ce qu'une recherche a trouvé.</summary>
+/// <summary>What a search has found.</summary>
 public enum QuestSearchKind
 {
-    /// <summary>Une zone de quêtes.</summary>
+    /// <summary>A quest zone.</summary>
     Zone,
 
-    /// <summary>Un succès, avec les quêtes qui le composent.</summary>
+    /// <summary>An achievement, with the quests that make it up.</summary>
     Success,
 
-    /// <summary>Une quête.</summary>
+    /// <summary>A quest.</summary>
     Quest,
 
-    /// <summary>Un donjon, un raid ou une tanière.</summary>
+    /// <summary>A dungeon, a raid or a lair.</summary>
     Dungeon,
 
-    /// <summary>Un chemin.</summary>
+    /// <summary>A path.</summary>
     Path,
 }
 
 /// <summary>
-/// Résultats d'une recherche, rangés par nature.
+/// Search results, sorted by kind.
 ///
-/// Quatre listes plutôt qu'une seule : une zone, un succès, une quête et un
-/// donjon ne se choisissent pas de la même façon, et les mêler obligerait à
-/// lire chaque ligne pour deviner ce qu'elle est.
+/// Four lists rather than one: a zone, an achievement, a quest and
+/// a dungeon are not picked the same way, and mixing them would
+/// force reading every line to guess what it is.
 /// </summary>
-/// <param name="Zones">Rubriques dont le nom correspond.</param>
-/// <param name="Successes">Succès dont le nom correspond.</param>
-/// <param name="Quests">Quêtes dont le titre correspond.</param>
-/// <param name="Dungeons">Donjons, raids et tanières dont le nom correspond.</param>
-/// <param name="Paths">Chemins dont le nom correspond.</param>
+/// <param name="Zones">Categories whose name matches.</param>
+/// <param name="Successes">Achievements whose name matches.</param>
+/// <param name="Quests">Quests whose title matches.</param>
+/// <param name="Dungeons">
+/// Dungeons, raids and lairs whose name matches.
+/// </param>
+/// <param name="Paths">Paths whose name matches.</param>
 public sealed record QuestSearchResults(
     IReadOnlyList<QuestSection> Zones,
     IReadOnlyList<string> Successes,
@@ -40,7 +42,7 @@ public sealed record QuestSearchResults(
 {
     public static readonly QuestSearchResults Empty = new([], [], [], [], []);
 
-    /// <summary>Vrai quand rien n'a été trouvé, quelle que soit la nature.</summary>
+    /// <summary>True when nothing was found, regardless of kind.</summary>
     public bool IsEmpty =>
         Zones.Count == 0
         && Successes.Count == 0
@@ -48,6 +50,6 @@ public sealed record QuestSearchResults(
         && Dungeons.Count == 0
         && Paths.Count == 0;
 
-    /// <summary>Les lieux de combat d'un genre donné, dans l'ordre des niveaux.</summary>
+    /// <summary>Combat locations of a given kind, in level order.</summary>
     public IEnumerable<DungeonSummary> Of(DungeonKind kind) => Dungeons.Where(d => d.Kind == kind);
 }

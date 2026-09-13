@@ -1,69 +1,70 @@
 ﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Accès en lecture au site, isolé derrière une interface pour que le noyau
-/// reste sans réseau et que le catalogue se vérifie sur des réponses
-/// enregistrées.
+/// Read access to the site, isolated behind an interface so that the
+/// core stays free of the network and the catalog can be verified
+/// against recorded responses.
 /// </summary>
 public interface IPapychaClient
 {
     /// <summary>
-    /// Récupère toutes les quêtes, page après page.
+    /// Fetches all the quests, page after page.
     ///
-    /// <paramref name="progress"/> reçoit le nombre de quêtes déjà lues et le
-    /// total annoncé par le site : l'indexation dure quelques secondes et doit
-    /// se voir.
+    /// <paramref name="progress"/> receives the number of quests
+    /// already read and the total announced by the site: indexing
+    /// takes a few seconds and must be visible.
     /// </summary>
     Task<IReadOnlyList<QuestSummary>> GetQuestsAsync(
         IProgress<QuestIndexingProgress>? progress = null,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Récupère les rubriques qui rangent les quêtes.</summary>
+    /// <summary>Fetches the sections that organize the quests.</summary>
     Task<IReadOnlyList<QuestSection>> GetSectionsAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// L'empreinte du site, ou <c>null</c> s'il ne répond pas. Sert à savoir
-    /// s'il a bougé sans le relire.
+    /// The site's fingerprint, or <c>null</c> if it does not respond.
+    /// Used to know whether it has changed without rereading it.
     /// </summary>
     Task<SiteStamp?> GetStampAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// L'empreinte de chacune des catégories qu'on lit, ou une liste vide si le
-    /// site ne répond pas. Sert à ne relire que ce qui a bougé.
+    /// The fingerprint of each category read, or an empty list if the
+    /// site does not respond. Used to reread only what has changed.
     /// </summary>
     Task<IReadOnlyList<CategoryStamp>> GetCategoryStampsAsync(
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Récupère le classement que le site tient à la main sur sa page
-    /// « Quêtes », et les quêtes que chaque rubrique énumère.
+    /// Fetches the ranking that the site keeps by hand on its "Quêtes"
+    /// (Quests) page, and the quests that each section lists.
     ///
-    /// Les catégories ne suffisent pas : mesuré sur les 782 quêtes, elles en
-    /// laissent 150 sans rubrique. Ces pages en réclament 120 et nomment des
-    /// ensembles qu'aucune catégorie ne porte.
+    /// The categories are not enough: measured against the 782 quests,
+    /// they leave 150 without a section. These pages call for 120 more
+    /// and name sets that no category covers.
     ///
-    /// Rend une liste vide si le site ne répond pas : le catalogue reste
-    /// utilisable sur ses seules catégories.
+    /// Returns an empty list if the site does not respond: the catalog
+    /// stays usable on its categories alone.
     /// </summary>
     Task<IReadOnlyList<QuestPageSection>> GetPageSectionsAsync(
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Récupère les donjons, contenu des pages compris.
+    /// Fetches the dungeons, page content included.
     ///
-    /// Le contenu est demandé avec le reste et non page par page : le niveau,
-    /// la position et le personnage sont dans les métadonnées, mais la clef et
-    /// la pierre d'âme ne vivent que dans le corps de l'article. Les demander
-    /// séparément coûterait quatre-vingt-trois requêtes là où une suffit.
+    /// The content is requested along with the rest rather than page
+    /// by page: the level, the location and the character are in the
+    /// metadata, but the key and the soul stone only live in the body
+    /// of the article. Requesting them separately would cost
+    /// eighty-three requests where one is enough.
     /// </summary>
     Task<IReadOnlyList<DungeonSummary>> GetDungeonsAsync(
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Récupère les chemins, et décide de quel côté chacun se range.
+    /// Fetches the paths, and decides which side each one belongs to.
     ///
-    /// Les noms des donjons sont demandés parce que la décision en dépend : un
-    /// chemin va aux donjons quand son titre en nomme un.
+    /// The dungeon names are requested because the decision depends on
+    /// them: a path goes with the dungeons when its title names one.
     /// </summary>
     Task<IReadOnlyList<PathSummary>> GetPathsAsync(
         IReadOnlyList<string> dungeonTitles,
@@ -71,41 +72,44 @@ public interface IPapychaClient
 }
 
 /// <summary>
-/// Ce que l'indexation est en train de lire.
+/// What the indexing is currently reading.
 ///
-/// **Ces étapes existent parce que l'attente mentait.** Une seule d'entre elles
-/// rapportait son avancement, celle des quêtes, et c'est la plus courte. Le
-/// compteur montait donc jusqu'à « 782 / 782 » en quelques secondes, puis
-/// restait figé là pendant les quatre cinquièmes du temps, les donjons pesant à
-/// eux seuls quatre mégaoctets.
+/// **These phases exist because the wait used to lie.** Only one of
+/// them reported its progress, the quests, and it is the shortest one.
+/// The counter would therefore climb to "782 / 782" within a few
+/// seconds, then stay frozen there for four fifths of the time, the
+/// dungeons alone weighing in at four megabytes.
 /// </summary>
 public enum QuestIndexingPhase
 {
-    /// <summary>Les quêtes, seule étape qui se compte.</summary>
+    /// <summary>Quests, the only phase that counts itself.</summary>
     Quests,
 
-    /// <summary>Les rubriques et leurs pages, une vingtaine de lectures.</summary>
+    /// <summary>Sections and their pages, about twenty reads.</summary>
     Sections,
 
-    /// <summary>Les donjons, raids et tanières. La plus lourde de loin.</summary>
+    /// <summary>Dungeons, raids and lairs. By far the heaviest.</summary>
     Dungeons,
 
-    /// <summary>Les chemins, qui se déduisent des donjons.</summary>
+    /// <summary>Paths, which are inferred from the dungeons.</summary>
     Paths,
 
-    /// <summary>Le rangement, qui ne touche plus au réseau.</summary>
+    /// <summary>Arranging, which no longer touches the network.</summary>
     Arranging,
 }
 
-/// <summary>Avancement d'une indexation.</summary>
-/// <param name="Loaded">Éléments déjà lus.</param>
-/// <param name="Total">Total annoncé, ou zéro tant qu'il est inconnu.</param>
-/// <param name="Phase">Ce qu'on lit en ce moment.</param>
+/// <summary>Progress of an indexing run.</summary>
+/// <param name="Loaded">Elements already read.</param>
+/// <param name="Total">Total announced, or zero while unknown.</param>
+/// <param name="Phase">What is being read right now.</param>
 public readonly record struct QuestIndexingProgress(
     int Loaded,
     int Total,
     QuestIndexingPhase Phase = QuestIndexingPhase.Quests)
 {
-    /// <summary>Part accomplie, de zéro à un. Zéro tant que le total manque.</summary>
+    /// <summary>
+    /// Share completed, from zero to one. Zero while the total is
+    /// missing.
+    /// </summary>
     public double Fraction => Total > 0 ? Math.Clamp((double)Loaded / Total, 0, 1) : 0;
 }

@@ -1,29 +1,30 @@
 ﻿namespace DtHub.Core.Settings;
 
 /// <summary>
-/// Tient l'ordre des instances dans les réglages.
+/// Holds the order of instances in the settings.
 ///
-/// L'ordre est global et libre : une instance peut se placer entre deux
-/// instances d'un autre appareil. Il tient tout entier dans
-/// <see cref="StoredInstance.Order"/>, rang dense de 0 à n-1, si bien qu'un
-/// simple tri sur ce rang rend l'ordre voulu.
+/// The order is global and free: an instance can place itself between
+/// two instances of another device. It fits entirely in
+/// <see cref="StoredInstance.Order"/>, a dense rank from 0 to n-1, so
+/// much so that a simple sort on this rank yields the wanted order.
 ///
-/// Les déplacements se disent par clés et non par décalage : la liste affichée
-/// ne montre que les appareils joignables, alors que les réglages portent
-/// toutes les instances. Un décalage compté sur les positions visibles
-/// désignerait la mauvaise destination dès qu'une instance cachée s'intercale.
+/// Moves are expressed by keys and not by offset: the displayed list
+/// only shows reachable devices, whereas the settings carry all
+/// instances. An offset counted on the visible positions would point
+/// to the wrong destination as soon as a hidden instance slips in
+/// between.
 ///
-/// Toutes les fonctions sont pures : elles ne touchent qu'au document reçu.
+/// All functions are pure: they only touch the document received.
 /// </summary>
 public static class InstanceOrdering
 {
     /// <summary>
-    /// Resserre les rangs en 0 à n-1, dans l'ordre courant.
+    /// Tightens the ranks to 0 through n-1, in the current order.
     ///
-    /// Les rangs devenaient creux et pouvaient entrer en collision : ils
-    /// étaient attribués une fois pour toutes à la découverte, sans jamais
-    /// être renumérotés après l'oubli d'un appareil. Deux instances de même
-    /// rang laissaient l'ordre dépendre de l'ordre d'insertion.
+    /// Ranks were becoming sparse and could collide: they were
+    /// assigned once and for all at discovery, without ever being
+    /// renumbered after a device was forgotten. Two instances with
+    /// the same rank left the order depending on insertion order.
     /// </summary>
     public static void Normalize(AppSettingsDocument settings)
     {
@@ -33,10 +34,10 @@ public static class InstanceOrdering
     }
 
     /// <summary>
-    /// Place une instance juste avant ou juste après une autre, quel que soit
-    /// leur appareil.
+    /// Places an instance just before or just after another, whatever
+    /// their device.
     /// </summary>
-    /// <returns>Faux si une clé est inconnue ou si rien ne bouge.</returns>
+    /// <returns>False if a key is unknown or if nothing moves.</returns>
     public static bool MoveInstance(
         AppSettingsDocument settings,
         string key,
@@ -57,7 +58,8 @@ public static class InstanceOrdering
 
         var destination = above ? onto : onto + 1;
 
-        // Retirer l'instance décale d'un rang tout ce qui la suivait.
+        // Removing the instance shifts everything that followed it
+        // by one rank.
         if (from < destination)
         {
             destination--;
@@ -78,11 +80,11 @@ public static class InstanceOrdering
     }
 
     /// <summary>
-    /// Ajoute une instance découverte : à la suite de celles de son appareil
-    /// s'il en a déjà, sinon en fin de liste.
+    /// Adds a discovered instance: after those of its device if it
+    /// already has some, otherwise at the end of the list.
     ///
-    /// Une instance neuve doit apparaître près de ses sœurs plutôt qu'au bout
-    /// d'une longue liste, où on ne la verrait pas.
+    /// A new instance must appear near its siblings rather than at
+    /// the end of a long list, where it would go unseen.
     /// </summary>
     public static void Add(AppSettingsDocument settings, StoredInstance instance)
     {
@@ -101,8 +103,8 @@ public static class InstanceOrdering
     }
 
     /// <summary>
-    /// Fixe l'ordre complet par les clés. Une clé oubliée par l'appelant garde
-    /// son instance, qui reprend sa place à la suite.
+    /// Sets the complete order by keys. A key forgotten by the caller
+    /// keeps its instance, which resumes its place at the end.
     /// </summary>
     public static void ReorderInstances(AppSettingsDocument settings, IReadOnlyList<string> orderedKeys)
     {

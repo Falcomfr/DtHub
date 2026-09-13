@@ -1,62 +1,76 @@
 ﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Ce qu'on écrit à côté du rang d'une étape, et le plus souvent rien.
+/// What is written next to a step's rank, and most often nothing.
 ///
-/// Chaque étape était résumée, aux deux endroits qui la montrent : le bandeau
-/// et la liste où on choisit son rang. Un guide de quête y gagnait une ligne de
-/// prose tronquée sous le rang, que personne ne lisait puisque la page l'a juste
-/// au-dessus, en entier. Le rang seul suffit à s'y rendre.
+/// Every step used to be summarized, in the two places that show it:
+/// the banner and the list where its rank is picked. A quest guide
+/// gained from this a line of truncated prose under the rank, which
+/// nobody read since the page has it in full just above. The rank
+/// alone is enough to get there.
 ///
-/// Reste ce qui n'est pas de la prose et qui situe vraiment : le départ d'une
-/// quête, et les titres de section d'une fiche de lieu.
+/// What remains is what is not prose and that truly situates: a
+/// quest's departure, and the section titles of a place sheet.
 ///
-/// Ici plutôt que dans la fenêtre, pour la même raison que
-/// <c>StartupPresence</c> : une décision d'affichage se vérifie mieux quand elle
-/// ne dépend de rien.
+/// Here rather than in the window, for the same reason as
+/// <c>StartupPresence</c>: a display decision is easier to verify
+/// when it depends on nothing.
 /// </summary>
 public static class QuestStepLabel
 {
     /// <summary>
-    /// Le libellé d'une étape.
+    /// The label of a step.
     /// </summary>
-    /// <param name="step">L'étape et sa nature, telles que le pont les rapporte.</param>
+    /// <param name="step">
+    /// The step and its nature, as the bridge reports them.
+    /// </param>
     /// <param name="isDeparture">
-    /// Vrai pour la première étape d'une page qui commence par un départ, ce que
-    /// le pont dit. Sans cette réserve, le départ se retrouvait annoncé
-    /// au-dessus du premier paragraphe des guides qui n'en ont pas.
+    /// True for the first step of a page that starts with a
+    /// departure, which is what the bridge says. Without this
+    /// reservation, the departure ended up announced above the first
+    /// paragraph of guides that have none.
     /// </param>
     /// <param name="departure">
-    /// Le départ composé des métadonnées du site, position et personnage, plus
-    /// sûres que sa prose. Vide quand le site ne les renseigne pas.
+    /// The departure built from the site's metadata, position and
+    /// character, more reliable than its prose. Empty when the site
+    /// does not provide them.
     /// </param>
     /// <summary>
-    /// Vrai quand cette étape est le lancement de la quête et non une consigne.
+    /// True when this step is the launch of the quest and not an
+    /// instruction.
     ///
-    /// Le pont annonce un départ dès que la page porte un bloc de départ **ou**
-    /// qu'elle est une fiche de lieu ; un titre de section n'en est jamais un.
-    /// C'est la même réserve que celle du libellé, et les deux doivent la
-    /// partager, sans quoi une page se retrouverait avec un départ affiché
-    /// au-dessus d'un titre.
+    /// The bridge announces a departure as soon as the page carries a
+    /// departure block **or** it is a place sheet; a section title is
+    /// never one. This is the same reservation as the label's, and
+    /// the two must share it, or a page would end up with a
+    /// departure shown above a title.
     /// </summary>
     public static bool IsDeparture(QuestStep step, bool isFirst, bool startsAtDeparture) =>
         isFirst && startsAtDeparture && !step.IsTitle;
 
     /// <summary>
-    /// Le rang d'une étape et le nombre d'étapes, le départ mis à part.
+    /// The rank of a step and the number of steps, the departure set
+    /// aside.
     ///
-    /// Le départ n'est pas une étape du parcours : c'est l'endroit où l'on se
-    /// rend pour le commencer. Le compter donnait « Étape 1 / 2 » à un guide
-    /// qui n'a qu'une consigne, ce qui est le cas de cent quatre-vingt-deux des
-    /// sept cent quatre-vingt-deux guides du site, et « Étape 1 / 1 » à trente
-    /// autres qui n'en ont aucune.
+    /// The departure is not a step of the journey: it is the place
+    /// one goes to start it. Counting it gave "Step 1 / 2" to a guide
+    /// that has only one instruction, which is the case for one
+    /// hundred and eighty-two of the site's seven hundred and
+    /// eighty-two guides, and "Step 1 / 1" to thirty others that have
+    /// none.
     /// </summary>
-    /// <param name="index">Rang de l'étape parmi celles que le pont a rendues.</param>
-    /// <param name="count">Nombre d'étapes rendues, départ compris.</param>
-    /// <param name="hasDeparture">Vrai quand la première d'entre elles est le départ.</param>
+    /// <param name="index">
+    /// Rank of the step among those the bridge returned.
+    /// </param>
+    /// <param name="count">
+    /// Number of steps returned, departure included.
+    /// </param>
+    /// <param name="hasDeparture">
+    /// True when the first of them is the departure.
+    /// </param>
     /// <returns>
-    /// Le rang à montrer et le total, ou <c>null</c> pour le départ, qui se
-    /// nomme au lieu de se numéroter.
+    /// The rank to show and the total, or <c>null</c> for the
+    /// departure, which is named instead of numbered.
     /// </returns>
     public static (int Rank, int Total)? Numbering(int index, int count, bool hasDeparture)
     {
@@ -72,20 +86,22 @@ public static class QuestStepLabel
 
     public static string For(QuestStep step, bool isDeparture, string? departure)
     {
-        // Le titre passe avant le départ, et l'ordre inverse était un défaut.
+        // The title comes before the departure, and the reverse
+        // order was a bug.
         //
-        // Le pont annonce un départ dès que la page porte un bloc de départ
-        // **ou** qu'elle est une fiche de lieu, mais il ne pousse une étape de
-        // départ que dans le second cas. Une page qui a les deux, des titres de
-        // section et un bloc de départ, voyait donc son premier titre remplacé
-        // par la ligne de départ. Relevé sur les sept cent quatre-vingt-deux
-        // guides du site : deux sont dans ce cas, « La voie du Wukang / La voie
-        // du Wukin » et « L'éternelle moisson », dont le premier titre est
-        // « Liste des Monstres ».
+        // The bridge announces a departure as soon as the page
+        // carries a departure block **or** it is a place sheet, but
+        // it only pushes a departure step in the second case. A page
+        // that has both, section titles and a departure block,
+        // therefore saw its first title replaced by the departure
+        // line. Found across the site's seven hundred and
+        // eighty-two guides: two are in this case, "La voie du
+        // Wukang / La voie du Wukin" and "L'éternelle moisson",
+        // whose first title is "Liste des Monstres".
         //
-        // Un titre est rendu tel quel. Le résumer lui ajoutait une majuscule et
-        // un point final qu'il n'avait pas demandés : « Les salles » s'affichait
-        // « Les salles. »
+        // A title is rendered as is. Summarizing it added a capital
+        // letter and a final period it had not asked for: "Les
+        // salles" displayed as "Les salles."
         if (step.IsTitle)
         {
             return step.Text;

@@ -4,15 +4,17 @@ using System.Reflection;
 namespace DtHub.App.Windows;
 
 /// <summary>
-/// Le script qui lit la page de l'Almanax.
+/// The script that reads the Almanax page.
 ///
-/// À part du pont des guides : celui-ci cadre une page pour l'afficher, et il
-/// est écrit pour la structure d'un autre site. Ici on ne cadre rien, on lit
-/// et la page n'est jamais montrée.
+/// Separate from the guides' bridge: that one frames a page to
+/// display it, and is written for another site's structure. Here
+/// nothing is framed, we read, and the page is never shown.
 /// </summary>
 internal static class AlmanaxBridge
 {
-    /// <summary>Le pont, tel qu'on l'injecte avant la création du document.</summary>
+    /// <summary>
+    /// The bridge, as it is injected before document creation.
+    /// </summary>
     public static string Script()
     {
         using var stream = Assembly.GetExecutingAssembly()

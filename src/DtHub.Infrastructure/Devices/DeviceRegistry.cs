@@ -4,9 +4,9 @@ using DtHub.Core.Storage;
 namespace DtHub.Infrastructure.Devices;
 
 /// <summary>
-/// Registre adossé à <c>devices.json</c>. Le document complet est relu à
-/// chaque opération : il compte quelques dizaines d'entrées au plus, et cela
-/// évite toute divergence si le fichier est modifié à la main.
+/// Registry backed by <c>devices.json</c>. The full document is
+/// reread on every operation: it holds a few dozen entries at
+/// most, and that avoids any drift if the file is edited by hand.
 /// </summary>
 public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
 {
@@ -19,12 +19,13 @@ public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
         DevicesIn(await LoadCurrentAsync(cancellationToken).ConfigureAwait(false));
 
     /// <summary>
-    /// Relit le document et le met à jour s'il vient d'une version antérieure.
+    /// Rereads the document and upgrades it if it comes from an
+    /// earlier version.
     ///
-    /// Un fichier écrit par la version 1 peut porter le même téléphone deux
-    /// fois, sous son numéro de série et sous son nom mDNS. La réunion est
-    /// écrite tout de suite : la laisser en mémoire ferait réapparaître le
-    /// doublon au prochain démarrage.
+    /// A file written by version 1 may carry the same phone twice,
+    /// under its serial number and under its mDNS name. The merge
+    /// is written right away: leaving it only in memory would bring
+    /// the duplicate back at the next startup.
     /// </summary>
     private async Task<DeviceRegistryDocument> LoadCurrentAsync(CancellationToken cancellationToken)
     {
@@ -72,8 +73,8 @@ public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
                     continue;
                 }
 
-                // Le nom personnalisé et le marquage principal appartiennent à
-                // l'utilisateur : une découverte ne les remet jamais à zéro.
+                // The custom name and the primary flag belong to
+                // the user: a discovery never resets them.
                 var previous = document.Devices[index];
                 stored.CustomName = device.CustomName ?? previous.CustomName;
                 stored.IsPrimary = device.IsPrimary || previous.IsPrimary;
@@ -143,7 +144,10 @@ public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
 
     public void Dispose() => _gate.Dispose();
 
-    /// <summary>Lecture, modification et écriture sous verrou, pour éviter les pertes croisées.</summary>
+    /// <summary>
+    /// Read, modify and write under a lock, to avoid lost updates
+    /// between concurrent writes.
+    /// </summary>
     private async Task MutateAsync(Action<DeviceRegistryDocument> mutate, CancellationToken cancellationToken)
     {
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);

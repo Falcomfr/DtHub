@@ -1,17 +1,19 @@
 ﻿namespace DtHub.Core.Devices;
 
 /// <summary>
-/// Décide où poser un nom d'appareil dans une liste plate d'instances.
+/// Decides where to place a device name in a flat list of
+/// instances.
 ///
-/// Le nom n'apparaît que là où l'appareil change : deux instances du même
-/// téléphone qui se suivent n'en portent qu'un, et un téléphone coupé en deux
-/// morceaux par une instance venue d'ailleurs en reçoit un par morceau.
+/// The name only appears where the device changes: two consecutive
+/// instances of the same phone carry only one, and a phone split
+/// into two pieces by an instance from elsewhere gets one per
+/// piece.
 /// </summary>
 public static class DeviceHeaders
 {
     /// <summary>
-    /// Pour chaque position, vrai si la ligne ouvre une suite d'instances d'un
-    /// même appareil et doit donc en porter le nom.
+    /// For each position, true if the row opens a run of instances
+    /// of the same device and must therefore carry its name.
     /// </summary>
     public static IReadOnlyList<bool> For(IReadOnlyList<string> deviceIds)
     {
@@ -29,12 +31,12 @@ public static class DeviceHeaders
     }
 
     /// <summary>
-    /// Pour chaque position, vrai s'il s'agit du premier morceau de cet
-    /// appareil dans la liste.
+    /// For each position, true if it is the first piece of that
+    /// device in the list.
     ///
-    /// Ce qui vaut pour l'appareil lui-même, et non pour la suite d'instances,
-    /// ne s'affiche que là : le bouton qui rompt l'association n'a aucune
-    /// raison de paraître deux fois pour le même téléphone.
+    /// What applies to the device itself, and not to the run of
+    /// instances, is only shown there: the button that breaks the
+    /// pairing has no reason to appear twice for the same phone.
     /// </summary>
     public static IReadOnlyList<bool> FirstOccurrences(IReadOnlyList<string> deviceIds)
     {

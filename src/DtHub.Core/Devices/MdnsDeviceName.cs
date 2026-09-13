@@ -1,14 +1,14 @@
 ﻿namespace DtHub.Core.Devices;
 
 /// <summary>
-/// Nom mDNS annoncé par le débogage sans fil d'Android, de la forme
+/// mDNS name advertised by Android's wireless debugging, of the form
 /// <c>adb-SERIAL0123456789-1V3FXQ._adb-tls-connect._tcp</c>.
 ///
-/// Il porte le numéro de série matériel de l'appareil, suivi d'un jeton tiré au
-/// hasard. Le lire évite de créer une seconde identité pour un téléphone déjà
-/// connu : un même appareil apparaît sous son adresse IP quand il est joignable,
-/// et sous ce nom quand il ne l'est pas, ADB ne pouvant alors pas être interrogé
-/// pour obtenir son numéro de série.
+/// It carries the device's hardware serial number, followed by a
+/// randomly drawn token. Reading it avoids creating a second identity
+/// for a phone already known: the same device appears under its IP
+/// address when it is reachable, and under this name when it is not,
+/// since ADB cannot then be queried to get its serial number.
 /// </summary>
 public static class MdnsDeviceName
 {
@@ -16,11 +16,11 @@ public static class MdnsDeviceName
     private const string ServiceMarker = "._adb";
 
     /// <summary>
-    /// Numéro de série matériel porté par un nom mDNS complet, ou <c>null</c>
-    /// si le texte donné n'en est pas un. Le suffixe de service est exigé :
-    /// c'est lui qui distingue un nom d'annonce d'un numéro de série ordinaire,
-    /// et cette méthode sert justement à faire le tri dans ce que rapporte
-    /// <c>adb devices</c>.
+    /// Hardware serial number carried by a full mDNS name, or
+    /// <c>null</c> if the given text is not one. The service suffix
+    /// is required: it is what distinguishes an advertised name from
+    /// an ordinary serial number, and this method exists precisely to
+    /// sort out what <c>adb devices</c> reports.
     /// </summary>
     public static string? HardwareSerialFrom(string? serial)
     {
@@ -35,13 +35,14 @@ public static class MdnsDeviceName
     }
 
     /// <summary>
-    /// Numéro de série matériel porté par le nom d'instance d'une annonce,
-    /// c'est-à-dire la première colonne de <c>adb mdns services</c>.
+    /// Hardware serial number carried by an advertisement's instance
+    /// name, that is, the first column of <c>adb mdns services</c>.
     ///
-    /// Le type de service y vit dans une colonne à part : le nom n'en porte
-    /// donc pas le suffixe, contrairement au numéro de série que rapporte
-    /// <c>adb devices</c> pour un appareil injoignable. Le tri, lui, est déjà
-    /// fait par ADB : ce qui figure dans cette colonne est une annonce.
+    /// The service type lives in its own column there: the name
+    /// therefore does not carry its suffix, unlike the serial number
+    /// that <c>adb devices</c> reports for an unreachable device. The
+    /// sorting, meanwhile, is already done by ADB: whatever appears
+    /// in this column is an advertisement.
     /// </summary>
     public static string? HardwareSerialFromInstance(string? instance)
     {
@@ -60,8 +61,9 @@ public static class MdnsDeviceName
 
     private static string? SerialIn(string body)
     {
-        // Le jeton final est séparé par un tiret. Le numéro de série peut lui
-        // aussi en contenir : c'est le dernier qui sépare, pas le premier.
+        // The final token is separated by a hyphen. The serial
+        // number can also contain one: it is the last one that
+        // separates, not the first.
         var token = body.LastIndexOf('-');
 
         var extracted = token > 0 ? body[..token] : body;
@@ -69,6 +71,8 @@ public static class MdnsDeviceName
         return extracted.Length > 0 ? extracted : null;
     }
 
-    /// <summary>Vrai si le texte donné est un nom mDNS de débogage sans fil.</summary>
+    /// <summary>
+    /// True if the given text is a wireless debugging mDNS name.
+    /// </summary>
     public static bool IsMdnsName(string? serial) => HardwareSerialFrom(serial) is not null;
 }

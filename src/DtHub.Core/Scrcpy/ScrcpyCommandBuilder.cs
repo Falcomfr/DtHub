@@ -3,16 +3,16 @@
 namespace DtHub.Core.Scrcpy;
 
 /// <summary>
-/// Construit la ligne de commande scrcpy. Fonction pure, entièrement
-/// vérifiable : c'est la pièce la plus facile à casser sans s'en apercevoir,
-/// puisqu'une option mal nommée ne se voit qu'à l'exécution.
+/// Builds the scrcpy command line. A pure function, fully testable:
+/// it is the piece easiest to break without noticing, since a
+/// misnamed option only shows up at runtime.
 /// </summary>
 public static class ScrcpyCommandBuilder
 {
     /// <summary>
-    /// Titre de la fenêtre de jeu : le nom du produit suivi du nom choisi par
-    /// l'utilisateur. Aucun identifiant technique n'y figure, la fenêtre étant
-    /// retrouvée par son processus.
+    /// Title of the game window: the product name followed by the
+    /// name chosen by the user. No technical identifier appears in
+    /// it, since the window is found by its process.
     /// </summary>
     public static string BuildWindowTitle(string? name, string? hint = null)
     {
@@ -23,11 +23,15 @@ public static class ScrcpyCommandBuilder
         return string.IsNullOrWhiteSpace(hint) ? title : $"{title}  ({hint.Trim()})";
     }
 
-    /// <summary>Arguments de lancement d'une session de mirroring.</summary>
-    /// <param name="serial">Numéro de série ADB de l'appareil visé.</param>
-    /// <param name="windowTitle">Titre unique, utilisé ensuite pour retrouver la fenêtre.</param>
-    /// <param name="options">Réglages de la session.</param>
-    /// <param name="windowPosition">Position et taille initiales, si elles sont connues.</param>
+    /// <summary>Launch arguments for a mirroring session.</summary>
+    /// <param name="serial">ADB serial number of the targeted device.</param>
+    /// <param name="windowTitle">
+    /// Unique title, used afterwards to find the window again.
+    /// </param>
+    /// <param name="options">Settings for the session.</param>
+    /// <param name="windowPosition">
+    /// Initial position and size, if they are known.
+    /// </param>
     public static IReadOnlyList<string> BuildMirrorArguments(
         string serial,
         string windowTitle,
@@ -39,11 +43,11 @@ public static class ScrcpyCommandBuilder
 
         var sanitized = options.Sanitized();
 
-        // Toutes les valeurs sont accolées par « = ». Trois options de scrcpy
-        // acceptent une valeur facultative, dont --new-display : pour
-        // celles-là, getopt n'accepte la valeur qu'accolée, et une valeur
-        // séparée par une espace est prise pour un argument parasite. La forme
-        // accolée fonctionne dans les deux cas, on l'emploie partout.
+        // Every value is joined with "=". Three scrcpy options accept
+        // an optional value, including --new-display: for those,
+        // getopt only accepts the value when joined, and a value
+        // separated by a space is taken for a stray argument. The
+        // joined form works in both cases, so it is used everywhere.
         List<string> arguments =
         [
             Option("serial", serial),
@@ -53,20 +57,22 @@ public static class ScrcpyCommandBuilder
             Option("keyboard", sanitized.KeyboardMode == ScrcpyKeyboardMode.Uhid ? "uhid" : "sdk"),
             Option("mouse", sanitized.MouseMode == ScrcpyMouseMode.Uhid ? "uhid" : "sdk"),
 
-            // Les clics secondaires ne font rien par défaut. scrcpy associe
-            // sinon le clic droit à RETOUR : sur un afficheur qui ne porte que
-            // le jeu, ce retour quitte l'activité et laisse un écran noir. Les
-            // quatre actions restent accessibles en maintenant Maj.
+            // Secondary clicks do nothing by default. Otherwise
+            // scrcpy binds the right click to BACK: on a display that
+            // carries only the game, that back action exits the
+            // activity and leaves a black screen. The four actions
+            // stay accessible by holding Shift.
             Option("mouse-bind", "----:bhsn"),
         ];
 
-        // --prefer-text avale les modificateurs : les touches alphabétiques
-        // partent en événements de texte, si bien que Ctrl+V tapait un « v »
-        // dans le champ au lieu de coller. Mesuré, et scrcpy le déconseille
-        // lui-même pour les jeux, où il casse aussi les touches de
-        // déplacement.
-        // Un tampon ne se demande que s'il vaut quelque chose : passer zéro
-        // reviendrait à écrire le défaut de scrcpy dans la ligne de commande.
+        // --prefer-text swallows the modifiers: alphabetic keys go
+        // out as text events, so Ctrl+V typed a "v" into the field
+        // instead of pasting. Measured, and scrcpy itself advises
+        // against it for games, where it also breaks the movement
+        // keys.
+        // A buffer is only requested if it is worth something:
+        // passing zero would amount to writing scrcpy's own default
+        // into the command line.
         if (sanitized.VideoBufferMs > 0)
         {
             arguments.Add(Option(
@@ -104,14 +110,16 @@ public static class ScrcpyCommandBuilder
             arguments.Add(Option("video-codec", sanitized.VideoCodec));
         }
 
-        // Après le codec, et seulement quand l'appareil mettrait un encodeur
-        // logiciel devant un matériel. Voir « ScrcpyEncoders.Force ».
+        // After the codec, and only when the device would put a
+        // software encoder ahead of a hardware one. See
+        // "ScrcpyEncoders.Force".
         if (!string.IsNullOrWhiteSpace(sanitized.VideoEncoder))
         {
             arguments.Add(Option("video-encoder", sanitized.VideoEncoder));
         }
 
-        // Diagnostic seulement : la cadence part au journal, pas à l'écran.
+        // Diagnostics only: the frame rate goes to the log, not to
+        // the screen.
         if (sanitized.PrintFps)
         {
             arguments.Add("--print-fps");
@@ -119,10 +127,11 @@ public static class ScrcpyCommandBuilder
 
         if (sanitized.UseVirtualDisplay)
         {
-            // L'afficheur garde une définition fixe et l'image est mise à
-            // l'échelle de la fenêtre. C'est la seule façon d'accepter toute
-            // taille sans rien perdre : le jeu fige la hauteur de sa mise en
-            // page à son initialisation et ne la reprend jamais.
+            // The display keeps a fixed resolution and the image is
+            // scaled to the window. It is the only way to accept any
+            // size without losing anything: the game locks the
+            // height of its layout at startup and never picks it up
+            // again.
             arguments.Add(Option(
                 "new-display",
                 DisplayArgument(
@@ -151,13 +160,13 @@ public static class ScrcpyCommandBuilder
             ]);
         }
 
-        // Volontairement absent : --kill-adb-on-close. Le serveur ADB est
-        // partagé avec le reste de la machine et ne doit pas tomber avec une
-        // session de DT Hub.
+        // Deliberately absent: --kill-adb-on-close. The ADB server is
+        // shared with the rest of the machine and must not go down
+        // with a DT Hub session.
         return arguments;
     }
 
-    /// <summary>Arguments pour récupérer la liste nommée des applications.</summary>
+    /// <summary>Arguments to fetch the named list of applications.</summary>
     public static IReadOnlyList<string> BuildListAppsArguments(string serial)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(serial);
@@ -166,10 +175,10 @@ public static class ScrcpyCommandBuilder
     }
 
     /// <summary>
-    /// Demande à l'appareil la liste de ses encodeurs vidéo.
+    /// Asks the device for the list of its video encoders.
     ///
-    /// scrcpy pousse son serveur, interroge, écrit et sort : quelques
-    /// secondes, aucune fenêtre, aucun afficheur créé.
+    /// scrcpy pushes its server, queries, writes and exits: a few
+    /// seconds, no window, no display created.
     /// </summary>
     public static IReadOnlyList<string> BuildListEncodersArguments(string serial)
     {
@@ -178,17 +187,18 @@ public static class ScrcpyCommandBuilder
         return [Option("serial", serial), "--list-encoders"];
     }
 
-    /// <summary>Une option longue et sa valeur, accolées.</summary>
+    /// <summary>A long option and its value, joined together.</summary>
     private static string Option(string name, string value) => $"--{name}={value}";
 
     /// <summary>
-    /// Définition d'afficheur au format attendu. Les dimensions sont ramenées
-    /// à des nombres pairs : les encodeurs vidéo refusent les côtés impairs.
+    /// Display resolution in the expected format. The dimensions are
+    /// brought down to even numbers: video encoders refuse
+    /// odd-numbered sides.
     /// </summary>
     private static string DisplayArgument(int width, int height, int dpi) => string.Create(
         CultureInfo.InvariantCulture,
         $"{Math.Max(2, width - (width % 2))}x{Math.Max(2, height - (height % 2))}/{dpi}");
 }
 
-/// <summary>Position et taille d'une fenêtre, en pixels écran.</summary>
+/// <summary>Position and size of a window, in screen pixels.</summary>
 public readonly record struct ScrcpyWindowPlacement(int X, int Y, int Width, int Height);

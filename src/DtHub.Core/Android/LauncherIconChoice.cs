@@ -3,30 +3,33 @@
 namespace DtHub.Core.Android;
 
 /// <summary>
-/// Choisit, dans le listage d'une archive, l'entrée qui porte l'icône de
-/// lancement.
+/// Chooses, within an archive's listing, the entry that carries the
+/// launcher icon.
 ///
-/// Ni le manifeste ni <c>resources.arsc</c> ne sont lus : ce serait décoder le
-/// format de ressources d'Android pour retrouver un nom que la convention
-/// donne déjà. Le modèle d'Android nomme cette ressource « ic_launcher », et
-/// c'est le cas du jeu visé, mesuré. Quand la convention ne tient pas, on ne
-/// rend rien, ce qui vaut exactement l'état d'avant.
+/// Neither the manifest nor <c>resources.arsc</c> is read: that
+/// would mean decoding Android's resource format to retrieve a name
+/// the convention already gives. Android's template names this
+/// resource "ic_launcher", and that holds for the targeted game, as
+/// measured. When the convention does not hold, nothing is returned,
+/// which is exactly equivalent to the previous state.
 /// </summary>
 public static partial class LauncherIconChoice
 {
     /// <summary>
-    /// Plafond de transfert. Cinquante et un kilooctets suffisent à la plus
-    /// dense des icônes du jeu, mesuré ; le plafond n'est pas là pour elle mais
-    /// pour l'archive inconnue qui logerait une image d'un mégaoctet sous ce
-    /// nom.
+    /// Transfer ceiling, deliberately far above what is needed:
+    /// fifty one kilobytes are enough for the densest of the game's
+    /// icons, as measured. The two hundred and fifty six here are not
+    /// sized for that icon but against the unknown archive that would
+    /// stash a one megabyte image under this name.
     /// </summary>
     public const long MaximumBytes = 256 * 1024;
 
     /// <summary>
-    /// L'entrée à extraire, ou <c>null</c> quand l'archive n'a pas d'icône
-    /// matricielle. C'est le cas d'une application qui ne livre qu'une icône
-    /// adaptative, décrite en XML et dessinée par le lanceur : la rendre
-    /// demanderait un rasteriseur de vectoriels et un lecteur de ressources.
+    /// The entry to extract, or <c>null</c> when the archive has no
+    /// raster icon. This is the case for an application that only
+    /// ships an adaptive icon, described in XML and drawn by the
+    /// launcher: rendering it would require a vector rasterizer and a
+    /// resource reader.
     /// </summary>
     public static string? Choose(IReadOnlyList<ApkEntry> entries)
     {
@@ -53,17 +56,17 @@ public static partial class LauncherIconChoice
             .ThenByDescending(c => c.Density)
             .ThenByDescending(c => c.Entry.Length)
 
-            // Départage final pour que le choix ne dépende jamais de l'ordre
-            // dans lequel l'archive a été lue.
+            // Final tiebreaker so the choice never depends on the
+            // order in which the archive was read.
             .ThenBy(c => c.Entry.Name, StringComparer.Ordinal)
             .First()
             .Entry.Name;
     }
 
     /// <summary>
-    /// L'icône entière d'abord, sa variante ronde ensuite. Les morceaux d'une
-    /// icône adaptative, « _foreground » et « _background », ne sont pas des
-    /// icônes : montrer l'un des deux seul donnerait une image tronquée.
+    /// The full icon first, its round variant next. The pieces of an
+    /// adaptive icon, "_foreground" and "_background", are not
+    /// icons: showing just one of the two would give a cropped image.
     /// </summary>
     private static int TierOf(string name) => name switch
     {
@@ -73,8 +76,8 @@ public static partial class LauncherIconChoice
     };
 
     /// <summary>
-    /// Densité annoncée par le qualificatif du dossier, en points par pouce.
-    /// Ce qui n'en annonce aucune passe en dernier.
+    /// Density advertised by the folder's qualifier, in dots per
+    /// inch. Whatever advertises none comes last.
     /// </summary>
     private static int DensityOf(string qualifier)
     {

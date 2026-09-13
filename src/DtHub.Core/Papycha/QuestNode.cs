@@ -1,99 +1,105 @@
 ﻿namespace DtHub.Core.Papycha;
 
-/// <summary>Ce qu'une ligne de la liste déroulante propose.</summary>
+/// <summary>What a row of the dropdown list offers.</summary>
 public enum QuestNodeKind
 {
-    /// <summary>Une branche à déplier : une zone de quêtes.</summary>
+    /// <summary>A branch to unfold: a zone of quests.</summary>
     Branch,
 
-    /// <summary>Une quête à ouvrir.</summary>
+    /// <summary>A quest to open.</summary>
     Quest,
 
-    /// <summary>Une branche annoncée mais pas encore faite.</summary>
+    /// <summary>A branch announced but not yet made.</summary>
     Pending,
 
-    /// <summary>Un intertitre de rubrique, qui ne se clique pas.</summary>
+    /// <summary>A section subheading, which is not clickable.</summary>
     Header,
 
     /// <summary>
-    /// Le titre d'un groupe de résultats : zones, succès, quêtes.
+    /// The title of a group of results: zones, achievements, quests.
     ///
-    /// Distinct de l'intertitre ordinaire parce qu'il le domine : dans une
-    /// recherche, ces trois-là coiffent des succès qui sont eux-mêmes des
-    /// intertitres, et les deux niveaux se confondaient.
+    /// Distinct from the ordinary subheading because it sits above
+    /// it: in a search, these three top achievements that are
+    /// themselves subheadings, and the two levels used to blend
+    /// together.
     /// </summary>
     Section,
 
     /// <summary>
-    /// Un succès, qui coiffe ses quêtes sans se cliquer.
+    /// An achievement, which tops its quests without being clickable.
     ///
-    /// Distinct de l'intertitre ordinaire pour porter son étoile : les
-    /// intertitres « Zones » et « Quêtes » d'une recherche n'en veulent pas.
+    /// Distinct from the ordinary subheading in order to carry its
+    /// star: the "Areas" and "Quests" subheadings of a search do not
+    /// want one.
     /// </summary>
     Success,
 }
 
 /// <summary>
-/// L'icône d'une ligne, qui dit sa nature avant qu'on l'ait lue.
+/// The icon of a row, which tells its nature before it has been read.
 ///
-/// Séparée de <see cref="QuestNodeKind"/>, qui dit ce que le clic fera : deux
-/// branches se déplient de la même façon sans désigner la même chose, une zone
-/// du monde et une famille de quêtes.
+/// Separate from <see cref="QuestNodeKind"/>, which says what the
+/// click will do: two branches unfold the same way without
+/// designating the same thing, a zone of the world and a family of
+/// quests.
 /// </summary>
 public enum QuestNodeGlyph
 {
-    /// <summary>Aucune : les quêtes, les lignes les plus nombreuses.</summary>
+    /// <summary>None: quests, the most numerous rows.</summary>
     None,
 
-    /// <summary>La racine des quêtes.</summary>
+    /// <summary>The root of quests.</summary>
     Quests,
 
-    /// <summary>La racine des donjons.</summary>
+    /// <summary>The root of dungeons.</summary>
     Dungeons,
 
-    /// <summary>La racine des raids.</summary>
+    /// <summary>The root of raids.</summary>
     Raids,
 
-    /// <summary>La racine des tanières.</summary>
+    /// <summary>The root of lairs.</summary>
     Lairs,
 
-    /// <summary>Un endroit du monde.</summary>
+    /// <summary>A place in the world.</summary>
     Place,
 
-    /// <summary>Un chemin, qui joint deux endroits.</summary>
+    /// <summary>A path, which joins two places.</summary>
     Route,
 
-    /// <summary>Une famille de quêtes, qui ne se situe nulle part.</summary>
+    /// <summary>A family of quests, which is not located anywhere.</summary>
     Family,
 
-    /// <summary>Un succès.</summary>
+    /// <summary>An achievement.</summary>
     Success,
 }
 
 /// <summary>
-/// Une ligne de la liste déroulante : une branche, une quête, un intertitre.
+/// A row of the dropdown list: a branch, a quest, a subheading.
 /// </summary>
-/// <param name="Kind">Ce que le clic déclenchera.</param>
-/// <param name="Label">Texte affiché.</param>
-/// <param name="Detail">Complément à droite : un nombre de quêtes, un niveau.</param>
-/// <param name="Id">Identifiant de la rubrique, quand c'en est une.</param>
-/// <param name="Glyph">L'icône qui annonce la nature de la ligne.</param>
+/// <param name="Kind">What the click will trigger.</param>
+/// <param name="Label">Displayed text.</param>
+/// <param name="Detail">
+/// Detail on the right: a number of quests, a level.
+/// </param>
+/// <param name="Id">Identifier of the section, when it is one.</param>
+/// <param name="Glyph">The icon that announces the row's nature.</param>
 /// <param name="InSuccess">
-/// Vrai quand la ligne est une quête du succès qui la coiffe. Elle se décale
-/// alors, et un filet la relie aux autres : c'est ce décalage qui dit qu'une
-/// quête sans lui n'appartient à aucun succès.
+/// True when the row is a quest of the achievement that tops it. It
+/// is then indented, and a thread links it to the others: this
+/// indent is what says that a quest without it belongs to no
+/// achievement.
 /// </param>
 /// <param name="Spaced">
-/// Vrai quand un blanc doit suivre la ligne, parce que ce qui vient après
-/// change de nature.
+/// True when a blank must follow the row, because what comes after
+/// changes in nature.
 /// </param>
 /// <param name="Needs">
-/// Ce que le survol montre : les prérequis d'une quête, un par ligne. Vide
-/// quand le site n'en donne pas, et la ligne n'affiche alors aucune icône.
+/// What the hover shows: a quest's prerequisites, one per line. Empty
+/// when the site gives none, and the row then shows no icon.
 /// </param>
-/// <param name="Quest">La quête, quand c'en est une.</param>
-/// <param name="Dungeon">Le lieu de combat, quand c'en est un.</param>
-/// <param name="Path">Le chemin, quand c'en est un.</param>
+/// <param name="Quest">The quest, when it is one.</param>
+/// <param name="Dungeon">The combat location, when it is one.</param>
+/// <param name="Path">The path, when it is one.</param>
 public sealed record QuestNode(
     QuestNodeKind Kind,
     string Label,
@@ -107,29 +113,32 @@ public sealed record QuestNode(
     bool InSuccess = false,
     bool Spaced = false)
 {
-    /// <summary>Ni les branches non faites, ni les intertitres ne se cliquent.</summary>
+    /// <summary>
+    /// Neither unmade branches nor subheadings are clickable.
+    /// </summary>
     public bool IsEnabled => Kind is QuestNodeKind.Branch or QuestNodeKind.Quest;
 
     /// <summary>
-    /// L'adresse que la ligne ouvre, qu'elle mène à une quête ou à un donjon.
+    /// The address the row opens, whether it leads to a quest or a
+    /// dungeon.
     /// </summary>
     public string? Url => Quest?.Url ?? Dungeon?.Url ?? Path?.Url;
 
-    /// <summary>Vrai quand la ligne a quelque chose à dire au survol.</summary>
+    /// <summary>True when the row has something to say on hover.</summary>
     public bool HasNeeds => Needs is { Count: > 0 };
 }
 
 /// <summary>
-/// Un prérequis d'une quête, et la quête qu'il nomme quand c'en est une.
+/// A quest's prerequisite, and the quest it names when it is one.
 ///
-/// Le site en écrit de toutes sortes : des quêtes, mais aussi des objets à
-/// apporter, un alignement, un nombre de joueurs, un niveau, des créneaux
-/// horaires. Seuls les premiers se cliquent.
+/// The site writes all sorts of them: quests, but also items to
+/// bring, an alignment, a number of players, a level, time slots.
+/// Only the first kind is clickable.
 /// </summary>
-/// <param name="Text">Le prérequis tel que le site l'écrit.</param>
-/// <param name="Quest">La quête qu'il désigne, ou <c>null</c>.</param>
+/// <param name="Text">The prerequisite as the site writes it.</param>
+/// <param name="Quest">The quest it designates, or <c>null</c>.</param>
 public sealed record QuestNeed(string Text, QuestSummary? Quest)
 {
-    /// <summary>Vrai quand le prérequis mène quelque part.</summary>
+    /// <summary>True when the prerequisite leads somewhere.</summary>
     public bool IsQuest => Quest is not null;
 }

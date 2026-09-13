@@ -1,43 +1,45 @@
 ﻿namespace DtHub.Core.Sessions;
 
 /// <summary>
-/// Décide de ce qui paraît au démarrage.
+/// Decides what appears at startup.
 ///
-/// Trois règles, qui tiennent ensemble : une fenêtre de jeu fermée à la main
-/// revient au lancement suivant, une fenêtre fermée depuis le panneau n'y
-/// revient pas, et le panneau se montre dès qu'il ne resterait rien à l'écran.
+/// Three rules, which hold together: a game window closed by hand
+/// comes back at the next launch, a window closed from the panel does
+/// not come back, and the panel shows itself as soon as nothing would
+/// be left on screen.
 /// </summary>
 public static class StartupPresence
 {
     /// <summary>
-    /// Vrai si le configurateur doit être affiché, sachant s'il l'était à la
-    /// sortie et combien de fenêtres de jeu viennent de s'ouvrir.
+    /// True if the configurator must be shown, knowing whether it was
+    /// shown at exit and how many game windows have just opened.
     ///
-    /// Sans fenêtre de jeu, il est tout ce qui reste : le masquer laisserait
-    /// une application sans rien à l'écran, et sans même le rappel du raccourci
-    /// que portent les titres des fenêtres. Cela vaut qu'un problème soit à
-    /// montrer ou que l'ensemble de démarrage soit simplement vide, les deux
-    /// menant au même écran vide.
+    /// Without a game window, it is all that remains: hiding it would
+    /// leave an application with nothing on screen, not even the
+    /// shortcut reminder carried by the window titles. This holds
+    /// whether a problem needs to be shown or the startup set is
+    /// simply empty, both leading to the same empty screen.
     /// </summary>
     public static bool ShowConfigurator(bool remembered, int openedWindows) =>
         remembered || openedWindows <= 0;
 
     /// <summary>
-    /// Vrai si le configurateur peut paraître sans attendre le lancement.
+    /// True if the configurator can appear without waiting for launch.
     ///
-    /// Ouvrir les sessions demande plusieurs secondes, pendant lesquelles rien
-    /// ne paraissait : l'application semblait ne pas démarrer, alors qu'elle
-    /// travaillait. Le panneau est pourtant prêt bien avant elles.
+    /// Opening sessions takes several seconds, during which nothing
+    /// appeared: the application seemed not to start, even though it
+    /// was working. The panel, however, is ready well before them.
     ///
-    /// La seule chose qui empêchait de le montrer tout de suite est que sa
-    /// présence dépend du nombre de fenêtres ouvertes, qu'on ne connaît qu'à la
-    /// fin. Sauf dans un cas : quand il était affiché à la sortie, il reste
-    /// affiché quoi qu'il arrive ensuite. Le montrer alors n'anticipe rien, et
-    /// ne peut donc pas mener à le reprendre à l'écran.
+    /// The only thing that prevented showing it right away is that
+    /// its presence depends on the number of open windows, which is
+    /// only known at the end. Except in one case: when it was shown
+    /// at exit, it stays shown no matter what happens next. Showing it
+    /// then does not anticipate anything, and therefore cannot lead to
+    /// bringing it back on screen.
     ///
-    /// Autrement dit, cette règle ne rend vrai que là où
-    /// <see cref="ShowConfigurator" /> rendra vrai de toute façon.
+    /// In other words, this rule only returns true where
+    /// <see cref="ShowConfigurator" /> would return true anyway.
     /// </summary>
-    /// <param name="remembered">Le panneau était-il affiché à la sortie.</param>
+    /// <param name="remembered">Was the panel shown at exit.</param>
     public static bool ShowBeforeLaunch(bool remembered) => remembered;
 }

@@ -1,26 +1,35 @@
 ﻿namespace DtHub.Core.Almanax;
 
 /// <summary>
-/// Une journée de l'Almanax, réduite à ce qu'on affiche.
+/// One day of the Almanax, reduced to what is displayed.
 ///
-/// La page du portail porte bien davantage : le protecteur du mois, le signe
-/// du zodiaque, la Rubrikabrax, et leurs textes d'ambiance. Rien de tout cela
-/// n'aide à savoir quoi apporter aujourd'hui, et c'est la seule question que
-/// la fenêtre sert.
+/// The portal page carries much more: the month's protector, the
+/// zodiac sign, the Rubrikabrax, and their flavor texts. None of
+/// that helps to know what to bring today, and that is the only
+/// question the window serves.
 /// </summary>
-/// <param name="Date">Le jour du calendrier, tel qu'on l'a demandé.</param>
-/// <param name="DofusianDay">Le jour dans le calendrier du Monde des Douze, « 10 Septange ».</param>
-/// <param name="Offering">La phrase entière, celle qui reste lisible quand la lecture fine échoue.</param>
-/// <param name="Quantity">Combien en apporter, si la phrase se laisse lire.</param>
-/// <param name="Item">Quoi apporter, si la phrase se laisse lire.</param>
-/// <param name="Bonus">Le bonus du jour, sans son préfixe.</param>
-/// <param name="BonusDetail">Ce que le bonus fait.</param>
-/// <param name="Quest">Le nom de la quête d'offrande, sans son préfixe.</param>
-/// <param name="Meryde">Le Méryde du jour.</param>
+/// <param name="Date">The calendar day, as it was requested.</param>
+/// <param name="DofusianDay">
+/// The day in the World of Twelve's calendar, "10 Septange".
+/// </param>
+/// <param name="Offering">
+/// The full sentence, the one that stays readable when
+/// fine-grained parsing fails.
+/// </param>
+/// <param name="Quantity">
+/// How many to bring, if the sentence can be parsed.
+/// </param>
+/// <param name="Item">What to bring, if the sentence can be parsed.</param>
+/// <param name="Bonus">The day's bonus, without its prefix.</param>
+/// <param name="BonusDetail">What the bonus does.</param>
+/// <param name="Quest">
+/// The name of the offering quest, without its prefix.
+/// </param>
+/// <param name="Meryde">The day's Meryde.</param>
 /// <param name="MonthEvent">
-/// L'événement du mois, date et nom d'un seul tenant, vide s'il n'y en a pas.
-/// Il ne change pas d'un jour à l'autre : c'est ce qu'on vient préparer en
-/// regardant les jours à venir.
+/// The month's event, date and name together as one, empty if
+/// there is none. It does not change from one day to the next:
+/// this is what is being prepared by looking at the coming days.
 /// </param>
 public sealed record AlmanaxDay(
     DateOnly Date,

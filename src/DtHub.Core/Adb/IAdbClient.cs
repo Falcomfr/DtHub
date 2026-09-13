@@ -3,36 +3,37 @@
 namespace DtHub.Core.Adb;
 
 /// <summary>
-/// Surface ADB utilisée par le reste de l'application. Tout passe par ici, ce
-/// qui permet de rejouer n'importe quel scénario dans les tests sans matériel.
+/// ADB surface used by the rest of the application. Everything goes
+/// through here, which makes it possible to replay any scenario in
+/// tests without hardware.
 /// </summary>
 public interface IAdbClient
 {
-    /// <summary>Démarre le serveur ADB s'il ne tourne pas déjà.</summary>
+    /// <summary>Starts the ADB server if it is not already running.</summary>
     Task StartServerAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Arrête le serveur ADB. À n'appeler que sur demande explicite de
-    /// l'utilisateur : le serveur est partagé avec les autres outils de la
-    /// machine, et l'arrêter les couperait aussi.
+    /// Stops the ADB server. Only call this on the user's explicit
+    /// request: the server is shared with the machine's other
+    /// tools, and stopping it would cut them off too.
     /// </summary>
     Task StopServerAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>Version d'ADB, pour la page de diagnostic.</summary>
+    /// <summary>ADB version, for the diagnostics page.</summary>
     Task<string> GetVersionAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>Liste les appareils vus par le serveur ADB.</summary>
-    /// <param name="detailed">Ajoute modèle, produit et chemin USB.</param>
+    /// <summary>Lists the devices seen by the ADB server.</summary>
+    /// <param name="detailed">Adds model, product and USB path.</param>
     Task<IReadOnlyList<AdbDeviceEntry>> ListDevicesAsync(
         bool detailed = true,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Exécute une commande ADB brute. <paramref name="serial"/> cible un
-    /// appareil précis ; <c>null</c> vise le serveur.
+    /// Executes a raw ADB command. <paramref name="serial"/> targets
+    /// a specific device; <c>null</c> targets the server.
     /// </summary>
     /// <param name="sensitiveValues">
-    /// Valeurs à masquer dans les journaux, par exemple un code d'appairage.
+    /// Values to mask in the logs, for example a pairing code.
     /// </param>
     Task<ProcessResult> ExecuteAsync(
         string? serial,
@@ -42,27 +43,31 @@ public interface IAdbClient
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Exécute une commande dans le shell de l'appareil et rend la sortie.
+    /// Executes a command in the device's shell and returns the
+    /// output.
     /// </summary>
-    /// <exception cref="AdbException">La commande a échoué.</exception>
+    /// <exception cref="AdbException">The command failed.</exception>
     Task<string> ShellAsync(
         string serial,
         IReadOnlyList<string> arguments,
         TimeSpan? timeout = null,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Lit les propriétés système de l'appareil via <c>getprop</c>.</summary>
     /// <summary>
-    /// Exécute une commande dans le shell de l'appareil et rend sa sortie
-    /// octet pour octet.
+    /// Reads the device's system properties via <c>getprop</c>.
+    /// </summary>
+    /// <summary>
+    /// Executes a command in the device's shell and returns its
+    /// output byte for byte.
     ///
-    /// C'est la variante binaire d'ADB. Contrairement à « shell », « exec-out »
-    /// n'alloue pas de pseudo-terminal et ne réécrit donc aucune fin de ligne :
-    /// c'est ce qui permet d'en tirer une image intacte.
+    /// This is ADB's binary variant. Unlike "shell", "exec-out"
+    /// does not allocate a pseudo-terminal and therefore rewrites
+    /// no line ending: that is what lets an intact image be
+    /// extracted from it.
     ///
-    /// Ne lève pas sur un code de retour non nul et ne classe pas la sortie :
-    /// l'interprète d'erreurs lit du texte, et une image n'en est pas.
-    /// L'appelant vérifie lui-même ce qu'il reçoit.
+    /// Does not throw on a non-zero exit code and does not classify
+    /// the output: the error interpreter reads text, and an image
+    /// is not text. The caller checks for itself what it receives.
     /// </summary>
     Task<ProcessBytes> ExecOutAsync(
         string serial,
@@ -75,8 +80,8 @@ public interface IAdbClient
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Appaire le PC avec un téléphone en débogage sans fil. Le code n'est ni
-    /// journalisé, ni conservé après l'appel.
+    /// Pairs the PC with a phone over wireless debugging. The code
+    /// is neither logged nor kept after the call.
     /// </summary>
     Task<AdbPairResult> PairAsync(
         string host,
@@ -84,23 +89,29 @@ public interface IAdbClient
         string pairingCode,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Établit une connexion ADB sans fil vers une adresse.</summary>
+    /// <summary>Establishes a wireless ADB connection to an address.</summary>
     Task<AdbConnectResult> ConnectAsync(
         string host,
         int port,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Coupe une connexion sans fil. <paramref name="address"/> à <c>null</c>
-    /// coupe toutes les connexions sans fil du serveur ADB.
+    /// Disconnects a wireless connection. <paramref name="address"/>
+    /// set to <c>null</c> disconnects all of the ADB server's
+    /// wireless connections.
     /// </summary>
     Task DisconnectAsync(string? address = null, CancellationToken cancellationToken = default);
 
-    /// <summary>Liste les annonces de débogage sans fil vues sur le réseau local.</summary>
+    /// <summary>
+    /// Lists the wireless debugging announcements seen on the local
+    /// network.
+    /// </summary>
     Task<IReadOnlyList<MdnsService>> ListMdnsServicesAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>Attend qu'un appareil passe à l'état prêt.</summary>
-    /// <returns>Vrai si l'appareil est prêt avant l'expiration du délai.</returns>
+    /// <summary>Waits for a device to become ready.</summary>
+    /// <returns>
+    /// True if the device is ready before the timeout expires.
+    /// </returns>
     Task<bool> WaitForDeviceAsync(
         string serial,
         TimeSpan timeout,

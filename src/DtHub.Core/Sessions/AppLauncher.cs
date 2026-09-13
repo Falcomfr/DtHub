@@ -1,6 +1,6 @@
 ﻿namespace DtHub.Core.Sessions;
 
-/// <summary>Issue d'une tentative d'ouverture du jeu.</summary>
+/// <summary>Outcome of an attempt to open the game.</summary>
 public sealed record AppLaunchResult(bool Succeeded, string? UserMessage = null, string? Details = null)
 {
     public static readonly AppLaunchResult Success = new(true);
@@ -10,9 +10,10 @@ public sealed record AppLaunchResult(bool Succeeded, string? UserMessage = null,
 }
 
 /// <summary>
-/// Ouvre une application sur un profil Android et un afficheur donnés. C'est
-/// cette pièce qui rend inutile toute modification de scrcpy : le lancement
-/// passe par ADB, qui accepte <c>--user</c>.
+/// Opens an application on a given Android profile and display.
+/// This is the piece that makes any modification to scrcpy
+/// unnecessary: the launch goes through ADB, which accepts
+/// <c>--user</c>.
 /// </summary>
 public interface IAppLauncher
 {
@@ -25,12 +26,12 @@ public interface IAppLauncher
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Force l'arrêt de l'application sur un profil.
+    /// Forces the application to stop on a profile.
     ///
-    /// Rend vrai quand l'ordre est bien arrivé au téléphone, faux quand il n'a
-    /// pas pu partir. La nuance décide de ce qu'on peut affirmer : sans elle,
-    /// une fermeture qui laisse le jeu tourner ressemble trait pour trait à
-    /// une fermeture réussie.
+    /// Returns true when the order actually reached the phone, false
+    /// when it could not be sent. This nuance decides what can be
+    /// claimed: without it, a shutdown that leaves the game running
+    /// looks exactly like a successful shutdown.
     /// </summary>
     Task<bool> ForceStopAsync(
         string serial,

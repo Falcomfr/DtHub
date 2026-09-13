@@ -3,57 +3,78 @@ using DtHub.Core.Localization;
 
 namespace DtHub.Core.Devices;
 
-/// <summary>Ce que l'application peut dire de la liaison avec le téléphone.</summary>
+/// <summary>
+/// What the application can say about the link with the phone.
+/// </summary>
 public enum ConnectionVerdict
 {
-    /// <summary>Un téléphone au moins répond : il n'y a rien à expliquer.</summary>
+    /// <summary>
+    /// At least one phone answers: there is nothing to explain.
+    /// </summary>
     Ready = 0,
 
-    /// <summary>Les outils Android n'ont pas pu démarrer.</summary>
+    /// <summary>The Android tools could not start.</summary>
     ToolsMissing,
 
-    /// <summary>Un téléphone est là, mais il n'a pas encore autorisé ce PC.</summary>
+    /// <summary>
+    /// A phone is there, but it has not yet authorized this PC.
+    /// </summary>
     WaitingAuthorization,
 
-    /// <summary>Le pilote USB refuse l'accès à l'appareil.</summary>
+    /// <summary>The USB driver refuses access to the device.</summary>
     DriverRefused,
 
-    /// <summary>Un appareil est branché mais Windows n'a pas pu lire son identité.</summary>
+    /// <summary>
+    /// A device is plugged in but Windows could not read its
+    /// identity.
+    /// </summary>
     UsbUnreadable,
 
-    /// <summary>Un appareil est branché mais aucun pilote ne lui répond.</summary>
+    /// <summary>A device is plugged in but no driver answers for it.</summary>
     UsbDriverMissing,
 
-    /// <summary>Un appareil est branché et Windows l'a refusé pour une autre raison.</summary>
+    /// <summary>
+    /// A device is plugged in and Windows turned it away for another
+    /// reason.
+    /// </summary>
     UsbOther,
 
-    /// <summary>Rien de branché, rien de joignable.</summary>
+    /// <summary>Nothing plugged in, nothing reachable.</summary>
     NoDevice,
 }
 
 /// <summary>
-/// Dit d'un mot où en est la liaison, et pourquoi elle n'aboutit pas.
+/// Says in one word where the link stands, and why it is not
+/// succeeding.
 ///
-/// Fonction pure, comme <see cref="AdbErrorInterpreter"/> dont elle prolonge le
-/// travail d'un étage vers le bas. Toute la richesse d'ADB s'arrête là où il ne
-/// voit plus rien : un câble qui ne transmet pas les données ne produit aucune
-/// ligne dans <c>adb devices</c>, et l'application n'avait alors rien à dire
-/// alors que Windows, lui, savait tout.
+/// A pure function, like <see cref="AdbErrorInterpreter"/> whose work
+/// it extends one level down. All of ADB's richness stops where it
+/// can no longer see anything: a cable that does not carry data
+/// produces no line at all in <c>adb devices</c>, and the application
+/// then had nothing to say even though Windows, for its part, knew
+/// everything.
 ///
-/// L'ordre des règles est celui dans lequel les causes se succèdent, de la plus
-/// proche du succès à la plus lointaine : un téléphone qui répond l'emporte sur
-/// un autre qui attend une autorisation, et un appareil qu'ADB voit l'emporte
-/// sur un défaut d'énumération, qui ne peut alors concerner qu'un autre port.
+/// The order of the rules is the order in which the causes follow one
+/// another, from the closest to success to the farthest: a phone that
+/// answers wins over another one waiting for authorization, and a
+/// device that ADB can see wins over an enumeration fault, which can
+/// then only concern another port.
 /// </summary>
 public static class ConnectionCheck
 {
     /// <summary>
-    /// Le verdict, à partir de ce que rend <c>adb devices</c> et de ce que
-    /// Windows sait de ses ports USB.
+    /// The verdict, from what <c>adb devices</c> returns and what
+    /// Windows knows about its USB ports.
     /// </summary>
-    /// <param name="states">L'état de chaque appareil vu, dans n'importe quel ordre.</param>
-    /// <param name="faults">Les périphériques USB que Windows n'a pas su démarrer.</param>
-    /// <param name="toolsReady">Faux si l'exécutable ADB est absent ou muet.</param>
+    /// <param name="states">
+    /// The state of each device seen, in any order.
+    /// </param>
+    /// <param name="faults">
+    /// The USB devices that Windows failed to start.
+    /// </param>
+    /// <param name="toolsReady">
+    /// False if the ADB executable is missing or silent.
+    /// </param>
     public static ConnectionVerdict Of(
         IReadOnlyList<AdbDeviceState> states,
         IReadOnlyList<UsbFault> faults,
@@ -82,9 +103,10 @@ public static class ConnectionCheck
             return ConnectionVerdict.DriverRefused;
         }
 
-        // ADB ne voit rien : c'est seulement ici que l'avis de Windows sert.
-        // Le plus explicite des défauts l'emporte, un poste ordinaire ayant
-        // souvent un périphérique en défaut qui n'a rien à voir avec nous.
+        // ADB sees nothing: this is the only place where Windows's
+        // opinion is used. The most explicit fault wins, since an
+        // ordinary machine often has some faulting device that has
+        // nothing to do with us.
         return Worst(faults) switch
         {
             UsbFaultKind.Unreadable => ConnectionVerdict.UsbUnreadable,
@@ -95,8 +117,9 @@ public static class ConnectionCheck
     }
 
     /// <summary>
-    /// Le défaut le plus parlant du lot. Un descripteur illisible passe avant
-    /// un pilote manquant, qui passe avant un code qu'on ne sait que citer.
+    /// The most telling fault of the lot. An unreadable descriptor
+    /// comes before a missing driver, which comes before a code that
+    /// can only be quoted.
     /// </summary>
     private static UsbFaultKind Worst(IReadOnlyList<UsbFault> faults)
     {
@@ -115,7 +138,9 @@ public static class ConnectionCheck
             : UsbFaultKind.None;
     }
 
-    /// <summary>Une phrase pour l'écran, jamais un code ni une sortie brute.</summary>
+    /// <summary>
+    /// A sentence for the screen, never a code or raw output.
+    /// </summary>
     public static string Describe(ConnectionVerdict verdict) => Strings.Get(verdict switch
     {
         ConnectionVerdict.Ready => "CheckReady",
@@ -129,31 +154,31 @@ public static class ConnectionCheck
     });
 
     /// <summary>
-    /// Vrai si le verdict mérite d'être affiché.
+    /// True if the verdict deserves to be shown.
     ///
-    /// Deux verdicts n'ont rien à dire. Le premier est évident : un téléphone
-    /// qui répond n'appelle aucun commentaire.
+    /// Two verdicts have nothing to say. The first is obvious: a
+    /// phone that answers calls for no comment.
     ///
-    /// Le second l'est moins. N'avoir aucun appareil n'est pas une panne :
-    /// c'est l'état de repos de l'application, celui qu'on trouve en l'ouvrant
-    /// sans avoir rien branché. Le dire dans un bloc d'alerte revient à
-    /// signaler un problème là où il n'y a qu'une absence, et la liste des
-    /// comptes le dit déjà juste en dessous, plus brièvement et au bon endroit.
-    /// Deux blocs se répondaient donc, l'un long, l'autre court, pour le même
-    /// néant.
+    /// The second is less so. Having no device at all is not a
+    /// failure: it is the application's resting state, the one found
+    /// on opening it without having plugged anything in. Saying so in
+    /// an alert block amounts to flagging a problem where there is
+    /// only an absence, and the account list already says it just
+    /// below, more briefly and in the right place. So two blocks used
+    /// to echo each other, one long, one short, for the same nothing.
     ///
-    /// Restent les cas où quelque chose est là et ne marche pas : un appareil
-    /// vu mais pas encore autorisé, un pilote qui refuse, un descripteur
-    /// illisible, les outils absents. Ceux-là, personne ne peut les deviner, et
-    /// c'est pour eux que le bloc existe.
+    /// What remains are the cases where something is there and does
+    /// not work: a device seen but not yet authorized, a driver that
+    /// refuses, an unreadable descriptor, the tools missing. Nobody
+    /// can guess those, and the block exists for them.
     /// </summary>
     public static bool NeedsExplaining(ConnectionVerdict verdict) =>
         verdict is not (ConnectionVerdict.Ready or ConnectionVerdict.NoDevice);
 
     /// <summary>
-    /// Vrai si la fiche de dépannage du câble a quelque chose à apporter.
-    /// Elle ne s'affiche pas quand le téléphone répond, ni quand la balle est
-    /// dans le camp du téléphone.
+    /// True if the cable troubleshooting sheet has something to
+    /// offer. It does not show when the phone answers, nor when the
+    /// ball is in the phone's court.
     /// </summary>
     public static bool NeedsCableHelp(ConnectionVerdict verdict) =>
         verdict is ConnectionVerdict.UsbUnreadable

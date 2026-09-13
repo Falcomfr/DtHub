@@ -5,22 +5,24 @@ using DtHub.Core.Devices;
 namespace DtHub.Infrastructure.Devices;
 
 /// <summary>
-/// Demande à Windows ce qu'il reproche à ses périphériques USB.
+/// Asks Windows what it holds against its USB devices.
 ///
-/// C'est l'étage en dessous d'ADB, et il n'était pas regardé. Un câble qui ne
-/// transmet pas les données ne produit aucune ligne dans <c>adb devices</c> :
-/// l'application n'avait alors rien à dire, alors que Windows savait très bien
-/// qu'un appareil venait d'arriver et qu'il n'avait pas su lire son
-/// descripteur.
+/// This is the layer below ADB, and it was not being looked at. A
+/// cable that does not carry data produces no line at all in
+/// <c>adb devices</c>: the application then had nothing to say, even
+/// though Windows knew perfectly well that a device had just arrived
+/// and that it had failed to read its descriptor.
 ///
-/// Par SetupAPI plutôt que par WMI : pas de paquet supplémentaire, pas de coût
-/// de démarrage, et c'est le même genre d'appel que les quarante autres du
-/// dépôt. Aucune élévation n'est nécessaire, et c'est vérifié : le relevé rend
-/// le même code de problème depuis un compte ordinaire.
+/// Through SetupAPI rather than WMI: no extra package, no startup
+/// cost, and it is the same kind of call as the other forty in the
+/// repository. No elevation is required, and this has been
+/// verified: the reading returns the same problem code from an
+/// ordinary account.
 ///
-/// La lecture est toujours sans conséquence. Elle n'ouvre rien, ne change rien,
-/// et un échec rend une liste vide : ne pas savoir est un état ordinaire, et
-/// l'application marche très bien sans cette information.
+/// The reading is always without consequence. It opens nothing,
+/// changes nothing, and a failure returns an empty list: not knowing
+/// is a normal state, and the application works perfectly well
+/// without this information.
 /// </summary>
 public sealed class WindowsUsbInspector : IUsbEnumerationInspector
 {
@@ -55,8 +57,9 @@ public sealed class WindowsUsbInspector : IUsbEnumerationInspector
         }
         catch (DllNotFoundException)
         {
-            // Une bibliothèque du système absente : rien à diagnostiquer, et
-            // surtout rien qui justifie d'empêcher l'application de tourner.
+            // A missing system library: nothing to diagnose, and
+            // above all nothing that justifies preventing the
+            // application from running.
             return [];
         }
         catch (EntryPointNotFoundException)
@@ -70,9 +73,10 @@ public sealed class WindowsUsbInspector : IUsbEnumerationInspector
     }
 
     /// <summary>
-    /// L'identifiant du périphérique, pour le journal. Il ne nomme personne :
-    /// sur un descripteur illisible il vaut d'ailleurs
-    /// <c>USB\VID_0000&amp;PID_0002</c>, Windows n'ayant rien pu lire.
+    /// The device's identifier, for the log. It names no one: on an
+    /// unreadable descriptor it is in fact worth
+    /// <c>USB\VID_0000&amp;PID_0002</c>, since Windows was unable to
+    /// read anything.
     /// </summary>
     private static string InstanceId(nint set, ref DeviceInfoData info)
     {
@@ -115,8 +119,8 @@ public sealed class WindowsUsbInspector : IUsbEnumerationInspector
     private static extern bool SetupDiDestroyDeviceInfoList(nint set);
 
     /// <summary>
-    /// Le code de problème d'un nœud de périphérique. Quarante-trois vaut
-    /// « descripteur illisible », vingt-huit « aucun pilote ».
+    /// The problem code of a device node. Forty three means
+    /// "unreadable descriptor", twenty eight "no driver".
     /// </summary>
     [DllImport("cfgmgr32.dll", EntryPoint = "CM_Get_DevNode_Status")]
     private static extern int CmGetDevNodeStatus(

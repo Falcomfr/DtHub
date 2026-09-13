@@ -3,23 +3,31 @@
 namespace DtHub.Core.Devices;
 
 /// <summary>
-/// Construit un <see cref="AndroidDevice"/> à partir de ce qu'ADB rapporte, de
-/// ce que le téléphone déclare et de ce qui avait été mémorisé. Fonction pure,
-/// donc vérifiable sur des sorties enregistrées.
+/// Builds an <see cref="AndroidDevice"/> from what ADB reports,
+/// what the phone declares and what had been remembered. A pure
+/// function, therefore verifiable on recorded outputs.
 /// </summary>
 public static class DeviceFactory
 {
-    /// <summary>Préfixe des identités de repli, quand aucun numéro matériel n'est lisible.</summary>
+    /// <summary>
+    /// Prefix for fallback identities, when no hardware number can
+    /// be read.
+    /// </summary>
     public const string FallbackIdPrefix = "adb:";
 
     /// <summary>
-    /// Fusionne les trois sources. Les choix de l'utilisateur, portés par
-    /// <paramref name="known"/>, ne sont jamais écrasés par une découverte.
+    /// Merges the three sources. The user's choices, carried by
+    /// <paramref name="known"/>, are never overwritten by a
+    /// discovery.
     /// </summary>
-    /// <param name="entry">Ligne renvoyée par <c>adb devices</c>.</param>
-    /// <param name="properties">Sortie de <c>getprop</c>, éventuellement absente.</param>
-    /// <param name="known">Appareil déjà mémorisé, s'il a été reconnu.</param>
-    /// <param name="observedAtUtc">Instant de l'observation.</param>
+    /// <param name="entry">Line returned by <c>adb devices</c>.</param>
+    /// <param name="properties">
+    /// Output of <c>getprop</c>, possibly absent.
+    /// </param>
+    /// <param name="known">
+    /// Already remembered device, if one was recognized.
+    /// </param>
+    /// <param name="observedAtUtc">Moment of the observation.</param>
     public static AndroidDevice Create(
         AdbDeviceEntry entry,
         IReadOnlyDictionary<string, string>? properties = null,
@@ -37,8 +45,9 @@ public static class DeviceFactory
             State = entry.State,
             ConnectionKind = entry.ConnectionKind,
 
-            // Une découverte sans getprop ne doit pas effacer ce qu'on savait
-            // déjà : c'est le cas d'un appareil non autorisé ou endormi.
+            // A discovery without getprop should not erase what we
+            // already knew: this is the case for a device that is
+            // unauthorized or asleep.
             Manufacturer = DeviceProperties.ReadManufacturer(properties) ?? known?.Manufacturer,
             Model = DeviceProperties.ReadModel(properties) ?? entry.Model?.Replace('_', ' ') ?? known?.Model,
             MarketName = DeviceProperties.ReadMarketName(properties) ?? known?.MarketName,
@@ -49,14 +58,16 @@ public static class DeviceFactory
             CustomName = known?.CustomName,
             IsPrimary = known?.IsPrimary ?? false,
 
-            // Une connexion sans fil n'existe pas sans association préalable :
-            // la constater suffit à savoir que l'appareil est appairé, et
-            // c'est ce qui autorise la reconnexion automatique ensuite.
+            // A wireless connection cannot exist without prior
+            // pairing: observing it is enough to know the device is
+            // paired, and that is what authorizes automatic
+            // reconnection afterward.
             IsPaired = (known?.IsPaired ?? false) || entry.ConnectionKind == AdbConnectionKind.Wireless,
 
-            // L'adresse mémorisée ne se met à jour que sur une connexion sans
-            // fil active, sinon un branchement USB effacerait le seul moyen de
-            // retrouver le téléphone sans câble.
+            // The remembered address only updates on an active
+            // wireless connection, otherwise plugging in over USB
+            // would erase the only way to find the phone again
+            // without a cable.
             LastKnownAddress = entry.ConnectionKind == AdbConnectionKind.Wireless
                 ? entry.Host ?? known?.LastKnownAddress
                 : known?.LastKnownAddress,
@@ -69,10 +80,11 @@ public static class DeviceFactory
     }
 
     /// <summary>
-    /// Détermine l'identité stable. Le numéro matériel prime ; à défaut, un
-    /// numéro de série USB fait l'affaire ; en sans-fil sans numéro matériel,
-    /// on conserve l'identité déjà connue plutôt que d'en créer une nouvelle à
-    /// chaque changement d'adresse.
+    /// Determines the stable identity. The hardware number takes
+    /// priority; failing that, a USB serial number will do; over
+    /// wireless without a hardware number, we keep the already
+    /// known identity rather than creating a new one on every
+    /// address change.
     /// </summary>
     public static string ResolveId(AdbDeviceEntry entry, string? hardwareSerial, AndroidDevice? known)
     {
@@ -88,10 +100,11 @@ public static class DeviceFactory
             return known.Id;
         }
 
-        // Un appareil injoignable ne répond pas à getprop, mais le nom mDNS
-        // sous lequel il s'annonce porte son numéro de série. Sans cela, le
-        // même téléphone figurait deux fois dans la liste : une fois sous son
-        // adresse, une fois sous ce nom.
+        // An unreachable device does not answer getprop, but the
+        // mDNS name under which it announces itself carries its
+        // serial number. Without this, the same phone would show
+        // up twice in the list: once under its address, once under
+        // this name.
         if (MdnsDeviceName.HardwareSerialFrom(entry.Serial) is { } announced)
         {
             return announced;
@@ -103,10 +116,10 @@ public static class DeviceFactory
     }
 
     /// <summary>
-    /// Retrouve un appareil mémorisé correspondant à une ligne ADB. On teste
-    /// l'identité, puis le numéro de série, puis l'adresse : c'est ce qui
-    /// permet de reconnaître un téléphone qui vient de passer du câble au
-    /// Wi-Fi.
+    /// Finds a remembered device matching an ADB line. We test the
+    /// identity, then the serial number, then the address: that is
+    /// what makes it possible to recognize a phone that just
+    /// switched from cable to Wi-Fi.
     /// </summary>
     public static AndroidDevice? Match(IEnumerable<AndroidDevice> known, AdbDeviceEntry entry, string? hardwareSerial = null)
     {
@@ -115,7 +128,8 @@ public static class DeviceFactory
 
         var candidates = known as IReadOnlyCollection<AndroidDevice> ?? [.. known];
 
-        // Le numéro matériel prime, qu'il vienne de getprop ou du nom mDNS.
+        // The hardware number takes priority, whether it comes from
+        // getprop or from the mDNS name.
         var identity = string.IsNullOrWhiteSpace(hardwareSerial)
             ? MdnsDeviceName.HardwareSerialFrom(entry.Serial)
             : hardwareSerial;

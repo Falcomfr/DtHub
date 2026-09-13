@@ -3,14 +3,22 @@ using System.Text;
 
 namespace DtHub.Core.Diagnostics;
 
-/// <summary>Ce qu'on sait de la machine et de la session, pour un rapport.</summary>
-/// <param name="Product">Nom et version du produit.</param>
-/// <param name="System">Windows et son numéro de version.</param>
-/// <param name="Runtime">La plateforme d'exécution.</param>
-/// <param name="Culture">Langue de l'interface et pays des formats.</param>
-/// <param name="Screens">Les écrans, tels que le lanceur les résume déjà.</param>
-/// <param name="Devices">Les appareils reconnus, sans leur identité.</param>
-/// <param name="Sessions">Combien de comptes sont ouverts, et combien en onglets.</param>
+/// <summary>
+/// What we know about the machine and the session, for a report.
+/// </summary>
+/// <param name="Product">Product name and version.</param>
+/// <param name="System">Windows and its version number.</param>
+/// <param name="Runtime">The execution runtime.</param>
+/// <param name="Culture">Interface language and format region.</param>
+/// <param name="Screens">
+/// The screens, as the launcher already summarizes them.
+/// </param>
+/// <param name="Devices">
+/// The recognized devices, without their identity.
+/// </param>
+/// <param name="Sessions">
+/// How many accounts are open, and how many in tabs.
+/// </param>
 public readonly record struct DiagnosticFacts(
     string Product,
     string System,
@@ -21,26 +29,30 @@ public readonly record struct DiagnosticFacts(
     string Sessions);
 
 /// <summary>
-/// Compose le texte qu'une personne colle dans un signalement.
+/// Composes the text a person pastes into a bug report.
 ///
-/// Il tient en une page et se lit sans outil : ce qui a échoué, sur quelle
-/// machine, et les lignes de journal qui entourent la faute. Tout y passe par
-/// <see cref="Redaction"/> avant d'être rendu, y compris ce que l'application
-/// croit connaître d'elle-même : un message d'exception porte parfois un chemin,
-/// et une pile d'appel presque toujours.
+/// It fits on one page and reads without any tool: what failed, on
+/// which machine, and the log lines around the fault. Everything
+/// goes through <see cref="Redaction"/> before being rendered,
+/// including what the application believes it knows about itself: an
+/// exception message sometimes carries a path, and a stack trace
+/// almost always does.
 ///
-/// Le texte est en français, comme les journaux dont il tire ses lignes. Le
-/// traduire donnerait un rapport à moitié traduit, ce qui n'aiderait personne.
+/// The text is in French, like the logs it draws its lines from.
+/// Translating it would give a half-translated report, which would
+/// help no one.
 /// </summary>
 public static class DiagnosticReport
 {
-    /// <summary>Compose le rapport.</summary>
-    /// <param name="headline">Ce qui a échoué, en une ligne.</param>
-    /// <param name="facts">L'état de la machine.</param>
-    /// <param name="error">L'exception, si la faute en a produit une.</param>
-    /// <param name="lastFailure">Le dernier refus technique connu, s'il y en a un.</param>
-    /// <param name="log">Les lignes de journal déjà triées.</param>
-    /// <param name="secrets">Ce que l'application sait devoir masquer.</param>
+    /// <summary>Composes the report.</summary>
+    /// <param name="headline">What failed, in one line.</param>
+    /// <param name="facts">The state of the machine.</param>
+    /// <param name="error">The exception, if the fault produced one.</param>
+    /// <param name="lastFailure">
+    /// The last known technical refusal, if there is one.
+    /// </param>
+    /// <param name="log">The log lines already sorted.</param>
+    /// <param name="secrets">What the application knows it must mask.</param>
     public static string Compose(
         string? headline,
         DiagnosticFacts facts,
@@ -98,7 +110,10 @@ public static class DiagnosticReport
         return Redaction.Apply(text.ToString().TrimEnd('\n'), retire);
     }
 
-    /// <summary>Une ligne de faits, les vides écartés, séparés par un point médian.</summary>
+    /// <summary>
+    /// A line of facts, empty ones discarded, separated by a middle
+    /// dot.
+    /// </summary>
     private static void Line(StringBuilder text, params string?[] parts)
     {
         var kept = parts.Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => p!.Trim()).ToList();
@@ -110,12 +125,13 @@ public static class DiagnosticReport
     }
 
     /// <summary>
-    /// L'adresse d'un signalement neuf sur le dépôt, avec son titre déjà posé.
+    /// The URL for a new issue on the repository, with its title
+    /// already set.
     ///
-    /// Le corps n'y est pas : une adresse dépasse ce qu'un navigateur accepte
-    /// bien au-delà de huit mille caractères, et un rapport en fait autant à lui
-    /// seul. Le corps se colle depuis le presse-papiers, et le modèle
-    /// d'incident du dépôt dit où.
+    /// The body is not included: a URL goes well beyond what a
+    /// browser accepts past eight thousand characters, and a report
+    /// alone is that long by itself. The body is pasted from the
+    /// clipboard, and the repository's issue template says where.
     /// </summary>
     public static string IssueUrl(string repositoryUrl, string? headline)
     {

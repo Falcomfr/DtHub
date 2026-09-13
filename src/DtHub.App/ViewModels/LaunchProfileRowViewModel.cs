@@ -3,10 +3,11 @@
 namespace DtHub.App.ViewModels;
 
 /// <summary>
-/// Un profil de lancement, tel qu'il paraît dans la liste.
+/// A launch profile, as it appears in the list.
 ///
-/// Le résumé accompagne le nom : « Duo pêche » ne dit pas quels comptes il
-/// ouvre, et l'on ne veut pas avoir à l'ouvrir pour s'en souvenir.
+/// The summary goes along with the name: "Fishing duo" does not say
+/// which accounts it opens, and we do not want to have to open it to
+/// remember.
 /// </summary>
 public sealed partial class LaunchProfileRowViewModel : ObservableObject
 {
@@ -17,23 +18,25 @@ public sealed partial class LaunchProfileRowViewModel : ObservableObject
         _isDefault = isDefault;
     }
 
-    /// <summary>Nom retenu. Il identifie le profil : il ne change pas.</summary>
+    /// <summary>
+    /// Retained name. It identifies the profile: it does not change.
+    /// </summary>
     public string Name { get; }
 
     [ObservableProperty]
     private string _summary;
 
-    /// <summary>Vrai si ce profil s'ouvre au démarrage.</summary>
+    /// <summary>True if this profile opens at startup.</summary>
     [ObservableProperty]
     private bool _isDefault;
 
     /// <summary>
-    /// Ce que la ligne annonce d'elle-même.
+    /// What the row announces about itself.
     ///
-    /// Sans cela, une liste nomme ses entrées d'après le type : relevées à
-    /// l'automatisation, elles s'appelaient toutes
-    /// « DtHub.App.ViewModels.LaunchProfileRowViewModel ». Le gabarit
-    /// d'affichage ne corrige pas ce nom-là.
+    /// Without this, a list names its entries after the type: when
+    /// sampled by automation, they were all called
+    /// "DtHub.App.ViewModels.LaunchProfileRowViewModel". The display
+    /// template does not fix that name.
     /// </summary>
     public override string ToString() => $"{Name}  ·  {Summary}";
 }

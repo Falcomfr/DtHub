@@ -3,12 +3,11 @@
 namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Tient le catalogue des quêtes : le relit du cache, le reconstruit quand il
-/// le faut, et sert les recherches.
+/// Holds the quest catalog: reloads it from the cache, rebuilds it when
+/// needed, and serves searches.
 ///
-/// Il vit dans le noyau parce qu'il ne fait ni réseau ni disque lui-même : il
-/// s'appuie sur deux interfaces, ce qui le rend vérifiable sans l'un ni
-/// l'autre.
+/// It lives in the core because it does no network or disk work itself: it
+/// relies on two interfaces, which makes it testable without either one.
 /// </summary>
 public sealed class QuestCatalogService : IDisposable
 {
@@ -30,34 +29,34 @@ public sealed class QuestCatalogService : IDisposable
     }
 
     /// <summary>
-    /// Au-delà de ce délai, le catalogue est réindexé à la prochaine ouverture.
-    /// Le site ajoute des quêtes au fil des mises à jour du jeu, pas tous les
-    /// jours : une semaine suffit, et évite d'aller les déranger pour rien.
+    /// Past this delay, the catalog is reindexed the next time it is opened.
+    /// The site adds quests as the game gets updated, not every day: a week is
+    /// enough, and it avoids bothering it for nothing.
     /// </summary>
     public TimeSpan Freshness { get; init; } = TimeSpan.FromDays(7);
 
     /// <summary>
-    /// En deçà de ce délai, on ne demande même pas au site s'il a bougé.
+    /// Below this delay, we do not even ask the site whether it has changed.
     ///
-    /// Ouvrir et refermer la fenêtre dix fois de suite ne doit pas produire dix
-    /// demandes. Un quart d'heure suffit à s'en garder, et la demande coûte
-    /// deux cents octets : mieux vaut regarder souvent que donner à quelqu'un
-    /// un bouton pour le faire à notre place.
+    /// Opening and closing the window ten times in a row must not produce ten
+    /// requests. A quarter of an hour is enough to guard against that, and the
+    /// request costs two hundred bytes: better to check often than to give
+    /// someone a button to do it for us.
     ///
-    /// Elle était d'une heure quand un bouton de relecture existait ; il a
-    /// disparu, et ce délai est ce qui le remplace.
+    /// It used to be one hour, back when a refresh button existed; it is gone
+    /// now, and this delay is what replaces it.
     /// </summary>
     public TimeSpan Patience { get; init; } = TimeSpan.FromMinutes(15);
 
-    /// <summary>Catalogue en mémoire, éventuellement vide.</summary>
+    /// <summary>In-memory catalog, possibly empty.</summary>
     public QuestCatalogDocument Catalog => _current ?? new QuestCatalogDocument();
 
     /// <summary>
-    /// Rend le catalogue, en l'indexant s'il manque ou s'il a vieilli.
+    /// Returns the catalog, indexing it if it is missing or has gone stale.
     ///
-    /// Une indexation qui échoue ne vide jamais ce qu'on avait : on rend le
-    /// catalogue périmé et l'appelant décide s'il le signale. Chercher dans une
-    /// liste d'hier vaut mieux que ne rien pouvoir chercher.
+    /// A failed indexing never clears what we had: it returns the stale
+    /// catalog and lets the caller decide whether to report it. Searching in
+    /// yesterday's list beats being unable to search at all.
     /// </summary>
     public async Task<QuestCatalogDocument> GetAsync(
         IProgress<QuestIndexingProgress>? progress = null,
@@ -82,7 +81,7 @@ public sealed class QuestCatalogService : IDisposable
         }
     }
 
-    /// <summary>Réindexe sur demande, quelle que soit la fraîcheur.</summary>
+    /// <summary>Reindexes on demand, regardless of freshness.</summary>
     public async Task<QuestCatalogDocument> RefreshAsync(
         IProgress<QuestIndexingProgress>? progress = null,
         CancellationToken cancellationToken = default)
@@ -99,24 +98,26 @@ public sealed class QuestCatalogService : IDisposable
         }
     }
 
-    /// <summary>Cherche dans le catalogue en mémoire, sans jamais aller au réseau.</summary>
+    /// <summary>
+    /// Searches the in-memory catalog, never touching the network.
+    /// </summary>
     public IReadOnlyList<QuestSummary> Search(string? query, int limit = 50) =>
         QuestSearch.Filter(Catalog.Quests, query, limit);
 
     /// <summary>
-    /// Cherche les zones, les succès et les quêtes à la fois, sans jamais aller
-    /// au réseau.
+    /// Searches zones, successes, and quests all at once, never touching the
+    /// network.
     /// </summary>
     public QuestSearchResults SearchAll(string? query, int limit = 50) =>
         QuestSearch.Search(
             Catalog.Quests, Catalog.Sections, Catalog.Dungeons, Catalog.Paths, query, limit);
 
     /// <summary>
-    /// Quêtes d'une rubrique, triées par titre.
+    /// Quests in a section, sorted by title.
     ///
-    /// Sur toutes les rubriques auxquelles la quête appartient : le site range
-    /// « Le dragon d'Astrub » dans ses quêtes principales comme dans celles
-    /// d'Astrub, et n'en retenir qu'une vidait les rubriques transversales.
+    /// Across every section the quest belongs to: the site files "Le dragon
+    /// d'Astrub" under both its main quests and its Astrub quests, and
+    /// keeping only one would empty out the cross-cutting sections.
     /// </summary>
     public IReadOnlyList<QuestSummary> InSection(int sectionId) =>
     [
@@ -125,36 +126,38 @@ public sealed class QuestCatalogService : IDisposable
             .OrderBy(q => q.Title, StringComparer.CurrentCulture),
     ];
 
-    /// <summary>Rubrique de recueil des quêtes qu'aucune autre ne réclame.</summary>
+    /// <summary>
+    /// Catch-all section for quests no other section claims.
+    /// </summary>
     public const int OtherSectionId = -1;
 
     /// <summary>
-    /// La catégorie racine du site. Elle porte les 782 quêtes et ne range donc
-    /// rien : la retenir comme rubrique reviendrait à n'en avoir aucune.
+    /// The site's root category. It carries all 782 quests and therefore sorts
+    /// nothing: keeping it as a section would be the same as having none.
     /// </summary>
     private const int RootCategory = 7;
 
     /// <summary>
-    /// Range les quêtes sous leurs rubriques et rend celles qui en portent au
-    /// moins une.
+    /// Sorts quests under their sections and returns those that carry at least
+    /// one.
     ///
-    /// Deux sources, et il en faut deux. Les catégories du site sont précises
-    /// mais incomplètes : mesuré sur les 782 quêtes, elles en laissent 150 sans
-    /// rubrique, atteignables par la seule recherche. Les pages que le site
-    /// tient à la main nomment en plus des ensembles qu'aucune catégorie ne
-    /// porte, du Krosmoz aux Bulles Temporelles.
+    /// Two sources, and both are needed. The site's categories are precise but
+    /// incomplete: measured across the 782 quests, they leave 150 without a
+    /// section, reachable only through search. The pages the site curates by
+    /// hand additionally name groupings that no category carries, from the
+    /// Krosmoz to the Bulles Temporelles.
     ///
-    /// Une quête appartient à toutes les rubriques qui la réclament, et non à
-    /// une seule. Le site range « Le dragon d'Astrub » dans ses quêtes
-    /// principales comme dans celles d'Astrub : une quête est un lieu et un
-    /// cheminement. Forcer un choix vidait les rubriques transversales, la page
-    /// des quêtes principales en énumérant soixante-treize dont douze
-    /// seulement, faute de zone, y restaient.
+    /// A quest belongs to every section that claims it, not just one. The site
+    /// files "Le dragon d'Astrub" under both its main quests and its Astrub
+    /// quests: a quest is both a place and a storyline. Forcing a single
+    /// choice would empty out the cross-cutting sections; the main quests page
+    /// lists seventy-three, of which only twelve remained once a zone was
+    /// required.
     ///
-    /// Une page qui désigne le même endroit qu'une catégorie ne devient pas une
-    /// rubrique de plus : ses quêtes rejoignent la catégorie. Sans quoi la
-    /// liste offrirait « Île de Frigost » et « Quêtes de Frigost » côte à côte,
-    /// pour un même endroit.
+    /// A page that names the same place as a category does not become an extra
+    /// section: its quests join the category instead. Otherwise the list would
+    /// offer "Île de Frigost" and "Quêtes de Frigost" side by side for the
+    /// same place.
     /// </summary>
     private static (
         IReadOnlyList<QuestSummary> Quests,
@@ -170,10 +173,10 @@ public sealed class QuestCatalogService : IDisposable
         var claimed = Claims(pages, extra, sections);
         var successes = Successes(pages, seed);
 
-        // Le tableau de la page « Quêtes » est le seul endroit où le site
-        // publie son propre classement, et il le publie en clair. Le menu, qui
-        // servait jusqu'ici, ne rendait rien d'exploitable et faisait retomber
-        // la liste sur un classement par nombre de quêtes.
+        // The table on the "Quêtes" page is the only place where the site
+        // publishes its own ranking, and it publishes it in the open. The
+        // menu, which served this purpose until now, yielded nothing usable
+        // and made the list fall back to a ranking by quest count.
         List<string> ranking = [.. pages.Select(p => QuestSearch.Normalize(p.Name))];
 
         Dictionary<string, HashSet<int>> membership = new(StringComparer.Ordinal);
@@ -222,10 +225,10 @@ public sealed class QuestCatalogService : IDisposable
                     ? place.PlayOrder
                     : 0,
 
-                // Les deux gisements réunis : le texte libre des métadonnées et
-                // les quêtes que la page nomme en amont. Le premier dit « Être
-                // le 3 Août », le second « L'essentiel est dans le Lac gelé » ;
-                // les deux sont des prérequis, et une quête peut avoir les deux.
+                // Both sources combined: the free text in the metadata, and
+                // the quests the page names beforehand. The first says "Être
+                // le 3 Août", the second "L'essentiel est dans le Lac gelé
+                //"; both are prerequisites, and a quest can have both.
                 Prerequisites =
                 [
                     .. quest.Prerequisites.Concat(
@@ -272,9 +275,8 @@ public sealed class QuestCatalogService : IDisposable
             });
         }
 
-        // La rubrique qui situe une quête dans une recherche est la plus petite
-        // de celles qui la réclament : « Astrub » en dit plus que « Quêtes
-        // principales ».
+        // The section that places a quest in a search is the smallest of those
+        // that claim it: "Astrub" says more than "Quêtes principales".
         var size = kept.ToDictionary(s => s.Id, s => s.Count);
 
         return (
@@ -292,24 +294,24 @@ public sealed class QuestCatalogService : IDisposable
     }
 
     /// <summary>
-    /// Succès dans l'ordre où les pages les présentent, chacun pris à sa
-    /// première apparition.
+    /// Successes in the order the pages present them, each taken at its first
+    /// appearance.
     ///
-    /// Le rang se prend sur les quêtes que l'intertitre coiffe, et non sur ce
-    /// que l'intertitre écrit. Les deux endroits où le site nomme un succès ne
-    /// l'écrivent pas pareil : l'intertitre dit « Brûler le pissenlit à la
-    /// racine », « Fri Carré », « Etre plus royaliste que le roi », quand la
-    /// quête dit « par la racine », « Fri carré », « Étre ». Ailleurs c'est une
-    /// coquille franche, « Globlitération » contre « Goblitération ». Or c'est
-    /// le nom de la quête qui fait foi partout ailleurs. Rapprocher les deux
-    /// par leur texte perdait le rang : sur quatre-vingt-seize intitulés
-    /// relevés, trente ne désignaient aucun succès du catalogue, et
-    /// quarante-neuf succès sur cent quinze se retrouvaient sans rang. En
-    /// suivant les adresses, il en reste dix-huit.
+    /// The rank is taken from the quests the subheading covers, not from what
+    /// the subheading writes. The two places where the site names a success do
+    /// not spell it the same way: the subheading says "Brûler le pissenlit à
+    /// la racine", "Fri Carré", "Etre plus royaliste que le roi", while
+    /// the quest says "par la racine", "Fri carré", "Étre". Elsewhere it
+    /// is a plain typo, "Globlitération" versus "Goblitération". And it is
+    /// the quest's name that is authoritative everywhere else. Matching the
+    /// two by their text lost the rank: across ninety-six headings recorded,
+    /// thirty named no success in the catalog at all, and forty-nine successes
+    /// out of one hundred fifteen ended up without a rank. Following the URLs
+    /// instead, only eighteen remain.
     ///
-    /// Tous les intertitres en gras comptent, et non les seuls marqués
-    /// « [Succès] » : trois succès n'ont pas d'autre intertitre que leur nom
-    /// nu, et les compter n'inverse aucun des rangs que le site marque.
+    /// Every bold subheading counts, not only those marked "[Succès]": three
+    /// successes have no subheading other than their bare name, and counting
+    /// them does not reverse any of the ranks the site marks.
     /// </summary>
     private static List<string> SuccessOrder(
         IReadOnlyList<QuestPageSection> pages,
@@ -334,9 +336,9 @@ public sealed class QuestCatalogService : IDisposable
                 .Select(url => named.GetValueOrDefault(url, string.Empty))
                 .FirstOrDefault(n => n.Length > 0);
 
-            // Un intertitre dont aucune quête ne porte de succès ne range rien.
-            // C'est le cas d'un groupe qui ne renvoie qu'à des pages absentes du
-            // catalogue.
+            // A subheading whose quests carry no success sorts nothing. That
+            // is the case for a group that only points to pages absent from
+            // the catalog.
             if (!string.IsNullOrEmpty(name) && seen.Add(name))
             {
                 order.Add(name);
@@ -347,12 +349,12 @@ public sealed class QuestCatalogService : IDisposable
     }
 
     /// <summary>
-    /// Étend chaque rubrique aux succès qu'elle a entamés.
+    /// Widens each section to the successes it has started.
     ///
-    /// Un succès traverse parfois deux zones : « Se mettre au ver » compte
-    /// quatre quêtes, trois sous Amakna et une ailleurs, si bien qu'Amakna
-    /// l'annonçait avec trois. Un succès se joue d'un tenant, il se lit d'un
-    /// tenant : la rubrique qui en réclame une quête les réclame toutes.
+    /// A success sometimes spans two zones: "Se mettre au ver" counts four
+    /// quests, three under Amakna and one elsewhere, so Amakna announced it
+    /// with three. A success is played as one piece, and it is read as one
+    /// piece: the section that claims one of its quests claims all of them.
     /// </summary>
     private static void Widen(
         Dictionary<string, HashSet<int>> membership,
@@ -384,8 +386,8 @@ public sealed class QuestCatalogService : IDisposable
 
             membership[key].UnionWith(all);
 
-            // La rubrique de recueil n'a plus lieu d'être dès qu'une vraie
-            // rubrique réclame le succès.
+            // The catch-all section no longer has a reason to exist once a
+            // real section claims the success.
             if (membership[key].Count > 1)
             {
                 membership[key].Remove(OtherSectionId);
@@ -394,19 +396,19 @@ public sealed class QuestCatalogService : IDisposable
     }
 
     /// <summary>
-    /// La page rédigée de chaque rubrique, telle que le tableau de « Quêtes »
-    /// la désigne.
+    /// The written page for each section, as the "Quêtes" table designates
+    /// it.
     ///
-    /// Deux rapprochements, dans cet ordre. Le nom d'abord, débarrassé de son
-    /// préfixe : le site écrit « Quêtes d'Albuera » dans son tableau et
-    /// « Albuera » dans ses catégories. Il suffit pour treize rubriques sur
-    /// vingt-cinq, et laisse de côté celles que le tableau nomme plus court
-    /// que la catégorie : « Quêtes de Frigost » contre « Île de Frigost »,
-    /// « Quêtes de Cania » contre « Bonta &amp; Cania ».
+    /// Two matching passes, in this order. The name first, stripped of its
+    /// prefix: the site writes "Quêtes d'Albuera" in its table and "Albuera
+    ///" in its categories. That is enough for thirteen sections out of
+    /// twenty-five, and it leaves aside the ones the table names shorter than
+    /// the category: "Quêtes de Frigost" versus "Île de Frigost", "Quêtes
+    /// de Cania" versus "Bonta &amp; Cania".
     ///
-    /// Le contenu ensuite, qui ne ment pas : la rubrique qui range le plus des
-    /// quêtes d'une page est celle que la page présente. La moitié au moins
-    /// doit s'y retrouver, faute de quoi le rapprochement tiendrait du hasard.
+    /// The content next, which does not lie: the section that files the most
+    /// of a page's quests is the one the page presents. At least half must be
+    /// found there, or the match would come down to chance.
     /// </summary>
     private static Dictionary<int, string> PageUrls(
         IReadOnlyList<QuestSection> sections,
@@ -473,9 +475,9 @@ public sealed class QuestCatalogService : IDisposable
     }
 
     /// <summary>
-    /// Rubriques que les pages du site apportent en propre, c'est-à-dire celles
-    /// qu'aucune catégorie ne désigne déjà. Leur identifiant est négatif : il ne
-    /// vient pas du site et ne doit jamais croiser celui d'une catégorie.
+    /// Sections that the site's pages contribute on their own, meaning ones no
+    /// category already designates. Their identifier is negative: it does not
+    /// come from the site and must never collide with a category's.
     /// </summary>
     private static Dictionary<string, QuestSection> ExtraSections(
         IReadOnlyList<QuestPageSection> pages,
@@ -503,15 +505,16 @@ public sealed class QuestCatalogService : IDisposable
     }
 
     /// <summary>
-    /// Catégorie que cette page désigne, ou <c>null</c> si elle nomme un
-    /// ensemble à elle.
+    /// The category this page designates, or <c>null</c> if it names a
+    /// grouping of its own.
     ///
-    /// On retient celle qui partage le plus de mots distinctifs : « Quêtes du
-    /// Château d'Amakna » en partage deux avec « Château d'Amakna » et un seul
-    /// avec « Amakna ». À égalité, celle qui en ajoute le moins : « Quêtes
-    /// d'Amakna » partage un mot avec les deux, mais « Amakna » n'ajoute rien
-    /// là où « Château d'Amakna » ajoute un mot. Sans ce second critère, le
-    /// choix tenait au nombre de quêtes des catégories, donc au hasard.
+    /// We keep the one that shares the most distinctive words: "Quêtes du
+    /// Château d'Amakna" shares two with "Château d'Amakna" and only one
+    /// with "Amakna". In case of a tie, the one that adds the fewest: "
+    /// Quêtes d'Amakna" shares one word with both, but "Amakna" adds
+    /// nothing where "Château d'Amakna" adds one word. Without this second
+    /// criterion, the choice came down to the categories' quest counts, hence
+    /// to chance.
     /// </summary>
     private static QuestSection? MatchingCategory(
         QuestPageSection page,
@@ -532,17 +535,18 @@ public sealed class QuestCatalogService : IDisposable
 
     /// <summary>
     /// <summary>
-    /// Succès de chaque quête, de deux sources qui se complètent.
+    /// The success for each quest, from two sources that complement each
+    /// other.
     ///
-    /// Les intertitres des pages de rubrique en rattachent 380, la carte
-    /// embarquée 505, leur union 505 sur 782. La carte l'emporte : elle est
-    /// tirée du bloc d'intro de chaque quête, c'est-à-dire de ce que la quête
-    /// dit d'elle-même, là où un intertitre est un rangement éditorial. Elle
-    /// porte aussi l'orthographe officielle, les deux sources écrivant
-    /// « Brûler le pissenlit à la racine » et « par la racine ».
+    /// The section subheadings link 380 of them, the embedded map 505, their
+    /// union 505 out of 782. The map wins: it is drawn from each quest's intro
+    /// block, that is, from what the quest says about itself, whereas a
+    /// subheading is an editorial arrangement. It also carries the official
+    /// spelling, the two sources writing "Brûler le pissenlit à la racine"
+    /// and "par la racine".
     ///
-    /// Les intertitres restent lus à chaque indexation : ils rattrapent les
-    /// quêtes ajoutées depuis la dernière extraction.
+    /// The subheadings are still read on every indexing pass: they catch the
+    /// quests added since the last extraction.
     /// </summary>
     private static Dictionary<string, string> Successes(
         IReadOnlyList<QuestPageSection> pages,
@@ -570,12 +574,12 @@ public sealed class QuestCatalogService : IDisposable
     }
 
     /// <summary>
-    /// Rubriques que les pages du site donnent à chaque quête.
+    /// Sections that the site's pages give to each quest.
     ///
-    /// Toutes celles qui la nomment, et non la première : les pages se
-    /// recoupent largement, dix-sept des dix-huit quêtes des Bulles Temporelles
-    /// figurant aussi sur la page du Krosmoz. N'en garder qu'une laissait
-    /// certaines rubriques presque vides.
+    /// Every section that names it, not just the first: the pages overlap
+    /// heavily, with seventeen of the eighteen Bulles Temporelles quests also
+    /// appearing on the Krosmoz page. Keeping only one left some sections
+    /// nearly empty.
     /// </summary>
     private static Dictionary<string, HashSet<int>> Claims(
         IReadOnlyList<QuestPageSection> pages,
@@ -586,9 +590,9 @@ public sealed class QuestCatalogService : IDisposable
 
         foreach (var page in pages)
         {
-            // Une page qui désigne une catégorie lui remet ses quêtes plutôt
-            // que d'ouvrir une rubrique jumelle : la page « Quêtes de Cania »
-            // en apporte douze que la catégorie « Bonta & Cania » ignore.
+            // A page that designates a category hands it its quests rather
+            // than opening a twin section: the "Quêtes de Cania" page brings
+            // twelve that the "Bonta & Cania" category ignores.
             var section = extra.TryGetValue(page.Url, out var own)
                 ? own
                 : MatchingCategory(page, sections);
@@ -618,8 +622,8 @@ public sealed class QuestCatalogService : IDisposable
     }
 
     /// <summary>
-    /// Range les rubriques dans l'ordre du site, celles qu'il ne nomme pas
-    /// venant ensuite, de la plus fournie à la moins fournie.
+    /// Sorts sections in the site's order, with the ones it does not name
+    /// coming after, from the most to the least populated.
     /// </summary>
     private static IReadOnlyList<QuestSection> Order(
         IReadOnlyList<QuestSection> sections,
@@ -632,11 +636,12 @@ public sealed class QuestCatalogService : IDisposable
     ];
 
     /// <summary>
-    /// La rubrique la moins fournie parmi celles de la quête : c'est la plus
-    /// précise, donc celle qui situe. « Astrub » plutôt que « Quêtes ».
+    /// The least populated section among the quest's own: it is the most
+    /// precise, so it is the one that places it. "Astrub" rather than "
+    /// Quêtes".
     ///
-    /// Zéro quand la quête n'en porte aucune, la racine du site ne comptant
-    /// pas : à elle seule, elle ne range rien.
+    /// Zero when the quest carries none, the site's root not counting: on its
+    /// own, it sorts nothing.
     /// </summary>
     private static int PrimarySection(QuestSummary quest, Dictionary<int, QuestSection> known) =>
         quest.Categories
@@ -646,19 +651,19 @@ public sealed class QuestCatalogService : IDisposable
             .FirstOrDefault() ?? 0;
 
     /// <summary>
-    /// Faut-il relire le site ?
+    /// Should the site be reread?
     ///
-    /// On le lui demande plutôt que de compter les jours. Le site publie quand
-    /// il publie, et une quête parue ce matin attendait jusqu'ici la fin d'une
-    /// semaine ; elle est vue le jour même. La demande pèse quatre-vingt-dix-sept
-    /// octets, contre dix-huit millions pour une relecture.
+    /// We ask it directly rather than counting days. The site publishes when
+    /// it publishes, and a quest posted this morning used to wait until the
+    /// end of a week; now it is seen the same day. The request weighs
+    /// ninety-seven bytes, against eighteen million for a full reread.
     ///
-    /// Le délai reste, en filet : si le site cesse de répondre à cette
-    /// demande-là, le catalogue vieillit quand même et finit par être relu.
+    /// The delay stays, as a safety net: if the site stops answering this
+    /// particular request, the catalog still ages and eventually gets reread.
     ///
-    /// Un site qui ne répond pas ne provoque jamais de relecture : on garde ce
-    /// qu'on a. Chercher dans une liste d'hier vaut mieux que ne rien pouvoir
-    /// chercher.
+    /// A site that does not answer never triggers a reread: we keep what we
+    /// have. Searching in yesterday's list beats being unable to search at
+    /// all.
     /// </summary>
     private async Task<bool> IsStaleAsync(
         QuestCatalogDocument document,
@@ -692,12 +697,12 @@ public sealed class QuestCatalogService : IDisposable
     }
 
     /// <summary>
-    /// Vrai si l'une des catégories qu'on lit a bougé depuis la dernière
-    /// lecture.
+    /// True if one of the categories being read has changed since the last
+    /// read.
     ///
-    /// Une catégorie qu'on ne connaissait pas encore compte comme ayant bougé :
-    /// c'est le cas d'un catalogue plus ancien que cette empreinte, et d'une
-    /// catégorie que le site vient d'ouvrir.
+    /// A category we did not know about yet counts as having changed: that
+    /// covers a catalog older than this fingerprint, and a category the site
+    /// has just opened.
     /// </summary>
     private static bool Moved(
         IReadOnlyList<CategoryStamp> seen,
@@ -716,14 +721,14 @@ public sealed class QuestCatalogService : IDisposable
         return false;
     }
 
-    /// <summary>À appeler sous verrou.</summary>
+    /// <summary>Call while holding the lock.</summary>
     private async Task<QuestCatalogDocument> RebuildAsync(
         IProgress<QuestIndexingProgress>? progress,
         CancellationToken cancellationToken)
     {
-        // Le cache est relu s'il ne l'a pas encore été : une réindexation
-        // demandée d'emblée, réseau coupé, jetterait sinon un catalogue qu'on
-        // avait pourtant sur le disque.
+        // The cache is reloaded if it has not been yet: a reindex requested
+        // right away, with the network down, would otherwise discard a catalog
+        // we actually had on disk.
         _current ??= await _store.LoadAsync(cancellationToken).ConfigureAwait(false);
 
         var previous = _current;
@@ -735,37 +740,37 @@ public sealed class QuestCatalogService : IDisposable
 
             if (quests.Count == 0)
             {
-                // Un site joignable mais qui ne rend rien : garder ce qu'on
-                // avait plutôt que d'écraser le cache par du vide.
+                // A site that is reachable but returns nothing: keep what we
+                // had rather than overwrite the cache with emptiness.
                 return previous;
             }
 
-            // Chaque étape s'annonce avant de commencer, et non après. Une
-            // seule le faisait, celle des quêtes, et c'est la plus courte : le
-            // compteur atteignait son total en quelques secondes puis restait
-            // figé pendant tout le reste, sans que rien ne dise que le travail
-            // continuait.
+            // Each phase announces itself before it starts, not after. Only
+            // one used to do it, the quests phase, and it is the shortest: the
+            // counter would reach its total within a few seconds and then stay
+            // frozen for the rest of the work, with nothing to say it was
+            // still going.
             progress?.Report(new QuestIndexingProgress(0, 0, QuestIndexingPhase.Sections));
 
             var sections = await _client.GetSectionsAsync(cancellationToken).ConfigureAwait(false);
             var pages = await _client.GetPageSectionsAsync(cancellationToken).ConfigureAwait(false);
 
-            // Les empreintes sont relevées pendant la lecture, et non avant :
-            // ce qu'on retient doit décrire le site tel qu'on vient de le lire.
+            // The fingerprints are captured during the read, not before: what
+            // we keep must describe the site as it was just read.
             var stamp = await _client.GetStampAsync(cancellationToken).ConfigureAwait(false);
             var categories = await _client
                 .GetCategoryStampsAsync(cancellationToken)
                 .ConfigureAwait(false);
-            // Quatre mégaoctets, et les quatre cinquièmes du temps d'une
-            // indexation : c'est l'étape qu'il importe le plus de nommer.
+            // Four megabytes, and four fifths of an indexing pass's time: this
+            // is the phase most worth announcing.
             progress?.Report(new QuestIndexingProgress(0, 0, QuestIndexingPhase.Dungeons));
 
             var dungeons = await _client.GetDungeonsAsync(cancellationToken).ConfigureAwait(false);
 
             progress?.Report(new QuestIndexingProgress(0, 0, QuestIndexingPhase.Paths));
 
-            // Les chemins après eux : le côté d'un chemin se décide sur les noms
-            // des donjons, qu'il faut donc connaître d'abord.
+            // Paths come after them: which side a path belongs to is decided
+            // from dungeon names, which therefore need to be known first.
             var paths = await _client
                 .GetPathsAsync(
                     [.. dungeons.Where(d => d.Kind == DungeonKind.Dungeon).Select(d => d.Title)],
@@ -804,9 +809,9 @@ public sealed class QuestCatalogService : IDisposable
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            // Réseau coupé, site en panne, réponse illisible : la recherche
-            // continue sur ce qu'on avait. L'appelant lit LastFailure pour le
-            // dire à l'écran.
+            // Network down, site broken, unreadable response: searching
+            // continues on what we had. The caller reads LastFailure to
+            // display it on screen.
             LastFailure = exception;
             _current = previous;
 
@@ -815,18 +820,17 @@ public sealed class QuestCatalogService : IDisposable
     }
 
     /// <summary>
-    /// Durée de la dernière indexation complète, ou <c>null</c> s'il n'y en a
-    /// pas eu dans cette session.
+    /// Duration of the last full indexing pass, or <c>null</c> if none has
+    /// happened in this session.
     ///
-    /// **Mesurée parce qu'elle ne l'était pas.** Les « cinquante secondes »
-    /// citées dans les décisions du projet datent d'une époque où
-    /// l'indexation faisait huit requêtes ; elle en fait une cinquantaine
-    /// depuis. Aucun chronomètre n'existait, et toute optimisation se jugeait
-    /// donc à l'impression.
+    /// **Measured because it was not.** The "fifty seconds" cited in the
+    /// project's decisions date from a time when indexing made eight requests;
+    /// it has made about fifty since. No stopwatch existed, and every
+    /// optimization used to be judged by feel.
     /// </summary>
     public TimeSpan? LastIndexing { get; private set; }
 
-    /// <summary>Dernier échec d'indexation, pour que la fenêtre puisse le dire.</summary>
+    /// <summary>Last indexing failure, so the window can report it.</summary>
     public Exception? LastFailure { get; private set; }
 
     public void Dispose() => _gate.Dispose();

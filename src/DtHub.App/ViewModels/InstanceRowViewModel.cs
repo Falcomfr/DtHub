@@ -7,7 +7,9 @@ using DtHub.Core.Settings;
 
 namespace DtHub.App.ViewModels;
 
-/// <summary>Une instance du jeu dans une liste, avec son état et ses réglages.</summary>
+/// <summary>
+/// An instance of the game in a list, with its state and its settings.
+/// </summary>
 public sealed partial class InstanceRowViewModel : ObservableObject
 {
     public InstanceRowViewModel(DofusInstance instance)
@@ -23,24 +25,24 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     [ObservableProperty]
     private DofusInstance _instance;
 
-    /// <summary>Cochée pour le lancement automatique.</summary>
+    /// <summary>Checked for automatic launch.</summary>
     [ObservableProperty]
     private bool _isEnabled;
 
     /// <summary>
-    /// Cochée si la fenêtre suit les placements automatiques : parcours au
-    /// clavier, replacement, côte à côte, changements de taille. Décochée,
-    /// elle reste où elle est et le reste s'arrange sans elle.
+    /// Checked if the window follows automatic placements: keyboard
+    /// navigation, repositioning, side-by-side, size changes. Unchecked, it
+    /// stays where it is and the rest arranges itself without it.
     /// </summary>
     [ObservableProperty]
     private bool _isManaged = true;
 
     /// <summary>
-    /// L'inverse, tel que la ligne le présente : un verrou, éteint par défaut.
+    /// The opposite, as the row presents it: a lock, off by default.
     ///
-    /// Le réglage enregistré dit ce que la fenêtre suit, ce qui est le bon sens
-    /// pour du code ; l'interface dit ce que l'utilisateur décide, et il décide
-    /// d'immobiliser une fenêtre, pas d'en libérer huit.
+    /// The stored setting says what the window follows, which makes sense for
+    /// code; the interface says what the user decides, and what they decide is
+    /// to lock one window in place, not to free eight of them.
     /// </summary>
     public bool IsLocked
     {
@@ -48,141 +50,148 @@ public sealed partial class InstanceRowViewModel : ObservableObject
         set => IsManaged = !value;
     }
 
-    /// <summary>Nom affiché, modifiable.</summary>
+    /// <summary>Displayed name, editable.</summary>
     [ObservableProperty]
     private string _name;
 
-    /// <summary>Vrai si une fenêtre est ouverte pour cette instance.</summary>
+    /// <summary>True if a window is open for this instance.</summary>
     [ObservableProperty]
     private bool _isRunning;
 
     /// <summary>
-    /// Vrai pendant qu'une action est en cours sur cette instance. Une relance
-    /// enchaîne l'arrêt de la session, l'arrêt forcé côté Android et le
-    /// redémarrage de scrcpy : plusieurs secondes, pendant lesquelles un
-    /// bouton grisé ne dit pas qu'il se passe quelque chose.
+    /// True while an action is in progress on this instance. A restart chains
+    /// the session's stop, the forced stop on the Android side, and the
+    /// restart of scrcpy: several seconds, during which a greyed-out button
+    /// does not say that something is happening.
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsBusy))]
     private bool _isWorking;
 
     /// <summary>
-    /// Vrai quand le téléphone qui porte cette instance est occupé par une
-    /// autre ouverture. La ligne n'a pas été cliquée : elle attend son tour.
+    /// True when the phone carrying this instance is busy with another
+    /// opening. The row was not clicked: it is waiting its turn.
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsBusy))]
     private bool _isDeviceBusy;
 
     /// <summary>
-    /// Vrai quand la ligne doit montrer l'indicateur plutôt que ses boutons,
-    /// que ce soit pour son propre travail ou celui d'une voisine du même
-    /// téléphone.
+    /// True when the row must show the indicator rather than its buttons,
+    /// whether for its own work or that of a neighbour on the same phone.
     ///
-    /// Deux champs et non un : <see cref="IsWorking"/> sert aussi de garde-fou
-    /// de réentrance et est remis à faux dans un finally, qui éteindrait sinon
-    /// l'indicateur d'une voisine.
+    /// Two fields and not one: <see cref="IsWorking"/> also acts as a
+    /// reentrancy guard and is reset to false in a finally block, which would
+    /// otherwise turn off a neighbour's indicator.
     /// </summary>
     public bool IsBusy => IsWorking || IsDeviceBusy;
 
     public string Key => Instance.Key;
 
     /// <summary>
-    /// Vrai si ce compte s'ouvre dans le cadre à onglets.
+    /// True if this account opens in the tabbed frame.
     ///
-    /// Basculer n'ouvre ni ne ferme rien : c'est la même fenêtre qu'on loge
-    /// dans le cadre ou qu'on en ressort.
+    /// Toggling neither opens nor closes anything: it is the same window that
+    /// gets housed in the frame or taken back out of it.
     /// </summary>
     [ObservableProperty]
     private bool _isTabbed;
 
-    /// <summary>Vrai pour la ligne que l'on est en train de déplacer.</summary>
+    /// <summary>True for the row currently being dragged.</summary>
     [ObservableProperty]
     private bool _isDragging;
 
-    /// <summary>Vrai quand un dépôt ici insérerait juste au-dessus.</summary>
+    /// <summary>True when a drop here would insert just above.</summary>
     [ObservableProperty]
     private bool _dropAbove;
 
-    /// <summary>Vrai quand un dépôt ici insérerait juste en dessous.</summary>
+    /// <summary>True when a drop here would insert just below.</summary>
     [ObservableProperty]
     private bool _dropBelow;
 
     public string DeviceId => Instance.DeviceId;
 
     /// <summary>
-    /// Chemin de l'icône du jeu dans le cache, quand elle a pu être extraite.
+    /// Path to the game's icon in the cache, when it could be extracted.
     ///
-    /// Une chaîne et non une image : aucun type d'interface n'entre dans un
-    /// modèle de vue ici, et c'est un convertisseur qui décode, une fois pour
-    /// toutes les lignes qui partagent le même fichier.
+    /// A string and not an image: no interface type enters a view model here,
+    /// and it is a converter that decodes it, once for all the rows that share
+    /// the same file.
     ///
-    /// Rien ne la remet à zéro : le balayage met les lignes à jour au lieu de
-    /// les recréer, si bien qu'une icône posée y reste et que la liste ne
-    /// clignote pas.
+    /// Nothing resets it: the scan updates the rows instead of recreating
+    /// them, so that an icon once set stays there and the list does not
+    /// flicker.
     /// </summary>
     [ObservableProperty]
     private string? _iconPath;
 
-    /// <summary>Appareil qui porte cette instance. Il peint l'en-tête, quand il y en a un.</summary>
+    /// <summary>
+    /// Device carrying this instance. It paints the header, when there is one.
+    /// </summary>
     [ObservableProperty]
     private DeviceGroupViewModel? _device;
 
     /// <summary>
-    /// Vrai quand cette ligne ouvre une suite d'instances du même appareil, et
-    /// doit donc en porter le nom.
+    /// True when this row opens a run of instances from the same device, and
+    /// must therefore carry its name.
     /// </summary>
     [ObservableProperty]
     private bool _showDeviceHeader;
 
     /// <summary>
-    /// Vrai quand cette ligne est le premier morceau de son appareil. Ce qui
-    /// vaut pour l'appareil lui-même, comme rompre l'association, ne s'affiche
-    /// que là : il n'y a aucune raison de le proposer deux fois.
+    /// True when this row is the first piece of its device. What applies to
+    /// the device itself, such as breaking the association, is only shown
+    /// there: there is no reason to offer it twice.
     /// </summary>
     [ObservableProperty]
     private bool _isFirstOfDevice;
 
     public bool IsDeviceConnected => Instance.IsDeviceConnected;
 
-    /// <summary>Profil Android d'origine, affiché en second plan.</summary>
+    /// <summary>
+    /// Originating Android profile, shown in the background.
+    /// </summary>
     public string UserLabel => Strings.Format("ProfileOrigin", Instance.UserId, Instance.UserName);
 
     /// <summary>
-    /// Vrai quand le nom affiché ne dit plus de quel profil il s'agit, donc
-    /// quand l'utilisateur l'a renommé. Sans renommage, le rappel répéterait
-    /// le nom juste au-dessus et coûterait une ligne pour rien.
+    /// True when the displayed name no longer says which profile this is, that
+    /// is, when the user has renamed it. Without a renaming, the reminder
+    /// would repeat the name right above it and would cost a line for nothing.
     /// </summary>
     public bool ShowUserLabel =>
         !string.Equals(Name, Instance.UserName, StringComparison.Ordinal);
 
-    /// <summary>Signalé quand une case est cochée ou un nom modifié.</summary>
+    /// <summary>Raised when a box is checked or a name changed.</summary>
     public event EventHandler<InstanceRowViewModel>? EnabledChanged;
 
-    /// <summary>Signalé quand la fenêtre entre ou sort des placements automatiques.</summary>
+    /// <summary>
+    /// Raised when the window enters or leaves automatic placements.
+    /// </summary>
     public event EventHandler<InstanceRowViewModel>? ManagedChanged;
 
     public event EventHandler<InstanceRowViewModel>? NameChanged;
 
-    /// <summary>Signalé quand le compte entre dans le cadre à onglets ou en sort.</summary>
+    /// <summary>
+    /// Raised when the account enters the tabbed frame or leaves it.
+    /// </summary>
     public event EventHandler<InstanceRowViewModel>? TabbedChanged;
 
-    /// <summary>Signalé quand le compte change de palier de qualité.</summary>
+    /// <summary>Raised when the account changes quality tier.</summary>
     public event EventHandler<InstanceRowViewModel>? QualityChanged;
 
-    /// <summary>Signalé quand le compte change de distance dans le jeu.</summary>
+    /// <summary>Raised when the account changes in-game distance.</summary>
     public event EventHandler<InstanceRowViewModel>? ZoomChanged;
 
     /// <summary>
-    /// Le temps passé cette semaine, « 3 h 20 », ou <c>null</c> s'il n'y en a
-    /// pas encore.
+    /// The time played this week, "3 h 20", or <c>null</c> if there is none
+    /// yet.
     ///
-    /// Information seulement : aucune limite, aucun rappel. Qui joue cinq
-    /// comptes finit par ne plus savoir lequel il fait vraiment tourner.
+    /// Information only: no limit, no reminder. Someone playing five accounts
+    /// eventually no longer knows which one they are really running.
     ///
-    /// <c>null</c> et non vide : c'est une infobulle, et WPF n'en montre
-    /// aucune sur une valeur nulle, là où une chaîne vide donnerait une bulle
-    /// grise sans rien dedans.
+    /// <c>null</c> and not empty: this is a tooltip, and WPF shows none for a
+    /// null value, whereas an empty string would give a grey bubble with
+    /// nothing in it.
     /// </summary>
     public string? PlaytimeLabel
     {
@@ -204,22 +213,27 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Palier propre à ce compte, ou <c>null</c> pour suivre le commun.
+    /// Tier specific to this account, or <c>null</c> to follow the shared one.
     ///
-    /// On joue un compte et on en regarde quatre : le principal mérite mieux
-    /// que les mules, et ce qu'on épargne aux mules est autant de processeur,
-    /// de bande passante, de chaleur et de batterie en moins.
+    /// One account is played and four are watched: the main one deserves
+    /// better than the mules, and what is spared on the mules is that much
+    /// less processor, bandwidth, heat, and battery.
     /// </summary>
     [ObservableProperty]
     private StreamQuality? _quality;
 
-    /// <summary>Vrai le temps que le palier soit écrit.</summary>
+    /// <summary>True while the tier is being written.</summary>
     public bool IsQualityPending { get; set; }
 
-    /// <summary>Vrai quand le compte a son propre palier, donc que ça se voit.</summary>
+    /// <summary>
+    /// True when the account has its own tier, so that it shows.
+    /// </summary>
     public bool HasOwnQuality => Quality is not null;
 
-    /// <summary>Ce que le bouton affiche : le palier, ou rien s'il suit le commun.</summary>
+    /// <summary>
+    /// What the button displays: the tier, or nothing if it follows the shared
+    /// one.
+    /// </summary>
     public string QualityLabel => Quality switch
     {
         StreamQuality.Low => Strings.Get("QualityLowShort"),
@@ -229,31 +243,40 @@ public sealed partial class InstanceRowViewModel : ObservableObject
         _ => string.Empty,
     };
 
-    /// <summary>Donne son palier au compte, ou le rend au commun avec <c>null</c>.</summary>
+    /// <summary>
+    /// Gives its tier to the account, or returns it to the shared one with
+    /// <c>null</c>.
+    /// </summary>
     [RelayCommand]
     private void PickQuality(StreamQuality? quality) => Quality = quality;
 
-    /// <summary>Rend le compte au réglage commun.</summary>
+    /// <summary>Returns the account to the shared setting.</summary>
     [RelayCommand]
     private void FollowSharedQuality() => Quality = null;
 
     /// <summary>
-    /// Distance propre à ce compte, ou <c>null</c> pour suivre la commune.
+    /// Distance specific to this account, or <c>null</c> to follow the shared
+    /// one.
     ///
-    /// Le motif n'est pas celui du palier. Le palier économise ; la distance
-    /// décide de ce qu'on voit. On veut du terrain sur le compte qu'on joue,
-    /// et les mules dont on ne regarde que la barre de vie n'en ont pas besoin.
+    /// The motive is not the same as for the tier. The tier saves; distance
+    /// decides what is seen. One wants ground on the account being played, and
+    /// the mules whose health bar is all that gets watched do not need that.
     /// </summary>
     [ObservableProperty]
     private GameZoom? _zoom;
 
-    /// <summary>Vrai le temps que la distance soit écrite.</summary>
+    /// <summary>True while the distance is being written.</summary>
     public bool IsZoomPending { get; set; }
 
-    /// <summary>Vrai quand le compte a sa propre distance, donc que ça se voit.</summary>
+    /// <summary>
+    /// True when the account has its own distance, so that it shows.
+    /// </summary>
     public bool HasOwnZoom => Zoom is not null;
 
-    /// <summary>Ce que le bouton affiche : la distance, ou rien si elle suit la commune.</summary>
+    /// <summary>
+    /// What the button displays: the distance, or nothing if it follows the
+    /// shared one.
+    /// </summary>
     public string ZoomLabel => Zoom switch
     {
         GameZoom.Widest => Strings.Get("ZoomVeryFar"),
@@ -264,12 +287,12 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     };
 
     /// <summary>
-    /// La distance avec laquelle sa fenêtre tourne en ce moment, ou
-    /// <c>null</c> quand elle est fermée.
+    /// The distance its window is currently running with, or <c>null</c> when
+    /// it is closed.
     ///
-    /// Posée par la liste, qui la tient du lanceur : la distance est un
-    /// argument de démarrage de scrcpy, figé pour toute la session, et le
-    /// réglage choisi peut donc différer de celui qui s'affiche.
+    /// Set by the list, which gets it from the launcher: distance is a scrcpy
+    /// startup argument, fixed for the whole session, so the chosen setting
+    /// can therefore differ from the one shown.
     /// </summary>
     public GameZoom? RunningZoom
     {
@@ -289,43 +312,46 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     private GameZoom? _runningZoom;
 
     /// <summary>
-    /// Vrai quand la fenêtre ouverte tourne encore avec une autre distance que
-    /// celle choisie.
+    /// True when the open window is still running with a distance other than
+    /// the chosen one.
     ///
-    /// **C'est la mention qui manquait.** Le réglage commun referme et rouvre
-    /// les fenêtres pour se montrer tout de suite ; celui d'un compte ne le
-    /// fait pas, parce que rouvrir déconnecte le personnage. Sans rien dire,
-    /// le réglage paraissait mort. Il ne l'est pas : il attend.
+    /// **This is the mention that was missing.** The shared setting closes and
+    /// reopens windows to show itself right away; an account's own setting
+    /// does not, because reopening disconnects the character. Saying nothing,
+    /// the setting looked dead. It is not: it is waiting.
     /// </summary>
     public bool ZoomWaitsForReopen =>
         RunningZoom is { } running && Zoom is { } wanted && running != wanted;
 
-    /// <summary>Donne sa distance au compte, ou la rend à la commune avec <c>null</c>.</summary>
+    /// <summary>
+    /// Gives its distance to the account, or returns it to the shared one with
+    /// <c>null</c>.
+    /// </summary>
     [RelayCommand]
     private void PickZoom(GameZoom? zoom) => Zoom = zoom;
 
-    /// <summary>Rend le compte à la distance commune.</summary>
+    /// <summary>Returns the account to the shared distance.</summary>
     [RelayCommand]
     private void FollowSharedZoom() => Zoom = null;
 
     /// <summary>
-    /// Vrai tant que le nom saisi n'est pas écrit. Le balayage périodique ne
-    /// doit pas le remplacer entre-temps par l'ancien : la saisie semblerait
-    /// s'annuler toute seule.
+    /// True as long as the entered name is not written. The periodic scan must
+    /// not replace it with the old one in the meantime: the input would seem
+    /// to cancel itself out.
     /// </summary>
     public bool IsRenaming { get; set; }
 
     /// <summary>
-    /// Vrai entre le clic de l'utilisateur et la fin de l'écriture.
+    /// True between the user's click and the end of the write.
     ///
-    /// Le balayage périodique reconstruit la liste à partir des réglages, et
-    /// écrasait le choix tant qu'il n'était pas enregistré : le verrou se
-    /// rouvrait tout seul quelques secondes après avoir été fermé. Même
-    /// mécanisme que pour le renommage, et pour la même raison.
+    /// The periodic scan rebuilds the list from the settings, and used to
+    /// overwrite the choice as long as it was not saved: the lock would reopen
+    /// on its own a few seconds after being closed. Same mechanism as for
+    /// renaming, and for the same reason.
     /// </summary>
     public bool IsManagedPending { get; set; }
 
-    /// <summary>Vrai le temps que la bascule d'onglet soit écrite.</summary>
+    /// <summary>True while the tab toggle is being written.</summary>
     public bool IsTabbedPending { get; set; }
 
     /// <inheritdoc cref="IsManagedPending" />
@@ -354,8 +380,8 @@ public sealed partial class InstanceRowViewModel : ObservableObject
 
         if (!IsQualityPending && Quality != instance.Quality)
         {
-            // Écriture venue des réglages : la répercuter comme un choix de
-            // l'utilisateur relancerait une écriture à chaque balayage.
+            // Write coming from settings: propagating it as a user choice
+            // would trigger a write on every scan.
             _applying = true;
 
             try
@@ -370,8 +396,8 @@ public sealed partial class InstanceRowViewModel : ObservableObject
 
         if (!IsZoomPending && Zoom != instance.Zoom)
         {
-            // Écriture venue des réglages : la répercuter comme un choix de
-            // l'utilisateur relancerait une écriture à chaque balayage.
+            // Write coming from settings: propagating it as a user choice
+            // would trigger a write on every scan.
             _applying = true;
 
             try
@@ -386,8 +412,8 @@ public sealed partial class InstanceRowViewModel : ObservableObject
 
         if (!IsManagedPending && IsManaged != instance.IsManaged)
         {
-            // Écriture venue des réglages : la répercuter comme un choix de
-            // l'utilisateur relancerait une écriture à chaque balayage.
+            // Write coming from settings: propagating it as a user choice
+            // would trigger a write on every scan.
             _applying = true;
 
             try
@@ -402,9 +428,8 @@ public sealed partial class InstanceRowViewModel : ObservableObject
 
         if (!IsRenaming && !string.Equals(Name, instance.DisplayName, StringComparison.Ordinal))
         {
-            // Écriture venue des réglages, pas de l'utilisateur : la
-            // répercuter comme un renommage relancerait une écriture à
-            // chaque balayage.
+            // Write coming from settings, not from the user: propagating it as
+            // a renaming would trigger a write on every scan.
             _applying = true;
 
             try

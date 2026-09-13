@@ -1,81 +1,83 @@
 ﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Le catalogue tel qu'il est rangé sur le disque.
+/// The catalog as it is stored on disk.
 ///
-/// C'est un cache, pas un réglage : le perdre ne coûte qu'une nouvelle
-/// indexation. Il porte tout de même une version de schéma, pour qu'un
-/// changement de forme se solde par une reconstruction et non par une lecture
-/// de travers.
+/// This is a cache, not a setting: losing it only costs a new
+/// indexing run. It still carries a schema version, so that a change
+/// in shape results in a rebuild rather than a skewed read.
 /// </summary>
 public sealed class QuestCatalogDocument
 {
     /// <summary>
-    /// Version 2 : chaque quête porte le nom de ses rubriques, pour que
-    /// chercher « frigost » rende les quêtes de Frigost et pas seulement
-    /// celles dont le titre porte le mot.
+    /// Version 2: each quest carries the name of its sections, so that
+    /// searching "frigost" returns Frigost's quests and not only those
+    /// whose title carries the word.
     ///
-    /// Version 3 : la rubrique principale de chaque quête, et l'ordre dans
-    /// lequel le site range ses rubriques.
+    /// Version 3: the main section of each quest, and the order in
+    /// which the site arranges its sections.
     ///
-    /// Version 4 : une quête est rangée sous une rubrique et une seule, et les
-    /// rubriques que le site tient à la main viennent compléter ses catégories.
+    /// Version 4: a quest is filed under one section and only one, and
+    /// the sections the site keeps by hand come to complete its
+    /// categories.
     ///
-    /// Version 5 : le succès dont chaque quête fait partie.
+    /// Version 5: the achievement each quest is part of.
     ///
-    /// Version 6 : les quêtes d'un même succès sont réunies sous une seule
-    /// rubrique.
+    /// Version 6: the quests of the same achievement are gathered
+    /// under a single section.
     ///
-    /// Version 7 : une quête appartient à toutes les rubriques qui la
-    /// réclament, le site la rangeant lui-même à plusieurs endroits.
+    /// Version 7: a quest belongs to every section that claims it, the
+    /// site itself filing it in several places.
     ///
-    /// Version 8 : l'ordre dans lequel le site présente ses succès.
+    /// Version 8: the order in which the site presents its
+    /// achievements.
     ///
-    /// Version 9 : les succès viennent aussi de la carte embarquée, tirée du
-    /// bloc d'intro de chaque quête.
+    /// Version 9: achievements also come from the embedded map, drawn
+    /// from each quest's intro block.
     ///
-    /// Version 10 : la place de chaque quête dans son succès.
+    /// Version 10: the place of each quest within its achievement.
     ///
-    /// Version 11 : la position et le personnage de départ, et la clé de
-    /// rubrique bâtie sur les rubriques affichées.
+    /// Version 11: the starting position and character, and the
+    /// section key built on the displayed sections.
     ///
-    /// Version 12 : les prérequis de chaque quête, et la clé de rubrique
-    /// retirée, la recherche ne portant plus que sur les titres.
+    /// Version 12: the prerequisites of each quest, and the section
+    /// key removed, search now bearing only on titles.
     ///
-    /// Version 13 : l'adresse de la page rédigée de chaque rubrique, celle que
-    /// le tableau de « Quêtes » désigne.
+    /// Version 13: the address of each section's written page, the
+    /// one the "Quêtes" table designates.
     ///
-    /// Version 14 : les donjons, avec leur niveau, leur clef et leur pierre
-    /// d'âme.
+    /// Version 14: the dungeons, with their level, their key and their
+    /// soul stone.
     ///
-    /// Version 15 : les chemins, et le genre d'un lieu de combat, donjon, raid
-    /// ou tanière.
+    /// Version 15: the paths, and the kind of a combat location,
+    /// dungeon, raid or lair.
     ///
-    /// L'empreinte du site, ajoutée après la quinzième, n'a pas demandé de
-    /// seizième : ses champs sont absents d'un catalogue plus ancien, ce qui
-    /// vaut « on ne sait pas » et provoque une relecture, une seule fois. Une
-    /// version n'est due que lorsque ce qui est déjà écrit changerait de sens.
+    /// The site's fingerprint, added after the fifteenth, did not
+    /// call for a sixteenth: its fields are absent from an older
+    /// catalog, which counts as "unknown" and triggers a reread, just
+    /// once. A version is only owed when what is already written
+    /// would change meaning.
     ///
-    /// Version 16 : l'ordre des succès est désormais celui des succès que
-    /// portent les quêtes, et non celui des intitulés du site. Ce qui est déjà
-    /// écrit change donc de sens : trente des quatre-vingt-seize entrées d'un
-    /// catalogue de la quinzième ne désignent aucun succès. Une empreinte de
-    /// site inchangée ne provoquerait aucune relecture, et l'ancien classement
-    /// resterait en place.
+    /// Version 16: the order of achievements is now that of the
+    /// achievements the quests carry, and not that of the site's
+    /// headings. What is already written therefore changes meaning:
+    /// thirty of the ninety-six entries in a fifteenth-schema catalog
+    /// name no achievement at all. An unchanged site fingerprint would
+    /// trigger no reread, and the old ordering would stay in place.
     /// </summary>
     public const int CurrentSchemaVersion = 16;
 
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 
-    /// <summary>Moment de la dernière indexation réussie.</summary>
+    /// <summary>Time of the last successful indexing run.</summary>
     public DateTimeOffset? IndexedUtc { get; set; }
 
     /// <summary>
-    /// Ce que le site annonçait au moment de cette lecture : date du dernier
-    /// article modifié, et nombre total d'articles. Les comparer à ce qu'il
-    /// annonce aujourd'hui dit s'il a bougé, pour le prix d'une demande.
-    /// Absents d'un catalogue plus ancien, ce qui vaut « on ne sait pas » et
-    /// provoque une relecture, une seule fois.
+    /// What the site announced at the time of this read: date of the
+    /// last modified article, and total number of articles. Comparing
+    /// them to what it announces today says whether it has changed,
+    /// for the price of one request. Absent from an older catalog,
+    /// which counts as "unknown" and triggers a reread, just once.
     /// </summary>
     public DateTimeOffset? SiteModifiedUtc { get; set; }
 
@@ -83,9 +85,9 @@ public sealed class QuestCatalogDocument
     public int SitePosts { get; set; }
 
     /// <summary>
-    /// Ce que chaque catégorie lue annonçait à ce moment-là. Vide dans un
-    /// catalogue plus ancien, ce qui vaut « on ne sait pas » et provoque une
-    /// relecture, une seule fois.
+    /// What each category read announced at that time. Empty in an
+    /// older catalog, which counts as "unknown" and triggers a reread,
+    /// just once.
     /// </summary>
     public List<CategoryStamp> SiteCategories { get; set; } = [];
 
@@ -94,37 +96,38 @@ public sealed class QuestCatalogDocument
     public List<QuestSection> Sections { get; set; } = [];
 
     /// <summary>
-    /// Les donjons du site. Rangés à part des quêtes : ils n'ont ni succès ni
-    /// prérequis, mais un niveau, une clef et une pierre d'âme.
+    /// The site's dungeons. Kept apart from quests: they have neither
+    /// achievement nor prerequisites, but a level, a key and a soul
+    /// stone.
     /// </summary>
     public List<DungeonSummary> Dungeons { get; set; } = [];
 
     /// <summary>
-    /// Les chemins du site, chacun rangé du côté qu'il dessert. Ils n'ont ni
-    /// niveau ni clef : un itinéraire ne se joue pas, il se suit.
+    /// The site's paths, each filed on the side it serves. They have
+    /// neither level nor key: a route is not played, it is followed.
     /// </summary>
     public List<PathSummary> Paths { get; set; } = [];
 
     /// <summary>
-    /// Intitulés des rubriques dans l'ordre du site, réduits à une forme
-    /// comparable. Vide si le menu n'a pas pu être lu : on retombe alors sur un
-    /// classement par nombre de quêtes.
+    /// Section headings in the site's order, reduced to a comparable
+    /// form. Empty if the menu could not be read: it then falls back
+    /// to ordering by quest count.
     /// </summary>
     public List<string> SectionOrder { get; set; } = [];
 
     /// <summary>
-    /// Intitulés des succès dans l'ordre où les pages du site les présentent.
+    /// Achievement headings in the order the site's pages present them.
     ///
-    /// Cet ordre est celui d'une progression, et il ne se retrouve nulle part
-    /// ailleurs : les ranger par ordre alphabétique, comme on le faisait,
-    /// mettait « Épilogue hivernal » avant « L'hiver arrive ».
+    /// This order is one of progression, and it is found nowhere else:
+    /// sorting them alphabetically, as used to be done, put "Épilogue
+    /// hivernal" before "L'hiver arrive".
     /// </summary>
     public List<string> SuccessOrder { get; set; } = [];
 
     /// <summary>
-    /// Vrai si le catalogue est inutilisable en l'état et doit être reconstruit.
-    /// Un catalogue vieilli reste employé : mieux vaut une liste d'hier que
-    /// pas de liste du tout quand le réseau manque.
+    /// True if the catalog is unusable as is and must be rebuilt. An
+    /// aged catalog is still used: a list from yesterday is better
+    /// than no list at all when the network is missing.
     /// </summary>
     public bool NeedsRebuild =>
         SchemaVersion != CurrentSchemaVersion || Quests.Count == 0;

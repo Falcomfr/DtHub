@@ -4,23 +4,23 @@ using System.Text.RegularExpressions;
 namespace DtHub.Core.Users;
 
 /// <summary>
-/// Lecture de <c>pm list users</c>. Le format est
-/// <c>UserInfo{identifiant:nom:drapeaux}</c>, suivi éventuellement de
-/// <c>running</c>. Les drapeaux sont en hexadécimal.
+/// Reads <c>pm list users</c>. The format is
+/// <c>UserInfo{id:name:flags}</c>, possibly followed by
+/// <c>running</c>. The flags are in hexadecimal.
 /// </summary>
 public static partial class AndroidUserParser
 {
-    // Drapeaux issus de android.content.pm.UserInfo. Seuls ceux qui changent
-    // notre comportement sont nommés ici.
+    // Flags from android.content.pm.UserInfo. Only those that change
+    // our behavior are named here.
     private const int FlagPrimary = 0x00000001;
     private const int FlagGuest = 0x00000004;
     private const int FlagRestricted = 0x00000008;
     private const int FlagManagedProfile = 0x00000020;
 
-    // Profil mis en pause. C'est l'interrupteur du profil professionnel, et la
-    // fonction principale de Shelter et d'Island : leurs utilisateurs
-    // l'actionnent tous les jours. Un profil en pause est listé comme les
-    // autres, et ne lance rien.
+    // Paused profile. This is the work profile's on/off switch, and
+    // the main function of Shelter and Island: their users toggle it
+    // every day. A paused profile is listed like the others, and
+    // launches nothing.
     private const int FlagQuietMode = 0x00000080;
     private const int FlagProfile = 0x00001000;
     private const int FlagMain = 0x00004000;
@@ -28,9 +28,9 @@ public static partial class AndroidUserParser
     private const string Marker = "UserInfo{";
 
     /// <summary>
-    /// Lit la liste complète. Toute ligne non conforme est ignorée plutôt que
-    /// de faire échouer l'ensemble : une seule ligne exotique ne doit pas
-    /// priver l'utilisateur de tous ses profils.
+    /// Reads the full list. Any non-conforming line is ignored rather
+    /// than failing the whole thing: a single exotic line must not
+    /// deprive the user of all their profiles.
     /// </summary>
     public static IReadOnlyList<AndroidUser> Parse(string? output)
     {
@@ -51,7 +51,9 @@ public static partial class AndroidUserParser
         return [.. users.DistinctBy(u => u.Id).OrderBy(u => u.Id)];
     }
 
-    /// <summary>Lit une ligne unique, ou rend <c>null</c> si elle n'en est pas une.</summary>
+    /// <summary>
+    /// Reads a single line, or returns <c>null</c> if it is not one.
+    /// </summary>
     public static AndroidUser? ParseLine(string? line)
     {
         if (string.IsNullOrWhiteSpace(line))
@@ -74,8 +76,9 @@ public static partial class AndroidUserParser
 
         var content = line[start..end];
 
-        // Un nom d'utilisateur peut contenir un deux-points. L'identifiant est
-        // donc délimité par le premier, et les drapeaux par le dernier.
+        // A user name can contain a colon. The identifier is
+        // therefore delimited by the first one, and the flags by the
+        // last one.
         var firstSeparator = content.IndexOf(':', StringComparison.Ordinal);
         var lastSeparator = content.LastIndexOf(':');
 
@@ -107,17 +110,17 @@ public static partial class AndroidUserParser
     }
 
     /// <summary>
-    /// Détermine la nature d'un utilisateur à partir de ses drapeaux. Aucun
-    /// identifiant n'est câblé, à l'exception de 0 qui est l'utilisateur
-    /// principal par définition dans Android.
+    /// Determines a user's type from its flags. No identifier is
+    /// hardcoded, except for 0 which is the primary user by
+    /// definition in Android.
     /// </summary>
     public static AndroidUserType ClassifyUser(int id, int flags)
     {
         if ((flags & FlagManagedProfile) != 0)
         {
-            // Les surcouches constructeur créent leurs applications dupliquées
-            // sous ce même drapeau qu'un profil d'entreprise : les distinguer
-            // demande dumpsys, sinon on reste neutre.
+            // Manufacturer overlays create their duplicated apps under
+            // this same flag as a work profile: telling them apart
+            // requires dumpsys, otherwise we stay neutral.
             return AndroidUserType.ManagedProfile;
         }
 
@@ -145,10 +148,10 @@ public static partial class AndroidUserParser
     }
 
     /// <summary>
-    /// Affine les types à partir de <c>dumpsys user</c>, qui publie le type
-    /// exact sous la forme <c>android.os.usertype.profile.CLONE</c>. Les
-    /// utilisateurs dont le type n'apparaît pas conservent le classement
-    /// déduit des drapeaux.
+    /// Refines the types from <c>dumpsys user</c>, which publishes the
+    /// exact type in the form <c>android.os.usertype.profile.CLONE</c>.
+    /// Users whose type does not appear keep the classification
+    /// deduced from the flags.
     /// </summary>
     public static IReadOnlyList<AndroidUser> ApplyUserTypes(
         IReadOnlyList<AndroidUser> users,
@@ -168,8 +171,8 @@ public static partial class AndroidUserParser
     }
 
     /// <summary>
-    /// Extrait les types déclarés par <c>dumpsys user</c>, indexés par
-    /// identifiant d'utilisateur.
+    /// Extracts the types declared by <c>dumpsys user</c>, indexed by
+    /// user identifier.
     /// </summary>
     public static IReadOnlyDictionary<int, AndroidUserType> ParseUserTypes(string? dumpsysOutput)
     {
@@ -236,11 +239,11 @@ public static partial class AndroidUserParser
     }
 
     /// <summary>
-    /// Identifiant du profil que <c>pm create-user</c> vient de créer, ou
-    /// <c>null</c> si la commande n'a rien créé.
+    /// Identifier of the profile that <c>pm create-user</c> has just
+    /// created, or <c>null</c> if the command created nothing.
     ///
-    /// La réponse tient en une ligne : « Success: created user id 10 ». Tout
-    /// autre chose est un refus, et le texte du refus dit pourquoi.
+    /// The response fits in one line: "Success: created user id 10".
+    /// Anything else is a refusal, and the refusal text says why.
     /// </summary>
     public static int? ParseCreatedUserId(string? output)
     {
@@ -258,12 +261,12 @@ public static partial class AndroidUserParser
     }
 
     /// <summary>
-    /// Nombre de profils que l'appareil accepte, rendu par
-    /// <c>pm get-max-users</c>, ou <c>null</c> s'il ne le dit pas.
+    /// Number of profiles the device accepts, returned by
+    /// <c>pm get-max-users</c>, or <c>null</c> if it does not say.
     ///
-    /// La réponse est « Maximum supported users: 4 ». On la lit pour refuser
-    /// tôt et clairement, plutôt que de laisser la création échouer sur un
-    /// message d'ADB que personne ne comprend.
+    /// The response is "Maximum supported users: 4". We read it to
+    /// refuse early and clearly, rather than letting the creation
+    /// fail on an ADB message that nobody understands.
     /// </summary>
     public static int? ParseMaxUsers(string? output)
     {

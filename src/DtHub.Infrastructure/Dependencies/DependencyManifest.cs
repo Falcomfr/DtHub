@@ -6,9 +6,9 @@ using DtHub.Core.Dependencies;
 namespace DtHub.Infrastructure.Dependencies;
 
 /// <summary>
-/// Charge <c>build/dependencies.json</c>, embarqué comme ressource. Le même
-/// fichier sert à la CI et à l'exécution : aucune URL n'est écrite en dur
-/// ailleurs dans le code.
+/// Loads <c>build/dependencies.json</c>, embedded as a resource. The
+/// same file is used by CI and at runtime: no URL is hardcoded
+/// anywhere else in the code.
 /// </summary>
 public static class DependencyManifest
 {
@@ -23,17 +23,19 @@ public static class DependencyManifest
     private static readonly Lazy<IReadOnlyDictionary<string, ExternalDependency>> Cached =
         new(Load, isThreadSafe: true);
 
-    /// <summary>Clé de la dépendance fournissant ADB.</summary>
+    /// <summary>Key of the dependency providing ADB.</summary>
     public const string PlatformToolsKey = "platform-tools";
 
-    /// <summary>Clé de la dépendance fournissant scrcpy.</summary>
+    /// <summary>Key of the dependency providing scrcpy.</summary>
     public const string ScrcpyKey = "scrcpy";
 
-    /// <summary>Toutes les dépendances déclarées, indexées par clé.</summary>
+    /// <summary>All declared dependencies, indexed by key.</summary>
     public static IReadOnlyDictionary<string, ExternalDependency> All => Cached.Value;
 
-    /// <summary>Récupère une dépendance déclarée.</summary>
-    /// <exception cref="InvalidOperationException">La clé n'est pas déclarée dans le manifeste.</exception>
+    /// <summary>Retrieves a declared dependency.</summary>
+    /// <exception cref="InvalidOperationException">
+    /// The key is not declared in the manifest.
+    /// </exception>
     public static ExternalDependency Get(string key) =>
         All.TryGetValue(key, out var dependency)
             ? dependency

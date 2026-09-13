@@ -5,14 +5,16 @@ using DtHub.Core.Localization;
 namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Ce qu'on retient d'un catalogue pour dire, après relecture, ce qui a changé.
+/// What is kept from a catalog to say, after a reread, what has
+/// changed.
 ///
-/// La règle vit ici et non dans la fenêtre : c'est une phrase que l'utilisateur
-/// lit, avec ses accords et son silence, et rien de tout cela ne se vérifiait.
+/// The rule lives here and not in the window: it is a sentence the
+/// user reads, with its grammatical agreements and its silences,
+/// and none of that was ever tested.
 /// </summary>
 public readonly record struct QuestTally(int Quests, int Places, int Paths)
 {
-    /// <summary>Le relevé d'un catalogue.</summary>
+    /// <summary>A catalog's tally.</summary>
     public static QuestTally Of(QuestCatalogDocument catalog)
     {
         ArgumentNullException.ThrowIfNull(catalog);
@@ -21,13 +23,14 @@ public readonly record struct QuestTally(int Quests, int Places, int Paths)
     }
 
     /// <summary>
-    /// Ce qu'une relecture a rapporté depuis un relevé, en une ligne.
+    /// What a reread has reported since a tally, in one line.
     ///
-    /// Rien quand elle n'a rien changé : le site remanie souvent ses pages sans
-    /// que le catalogue en gagne ou en perde, et l'annoncer à chaque fois serait
-    /// du bruit. Rien non plus quand il n'y avait rien avant : annoncer « sept
-    /// cent quatre-vingt-deux quêtes de plus » à la première lecture
-    /// n'apprendrait rien.
+    /// Nothing when it changed nothing: the site often reworks its
+    /// pages without the catalog gaining or losing anything, and
+    /// announcing it every time would be noise. Nothing either
+    /// when there was nothing before: announcing "seven hundred
+    /// and eighty-two more quests" on the first read would teach
+    /// nothing.
     /// </summary>
     public string Since(QuestTally before)
     {

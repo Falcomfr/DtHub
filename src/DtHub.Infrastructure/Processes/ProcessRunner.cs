@@ -7,9 +7,10 @@ using DtHub.Core.Processes;
 namespace DtHub.Infrastructure.Processes;
 
 /// <summary>
-/// Exécute un processus sans jamais faire apparaître de console. La sortie est
-/// lue au fil de l'eau sur deux flux séparés, ce qui évite le blocage classique
-/// où le processus fils remplit un tampon pendant que l'appelant attend sa fin.
+/// Runs a process without ever making a console appear. Output is
+/// read as it streams on two separate pipes, which avoids the classic
+/// deadlock where the child process fills a buffer while the caller
+/// waits for it to end.
 /// </summary>
 public sealed class ProcessRunner : IProcessRunner
 {
@@ -48,8 +49,8 @@ public sealed class ProcessRunner : IProcessRunner
         var standardOutput = new StringBuilder();
         var standardError = new StringBuilder();
 
-        // Les deux flux se terminent par un événement à données nulles : on
-        // attend ces deux signaux pour être certain de n'avoir rien tronqué.
+        // Both streams end with a null-data event: we wait for these
+        // two signals to be certain nothing was truncated.
         var outputClosed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var errorClosed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -78,15 +79,15 @@ public sealed class ProcessRunner : IProcessRunner
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
 
-        // Refermer l'entrée standard : sans cela, un outil qui lit stdin
-        // attendrait indéfiniment.
+        // Closing standard input: without this, a tool that reads
+        // stdin would wait indefinitely.
         try
         {
             process.StandardInput.Close();
         }
         catch (IOException)
         {
-            // Le processus s'est déjà terminé, rien à fermer.
+            // The process has already ended, nothing to close.
         }
 
         using var timeoutSource = new CancellationTokenSource();
@@ -108,8 +109,9 @@ public sealed class ProcessRunner : IProcessRunner
         {
             KillQuietly(process);
 
-            // L'annulation demandée par l'appelant remonte ; le dépassement de
-            // délai est un résultat normal que l'appelant saura interpréter.
+            // Cancellation requested by the caller is propagated; the
+            // timeout is a normal result that the caller will know
+            // how to interpret.
             cancellationToken.ThrowIfCancellationRequested();
             timedOut = true;
         }
@@ -122,8 +124,8 @@ public sealed class ProcessRunner : IProcessRunner
         }
         catch (TimeoutException)
         {
-            // Un flux n'a pas été refermé après la mort du processus : on garde
-            // ce qui a pu être lu plutôt que de bloquer l'appelant.
+            // A stream was not closed after the process died: we
+            // keep what could be read rather than block the caller.
         }
 
         stopwatch.Stop();
@@ -139,12 +141,13 @@ public sealed class ProcessRunner : IProcessRunner
     }
 
     /// <summary>
-    /// Même lancement, mais la sortie standard est lue en octets.
+    /// Same launch, but standard output is read as bytes.
     ///
-    /// Ni <c>StandardOutputEncoding</c> ni <c>BeginOutputReadLine</c> : le
-    /// premier décoderait en UTF-8, le second découperait en lignes, et une
-    /// image ne survit ni à l'un ni à l'autre. On lit le flux brut, et l'erreur
-    /// standard reste du texte parce que c'est ce qu'elle porte.
+    /// Neither <c>StandardOutputEncoding</c> nor
+    /// <c>BeginOutputReadLine</c>: the former would decode as UTF-8,
+    /// the latter would split into lines, and an image survives
+    /// neither. We read the raw stream, and standard error stays text
+    /// because that is what it carries.
     /// </summary>
     public async Task<ProcessBytes> RunForBytesAsync(
         ProcessRequest request,
@@ -200,7 +203,7 @@ public sealed class ProcessRunner : IProcessRunner
         }
         catch (IOException)
         {
-            // Le processus s'est déjà terminé, rien à fermer.
+            // The process has already ended, nothing to close.
         }
 
         using var timeoutSource = new CancellationTokenSource();
@@ -219,8 +222,9 @@ public sealed class ProcessRunner : IProcessRunner
 
         try
         {
-            // Les deux flux sont vidés en parallèle : lire l'un jusqu'au bout
-            // pendant que l'autre remplit son tampon bloquerait le processus.
+            // Both streams are drained in parallel: reading one all
+            // the way through while the other fills its buffer would
+            // block the process.
             await process.StandardOutput.BaseStream
                 .CopyToAsync(buffer, linkedSource.Token)
                 .ConfigureAwait(false);
@@ -244,7 +248,7 @@ public sealed class ProcessRunner : IProcessRunner
         }
         catch (Exception exception) when (exception is TimeoutException or IOException)
         {
-            // L'erreur standard n'a pas été refermée : ce qu'on a suffit.
+            // Standard error was not closed: what we have is enough.
         }
 
         return new ProcessBytes
@@ -281,15 +285,15 @@ public sealed class ProcessRunner : IProcessRunner
         }
         catch (InvalidOperationException)
         {
-            // Le processus n'existe plus.
+            // The process no longer exists.
         }
         catch (NotSupportedException)
         {
-            // Plateforme sans arbre de processus.
+            // Platform without a process tree.
         }
         catch (System.ComponentModel.Win32Exception)
         {
-            // Terminaison déjà en cours côté système.
+            // Termination already in progress on the system side.
         }
     }
 
@@ -301,9 +305,10 @@ public sealed class ProcessRunner : IProcessRunner
         }
         catch (InvalidOperationException)
         {
-            // Silence assumé : un processus déjà nettoyé n'a plus de code de
-            // sortie. Moins un dit « on ne sait pas », ce qu'aucun programme ne
-            // rend, et l'appelant le distingue donc d'un vrai code.
+            // Deliberate silence: a process already cleaned up no
+            // longer has an exit code. Minus one says "we don't
+            // know", which no program returns, and the caller can
+            // therefore distinguish it from a real code.
             return -1;
         }
     }

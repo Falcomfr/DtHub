@@ -3,25 +3,26 @@
 namespace DtHub.Infrastructure.Processes;
 
 /// <summary>
-/// Rattache les processus lancés à la vie de l'application.
+/// Ties launched processes to the application's lifetime.
 ///
-/// Sans cela, une fin anormale, une fermeture par le gestionnaire des tâches
-/// ou un plantage laissent les fenêtres de scrcpy ouvertes. Au lancement
-/// suivant elles ne sont pas reconnues, et de nouvelles s'ajoutent : on se
-/// retrouve avec plusieurs jeux de fenêtres identiques.
+/// Without this, an abnormal end, a closure from Task Manager, or
+/// a crash leave scrcpy's windows open. On the next launch they
+/// are not recognized, and new ones are added: several identical
+/// sets of windows pile up.
 ///
-/// Un objet de travail Windows avec l'option de terminaison à la fermeture
-/// règle le cas à la racine : quand le dernier descripteur se ferme, ce qui
-/// arrive même si le processus est tué, Windows arrête les enfants. Aucune
-/// élévation n'est requise.
+/// A Windows job object with the kill-on-close option fixes this
+/// at the root: when the last handle closes, which happens even if
+/// the process is killed, Windows stops the children. No elevation
+/// is required.
 /// </summary>
 internal static class ChildProcessJob
 {
     private static readonly nint Handle = Create();
 
     /// <summary>
-    /// Rattache un processus. L'échec n'est pas une erreur : on retombe alors
-    /// sur le comportement d'avant, où la fermeture propre suffit.
+    /// Ties in a process. Failure is not an error: it then falls
+    /// back to the previous behavior, where a clean shutdown is
+    /// enough.
     /// </summary>
     public static void Adopt(nint process)
     {

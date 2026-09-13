@@ -5,30 +5,34 @@ using System.Windows.Interop;
 namespace DtHub.App.Services;
 
 /// <summary>
-/// Pose la barre de titre sombre sur les fenêtres qui gardent celle de Windows.
+/// Applies the dark title bar to windows that keep Windows' own one.
 ///
-/// L'application n'a qu'une palette, sombre. Le configurateur et les fenêtres
-/// de guides se dessinent leur propre châssis, mais les huit boîtes de dialogue
-/// gardaient celui du système, qui se rend en clair : un bandeau pâle au-dessus
-/// d'un corps noir, sur la moitié des fenêtres du produit.
+/// The application has only one palette, dark. The configurator and
+/// the guide windows draw their own frame, but the eight dialog
+/// boxes kept the system's, which renders in light mode: a pale band
+/// above a black body, on half the product's windows.
 ///
-/// L'attribut est posé une fois pour toutes par un gestionnaire de classe, et
-/// non fenêtre par fenêtre : celles qu'on écrira plus tard l'auront sans que
-/// personne ait à y penser. Les fenêtres à châssis propre n'ont pas de barre à
-/// teindre, l'appel ne leur coûte rien et ne leur fait rien.
+/// The attribute is set once and for all by a class handler, not
+/// window by window: the ones written later will have it without
+/// anyone having to think about it. Windows with their own frame
+/// have no bar to tint, the call costs them nothing and does nothing
+/// to them.
 /// </summary>
 internal static class DarkTitleBar
 {
     /// <summary>
-    /// Le numéro d'attribut a changé en cours de route : 19 sur les Windows 10
-    /// d'avant la version 2004, 20 depuis. Le socle déclaré descend à 1809, les
-    /// deux sont donc essayés. Un numéro inconnu rend une erreur que l'on
-    /// ignore, ce qui est le bon comportement : la fenêtre reste claire.
+    /// The attribute number changed along the way: 19 on Windows 10
+    /// versions before 2004, 20 since. The declared baseline goes
+    /// down to 1809, so both are tried. An unknown number returns an
+    /// error that is ignored, which is the right behavior: the
+    /// window stays light.
     /// </summary>
     private const int DarkModeBefore20H1 = 19;
     private const int DarkMode = 20;
 
-    /// <summary>Branche la teinture sur toutes les fenêtres de l'application.</summary>
+    /// <summary>
+    /// Wires up the tinting on every window of the application.
+    /// </summary>
     public static void Arm() =>
         EventManager.RegisterClassHandler(
             typeof(Window),
@@ -56,10 +60,10 @@ internal static class DarkTitleBar
         }
     }
 
-    // DllImport et non LibraryImport : ce dernier exige du code non sécurisé
-    // pour un paramètre passé par référence, et le projet ne l'autorise pas.
-    // C'est aussi la forme qu'emploient les quarante et un autres appels du
-    // dépôt.
+    // DllImport and not LibraryImport: the latter requires unsafe
+    // code for a parameter passed by reference, and the project does
+    // not allow that. It is also the form used by the other forty
+    // one calls in the repository.
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(
         nint window, int attribute, ref int value, int size);

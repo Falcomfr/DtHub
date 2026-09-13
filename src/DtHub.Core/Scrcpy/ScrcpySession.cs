@@ -3,26 +3,30 @@ using DtHub.Core.Sessions;
 
 namespace DtHub.Core.Scrcpy;
 
-/// <summary>Cycle de vie d'une session de mirroring.</summary>
+/// <summary>Life cycle of a mirroring session.</summary>
 public enum ScrcpySessionState
 {
-    /// <summary>scrcpy démarre, l'afficheur n'est pas encore créé.</summary>
+    /// <summary>
+    /// scrcpy is starting, the display has not been created yet.
+    /// </summary>
     Starting,
 
-    /// <summary>Session ouverte, application lancée.</summary>
+    /// <summary>Session open, application launched.</summary>
     Running,
 
-    /// <summary>La session n'a pas pu s'ouvrir, ou s'est interrompue en erreur.</summary>
+    /// <summary>
+    /// The session could not open, or was interrupted by an error.
+    /// </summary>
     Failed,
 
-    /// <summary>Session fermée normalement.</summary>
+    /// <summary>Session closed normally.</summary>
     Stopped,
 }
 
 /// <summary>
-/// Une fenêtre de mirroring ouverte par DT Hub. L'objet vit aussi longtemps
-/// que le processus scrcpy correspondant, et porte de quoi le retrouver, le
-/// déplacer et le fermer.
+/// A mirroring window opened by DT Hub. The object lives as long as
+/// the corresponding scrcpy process, and carries what is needed to
+/// find it again, move it and close it.
 /// </summary>
 public sealed class ScrcpySession
 {
@@ -35,91 +39,100 @@ public sealed class ScrcpySession
         StartedUtc = DateTimeOffset.UtcNow;
     }
 
-    /// <summary>Identité de la session, reprise dans le titre de la fenêtre.</summary>
+    /// <summary>
+    /// Identity of the session, repeated in the window's title.
+    /// </summary>
     public string Id { get; }
 
     public LaunchTarget Target { get; }
 
-    /// <summary>Numéro de série ADB employé au lancement.</summary>
+    /// <summary>ADB serial number used at launch.</summary>
     public string Serial => Target.Serial;
 
     /// <summary>
-    /// Titre exact de la fenêtre scrcpy. C'est par lui que le gestionnaire de
-    /// fenêtres retrouve la fenêtre à déplacer.
+    /// Exact title of the scrcpy window. It is by this that the window
+    /// manager finds the window to move.
     /// </summary>
     public string WindowTitle { get; }
 
     public int ProcessId => Process.ProcessId;
 
-    /// <summary>Afficheur virtuel créé par scrcpy, quand il y en a un.</summary>
+    /// <summary>
+    /// Virtual display created by scrcpy, when there is one.
+    /// </summary>
     public int? VirtualDisplayId { get; internal set; }
 
     /// <summary>
-    /// Rapport largeur sur hauteur de la source, repris des réglages de la
-    /// session. Le gestionnaire de fenêtres s'en sert pour ne pas déformer
-    /// l'image : un téléphone est en portrait, une tablette en paysage.
+    /// Width to height ratio of the source, taken from the session's
+    /// settings. The window manager uses it so as not to distort the
+    /// picture: a phone is in portrait, a tablet in landscape.
     /// </summary>
     public double SourceAspectRatio { get; internal set; }
 
     /// <summary>
-    /// Fenêtre scrcpy correspondante, une fois retrouvée. Vaut zéro tant que
-    /// la fenêtre n'est pas apparue.
+    /// Corresponding scrcpy window, once found. Is zero as long as the
+    /// window has not appeared.
     /// </summary>
     public nint WindowHandle { get; internal set; }
 
     public ScrcpySessionState State { get; internal set; } = ScrcpySessionState.Starting;
 
-    /// <summary>Message affichable expliquant l'échec, le cas échéant.</summary>
+    /// <summary>Displayable message explaining the failure, if any.</summary>
     public string? FailureMessage { get; internal set; }
 
     /// <summary>
-    /// Nature du refus. Sert à décider si une seconde tentative a un sens,
-    /// question à laquelle le message affiché ne répond pas.
+    /// Nature of the refusal. Used to decide whether a second attempt
+    /// makes sense, a question the displayed message does not answer.
     /// </summary>
     public ScrcpyFailureKind FailureKind { get; internal set; } = ScrcpyFailureKind.None;
 
     public DateTimeOffset StartedUtc { get; }
 
     /// <summary>
-    /// Vrai quand la fin a été demandée par l'application, et non subie.
+    /// True when the end was requested by the application, and not
+    /// suffered.
     ///
-    /// Sans cette marque, rien ne distinguait une fermeture voulue d'une
-    /// panne : les deux aboutissent au même état. Voir
+    /// Without this marker, nothing distinguished a deliberate closing
+    /// from a failure: both end up in the same state. See
     /// <see cref="SessionRecovery" />.
     /// </summary>
     public bool StopRequested { get; internal set; }
 
     /// <summary>
-    /// Vrai dès que la session a été ouverte au moins une fois.
+    /// True as soon as the session has been opened at least once.
     ///
-    /// Un échec d'ouverture est déjà traité pendant le lancement, par le repli
-    /// à une définition plus modeste. Le reprendre après coup doublerait les
-    /// tentatives sans rien apporter.
+    /// An opening failure is already handled during launch, by falling
+    /// back to a more modest resolution. Resuming it afterward would
+    /// double the attempts without adding anything.
     /// </summary>
     public bool EverRan { get; internal set; }
 
-    /// <summary>Ce qu'on sait de la fin, pour décider s'il faut rouvrir.</summary>
+    /// <summary>
+    /// What is known about the end, to decide whether to reopen.
+    /// </summary>
     public SessionEnd End => new(StopRequested, EverRan, FailureKind);
 
     /// <summary>
-    /// Temps mis par le téléphone à ouvrir l'afficheur virtuel, en
-    /// millisecondes. C'est la seule partie du démarrage qui doive être
-    /// sérialisée : la mesurer dit combien coûte vraiment l'attente.
+    /// Time taken by the phone to open the virtual display, in
+    /// milliseconds. This is the only part of startup that must be
+    /// serialized: measuring it says how much the wait truly costs.
     /// </summary>
     public long DisplayReadyMs { get; set; }
 
-    /// <summary>Temps total du démarrage, afficheur et ouverture du jeu.</summary>
+    /// <summary>
+    /// Total startup time, display and game opening included.
+    /// </summary>
     public long StartupMs { get; set; }
 
-    /// <summary>Nom affiché dans la liste des sessions.</summary>
+    /// <summary>Name displayed in the session list.</summary>
     public string DisplayName => Target.DisplayName;
 
     public bool IsAlive => State is ScrcpySessionState.Starting or ScrcpySessionState.Running;
 
     /// <summary>
-    /// Dernières lignes écrites par scrcpy. Conservées pour que l'appelant
-    /// puisse les journaliser en cas d'échec : sans elles, un refus de scrcpy
-    /// se résume à « la session n'a pas pu s'ouvrir ».
+    /// Last lines written by scrcpy. Kept so that the caller can log
+    /// them in case of failure: without them, a refusal from scrcpy
+    /// boils down to "the session could not open".
     /// </summary>
     public IReadOnlyList<string> RecentOutput
     {
@@ -132,37 +145,39 @@ public sealed class ScrcpySession
         }
     }
 
-    /// <summary>Ligne de commande employée, pour le diagnostic.</summary>
+    /// <summary>Command line used, for diagnostics.</summary>
     public string CommandLine { get; internal set; } = string.Empty;
 
     /// <summary>
-    /// Vrai si c'est nous qui avons ouvert le jeu sur le téléphone.
+    /// True if it is us who opened the game on the phone.
     ///
-    /// Ce qu'on n'a pas ouvert, on ne le ferme pas. Sans cette réserve, une
-    /// session qui échoue avant d'avoir rien lancé arrêterait tout de même le
-    /// jeu, qui pouvait très bien tourner parce que quelqu'un y jouait sur le
-    /// téléphone.
+    /// What we did not open, we do not close. Without this restriction,
+    /// a session that fails before launching anything would still stop
+    /// the game, which could very well be running because someone was
+    /// playing it on the phone.
     /// </summary>
     internal bool AppLaunchedByUs { get; set; }
 
     /// <summary>
-    /// Zéro tant que personne n'a demandé l'arrêt du jeu sur le téléphone.
+    /// Zero as long as nobody has requested stopping the game on the
+    /// phone.
     ///
-    /// Deux chemins mènent à cette demande, et ils peuvent se croiser : la
-    /// fermeture volontaire, qui l'attend pour en garantir l'exécution avant
-    /// que l'application ne s'arrête, et la fin de la lecture de sortie, qui
-    /// couvre la fenêtre fermée à la main. Les deux surviennent pour une même
-    /// session dès qu'on ferme volontairement.
+    /// Two paths lead to this request, and they can cross: the
+    /// voluntary closing, which waits for it to guarantee its execution
+    /// before the application stops, and the end of output reading,
+    /// which covers the window closed by hand. Both occur for the same
+    /// session as soon as the closing is voluntary.
     /// </summary>
     private int _appStopClaimed;
 
     /// <summary>
-    /// Réclame le droit d'arrêter le jeu, et ne l'accorde qu'une fois.
+    /// Claims the right to stop the game, and grants it only once.
     ///
-    /// Arrêter deux fois serait sans conséquence sur le téléphone, l'ordre
-    /// étant sans effet sur une application déjà partie. Mais c'est un
-    /// aller-retour de plus sur la liaison, et à la fermeture de
-    /// l'application ces allers-retours se paient sur un budget compté.
+    /// Stopping twice would have no consequence on the phone, the
+    /// command having no effect on an application that has already
+    /// left. But it is one more round trip over the connection, and at
+    /// the application's closing these round trips are paid out of a
+    /// counted budget.
     /// </summary>
     internal bool ClaimAppStop() => Interlocked.Exchange(ref _appStopClaimed, 1) == 0;
 

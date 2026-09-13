@@ -9,7 +9,7 @@ using DtHub.Core.Localization;
 
 namespace DtHub.App.ViewModels;
 
-/// <summary>Un téléphone qui affiche un code d'association.</summary>
+/// <summary>A phone that displays a pairing code.</summary>
 public sealed partial class PairingCandidateViewModel : ObservableObject
 {
     public PairingCandidateViewModel(MdnsService service) => Service = service;
@@ -19,8 +19,9 @@ public sealed partial class PairingCandidateViewModel : ObservableObject
     public string Address => Service.Address;
 
     /// <summary>
-    /// Nom lisible. L'annonce a la forme <c>adb-&lt;série&gt;-&lt;aléa&gt;</c> :
-    /// le numéro de série suffit à distinguer deux téléphones.
+    /// Readable name. The announcement has the form
+    /// <c>adb-&lt;serial&gt;-&lt;random&gt;</c>: the serial number is
+    /// enough to tell two phones apart.
     /// </summary>
     public string DisplayName
     {
@@ -50,9 +51,9 @@ public sealed partial class PairingCandidateViewModel : ObservableObject
 }
 
 /// <summary>
-/// Fenêtre d'association d'un téléphone neuf. Elle ne sert qu'à cela : la
-/// connexion des téléphones déjà associés se fait toute seule, dans la fenêtre
-/// principale.
+/// Window for pairing a new phone. It serves only that purpose: the
+/// connection of already paired phones happens on its own, in the main
+/// window.
 /// </summary>
 public sealed partial class AddDeviceViewModel : ObservableObject
 {
@@ -60,15 +61,16 @@ public sealed partial class AddDeviceViewModel : ObservableObject
     private readonly IDeviceRegistry _registry;
 
     /// <summary>
-    /// Hôte du téléphone qui vient d'accepter le code, tant qu'il n'est pas
-    /// encore connecté.
+    /// Host of the phone that just accepted the code, as long as it is
+    /// not yet connected.
     ///
-    /// Le code accepté ne suffit pas à jouer : il faut encore que le téléphone
-    /// s'annonce sur le réseau et qu'on s'y connecte. Cette annonce arrive
-    /// souvent après que la tentative a rendu la main, et la fenêtre restait
-    /// alors ouverte pour toujours sur un appairage pourtant réussi. Relevé sur
-    /// le poste, deux appairages coup sur coup faute de voir le premier
-    /// aboutir.
+    /// The accepted code is not enough to play: the phone still has to
+    /// announce itself on the network and be connected to. This
+    /// announcement often arrives after the attempt has already
+    /// returned control, and the window then stayed open forever on a
+    /// pairing that had in fact succeeded. Observed on this machine,
+    /// two pairings back to back because the first was never seen to
+    /// go through.
     /// </summary>
     private string? _awaitedHost;
 
@@ -78,7 +80,7 @@ public sealed partial class AddDeviceViewModel : ObservableObject
         _registry = registry;
     }
 
-    /// <summary>Téléphones qui affichent un code d'association.</summary>
+    /// <summary>Phones that display a pairing code.</summary>
     public ObservableCollection<PairingCandidateViewModel> Candidates { get; } = [];
 
     [ObservableProperty]
@@ -94,13 +96,14 @@ public sealed partial class AddDeviceViewModel : ObservableObject
     private bool _isBusy;
 
     /// <summary>
-    /// Vrai quand l'appairage a pris mais que le port de connexion reste à
-    /// saisir. C'est alors, et alors seulement, que le champ apparaît.
+    /// True when pairing has succeeded but the connection port still
+    /// needs to be entered. That is when, and only when, the field
+    /// appears.
     /// </summary>
     [ObservableProperty]
     private bool _needsPort;
 
-    /// <summary>Le port que l'utilisateur lit sur son téléphone.</summary>
+    /// <summary>The port the user reads on their phone.</summary>
     [ObservableProperty]
     private string _connectPort = string.Empty;
 
@@ -118,7 +121,7 @@ public sealed partial class AddDeviceViewModel : ObservableObject
     [ObservableProperty]
     private string _pairingAddress = string.Empty;
 
-    /// <summary>Signalé après une association réussie.</summary>
+    /// <summary>Raised after a successful pairing.</summary>
     public event EventHandler? DevicePaired;
 
     public bool CanPair => SelectedCandidate is not null && PairingCode.Trim().Length > 0 && !IsBusy;
@@ -130,16 +133,16 @@ public sealed partial class AddDeviceViewModel : ObservableObject
         && port is > 0 and <= 65535;
 
     /// <summary>
-    /// Cherche les téléphones qui affichent un code. Appelée en boucle : le
-    /// téléphone apparaît dès que l'écran d'association est ouvert.
+    /// Looks for phones displaying a code. Called in a loop: the phone
+    /// appears as soon as the pairing screen is opened.
     /// </summary>
     public async Task ScanAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            // Le téléphone appairé s'est-il annoncé depuis ? Ce balayage tourne
-            // déjà toutes les deux secondes : il n'en coûte rien de le lui
-            // demander, et c'est ce qui manquait pour refermer la fenêtre.
+            // Has the paired phone announced itself since? This scan
+            // already runs every two seconds: asking it costs nothing,
+            // and it is what was missing to close the window.
             if (_awaitedHost is { Length: > 0 } awaited
                 && await ConnectedSinceAsync(awaited, cancellationToken).ConfigureAwait(true))
             {
@@ -183,8 +186,8 @@ public sealed partial class AddDeviceViewModel : ObservableObject
                 Candidates.Remove(stale);
             }
 
-            // Un seul téléphone en attente : il est choisi d'office, il ne
-            // reste alors que le code à saisir.
+            // A single phone waiting is selected automatically; all
+            // that remains then is to enter the code.
             if (SelectedCandidate is null || !Candidates.Contains(SelectedCandidate))
             {
                 SelectedCandidate = Candidates.FirstOrDefault();
@@ -197,12 +200,13 @@ public sealed partial class AddDeviceViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Vrai si le téléphone attendu s'annonce enfin et accepte la connexion.
+    /// True if the expected phone has finally announced itself and
+    /// accepts the connection.
     ///
-    /// L'hôte est comparé, et non pas simplement « quelque chose s'est
-    /// connecté » : un autre téléphone déjà associé peut s'annoncer au même
-    /// moment, et refermer la fenêtre sur son dos donnerait à croire que
-    /// l'association vient d'aboutir.
+    /// The host is compared, not just "something got connected":
+    /// another already paired phone can announce itself at the same
+    /// moment, and closing the window because of it would wrongly
+    /// suggest that the pairing had just succeeded.
     /// </summary>
     private async Task<bool> ConnectedSinceAsync(string host, CancellationToken cancellationToken)
     {
@@ -257,10 +261,11 @@ public sealed partial class AddDeviceViewModel : ObservableObject
                 PairingCode = string.Empty;
             }
 
-            // Une association acceptée lève l'écart, et elle seule : c'est le
-            // geste explicite par lequel on revient sur une rupture. Sans cela,
-            // un appareil écarté resterait refusé alors qu'on vient de retaper
-            // son code, et rien ne le dirait.
+            // An accepted pairing lifts the exclusion, and only that:
+            // it is the explicit gesture by which one comes back from
+            // a break. Without this, a device set aside would stay
+            // refused even though its code had just been retyped, and
+            // nothing would say so.
             if (result.Paired
                 && MdnsDeviceName.HardwareSerialFromInstance(candidate.Service.Name) is { Length: > 0 } serial)
             {
@@ -307,11 +312,12 @@ public sealed partial class AddDeviceViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Connecte à un port saisi à la main, l'appairage étant déjà acquis.
+    /// Connects to a manually entered port, with pairing already
+    /// acquired.
     ///
-    /// L'hôte n'est pas demandé : c'est celui du téléphone qu'on vient
-    /// d'appairer, et le redemander serait demander à l'utilisateur de retrouver
-    /// une adresse que nous avons déjà.
+    /// The host is not asked for: it is that of the phone we just
+    /// paired with, and asking again would mean asking the user to
+    /// find an address we already have.
     /// </summary>
     [RelayCommand]
     private async Task ConnectAsync(CancellationToken cancellationToken)
@@ -344,13 +350,14 @@ public sealed partial class AddDeviceViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Range ce que dit une tentative.
+    /// Files away what an attempt says.
     ///
-    /// La fenêtre ne se ferme que sur une vraie connexion. Elle se fermait dès
-    /// que le téléphone avait accepté le code, en annonçant « il se connectera
-    /// tout seul » alors qu'il n'était pas connecté, et en jetant le message qui
-    /// disait quoi faire. Ce message demandait justement un port qu'aucun champ
-    /// ne permettait de saisir : l'utilisateur était dans une impasse.
+    /// The window only closes on a real connection. It used to close as
+    /// soon as the phone had accepted the code, announcing "it will
+    /// connect on its own" while it was not actually connected, and
+    /// discarding the message that said what to do next. That message
+    /// was asking for exactly the port that no field allowed entering:
+    /// the user was stuck.
     /// </summary>
     private void Settle(WirelessPairingResult result)
     {

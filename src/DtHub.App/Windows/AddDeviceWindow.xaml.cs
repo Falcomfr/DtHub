@@ -12,9 +12,9 @@ using Serilog;
 namespace DtHub.App.Windows;
 
 /// <summary>
-/// Fenêtre d'association d'un téléphone neuf. Elle surveille le réseau : le
-/// téléphone apparaît dès que l'écran d'association est ouvert, sans rien
-/// saisir d'autre que le code.
+/// Window for pairing a new phone. It watches the network: the
+/// phone appears as soon as the pairing screen is open, without
+/// entering anything other than the code.
 /// </summary>
 public partial class AddDeviceWindow : Window
 {
@@ -38,10 +38,10 @@ public partial class AddDeviceWindow : Window
             Code.Focus();
         };
 
-        // Borné pour la même raison que le tic du panneau : sans cela, une
-        // faute inattendue pendant la recherche du téléphone ouvrirait une
-        // fenêtre d'erreur toutes les deux secondes, par-dessus la fenêtre où
-        // l'on tape son code d'appairage.
+        // Bounded for the same reason as the panel's tick: without
+        // this, an unexpected fault during the phone search would
+        // open an error window every two seconds, on top of the
+        // window where the pairing code is typed.
         _poll.Tick += async (_, _) =>
         {
             try
@@ -58,18 +58,19 @@ public partial class AddDeviceWindow : Window
     private void OnClose(object sender, RoutedEventArgs e) => Close();
 
     /// <summary>
-    /// Entrée associe, depuis le champ du code. C'est le premier écran qu'un
-    /// nouvel utilisateur rencontre : on y tape six chiffres relevés sur le
-    /// téléphone, et jusqu'ici la touche Entrée n'y faisait rien du tout.
+    /// Enter pairs, from the code field. This is the first screen a
+    /// new user encounters: six digits read off the phone are typed
+    /// here, and until now the Enter key did nothing at all there.
     ///
-    /// Un bouton par défaut ne conviendrait pas : la fenêtre porte deux champs
-    /// et deux boutons, exclusifs par leur visibilité, et un IsDefault unique
-    /// ne saurait pas lequel des deux servir.
+    /// A default button would not work: the window carries two
+    /// fields and two buttons, mutually exclusive by their
+    /// visibility, and a single IsDefault would not know which of
+    /// the two to serve.
     /// </summary>
     private void OnCodeKey(object sender, KeyEventArgs e) =>
         Run(e, _viewModel.CanPair, _viewModel.PairCommand);
 
-    /// <summary>Entrée connecte, depuis le champ du port.</summary>
+    /// <summary>Enter connects, from the port field.</summary>
     private void OnPortKey(object sender, KeyEventArgs e) =>
         Run(e, _viewModel.CanConnect, _viewModel.ConnectCommand);
 
@@ -85,8 +86,9 @@ public partial class AddDeviceWindow : Window
     }
 
     /// <summary>
-    /// L'association a réussi : la fenêtre n'a plus de raison d'être. Le court
-    /// délai laisse voir le message de confirmation avant qu'elle disparaisse.
+    /// Pairing succeeded: the window no longer has a reason to
+    /// exist. The short delay lets the confirmation message be seen
+    /// before it disappears.
     /// </summary>
     private void OnDevicePaired(object? sender, EventArgs e)
     {
@@ -103,7 +105,9 @@ public partial class AddDeviceWindow : Window
         closing.Start();
     }
 
-    /// <summary>Ouvre l'aide, où la marche à suivre s'adapte à la marque.</summary>
+    /// <summary>
+    /// Opens help, where the steps to follow adapt to the brand.
+    /// </summary>
     private void OnHelp(object sender, RoutedEventArgs e)
     {
         var help = AppHost.Services.GetRequiredService<HelpWindow>();
@@ -112,8 +116,8 @@ public partial class AddDeviceWindow : Window
     }
 
     /// <summary>
-    /// Retient le téléphone choisi. Un bouton radio dans un modèle de données
-    /// n'expose pas directement son élément à la vue-modèle.
+    /// Remembers the chosen phone. A radio button inside a data
+    /// template does not directly expose its item to the view model.
     /// </summary>
     private void OnCandidateChecked(object sender, RoutedEventArgs e)
     {

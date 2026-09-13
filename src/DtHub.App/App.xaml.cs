@@ -26,23 +26,24 @@ using Serilog;
 namespace DtHub.App;
 
 /// <summary>
-/// Point d'entrée. Deux cas seulement : premier lancement, on demande quelles
-/// instances ouvrir ; ensuite, on ouvre directement celles qui sont cochées.
+/// Entry point. Only two cases: first launch, we ask which instances
+/// to open; afterwards, we open directly the ones that are checked.
 /// </summary>
 public partial class App : Application, IDisposable
 {
     /// <summary>
-    /// Marque l'exécution en cours. Un second lancement, par le raccourci du
-    /// bureau ou autrement, ne doit pas ouvrir un deuxième jeu de fenêtres :
-    /// il réveille celui qui tourne déjà et s'efface.
+    /// Marks the running instance. A second launch, whether from the
+    /// desktop shortcut or otherwise, must not open a second set of
+    /// windows: it wakes the one already running and exits.
     /// </summary>
     private const string InstanceName = @"Local\DtHub.Instance";
 
     private const string WakeName = @"Local\DtHub.Wake";
 
     /// <summary>
-    /// Surveille la forme des fenêtres de jeu. La correction n'a lieu qu'une
-    /// fois la taille stable : on ne lutte pas contre un geste en cours.
+    /// Watches the shape of the game windows. The correction only
+    /// happens once the size is stable: we do not fight an ongoing
+    /// gesture.
     /// </summary>
     private readonly DispatcherTimer _shape = new() { Interval = TimeSpan.FromMilliseconds(500) };
 
@@ -51,15 +52,16 @@ public partial class App : Application, IDisposable
     private QuestWindow? _quests;
     private AlmanaxWindow? _almanax;
     /// <summary>
-    /// Ce qu'on s'accorde pour retenir l'état quand Windows ferme la session.
-    /// Il en donne cinq ; on en prend trois, et l'arrêt suit.
+    /// What we allow ourselves to save the state when Windows closes
+    /// the session. It grants five; we take three, and the shutdown
+    /// follows.
     /// </summary>
     private static readonly TimeSpan SessionSaveLimit = TimeSpan.FromSeconds(3);
 
     /// <summary>
-    /// Ce qu'on s'accorde pour ranger à l'arrêt. Fermer les fenêtres de jeu
-    /// demande le plus clair de ce temps, et l'attente est bornée pour qu'une
-    /// fenêtre récalcitrante ne retienne pas l'application.
+    /// What we allow ourselves to tidy up on shutdown. Closing the
+    /// game windows takes most of this time, and the wait is capped
+    /// so that a stubborn window does not hold up the application.
     /// </summary>
     private static readonly TimeSpan ShutdownLimit = TimeSpan.FromSeconds(8);
 
@@ -71,9 +73,9 @@ public partial class App : Application, IDisposable
 
 
     /// <summary>
-    /// Ce qu'on fait d'une faute. Il ne connaît ni l'hôte ni les fenêtres :
-    /// il les demande au moment où il en a besoin, ce qui lui permet de servir
-    /// avant que l'hôte n'existe.
+    /// What we do with a fault. It knows neither the host nor the
+    /// windows: it asks for them when it needs them, which lets it
+    /// serve before the host exists.
     /// </summary>
     private readonly FaultReporting _faults = new(
         () => (Current as App)?._host?.Services,
@@ -83,8 +85,8 @@ public partial class App : Application, IDisposable
     {
         base.OnStartup(e);
 
-        // Les fenêtres de jeu ne sont pas des fenêtres WPF : l'application ne
-        // doit pas se fermer quand le configurateur est masqué.
+        // The game windows are not WPF windows: the application must
+        // not close when the configurator is hidden.
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
         DarkTitleBar.Arm();
@@ -104,41 +106,43 @@ public partial class App : Application, IDisposable
             AppHost.Initialize(_host.Services);
             await _host.StartAsync().ConfigureAwait(true);
 
-            // Une trace de démarrage garantit qu'un fichier de journal existe
-            // toujours, même quand la session se passe sans incident.
+            // A startup trace guarantees that a log file always
+            // exists, even when the session goes without incident.
             Log.Information("{Product} {Version} démarre.", ProductInfo.Name, ProductInfo.Version);
 
             await RunAsync().ConfigureAwait(true);
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            // Le garde-fou du démarrage attrape tout, c'est son rôle : une
-            // faute ici laisserait une application sans fenêtre. Tout sauf le
-            // manque de mémoire, où ouvrir une fenêtre de plus n'aboutirait pas.
+            // The startup safety net catches everything, that is its
+            // role: a fault here would leave an application with no
+            // window. Everything except out of memory, where opening
+            // one more window would not succeed.
             _faults.Show(exception, Strings.Get("StartupFailed"));
             Shutdown(1);
         }
     }
 
-    /// <summary>Enchaîne mise en route éventuelle, lancement, puis configurateur.</summary>
+    /// <summary>Chains possible setup, launch, then configurator.</summary>
     private async Task RunAsync()
     {
         var services = _host!.Services;
         var settings = services.GetRequiredService<SettingsService>();
         var launcher = services.GetRequiredService<GameLauncher>();
 
-        // La langue est posée avant la première fenêtre : les textes sont lus
-        // à la construction des vues, et une fenêtre déjà bâtie ne changerait
-        // plus de langue.
+        // The language is set before the first window: texts are
+        // read when views are built, and a window already built
+        // would no longer change language.
         //
-        // La lecture est séparée de la pose, et ce n'est pas de la coquetterie :
-        // voir ApplyLanguage.
+        // Reading is kept separate from applying it, and that is not
+        // done for show: see ApplyLanguage.
         ApplyLanguage(await ChooseLanguageAsync(settings).ConfigureAwait(true));
 
-        // Avant tout le reste, et avant la première fenêtre : sur un poste
-        // neuf, ADB et scrcpy s'installaient au détour de deux appels qui
-        // avaient besoin d'autre chose, dix-neuf mégaoctets durant lesquels
-        // rien ne paraissait à l'écran. Ne montre rien quand ils sont là.
+        // Before everything else, and before the first window: on a
+        // fresh machine, ADB and scrcpy used to install themselves in
+        // passing, from two calls that needed something else, nineteen
+        // megabytes during which nothing appeared on screen. Shows
+        // nothing when they are already present.
         await PreparationWindow
             .RunAsync(services.GetRequiredService<ToolPreparation>())
             .ConfigureAwait(true);
@@ -151,59 +155,60 @@ public partial class App : Application, IDisposable
 
         PlaceShortcut(services);
 
-        // Le premier lancement se reconnaît à un registre d'appareils vide, et
-        // non à une marque dans les réglages : c'est le fait qui compte, et il
-        // se lit déjà.
+        // The first launch is recognized by an empty device registry,
+        // not by a flag in the settings: it is the fact that matters,
+        // and it can already be read.
         var firstRun = (await services.GetRequiredService<IDeviceRegistry>()
             .GetKnownAsync().ConfigureAwait(true)).Count == 0;
 
-        // Le configurateur existe avant le lancement : c'est lui qui affichera
-        // les problèmes s'il y en a.
+        // The configurator exists before the launch: it is the one
+        // that will show the problems if there are any.
         _configurator = services.GetRequiredService<ConfiguratorWindow>();
 
-        // Les raccourcis ne sont actifs que si une fenêtre à nous est au
-        // premier plan. Sans y ajouter le suivi de quêtes, ils mourraient dès
-        // qu'on lui donne le focus, ce qui est précisément ce qu'on fait pour
-        // lire un guide.
+        // The shortcuts are only active when one of our windows is in
+        // the foreground. Without adding the quest tracker to that,
+        // they would die as soon as it gets focus, which is exactly
+        // what we do to read a guide.
         SessionEnding += OnSessionEnding;
 
         launcher.OwnsWindow = OwnsWindow;
 
-        // Sans lui, le rapport annonce zéro compte ouvert alors que deux
-        // tournent, et ne sait pas quels noms masquer.
+        // Without it, the report announces zero accounts open while
+        // two are running, and does not know which names to hide.
         services.GetRequiredService<DiagnosticReporter>().Launcher = launcher;
         launcher.ConfiguratorToggleRequested += (_, _) => Dispatcher.Invoke(ToggleConfigurator);
         launcher.QuestsToggleRequested += (_, _) => Dispatcher.Invoke(ToggleQuests);
         launcher.AlmanaxRequested += (_, _) => Dispatcher.Invoke(ShowAlmanax);
 
-        // Le bouton d'outil passe par le même chemin que le raccourci.
+        // The toolbar button goes through the same path as the shortcut.
         services.GetRequiredService<ConfiguratorViewModel>().QuestsRequested +=
             (_, _) => Dispatcher.Invoke(ToggleQuests);
 
         services.GetRequiredService<ConfiguratorViewModel>().AlmanaxRequested +=
             (_, _) => Dispatcher.Invoke(ShowAlmanax);
         launcher.QuitRequested += (_, _) => Dispatcher.Invoke(async () => await RequestQuitAsync().ConfigureAwait(true));
-        // La reprise d'une fenêtre perdue est demandée depuis la boucle de
-        // lecture de scrcpy, qui ne vit pas sur le fil de l'interface. Elle
-        // repasse donc par le répartiteur, comme les raccourcis.
+        // Recovering a lost window is requested from scrcpy's read
+        // loop, which does not live on the UI thread. It therefore
+        // goes back through the dispatcher, like the shortcuts.
         launcher.RecoveryRequested += (_, request) =>
             Dispatcher.Invoke(() => _ = RecoverAsync(launcher, request));
 
-        // Le panneau était déjà masqué : c'est bien qu'on le veut masqué.
+        // The panel was already hidden: hidden is indeed what we want
+        // remembered.
         launcher.LastWindowClosed += (_, _) => Dispatcher.Invoke(
             () => OnNothingLeft(rememberConfigurator: false));
 
-        // Masquer le panneau alors qu'il ne reste aucune fenêtre de jeu
-        // revient au même que fermer la dernière fenêtre panneau masqué : dans
-        // les deux cas il ne reste rien, et l'application ne doit pas survivre
-        // invisible. Sans cela, elle restait en vie sans rien à l'écran, et la
-        // relancer ne faisait que redonner le panneau, sans rouvrir les
-        // instances.
+        // Hiding the panel while no game window remains amounts to the
+        // same thing as closing the last window with the panel hidden:
+        // in both cases nothing is left, and the application must not
+        // survive invisible. Without this, it stayed alive with
+        // nothing on screen, and relaunching it only brought back the
+        // panel, without reopening the instances.
         //
-        // Le panneau, lui, est retenu comme affiché : le masquer en dernier
-        // n'est pas dire qu'on le veut masqué, c'est la façon de refermer ce
-        // qui restait. Seul un panneau déjà masqué avant de fermer les fenêtres
-        // de jeu vaut ce choix.
+        // The panel itself is recorded as shown: hiding it last does
+        // not mean we want it hidden, it is simply how what remained
+        // gets closed. Only a panel already hidden before the game
+        // windows close counts for that choice.
         _configurator.IsVisibleChanged += (_, _) =>
         {
             if (_started && _configurator?.IsVisible == false)
@@ -212,22 +217,23 @@ public partial class App : Application, IDisposable
             }
         };
 
-        // La session nommée du démarrage, s'il y en a une, décide de ce qui
-        // s'ouvre. Sans elle on ne touche à rien, et l'application rouvre ce
-        // qui était ouvert la fois d'avant, comme elle l'a toujours fait.
+        // The named startup session, if there is one, decides what
+        // opens. Without it we touch nothing, and the application
+        // reopens what was open the previous time, as it has always
+        // done.
         await ApplyDefaultLaunchProfileAsync(settings).ConfigureAwait(true);
 
-        // Les réglages sont relus après la session nommée, qui vient d'y poser
-        // ses propres choix.
+        // The settings are reread after the named session, which just
+        // wrote its own choices there.
         var document = await settings.GetAsync().ConfigureAwait(true);
 
-        // Ouvrir les sessions demande plusieurs secondes, et le panneau ne
-        // paraissait qu'après : l'écran restait vide, et l'application semblait
-        // ne pas démarrer. Quand il était affiché à la sortie, on sait déjà
-        // qu'il restera affiché quel que soit le résultat du lancement, et rien
-        // n'oblige alors à attendre. Le premier lancement est laissé à sa suite
-        // habituelle : la fenêtre d'association ne doit pas s'ouvrir par-dessus
-        // un lancement en cours.
+        // Opening the sessions takes several seconds, and the panel
+        // used to appear only afterwards: the screen stayed empty,
+        // and the application seemed not to start. When it was shown
+        // at exit, we already know it will stay shown whatever the
+        // launch result, and nothing then forces us to wait. The
+        // first launch is left to its usual course: the pairing
+        // window must not open on top of a launch in progress.
         var revealedEarly = !firstRun && StartupPresence.ShowBeforeLaunch(document.ConfiguratorVisible);
 
         if (revealedEarly)
@@ -239,9 +245,9 @@ public partial class App : Application, IDisposable
 
         _shape.Tick += (_, _) =>
         {
-            // Même raison que pour le sondage du panneau : le palier de qualité
-            // se change en cours de route, et l'intervalle posé au démarrage ne
-            // suivait pas.
+            // Same reason as for the panel's polling: the quality
+            // tier changes along the way, and the interval set at
+            // startup was not following it.
             if (_shape.Interval != launcher.Quality.WindowWatch)
             {
                 _shape.Interval = launcher.Quality.WindowWatch;
@@ -258,10 +264,10 @@ public partial class App : Application, IDisposable
             RevealConfigurator(document);
         }
 
-        // Au premier lancement, le panneau reste et s'ouvre sur les appareils :
-        // c'est là qu'il n'y a rien et que tout commence. La fenêtre
-        // d'association vient par-dessus, puisque sans téléphone associé aucun
-        // autre geste n'a de sens.
+        // On the first launch, the panel stays and opens on Devices:
+        // that is where there is nothing yet and everything starts.
+        // The pairing window comes on top of it, since without a
+        // paired phone no other action makes sense.
         if (firstRun)
         {
             _configurator.ShowDevices();
@@ -272,18 +278,19 @@ public partial class App : Application, IDisposable
             _configurator.Hide();
         }
 
-        // Le suivi de quêtes revient comme on l'a laissé : ouvert ou non, et
-        // sur la quête qu'on y lisait. Sans cela il fallait le rouvrir puis
-        // retrouver sa quête à chaque lancement.
+        // The quest tracker comes back as it was left: open or not,
+        // and on the quest being read there. Without this it had to
+        // be reopened and its quest found again at every launch.
         if (document.QuestsVisible)
         {
             await RestoreQuestsAsync(document.LastQuestUrl, document.LastQuestStep)
                 .ConfigureAwait(true);
         }
 
-        // Mises à jour : le ménage d'abord, puis ce qui vient d'être posé
-        // s'annonce, puis on regarde s'il existe mieux. La recherche n'est pas
-        // attendue : l'application ne doit pas démarrer au rythme du réseau.
+        // Updates: cleanup first, then what was just installed
+        // announces itself, then we check whether something better
+        // exists. The check is not awaited: the application must not
+        // start at the pace of the network.
         var updates = services.GetRequiredService<UpdateService>();
         var configuratorModel = services.GetRequiredService<ConfiguratorViewModel>();
 
@@ -307,8 +314,9 @@ public partial class App : Application, IDisposable
 
         _ = updates.CheckAsync(document.UpdatesAutomatic);
 
-        // À partir d'ici seulement, masquer le panneau vaut décision de
-        // l'utilisateur : le masquage de démarrage, lui, suit les réglages.
+        // Only from here on does hiding the panel count as the
+        // user's decision: the startup hiding, meanwhile, follows the
+        // settings.
         _started = true;
 
         if (!report.AnyOpened)
@@ -322,12 +330,12 @@ public partial class App : Application, IDisposable
     }
 
     /// <summary>
-    /// Pose la langue de l'interface sur tous les fils.
+    /// Sets the interface language on all threads.
     ///
-    /// Le réglage l'emporte sur Windows quand il est rempli ; vide, c'est la
-    /// langue d'affichage du système qui décide, et l'anglais quand elle n'est
-    /// pas traduite. Les formats de nombres et de dates ne sont pas touchés :
-    /// ils suivent le pays, qui est un autre réglage.
+    /// The setting overrides Windows when it is filled in; empty, the
+    /// system's display language decides, and English when it is not
+    /// translated. Number and date formats are not touched: they
+    /// follow the country, which is a separate setting.
     /// </summary>
     private static async Task<string> ChooseLanguageAsync(SettingsService settings)
     {
@@ -344,25 +352,26 @@ public partial class App : Application, IDisposable
     }
 
     /// <summary>
-    /// Pose la langue sur le fil qui va bâtir les fenêtres.
+    /// Sets the language on the thread that will build the windows.
     ///
-    /// **Cette méthode ne doit pas devenir « async », et c'est tout l'objet
-    /// d'une correction mesurée.** Une culture posée à l'intérieur d'une
-    /// méthode asynchrone voyage dans le contexte d'exécution : elle revient à
-    /// sa valeur d'avant dès que la méthode rend la main à son appelant. Le
-    /// réglage de langue était donc lu, journalisé, et sans effet, et
-    /// l'application parlait toujours la langue de Windows.
+    /// **This method must not become "async"; that is the entire
+    /// point of a fix confirmed by measurement.** A culture set
+    /// inside an asynchronous method travels with the execution
+    /// context: it reverts to its previous value as soon as the
+    /// method returns control to its caller. The language setting was
+    /// therefore read, logged, and had no effect, and the application
+    /// still spoke Windows' language.
     ///
-    /// Relevé, réglage sur « en », trente millisecondes après la pose et avant
-    /// la première fenêtre :
+    /// Recorded, with the setting set to "en", thirty milliseconds
+    /// after applying it and before the first window:
     ///
     /// <code>
     /// Langue de l'interface : en (réglage en, Windows fr-FR).
     /// SONDE culture avant fenetre : fr-FR / fr-FR -> COMPTES DOFUS TOUCH
     /// </code>
     ///
-    /// Appelée depuis une méthode ordinaire, la pose tient : un appel
-    /// synchrone n'empile ni ne restaure de contexte.
+    /// Called from an ordinary method, the setting holds: a
+    /// synchronous call neither pushes nor restores a context.
     /// </summary>
     private static void ApplyLanguage(string language)
     {
@@ -373,17 +382,17 @@ public partial class App : Application, IDisposable
     }
 
     /// <summary>
-    /// Montre le configurateur à sa place, prêt à l'usage.
+    /// Shows the configurator in its place, ready to use.
     ///
-    /// La fenêtre doit être affichée une fois pour que son chargement se fasse
-    /// et que sa mise à l'échelle soit connue : PlaceAwayFrom mesure le rapport
-    /// de la fenêtre elle-même. L'opacité évite le clignotement quand elle doit
-    /// finalement rester masquée.
+    /// The window must be shown once so that its loading happens and
+    /// its scaling is known: PlaceAwayFrom measures the window's own
+    /// ratio. The opacity avoids flicker when it must ultimately stay
+    /// hidden.
     /// </summary>
     private void RevealConfigurator(AppSettingsDocument document)
     {
-        // Ceinture et bretelles : une fenêtre close ne se remontre pas, et le
-        // démarrage ne doit pas mourir pour autant.
+        // Belt and suspenders: a closed window does not show itself
+        // again, and startup must not die because of it.
         if (_configurator is null || !_configurator.IsLoaded && _quitting)
         {
             return;
@@ -397,26 +406,27 @@ public partial class App : Application, IDisposable
     }
 
     /// <summary>
-    /// Pose les raccourcis sur l'exécutable, là où il se trouve.
+    /// Places the shortcuts on the executable, wherever it is.
     ///
-    /// L'application n'est pas installée : c'est un fichier qu'on pose où l'on
-    /// veut. Sans raccourci, on va le chercher là où on l'a mis, et il n'y a
-    /// rien à épingler. Le raccourci est récrit à chaque démarrage, si bien que
-    /// déplacer le fichier suffit à le corriger.
+    /// The application is not installed: it is a file placed wherever
+    /// one wants. Without a shortcut, we go look for it where we put
+    /// it, and there is nothing to pin. The shortcut is rewritten at
+    /// every startup, so moving the file is enough to fix it.
     ///
-    /// Rien n'est copié ni déplacé : se copier laisserait un exécutable orphelin
-    /// qui ne se mettrait jamais à jour, et se déplacer reviendrait à bouger le
-    /// fichier de quelqu'un sans le lui demander.
+    /// Nothing is copied or moved: copying itself would leave an
+    /// orphaned executable that would never update, and moving itself
+    /// would amount to moving someone else's file without asking them.
     ///
-    /// Rien n'est fait depuis un arbre de sources : le raccourci viserait la
-    /// sortie de publication, que le lanceur de développement récrit à chaque
-    /// fois. C'est la règle déjà écrite pour la mise à jour.
+    /// Nothing is done from a source tree: the shortcut would target
+    /// the publish output, which the development launcher rewrites
+    /// every time. That is the rule already written for the update.
     ///
-    /// Le menu Démarrer est récrit à chaque fois ; le bureau suit une règle à
-    /// lui, écrite dans <see cref="ShortcutPlacement" />, pour ne pas reposer un
-    /// raccourci qu'on vient d'effacer.
+    /// The Start menu is rewritten every time; the desktop follows a
+    /// rule of its own, written in <see cref="ShortcutPlacement" />,
+    /// so as not to put back a shortcut that was just deleted.
     ///
-    /// Un raccourci que Windows refuse n'empêche rien : l'application démarre.
+    /// A shortcut that Windows refuses blocks nothing: the application
+    /// starts.
     /// </summary>
     private static void PlaceShortcut(IServiceProvider services)
     {
@@ -438,9 +448,10 @@ public partial class App : Application, IDisposable
             Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
             ProductInfo.Name + ".lnk");
 
-        // Lu avant d'écrire quoi que ce soit : le raccourci du menu Démarrer
-        // est justement ce qui distingue une première installation d'un bureau
-        // volontairement vide, et l'écrire d'abord effacerait la différence.
+        // Read before writing anything: the Start menu shortcut is
+        // precisely what distinguishes a first install from a
+        // deliberately empty desktop, and writing it first would
+        // erase the difference.
         var placeDesktop = ShortcutPlacement.ShouldWriteDesktop(
             File.Exists(desktopLink),
             File.Exists(startMenuLink));
@@ -457,20 +468,22 @@ public partial class App : Application, IDisposable
     }
 
     /// <summary>
-    /// Windows ferme la session : arrêt, redémarrage, déconnexion.
+    /// Windows is closing the session: shutdown, restart, sign out.
     ///
-    /// C'est un arrêt volontaire comme un autre, et il doit retenir ce qu'un
-    /// « Quitter » retient. Sans cela, redémarrer le poste ramenait les
-    /// fenêtres à leur place de l'avant-dernière fois, celle du dernier arrêt
-    /// par le bouton, et la fenêtre qu'on venait de déplacer perdait sa place.
+    /// This is a deliberate stop like any other, and it must save
+    /// what a "Quit" saves. Without this, restarting the machine
+    /// brought the windows back to their place from two runs ago, the
+    /// one from the last stop via the button, and the window we had
+    /// just moved lost its place.
     ///
-    /// L'enregistrement est attendu, et non lancé en tâche de fond : Windows
-    /// n'accorde que quelques secondes avant de fermer d'autorité, et une
-    /// écriture lancée sans être attendue n'a aucune chance d'arriver. Il est
-    /// attendu en laissant tourner la boucle de messages, faute de quoi les
-    /// suites qui reviennent sur le fil d'affichage attendraient un fil qu'on
-    /// aurait soi-même bloqué. Une minuterie borne l'attente : mieux vaut un
-    /// état à moitié écrit qu'une session que l'on retient.
+    /// The save is awaited, not launched as a background task:
+    /// Windows only grants a few seconds before closing by force, and
+    /// a write launched without being awaited has no chance of
+    /// finishing. It is awaited by keeping the message loop running,
+    /// otherwise the continuations that come back on the UI thread
+    /// would wait for a thread we had blocked ourselves. A timer caps
+    /// the wait: a half written state is better than a session that
+    /// holds things up.
     /// </summary>
     private void OnSessionEnding(object? sender, SessionEndingCancelEventArgs e)
     {
@@ -493,31 +506,33 @@ public partial class App : Application, IDisposable
     }
 
     /// <summary>
-    /// Sortie volontaire, par le bouton « Quitter ». C'est le seul moment où
-    /// l'état de la session est retenu pour le prochain lancement : où sont
-    /// les fenêtres, lesquelles étaient ouvertes, et si le configurateur était
-    /// affiché.
+    /// Deliberate exit, via the "Quit" button. This is the only
+    /// moment when the session state is saved for the next launch:
+    /// where the windows are, which ones were open, and whether the
+    /// configurator was shown.
     ///
-    /// Fermer une fenêtre de jeu à la main ne change donc rien : elle revient
-    /// au lancement suivant. C'est le geste de quitter qui fait foi.
+    /// Closing a game window by hand therefore changes nothing: it
+    /// comes back on the next launch. It is the act of quitting that
+    /// is authoritative.
     /// </summary>
     internal async Task RequestQuitAsync()
     {
-        // Quitter depuis le panneau ou par le raccourci : c'est son état du
-        // moment qui fait foi.
+        // Quitting from the panel or via the shortcut: its state at
+        // that moment is what counts.
         await SaveSessionStateAsync(_configurator?.IsVisible == true).ConfigureAwait(true);
 
         Shutdown();
     }
 
     /// <summary>
-    /// Retient où sont les fenêtres et si le configurateur était affiché.
+    /// Saves where the windows are and whether the configurator was
+    /// shown.
     ///
-    /// Appelée par toutes les sorties, et non par le seul bouton « Quitter » :
-    /// fermer les dernières fenêtres de jeu à la main arrête aussi
-    /// l'application, et ce chemin oubliait d'enregistrer quoi que ce soit. Le
-    /// configurateur masqué se rouvrait alors au lancement suivant, et les
-    /// fenêtres revenaient à leur place d'avant-dernière fois.
+    /// Called by every exit path, not only the "Quit" button: closing
+    /// the last game windows by hand also stops the application, and
+    /// that path used to forget to save anything at all. The hidden
+    /// configurator would then reopen at the next launch, and the
+    /// windows would come back to their place from two runs ago.
     /// </summary>
     private async Task SaveSessionStateAsync(bool configuratorVisible)
     {
@@ -533,9 +548,9 @@ public partial class App : Application, IDisposable
 
         try
         {
-            // Ce qui rouvrira au lancement suivant n'est pas décidé ici :
-            // il suit les lancements et les fermetures explicites, pas
-            // l'état du moment où l'on quitte.
+            // What will reopen at the next launch is not decided
+            // here: it follows the launches and the explicit closes,
+            // not the state at the moment we quit.
             await launcher.CaptureGeometriesAsync().ConfigureAwait(true);
 
             await settings.SetConfiguratorVisibleAsync(configuratorVisible).ConfigureAwait(true);
@@ -569,12 +584,13 @@ public partial class App : Application, IDisposable
     }
 
     /// <summary>
-    /// Efface les dossiers d'extraction des versions précédentes.
+    /// Deletes the extraction folders left by previous versions.
     ///
-    /// Attendu, et non lancé en arrière-plan : quand rien ne s'ouvre,
-    /// l'application s'arrête trois secondes après son démarrage, et la tâche
-    /// détachée était coupée avant d'avoir effacé quoi que ce soit. Sans rien à
-    /// faire, ce qui est le cas ordinaire, cela coûte le parcours d'un dossier.
+    /// Awaited, not launched in the background: when nothing opens,
+    /// the application stops three seconds after starting, and the
+    /// detached task used to be cut off before it had erased
+    /// anything. When there is nothing to do, which is the usual
+    /// case, this costs only a folder scan.
     /// </summary>
     private static async Task SweepLeftoversAsync()
     {
@@ -589,19 +605,19 @@ public partial class App : Application, IDisposable
     }
 
     /// <summary>
-    /// Ferme les fenêtres de mirroring laissées par une exécution précédente
-    /// qui ne s'est pas terminée proprement. Sans cela, elles resteraient à
-    /// l'écran et de nouvelles viendraient s'y ajouter.
+    /// Closes the mirroring windows left behind by a previous run
+    /// that did not end cleanly. Without this, they would stay on
+    /// screen and new ones would keep piling up alongside them.
     /// </summary>
     private static async Task KillOrphansAsync(IServiceProvider services)
     {
         try
         {
-            // Sans rien télécharger : scrcpy jamais installé veut dire scrcpy
-            // jamais lancé, donc aucune fenêtre restée d'une exécution
-            // précédente. Demander le chemin tout court mettait onze
-            // mégaoctets sur le chemin du premier démarrage pour un ramassage
-            // qui n'avait rien à ramasser.
+            // Without downloading anything: scrcpy never installed
+            // means scrcpy never launched, so no window left over
+            // from a previous run. Simply asking for the path put
+            // eleven megabytes on the path of the first startup, for
+            // a cleanup that had nothing to clean up.
             if (services.GetRequiredService<IScrcpyLocator>().TryGetInstalledPath() is not { } path)
             {
                 return;
@@ -616,47 +632,50 @@ public partial class App : Application, IDisposable
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            // Un ramassage impossible ne doit pas empêcher de démarrer.
+            // A cleanup that cannot happen must not prevent startup.
             Log.Warning(exception, "Le ménage des fenêtres restantes a échoué.");
         }
     }
 
     /// <summary>
-    /// Il ne reste ni fenêtre de jeu ni panneau : l'application s'arrête.
+    /// No game window and no panel remain: the application stops.
     ///
-    /// Il ne resterait sinon rien de visible, et les raccourcis ne répondent
-    /// pas quand aucune de nos fenêtres n'est au premier plan : l'application
-    /// serait injoignable autrement que par le gestionnaire des tâches. Rien
-    /// n'est enregistré au passage : fermer une fenêtre à la main ne change
-    /// pas ce qui doit rouvrir au lancement suivant.
+    /// Nothing visible would otherwise be left, and the shortcuts do
+    /// not respond when none of our windows is in the foreground: the
+    /// application would be unreachable other than through Task
+    /// Manager. Nothing is saved along the way: closing a window by
+    /// hand does not change what must reopen at the next launch.
     /// </summary>
     /// <param name="rememberConfigurator">
-    /// Ce qu'il faut retenir de la présence du panneau au prochain démarrage.
-    /// Vrai quand c'est lui qu'on vient de masquer en dernier, faux quand il
-    /// était déjà masqué avant que les fenêtres de jeu ne se ferment.
+    /// What must be remembered about the panel's presence at the next
+    /// startup. True when it is the panel we just hid last, false
+    /// when it was already hidden before the game windows closed.
     /// </param>
     private void OnNothingLeft(bool rememberConfigurator)
     {
-        // Deux sessions qui meurent ensemble signalent chacune la dernière.
+        // Two sessions dying together each report themselves as the
+        // last one.
         //
-        // Les guides tiennent l'application en vie comme le panneau : ils sont
-        // à l'écran, ils reçoivent les raccourcis, et on les consulte fenêtres
-        // de jeu fermées. Sans eux dans le compte, fermer la dernière fenêtre
-        // de jeu emportait le guide qu'on était en train de lire.
-        // **Jamais avant la fin du démarrage.** Une session qui meurt pendant
-        // le lancement, un téléphone qui ne répond pas, et cette règle fermait
-        // le configurateur avant même qu'il ait paru. La suite du démarrage
-        // appelait alors Show sur une fenêtre déjà close, ce que WPF refuse :
-        // l'application mourait sur « Le démarrage a échoué », sans un mot à
-        // l'écran. Relevé sur un vrai lancement, scrcpy ayant rendu « Server
-        // connection failed ».
+        // The guides keep the application alive just like the panel:
+        // they are on screen, they receive the shortcuts, and we
+        // consult them with the game windows closed. Without them
+        // counted, closing the last game window would take down the
+        // guide we were reading.
+        // **Never before startup is finished.** A session dying
+        // during launch, a phone that does not answer, and this rule
+        // would close the configurator before it had even appeared.
+        // The rest of startup would then call Show on a window
+        // already closed, which WPF refuses: the application would
+        // die on "Le démarrage a échoué", without a word on screen.
+        // Recorded during a real launch, with scrcpy having returned
+        // "Server connection failed".
         if (!_started || _quitting || _configurator?.IsVisible == true || _quests?.IsVisible == true)
         {
             return;
         }
 
-        // Appelée aussi quand le panneau se masque : il peut alors rester des
-        // fenêtres de jeu, et l'application doit continuer.
+        // Also called when the panel is hidden: game windows may
+        // still remain then, and the application must continue.
         if (_host?.Services.GetRequiredService<GameLauncher>().ActiveSessions.Count > 0)
         {
             return;
@@ -666,18 +685,20 @@ public partial class App : Application, IDisposable
 
         Log.Information("Plus aucune fenêtre ni panneau : arrêt.");
 
-        // La géométrie des fenêtres vient d'être perdue avec elles : il ne
-        // reste rien à relever. Le reste de l'état, lui, doit être retenu,
-        // sans quoi le configurateur masqué se rouvrirait au lancement suivant.
+        // The windows' geometry has just been lost along with them:
+        // there is nothing left to record. The rest of the state,
+        // though, must be saved, otherwise the hidden configurator
+        // would reopen at the next launch.
         _ = SaveSessionStateAsync(rememberConfigurator).ContinueWith(
             _ => Shutdown(),
             TaskScheduler.FromCurrentSynchronizationContext());
     }
 
     /// <summary>
-    /// Prend la place unique, ou réveille l'exécution déjà en cours et rend
-    /// faux. Sans cela, un second lancement ouvrirait un deuxième jeu de
-    /// fenêtres de jeu par-dessus le premier.
+    /// Claims the single instance slot, or wakes the execution
+    /// already running and returns false. Without this, a second
+    /// launch would open a second set of game windows on top of the
+    /// first.
     /// </summary>
     private bool ClaimSingleInstance()
     {
@@ -708,7 +729,9 @@ public partial class App : Application, IDisposable
         return true;
     }
 
-    /// <summary>Libère la place unique et son signal de réveil.</summary>
+    /// <summary>
+    /// Releases the single instance slot and its wake signal.
+    /// </summary>
     public void Dispose()
     {
         _wakeRegistration?.Unregister(null);
@@ -718,18 +741,21 @@ public partial class App : Application, IDisposable
         GC.SuppressFinalize(this);
     }
 
-    /// <summary>Ramène le configurateur à l'écran, sur un second lancement.</summary>
     /// <summary>
-    /// Réveille l'exécution déjà en cours, parce qu'on a relancé l'application
-    /// alors qu'elle tournait encore.
+    /// Brings the configurator back to screen, on a second launch.
+    /// </summary>
+    /// <summary>
+    /// Wakes the execution already running, because the application
+    /// was relaunched while it was still running.
     ///
-    /// Elle peut n'avoir plus rien à l'écran : fermer les fenêtres de jeu à la
-    /// main ne l'arrête pas tant que le panneau est affiché, et masquer le
-    /// panneau ensuite la laisse vivante et invisible. Relancer redonnait alors
-    /// le panneau sans rouvrir les instances, ce qui n'est pas ce qu'on attend
-    /// d'un relancement. Elles reviennent donc, comme au démarrage, et les
-    /// fenêtres fermées depuis le panneau restent fermées puisqu'elles ne sont
-    /// plus dans l'ensemble de démarrage.
+    /// It may have nothing left on screen: closing the game windows
+    /// by hand does not stop it as long as the panel is shown, and
+    /// hiding the panel afterwards leaves it alive and invisible.
+    /// Relaunching then used to bring back only the panel without
+    /// reopening the instances, which is not what we expect from a
+    /// relaunch. They therefore come back, as at startup, and windows
+    /// closed from the panel stay closed since they are no longer
+    /// part of the startup set.
     /// </summary>
     private void RevealConfigurator()
     {
@@ -770,7 +796,7 @@ public partial class App : Application, IDisposable
         }
     }
 
-    /// <summary>Vrai si la fenêtre appartient à l'application.</summary>
+    /// <summary>True if the window belongs to the application.</summary>
     private bool OwnsWindow(nint handle)
     {
         if (_configurator is not null && handle == _configurator.Handle)
@@ -783,33 +809,33 @@ public partial class App : Application, IDisposable
             return true;
         }
 
-        // Les pages liées, qu'on ouvre par un clic dans un guide. Sans elles,
-        // les raccourcis mourraient dès qu'une de ces fenêtres a le focus, ce
-        // qui arrive précisément quand on lit.
+        // The linked pages, opened by a click inside a guide. Without
+        // them, the shortcuts would die as soon as one of these
+        // windows gets focus, which happens precisely while reading.
         //
-        // Par un ensemble de poignées et non par la liste des fenêtres : cette
-        // question est posée depuis le guet du premier plan, qui ne vit pas sur
-        // le fil de l'interface.
+        // Through a set of handles and not through the window list:
+        // this question is asked from the foreground watcher, which
+        // does not live on the UI thread.
         return QuestPageWindow.Owns(handle) || AlmanaxWindow.Owns(handle);
     }
 
     /// <summary>
-    /// Montre ou cache le suivi de quêtes. La fenêtre est construite au premier
-    /// appel seulement : elle porte un navigateur, qu'il serait inutile de
-    /// mettre en route pour quelqu'un qui ne s'en sert pas.
+    /// Shows or hides the quest tracker. The window is built only on
+    /// the first call: it carries a browser, which there would be no
+    /// point starting up for someone who does not use it.
     /// </summary>
     private void ToggleQuests() => Quests()?.Toggle();
 
     /// <summary>
-    /// Ouvre l'Almanax du jour, une fenêtre à la fois.
+    /// Opens the day's Almanax, one window at a time.
     ///
-    /// Une seule parce qu'il n'y a qu'un Almanax : deux fenêtres montreraient
-    /// la même chose, et la seconde ferait oublier la première. Si elle est
-    /// déjà là, on la ramène devant.
+    /// Only one because there is only one Almanax: two windows would
+    /// show the same thing, and the second would make us forget the
+    /// first. If it is already there, we bring it to the front.
     ///
-    /// Elle ne compte pas, elle, pour décider s'il reste quelque chose : on
-    /// n'ouvre pas DT Hub pour consulter un calendrier, et l'application n'a
-    /// pas à survivre pour lui seul.
+    /// It, however, does not count when deciding whether something
+    /// remains: we do not open DT Hub just to check a calendar, and
+    /// the application does not have to survive for it alone.
     /// </summary>
     private void ShowAlmanax()
     {
@@ -833,12 +859,12 @@ public partial class App : Application, IDisposable
     }
 
     /// <summary>
-    /// Rouvre une fenêtre de jeu perdue, après l'attente que la décision a
-    /// fixée.
+    /// Reopens a lost game window, after the wait the decision has
+    /// set.
     ///
-    /// L'attente n'est pas un ornement : rouvrir dans la seconde échouerait
-    /// tant que la liaison n'est pas revenue, et brûlerait une tentative pour
-    /// rien.
+    /// The wait is not decoration: reopening within the second would
+    /// fail as long as the connection has not come back, and would
+    /// burn an attempt for nothing.
     /// </summary>
     private static async Task RecoverAsync(GameLauncher launcher, RecoveryRequest request)
     {
@@ -850,14 +876,18 @@ public partial class App : Application, IDisposable
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            // La prochaine panne redécidera. Signaler ici n'apporterait rien :
-            // l'avis affiché dit déjà que la fenêtre est attendue, et un échec
-            // de réouverture se voit à ce qu'elle ne revient pas.
+            // The next failure will decide again. Reporting here
+            // would add nothing: the notice shown already says the
+            // window is expected, and a failed reopen shows itself
+            // by the window not coming back.
             Log.Warning(exception, "La réouverture de {Nom} a échoué.", request.Instance.DisplayName);
         }
     }
 
-    /// <summary>Rouvre le suivi de quêtes sur ce qu'on y lisait au dernier arrêt.</summary>
+    /// <summary>
+    /// Reopens the quest tracker on what it was showing at the last
+    /// stop.
+    /// </summary>
     private async Task RestoreQuestsAsync(string? url, int step)
     {
         if (Quests() is not { } quests)
@@ -869,11 +899,11 @@ public partial class App : Application, IDisposable
     }
 
     /// <summary>
-    /// Les guides, construits au premier besoin.
+    /// The guides, built on first need.
     ///
-    /// Ils comptent au même titre que le panneau pour décider s'il reste
-    /// quelque chose : les masquer alors qu'il ne reste rien d'autre arrête
-    /// l'application, comme masquer le panneau.
+    /// They count the same way as the panel when deciding whether
+    /// anything remains: hiding them while nothing else is left stops
+    /// the application, just like hiding the panel.
     /// </summary>
     private QuestWindow? Quests()
     {
@@ -889,8 +919,8 @@ public partial class App : Application, IDisposable
             return null;
         }
 
-        // Le panneau était déjà masqué, sans quoi on ne serait pas en train de
-        // s'arrêter : c'est bien qu'on le veut masqué.
+        // The panel was already hidden, otherwise we would not be
+        // about to stop: hidden is indeed what we want remembered.
         _quests.IsVisibleChanged += (_, _) =>
         {
             if (_started && _quests?.IsVisible == false)
@@ -903,8 +933,8 @@ public partial class App : Application, IDisposable
     }
 
     /// <summary>
-    /// Dit en une ligne où en est la mise à jour. Le bandeau ne paraît que
-    /// lorsqu'il y a quelque chose à dire.
+    /// States in one line where the update stands. The banner only
+    /// appears when there is something to say.
     /// </summary>
     private static void ShowUpdateState(UpdateService updates, ConfiguratorViewModel model)
     {
@@ -915,7 +945,9 @@ public partial class App : Application, IDisposable
                 : Strings.Format("UpdateAvailableBanner", release.Version);
     }
 
-    /// <summary>Ouvre la note de version, posée sur le panneau s'il est là.</summary>
+    /// <summary>
+    /// Opens the release note, placed on the panel if it is there.
+    /// </summary>
     private void ShowNotes(string heading, string lead, string notes)
     {
         if (notes.Length == 0)
@@ -944,25 +976,30 @@ public partial class App : Application, IDisposable
     }
 
     /// <summary>
-    /// L'arrêt, quelle qu'en soit la porte.
+    /// The shutdown, whichever door it comes through.
     ///
-    /// Rien n'y est attendu à la façon ordinaire. WPF appelle cette méthode
-    /// depuis son propre arrêt, et coupe le répartiteur dès qu'elle rend la
-    /// main : or un « await » la lui rend au premier travail qui ne se termine
-    /// pas sur place, et la suite serait alors postée sur un répartiteur mort.
+    /// Nothing here is awaited the ordinary way. WPF calls this
+    /// method from its own shutdown, and cuts the dispatcher as soon
+    /// as it returns control: but an "await" returns control to it at
+    /// the first piece of work that does not finish synchronously,
+    /// and the continuation would then be posted to a dead
+    /// dispatcher.
     ///
-    /// La boucle de messages tourne donc pendant l'attente, comme à la fin de
-    /// session Windows, et une minuterie la borne : mieux vaut un arrêt à
-    /// moitié rangé qu'une application qui refuse de mourir.
+    /// The message loop therefore keeps running during the wait, as
+    /// at the end of a Windows session, and a timer caps it: a half
+    /// tidied shutdown is better than an application that refuses to
+    /// die.
     ///
-    /// On craignait que ce qui suit la fermeture des fenêtres de jeu, dont la
-    /// pose de la mise à jour, ne s'exécute jamais dès qu'il y a vraiment des
-    /// fenêtres à fermer, la sonde d'alors n'ayant mesuré que le cas où il n'y
-    /// en avait aucune. Mesuré depuis, deux comptes ouverts sur un vrai
-    /// téléphone : les fenêtres se ferment en six cent vingt-six millisecondes
-    /// et l'arrêt entier tient en six cent trente-quatre, sur une borne de huit
-    /// secondes. Le tour est joué par la boucle pompée, et les deux durées sont
-    /// désormais journalisées : la question ne se reposera pas à l'aveugle.
+    /// We feared that whatever follows the closing of the game
+    /// windows, including applying the update, might never run once
+    /// there really are windows to close, since the earlier probe had
+    /// only measured the case where there were none. Measured since
+    /// then, with two accounts open on a real phone: the windows
+    /// close in six hundred and twenty six milliseconds and the whole
+    /// shutdown takes six hundred and thirty four, against a cap of
+    /// eight seconds. The pumped loop does the trick, and both
+    /// durations are now logged: the question will not be asked again
+    /// blindly.
     /// </summary>
     protected override void OnExit(ExitEventArgs e)
     {
@@ -984,19 +1021,20 @@ public partial class App : Application, IDisposable
 
     private async Task CloseDownAsync()
     {
-        // Chronométré, et pas par curiosité : tout ce qui suit la fermeture des
-        // fenêtres de jeu, dont la pose de la mise à jour, ne s'exécute que si
-        // cette fermeture rend la main avant la borne de ShutdownLimit. Le cas
-        // avec des fenêtres ouvertes n'avait jamais été mesuré, faute d'en
-        // avoir jamais eu la trace.
+        // Timed, and not out of curiosity: everything that follows
+        // the closing of the game windows, including applying the
+        // update, only runs if that closing returns control before
+        // the ShutdownLimit cap. The case with open windows had never
+        // been measured, for lack of ever having a trace of it.
         var start = System.Diagnostics.Stopwatch.StartNew();
 
         if (_host is not null)
         {
             try
             {
-                // Les fenêtres de jeu sont fermées avec l'application : les
-                // laisser ouvertes sans configurateur n'aurait pas de sens.
+                // The game windows are closed along with the
+                // application: leaving them open without a
+                // configurator would make no sense.
                 var launcher = _host.Services.GetRequiredService<GameLauncher>();
                 var windows = launcher.ActiveSessions.Count;
 
@@ -1007,9 +1045,10 @@ public partial class App : Application, IDisposable
                     windows,
                     start.ElapsedMilliseconds);
 
-                // La mise à jour se pose ici et nulle part ailleurs : plus rien
-                // ne tourne, et l'exécutable qui se renomme n'interrompt
-                // personne. Elle démarrera au prochain lancement.
+                // The update is applied here and nowhere else:
+                // nothing is running anymore, and the executable
+                // renaming itself interrupts no one. It will start at
+                // the next launch.
                 if (_host.Services.GetRequiredService<UpdateService>().Apply())
                 {
                     Log.Information("Mise à jour posée, elle démarrera au prochain lancement.");
@@ -1019,8 +1058,9 @@ public partial class App : Application, IDisposable
             }
             catch (Exception exception) when (exception is not OutOfMemoryException)
             {
-                // L'arrêt fait au mieux : ce qui échoue ici n'empêche pas de
-                // partir, et l'application se ferme de toute façon.
+                // A best effort shutdown: whatever fails here does
+                // not prevent leaving, and the application closes
+                // anyway.
                 Log.Warning(exception, "Arrêt incomplet.");
             }
 
@@ -1035,8 +1075,8 @@ public partial class App : Application, IDisposable
     }
 
     /// <summary>
-    /// Construit l'hôte. Les journaux vont dans le dossier de données, avec
-    /// rotation quotidienne et un plafond en nombre de fichiers.
+    /// Builds the host. The logs go into the data folder, with daily
+    /// rotation and a cap on the number of files.
     /// </summary>
     private static IHost BuildHost()
     {
@@ -1051,9 +1091,9 @@ public partial class App : Application, IDisposable
             .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
             .Enrich.FromLogContext()
 
-            // L'identifiant du lancement, sur chaque ligne : c'est ce qui
-            // permet à un rapport de ne prendre que la session en cours dans un
-            // fichier où se mêlent tous les démarrages de la journée.
+            // The launch identifier, on every line: this is what lets
+            // a report take only the current session from a file
+            // where all the day's startups are mixed together.
             .Enrich.WithProperty("Session", AppSession.Id)
             .WriteTo.Debug(formatProvider: CultureInfo.InvariantCulture)
             .WriteTo.File(
@@ -1076,12 +1116,12 @@ public partial class App : Application, IDisposable
     }
 
     /// <summary>
-    /// Ouvre la session nommée du démarrage, s'il y en a une.
+    /// Opens the named startup session, if there is one.
     ///
-    /// Le journal dit ce qui a été retenu, et c'est indispensable : un
-    /// démarrage qui n'ouvre pas ce qu'on attend n'a sinon aucune trace, et l'on
-    /// ne sait pas distinguer un profil mal enregistré d'un compte disparu du
-    /// téléphone.
+    /// The log states what was chosen, and that is essential: a
+    /// startup that does not open what we expect otherwise leaves no
+    /// trace, and we cannot tell apart a badly saved profile from an
+    /// account that vanished from the phone.
     /// </summary>
     private static async Task ApplyDefaultLaunchProfileAsync(SettingsService settings)
     {

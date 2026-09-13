@@ -1,44 +1,48 @@
 ﻿namespace DtHub.Core.Settings;
 
 /// <summary>
-/// Quel palier de qualité s'applique à quel compte.
+/// Which quality tier applies to which account.
 ///
-/// Jusqu'ici il n'y en avait qu'un pour tout le monde. C'est le mauvais
-/// réglage dans le cas qui nous occupe : on joue un compte et on en regarde
-/// quatre. Le principal mérite soixante images et un gros débit ; les mules
-/// n'en ont pas besoin, et ce qu'on leur épargne est autant de processeur, de
-/// bande passante, de chaleur et de batterie en moins.
+/// Until now there was only one for everyone. That is the wrong
+/// setting for the case at hand: you play one account and watch
+/// four. The main account deserves sixty frames and a high bitrate;
+/// the mules do not need that, and what is spared on them is that
+/// much less processor, bandwidth, heat and battery.
 ///
-/// **La règle tient en une phrase : le compte l'emporte sur le réglage
-/// commun.** Il n'y a pas de troisième niveau. Un profil de lancement paraît
-/// en porter un, mais il recopie ses valeurs dans le réglage commun avant le
-/// lancement : au moment où la question se pose, il ne reste que deux
-/// sources.
+/// **The rule fits in one sentence: the account overrides the
+/// shared setting.** There is no third level. A launch profile
+/// appears to carry one, but it copies its values into the shared
+/// setting before launch: by the time the question arises, only two
+/// sources remain.
 ///
-/// **Les cadences ne suivent pas.** Un palier porte aussi le rythme des
-/// sondages, et ceux-là sont propres à l'application, pas à une fenêtre :
-/// interroger les appareils à cinq rythmes différents parce que cinq comptes
-/// sont ouverts n'aurait aucun sens. Seuls la définition et le débit se
-/// règlent par compte.
+/// **Polling rates do not follow.** A tier also carries the polling
+/// rate, and those belong to the application, not to a window:
+/// polling devices at five different rates because five accounts are
+/// open would make no sense. Only the resolution and the bitrate are
+/// set per account.
 /// </summary>
 public static class InstanceQuality
 {
     /// <summary>
-    /// Le palier qui s'applique, celui du compte s'il en a un, sinon le commun.
+    /// The tier that applies: the account's if it has one, otherwise
+    /// the shared one.
     /// </summary>
     public static StreamQuality Chosen(StreamQuality? instance, StreamQuality shared) => instance ?? shared;
 
     /// <summary>
-    /// Le profil complet qui s'applique à un compte.
+    /// The full profile that applies to an account.
     /// </summary>
-    /// <param name="instance">Palier du compte, ou <c>null</c> pour suivre le commun.</param>
-    /// <param name="shared">Palier commun.</param>
-    /// <param name="sharedCustom">Réglage fin commun.</param>
+    /// <param name="instance">
+    /// Account tier, or <c>null</c> to follow the shared one.
+    /// </param>
+    /// <param name="shared">Shared tier.</param>
+    /// <param name="sharedCustom">Shared fine tuning.</param>
     /// <remarks>
-    /// Il n'y a pas de réglage fin par compte, et c'est délibéré : ce serait un
-    /// champ persisté que rien n'exposerait. Un compte choisit un palier parmi
-    /// ceux qui existent, ou suit le commun. Les valeurs fines du palier
-    /// personnalisé restent communes.
+    /// There is no per-account fine tuning, and that is deliberate:
+    /// it would be a persisted field that nothing would expose. An
+    /// account chooses a tier among the ones that exist, or follows
+    /// the shared one. The fine values of the custom tier remain
+    /// shared.
     /// </remarks>
     public static QualityProfile ProfileFor(
         StreamQuality? instance,

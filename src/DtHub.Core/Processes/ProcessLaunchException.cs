@@ -1,9 +1,10 @@
 ﻿namespace DtHub.Core.Processes;
 
 /// <summary>
-/// Le processus n'a pas pu être démarré : exécutable absent, droits
-/// insuffisants, chemin invalide. Un code de retour non nul n'entre pas dans
-/// cette catégorie et remonte via <see cref="ProcessResult"/>.
+/// The process could not be started: missing executable,
+/// insufficient permissions, invalid path. A nonzero return code
+/// does not fall into this category and is reported via
+/// <see cref="ProcessResult"/>.
 /// </summary>
 public sealed class ProcessLaunchException : Exception
 {

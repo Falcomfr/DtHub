@@ -2,47 +2,53 @@
 
 namespace DtHub.Core.Settings;
 
-/// <summary>Ce qu'on peut dire d'un fichier de réglages qu'on nous tend.</summary>
+/// <summary>What can be said about a settings file we are handed.</summary>
 public enum BackupVerdict
 {
-    /// <summary>Lisible et de cette version, ou d'une plus ancienne.</summary>
+    /// <summary>Readable and of this version, or an older one.</summary>
     Usable,
 
-    /// <summary>Ce n'est pas du JSON, ou pas un objet.</summary>
+    /// <summary>This is not JSON, or not an object.</summary>
     Unreadable,
 
-    /// <summary>C'est du JSON, mais ce ne sont pas nos réglages.</summary>
+    /// <summary>This is JSON, but not our settings.</summary>
     Foreign,
 
-    /// <summary>Écrit par une version plus récente que celle-ci.</summary>
+    /// <summary>Written by a version more recent than this one.</summary>
     TooNew,
 }
 
-/// <summary>Ce que l'inspection a trouvé.</summary>
+/// <summary>What the inspection found.</summary>
 public readonly record struct BackupInspection(BackupVerdict Verdict, int SchemaVersion);
 
 /// <summary>
-/// Emporter ses réglages d'un poste à l'autre, et les retrouver.
+/// Carrying your settings from one machine to another, and finding
+/// them again.
 ///
-/// Sert au déménagement, et de filet quand le fichier de réglages s'abîme.
+/// Used for moving machines, and as a safety net when the settings
+/// file gets damaged.
 ///
-/// **Le piège est à l'import, et il est précis.** Le chargement ordinaire est
-/// volontairement tolérant : un fichier venu d'une version plus récente est
-/// ramené à la version courante, et ce qu'il portait en plus est perdu. C'est
-/// acceptable pour un fichier local qu'on retrouve, où l'alternative serait de
-/// ne plus démarrer. **Ce ne l'est pas pour un import**, où quelqu'un croit
-/// restaurer et se retrouverait avec des réglages amputés en silence.
+/// **The trap is on import, and it is a precise one.** Ordinary
+/// loading is deliberately tolerant: a file coming from a more
+/// recent version is brought back down to the current version, and
+/// whatever it carried beyond that is lost. That is acceptable for a
+/// local file being found again, where the alternative would be to
+/// no longer start at all. **It is not acceptable for an import**,
+/// where someone believes they are restoring and would end up with
+/// settings silently amputated.
 ///
-/// L'inspection lit donc la version <b>avant</b> de laisser le chemin ordinaire
-/// faire son travail, et refuse franchement ce qu'elle ne sait pas lire.
+/// The inspection therefore reads the version <b>before</b> letting
+/// the ordinary path do its work, and plainly refuses what it cannot
+/// read.
 /// </summary>
 public static class SettingsBackup
 {
-    /// <summary>Le nom proposé au moment d'enregistrer.</summary>
+    /// <summary>The name suggested when saving.</summary>
     public const string SuggestedFileName = "dthub-reglages.json";
 
     /// <summary>
-    /// Ce qu'on peut dire du contenu qu'on nous tend, sans rien en appliquer.
+    /// What can be said about the content we are handed, without
+    /// applying any of it.
     /// </summary>
     public static BackupInspection Inspect(string? json)
     {
@@ -61,8 +67,8 @@ public static class SettingsBackup
         }
         catch (JsonException)
         {
-            // Un fichier tronqué, une pièce jointe qui n'en était pas une :
-            // on le dit, on n'essaie pas de deviner.
+            // A truncated file, an attachment that was not really
+            // one: we say so, we do not try to guess.
             return new BackupInspection(BackupVerdict.Unreadable, 0);
         }
 
@@ -71,9 +77,9 @@ public static class SettingsBackup
             return new BackupInspection(BackupVerdict.Unreadable, 0);
         }
 
-        // Deux marques suffisent à reconnaître les nôtres, et aucune n'est
-        // devinable : la version de schéma, et la liste des comptes. Un JSON
-        // quelconque n'a ni l'une ni l'autre.
+        // Two markers are enough to recognize our own, and neither
+        // can be guessed: the schema version, and the list of
+        // accounts. Any random JSON has neither.
         if (!root.TryGetProperty("schemaVersion", out var version)
             || version.ValueKind != JsonValueKind.Number
             || !root.TryGetProperty("instances", out var instances)

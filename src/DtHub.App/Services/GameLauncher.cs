@@ -13,23 +13,32 @@ using Microsoft.Extensions.Logging;
 
 namespace DtHub.App.Services;
 
-/// <summary>Compte rendu d'un lancement.</summary>
+/// <summary>Report of a launch.</summary>
 public sealed record LaunchReport(int Opened, IReadOnlyList<string> Problems)
 {
     public bool AnyOpened => Opened > 0;
 }
 
 /// <summary>
-/// Ce qu'un appareil a de travers, prêt à s'afficher sous son nom.
+/// What is wrong with a device, ready to be shown under its name.
 /// </summary>
-/// <param name="Text">Les constats, un par ligne, du plus grave au plus anodin.</param>
-/// <param name="Serious">Vrai quand le premier coupera la séance au lieu de la gêner.</param>
-/// <param name="Device">Le nom lisible de l'appareil, quand on le connaît.</param>
+/// <param name="Text">
+/// The findings, one per line, from the most serious to the
+/// mildest.
+/// </param>
+/// <param name="Serious">
+/// True when the first one will cut the session short instead of
+/// merely being annoying.
+/// </param>
+/// <param name="Device">
+/// The device's readable name, when it is known.
+/// </param>
 public sealed record DeviceFindings(string Text, bool Serious, string? Device);
 
 /// <summary>
-/// Ouvre les instances cochées, place leurs fenêtres et branche les
-/// raccourcis. C'est le seul endroit qui enchaîne ces trois choses.
+/// Opens the checked instances, places their windows and wires up
+/// the shortcuts. This is the only place that chains these three
+/// things together.
 /// </summary>
 public sealed partial class GameLauncher : IAsyncDisposable
 {
@@ -48,15 +57,22 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     private bool _hotkeysWired;
 
-    /// <summary>Un seul rouvrement à la fois : deux qui se chevauchent se volent leurs sessions.</summary>
+    /// <summary>
+    /// Only one reopen at a time: two that overlap steal each
+    /// other's sessions.
+    /// </summary>
     private readonly SemaphoreSlim _reopening = new(1, 1);
 
-    /// <summary>Dossier de l'icône des fenêtres de jeu, posé par l'application.</summary>
+    /// <summary>
+    /// Folder for the game windows' icon, set by the application.
+    /// </summary>
     public string? IconDirectory { get => _iconDirectory; set => _iconDirectory = value; }
 
     private string? _iconDirectory;
 
-    /// <summary>Vrai pendant une fermeture voulue : inutile d'en journaliser le détail.</summary>
+    /// <summary>
+    /// True during a deliberate close: no need to log its detail.
+    /// </summary>
     private bool _closing;
 
     public GameLauncher(
@@ -86,35 +102,39 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _placements = placements;
         _logger = logger;
 
-        // Une session qui meurt après son ouverture ne laissait aucune trace :
-        // la fenêtre disparaissait et le journal restait muet.
+        // A session that dies right after opening left no trace at
+        // all: the window vanished and the log stayed silent.
         _sessions.SessionChanged += OnSessionChanged;
 
-        // L'arrêt du jeu à la fermeture se décide au moment de fermer, pas au
-        // lancement : sans cet abonnement, décocher la case en cours de partie
-        // n'aurait rien changé avant le lancement suivant, et la fenêtre qu'on
-        // ferme juste après aurait quand même tué le jeu.
-        // Renommer un compte se voyait dans la liste et nulle part ailleurs :
-        // le libellé de l'onglet était une copie prise au moment où la fenêtre
-        // avait été logée, et le titre d'une fenêtre libre venait de scrcpy au
-        // lancement. Il fallait fermer et rouvrir pour voir le nouveau nom.
+        // Whether to stop the game on close is decided at the moment
+        // of closing, not at launch: without this subscription,
+        // unchecking the box mid session would have changed nothing
+        // before the next launch, and the window we close right
+        // after would still have killed the game.
+        // Renaming an account only showed up in the list and nowhere
+        // else: the tab's label was a copy taken when the window was
+        // housed, and a free window's title came from scrcpy at
+        // launch. Closing and reopening was needed to see the new
+        // name.
         _settings.Changed += (_, document) =>
         {
             _sessions.StopAppOnClose = document.StopAppOnClose;
             ApplyRenames(document);
         };
 
-        // La fenêtre est placée avant l'ouverture du jeu, pour qu'il naisse à
-        // la taille définitive.
+        // The window is placed before the game opens, so that it is
+        // born at its final size.
         _sessions.PrepareWindow = async (session, placement, cancellationToken) =>
         {
-            // Le coin visé est celui du cadre, alors que le placement transmis
-            // à scrcpy est celui de la zone client : reposer la fenêtre sur les
-            // coordonnées du placement la décalait d'une bordure et d'une barre
-            // de titre, sous les yeux, juste après son ouverture.
+            // The corner aimed at is that of the frame, whereas the
+            // placement passed to scrcpy is that of the client area:
+            // repositioning the window on the placement's coordinates
+            // offset it by a border and a title bar, visibly, right
+            // after it opened.
             //
-            // Sa taille n'est pas touchée : l'afficheur est déjà né à la bonne,
-            // et le jeu fige la hauteur de sa mise en page à son initialisation.
+            // Its size is left untouched: the display is already
+            // born at the right one, and the game freezes its layout
+            // height at initialization.
             if (placement is { } wanted)
             {
                 var frame = _windows.WindowChrome();
@@ -127,15 +147,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         _sessions.RequestClose = session => _windows.RequestClose(session);
 
-        // L'arrêt du jeu vise l'adresse du moment, pas celle du lancement. Le
-        // débogage sans fil change de port à chaque reprise, et l'ordre partait
-        // alors vers une adresse morte : la fenêtre se fermait, le jeu restait.
+        // Stopping the game targets the address of the moment, not
+        // the one from launch. Wireless debugging changes port on
+        // every resume, and the command would then go to a dead
+        // address: the window closed, the game stayed.
         _sessions.CurrentSerial = deviceId =>
             _serials.TryGetValue(deviceId, out var serial) ? serial : null;
 
-        // Quand les adresses connues ont toutes échoué, on redemande plutôt que
-        // de renoncer : elles viennent du passé, et un port change justement
-        // dans les deux secondes qui séparent deux balayages.
+        // When all known addresses have failed, we ask again rather
+        // than give up: they come from the past, and a port changes
+        // in exactly the two seconds that separate two sweeps.
         _sessions.LookUpSerial = async (deviceId, cancellationToken) =>
         {
             var live = await _devices.RefreshAsync(cancellationToken).ConfigureAwait(false);
@@ -149,17 +170,17 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// L'adresse ADB de chaque appareil, par identité stable, telle que le
-    /// dernier balayage l'a vue.
+    /// The ADB address of each device, by stable identity, as the
+    /// last sweep saw it.
     ///
-    /// Tenue ici et non demandée au registre : la fermeture d'une fenêtre, et
-    /// plus encore celle de l'application, se paie sur un budget compté, où
-    /// une lecture de fichier n'a pas sa place.
+    /// Held here rather than asked of the registry: closing a
+    /// window, and even more so closing the application, runs on a
+    /// counted budget where a file read has no place.
     /// </summary>
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _serials =
         new(StringComparer.Ordinal);
 
-    /// <summary>Retient où joindre chaque appareil joignable.</summary>
+    /// <summary>Remembers where to reach each reachable device.</summary>
     private void RememberSerials(DeviceDiscoveryResult discovery)
     {
         foreach (var device in discovery.Devices)
@@ -170,19 +191,21 @@ public sealed partial class GameLauncher : IAsyncDisposable
             }
             else
             {
-                // Un appareil parti n'a plus d'adresse : garder la dernière
-                // ferait viser un mort en croyant viser le présent.
+                // A device that is gone has no address anymore:
+                // keeping the last one would aim at a dead one while
+                // believing to aim at the present.
                 _ = _serials.TryRemove(device.Id, out _);
             }
         }
     }
 
     /// <summary>
-    /// Dit que le jeu est resté ouvert sur le téléphone.
+    /// Says that the game stayed open on the phone.
     ///
-    /// Se taire serait le pire des deux : la fenêtre a bien disparu, l'écran
-    /// n'a donc aucun moyen de montrer que le personnage est toujours en
-    /// ligne, et l'utilisateur le découvre au prochain lancement.
+    /// Staying silent would be the worse of the two: the window did
+    /// disappear, so the screen has no way left to show that the
+    /// character is still online, and the user finds out at the next
+    /// launch.
     /// </summary>
     private void OnAppStopFailed(object? sender, ScrcpySession session)
     {
@@ -192,106 +215,121 @@ public sealed partial class GameLauncher : IAsyncDisposable
         LogGameLeftRunning(session.Target.DisplayName, session.Serial);
     }
 
-    /// <summary>Instances laissées de côté par les placements automatiques.</summary>
+    /// <summary>
+    /// Instances set aside by the automatic placements.
+    /// </summary>
     private IReadOnlySet<string> _unmanaged = new HashSet<string>(StringComparer.Ordinal);
 
-    /// <summary>Les comptes qui s'ouvrent dans le cadre à onglets.</summary>
+    /// <summary>Accounts that open inside the tabbed frame.</summary>
     private HashSet<string> _tabbed = new(StringComparer.Ordinal);
 
     /// <summary>
-    /// Le cadre à onglets, créé au premier compte qui en demande un.
+    /// The tabbed frame, created for the first account that asks
+    /// for one.
     ///
-    /// Paresseux : la plupart des sessions n'en veulent pas, et une fenêtre
-    /// vide ouverte pour rien se remarquerait.
+    /// Lazy: most sessions do not want one, and an empty window
+    /// opened for nothing would stand out.
     /// </summary>
     private Windows.TabbedGameWindow? _tabs;
 
-    /// <summary>Réglages dérivés de la qualité choisie, relus à chaque lancement.</summary>
+    /// <summary>
+    /// Settings derived from the chosen quality, reread at every
+    /// launch.
+    /// </summary>
     private QualityProfile _quality = QualityProfile.For(StreamQuality.Medium);
     private GameZoom _zoom = GameZoom.Normal;
 
     /// <summary>
-    /// Retard d'affichage qui convient à cette liaison, en millisecondes.
+    /// Display delay suited to this link, in milliseconds.
     ///
-    /// Relu en même temps que le budget, et pour la même raison : les deux se
-    /// déduisent de ce que l'appareil dit de sa liaison, et ni l'un ni l'autre
-    /// ne change entre deux redimensionnements de fenêtre.
+    /// Reread at the same time as the budget, and for the same
+    /// reason: both are derived from what the device says about its
+    /// link, and neither changes between two window resizes.
     /// </summary>
     /// <summary>
-    /// Tampon d'affichage par appareil, en millisecondes.
+    /// Display buffer per device, in milliseconds.
     ///
-    /// Par appareil et non commun : deux téléphones peuvent être sur des
-    /// bandes différentes, et c'est le cas dès qu'on en branche un second.
-    /// Mesuré avec un 13T Pro en 5 GHz et un Mi 9T Pro en 2,4 GHz, la valeur
-    /// commune était celle du premier venu, et le second héritait d'un tampon
-    /// calculé pour une liaison qui n'était pas la sienne.
+    /// Per device and not shared: two phones can be on different
+    /// bands, and that is the case as soon as a second one is
+    /// plugged in. Measured with a 13T Pro on 5 GHz and a Mi 9T Pro
+    /// on 2.4 GHz, the shared value was whichever came first, and
+    /// the second one inherited a buffer computed for a link that
+    /// was not its own.
     /// </summary>
     private readonly Dictionary<string, int> _videoBuffers = new(StringComparer.Ordinal);
 
-    /// <summary>Rythme des contrôles et des sondages, selon la qualité.</summary>
+    /// <summary>Pace of controls and polling, based on quality.</summary>
     public QualityProfile Quality => _quality;
 
     /// <summary>
-    /// Les instances déjà lancées, pour savoir quoi rouvrir quand une fenêtre
-    /// tombe. La session ne porte qu'une cible, pas l'instance d'origine.
+    /// Instances already launched, to know what to reopen when a
+    /// window drops. The session only carries a target, not the
+    /// original instance.
     /// </summary>
     private readonly Dictionary<string, DofusInstance> _launched = new(StringComparer.Ordinal);
 
     /// <summary>
-    /// La distance avec laquelle chaque fenêtre a été ouverte.
+    /// The distance each window was opened with.
     ///
-    /// Elle est figée pour toute la session, scrcpy la recevant en argument de
-    /// démarrage. La liste des comptes s'en sert pour dire qu'une fenêtre
-    /// tourne encore avec l'ancienne, plutôt que de laisser croire au réglage
-    /// mort.
+    /// It is fixed for the whole session, scrcpy receiving it as a
+    /// startup argument. The account list uses it to say that a
+    /// window is still running with the old one, rather than let
+    /// the setting seem dead.
     /// </summary>
     private readonly Dictionary<string, GameZoom> _zoomsInUse = new(StringComparer.Ordinal);
 
-    /// <summary>Tentatives de reprise par instance, et heure de la dernière.</summary>
+    /// <summary>
+    /// Recovery attempts per instance, and time of the last one.
+    /// </summary>
     private readonly Dictionary<string, (int Count, DateTimeOffset Last)> _recoveries =
         new(StringComparer.Ordinal);
 
     /// <summary>
-    /// Ce que la reprise a à dire, ou <c>null</c>. Rejoint le même bandeau que
-    /// la chaleur : c'est là qu'on regarde quand quelque chose cloche.
+    /// What recovery has to say, or <c>null</c>. Joins the same
+    /// banner as the heat: that is where one looks when something is
+    /// wrong.
     /// </summary>
     public string? RecoveryNotice { get; private set; }
 
     /// <summary>
-    /// L'appareil et l'instant de l'avis de reprise en cours.
+    /// The device and the moment of the current recovery notice.
     ///
-    /// **Un avis de reprise est un événement, pas un état.** Il promet une
-    /// fenêtre qui revient ; si le téléphone disparaît entre-temps, la promesse
-    /// ne tient plus, et l'avis restait pourtant à l'écran sous une ligne qui
-    /// disait « hors ligne ». Deux phrases qui se contredisent dans la même
-    /// colonne.
+    /// **A recovery notice is an event, not a state.** It promises a
+    /// window that comes back; if the phone disappears in the
+    /// meantime, the promise no longer holds, yet the notice kept
+    /// showing on screen under a line that said "offline". Two
+    /// sentences that contradict each other in the same column.
     /// </summary>
     private string? _recoveryDevice;
 
     private DateTimeOffset _recoveryAt;
 
     /// <summary>
-    /// Ce qu'on accorde à l'avis. Les trois tentatives s'étalent sur
-    /// vingt-deux secondes, plus le temps d'ouvrir une fenêtre : au-delà,
-    /// l'avis parle d'une reprise qui n'a plus lieu.
+    /// What the notice is granted. The three attempts spread over
+    /// twenty-two seconds, plus the time to open a window: beyond
+    /// that, the notice talks about a recovery that is no longer
+    /// happening.
     /// </summary>
     private static readonly TimeSpan RecoveryNoticeLife = TimeSpan.FromSeconds(45);
 
     /// <summary>
-    /// Le jeu qu'on n'a pas pu refermer, ou <c>null</c>. Rejoint le bandeau de
-    /// la reprise, pour la même raison : il explique ce qui vient de se passer.
+    /// The game we could not close, or <c>null</c>. Joins the
+    /// recovery banner, for the same reason: it explains what just
+    /// happened.
     /// </summary>
     public string? StopFailedNotice { get; private set; }
 
     private DateTimeOffset _stopFailedAt;
 
     /// <summary>
-    /// Ce qu'on accorde à l'avis. Assez pour être lu après la fermeture d'une
-    /// fenêtre, trop court pour survivre à la partie suivante.
+    /// What the notice is granted. Enough to be read after a window
+    /// closes, too short to survive into the next game.
     /// </summary>
     private static readonly TimeSpan StopFailedNoticeLife = TimeSpan.FromSeconds(45);
 
-    /// <summary>Efface l'avis de reprise quand il a cessé d'être vrai.</summary>
+    /// <summary>
+    /// Clears the recovery notice once it has stopped being true.
+    /// </summary>
     private void ExpireRecoveryNotice(DeviceDiscoveryResult discovery)
     {
         if (RecoveryNotice is null)
@@ -311,11 +349,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Efface l'avis du jeu resté ouvert après son temps.
+    /// Clears the notice about the game left running once its time
+    /// is up.
     ///
-    /// Il ne dépend pas de la présence de l'appareil, contrairement à celui de
-    /// la reprise : un téléphone reparti ne rend pas l'avis faux, il le rend
-    /// justement plus vrai.
+    /// It does not depend on the device being present, unlike the
+    /// recovery one: a phone that has gone away does not make the
+    /// notice false, it makes it truer still.
     /// </summary>
     private void ExpireStopFailedNotice()
     {
@@ -327,24 +366,25 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Signalé quand une fenêtre perdue doit être rouverte.
+    /// Raised when a lost window needs to be reopened.
     ///
-    /// La fenêtre est reconstruite par l'application, pas ici : ce service ne
-    /// vit pas sur le fil de l'interface, et la mort d'une session est
-    /// annoncée depuis la boucle de lecture de scrcpy.
+    /// The window is rebuilt by the application, not here: this
+    /// service does not live on the UI thread, and a session's death
+    /// is announced from scrcpy's read loop.
     /// </summary>
     public event EventHandler<RecoveryRequest>? RecoveryRequested;
 
 
     /// <summary>
-    /// Journalise la mort d'une session, avec la sortie de scrcpy. Sans cela,
-    /// une fenêtre qui se ferme d'elle-même est indiagnosticable.
+    /// Logs a session's death, with scrcpy's output. Without this,
+    /// a window that closes on its own cannot be diagnosed.
     /// </summary>
     private void OnSessionChanged(object? sender, ScrcpySession session)
     {
-        // La fenêtre est revenue : l'avis de reprise n'a plus lieu d'être. Le
-        // compte des tentatives, lui, survit, et c'est voulu : une liaison qui
-        // clignote doit finir par épuiser son crédit.
+        // The window is back: the recovery notice no longer has a
+        // reason to exist. The attempt count, though, survives, and
+        // that is deliberate: a link that flickers must eventually
+        // exhaust its credit.
         if (session.State == ScrcpySessionState.Running)
         {
             RecoveryNotice = null;
@@ -363,9 +403,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         CountPlaytime(session);
 
-        // Avant de conclure qu'il ne reste rien : une fenêtre qu'on va rouvrir
-        // n'est pas une fenêtre perdue. Sans cette réserve, un hoquet Wi-Fi sur
-        // la dernière session fermait l'application.
+        // Before concluding that nothing is left: a window we are
+        // about to reopen is not a lost window. Without this
+        // reservation, a Wi-Fi hiccup on the last session closed the
+        // application.
         if (TryRecover(session))
         {
             return;
@@ -378,11 +419,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Décide s'il faut rouvrir cette fenêtre, et le demande le cas échéant.
+    /// Decides whether this window should be reopened, and asks for
+    /// it if so.
     ///
-    /// La décision elle-même vit dans <see cref="SessionRecovery" />, où elle
-    /// s'éprouve. Ici on ne tient que le compte des tentatives, et l'oubli au
-    /// bout d'un moment sans rechute.
+    /// The decision itself lives in <see cref="SessionRecovery" />,
+    /// where it is tested. Here we only keep the attempt count, and
+    /// forget it after a while without a relapse.
     /// </summary>
     private bool TryRecover(ScrcpySession session)
     {
@@ -402,9 +444,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         if (!decision.Retry)
         {
-            // On ne se tait que si l'on n'avait rien promis. Après des
-            // tentatives annoncées, renoncer sans le dire laisserait le
-            // lecteur attendre une fenêtre qui ne reviendra pas.
+            // We only stay silent if nothing had been promised.
+            // After announced attempts, giving up without saying so
+            // would leave the reader waiting for a window that will
+            // not come back.
             if (already > 0 && SessionRecovery.Recoverable(session.End.Failure))
             {
                 RecoveryNotice = Strings.Format("SessionRecoveryGaveUp", instance.DisplayName);
@@ -427,18 +470,18 @@ public sealed partial class GameLauncher : IAsyncDisposable
         return true;
     }
 
-    /// <summary>Sessions dont le temps de jeu a déjà été compté.</summary>
+    /// <summary>Sessions whose playtime has already been counted.</summary>
     private readonly HashSet<string> _counted = new(StringComparer.Ordinal);
 
     /// <summary>
-    /// Ajoute au compte le temps que sa fenêtre est restée ouverte.
+    /// Adds to the account the time its window stayed open.
     ///
-    /// Une fois par session, jamais deux : une session peut passer par deux
-    /// états finaux, arrêtée puis en échec, et le compter aux deux doublerait
-    /// le temps.
+    /// Once per session, never twice: a session can go through two
+    /// final states, stopped then failed, and counting it for both
+    /// would double the time.
     ///
-    /// Seulement si elle a vraiment tourné : une session qui n'a jamais ouvert
-    /// son afficheur n'est pas du temps de jeu.
+    /// Only if it actually ran: a session that never opened its
+    /// display is not playtime.
     /// </summary>
     private void CountPlaytime(ScrcpySession session)
     {
@@ -457,20 +500,23 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _ = _settings.AddPlaytimeAsync(session.Target.Key, seconds);
     }
 
-    /// <summary>Encodeurs vidéo connus par appareil, une fois demandés.</summary>
+    /// <summary>Video encoders known per device, once asked for.</summary>
     private readonly Dictionary<string, IReadOnlyList<VideoEncoder>> _encoders = new(StringComparer.Ordinal);
 
-    /// <summary>Appareils dont la liste a déjà été demandée, aboutie ou non.</summary>
+    /// <summary>
+    /// Devices whose list has already been asked for, whether it
+    /// succeeded or not.
+    /// </summary>
     private readonly HashSet<string> _encodersAsked = new(StringComparer.Ordinal);
 
     /// <summary>
-    /// Demande, en arrière-plan, ce que les appareils savent encoder.
+    /// Asks, in the background, what the devices know how to encode.
     ///
-    /// En arrière-plan et une seule fois par appareil : la question coûte une
-    /// poussée du serveur scrcpy, et elle n'est jamais urgente. Le résultat
-    /// sert au lancement suivant, pas à celui-ci. Attendre ici retarderait
-    /// l'ouverture de plusieurs secondes pour un renseignement dont la plupart
-    /// des appareils n'ont aucun usage.
+    /// In the background and only once per device: the question
+    /// costs a push of the scrcpy server, and it is never urgent.
+    /// The result serves the next launch, not this one. Waiting here
+    /// would delay opening by several seconds for a piece of
+    /// information most devices have no use for.
     /// </summary>
     private void ProbeEncoders(
         IReadOnlyList<DofusInstance> instances,
@@ -506,13 +552,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
     }
 
-    /// <summary>Sessions actuellement ouvertes.</summary>
+    /// <summary>Currently open sessions.</summary>
     public IReadOnlyList<ScrcpySession> ActiveSessions => _sessions.ActiveSessions;
 
-    /// <summary>Vrai si une ouverture est en cours sur ce téléphone.</summary>
+    /// <summary>True if an opening is in progress on this phone.</summary>
     public bool IsDeviceBusy(string deviceId) => _sessions.IsDeviceBusy(deviceId);
 
-    /// <summary>Signalé quand un appareil devient occupé, ou cesse de l'être.</summary>
+    /// <summary>
+    /// Raised when a device becomes busy, or stops being so.
+    /// </summary>
     public event EventHandler<DeviceBusyChangedEventArgs>? DeviceBusyChanged
     {
         add => _sessions.DeviceBusyChanged += value;
@@ -520,62 +568,69 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Fenêtres qui suivent les placements automatiques.
+    /// Windows that follow the automatic placements.
     ///
-    /// Une fenêtre décochée dans la liste reste où elle est : le parcours au
-    /// clavier, le replacement, le côte à côte et les tailles l'ignorent. Elle
-    /// s'ouvre, se ferme et se souvient de sa place comme les autres.
+    /// A window unchecked in the list stays where it is: keyboard
+    /// navigation, rearranging, tiling and sizes all ignore it. It
+    /// opens, closes and remembers its place like the others.
     /// </summary>
     public IReadOnlyList<ScrcpySession> ManagedSessions =>
         [.. _sessions.ActiveSessions.Where(
             s => !_unmanaged.Contains(s.Target.Key) && !_tabbed.Contains(s.Target.Key))];
 
     /// <summary>
-    /// Comptes réellement logés dans le cadre à onglets.
+    /// Accounts actually housed in the tabbed frame.
     ///
-    /// Compté sur les sessions ouvertes et non sur le réglage : un compte peut
-    /// être marqué logé et n'avoir jamais pu être arrimé.
+    /// Counted from the open sessions and not from the setting: an
+    /// account can be marked as housed and yet never have been
+    /// attached.
     /// </summary>
     public int HousedCount =>
         _sessions.ActiveSessions.Count(s => _tabbed.Contains(s.Target.Key));
 
     /// <summary>
-    /// Vrai si le cadre à onglets suit les commandes de géométrie.
+    /// True if the tabbed frame follows geometry commands.
     ///
-    /// Un seul compte logé verrouillé le fige : le cadre est une seule fenêtre,
-    /// et on ne peut pas en immobiliser un onglet tout en déplaçant l'autre.
+    /// A single housed account that is locked freezes it: the frame
+    /// is a single window, and one tab cannot be held still while
+    /// another is moved.
     /// </summary>
     public bool FrameMoves => _tabs is not null && !FrameLock.Freezes(_unmanaged, _tabbed);
 
     /// <summary>
-    /// Nombre de fenêtres qu'un rangement peut bouger, le cadre comptant pour
-    /// une. En dessous de deux, il n'y a rien à ranger et les boutons du pied
-    /// de fenêtre se retirent.
+    /// Number of windows a tidy-up can move, the frame counting as
+    /// one. Below two, there is nothing to arrange and the buttons
+    /// on the window's footer withdraw.
     /// </summary>
     public int ArrangeableCount =>
         ManagedSessions.Count + (HousedCount > 0 && FrameMoves ? 1 : 0);
 
-    /// <summary>Le cadre, quand il est posé, visible, et qu'aucun cadenas ne le fige.</summary>
+    /// <summary>
+    /// The frame, when it exists, is visible, and no lock freezes
+    /// it.
+    /// </summary>
     private Windows.TabbedGameWindow? MovableFrame =>
         _tabs is { Handle: not 0 } frame && FrameMoves ? frame : null;
 
     /// <summary>
-    /// Sérialise les commandes de géométrie.
+    /// Serializes geometry commands.
     ///
-    /// Elles arrivent du fil des raccourcis, sautent sur celui de l'interface
-    /// et écrivent les réglages en repassant : deux Ctrl+5 rapprochés
-    /// entrelaçaient deux entrées en plein écran, et le cadre perdait le
-    /// rectangle d'où il venait.
+    /// They arrive on the shortcuts thread, hop onto the UI thread
+    /// and write the settings back on the way through: two Ctrl+5
+    /// pressed close together interleaved two entries into
+    /// fullscreen, and the frame lost the rectangle it came from.
     /// </summary>
     private readonly SemaphoreSlim _arranging = new(1, 1);
 
     /// <summary>
-    /// Donne au cadre la taille en cours, ou le plein écran, sans le déplacer.
+    /// Gives the frame its current size, or fullscreen, without
+    /// moving it.
     ///
-    /// Rien n'est jamais appliqué à la fenêtre logée : elle est fille du cadre,
-    /// et c'est le cadre qu'on dimensionne. Sa forme, elle, suit l'onglet
-    /// montré : la taille du cadre est donc en pratique une part de largeur, la
-    /// hauteur venant du rapport de l'image.
+    /// Nothing is ever applied to the housed window: it is a child
+    /// of the frame, and it is the frame that gets sized. Its shape,
+    /// though, follows the tab shown: the frame's size is therefore
+    /// in practice a share of width, with the height coming from the
+    /// image's aspect ratio.
     /// </summary>
     private Task ResizeFrameAsync(bool fullscreen) =>
         MovableFrame is not { } frame
@@ -592,7 +647,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     return;
                 }
 
-                // Le rectangle d'avant est retenu par le cadre lui-même.
+                // The previous rectangle is kept by the frame itself.
                 frame.SetFullscreen(false, default);
 
                 if (frame.Chassis is { } chassis
@@ -603,7 +658,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 }
             });
 
-    /// <summary>Pose le cadre sur un rectangle imposé, celui d'un empilement.</summary>
+    /// <summary>
+    /// Places the frame on an imposed rectangle, that of a stack.
+    /// </summary>
     private Task StackFrameAsync(ScreenRect rect) =>
         MovableFrame is not { } frame
             ? Task.CompletedTask
@@ -614,46 +671,47 @@ public sealed partial class GameLauncher : IAsyncDisposable
             });
 
     /// <summary>
-    /// Signalé quand l'ensemble des fenêtres que les placements peuvent ranger
-    /// a pu changer : une mise de côté, une entrée ou une sortie du cadre à
-    /// onglets, un réordonnancement.
+    /// Raised when the set of windows the placements can arrange may
+    /// have changed: something set aside, an entry into or an exit
+    /// from the tabbed frame, a reordering.
     ///
-    /// L'ouverture et la fermeture passent par <see cref="SessionChanged"/> ;
-    /// celui-ci couvre ce qui change sans qu'aucune session ne bouge.
+    /// Opening and closing go through <see cref="SessionChanged"/>;
+    /// this one covers what changes without any session moving.
     /// </summary>
     public event EventHandler? ArrangeableChanged;
 
-    /// <summary>Signalé à chaque changement d'état d'une session.</summary>
+    /// <summary>Raised on every state change of a session.</summary>
     public event EventHandler<ScrcpySession>? SessionChanged
     {
         add => _sessions.SessionChanged += value;
         remove => _sessions.SessionChanged -= value;
     }
 
-    /// <summary>Demandé par le raccourci d'affichage du configurateur.</summary>
+    /// <summary>Requested by the configurator toggle shortcut.</summary>
     public event EventHandler? ConfiguratorToggleRequested;
 
-    /// <summary>Le raccourci du suivi de quêtes a été pressé.</summary>
+    /// <summary>The quest tracker shortcut was pressed.</summary>
     public event EventHandler? QuestsToggleRequested;
 
-    /// <summary>Demandé par le raccourci de l'Almanax.</summary>
+    /// <summary>Requested by the Almanax shortcut.</summary>
     public event EventHandler? AlmanaxRequested;
 
     /// <summary>
-    /// Demandé par le raccourci de sortie. L'arrêt lui-même appartient à
-    /// l'application, qui doit d'abord retenir l'état de la session.
+    /// Requested by the quit shortcut. The actual shutdown belongs
+    /// to the application, which must first remember the session's
+    /// state.
     /// </summary>
     public event EventHandler? QuitRequested;
 
     /// <summary>
-    /// Signalé quand la dernière fenêtre de jeu se ferme d'elle-même. Les
-    /// fermetures voulues par l'application n'en font pas partie.
+    /// Raised when the last game window closes on its own. Closes
+    /// wanted by the application are not part of this.
     /// </summary>
     public event EventHandler? LastWindowClosed;
 
     /// <summary>
-    /// Balaye les téléphones et rend les instances connues, à jour. Les
-    /// instances dont le téléphone est absent restent listées, hors ligne.
+    /// Sweeps the phones and returns the known instances, up to
+    /// date. Instances whose phone is absent stay listed, offline.
     /// </summary>
     public async Task<IReadOnlyList<DofusInstance>> RefreshInstancesAsync(
         CancellationToken cancellationToken = default)
@@ -668,11 +726,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
         var found = await _instances.DiscoverAsync(discovery.Devices, cancellationToken)
             .ConfigureAwait(false);
 
-        // Les comptes disparus s'oublient avant la fusion : sinon leur entrée
-        // mémorisée reparaîtrait dans le résultat, et la liste garderait un
-        // compte qui n'existe plus nulle part. Deux disparitions comptent, le
-        // profil retiré du téléphone et le jeu désinstallé d'un profil qui
-        // reste.
+        // Vanished accounts are forgotten before the merge:
+        // otherwise their remembered entry would reappear in the
+        // result, and the list would keep an account that no longer
+        // exists anywhere. Two kinds of disappearance count: the
+        // profile removed from the phone, and the game uninstalled
+        // from a profile that remains.
         var forgotten = await _settings
             .ForgetMissingProfilesAsync(
                 _instances.ScannedProfiles,
@@ -689,15 +748,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Incidents non bloquants du dernier balayage d'instances, à joindre à
-    /// ceux de la découverte d'appareils.
+    /// Non-blocking issues from the last instance sweep, to be
+    /// joined to those from device discovery.
     /// </summary>
     public IReadOnlyList<string> InstanceWarnings => _instances.Warnings;
 
     /// <summary>
-    /// Téléphones vus maintenant. Les appareils déjà associés sont reconnectés
-    /// au passage : un téléphone qui s'annonce sur le réseau n'a pas à être
-    /// réassocié à la main.
+    /// Phones seen now. Devices already paired are reconnected along
+    /// the way: a phone announcing itself on the network does not
+    /// need to be paired again by hand.
     /// </summary>
     public async Task<DeviceDiscoveryResult> RefreshDevicesAsync(CancellationToken cancellationToken = default)
     {
@@ -718,78 +777,87 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Le bilan des appareils, ou <c>null</c> quand ils n'ont rien à dire.
+    /// The devices' health summary, or <c>null</c> when they have
+    /// nothing to say.
     ///
-    /// Un seul texte, le plus grave : chaleur, batterie, place libre et bande
-    /// Wi-Fi parlaient chacune dans son coin, et trois avertissements côte à
-    /// côte dans le même bandeau se lisent comme un seul, plus long.
+    /// A single piece of text, the most serious one: heat, battery,
+    /// free space and Wi-Fi band each spoke in their own corner, and
+    /// three warnings side by side in the same banner read as one,
+    /// longer one.
     ///
-    /// **Évalué avant le lancement autant que pendant.** Tant qu'aucune
-    /// fenêtre n'est ouverte, ce sont les appareils connectés qu'on interroge :
-    /// découvrir qu'il ne reste rien de batterie une fois les cinq comptes
-    /// ouverts, c'est le découvrir trop tard.
+    /// **Evaluated before the launch as much as during it.** As long
+    /// as no window is open, it is the connected devices that get
+    /// asked: finding out there is no battery left once all five
+    /// accounts are open is finding out too late.
     /// </summary>
     public string? HealthSummary { get; private set; }
 
     /// <summary>
-    /// Tous les constats, un par ligne, pour la bulle d'aide du bandeau. Le
-    /// bandeau, lui, n'en montre qu'un : voir <see cref="DeviceHealth.Every" />.
+    /// All the findings, one per line, for the banner's help
+    /// tooltip. The banner itself shows only one: see
+    /// <see cref="DeviceHealth.Every" />.
     /// </summary>
     public string? HealthDetail { get; private set; }
 
     /// <summary>
-    /// Les constats de chaque appareil, rangés par numéro de série.
+    /// Each device's findings, keyed by serial number.
     ///
-    /// **Rangés, parce que la place du message est la moitié du message.**
-    /// Réunis dans un bandeau en bas de liste, ils se lisaient comme s'ils
-    /// parlaient du dernier appareil affiché, qui était justement celui qui
-    /// n'avait rien. Chaque constat se montre sous l'en-tête de l'appareil
-    /// qu'il concerne, et là le nom n'a plus besoin d'être répété.
+    /// **Keyed, because where a message sits is half the message.**
+    /// Gathered in a banner at the bottom of the list, they read as
+    /// if they were about the last device shown, which happened to
+    /// be the one that had nothing wrong. Each finding now shows
+    /// under the header of the device it concerns, and there the
+    /// name no longer needs repeating.
     /// </summary>
     public IReadOnlyDictionary<string, DeviceFindings> HealthByDevice => _health;
 
     private readonly Dictionary<string, DeviceFindings> _health = new(StringComparer.Ordinal);
 
     /// <summary>
-    /// Vrai quand le bilan porte un constat qui coupera la séance, par
-    /// opposition à un qui la gênera. Décide de la couleur du sigle.
+    /// True when the summary carries a finding that will cut the
+    /// session short, as opposed to one that will merely hamper it.
+    /// Decides the icon's color.
     /// </summary>
     public bool HealthIsSerious { get; private set; }
 
     /// <summary>
-    /// La dernière lecture de batterie par appareil.
+    /// The latest battery reading per device.
     ///
-    /// Exposée et pas seulement résumée en avertissement : la lecture est
-    /// faite de toute façon, et un niveau qu'on voit en permanence vaut mieux
-    /// qu'une alerte qui arrive à vingt pour cent.
+    /// Exposed and not only summarized as a warning: the reading is
+    /// taken anyway, and a level shown at all times is worth more
+    /// than an alert that only arrives at twenty percent.
     /// </summary>
     public IReadOnlyDictionary<string, BatteryReading> Batteries => _batteries;
 
     private readonly Dictionary<string, BatteryReading> _batteries = new(StringComparer.Ordinal);
 
-    /// <summary>Dernier état thermique journalisé par appareil.</summary>
+    /// <summary>Last thermal state logged per device.</summary>
     private readonly Dictionary<string, int> _loggedHeat = new(StringComparer.Ordinal);
 
-    /// <summary>Dernier palier de batterie journalisé par appareil.</summary>
+    /// <summary>Last battery tier logged per device.</summary>
     private readonly Dictionary<string, int> _loggedBattery = new(StringComparer.Ordinal);
 
-    /// <summary>Appareils dont le manque de place a déjà été journalisé.</summary>
+    /// <summary>
+    /// Devices whose lack of storage has already been logged.
+    /// </summary>
     private readonly HashSet<string> _loggedStorage = new(StringComparer.Ordinal);
 
     /// <summary>
-    /// Relit l'état des appareils et en tire un bilan.
+    /// Rereads the devices' state and draws a summary from it.
     ///
-    /// Ceux qui portent une fenêtre d'abord, et à défaut ceux qui sont
-    /// simplement connectés. Les lectures sont gardées par la découverte, une
-    /// minute pour la chaleur et la batterie, un quart d'heure pour la place :
-    /// le panneau peut sonder toutes les deux secondes sans que cela se paie.
+    /// Those that carry a window first, and failing that those that
+    /// are simply connected. Readings are cached by discovery, one
+    /// minute for heat and battery, a quarter of an hour for
+    /// storage: the panel can poll every two seconds without paying
+    /// for it.
     ///
-    /// Le journal ne parle qu'au changement de palier. La même ligne répétée
-    /// trois cents fois en dix minutes noierait le reste.
+    /// The log only speaks when a tier changes. The same line
+    /// repeated three hundred times in ten minutes would drown out
+    /// everything else.
     ///
-    /// Called after the list is on screen, never before: the questions it asks
-    /// each phone take seconds, and nothing it produces is needed to show which
-    /// phones are there.
+    /// Called after the list is on screen, never before: the questions it
+    /// asks each phone take seconds, and nothing it produces is needed to
+    /// show which phones are there.
     /// </summary>
     public async Task RefreshHealthAsync(
         DeviceDiscoveryResult discovery,
@@ -839,10 +907,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
             var storage = await _devices.GetStorageAsync(serial, cancellationToken).ConfigureAwait(false);
             var link = await _devices.GetWifiLinkAsync(serial, cancellationToken).ConfigureAwait(false);
 
-            // Les fenêtres de cet appareil montrent-elles le cadenas plutôt
-            // que le jeu ? La question ne se pose que là où il y a des
-            // fenêtres, et seulement sur un appareil dont l'afficheur suit le
-            // verrouillage : ailleurs, rien n'est demandé au téléphone.
+            // Do this device's windows show the lock icon rather
+            // than the game? The question is only asked where there
+            // are windows, and only on a device whose display
+            // follows the lock state: elsewhere, nothing is asked of
+            // the phone.
             var locked = playing.Contains(serial, StringComparer.Ordinal)
                 && await _devices
                     .IsVirtualDisplayUnlockedAsync(serial, cancellationToken)
@@ -851,24 +920,26 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     .IsDeviceLockedAsync(serial, cancellationToken)
                     .ConfigureAwait(false) == true;
 
-            // La préparation batterie est décrite dans l'aide depuis
-            // longtemps ; ce contrôle dit seulement si elle a été faite. La
-            // question vaut aussi avant le lancement : c'est le moment où on
-            // peut encore aller la régler.
+            // Battery preparation has long been described in the
+            // help; this check only says whether it has been done.
+            // The question also matters before launch: that is the
+            // moment when it can still be fixed.
             var unprepared = await _devices
                 .IsBatteryExemptAsync(serial, DofusPackages.DofusTouch, cancellationToken)
                 .ConfigureAwait(false) == false;
 
-            // **La sonde d'entrée, une fois par appareil, à sa première
-            // fenêtre.** Elle envoie la touche « inconnue » d'Android, qui ne
-            // déclenche rien nulle part, et rend son verdict en une seconde.
+            // **The input probe, once per device, on its first
+            // window.** It sends Android's "unknown" key, which
+            // triggers nothing anywhere, and returns its verdict
+            // within a second.
             //
-            // Le type qui la porte disait jusqu'ici qu'elle n'est envoyée que
-            // sur demande. La règle change ici, et le terrain l'a imposée :
-            // deux fois dans la même journée, des fenêtres ont montré le jeu
-            // sans répondre à rien, et le réglage fautif se décoche tout seul
-            // au redémarrage. Jamais pendant une partie, jamais à répétition :
-            // une question, au moment où la première fenêtre s'ouvre.
+            // The type that carries it used to say it is only sent
+            // on request. That rule changes here, and the field
+            // forced it: twice in the same day, windows showed the
+            // game without responding to anything, and the guilty
+            // setting unchecks itself on its own at restart. Never
+            // during a game, never repeatedly: one question, at the
+            // moment the first window opens.
             var dead = playing.Contains(serial, StringComparer.Ordinal)
                 && await Inputs(serial, cancellationToken).ConfigureAwait(false) == InputInjection.Denied;
 
@@ -903,14 +974,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Relève le niveau de batterie de chaque appareil joignable.
+    /// Reads the battery level of every reachable device.
     ///
-    /// Tous, et pas seulement ceux qui portent une fenêtre : un téléphone qui
-    /// attend son tour se vide aussi, et une jauge qui n'apparaîtrait qu'une
-    /// fois le jeu lancé arriverait après la décision qu'elle éclaire.
+    /// All of them, not only those carrying a window: a phone
+    /// waiting its turn also drains, and a gauge that would only
+    /// appear once the game has launched would arrive after the
+    /// decision it is meant to inform.
     ///
-    /// La lecture est gardée une minute par la découverte, si bien que sonder
-    /// toutes les deux secondes ne coûte rien de plus.
+    /// The reading is cached for a minute by discovery, so polling
+    /// every two seconds costs nothing extra.
     /// </summary>
     private async Task RefreshBatteriesAsync(
         DeviceDiscoveryResult discovery,
@@ -948,21 +1020,21 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
     }
 
-    /// <summary>Le nom lisible d'un appareil, ou <c>null</c> si on ne l'a pas.</summary>
+    /// <summary>A device's readable name, or <c>null</c> if unknown.</summary>
     private static string? Named(DeviceDiscoveryResult discovery, string serial) =>
         discovery.Devices
             .FirstOrDefault(d => string.Equals(d.Serial, serial, StringComparison.Ordinal))
             ?.DisplayName;
 
-    /// <summary>Appareils dont le cadenas a déjà été journalisé.</summary>
+    /// <summary>Devices whose lock has already been logged.</summary>
     private readonly HashSet<string> _loggedLock = new(StringComparer.Ordinal);
 
     /// <summary>
-    /// Journalise le cadenas, une fois par épisode.
+    /// Logs the lock, once per episode.
     ///
-    /// Le bilan est refait toutes les deux secondes : sans cette garde, une
-    /// soirée devant un téléphone verrouillé écrirait mille fois la même
-    /// ligne.
+    /// The summary is redone every two seconds: without this guard,
+    /// an evening spent in front of a locked phone would write the
+    /// same line a thousand times.
     /// </summary>
     private void TraceLock(string serial, bool locked)
     {
@@ -979,10 +1051,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
     }
 
-    /// <summary>Appareils dont la préparation manquante a déjà été journalisée.</summary>
+    /// <summary>
+    /// Devices whose missing preparation has already been logged.
+    /// </summary>
     private readonly HashSet<string> _loggedPreparation = new(StringComparer.Ordinal);
 
-    /// <summary>Journalise la préparation manquante, une fois par épisode.</summary>
+    /// <summary>
+    /// Logs the missing preparation, once per episode.
+    /// </summary>
     private void TracePreparation(string serial, bool unprepared)
     {
         if (unprepared)
@@ -999,23 +1075,23 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Vrai quand au moins un appareil a refusé la simulation d'entrée.
+    /// True when at least one device has refused input simulation.
     ///
-    /// Décide de l'apparition du remède de dernier recours : une souris
-    /// simulée capture le curseur du poste, elle n'a donc rien à faire dans
-    /// les réglages de qui n'a pas la panne.
+    /// Decides whether the last-resort remedy appears: a simulated
+    /// mouse captures the PC's cursor, so it has no business in the
+    /// settings of someone who does not have the problem.
     /// </summary>
     public bool AnyInputRefused => _inputs.Values.Any(v => v == InputInjection.Denied);
 
-    /// <summary>Verdict d'entrée par appareil, posé une fois et gardé.</summary>
+    /// <summary>Input verdict per device, asked once and kept.</summary>
     private readonly Dictionary<string, InputInjection> _inputs = new(StringComparer.Ordinal);
 
     /// <summary>
-    /// Le verdict d'entrée de cet appareil, demandé une seule fois.
+    /// This device's input verdict, asked only once.
     ///
-    /// Gardé jusqu'à ce que l'appareil disparaisse : le réglage ne change pas
-    /// en cours de séance, et reposer la question reviendrait à envoyer des
-    /// touches pendant qu'on joue.
+    /// Kept until the device disappears: the setting does not
+    /// change mid-session, and asking the question again would
+    /// amount to sending keys while playing.
     /// </summary>
     private async Task<InputInjection> Inputs(string serial, CancellationToken cancellationToken)
     {
@@ -1026,8 +1102,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         var answer = await _devices.CheckInputInjectionAsync(serial, cancellationToken).ConfigureAwait(false);
 
-        // Un verdict incertain ne se garde pas : l'appareil était peut-être
-        // occupé, et la question se reposera à la prochaine fenêtre.
+        // An uncertain verdict is not kept: the device may have
+        // been busy, and the question will be asked again at the
+        // next window.
         if (answer != InputInjection.Unknown)
         {
             _inputs[serial] = answer;
@@ -1036,10 +1113,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
         return answer;
     }
 
-    /// <summary>Appareils dont le refus d'entrée a déjà été journalisé.</summary>
+    /// <summary>
+    /// Devices whose input refusal has already been logged.
+    /// </summary>
     private readonly HashSet<string> _loggedDeadInput = new(StringComparer.Ordinal);
 
-    /// <summary>Journalise le refus d'entrée, une fois par épisode.</summary>
+    /// <summary>Logs the input refusal, once per episode.</summary>
     private void TraceDeadInput(string serial, bool dead)
     {
         if (dead)
@@ -1055,7 +1134,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
     }
 
-    /// <summary>Journalise les paliers, et seulement quand ils changent.</summary>
+    /// <summary>Logs the tiers, and only when they change.</summary>
     private void Trace(
         string serial,
         ThermalReading? heat,
@@ -1077,8 +1156,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         if (battery?.Describe() is not null)
         {
-            // Le palier, non le pourcentage : journaliser chaque point perdu
-            // ferait quatre-vingts lignes par séance.
+            // The tier, not the percentage: logging every lost
+            // point would make eighty lines per session.
             var band = battery.Percent <= BatteryReading.Critical ? 2 : 1;
 
             if (!_loggedBattery.TryGetValue(serial, out var already) || already != band)
@@ -1106,16 +1185,17 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Reconnecte tout ce qui peut l'être, sans intervention.
+    /// Reconnects everything that can be, without intervention.
     ///
-    /// Deux voies complémentaires. D'abord, tout ce qui s'annonce sur le
-    /// réseau : l'annonce porte le numéro de série et l'adresse du moment, et
-    /// ADB conserve la clé d'association, donc un changement d'adresse ou de
-    /// port ne gêne pas. Ensuite, les appareils mémorisés qui ne répondent
-    /// toujours pas, via leur dernière adresse connue.
+    /// Two complementary paths. First, everything announcing itself
+    /// on the network: the announcement carries the serial number
+    /// and the current address, and ADB keeps the pairing key, so a
+    /// change of address or port does not matter. Then, remembered
+    /// devices that still are not responding, through their last
+    /// known address.
     ///
-    /// Espacé dans le temps : inutile de sonder le réseau à chaque
-    /// rafraîchissement de la liste.
+    /// Spaced out over time: no need to poll the network on every
+    /// refresh of the list.
     /// </summary>
     private async Task EnsureKnownDevicesConnectedAsync(CancellationToken cancellationToken)
     {
@@ -1128,8 +1208,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         try
         {
-            // Ménage d'abord : une connexion morte fausse la liste et peut
-            // masquer le téléphone réellement joignable.
+            // Cleanup first: a dead connection skews the list and
+            // can hide the phone that is actually reachable.
             await _devices.PruneStaleWirelessTransportsAsync(cancellationToken).ConfigureAwait(false);
 
             var live = await _devices.RefreshAsync(cancellationToken).ConfigureAwait(false);
@@ -1139,18 +1219,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 .Select(d => d.Serial)
                 .ToHashSet(StringComparer.Ordinal);
 
-            // Une tentative sur une annonce n'aboutit que pour un téléphone
-            // déjà associé à ce PC : ADB refuse les autres. Encore faut-il ne
-            // pas reprendre celui dont on vient de rompre l'association, qui
-            // s'annonce toujours et dont ADB garde la clé.
+            // An attempt on an announcement only succeeds for a
+            // phone already paired with this PC: ADB refuses the
+            // others. Care must still be taken not to pick back up
+            // the one whose pairing was just broken, which keeps
+            // announcing itself and whose key ADB still holds.
             var (known, discarded) = await _registry.GetSnapshotAsync(cancellationToken).ConfigureAwait(false);
 
-            // **Le balayage des annonces ne sert qu'à retrouver ce qui
-            // manque.** Tout étant connecté, il interrogeait quand même le
-            // réseau toutes les cinq secondes, soit douze fois par minute
-            // pendant qu'on joue. Il est espacé dans ce cas, et non
-            // supprimé : il rattrape aussi un téléphone associé autrefois
-            // qui se remet à s'annoncer.
+            // **Scanning announcements only serves to find what is
+            // missing.** With everything connected, it still polled
+            // the network every five seconds, that is twelve times
+            // a minute while playing. It is spaced out in that case,
+            // not removed: it also catches a phone paired long ago
+            // that starts announcing itself again.
             var whole = known.Count > 0
                 && known.All(d => live.Devices.Any(l =>
                     l.IsConnected && string.Equals(l.Id, d.Id, StringComparison.Ordinal)));
@@ -1168,10 +1249,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             var recovered = opened.Connected.Count;
 
-            // Deux voies mènent au même constat : un appareil qui s'annonce et
-            // refuse, et un appareil mémorisé dont l'adresse répond mais
-            // décline la poignée de main. Les refus des deux voies sont réunis
-            // avant d'être comptés, faute de quoi l'un effacerait l'autre.
+            // Two paths lead to the same finding: a device that
+            // announces itself and refuses, and a remembered device
+            // whose address answers but declines the handshake.
+            // Refusals from both paths are merged before being
+            // counted, otherwise one would erase the other.
             List<string> refused = [.. opened.Refused];
 
             if (known.Count > 0)
@@ -1211,27 +1293,28 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
         catch (AdbException)
         {
-            // Rien à reconnecter si ADB lui-même est indisponible : le
-            // balayage suivant le signalera.
+            // Nothing to reconnect if ADB itself is unavailable: the
+            // next sweep will report it.
         }
     }
 
     /// <summary>
-    /// Appareils qui s'annoncent et refusent ce PC, et depuis combien de
-    /// tentatives.
+    /// Devices that announce themselves and refuse this PC, and for
+    /// how many attempts.
     /// </summary>
     private readonly Dictionary<string, int> _refusals = new(StringComparer.Ordinal);
 
     /// <summary>
-    /// Deux refus d'affilée avant de conclure. Une tentative peut tomber au
-    /// mauvais moment, sur un téléphone qui vient de changer de port ou qui
-    /// s'éteint ; deux refus sur deux annonces fraîches, non.
+    /// Two refusals in a row before concluding anything. A single
+    /// attempt can land at the wrong moment, on a phone that just
+    /// changed port or is powering off; two refusals on two fresh
+    /// announcements, not so.
     /// </summary>
     private const int RefusalsBeforeDoubt = 2;
 
     /// <summary>
-    /// Appareils dont l'association est à refaire : ils s'annoncent sur le
-    /// réseau et refusent la clé de ce PC.
+    /// Devices whose pairing needs redoing: they announce
+    /// themselves on the network and refuse this PC's key.
     /// </summary>
     public IReadOnlySet<string> NeedsPairing { get; private set; } =
         new HashSet<string>(StringComparer.Ordinal);
@@ -1257,9 +1340,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private static readonly TimeSpan ReconnectInterval = TimeSpan.FromSeconds(5);
 
     /// <summary>
-    /// Rythme du balayage des annonces quand tous les appareils connus
-    /// répondent. Il n'a alors rien à retrouver, et une demi-minute suffit à
-    /// rattraper un téléphone qui reparaît de lui-même.
+    /// Pace of the announcement scan when all known devices answer.
+    /// It then has nothing to find, and half a minute is enough to
+    /// catch up with a phone that reappears on its own.
     /// </summary>
     private static readonly TimeSpan IdleScanInterval = TimeSpan.FromSeconds(30);
 
@@ -1268,26 +1351,27 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private DateTimeOffset _lastReconnectAttempt = DateTimeOffset.MinValue;
 
     /// <summary>
-    /// Ouvre toutes les instances cochées, puis empile leurs fenêtres. Une
-    /// instance dont le téléphone est absent est signalée sans empêcher les
-    /// autres de s'ouvrir.
+    /// Opens every checked instance, then stacks their windows. An
+    /// instance whose phone is absent is reported without
+    /// preventing the others from opening.
     /// </summary>
     public async Task<LaunchReport> LaunchEnabledAsync(CancellationToken cancellationToken = default)
     {
         await EnsureHotkeysAsync(cancellationToken).ConfigureAwait(false);
 
-        // **Rien de coché : rien à découvrir.**
+        // **Nothing checked: nothing to discover.**
         //
-        // La redécouverte coûte deux commandes par profil de chaque téléphone,
-        // et elle courait toujours avant qu'on regarde s'il y avait seulement
-        // quelque chose à ouvrir. Mesuré au démarrage : trois secondes pendant
-        // lesquelles l'écran restait vide, pour conclure « aucune instance
-        // n'est cochée », réponse que les réglages donnaient déjà.
+        // Rediscovery costs two commands per profile on every
+        // phone, and it used to run every time before even looking
+        // whether there was anything to open. Measured at startup:
+        // three seconds during which the screen stayed empty, only
+        // to conclude "No instance is ticked.", an answer the
+        // settings already gave.
         //
-        // La découverte ne peut pas changer cette réponse : un compte qu'elle
-        // vient de trouver n'est jamais coché, « StoredInstance.IsEnabled »
-        // valant faux par défaut. Lire les réglages suffit donc, et suffit
-        // toujours.
+        // Discovery cannot change that answer: an account it has
+        // just found is never checked, "StoredInstance.IsEnabled"
+        // defaulting to false. Reading the settings is therefore
+        // enough, and always will be.
         var stored = await _settings.GetAsync(cancellationToken).ConfigureAwait(false);
 
         if (!stored.Instances.Exists(i => i.IsEnabled))
@@ -1306,15 +1390,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
         return await LaunchAsync(enabled, cancellationToken).ConfigureAwait(false);
     }
 
-    /// <summary>Ouvre une liste d'instances précise.</summary>
+    /// <summary>Opens a specific list of instances.</summary>
     public Task<LaunchReport> LaunchAsync(
         IReadOnlyList<DofusInstance> instances,
         CancellationToken cancellationToken = default) =>
         LaunchAsync(instances, remembered: null, cancellationToken);
 
     /// <summary>
-    /// Ouvre une liste d'instances, éventuellement avec une géométrie relevée
-    /// à l'instant plutôt que celle des réglages.
+    /// Opens a list of instances, optionally with geometry captured
+    /// on the spot rather than the one from settings.
     /// </summary>
     private async Task<LaunchReport> LaunchAsync(
         IReadOnlyList<DofusInstance> instances,
@@ -1323,19 +1407,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(instances);
 
-        // Le préambule est chronométré parce qu'il se voit : rien ne s'ouvre
-        // pendant ce temps, et les boutons des autres comptes attendent. Sans
-        // ces trois nombres, « ça bloque trop longtemps » ne se corrige qu'au
-        // hasard.
+        // The preamble is timed because it is visible: nothing opens
+        // during that time, and the other accounts' buttons wait.
+        // Without these three numbers, "this takes too long to
+        // unblock" can only be fixed by guesswork.
         var preambule = System.Diagnostics.Stopwatch.StartNew();
 
         await EnsureHotkeysAsync(cancellationToken).ConfigureAwait(false);
 
         var raccourcis = preambule.ElapsedMilliseconds;
 
-        // Les appareils sont résolus avant les réglages de fenêtre, et non
-        // après : c'est d'eux qu'on tire la liaison, et c'est la liaison qui
-        // borne la qualité que ces réglages vont poser.
+        // Devices are resolved before the window settings, not
+        // after: the link is drawn from them, and it is the link
+        // that bounds the quality these settings are about to set.
         var devices = await ResolveDevicesAsync(cancellationToken).ConfigureAwait(false);
 
         var appareils = preambule.ElapsedMilliseconds;
@@ -1361,14 +1445,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
             IconDirectory = _iconDirectory,
         };
 
-        // La position est donnée à scrcpy dès le lancement. Le faire après
-        // coup ne suffit pas : scrcpy recentre sa fenêtre quand il reçoit la
-        // première image, donc après notre placement.
+        // The position is given to scrcpy right at launch. Doing it
+        // afterwards is not enough: scrcpy recenters its window when
+        // it receives the first frame, that is after our placement.
         remembered ??= await _settings.GetWindowRectsAsync(cancellationToken).ConfigureAwait(false);
 
         List<string> problems = [];
-        // Une lecture pour tout le lancement : la table ne change pas pendant
-        // qu'on ouvre les fenêtres.
+        // One read for the whole launch: the table does not change
+        // while the windows are opening.
         var zooms = await _settings
             .GetInstanceZoomsAsync(cancellationToken)
             .ConfigureAwait(false);
@@ -1385,8 +1469,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Retenue avant tout filtre : c'est par elle qu'on saura quoi
-            // rouvrir si la fenêtre tombe.
+            // Remembered before any filter: this is how we will
+            // know what to reopen if the window drops.
             _launched[instance.Key] = instance;
 
             if (IsOpen(instance))
@@ -1400,9 +1484,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 continue;
             }
 
-            // Le niveau d'API est connu depuis la découverte. Le lire ici évite
-            // d'attendre le délai complet de scrcpy pour un appareil dont on
-            // sait déjà qu'il ne créera pas d'afficheur virtuel.
+            // The API level is known from discovery. Reading it
+            // here avoids waiting for scrcpy's full timeout on a
+            // device we already know will not create a virtual
+            // display.
             if (AndroidRequirements.DescribeVirtualDisplayShortfall(
                     device.SdkVersion, device.AndroidVersion) is { } shortfall)
             {
@@ -1417,36 +1502,38 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             var target = ToTarget(instance, device.Serial);
 
-            // Le palier du compte, ou le commun s'il n'en a pas choisi.
+            // The account's own tier, or the shared one if none was chosen.
             var quality = qualities.TryGetValue(instance.Key, out var own) ? own : _quality;
 
-            // La distance du compte, ou la commune s'il n'en a pas choisi.
+            // The account's own distance, or the shared one if not chosen.
             var zoom = zooms.TryGetValue(instance.Key, out var ownZoom) ? ownZoom : _zoom;
 
             _zoomsInUse[instance.Key] = zoom;
 
             var display = WithDisplayFor(options, placement, stored, quality, zoom) with
             {
-                // Propre à l'appareil : deux téléphones sur des bandes
-                // différentes n'ont pas besoin du même tampon.
+                // Specific to the device: two phones on different
+                // bands do not need the same buffer.
                 VideoBufferMs = _videoBuffers.TryGetValue(device.Serial, out var buffer)
                     ? buffer
                     : VideoBuffer.None,
             };
 
-            // L'encodeur n'est imposé que si l'appareil mettrait du logiciel
-            // devant du matériel, et seulement si on le sait déjà : la liste
-            // est demandée en arrière-plan et sert au lancement suivant.
+            // The encoder is only forced if the device would put
+            // software ahead of hardware, and only if this is
+            // already known: the list is requested in the
+            // background and serves the next launch.
             if (_encoders.TryGetValue(device.Serial, out var known)
                 && ScrcpyEncoders.Force(known, display.VideoCodec ?? "h264") is { } forced)
             {
                 display = display with { VideoEncoder = forced };
             }
 
-            // Le son capté est celui du téléphone entier : Android ne sait pas
-            // l'isoler par application. Une seule session par appareil le porte
-            // donc, la première ouverte. L'accorder à toutes donnerait le même
-            // flux en plusieurs exemplaires, c'est-à-dire un écho.
+            // The captured sound is that of the whole phone:
+            // Android cannot isolate it per application. Only one
+            // session per device therefore carries it, the first
+            // one opened. Granting it to all of them would give the
+            // same stream in several copies, that is to say an echo.
             if (display.AudioEnabled && HasOpenSessionOn(instance.DeviceId))
             {
                 display = display with { AudioEnabled = false };
@@ -1455,14 +1542,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
             var session = await _sessions.StartAsync(
                 target, display, placement, cancellationToken).ConfigureAwait(false);
 
-            // Les encodeurs vidéo annoncent une définition maximale, variable
-            // d'un appareil à l'autre : une tablette modeste peut plafonner à
-            // 1280x720 là où un téléphone récent monte en 8K. Plutôt que de
-            // renoncer, on redescend les paliers de repli.
+            // Video encoders announce a maximum resolution, which
+            // varies from one device to another: a modest tablet may
+            // cap at 1280x720 where a recent phone goes up to 8K.
+            // Rather than give up, we step down through the fallback
+            // tiers.
             //
-            // Seulement pour les refus qu'une définition plus modeste peut
-            // réparer : un téléphone débranché le restera, et chaque tentative
-            // coûte l'attente complète.
+            // Only for refusals a lower resolution can fix: an
+            // unplugged phone will stay unplugged, and every attempt
+            // costs the full wait.
             while (session.State == ScrcpySessionState.Failed
                 && ScrcpyOutputParser.CanRetrySmaller(session.FailureKind)
                 && DisplayLadder.Below(
@@ -1488,8 +1576,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             {
                 problems.Add($"{instance.DisplayName} : {session.FailureMessage}");
 
-                // Sans la sortie de scrcpy, un refus se résume à « la session
-                // n'a pas pu s'ouvrir », ce qui n'aide personne.
+                // Without scrcpy's output, a refusal boils down to
+                // "the session could not open", which helps no one.
                 LogSessionFailure(
                     instance.DisplayName,
                     session.CommandLine,
@@ -1500,10 +1588,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             LogStartupTiming(instance.DisplayName, session.DisplayReadyMs, session.StartupMs);
 
-            // La définition et le débit retenus : ils dépendent de la fenêtre,
-            // de l'écran et du palier de qualité, et se lisaient jusqu'ici
-            // nulle part. C'est aussi ce qui permet de vérifier que le débit
-            // suit bien la définition.
+            // The resolution and bitrate settled on: they depend on
+            // the window, the screen and the quality tier, and until
+            // now could be read nowhere. This is also what lets one
+            // check that the bitrate does follow the resolution.
             LogStreamSettings(
                 instance.DisplayName,
                 display.VirtualDisplayWidth,
@@ -1515,16 +1603,18 @@ public sealed partial class GameLauncher : IAsyncDisposable
             started.Add(session);
         }
 
-        // Seules les fenêtres qui viennent d'ouvrir sont placées. Replacer les
-        // autres les arracherait à l'endroit où l'utilisateur les a mises, et
-        // ferait recréer leur afficheur virtuel côté Android.
+        // Only the windows that just opened are placed. Repositioning
+        // the others would tear them away from where the user put
+        // them, and would make Android recreate their virtual
+        // display.
         if (started.Count > 0)
         {
             await _windows.RestoreAsync(started, remembered, cancellationToken).ConfigureAwait(false);
 
-            // Les comptes à onglets rejoignent le cadre. Après le placement :
-            // arrimer d'abord ferait replacer une fenêtre déjà logée, qui
-            // sauterait hors du cadre le temps d'y revenir.
+            // Tabbed accounts join the frame. After placement:
+            // attaching them first would cause an already housed
+            // window to be repositioned, which would jump out of the
+            // frame only to come back into it.
             foreach (var session in started.Where(s => _tabbed.Contains(s.Target.Key)))
             {
                 await AttachToTabsAsync(session, cancellationToken).ConfigureAwait(false);
@@ -1532,9 +1622,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         }
 
-        // Ce qui vient d'être ouvert rouvrira au lancement suivant. Seul le
-        // bouton « Fermer » retire une instance de cet ensemble : fermer une
-        // fenêtre de jeu à la main ne doit rien y changer.
+        // What has just opened will reopen at the next launch. Only
+        // the "Close" button removes an instance from this set:
+        // closing a game window by hand should change nothing here.
         if (started.Count > 0)
         {
             await _settings.SetInstancesEnabledAsync(
@@ -1548,9 +1638,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Ferme puis rouvre une instance, sans toucher aux autres. Le jeu est
-    /// arrêté franchement sur l'appareil : sans cela il reprendrait dans
-    /// l'état où il était, et la relance n'aurait servi à rien.
+    /// Closes then reopens an instance, without touching the
+    /// others. The game is properly stopped on the device: without
+    /// this it would resume in the state it was in, and the restart
+    /// would have served no purpose.
     /// </summary>
     public async Task<LaunchReport> RestartAsync(
         DofusInstance instance,
@@ -1563,8 +1654,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             return await LaunchAsync([instance], cancellationToken).ConfigureAwait(false);
         }
 
-        // Seul le jeu repart : la session scrcpy et sa fenêtre sont conservées,
-        // et l'utilisateur ne voit rien clignoter.
+        // Only the game restarts: the scrcpy session and its window
+        // are kept, and the user sees nothing flicker.
         var restart = await _restarts.RestartAsync(session, cancellationToken).ConfigureAwait(false);
 
         if (restart.Outcome == AppRestartOutcome.Restarted)
@@ -1572,8 +1663,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             return new LaunchReport(1, []);
         }
 
-        // Le redémarrage court a échoué : on ferme et on rouvre tout, ce qui
-        // reste le dernier recours utile.
+        // The short restart failed: everything is closed and
+        // reopened, which remains the last useful resort.
         LogRestartFallback(instance.DisplayName, restart.UserMessage ?? "afficheur inconnu");
 
         await StopSessionAsync(session, cancellationToken).ConfigureAwait(false);
@@ -1582,10 +1673,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Ferme une instance, et la retire du lancement suivant.
+    /// Closes an instance, and removes it from the next launch.
     ///
-    /// C'est le seul geste qui l'en retire : fermer la fenêtre de jeu à la
-    /// main la laisse dans l'ensemble et elle rouvrira.
+    /// This is the only action that removes it: closing the game
+    /// window by hand leaves it in the set and it will reopen.
     /// </summary>
     public async Task StopAsync(DofusInstance instance, CancellationToken cancellationToken = default)
     {
@@ -1593,8 +1684,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         if (FindSession(instance) is { } session)
         {
-            // La géométrie est relevée avant la fermeture : sans quoi la
-            // fenêtre rouvrirait ailleurs le jour où on la relance.
+            // Geometry is captured before closing: otherwise the
+            // window would reopen elsewhere the day it is relaunched.
             await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
 
             await StopSessionAsync(session, cancellationToken).ConfigureAwait(false);
@@ -1620,9 +1711,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// left the process alive at 329 MB with nothing on screen and no way back
     /// except Ctrl+P. App.xaml.cs states the opposite rule in as many words.
     ///
-    /// Not raised from CloseAllAsync: that one also serves as the first half of
-    /// applying a launch profile, where a reopening follows at once and quitting
-    /// in between would take the application down mid-gesture.
+    /// Not raised from CloseAllAsync: that one also serves as the first
+    /// half of applying a launch profile, where a reopening follows at once
+    /// and quitting in between would take the application down mid-gesture.
     /// </summary>
     private void NotifyIfNothingLeft()
     {
@@ -1633,10 +1724,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Arrête une session sans toucher au lancement suivant.
+    /// Stops a session without affecting the next launch.
     ///
-    /// Le drapeau évite que fermer la dernière session ne referme
-    /// l'application : c'est nous qui fermons, pas le jeu qui meurt.
+    /// The flag keeps closing the last session from also closing
+    /// the application: it is us doing the closing, not the game
+    /// dying.
     /// </summary>
     private async Task StopSessionAsync(ScrcpySession session, CancellationToken cancellationToken)
     {
@@ -1652,9 +1744,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
             _closing = false;
         }
 
-        // L'onglet part avec la session. Le laisser faisait croire au cadre
-        // que le compte y était encore, et rouvrir ce compte ne le relogeait
-        // plus : il reparaissait en fenêtre libre par-dessus le cadre.
+        // The tab goes with the session. Leaving it made the frame
+        // believe the account was still there, and reopening that
+        // account no longer housed it: it reappeared as a free
+        // window on top of the frame.
         if (_tabs is not null)
         {
             await OnUiAsync(() => _tabs?.Detach(session.Target.Key)).ConfigureAwait(false);
@@ -1662,22 +1755,23 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Ajoute un compte sur un téléphone : un profil Android neuf, le jeu
-    /// dedans, prêt à ouvrir.
+    /// Adds an account on a phone: a fresh Android profile, the game
+    /// inside it, ready to open.
     ///
-    /// Le message de refus se complète ici, où l'on sait de quelle marque est
-    /// l'appareil : quand la surcouche interdit la création, dire « passez par
-    /// vos réglages » sans dire où n'avance à rien.
+    /// The refusal message is completed here, where we know which
+    /// brand the device is: when the overlay forbids creation,
+    /// saying "go to your settings" without saying where gets
+    /// nowhere.
     /// </summary>
     public async Task<AccountAddition> AddAccountAsync(
         string deviceId,
         string name,
         CancellationToken cancellationToken = default)
     {
-        // L'état vivant, et non celui du registre : le registre garde le
-        // dernier état écrit, qui vaut souvent « hors ligne » alors que le
-        // téléphone répond. Le bouton refusait ainsi de travailler sur un
-        // appareil que la liste montrait pourtant connecté.
+        // The live state, not the registry's: the registry keeps
+        // the last state written, which often reads "offline" even
+        // though the phone answers. The button was thus refusing to
+        // work on a device the list nonetheless showed as connected.
         var devices = await ResolveDevicesAsync(cancellationToken).ConfigureAwait(false);
 
         if (!devices.TryGetValue(deviceId, out var device))
@@ -1700,16 +1794,17 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         return result with
         {
-            // Par une ressource : la phrase était écrite en français dans le
-            // code, si bien qu'une interface en anglais ou en espagnol rendait
-            // un message traduit suivi d'une phrase qui ne l'était pas.
+            // Through a resource: the sentence was written in
+            // French in the code, so an interface in English or
+            // Spanish rendered a translated message followed by a
+            // sentence that was not.
             Message = result.Message + Strings.Format("OnBrandUseClonePath", brand.Name, brand.ClonePath),
         };
     }
 
     /// <summary>
-    /// Rompt l'association d'un appareil : ses fenêtres se ferment et il sort
-    /// de la mémoire, code d'appairage compris.
+    /// Breaks a device's pairing: its windows close and it drops
+    /// out of memory, pairing code included.
     /// </summary>
     public async Task ForgetDeviceAsync(string deviceId, CancellationToken cancellationToken = default)
     {
@@ -1720,9 +1815,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
             await StopSessionAsync(session, cancellationToken).ConfigureAwait(false);
         }
 
-        // ADB garde ses connexions ouvertes, et le balayage suivant reverrait
-        // donc le téléphone comme n'importe quel autre. L'appareil est relu
-        // avant l'écart, puisque l'écart efface l'entrée.
+        // ADB keeps its connections open, so the next sweep would
+        // see the phone again like any other. The device is reread
+        // before it is discarded, since discarding erases the entry.
         var known = await _registry.GetKnownAsync(cancellationToken).ConfigureAwait(false);
         var device = known.FirstOrDefault(
             d => string.Equals(d.Id, deviceId, StringComparison.Ordinal));
@@ -1735,35 +1830,38 @@ public sealed partial class GameLauncher : IAsyncDisposable
             }
             catch (AdbException exception)
             {
-                // Un appareil déjà parti n'a pas à faire échouer une rupture :
-                // le reste du nettoyage compte davantage que cette coupure.
+                // A device that is already gone should not make a
+                // break-up fail: the rest of the cleanup matters
+                // more than this disconnection.
                 LogDisconnectFailed(device.DisplayName, exception.UserMessage);
             }
         }
 
         await _registry.DiscardAsync(deviceId, cancellationToken).ConfigureAwait(false);
 
-        // Un geste irréversible ne laissait aucune trace : quand l'utilisateur
-        // a signalé qu'il fallait cliquer deux fois pour oublier un appareil,
-        // le journal n'avait rien à en dire et le diagnostic a dû se faire par
-        // lecture de code.
+        // An irreversible action left no trace: when the user
+        // reported having to click twice to forget a device, the log
+        // had nothing to say about it and the diagnosis had to be
+        // made by reading code.
         LogDeviceForgotten(device?.DisplayName ?? deviceId);
     }
 
     /// <summary>
-    /// Referme puis rouvre les fenêtres ouvertes, à leur place et à leur
-    /// taille.
+    /// Closes then reopens the open windows, at their place and
+    /// their size.
     ///
-    /// La qualité et le zoom sont des arguments de démarrage de scrcpy, figés
-    /// pour toute la durée d'une session : les changer ne se voyait nulle part
-    /// tant qu'on n'avait pas tout refermé à la main. La géométrie est relevée
-    /// avant la fermeture, si bien que chaque fenêtre revient là où elle était.
+    /// Quality and zoom are scrcpy startup arguments, fixed for the
+    /// whole duration of a session: changing them showed up nowhere
+    /// until everything had been closed by hand. Geometry is
+    /// captured before closing, so each window comes back where it
+    /// was.
     /// </summary>
     public async Task<LaunchReport> ReopenAsync(CancellationToken cancellationToken = default)
     {
-        // Deux rouvrements qui se chevauchent se volaient leurs sessions : le
-        // second n'en voyait plus qu'une, refermait celle-là, et rouvrait tout
-        // au coin par défaut faute d'avoir relevé quoi que ce soit.
+        // Two overlapping reopens used to steal each other's
+        // sessions: the second one only saw one left, closed that
+        // one, and reopened everything at the default corner for
+        // lack of having captured anything.
         await _reopening.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         try
@@ -1777,10 +1875,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 return new LaunchReport(0, []);
             }
 
-            // La géométrie est gardée sous la main et passée telle quelle au
-            // lancement, plutôt que relue depuis les réglages : un relevé
-            // vide retombait sinon en silence sur le placement par défaut, et
-            // toutes les fenêtres se retrouvaient empilées au même endroit.
+            // Geometry is kept at hand and passed as is to the
+            // launch, rather than reread from the settings: an
+            // empty reading would otherwise silently fall back to
+            // the default placement, and every window would end up
+            // stacked in the same spot.
             await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
 
             var remembered = await _settings.GetWindowRectsAsync(cancellationToken).ConfigureAwait(false);
@@ -1797,8 +1896,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 _closing = false;
             }
 
-            // Les cibles portent l'identité d'une session, pas d'une instance :
-            // c'est la liste à jour des instances qui sait ce qu'il faut rouvrir.
+            // Targets carry the identity of a session, not of an
+            // instance: it is the up to date instance list that
+            // knows what needs reopening.
             var known = await RefreshInstancesAsync(cancellationToken).ConfigureAwait(false);
 
             var reopen = known
@@ -1812,8 +1912,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             if (missing.Count > 0)
             {
-                // Sans ce relevé, la fenêtre rouvre au coin par défaut : autant
-                // le dire au journal plutôt que de laisser chercher.
+                // Without this reading, the window reopens at the
+                // default corner: better say so in the log than
+                // leave it to be figured out.
                 LogMissingGeometry(string.Join(", ", missing));
             }
 
@@ -1825,10 +1926,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
     }
 
-    /// <summary>Ferme toutes les fenêtres ouvertes par l'application.</summary>
+    /// <summary>Closes every window opened by the application.</summary>
     public async Task CloseAllAsync(CancellationToken cancellationToken = default)
     {
-        // La géométrie est relevée tant que les fenêtres existent encore.
+        // Geometry is captured while the windows still exist.
         await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
 
         _closing = true;
@@ -1844,9 +1945,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         }
 
-        // Voir StopSessionAsync : le cadre ne doit pas garder d'onglet sur une
-        // fenêtre qui n'existe plus. Ici l'ouverture d'un profil enchaîne
-        // aussitôt, et attendre le prochain entretien serait trop tard.
+        // See StopSessionAsync: the frame must not keep a tab on a
+        // window that no longer exists. Here, opening a profile
+        // follows right after, and waiting for the next maintenance
+        // pass would be too late.
         if (_tabs is not null)
         {
             await OnUiAsync(() => _tabs?.DetachAll()).ConfigureAwait(false);
@@ -1856,17 +1958,18 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Relève où chaque fenêtre a été laissée et l'enregistre. Appelée avant
-    /// toute fermeture, et à la sortie : c'est ce qui permet à une fenêtre
-    /// déplacée à la souris de revenir au même endroit.
+    /// Captures where each window was left and saves it. Called
+    /// before every close, and on exit: this is what lets a window
+    /// moved with the mouse come back to the same spot.
     /// </summary>
     public async Task CaptureGeometriesAsync(CancellationToken cancellationToken = default)
     {
         await CaptureTabsPlacementAsync(cancellationToken).ConfigureAwait(false);
 
-        // Les fenêtres logées sont écartées : leur rectangle est celui qu'elles
-        // occupent dans le cadre, et le retenir comme place libre les faisait
-        // reparaître au milieu de l'écran le jour où on les sortait des onglets.
+        // Housed windows are set aside: their rectangle is the one
+        // they occupy inside the frame, and remembering it as a free
+        // spot made them reappear in the middle of the screen the
+        // day they were taken out of the tabs.
         var captured = _windows.CaptureGeometries(
             [.. _sessions.ActiveSessions.Where(s => !_tabbed.Contains(s.Target.Key))]);
 
@@ -1881,19 +1984,21 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Retient où est le cadre à onglets.
+    /// Remembers where the tabbed frame is.
     ///
-    /// À part des fenêtres de jeu : une fenêtre logée n'a plus de place à
-    /// elle, et c'est celle du cadre qui compte. La lecture se fait sur le fil
-    /// d'interface, la poignée d'une fenêtre WPF n'étant pas lisible ailleurs.
+    /// Apart from the game windows: a housed window no longer has a
+    /// place of its own, and it is the frame's that counts. The
+    /// reading happens on the UI thread, a WPF window's handle not
+    /// being readable anywhere else.
     /// </summary>
     private async Task CaptureTabsPlacementAsync(CancellationToken cancellationToken)
     {
         if (_tabs is not { } frame || frame.IsFullscreen)
         {
-            // En plein écran, le rectangle est celui de l'écran entier :
-            // l'enregistrer ferait rouvrir le cadre couvrant tout, sans plus
-            // rien qui dise d'où il venait.
+            // In fullscreen, the rectangle is that of the whole
+            // screen: saving it would make the frame reopen
+            // covering everything, with nothing left to say where it
+            // came from.
             return;
         }
 
@@ -1908,30 +2013,33 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Entretien périodique : corrige la forme des fenêtres et retient
-    /// laquelle est au premier plan.
+    /// Periodic maintenance: fixes the windows' shape and remembers
+    /// which one is in the foreground.
     /// </summary>
     public void Watch()
     {
-        // Le suivi regarde toutes les fenêtres : savoir laquelle est active
-        // vaut aussi pour celles qui sont logées dans le cadre.
+        // Tracking looks at every window: knowing which one is
+        // active also applies to those housed in the frame.
         _windows.TrackActiveWindow(_sessions.ActiveSessions);
 
-        // Le rapport d'image, lui, ne concerne que les fenêtres libres. Sur une
-        // fenêtre logée, il défaisait la pose du cadre toutes les demi-secondes,
-        // et le jeu revenait se coller de travers sans qu'on comprenne pourquoi.
+        // The aspect ratio enforcement, though, only concerns free
+        // windows. On a housed window, it undid the frame's layout
+        // every half second, and the game came back to sit crooked
+        // without anyone understanding why.
         _windows.EnforceAspect(ManagedSessions);
 
-        // Filet pour les sessions qui meurent sans passer par nous : fenêtre du
-        // jeu fermée à la main, téléphone débranché. Les fermetures voulues
-        // détachent déjà l'onglet elles-mêmes, sans attendre ce passage.
+        // A safety net for sessions that die without going through
+        // us: a game window closed by hand, a phone unplugged.
+        // Deliberate closes already detach the tab themselves,
+        // without waiting for this pass.
         _tabs?.KeepOnly(
             [.. _sessions.ActiveSessions.Select(s => s.Target.Key)]);
     }
 
 
     /// <summary>
-    /// Range les fenêtres côte à côte, la fenêtre active à droite.
+    /// Tiles the windows side by side, the active window on the
+    /// right.
     /// </summary>
     public async Task<int> TileAsync(CancellationToken cancellationToken = default)
     {
@@ -1939,9 +2047,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         try
         {
-            // Le cadre compte pour une fenêtre. Au premier plan, il prend la
-            // droite et les fenêtres libres passent toutes à gauche : sans
-            // cela, l'une d'elles se poserait à droite par-dessus lui.
+            // The frame counts as one window. In the foreground, it
+            // takes the right side and every free window moves to
+            // the left: without this, one of them would land on the
+            // right on top of it.
             var frame = ArrangeableCount > 1 ? MovableFrame : null;
             var frameFirst = frame is not null
                 && _windows.Controller.GetForegroundWindow() == frame.Handle;
@@ -1966,7 +2075,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
     }
 
-    /// <summary>Donne au cadre sa moitié d'écran.</summary>
+    /// <summary>Gives the frame half of the screen.</summary>
     private Task TileFrameAsync(Windows.TabbedGameWindow frame, bool onRight) =>
         OnUiAsync(() =>
         {
@@ -1980,9 +2089,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
         });
 
     /// <summary>
-    /// Empile les fenêtres sur celle qui est active, ou sur la première.
-    /// C'est ce que fait le raccourci de replacement, et le bouton de la barre
-    /// du bas : on place une fenêtre où on la veut, les autres la rejoignent.
+    /// Stacks the windows onto the active one, or onto the first
+    /// one. This is what the rearrange shortcut does, and the button
+    /// on the bottom bar: a window is placed wherever wanted, the
+    /// others join it.
     /// </summary>
     public async Task<int> StackOnActiveAsync(CancellationToken cancellationToken = default)
     {
@@ -1993,8 +2103,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
             var frame = MovableFrame;
             var sessions = ManagedSessions;
 
-            // Le cadre au premier plan sert de référence : on ne déplace pas ce
-            // qu'on regarde pour aligner tout le reste ailleurs.
+            // The frame in the foreground serves as the reference:
+            // what is being looked at is not moved in order to align
+            // everything else elsewhere.
             var vu = frame is not null
                 && _windows.Controller.GetForegroundWindow() == frame.Handle
                     ? _windows.Controller.GetWindowRect(frame.Handle)
@@ -2038,7 +2149,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
 
-    /// <summary>Remet toutes les fenêtres en place, à la taille en cours.</summary>
+    /// <summary>
+    /// Puts every window back in place, at its current size.
+    /// </summary>
     public async Task<int> ArrangeAsync(CancellationToken cancellationToken = default)
     {
         await _arranging.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -2077,20 +2190,20 @@ public sealed partial class GameLauncher : IAsyncDisposable
             moved++;
         }
 
-        // Le replacement rapide devient la nouvelle géométrie de référence,
-        // sans quoi la mémoire divergerait de ce qui est à l'écran.
+        // The quick rearrange becomes the new reference geometry,
+        // otherwise memory would drift from what is on screen.
         await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
 
         return moved;
     }
 
     /// <summary>
-    /// Applique la taille posée au curseur.
+    /// Applies the size set on the slider.
     ///
-    /// Deux usages, volontairement distincts. Pendant que le curseur bouge on
-    /// ne fait que déplacer les fenêtres : relire les réglages et écrire le
-    /// fichier à chaque cran rendait le geste saccadé. L'enregistrement n'a
-    /// lieu qu'une fois, quand le curseur est reposé.
+    /// Two uses, deliberately kept separate. While the slider moves,
+    /// only the windows are moved: rereading the settings and
+    /// writing the file at every notch made the gesture jerky.
+    /// Saving happens only once, when the slider is released.
     /// </summary>
     public async Task<int> ApplyPercentAsync(
         int percent,
@@ -2103,9 +2216,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         if (persist)
         {
-            // Le cadre ne suit qu'au relâchement : à chaque cran, il faudrait
-            // un aller-retour par le fil d'interface pour redimensionner une
-            // fenêtre WPF, et le geste deviendrait saccadé.
+            // The frame only follows on release: at every notch, it
+            // would take a round trip through the UI thread to
+            // resize a WPF window, and the gesture would become
+            // jerky.
             await ResizeFrameAsync(fullscreen: false).ConfigureAwait(false);
 
             await _settings.SaveCustomSizePercentAsync(percent, cancellationToken).ConfigureAwait(false);
@@ -2116,7 +2230,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         return moved;
     }
 
-    /// <summary>Applique une taille à toutes les fenêtres et la retient.</summary>
+    /// <summary>Applies a size to every window and remembers it.</summary>
     public async Task<int> ApplySizeAsync(int sizeIndex, CancellationToken cancellationToken = default)
     {
         await _arranging.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -2155,7 +2269,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
         return moved;
     }
 
-    /// <summary>Session ouverte correspondant à une instance, s'il y en a une.</summary>
+    /// <summary>
+    /// Open session matching an instance, if there is one.
+    /// </summary>
     public ScrcpySession? FindSession(DofusInstance instance)
     {
         ArgumentNullException.ThrowIfNull(instance);
@@ -2164,12 +2280,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
             s => string.Equals(s.Target.Key, instance.Key, StringComparison.Ordinal));
     }
 
-    /// <summary>Vrai si l'instance a une fenêtre ouverte.</summary>
+    /// <summary>True if the instance has an open window.</summary>
     public bool IsOpen(DofusInstance instance) => FindSession(instance) is not null;
 
     /// <summary>
-    /// La distance avec laquelle la fenêtre de ce compte a été ouverte, ou
-    /// <c>null</c> s'il n'en a pas.
+    /// The distance this account's window was opened with, or
+    /// <c>null</c> if it has none.
     /// </summary>
     public GameZoom? ZoomInUse(string key) =>
         _zoomsInUse.TryGetValue(key, out var zoom) ? zoom : null;
@@ -2177,23 +2293,23 @@ public sealed partial class GameLauncher : IAsyncDisposable
     public ScreenRect? WorkArea() => _windows.WorkArea();
 
 
-    /// <summary>Recharge les raccourcis après une modification.</summary>
+    /// <summary>Reloads the shortcuts after a change.</summary>
     public async Task<IReadOnlyList<HotkeyAction>> ReloadHotkeysAsync(
         CancellationToken cancellationToken = default)
     {
         var hotkeys = await _settings.GetHotkeysAsync(cancellationToken).ConfigureAwait(false);
 
-        // Le rappel inscrit dans le titre des fenêtres suit la combinaison.
-        // C'est ici qu'il faut le faire : l'éditeur recharge par ce chemin,
-        // quelle que soit la fenêtre qui l'a ouvert.
+        // The reminder written into the windows' title follows the
+        // key combination. This is where it must happen: the editor
+        // reloads through this path, whichever window opened it.
         await RefreshWindowTitlesAsync(cancellationToken).ConfigureAwait(false);
 
         return await _hotkeys.ApplyAsync(hotkeys).ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Met à jour le rappel du raccourci dans le titre des fenêtres ouvertes.
-    /// Appelé après une modification dans l'éditeur.
+    /// Updates the shortcut reminder in the title of open windows.
+    /// Called after a change made in the editor.
     /// </summary>
     public async Task<int> RefreshWindowTitlesAsync(CancellationToken cancellationToken = default)
     {
@@ -2205,13 +2321,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Le nom que porte ce compte maintenant, et non celui qu'il portait au
-    /// lancement.
+    /// The name this account carries now, not the one it carried at
+    /// launch.
     ///
-    /// <c>LaunchTarget.DisplayName</c> est figé à l'ouverture, par construction :
-    /// c'est une cible, elle décrit ce qu'on a lancé. S'en servir pour réécrire
-    /// un titre reposait l'ancien nom, ce que faisait déjà le rafraîchissement
-    /// qui suit une modification de raccourci.
+    /// <c>LaunchTarget.DisplayName</c> is frozen at opening, by
+    /// design: it is a target, it describes what was launched. Using
+    /// it to rewrite a title would put the old name back, which is
+    /// exactly what the refresh following a shortcut change already
+    /// did.
     /// </summary>
     private string CurrentName(ScrcpySession session) =>
         _launched.TryGetValue(session.Target.Key, out var instance)
@@ -2219,18 +2336,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
             : session.Target.DisplayName;
 
     /// <summary>
-    /// Porte sur les fenêtres ouvertes les noms que les réglages viennent
-    /// d'écrire.
+    /// Carries onto the open windows the names the settings have
+    /// just written.
     ///
-    /// **Rien n'est fait dans le cas ordinaire**, et il faut le dire : cet
-    /// évènement se lève à chaque écriture des réglages, dont la géométrie
-    /// d'une fenêtre qu'on déplace. Sans la comparaison que fait
-    /// <see cref="InstanceRenames"/>, un simple glissement de fenêtre ferait
-    /// réécrire tous les titres de toutes les fenêtres.
+    /// **Nothing happens in the ordinary case**, and it must be
+    /// said: this event fires on every write of the settings,
+    /// including the geometry of a window being dragged. Without the
+    /// comparison done by
+    /// <see cref="InstanceRenames"/>, a simple window drag would
+    /// rewrite every title of every window.
     ///
-    /// Le geste ne s'attend pas : l'écriture des réglages n'a pas à retenir
-    /// l'interface, et une faute ici ne doit pas remonter dans le chemin de
-    /// sauvegarde.
+    /// The action is not awaited: writing the settings must not
+    /// hold up the UI, and a fault here must not bubble up into the
+    /// save path.
     /// </summary>
     private void ApplyRenames(AppSettingsDocument document)
     {
@@ -2253,9 +2371,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
         {
             if (_launched.TryGetValue(key, out var instance))
             {
-                // Le nom brut des réglages, et non celui qu'on affiche : un nom
-                // effacé doit rester effacé, pour que le repli sur le profil
-                // Android continue de valoir au renommage suivant.
+                // The raw name from the settings, not the one shown:
+                // a cleared name must stay cleared, so that falling
+                // back to the Android profile still holds at the
+                // next rename.
                 _launched[key] = instance with
                 {
                     CustomName = document.Instances
@@ -2295,13 +2414,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Rectangle que toutes les fenêtres partageront. Calculé une fois : c'est
-    /// ce qui garantit leur superposition exacte.
+    /// Rectangle every window will share. Computed once: this is
+    /// what guarantees their exact overlap.
     /// </summary>
     private ScrcpyWindowPlacement? ComputePlacement(ScrcpyOptions options, StoredWindowRect? remembered)
     {
-        // La fenêtre garde le rapport de l'afficheur : l'image y est mise à
-        // l'échelle, et s'en écarter laisserait une bande.
+        // The window keeps the display's aspect ratio: the image is
+        // scaled to fit it, and departing from it would leave a
+        // band.
         var aspect = options is { UseVirtualDisplay: true, VirtualDisplayHeight: > 0 }
             ? (double)options.VirtualDisplayWidth / options.VirtualDisplayHeight
             : 0;
@@ -2314,8 +2434,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
               ?? _windows.PreviewGameArea(aspect)
             : _windows.PreviewGameArea(aspect);
 
-        // Journalisé : la disposition dépend de l'écran et de sa mise à
-        // l'échelle, et un chiffre inattendu se voit tout de suite ici.
+        // Logged: the layout depends on the screen and its scaling,
+        // and an unexpected figure shows up right away here.
         LogPlacement(
             string.Join(", ", monitors.Select(m => $"{m.DeviceName} {m.Bounds} utile {m.WorkArea}")),
             rect?.ToString() ?? "aucun");
@@ -2325,37 +2445,39 @@ public sealed partial class GameLauncher : IAsyncDisposable
             return null;
         }
 
-        // Le rectangle transmis est celui de la zone client, cadre déduit et
-        // coin décalé : scrcpy dimensionne **et positionne** sa fenêtre par
-        // l'intérieur. Lui donner le rectangle extérieur la faisait naître trop
-        // grande d'une barre de titre, puis, la taille corrigée, naître une
-        // bordure trop à gauche et une barre de titre trop haut. Le placement
-        // qui suit la recalait alors sous les yeux, deux cents millisecondes
-        // après son ouverture.
+        // The rectangle passed on is that of the client area, chrome
+        // subtracted and corner offset: scrcpy sizes **and
+        // positions** its window from the inside. Giving it the
+        // outer rectangle made it born too large by a title bar,
+        // then, once the size was corrected, born too far left by a
+        // border and too high by a title bar. The placement that
+        // followed then repositioned it visibly, two hundred
+        // milliseconds after it opened.
         var client = _windows.WindowChrome().ClientOf(value);
 
         return new ScrcpyWindowPlacement(client.X, client.Y, client.Width, client.Height);
     }
 
     /// <summary>
-    /// Adapte la définition de l'afficheur à la fenêtre de cette instance.
+    /// Adapts the display's resolution to this instance's window.
     ///
-    /// L'image est mise à l'échelle de la fenêtre : un afficheur toujours pris
-    /// à la définition de l'écran rendrait l'interface du jeu minuscule dans
-    /// une petite fenêtre. La définition suit donc la fenêtre, par paliers,
-    /// puisqu'elle est figée pour toute la session.
+    /// The image is scaled to the window: a display always taken at
+    /// the screen's resolution would make the game's interface tiny
+    /// in a small window. The resolution therefore follows the
+    /// window, by tiers, since it is fixed for the whole session.
     ///
-    /// L'écran est celui où la fenêtre va réellement s'ouvrir, et non un écran
-    /// de référence : une fenêtre laissée sur un second écran de forme
-    /// différente naîtrait sinon mal formée.
+    /// The screen is the one the window will actually open on, not a
+    /// reference screen: a window left on a second screen of a
+    /// different shape would otherwise be born malformed.
     /// </summary>
     /// <summary>
-    /// La définition et le débit d'une fenêtre, selon le palier de son compte.
+    /// The resolution and bitrate of a window, based on its
+    /// account's tier.
     ///
-    /// Le palier vient du compte et non du champ commun : un compte principal
-    /// mérite mieux que quatre mules, et ce qu'on épargne aux mules est autant
-    /// de processeur, de bande passante, de chaleur et de batterie en moins.
-    /// Les cadences de sondage, elles, restent communes.
+    /// The tier comes from the account, not from the shared field: a
+    /// main account deserves better than four mules, and what is
+    /// spared on the mules is that much less processor, bandwidth,
+    /// heat and battery. Polling rates, though, stay shared.
     /// </summary>
     private ScrcpyOptions WithDisplayFor(
         ScrcpyOptions options,
@@ -2373,12 +2495,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
         var (width, height) = DisplayLadder.For(
             window.Height, screen.Width, screen.Height, quality.MaximumDisplayHeight);
 
-        // La densité se déduit de la définition retenue : la laisser fixe
-        // faisait varier le zoom du jeu avec la taille de la fenêtre, puisque
-        // la définition, elle, la suit.
+        // Density is derived from the chosen resolution: leaving it
+        // fixed made the game's zoom vary with the window's size,
+        // since the resolution does follow it.
         //
-        // Le débit s'en déduit aussi, et pour la même raison : un débit fixe
-        // servait grassement une petite fenêtre et affamait une grande.
+        // Bitrate is derived from it too, and for the same reason: a
+        // fixed bitrate served a small window generously and starved
+        // a large one.
         return options with
         {
             VirtualDisplayWidth = width,
@@ -2386,27 +2509,29 @@ public sealed partial class GameLauncher : IAsyncDisposable
             VirtualDisplayDpi = ZoomProfile.DpiFor(height, zoom),
             VideoBitrateKbps = quality.BitrateFor(width, height),
 
-            // La cadence aussi, et c'est elle qu'on oublie : la définition et
-            // le débit descendaient bien, mais un compte en palier bas
-            // tournait toujours à soixante images, ce qui est l'essentiel du
-            // coût. Vu dans le journal, pas dans le code.
+            // The frame rate too, and it is the one that gets
+            // forgotten: resolution and bitrate did go down, but an
+            // account on a low tier still ran at sixty frames, which
+            // is the bulk of the cost. Seen in the log, not in the
+            // code.
             MaxFps = quality.MaxFps,
         };
     }
 
     /// <summary>
-    /// Fait suivre l'ordre de la liste à l'ordre des fenêtres, Alt+Tab compris.
+    /// Makes the window order follow the list's order, Alt+Tab
+    /// included.
     ///
-    /// Toutes les fenêtres y passent, verrouillées comprises : le verrou porte
-    /// sur la position, pas sur le rang.
+    /// Every window goes through it, locked ones included: the lock
+    /// applies to position, not to rank.
     /// </summary>
     public Task<int> ApplyWindowOrderAsync(CancellationToken cancellationToken = default) =>
         _windows.ApplyOrderAsync(_sessions.ActiveSessions, cancellationToken);
 
     /// <summary>
-    /// Relit l'ordre voulu et le donne au gestionnaire de sessions. Tout ce
-    /// qui parcourt les sessions en hérite : l'ouverture, le placement et le
-    /// cycle clavier.
+    /// Rereads the intended order and gives it to the session
+    /// manager. Everything that iterates over sessions inherits it:
+    /// opening, placement and keyboard cycling.
     /// </summary>
     public async Task RefreshRanksAsync(CancellationToken cancellationToken = default)
     {
@@ -2424,24 +2549,25 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _sessions.OrderKey = session =>
             ranks.TryGetValue(session.Target.Key, out var rank) ? rank : int.MaxValue;
 
-        // Après la relecture, non avant : ce qui écoute lira alors le bon
-        // ensemble. C'est ici que « mise de côté » et « logée en onglet »
-        // prennent effet pour tout le reste.
+        // After the reread, not before: whatever is listening will
+        // then read the right set. This is where "set aside" and
+        // "housed in a tab" take effect for everything else.
         ArrangeableChanged?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
-    /// Rappel du raccourci de changement de compte, tel qu'il est configuré au
-    /// moment du lancement. Vide si l'utilisateur l'a retiré.
+    /// Reminder of the account-switching shortcut, as configured at
+    /// the moment of launch. Empty if the user removed it.
     /// </summary>
     private async Task<string?> BuildTitleHintAsync(CancellationToken cancellationToken)
     {
         var hotkeys = await _settings.GetHotkeysAsync(cancellationToken).ConfigureAwait(false);
 
-        // Le configurateur d'abord : c'est le seul rappel dont on a besoin
-        // quand on ne sait plus comment revenir à l'application. Il n'a pas
-        // d'icône dans la barre des tâches une fois masqué, et sans ce rappel
-        // la combinaison ne s'apprend nulle part.
+        // The configurator first: it is the only reminder needed
+        // when one no longer knows how to get back to the
+        // application. It has no icon in the taskbar once hidden,
+        // and without this reminder the combination is learned
+        // nowhere.
         List<string> parts = [];
 
         if (hotkeys.For(HotkeyAction.ToggleConfigurator) is { IsAssigned: true } toggle)
@@ -2468,15 +2594,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
     };
 
     /// <summary>
-    /// Relit ce que vaut la liaison, pour en déduire le tampon d'affichage.
+    /// Rereads what the link is worth, to derive the display buffer
+    /// from it.
     ///
-    /// Une fois par lancement, et jamais pendant un geste de géométrie : le
-    /// chiffre ne bouge pas entre deux redimensionnements, alors que l'appel
-    /// coûterait une demi-seconde à chaque fois.
+    /// Once per launch, and never during a geometry gesture: the
+    /// figure does not move between two resizes, whereas the call
+    /// would cost half a second every time.
     ///
-    /// Toutes les sessions d'un lancement passent par le même téléphone : le
-    /// premier trouvé suffit à connaître la liaison, et interroger les autres
-    /// rendrait la même réponse.
+    /// Every session in a launch goes through the same phone: the
+    /// first one found is enough to know the link, and asking the
+    /// others would give the same answer.
     /// </summary>
     private async Task RefreshLinkAsync(
         IReadOnlyList<DofusInstance> instances,
@@ -2512,9 +2639,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Appareils connectés, indexés par identifiant. On garde l'enregistrement
-    /// entier et non le seul numéro de série : la version d'Android s'y trouve,
-    /// et le lancement en a besoin.
+    /// Connected devices, indexed by identifier. The whole record is
+    /// kept, not just the serial number: the Android version is in
+    /// there, and the launch needs it.
     /// </summary>
     private async Task<Dictionary<string, AndroidDevice>> ResolveDevicesAsync(
         CancellationToken cancellationToken)
@@ -2527,11 +2654,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Loge une session dans le cadre à onglets, en le créant s'il le faut.
+    /// Houses a session in the tabbed frame, creating it if needed.
     ///
-    /// La fenêtre doit exister : elle est cherchée comme pour un placement,
-    /// avec la même attente. Une session dont la fenêtre n'est jamais apparue
-    /// reste libre plutôt que d'être perdue.
+    /// The window must exist: it is looked for as for a placement,
+    /// with the same wait. A session whose window never appeared
+    /// stays free rather than being lost.
     /// </summary>
     private async Task AttachToTabsAsync(ScrcpySession session, CancellationToken cancellationToken)
     {
@@ -2543,16 +2670,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
             return;
         }
 
-        // Sur le fil d'interface, et non celui qui nous a menés ici : une
-        // fenêtre WPF ne se crée que sur un fil en mode STA, et la chaîne
-        // asynchrone du lanceur n'en est pas un.
+        // On the UI thread, not the one that got us here: a WPF
+        // window can only be created on an STA-mode thread, and the
+        // launcher's async chain is not one.
         var settings = await _settings.GetAsync(cancellationToken).ConfigureAwait(false);
 
-        // L'ordre retenu est reposé après chaque arrivée, et non laissé à
-        // celui des arrivées. Les afficheurs ne se préparent pas à la même
-        // vitesse : d'un lancement à l'autre, les onglets sortaient dans un
-        // ordre différent, et celui qu'on avait rangé à la souris ne tenait pas
-        // d'une session à la suivante.
+        // The intended order is reapplied after every arrival, and
+        // not left to the order of arrivals. Displays do not get
+        // ready at the same speed: from one launch to the next, tabs
+        // came out in a different order, and one arranged with the
+        // mouse did not hold from one session to the next.
         var order = settings.Instances
             .OrderBy(i => i.Order)
             .Select(i => i.Key)
@@ -2574,10 +2701,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Exécute un geste d'interface sur le fil qui a le droit de le faire.
+    /// Runs a UI action on the thread that has the right to do so.
     ///
-    /// Rend la main tout de suite s'il n'y a pas d'application WPF, ce qui est
-    /// le cas des tests.
+    /// Returns control right away if there is no WPF application,
+    /// which is the case in tests.
     /// </summary>
     private static Task OnUiAsync(Action geste)
     {
@@ -2592,17 +2719,20 @@ public sealed partial class GameLauncher : IAsyncDisposable
         return thread.InvokeAsync(geste).Task;
     }
 
-    /// <summary>Le cadre, créé au premier besoin et gardé ouvert ensuite.</summary>
     /// <summary>
-    /// Ferme les comptes que le cadre à onglets logeait.
+    /// The frame, created on first need and kept open afterwards.
+    /// </summary>
+    /// <summary>
+    /// Closes the accounts the tabbed frame was housing.
     ///
-    /// Le compte se comporte comme si l'on avait fermé sa fenêtre une à une :
-    /// sa place est retenue, et il ne rouvrira pas de lui-même au prochain
-    /// démarrage. Il reste logé en onglets, si bien qu'il y retournera le jour
-    /// où on le rouvrira.
+    /// The account behaves as if its window had been closed one by
+    /// one: its place is remembered, and it will not reopen on its
+    /// own at the next startup. It stays housed in tabs, so it will
+    /// return there the day it is reopened.
     ///
-    /// Une session qui survit à l'arrêt retrouve sa fenêtre visible : elle a
-    /// quitté le cadre masquée, et la laisser ainsi la rendrait introuvable.
+    /// A session that survives the stop gets its window back
+    /// visible: it left the frame hidden, and leaving it that way
+    /// would make it unfindable.
     /// </summary>
     private async Task CloseTabbedAsync(IReadOnlyList<string> keys)
     {
@@ -2648,15 +2778,17 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         frame.Closed += (_, _) => _tabs = null;
 
-        // Fermer le cadre ferme les comptes qu'il logeait : c'est ce que le
-        // geste annonce, et les voir se disperser en fenêtres libres était le
-        // contraire de ce qu'on demandait.
+        // Closing the frame closes the accounts it was housing:
+        // that is what the action announces, and seeing them
+        // scatter into free windows was the opposite of what was
+        // asked.
         frame.CloseRequested += async (_, loges) =>
         {
-            // Bornés, ces deux gestes-ci. Une faute s'échapperait d'une lambda
-            // « async void » et atteindrait le garde-fou du répartiteur, qui
-            // ouvrirait une fenêtre d'erreur pour un clic sur une croix ou un
-            // glissement d'onglet. Le journal la retient, le geste échoue seul.
+            // Bounded, these two actions. A fault would escape an
+            // "async void" lambda and reach the dispatcher's
+            // safety net, which would open an error window for a
+            // click on a close cross or a tab drag. The log catches
+            // it instead, and only the action fails.
             try
             {
                 await CloseTabbedAsync(loges).ConfigureAwait(true);
@@ -2667,7 +2799,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             }
         };
 
-        // Réordonner les onglets réordonne les comptes : un seul ordre partout.
+        // Reordering the tabs reorders the accounts: a single order
+        // everywhere.
         frame.Reordered += async (_, mouvement) =>
         {
             try
@@ -2692,19 +2825,22 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _tabs = frame;
         frame.Show();
 
-        // Après l'affichage : il n'y a pas de poignée avant, donc rien à
-        // placer. Le cadre reparaît ainsi là où on l'avait laissé, et un profil
-        // en onglets le rouvre là où il était quand on l'a enregistré.
+        // After it is shown: there is no handle before that, so
+        // nothing to place. The frame thus reappears where it was
+        // left, and a tabbed profile reopens it where it was when it
+        // was saved.
         _placements.Restore(frame, WindowPlacements.Tabs, document);
 
         return frame;
     }
 
     /// <summary>
-    /// Fait entrer ou sortir un compte du cadre, sans rouvrir sa session.
+    /// Moves an account into or out of the frame, without reopening
+    /// its session.
     ///
-    /// C'est la même fenêtre qu'on arrime ou détache : la rouvrir coûterait
-    /// plusieurs secondes et ferait recréer son afficheur virtuel.
+    /// It is the same window being attached or detached: reopening
+    /// it would cost several seconds and would make its virtual
+    /// display be recreated.
     /// </summary>
     public async Task SetTabbedAsync(
         DofusInstance instance,
@@ -2732,19 +2868,20 @@ public sealed partial class GameLauncher : IAsyncDisposable
             await OnUiAsync(() => _tabs?.Detach(instance.Key)).ConfigureAwait(false);
         }
 
-        // Une seconde fois, et c'est la seule qui compte pour les touches de
-        // rangement. La première est partie avant que le cadre n'existe : le
-        // compte des fenêtres à ranger le voyait donc absent, et « une fenêtre
-        // libre plus un onglet » faisait un au lieu de deux. Les deux touches
-        // disparaissaient alors qu'il y avait bien deux fenêtres à ranger.
+        // A second time, and it is the only one that matters for the
+        // arrange shortcuts. The first one fired before the frame
+        // existed: the count of windows to arrange therefore saw it
+        // as absent, and "one free window plus one tab" made one
+        // instead of two. Both shortcuts disappeared even though
+        // there really were two windows to arrange.
         ArrangeableChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    /// <summary>Icône du compte, telle que la liste la montre.</summary>
+    /// <summary>The account's icon, as the list shows it.</summary>
     private string? IconFor(ScrcpySession session) =>
         _iconDirectory is null ? null : System.IO.Path.Combine(_iconDirectory, "scrcpy.png");
 
-    /// <summary>Vrai si une session est déjà ouverte sur ce téléphone.</summary>
+    /// <summary>True if a session is already open on this phone.</summary>
     private bool HasOpenSessionOn(string deviceId) =>
         _sessions.ActiveSessions.Any(
             s => string.Equals(s.Target.DeviceId, deviceId, StringComparison.Ordinal));
@@ -2755,10 +2892,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         await RefreshRanksAsync(cancellationToken).ConfigureAwait(false);
 
-        // Le palier choisi est rendu tel quel. Il a été un temps rogné par un
-        // calcul de liaison ; la mesure a montré que ce calcul coûtait de la
-        // netteté sans rien gagner, la bande passante n'ayant jamais été le
-        // facteur limitant. Voir la décision sur la gigue.
+        // The chosen tier is rendered as is. It was for a time
+        // trimmed down by a link calculation; measurement showed
+        // that calculation cost sharpness for no gain, bandwidth
+        // having never been the limiting factor. See the decision
+        // about jitter.
         _quality = QualityProfile.For(settings.Quality, settings.CustomQuality);
 
         _zoom = settings.GameZoom;
@@ -2766,8 +2904,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _windows.Anchor = settings.GameAnchor;
         _windows.Presets = await _settings.GetSizePresetsAsync(cancellationToken).ConfigureAwait(false);
 
-        // La liste vide ne sert qu'à replacer l'état de taille sans toucher
-        // aux fenêtres, qui seront placées ensuite.
+        // The empty list only serves to reset the size state
+        // without touching the windows, which will be placed
+        // afterwards.
         await _windows.ApplySizeAsync([], settings.SizeIndex, cancellationToken).ConfigureAwait(false);
 
         if (settings.CustomSizePercent > 0)
@@ -2794,25 +2933,27 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Les raccourcis restent actifs tant qu'une fenêtre de l'application est
-    /// au premier plan, fenêtres de jeu comme configurateur. Ailleurs, les
-    /// combinaisons reviennent aux autres logiciels.
+    /// Shortcuts stay active as long as a window of the application
+    /// is in the foreground, game windows as much as the
+    /// configurator. Elsewhere, the key combinations go back to
+    /// other software.
     /// </summary>
     private async void OnForegroundChanged(object? sender, nint window)
     {
         try
         {
-            // Reconnue par son processus, et non par le handle que nous avons
-            // retenu : celui d'une session fraîchement rouverte n'est pas
-            // encore résolu, et les raccourcis se croyaient alors hors de chez
-            // eux. Ils restaient éteints tant qu'on ne cliquait pas ailleurs
-            // puis de nouveau sur une fenêtre de jeu.
+            // Recognized by its process, not by the handle we have
+            // on record: that of a freshly reopened session is not
+            // resolved yet, and the shortcuts would then think they
+            // were away from home. They stayed off until one clicked
+            // elsewhere and then back on a game window.
             var owner = _windows.GetWindowProcessId(window);
 
-            // Le cadre à onglets compte parmi nos fenêtres. Il manquait :
-            // cliquer sur la barre d'onglets ou sur le bord du cadre pour
-            // changer de compte éteignait les douze raccourcis, Ctrl+P compris,
-            // jusqu'à ce qu'on reclique dans l'image du jeu.
+            // The tabbed frame counts among our windows. It was
+            // missing: clicking on the tab bar or the frame's edge
+            // to switch accounts turned off all twelve shortcuts,
+            // Ctrl+P included, until one clicked back into the
+            // game's image.
             var ours = OwnsWindow?.Invoke(window) == true
                        || (_tabs is { Handle: var frame } && frame != 0 && frame == window);
 
@@ -2822,9 +2963,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 _sessions.ActiveSessions.Select(s => new SessionWindow(s.WindowHandle, s.ProcessId)),
                 ours);
 
-            // La bascule est journalisée : sans elle, des raccourcis éteints
-            // par une fenêtre non reconnue ne laissaient aucune trace, et le
-            // symptôme ressemblait à un raccourci qui « ne marche plus ».
+            // The toggle is logged: without it, shortcuts turned off
+            // by an unrecognized window left no trace, and the
+            // symptom looked like a shortcut that "no longer works".
             if (mine != _hotkeysActive)
             {
                 _hotkeysActive = mine;
@@ -2836,10 +2977,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            // Ces deux gardes tournent sur un fil de fond, au rythme des
-            // changements de fenêtre au premier plan. Une faute y est fréquente
-            // et sans gravité pour la session ; elle part au journal, et la
-            // ligne du panneau dit qu'un incident a été relevé.
+            // These two guards run on a background thread, at the
+            // pace of foreground window changes. A fault there is
+            // frequent and harmless for the session; it goes to the
+            // log, and the panel's line says an incident was
+            // recorded.
             LogHotkeyFailure(exception);
         }
     }
@@ -2847,17 +2989,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private bool _hotkeysActive = true;
 
     /// <summary>
-    /// Le parcours au clavier change d'onglet quand le cadre a la main, et de
-    /// fenêtre libre sinon.
+    /// Keyboard navigation switches tabs when the frame has focus,
+    /// and switches free windows otherwise.
     ///
-    /// Ctrl+Tab ne faisait rien dans le cadre : le parcours passe par
-    /// <see cref="ManagedSessions"/>, qui écarte les comptes logés parce que
-    /// les placements automatiques n'ont rien à leur dire. Le clavier, lui,
-    /// avait quand même besoin d'eux, et le raccourci ne voulait donc pas dire
-    /// la même chose selon le mode.
+    /// Ctrl+Tab used to do nothing inside the frame: navigation goes
+    /// through <see cref="ManagedSessions"/>, which sets housed
+    /// accounts aside because the automatic placements have nothing
+    /// to say to them. The keyboard, though, still needed them, and
+    /// the shortcut therefore did not mean the same thing depending
+    /// on the mode.
     ///
-    /// La fenêtre au premier plan reste le cadre même quand c'est le jeu qui
-    /// tient le clavier : logé, il est fille du cadre et ne peut pas l'être.
+    /// The foreground window stays the frame even when it is the
+    /// game that holds the keyboard: housed, it is a child of the
+    /// frame and cannot be the foreground window itself.
     /// </summary>
     private async Task<bool> CycleTabsAsync(bool forward)
     {
@@ -2876,8 +3020,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Permet à l'interface de déclarer ses propres fenêtres, pour que les
-    /// raccourcis fonctionnent aussi depuis le configurateur.
+    /// Lets the UI declare its own windows, so that the shortcuts
+    /// also work from the configurator.
     /// </summary>
     public Func<nint, bool>? OwnsWindow { get; set; }
 
@@ -2953,10 +3097,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            // Ces deux gardes tournent sur un fil de fond, au rythme des
-            // changements de fenêtre au premier plan. Une faute y est fréquente
-            // et sans gravité pour la session ; elle part au journal, et la
-            // ligne du panneau dit qu'un incident a été relevé.
+            // These two guards run on a background thread, at the
+            // pace of foreground window changes. A fault there is
+            // frequent and harmless for the session; it goes to the
+            // log, and the panel's line says an incident was
+            // recorded.
             LogHotkeyFailure(exception);
         }
     }

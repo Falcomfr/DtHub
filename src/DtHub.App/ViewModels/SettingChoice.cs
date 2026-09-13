@@ -1,16 +1,17 @@
 ﻿namespace DtHub.App.ViewModels;
 
 /// <summary>
-/// Un choix de liste déroulante : ce qui s'affiche, et ce qui est retenu.
+/// A dropdown list choice: what is displayed, and what is stored.
 ///
-/// Les deux diffèrent presque toujours dans le panneau des réglages fins :
-/// on montre « 12 Mb/s » et l'on garde 12000, on montre « H.265 » et l'on
-/// garde « h265 ». Sans ce couple, il faudrait un convertisseur par liste.
+/// The two almost always differ in the fine-tuning settings panel:
+/// we show "12 Mb/s" and keep 12000, we show "H.265" and keep
+/// "h265". Without this pair, a converter would be needed for every
+/// list.
 /// </summary>
 public sealed record IntChoice(string Label, int Value);
 
-/// <summary>Le même, pour un choix qui se retient sous forme de texte.</summary>
+/// <summary>The same, for a choice stored as text.</summary>
 public sealed record TextChoice(string Label, string Value);
 
-/// <summary>Le même, pour un choix qui se retient sous forme de nombre décimal.</summary>
+/// <summary>The same, for a choice stored as a decimal number.</summary>
 public sealed record DoubleChoice(string Label, double Value);

@@ -3,20 +3,23 @@
 namespace DtHub.Core.Devices;
 
 /// <summary>
-/// Un téléphone connu de DT Hub, qu'il soit branché ou non. Le modèle réunit
-/// ce qu'ADB rapporte, ce que le téléphone déclare et ce que l'utilisateur a
-/// choisi de retenir.
+/// A phone known to DT Hub, whether plugged in or not. The model
+/// brings together what ADB reports, what the phone declares, and
+/// what the user has chosen to keep.
 /// </summary>
 public sealed record AndroidDevice
 {
     /// <summary>
-    /// Identité stable, indépendante du mode de connexion. Le numéro de série
-    /// ADB ne convient pas : il devient une adresse dès que le téléphone passe
-    /// en Wi-Fi, et changerait à chaque bail DHCP.
+    /// Stable identity, independent of the connection mode. The ADB
+    /// serial number does not work: it becomes an address as soon as
+    /// the phone switches to Wi-Fi, and would change with every DHCP
+    /// lease.
     /// </summary>
     public required string Id { get; init; }
 
-    /// <summary>Numéro de série ADB courant, ou dernier connu si hors ligne.</summary>
+    /// <summary>
+    /// Current ADB serial number, or last known one if offline.
+    /// </summary>
     public required string Serial { get; init; }
 
     public AdbDeviceState State { get; init; } = AdbDeviceState.Unknown;
@@ -25,44 +28,49 @@ public sealed record AndroidDevice
 
     public string? Manufacturer { get; init; }
 
-    /// <summary>Modèle technique, par exemple <c>23078RKD5G</c>.</summary>
+    /// <summary>Technical model, for example <c>23078RKD5G</c>.</summary>
     public string? Model { get; init; }
 
-    /// <summary>Nom commercial quand le constructeur le publie.</summary>
+    /// <summary>Market name when the manufacturer publishes one.</summary>
     public string? MarketName { get; init; }
 
-    /// <summary>Nom de code interne, par exemple <c>aristotle</c>.</summary>
+    /// <summary>Internal codename, for example <c>aristotle</c>.</summary>
     public string? DeviceCodename { get; init; }
 
-    /// <summary>Version Android affichable, par exemple <c>14</c>.</summary>
+    /// <summary>Displayable Android version, for example <c>14</c>.</summary>
     public string? AndroidVersion { get; init; }
 
-    /// <summary>Niveau d'API.</summary>
+    /// <summary>API level.</summary>
     public int? SdkVersion { get; init; }
 
-    /// <summary>Nom donné par l'utilisateur, prioritaire sur tout le reste.</summary>
+    /// <summary>
+    /// Name given by the user, taking priority over everything else.
+    /// </summary>
     public string? CustomName { get; init; }
 
-    /// <summary>Dernière adresse Wi-Fi vue, réutilisée pour la reconnexion.</summary>
+    /// <summary>Last Wi-Fi address seen, reused for reconnection.</summary>
     public string? LastKnownAddress { get; init; }
 
-    /// <summary>Dernier port de connexion sans fil observé.</summary>
+    /// <summary>Last observed wireless connection port.</summary>
     public int? LastKnownPort { get; init; }
 
-    /// <summary>Vrai si l'appareil a déjà été appairé en Wi-Fi.</summary>
+    /// <summary>
+    /// True if the device has already been paired over Wi-Fi.
+    /// </summary>
     public bool IsPaired { get; init; }
 
-    /// <summary>Appareil mis en avant dans l'interface.</summary>
+    /// <summary>Device highlighted in the interface.</summary>
     public bool IsPrimary { get; init; }
 
     public DateTimeOffset? LastSeenUtc { get; init; }
 
-    /// <summary>Prêt à recevoir des commandes maintenant.</summary>
+    /// <summary>Ready to receive commands now.</summary>
     public bool IsConnected => State == AdbDeviceState.Device;
 
     /// <summary>
-    /// Nom affiché. Le choix de l'utilisateur prime, sinon le nom commercial,
-    /// sinon constructeur et modèle, et en dernier recours le numéro de série.
+    /// Displayed name. The user's choice takes priority, otherwise
+    /// the market name, otherwise manufacturer and model, and as a
+    /// last resort the serial number.
     /// </summary>
     public string DisplayName
     {
@@ -82,8 +90,8 @@ public sealed record AndroidDevice
             {
                 var model = Model.Trim();
 
-                // Éviter « Google Google Pixel 9 » quand le modèle porte déjà
-                // le nom du constructeur.
+                // Avoid "Google Google Pixel 9" when the model
+                // already carries the manufacturer's name.
                 return !string.IsNullOrWhiteSpace(Manufacturer)
                        && !model.StartsWith(Manufacturer, StringComparison.OrdinalIgnoreCase)
                     ? $"{Manufacturer.Trim()} {model}"
@@ -94,7 +102,7 @@ public sealed record AndroidDevice
         }
     }
 
-    /// <summary>Adresse complète de reconnexion, si elle est connue.</summary>
+    /// <summary>Full reconnection address, if known.</summary>
     public string? ReconnectAddress =>
         LastKnownAddress is { Length: > 0 } address && LastKnownPort is > 0
             ? $"{address}:{LastKnownPort}"

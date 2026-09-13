@@ -3,73 +3,77 @@ using DtHub.Core.Scrcpy;
 
 namespace DtHub.Core.Sessions;
 
-/// <summary>Ce qu'on sait d'une session qui vient de s'éteindre.</summary>
-/// <param name="Requested">Vrai si c'est nous qui avons demandé l'arrêt.</param>
+/// <summary>What we know about a session that has just gone dark.</summary>
+/// <param name="Requested">True if it was us who asked for the stop.</param>
 /// <param name="EverRan">
-/// Vrai si la session avait vraiment ouvert son afficheur et lancé le jeu. Un
-/// échec d'ouverture est déjà traité pendant le lancement, par le repli à une
-/// définition plus modeste ; il n'a rien à faire ici.
+/// True if the session had truly opened its display and launched the
+/// game. An opening failure is already handled during launch, by
+/// falling back to a more modest resolution; it has no business here.
 /// </param>
-/// <param name="Failure">La nature du refus, telle que la sortie de scrcpy l'a dite.</param>
+/// <param name="Failure">
+/// The nature of the refusal, as scrcpy's output stated it.
+/// </param>
 public readonly record struct SessionEnd(bool Requested, bool EverRan, ScrcpyFailureKind Failure);
 
-/// <summary>Une fenêtre à rouvrir, et dans combien de temps.</summary>
+/// <summary>A window to reopen, and after how long.</summary>
 public sealed record RecoveryRequest(DofusInstance Instance, TimeSpan Delay);
 
-/// <summary>La suite à donner à une session éteinte.</summary>
+/// <summary>What to do next about a session that has gone dark.</summary>
 public readonly record struct RecoveryDecision(bool Retry, TimeSpan Delay)
 {
-    /// <summary>On ne fait rien.</summary>
+    /// <summary>We do nothing.</summary>
     public static readonly RecoveryDecision None = new(false, TimeSpan.Zero);
 }
 
 /// <summary>
-/// Faut-il rouvrir une fenêtre de jeu qui s'est éteinte toute seule.
+/// Should a game window that went dark on its own be reopened.
 ///
-/// La question se pose parce que l'application ne survivait pas à la réponse :
-/// quand la dernière session mourait sans qu'on l'ait demandé, DT Hub se
-/// fermait. Or les déconnexions sont la première plainte des joueurs de DOFUS
-/// Touch, et une liaison Wi-Fi qui hoquette n'est pas une raison de perdre sa
-/// session de jeu et son application avec.
+/// The question arises because the application did not use to survive
+/// the answer: when the last session died without us having asked for
+/// it, DT Hub closed. Yet disconnections are the number one complaint
+/// of DOFUS Touch players, and a Wi-Fi link that hiccups is no reason
+/// to lose one's game session and one's application along with it.
 ///
-/// **La distinction qui compte est celle entre une fin voulue et une panne.**
-/// Une fenêtre fermée à la main doit rester fermée : la rouvrir serait
-/// exaspérant. Or de notre point de vue, les deux se ressemblent, aucun code à
-/// nous n'ayant été appelé dans un cas comme dans l'autre. Ce qui les sépare
-/// est que scrcpy sort proprement quand on ferme sa fenêtre, et en erreur
-/// quand la liaison tombe. **On ne rouvre donc que sur un refus déclaré**, et
-/// jamais sur une sortie propre.
+/// **The distinction that matters is between an intended end and a
+/// failure.** A window closed by hand must stay closed: reopening it
+/// would be maddening. Yet from our point of view, the two look
+/// alike, no code of ours having been called in either case. What
+/// separates them is that scrcpy exits cleanly when its window is
+/// closed, and with an error when the link drops. **We therefore only
+/// reopen on a declared refusal**, and never on a clean exit.
 ///
-/// Le reste des règles écarte ce qu'insister ne guérirait pas, dans le même
-/// esprit que <see cref="ScrcpyOutputParser.CanRetrySmaller" /> : un appareil
-/// non autorisé le restera, et scrcpy absent du poste ne s'installera pas tout
-/// seul.
+/// The rest of the rules rule out what insisting would not cure, in
+/// the same spirit as
+/// <see cref="ScrcpyOutputParser.CanRetrySmaller" />: an unauthorized
+/// device will stay that way, and scrcpy missing from the machine
+/// will not install itself.
 /// </summary>
 public static class SessionRecovery
 {
     /// <summary>
-    /// Nombre de tentatives, au-delà duquel on cesse et on le dit.
+    /// Number of attempts, beyond which we stop and say so.
     ///
-    /// Trois, parce qu'un hoquet passager tient rarement plus de vingt
-    /// secondes, et qu'une panne durable ne se résout pas en insistant. Une
-    /// application qui rouvre indéfiniment une fenêtre qui retombe est pire
-    /// qu'une application qui s'arrête : elle occupe sans servir.
+    /// Three, because a passing hiccup rarely lasts more than twenty
+    /// seconds, and a lasting failure is not solved by insisting. An
+    /// application that reopens a window that keeps falling back
+    /// indefinitely is worse than an application that stops: it takes
+    /// up space without being of use.
     /// </summary>
     public const int MaxAttempts = 3;
 
     /// <summary>
-    /// Au bout de ce temps sans nouvelle panne, le compte des tentatives
-    /// repart de zéro. Sans quoi une session de six heures finirait par
-    /// épuiser son crédit sur des incidents sans rapport entre eux.
+    /// After this much time with no new failure, the attempt count
+    /// starts over from zero. Otherwise a six-hour session would end
+    /// up exhausting its credit on incidents unrelated to each other.
     /// </summary>
     public static readonly TimeSpan Forget = TimeSpan.FromMinutes(10);
 
     /// <summary>
-    /// L'attente avant la tentative numéro <paramref name="attempt" />,
-    /// comptée à partir de un.
+    /// The wait before attempt number <paramref name="attempt" />,
+    /// counted starting from one.
     ///
-    /// Croissante : la première panne mérite qu'on réessaie tout de suite, la
-    /// troisième mérite qu'on laisse le Wi-Fi se remettre.
+    /// Increasing: the first failure deserves an immediate retry, the
+    /// third deserves letting the Wi-Fi recover.
     /// </summary>
     public static TimeSpan DelayFor(int attempt) => attempt switch
     {
@@ -79,11 +83,11 @@ public static class SessionRecovery
     };
 
     /// <summary>
-    /// Vrai si le refus a une chance de ne pas se reproduire.
+    /// True if the refusal has a chance of not happening again.
     ///
-    /// <see cref="ScrcpyFailureKind.None" /> en est exclu, et c'est le point
-    /// important : aucun refus déclaré veut dire sortie propre, donc fenêtre
-    /// fermée à la main.
+    /// <see cref="ScrcpyFailureKind.None" /> is excluded from it, and
+    /// this is the important point: no declared refusal means a clean
+    /// exit, hence a window closed by hand.
     /// </summary>
     public static bool Recoverable(ScrcpyFailureKind kind) => kind
         is ScrcpyFailureKind.DeviceDisconnected
@@ -92,12 +96,12 @@ public static class SessionRecovery
         or ScrcpyFailureKind.Unknown;
 
     /// <summary>
-    /// La suite à donner.
+    /// What to do next.
     /// </summary>
-    /// <param name="end">Ce qu'on sait de la fin.</param>
+    /// <param name="end">What we know about the end.</param>
     /// <param name="attemptsAlready">
-    /// Tentatives déjà faites pour cette instance dans la fenêtre de temps
-    /// courante, zéro à la première panne.
+    /// Attempts already made for this instance within the current
+    /// time window, zero at the first failure.
     /// </param>
     public static RecoveryDecision Decide(SessionEnd end, int attemptsAlready)
     {

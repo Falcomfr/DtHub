@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-// Ce que faisait l'ancienne lecture du pont, sur ce qu'une page peut poster.
+// What the old bridge reading did, against what a page can post.
 string[] charges =
 [
     "{}", "[]", "null", "42", "\"loaded\"",

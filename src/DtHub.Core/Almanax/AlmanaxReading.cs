@@ -1,10 +1,11 @@
 ﻿namespace DtHub.Core.Almanax;
 
 /// <summary>
-/// Lire la page de l'Almanax sans dépendre d'une langue.
+/// Reading the Almanax page without depending on a language.
 ///
-/// Le portail publie en huit langues et l'application en parle trois. Trois
-/// tournures relevées le 10 septembre 2026 sur la même journée :
+/// The portal publishes in eight languages and the application speaks
+/// three of them. Three phrasings noted on September 10, 2026, on the
+/// same day:
 ///
 /// <code>
 /// fr  Récupérer 1 Dent de Dragodinde et rapporter l'offrande à Théodoran Ax
@@ -12,25 +13,27 @@
 /// es  Recolectar 1 Diente de dragopavo y llevárselo a Ontoral Zo
 /// </code>
 ///
-/// Le verbe change, le personnage change, et jusqu'à son nom. Ce qui ne change
-/// pas est la forme : un nombre, puis l'objet, puis une conjonction. C'est sur
-/// cette forme qu'on lit, et non sur des mots à énumérer langue par langue.
+/// The verb changes, the character changes, down to its name. What
+/// does not change is the form: a number, then the object, then a
+/// conjunction. It is on this form that we read, not on words to
+/// enumerate language by language.
 /// </summary>
 public static class AlmanaxReading
 {
     /// <summary>
-    /// Les conjonctions qui closent le nom de l'objet, dans les langues que
-    /// l'application sert.
+    /// The conjunctions that close the object's name, in the
+    /// languages the application serves.
     /// </summary>
     private static readonly string[] Connectors = [" et ", " and ", " y "];
 
     /// <summary>
-    /// Vrai quand le bloc lu est bien celui de DOFUS Touch.
+    /// True when the block read is indeed the DOFUS Touch one.
     ///
-    /// C'est le garde-fou de toute la fonction. Le portail sert les deux jeux
-    /// sur la même page, et l'Almanax de DOFUS demande d'autres objets : rien
-    /// à l'écran ne dirait qu'on montre le mauvais. Le titre du bloc porte le
-    /// nom du jeu dans les trois langues, à des places différentes :
+    /// This is the safeguard for the whole function. The portal
+    /// serves both games on the same page, and DOFUS's Almanax asks
+    /// for different objects: nothing on screen would say we are
+    /// showing the wrong one. The block's title carries the game's
+    /// name in the three languages, in different places:
     ///
     /// <code>
     /// fr  Bonus et Quêtes DOFUS Touch
@@ -38,19 +41,19 @@ public static class AlmanaxReading
     /// es  Bonus y misiones DOFUS Touch
     /// </code>
     ///
-    /// On cherche donc le nom n'importe où, et on refuse tout le reste. Mieux
-    /// vaut ne rien montrer que montrer l'offrande d'un autre jeu.
+    /// So we look for the name anywhere, and reject everything else.
+    /// Better to show nothing than to show another game's offering.
     /// </summary>
     public static bool IsTouch(string? heading) =>
         (heading ?? string.Empty).Contains("DOFUS Touch", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
-    /// Ce qui suit le deux-points, ou le texte entier s'il n'y en a pas.
+    /// What follows the colon, or the entire text if there is none.
     ///
-    /// Le portail préfixe ses intitulés, « Bonus : », « Bonus: », « Quête : »,
-    /// « Quest: », « Misión: ». Le mot change, la ponctuation aussi, mais le
-    /// deux-points est là dans les trois langues, et il n'apparaît pas dans les
-    /// valeurs elles-mêmes.
+    /// The portal prefixes its headings, "Bonus : ", "Bonus: ",
+    /// "Quête : ", "Quest: ", "Misión: ". The word changes, the
+    /// punctuation too, but the colon is there in all three
+    /// languages, and it never appears in the values themselves.
     /// </summary>
     public static string AfterColon(string? text)
     {
@@ -61,18 +64,19 @@ public static class AlmanaxReading
     }
 
     /// <summary>
-    /// Le nombre et l'objet à rapporter, ou <c>null</c> si la phrase ne se
-    /// laisse pas lire.
+    /// The number and the object to bring back, or <c>null</c> if the
+    /// sentence cannot be read.
     ///
-    /// Rendre <c>null</c> n'est pas un échec : la fenêtre affiche alors la
-    /// phrase entière, qui dit déjà tout. On ne perd que la mise en avant.
+    /// Returning <c>null</c> is not a failure: the window then shows
+    /// the whole sentence, which already says everything. All we
+    /// lose is the highlighting.
     /// </summary>
     public static (int Quantity, string Item)? Offering(string? sentence)
     {
         var whole = Clean(sentence);
 
-        // Le premier nombre de la phrase : les verbes le précèdent tous, et
-        // aucun nom d'objet ne commence par un chiffre.
+        // The first number in the sentence: the verbs all precede
+        // it, and no object name starts with a digit.
         var start = -1;
         var end = -1;
 
@@ -101,8 +105,8 @@ public static class AlmanaxReading
 
         var rest = whole[(end + 1)..];
 
-        // La conjonction la plus proche, et non la première de la liste : un
-        // nom d'objet peut contenir « y » ou « et » d'une autre langue.
+        // The closest conjunction, not the first one in the list: an
+        // object name may contain "y" or "et" from another language.
         var cut = rest.Length;
 
         foreach (var connector in Connectors)
@@ -121,9 +125,9 @@ public static class AlmanaxReading
     }
 
     /// <summary>
-    /// Le texte débarrassé des blancs du gabarit : la page rend ses
-    /// valeurs sur plusieurs lignes, indentées, et le texte brut arrive
-    /// criblé d'espaces et de sauts.
+    /// The text stripped of the template's blanks: the page renders
+    /// its values over several lines, indented, and the raw text
+    /// arrives riddled with spaces and line breaks.
     /// </summary>
     public static string Clean(string? text) =>
         string.Join(' ', (text ?? string.Empty).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));

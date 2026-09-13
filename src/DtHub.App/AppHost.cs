@@ -1,15 +1,15 @@
 ﻿namespace DtHub.App;
 
 /// <summary>
-/// Accès au conteneur pour les rares cas où une fenêtre en ouvre une autre.
-/// Volontairement minimal : tout le reste passe par l'injection de
-/// dépendances ordinaire.
+/// Access to the container for the rare cases where one window
+/// opens another. Deliberately minimal: everything else goes
+/// through ordinary dependency injection.
 /// </summary>
 public static class AppHost
 {
     private static IServiceProvider? _services;
 
-    /// <summary>Services de l'application.</summary>
+    /// <summary>Application services.</summary>
     public static IServiceProvider Services =>
         _services ?? throw new InvalidOperationException("L'hôte n'est pas encore démarré.");
 

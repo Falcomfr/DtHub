@@ -36,8 +36,8 @@ using Microsoft.Extensions.Logging;
 namespace DtHub.App;
 
 /// <summary>
-/// Composition des services. Un seul endroit décrit comment les pièces
-/// s'assemblent.
+/// Service composition. A single place describes how the pieces
+/// fit together.
 /// </summary>
 public static class AppServices
 {
@@ -45,7 +45,7 @@ public static class AppServices
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        // Emplacements et persistance.
+        // Locations and persistence.
         services.AddSingleton<IAppPaths>(_ =>
         {
             var paths = new AppPaths();
@@ -59,22 +59,23 @@ public static class AppServices
 
         services.AddSingleton<SettingsService>();
 
-        // Exécution de processus.
+        // Process execution.
         services.AddSingleton<IProcessRunner, ProcessRunner>();
         services.AddSingleton<IProcessLauncher, ProcessLauncher>();
 
-        // Composants tiers.
+        // Third-party components.
         services.AddSingleton(_ => new HttpClient { Timeout = TimeSpan.FromMinutes(10) });
         services.AddSingleton<IDependencyProvisioner, ArchiveDependencyProvisioner>();
 
-        // Guides de quêtes. Son propre client : celui du dessus attend dix
-        // minutes, taillé pour une archive de onze mégaoctets, ce qui ferait
-        // paraître l'application figée si le site ne répondait pas.
+        // Quest guides. Its own client: the one above waits ten
+        // minutes, sized for an eleven-megabyte archive, which would
+        // make the application look frozen if the site did not
+        // respond.
         services.AddSingleton<IPapychaClient>(provider => new PapychaClient(
             new HttpClient { Timeout = TimeSpan.FromSeconds(30) },
             provider.GetRequiredService<ILogger<PapychaClient>>()));
-        // Mises à jour. Son propre client : un exécutable de soixante mégaoctets
-        // ne se télécharge pas dans le temps qu'on accorde à une page web.
+        // Updates. Its own client: a sixty-megabyte executable does
+        // not download in the time allotted to a web page.
         services.AddSingleton<IReleaseSource>(provider => new GitHubReleaseSource(
             new HttpClient { Timeout = TimeSpan.FromMinutes(10) },
             ReleaseChannel.Owner,
@@ -97,7 +98,7 @@ public static class AppServices
         services.AddSingleton<IScrcpyLocator, ScrcpyLocator>();
         services.AddSingleton<ToolPreparation>();
 
-        // Téléphones.
+        // Phones.
         services.AddSingleton<IAdbClient, AdbClient>();
         services.AddSingleton<IDeviceRegistry, DeviceRegistry>();
         services.AddSingleton<IUsbEnumerationInspector, WindowsUsbInspector>();
@@ -107,14 +108,14 @@ public static class AppServices
         services.AddSingleton<DeviceReconnectService>();
         services.AddSingleton<AndroidUserService>();
 
-        // Jeu.
+        // Game.
         services.AddSingleton<DofusInstanceService>();
         services.AddSingleton<IAppIconProvider, AppIconProvider>();
         services.AddSingleton<IAppLauncher, AndroidAppLauncher>();
         services.AddSingleton<AppRestartService>();
         services.AddSingleton<ScrcpySessionManager>();
 
-        // Fenêtres et raccourcis.
+        // Windows and shortcuts.
         services.AddSingleton<IWindowController, Win32WindowController>();
         services.AddSingleton<WindowManagerService>();
         services.AddSingleton<IHotkeyRegistrar, Win32HotkeyRegistrar>();
@@ -137,8 +138,9 @@ public static class AppServices
         services.AddSingleton<WindowPlacements>();
         services.AddSingleton<QuestWindow>();
 
-        // À part et jetable : une page liée n'a rien à retenir d'une ouverture
-        // à l'autre, et on peut en vouloir plusieurs côte à côte.
+        // Separate and disposable: a linked page has nothing to
+        // remember from one opening to the next, and several may be
+        // wanted side by side.
         services.AddTransient<QuestPageWindow>();
         services.AddTransient<AlmanaxWindow>();
         services.AddTransient<HotkeyEditorViewModel>();
@@ -149,7 +151,7 @@ public static class AppServices
         return services;
     }
 
-    /// <summary>Construit un dépôt JSON pour un document donné.</summary>
+    /// <summary>Builds a JSON store for a given document.</summary>
     private static Func<IServiceProvider, IDocumentStore<T>> CreateStore<T>(Func<IAppPaths, string> path)
         where T : class, new() =>
         provider => new JsonDocumentStore<T>(

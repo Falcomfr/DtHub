@@ -4,47 +4,52 @@ using DtHub.Core.Settings;
 namespace DtHub.Core.Windows;
 
 /// <summary>
-/// Place les fenêtres de jeu. Toutes reçoivent exactement le même rectangle et
-/// se superposent donc parfaitement : on passe de l'une à l'autre au clavier
-/// sans que rien ne bouge à l'écran.
+/// Places the game windows. All of them receive exactly the same
+/// rectangle and therefore overlap perfectly: switching from one to
+/// another with the keyboard moves nothing on screen.
 /// </summary>
 public sealed class WindowManagerService
 {
     private readonly IWindowController _controller;
 
     /// <summary>
-    /// L'accès brut aux fenêtres, pour ce qui n'est pas un placement.
+    /// Raw access to the windows, for whatever is not a placement.
     ///
-    /// Le cadre à onglets arrime et détache lui-même : lui faire passer chaque
-    /// geste par ce service, qui ne parle que de sessions et d'écrans, aurait
-    /// mêlé deux affaires distinctes.
+    /// The tabbed frame docks and undocks itself: routing every one
+    /// of its gestures through this service, which only speaks of
+    /// sessions and screens, would have mixed two separate concerns.
     /// </summary>
     public IWindowController Controller => _controller;
     private readonly Func<TimeSpan, CancellationToken, Task> _delay;
 
     private int _focusIndex = -1;
 
-    /// <summary>Dernière taille vue par session, pour ne corriger qu'une fois le geste fini.</summary>
+    /// <summary>
+    /// Last size seen per session, so a correction is made only once
+    /// the gesture is finished.
+    /// </summary>
     private readonly Dictionary<string, ScreenRect> _lastSeen = new(StringComparer.Ordinal);
 
     /// <summary>
-    /// Dernière fenêtre de jeu à avoir été au premier plan.
+    /// Last game window to have been in the foreground.
     ///
-    /// Elle ne peut pas se lire au moment du replacement : cliquer le bouton
-    /// met le configurateur au premier plan, et plus aucune fenêtre de jeu n'y
-    /// est. Il faut donc l'avoir suivie avant.
+    /// It cannot be read at the moment of rearranging: clicking the
+    /// button brings the configurator to the foreground, and no game
+    /// window is there anymore. It must therefore have been tracked
+    /// beforehand.
     /// </summary>
     private string? _lastActive;
 
     /// <summary>
-    /// Géométrie de chaque fenêtre juste avant le passage en plein écran.
+    /// Geometry of each window just before switching to full screen.
     ///
-    /// En sortir doit rendre à chacune sa place. Sans cette mémoire, le retour
-    /// partait du rectangle plein écran et les empilait toutes au même endroit.
+    /// Leaving it must give each one back its place. Without this
+    /// memory, coming back started from the full screen rectangle and
+    /// stacked them all in the same spot.
     /// </summary>
     private readonly Dictionary<string, ScreenRect> _beforeFullscreen = new(StringComparer.Ordinal);
 
-    /// <summary>Taille en vigueur avant le passage en plein écran.</summary>
+    /// <summary>Size in force before switching to full screen.</summary>
     private int _percentBeforeFullscreen = 100;
 
 
@@ -56,44 +61,46 @@ public sealed class WindowManagerService
         _delay = delay ?? ((duration, token) => Task.Delay(duration, token));
     }
 
-    /// <summary>Position du bloc de fenêtres dans l'écran.</summary>
+    /// <summary>Position of the window block on the screen.</summary>
     public WindowAnchor Anchor { get; set; } = WindowAnchor.MiddleLeft;
 
-    /// <summary>Tailles configurées, proportionnelles à l'écran.</summary>
+    /// <summary>Configured sizes, proportional to the screen.</summary>
     public WindowSizePresets Presets { get; set; } = WindowSizePresets.Default;
 
-    /// <summary>Taille en cours, par son indice dans les tailles configurées.</summary>
+    /// <summary>Current size, by its index in the configured sizes.</summary>
     public int SizeIndex { get; private set; } = 1;
 
     /// <summary>
-    /// Taille choisie librement au curseur, en pourcentage de la zone
-    /// utilisable. Elle l'emporte sur l'indice tant qu'un raccourci de taille
-    /// n'a pas été employé : le curseur est une valeur continue, les
-    /// raccourcis quatre repères sur cette même échelle.
+    /// Size freely chosen with the slider, as a percentage of the
+    /// usable area. It takes precedence over the index as long as no
+    /// size shortcut has been used: the slider is a continuous value,
+    /// the shortcuts four marks on that same scale.
     /// </summary>
     public int? CustomSizePercent { get; private set; }
 
-    /// <summary>Taille en cours, en pourcentage de la zone utilisable.</summary>
+    /// <summary>Current size, as a percentage of the usable area.</summary>
     public int SizePercent => CustomSizePercent ?? Presets.PercentageAt(SizeIndex);
 
-    /// <summary>Vrai si la taille en cours est le plein écran sans bordure.</summary>
+    /// <summary>
+    /// True if the current size is full screen with no border.
+    /// </summary>
     public bool IsFullscreen => CustomSizePercent is null && Presets.IsFullscreen(SizeIndex);
 
 
     /// <summary>
-    /// Délai maximal d'attente de la fenêtre scrcpy. Elle n'apparaît qu'une
-    /// fois la première image reçue, ce qui prend un instant.
+    /// Maximum wait for the scrcpy window. It only appears once the
+    /// first frame is received, which takes a moment.
     /// </summary>
     public TimeSpan WindowAppearanceTimeout { get; init; } = TimeSpan.FromSeconds(20);
 
     public TimeSpan WindowPollInterval { get; init; } = TimeSpan.FromMilliseconds(250);
 
-    /// <summary>Écrans disponibles, pour les réglages.</summary>
+    /// <summary>Available screens, for the settings.</summary>
     public IReadOnlyList<MonitorInfo> GetMonitors() => _controller.GetMonitors();
 
     /// <summary>
-    /// Rectangle qu'occuperont les fenêtres de jeu, sans rien déplacer. Sert à
-    /// poser le configurateur ailleurs.
+    /// Rectangle the game windows will occupy, without moving
+    /// anything. Used to place the configurator elsewhere.
     /// </summary>
     public ScreenRect? PreviewGameArea(double sourceAspectRatio)
     {
@@ -109,13 +116,13 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Rectangle d'une fenêtre sur un écran donné. Le plein écran couvre
-    /// l'écran entier, barre des tâches comprise.
+    /// Rectangle of a window on a given screen. Full screen covers
+    /// the entire screen, taskbar included.
     /// </summary>
     /// <param name="chrome">
-    /// Encombrement de la barre de titre et des bordures, mesuré sur la
-    /// fenêtre. Le rapport d'affichage s'applique à la zone client, celle que
-    /// scrcpy remplit : l'ignorer laisse des bandes noires sur les côtés.
+    /// Footprint of the title bar and the borders, measured on the
+    /// window. The aspect ratio applies to the client area, the one
+    /// scrcpy fills: ignoring it leaves black bars on the sides.
     /// </param>
     private ScreenRect Compute(MonitorInfo monitor, double sourceAspectRatio, (int Width, int Height) chrome)
     {
@@ -131,8 +138,8 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Taille d'une fenêtre, sans décider de sa place. Le rapport s'applique à
-    /// la zone client, celle que scrcpy remplit.
+    /// Size of a window, without deciding its place. The aspect ratio
+    /// applies to the client area, the one scrcpy fills.
     /// </summary>
     private (int Width, int Height) ComputeSize(
         MonitorInfo monitor,
@@ -162,14 +169,14 @@ public sealed class WindowManagerService
         monitor.WorkArea.IsEmpty ? monitor.Bounds : monitor.WorkArea;
 
     /// <summary>
-    /// Change la taille des fenêtres sans les déplacer, en multipliant la
-    /// taille de chacune par le même facteur.
+    /// Changes the size of the windows without moving them, by
+    /// multiplying each one's size by the same factor.
     ///
-    /// Leur donner à toutes la même taille effacerait les écarts voulus : une
-    /// fenêtre volontairement plus petite qu'une autre doit le rester. Un
-    /// raccourci de taille ou le curseur ne demandent qu'à agrandir ou
-    /// réduire, pas à uniformiser ni à replacer. Seul le plein écran couvre
-    /// l'écran entier.
+    /// Giving them all the same size would erase deliberate
+    /// differences: a window made smaller than another on purpose
+    /// must stay that way. A size shortcut or the slider only ask to
+    /// grow or shrink, not to make uniform nor to rearrange. Only
+    /// full screen covers the entire screen.
     /// </summary>
     public async Task<int> ScaleInPlaceAsync(
         IReadOnlyList<ScrcpySession> sessions,
@@ -225,13 +232,14 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Redimensionne un rectangle en lui gardant sa position relative dans la
-    /// zone utile.
+    /// Resizes a rectangle while keeping its relative position within
+    /// the usable area.
     ///
-    /// La part d'espace libre à sa gauche reste la même : collée à gauche elle
-    /// reste collée à gauche, au milieu elle reste centrée, dans un coin elle
-    /// grandit depuis ce coin. Garder le coin haut-gauche puis reprendre la
-    /// fenêtre dans l'écran la poussait dès qu'elle grandissait près d'un bord.
+    /// The share of free space to its left stays the same: stuck to
+    /// the left it stays stuck to the left, centered it stays
+    /// centered, in a corner it grows from that corner. Keeping the
+    /// top left corner and then pulling the window back inside the
+    /// screen used to push it as soon as it grew near an edge.
     /// </summary>
     private static ScreenRect Rescale(ScreenRect current, double factor, ScreenRect work)
     {
@@ -246,10 +254,11 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Ramène une fenêtre à l'intérieur de la zone utile sans la redimensionner.
+    /// Brings a window back inside the usable area without resizing
+    /// it.
     ///
-    /// Seul le débordement est corrigé, et par le plus petit déplacement
-    /// possible : une fenêtre entièrement visible n'est jamais touchée.
+    /// Only the overflow is corrected, and by the smallest possible
+    /// move: a window that is entirely visible is never touched.
     /// </summary>
     private static ScreenRect KeepInside(ScreenRect rect, ScreenRect work)
     {
@@ -265,7 +274,10 @@ public sealed class WindowManagerService
         };
     }
 
-    /// <summary>Nouvelle abscisse ou ordonnée, à part d'espace libre constante.</summary>
+    /// <summary>
+    /// New X or Y coordinate, keeping the share of free space
+    /// constant.
+    /// </summary>
     private static int Slide(int position, int before, int after, int origin, int span)
     {
         var freeBefore = span - before;
@@ -277,13 +289,15 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Ramène les fenêtres à la forme de leur afficheur, au rapport verrouillé.
+    /// Brings the windows back to the shape of their display, under
+    /// the locked aspect ratio.
     ///
-    /// Ce mode met l'image à l'échelle : elle ne remplit la fenêtre qu'à cette
-    /// forme, et s'en écarter laisse une bande. En largeur libre, rien n'est
-    /// corrigé : redimensionner y est libre dans les deux sens.
+    /// This mode scales the image: it only fills the window at that
+    /// shape, and departing from it leaves a band. When the width is
+    /// free, nothing is corrected: resizing is free in both
+    /// directions there.
     /// </summary>
-    /// <returns>Nombre de fenêtres corrigées.</returns>
+    /// <returns>Number of windows corrected.</returns>
     public int EnforceAspect(IReadOnlyList<ScrcpySession> sessions)
     {
         ArgumentNullException.ThrowIfNull(sessions);
@@ -318,12 +332,14 @@ public sealed class WindowManagerService
                 continue;
             }
 
-            // Un redimensionnement à la souris est fait par Windows, qui garde
-            // le bord opposé, et par scrcpy, qui verrouille le rapport en
-            // faisant grandir vers le bas. Une fenêtre posée en bas de l'écran
-            // en sort donc dès qu'on l'élargit. On la ramène à l'intérieur,
-            // sans changer sa taille : c'est le seul cas où l'on touche à ce
-            // que l'utilisateur vient de faire de ses mains.
+            // A resize with the mouse is handled by Windows, which
+            // keeps the opposite edge, and by scrcpy, which locks the
+            // aspect ratio by growing downward. A window sitting at
+            // the bottom of the screen therefore goes off it as soon
+            // as it is widened. It is brought back inside, without
+            // changing its size: this is the only case where we
+            // touch what the user has just done with their own
+            // hands.
             var work = UsableArea(
                 WindowLayoutCalculator.ChooseMonitor(monitors, outer.CenterX, outer.CenterY));
 
@@ -337,9 +353,10 @@ public sealed class WindowManagerService
 
             var chrome = MeasureChrome(session.WindowHandle);
 
-            // Rapport verrouillé : l'image est mise à l'échelle, elle ne
-            // remplit la fenêtre qu'à la forme de l'afficheur. S'en écarter
-            // laisse une bande, au-dessus comme en dessous.
+            // Locked aspect ratio: the image is scaled, it only
+            // fills the window at the shape of the display.
+            // Departing from it leaves a band, above as well as
+            // below.
             var wanted = (int)Math.Round(
                 (outer.Width - chrome.Width) / session.SourceAspectRatio) + chrome.Height;
 
@@ -348,8 +365,8 @@ public sealed class WindowManagerService
                 continue;
             }
 
-            // La hauteur corrigée pousse vers l'espace disponible plutôt que
-            // toujours vers le bas.
+            // The corrected height pushes toward the available
+            // space rather than always downward.
             var target = KeepInside(
                 outer with
                 {
@@ -367,9 +384,9 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Différence entre le rectangle extérieur d'une fenêtre et sa zone
-    /// client. Nulle si la mesure échoue, auquel cas le calcul retombe sur le
-    /// comportement d'avant.
+    /// Difference between the outer rectangle of a window and its
+    /// client area. Zero if the measurement fails, in which case the
+    /// calculation falls back to the previous behavior.
     /// </summary>
     private (int Width, int Height) MeasureChrome(nint handle)
     {
@@ -384,8 +401,9 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Applique une taille à toutes les fenêtres et les replace. L'indice hors
-    /// bornes est ramené dans les limites plutôt que refusé.
+    /// Applies a size to all the windows and rearranges them. An
+    /// out-of-range index is clamped back within bounds rather than
+    /// refused.
     /// </summary>
     public Task<int> ApplySizeAsync(
         IReadOnlyList<ScrcpySession> sessions,
@@ -397,15 +415,15 @@ public sealed class WindowManagerService
 
         SizeIndex = Math.Clamp(sizeIndex, 0, Math.Max(0, Presets.Count - 1));
 
-        // Un raccourci de taille reprend la main sur le curseur.
+        // A size shortcut takes control back from the slider.
         CustomSizePercent = null;
 
         return ResizeAsync(sessions, wasFullscreen, previous, cancellationToken);
     }
 
     /// <summary>
-    /// Applique la nouvelle taille, en traitant à part l'entrée et la sortie
-    /// du plein écran.
+    /// Applies the new size, handling entering and leaving full
+    /// screen separately.
     /// </summary>
     private Task<int> ResizeAsync(
         IReadOnlyList<ScrcpySession> sessions,
@@ -420,22 +438,24 @@ public sealed class WindowManagerService
         };
 
     /// <summary>
-    /// Donne à chaque fenêtre la taille que le pourcentage désigne, sans la
-    /// déplacer.
+    /// Gives each window the size the percentage designates, without
+    /// moving it.
     ///
-    /// C'était un facteur, et non une taille : la nouvelle part était divisée
-    /// par l'ancienne, et le rectangle courant multiplié par ce rapport.
-    /// Redemander la part déjà en cours donnait donc un facteur de un, et le
-    /// raccourci ne faisait rien ; venir de la part haute vers la basse
-    /// réduisait ce qui était là plutôt que de poser le minimum. Le maximum
-    /// n'ouvrait pas la fenêtre à fond et le minimum ne la fermait pas au plus
-    /// petit, ce que le README promettait pourtant en toutes lettres.
+    /// This used to be a factor, not a size: the new share was
+    /// divided by the old one, and the current rectangle multiplied
+    /// by that ratio. Asking again for the share already in force
+    /// therefore gave a factor of one, and the shortcut did nothing;
+    /// coming from the high share toward the low one shrank what was
+    /// there rather than setting the minimum. The maximum did not
+    /// open the window all the way and the minimum did not close it
+    /// to its smallest, which the README nonetheless promised in
+    /// plain words.
     ///
-    /// Ce que le facteur protégeait est perdu, et il faut le dire : deux
-    /// fenêtres volontairement de tailles différentes reçoivent désormais la
-    /// même. Leurs places, elles, sont gardées : la part d'espace libre à
-    /// gauche et au-dessus reste la même, si bien qu'un côte à côte reste
-    /// gauche et droite, seulement redimensionné.
+    /// What the factor protected is lost, and it must be said: two
+    /// windows deliberately of different sizes now receive the same
+    /// one. Their places, though, are kept: the share of free space
+    /// to the left and above stays the same, so that a side by side
+    /// arrangement stays left and right, only resized.
     /// </summary>
     private async Task<int> ResizeToPercentAsync(
         IReadOnlyList<ScrcpySession> sessions,
@@ -482,8 +502,8 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Passe en plein écran, chaque fenêtre couvrant l'écran qui la porte, et
-    /// retient d'où elle vient.
+    /// Switches to full screen, each window covering the screen it
+    /// sits on, and remembers where it came from.
     /// </summary>
     private async Task<int> EnterFullscreenAsync(
         IReadOnlyList<ScrcpySession> sessions,
@@ -525,8 +545,8 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Quitte le plein écran et rend à chaque fenêtre la place qu'elle avait,
-    /// mise à l'échelle si la taille demandée n'est pas celle d'avant.
+    /// Leaves full screen and gives each window back the place it
+    /// had, scaled if the requested size is not the one from before.
     /// </summary>
     private async Task<int> LeaveFullscreenAsync(
         IReadOnlyList<ScrcpySession> sessions,
@@ -579,21 +599,22 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Encombrement du cadre d'une fenêtre sur l'écran retenu. Connu avant
-    /// qu'aucune fenêtre n'existe, pour demander à scrcpy un afficheur de la
-    /// taille exacte de la zone client.
+    /// Footprint of a window's frame on the chosen screen. Known
+    /// before any window exists, to ask scrcpy for a display of
+    /// exactly the client area's size.
     /// </summary>
     public WindowFrame WindowChrome() =>
         _controller.GetWindowChrome(monitorDeviceName: null);
 
     /// <summary>
-    /// Bornes complètes de l'écran où une fenêtre va s'ouvrir, barre des
-    /// tâches comprise.
+    /// Full bounds of the screen where a window is about to open,
+    /// taskbar included.
     ///
-    /// C'est l'écran de sa géométrie mémorisée, et l'écran principal à défaut.
-    /// Prendre un écran de référence unique donnerait le mauvais rapport à
-    /// l'afficheur d'une fenêtre laissée sur un second écran de forme
-    /// différente, et elle naîtrait mal formée.
+    /// This is the screen of its remembered geometry, and the main
+    /// screen otherwise. Taking a single reference screen would give
+    /// the wrong aspect ratio to the display of a window left on a
+    /// second screen of a different shape, and it would be born
+    /// malformed.
     /// </summary>
     public ScreenRect? MonitorBoundsFor(StoredWindowRect? remembered)
     {
@@ -614,7 +635,7 @@ public sealed class WindowManagerService
             : WindowLayoutCalculator.ChooseMonitor(monitors, preferredDeviceName: null).Bounds;
     }
 
-    /// <summary>Zone utilisable de l'écran retenu.</summary>
+    /// <summary>Usable area of the chosen screen.</summary>
     public ScreenRect? WorkArea()
     {
         var monitors = _controller.GetMonitors();
@@ -629,10 +650,11 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Retrouve la fenêtre d'une session par son processus. Chaque processus
-    /// scrcpy n'ouvre qu'une fenêtre visible, ce qui suffit à l'identifier et
-    /// laisse le titre entièrement au nom choisi par l'utilisateur. Le titre
-    /// ne sert que de départage si plusieurs fenêtres apparaissaient.
+    /// Finds a session's window by its process. Each scrcpy process
+    /// opens only one visible window, which is enough to identify it
+    /// and leaves the title entirely to the name chosen by the user.
+    /// The title only serves as a tiebreaker if several windows were
+    /// to appear.
     /// </summary>
     public async Task<nint> ResolveWindowAsync(
         ScrcpySession session,
@@ -680,11 +702,12 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Place toutes les fenêtres au même endroit, à la position et à la taille
-    /// configurées. C'est le replacement rapide : il écrase délibérément la
-    /// géométrie que l'utilisateur avait donnée à chaque fenêtre.
+    /// Places all the windows at the same spot, at the configured
+    /// position and size. This is the quick rearrangement: it
+    /// deliberately overwrites the geometry the user had given each
+    /// window.
     /// </summary>
-    /// <returns>Nombre de fenêtres effectivement déplacées.</returns>
+    /// <returns>Number of windows actually moved.</returns>
     public async Task<int> ArrangeAsync(
         IReadOnlyList<ScrcpySession> sessions,
         CancellationToken cancellationToken = default)
@@ -696,10 +719,11 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Place chaque fenêtre là où elle avait été laissée, et retombe sur le
-    /// placement calculé pour celles qui n'ont pas encore de géométrie.
+    /// Places each window where it had been left, and falls back to
+    /// the calculated placement for those that do not yet have a
+    /// geometry.
     /// </summary>
-    /// <returns>Les rectangles réellement appliqués, par clé d'instance.</returns>
+    /// <returns>The rectangles actually applied, by instance key.</returns>
     public Task<IReadOnlyList<(string Key, ScreenRect Rect)>> RestoreAsync(
         IReadOnlyList<ScrcpySession> sessions,
         IReadOnlyDictionary<string, StoredWindowRect> remembered,
@@ -711,13 +735,13 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Géométrie actuelle de chaque fenêtre vivante, par clé d'instance.
+    /// Current geometry of each live window, by instance key.
     ///
-    /// Le plein écran est écarté : son rectangle vaut l'écran entier et la
-    /// fenêtre y est sans bordure. Le mémoriser puis le restaurer en taille
-    /// normale donnerait une fenêtre bordée débordant sous la barre des
-    /// tâches. Une fenêtre réduite est écartée aussi, son rectangle ne voulant
-    /// rien dire.
+    /// Full screen is set aside: its rectangle equals the entire
+    /// screen and the window is borderless there. Remembering it and
+    /// then restoring it at normal size would give a bordered window
+    /// overflowing under the taskbar. A minimized window is set
+    /// aside too, its rectangle meaning nothing.
     /// </summary>
     public IReadOnlyList<(string Key, StoredWindowRect Rect)> CaptureGeometries(
         IReadOnlyList<ScrcpySession> sessions)
@@ -754,8 +778,8 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Applique une disposition. Sans géométries mémorisées, toutes les
-    /// fenêtres reçoivent le rectangle calculé depuis l'ancrage.
+    /// Applies a layout. Without remembered geometries, all the
+    /// windows receive the rectangle calculated from the anchor.
     /// </summary>
     private async Task<IReadOnlyList<(string Key, ScreenRect Rect)>> ApplyLayoutAsync(
         IReadOnlyList<ScrcpySession> sessions,
@@ -781,15 +805,17 @@ public sealed class WindowManagerService
                 continue;
             }
 
-            // La bordure ne disparaît qu'en plein écran, et revient en sortant.
+            // The border only disappears in full screen, and comes
+            // back on leaving.
             _controller.SetBorderless(handle, IsFullscreen);
 
             (int Width, int Height) chrome = IsFullscreen ? (0, 0) : MeasureChrome(handle);
             var rect = Resolve(session, monitor, monitors, chrome, remembered);
 
-            // Une fenêtre déjà en place n'est pas déplacée. scrcpy l'ouvre au
-            // rectangle qu'on lui a demandé : la bouger quand même n'a rien à
-            // corriger, et le saut se voyait à chaque ouverture.
+            // A window already in place is not moved. scrcpy opens
+            // it at the rectangle we asked for: moving it anyway has
+            // nothing to correct, and the jump used to show on every
+            // opening.
             if (_controller.GetWindowRect(handle) != rect)
             {
                 _controller.MoveWindow(handle, rect);
@@ -802,9 +828,9 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Rectangle d'une fenêtre : celui qu'elle avait quand il vaut encore, le
-    /// calcul par ancrage sinon. Le plein écran l'emporte toujours sur une
-    /// géométrie mémorisée.
+    /// Rectangle of a window: the one it had when it is still valid,
+    /// the anchor-based calculation otherwise. Full screen always
+    /// takes precedence over a remembered geometry.
     /// </summary>
     private ScreenRect Resolve(
         ScrcpySession session,
@@ -826,19 +852,23 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Le rectangle qu'une fenêtre devrait occuper à la taille courante, sans
-    /// changer de place : sa part d'espace libre à gauche et au-dessus est
-    /// gardée, exactement comme pour les fenêtres de jeu.
+    /// The rectangle a window should occupy at the current size,
+    /// without changing place: its share of free space to the left
+    /// and above is kept, exactly as for the game windows.
     ///
-    /// Ces deux méthodes sont publiées pour le cadre à onglets. Il n'est pas
-    /// une session, ne figure donc dans aucune des listes que reçoivent les
-    /// autres méthodes, et se range pourtant comme une fenêtre de jeu. Leur
-    /// donner le calcul plutôt qu'une seconde mise en œuvre est la seule façon
-    /// que les deux ne divergent pas.
+    /// These two methods are published for the tabbed frame. It is
+    /// not a session, so it does not appear in any of the lists the
+    /// other methods receive, and yet it is arranged like a game
+    /// window. Giving them the calculation rather than a second
+    /// implementation is the only way the two do not drift apart.
     /// </summary>
-    /// <param name="handle">Fenêtre visée, pour savoir quel écran la porte.</param>
-    /// <param name="aspectRatio">Rapport de l'image, zéro s'il est inconnu.</param>
-    /// <param name="chrome">Encombrement du châssis.</param>
+    /// <param name="handle">
+    /// Window targeted, to know which screen carries it.
+    /// </param>
+    /// <param name="aspectRatio">
+    /// Aspect ratio of the image, zero if unknown.
+    /// </param>
+    /// <param name="chrome">Footprint of the window chrome.</param>
     public ScreenRect? ResizedRect(nint handle, double aspectRatio, (int Width, int Height) chrome)
     {
         if (MonitorOf(handle) is not { } monitor)
@@ -864,23 +894,26 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Le rectangle qu'une fenêtre devrait occuper à la taille et à la
-    /// position courantes des réglages, celle de la grille des neuf ancrages.
+    /// The rectangle a window should occupy at the current size and
+    /// position from the settings, that of the grid of nine anchors.
     /// </summary>
     public ScreenRect? AnchoredRect(nint handle, double aspectRatio, (int Width, int Height) chrome) =>
         MonitorOf(handle) is { } monitor ? Compute(monitor, aspectRatio, chrome) : null;
 
     /// <summary>
-    /// Les bornes entières de l'écran qui porte une fenêtre, barre des tâches
-    /// comprise. C'est ce que couvre le plein écran.
+    /// The full bounds of the screen that carries a window, taskbar
+    /// included. This is what full screen covers.
     /// </summary>
     public ScreenRect? ScreenBoundsFor(nint handle) => MonitorOf(handle)?.Bounds;
 
-    /// <summary>La zone utilisable de l'écran qui porte une fenêtre.</summary>
+    /// <summary>The usable area of the screen that carries a window.</summary>
     public ScreenRect? WorkAreaFor(nint handle) =>
         MonitorOf(handle) is { } monitor ? UsableArea(monitor) : null;
 
-    /// <summary>L'écran qui porte une fenêtre, ou l'écran principal à défaut.</summary>
+    /// <summary>
+    /// The screen that carries a window, or the main screen
+    /// otherwise.
+    /// </summary>
     private MonitorInfo? MonitorOf(nint handle)
     {
         var monitors = _controller.GetMonitors();
@@ -896,7 +929,8 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Applique la taille libre du curseur, sans déplacer les fenêtres.
+    /// Applies the free size from the slider, without moving the
+    /// windows.
     /// </summary>
     public Task<int> ApplyPercentAsync(
         IReadOnlyList<ScrcpySession> sessions,
@@ -912,11 +946,11 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Réécrit le titre de chaque fenêtre ouverte. scrcpy ne fixe le sien
-    /// qu'au démarrage : sans cela, le rappel du raccourci resterait périmé
-    /// jusqu'à la prochaine ouverture.
+    /// Rewrites the title of every open window. scrcpy only sets its
+    /// own at startup: without this, the shortcut reminder would
+    /// stay stale until the next opening.
     /// </summary>
-    /// <returns>Nombre de fenêtres renommées.</returns>
+    /// <returns>Number of windows renamed.</returns>
     public int Retitle(IReadOnlyList<ScrcpySession> sessions, Func<ScrcpySession, string> title)
     {
         ArgumentNullException.ThrowIfNull(sessions);
@@ -935,15 +969,15 @@ public sealed class WindowManagerService
 
 
     /// <summary>
-    /// Empile les fenêtres sur l'une d'elles, prise comme référence.
+    /// Stacks the windows onto one of them, taken as the reference.
     ///
-    /// La référence est la fenêtre de jeu active, ou la première dans l'ordre
-    /// configuré s'il n'y en a pas. C'est ce qu'on attend en pratique : on
-    /// place une fenêtre là où on la veut, et les autres viennent dessus, à
-    /// la même taille. Le replacement par ancrage garde son rôle, dans la
-    /// grille des neuf positions.
+    /// The reference is the active game window, or the first one in
+    /// the configured order if there is none. This is what is
+    /// expected in practice: a window is placed where wanted, and the
+    /// others come onto it, at the same size. Anchor-based
+    /// rearrangement keeps its role, in the grid of nine positions.
     /// </summary>
-    /// <returns>Nombre de fenêtres déplacées.</returns>
+    /// <returns>Number of windows moved.</returns>
     public async Task<int> StackOnActiveAsync(
         IReadOnlyList<ScrcpySession> sessions,
         CancellationToken cancellationToken = default)
@@ -958,13 +992,13 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// La fenêtre de référence de l'empilement et son rectangle, ou
-    /// <c>null</c> s'il n'y a rien à empiler.
+    /// The reference window of the stack and its rectangle, or
+    /// <c>null</c> if there is nothing to stack.
     ///
-    /// Publié à part pour que le cadre à onglets reçoive le même rectangle que
-    /// les fenêtres libres : il n'est pas une session, ne peut donc pas figurer
-    /// dans la liste, et l'empiler ailleurs qu'elles serait tout sauf un
-    /// replacement.
+    /// Published separately so the tabbed frame receives the same
+    /// rectangle as the free windows: it is not a session, so it
+    /// cannot appear in the list, and stacking it anywhere else than
+    /// them would be anything but a rearrangement.
     /// </summary>
     public async Task<(ScrcpySession Reference, ScreenRect Rect)?> StackTargetAsync(
         IReadOnlyList<ScrcpySession> sessions,
@@ -981,8 +1015,9 @@ public sealed class WindowManagerService
 
         var foreground = _controller.GetForegroundWindow();
 
-        // Celle qui est au premier plan, sinon la dernière à l'avoir été,
-        // sinon la première de la liste, dans l'ordre choisi par l'utilisateur.
+        // The one in the foreground, otherwise the last one to have
+        // been, otherwise the first in the list, in the order chosen
+        // by the user.
         var reference = alive.Find(s => s.WindowHandle != 0 && s.WindowHandle == foreground)
             ?? alive.Find(s => string.Equals(s.Id, _lastActive, StringComparison.Ordinal))
             ?? alive[0];
@@ -994,9 +1029,11 @@ public sealed class WindowManagerService
             : null;
     }
 
-    /// <summary>Pose toutes les fenêtres sur un même rectangle.</summary>
-    /// <param name="except">Celle qui l'occupe déjà, et qu'on ne compte pas.</param>
-    /// <returns>Nombre de fenêtres déplacées.</returns>
+    /// <summary>Places all the windows onto the same rectangle.</summary>
+    /// <param name="except">
+    /// The one that already occupies it, and is not counted.
+    /// </param>
+    /// <returns>Number of windows moved.</returns>
     public async Task<int> StackOnAsync(
         IReadOnlyList<ScrcpySession> sessions,
         ScreenRect rect,
@@ -1027,22 +1064,24 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Pose deux fenêtres côte à côte, chacune sur une moitié de l'écran.
+    /// Places two windows side by side, each on one half of the
+    /// screen.
     ///
-    /// La fenêtre active va à droite, celle qui la suit dans l'ordre à gauche.
-    /// Les suivantes se rangent derrière celle de gauche : au-delà de deux,
-    /// l'écran ne se partage plus utilement.
+    /// The active window goes to the right, the one that follows it
+    /// in order to the left. The next ones stack behind the one on
+    /// the left: beyond two, the screen no longer splits usefully.
     ///
-    /// La hauteur suit le rapport de l'afficheur : la remplir davantage
-    /// laisserait une bande, l'image étant mise à l'échelle.
+    /// The height follows the display's aspect ratio: filling it
+    /// further would leave a band, since the image is scaled.
     /// </summary>
     /// <param name="leaveRightFree">
-    /// Vrai quand la moitié droite revient à quelqu'un d'autre, le cadre à
-    /// onglets étant au premier plan : toutes les fenêtres passent alors à
-    /// gauche. Sans cela, une fenêtre de jeu se poserait à droite par-dessus
-    /// le cadre, qui n'est pas une session et ne peut donc pas figurer ici.
+    /// True when the right half belongs to someone else, the tabbed
+    /// frame being in the foreground: all the windows then move to
+    /// the left. Without this, a game window would land on the
+    /// right on top of the frame, which is not a session and
+    /// therefore cannot appear here.
     /// </param>
-    /// <returns>Nombre de fenêtres placées.</returns>
+    /// <returns>Number of windows placed.</returns>
     public async Task<int> TileAsync(
         IReadOnlyList<ScrcpySession> sessions,
         bool leaveRightFree = false,
@@ -1108,9 +1147,9 @@ public sealed class WindowManagerService
             }
         }
 
-        // Le clavier revient à la fenêtre de gauche : celle de droite était
-        // déjà celle qu'on venait de quitter, et la ranger pour aussitôt y
-        // rester ne servait à rien.
+        // The keyboard goes back to the left window: the right one
+        // was already the one just left, and arranging it only to
+        // stay there right away served no purpose.
         if (left != 0)
         {
             _controller.Focus(left);
@@ -1120,10 +1159,10 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Retient laquelle des fenêtres de jeu est au premier plan.
+    /// Remembers which game window is in the foreground.
     ///
-    /// Appelé au fil de l'eau : au moment du replacement il est trop tard, le
-    /// configurateur ayant pris le premier plan.
+    /// Called continuously: by the time of the rearrangement it is
+    /// too late, the configurator having taken the foreground.
     /// </summary>
     public void TrackActiveWindow(IReadOnlyList<ScrcpySession> sessions)
     {
@@ -1143,11 +1182,11 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Place une fenêtre sans toucher à sa taille.
+    /// Places a window without touching its size.
     ///
-    /// Sert à la garer hors écran avant l'ouverture du jeu : la redimensionner
-    /// à cet instant le ferait naître petit, et il ne dessinerait plus jamais
-    /// au-delà.
+    /// Used to park it off screen before the game opens: resizing it
+    /// at that moment would make it come to life small, and it would
+    /// never draw beyond that again.
     /// </summary>
     public async Task MoveOnlyAsync(
         ScrcpySession session,
@@ -1164,8 +1203,9 @@ public sealed class WindowManagerService
             return;
         }
 
-        // Une fenêtre déjà au bon coin n'est pas bougée : c'est ce déplacement
-        // sans objet qu'on voyait sauter juste après l'ouverture.
+        // A window already at the right corner is not moved: it was
+        // this pointless move that could be seen jumping right after
+        // opening.
         if (rect.X == x && rect.Y == y)
         {
             return;
@@ -1175,16 +1215,16 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Fait suivre l'ordre de la liste à l'ordre des fenêtres, donc à celui
-    /// d'Alt+Tab.
+    /// Makes the window order follow the list order, and therefore
+    /// the Alt+Tab order.
     ///
-    /// Les fenêtres sont remontées de la dernière à la première : chacune passe
-    /// au-dessus des précédentes, si bien que la première de la liste finit au
-    /// sommet. Aucune ne prend le focus, la fenêtre où l'on joue reste celle où
-    /// l'on joue.
+    /// The windows are raised from the last to the first: each one
+    /// passes above the previous ones, so that the first in the list
+    /// ends up on top. None of them takes focus, the window being
+    /// played in stays the window being played in.
     ///
-    /// L'ordre des vignettes de la barre des tâches, lui, suit l'ordre de
-    /// création et ne bouge pas : Windows ne l'expose pas.
+    /// The order of the taskbar thumbnails, however, follows creation
+    /// order and does not move: Windows does not expose it.
     /// </summary>
     public async Task<int> ApplyOrderAsync(
         IReadOnlyList<ScrcpySession> sessions,
@@ -1213,8 +1253,8 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Demande à la fenêtre d'une session de se fermer d'elle-même, sans
-    /// attendre. Rien ne se passe si la fenêtre n'a jamais été trouvée.
+    /// Asks a session's window to close itself, without waiting.
+    /// Nothing happens if the window was never found.
     /// </summary>
     public void RequestClose(ScrcpySession session)
     {
@@ -1226,16 +1266,16 @@ public sealed class WindowManagerService
         }
     }
 
-    /// <summary>Processus propriétaire d'une fenêtre, ou zéro.</summary>
+    /// <summary>Process that owns a window, or zero.</summary>
     public int GetWindowProcessId(nint handle) => _controller.GetWindowProcessId(handle);
 
-    /// <summary>Passe à l'instance suivante, en boucle.</summary>
+    /// <summary>Moves to the next instance, cyclically.</summary>
     public ScrcpySession? FocusNext(IReadOnlyList<ScrcpySession> sessions) => Cycle(sessions, forward: true);
 
-    /// <summary>Revient à l'instance précédente, en boucle.</summary>
+    /// <summary>Moves back to the previous instance, cyclically.</summary>
     public ScrcpySession? FocusPrevious(IReadOnlyList<ScrcpySession> sessions) => Cycle(sessions, forward: false);
 
-    /// <summary>Met une session précise au premier plan.</summary>
+    /// <summary>Brings a specific session to the foreground.</summary>
     public bool Focus(ScrcpySession session)
     {
         ArgumentNullException.ThrowIfNull(session);
@@ -1250,9 +1290,9 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Vrai si la fenêtre active appartient à l'une des sessions gérées. Les
-    /// raccourcis de fenêtre ne s'appliquent que dans ce cas, sinon Ctrl+Tab
-    /// serait détourné dans les autres logiciels.
+    /// True if the active window belongs to one of the managed
+    /// sessions. The window shortcuts only apply in that case,
+    /// otherwise Ctrl+Tab would be hijacked in other software.
     /// </summary>
     public bool IsManagedWindowFocused(IReadOnlyList<ScrcpySession> sessions)
     {
@@ -1274,8 +1314,9 @@ public sealed class WindowManagerService
             return null;
         }
 
-        // On repart de la fenêtre réellement active, et non d'un compteur
-        // interne : l'utilisateur a pu changer de fenêtre à la souris.
+        // We start again from the actually active window, not from
+        // an internal counter: the user may have switched windows
+        // with the mouse.
         var foreground = _controller.GetForegroundWindow();
         var current = alive.FindIndex(s => s.WindowHandle == foreground);
         var from = current >= 0 ? current : _focusIndex;

@@ -1,24 +1,26 @@
 ﻿namespace DtHub.Core.Windows;
 
 /// <summary>
-/// Épaisseur du cadre que Windows dessine autour de la zone client d'une
-/// fenêtre : la bordure gauche, la barre de titre, et ce que les deux ajoutent
-/// à la largeur et à la hauteur.
+/// Thickness of the frame that Windows draws around a window's
+/// client area: the left border, the title bar, and what the two
+/// add to the width and the height.
 ///
-/// La distinction n'est pas cosmétique. scrcpy dimensionne **et positionne** sa
-/// fenêtre par l'intérieur : lui donner le coin extérieur la faisait naître une
-/// bordure trop à gauche et une barre de titre trop haut, et le placement qui
-/// suivait la recalait à l'écran. Mesuré sur l'appareil de développement :
-/// demandé en (186, 284), le cadre paraissait en (175, 239).
+/// The distinction is not cosmetic. scrcpy sizes **and positions**
+/// its window from the inside: giving it the outer corner made it
+/// spawn with a border too far left and a title bar too high, and
+/// the placement that followed would then reposition it on screen.
+/// Measured on the development device: requested at (186, 284),
+/// the frame appeared at (175, 239).
 /// </summary>
 public readonly record struct WindowFrame(int Left, int Top, int Width, int Height)
 {
-    /// <summary>Aucun cadre : fenêtre sans bordure, ou plein écran.</summary>
+    /// <summary>No frame: borderless window, or full screen.</summary>
     public static WindowFrame None => default;
 
     /// <summary>
-    /// Rectangle à demander pour la zone client afin que la fenêtre, cadre
-    /// compris, occupe exactement <paramref name="outer"/>.
+    /// Rectangle to request for the client area so that the
+    /// window, frame included, occupies exactly
+    /// <paramref name="outer"/>.
     /// </summary>
     public ScreenRect ClientOf(ScreenRect outer) => new(
         outer.X + Left,

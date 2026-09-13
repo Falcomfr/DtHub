@@ -1,9 +1,9 @@
 ﻿namespace DtHub.Core.Hotkeys;
 
 /// <summary>
-/// L'ensemble des raccourcis, avec la validation qui va avec. Immuable : toute
-/// modification rend un nouvel ensemble, ce qui évite qu'un raccourci invalide
-/// soit à moitié appliqué.
+/// The set of shortcuts, with the validation that goes with it.
+/// Immutable: any change returns a new set, which prevents an invalid
+/// shortcut from being half applied.
 /// </summary>
 public sealed class HotkeySet
 {
@@ -11,10 +11,10 @@ public sealed class HotkeySet
 
     private HotkeySet(Dictionary<HotkeyAction, HotkeyBinding> bindings) => _bindings = bindings;
 
-    /// <summary>Raccourcis livrés par défaut.</summary>
+    /// <summary>Shortcuts shipped by default.</summary>
     public static HotkeySet Default => new(new Dictionary<HotkeyAction, HotkeyBinding>
     {
-        // scrcpy réserve Alt pour ses propres raccourcis : on reste sur Ctrl.
+        // scrcpy reserves Alt for its own shortcuts: we stay on Ctrl.
         [HotkeyAction.ToggleConfigurator] = Bind(
             HotkeyAction.ToggleConfigurator, VirtualKeys.P, HotkeyModifiers.Control),
         [HotkeyAction.NextInstance] = Bind(
@@ -25,10 +25,10 @@ public sealed class HotkeySet
         [HotkeyAction.Tile] = Bind(HotkeyAction.Tile, VirtualKeys.T, HotkeyModifiers.Control),
         [HotkeyAction.Quests] = Bind(HotkeyAction.Quests, VirtualKeys.Q, HotkeyModifiers.Control),
 
-        // Ctrl+M et non Ctrl+A : ces raccourcis sont enregistrés auprès de
-        // Windows, donc pris à toutes les applications. « A » aurait mangé le
-        // « tout sélectionner » de tout le poste. « M » n'est réservé nulle
-        // part, et le raccourci s'édite.
+        // Ctrl+M and not Ctrl+A: these shortcuts are registered with
+        // Windows, so they are taken away from every application. "A"
+        // would have eaten the "select all" of the entire machine.
+        // "M" is not reserved anywhere, and the shortcut is editable.
         [HotkeyAction.Almanax] = Bind(HotkeyAction.Almanax, VirtualKeys.M, HotkeyModifiers.Control),
         [HotkeyAction.Size1] = Bind(HotkeyAction.Size1, VirtualKeys.D1, HotkeyModifiers.Control),
         [HotkeyAction.Size2] = Bind(HotkeyAction.Size2, VirtualKeys.D2, HotkeyModifiers.Control),
@@ -38,24 +38,28 @@ public sealed class HotkeySet
         [HotkeyAction.Quit] = Bind(HotkeyAction.Quit, VirtualKeys.D0, HotkeyModifiers.Control),
     });
 
-    /// <summary>Tous les raccourcis, triés dans l'ordre d'affichage de l'éditeur.</summary>
+    /// <summary>
+    /// All shortcuts, sorted in the editor's display order.
+    /// </summary>
     public IReadOnlyList<HotkeyBinding> Bindings =>
         [.. Enum.GetValues<HotkeyAction>().Where(_bindings.ContainsKey).Select(a => _bindings[a])];
 
-    /// <summary>Raccourci d'une action, ou <c>null</c> si elle n'en a pas.</summary>
+    /// <summary>
+    /// Shortcut for an action, or <c>null</c> if it has none.
+    /// </summary>
     public HotkeyBinding? For(HotkeyAction action) =>
         _bindings.TryGetValue(action, out var binding) ? binding : null;
 
-    /// <summary>Action déclenchée par une combinaison, ou <c>null</c>.</summary>
+    /// <summary>Action triggered by a combination, or <c>null</c>.</summary>
     public HotkeyAction? Resolve(int virtualKey, HotkeyModifiers modifiers) =>
         _bindings.Values
             .FirstOrDefault(b => b.IsAssigned && b.VirtualKey == virtualKey && b.Modifiers == modifiers)
             ?.Action;
 
     /// <summary>
-    /// Vérifie une combinaison avant de l'accepter. L'action visée est exclue
-    /// de la recherche de doublon : réattribuer le même raccourci à la même
-    /// action n'est pas un conflit.
+    /// Checks a combination before accepting it. The targeted action
+    /// is excluded from the duplicate search: reassigning the same
+    /// shortcut to the same action is not a conflict.
     /// </summary>
     public HotkeyValidationResult Validate(HotkeyAction action, int virtualKey, HotkeyModifiers modifiers)
     {
@@ -69,8 +73,9 @@ public sealed class HotkeySet
             return HotkeyValidationResult.ModifierOnly;
         }
 
-        // Sans modificateur, la touche serait interceptée à chaque frappe. Les
-        // touches de fonction font exception : elles ne servent pas à écrire.
+        // Without a modifier, the key would be intercepted at every
+        // keystroke. Function keys are an exception: they are not
+        // used for typing.
         if (modifiers == HotkeyModifiers.None && !VirtualKeys.IsFunctionKey(virtualKey))
         {
             return HotkeyValidationResult.MissingModifier;
@@ -92,7 +97,7 @@ public sealed class HotkeySet
         return conflicting is null ? HotkeyValidationResult.Valid : HotkeyValidationResult.Duplicate;
     }
 
-    /// <summary>Action qui détient déjà cette combinaison, le cas échéant.</summary>
+    /// <summary>Action that already holds this combination, if any.</summary>
     public HotkeyAction? FindConflict(HotkeyAction action, int virtualKey, HotkeyModifiers modifiers) =>
         _bindings.Values
             .FirstOrDefault(b => b.Action != action && b.IsAssigned
@@ -100,8 +105,8 @@ public sealed class HotkeySet
             ?.Action;
 
     /// <summary>
-    /// Rend un nouvel ensemble avec le raccourci modifié. Une combinaison
-    /// refusée laisse l'ensemble inchangé.
+    /// Returns a new set with the shortcut changed. A refused
+    /// combination leaves the set unchanged.
     /// </summary>
     public HotkeySet With(HotkeyAction action, int virtualKey, HotkeyModifiers modifiers)
     {
@@ -118,7 +123,9 @@ public sealed class HotkeySet
         return new HotkeySet(copy);
     }
 
-    /// <summary>Retire le raccourci d'une action, qui devient inactive.</summary>
+    /// <summary>
+    /// Removes an action's shortcut, which becomes inactive.
+    /// </summary>
     public HotkeySet Without(HotkeyAction action)
     {
         var copy = new Dictionary<HotkeyAction, HotkeyBinding>(_bindings)
@@ -130,10 +137,9 @@ public sealed class HotkeySet
     }
 
     /// <summary>
-    /// Reconstruit un ensemble à partir de raccourcis lus sur disque. Les
-    /// entrées invalides ou en doublon sont remplacées par la valeur par
-    /// défaut : un fichier modifié à la main ne doit pas rendre l'application
-    /// inutilisable.
+    /// Rebuilds a set from shortcuts read from disk. Invalid or
+    /// duplicate entries are replaced with the default value: a file
+    /// edited by hand must not make the application unusable.
     /// </summary>
     public static HotkeySet FromBindings(IEnumerable<HotkeyBinding>? bindings)
     {
@@ -166,8 +172,8 @@ public sealed class HotkeySet
             }
         }
 
-        // Toute action sans raccourci valide reprend celui d'origine, à
-        // condition qu'il ne soit pas déjà pris.
+        // Any action with no valid shortcut takes back its original
+        // one, provided it is not already taken.
         foreach (var fallback in Default.Bindings)
         {
             if (result.ContainsKey(fallback.Action))
@@ -184,12 +190,12 @@ public sealed class HotkeySet
     }
 
     /// <summary>
-    /// Combinaisons que Windows intercepte lui-même : les attribuer donnerait
-    /// un raccourci qui ne se déclenche jamais.
+    /// Combinations that Windows intercepts itself: assigning them
+    /// would give a shortcut that never triggers.
     /// </summary>
     private static bool IsReserved(int virtualKey, HotkeyModifiers modifiers)
     {
-        // Ctrl+Alt+Suppr n'est jamais délivrée à une application.
+        // Ctrl+Alt+Del is never delivered to an application.
         if (virtualKey == VirtualKeys.Delete
             && modifiers.HasFlag(HotkeyModifiers.Control)
             && modifiers.HasFlag(HotkeyModifiers.Alt))
@@ -197,25 +203,26 @@ public sealed class HotkeySet
             return true;
         }
 
-        // Win+L verrouille la session, Win+D affiche le bureau.
+        // Win+L locks the session, Win+D shows the desktop.
         if (modifiers.HasFlag(HotkeyModifiers.Windows) && virtualKey is 0x4C or 0x44)
         {
             return true;
         }
 
-        // Alt+Tab et Alt+Échap appartiennent au sélecteur de fenêtres.
+        // Alt+Tab and Alt+Esc belong to the window switcher.
         return modifiers == HotkeyModifiers.Alt && virtualKey is VirtualKeys.Tab or VirtualKeys.Escape;
     }
 
     /// <summary>
-    /// Les touches d'édition, qu'on ne confisque pas.
+    /// The editing keys, which we do not confiscate.
     ///
-    /// Contrairement aux précédentes, celles-ci s'intercepteraient très bien,
-    /// et c'est le danger : <c>RegisterHotKey</c> vaut pour tout le bureau, si
-    /// bien que lier Ctrl+V à une action de DT Hub retirerait le collage à
-    /// l'éditeur de texte, au navigateur et au jeu lui-même, dans les deux
-    /// modes d'affichage, aussi longtemps que l'application tourne. Rien
-    /// n'interdisait ce geste, et rien ne l'aurait expliqué ensuite.
+    /// Unlike the previous ones, these would intercept perfectly
+    /// well, and that is the danger: <c>RegisterHotKey</c> applies to
+    /// the whole desktop, so binding Ctrl+V to a DT Hub action would
+    /// take pasting away from the text editor, the browser and the
+    /// game itself, in both display modes, for as long as the
+    /// application runs. Nothing forbade this move, and nothing
+    /// would have explained it afterward.
     /// </summary>
     private static bool IsEditing(int virtualKey, HotkeyModifiers modifiers) =>
         modifiers == HotkeyModifiers.Control

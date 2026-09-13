@@ -1,21 +1,24 @@
 ﻿namespace DtHub.Core.Android;
 
 /// <summary>
-/// Ce qu'il faut faire d'un texte avant de le confier au shell du téléphone.
+/// What must be done to a text before handing it to the phone's
+/// shell.
 ///
-/// ADB ne transmet pas les arguments un par un : il les recolle par des espaces
-/// et laisse le shell de l'appareil les redécouper. Un nom qui contient une
-/// espace arrive donc en deux morceaux, et seul le premier compte. Mesuré :
-/// <c>pm create-user Compte 3</c> a créé un profil nommé « Compte ».
+/// ADB does not pass arguments one by one: it glues them back
+/// together with spaces and lets the device's shell split them apart
+/// again. A name that contains a space therefore arrives in two
+/// pieces, and only the first one counts. Measured:
+/// <c>pm create-user Compte 3</c> created a profile named "Compte".
 /// </summary>
 public static class AndroidShell
 {
     /// <summary>
-    /// Le texte tel que le shell de l'appareil le rendra entier.
+    /// The text as the device's shell will render it whole.
     ///
-    /// Guillemets simples, qui suspendent toute interprétation. Une apostrophe
-    /// à l'intérieur ferme la citation : on la referme, on en glisse une
-    /// échappée, on rouvre, ce qui est la façon habituelle et la seule sûre.
+    /// Single quotes, which suspend all interpretation. An apostrophe
+    /// inside closes the quoting: it is closed, an escaped one is
+    /// slipped in, then reopened, which is the usual and only safe
+    /// way.
     /// </summary>
     public static string Quote(string? value)
     {

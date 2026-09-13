@@ -11,9 +11,9 @@ using DtHub.Core.Settings;
 namespace DtHub.App.ViewModels;
 
 /// <summary>
-/// Éditeur de raccourcis, dans sa propre fenêtre. Le configurateur se contente
-/// de les afficher : les modifier demande de capturer des touches, ce qui n'a
-/// pas sa place dans une fenêtre qu'on garde ouverte pendant qu'on joue.
+/// Hotkey editor, in its own window. The configurator merely
+/// displays them: editing them requires capturing keys, which has
+/// no place in a window kept open while playing.
 /// </summary>
 public sealed partial class HotkeyEditorViewModel : ObservableObject
 {
@@ -36,7 +36,9 @@ public sealed partial class HotkeyEditorViewModel : ObservableObject
     [ObservableProperty]
     private string? _problem;
 
-    /// <summary>Signalé quand les raccourcis ont changé, pour rafraîchir l'affichage.</summary>
+    /// <summary>
+    /// Raised when hotkeys have changed, to refresh the display.
+    /// </summary>
     public event EventHandler? Changed;
 
     public async Task LoadAsync(CancellationToken cancellationToken = default)
@@ -84,8 +86,8 @@ public sealed partial class HotkeyEditorViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Enregistre la combinaison capturée par la vue. Le refus est expliqué à
-    /// l'endroit exact où l'utilisateur vient de taper.
+    /// Saves the combination captured by the view. A refusal is
+    /// explained exactly where the user just typed.
     /// </summary>
     public async Task<bool> ApplyCapturedAsync(int virtualKey, HotkeyModifiers modifiers)
     {

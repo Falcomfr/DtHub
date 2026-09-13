@@ -1,15 +1,16 @@
-﻿// Sonde de développement. Jamais employée par l'application.
+﻿// Development probe. Never used by the application.
 //
-// Elle lève les deux inconnues de la fenêtre de l'Almanax :
+// It resolves the two unknowns of the Almanax window:
 //
-//   1. un WebView2 de hauteur nulle charge-t-il bien la page, et son script
-//      s'exécute-t-il ? La fenêtre ne montre pas la page, elle la lit ;
-//   2. les repères du pont tiennent-ils sur la page réelle ?
+//   1. does a zero-height WebView2 load the page correctly, and does
+//      its script run? The window does not show the page, it reads
+//      it;
+//   2. do the bridge's landmarks hold up on the real page?
 //
-// Elle rend zéro si la lecture aboutit et que le bloc lu est bien celui de
-// DOFUS Touch, un sinon.
+// It returns zero if the reading succeeds and the block read is
+// indeed that of DOFUS Touch, one otherwise.
 //
-// À lancer : dotnet run --project build/sonde-almanax -- [aaaa-mm-jj]
+// To run: dotnet run --project build/sonde-almanax -- [yyyy-mm-dd]
 using System.Globalization;
 using System.IO;
 using System.Windows;
@@ -29,7 +30,7 @@ var pont = File.ReadAllText(Path.Combine(
     AppContext.BaseDirectory, "..", "..", "..", "..", "..",
     "src", "DtHub.App", "Assets", "almanax-bridge.js"));
 
-// Les instructions de haut niveau ne portent pas [STAThread], et WPF l'exige.
+// Top-level statements do not carry [STAThread], and WPF requires it.
 var code = 1;
 
 var fil = new Thread(() => code = Lire(adresse, pont));
@@ -46,7 +47,7 @@ var resultat = 1;
 var application = new Application();
 var vue = new WebView2();
 
-// La même mise en page que la fenêtre : le lecteur n'a pas de hauteur.
+// The same layout as the window: the reader has no height.
 var fenetre = new Window
 {
     Title = "sonde-almanax",
@@ -99,7 +100,8 @@ fenetre.Loaded += async (_, _) =>
     }
 };
 
-// Un garde-fou : sans lui, une page qui ne poste rien laisse la sonde ouverte.
+// A safeguard: without it, a page that posts nothing leaves the
+// probe open.
 var minuteur = new System.Windows.Threading.DispatcherTimer
 {
     Interval = TimeSpan.FromSeconds(40),

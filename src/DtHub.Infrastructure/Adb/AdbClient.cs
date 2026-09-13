@@ -6,21 +6,24 @@ using Microsoft.Extensions.Logging;
 namespace DtHub.Infrastructure.Adb;
 
 /// <summary>
-/// Implémentation d'<see cref="IAdbClient"/> au-dessus de l'exécutable ADB.
-/// Aucune console n'apparaît, chaque appel est borné dans le temps et
-/// annulable, et les échecs sont traduits avant de remonter à l'interface.
+/// Implementation of <see cref="IAdbClient"/> on top of the ADB
+/// executable. No console window ever appears, every call is time
+/// bounded and cancellable, and failures are translated before
+/// reaching the interface.
 /// </summary>
 public sealed partial class AdbClient : IAdbClient
 {
     /// <summary>
-    /// Marge confortable : le premier appel démarre le serveur ADB, ce qui
-    /// prend plus de temps que les suivants.
+    /// Comfortable margin: the first call starts the ADB server,
+    /// which takes longer than the following ones.
     /// </summary>
     public static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(20);
 
     private static readonly TimeSpan ServerTimeout = TimeSpan.FromSeconds(45);
 
-    /// <summary>L'appairage négocie du TLS avec le téléphone, ce qui peut traîner.</summary>
+    /// <summary>
+    /// Pairing negotiates TLS with the phone, which can take a while.
+    /// </summary>
     private static readonly TimeSpan PairingTimeout = TimeSpan.FromSeconds(30);
 
     private static readonly TimeSpan ConnectTimeout = TimeSpan.FromSeconds(15);
@@ -51,9 +54,9 @@ public sealed partial class AdbClient : IAdbClient
 
     public async Task StopServerAsync(CancellationToken cancellationToken = default)
     {
-        // Le serveur est partagé avec les autres outils installés sur la
-        // machine. L'appelant a la responsabilité de ne demander cet arrêt que
-        // sur action explicite de l'utilisateur.
+        // The server is shared with the other tools installed on the
+        // machine. The caller is responsible for only requesting
+        // this stop on an explicit user action.
         LogServerStopRequested();
 
         await ExecuteAsync(null, ["kill-server"], ServerTimeout, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -69,7 +72,7 @@ public sealed partial class AdbClient : IAdbClient
             throw Translate(result, null, "Lecture de la version d'ADB");
         }
 
-        // Première ligne : « Android Debug Bridge version 1.0.41 ».
+        // First line: "Android Debug Bridge version 1.0.41".
         var firstLine = result.StandardOutput
             .Split('\n')
             .Select(line => line.Trim())
@@ -210,8 +213,9 @@ public sealed partial class AdbClient : IAdbClient
             throw Translate(result, serial, $"shell {string.Join(' ', arguments)}");
         }
 
-        // Le shell Android rend un code 0 même pour certaines erreurs : on
-        // inspecte donc aussi la sortie avant de la considérer comme valide.
+        // The Android shell returns exit code 0 even for some
+        // errors: the output is therefore also inspected before
+        // being treated as valid.
         if (AdbErrorInterpreter.Classify(result.OutputOrError) is { } kind)
         {
             throw new AdbException(
@@ -242,9 +246,9 @@ public sealed partial class AdbClient : IAdbClient
         ArgumentException.ThrowIfNullOrWhiteSpace(host);
         ArgumentException.ThrowIfNullOrWhiteSpace(pairingCode);
 
-        // Le code est passé en argument plutôt que sur l'entrée standard, ce
-        // qui évite la question interactive d'ADB, et il est déclaré sensible
-        // pour ne jamais apparaître dans les journaux.
+        // The code is passed as an argument rather than on standard
+        // input, which avoids ADB's interactive prompt, and it is
+        // declared sensitive so it never appears in the logs.
         var result = await ExecuteAsync(
             null,
             ["pair", $"{host}:{pairingPort}", pairingCode],
@@ -299,9 +303,10 @@ public sealed partial class AdbClient : IAdbClient
         var result = await ExecuteAsync(null, ["mdns", "services"], DefaultTimeout, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
-        // La découverte mDNS peut être bloquée par le réseau ou le pare-feu.
-        // Ce n'est pas une erreur : l'appelant a d'autres moyens de retrouver
-        // le téléphone, et une liste vide se lit sans ambiguïté.
+        // mDNS discovery can be blocked by the network or the
+        // firewall. This is not an error: the caller has other ways
+        // to find the phone, and an empty list reads without
+        // ambiguity.
         return result.Succeeded
             ? AdbOutputParser.ParseMdnsServices(result.StandardOutput)
             : [];
@@ -321,8 +326,9 @@ public sealed partial class AdbClient : IAdbClient
     }
 
     /// <summary>
-    /// Transforme un résultat en échec en exception porteuse d'un message
-    /// affichable. La sortie brute reste confinée aux détails techniques.
+    /// Turns a failed result into an exception carrying a
+    /// displayable message. The raw output stays confined to the
+    /// technical details.
     /// </summary>
     private AdbException Translate(ProcessResult result, string? serial, string operation)
     {

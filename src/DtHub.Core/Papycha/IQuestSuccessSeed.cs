@@ -1,47 +1,52 @@
 ﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Carte « adresse de quête -> succès », relevée une fois sur le site et
-/// livrée avec l'application.
+/// Map "quest address -> achievement", recorded once from the site
+/// and shipped with the application.
 ///
-/// Le succès d'une quête n'est lisible que dans le bloc d'intro de sa page :
-/// le lire pour les sept cent quatre-vingt-deux coûte treize mégaoctets. Le
-/// refaire chaque semaine sur chaque poste pèserait sur le site pour une
-/// information qui ne bouge qu'aux mises à jour du jeu.
+/// A quest's achievement is only readable in its page's intro block:
+/// reading it for all seven hundred and eighty two costs thirteen
+/// megabytes. Redoing this every week on every machine would put a
+/// load on the site for information that only changes with the
+/// game's updates.
 ///
-/// Elle porte aussi les prérequis de chaque quête, que le site ne publie que
-/// dans le HTML de ses pages.
+/// It also carries each quest's prerequisites, which the site only
+/// publishes in the HTML of its pages.
 ///
-/// Elle complète les intertitres des pages de rubrique, que l'indexation lit
-/// déjà. Mesuré : les intertitres seuls rattachent 380 quêtes, les blocs
-/// d'intro 459, leur union 505 sur 782. Les 277 autres n'ont pas de succès, ce
-/// que confirme la liste officielle du site, qui n'en annonce que 475 au total.
+/// It complements the section pages' subheadings, which the indexing
+/// already reads. Measured: subheadings alone link 380 quests, intro
+/// blocks 459, their union 505 out of 782. The other 277 have no
+/// achievement, which the site's official list confirms, as it
+/// announces only 475 in total.
 /// </summary>
 public interface IQuestSuccessSeed
 {
     /// <summary>
-    /// Rend la carte, indexée sur l'adresse de la quête sans barre finale.
-    /// Une carte vide est un cas normal : l'indexation retombe alors sur les
-    /// seuls intertitres.
+    /// Returns the map, indexed on the quest's address without a
+    /// trailing slash. An empty map is a normal case: indexing then
+    /// falls back to the subheadings alone.
     /// </summary>
     IReadOnlyDictionary<string, QuestSeedEntry> Load();
 }
 
-/// <summary>Ce que la carte retient d'une quête.</summary>
-/// <param name="Success">Nom du succès dont elle fait partie.</param>
+/// <summary>What the map keeps about a quest.</summary>
+/// <param name="Success">Name of the achievement it is part of.</param>
 /// <param name="ChainStep">
-/// Sa place dans sa chaîne de prérequis, zéro si le site ne la donne pas. Sert
-/// à présenter les quêtes d'un succès dans l'ordre où l'on y joue.
+/// Its place in its prerequisite chain, zero if the site does not
+/// give it. Used to present an achievement's quests in the order
+/// they are played.
 /// </param>
 /// <param name="PlayOrder">
-/// Sa place dans son succès, calculée à l'extraction à partir des prérequis que
-/// le site publie. Le site ne donne cet ordre nulle part ailleurs : sans lui,
-/// « Les rescapés de Frigost » précédait « L'essentiel est dans le Lac gelé »
-/// qu'elle exige pourtant.
+/// Its place within its achievement, computed at extraction time
+/// from the prerequisites the site publishes. The site does not give
+/// this order anywhere else: without it, "Les rescapés de Frigost"
+/// (The Frigost Survivors) preceded "L'essentiel est dans le Lac
+/// gelé" (The Essential Is In The Frozen Lake), which it nevertheless
+/// requires.
 /// </param>
 /// <param name="Prerequisites">
-/// Ce qu'il faut avoir fait avant cette quête, tel que le site l'affiche.
-/// Relevé sur 527 quêtes, contre 117 auxquelles il donne un niveau.
+/// What must have been done before this quest, as the site displays
+/// it. Recorded on 527 quests, versus 117 to which it gives a level.
 /// </param>
 public readonly record struct QuestSeedEntry(
     string Success,

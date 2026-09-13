@@ -1,35 +1,39 @@
 ﻿namespace DtHub.Core.Hotkeys;
 
-/// <summary>Une fenêtre de session, par son handle et son processus.</summary>
+/// <summary>A session window, by its handle and its process.</summary>
 public readonly record struct SessionWindow(nint Handle, int ProcessId);
 
 /// <summary>
-/// Décide si les raccourcis restent armés, selon la fenêtre au premier plan.
+/// Decides whether the hotkeys stay armed, based on the foreground
+/// window.
 ///
-/// C'est la seule chose qui empêche <c>RegisterHotKey</c> d'être global, et le
-/// README en fait une promesse : « only the combinations you configured are
-/// ever intercepted, and only while a DT Hub window is focused ». La règle
-/// vivait au milieu d'un gestionnaire d'événements asynchrone, sur un fil de
-/// fond, sans aucune épreuve : une régression aurait confisqué Ctrl+Tab et
-/// Ctrl+R à l'échelle du système, navigateur compris, sans que rien ne rougisse
-/// et sans que personne puisse relier le symptôme à DT Hub.
+/// This is the only thing that keeps <c>RegisterHotKey</c> from
+/// being global, and the README makes it a promise: "only the
+/// combinations you configured are ever intercepted, and only while
+/// a DT Hub window is focused". The rule used to live in the middle
+/// of an asynchronous event handler, on a background thread, with no
+/// test whatsoever: a regression would have hijacked Ctrl+Tab and
+/// Ctrl+R system wide, browser included, without anything turning
+/// red and without anyone being able to link the symptom back to DT
+/// Hub.
 /// </summary>
 public static class HotkeyScope
 {
     /// <summary>
-    /// Vrai si la fenêtre au premier plan est à nous.
+    /// True if the foreground window is ours.
     ///
-    /// Une session est reconnue par son handle ou par son processus. Le
-    /// processus compte : le handle d'une session fraîchement rouverte n'est
-    /// pas encore résolu, et les raccourcis se croyaient alors hors de chez eux
-    /// jusqu'à ce qu'on clique ailleurs puis de nouveau sur une fenêtre de jeu.
+    /// A session is recognized by its handle or by its process. The
+    /// process matters: the handle of a freshly reopened session is
+    /// not resolved yet, and the hotkeys would then believe
+    /// themselves outside their own territory until you clicked
+    /// elsewhere and then back on a game window.
     /// </summary>
-    /// <param name="foreground">Handle de la fenêtre au premier plan.</param>
-    /// <param name="owner">Processus qui la possède, ou zéro s'il est inconnu.</param>
-    /// <param name="sessions">Les fenêtres de jeu ouvertes.</param>
+    /// <param name="foreground">Handle of the foreground window.</param>
+    /// <param name="owner">Process that owns it, or zero if unknown.</param>
+    /// <param name="sessions">The open game windows.</param>
     /// <param name="ours">
-    /// Vrai si c'est une fenêtre de l'application elle-même : configurateur,
-    /// guides, page liée, ou cadre à onglets.
+    /// True if this is a window of the application itself:
+    /// configurator, guides, linked page, or tabbed frame.
     /// </param>
     public static bool Holds(
         nint foreground,

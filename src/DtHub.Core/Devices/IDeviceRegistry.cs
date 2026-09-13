@@ -1,41 +1,46 @@
 ﻿namespace DtHub.Core.Devices;
 
 /// <summary>
-/// Mémoire des appareils entre deux lancements : noms personnalisés, dernière
-/// adresse connue, appareil principal. Ne contient jamais de code d'appairage.
+/// Memory of devices between two launches: custom names, last
+/// known address, primary device. Never contains a pairing code.
 /// </summary>
 public interface IDeviceRegistry
 {
-    /// <summary>Appareils mémorisés, connectés ou non.</summary>
+    /// <summary>Remembered devices, connected or not.</summary>
     Task<IReadOnlyList<AndroidDevice>> GetKnownAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>Ajoute ou met à jour un appareil, en conservant les choix de l'utilisateur.</summary>
+    /// <summary>
+    /// Adds or updates a device, keeping the user's choices.
+    /// </summary>
     Task UpsertAsync(AndroidDevice device, CancellationToken cancellationToken = default);
 
-    /// <summary>Ajoute ou met à jour plusieurs appareils en une écriture.</summary>
+    /// <summary>Adds or updates several devices in a single write.</summary>
     Task UpsertRangeAsync(IEnumerable<AndroidDevice> devices, CancellationToken cancellationToken = default);
 
-    /// <summary>Oublie un appareil et tout ce qui le concerne.</summary>
+    /// <summary>Forgets a device and everything about it.</summary>
     Task ForgetAsync(string deviceId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Retire l'appareil et retient qu'on ne veut plus de lui : il ne sera ni
-    /// réinscrit par un balayage, ni repris par la reconnexion automatique.
+    /// Removes the device and remembers that it is no longer
+    /// wanted: it will neither be re-registered by a scan, nor
+    /// picked up again by automatic reconnection.
     /// </summary>
     Task DiscardAsync(string deviceId, CancellationToken cancellationToken = default);
 
-    /// <summary>Lève l'écart, ce que seule une nouvelle association fait.</summary>
+    /// <summary>Lifts the discard, which only a new pairing does.</summary>
     Task WelcomeBackAsync(string deviceId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Les appareils mémorisés et les écartés, en une seule lecture. C'est ce
-    /// que demande un balayage, qui a besoin des deux.
+    /// The remembered devices and the discarded ones, in a single
+    /// read. This is what a scan asks for, since it needs both.
     /// </summary>
     Task<DeviceRegistrySnapshot> GetSnapshotAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>Renomme un appareil. Un nom vide rétablit le nom détecté.</summary>
+    /// <summary>
+    /// Renames a device. An empty name restores the detected name.
+    /// </summary>
     Task RenameAsync(string deviceId, string? customName, CancellationToken cancellationToken = default);
 
-    /// <summary>Désigne l'appareil principal. Un seul à la fois.</summary>
+    /// <summary>Designates the primary device. Only one at a time.</summary>
     Task SetPrimaryAsync(string deviceId, CancellationToken cancellationToken = default);
 }

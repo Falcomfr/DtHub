@@ -1,9 +1,9 @@
 ﻿namespace DtHub.Core.Dependencies;
 
 /// <summary>
-/// Description d'un composant tiers téléchargé chez l'utilisateur. Chaque
-/// champ vient de <c>build/dependencies.json</c>, seule source d'URL autorisée
-/// dans le projet.
+/// Description of a third-party component downloaded to the user's
+/// machine. Each field comes from <c>build/dependencies.json</c>,
+/// the only URL source allowed in the project.
 /// </summary>
 public sealed record ExternalDependency
 {
@@ -11,32 +11,43 @@ public sealed record ExternalDependency
     public required string DisplayName { get; init; }
     public required string Version { get; init; }
 
-    /// <summary>URL officielle et versionnée, donc au contenu immuable.</summary>
+    /// <summary>
+    /// Official, versioned URL, hence with immutable content.
+    /// </summary>
     public required Uri Url { get; init; }
 
-    /// <summary>Taille attendue de l'archive, premier filtre avant l'empreinte.</summary>
+    /// <summary>
+    /// Expected archive size, the first filter before the digest.
+    /// </summary>
     public required long SizeBytes { get; init; }
 
-    /// <summary>Empreinte SHA-256 relevée sur l'archive officielle.</summary>
+    /// <summary>SHA-256 digest recorded from the official archive.</summary>
     public required string Sha256 { get; init; }
 
-    /// <summary>Empreinte SHA-1 telle que publiée par l'éditeur, à titre de recoupement.</summary>
+    /// <summary>
+    /// SHA-1 digest as published by the vendor, for cross-checking.
+    /// </summary>
     public string? Sha1 { get; init; }
 
-    /// <summary>Dossier racine contenu dans l'archive, s'il y en a un.</summary>
+    /// <summary>
+    /// Root folder contained in the archive, if there is one.
+    /// </summary>
     public string? ArchiveRootDirectory { get; init; }
 
-    /// <summary>Exécutable principal, relatif à la racine extraite.</summary>
+    /// <summary>Main executable, relative to the extracted root.</summary>
     public required string Executable { get; init; }
 
     public required string License { get; init; }
     public string? LicenseUrl { get; init; }
 
-    /// <summary>Faux si la licence interdit d'embarquer le composant.</summary>
+    /// <summary>False if the license forbids bundling the component.</summary>
     public required bool Redistributable { get; init; }
 
     public string? RedistributionNote { get; init; }
 
-    /// <summary>Nom du dossier d'installation local, versionné pour permettre la coexistence.</summary>
+    /// <summary>
+    /// Name of the local install folder, versioned to allow
+    /// coexistence.
+    /// </summary>
     public string InstallDirectoryName => $"{Key}-{Version}";
 }

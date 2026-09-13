@@ -7,9 +7,9 @@ using DtHub.Core.Sessions;
 namespace DtHub.Core.Scrcpy;
 
 /// <summary>
-/// Ouvre, suit et ferme les sessions de mirroring. Ne connaît que les
-/// processus qu'il a lui-même démarrés : les fenêtres scrcpy ouvertes par un
-/// autre logiciel ne sont jamais touchées.
+/// Opens, tracks, and closes mirroring sessions. It only knows the
+/// processes it started itself: scrcpy windows opened by other
+/// software are never touched.
 /// </summary>
 public sealed class ScrcpySessionManager : IAsyncDisposable
 {
@@ -34,120 +34,130 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Délai laissé à scrcpy pour créer son afficheur virtuel. Un téléphone
-    /// endormi ou chargé met plusieurs secondes.
+    /// Time given to scrcpy to create its virtual display. A phone
+    /// that is asleep or under load takes several seconds.
     /// </summary>
     public TimeSpan StartupTimeout { get; init; } = TimeSpan.FromSeconds(30);
 
-    /// <summary>Sessions connues, vivantes ou terminées.</summary>
+    /// <summary>Known sessions, alive or finished.</summary>
     public IReadOnlyCollection<ScrcpySession> Sessions => [.. _sessions.Values];
 
     /// <summary>
-    /// Rang d'une session dans l'ordre voulu par l'utilisateur. Tant qu'il
-    /// n'est pas fourni, les sessions restent dans leur ordre de démarrage.
+    /// A session's rank in the order the user wants. As long as it
+    /// is not provided, sessions stay in their startup order.
     /// </summary>
     public Func<ScrcpySession, int>? OrderKey { get; set; }
 
     /// <summary>
-    /// Appelé quand l'afficheur existe, juste avant d'ouvrir l'application.
+    /// Called when the display exists, just before opening the
+    /// application.
     ///
-    /// C'est le moment de donner à la fenêtre sa taille définitive : le jeu
-    /// fixe son échelle et sa mise en page à son ouverture, et ne les revoit
-    /// pas toujours si on redimensionne pendant qu'il démarre. L'image se
-    /// retrouve alors coupée.
+    /// This is the moment to give the window its final size: the
+    /// game fixes its scale and layout when it opens, and does not
+    /// always revisit them if the window is resized while it is
+    /// starting. The image then ends up cropped.
     /// </summary>
     public Func<ScrcpySession, ScrcpyWindowPlacement?, CancellationToken, Task>? PrepareWindow { get; set; }
 
     /// <summary>
-    /// Demande à une fenêtre de scrcpy de se fermer d'elle-même. Tant qu'il
-    /// n'est pas fourni, l'arrêt se fait à coups de <c>Kill</c>.
+    /// Asks an scrcpy window to close itself. As long as it is not
+    /// provided, shutdown happens through <c>Kill</c>.
     /// </summary>
     public Action<ScrcpySession>? RequestClose { get; set; }
 
     /// <summary>
-    /// Temps laissé à scrcpy pour partir de lui-même avant d'être tué.
+    /// Time given to scrcpy to leave on its own before being killed.
     ///
-    /// Il doit prévenir son serveur sur le téléphone, ce qui demande un aller
-    /// simple sur la liaison. Une seconde et demie couvre largement une
-    /// liaison Wi-Fi ordinaire, sans faire attendre à la fermeture.
+    /// It must notify its server on the phone, which requires a
+    /// one-way trip over the link. A second and a half largely
+    /// covers an ordinary Wi-Fi link, without making the close wait.
     /// </summary>
     public TimeSpan CloseTimeout { get; init; } = TimeSpan.FromMilliseconds(1500);
 
     /// <summary>
-    /// Vrai si fermer une fenêtre doit aussi arrêter le jeu sur le téléphone.
+    /// True if closing a window should also stop the game on the
+    /// phone.
     ///
-    /// Sans cela le jeu survit à sa fenêtre. Son afficheur virtuel est rendu,
-    /// mais l'application, elle, reste au chaud : relevé sur le poste, un jeu
-    /// tournait depuis dix-huit minutes sans aucune fenêtre en face, avec deux
-    /// cent vingt mégaoctets à lui, et avait survécu à plusieurs fermetures de
-    /// DT Hub. Le personnage reste aussi connecté aux serveurs du jeu.
+    /// Without this the game survives its window. Its virtual
+    /// display is returned, but the application itself keeps running
+    /// in the background: observed on the test machine, a game had
+    /// been running for eighteen minutes with no window facing it,
+    /// with two hundred twenty megabytes of its own, and had
+    /// survived several closures of DT Hub. The character also stays
+    /// connected to the game's servers.
     ///
-    /// Le prix est connu et assumé : on ne peut plus refermer une fenêtre puis
-    /// la rouvrir en étant toujours en jeu. C'est le réglage qui tranche.
+    /// The cost is known and accepted: a window can no longer be
+    /// closed and reopened while still in game. This is the setting
+    /// that decides.
     /// </summary>
     public bool StopAppOnClose { get; set; }
 
     /// <summary>
-    /// Temps laissé à l'arrêt du jeu sur le téléphone.
+    /// Time given to stop the game on the phone.
     ///
-    /// Court, et explicite, parce que le défaut ne conviendrait pas : une
-    /// commande ADB attend vingt secondes, alors que l'application entière
-    /// s'arrête en huit. Quitter avec un téléphone injoignable dépasserait le
-    /// budget et figerait la fermeture. Deux secondes couvrent largement les
-    /// trois à cinq dixièmes mesurés sur une liaison Wi-Fi ordinaire.
+    /// Short, and explicit, because the default would not do: an ADB
+    /// command waits twenty seconds, while the whole application
+    /// shuts down in eight. Quitting with an unreachable phone would
+    /// exceed the budget and freeze the shutdown. Two seconds largely
+    /// cover the three to five tenths measured on an ordinary Wi-Fi
+    /// link.
     /// </summary>
     public TimeSpan StopAppTimeout { get; init; } = TimeSpan.FromSeconds(2);
 
     /// <summary>
-    /// L'adresse ADB que porte un appareil maintenant, lue depuis son identité
-    /// stable. Tant qu'elle n'est pas fournie, on s'en tient à celle du
-    /// lancement.
+    /// The ADB address a device currently carries, read from its
+    /// stable identity. As long as it is not provided, we stick to
+    /// the one from launch.
     ///
-    /// **Sans cela, fermer une fenêtre ne fermait pas toujours le jeu.** Une
-    /// session retient l'adresse qu'avait le téléphone quand elle s'est
-    /// ouverte, et le débogage sans fil change de port à chaque reprise.
-    /// Relevé dans le journal, deux fermetures du même jour :
+    /// **Without this, closing a window did not always close the
+    /// game.** A session remembers the address the phone had when it
+    /// opened, and wireless debugging changes port on every restart.
+    /// Recorded in the log, two closures on the same day:
     ///
     /// <code>
     /// am force-stop … pour 192.168.1.23:41207 : adb.exe: device offline
     /// am force-stop … pour 192.168.1.23:42557 : device '…:42557' not found
     /// </code>
     ///
-    /// Le téléphone était là, joignable, sous une troisième adresse. L'ordre
-    /// partait vers une adresse morte et le jeu restait ouvert.
+    /// The phone was there, reachable, under a third address. The
+    /// command was heading to a dead address and the game stayed
+    /// open.
     /// </summary>
     public Func<string, string?>? CurrentSerial { get; set; }
 
     /// <summary>
-    /// Va rechercher où est un appareil, au lieu de se souvenir.
+    /// Goes and looks up where a device is, instead of remembering.
     ///
-    /// **Appelé seulement après un échec, et c'est tout l'intérêt.** Les deux
-    /// adresses connues viennent du passé : celle du dernier balayage, qui a
-    /// jusqu'à deux secondes de retard, et celle du lancement. Or deux secondes
-    /// est justement le temps qu'il faut à un port pour changer sans que
-    /// personne ne l'ait vu.
+    /// **Called only after a failure, and that is the whole point.**
+    /// The two known addresses both come from the past: the one from
+    /// the last scan, which lags by up to two seconds, and the one
+    /// from launch. And two seconds is exactly the time it takes for
+    /// a port to change without anyone seeing it.
     ///
-    /// Mesuré sur le téléphone, en périmant son adresse à la main : l'arrêt
-    /// partait à 14:52:26 vers l'adresse morte, et l'application connaissait la
-    /// bonne à 14:52:28. Deux secondes et demie de retard, et un jeu qui reste
-    /// ouvert. Redemander coûte une soixantaine de millisecondes, une seule
-    /// fois, et jamais sur le chemin qui marche.
+    /// Measured on the phone, by manually expiring its address: the
+    /// stop command left at 14:52:26 for the dead address, and the
+    /// application knew the right one at 14:52:28. Two and a half
+    /// seconds of delay, and a game that stays open. Asking again
+    /// costs about sixty milliseconds, once only, and never on the
+    /// path that works.
     /// </summary>
     public Func<string, CancellationToken, Task<string?>>? LookUpSerial { get; set; }
 
     /// <summary>
-    /// Signalé quand le jeu n'a pas pu être arrêté sur le téléphone alors
-    /// qu'on l'avait demandé. La fenêtre, elle, est bien partie : c'est
-    /// précisément ce qui rend l'échec invisible sans cet avis.
+    /// Fired when the game could not be stopped on the phone even
+    /// though it was requested. The window, on the other hand, did
+    /// close: that is precisely what makes the failure invisible
+    /// without this notice.
     /// </summary>
     public event EventHandler<ScrcpySession>? AppStopFailed;
 
-    /// <summary>Une seule ouverture à la fois par téléphone.</summary>
+    /// <summary>Only one opening at a time per phone.</summary>
     private readonly DeviceStartupGate _gate = new();
 
     /// <summary>
-    /// Repos laissé sur un appareil après une ouverture. Nul par défaut : le
-    /// verrou impose déjà l'espacement d'une ouverture complète.
+    /// Rest period left on a device after an opening. Zero by
+    /// default: the lock already imposes the spacing of a full
+    /// opening.
     /// </summary>
     public TimeSpan StartupCooldown
     {
@@ -155,10 +165,10 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         init => _gate.Cooldown = value;
     }
 
-    /// <summary>Vrai si une ouverture est en cours sur cet appareil.</summary>
+    /// <summary>True if an opening is in progress on this device.</summary>
     public bool IsDeviceBusy(string deviceId) => _gate.IsBusy(deviceId);
 
-    /// <summary>Signalé quand un appareil devient occupé, ou cesse de l'être.</summary>
+    /// <summary>Fired when a device becomes busy, or stops being so.</summary>
     public event EventHandler<DeviceBusyChangedEventArgs>? DeviceBusyChanged
     {
         add => _gate.BusyChanged += value;
@@ -166,25 +176,26 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Sessions encore ouvertes, dans l'ordre configuré, ou dans leur ordre de
-    /// démarrage à défaut.
+    /// Sessions still open, in the configured order, or in their
+    /// startup order otherwise.
     ///
-    /// L'ordre de démarrage ne convenait pas seul : relancer une instance lui
-    /// donnait un nouvel horodatage et la renvoyait en fin de cycle clavier,
-    /// alors qu'elle n'avait pas changé de place à l'écran.
+    /// The startup order alone would not do: relaunching an instance
+    /// gave it a new timestamp and sent it to the end of the
+    /// keyboard cycle, even though it had not changed place on
+    /// screen.
     /// </summary>
     public IReadOnlyList<ScrcpySession> ActiveSessions =>
         OrderKey is { } rank
             ? [.. _sessions.Values.Where(s => s.IsAlive).OrderBy(rank).ThenBy(s => s.StartedUtc)]
             : [.. _sessions.Values.Where(s => s.IsAlive).OrderBy(s => s.StartedUtc)];
 
-    /// <summary>Signalé à chaque changement d'état d'une session.</summary>
+    /// <summary>Fired on every change of a session's state.</summary>
     public event EventHandler<ScrcpySession>? SessionChanged;
 
     /// <summary>
-    /// Ouvre une session pour une cible. La méthode rend la main dès que la
-    /// session est utilisable ou définitivement en échec ; elle ne se met
-    /// jamais à attendre indéfiniment.
+    /// Opens a session for a target. The method returns control as
+    /// soon as the session is usable or has definitively failed; it
+    /// never starts waiting indefinitely.
     /// </summary>
     public async Task<ScrcpySession> StartAsync(
         LaunchTarget target,
@@ -222,32 +233,32 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             FileName = scrcpyPath,
             Arguments = ScrcpyCommandBuilder.BuildMirrorArguments(serial, windowTitle, options, placement),
 
-            // scrcpy honore cette variable : il utilisera notre copie d'ADB
-            // plutôt que celle livrée dans sa propre archive.
+            // scrcpy honors this variable: it will use our copy of
+            // ADB rather than the one shipped in its own archive.
             Environment = new Dictionary<string, string?>
             {
                 ["ADB"] = adbPath,
 
-                // Les fenêtres de jeu portent l'icône de l'application, et non
-                // celle de scrcpy.
+                // Game windows carry the application's icon, not
+                // scrcpy's.
                 ["SCRCPY_ICON_DIR"] = options.IconDirectory,
             },
         };
 
-        // Une seule ouverture à la fois par téléphone : deux qui se chevauchent
-        // se cassent, la première mourant sur une connexion au serveur qu'elle
-        // avait pourtant déjà poussé.
+        // Only one opening at a time per phone: two that overlap
+        // break, with the first one dying on a connection to the
+        // server it had nevertheless already pushed.
         //
-        // Le verrou ne couvre que la poussée, la connexion et la création de
-        // l'afficheur. Il couvrait aussi l'ouverture du jeu, ce qui bloquait
-        // les autres lignes pour rien : « am force-stop » et « am start » sont
-        // des commandes ordinaires, propres à un profil Android, qui ne
-        // touchent pas au serveur poussé par scrcpy. Mesuré sur le téléphone de
-        // référence, cela retenait le verrou 1148 ms au lieu de 683, et 2094 au
-        // lieu de 1310.
+        // The lock only covers the push, the connection, and the
+        // display's creation. It used to also cover opening the game,
+        // which blocked the other rows for nothing: "am force-stop"
+        // and "am start" are ordinary commands, specific to an
+        // Android profile, that do not touch the server pushed by
+        // scrcpy. Measured on the reference phone, this held the
+        // lock for 1148 ms instead of 683, and 2094 instead of 1310.
         //
-        // Un clic pendant l'attente prend la file : le refuser obligerait à
-        // recliquer.
+        // A click during the wait joins the queue: refusing it would
+        // force clicking again.
         var lease = await _gate
             .EnterAsync(target.DeviceId, cancellationToken)
             .ConfigureAwait(false);
@@ -269,8 +280,8 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
         var session = new ScrcpySession(sessionId, target, windowTitle, process)
         {
-            // L'afficheur garde une définition fixe : la fenêtre est calculée
-            // à son rapport, sur sa zone client.
+            // The display keeps a fixed resolution: the window is
+            // computed to its ratio, on its client area.
             SourceAspectRatio = options is { UseVirtualDisplay: true, VirtualDisplayHeight: > 0 }
                 ? (double)options.VirtualDisplayWidth / options.VirtualDisplayHeight
                 : 0,
@@ -293,8 +304,8 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         }
         finally
         {
-            // Rendu ici et pas plus tard : l'afficheur existe, la prochaine
-            // ouverture peut pousser son serveur sans risque.
+            // Returned here and not later: the display exists, the
+            // next opening can push its server without risk.
             await lease.DisposeAsync().ConfigureAwait(false);
         }
 
@@ -310,12 +321,12 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Les encodeurs vidéo que l'appareil déclare, ou une liste vide si la
-    /// question n'a pas abouti.
+    /// The video encoders the device declares, or an empty list if
+    /// the question did not succeed.
     ///
-    /// Aucune fenêtre, aucun afficheur : scrcpy pousse son serveur, interroge
-    /// et sort. Rien n'est propagé en cas d'échec, c'est un renseignement, pas
-    /// une étape de lancement.
+    /// No window, no display: scrcpy pushes its server, queries, and
+    /// exits. Nothing is propagated on failure, this is a piece of
+    /// information, not a launch step.
     /// </summary>
     public async Task<IReadOnlyList<VideoEncoder>> ListEncodersAsync(
         string serial,
@@ -354,21 +365,21 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            // Un appareil qui ne répond pas, scrcpy absent, un délai dépassé :
-            // ne pas connaître les encodeurs est un résultat valable, et
-            // l'appelant s'en passe. C'est le même silence assumé que pour la
-            // chaleur et la batterie.
+            // A device that does not respond, scrcpy missing, a
+            // timeout exceeded: not knowing the encoders is a valid
+            // result, and the caller does without it. This is the
+            // same accepted silence as for heat and battery.
             return [];
         }
     }
 
     /// <summary>
-    /// Au-delà, on renonce à connaître les encodeurs. La question coûte une
-    /// poussée du serveur, et elle n'est jamais urgente.
+    /// Beyond this, we give up knowing the encoders. The question
+    /// costs a server push, and it is never urgent.
     /// </summary>
     private static readonly TimeSpan EncoderListTimeout = TimeSpan.FromSeconds(20);
 
-    /// <summary>Ferme une session ouverte par DT Hub.</summary>
+    /// <summary>Closes a session opened by DT Hub.</summary>
     public async Task StopAsync(string sessionId, CancellationToken cancellationToken = default)
     {
         if (!_sessions.TryGetValue(sessionId, out var session))
@@ -376,22 +387,25 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             return;
         }
 
-        // Dit avant tout le reste : la boucle de lecture verra la marque quand
-        // le canal se refermera, et saura que cette fin était voulue.
+        // Said before anything else: the read loop will see the flag
+        // when the channel closes, and will know this end was
+        // intended.
         session.StopRequested = true;
 
-        // Le droit d'arrêter le jeu est réclamé maintenant, avant même de
-        // toucher à scrcpy. Le réclamer après aurait laissé la boucle de
-        // lecture, réveillée par la mort du processus, le prendre la première :
-        // cette méthode aurait alors rendu la main sans rien attendre, et
-        // quitter l'application aurait pu couper l'arrêt en plein vol.
+        // The right to stop the game is claimed now, before even
+        // touching scrcpy. Claiming it afterward would have let the
+        // read loop, woken by the process's death, claim it first:
+        // this method would then have returned control without
+        // waiting for anything, and quitting the application could
+        // have cut the stop short mid-flight.
         var mine = StopAppOnClose && session.ClaimAppStop();
 
-        // scrcpy est prié de partir avant d'être tué : c'est lui qui prévient
-        // son serveur, et le serveur qui rend l'afficheur virtuel. Un client
-        // tué net sur une liaison Wi-Fi laissait le serveur en vie sur le
-        // téléphone, avec son afficheur ; la fenêtre suivante s'ouvrait alors
-        // sur un écran gris, le jeu étant resté sur l'afficheur abandonné.
+        // scrcpy is asked to leave before being killed: it is the
+        // one that notifies its server, and the server that returns
+        // the virtual display. A client killed outright on a Wi-Fi
+        // link used to leave the server alive on the phone, with its
+        // display; the next window would then open on a gray screen,
+        // the game having stayed on the abandoned display.
         await RequestCloseAsync(session, cancellationToken).ConfigureAwait(false);
 
         if (!session.Process.HasExited)
@@ -404,16 +418,18 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             }
             catch (OperationCanceledException)
             {
-                // L'appelant renonce à attendre ; le processus a reçu l'ordre.
+                // The caller gives up waiting; the process has
+                // received the order.
             }
         }
 
         Transition(session, ScrcpySessionState.Stopped);
 
-        // Après le départ de scrcpy, jamais avant : c'est lui qui prévient son
-        // serveur, et le serveur qui rend l'afficheur virtuel. Attendu ici, et
-        // pas seulement laissé à la fin de la lecture de sortie, parce que
-        // quitter l'application ne laisse pas le temps à celle-ci de finir.
+        // After scrcpy has left, never before: it is the one that
+        // notifies its server, and the server that returns the
+        // virtual display. Awaited here, and not just left to the
+        // end of reading the output, because quitting the
+        // application does not leave it time to finish.
         if (mine)
         {
             await ForceStopGameAsync(session, cancellationToken).ConfigureAwait(false);
@@ -421,13 +437,14 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Arrête le jeu sur le téléphone, si le réglage le demande et si personne
-    /// ne l'a déjà fait pour cette session.
+    /// Stops the game on the phone, if the setting asks for it and
+    /// if no one has already done so for this session.
     ///
-    /// Rien n'est propagé : un téléphone parti, une liaison coupée, un profil
-    /// que le shell ne peut plus atteindre, aucun de ces cas ne doit empêcher
-    /// une fenêtre de se fermer ni l'application de s'arrêter. Le jeu qui
-    /// survit est un désagrément ; une fermeture qui se fige est une panne.
+    /// Nothing is propagated: a phone that is gone, a broken link, a
+    /// profile the shell can no longer reach, none of these cases
+    /// must prevent a window from closing or the application from
+    /// stopping. A game that survives is an inconvenience; a
+    /// shutdown that freezes is an outage.
     /// </summary>
     private async Task StopAppOnDeviceAsync(ScrcpySession session, CancellationToken cancellationToken)
     {
@@ -440,14 +457,14 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Arrête le jeu, sans se demander si c'est le moment : l'appelant a déjà
-    /// réclamé le droit de le faire.
+    /// Stops the game, without asking whether it is the right
+    /// moment: the caller has already claimed the right to do so.
     /// </summary>
     private async Task ForceStopGameAsync(ScrcpySession session, CancellationToken cancellationToken)
     {
-        // Ce qu'on n'a pas ouvert, on ne le ferme pas : une session qui a
-        // échoué avant de rien lancer laisserait tourner un jeu auquel
-        // quelqu'un joue peut-être sur le téléphone.
+        // What we did not open, we do not close: a session that
+        // failed before launching anything would leave running a
+        // game that someone might be playing on the phone.
         if (!session.AppLaunchedByUs)
         {
             return;
@@ -457,13 +474,14 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// L'ordre lui-même, avec son délai propre et rien d'autre.
+    /// The command itself, with its own timeout and nothing else.
     ///
-    /// Le jeton de l'appelant n'est délibérément pas transmis. Sur le chemin de
-    /// la fermeture, c'est justement lui qu'on annule : le lier ici reviendrait
-    /// à renoncer à l'arrêt au moment précis où il compte le plus, et à laisser
-    /// le jeu tourner sur le téléphone. Une fois décidé, l'ordre part ; son
-    /// propre délai suffit à borner l'attente.
+    /// The caller's token is deliberately not passed on. On the
+    /// closing path, it is precisely that token that gets canceled:
+    /// binding it here would amount to giving up the stop at the
+    /// exact moment it matters most, and letting the game keep
+    /// running on the phone. Once decided, the command is sent; its
+    /// own timeout is enough to bound the wait.
     /// </summary>
     private async Task ForceStopCoreAsync(ScrcpySession session)
     {
@@ -480,8 +498,9 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             }
         }
 
-        // Les adresses connues ont échoué, et toutes deux viennent du passé. On
-        // redemande où est l'appareil, une fois, avant de renoncer.
+        // The known addresses have failed, and both come from the
+        // past. We ask again where the device is, once, before
+        // giving up.
         var fresh = await LookUpAsync(session.Target.DeviceId, deadline.Token).ConfigureAwait(false);
 
         if (fresh is { Length: > 0 }
@@ -494,7 +513,9 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         AppStopFailed?.Invoke(this, session);
     }
 
-    /// <summary>Un essai d'arrêt à une adresse. Vrai si l'ordre est arrivé.</summary>
+    /// <summary>
+    /// One stop attempt at an address. True if the command arrived.
+    /// </summary>
     private async Task<bool> AttemptStopAsync(
         ScrcpySession session,
         string serial,
@@ -515,16 +536,16 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            // Rien n'est propagé : la méthode est appelée sur le chemin de
-            // fermeture, y compris celui de l'application entière, et une faute
-            // y serait sans destinataire.
+            // Nothing is propagated: the method is called on the
+            // closing path, including that of the whole application,
+            // and a fault there would have no one to receive it.
             session.Record("Arrêt du jeu sur le téléphone impossible : " + exception.Message);
         }
 
         return false;
     }
 
-    /// <summary>L'adresse fraîchement cherchée, ou <c>null</c>.</summary>
+    /// <summary>The freshly looked-up address, or <c>null</c>.</summary>
     private async Task<string?> LookUpAsync(string deviceId, CancellationToken cancellationToken)
     {
         if (LookUpSerial is not { } search)
@@ -538,20 +559,20 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            // Le balayage peut échouer ou manquer de temps : c'est une dernière
-            // chance, pas une étape dont dépend la fermeture.
+            // The scan can fail or run out of time: this is a last
+            // chance, not a step the closing depends on.
             return null;
         }
     }
 
     /// <summary>
-    /// Les adresses à essayer pour joindre le téléphone, la plus récente
-    /// d'abord.
+    /// The addresses to try to reach the phone, the most recent
+    /// first.
     ///
-    /// Deux au plus, et le plus souvent une seule, les deux se confondant tant
-    /// que l'appareil n'a pas changé d'adresse. La seconde sert quand la
-    /// première est à son tour dépassée : un balayage a lieu toutes les deux
-    /// secondes, et peut manquer de peu un changement de port.
+    /// Two at most, and most often just one, the two merging as long
+    /// as the device has not changed address. The second one serves
+    /// when the first is, in turn, outdated: a scan happens every two
+    /// seconds, and can narrowly miss a port change.
     /// </summary>
     private IEnumerable<string> StopCandidates(ScrcpySession session)
     {
@@ -569,7 +590,9 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         }
     }
 
-    /// <summary>L'adresse du moment, ou <c>null</c> quand on ne l'a pas.</summary>
+    /// <summary>
+    /// The current address, or <c>null</c> when we do not have it.
+    /// </summary>
     private string? Resolve(string deviceId)
     {
         if (CurrentSerial is not { } ask)
@@ -583,15 +606,15 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            // Ne pas savoir où est l'appareil n'empêche pas d'essayer l'adresse
-            // du lancement, qui est souvent encore la bonne.
+            // Not knowing where the device is does not prevent trying
+            // the launch address, which is often still the right one.
             return null;
         }
     }
 
     /// <summary>
-    /// Ferme toutes les sessions ouvertes par DT Hub, et elles seules. Les
-    /// fenêtres scrcpy lancées par un autre logiciel sont ignorées.
+    /// Closes all sessions opened by DT Hub, and only those. scrcpy
+    /// windows launched by other software are ignored.
     /// </summary>
     public async Task StopAllAsync(CancellationToken cancellationToken = default)
     {
@@ -604,8 +627,9 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Demande la fermeture et attend, sans dépasser le délai. Rend la main
-    /// dès que le processus est parti, pour ne pas ralentir la fermeture.
+    /// Requests the close and waits, without exceeding the timeout.
+    /// Returns control as soon as the process is gone, to not slow
+    /// down the shutdown.
     /// </summary>
     private async Task RequestCloseAsync(ScrcpySession session, CancellationToken cancellationToken)
     {
@@ -625,11 +649,11 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         }
         catch (OperationCanceledException)
         {
-            // Parti trop lentement, ou l'appelant renonce : le Kill suit.
+            // Left too slowly, or the caller gives up: the Kill follows.
         }
     }
 
-    /// <summary>Retire de la liste les sessions terminées.</summary>
+    /// <summary>Removes finished sessions from the list.</summary>
     public void PruneFinished()
     {
         foreach (var session in _sessions.Values.Where(s => !s.IsAlive).ToList())
@@ -650,10 +674,11 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Attend que le téléphone ouvre l'afficheur virtuel. C'est la seule partie
-    /// du démarrage qui doive être sérialisée entre deux ouvertures.
+    /// Waits for the phone to open the virtual display. This is the
+    /// only part of startup that must be serialized between two
+    /// openings.
     /// </summary>
-    /// <returns>L'afficheur ouvert, ou null si la session a échoué.</returns>
+    /// <returns>The opened display, or null if the session failed.</returns>
     private async Task<int?> AwaitDisplayAsync(
         ScrcpySession session,
         ScrcpyOptions options,
@@ -680,13 +705,15 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                 session.FailureKind = ScrcpyFailureKind.Timeout;
             }
 
-            // Le son d'abord, quand il est demandé. Sur certaines tablettes
-            // Samsung, l'activer suffit à empêcher l'afficheur de s'ouvrir :
-            // relevé sur un produit concurrent qui emprunte le même chemin, où
-            // deux utilisateurs ont mis des jours à faire le lien, l'un
-            // finissant par écrire « si je désactive le son ça marche ». Le
-            // message ne le dit que si le son est effectivement demandé, sinon
-            // il enverrait chercher une cause qu'on a déjà écartée.
+            // Sound first, when it is requested. On certain Samsung
+            // tablets, enabling it is enough to prevent the display
+            // from opening: observed on a competing product that
+            // takes the same path, where two users spent days making
+            // the connection, one of them eventually writing "si je
+            // désactive le son ça marche", if I turn the sound off it
+            // works. The message only says so if sound is actually
+            // requested, otherwise it would send people looking for a
+            // cause we have already ruled out.
             Fail(
                 session,
                 Strings.Get(options.AudioEnabled
@@ -709,9 +736,9 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Place la fenêtre puis ouvre le jeu sur l'afficheur. Hors verrou : ces
-    /// commandes sont propres à un profil Android et ne touchent pas au serveur
-    /// poussé par scrcpy.
+    /// Places the window then opens the game on the display. Outside
+    /// the lock: these commands are specific to an Android profile
+    /// and do not touch the server pushed by scrcpy.
     /// </summary>
     private async Task LaunchGameAsync(
         ScrcpySession session,
@@ -719,9 +746,9 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         int displayId,
         CancellationToken cancellationToken)
     {
-        // La fenêtre prend sa taille définitive avant que le jeu n'arrive :
-        // il fixe son échelle à l'ouverture et ne la revoit pas toujours si on
-        // redimensionne pendant son démarrage.
+        // The window takes its final size before the game arrives:
+        // it fixes its scale on opening and does not always revisit
+        // it if the window is resized while it is starting.
         if (PrepareWindow is { } prepare)
         {
             try
@@ -738,13 +765,15 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             }
         }
 
-        // Le jeu est arrêté avant d'être rouvert sur le nouvel afficheur.
+        // The game is stopped before being reopened on the new
+        // display.
         //
-        // « am start --display » ne déplace pas une tâche existante : si le jeu
-        // tourne déjà, Android le ramène simplement au premier plan là où il
-        // est, et le nouvel afficheur reste vide, donc la fenêtre grise. Arrêter
-        // la tâche est le seul moyen sûr de la faire renaître au bon endroit ;
-        // ouvrir une fenêtre redémarre le jeu de toute façon.
+        // "am start --display" does not move an existing task: if
+        // the game is already running, Android simply brings it to
+        // the foreground wherever it is, and the new display stays
+        // empty, hence the gray window. Stopping the task is the
+        // only sure way to make it reborn in the right place;
+        // opening a window restarts the game anyway.
         _ = await _appLauncher.ForceStopAsync(
             session.Serial,
             session.Target.UserId,
@@ -759,15 +788,16 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             displayId,
             cancellationToken).ConfigureAwait(false);
 
-        // Posé même quand l'ouverture échoue : « am start » peut avoir lancé
-        // le jeu et rendu tout de même une faute, et dans le doute le jeu qu'on
-        // laisse est bien le nôtre.
+        // Set even when opening fails: "am start" may have launched
+        // the game and still returned a fault, and when in doubt,
+        // the game we leave running is indeed our own.
         session.AppLaunchedByUs = true;
 
         if (!launch.Succeeded)
         {
-            // Sans application, la fenêtre resterait vide : on ferme plutôt que
-            // de laisser un écran noir sans explication.
+            // Without an application, the window would stay empty:
+            // we close rather than leave a black screen with no
+            // explanation.
             Fail(session, launch.UserMessage ?? Strings.Get("ScrcpyAppNotOpened"));
             session.Process.Kill();
             return;
@@ -777,8 +807,8 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Lit la sortie de scrcpy jusqu'à la fin du processus : identifiant
-    /// d'afficheur, erreurs, puis état final.
+    /// Reads scrcpy's output until the process ends: display
+    /// identifier, errors, then final state.
     /// </summary>
     private async Task PumpAsync(
         ScrcpySession session,
@@ -803,8 +833,9 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                 {
                     var kind = ScrcpyOutputParser.Classify(line.Text);
 
-                    // La première erreur est la cause, les suivantes en sont
-                    // souvent les conséquences : on retient la première.
+                    // The first error is the cause, the following
+                    // ones are often the consequences: we keep the
+                    // first one.
                     if (session.FailureKind == ScrcpyFailureKind.None)
                     {
                         session.FailureKind = kind;
@@ -816,16 +847,17 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         }
         catch (OperationCanceledException)
         {
-            // Le canal s'est refermé pendant la lecture, rien à signaler.
+            // The channel closed while reading, nothing to report.
         }
 
-        // La sortie est close : le processus est terminé ou l'a été.
+        // The output is closed: the process has ended or was ended.
         displayReady.TrySetResult(null);
 
-        // C'est ici que passe la fenêtre fermée à la main, et le téléphone
-        // débranché : aucun code à nous n'a été appelé, seul le canal s'est
-        // tu. La fermeture volontaire est déjà servie par StopAsync, et la
-        // réclamation à usage unique empêche le double aller-retour.
+        // This is where the window closed by hand passes through,
+        // and the unplugged phone: none of our own code was called,
+        // only the channel went quiet. The voluntary close is
+        // already handled by StopAsync, and the single-use claim
+        // prevents the double round trip.
         await StopAppOnDeviceAsync(session, CancellationToken.None).ConfigureAwait(false);
 
         var exitCode = session.Process.ExitCode ?? -1;
@@ -874,8 +906,8 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
     private void Transition(ScrcpySession session, ScrcpySessionState state)
     {
-        // Avant la garde d'égalité : la marque doit se poser même si l'état
-        // était déjà celui-là.
+        // Before the equality guard: the flag must be set even if
+        // the state was already that one.
         if (state == ScrcpySessionState.Running)
         {
             session.EverRan = true;

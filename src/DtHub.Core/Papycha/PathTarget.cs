@@ -1,32 +1,36 @@
 ﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Décide de quel côté un chemin se range.
+/// Decides which side a path belongs to.
 ///
-/// Le site ne le dit pas : ses catégories ne donnent que la zone, et les liens
-/// de ses pages sont presque toujours absents. Le titre, lui, suffit - à deux
-/// conditions.
+/// The site does not say: its categories only give the zone, and
+/// its page links are almost always missing. The title alone is
+/// enough, under two conditions.
 ///
-/// Un chemin va aux donjons s'il écrit le mot « donjon », ou s'il partage au
-/// moins deux mots distinctifs avec un donjon du catalogue. Un seul mot commun
-/// ne suffit pas, et c'est ce qui écarte les faux : « Zaap du village de la
-/// canopée » ne partage que « canopée » avec « Canopée du Kimbo », « Ile de
-/// Sakaï » que « Sakaï » avec « Mine de Sakaï ».
+/// A path goes to dungeons if it spells out the word "donjon", or
+/// if it shares at least two distinctive words with a dungeon from
+/// the catalog. A single shared word is not enough, and that is
+/// what rules out false positives: "Zaap du village de la canopée"
+/// only shares "canopée" with "Canopée du Kimbo", "Ile de Sakaï"
+/// only shares "Sakaï" with "Mine de Sakaï".
 ///
-/// Vérifié sur les vingt et un chemins publiés : six aux donjons, quinze aux
-/// quêtes.
+/// Checked against the twenty-one published paths: six to dungeons,
+/// fifteen to quests.
 ///
-/// Fonction pure : elle se vérifie sur des titres, sans réseau.
+/// Pure function: it only checks titles, no network.
 /// </summary>
 public static class PathTarget
 {
-    /// <summary>Combien de mots distinctifs il faut partager pour conclure.</summary>
+    /// <summary>
+    /// How many distinctive words must be shared to decide.
+    /// </summary>
     private const int Needed = 2;
 
     /// <summary>
-    /// Mots trop courants pour distinguer quoi que ce soit. « Donjon » en fait
-    /// partie ici, bien qu'il décide à lui seul par ailleurs : sans cela,
-    /// « donjon du Koulosse » et « Donjon des Dragoeufs » se ressembleraient.
+    /// Words too common to distinguish anything. "Donjon" is
+    /// included here, even though it decides on its own elsewhere:
+    /// without this, "donjon du Koulosse" and "Donjon des
+    /// Dragoeufs" would look alike.
     /// </summary>
     private static readonly HashSet<string> Common = new(StringComparer.Ordinal)
     {
@@ -35,7 +39,7 @@ public static class PathTarget
         "donjon", "donjons", "vers", "dans", "un", "une", "avec", "son", "sa",
     };
 
-    /// <summary>Le côté d'un chemin, connaissant les noms des donjons.</summary>
+    /// <summary>The side of a path, given the dungeon names.</summary>
     public static PathSide Of(string? title, IEnumerable<string> dungeonTitles)
     {
         ArgumentNullException.ThrowIfNull(dungeonTitles);
@@ -47,8 +51,9 @@ public static class PathTarget
             return PathSide.Quests;
         }
 
-        // Le mot « donjon » écrit en toutes lettres tranche à lui seul : le
-        // chemin dit alors où il mène. Le pluriel compte autant.
+        // The word "donjon" spelled out on its own settles it: the
+        // path then says where it leads. The plural counts just as
+        // much.
         var written = Words(title, keepCommon: true);
 
         if (written.Contains("donjon") || written.Contains("donjons"))
@@ -73,8 +78,8 @@ public static class PathTarget
     }
 
     /// <summary>
-    /// Les mots d'un titre, normalisés comme la recherche et débarrassés de ce
-    /// qui ne distingue rien.
+    /// The words of a title, normalized the same way as search and
+    /// stripped of anything that does not distinguish.
     /// </summary>
     private static HashSet<string> Words(string? title, bool keepCommon = false)
     {

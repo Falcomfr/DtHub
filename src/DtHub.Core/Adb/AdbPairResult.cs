@@ -1,6 +1,6 @@
 ﻿namespace DtHub.Core.Adb;
 
-/// <summary>Issue d'un <c>adb pair</c>.</summary>
+/// <summary>Outcome of an <c>adb pair</c>.</summary>
 public sealed record AdbPairResult(bool Succeeded, string? DeviceGuid = null, string? FailureReason = null)
 {
     public static AdbPairResult Success(string? deviceGuid) => new(true, deviceGuid);
@@ -8,7 +8,7 @@ public sealed record AdbPairResult(bool Succeeded, string? DeviceGuid = null, st
     public static AdbPairResult Failure(string? reason) => new(false, null, reason);
 }
 
-/// <summary>Issue d'un <c>adb connect</c>.</summary>
+/// <summary>Outcome of an <c>adb connect</c>.</summary>
 public sealed record AdbConnectResult(bool Succeeded, bool AlreadyConnected = false, string? FailureReason = null)
 {
     public static readonly AdbConnectResult Connected = new(true);

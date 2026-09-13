@@ -1,20 +1,24 @@
 ﻿namespace DtHub.Core.Windows;
 
 /// <summary>
-/// La règle de forme d'une fenêtre qu'on étire à la souris : quel bord commande
-/// quoi, et lequel ne bouge pas.
+/// The shape rule for a window being resized with the mouse: which
+/// edge drives what, and which one does not move.
 ///
-/// Ici plutôt que dans la fenêtre elle-même : c'est un calcul, et un calcul se
-/// vérifie sans ouvrir d'interface. La fenêtre se contente de le brancher sur le
-/// message que Windows lui envoie pendant l'étirement.
+/// Here rather than in the window itself: this is a calculation, and
+/// a calculation can be verified without opening any interface. The
+/// window simply wires it to the message Windows sends it during the
+/// resize.
 ///
-/// Corriger pendant l'étirement plutôt qu'après : corriger après coup rendait le
-/// bord du bas inerte, la hauteur étant aussitôt recalculée depuis la largeur,
-/// et la fenêtre paraissait résister à la souris.
+/// Correcting during the resize rather than after: correcting after
+/// the fact made the bottom edge inert, since the height was
+/// immediately recalculated from the width, and the window appeared
+/// to resist the mouse.
 /// </summary>
 public static class AspectSizing
 {
-    /// <summary>Le bord tiré, tel que Windows le désigne dans WM_SIZING.</summary>
+    /// <summary>
+    /// The edge being dragged, as Windows designates it in WM_SIZING.
+    /// </summary>
     public const int Left = 1;
 
     public const int Right = 2;
@@ -26,13 +30,15 @@ public static class AspectSizing
     public const int BottomRight = 8;
 
     /// <summary>
-    /// Ramène le rectangle proposé à la forme voulue.
+    /// Brings the proposed rectangle back to the desired shape.
     /// </summary>
-    /// <param name="proposed">Ce que Windows propose, d'après la souris.</param>
-    /// <param name="edge">Le bord tiré.</param>
-    /// <param name="aspect">Rapport largeur sur hauteur de l'image à loger.</param>
-    /// <param name="chrome">Ce que le châssis prend autour d'elle.</param>
-    /// <param name="minimumWidth">Largeur en deçà de laquelle on ne descend pas.</param>
+    /// <param name="proposed">
+    /// What Windows proposes, based on the mouse.
+    /// </param>
+    /// <param name="edge">The edge being dragged.</param>
+    /// <param name="aspect">Width to height ratio of the image to fit.</param>
+    /// <param name="chrome">What the frame takes up around it.</param>
+    /// <param name="minimumWidth">Width below which we do not go.</param>
     public static ScreenRect Constrain(
         ScreenRect proposed,
         int edge,
@@ -45,9 +51,10 @@ public static class AspectSizing
             return proposed;
         }
 
-        // Tirer le haut ou le bas commande la largeur : c'est la hauteur que la
-        // souris vient de fixer, et la largeur qui doit suivre. Le bord gauche
-        // ne bouge pas, sans quoi la fenêtre glisserait de côté en s'étirant.
+        // Dragging the top or the bottom drives the width: it is the
+        // height that the mouse just fixed, and the width that must
+        // follow. The left edge does not move, otherwise the window
+        // would slide sideways while being resized.
         if (edge is Top or Bottom)
         {
             var large = Math.Max(
@@ -57,12 +64,14 @@ public static class AspectSizing
             return proposed with { Width = large };
         }
 
-        // Tout le reste, côtés et coins, commande la hauteur depuis la largeur.
+        // Everything else, sides and corners, drives the height from
+        // the width.
         var width = Math.Max(minimumWidth, proposed.Width);
         var height = (int)Math.Round((width - chrome.Width) / aspect) + chrome.Height;
 
-        // Le bord opposé à celui que l'on tire reste où il est. Tirer un coin du
-        // haut garde donc le bas, et inversement.
+        // The edge opposite the one being dragged stays where it is.
+        // Dragging a top corner therefore keeps the bottom in place,
+        // and vice versa.
         return edge is TopLeft or TopRight
             ? proposed with
             {

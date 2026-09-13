@@ -1,56 +1,66 @@
 ﻿namespace DtHub.Core.Devices;
 
 /// <summary>
-/// Combien de millisecondes retenir une image avant de l'afficher.
+/// How many milliseconds to hold a frame before displaying it.
 ///
-/// scrcpy affiche chaque image dès qu'elle arrive. C'est le bon choix quand
-/// elles arrivent régulièrement : la latence est alors au plus court. Mais
-/// quand la liaison hoquette, l'image se fige le temps du hoquet, et le jeu
-/// paraît ramer même si le débit suffit largement.
+/// scrcpy displays each frame as soon as it arrives. That is the
+/// right choice when frames arrive regularly: latency is then at
+/// its lowest. But when the connection stutters, the picture
+/// freezes for the duration of the stutter, and the game looks
+/// like it is lagging even though the throughput is plenty.
 ///
-/// Mesuré sur le poste, deux fenêtres ouvertes, écran de jeu immobile, à peine
-/// quatre mégabits sur une liaison qui en porte huit à treize : la latence
-/// allait de 4 ms à **223 ms**, pour 39 ms de moyenne. Rien n'était saturé, ni
-/// le PC, dont le processeur ne faisait rien, ni la bande passante. C'est la
-/// seule irrégularité de la liaison qui se voyait.
+/// Measured on this machine, two windows open, a static game
+/// screen, barely four megabits on a connection that carries
+/// eight to thirteen: latency ranged from 4 ms to **223 ms**, for
+/// an average of 39 ms. Nothing was saturated, not the PC, whose
+/// processor was doing nothing, nor the bandwidth. This was the
+/// connection's only visible irregularity.
 ///
-/// Un tampon échange cette irrégularité contre un retard constant. Le marché
-/// est bon tant que le retard reste sous le seuil où le clic paraît mou.
+/// A buffer trades this irregularity for a constant delay. The
+/// trade is worthwhile as long as the delay stays under the
+/// threshold where a click starts to feel sluggish.
 /// </summary>
 public static class VideoBuffer
 {
     /// <summary>
-    /// Rien à compenser : c'est ce que rend une liaison filaire.
+    /// Nothing to compensate for: this is what a wired connection
+    /// gives.
     ///
-    /// L'USB n'a ni voisin ni interférence, et sa latence brute est un cadeau
-    /// qu'on ne gâche pas en retenant les images pour rien.
+    /// USB has neither neighbors nor interference, and its raw
+    /// latency is a gift we do not waste by holding frames for
+    /// nothing.
     /// </summary>
     public const int None = 0;
 
     /// <summary>
-    /// Plafond assumé.
+    /// Deliberate ceiling.
     ///
-    /// Le tampon vise la gigue **moyenne**, pas les pointes. Sur la liaison
-    /// mesurée, la moyenne était de 39 ms et le pire de 223 : couvrir le pire
-    /// aurait demandé un quart de seconde de retard sur chaque clic, ce qui
-    /// remplace une gêne par une autre, en pire. Un premier essai à
-    /// quatre-vingt-dix millisecondes s'est d'ailleurs fait reprocher sa
-    /// mollesse avant même d'être atteint.
+    /// The buffer targets **average** jitter, not the peaks. On the
+    /// measured connection, the average was 39 ms and the worst
+    /// 223: covering the worst would have required a quarter of a
+    /// second of delay on every click, which trades one annoyance
+    /// for another, worse one. An initial attempt at ninety
+    /// milliseconds was in fact criticized for feeling sluggish
+    /// before it was even reached.
     /// </summary>
     public const int Ceiling = 60;
 
     /// <summary>
-    /// Le tampon qui convient à une liaison, en millisecondes.
+    /// The buffer suited to a connection, in milliseconds.
     ///
-    /// La qualité de la liaison se lit sur deux choses que l'appareil dit déjà :
-    /// la puissance reçue, et la part de trames qu'il a fallu réémettre. La
-    /// bande compte aussi, la 2,4 GHz étant partagée avec tout le voisinage
-    /// là où la 5 GHz est presque toujours tranquille.
+    /// The connection's quality can be read from two things the
+    /// device already reports: the received signal strength, and
+    /// the share of frames that had to be retransmitted. The band
+    /// matters too, 2.4 GHz being shared with the whole
+    /// neighborhood, whereas 5 GHz is almost always quiet.
     ///
-    /// Les paliers sont grossiers, et c'est voulu : un tampon n'a pas besoin
-    /// d'être juste au millième, il a besoin d'être du bon ordre de grandeur.
+    /// The tiers are coarse, and that is deliberate: a buffer does
+    /// not need to be accurate to the millisecond, it needs to be
+    /// of the right order of magnitude.
     /// </summary>
-    /// <param name="link">Ce que l'appareil dit de sa liaison, ou null en USB.</param>
+    /// <param name="link">
+    /// What the device reports about its connection, or null over USB.
+    /// </param>
     public static int MillisecondsFor(WifiLink? link)
     {
         if (link is null)
@@ -58,8 +68,9 @@ public static class VideoBuffer
             return None;
         }
 
-        // Une liaison de 5 GHz confortable ne hoquette pas assez pour mériter
-        // un retard : quelques images d'avance suffisent à absorber le reste.
+        // A comfortable 5 GHz connection does not stutter enough
+        // to deserve a delay: a few frames of lead time are enough
+        // to absorb the rest.
         var baseline = link.Is24GHz ? 25 : 10;
 
         var weak = link.Rssi switch
@@ -71,8 +82,9 @@ public static class VideoBuffer
             _ => 30,
         };
 
-        // Les réémissions disent le voisinage : elles montent quand le canal
-        // est disputé, ce que la seule puissance reçue ne montre pas.
+        // Retransmissions reveal the neighborhood: they rise when
+        // the channel is contested, which signal strength alone
+        // does not show.
         var crowded = link.RetryShare switch
         {
             >= 0.20 => 10,

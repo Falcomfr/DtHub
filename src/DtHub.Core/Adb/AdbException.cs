@@ -1,9 +1,10 @@
 ﻿namespace DtHub.Core.Adb;
 
 /// <summary>
-/// Échec d'une commande ADB. <see cref="UserMessage"/> est destiné à
-/// l'interface, <see cref="Exception.Message"/> et <see cref="Details"/> aux
-/// journaux. Un code d'appairage ne doit jamais s'y retrouver.
+/// Failure of an ADB command. <see cref="UserMessage"/> is intended
+/// for the interface, <see cref="Exception.Message"/> and
+/// <see cref="Details"/> for the logs. A pairing code must never
+/// end up in there.
 /// </summary>
 public sealed class AdbException : Exception
 {
@@ -24,9 +25,11 @@ public sealed class AdbException : Exception
 
     public AdbErrorKind Kind { get; }
 
-    /// <summary>Message affichable tel quel dans l'interface.</summary>
+    /// <summary>
+    /// Message that can be displayed as is in the interface.
+    /// </summary>
     public string UserMessage { get; }
 
-    /// <summary>Sortie technique conservée pour le diagnostic.</summary>
+    /// <summary>Technical output kept for diagnostics.</summary>
     public string? Details { get; }
 }

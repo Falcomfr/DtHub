@@ -10,17 +10,19 @@ using Microsoft.Extensions.Logging;
 namespace DtHub.Infrastructure.Updates;
 
 /// <summary>
-/// Tient l'application à jour depuis les livraisons du dépôt.
+/// Keeps the application up to date from the repository's releases.
 ///
-/// Le fil est le suivant : au démarrage on demande la dernière livraison ; si
-/// elle est plus récente et que la mise à jour automatique est cochée, on la
-/// télécharge en fond, on vérifie son empreinte, et on la pose à côté. Rien
-/// n'est remplacé en pleine session : l'échange se fait à l'arrêt, quand plus
-/// rien ne tourne. La note de version, elle, attend le démarrage suivant, celui
-/// qui exécute enfin la nouvelle version.
+/// The thread is as follows: at startup we ask for the latest release;
+/// if it is more recent and automatic updates are checked, we download
+/// it in the background, verify its digest, and place it alongside.
+/// Nothing is replaced in the middle of a session: the swap happens at
+/// shutdown, when nothing is running anymore. The release notes, for
+/// their part, wait for the next startup, the one that finally runs the
+/// new version.
 ///
-/// Aucun échec n'est une panne : pas de réseau, dépôt absent, empreinte fausse,
-/// fichier verrouillé, l'application continue avec la version qu'elle a.
+/// No failure is a fault: no network, missing repository, wrong
+/// digest, locked file, the application keeps going with the version
+/// it has.
 /// </summary>
 public sealed partial class UpdateService(
     IReleaseSource source,
@@ -33,21 +35,21 @@ public sealed partial class UpdateService(
     private readonly UpdateTarget _target = target;
     private readonly ILogger<UpdateService> _logger = logger;
 
-    /// <summary>La version qui tourne.</summary>
+    /// <summary>The version that is running.</summary>
     public Version Running { get; } = ReleaseParser.Normalize(target?.Running);
 
-    /// <summary>La livraison plus récente trouvée, s'il y en a une.</summary>
+    /// <summary>The more recent release found, if there is one.</summary>
     public AppRelease? Available { get; private set; }
 
-    /// <summary>Vrai quand cette livraison est téléchargée et vérifiée.</summary>
+    /// <summary>True when this release is downloaded and verified.</summary>
     public bool Ready { get; private set; }
 
-    /// <summary>Signalé quand l'un des deux précédents change.</summary>
+    /// <summary>Raised when either of the previous two changes.</summary>
     public event EventHandler? Changed;
 
     /// <summary>
-    /// Cherche une livraison plus récente, et la prépare si on lui a demandé de
-    /// le faire tout seul.
+    /// Looks for a more recent release, and prepares it if asked to do
+    /// so on its own.
     /// </summary>
     public async Task CheckAsync(bool automatic, CancellationToken cancellationToken = default)
     {
@@ -58,9 +60,9 @@ public sealed partial class UpdateService(
             return;
         }
 
-        // Rien ne sert de proposer ce qu'on ne pourra pas poser : dans un arbre
-        // de sources, le lanceur republie à chaque démarrage et écraserait la
-        // mise à jour dans la seconde.
+        // There is no point offering what we could not place: in a
+        // source tree, the launcher republishes at every startup and
+        // would overwrite the update within the second.
         if (!UpdatePaths.CanReplace(_target.ExecutablePath, File.Exists))
         {
             LogSourceTree(latest.Version.ToString());
@@ -79,8 +81,8 @@ public sealed partial class UpdateService(
     }
 
     /// <summary>
-    /// Télécharge la livraison et vérifie son empreinte. Vrai si elle est prête
-    /// à être posée.
+    /// Downloads the release and verifies its digest. True if it is
+    /// ready to be placed.
     /// </summary>
     public async Task<bool> PrepareAsync(CancellationToken cancellationToken = default)
     {
@@ -111,8 +113,9 @@ public sealed partial class UpdateService(
             if (expected.Length == 0
                 || !string.Equals(expected, actual, StringComparison.OrdinalIgnoreCase))
             {
-                // Un exécutable qui ne correspond pas à ce que le dépôt annonce
-                // ne remplace rien du tout, et ne reste pas sur le disque.
+                // An executable that does not match what the
+                // repository announces replaces nothing at all, and
+                // does not stay on disk.
                 LogDigestMismatch(release.Version.ToString());
                 Delete(staged);
 
@@ -143,13 +146,14 @@ public sealed partial class UpdateService(
     }
 
     /// <summary>
-    /// Pose la mise à jour préparée, à l'arrêt. Vrai si l'exécutable a bien été
-    /// remplacé.
+    /// Places the prepared update, at shutdown. True if the executable
+    /// was indeed replaced.
     ///
-    /// Un exécutable qui tourne ne peut pas être écrasé, mais il peut être
-    /// renommé : l'ancien s'écarte, le nouveau prend sa place, et le démarrage
-    /// suivant balaie ce qui reste. Si la seconde moitié échoue, la première est
-    /// défaite : mieux vaut l'ancienne version que pas d'application.
+    /// A running executable cannot be overwritten, but it can be
+    /// renamed: the old one steps aside, the new one takes its place,
+    /// and the next startup sweeps away what remains. If the second
+    /// half fails, the first is undone: better the old version than no
+    /// application at all.
     /// </summary>
     public bool Apply()
     {
@@ -202,9 +206,9 @@ public sealed partial class UpdateService(
     }
 
     /// <summary>
-    /// Ce que la version qui vient d'être posée annonce, ou une chaîne vide.
-    /// Lue une fois : le fichier est effacé au passage, pour que la note ne
-    /// revienne pas à chaque démarrage.
+    /// What the version that was just placed announces, or an empty
+    /// string. Read once: the file is deleted along the way, so the
+    /// note does not come back at every startup.
     /// </summary>
     public string TakeNotes()
     {
@@ -224,16 +228,16 @@ public sealed partial class UpdateService(
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            // Silence assumé : les notes de version sont un agrément. Sans
-            // elles la fenêtre « Nouveautés » ne paraît pas, et la mise à jour
-            // s'est faite quand même.
+            // Silence assumed: release notes are a nicety. Without
+            // them the "What's New" window does not appear, and the
+            // update happened all the same.
             return string.Empty;
         }
     }
 
     /// <summary>
-    /// Balaie ce que la mise à jour précédente a laissé : l'ancien exécutable
-    /// écarté, et les livraisons plus anciennes que celle qui tourne.
+    /// Sweeps away what the previous update left behind: the old
+    /// executable set aside, and releases older than the one running.
     /// </summary>
     public void Sweep()
     {
@@ -269,8 +273,8 @@ public sealed partial class UpdateService(
     }
 
     /// <summary>
-    /// L'empreinte que porte le fichier d'accompagnement. Le format d'usage est
-    /// « empreinte  nom-du-fichier » ; on ne retient que la première.
+    /// The digest carried by the companion file. The usual format is
+    /// "digest  file-name"; only the first is kept.
     /// </summary>
     private static string Digest(string? content)
     {
@@ -306,8 +310,8 @@ public sealed partial class UpdateService(
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            // Un fichier qu'on n'arrive pas à effacer ne mérite pas d'arrêter
-            // quoi que ce soit : il sera repris au ménage suivant.
+            // A file that cannot be deleted does not deserve to stop
+            // anything: it will be picked up at the next cleanup.
         }
     }
 

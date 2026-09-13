@@ -1,11 +1,12 @@
-﻿// Sonde de développement : qui détient vraiment le focus clavier.
+﻿// Development probe: who really holds keyboard focus.
 //
-// D73 note que cette mesure avait dû être abandonnée, l'antivirus refusant le
-// script PowerShell qui la portait. Le refus vise le script, analysé par AMSI,
-// et non les fonctions : compilée, la même lecture passe. La sonde est donc
-// en lecture seule et le restera, pour qu'elle reste au-dessus de tout soupçon.
-// Elle n'attache aucune file d'entrée, ne pose aucun focus, n'envoie aucune
-// frappe : GetGUIThreadInfo et les accesseurs de titre, rien d'autre.
+// D73 notes that this measurement had to be abandoned, since the
+// antivirus refused the PowerShell script that carried it. The
+// refusal targets the script, analyzed by AMSI, and not the
+// functions: compiled, the same read goes through. The probe is
+// therefore read-only and will stay that way, so it remains above
+// any suspicion. It attaches no input queue, sets no focus, sends no
+// keystroke: GetGUIThreadInfo and the title accessors, nothing else.
 //
 //   dotnet.exe run --project build/sonde-focus
 //   dotnet.exe run --project build/sonde-focus -- --suivre 30
@@ -13,11 +14,12 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
-// Sizes are read in physical pixels, as capture-window.ps1 and list-windows.ps1
-// already report them. Without this, Windows virtualises every rectangle to the
-// primary monitor's scale: a 1920x1177 tabbed frame on a 150 % display came out
-// as 1280x785, which cannot be compared with what the application itself logs,
-// and reads as a layout defect that does not exist.
+// Sizes are read in physical pixels, as capture-window.ps1 and
+// list-windows.ps1 already report them. Without this, Windows virtualises
+// every rectangle to the primary monitor's scale: a 1920x1177 tabbed frame
+// on a 150 % display came out as 1280x785, which cannot be compared with
+// what the application itself logs, and reads as a layout defect that does
+// not exist.
 _ = Natives.SetProcessDpiAwarenessContext(Natives.PerMonitorAwareV2);
 
 var secondes = 0;
@@ -40,8 +42,8 @@ if (secondes == 0)
     return;
 }
 
-// Mode suivi : n'imprimer que les changements, pour que la trace reste lisible
-// pendant qu'on clique d'un onglet à l'autre.
+// Follow mode: only print changes, so the trace stays readable
+// while clicking from one tab to another.
 Console.WriteLine($"suivi pendant {secondes} s, seuls les changements sont imprimés");
 Console.WriteLine();
 
@@ -109,10 +111,11 @@ static void Etat()
         Console.WriteLine($"  capture      : {Decrire(info.hwndCapture)}");
     }
 
-    // Le focus est un état par fil, pas par bureau : on peut donc le lire sur
-    // le fil d'interface de chaque processus concerné sans qu'il soit au
-    // premier plan, et sans rien attacher. C'est ce relevé-là qui dit si le
-    // clavier peut atteindre le jeu logé.
+    // Focus is a per-thread state, not per-desktop: it can therefore
+    // be read on the interface thread of any process concerned
+    // without it being in the foreground, and without attaching
+    // anything. This is the very reading that says whether the
+    // keyboard can reach the docked game.
     Console.WriteLine();
     Console.WriteLine("  files d'entrée, par fil d'interface :");
 
@@ -124,8 +127,9 @@ static void Etat()
             var filFenetre = Natives.GetWindowThreadProcessId(fenetre, out var processus);
             var nom = Nom(processus);
 
-            // explorer et firefox servent de témoins : sûrement pas attachés,
-            // ils disent ce que la lecture rend pour un fil ordinaire.
+            // explorer and firefox act as witnesses: surely not
+            // attached, they show what the reading returns for an
+            // ordinary thread.
             if (nom is "DtHub" or "scrcpy" or "explorer" or "firefox")
             {
                 fils.TryAdd(filFenetre, $"{nom}({processus})");
@@ -173,9 +177,9 @@ static void Etat()
         }
     }
 
-    // Les fenêtres logées : filles d'une fenêtre à nous, mais tenues par un
-    // autre processus. C'est exactement la population qui ne peut pas recevoir
-    // le clavier tant qu'aucune file d'entrée n'est attachée.
+    // Docked windows: children of one of our windows, but owned by
+    // another process. This is exactly the population that cannot
+    // receive the keyboard as long as no input queue is attached.
     List<nint> cadres = [];
 
     _ = Natives.EnumWindows(
@@ -205,7 +209,7 @@ static void Etat()
 
                 if (Nom(processus) != "DtHub")
                 {
-                    // Visible ou non : l'onglet caché continue-t-il de coûter ?
+                    // Visible or not: does the hidden tab keep costing?
                     var vue = Natives.IsWindowVisible(enfant) ? "VISIBLE" : "cachée ";
 
                     logees.Add($"      {vue}  {Decrire(enfant)}  fil={filEnfant}");

@@ -1,28 +1,31 @@
 ﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Relie les quêtes que les succès ne relient pas, en suivant leurs prérequis.
+/// Links the quests that achievements do not link, by following their
+/// prerequisites.
 ///
-/// La liste d'un succès s'arrête à ses bornes : sa première quête n'a pas de
-/// précédente, sa dernière pas de suivante, et une quête sans succès n'a ni
-/// l'une ni l'autre. Le site, lui, continue : à Albuera, « Bien débuter » mène
-/// à « Une arrivée mouvementée », qui mène à « Le début des problèmes », qui
-/// ouvre le succès « Médiation expéditive ». Rien de tout cela ne se lisait.
+/// An achievement's list stops at its own edges: its first quest has
+/// no previous one, its last has no next one, and a quest with no
+/// achievement has neither. The site, though, keeps going: at Albuera,
+/// "Bien débuter" leads to "Une arrivée mouvementée", which leads to
+/// "Le début des problèmes", which opens the achievement "Médiation
+/// expéditive". None of that could be read.
 ///
-/// Mesuré sur les sept cent quatre-vingt-deux quêtes : cent soixante-huit
-/// gagnent une suivante et cent quatre-vingt-dix-sept une précédente. Treize
-/// et dix-sept se ramifient, et n'en gagnent aucune : en choisir une au hasard
-/// mentirait sur ce que le site publie.
+/// Measured across the seven hundred and eighty-two quests: one
+/// hundred and sixty-eight gain a next one and one hundred and
+/// ninety-seven a previous one. Thirteen and seventeen branch out, and
+/// gain none: picking one at random would misrepresent what the site
+/// publishes.
 ///
-/// Un prérequis ne nomme pas toujours une quête, et c'est <see cref="Resolve"/>
-/// qui le démêle. Les lire tous comme des titres laissait soixante-treize
-/// libellés sur cinq cent quatre-vingt-quatre sans effet, et huit succès
-/// s'achevaient sur un cul-de-sac faute de la seule arête qui menait au
-/// suivant.
+/// A prerequisite does not always name a quest, and it is
+/// <see cref="Resolve"/> that untangles it. Reading them all as titles
+/// left seventy-three labels out of five hundred and eighty-four with
+/// no effect, and eight achievements ended in a dead end for lack of
+/// the single link that led to the next one.
 ///
-/// Table construite une fois : la question se pose à chaque ouverture de quête,
-/// et parcourir le catalogue à chaque fois coûterait sept cent quatre-vingt-deux
-/// comparaisons pour une réponse.
+/// Table built once: the question comes up every time a quest is
+/// opened, and scanning the whole catalogue each time would cost
+/// seven hundred and eighty-two comparisons for one answer.
 /// </summary>
 public sealed class QuestChainIndex
 {
@@ -37,9 +40,9 @@ public sealed class QuestChainIndex
 
         List<QuestSummary> all = [.. quests];
 
-        // Le rapprochement se fait sur le titre normalisé, comme la recherche :
-        // le site écrit les prérequis à la main, avec ses apostrophes et ses
-        // accents à lui.
+        // The matching is done on the normalized title, as in the
+        // search: the site writes prerequisites by hand, with its own
+        // apostrophes and accents.
         _byTitle = [];
 
         foreach (var quest in all)
@@ -47,11 +50,13 @@ public sealed class QuestChainIndex
             _byTitle.TryAdd(QuestSearch.Normalize(quest.Title), quest);
         }
 
-        // Les quêtes de chaque succès, dans l'ordre où l'on y joue, et dans le
-        // même que la liste : le rang inconnu se triait ici à l'endroit, donc en
-        // tête, et là-bas en queue. Une quête de rang inconnu passait ainsi pour
-        // la première de son succès, et « Une arrivée mouvementée » se donnait
-        // pour la suite de la série précédente sans l'ouvrir.
+        // The quests of each achievement, in the order they are
+        // played, matching the order used by the list: an unknown
+        // rank used to sort to the front here, and to the back there.
+        // A quest of unknown rank thus passed for the first of its
+        // achievement, and "Une arrivée mouvementée" passed itself off
+        // as the continuation of the previous series without opening
+        // it.
         _bySuccess = all
             .Where(q => q.SuccessName.Length > 0)
             .GroupBy(q => q.SuccessName, StringComparer.Ordinal)
@@ -60,9 +65,10 @@ public sealed class QuestChainIndex
                 g => (IReadOnlyList<QuestSummary>)QuestPlayOrder.Sorted(g),
                 StringComparer.Ordinal);
 
-        // La dernière quête de chaque succès, par nom normalisé. Un prérequis
-        // qui cite un succès entier, « Succès Un nouveau départ réalisé »,
-        // désigne l'état où ce succès est acquis : la quête qui l'a clos.
+        // The last quest of each achievement, by normalized name. A
+        // prerequisite that cites a whole achievement, "Succès Un
+        // nouveau départ réalisé", designates the state where that
+        // achievement is earned: the quest that closed it.
         _lastOfSuccess = [];
 
         foreach (var (name, group) in _bySuccess)
@@ -98,11 +104,12 @@ public sealed class QuestChainIndex
     }
 
     /// <summary>
-    /// La quête qu'un intitulé de prérequis désigne, ou <c>null</c>.
+    /// The quest that a prerequisite label designates, or <c>null</c>.
     ///
-    /// Le titre nu et le jalon nomment la quête elle-même ; le succès nomme
-    /// celle qui le clôt, puisque l'exiger, c'est exiger tout ce qu'il contient.
-    /// Sans cette lecture, un prérequis sur huit ne reliait rien.
+    /// The bare title and the milestone name the quest itself; the
+    /// achievement names the one that closes it, since requiring it
+    /// means requiring everything it contains. Without this reading,
+    /// one prerequisite in eight linked to nothing.
     /// </summary>
     private QuestSummary? Resolve(string? need)
     {
@@ -126,8 +133,8 @@ public sealed class QuestChainIndex
     }
 
     /// <summary>
-    /// La quête dont celle-ci découle, ou <c>null</c> si ses prérequis n'en
-    /// nomment aucune ou en nomment plusieurs.
+    /// The quest this one follows from, or <c>null</c> if its
+    /// prerequisites name none or name several.
     /// </summary>
     public QuestSummary? PreviousOf(QuestSummary? quest)
     {
@@ -157,8 +164,8 @@ public sealed class QuestChainIndex
     }
 
     /// <summary>
-    /// La quête qui découle de celle-ci, ou <c>null</c> si aucune ne la nomme
-    /// en prérequis ou si plusieurs le font.
+    /// The quest that follows from this one, or <c>null</c> if none
+    /// names it as a prerequisite or if several do.
     /// </summary>
     public QuestSummary? NextOf(QuestSummary? quest)
     {
@@ -189,18 +196,21 @@ public sealed class QuestChainIndex
     }
 
     /// <summary>
-    /// La quête qui ouvre la série suivante, ou <c>null</c> s'il n'y en a pas
-    /// une seule.
+    /// The quest that opens the next series, or <c>null</c> if there
+    /// is not exactly one.
     ///
-    /// La suite d'un succès ne pend pas toujours à sa dernière quête. Mesuré
-    /// sur les cent quinze succès, la première quête de douze d'entre eux a
-    /// pour prérequis une quête du milieu du succès précédent : « Médiation
-    /// expéditive » se prolonge depuis sa cinquième quête sur six, si bien que
-    /// la sixième n'avait aucune suite. On cherche donc dans tout le succès
-    /// courant, et non dans la seule quête d'où l'on part.
+    /// The continuation of an achievement does not always hang off its
+    /// last quest. Measured across the one hundred and fifteen
+    /// achievements, the first quest of twelve of them has as a
+    /// prerequisite a quest from the middle of the previous
+    /// achievement: "Médiation expéditive" continues from its fifth
+    /// quest out of six, so the sixth had no continuation at all. So
+    /// the search runs through the whole current achievement, not just
+    /// the single quest one starts from.
     ///
-    /// Sept succès y gagnent une continuation. Deux en ouvrent plusieurs et
-    /// n'en reçoivent aucune : en désigner une au hasard mentirait.
+    /// Seven achievements gain a continuation from it. Two open
+    /// several and receive none: designating one at random would
+    /// misrepresent it.
     /// </summary>
     public QuestSummary? NextSeriesOf(QuestSummary? quest)
     {
@@ -216,8 +226,9 @@ public sealed class QuestChainIndex
             foreach (var candidate in _followers.GetValueOrDefault(
                 QuestSearch.Normalize(member.Title), []))
             {
-                // Ce qui reste dans le succès n'est pas une autre série, et la
-                // liste du succès l'a déjà dit.
+                // What remains within the achievement is not another
+                // series, and the achievement's list has already said
+                // so.
                 if (string.Equals(candidate.SuccessName, quest.SuccessName, StringComparison.Ordinal)
                     || candidate.SuccessName.Length == 0
                     || !IsFirst(candidate))
@@ -237,7 +248,9 @@ public sealed class QuestChainIndex
         return only;
     }
 
-    /// <summary>Vrai si la quête ouvre son succès, dans l'ordre de jeu.</summary>
+    /// <summary>
+    /// True if the quest opens its achievement, in play order.
+    /// </summary>
     private bool IsFirst(QuestSummary quest)
     {
         var group = _bySuccess.GetValueOrDefault(quest.SuccessName, []);
@@ -246,8 +259,9 @@ public sealed class QuestChainIndex
     }
 
     /// <summary>
-    /// La quête que porte ce titre, ou <c>null</c> si aucune. Le rapprochement
-    /// est celui de la chaîne : le site écrit ses renvois à la main.
+    /// The quest carried by this title, or <c>null</c> if none. The
+    /// matching is the same as the chain's: the site writes its
+    /// cross-references by hand.
     /// </summary>
     public QuestSummary? Find(string? title) =>
         title is null ? null : _byTitle.GetValueOrDefault(QuestSearch.Normalize(title));

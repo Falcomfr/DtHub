@@ -1,20 +1,21 @@
 ﻿namespace DtHub.Core.Updates;
 
 /// <summary>
-/// D'où viennent les livraisons.
+/// Where releases come from.
 ///
-/// Un dépôt public : l'application interroge l'API sans jeton, et un jeton posé
-/// dans l'exécutable serait de toute façon lisible par qui l'ouvre. Tant que le
-/// dépôt n'existe pas, la demande rend « rien à signaler » et l'application
-/// n'en sait pas plus.
+/// A public repository: the application queries the API without a
+/// token, and a token embedded in the executable would be readable
+/// by anyone who opens it anyway. As long as the repository does not
+/// exist, the request returns "nothing to report" and the
+/// application knows no more.
 ///
-/// La marche à suivre pour livrer est dans docs/LIVRAISON.md.
+/// The procedure for releasing is in docs/LIVRAISON.md.
 /// </summary>
 public static class ReleaseChannel
 {
-    /// <summary>Le compte qui héberge le dépôt.</summary>
+    /// <summary>The account that hosts the repository.</summary>
     public const string Owner = "Falcomfr";
 
-    /// <summary>Le dépôt.</summary>
+    /// <summary>The repository.</summary>
     public const string Repository = "DtHub";
 }

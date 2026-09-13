@@ -4,7 +4,9 @@ using DtHub.App.ViewModels;
 
 namespace DtHub.App.Windows;
 
-/// <summary>Explique comment empêcher Android d'endormir le jeu.</summary>
+/// <summary>
+/// Explains how to prevent Android from putting the game to sleep.
+/// </summary>
 public partial class SleepHelpWindow : Window
 {
     public SleepHelpWindow(SleepHelpViewModel viewModel)

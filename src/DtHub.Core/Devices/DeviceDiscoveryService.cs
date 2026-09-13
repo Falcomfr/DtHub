@@ -3,26 +3,25 @@
 namespace DtHub.Core.Devices;
 
 /// <summary>
-/// Dresse la liste des téléphones : ce qu'ADB voit maintenant, enrichi des
-/// propriétés du téléphone et de ce qui avait été mémorisé. Les appareils
-/// connus mais absents restent présentés comme hors ligne, sans quoi ils
-/// disparaîtraient de l'interface au moindre débranchement.
+/// Builds the phone list: what ADB sees right now, enriched with the phone's
+/// properties and with what had been remembered. Known devices that are absent
+/// are still shown as offline, or they would disappear from the interface at
+/// the slightest unplugging.
 /// </summary>
 public sealed class DeviceDiscoveryService : IDisposable
 {
     /// <summary>
-    /// Les propriétés système ne changent pas d'un balayage à l'autre : les
-    /// relire à chaque fois coûterait un aller-retour ADB par appareil pour
-    /// rien.
+    /// System properties do not change from one scan to the next: rereading
+    /// them every time would cost an ADB round trip per device for nothing.
     /// </summary>
     private readonly Dictionary<string, IReadOnlyDictionary<string, string>> _propertyCache = new(StringComparer.Ordinal);
 
     private readonly IAdbClient _adb;
 
-    /// <summary>Combien de temps une lecture de liaison reste valable.</summary>
+    /// <summary>How long a link reading stays valid.</summary>
     private static readonly TimeSpan LinkFreshness = TimeSpan.FromMinutes(1);
 
-    /// <summary>Dernière liaison lue par appareil, avec son âge.</summary>
+    /// <summary>Last link reading per device, with its age.</summary>
     private readonly Dictionary<string, (WifiLink? Link, System.Diagnostics.Stopwatch Vu)> _link =
         new(StringComparer.Ordinal);
     private readonly IDeviceRegistry _registry;
@@ -34,17 +33,17 @@ public sealed class DeviceDiscoveryService : IDisposable
         _registry = registry;
     }
 
-    /// <summary>Nombre de lectures de propriétés menées de front.</summary>
+    /// <summary>Number of property reads carried out in parallel.</summary>
     public int MaxParallelism { get; init; } = 4;
 
     /// <summary>
-    /// Coupe les connexions sans fil mortes. Le port du débogage sans fil
-    /// change à chaque redémarrage du téléphone, et l'ancienne connexion reste
-    /// indéfiniment listée comme hors ligne. Sans ce ménage, un même téléphone
-    /// finit par occuper plusieurs entrées dont une éteinte, et c'est parfois
-    /// elle qui s'affiche.
+    /// Cuts dead wireless connections. The wireless debugging port changes on
+    /// every phone restart, and the old connection stays listed as offline
+    /// indefinitely. Without this cleanup, the same phone ends up occupying
+    /// several entries, one of them dead, and it is sometimes that one that
+    /// gets shown.
     /// </summary>
-    /// <returns>Nombre de connexions coupées.</returns>
+    /// <returns>Number of connections cut.</returns>
     public async Task<int> PruneStaleWirelessTransportsAsync(CancellationToken cancellationToken = default)
     {
         IReadOnlyList<AdbDeviceEntry> entries;
@@ -55,9 +54,10 @@ public sealed class DeviceDiscoveryService : IDisposable
         }
         catch (AdbException)
         {
-            // Silence assumé : sans réponse d'ADB on ne sait pas quels
-            // appareils ont disparu, et n'en oublier aucun est le bon défaut.
-            // Le refus d'ADB, lui, est déjà dit par le balayage qui suit.
+            // Silence taken deliberately: without an answer from ADB we do not
+            // know which devices have disappeared, and forgetting none of them
+            // is the right default. ADB's refusal, for its part, is already
+            // reported by the scan that follows.
             return 0;
         }
 
@@ -79,14 +79,14 @@ public sealed class DeviceDiscoveryService : IDisposable
             }
             catch (AdbException)
             {
-                // La connexion a peut-être disparu d'elle-même.
+                // The connection may have vanished on its own.
             }
         }
 
         return stale.Count;
     }
 
-    /// <summary>Balaye les appareils et met le registre à jour.</summary>
+    /// <summary>Scans devices and updates the registry.</summary>
     public async Task<DeviceDiscoveryResult> RefreshAsync(CancellationToken cancellationToken = default)
     {
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -101,18 +101,18 @@ public sealed class DeviceDiscoveryService : IDisposable
     }
 
     /// <summary>
-    /// Coupe tous les transports ADB qui mènent à cet appareil.
+    /// Cuts every ADB transport that leads to this device.
     ///
-    /// Un même téléphone en occupe couramment deux : celui de son adresse, et
-    /// celui de son nom mDNS, qu'ADB ouvre de lui-même en découvrant l'annonce.
-    /// Mesuré sur l'appareil de développement, qui en portait bien deux.
-    /// N'en couper qu'un laisserait l'autre ouvert.
+    /// The same phone commonly occupies two: the one for its address, and the
+    /// one for its mDNS name, which ADB opens on its own when it discovers the
+    /// announcement. Measured on the development device, which indeed carried
+    /// two. Cutting only one would leave the other open.
     ///
-    /// Le client ADB vit ici et nulle part ailleurs dans cette couche : rompre
-    /// une association a besoin de cette coupure, et lui donner son propre
-    /// client reviendrait à disperser l'accès à ADB pour une seule commande.
+    /// The ADB client lives here and nowhere else in this layer: severing a
+    /// pairing needs this cut, and giving it its own client would amount to
+    /// scattering ADB access for a single command.
     /// </summary>
-    /// <returns>Les adresses effectivement coupées, dans l'ordre.</returns>
+    /// <returns>The addresses actually cut, in order.</returns>
     public async Task<IReadOnlyList<string>> DisconnectDeviceAsync(
         AndroidDevice device,
         CancellationToken cancellationToken = default)
@@ -127,9 +127,9 @@ public sealed class DeviceDiscoveryService : IDisposable
         }
         catch (AdbException)
         {
-            // Sans réponse d'ADB il ne reste que l'adresse mémorisée, et la
-            // tenter vaut mieux que renoncer. Le refus d'ADB est déjà dit
-            // ailleurs, par le balayage.
+            // Without an answer from ADB, only the remembered address is left,
+            // and trying it beats giving up. ADB's refusal is already reported
+            // elsewhere, by the scan.
             entries = [];
         }
 
@@ -155,25 +155,24 @@ public sealed class DeviceDiscoveryService : IDisposable
         return cut;
     }
 
-    /// <summary>Dernier état thermique lu par appareil, avec son âge.</summary>
+    /// <summary>Last thermal reading per device, with its age.</summary>
     private readonly Dictionary<string, (ThermalReading? Reading, System.Diagnostics.Stopwatch Vu)> _heat =
         new(StringComparer.Ordinal);
 
     /// <summary>
-    /// Combien de temps une lecture de chaleur reste valable.
+    /// How long a heat reading stays valid.
     ///
-    /// Plus longue que celle de la liaison : un appareil ne passe pas d'un
-    /// palier thermique à l'autre en quelques secondes, et la question coûte un
-    /// aller-retour de shell.
+    /// Longer than the link's: a device does not move from one thermal tier to
+    /// another in a few seconds, and the question costs a shell round trip.
     /// </summary>
     private static readonly TimeSpan HeatFreshness = TimeSpan.FromMinutes(1);
 
     /// <summary>
-    /// Ce que l'appareil dit de sa chaleur, ou <c>null</c> s'il n'en dit rien.
+    /// What the device says about its heat, or <c>null</c> if it says nothing.
     ///
-    /// La question n'est posée qu'une fois par minute et par appareil : c'est
-    /// le rythme auquel la chaleur bouge, et l'appelant la pose à chaque
-    /// balayage sans que cela se paie.
+    /// The question is asked only once a minute per device: that is the pace
+    /// at which heat moves, and the caller asks it on every scan without
+    /// paying for it.
     /// </summary>
     public async Task<ThermalReading?> GetThermalAsync(
         string serial,
@@ -203,20 +202,20 @@ public sealed class DeviceDiscoveryService : IDisposable
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            // Même silence assumé que pour la liaison : ne pas connaître la
-            // chaleur est un résultat valable, que l'appelant traite comme une
-            // absence de contrainte. Un appareil qui répond mal à une question
-            // accessoire ne doit pas faire échouer le balayage.
+            // Same silence taken deliberately as for the link: not knowing the
+            // heat is a valid result, which the caller treats as no
+            // constraint. A device that answers a side question poorly must
+            // not make the scan fail.
             return null;
         }
     }
 
     /// <summary>
-    /// L'afficheur virtuel ouvert par scrcpy sur cet appareil est-il
-    /// déverrouillé, ou <c>null</c> si on ne le trouve pas.
+    /// Is the virtual display scrcpy opened on this device unlocked, or
+    /// <c>null</c> if it cannot be found.
     ///
-    /// Sans cache : la question n'a de sens qu'une fois l'afficheur créé, et
-    /// elle n'est posée qu'une fois par lancement.
+    /// No cache: the question only makes sense once the display has been
+    /// created, and it is asked only once per launch.
     /// </summary>
     public async Task<bool?> IsVirtualDisplayUnlockedAsync(
         string serial,
@@ -240,11 +239,11 @@ public sealed class DeviceDiscoveryService : IDisposable
 
             var unlocked = VirtualDisplayTrust.IsUnlocked(dump);
 
-            // Seule une réponse est gardée : tant qu'aucun afficheur n'existe,
-            // la question n'a pas de réponse et il faudra la reposer. Le
-            // groupe d'affichage se lit dans le même relevé : le demander à
-            // part vaudrait un second « dumpsys display », qui n'est pas
-            // donné.
+            // Only an actual answer is kept: as long as no display exists, the
+            // question has no answer and will need to be asked again. The
+            // display group is read from the same dump: asking for it
+            // separately would cost a second "dumpsys display", which does
+            // not come cheap.
             if (unlocked is not null)
             {
                 var now = System.Diagnostics.Stopwatch.StartNew();
@@ -257,18 +256,18 @@ public sealed class DeviceDiscoveryService : IDisposable
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            // Même silence assumé que pour les autres sondages accessoires.
+            // Same silence taken deliberately as for the other side probes.
             return null;
         }
     }
 
     /// <summary>
-    /// L'appareil est-il verrouillé en ce moment, ou <c>null</c> si sa
-    /// réponse ne le dit pas.
+    /// Is the device locked right now, or <c>null</c> if its answer does not
+    /// say.
     ///
-    /// Sans cache, et pour la même raison que le drapeau de l'afficheur : la
-    /// question n'est posée qu'au lancement, et un état qui change en une
-    /// seconde ne se garde pas.
+    /// No cache, and for the same reason as the display's flag: the question
+    /// is asked only at launch, and a state that changes within a second is
+    /// not worth keeping.
     /// </summary>
     public async Task<bool?> IsDeviceLockedAsync(
         string serial,
@@ -279,11 +278,11 @@ public sealed class DeviceDiscoveryService : IDisposable
             return null;
         }
 
-        // **La fraîcheur suit la réponse précédente.** Verrouillé, on repose
-        // la question souvent : l'avertissement doit s'éteindre dans la foulée
-        // du déverrouillage. Déverrouillé, il n'y a plus rien à éteindre, et
-        // quinze questions par minute pendant une partie réveillent un
-        // téléphone qui encode déjà deux flux vidéo.
+        // **Freshness follows the previous answer.** Locked, we ask the
+        // question often: the warning must go out right on the heels of
+        // unlocking. Unlocked, there is nothing left to turn off, and fifteen
+        // questions a minute during a play session would wake up a phone that
+        // is already encoding two video streams.
         if (_locked.TryGetValue(serial, out var garde)
             && garde.Vu.Elapsed < (garde.Locked == false ? OpenFreshness : LockFreshness))
         {
@@ -304,17 +303,17 @@ public sealed class DeviceDiscoveryService : IDisposable
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            // Même silence assumé que pour les autres sondages accessoires.
+            // Same silence taken deliberately as for the other side probes.
             return null;
         }
     }
 
     /// <summary>
-    /// Dernier verdict de confiance de l'afficheur, par appareil.
+    /// Last trust verdict for the display, per device.
     ///
-    /// Gardé longtemps : ce drapeau dit ce dont l'appareil est capable, et
-    /// cela ne change pas d'une session à l'autre. Une minute suffit à ce que
-    /// le panneau puisse poser la question toutes les deux secondes.
+    /// Kept for a long time: this flag says what the device is capable of, and
+    /// that does not change from one session to another. One minute is enough
+    /// for the panel to be able to ask the question every two seconds.
     /// </summary>
     private readonly Dictionary<string, (bool? Unlocked, System.Diagnostics.Stopwatch Vu)> _trusted =
         new(StringComparer.Ordinal);
@@ -322,19 +321,20 @@ public sealed class DeviceDiscoveryService : IDisposable
     private static readonly TimeSpan TrustFreshness = TimeSpan.FromMinutes(1);
 
     /// <summary>
-    /// L'afficheur virtuel a-t-il son propre groupe, par appareil. Lu dans le
-    /// même relevé que la confiance, et gardé aussi longtemps : c'est une
-    /// capacité de l'appareil, pas un état.
+    /// Does the virtual display have its own group, per device. Read from the
+    /// same dump as the trust flag, and kept just as long: it is a capability
+    /// of the device, not a state.
     /// </summary>
     private readonly Dictionary<string, (bool? Grouped, System.Diagnostics.Stopwatch Vu)> _grouped =
         new(StringComparer.Ordinal);
 
     /// <summary>
-    /// Cet appareil peut-il garder plusieurs comptes actifs à la fois, ou
-    /// <c>null</c> tant qu'aucun afficheur virtuel n'a été vu.
+    /// Can this device keep several accounts active at once, or <c>null</c> as
+    /// long as no virtual display has been seen.
     ///
-    /// La réponse vient du relevé qu'<see cref="IsVirtualDisplayUnlockedAsync" />
-    /// a déjà fait : appeler celui-ci d'abord est donc la règle.
+    /// The answer comes from the reading
+    /// <see cref="IsVirtualDisplayUnlockedAsync" /> has already taken:
+    /// calling that one first is therefore the rule.
     /// </summary>
     public async Task<bool?> HasOwnDisplayGroupAsync(
         string serial,
@@ -352,25 +352,27 @@ public sealed class DeviceDiscoveryService : IDisposable
     }
 
     /// <summary>
-    /// Dernier état de verrouillage, par appareil.
+    /// Last lock state, per device.
     ///
-    /// Gardé peu : c'est un état que l'utilisateur change d'un geste, et
-    /// l'avertissement doit disparaître dans la foulée du déverrouillage.
+    /// Kept briefly: this is a state the user changes with one gesture, and
+    /// the warning must disappear right on the heels of unlocking.
     /// </summary>
     private readonly Dictionary<string, (bool? Locked, System.Diagnostics.Stopwatch Vu)> _locked =
         new(StringComparer.Ordinal);
 
     private static readonly TimeSpan LockFreshness = TimeSpan.FromSeconds(4);
 
-    /// <summary>Une fois l'appareil déverrouillé, la question peut attendre.</summary>
+    /// <summary>
+    /// Once the device is unlocked, the question can wait.
+    /// </summary>
     private static readonly TimeSpan OpenFreshness = TimeSpan.FromSeconds(30);
 
     /// <summary>
-    /// Le jeu est-il exempté d'économie d'énergie, par appareil.
+    /// Is the game exempt from battery saving, per device.
     ///
-    /// Gardé deux minutes : c'est un réglage qu'on va poser à la main sur le
-    /// téléphone, et l'avertissement doit s'éteindre peu après, sans qu'on
-    /// pose la question toutes les deux secondes pour autant.
+    /// Kept for two minutes: this is a setting that gets applied by hand on
+    /// the phone, and the warning must go out shortly after, without asking
+    /// the question every two seconds for all that.
     /// </summary>
     private readonly Dictionary<string, (bool? Exempt, System.Diagnostics.Stopwatch Vu)> _exempt =
         new(StringComparer.Ordinal);
@@ -378,8 +380,8 @@ public sealed class DeviceDiscoveryService : IDisposable
     private static readonly TimeSpan ExemptFreshness = TimeSpan.FromMinutes(2);
 
     /// <summary>
-    /// Le jeu est-il à l'abri de l'économie d'énergie sur cet appareil, ou
-    /// <c>null</c> quand l'appareil ne le dit pas.
+    /// Is the game shielded from battery saving on this device, or <c>null</c>
+    /// when the device does not say.
     /// </summary>
     public async Task<bool?> IsBatteryExemptAsync(
         string serial,
@@ -413,26 +415,27 @@ public sealed class DeviceDiscoveryService : IDisposable
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            // Même silence assumé que pour les autres sondages accessoires.
+            // Same silence taken deliberately as for the other side probes.
             return null;
         }
     }
 
-    /// <summary>Dernier niveau de batterie lu par appareil, avec son âge.</summary>
+    /// <summary>Last battery level read per device, with its age.</summary>
     private readonly Dictionary<string, (BatteryReading? Reading, System.Diagnostics.Stopwatch Vu)> _battery =
         new(StringComparer.Ordinal);
 
     /// <summary>
-    /// Combien de temps une lecture de batterie reste valable.
+    /// How long a battery reading stays valid.
     ///
-    /// La même minute que la chaleur, et pour la même raison : une batterie ne
-    /// perd pas dix pour cent en dix secondes, et la question coûte un
-    /// aller-retour de shell à chaque balayage.
+    /// The same one minute as heat, and for the same reason: a battery does
+    /// not lose ten percent in ten seconds, and the question costs a shell
+    /// round trip on every scan.
     /// </summary>
     private static readonly TimeSpan BatteryFreshness = TimeSpan.FromMinutes(1);
 
     /// <summary>
-    /// Ce que l'appareil dit de sa batterie, ou <c>null</c> s'il n'en dit rien.
+    /// What the device says about its battery, or <c>null</c> if it says
+    /// nothing.
     /// </summary>
     public async Task<BatteryReading?> GetBatteryAsync(
         string serial,
@@ -462,28 +465,28 @@ public sealed class DeviceDiscoveryService : IDisposable
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            // Même silence assumé que pour la chaleur : ne pas connaître la
-            // batterie est un résultat valable, et un appareil qui répond mal
-            // à une question accessoire ne doit pas faire échouer le balayage.
+            // Same silence taken deliberately as for heat: not knowing the
+            // battery is a valid result, and a device that answers a side
+            // question poorly must not make the scan fail.
             return null;
         }
     }
 
-    /// <summary>Dernière place libre lue par appareil, avec son âge.</summary>
+    /// <summary>Last free space reading per device, with its age.</summary>
     private readonly Dictionary<string, (StorageReading? Reading, System.Diagnostics.Stopwatch Vu)> _storage =
         new(StringComparer.Ordinal);
 
     /// <summary>
-    /// Combien de temps une lecture de place libre reste valable.
+    /// How long a free space reading stays valid.
     ///
-    /// Bien plus longue que les autres : la place ne bouge pas en séance, et
-    /// c'est une assurance, pas une surveillance.
+    /// Much longer than the others: free space does not move during a session,
+    /// and this is an insurance check, not a monitor.
     /// </summary>
     private static readonly TimeSpan StorageFreshness = TimeSpan.FromMinutes(15);
 
     /// <summary>
-    /// Ce que l'appareil dit de sa place libre, ou <c>null</c> s'il n'en dit
-    /// rien.
+    /// What the device says about its free space, or <c>null</c> if it says
+    /// nothing.
     /// </summary>
     public async Task<StorageReading?> GetStorageAsync(
         string serial,
@@ -513,21 +516,21 @@ public sealed class DeviceDiscoveryService : IDisposable
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            // Même silence assumé que pour les autres sondages accessoires.
+            // Same silence taken deliberately as for the other side probes.
             return null;
         }
     }
 
     /// <summary>
-    /// Demande à l'appareil s'il accepte la simulation d'entrée.
+    /// Asks the device whether it accepts input simulation.
     ///
-    /// Le symptôme qu'elle éclaire est silencieux par nature : l'image passe,
-    /// la fenêtre s'ouvre, et le clic ne fait rien sans qu'aucune erreur ne
-    /// paraisse. La sonde envoie la touche « inconnue », qui ne déclenche rien,
-    /// et lit ce que le système répond.
+    /// The symptom it sheds light on is silent by nature: the picture shows,
+    /// the window opens, and the click does nothing without any error
+    /// appearing. The probe sends the "unknown" key, which triggers nothing,
+    /// and reads what the system answers.
     ///
-    /// Elle n'est lancée que sur demande de l'utilisateur. Le délai est court :
-    /// une question à laquelle l'appareil ne répond pas vite ne répondra pas.
+    /// It is only run at the user's request. The timeout is short: a question
+    /// the device does not answer quickly will not answer at all.
     /// </summary>
     public async Task<InputInjection> CheckInputInjectionAsync(
         string serial,
@@ -554,28 +557,28 @@ public sealed class DeviceDiscoveryService : IDisposable
         }
         catch (AdbException)
         {
-            // Un appareil qui ne répond plus n'apprend rien sur la souris, et
-            // le dire relèverait du hasard. Son absence est déjà signalée
-            // ailleurs, par le balayage.
+            // A device that no longer answers teaches nothing about the mouse,
+            // and saying so would come down to guesswork. Its absence is
+            // already reported elsewhere, by the scan.
             return InputInjection.Unknown;
         }
     }
 
-    /// <summary>Délai laissé à la sonde d'entrée.</summary>
+    /// <summary>Timeout given to the input probe.</summary>
     private static readonly TimeSpan ProbeTimeout = TimeSpan.FromSeconds(5);
 
     /// <summary>
-    /// Ce que l'appareil dit de sa liaison Wi-Fi, ou <c>null</c> s'il n'en a
-    /// pas à dire : liaison USB, Wi-Fi éteint, ou Android qui répond autrement.
+    /// What the device says about its Wi-Fi link, or <c>null</c> if it has
+    /// nothing to say: a USB link, Wi-Fi turned off, or Android answering
+    /// differently.
     ///
-    /// Gardé une minute, pas davantage : un réseau change, et c'est justement
-    /// quand il change qu'il faut le relire. Mais l'appel coûte 0,46 s mesuré,
-    /// il est sur le chemin de l'ouverture, et ouvrir deux comptes coup sur
-    /// coup le payait deux fois pour la même réponse.
+    /// Kept for one minute, no longer: a network changes, and it is precisely
+    /// when it changes that it needs rereading. But the call costs 0.46 s
+    /// measured, it sits on the path to opening a session, and opening two
+    /// accounts back to back used to pay for it twice for the same answer.
     ///
-    /// Aucune faute n'est propagée. Ne pas connaître la liaison ne doit jamais
-    /// empêcher une session de s'ouvrir : l'appelant traite l'absence comme
-    /// une absence de contrainte.
+    /// No fault is propagated. Not knowing the link must never prevent a
+    /// session from opening: the caller treats the absence as no constraint.
     /// </summary>
     public async Task<WifiLink?> GetWifiLinkAsync(
         string serial,
@@ -605,18 +608,18 @@ public sealed class DeviceDiscoveryService : IDisposable
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            // Silence assumé, et c'est le seul endroit où il se justifie ici :
-            // ne pas connaître la liaison est déjà un résultat valable, que
-            // l'appelant traite comme une absence de contrainte. Faire échouer
-            // un lancement parce qu'un appareil répond mal à une question
-            // accessoire serait hors de proportion.
+            // Silence taken deliberately, and this is the one place here where
+            // it is justified: not knowing the link is already a valid result,
+            // which the caller treats as no constraint. Failing a launch
+            // because a device answers a side question poorly would be out of
+            // all proportion.
             return null;
         }
     }
 
     /// <summary>
-    /// Force la relecture des propriétés au prochain balayage, par exemple
-    /// après une mise à jour d'Android ou un changement de nom d'appareil.
+    /// Forces properties to be reread on the next scan, for instance after an
+    /// Android update or a device name change.
     /// </summary>
     public void InvalidatePropertyCache(string? serial = null)
     {
@@ -646,24 +649,23 @@ public sealed class DeviceDiscoveryService : IDisposable
         }
         catch (AdbException exception)
         {
-            // Sans ADB, on montre au moins ce qui était mémorisé plutôt qu'un
-            // écran vide.
+            // Without ADB, we at least show what had been remembered rather
+            // than an empty screen.
             warnings.Add(exception.UserMessage);
             var stored = await _registry.GetKnownAsync(cancellationToken).ConfigureAwait(false);
             return new DeviceDiscoveryResult(stored, warnings);
         }
 
-        // Les mémorisés et les écartés viennent ensemble : le balayage a besoin
-        // des deux, et le registre relit son fichier à chaque demande.
+        // Remembered and discarded devices come together: the scan needs both,
+        // and the registry rereads its file on every request.
         var (known, discarded) = await _registry.GetSnapshotAsync(cancellationToken).ConfigureAwait(false);
 
-        // Les émulateurs ne sont pas la cible de l'outil et brouilleraient la
-        // liste : ils sont écartés dès la découverte.
+        // Emulators are not this tool's target and would clutter the list:
+        // they are discarded as soon as they are discovered.
         //
-        // Les doubles aussi, et avant toute interrogation : ADB rejoint un
-        // téléphone tout seul par mDNS alors qu'il est déjà connecté par son
-        // adresse, et le nom mDNS refuse ensuite les commandes qu'on lui
-        // adresse.
+        // Duplicates too, and before any querying: ADB joins a phone on its
+        // own by mDNS when it is already connected through its address, and
+        // the mDNS name then refuses the commands sent to it.
         var relevant = AdbTransportChoice.WithoutDoubles(
             [.. entries.Where(e => e.ConnectionKind != AdbConnectionKind.Emulator)],
             known);
@@ -683,16 +685,16 @@ public sealed class DeviceDiscoveryService : IDisposable
             discovered.Add(DeviceFactory.Create(entry, entryProperties, match, observedAt));
         }
 
-        // Un même téléphone peut apparaître deux fois, branché en USB et
-        // toujours connecté en Wi-Fi. On garde la meilleure des deux lignes.
+        // The same phone can appear twice, plugged in over USB and still
+        // connected over Wi-Fi. We keep the better of the two entries.
         var deduplicated = Deduplicate(discovered);
 
-        // Un appareil écarté sort du balayage entier, et pas seulement de
-        // l'écriture au registre. La coupure ADB ne tient pas éternellement :
-        // le serveur rejoint de lui-même un téléphone qui s'annonce et dont il
-        // garde la clé, au redémarrage du serveur ou à la réactivation du
-        // débogage sans fil. Filtrer le seul registre laissait alors la ligne
-        // revenir à l'écran, ce qui est le défaut rapporté.
+        // A discarded device drops out of the entire scan, not just out of the
+        // write to the registry. The ADB disconnect does not hold forever: the
+        // server rejoins on its own a phone that announces itself and whose
+        // key it has kept, whether the server restarts or wireless debugging
+        // gets turned back on. Filtering only the registry used to let the
+        // entry come back on screen, which is the reported bug.
         var merged = discarded.Count == 0
             ? deduplicated
             : deduplicated.Where(d => !discarded.Contains(d.Id)).ToList();
@@ -701,8 +703,8 @@ public sealed class DeviceDiscoveryService : IDisposable
 
         var seen = merged.Select(d => d.Id).ToHashSet(StringComparer.Ordinal);
 
-        // Le souvenir est filtré comme la découverte : un appareil écarté n'a
-        // pas à revenir par la liste des hors ligne.
+        // What is remembered is filtered like what is discovered: a discarded
+        // device has no business coming back through the offline list.
         var offline = known.Where(d => !seen.Contains(d.Id) && !discarded.Contains(d.Id));
 
         var all = merged
@@ -766,8 +768,8 @@ public sealed class DeviceDiscoveryService : IDisposable
             }
             catch (AdbException exception)
             {
-                // Un téléphone qui refuse getprop reste listé : il faut
-                // justement pouvoir l'afficher pour expliquer quoi faire.
+                // A phone that refuses getprop stays listed: it is precisely
+                // so it can be shown that we can explain what to do.
                 failures.Add($"{entry.DisplayName} : {exception.UserMessage}");
             }
         }).ConfigureAwait(false);
@@ -788,9 +790,9 @@ public sealed class DeviceDiscoveryService : IDisposable
     }
 
     /// <summary>
-    /// Fusionne les doublons d'identité en gardant la ligne la plus utile :
-    /// un transport prêt prime sur un transport hors ligne, et l'USB prime sur
-    /// le Wi-Fi parce qu'il est plus stable.
+    /// Merges identity duplicates, keeping the most useful entry: a ready
+    /// transport outranks an offline one, and USB outranks Wi-Fi because it is
+    /// more stable.
     /// </summary>
     private static List<AndroidDevice> Deduplicate(IEnumerable<AndroidDevice> devices) =>
         [.. devices
@@ -799,11 +801,12 @@ public sealed class DeviceDiscoveryService : IDisposable
                 .OrderByDescending(d => d.IsConnected)
                 .ThenByDescending(d => d.ConnectionKind == AdbConnectionKind.Usb)
 
-                // Une adresse joignable avant un nom mDNS. Sans ce départage,
-                // deux lignes sans fil également connectées se départageaient
-                // par l'ordre où ADB les rend, c'est-à-dire par leur numéro de
-                // transport : la ligne retenue changeait d'une reconnexion à
-                // l'autre, et c'était parfois celle qui refuse les commandes.
+                // A reachable address before an mDNS name. Without this
+                // tie-breaker, two equally connected wireless entries used to
+                // be decided by the order ADB returns them in, that is, by
+                // their transport number: the entry kept would change from one
+                // reconnection to the next, and it was sometimes the one that
+                // refuses commands.
                 .ThenBy(d => MdnsDeviceName.IsMdnsName(d.Serial))
                 .First())];
 

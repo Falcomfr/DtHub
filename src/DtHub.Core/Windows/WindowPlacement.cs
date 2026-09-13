@@ -3,13 +3,14 @@
 namespace DtHub.Core.Windows;
 
 /// <summary>
-/// Où se trouve une fenêtre de l'application, telle que Windows la retient.
+/// Where an application window is, as Windows remembers it.
 ///
-/// Le rectangle est en pixels du bureau, et non dans les coordonnées WPF :
-/// celles-ci dépendent de la mise à l'échelle de l'écran qui porte la fenêtre,
-/// si bien qu'un même chiffre ne désigne pas le même endroit d'un écran à
-/// l'autre. Sur deux écrans de densités différentes, c'est la seule façon de
-/// retrouver la place exacte.
+/// The rectangle is in desktop pixels, not in WPF coordinates: the
+/// latter depend on the scaling of the screen that carries the
+/// window, so that the same number does not designate the same
+/// spot from one screen to another. Across two screens with
+/// different densities, this is the only way to recover the exact
+/// place.
 /// </summary>
 public sealed record WindowPlacement
 {
@@ -21,15 +22,16 @@ public sealed record WindowPlacement
 
     public int Bottom { get; init; }
 
-    /// <summary>Vrai si la fenêtre était agrandie.</summary>
+    /// <summary>True if the window was maximized.</summary>
     public bool Maximized { get; init; }
 
     /// <summary>
-    /// Vrai si le rectangle a une surface. Une fenêtre jamais affichée en rend
-    /// un vide, qu'il ne faut ni enregistrer ni appliquer.
+    /// True if the rectangle has an area. A window that was never
+    /// shown returns an empty one, which must be neither saved nor
+    /// applied.
     ///
-    /// Hors du fichier : c'est une lecture des quatre bords, pas une valeur à
-    /// retenir.
+    /// Kept out of the file: this is a reading of the four edges,
+    /// not a value to store.
     /// </summary>
     [JsonIgnore]
     public bool IsSized => Right > Left && Bottom > Top;

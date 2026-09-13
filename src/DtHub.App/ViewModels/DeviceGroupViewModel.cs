@@ -7,12 +7,12 @@ using DtHub.Core.Localization;
 namespace DtHub.App.ViewModels;
 
 /// <summary>
-/// Un téléphone, tel qu'il paraît au-dessus de ses instances.
+/// A phone, as it appears above its instances.
 ///
-/// Les instances ne lui appartiennent plus : elles vivent dans une liste
-/// unique où elles se trient librement. Cet objet est partagé par toutes les
-/// lignes du même téléphone, si bien qu'une seule mise à jour d'état les
-/// prévient toutes.
+/// The instances no longer belong to it: they live in a single list
+/// where they sort themselves freely. This object is shared by every
+/// row of the same phone, so a single state update notifies all of
+/// them.
 /// </summary>
 public sealed partial class DeviceGroupViewModel : ObservableObject
 {
@@ -24,16 +24,17 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     private string _name;
 
     /// <summary>
-    /// Numéro de série ADB, qui est une adresse en sans-fil et change donc.
-    /// L'identité stable est <see cref="DeviceId"/> ; celui-ci ne sert qu'à
-    /// adresser une commande.
+    /// ADB serial number, which is an address over Wi-Fi and therefore
+    /// changes. The stable identity is <see cref="DeviceId"/>; this one
+    /// is only used to address a command.
     /// </summary>
     public string Serial { get; private set; } = string.Empty;
 
     /// <summary>
-    /// Vrai pendant l'ajout d'un compte. Créer un profil, y installer le jeu et
-    /// le démarrer demande une quinzaine de secondes au téléphone : sans cette
-    /// marque, le bouton restait cliquable et rien ne disait qu'il travaillait.
+    /// True while an account is being added. Creating a profile,
+    /// installing the game in it and starting it takes the phone about
+    /// fifteen seconds: without this marker, the button stayed
+    /// clickable and nothing said that it was working.
     /// </summary>
     [ObservableProperty]
     private bool _isBusy;
@@ -47,8 +48,9 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     public bool IsConnected => State == AdbDeviceState.Device;
 
     /// <summary>
-    /// Vrai quand l'appareil répond mais qu'aucun profil ne porte le jeu.
-    /// Il n'a alors aucune ligne dans la liste, et disparaîtrait sans un mot.
+    /// True when the device answers but no profile carries the game.
+    /// It then has no row in the list, and would disappear without a
+    /// word.
     /// </summary>
     private bool _hasNoGame;
 
@@ -85,7 +87,7 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Vrai seulement pour un appareil joignable sans le jeu.
+    /// True only for a reachable device without the game.
     ///
     /// Never true while the accounts are still being looked for: the absence
     /// of a row means nothing yet at that point.
@@ -109,27 +111,29 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Vrai quand cet appareil s'annonce sur le réseau et refuse ce PC.
+    /// True when this device announces itself on the network and
+    /// refuses this PC.
     ///
-    /// C'est le seul cas où « hors ligne » induit en erreur : le téléphone est
-    /// là, allumé, son débogage sans fil est actif, et il ne manque qu'une
-    /// nouvelle association. Sans ce mot, on cherche du côté du réseau, on
-    /// rallume ce qui est déjà allumé, et on n'a aucune raison de penser à
-    /// réassocier puisqu'on n'a rien désassocié.
+    /// This is the one case where "Offline" is misleading: the phone
+    /// is there, powered on, its wireless debugging is active, and all
+    /// that is missing is a new pairing. Without this word, one looks
+    /// toward the network, turns back on what is already on, and has
+    /// no reason to think of pairing again since nothing was ever
+    /// unpaired.
     /// </summary>
     private bool _needsPairing;
 
     /// <summary>
-    /// Vrai quand il faut refaire l'association, et seulement alors.
+    /// True when pairing has to be redone, and only then.
     ///
-    /// L'indication qui en découle tient sur une ligne courte, sous le seul
-    /// appareil concerné : une phrase sous chaque appareil hors ligne
-    /// prendrait la place de la liste pour répéter ce qui n'est vrai qu'une
-    /// fois sur quatre.
+    /// The resulting indication fits on a short line, under the one
+    /// device concerned: a sentence under every offline device would
+    /// take over the list's space to repeat something that is only
+    /// true one time in four.
     /// </summary>
     public bool NeedsPairing => _needsPairing && !IsConnected;
 
-    /// <summary>Pose le doute sur l'association, et prévient l'affichage.</summary>
+    /// <summary>Sets the doubt on pairing, and notifies the display.</summary>
     public void SetNeedsPairing(bool needed)
     {
         if (_needsPairing == needed)
@@ -162,18 +166,18 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
         };
 
     /// <summary>
-    /// Ce que le survol explique, quand l'état seul ne suffit pas.
+    /// What the hover tip explains, when the state alone is not enough.
     ///
-    /// Deux mots dans une liste ne peuvent pas dire quoi faire. « À
-    /// réassocier » dit ce qui manque, et la bulle dit par où.
+    /// Two words in a list cannot say what to do. "To pair again" says
+    /// what is missing, and the tooltip says how.
     ///
-    /// **« Hors ligne » a droit à la sienne, et c'est le cas qui manquait.**
-    /// L'application ne sait pas toujours pourquoi un téléphone ne répond
-    /// pas : il peut être éteint, sur un autre réseau, avoir son débogage
-    /// sans fil coupé, ou avoir oublié la clé de ce PC. Elle ne peut pas
-    /// trancher, mais elle peut dire dans quel ordre chercher, au lieu de
-    /// laisser deviner. Un utilisateur a passé une soirée sur exactement
-    /// cette question, et la réponse était la dernière de la liste.
+    /// **"Offline" deserves its own, and that is the case that was
+    /// missing.** The application does not always know why a phone is
+    /// not answering: it may be off, on another network, have its
+    /// wireless debugging turned off, or have forgotten this PC's key.
+    /// It cannot decide, but it can say in what order to look, instead
+    /// of leaving it to guesswork. A user spent an evening on exactly
+    /// this question, and the answer was the last one on the list.
     /// </summary>
     public string? StatusTip => !IsConnected
         ? Strings.Get(_needsPairing ? "ToPairAgainTip" : "OfflineTip")
@@ -193,40 +197,46 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
         };
 
     /// <summary>
-    /// La dernière lecture de batterie, ou <c>null</c> tant qu'on ne sait pas.
+    /// The last battery reading, or <c>null</c> until it is known.
     ///
-    /// Elle était déjà faite toutes les minutes, et seule l'alerte des vingt
-    /// pour cent en sortait. Le niveau lui-même vaut mieux : il se regarde
-    /// avant de lancer cinq comptes, pas une fois qu'il est trop tard.
+    /// It was already taken every minute, and only the twenty percent
+    /// alert came out of it. The level itself is worth more: it is
+    /// checked before launching five accounts, not once it is too
+    /// late.
     /// </summary>
     private BatteryReading? _battery;
 
-    /// <summary>Largeur intérieure de la jauge, en pixels de mise en page.</summary>
+    /// <summary>Inner width of the gauge, in layout pixels.</summary>
     private const double GaugeWidth = 14;
 
-    /// <summary>Vrai quand il y a un niveau à montrer.</summary>
+    /// <summary>True when there is a level to show.</summary>
     public bool HasBattery => _battery is not null && IsConnected;
 
-    /// <summary>Le niveau seul, « 84 % ».</summary>
+    /// <summary>The level alone, "84 %".</summary>
     public string BatteryText => _battery?.Label ?? string.Empty;
 
-    /// <summary>Le niveau en une phrase, avec la charge s'il y a lieu.</summary>
+    /// <summary>
+    /// The level as a sentence, with charging status if relevant.
+    /// </summary>
     public string BatterySummary => _battery?.Summary ?? string.Empty;
 
-    /// <summary>Vrai quand l'appareil est branché, ce que dit l'éclair.</summary>
+    /// <summary>
+    /// True when the device is charging, which is what the lightning
+    /// bolt says.
+    /// </summary>
     public bool IsCharging => _battery?.Charging ?? false;
 
     /// <summary>
-    /// La part remplie de la jauge. Jamais tout à fait nulle : à trois pour
-    /// cent, une jauge vide se lit comme une jauge en panne.
+    /// The filled share of the gauge. Never quite zero: at three
+    /// percent, an empty-looking gauge reads as a broken one.
     /// </summary>
     public double BatteryFill => _battery is null
         ? 0
         : Math.Max(2, Math.Round(GaugeWidth * _battery.Percent / 100.0));
 
     /// <summary>
-    /// La couleur du remplissage. Discrète tant que rien ne presse : une
-    /// jauge qui crie à quatre-vingts pour cent n'apprend rien.
+    /// The color of the fill. Discreet as long as nothing is urgent: a
+    /// gauge that screams at eighty percent teaches nothing.
     /// </summary>
     public string BatteryBrushKey => _battery?.Concern switch
     {
@@ -236,26 +246,33 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     };
 
     /// <summary>
-    /// Ce que cet appareil a de travers, un constat par ligne, ou <c>null</c>
-    /// quand il n'a rien.
+    /// What is wrong with this device, one finding per line, or
+    /// <c>null</c> when it has nothing.
     ///
-    /// Sous son nom plutôt que dans un bandeau commun : réunis en bas de
-    /// liste, les constats semblaient parler du dernier appareil affiché.
+    /// Under its own name rather than in a shared banner: gathered at
+    /// the bottom of the list, the findings seemed to be talking about
+    /// the last device shown.
     /// </summary>
     private string? _problems;
 
     private bool _problemsAreSerious;
 
-    /// <summary>Vrai quand cet appareil a quelque chose à signaler.</summary>
+    /// <summary>True when this device has something to report.</summary>
     public bool HasProblems => !string.IsNullOrEmpty(_problems);
 
-    /// <summary>Les constats, un par ligne, du plus grave au plus anodin.</summary>
+    /// <summary>
+    /// The findings, one per line, from the most serious to the most
+    /// trivial.
+    /// </summary>
     public string Problems => _problems ?? string.Empty;
 
-    /// <summary>La couleur du sigle et du texte : rouge si la séance est en jeu.</summary>
+    /// <summary>
+    /// The color of the icon and the text: red if the session is at
+    /// stake.
+    /// </summary>
     public string ProblemsBrushKey => _problemsAreSerious ? "DangerBrush" : "WarningBrush";
 
-    /// <summary>Pose ce que le bilan a trouvé pour cet appareil.</summary>
+    /// <summary>Sets what the health check found for this device.</summary>
     public void SetProblems(string? problems, bool serious)
     {
         if (string.Equals(_problems, problems, StringComparison.Ordinal)
@@ -271,7 +288,7 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
         OnPropertyChanged(nameof(ProblemsBrushKey));
     }
 
-    /// <summary>Pose la dernière lecture, et prévient l'affichage.</summary>
+    /// <summary>Sets the last reading, and notifies the display.</summary>
     public void SetBattery(BatteryReading? battery)
     {
         if (_battery == battery)

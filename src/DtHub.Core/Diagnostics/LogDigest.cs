@@ -4,40 +4,43 @@ using System.Text.RegularExpressions;
 namespace DtHub.Core.Diagnostics;
 
 /// <summary>
-/// Choisit, dans un fichier de journal, les lignes qui valent la peine d'être
-/// envoyées.
+/// Chooses, within a log file, the lines worth sending.
 ///
-/// Un fichier d'une journée fait mille sept cents lignes et cent cinquante
-/// kilooctets, et sept lignes sur cent y sont des avertissements ou des
-/// erreurs. Le reste dit le rythme d'usage, la configuration d'écrans et les
-/// pages lues : rien qui aide à comprendre une faute, et beaucoup qui désigne
-/// une personne.
+/// A one day file runs to one thousand seven hundred lines and one
+/// hundred fifty kilobytes, and seven lines in a hundred are
+/// warnings or errors. The rest tells the pace of use, the screen
+/// configuration and the pages read: nothing that helps understand a
+/// fault, and much that identifies a person.
 ///
-/// On garde donc les avertissements et les erreurs de la session en cours, puis
-/// les toutes dernières lignes pour savoir ce qu'on faisait au moment où c'est
-/// arrivé. Sur mille sept cents lignes, cela en rend une trentaine.
+/// We therefore keep the warnings and errors of the current session,
+/// plus the very last lines to know what was happening at the moment
+/// it occurred. Out of one thousand seven hundred lines, this yields
+/// about thirty.
 ///
-/// La session compte : quatre cent huit démarrages ont été relevés en six
-/// jours, tous mêlés dans sept fichiers. Sans elle, un rapport emporterait les
-/// fautes de la veille.
+/// The session matters: four hundred eight startups were recorded
+/// over six days, all mixed together in seven files. Without it, a
+/// report would drag in the previous day's faults.
 /// </summary>
 public static partial class LogDigest
 {
-    /// <summary>Ce qu'un rapport peut porter, en caractères.</summary>
+    /// <summary>What a report can carry, in characters.</summary>
     public const int MaxLength = 8000;
 
-    /// <summary>Le mot que porte une ligne qu'on garde toujours.</summary>
+    /// <summary>The word carried by a line we always keep.</summary>
     private static readonly string[] Loud = ["[WRN]", "[ERR]", "[FTL]"];
 
     /// <summary>
-    /// Les lignes retenues, dans l'ordre du fichier.
+    /// The retained lines, in the file's order.
     /// </summary>
-    /// <param name="log">Le contenu du fichier de journal.</param>
+    /// <param name="log">The log file's content.</param>
     /// <param name="session">
-    /// L'identifiant de la session en cours. Vide, tout le fichier est
-    /// considéré : c'est le cas d'un journal écrit par une version d'avant.
+    /// The identifier of the current session. When empty, the whole
+    /// file is considered: this is the case for a log written by an
+    /// earlier version.
     /// </param>
-    /// <param name="tail">Combien de dernières entrées garder quoi qu'il arrive.</param>
+    /// <param name="tail">
+    /// How many of the last entries to keep no matter what.
+    /// </param>
     public static string Of(string? log, string? session, int tail = 20)
     {
         if (string.IsNullOrWhiteSpace(log))
@@ -49,8 +52,9 @@ public static partial class LogDigest
 
         if (session is { Length: > 0 })
         {
-            // La première entrée qui porte la marque, non la dernière : chaque
-            // ligne de la session la porte, et c'est le début qu'on cherche.
+            // The first entry carrying the marker, not the last:
+            // every line of the session carries it, and it is the
+            // start we are looking for.
             var start = entries.FindIndex(e => e.Contains(Mark(session), StringComparison.Ordinal));
 
             if (start > 0)
@@ -79,8 +83,9 @@ public static partial class LogDigest
 
         foreach (var i in kept.Order())
         {
-            // Un blanc dit qu'on a sauté des lignes : sans lui, deux fautes
-            // distantes d'une heure se liraient comme deux fautes de suite.
+            // A blank indicates that lines were skipped: without it,
+            // two faults an hour apart would read as two faults in a
+            // row.
             if (previous >= 0 && i > previous + 1)
             {
                 text.Append("\n[…]\n");
@@ -100,16 +105,16 @@ public static partial class LogDigest
     }
 
     /// <summary>
-    /// La marque que porte chaque ligne d'une session, telle que le gabarit de
-    /// journalisation l'écrit. Entre crochets, comme le niveau : un identifiant
-    /// nu se confondrait avec un mot du message.
+    /// The marker carried by every line of a session, exactly as the
+    /// logging template writes it. In brackets, like the level: a
+    /// bare identifier would be confused with a word in the message.
     /// </summary>
     public static string Mark(string session) => $"[{session}]";
 
     /// <summary>
-    /// Les entrées du journal. Une entrée commence par un horodatage ; les
-    /// lignes qui n'en portent pas la prolongent, et c'est ainsi qu'une pile
-    /// d'appel reste avec le message qui l'a produite.
+    /// The log's entries. An entry begins with a timestamp; the
+    /// lines that lack one extend it, and that is how a stack trace
+    /// stays with the message that produced it.
     /// </summary>
     private static IEnumerable<string> Entries(string log)
     {

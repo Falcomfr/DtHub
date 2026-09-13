@@ -4,59 +4,64 @@ using DtHub.Core.Storage;
 namespace DtHub.Core.Settings;
 
 /// <summary>
-/// Distance apparente dans le jeu : plus ou moins de terrain visible, à taille
-/// de fenêtre égale.
+/// Apparent distance in the game: more or less terrain visible, at
+/// equal window size.
 ///
-/// Le repli est « proche » et non le réglage d'origine : le seul palier jamais
-/// retiré est « très proche », et il avait été décidé qu'il se fondrait dans
-/// celui-ci, qui prenait sa valeur. C'est ce repli qui applique la décision,
-/// une migration ne pouvant plus le faire : le convertisseur tolérant a déjà
-/// remplacé la valeur inconnue quand la migration s'exécute.
+/// The fallback is "close", not the original setting: the only tier
+/// ever removed is "very close", and it had been decided it would
+/// merge into this one, which took over its value. It is this
+/// fallback that applies the decision, since a migration can no
+/// longer do it: the tolerant converter has already replaced the
+/// unknown value by the time the migration runs.
 /// </summary>
 [JsonFallback(Close)]
 public enum GameZoom
 {
-    /// <summary>Le plus de terrain possible, à la limite du lisible.</summary>
+    /// <summary>
+    /// The most terrain possible, at the edge of legibility.
+    /// </summary>
     Widest,
 
-    /// <summary>Beaucoup de terrain, l'interface petite.</summary>
+    /// <summary>Lots of terrain, a small interface.</summary>
     Wide,
 
-    /// <summary>Réglage d'origine.</summary>
+    /// <summary>Original setting.</summary>
     Normal,
 
-    /// <summary>Le moins de terrain possible, l'interface la plus grande.</summary>
+    /// <summary>The least terrain possible, the largest interface.</summary>
     Close,
 }
 
 /// <summary>
-/// Traduit un zoom en densité d'afficheur.
+/// Translates a zoom into a display density.
 ///
-/// Android exprime les mises en page en points indépendants de la densité :
-/// une définition de 1080 pixels à 240 ppp fait 720 points de haut, et c'est ce
-/// nombre de points, non le nombre de pixels, qui décide de la taille de
-/// l'interface du jeu et de la portion de terrain visible. Jouer sur la densité
-/// change donc la distance apparente sans toucher à la finesse de l'image.
+/// Android expresses layouts in density-independent points: a
+/// resolution of 1080 pixels at 240 dpi makes 720 points tall, and
+/// it is this number of points, not the number of pixels, that
+/// decides the size of the game's interface and the portion of
+/// terrain visible. Adjusting the density therefore changes the
+/// apparent distance without touching the sharpness of the image.
 ///
-/// La densité est calculée à partir de la définition retenue, et non fixée une
-/// fois pour toutes : la définition suit la taille de la fenêtre, et une
-/// densité constante aurait fait varier le zoom avec elle, ce qui était le
-/// défaut d'origine. À hauteur de points constante, une petite fenêtre montre
-/// désormais la même chose qu'une grande, en plus petit.
+/// The density is computed from the resolution in use, rather than
+/// fixed once and for all: the resolution follows the window's size,
+/// and a constant density would have made the zoom vary with it,
+/// which was the original flaw. At a constant point height, a small
+/// window now shows the same thing as a large one, just smaller.
 /// </summary>
 public static class ZoomProfile
 {
     /// <summary>
-    /// Hauteur de la mise en page, en points indépendants de la densité.
+    /// Height of the layout, in density-independent points.
     ///
-    /// La valeur normale, 720 points, est celle qu'un afficheur de 1080 pixels
-    /// à 240 ppp donnait jusqu'ici : le réglage d'origine reste le réglage
-    /// d'origine, et c'est autour de lui que les autres se placent.
+    /// The normal value, 720 points, is the one a 1080-pixel display
+    /// at 240 dpi gave until now: the original setting stays the
+    /// original setting, and it is around it that the others are
+    /// placed.
     ///
-    /// Les deux extrémités vont aussi loin que le mécanisme le permet, si bien
-    /// que le dernier écart, de « normale » à « proche », est plus large que
-    /// les autres. Quatre paliers dont les deux bouts sont utiles valent mieux
-    /// que cinq dont deux se ressemblent.
+    /// Both ends go as far as the mechanism allows, so much so that
+    /// the last step, from "normal" to "close", is wider than the
+    /// others. Four tiers whose two ends are useful are worth more
+    /// than five where two look alike.
     /// </summary>
     public static int LayoutHeightFor(GameZoom zoom) => zoom switch
     {
@@ -67,8 +72,8 @@ public static class ZoomProfile
     };
 
     /// <summary>
-    /// Densité à demander pour une définition donnée. Bornée aux valeurs
-    /// qu'Android accepte, faute de quoi l'afficheur est refusé.
+    /// Density to request for a given resolution. Clamped to the
+    /// values Android accepts, otherwise the display is refused.
     /// </summary>
     public static int DpiFor(int displayHeight, GameZoom zoom)
     {
@@ -79,14 +84,14 @@ public static class ZoomProfile
             return 240;
         }
 
-        // 160 ppp est, par définition d'Android, la densité où un point vaut
-        // un pixel.
+        // 160 dpi is, by Android's definition, the density where one
+        // point equals one pixel.
         //
-        // Les bornes sont celles de ScrcpyOptions, et pas des jumelles : la
-        // valeur y repasse avant d'atteindre scrcpy, et deux plafonds
-        // différents faisaient raboter en silence tout ce qui se trouvait entre
-        // les deux. Le plafond laisse le palier le plus proche tenir sa
-        // promesse jusqu'à une fenêtre de 2300 pixels de haut.
+        // The bounds are those of ScrcpyOptions, not twins of them:
+        // the value passes back through them before reaching scrcpy,
+        // and two different ceilings used to silently clip anything
+        // that fell between the two. This ceiling lets the closest
+        // tier keep its promise up to a window 2300 pixels tall.
         return Math.Clamp(
             (int)Math.Round(displayHeight * 160.0 / layout),
             ScrcpyOptions.MinDisplayDpi,

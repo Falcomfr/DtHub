@@ -1,28 +1,34 @@
 ﻿namespace DtHub.Core.Guidance;
 
 /// <summary>
-/// Un écran de réglages dessiné : son titre, la ligne qu'on y touche, et la
-/// hauteur à laquelle cette ligne est tracée.
+/// A drawn settings screen: its title, the row you tap on it, and the
+/// height at which that row is drawn.
 /// </summary>
-/// <param name="Title">Le nom de l'écran où l'on se trouve.</param>
+/// <param name="Title">The name of the screen you are on.</param>
 /// <param name="Tap">
-/// La ligne à toucher pour aller plus loin. Vide sur le seul écran d'un chemin
-/// qui n'en compte qu'un, où il n'y a rien à toucher.
+/// The row to tap to go further. Empty on the only screen of a path
+/// that has just one, where there is nothing to tap.
 /// </param>
-/// <param name="Row">Rang de cette ligne parmi celles dessinées.</param>
+/// <param name="Row">Rank of this row among those drawn.</param>
 public readonly record struct MenuScreen(string Title, string Tap, int Row);
 
 /// <summary>
-/// Ce qui habille une ligne muette d'un écran dessiné.
+/// What dresses up a silent row of a drawn screen.
 ///
-/// Rien de tout cela ne nomme un réglage : la fiche de marque ne donne que le
-/// chemin. Ce sont les traits qu'ont toutes les listes de réglages d'Android,
-/// et sans eux le dessin ressemblait à n'importe quelle liste.
+/// None of this names an actual setting: the brand sheet gives only
+/// the path. These are the traits every Android settings list has,
+/// and without them the drawing looked like any other list.
 /// </summary>
-/// <param name="BarShare">Part de la largeur qu'occupe la barre du libellé.</param>
-/// <param name="Tint">Rang de la teinte de la pastille, de 0 à cinq.</param>
-/// <param name="HasSwitch">Vrai quand la ligne porte un interrupteur, non un chevron.</param>
-/// <param name="HasSubtitle">Vrai quand une seconde ligne, plus courte, la suit.</param>
+/// <param name="BarShare">
+/// Share of the width taken up by the label's bar.
+/// </param>
+/// <param name="Tint">Rank of the badge's tint, from 0 to five.</param>
+/// <param name="HasSwitch">
+/// True when the row carries a switch, not a chevron.
+/// </param>
+/// <param name="HasSubtitle">
+/// True when a second, shorter line follows it.
+/// </param>
 public readonly record struct MenuRowDecor(
     double BarShare,
     int Tint,
@@ -30,28 +36,28 @@ public readonly record struct MenuRowDecor(
     bool HasSubtitle);
 
 /// <summary>
-/// Découpe un chemin de menu en écrans, pour le montrer plutôt que le faire
-/// lire.
+/// Splits a menu path into screens, to show it rather than have it
+/// read.
 ///
-/// Les fiches de marque écrivent déjà « Paramètres › Applications › DOFUS
-/// Touch », et c'est la suite des écrans à parcourir : il n'y a rien à rédiger
-/// de plus, seulement à la lire.
+/// Brand sheets already write "Paramètres › Applications › DOFUS
+/// Touch", and that is the sequence of screens to go through: there
+/// is nothing more to write, only to read it.
 ///
-/// Un chemin de N segments donne N-1 écrans, et non N : on est *dans*
-/// « Paramètres » et l'on y touche « Applications ». Le dernier segment est la
-/// ligne à toucher du dernier écran, et non un écran de plus, qu'on
-/// dessinerait vide.
+/// A path of N segments gives N-1 screens, not N: you are *in*
+/// "Paramètres" and you tap "Applications" there. The last segment is
+/// the row to tap on the last screen, not one more screen, which
+/// would be drawn empty.
 /// </summary>
 public static class MenuPath
 {
-    /// <summary>Nombre de lignes dessinées dans chaque écran.</summary>
+    /// <summary>Number of rows drawn in each screen.</summary>
     public const int Rows = 5;
 
     private const char Separator = '›';
 
     /// <summary>
-    /// Les écrans du chemin, dans l'ordre. Un chemin vide n'en donne aucun, et
-    /// la vue n'affiche alors rien plutôt qu'un cadre creux.
+    /// The screens of the path, in order. An empty path gives none,
+    /// and the view then shows nothing rather than a hollow frame.
     /// </summary>
     public static IReadOnlyList<MenuScreen> Screens(string? path)
     {
@@ -62,8 +68,8 @@ public static class MenuPath
             return [];
         }
 
-        // Un seul segment : on montre l'écran où se rendre, sans ligne à
-        // toucher, parce qu'il n'y en a pas.
+        // A single segment: the screen to go to is shown, with no row
+        // to tap, because there is none.
         if (segments.Count == 1)
         {
             return [new MenuScreen(segments[0], string.Empty, 0)];
@@ -77,9 +83,10 @@ public static class MenuPath
             var tap = segments[i + 1];
             var row = RowFor(tap);
 
-            // Deux écrans de suite dont la ligne est à la même hauteur donnent
-            // une image qui semble figée. On décale, ce qui suffit à ce que le
-            // dessin ait l'air d'écrans distincts.
+            // Two screens in a row whose line sits at the same height
+            // give an image that looks frozen. It is shifted, which
+            // is enough to make the drawing look like distinct
+            // screens.
             if (row == previous)
             {
                 row = (row + 1) % Rows;
@@ -114,43 +121,44 @@ public static class MenuPath
         return segments;
     }
 
-    /// <summary>Nombre de teintes de pastille.</summary>
+    /// <summary>Number of badge tints.</summary>
     public const int Tints = 6;
 
     /// <summary>
-    /// L'habillage d'une ligne muette.
+    /// The dressing of a silent row.
     ///
-    /// Des barres toutes de la même longueur, toutes les pastilles de la même
-    /// couleur et pas un interrupteur : le dessin se trahissait, aucune liste
-    /// de réglages ne ressemble à cela. Tout est donc inégal, mais rien n'est
-    /// tiré au sort : le même écran doit se dessiner pareil à chaque ouverture
-    /// de la fenêtre, sans quoi l'illustration bougerait sous les yeux de qui
-    /// la relit.
+    /// Bars all the same length, badges all the same color and not a
+    /// single switch: the drawing gave itself away, no settings list
+    /// looks like that. So everything is uneven, but nothing is drawn
+    /// at random: the same screen must draw itself the same way every
+    /// time the window opens, or the illustration would shift under
+    /// the eyes of whoever rereads it.
     /// </summary>
-    /// <param name="title">Le nom de l'écran.</param>
-    /// <param name="row">Le rang de la ligne.</param>
+    /// <param name="title">The name of the screen.</param>
+    /// <param name="row">The rank of the row.</param>
     public static MenuRowDecor Decor(string? title, int row)
     {
         var ligne = Hash((row + 1) * 7, title);
 
         return new MenuRowDecor(
-            // Cinq largeurs, assez éloignées pour se voir, assez proches pour
-            // que la liste reste une liste.
+            // Five widths, far enough apart to be seen, close enough
+            // for the list to stay a list.
             0.5 + (ligne % 5 * 0.115),
             ligne / 5 % Tints,
-            // Un seul interrupteur par écran. Un premier essai en tirait un par
-            // ligne, et « Applications » se retrouvait avec quatre bascules :
-            // un écran par lequel on ne fait que passer n'en porte pas quatre.
+            // One single switch per screen. A first attempt drew one
+            // per row, and "Applications" ended up with four toggles:
+            // a screen you only pass through does not carry four.
             row == Hash(0, title) % Rows,
-            // Un sous-titre une fois sur trois : beaucoup de réglages annoncent
-            // leur état sous leur nom, mais pas tous.
+            // A subtitle one time in three: many settings announce
+            // their state under their name, but not all of them.
             ligne / 97 % 3 == 0);
     }
 
     /// <summary>
-    /// Une empreinte stable d'un titre. Stable et non aléatoire : le même écran
-    /// doit se dessiner pareil à chaque ouverture de la fenêtre, sans quoi
-    /// l'illustration bougerait sous les yeux de qui la relit.
+    /// A stable fingerprint of a title. Stable and not random: the
+    /// same screen must draw itself the same way every time the
+    /// window opens, or the illustration would shift under the eyes
+    /// of whoever rereads it.
     /// </summary>
     private static int Hash(int seed, string? title)
     {
@@ -165,11 +173,11 @@ public static class MenuPath
     }
 
     /// <summary>
-    /// La hauteur de la ligne, tirée de son libellé.
+    /// The row's height, derived from its label.
     ///
-    /// Tirée et non tirée au sort : le même écran doit se dessiner pareil à
-    /// chaque ouverture de la fenêtre, sans quoi l'illustration bougerait sous
-    /// les yeux de qui la relit.
+    /// Derived, not drawn at random: the same screen must draw itself
+    /// the same way every time the window opens, or the illustration
+    /// would shift under the eyes of whoever rereads it.
     /// </summary>
     private static int RowFor(string label)
     {

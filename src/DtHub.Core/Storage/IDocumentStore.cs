@@ -1,36 +1,38 @@
 ﻿namespace DtHub.Core.Storage;
 
 /// <summary>
-/// Persistance d'un document de configuration. Un fichier illisible ne doit
-/// jamais empêcher l'application de démarrer : l'implémentation met de côté le
-/// fichier fautif et repart d'un document valide.
+/// Persistence of a configuration document. An unreadable file must
+/// never prevent the application from starting: the implementation
+/// sets the faulty file aside and starts over from a valid document.
 /// </summary>
 public interface IDocumentStore<T>
     where T : class, new()
 {
-    /// <summary>Chemin du fichier géré, pour le diagnostic.</summary>
+    /// <summary>Path of the managed file, for diagnostics.</summary>
     string FilePath { get; }
 
     /// <summary>
-    /// Charge le document. Rend un document neuf si le fichier est absent,
-    /// vide ou illisible. Ne lève pas sur un contenu invalide.
+    /// Loads the document. Returns a fresh document if the file is
+    /// missing, empty or unreadable. Does not throw on invalid
+    /// content.
     /// </summary>
     Task<T> LoadAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>Écrit le document de façon atomique.</summary>
+    /// <summary>Writes the document atomically.</summary>
     Task SaveAsync(T document, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Le document tel qu'il s'écrirait sur le disque.
+    /// The document as it would be written to disk.
     ///
-    /// Ici et non chez l'appelant : c'est le magasin qui connaît le format, et
-    /// un second jeu d'options ailleurs finirait par diverger du premier.
+    /// Here and not on the caller's side: it is the store that knows
+    /// the format, and a second set of options elsewhere would
+    /// eventually diverge from the first.
     /// </summary>
     string Serialize(T document);
 
     /// <summary>
-    /// Le document que porte ce texte, ou <c>null</c> s'il ne s'y trouve pas.
-    /// Ne lève pas.
+    /// The document carried by this text, or <c>null</c> if none is
+    /// found there. Does not throw.
     /// </summary>
     T? Deserialize(string json);
 }

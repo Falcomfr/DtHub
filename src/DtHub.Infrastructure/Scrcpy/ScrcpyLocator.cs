@@ -5,8 +5,8 @@ using DtHub.Infrastructure.Dependencies;
 namespace DtHub.Infrastructure.Scrcpy;
 
 /// <summary>
-/// Fournit le chemin de scrcpy, en le téléchargeant depuis l'archive
-/// officielle du projet au premier besoin.
+/// Provides the path to scrcpy, downloading it from the project's
+/// official archive on first need.
 /// </summary>
 public sealed class ScrcpyLocator : IScrcpyLocator, IDisposable
 {

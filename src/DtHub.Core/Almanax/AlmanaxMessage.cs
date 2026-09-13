@@ -3,20 +3,24 @@
 namespace DtHub.Core.Almanax;
 
 /// <summary>
-/// Ce que la page nous dit d'une journée, et ce qu'on en retient.
+/// What the page tells us about a day, and what we keep from it.
 ///
-/// La lecture est tolérante partout **sauf sur une chose** : le bloc doit être
-/// celui de DOFUS Touch. Le portail sert les deux jeux sur la même page, et
-/// l'Almanax de DOFUS demande d'autres objets. Un champ manquant se remplace
-/// par du vide ; un mauvais jeu ne se remplace par rien, et on refuse.
+/// Parsing is lenient everywhere **except on one thing**: the
+/// block must be DOFUS Touch's. The portal serves both games on
+/// the same page, and DOFUS's Almanax calls for different items. A
+/// missing field is replaced with emptiness; the wrong game is not
+/// replaced with anything, and is refused.
 /// </summary>
 public static class AlmanaxMessage
 {
     /// <summary>
-    /// La journée lue, ou <c>null</c> si le message n'est pas exploitable.
+    /// The day read, or <c>null</c> if the message cannot be used.
     /// </summary>
-    /// <param name="json">Ce que le pont a posté.</param>
-    /// <param name="date">Le jour demandé : la page ne le porte pas en clair.</param>
+    /// <param name="json">What the bridge posted.</param>
+    /// <param name="date">
+    /// The requested day: the page does not carry it in plain
+    /// sight.
+    /// </param>
     public static AlmanaxDay? From(string? json, DateOnly date)
     {
         if (string.IsNullOrWhiteSpace(json))
@@ -34,10 +38,11 @@ public static class AlmanaxMessage
         }
         catch (JsonException)
         {
-            // Le pont n'en poste jamais d'autre, mais il est posé sur tout
-            // document que la fenêtre charge, et toute page peut appeler
-            // « postMessage » avec ce qu'elle veut. Rien à signaler : la
-            // fenêtre dira qu'elle n'a pas pu lire, ce qui est le cas.
+            // The bridge never posts any other kind, but it is
+            // attached to any document the window loads, and any
+            // page can call "postMessage" with whatever it wants.
+            // Nothing to report: the window will say it could not
+            // read it, which is the case.
             return null;
         }
 

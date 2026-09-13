@@ -3,17 +3,19 @@
 namespace DtHub.Core.Adb;
 
 /// <summary>
-/// Lecture des sorties texte d'ADB. Fonctions pures, sans état ni entrée
-/// sortie : c'est ce qui rend l'essentiel du comportement testable sans
-/// téléphone. Aucune ligne inattendue ne doit provoquer d'exception.
+/// Reading ADB's text outputs. Pure functions, with no state and no
+/// input or output: this is what makes most of the behavior testable
+/// without a phone. No unexpected line should ever cause an
+/// exception.
 /// </summary>
 public static class AdbOutputParser
 {
     private const string DeviceListHeader = "List of devices attached";
 
     /// <summary>
-    /// Lit la sortie de <c>adb devices</c> comme celle de <c>adb devices -l</c>.
-    /// Les lignes de démarrage du démon et les lignes vides sont ignorées.
+    /// Reads the output of <c>adb devices</c> the same way as
+    /// <c>adb devices -l</c>. Daemon startup lines and empty lines
+    /// are ignored.
     /// </summary>
     public static IReadOnlyList<AdbDeviceEntry> ParseDevices(string? output)
     {
@@ -27,7 +29,8 @@ public static class AdbOutputParser
         {
             var line = rawLine.Trim();
 
-            // Bruit courant : « * daemon not running; starting now at tcp:5037 ».
+            // Common noise: "* daemon not running; starting now at
+            // tcp:5037".
             if (line.Length == 0 || line.StartsWith('*') || line.StartsWith(DeviceListHeader, StringComparison.Ordinal))
             {
                 continue;
@@ -44,8 +47,9 @@ public static class AdbOutputParser
     }
 
     /// <summary>
-    /// Lit une ligne unique. Le format est « série &lt;espaces&gt; état » suivi,
-    /// en mode détaillé, d'une suite de paires <c>clé:valeur</c>.
+    /// Reads a single line. The format is "serial &lt;spaces&gt;
+    /// state" followed, in detailed mode, by a series of
+    /// <c>key:value</c> pairs.
     /// </summary>
     public static AdbDeviceEntry? ParseDeviceLine(string? line)
     {
@@ -105,7 +109,10 @@ public static class AdbOutputParser
         };
     }
 
-    /// <summary>Traduit le libellé d'état d'ADB. Tout libellé inconnu donne Unknown.</summary>
+    /// <summary>
+    /// Translates ADB's state label. Any unknown label gives
+    /// Unknown.
+    /// </summary>
     public static AdbDeviceState ParseState(string? rawState) => rawState switch
     {
         "device" => AdbDeviceState.Device,
@@ -124,9 +131,9 @@ public static class AdbOutputParser
     };
 
     /// <summary>
-    /// Déduit le type de connexion. Le chemin USB rapporté en mode détaillé
-    /// tranche ; sinon un numéro de série de la forme <c>hôte:port</c> désigne
-    /// une connexion sans fil.
+    /// Infers the connection type. The USB path reported in detailed
+    /// mode settles it; otherwise a serial number of the form
+    /// <c>host:port</c> denotes a wireless connection.
     /// </summary>
     public static AdbConnectionKind DetectConnectionKind(string? serial, string? usbPath = null)
     {
@@ -145,7 +152,8 @@ public static class AdbOutputParser
             return AdbConnectionKind.Usb;
         }
 
-        // Nom de service mDNS, par exemple adb-XXXX-YYYY._adb-tls-connect._tcp.
+        // mDNS service name, for example
+        // adb-XXXX-YYYY._adb-tls-connect._tcp.
         if (serial.StartsWith("adb-", StringComparison.Ordinal) && serial.Contains("._", StringComparison.Ordinal))
         {
             return AdbConnectionKind.Wireless;
@@ -157,8 +165,9 @@ public static class AdbOutputParser
     }
 
     /// <summary>
-    /// Sépare un numéro de série réseau en hôte et port. Gère la forme IPv6
-    /// entre crochets. Retourne deux valeurs nulles si ce n'en est pas un.
+    /// Splits a network serial number into host and port. Handles
+    /// the bracketed IPv6 form. Returns two null values if it is not
+    /// one.
     /// </summary>
     public static (string? Host, int? Port) SplitNetworkSerial(string? serial)
     {
@@ -182,8 +191,8 @@ public static class AdbOutputParser
             return (null, null);
         }
 
-        // Un numéro de série USB ne contient pas de point ni de crochet ; cette
-        // vérification évite de prendre « ABC:1234 » pour une adresse.
+        // A USB serial number contains no dot or bracket; this check
+        // avoids mistaking "ABC:1234" for an address.
         var looksLikeHost = host.Contains('.', StringComparison.Ordinal)
             || host.StartsWith('[')
             || string.Equals(host, "localhost", StringComparison.OrdinalIgnoreCase);
@@ -192,9 +201,10 @@ public static class AdbOutputParser
     }
 
     /// <summary>
-    /// Lit la sortie de <c>getprop</c>, au format <c>[clé]: [valeur]</c>.
-    /// Une valeur peut elle-même contenir des crochets, d'où la recherche du
-    /// dernier crochet fermant plutôt qu'un découpage naïf.
+    /// Reads the output of <c>getprop</c>, in the format
+    /// <c>[key]: [value]</c>. A value can itself contain brackets,
+    /// hence searching for the last closing bracket rather than a
+    /// naive split.
     /// </summary>
     public static IReadOnlyDictionary<string, string> ParseGetProp(string? output)
     {
@@ -232,9 +242,9 @@ public static class AdbOutputParser
 
 
     /// <summary>
-    /// Lit la sortie de <c>adb mdns services</c>. Les colonnes sont séparées
-    /// par des tabulations ou par des espaces selon les versions d'ADB, d'où
-    /// un découpage sur tout blanc.
+    /// Reads the output of <c>adb mdns services</c>. Columns are
+    /// separated by tabs or by spaces depending on the ADB version,
+    /// hence a split on any whitespace.
     /// </summary>
     public static IReadOnlyList<MdnsService> ParseMdnsServices(string? output)
     {
@@ -275,8 +285,8 @@ public static class AdbOutputParser
     }
 
     /// <summary>
-    /// Lit la sortie de <c>adb pair</c>. Le code d'appairage n'apparaît jamais
-    /// dans la sortie, et ne doit jamais être recopié dans un journal.
+    /// Reads the output of <c>adb pair</c>. The pairing code never
+    /// appears in the output, and must never be copied into a log.
     /// </summary>
     public static AdbPairResult ParsePairResult(string? output)
     {
@@ -304,7 +314,7 @@ public static class AdbOutputParser
         return AdbPairResult.Failure(output.Trim());
     }
 
-    /// <summary>Lit la sortie de <c>adb connect</c>.</summary>
+    /// <summary>Reads the output of <c>adb connect</c>.</summary>
     public static AdbConnectResult ParseConnectResult(string? output)
     {
         if (string.IsNullOrWhiteSpace(output))
@@ -341,7 +351,9 @@ public static class AdbOutputParser
         return AdbConnectResult.Failure(output.Trim());
     }
 
-    /// <summary>Extrait <c>guid=...</c> d'une ligne d'appairage réussi.</summary>
+    /// <summary>
+    /// Extracts <c>guid=...</c> from a successful pairing line.
+    /// </summary>
     private static string? ExtractGuid(string line)
     {
         const string marker = "guid=";

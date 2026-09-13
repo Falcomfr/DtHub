@@ -11,13 +11,13 @@ using Serilog;
 namespace DtHub.App.Windows;
 
 /// <summary>
-/// Une page ouverte depuis un lien d'un guide.
+/// A page opened from a link in a guide.
 ///
-/// Sans elle, un clic dans le guide faisait naviguer la fenêtre de quêtes en
-/// place : le bandeau gardait le titre de l'ancienne quête, les étapes
-/// devenaient celles de la nouvelle page, et « Ouvrir dans le navigateur »
-/// pointait ailleurs que ce qui était affiché. Une fenêtre à part n'a rien à
-/// tenir à jour et ne ment donc sur rien.
+/// Without it, a click in the guide made the quest window navigate in
+/// place: the banner kept the old quest's title, the steps became
+/// those of the new page, and "Open in the browser" pointed elsewhere
+/// than what was displayed. A separate window has nothing to keep up
+/// to date and therefore lies about nothing.
 /// </summary>
 public partial class QuestPageWindow : Window
 {
@@ -46,17 +46,18 @@ public partial class QuestPageWindow : Window
     }
 
     /// <summary>
-    /// Poignées des pages ouvertes, pour que les raccourcis restent vivants
-    /// quand l'une d'elles a le focus.
+    /// Handles of the open pages, so that shortcuts stay alive when one
+    /// of them has focus.
     ///
-    /// Un simple ensemble d'entiers, et non la liste des fenêtres de
-    /// l'application : la question est posée depuis le guet du premier plan,
-    /// qui ne vit pas sur le fil de l'interface. Y toucher une fenêtre WPF lève
-    /// aussitôt, et le raccourci meurt sans que rien ne le dise.
+    /// A plain set of integers, and not the application's list of
+    /// windows: the question is asked from the foreground watch, which
+    /// does not live on the interface thread. Touching a WPF window from
+    /// there throws immediately, and the shortcut dies without anything
+    /// saying so.
     /// </summary>
     private static readonly HashSet<nint> Handles = [];
 
-    /// <summary>Vrai si cette poignée est celle d'une page ouverte.</summary>
+    /// <summary>True if this handle is that of an open page.</summary>
     public static bool Owns(nint handle)
     {
         lock (Handles)
@@ -71,18 +72,18 @@ public partial class QuestPageWindow : Window
 
         var handle = new System.Windows.Interop.WindowInteropHelper(this).Handle;
 
-        // La fenêtre de signalement n'a qu'un formulaire à montrer : sa largeur
-        // est celle que le pont donne au formulaire, et l'élargir ne montrerait
-        // rien de plus. La hauteur, elle, reste libre, un petit écran ne
-        // pouvant pas toujours le loger en entier.
+        // The report window has only one form to show: its width is the
+        // one the bridge gives to the form, and widening it would show
+        // nothing more. The height, on the other hand, stays free, since
+        // a small screen cannot always fit it in full.
         if (_reportMode)
         {
             MinWidth = Width;
             MaxWidth = Width;
 
-            // WPF ne sait pas retirer le seul agrandissement : « CanMinimize »
-            // fige aussi la hauteur. On ôte donc le style à la main, comme le
-            // projet le fait déjà pour arrimer une fenêtre de jeu.
+            // WPF cannot remove maximizing alone: "CanMinimize" also
+            // freezes the height. The style is therefore removed by
+            // hand, as the project already does to dock a game window.
             _ = SetWindowLong(handle, GwlStyle, GetWindowLong(handle, GwlStyle) & ~WsMaximizeBox);
         }
 
@@ -91,9 +92,10 @@ public partial class QuestPageWindow : Window
             Handles.Add(handle);
         }
 
-        // Une seule place pour toutes ces fenêtres : elles se succèdent au fil
-        // des liens et ne se distinguent pas les unes des autres. Ce qu'on veut
-        // retrouver, c'est l'endroit où l'on a posé « la fenêtre des pages ».
+        // A single spot for all these windows: they follow one another
+        // along the trail of links and are not distinguished from each
+        // other. What we want to find again is the place where we put
+        // "the pages window".
         try
         {
             var document = await _settings.GetAsync().ConfigureAwait(true);
@@ -107,8 +109,9 @@ public partial class QuestPageWindow : Window
     }
 
     /// <summary>
-    /// La place se retient ici et non dans <c>OnClosed</c> : la poignée n'existe
-    /// déjà plus à ce moment-là, et il n'y aurait plus rien à interroger.
+    /// The place is remembered here and not in <c>OnClosed</c>: the
+    /// handle no longer exists by that point, and there would be
+    /// nothing left to query.
     /// </summary>
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
@@ -132,31 +135,33 @@ public partial class QuestPageWindow : Window
     }
 
     /// <summary>
-    /// Ouvre la page et se montre, si c'est bien une page du site.
+    /// Opens the page and shows itself, if it truly is a page of the
+    /// site.
     ///
-    /// Cette fenêtre n'a pas de barre d'adresse : on y voit une page sans
-    /// savoir d'où elle vient, sous notre titre et notre icône. Elle ne reçoit
-    /// donc que le site, et le reste part au navigateur. Sans cette réserve,
-    /// n'importe quel lien d'un guide ouvrait n'importe quelle adresse ici,
-    /// « file:// » compris.
+    /// This window has no address bar: a page is seen there without
+    /// knowing where it comes from, under our title and our icon. It
+    /// therefore only receives the site, and the rest goes to the
+    /// browser. Without this restriction, any link in a guide would
+    /// open any address here, "file://" included.
     /// </summary>
     public Task ShowPageAsync(string url, string? title) => ShowAsync(url, title, report: null);
 
     /// <summary>
-    /// Ouvre la page sur son formulaire de signalement, déplié et prêt à
-    /// remplir, avec le repère d'étape déjà posé.
+    /// Opens the page on its report form, unfolded and ready to fill
+    /// in, with the step marker already set.
     ///
-    /// Rien n'est envoyé : la fenêtre montre le formulaire du site, et c'est le
-    /// lecteur qui écrit et qui décide d'appuyer.
+    /// Nothing is sent: the window shows the site's form, and it is
+    /// the reader who writes and decides to press the button.
     /// </summary>
     public Task ShowReportAsync(string url, string? title, string location) =>
         ShowAsync(url, title, location ?? string.Empty);
 
     private async Task ShowAsync(string url, string? title, string? report)
     {
-        // L'arbre des succès va au navigateur comme ce qui est hors du site, et
-        // pour une raison de même nature : ce n'est pas une page qu'on lit mais
-        // un outil qu'on manipule. Voir PapychaSite.IsSuccessTree.
+        // The achievement tree goes to the browser like what is outside
+        // the site, and for a reason of the same nature: it is not a
+        // page one reads but a tool one manipulates. See
+        // PapychaSite.IsSuccessTree.
         if (!PapychaSite.Owns(url) || PapychaSite.IsSuccessTree(url))
         {
             _dialogs.OpenUrl(url);
@@ -177,19 +182,21 @@ public partial class QuestPageWindow : Window
         Show();
         Activate();
 
-        // Le même environnement que la fenêtre des guides : un seul profil, un
-        // seul cache, au même endroit.
+        // The same environment as the guides window: a single profile,
+        // a single cache, in the same place.
         await View
             .EnsureCoreWebView2Async(await _engine.GetAsync().ConfigureAwait(true))
             .ConfigureAwait(true);
 
-        // Avant de naviguer : le script s'injecte à la création du document, et
-        // une page déjà chargée ne le verrait pas passer. Cadrage seul, sans le
-        // suivi d'étapes qui ne vaut que pour un guide.
+        // Before navigating: the script injects itself at document
+        // creation, and a page already loaded would not see it pass by.
+        // Framing only, without the step tracking that is only
+        // meaningful for a guide.
         //
-        // Sauf en signalement : le cadrage masque le pied d'article, où vit le
-        // formulaire. Celui-ci a son propre script, et il attend que la page
-        // soit là, le formulaire n'existant pas avant.
+        // Except in report mode: the framing hides the article footer,
+        // where the form lives. This one has its own script, and it
+        // waits for the page to be there, the form not existing before
+        // that.
         if (_report is null)
         {
             await View.CoreWebView2
@@ -213,11 +220,11 @@ public partial class QuestPageWindow : Window
     }
 
     /// <summary>
-    /// Prépare le formulaire, une fois et une seule.
+    /// Prepares the form, once and only once.
     ///
-    /// Une seule fois parce que l'envoi renvoie sur l'article : le rejouer
-    /// masquerait la réponse du site, qui est justement ce qu'on veut lire
-    /// après avoir appuyé.
+    /// Only once because submitting redirects back to the article:
+    /// replaying it would hide the site's response, which is precisely
+    /// what one wants to read after pressing the button.
     /// </summary>
     private async void OnReportPageLoaded(object? sender, CoreWebView2NavigationCompletedEventArgs e)
     {
@@ -236,19 +243,21 @@ public partial class QuestPageWindow : Window
 
             Log.Information("Formulaire de signalement : {Etat}.", state);
 
-            // « absent » : la page n'a pas de formulaire, ou le site a changé
-            // son pied d'article. Le bouton ne paraît que sur un guide, où le
-            // formulaire est toujours là ; on n'y arrive donc que si le site a
-            // bougé. La fenêtre montre alors la page entière, et reprend un
-            // titre qui ne promet plus ce qu'elle ne montre pas.
+            // "absent": the page has no form, or the site changed its
+            // article footer. The button only appears on a guide, where
+            // the form is always there; this is therefore only reached
+            // if the site has moved. The window then shows the whole
+            // page, and takes back a title that no longer promises what
+            // it does not show.
             if (state.Contains("absent", StringComparison.Ordinal))
             {
                 Title = Strings.Get("PapychaGuides");
                 return;
             }
 
-            // Le script rend la hauteur qu'il faudrait pour montrer le
-            // formulaire en entier. La fenêtre s'y pose, sans dépasser l'écran.
+            // The script returns the height that would be needed to
+            // show the form in full. The window sets itself to that,
+            // without exceeding the screen.
             if (Hauteur(state) is { } voulue)
             {
                 Height = Math.Min(voulue + (ActualHeight - View.ActualHeight), SystemParameters.WorkArea.Height);
@@ -261,9 +270,11 @@ public partial class QuestPageWindow : Window
     }
 
     /// <summary>
-    /// La hauteur que le script annonce, ou <c>null</c> s'il n'en donne pas.
+    /// The height that the script announces, or <c>null</c> if it does
+    /// not give one.
     ///
-    /// Le moteur rend le résultat en JSON : « "pret 812" », guillemets compris.
+    /// The engine returns the result in JSON: "pret 812", quotes
+    /// included.
     /// </summary>
     private static double? Hauteur(string state)
     {
@@ -277,13 +288,14 @@ public partial class QuestPageWindow : Window
     }
 
     /// <summary>
-    /// Retient ici la navigation, et confie au navigateur ce qui sort du site.
+    /// Holds the navigation back here, and hands off to the browser
+    /// whatever leaves the site.
     ///
-    /// La fenêtre suivait jusqu'ici tout ce qu'une page lui demandait de
-    /// suivre. Une page du site qui renvoie ailleurs, ou qu'on aurait
-    /// remplacée, emmenait donc la fenêtre où elle voulait, sans que le bouton
-    /// « ouvrir dans le navigateur » cesse pour autant de désigner la page
-    /// d'origine.
+    /// Until now the window followed everything a page asked it to
+    /// follow. A page of the site that redirects elsewhere, or that we
+    /// might have replaced, would therefore take the window wherever
+    /// it wanted, without the "Open in the browser" button ceasing to
+    /// point to the original page.
     /// </summary>
     private void OnNavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
     {
@@ -300,8 +312,9 @@ public partial class QuestPageWindow : Window
     }
 
     /// <summary>
-    /// Et « target="_blank" », que le moteur ouvrirait sinon dans une fenêtre
-    /// à lui, hors de tout contrôle et sans rien qui la rattache à nous.
+    /// And target="_blank", which the engine would otherwise open in a
+    /// window of its own, out of all control and with nothing tying it
+    /// back to us.
     /// </summary>
     private void OnNewWindowRequested(object? sender, CoreWebView2NewWindowRequestedEventArgs e)
     {
@@ -312,8 +325,8 @@ public partial class QuestPageWindow : Window
 
     private void OnOpenInBrowser(object sender, RoutedEventArgs e) => _dialogs.OpenUrl(_url);
 
-    // Le seul style qu'on retire : le bouton d'agrandissement de la fenêtre de
-    // signalement.
+    // The only style being removed: the maximize button of the report
+    // window.
     private const int GwlStyle = -16;
 
     private const int WsMaximizeBox = 0x00010000;

@@ -3,22 +3,23 @@ using System.Text.RegularExpressions;
 
 namespace DtHub.Core.Android;
 
-/// <summary>Une entrée d'archive : son nom et sa taille décompressée.</summary>
+/// <summary>An archive entry: its name and its uncompressed size.</summary>
 public readonly record struct ApkEntry(string Name, long Length);
 
 /// <summary>
-/// Lecture des sorties de <c>pm path</c> et de <c>unzip -l</c> relevées sur le
-/// téléphone. Fonctions pures, vérifiables sur des sorties enregistrées.
+/// Reading the output of <c>pm path</c> and <c>unzip -l</c>
+/// collected from the phone. Pure functions, checkable against
+/// recorded output.
 /// </summary>
 public static partial class ApkListing
 {
     /// <summary>
-    /// Chemins d'APK rendus par <c>pm path</c>, l'archive de base d'abord.
+    /// APK paths returned by <c>pm path</c>, the base archive first.
     ///
-    /// L'ordre compte : l'icône est presque toujours dans <c>base.apk</c>, mais
-    /// une application découpée par densité peut la loger dans son morceau
-    /// d'écran. L'appelant les essaie donc dans cet ordre et s'arrête au
-    /// premier qui donne quelque chose.
+    /// Order matters: the icon is almost always in <c>base.apk</c>,
+    /// but an application split by density may place it in its
+    /// screen-density piece. The caller therefore tries them in
+    /// this order and stops at the first one that yields something.
     /// </summary>
     public static IReadOnlyList<string> ParsePaths(string? output)
     {
@@ -50,14 +51,16 @@ public static partial class ApkListing
     }
 
     /// <summary>
-    /// Entrées d'une archive, telles que <c>unzip -l</c> les aligne.
+    /// Entries of an archive, as <c>unzip -l</c> lines them up.
     ///
-    /// La lecture est structurelle et non positionnelle : quatre champs, dont
-    /// le premier est un nombre et le dernier va jusqu'au bout de la ligne. Ce
-    /// qui n'a pas cette forme est écarté sans qu'on ait à le nommer, à savoir
-    /// la ligne « Archive: », l'en-tête, les filets de tirets et le total. Un
-    /// analyseur qui suivrait la mise en page casserait au premier téléphone
-    /// dont l'outil range ses colonnes autrement ou date en un autre format.
+    /// Reading is structural, not positional: four fields, of which
+    /// the first is a number and the last runs to the end of the
+    /// line. Anything that does not have this shape is discarded
+    /// without needing to be named specifically, namely the
+    /// "Archive:" line, the header, the dashed rules, and the
+    /// total. A parser that followed the layout would break on the
+    /// first phone whose tool arranges its columns differently or
+    /// dates in another format.
     /// </summary>
     public static IReadOnlyList<ApkEntry> ParseEntries(string? output)
     {
@@ -82,7 +85,9 @@ public static partial class ApkListing
         return entries;
     }
 
-    /// <summary>L'archive de base avant ses morceaux, et le reste après.</summary>
+    /// <summary>
+    /// The base archive before its pieces, and the rest after.
+    /// </summary>
     private static int Rank(string path)
     {
         var name = path[(path.LastIndexOf('/') + 1)..];

@@ -11,26 +11,26 @@ using Microsoft.Extensions.Logging;
 namespace DtHub.Infrastructure.Papycha;
 
 /// <summary>
-/// Lit le catalogue des quêtes sur papycha.fr, par son API WordPress.
+/// Reads the quest catalog on papycha.fr, through its WordPress API.
 ///
-/// Le site est un WordPress dont l'API est ouverte en lecture et dont le
-/// robots.txt n'interdit que l'administration. On s'en tient à ce qu'elle
-/// donne, et on s'annonce : l'en-tête d'agent nomme DT Hub, sa version et son
-/// dépôt, pour qu'un administrateur qui lit ses journaux sache qui passe et
-/// puisse nous joindre.
+/// The site is a WordPress whose API is open for reading and whose
+/// robots.txt forbids only the admin area. We stick to what it gives,
+/// and we identify ourselves: the user agent header names DT Hub, its
+/// version and its repository, so that an administrator reading their
+/// logs knows who is passing by and can reach us.
 ///
-/// Le corps des articles n'est jamais demandé. L'indexation coûterait vingt-
-/// deux mégaoctets avec, six cent cinquante kilooctets sans, et ce qu'il
-/// contient s'obtient gratuitement en ouvrant la page.
+/// The body of the articles is never requested. Indexing would cost
+/// twenty-two megabytes with it, six hundred fifty kilobytes without,
+/// and what it contains is obtained for free by opening the page.
 /// </summary>
 public sealed partial class PapychaClient : IPapychaClient
 {
-    /// <summary>Catégorie qui range toutes les quêtes du site.</summary>
+    /// <summary>Category that holds all the quests on the site.</summary>
     private const int QuestCategory = 7;
 
     /// <summary>
-    /// Les catégories des lieux de combat : donjons, raids, tanières.
-    /// Quatre-vingt-trois, deux et huit articles.
+    /// The categories of combat locations: dungeons, raids, lairs.
+    /// Eighty-three, two and eight articles.
     /// </summary>
     private static readonly (int Category, DungeonKind Kind)[] DungeonCategories =
     [
@@ -39,13 +39,15 @@ public sealed partial class PapychaClient : IPapychaClient
         (721, DungeonKind.Lair),
     ];
 
-    /// <summary>La catégorie « [Chemins] », qui en range vingt et un.</summary>
+    /// <summary>The "[Chemins]" category, which holds twenty-one.</summary>
     private const int PathCategory = 8;
 
-    /// <summary>Maximum accepté par WordPress sur une page.</summary>
+    /// <summary>Maximum accepted by WordPress on one page.</summary>
     private const int PageSize = 100;
 
-    /// <summary>Garde-fou : le site en annonce huit, on refuse de boucler sans fin.</summary>
+    /// <summary>
+    /// Safety net: the site announces eight, we refuse to loop forever.
+    /// </summary>
     private const int MaxPages = 30;
 
     private static readonly Uri BaseAddress = new("https://papycha.fr/wp-json/wp/v2/");
@@ -81,8 +83,8 @@ public sealed partial class PapychaClient : IPapychaClient
         List<QuestSummary> quests = [];
         var total = 0;
 
-        // Avant les quêtes : chacune ne porte que l'identifiant de son
-        // personnage de départ, et il faut cette table pour en tirer un nom.
+        // Before the quests: each one carries only the id of its starting
+        // character, and this table is needed to get a name out of it.
         var people = await GetPeopleAsync(cancellationToken).ConfigureAwait(false);
 
         for (var page = 1; page <= MaxPages; page++)
@@ -96,8 +98,8 @@ public sealed partial class PapychaClient : IPapychaClient
 
             using var response = await _http.GetAsync(address, cancellationToken).ConfigureAwait(false);
 
-            // WordPress rend 400 quand on demande une page au-delà de la
-            // dernière : c'est la fin du parcours, pas une panne.
+            // WordPress returns 400 when a page beyond the last one is
+            // requested: this is the end of the run, not a failure.
             if (response.StatusCode == System.Net.HttpStatusCode.BadRequest && page > 1)
             {
                 break;
@@ -142,10 +144,10 @@ public sealed partial class PapychaClient : IPapychaClient
 
     private async Task<SiteStamp?> StampAsync(int? category, CancellationToken cancellationToken)
     {
-        // Un seul article, le dernier modifié, et deux champs. Le site rend
-        // quatre-vingt-dix-sept octets, et son en-tête donne le compte total.
-        // C'est ce qui permet de demander souvent au lieu de relire une fois
-        // par semaine.
+        // A single article, the last one modified, and two fields. The site
+        // returns ninety-seven bytes, and its header gives the total count.
+        // This is what allows asking often instead of rereading once a
+        // week.
         var url = "posts?per_page=1&orderby=modified&order=desc&_fields=modified_gmt";
 
         if (category is { } only)
@@ -173,9 +175,9 @@ public sealed partial class PapychaClient : IPapychaClient
 
             var modified = items?.FirstOrDefault()?.ModifiedGmt;
 
-            // Le site écrit ses dates sans fuseau, en temps universel : sans le
-            // dire, elles seraient lues dans celui de la machine et paraîtraient
-            // en avance ou en retard de deux heures.
+            // The site writes its dates without a time zone, in universal
+            // time: without saying so, they would be read in the machine's
+            // own zone and would appear two hours ahead or behind.
             return modified is null
                 ? null
                 : new SiteStamp(
@@ -203,9 +205,9 @@ public sealed partial class PapychaClient : IPapychaClient
 
             if (stamp is null)
             {
-                // Une catégorie muette rend la comparaison impossible : mieux
-                // vaut ne rien retenir que retenir à moitié, ce qui ferait
-                // croire au repos.
+                // A silent category makes comparison impossible: better to
+                // keep nothing than to keep it halfway, which would make
+                // things look unchanged.
                 return [];
             }
 
@@ -215,7 +217,9 @@ public sealed partial class PapychaClient : IPapychaClient
         return stamps;
     }
 
-    /// <summary>Les catégories dont on lit quelque chose, et elles seules.</summary>
+    /// <summary>
+    /// The categories we read something from, and only those.
+    /// </summary>
     private static IEnumerable<int> Watched =>
         [QuestCategory, PathCategory, .. DungeonCategories.Select(c => c.Category)];
 
@@ -271,13 +275,13 @@ public sealed partial class PapychaClient : IPapychaClient
     }
 
     /// <summary>
-    /// Le classement tenu à la main sur la page « Quêtes », et le contenu de
-    /// chacune des pages qu'il énumère.
+    /// The listing kept by hand on the "Quêtes" page, and the content of
+    /// each of the pages it enumerates.
     ///
-    /// Une vingtaine de requêtes, une fois par semaine, sur le contenu seul :
-    /// une page de rubrique pèse une douzaine de kilooctets par l'API contre
-    /// trois cents en HTML complet. Une page qui ne répond pas est passée, elle
-    /// ne fait pas échouer les autres.
+    /// About twenty requests, once a week, for content alone: a section
+    /// page weighs a dozen kilobytes through the API against three hundred
+    /// in full HTML. A page that does not respond is skipped, it does not
+    /// make the others fail.
     /// </summary>
     public async Task<IReadOnlyList<QuestPageSection>> GetPageSectionsAsync(
         CancellationToken cancellationToken = default)
@@ -298,15 +302,15 @@ public sealed partial class PapychaClient : IPapychaClient
             return [];
         }
 
-        // **Quatre de front, et pas une de plus.** Ces lectures sont de la
-        // latence presque pure, une douzaine de kilooctets chacune : les
-        // enchaîner une par une payait vingt-cinq allers-retours bout à bout
-        // pour trois cents kilooctets en tout. C'est le seul endroit de
-        // l'indexation où le parallélisme rapporte vraiment.
+        // **Four at a time, and not one more.** These reads are almost pure
+        // latency, a dozen kilobytes each: chaining them one by one cost
+        // twenty-five round trips end to end for three hundred kilobytes in
+        // total. This is the only place in the indexing where parallelism
+        // truly pays off.
         //
-        // Le plafond est un choix de courtoisie et non une limite technique :
-        // le site est tenu par une personne, et rien ne justifie de lui envoyer
-        // vingt-cinq requêtes simultanées pour gagner une seconde de plus.
+        // The cap is a courtesy choice and not a technical limit: the site
+        // is run by one person, and nothing justifies sending them
+        // twenty-five simultaneous requests to save one more second.
         using var gate = new SemaphoreSlim(SectionParallelism, SectionParallelism);
 
         var read = await Task.WhenAll(listed.Select(async section =>
@@ -332,10 +336,10 @@ public sealed partial class PapychaClient : IPapychaClient
             }
         })).ConfigureAwait(false);
 
-        // L'ordre de la page « Quêtes » est conservé : « Task.WhenAll » rend
-        // les résultats dans l'ordre des tâches, non dans celui des réponses.
-        // Cet ordre est celui dans lequel le site range ses rubriques, et la
-        // fenêtre s'en sert.
+        // The order of the "Quêtes" page is kept: "Task.WhenAll" returns
+        // the results in the order of the tasks, not that of the
+        // responses. This order is the one in which the site arranges its
+        // sections, and the window relies on it.
         List<QuestPageSection> sections = [.. read.OfType<QuestPageSection>()];
 
         LogSectionsRead(sections.Count);
@@ -344,15 +348,15 @@ public sealed partial class PapychaClient : IPapychaClient
     }
 
     /// <summary>
-    /// Lectures de pages de rubrique menées de front. Quatre, par courtoisie
-    /// pour un site tenu par une personne.
+    /// Section page reads carried out in parallel. Four, out of courtesy
+    /// for a site run by one person.
     /// </summary>
     private const int SectionParallelism = 4;
 
     /// <summary>
-    /// Ce qui identifie une page dans l'API : son identifiant quand l'adresse
-    /// le porte, son dernier segment sinon. Le site emploie les deux formes
-    /// dans son propre tableau.
+    /// What identifies a page in the API: its id when the address carries
+    /// it, its last segment otherwise. The site uses both forms in its own
+    /// table.
     /// </summary>
     private static string PageReference(string url)
     {
@@ -372,8 +376,8 @@ public sealed partial class PapychaClient : IPapychaClient
     }
 
     /// <summary>
-    /// Contenu rendu d'une page, désignée par son identifiant ou par son
-    /// dernier segment d'adresse.
+    /// Rendered content of a page, identified by its id or by the last
+    /// segment of its address.
     /// </summary>
     private async Task<string?> GetPageContentAsync(
         string reference,
@@ -402,8 +406,8 @@ public sealed partial class PapychaClient : IPapychaClient
             await using var stream = await response.Content
                 .ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
 
-            // Un identifiant rend la page seule, un slug rend un tableau : le
-            // même point d'entrée répond dans deux formes selon la question.
+            // An id returns the page alone, a slug returns an array: the
+            // same endpoint answers in two forms depending on the question.
             using var document = await JsonDocument
                 .ParseAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -457,8 +461,9 @@ public sealed partial class PapychaClient : IPapychaClient
     }
 
     /// <summary>
-    /// Découpe un prérequis en lignes. Le site en met parfois deux dans le même
-    /// champ, séparés par un retour : les afficher collés les rendrait illisibles.
+    /// Splits a prerequisite into lines. The site sometimes puts two in
+    /// the same field, separated by a line break: showing them stuck
+    /// together would make them unreadable.
     /// </summary>
     private static IReadOnlyList<string> Lines(string? value) =>
         string.IsNullOrWhiteSpace(value)
@@ -470,15 +475,14 @@ public sealed partial class PapychaClient : IPapychaClient
             ];
 
     /// <summary>
-    /// Noms des personnages, par identifiant.
+    /// Character names, by id.
     ///
-    /// Le site range le personnage de départ d'une quête sous forme
-    /// d'identifiant : sans cette table, on saurait qu'il y en a un sans savoir
-    /// lequel. Trois cent soixante-treize noms, quatre requêtes, une fois par
-    /// indexation.
+    /// The site stores a quest's starting character as an id: without
+    /// this table, we would know there is one without knowing which. Three
+    /// hundred seventy-three names, four requests, once per indexing run.
     ///
-    /// Rend une table vide si le site ne répond pas : la quête garde alors sa
-    /// position de départ, et perd seulement le nom.
+    /// Returns an empty table if the site does not respond: the quest then
+    /// keeps its starting position, and only loses the name.
     /// </summary>
     private async Task<Dictionary<int, string>> GetPeopleAsync(CancellationToken cancellationToken)
     {
@@ -536,20 +540,20 @@ public sealed partial class PapychaClient : IPapychaClient
     }
 
     /// <summary>
-    /// WordPress rend les titres avec des entités : « L&#8217;Automne ». Les
-    /// laisser telles quelles les afficherait crues et casserait la recherche.
+    /// WordPress returns titles with entities: "L&#8217;Automne". Leaving
+    /// them as is would show them raw and would break search.
     /// </summary>
     private static string Decode(string? value) =>
         string.IsNullOrEmpty(value) ? string.Empty : System.Net.WebUtility.HtmlDecode(value);
 
     /// <summary>
-    /// Les donjons, contenu compris, en une requête.
+    /// The dungeons, content included, in one request.
     ///
-    /// Le niveau, la position et le personnage viennent des métadonnées ; la
-    /// clef et la pierre d'âme ne vivent que dans le corps de l'article, d'où
-    /// la demande du contenu rendu. Quatre mégaoctets pour quatre-vingt-trois
-    /// donjons, une fois par indexation : le prix d'une requête au lieu de
-    /// quatre-vingt-trois.
+    /// The level, the position and the character come from the metadata;
+    /// the key and the soul stone live only in the article body, hence
+    /// requesting the rendered content. Four megabytes for eighty-three
+    /// dungeons, once per indexing run: the price of one request instead
+    /// of eighty-three.
     /// </summary>
     public async Task<IReadOnlyList<DungeonSummary>> GetDungeonsAsync(
         CancellationToken cancellationToken = default)
@@ -597,12 +601,13 @@ public sealed partial class PapychaClient : IPapychaClient
     }
 
     /// <summary>
-    /// Les articles d'une catégorie, contenu rendu compris, page après page.
+    /// The articles of a category, rendered content included, page after
+    /// page.
     ///
-    /// Le contenu vient avec le reste et non article par article : la clef, la
-    /// pierre d'âme et le niveau des raids ne vivent que dans le corps, et les
-    /// demander séparément coûterait cent quatorze requêtes là où trois
-    /// suffisent.
+    /// The content comes with the rest and not article by article: the
+    /// key, the soul stone and the raids' level live only in the body, and
+    /// requesting them separately would cost one hundred fourteen requests
+    /// where three suffice.
     /// </summary>
     private async Task<List<DungeonPayload>> ReadCategoryAsync(
         int category,
@@ -661,8 +666,8 @@ public sealed partial class PapychaClient : IPapychaClient
             Url = item.Link ?? string.Empty,
             SearchKey = QuestSearch.Normalize(title),
 
-            // Les métadonnées d'abord, la prose ensuite : les donjons y mettent
-            // leur niveau, les raids et les tanières l'écrivent en clair.
+            // The metadata first, the prose next: dungeons put their level
+            // there, raids and lairs write it in plain text.
             Level = item.Meta?.DungeonLevel is > 0 and var level
                 ? level
                 : DungeonPageParser.ParseLevel(html),
@@ -674,9 +679,9 @@ public sealed partial class PapychaClient : IPapychaClient
     }
 
     /// <summary>
-    /// Le nom sans le préfixe entre crochets que le site met à tous ses titres.
-    /// Il se lit bien dans une page, mal dans une liste où toutes les lignes
-    /// sont de la même sorte.
+    /// The name without the bracketed prefix the site puts on all its
+    /// titles. It reads well on a page, poorly in a list where every line
+    /// is of the same kind.
     /// </summary>
     private static string StripPrefix(string title)
     {
@@ -705,7 +710,7 @@ public sealed partial class PapychaClient : IPapychaClient
         public MetaPayload? Meta { get; set; }
     }
 
-    /// <summary>Le seul champ que la sentinelle demande.</summary>
+    /// <summary>The only field the sentinel asks for.</summary>
     private sealed class StampPayload
     {
         [JsonPropertyName("modified_gmt")]
@@ -747,9 +752,9 @@ public sealed partial class PapychaClient : IPapychaClient
         [JsonPropertyName("_pqa_prerequisites")]
         public string? Prerequisites { get; set; }
 
-        // Les donjons ont leur propre préfixe de métadonnées. Elles partagent
-        // ce type plutôt que d'en avoir un second : les champs absents restent
-        // à leur valeur par défaut, et l'API les rend tous de toute façon.
+        // Dungeons have their own metadata prefix. They share this type
+        // rather than having a second one: absent fields stay at their
+        // default value, and the API returns them all anyway.
         [JsonPropertyName("_pcd_level")]
         public int DungeonLevel { get; set; }
 

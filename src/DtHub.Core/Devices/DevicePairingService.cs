@@ -4,9 +4,9 @@ using DtHub.Core.Localization;
 namespace DtHub.Core.Devices;
 
 /// <summary>
-/// Ce que la reprise des appareils annoncés a donné.
+/// What resuming the announced devices produced.
 /// </summary>
-/// <param name="Connected">Adresses désormais connectées.</param>
+/// <param name="Connected">Addresses now connected.</param>
 /// <param name="Refused">
 /// Hardware serials of the devices whose address answered and which then
 /// refused the connection. Devices whose address stays silent are absent from
@@ -19,9 +19,9 @@ public sealed record AnnouncedConnections(
     IReadOnlyList<string> Refused);
 
 /// <summary>
-/// Conduit l'appairage du débogage sans fil de bout en bout : appairage avec
-/// le code affiché par le téléphone, découverte du port de connexion par mDNS,
-/// puis connexion. L'utilisateur ne tape jamais de commande ADB.
+/// Drives wireless debugging pairing end to end: pairing with the
+/// code shown by the phone, discovering the connect port through
+/// mDNS, then connecting. The user never types an ADB command.
 /// </summary>
 public sealed class DevicePairingService
 {
@@ -30,8 +30,8 @@ public sealed class DevicePairingService
     private readonly IAddressProbe? _probe;
 
     /// <param name="delay">
-    /// Attente entre deux sondages mDNS. Injectable pour que les tests
-    /// n'attendent pas réellement.
+    /// Wait between two mDNS polls. Injectable so that tests do not
+    /// actually wait.
     /// </param>
     /// <param name="probe">
     /// Address probe. Without it the announced address is taken at face value,
@@ -48,16 +48,17 @@ public sealed class DevicePairingService
     }
 
     /// <summary>
-    /// Durée pendant laquelle on attend l'annonce mDNS du port de connexion.
-    /// Le téléphone met quelques secondes à la publier après l'appairage.
+    /// Duration for which we wait for the mDNS announcement of the
+    /// connect port. The phone takes a few seconds to publish it
+    /// after pairing.
     /// </summary>
     public TimeSpan ConnectDiscoveryTimeout { get; init; } = TimeSpan.FromSeconds(12);
 
     public TimeSpan DiscoveryPollInterval { get; init; } = TimeSpan.FromSeconds(1);
 
     /// <summary>
-    /// Appaire puis connecte. Le code d'appairage n'est ni journalisé, ni
-    /// conservé au-delà de l'appel.
+    /// Pairs then connects. The pairing code is neither logged nor
+    /// kept beyond the call.
     /// </summary>
     public async Task<WirelessPairingResult> PairAndConnectAsync(
         string host,
@@ -150,8 +151,8 @@ public sealed class DevicePairingService
     }
 
     /// <summary>
-    /// Connexion directe à une adresse, pour le cas où l'utilisateur saisit
-    /// lui-même le port parce que le mDNS est bloqué.
+    /// Direct connection to an address, for when the user enters the
+    /// port themselves because mDNS is blocked.
     /// </summary>
     public async Task<WirelessPairingResult> ConnectAsync(
         string host,
@@ -261,8 +262,9 @@ public sealed class DevicePairingService
     }
 
     /// <summary>
-    /// Cherche les téléphones en attente d'appairage sur le réseau, pour
-    /// pré-remplir l'assistant plutôt que de faire recopier une adresse.
+    /// Looks for phones waiting to be paired on the network, to
+    /// pre-fill the wizard rather than making the user copy an
+    /// address.
     /// </summary>
     public async Task<IReadOnlyList<MdnsService>> FindPairingCandidatesAsync(
         CancellationToken cancellationToken = default)
@@ -273,9 +275,10 @@ public sealed class DevicePairingService
     }
 
     /// <summary>
-    /// Téléphones qui annoncent être joignables sur le réseau. Un téléphone
-    /// déjà associé à ce PC s'y connectera sans code : c'est ce qui permet de
-    /// proposer une connexion en un clic, voire de la tenter d'office.
+    /// Phones announcing themselves as reachable on the network. A
+    /// phone already paired with this PC will connect to it without
+    /// a code: that is what makes a one-click connection possible,
+    /// or even attempting it automatically.
     /// </summary>
     public async Task<IReadOnlyList<MdnsService>> FindConnectableAsync(
         CancellationToken cancellationToken = default)
@@ -286,17 +289,19 @@ public sealed class DevicePairingService
     }
 
     /// <summary>
-    /// Tente de connecter tout ce qui s'annonce sur le réseau. La tentative
-    /// n'aboutit que pour les téléphones déjà associés à ce PC : ADB conserve
-    /// la clé d'association, et refuse les autres. Il n'y a donc aucun risque
-    /// de se connecter au téléphone d'un voisin.
+    /// Attempts to connect to everything announcing itself on the
+    /// network. The attempt only succeeds for phones already paired
+    /// with this PC: ADB keeps the pairing key, and refuses the
+    /// others. There is therefore no risk of connecting to a
+    /// neighbor's phone.
     /// </summary>
-    /// <returns>Adresses effectivement connectées.</returns>
+    /// <returns>Addresses actually connected.</returns>
     /// <param name="discarded">
-    /// Appareils dont l'association a été rompue, par identifiant matériel. Une
-    /// annonce ne suffit pas à revenir : ADB garde sa clé et se reconnecterait
-    /// sans fin à un téléphone qu'on vient d'écarter, dans le rafraîchissement
-    /// même que déclenche le bouton de rupture.
+    /// Devices whose pairing was broken, by hardware identifier. An
+    /// announcement alone is not enough to bring one back: ADB
+    /// keeps its key and would reconnect endlessly to a phone we
+    /// just discarded, within the very refresh the break button
+    /// triggers.
     /// </param>
     public async Task<AnnouncedConnections> ConnectAnnouncedAsync(
         IReadOnlyCollection<string> alreadyConnected,
@@ -317,9 +322,10 @@ public sealed class DevicePairingService
                 continue;
             }
 
-            // Le nom de l'annonce porte le numéro de série du téléphone, qui
-            // est aussi son identifiant chez nous : c'est ce qui permet de
-            // reconnaître un appareil écarté malgré un changement d'adresse.
+            // The announcement's name carries the phone's serial
+            // number, which is also its identifier for us: that is
+            // what lets us recognize a discarded device despite an
+            // address change.
             if (discarded is { Count: > 0 }
                 && MdnsDeviceName.HardwareSerialFromInstance(service.Name) is { Length: > 0 } serial
                 && discarded.Contains(serial))

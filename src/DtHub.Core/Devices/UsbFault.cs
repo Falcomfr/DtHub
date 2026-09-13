@@ -1,51 +1,55 @@
 ﻿namespace DtHub.Core.Devices;
 
 /// <summary>
-/// Ce que Windows reproche à un périphérique USB, ramené aux familles qu'un
-/// utilisateur peut comprendre et corriger.
+/// What Windows blames on a USB device, brought back to families that
+/// a user can understand and fix.
 ///
-/// C'est l'étage en dessous d'ADB. Quand un téléphone n'énumère pas, ADB n'a
-/// rien à dire : pour lui il n'y a simplement aucun appareil. Windows, lui,
-/// sait très bien ce qui s'est passé, et le dit par un code de problème.
+/// This is the layer below ADB. When a phone does not enumerate, ADB
+/// has nothing to say: for it, there is simply no device. Windows, on
+/// the other hand, knows exactly what happened, and says so through a
+/// problem code.
 /// </summary>
 public enum UsbFaultKind
 {
-    /// <summary>Rien à signaler.</summary>
+    /// <summary>Nothing to report.</summary>
     None = 0,
 
     /// <summary>
-    /// Code 43 : le descripteur du périphérique n'a pas pu être lu, donc
-    /// Windows ne sait même pas de quel appareil il s'agit. Le câble, le port
-    /// ou le connecteur, jamais le téléphone lui-même.
+    /// Code 43: the device descriptor could not be read, so Windows
+    /// does not even know which device this is. The cable, the port,
+    /// or the connector, never the phone itself.
     /// </summary>
     Unreadable,
 
     /// <summary>
-    /// Code 28 : l'appareil est identifié mais aucun pilote ne lui répond.
-    /// C'est le cas de l'interface ADB sur un poste où elle n'a jamais servi.
+    /// Code 28: the device is identified but no driver answers for it.
+    /// This is the case for the ADB interface on a machine where it
+    /// has never been used.
     /// </summary>
     DriverMissing,
 
-    /// <summary>Un autre défaut, nommé par son code faute de mieux.</summary>
+    /// <summary>
+    /// Another fault, named by its code for lack of anything better.
+    /// </summary>
     Other,
 }
 
 /// <summary>
-/// Un périphérique USB en défaut, tel que Windows le rapporte.
+/// A USB device in fault, as Windows reports it.
 /// </summary>
-/// <param name="Kind">La famille du défaut.</param>
-/// <param name="ProblemCode">Le code de problème brut, pour le journal.</param>
+/// <param name="Kind">The fault's family.</param>
+/// <param name="ProblemCode">The raw problem code, for the log.</param>
 /// <param name="DeviceId">
-/// L'identifiant du périphérique. Il ne nomme personne : sur un descripteur
-/// illisible, il vaut d'ailleurs <c>USB\VID_0000&amp;PID_0002</c>.
+/// The device identifier. It names no one: on an unreadable
+/// descriptor, it is in fact worth <c>USB\VID_0000&amp;PID_0002</c>.
 /// </param>
 public sealed record UsbFault(UsbFaultKind Kind, int ProblemCode, string DeviceId)
 {
-    /// <summary>Codes de problème que nous savons expliquer.</summary>
+    /// <summary>Problem codes that we know how to explain.</summary>
     public const int FailedPostStart = 43;
     public const int DriverNotInstalled = 28;
 
-    /// <summary>Range un code de problème dans sa famille.</summary>
+    /// <summary>Sorts a problem code into its family.</summary>
     public static UsbFaultKind KindOf(int problemCode) => problemCode switch
     {
         0 => UsbFaultKind.None,
@@ -56,17 +60,19 @@ public sealed record UsbFault(UsbFaultKind Kind, int ProblemCode, string DeviceI
 }
 
 /// <summary>
-/// Lit l'état des périphériques USB auprès de Windows.
+/// Reads the state of USB devices from Windows.
 ///
-/// Derrière une interface parce que c'est du Win32 : le noyau doit pouvoir
-/// raisonner sur un défaut sans qu'il y ait de vrai port USB en face.
+/// Behind an interface because this is Win32: the core must be able
+/// to reason about a fault without there being a real USB port on the
+/// other end.
 /// </summary>
 public interface IUsbEnumerationInspector
 {
     /// <summary>
-    /// Les périphériques USB que Windows n'a pas su démarrer, s'il y en a.
-    /// Rend une liste vide plutôt qu'une erreur : ne pas savoir est un état
-    /// ordinaire, et l'application marche très bien sans cette information.
+    /// The USB devices that Windows failed to start, if there are any.
+    /// Returns an empty list rather than an error: not knowing is an
+    /// ordinary state, and the application works perfectly well
+    /// without this information.
     /// </summary>
     IReadOnlyList<UsbFault> Faults();
 }

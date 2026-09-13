@@ -4,17 +4,17 @@ using System.Text.RegularExpressions;
 namespace DtHub.Core.Updates;
 
 /// <summary>
-/// Rend lisible la note de version, qui arrive dans le langage de balisage du
-/// dépôt.
+/// Makes the release note readable, as it arrives in the repository's
+/// markup language.
 ///
-/// Aucune bibliothèque pour cela : la note est une liste à puces et deux ou
-/// trois titres, et embarquer un moteur de rendu complet pour l'afficher
-/// coûterait plus que ce qu'il rapporte. Ce qui n'est pas reconnu est laissé
-/// tel quel, ce qui est le pire cas acceptable : on lit le texte brut.
+/// No library for this: the note is a bullet list and two or three
+/// headings, and embedding a full rendering engine to display it
+/// would cost more than it is worth. What is not recognized is left
+/// as is, which is the worst acceptable case: the raw text is read.
 /// </summary>
 public static partial class ReleaseNotes
 {
-    /// <summary>La note, débarrassée de son balisage.</summary>
+    /// <summary>The note, stripped of its markup.</summary>
     public static string Readable(string? notes)
     {
         if (string.IsNullOrWhiteSpace(notes))
@@ -41,9 +41,9 @@ public static partial class ReleaseNotes
             {
                 _ = built.Append('\n');
 
-                // Un seul blanc de séparation : le dépôt en met deux ou trois
-                // entre ses blocs, ce qui trouerait un panneau de quelques
-                // lignes.
+                // Only one blank separator line: the repository puts two
+                // or three between its blocks, which would leave gaps in
+                // a panel only a few lines tall.
                 if (blank > 0)
                 {
                     _ = built.Append('\n');
@@ -61,18 +61,18 @@ public static partial class ReleaseNotes
     {
         var line = raw.TrimEnd();
 
-        // Les titres perdent leurs dièses, non leur texte.
+        // Headings lose their hash marks, not their text.
         line = HeadingPattern().Replace(line, string.Empty);
 
-        // Une puce devient une puce.
+        // A bullet becomes a bullet.
         line = BulletPattern().Replace(line, "•  ");
 
-        // Le gras, l'italique et le code n'ont pas de rendu ici : leurs marques
-        // gêneraient la lecture plus qu'elles ne l'aideraient.
+        // Bold, italics and code are not rendered here: their markers
+        // would hinder reading more than they would help it.
         line = EmphasisPattern().Replace(line, "$1");
         line = CodePattern().Replace(line, "$1");
 
-        // Un lien garde son texte et perd son adresse.
+        // A link keeps its text and loses its address.
         line = LinkPattern().Replace(line, "$1");
 
         return line.Trim();

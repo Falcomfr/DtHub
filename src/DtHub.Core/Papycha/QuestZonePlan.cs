@@ -1,54 +1,62 @@
 ﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Un bloc de la liste d'une zone : un succès et ses quêtes, ou une quête que
-/// nul succès ne réclame.
+/// A block in a zone's list: an achievement and its quests, or a lone quest
+/// that no achievement claims.
 /// </summary>
-/// <param name="SuccessName">Le nom du succès, vide pour une quête seule.</param>
-/// <param name="Quests">Ses quêtes, dans l'ordre où l'on y joue.</param>
+/// <param name="SuccessName">
+/// The achievement's name, empty for a lone quest.
+/// </param>
+/// <param name="Quests">Its quests, in the order they are played.</param>
 public sealed record QuestZoneBlock(string SuccessName, IReadOnlyList<QuestSummary> Quests)
 {
-    /// <summary>Vrai quand le bloc est un succès et non une quête isolée.</summary>
+    /// <summary>
+    /// True when the block is an achievement and not a lone quest.
+    /// </summary>
     public bool IsSuccess => SuccessName.Length > 0;
 
     /// <summary>
-    /// Vrai quand ce bloc reprend un succès déjà commencé plus haut, une quête
-    /// seule s'étant glissée entre deux de ses quêtes.
+    /// True when this block picks up an achievement already started higher up,
+    /// a lone quest having slipped in between two of its quests.
     /// </summary>
     public bool IsContinuation { get; init; }
 }
 
 /// <summary>
-/// Range les quêtes d'une zone dans l'ordre où l'on y joue.
+/// Sorts a zone's quests in the order they are played.
 ///
-/// Les quêtes qu'aucun succès ne réclame étaient rejetées en fin de liste, par
-/// ordre alphabétique. Or beaucoup d'entre elles ouvrent un succès ou le
-/// prolongent : « Une arrivée mouvementée » précède « Médiation expéditive » à
-/// Albuera, « En route pour Aerdala » précède « Là où souffle le vent » à
-/// Pandala. Les voir en bas de liste, coupées de ce qu'elles servent, ne disait
-/// rien de la progression. Et l'ordre alphabétique lisait les quatre-vingts
-/// quêtes d'alignement « bontarien 1, 10, 11, 12, 2, 20 ».
+/// Quests that no achievement claims used to be dropped at the end of the
+/// list, in alphabetical order. Yet many of them open an achievement or
+/// continue it: "Une arrivée mouvementée" comes before "Médiation expéditive"
+/// at Albuera, "En route pour Aerdala" comes before "Là où souffle le vent" at
+/// Pandala. Seeing them at the bottom of the list, cut off from what they
+/// serve, said nothing about progression. And alphabetical order read the
+/// eighty alignment quests as "bontarien 1, 10, 11, 12, 2, 20".
 ///
-/// La zone se range donc par ses prérequis : sur les sept cent quatre-vingt-deux
-/// quêtes, cinq cent quatorze prérequis sur sept cent vingt-neuf désignent une
-/// quête du catalogue, et cent quatre-vingt-douze des deux cent quatre-vingt-
-/// quatre quêtes seules sont prises dans une chaîne.
+/// The zone is therefore sorted by its prerequisites: out of the seven hundred
+/// and eighty-two quests, five hundred and fourteen prerequisites out of seven
+/// hundred and twenty-nine name a quest from the catalogue, and one hundred
+/// and ninety-two of the two hundred and eighty-four lone quests are part of a
+/// chain.
 ///
-/// Un succès est un bloc insécable : ses quêtes se suivent, et c'est lui qu'on
-/// range parmi les autres. À défaut de prérequis, l'ordre est celui d'avant,
-/// si bien qu'une zone dont aucun prérequis ne se reconnaît ne bouge pas.
+/// An achievement is an indivisible block: its quests follow one another, and
+/// it is the achievement that gets sorted among the others. Lacking a
+/// prerequisite, the order is the previous one, so that a zone where no
+/// prerequisite is recognised does not move.
 /// </summary>
 public static class QuestZonePlan
 {
     /// <summary>
-    /// Les blocs d'une zone, dans l'ordre où l'on y joue.
+    /// The blocks of a zone, in the order they are played.
     ///
-    /// Les prérequis qui désignent une quête absente de la liste sont ignorés :
-    /// ils ne peuvent rien y ranger. C'est le cas de ceux qui pointent une autre
-    /// zone.
+    /// Prerequisites naming a quest missing from the list are ignored: they
+    /// cannot sort anything by it. This is the case for those pointing to
+    /// another zone.
     /// </summary>
-    /// <param name="quests">Les quêtes de la zone.</param>
-    /// <param name="successOrder">L'ordre des succès sur le site.</param>
+    /// <param name="quests">The zone's quests.</param>
+    /// <param name="successOrder">
+    /// The order of achievements on the site.
+    /// </param>
     public static IReadOnlyList<QuestZoneBlock> Of(
         IReadOnlyList<QuestSummary> quests,
         IReadOnlyList<string> successOrder)
@@ -72,23 +80,23 @@ public static class QuestZonePlan
 
 
     /// <summary>
-    /// Deuxième passe : laisse une quête seule se glisser entre deux quêtes
-    /// d'un succès, sans jamais entrelacer deux succès.
+    /// Second pass: lets a lone quest slip in between two quests of an
+    /// achievement, without ever interleaving two achievements.
     ///
-    /// Un succès traité comme un bloc insécable crée des contradictions que
-    /// nul ordre ne lève : à Amakna, « Étre plus royaliste que le roi » réclame
-    /// neuf quêtes seules au milieu de sa propre suite, si bien que ces neuf-là
-    /// paraissaient soit toutes avant, soit toutes après. Mesuré sur les
-    /// vingt-cinq listes : onze prérequis se retrouvaient après la quête qui les
-    /// réclame, et quatre disparaissent en laissant la quête seule entrer.
+    /// Treating an achievement as an indivisible block creates contradictions
+    /// that no order can lift: in Amakna, "Étre plus royaliste que le roi"
+    /// claims nine lone quests in the middle of its own sequence, so that
+    /// those nine seemed either all before or all after. Measured over the
+    /// twenty-five lists: eleven prerequisites ended up after the quest that
+    /// claims them, and four disappear once the lone quest is let in.
     ///
-    /// Deux succès, eux, ne s'entrelacent pas. Les laisser faire lèverait les
-    /// onze, mais l'île de Frigost, où huit succès se réclament mutuellement,
-    /// devenait un va-et-vient de quinze intertitres entre les mêmes séries.
-    /// Une liste illisible n'est pas un progrès sur une liste imparfaite.
+    /// Two achievements, however, do not interleave. Letting them would lift
+    /// the eleven, but the island of Frigost, where eight achievements claim
+    /// each other, became a back and forth of fifteen headers between the same
+    /// series. An unreadable list is not progress over an imperfect one.
     ///
-    /// La première passe décide de l'ordre des succès ; celle-ci n'y touche
-    /// pas. À contrainte égale, rien ne bouge.
+    /// The first pass decides the order of achievements; this one does not
+    /// touch it. With equal constraints, nothing moves.
     /// </summary>
     private static List<QuestZoneBlock> Weave(List<QuestZoneBlock> plan)
     {
@@ -138,7 +146,8 @@ public static class QuestZonePlan
             }
         }
 
-        // Les prérequis. Exiger un succès, c'est exiger toutes ses quêtes.
+        // The prerequisites. Requiring an achievement means requiring all its
+        // quests.
         for (var i = 0; i < flat.Count; i++)
         {
             foreach (var need in flat[i].Prerequisites)
@@ -160,9 +169,9 @@ public static class QuestZonePlan
             }
         }
 
-        // Et l'ordre des succès, tel que la première passe l'a fixé : tout un
-        // succès avant tout le suivant. C'est ce qui les empêche de
-        // s'entrelacer, et la transitivité suffit à couvrir les autres paires.
+        // And the order of achievements, as the first pass has set it: a whole
+        // achievement before the whole next one. This is what keeps them from
+        // interleaving, and transitivity is enough to cover the other pairs.
         List<List<int>> series =
         [
             .. plan
@@ -187,9 +196,9 @@ public static class QuestZonePlan
     }
 
     /// <summary>
-    /// Le tri topologique de la deuxième passe. Le départage est la place
-    /// d'avant, si bien qu'une contrainte absente ne déplace rien, et une
-    /// boucle retombe sur l'ordre de la première passe.
+    /// The topological sort of the second pass. Ties are broken by the
+    /// previous position, so that an absent constraint moves nothing, and a
+    /// cycle falls back to the order of the first pass.
     /// </summary>
     private static List<QuestSummary> Thread(
         List<QuestSummary> flat,
@@ -233,9 +242,9 @@ public static class QuestZonePlan
     }
 
     /// <summary>
-    /// Regroupe les quêtes qui se suivent sous un même intertitre. Un succès
-    /// repris plus bas est marqué comme une suite, pour que le lecteur sache
-    /// qu'il ne recommence pas une série.
+    /// Groups quests that follow one another under the same header. An
+    /// achievement resumed further down is marked as a continuation, so the
+    /// reader knows it is not starting a series over.
     /// </summary>
     private static List<QuestZoneBlock> Runs(List<QuestSummary> order)
     {
@@ -246,8 +255,8 @@ public static class QuestZonePlan
 
         for (var i = 1; i <= order.Count; i++)
         {
-            // Deux quêtes seules qui se suivent restent deux blocs : c'est
-            // ainsi que la liste les montre, une ligne chacune.
+            // Two lone quests that follow one another stay two blocks: this is
+            // how the list shows them, one line each.
             if (i < order.Count
                 && order[i].SuccessName.Length > 0
                 && string.Equals(order[i].SuccessName, order[start].SuccessName, StringComparison.Ordinal))
@@ -269,8 +278,8 @@ public static class QuestZonePlan
     }
 
     /// <summary>
-    /// Un bloc par succès, un bloc d'une quête pour chaque quête seule, et de
-    /// quoi retrouver le bloc d'une quête par son adresse.
+    /// One block per achievement, one single-quest block for each lone quest,
+    /// and a way to find a quest's block by its address.
     /// </summary>
     private static List<(string Success, List<QuestSummary> Quests)> Blocks(
         IReadOnlyList<QuestSummary> quests,
@@ -302,20 +311,21 @@ public static class QuestZonePlan
     }
 
     /// <summary>
-    /// Ce qui départage deux blocs qu'aucun prérequis ne sépare : c'est l'ordre
-    /// d'avant.
+    /// What breaks a tie between two blocks that no prerequisite separates:
+    /// the previous order.
     ///
-    /// Le rang du succès sur le site d'abord, son nom ensuite. Une quête seule
-    /// passe après tous les succès de même rang, comme le faisait le bloc
-    /// « Hors succès » qui les rassemblait en fin de liste. Le rang du bloc
-    /// clôt le départage, pour que l'ordre soit total.
+    /// The achievement's rank on the site first, its name second. A lone quest
+    /// comes after all achievements of the same rank, as the "Hors succès"
+    /// block used to do, gathering them at the end of the list. The block's
+    /// rank closes the tie-break, so that the order is total.
     ///
-    /// **Une quête seule qui découle d'un succès prend son rang**, et se range
-    /// donc juste derrière lui plutôt qu'après tous les autres. Sans cela, « La
-    /// découverte d'un vaste monde », dont le seul prérequis est le succès
-    /// « Devenir une légende », se retrouvait trente rangs plus bas, derrière
-    /// des succès qui n'ont rien à voir : le tri la plaçait bien après ce
-    /// qu'elle exige, mais si loin que la progression ne se lisait plus.
+    /// **A lone quest that follows from an achievement takes its rank**, and
+    /// so sorts just behind it rather than after all the others. Without this,
+    /// "La découverte d'un vaste monde", whose only prerequisite is the
+    /// achievement "Devenir une légende", used to end up thirty ranks lower,
+    /// behind achievements that have nothing to do with it: the sort placed it
+    /// well after what it requires, but so far after that progression no
+    /// longer read clearly.
     /// </summary>
     private static (int Rank, int Kind, int Depth, string Label, int Index)[] Keys(
         List<(string Success, List<QuestSummary> Quests)> blocks,
@@ -346,17 +356,16 @@ public static class QuestZonePlan
     }
 
     /// <summary>
-    /// Fait descendre le rang d'un succès sur les quêtes seules qui en
-    /// découlent, de proche en proche.
+    /// Passes an achievement's rank down onto the lone quests that follow from
+    /// it, step by step.
     ///
-    /// Le parcours part des succès dans leur ordre, si bien qu'une quête seule
-    /// que deux succès pourraient réclamer prend le rang du premier. La
-    /// profondeur retient la distance parcourue, pour qu'une suite de quêtes
-    /// seules se lise dans l'ordre où on l'enchaîne et non par ordre
-    /// alphabétique.
+    /// The walk starts from achievements in their order, so that a lone quest
+    /// that two achievements might claim takes the rank of the first one.
+    /// Depth records the distance travelled, so that a run of lone quests
+    /// reads in the order they chain together and not in alphabetical order.
     ///
-    /// Ce qu'aucun succès n'atteint garde son rang maximal, et part donc en fin
-    /// de liste comme avant : le site ne dit rien de sa place.
+    /// Whatever no achievement reaches keeps its maximum rank, and so goes to
+    /// the end of the list as before: the site says nothing of its place.
     /// </summary>
     private static void Inherit(
         List<(string Success, List<QuestSummary> Quests)> blocks,
@@ -395,13 +404,14 @@ public static class QuestZonePlan
     }
 
     /// <summary>
-    /// Les arcs entre blocs : un prérequis reconnu place son bloc avant celui
-    /// de la quête qui le réclame.
+    /// The edges between blocks: a recognised prerequisite places its block
+    /// before that of the quest that claims it.
     ///
-    /// Le rapprochement se fait sur le nom normalisé, comme la recherche et
-    /// comme la chaîne de quêtes : le site écrit ses prérequis à la main. Il
-    /// passe par <see cref="PrerequisiteLabel"/>, car un prérequis nomme
-    /// tantôt une quête, tantôt le jalon qu'elle pose, tantôt un succès entier.
+    /// The matching is done on the normalised name, as with search and with
+    /// the quest chain: the site writes its prerequisites by hand. It goes
+    /// through <see cref="PrerequisiteLabel"/>, because a prerequisite
+    /// sometimes names a quest, sometimes the milestone it sets, sometimes an
+    /// entire achievement.
     /// </summary>
     private static List<HashSet<int>> Edges(
         IReadOnlyList<QuestSummary> quests,
@@ -416,9 +426,9 @@ public static class QuestZonePlan
             byTitle.TryAdd(QuestSearch.Normalize(quest.Title), quest);
         }
 
-        // Un prérequis nomme parfois un succès entier plutôt qu'une quête,
-        // « Succès Un nouveau départ réalisé ». Il désigne alors le bloc, qui
-        // est justement ce qu'on range ici.
+        // A prerequisite sometimes names an entire achievement rather than a
+        // quest, "Succès Un nouveau départ réalisé". It then refers to the
+        // block, which is exactly what gets sorted here.
         Dictionary<string, int> blockOfSuccess = new(StringComparer.Ordinal);
 
         for (var i = 0; i < blocks.Count; i++)
@@ -476,17 +486,19 @@ public static class QuestZonePlan
     }
 
     /// <summary>
-    /// Les quêtes seules que rien ne lie : ni prérequis reconnu, ni quête qui
-    /// les réclame.
+    /// Lone quests that nothing links: neither a recognised prerequisite, nor
+    /// a quest that claims them.
     ///
-    /// Le site ne dit rien de leur place, et les laisser dans le tri les y
-    /// mettait au hasard : au Château d'Amakna, « On recherche Ali Grothor » se
-    /// glissait entre deux succès parce qu'elle était la seule chose que le tri
-    /// pouvait sortir pendant qu'une boucle bloquait le second. Elles vont donc
-    /// en fin de liste, où elles étaient avant ce rangement. Cent deux quêtes
-    /// seules sur trois cent une sont dans ce cas.
+    /// The site says nothing of their place, and leaving them in the sort put
+    /// them there at random: at the Château d'Amakna, "On recherche Ali
+    /// Grothor" used to slip in between two achievements because it was the
+    /// only thing the sort could pull out while a cycle blocked the second
+    /// one. They therefore go to the end of the list, where they were before
+    /// this sorting. One hundred and two lone quests out of three hundred and
+    /// one are in this case.
     ///
-    /// Un succès sans lien, lui, garde son rang : celui-là, le site le donne.
+    /// An achievement with no link, though, keeps its rank: that one, the site
+    /// provides.
     /// </summary>
     private static HashSet<int> Lonely(
         List<(string Success, List<QuestSummary> Quests)> blocks,
@@ -507,14 +519,15 @@ public static class QuestZonePlan
     }
 
     /// <summary>
-    /// Le tri topologique, avec repli sur boucle.
+    /// The topological sort, with a fallback on cycles.
     ///
-    /// Traiter un succès comme un bloc insécable crée un cycle dès que deux
-    /// succès se réclament l'un l'autre par des quêtes différentes. Plutôt que
-    /// de rendre une liste tronquée, on prend alors le plus petit bloc restant
-    /// au sens du départage et l'on continue : l'ordre reste total, et il
-    /// retombe sur celui d'avant là où les prérequis se contredisent. Six rangs
-    /// seulement sont ainsi forcés sur tout le catalogue.
+    /// Treating an achievement as an indivisible block creates a cycle as soon
+    /// as two achievements claim each other through different quests. Rather
+    /// than return a truncated list, the smallest remaining block in tie-break
+    /// order is then taken and the process continues: the order stays total,
+    /// and it falls back to the previous one wherever prerequisites contradict
+    /// each other. Only six ranks are forced this way across the whole
+    /// catalogue.
     /// </summary>
     private static List<QuestZoneBlock> Sort(
         List<(string Success, List<QuestSummary> Quests)> blocks,

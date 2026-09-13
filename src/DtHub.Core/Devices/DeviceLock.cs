@@ -1,27 +1,29 @@
 ﻿namespace DtHub.Core.Devices;
 
 /// <summary>
-/// Le téléphone est-il verrouillé, en ce moment.
+/// Is the phone locked, right now.
 ///
-/// **Sert à ne pas crier au loup.** Sur un appareil dont l'afficheur virtuel
-/// n'est pas déverrouillé, voir <see cref="VirtualDisplayTrust" />, la fenêtre
-/// montre l'écran de verrouillage à la place du jeu. Mais seulement tant que
-/// le téléphone est verrouillé : déverrouillé, la même fenêtre montre le jeu,
-/// mesuré sur un Mi 9T Pro sous Android 11.
+/// **Used to avoid crying wolf.** On a device whose virtual
+/// display is not trusted, see <see cref="VirtualDisplayTrust" />,
+/// the window shows the lock screen instead of the game. But only
+/// while the phone is locked: unlocked, the same window shows the
+/// game, as measured on a Mi 9T Pro running Android 11.
 ///
-/// Le drapeau de l'afficheur dit ce dont l'appareil est capable, celui-ci dit
-/// où il en est. L'avertissement n'a de sens que si les deux concordent, sans
-/// quoi l'application annonce un défaut devant un jeu qui s'affiche.
+/// The display's flag says what the device is capable of, this one
+/// says where it stands. The warning only makes sense if the two
+/// agree, otherwise the application announces a fault in front of a
+/// game that is displaying fine.
 /// </summary>
 public static class DeviceLock
 {
     /// <summary>
-    /// Lit <c>dumpsys trust</c>. Rend <c>null</c> quand la réponse ne dit
-    /// rien : ne pas savoir n'est pas une raison d'alarmer.
+    /// Reads <c>dumpsys trust</c>. Returns <c>null</c> when the
+    /// response says nothing: not knowing is not a reason to raise
+    /// an alarm.
     ///
-    /// L'appareil décrit un utilisateur par ligne, et c'est celle de
-    /// l'utilisateur courant qui compte : un profil professionnel a sa propre
-    /// ligne, sans état de verrouillage.
+    /// The device describes one user per line, and it is the
+    /// current user's line that matters: a work profile has its
+    /// own line, with no lock state.
     /// </summary>
     public static bool? IsLocked(string? dumpsysTrust)
     {

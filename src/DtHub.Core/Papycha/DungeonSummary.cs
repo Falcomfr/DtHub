@@ -1,56 +1,63 @@
 ﻿namespace DtHub.Core.Papycha;
 
 /// <summary>
-/// Un lieu de combat du site - un donjon, un raid ou une tanière - tel qu'on en
-/// a besoin pour le choisir.
+/// A combat location from the site - a dungeon, a raid or a lair -
+/// as needed to choose it.
 ///
-/// Le site en publie quatre-vingt-trois, dans un format bien plus régulier que
-/// ses quêtes : le niveau, la position et le personnage viennent de ses
-/// métadonnées, la clef et la pierre d'âme d'un bloc dont les classes sont du
-/// code et non des libellés.
+/// The site publishes eighty three of them, in a format far more
+/// regular than its quests: the level, the position and the
+/// character come from its metadata, the key and the soul stone from
+/// a block whose classes are code, not labels.
 ///
-/// Rien de ce qui vient des serveurs d'Ankama - les vignettes de boss et de
-/// clefs - n'est repris ici : la liste reste du texte.
+/// Nothing that comes from Ankama's servers - the boss and key
+/// thumbnails - is carried over here: the list stays plain text.
 /// </summary>
 public sealed record DungeonSummary
 {
     public int Id { get; init; }
 
-    /// <summary>Donjon, raid ou tanière, selon la catégorie du site.</summary>
+    /// <summary>
+    /// Dungeon, raid or lair, according to the site's category.
+    /// </summary>
     public DungeonKind Kind { get; init; }
 
-    /// <summary>Nom du donjon, sans le préfixe « [Donjon] » du site.</summary>
+    /// <summary>
+    /// Dungeon name, without the site's "[Donjon]" ("[Dungeon]")
+    /// prefix.
+    /// </summary>
     public string Title { get; init; } = string.Empty;
 
     public string Url { get; init; } = string.Empty;
 
-    /// <summary>Titre normalisé, pour la recherche.</summary>
+    /// <summary>Normalized title, for search.</summary>
     public string SearchKey { get; init; } = string.Empty;
 
     /// <summary>
-    /// Niveau conseillé. Zéro quand le site ne le renseigne pas, ce qui arrive
-    /// sur trois donjons : ceux-là se rangent à part plutôt qu'au niveau zéro.
+    /// Recommended level. Zero when the site does not provide it,
+    /// which happens for three dungeons: those are sorted separately
+    /// rather than at level zero.
     /// </summary>
     public int Level { get; init; }
 
-    /// <summary>Coordonnées de l'entrée, « [9,-57] ».</summary>
+    /// <summary>Entrance coordinates, "[9,-57]".</summary>
     public string Position { get; init; } = string.Empty;
 
-    /// <summary>Personnage à qui parler pour entrer.</summary>
+    /// <summary>Character to talk to in order to enter.</summary>
     public string Person { get; init; } = string.Empty;
 
     /// <summary>
-    /// Clef exigée à l'entrée. Vide sur neuf donjons, qui n'en demandent pas :
-    /// l'absence est une information, pas un trou.
+    /// Key required at the entrance. Empty for nine dungeons, which
+    /// do not ask for one: the absence is information, not a gap.
     /// </summary>
     public string Key { get; init; } = string.Empty;
 
     /// <summary>
-    /// Taille de la pierre d'âme, telle que le site l'écrit : « petite »,
-    /// « moyenne », « grande » ou « gigantesque ».
+    /// Size of the soul stone, exactly as the site writes it:
+    /// "petite" (small), "moyenne" (medium), "grande" (large) or
+    /// "gigantesque" (huge).
     /// </summary>
     public string SoulStone { get; init; } = string.Empty;
 
-    /// <summary>Vrai si une clef est exigée.</summary>
+    /// <summary>True if a key is required.</summary>
     public bool NeedsKey => Key.Length > 0;
 }

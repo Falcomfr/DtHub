@@ -1,8 +1,10 @@
-﻿// Sonde de développement : ce que l'application propose comme quête voisine,
-// comparé à ce que le site publie en pied d'article.
+﻿// Development probe: what the application suggests as a
+// neighboring quest, compared to what the site publishes at the
+// bottom of the article.
 //
-// Elle passe par le code livré, QuestNeighbourhood et QuestPageParser, et non
-// par une réimplémentation qui pourrait se tromper d'accord avec elle-même.
+// It goes through the shipped code, QuestNeighbourhood and
+// QuestPageParser, and not through a reimplementation that could
+// disagree with itself by mistake.
 //
 //   dotnet.exe run --project build/sonde-voisines
 //   dotnet.exe run --project build/sonde-voisines -- --lister
@@ -31,7 +33,8 @@ var index = new QuestChainIndex(catalogue.Quests);
 
 Console.WriteLine($"{catalogue.Quests.Count} quêtes au catalogue");
 
-// Le contenu des pages, en huit requêtes plutôt qu'en sept cent quatre-vingts.
+// The content of the pages, in eight requests rather than seven
+// hundred and eighty.
 var pages = await Contents(7);
 
 Console.WriteLine($"{pages.Count} pages relevées");
@@ -114,8 +117,9 @@ Console.WriteLine($"suivantes gagnées    : {gagneSuivante}");
 Console.WriteLine($"suivantes changées   : {changeSuivante}");
 Console.WriteLine($"précédentes gagnées  : {gagnePrecedente}");
 Console.WriteLine($"précédentes changées : {changePrecedente}");
-// Le chiffre qui compte : un succès dont la dernière quête ne mène nulle part
-// laisse le lecteur en plan au moment précis où il finit une série.
+// The number that matters: an achievement whose last quest leads
+// nowhere leaves the reader stranded at the exact moment they
+// finish a series.
 var culsDeSac = 0;
 var ramifies = 0;
 var muets = 0;
@@ -180,10 +184,12 @@ if (lister)
 }
 
 // ---------------------------------------------------------------------------
-// L'ordre des listes : un prérequis doit paraître avant la quête qui le réclame.
+// The order of lists: a prerequisite must appear before the quest
+// that requires it.
 //
-// La liste dit la progression. Une quête placée avant ce qu'elle exige la
-// dément, et l'on ne sait plus si l'on peut la prendre.
+// The list states progression. A quest placed before what it
+// requires contradicts that, and one no longer knows whether it
+// can be taken.
 
 var listes = 0;
 var fautes = 0;
@@ -260,8 +266,9 @@ foreach (var section in catalogue.Sections)
         }
     }
 
-    // Le graphe des blocs, refait ici pour dire si une faute vient d'une boucle
-    // que le rangement ne peut pas trancher, un succès étant insécable.
+    // The block graph, rebuilt here to say whether a fault comes
+    // from a cycle that the ordering cannot resolve, an
+    // achievement being indivisible.
     Dictionary<string, int> blocDe = new(StringComparer.Ordinal);
 
     for (var b = 0; b < plan.Count; b++)
@@ -360,8 +367,8 @@ foreach (var detail in details.Order(StringComparer.CurrentCulture))
     Console.WriteLine($"   {detail}");
 }
 
-// La quête nommée par une colonne, s'il n'y en a qu'une : en désigner une
-// parmi plusieurs mentirait sur ce que le site publie.
+// The quest named by a column, if there is only one: naming one
+// among several would lie about what the site publishes.
 static string? Only(IReadOnlyList<QuestLink> links)
 {
     string? seul = null;

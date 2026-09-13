@@ -3,24 +3,24 @@
 namespace DtHub.Core.Updates;
 
 /// <summary>
-/// Lit ce que l'API du dépôt rend pour une livraison.
+/// Reads what the repository API returns for a release.
 ///
-/// Séparé du réseau : c'est la partie qui peut se tromper, et c'est donc celle
-/// qu'on éprouve.
+/// Separated from the network: this is the part that can get it
+/// wrong, and so the part we test.
 /// </summary>
 public static class ReleaseParser
 {
     /// <summary>
-    /// La livraison décrite par ce document, ou <c>null</c> si elle n'est pas
-    /// utilisable.
+    /// The release described by this document, or <c>null</c> if it
+    /// is not usable.
     ///
-    /// Est écartée une livraison en brouillon ou marquée comme essai, une
-    /// étiquette qui ne porte pas de version lisible, et une livraison à
-    /// laquelle il manque l'exécutable ou son empreinte : mieux vaut ne rien
-    /// proposer que proposer ce qu'on ne pourra pas vérifier.
+    /// Ruled out: a release in draft or marked as a prerelease, a tag
+    /// that does not carry a readable version, and a release missing
+    /// its executable or its checksum: better to offer nothing than
+    /// to offer something we cannot verify.
     /// </summary>
-    /// <param name="json">Le document rendu par l'API.</param>
-    /// <param name="assetName">Le nom de l'exécutable attendu.</param>
+    /// <param name="json">The document returned by the API.</param>
+    /// <param name="assetName">The name of the expected executable.</param>
     public static AppRelease? Parse(string? json, string assetName)
     {
         ArgumentException.ThrowIfNullOrEmpty(assetName);
@@ -57,16 +57,17 @@ public static class ReleaseParser
         }
         catch (JsonException)
         {
-            // Silence assumé : la mise à jour est un service de confort, non
-            // une dépendance. Une réponse illisible se traite comme une absence
-            // de version, et l'application démarre pareil.
+            // Silence is intentional: updating is a convenience
+            // service, not a dependency. An unreadable response is
+            // treated as an absence of version, and the application
+            // starts all the same.
             return null;
         }
     }
 
     /// <summary>
-    /// La version que porte une étiquette. Le « v » d'usage est toléré, le
-    /// reste doit être un numéro.
+    /// The version a tag carries. The customary "v" prefix is
+    /// tolerated, the rest must be a number.
     /// </summary>
     public static Version? VersionOf(string? tag)
     {
@@ -81,10 +82,10 @@ public static class ReleaseParser
     }
 
     /// <summary>
-    /// Une version réduite à ses trois premiers nombres, les seuls que le projet
-    /// écrit. Sans cela, « 0.2.0 » du dépôt et « 0.2.0.0 » de l'assemblage ne se
-    /// comparent pas égaux, et l'application se croirait éternellement en retard
-    /// sur elle-même.
+    /// A version reduced to its first three numbers, the only ones
+    /// the project writes. Without that, "0.2.0" from the repository
+    /// and "0.2.0.0" from the assembly do not compare equal, and the
+    /// application would believe itself eternally behind itself.
     /// </summary>
     public static Version Normalize(Version? version) =>
         version is null

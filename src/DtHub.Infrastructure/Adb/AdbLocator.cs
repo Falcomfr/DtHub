@@ -5,18 +5,19 @@ using DtHub.Infrastructure.Dependencies;
 namespace DtHub.Infrastructure.Adb;
 
 /// <summary>
-/// Détermine le chemin absolu d'ADB : celui de la copie installée par DT Hub,
-/// téléchargée à la demande. Le PATH n'est jamais consulté, et aucun chemin
-/// choisi ailleurs n'est accepté.
+/// Determines ADB's absolute path: that of the copy installed by
+/// DT Hub, downloaded on demand. PATH is never consulted, and no
+/// path chosen elsewhere is accepted.
 ///
-/// C'est la règle de D4, prise au mot. Le code portait une branche pour un
-/// chemin imposé dans les réglages, mais ce réglage n'a jamais existé : rien
-/// ne le posait, aucune fenêtre ne le demandait, et la branche n'a jamais
-/// tourné. Elle promettait surtout ce que la décision écarte, dépendre d'une
-/// installation tierce, pour huit mégaoctets épargnés une fois. Le code lit la
-/// sortie d'adb pour trouver profils, afficheurs et paquets : une version
-/// qu'on ne maîtrise pas ne casse pas bruyamment, elle rend une sortie un peu
-/// différente que l'analyse interprète de travers.
+/// This is D4's rule, taken literally. The code carried a branch
+/// for a path forced in the settings, but that setting never
+/// existed: nothing set it, no window asked for it, and the branch
+/// never ran. It mostly promised exactly what the decision rules
+/// out, depending on a third-party installation, to save eight
+/// megabytes once. The code reads adb's output to find profiles,
+/// displays and packages: a version that is not under our control
+/// does not break loudly, it returns slightly different output
+/// that the parsing misreads.
 /// </summary>
 public sealed class AdbLocator : IAdbLocator, IDisposable
 {

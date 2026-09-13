@@ -1,9 +1,10 @@
-﻿// Sonde de développement : ce que Windows reproche à ses périphériques USB.
+﻿// Development probe: what Windows holds against its USB devices.
 //
-// Elle passe par le code livré, WindowsUsbInspector, et non par une
-// réimplémentation qui pourrait se tromper d'accord avec elle-même. Sert à
-// vérifier que le relevé fonctionne depuis un compte ordinaire, sans élévation,
-// et qu'il range bien un code de problème dans sa famille.
+// It goes through the shipped code, WindowsUsbInspector, rather
+// than through a reimplementation that could be wrong in a way
+// that agrees with itself. Used to verify that the scan works from
+// an ordinary account, without elevation, and that it correctly
+// files a problem code under its family.
 //
 //   dotnet.exe run --project build/sonde-usb
 using DtHub.Core.Devices;

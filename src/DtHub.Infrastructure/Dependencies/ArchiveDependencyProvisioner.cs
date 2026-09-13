@@ -10,9 +10,9 @@ using Microsoft.Extensions.Logging;
 namespace DtHub.Infrastructure.Dependencies;
 
 /// <summary>
-/// Télécharge une archive depuis la source officielle, vérifie sa taille et
-/// son empreinte SHA-256, puis l'extrait dans le dossier de données de
-/// l'utilisateur. Rien n'est exécuté avant que l'empreinte soit conforme.
+/// Downloads an archive from the official source, checks its size
+/// and its SHA-256 hash, then extracts it into the user's data
+/// folder. Nothing is executed before the hash matches.
 /// </summary>
 public sealed partial class ArchiveDependencyProvisioner : IDependencyProvisioner
 {
@@ -50,8 +50,8 @@ public sealed partial class ArchiveDependencyProvisioner : IDependencyProvisione
             return existing;
         }
 
-        // Seul HTTPS est accepté : une redirection vers du texte clair doit
-        // faire échouer la mise en place plutôt que de passer inaperçue.
+        // Only HTTPS is accepted: a redirect to plain text must make
+        // the setup fail rather than pass unnoticed.
         if (!string.Equals(dependency.Url.Scheme, Uri.UriSchemeHttps, StringComparison.Ordinal))
         {
             throw new DependencyProvisioningException(
@@ -67,10 +67,11 @@ public sealed partial class ArchiveDependencyProvisioner : IDependencyProvisione
 
         try
         {
-            // Dans le try, et non avant : un dossier de données non
-            // inscriptible, sur un poste tenu par une stratégie de groupe ou un
-            // profil itinérant restreint, sortait en exception brute qui
-            // franchissait tous les filets et fermait l'application.
+            // Inside the try, and not before: a data folder that is
+            // not writable, on a machine controlled by a group
+            // policy or a restricted roaming profile, used to come
+            // out as a raw exception that went through every safety
+            // net and closed the application.
             _paths.EnsureCreated();
 
             await DownloadAsync(dependency, archivePath, progress, cancellationToken).ConfigureAwait(false);
@@ -160,8 +161,9 @@ public sealed partial class ArchiveDependencyProvisioner : IDependencyProvisione
             await destination.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
             received += read;
 
-            // On ne notifie pas à chaque bloc : l'interface n'a rien à gagner à
-            // recevoir des centaines d'événements par seconde.
+            // Notifications are not sent for every block: the
+            // interface gains nothing from receiving hundreds of
+            // events per second.
             if (received - lastReported >= 256 * 1024)
             {
                 lastReported = received;
@@ -201,8 +203,9 @@ public sealed partial class ArchiveDependencyProvisioner : IDependencyProvisione
 
     private static void Extract(ExternalDependency dependency, string archivePath, string installRoot)
     {
-        // Extraction dans un dossier voisin puis bascule : une extraction
-        // interrompue ne laisse jamais une installation à moitié faite.
+        // Extraction into a neighboring folder then swap: an
+        // interrupted extraction never leaves a half-done
+        // installation.
         var staging = installRoot + ".partiel";
 
         DeleteDirectoryQuietly(staging);
@@ -235,11 +238,11 @@ public sealed partial class ArchiveDependencyProvisioner : IDependencyProvisione
         }
         catch (IOException)
         {
-            // Fichier temporaire encore verrouillé : le système le nettoiera.
+            // Temporary file still locked: the system will clean it up.
         }
         catch (UnauthorizedAccessException)
         {
-            // Idem.
+            // Same.
         }
     }
 
@@ -254,11 +257,12 @@ public sealed partial class ArchiveDependencyProvisioner : IDependencyProvisione
         }
         catch (IOException)
         {
-            // Un fichier du dossier est utilisé ; l'appelant traitera l'échec.
+            // A file in the folder is in use; the caller will
+            // handle the failure.
         }
         catch (UnauthorizedAccessException)
         {
-            // Idem.
+            // Same.
         }
     }
 

@@ -7,8 +7,8 @@ using DtHub.Core.Hotkeys;
 namespace DtHub.App.Windows;
 
 /// <summary>
-/// Éditeur de raccourcis. Le code-behind ne sert qu'à la capture des touches,
-/// que XAML ne sait pas exprimer.
+/// Hotkey editor. The code-behind is only used for key capture,
+/// which XAML cannot express.
 /// </summary>
 public partial class HotkeyEditorWindow : Window
 {
@@ -21,8 +21,8 @@ public partial class HotkeyEditorWindow : Window
         InitializeComponent();
         DataContext = viewModel;
 
-        // La capture doit voir les touches avant que WPF ne les interprète,
-        // sinon Tab changerait le focus au lieu d'être enregistrée.
+        // Capture must see the keys before WPF interprets them,
+        // otherwise Tab would change focus instead of being recorded.
         PreviewKeyDown += OnPreviewKeyDown;
 
         Loaded += async (_, _) => await _viewModel.LoadAsync(CancellationToken.None).ConfigureAwait(true);
@@ -47,8 +47,8 @@ public partial class HotkeyEditorWindow : Window
             return;
         }
 
-        // Tant que seule une touche de modification est enfoncée, on attend la
-        // suite plutôt que de refuser la saisie.
+        // As long as only a modifier key is pressed, we wait for
+        // what comes next rather than rejecting the input.
         if (key is Key.LeftCtrl or Key.RightCtrl or Key.LeftShift or Key.RightShift
             or Key.LeftAlt or Key.RightAlt or Key.LWin or Key.RWin or Key.System)
         {

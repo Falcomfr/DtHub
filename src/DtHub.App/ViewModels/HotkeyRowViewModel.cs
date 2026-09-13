@@ -5,7 +5,7 @@ using DtHub.Core.Localization;
 
 namespace DtHub.App.ViewModels;
 
-/// <summary>Une ligne de l'éditeur de raccourcis.</summary>
+/// <summary>A row of the hotkey editor.</summary>
 public sealed partial class HotkeyRowViewModel : ObservableObject
 {
     public HotkeyRowViewModel(HotkeyBinding binding) => _binding = binding;
@@ -13,11 +13,11 @@ public sealed partial class HotkeyRowViewModel : ObservableObject
     [ObservableProperty]
     private HotkeyBinding _binding;
 
-    /// <summary>Vrai pendant la capture de la nouvelle combinaison.</summary>
+    /// <summary>True while capturing the new combination.</summary>
     [ObservableProperty]
     private bool _isCapturing;
 
-    /// <summary>Message expliquant pourquoi une combinaison a été refusée.</summary>
+    /// <summary>Message explaining why a combination was refused.</summary>
     [ObservableProperty]
     private string? _error;
 
@@ -25,7 +25,7 @@ public sealed partial class HotkeyRowViewModel : ObservableObject
 
     public string ActionLabel => HotkeyBinding.DescribeAction(Binding.Action);
 
-    /// <summary>Ce que l'action fait vraiment, pour l'infobulle.</summary>
+    /// <summary>What the action actually does, for the tooltip.</summary>
     public string ActionDetail => HotkeyBinding.DetailAction(Binding.Action);
 
     public string ShortcutText => IsCapturing ? Strings.Get("HotkeyPressNew") : Binding.DisplayText;

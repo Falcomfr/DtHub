@@ -1,49 +1,53 @@
 ﻿namespace DtHub.Core.Almanax;
 
 /// <summary>
-/// Jusqu'où l'Almanax se laisse consulter.
+/// How far back and forward the Almanax can be browsed.
 ///
-/// Le calendrier n'a pas de fin en soi : il se répète chaque année sur la date
-/// grégorienne, et le portail répond pour n'importe quelle date. Mesuré, il
-/// rend la même journée en 2026, 2050 et 2100, et il recalcule correctement
-/// les sept mérydes à date mobile : Etnop tombe le 5 avril 2026, le 28 mars
-/// 2027 et le 21 avril 2030, c'est-à-dire les vrais dimanches de Pâques.
+/// The calendar has no end in itself: it repeats every year on the
+/// Gregorian date, and the portal answers for any date at all.
+/// Measured, it returns the same day's entry in 2026, 2050 and
+/// 2100, and it correctly recalculates the seven mérydes (the
+/// calendar's own weekdays) with movable dates: Etnop falls on
+/// April 5, 2026, March 28, 2027 and April 21, 2030, which are the
+/// true Easter Sundays.
 ///
-/// **Deux choses imposent pourtant une borne.**
+/// **Yet two things force a bound.**
 ///
-/// La première est un mensonge du portail. Interrogé sur une date hors de ce
-/// qu'il sait traiter, « 0001-01-01 » ou un mois numéro treize, il ne se
-/// plaint pas : il rend **la journée du jour**. Notre bandeau annoncerait donc
-/// une date et montrerait l'offrande d'une autre, sans que rien ne le dise.
+/// The first is a lie the portal tells. Asked about a date outside
+/// what it can handle, "0001-01-01" or a month numbered thirteen,
+/// it does not complain: it returns **today's entry**. Our banner
+/// would then announce one date while showing the offering of
+/// another, with nothing to say so.
 ///
-/// La seconde est <c>DateOnly</c> lui-même, qui va de l'an 1 au 31 décembre
-/// 9999 : reculer d'un jour depuis sa première date lève, et la fenêtre
-/// mourrait sur un clic de flèche.
+/// The second is <c>DateOnly</c> itself, which runs from year 1 to
+/// December 31, 9999: stepping back one day from its earliest date
+/// throws, and the window would die on one click of the arrow.
 ///
-/// Cinq ans de part et d'autre, donc. C'est loin devant tout usage réel, le
-/// calendrier ne disant rien de neuf au-delà d'un an sinon les fêtes mobiles,
-/// et c'est très à l'écart des deux pièges.
+/// Five years on each side, then. That is far beyond any real use,
+/// since the calendar says nothing new past a year except for the
+/// movable feasts, and it stays well clear of both traps.
 /// </summary>
 public static class AlmanaxRange
 {
-    /// <summary>Années consultables de part et d'autre du jour même.</summary>
+    /// <summary>Years browsable on each side of today.</summary>
     public const int Years = 5;
 
-    /// <summary>La plus ancienne date consultable.</summary>
+    /// <summary>The earliest browsable date.</summary>
     public static DateOnly Earliest(DateOnly today) => today.AddYears(-Years);
 
-    /// <summary>La plus lointaine date consultable.</summary>
+    /// <summary>The furthest browsable date.</summary>
     public static DateOnly Latest(DateOnly today) => today.AddYears(Years);
 
-    /// <summary>Vrai si la date se consulte.</summary>
+    /// <summary>True if the date can be browsed.</summary>
     public static bool Contains(DateOnly date, DateOnly today) =>
         date >= Earliest(today) && date <= Latest(today);
 
     /// <summary>
-    /// La date ramenée dans les bornes.
+    /// The date brought back within bounds.
     ///
-    /// Ramener plutôt que refuser : une flèche pressée une fois de trop doit
-    /// s'arrêter au bord, pas ne rien faire d'inexplicable.
+    /// Clamping rather than refusing: an arrow pressed once too
+    /// many times should stop at the edge, not do nothing
+    /// inexplicable.
     /// </summary>
     public static DateOnly Clamp(DateOnly date, DateOnly today)
     {
@@ -54,20 +58,21 @@ public static class AlmanaxRange
     }
 
     /// <summary>
-    /// Le décalage de mois appliqué sans jamais sortir des bornes.
+    /// The month shift applied without ever going out of bounds.
     ///
-    /// Le mois se déplace entier, et le premier du mois obtenu peut tomber
-    /// avant la borne alors que le mois lui-même la contient encore : on
-    /// compare donc sur le mois, pas sur le jour.
+    /// The whole month moves at once, and the first day of the
+    /// resulting month can fall before the bound even though the
+    /// month itself still contains it: we therefore compare on the
+    /// month, not on the day.
     /// </summary>
     public static DateOnly ShiftMonth(DateOnly month, int months, DateOnly today)
     {
         var first = Earliest(today);
         var last = Latest(today);
 
-        // Le décalage se compte en mois entiers plutôt que de s'ajouter à la
-        // date : « AddMonths » lève de lui-même avant qu'on ait pu borner, et
-        // c'est une épreuve nommée qui me l'a montré.
+        // The shift is counted in whole months rather than added to
+        // the date: "AddMonths" throws on its own before we can
+        // clamp it, and a named test is what showed me this.
         var wanted = Index(month.Year, month.Month) + months;
 
         wanted = Math.Clamp(wanted, Index(first.Year, first.Month), Index(last.Year, last.Month));
@@ -75,6 +80,9 @@ public static class AlmanaxRange
         return new DateOnly((int)(wanted / 12), (int)(wanted % 12) + 1, 1);
     }
 
-    /// <summary>Le rang d'un mois depuis l'an zéro, pour compter sans déborder.</summary>
+    /// <summary>
+    /// The rank of a month since year zero, to count without
+    /// overflow.
+    /// </summary>
     private static long Index(int year, int month) => ((long)year * 12) + month - 1;
 }

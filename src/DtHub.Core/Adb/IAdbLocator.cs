@@ -1,23 +1,25 @@
 ﻿namespace DtHub.Core.Adb;
 
 /// <summary>
-/// Fournit le chemin absolu de l'exécutable ADB utilisé par DT Hub. Le PATH
-/// n'est jamais consulté : on ne veut dépendre d'aucune installation tierce,
-/// ni tomber sur une version incompatible.
+/// Provides the absolute path of the ADB executable used by DT Hub. PATH
+/// is never consulted: we do not want to depend on any third-party
+/// installation, nor risk an incompatible version.
 /// </summary>
 public interface IAdbLocator
 {
     /// <summary>
-    /// Retourne le chemin absolu d'ADB, en le mettant en place si nécessaire.
+    /// Returns the absolute path of ADB, setting it up if necessary.
     /// </summary>
-    /// <exception cref="AdbException">ADB est indisponible et n'a pas pu être installé.</exception>
+    /// <exception cref="AdbException">
+    /// ADB is unavailable and could not be installed.
+    /// </exception>
     Task<string> GetAdbPathAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Chemin d'ADB s'il est déjà en place, sans rien télécharger : le chemin
-    /// imposé dans les paramètres s'il existe encore, sinon la copie de
-    /// DT Hub. Sert à savoir, au démarrage, s'il y a quelque chose à mettre en
-    /// place avant d'ouvrir la première fenêtre.
+    /// Path to ADB if it is already in place, without downloading
+    /// anything: the path forced in settings if it still exists,
+    /// otherwise DT Hub's own copy. Used to know, at startup, whether
+    /// something needs to be set up before opening the first window.
     /// </summary>
     string? TryGetInstalledPath();
 }
