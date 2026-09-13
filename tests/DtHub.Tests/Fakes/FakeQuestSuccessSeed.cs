@@ -3,14 +3,16 @@
 namespace DtHub.Tests.Fakes;
 
 /// <summary>
-/// Carte des succès simulée. Le projet de tests ne lit aucune ressource
-/// embarquée : ce que le catalogue en fait se vérifie ici.
+/// Simulated achievement map. The test project reads no embedded
+/// resource: what the catalog makes of it is verified here.
 /// </summary>
 public sealed class FakeQuestSuccessSeed : IQuestSuccessSeed
 {
     private readonly Dictionary<string, QuestSeedEntry> _entries = new(StringComparer.Ordinal);
 
-    /// <summary>Rattache une quête à un succès, avec sa place dans la chaîne.</summary>
+    /// <summary>
+    /// Attaches a quest to an achievement, with its place in the chain.
+    /// </summary>
     public FakeQuestSuccessSeed With(
         int questId,
         string success,

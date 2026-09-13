@@ -50,8 +50,9 @@ public sealed class JsonDocumentStoreTests : IDisposable
         await store.SaveAsync(written, CancellationToken.None);
         var read = await store.LoadAsync(CancellationToken.None);
 
-        // L'égalité de record compare la liste par référence : on vérifie donc
-        // champ par champ, ce qui teste réellement l'aller-retour JSON.
+        // Record equality compares the list by reference: we
+        // therefore check field by field, which actually tests the
+        // JSON round trip.
         Assert.Equal(written.Nom, read.Nom);
         Assert.Equal(written.Taille, read.Taille);
         Assert.Equal(written.Favoris, read.Favoris);
@@ -162,11 +163,11 @@ public sealed class JsonDocumentStoreTests : IDisposable
     [Fact]
     public async Task Un_palier_retire_du_code_ne_fait_pas_perdre_le_reste_du_fichier()
     {
-        // Le convertisseur standard refusait le fichier entier sur ce seul
-        // mot : retirer un palier de qualité effaçait les instances, les
-        // raccourcis et la géométrie des fenêtres de tous ceux qui l'avaient
-        // choisi. C'est arrivé, et le fichier ne doit plus jamais partir pour
-        // si peu.
+        // The standard converter used to reject the entire file over
+        // this single word: removing a quality tier erased the
+        // instances, the shortcuts, and the window geometry of
+        // everyone who had chosen it. This happened, and the file
+        // must never again be thrown away for something this small.
         Directory.CreateDirectory(_directory);
 
         var path = System.IO.Path.Combine(_directory, "vieux.json");
@@ -186,19 +187,21 @@ public sealed class JsonDocumentStoreTests : IDisposable
 
         var document = await store.LoadAsync(CancellationToken.None);
 
-        // Le reste du fichier est intact...
+        // The rest of the file is intact...
         Assert.Equal(62, document.CustomSizePercent);
 
-        // ... et les deux valeurs inconnues retombent sur leur repli déclaré,
-        // qui porte la décision prise quand le palier a été retiré : « Haute »
-        // se fond dans la maximale, « très proche » dans « proche ». Deux
-        // migrations prétendaient le faire ; elles ne tiraient jamais, ce
-        // convertisseur ayant déjà tranché quand elles s'exécutaient, et l'une
-        // des deux visait « proche » alors que le repli disait « normal ».
+        // ... and the two unknown values fall back to their declared
+        // default, which carries the decision made when the tier
+        // was removed: "Haute" ("High") merges into the maximum,
+        // "très proche" ("very close") into "proche" ("close"). Two
+        // migrations claimed to handle this; they never fired, since
+        // this converter had already settled it by the time they
+        // ran, and one of the two targeted "proche" while the
+        // fallback said "normal".
         Assert.Equal(StreamQuality.Maximum, document.Quality);
         Assert.Equal(GameZoom.Close, document.GameZoom);
 
-        // Le fichier n'a pas été mis en quarantaine : il n'était pas corrompu.
+        // The file was not quarantined: it was not corrupted.
         Assert.Empty(Directory.GetFiles(_directory, "*.corrompu-*"));
     }
 }

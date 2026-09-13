@@ -19,8 +19,9 @@ public sealed class QuestChainIndexTests
         };
 
     /// <summary>
-    /// La suite d'Albuera, relevée dans le catalogue : trois quêtes hors succès
-    /// mènent à la première du succès « Médiation expéditive ».
+    /// The Albuera sequence, taken from the catalog: three quests outside
+    /// any success line lead to the first quest of the "Médiation
+    /// expéditive" success.
     /// </summary>
     private static readonly QuestSummary Debuter = Quete("Bien débuter");
     private static readonly QuestSummary Arrivee = Quete("Une arrivée mouvementée", prerequis: "Bien débuter");
@@ -39,8 +40,9 @@ public sealed class QuestChainIndexTests
     [Fact]
     public void La_chaine_traverse_l_entree_dans_un_succes()
     {
-        // « Le début des problèmes » ouvre son succès : la liste du succès ne
-        // lui donne pas de précédente, le graphe des prérequis si.
+        // "Le début des problèmes" opens its success: the success list
+        // does not give it a previous quest, but the prerequisite graph
+        // does.
         Assert.Equal(Arrivee.Url, Albuera.PreviousOf(Problemes)?.Url);
     }
 
@@ -55,8 +57,9 @@ public sealed class QuestChainIndexTests
     [Fact]
     public void Une_suite_qui_se_ramifie_ne_donne_aucune_suivante()
     {
-        // Relevé : treize quêtes ouvrent plusieurs suites. « Déchaînement de
-        // spiritualité » en ouvre quatre, et en désigner une mentirait.
+        // Observed: thirteen quests open several sequels. "Déchaînement
+        // de spiritualité" opens four, and naming just one would be a
+        // lie.
         var depart = Quete("Déchaînement de spiritualité");
         var index = new QuestChainIndex(
         [
@@ -80,8 +83,9 @@ public sealed class QuestChainIndexTests
     [Fact]
     public void Un_prerequis_qui_n_est_pas_une_quete_est_ignore()
     {
-        // Sur cinq cent soixante-sept prérequis distincts, beaucoup sont des
-        // objets ou des conditions : « 6 Chachas », « être niveau 50 minimum ».
+        // Out of five hundred sixty-seven distinct prerequisites, many
+        // are items or conditions: "6 Chachas", "être niveau 50 minimum"
+        // ("be at least level 50").
         var but = Quete("La belle ermite", prerequis: ["6 Chachas", "Bien débuter"]);
         var index = new QuestChainIndex([Debuter, but]);
 
@@ -100,7 +104,7 @@ public sealed class QuestChainIndexTests
     }
 
     // ------------------------------------------------------------------
-    // La suite d'une série ne pend pas toujours à sa dernière quête.
+    // A series' sequel does not always hang off its last quest.
     // ------------------------------------------------------------------
 
     private static QuestSummary Rang(string titre, string succes, int ordre, params string[] prerequis) =>
@@ -109,8 +113,8 @@ public sealed class QuestChainIndexTests
     [Fact]
     public void La_serie_suivante_se_cherche_dans_tout_le_succes()
     {
-        // Relevé : « Médiation expéditive » se prolonge depuis sa cinquième
-        // quête sur six. La sixième n'avait donc aucune suite.
+        // Observed: "Médiation expéditive" continues from its fifth quest
+        // out of six. The sixth therefore had no sequel at all.
         var cinq = Rang("Prochain arrêt : Astrub !", "Médiation expéditive", 5);
         var six = Rang("Le Kanojedo", "Médiation expéditive", 6, "Prochain arrêt : Astrub !");
         var apres = Rang("La découverte d’un destin", "Un nouveau départ", 1, "Prochain arrêt : Astrub !");
@@ -123,8 +127,8 @@ public sealed class QuestChainIndexTests
     [Fact]
     public void Deux_series_qui_partent_du_meme_succes_n_en_designent_aucune()
     {
-        // Relevé sur deux succès, dont « Les survivants de Frigost », qui en
-        // ouvre deux.
+        // Observed on two successes, including "Les survivants de
+        // Frigost", which opens two of them.
         var une = Rang("À la recherche de Dan Lavy.", "Les survivants de Frigost", 6);
         var deux = Rang("Le dernier survivant", "Les survivants de Frigost", 7, "À la recherche de Dan Lavy.");
         var a = Rang("Inferno", "Ongles incarnés", 1, "À la recherche de Dan Lavy.");
@@ -138,8 +142,8 @@ public sealed class QuestChainIndexTests
     [Fact]
     public void Une_quete_qui_n_ouvre_pas_son_succes_ne_compte_pas_pour_une_serie()
     {
-        // Entrer une série par son milieu n'aurait pas de sens : ce qu'on
-        // propose, c'est de la commencer.
+        // Entering a series through its middle would make no sense: what
+        // is being proposed is to start it.
         var fin = Rang("Le Kanojedo", "Médiation expéditive", 6);
         var premiere = Rang("La découverte d’un destin", "Un nouveau départ", 1);
         var seconde = Rang("La suite du destin", "Un nouveau départ", 2, "Le Kanojedo");
@@ -150,15 +154,16 @@ public sealed class QuestChainIndexTests
     }
 
     // ------------------------------------------------------------------
-    // Un prérequis ne nomme pas toujours une quête.
+    // A prerequisite does not always name a quest.
     // ------------------------------------------------------------------
 
     /// <summary>
-    /// Le cas relevé sur le site : « La légende du Chevalier de l'Automne »
-    /// clôt « Un nouveau départ », et la seule chose qui mène au succès suivant
-    /// est le prérequis « Succès Un nouveau départ réalisé » porté par « Dans
-    /// les pas du Chevalier de l'Automne ». Ce libellé n'étant le titre d'aucune
-    /// quête, l'arête n'entrait pas dans le graphe et le bouton se taisait.
+    /// The case observed on the site: "La légende du Chevalier de
+    /// l'Automne" closes "Un nouveau départ", and the only thing that
+    /// leads to the next success is the prerequisite "Succès Un nouveau
+    /// départ réalisé" carried by "Dans les pas du Chevalier de
+    /// l'Automne". Since that label is not the title of any quest, the
+    /// edge did not enter the graph and the button stayed silent.
     /// </summary>
     [Fact]
     public void Un_prerequis_qui_nomme_un_succes_relie_les_deux_series()
@@ -177,13 +182,15 @@ public sealed class QuestChainIndexTests
 
         Assert.Equal(pas.Url, index.NextSeriesOf(legende)?.Url);
 
-        // Exiger un succès entier, c'est exiger la quête qui le clôt : le lien
-        // vaut donc dans les deux sens.
+        // Requiring an entire success means requiring the quest that
+        // closes it: the link therefore holds in both directions.
         Assert.Equal(pas.Url, index.NextOf(legende)?.Url);
         Assert.Equal(legende.Url, index.PreviousOf(pas)?.Url);
     }
 
-    /// <summary>Un jalon désigne la quête qui le pose, pas une autre.</summary>
+    /// <summary>
+    /// A milestone names the quest that sets it, not any other.
+    /// </summary>
     [Fact]
     public void Un_prerequis_de_jalon_relie_la_quete_qui_le_pose()
     {
@@ -197,8 +204,8 @@ public sealed class QuestChainIndexTests
     }
 
     /// <summary>
-    /// Un succès que le catalogue ne connaît pas ne relie rien : trois des
-    /// succès cités en prérequis n'existent nulle part ailleurs.
+    /// A success the catalog does not know links nothing: three of the
+    /// successes cited as prerequisites exist nowhere else.
     /// </summary>
     [Fact]
     public void Un_succes_inconnu_ne_relie_rien()

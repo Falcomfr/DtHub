@@ -3,8 +3,8 @@
 namespace DtHub.Tests.Diagnostics;
 
 /// <summary>
-/// Un journal d'une journée fait mille sept cents lignes dont sept sur cent
-/// sont des erreurs. Ces épreuves fixent ce qu'on en garde.
+/// A day's log runs to 1700 lines, of which 7 percent are errors.
+/// These tests pin down what we keep from it.
 /// </summary>
 public sealed class LogDigestTests
 {
@@ -34,8 +34,9 @@ public sealed class LogDigestTests
     }
 
     /// <summary>
-    /// Le calme du milieu part, et un blanc dit qu'on a sauté : sans lui, deux
-    /// fautes distantes d'une heure se liraient comme deux fautes de suite.
+    /// The quiet middle stretch is dropped, and a gap marker says a
+    /// skip happened: without it, two errors an hour apart would read
+    /// as two errors in a row.
     /// </summary>
     [Fact]
     public void Ce_qui_est_saute_se_voit()
@@ -47,8 +48,8 @@ public sealed class LogDigestTests
     }
 
     /// <summary>
-    /// Quatre cent huit démarrages en six jours se mêlent dans sept fichiers :
-    /// sans la session, un rapport emporterait les fautes de la veille.
+    /// 408 startups over 6 days get mixed together in 7 files: without
+    /// the session, a report would drag in the previous day's errors.
     /// </summary>
     [Fact]
     public void Seule_la_session_en_cours_est_prise()
@@ -67,9 +68,9 @@ public sealed class LogDigestTests
     }
 
     /// <summary>
-    /// Une pile d'appel ne porte pas d'horodatage : elle doit rester attachée au
-    /// message qui l'a produite, sans quoi le rapport rendrait une erreur sans
-    /// sa pile ou une pile sans son erreur.
+    /// A call stack carries no timestamp: it must stay attached to the
+    /// message that produced it, otherwise the report would render an
+    /// error without its stack, or a stack without its error.
     /// </summary>
     [Fact]
     public void Une_pile_d_appel_reste_avec_son_message()
@@ -88,7 +89,7 @@ public sealed class LogDigestTests
         Assert.Contains("OnForegroundChanged", digest, StringComparison.Ordinal);
     }
 
-    /// <summary>Un rapport se colle dans un formulaire : il a une borne.</summary>
+    /// <summary>A report gets pasted into a form: it has a limit.</summary>
     [Fact]
     public void Le_rapport_ne_deborde_pas()
     {

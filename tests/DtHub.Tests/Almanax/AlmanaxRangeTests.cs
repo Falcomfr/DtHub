@@ -30,9 +30,9 @@ public class AlmanaxRangeTests
     [InlineData(9999, 12, 31)]
     public void Une_date_hors_des_bornes_est_refusee(int year, int month, int day)
     {
-        // « 0001-01-01 » n'est pas qu'absurde : interrogé là-dessus, le portail
-        // rend la journée du jour sans se plaindre. Le bandeau annoncerait
-        // l'an 1 et montrerait l'offrande d'aujourd'hui.
+        // "0001-01-01" is not just absurd: when asked about it, the
+        // portal returns today's date without complaining. The banner
+        // would announce year 1 and show today's offering.
         Assert.False(AlmanaxRange.Contains(new DateOnly(year, month, day), Today));
     }
 
@@ -73,9 +73,10 @@ public class AlmanaxRangeTests
     [Fact]
     public void Aucun_deplacement_ne_peut_lever_aux_bornes_de_la_date()
     {
-        // « DateOnly » va de l'an 1 au 31 décembre 9999 : reculer d'un jour
-        // depuis la première lève, et un clic de flèche tuerait la fenêtre.
-        // Le bornage doit rendre ce cas inatteignable.
+        // DateOnly runs from year 1 to 31 December 9999: stepping back
+        // a day from the earliest value throws, and a single arrow
+        // click would crash the window. The clamping must make this
+        // case unreachable.
         var exception = Record.Exception(() =>
         {
             _ = AlmanaxRange.ShiftMonth(AlmanaxRange.Earliest(Today), -100_000, Today);

@@ -20,9 +20,9 @@ public class AlmanaxReadingTests
     [InlineData(null)]
     public void Le_bloc_de_dofus_est_refuse(string? heading)
     {
-        // Mieux vaut ne rien montrer que montrer l'offrande d'un autre jeu :
-        // le 10 septembre 2026, DOFUS demandait une Aile de dragodinde là où
-        // Touch demandait une Dent.
+        // Better to show nothing than to show another game's offering:
+        // on 10 September 2026, DOFUS asked for an "Aile de dragodinde"
+        // (dragoturkey wing) where Touch asked for a "Dent" (tooth).
         Assert.False(AlmanaxReading.IsTouch(heading));
     }
 
@@ -62,8 +62,9 @@ public class AlmanaxReadingTests
     [Fact]
     public void Les_espaces_multiples_du_portail_ne_genent_pas()
     {
-        // La page rend son texte sur plusieurs lignes, avec l'indentation du
-        // gabarit : le texte brut arrive criblé d'espaces et de sauts.
+        // The page renders its text over several lines, with the
+        // template's indentation: the raw text arrives riddled with
+        // spaces and line breaks.
         var offering = AlmanaxReading.Offering(
             "\n               Récupérer 1  Dent de Dragodinde  et rapporter l'offrande à Théodoran Ax             ");
 
@@ -76,8 +77,8 @@ public class AlmanaxReadingTests
     [InlineData(null)]
     public void Une_phrase_sans_nombre_ne_se_lit_pas(string? sentence)
     {
-        // Et ce n'est pas un échec : la fenêtre affiche alors la phrase
-        // entière, qui dit déjà ce qu'il faut faire.
+        // And this is not a failure: the window then displays the whole
+        // sentence, which already says what needs to be done.
         Assert.Null(AlmanaxReading.Offering(sentence));
     }
 

@@ -16,8 +16,9 @@ public class DeviceHealthTests
     [Fact]
     public void La_bulle_porte_tous_les_constats_quand_le_bandeau_n_en_montre_qu_un()
     {
-        // Le cas mesuré sur un vrai téléphone : trois constats en même temps,
-        // dont un seul paraissait, les deux autres nulle part.
+        // The case measured on a real phone: three findings at the same
+        // time, of which only one used to appear, the other two
+        // nowhere.
         var findings = DeviceHealth.Review(
             null,
             Battery(6),
@@ -32,7 +33,7 @@ public class DeviceHealthTests
         Assert.Equal(DeviceHealth.Worst(findings), findings[0].Message);
         Assert.All(findings, f => Assert.Contains(f.Message, tout, StringComparison.Ordinal));
 
-        // Une ligne par constat, et rien de plus.
+        // One line per finding, and nothing more.
         Assert.Equal(
             findings.Count,
             tout!.Split(Environment.NewLine, StringSplitOptions.None).Length);
@@ -56,8 +57,8 @@ public class DeviceHealthTests
     [Fact]
     public void Le_cadenas_passe_devant_les_clics_morts()
     {
-        // Les deux sont graves, mais tant que le cadenas est là on ne voit
-        // même pas le jeu : il n'y a rien où cliquer.
+        // Both are serious, but as long as the lock is there we cannot
+        // even see the game: there is nowhere to click.
         var deux = DeviceHealth.Review(null, null, null, null, lockedWindows: true, deadInput: true);
         var cadenas = DeviceHealth.Review(null, null, null, null, lockedWindows: true);
 
@@ -77,9 +78,9 @@ public class DeviceHealthTests
     [Fact]
     public void Le_cadenas_passe_devant_tout_le_reste()
     {
-        // Les fenêtres sont ouvertes et ne montrent pas le jeu : rien
-        // d'autre ne compte tant que cela dure, pas même une batterie à
-        // bout.
+        // The windows are open and do not show the game: nothing else
+        // matters while that lasts, not even a battery on its last
+        // legs.
         var findings = DeviceHealth.Review(
             new ThermalReading(3, 44.0),
             Battery(5),
@@ -124,8 +125,9 @@ public class DeviceHealthTests
     [Fact]
     public void Le_plus_grave_vient_en_tete()
     {
-        // Batterie critique et chaleur modérée : c'est la batterie qui coupera
-        // la séance, c'est elle qui doit parler.
+        // Critical battery and moderate heat: it is the battery that
+        // will cut the session short, so it is the one that must
+        // speak up.
         var findings = DeviceHealth.Review(
             new ThermalReading(ThermalReading.Throttling, 44),
             Battery(5),
@@ -140,8 +142,9 @@ public class DeviceHealthTests
     [Fact]
     public void La_liaison_ferme_toujours_la_marche()
     {
-        // Elle ne casse rien et se compense déjà par le tampon vidéo : elle
-        // est dite pour que « ça saccade » ait une réponse, pas pour alarmer.
+        // It breaks nothing and is already compensated for by the
+        // video buffer: it is reported so that "ça saccade" ("it's
+        // stuttering") has an answer, not to raise an alarm.
         var findings = DeviceHealth.Review(null, Battery(15), null, Link(2412));
 
         Assert.Equal(2, findings.Count);
@@ -195,7 +198,7 @@ public class DeviceHealthTests
     [Fact]
     public void Les_messages_viennent_des_lectures_et_ne_sont_pas_reecrits()
     {
-        // Deux textes pour un même fait finiraient par diverger.
+        // Two texts for the same fact would eventually drift apart.
         var battery = Battery(7);
 
         var findings = DeviceHealth.Review(null, battery, null, null);
@@ -220,9 +223,9 @@ public class DeviceHealthTests
     [Fact]
     public void Le_cas_reel_du_second_appareil_ne_dit_que_la_bande()
     {
-        // Mi 9T Pro relevé sur le terrain : vingt pour cent mais branché,
-        // seize gigaoctets libres, aucune chaleur, et une liaison en 2,4 GHz.
-        // Un seul constat doit sortir, et c'est le plus anodin.
+        // Mi 9T Pro captured in the field: 20 percent but charging, 16
+        // gigabytes free, no heat, and a link on 2.4 GHz. Only one
+        // finding should come out, and it is the mildest one.
         var findings = DeviceHealth.Review(
             new ThermalReading(0, null),
             new BatteryReading(20, Charging: true, Celsius: 36.2),

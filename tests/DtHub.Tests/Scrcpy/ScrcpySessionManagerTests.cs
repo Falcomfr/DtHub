@@ -54,7 +54,8 @@ public class ScrcpySessionManagerTests
     [Fact]
     public async Task Le_profil_android_demande_est_bien_celui_transmis_au_lancement()
     {
-        // C'est l'exigence centrale : n'importe quel identifiant, pas seulement 999.
+        // This is the central requirement: any identifier at all, not just
+        // 999.
         foreach (var userId in new[] { 0, 10, 42, 999, 1234 })
         {
             var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
@@ -95,8 +96,8 @@ public class ScrcpySessionManagerTests
         var first = await manager.StartAsync(Target(0), ScrcpyOptions.Default, null, CancellationToken.None);
         var second = await manager.StartAsync(Target(999), ScrcpyOptions.Default, null, CancellationToken.None);
 
-        // Aucun identifiant technique dans le titre : c'est ce que
-        // l'utilisateur lira dans sa barre des tâches.
+        // No technical identifier in the title: this is what the user will
+        // read in their taskbar.
         Assert.Equal($"{ProductInfo.Name} Principal", first.WindowTitle);
         Assert.Equal($"{ProductInfo.Name} XSpace", second.WindowTitle);
         Assert.DoesNotContain(first.Id, first.WindowTitle, StringComparison.Ordinal);
@@ -211,7 +212,8 @@ public class ScrcpySessionManagerTests
         var mine = new FakeProcessSession(1).Emit(NewDisplayLine);
         var alsoMine = new FakeProcessSession(2).Emit(NewDisplayLine);
 
-        // Un processus scrcpy d'un autre logiciel : jamais confié au gestionnaire.
+        // A scrcpy process from other software: never entrusted to the
+        // manager.
         var somebodyElses = new FakeProcessSession(99);
 
         var launcher = new FakeProcessLauncher().Prepare(mine).Prepare(alsoMine);
@@ -296,7 +298,7 @@ public class ScrcpySessionManagerTests
         var first = await manager.StartAsync(Target(0), ScrcpyOptions.Default, null, CancellationToken.None);
         var second = await manager.StartAsync(Target(999), ScrcpyOptions.Default, null, CancellationToken.None);
 
-        // L'utilisateur a mis le profil cloné en premier.
+        // The user put the cloned profile first.
         manager.OrderKey = s => s.Target.UserId == 999 ? 0 : 1;
 
         Assert.Equal([second.Id, first.Id], [.. manager.ActiveSessions.Select(s => s.Id)]);
@@ -335,11 +337,11 @@ public class ScrcpySessionManagerTests
     }
 
     /// <summary>
-    /// Attend qu'une condition se réalise, sans dépasser un délai.
+    /// Waits for a condition to become true, without exceeding a timeout.
     ///
-    /// La mort d'une fenêtre est constatée par la boucle de lecture, qui tourne
-    /// en tâche de fond : rien à attendre directement, et une attente fixe
-    /// serait soit trop courte sur une machine chargée, soit du temps perdu.
+    /// A window's death is detected by the read loop, which runs in the
+    /// background: there is nothing to await directly, and a fixed wait would
+    /// either be too short on a loaded machine, or wasted time.
     /// </summary>
     private static async Task<bool> Eventually(Func<bool> condition)
     {
@@ -368,8 +370,8 @@ public class ScrcpySessionManagerTests
         var session = await manager.StartAsync(
             Target(userId: 10), ScrcpyOptions.Default, null, CancellationToken.None);
 
-        // L'ouverture arrête déjà le jeu avant de le relancer sur le bon
-        // afficheur : c'est la fermeture qu'on observe, pas ce reste.
+        // Opening already stops the game before relaunching it on the right
+        // display: it's the closing we're observing, not this leftover.
         appLauncher.ForceStops.Clear();
 
         await manager.StopAsync(session.Id, CancellationToken.None);
@@ -377,20 +379,22 @@ public class ScrcpySessionManagerTests
         Assert.Equal("USB0001|10|com.ankama.dofustouch", Assert.Single(appLauncher.ForceStops));
     }
 
-    /// <summary>L'adresse qu'avait le téléphone à l'ouverture de la session.</summary>
+    /// <summary>The address the phone had when the session opened.</summary>
     private const string AncienPort = "192.168.1.23:41207";
 
-    /// <summary>Celle qu'il porte à la fermeture, le port ayant changé.</summary>
+    /// <summary>
+    /// The one it carries at closing, since the port has changed.
+    /// </summary>
     private const string PortDuMoment = "192.168.1.23:40787";
 
     [Fact]
     public async Task Le_jeu_s_arrete_a_l_adresse_du_moment_et_non_a_celle_du_lancement()
     {
-        // **Le défaut que cette épreuve tient.** Relevé dans le journal, sur un
-        // téléphone dont le débogage sans fil change de port à chaque reprise :
-        // « am force-stop … pour 192.168.1.23:41207 : adb.exe: device offline ».
-        // La session visait l'adresse notée à son ouverture, le téléphone en
-        // portait une autre, et le jeu survivait à sa fenêtre.
+        // **The bug this test pins down.** Recorded in the log, on a phone
+        // whose wireless debugging changes port on every resume: "am
+        // force-stop … pour 192.168.1.23:41207 : adb.exe: device offline". The
+        // session targeted the address noted when it opened, the phone was
+        // carrying a different one, and the game outlived its window.
         var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
         var appLauncher = new FakeAppLauncher();
 
@@ -402,8 +406,8 @@ public class ScrcpySessionManagerTests
 
         appLauncher.ForceStops.Clear();
 
-        // L'ancienne adresse est bel et bien morte : si elle était encore
-        // choisie, l'arrêt échouerait au lieu de viser ailleurs.
+        // The old address really is dead: if it were still chosen, the stop
+        // would fail instead of aiming elsewhere.
         appLauncher.Unreachable.Add(AncienPort);
         manager.CurrentSerial = _ => PortDuMoment;
 
@@ -417,9 +421,9 @@ public class ScrcpySessionManagerTests
     [Fact]
     public async Task Une_adresse_du_moment_perimee_laisse_essayer_celle_du_lancement()
     {
-        // Le balayage a lieu toutes les deux secondes : il peut manquer de peu
-        // un changement de port et rendre une adresse plus vieille que celle
-        // que la session porte. Renoncer là serait renoncer sur notre erreur.
+        // The scan happens every two seconds: it can narrowly miss a port
+        // change and return an address older than the one the session carries.
+        // Giving up there would mean giving up over our own mistake.
         var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
         var appLauncher = new FakeAppLauncher();
 
@@ -440,18 +444,18 @@ public class ScrcpySessionManagerTests
             appLauncher.ForceStops);
     }
 
-    /// <summary>Le nom mDNS sous lequel le téléphone reste joignable.</summary>
+    /// <summary>The mDNS name under which the phone stays reachable.</summary>
     private const string NomMdns = "adb-96ca0f7b-rq6A0u._adb-tls-connect._tcp";
 
     [Fact]
     public async Task Quand_les_adresses_connues_echouent_on_redemande_ou_est_l_appareil()
     {
-        // **Mesuré sur le téléphone, et c'est ce qui a fait manquer le premier
-        // correctif.** En périmant l'adresse à la main, l'arrêt est parti à
-        // 14:52:26 vers l'adresse morte, et l'application connaissait la bonne
-        // à 14:52:28. Les deux adresses connues viennent du passé : celle du
-        // balayage a jusqu'à deux secondes de retard, et c'est exactement le
-        // temps qu'il faut à un port pour changer.
+        // **Measured on the phone, and this is what made the first fix miss.**
+        // By expiring the address by hand, the stop went out at 14:52:26
+        // toward the dead address, and the application knew the right one by
+        // 14:52:28. Both known addresses come from the past: the scanned one
+        // lags by up to two seconds, and that is exactly the time it takes a
+        // port to change.
         var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
         var appLauncher = new FakeAppLauncher();
 
@@ -463,8 +467,8 @@ public class ScrcpySessionManagerTests
 
         appLauncher.ForceStops.Clear();
 
-        // Les deux souvenirs sont morts : celui du lancement et celui du
-        // dernier balayage, qui n'a pas encore vu le changement de port.
+        // Both memories are dead: the one from launch and the one from the
+        // last scan, which has not yet seen the port change.
         appLauncher.Unreachable.Add(AncienPort);
         manager.CurrentSerial = _ => AncienPort;
         manager.LookUpSerial = (_, _) => Task.FromResult<string?>(NomMdns);
@@ -479,8 +483,8 @@ public class ScrcpySessionManagerTests
     [Fact]
     public async Task On_ne_redemande_rien_quand_l_arret_a_abouti()
     {
-        // La recherche coûte un balayage. Sur le chemin qui marche, et c'est
-        // l'immense majorité, elle ne doit pas avoir lieu.
+        // The lookup costs a scan. On the path that works, which is the vast
+        // majority, it must not happen.
         var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
         var appLauncher = new FakeAppLauncher();
 
@@ -505,9 +509,9 @@ public class ScrcpySessionManagerTests
     [Fact]
     public async Task Un_jeu_qu_on_n_a_pas_pu_arreter_est_annonce()
     {
-        // La fenêtre est partie : plus rien à l'écran ne peut montrer que le
-        // personnage est toujours en ligne. Se taire le laisserait découvrir au
-        // lancement suivant.
+        // The window is gone: nothing on screen can show that the character is
+        // still online anymore. Staying silent would leave it to be discovered
+        // on the next launch.
         var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
         var appLauncher = new FakeAppLauncher();
 
@@ -586,8 +590,8 @@ public class ScrcpySessionManagerTests
     [Fact]
     public async Task Une_fin_subie_ne_se_declare_pas_demandee()
     {
-        // Rien ne les distinguait : les deux aboutissent à l'état arrêté. Sans
-        // cette marque, on ne pouvait pas décider s'il fallait rouvrir.
+        // Nothing distinguished them: both end up in the stopped state.
+        // Without this marker, there was no way to decide whether to reopen.
         var process = new FakeProcessSession().Emit(NewDisplayLine);
         var launcher = new FakeProcessLauncher().Prepare(process);
         await using var manager = Manager(launcher, new FakeAppLauncher());
@@ -606,8 +610,8 @@ public class ScrcpySessionManagerTests
     [Fact]
     public async Task Une_session_qui_n_a_jamais_ouvert_ne_pretend_pas_avoir_tourne()
     {
-        // Aucune ligne d'afficheur : le démarrage expire sans que la session
-        // n'ait jamais été ouverte.
+        // No display line: startup times out without the session ever having
+        // opened.
         var process = new FakeProcessSession();
         var launcher = new FakeProcessLauncher().Prepare(process);
         await using var manager = Manager(launcher, new FakeAppLauncher(), TimeSpan.FromMilliseconds(200));
@@ -622,9 +626,9 @@ public class ScrcpySessionManagerTests
     [Fact]
     public async Task Une_fenetre_fermee_a_la_main_arrete_aussi_le_jeu()
     {
-        // Le chemin de la croix de la fenêtre scrcpy, et du téléphone
-        // débranché : aucun code à nous n'est appelé, seule la sortie du
-        // processus se tait.
+        // The hard path shared by closing the scrcpy window and by unplugging
+        // the phone: none of our code gets called, only the process's exit
+        // goes quiet.
         var process = new FakeProcessSession().Emit(NewDisplayLine);
         var launcher = new FakeProcessLauncher().Prepare(process);
         var appLauncher = new FakeAppLauncher();
@@ -647,9 +651,9 @@ public class ScrcpySessionManagerTests
     [Fact]
     public async Task Le_jeu_n_est_arrete_qu_une_fois_par_session()
     {
-        // La fermeture volontaire et la fin de la lecture de sortie surviennent
-        // toutes deux pour une même session. Un aller-retour de trop se paierait
-        // sur le budget compté de la fermeture de l'application.
+        // The voluntary close and the end of the output read both happen for
+        // the same session. One extra round trip would cost against the tight
+        // budget of closing the application.
         var process = new FakeProcessSession().Emit(NewDisplayLine);
         var launcher = new FakeProcessLauncher().Prepare(process);
         var appLauncher = new FakeAppLauncher();
@@ -694,9 +698,9 @@ public class ScrcpySessionManagerTests
     [Fact]
     public async Task Le_jeu_est_arrete_apres_le_depart_de_scrcpy_et_non_avant()
     {
-        // L'ordre n'est pas cosmétique : c'est scrcpy qui prévient son serveur,
-        // et le serveur qui rend l'afficheur virtuel. Tuer le jeu d'abord
-        // reviendrait à défaire cet enchaînement.
+        // The order is not cosmetic: it is scrcpy that notifies its server,
+        // and the server that releases the virtual display. Killing the game
+        // first would amount to undoing this chain.
         var process = new FakeProcessSession().Emit(NewDisplayLine);
         var launcher = new FakeProcessLauncher().Prepare(process);
 
@@ -725,9 +729,9 @@ public class ScrcpySessionManagerTests
     [Fact]
     public async Task Un_jeu_que_nous_n_avons_pas_ouvert_n_est_pas_arrete()
     {
-        // scrcpy meurt avant d'avoir créé son afficheur : nous n'avons jamais
-        // lancé le jeu. S'il tourne quand même, c'est que quelqu'un y joue sur
-        // le téléphone, et ce n'est pas à nous de le fermer.
+        // scrcpy dies before creating its display: we never launched the game.
+        // If it is running anyway, someone is playing it on the phone, and it
+        // is not our place to close it.
         var process = new FakeProcessSession();
         var launcher = new FakeProcessLauncher().Prepare(process);
         var appLauncher = new FakeAppLauncher();

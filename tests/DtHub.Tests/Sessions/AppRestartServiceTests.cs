@@ -5,8 +5,8 @@ using DtHub.Tests.Fakes;
 namespace DtHub.Tests.Sessions;
 
 /// <summary>
-/// Relancer une instance ne doit plus rouvrir sa fenêtre : la session scrcpy
-/// et son afficheur sont conservés, seul le jeu repart.
+/// Restarting an instance must no longer reopen its window: the
+/// scrcpy session and its display are kept, only the game restarts.
 /// </summary>
 public sealed class AppRestartServiceTests
 {
@@ -37,8 +37,9 @@ public sealed class AppRestartServiceTests
         var session = await manager.StartAsync(
             Target(), ScrcpyOptions.Default, null, CancellationToken.None);
 
-        // L'ouverture d'une session arrête déjà le jeu, pour qu'il renaisse
-        // sur le bon afficheur : seule la relance est observée ici.
+        // Opening a session already stops the game, so that it can
+        // come back to life on the right display: only the restart
+        // is observed here.
         apps.Calls.Clear();
         apps.ForceStops.Clear();
 
@@ -63,8 +64,9 @@ public sealed class AppRestartServiceTests
     [Fact]
     public async Task L_application_repart_sur_le_meme_afficheur()
     {
-        // C'est tout l'intérêt de la relance courte : l'afficheur est conservé,
-        // donc la fenêtre ne bouge pas et le jeu garde sa mise en page.
+        // This is the whole point of the short restart: the
+        // display is kept, so the window does not move and the
+        // game keeps its layout.
         var (manager, session, apps) = await OpenAsync();
         await using var _ = manager;
 
@@ -95,8 +97,8 @@ public sealed class AppRestartServiceTests
     [Fact]
     public async Task Sans_afficheur_connu_la_relance_demande_le_repli()
     {
-        // Rien n'est tenté : sans afficheur, redémarrer le jeu l'enverrait sur
-        // l'écran du téléphone.
+        // Nothing is attempted: without a display, restarting the
+        // game would send it to the phone's own screen.
         var processes = new FakeProcessLauncher();
         processes.Prepare(new FakeProcessSession(100));
 

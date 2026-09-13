@@ -4,20 +4,20 @@ using System.Runtime.CompilerServices;
 namespace DtHub.Tests;
 
 /// <summary>
-/// Fixe la langue de toute la suite d'épreuves au français.
+/// Pins the language of the entire test suite to French.
 ///
-/// Depuis que l'application parle trois langues, les libellés viennent des
-/// ressources : une épreuve qui attend « Ctrl + Maj + Tab » ou « Échap »
-/// dépendait alors de la langue de la machine, passait sur un Windows français
-/// et serait tombée sur un Windows anglais. La suite éprouve la formulation
-/// française, et le dit ici une fois pour toutes.
+/// Since the application speaks three languages, the labels come from
+/// resources: a test expecting "Ctrl + Maj + Tab" or "Échap" would
+/// then depend on the machine's language, passing on a French Windows
+/// and failing on an English one. The suite tests the French wording,
+/// and states it here once and for all.
 ///
-/// Le pays est fixé de même, et pour la même raison : le format des nombres
-/// est un réglage distinct de la langue, et « 8,4 Mb/s » devient « 8.4 Mb/s »
-/// sur une machine anglaise.
+/// The country is pinned the same way, and for the same reason:
+/// number formatting is a setting distinct from the language, and
+/// "8,4 Mb/s" becomes "8.4 Mb/s" on an English machine.
 ///
-/// Les épreuves qui portent sur le choix de la langue lui-même posent leur
-/// propre culture et la rendent ensuite.
+/// Tests that concern the choice of language itself set their own
+/// culture and then restore it.
 /// </summary>
 internal static class TestCulture
 {

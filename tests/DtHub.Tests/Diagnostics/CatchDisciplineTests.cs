@@ -3,27 +3,27 @@
 namespace DtHub.Tests.Diagnostics;
 
 /// <summary>
-/// Une erreur attrapée doit ressortir : par le journal, par l'écran, par un
-/// échec rendu à l'appelant, ou par un commentaire qui dit pourquoi le silence
-/// est le bon choix.
+/// A caught error must resurface: through the log, through the screen,
+/// through a failure returned to the caller, or through a comment that
+/// says why silence is the right choice.
 ///
-/// La convention est déjà écrite dans AGENTS.md, « pas de catch (Exception)
-/// muet ». Un relevé l'a trouvée enfreinte trente et une fois, dont dix-huit
-/// pour de bon : les treize autres remontaient l'erreur d'une façon que le
-/// relevé ne connaissait pas. C'est pourquoi cette épreuve énumère les façons
-/// de remonter plutôt que de chercher un seul mot.
+/// The convention is already written in AGENTS.md, "no silent catch
+/// (Exception)". A survey found it broken thirty-one times, eighteen of
+/// them for real: the other thirteen did surface the error, but in a way
+/// the survey did not recognize. That is why this test enumerates the
+/// ways to surface an error rather than looking for a single word.
 ///
-/// Le contrôle est fait sur le texte des fichiers, comme celui des commandes du
-/// XAML : il faudrait sinon référencer le projet d'interface et basculer toute
-/// la suite sur Windows.
+/// The check is done on the text of the files, like the one for XAML
+/// commands: otherwise it would have to reference the interface project
+/// and switch the whole suite over to Windows.
 /// </summary>
 public sealed class CatchDisciplineTests
 {
     private static readonly Regex Opens = new(@"^\s*catch\b");
 
     /// <summary>
-    /// Les façons dont une erreur ressort d'un bloc. Journaliser, la montrer,
-    /// la rendre sous forme d'échec nommé, ou la relancer.
+    /// The ways an error can surface from a block. Logging it, showing
+    /// it, returning it as a named failure, or rethrowing it.
     /// </summary>
     private static readonly Regex Speaks = new(
         @"Log[A-Za-z]*\(|Log\.\w+\(|_logger|Report\(|throw|"
@@ -47,8 +47,9 @@ public sealed class CatchDisciplineTests
                     continue;
                 }
 
-                // Un commentaire, dans le bloc ou juste au-dessus, vaut
-                // décision assumée : c'est ce que la convention demande.
+                // A comment, inside the block or right above it, counts
+                // as an owned decision: that is what the convention asks
+                // for.
                 var above = string.Join('\n', lines[Math.Max(0, i - 4)..i]);
 
                 if (!Body(lines, i).Contains("//", StringComparison.Ordinal)
@@ -63,20 +64,24 @@ public sealed class CatchDisciplineTests
     }
 
     /// <summary>
-    /// Attraper toute exception sans filtre cache les fautes qu'on ne veut pas
-    /// traiter, à commencer par le manque de mémoire.
-    ///
-    /// La dérogation ne se déclare plus par un couple de coordonnées, mais par
-    /// une phrase écrite sous le bloc. L'épreuve affirmait
-    /// « Win32HotkeyRegistrar.cs:228 » : insérer une ligne ailleurs dans ce
-    /// fichier la faisait rougir alors qu'elle ne parlait pas de ce qu'on avait
-    /// modifié. Ancrée sur la phrase, elle devient aussi plus forte : un
-    /// nouveau bloc sans filtre n'y échappe qu'en écrivant la même décision
-    /// délibérée, à l'endroit où on la lira.
+    /// The sentence that declares a deliberate exemption, under the
+    /// block.
     /// </summary>
-    /// <summary>La phrase qui déclare une dérogation assumée, sous le bloc.</summary>
     private const string Derogation = "No filter, and that is intentional";
 
+    /// <summary>
+    /// Catching every exception with no filter hides the faults we do
+    /// not want to handle, starting with running out of memory.
+    ///
+    /// The exemption is no longer declared by a pair of coordinates, but
+    /// by a sentence written under the block. The test used to assert
+    /// "Win32HotkeyRegistrar.cs:228": inserting a line anywhere else in
+    /// that file would make it fail even though it had nothing to do
+    /// with what had been changed. Anchored on the sentence instead, it
+    /// also becomes stronger: a new filterless block can only escape it
+    /// by writing that same deliberate decision, at the place where it
+    /// will be read.
+    /// </summary>
     [Fact]
     public void Attraper_tout_se_borne_par_un_filtre()
     {
@@ -91,7 +96,7 @@ public sealed class CatchDisciplineTests
                     continue;
                 }
 
-                // Le filtre s'écrit parfois à la ligne suivante.
+                // The filter is sometimes written on the following line.
                 var window = lines[i] + " " + (i + 1 < lines.Length ? lines[i + 1] : string.Empty);
 
                 if (window.Contains(" when ", StringComparison.Ordinal)
@@ -107,7 +112,7 @@ public sealed class CatchDisciplineTests
         Assert.Equal([], larges.Order());
     }
 
-    /// <summary>Le corps du bloc, jusqu'à son accolade fermante.</summary>
+    /// <summary>The body of the block, up to its closing brace.</summary>
     private static string Body(string[] lines, int at)
     {
         var indent = lines[at].Length - lines[at].TrimStart().Length;

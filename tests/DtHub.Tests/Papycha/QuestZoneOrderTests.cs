@@ -22,8 +22,8 @@ public class QuestZoneOrderTests
     [InlineData("Autres quêtes")]
     public void Sans_article_le_mot_fait_partie_du_nom(string nom)
     {
-        // « Quêtes principales » ne désigne pas un endroit mais une sorte de
-        // quête : en retirer le premier mot ne laisserait rien de sensé.
+        // "Quêtes principales" does not name a place but a kind of
+        // quest: removing the first word would leave nothing sensible.
         Assert.Equal(nom, QuestZoneOrder.DisplayName(nom));
     }
 
@@ -73,8 +73,9 @@ public class QuestZoneOrderTests
     [Fact]
     public void Une_zone_inconnue_se_range_en_fin_de_progression_pas_au_milieu()
     {
-        // Le site peut en ajouter : une nouveauté doit se voir sans dérégler ce
-        // qui la précède, et sans tomber dans le supplément.
+        // The site can add more: a newcomer must show up without
+        // disturbing what precedes it, and without falling into the
+        // extras.
         var rang = QuestZoneOrder.RankOf("Île de Nulle Part");
 
         Assert.Equal(QuestZoneOrder.UnknownRank, rang);
@@ -102,8 +103,8 @@ public class QuestZoneOrderTests
     [Fact]
     public void Les_quetes_principales_ouvrent_la_progression_sans_etre_un_lieu()
     {
-        // Elles précèdent tout, y compris la zone de départ, mais ne désignent
-        // pas un endroit : c'est un fil qui traverse toutes les zones.
+        // They precede everything, including the starting zone, but do
+        // not name a place: it is a thread running through every zone.
         Assert.False(QuestZoneOrder.IsExtra("Quêtes principales"));
         Assert.True(QuestZoneOrder.RankOf("Quêtes principales") < QuestZoneOrder.RankOf("Albuera"));
         Assert.False(QuestZoneOrder.IsPlace("Quêtes principales"));

@@ -3,9 +3,9 @@
 namespace DtHub.Tests.Windows;
 
 /// <summary>
-/// Le partage de l'écran en deux moitiés. Sorti du service pour que le cadre à
-/// onglets puisse être rangé comme une fenêtre de jeu : le service ne connaît
-/// que des sessions, et le cadre n'en est pas une.
+/// Splitting the screen into two halves. Pulled out of the service
+/// so that the tabbed frame can be docked like a game window: the
+/// service only knows about sessions, and the frame is not one.
 /// </summary>
 public class TileLayoutTests
 {
@@ -45,8 +45,8 @@ public class TileLayoutTests
     [Fact]
     public void Une_source_tres_haute_ne_depasse_pas_la_zone()
     {
-        // Un rapport portrait demanderait une hauteur bien plus grande que la
-        // moitié n'est large : elle est bornée par la zone utile.
+        // A portrait ratio would demand a height far greater than
+        // the half is wide: it is bounded by the usable area.
         var rect = TileLayout.Half(Work, onRight: false, 9.0 / 16.0, (16, 48));
 
         Assert.Equal(Work.Height, rect.Height);

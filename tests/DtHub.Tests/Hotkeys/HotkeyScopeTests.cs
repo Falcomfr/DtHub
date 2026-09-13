@@ -3,9 +3,10 @@
 namespace DtHub.Tests.Hotkeys;
 
 /// <summary>
-/// La règle qui empêche les raccourcis d'être globaux. C'est une promesse
-/// affichée dans le README, et elle n'avait aucun filet : une régression aurait
-/// confisqué Ctrl+Tab et Ctrl+R au navigateur sans que rien ne rougisse.
+/// The rule that keeps shortcuts from being global. It is a promise
+/// displayed in the README, and it had no safety net: a regression
+/// would have confiscated Ctrl+Tab and Ctrl+R from the browser
+/// without anything turning red.
 /// </summary>
 public class HotkeyScopeTests
 {
@@ -24,35 +25,35 @@ public class HotkeyScopeTests
     [Fact]
     public void Une_fenetre_etrangere_les_desarme()
     {
-        // Le cas qui compte : le navigateur au premier plan doit récupérer
-        // Ctrl+Tab.
+        // The case that matters: the browser in the foreground must
+        // get Ctrl+Tab back.
         Assert.False(HotkeyScope.Holds(9999, owner: 777, Deux, ours: false));
     }
 
     [Fact]
     public void Le_processus_suffit_quand_le_handle_n_est_pas_encore_resolu()
     {
-        // Une session fraîchement rouverte n'a pas encore son handle : sans
-        // cette voie, les raccourcis restaient éteints jusqu'à ce qu'on clique
-        // ailleurs puis de nouveau sur une fenêtre de jeu.
+        // A freshly reopened session does not yet have its handle:
+        // without this path, the shortcuts stayed off until you
+        // clicked elsewhere and then back on a game window.
         Assert.True(HotkeyScope.Holds(4321, owner: 43, Deux, ours: false));
     }
 
     [Fact]
     public void Un_processus_inconnu_ne_vaut_pas_reconnaissance()
     {
-        // Zéro veut dire « je n'ai pas pu savoir ». Le traiter comme une valeur
-        // ordinaire armerait les raccourcis sur n'importe quelle fenêtre dont
-        // le processus n'est pas lisible.
+        // Zero means "I could not tell." Treating it as an ordinary
+        // value would arm the shortcuts on any window whose process
+        // cannot be read.
         Assert.False(HotkeyScope.Holds(4321, owner: 0, [new(Handle: 1000, ProcessId: 0)], ours: false));
     }
 
     [Fact]
     public void Une_fenetre_a_nous_arme_les_raccourcis_sans_aucune_session()
     {
-        // Le configurateur, les guides, une page liée, ou le cadre à onglets.
-        // Ce dernier manquait : cliquer sur la barre d'onglets éteignait les
-        // douze raccourcis, Ctrl+P compris.
+        // The configurator, the guides, a linked page, or the tabbed
+        // frame. This last one was missing: clicking the tab bar
+        // used to turn off all 12 shortcuts, Ctrl+P included.
         Assert.True(HotkeyScope.Holds(5555, owner: 0, [], ours: true));
     }
 

@@ -7,7 +7,7 @@ public class QuestStepSummaryTests
     [Fact]
     public void Une_etape_verbeuse_se_ramene_a_ou_aller_et_a_qui_parler()
     {
-        // Texte relevé sur « Le guide du Roublard », étape 2.
+        // Text observed on "Le guide du Roublard", step 2.
         const string brut =
             "Pour lancer la quête, rendez vous au Château d’Amakna en [4,-6] "
             + "pour parler à Yse Vewibad :";
@@ -18,7 +18,8 @@ public class QuestStepSummaryTests
     [Fact]
     public void Une_etape_deja_courte_et_bien_tournee_est_gardee()
     {
-        // La recomposer perdrait « touchez la tombe », qui est l'essentiel.
+        // Recomposing it would lose "touchez la tombe" ("touch the
+        // grave"), which is the essential part.
         const string brut = "Rendez-vous en [0,-11], touchez la tombe du Chevalier de l’Automne.";
 
         Assert.Equal(brut, QuestStepSummary.Of(brut));
@@ -27,8 +28,8 @@ public class QuestStepSummaryTests
     [Fact]
     public void Le_nom_du_personnage_n_avale_pas_le_mot_suivant()
     {
-        // La capture s'arrête à la ponctuation, pas au sens : sans garde-fou
-        // elle rendait « Milicien Kâpon en ».
+        // The capture stops at punctuation, not at meaning: without a
+        // safeguard it used to render "Milicien Kâpon en".
         const string brut =
             "La quête se lance auprès du Milicien Kâpon en [-1,-12], dans le champs "
             + "du repos. Ce dernier vous invite à aller inspecter les tombes.";
@@ -39,8 +40,9 @@ public class QuestStepSummaryTests
     [Fact]
     public void Une_etape_sans_repere_garde_sa_premiere_phrase()
     {
-        // Une étape narrative ne se résume pas. Ne rien afficher laisserait
-        // croire qu'il n'y a rien à faire : on garde la première phrase.
+        // A narrative step cannot be summarized. Showing nothing would
+        // suggest there is nothing to do: the first sentence is kept
+        // instead.
         const string brut =
             "Vous vous penchez pour ramasser l’objet égaré qui brille entre les hautes "
             + "herbes. II s’agit d’un long couteau sacrificiel couvert de boue.";
@@ -76,8 +78,9 @@ public class QuestStepSummaryTests
     [InlineData(null, "Maire Cantile", "Parlez à Maire Cantile.")]
     public void Le_depart_se_compose_des_metadonnees(string? position, string? qui, string attendu)
     {
-        // Bien plus sûr que la lecture de la prose : le site renseigne la
-        // position sur 687 quêtes sur 782 et le personnage sur 693.
+        // Much more reliable than reading the prose: the site fills in
+        // the position on 687 out of 782 quests and the character on
+        // 693.
         Assert.Equal(attendu, QuestStepSummary.OfStart(position, qui));
     }
 
@@ -92,12 +95,13 @@ public class QuestStepSummaryTests
         System.Globalization.CultureInfo.InvariantCulture;
 
     // ------------------------------------------------------------------
-    // Le nom capturé déborde : seize cas sur dix-huit relevés sur le site.
+    // The captured name overflows: sixteen cases out of eighteen
+    // observed on the site.
     // ------------------------------------------------------------------
 
     [Theory]
-    // Aucune ponctuation ne borne le nom, et la capture prenait la fin de la
-    // phrase, coupée net au quarantième caractère.
+    // No punctuation bounds the name, and the capture used to take the
+    // rest of the sentence, cut off sharply at the fortieth character.
     [InlineData(
         "La quête se lance à la suite de la quête précédente en récupérant la panoplie "
         + "honorifique d’Albuera auprès du Grand jarl Ordyn et en vous mettant en route "
@@ -133,7 +137,7 @@ public class QuestStepSummaryTests
     }
 
     // ------------------------------------------------------------------
-    // Les amorces relevées sur le site, et celles qu'on refuse.
+    // The lead-ins observed on the site, and the ones that are refused.
     // ------------------------------------------------------------------
 
     [Theory]
@@ -157,8 +161,9 @@ public class QuestStepSummaryTests
         Assert.Equal(attendu, QuestStepSummary.Of(brut));
 
     [Theory]
-    // « à » suivi d'une majuscule annonce aussi bien un lieu : les accepter
-    // ferait passer Astrub pour quelqu'un à qui l'on parle.
+    // "à" followed by a capital letter can just as well introduce a
+    // place: accepting them would make Astrub look like someone you
+    // talk to.
     [InlineData(
         "Le bateau vous emmène à Astrub, où vous attend la suite de votre voyage, et "
         + "vous y débarquez sans avoir besoin de rien préparer de particulier.")]
@@ -169,11 +174,11 @@ public class QuestStepSummaryTests
         Assert.DoesNotContain("parlez à", QuestStepSummary.Of(brut), StringComparison.OrdinalIgnoreCase);
 
     // ------------------------------------------------------------------
-    // Aucune sortie ne finit au milieu d'un mot.
+    // No output ever ends in the middle of a word.
     // ------------------------------------------------------------------
 
     // ------------------------------------------------------------------
-    // Le départ, composé des métadonnées du site.
+    // The start, composed from the site's metadata.
     // ------------------------------------------------------------------
 
     [Fact]
@@ -195,8 +200,8 @@ public class QuestStepSummaryTests
             QuestStepSummary.OfStart(null, "l’Agent de la compagnie Asfog et Fils"));
 
     [Theory]
-    // Relevé dans le catalogue : deux quêtes sur six cent quatre-vingt-treize
-    // logent une phrase là où le site attend un nom.
+    // Observed in the catalog: two quests out of six hundred ninety-three
+    // put a sentence where the site expects a name.
     [InlineData("bateau pour vous rendre au village d’Albuera.")]
     [InlineData("clef secrète des crocs de verre")]
     public void Ce_qui_n_est_pas_un_nom_propre_ne_devient_pas_un_personnage(string brut) =>
@@ -209,8 +214,8 @@ public class QuestStepSummaryTests
     [Fact]
     public void Un_nom_ne_depasse_pas_six_mots()
     {
-        // Sans plafond, une suite de mots capitalisés sans ponctuation ferait
-        // un nom aussi long que la phrase.
+        // Without a cap, a run of capitalized words with no punctuation
+        // would make a name as long as the sentence.
         const string brut =
             "Une fois arrivé sur place, parlez à Yse Vewibad Lamarcheuse Deschemins "
             + "Latroisieme Duroyaume Deladouzieme Contree Lointaine";
@@ -223,8 +228,8 @@ public class QuestStepSummaryTests
     [Fact]
     public void Un_resume_trop_long_est_coupe_a_un_mot_entier()
     {
-        // Aucune amorce, aucune coordonnée : c'est la première phrase qui sert,
-        // et elle dépasse le plafond.
+        // No lead-in, no coordinates: it is the first sentence that is
+        // used, and it goes past the cap.
         const string brut =
             "La quête consiste à parcourir toute la zone en ramassant les éclats de "
             + "cristal semés par la tempête, puis à les rapporter avant la tombée de la "
@@ -234,7 +239,7 @@ public class QuestStepSummaryTests
 
         Assert.EndsWith("…", resume, StringComparison.Ordinal);
 
-        // Le dernier morceau conservé est un mot entier du texte d'origine.
+        // The last piece kept is a whole word from the original text.
         var dernier = resume.TrimEnd('…').TrimEnd().Split(' ')[^1];
 
         Assert.Contains(dernier, brut, StringComparison.Ordinal);

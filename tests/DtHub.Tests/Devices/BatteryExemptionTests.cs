@@ -7,10 +7,11 @@ public class BatteryExemptionTests
     private const string Package = "com.ankama.dofustouch";
 
     /// <summary>
-    /// Extrait du relevé du Xiaomi 13T Pro, Android 16,
-    /// <c>adb shell dumpsys deviceidle whitelist</c>. La dernière ligne est
-    /// celle que pose l'utilisateur en retirant le jeu des restrictions ;
-    /// les autres viennent du système et sont là sur tous les appareils.
+    /// Excerpt from the capture on the Xiaomi 13T Pro, Android 16,
+    /// <c>adb shell dumpsys deviceidle whitelist</c>. The last line is
+    /// the one the user creates by removing the game from
+    /// restrictions; the others come from the system and are present
+    /// on every device.
     /// </summary>
     private const string Prepare = """
         system-excidle,com.microsoft.appmanager,10154
@@ -21,9 +22,9 @@ public class BatteryExemptionTests
         """;
 
     /// <summary>
-    /// Extrait du relevé du Mi 9T Pro, Android 11, le même jour : quarante
-    /// quatre entrées système et pas une pour le jeu. C'est l'appareil qui se
-    /// déconnecte.
+    /// Excerpt from the capture on the Mi 9T Pro, Android 11, the
+    /// same day: 44 system entries and not one for the game. This is
+    /// the device that disconnects.
     /// </summary>
     private const string Neglige = """
         system-excidle,com.google.android.youtube,10195
@@ -48,8 +49,8 @@ public class BatteryExemptionTests
     [Fact]
     public void L_origine_de_l_exemption_ne_change_rien()
     {
-        // Système ou utilisateur, l'exemption protège de la même façon. Ce
-        // qui compte est que le jeu y soit.
+        // System or user, the exemption protects the same way. What
+        // matters is that the game is in there.
         var systeme = Prepare.Replace(
             "user,com.ankama.dofustouch",
             "system-excidle,com.ankama.dofustouch",
@@ -61,8 +62,8 @@ public class BatteryExemptionTests
     [Fact]
     public void Un_paquet_qui_ressemble_ne_compte_pas()
     {
-        // Le nom entier ou rien : une comparaison par préfixe ferait passer
-        // une autre application d'Ankama pour le jeu.
+        // The whole name or nothing: a prefix comparison would let
+        // another Ankama application pass for the game.
         var voisin = Neglige + "\nuser,com.ankama.dofustouch.beta,10476";
 
         Assert.False(BatteryExemption.Covers(voisin, Package));
@@ -75,9 +76,10 @@ public class BatteryExemptionTests
     [InlineData("Error: unknown command 'whitelist'")]
     public void Une_reponse_qui_ne_dit_rien_ne_rend_rien(string? whitelist)
     {
-        // Tous les appareils vus portent des dizaines d'entrées système :
-        // une liste vide dit que la commande a échoué, pas que rien n'est
-        // exempté. Alarmer là-dessus serait alarmer sur une ignorance.
+        // Every device seen carries dozens of system entries: an
+        // empty list says the command failed, not that nothing is
+        // exempted. Raising an alarm over that would be raising an
+        // alarm over not knowing.
         Assert.Null(BatteryExemption.Covers(whitelist, Package));
     }
 

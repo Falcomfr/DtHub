@@ -5,10 +5,11 @@ using DtHub.Tests.Fakes;
 namespace DtHub.Tests.Papycha;
 
 /// <summary>
-/// Les branches de la liste des guides. Ces règles vivaient dans la vue-modèle
-/// de la fenêtre, donc dans le seul projet qu'aucune épreuve n'atteint : elles
-/// décidaient de l'ordre, des intertitres et des comptes sans que rien ne les
-/// vérifie. C'est ce que l'extraction rend possible.
+/// The branches of the guides list. These rules used to live in the
+/// window's view model, that is, in the only project no test can
+/// reach: they decided the order, the subheadings, and the counts
+/// without anything verifying them. This is what the extraction
+/// makes possible.
 /// </summary>
 public class QuestTreeTests
 {
@@ -46,8 +47,8 @@ public class QuestTreeTests
         Assert.All(root, n => Assert.Equal(QuestNodeKind.Branch, n.Kind));
         Assert.Contains("2", root[0].Detail, StringComparison.Ordinal);
 
-        // Les identifiants des branches inventées sont négatifs, hors de portée
-        // des catégories du site, qui sont positives.
+        // The identifiers of invented branches are negative, out of
+        // reach of the site's categories, which are positive.
         Assert.Equal(QuestTree.RootSection, root[0].Id);
         Assert.All(root.Skip(1), n => Assert.True(n.Id < 0));
     }
@@ -85,8 +86,9 @@ public class QuestTreeTests
     [Fact]
     public async Task Une_zone_sans_quete_ne_donne_pas_de_branche()
     {
-        // Le décompte fait foi, et non la liste des rubriques du site : une
-        // catégorie vide ferait une branche qui ne mène nulle part.
+        // The count is authoritative, not the site's list of
+        // sections: an empty category would make a branch that
+        // leads nowhere.
         var (tree, _) = await BuildAsync(new FakePapychaClient()
             .WithQuest(1, "Le dragon d'Astrub", 18)
             .WithSection(18, "Astrub")
@@ -115,8 +117,8 @@ public class QuestTreeTests
         Assert.NotNull(titre);
         Assert.Contains("Devenir une légende", titre.Label, StringComparison.Ordinal);
 
-        // Le décalage dit l'appartenance : une quête au ras de la marge n'est
-        // réclamée par aucun succès.
+        // The indent conveys membership: a quest flush with the
+        // margin is not claimed by any achievement.
         Assert.All(
             lignes.Where(n => n.Kind == QuestNodeKind.Quest),
             n => Assert.True(n.InSuccess));
@@ -171,9 +173,9 @@ public class QuestTreeTests
     [InlineData(QuestTree.LairSection, "Lairs")]
     public async Task Une_branche_hors_du_site_porte_son_propre_nom(int section, string clef)
     {
-        // Le repli les nommait toutes « Rubrique » : un signalement sur le
-        // Minotoror portait « Rubrique › Minotoror » et ne disait donc pas où
-        // regarder.
+        // The fallback used to name them all "Rubrique" ("Section"): a
+        // report about the Minotoror carried "Rubrique › Minotoror"
+        // and therefore did not say where to look.
         var (tree, _) = await BuildAsync(new FakePapychaClient());
 
         Assert.Equal(Strings.Get(clef), tree.NameOf(section));

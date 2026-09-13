@@ -5,9 +5,10 @@ namespace DtHub.Tests.Devices;
 public class BatteryReadingTests
 {
     /// <summary>
-    /// Relevé au caractère près sur le Xiaomi 13T Pro, Android 16,
-    /// <c>adb shell dumpsys battery</c>. Les lignes intercalaires longues sont
-    /// gardées : ce sont elles qui piègent une analyse trop pressée.
+    /// Captured character for character on the Xiaomi 13T Pro, Android
+    /// 16, <c>adb shell dumpsys battery</c>. The long in-between lines
+    /// are kept: they are the ones that trip up a parser that is too
+    /// hasty.
     /// </summary>
     private const string Releve = """
         Current Battery Service state:
@@ -63,8 +64,8 @@ public class BatteryReadingTests
     [Fact]
     public void Un_appareil_plein_sur_secteur_est_en_charge()
     {
-        // C'est l'état relevé quand le téléphone reste branché : « status: 5 »
-        // et la prise mise.
+        // This is the state observed when the phone stays plugged in:
+        // "status: 5" with the power source flag set.
         var plein = Releve
             .Replace("status: 3", "status: 5", StringComparison.Ordinal)
             .Replace("AC powered: false", "AC powered: true", StringComparison.Ordinal)
@@ -91,9 +92,9 @@ public class BatteryReadingTests
     [Fact]
     public void Un_appareil_branche_ne_dit_rien_meme_a_trois_pour_cent()
     {
-        // Ce qui compte n'est pas le niveau, c'est le niveau qui baisse. Un
-        // bandeau qui alerte alors que la prise est mise parle pour ne rien
-        // dire, et on cesse de le lire.
+        // What matters is not the level, it is the level dropping. A
+        // banner that warns while the phone is plugged in speaks for
+        // nothing, and people stop reading it.
         var branche = Releve
             .Replace("level: 64", "level: 3", StringComparison.Ordinal)
             .Replace("AC powered: false", "AC powered: true", StringComparison.Ordinal);
@@ -127,11 +128,12 @@ public class BatteryReadingTests
     [Fact]
     public void Un_etat_numerique_qui_traine_ne_fait_pas_croire_a_une_prise()
     {
-        // Relevé au caractère près sur le Mi 9T Pro, Android 11, après un
-        // « dumpsys battery unplug » : les quatre prises sont à faux et
-        // « status: 2 » dit pourtant la charge. C'est l'état numérique qui
-        // traîne, et le croire revenait à taire l'alerte d'un téléphone
-        // débranché à quinze pour cent.
+        // Captured character for character on the Mi 9T Pro, Android 11,
+        // after a "dumpsys battery unplug": all four power source flags
+        // are false, and yet "status: 2" says it is charging. This is
+        // the numeric state lagging behind, and trusting it amounted to
+        // silencing the warning for a phone unplugged at fifteen
+        // percent.
         const string releve = """
             Current Battery Service state:
               (UPDATES STOPPED -- use 'reset' to restart)
@@ -161,8 +163,9 @@ public class BatteryReadingTests
     [Fact]
     public void Un_appareil_qui_ne_dit_aucune_prise_retombe_sur_l_etat_numerique()
     {
-        // Toutes les ROM vues écrivent les lignes de prise, mais rien ne
-        // l'impose : sans elles, l'état numérique reste la seule source.
+        // Every ROM seen so far writes the power source lines, but
+        // nothing forces it: without them, the numeric state remains
+        // the only source.
         const string releve = """
             Current Battery Service state:
               status: 2
@@ -186,9 +189,9 @@ public class BatteryReadingTests
         bool charging,
         HealthSeverity? concern)
     {
-        // Le bandeau et la couleur de la jauge lisent tous deux ce palier :
-        // s'ils divergeaient, un téléphone pourrait crier en rouge sans qu'un
-        // mot l'explique, ou l'inverse.
+        // The banner and the gauge color both read this concern level:
+        // if they diverged, a phone could scream red without a single
+        // word explaining it, or the other way round.
         var releve = Releve.Replace("level: 64", "level: " + level, StringComparison.Ordinal);
 
         if (charging)
@@ -200,8 +203,8 @@ public class BatteryReadingTests
 
         Assert.Equal(concern, battery!.Concern);
 
-        // Les deux vont ensemble, toujours : un palier sans message serait une
-        // couleur sans explication.
+        // The two always go together: a concern level with no message
+        // would be a color with no explanation.
         Assert.Equal(concern is not null, battery.Describe() is not null);
     }
 
@@ -217,8 +220,8 @@ public class BatteryReadingTests
     [Fact]
     public void La_phrase_du_niveau_dit_la_charge()
     {
-        // C'est tout l'intérêt de la bulle : un téléphone à douze pour cent
-        // qui n'avertit de rien doit pouvoir dire pourquoi.
+        // This is the whole point of the tooltip: a phone at twelve
+        // percent that raises no warning must be able to say why.
         var bas = Releve.Replace("level: 64", "level: 12", StringComparison.Ordinal);
         var branche = bas.Replace("AC powered: false", "AC powered: true", StringComparison.Ordinal);
 
@@ -232,8 +235,9 @@ public class BatteryReadingTests
     [Fact]
     public void Une_echelle_qui_n_est_pas_cent_est_respectee()
     {
-        // Elle vaut cent partout où on l'a vue, mais elle est déclarée : s'en
-        // remettre à cent serait supposer ce que l'appareil dit déjà.
+        // It equals a hundred everywhere it has been observed, but it is
+        // declared explicitly: relying on a hundred would mean assuming
+        // what the device already states.
         var releve = Releve
             .Replace("level: 64", "level: 128", StringComparison.Ordinal)
             .Replace("scale: 100", "scale: 255", StringComparison.Ordinal);
@@ -274,9 +278,10 @@ public class BatteryReadingTests
     [Fact]
     public void Un_second_appareil_se_lit_aussi()
     {
-        // Relevé au caractère près sur un Mi 9T Pro sous Android 11, qui
-        // n'écrit pas la même chose que le 13T Pro : pas de ligne « Dock
-        // powered », et l'appareil est en charge à vingt pour cent.
+        // Captured character for character on a Mi 9T Pro running
+        // Android 11, which does not write the same thing as the 13T
+        // Pro: no "Dock powered" line, and the device is charging at
+        // twenty percent.
         const string releve = """
             Current Battery Service state:
               AC powered: true
@@ -294,9 +299,9 @@ public class BatteryReadingTests
         Assert.Equal(20, battery!.Percent);
         Assert.Equal(36.2, battery.Celsius);
 
-        // Vingt pour cent est le seuil, mais l'appareil est branché : il n'a
-        // rien à dire. C'est la règle qui compte, éprouvée sur un vrai
-        // appareil à un vrai niveau bas.
+        // Twenty percent is the threshold, but the device is plugged
+        // in: it has nothing to say. This is the rule that matters,
+        // exercised on a real device at a real low level.
         Assert.True(battery.Charging);
         Assert.False(battery.IsLow);
         Assert.Null(battery.Describe());

@@ -3,33 +3,34 @@
 namespace DtHub.Tests.Conventions;
 
 /// <summary>
-/// Aucune phrase destinée à l'écran ne doit être écrite en dur dans une
-/// vue-modèle.
+/// No sentence meant for the screen may be hard-coded in a view model.
 ///
-/// Une phrase française posée directement dans le code ne casse rien et ne se
-/// voit pas : elle s'affiche telle quelle, en français, à un anglophone comme
-/// à un hispanophone. Un audit en a trouvé neuf, dont « Connexion en cours… »,
-/// « Compte {n} », les trois cadences du réglage de qualité et le titre de la
-/// boîte « Ajouter un compte », qui avait pourtant déjà sa clé de traduction.
+/// A French sentence placed directly in the code breaks nothing and does
+/// not show up as an error: it just displays as is, in French, to an
+/// English speaker as much as to a Spanish speaker. An audit found nine
+/// of them, including "Connexion en cours..." ("Connecting..."), "Compte
+/// {n}" ("Account {n}"), the three frame-rate labels of the quality
+/// setting, and the title of the "Ajouter un compte" ("Add an account")
+/// box, which already had its own translation key.
 ///
-/// **Le contrôle ne cherche pas les accents.** C'était la première idée, et
-/// elle laissait passer cinq des neuf : « Connexion en cours » n'en porte
-/// aucun. Il cherche donc les phrases, c'est-à-dire deux mots ou plus hors des
-/// trous de format. Un identifiant, un nom de fichier, une adresse ou une
-/// chaîne d'interpolation n'en font pas deux.
+/// **The check does not look for accented letters.** That was the first
+/// idea, and it let five of the nine through: "Connexion en cours"
+/// carries none. It looks for sentences instead, meaning two words or
+/// more outside the format holes. An identifier, a file name, an
+/// address, or an interpolated string do not count as two.
 ///
-/// Les vues-modèles seules : c'est là que le texte destiné à l'écran se
-/// fabrique. Ailleurs, le français est voulu, dans les journaux, le rapport de
-/// diagnostic et les fautes de programmation, et un contrôle qui ratisserait
-/// tout le dépôt s'y noierait.
+/// View models only: that is where text meant for the screen is built.
+/// Elsewhere, French is intentional, in the logs, the diagnostic report,
+/// and programming mistakes, and a check that swept the whole repository
+/// would drown in it.
 /// </summary>
 public partial class DisplayedTextTests
 {
     /// <summary>
-    /// Ce qui est fait de deux mots sans être une phrase.
+    /// What is made of two words without being a sentence.
     ///
-    /// Le format de date se lit comme du texte mais s'adresse à
-    /// <c>ToString</c>, et c'est la culture affichée qui le traduit.
+    /// The date format reads like text but is meant for <c>ToString</c>,
+    /// and it is the displayed culture that translates it.
     /// </summary>
     private static readonly string[] Tolerees = ["MMMM yyyy", "Français", "Español"];
 
@@ -50,11 +51,12 @@ public partial class DisplayedTextTests
             {
                 var line = lines[i].Trim();
 
-                // Les modèles de journal restent en français : ils ne sont
-                // lus que par nous, et une ressource les alourdirait pour
-                // rien. Leur texte tient souvent sur la ligne suivante, d'où
-                // le suivi jusqu'à la fermeture plutôt qu'un contrôle ligne à
-                // ligne, qui laissait passer un appel écrit sur trois lignes.
+                // Log templates stay in French: only we ever read them,
+                // and a resource would needlessly weigh them down. Their
+                // text often sits on the following line, hence tracking
+                // through to the closing token rather than a line by
+                // line check, which used to let a call written across
+                // three lines slip through.
                 if (line.Contains("[LoggerMessage", StringComparison.Ordinal)
                     || line.Contains("Log.", StringComparison.Ordinal))
                 {
@@ -96,7 +98,9 @@ public partial class DisplayedTextTests
     [GeneratedRegex(@"""(?:[^""\\]|\\.)*""")]
     private static partial Regex Litteral();
 
-    /// <summary>Un trou de format ne compte pas : il ne se traduit pas.</summary>
+    /// <summary>
+    /// A format hole does not count: it is not translated.
+    /// </summary>
     [GeneratedRegex(@"\{[^}]*\}")]
     private static partial Regex Trou();
 

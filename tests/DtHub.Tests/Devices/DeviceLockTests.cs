@@ -5,10 +5,11 @@ namespace DtHub.Tests.Devices;
 public class DeviceLockTests
 {
     /// <summary>
-    /// Relevé au caractère près sur le Mi 9T Pro, Android 11,
-    /// <c>adb shell dumpsys trust</c>, téléphone verrouillé. La seconde ligne
-    /// est le profil professionnel : il n'a pas d'état de verrouillage, et
-    /// c'est lui qui piège une analyse qui prendrait la première ligne venue.
+    /// Captured character-for-character on the Mi 9T Pro, Android 11,
+    /// <c>adb shell dumpsys trust</c>, phone locked. The second line
+    /// is the work profile: it has no lock state, and it is the one
+    /// that traps an analysis that would take the first line it
+    /// finds.
     /// </summary>
     private const string Verrouille = """
         Trust manager state:
@@ -26,8 +27,8 @@ public class DeviceLockTests
     [Fact]
     public void Un_telephone_deverrouille_se_lit()
     {
-        // Même appareil, après déverrouillage à la main : c'est l'état où la
-        // fenêtre montre le jeu au lieu du cadenas.
+        // Same device, after manual unlocking: this is the state
+        // where the window shows the game instead of the lock icon.
         var ouvert = Verrouille.Replace("deviceLocked=1", "deviceLocked=0", StringComparison.Ordinal);
 
         Assert.False(DeviceLock.IsLocked(ouvert));
@@ -36,8 +37,9 @@ public class DeviceLockTests
     [Fact]
     public void L_utilisateur_courant_l_emporte()
     {
-        // Un appareil peut décrire plusieurs utilisateurs complets. Celui qui
-        // compte est celui qui est devant, et lui seul porte « (current) ».
+        // A device can describe several full users. The one that
+        // counts is the one in front, and only it carries
+        // "(current)".
         const string plusieurs = """
             Trust manager state:
              User "Second" (id=11, flags=0x410): trusted=0, trustManaged=0, deviceLocked=1, strongAuthRequired=0x0
@@ -50,8 +52,8 @@ public class DeviceLockTests
     [Fact]
     public void Sans_utilisateur_courant_la_premiere_reponse_sert()
     {
-        // Une surcouche qui n'écrirait pas « (current) » ne doit pas rendre le
-        // contrôle muet : une réponse partielle vaut mieux qu'aucune.
+        // An overlay that would not write "(current)" must not make
+        // the check silent: a partial answer is better than none.
         const string sansMarque = """
             Trust manager state:
              User "Propriétaire" (id=0, flags=0xc13): trusted=0, deviceLocked=1, strongAuthRequired=0x0
@@ -69,8 +71,8 @@ public class DeviceLockTests
     [InlineData(" User \"Compte 2\" (id=10, flags=0x1030)(managed profile)")]
     public void Une_reponse_qui_ne_dit_rien_ne_rend_rien(string? dumpsys)
     {
-        // Ne pas savoir n'est pas une raison d'alarmer : l'avertissement du
-        // cadenas ne se lève que sur un verrouillage constaté.
+        // Not knowing is not a reason to alarm: the lock warning only
+        // rises on an observed lock.
         Assert.Null(DeviceLock.IsLocked(dumpsys));
     }
 }

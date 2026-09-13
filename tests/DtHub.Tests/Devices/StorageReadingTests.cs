@@ -5,7 +5,7 @@ namespace DtHub.Tests.Devices;
 public class StorageReadingTests
 {
     /// <summary>
-    /// Relevé au caractère près sur le Xiaomi 13T Pro, Android 16,
+    /// Captured character for character on the Xiaomi 13T Pro, Android 16,
     /// <c>adb shell df /data</c>.
     /// </summary>
     private const string Releve = """
@@ -26,8 +26,9 @@ public class StorageReadingTests
     [Fact]
     public void Un_volume_dont_le_nom_porte_un_espace_ne_decale_rien()
     {
-        // La colonne se compte depuis la droite pour cette raison : compter
-        // depuis la gauche décalerait tout dès qu'un nom contient un espace.
+        // The column is counted from the right for this reason:
+        // counting from the left would shift everything as soon as a
+        // name contains a space.
         const string releve = """
             Filesystem       1K-blocks      Used Available Use% Mounted on
             /dev/block/mon volume 485636064 171563720 313535476  36% /data/user/0
@@ -92,7 +93,7 @@ public class StorageReadingTests
     [Fact]
     public void Un_second_appareil_se_lit_aussi()
     {
-        // Mi 9T Pro sous Android 11 : un autre volume, un autre remplissage.
+        // Mi 9T Pro on Android 11: a different volume, a different fill level.
         const string releve = """
             Filesystem       1K-blocks     Used Available Use% Mounted on
             /dev/block/sda31 114192940 96885540  17159944  85% /data/user/0

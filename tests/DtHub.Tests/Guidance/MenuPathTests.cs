@@ -5,10 +5,9 @@ namespace DtHub.Tests.Guidance;
 public sealed class MenuPathTests
 {
     /// <summary>
-    /// Le vrai chemin d'un Xiaomi. Quatre segments donnent trois écrans : on
-    /// est dans « Paramètres » et l'on y touche « Applications », et ainsi de
-    /// suite. Le dernier segment est la ligne du dernier écran, non un écran
-    /// vide de plus.
+    /// The real path of a Xiaomi. Four segments give three screens: you are in
+    /// "Paramètres" ("Settings") and tap "Applications" there, and so on. The
+    /// last segment is the row of the last screen, not one more empty screen.
     /// </summary>
     [Fact]
     public void Un_chemin_donne_un_ecran_de_moins_que_de_segments()
@@ -34,8 +33,8 @@ public sealed class MenuPathTests
         Assert.Empty(MenuPath.Screens(path));
 
     /// <summary>
-    /// Un seul segment : l'écran où se rendre, sans ligne à toucher. Inventer
-    /// une ligne montrerait quelque chose que la fiche ne dit pas.
+    /// A single segment: the screen to go to, with no row to tap. Inventing a
+    /// row would show something the guide sheet does not say.
     /// </summary>
     [Fact]
     public void Un_seul_libelle_donne_un_ecran_sans_ligne()
@@ -47,8 +46,8 @@ public sealed class MenuPathTests
     }
 
     /// <summary>
-    /// Une virgule dans un libellé n'est pas un séparateur : « À propos du
-    /// téléphone, ou de la tablette » est une seule ligne de menu.
+    /// A comma inside a label is not a separator: "À propos du téléphone, ou
+    /// de la tablette" ("About phone, or tablet") is a single menu row.
     /// </summary>
     [Fact]
     public void Une_virgule_ne_coupe_pas_un_libelle()
@@ -61,8 +60,8 @@ public sealed class MenuPathTests
     }
 
     /// <summary>
-    /// L'illustration doit se redessiner à l'identique : elle bougerait sinon
-    /// sous les yeux de qui rouvre la fenêtre.
+    /// The illustration must redraw identically: otherwise it would shift
+    /// before the eyes of whoever reopens the window.
     /// </summary>
     [Fact]
     public void Le_dessin_est_le_meme_a_chaque_lecture()
@@ -81,8 +80,8 @@ public sealed class MenuPathTests
             s => Assert.InRange(s.Row, 0, MenuPath.Rows - 1));
 
     /// <summary>
-    /// Deux écrans de suite dont la ligne est à la même hauteur donnent une
-    /// image qui semble figée.
+    /// Two consecutive screens whose row sits at the same height give an image
+    /// that looks frozen.
     /// </summary>
     [Fact]
     public void Deux_ecrans_voisins_ne_se_ressemblent_pas()
@@ -96,9 +95,9 @@ public sealed class MenuPathTests
     }
 
     /// <summary>
-    /// La hauteur suit la ligne à toucher, et non l'écran : c'est elle qu'on
-    /// cherche des yeux, et elle doit se retrouver au même endroit d'une fiche
-    /// à l'autre.
+    /// The height follows the row to tap, not the screen: it is what the eye
+    /// looks for, and it must land in the same place from one guide sheet to
+    /// the next.
     /// </summary>
     [Fact]
     public void La_hauteur_suit_la_ligne_et_non_l_ecran()
@@ -110,8 +109,8 @@ public sealed class MenuPathTests
     }
 
     /// <summary>
-    /// Un dessin qui bouge à chaque ouverture serait pire que des barres
-    /// toutes égales : le même écran doit se rendre pareil.
+    /// A drawing that shifts on every opening would be worse than bars that
+    /// are all equal: the same screen must render the same way.
     /// </summary>
     [Fact]
     public void L_habillage_ne_bouge_pas_d_une_lecture_a_l_autre()
@@ -141,8 +140,8 @@ public sealed class MenuPathTests
     }
 
     /// <summary>
-    /// Cinq lignes rigoureusement identiques se verraient : ni les longueurs
-    /// ni les teintes ne le sont.
+    /// Five perfectly identical rows would stand out: neither the lengths nor
+    /// the tints are identical.
     /// </summary>
     [Fact]
     public void Les_lignes_d_un_meme_ecran_ne_se_ressemblent_pas_toutes()
@@ -157,9 +156,9 @@ public sealed class MenuPathTests
     }
 
     /// <summary>
-    /// Un écran de navigation ne porte pas quatre bascules. Il en porte une,
-    /// exactement : assez pour que la liste ressemble à des réglages, pas assez
-    /// pour qu'elle ressemble à un tableau de bord.
+    /// A navigation screen does not carry four toggles. It carries exactly
+    /// one: enough for the list to look like settings, not enough for it to
+    /// look like a dashboard.
     /// </summary>
     [Theory]
     [InlineData("Paramètres")]
@@ -179,7 +178,8 @@ public sealed class MenuPathTests
     }
 
     /// <summary>
-    /// Ni tous les réglages ni aucun n'annoncent leur état sous leur nom.
+    /// Neither all the settings nor none of them announce their state under
+    /// their name.
     /// </summary>
     [Fact]
     public void Les_sous_titres_restent_minoritaires()

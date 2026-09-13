@@ -16,8 +16,9 @@ public sealed class QuestLevelRangeTests
         Assert.Null(QuestLevelRange.Of([]));
 
     /// <summary>
-    /// Deux niveaux sur vingt-trois quêtes ne disent pas la plage de la zone :
-    /// mieux vaut ne rien dire que dire à peu près.
+    /// Two levels out of twenty-three quests do not tell the zone's
+    /// range: better to say nothing than to say something
+    /// approximate.
     /// </summary>
     [Fact]
     public void Trop_peu_de_niveaux_ne_disent_pas_la_plage() =>
@@ -25,8 +26,8 @@ public sealed class QuestLevelRangeTests
             [Quete(20), Quete(30), .. Enumerable.Range(0, 21).Select(_ => Quete())]));
 
     /// <summary>
-    /// Sauf quand elles le portent toutes : une zone de deux quêtes renseignées
-    /// dit une plage juste.
+    /// Except when all of them carry it: a zone with two quests
+    /// that have a level reported tells an accurate range.
     /// </summary>
     [Fact]
     public void Deux_quetes_toutes_renseignees_disent_leur_plage() =>
@@ -41,8 +42,8 @@ public sealed class QuestLevelRangeTests
         Assert.Equal("niveau 20 - 60", QuestLevelRange.Of([Quete(20), Quete(40), Quete(60)]));
 
     /// <summary>
-    /// Une plage partielle rappelle sur combien de quêtes elle repose : sans
-    /// cela elle se lirait comme la plage de toute la zone.
+    /// A partial range reminds how many quests it is based on:
+    /// without that it would read as the range of the whole zone.
     /// </summary>
     [Fact]
     public void Une_plage_partielle_dit_sur_combien() =>

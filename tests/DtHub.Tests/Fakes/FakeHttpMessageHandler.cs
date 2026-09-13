@@ -2,7 +2,9 @@
 
 namespace DtHub.Tests.Fakes;
 
-/// <summary>Sert une réponse fixe et compte les requêtes réellement émises.</summary>
+/// <summary>
+/// Serves a fixed response and counts the requests actually sent.
+/// </summary>
 public sealed class FakeHttpMessageHandler : HttpMessageHandler
 {
     private readonly byte[] _content;

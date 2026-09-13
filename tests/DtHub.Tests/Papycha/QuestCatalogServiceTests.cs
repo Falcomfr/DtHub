@@ -42,8 +42,8 @@ public class QuestCatalogServiceTests
         await service.GetAsync(cancellationToken: CancellationToken.None);
         await service.GetAsync(cancellationToken: CancellationToken.None);
 
-        // Aller redemander huit pages au site à chaque ouverture de la fenêtre
-        // serait grossier autant qu'inutile.
+        // Asking the site again for eight pages every time the window opens
+        // would be as rude as it is pointless.
         Assert.Equal(1, client.Calls);
     }
 
@@ -59,7 +59,7 @@ public class QuestCatalogServiceTests
 
         var catalog = await service.RefreshAsync(cancellationToken: CancellationToken.None);
 
-        // Chercher dans une liste d'hier vaut mieux que ne rien pouvoir chercher.
+        // Searching in yesterday's list beats not being able to search at all.
         Assert.Equal(2, catalog.Quests.Count);
         Assert.NotNull(service.LastFailure);
     }
@@ -78,7 +78,8 @@ public class QuestCatalogServiceTests
 
         var catalog = await second.RefreshAsync(cancellationToken: CancellationToken.None);
 
-        // Une réponse vide peut être un site en maintenance : on garde.
+        // An empty response can mean the site is under maintenance: we keep
+        // what we have.
         Assert.Equal(2, catalog.Quests.Count);
         Assert.Equal(1, store.Writes);
     }
@@ -136,9 +137,9 @@ public class QuestCatalogServiceTests
     }
 
     /// <summary>
-    /// Un catalogue lu il y a deux heures, avec l'empreinte que le site portait
-    /// alors. Deux heures parce que la sentinelle ne dérange le site qu'au-delà
-    /// d'une heure.
+    /// A catalog read two hours ago, with the fingerprint the site carried at
+    /// that time. Two hours because the sentinel only bothers the site beyond
+    /// one hour.
     /// </summary>
     private static async Task<(QuestCatalogService Service, FakePapychaClient Client)> Veille(
         SiteStamp connue,
@@ -150,9 +151,9 @@ public class QuestCatalogServiceTests
 
         client.Stamp = annoncee;
 
-        // La sentinelle interroge les catégories qu'on lit, pas le site entier :
-        // une correction sur un article hors de nos catégories ne doit plus rien
-        // déclencher.
+        // The sentinel queries only the categories we read, not the whole
+        // site: a correction on an article outside our categories must no
+        // longer trigger anything.
         if (annoncee is not null)
         {
             client.CategoryStamps.Add(new CategoryStamp(7, annoncee.Modified, annoncee.Posts));
@@ -220,7 +221,8 @@ public class QuestCatalogServiceTests
     [Fact]
     public async Task Un_site_qui_ne_repond_pas_ne_provoque_pas_de_relecture()
     {
-        // Garder ce qu'on a vaut mieux que jeter un catalogue faute de réseau.
+        // Keeping what we have beats throwing away a catalog for lack of
+        // network.
         var (service, client) = await Veille(Empreinte(), annoncee: null);
         using var mort = service;
 
@@ -233,8 +235,8 @@ public class QuestCatalogServiceTests
     [Fact]
     public async Task Un_catalogue_lu_il_y_a_une_minute_ne_derange_meme_pas_le_site()
     {
-        // Ouvrir et refermer la fenêtre dix fois dans l'heure ne doit pas
-        // produire dix demandes.
+        // Opening and closing the window ten times within the hour must not
+        // produce ten requests.
         var client = new FakePapychaClient().WithQuest(1, "Le dragon d'Astrub", 18);
         var store = new InMemoryDocumentStore<QuestCatalogDocument>();
 
@@ -276,9 +278,9 @@ public class QuestCatalogServiceTests
     [Fact]
     public async Task Un_article_hors_de_nos_categories_ne_provoque_rien()
     {
-        // Le site compte mille douze articles, on n'en lit que neuf cents. Une
-        // correction sur les autres bougeait la date du site entier et coûtait
-        // cinquante secondes de relecture pour rien.
+        // The site has one thousand twelve articles, we only read nine hundred
+        // of them. A correction on the others used to bump the whole site's
+        // date and cost fifty seconds of needless rereading.
         var connue = Empreinte();
         var (service, client) = await Veille(connue, connue);
         using var ailleurs = service;
@@ -300,9 +302,9 @@ public class QuestCatalogServiceTests
 
         var givre = catalog.Quests.Single(q => q.Title == "Complètement givré");
 
-        // La zone porte la quête, mais la recherche de quêtes ne s'en sert plus :
-        // chercher « frigost » rendait cent soixante-dix-sept résultats dont on
-        // n'avait pas voulu. C'est le groupe des zones qui répond à cela.
+        // The zone carries the quest, but quest search no longer uses it for
+        // that: searching "frigost" used to return one hundred seventy-seven
+        // unwanted results. The zone group is what addresses that.
         Assert.Contains(135, givre.SectionIds);
         Assert.Empty(service.Search("frigost"));
 
@@ -312,8 +314,8 @@ public class QuestCatalogServiceTests
     [Fact]
     public async Task Une_quete_n_est_rangee_que_sous_une_rubrique()
     {
-        // Une quête d'Astrub porte aussi « Amakna ». La lister sous les deux la
-        // ferait compter deux fois et apparaître deux fois.
+        // A quest from Astrub also carries "Amakna". Listing it under both
+        // would make it count twice and appear twice.
         var client = new FakePapychaClient()
             .WithQuest(1, "Le dragon d'Astrub", 25, 18)
             .WithSection(18, "Astrub", count: 56)
@@ -330,8 +332,8 @@ public class QuestCatalogServiceTests
     [Fact]
     public async Task Une_page_du_site_reclame_les_quetes_qu_aucune_categorie_ne_range()
     {
-        // Mesuré sur le site : 150 quêtes sur 782 n'ont aucune catégorie et
-        // n'étaient atteignables que par la recherche.
+        // Measured on the site: 150 out of 782 quests have no category and
+        // were only reachable through search.
         var client = new FakePapychaClient()
             .WithQuest(1, "Une quête sans rubrique")
             .WithPage("Quêtes du Krosmoz", "https://papycha.fr/quetes-du-krosmoz/", 1);
@@ -349,9 +351,9 @@ public class QuestCatalogServiceTests
     [Fact]
     public async Task Une_page_qui_designe_une_categorie_ne_cree_pas_de_rubrique_jumelle()
     {
-        // « Quêtes de Frigost » et « Île de Frigost » désignent le même endroit.
-        // Les offrir toutes deux serait un doublon ; les quêtes de la page
-        // rejoignent donc la catégorie.
+        // "Quêtes de Frigost" ("Frigost Quests") and "Île de Frigost" ("Isle
+        // of Frigost") name the same place. Offering both would be a
+        // duplicate; so the page's quests join the category instead.
         var client = new FakePapychaClient()
             .WithQuest(1, "Complètement givré", 135)
             .WithQuest(2, "Une quête de Frigost sans rubrique")
@@ -385,9 +387,9 @@ public class QuestCatalogServiceTests
     [Fact]
     public async Task Les_rubriques_suivent_l_ordre_du_site()
     {
-        // Le site publie son classement dans le tableau de sa page « Quêtes ».
-        // Le nombre de quêtes n'y a aucune part : Astrub y précède Frigost, qui
-        // en compte pourtant bien davantage.
+        // The site publishes its ranking in the table of its "Quêtes"
+        // ("Quests") page. The number of quests plays no part in it: Astrub
+        // comes before Frigost there, even though Frigost has far more.
         var client = new FakePapychaClient()
             .WithQuest(1, "Le dragon d'Astrub", 18)
             .WithQuest(2, "Complètement givré", 135)
@@ -406,10 +408,10 @@ public class QuestCatalogServiceTests
     [Fact]
     public async Task Une_quete_nommee_par_deux_pages_figure_dans_les_deux()
     {
-        // Relevé sur le site : dix-sept des dix-huit quêtes des Bulles
-        // Temporelles figurent aussi sur la page du Krosmoz, qui les englobe.
-        // N'en retenir qu'une laissait l'autre presque vide, alors que le site
-        // les range bel et bien aux deux endroits.
+        // Recorded from the site: seventeen of the eighteen Time Bubbles
+        // quests also appear on the Krosmoz page, which includes them. Keeping
+        // only one left the other nearly empty, even though the site really
+        // does list them in both places.
         var client = new FakePapychaClient()
             .WithQuest(1, "Une quête sans rubrique")
             .WithQuest(2, "Une autre sans rubrique")
@@ -425,7 +427,7 @@ public class QuestCatalogServiceTests
         Assert.Equal(1, bulles.Count);
         Assert.Equal(2, krosmoz.Count);
 
-        // La rubrique qui situe la quête dans une recherche est la plus petite.
+        // The section that places the quest in a search is the smallest one.
         Assert.Equal(bulles.Id, catalog.Quests[0].SectionId);
     }
 
@@ -446,17 +448,18 @@ public class QuestCatalogServiceTests
         Assert.Equal("Quand on arrive en ville", catalog.Quests[0].SuccessName);
         Assert.Equal("Quand on arrive en ville", catalog.Quests[1].SuccessName);
 
-        // Trois cent soixante-treize quêtes sur sept cent quatre-vingt-deux en
-        // portent un : à celles qui n'en ont pas, on n'en invente pas.
+        // Three hundred seventy-three quests out of seven hundred eighty-two
+        // carry one: for those that do not, none is invented.
         Assert.Equal(string.Empty, catalog.Quests[2].SuccessName);
     }
 
     [Fact]
     public async Task Un_succes_entame_par_une_rubrique_y_figure_en_entier()
     {
-        // Relevé sur le site : « Se mettre au ver » compte quatre quêtes, trois
-        // rangées sous Amakna et une sous les quêtes principales. La rubrique
-        // des principales affichait donc ce succès avec une seule quête.
+        // Recorded from the site: "Se mettre au ver" (literally "get down to
+        // the worm") counts four quests, three filed under Amakna and one
+        // under the main quests. The main quests section used to show this
+        // success with only one quest.
         var client = new FakePapychaClient()
             .WithQuest(1, "Brêche Mais Intense", 25)
             .WithQuest(2, "Le ver de trop", 25)
@@ -470,15 +473,14 @@ public class QuestCatalogServiceTests
         var (service, _, _) = Build(client);
         await service.GetAsync(cancellationToken: CancellationToken.None);
 
-        // Trois quêtes seulement portaient la catégorie Amakna, mais un succès
-        // se joue d'un tenant : la rubrique qui en réclame une les réclame
-        // toutes.
+        // Only three quests carried the Amakna category, but a success plays
+        // as one whole: the section that claims one of them claims them all.
         var amakna = service.InSection(25);
 
         Assert.Equal(4, amakna.Count);
         Assert.All(amakna, q => Assert.Equal("Se mettre au ver", q.SuccessName));
 
-        // Et la page des principales garde les siennes, entières elle aussi.
+        // And the main quests page keeps its own, whole as well.
         var principales = Assert.Single(
             service.Catalog.Sections, s => s.Name == "Quêtes principales");
 
@@ -508,9 +510,9 @@ public class QuestCatalogServiceTests
     [Fact]
     public async Task La_carte_embarquee_complete_les_intertitres()
     {
-        // Les intertitres des pages rattachent 380 quêtes, la carte 505 : elle
-        // est tirée du bloc d'intro de chaque quête, que les pages ne coiffent
-        // pas toutes.
+        // Page subheadings attach 380 quests, the embedded map 505: it is
+        // drawn from the intro block of each quest, which the pages do not all
+        // cover.
         var client = new FakePapychaClient()
             .WithQuest(1, "Une quête coiffée par un intertitre")
             .WithQuest(2, "Une quête qu'aucun intertitre ne coiffe")
@@ -531,9 +533,10 @@ public class QuestCatalogServiceTests
     [Fact]
     public async Task La_carte_embarquee_l_emporte_sur_un_intertitre()
     {
-        // Le bloc d'intro est ce que la quête dit d'elle-même ; un intertitre
-        // est un rangement éditorial. Les deux sources écrivent d'ailleurs
-        // « à la racine » et « par la racine » pour le même succès.
+        // The intro block is what the quest says about itself; a subheading is
+        // an editorial filing choice. The two sources even write "à la racine"
+        // ("at the root") and "par la racine" ("by the root") for the same
+        // success.
         var client = new FakePapychaClient()
             .WithQuest(1, "La main occulte")
             .WithPage("Quêtes d'Astrub", "https://papycha.fr/quetes-dastrub/", 1)
@@ -567,9 +570,10 @@ public class QuestCatalogServiceTests
     [Fact]
     public async Task La_place_dans_la_chaine_suit_la_quete()
     {
-        // Elle sert à présenter les quêtes d'un succès dans l'ordre où l'on y
-        // joue : « De la caillasse plein les poches » va de l'étape 1 à
-        // l'étape 6, quand l'ordre alphabétique n'en est pas un.
+        // It is used to present a success's quests in the order they are
+        // played: "De la caillasse plein les poches" ("Pockets full of
+        // gravel") goes from step 1 to step 6, whereas alphabetical order is
+        // not one at all.
         var client = new FakePapychaClient()
             .WithQuest(1, "Nettoyage express")
             .WithQuest(2, "Langage corporel")
@@ -591,9 +595,10 @@ public class QuestCatalogServiceTests
     [Fact]
     public async Task La_place_dans_le_succes_suit_la_quete()
     {
-        // Elle vient des prérequis que le site publie : « Les rescapés de
-        // Frigost » exige « [FIN] L'essentiel est dans le Lac gelé », donc
-        // celle-ci vient avant, ce qu'aucun autre champ du site ne dit.
+        // It comes from the prerequisites the site publishes: "Les rescapés de
+        // Frigost" ("The survivors of Frigost") requires "[FIN] L'essentiel
+        // est dans le Lac gelé" ("[END] The essential is in the frozen lake"),
+        // so the latter comes first, which no other field on the site states.
         var client = new FakePapychaClient()
             .WithQuest(1, "Les rescapés de Frigost")
             .WithQuest(2, "L'essentiel est dans le Lac gelé")
@@ -615,10 +620,10 @@ public class QuestCatalogServiceTests
     [Fact]
     public async Task Le_rang_d_un_succes_se_prend_sur_ses_quetes_et_non_sur_l_intitule()
     {
-        // Le site n'écrit pas le même nom aux deux endroits où il le nomme :
-        // « Fri Carré » en intertitre, « Fri carré » dans la quête. Le second
-        // fait foi partout ailleurs, et rapprocher les deux par leur texte
-        // perdait le rang.
+        // The site does not write the same name in the two places it names it:
+        // "Fri Carré" in the subheading, "Fri carré" in the quest. The second
+        // is authoritative everywhere else, and matching the two by their text
+        // lost the rank.
         var client = new FakePapychaClient()
             .WithQuest(1, "Une pêche d'enfer")
             .WithPage("Quêtes principales", "https://papycha.fr/quetes-principales/")
@@ -638,8 +643,9 @@ public class QuestCatalogServiceTests
     [Fact]
     public async Task Un_intertitre_en_gras_range_meme_sans_la_marque_du_site()
     {
-        // Trois succès n'ont pas d'autre intertitre que leur nom nu. Sans eux
-        // ils tombaient en fin de zone, par ordre alphabétique.
+        // Three successes have no subheading other than their bare name.
+        // Without them they fell to the end of the zone, in alphabetical
+        // order.
         var client = new FakePapychaClient()
             .WithQuest(1, "Le retour des morts pas vraiment vivants")
             .WithQuest(2, "Cwoque ma Cawotte")
@@ -664,9 +670,9 @@ public class QuestCatalogServiceTests
     [Fact]
     public async Task Un_intertitre_dont_aucune_quete_ne_porte_de_succes_ne_range_rien()
     {
-        // « À la chasse aux Goroku » ne renvoie qu'à des pages que le catalogue
-        // ignore : le retenir mettrait dans la liste des rangs un nom que nulle
-        // quête ne porte.
+        // "À la chasse aux Goroku" ("Hunting Goroku") only points to pages the
+        // catalog ignores: keeping it would put a name in the rank list that
+        // no quest carries.
         var client = new FakePapychaClient()
             .WithQuest(1, "Une pêche d'enfer")
             .WithPage("Quêtes principales", "https://papycha.fr/quetes-principales/")
@@ -701,8 +707,8 @@ public class QuestCatalogServiceTests
 
         var catalog = await service.GetAsync(cancellationToken: CancellationToken.None);
 
-        // Le rang est celui du site, pas l'alphabet : « Second » est bien
-        // premier parce que sa page l'est.
+        // The rank is the site's, not the alphabet's: "Second" really does
+        // come first because its page does.
         Assert.Equal(["Second", "Premier"], catalog.SuccessOrder);
     }
 }

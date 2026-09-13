@@ -2,7 +2,7 @@
 
 namespace DtHub.Tests.Fakes;
 
-/// <summary>Une source de livraisons qui ne sort pas de la mémoire.</summary>
+/// <summary>A release source that never leaves memory.</summary>
 public sealed class FakeReleaseSource : IReleaseSource
 {
     private readonly Dictionary<string, string> _texts = new(StringComparer.Ordinal);

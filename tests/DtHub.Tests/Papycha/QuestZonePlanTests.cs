@@ -18,20 +18,21 @@ public sealed class QuestZonePlanTests
             Prerequisites = prerequis,
         };
 
-    /// <summary>Ce que la liste montrerait, un bloc par ligne.</summary>
+    /// <summary>What the list would show, one block per line.</summary>
     private static string[] Lignes(IEnumerable<QuestZoneBlock> plan) =>
         [.. plan.Select(b => b.IsSuccess
             ? (b.IsContinuation ? "* " + b.SuccessName + " (suite)" : "* " + b.SuccessName)
             : "  " + b.Quests[0].Title)];
 
     /// <summary>
-    /// Une quête seule que le succès réclame au milieu de sa propre suite s'y
-    /// glisse, et la série reprend après elle.
+    /// A standalone quest that a success demands in the middle of its own
+    /// chain slips in there, and the series resumes after it.
     ///
-    /// Relevé au Château d'Amakna : « Étre plus royaliste que le roi » réclame
-    /// neuf quêtes seules entre ses quêtes. Traité comme un bloc insécable, il
-    /// les rejetait toutes avant ou toutes après, et la liste montrait des
-    /// quêtes avant ce qu'elles exigent.
+    /// Recorded at Amakna Castle: "Étre plus royaliste que le roi" ("Being
+    /// more royalist than the king") requires nine standalone quests among its
+    /// own quests. Treated as an unbreakable block, it used to push them all
+    /// before or all after, and the list showed quests before what they
+    /// require.
     /// </summary>
     [Fact]
     public void Une_quete_seule_se_glisse_entre_deux_quetes_d_un_succes()
@@ -49,10 +50,10 @@ public sealed class QuestZonePlanTests
     }
 
     /// <summary>
-    /// Deux succès ne s'entrelacent jamais, même quand leurs prérequis le
-    /// demandent : à Frigost, huit succès se réclament mutuellement, et les
-    /// laisser faire donnait un va-et-vient de quinze intertitres entre les
-    /// mêmes séries.
+    /// Two successes never interleave, even when their prerequisites ask for
+    /// it: at Frigost, eight successes require each other, and letting that
+    /// happen produced a back-and-forth of fifteen subheadings between the
+    /// same chains.
     /// </summary>
     [Fact]
     public void Deux_succes_ne_s_entrelacent_pas()
@@ -71,8 +72,8 @@ public sealed class QuestZonePlanTests
     }
 
     /// <summary>
-    /// Le compte du premier intertitre reste celui du succès entier : une série
-    /// coupée en deux n'en devient pas deux.
+    /// The count on the first subheading stays that of the whole success: a
+    /// chain cut in two does not become two.
     /// </summary>
     [Fact]
     public void Un_succes_coupe_garde_toutes_ses_quetes()
@@ -93,8 +94,8 @@ public sealed class QuestZonePlanTests
     [Fact]
     public void Range_une_quete_seule_avant_le_succes_qui_la_reclame()
     {
-        // Albuera : « Une arrivée mouvementée » ouvre « Médiation expéditive »
-        // sans en faire partie.
+        // Albuera: "Une arrivée mouvementée" ("An eventful arrival") opens
+        // "Médiation expéditive" ("Swift mediation") without being part of it.
         List<QuestSummary> quetes =
         [
             Quete("Mediation 1", "Mediation expeditive", 1, "Une arrivee mouvementee"),
@@ -123,11 +124,12 @@ public sealed class QuestZonePlanTests
     }
 
     /// <summary>
-    /// Le cas relevé à Astrub : « La découverte d'un vaste monde » n'a pour
-    /// prérequis que le succès « Devenir une légende ». Elle était rangée après
-    /// ce succès, mais aussi après tous les autres, trente rangs plus bas :
-    /// le tri la plaçait bien après ce qu'elle exige, si loin que la
-    /// progression ne se lisait plus.
+    /// The case recorded at Astrub: "La découverte d'un vaste monde" ("The
+    /// discovery of a vast world") has only the success "Devenir une légende"
+    /// ("Becoming a legend") as its prerequisite. It was filed after that
+    /// success, but also after every other one, thirty ranks lower down: the
+    /// sort placed it well after what it requires, so far that the progression
+    /// could no longer be read.
     /// </summary>
     [Fact]
     public void Colle_une_quete_seule_au_succes_dont_elle_decoule()
@@ -154,8 +156,8 @@ public sealed class QuestZonePlanTests
     }
 
     /// <summary>
-    /// Une suite de quêtes seules qui pend à un succès le suit tout entière,
-    /// dans l'ordre où on l'enchaîne.
+    /// A chain of standalone quests hanging off a success follows it entirely,
+    /// in the order it is chained.
     /// </summary>
     [Fact]
     public void Une_suite_de_quetes_seules_suit_le_succes_qui_l_ouvre()
@@ -176,7 +178,8 @@ public sealed class QuestZonePlanTests
     [Fact]
     public void Glisse_une_quete_seule_entre_deux_succes()
     {
-        // Pandala : « En route pour Aerdala » suit un succès et ouvre le suivant.
+        // Pandala: "En route pour Aerdala" ("On the way to Aerdala") follows
+        // one success and opens the next.
         List<QuestSummary> quetes =
         [
             Quete("Choisir 1", "Choisir", 1),
@@ -192,8 +195,8 @@ public sealed class QuestZonePlanTests
     [Fact]
     public void Enchaine_les_quetes_seules_entre_elles()
     {
-        // Les quatre-vingts quêtes d'alignement forment une suite numérotée que
-        // l'ordre alphabétique lisait « 1, 10, 11, 2 ».
+        // The eighty alignment quests form a numbered series that alphabetical
+        // order used to read as "1, 10, 11, 2".
         List<QuestSummary> quetes =
         [
             Quete("Bontarien 10", prerequis: "Bontarien 2"),
@@ -209,7 +212,7 @@ public sealed class QuestZonePlanTests
     [Fact]
     public void Laisse_l_ordre_alphabetique_quand_aucun_prerequis_ne_se_reconnait()
     {
-        // Astrub : vingt quêtes seules dont aucune ne nomme une autre quête.
+        // Astrub: twenty standalone quests, none of which names another quest.
         List<QuestSummary> quetes =
         [
             Quete("Devotion a Iop", prerequis: "Avoir le niveau 30"),
@@ -225,8 +228,8 @@ public sealed class QuestZonePlanTests
     [Fact]
     public void Ignore_un_prerequis_qui_designe_une_quete_absente_de_la_zone()
     {
-        // Le prérequis existe, mais dans une autre zone : il ne peut rien ranger
-        // ici, et la quête garde sa place d'avant.
+        // The prerequisite exists, but in another zone: it cannot file
+        // anything here, and the quest keeps its previous place.
         List<QuestSummary> quetes =
         [
             Quete("Ailleurs 1", "Un succes", 1),
@@ -241,8 +244,9 @@ public sealed class QuestZonePlanTests
     [Fact]
     public void Rend_un_ordre_total_quand_deux_succes_se_reclament_l_un_l_autre()
     {
-        // Un succès est un bloc insécable : deux succès qui se réclament par des
-        // quêtes différentes forment une boucle. On tranche par l'ordre du site.
+        // A success is an unbreakable block: two successes that require each
+        // other through different quests form a loop. It is settled by the
+        // site's order.
         List<QuestSummary> quetes =
         [
             Quete("B 1", "Second", 1, "A 1"),
@@ -301,8 +305,9 @@ public sealed class QuestZonePlanTests
     [Fact]
     public void Renvoie_en_fin_de_liste_une_quete_que_rien_ne_lie()
     {
-        // Le site ne dit rien de sa place. La laisser dans le tri la mettait au
-        // hasard, entre deux succès, faute de mieux à sortir à ce moment-là.
+        // The site says nothing about its place. Leaving it in the sort put it
+        // at random, between two successes, for lack of anything better to
+        // output at that point.
         List<QuestSummary> quetes =
         [
             Quete("On recherche Ali Grothor"),
@@ -318,8 +323,8 @@ public sealed class QuestZonePlanTests
     [Fact]
     public void Garde_dans_le_fil_une_quete_seule_qu_un_lien_rattache()
     {
-        // Un lien suffit, dans un sens ou dans l'autre : c'est ce qui la sépare
-        // d'une quête que rien ne place.
+        // One link is enough, in either direction: this is what sets it apart
+        // from a quest that nothing places.
         List<QuestSummary> quetes =
         [
             Quete("Rien ne la lie"),

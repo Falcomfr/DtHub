@@ -27,12 +27,15 @@ public sealed class ArchiveDependencyProvisionerTests : IDisposable
         }
         catch (IOException)
         {
-            // Un fichier encore tenu par l'antivirus ne doit pas faire rougir
-            // une épreuve qui a réussi. UpdateServiceTests a la même garde.
+            // A file still held by the antivirus must not make a
+            // test that succeeded blush. UpdateServiceTests has
+            // the same guard.
         }
     }
 
-    /// <summary>Construit une archive contenant <c>outil/outil.exe</c>.</summary>
+    /// <summary>
+    /// Builds an archive containing <c>outil/outil.exe</c>.
+    /// </summary>
     private static byte[] BuildArchive(string content = "faux exécutable")
     {
         using var buffer = new MemoryStream();
@@ -173,11 +176,12 @@ public sealed class ArchiveDependencyProvisionerTests : IDisposable
         var (provisioner, _) = Build(archive);
         var stages = new List<ProvisioningStage>();
 
-        // Un rapporteur synchrone, et non Progress<T> : celui-ci poste sur le
-        // contexte de synchronisation, ce qui obligeait à attendre deux cents
-        // millisecondes avant de conclure. C'était la seule attente d'horloge
-        // du dépôt, et le premier candidat au rouge intermittent sur un
-        // coureur chargé.
+        // A synchronous reporter, not Progress<T>: this one posts
+        // to the synchronization context, which used to force
+        // waiting two hundred milliseconds before concluding. This
+        // was the only clock-based wait in the repository, and the
+        // prime candidate for an intermittent red build on a loaded
+        // runner.
         var progress = new SyncProgress<ProvisioningProgress>(p => stages.Add(p.Stage));
 
         await provisioner.EnsureAvailableAsync(Dependency(archive), progress, CancellationToken.None);

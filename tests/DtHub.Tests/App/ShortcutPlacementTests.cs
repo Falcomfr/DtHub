@@ -15,8 +15,8 @@ public class ShortcutPlacementTests
     [Fact]
     public void Un_raccourci_du_bureau_efface_ne_revient_pas()
     {
-        // Le menu Démarrer est là : l'application a déjà démarré ici, donc le
-        // bureau vide est un choix, pas un manque.
+        // The Start menu is there: the application already started
+        // here, so the empty desktop is a choice, not an omission.
         Assert.False(ShortcutPlacement.ShouldWriteDesktop(
             desktopLinkExists: false,
             startMenuLinkExists: true));
@@ -25,8 +25,9 @@ public class ShortcutPlacementTests
     [Fact]
     public void Un_raccourci_du_bureau_existant_est_recrit()
     {
-        // Sans cela, déplacer l'exécutable laisserait sur le bureau un raccourci
-        // qui vise l'ancien emplacement, et rien ne le corrigerait jamais.
+        // Without this, moving the executable would leave a shortcut on
+        // the desktop pointing at the old location, and nothing would
+        // ever fix it.
         Assert.True(ShortcutPlacement.ShouldWriteDesktop(
             desktopLinkExists: true,
             startMenuLinkExists: true));

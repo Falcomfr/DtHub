@@ -30,8 +30,8 @@ public sealed class ReleaseNotesTests
     [Fact]
     public void Ramene_les_blancs_multiples_a_un_seul()
     {
-        // Le depot en met deux ou trois entre ses blocs, ce qui trouerait un
-        // panneau de quelques lignes.
+        // The feed puts two or three between its blocks, which would
+        // punch holes in a panel of just a few lines.
         var notes = ReleaseNotes.Readable("Un.\n\n\n\nDeux.");
 
         Assert.Equal("Un.\n\nDeux.", notes);

@@ -3,18 +3,18 @@
 namespace DtHub.Tests.Conventions;
 
 /// <summary>
-/// Un style nommé doit viser le type de l'élément qui le porte.
+/// A named style must target the type of the element that carries it.
 ///
-/// WPF ne le vérifie qu'à l'exécution, et il ne pardonne pas : appliquer un
-/// style de <c>Button</c> à un <c>ToggleButton</c> lève au moment où la
-/// fenêtre se construit, et l'application meurt en emportant sa pile. C'est
-/// arrivé, sur une bascule de note à laquelle un style d'icône avait été
-/// donné : la liste des comptes s'est vidée et le processus s'est arrêté sur
-/// un débordement de pile, dont la cause n'apparaissait qu'au fond du journal.
+/// WPF only checks this at runtime, and it does not forgive: applying a
+/// <c>Button</c> style to a <c>ToggleButton</c> throws the moment the
+/// window is being built, and the application dies taking its stack with
+/// it. This happened on a note toggle that had been given an icon style:
+/// the account list emptied out and the process stopped on a stack
+/// overflow, whose cause only showed up at the bottom of the log.
 ///
-/// La compilation ne dit rien, et aucune épreuve ne pouvait le dire non plus,
-/// les épreuves n'atteignant pas la couche d'interface. Celle-ci lit donc le
-/// texte des fichiers, comme le contrôle du tiret cadratin.
+/// The build says nothing about it, and no test could say it either,
+/// since tests do not reach the interface layer. This one therefore reads
+/// the text of the files, the same way the em dash check does.
 /// </summary>
 public partial class StyleTargetTests
 {
@@ -44,8 +44,8 @@ public partial class StyleTargetTests
                 var element = applied.Groups[1].Value;
                 var key = applied.Groups[2].Value;
 
-                // Un style qu'on ne trouve pas est défini ailleurs, dans la
-                // fenêtre elle-même par exemple : on ne juge que ce qu'on voit.
+                // A style we cannot find is defined elsewhere, in the
+                // window itself for instance: we judge only what we see.
                 if (targets.TryGetValue(key, out var target)
                     && !string.Equals(element, target, StringComparison.Ordinal))
                 {
@@ -58,20 +58,21 @@ public partial class StyleTargetTests
     }
 
     /// <summary>
-    /// Un style écrit à même l'élément doit dériver du style implicite de son
-    /// type, quand il en existe un.
+    /// A style written directly on the element must derive from the
+    /// implicit style of its type, when one exists.
     ///
-    /// **WPF remplace, il n'étend pas.** Un
-    /// <c>&lt;TextBlock.Style&gt;&lt;Style TargetType="TextBlock"&gt;</c> sans
-    /// <c>BasedOn</c> jette le style implicite du thème, donc la police, la
-    /// taille et surtout la couleur du texte, qui retombe sur le noir par
-    /// défaut de WPF. Sur un fond sombre, le texte disparaît.
+    /// **WPF replaces, it does not extend.** A
+    /// <c>&lt;TextBlock.Style&gt;&lt;Style TargetType="TextBlock"&gt;</c>
+    /// without <c>BasedOn</c> discards the theme's implicit style, hence
+    /// the font, the size, and above all the text color, which falls
+    /// back to WPF's default black. On a dark background, the text
+    /// disappears.
     ///
-    /// C'est arrivé au verdict de la sonde d'entrée : « L'appareil accepte la
-    /// simulation d'entrée » s'affichait en noir sur la carte sombre, et seul
-    /// le verdict de refus se voyait, parce que lui seul posait une couleur
-    /// dans un déclencheur. Rien ne le signalait, ni la compilation ni
-    /// l'exécution.
+    /// This happened to the input probe's verdict: "L'appareil accepte la
+    /// simulation d'entrée" ("The device accepts simulated input")
+    /// displayed in black on the dark card, and only the refusal verdict
+    /// showed, because only that one set a color in a trigger. Nothing
+    /// flagged it, neither the build nor running the app.
     /// </summary>
     [Fact]
     public void Un_style_ecrit_sur_l_element_derive_du_style_implicite()
@@ -116,7 +117,9 @@ public partial class StyleTargetTests
         Assert.Equal([], orphans);
     }
 
-    /// <summary>Les types que les thèmes habillent sans clé, donc pour tous.</summary>
+    /// <summary>
+    /// The types the themes style without a key, so for every element.
+    /// </summary>
     private static HashSet<string> Implicit(string themes)
     {
         HashSet<string> found = new(StringComparer.Ordinal);
@@ -132,7 +135,9 @@ public partial class StyleTargetTests
         return found;
     }
 
-    /// <summary>Les styles nommés des thèmes, et le type que chacun vise.</summary>
+    /// <summary>
+    /// The named styles of the themes, and the type each one targets.
+    /// </summary>
     private static Dictionary<string, string> Targets(string themes)
     {
         Dictionary<string, string> found = new(StringComparer.Ordinal);
@@ -148,19 +153,21 @@ public partial class StyleTargetTests
         return found;
     }
 
-    // Les styles dérivés d'un autre ne sont pas jugés ici : « BasedOn » impose
-    // déjà la compatibilité des types, et WPF la vérifie à la compilation.
+    // Styles derived from another are not judged here: "BasedOn" already
+    // requires type compatibility, and WPF checks it at compile time.
     [GeneratedRegex(@"<Style\s+x:Key=""(\w+)""\s+TargetType=""(\w+)""")]
     private static partial Regex Declared();
 
     [GeneratedRegex(@"<(\w+)\b[^>]*?Style=""\{StaticResource (\w+)\}""", RegexOptions.Singleline)]
     private static partial Regex Applied();
 
-    /// <summary>Un style déclaré sans clé habille tous les éléments du type.</summary>
+    /// <summary>
+    /// A style declared without a key styles every element of the type.
+    /// </summary>
     [GeneratedRegex(@"<Style\s+TargetType=""(\w+)""\s*(?:BasedOn=""[^""]*""\s*)?/?>")]
     private static partial Regex Anonymous();
 
-    /// <summary>Un style écrit dans l'élément lui-même.</summary>
+    /// <summary>A style written inside the element itself.</summary>
     [GeneratedRegex(@"<(\w+)\.Style>\s*<Style([^>]*)>")]
     private static partial Regex Inline();
 

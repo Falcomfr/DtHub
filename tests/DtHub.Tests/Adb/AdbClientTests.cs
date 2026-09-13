@@ -100,7 +100,8 @@ public class AdbClientTests
     [Fact]
     public async Task Un_shell_qui_rend_zero_mais_signale_une_erreur_est_traite_comme_un_echec()
     {
-        // Le shell Android rend souvent 0 même quand la commande a échoué.
+        // The Android shell often returns 0 even when the command
+        // failed.
         var (client, _) = Build(new FakeProcessRunner()
             .Respond("shell", standardOutput: "Error: Unknown package: com.exemple.app\n"));
 
@@ -120,9 +121,10 @@ public class AdbClientTests
 
         Assert.Equal(AdbErrorKind.AdbUnavailable, exception.Kind);
 
-        // Le message disait « consultez le diagnostic dans les paramètres »,
-        // page qui n'a jamais existé. Il renvoie maintenant au signalement,
-        // qui existe et qui porte le refus technique.
+        // The message used to say "consultez le diagnostic dans les
+        // paramètres" (check the diagnostics in settings), a page
+        // that never existed. It now points to the report screen
+        // instead, which exists and carries the technical failure.
         Assert.Contains("Signalez", exception.UserMessage, StringComparison.Ordinal);
     }
 
@@ -183,10 +185,10 @@ public class AdbClientTests
 
         var request = runner.Calls[^1];
 
-        // L'argument est bien transmis au processus...
+        // The argument is indeed passed to the process...
         Assert.Contains("654321", request.Arguments);
 
-        // ...mais la ligne destinée aux journaux le masque.
+        // ...but the line meant for the logs masks it.
         Assert.DoesNotContain("654321", request.ToDisplayString(), StringComparison.Ordinal);
         Assert.Contains("***", request.ToDisplayString(), StringComparison.Ordinal);
     }
@@ -216,7 +218,7 @@ public class AdbClientTests
     [Fact]
     public async Task Un_mdns_en_echec_rend_une_liste_vide_plutot_qu_une_exception()
     {
-        // Le mDNS est souvent bloqué par le réseau : ce n'est pas une panne.
+        // mDNS is often blocked by the network: this is not a failure.
         var (client, _) = Build(new FakeProcessRunner()
             .Respond("mdns services", standardError: "ERROR: mdns daemon unavailable", exitCode: 1));
 

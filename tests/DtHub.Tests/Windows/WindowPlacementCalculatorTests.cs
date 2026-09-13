@@ -25,8 +25,8 @@ public sealed class WindowPlacementCalculatorTests
     [Fact]
     public void Un_coin_qui_depasse_a_peine_ne_suffit_pas()
     {
-        // Vingt pixels visibles ne donnent pas de quoi saisir la barre de
-        // titre : la fenêtre s'ouvrirait sans qu'on puisse la ramener.
+        // Twenty visible pixels do not give enough to grab the title
+        // bar: the window would open without any way to bring it back.
         Assert.False(WindowPlacementCalculator.IsReachable(At(2540, 1380), [Principal]));
     }
 

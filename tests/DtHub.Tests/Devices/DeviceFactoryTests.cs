@@ -41,7 +41,7 @@ public class DeviceFactoryTests
         var overUsb = DeviceFactory.Create(Usb(), XiaomiProperties);
         var overWifi = DeviceFactory.Create(Wireless(), XiaomiProperties);
 
-        // Même téléphone, deux transports : une seule identité.
+        // Same phone, two transports: a single identity.
         Assert.Equal("MATERIEL123", overUsb.Id);
         Assert.Equal(overUsb.Id, overWifi.Id);
         Assert.NotEqual(overUsb.Serial, overWifi.Serial);
@@ -60,8 +60,9 @@ public class DeviceFactoryTests
     {
         var known = DeviceFactory.Create(Usb("USB0001"));
 
-        // Le téléphone passe en Wi-Fi et masque son numéro de série : sans
-        // reprise de l'identité connue, il compterait comme un second appareil.
+        // The phone switches to Wi-Fi and hides its serial number:
+        // without carrying over the known identity, it would count as
+        // a second device.
         var device = DeviceFactory.Create(Wireless(), properties: null, known: known);
 
         Assert.Equal("USB0001", device.Id);
@@ -98,7 +99,7 @@ public class DeviceFactoryTests
     {
         var known = DeviceFactory.Create(Usb(), XiaomiProperties);
 
-        // Cas réel : appareil non autorisé, getprop est impossible.
+        // Real case: unauthorized device, getprop is not possible.
         var unauthorized = AdbOutputParser.ParseDeviceLine("USB0001 unauthorized usb:1-2")!;
         var device = DeviceFactory.Create(unauthorized, properties: null, known: known);
 
@@ -111,8 +112,9 @@ public class DeviceFactoryTests
     [Fact]
     public void Une_connexion_sans_fil_implique_que_l_appareil_est_appaire()
     {
-        // On ne peut pas être connecté sans fil sans avoir associé l'appareil :
-        // le constater autorise la reconnexion automatique par la suite.
+        // You cannot be connected wirelessly without having paired the
+        // device: observing this allows automatic reconnection
+        // afterwards.
         var wireless = DeviceFactory.Create(Wireless(), XiaomiProperties);
         var usb = DeviceFactory.Create(Usb(), XiaomiProperties);
 
@@ -209,7 +211,8 @@ public class DeviceFactoryTests
     {
         var known = DeviceFactory.Create(Wireless("192.168.1.25:37845"), XiaomiProperties);
 
-        // Le port de débogage sans fil change à chaque redémarrage du téléphone.
+        // The wireless debugging port changes on every restart of the
+        // phone.
         var matched = DeviceFactory.Match([known], Wireless("192.168.1.25:41231"));
 
         Assert.Same(known, matched);

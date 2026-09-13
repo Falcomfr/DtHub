@@ -3,8 +3,8 @@
 namespace DtHub.Tests.Papycha;
 
 /// <summary>
-/// L'ordre des quêtes d'un succès. Rien ne l'éprouvait, et la carte des rangs
-/// le contredisait treize fois.
+/// The order of quests in an achievement. Nothing tested it, and the
+/// rank map contradicted it thirteen times.
 /// </summary>
 public sealed class QuestPlayOrderTests
 {
@@ -37,8 +37,9 @@ public sealed class QuestPlayOrderTests
     }
 
     /// <summary>
-    /// Un zéro ne dit pas « premier » mais « on ne sait pas » : il passe en
-    /// queue, sans quoi la quête se donnerait pour l'ouverture du succès.
+    /// A zero does not mean "first" but "unknown": it goes to the back
+    /// of the queue, otherwise the quest would pass itself off as the
+    /// achievement's opener.
     /// </summary>
     [Fact]
     public void Un_rang_inconnu_passe_en_queue()
@@ -57,9 +58,10 @@ public sealed class QuestPlayOrderTests
     }
 
     /// <summary>
-    /// Le cas relevé sur le site : dans « Un Piou, c'est tout ! », « L'île
-    /// Céleste » porte le rang 2 et exige « Le voyage vers Incarnam », qui
-    /// porte le rang 3. La liste montrait donc la quête avant ce qu'elle exige.
+    /// The case found on the site: in "Un Piou, c'est tout !", "L'île
+    /// Céleste" carries rank 2 and requires "Le voyage vers Incarnam",
+    /// which carries rank 3. The list therefore showed the quest
+    /// before what it requires.
     /// </summary>
     [Fact]
     public void Un_prerequis_l_emporte_sur_la_carte_des_rangs()
@@ -75,8 +77,8 @@ public sealed class QuestPlayOrderTests
     }
 
     /// <summary>
-    /// Une quête qui réclame son propre succès le réclame en entier : elle
-    /// passe donc après tout le reste, quel que soit son rang.
+    /// A quest that requires its own achievement requires it in full:
+    /// it therefore comes after everything else, whatever its rank.
     /// </summary>
     [Fact]
     public void Une_quete_qui_reclame_son_succes_passe_en_dernier()
@@ -91,7 +93,10 @@ public sealed class QuestPlayOrderTests
         Assert.Equal(["Première", "Troisième", "Plantala"], Titres(plan));
     }
 
-    /// <summary>Un prérequis d'un autre succès ne range rien ici.</summary>
+    /// <summary>
+    /// A prerequisite from another achievement does not order anything
+    /// here.
+    /// </summary>
     [Fact]
     public void Un_prerequis_venu_d_ailleurs_ne_change_rien()
     {
@@ -105,8 +110,8 @@ public sealed class QuestPlayOrderTests
     }
 
     /// <summary>
-    /// Deux quêtes qui se réclament l'une l'autre ne peuvent pas être
-    /// départagées : plutôt qu'une liste tronquée, on retombe sur la carte.
+    /// Two quests that each require the other cannot be resolved:
+    /// rather than a truncated list, we fall back to the rank map.
     /// </summary>
     [Fact]
     public void Une_boucle_retombe_sur_la_carte_sans_rien_perdre()

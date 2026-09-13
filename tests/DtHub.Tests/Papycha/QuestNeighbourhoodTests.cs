@@ -3,8 +3,8 @@
 namespace DtHub.Tests.Papycha;
 
 /// <summary>
-/// Le choix des voisines d'une quête. Il vivait dans la vue, que les épreuves
-/// n'atteignent pas, et rien ne le couvrait.
+/// The choice of a quest's neighbours. It used to live in the view,
+/// which the tests do not reach, and nothing covered it.
 /// </summary>
 public sealed class QuestNeighbourhoodTests
 {
@@ -61,8 +61,9 @@ public sealed class QuestNeighbourhoodTests
     }
 
     /// <summary>
-    /// Là où la liste s'arrête, le graphe prend le relais. C'est le cas signalé :
-    /// la dernière quête d'un succès mène à la première du suivant.
+    /// Where the list stops, the graph takes over. This is the reported
+    /// case: the last quest of a success leads to the first quest of
+    /// the next one.
     /// </summary>
     [Fact]
     public void Le_graphe_prolonge_la_liste_au_dela_du_succes()
@@ -76,8 +77,8 @@ public sealed class QuestNeighbourhoodTests
     }
 
     /// <summary>
-    /// La liste du succès passe avant le graphe : elle est l'ordre qu'on
-    /// parcourt, et le graphe ne comble que ses trous.
+    /// The success's list comes before the graph: it is the order being
+    /// walked, and the graph only fills in its gaps.
     /// </summary>
     [Fact]
     public void La_liste_du_succes_l_emporte_sur_le_graphe()
@@ -104,8 +105,9 @@ public sealed class QuestNeighbourhoodTests
     }
 
     /// <summary>
-    /// Un rang inconnu vaut zéro et se range en queue, non en tête : sans quoi
-    /// une quête de rang inconnu passerait pour la première de son succès.
+    /// An unknown rank is worth zero and sorts to the back, not the
+    /// front: otherwise a quest with an unknown rank would pass for the
+    /// first one of its success.
     /// </summary>
     [Fact]
     public void Un_rang_inconnu_se_range_en_queue()
@@ -130,9 +132,9 @@ public sealed class QuestNeighbourhoodTests
     }
 
     /// <summary>
-    /// Le cas relevé sur le site, avec ses vrais titres et ses vrais ordres.
-    /// « Manque de moule » exige « Titi Gobelait », mais vient après « Un
-    /// avenir de krotte de Trooll », qui n'exige rien.
+    /// The case observed on the site, with its real titles and real
+    /// ordering. "Manque de moule" requires "Titi Gobelait", but comes
+    /// after "Un avenir de krotte de Trooll", which requires nothing.
     /// </summary>
     private static readonly QuestSummary Titi =
         Quete("Titi Gobelait le magobelin", "Le théâtre des gobelins", 4);
@@ -148,8 +150,9 @@ public sealed class QuestNeighbourhoodTests
     [Fact]
     public void La_liste_du_succes_ne_saute_pas_une_quete_sans_prerequis()
     {
-        // Suivre le prérequis mènerait de Titi à Manque de moule, en sautant
-        // Un avenir de krotte de Trooll. La liste, elle, les prend dans l'ordre.
+        // Following the prerequisite would lead from Titi to Manque de
+        // moule, skipping Un avenir de krotte de Trooll. The list, on
+        // the other hand, takes them in order.
         var voisines = QuestNeighbourhood.Of(Titi, Gobelins, new QuestChainIndex(Gobelins));
 
         Assert.Equal(Krotte.Title, voisines.Next?.Title);
@@ -160,8 +163,8 @@ public sealed class QuestNeighbourhoodTests
     [Fact]
     public void Au_milieu_de_la_liste_c_est_elle_qui_tranche()
     {
-        // Ce que la vue lit pour savoir si la colonne du site a le droit de
-        // corriger : au milieu, non.
+        // What the view reads to know whether the site's column is
+        // allowed to correct it: in the middle, no.
         var voisines = QuestNeighbourhood.Of(Krotte, Gobelins, new QuestChainIndex(Gobelins));
 
         Assert.True(voisines.NextFromList);
@@ -174,8 +177,9 @@ public sealed class QuestNeighbourhoodTests
         var premiere = QuestNeighbourhood.Of(Titi, Gobelins, new QuestChainIndex(Gobelins));
         var derniere = QuestNeighbourhood.Of(Moule, Gobelins, new QuestChainIndex(Gobelins));
 
-        // La première n'a pas de précédente dans la liste, la dernière pas de
-        // suivante : c'est là, et là seulement, que le site complète.
+        // The first one has no previous quest in the list, the last one
+        // no next quest: this is where, and only where, the site fills
+        // in the gap.
         Assert.False(premiere.PreviousFromList);
         Assert.True(premiere.NextFromList);
 

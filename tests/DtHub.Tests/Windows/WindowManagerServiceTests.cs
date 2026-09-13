@@ -23,8 +23,8 @@ public class WindowManagerServiceTests
     };
 
     /// <summary>
-    /// Ouvre le nombre demandé de sessions, chacune avec son processus et sa
-    /// fenêtre déclarée dans le bureau simulé.
+    /// Opens the requested number of sessions, each with its process and its
+    /// window declared in the simulated desktop.
     /// </summary>
     private static async Task<(ScrcpySessionManager Manager, List<ScrcpySession> Sessions, FakeWindowController Desktop)>
         OpenSessionsAsync(int count, ScrcpyOptions? options = null)
@@ -146,9 +146,9 @@ public class WindowManagerServiceTests
     [Fact]
     public async Task Une_taille_est_absolue_et_ne_depend_pas_de_celle_d_avant()
     {
-        // Le défaut d'origine : la taille était un facteur, la nouvelle part
-        // divisée par l'ancienne. Redemander la part en cours donnait un
-        // facteur de un et ne faisait rien du tout.
+        // The original bug: size was a factor, the new fraction divided by the
+        // old one. Asking for the current fraction again gave a factor of one
+        // and did nothing at all.
         var (manager, sessions, desktop) = await OpenSessionsAsync(1);
         await using var _ = manager;
 
@@ -157,7 +157,8 @@ public class WindowManagerServiceTests
         await service.ApplySizeAsync(sessions, 3, CancellationToken.None);
         var pose = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
 
-        // On dérange la fenêtre à la main, puis on redemande la même taille.
+        // The window is disturbed by hand, then the same size is requested
+        // again.
         desktop.MoveWindow(sessions[0].WindowHandle, new ScreenRect(40, 40, 300, 200));
         await service.ApplySizeAsync(sessions, 3, CancellationToken.None);
 
@@ -182,7 +183,7 @@ public class WindowManagerServiceTests
 
         var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
 
-        // Au rapport près, l'une des deux dimensions touche le bord.
+        // Aspect ratio permitting, one of the two dimensions touches the edge.
         Assert.True(rect.Width <= work.Width && rect.Height <= work.Height);
         Assert.True(rect.Width == work.Width || rect.Height == work.Height, $"{rect}");
     }
@@ -222,7 +223,7 @@ public class WindowManagerServiceTests
             Assert.Contains(session.WindowHandle, desktop.Borderless);
         }
 
-        // En sortir rétablit la bordure.
+        // Leaving it restores the border.
         await service.ApplySizeAsync(sessions, 0, CancellationToken.None);
         Assert.Empty(desktop.Borderless);
     }
@@ -261,9 +262,9 @@ public class WindowManagerServiceTests
     [Fact]
     public async Task Le_rapport_s_applique_a_la_zone_client_et_non_au_cadre()
     {
-        // C'est la zone client que scrcpy remplit. Appliquer le rapport au
-        // rectangle extérieur laisse des bandes noires sur les côtés, de la
-        // largeur exacte de la barre de titre.
+        // This is the client area that scrcpy fills. Applying the aspect ratio
+        // to the outer rectangle leaves black bars on the sides, exactly the
+        // width of the title bar.
         var (manager, sessions, desktop) = await OpenSessionsAsync(
             1, ScrcpyOptions.Default);
 
@@ -356,7 +357,7 @@ public class WindowManagerServiceTests
         var service = new WindowManagerService(desktop, NoDelay);
         await service.ArrangeAsync(sessions, CancellationToken.None);
 
-        // L'utilisateur clique sur la troisième fenêtre.
+        // The user clicks the third window.
         desktop.Foreground = 1002;
 
         Assert.Equal(1000, service.FocusNext(sessions)!.WindowHandle);
@@ -400,7 +401,8 @@ public class WindowManagerServiceTests
         desktop.Foreground = 1001;
         Assert.True(service.IsManagedWindowFocused(sessions));
 
-        // L'utilisateur bascule sur son navigateur : Ctrl+Tab doit lui revenir.
+        // The user switches to their browser: Ctrl+Tab must be given back to
+        // it.
         desktop.Foreground = 424242;
         Assert.False(service.IsManagedWindowFocused(sessions));
     }
@@ -417,7 +419,9 @@ public class WindowManagerServiceTests
         Assert.Equal(FakeWindowController.PrimaryMonitor.WorkArea.X, area.Value.X);
     }
 
-    /// <summary>Poignée de la première fenêtre posée par <c>OpenSessionsAsync</c>.</summary>
+    /// <summary>
+    /// Handle of the first window placed by <c>OpenSessionsAsync</c>.
+    /// </summary>
     private const nint FirstWindow = 1000;
 
     private static StoredWindowRect Remembered(ScreenRect rect) =>
@@ -447,9 +451,9 @@ public class WindowManagerServiceTests
     [Fact]
     public async Task Une_fenetre_deja_a_sa_place_n_est_pas_deplacee()
     {
-        // Le défaut rapporté : la fenêtre de jeu sautait sous les yeux deux
-        // cents millisecondes après son ouverture. scrcpy l'ouvre au rectangle
-        // demandé, et la reposer par-dessus n'avait rien à corriger.
+        // The reported bug: the game window jumped visibly two hundred
+        // milliseconds after opening. scrcpy opens it at the requested
+        // rectangle, and placing it there again had nothing to fix.
         var (manager, sessions, desktop) = await OpenSessionsAsync(1);
         await using var _ = manager;
 
@@ -543,8 +547,8 @@ public class WindowManagerServiceTests
     [Fact]
     public async Task Deux_instances_peuvent_avoir_des_geometries_differentes()
     {
-        // C'est la rupture avec la superposition systématique : chaque fenêtre
-        // retrouve l'endroit où elle a été laissée.
+        // This breaks with the systematic overlap: each window returns to
+        // where it was left.
         var (manager, sessions, desktop) = await OpenSessionsAsync(2);
         await using var _ = manager;
 
@@ -566,8 +570,8 @@ public class WindowManagerServiceTests
     [Fact]
     public async Task Ouvrir_une_instance_ne_deplace_pas_les_fenetres_deja_ouvertes()
     {
-        // Relancer un compte ne doit pas arracher les autres fenêtres à
-        // l'endroit où l'utilisateur les a mises.
+        // Relaunching an account must not tear the other windows away from
+        // where the user put them.
         var (manager, sessions, desktop) = await OpenSessionsAsync(2);
         await using var _ = manager;
 
@@ -626,9 +630,9 @@ public class WindowManagerServiceTests
     [Fact]
     public async Task Rien_n_est_capture_en_plein_ecran()
     {
-        // Le rectangle vaudrait l'écran entier, et la fenêtre y est sans
-        // bordure : le restaurer en taille normale donnerait une fenêtre
-        // bordée débordant sous la barre des tâches.
+        // The rectangle would equal the whole screen, and the window has no
+        // border there: restoring it at normal size would give a bordered
+        // window overflowing under the taskbar.
         var (manager, sessions, desktop) = await OpenSessionsAsync(1);
         await using var _ = manager;
 
@@ -642,8 +646,8 @@ public class WindowManagerServiceTests
     [Fact]
     public async Task Le_titre_des_fenetres_ouvertes_peut_etre_reecrit()
     {
-        // scrcpy ne fixe son titre qu'au démarrage : sans réécriture, le
-        // rappel du raccourci resterait périmé jusqu'à la prochaine ouverture.
+        // scrcpy sets its title only at startup: without rewriting it, the
+        // shortcut reminder would stay stale until the next opening.
         var (manager, sessions, desktop) = await OpenSessionsAsync(2);
         await using var _ = manager;
 
@@ -660,8 +664,8 @@ public class WindowManagerServiceTests
     [Fact]
     public async Task Changer_la_taille_conserve_les_ecarts_entre_fenetres()
     {
-        // Une fenêtre volontairement plus petite qu'une autre doit le rester :
-        // leur donner la même taille effacerait un choix de l'utilisateur.
+        // A window deliberately made smaller than another must stay that way:
+        // giving them the same size would erase a user's choice.
         var (manager, sessions, desktop) = await OpenSessionsAsync(2);
         await using var _ = manager;
 
@@ -690,7 +694,7 @@ public class WindowManagerServiceTests
         var service = new WindowManagerService(desktop, NoDelay);
         await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
 
-        // La deuxième est placée à part, puis rendue active.
+        // The second one is placed apart, then made active.
         var chosen = new ScreenRect(300, 200, 1600, 900);
         desktop.MoveWindow(sessions[1].WindowHandle, chosen);
         desktop.Focus(sessions[1].WindowHandle);
@@ -706,10 +710,10 @@ public class WindowManagerServiceTests
     [Fact]
     public async Task Changer_la_taille_garde_la_position_relative_dans_l_ecran()
     {
-        // Une fenêtre collée en haut à gauche grandit depuis ce coin, une
-        // fenêtre centrée grandit autour de son centre. Garder le coin puis
-        // reprendre la fenêtre dans l'écran la poussait dès qu'elle
-        // grandissait près d'un bord.
+        // A window stuck to the top left grows from that corner, a centered
+        // window grows around its center. Keeping the corner and then bringing
+        // the window back inside the screen pushed it as soon as it grew near
+        // an edge.
         var (manager, sessions, desktop) = await OpenSessionsAsync(2);
         await using var _ = manager;
 
@@ -759,8 +763,8 @@ public class WindowManagerServiceTests
     [Fact]
     public async Task Le_retour_du_plein_ecran_rend_a_chaque_fenetre_sa_geometrie()
     {
-        // Le retour partait du rectangle plein écran et empilait toutes les
-        // fenêtres au même endroit.
+        // The return used to start from the fullscreen rectangle and stacked
+        // all the windows in the same place.
         var (manager, sessions, desktop) = await OpenSessionsAsync(2);
         await using var _ = manager;
 
@@ -815,7 +819,7 @@ public class WindowManagerServiceTests
     [Fact]
     public async Task Au_dela_de_deux_les_fenetres_se_rangent_derriere_celle_de_gauche()
     {
-        // L'écran ne se partage plus utilement au-delà de deux.
+        // The screen no longer splits usefully beyond two.
         var (manager, sessions, desktop) = await OpenSessionsAsync(3);
         await using var _ = manager;
 
@@ -832,9 +836,9 @@ public class WindowManagerServiceTests
     [Fact]
     public async Task Le_replacement_reprend_la_derniere_fenetre_utilisee()
     {
-        // Cliquer le bouton met le configurateur au premier plan : plus aucune
-        // fenêtre de jeu n'y est, et lire le premier plan à cet instant
-        // ramènerait toujours à la première de la liste.
+        // Clicking the button brings the configurator to the foreground: no
+        // game window is there anymore, and reading the foreground at that
+        // moment would always fall back to the first one in the list.
         var (manager, sessions, desktop) = await OpenSessionsAsync(3);
         await using var _ = manager;
 
@@ -844,7 +848,8 @@ public class WindowManagerServiceTests
         var wanted = new ScreenRect(120, 60, 900, 520);
         desktop.MoveWindow(sessions[2].WindowHandle, wanted);
 
-        // La troisième passe au premier plan, puis le configurateur le prend.
+        // The third one comes to the foreground, then the configurator takes
+        // it.
         desktop.Foreground = sessions[2].WindowHandle;
         service.TrackActiveWindow(sessions);
         desktop.Foreground = 0;
@@ -878,8 +883,8 @@ public class WindowManagerServiceTests
     [Fact]
     public async Task Une_geometrie_memorisee_est_rendue_telle_quelle()
     {
-        // L'image étant mise à l'échelle de la fenêtre, toute taille mémorisée
-        // est bonne à reprendre : rien n'est plafonné.
+        // Since the image is scaled to the window, any stored size is fine to
+        // restore: nothing is capped.
         var (manager, sessions, desktop) = await OpenSessionsAsync(1);
         await using var _ = manager;
 
@@ -907,8 +912,8 @@ public class WindowManagerServiceTests
     [Fact]
     public void L_afficheur_prend_la_forme_de_l_ecran_ou_la_fenetre_rouvre()
     {
-        // Une fenêtre laissée sur un second écran de forme différente naîtrait
-        // mal formée si l'afficheur suivait un écran de référence unique.
+        // A window left on a second screen of a different shape would come out
+        // malformed if the display followed a single reference screen.
         var principal = FakeWindowController.PrimaryMonitor;
         var second = new MonitorInfo
         {
@@ -940,9 +945,9 @@ public class WindowManagerServiceTests
     [Fact]
     public void La_taille_transmise_a_scrcpy_est_celle_de_la_zone_client()
     {
-        // C'est elle que scrcpy donne à l'afficheur, et le jeu fige la hauteur
-        // de sa mise en page dessus. Compter le cadre la rendrait trop haute
-        // d'une barre de titre, et l'image serait rognée d'autant.
+        // This is what scrcpy gives to the display, and the game locks the
+        // height of its layout on it. Counting the frame would make it too
+        // tall by one title bar, and the image would be cropped by as much.
         var desktop = new FakeWindowController
         {
             Chrome = new WindowFrame(Left: 11, Top: 45, Width: 22, Height: 56),
@@ -955,9 +960,9 @@ public class WindowManagerServiceTests
     [Fact]
     public async Task Une_fenetre_qui_deborde_apres_un_geste_est_ramenee_a_l_interieur()
     {
-        // Un redimensionnement à la souris est fait par Windows, qui garde le
-        // bord opposé, et par scrcpy, qui verrouille le rapport en faisant
-        // grandir vers le bas : une fenêtre posée en bas de l'écran en sort.
+        // A resize with the mouse is done by Windows, which keeps the opposite
+        // edge, and by scrcpy, which locks the aspect ratio by growing
+        // downward: a window placed at the bottom of the screen goes past it.
         var (manager, sessions, desktop) = await OpenSessionsAsync(
             1,
             ScrcpyOptions.Default with { VirtualDisplayWidth = 1600, VirtualDisplayHeight = 900 });
@@ -970,7 +975,8 @@ public class WindowManagerServiceTests
         var work = FakeWindowController.PrimaryMonitor.WorkArea;
         var chrome = desktop.Chrome;
 
-        // Au bon rapport, mais débordant de deux cents pixels sous l'écran.
+        // At the correct aspect ratio, but overflowing two hundred pixels
+        // below the screen.
         var height = (int)Math.Round(800d / (1600d / 900)) + chrome.Height;
 
         desktop.MoveWindow(
@@ -1013,9 +1019,9 @@ public class WindowManagerServiceTests
     [Fact]
     public async Task Au_rapport_verrouille_la_hauteur_suit_la_forme_de_l_afficheur()
     {
-        // Dans ce mode l'image est mise à l'échelle : elle ne remplit la
-        // fenêtre qu'à la forme de l'afficheur, et s'en écarter laisse une
-        // bande. Le plafond de hauteur, lui, ne s'applique pas.
+        // In this mode the image is scaled: it only fills the window to the
+        // shape of the display, and departing from it leaves a band. The
+        // height cap, meanwhile, does not apply.
         var (manager, sessions, desktop) = await OpenSessionsAsync(
             1,
             ScrcpyOptions.Default with
@@ -1045,9 +1051,9 @@ public class WindowManagerServiceTests
     [Fact]
     public async Task L_ordre_de_la_liste_devient_l_ordre_des_fenetres()
     {
-        // Les fenêtres sont remontées de la dernière à la première : chacune
-        // passe au-dessus des précédentes, donc la première de la liste finit
-        // au sommet, et c'est elle qu'Alt+Tab propose en premier.
+        // Windows are raised from the last to the first: each one passes above
+        // the previous ones, so the first in the list ends up on top, and it
+        // is the one that Alt+Tab offers first.
         var (manager, sessions, desktop) = await OpenSessionsAsync(3);
 
         await using var _ = manager;
@@ -1065,8 +1071,8 @@ public class WindowManagerServiceTests
     [Fact]
     public async Task Remettre_les_fenetres_dans_l_ordre_ne_vole_le_clavier_a_personne()
     {
-        // Le rangement se fait pendant qu'on joue : donner le focus au passage
-        // arracherait la fenêtre active sous les doigts de l'utilisateur.
+        // The reordering happens while playing: giving focus along the way
+        // would tear the active window from under the user's fingers.
         var (manager, sessions, desktop) = await OpenSessionsAsync(2);
 
         await using var _ = manager;
@@ -1081,8 +1087,8 @@ public class WindowManagerServiceTests
     [Fact]
     public async Task Le_cote_a_cote_rend_le_clavier_a_la_fenetre_de_gauche()
     {
-        // Celle de droite est celle qu'on venait de quitter : la ranger pour
-        // aussitôt y rester ne servirait à rien.
+        // The one on the right is the one just left: reordering it only to
+        // immediately stay there would serve no purpose.
         var (manager, sessions, desktop) = await OpenSessionsAsync(2);
 
         await using var _ = manager;
@@ -1111,8 +1117,8 @@ public class WindowManagerServiceTests
     [Fact]
     public async Task L_arret_demande_la_fermeture_avant_de_tuer()
     {
-        // Un client tué net sur une liaison Wi-Fi laisse son serveur en vie sur
-        // le téléphone, avec l'afficheur virtuel qu'il a créé.
+        // A client killed outright over a Wi-Fi connection leaves its server
+        // alive on the phone, along with the virtual display it created.
         var (manager, sessions, desktop) = await OpenSessionsAsync(1);
 
         var service = new WindowManagerService(desktop, NoDelay);
@@ -1129,9 +1135,9 @@ public class WindowManagerServiceTests
     [Fact]
     public async Task La_moitie_droite_peut_etre_laissee_libre()
     {
-        // Le cadre à onglets au premier plan prend la droite, et il n'est pas
-        // une session : sans cette réserve, une fenêtre de jeu s'y poserait
-        // par-dessus lui.
+        // The tabbed frame in the foreground takes the right side, and it is
+        // not a session: without this reservation, a game window would land
+        // there right on top of it.
         var (manager, sessions, desktop) = await OpenSessionsAsync(2);
         await using var _ = manager;
 
@@ -1155,8 +1161,8 @@ public class WindowManagerServiceTests
         var service = new WindowManagerService(desktop, NoDelay);
         var work = FakeWindowController.PrimaryMonitor.WorkArea;
 
-        // Le placement d'abord : sans lui les poignées ne sont pas résolues, et
-        // la fenêtre active ne peut pas être reconnue.
+        // Placement first: without it the handles are not resolved, and the
+        // active window cannot be recognized.
         await service.RestoreAsync(
             sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
 

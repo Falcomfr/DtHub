@@ -3,7 +3,8 @@
 namespace DtHub.Tests.Diagnostics;
 
 /// <summary>
-/// Le rapport part chez quelqu'un d'autre : ce qu'il porte est un engagement.
+/// The report goes out to someone else: what it carries is a
+/// commitment.
 /// </summary>
 public sealed class DiagnosticReportTests
 {
@@ -33,8 +34,9 @@ public sealed class DiagnosticReportTests
     }
 
     /// <summary>
-    /// Le point qui compte : rien de ce qui désigne une personne ou son
-    /// matériel ne doit sortir, d'où qu'il vienne dans le rapport.
+    /// The point that matters: nothing that identifies a person or
+    /// their hardware must get out, no matter where in the report
+    /// it comes from.
     /// </summary>
     [Fact]
     public void Rien_de_personnel_n_en_ressort()
@@ -52,7 +54,7 @@ public sealed class DiagnosticReportTests
         Assert.DoesNotContain("SERIAL0123456789", report, StringComparison.Ordinal);
         Assert.DoesNotContain("_adb-tls", report, StringComparison.Ordinal);
 
-        // Ce qui reste doit rester utile.
+        // What remains must stay useful.
         Assert.Contains("Ouverture refusée.", report, StringComparison.Ordinal);
         Assert.Contains("scrcpy.exe", report, StringComparison.Ordinal);
     }
@@ -79,8 +81,8 @@ public sealed class DiagnosticReportTests
     }
 
     /// <summary>
-    /// L'adresse d'un signalement porte le titre, jamais le corps : un rapport
-    /// dépasse de loin ce qu'une adresse accepte.
+    /// A report's URL carries the title, never the body: a report
+    /// goes far beyond what a URL can accept.
     /// </summary>
     [Fact]
     public void L_adresse_de_signalement_porte_le_titre_et_pas_le_rapport()

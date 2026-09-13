@@ -24,16 +24,17 @@ public class SettingsBackupTests
     [Fact]
     public void Un_fichier_plus_ancien_est_utilisable()
     {
-        // Le chemin ordinaire sait migrer vers l'avant, c'est son travail.
+        // The ordinary path knows how to migrate forward, that is its job.
         Assert.Equal(BackupVerdict.Usable, SettingsBackup.Inspect(Fichier(3)).Verdict);
     }
 
     [Fact]
     public void Un_fichier_plus_recent_est_refuse()
     {
-        // Le chemin ordinaire le ramènerait à la version courante en perdant
-        // ce qu'il portait en plus. Acceptable pour un fichier local qu'on
-        // retrouve, pas pour un import où quelqu'un croit restaurer.
+        // The ordinary path would bring it back down to the current
+        // version, losing whatever it carried beyond that. Acceptable
+        // for a local file one comes back to, not for an import where
+        // someone believes they are restoring something.
         var found = SettingsBackup.Inspect(Fichier(AppSettingsDocument.CurrentSchemaVersion + 1));
 
         Assert.Equal(BackupVerdict.TooNew, found.Verdict);

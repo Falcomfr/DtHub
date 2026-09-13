@@ -5,8 +5,9 @@ namespace DtHub.Tests.Devices;
 public class ThermalReadingTests
 {
     /// <summary>
-    /// Relevé tel quel sur le téléphone de référence, un Xiaomi 13T Pro sous
-    /// Android 16. Le nombre d'état est le seul qui change d'un cas à l'autre.
+    /// Captured as-is on the reference phone, a Xiaomi 13T Pro
+    /// running Android 16. The status number is the only thing that
+    /// changes from one case to another.
     /// </summary>
     private static string Dumpsys(int statut) => $$"""
 IsStatusOverride: false
@@ -46,9 +47,10 @@ Temperature static thresholds from HAL:
     [Fact]
     public void La_temperature_lue_est_celle_de_l_instant_et_non_celle_du_cache()
     {
-        // Relevé sur le téléphone de référence : le cache annonçait 48,5 ° au
-        // moment où la lecture courante en donnait 34,4. Prendre la première
-        // des deux aurait mis un chiffre faux dans le journal.
+        // Captured on the reference phone: the cache reported 48.5°
+        // at the moment when the current reading gave 34.4. Taking
+        // the first of the two would have put a wrong figure in the
+        // log.
         var reading = ThermalReading.Parse(Dumpsys(0));
 
         Assert.NotNull(reading);
@@ -58,9 +60,10 @@ Temperature static thresholds from HAL:
     [Fact]
     public void La_temperature_lue_est_celle_de_la_surface_et_non_du_processeur()
     {
-        // Le processeur affichait 84,2 ° pendant que l'appareil ne bridait
-        // rien : c'est la surface qui dit ce que la main sent et ce que le
-        // système surveille.
+        // The processor showed 84.2° while the device was not
+        // throttling anything at all: it is the surface temperature
+        // that says what the hand feels and what the system
+        // watches.
         var reading = ThermalReading.Parse(Dumpsys(0));
 
         Assert.NotNull(reading);
@@ -117,7 +120,8 @@ Temperature static thresholds from HAL:
     [InlineData("dumpsys: service thermalservice does not exist")]
     public void Ce_qui_ne_dit_pas_l_etat_ne_rend_rien(string? sortie)
     {
-        // Ne rien savoir de la chaleur est un cas ordinaire, pas une faute.
+        // Knowing nothing about the heat is an ordinary case, not a
+        // fault.
         Assert.Null(ThermalReading.Parse(sortie));
     }
 

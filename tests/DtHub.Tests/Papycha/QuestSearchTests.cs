@@ -12,8 +12,8 @@ public class QuestSearchTests
     [InlineData("  Étape   1/61  ", "etape 1 61")]
     public void Un_titre_se_reduit_a_une_forme_comparable(string title, string expected)
     {
-        // Les titres du site portent accents et apostrophes courbes ; personne
-        // ne les tape ainsi.
+        // The site's titles carry accents and curly apostrophes;
+        // nobody types them that way.
         Assert.Equal(expected, QuestSearch.Normalize(title));
     }
 
@@ -41,8 +41,8 @@ public class QuestSearchTests
     [Fact]
     public void Un_titre_qui_commence_par_la_recherche_passe_devant()
     {
-        // On lit de gauche à droite : le début d'un titre pèse plus que son
-        // milieu.
+        // We read left to right: the start of a title weighs more
+        // than its middle.
         QuestSummary Quete(string title) => new()
         {
             Title = title,
@@ -71,10 +71,10 @@ public class QuestSearchTests
     [Fact]
     public void Une_quete_ne_se_trouve_plus_par_le_nom_de_sa_zone()
     {
-        // Elle s'y trouvait, et c'est ce qui noyait la recherche : « frigost »
-        // rendait cent soixante-dix-sept quêtes dont cent soixante-treize par
-        // la seule rubrique. Cette intention est servie par le groupe des
-        // zones, qui n'existait pas quand la rubrique a été ajoutée ici.
+        // It used to be found there, and that is what flooded the
+        // search: "frigost" returned 177 quests, 173 of them through
+        // the section alone. That intent is now served by the zones
+        // group, which did not exist when the section was added here.
         var quete = new QuestSummary
         {
             Title = "Complètement givré",
@@ -88,9 +88,9 @@ public class QuestSearchTests
     [Fact]
     public void Ce_qui_commence_par_le_mot_cherche_passe_devant()
     {
-        // Les titres français commencent souvent par un article : sans ce
-        // classement, « Dragon Cochon » se perdrait derrière « Le dragon
-        // d'Astrub ».
+        // French titles often start with an article: without this
+        // ranking, "Dragon Cochon" would get lost behind "Le dragon
+        // d'Astrub".
         QuestSummary Quete(string title) => new()
         {
             Title = title,
@@ -137,16 +137,17 @@ public class QuestSearchTests
         Assert.Equal("Île de Frigost", Assert.Single(trouve.Zones).Name);
         Assert.Equal("Les survivants de Frigost", Assert.Single(trouve.Successes));
 
-        // « Complètement givré » se déroule à Frigost mais ne le dit pas dans
-        // son nom : elle relève de la zone, pas du groupe des quêtes.
+        // "Complètement givré" takes place in Frigost but does not
+        // say so in its name: it belongs to the zone, not to the
+        // quests group.
         Assert.Equal("Bienvenue à Frigost", Assert.Single(trouve.Quests).Title);
     }
 
     [Fact]
     public void Un_succes_se_cherche_par_son_nom()
     {
-        // Les succès n'étaient cherchables par aucun chemin, alors que le
-        // catalogue en porte plus de cent.
+        // Achievements were not searchable by any path, even though
+        // the catalog carries more than 100 of them.
         QuestSummary[] quetes =
         [
             Quete("Une quête", "Intérimaire frigostien"),
@@ -162,8 +163,9 @@ public class QuestSearchTests
     [Fact]
     public void Une_zone_se_cherche_sous_le_nom_qu_on_affiche()
     {
-        // La liste montre « Port de Madrestam » ; chercher ce qu'on lit doit
-        // marcher, même si le catalogue nomme la rubrique autrement.
+        // The list shows "Port de Madrestam"; searching for what is
+        // displayed must work, even if the catalog names the section
+        // differently.
         QuestSection[] rubriques = [Rubrique(-4, "Quêtes du Port de Madrestam")];
 
         var trouve = QuestSearch.Search([], rubriques, [], [], "madrestam");
@@ -174,8 +176,8 @@ public class QuestSearchTests
     [Fact]
     public void Une_recherche_vide_ne_rend_rien()
     {
-        // Sans quoi la liste des zones serait remplacée par le catalogue entier
-        // dès que le champ se vide.
+        // Otherwise the zones list would be replaced by the entire
+        // catalog as soon as the field is emptied.
         Assert.True(QuestSearch.Search([Quete("Une quête")], [], [], [], "  ").IsEmpty);
         Assert.True(QuestSearch.Search([Quete("Une quête")], [], [], [], null).IsEmpty);
     }

@@ -3,11 +3,11 @@
 namespace DtHub.Tests.Windows;
 
 /// <summary>
-/// Ce que le cadenas veut dire pour un compte logé dans le cadre à onglets.
+/// What the lock means for an account docked in the tabbed frame.
 ///
-/// Les deux bascules étant indépendantes, un compte pouvait être verrouillé et
-/// logé, et le cadre le redimensionnait quand même : le verrou n'y protégeait
-/// de rien alors qu'il promet le contraire.
+/// Since the two toggles are independent, an account could be
+/// locked and docked, and the frame would still resize it: the lock
+/// protected nothing there while promising the opposite.
 /// </summary>
 public class FrameLockTests
 {
@@ -20,8 +20,9 @@ public class FrameLockTests
     [Fact]
     public void Un_seul_cadenas_suffit_meme_si_les_autres_sont_libres()
     {
-        // C'est le prix assumé de la règle : un verrou est une protection, et
-        // un voisin ne lève pas la protection d'un autre.
+        // This is the accepted cost of the rule: a lock is a
+        // protection, and a neighbor does not lift another one's
+        // protection.
         Assert.True(FrameLock.Freezes(["xspace"], ["principal", "xspace", "second"]));
     }
 
@@ -46,8 +47,8 @@ public class FrameLockTests
     [Fact]
     public void La_comparaison_des_clefs_est_exacte()
     {
-        // Les clefs viennent des réglages et distinguent la casse : les
-        // rapprocher sans y prendre garde figerait un cadre au hasard.
+        // Keys come from the settings and are case-sensitive:
+        // matching them carelessly would freeze a frame at random.
         Assert.False(FrameLock.Freezes(["Principal"], ["principal"]));
     }
 }

@@ -4,16 +4,17 @@ using DtHub.Core.Settings;
 namespace DtHub.Tests.Scrcpy;
 
 /// <summary>
-/// L'afficheur suit la taille de la fenêtre, par paliers. C'est ce qui évite
-/// une interface de jeu minuscule dans une petite fenêtre et floue en grand.
+/// The display follows the window size, in steps. That is what keeps the
+/// game interface from being tiny in a small window and blurry when
+/// large.
 /// </summary>
 public sealed class DisplayLadderTests
 {
     [Fact]
     public void Une_petite_fenetre_recoit_une_petite_definition()
     {
-        // Sans cela, l'image serait réduite d'un facteur quatre et l'interface
-        // du jeu deviendrait illisible.
+        // Without this, the image would be scaled down by a factor of four
+        // and the game interface would become unreadable.
         var (width, height) = DisplayLadder.For(550, 3840, 2160);
 
         Assert.Equal(720, height);
@@ -32,8 +33,8 @@ public sealed class DisplayLadderTests
     [Fact]
     public void La_definition_ne_depasse_jamais_celle_de_l_ecran()
     {
-        // Au-delà, l'encodeur du téléphone travaillerait pour des pixels que
-        // personne ne verrait.
+        // Beyond that, the phone's encoder would be working for pixels
+        // that nobody would ever see.
         var (_, height) = DisplayLadder.For(4000, 3840, 2160);
 
         Assert.Equal(2160, height);
@@ -42,7 +43,8 @@ public sealed class DisplayLadderTests
     [Fact]
     public void Le_palier_retenu_est_toujours_au_dessus_de_la_fenetre()
     {
-        // L'image est alors réduite, jamais agrandie, donc toujours nette.
+        // The image is then scaled down, never up, so it always stays
+        // sharp.
         foreach (var wanted in new[] { 400, 700, 901, 1080, 1500, 1900 })
         {
             var (_, height) = DisplayLadder.For(wanted, 3840, 2160);
@@ -54,7 +56,8 @@ public sealed class DisplayLadderTests
     [Fact]
     public void Le_rapport_est_celui_de_l_ecran()
     {
-        // C'est lui que la fenêtre garde : s'en écarter laisserait une bande.
+        // This is the ratio the window keeps: straying from it would
+        // leave a blank band.
         var (width, height) = DisplayLadder.For(900, 2560, 1080);
 
         Assert.Equal(1080d / 2560, height / (double)width, 2);
@@ -72,16 +75,17 @@ public sealed class DisplayLadderTests
     [Fact]
     public void Chaque_qualite_borne_la_definition_differemment()
     {
-        // Sans borne, moyenne et haute auraient été indiscernables : le débit
-        // ne se voit pas sur une image presque fixe.
+        // Without a ceiling, medium and high would have been
+        // indistinguishable: bitrate does not show on an almost still
+        // image.
         Assert.Equal(720, QualityProfile.For(StreamQuality.Low).MaximumDisplayHeight);
         Assert.Equal(1080, QualityProfile.For(StreamQuality.Medium).MaximumDisplayHeight);
         Assert.Equal(1440, QualityProfile.For(StreamQuality.Maximum).MaximumDisplayHeight);
 
-        // Trois paliers automatiques, pas quatre : deux voisins indiscernables
-        // ne servaient qu'à faire hésiter. « Personnalisé » ne se compte pas
-        // ici, ce n'est pas un barreau de plus sur l'échelle mais une sortie
-        // de route, dont les valeurs viennent de l'utilisateur.
+        // Three automatic steps, not four: two indistinguishable
+        // neighbours only made people hesitate. Custom does not count
+        // here, it is not one more rung on the ladder but an off-ramp,
+        // whose values come from the user.
         Assert.Equal(
             3,
             Enum.GetValues<StreamQuality>().Count(q => q != StreamQuality.Custom));
@@ -102,10 +106,11 @@ public sealed class DisplayLadderTests
     [Fact]
     public void Le_debit_personnalise_suit_la_definition()
     {
-        // La leçon que ce fichier gardait déjà pour les paliers automatiques,
-        // et qu'un débit choisi en mégabits aurait défaite : un débit fixe
-        // sert grassement une petite fenêtre et affame une grande. La finesse,
-        // elle, garde son sens à toute taille.
+        // The lesson this file already held for the automatic steps, and
+        // that a bitrate chosen in megabits would have undone: a fixed
+        // bitrate serves a small window generously and starves a large
+        // one. Detail (bits per pixel), though, keeps its meaning at
+        // any size.
         var profile = QualityProfile.For(
             StreamQuality.Custom,
             new CustomQuality { MaximumDisplayHeight = 2160, MaxFps = 60, BitsPerPixel = 0.09 });
@@ -115,15 +120,17 @@ public sealed class DisplayLadderTests
 
         Assert.True(grande > petite, $"grande {grande} devrait dépasser petite {petite}");
 
-        // Et la finesse servie est bien celle demandée, aux arrondis près.
+        // And the detail actually served does match the one requested,
+        // give or take rounding.
         Assert.Equal(0.09, petite * 1000.0 / (1280.0 * 720 * 60), 3);
     }
 
     [Fact]
     public void Le_palier_personnalise_garde_un_plafond()
     {
-        // Le plafond ne protège pas de l'utilisateur mais de la liaison :
-        // plusieurs comptes ouverts, ce sont plusieurs flux sur le même Wi-Fi.
+        // The ceiling does not protect against the user but against the
+        // link: several open accounts mean several streams on the same
+        // Wi-Fi.
         var profile = QualityProfile.For(
             StreamQuality.Custom,
             new CustomQuality { MaximumDisplayHeight = 2160, MaxFps = 60, BitsPerPixel = 0.30 });
@@ -136,8 +143,9 @@ public sealed class DisplayLadderTests
     [Fact]
     public void Un_palier_personnalise_sans_valeurs_reste_ouvrable()
     {
-        // Un fichier de réglages qui annonce le palier sans en porter les
-        // valeurs doit rendre une session qui s'ouvre, pas une exception.
+        // A settings file that declares the custom step without
+        // carrying its values must still yield a session that opens,
+        // not an exception.
         var profile = QualityProfile.For(StreamQuality.Custom);
 
         Assert.Equal(CustomQuality.Default.MaxFps, profile.MaxFps);
@@ -147,8 +155,8 @@ public sealed class DisplayLadderTests
     [Fact]
     public void La_definition_de_repli_est_celle_qu_aucun_encodeur_ne_refuse()
     {
-        // Les encodeurs vidéo plafonnent, et pas tous au même endroit. Le
-        // repli doit passer partout, y compris sur une tablette modeste.
+        // Video encoders cap out, and not all at the same point. The
+        // fallback must work everywhere, including on a modest tablet.
         Assert.Equal(1920, DisplayLadder.FallbackWidth);
         Assert.Equal(1080, DisplayLadder.FallbackHeight);
     }
@@ -156,8 +164,8 @@ public sealed class DisplayLadderTests
     [Fact]
     public void La_qualite_basse_borne_la_definition()
     {
-        // C'est le principal levier : l'encodeur du téléphone travaille alors
-        // sur quatre fois moins de pixels.
+        // This is the main lever: the phone's encoder then works on
+        // four times fewer pixels.
         var (_, height) = DisplayLadder.For(2130, 3840, 2160, maximumHeight: 720);
 
         Assert.Equal(720, height);
@@ -175,9 +183,9 @@ public sealed class DisplayLadderTests
     [Fact]
     public void Le_repli_descend_palier_par_palier()
     {
-        // Un repli unique à 1080 laissait sans recours les encodeurs plafonnés
-        // à 1280x720, courants sur le bas de gamme ancien et les tablettes
-        // d'entrée de gamme.
+        // A single fallback at 1080 left no recourse for encoders capped
+        // at 1280x720, common on older low-end phones and entry-level
+        // tablets.
         Assert.Equal(1080, DisplayLadder.Below(1440, 1920, 1080)!.Value.Height);
         Assert.Equal(720, DisplayLadder.Below(1080, 1920, 1080)!.Value.Height);
         Assert.Null(DisplayLadder.Below(720, 1280, 720));
@@ -187,20 +195,21 @@ public sealed class DisplayLadderTests
     [Fact]
     public void Le_repli_garde_le_rapport_d_image_de_l_ecran()
     {
-        // Le repli imposait du 16:9, si bien que la fenêtre changeait de forme
-        // entre la première tentative et la seconde sur un écran large.
+        // The fallback used to force 16:9, so the window changed shape
+        // between the first attempt and the second on a wide screen.
         var (width, height) = DisplayLadder.Below(1440, 3440, 1440)!.Value;
 
         Assert.Equal(1080, height);
         Assert.Equal(2576, width);
 
-        // Ce que le chiffre protège, dit autrement : le rapport suit l'écran
-        // ultra-large et ne retombe pas sur du 16:9. L'alignement des côtés
-        // sur huit pixels en écarte un peu, sans rien changer à l'intention.
+        // What this number protects, put another way: the ratio follows
+        // the ultra-wide screen and does not fall back to 16:9. Aligning
+        // the sides to eight pixels drifts a little from it, without
+        // changing the intent.
         Assert.Equal(3440 / 1440.0, width / (double)height, precision: 2);
         Assert.True(width > 1920 * 1.2, "Le repli est retombé sur du 16:9.");
 
-        // Les deux côtés sont des tailles que l'encodeur rendra sans raboter.
+        // Both sides are sizes the encoder will render without cropping.
         Assert.Equal(0, width % 8);
         Assert.Equal(0, height % 8);
     }

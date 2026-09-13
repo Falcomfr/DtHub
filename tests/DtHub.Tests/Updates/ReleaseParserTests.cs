@@ -41,7 +41,7 @@ public sealed class ReleaseParserTests
     [Fact]
     public void Ecarte_une_livraison_sans_empreinte()
     {
-        // Un executable qu'on ne pourra pas verifier ne se propose pas.
+        // An executable that cannot be verified is not offered.
         var json = Json.Replace("DtHub.exe.sha256", "autre-chose.txt", StringComparison.Ordinal);
 
         Assert.Null(ReleaseParser.Parse(json, "DtHub.exe"));
@@ -70,8 +70,9 @@ public sealed class ReleaseParserTests
     [Fact]
     public void Ramene_une_version_a_trois_nombres()
     {
-        // « 0.2.0 » du depot et « 0.2.0.0 » de l'assemblage doivent se comparer
-        // egaux, sans quoi l'application se croit en retard sur elle-meme.
+        // "0.2.0" from the repository and "0.2.0.0" from the assembly
+        // must compare equal, or the application will believe itself
+        // behind its own version.
         Assert.Equal(
             ReleaseParser.Normalize(new Version(0, 2, 0, 0)),
             ReleaseParser.Normalize(new Version(0, 2, 0)));

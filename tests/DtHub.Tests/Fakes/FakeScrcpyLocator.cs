@@ -3,14 +3,17 @@ using DtHub.Core.Sessions;
 
 namespace DtHub.Tests.Fakes;
 
-/// <summary>Rend un chemin scrcpy fixe, sans toucher au disque.</summary>
+/// <summary>Returns a fixed scrcpy path, without touching the disk.</summary>
 public sealed class FakeScrcpyLocator(string path = @"C:\Dev\DTHub\scrcpy\scrcpy.exe") : IScrcpyLocator
 {
     public string Path { get; } = path;
 
     public string Version => "4.1.0";
 
-    /// <summary>Ce que rend <see cref="TryGetInstalledPath"/> : posé, par défaut.</summary>
+    /// <summary>
+    /// What <see cref="TryGetInstalledPath"/> returns: set, by
+    /// default.
+    /// </summary>
     public bool IsInstalled { get; set; } = true;
 
     public string? TryGetInstalledPath() => IsInstalled ? Path : null;
@@ -19,25 +22,29 @@ public sealed class FakeScrcpyLocator(string path = @"C:\Dev\DTHub\scrcpy\scrcpy
         Task.FromResult(Path);
 }
 
-/// <summary>Lanceur d'application simulé, qui enregistre ce qu'on lui demande.</summary>
+/// <summary>
+/// Simulated application launcher, which records what it is
+/// asked.
+/// </summary>
 public sealed class FakeAppLauncher : IAppLauncher
 {
     public sealed record LaunchCall(string Serial, int UserId, string PackageName, string? Component, int? DisplayId);
 
     public List<LaunchCall> Calls { get; } = [];
 
-    /// <summary>Résultat rendu à chaque appel.</summary>
+    /// <summary>Result returned on every call.</summary>
     public AppLaunchResult Outcome { get; set; } = AppLaunchResult.Success;
 
-    /// <summary>Arrêts forcés demandés, dans l'ordre.</summary>
+    /// <summary>Force-stops requested, in order.</summary>
     public List<string> ForceStops { get; } = [];
 
     /// <summary>
-    /// Appelé au moment précis d'un arrêt forcé, avant qu'il ne soit consigné.
+    /// Called at the precise moment of a force-stop, before it is
+    /// recorded.
     ///
-    /// Sert à observer l'état du monde à cet instant, ce qu'une liste consultée
-    /// après coup ne permet pas : l'ordre entre le départ de scrcpy et l'arrêt
-    /// du jeu ne se lit que là.
+    /// Used to observe the state of the world at that instant, which
+    /// a list consulted afterwards cannot provide: the order between
+    /// scrcpy starting and the game stopping can only be read here.
     /// </summary>
     public Action? OnForceStop { get; set; }
 
@@ -54,8 +61,8 @@ public sealed class FakeAppLauncher : IAppLauncher
     }
 
     /// <summary>
-    /// Adresses auxquelles l'ordre n'arrive pas. Sert à rejouer le téléphone
-    /// dont le débogage sans fil a changé de port.
+    /// Addresses the command cannot reach. Used to replay a phone
+    /// whose wireless debugging has changed port.
     /// </summary>
     public HashSet<string> Unreachable { get; } = new(StringComparer.Ordinal);
 

@@ -5,8 +5,8 @@ using DtHub.Core.Processes;
 namespace DtHub.Tests.Fakes;
 
 /// <summary>
-/// Session de processus simulée : on lui pousse des lignes comme le ferait
-/// scrcpy, et on décide quand elle se termine.
+/// Simulated process session: lines are pushed into it just as
+/// scrcpy would, and we decide when it ends.
 /// </summary>
 public sealed class FakeProcessSession : IProcessSession
 {
@@ -28,7 +28,9 @@ public sealed class FakeProcessSession : IProcessSession
 
     public bool WasDisposed { get; private set; }
 
-    /// <summary>Pousse une ligne comme scrcpy le ferait sur sa sortie.</summary>
+    /// <summary>
+    /// Pushes a line the way scrcpy would on its output.
+    /// </summary>
     public FakeProcessSession Emit(string text, bool isError = false)
     {
         _channel.Writer.TryWrite(new ProcessOutputLine(
@@ -37,7 +39,9 @@ public sealed class FakeProcessSession : IProcessSession
         return this;
     }
 
-    /// <summary>Termine le processus simulé et referme sa sortie.</summary>
+    /// <summary>
+    /// Ends the simulated process and closes its output.
+    /// </summary>
     public void Exit(int exitCode = 0)
     {
         _exited.TrySetResult(exitCode);
@@ -61,18 +65,23 @@ public sealed class FakeProcessSession : IProcessSession
     }
 }
 
-/// <summary>Lanceur simulé, qui rend des sessions préparées à l'avance.</summary>
+/// <summary>
+/// Simulated launcher, which returns sessions prepared ahead of
+/// time.
+/// </summary>
 public sealed class FakeProcessLauncher : IProcessLauncher
 {
     private readonly Queue<FakeProcessSession> _prepared = new();
 
-    /// <summary>Requêtes reçues, dans l'ordre.</summary>
+    /// <summary>Requests received, in order.</summary>
     public List<ProcessRequest> Requests { get; } = [];
 
-    /// <summary>Sessions rendues, dans l'ordre.</summary>
+    /// <summary>Sessions returned, in order.</summary>
     public List<FakeProcessSession> Started { get; } = [];
 
-    /// <summary>Exception à lever au prochain démarrage, si elle est renseignée.</summary>
+    /// <summary>
+    /// Exception to throw on the next start, if one is set.
+    /// </summary>
     public ProcessLaunchException? LaunchError { get; set; }
 
     public FakeProcessLauncher Prepare(FakeProcessSession session)

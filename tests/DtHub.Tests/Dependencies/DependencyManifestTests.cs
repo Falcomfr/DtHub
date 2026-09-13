@@ -26,9 +26,9 @@ public class DependencyManifestTests
     [Fact]
     public void La_licence_du_sdk_android_interdit_la_redistribution()
     {
-        // Garde-fou : si quelqu'un bascule ce drapeau, le composant se
-        // retrouverait embarqué dans l'installateur, ce que la licence
-        // n'autorise pas.
+        // Safeguard: if someone flips this flag, the component would
+        // end up bundled inside the installer, which the license does
+        // not allow.
         var dependency = DependencyManifest.Get(DependencyManifest.PlatformToolsKey);
 
         Assert.False(dependency.Redistributable);
@@ -42,8 +42,8 @@ public class DependencyManifestTests
         {
             Assert.Equal(Uri.UriSchemeHttps, dependency.Url.Scheme);
 
-            // Une URL « latest » changerait de contenu et rendrait l'empreinte
-            // figée invalide au premier renouvellement amont.
+            // A "latest" URL would change content and would invalidate
+            // the pinned fingerprint on the next upstream release.
             Assert.DoesNotContain("latest", dependency.Url.AbsolutePath, StringComparison.OrdinalIgnoreCase);
         }
     }

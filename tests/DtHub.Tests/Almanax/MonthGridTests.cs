@@ -7,9 +7,9 @@ public class MonthGridTests
     [Fact]
     public void La_grille_fait_toujours_six_semaines()
     {
-        // Février d'une année non bissextile commençant un lundi tient en
-        // quatre lignes, août 2026 en six. Une grille qui s'ajuste ferait
-        // sauter la hauteur de la fenêtre d'un mois à l'autre.
+        // February of a non-leap year starting on a Monday fits in
+        // four rows, August 2026 in six. A grid that resized itself
+        // would make the window height jump from one month to another.
         Assert.Equal(42, MonthGrid.For(2026, 2, DayOfWeek.Monday).Count);
         Assert.Equal(42, MonthGrid.For(2026, 8, DayOfWeek.Monday).Count);
     }
@@ -27,8 +27,8 @@ public class MonthGridTests
     [Fact]
     public void Le_premier_du_mois_tombe_dans_la_premiere_semaine()
     {
-        // Septembre 2026 commence un mardi : en semaine commençant lundi, il
-        // est en deuxième case, précédé du 31 août.
+        // September 2026 starts on a Tuesday: in a week starting on
+        // Monday, it falls in the second cell, preceded by 31 August.
         var days = MonthGrid.For(2026, 9, DayOfWeek.Monday);
 
         Assert.Equal(new DateOnly(2026, 8, 31), days[0]);
@@ -38,7 +38,7 @@ public class MonthGridTests
     [Fact]
     public void Un_mois_commencant_le_premier_jour_ne_deborde_pas_en_tete()
     {
-        // Juin 2026 commence un lundi : aucune case du mois précédent.
+        // June 2026 starts on a Monday: no cell from the previous month.
         var days = MonthGrid.For(2026, 6, DayOfWeek.Monday);
 
         Assert.Equal(new DateOnly(2026, 6, 1), days[0]);

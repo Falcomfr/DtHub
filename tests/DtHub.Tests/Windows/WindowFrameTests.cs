@@ -4,15 +4,17 @@ namespace DtHub.Tests.Windows;
 
 public class WindowFrameTests
 {
-    /// <summary>Cadre relevé sur l'appareil de développement, à 150 pour cent.</summary>
+    /// <summary>
+    /// Frame measured on the development device, at 150 percent.
+    /// </summary>
     private static readonly WindowFrame Mesure = new(Left: 11, Top: 45, Width: 22, Height: 56);
 
     [Fact]
     public void La_zone_client_est_decalee_du_cadre()
     {
-        // Le défaut rapporté : la fenêtre paraissait en (-11, 268) puis sautait
-        // en (0, 313), deux cents millisecondes plus tard. L'écart valait
-        // exactement la bordure et la barre de titre.
+        // The reported bug: the window appeared at (-11, 268) then
+        // jumped to (0, 313) two hundred milliseconds later. The gap
+        // was exactly the border and the title bar.
         var client = Mesure.ClientOf(new ScreenRect(0, 313, 2522, 1462));
 
         Assert.Equal(new ScreenRect(11, 358, 2500, 1406), client);

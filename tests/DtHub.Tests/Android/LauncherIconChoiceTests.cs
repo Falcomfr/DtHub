@@ -6,7 +6,9 @@ public sealed class LauncherIconChoiceTests
 {
     private static ApkEntry E(string name, long length = 1000) => new(name, length);
 
-    /// <summary>La plus dense l'emporte : elle sera réduite, jamais agrandie.</summary>
+    /// <summary>
+    /// The densest one wins: it will be scaled down, never enlarged.
+    /// </summary>
     [Fact]
     public void La_plus_dense_est_choisie()
     {
@@ -21,9 +23,9 @@ public sealed class LauncherIconChoiceTests
     }
 
     /// <summary>
-    /// Les morceaux d'une icône adaptative ne sont pas des icônes : montrer un
-    /// avant-plan seul donnerait une image tronquée, et un arrière-plan seul
-    /// un carré de couleur.
+    /// The pieces of an adaptive icon are not icons: showing a
+    /// foreground alone would give a cropped image, and a background
+    /// alone a plain color square.
     /// </summary>
     [Fact]
     public void Les_morceaux_d_une_icone_adaptative_sont_ecartes()
@@ -51,8 +53,8 @@ public sealed class LauncherIconChoiceTests
     }
 
     /// <summary>
-    /// Une application qui ne livre qu'une icône adaptative en XML : rien à
-    /// extraire, et la liste reste celle d'aujourd'hui.
+    /// An application that only ships an adaptive icon in XML: there
+    /// is nothing to extract, and the list stays as it is today.
     /// </summary>
     [Fact]
     public void Sans_image_matricielle_on_ne_rend_rien() =>
@@ -80,8 +82,8 @@ public sealed class LauncherIconChoiceTests
     public void Un_listage_vide_ne_rend_rien() => Assert.Null(LauncherIconChoice.Choose([]));
 
     /// <summary>
-    /// À densité et taille égales, le choix ne doit pas dépendre de l'ordre de
-    /// lecture de l'archive.
+    /// At equal density and size, the choice must not depend on the
+    /// order in which the archive is read.
     /// </summary>
     [Fact]
     public void Le_choix_ne_depend_pas_de_l_ordre()
@@ -97,7 +99,9 @@ public sealed class LauncherIconChoiceTests
             LauncherIconChoice.Choose([.. entrees.Reverse()]));
     }
 
-    /// <summary>Le vrai listage du jeu, réduit à ses entrées d'icône.</summary>
+    /// <summary>
+    /// The game's actual listing, reduced to its icon entries.
+    /// </summary>
     [Fact]
     public void Sur_le_jeu_visé_c_est_la_plus_dense_des_entieres()
     {

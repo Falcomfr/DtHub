@@ -3,19 +3,19 @@
 namespace DtHub.Tests.Adb;
 
 /// <summary>
-/// Les sorties employées ici sont relevées sur le téléphone de référence, un
-/// Xiaomi 23078PND5G sous Android 15, ou reprises telles qu'Android les écrit
-/// dans ses sources.
+/// The outputs used here were captured on the reference phone, a Xiaomi
+/// 23078PND5G running Android 15, or copied exactly as Android writes
+/// them in its own sources.
 /// </summary>
 public class AdbErrorInterpreterTests
 {
     [Fact]
     public void Un_refus_de_permission_ne_passe_plus_pour_une_application_absente()
     {
-        // Le message que rend le Dossier sécurisé de Samsung, et tout profil
-        // tenu par une politique d'entreprise. Le jeu y est bien installé :
-        // dire « l'application n'est plus installée » envoyait le joueur
-        // réinstaller ce qui est déjà là.
+        // The message returned by Samsung's Secure Folder, and by any
+        // profile managed under a corporate policy. The game is indeed
+        // installed there: saying "the app is no longer installed" used
+        // to send the player off to reinstall something already there.
         const string output =
             "java.lang.SecurityException: Permission Denial: startActivity asks to run as "
             + "user 15 but is calling from user 0";
@@ -26,8 +26,8 @@ public class AdbErrorInterpreterTests
     [Fact]
     public void Un_profil_en_pause_est_nomme_pour_ce_qu_il_est()
     {
-        // L'état ordinaire de Shelter et d'Island, et celui d'un profil
-        // professionnel dont l'interrupteur est éteint.
+        // The ordinary state of Shelter and Island, and that of a work
+        // profile whose switch is turned off.
         const string output = "Error: Activity not started, user 10 is in quiet mode";
 
         Assert.Equal(AdbErrorKind.ProfilePaused, AdbErrorInterpreter.Classify(output));
@@ -36,9 +36,9 @@ public class AdbErrorInterpreterTests
     [Fact]
     public void La_pause_passe_avant_le_reste()
     {
-        // Un profil en pause rend parfois un message qui parle aussi du
-        // paquet. C'est la pause qui explique la panne, et c'est elle qui
-        // doit être dite.
+        // A paused profile sometimes returns a message that also
+        // mentions the package. It is the pause that explains the
+        // failure, and it is the pause that must be reported.
         const string output =
             "Error: Package com.exemple does not exist for user 10, user is in quiet mode";
 
@@ -56,9 +56,9 @@ public class AdbErrorInterpreterTests
     [Fact]
     public void Une_erreur_inconnue_reste_inconnue()
     {
-        // Relevé réel : la réponse du téléphone quand on demande un second
-        // profil géré. Rien là-dedans ne dit que le jeu est absent, et le
-        // supposer était le défaut corrigé.
+        // Real capture: the phone's response when a second managed
+        // profile is requested. Nothing in it says the game is absent,
+        // and assuming so was the bug that got fixed.
         const string output =
             "Error: android.os.ServiceSpecificException: Cannot add more profiles of type "
             + "android.os.usertype.profile.MANAGED for user 0 (code 6)";
@@ -77,10 +77,10 @@ public class AdbErrorInterpreterTests
     [Fact]
     public void Un_shell_qui_n_atteint_pas_un_profil_a_sa_propre_famille()
     {
-        // Chaîne relevée au caractère près sur le salon d'entraide d'un
-        // produit concurrent, qui emprunte le même chemin que nous :
-        // pm create-user puis pm install-existing. L'utilisateur 150 est le
-        // dossier sécurisé Samsung, qu'il faut déverrouiller avant.
+        // String captured character for character on a competing
+        // product's support forum, which follows the same path as we
+        // do: pm create-user then pm install-existing. User 150 is
+        // Samsung's Secure Folder, which must be unlocked first.
         const string sortie =
             "Exception occurred while executing 'install-existing': "
             + "java.lang.SecurityException: Shell does not have permission to access user 150";
@@ -91,8 +91,9 @@ public class AdbErrorInterpreterTests
     [Fact]
     public void Le_refus_de_permission_ordinaire_reste_range_comme_avant()
     {
-        // L'ordre des motifs est tout : la nouvelle famille se reconnaît avant
-        // le refus générique, et ne doit pas l'avaler pour autant.
+        // The order of the patterns is everything: the new family is
+        // recognized before the generic denial, and must not swallow
+        // it in the process.
         Assert.Equal(
             AdbErrorKind.PermissionDenied,
             AdbErrorInterpreter.Classify("java.lang.SecurityException: Permission Denial: broadcast"));
@@ -106,9 +107,9 @@ public class AdbErrorInterpreterTests
 
         Assert.NotEqual(permission, profil);
 
-        // Le message nomme les deux remèdes, qui n'ont rien à voir l'un avec
-        // l'autre : déverrouiller le dossier sécurisé, ou le réglage de
-        // sécurité du débogage.
+        // The message names the two remedies, which have nothing to do
+        // with one another: unlocking the secure folder, or the
+        // debugging security setting.
         Assert.Contains("sécurité", profil, StringComparison.OrdinalIgnoreCase);
     }
 

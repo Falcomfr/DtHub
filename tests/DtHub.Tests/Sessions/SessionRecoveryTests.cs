@@ -11,8 +11,9 @@ public class SessionRecoveryTests
     [Fact]
     public void Une_liaison_tombee_se_rouvre()
     {
-        // Le cas qui justifie tout : le Wi-Fi hoquette, la fenêtre meurt, et
-        // jusqu'ici l'application se fermait avec elle si c'était la dernière.
+        // The case that justifies everything: the Wi-Fi hiccups, the
+        // window dies, and until now the application would close
+        // with it if it was the last one.
         var decision = SessionRecovery.Decide(Panne(), attemptsAlready: 0);
 
         Assert.True(decision.Retry);
@@ -22,10 +23,11 @@ public class SessionRecoveryTests
     [Fact]
     public void Une_fenetre_fermee_a_la_main_reste_fermee()
     {
-        // Le piège de cette fonction. Fermer la fenêtre à la croix n'appelle
-        // aucun code à nous : de notre point de vue, ça ressemble à une panne.
-        // Ce qui les sépare est que scrcpy sort proprement, donc sans refus
-        // déclaré. Rouvrir ici serait exaspérant.
+        // The trap in this function. Closing the window with the X
+        // button calls none of our code: from our point of view, it
+        // looks like a crash. What tells them apart is that scrcpy
+        // exits cleanly, so with no declared failure. Reopening here
+        // would be maddening.
         var end = new SessionEnd(Requested: false, EverRan: true, Failure: ScrcpyFailureKind.None);
 
         Assert.False(SessionRecovery.Decide(end, attemptsAlready: 0).Retry);
@@ -42,9 +44,10 @@ public class SessionRecoveryTests
     [Fact]
     public void Une_session_qui_n_a_jamais_tourne_ne_se_rouvre_pas()
     {
-        // L'échec d'ouverture est déjà traité pendant le lancement, par le
-        // repli à une définition plus modeste. Le reprendre ici doublerait les
-        // tentatives sans rien apporter.
+        // A failure to open is already handled during launch, via
+        // the fallback to a more modest definition. Handling it
+        // again here would double the attempts without adding
+        // anything.
         var end = new SessionEnd(Requested: false, EverRan: false, Failure: ScrcpyFailureKind.DeviceDisconnected);
 
         Assert.False(SessionRecovery.Decide(end, attemptsAlready: 0).Retry);
@@ -69,8 +72,9 @@ public class SessionRecoveryTests
     [InlineData(ScrcpyFailureKind.Timeout)]
     public void Ce_qu_insister_ne_guerirait_pas_ne_se_rouvre_pas(ScrcpyFailureKind kind)
     {
-        // Un appareil non autorisé le restera, scrcpy absent ne s'installera
-        // pas tout seul, et le refus d'encodeur a déjà son propre repli.
+        // An unauthorized device will stay unauthorized, a missing
+        // scrcpy will not install itself, and an encoder refusal
+        // already has its own fallback.
         Assert.False(SessionRecovery.Recoverable(kind));
     }
 
@@ -94,8 +98,9 @@ public class SessionRecoveryTests
     [Fact]
     public void On_cesse_apres_trois_tentatives()
     {
-        // Une application qui rouvre indéfiniment une fenêtre qui retombe est
-        // pire qu'une application qui s'arrête : elle occupe sans servir.
+        // An application that endlessly reopens a window that keeps
+        // falling over is worse than an application that stops: it
+        // occupies without serving any purpose.
         Assert.True(SessionRecovery.Decide(Panne(), attemptsAlready: 2).Retry);
         Assert.False(SessionRecovery.Decide(Panne(), attemptsAlready: 3).Retry);
         Assert.False(SessionRecovery.Decide(Panne(), attemptsAlready: 9).Retry);

@@ -20,9 +20,9 @@ public class InstanceRenamesTests
     [Fact]
     public void Un_compte_dont_le_nom_n_a_pas_bouge_n_est_pas_touche()
     {
-        // L'évènement des réglages se lève à chaque écriture, y compris pour
-        // la géométrie d'une fenêtre qu'on déplace. Réécrire les titres à
-        // chaque fois serait du bruit sur toutes les fenêtres ouvertes.
+        // The settings event fires on every write, including for the
+        // geometry of a window being dragged. Rewriting the titles
+        // every time would be noise across every open window.
         var pending = InstanceRenames.Pending(
             [Ouvert("tel|0|jeu", "Principal", "Cra, Enu")],
             _ => "Cra, Enu");
@@ -36,8 +36,8 @@ public class InstanceRenamesTests
     [InlineData("   ")]
     public void Effacer_le_nom_rend_celui_du_profil_android(string? efface)
     {
-        // Le piège de ce correctif : un nom vidé ne laisse pas un onglet sans
-        // titre, il rend le nom que le téléphone rapporte.
+        // The trap in this fix: an emptied name does not leave a tab
+        // without a title; it falls back to the name the phone reports.
         var pending = InstanceRenames.Pending(
             [Ouvert("tel|0|jeu", "Principal", "Cra, Enu")],
             _ => efface);
@@ -71,8 +71,9 @@ public class InstanceRenamesTests
     [Fact]
     public void La_meme_regle_que_le_nom_affiche_d_une_instance()
     {
-        // Les deux doivent dire la même chose : si elles divergent, un compte
-        // renommé porterait un nom dans la liste et un autre sur sa fenêtre.
+        // Both must say the same thing: if they diverge, a renamed
+        // account would show one name in the list and a different
+        // one on its window.
         var instance = new DofusInstance
         {
             DeviceId = "tel",

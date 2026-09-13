@@ -36,7 +36,8 @@ public sealed class UpdateServiceTests : IDisposable
         }
         catch (IOException)
         {
-            // Un dossier temporaire qui résiste n'a pas à faire échouer un test.
+            // A temporary folder that resists deletion should not fail
+            // a test.
         }
     }
 
@@ -86,8 +87,9 @@ public sealed class UpdateServiceTests : IDisposable
     [Fact]
     public async Task Refuse_une_livraison_dont_l_empreinte_ne_correspond_pas()
     {
-        // Le fichier téléchargé ne reste pas sur le disque : un exécutable qui
-        // ne correspond pas à ce que le dépôt annonce n'a rien à y faire.
+        // The downloaded file does not stay on disk: an executable
+        // that does not match what the feed announces has no business
+        // being there.
         var (service, _) = Monter(new string('a', 64), new Version(0, 2, 0));
 
         await service.CheckAsync(automatic: true);
@@ -124,8 +126,8 @@ public sealed class UpdateServiceTests : IDisposable
     [Fact]
     public async Task Refuse_de_poser_dans_un_arbre_de_sources()
     {
-        // Le lanceur de développement republie à chaque démarrage : une mise à
-        // jour posée là serait écrasée dans la seconde.
+        // The development launcher republishes on every startup: an
+        // update placed there would be overwritten within the second.
         File.WriteAllText(Path.Combine(_root, "DtHub.slnx"), string.Empty);
 
         var (service, _) = Monter(Empreinte(Neuf), new Version(0, 2, 0));
@@ -144,7 +146,7 @@ public sealed class UpdateServiceTests : IDisposable
 
         await service.CheckAsync(automatic: true);
 
-        // La note attend le démarrage qui exécutera la nouvelle version.
+        // The note waits for the startup that will run the new version.
         var posee = new UpdateService(
             new FakeReleaseSource(),
             _paths,

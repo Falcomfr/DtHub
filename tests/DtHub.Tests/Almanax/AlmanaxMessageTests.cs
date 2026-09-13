@@ -39,7 +39,8 @@ public class AlmanaxMessageTests
     [Fact]
     public void Un_mois_sans_evenement_ne_fait_rien_tomber()
     {
-        // Tous les mois n'en portent pas, et le bloc manque alors dans la page.
+        // Not every month has one, and the block is then missing from
+        // the page.
         const string json = """
             {
               "heading": "Bonus et Quêtes DOFUS Touch",
@@ -57,9 +58,10 @@ public class AlmanaxMessageTests
     [Fact]
     public void Le_bloc_de_dofus_est_refuse_en_bloc()
     {
-        // Le portail sert les deux jeux sur la même page. Ce jour-là, DOFUS
-        // demandait une Aile de dragodinde : l'afficher sous notre titre
-        // enverrait le lecteur chercher le mauvais objet.
+        // The portal serves both games on the same page. That day,
+        // DOFUS was asking for an "Aile de dragodinde" (dragoturkey
+        // wing): showing it under our title would send the reader
+        // looking for the wrong item.
         var json = Touch
             .Replace("Bonus et Quêtes DOFUS Touch", "Bonus et Quêtes DOFUS", StringComparison.Ordinal)
             .Replace("Dent de Dragodinde", "Aile de dragodinde", StringComparison.Ordinal);
@@ -70,8 +72,8 @@ public class AlmanaxMessageTests
     [Fact]
     public void Une_phrase_illisible_laisse_la_journee_lisible()
     {
-        // La mise en avant tombe, le reste tient : la phrase entière dit déjà
-        // ce qu'il faut faire.
+        // The highlight falls away, the rest holds up: the whole
+        // sentence already says what needs to be done.
         var json = Touch.Replace(
             "Récupérer 1 Dent de Dragodinde et rapporter l'offrande à Théodoran Ax",
             "Rapporter l'offrande à Théodoran Ax",

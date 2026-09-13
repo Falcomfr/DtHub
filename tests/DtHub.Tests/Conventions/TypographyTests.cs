@@ -1,29 +1,31 @@
 ﻿namespace DtHub.Tests.Conventions;
 
 /// <summary>
-/// Le tiret cadratin est proscrit dans tout le dépôt, code et documents
-/// compris. C'est une consigne d'écriture, donc précisément le genre de règle
-/// qu'on enfreint sans s'en apercevoir : vingt-deux occurrences s'étaient
-/// glissées dans neuf fichiers, dont une dans le rapport de diagnostic,
-/// c'est-à-dire dans un texte que les gens collent en public.
+/// The em dash is forbidden throughout the repository, code and
+/// documents included. This is a writing rule, and therefore exactly
+/// the kind of rule that gets broken without anyone noticing:
+/// twenty-two occurrences had slipped into nine files, including one
+/// in the diagnostic report, that is, in a text that people paste in
+/// public.
 ///
-/// Le contrôle porte sur le texte des fichiers, comme celui des commandes du
-/// XAML et celui des blocs catch.
+/// The check covers the text of the files, as well as that of XAML
+/// commands and that of catch blocks.
 /// </summary>
 public class TypographyTests
 {
-    // Le point de code plutôt que le caractère : écrit tel quel, ce contrôle
-    // échouerait sur lui-même.
+    // The code point rather than the character: written as is, this
+    // check would fail on itself.
     private const char Cadratin = '\u2014';
 
     /// <summary>
-    /// Fichiers qui ne portent pas notre écriture.
+    /// Files that do not carry our writing.
     ///
-    /// La sonde des étapes garde sur disque une copie des guides du site et le
-    /// détail de ce qu'elle en retient. C'est la prose de quelqu'un d'autre,
-    /// recopiée telle quelle : la corriger serait fausser la mesure, et la
-    /// juger n'a pas de sens puisque cette consigne porte sur ce que nous
-    /// écrivons. Les deux fichiers ne sont pas versionnés.
+    /// The step probe keeps a disk copy of the site's guides and the
+    /// detail of what it retains from them. This is someone else's
+    /// prose, copied verbatim: correcting it would skew the
+    /// measurement, and judging it makes no sense since this rule
+    /// concerns what we write. The two files are not
+    /// version-controlled.
     /// </summary>
     private static readonly string[] Copies = ["corpus.json", "etapes.json"];
 

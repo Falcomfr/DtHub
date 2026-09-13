@@ -99,7 +99,7 @@ public class DeviceDiscoveryServiceTests
         Assert.Equal(AdbDeviceState.Unauthorized, device.State);
         Assert.False(device.IsConnected);
 
-        // getprop n'est pas tenté sur un appareil qui n'est pas prêt.
+        // getprop is not attempted on a device that is not ready.
         Assert.Equal(0, adb.GetPropertiesCallCount);
     }
 
@@ -160,7 +160,7 @@ public class DeviceDiscoveryServiceTests
         var device = Assert.Single(result.Devices);
         Assert.Equal("MATERIEL123", device.Id);
 
-        // À égalité d'état, l'USB est retenu parce qu'il est plus stable.
+        // With equal state, USB is kept because it is more stable.
         Assert.Equal(AdbConnectionKind.Usb, device.ConnectionKind);
     }
 
@@ -236,8 +236,8 @@ public class DeviceDiscoveryServiceTests
     [Fact]
     public async Task Une_connexion_sans_fil_morte_est_coupee()
     {
-        // Cas réel : le port du débogage sans fil change au redémarrage du
-        // téléphone, et l'ancienne connexion reste listée hors ligne.
+        // Real case: the wireless debugging port changes when the phone
+        // restarts, and the old connection stays listed as offline.
         var adb = new FakeAdbClient
         {
             DevicesOutput = """
@@ -305,9 +305,10 @@ public class DeviceDiscoveryServiceTests
     [Fact]
     public async Task Les_deux_transports_d_un_meme_telephone_sont_coupes()
     {
-        // Mesuré sur l'appareil de développement : ADB en ouvre deux, celui de
-        // l'adresse et celui du nom mDNS qu'il découvre tout seul. Ne couper
-        // que le premier laissait le téléphone joignable.
+        // Measured on the development device: ADB opens two of them, the
+        // one for the address and the one for the mDNS name it
+        // discovers on its own. Cutting only the first one used to
+        // leave the phone reachable.
         var adb = new FakeAdbClient
         {
             DevicesOutput = """
@@ -451,8 +452,8 @@ public class DeviceDiscoveryServiceTests
     [Fact]
     public async Task La_batterie_est_lue_puis_gardee_une_minute()
     {
-        // Même raison que la chaleur : la question coûte un aller-retour, et
-        // une batterie ne perd pas dix pour cent en dix secondes.
+        // Same reason as the temperature: asking costs a round trip, and
+        // a battery does not lose ten percent in ten seconds.
         var adb = new FakeAdbClient().WithShell("battery", "  level: 42\n  scale: 100\n  AC powered: false");
 
         using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry());
@@ -479,8 +480,9 @@ public class DeviceDiscoveryServiceTests
     [Fact]
     public async Task La_place_libre_est_lue_puis_gardee()
     {
-        // Gardée bien plus longtemps que les autres : la place ne bouge pas en
-        // séance, et c'est une assurance, pas une surveillance.
+        // Kept for much longer than the others: free space does not
+        // change during a session, and this is a safety check, not
+        // ongoing monitoring.
         var adb = new FakeAdbClient().WithShell(
             "df",
             "Filesystem 1K-blocks Used Available Use% Mounted on\n/dev/x 100 50 313535476 36% /data");
@@ -508,9 +510,9 @@ public class DeviceDiscoveryServiceTests
     [Fact]
     public async Task La_chaleur_est_lue_puis_gardee_une_minute()
     {
-        // La question coûte un aller-retour de shell, et le panneau sonde
-        // jusqu'à deux fois par seconde. La chaleur, elle, ne bouge pas à ce
-        // rythme.
+        // Asking costs a shell round trip, and the panel polls up to
+        // twice a second. Temperature, however, does not change at that
+        // pace.
         var adb = new FakeAdbClient().WithShell("thermalservice", "Thermal Status: 3");
 
         using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry());
@@ -538,9 +540,10 @@ public class DeviceDiscoveryServiceTests
     [Fact]
     public async Task Un_balayage_ne_lit_le_registre_qu_une_fois()
     {
-        // Le registre relit son fichier à chaque demande. Réclamer les
-        // mémorisés puis les écartés séparément le faisait lire deux fois par
-        // balayage, alors que les deux vivent dans le même document.
+        // The registry rereads its file on every request. Requesting
+        // the remembered devices and then the discarded ones separately
+        // used to make it read twice per scan, even though both live in
+        // the same document.
         var adb = new FakeAdbClient
         {
             DevicesOutput = "List of devices attached\nUSB0001 device usb:1-2\n",
@@ -557,9 +560,10 @@ public class DeviceDiscoveryServiceTests
     [Fact]
     public async Task Un_appareil_ecarte_sort_du_balayage_entier()
     {
-        // Le défaut rapporté : rompre l'association effaçait bien l'entrée,
-        // puis le balayage suivant la remettait, le téléphone étant toujours
-        // joignable. La rupture ne durait donc qu'un instant.
+        // The reported defect: breaking the association did erase the
+        // entry, but the next scan then put it right back, since the
+        // phone was still reachable. The break therefore only lasted a
+        // moment.
         var adb = new FakeAdbClient
         {
             DevicesOutput = """
@@ -578,10 +582,11 @@ public class DeviceDiscoveryServiceTests
 
         var discovery = await service.RefreshAsync(CancellationToken.None);
 
-        // ADB continue de le voir, et rien n'y changera : le serveur rejoint
-        // tout seul un téléphone qui s'annonce et dont il garde la clé. C'est
-        // pourquoi il doit sortir de ce que la découverte rend, et pas
-        // seulement de ce qu'elle écrit : sinon la ligne reste à l'écran.
+        // ADB keeps seeing it, and nothing will change that: the server
+        // joins on its own to a phone that announces itself and whose
+        // key it keeps. That is why it must be removed from what
+        // discovery returns, and not only from what it writes: otherwise
+        // the row stays on screen.
         Assert.DoesNotContain(discovery.Devices, d => d.Id == "MATERIEL123");
         Assert.Equal("MATERIEL456", Assert.Single(discovery.Devices).Id);
 
@@ -593,9 +598,9 @@ public class DeviceDiscoveryServiceTests
     [Fact]
     public async Task Un_appareil_ecarte_ne_revient_pas_davantage_par_le_souvenir()
     {
-        // L'écart efface l'entrée, mais un registre mémorisé d'avant la rupture
-        // pourrait encore la porter. La liste des hors ligne est bâtie sur ce
-        // registre : elle doit l'écarter elle aussi.
+        // The discard erases the entry, but a registry snapshot saved
+        // before the break might still carry it. The offline list is
+        // built on this registry: it must discard it too.
         var adb = new FakeAdbClient { DevicesOutput = "List of devices attached\n" };
 
         var registry = new InMemoryDeviceRegistry();

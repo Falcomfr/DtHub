@@ -6,12 +6,12 @@ using DtHub.Core.Localization;
 namespace DtHub.Tests.Localization;
 
 /// <summary>
-/// Garde les trois fichiers de traduction alignés.
+/// Keeps the three translation files aligned.
 ///
-/// Une clé oubliée dans une langue ne casse rien à la compilation : elle se
-/// rend telle quelle à l'écran, et personne ne s'en aperçoit avant qu'un
-/// hispanophone ne voie « QualityHigh » dans un bouton. Le contrôle est fait
-/// sur le texte des fichiers, comme pour les commandes du XAML.
+/// A key forgotten in one language does not break the build: it renders as-is
+/// on screen, and nobody notices until a Spanish speaker sees "QualityHigh" on
+/// a button. The check is done on the files' text, the same as for the XAML
+/// commands.
 /// </summary>
 public sealed partial class StringsResourceTests
 {
@@ -49,15 +49,15 @@ public sealed partial class StringsResourceTests
     }
 
     /// <summary>
-    /// Toute clé écrite dans une fenêtre ou dans le code doit exister. WPF ne
-    /// signale rien quand elle manque : l'étiquette affiche la clé.
+    /// Every key written in a window or in the code must exist. WPF reports
+    /// nothing when it is missing: the label displays the key instead.
     /// </summary>
     /// <summary>
-    /// Les trous de format doivent concorder d'une langue à l'autre. Un
-    /// « {1} » de trop dans une traduction lève une FormatException en pleine
-    /// interface, et rien ne l'attrapait : cinquante et une clés portent des
-    /// trous, cinquante-cinq appels à Strings.Format les remplissent, et aucune
-    /// épreuve n'appelait Format une seule fois.
+    /// Format holes must match from one language to another. An extra "{1}" in
+    /// a translation throws a FormatException right in the middle of the UI,
+    /// and nothing used to catch it: fifty-one keys carry holes, fifty-five
+    /// calls to Strings.Format fill them, and not one test ever called Format
+    /// even once.
     /// </summary>
     [Fact]
     public void Les_trous_de_format_concordent_dans_les_trois_langues()
@@ -82,9 +82,9 @@ public sealed partial class StringsResourceTests
     }
 
     /// <summary>
-    /// Et le remplissage lui-même ne doit pas lever, dans aucune des trois
-    /// langues. Le contrôle précédent compare des ensembles ; celui-ci exécute
-    /// vraiment le formatage, avec assez d'arguments pour tous les trous.
+    /// And the filling itself must not throw, in any of the three languages.
+    /// The previous check compares sets; this one actually runs the
+    /// formatting, with enough arguments for every hole.
     /// </summary>
     [Theory]
     [InlineData("en")]
@@ -113,7 +113,9 @@ public sealed partial class StringsResourceTests
         }
     }
 
-    /// <summary>Les numéros de trou d'un texte, « {0} » et « {1:0.0} » compris.</summary>
+    /// <summary>
+    /// The hole numbers of a text, including "{0}" and "{1:0.0}".
+    /// </summary>
     private static HashSet<int> Trous(string texte) =>
         [.. FormatHole().Matches(texte).Select(m => int.Parse(m.Groups["n"].Value, CultureInfo.InvariantCulture))];
 
@@ -152,9 +154,10 @@ public sealed partial class StringsResourceTests
     }
 
     /// <summary>
-    /// Éprouve la chaîne entière : ressources embarquées, satellites produits,
-    /// et le repli quand la culture n'est pas servie. Sans cette épreuve, un
-    /// « SatelliteResourceLanguages » trop étroit passerait inaperçu.
+    /// Tests the whole chain: embedded resources, satellite assemblies
+    /// produced, and the fallback when the culture is not served. Without this
+    /// test, a "SatelliteResourceLanguages" that is too narrow would go
+    /// unnoticed.
     /// </summary>
     [Theory]
     [InlineData("en", "Quit")]
@@ -167,8 +170,9 @@ public sealed partial class StringsResourceTests
         => Assert.Equal(attendu, Strings.GetIn("Quit", CultureInfo.GetCultureInfo(culture)));
 
     /// <summary>
-    /// Le chemin de production : à l'écran, aucune culture n'est passée, c'est
-    /// celle du fil qui décide. C'est ce que pose <c>App.ApplyLanguageAsync</c>.
+    /// The production path: on screen, no culture is passed in, the thread's
+    /// own culture decides. This is what <c>App.ApplyLanguageAsync</c> sets
+    /// up.
     /// </summary>
     [Theory]
     [InlineData("fr-FR", "Quitter")]
@@ -195,16 +199,16 @@ public sealed partial class StringsResourceTests
         => Assert.Equal("PasUneCle", Strings.GetIn("PasUneCle", CultureInfo.InvariantCulture));
 
     /// <summary>
-    /// Aucune fenêtre ne doit porter de texte en dur. Le contrôle est
-    /// mécanique parce que l'oubli l'est aussi : on ajoute un bouton, on tape
-    /// son libellé, et l'application redevient française dans un coin.
+    /// No window may carry hardcoded text. The check is mechanical because the
+    /// mistake is too: a button gets added, its label gets typed, and the
+    /// application turns French again in a corner.
     /// </summary>
     [Fact]
     public void Aucune_fenetre_ne_porte_de_texte_en_dur()
     {
-        // Le nom du produit, le signe du pourcentage et les glyphes ne se
-        // traduisent pas : fermeture, chevrons du fil d'Ariane, et la flèche de
-        // retour des écrans Android dessinés dans l'aide.
+        // The product name, the percent sign, and the glyphs are not
+        // translated: the close mark, breadcrumb chevrons, and the back arrow
+        // of the Android screens drawn in the help.
         HashSet<string> admis =
         [
             "DT Hub", "%", "\u2715",

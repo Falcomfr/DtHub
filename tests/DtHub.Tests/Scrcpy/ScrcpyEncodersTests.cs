@@ -5,9 +5,9 @@ namespace DtHub.Tests.Scrcpy;
 public class ScrcpyEncodersTests
 {
     /// <summary>
-    /// Relevé au caractère près sur le Xiaomi 13T Pro, Android 16,
-    /// <c>scrcpy --list-encoders</c>. Les encodeurs audio sont gardés : ce
-    /// sont eux qui piègent une analyse qui compterait les colonnes.
+    /// Captured character for character on the Xiaomi 13T Pro, Android
+    /// 16, <c>scrcpy --list-encoders</c>. The audio encoders are kept:
+    /// they are the ones that trip up a parser that counts columns.
     /// </summary>
     private const string Releve = """
         [server] INFO: List of video encoders:
@@ -55,8 +55,8 @@ public class ScrcpyEncodersTests
     [InlineData("H264")]
     public void Rien_n_est_impose_quand_le_materiel_vient_en_tete(string codec)
     {
-        // Forcer un nom n'apporterait aucune image de plus et ajouterait une
-        // façon d'échouer.
+        // Forcing a name would not deliver a single extra frame and
+        // would only add a way to fail.
         Assert.Null(ScrcpyEncoders.Force(ScrcpyEncoders.Parse(Releve), codec));
     }
 
@@ -71,9 +71,10 @@ public class ScrcpyEncodersTests
     [Fact]
     public void Le_materiel_est_impose_quand_le_logiciel_vient_en_tete()
     {
-        // Le cas qui justifie la fonction : un appareil dont l'ordre déclaré
-        // met le logiciel devant. Celui de référence ne le fait pas, mais
-        // l'ordre vient de l'appareil et rien ne le garantit ailleurs.
+        // The case that justifies the function: a device whose
+        // declared order puts software first. The reference device
+        // does not do this, but the order comes from the device and
+        // nothing guarantees it elsewhere.
         const string inverse = """
             [server] INFO: List of video encoders:
                 --video-codec=h264 --video-encoder=c2.android.avc.encoder (sw)
@@ -86,8 +87,8 @@ public class ScrcpyEncodersTests
     [Fact]
     public void Un_alias_n_est_jamais_impose()
     {
-        // Un alias est un autre nom d'un encodeur déjà listé : le choisir ne
-        // changerait rien qu'un risque.
+        // An alias is just another name for an encoder already
+        // listed: choosing it would change nothing but the risk.
         const string alias = """
             [server] INFO: List of video encoders:
                 --video-codec=h264 --video-encoder=c2.android.avc.encoder (sw)
@@ -111,7 +112,8 @@ public class ScrcpyEncodersTests
     [Fact]
     public void Ne_pas_savoir_n_est_pas_savoir_que_c_est_mauvais()
     {
-        // Alarmer sur une ignorance serait pire que se taire.
+        // Raising an alarm over not knowing would be worse than
+        // saying nothing.
         Assert.False(ScrcpyEncoders.SoftwareOnly([], "h264"));
         Assert.False(ScrcpyEncoders.SoftwareOnly(ScrcpyEncoders.Parse(Releve), "vp9"));
         Assert.Null(ScrcpyEncoders.Force([], "h264"));
@@ -144,9 +146,9 @@ public class ScrcpyEncodersTests
     [Fact]
     public void Un_second_appareil_se_lit_aussi()
     {
-        // Mi 9T Pro, Snapdragon 855 : des noms d'encodeurs entièrement
-        // différents, et vp8 y est matériel alors qu'il ne l'est pas sur le
-        // 13T Pro. Rien à imposer là non plus.
+        // Mi 9T Pro, Snapdragon 855: entirely different encoder names,
+        // and vp8 is hardware here even though it is not on the 13T
+        // Pro. Nothing to force here either.
         const string qualcomm = """
             [server] INFO: List of video encoders:
                 --video-codec=h264 --video-encoder=OMX.qcom.video.encoder.avc     (hw) [vendor]
@@ -162,8 +164,8 @@ public class ScrcpyEncodersTests
         Assert.True(ScrcpyEncoders.SoftwareOnly(encoders, "vp9"));
         Assert.Null(ScrcpyEncoders.Force(encoders, "h264"));
 
-        // Absent de la liste : ne pas savoir n'est pas savoir que c'est
-        // mauvais.
+        // Absent from the list: not knowing is not the same as
+        // knowing it is bad.
         Assert.False(ScrcpyEncoders.SoftwareOnly(encoders, "av1"));
     }
 }

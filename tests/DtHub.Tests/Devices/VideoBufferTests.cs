@@ -10,17 +10,19 @@ public class VideoBufferTests
     [Fact]
     public void Une_liaison_filaire_n_a_rien_a_compenser()
     {
-        // L'USB n'a ni voisin ni interférence. Y ajouter un retard reviendrait
-        // à gâcher la seule liaison qui n'en demande pas.
+        // USB has neither neighbors nor interference. Adding a
+        // delay to it would amount to spoiling the one connection
+        // that does not need one.
         Assert.Equal(VideoBuffer.None, VideoBuffer.MillisecondsFor(null));
     }
 
     [Fact]
     public void La_liaison_du_poste_recoit_un_tampon_utile()
     {
-        // Le cas mesuré : 2,4 GHz, -66 dBm, 12 % de réémissions, latence
-        // sautant de 4 à 223 ms. Il faut de quoi absorber les pointes
-        // ordinaires sans rendre le clic mou.
+        // The measured case: 2.4 GHz, -66 dBm, 12% retransmissions,
+        // latency jumping from 4 to 223 ms. It takes enough buffer
+        // to absorb ordinary spikes without making clicks feel
+        // sluggish.
         var tampon = VideoBuffer.MillisecondsFor(Lien(-66));
 
         Assert.InRange(tampon, 40, VideoBuffer.Ceiling);
@@ -48,8 +50,9 @@ public class VideoBufferTests
     [Fact]
     public void Le_retard_ne_depasse_jamais_le_plafond()
     {
-        // Au-delà, on couvrirait les pires pointes au prix d'un clic mou, ce
-        // qui est précisément la gêne qu'on cherche à supprimer.
+        // Beyond that, the worst spikes would be covered at the
+        // cost of a sluggish click, which is precisely the
+        // annoyance we are trying to remove.
         var pire = VideoBuffer.MillisecondsFor(Lien(-90, reemissions: 0.60));
 
         Assert.Equal(VideoBuffer.Ceiling, pire);
@@ -58,8 +61,9 @@ public class VideoBufferTests
     [Fact]
     public void La_bande_encombree_pese_a_signal_egal()
     {
-        // À puissance reçue identique, la 2,4 GHz partage son temps d'antenne
-        // avec tout le voisinage, ce que la seule puissance ne dit pas.
+        // At the same received power, 2.4 GHz shares its airtime
+        // with the whole neighborhood, which power alone does not
+        // tell.
         var deuxQuatre = VideoBuffer.MillisecondsFor(Lien(-60));
         var cinq = VideoBuffer.MillisecondsFor(Lien(-60, frequence: 5520));
 

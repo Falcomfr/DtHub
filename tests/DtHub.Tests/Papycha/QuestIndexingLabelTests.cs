@@ -16,12 +16,13 @@ public class QuestIndexingLabelTests
     [Fact]
     public void Les_autres_etapes_ne_comptent_rien()
     {
-        // **Le défaut que cette épreuve tient.** Une seule étape rapportait son
-        // avancement, celle des quêtes, et c'est la plus courte : le compteur
-        // atteignait « 782 / 782 » en quelques secondes puis restait figé
-        // pendant les quatre cinquièmes du temps. Les autres étapes sont des
-        // lectures d'un seul tenant : elles se nomment, elles ne se comptent
-        // pas, et un « 0 / 0 » y serait pire que rien.
+        // **The flaw that this test pins down.** Only one phase
+        // used to report its progress, the quests one, and it is
+        // the shortest: the counter would reach "782 / 782" within
+        // a few seconds and then stay frozen for four-fifths of the
+        // time. The other phases are single, uninterrupted reads:
+        // they are named, they are not counted, and a "0 / 0" there
+        // would be worse than nothing.
         foreach (var phase in new[]
         {
             QuestIndexingPhase.Sections,
@@ -40,8 +41,8 @@ public class QuestIndexingLabelTests
     [Fact]
     public void Chaque_etape_se_dit_autrement()
     {
-        // Quatre phrases distinctes, sans quoi nommer les étapes n'apprendrait
-        // rien de plus que l'ancien compteur figé.
+        // Four distinct sentences, without which naming the phases
+        // would teach nothing more than the old frozen counter.
         var phases = new[]
         {
             QuestIndexingPhase.Quests,
@@ -61,8 +62,9 @@ public class QuestIndexingLabelTests
     [Fact]
     public void Sans_total_les_quetes_se_taisent_sur_le_compte()
     {
-        // Le site annonce son total dans un en-tête de reponse : tant qu'il
-        // n'est pas lu, afficher « 0 / 0 » ferait croire à un site vide.
+        // The site announces its total in a response header: as
+        // long as it has not been read, showing "0 / 0" would make
+        // it look like an empty site.
         var texte = QuestIndexingLabel.For(new QuestIndexingProgress(0, 0));
 
         Assert.NotEmpty(texte);

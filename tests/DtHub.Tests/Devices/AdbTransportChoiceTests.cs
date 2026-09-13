@@ -5,8 +5,8 @@ namespace DtHub.Tests.Devices;
 
 public class AdbTransportChoiceTests
 {
-    // Les lignes sont celles qu'a rendues un vrai téléphone attaché deux fois,
-    // à ceci près que le numéro de série est remplacé.
+    // The lines are the ones a real phone returned when attached
+    // twice, except that the serial number has been replaced.
     private const string Adresse =
         "192.168.1.14:40187 device product:corot_global model:23078PND5G device:corot transport_id:5";
 
@@ -42,7 +42,10 @@ public class AdbTransportChoiceTests
         Assert.Equal(["192.168.1.14:40187"], gardes.Select(e => e.Serial));
     }
 
-    /// <summary>L'ordre d'ADB ne doit rien décider : le nom cède où qu'il soit.</summary>
+    /// <summary>
+    /// ADB's order must not decide anything: the name yields wherever
+    /// it is.
+    /// </summary>
     [Fact]
     public void Peu_importe_l_ordre_ou_ADB_les_rend()
     {
@@ -54,8 +57,8 @@ public class AdbTransportChoiceTests
     }
 
     /// <summary>
-    /// Seul, le nom mDNS est le seul destinataire qu'on ait : l'écarter ferait
-    /// disparaître le téléphone de la liste.
+    /// Alone, the mDNS name is the only address we have: discarding it
+    /// would make the phone disappear from the list.
     /// </summary>
     [Fact]
     public void Un_nom_mdns_seul_est_conserve()
@@ -67,8 +70,8 @@ public class AdbTransportChoiceTests
     }
 
     /// <summary>
-    /// Le nom d'un téléphone, l'adresse d'un autre : deux appareils, deux
-    /// lignes. Les écarter serait perdre un téléphone.
+    /// The name of one phone, the address of another: two devices,
+    /// two lines. Discarding either would mean losing a phone.
     /// </summary>
     [Fact]
     public void Deux_telephones_distincts_gardent_leurs_deux_lignes()
@@ -81,9 +84,9 @@ public class AdbTransportChoiceTests
     }
 
     /// <summary>
-    /// Un appareil que le registre ne connaît pas ne se rapproche pas de son
-    /// nom mDNS : on ne sait pas encore que c'est le même. Mieux vaut une ligne
-    /// en trop qu'un téléphone pris pour un autre.
+    /// A device the registry does not know is not matched to its
+    /// mDNS name: we do not yet know it is the same one. An extra
+    /// line is better than mistaking one phone for another.
     /// </summary>
     [Fact]
     public void Un_inconnu_garde_ses_deux_lignes()
@@ -104,8 +107,9 @@ public class AdbTransportChoiceTests
     }
 
     /// <summary>
-    /// Le câble et le nom mDNS du même téléphone : c'est le câble qui parle,
-    /// et le registre le reconnaît par son numéro matériel.
+    /// The cable and the mDNS name of the same phone: the cable is
+    /// the one that speaks, and the registry recognizes it by its
+    /// hardware serial number.
     /// </summary>
     [Fact]
     public void Le_nom_mdns_cede_aussi_devant_le_cable()

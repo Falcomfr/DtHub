@@ -7,7 +7,9 @@ namespace DtHub.Tests.Guidance;
 
 public class PhoneBrandsTests
 {
-    /// <summary>Les champs qu'une fiche doit porter dans les trois langues.</summary>
+    /// <summary>
+    /// The fields a sheet must carry in all three languages.
+    /// </summary>
     private static readonly string[] Obligatoires =
     [
         nameof(PhoneBrand.Name), nameof(PhoneBrand.BuildNumberPath),
@@ -16,7 +18,7 @@ public class PhoneBrandsTests
         nameof(PhoneBrand.BatteryFeature), nameof(PhoneBrand.BatteryPath),
     ];
 
-    /// <summary>Les trois langues embarquées.</summary>
+    /// <summary>The three embedded languages.</summary>
     private static readonly string[] Langues = ["en", "fr", "es"];
 
     [Fact]
@@ -36,10 +38,11 @@ public class PhoneBrandsTests
     }
 
     /// <summary>
-    /// Le vrai contrôle depuis que les fiches vivent dans les ressources : une
-    /// clé absente ne lève pas, elle rend son propre nom. « BrandXiaomiClonePath »
-    /// s'afficherait donc à l'écran sans que rien ne rougisse, et le contrôle
-    /// de chaîne vide ne le verrait pas.
+    /// The real check now that the sheets live in resources: a missing
+    /// key does not throw, it returns its own name.
+    /// "BrandXiaomiClonePath" would then be displayed on screen
+    /// without anything turning red, and the empty-string check would
+    /// not catch it.
     /// </summary>
     [Theory]
     [InlineData("en")]
@@ -64,9 +67,9 @@ public class PhoneBrandsTests
     }
 
     /// <summary>
-    /// Les chemins de menu doivent différer d'une langue à l'autre : c'est tout
-    /// l'objet du travail. Les noms de marque, eux, ne se traduisent pas, et
-    /// c'est pourquoi le contrôle porte sur un chemin.
+    /// Menu paths must differ from one language to another: that is
+    /// the whole point of the work. Brand names, on the other hand,
+    /// are not translated, which is why the check is on a path.
     /// </summary>
     [Fact]
     public void Les_chemins_de_menu_sont_bien_traduits()
@@ -84,8 +87,9 @@ public class PhoneBrandsTests
     [Fact]
     public void Chaque_marque_nomme_son_propre_reglage_de_batterie()
     {
-        // Le réglage existe partout, mais aucun constructeur ne l'a nommé
-        // comme son voisin : une explication générique laisserait chercher.
+        // The setting exists everywhere, but no manufacturer has named
+        // it like its neighbor: a generic explanation would leave you
+        // searching.
         var settings = PhoneBrands.All.Select(b => b.BatteryPath).ToList();
 
         Assert.Equal(settings.Count, settings.Distinct(StringComparer.Ordinal).Count());
@@ -137,8 +141,8 @@ public class PhoneBrandsTests
     [Fact]
     public void Deux_entrees_ne_decrivent_jamais_la_meme_procedure()
     {
-        // Distinguer des marques dont les chemins sont identiques ne ferait
-        // qu'allonger la liste sans rien apprendre.
+        // Distinguishing brands whose paths are identical would only
+        // make the list longer without teaching us anything.
         var procedures = PhoneBrands.All
             .Select(b => $"{b.BuildNumberPath}|{b.BuildNumberLabel}|{b.DeveloperOptionsPath}")
             .ToList();
@@ -149,7 +153,7 @@ public class PhoneBrandsTests
     [Fact]
     public void Le_telephone_de_reference_est_reconnu()
     {
-        // Constructeur exact rapporté par le Xiaomi 13T de référence.
+        // Exact manufacturer reported by the reference Xiaomi 13T.
         var brand = PhoneBrands.FromManufacturer("Xiaomi");
 
         Assert.Contains("HyperOS", brand.BuildNumberLabel, StringComparison.Ordinal);
@@ -160,8 +164,9 @@ public class PhoneBrandsTests
     [Fact]
     public void Les_chemins_de_menu_valent_aussi_pour_une_tablette()
     {
-        // Une Galaxy Tab n'a pas de ligne « À propos du téléphone ». Le mot
-        // manquant suffisait à rendre le chemin introuvable.
+        // A Galaxy Tab has no "À propos du téléphone" ("About phone")
+        // line. The missing word alone was enough to make the path
+        // unfindable.
         foreach (var brand in PhoneBrands.All)
         {
             if (brand.BuildNumberPath.Contains("téléphone", StringComparison.Ordinal))
@@ -174,8 +179,9 @@ public class PhoneBrandsTests
     [Fact]
     public void Une_marche_a_suivre_qui_ne_promet_pas_le_resultat_le_dit()
     {
-        // Fire OS n'a pas le Play Store. Donner les menus sans le dire
-        // enverrait l'utilisateur au bout d'une procédure pour rien.
+        // Fire OS does not have the Play Store. Giving the menus
+        // without saying so would send the user through an entire
+        // procedure for nothing.
         var fire = PhoneBrands.FromManufacturer("Amazon");
 
         Assert.NotNull(fire.Warning);

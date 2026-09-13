@@ -72,8 +72,8 @@ public sealed class DeviceRegistryTests : IDisposable
 
         var known = Assert.Single(await _registry.GetKnownAsync(CancellationToken.None));
 
-        // L'état ne se persiste pas : le croire connecté au démarrage
-        // conduirait à afficher des appareils fantômes.
+        // State is not persisted: assuming it is connected at startup
+        // would lead to displaying phantom devices.
         Assert.False(known.IsConnected);
         Assert.Equal(AdbDeviceState.Offline, known.State);
     }
@@ -167,9 +167,10 @@ public sealed class DeviceRegistryTests : IDisposable
     [Fact]
     public async Task Un_meme_telephone_vu_sous_deux_transports_ne_fait_qu_une_ligne()
     {
-        // C'est ce qui affichait deux appareils pour un seul : le téléphone
-        // joignable était retenu sous son numéro de série, et le même
-        // téléphone injoignable sous le nom mDNS de son débogage sans fil.
+        // This is what used to display two devices for a single one:
+        // the reachable phone was kept under its serial number, and
+        // the same phone, unreachable, under the mDNS name of its
+        // wireless debugging.
         Directory.CreateDirectory(Path.GetDirectoryName(_store.FilePath)!);
 
         await File.WriteAllTextAsync(
@@ -201,12 +202,12 @@ public sealed class DeviceRegistryTests : IDisposable
 
         var seul = Assert.Single(known);
 
-        // La plus récemment vue l'emporte...
+        // The most recently seen one wins...
         Assert.Equal("SERIAL0123456789", seul.Id);
         Assert.Equal("192.168.1.16:38407", seul.Serial);
         Assert.Equal("Xiaomi 13T Pro", seul.MarketName);
 
-        // ... mais ce que l'utilisateur avait nommé n'est pas perdu.
+        // ... but what the user had named is not lost.
         Assert.Equal("Mon téléphone", seul.CustomName);
         Assert.True(seul.IsPaired);
     }
@@ -236,8 +237,9 @@ public sealed class DeviceRegistryTests : IDisposable
 
         var json = await File.ReadAllTextAsync(_store.FilePath, CancellationToken.None);
 
-        // Laissée en mémoire, la réunion aurait été à refaire à chaque
-        // démarrage, et le doublon serait revenu à la première écriture.
+        // Left only in memory, the merge would have had to be redone
+        // at every startup, and the duplicate would have come back
+        // on the first write.
         Assert.DoesNotContain("_adb-tls-connect", json, StringComparison.Ordinal);
         Assert.Contains(
             $"\"schemaVersion\": {DeviceRegistryDocument.CurrentSchemaVersion}",
@@ -248,9 +250,9 @@ public sealed class DeviceRegistryTests : IDisposable
     [Fact]
     public async Task Un_appareil_ecarte_n_est_plus_reinscrit_par_un_balayage()
     {
-        // C'est tout l'objet de l'écart. Effacer ne suffisait pas : le
-        // téléphone reste joignable, et le balayage suivant le remettait au
-        // registre comme une découverte ordinaire.
+        // This is the whole point of discarding. Deleting was not
+        // enough: the phone stays reachable, and the next scan would
+        // put it back in the registry as an ordinary discovery.
         await _registry.UpsertRangeAsync([Device()], CancellationToken.None);
 
         await _registry.DiscardAsync("MATERIEL123", CancellationToken.None);
@@ -264,8 +266,8 @@ public sealed class DeviceRegistryTests : IDisposable
     [Fact]
     public async Task Une_nouvelle_association_leve_l_ecart()
     {
-        // Le seul retour en arrière, et il est explicite : on retape le code
-        // affiché sur le téléphone.
+        // The only way back, and it is explicit: you retype the code
+        // shown on the phone.
         await _registry.DiscardAsync("MATERIEL123", CancellationToken.None);
         await _registry.WelcomeBackAsync("MATERIEL123", CancellationToken.None);
 
@@ -275,9 +277,9 @@ public sealed class DeviceRegistryTests : IDisposable
     [Fact]
     public async Task L_ecart_survit_a_une_relecture_du_fichier()
     {
-        // Il ne servirait à rien s'il ne tenait que le temps d'une session :
-        // le symptôme rapporté était justement que l'appareil revenait après
-        // un redémarrage.
+        // It would be pointless if it only held for the length of a
+        // session: the reported symptom was exactly that the device
+        // came back after a restart.
         await _registry.DiscardAsync("MATERIEL123", CancellationToken.None);
 
         var relu = new DeviceRegistry(_store);

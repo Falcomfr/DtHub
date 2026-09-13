@@ -3,10 +3,10 @@
 namespace DtHub.Tests.Settings;
 
 /// <summary>
-/// Le débit demandé à l'encodeur, palier par palier.
+/// The bitrate requested from the encoder, step by step.
 ///
-/// La mesure qui compte est le bit par pixel et par image : c'est ce qu'un
-/// encodeur reçoit vraiment, et c'est elle qui était à l'envers.
+/// The measure that matters is bits per pixel per frame: that is what an
+/// encoder actually receives, and it is the one that was backwards.
 /// </summary>
 public sealed class QualityProfileTests
 {
@@ -18,9 +18,9 @@ public sealed class QualityProfileTests
     }
 
     /// <summary>
-    /// Chaque palier travaille à sa définition, celle que sa borne de hauteur
-    /// autorise. Les trois doivent alors recevoir de quoi rendre une image
-    /// propre, et le plus généreux le plus.
+    /// Each step works at its own resolution, the one its height cap
+    /// allows. The three of them must therefore each receive enough to
+    /// render a clean image, and the most generous step the most of all.
     /// </summary>
     [Fact]
     public void L_echelle_des_paliers_va_dans_le_bon_sens()
@@ -29,22 +29,24 @@ public sealed class QualityProfileTests
         var moyenne = Bpp(StreamQuality.Medium, 1920, 1080);
         var maximale = Bpp(StreamQuality.Maximum, 2560, 1440);
 
-        // Aucun palier affamé : la référence pour du H.264 de bonne facture
-        // tourne autour de 0,10 bpp, et sous 0,045 l'image se délite.
+        // No step starved: the reference for well-encoded H.264 sits
+        // around 0.10 bpp, and below 0.045 the image falls apart.
         Assert.True(basse >= 0.045, $"basse à {basse:F3} bpp");
         Assert.True(moyenne >= 0.045, $"moyenne à {moyenne:F3} bpp");
         Assert.True(maximale >= 0.045, $"maximale à {maximale:F3} bpp");
 
-        // Et l'échelle monte, ce qui n'était pas le cas : le palier maximal
-        // recevait cinq fois et demie moins de bits par pixel que le plus bas.
+        // And the scale climbs, which used not to be the case: the
+        // maximum step used to receive five and a half times fewer bits
+        // per pixel than the lowest one.
         Assert.True(maximale >= moyenne, $"maximale {maximale:F3} contre moyenne {moyenne:F3}");
         Assert.True(moyenne >= basse, $"moyenne {moyenne:F3} contre basse {basse:F3}");
     }
 
     /// <summary>
-    /// Le débit suit la définition à l'intérieur d'un même palier. Un débit
-    /// fixe servait grassement une petite fenêtre et affamait une grande : à
-    /// définition doublée en surface, il faut deux fois plus de bits.
+    /// The bitrate follows the resolution within a single step. A fixed
+    /// bitrate used to serve a small window generously and starve a
+    /// large one: with resolution doubled in surface, twice as many bits
+    /// are needed.
     /// </summary>
     [Fact]
     public void Le_debit_suit_la_definition()
@@ -56,7 +58,8 @@ public sealed class QualityProfileTests
 
         Assert.True(grande > petite, $"{grande} contre {petite}");
 
-        // Quatre fois la surface, quatre fois le débit, au plancher près.
+        // Four times the surface, four times the bitrate, give or take
+        // the floor.
         Assert.Equal(4.0, grande / (double)petite, 1.0);
     }
 
@@ -76,8 +79,8 @@ public sealed class QualityProfileTests
     }
 
     /// <summary>
-    /// Le plafond existe pour une raison qui ne se lit pas dans le code : deux
-    /// comptes ouverts, ce sont deux flux sur la même liaison sans fil.
+    /// The ceiling exists for a reason that cannot be read in the code:
+    /// two open accounts mean two streams on the same wireless link.
     /// </summary>
     [Fact]
     public void Le_plafond_borne_les_tres_grandes_definitions()
@@ -89,8 +92,8 @@ public sealed class QualityProfileTests
     }
 
     /// <summary>
-    /// Et le plancher aussi : sous ce seuil l'image serait une bouillie, et
-    /// l'économie ne se sentirait sur rien.
+    /// And the floor too: below this threshold the image would turn to
+    /// mush, and the savings would show up nowhere.
     /// </summary>
     [Fact]
     public void Le_plancher_protege_les_toutes_petites_fenetres()
@@ -110,8 +113,9 @@ public sealed class QualityProfileTests
             QualityProfile.For(StreamQuality.Medium).BitrateFor(width, height));
 
     /// <summary>
-    /// Le palier basse allège par la définition et la cadence, non par une
-    /// image dégradée : c'est le poste qui doit souffler, pas l'œil.
+    /// The low step lightens the load through resolution and frame rate,
+    /// not through a degraded image: it is the machine that must catch
+    /// its breath, not the eye.
     /// </summary>
     [Fact]
     public void Le_palier_leger_allege_les_pixels_et_non_leur_finesse()
@@ -119,11 +123,11 @@ public sealed class QualityProfileTests
         var basse = QualityProfile.For(StreamQuality.Low);
         var maximale = QualityProfile.For(StreamQuality.Maximum);
 
-        // Un quart des pixels et la moitié de la cadence...
+        // A quarter of the pixels and half the frame rate...
         Assert.True(basse.MaximumDisplayHeight * 2 <= 1440);
         Assert.True(basse.MaxFps * 2 <= maximale.MaxFps);
 
-        // ... mais des bits par pixel du même ordre.
+        // ... but bits per pixel of the same order of magnitude.
         Assert.True(basse.BitsPerPixel >= maximale.BitsPerPixel * 0.6);
     }
 }

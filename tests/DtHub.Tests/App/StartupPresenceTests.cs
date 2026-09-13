@@ -19,11 +19,12 @@ public class StartupPresenceTests
     [Fact]
     public void Sans_aucune_fenetre_le_panneau_parait_meme_s_il_etait_masque()
     {
-        // C'est le cas où toutes les instances ont été fermées depuis le
-        // panneau : plus rien n'est coché, rien ne s'ouvre, et le masquer
-        // laisserait une application sans rien à l'écran ni moyen de la
-        // retrouver, les titres des fenêtres étant le seul endroit où le
-        // raccourci est rappelé.
+        // This is the case where all instances have been closed
+        // from the panel: nothing is checked anymore, nothing
+        // opens, and hiding it would leave an application with
+        // nothing on screen and no way to find it again, since the
+        // window titles are the only place where the shortcut is
+        // reminded.
         Assert.True(StartupPresence.ShowConfigurator(remembered: false, openedWindows: 0));
     }
 
@@ -34,10 +35,11 @@ public class StartupPresenceTests
     [InlineData(5)]
     public void Montrer_avant_le_lancement_ne_mene_jamais_a_reprendre_le_panneau(int ouvertes)
     {
-        // C'est toute la sûreté de l'affichage anticipé : si le panneau paraît
-        // avant de savoir combien de fenêtres s'ouvriront, il faut qu'aucun
-        // nombre de fenêtres ne puisse ensuite le faire disparaître, sans quoi
-        // l'utilisateur verrait un panneau clignoter au démarrage.
+        // This is the whole safety of showing it ahead of time: if
+        // the panel appears before knowing how many windows will
+        // open, then no number of windows must later be able to
+        // make it disappear, or the user would see a panel flicker
+        // at startup.
         foreach (var retenu in new[] { true, false })
         {
             if (StartupPresence.ShowBeforeLaunch(retenu))
@@ -50,8 +52,8 @@ public class StartupPresenceTests
     [Fact]
     public void Un_panneau_masque_a_la_sortie_attend_le_resultat_du_lancement()
     {
-        // Masqué à la sortie, il ne reparaît que si rien ne s'ouvre : cela ne
-        // se sait qu'après, donc on n'anticipe pas.
+        // Hidden on exit, it only comes back if nothing opens: that
+        // is only known afterward, so we do not anticipate it.
         Assert.False(StartupPresence.ShowBeforeLaunch(remembered: false));
     }
 

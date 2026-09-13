@@ -7,9 +7,9 @@ public class InputInjectionCheckTests
     [Fact]
     public void Un_silence_complet_vaut_acceptation()
     {
-        // Mesuré sur le téléphone de référence, où la souris fonctionne :
-        // `adb shell input keyevent 0` rend 0, sans une ligne sur aucune des
-        // deux sorties.
+        // Measured on the reference phone, where the mouse works:
+        // `adb shell input keyevent 0` returns 0, without a single line
+        // on either output.
         Assert.Equal(InputInjection.Works, InputInjectionCheck.Read(0, string.Empty, string.Empty));
         Assert.Equal(InputInjection.Works, InputInjectionCheck.Read(0, null, null));
         Assert.Equal(InputInjection.Works, InputInjectionCheck.Read(0, "  \n ", "\t"));
@@ -37,8 +37,9 @@ public class InputInjectionCheckTests
     [Fact]
     public void Un_refus_generique_sans_rapport_avec_l_entree_ne_conclut_pas()
     {
-        // Le shell rend la même famille d'erreur pour un dossier sécurisé
-        // verrouillé. Ce n'est pas la souris, et le dire le serait à tort.
+        // The shell returns the same family of error for a locked
+        // secure folder. This is not about the mouse, and saying so
+        // would be wrong.
         Assert.Equal(
             InputInjection.Unknown,
             InputInjectionCheck.Read(
@@ -55,8 +56,8 @@ public class InputInjectionCheckTests
     [Fact]
     public void La_sonde_envoie_la_touche_inconnue()
     {
-        // Elle ne déclenche rien nulle part : c'est ce qui rend la question
-        // posable sans agir sur l'appareil.
+        // It does not trigger anything anywhere: that is what makes the
+        // question askable without acting on the device.
         Assert.Equal(["shell", "input", "keyevent", "0"], InputInjectionCheck.ProbeCommand);
     }
 }

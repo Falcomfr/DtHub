@@ -33,9 +33,9 @@ public sealed class QuestBridgeMessageTests
     }
 
     /// <summary>
-    /// Une fiche de donjon, de raid, de tanière ou de chemin se lit par ses
-    /// titres de section. Le pont dit lesquels le sont : c'est ce qui décide de
-    /// les montrer ou non.
+    /// A dungeon, raid, lair or path sheet is read through its section
+    /// titles. The bridge says which ones are titles: that is what
+    /// decides whether to show them.
     /// </summary>
     [Fact]
     public void LitLaNatureDeChaqueEtape()
@@ -64,9 +64,10 @@ public sealed class QuestBridgeMessageTests
     }
 
     /// <summary>
-    /// Une étape écrite en chaîne nue reste lisible, et compte pour une
-    /// consigne : c'est la forme qu'écrivait le pont avant qu'il ne porte la
-    /// nature, et la seule qu'une page du site saurait poster d'elle-même.
+    /// A step written as a bare string stays readable, and counts as an
+    /// instruction: that is the form the bridge used to write before it
+    /// carried the nature field, and the only one a page of the site
+    /// could ever post on its own.
     /// </summary>
     [Fact]
     public void UneEtapeSansNatureCompteCommeUneConsigne()
@@ -81,8 +82,9 @@ public sealed class QuestBridgeMessageTests
     }
 
     /// <summary>
-    /// Une nature écrite autrement qu'en booléen vrai ne fait pas d'un
-    /// paragraphe un titre : mieux vaut ne rien montrer que montrer de la prose.
+    /// A nature written as anything other than a true boolean does not
+    /// turn a paragraph into a title: better to show nothing than to
+    /// show prose.
     /// </summary>
     [Theory]
     [InlineData("\"oui\"")]
@@ -108,8 +110,8 @@ public sealed class QuestBridgeMessageTests
     }
 
     /// <summary>
-    /// Une page de donjon n'a ni départ ni chaîne : le message vient sans ces
-    /// champs, et il reste lisible.
+    /// A dungeon page has neither a departure nor a chain: the message
+    /// comes without these fields, and it stays readable.
     /// </summary>
     [Fact]
     public void SePasseDesChampsQueLeSiteNeDonnePas()
@@ -124,9 +126,9 @@ public sealed class QuestBridgeMessageTests
     }
 
     /// <summary>
-    /// Ce que n'importe quelle page peut poster. Aucune de ces formes ne doit
-    /// lever : le pont est lu dans un gestionnaire d'événement, où une exception
-    /// emporte l'application.
+    /// What any page might post. None of these forms must throw: the
+    /// bridge is read inside an event handler, where an exception takes
+    /// the whole application down with it.
     /// </summary>
     [Theory]
     [InlineData(null)]
@@ -153,8 +155,9 @@ public sealed class QuestBridgeMessageTests
         Assert.Null(QuestBridgeMessage.Parse(charge));
 
     /// <summary>
-    /// Un genre inconnu se lit sans broncher : la fenêtre l'ignore, et le pont
-    /// pourra en poster de nouveaux sans qu'une version plus ancienne tombe.
+    /// An unknown kind is read without flinching: the window ignores it,
+    /// and the bridge will be able to post new ones later without an
+    /// older version crashing.
     /// </summary>
     [Fact]
     public void LaisseAlaFenetreLesGenresQuElleNeConnaitPas()
@@ -166,9 +169,9 @@ public sealed class QuestBridgeMessageTests
     }
 
     /// <summary>
-    /// Les champs d'un genre connu peuvent être de n'importe quel type : on
-    /// garde ce qui se lit et l'on ignore le reste, plutôt que de jeter tout le
-    /// message pour un champ.
+    /// The fields of a known kind can be of any type: what can be read
+    /// is kept and the rest is ignored, rather than discarding the whole
+    /// message over one field.
     /// </summary>
     [Fact]
     public void IgnoreLesChampsDuMauvaisType()
@@ -184,8 +187,9 @@ public sealed class QuestBridgeMessageTests
     }
 
     /// <summary>
-    /// Un tableau d'étapes mêlé rend des étapes vides plutôt que de tomber :
-    /// le rang des suivantes ne doit pas bouger, c'est lui qui sert à naviguer.
+    /// A mixed-up steps array yields empty steps rather than crashing:
+    /// the rank of the following ones must not move, since it is what is
+    /// used to navigate.
     /// </summary>
     [Fact]
     public void GardeLeRangDesEtapesMalgreUnTrou()

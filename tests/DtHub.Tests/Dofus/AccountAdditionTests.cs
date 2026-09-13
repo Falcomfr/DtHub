@@ -6,8 +6,8 @@ using DtHub.Tests.Fakes;
 namespace DtHub.Tests.Dofus;
 
 /// <summary>
-/// L'ajout d'un compte : un profil Android neuf, le jeu dedans, le profil
-/// démarré. Les sorties sont celles relevées sur le téléphone de référence.
+/// Adding an account: a fresh Android profile, the game inside it, the profile
+/// started. The outputs are those recorded on the reference phone.
 /// </summary>
 public sealed class AccountAdditionTests
 {
@@ -18,8 +18,8 @@ public sealed class AccountAdditionTests
         """;
 
     /// <summary>
-    /// Un téléphone où aucune place n'est prise. C'est le cas ordinaire d'un
-    /// appareil neuf, et celui où le profil cloné peut être créé.
+    /// A phone where no slot is taken. This is the ordinary case of a new
+    /// device, and the one where the cloned profile can be created.
     /// </summary>
     private const string AucunProfil = """
         Users:
@@ -48,19 +48,19 @@ public sealed class AccountAdditionTests
         Assert.True(result.Succeeded, result.Message);
         Assert.Equal(10, result.UserId);
 
-        // Le profil est démarré : une application ne s'ouvre pas sur un profil
-        // arrêté, et l'utilisateur vient de demander un compte pour s'en servir.
+        // The profile is started: an application does not open on a stopped
+        // profile, and the user just asked for an account in order to use it.
         Assert.Contains(adb.ShellCalls, c => c.Contains("am start-user", StringComparison.Ordinal));
 
-        // Et le jeu n'est pas retéléchargé : c'est l'application déjà présente
-        // qui est rendue au nouveau profil, signée par son éditeur.
+        // And the game is not downloaded again: it is the application already
+        // present that is granted to the new profile, signed by its publisher.
         Assert.Contains(adb.ShellCalls, c => c.Contains("install-existing", StringComparison.Ordinal));
     }
 
     /// <summary>
-    /// Le message dit ce qui attend l'utilisateur : un profil neuf, donc un jeu
-    /// qui redemande tout. Le taire ferait passer une longue attente pour une
-    /// panne.
+    /// The message says what awaits the user: a fresh profile, so a game that
+    /// asks for everything again. Staying silent about it would make a long
+    /// wait look like a failure.
     /// </summary>
     [Fact]
     public async Task La_reussite_previent_que_le_profil_est_neuf()
@@ -82,9 +82,9 @@ public sealed class AccountAdditionTests
     [Fact]
     public async Task Le_profil_clone_est_demande_en_premier()
     {
-        // C'est celui que les surcouches emploient pour dupliquer une
-        // application : le téléphone n'y installe presque rien, et ses icônes
-        // ne portent aucune marque. Le professionnel, lui, arrive garni.
+        // This is the one used by OEM skins to duplicate an application: the
+        // phone installs almost nothing on it, and its icons carry no mark.
+        // The managed profile, by contrast, arrives pre-loaded.
         var adb = new FakeAdbClient()
             .WithShell("pm list users", AucunProfil)
             .WithShell("pm get-max-users", "Maximum supported users: 4")
@@ -109,9 +109,9 @@ public sealed class AccountAdditionTests
     [Fact]
     public async Task Sans_place_clonee_le_repli_professionnel_est_annonce()
     {
-        // La place clonée est prise par XSpace. Le repli marche, mais il change
-        // ce qu'on verra sur l'écran d'accueil : il ne doit pas se faire en
-        // silence.
+        // The cloned slot is taken by XSpace. The fallback works, but it
+        // changes what will be seen on the home screen: it must not happen
+        // silently.
         var result = await Service(Sain()).AddAccountAsync("USB0001", "Troisième", CancellationToken.None);
 
         Assert.True(result.Succeeded, result.Message);
@@ -131,7 +131,8 @@ public sealed class AccountAdditionTests
         Assert.False(result.Succeeded);
         Assert.Contains("2 profils", result.Message, StringComparison.Ordinal);
 
-        // Rien n'a été tenté : le refus vient de la place, pas d'un échec.
+        // Nothing was attempted: the refusal comes from the lack of room, not
+        // from a failure.
         Assert.DoesNotContain(adb.ShellCalls, c => c.Contains("create-user", StringComparison.Ordinal));
     }
 
@@ -150,8 +151,8 @@ public sealed class AccountAdditionTests
     }
 
     /// <summary>
-    /// Le profil existe mais le jeu n'y est pas : on ne peut pas le cacher, le
-    /// profil restera dans la liste du téléphone.
+    /// The profile exists but the game is not on it: it cannot be hidden, the
+    /// profile will stay in the phone's list.
     /// </summary>
     [Fact]
     public async Task Un_jeu_absent_apres_installation_est_signale_avec_le_profil()
@@ -171,8 +172,8 @@ public sealed class AccountAdditionTests
     }
 
     /// <summary>
-    /// Un téléphone qui ne dit pas sa limite ne doit pas bloquer l'ajout : on
-    /// tente, et c'est lui qui tranche.
+    /// A phone that does not state its limit must not block the addition: we
+    /// try, and it is the one that decides.
     /// </summary>
     [Fact]
     public async Task Une_limite_inconnue_n_empeche_pas_d_essayer()
@@ -213,8 +214,8 @@ public sealed class AccountAdditionTests
         Assert.Null(AndroidUserParser.ParseMaxUsers(sortie));
 
     /// <summary>
-    /// Relevé sur le téléphone de référence : le profil géré porte l'indicateur
-    /// 0x20 dans ses drapeaux, ici 0x1030.
+    /// Recorded on the reference phone: the managed profile carries the 0x20
+    /// flag in its flags, here 0x1030.
     /// </summary>
     private const string AvecProfilGere = """
         Users:
@@ -226,11 +227,11 @@ public sealed class AccountAdditionTests
     [Fact]
     public async Task Un_second_profil_gere_est_refuse_quand_le_premier_porte_le_jeu()
     {
-        // Android n'en accepte qu'un. Tant qu'il sert, il n'y a rien à faire.
+        // Android only accepts one. As long as it is in use, there is nothing
+        // to do.
         //
-        // Le client est bâti à la main : le faux garde la première règle qui
-        // correspond, donc en ajouter une seconde sur « pm list users » ne
-        // remplace rien.
+        // The client is built by hand: the fake keeps the first matching rule,
+        // so adding a second one on "pm list users" replaces nothing.
         var adb = new FakeAdbClient()
             .WithShell("pm list users", AvecProfilGere)
             .WithShell("pm get-max-users", "Maximum supported users: 4")
@@ -245,9 +246,9 @@ public sealed class AccountAdditionTests
     [Fact]
     public async Task Un_profil_gere_sans_jeu_est_repris_au_lieu_d_etre_refuse()
     {
-        // Le cas relevé sur le poste : l'unique place qu'Android accorde était
-        // occupée par un profil dont le jeu avait disparu. Refuser laissait
-        // sans recours, puisque rien ne disait qu'il fallait réparer celui-là.
+        // The case recorded on the machine: the one slot Android grants was
+        // occupied by a profile whose game had disappeared. Refusing left no
+        // recourse, since nothing indicated that this was the one to repair.
         var adb = new FakeAdbClient()
             .WithShellChanging(
                 "list packages --user 10", string.Empty, "package:com.ankama.dofustouch")
@@ -262,10 +263,11 @@ public sealed class AccountAdditionTests
         Assert.True(ajout.Succeeded, ajout.Message);
         Assert.Equal(10, ajout.UserId);
 
-        // Repris, donc pas recréé : la place est unique et elle est déjà prise.
+        // Reused, so not recreated: the slot is unique and it is already
+        // taken.
         Assert.DoesNotContain(adb.ShellCalls, c => c.Contains("create-user", StringComparison.Ordinal));
 
-        // Et rempli : le jeu posé, le profil démarré.
+        // And filled: the game placed, the profile started.
         Assert.Contains(adb.ShellCalls, c => c.Contains("install-existing", StringComparison.Ordinal));
         Assert.Contains(adb.ShellCalls, c => c.Contains("start-user", StringComparison.Ordinal));
     }

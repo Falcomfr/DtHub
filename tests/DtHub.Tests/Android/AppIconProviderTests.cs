@@ -7,8 +7,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace DtHub.Tests.Android;
 
 /// <summary>
-/// Le fournisseur d'icônes, sans téléphone : le faux client ADB rejoue les
-/// sorties relevées sur le vrai.
+/// The icon provider, without a phone: the fake ADB client replays the
+/// outputs captured on the real one.
 /// </summary>
 public sealed class AppIconProviderTests : IDisposable
 {
@@ -68,7 +68,7 @@ public sealed class AppIconProviderTests : IDisposable
         Assert.True(File.Exists(path));
         Assert.Equal(Png, await File.ReadAllBytesAsync(path, CancellationToken.None));
 
-        // La plus dense, et l'archive elle-même n'a jamais été transférée.
+        // The densest one, and the archive itself was never transferred.
         Assert.Contains(adb.ExecOutCalls, c => c.Contains("xxxhdpi", StringComparison.Ordinal));
     }
 
@@ -88,8 +88,9 @@ public sealed class AppIconProviderTests : IDisposable
     }
 
     /// <summary>
-    /// Deux profils du même téléphone au même instant : le balayage passe
-    /// toutes les trois secondes, et une extraction par ligne le doublerait.
+    /// Two profiles of the same phone at the same instant: the scan
+    /// runs every three seconds, and one extraction per line would
+    /// double it.
     /// </summary>
     [Fact]
     public async Task Des_demandes_simultanees_n_extraient_qu_une_fois()
@@ -123,8 +124,9 @@ public sealed class AppIconProviderTests : IDisposable
     }
 
     /// <summary>
-    /// Une application qui ne livre qu'une icône adaptative : rien à extraire,
-    /// et l'on ne redemande pas, le téléphone ne changera pas d'avis.
+    /// An application that only ships an adaptive icon: nothing to
+    /// extract, and we do not ask again, the phone will not change its
+    /// mind.
     /// </summary>
     [Fact]
     public async Task Sans_image_matricielle_on_ne_redemande_pas()
@@ -146,9 +148,9 @@ public sealed class AppIconProviderTests : IDisposable
     }
 
     /// <summary>
-    /// Ce que rend un « unzip » qui n'a pas trouvé l'entrée : du texte sur la
-    /// sortie standard. L'écrire dans un fichier nommé « .png » donnerait une
-    /// image que l'affichage refuserait ensuite sans un mot.
+    /// What "unzip" returns when it has not found the entry: text on
+    /// standard output. Writing it to a file named ".png" would give
+    /// an image that the viewer would then refuse without a word.
     /// </summary>
     [Fact]
     public async Task Une_sortie_qui_n_est_pas_une_image_est_refusee()
@@ -163,8 +165,8 @@ public sealed class AppIconProviderTests : IDisposable
     }
 
     /// <summary>
-    /// L'identité d'un appareil sans fil qui n'a jamais répondu est son
-    /// adresse, dont les deux-points sont interdits dans un nom de fichier.
+    /// The identity of a wireless device that has never answered is
+    /// its address, whose colons are forbidden in a file name.
     /// </summary>
     [Fact]
     public async Task Une_identite_avec_deux_points_donne_un_nom_de_fichier_legal()
@@ -178,7 +180,10 @@ public sealed class AppIconProviderTests : IDisposable
         Assert.DoesNotContain(':', Path.GetFileName(path));
     }
 
-    /// <summary>Deux appareils voisins ne doivent pas se confondre après nettoyage du nom.</summary>
+    /// <summary>
+    /// Two neighboring devices must not be confused after the name is
+    /// sanitized.
+    /// </summary>
     [Fact]
     public async Task Deux_appareils_voisins_ne_partagent_pas_leur_icone()
     {

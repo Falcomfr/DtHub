@@ -7,7 +7,7 @@ public sealed class UpdatePathsTests
     [Fact]
     public void Refuse_de_remplacer_un_executable_sorti_d_un_arbre_de_sources()
     {
-        // Le lanceur de developpement republie a chaque demarrage.
+        // The development launcher republishes on every startup.
         static bool Exists(string path) =>
             path.EndsWith(Path.Combine("DTHub", "DtHub.slnx"), StringComparison.Ordinal);
 

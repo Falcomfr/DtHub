@@ -7,7 +7,9 @@ public class ScrcpyCommandBuilderTests
 {
     private static string Line(IReadOnlyList<string> arguments) => string.Join(' ', arguments);
 
-    /// <summary>Valeur d'une option, écrite accolée par un signe égal.</summary>
+    /// <summary>
+    /// Value of an option, written glued to it with an equals sign.
+    /// </summary>
     private static string? ValueOf(IReadOnlyList<string> arguments, string option)
     {
         var prefix = option + "=";
@@ -51,7 +53,7 @@ public class ScrcpyCommandBuilderTests
     [Fact]
     public void La_saisie_de_texte_privilegiee_reste_disponible_mais_eteinte()
     {
-        // Elle avale les modificateurs : c'est un réglage, pas un défaut.
+        // It swallows the modifier keys: it is a setting, not a default.
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "Titre", ScrcpyOptions.Default with { PreferText = true });
 
@@ -79,8 +81,8 @@ public class ScrcpyCommandBuilderTests
     [Fact]
     public void La_souris_passe_par_l_injection_par_defaut()
     {
-        // Le remède capture le curseur du poste : il ne doit jamais être
-        // choisi tout seul.
+        // The remedy captures the machine's own cursor: it must never
+        // be chosen on its own.
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "Titre", ScrcpyOptions.Default);
 
@@ -131,7 +133,7 @@ public class ScrcpyCommandBuilderTests
     [Fact]
     public void Les_cotes_impairs_sont_ramenes_a_des_nombres_pairs()
     {
-        // Les encodeurs vidéo refusent les côtés impairs.
+        // Video encoders refuse odd-numbered sides.
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "T",
             ScrcpyOptions.Default with { VirtualDisplayWidth = 2599, VirtualDisplayHeight = 1461 });
@@ -163,9 +165,9 @@ public class ScrcpyCommandBuilderTests
     [Fact]
     public void Chaque_valeur_est_accolee_a_son_option()
     {
-        // Trois options de scrcpy acceptent une valeur facultative, dont
-        // --new-display. Pour celles-là, une valeur séparée par une espace est
-        // prise pour un argument parasite et scrcpy refuse de démarrer.
+        // Three scrcpy options accept an optional value, including
+        // --new-display. For those, a value separated by a space is
+        // taken for a stray argument, and scrcpy refuses to start.
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "Titre",
             ScrcpyOptions.Default,
@@ -175,19 +177,20 @@ public class ScrcpyCommandBuilderTests
 
         foreach (var argument in arguments.Where(a => a.StartsWith("--", StringComparison.Ordinal)))
         {
-            // Une option porte sa valeur, ou n'en a pas ; jamais de valeur
-            // détachée dans la liste.
+            // An option carries its value, or has none; never a
+            // detached value in the list.
             Assert.DoesNotContain(' ', argument.Split('=')[0]);
         }
 
-        // Aucun jeton ne doit être une valeur orpheline.
+        // No token must be an orphaned value.
         Assert.All(arguments, a => Assert.StartsWith("--", a, StringComparison.Ordinal));
     }
 
     [Fact]
     public void Le_serveur_adb_partage_n_est_jamais_tue_avec_une_session()
     {
-        // Garde-fou : --kill-adb-on-close couperait ADB pour toute la machine.
+        // Safeguard: --kill-adb-on-close would cut ADB for the whole
+        // machine.
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments("USB0001", "T", ScrcpyOptions.Default);
 
         Assert.DoesNotContain("--kill-adb-on-close", arguments);
@@ -221,8 +224,8 @@ public class ScrcpyCommandBuilderTests
     [Fact]
     public void Le_titre_de_fenetre_prefixe_le_nom_choisi_par_celui_du_produit()
     {
-        // Le nom du produit n'apparaît que là : dans la barre des tâches, pour
-        // reconnaître les fenêtres du jeu parmi les autres.
+        // The product name only appears there: in the taskbar, to
+        // recognize the game's windows among the others.
         Assert.Equal($"{ProductInfo.Name} XSpace", ScrcpyCommandBuilder.BuildWindowTitle("XSpace"));
         Assert.Equal($"{ProductInfo.Name} Enutrof", ScrcpyCommandBuilder.BuildWindowTitle("  Enutrof  "));
     }
@@ -246,8 +249,8 @@ public class ScrcpyCommandBuilderTests
     [Fact]
     public void Le_titre_rappelle_le_raccourci_de_changement_de_compte()
     {
-        // Les fenêtres se superposent et se ressemblent : le rappel se lit
-        // au-dessus de l'image, sans rien ouvrir.
+        // The windows overlap and look alike: the reminder can be read
+        // above the image, without opening anything.
         Assert.Equal(
             $"{ProductInfo.Name} XSpace  (Ctrl + Tab : fenêtre suivante)",
             ScrcpyCommandBuilder.BuildWindowTitle("XSpace", "Ctrl + Tab : fenêtre suivante"));
@@ -262,8 +265,9 @@ public class ScrcpyCommandBuilderTests
     [Fact]
     public void Les_clics_secondaires_ne_declenchent_rien_par_defaut()
     {
-        // scrcpy associe sinon le clic droit à RETOUR, ce qui quitte le jeu et
-        // laisse un écran noir. Maj rétablit les quatre actions.
+        // Otherwise scrcpy binds the right click to BACK, which quits
+        // the game and leaves a black screen. Shift restores all four
+        // actions.
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "DT Hub", ScrcpyOptions.Default, null);
 
@@ -273,11 +277,12 @@ public class ScrcpyCommandBuilderTests
     [Fact]
     public void Le_collage_tape_le_texte_et_les_modificateurs_sont_respectes()
     {
-        // Mesuré sur le téléphone : avec --prefer-text, Ctrl+V tapait un « v »
-        // dans le champ au lieu de coller, les touches alphabétiques partant
-        // en événements de texte. Et sans --legacy-paste, le collage ordinaire
-        // n'insérait rien : scrcpy posait bien le texte dans le presse-papiers
-        // d'Android, sa trace le dit, mais la touche COLLER n'y puisait rien.
+        // Measured on the phone: with --prefer-text, Ctrl+V used to type
+        // a "v" into the field instead of pasting, since alphabetic
+        // keys go out as text events. And without --legacy-paste,
+        // ordinary pasting inserted nothing: scrcpy did place the text
+        // in Android's clipboard, its log says so, but the PASTE key
+        // drew nothing from it.
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "Titre", ScrcpyOptions.Default);
 
@@ -300,9 +305,9 @@ public class ScrcpyCommandBuilderTests
     [Fact]
     public void Un_codec_inconnu_est_ecarte_plutot_que_transmis()
     {
-        // Un nom que scrcpy ne connaît pas le fait sortir aussitôt, sous une
-        // forme que rien ne sait traduire : l'utilisateur recevrait le message
-        // générique au bout du délai complet, pour une faute de frappe.
+        // A name scrcpy does not recognize makes it exit right away, in
+        // a form nothing knows how to translate: the user would get the
+        // generic message after the full timeout, over a typo.
         var options = ScrcpyOptions.Default with { VideoCodec = "h266" };
 
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments("USB0001", "T", options);

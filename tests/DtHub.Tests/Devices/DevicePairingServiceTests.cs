@@ -17,7 +17,9 @@ public class DevicePairingServiceTests
         adb-MATERIEL123-nJyLWZ	_adb-tls-connect._tcp	192.168.1.16:37845
         """;
 
-    /// <summary>Attente instantanée : les tests ne doivent rien attendre réellement.</summary>
+    /// <summary>
+    /// Instant wait: the tests must never actually wait for anything.
+    /// </summary>
     private static Task NoDelay(TimeSpan _, CancellationToken __) => Task.CompletedTask;
 
     private static DevicePairingService Service(FakeAdbClient adb) =>
@@ -212,7 +214,7 @@ public class DevicePairingServiceTests
     [Fact]
     public async Task Un_mdns_muet_laisse_l_appairage_acquis_et_demande_le_port()
     {
-        // Cas fréquent : le réseau ou le pare-feu bloque le mDNS.
+        // A frequent case: the network or the firewall blocks mDNS.
         var adb = new FakeAdbClient();
 
         var result = await Service(adb).PairAndConnectAsync("192.168.1.25", 37123, "123456", CancellationToken.None);
@@ -221,8 +223,9 @@ public class DevicePairingServiceTests
         Assert.True(result.Paired);
         Assert.Contains("port", result.UserMessage, StringComparison.OrdinalIgnoreCase);
 
-        // Appairé n'est pas connecté, et c'est tout l'objet de la distinction :
-        // la fenêtre annonçait « il se connectera tout seul » sur ce cas-là.
+        // Paired is not connected, and that is the whole point of the
+        // distinction: the window used to announce "it will connect on
+        // its own" for this exact case.
         Assert.False(result.Connected);
         Assert.True(result.NeedsPort);
     }
@@ -239,7 +242,7 @@ public class DevicePairingServiceTests
         Assert.True(result.Paired);
         Assert.Equal("192.168.1.25:37845", result.Address);
 
-        // Le port était connu : le redemander n'aiderait pas.
+        // The port was already known: asking for it again would not help.
         Assert.False(result.Connected);
         Assert.False(result.NeedsPort);
     }
@@ -304,9 +307,10 @@ public class DevicePairingServiceTests
     [Fact]
     public async Task Une_annonce_ecartee_n_est_pas_reprise_par_la_reconnexion()
     {
-        // Le téléphone continue de s'annoncer après une rupture : ADB garde sa
-        // clé et le débogage sans fil reste actif. Sans la mémoire de l'écart,
-        // la reconnexion automatique le reprenait au balayage suivant.
+        // The phone keeps announcing itself after a break: ADB keeps its
+        // key and wireless debugging stays active. Without remembering
+        // the discard, automatic reconnection used to pick it back up on
+        // the next scan.
         var adb = new FakeAdbClient();
         adb.MdnsOutputs.Enqueue(PairingAndConnect);
         adb.ConnectableAddresses.Add("192.168.1.25:37845");
@@ -352,10 +356,11 @@ public class DevicePairingServiceTests
     [Fact]
     public async Task Une_annonce_qui_refuse_la_connexion_est_signalee()
     {
-        // Le cas mesuré sur un vrai téléphone : il s'annonce, son port est
-        // ouvert, la connexion TCP passe, et ADB est refusé juste après. Une
-        // adresse périmée ne peut pas l'expliquer, puisque l'appareil vient de
-        // dire lui-même où il écoute. Il ne reconnaît plus la clé de ce PC.
+        // The case measured on a real phone: it announces itself, its
+        // port is open, the TCP connection succeeds, and ADB is refused
+        // right after. A stale address cannot explain it, since the
+        // device has just said itself where it is listening. It no
+        // longer recognizes this PC's key.
         var adb = new FakeAdbClient();
         adb.MdnsOutputs.Enqueue(PairingAndConnect);
 

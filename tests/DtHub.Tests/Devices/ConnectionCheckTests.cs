@@ -4,12 +4,12 @@ using DtHub.Core.Devices;
 namespace DtHub.Tests.Devices;
 
 /// <summary>
-/// Le verdict rendu sur la liaison avec le téléphone.
+/// The verdict rendered on the connection with the phone.
 ///
-/// Il prolonge d'un étage vers le bas ce qu'ADB sait dire : un câble qui ne
-/// transmet pas les données ne produit aucune ligne dans « adb devices », et
-/// l'application n'avait alors rien à répondre alors que Windows, lui, savait
-/// tout.
+/// It extends one floor below what ADB can say: a cable that does not
+/// carry data produces no line at all in "adb devices", and the
+/// application then had nothing to answer with, even though Windows
+/// knew everything.
 /// </summary>
 public class ConnectionCheckTests
 {
@@ -64,8 +64,9 @@ public class ConnectionCheckTests
     [Fact]
     public void Le_defaut_le_plus_parlant_l_emporte()
     {
-        // Un poste ordinaire porte souvent un périphérique en défaut qui n'a
-        // rien à voir avec nous : c'est le plus explicite qui est retenu.
+        // An ordinary machine often carries a faulty device that has
+        // nothing to do with us: the most explicit one is the one
+        // kept.
         Assert.Equal(
             ConnectionVerdict.UsbUnreadable,
             ConnectionCheck.Of([], [Fault(10), Fault(28), Fault(43)], toolsReady: true));
@@ -74,9 +75,9 @@ public class ConnectionCheckTests
     [Fact]
     public void Un_appareil_vu_par_adb_l_emporte_sur_un_defaut_d_un_autre_port()
     {
-        // Le défaut ne peut alors concerner qu'un autre port, et le nommer
-        // enverrait chercher un câble alors que le téléphone attend une
-        // autorisation.
+        // The fault can then only concern another port, and naming it
+        // would send the user looking for a cable while the phone is
+        // waiting for authorization.
         Assert.Equal(
             ConnectionVerdict.WaitingAuthorization,
             ConnectionCheck.Of([AdbDeviceState.Unauthorized], [Fault(43)], toolsReady: true));
@@ -97,8 +98,8 @@ public class ConnectionCheckTests
 
             Assert.False(string.IsNullOrWhiteSpace(phrase), verdict.ToString());
 
-            // Strings.Get rend la clef quand le texte manque : une clef n'a ni
-            // espace ni ponctuation, une phrase en a.
+            // Strings.Get returns the key when the text is missing: a
+            // key has neither space nor punctuation, a sentence does.
             Assert.Contains(" ", phrase, StringComparison.Ordinal);
         }
     }
@@ -129,10 +130,10 @@ public class ConnectionCheckTests
     [Fact]
     public void N_avoir_aucun_appareil_n_est_pas_une_panne()
     {
-        // C'est l'état de repos de l'application, celui qu'on trouve en
-        // l'ouvrant sans rien avoir branché. Le signaler dans un bloc d'alerte
-        // ferait passer une absence pour un problème, et la liste des comptes
-        // le dit déjà juste en dessous.
+        // This is the application's resting state, the one you find
+        // when opening it with nothing plugged in. Reporting it in a
+        // warning block would make an absence look like a problem,
+        // and the account list already says so just below.
         Assert.False(ConnectionCheck.NeedsExplaining(ConnectionVerdict.NoDevice));
     }
 
@@ -145,9 +146,9 @@ public class ConnectionCheckTests
     [InlineData(ConnectionVerdict.UsbOther)]
     public void Ce_qui_est_la_et_ne_marche_pas_doit_etre_dit(ConnectionVerdict verdict)
     {
-        // Personne ne devine qu'un pilote refuse l'appareil ou qu'il faut
-        // autoriser le PC sur le téléphone. C'est pour ces cas que le bloc
-        // existe, et pour eux seuls.
+        // Nobody guesses that a driver is refusing the device or that
+        // the PC must be authorized on the phone. This block exists
+        // for these cases, and for these alone.
         Assert.True(ConnectionCheck.NeedsExplaining(verdict));
     }
 }

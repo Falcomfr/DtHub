@@ -25,7 +25,7 @@ public sealed class SettingsServiceTests : IDisposable
         _service = new SettingsService(_store);
     }
 
-    // Sessions nommées
+    // Named sessions
 
     private static StoredInstance Compte(int user) => new()
     {
@@ -61,8 +61,8 @@ public sealed class SettingsServiceTests : IDisposable
     [Fact]
     public async Task Enregistrer_deux_fois_le_meme_nom_remplace()
     {
-        // Le geste naturel pour corriger un profil est de le réenregistrer.
-        // Refuser obligerait à supprimer d'abord.
+        // The natural way to fix a profile is to save it again. Refusing that
+        // would force deleting it first.
         await _service.SaveLaunchProfileAsync("Duo", ["a"]);
         await _service.SaveLaunchProfileAsync("duo", ["b", "c"]);
 
@@ -109,8 +109,8 @@ public sealed class SettingsServiceTests : IDisposable
             second.Order = 1;
         });
 
-        // L'appelant les donne dans le désordre : c'est le rang qui fait foi,
-        // parce que c'est lui que la liste montre et que les onglets suivent.
+        // The caller passes them out of order: the rank is what counts, since
+        // it is what the list shows and what the tabs follow.
         await _service.SaveLaunchProfileAsync("Duo", [second.Key, premier.Key]);
 
         Assert.Equal(
@@ -134,14 +134,14 @@ public sealed class SettingsServiceTests : IDisposable
 
         await _service.SaveLaunchProfileAsync("Duo", [premier.Key, second.Key]);
 
-        // Le rangement à la souris vient après l'enregistrement du profil.
+        // Reordering with the mouse happens after the profile is saved.
         await _service.MoveInstanceAsync(second.Key, premier.Key, above: true);
 
         await _service.ApplyLaunchProfileAsync("Duo");
 
-        // Le profil ne doit pas le défaire : l'ordre est un réglage général, et
-        // le profil de démarrage s'ouvrant tout seul, il l'aurait défait à
-        // chaque lancement.
+        // The profile must not undo it: order is a general setting, and since
+        // the startup profile opens on its own, it would have undone it on
+        // every launch.
         var rangs = await _service.GetInstanceRanksAsync();
 
         Assert.Equal(0, rangs[second.Key]);
@@ -162,8 +162,8 @@ public sealed class SettingsServiceTests : IDisposable
 
         await _service.SaveLaunchProfileAsync("Solo", [xspace.Key]);
 
-        // Les réglages changent après l'enregistrement : c'est l'état du moment
-        // de l'enregistrement que le profil doit rendre, pas le dernier connu.
+        // Settings change after the save: the profile must restore the state
+        // at the moment of saving, not the last one known.
         await _service.UpdateAsync(s =>
         {
             s.AudioEnabled = false;
@@ -209,8 +209,8 @@ public sealed class SettingsServiceTests : IDisposable
     [Fact]
     public async Task Un_profil_sans_onglets_laisse_le_cadre_ou_il_est()
     {
-        // Retenir la place du cadre sur un profil qui ne loge rien déplacerait
-        // le cadre d'un autre profil en l'ouvrant.
+        // Remembering the frame's position on a profile that hosts nothing
+        // would move the frame of another profile when opening it.
         var xspace = Compte(999);
 
         await _service.UpdateAsync(s =>
@@ -256,8 +256,8 @@ public sealed class SettingsServiceTests : IDisposable
     [Fact]
     public async Task Supprimer_la_session_du_demarrage_remet_a_aucun()
     {
-        // Laisser un défaut qui pointe sur rien donnerait un démarrage qui
-        // n'ouvre pas ce qu'on attend, sans que rien ne l'explique.
+        // Leaving a default that points to nothing would give a startup that
+        // does not open what is expected, with nothing to explain why.
         await _service.SaveLaunchProfileAsync("Solo", ["a"]);
         await _service.SetDefaultLaunchProfileAsync("Solo");
 
@@ -295,7 +295,7 @@ public sealed class SettingsServiceTests : IDisposable
     [Fact]
     public async Task Un_demarrage_qui_designe_une_session_absente_vaut_aucun()
     {
-        // Un fichier modifié à la main peut nommer n'importe quoi.
+        // A file edited by hand can name anything.
         await _service.UpdateAsync(s => s.DefaultLaunchProfile = "Disparue");
 
         await _service.SetDefaultLaunchProfileAsync("Disparue");
@@ -345,7 +345,7 @@ public sealed class SettingsServiceTests : IDisposable
 
         await _service.SaveLaunchProfileAsync("Solo donjon", [xspace.Key]);
 
-        // On dérange tout, comme le ferait une autre session de jeu.
+        // Everything is disturbed, as another game session would do.
         await _service.UpdateAsync(s =>
         {
             s.Instances[0].Window = new StoredWindowRect { X = 900, Y = 900, Width = 640, Height = 360 };
@@ -366,9 +366,9 @@ public sealed class SettingsServiceTests : IDisposable
     [Fact]
     public async Task Un_profil_qui_ne_place_pas_un_compte_lui_laisse_sa_position()
     {
-        // C'est le cas d'un profil enregistré avant que les profils ne portent
-        // les positions : il doit ouvrir ses comptes, non les renvoyer tous à
-        // l'ancrage.
+        // This is the case of a profile saved before profiles carried
+        // positions: it must open its accounts, not send them all back to the
+        // anchor.
         var xspace = Compte(999);
         var place = new StoredWindowRect { X = 7, Y = 8, Width = 640, Height = 360 };
 
@@ -441,7 +441,7 @@ public sealed class SettingsServiceTests : IDisposable
 
         var emporte = await _service.ExportAsync(CancellationToken.None);
 
-        // Tout est effacé, comme sur un poste neuf.
+        // Everything is wiped, as on a fresh machine.
         await _service.UpdateAsync(s => { s.Instances.Clear(); s.Quality = StreamQuality.Medium; }, CancellationToken.None);
 
         Assert.Equal(BackupVerdict.Usable, await _service.ImportAsync(emporte, CancellationToken.None));
@@ -495,8 +495,8 @@ public sealed class SettingsServiceTests : IDisposable
     [Fact]
     public async Task Une_session_d_une_poignee_de_secondes_ne_compte_pas()
     {
-        // Ouvrir puis refermer aussitôt n'est pas du temps de jeu, et
-        // l'écrire ferait une écriture de fichier pour rien.
+        // Opening and immediately closing again is not play time, and writing
+        // it would cause a needless file write.
         await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
 
         await _service.AddPlaytimeAsync(Instance(999).Key, 5, CancellationToken.None);
@@ -553,9 +553,9 @@ public sealed class SettingsServiceTests : IDisposable
     [Fact]
     public async Task Le_palier_d_un_compte_survit_a_un_rebalayage()
     {
-        // La redécouverte ne recopie que le nom de l'appareil, celui du profil
-        // et le composant : tout le reste appartient à l'utilisateur et doit
-        // traverser un rebalayage sans une égratignure.
+        // Rediscovery only copies the device name, the profile name and the
+        // component: everything else belongs to the user and must survive a
+        // rescan without a scratch.
         await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
 
         var mule = Instance(999).Key;
@@ -604,9 +604,9 @@ public sealed class SettingsServiceTests : IDisposable
     [Fact]
     public async Task La_distance_d_un_compte_survit_a_un_rebalayage()
     {
-        // Même exigence que pour le palier : la redécouverte ne recopie que ce
-        // que le téléphone rapporte, et ce que l'utilisateur a choisi doit la
-        // traverser sans une égratignure.
+        // Same requirement as for the tier: rediscovery only copies what the
+        // phone reports, and what the user chose must survive it without a
+        // scratch.
         await _service.MergeInstancesAsync([Instance(999)], CancellationToken.None);
 
         var mule = Instance(999).Key;
@@ -679,8 +679,8 @@ public sealed class SettingsServiceTests : IDisposable
     [Fact]
     public async Task L_ecran_virtuel_par_defaut_est_en_paysage()
     {
-        // Le jeu s'affiche en paysage : un écran vertical le réduirait à une
-        // bande au milieu de la fenêtre.
+        // The game displays in landscape: a portrait screen would shrink it to
+        // a band in the middle of the window.
         var settings = await _service.GetAsync(CancellationToken.None);
 
         Assert.True(settings.VirtualDisplayWidth > settings.VirtualDisplayHeight);
@@ -800,7 +800,7 @@ public sealed class SettingsServiceTests : IDisposable
     {
         await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
 
-        // Au balayage suivant, le téléphone n'est plus là.
+        // On the next scan, the phone is no longer there.
         var merged = await _service.MergeInstancesAsync([], CancellationToken.None);
 
         Assert.Equal(2, merged.Count);
@@ -847,9 +847,9 @@ public sealed class SettingsServiceTests : IDisposable
     [Fact]
     public async Task Le_clavier_passe_par_l_api_android_par_defaut()
     {
-        // Le mode physique simulé lit les touches selon la disposition réglée
-        // dans Android : l'imposer ferait taper en QWERTY sur un AZERTY, à qui
-        // n'a pas la panne qu'il répare.
+        // The simulated physical mode reads keys according to the layout set
+        // in Android: forcing it would make an AZERTY keyboard type as QWERTY,
+        // for someone who does not even have the flaw it is meant to fix.
         var options = await _service.GetScrcpyOptionsAsync(CancellationToken.None);
 
         Assert.Equal(ScrcpyKeyboardMode.Sdk, options.KeyboardMode);
@@ -858,8 +858,8 @@ public sealed class SettingsServiceTests : IDisposable
     [Fact]
     public async Task Le_clavier_physique_simule_se_demande_et_arrive_jusqu_a_scrcpy()
     {
-        // Le mode existait dans le code depuis toujours, et rien ne pouvait
-        // l'atteindre. C'est le remède du clavier qui n'écrit rien.
+        // The mode had existed in the code all along, and nothing could reach
+        // it. This is the fix for the keyboard that types nothing.
         await _service.SetSimulatedPhysicalKeyboardAsync(true, CancellationToken.None);
 
         var options = await _service.GetScrcpyOptionsAsync(CancellationToken.None);
@@ -874,19 +874,19 @@ public sealed class SettingsServiceTests : IDisposable
     [Fact]
     public async Task Les_images_par_seconde_et_le_debit_viennent_de_la_qualite()
     {
-        // Deux sources pour un même réglage auraient fini par diverger : la
-        // qualité est la seule.
+        // Two sources for the same setting would eventually have diverged:
+        // quality is the only one.
         await _service.SetQualityAsync(StreamQuality.Maximum, CancellationToken.None);
 
         var options = await _service.GetScrcpyOptionsAsync(CancellationToken.None);
 
-        // Soixante images et non cent vingt : le jeu en rend trente-huit,
-        // mesuré, et les cent vingt ne servaient qu'à diviser par deux les bits
-        // accordés à chaque image qui existe vraiment.
+        // Sixty frames and not one hundred twenty: the game renders
+        // thirty-eight, as measured, and the one hundred twenty only served to
+        // halve the bits given to each frame that actually exists.
         Assert.Equal(60, options.MaxFps);
 
-        // Le débit suit la définition : 0,11 bit par pixel et par image sur du
-        // 1920x1080 à 60 images.
+        // Bitrate follows the resolution: 0.11 bit per pixel per frame at
+        // 1920x1080 and 60 frames per second.
         Assert.Equal(13686, options.VideoBitrateKbps);
     }
 
@@ -1022,8 +1022,8 @@ public sealed class SettingsServiceTests : IDisposable
     [Fact]
     public async Task Une_instance_deplacee_entre_deux_appareils_garde_sa_place()
     {
-        // L'ordre est global : il doit survivre à une redécouverte, qui
-        // refusionne toutes les instances.
+        // Order is global: it must survive a rediscovery, which re-merges
+        // every instance.
         await _service.MergeInstancesAsync(
             [Instance(0, "PHONE-A"), Instance(999, "PHONE-A"), Instance(0, "PHONE-B")],
             CancellationToken.None);
@@ -1052,7 +1052,7 @@ public sealed class SettingsServiceTests : IDisposable
 
         Assert.Equal(30, options.MaxFps);
 
-        // La hauteur est bornée à 720 par le palier, et le débit suit.
+        // Height is capped at 720 by the tier, and bitrate follows.
         Assert.Equal(3318, options.VideoBitrateKbps);
     }
 
@@ -1159,8 +1159,8 @@ public sealed class SettingsServiceTests : IDisposable
     [Fact]
     public async Task Fermer_une_instance_la_retire_du_lancement_suivant()
     {
-        // C'est le seul geste qui l'en retire : fermer la fenêtre de jeu à la
-        // main la laisse dans l'ensemble et elle rouvrira.
+        // This is the only action that removes it: closing the game window by
+        // hand leaves it in the set, and it will reopen.
         await _service.MergeInstancesAsync([Instance(0)], CancellationToken.None);
 
         var key = "MATERIEL123|0|" + DofusPackages.DofusTouch;
@@ -1176,8 +1176,8 @@ public sealed class SettingsServiceTests : IDisposable
     [Fact]
     public async Task Cocher_une_instance_deja_cochee_n_ecrit_pas_le_fichier()
     {
-        // Chaque lancement réaffirme l'état : sans ce garde-fou, le fichier
-        // serait réécrit et tout le monde prévenu pour rien.
+        // Every launch reaffirms the state: without this safeguard, the file
+        // would be rewritten and everyone notified for nothing.
         await _service.MergeInstancesAsync([Instance(0)], CancellationToken.None);
 
         var key = "MATERIEL123|0|" + DofusPackages.DofusTouch;
@@ -1205,8 +1205,8 @@ public sealed class SettingsServiceTests : IDisposable
     [Fact]
     public async Task Un_ancien_nom_d_action_garde_sa_combinaison()
     {
-        // « Tout fermer » est devenu « Quitter ». Un fichier écrit avant le
-        // renommage ne doit pas perdre le raccourci choisi.
+        // "Tout fermer" ("Close All") became "Quitter" ("Quit"). A file
+        // written before the rename must not lose the chosen shortcut.
         Directory.CreateDirectory(_directory);
 
         await File.WriteAllTextAsync(
@@ -1225,9 +1225,8 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     /// <summary>
-    /// Un profil supprimé sur le téléphone laissait sa ligne dans la liste pour
-    /// toujours : l'entrée mémorisée survivait au profil, et aucun bouton ne
-    /// pouvait la retirer.
+    /// A profile deleted on the phone left its row in the list forever: the
+    /// stored entry outlived the profile, and no button could remove it.
     /// </summary>
     [Fact]
     public async Task Un_profil_disparu_du_telephone_est_oublie()
@@ -1248,8 +1247,8 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     /// <summary>
-    /// On ne conclut rien d'un téléphone qu'on n'a pas pu lire : ses instances
-    /// restent, comme celles d'un appareil débranché.
+    /// Nothing is concluded about a phone that could not be read: its
+    /// instances remain, like those of an unplugged device.
     /// </summary>
     [Fact]
     public async Task Un_telephone_absent_du_releve_garde_ses_instances()
@@ -1281,7 +1280,9 @@ public sealed class SettingsServiceTests : IDisposable
                 cancellationToken: CancellationToken.None));
     }
 
-    /// <summary>Les profils sont tous là : rien n'est oublié.</summary>
+    /// <summary>
+    /// All the profiles are still there: nothing is forgotten.
+    /// </summary>
     [Fact]
     public async Task Un_profil_toujours_la_n_est_pas_touche()
     {
@@ -1301,12 +1302,13 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     /// <summary>
-    /// Le jeu désinstallé d'un profil qui reste : le compte doit partir aussi.
+    /// The game was uninstalled from a profile that remains: the account must
+    /// be dropped too.
     ///
-    /// C'est le cas signalé sur le terrain. Le profil Android existe toujours,
-    /// donc l'oubli par disparition de profil ne s'appliquait pas, et l'entrée
-    /// mémorisée était reconduite indéfiniment, jusque par-delà les
-    /// redémarrages.
+    /// This is the case reported from the field. The Android profile still
+    /// exists, so forgetting by profile disappearance did not apply, and the
+    /// stored entry kept being carried over indefinitely, even across
+    /// restarts.
     /// </summary>
     [Fact]
     public async Task Un_profil_qui_a_perdu_le_jeu_est_oublie()
@@ -1332,12 +1334,12 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     /// <summary>
-    /// Un profil dont la question n'a pas abouti ne prouve rien.
+    /// A profile whose query did not complete proves nothing.
     ///
-    /// C'est toute la prudence de ce nettoyage : interroger les paquets d'un
-    /// profil peut échouer, et confondre cet échec avec une réponse vide
-    /// effacerait des comptes au premier hoquet d'ADB. Un profil qui n'a pas
-    /// répondu n'est pas déclaré vide, donc il n'entre pas dans ce relevé.
+    /// This is the whole caution behind this cleanup: querying a profile's
+    /// packages can fail, and mistaking that failure for an empty answer would
+    /// erase accounts at the first hiccup from ADB. A profile that did not
+    /// answer is not declared empty, so it does not enter this list.
     /// </summary>
     [Fact]
     public async Task Un_profil_qui_n_a_pas_repondu_garde_son_compte()
@@ -1359,8 +1361,8 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     /// <summary>
-    /// Sans relevé des profils sans jeu, rien ne change : c'est le comportement
-    /// d'avant, et les appelants qui ne le fournissent pas le gardent.
+    /// Without a list of profiles missing the game, nothing changes: this is
+    /// the previous behavior, and callers that do not supply it keep it.
     /// </summary>
     [Fact]
     public async Task Sans_releve_des_profils_vides_rien_n_est_oublie_de_plus()

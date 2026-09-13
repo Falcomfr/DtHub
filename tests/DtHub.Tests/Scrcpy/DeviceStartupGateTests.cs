@@ -3,9 +3,9 @@
 namespace DtHub.Tests.Scrcpy;
 
 /// <summary>
-/// Deux ouvertures qui se chevauchent sur un même téléphone se cassent. Le
-/// verrou est donc par appareil, et deux téléphones différents n'ont aucune
-/// raison de s'attendre.
+/// Two overlapping openings on the same phone break each other. The
+/// lock is therefore per device, and two different phones have no
+/// reason to wait for one another.
 /// </summary>
 public sealed class DeviceStartupGateTests
 {
@@ -60,8 +60,8 @@ public sealed class DeviceStartupGateTests
     [Fact]
     public async Task Le_repos_est_applique_avant_de_rendre_la_place()
     {
-        // Le suivant attend réellement, et l'indicateur d'activité reste
-        // allumé pendant ce temps.
+        // The next one truly waits, and the busy indicator stays lit
+        // for the whole time.
         List<TimeSpan> waits = [];
 
         using var gate = new DeviceStartupGate((duration, _) =>

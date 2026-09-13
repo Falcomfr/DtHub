@@ -6,8 +6,8 @@ using DtHub.Infrastructure.Processes;
 namespace DtHub.Tests.Processes;
 
 /// <summary>
-/// Vérifie l'exécuteur réel sur un interpréteur système. Ces tests ne
-/// requièrent ni téléphone, ni réseau, ni privilège particulier.
+/// Checks the real executor against a system shell. These tests
+/// require no phone, no network, and no special privilege.
 /// </summary>
 public class ProcessRunnerTests
 {
@@ -102,8 +102,8 @@ public class ProcessRunnerTests
     [Fact]
     public async Task Une_sortie_volumineuse_ne_bloque_pas_l_execution()
     {
-        // Le piège classique : le tampon du tube se remplit et le processus fils
-        // reste figé si l'appelant n'a pas commencé à lire.
+        // The classic trap: the pipe buffer fills up and the child
+        // process stays frozen if the caller has not started reading.
         var command = OnWindows
             ? "for /L %i in (1,1,2000) do @echo ligne-%i-remplissage-du-tampon"
             : "for i in $(seq 1 2000); do echo ligne-$i-remplissage-du-tampon; done";

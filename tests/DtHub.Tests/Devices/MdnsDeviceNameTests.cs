@@ -16,7 +16,7 @@ public class MdnsDeviceNameTests
     [Fact]
     public void Un_numero_de_serie_a_tirets_garde_ses_tirets()
     {
-        // C'est le dernier tiret qui sépare le jeton, pas le premier.
+        // It is the last hyphen that separates the token, not the first.
         Assert.Equal(
             "ABC-DEF-123",
             MdnsDeviceName.HardwareSerialFrom("adb-ABC-DEF-123-1V3FXQ._adb-tls-connect._tcp"));
@@ -28,17 +28,18 @@ public class MdnsDeviceNameTests
     [InlineData("adb-R58M12ABCDE-a1B2c3._adb-tls-connect._tcp", "R58M12ABCDE")]
     public void Le_nom_d_instance_porte_le_numero_de_serie_sans_le_suffixe(string name, string expected)
     {
-        // La colonne « nom » de `adb mdns services` ne porte pas le type de
-        // service : il vit dans une colonne à part. Exiger le suffixe y
-        // rejetait toute annonce.
+        // The name column from `adb mdns services` does not
+        // carry the service type: that lives in a separate column.
+        // Requiring the suffix there rejected every announcement.
         Assert.Equal(expected, MdnsDeviceName.HardwareSerialFromInstance(name));
     }
 
     [Fact]
     public void Le_suffixe_reste_exige_pour_un_numero_de_serie_rapporte_par_adb()
     {
-        // C'est ce qui distingue un appareil injoignable, connu par son seul
-        // nom d'annonce, d'un appareil branché qui rapporte son numéro.
+        // This is what distinguishes an unreachable device, known only
+        // by its announced name, from a connected device that reports
+        // its serial number.
         Assert.Null(MdnsDeviceName.HardwareSerialFrom("adb-SERIAL0123456789-1V3FXQ"));
     }
 

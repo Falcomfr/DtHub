@@ -88,7 +88,8 @@ public class HotkeySetTests
     [Fact]
     public void Une_touche_sans_modificateur_est_refusee()
     {
-        // Sinon le raccourci se déclencherait à chaque frappe dans le jeu.
+        // Otherwise the shortcut would trigger on every keystroke in the
+        // game.
         Assert.Equal(
             HotkeyValidationResult.MissingModifier,
             HotkeySet.Default.Validate(HotkeyAction.Rearrange, VirtualKeys.A, HotkeyModifiers.None));
@@ -129,10 +130,11 @@ public class HotkeySetTests
     [InlineData(VirtualKeys.X)]
     public void Les_touches_d_edition_ne_peuvent_pas_etre_confisquees(int key)
     {
-        // RegisterHotKey vaut pour tout le bureau : lier Ctrl+V à DT Hub
-        // retirerait le collage à l'éditeur de texte, au navigateur et au jeu
-        // lui-même, aussi longtemps que l'application tourne, et rien
-        // n'aurait relié le symptôme à sa cause.
+        // RegisterHotKey applies to the whole desktop: binding Ctrl+V to
+        // DT Hub would take paste away from the text editor, the
+        // browser, and the game itself, for as long as the
+        // application runs, and nothing would have linked the
+        // symptom to its cause.
         Assert.Equal(
             HotkeyValidationResult.ReservedForEditing,
             HotkeySet.Default.Validate(HotkeyAction.Rearrange, key, HotkeyModifiers.Control));
@@ -145,7 +147,8 @@ public class HotkeySetTests
     public void Les_memes_touches_restent_libres_avec_un_autre_modificateur(
         int key, HotkeyModifiers modifiers)
     {
-        // Ce n'est pas la lettre qui est réservée, c'est le geste d'édition.
+        // It is not the letter that is reserved, it is the editing
+        // gesture.
         Assert.Equal(
             HotkeyValidationResult.Valid,
             HotkeySet.Default.Validate(HotkeyAction.Rearrange, key, modifiers));
@@ -154,9 +157,10 @@ public class HotkeySetTests
     [Fact]
     public void Une_touche_d_edition_enregistree_est_ecartee_au_chargement()
     {
-        // Le refus dans l'éditeur ne suffirait pas : un réglage écrit à la
-        // main, ou venu d'une version antérieure à cette règle, armerait le
-        // raccourci au démarrage sans que personne ne l'ait revu.
+        // Refusing it in the editor would not be enough: a setting
+        // written by hand, or coming from a version older than this
+        // rule, would arm the shortcut at startup without anyone
+        // reviewing it.
         var charge = HotkeySet.FromBindings(
         [
             new HotkeyBinding
@@ -218,8 +222,8 @@ public class HotkeySetTests
     [Fact]
     public void Un_fichier_contenant_des_doublons_est_reparé_a_la_lecture()
     {
-        // Deux actions revendiquent Ctrl+1 : la seconde est écartée et
-        // l'action concernée reprend sa valeur par défaut.
+        // Two actions claim Ctrl+1: the second one is discarded and the
+        // affected action reverts to its default value.
         var bindings = new[]
         {
             new HotkeyBinding { Action = HotkeyAction.ToggleConfigurator, VirtualKey = VirtualKeys.P, Modifiers = HotkeyModifiers.Control },
@@ -266,8 +270,8 @@ public class HotkeySetTests
     [Fact]
     public void Un_raccourci_par_defaut_deja_pris_par_l_utilisateur_n_est_pas_reattribue()
     {
-        // L'utilisateur a mis Ctrl+R sur « Session suivante ». « Recentrer » ne
-        // doit pas le reprendre au chargement.
+        // The user put Ctrl+R on "Session suivante" ("next session").
+        // "Recentrer" ("recenter") must not reclaim it when loading.
         var bindings = new[]
         {
             new HotkeyBinding { Action = HotkeyAction.NextInstance, VirtualKey = VirtualKeys.R, Modifiers = HotkeyModifiers.Control },
@@ -282,8 +286,9 @@ public class HotkeySetTests
     [Fact]
     public void Chaque_action_dit_ce_qu_elle_fait_vraiment()
     {
-        // Le libellé tient sur une ligne et ne peut pas tout dire : le détail
-        // nomme la référence de l'action, ce que « remettre en place » taisait.
+        // The label fits on one line and cannot say everything: the
+        // detail names what the action refers to, which "remettre
+        // en place" ("put back in place") used to leave unsaid.
         foreach (var action in Enum.GetValues<HotkeyAction>())
         {
             Assert.False(
@@ -307,9 +312,9 @@ public class HotkeySetTests
     [Fact]
     public void Le_libelle_tient_sur_une_ligne_et_le_detail_dit_le_reste()
     {
-        // Le libellé s'affiche en clair dans la liste des raccourcis, où la
-        // place est comptée ; ce qu'il tait appartient à l'infobulle, et non à
-        // une seconde ligne de texte sous le nom.
+        // The label is displayed plainly in the shortcuts list, where
+        // space is limited; what it leaves out belongs in the
+        // tooltip, not in a second line of text under the name.
         foreach (var action in Enum.GetValues<HotkeyAction>())
         {
             var label = HotkeyBinding.DescribeAction(action);

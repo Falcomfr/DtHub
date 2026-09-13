@@ -1,9 +1,9 @@
 ﻿namespace DtHub.Tests;
 
 /// <summary>
-/// Le dossier du dépôt, retrouvé depuis celui où tournent les épreuves. Sert
-/// aux contrôles qui portent sur le texte des fichiers plutôt que sur du code
-/// exécuté.
+/// The repository's folder, found starting from the one where the
+/// tests run. Used by checks that look at file text rather than
+/// executed code.
 /// </summary>
 internal static class RepositoryRoot
 {

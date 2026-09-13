@@ -7,8 +7,8 @@ public class InstanceQualityTests
     [Fact]
     public void Un_compte_sans_palier_suit_le_commun()
     {
-        // Le défaut, et il doit rester le défaut : personne n'a à régler cinq
-        // comptes pour que l'application marche.
+        // The default, and it must stay the default: nobody has to
+        // configure five accounts for the application to work.
         Assert.Equal(StreamQuality.Medium, InstanceQuality.Chosen(null, StreamQuality.Medium));
 
         Assert.Equal(
@@ -29,7 +29,8 @@ public class InstanceQualityTests
     [Fact]
     public void Une_mule_en_palier_bas_coute_moins_que_le_principal_au_maximum()
     {
-        // C'est tout l'intérêt de la fonction, dit en chiffres.
+        // This is the whole point of the function, stated in
+        // numbers.
         var principal = InstanceQuality.ProfileFor(StreamQuality.Maximum, StreamQuality.Medium, null);
         var mule = InstanceQuality.ProfileFor(StreamQuality.Low, StreamQuality.Medium, null);
 
@@ -41,9 +42,9 @@ public class InstanceQualityTests
     [Fact]
     public void Le_palier_personnalise_borne_les_valeurs_absurdes()
     {
-        // « QualityProfile.For » au palier personnalisé n'était couvert par
-        // aucune épreuve : c'est le seul chemin qui accepte des nombres venus
-        // de l'utilisateur.
+        // "QualityProfile.For" at the custom tier was not covered
+        // by any test: this is the only path that accepts numbers
+        // coming from the user.
         var fou = new CustomQuality { MaxFps = 100_000, MaximumDisplayHeight = 99_999, BitsPerPixel = 42 };
 
         var profile = InstanceQuality.ProfileFor(StreamQuality.Custom, StreamQuality.Custom, fou);
@@ -68,9 +69,9 @@ public class InstanceQualityTests
     [InlineData(StreamQuality.Maximum)]
     public void Les_cadences_restent_celles_du_palier_choisi(StreamQuality quality)
     {
-        // Les cadences de sondage voyagent avec le palier, mais elles sont
-        // propres à l'application : c'est l'appelant qui ne doit pas les
-        // prendre ici, pas la fonction qui doit les retirer.
+        // Polling rates travel with the tier, but they are specific
+        // to the application: it is the caller that must not take
+        // them here, not the function that must strip them out.
         var profile = InstanceQuality.ProfileFor(quality, StreamQuality.Medium, null);
 
         Assert.Equal(QualityProfile.For(quality).DevicePoll, profile.DevicePoll);
@@ -79,8 +80,9 @@ public class InstanceQualityTests
     [Fact]
     public void Les_valeurs_fines_restent_communes()
     {
-        // Il n'y a pas de réglage fin par compte, et c'est délibéré : ce
-        // serait un champ persisté que rien n'exposerait.
+        // There is no per-account fine-tuning, and that is
+        // deliberate: it would be a persisted field that nothing
+        // would expose.
         var commun = new CustomQuality { MaxFps = 37 };
 
         Assert.Equal(37, InstanceQuality.ProfileFor(null, StreamQuality.Custom, commun).MaxFps);

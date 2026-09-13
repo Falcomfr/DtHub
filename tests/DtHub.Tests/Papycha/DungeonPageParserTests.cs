@@ -5,9 +5,10 @@ namespace DtHub.Tests.Papycha;
 public sealed class DungeonPageParserTests
 {
     /// <summary>
-    /// Relevé sur « Atelier du Tanukouï San ». Les vignettes venues des
-    /// serveurs d'Ankama sont retirées du fragment : rien de leur ne sert ici,
-    /// et le dépôt n'en héberge aucune.
+    /// Captured on "Atelier du Tanukouï San". The thumbnails from
+    /// Ankama's servers are stripped out of the fragment: none of
+    /// them serve any purpose here, and the repository hosts none of
+    /// them.
     /// </summary>
     private const string AvecClef =
         """
@@ -23,7 +24,10 @@ public sealed class DungeonPageParserTests
         </div>
         """;
 
-    /// <summary>Relevé sur « Château de Belladone », qui n'exige pas de clef.</summary>
+    /// <summary>
+    /// Captured on "Château de Belladone", which does not require a
+    /// key.
+    /// </summary>
     private const string SansClef =
         """<span class="pcd-info__soul-stone">petite pierre d’âme</span>""";
 
@@ -37,16 +41,17 @@ public sealed class DungeonPageParserTests
     [Fact]
     public void La_clef_perd_le_libelle_de_lecture_d_ecran()
     {
-        // Le site écrit « Clef : » à l'usage des lecteurs d'écran. Une fois le
-        // balisage tombé, plus rien ne le distinguerait du nom de la clef.
+        // The site writes "Clef : " for the benefit of screen
+        // readers. Once the markup is stripped, nothing would
+        // distinguish it from the key's name anymore.
         Assert.Equal("Clef de l'Atelier du Tanukouï San", DungeonPageParser.ParseKey(AvecClef));
     }
 
     [Fact]
     public void Un_donjon_sans_clef_n_en_rend_aucune()
     {
-        // Neuf donjons sur quatre-vingt-deux sont dans ce cas : l'absence est
-        // une information, pas un trou à combler.
+        // Nine dungeons out of eighty-two are in this case: the
+        // absence is information, not a gap to fill.
         Assert.Equal(string.Empty, DungeonPageParser.ParseKey(SansClef));
         Assert.Equal(string.Empty, DungeonPageParser.ParseKey(null));
     }
@@ -54,7 +59,8 @@ public sealed class DungeonPageParserTests
     [Fact]
     public void Une_page_sans_bloc_ne_rend_rien()
     {
-        // Un donjon sur quatre-vingt-trois n'a pas le bloc structuré.
+        // One dungeon out of eighty-three does not have the
+        // structured block.
         Assert.Equal(string.Empty, DungeonPageParser.ParseSoulStone("<p>Rien ici.</p>"));
         Assert.Empty(DungeonPageParser.ParseSections("<p>Rien ici.</p>"));
     }
@@ -62,7 +68,7 @@ public sealed class DungeonPageParserTests
     [Fact]
     public void Les_titres_de_sections_sortent_dans_l_ordre_de_la_page()
     {
-        // Relevé sur « Château de Belladone », balisage compris.
+        // Captured on "Château de Belladone", markup included.
         const string page =
             """
             <h2>Position du PNJ sur la carte</h2>
@@ -83,8 +89,8 @@ public sealed class DungeonPageParserTests
     [Fact]
     public void Un_titre_repete_ne_compte_qu_une_fois()
     {
-        // Deux guides emploient deux fois le même intertitre ; deux étapes de
-        // même nom ne diraient pas où l'on est.
+        // Two guides use the same subheading twice; two steps with
+        // the same name would not say where one is.
         Assert.Equal(
             ["Boss"],
             DungeonPageParser.ParseSections("<h2>Boss</h2><h2>Boss</h2>"));

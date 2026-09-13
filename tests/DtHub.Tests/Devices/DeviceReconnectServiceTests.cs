@@ -21,11 +21,11 @@ public class DeviceReconnectServiceTests
     [Fact]
     public async Task Une_adresse_qui_ne_repond_pas_ne_retient_pas_la_liste()
     {
-        // Mesuré sur le vrai ADB : un téléphone éteint laisse le système
-        // attendre vingt-deux secondes avant de rendre la main, et la liste
-        // des appareils attendait avec lui. L'échéance rend la main, et le
-        // balayage mDNS prend le relais, lui qui sait retrouver un appareil
-        // dont le port a changé.
+        // Measured against real ADB: a powered-off phone leaves the
+        // system waiting 22 seconds before it gives control back, and
+        // the device list used to wait along with it. The timeout
+        // returns control, and the mDNS scan takes over, since it
+        // knows how to find a device whose port has changed.
         var adb = new FakeAdbClient();
         adb.MdnsOutputs.Enqueue("""
             List of discovered mdns services
@@ -44,8 +44,9 @@ public class DeviceReconnectServiceTests
     [Fact]
     public async Task L_arret_demande_par_l_utilisateur_n_est_pas_confondu_avec_l_echeance()
     {
-        // L'échéance se rattrape, l'arrêt demandé non : les confondre ferait
-        // continuer un balayage que quelqu'un vient d'annuler.
+        // A timeout can be retried, a requested stop cannot: confusing
+        // the two would keep a scan running that someone just
+        // canceled.
         var adb = new FakeAdbClient();
 
         adb.SilentAddresses.Add("192.168.1.25:37845");
@@ -63,9 +64,9 @@ public class DeviceReconnectServiceTests
     [Fact]
     public async Task Un_appareil_qui_refuse_la_cle_se_distingue_d_un_appareil_absent()
     {
-        // Mesuré : le téléphone répond, son port est ouvert, et ADB est
-        // refusé juste après. Ce n'est pas « introuvable », et le conseil
-        // n'est pas le même.
+        // Measured: the phone answers, its port is open, and ADB is
+        // refused right after. This is not "introuvable" ("not
+        // found"), and the advice is not the same.
         var adb = new FakeAdbClient
         {
             ConnectFailure = "failed to connect to 192.168.1.25:37845",
@@ -118,7 +119,7 @@ public class DeviceReconnectServiceTests
     [Fact]
     public async Task Un_port_change_est_retrouve_par_decouverte_mdns()
     {
-        // Le port de débogage sans fil change à chaque redémarrage du téléphone.
+        // The wireless debugging port changes on every phone restart.
         var adb = new FakeAdbClient();
         adb.MdnsOutputs.Enqueue("""
             List of discovered mdns services
@@ -160,9 +161,9 @@ public class DeviceReconnectServiceTests
     [Fact]
     public async Task Tous_les_appareils_connus_sont_tentes()
     {
-        // Le filtre par drapeau était trop strict : un appareil mémorisé par
-        // une version antérieure n'a pas forcément l'information, alors qu'il
-        // est parfaitement joignable.
+        // The flag-based filter was too strict: a device remembered by
+        // an earlier version does not necessarily carry that
+        // information, even though it is perfectly reachable.
         var adb = new FakeAdbClient();
         adb.ConnectableAddresses.Add("192.168.1.25:37845");
 
@@ -179,8 +180,9 @@ public class DeviceReconnectServiceTests
     [Fact]
     public async Task Un_appareil_sans_adresse_memorisee_est_retrouve_par_son_annonce_reseau()
     {
-        // Cas réel : le téléphone était connecté sous son nom de service mDNS,
-        // sans adresse exploitable, et se réannonce après une coupure.
+        // Real case: the phone was connected under its mDNS service
+        // name, with no usable address, and announces itself again
+        // after a dropout.
         var adb = new FakeAdbClient();
         adb.MdnsOutputs.Enqueue("""
             List of discovered mdns services

@@ -4,15 +4,16 @@ using DtHub.Core.Processes;
 namespace DtHub.Tests.Fakes;
 
 /// <summary>
-/// Base pour un faux ADB dont la réponse dépend de la commande, utile lorsque
-/// les règles par motif ne suffisent pas à exprimer un enchaînement.
+/// Base for a fake ADB whose response depends on the command,
+/// useful when pattern-based rules are not enough to express a
+/// sequence.
 /// </summary>
 public abstract class FakeAdbClientBase : IAdbClient
 {
-    /// <summary>Commandes shell reçues, jointes par des espaces.</summary>
+    /// <summary>Shell commands received, joined by spaces.</summary>
     public List<string> Calls { get; } = [];
 
-    /// <summary>Réponse à une commande shell.</summary>
+    /// <summary>Response to a shell command.</summary>
     public abstract string Shell(string joined);
 
     public Task StartServerAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
@@ -42,8 +43,8 @@ public abstract class FakeAdbClientBase : IAdbClient
         });
 
     /// <summary>
-    /// Aucune sortie binaire par défaut : les suites qui héritent de cette base
-    /// éprouvent des enchaînements de commandes textuelles.
+    /// No binary output by default: the suites that inherit from
+    /// this base test sequences of text commands.
     /// </summary>
     public virtual Task<ProcessBytes> ExecOutAsync(
         string serial,

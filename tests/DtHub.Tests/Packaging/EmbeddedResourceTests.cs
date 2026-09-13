@@ -6,18 +6,20 @@ using DtHub.Infrastructure.Dependencies;
 namespace DtHub.Tests.Packaging;
 
 /// <summary>
-/// Ce que le fichier livré doit contenir en plus de son code.
+/// What the shipped file must contain beyond its code.
 ///
-/// Rien n'échouait si l'une de ces ressources quittait un csproj : le manque ne
-/// se voyait qu'à l'exécution, chez la personne qui avait téléchargé
-/// l'application. Une ligne retirée par mégarde pendant un remaniement ne se
-/// serait vue nulle part avant.
+/// Nothing used to fail if one of these resources left a csproj: the
+/// gap only showed up at runtime, for the person who had downloaded
+/// the application. A line removed by mistake during a refactor would
+/// not have been noticed anywhere before that.
 /// </summary>
 public class EmbeddedResourceTests
 {
     private static readonly string[] Langues = ["en", "fr", "es"];
 
-    /// <summary>Les noms sont ceux que le code demande, pas ceux du disque.</summary>
+    /// <summary>
+    /// The names are the ones the code asks for, not the ones on disk.
+    /// </summary>
     [Theory]
     [InlineData("DtHub.Infrastructure.dependencies.json")]
     [InlineData("DtHub.Infrastructure.quest-successes.json")]
@@ -35,17 +37,18 @@ public class EmbeddedResourceTests
     [Fact]
     public void Les_deux_dependances_sont_declarees()
     {
-        // Le manifeste est lu depuis la ressource : cette épreuve échoue aussi
-        // si le fichier est présent mais illisible.
+        // The manifest is read from the resource: this test also
+        // fails if the file is present but unreadable.
         Assert.Equal(2, DependencyManifest.All.Count);
         Assert.NotNull(DependencyManifest.Get(DependencyManifest.PlatformToolsKey));
         Assert.NotNull(DependencyManifest.Get(DependencyManifest.ScrcpyKey));
     }
 
     /// <summary>
-    /// Les satellites de traduction. Le csproj avertit lui-même qu'un
-    /// <c>SatelliteResourceLanguages</c> mal réglé les supprimerait « sans rien
-    /// dire » : trois textes distincts pour une même clé le disent.
+    /// The translation satellites. The csproj itself warns that a
+    /// misconfigured <c>SatelliteResourceLanguages</c> would drop
+    /// them without saying a word: three distinct texts for the same
+    /// key prove it.
     /// </summary>
     [Fact]
     public void Les_trois_langues_rendent_trois_textes()

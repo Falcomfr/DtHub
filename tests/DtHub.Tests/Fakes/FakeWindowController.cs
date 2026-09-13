@@ -3,8 +3,8 @@
 namespace DtHub.Tests.Fakes;
 
 /// <summary>
-/// Bureau simulé : des écrans, des fenêtres, et la trace de ce qu'on leur a
-/// fait. Permet de vérifier l'empilement sans manipuler de vraies fenêtres.
+/// Simulated desktop: screens, windows, and a record of what was done
+/// to them. Lets us verify stacking without manipulating real windows.
 /// </summary>
 public sealed class FakeWindowController : IWindowController
 {
@@ -14,7 +14,9 @@ public sealed class FakeWindowController : IWindowController
     public FakeWindowController(params MonitorInfo[] monitors) =>
         Monitors = monitors.Length > 0 ? [.. monitors] : [PrimaryMonitor];
 
-    /// <summary>Écran 1920x1080 avec barre des tâches, cas le plus courant.</summary>
+    /// <summary>
+    /// 1920x1080 screen with a taskbar, the most common case.
+    /// </summary>
     public static readonly MonitorInfo PrimaryMonitor = new()
     {
         DeviceName = @"\\.\DISPLAY1",
@@ -25,16 +27,16 @@ public sealed class FakeWindowController : IWindowController
 
     public List<MonitorInfo> Monitors { get; }
 
-    /// <summary>Fenêtre actuellement au premier plan.</summary>
+    /// <summary>Window currently in the foreground.</summary>
     public nint Foreground { get; set; }
 
-    /// <summary>Fenêtres passées en mode sans bordure.</summary>
+    /// <summary>Windows switched to borderless mode.</summary>
     public HashSet<nint> Borderless { get; } = [];
 
-    /// <summary>Ordre des appels au focus, pour vérifier le parcours.</summary>
+    /// <summary>Order of focus calls, to verify the traversal.</summary>
     public List<nint> FocusCalls { get; } = [];
 
-    /// <summary>Déclare une fenêtre appartenant à un processus.</summary>
+    /// <summary>Declares a window belonging to a process.</summary>
     public FakeWindowController AddWindow(nint handle, int processId, string title)
     {
         _windows.Add(new WindowHandleInfo(handle, title, processId));
@@ -42,7 +44,7 @@ public sealed class FakeWindowController : IWindowController
         return this;
     }
 
-    /// <summary>Fait disparaître une fenêtre, comme à la fermeture d'une session.</summary>
+    /// <summary>Makes a window disappear, as when a session closes.</summary>
     public void RemoveWindow(nint handle)
     {
         _windows.RemoveAll(w => w.Handle == handle);
@@ -56,7 +58,7 @@ public sealed class FakeWindowController : IWindowController
 
     public bool IsWindow(nint handle) => _windows.Exists(w => w.Handle == handle);
 
-    /// <summary>Cadre simulé : barre de titre et bordures.</summary>
+    /// <summary>Simulated frame: title bar and borders.</summary>
     public WindowFrame Chrome { get; set; }
 
     public WindowFrame GetWindowChrome(string? monitorDeviceName) => Chrome;
@@ -69,7 +71,7 @@ public sealed class FakeWindowController : IWindowController
             ? new ScreenRect(0, 0, rect.Width - Chrome.Width, rect.Height - Chrome.Height)
             : null;
 
-    /// <summary>Rectangles posés, dans l'ordre, pour vérifier les remises en page.</summary>
+    /// <summary>Rectangles placed, in order, to verify relayouts.</summary>
     public List<(nint Handle, ScreenRect Rect)> Moves { get; } = [];
 
     public void MoveWindow(nint handle, ScreenRect rect, bool bringToFront = false)
@@ -81,7 +83,7 @@ public sealed class FakeWindowController : IWindowController
         }
     }
 
-    /// <summary>Titres réécrits, pour vérifier le rappel du raccourci.</summary>
+    /// <summary>Titles rewritten, to verify the shortcut callback.</summary>
     public Dictionary<nint, string> Titles { get; } = [];
 
     public void SetTitle(nint handle, string title) => Titles[handle] = title;
@@ -92,12 +94,12 @@ public sealed class FakeWindowController : IWindowController
         Foreground = handle;
     }
 
-    /// <summary>Ordre d'empilement, du plus récent remonté au plus ancien.</summary>
+    /// <summary>Stacking order, from most recently raised to oldest.</summary>
     public List<nint> RaiseCalls { get; } = [];
 
     public void Raise(nint handle) => RaiseCalls.Add(handle);
 
-    /// <summary>Fenêtres à qui l'on a demandé de se fermer.</summary>
+    /// <summary>Windows that were asked to close.</summary>
     public List<nint> CloseRequests { get; } = [];
 
     public void RequestClose(nint handle) => CloseRequests.Add(handle);
@@ -119,7 +121,7 @@ public sealed class FakeWindowController : IWindowController
 
     public nint GetForegroundWindow() => Foreground;
 
-    /// <summary>Places retenues, par fenêtre.</summary>
+    /// <summary>Placements kept, per window.</summary>
     public Dictionary<nint, WindowPlacement> Placements { get; } = [];
 
     public WindowPlacement? GetPlacement(nint handle) =>
@@ -137,10 +139,12 @@ public sealed class FakeWindowController : IWindowController
         return true;
     }
 
-    /// <summary>Les fenêtres logées, par leur cadre. Vide au départ.</summary>
+    /// <summary>
+    /// The docked windows, by their host frame. Empty at first.
+    /// </summary>
     public Dictionary<nint, nint> Docked { get; } = [];
 
-    /// <summary>Les fenêtres cachées, pour éprouver le passage d'un onglet à l'autre.</summary>
+    /// <summary>Hidden windows, to exercise switching between tabs.</summary>
     public HashSet<nint> Hidden { get; } = [];
 
     public bool Dock(nint child, nint host)
@@ -179,10 +183,10 @@ public sealed class FakeWindowController : IWindowController
         }
     }
 
-    /// <summary>La fenêtre qui tient le clavier, zéro si aucune.</summary>
+    /// <summary>The window holding the keyboard, zero if none.</summary>
     public nint KeyboardFocus { get; private set; }
 
-    /// <summary>Chaque don du clavier, dans l'ordre.</summary>
+    /// <summary>Each keyboard hand-off, in order.</summary>
     public List<nint> KeyboardFocusCalls { get; } = [];
 
     public bool GiveKeyboardFocus(nint child)

@@ -27,8 +27,8 @@ public class DisplayFitTests
     [Fact]
     public void Un_plafond_au_dessus_de_la_fenetre_est_annonce_sans_effet()
     {
-        // Le palier retenu est le premier au-dessus de la fenêtre : monter le
-        // plafond au-delà ne demande pas un afficheur plus grand.
+        // The tier chosen is the first one above the window: raising
+        // the ceiling further does not ask for a bigger display.
         var phrase = DisplayFit.Describe(2160, (2560, 1440));
 
         Assert.Contains("2560 × 1440", phrase, StringComparison.Ordinal);
@@ -38,8 +38,8 @@ public class DisplayFitTests
     [Fact]
     public void Un_plafond_qui_mord_ne_se_fait_pas_traiter_d_inutile()
     {
-        // Ici le plafond rabaisse pour de bon : il sert, et la phrase ne doit
-        // pas décourager de s'en servir.
+        // Here the ceiling really does lower things: it is useful, and
+        // the sentence must not discourage using it.
         var phrase = DisplayFit.Describe(1080, (1920, 1080));
 
         Assert.Contains("1920 × 1080", phrase, StringComparison.Ordinal);

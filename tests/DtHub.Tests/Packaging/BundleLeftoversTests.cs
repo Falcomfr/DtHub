@@ -3,9 +3,9 @@
 namespace DtHub.Tests.Packaging;
 
 /// <summary>
-/// Le tri des dossiers d'extraction. Le nettoyage lui-même touche à %TEMP% et
-/// n'est pas éprouvé ici : ce qui compte est de ne jamais désigner le dossier
-/// de la version vivante.
+/// Sorting of extraction folders. The actual cleanup touches %TEMP%
+/// and is not exercised here: what matters is never to flag the
+/// folder of the live version.
 /// </summary>
 public class BundleLeftoversTests
 {
@@ -24,8 +24,8 @@ public class BundleLeftoversTests
     [Fact]
     public void La_casse_ne_fait_pas_effacer_le_dossier_en_cours()
     {
-        // Windows ne distingue pas la casse : comparer à l'octet près
-        // effacerait le dossier dont les bibliothèques sont chargées.
+        // Windows is not case sensitive: comparing byte for byte would
+        // delete the folder whose libraries are loaded.
         Assert.Empty(BundleLeftovers.Stale(
             [$@"{Root}\X8su9WP8OzRy"],
             $@"{Root}\x8su9wp8ozry"));

@@ -4,7 +4,9 @@ namespace DtHub.Tests.Papycha;
 
 public class QuestSectionPageParserTests
 {
-    /// <summary>Forme du tableau relevée sur la page « Quêtes » du site.</summary>
+    /// <summary>
+    /// Table layout captured on the site's "Quêtes" (Quests) page.
+    /// </summary>
     private const string Index = """
         <p>Un texte d'introduction et une image.</p>
         <figure class="wp-block-table"><table><tbody>
@@ -32,8 +34,8 @@ public class QuestSectionPageParserTests
     [Fact]
     public void Une_adresse_par_identifiant_est_gardee_telle_quelle()
     {
-        // Le site emploie les deux formes dans son propre tableau : le lien vers
-        // Frigost passe par un identifiant, les autres par un chemin.
+        // The site uses both forms in its own table: the link to
+        // Frigost goes through an id, the others through a path.
         var sections = QuestSectionPageParser.ParseIndex(Index);
 
         Assert.Contains(sections, s => s.Url == "https://papycha.fr/?page_id=391");
@@ -45,8 +47,8 @@ public class QuestSectionPageParserTests
     [InlineData("<p>une page sans tableau</p>")]
     public void Une_page_sans_tableau_ne_donne_aucune_rubrique(string? html)
     {
-        // Le catalogue continue alors sur les seules catégories : une question
-        // de rangement ne doit jamais faire échouer l'indexation.
+        // The catalog then carries on with only the categories: a
+        // matter of organization must never make indexing fail.
         Assert.Empty(QuestSectionPageParser.ParseIndex(html));
     }
 
@@ -64,8 +66,8 @@ public class QuestSectionPageParserTests
 
         var links = QuestSectionPageParser.ParseQuestLinks(content);
 
-        // Le lien extérieur est écarté, et l'ancre ne fait pas de la seconde
-        // quête une page différente.
+        // The external link is discarded, and the anchor does not
+        // turn the second quest into a different page.
         Assert.Equal(
             [
                 "https://papycha.fr/quete-le-dragon-dastrub",
@@ -94,7 +96,9 @@ public class QuestSectionPageParserTests
         Assert.Equal(expected, QuestSectionPageParser.Key(url));
     }
 
-    /// <summary>Forme relevée sur la page « Quêtes d'Astrub ».</summary>
+    /// <summary>
+    /// Layout captured on the "Quêtes d'Astrub" page.
+    /// </summary>
     private const string Zone = """
         <div class="wp-block-image"><figure><img src="x.png" /></figure></div>
         <p class="wp-block-paragraph"><strong>[Succès] Quand on arrive en ville :</strong></p>
@@ -126,8 +130,9 @@ public class QuestSectionPageParserTests
     [Fact]
     public void Un_intertitre_qui_n_annonce_pas_un_succes_ne_pretend_pas_en_etre_un()
     {
-        // Une page dit aussi « Divers » ou « Quêtes des Calanques d'Astrub » :
-        // les prendre pour des succès en inventerait.
+        // A page also says "Divers" or "Quêtes des Calanques
+        // d'Astrub": treating them as achievements would invent
+        // some.
         var groups = QuestSectionPageParser.ParseGroups(Zone);
 
         Assert.True(groups[0].IsSuccess);

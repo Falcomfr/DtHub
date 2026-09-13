@@ -3,13 +3,16 @@
 namespace DtHub.Tests.Papycha;
 
 /// <summary>
-/// Les fragments employés ici sont ceux que le site rend vraiment, relevés sur
-/// trois quêtes de types différents. Les recopier plutôt que d'aller les
-/// chercher garde les tests hors réseau, comme l'exige le dépôt.
+/// The fragments used here are the ones the site actually renders,
+/// captured from three quests of different types. Copying them in
+/// rather than fetching them keeps the tests off the network, as the
+/// repository requires.
 /// </summary>
 public class QuestPageParserTests
 {
-    /// <summary>Quête au milieu d'une chaîne, avec succès et finalité.</summary>
+    /// <summary>
+    /// Quest in the middle of a chain, with a success and a finality.
+    /// </summary>
     private const string IntroDragonAstrub = """
             <section class="pqa-quest-intro wp-block-papycha-quest-intro" data-pqa-post="33878">
             <dl class="pqa-quest-intro__facts">
@@ -39,7 +42,7 @@ public class QuestPageParserTests
             </section>
             """;
 
-    /// <summary>Bloc de progression de la même quête.</summary>
+    /// <summary>Progression block of the same quest.</summary>
     private const string NavDragonAstrub = """
             <nav class="pqt-progress" aria-label="Progression de la quête">
             <section class="pqt-progress__column pqt-progress__column--previous">
@@ -53,7 +56,9 @@ public class QuestPageParserTests
             </nav>
             """;
 
-    /// <summary>Quête d'alignement : longue chaîne, mais aucun succès associé.</summary>
+    /// <summary>
+    /// Alignment quest: long chain, but no associated success.
+    /// </summary>
     private const string IntroAlignement = """
             <section class="pqa-quest-intro wp-block-papycha-quest-intro" data-pqa-post="15371">
             <dl class="pqa-quest-intro__facts">
@@ -118,8 +123,8 @@ public class QuestPageParserTests
     [Fact]
     public void Une_quete_sans_succes_garde_sa_progression()
     {
-        // Les quêtes d'alignement n'ont pas de succès associé mais forment
-        // bien une chaîne, de soixante et une quêtes ici.
+        // Alignment quests have no associated success but do form a
+        // chain, sixty-one quests long here.
         var facts = QuestPageParser.ParseFacts(IntroAlignement);
 
         Assert.Null(facts.Success);
@@ -145,9 +150,9 @@ public class QuestPageParserTests
     [Fact]
     public void Les_suites_sont_distinguees_du_succes_valide()
     {
-        // La colonne de droite mêle le succès débloqué et les quêtes qui
-        // s'ouvrent : proposer le succès comme quête suivante enverrait
-        // l'utilisateur sur une page de listing.
+        // The right-hand column mixes the unlocked success with the
+        // quests it opens: offering the success as the next quest would
+        // send the user to a listing page.
         var chain = QuestPageParser.ParseChain(NavDragonAstrub);
 
         Assert.Contains(chain.Next, l => l.Kind == QuestLinkKind.Success);
@@ -160,17 +165,18 @@ public class QuestPageParserTests
     }
 
     /// <summary>
-    /// Le bouton ne montre qu'une quête : quand la colonne en nomme plusieurs,
-    /// en désigner une mentirait sur ce que le site publie. Relevé sur les
-    /// 782 guides : 79 colonnes « suivants » en nomment plus d'une.
+    /// The button shows only one quest: when the column names several,
+    /// singling one out would misrepresent what the site publishes.
+    /// Observed across the 782 guides: 79 "next" columns name more than
+    /// one.
     /// </summary>
     [Fact]
     public void Une_colonne_qui_nomme_plusieurs_quetes_n_en_designe_aucune()
     {
         var chain = QuestPageParser.ParseChain(NavDragonAstrub);
 
-        // Deux objectifs, deux quêtes : « Un nouveau Dofus ? » et « La
-        // découverte d'un vaste monde ! ».
+        // Two objectives, two quests: "Un nouveau Dofus ?" and "La
+        // découverte d'un vaste monde !".
         Assert.Equal(2, chain.Next.Count(l => l.Kind == QuestLinkKind.Quest));
 
         Assert.NotNull(chain.NextQuest);
@@ -187,7 +193,7 @@ public class QuestPageParserTests
             chain.OnlyPreviousQuest?.Url);
     }
 
-    /// <summary>Un succès validé n'est pas une quête suivante.</summary>
+    /// <summary>A validated success is not a next quest.</summary>
     [Fact]
     public void Un_succes_seul_ne_fait_pas_une_suivante()
     {
@@ -206,8 +212,8 @@ public class QuestPageParserTests
     [Fact]
     public void Les_apostrophes_typographiques_sont_decodees()
     {
-        // Le site sert des entités HTML : sans décodage, le titre afficherait
-        // « l&#8217;Automne ».
+        // The site serves HTML entities: without decoding, the title
+        // would display "l&#8217;Automne".
         var chain = QuestPageParser.ParseChain(NavDragonAstrub);
 
         Assert.DoesNotContain("&#", chain.PreviousQuest!.Title, StringComparison.Ordinal);
@@ -221,8 +227,8 @@ public class QuestPageParserTests
     [InlineData("<p>une page sans le moindre bloc attendu</p>")]
     public void Une_page_sans_les_blocs_attendus_ne_fait_rien_echouer(string? html)
     {
-        // Le site peut changer ses blocs sans nous prévenir : la fenêtre doit
-        // alors afficher la page sans barre d'étape, pas se fermer.
+        // The site can change its blocks without warning us: the window
+        // must then display the page without a step bar, not close.
         var facts = QuestPageParser.ParseFacts(html);
         var chain = QuestPageParser.ParseChain(html);
 
@@ -237,7 +243,8 @@ public class QuestPageParserTests
     [Fact]
     public void Une_progression_illisible_vaut_pas_de_chaine_du_tout()
     {
-        // Mieux vaut ne rien annoncer qu'annoncer une position inventée.
+        // Better to announce nothing than to announce a made-up
+        // position.
         var facts = QuestPageParser.ParseFacts(
             """<div class="pqa-quest-intro__fact--step"><dt>Progression</dt><dd>Étape finale</dd></div>""");
 

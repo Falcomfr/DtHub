@@ -3,8 +3,8 @@
 namespace DtHub.Tests.Android;
 
 /// <summary>
-/// Les sorties sont celles relevées sur le téléphone de référence, recopiées
-/// telles quelles, chemin d'archive compris.
+/// The outputs are those captured on the reference phone, copied
+/// as-is, archive path included.
 /// </summary>
 public sealed class ApkListingTests
 {
@@ -44,8 +44,9 @@ public sealed class ApkListingTests
         Assert.Empty(ApkListing.ParsePaths(sortie));
 
     /// <summary>
-    /// L'en-tête, les filets de tirets et le total n'ont pas la forme d'une
-    /// entrée : ils tombent sans qu'on ait eu à les nommer.
+    /// The header, the dashed rule lines, and the total do not
+    /// have the shape of an entry: they fall away without having
+    /// to be named.
     /// </summary>
     [Fact]
     public void Seules_les_entrees_sont_retenues()
@@ -58,7 +59,9 @@ public sealed class ApkListingTests
         Assert.DoesNotContain(entries, e => e.Name.Contains("Name", StringComparison.Ordinal));
     }
 
-    /// <summary>Un nom qui contient une espace va jusqu'au bout de la ligne.</summary>
+    /// <summary>
+    /// A name that contains a space runs to the end of the line.
+    /// </summary>
     [Fact]
     public void Un_nom_a_espace_est_rendu_entier()
     {

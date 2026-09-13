@@ -3,8 +3,9 @@
 namespace DtHub.Tests.Papycha;
 
 /// <summary>
-/// Le site écrit ses prérequis de trois formes, et deux ne sont pas des titres
-/// de quête. Les lire telles quelles laissait un prérequis sur huit sans suite.
+/// The site writes its prerequisites in three forms, and two of them
+/// are not quest titles. Reading them as is left one prerequisite in
+/// eight dangling.
 /// </summary>
 public sealed class PrerequisiteLabelTests
 {
@@ -19,7 +20,9 @@ public sealed class PrerequisiteLabelTests
         Assert.False(lu.IsSuccess);
     }
 
-    /// <summary>Un jalon n'est pas une quête, mais l'état qu'elle laisse.</summary>
+    /// <summary>
+    /// A milestone is not a quest, but the state it leaves behind.
+    /// </summary>
     [Theory]
     [InlineData("L'essentiel est dans le Lac gelé atteint", "L'essentiel est dans le Lac gelé")]
     [InlineData("Une arrivée mouvementée atteinte", "Une arrivée mouvementée")]
@@ -32,7 +35,8 @@ public sealed class PrerequisiteLabelTests
     }
 
     /// <summary>
-    /// La forme qui coûtait sa suite à « La légende du Chevalier de l'Automne ».
+    /// The form that used to cost "La légende du Chevalier de
+    /// l'Automne" its continuation.
     /// </summary>
     [Theory]
     [InlineData("Succès Un nouveau départ réalisé", "Un nouveau départ")]
@@ -46,8 +50,8 @@ public sealed class PrerequisiteLabelTests
     }
 
     /// <summary>
-    /// Le site n'écrit plus de crochets, mais un catalogue en cache peut dater
-    /// d'avant : la règle reste.
+    /// The site no longer writes brackets, but a cached catalog can
+    /// date from before: the rule stays.
     /// </summary>
     [Fact]
     public void Un_ancien_prefixe_entre_crochets_disparait()
@@ -59,8 +63,8 @@ public sealed class PrerequisiteLabelTests
     }
 
     /// <summary>
-    /// Une quête dont le titre finit par le mot « succès » n'est pas un succès :
-    /// seule la tournure entière compte.
+    /// A quest whose title ends with the word "succès" ("achievement")
+    /// is not an achievement: only the whole phrasing counts.
     /// </summary>
     [Fact]
     public void Le_mot_seul_ne_fait_pas_un_succes()

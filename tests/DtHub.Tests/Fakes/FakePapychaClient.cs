@@ -3,18 +3,22 @@
 namespace DtHub.Tests.Fakes;
 
 /// <summary>
-/// Client de site simulé. Le projet de tests ne doit jamais toucher au réseau :
-/// tout ce que le catalogue sait faire se vérifie ici.
+/// Simulated site client. The test project must never touch the
+/// network: everything the catalog can do is verified here.
 /// </summary>
 public sealed class FakePapychaClient : IPapychaClient
 {
     private readonly List<QuestSummary> _quests = [];
     private readonly List<QuestSection> _sections = [];
 
-    /// <summary>Erreur à lever au prochain appel, pour éprouver les pannes.</summary>
+    /// <summary>
+    /// Error to throw on the next call, to exercise failures.
+    /// </summary>
     public Exception? Failure { get; set; }
 
-    /// <summary>Nombre d'indexations demandées, pour vérifier le cache.</summary>
+    /// <summary>
+    /// Number of indexing requests made, to verify the cache.
+    /// </summary>
     public int Calls { get; private set; }
 
     public FakePapychaClient WithQuest(int id, string title, params int[] categories)
@@ -31,7 +35,7 @@ public sealed class FakePapychaClient : IPapychaClient
         return this;
     }
 
-    /// <summary>Donne un niveau à la dernière quête ajoutée.</summary>
+    /// <summary>Gives a level to the last quest added.</summary>
     public FakePapychaClient AtLevel(int level)
     {
         _quests[^1] = _quests[^1] with { Level = level };
@@ -68,10 +72,13 @@ public sealed class FakePapychaClient : IPapychaClient
         return Task.FromResult<IReadOnlyList<QuestSummary>>(_quests);
     }
 
-    /// <summary>Ce que la sentinelle lira. Nul par défaut : le site se tait.</summary>
+    /// <summary>
+    /// What the sentinel will read. Null by default: the site stays
+    /// silent.
+    /// </summary>
     public SiteStamp? Stamp { get; set; }
 
-    /// <summary>Combien de fois la sentinelle a interrogé le site.</summary>
+    /// <summary>How many times the sentinel has queried the site.</summary>
     public int StampCalls { get; private set; }
 
     public Task<SiteStamp?> GetStampAsync(CancellationToken cancellationToken = default)
@@ -81,7 +88,7 @@ public sealed class FakePapychaClient : IPapychaClient
         return Task.FromResult(Stamp);
     }
 
-    /// <summary>Ce que la sentinelle lira, catégorie par catégorie.</summary>
+    /// <summary>What the sentinel will read, category by category.</summary>
     public List<CategoryStamp> CategoryStamps { get; } = [];
 
     public Task<IReadOnlyList<CategoryStamp>> GetCategoryStampsAsync(
@@ -98,7 +105,10 @@ public sealed class FakePapychaClient : IPapychaClient
 
     private readonly List<QuestPageSection> _pages = [];
 
-    /// <summary>Rubrique tenue à la main sur le site, avec les quêtes qu'elle énumère.</summary>
+    /// <summary>
+    /// Section maintained by hand on the site, with the quests it
+    /// lists.
+    /// </summary>
     public FakePapychaClient WithPage(string name, string url, params int[] questIds)
     {
         _pages.Add(new QuestPageSection
@@ -111,13 +121,17 @@ public sealed class FakePapychaClient : IPapychaClient
         return this;
     }
 
-    /// <summary>Succès annoncé par un intertitre de la dernière rubrique ajoutée.</summary>
+    /// <summary>
+    /// Achievement announced by a subheading of the last section
+    /// added.
+    /// </summary>
     public FakePapychaClient WithSuccess(string name, params int[] questIds) =>
         WithHeading(name, isSuccess: true, questIds);
 
     /// <summary>
-    /// Intertitre en gras que le site n'a pas marqué « [Succès] ». Il ne
-    /// rattache aucune quête à un succès, mais il en range.
+    /// Bold subheading that the site has not marked "[Succès]". It
+    /// does not attach any quest to an achievement, but it does
+    /// group them.
     /// </summary>
     public FakePapychaClient WithHeading(string name, params int[] questIds) =>
         WithHeading(name, isSuccess: false, questIds);
@@ -150,14 +164,14 @@ public sealed class FakePapychaClient : IPapychaClient
         CancellationToken cancellationToken = default) =>
         Task.FromResult<IReadOnlyList<QuestPageSection>>(_pages);
 
-    /// <summary>Donjons rendus par le faux client.</summary>
+    /// <summary>Dungeons returned by the fake client.</summary>
     public List<DungeonSummary> Dungeons { get; } = [];
 
     public Task<IReadOnlyList<DungeonSummary>> GetDungeonsAsync(
         CancellationToken cancellationToken = default) =>
         Task.FromResult<IReadOnlyList<DungeonSummary>>(Dungeons);
 
-    /// <summary>Chemins rendus par le faux client.</summary>
+    /// <summary>Paths returned by the fake client.</summary>
     public List<PathSummary> Paths { get; } = [];
 
     public Task<IReadOnlyList<PathSummary>> GetPathsAsync(

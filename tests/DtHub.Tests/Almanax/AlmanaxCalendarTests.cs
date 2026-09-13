@@ -26,8 +26,9 @@ public class AlmanaxCalendarTests
     [Fact]
     public void Toutes_les_langues_de_l_application_ont_un_chemin_sur_le_portail()
     {
-        // Sans quoi une langue tomberait sur le repli sans qu'on le sache, et
-        // afficherait l'Almanax en anglais à qui lit l'application en espagnol.
+        // Without this, a language would fall back silently, and
+        // show the Almanax in English to someone reading the
+        // application in Spanish.
         foreach (var language in AppLanguage.Supported)
         {
             Assert.Contains("/" + language + "/almanax", AlmanaxCalendar.UrlFor(language), StringComparison.Ordinal);
@@ -37,10 +38,11 @@ public class AlmanaxCalendarTests
     [Fact]
     public void L_adresse_porte_toujours_le_filtre_dofus_touch()
     {
-        // Sans le filtre, le portail rend l'Almanax de DOFUS, dont les offrandes
-        // ne sont pas celles de Touch : « Aile de dragodinde » au lieu de
-        // « Dent de Dragodinde » le 10 septembre 2026. Le même écran, un autre
-        // jeu, et rien qui le dise.
+        // Without the filter, the portal returns the DOFUS Almanax,
+        // whose offerings are not those of Touch: "Aile de
+        // dragodinde" instead of "Dent de Dragodinde" on September
+        // 10, 2026. The same screen, a different game, and nothing
+        // that says so.
         foreach (var language in AppLanguage.Supported)
         {
             Assert.EndsWith("?game=dofustouch", AlmanaxCalendar.UrlFor(language), StringComparison.Ordinal);
@@ -58,8 +60,9 @@ public class AlmanaxCalendarTests
     [Fact]
     public void La_date_est_ecrite_en_iso_quelle_que_soit_la_culture()
     {
-        // Sous une culture qui écrit « 10/09/2026 », une date composée avec la
-        // culture courante donnerait un chemin que le portail ne connaît pas.
+        // Under a culture that writes "10/09/2026", a date composed
+        // with the current culture would give a path the portal
+        // does not know.
         Assert.Equal(
             "https://www.krosmoz.com/es/almanax/2026-01-05?game=dofustouch",
             AlmanaxCalendar.UrlFor("es", new DateOnly(2026, 1, 5)));

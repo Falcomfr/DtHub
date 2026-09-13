@@ -3,8 +3,8 @@
 namespace DtHub.Tests.Localization;
 
 /// <summary>
-/// La règle de choix de la langue : Windows par défaut, l'anglais quand elle
-/// n'est pas traduite, et un réglage qui l'emporte sur les deux.
+/// The rule for choosing the language: Windows by default, English
+/// when it is not translated, and a setting that overrides both.
 /// </summary>
 public sealed class AppLanguageTests
 {
@@ -36,8 +36,8 @@ public sealed class AppLanguageTests
         => Assert.Equal("fr", AppLanguage.Choose(preferred: "  ", windows: "fr-FR"));
 
     /// <summary>
-    /// Un fichier de réglages abîmé ne doit pas coûter la langue de Windows :
-    /// une valeur qu'on ne sert pas se traite comme une absence de valeur.
+    /// A corrupted settings file must not cost the Windows language: a
+    /// value we do not serve is treated as if no value were set.
     /// </summary>
     [Fact]
     public void Un_reglage_inconnu_rend_la_main_a_Windows()
@@ -56,17 +56,20 @@ public sealed class AppLanguageTests
     public void Serves_dit_si_la_langue_est_traduite(string? culture, bool attendu)
         => Assert.Equal(attendu, AppLanguage.Serves(culture));
 
-    /// <summary>La langue neutre doit être servie, sans quoi le repli est vide.</summary>
+    /// <summary>
+    /// The neutral language must be served, otherwise the fallback is
+    /// empty.
+    /// </summary>
     [Fact]
     public void La_langue_neutre_fait_partie_des_langues_servies()
         => Assert.Contains(AppLanguage.Neutral, AppLanguage.Supported);
     [Fact]
     public void Revenir_a_la_langue_affichee_ne_demande_plus_de_relancer()
     {
-        // Le défaut d'origine : le message se levait à tout changement et ne
-        // redescendait jamais. Qui changeait de langue puis se ravisait gardait
-        // l'invitation à relancer, pour une application qui n'avait plus rien
-        // à changer.
+        // The original flaw: the message used to pop up on every change
+        // and never come back down. Anyone who switched language and
+        // then changed their mind kept the restart prompt, for an app
+        // that had nothing left to change.
         Assert.True(AppLanguage.NeedsRestart("es", "fr-FR", inForce: "fr"));
         Assert.False(AppLanguage.NeedsRestart("fr", "fr-FR", inForce: "fr"));
     }
@@ -81,8 +84,8 @@ public sealed class AppLanguageTests
     [Fact]
     public void Une_langue_non_traduite_retombe_sur_la_neutre_des_deux_cotes()
     {
-        // Choisir le japonais alors que l'application est en anglais ne change
-        // rien : les deux se résolvent en anglais.
+        // Choosing Japanese while the application is in English changes
+        // nothing: both resolve to English.
         Assert.False(AppLanguage.NeedsRestart("ja", "ja-JP", inForce: "en"));
     }
 

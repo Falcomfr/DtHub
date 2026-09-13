@@ -5,9 +5,10 @@ namespace DtHub.Tests.Android;
 public sealed class AndroidShellTests
 {
     /// <summary>
-    /// Le cas qui a coûté la mesure : « pm create-user Compte 3 » a créé un
-    /// profil nommé « Compte ». ADB recolle les arguments par des espaces, et
-    /// le shell de l'appareil les redécoupe.
+    /// The case that cost us the measurement: "pm create-user
+    /// Compte 3" created a profile named "Compte". ADB glues the
+    /// arguments back together with spaces, and the device's shell
+    /// splits them again.
     /// </summary>
     [Fact]
     public void Un_nom_a_espace_reste_entier() =>
@@ -18,8 +19,9 @@ public sealed class AndroidShellTests
         Assert.Equal("'Compte'", AndroidShell.Quote("Compte"));
 
     /// <summary>
-    /// Une apostrophe fermerait la citation. On la referme, on en glisse une
-    /// échappée, on rouvre : c'est la seule façon sûre en shell.
+    /// An apostrophe would close the quoting. We close it, slip in
+    /// an escaped one, and reopen: this is the only safe way in a
+    /// shell.
     /// </summary>
     [Fact]
     public void Une_apostrophe_ne_casse_pas_la_citation() =>

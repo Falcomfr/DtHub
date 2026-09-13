@@ -4,7 +4,9 @@ using DtHub.Core.Storage;
 
 namespace DtHub.Tests.Fakes;
 
-/// <summary>Stockage en mémoire, pour vérifier un service sans toucher au disque.</summary>
+/// <summary>
+/// In-memory storage, to check a service without touching disk.
+/// </summary>
 public sealed class InMemoryDocumentStore<T> : IDocumentStore<T>
     where T : class, new()
 {
@@ -12,7 +14,9 @@ public sealed class InMemoryDocumentStore<T> : IDocumentStore<T>
 
     public string FilePath => "(mémoire)";
 
-    /// <summary>Nombre d'écritures, pour vérifier qu'on n'écrit pas pour rien.</summary>
+    /// <summary>
+    /// Number of writes, to check that nothing gets written needlessly.
+    /// </summary>
     public int Writes { get; private set; }
 
     public Task<T> LoadAsync(CancellationToken cancellationToken = default) =>

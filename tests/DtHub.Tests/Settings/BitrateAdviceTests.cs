@@ -5,7 +5,7 @@ namespace DtHub.Tests.Settings;
 public class BitrateAdviceTests
 {
     [Theory]
-    // Les références publiées par YouTube pour du H.264 de bonne facture.
+    // The reference figures published by YouTube for well-encoded H.264.
     [InlineData(1920, 1080, 60, 12000)]
     [InlineData(2560, 1440, 60, 24000)]
     [InlineData(3840, 2160, 60, 53000)]
@@ -17,10 +17,11 @@ public class BitrateAdviceTests
     [Fact]
     public void L_inversion_historique_est_rattrapee()
     {
-        // Le défaut réel de ce projet : les anciens paliers donnaient au mode
-        // « maximale » cinq fois et demie moins de bits par pixel qu'au mode
-        // « basse ». Les deux débits pris isolément semblaient pourtant
-        // raisonnables, et c'est bien là ce que le verdict doit dénoncer.
+        // The real defect of this project: the old steps gave the
+        // "maximale" (maximum) mode five and a half times fewer bits per
+        // pixel than the "basse" (low) mode. Yet the two bitrates,
+        // taken in isolation, seemed reasonable, and that is exactly
+        // what the verdict must call out.
         var basse = BitrateAdvice.Read(1280, 720, 30, 2500);
         var maximale = BitrateAdvice.Read(3840, 2160, 120, 16000);
 
@@ -32,8 +33,8 @@ public class BitrateAdviceTests
     [Fact]
     public void Le_bon_codec_n_est_pas_puni()
     {
-        // À débit égal, H.265 rend mieux. Un utilisateur qui y passe ne doit
-        // pas voir son verdict se dégrader.
+        // At equal bitrate, H.265 renders better. A user who switches to
+        // it must not see their verdict get worse.
         const int w = 1920, h = 1080, fps = 60, kbps = 7000;
 
         var avc = BitrateAdvice.Read(w, h, fps, kbps, "h264");
@@ -42,15 +43,16 @@ public class BitrateAdviceTests
         Assert.Equal(BitrateVerdict.Tight, avc.Verdict);
         Assert.Equal(BitrateVerdict.Comfortable, hevc.Verdict);
 
-        // La mesure brute, elle, ne bouge pas : c'est le même débit.
+        // The raw measurement itself does not move: it is the same
+        // bitrate.
         Assert.Equal(avc.BitsPerPixel, hevc.BitsPerPixel, 6);
     }
 
     [Fact]
     public void Un_debit_demesure_est_dit_pour_ce_qu_il_est()
     {
-        // Cinquante mégabits en 720p : rien ne s'y verra de plus, et sur deux
-        // comptes en Wi-Fi la liaison le paiera.
+        // Fifty megabits at 720p: nothing more will show for it, and
+        // with two accounts on Wi-Fi the link will pay for it.
         Assert.Equal(
             BitrateVerdict.Generous,
             BitrateAdvice.Read(1280, 720, 30, 50000).Verdict);
@@ -64,8 +66,9 @@ public class BitrateAdviceTests
     [InlineData(-1920, -1080, -60, -12000)]
     public void Un_reglage_incomplet_ne_leve_pas(int w, int h, int fps, int kbps)
     {
-        // Le panneau appelle à chaque frappe, y compris sur un champ à demi
-        // effacé. La phrase est alors vide plutôt que fausse.
+        // The panel calls this on every keystroke, including on a
+        // half-erased field. The sentence is then empty rather than
+        // wrong.
         var reading = BitrateAdvice.Read(w, h, fps, kbps);
 
         Assert.Empty(reading.Summary);
@@ -75,8 +78,8 @@ public class BitrateAdviceTests
     [Fact]
     public void La_phrase_s_ecrit_en_francais()
     {
-        // Virgule décimale, quelle que soit la culture de la machine : le test
-        // passerait sinon ici et échouerait sur une machine anglaise.
+        // Decimal comma, whatever the machine's culture: otherwise the
+        // test would pass here and fail on an English-language machine.
         var reading = BitrateAdvice.Read(1920, 1080, 60, 12000);
 
         Assert.Contains("0,096", reading.Summary, StringComparison.Ordinal);
@@ -94,9 +97,10 @@ public class BitrateAdviceTests
 }
 
 /// <summary>
-/// Le conseil ne juge pas un flux isolé : DT Hub ouvre plusieurs fenêtres sur
-/// un seul téléphone et une seule liaison. C'est ce que ces tests fixent, et
-/// c'est ce qui distingue ce panneau de celui d'un miroir simple.
+/// The advice does not judge a single stream in isolation: DT Hub opens
+/// several windows on one phone and one link. That is what these tests
+/// pin down, and it is what sets this panel apart from that of a plain
+/// mirroring tool.
 /// </summary>
 public class BitratePlanTests
 {
@@ -107,7 +111,7 @@ public class BitratePlanTests
     {
         var plan = BitrateAdvice.Plan(0.09, 1920, 1080, 60, "h264", 1, Plafond);
 
-        // 0,09 x 1920 x 1080 x 60 / 1000 = 11197 kb/s.
+        // 0.09 x 1920 x 1080 x 60 / 1000 = 11197 kb/s.
         Assert.Equal(11197, plan.KbpsPerWindow);
         Assert.Equal(BitrateVerdict.Comfortable, plan.Verdict);
     }
@@ -118,7 +122,8 @@ public class BitratePlanTests
         var seule = BitrateAdvice.Plan(0.09, 1920, 1080, 60, "h264", 1, Plafond);
         var trois = BitrateAdvice.Plan(0.09, 1920, 1080, 60, "h264", 3, Plafond);
 
-        // Le flux d'une fenêtre ne change pas ; ce que la liaison encaisse, si.
+        // A single window's stream does not change; what the link
+        // absorbs does.
         Assert.Equal(seule.KbpsPerWindow, trois.KbpsPerWindow);
         Assert.Equal(seule.KbpsPerWindow * 3, trois.TotalKbps);
 
@@ -129,29 +134,31 @@ public class BitratePlanTests
     [Fact]
     public void Une_petite_fenetre_ne_recoit_pas_le_debit_d_une_grande()
     {
-        // Le défaut qu'un débit absolu aurait réintroduit, et que le reste du
-        // code avait déjà corrigé.
+        // The defect an absolute bitrate would have reintroduced, and
+        // that the rest of the code had already fixed.
         var grande = BitrateAdvice.Plan(0.09, 2560, 1440, 60, "h264", 1, Plafond);
         var petite = BitrateAdvice.Plan(0.09, 1280, 720, 60, "h264", 1, Plafond);
 
         Assert.True(grande.KbpsPerWindow > petite.KbpsPerWindow);
 
-        // Et pourtant les deux sont jugées pareil : c'est tout l'intérêt de
-        // raisonner en bits par pixel.
+        // And yet both are judged the same: that is the whole point of
+        // reasoning in bits per pixel.
         Assert.Equal(grande.Verdict, petite.Verdict);
     }
 
     [Fact]
     public void Le_plafond_degrade_le_verdict_plutot_que_de_mentir()
     {
-        // Raboté par le plafond, le réglage ne rend plus la finesse demandée.
-        // C'est la finesse servie qu'il faut juger, sans quoi le panneau
-        // promettrait ce que la liaison ne laissera pas passer.
+        // Trimmed down by the ceiling, the setting no longer delivers
+        // the detail requested. It is the detail actually served
+        // that must be judged, or else the panel would promise what the
+        // link will not let through.
         var plan = BitrateAdvice.Plan(0.16, 3840, 2160, 60, "h264", 1, Plafond);
 
-        // Demandé 0,16 bpp, servi 0,050 : le plafond de 25 Mb/s ne couvre pas
-        // 3840 x 2160 à soixante images. Le verdict tombe donc à « juste », là
-        // où juger la finesse demandée aurait dit « confortable ».
+        // Requested 0.16 bpp, served 0.050: the 25 Mb/s ceiling does not
+        // cover 3840 x 2160 at sixty frames per second. The verdict
+        // therefore falls to "tight", where judging the detail
+        // requested would have said "comfortable".
         Assert.Equal(Plafond, plan.KbpsPerWindow);
         Assert.Equal(BitrateVerdict.Tight, plan.Verdict);
         Assert.Contains("juste", plan.Summary, StringComparison.Ordinal);
@@ -170,8 +177,8 @@ public class BitratePlanTests
     [Fact]
     public void Aucune_fenetre_ouverte_compte_pour_une()
     {
-        // À l'ouverture du panneau, rien n'est encore lancé : on annonce alors
-        // ce que coûtera la première fenêtre, non zéro.
+        // When the panel opens, nothing has launched yet: what is
+        // announced then is the cost of the first window, not zero.
         var aucune = BitrateAdvice.Plan(0.09, 1920, 1080, 60, "h264", 0, Plafond);
         var une = BitrateAdvice.Plan(0.09, 1920, 1080, 60, "h264", 1, Plafond);
 

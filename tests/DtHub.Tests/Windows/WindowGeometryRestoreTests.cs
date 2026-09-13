@@ -3,8 +3,9 @@
 namespace DtHub.Tests.Windows;
 
 /// <summary>
-/// Sort d'une géométrie mémorisée quand la configuration d'écrans a changé
-/// entre deux sessions. Calcul pur, sans fenêtre ni téléphone.
+/// Works out a remembered geometry when the screen configuration
+/// has changed between two sessions. Pure calculation, with no
+/// window and no phone.
 /// </summary>
 public sealed class WindowGeometryRestoreTests
 {
@@ -54,8 +55,9 @@ public sealed class WindowGeometryRestoreTests
     [Fact]
     public void Un_ecran_debranche_fait_retomber_sur_l_ancrage()
     {
-        // La fenêtre était sur le second écran, qui n'est plus là. Rien de son
-        // rectangle ne tombe sur l'écran restant.
+        // The window was on the second screen, which is no longer
+        // there. None of its rectangle falls on the remaining
+        // screen.
         var remaining = Monitor(@"\\.\DISPLAY1", 0, 0, 1920, 1080);
 
         var restored = WindowLayoutCalculator.RestoreRemembered(
@@ -68,8 +70,8 @@ public sealed class WindowGeometryRestoreTests
     [Fact]
     public void Un_ecran_renumerote_est_reconnu_par_le_recouvrement()
     {
-        // Le nom ne correspond plus, mais la fenêtre tombe entièrement sur cet
-        // écran : elle y reste.
+        // The name no longer matches, but the window falls entirely
+        // on this screen: it stays there.
         var screen = Monitor(@"\\.\DISPLAY1", 0, 0, 1920, 1080, taskbar: 40);
 
         var restored = WindowLayoutCalculator.RestoreRemembered(
@@ -90,8 +92,9 @@ public sealed class WindowGeometryRestoreTests
     [Fact]
     public void Une_fenetre_reduite_par_Windows_est_refusee()
     {
-        // Une fenêtre iconifiée rend un rectangle en (-32000, -32000). Le
-        // restaurer placerait la fenêtre hors de tout écran.
+        // A minimized window returns a rectangle at (-32000,
+        // -32000). Restoring it would place the window off every
+        // screen.
         var screen = Monitor(@"\\.\DISPLAY1", 0, 0, 1920, 1080);
 
         Assert.Null(WindowLayoutCalculator.RestoreRemembered(

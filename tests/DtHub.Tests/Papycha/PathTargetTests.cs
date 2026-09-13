@@ -5,8 +5,8 @@ namespace DtHub.Tests.Papycha;
 public sealed class PathTargetTests
 {
     /// <summary>
-    /// Les donjons que les chemins relevés peuvent nommer. Tirés du catalogue
-    /// réel : ce sont eux qui font ou défont chaque rapprochement.
+    /// The dungeons that the captured paths can name. Drawn from the
+    /// real catalog: they are what makes or breaks every match.
     /// </summary>
     private static readonly string[] Donjons =
     [
@@ -27,7 +27,7 @@ public sealed class PathTargetTests
     private static PathSide Cote(string titre) => PathTarget.Of(titre, Donjons);
 
     [Theory]
-    // Les six qui mènent à un donjon, relevés sur le site.
+    // The six that lead to a dungeon, captured from the site.
     [InlineData("du donjon du Skeunk")]
     [InlineData("donjon du Koulosse")]
     [InlineData("Château du Wa Wabbit")]
@@ -38,7 +38,7 @@ public sealed class PathTargetTests
         Assert.Equal(PathSide.Dungeons, Cote(titre));
 
     [Theory]
-    // Les quinze autres : des accès, des zaaps, des guides de trajet.
+    // The other fifteen: accesses, zaaps, and route guides.
     [InlineData("Ilots de Moon")]
     [InlineData("Les souterrains d’Astrub")]
     [InlineData("Restat sur Otomaï | chemin optimisé")]
@@ -60,9 +60,10 @@ public sealed class PathTargetTests
     [Fact]
     public void Un_seul_mot_commun_ne_suffit_pas()
     {
-        // C'est ce qui écarte les faux : sans cette exigence, le zaap de la
-        // canopée passerait pour le chemin de la Canopée du Kimbo, et l'accès à
-        // l'île de Sakaï pour celui de la Mine de Sakaï.
+        // This is what rules out false matches: without this
+        // requirement, the canopy zaap would pass for the path to
+        // Canopée du Kimbo, and the access to Île de Sakaï for the
+        // one to Mine de Sakaï.
         Assert.Equal(PathSide.Quests, Cote("Zaap du village de la canopée et Zoth"));
         Assert.Equal(PathSide.Quests, Cote("Ile de Sakaï"));
     }
@@ -70,8 +71,9 @@ public sealed class PathTargetTests
     [Fact]
     public void Le_mot_donjon_tranche_a_lui_seul()
     {
-        // Sans même connaître un seul donjon : le chemin dit où il mène. Le
-        // pluriel compte autant, le site écrivant les deux.
+        // Without even knowing a single dungeon: the path says where
+        // it leads. The plural counts just as much, since the site
+        // writes both.
         Assert.Equal(PathSide.Dungeons, PathTarget.Of("Chemin du donjon perdu", []));
         Assert.Equal(PathSide.Dungeons, PathTarget.Of("Chemin des donjons du nord", []));
     }
@@ -79,8 +81,9 @@ public sealed class PathTargetTests
     [Fact]
     public void Le_mot_donjon_ne_compte_pas_comme_mot_distinctif()
     {
-        // « donjon du Koulosse » et « Donjon des Dragoeufs » partageraient sinon
-        // ce mot-là. Le rapprochement doit porter sur les noms propres.
+        // "donjon du Koulosse" and "Donjon des Dragoeufs" would
+        // otherwise share that one word. The match must be based on
+        // proper nouns.
         Assert.Equal(PathSide.Quests, PathTarget.Of("Le repaire des Dragoeufs", ["Donjon des Skeunks"]));
     }
 

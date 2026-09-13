@@ -6,8 +6,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace DtHub.Tests.Settings;
 
 /// <summary>
-/// Passage d'un fichier de réglages d'une version de schéma à la suivante.
-/// Le fichier brut est écrit à la main, comme celui d'un utilisateur réel.
+/// Migration of a settings file from one schema version to the next. The raw
+/// file is written by hand, like that of a real user.
 /// </summary>
 public sealed class SettingsMigrationTests : IDisposable
 {
@@ -37,8 +37,8 @@ public sealed class SettingsMigrationTests : IDisposable
     }
 
     /// <summary>
-    /// Le fichier réellement trouvé chez l'utilisateur avant la mise à jour :
-    /// deux instances cochées, les anciennes tailles, des rangs déjà posés.
+    /// The file actually found on the user's machine before the update: two
+    /// checked instances, the old sizes, ranks already set.
     /// </summary>
     private const string VersionTrois = """
     {
@@ -64,15 +64,15 @@ public sealed class SettingsMigrationTests : IDisposable
     }
 
     /// <summary>
-    /// Un fichier sans champ de version se lit comme s'il était à jour :
-    /// AppSettingsDocument donne à SchemaVersion la version courante par
-    /// défaut, si bien qu'aucune étape de migration ne tire.
+    /// A file with no version field is read as if it were up to date:
+    /// AppSettingsDocument defaults SchemaVersion to the current version, so
+    /// no migration step fires.
     ///
-    /// C'est optimiste et c'est assumé : les étapes ne se déclenchent que sur
-    /// des valeurs précises, et les rejouer sur un fichier moderne dont le
-    /// champ manque en changerait à tort. Le cas n'arrive que sur un fichier
-    /// écrit à la main. L'épreuve existe pour que ce choix soit dit quelque
-    /// part plutôt que d'être un effet de bord d'une valeur par défaut.
+    /// This is optimistic, and it is a deliberate choice: the steps only
+    /// trigger on specific values, and replaying them on a modern file missing
+    /// the field would wrongly change it. This only happens with a
+    /// hand-written file. The test exists so that this choice is stated
+    /// somewhere rather than being a side effect of a default value.
     /// </summary>
     [Fact]
     public async Task Un_fichier_sans_version_est_tenu_pour_a_jour()
@@ -87,19 +87,19 @@ public sealed class SettingsMigrationTests : IDisposable
         Assert.Equal(AppSettingsDocument.CurrentSchemaVersion, settings.SchemaVersion);
         Assert.Equal([30, 45, 60, 90], settings.SizePercentages);
 
-        // La migration de la version 3 aurait remplacé cet afficheur.
+        // The version 3 migration would have replaced this display.
         Assert.Equal(1080, settings.VirtualDisplayWidth);
     }
 
     /// <summary>
-    /// Un fichier venu d'une version plus récente est ramené à la version
-    /// courante. C'est le scénario du retour en arrière après une mise à jour
-    /// automatique, que le produit sait faire.
+    /// A file coming from a newer version is brought back down to the current
+    /// version. This is the scenario of rolling back after an automatic
+    /// update, which the product knows how to do.
     ///
-    /// Les réglages que la version suivante aurait ajoutés sont perdus : ils
-    /// n'existent pas dans ce modèle, donc la lecture les ignore et la
-    /// prochaine écriture ne les remet pas. L'épreuve fixe ce comportement pour
-    /// qu'un changement s'en aperçoive.
+    /// The settings that the next version would have added are lost: they do
+    /// not exist in this model, so reading ignores them and the next write
+    /// does not restore them. The test pins down this behavior so that a
+    /// change would notice it.
     /// </summary>
     [Fact]
     public async Task Un_fichier_venu_d_une_version_plus_recente_est_ramene_a_la_courante()
@@ -140,9 +140,9 @@ public sealed class SettingsMigrationTests : IDisposable
     [Fact]
     public async Task Les_deux_instances_cochees_le_restent()
     {
-        // Sans cela, la mise à jour ferait perdre le lancement automatique :
-        // l'ensemble de démarrage n'est réécrit qu'à la première sortie par
-        // le bouton Quitter.
+        // Without this, the update would lose the automatic launch: the
+        // startup set is only rewritten on the first exit through the Quit
+        // button.
         await WriteAsync(VersionTrois);
 
         var settings = await _service.GetAsync(CancellationToken.None);
@@ -163,8 +163,8 @@ public sealed class SettingsMigrationTests : IDisposable
     [Fact]
     public async Task Aucune_geometrie_n_est_inventee_pour_un_fichier_v3()
     {
-        // Les fenêtres se placeront comme avant à la première session, puis
-        // mémoriseront ce que l'utilisateur en aura fait.
+        // The windows will be placed as before on the first session, then will
+        // remember what the user has done with them.
         await WriteAsync(VersionTrois);
 
         var settings = await _service.GetAsync(CancellationToken.None);
@@ -185,9 +185,9 @@ public sealed class SettingsMigrationTests : IDisposable
     [Fact]
     public async Task Une_ecriture_faite_avant_toute_lecture_migre_quand_meme_le_fichier()
     {
-        // Le piège : une écriture qui chargeait le document sans le migrer
-        // l'estampillait à la version courante. La migration était alors
-        // perdue pour toujours, et les rangs restaient creux.
+        // The trap: a write that loaded the document without migrating it
+        // would stamp it with the current version. The migration was then lost
+        // forever, and the ranks stayed sparse.
         await WriteAsync(VersionTrois);
 
         await _service.UpdateAsync(s => s.SizeIndex = 2, CancellationToken.None);
@@ -202,9 +202,9 @@ public sealed class SettingsMigrationTests : IDisposable
     }
 
     /// <summary>
-    /// Le vrai fichier perdu le 30 août : schéma 8, « Closest » comme zoom, un
-    /// palier retiré du code. C'est ce fichier-là qui a coûté toute la
-    /// configuration avant que le convertisseur tolérant n'existe.
+    /// The real file lost on August 30: schema 8, "Closest" as the zoom, a
+    /// tier removed from the code. This is the very file that cost the whole
+    /// configuration before the tolerant converter existed.
     /// </summary>
     [Fact]
     public async Task Un_palier_de_zoom_retire_devient_le_palier_voisin()
@@ -220,17 +220,18 @@ public sealed class SettingsMigrationTests : IDisposable
 
         var settings = await _service.GetAsync(CancellationToken.None);
 
-        // « Très proche » est fondu dans « proche », qui prend sa valeur.
+        // "Très proche" ("Very close") is merged into "proche" ("close"),
+        // which takes over its value.
         Assert.Equal(GameZoom.Close, settings.GameZoom);
 
-        // « Haute » est fondue dans la maximale, jamais vers le dessous.
+        // "Haute" ("High") is merged into the maximum, never downward.
         Assert.Equal(StreamQuality.Maximum, settings.Quality);
 
         Assert.Equal(AppSettingsDocument.CurrentSchemaVersion, settings.SchemaVersion);
     }
 
     /// <summary>
-    /// Et le fichier ne se perd pas pour autant : le reste est conservé.
+    /// And the file is not lost either way: the rest is kept.
     /// </summary>
     [Fact]
     public async Task Un_palier_inconnu_ne_fait_pas_perdre_le_fichier()

@@ -3,21 +3,25 @@
 namespace DtHub.Tests.Fakes;
 
 /// <summary>
-/// Exécuteur simulé : rejoue des sorties ADB relevées sur du vrai matériel et
-/// enregistre les commandes reçues. C'est ce qui permet de tester toute la
-/// couche ADB sans téléphone.
+/// Simulated runner: replays ADB output captured on real hardware
+/// and records the commands it receives. This is what makes it
+/// possible to test the whole ADB layer without a phone.
 /// </summary>
 public sealed class FakeProcessRunner : IProcessRunner
 {
     private readonly List<Rule> _rules = [];
 
-    /// <summary>Commandes reçues, dans l'ordre.</summary>
+    /// <summary>Commands received, in order.</summary>
     public List<ProcessRequest> Calls { get; } = [];
 
-    /// <summary>Arguments de la dernière commande reçue, joints par des espaces.</summary>
+    /// <summary>
+    /// Arguments of the last command received, joined by spaces.
+    /// </summary>
     public string LastArguments => Calls.Count == 0 ? string.Empty : Join(Calls[^1]);
 
-    /// <summary>Répond dès que les arguments contiennent la séquence donnée.</summary>
+    /// <summary>
+    /// Responds as soon as the arguments contain the given sequence.
+    /// </summary>
     public FakeProcessRunner Respond(
         string argumentsContain,
         string standardOutput = "",
@@ -39,7 +43,9 @@ public sealed class FakeProcessRunner : IProcessRunner
         return this;
     }
 
-    /// <summary>Fait échouer le démarrage du processus, comme un ADB absent.</summary>
+    /// <summary>
+    /// Makes the process fail to start, like a missing ADB.
+    /// </summary>
     public FakeProcessRunner FailToLaunch()
     {
         _rules.Add(new Rule(
@@ -51,7 +57,10 @@ public sealed class FakeProcessRunner : IProcessRunner
 
     private readonly List<BytesRule> _bytesRules = [];
 
-    /// <summary>Répond en octets dès que les arguments contiennent la séquence donnée.</summary>
+    /// <summary>
+    /// Responds in bytes as soon as the arguments contain the given
+    /// sequence.
+    /// </summary>
     public FakeProcessRunner RespondWithBytes(
         string argumentsContain,
         byte[] standardOutput,
@@ -96,8 +105,9 @@ public sealed class FakeProcessRunner : IProcessRunner
 
         var rule = _rules.FirstOrDefault(r => r.Matches(request));
 
-        // Sans règle correspondante, on rend un échec explicite plutôt qu'un
-        // succès silencieux qui masquerait un test mal écrit.
+        // With no matching rule, we return an explicit failure
+        // rather than a silent success that would hide a badly
+        // written test.
         var result = rule?.Respond(request) ?? new ProcessResult
         {
             ExitCode = 1,

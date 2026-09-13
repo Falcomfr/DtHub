@@ -2,7 +2,9 @@
 
 namespace DtHub.Tests.Fakes;
 
-/// <summary>Registre en mémoire, avec la même sémantique que celui sur disque.</summary>
+/// <summary>
+/// In-memory registry, with the same semantics as the one on disk.
+/// </summary>
 public sealed class InMemoryDeviceRegistry : IDeviceRegistry
 {
     private readonly Dictionary<string, AndroidDevice> _devices = new(StringComparer.Ordinal);
@@ -18,9 +20,9 @@ public sealed class InMemoryDeviceRegistry : IDeviceRegistry
     public int UpsertCallCount { get; private set; }
 
     /// <summary>
-    /// Nombre de lectures du registre. Le vrai registre relit son fichier à
-    /// chaque demande : ce compteur est là pour qu'un balayage n'en demande
-    /// pas plus qu'il n'en faut.
+    /// Number of reads of the registry. The real registry rereads its
+    /// file on every request: this counter exists so that a scan never
+    /// asks for more reads than it needs.
     /// </summary>
     public int Reads { get; private set; }
 
@@ -59,7 +61,7 @@ public sealed class InMemoryDeviceRegistry : IDeviceRegistry
         return Task.CompletedTask;
     }
 
-    /// <summary>Appareils dont l'association a été rompue.</summary>
+    /// <summary>Devices whose pairing has been broken.</summary>
     public HashSet<string> Discarded { get; } = new(StringComparer.Ordinal);
 
     public Task DiscardAsync(string deviceId, CancellationToken cancellationToken = default)

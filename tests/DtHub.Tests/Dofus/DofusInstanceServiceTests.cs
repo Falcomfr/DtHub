@@ -8,7 +8,9 @@ namespace DtHub.Tests.Dofus;
 
 public class DofusInstanceServiceTests
 {
-    /// <summary>Sortie relevée sur le téléphone de référence, un Xiaomi 13T.</summary>
+    /// <summary>
+    /// Output captured on the reference phone, a Xiaomi 13T.
+    /// </summary>
     private const string RealUsers = """
         Users:
         	UserInfo{0:Alice Martin:4c13} running
@@ -54,8 +56,8 @@ public class DofusInstanceServiceTests
 
         var instances = await Service(adb).DiscoverOnDeviceAsync(Device(), CancellationToken.None);
 
-        // Le nom modifiable ne porte que le profil Android ; le nom du produit
-        // est ajouté au titre de la fenêtre, pas ici.
+        // The editable name only carries the Android profile; the
+        // product name is added to the window title, not here.
         Assert.Equal("Principal", instances.Single(i => i.UserId == 0).DisplayName);
         Assert.Equal("XSpace", instances.Single(i => i.UserId == 999).DisplayName);
     }
@@ -105,8 +107,9 @@ public class DofusInstanceServiceTests
             .FailShell("pm list users", AdbErrorKind.DeviceOffline)
             .FailShell("pm list packages", AdbErrorKind.DeviceOffline);
 
-        // Sans profils lisibles, le service retombe sur l'utilisateur
-        // principal, qui n'a pas le jeu selon ADB : aucune instance.
+        // Without readable profiles, the service falls back to the
+        // main user, who does not have the game according to ADB: no
+        // instance.
         Assert.Empty(await Service(adb).DiscoverOnDeviceAsync(Device(), CancellationToken.None));
     }
 
@@ -151,7 +154,9 @@ public class DofusInstanceServiceTests
         Assert.Contains(adb.ShellCalls, c => c.Contains("--user 0", StringComparison.Ordinal));
     }
 
-    /// <summary>Faux ADB où le jeu n'est installé que sur le profil 999.</summary>
+    /// <summary>
+    /// Fake ADB where the game is only installed on profile 999.
+    /// </summary>
     private sealed class StatefulAdb : FakeAdbClientBase
     {
         public override string Shell(string joined) => joined switch
@@ -169,10 +174,11 @@ public class DofusInstanceServiceTests
     [Fact]
     public async Task Une_copie_installee_sous_un_nom_derive_est_trouvee_aussi()
     {
-        // Le clonage par profil, celui que l'application vise, garde le nom du
-        // paquet intact. Certaines surcouches installent leur copie sous un nom
-        // dérivé, que la comparaison stricte rendait invisible alors que la
-        // commande l'avait bien rapportée.
+        // Per-profile cloning, the one the application targets, keeps
+        // the package name intact. Some vendor overlays install their
+        // copy under a derived name, which the strict comparison used
+        // to make invisible even though the command had reported it
+        // correctly.
         var adb = new FakeAdbClient()
             .WithShell("pm list users", RealUsers)
             .WithShell(
@@ -185,7 +191,7 @@ public class DofusInstanceServiceTests
         Assert.Equal(4, instances.Count);
         Assert.Contains(instances, i => i.PackageName == "com.ankama.dofustouch.clone2");
 
-        // Le paquet de référence reste en tête : c'est le cas courant.
+        // The reference package stays first: that is the common case.
         Assert.Equal("com.ankama.dofustouch", instances[0].PackageName);
     }
 
@@ -208,9 +214,10 @@ public class DofusInstanceServiceTests
     [Fact]
     public async Task Une_liste_de_profils_illisible_est_dite_et_non_tue()
     {
-        // Sans ce mot, un appareil dont la surcouche bride « pm list users »
-        // rend une seule instance et ressemble trait pour trait à un appareil
-        // qui n'a réellement qu'un profil. Le second compte semble disparu.
+        // Without this word, a device whose overlay restricts "pm
+        // list users" returns a single instance and looks exactly
+        // like a device that really has only one profile. The second
+        // account seems to have vanished.
         var adb = new FakeAdbClient()
             .FailShell("pm list users")
             .WithShell("pm list packages", "package:com.ankama.dofustouch")
@@ -241,8 +248,8 @@ public class DofusInstanceServiceTests
     [Fact]
     public async Task Un_profil_qui_repond_sans_le_jeu_est_releve_comme_tel()
     {
-        // Le relevé sert à oublier le compte correspondant. Il ne doit contenir
-        // que des profils qui ont vraiment répondu.
+        // The record is used to forget the matching account. It must
+        // only contain profiles that really answered.
         var adb = new StatefulAdb();
         var service = new DofusInstanceService(adb, new AndroidUserService(adb));
 
@@ -254,9 +261,10 @@ public class DofusInstanceServiceTests
     [Fact]
     public async Task Un_profil_qui_n_a_pas_su_repondre_n_est_pas_declare_vide()
     {
-        // Toute la prudence tient là. L'échec rendait autrefois une liste vide,
-        // indiscernable d'une réponse disant « rien » : s'y fier pour effacer
-        // un compte l'aurait perdu au premier hoquet d'ADB.
+        // All the caution lies right there. The failure used to
+        // return an empty list, indistinguishable from a response
+        // saying "nothing": relying on it to erase an account would
+        // have lost it at the first hiccup from ADB.
         var adb = new FakeAdbClient()
             .FailShell("pm list packages")
             .WithShell("pm list users", RealUsers);
@@ -272,8 +280,9 @@ public class DofusInstanceServiceTests
     [Fact]
     public async Task Une_liste_de_profils_illisible_ne_releve_aucun_profil_vide()
     {
-        // Sans la liste des profils, on ne sait même pas de quels profils on
-        // parlerait : l'appareil n'entre pas du tout dans le relevé.
+        // Without the profile list, we do not even know which
+        // profiles we would be talking about: the device does not
+        // enter the record at all.
         var adb = new FakeAdbClient()
             .WithShell("pm list users", "Error: could not access users")
             .WithShell("pm list packages", string.Empty);

@@ -37,8 +37,8 @@ public class LaunchProfilesTests
     [Fact]
     public void Les_espaces_de_bord_partent()
     {
-        // « Duo » et « Duo  » seraient deux profils qu'on ne saurait pas
-        // distinguer dans la liste.
+        // "Duo" and "Duo " would be two profiles we could not tell
+        // apart in the list.
         Assert.Equal("Duo", LaunchProfiles.Normalize("  Duo  "));
     }
 
@@ -76,8 +76,9 @@ public class LaunchProfilesTests
     [Fact]
     public void Un_compte_disparu_du_telephone_est_ecarte()
     {
-        // Le profil garde sa raison d'être : les comptes restants s'ouvrent,
-        // au lieu de tout refuser pour un profil Android supprimé.
+        // The profile keeps its purpose: the remaining accounts
+        // still open, instead of refusing everything over one
+        // deleted Android profile.
         List<StoredLaunchProfile> profils = [Profil("Duo", Principal, XSpace)];
 
         Assert.Equal([Principal.Key], LaunchProfiles.KeysFor(profils, "Duo", [Principal]));
@@ -127,7 +128,7 @@ public class LaunchProfilesTests
         Assert.Equal("aucun compte", LaunchProfiles.Describe(Profil("Vide"), [Principal]));
         Assert.Equal("aucun compte", LaunchProfiles.Describe(null, [Principal]));
 
-        // Toutes ses clés désignent des comptes disparus.
+        // All its keys point to accounts that no longer exist.
         Assert.Equal("aucun compte connu", LaunchProfiles.Describe(Profil("Duo", XSpace), [Principal]));
     }
 
@@ -182,7 +183,8 @@ public class LaunchProfilesTests
     [Fact]
     public void Sans_profil_retenu_le_bouton_garde_son_mot()
     {
-        // Le mot générique, et non du blanc : un bouton vide ne se clique pas.
+        // The generic word, not blank space: an empty button
+        // cannot be clicked.
         Assert.Equal(Strings.Get("Profiles"), LaunchProfiles.ButtonLabel(null));
         Assert.Equal(Strings.Get("Profiles"), LaunchProfiles.ButtonLabel(string.Empty));
         Assert.Equal(Strings.Get("Profiles"), LaunchProfiles.ButtonLabel("   "));
@@ -191,19 +193,22 @@ public class LaunchProfilesTests
     [Fact]
     public void Le_profil_retenu_donne_son_nom_au_bouton()
     {
-        // C'est tout l'objet : savoir sans ouvrir la bulle que « Duo haute »
-        // décidera des comptes, de la qualité et du zoom au prochain démarrage.
+        // This is the whole point: knowing without opening the
+        // popup that "Duo haute" will decide the accounts, quality
+        // and zoom at the next launch.
         Assert.Equal("Duo haute", LaunchProfiles.ButtonLabel("Duo haute"));
     }
 
     [Fact]
     public void Le_nom_du_bouton_passe_par_la_meme_normalisation_que_le_reste()
     {
-        // Les espaces de bord partent, comme partout ailleurs : sans quoi le
-        // bouton et la ligne mise en accent ne diraient pas la même chose.
+        // Leading and trailing spaces go away, as everywhere else:
+        // otherwise the button and the highlighted line would not
+        // say the same thing.
         Assert.Equal("Duo haute", LaunchProfiles.ButtonLabel("  Duo haute  "));
 
-        // Et un nom trop long est coupé à la même longueur que le reste.
+        // And a name that is too long is cut to the same length as
+        // everywhere else.
         var long_ = new string('a', LaunchProfiles.MaxNameLength + 10);
 
         Assert.Equal(LaunchProfiles.MaxNameLength, LaunchProfiles.ButtonLabel(long_).Length);

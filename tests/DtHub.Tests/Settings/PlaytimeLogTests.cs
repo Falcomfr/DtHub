@@ -31,7 +31,7 @@ public class PlaytimeLogTests
 
         Assert.Equal(150, PlaytimeLog.Week(log, Today));
 
-        // Le lendemain, le plus ancien sort de la fenêtre.
+        // The next day, the oldest one falls out of the window.
         Assert.Equal(50, PlaytimeLog.Week(log, Today.AddDays(1)));
     }
 
@@ -51,8 +51,8 @@ public class PlaytimeLogTests
     [Fact]
     public void Une_clef_illisible_s_en_va()
     {
-        // Le fichier de réglages se modifie à la main : un relevé n'a pas à
-        // survivre à sa propre corruption.
+        // The settings file can be edited by hand: a log entry
+        // does not have to survive its own corruption.
         var abime = new Dictionary<string, int>(StringComparer.Ordinal)
         {
             ["2026-09-10"] = 300,
@@ -76,8 +76,8 @@ public class PlaytimeLogTests
     [Fact]
     public void Un_jour_a_venir_n_est_pas_compte()
     {
-        // Une horloge remise en arrière, un fichier copié d'ailleurs : mieux
-        // vaut écarter que rendre un total qui ne veut rien dire.
+        // A clock set back, a file copied from elsewhere: better to
+        // discard it than to return a total that means nothing.
         var log = PlaytimeLog.Add(null, Today.AddDays(3), 600);
 
         Assert.Equal(0, PlaytimeLog.Week(log, Today));
@@ -93,8 +93,8 @@ public class PlaytimeLogTests
     [Fact]
     public void Le_releve_rendu_est_neuf()
     {
-        // L'appelant écrit dans un document de réglages : une modification en
-        // place y passerait inaperçue.
+        // The caller writes into a settings document: an in-place
+        // modification there would go unnoticed.
         var origine = new Dictionary<string, int>(StringComparer.Ordinal) { ["2026-09-10"] = 60 };
 
         var log = PlaytimeLog.Add(origine, Today, 60);

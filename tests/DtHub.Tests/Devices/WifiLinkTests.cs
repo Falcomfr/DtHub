@@ -5,10 +5,11 @@ namespace DtHub.Tests.Devices;
 public class WifiLinkTests
 {
     /// <summary>
-    /// Sortie réelle de <c>cmd wifi status</c>, relevée sur le Xiaomi 13T Pro
-    /// du poste de développement, Android 16. Raccourcie aux lignes utiles,
-    /// mais les lignes conservées sont recopiées au caractère près : c'est tout
-    /// l'intérêt d'une épreuve sur une sortie de terrain.
+    /// Real output of <c>cmd wifi status</c>, captured on the Xiaomi
+    /// 13T Pro of the development machine, Android 16. Shortened to
+    /// the useful lines, but the lines kept are copied character for
+    /// character: that is the whole point of a test built on
+    /// field-captured output.
     /// </summary>
     private const string Releve = """
         Wifi is enabled
@@ -37,8 +38,9 @@ public class WifiLinkTests
     [Fact]
     public void La_part_de_reemissions_est_calculee()
     {
-        // 169 900 réémissions pour 1 368 241 trames réussies : douze pour cent,
-        // ce qui est la signature d'un canal partagé avec des voisins.
+        // 169,900 retries out of 1,368,241 successful frames: twelve
+        // percent, which is the signature of a channel shared with
+        // neighbors.
         var link = WifiLink.Parse(Releve);
 
         Assert.NotNull(link);
@@ -48,9 +50,10 @@ public class WifiLinkTests
     [Fact]
     public void Le_plafond_du_materiel_n_est_pas_pris_pour_la_liaison()
     {
-        // « Max Supported Tx Link speed » annonce ce dont la puce est capable,
-        // pas ce qui est négocié. Les confondre ferait promettre à une liaison
-        // dégradée le débit d'une liaison parfaite.
+        // "Max Supported Tx Link speed" announces what the chip is
+        // capable of, not what is actually negotiated. Confusing the
+        // two would promise a degraded link the throughput of a
+        // perfect one.
         const string releve = "Tx Link speed: 72Mbps, Max Supported Tx Link speed: 1200Mbps, Frequency: 5520MHz,";
 
         var link = WifiLink.Parse(releve);
@@ -67,9 +70,9 @@ public class WifiLinkTests
     [InlineData("Frequency: 2412MHz sans vitesse")]
     public void Une_sortie_sans_l_essentiel_ne_rend_rien(string sortie)
     {
-        // Ne rien savoir est un cas ordinaire : appareil en USB, Wi-Fi éteint,
-        // ou Android qui nomme les choses autrement. L'application doit
-        // continuer sans contrainte, pas échouer.
+        // Knowing nothing is an ordinary case: device over USB, Wi-Fi
+        // turned off, or Android naming things differently. The
+        // application must keep going without friction, not fail.
         Assert.Null(WifiLink.Parse(sortie));
     }
 
@@ -82,9 +85,9 @@ public class WifiLinkTests
     [Fact]
     public void Un_standard_annonce_par_un_nombre_ne_gene_pas()
     {
-        // Relevé sur un Mi 9T Pro sous Android 11 : il écrit « Wi-Fi
-        // standard: 4 » là où le 13T Pro écrit « 11n ». Et il est en 2,4 GHz,
-        // ce que le bilan doit signaler.
+        // Captured on a Mi 9T Pro running Android 11: it writes
+        // "Wi-Fi standard: 4" where the 13T Pro writes "11n". And it
+        // is on 2.4 GHz, which the summary must report.
         const string releve =
             "WifiInfo: SSID: tkt-home, Wi-Fi standard: 4, RSSI: -61, Link speed: 144Mbps, "
             + "Tx Link speed: 144Mbps, Frequency: 2462MHz, Net ID: 5";

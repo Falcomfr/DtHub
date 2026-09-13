@@ -4,7 +4,9 @@ namespace DtHub.Tests.Papycha;
 
 public class QuestMenuParserTests
 {
-    /// <summary>Classement relevé sur la page « Quêtes » du site.</summary>
+    /// <summary>
+    /// Ranking captured on the site's "Quêtes" (Quests) page.
+    /// </summary>
     private static readonly string[] Classement =
     [
         QuestSearch.Normalize("Quêtes principales"),
@@ -17,12 +19,13 @@ public class QuestMenuParserTests
     [Fact]
     public void Une_rubrique_est_reconnue_dans_l_intitule_qui_la_contient()
     {
-        // Le site dit « Quêtes d'Astrub » là où la catégorie dit « Astrub » :
-        // une égalité ne se produirait jamais.
+        // The site says "Quêtes d'Astrub" where the category says
+        // "Astrub": an exact match would never happen.
         Assert.Equal(2, QuestMenuParser.RankOf(Classement, QuestSearch.Normalize("Astrub")));
 
-        // « Île de Frigost » face à « Quêtes de Frigost » : c'est le nom propre
-        // qui rapproche, pas la phrase entière.
+        // "Île de Frigost" versus "Quêtes de Frigost": it is the
+        // proper noun that brings them together, not the whole
+        // phrase.
         Assert.Equal(3, QuestMenuParser.RankOf(Classement, QuestSearch.Normalize("Île de Frigost")));
     }
 
@@ -37,9 +40,9 @@ public class QuestMenuParserTests
     [Fact]
     public void Le_nombre_de_mots_partages_departage_deux_rubriques_voisines()
     {
-        // Sans ce compte, « Quêtes du Château d'Amakna » se rangerait aussi
-        // bien sous « Amakna » que sous « Château d'Amakna », au hasard de
-        // l'ordre de la liste.
+        // Without this count, "Quêtes du Château d'Amakna" would rank
+        // just as well under "Amakna" as under "Château d'Amakna",
+        // at the mercy of the list's order.
         var page = QuestSearch.Normalize("Quêtes du Château d'Amakna");
 
         var chateau = QuestMenuParser.Kinship(page, QuestSearch.Normalize("Château d'Amakna"));
@@ -52,8 +55,8 @@ public class QuestMenuParserTests
     [Fact]
     public void Deux_rubriques_sans_rapport_ne_se_rapprochent_pas()
     {
-        // « Quêtes » et « Île » se retrouvent partout : les compter
-        // rapprocherait n'importe quoi de n'importe quoi.
+        // "Quêtes" and "Île" turn up everywhere: counting them would
+        // bring absolutely anything close to absolutely anything.
         Assert.Equal(
             0,
             QuestMenuParser.Kinship(
@@ -79,9 +82,10 @@ public class QuestMenuParserTests
     [Fact]
     public void Le_surplus_departage_deux_rubriques_que_le_meme_mot_rapproche()
     {
-        // « Quêtes d'Amakna » partage « amakna » avec « Amakna » comme avec
-        // « Château d'Amakna » : le nombre de mots partagés ne tranche pas.
-        // Celui qui en ajoute le moins est le plus proche.
+        // "Quêtes d'Amakna" shares "amakna" with "Amakna" just as it
+        // does with "Château d'Amakna": the number of shared words
+        // does not decide it. The one that adds the fewest extra
+        // words is the closest.
         var page = QuestSearch.Normalize("Quêtes d'Amakna");
 
         Assert.Equal(

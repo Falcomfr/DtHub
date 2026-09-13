@@ -5,8 +5,8 @@ namespace DtHub.Tests.Papycha;
 public sealed class DungeonLevelBandTests
 {
     [Theory]
-    // Les bornes sont le seul endroit où l'on se trompe : cinquante ferme le
-    // premier palier, cinquante et un ouvre le second.
+    // The boundaries are the only place mistakes happen: fifty closes
+    // the first tier, fifty-one opens the second.
     [InlineData(1, "Niveau 1 à 50")]
     [InlineData(12, "Niveau 1 à 50")]
     [InlineData(50, "Niveau 1 à 50")]
@@ -29,8 +29,9 @@ public sealed class DungeonLevelBandTests
     [Fact]
     public void Un_donjon_sans_niveau_ferme_la_marche()
     {
-        // Trois donjons sur quatre-vingt-trois n'ont pas de niveau renseigné :
-        // les ranger au niveau zéro les mettrait en tête, ce qui serait faux.
+        // Three dungeons out of eighty-three have no level filled in:
+        // ranking them at level zero would put them first, which would
+        // be wrong.
         Assert.Equal(DungeonLevelBand.Unknown, DungeonLevelBand.RankOf(0));
         Assert.Equal("Niveau inconnu", DungeonLevelBand.NameOf(0));
         Assert.True(DungeonLevelBand.RankOf(0) > DungeonLevelBand.RankOf(200));

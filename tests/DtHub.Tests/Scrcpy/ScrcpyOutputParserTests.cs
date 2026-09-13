@@ -7,7 +7,8 @@ public class ScrcpyOutputParserTests
     [Fact]
     public void L_identifiant_d_afficheur_virtuel_est_extrait_de_la_ligne_du_serveur()
     {
-        // Format produit par NewDisplayCapture.java, relayé au client.
+        // Format produced by NewDisplayCapture.java, relayed to the
+        // client.
         const string line = "[server] INFO: New display: 1080x1920/320 (id=2)";
 
         Assert.Equal(2, ScrcpyOutputParser.TryParseVirtualDisplayId(line));
@@ -59,8 +60,8 @@ public class ScrcpyOutputParserTests
     [Fact]
     public void Une_erreur_inconnue_ne_produit_pas_de_message_invente()
     {
-        // Mieux vaut un message générique et le détail au journal qu'une
-        // traduction approximative.
+        // Better a generic message with the detail in the log than
+        // an approximate translation.
         Assert.Null(ScrcpyOutputParser.DescribeError("ERROR: something entirely new"));
         Assert.Null(ScrcpyOutputParser.DescribeError(null));
     }
@@ -80,9 +81,9 @@ public class ScrcpyOutputParserTests
     [Fact]
     public void Un_refus_non_reconnu_n_est_pas_range_dans_une_categorie_devinee()
     {
-        // La sortie de scrcpy n'est pas contractuelle : ranger au jugé mènerait
-        // à afficher une explication fausse avec l'aplomb d'une explication
-        // vraie.
+        // scrcpy's output is not a stable contract: guessing a
+        // category would lead to displaying a false explanation with
+        // the same confidence as a true one.
         Assert.Equal(
             ScrcpyFailureKind.Unknown,
             ScrcpyOutputParser.Classify("ERROR: something entirely new"));
@@ -93,8 +94,9 @@ public class ScrcpyOutputParserTests
     [Fact]
     public void On_ne_retente_que_les_refus_qu_une_definition_plus_modeste_peut_reparer()
     {
-        // Un encodeur saturé se répare en descendant ; un téléphone débranché
-        // ne se répare pas, et chaque tentative coûte l'attente complète.
+        // A saturated encoder is fixed by scaling down; an unplugged
+        // phone cannot be fixed, and each attempt costs the full
+        // wait.
         Assert.True(ScrcpyOutputParser.CanRetrySmaller(ScrcpyFailureKind.Encoder));
         Assert.True(ScrcpyOutputParser.CanRetrySmaller(ScrcpyFailureKind.Timeout));
         Assert.True(ScrcpyOutputParser.CanRetrySmaller(ScrcpyFailureKind.Unknown));
@@ -111,10 +113,11 @@ public class ScrcpyOutputParserTests
     [Fact]
     public void La_coupure_de_liaison_compte_comme_une_fin_meme_sans_le_mot_erreur()
     {
-        // Relevé sur l'appareil réel, scrcpy 4.1, liaison Wi-Fi coupée en
-        // pleine session : c'est un avertissement, pas une erreur, et pourtant
-        // le processus s'arrête là. Ne regarder que « ERROR: » revenait à
-        // prendre la panne la plus fréquente pour une fermeture voulue.
+        // Captured on the real device, scrcpy 4.1, Wi-Fi connection
+        // cut off mid-session: this is a warning, not an error, and
+        // yet the process stops there. Looking only for "ERROR: "
+        // amounted to taking the most frequent failure for a
+        // deliberate close.
         const string releve = "WARN: Device disconnected";
 
         Assert.False(ScrcpyOutputParser.IsError(releve));
@@ -139,8 +142,8 @@ public class ScrcpyOutputParserTests
     [InlineData(null)]
     public void Un_avertissement_anodin_n_est_pas_une_fin(string? line)
     {
-        // Le contrôle reste étroit : prendre tout avertissement pour une panne
-        // ferait rouvrir des fenêtres que personne n'a perdues.
+        // The check stays narrow: treating every warning as a failure
+        // would reopen windows that nobody lost.
         Assert.False(ScrcpyOutputParser.IsFatal(line));
     }
 }

@@ -4,7 +4,10 @@ namespace DtHub.Tests.Users;
 
 public class AndroidUserParserTests
 {
-    /// <summary>Sortie relevée sur un Xiaomi avec applications dupliquées et second espace.</summary>
+    /// <summary>
+    /// Output captured on a Xiaomi phone, with duplicated apps and a
+    /// second space.
+    /// </summary>
     private const string XiaomiOutput = """
         Users:
         	UserInfo{0:Propriétaire:c13} running
@@ -49,7 +52,7 @@ public class AndroidUserParserTests
     [Fact]
     public void Le_meme_type_de_profil_est_reconnu_sur_un_autre_identifiant()
     {
-        // Garde-fou contre l'hypothèse « le clone vaut toujours 999 ».
+        // Safeguard against the assumption "the clone is always 999".
         var user = AndroidUserParser.ParseLine("UserInfo{42:Applications dupliquées:1030} running");
 
         Assert.NotNull(user);
@@ -154,8 +157,8 @@ public class AndroidUserParserTests
 
         Assert.Equal("Applications dupliquées", clone!.DisplayName);
 
-        // L'utilisateur principal garde un libellé stable, quel que soit le
-        // nom que le téléphone lui donne selon sa langue.
+        // The primary user keeps a stable label, whatever name the
+        // phone gives it depending on its language.
         Assert.Equal("Principal", owner!.DisplayName);
 
         Assert.Equal("Profil géré 12", unnamed!.DisplayName);
@@ -164,8 +167,8 @@ public class AndroidUserParserTests
     [Fact]
     public void Dumpsys_affine_le_type_quand_les_drapeaux_sont_ambigus()
     {
-        // Sur cette sortie, 999 et 10 portent les mêmes drapeaux de profil
-        // géré ; seul dumpsys sait que l'un est un clone.
+        // In this output, 999 and 10 carry the same managed-profile
+        // flags; only dumpsys knows that one of them is a clone.
         var users = AndroidUserParser.Parse("""
             Users:
             	UserInfo{0:Propriétaire:c13} running
@@ -225,9 +228,9 @@ public class AndroidUserParserTests
     [Fact]
     public void Un_profil_en_pause_est_reconnu()
     {
-        // 0x10b0 : profil géré, initialisé, et le drapeau 0x80 de la pause.
-        // C'est l'état d'un profil professionnel dont l'interrupteur est
-        // éteint, et celui que rendent Shelter et Island au repos.
+        // 0x10b0: managed profile, initialized, and the 0x80 pause
+        // flag. This is the state of a work profile whose switch is
+        // off, and the one that Shelter and Island report when idle.
         var user = AndroidUserParser.ParseLine("UserInfo{10:Travail:10b0} running");
 
         Assert.NotNull(user);
@@ -238,8 +241,8 @@ public class AndroidUserParserTests
     [Fact]
     public void Un_profil_actif_n_est_pas_dit_en_pause()
     {
-        // Relevé réel : le profil géré créé sur le téléphone de référence
-        // porte 0x1030, sans le drapeau de pause.
+        // Real capture: the managed profile created on the reference
+        // phone carries 0x1030, without the pause flag.
         var user = AndroidUserParser.ParseLine("UserInfo{15:Travail:1030} running");
 
         Assert.NotNull(user);
@@ -249,9 +252,9 @@ public class AndroidUserParserTests
     [Fact]
     public void La_pause_ne_se_confond_pas_avec_l_arret()
     {
-        // Un profil peut tourner et être en pause : ce sont deux états
-        // distincts, et les confondre ferait tenter un lancement voué à
-        // l'échec.
+        // A profile can be running and paused: these are two distinct
+        // states, and conflating them would cause a launch attempt
+        // that is doomed to fail.
         var user = AndroidUserParser.ParseLine("UserInfo{10:Travail:10b0} running");
 
         Assert.NotNull(user);

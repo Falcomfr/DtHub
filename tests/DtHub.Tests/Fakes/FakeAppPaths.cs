@@ -2,7 +2,7 @@
 
 namespace DtHub.Tests.Fakes;
 
-/// <summary>Des chemins posés dans un dossier jetable.</summary>
+/// <summary>Paths set up inside a disposable folder.</summary>
 public sealed class FakeAppPaths : IAppPaths
 {
     public FakeAppPaths(string root)

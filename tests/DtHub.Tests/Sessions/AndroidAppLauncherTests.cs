@@ -7,12 +7,13 @@ using DtHub.Tests.Fakes;
 namespace DtHub.Tests.Sessions;
 
 /// <summary>
-/// Le lancement du jeu sur un profil Android : ce que le produit fait, et qui
-/// n'avait aucune épreuve. Les épreuves de scrcpy passaient par un lanceur
-/// simulé, donc celui-ci n'était jamais exercé.
+/// Launching the game on an Android profile: what the product does, and which
+/// had no test at all. The scrcpy tests went through a simulated launcher, so
+/// this one was never exercised.
 ///
-/// Tout tourne sur le client ADB simulé, qui répond par du texte : on éprouve
-/// donc aussi la lecture de ce texte, qui est là où se prennent les décisions.
+/// Everything runs on the simulated ADB client, which answers with text: so
+/// this also tests the parsing of that text, which is where the decisions are
+/// made.
 /// </summary>
 public class AndroidAppLauncherTests
 {
@@ -21,9 +22,9 @@ public class AndroidAppLauncherTests
     private const string Component = "com.ankama.dofustouch/.MainActivity";
 
     /// <summary>
-    /// Sortie relevée sur le téléphone de référence, un Xiaomi 13T. Les
-    /// drapeaux comptent : « 10 » ferait un profil secondaire, qui ne peut pas
-    /// porter de fenêtre, et le lancement serait refusé avant d'être tenté.
+    /// Output recorded on the reference phone, a Xiaomi 13T. The flags matter:
+    /// "10" would make it a secondary profile, which cannot carry a window,
+    /// and the launch would be refused before being attempted.
     /// </summary>
     private static readonly string DeuxProfils = string.Join(
         '\n',
@@ -40,8 +41,8 @@ public class AndroidAppLauncherTests
     [Fact]
     public async Task Le_lancement_porte_le_profil_et_l_afficheur()
     {
-        // L'exigence centrale du produit : une instance par profil, chacune sur
-        // son propre afficheur virtuel.
+        // The product's central requirement: one instance per profile, each on
+        // its own virtual display.
         var adb = new FakeAdbClient()
             .WithShell("pm list users", DeuxProfils)
             .WithShell("am start", "Starting: Intent { cmp=" + Component + " }\nStatus: ok");
@@ -73,10 +74,10 @@ public class AndroidAppLauncherTests
     [InlineData(1234)]
     public async Task N_importe_quel_identifiant_de_profil_passe_tel_quel(int userId)
     {
-        // Un profil cloné n'est pas toujours 999, et le README en fait une
-        // promesse. Le nombre est écrit en culture invariante : sur un poste
-        // dont la région emploie un séparateur, un identifiant à quatre
-        // chiffres deviendrait « 1 234 ».
+        // A cloned profile is not always 999, and the README makes that a
+        // promise. The number is written in invariant culture: on a machine
+        // whose region uses a separator, a four-digit identifier would become
+        // "1 234".
         var adb = new FakeAdbClient()
             .WithShell("pm list users", DeuxProfils)
             .WithShell("am start", "Status: ok");
@@ -91,9 +92,9 @@ public class AndroidAppLauncherTests
     [Fact]
     public async Task Une_sortie_qui_porte_Error_est_un_echec_malgre_le_code_zero()
     {
-        // « am start » rend zéro même lorsqu'il échoue : c'est la sortie qui
-        // fait foi, et c'est cette lecture qui décide d'ouvrir une fenêtre ou
-        // de la refuser.
+        // "am start" returns zero even when it fails: the output is what's
+        // authoritative, and it is this parsing that decides whether to open a
+        // window or refuse it.
         var adb = new FakeAdbClient()
             .WithShell("pm list users", DeuxProfils)
             .WithShell("pm resolve-activity", string.Empty)
@@ -108,8 +109,8 @@ public class AndroidAppLauncherTests
     [Fact]
     public async Task Une_permission_refusee_ne_se_confond_pas_avec_un_jeu_absent()
     {
-        // Supposer « application absente » sur n'importe quel échec envoyait
-        // réinstaller un jeu bien présent.
+        // Assuming "app missing" on any failure would send the user to
+        // reinstall a game that was actually there.
         var adb = new FakeAdbClient()
             .WithShell("pm list users", DeuxProfils)
             .WithShell("pm path", "package:/data/app/base.apk")
@@ -137,17 +138,18 @@ public class AndroidAppLauncherTests
     [Fact]
     public async Task Sur_un_afficheur_virtuel_le_jeu_est_tenu_hors_des_recents()
     {
-        // **Sans ce drapeau, fermer une fenêtre laissait une vignette vide en
-        // tête de la liste des applications du téléphone.** Relevé sur le
-        // Mi 9T Pro, après une fermeture :
+        // **Without this flag, closing a window left an empty thumbnail at the
+        // top of the phone's application list.** Recorded on the Mi 9T Pro,
+        // after a close:
         //
         //     No process found for: com.ankama.dofustouch
         //     Recent #0: Task{#63 … sz=0}
         //
-        // Le jeu était bien fermé, mais appuyer sur la carte le relançait, et
-        // l'utilisateur en concluait, à raison de ce qu'il voyait, que la
-        // fermeture ne marchait pas. Nettoyer après coup a été essayé et échoue
-        // : l'afficheur rendu, « am stack remove » répond 0 sans rien faire.
+        // The game really was closed, but tapping the card relaunched it, and
+        // the user concluded, going by what they saw, that closing did not
+        // work. Cleaning up after the fact was tried and fails: once the
+        // display is released, "am stack remove" returns 0 without doing
+        // anything.
         var adb = new FakeAdbClient().WithShell("am start", "Status: ok");
 
         _ = await Build(adb).LaunchAsync(Serial, 0, Package, Component, displayId: 7);
@@ -160,9 +162,9 @@ public class AndroidAppLauncherTests
     [Fact]
     public async Task Sans_afficheur_virtuel_le_jeu_reste_dans_les_recents()
     {
-        // Une fenêtre qui recopie l'écran du téléphone montre le jeu là où
-        // l'utilisateur s'attend à le retrouver dans sa liste : l'en cacher
-        // serait lui retirer quelque chose, pas le lui épargner.
+        // A window that mirrors the phone's screen shows the game where the
+        // user expects to find it in their list: hiding it from there would
+        // take something away from them, not spare them anything.
         var adb = new FakeAdbClient().WithShell("am start", "Status: ok");
 
         _ = await Build(adb).LaunchAsync(Serial, 0, Package, Component, displayId: null);
@@ -185,14 +187,14 @@ public class AndroidAppLauncherTests
     [Fact]
     public async Task Un_arret_qui_n_atteint_pas_l_appareil_se_declare_manque()
     {
-        // **Ce que l'épreuve d'avant affirmait à tort.** Elle lisait une faute
-        // comme « l'application n'était peut-être pas ouverte », et faisait
-        // donc passer pour un succès un ordre qui n'était jamais parti.
+        // **What the previous test wrongly asserted.** It read a failure as
+        // "the application might not have been open", and so passed off as a
+        // success an order that had never gone through.
         //
-        // Mesuré sur les deux téléphones, platform-tools 37.0.1 :
-        // « am force-stop » rend 0 sur un paquet arrêté, et jusque sur un
-        // paquet qui n'existe pas. Il ne rend 1 que sur « device offline » ou
-        // « device not found », c'est-à-dire quand le téléphone n'a rien reçu.
+        // Measured on both phones, platform-tools 37.0.1: "am force-stop"
+        // returns 0 on a stopped package, and even on a package that does not
+        // exist. It only returns 1 on "device offline" or "device not found",
+        // meaning when the phone received nothing at all.
         var adb = new FakeAdbClient().FailShell("am force-stop", AdbErrorKind.DeviceOffline);
 
         Assert.False(await Build(adb).ForceStopAsync(Serial, 10, Package));

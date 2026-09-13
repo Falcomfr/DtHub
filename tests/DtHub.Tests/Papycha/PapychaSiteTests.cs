@@ -30,8 +30,9 @@ public sealed class PapychaSiteTests
         Assert.False(PapychaSite.Owns(adresse));
 
     /// <summary>
-    /// Le nom du site au début du texte ne fait pas une page du site : ces
-    /// trois formes mènent ailleurs, et un simple préfixe en laissait passer.
+    /// The site's name at the start of the text does not make it a
+    /// page of the site: these three forms lead elsewhere, and a
+    /// simple prefix check used to let them through.
     /// </summary>
     [Theory]
     [InlineData("https://papycha.fr.ailleurs.example/quetes/")]
@@ -49,8 +50,8 @@ public sealed class PapychaSiteTests
     [Fact]
     public void Le_texte_cherche_est_echappe()
     {
-        // Un objet à espaces et à apostrophe est le cas courant, et il ne doit
-        // pas casser l'adresse.
+        // A search term with spaces and an apostrophe is the common
+        // case, and it must not break the address.
         Assert.Equal(
             "https://papycha.fr/?s=Dofus%20Ocre",
             PapychaSite.SearchUrl("Dofus Ocre"));
@@ -68,20 +69,22 @@ public sealed class PapychaSiteTests
     [InlineData("   ")]
     public void Rien_a_chercher_ne_donne_aucune_adresse(string? query)
     {
-        // Sans quoi le lien mènerait à la page de résultats vide du site.
+        // Otherwise the link would lead to the site's empty results
+        // page.
         Assert.Null(PapychaSite.SearchUrl(query));
     }
 
     [Fact]
     public void L_adresse_de_recherche_appartient_bien_au_site()
     {
-        // Elle passe par nos fenêtres comme les autres : elle doit franchir le
-        // contrôle d'appartenance.
+        // It goes through our windows like the others: it must pass
+        // the ownership check.
         Assert.True(PapychaSite.Owns(PapychaSite.SearchUrl("bouftou")));
     }
     /// <summary>
-    /// Adresse relevee au caractère près dans le pied d'article de la quete
-    /// « La potion Lèche-bottes », colonne des suivantes.
+    /// Address captured character for character from the article
+    /// footer of the quest "La potion Lèche-bottes", in the "next
+    /// quests" column.
     /// </summary>
     private const string ArbreDuSucces =
         "https://papycha.fr/succes/?pqt_success=success:cards.lechage-de-bottes#succes-selectionne";
@@ -89,8 +92,8 @@ public sealed class PapychaSiteTests
     [Fact]
     public void L_arbre_des_succes_se_reconnait()
     {
-        // La seule page du site qu'on renvoie au navigateur : ce n'est pas un
-        // guide mais un outil qu'on déplie et qu'on parcourt.
+        // The only page of the site that we send to the browser: it
+        // is not a guide but a tool that gets expanded and browsed.
         Assert.True(PapychaSite.IsSuccessTree(ArbreDuSucces));
     }
 
@@ -102,9 +105,9 @@ public sealed class PapychaSiteTests
     [InlineData("https://papycha.fr/succes/?pqt_success=x")]
     public void La_barre_finale_la_casse_et_l_ancre_ne_changent_rien(string url)
     {
-        // Le site sert la même page sous ces cinq formes. En rater une ouvrirait
-        // l'arbre dans une de nos fenêtres une fois sur cinq, sans qu'on sache
-        // pourquoi.
+        // The site serves the same page under these five forms.
+        // Missing one would open the tree in one of our windows one
+        // time out of five, without knowing why.
         Assert.True(PapychaSite.IsSuccessTree(url));
     }
 
@@ -119,9 +122,9 @@ public sealed class PapychaSiteTests
     [InlineData("")]
     public void Tout_le_reste_continue_de_s_ouvrir_chez_nous(string? url)
     {
-        // L'exception doit rester une exception. Une quête, la racine du site,
-        // un titre qui commence par « succès » : rien de cela ne part au
-        // navigateur.
+        // The exception must remain an exception. A quest, the site's
+        // root, a title that starts with "succès" ("achievement"):
+        // none of that goes to the browser.
         Assert.False(PapychaSite.IsSuccessTree(url));
     }
 }

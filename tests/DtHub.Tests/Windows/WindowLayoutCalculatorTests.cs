@@ -4,7 +4,9 @@ namespace DtHub.Tests.Windows;
 
 public class WindowLayoutCalculatorTests
 {
-    /// <summary>Écran 1920x1080 avec une barre des tâches de 40 pixels en bas.</summary>
+    /// <summary>
+    /// 1920x1080 screen with a 40-pixel taskbar at the bottom.
+    /// </summary>
     private static readonly MonitorInfo FullHd = new()
     {
         DeviceName = @"\\.\DISPLAY1",
@@ -20,7 +22,7 @@ public class WindowLayoutCalculatorTests
         WorkArea = new ScreenRect(1920, 0, 2560, 1400),
     };
 
-    /// <summary>Rapport d'un écran virtuel de téléphone, en portrait.</summary>
+    /// <summary>Aspect ratio of a virtual phone screen, in portrait.</summary>
     private const double Portrait = 1080.0 / 1920.0;
 
     [Fact]
@@ -189,7 +191,7 @@ public class WindowLayoutCalculatorTests
     [Fact]
     public void Toutes_les_fenetres_recoivent_exactement_le_meme_rectangle()
     {
-        // C'est ce qui garantit la superposition parfaite.
+        // This is what guarantees the perfect overlap.
         var rects = Enumerable.Range(0, 5)
             .Select(_ => WindowLayoutCalculator.Calculate(FullHd, 70, Portrait, WindowAnchor.MiddleLeft))
             .Distinct()

@@ -5,10 +5,11 @@ namespace DtHub.Tests.Adb;
 public class AdbConnectFailureTests
 {
     /// <summary>
-    /// Relevés au caractère près sur un poste français, platform-tools 37.0.1,
-    /// contre un vrai téléphone. Les messages système sont ceux de Windows en
-    /// français, accents et apostrophes typographiques compris : c'est
-    /// précisément ce qu'une analyse trop pressée casserait.
+    /// Captured character-for-character on a French machine,
+    /// platform-tools 37.0.1, against a real phone. The system
+    /// messages are Windows's own, in French, accents and
+    /// typographic apostrophes included: this is precisely what an
+    /// overly hasty parser would break on.
     /// </summary>
     private const string PortFerme =
         "cannot connect to 192.168.1.16:45573: Aucune connexion n’a pu être établie car "
@@ -24,8 +25,8 @@ public class AdbConnectFailureTests
     [Fact]
     public void Une_cle_refusee_se_reconnait()
     {
-        // Pas de faute réseau dans le message : la connexion a abouti, et
-        // c'est la suite qui a été refusée.
+        // No network fault in the message: the connection
+        // succeeded, and it is what came after that was refused.
         Assert.True(AdbConnectFailure.MeansRefusedKey(CleRefusee));
     }
 
@@ -34,8 +35,8 @@ public class AdbConnectFailureTests
     [InlineData(MachineAbsente)]
     public void Une_faute_reseau_n_est_pas_un_refus(string message)
     {
-        // Conseiller une nouvelle association à qui a simplement éteint son
-        // téléphone l'enverrait à la mauvaise page.
+        // Advising a new pairing to someone who simply turned off
+        // their phone would send them to the wrong page.
         Assert.False(AdbConnectFailure.MeansRefusedKey(message));
     }
 

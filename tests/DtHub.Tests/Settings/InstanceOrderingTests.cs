@@ -3,10 +3,9 @@
 namespace DtHub.Tests.Settings;
 
 /// <summary>
-/// L'ordre voulu par l'utilisateur, tel qu'il est tenu dans les réglages.
-/// Il est global et libre : une instance peut se placer entre deux instances
-/// d'un autre appareil. Ces fonctions sont pures : aucun disque, aucun
-/// téléphone.
+/// The order the user wants, as held in the settings. It is global
+/// and free-form: an instance can place itself between two instances
+/// of another device. These functions are pure: no disk, no phone.
 /// </summary>
 public sealed class InstanceOrderingTests
 {
@@ -19,7 +18,9 @@ public sealed class InstanceOrderingTests
         Order = order,
     };
 
-    /// <summary>Deux téléphones, deux profils chacun, rangs volontairement creux.</summary>
+    /// <summary>
+    /// Two phones, two profiles each, ranks deliberately sparse.
+    /// </summary>
     private static AppSettingsDocument TwoDevices() => new()
     {
         Instances =
@@ -62,9 +63,9 @@ public sealed class InstanceOrderingTests
     [Fact]
     public void Deux_instances_ne_partagent_jamais_un_rang()
     {
-        // Les rangs étaient attribués une fois pour toutes à la découverte :
-        // deux instances de même rang laissaient l'ordre dépendre de l'ordre
-        // d'insertion.
+        // Ranks used to be assigned once and for all at discovery:
+        // two instances sharing a rank left the order dependent on
+        // insertion order.
         var settings = new AppSettingsDocument
         {
             Instances = [Entry("PHONE-A", 0, 3), Entry("PHONE-B", 0, 3)],
@@ -79,8 +80,8 @@ public sealed class InstanceOrderingTests
     [Fact]
     public void Une_instance_se_glisse_entre_celles_d_un_autre_appareil()
     {
-        // C'est tout l'objet du changement : l'ordre ne connaît plus la
-        // frontière des appareils.
+        // This is the whole point of the change: the order no longer
+        // knows about device boundaries.
         var settings = TwoDevices();
         InstanceOrdering.Normalize(settings);
 
@@ -150,9 +151,9 @@ public sealed class InstanceOrderingTests
     [Fact]
     public void Un_deplacement_ne_derange_pas_les_instances_d_un_appareil_absent()
     {
-        // La liste affichée ne montre que les appareils joignables, alors que
-        // les réglages portent tout : un déplacement compté en positions
-        // visibles aurait déplacé la mauvaise instance.
+        // The displayed list only shows reachable devices, while the
+        // settings carry everything: a move counted in visible
+        // positions would have moved the wrong instance.
         var settings = new AppSettingsDocument
         {
             Instances = [Entry("PHONE-A", 0, 0), Entry("ABSENT", 0, 1), Entry("PHONE-A", 999, 2)],

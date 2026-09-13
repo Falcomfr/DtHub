@@ -3,9 +3,9 @@
 namespace DtHub.Tests.Diagnostics;
 
 /// <summary>
-/// Un rapport part chez quelqu'un d'autre. Ce qui désigne une personne ou son
-/// matériel doit en sortir, et ces épreuves emploient les formes relevées dans
-/// de vrais journaux.
+/// A report goes out to someone else. Whatever identifies a person or
+/// their hardware must come out of it, and these tests use the forms
+/// observed in real logs.
 /// </summary>
 public sealed class RedactionTests
 {
@@ -19,8 +19,8 @@ public sealed class RedactionTests
     }
 
     /// <summary>
-    /// Le nom du débogage sans fil porte le numéro de série matériel, qui
-    /// identifie l'appareil de façon stable.
+    /// The wireless debugging name carries the hardware serial number,
+    /// which identifies the device in a stable way.
     /// </summary>
     [Fact]
     public void Le_nom_mdns_disparait_avec_le_serial_qu_il_porte()
@@ -33,8 +33,9 @@ public sealed class RedactionTests
     }
 
     /// <summary>
-    /// La biffure d'origine se fait par égalité exacte et ne mord pas sur une
-    /// valeur collée à son option. C'est la réserve que cette classe lève.
+    /// The original redaction works by exact match and does not bite
+    /// into a value glued to its option. This is the limitation this
+    /// class lifts.
     /// </summary>
     [Fact]
     public void Une_valeur_collee_a_son_option_disparait_aussi()
@@ -55,9 +56,10 @@ public sealed class RedactionTests
     }
 
     /// <summary>
-    /// Ce que l'application connaît part où qu'il soit, et par la chaîne la plus
-    /// longue : un numéro de série pris dans un nom plus grand doit disparaître
-    /// avec lui, non le couper en deux.
+    /// Whatever the application knows about goes away wherever it
+    /// appears, matched on the longest string: a serial number caught
+    /// inside a larger name must disappear along with it, not be cut in
+    /// two.
     /// </summary>
     [Fact]
     public void Ce_que_l_application_connait_part_aussi()
@@ -72,8 +74,8 @@ public sealed class RedactionTests
     }
 
     /// <summary>
-    /// Une valeur trop courte n'est pas biffée : un compte nommé « A » ferait
-    /// disparaître toutes les lettres A du rapport.
+    /// A value that is too short is not redacted: an account named "A"
+    /// would make every letter A in the report disappear.
     /// </summary>
     [Fact]
     public void Une_valeur_trop_courte_ne_biffe_rien()
@@ -86,10 +88,10 @@ public sealed class RedactionTests
     [Fact]
     public void L_avertissement_de_chaleur_perd_l_appareil_et_garde_la_mesure()
     {
-        // Cette ligne est journalisée en avertissement, donc toujours retenue
-        // par le condensé, donc toujours présente dans un rapport collé en
-        // public. Elle nomme l'appareil : c'est ce qui doit partir, et rien de
-        // plus, la mesure étant tout l'intérêt du rapport.
+        // This line is logged as a warning, so it is always kept by the
+        // digest, hence always present in a report pasted publicly. It
+        // names the device: that is what must go, and nothing more,
+        // since the measurement is the whole point of the report.
         const string ligne =
             "L'appareil 192.168.1.16:40335 se bride : état thermique 4, surface 35.107 °C.";
 
@@ -124,9 +126,9 @@ public sealed class RedactionTests
     }
 
     /// <summary>
-    /// Le nom de périphérique d'un écran est une empreinte de machine sans
-    /// valeur de diagnostic. La géométrie, elle, dit tout ce qu'un placement
-    /// demande, et reste.
+    /// A screen's device name is a machine fingerprint with no
+    /// diagnostic value. The geometry, however, says everything a
+    /// placement needs, and it stays.
     /// </summary>
     [Fact]
     public void Le_nom_d_un_ecran_part_mais_sa_geometrie_reste()
@@ -139,9 +141,9 @@ public sealed class RedactionTests
     }
 
     /// <summary>
-    /// Le nom d'un profil de lancement est choisi par la personne, et rien ne
-    /// l'empêche d'y mettre son pseudonyme. Aucun motif ne le reconnaît : il
-    /// faut le donner à la biffure.
+    /// The name of a launch profile is chosen by the person, and nothing
+    /// stops them from putting their own nickname in it. No pattern
+    /// recognizes it: it must be given to the redaction explicitly.
     /// </summary>
     [Fact]
     public void Un_nom_de_profil_choisi_part_s_il_est_donne()

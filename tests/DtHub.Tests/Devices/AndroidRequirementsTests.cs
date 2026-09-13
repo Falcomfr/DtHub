@@ -35,9 +35,9 @@ public class AndroidRequirementsTests
     [Fact]
     public void Un_niveau_d_api_inconnu_ne_fait_pas_refuser_l_appareil()
     {
-        // Toutes les surcouches ne répondent pas à la lecture des propriétés.
-        // Refuser sur une ignorance écarterait des appareils parfaitement
-        // capables ; on les laisse essayer.
+        // Not every overlay responds when properties are read.
+        // Refusing out of ignorance would rule out perfectly capable
+        // devices; they are allowed to try.
         Assert.Null(AndroidRequirements.DescribeVirtualDisplayShortfall(null, null));
     }
 }

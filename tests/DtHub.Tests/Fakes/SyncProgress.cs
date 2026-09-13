@@ -1,13 +1,13 @@
 ﻿namespace DtHub.Tests.Fakes;
 
 /// <summary>
-/// Rapporte l'avancement sur le fil qui le signale, sans passer par un contexte
-/// de synchronisation.
+/// Reports progress on the thread that raises it, without going
+/// through a synchronization context.
 ///
-/// <see cref="Progress{T}"/> poste ses rappels, ce qui oblige une épreuve à
-/// attendre qu'ils arrivent. Le contrat est <see cref="IProgress{T}"/> : une
-/// implémentation directe rend le rapport immédiat, donc l'épreuve
-/// déterministe.
+/// <see cref="Progress{T}"/> posts its callbacks, which forces a
+/// test to wait for them to arrive. The contract is
+/// <see cref="IProgress{T}"/>: a direct implementation makes the
+/// report immediate, so the test deterministic.
 /// </summary>
 internal sealed class SyncProgress<T> : IProgress<T>
 {

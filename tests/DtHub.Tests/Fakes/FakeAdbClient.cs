@@ -4,33 +4,41 @@ using DtHub.Core.Processes;
 namespace DtHub.Tests.Fakes;
 
 /// <summary>
-/// Client ADB simulé, piloté par des sorties textuelles. On reste ainsi au
-/// plus près de ce que rend le vrai ADB, parseurs compris.
+/// Simulated ADB client, driven by textual outputs. This keeps things as
+/// close as possible to what the real ADB renders, parsers included.
 /// </summary>
 public sealed class FakeAdbClient : IAdbClient
 {
     private readonly Dictionary<string, string> _properties = new(StringComparer.Ordinal);
     private readonly HashSet<string> _propertyFailures = new(StringComparer.Ordinal);
 
-    /// <summary>Sortie renvoyée par <c>adb devices -l</c>.</summary>
+    /// <summary>Output returned by <c>adb devices -l</c>.</summary>
     public string DevicesOutput { get; set; } = "List of devices attached\n";
 
-    /// <summary>Erreur levée par la liste des appareils, si elle est renseignée.</summary>
+    /// <summary>
+    /// Error thrown by the device list, when one has been set.
+    /// </summary>
     public AdbException? DevicesError { get; set; }
 
-    /// <summary>Nombre d'appels à <c>getprop</c>, pour vérifier la mise en cache.</summary>
+    /// <summary>
+    /// Number of calls to <c>getprop</c>, to verify caching.
+    /// </summary>
     public int GetPropertiesCallCount { get; private set; }
 
     public int ListDevicesCallCount { get; private set; }
 
-    /// <summary>Déclare la sortie de <c>getprop</c> pour un numéro de série.</summary>
+    /// <summary>
+    /// Declares the <c>getprop</c> output for a serial number.
+    /// </summary>
     public FakeAdbClient WithProperties(string serial, string getPropOutput)
     {
         _properties[serial] = getPropOutput;
         return this;
     }
 
-    /// <summary>Fait échouer <c>getprop</c> pour un numéro de série précis.</summary>
+    /// <summary>
+    /// Makes <c>getprop</c> fail for a specific serial number.
+    /// </summary>
     public FakeAdbClient FailProperties(string serial)
     {
         _propertyFailures.Add(serial);
@@ -57,10 +65,14 @@ public sealed class FakeAdbClient : IAdbClient
 
     private readonly List<(string Match, ProcessResult Result)> _executeRules = [];
 
-    /// <summary>Commandes reçues par <c>ExecuteAsync</c>, jointes par des espaces.</summary>
+    /// <summary>
+    /// Commands received by <c>ExecuteAsync</c>, joined with spaces.
+    /// </summary>
     public List<string> ExecuteCalls { get; } = [];
 
-    /// <summary>Déclare un résultat pour une commande contenant le motif donné.</summary>
+    /// <summary>
+    /// Declares a result for a command containing the given pattern.
+    /// </summary>
     public FakeAdbClient WithExecute(string argumentsContain, ProcessResult result)
     {
         _executeRules.Add((argumentsContain, result));
@@ -99,10 +111,13 @@ public sealed class FakeAdbClient : IAdbClient
 
     private readonly List<(string Match, Func<string> Respond)> _shellRules = [];
 
-    /// <summary>Commandes shell reçues, jointes par des espaces.</summary>
+    /// <summary>Shell commands received, joined with spaces.</summary>
     public List<string> ShellCalls { get; } = [];
 
-    /// <summary>Déclare une sortie shell pour une commande contenant le motif donné.</summary>
+    /// <summary>
+    /// Declares a shell output for a command containing the given
+    /// pattern.
+    /// </summary>
     public FakeAdbClient WithShell(string argumentsContain, string output)
     {
         _shellRules.Add((argumentsContain, () => output));
@@ -110,12 +125,12 @@ public sealed class FakeAdbClient : IAdbClient
     }
 
     /// <summary>
-    /// Déclare une suite de sorties pour une même commande, la dernière valant
-    /// pour tous les appels suivants.
+    /// Declares a sequence of outputs for the same command, the last one
+    /// holding for every following call.
     ///
-    /// Le téléphone change d'état sous nos pieds : après une installation, le
-    /// paquet est là où il n'était pas. Une sortie fixe ne sait pas dire cela,
-    /// et une épreuve qui installe puis vérifie échouait donc toujours.
+    /// The phone changes state under our feet: after an install, the
+    /// package is where it was not before. A fixed output cannot say
+    /// that, so a test that installs and then checks would always fail.
     /// </summary>
     public FakeAdbClient WithShellChanging(string argumentsContain, params string[] outputs)
     {
@@ -126,7 +141,9 @@ public sealed class FakeAdbClient : IAdbClient
         return this;
     }
 
-    /// <summary>Fait échouer une commande shell contenant le motif donné.</summary>
+    /// <summary>
+    /// Makes a shell command containing the given pattern fail.
+    /// </summary>
     public FakeAdbClient FailShell(string argumentsContain, AdbErrorKind kind = AdbErrorKind.DeviceOffline)
     {
         _shellRules.Add((argumentsContain, () => throw new AdbException(kind, AdbErrorInterpreter.Describe(kind))));
@@ -135,10 +152,13 @@ public sealed class FakeAdbClient : IAdbClient
 
     private readonly List<(string Match, byte[] Output)> _execOutRules = [];
 
-    /// <summary>Commandes « exec-out » reçues, jointes par des espaces.</summary>
+    /// <summary>"exec-out" commands received, joined with spaces.</summary>
     public List<string> ExecOutCalls { get; } = [];
 
-    /// <summary>Déclare une sortie binaire pour une commande contenant le motif donné.</summary>
+    /// <summary>
+    /// Declares a binary output for a command containing the given
+    /// pattern.
+    /// </summary>
     public FakeAdbClient WithExecOut(string argumentsContain, byte[] output)
     {
         _execOutRules.Add((argumentsContain, output));
@@ -213,19 +233,25 @@ public sealed class FakeAdbClient : IAdbClient
             : (IReadOnlyDictionary<string, string>)new Dictionary<string, string>(StringComparer.Ordinal));
     }
 
-    /// <summary>Sorties de <c>adb mdns services</c> renvoyées successivement.</summary>
+    /// <summary>
+    /// Outputs of <c>adb mdns services</c>, returned one after another.
+    /// </summary>
     public Queue<string> MdnsOutputs { get; } = new();
 
-    /// <summary>Résultat renvoyé par l'appairage.</summary>
+    /// <summary>Result returned by pairing.</summary>
     public AdbPairResult PairOutcome { get; set; } = AdbPairResult.Success("adb-MATERIEL123-nJyLWZ");
 
-    /// <summary>Adresses pour lesquelles <c>adb connect</c> réussit.</summary>
+    /// <summary>Addresses for which <c>adb connect</c> succeeds.</summary>
     public HashSet<string> ConnectableAddresses { get; } = new(StringComparer.Ordinal);
 
-    /// <summary>Adresses effectivement demandées à <c>adb connect</c>, dans l'ordre.</summary>
+    /// <summary>
+    /// Addresses actually requested from <c>adb connect</c>, in order.
+    /// </summary>
     public List<string> ConnectAttempts { get; } = [];
 
-    /// <summary>Codes d'appairage vus, pour vérifier qu'ils ne fuitent pas.</summary>
+    /// <summary>
+    /// Pairing codes seen, to verify that they do not leak.
+    /// </summary>
     public List<string> PairingCodesSeen { get; } = [];
 
     /// <summary>Addresses actually submitted to pairing, in order.</summary>
@@ -243,12 +269,16 @@ public sealed class FakeAdbClient : IAdbClient
     }
 
     /// <summary>
-    /// Adresses qui ne répondent jamais, pour éprouver l'échéance. Un vrai
-    /// téléphone éteint laisse le système attendre vingt-deux secondes.
+    /// Addresses that never answer, to exercise the deadline. A real
+    /// phone that is switched off leaves the system waiting for
+    /// twenty-two seconds.
     /// </summary>
     public HashSet<string> SilentAddresses { get; } = new(StringComparer.Ordinal);
 
-    /// <summary>Le message d'échec rendu, quand on veut en éprouver la lecture.</summary>
+    /// <summary>
+    /// The failure message returned, when its reading needs to be
+    /// exercised.
+    /// </summary>
     public string? ConnectFailure { get; init; }
 
     public async Task<AdbConnectResult> ConnectAsync(
@@ -269,7 +299,7 @@ public sealed class FakeAdbClient : IAdbClient
             : AdbConnectResult.Failure(ConnectFailure ?? $"cannot connect to {address}: (10061)");
     }
 
-    /// <summary>Adresses déconnectées, dans l'ordre.</summary>
+    /// <summary>Disconnected addresses, in order.</summary>
     public List<string> Disconnected { get; } = [];
 
     public Task DisconnectAsync(string? address = null, CancellationToken cancellationToken = default)

@@ -3,9 +3,10 @@
 namespace DtHub.Tests.Devices;
 
 /// <summary>
-/// Le nom d'un appareil n'apparaît que là où l'appareil change. Deux instances
-/// du même téléphone qui se suivent n'en portent qu'un ; un téléphone coupé en
-/// deux par une instance venue d'ailleurs en reçoit un par morceau.
+/// A device's name appears only where the device changes. Two
+/// consecutive instances of the same phone carry only one; a phone
+/// split in two by an instance coming from elsewhere gets one header
+/// per piece.
 /// </summary>
 public sealed class DeviceHeadersTests
 {
@@ -36,8 +37,8 @@ public sealed class DeviceHeadersTests
     [Fact]
     public void Ce_qui_vaut_pour_l_appareil_ne_parait_qu_au_premier_morceau()
     {
-        // Le bouton qui rompt l'association n'a aucune raison de paraître deux
-        // fois pour le même téléphone.
+        // The button that breaks the pairing has no reason to appear
+        // twice for the same phone.
         Assert.Equal([true, true, false], DeviceHeaders.FirstOccurrences(["A", "B", "A"]));
     }
 }

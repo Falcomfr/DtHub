@@ -28,7 +28,9 @@ public sealed class QuestTallyTests
             "Guides relus : 1 quête de plus.",
             new QuestTally(783, 83, 21).Since(new QuestTally(782, 83, 21)));
 
-    /// <summary>Le site retire aussi des pages : ce n'est pas une raison de se taire.</summary>
+    /// <summary>
+    /// The site also removes pages: that is not a reason to stay silent.
+    /// </summary>
     [Fact]
     public void Une_perte_se_dit_comme_un_gain() =>
         Assert.Equal(
@@ -42,9 +44,9 @@ public sealed class QuestTallyTests
             new QuestTally(783, 81, 22).Since(new QuestTally(782, 83, 21)));
 
     /// <summary>
-    /// Un lieu de combat perdu et un gagné laissent le compte inchangé, et il
-    /// n'y a donc rien à annoncer : c'est le compte qu'on rapporte, pas le
-    /// remaniement.
+    /// A lost combat location and a gained one leave the count
+    /// unchanged, so there is nothing to announce: it is the count
+    /// that gets reported, not the reshuffle.
     /// </summary>
     [Fact]
     public void Ce_qui_ne_bouge_pas_ne_se_dit_pas() =>
