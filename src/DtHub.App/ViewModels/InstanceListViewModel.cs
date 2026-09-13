@@ -83,16 +83,6 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// </summary>
     private string? _signature;
 
-    /// <summary>
-    /// Phones a completed account search has already covered.
-    ///
-    /// Only a phone absent from here announces that its accounts are being
-    /// looked for. Keying that on "has no account yet" instead would leave a
-    /// phone that really has no game announcing a search every time the
-    /// periodic one runs, which is the flicker this set exists to prevent.
-    /// </summary>
-    private readonly HashSet<string> _searched = new(StringComparer.Ordinal);
-
     private DateTimeOffset _discoveredAt;
 
     [ObservableProperty]
@@ -500,47 +490,25 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 // thing the sweep does, and none of it says which phones are
                 // there: they are known already.
                 //
-                // Until it answers, a phone with no row is a phone we have not
-                // asked about, not a phone without the game. Saying otherwise
-                // would put "game not installed" in orange under a phone that
-                // has it, which is the whole reason this state exists.
-                //
-                // Only a phone never searched before says it. The search also
-                // runs on a timer, to catch a profile added on the phone, and
-                // announcing that one made every phone flip to "looking" for
-                // three seconds every thirty-five seconds, for a refresh that
-                // used to be invisible and has nothing to show for itself.
-                foreach (var (id, view) in _devices)
-                {
-                    view.IsLookingForGames = !_searched.Contains(id);
-                }
-
-                ShowList(discovery, _instances ?? []);
+                // The list handed over is the one we hold, null included. Null
+                // means the search has not answered, and a pass that does not
+                // know writes no verdict: the phones appear, and whatever was
+                // last established about them stays. It used to be `?? []`, and
+                // an empty list is an answer, so every phone was stamped "game
+                // not installed" for those 2.9 seconds, every time one of ten
+                // ordinary gestures invalidated the cache.
+                ShowList(discovery, _instances);
 
                 _instances = await _launcher.RefreshInstancesAsync(cancellationToken).ConfigureAwait(true);
                 _signature = signature;
                 _discoveredAt = DateTimeOffset.UtcNow;
-
-                foreach (var id in _devices.Keys)
-                {
-                    _ = _searched.Add(id);
-                }
             }
 
-            // The looking branch above has just filled it; the fallback is
-            // there because the compiler cannot see that and a list is a
-            // saner answer than a crash.
-            var instances = _instances ?? [];
+            // The looking branch above has just filled it; when it did not run,
+            // `looking` was false, which is only possible with a list in hand.
+            var instances = _instances;
 
             ShowList(discovery, instances);
-
-            // Dropped only once the rows are in place, so that the phones
-            // which turn out to have no game say so from the same frame,
-            // rather than passing through a state where nothing is claimed.
-            foreach (var view in _devices.Values)
-            {
-                view.IsLookingForGames = false;
-            }
 
             // Session summaries quote the account names: they are redone
             // here, after the list has been rebuilt.
@@ -582,19 +550,31 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// </summary>
     private void ShowList(
         DeviceDiscoveryResult discovery,
-        IReadOnlyList<Core.Dofus.DofusInstance> instances)
+        IReadOnlyList<Core.Dofus.DofusInstance>? instances)
     {
-        // Only the instances of reachable phones have a row. The other
-        // devices do not disappear for all that: they are recalled
-        // separately, with the reason.
-        var connected = discovery.Devices
-            .Where(d => d.IsConnected)
-            .ToDictionary(d => d.Id, StringComparer.Ordinal);
+        ApplyPresence(discovery.Devices, instances);
 
-        SyncRows([.. instances.Where(i => connected.ContainsKey(i.DeviceId))]);
+        // The rows are left exactly as the last authoritative pass built
+        // them. Rebuilding them from a stale list would be worse than not
+        // touching them: `InstanceRowViewModel.Update` writes the quality,
+        // the distance and the name back from the instance, so a pass run
+        // on an old list would revert the setting the user has just
+        // changed, for the 2.9 seconds the search takes.
+        if (instances is not null)
+        {
+            // Only the instances of reachable phones have a row. The other
+            // devices do not disappear for all that: they are recalled
+            // separately, with the reason.
+            var connected = discovery.Devices
+                .Where(d => d.IsConnected)
+                .ToDictionary(d => d.Id, StringComparer.Ordinal);
+
+            SyncRows([.. instances.Where(i => connected.ContainsKey(i.DeviceId))]);
+            RefreshDeviceHeaders();
+        }
+
         RefreshBusyState();
-        SyncInactiveDevices(discovery.Devices, instances);
-        RefreshDeviceHeaders();
+        SyncInactiveDevices(discovery.Devices);
 
         _scanned = true;
 
@@ -610,6 +590,33 @@ public sealed partial class InstanceListViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Records what this pass established about each phone, and nothing
+    /// more.
+    ///
+    /// The verdict is rendered by <see cref="Core.Dofus.GamePresenceReading" />
+    /// in the core, where it is put to the test. A null list means the search
+    /// has not answered, and nothing is read into a silence nobody asked for.
+    /// </summary>
+    private void ApplyPresence(
+        IReadOnlyList<Core.Devices.AndroidDevice> devices,
+        IReadOnlyList<Core.Dofus.DofusInstance>? instances)
+    {
+        var known = _devices.ToDictionary(
+            entry => entry.Key,
+            entry => entry.Value.Presence,
+            StringComparer.Ordinal);
+
+        foreach (var (id, presence) in
+            Core.Dofus.GamePresenceReading.After(known, devices, instances))
+        {
+            if (_devices.TryGetValue(id, out var view))
+            {
+                view.SetPresence(presence);
+            }
+        }
+    }
+
+    /// <summary>
     /// Puts the health readings on screen: the banner, the bubble behind it,
     /// and the gauge and findings under each phone.
     ///
@@ -620,7 +627,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// </summary>
     private void ApplyHealth(
         DeviceDiscoveryResult discovery,
-        IReadOnlyList<Core.Dofus.DofusInstance> instances)
+        IReadOnlyList<Core.Dofus.DofusInstance>? instances)
     {
         // The incidents from device discovery and those from the
         // instance sweep share the same banner: an unreadable profile is
@@ -637,7 +644,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         // be worse than putting it in the wrong place. That one is
         // named, since nothing around it names it.
         var homeless = _launcher.HealthByDevice
-            .Where(pair => !instances.Any(i => Carries(discovery, pair.Key, i.DeviceId)))
+            .Where(pair => !(instances ?? []).Any(i => Carries(discovery, pair.Key, i.DeviceId)))
             .Select(pair => pair.Value.Device is { Length: > 0 } named
                 ? Strings.Format("NamedFinding", named, pair.Value.Text)
                 : pair.Value.Text)
@@ -1031,31 +1038,17 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// Recalls the devices with no row, with the reason: offline, or
     /// reachable but without the game.
     /// </summary>
-    private void SyncInactiveDevices(
-        IReadOnlyList<Core.Devices.AndroidDevice> devices,
-        IReadOnlyList<Core.Dofus.DofusInstance> instances)
+    private void SyncInactiveDevices(IReadOnlyList<Core.Devices.AndroidDevice> devices)
     {
-        var withGame = instances
-            .Select(i => i.DeviceId)
-            .ToHashSet(StringComparer.Ordinal);
-
+        // A phone has no row when it is unreachable, or when the search
+        // answered that it carries no game. A phone we have not asked about
+        // yet is inactive too, and says so in its own words.
         var inactive = devices
-            .Where(d => !d.IsConnected || !withGame.Contains(d.Id))
+            .Where(d => !d.IsConnected
+                || !_devices.TryGetValue(d.Id, out var view)
+                || view.Presence != Core.Dofus.GamePresence.Present)
             .Select(d => d.Id)
             .ToList();
-
-        // Every phone is answered for, not only the ones without a row. This
-        // used to live inside the loop below, which walks the inactive ones
-        // alone: a phone whose accounts were found after a pass that had none
-        // kept the "no game" given to it earlier, and said so in orange right
-        // above its own accounts.
-        foreach (var device in devices)
-        {
-            if (_devices.TryGetValue(device.Id, out var known))
-            {
-                known.HasNoGame = !withGame.Contains(device.Id);
-            }
-        }
 
         foreach (var id in inactive)
         {

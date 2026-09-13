@@ -27,6 +27,18 @@ French.
 
 ### Fixed
 
+- **Both phones announced "Game not installed" several times a minute.** The
+  accounts list invalidates its cache on ten ordinary gestures, Launch and
+  Restart and Stop among them. On the next tick the display was handed an empty
+  list, and an empty list was read as an answer: no phone carries the game. Both
+  phones turned orange for the 2.9 seconds the real search takes, then snapped
+  back.
+
+  A phone now carries one of three verdicts instead of two booleans: it has the
+  game, it has not, or we have not asked yet. A pass that does not know writes
+  no verdict, and the last one established simply stays. "Not known yet" is no
+  longer spellable as "absent", which is what made the lie possible.
+
 - **Pairing a new phone could become impossible, and the message sent you the
   wrong way.** As soon as two phones announce themselves at once,
   `adb mdns services` gives a single address to every instance it lists, so one

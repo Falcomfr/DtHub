@@ -8274,3 +8274,68 @@ n'aurait pas su quand paraître.
 **Ce qui n'a pas été fait.** Le réglage commun n'a pas été touché. Il marche,
 il a été voulu ainsi, et l'asymétrie qu'il crée est désormais assumée et visible
 à l'écran, ce qui était le vrai défaut.
+
+## D150 - Une liste vide n'est pas une réponse
+
+**Date** : 2026-09-13
+
+« La liste des appareils, les deux changent au lancement de l'app avec le
+message jeu installé lorsque je lance une app, c'est pas normal. Pas seulement
+dans ce cas là, ça le fait très souvent. »
+
+**La cause, à la ligne près.** `InstanceListViewModel.RefreshAsync` appelait
+`ShowList(discovery, _instances ?? [])`, et `SyncInactiveDevices` en déduisait
+`HasNoGame = !withGame.Contains(id)`. Une liste vide estampillait donc tous les
+téléphones « sans jeu ». Or dix gestes ordinaires posent `_instances = null` :
+lancer, redémarrer, arrêter, cocher, réordonner, ajouter un compte, oublier un
+appareil, changer la qualité, la distance, les onglets. Au tic suivant, les deux
+téléphones viraient à l'orange pour les 2,9 secondes que dure la recherche des
+comptes, puis revenaient. D'où « très souvent », qui était une description
+exacte.
+
+**Ce qui avait déjà été tenté deux fois.** D142 avait corrigé ce mensonge pour
+un seul geste, l'oubli d'un appareil. Le commit `268ebd6` a ensuite généralisé
+la maladie à tous les gestes en montrant les téléphones avant de chercher leurs
+comptes, et `126af44` a essayé de la soigner en baissant le bouclier
+`IsLookingForGames` pour tout appareil déjà balayé. Ce bouclier était la seule
+garde sur une affirmation de fait, et il a été baissé pour une raison purement
+cosmétique : arrêter un clignotement toutes les trente-cinq secondes. La
+troisième tentative est la bonne parce qu'elle s'attaque enfin à la cause et non
+au symptôme.
+
+**Le correctif tient en une règle : un passage qui ne sait pas n'écrit aucun
+verdict.** `GamePresence` a trois valeurs, `Unknown`, `Present`, `Absent`, et
+`GamePresenceReading.After` reçoit une liste **nulle** quand la recherche n'a pas
+répondu. Une liste vide reste une réponse ; `null` n'en est pas une.
+
+**Pourquoi trois valeurs plutôt qu'un bouclier mieux réglé.** Deux booléens
+écrits depuis deux endroits, dont l'affichage n'était que le `&&`, c'est
+exactement l'arrangement qui a produit ce défaut : celui qui règle le second
+peut désarmer le premier sans le voir. Avec trois valeurs, « je ne sais pas
+encore » cesse d'être orthographiable en « il n'y a pas de jeu ».
+
+**Trois conséquences que la règle apporte gratuitement.**
+
+Le jeu `_searched` disparaît. Il existait pour empêcher un téléphone réellement
+sans jeu de réannoncer une recherche à chaque balayage périodique ; un verdict
+`Absent` tient tout seul d'un balayage à l'autre. Il n'était d'ailleurs jamais
+élagué, ni au retrait d'un appareil ni à son oubli.
+
+Le drapeau ne reste plus coincé. Il n'était effacé que sur le chemin nominal :
+une exception laissait les téléphones sur « Recherche des comptes » jusqu'au
+balayage suivant. Il n'y a plus de drapeau à effacer.
+
+Un appareil hors ligne n'est plus jugé. La recherche ne questionne que les
+appareils connectés, donc rien ne peut être lu de son silence. C'est le même
+travers que le principal, dans un second déguisement.
+
+**Ce qui n'a pas été fait, et pourquoi.** Les dix `_instances = null` ne sont
+pas touchés. Les remplacer par un drapeau en gardant la liste périmée aurait
+réécrit, pendant 2,9 secondes, la qualité, la distance ou le nom que
+l'utilisateur venait de changer : `InstanceRowViewModel.Update` les repose
+depuis l'instance. Le défaut meurt chez le consommateur, pas sur dix sites
+d'appel, et c'est la plus grosse réduction de risque du correctif.
+
+Les lignes ne sont d'ailleurs plus reconstruites du tout sur un passage non
+autoritaire. Les laisser telles que le dernier passage autoritaire les a bâties
+est à la fois correct et sans clignotement.

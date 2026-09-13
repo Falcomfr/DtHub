@@ -2,6 +2,7 @@
 
 using DtHub.Core.Adb;
 using DtHub.Core.Devices;
+using DtHub.Core.Dofus;
 using DtHub.Core.Localization;
 
 namespace DtHub.App.ViewModels;
@@ -48,67 +49,53 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     public bool IsConnected => State == AdbDeviceState.Device;
 
     /// <summary>
-    /// True when the device answers but no profile carries the game.
-    /// It then has no row in the list, and would disappear without a
-    /// word.
-    /// </summary>
-    private bool _hasNoGame;
-
-    /// <summary>
-    /// True while the phone is there but its accounts have not been looked for
-    /// yet.
+    /// What this phone is known to carry.
     ///
-    /// Finding them asks each profile of each phone two questions and was
-    /// measured at 2.9 seconds, so the phones are shown before it runs. During
-    /// that gap a phone that has the game is indistinguishable from one that
-    /// does not, and saying the game is missing would be a plain lie: this
-    /// state is what keeps the window from telling it.
+    /// **One value where there used to be two booleans, and that is the
+    /// fix.** The claim "no game" and the cosmetic "still looking"
+    /// shared nothing but an <c>&amp;&amp;</c> in the display, and they
+    /// were written from two different places. Lowering the second for
+    /// a purely cosmetic reason silently removed the only guard on the
+    /// first, and both phones started announcing "Game not installed"
+    /// several times a minute. Three values cannot contradict each
+    /// other, and "not known yet" stops being spellable as "absent".
     /// </summary>
-    private bool _lookingForGames;
+    public GamePresence Presence { get; private set; }
 
-    /// <summary>See <see cref="_lookingForGames" />.</summary>
-    public bool IsLookingForGames
+    /// <summary>Records what the last pass established, and nothing more.</summary>
+    public void SetPresence(GamePresence presence)
     {
-        get => _lookingForGames && IsConnected;
-        set
+        if (Presence == presence)
         {
-            if (_lookingForGames == value)
-            {
-                return;
-            }
-
-            _lookingForGames = value;
-
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(HasNoGame));
-            OnPropertyChanged(nameof(StatusText));
-            OnPropertyChanged(nameof(StatusBrushKey));
+            return;
         }
+
+        Presence = presence;
+
+        OnPropertyChanged(nameof(Presence));
+        OnPropertyChanged(nameof(IsLookingForGames));
+        OnPropertyChanged(nameof(HasNoGame));
+        OnPropertyChanged(nameof(StatusText));
+        OnPropertyChanged(nameof(StatusBrushKey));
     }
 
     /// <summary>
-    /// True only for a reachable device without the game.
+    /// True while the phone is there and its accounts are not
+    /// established yet.
     ///
-    /// Never true while the accounts are still being looked for: the absence
-    /// of a row means nothing yet at that point.
+    /// Finding them asks each profile of each phone two questions and
+    /// was measured at 2.9 seconds, so the phones are shown before it
+    /// runs. During that gap a phone that has the game is
+    /// indistinguishable from one that does not.
     /// </summary>
-    public bool HasNoGame
-    {
-        get => _hasNoGame && IsConnected && !IsLookingForGames;
-        set
-        {
-            if (_hasNoGame == value)
-            {
-                return;
-            }
+    public bool IsLookingForGames => Presence == GamePresence.Unknown && IsConnected;
 
-            _hasNoGame = value;
-
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(StatusText));
-            OnPropertyChanged(nameof(StatusBrushKey));
-        }
-    }
+    /// <summary>
+    /// True only for a reachable device the search answered about, and
+    /// answered that no profile carries the game. It then has no row in
+    /// the list, and would disappear without a word.
+    /// </summary>
+    public bool HasNoGame => Presence == GamePresence.Absent && IsConnected;
 
     /// <summary>
     /// True when this device announces itself on the network and
