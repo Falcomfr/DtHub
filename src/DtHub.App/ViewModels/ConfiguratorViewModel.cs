@@ -167,7 +167,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
     public InstanceListViewModel Instances { get; }
 
-    // Onglet Général
+    // Onglet Fenêtres
 
     /// <summary>Les neuf positions possibles du bloc de fenêtres.</summary>
     public IReadOnlyList<WindowAnchor> Anchors { get; } = WindowAnchors.All;

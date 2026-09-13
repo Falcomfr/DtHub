@@ -37,7 +37,7 @@ l'association Wi-Fi et se met à jour toute seule ; il n'y a pas de bouton
 
 **Ensuite.** Les instances cochées s'ouvrent directement. Un configurateur
 flottant se pose dans un coin libre, et `Ctrl+P` l'affiche ou le masque. Il a
-trois onglets : Général, Appareils, Raccourcis. Rien d'autre n'existe.
+trois onglets : Appareils, Fenêtres, Raccourcis. Rien d'autre n'existe.
 
 ## Environnement de développement
 
