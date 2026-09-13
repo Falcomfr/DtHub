@@ -8049,3 +8049,36 @@ deux cent quatre-vingt-onze commits français.
 puis au code, puis à la description du dépôt, et pas au seul texte de tous ceux
 là qui s'affiche dans l'application des utilisateurs. Une règle vérifiée aux
 endroits où on l'a écrite, et pas là où elle se voit.
+
+## D145 - Deux avertissements, pas un, et c'est pourquoi il n'y a pas de capture
+
+**Date** : 2026-09-13
+
+La page de téléchargement annonçait un avertissement Windows sans que personne
+ne l'ait jamais vu. La mesure a démenti la forme, pas le fond.
+
+**Ce qui a été relevé.** Sur un premier téléchargement depuis le navigateur,
+l'utilisateur voit « Windows a protégé votre ordinateur », la boîte SmartScreen,
+qui se franchit par « Informations complémentaires » puis « Exécuter quand
+même ». En rejouant l'essai sur la même machine, avec la marque du web posée à
+la main et le même fichier, c'est une autre boîte qui paraît : « Fichier ouvert,
+avertissement de sécurité », « L'éditeur n'a pas pu être vérifié », « Éditeur
+inconnu », qui se franchit par « Exécuter ». SmartScreen retient sa décision par
+empreinte : une fois passé, il ne redemande plus, et c'est le service des pièces
+jointes qui prend le relais.
+
+**Conséquence pour la page.** Une capture d'écran aurait été fausse pour une
+partie des lecteurs, et une capture fausse est pire que pas de capture : le
+lecteur qui voit autre chose que ce qu'on lui a montré se demande ce qu'il a
+téléchargé. L'encart nomme donc les deux fenêtres par leur titre et donne les
+clics de chacune.
+
+**Ce qui est dit, et ce qui n'est pas dit.** Que ni l'une ni l'autre ne signale
+un virus, ce qui est vrai et que le lecteur ne sait pas. Pas de lien vers le
+rapport VirusTotal, malgré sa force de conviction : son adresse porte
+l'empreinte d'une version, et la règle de la page interdit déjà toute empreinte
+codée en dur, qui mentirait à la livraison suivante.
+
+**Le défaut attrapé, une fois de plus le même.** Trois documents affirmaient un
+comportement déduit. Il se trouve qu'ils avaient raison sur le fond, mais rien
+ne le garantissait, et ils avaient tort sur le détail.
