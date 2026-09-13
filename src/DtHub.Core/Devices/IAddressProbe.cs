@@ -1,4 +1,4 @@
-namespace DtHub.Core.Devices;
+﻿namespace DtHub.Core.Devices;
 
 /// <summary>
 /// Tells whether an address accepts a TCP connection, without sending anything.
