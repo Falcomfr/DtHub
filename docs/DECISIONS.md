@@ -8758,3 +8758,48 @@ chemin n'est pas couvert par les gardes ci-dessus.
 connaissait pas**, donc l'énumération non filtrée y revenait vide et faisait
 passer l'épreuve du cas légitime pour de mauvaises raisons. Il répond désormais
 une liste de paquets plausible, ce qui le rend plus fidèle et non moins.
+
+## D159 - Le compte des quêtes d'un succès, c'est le site qui le donne
+
+**Date** : 2026-09-13
+
+« En bas ça doit afficher par exemple 3/3 si y en a 3 dans les succès, mais le
+prochain, si c'est une quête sans succès, ça doit être 1/1. Ça doit pas
+s'inclure dans le succès. » Le pied de la fenêtre de guide annonçait un total
+qu'il fabriquait lui-même.
+
+**Ce qu'il comptait.** `SetNeighbours` groupait les quêtes du catalogue portant
+le même `SuccessName` et prenait la taille du groupe comme total. Or le champ
+« Succès associé » de la page dit *à quel* succès une quête se rattache ; il ne
+dit pas *combien* de quêtes ce succès contient. Le catalogue, lui, ne contient
+que ce qu'il a indexé.
+
+**Mesuré contre le site, sur les cent quinze succès du catalogue** : six totaux
+justes. Vingt-huit trop hauts, « Le théâtre des gobelins » comptant six quêtes
+pour trois et « Intérimaire frigostien » dix-neuf pour trois. Soixante-quinze
+trop bas, « Devenir une légende » comptant deux pour douze. « À la barbe du
+roi » s'annonçait troisième sur cinq là où le site l'annonce neuvième sur onze.
+
+**Le site publie la réponse dans le bloc d'introduction de chaque quête**, sous
+« Progression : Étape 9/11 », et `QuestPageParser.ParseFacts` la lisait déjà :
+`StepNumber`, `StepCount`, `StepText`, `HasChain`, couverts par les épreuves du
+parseur depuis leur écriture, et lus par personne. Le seul champ de `QuestFacts`
+que la fenêtre consultait était `Success`.
+
+**La règle** vit dans `QuestProgress`, dans le noyau et non dans la fenêtre,
+pour la même raison que `QuestStepLabel` et `QuestNeighbourhood` : le projet
+d'épreuves vise net10.0 quand l'application vise net10.0-windows, donc une règle
+laissée dans la fenêtre est une règle que rien ne prouve. La page l'emporte ; le
+catalogue tient le compte pendant la seconde de chargement et pour les six
+succès dont les pages ne publient aucune progression ; une quête qui n'appartient
+à aucun succès est une sur une, ce que le pied de fenêtre taisait jusqu'ici.
+
+**Un rang ne dépasse jamais son total.** Le site ne se contredit pas
+aujourd'hui, mais afficher « 9 / 3 » est la seule chose que ce compteur ne doit
+jamais faire, et la garde coûte une comparaison.
+
+**Un voisin traité au passage.** `Follow`, sur une adresse que le catalogue ne
+connaît pas, effaçait trois champs d'état en expliquant qu'ils désignaient
+encore la page précédente. `_neighbours` était dans le même cas et passait au
+travers : la séquence publiée par la page était pesée contre le rang d'une quête
+déjà quittée. Les ouvertures de donjon et de chemin l'effacent aussi désormais.
