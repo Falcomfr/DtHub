@@ -1602,6 +1602,34 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         await _settings.SetInstancesEnabledAsync([instance.Key], enabled: false, cancellationToken)
             .ConfigureAwait(false);
+
+        NotifyIfNothingLeft();
+    }
+
+    /// <summary>
+    /// Says the last game window is gone when a deliberate close leaves none.
+    ///
+    /// StopSessionAsync raises the closing flag so that a window we close on
+    /// purpose is not taken for a game that died. That is right for recovery,
+    /// but it also swallowed the one signal that tells the application nothing
+    /// is left, and that signal is what makes it quit rather than survive with
+    /// an empty screen.
+    ///
+    /// Measured: closing the tabbed frame while the configurator and the guide
+    /// were both hidden, which is what happens as soon as accounts are open,
+    /// left the process alive at 329 MB with nothing on screen and no way back
+    /// except Ctrl+P. App.xaml.cs states the opposite rule in as many words.
+    ///
+    /// Not raised from CloseAllAsync: that one also serves as the first half of
+    /// applying a launch profile, where a reopening follows at once and quitting
+    /// in between would take the application down mid-gesture.
+    /// </summary>
+    private void NotifyIfNothingLeft()
+    {
+        if (_sessions.ActiveSessions.Count == 0)
+        {
+            LastWindowClosed?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     /// <summary>
@@ -2605,6 +2633,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
         {
             await _settings.SetInstancesEnabledAsync(fermes, enabled: false).ConfigureAwait(false);
         }
+
+        NotifyIfNothingLeft();
     }
 
     private Windows.TabbedGameWindow EnsureTabs(AppSettingsDocument document)
