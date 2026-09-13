@@ -8893,3 +8893,27 @@ et rien ne le rendait vrai. Un téléphone ayant refusé la simulation d'entrée
 gardait l'option de souris simulée offerte dans les réglages longtemps après
 avoir été débranché. Il s'élague là où `_health` et `_batteries` s'élaguaient
 déjà.
+
+## D162 - Un téléphone qu'on cesse d'interroger ne cesse pas de parler
+
+**Date** : 2026-09-14
+
+Dernier des neuf défauts du bandeau, et le seul qui demandait un arbitrage.
+
+`RefreshHealthAsync` choisissait qui interroger : les téléphones portant une
+fenêtre dès qu'il y en avait un, tous les connectés sinon. Le raccourci était
+posé pour économiser des sondages. Mais `_health` n'est élagué que pour les
+appareils **disparus** : un téléphone resté branché et inactif gardait donc
+indéfiniment à l'écran le constat de la dernière fois qu'on lui avait parlé.
+Batterie faible réglée depuis une heure, constat toujours affiché.
+
+**L'arbitrage s'est dissous à la mesure.** Les quatre lectures - chaleur,
+batterie, stockage, liaison - sont mises en cache une minute par la découverte.
+Interroger un téléphone inactif coûte donc quatre appels ADB par minute, quel que
+soit le rythme du balayage, et non quatre par balayage comme le raccourci le
+laissait craindre. Entre ça et un avertissement faux affiché sans limite de
+temps, il n'y a pas de débat.
+
+La question du verrou reste réservée aux téléphones qui portent des fenêtres :
+elle porte sur ces fenêtres, et la poser ailleurs demanderait quelque chose au
+téléphone pour rien.

@@ -38,6 +38,12 @@ French.
   are read as before; the value is ignored and disappears on the next save.
 
 ### Fixed
+- **A phone left connected and idle kept showing a stale warning.** As soon as
+  one phone carried a window, only the phones carrying windows were asked about
+  their heat, battery, storage and link; the others were neither refreshed nor
+  dropped, since pruning only removes a phone that has gone away. Every
+  connected phone is asked again. It costs four ADB calls a minute per idle
+  phone, the readings being cached for a minute.
 - **A launch that opened some windows said nothing about the ones it failed to
   open.** Three out of five counted as a success. The two paths nobody watches,
   the session resumed at startup and the window reopened after a drop, threw

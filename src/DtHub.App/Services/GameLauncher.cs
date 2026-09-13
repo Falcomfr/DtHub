@@ -858,13 +858,30 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         var playing = alive.Distinct(StringComparer.Ordinal).ToList();
 
-        var serials = playing.Count > 0
-            ? playing
-            : [.. discovery.Devices
+        // **Every connected phone, and not only those playing.** The
+        // shortcut used to stop at the phones carrying a window as
+        // soon as there was one, and the findings of the others were
+        // then neither refreshed nor dropped: the pruning below only
+        // removes a device that has gone away. A phone left connected
+        // and idle therefore kept showing, indefinitely, a finding
+        // from the last time it was asked.
+        //
+        // It costs nothing to speak of: the four readings are cached
+        // for a minute by discovery, so an idle phone is worth four
+        // ADB calls a minute, whatever the sweep's pace. The lock
+        // question below stays reserved for the phones that carry
+        // windows, since it is about those windows.
+        List<string> serials =
+        [
+            .. playing,
+            .. discovery.Devices
                 .Where(d => d.IsConnected)
                 .Select(d => d.Serial)
                 .Where(s => !string.IsNullOrWhiteSpace(s))
-                .Distinct(StringComparer.Ordinal)];
+                .Where(s => !playing.Contains(s, StringComparer.Ordinal)),
+        ];
+
+        serials = [.. serials.Distinct(StringComparer.Ordinal)];
 
         if (serials.Count == 0)
         {
