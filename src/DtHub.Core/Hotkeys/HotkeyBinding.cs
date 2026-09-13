@@ -94,11 +94,10 @@ public sealed record HotkeyBinding
     /// </summary>
     public (int Key, HotkeyModifiers Modifiers) Combination => (VirtualKey, Modifiers);
 
-    /// <summary>Label of the action, for the hotkey editor.</summary>
     /// <summary>
-    /// What the action does, in one line. The label must name its
-    /// reference when it has one: "remettre en place" (put back in
-    /// place) did not say on what.
+    /// Label of the action, for the hotkey editor: what it does, in one
+    /// line. The label must name what it acts on when there is one,
+    /// "remettre en place", put back in place, did not say on what.
     /// </summary>
     public static string DescribeAction(HotkeyAction action) => action switch
     {

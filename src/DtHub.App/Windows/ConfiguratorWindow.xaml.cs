@@ -217,7 +217,6 @@ public partial class ConfiguratorWindow : Window
         Top = (rect.Y + margin) / scale.DpiScaleY;
     }
 
-    /// <summary>Actually closes the application.</summary>
     /// <summary>
     /// Quits the application. The session state is saved beforehand, and
     /// the wait is necessary: otherwise the shutdown would race against
@@ -261,7 +260,6 @@ public partial class ConfiguratorWindow : Window
         await _viewModel.RefreshHotkeysAsync(CancellationToken.None).ConfigureAwait(true);
     }
 
-    /// <summary>Opens the add window, then refreshes the list.</summary>
     /// <summary>
     /// Opens the panel on the devices tab. Used on first launch, where
     /// it is the only place that has anything to say.
@@ -286,6 +284,7 @@ public partial class ConfiguratorWindow : Window
             DispatcherPriority.ApplicationIdle,
             () => OnAddDevice(this, new RoutedEventArgs()));
 
+    /// <summary>Opens the add window, then refreshes the list.</summary>
     private async void OnAddDevice(object sender, RoutedEventArgs e)
     {
         var dialog = AppHost.Services.GetRequiredService<AddDeviceWindow>();

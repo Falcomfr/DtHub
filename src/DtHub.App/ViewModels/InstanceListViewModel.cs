@@ -441,7 +441,6 @@ public sealed partial class InstanceListViewModel : ObservableObject
         await SyncProfilesAsync().ConfigureAwait(true);
     }
 
-    /// <summary>Sweeps the phones and rebuilds the list.</summary>
     /// <summary>
     /// True if this serial number is that of this instance's device.
     /// </summary>
@@ -450,6 +449,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
             string.Equals(d.Id, deviceId, StringComparison.Ordinal)
             && string.Equals(d.Serial, serial, StringComparison.Ordinal));
 
+    /// <summary>Sweeps the phones and rebuilds the list.</summary>
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
     {
         if (IsBusy || IsReordering)

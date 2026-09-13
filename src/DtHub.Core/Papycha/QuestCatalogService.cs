@@ -534,7 +534,6 @@ public sealed class QuestCatalogService : IDisposable
     }
 
     /// <summary>
-    /// <summary>
     /// The success for each quest, from two sources that complement each
     /// other.
     ///

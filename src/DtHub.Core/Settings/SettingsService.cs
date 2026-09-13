@@ -297,7 +297,6 @@ public sealed class SettingsService : IDisposable
     public Task SetAudioEnabledAsync(bool enabled, CancellationToken cancellationToken = default) =>
         UpdateAsync(settings => settings.AudioEnabled = enabled, cancellationToken);
 
-    /// <summary>Remembers the chosen keyboard mode.</summary>
     /// <summary>Turns the fluidity diagnostics on or off.</summary>
     public Task SetFluidityDiagnosticsAsync(bool value, CancellationToken cancellationToken = default) =>
         UpdateIfChangedAsync(
@@ -314,6 +313,7 @@ public sealed class SettingsService : IDisposable
             },
             cancellationToken);
 
+    /// <summary>Remembers the chosen keyboard mode.</summary>
     public Task SetSimulatedPhysicalKeyboardAsync(
         bool simulated,
         CancellationToken cancellationToken = default) =>
