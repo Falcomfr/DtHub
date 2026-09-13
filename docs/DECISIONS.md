@@ -8803,3 +8803,51 @@ connaît pas, effaçait trois champs d'état en expliquant qu'ils désignaient
 encore la page précédente. `_neighbours` était dans le même cas et passait au
 travers : la séquence publiée par la page était pesée contre le rang d'une quête
 déjà quittée. Les ouvertures de donjon et de chemin l'effacent aussi désormais.
+
+## D160 - Un bandeau qui s'ouvre doit dire pourquoi il s'est ouvert
+
+**Date** : 2026-09-14
+
+Trois propriétés décidaient du bandeau d'erreurs de la liste des comptes, et
+elles n'étaient pas d'accord. `Problem` décidait s'il **apparaissait**,
+`AllProblems` donnait le **texte**, `ProblemIsSerious` la **couleur**. Chacune
+avait ses écrivains.
+
+**Le défaut.** `AllProblems` rendait `ProblemDetail` dès qu'il était non vide, et
+`ApplyHealth` était le seul à écrire `ProblemDetail`. Tous les autres chemins
+n'écrivaient que `Problem` : un échec de lancement faisait donc apparaître le
+bandeau **en affichant le constat de santé du balayage précédent**. Le texte de
+l'échec n'était atteignable par aucun chemin. Neuf écrivains étaient dans ce cas,
+dont les quatre boutons d'action et les deux du configurateur.
+
+**La couleur mentait aussi.** `ProblemIsSerious` valait `HealthIsSerious`,
+c'est-à-dire le pire constat de **toute** l'application, y compris ceux qui
+s'affichent sous le nom d'un téléphone et ne figurent pas dans le bandeau. Un
+bandeau qui parlait d'autre chose passait au rouge.
+
+**La règle vit dans `ErrorBanner`, dans le noyau.** Même raison que
+`QuestProgress` en D159 et `QuestStepLabel` avant lui : le projet d'épreuves ne
+référence pas `DtHub.App`, donc une règle laissée dans la vue est une règle que
+rien ne prouve. Elle rend d'un coup le texte et la gravité ; la vue les pose
+ensemble, la XAML lie visibilité, texte et infobulle à la **même** propriété.
+
+Chaque ligne porte sa propre gravité, et la couleur est celle du pire de ce qui
+est **montré**. Une ligne blanche est écartée : ce n'est pas une absence de
+problème, c'est un message que personne n'a écrit, et le laisser passer ouvrait
+un bandeau vide, ce qui se lit comme une panne de l'application.
+
+**Une ligne par constat, et non le pire.** Repris tel quel de D120 : un téléphone
+en a porté trois à la fois, verrou, encombrement et batterie non préparée, et
+n'en montrer qu'un cachait les deux autres si bien qu'il fallait régler le
+premier pour apprendre que le second existait.
+
+**Le garde-fou a suivi.** `CatchDisciplineTests` énumère les façons de faire
+remonter une erreur ; `Problem =` en était une, `ShowBanner(` en est une
+maintenant. Sans cet ajout, six `catch` devenaient muets aux yeux de l'épreuve
+alors qu'ils parlent mieux qu'avant.
+
+**Ce qui reste ouvert.** L'effacement du bandeau à chaque balayage, la
+péremption des avis suspendue quand le panneau est caché, les constats d'un
+téléphone inactif jamais élagués, et les quatre routages différents d'un échec
+de lancement. Ils sont traités à la suite, et deux d'entre eux demandent le
+même avis d'échec daté qui n'existe pas encore.

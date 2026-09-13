@@ -27,7 +27,7 @@ public sealed class CatchDisciplineTests
     /// </summary>
     private static readonly Regex Speaks = new(
         @"Log[A-Za-z]*\(|Log\.\w+\(|_logger|Report\(|throw|"
-        + @"Problem\s*=|Status\s*=|FailureKind\s*=|FailureMessage\s*=|"
+        + @"Problem\s*=|ShowBanner\(|Status\s*=|FailureKind\s*=|FailureMessage\s*=|"
         + @"Show(Warning|Information|Error)|"
         + @"FailedSession|AppLaunchResult\.Failure|AccountAddition\(|"
         + @"\.Record\(|TrySetException|ThrowIfCancellationRequested|ReportViewFailure|"

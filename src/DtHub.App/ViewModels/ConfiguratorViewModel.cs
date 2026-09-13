@@ -858,7 +858,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         var report = await _launcher.LaunchAsync([row.Instance]).ConfigureAwait(true);
         Instances.RefreshRunningState();
 
-        Instances.Problem = report.Problems.Count > 0 ? string.Join(" ", report.Problems) : null;
+        Instances.ShowBanner(report.Problems.Count > 0 ? string.Join(" ", report.Problems) : null);
     }
 
     /// <summary>Closes then reopens the instance, game included.</summary>
@@ -873,7 +873,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         var report = await _launcher.RestartAsync(row.Instance).ConfigureAwait(true);
         Instances.RefreshRunningState();
 
-        Instances.Problem = report.Problems.Count > 0 ? string.Join(" ", report.Problems) : null;
+        Instances.ShowBanner(report.Problems.Count > 0 ? string.Join(" ", report.Problems) : null);
     }
 
     [RelayCommand]
@@ -895,7 +895,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
         if (moved == 0)
         {
-            Instances.Problem = Strings.Get("NothingToRearrange");
+            Instances.ShowBanner(Strings.Get("NothingToRearrange"));
         }
     }
 
@@ -909,7 +909,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
         if (placed == 0)
         {
-            Instances.Problem = Strings.Get("NothingToTile");
+            Instances.ShowBanner(Strings.Get("NothingToTile"));
         }
     }
 

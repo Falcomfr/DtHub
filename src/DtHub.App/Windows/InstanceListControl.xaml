@@ -617,7 +617,7 @@
          existed. Each row stays a row; their number follows that of
          the actual problems, which is zero most of the time. -->
     <Grid Margin="2,0,0,4"
-          ToolTip="{Binding AllProblems}"
+          ToolTip="{Binding Problem}"
           Visibility="{Binding Problem, Converter={StaticResource EmptyToVisibility},
                                ConverterParameter=inverse}">
       <Grid.ColumnDefinitions>
@@ -643,7 +643,7 @@
         </Path.Style>
       </Path>
 
-      <TextBlock Grid.Column="1" Text="{Binding AllProblems}"
+      <TextBlock Grid.Column="1" Text="{Binding Problem}"
                  FontFamily="{StaticResource UiFont}" FontSize="{StaticResource FontSmall}"
                  TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                  VerticalAlignment="Center">

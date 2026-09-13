@@ -88,48 +88,61 @@ public sealed partial class InstanceListViewModel : ObservableObject
     [ObservableProperty]
     private bool _isBusy;
 
+    /// <summary>
+    /// What the banner shows, one finding per line, or <c>null</c> to
+    /// hide it.
+    ///
+    /// **Written by <see cref="ShowBanner(IEnumerable{BannerLine})" />
+    /// and by nothing else.** There used to be three properties here:
+    /// this one decided whether the banner appeared, a second gave the
+    /// text, a third the colour, and they were written by different
+    /// paths. A launch failure wrote only this one, so the banner
+    /// opened on the health notice left by the previous sweep and the
+    /// failure's own text was reachable by no path at all.
+    ///
+    /// **One finding per line, not the worst one followed by a
+    /// bubble.** A phone once carried three at once: lock, clutter,
+    /// and an unready battery. Only one showed, and fixing the first
+    /// was needed just to learn that a second existed. That is exactly
+    /// the flaw D120 refused by keeping the text visible rather than
+    /// hidden on hover. Each line stays truncated to one line, and
+    /// hovering gives the full text.
+    /// </summary>
     [ObservableProperty]
     private string? _problem;
 
     /// <summary>
-    /// The same notice, but in full: every finding, one per line.
+    /// True when one of the lines <em>shown</em> will cut the session
+    /// short, as opposed to a mere annoyance. Only the icon's colour
+    /// depends on it: the text itself stays the same.
     ///
-    /// The banner fits on one line and so shows only the most serious
-    /// one. What it leaves out can be read on hover: otherwise you would
-    /// have to fix the first problem just to learn that a second exists.
-    /// </summary>
-    [ObservableProperty]
-    private string? _problemDetail;
-
-    /// <summary>
-    /// What the banner shows: every finding when there are several, the
-    /// single line otherwise.
-    ///
-    /// **One finding per line, not the worst one followed by a bubble.**
-    /// A phone once carried three findings at once: lock, clutter, and
-    /// an unready battery. Only one showed, and fixing the first one was
-    /// needed just to learn that a second existed. That is exactly the
-    /// flaw D120 refused by keeping the text visible rather than hidden
-    /// on hover: hiding it behind a count instead of behind hover came
-    /// to the same thing. Each line still stays truncated to one line,
-    /// and hovering gives the full text.
-    ///
-    /// The fallback to <see cref="Problem" /> matters: several paths raise
-    /// a notice with no detail, a caught error for instance.
-    /// </summary>
-    public string? AllProblems => string.IsNullOrEmpty(ProblemDetail) ? Problem : ProblemDetail;
-
-    partial void OnProblemChanged(string? value) => OnPropertyChanged(nameof(AllProblems));
-
-    partial void OnProblemDetailChanged(string? value) => OnPropertyChanged(nameof(AllProblems));
-
-    /// <summary>
-    /// True when what is reported will cut the session short, as
-    /// opposed to a mere annoyance. Only the icon's colour depends on
-    /// it: the text itself stays the same.
+    /// It used to come from the worst finding of the whole
+    /// application, those shown under a device's name included, so a
+    /// banner talking about something else went red.
     /// </summary>
     [ObservableProperty]
     private bool _problemIsSerious;
+
+    /// <summary>
+    /// Posts what the banner says, text and colour together, so the
+    /// two can no longer disagree. The rule is in
+    /// <see cref="ErrorBanner" />, where the tests reach it.
+    /// </summary>
+    private void ShowBanner(IEnumerable<BannerLine> lines)
+    {
+        var banner = ErrorBanner.Of(lines);
+
+        Problem = banner.Text;
+        ProblemIsSerious = banner.IsSerious;
+    }
+
+    /// <summary>
+    /// A single notice, grave by no construction: an action that
+    /// failed says what happened, it does not announce the end of a
+    /// session.
+    /// </summary>
+    internal void ShowBanner(string? text) =>
+        ShowBanner(string.IsNullOrWhiteSpace(text) ? [] : [BannerLine.Of(text)]);
 
     /// <summary>
     /// True during a drag and drop. The periodic sweep then holds off
@@ -533,7 +546,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         }
         catch (AdbException exception)
         {
-            Problem = exception.UserMessage;
+            ShowBanner(exception.UserMessage);
         }
         finally
         {
@@ -632,35 +645,32 @@ public sealed partial class InstanceListViewModel : ObservableObject
         // The incidents from device discovery and those from the
         // instance sweep share the same banner: an unreadable profile is
         // just as worth knowing as an unreachable device.
-        var warnings = discovery.Warnings.Concat(_launcher.InstanceWarnings).ToList();
+        var warnings = discovery.Warnings.Concat(_launcher.InstanceWarnings);
 
-        // Two lists of the same facts: the banner's, which stops at the
-        // most serious one, and the bubble's, which carries them all.
-        List<string> everything = [.. warnings];
+        // Each line carries its own severity, and the banner's colour
+        // is the worst of the lines it actually shows. A discovery
+        // warning is worth knowing without ending anything.
+        List<BannerLine> lines = [.. warnings.Select(BannerLine.Of)];
 
         // Each device's summary shows under its name, in addition to
         // this banner. Except for a device with no row in the list: it
         // has no header to lodge its finding under, and losing it would
         // be worse than putting it in the wrong place. That one is
         // named, since nothing around it names it.
-        var homeless = _launcher.HealthByDevice
+        lines.AddRange(_launcher.HealthByDevice
             .Where(pair => !(instances ?? []).Any(i => Carries(discovery, pair.Key, i.DeviceId)))
-            .Select(pair => pair.Value.Device is { Length: > 0 } named
-                ? Strings.Format("NamedFinding", named, pair.Value.Text)
-                : pair.Value.Text)
-            .ToList();
-
-        warnings.AddRange(homeless);
-        everything.AddRange(homeless);
-
-        ProblemIsSerious = _launcher.HealthIsSerious;
+            .Select(pair => new BannerLine(
+                pair.Value.Device is { Length: > 0 } named
+                    ? Strings.Format("NamedFinding", named, pair.Value.Text)
+                    : pair.Value.Text,
+                pair.Value.Serious ? HealthSeverity.Serious : HealthSeverity.Warning)));
 
         // The recovery of a lost window is said in the same place, and
-        // for the same reason: it explains what has just happened.
+        // for the same reason: it explains what has just happened. It
+        // announces no end of session, so it does not redden anything.
         if (_launcher.RecoveryNotice is { Length: > 0 } recovery)
         {
-            warnings.Add(recovery);
-            everything.Add(recovery);
+            lines.Add(new BannerLine(recovery, HealthSeverity.Notice));
         }
 
         // The game left running on the phone is said there too: its
@@ -668,14 +678,10 @@ public sealed partial class InstanceListViewModel : ObservableObject
         // it.
         if (_launcher.StopFailedNotice is { Length: > 0 } left)
         {
-            warnings.Add(left);
-            everything.Add(left);
+            lines.Add(BannerLine.Of(left));
         }
 
-        Problem = warnings.Count > 0 ? string.Join(" ", warnings) : null;
-        ProblemDetail = everything.Count > 0
-            ? string.Join(Environment.NewLine, everything)
-            : null;
+        ShowBanner(lines);
 
         foreach (var device in discovery.Devices)
         {
@@ -961,11 +967,11 @@ public sealed partial class InstanceListViewModel : ObservableObject
         {
             var report = await action(row.Instance).ConfigureAwait(true);
 
-            Problem = report.Problems.Count > 0 ? string.Join(" ", report.Problems) : null;
+            ShowBanner(report.Problems.Count > 0 ? string.Join(" ", report.Problems) : null);
         }
         catch (AdbException exception)
         {
-            Problem = exception.UserMessage;
+            ShowBanner(exception.UserMessage);
         }
         finally
         {
@@ -1314,7 +1320,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            Problem = exception.Message;
+            ShowBanner(exception.Message);
         }
         finally
         {
@@ -1334,7 +1340,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         }
         catch (AdbException exception)
         {
-            Problem = exception.UserMessage;
+            ShowBanner(exception.UserMessage);
         }
         finally
         {
@@ -1356,7 +1362,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            Problem = exception.Message;
+            ShowBanner(exception.Message);
         }
         finally
         {
@@ -1385,7 +1391,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         {
             // The siblings all report a failed write. This one swallowed it,
             // so a rename that never reached the disk looked like one that had.
-            Problem = exception.Message;
+            ShowBanner(exception.Message);
         }
         finally
         {

@@ -35,6 +35,15 @@ French.
   are read as before; the value is ignored and disappears on the next save.
 
 ### Fixed
+- **A launch failure never reached the screen.** The error banner of the
+  account list took its visibility from one property, its text from a second
+  and its colour from a third, each written by a different path. A failed
+  action wrote only the first, so the banner opened showing the health notice
+  left over from the previous sweep, and the failure's own words were
+  reachable by no path at all. The colour lied too: it came from the worst
+  finding in the whole application, including those shown under a phone's own
+  name and absent from the banner. All three now come from one decision, and
+  the banner is coloured by the worst of the lines it actually shows.
 - **A quest guide counted the wrong number of quests in an achievement.** The
   foot of the window built its own total by counting the catalogue's quests
   that name the same achievement, which is not the same thing as the quests
