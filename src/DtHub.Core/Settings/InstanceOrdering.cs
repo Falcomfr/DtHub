@@ -102,28 +102,6 @@ public static class InstanceOrdering
         Reseat(ordered);
     }
 
-    /// <summary>
-    /// Sets the complete order by keys. A key forgotten by the caller
-    /// keeps its instance, which resumes its place at the end.
-    /// </summary>
-    public static void ReorderInstances(AppSettingsDocument settings, IReadOnlyList<string> orderedKeys)
-    {
-        ArgumentNullException.ThrowIfNull(settings);
-        ArgumentNullException.ThrowIfNull(orderedKeys);
-
-        var remaining = settings.Instances.OrderBy(i => i.Order).ToList();
-
-        var reordered = orderedKeys
-            .Select(k => remaining.Find(i => string.Equals(i.Key, k, StringComparison.Ordinal)))
-            .Where(i => i is not null)
-            .Select(i => i!)
-            .ToList();
-
-        reordered.AddRange(remaining.Where(i => !reordered.Contains(i)));
-
-        Reseat(reordered);
-    }
-
     private static void Reseat(List<StoredInstance> ordered)
     {
         for (var i = 0; i < ordered.Count; i++)

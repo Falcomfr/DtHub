@@ -129,20 +129,6 @@ public static class DeviceHealth
     }
 
     /// <summary>
-    /// The finding that speaks for all, or <c>null</c> when
-    /// everything is fine.
-    ///
-    /// Just one: two warnings side by side in the same banner would
-    /// read as a single, longer one.
-    /// </summary>
-    public static string? Worst(IReadOnlyList<HealthFinding> findings)
-    {
-        ArgumentNullException.ThrowIfNull(findings);
-
-        return findings.Count == 0 ? null : findings[0].Message;
-    }
-
-    /// <summary>
     /// All the findings, one per line, or <c>null</c> when there are
     /// none.
     ///

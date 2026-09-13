@@ -30,7 +30,6 @@ public class DeviceHealthTests
         var tout = DeviceHealth.Every(findings);
 
         Assert.Equal(4, findings.Count);
-        Assert.Equal(DeviceHealth.Worst(findings), findings[0].Message);
         Assert.All(findings, f => Assert.Contains(f.Message, tout, StringComparison.Ordinal));
 
         // One line per finding, and nothing more.
@@ -89,7 +88,6 @@ public class DeviceHealthTests
             lockedWindows: true);
 
         Assert.Equal(HealthSeverity.Serious, findings[0].Severity);
-        Assert.Equal(findings[0].Message, DeviceHealth.Worst(findings));
         Assert.NotEqual(findings[0].Message, findings[1].Message);
     }
 
@@ -113,7 +111,6 @@ public class DeviceHealthTests
             Link(5180));
 
         Assert.Empty(findings);
-        Assert.Null(DeviceHealth.Worst(findings));
     }
 
     [Fact]
@@ -136,7 +133,6 @@ public class DeviceHealthTests
 
         Assert.Equal(HealthSeverity.Serious, findings[0].Severity);
         Assert.Contains("5", findings[0].Message, StringComparison.Ordinal);
-        Assert.Equal(DeviceHealth.Worst(findings), findings[0].Message);
     }
 
     [Fact]

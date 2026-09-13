@@ -26,6 +26,9 @@ French.
   with the previous distance.
 
 ### Removed
+- Two device-health properties computed on every sweep and read by nobody, the
+  helper that fed one of them, and a reordering entry point with no caller and
+  a test pinning its behaviour.
 
 - **The "Log the frame rate" setting is gone.** Half of what it promised was
   untrue: its help said the log would also note the encoders the phone offers,

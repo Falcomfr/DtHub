@@ -779,28 +779,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
         return discovery;
     }
 
-    /// <summary>
-    /// The devices' health summary, or <c>null</c> when they have
-    /// nothing to say.
-    ///
-    /// A single piece of text, the most serious one: heat, battery,
-    /// free space and Wi-Fi band each spoke in their own corner, and
-    /// three warnings side by side in the same banner read as one,
-    /// longer one.
-    ///
-    /// **Evaluated before the launch as much as during it.** As long
-    /// as no window is open, it is the connected devices that get
-    /// asked: finding out there is no battery left once all five
-    /// accounts are open is finding out too late.
-    /// </summary>
-    public string? HealthSummary { get; private set; }
-
-    /// <summary>
-    /// All the findings, one per line, for the banner's help
-    /// tooltip. The banner itself shows only one: see
-    /// <see cref="DeviceHealth.Every" />.
-    /// </summary>
-    public string? HealthDetail { get; private set; }
 
     /// <summary>
     /// Each device's findings, keyed by serial number.
@@ -890,8 +868,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         if (serials.Count == 0)
         {
-            HealthSummary = null;
-            HealthDetail = null;
             HealthIsSerious = false;
             _health.Clear();
             _loggedHeat.Clear();
@@ -970,8 +946,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         var ordered = findings.OrderByDescending(f => f.Severity).ToList();
 
-        HealthSummary = DeviceHealth.Worst(ordered);
-        HealthDetail = DeviceHealth.Every(ordered);
         HealthIsSerious = ordered.Count > 0 && ordered[0].Severity == HealthSeverity.Serious;
     }
 

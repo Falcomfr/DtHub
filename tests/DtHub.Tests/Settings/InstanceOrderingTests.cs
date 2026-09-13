@@ -188,14 +188,4 @@ public sealed class InstanceOrderingTests
         Assert.Equal("PHONE-C/0", Names(settings)[^1]);
     }
 
-    [Fact]
-    public void Une_cle_oubliee_dans_un_reordonnancement_ne_perd_pas_son_instance()
-    {
-        var settings = TwoDevices();
-
-        InstanceOrdering.ReorderInstances(settings, [Key("PHONE-B", 999), Key("PHONE-A", 0)]);
-
-        Assert.Equal(4, settings.Instances.Count);
-        Assert.Equal(["PHONE-B/999", "PHONE-A/0"], [.. Names(settings).Take(2)]);
-    }
 }
