@@ -1200,6 +1200,9 @@ Le détail se trouve dans les journaux :
   <data name="GameNotInstalled" xml:space="preserve">
     <value>Jeu non installé</value>
   </data>
+  <data name="LookingForGames" xml:space="preserve">
+    <value>Recherche des comptes</value>
+  </data>
   <data name="ConnectedByUsb" xml:space="preserve">
     <value>Connecté en USB</value>
   </data>

@@ -63,6 +63,17 @@ French.
   Measured at launch: the list appeared 1.83 seconds sooner, and later sweeps
   are unaffected, the readings being cached for a minute.
 
+- **Your phones appear before their accounts are looked for.** Finding the
+  accounts asks two questions of every profile of every phone and was measured
+  at 2.9 seconds, the longest thing a sweep does, and the list waited on all of
+  it although the phones themselves were already known. They are shown as soon
+  as discovery finds them, each saying it is looking for accounts, and the rows
+  fill in when the search answers. Measured at launch: the phones appeared at
+  1.12 seconds instead of 3.35. A phone plugged in later behaves the same way.
+  While the search runs, a phone never claims the game is missing: the absence
+  of a row means nothing until the search has answered, and saying otherwise
+  would have put "Game not installed" under a phone that has it.
+
 ## [0.3.0] - 2026-09-12
 
 ### Added

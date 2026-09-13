@@ -1200,6 +1200,9 @@ El detalle está en los registros:
   <data name="GameNotInstalled" xml:space="preserve">
     <value>Juego no instalado</value>
   </data>
+  <data name="LookingForGames" xml:space="preserve">
+    <value>Buscando cuentas</value>
+  </data>
   <data name="ConnectedByUsb" xml:space="preserve">
     <value>Conectado por USB</value>
   </data>

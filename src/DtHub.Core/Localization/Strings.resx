@@ -1200,6 +1200,9 @@ The detail is in the logs:
   <data name="GameNotInstalled" xml:space="preserve">
     <value>Game not installed</value>
   </data>
+  <data name="LookingForGames" xml:space="preserve">
+    <value>Looking for accounts</value>
+  </data>
   <data name="ConnectedByUsb" xml:space="preserve">
     <value>Connected by USB</value>
   </data>

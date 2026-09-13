@@ -52,10 +52,47 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     /// </summary>
     private bool _hasNoGame;
 
-    /// <summary>Vrai seulement pour un appareil joignable sans le jeu.</summary>
+    /// <summary>
+    /// True while the phone is there but its accounts have not been looked for
+    /// yet.
+    ///
+    /// Finding them asks each profile of each phone two questions and was
+    /// measured at 2.9 seconds, so the phones are shown before it runs. During
+    /// that gap a phone that has the game is indistinguishable from one that
+    /// does not, and saying the game is missing would be a plain lie: this
+    /// state is what keeps the window from telling it.
+    /// </summary>
+    private bool _lookingForGames;
+
+    /// <summary>See <see cref="_lookingForGames" />.</summary>
+    public bool IsLookingForGames
+    {
+        get => _lookingForGames && IsConnected;
+        set
+        {
+            if (_lookingForGames == value)
+            {
+                return;
+            }
+
+            _lookingForGames = value;
+
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasNoGame));
+            OnPropertyChanged(nameof(StatusText));
+            OnPropertyChanged(nameof(StatusBrushKey));
+        }
+    }
+
+    /// <summary>
+    /// Vrai seulement pour un appareil joignable sans le jeu.
+    ///
+    /// Never true while the accounts are still being looked for: the absence
+    /// of a row means nothing yet at that point.
+    /// </summary>
     public bool HasNoGame
     {
-        get => _hasNoGame && IsConnected;
+        get => _hasNoGame && IsConnected && !IsLookingForGames;
         set
         {
             if (_hasNoGame == value)
@@ -110,6 +147,8 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
 
     public string StatusText => _needsPairing && !IsConnected
         ? Strings.Get("ToPairAgain")
+        : IsLookingForGames
+        ? Strings.Get("LookingForGames")
         : HasNoGame
         ? Strings.Get("GameNotInstalled")
         : State switch
@@ -142,6 +181,9 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
 
     public string StatusBrushKey => _needsPairing && !IsConnected
         ? "WarningBrush"
+        // Work in progress is not a warning: it stays muted, so a phone that
+        // turns out to hold the game never flashed orange on the way.
+        : IsLookingForGames ? "TextMutedBrush"
         : HasNoGame ? "WarningBrush" : State switch
         {
             AdbDeviceState.Device => "SuccessBrush",
@@ -258,6 +300,7 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
 
         OnPropertyChanged(nameof(IsConnected));
         OnPropertyChanged(nameof(HasNoGame));
+        OnPropertyChanged(nameof(IsLookingForGames));
         OnPropertyChanged(nameof(StatusText));
         OnPropertyChanged(nameof(StatusBrushKey));
         OnPropertyChanged(nameof(HasBattery));

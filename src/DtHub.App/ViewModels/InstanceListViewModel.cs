@@ -429,32 +429,6 @@ public sealed partial class InstanceListViewModel : ObservableObject
         {
             var discovery = await _launcher.RefreshDevicesAsync(cancellationToken).ConfigureAwait(true);
 
-            // Lister les appareils est bon marché ; redécouvrir les instances
-            // ne l'est pas, chaque profil de chaque appareil demandant deux
-            // commandes au téléphone. On ne le refait donc que si l'ensemble
-            // des appareils a changé, ou après un long moment.
-            var signature = string.Join(
-                "|",
-                discovery.Devices.Select(d => $"{d.Id}:{d.State}").Order(StringComparer.Ordinal));
-
-            if (_instances is null
-                || !string.Equals(signature, _signature, StringComparison.Ordinal)
-                || DateTimeOffset.UtcNow - _discoveredAt >= _launcher.Quality.InstanceRediscovery)
-            {
-                _instances = await _launcher.RefreshInstancesAsync(cancellationToken).ConfigureAwait(true);
-                _signature = signature;
-                _discoveredAt = DateTimeOffset.UtcNow;
-            }
-
-            var instances = _instances;
-
-            // Seules les instances des téléphones joignables ont une ligne.
-            // Les autres appareils ne disparaissent pas pour autant : ils
-            // sont rappelés à part, avec la raison.
-            var connected = discovery.Devices
-                .Where(d => d.IsConnected)
-                .ToDictionary(d => d.Id, StringComparer.Ordinal);
-
             foreach (var device in discovery.Devices)
             {
                 if (!_devices.TryGetValue(device.Id, out var view))
@@ -473,22 +447,55 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 _devices.Remove(gone);
             }
 
-            SyncRows([.. instances.Where(i => connected.ContainsKey(i.DeviceId))]);
-            RefreshBusyState();
-            SyncInactiveDevices(discovery.Devices, instances);
-            RefreshDeviceHeaders();
+            // Lister les appareils est bon marché ; redécouvrir les instances
+            // ne l'est pas, chaque profil de chaque appareil demandant deux
+            // commandes au téléphone. On ne le refait donc que si l'ensemble
+            // des appareils a changé, ou après un long moment.
+            var signature = string.Join(
+                "|",
+                discovery.Devices.Select(d => $"{d.Id}:{d.State}").Order(StringComparer.Ordinal));
 
-            _scanned = true;
+            var looking = _instances is null
+                || !string.Equals(signature, _signature, StringComparison.Ordinal)
+                || DateTimeOffset.UtcNow - _discoveredAt >= _launcher.Quality.InstanceRediscovery;
 
-            OnPropertyChanged(nameof(CanReorder));
-            OnPropertyChanged(nameof(HasRows));
-            OnPropertyChanged(nameof(HasInactiveDevices));
-            OnPropertyChanged(nameof(HasNoConnectedDevice));
-            OnPropertyChanged(nameof(ShowsNoDeviceCard));
-            OnPropertyChanged(nameof(ShowsSearching));
-            OnPropertyChanged(nameof(ShowsWindowHelp));
-            OnPropertyChanged(nameof(HasConnectedDevice));
-            OnPropertyChanged(nameof(EnabledCount));
+            if (looking)
+            {
+                // The phones are shown before their accounts are looked for.
+                // That search was measured at 2.9 seconds, it is the longest
+                // thing the sweep does, and none of it says which phones are
+                // there: they are known already.
+                //
+                // Until it answers, a phone with no row is a phone we have not
+                // asked about, not a phone without the game. Saying otherwise
+                // would put "game not installed" in orange under a phone that
+                // has it, which is the whole reason this state exists.
+                foreach (var view in _devices.Values)
+                {
+                    view.IsLookingForGames = true;
+                }
+
+                ShowList(discovery, _instances ?? []);
+
+                _instances = await _launcher.RefreshInstancesAsync(cancellationToken).ConfigureAwait(true);
+                _signature = signature;
+                _discoveredAt = DateTimeOffset.UtcNow;
+            }
+
+            // The looking branch above has just filled it; the fallback is
+            // there because the compiler cannot see that and a list is a
+            // saner answer than a crash.
+            var instances = _instances ?? [];
+
+            ShowList(discovery, instances);
+
+            // Dropped only once the rows are in place, so that the phones
+            // which turn out to have no game say so from the same frame,
+            // rather than passing through a state where nothing is claimed.
+            foreach (var view in _devices.Values)
+            {
+                view.IsLookingForGames = false;
+            }
 
             // Les résumés de sessions citent les noms des comptes : ils se
             // refont ici, après que la liste a été reconstruite.
@@ -519,6 +526,42 @@ public sealed partial class InstanceListViewModel : ObservableObject
         {
             IsBusy = false;
         }
+    }
+
+    /// <summary>
+    /// Puts on screen what is known of the phones and of their accounts.
+    ///
+    /// Called twice on a sweep that has to look for accounts: once with the
+    /// phones alone, so that they appear without waiting on a search measured
+    /// at 2.9 seconds, and once with what that search found.
+    /// </summary>
+    private void ShowList(
+        DeviceDiscoveryResult discovery,
+        IReadOnlyList<Core.Dofus.DofusInstance> instances)
+    {
+        // Seules les instances des téléphones joignables ont une ligne.
+        // Les autres appareils ne disparaissent pas pour autant : ils
+        // sont rappelés à part, avec la raison.
+        var connected = discovery.Devices
+            .Where(d => d.IsConnected)
+            .ToDictionary(d => d.Id, StringComparer.Ordinal);
+
+        SyncRows([.. instances.Where(i => connected.ContainsKey(i.DeviceId))]);
+        RefreshBusyState();
+        SyncInactiveDevices(discovery.Devices, instances);
+        RefreshDeviceHeaders();
+
+        _scanned = true;
+
+        OnPropertyChanged(nameof(CanReorder));
+        OnPropertyChanged(nameof(HasRows));
+        OnPropertyChanged(nameof(HasInactiveDevices));
+        OnPropertyChanged(nameof(HasNoConnectedDevice));
+        OnPropertyChanged(nameof(ShowsNoDeviceCard));
+        OnPropertyChanged(nameof(ShowsSearching));
+        OnPropertyChanged(nameof(ShowsWindowHelp));
+        OnPropertyChanged(nameof(HasConnectedDevice));
+        OnPropertyChanged(nameof(EnabledCount));
     }
 
     /// <summary>
