@@ -77,6 +77,16 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// <summary>Empreinte des appareils vus, pour savoir quand redécouvrir.</summary>
     private string? _signature;
 
+    /// <summary>
+    /// Phones a completed account search has already covered.
+    ///
+    /// Only a phone absent from here announces that its accounts are being
+    /// looked for. Keying that on "has no account yet" instead would leave a
+    /// phone that really has no game announcing a search every time the
+    /// periodic one runs, which is the flicker this set exists to prevent.
+    /// </summary>
+    private readonly HashSet<string> _searched = new(StringComparer.Ordinal);
+
     private DateTimeOffset _discoveredAt;
 
     [ObservableProperty]
@@ -470,9 +480,15 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 // asked about, not a phone without the game. Saying otherwise
                 // would put "game not installed" in orange under a phone that
                 // has it, which is the whole reason this state exists.
-                foreach (var view in _devices.Values)
+                //
+                // Only a phone never searched before says it. The search also
+                // runs on a timer, to catch a profile added on the phone, and
+                // announcing that one made every phone flip to "looking" for
+                // three seconds every thirty-five seconds, for a refresh that
+                // used to be invisible and has nothing to show for itself.
+                foreach (var (id, view) in _devices)
                 {
-                    view.IsLookingForGames = true;
+                    view.IsLookingForGames = !_searched.Contains(id);
                 }
 
                 ShowList(discovery, _instances ?? []);
@@ -480,6 +496,11 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 _instances = await _launcher.RefreshInstancesAsync(cancellationToken).ConfigureAwait(true);
                 _signature = signature;
                 _discoveredAt = DateTimeOffset.UtcNow;
+
+                foreach (var id in _devices.Keys)
+                {
+                    _ = _searched.Add(id);
+                }
             }
 
             // The looking branch above has just filled it; the fallback is
@@ -991,10 +1012,22 @@ public sealed partial class InstanceListViewModel : ObservableObject
             .Select(d => d.Id)
             .ToList();
 
+        // Every phone is answered for, not only the ones without a row. This
+        // used to live inside the loop below, which walks the inactive ones
+        // alone: a phone whose accounts were found after a pass that had none
+        // kept the "no game" given to it earlier, and said so in orange right
+        // above its own accounts.
+        foreach (var device in devices)
+        {
+            if (_devices.TryGetValue(device.Id, out var known))
+            {
+                known.HasNoGame = !withGame.Contains(device.Id);
+            }
+        }
+
         foreach (var id in inactive)
         {
             var view = _devices[id];
-            view.HasNoGame = !withGame.Contains(id);
 
             if (!InactiveDevices.Contains(view))
             {
