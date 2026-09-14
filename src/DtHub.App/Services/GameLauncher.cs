@@ -2042,6 +2042,38 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // without waiting for this pass.
         _tabs?.KeepOnly(
             [.. _sessions.ActiveSessions.Select(s => s.Target.Key)]);
+
+        ReportFirstImages();
+    }
+
+    /// <summary>Sessions whose first image has already been recorded.</summary>
+    private readonly HashSet<string> _firstImages = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Records, once per session, how long its window stayed black.
+    ///
+    /// **It is the only wait the user actually watches**, and nothing
+    /// measured it: the launch reported the display being ready and
+    /// the game's start command returning, both of which happen
+    /// seconds before anything is drawn. A window black for half a
+    /// minute therefore left no trace, and a game slow to boot could
+    /// not be told apart from a stream that never came.
+    ///
+    /// Read from the sweep rather than pushed from the reader: the
+    /// reader runs on a pool thread, and the log is not what it is
+    /// there for.
+    /// </summary>
+    private void ReportFirstImages()
+    {
+        foreach (var session in _sessions.ActiveSessions)
+        {
+            if (session.FirstImageMs > 0 && _firstImages.Add(session.Id))
+            {
+                LogFirstImage(session.DisplayName, session.FirstImageMs);
+            }
+        }
+
+        _firstImages.IntersectWith(_sessions.ActiveSessions.Select(s => s.Id));
     }
 
 
@@ -3230,6 +3262,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Information,
         Message = "{instance} : afficheur prêt en {displayMs} ms, démarrage complet en {totalMs} ms.")]
     private partial void LogStartupTiming(string instance, long displayMs, long totalMs);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "{instance} : première image en {firstImageMs} ms, fenêtre noire jusque-là.")]
+    private partial void LogFirstImage(string instance, long firstImageMs);
 
     [LoggerMessage(
         Level = LogLevel.Information,

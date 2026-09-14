@@ -8917,3 +8917,45 @@ temps, il n'y a pas de débat.
 La question du verrou reste réservée aux téléphones qui portent des fenêtres :
 elle porte sur ces fenêtres, et la poser ailleurs demanderait quelque chose au
 téléphone pour rien.
+
+## D163 - La fenêtre noire n'était mesurée par rien
+
+**Date** : 2026-09-14
+
+« Je viens de lancer le jeu mais j'ai un écran noir. » Puis, plus tard : « il
+vient de s'afficher mais longtemps après ».
+
+**Le journal ne savait rien en dire.** Il mesurait deux instants, tous deux
+antérieurs à la moindre image : « afficheur prêt en 1401 ms » et « démarrage
+complet en 1980 ms », ce dernier n'étant que le retour de la commande `am start`.
+Puis « Lancement terminé : 1 fenêtre(s) ouverte(s), 0 problème(s) ». Une fenêtre
+restée noire une demi-minute ne laissait donc aucune trace, et un jeu lent à
+démarrer était indiscernable d'un flux qui n'arrive jamais.
+
+**scrcpy l'annonce pourtant depuis toujours.** Il écrit `INFO: Texture: 1600x896`
+au moment où il fabrique sa texture, c'est-à-dire à la première image décodée et
+pas avant. La pompe de sortie lisait déjà chaque ligne pour y trouver
+l'identifiant d'afficheur virtuel ; elle passait à côté de celle-là. La session
+porte désormais `FirstImageMs`, et le balayage le journalise une fois par
+session.
+
+Lu depuis le balayage et non poussé depuis la pompe : la pompe tourne sur un fil
+du pool, et le journal n'est pas ce qu'elle a à y faire.
+
+**Et la cause probable était mesurée, journalisée, et tue.** La liaison de cette
+session-là : 5220 MHz, -59 dBm, **38,7 % de réémissions**, contre 14,4 % les
+jours précédents. `RetryShare` nourrissait le tampon vidéo, dont le pire palier
+commence à 20 % et donne 10 ms. Il n'atteignait l'écran par aucun chemin : le
+seul constat que la liaison savait produire était « vous êtes en 2,4 GHz ». Une
+5 GHz perdant quatre trames sur dix ne disait rien, alors qu'une 2,4 GHz propre
+parlait.
+
+Le seuil du constat est celui du tampon vidéo, et pour la même raison :
+en dessous le tampon absorbe la saccade, au-dessus il a déjà tout donné. La bande
+passe avant l'encombrement, parce que changer de bande apporte plus que changer
+de canal.
+
+**Ce qui n'est pas corrigé, et ne peut pas l'être ici.** La fenêtre appartient à
+scrcpy, qui la montre dès l'ouverture et la peint en noir jusqu'à la première
+image. DT Hub n'y dessine pas. Le noir lui-même reste ; ce qui change, c'est
+qu'il a maintenant une durée écrite et une cause probable affichée.

@@ -514,6 +514,9 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
   <data name="DeviceStorageCritical" xml:space="preserve">
     <value>Il ne reste que {0} Go libres sur le téléphone. Faites de la place avant de jouer : le jeu échouera.</value>
   </data>
+  <data name="DeviceLinkCrowded" xml:space="preserve">
+    <value>Le canal Wi-Fi est encombré : {0} % des trames doivent être renvoyées. L'image saccadera et la première image tardera. Un autre canal, ou se rapprocher de la box, est le geste qui apporte le plus.</value>
+  </data>
   <data name="DeviceOn24GHz" xml:space="preserve">
     <value>Le téléphone est sur la bande 2,4 GHz. L'image saccadera plus qu'en 5 GHz ; changer de bande est le geste qui apporte le plus.</value>
   </data>

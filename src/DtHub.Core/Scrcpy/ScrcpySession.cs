@@ -124,6 +124,16 @@ public sealed class ScrcpySession
     /// </summary>
     public long StartupMs { get; set; }
 
+    /// <summary>
+    /// Milliseconds from the session starting to its first drawn
+    /// image, or zero while the window is still black.
+    ///
+    /// This is the wait the user actually sees. The two measurements
+    /// above stop earlier: the display being ready, and the game's
+    /// start command returning.
+    /// </summary>
+    public long FirstImageMs { get; internal set; }
+
     /// <summary>Name displayed in the session list.</summary>
     public string DisplayName => Target.DisplayName;
 

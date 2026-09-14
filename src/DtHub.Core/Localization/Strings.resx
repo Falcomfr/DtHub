@@ -514,6 +514,9 @@ Cross the tests: another device on this port, and this phone on another PC. You 
   <data name="DeviceStorageCritical" xml:space="preserve">
     <value>The phone has only {0} GB free. Make room before playing: the game will fail.</value>
   </data>
+  <data name="DeviceLinkCrowded" xml:space="preserve">
+    <value>The Wi-Fi channel is crowded: {0} % of frames have to be sent twice. The picture will stutter and the first image will be slow to come. Another channel, or moving closer to the router, is what helps most.</value>
+  </data>
   <data name="DeviceOn24GHz" xml:space="preserve">
     <value>The phone is on the 2.4 GHz band. The picture will stutter more than on 5 GHz; switching bands is the single best change you can make.</value>
   </data>

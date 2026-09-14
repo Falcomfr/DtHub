@@ -232,4 +232,34 @@ public class DeviceHealthTests
 
         Assert.Equal(HealthSeverity.Notice, finding.Severity);
     }
+
+    [Fact]
+    public void Un_canal_encombre_est_nomme_meme_en_5_GHz()
+    {
+        // Mesuré sur une vraie session : 38,7 % de réémissions à
+        // 5220 MHz. L'application le mesurait, le journalisait, en
+        // nourrissait le tampon vidéo, et ne le disait nulle part.
+        var findings = DeviceHealth.Review(null, null, null, new WifiLink(LinkSpeedMbps: 866, FrequencyMhz: 5220, Standard: "11ac", Rssi: -59, RetryShare: 0.387));
+
+        Assert.Single(findings);
+        Assert.Equal(HealthSeverity.Notice, findings[0].Severity);
+        Assert.Contains("39", findings[0].Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Un_canal_calme_ne_dit_rien()
+    {
+        Assert.Empty(DeviceHealth.Review(null, null, null, new WifiLink(LinkSpeedMbps: 866, FrequencyMhz: 5220, Standard: "11ac", Rssi: -59, RetryShare: 0.05)));
+    }
+
+    [Fact]
+    public void La_bande_passe_avant_l_encombrement()
+    {
+        // Changer de bande apporte plus que changer de canal : une
+        // liaison 2,4 GHz encombrée n'a qu'un conseil à donner.
+        var findings = DeviceHealth.Review(null, null, null, new WifiLink(LinkSpeedMbps: 144, FrequencyMhz: 2437, Standard: "11n", Rssi: -59, RetryShare: 0.40));
+
+        Assert.Single(findings);
+        Assert.Contains("2,4 GHz", findings[0].Message, StringComparison.Ordinal);
+    }
 }

@@ -240,6 +240,23 @@ public static partial class ScrcpyOutputParser
         or ScrcpyFailureKind.Timeout
         or ScrcpyFailureKind.Unknown;
 
+    /// <summary>
+    /// True on the line scrcpy prints when it builds its texture,
+    /// which it does on the **first decoded frame** and not before.
+    ///
+    /// **That is the only moment the window stops being black**, and
+    /// nothing measured it. The launch reported the display being
+    /// ready and the game's start command returning, both of which
+    /// happen seconds before anything is drawn: a window that stayed
+    /// black for half a minute left no trace at all, so a slow game
+    /// could not be told from a stream that never arrived.
+    /// </summary>
+    public static bool IsFirstImage(string? line) =>
+        !string.IsNullOrWhiteSpace(line) && FirstImage().IsMatch(line);
+
     [GeneratedRegex(@"New display:.*?\(id=(\d+)\)", RegexOptions.IgnoreCase)]
     private static partial Regex NewDisplay();
+
+    [GeneratedRegex(@"\bTexture:\s*\d+x\d+", RegexOptions.IgnoreCase)]
+    private static partial Regex FirstImage();
 }

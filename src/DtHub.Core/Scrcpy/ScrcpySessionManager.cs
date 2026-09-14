@@ -847,6 +847,14 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                     continue;
                 }
 
+                // The window stops being black here, and nowhere
+                // else that anything could observe.
+                if (session.FirstImageMs == 0 && ScrcpyOutputParser.IsFirstImage(line.Text))
+                {
+                    session.FirstImageMs =
+                        (long)(DateTimeOffset.UtcNow - session.StartedUtc).TotalMilliseconds;
+                }
+
                 if (ScrcpyOutputParser.IsFatal(line.Text))
                 {
                     var kind = ScrcpyOutputParser.Classify(line.Text);

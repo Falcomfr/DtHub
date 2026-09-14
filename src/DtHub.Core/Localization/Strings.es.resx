@@ -514,6 +514,9 @@ Cruza las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
   <data name="DeviceStorageCritical" xml:space="preserve">
     <value>Solo quedan {0} GB libres en el teléfono. Haz sitio antes de jugar: el juego fallará.</value>
   </data>
+  <data name="DeviceLinkCrowded" xml:space="preserve">
+    <value>El canal Wi-Fi está saturado: el {0} % de las tramas deben reenviarse. La imagen se entrecortará y la primera imagen tardará. Otro canal, o acercarse al router, es lo que más ayuda.</value>
+  </data>
   <data name="DeviceOn24GHz" xml:space="preserve">
     <value>El teléfono está en la banda de 2,4 GHz. La imagen se entrecortará más que en 5 GHz; cambiar de banda es lo que más ayuda.</value>
   </data>

@@ -58,6 +58,14 @@ public static class DeviceHealth
     /// instead of the game, that is, when its virtual display follows
     /// the lock state and it is locked.
     /// </param>
+    /// <summary>
+    /// Share of retransmitted frames beyond which the channel is
+    /// worth naming. It is <see cref="VideoBuffer" />'s own worst
+    /// bucket: below it the buffer absorbs the stutter, above it the
+    /// buffer has already given everything it has.
+    /// </summary>
+    private const double CrowdedChannel = 0.20;
+
     public static IReadOnlyList<HealthFinding> Review(
         ThermalReading? heat,
         BatteryReading? battery,
@@ -123,6 +131,23 @@ public static class DeviceHealth
         if (link is { Is24GHz: true })
         {
             findings.Add(new HealthFinding(HealthSeverity.Notice, Strings.Get("DeviceOn24GHz")));
+        }
+
+        // **A congested 5 GHz channel said nothing at all.** The band
+        // was the only thing the link could report, so a clean 2.4 GHz
+        // was named while a 5 GHz losing four frames in ten was not.
+        // The retry share was measured, written to the log and fed to
+        // the video buffer, and never reached the screen: "why is the
+        // window black for so long" had no answer anywhere.
+        //
+        // The threshold is the video buffer's own worst bucket. Below
+        // it, the buffer absorbs the stutter and there is nothing to
+        // say; above it, it has already given everything it has.
+        else if (link is { RetryShare: >= CrowdedChannel })
+        {
+            findings.Add(new HealthFinding(
+                HealthSeverity.Notice,
+                Strings.Format("DeviceLinkCrowded", Math.Round(link.RetryShare * 100))));
         }
 
         return [.. findings.OrderByDescending(f => f.Severity)];

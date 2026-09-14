@@ -38,6 +38,14 @@ French.
   are read as before; the value is ignored and disappears on the next save.
 
 ### Fixed
+- **A game window stayed black for a long time and nothing said why.** The log
+  measured the display being ready and the game's start command returning, both
+  of which happen seconds before anything is drawn, then declared the launch a
+  success. scrcpy announces its first decoded frame and the application was not
+  listening: the wait is now measured and written down. A crowded Wi-Fi channel,
+  the likeliest cause, is also named now: the retry share was measured, logged
+  and fed to the video buffer, but the only thing the link could ever report was
+  being on 2.4 GHz, so a 5 GHz link losing four frames in ten said nothing.
 - **A phone left connected and idle kept showing a stale warning.** As soon as
   one phone carried a window, only the phones carrying windows were asked about
   their heat, battery, storage and link; the others were neither refreshed nor
