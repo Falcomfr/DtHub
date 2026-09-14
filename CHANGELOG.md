@@ -79,13 +79,12 @@ French.
   name and absent from the banner. All three now come from one decision, and
   the banner is coloured by the worst of the lines it actually shows.
 - **A quest guide counted the wrong number of quests in an achievement.** The
-  foot of the window built its own total by counting the catalogue's quests
-  that name the same achievement, which is not the same thing as the quests
-  the achievement holds: over the one hundred and fifteen achievements it
-  knows, six totals were right. It now shows the count the site publishes on
-  each quest page, so an achievement of three quests reads 3 / 3 and a quest
-  following it outside the achievement reads 1 / 1 instead of nothing.
-
+  foot of the window showed the progression the site publishes, which counts
+  the site's own achievement: it announced 10 / 12 under a list of two quests,
+  because ten of those twelve are not in the catalogue. It now counts the
+  achievement's quests as the list shows them, so that one reads 1 / 2, and a
+  quest belonging to no achievement reads 1 / 1 instead of nothing. Walking to
+  the next quest still works from either.
 - **An account moved down the list on its own, and lost its name.** A stopped
   or paused Android profile answers an empty package list with a zero exit
   code, which reads exactly like a profile that answered and has no game. The

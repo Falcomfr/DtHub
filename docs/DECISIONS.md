@@ -8959,3 +8959,39 @@ de canal.
 scrcpy, qui la montre dès l'ouverture et la peint en noir jusqu'à la première
 image. DT Hub n'y dessine pas. Le noir lui-même reste ; ce qui change, c'est
 qu'il a maintenant une durée écrite et une cause probable affichée.
+
+## D164 - Le compte d'un succès est celui de la liste, pas celui du site
+
+**Date** : 2026-09-14
+
+**Corrige D159, qui a pris le problème à l'envers.**
+
+D159 constatait que le total affiché au pied d'un guide ne correspondait pas à
+celui du site, et en concluait que le site avait raison. Il a fait gagner le
+site. C'était l'inverse de ce qu'il fallait.
+
+**Ce que l'écran montrait après D159.** La liste annonce « Devenir une légende
+(2) » et porte ses deux quêtes, « Dans les pas du Chevalier de l'Automne » et
+« Le dragon d'Astrub ». Le pied de la fenêtre, lui, annonçait **10 / 12** sur la
+première, parce que le succès du site en compte douze dont dix n'entrent pas au
+catalogue. Deux comptes pour la même chose à vingt centimètres l'un de l'autre,
+et celui du bas répondait à une question que personne ne posait.
+
+**La règle.** Le compte est celui des quêtes du succès telles que la fenêtre les
+liste. Rien d'autre. Une quête qui n'appartient à aucun succès est une sur une,
+ce qu'elle ne disait pas du tout auparavant : c'est le défaut d'origine, et le
+seul qu'il fallait corriger. Le bouton « suivante » continue de mener hors du
+succès quand le graphe des prérequis le dit ; le total ne le suit pas.
+
+**Mesuré sur le catalogue réel** : « Devenir une légende » se lit 1 / 2 puis
+2 / 2, la suivante restant « La découverte d'un vaste monde ! », qui se lit
+1 / 1. « Quand on arrive en ville » se lit 1 / 2 puis 2 / 2.
+
+`QuestFacts.StepNumber` et `StepCount` redeviennent ce qu'ils étaient : lus par
+le parseur, éprouvés, et utilisés par personne. C'est assumé, ils décrivent le
+succès du site et non celui de la fenêtre.
+
+**La leçon, et elle est pour moi.** J'ai mesuré 115 succès contre le site,
+trouvé 109 désaccords, et conclu que l'application avait tort 109 fois. La
+mesure était juste et la conclusion fausse : les deux ne comptaient pas la même
+chose. Une mesure ne dit jamais lequel des deux comptes on voulait.

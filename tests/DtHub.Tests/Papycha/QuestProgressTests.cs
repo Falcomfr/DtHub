@@ -3,102 +3,63 @@
 namespace DtHub.Tests.Papycha;
 
 /// <summary>
-/// The count shown at the foot of a guide. The window used to build
-/// it from the catalogue alone, and six of the one hundred and
-/// fifteen achievements came out right.
+/// Le compte au pied d'un guide : celui des quêtes du succès, telles
+/// que la liste les montre. D159 avait fait gagner le site, qui
+/// compte autre chose.
 /// </summary>
 public sealed class QuestProgressTests
 {
-    private static QuestFacts Page(int rang, int total) =>
-        new() { StepNumber = rang, StepCount = total };
-
-    private static QuestNeighbours Catalogue(int rang, int total) =>
+    private static QuestNeighbours Succes(int rang, int total) =>
         new(null, null, rang, total);
 
     [Fact]
-    public void Le_total_est_celui_que_la_page_publie_et_non_celui_du_catalogue()
+    public void Le_compte_est_celui_des_quetes_du_succes()
     {
-        // "À la barbe du roi" : la page annonce l'étape 9 sur 11, le
-        // catalogue n'en connaît que cinq.
-        var montre = QuestProgress.Of(Page(9, 11), hasSuccess: true, Catalogue(3, 5));
-
-        Assert.Equal((9, 11), montre);
+        // « Devenir une légende (2) » dans la liste, deux quêtes
+        // dedans : la première se lit 1 / 2. Le site, lui, annonce
+        // « Étape 10/12 » pour son propre succès de douze quêtes,
+        // dont dix ne sont pas au catalogue.
+        Assert.Equal((1, 2), QuestProgress.Of(Succes(1, 2)));
+        Assert.Equal((2, 2), QuestProgress.Of(Succes(2, 2)));
     }
 
     [Fact]
     public void Un_succes_de_trois_quetes_se_lit_trois_sur_trois()
     {
-        // "Le théâtre des gobelins" : six quêtes nomment ce succès,
-        // le succès en compte trois.
-        var montre = QuestProgress.Of(Page(3, 3), hasSuccess: true, Catalogue(4, 6));
-
-        Assert.Equal((3, 3), montre);
+        Assert.Equal((3, 3), QuestProgress.Of(Succes(3, 3)));
     }
 
     [Fact]
     public void Une_quete_sans_succes_est_une_sur_une()
     {
-        var montre = QuestProgress.Of(Page(0, 0), hasSuccess: false, Catalogue(0, 0));
-
-        Assert.Equal((1, 1), montre);
+        // Elle ne montrait rien du tout, et c'est ce qui a lancé
+        // toute l'affaire : on peut toujours passer à la suivante,
+        // le compte dit seulement ce que la suite contient.
+        Assert.Equal((1, 1), QuestProgress.Of(default));
     }
 
     [Fact]
-    public void Une_quete_sans_succes_ne_compte_pas_dans_le_succes_precedent()
+    public void Une_quete_que_le_catalogue_ignore_est_une_sur_une()
     {
-        // On arrive de la dernière d'un succès, et ses voisines sont
-        // encore celles que le catalogue avait posées.
-        var montre = QuestProgress.Of(Page(0, 0), hasSuccess: false, Catalogue(3, 3));
-
-        Assert.Equal((1, 1), montre);
+        Assert.Equal((1, 1), QuestProgress.Of(Succes(0, 0)));
     }
 
     [Fact]
-    public void Tant_que_la_page_n_est_pas_arrivee_le_catalogue_tient_le_compte()
+    public void Un_rang_perdu_dans_un_succes_connu_retombe_sur_une_sur_une()
     {
-        var montre = QuestProgress.Of(null, hasSuccess: true, Catalogue(2, 4));
-
-        Assert.Equal((2, 4), montre);
+        // Le rang vaut zéro quand la quête ouverte n'a pas été
+        // retrouvée dans son groupe. Afficher « 0 / 4 » serait pire
+        // que de ne rien promettre.
+        Assert.Equal((1, 1), QuestProgress.Of(Succes(0, 4)));
     }
 
     [Fact]
-    public void Sans_page_et_sans_succes_il_n_y_a_rien_a_montrer()
+    public void Le_compte_ne_suit_jamais_la_quete_suivante_hors_succes()
     {
-        Assert.Null(QuestProgress.Of(null, hasSuccess: false, Catalogue(0, 0)));
-    }
+        // La suivante peut sortir du succès, et le bouton y mène :
+        // le total ne bouge pas pour autant.
+        var derniere = new QuestNeighbours(null, null, 2, 2);
 
-    [Fact]
-    public void Une_page_muette_laisse_parler_le_catalogue()
-    {
-        // Six succès sur cent quinze ne publient aucune progression.
-        var montre = QuestProgress.Of(Page(0, 0), hasSuccess: true, Catalogue(2, 3));
-
-        Assert.Equal((2, 3), montre);
-    }
-
-    [Fact]
-    public void Une_page_muette_sur_un_succes_que_le_catalogue_ignore_ne_montre_rien()
-    {
-        Assert.Null(QuestProgress.Of(Page(0, 0), hasSuccess: true, Catalogue(0, 0)));
-    }
-
-    [Theory]
-    [InlineData(5, 0)]
-    [InlineData(0, 5)]
-    public void Un_rang_sans_total_ou_un_total_sans_rang_ne_dit_rien(int rang, int total)
-    {
-        // La page les donne dans la même phrase : l'un sans l'autre
-        // est une lecture ratée, pas une progression.
-        var montre = QuestProgress.Of(Page(rang, total), hasSuccess: true, Catalogue(2, 3));
-
-        Assert.Equal((2, 3), montre);
-    }
-
-    [Fact]
-    public void Le_rang_ne_depasse_jamais_le_total()
-    {
-        var montre = QuestProgress.Of(Page(9, 3), hasSuccess: true, Catalogue(1, 1));
-
-        Assert.Equal((9, 9), montre);
+        Assert.Equal((2, 2), QuestProgress.Of(derniere));
     }
 }

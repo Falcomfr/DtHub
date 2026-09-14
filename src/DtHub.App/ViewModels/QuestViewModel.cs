@@ -949,10 +949,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
         ChainText = quest.SuccessName;
 
-        // Provisional, for the second the page takes to arrive: the
-        // count the site publishes replaces it in SetPage, and it is
-        // that one which is right.
-        ShowProgress(null);
+        ShowProgress();
 
         PreviousQuest = ToLink(neighbours.Previous, quest);
         NextQuest = ToLink(neighbours.Next, quest);
@@ -961,14 +958,14 @@ public sealed partial class QuestViewModel : ObservableObject
     /// <summary>
     /// Writes the rank and the total at the foot of the window.
     ///
-    /// The rule lives in <see cref="QuestProgress"/>, which says why the
-    /// page has the last word over the catalogue.
+    /// The rule lives in <see cref="QuestProgress"/>, which says why it
+    /// counts the achievement's quests and not what the page publishes.
     /// </summary>
-    private void ShowProgress(QuestFacts? published)
+    private void ShowProgress()
     {
-        ChainStep = QuestProgress.Of(published, ChainText.Length > 0, _neighbours) is { } shown
-            ? $"{QuestTree.Text(shown.Rank)} / {QuestTree.Text(shown.Total)}"
-            : string.Empty;
+        var shown = QuestProgress.Of(_neighbours);
+
+        ChainStep = $"{QuestTree.Text(shown.Rank)} / {QuestTree.Text(shown.Total)}";
     }
 
     /// <summary>
@@ -1146,9 +1143,11 @@ public sealed partial class QuestViewModel : ObservableObject
 
         // A dungeon, a raid, a lair and a path belong to no sequence:
         // the count at the foot of the window is a quest's business.
+        // A quest the catalogue does not know reaches this point with
+        // no neighbours, and reads one of one.
         if (_currentDungeon is null && _currentPath is null)
         {
-            ShowProgress(facts);
+            ShowProgress();
         }
 
         ResetSteps(steps);
