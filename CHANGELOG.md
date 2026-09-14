@@ -10,7 +10,7 @@ published on GitHub and shown inside the application, and those exist in a
 single version. The 0.2.0 and 0.1.0 sections predate that rule and stay in
 French.
 
-## [Unreleased]
+## [0.4.0] - 2026-09-14
 
 ### Added
 
@@ -26,9 +26,6 @@ French.
   with the previous distance.
 
 ### Removed
-- Two device-health properties computed on every sweep and read by nobody, the
-  helper that fed one of them, and a reordering entry point with no caller and
-  a test pinning its behaviour.
 
 - **The "Log the frame rate" setting is gone.** Half of what it promised was
   untrue: its help said the log would also note the encoders the phone offers,
@@ -38,6 +35,7 @@ French.
   are read as before; the value is ignored and disappears on the next save.
 
 ### Fixed
+
 - **A game window stayed black for a long time and nothing said why.** The log
   measured the display being ready and the game's start command returning, both
   of which happen seconds before anything is drawn, then declared the launch a
