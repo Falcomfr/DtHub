@@ -55,10 +55,10 @@ let them read as oversights:
   lose more of that than it would gain: it is the memory of the project,
   read by whoever maintains it rather than by a visitor. New entries are
   written in French too, so the file stays of a piece;
-- the **0.1.0 and 0.2.0 sections of the changelog**, which predate the rule
-  and were published as they are. A release note exists in one version only,
-  and rewriting one after it has been read serves nobody. Every section from
-  0.3.0 onward is English.
+- the **0.1.0 and 0.2.0 sections of the changelog**, which predate the rule.
+  Translating them would rewrite what two releases actually announced, and
+  neither was ever published as a release on GitHub, so nobody is reading
+  them in the wrong language. Every section from 0.3.0 onward is English.
 
 What the user reads on screen never lives in the code at all: it goes through
 `src/DtHub.Core/Localization/Strings*.resx`, in the three languages the
@@ -70,8 +70,13 @@ window, where it lands in a single text block. One line per change, saying what
 changed and nothing else.
 
 The reason a change was made belongs in `docs/DECISIONS.md`, which exists for
-it. The 0.3.0 and 0.4.0 sections carry both, over two thousand words each, and
-they stay as they are for the reason given just above: they have been read.
+it. Writing it in both places served only one of the two readers.
+
+**This applies to the notes already published too.** 0.3.0 and 0.4.0 went out at
+2256 and 2215 words and were shortened afterwards, on the same GitHub releases,
+with `gh release edit`. A release note is not a record of what was said on the
+day; it is the page someone lands on, and a page nobody reads to the end
+announces nothing. What was said on the day is in the commits.
 
 **Decisions get recorded.** An architecture choice, a trade off, something
 given up: that goes in `docs/DECISIONS.md`, in French like the rest of that

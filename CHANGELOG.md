@@ -36,437 +36,97 @@ French.
 
 ### Added
 
-- **The distance in the game is now set per account, like the quality tier.**
-  You want ground on the account you play, and the mules whose health bar is
-  all you watch do not need it. An account follows the shared distance until it
-  is given one of its own.
-
-  Changing it does not reopen the window. The shared setting does, because a
-  setting that shows nothing looks dead, but reopening force-stops the game and
-  disconnects the character, which is not a price to pay on the account you are
-  playing. A dot on the account instead says the open window is still running
-  with the previous distance.
+- The distance in the game is now set per account, like the quality tier.
 
 ### Removed
 
-- **The "Log the frame rate" setting is gone.** Half of what it promised was
-  untrue: its help said the log would also note the encoders the phone offers,
-  and that happens on every launch whether the box is ticked or not. What was
-  left was one log line per second and per window, for a number whose zero reads
-  as a fault when it is not one. Settings files that still carry the old value
-  are read as before; the value is ignored and disappears on the next save.
+- The "Log the frame rate" setting is gone.
 
 ### Fixed
 
-- **A game window stayed black for a long time and nothing said why.** The log
-  measured the display being ready and the game's start command returning, both
-  of which happen seconds before anything is drawn, then declared the launch a
-  success. scrcpy announces its first decoded frame and the application was not
-  listening: the wait is now measured and written down. A crowded Wi-Fi channel,
-  the likeliest cause, is also named now: the retry share was measured, logged
-  and fed to the video buffer, but the only thing the link could ever report was
-  being on 2.4 GHz, so a 5 GHz link losing four frames in ten said nothing.
-- **A phone left connected and idle kept showing a stale warning.** As soon as
-  one phone carried a window, only the phones carrying windows were asked about
-  their heat, battery, storage and link; the others were neither refreshed nor
-  dropped, since pruning only removes a phone that has gone away. Every
-  connected phone is asked again. It costs four ADB calls a minute per idle
-  phone, the readings being cached for a minute.
-- **A launch that opened some windows said nothing about the ones it failed to
-  open.** Three out of five counted as a success. The two paths nobody watches,
-  the session resumed at startup and the window reopened after a drop, threw
-  their report away entirely: silence there was indistinguishable from success.
-  A launch report now always reaches the log, and the paths where someone is
-  waiting still say it on screen as well.
-- **A failed action vanished before it could be read, and a successful one
-  erased a warning that was still true.** The banner was rebuilt whole on every
-  sweep, every two to six seconds, from the health findings alone. A notice now
-  carries the moment it was raised and answers for itself whether it is still
-  true, so it survives a sweep and expires on its own. That also fixes notices
-  freezing while the panel is hidden: their expiry used to run only from the
-  sweep, so one raised just before hiding the panel was still there, word for
-  word, hours later.
-- **The simulated mouse stayed offered after the phone that needed it was
-  unplugged.** The per-device input verdict said it was kept until the device
-  disappeared, and nothing made that true.
-- **A launch failure never reached the screen.** The error banner of the
-  account list took its visibility from one property, its text from a second
-  and its colour from a third, each written by a different path. A failed
-  action wrote only the first, so the banner opened showing the health notice
-  left over from the previous sweep, and the failure's own words were
-  reachable by no path at all. The colour lied too: it came from the worst
-  finding in the whole application, including those shown under a phone's own
-  name and absent from the banner. All three now come from one decision, and
-  the banner is coloured by the worst of the lines it actually shows.
-- **A quest guide counted the wrong number of quests in an achievement.** The
-  foot of the window showed the progression the site publishes, which counts
-  the site's own achievement: it announced 10 / 12 under a list of two quests,
-  because ten of those twelve are not in the catalogue. It now counts the
-  achievement's quests as the list shows them, so that one reads 1 / 2, and a
-  quest belonging to no achievement reads 1 / 1 instead of nothing. Walking to
-  the next quest still works from either.
-- **An account moved down the list on its own, and lost its name.** A stopped
-  or paused Android profile answers an empty package list with a zero exit
-  code, which reads exactly like a profile that answered and has no game. The
-  account was removed on that basis, then created again on the next sweep after
-  the last account of its phone, without the name you had given it. A profile
-  is now only declared game-less when it was in a state to answer: started, not
-  in quiet mode, and with an unfiltered enumeration that came back. An account
-  whose game really is uninstalled still leaves the list as before.
-
-- **A renamed account went back to its old name a few seconds later.** The
-  list keeps the accounts it last discovered, and every setting written from a
-  row throws that copy away so the next sweep cannot put the old value back.
-  The rename was the one that did not, so two to six seconds later the row was
-  handed the stale copy and quietly took its old name again. The name on disk
-  was right the whole time, which is why it came back on its own fifteen to
-  sixty seconds later. A rename that fails to save now says so, as the other
-  settings already did.
-
-- **A tab kept the old name after a rename.** The label was copied from the
-  name the account carried when scrcpy started, and only the rename path wrote
-  it again. Renaming an account whose window was open but not docked, then
-  docking it, gave the tab the name from before the rename and nothing ever
-  corrected it. A tab now takes its name from the settings at the moment it is
-  created, as the window titles do, so no label depends on having been told
-  about a rename.
-
-- **Pressing Enter on a renamed account did nothing.** The field wrote when it
-  lost focus, so a name was only applied by clicking somewhere else. Enter
-  applies it now, and Escape puts the stored name back rather than leaving you
-  to remember what it was.
-
-- **The first launch on a phone sometimes did nothing and had to be clicked
-  again.** Opening a window asks the phone once per run what it can encode, and
-  that question starts a scrcpy server just as an opening does. The two were
-  fired together and the opening lost, reporting that the connection with the
-  phone had failed. The question now waits its turn in the same queue as the
-  openings on that phone. Reproduced on a real device: two openings started
-  together fail one out of two, spaced by a second and a half they both succeed.
-
-- **The phone's sound never reached the PC.** scrcpy's default audio source
-  forwards the whole output through an Android device whose music volume reads
-  zero on the phones measured here, so what arrived was silence, and scrcpy
-  reported no error because the capture had started. The sound is now taken from
-  the playback instead, which also leaves the phone its own speaker. An
-  application that opts out of capture, a video service for instance, stays
-  silent on the PC and nothing can change that. Phones below Android 13 keep
-  scrcpy's own source, which works there and which the new one would have
-  replaced with silence.
-
-- **The desktop shortcut opened a console on every launch.** It targeted the
-  batch file that republishes before opening, and Windows has to open a console
-  to interpret a batch file: the shortcut's "minimised" decides how that window
-  shows, not whether it exists. It now targets a compiled launcher that has no
-  console at all, republishes without a window and then opens the application.
-  The guarantee that you always play the current build is kept, which targeting
-  the binary directly would have lost.
-
-- **Closing the game on a phone under Android 11 reopened its window by
-  itself.** scrcpy cannot capture the sound there and says so with two errors at
-  startup, then mirrors normally for as long as you like. Those two lines were
-  counted as a refusal, and the session carried that verdict from its first
-  second: closing the window by hand was read as a link that had dropped, and
-  the window came back three times before the application gave up. A line about
-  sound is no longer an end. A phone that goes away while playing announces
-  itself on its own line, which still closes the session.
-
-- **Both phones announced "Game not installed" several times a minute.** The
-  accounts list invalidates its cache on ten ordinary gestures, Launch and
-  Restart and Stop among them. On the next tick the display was handed an empty
-  list, and an empty list was read as an answer: no phone carries the game. Both
-  phones turned orange for the 2.9 seconds the real search takes, then snapped
-  back.
-
-  A phone now carries one of three verdicts instead of two booleans: it has the
-  game, it has not, or we have not asked yet. A pass that does not know writes
-  no verdict, and the last one established simply stays. "Not known yet" is no
-  longer spellable as "absent", which is what made the lie possible.
-
-- **Pairing a new phone could become impossible, and the message sent you the
-  wrong way.** As soon as two phones announce themselves at once,
-  `adb mdns services` gives a single address to every instance it lists, so one
-  announcement carries the other device's address. The window then aimed at a
-  port that answered nowhere and reported a possibly expired code, which sent
-  the user to reopen the code screen on the phone. That draws a fresh port, so
-  every retry made the next one worse. Measured on a Mi 9T Pro at `.23` and a
-  13T Pro at `.16`, where pairing aimed at `.16` throughout. ADB returns the
-  very same "protocol fault" for an unreachable address and for a refused code,
-  so the address is now probed before the code is spent. The live addresses ADB
-  already knows are tried on the same port, and failing that the "IP address and
-  port" shown on the phone can be typed in. The code is kept in that case: it
-  was never sent.
-
-- **A phone whose address had changed stayed stuck on the old one.** The pairing
-  window recognised an announcement by its mDNS name, which never changes, and
-  kept the address and port first seen. A phone draws a fresh pairing port every
-  time its code screen is reopened, and DHCP can move it meanwhile, so the
-  window could aim at an address the phone had long left.
-
-- **A phone could be wrongly reported as having lost its pairing key.** A
-  refused connection counted as proof of that, and sent the user back to type a
-  code. Since an announcement can carry another device's address, a silence is
-  now nobody's fault: only a refusal from an address that answers is reported.
+- A game window stayed black for a long time and nothing said why.
+- A phone left connected and idle kept showing a stale warning.
+- A launch that opened some windows said nothing about the ones it failed to
+  open.
+- A failed action vanished before it could be read, and a successful one erased
+  a warning that was still true.
+- The simulated mouse stayed offered after the phone that needed it was
+  unplugged.
+- A launch failure never reached the screen.
+- A quest guide counted the wrong number of quests in an achievement.
+- An account moved down the list on its own, and lost its name.
+- A renamed account went back to its old name a few seconds later.
+- A tab kept the old name after a rename.
+- Pressing Enter on a renamed account did nothing.
+- The first launch on a phone sometimes did nothing and had to be clicked again.
+- The phone's sound never reached the PC.
+- The desktop shortcut opened a console on every launch.
+- Closing the game on a phone under Android 11 reopened its window by itself.
+- Both phones announced "Game not installed" several times a minute.
+- Pairing a new phone could become impossible, and the message sent you the
+  wrong way.
+- A phone whose address had changed stayed stuck on the old one.
+- A phone could be wrongly reported as having lost its pairing key.
 
 ### Changed
 
-- **The phone list no longer waits on the health readings.** Each phone is
-  asked six questions in turn, thermal, battery, storage, Wi-Fi link and two
-  more, measured at 2.2 seconds for two devices and growing with every phone
-  added. The list used to wait on all of it before showing anything, although
-  none of those answers say which phones are there. They are now gathered once
-  the list is on screen, and the gauges and warnings fill in a moment later.
-  Measured at launch: the list appeared 1.83 seconds sooner, and later sweeps
-  are unaffected, the readings being cached for a minute.
-
-- **Your phones appear before their accounts are looked for.** Finding the
-  accounts asks two questions of every profile of every phone and was measured
-  at 2.9 seconds, the longest thing a sweep does, and the list waited on all of
-  it although the phones themselves were already known. They are shown as soon
-  as discovery finds them, each saying it is looking for accounts, and the rows
-  fill in when the search answers. Measured at launch: the phones appeared at
-  1.12 seconds instead of 3.35. A phone plugged in later behaves the same way.
-  While the search runs, a phone never claims the game is missing: the absence
-  of a row means nothing until the search has answered, and saying otherwise
-  would have put "Game not installed" under a phone that has it.
+- The phone list no longer waits on the health readings.
+- Your phones appear before their accounts are looked for.
 
 ## [0.3.0] - 2026-09-12
 
 ### Added
 
-- **A quest's end now says what it unlocks.** The guide site publishes a
-  "Next quests and milestones" column at the foot of the page, sorted by
-  objective, which the application was hiding in favour of its own window
-  footer. That footer can only announce one continuation and falls silent as
-  soon as the site names several: measured across the 782 guides, nearly four
-  hundred quest endings said nothing at all. The column is now shown exactly as
-  the site draws it.
+- A quest's end now says what it unlocks.
 
 ### Changed
 
-- **The success tree opens in the browser.** It is the only page of the site
-  treated this way, and for a reason: it is not a page you read but a tool you
-  unfold and explore. Until now it opened in an application window, correctly,
-  but at the cost of one more step before the button that finally led to the
-  browser.
-
-- **Guide indexing now says what it is doing.** Only one of its five stages
-  reported progress, and it was the shortest: the counter reached "782 / 782"
-  within seconds, then sat frozen for four fifths of the time. All five are now
-  named, the previous day's tree stays on screen during the rebuild instead of
-  announcing zero, section pages are read four at a time, and the duration is
-  finally recorded: **14.7 seconds** measured, against the fifty the project had
-  been quoting from memory.
-
-- **A simulated physical mouse, as a last resort.** It bypasses the Android
-  input path that some manufacturer skins block. The checkbox appears only on a
-  device where the refusal has actually been observed, it is off by default, and
-  the key that gives the cursor back to the PC is written underneath it: the
-  desktop loses its mouse for as long as a game window has focus.
-
-- **The application says when a phone refuses clicks.** This is the quietest
-  symptom in the field: the window shows the game and responds to nothing, with
-  no error whatsoever. The probe that detects it already existed, but you had to
-  go and open a help sheet to find it; it now runs once per device, the moment
-  its first window opens.
-
-- **"Needs pairing" instead of "Offline"** when the phone is present, reachable,
-  and refusing this PC's key. The three wireless connection failures are written
-  differently: a closed port and an absent machine carry a network error code, a
-  refused key carries none, because the connection did succeed. The tooltip says
-  what to do, and that turning wireless debugging off and on will not be enough.
-
-- **A search indicator at startup.** The list stayed empty and silent while the
-  application looked for remembered phones, which can take several seconds when
-  one of them is switched off. It now says "Looking for phones...".
-
-- **The application finally checks that the battery setup was done.** It had
-  been explaining it for a long time without ever verifying it, although the
-  phone answers in a single command. Of one user's two devices, only the one
-  that does not disconnect had been set up.
-
-- **The banner shows every finding, one per line**, most serious first, instead
-  of the single worst one. One phone carried three at once, and you had to fix
-  the first to learn the second existed.
-
-- **Each phone's battery level, permanently.** A drawn gauge and the percentage,
-  next to the device name, with a bolt when it is plugged in. The reading was
-  already taken every minute and only the twenty percent alert came out of it;
-  the level is now visible before launching five accounts, not once it is too
-  late.
-
-- **The phone's summary, before launching and not only during.** Battery and
-  free space join temperature and Wi-Fi band, and the four speak with one voice,
-  the most serious first. A plugged-in phone says nothing: it is not the level
-  that worries, it is the level going down.
-
-- **The month's event in the Almanax window**, read from the page already
-  loaded.
-
-- **A quality tier per account.** The main account at maximum, the mules at low:
-  that much less processor, bandwidth, heat and battery. Each account follows
-  the shared setting until it is given one of its own, and a new tier applies
-  the next time its window opens.
-
-- **A fluidity diagnostic**, off by default. It records in the log the frame
-  rate each window actually receives, and the encoders the phone offers. Zero
-  frames per second is not a fault: scrcpy only encodes what changes.
-
-- **The hardware encoder is forced when the device would put a software one
-  ahead of it**, and only in that case.
-
-- **Save and restore your settings** to a file, to carry them to another PC. A
-  restore plainly refuses a file written by a newer version, rather than
-  silently losing part of it.
-
-- **Time spent on each account this week**, on hovering its icon. Information
-  only: no limit, no reminder.
-
-- **Warnings fit on one line.** A triangle, yellow for what gets in the way and
-  red for what will cut the session short, then a truncated line whose full text
-  appears on hover. The message used to take two or three lines in the middle of
-  the account list.
-
-- **The display buffer is now per phone.** It was computed from the first
-  device's link and applied to every window. With two phones on different bands,
-  the one on 2.4 GHz received a 25 ms buffer instead of the 42 its link calls
-  for.
-
-- **A window that will only ever show the lock screen says so.** On an older
-  phone, the virtual display follows the lock: the window opened on a clock and
-  a padlock, and the launch announced "no problem".
-
-- **An account's tier now also sets its frame rate.** It lowered resolution and
-  bitrate, but an account on the low tier still ran at sixty frames.
+- The success tree opens in the browser.
+- Guide indexing now says what it is doing.
+- A simulated physical mouse, as a last resort.
+- The application says when a phone refuses clicks.
+- "Needs pairing" instead of "Offline".
+- A search indicator at startup.
+- The application finally checks that the battery setup was done.
+- The banner shows every finding, one per line.
+- Each phone's battery level, permanently.
+- The phone's summary, before launching and not only during.
+- The month's event in the Almanax window.
+- A quality tier per account.
+- A fluidity diagnostic.
+- The hardware encoder is forced when the device would put a software one ahead
+  of it.
+- Save and restore your settings.
+- Time spent on each account this week.
+- Warnings fit on one line.
+- The display buffer is now per phone.
+- A window that will only ever show the lock screen says so.
+- An account's tier now also sets its frame rate.
 
 ### Fixed
 
-- **The application appears four and a half times sooner.** It launched a full
-  rediscovery of every profile on every phone before looking at whether there
-  was anything to open at all: three seconds of empty screen to conclude that no
-  instance was ticked, an answer the settings already held. The window now
-  appears in 840 ms instead of 3,950.
-
-- **Forgetting a device took two clicks, and lied in between.** The device
-  stayed on screen after the first one, labelled "Game not installed" when its
-  accounts had simply just been erased. The final refresh did not run while a
-  scan was already in progress, which is the case nearly every time. The device
-  now leaves the view immediately, and unpairing finally leaves a trace in the
-  log.
-
-- **The game left an empty card in the phone's running applications list.** The
-  process was indeed stopped, but its card stayed at the top of the list,
-  indistinguishable from a live application, and tapping it relaunched the game.
-  The game is now launched outside recents when it lives on a virtual display,
-  so the card is never created. Measured: process priority unchanged to the
-  digit.
-
-- **The game stayed open on the phone after its window was closed.** A session
-  held the address the phone had when it opened, and wireless debugging changes
-  port on every restart: the stop order went to an address the ADB server no
-  longer knew. It now targets the current address, falling back to the one used
-  at launch. The failure was also being swallowed under a false comment; the
-  stop now says whether it succeeded, and a notice names the account whose game
-  is still running.
-
-- **The application crashed at startup when no window opened.** The rule "no
-  window or panel left, so quit" fired during launch, closed the panel, and the
-  rest of startup called Show on an already closed window. It no longer applies
-  before startup has finished.
-
-- **The reconnection notice stayed on screen after the phone left.** "The link
-  dropped, its window is reopening" was displayed under an "offline" row, so
-  under a device where no window will reopen at all. It now clears when the
-  device is no longer reachable, or once the attempts have run out.
-
-- **The application woke the phone twice as often as needed during play.** The
-  lock check re-read the device every four seconds even once unlocked, and the
-  network announcement scan ran every five seconds even when every phone was
-  answering. Both space out when there is nothing left to watch: two thirds
-  fewer commands for the phone, which is encoding during that time.
-
-- **An offline device explains what to check.** "Offline" did not say whether
-  the phone was switched off, on another network, its wireless debugging
-  disabled, or whether it had forgotten this PC. The tooltip gives the list, in
-  the order to look, and ends with the one you would not guess: the pairing is
-  gone.
-
-- **The button that forgets a device was called "Unpair"**, and carried a broken
-  chain. It cancels nothing on the phone's side, it removes the device from this
-  PC; the confirmation sentence already said so, and the button's name claimed
-  the opposite. All the more confusing on a phone that is precisely no longer
-  paired. It is now called "Forget device" and carries the bin, the same one
-  already used to delete a profile.
-
-- **A device that needs pairing says where to go.** A short line under its name,
-  "Through 'Pair a new device', at the top.", and only where the refusal has
-  been observed.
-
-- **Startup waited for absent phones one after another.** Reconnections were
-  sequential, on the grounds that ADB serialises connections anyway; measurement
-  says otherwise, two connections to absent devices take 19.3 s together against
-  22 s for a single one. They are now made in parallel, and the last known
-  address has only five seconds to answer before the network scan takes over,
-  instead of the twenty-two seconds the system grants a switched-off machine.
-
-- **Each device's summary appears under its name**, and no longer in a banner at
-  the foot of the list, where it seemed to be talking about the last device
-  shown, which was precisely the one with nothing wrong. One finding per line,
-  under the heading of the phone concerned, the full text on hover. The banner
-  keeps what targets no device, and the findings of a device that has no row in
-  the list, for want of a heading to put them under.
-
-- **The device summary did not say which device it was talking about.** With two
-  phones connected, "Android does not have this game in its list" left you to
-  guess which of the two to fix. The name comes first as soon as there are
-  several devices, as discovery warnings already do.
-
-- **The input probe's verdict was drawn in black on a dark background.** Its
-  style, written on the element itself, did not inherit the theme's implicit
-  style: WPF replaces rather than extends when "BasedOn" is missing, and the
-  text fell back to the default black. Only the refusal verdict was visible,
-  because it alone set a colour. A test now guards the door, across the whole
-  windows folder.
-
-- **The padlock warning shouted when all was well, and fell silent when it
-  mattered.** It looked only at the device's capability, never at the state of
-  its lock: an unlocked phone, game on screen, was told a newer Android was
-  required. And the message lived only two seconds, the next scan erasing it. It
-  has moved into the device summary: it appears for as long as it is true,
-  disappears on unlocking, and says what to do.
-
-- **The language setting had no effect.** It was read, logged, and the
-  application still displayed the Windows language: a culture set inside an
-  async method reverts to its previous value as soon as the method yields.
-  Measured, setting on "en", thirty milliseconds after it was set: "fr-FR". The
-  English and Spanish translations were therefore unreachable from the
-  interface.
-
-- **Ten displayed strings were written in French in the code**, including
-  "Connecting...", the name given to a new account, the three frame rates in the
-  quality setting, the name of the main profile and the title of the "Add an
-  account" dialog, which already had its translation key. A test now guards the
-  door.
-
-- **Three help texts were wrong.** DT Hub does not keep the phone's screen awake
-  but the virtual display where the game runs; the high quality tier is capped
-  at 1440 and not at the window's resolution; and the same tier was called
-  "High" in the settings and "Max" in the per-account picker.
-
-- **Spanish mixed familiar and formal address**, sometimes within a single
-  sentence. Thirty-one keys return to the familiar form, which is what the rest
-  of the file uses.
-
-- **A dropped link no longer closes the application.** When the last game window
-  died without being asked to, DT Hub closed with it. A Wi-Fi hiccup was enough,
-  and disconnections are the first complaint of DOFUS Touch players. The window
-  now reopens by itself, up to three times, spacing out the attempts, and the
-  banner says so. A window closed by hand stays closed: scrcpy exits cleanly in
-  that case, and with an error when the link drops.
-
-- **A dropped link is finally recognised as one.** scrcpy announces it with a
-  warning and not an error, and the application looked only at errors: the most
-  frequent failure passed for a deliberate close.
+- The application appears four and a half times sooner.
+- Forgetting a device took two clicks, and lied in between.
+- The game left an empty card in the phone's running applications list.
+- The game stayed open on the phone after its window was closed.
+- The application crashed at startup when no window opened.
+- The reconnection notice stayed on screen after the phone left.
+- The application woke the phone twice as often as needed during play.
+- An offline device explains what to check.
+- The button that forgets a device was called "Unpair".
+- A device that needs pairing says where to go.
+- Startup waited for absent phones one after another.
+- Each device's summary appears under its name.
+- The device summary did not say which device it was talking about.
+- The input probe's verdict was drawn in black on a dark background.
+- The padlock warning shouted when all was well, and fell silent when it
+  mattered.
+- The language setting had no effect.
+- Ten displayed strings were written in French in the code.
+- Three help texts were wrong.
+- Spanish mixed familiar and formal address.
+- A dropped link no longer closes the application.
+- A dropped link is finally recognised as one.
 
 ## [0.2.0] - 2026-09-09
 
