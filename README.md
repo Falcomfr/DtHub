@@ -12,11 +12,14 @@ on your real phone, DT Hub only mirrors it and arranges the windows.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
+**[falcomfr.github.io/DtHub](https://falcomfr.github.io/DtHub/)** · screenshots,
+what it does, and the download.
+
 </div>
 
 ---
 
-> **Status: early development (v0.3).** Usable, but rough edges remain. See
+> **Status: early development (v0.5).** Usable, but rough edges remain. See
 > [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).
 
 ## Download

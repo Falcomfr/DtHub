@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The two pages, and the pair they form.
+
+  **No <lastmod>.** Nothing in the release bumps this file, so the date
+  would be whatever was true the day it was typed; Google ignores a lastmod
+  it catches out once, and a wrong one is worse than none.
+
+  **No robots.txt beside it either.** A crawler only reads robots.txt at the
+  root of a host, and this site lives under /DtHub/ on a host that is not
+  ours. One placed here would be read by nobody, and its Sitemap: line
+  would point at a file nobody was told about. The address below has to be
+  handed to Search Console and to Bing Webmaster Tools by hand, once.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://falcomfr.github.io/DtHub/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/index.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/"/>
+  </url>
+  <url>
+    <loc>https://falcomfr.github.io/DtHub/index.fr.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/index.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/"/>
+  </url>
+</urlset>
