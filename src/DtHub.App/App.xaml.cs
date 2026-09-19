@@ -390,6 +390,13 @@ public partial class App : Application, IDisposable
 
         CultureInfo.DefaultThreadCurrentUICulture = culture;
         CultureInfo.CurrentUICulture = culture;
+
+        // And told once and for all, because the two lines above only
+        // hold where this execution context reaches. They cover the
+        // windows built right after; a sweep running from a timer
+        // callback is outside them, and every label it produced came
+        // back in Windows' language beside a chrome in the chosen one.
+        Strings.Speak(culture);
     }
 
     /// <summary>

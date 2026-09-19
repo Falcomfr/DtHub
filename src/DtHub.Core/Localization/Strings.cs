@@ -21,10 +21,43 @@ public static class Strings
         new("DtHub.Core.Localization.Strings", typeof(Strings).Assembly);
 
     /// <summary>
+    /// The language chosen for this run, once it has been chosen.
+    ///
+    /// **The ambient culture could not be trusted, and the screen
+    /// proved it.** Setting the thread's culture at startup held long
+    /// enough to build the windows, so every label written in XAML came
+    /// out in the right language. Everything computed afterwards did
+    /// not: a panel set to English showed "Devices" and "Shortcuts"
+    /// beside "Connecté en Wi-Fi" and "ouvert à l'instant", because the
+    /// sweep that produces those runs from a timer callback, outside
+    /// the execution context the culture was set in.
+    ///
+    /// Holding the choice here settles it: what the application decided
+    /// to speak does not depend on which thread happens to ask.
+    /// </summary>
+    private static CultureInfo? _chosen;
+
+    /// <summary>
+    /// The language the interface speaks, falling back to the thread's
+    /// own while nothing has been chosen, which is what tests and the
+    /// domain's own callers get.
+    /// </summary>
+    private static CultureInfo Spoken => _chosen ?? CultureInfo.CurrentUICulture;
+
+    /// <summary>
+    /// Fixes the language for the rest of the run.
+    ///
+    /// Called once, when the choice between the setting and Windows has
+    /// been made. Passing <c>null</c> hands the answer back to the
+    /// thread, which is what the tests need between two cases.
+    /// </summary>
+    public static void Speak(CultureInfo? culture) => _chosen = culture;
+
+    /// <summary>
     /// Returns the text of this key in the interface language.
     /// </summary>
     public static string Get(string key)
-        => Manager.GetString(key, CultureInfo.CurrentUICulture) ?? key;
+        => Manager.GetString(key, Spoken) ?? key;
 
     /// <summary>
     /// Returns the text of this key, or <c>null</c> if it is not
@@ -33,7 +66,7 @@ public static class Strings
     /// show one.
     /// </summary>
     public static string? Optional(string key)
-        => Manager.GetString(key, CultureInfo.CurrentUICulture);
+        => Manager.GetString(key, Spoken);
 
     /// <summary>
     /// Returns the text of this key, with its placeholders filled
