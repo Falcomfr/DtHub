@@ -8,7 +8,7 @@ public class DeviceVitalsTests
         new BatteryReading(percent, Charging: false, Celsius: 31.2),
         new ThermalReading(Status: 0, SkinCelsius: 34.4),
         new StorageReading(313_535_476L * 1024),
-        new WifiLink(LinkSpeedMbps: 866, FrequencyMhz: 5220, Standard: "11ac", Rssi: -59, RetryShare: 0.05));
+        new WifiLink(LinkSpeedMbps: 866, FrequencyMhz: 5220, Standard: "11ac", Rssi: -59, RetryShare: 0.05, TxPackets: 50_000));
 
     /// <summary>
     /// The reason this is a record rather than a class. The device

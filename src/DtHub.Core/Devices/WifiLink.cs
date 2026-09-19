@@ -29,12 +29,18 @@ namespace DtHub.Core.Devices;
 /// <param name="RetryShare">
 /// Share of retransmitted frames, between 0 and 1.
 /// </param>
+/// <param name="TxPackets">
+/// How many frames that share was computed over. The phone counts from
+/// the moment it associates, so the figure is meaningless until enough
+/// of them have gone out.
+/// </param>
 public sealed record WifiLink(
     int LinkSpeedMbps,
     int FrequencyMhz,
     string Standard,
     int Rssi,
-    double RetryShare)
+    double RetryShare,
+    int TxPackets)
 {
     /// <summary>
     /// The crowded band, shared with the neighbors and microwave
@@ -56,11 +62,30 @@ public sealed record WifiLink(
     public const double Crowded = 0.20;
 
     /// <summary>
+    /// How many frames must have gone out before the share is believed.
+    ///
+    /// **Measured, after the warning cried wolf.** The counter restarts
+    /// when the phone associates, so the first seconds of a video stream
+    /// are a burst against an almost empty sample: a panel screenshot
+    /// caught 41 % on a phone that had sent about four thousand frames,
+    /// and forty minutes later the same link read 15.7 % over its whole
+    /// life and 15.4 % over a fresh forty-second window. The link had
+    /// not changed; the sample had.
+    ///
+    /// Ten thousand frames is about a minute of streaming at the rate
+    /// measured on that phone, a hundred and sixty-eight frames a
+    /// second. A phone that is not streaming never reaches it, and that
+    /// is right: a crowded channel is a thing you only need told about
+    /// when something is trying to use it.
+    /// </summary>
+    public const int Sample = 10_000;
+
+    /// <summary>
     /// True when the channel loses enough frames for it to be worth
     /// naming, whatever the band. A clean 2.4 GHz used to be reported
     /// while a 5 GHz losing four frames in ten was not.
     /// </summary>
-    public bool IsCrowded => RetryShare >= Crowded;
+    public bool IsCrowded => TxPackets >= Sample && RetryShare >= Crowded;
 
     /// <summary>
     /// Reads the state returned by <c>cmd wifi status</c>.
@@ -97,7 +122,8 @@ public sealed record WifiLink(
             frequency.Value,
             Text(status, "Wi-Fi standard: ") ?? "?",
             Number(status, "RSSI: ") ?? 0,
-            success + retried > 0 ? retried / (double)(success + retried) : 0);
+            success + retried > 0 ? retried / (double)(success + retried) : 0,
+            success + retried);
     }
 
     /// <summary>

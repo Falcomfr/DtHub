@@ -126,6 +126,37 @@ public class WifiLinkTests
         Assert.True(Liaison(0.387).IsCrowded);
     }
 
-    private static WifiLink Liaison(double retryShare) =>
-        new(LinkSpeedMbps: 866, FrequencyMhz: 5220, Standard: "11ac", Rssi: -59, RetryShare: retryShare);
+    /// <summary>
+    /// The case the guard was added for, taken from the field: a panel
+    /// showed 41 % on a phone whose stream had just started and which had
+    /// sent about four thousand frames. The same link read 15 % once it
+    /// had run for a minute. A burst against an almost empty sample must
+    /// not raise anything.
+    /// </summary>
+    [Fact]
+    public void Une_rafale_de_demarrage_ne_declenche_rien()
+    {
+        Assert.False(Liaison(0.41, txPackets: 4_000).IsCrowded);
+    }
+
+    [Fact]
+    public void Le_plancher_d_echantillon_est_inclusif()
+    {
+        Assert.True(Liaison(0.41, txPackets: WifiLink.Sample).IsCrowded);
+        Assert.False(Liaison(0.41, txPackets: WifiLink.Sample - 1).IsCrowded);
+    }
+
+    /// <summary>
+    /// A phone that sends nothing has no share worth reading, and the
+    /// division that produces it would be a division by zero.
+    /// </summary>
+    [Fact]
+    public void Un_telephone_muet_n_est_pas_encombre()
+    {
+        Assert.False(Liaison(0, txPackets: 0).IsCrowded);
+    }
+
+    private static WifiLink Liaison(double retryShare, int txPackets = 50_000) =>
+        new(LinkSpeedMbps: 866, FrequencyMhz: 5220, Standard: "11ac", Rssi: -59,
+            RetryShare: retryShare, TxPackets: txPackets);
 }

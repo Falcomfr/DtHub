@@ -5,7 +5,7 @@ namespace DtHub.Tests.Devices;
 public class VideoBufferTests
 {
     private static WifiLink Lien(int rssi, int frequence = 2412, double reemissions = 0.12) =>
-        new(144, frequence, frequence < 3000 ? "11n" : "11ac", rssi, reemissions);
+        new(144, frequence, frequence < 3000 ? "11n" : "11ac", rssi, reemissions, 50_000);
 
     [Fact]
     public void Une_liaison_filaire_n_a_rien_a_compenser()

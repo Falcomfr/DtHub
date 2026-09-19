@@ -11,7 +11,8 @@ public class DeviceHealthTests
         new((long)(gigabytes * 1024 * 1024 * 1024));
 
     private static WifiLink Link(int frequency) =>
-        new(LinkSpeedMbps: 144, FrequencyMhz: frequency, Standard: "11n", Rssi: -57, RetryShare: 0.1);
+        new(LinkSpeedMbps: 144, FrequencyMhz: frequency, Standard: "11n", Rssi: -57,
+            RetryShare: 0.1, TxPackets: 50_000);
 
     [Fact]
     public void La_bulle_porte_tous_les_constats_quand_le_bandeau_n_en_montre_qu_un()
@@ -226,7 +227,7 @@ public class DeviceHealthTests
             new ThermalReading(0, null),
             new BatteryReading(20, Charging: true, Celsius: 36.2),
             new StorageReading(17159944L * 1024),
-            new WifiLink(144, 2462, "4", -61, 0.0));
+            new WifiLink(144, 2462, "4", -61, 0.0, 50_000));
 
         var finding = Assert.Single(findings);
 
@@ -239,7 +240,7 @@ public class DeviceHealthTests
         // Mesuré sur une vraie session : 38,7 % de réémissions à
         // 5220 MHz. L'application le mesurait, le journalisait, en
         // nourrissait le tampon vidéo, et ne le disait nulle part.
-        var findings = DeviceHealth.Review(null, null, null, new WifiLink(LinkSpeedMbps: 866, FrequencyMhz: 5220, Standard: "11ac", Rssi: -59, RetryShare: 0.387));
+        var findings = DeviceHealth.Review(null, null, null, new WifiLink(LinkSpeedMbps: 866, FrequencyMhz: 5220, Standard: "11ac", Rssi: -59, RetryShare: 0.387, TxPackets: 50_000));
 
         Assert.Single(findings);
         Assert.Equal(HealthSeverity.Notice, findings[0].Severity);
@@ -249,7 +250,7 @@ public class DeviceHealthTests
     [Fact]
     public void Un_canal_calme_ne_dit_rien()
     {
-        Assert.Empty(DeviceHealth.Review(null, null, null, new WifiLink(LinkSpeedMbps: 866, FrequencyMhz: 5220, Standard: "11ac", Rssi: -59, RetryShare: 0.05)));
+        Assert.Empty(DeviceHealth.Review(null, null, null, new WifiLink(LinkSpeedMbps: 866, FrequencyMhz: 5220, Standard: "11ac", Rssi: -59, RetryShare: 0.05, TxPackets: 50_000)));
     }
 
     [Fact]
@@ -257,7 +258,7 @@ public class DeviceHealthTests
     {
         // Changer de bande apporte plus que changer de canal : une
         // liaison 2,4 GHz encombrée n'a qu'un conseil à donner.
-        var findings = DeviceHealth.Review(null, null, null, new WifiLink(LinkSpeedMbps: 144, FrequencyMhz: 2437, Standard: "11n", Rssi: -59, RetryShare: 0.40));
+        var findings = DeviceHealth.Review(null, null, null, new WifiLink(LinkSpeedMbps: 144, FrequencyMhz: 2437, Standard: "11n", Rssi: -59, RetryShare: 0.40, TxPackets: 50_000));
 
         Assert.Single(findings);
         Assert.Contains("2,4 GHz", findings[0].Message, StringComparison.Ordinal);
