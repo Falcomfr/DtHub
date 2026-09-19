@@ -550,6 +550,48 @@ Cross the tests: another device on this port, and this phone on another PC. You 
   <data name="PlaytimeMinutes" xml:space="preserve">
     <value>{0} min this week</value>
   </data>
+  <data name="SessionHours" xml:space="preserve">
+    <value>{0} h {1}</value>
+  </data>
+  <data name="SessionMinutes" xml:space="preserve">
+    <value>{0} min</value>
+  </data>
+  <data name="SessionJustOpened" xml:space="preserve">
+    <value>just opened</value>
+  </data>
+  <data name="StatusOpening" xml:space="preserve">
+    <value>opening</value>
+  </data>
+  <data name="StatusReconnecting" xml:space="preserve">
+    <value>reconnecting</value>
+  </data>
+  <data name="InstanceSettingsTip" xml:space="preserve">
+    <value>This account's own quality and distance, when they have to differ from the shared settings.</value>
+  </data>
+  <data name="VitalsHeatWarm" xml:space="preserve">
+    <value>warm</value>
+  </data>
+  <data name="VitalsHeatHot" xml:space="preserve">
+    <value>hot</value>
+  </data>
+  <data name="VitalsStorage" xml:space="preserve">
+    <value>{0} GB</value>
+  </data>
+  <data name="VitalsBand" xml:space="preserve">
+    <value>{0} GHz</value>
+  </data>
+  <data name="VitalsLinkTip" xml:space="preserve">
+    <value>{0} GHz, {1} Mb/s</value>
+  </data>
+  <data name="VitalsLinkCrowded" xml:space="preserve">
+    <value>{0} % lost</value>
+  </data>
+  <data name="ColourHeading" xml:space="preserve">
+    <value>COLOUR</value>
+  </data>
+  <data name="ColourNone" xml:space="preserve">
+    <value>None</value>
+  </data>
   <data name="ExportSettings" xml:space="preserve">
     <value>Save settings</value>
   </data>
@@ -1862,8 +1904,8 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="ProfileOrigin" xml:space="preserve">
     <value>profile {0} · {1}</value>
   </data>
-  <data name="DungeonWithLevel" xml:space="preserve">
-    <value>{0} (lvl {1})</value>
+  <data name="DungeonLevelShort" xml:space="preserve">
+    <value>lvl {0}</value>
   </data>
   <data name="DefaultAccountName" xml:space="preserve">
     <value>Account {0}</value>

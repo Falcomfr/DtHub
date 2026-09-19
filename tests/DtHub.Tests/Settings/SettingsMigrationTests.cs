@@ -254,4 +254,203 @@ public sealed class SettingsMigrationTests : IDisposable
         Assert.Single(settings.Instances);
         Assert.Equal("Principal", settings.Instances[0].UserName);
     }
+
+    /// <summary>
+    /// Accounts that existed before colours did are given one, once, in
+    /// rank order. Without this, everyone who updates sees a feature
+    /// that looks broken on exactly the installations that have
+    /// accounts to tell apart.
+    /// </summary>
+    [Fact]
+    public async Task Un_fichier_v9_recoit_des_couleurs_dans_l_ordre_des_rangs()
+    {
+        await WriteAsync("""
+        { "schemaVersion": 9, "instances": [
+            { "deviceId": "A", "userId": 0, "packageName": "p", "order": 1 },
+            { "deviceId": "A", "userId": 999, "packageName": "p", "order": 0 }
+        ] }
+        """);
+
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.Equal(AppSettingsDocument.CurrentSchemaVersion, settings.SchemaVersion);
+
+        var parRang = settings.Instances.OrderBy(i => i.Order).ToList();
+
+        Assert.Equal(AccountColours.AssignmentOrder[0], parRang[0].Colour);
+        Assert.Equal(AccountColours.AssignmentOrder[1], parRang[1].Colour);
+    }
+
+    /// <summary>
+    /// The backfill runs once and then leaves the file alone. Someone
+    /// who clears a colour on purpose must not have one handed back at
+    /// the next launch.
+    /// </summary>
+    [Fact]
+    public async Task Une_couleur_effacee_le_reste()
+    {
+        await WriteAsync("""
+        { "schemaVersion": 10, "instances": [
+            { "deviceId": "A", "userId": 0, "packageName": "p", "colour": null }
+        ] }
+        """);
+
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.Null(settings.Instances[0].Colour);
+    }
+
+    /// <summary>
+    /// The nullable path of the tolerant converter, which nothing
+    /// exercised before: the custom factory declines Nullable&lt;TEnum&gt;
+    /// outright, and it only works because the framework's own nullable
+    /// factory resolves the inner converter through the options and
+    /// lands back on it. An unknown name must give the declared
+    /// fallback, not a lost file.
+    /// </summary>
+    [Fact]
+    public async Task Une_couleur_inconnue_retombe_sur_la_valeur_declaree()
+    {
+        await WriteAsync("""
+        { "schemaVersion": 10, "instances": [
+            { "deviceId": "A", "userId": 0, "packageName": "p", "colour": "CouleurQuiNExistePas" }
+        ] }
+        """);
+
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.Single(settings.Instances);
+        Assert.Equal(AccountColour.Teal, settings.Instances[0].Colour);
+    }
+
+    /// <summary>
+    /// Reproduction of a real file: four accounts spread over two device
+    /// identities, none of them coloured. Every one of them must come
+    /// back marked, not just the first two.
+    /// </summary>
+    [Fact]
+    public async Task Tous_les_comptes_d_un_fichier_v9_recoivent_une_couleur()
+    {
+        await WriteAsync("""
+        { "schemaVersion": 9, "instances": [
+            { "deviceId": "96ca0f7b", "userId": 0, "packageName": "com.ankama.dofustouch", "order": 0 },
+            { "deviceId": "96ca0f7b", "userId": 10, "packageName": "com.ankama.dofustouch", "order": 1 },
+            { "deviceId": "CMBU79RCINVSFYUO", "userId": 0, "packageName": "com.ankama.dofustouch",
+              "order": 2, "customName": "Cra, Enu" },
+            { "deviceId": "CMBU79RCINVSFYUO", "userId": 999, "packageName": "com.ankama.dofustouch",
+              "order": 3, "customName": "Iop, Eni" }
+        ] }
+        """);
+
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.All(settings.Instances, i => Assert.NotNull(i.Colour));
+
+        Assert.Equal(
+            settings.Instances.Count,
+            settings.Instances.Select(i => i.Colour).Distinct().Count());
+    }
+
+    /// <summary>
+    /// The other path into the file: an account discovered after the
+    /// migration has already run. It must be marked too, or a phone
+    /// plugged in for the first time gives accounts nobody can tell
+    /// apart.
+    /// </summary>
+    [Fact]
+    public async Task Un_compte_decouvert_apres_la_migration_recoit_une_couleur()
+    {
+        await WriteAsync("""
+        { "schemaVersion": 10, "instances": [
+            { "deviceId": "96ca0f7b", "userId": 0, "packageName": "p", "order": 0, "colour": "Teal" },
+            { "deviceId": "96ca0f7b", "userId": 10, "packageName": "p", "order": 1, "colour": "Brass" }
+        ] }
+        """);
+
+        _ = await _service.GetAsync(CancellationToken.None);
+
+        var merged = await _service.MergeInstancesAsync(
+            [
+                new DtHub.Core.Dofus.DofusInstance
+                {
+                    DeviceId = "CMBU79RCINVSFYUO", UserId = 0, PackageName = "p",
+                    DeviceName = "Mi 9T Pro", UserName = "Principal",
+                },
+                new DtHub.Core.Dofus.DofusInstance
+                {
+                    DeviceId = "CMBU79RCINVSFYUO", UserId = 999, PackageName = "p",
+                    DeviceName = "Mi 9T Pro", UserName = "XSpace",
+                },
+            ],
+            CancellationToken.None);
+
+        var nouveaux = merged
+            .Where(i => string.Equals(i.DeviceId, "CMBU79RCINVSFYUO", StringComparison.Ordinal))
+            .ToList();
+
+        Assert.Equal(2, nouveaux.Count);
+        Assert.All(nouveaux, i => Assert.NotNull(i.Colour));
+    }
+
+    /// <summary>
+    /// The state a real file was found in: an account that is already
+    /// remembered, on a file already stamped at the current version, and
+    /// carrying no colour. Nothing used to give it one, because the
+    /// backfill runs once and a rediscovery only ever coloured brand new
+    /// entries. The account stayed unmarked for good.
+    /// </summary>
+    [Fact]
+    public async Task Un_compte_deja_connu_mais_sans_couleur_en_recoit_une()
+    {
+        await WriteAsync("""
+        { "schemaVersion": 10, "instances": [
+            { "deviceId": "CMBU79RCINVSFYUO", "userId": 0, "packageName": "p",
+              "order": 0, "customName": "Cra, Enu" }
+        ] }
+        """);
+
+        _ = await _service.GetAsync(CancellationToken.None);
+
+        var merged = await _service.MergeInstancesAsync(
+            [
+                new DtHub.Core.Dofus.DofusInstance
+                {
+                    DeviceId = "CMBU79RCINVSFYUO", UserId = 0, PackageName = "p",
+                    DeviceName = "Mi 9T Pro", UserName = "Principal",
+                },
+            ],
+            CancellationToken.None);
+
+        Assert.NotNull(Assert.Single(merged).Colour);
+    }
+
+    /// <summary>
+    /// And the other side of it: an account the user deliberately
+    /// stripped of its colour must stay stripped, otherwise the next
+    /// sweep hands one straight back.
+    /// </summary>
+    [Fact]
+    public async Task Une_couleur_retiree_par_l_utilisateur_n_est_pas_rendue()
+    {
+        await WriteAsync("""
+        { "schemaVersion": 10, "instances": [
+            { "deviceId": "CMBU79RCINVSFYUO", "userId": 0, "packageName": "p",
+              "order": 0, "colour": "None" }
+        ] }
+        """);
+
+        _ = await _service.GetAsync(CancellationToken.None);
+
+        var merged = await _service.MergeInstancesAsync(
+            [
+                new DtHub.Core.Dofus.DofusInstance
+                {
+                    DeviceId = "CMBU79RCINVSFYUO", UserId = 0, PackageName = "p",
+                    DeviceName = "Mi 9T Pro", UserName = "Principal",
+                },
+            ],
+            CancellationToken.None);
+
+        Assert.Equal(AccountColour.None, Assert.Single(merged).Colour);
+    }
 }

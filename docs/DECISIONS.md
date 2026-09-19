@@ -8995,3 +8995,367 @@ succès du site et non celui de la fenêtre.
 trouvé 109 désaccords, et conclu que l'application avait tort 109 fois. La
 mesure était juste et la conclusion fausse : les deux ne comptaient pas la même
 chose. Une mesure ne dit jamais lequel des deux comptes on voulait.
+
+## D165 - Le configurateur montre un état, pas seulement des réglages
+
+**Date** : 2026-09-18
+
+La moitié basse du panneau était vide, et une ligne de compte ne disait ni ce
+qui tournait, ni depuis quand, ni dans quel état. C'était une liste de réglages
+là où il fallait un poste de pilotage.
+
+**Le vide ne venait pas d'où on le croyait.** Le premier diagnostic accusait les
+trois StackPanel superposés, un par onglet, dans la même cellule. C'est faux : un
+StackPanel en `VerticalAlignment=Stretch` s'arrange bien sur toute la cellule, ce
+sont ses enfants qui restent en haut. La cause réelle est que la racine de
+l'onglet Appareils est un StackPanel, qui ne distribue jamais l'espace restant, et
+qu'elle vit dans un ScrollViewer, qui mesure à hauteur infinie. Le bandeau de
+constantes est donc épinglé en rangée 2, hors du ScrollViewer, exactement là où
+les deux lignes d'aide l'étaient déjà pour la raison écrite à côté d'elles.
+
+**Les quatre lectures étaient prises puis jetées.** `RefreshHealthAsync` attend
+déjà chaleur, batterie, espace et liaison pour chaque téléphone connecté, les
+donne à `DeviceHealth.Review` qui en fait des phrases, et laisse tomber les
+objets. Un téléphone qui n'avait rien d'anormal n'avait donc rien à montrer.
+`DeviceVitals` les porte jusqu'à l'écran sans un seul appel ADB de plus. C'est un
+record, et ça compte : l'égalité par valeur permet au view-model d'ignorer un
+balayage identique, ce qui arrive presque à chaque fois puisque chaque lecture est
+mise en cache une minute ou plus en amont.
+
+**Jamais de degrés.** `ThermalReading` porte une température de surface, et son
+propre commentaire note que le téléphone de référence lit 84 °C avec un statut
+thermique à zéro et rien qui bride. Un chiffre pareil fabriquerait une fausse
+alerte sur le seul appareil que le projet teste vraiment. Le bandeau dit un état
+en un mot, dérivé du statut, qui est le verdict qu'Android rend lui-même.
+
+**Le chrono est à la minute, et il ne tique pas depuis `Update`.** À la seconde,
+il coûterait sous `AllowsTransparency`, donnerait une précision sur laquelle
+personne n'agit, et transformerait la ligne en chronomètre par compte, ce qui se
+lit mal dans un dépôt public qui s'interdit toute automatisation. Et `Update`
+n'est atteint que quand la liste d'instances en cache est encore tenue : elle est
+lâchée après chaque écriture de réglages, donc un chrono qui tiquerait de là
+gèlerait près de trois secondes d'affilée sans que rien ne le dise. Il tique
+depuis `RefreshRunningState`, qui est appelée au balayage, à la naissance et à la
+mort d'une session, et à la fin de chaque action sur une ligne.
+
+**Ce qui a payé la deuxième ligne.** Les deux `DropLine` de chaque ligne étaient
+liées par `Opacity` et non par `Visibility` : trois pixels et deux marges chacune,
+quatorze par ligne, mis en page en permanence pour un indice visible seulement
+pendant un glisser. Six comptes payaient quatre-vingt-quatre pixels pour ça.
+Pilotées par `IsReordering`, un drapeau au niveau de la liste qui bascule deux
+fois par glisser, la hauteur est réservée pour toutes les lignes d'un coup au
+début du glisser, et aucune ligne ne change de hauteur au passage du curseur. La
+ligne passe de 40 à 39 pixels **avec** la ligne d'état en plus.
+
+**Pas de valeur `Failed` sur la ligne.** Le bandeau porte déjà les échecs avec une
+vie de quarante-cinq secondes, et un second rendu du même fait est exactement le
+défaut contre lequel le bandeau a été reconstruit. La reconnexion, elle, est bien
+par compte, parce que le bandeau la dit une fois pour tout le monde : avec quatre
+comptes ouverts, on apprend qu'une fenêtre revient sans savoir laquelle regarder.
+
+**Et elle est un avis, pas un drapeau.** Si la reprise elle-même lève, l'appelant
+le journalise et continue, et rien ne nettoierait jamais un booléen : la ligne
+dirait « reconnexion » aussi longtemps que l'application tourne. Un `TimedNotice`
+dit de lui-même s'il est encore vrai.
+
+## D166 - L'action d'une ligne domine par la matière, pas par la teinte
+
+**Date** : 2026-09-18
+
+Cinq contrôles au même poids sur chaque ligne, dont l'action principale : la
+pastille de qualité, celle de zoom, et lancer, redémarrer, arrêter, tous en
+`IconButton` muet.
+
+**L'accent n'était pas disponible.** La palette le réserve à ce qu'on sélectionne
+et à ce qu'on touche, et il travaille déjà dans cette ligne même : la bascule
+d'onglet cochée, le cadenas fermé, la ligne de dépôt, l'étoile de profil par
+défaut. Un pavé bleu répété sur chaque ligne dépenserait « la seule de son
+espèce » et ferait dire au bleu à la fois « sélectionné » et « l'action ».
+
+D'où `RowActionButton` : une face de touche et un biseau, le vocabulaire que la
+barre du bas emploie déjà pour ce qui s'enfonce, et un glyphe à pleine valeur
+parmi des gris. Le seul accent qu'il prend est l'enfoncement, qui est
+littéralement ce à quoi la palette garde la couleur.
+
+**Lancer et arrêter partagent une case.** Côte à côte, la chose qu'on vise se
+déplaçait chaque fois qu'une fenêtre s'ouvrait ou se fermait. Redémarrer garde sa
+place en `Hidden` plutôt qu'en `Collapsed` : la colonne du nom ne bouge plus au
+moment où une fenêtre s'ouvre.
+
+**Arrêter n'est pas rouge.** `DangerIconButton` existe pour le destructif, et le
+commentaire de la ligne acte déjà l'éloignement délibéré de la connotation
+« supprimer ». Fermer une fenêtre ne détruit rien.
+
+**Fusionner les deux pastilles, et pourquoi pas seulement les atténuer.** Elles
+tombaient déjà à `Opacity 0.5` dans le cas courant. Le problème n'était pas
+l'opacité : une bordure est plus forte qu'un glyphe à n'importe quelle opacité. On
+ne peut pas rendre un contrôle sur cinq dominant, on peut sur trois. Ce qu'on
+perd : lequel des deux réglages s'écarte du partagé ne se voit plus sans ouvrir le
+popup. Acceptable pour une paire choisie une fois puis laissée tranquille.
+
+## D167 - Une couleur par compte, et six teintes qui ne sont pas celles du menu
+
+**Date** : 2026-09-18
+
+Rien ne distinguait deux comptes qu'un nom en douze pixels. Jouer à quatre, c'est
+quatre fenêtres qui se ressemblent.
+
+**Pourquoi pas `MenuTint*`.** Mesuré : `MenuTintF` #4A5566 est à **huit degrés**
+de l'accent, et `MenuTintD` #8C4A50 à six du rouge de danger. Dans l'illustration
+d'aide ce sont des pastilles qui ne côtoient jamais une sélection ; comme marque
+sur une ligne qu'on survole et qu'on sélectionne, la première est exactement la
+collision que le commentaire de l'accent interdit. Les quatre autres sont
+calibrées pour une pastille de huit pixels et disparaissent en barre de deux.
+
+Les six nouvelles sont choisies comme une famille et non comme six couleurs :
+toutes entre 3,8:1 et 5,0:1 sur le fond, dans une bande de clarté de quinze
+points, saturation plafonnée à 44 %. C'est ce qui évite le vitrail et ce qui les
+empêche de vibrer sur le presque-noir. L'espacement est volontairement inégal :
+quatre teintes sont réservées, à 0, 46, 147 et 208 degrés, et six teintes
+régulières en percuteraient au moins deux quelle que soit la phase.
+
+**Le septième compte n'a pas de couleur, et il n'y a pas de bouclage.** Deux
+comptes partageant une couleur n'est pas une version réduite de la
+fonctionnalité, c'est la fonctionnalité qui ment : quelqu'un qui fait confiance à
+la marque et agit sur la mauvaise fenêtre est plus mal loti que quelqu'un qui
+sait que le septième n'est pas marqué. Il peut toujours choisir un doublon à la
+main ; la différence est que l'application ne le fait jamais dans son dos.
+
+**`null` ne veut pas dire « suit le réglage partagé ».** Contrairement au palier
+et à la distance, il n'y a pas de couleur partagée et il ne doit pas y en avoir :
+un réglage dont tout l'intérêt est de différer par compte n'a pas de valeur
+commune qui ait un sens. `null` veut dire « aucune marque », et c'est aussi la
+porte de sortie de quelqu'un à qui la fonctionnalité déplaît.
+
+**Une migration, et une seule, qui ne soit pas morte.** Lire le champ n'en demande
+aucune : un fichier antérieur n'a simplement pas la propriété. En revanche,
+laisser sans couleur les comptes déjà là montrerait la fonctionnalité comme si
+elle était cassée, précisément sur les installations qui ont des comptes à
+distinguer. Le schéma 10 les sert une fois, dans l'ordre des rangs.
+
+**Le chemin nullable du convertisseur tolérant n'était testé par rien.** La
+fabrique maison décline `Nullable<TEnum>` d'emblée, et ça ne marche que parce que
+la fabrique nullable du framework résout le convertisseur interne à travers les
+options et retombe dessus. Un test le prouve maintenant : un nom inconnu donne la
+valeur de repli, pas un fichier perdu.
+
+**La marque n'est pas le souligné de sélection de l'onglet.** Celui-là dit
+« voici l'onglet que tu regardes ». Le teindre volerait l'unique rôle de l'accent
+et laisserait sans marque les onglets non sélectionnés, qui sont justement ceux
+qu'un joueur multi-compte a besoin de distinguer.
+
+**La bordure de la fenêtre de jeu n'est pas décidée ici.** La fenêtre appartient à
+scrcpy. `DwmSetWindowAttribute` devrait marcher en inter-processus, mais tous les
+usages qu'on peut citer sont intra-processus. `build/sonde-bordure` tranche avant
+qu'une ligne de fonctionnalité soit écrite pour cette surface. Ce qu'on ne fera
+pas si elle dit non : une fenêtre de recouvrement par compte. Cinq HWND de plus,
+un surveillant de position par fenêtre en guerre avec la veille existante, du
+retard visible à chaque glisser, une bagarre d'ordre Z avec tout le bureau, et de
+nouveaux modes de panne sur réduction, occlusion, changement d'écran et de DPI.
+
+## D168 - Le niveau quitte le libellé d'un donjon
+
+**Date** : 2026-09-18
+
+La liste des donjons était un mur de texte. Le niveau était formaté dans le nom,
+donc « Donjon des Champs (niv. 30) » était un seul flux de texte que rien ne
+pouvait aligner ni pondérer à part ; la taille et les coordonnées étaient jointes
+par un séparateur dans le code. La colonne de droite était en drapeau et
+quatre-vingt-trois lignes se lisaient une par une.
+
+**La hiérarchie était à l'envers.** L'en-tête de palier était en onze pixels
+au-dessus des lignes de treize qu'il coiffait : ce qui organisait la liste en
+était le plus petit texte. Il n'y a plus de consigne de taille du tout, la ligne
+reprend le treize implicite, et le poids, la couleur, l'air et un filet portent le
+titre. Quinze aurait crié.
+
+**Les faits vivent sur le noeud, pas atteints depuis le XAML.** Le niveau demande
+une unité traduite, et une fenêtre n'a pas le droit de porter un mot en dur, ce
+qu'un test vérifie. Traverser mettrait aussi la règle qui retire « pierre d'âme »
+dans un convertisseur, en double d'une règle qui vit dans `QuestTree` et qui est
+testée là.
+
+**Largeurs fixes, pas `IsSharedSizeScope`.** Sous virtualisation, les conteneurs
+entrent et sortent de la portée au défilement : la largeur partagée se calculerait
+sur le sous-ensemble réalisé et tressauterait pendant qu'on fait défiler. Les
+largeurs fixes alignent aussi les branches Raids et Antres et les résultats de
+recherche, qui n'ont pas de paliers pour ancrer l'oeil. Elles viennent du
+catalogue et non d'une estimation : la plus longue position qu'il porte fait neuf
+caractères, `[-63,-75]`, et non les onze qu'on avait supposés.
+
+**Valeur absente : cellule vide.** Pas de zéro, pas de point d'interrogation, pas
+de tiret. Les trois donjons sans niveau sont déjà sous un en-tête « Niveau
+inconnu » qui dit l'absence ; le répéter dans la cellule la dirait deux fois.
+
+**`VirtualizationMode=Recycling` reste éteint, et c'est un non-changement
+délibéré.** Il n'y a aucun problème mesuré sur sept cent quatre-vingts lignes, ça
+changerait la durée de vie du conteneur qu'on vient justement de réécrire, et ça
+fermerait la porte à la taille partagée si les largeurs fixes se révélaient
+mauvaises. Noté ici pour qu'on ne le reprenne pas au jugé.
+
+## D169 - Du mouvement à trois endroits, et nulle part ailleurs
+
+**Date** : 2026-09-18
+
+Il n'y avait aucune transition dans le dépôt : deux Storyboard en tout, les deux
+des rotateurs d'attente, et chaque changement d'état un `Setter` instantané.
+
+**Le souligné d'onglet fait un fondu croisé, il ne glisse pas.** Une vraie barre
+glissante demanderait une barre unique survivant aux trois onglets, donc dans la
+fenêtre et non dans le gabarit, plus du code-behind qui remesure au chargement, au
+changement de langue puisque les libellés sont traduits et changent de largeur, et
+au changement de DPI. Et le style habille aussi les quatre boutons de qualité et
+les quatre de zoom, qui garderaient leur marque par gabarit : deux comportements
+de souligné différents pour des contrôles identiques.
+
+**Le panneau glisse à l'intérieur de lui-même, jamais par `Window.Top`.** Le
+placement est lu et écrit sur le disque : une disparition interrompue par un arrêt
+persisterait un panneau décalé. Et chaque image serait un déplacement Win32 d'une
+fenêtre superposée toujours au-dessus, posée sur le jeu. Contre une fenêtre
+transparente, glisser le châssis est indiscernable, ne coûte aucun déplacement et
+ne touche à aucun état persisté.
+
+**Animer d'abord, masquer ensuite**, parce que la visibilité est ce qui démarre et
+arrête le balayage des téléphones. Et `Toggle` décide sur l'intention et non sur
+`IsVisible` : pendant les cent vingt millisecondes d'une disparition la fenêtre
+est encore visible, donc un second Ctrl+P lancerait une seconde disparition au
+lieu de rappeler le panneau. Arrêter un Storyboard lève aussi sa complétion, ce
+qui est la raison pour laquelle le gestionnaire redemande si le panneau doit
+toujours être parti.
+
+**L'apparition d'une ligne se joue sur la racine du gabarit, pas sur la surface de
+dépôt.** Celle-ci porte l'opacité du glisser par une liaison, et une animation bat
+une liaison définitivement : l'animer là tuerait silencieusement le retour visuel
+du glisser pour la vie de la ligne. `FillBehavior="Stop"` rend la propriété à la
+fin ; la tenir laisserait la ligne sourde à toute écriture locale ultérieure.
+
+**Deux affirmations du dépôt étaient fausses et sont corrigées.**
+`Controls.xaml` prétendait porter la seule animation du projet : elle était déjà
+fausse d'une, le rotateur de recherche étant l'autre. Et `AGENTS.md` énonçait que
+« un Storyboard déclenché depuis un gabarit ne voit pas sa portée de noms », ce qui
+est la moitié de la règle prise pour le tout : une entrée de
+`ControlTemplate.Triggers` la voit, et c'est ce dont dépendent le rotateur et le
+souligné d'onglet. C'est un `EventTrigger` écrit sur un élément **dans** un
+gabarit qui ne la voit pas.
+
+## D170 - L'ordre des dictionnaires fusionnés fait partie du code
+
+**Date** : 2026-09-18
+
+Le gabarit d'une pastille de couleur, dans `Controls.xaml`, comparait deux
+valeurs avec le convertisseur `SameValue`, déclaré dans `Converters.xaml`. Or
+`App.xaml` fusionnait les convertisseurs **après** les contrôles.
+
+Tout compilait. `dotnet build` était muet, `dotnet format` aussi, et les 1890
+tests passaient. L'application est morte à la première mise en page du panneau
+des comptes : « Impossible de trouver la ressource nommée 'SameValue' ».
+
+**Un `StaticResource` est résolu à la lecture du fichier**, pas à l'usage, et il
+ne voit que ce qui a déjà été fusionné. `DynamicResource` ne rattrape rien ici :
+`MultiBinding.Converter` n'est pas une propriété de dépendance et n'accepte donc
+pas de référence différée.
+
+Les convertisseurs passent devant les contrôles. La palette reste en tête,
+puisque tout est dessiné avec elle. `Converters.xaml` ne référence rien, il ne
+peut donc pas y perdre.
+
+**Et un test le garde, parce que rien d'autre ne le pouvait.** `ResourceOrderTests`
+lit l'ordre de fusion dans `App.xaml`, puis vérifie qu'aucun dictionnaire ne
+réclame une clé fusionnée après lui. Il a été vérifié dans les deux sens : remis
+dans l'ordre fautif, il tombe en nommant « SameValue ». C'était la seule façon de
+transformer un plantage d'exécution en échec de build, dans un projet dont
+l'assemblage de tests ne peut pas charger WPF.
+
+**La leçon générale.** Le build, la forme et les tests unitaires ne disent rien
+du rendu, et AGENTS.md le dit déjà. Ce cas ajoute que cela vaut aussi pour des
+choses qui ressemblent à de la compilation : un dictionnaire de ressources est
+lu, pas compilé.
+
+## D171 - Deux absences de couleur, et pas une seule
+
+**Date** : 2026-09-18
+
+**Corrige D167, qui écrivait les deux de la même façon.**
+
+D167 posait que `null` veut dire « aucune marque ». Sur une installation réelle,
+deux comptes sur quatre sont restés sans couleur et rien ne pouvait les réparer.
+
+**Le défaut.** `null` disait à la fois « personne n'a encore décidé » et
+« quelqu'un a décidé que non ». La reprise de migration ne tourne qu'une fois,
+volontairement, pour ne pas rendre une couleur que l'utilisateur vient de
+retirer ; et la redécouverte ne colorait qu'une entrée entièrement neuve. Un
+compte déjà mémorisé et sans couleur ne pouvait donc en recevoir par aucun
+chemin. Les deux seules issues possibles étaient de reprendre une couleur à
+quelqu'un qui n'en voulait pas, ou de laisser des comptes blancs pour toujours,
+et le code avait choisi la seconde sans que personne l'ait décidé.
+
+`AccountColour.None` sépare les deux. `null` veut dire que personne n'a tranché,
+et l'application tranche au balayage suivant ; `None` veut dire que la question
+a été posée et que la réponse est non, et rien ne la rediscute. Le bouton
+« Aucune » écrit `None` et non `null`.
+
+**La leçon, et elle est générale.** Quand une valeur absente peut vouloir dire
+deux choses, elle finit par vouloir dire la mauvaise. Le palier et la distance
+s'en tirent parce que leur `null` n'a qu'un sens, « suit le réglage partagé », et
+que ce sens est une valeur utile. Une couleur n'a pas de valeur partagée : c'est
+ce qui rendait son `null` ambigu, et c'est exactement ce que D167 avait écrit
+sans en tirer la conséquence.
+
+**Vérifié sur le fichier de terrain**, pas seulement en test : les deux comptes
+restés blancs reçoivent Indigo et Moss, les deux déjà marqués gardent les leurs,
+et les quatre restent distincts.
+
+Au passage, le constructeur du view-model de ligne ne reportait pas la couleur
+depuis l'instance : la ligne naissait blanche et se colorait seule jusqu'à six
+secondes plus tard. Le palier et la distance ont le même trou et le gardent :
+leur valeur courante n'affiche rien, donc le délai ne s'est jamais vu.
+
+## D172 - Une constante ne s'affiche que si elle peut dire non
+
+**Date** : 2026-09-19
+
+Le bandeau de D165 montrait quatre constantes en permanence. Deux d'entre elles
+ne tenaient pas.
+
+**L'espace libre.** Le seuil d'avertissement est à deux gigaoctets, et les deux
+téléphones de l'installation en portent trois cents et quatorze. Le nombre ne
+serait jamais actionnable. Pire, il demandait de connaître le seuil pour être lu,
+et le contrôle de santé dit déjà l'affaire en toutes lettres, sous le nom du
+téléphone, quand elle se présente. C'était une information binaire habillée en
+information continue, doublée d'une phrase qui la disait mieux.
+
+Elle n'apparaît plus qu'en dessous du seuil. Sa seule présence est alors le
+message, et le bandeau respire le reste du temps.
+
+**La liaison, et c'était pire.** La cellule annonçait la bande, « 5 GHz », et
+passait en ambre quand le canal était encombré. Sur l'écran, l'ambre désignait
+donc « 5 GHz », c'est-à-dire la bonne bande, comme étant le défaut. La couleur
+et le texte ne nommaient pas la même chose. La cellule dit maintenant ce qui
+cloche : « 34 % perdus » quand le canal est encombré, « 2,4 GHz » quand c'est la
+bande, et la bande en gris quand tout va bien. La bande garde sa place dans
+l'infobulle. L'ordre des deux cas est celui du contrôle de santé lui-même, pour
+que la cellule et la phrase à côté ne puissent jamais nommer deux défauts
+différents.
+
+**La règle générale, et elle vaut au-delà de ce bandeau.** Une mesure affichée en
+permanence doit pouvoir dire non. Si elle est toujours confortable, elle
+n'apprend rien et occupe une place ; si elle peut alarmer, elle doit nommer ce
+qui alarme, pas ce qui se trouve à côté.
+
+**La chaleur, le même jour et pour la même raison.** Elle disait « au frais » sur
+chaque balayage de chaque téléphone que le projet a jamais vu. Elle ne s'affiche
+plus qu'à partir du bridage, et sous forme de thermomètre plutôt que de mot : il
+n'y a alors rien à lire la plupart du temps, et un glyphe dit « celui-là chauffe »
+plus vite qu'un mot. Le mot reste au survol, la phrase complète reste sous le nom
+du téléphone.
+
+On pourrait objecter que l'icône double alors le constat de santé. C'est déjà ce
+que fait la jauge de batterie, qui coexiste depuis toujours avec sa phrase : une
+ligne par téléphone se lit d'un coup d'oeil, une phrase se lit. Les deux ne
+servent pas au même moment.
+
+**Ce qui reste en permanence.** La charge, parce qu'elle tombe de trente à
+cinquante pour cent par heure et qu'on décide en la regardant. La bande, parce
+qu'elle tient en trois caractères et qu'elle répond à « pourquoi ça saccade »
+avant qu'on pose la question. Et rien d'autre : une ligne de téléphone sain porte
+désormais deux valeurs, pas quatre.

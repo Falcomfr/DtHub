@@ -1,12 +1,21 @@
-<Application x:Class="DtHub.App.App"
+﻿<Application x:Class="DtHub.App.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Application.Resources>
     <ResourceDictionary>
+      <!-- **The order is load-bearing, not alphabetical.** A
+           StaticResource only sees what has already been merged, and the
+           failure is at runtime: the dictionary loads, and the window
+           that uses it dies while being laid out.
+
+           Converters come before the controls because a control template
+           can need one, which cost a crash the day a swatch compared two
+           values through the pair converter. The palette comes first
+           because everything is drawn with it. -->
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="Themes/PaletteDark.xaml" />
-        <ResourceDictionary Source="Themes/Controls.xaml" />
         <ResourceDictionary Source="Themes/Converters.xaml" />
+        <ResourceDictionary Source="Themes/Controls.xaml" />
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>

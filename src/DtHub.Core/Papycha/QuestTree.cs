@@ -156,41 +156,19 @@ public sealed class QuestTree
     }
 
     /// <summary>
-    /// A dungeon line: its name with its level, and on the right what needs to
-    /// be known before going there.
+    /// A dungeon line: its bare name, and its three facts for the columns on
+    /// the right.
+    ///
+    /// **The level left the name.** It used to be formatted into it, which made
+    /// the whole line one run of text that nothing could align or weight
+    /// separately. It also made the list disagree with the banner above it,
+    /// which has always shown the title alone.
     /// </summary>
     public static QuestNode NodeOf(DungeonSummary dungeon) => new(
         QuestNodeKind.Quest,
-        dungeon.Level > 0
-            ? Strings.Format("DungeonWithLevel", dungeon.Title, dungeon.Level)
-            : dungeon.Title,
-        Detail(dungeon),
-        Dungeon: dungeon);
-
-    /// <summary>
-    /// What the right-hand column says about a dungeon: the soul stone and the
-    /// position, preceded by a key when one is needed. The key's name comes on
-    /// hover: it is too long for the column.
-    /// </summary>
-    public static string Detail(DungeonSummary dungeon)
-    {
-        List<string> parts = [];
-
-        if (dungeon.SoulStone.Length > 0)
-        {
-            // "gigantesque pierre d'âme" ("gigantic soul stone") says "pierre
-            // d'âme" ("soul stone") twice in a column where every line already
-            // carries one: the size is enough.
-            parts.Add(dungeon.SoulStone.Replace(" pierre d’âme", string.Empty, StringComparison.Ordinal));
-        }
-
-        if (dungeon.Position.Length > 0)
-        {
-            parts.Add(dungeon.Position);
-        }
-
-        return string.Join(" · ", parts);
-    }
+        (dungeon ?? throw new ArgumentNullException(nameof(dungeon))).Title,
+        Dungeon: dungeon,
+        Facts: DungeonFacts.Of(dungeon));
 
     /// <summary>
     /// Sections that contain at least one quest, in the order the site files

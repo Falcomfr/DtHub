@@ -62,6 +62,13 @@ public sealed record DofusInstance
     /// </summary>
     public GameZoom? Zoom { get; init; }
 
+    /// <summary>
+    /// The colour marking this account, or <c>null</c> for none.
+    /// Decoration with a job, and severable: it is not part of the key,
+    /// not part of the window title, not part of the ordering.
+    /// </summary>
+    public AccountColour? Colour { get; init; }
+
     /// <summary>Play time for the week, in seconds.</summary>
     public int PlayedThisWeek { get; init; }
 

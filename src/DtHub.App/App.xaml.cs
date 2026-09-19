@@ -275,7 +275,10 @@ public partial class App : Application, IDisposable
         }
         else if (!StartupPresence.ShowConfigurator(document.ConfiguratorVisible, report.Opened))
         {
-            _configurator.Hide();
+            // Instantly, with no fade: this cancels a reveal that was
+            // only done to force the layout, and nobody must see it
+            // happen.
+            _configurator.HideNow();
         }
 
         // The quest tracker comes back as it was left: open or not,
@@ -406,11 +409,16 @@ public partial class App : Application, IDisposable
             return;
         }
 
-        _configurator!.Opacity = 0;
-        _configurator.Show();
+        // Shown invisibly first, so the window lays itself out and its
+        // scaling can be measured, then revealed once it is in place.
+        //
+        // The opacity is no longer set from here: the panel animates its
+        // own, and an animated value outranks a local one, so assigning
+        // it would quietly stop having any effect.
+        _configurator!.PrepareHidden();
         _configurator.RestorePlacement(document);
         _configurator.PlaceAwayFrom(document.GameAnchor);
-        _configurator.Opacity = 1;
+        _configurator.Reveal();
     }
 
     /// <summary>
@@ -772,8 +780,7 @@ public partial class App : Application, IDisposable
             return;
         }
 
-        _configurator.Show();
-        _configurator.Activate();
+        _configurator.Reveal();
 
         _ = ReopenIfNothingIsRunningAsync();
     }

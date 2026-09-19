@@ -143,6 +143,29 @@ public sealed class SettingsService : IDisposable
             changed = true;
         }
 
+        if (settings.SchemaVersion < 10)
+        {
+            // Accounts gain a colour. **This one is a backfill, not an
+            // enum-tolerance block**, which is what makes it different
+            // from the two dead ones described just below: reading the
+            // new field needs nothing, since a file that predates it
+            // simply lacks the property and the value stays null. But
+            // leaving every existing account without a colour would show
+            // the feature as though it were broken, on exactly the
+            // installations that have accounts to tell apart.
+            //
+            // In rank order, so the marks follow the list as it reads.
+            // It runs once, so an account whose colour is later cleared
+            // by hand stays cleared.
+            foreach (var instance in settings.Instances.OrderBy(i => i.Order))
+            {
+                instance.Colour ??= AccountColours.NextFree(
+                    settings.Instances.Select(i => i.Colour));
+            }
+
+            changed = true;
+        }
+
         // Removed tiers, eighth and ninth versions: the "High" quality
         // merged into the maximum, the "very close" zoom merged into
         // "close". There is nothing to do here, and there must not be:
@@ -688,6 +711,34 @@ public sealed class SettingsService : IDisposable
             cancellationToken);
 
     /// <summary>
+    /// Gives an account a colour, or takes it away with <c>null</c>.
+    ///
+    /// Through the change-checking write, like the tier and the
+    /// distance: re-asserting the same colour at startup must not
+    /// rewrite the file and wake every subscriber.
+    /// </summary>
+    public Task SetInstanceColourAsync(
+        string key,
+        AccountColour? colour,
+        CancellationToken cancellationToken = default) =>
+        UpdateIfChangedAsync(
+            settings =>
+            {
+                var instance = settings.Instances
+                    .FirstOrDefault(i => string.Equals(i.Key, key, StringComparison.Ordinal));
+
+                if (instance is null || instance.Colour == colour)
+                {
+                    return false;
+                }
+
+                instance.Colour = colour;
+
+                return true;
+            },
+            cancellationToken);
+
+    /// <summary>
     /// Adds playtime to the account, for today.
     ///
     /// Nothing is written for a session of a handful of seconds:
@@ -931,6 +982,15 @@ public sealed class SettingsService : IDisposable
                     existing.DeviceName = instance.DeviceName;
                     existing.UserName = instance.UserName;
                     existing.LaunchComponent = instance.LaunchComponent ?? existing.LaunchComponent;
+
+                    // An account remembered from before colours existed,
+                    // or one that slipped past the one-shot backfill,
+                    // would otherwise stay unmarked for good. Only a
+                    // null is filled: None is a decision and is left
+                    // alone.
+                    existing.Colour ??= AccountColours.NextFree(
+                        settings.Instances.Select(i => i.Colour));
+
                     continue;
                 }
 
@@ -943,6 +1003,17 @@ public sealed class SettingsService : IDisposable
                     UserName = instance.UserName,
                     LaunchComponent = instance.LaunchComponent,
                     IsEnabled = false,
+
+                    // Computed before the ordering inserts the entry, or
+                    // it would see itself and skip its own turn.
+                    //
+                    // Unlike the tier and the distance, which default to
+                    // null because a shared setting already works, a
+                    // colourless account gives nothing at all: a feature
+                    // whose point is that you never have to think about
+                    // which window is which cannot ask for six decisions
+                    // first.
+                    Colour = AccountColours.NextFree(settings.Instances.Select(i => i.Colour)),
                 };
 
                 // Right after those of its device: a new instance must
@@ -972,6 +1043,7 @@ public sealed class SettingsService : IDisposable
                     IsTabbed = i.IsTabbed,
                     Quality = i.Quality,
                     Zoom = i.GameZoom,
+                    Colour = i.Colour,
                     PlayedThisWeek = PlaytimeLog.Week(i.Playtime, DateOnly.FromDateTime(DateTime.Now)),
                     IsDeviceConnected = live.Contains(i.Key),
                 })];

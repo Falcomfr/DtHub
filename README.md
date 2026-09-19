@@ -91,7 +91,12 @@ window on your PC.
   window, and the frame answers to the size and placement shortcuts like any
   other game window.
 - **A floating configurator**, shown or hidden with `Ctrl+P`, holding the
-  window position, the device list and the shortcuts.
+  window position, the device list and the shortcuts. Each row says what its
+  account is doing and for how long its window has been open, and each phone
+  gets a line of its own for its charge and its link.
+- **A colour per account**, on its row and on its tab in the frame. Accounts are
+  given one on their own; you can change it or take it away, and what you take
+  away stays away.
 - **Clipboard sync** both ways, through scrcpy's own mechanism.
 - **A quest guide**, opened with `Ctrl+Q`, that reads
   [papycha.fr](https://papycha.fr) beside the game and remembers where you

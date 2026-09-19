@@ -51,6 +51,50 @@
   <SolidColorBrush x:Key="MenuTintE" Color="#FF63508C" />
   <SolidColorBrush x:Key="MenuTintF" Color="#FF4A5566" />
 
+  <!-- The six account tints.
+
+       **They are not the menu tints above, and could not be.** Measured
+       against the reserved hues: MenuTintF sits eight degrees from the
+       accent, and MenuTintD six from the danger LED. In the help
+       artwork those are dots inside an illustration, never beside a
+       selection; as a mark on a row that can also be hovered and
+       selected, the first is exactly the collision the accent's comment
+       forbids. The other four are drawn for an eight-pixel dot and
+       vanish as a two-pixel bar on a window frame.
+
+       Chosen as one family rather than as six colours: all six land
+       between 3.8:1 and 5.0:1 on the surface and stay inside a
+       fifteen-point lightness band, with saturation capped at
+       forty-four percent. That is what stops six marked rows from
+       reading like a stained-glass window, and what stops any of them
+       from vibrating on the near-black.
+
+       The spacing is deliberately uneven. Four hues are reserved, at
+       0, 46, 147 and 208 degrees; six tints spaced evenly would hit at
+       least two of them whatever the phase. Each one sits near the
+       middle of a free gap instead. The nearest approach to the accent
+       is Teal, thirty-two degrees away, and nothing here is blue.
+
+       The known weak pair is Indigo and Orchid, forty-four degrees
+       apart and both violet, separated by five points of lightness and
+       never handed out one after the other. If a real session confuses
+       them, swap Orchid for a warm taupe rather than crowding another
+       band. -->
+  <SolidColorBrush x:Key="AccountTintA" Color="#FF3F8D88" />
+  <SolidColorBrush x:Key="AccountTintB" Color="#FF67914B" />
+  <SolidColorBrush x:Key="AccountTintC" Color="#FFA26A3F" />
+  <SolidColorBrush x:Key="AccountTintD" Color="#FF7668B1" />
+  <SolidColorBrush x:Key="AccountTintE" Color="#FFA159A6" />
+  <SolidColorBrush x:Key="AccountTintF" Color="#FFAB596D" />
+
+  <!-- The socket of a LED that is not lit.
+       Named rather than left unbound: the key-to-brush converter falls
+       back to grey when a key does not resolve, and a grey dot says
+       "unknown" where this one has to say "nothing is running". The
+       groove ring around it still draws, which is what makes it read
+       as an empty socket rather than as a hole. -->
+  <SolidColorBrush x:Key="EmptySocketBrush" Color="Transparent" />
+
   <!-- The three status LEDs. -->
   <SolidColorBrush x:Key="SuccessBrush" Color="#FF46B478" />
   <SolidColorBrush x:Key="WarningBrush" Color="#FFE8C24A" />

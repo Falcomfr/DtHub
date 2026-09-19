@@ -7,14 +7,31 @@ namespace DtHub.App.ViewModels;
 /// </summary>
 public sealed partial class GameTabViewModel : ObservableObject
 {
-    public GameTabViewModel(string key, string title, string? iconPath, nint window, double aspect)
+    public GameTabViewModel(
+        string key, string title, string? iconPath, nint window, double aspect, string? colourBrushKey)
     {
         Key = key;
         _title = title;
         _iconPath = iconPath;
         Window = window;
         Aspect = aspect;
+        _colourBrushKey = colourBrushKey;
     }
+
+    /// <summary>
+    /// The palette key of the account's mark, or <c>null</c> for none.
+    ///
+    /// The same mark the row wears, so the two surfaces teach one shape.
+    /// It is deliberately not the tab's selection underline: that one
+    /// says "this is the tab you are looking at", and it is the
+    /// unselected tabs that a multi-account player needs to tell apart.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasColour))]
+    private string? _colourBrushKey;
+
+    /// <summary>True when the account carries a mark.</summary>
+    public bool HasColour => ColourBrushKey is not null;
 
     /// <summary>
     /// Instance key. Identifies the tab: it does not change.

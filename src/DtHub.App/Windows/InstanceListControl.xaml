@@ -14,6 +14,44 @@
         <ItemsControl.ItemTemplate>
           <DataTemplate>
             <StackPanel>
+              <!-- A row fades in when a phone is found.
+
+                   It fires once per genuine discovery: the sweep looks
+                   rows up by key and only adds one that is not already
+                   there, calling Update on the rest, so the two to six
+                   second poll does not re-trigger it. A reorder does
+                   move a row, which raises Loaded again; by then the
+                   drag is over, and a hundred and twenty milliseconds of
+                   settling on the row just dropped reads as a
+                   confirmation rather than as a fault.
+
+                   **On this panel and not on the drop surface below**,
+                   which carries the drag's own opacity through a
+                   binding: an animation outranks a binding for good, so
+                   animating that one would silently kill the drag
+                   feedback for the row's whole life. Two elements, so
+                   the two opacities simply multiply.
+
+                   FillBehavior stops the clock at the end and hands the
+                   property back; holding it would leave the row deaf to
+                   any later local value.
+
+                   No TargetName, because this is an element trigger
+                   inside a DataTemplate and resolves against the outer
+                   scope. That is the case the busy indicator ran into,
+                   and the one the note in AGENTS.md is really about. -->
+              <StackPanel.Triggers>
+                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                  <BeginStoryboard>
+                    <Storyboard>
+                      <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                       From="0" To="1" Duration="0:0:0.12"
+                                       FillBehavior="Stop" />
+                    </Storyboard>
+                  </BeginStoryboard>
+                </EventTrigger>
+              </StackPanel.Triggers>
+
 
               <!-- Device header. Outside the drop surface: including it
                    would push down the midpoint that decides between
@@ -177,8 +215,24 @@
                           Opacity="{Binding IsDragging, Converter={StaticResource DraggedOpacity}}"
                           DragOver="OnDragOver" Drop="OnDrop" DragLeave="OnDragLeave">
 
+                <!-- **Visibility and not opacity.** Bound by opacity, the
+                     two hints were laid out on every row at all times:
+                     three pixels and two margins each, fourteen per row,
+                     permanently reserved for a mark that only ever shows
+                     during a drag. Six accounts paid eighty-four pixels
+                     for it, which is what used to push a two-phone setup
+                     into scrolling.
+
+                     Collapsed from the list's own reordering flag rather
+                     than from the row's own hint: the flag flips twice
+                     per drag, so the height is reserved for every row at
+                     once when the drag starts, and no row changes height
+                     as the pointer passes over it. -->
                 <Border Style="{StaticResource DropLine}"
-                        Opacity="{Binding DropAbove, Converter={StaticResource BoolToOpacity}}" />
+                        Opacity="{Binding DropAbove, Converter={StaticResource BoolToOpacity}}"
+                        Visibility="{Binding DataContext.IsReordering,
+                                             RelativeSource={RelativeSource AncestorType=UserControl},
+                                             Converter={StaticResource BoolToVisibility}}" />
 
                 <Grid Margin="0,1" Background="Transparent">
                   <Grid.ColumnDefinitions>
@@ -191,6 +245,42 @@
                     <ColumnDefinition Width="Auto" />
                   </Grid.ColumnDefinitions>
 
+                  <!-- Column zero had been declared and left empty since
+                       the row was written. It now carries the two marks
+                       that answer "which account" and "what is it
+                       doing", in that order. -->
+                  <StackPanel Grid.Column="0" Orientation="Horizontal"
+                              Visibility="{Binding ShowActions,
+                                                   RelativeSource={RelativeSource AncestorType=UserControl},
+                                                   Converter={StaticResource BoolToVisibility}}">
+                    <!-- Which account this is. Full height, so it reads
+                         as the edge of the row rather than as a second
+                         indicator beside the first.
+
+                         Opacity and not visibility: the slot has to hold
+                         its width whether or not the account is marked,
+                         or a coloured row and a plain one would not
+                         indent the same. -->
+                    <Border Width="3" CornerRadius="1.5" Margin="0,2,6,2"
+                            VerticalAlignment="Stretch"
+                            Background="{Binding ColourBrushKey, Converter={StaticResource KeyToBrush}}"
+                            Opacity="{Binding HasColour, Converter={StaticResource BoolToOpacity}}" />
+
+                    <!-- What it is doing. The same dot as the device
+                         header one level up, which is already how this
+                         list says "state of a thing". It always takes
+                         its place, whatever the state: a dot that
+                         collapsed when nothing ran would change the
+                         column's width and shift every row sideways the
+                         moment a window opened. At rest it is an unlit
+                         socket, the groove ring alone. -->
+                    <Border Width="8" Height="8" CornerRadius="4" Margin="0,0,6,0"
+                            VerticalAlignment="Center"
+                            BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="1"
+                            ToolTip="{Binding StatusLine}"
+                            Background="{Binding ActivityBrushKey,
+                                                 Converter={StaticResource KeyToBrush}}" />
+                  </StackPanel>
 
                   <Control Grid.Column="1" Style="{StaticResource DragHandle}" Margin="0,0,2,0"
                            VerticalAlignment="Center"
@@ -270,14 +360,31 @@
                              Style="{StaticResource InlineEdit}"
                              ToolTip="{loc:T RenameTip}" />
 
-                    <!-- The profile only shows after a rename: at that
-                         point it's the only way to tell which is which.
-                         Without a rename, it would just repeat the name
-                         already shown. -->
-                    <TextBlock Text="{Binding UserLabel}" Style="{StaticResource Muted}"
+                    <!-- What this account is doing, and failing that,
+                         which profile it came from. One line, never two:
+                         the slot was already here and stood empty unless
+                         the account had been renamed, which is most of
+                         the time.
+
+                         Filling it always, rather than only while a
+                         window is open, is what stops the row from
+                         growing by a line the moment one opens. The
+                         profile still shows after a rename, because at
+                         that point it is the only way to tell which is
+                         which; without one it would repeat the name
+                         just above.
+
+                         The brush is bound locally rather than through
+                         a style setter: a Setter cannot carry a
+                         Binding, and a local value beats the Muted
+                         style's own foreground. -->
+                    <TextBlock Text="{Binding StatusLine}" Style="{StaticResource Muted}"
+                               Foreground="{Binding StatusLineBrushKey,
+                                                    Converter={StaticResource KeyToBrush}}"
                                FontSize="{StaticResource FontTiny}" Margin="2,1,0,0"
-                               Visibility="{Binding ShowUserLabel,
-                                                    Converter={StaticResource BoolToVisibility}}" />
+                               Visibility="{Binding StatusLine,
+                                                    Converter={StaticResource EmptyToVisibility},
+                                                    ConverterParameter=inverse}" />
                   </StackPanel>
 
                   <!-- The buttons alone tell the instance's state:
@@ -295,108 +402,60 @@
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
                                 Visibility="{Binding IsBusy,
                                                      Converter={StaticResource InverseBoolToVisibility}}">
-                      <!-- This account's quality tier. Silent as long as it
-                           follows the shared setting, which is the case
-                           for everyone by default: five rows showing
-                           "Medium" for five accounts set the same way
-                           would teach nothing. -->
+                      <!-- This account's own settings, quality tier and
+                           zoom distance, behind a single chip.
+
+                           They were two bordered boxes standing at the
+                           same weight as the action beside them, and both
+                           silent in the common case where an account
+                           follows the shared settings. Fading them was
+                           not enough: a border is louder than a glyph at
+                           any opacity. You cannot make one control out of
+                           five dominant; out of three you can.
+
+                           What is lost: which of the two departs from the
+                           shared setting is no longer visible without
+                           opening the popup. Acceptable for a pair of
+                           settings chosen once and then left alone.
+
+                           The dot for a zoom still waiting on a reopening
+                           comes along: it speaks about the same account,
+                           and there is now one place for it to be. -->
                       <Grid Margin="0,0,4,0" VerticalAlignment="Center">
-                        <ToggleButton x:Name="Palier" AllowDrop="False" Padding="6,3"
+                        <ToggleButton x:Name="Reglages" AllowDrop="False" Padding="6,3"
                                       FontSize="{StaticResource FontSmall}"
-                                      ToolTip="{loc:T InstanceQualityTip}">
-                          <ToggleButton.Style>
-                            <Style TargetType="ToggleButton" BasedOn="{StaticResource OutlineToggle}">
-                              <Style.Triggers>
-                                <!-- An account that follows the common
-                                     setting fades out, but its shape
-                                     stays: a button no one can see is a
-                                     button no one finds. -->
-                                <DataTrigger Binding="{Binding HasOwnQuality}" Value="False">
-                                  <Setter Property="Opacity" Value="0.5" />
-                                </DataTrigger>
-                              </Style.Triggers>
-                            </Style>
-                          </ToggleButton.Style>
-
+                                      Style="{StaticResource RowChipToggle}"
+                                      ToolTip="{loc:T InstanceSettingsTip}">
                           <StackPanel Orientation="Horizontal">
-                            <!-- Three rising bars: the universal icon for a
-                                 level, one that needs no learning. -->
-                            <Path Width="13" Height="13" Stretch="None" VerticalAlignment="Center"
-                                  Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.8"
-                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                  Data="M 2.5,10.5 V 8 M 6.5,10.5 V 5.5 M 10.5,10.5 V 3" />
+                            <!-- Two sliders: the settings of one thing,
+                                 which is what this opens. Neither the
+                                 rising bars nor the nested frames would
+                                 serve any more, each naming only half of
+                                 what is behind it.
 
+                                 The stroke follows the chip's foreground
+                                 rather than naming a brush, so the glyph
+                                 brightens with the rest of it under the
+                                 pointer. -->
+                            <Path Width="13" Height="13" Stretch="None" VerticalAlignment="Center"
+                                  Stroke="{Binding Foreground,
+                                                   RelativeSource={RelativeSource AncestorType=ToggleButton}}"
+                                  StrokeThickness="1.3"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  Data="M 1.5,4.5 H 11.5 M 1.5,9.5 H 11.5
+                                        M 4.3,4.5 m -1.5,0 a 1.5,1.5 0 1 0 3,0 a 1.5,1.5 0 1 0 -3,0
+                                        M 8.7,9.5 m -1.5,0 a 1.5,1.5 0 1 0 3,0 a 1.5,1.5 0 1 0 -3,0" />
+
+                            <!-- Each label appears only where this account
+                                 departs from the shared setting, so the
+                                 common case is a glyph and nothing else,
+                                 and a row that does depart says which way
+                                 without being opened. -->
                             <TextBlock Text="{Binding QualityLabel}" Margin="4,0,0,0"
                                        VerticalAlignment="Center" TextWrapping="NoWrap"
                                        Visibility="{Binding QualityLabel,
                                                     Converter={StaticResource EmptyToVisibility},
                                                     ConverterParameter=inverse}" />
-                          </StackPanel>
-                        </ToggleButton>
-
-                        <Popup IsOpen="{Binding IsChecked, ElementName=Palier, Mode=TwoWay}" StaysOpen="False"
-                               Placement="Bottom" PlacementTarget="{Binding ElementName=Palier}"
-                               AllowsTransparency="True" PopupAnimation="Fade" HorizontalOffset="-110">
-                          <Border Background="{DynamicResource SurfaceBrush}"
-                                  BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
-                                  CornerRadius="{StaticResource Radius}" Margin="0,4,0,0" Padding="4">
-                            <StackPanel MinWidth="170">
-                              <Button Style="{StaticResource QuietButton}" Padding="8,5"
-                                      HorizontalContentAlignment="Left"
-                                      Content="{loc:T QualityFollowShared}"
-                                      Command="{Binding FollowSharedQualityCommand}" />
-                              <Button Style="{StaticResource QuietButton}" Padding="8,5"
-                                      HorizontalContentAlignment="Left"
-                                      Content="{loc:T QualityLowShort}"
-                                      Command="{Binding PickQualityCommand}"
-                                      CommandParameter="{x:Static s:StreamQuality.Low}" />
-                              <Button Style="{StaticResource QuietButton}" Padding="8,5"
-                                      HorizontalContentAlignment="Left"
-                                      Content="{loc:T QualityMediumShort}"
-                                      Command="{Binding PickQualityCommand}"
-                                      CommandParameter="{x:Static s:StreamQuality.Medium}" />
-                              <Button Style="{StaticResource QuietButton}" Padding="8,5"
-                                      HorizontalContentAlignment="Left"
-                                      Content="{loc:T QualityMaximumShort}"
-                                      Command="{Binding PickQualityCommand}"
-                                      CommandParameter="{x:Static s:StreamQuality.Maximum}" />
-                            </StackPanel>
-                          </Border>
-                        </Popup>
-                      </Grid>
-
-                      <!-- This account's zoom distance, next to its quality
-                           tier and built the same way. Silent as long
-                           as it follows the common one. Since the
-                           setting only takes effect on opening, a dot
-                           flags the window that is still running with
-                           the old one. -->
-                      <Grid Margin="0,0,4,0" VerticalAlignment="Center">
-                        <ToggleButton x:Name="Distance" AllowDrop="False" Padding="6,3"
-                                      FontSize="{StaticResource FontSmall}"
-                                      ToolTip="{loc:T InstanceZoomTip}">
-                          <ToggleButton.Style>
-                            <Style TargetType="ToggleButton" BasedOn="{StaticResource OutlineToggle}">
-                              <Style.Triggers>
-                                <DataTrigger Binding="{Binding HasOwnZoom}" Value="False">
-                                  <Setter Property="Opacity" Value="0.5" />
-                                </DataTrigger>
-                              </Style.Triggers>
-                            </Style>
-                          </ToggleButton.Style>
-
-                          <StackPanel Orientation="Horizontal">
-                            <!-- A frame within a frame: the same window
-                                 showing more or less of the field of
-                                 view, which is exactly what the setting
-                                 does. A thinner stroke than the quality
-                                 tier's: two rectangles nested within
-                                 thirteen pixels close in on themselves
-                                 if you thicken them. -->
-                            <Path Width="13" Height="13" Stretch="None" VerticalAlignment="Center"
-                                  Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.3"
-                                  StrokeLineJoin="Round"
-                                  Data="M 1.2,2.6 H 11.8 V 10.4 H 1.2 Z M 4.6,5.1 H 8.4 V 7.9 H 4.6 Z" />
 
                             <TextBlock Text="{Binding ZoomLabel}" Margin="4,0,0,0"
                                        VerticalAlignment="Center" TextWrapping="NoWrap"
@@ -416,13 +475,99 @@
                                  Visibility="{Binding ZoomWaitsForReopen,
                                               Converter={StaticResource BoolToVisibility}}" />
 
-                        <Popup IsOpen="{Binding IsChecked, ElementName=Distance, Mode=TwoWay}" StaysOpen="False"
-                               Placement="Bottom" PlacementTarget="{Binding ElementName=Distance}"
+                        <Popup IsOpen="{Binding IsChecked, ElementName=Reglages, Mode=TwoWay}" StaysOpen="False"
+                               Placement="Bottom" PlacementTarget="{Binding ElementName=Reglages}"
                                AllowsTransparency="True" PopupAnimation="Fade" HorizontalOffset="-110">
                           <Border Background="{DynamicResource SurfaceBrush}"
                                   BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
                                   CornerRadius="{StaticResource Radius}" Margin="0,4,0,0" Padding="4">
                             <StackPanel MinWidth="170">
+                              <!-- Two sections, each headed and each
+                                   offering to follow the shared setting.
+                                   Without the headings the popup would
+                                   say "Follow the shared setting" twice
+                                   with nothing to say which. -->
+                              <TextBlock Text="{loc:T ColourHeading}" Style="{StaticResource SectionLabel}"
+                                         Margin="8,2,0,4" />
+
+                              <!-- The mark goes here rather than on a
+                                   chip of its own. It is a per-account
+                                   setting like the two below it, and a
+                                   fourth control on the row would undo
+                                   the very thing merging the other two
+                                   was for. -->
+                              <WrapPanel Margin="6,0,0,4">
+                                <Button Style="{StaticResource ColourSwatch}"
+                                        Background="{StaticResource AccountTintA}"
+                                        Tag="{x:Static s:AccountColour.Teal}"
+                                        Command="{Binding PickColourCommand}"
+                                        CommandParameter="{x:Static s:AccountColour.Teal}" />
+                                <Button Style="{StaticResource ColourSwatch}"
+                                        Background="{StaticResource AccountTintB}"
+                                        Tag="{x:Static s:AccountColour.Moss}"
+                                        Command="{Binding PickColourCommand}"
+                                        CommandParameter="{x:Static s:AccountColour.Moss}" />
+                                <Button Style="{StaticResource ColourSwatch}"
+                                        Background="{StaticResource AccountTintC}"
+                                        Tag="{x:Static s:AccountColour.Brass}"
+                                        Command="{Binding PickColourCommand}"
+                                        CommandParameter="{x:Static s:AccountColour.Brass}" />
+                                <Button Style="{StaticResource ColourSwatch}"
+                                        Background="{StaticResource AccountTintD}"
+                                        Tag="{x:Static s:AccountColour.Indigo}"
+                                        Command="{Binding PickColourCommand}"
+                                        CommandParameter="{x:Static s:AccountColour.Indigo}" />
+                                <Button Style="{StaticResource ColourSwatch}"
+                                        Background="{StaticResource AccountTintE}"
+                                        Tag="{x:Static s:AccountColour.Orchid}"
+                                        Command="{Binding PickColourCommand}"
+                                        CommandParameter="{x:Static s:AccountColour.Orchid}" />
+                                <Button Style="{StaticResource ColourSwatch}"
+                                        Background="{StaticResource AccountTintF}"
+                                        Tag="{x:Static s:AccountColour.Rose}"
+                                        Command="{Binding PickColourCommand}"
+                                        CommandParameter="{x:Static s:AccountColour.Rose}" />
+                              </WrapPanel>
+
+                              <Button Style="{StaticResource QuietButton}" Padding="8,5"
+                                      HorizontalContentAlignment="Left"
+                                      Content="{loc:T ColourNone}"
+                                      Command="{Binding ClearColourCommand}" />
+
+                              <Control Style="{StaticResource Groove}" Margin="0,6" />
+
+                              <TextBlock Text="{loc:T QualityHeading}" Style="{StaticResource SectionLabel}"
+                                         Margin="8,0,0,4" />
+
+                              <Button Style="{StaticResource QuietButton}" Padding="8,5"
+                                      HorizontalContentAlignment="Left"
+                                      Content="{loc:T QualityFollowShared}"
+                                      Command="{Binding FollowSharedQualityCommand}" />
+                              <Button Style="{StaticResource QuietButton}" Padding="8,5"
+                                      HorizontalContentAlignment="Left"
+                                      Content="{loc:T QualityLowShort}"
+                                      Command="{Binding PickQualityCommand}"
+                                      CommandParameter="{x:Static s:StreamQuality.Low}" />
+                              <Button Style="{StaticResource QuietButton}" Padding="8,5"
+                                      HorizontalContentAlignment="Left"
+                                      Content="{loc:T QualityMediumShort}"
+                                      Command="{Binding PickQualityCommand}"
+                                      CommandParameter="{x:Static s:StreamQuality.Medium}" />
+                              <Button Style="{StaticResource QuietButton}" Padding="8,5"
+                                      HorizontalContentAlignment="Left"
+                                      Content="{loc:T QualityMaximumShort}"
+                                      Command="{Binding PickQualityCommand}"
+                                      CommandParameter="{x:Static s:StreamQuality.Maximum}" />
+
+                              <!-- Groove is carried by a Control and not a
+                                   Border: it is written for that type, and
+                                   a style worn by the wrong element is
+                                   what the convention test looks for. -->
+                              <Control Style="{StaticResource Groove}" Margin="0,6" />
+
+                              <TextBlock Text="{loc:T GameDistanceHeading}" Style="{StaticResource SectionLabel}"
+                                         Margin="8,0,0,4" />
+
                               <Button Style="{StaticResource QuietButton}" Padding="8,5"
                                       HorizontalContentAlignment="Left"
                                       Content="{loc:T QualityFollowShared}"
@@ -452,52 +597,83 @@
                         </Popup>
                       </Grid>
 
-                      <!-- A solid triangle: the one icon nobody needs to
-                           learn. -->
-                      <Button Style="{StaticResource IconButton}" AllowDrop="False"
-                              ToolTip="{loc:T OpenInstanceTip}"
-                              Visibility="{Binding IsRunning, Converter={StaticResource InverseBoolToVisibility}}"
-                              Command="{Binding DataContext.LaunchInstanceCommand,
-                                                RelativeSource={RelativeSource AncestorType=UserControl}}"
-                              CommandParameter="{Binding}">
-                        <Path Data="M 4,2.5 L 12.5,7.5 L 4,12.5 Z"
-                              Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
-                              Width="15" Height="15" Stretch="None" />
-                      </Button>
-
                       <!-- An arrow that loops back: the game restarts, the
-                           window stays. -->
-                      <Button Style="{StaticResource IconButton}" AllowDrop="False"
+                           window stays. It stays the considered action,
+                           at the weight of its neighbours, and it keeps
+                           its slot when there is nothing to restart:
+                           collapsing it would resize the name column the
+                           moment a window opened.
+
+                           Hidden rather than collapsed needs a style,
+                           since the converters only ever collapse. The
+                           BasedOn is not optional: without it the style
+                           would replace the named one rather than extend
+                           it, and the button would lose its shape. -->
+                      <Button AllowDrop="False"
                               ToolTip="{loc:T RestartTip}"
-                              Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"
                               Command="{Binding DataContext.RestartCommand,
                                                 RelativeSource={RelativeSource AncestorType=UserControl}}"
                               CommandParameter="{Binding}">
+                        <Button.Style>
+                          <Style TargetType="Button" BasedOn="{StaticResource IconButton}">
+                            <Setter Property="Visibility" Value="Hidden" />
+                            <Style.Triggers>
+                              <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" />
+                              </DataTrigger>
+                            </Style.Triggers>
+                          </Style>
+                        </Button.Style>
                         <Path Style="{StaticResource RowGlyph}"
                               Data="M 13,7.5 A 5.5,5.5 0 1 1 11.1,3.3 M 13,1.5 V 4.2 H 10.3" />
                       </Button>
 
-                      <!-- A solid square, paired with the triangle: play
-                           and stop. It used to be a cross, and in a list
-                           a cross means "delete this row" to almost
-                           everyone. Nothing is deleted here, and the
-                           tooltip says so now too. -->
-                      <Button Style="{StaticResource IconButton}" AllowDrop="False"
-                              ToolTip="{loc:T CloseWindowTip}"
-                              Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"
-                              Command="{Binding DataContext.StopCommand,
-                                                RelativeSource={RelativeSource AncestorType=UserControl}}"
-                              CommandParameter="{Binding}">
-                        <Rectangle Width="9" Height="9" RadiusX="1.5" RadiusY="1.5"
-                                   Fill="{Binding Foreground,
-                                                  RelativeSource={RelativeSource AncestorType=Button}}" />
-                      </Button>
+                      <!-- The row's action, and always in the same place.
+
+                           The two share one cell rather than sitting side
+                           by side: they are the same button answering to
+                           the state, and laid out in sequence the thing
+                           you reach for moved every time a window opened
+                           or closed.
+
+                           A solid triangle and a solid square, the pair
+                           nobody needs to learn. The square used to be a
+                           cross, and in a list a cross means "delete this
+                           row" to almost everyone; nothing is deleted
+                           here, which is also why it is not red. -->
+                      <Grid>
+                        <Button Style="{StaticResource RowActionButton}" AllowDrop="False"
+                                ToolTip="{loc:T OpenInstanceTip}"
+                                Visibility="{Binding IsRunning,
+                                                     Converter={StaticResource InverseBoolToVisibility}}"
+                                Command="{Binding DataContext.LaunchInstanceCommand,
+                                                  RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding}">
+                          <Path Data="M 4,2.5 L 12.5,7.5 L 4,12.5 Z"
+                                Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                Width="15" Height="15" Stretch="None" />
+                        </Button>
+
+                        <Button Style="{StaticResource RowActionButton}" AllowDrop="False"
+                                ToolTip="{loc:T CloseWindowTip}"
+                                Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"
+                                Command="{Binding DataContext.StopCommand,
+                                                  RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding}">
+                          <Rectangle Width="9" Height="9" RadiusX="1.5" RadiusY="1.5"
+                                     Fill="{Binding Foreground,
+                                                    RelativeSource={RelativeSource AncestorType=Button}}" />
+                        </Button>
+                      </Grid>
                     </StackPanel>
                   </Grid>
                 </Grid>
 
                 <Border Style="{StaticResource DropLine}"
-                        Opacity="{Binding DropBelow, Converter={StaticResource BoolToOpacity}}" />
+                        Opacity="{Binding DropBelow, Converter={StaticResource BoolToOpacity}}"
+                        Visibility="{Binding DataContext.IsReordering,
+                                             RelativeSource={RelativeSource AncestorType=UserControl},
+                                             Converter={StaticResource BoolToVisibility}}" />
               </StackPanel>
 
             </StackPanel>

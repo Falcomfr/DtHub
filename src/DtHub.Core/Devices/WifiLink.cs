@@ -43,6 +43,26 @@ public sealed record WifiLink(
     public bool Is24GHz => FrequencyMhz is >= 2400 and < 2500;
 
     /// <summary>
+    /// Share of retransmitted frames beyond which the channel is worth
+    /// naming. It is <see cref="VideoBuffer" />'s own worst bucket:
+    /// below it the buffer absorbs the stutter, above it the buffer has
+    /// already given everything it has.
+    ///
+    /// It lives here and not with the health check that first used it,
+    /// because the screen now has to say the same thing in two places.
+    /// A second copy of the figure would have drifted from this one,
+    /// which is the very fault the health check was written to avoid.
+    /// </summary>
+    public const double Crowded = 0.20;
+
+    /// <summary>
+    /// True when the channel loses enough frames for it to be worth
+    /// naming, whatever the band. A clean 2.4 GHz used to be reported
+    /// while a 5 GHz losing four frames in ten was not.
+    /// </summary>
+    public bool IsCrowded => RetryShare >= Crowded;
+
+    /// <summary>
     /// Reads the state returned by <c>cmd wifi status</c>.
     ///
     /// Returns <c>null</c> as soon as anything essential is missing:

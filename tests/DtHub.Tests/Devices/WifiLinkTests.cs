@@ -100,4 +100,32 @@ public class WifiLinkTests
         Assert.Equal(-61, link.Rssi);
         Assert.True(link.Is24GHz);
     }
+
+    /// <summary>
+    /// The threshold, taken from both sides. It moved here from the
+    /// health check so the vitals band and the findings could not drift
+    /// apart, and an inclusive comparison is what the health check
+    /// always did: this pins it so the move cannot have changed it.
+    /// </summary>
+    [Fact]
+    public void Le_seuil_d_encombrement_est_inclusif()
+    {
+        Assert.True(Liaison(WifiLink.Crowded).IsCrowded);
+        Assert.False(Liaison(WifiLink.Crowded - 0.001).IsCrowded);
+    }
+
+    [Fact]
+    public void Un_canal_propre_n_est_pas_encombre()
+    {
+        Assert.False(Liaison(0.05).IsCrowded);
+    }
+
+    [Fact]
+    public void Un_canal_qui_perd_quatre_trames_sur_dix_est_encombre()
+    {
+        Assert.True(Liaison(0.387).IsCrowded);
+    }
+
+    private static WifiLink Liaison(double retryShare) =>
+        new(LinkSpeedMbps: 866, FrequencyMhz: 5220, Standard: "11ac", Rssi: -59, RetryShare: retryShare);
 }

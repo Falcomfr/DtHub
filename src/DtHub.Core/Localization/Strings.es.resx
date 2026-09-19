@@ -550,6 +550,48 @@ Cruza las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
   <data name="PlaytimeMinutes" xml:space="preserve">
     <value>{0} min esta semana</value>
   </data>
+  <data name="SessionHours" xml:space="preserve">
+    <value>{0} h {1}</value>
+  </data>
+  <data name="SessionMinutes" xml:space="preserve">
+    <value>{0} min</value>
+  </data>
+  <data name="SessionJustOpened" xml:space="preserve">
+    <value>recién abierto</value>
+  </data>
+  <data name="StatusOpening" xml:space="preserve">
+    <value>abriendo</value>
+  </data>
+  <data name="StatusReconnecting" xml:space="preserve">
+    <value>reconectando</value>
+  </data>
+  <data name="InstanceSettingsTip" xml:space="preserve">
+    <value>La calidad y la distancia de esta cuenta, cuando deben diferir de los ajustes compartidos.</value>
+  </data>
+  <data name="VitalsHeatWarm" xml:space="preserve">
+    <value>templado</value>
+  </data>
+  <data name="VitalsHeatHot" xml:space="preserve">
+    <value>caliente</value>
+  </data>
+  <data name="VitalsStorage" xml:space="preserve">
+    <value>{0} GB</value>
+  </data>
+  <data name="VitalsBand" xml:space="preserve">
+    <value>{0} GHz</value>
+  </data>
+  <data name="VitalsLinkTip" xml:space="preserve">
+    <value>{0} GHz, {1} Mb/s</value>
+  </data>
+  <data name="VitalsLinkCrowded" xml:space="preserve">
+    <value>{0} % perdidas</value>
+  </data>
+  <data name="ColourHeading" xml:space="preserve">
+    <value>COLOR</value>
+  </data>
+  <data name="ColourNone" xml:space="preserve">
+    <value>Ninguno</value>
+  </data>
   <data name="ExportSettings" xml:space="preserve">
     <value>Guardar los ajustes</value>
   </data>
@@ -1862,8 +1904,8 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="ProfileOrigin" xml:space="preserve">
     <value>perfil {0} · {1}</value>
   </data>
-  <data name="DungeonWithLevel" xml:space="preserve">
-    <value>{0} (niv. {1})</value>
+  <data name="DungeonLevelShort" xml:space="preserve">
+    <value>niv. {0}</value>
   </data>
   <data name="DefaultAccountName" xml:space="preserve">
     <value>Cuenta {0}</value>

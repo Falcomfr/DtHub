@@ -3,7 +3,7 @@
 Legend: **DONE** finished and verified, **IN PROGRESS** underway,
 **TODO** not started, **BLOCKED** requires external action.
 
-Last updated: 2026-09-13
+Last updated: 2026-09-18
 
 ## Verified on real hardware
 
@@ -71,6 +71,12 @@ under its mDNS name, and appeared only once in the list.
 | Interface in English, French and Spanish, including brand sheets | DONE |
 | Quest tracking backed by papycha.fr, in its own window | DONE |
 | Keyboard: Enter and Escape on dialog boxes | DONE |
+| Per-account state, session time and status line on the row | DONE |
+| Band of device vitals pinned under the account list | DONE |
+| Colour per account, on the row and on the frame tab | DONE |
+| Colour on a free game window's frame | BLOCKED (awaiting `build/sonde-bordure`) |
+| Dungeon list in aligned columns, headings corrected | DONE |
+| Motion: panel, tab underline, row appearance | DONE |
 
 ## Distribution
 

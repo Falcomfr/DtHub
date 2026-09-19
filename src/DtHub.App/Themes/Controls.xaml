@@ -848,6 +848,103 @@
     </Style.Triggers>
   </Style>
 
+  <!-- A chip that opens a popup, with no box around it.
+
+       IconButton would have done, and cannot: a Button style applied to
+       a ToggleButton throws when the dictionary loads, which the
+       compiler does not see. Hence a twin, targeting the right type.
+
+       It exists because the row's settings used to be two bordered
+       boxes standing at the same weight as the action itself. Fading
+       them was not enough: a border is louder than a glyph at any
+       opacity. This one is a glyph until you reach for it. -->
+  <Style x:Key="RowChipToggle" TargetType="ToggleButton">
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+    <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ToggleButton">
+          <Border x:Name="Root" Background="{TemplateBinding Background}"
+                  Padding="{TemplateBinding Padding}"
+                  CornerRadius="{StaticResource RadiusKey}">
+            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                              TextElement.Foreground="{TemplateBinding Foreground}" />
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Root" Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+              <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+            </Trigger>
+            <!-- Checked means its popup is open, which is a touch and
+                 not a selection: the accent is exactly right for it,
+                 and only for as long as it lasts. -->
+            <Trigger Property="IsChecked" Value="True">
+              <Setter TargetName="Root" Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+              <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- The row's own action, raised where its neighbours are flat.
+
+       **The accent was not available for this.** The palette reserves it
+       for what you select and what you touch, and it is already at work
+       inside this very row: the tabbed toggle when checked, the closed
+       lock, the drop line, the default-profile star. A blue slab
+       repeated on every row would spend "the only one of its kind" and
+       make blue mean both "selected" and "the action".
+
+       So it dominates by material instead: a key face and a bevel, the
+       vocabulary the bottom bar already uses for the things you press,
+       and a full-contrast glyph among muted ones. The one accent it
+       does take is the press itself, which is literally what the
+       palette keeps the colour for, and which GroupKey and OutlineButton
+       already do.
+
+       The glyphs need no change: RowGlyph inherits its stroke from the
+       ancestor button's foreground, and the launch triangle binds its
+       fill the same way, so overriding the foreground here carries. -->
+  <Style x:Key="RowActionButton" TargetType="Button" BasedOn="{StaticResource IconButton}">
+    <Setter Property="Width" Value="32" />
+    <Setter Property="Height" Value="26" />
+    <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Border x:Name="Root" Background="{StaticResource KeyFaceBrush}"
+                  BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
+                  CornerRadius="{StaticResource RadiusKey}">
+            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                              TextElement.Foreground="{TemplateBinding Foreground}" />
+          </Border>
+          <ControlTemplate.Triggers>
+            <!-- Lightening and not fading, for the reason BaseButton
+                 writes down: a key that dims under the pointer reads as
+                 going away. -->
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Root" Property="Background"
+                      Value="{StaticResource KeyFaceHoverBrush}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+              <Setter TargetName="Root" Property="Background"
+                      Value="{DynamicResource AccentSoftBrush}" />
+              <Setter TargetName="Root" Property="BorderBrush"
+                      Value="{StaticResource BevelPressedBrush}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter Property="Opacity" Value="0.35" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
   <!-- A rotating arc, to say something is working.
 
        It only spins while it's on screen: an endless animation on a
@@ -949,9 +1046,14 @@
     <Setter Property="Margin" Value="0,2" />
   </Style>
 
-  <!-- Activity indicator: a rotating arc. It's the only animation in
-       the repository, deliberately understated, for the few seconds
-       an instance takes to open or restart. -->
+  <!-- Activity indicator: a rotating arc, for the few seconds an
+       instance takes to open or restart.
+
+       This used to claim to be the only animation in the repository. It
+       was already wrong by one, the searching spinner above being the
+       other, and the count is not the point: what motion there is here
+       is there to say that something is happening, or that something
+       has changed place, and never to decorate. -->
   <Style x:Key="BusyIndicator" TargetType="Control">
     <Setter Property="Width" Value="16" />
     <Setter Property="Height" Value="16" />
@@ -974,9 +1076,16 @@
                the blue misses the grey by a full pixel. -->
           <Viewbox Stretch="Uniform">
             <!-- The animation targets the element that carries the
-                 trigger, unnamed: a Storyboard triggered from a
-                 template can't see that template's name scope, and it
-                 used to fail every time a row was displayed. -->
+                 trigger, unnamed.
+
+                 The rule is narrower than it looks, and worth stating
+                 precisely: an EventTrigger written on an element inside
+                 a template, as here, resolves against the outer scope
+                 and cannot name anything in the template. A
+                 ControlTemplate.Triggers entry does see it, which is how
+                 the spinner and the tabs' underline both target a named
+                 element. Getting the two confused cost a crash on every
+                 row displayed. -->
             <Grid Width="16" Height="16" Background="Transparent"
                   RenderTransformOrigin="0.5,0.5">
               <Grid.RenderTransform>
@@ -1036,7 +1145,48 @@
               <Setter TargetName="Root" Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
               <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
             </Trigger>
+            <!-- The underline crosses over instead of blinking on.
+
+                 A bar that truly slid from one tab to the next would
+                 need a single bar outliving all three, in the window
+                 rather than in the template, plus code-behind measuring
+                 offsets on load, on a language change, since the labels
+                 are translated and change width, and on a DPI change.
+                 And this style also dresses the four quality buttons and
+                 the four zoom buttons, which would keep the per-template
+                 mark: two different underline behaviours for controls
+                 that look identical.
+
+                 The setter stays as the resting value; the animation
+                 only covers the crossing. Weight and colour stay
+                 instant: fading those too would need a second copy of
+                 the text underneath, and snapping them is what makes the
+                 eye land on the panel rather than on the decoration.
+
+                 The name resolves because this is a ControlTemplate
+                 trigger, which does see the template's name scope. It is
+                 an EventTrigger written on an element inside a template
+                 that does not. -->
             <Trigger Property="IsChecked" Value="True">
+              <Trigger.EnterActions>
+                <BeginStoryboard x:Name="Light">
+                  <Storyboard>
+                    <DoubleAnimation Storyboard.TargetName="Mark"
+                                     Storyboard.TargetProperty="Opacity"
+                                     To="1" Duration="0:0:0.12" />
+                  </Storyboard>
+                </BeginStoryboard>
+              </Trigger.EnterActions>
+              <Trigger.ExitActions>
+                <StopStoryboard BeginStoryboardName="Light" />
+                <BeginStoryboard>
+                  <Storyboard>
+                    <DoubleAnimation Storyboard.TargetName="Mark"
+                                     Storyboard.TargetProperty="Opacity"
+                                     To="0" Duration="0:0:0.12" />
+                  </Storyboard>
+                </BeginStoryboard>
+              </Trigger.ExitActions>
               <Setter TargetName="Mark" Property="Opacity" Value="1" />
               <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
               <Setter Property="FontWeight" Value="SemiBold" />
@@ -1070,6 +1220,55 @@
               <Setter TargetName="Root" Property="Background" Value="{DynamicResource AccentBrush}" />
               <Setter TargetName="Root" Property="BorderBrush" Value="{StaticResource BevelPressedBrush}" />
             </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- One of the six colours an account can be marked with.
+
+       A square of colour and nothing else. The ring appears on the one
+       the account already wears, which is why each swatch carries its
+       own colour in Tag as well as in its command parameter: the
+       template compares the two through the existing pair converter,
+       and no new converter is needed for it. -->
+  <Style x:Key="ColourSwatch" TargetType="Button" BasedOn="{StaticResource BaseButton}">
+    <Setter Property="Width" Value="22" />
+    <Setter Property="Height" Value="18" />
+    <Setter Property="Margin" Value="2" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Grid>
+            <Border x:Name="Root" CornerRadius="{StaticResource Radius}"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
+                    Cursor="Hand" SnapsToDevicePixels="True" />
+
+            <!-- The mark of the colour in use. Drawn over the square
+                 rather than around it, so the swatches keep the same
+                 footprint whichever one is current. -->
+            <Border x:Name="Ring" Margin="3" Opacity="0"
+                    CornerRadius="1"
+                    BorderBrush="{DynamicResource TextBrush}" BorderThickness="1.5" />
+          </Grid>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+              <Setter TargetName="Root" Property="BorderBrush" Value="{StaticResource BevelPressedBrush}" />
+            </Trigger>
+            <DataTrigger Value="True">
+              <DataTrigger.Binding>
+                <MultiBinding Converter="{StaticResource SameValue}">
+                  <Binding Path="Colour" />
+                  <Binding Path="Tag" RelativeSource="{RelativeSource TemplatedParent}" />
+                </MultiBinding>
+              </DataTrigger.Binding>
+              <Setter TargetName="Ring" Property="Opacity" Value="1" />
+            </DataTrigger>
           </ControlTemplate.Triggers>
         </ControlTemplate>
       </Setter.Value>

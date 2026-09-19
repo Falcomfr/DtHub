@@ -12,7 +12,7 @@ namespace DtHub.Core.Settings;
 /// </summary>
 public sealed class AppSettingsDocument
 {
-    public const int CurrentSchemaVersion = 9;
+    public const int CurrentSchemaVersion = 10;
 
     /// <summary>
     /// Default shipped sizes, as a percentage of the usable area.
@@ -366,6 +366,22 @@ public sealed class StoredInstance
     /// by default, like the tier.
     /// </summary>
     public GameZoom? GameZoom { get; set; }
+
+    /// <summary>
+    /// The colour that marks this account, or <c>null</c> for none.
+    ///
+    /// **Here <c>null</c> does not mean "follow the shared setting"**,
+    /// unlike the two above it: there is no shared colour and there must
+    /// not be one, since a setting whose whole purpose is to differ per
+    /// account has no meaningful common value. <c>null</c> means the
+    /// account carries no mark, which is how a seventh account starts
+    /// and how someone who dislikes the whole idea turns it off.
+    ///
+    /// A new account is given one, though, and so were the accounts that
+    /// existed before the feature: a mark nobody has to go and set is
+    /// the entire point.
+    /// </summary>
+    public AccountColour? Colour { get; set; }
 
     /// <summary>
     /// Playtime per day, in seconds, over the rolling week. The key is

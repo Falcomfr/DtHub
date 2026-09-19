@@ -100,6 +100,12 @@ public enum QuestNodeGlyph
 /// <param name="Quest">The quest, when it is one.</param>
 /// <param name="Dungeon">The combat location, when it is one.</param>
 /// <param name="Path">The path, when it is one.</param>
+/// <param name="Facts">
+/// The three facts a dungeon row states in its own columns, or
+/// <c>null</c> for every other kind of row. One nullable member rather
+/// than three, since six of the seven kinds have none: the template
+/// then has a single question to ask before laying the columns out.
+/// </param>
 public sealed record QuestNode(
     QuestNodeKind Kind,
     string Label,
@@ -111,7 +117,8 @@ public sealed record QuestNode(
     QuestNodeGlyph Glyph = QuestNodeGlyph.None,
     IReadOnlyList<QuestNeed>? Needs = null,
     bool InSuccess = false,
-    bool Spaced = false)
+    bool Spaced = false,
+    DungeonFacts? Facts = null)
 {
     /// <summary>
     /// Neither unmade branches nor subheadings are clickable.

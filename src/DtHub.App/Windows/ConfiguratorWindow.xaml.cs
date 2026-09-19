@@ -2,6 +2,7 @@
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using DtHub.App.Services;
 using DtHub.App.ViewModels;
@@ -58,6 +59,13 @@ public partial class ConfiguratorWindow : Window
             }
 
             _poll.Start();
+
+            // Before anything is awaited: what each account is doing, and
+            // for how long, is read from state the launcher already holds
+            // and costs nothing. Left to the sweep below, the session
+            // times would be up to a tick stale on the one frame the
+            // reader is actually looking at.
+            _viewModel.Instances.RefreshRunningState();
 
             // And right away, without waiting for the first tick: that one
             // comes three seconds later, and during those three seconds the
@@ -175,15 +183,120 @@ public partial class ConfiguratorWindow : Window
     /// <summary>Shows or hides the window, depending on its state.</summary>
     public void Toggle()
     {
-        if (IsVisible)
+        if (_shown)
         {
-            Hide();
+            Vanish();
             return;
         }
 
-        Show();
-        Activate();
+        Reveal();
     }
+
+    /// <summary>
+    /// Whether the panel is meant to be on screen.
+    ///
+    /// **Intent, not state.** During the hundred and twenty
+    /// milliseconds of a vanish the window is still visible, so a second
+    /// Ctrl+P read from <see cref="UIElement.IsVisible" /> would start a
+    /// second vanish instead of bringing the panel back.
+    /// </summary>
+    private bool _shown;
+
+    /// <summary>
+    /// Shows the panel, or brings back one that is on its way out.
+    /// </summary>
+    public void Reveal()
+    {
+        _shown = true;
+
+        // Stopping raises the vanish's completion, which is why that
+        // handler asks whether the panel is still meant to be away:
+        // without the question it would hide the window we are in the
+        // middle of asking for.
+        Vanishing.Stop(this);
+
+        if (!IsVisible)
+        {
+            Opacity = 0;
+            Show();
+        }
+
+        Activate();
+        ((Storyboard)Resources["Reveal"]).Begin(this, true);
+    }
+
+    /// <summary>
+    /// Takes the panel away, and only hides it once it has gone.
+    ///
+    /// **Animate first, hide last.** Visibility is what starts and stops
+    /// the device sweep, so hiding before the animation would leave
+    /// nothing to look at while it played, and the poll would keep
+    /// running a hundred and twenty milliseconds longer either way,
+    /// which against a three second interval is nothing.
+    /// </summary>
+    public void Vanish()
+    {
+        _shown = false;
+        Vanishing.Begin(this, true);
+    }
+
+    /// <summary>
+    /// Hides the panel at once, with no animation.
+    ///
+    /// For the startup path that shows the window only to make it lay
+    /// itself out, and then takes it back before anyone has seen it:
+    /// that one must not be visible at all, let alone fade.
+    /// </summary>
+    public void HideNow()
+    {
+        _shown = false;
+        Vanishing.Stop(this);
+        BeginAnimation(OpacityProperty, null);
+        Opacity = 1;
+        Hide();
+    }
+
+    /// <summary>
+    /// Shows the window invisibly, so that it lays itself out and its
+    /// scaling can be measured, without anything appearing.
+    /// </summary>
+    public void PrepareHidden()
+    {
+        Opacity = 0;
+        Show();
+    }
+
+    /// <summary>
+    /// The storyboard that takes the panel away, with its completion
+    /// wired once.
+    ///
+    /// The completion is gated twice. Stopping a storyboard raises it
+    /// too, so without the first question it would hide the window that
+    /// had just been asked for; and a quit in mid-animation would call
+    /// Hide on a window already closed.
+    /// </summary>
+    private Storyboard Vanishing
+    {
+        get
+        {
+            if (_vanishing is null)
+            {
+                _vanishing = (Storyboard)Resources["Vanish"];
+
+                _vanishing.Completed += (_, _) =>
+                {
+                    if (!_shown && !_quitting)
+                    {
+                        Hide();
+                    }
+                };
+            }
+
+            return _vanishing;
+        }
+    }
+
+    private Storyboard? _vanishing;
 
     /// <summary>
     /// Places the window in a free corner, opposite the game block, so
@@ -229,7 +342,7 @@ public partial class ConfiguratorWindow : Window
         await ((App)Application.Current).RequestQuitAsync().ConfigureAwait(true);
     }
 
-    private void OnHide(object sender, RoutedEventArgs e) => Hide();
+    private void OnHide(object sender, RoutedEventArgs e) => Vanish();
 
     private void OnSleepHelp(object sender, RoutedEventArgs e)
     {
@@ -266,8 +379,7 @@ public partial class ConfiguratorWindow : Window
     /// </summary>
     public void ShowDevices()
     {
-        Show();
-        Activate();
+        Reveal();
 
         TabDevices.IsChecked = true;
     }
@@ -329,9 +441,13 @@ public partial class ConfiguratorWindow : Window
         if (!_quitting)
         {
             e.Cancel = true;
-            Hide();
+            Vanish();
             return;
         }
+
+        // Stop the clock before the base call: a vanish still in flight
+        // would otherwise raise its completion against a closed window.
+        _vanishing?.Stop(this);
 
         _poll.Stop();
         base.OnClosing(e);

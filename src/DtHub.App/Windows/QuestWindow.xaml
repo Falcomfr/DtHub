@@ -5,7 +5,7 @@
         xmlns:wv="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         Title="{loc:T Guides}"
         PreviewMouseDown="OnWindowPressed"
-        Width="520" Height="760" MinWidth="380" MinHeight="360"
+        Width="520" Height="760" MinWidth="440" MinHeight="360"
         Topmost="True"
         ShowInTaskbar="True"
         Background="{DynamicResource SurfaceAltBrush}"
@@ -623,12 +623,99 @@
             <ListBox.ItemContainerStyle>
               <!-- A subheading is not a choice: the keyboard must skip
                    over it, otherwise the arrow key stops on it and
-                   Enter does nothing. -->
+                   Enter does nothing.
+
+                   **The template is written here and not in the theme.**
+                   The convention test that checks a named style is worn
+                   by the type it targets matches the "Style=" tail of
+                   "ItemContainerStyle=" as well: moving this to
+                   Themes/Controls.xaml and referencing it by key would
+                   report a ListBox wearing a style that targets
+                   ListBoxItem, and turn red. This is also the only
+                   ListBox in the application, so the theme would gain a
+                   single-use style either way.
+
+                   Until now there was no template at all, so hover and
+                   selection were Aero2's own pale blue washes, which are
+                   nowhere in the palette. -->
               <Style TargetType="ListBoxItem">
                 <Setter Property="IsEnabled" Value="{Binding IsEnabled}" />
                 <Setter Property="Focusable" Value="{Binding IsEnabled}" />
-                <Setter Property="Padding" Value="0" />
                 <Setter Property="Margin" Value="0" />
+
+                <!-- The band runs edge to edge while the text sits ten
+                     pixels in, which is also where the breadcrumb above
+                     it starts. -->
+                <Setter Property="Padding" Value="10,0" />
+
+                <!-- The dotted rectangle is off-palette. The bar below
+                     says the same thing in the right vocabulary. -->
+                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+
+                <Setter Property="Template">
+                  <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                      <Border x:Name="Fond" Background="Transparent"
+                              Padding="{TemplateBinding Padding}"
+                              CornerRadius="{StaticResource Radius}"
+                              SnapsToDevicePixels="True">
+                        <Grid>
+                          <!-- A bar that fades in rather than a border
+                               that appears: a border would add two
+                               pixels of height and nudge every row the
+                               moment the selection moved. The same
+                               idiom as the tabs' underline. -->
+                          <Border x:Name="Mark" Width="2" HorizontalAlignment="Left"
+                                  Margin="-8,1,0,1" CornerRadius="1" Opacity="0"
+                                  Background="{DynamicResource AccentBrush}" />
+
+                          <ContentPresenter />
+                        </Grid>
+                      </Border>
+
+                      <ControlTemplate.Triggers>
+                        <!-- Both conditions, spelled out: a disabled
+                             element still reports the pointer over it,
+                             so a plain IsMouseOver trigger would light
+                             up the band headers, which are not
+                             choices. -->
+                        <MultiTrigger>
+                          <MultiTrigger.Conditions>
+                            <Condition Property="IsMouseOver" Value="True" />
+                            <Condition Property="IsEnabled" Value="True" />
+                          </MultiTrigger.Conditions>
+                          <Setter TargetName="Fond" Property="Background"
+                                  Value="{DynamicResource SurfaceAltBrush}" />
+                        </MultiTrigger>
+
+                        <!-- Selected and unfocused deliberately looks the
+                             same as selected. This window sends focus
+                             back to the search field constantly, and the
+                             selection is the "you are here" mark that
+                             scrolling relies on: greying it out, as the
+                             stock template does, would lose it. -->
+                        <Trigger Property="IsSelected" Value="True">
+                          <Setter TargetName="Fond" Property="Background"
+                                  Value="{DynamicResource AccentSoftBrush}" />
+                          <Setter TargetName="Mark" Property="Opacity" Value="1" />
+                        </Trigger>
+
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                          <Setter TargetName="Mark" Property="Background"
+                                  Value="{DynamicResource AccentHoverBrush}" />
+                          <Setter TargetName="Mark" Property="Opacity" Value="1" />
+                        </Trigger>
+
+                        <!-- No disabled trigger, and that is deliberate:
+                             the stock one greys the foreground, which is
+                             invisible today only because the row
+                             template sets the label's colour itself.
+                             Any opacity or background added here would
+                             dim the band headers. -->
+                      </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                  </Setter.Value>
+                </Setter>
               </Style>
             </ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>
@@ -687,28 +774,100 @@
 
                   <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="10,0,0,0"
                               VerticalAlignment="Center">
-                    <!-- The key required at a dungeon's entrance. Nine
-                         out of eighty-two don't require one, and
-                         therefore have no icon: the absence is
-                         information in itself. Its name is too long
-                         for the column and comes on hover. -->
-                    <Border Background="Transparent"
-                            VerticalAlignment="Center" Margin="0,0,5,0"
-                            ToolTip="{Binding Dungeon.Key}"
-                            ToolTipService.InitialShowDelay="200"
-                            Visibility="{Binding Dungeon.NeedsKey,
-                                                 Converter={StaticResource BoolToVisibility},
-                                                 FallbackValue=Collapsed}">
-                      <Path Style="{StaticResource ListGlyph}"
-                            Stroke="{DynamicResource GlyphDungeonBrush}"
-                            Data="M 5.2,7.5 m -2.6,0 a 2.6,2.6 0 1 0 5.2,0
-                                  a 2.6,2.6 0 1 0 -5.2,0
-                                  M 7.8,7.5 H 12.8 M 10.3,7.5 V 9.8 M 12.4,7.5 V 9.3" />
-                    </Border>
+                    <!-- A dungeon's three facts, each in its own fixed
+                         column so that eighty-three rows line up.
 
+                         **Fixed widths and not a shared size scope.**
+                         Under virtualization, containers join and leave
+                         the scope as you scroll, so a shared width is
+                         computed from whatever happens to be realized
+                         and shifts while you move. Fixed widths also
+                         align the Raids and Lairs branches and the
+                         search results, none of which have bands to
+                         anchor the eye.
+
+                         The widths come from the catalogue rather than
+                         from a guess: the longest position it holds is
+                         nine characters, the longest level is "niv. 200",
+                         and the longest size is "gigantesque".
+
+                         Collapsed whole for every row that is not a
+                         dungeon, which is six kinds out of seven. A
+                         collapsed grid short-circuits measure, so the
+                         fixed columns cost a quest row nothing. -->
+                    <Grid Visibility="{Binding Facts,
+                                               Converter={StaticResource EmptyToVisibility},
+                                               ConverterParameter=inverse}">
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="20" />
+                        <ColumnDefinition Width="44" />
+                        <ColumnDefinition Width="70" />
+                        <ColumnDefinition Width="66" />
+                      </Grid.ColumnDefinitions>
+
+                      <!-- The key required at a dungeon's entrance. Nine
+                           out of eighty-three don't require one, and
+                           therefore have no icon: the absence is
+                           information in itself. Its name is too long
+                           for the column and comes on hover.
+
+                           It now holds a column of its own, so that a
+                           keyless dungeon leaves a gap rather than
+                           pulling the three columns on its right out of
+                           line. -->
+                      <Border Grid.Column="0" Background="Transparent"
+                              HorizontalAlignment="Left" VerticalAlignment="Center"
+                              ToolTip="{Binding Dungeon.Key}"
+                              ToolTipService.InitialShowDelay="200"
+                              Visibility="{Binding Dungeon.NeedsKey,
+                                                   Converter={StaticResource BoolToVisibility},
+                                                   FallbackValue=Collapsed}">
+                        <Path Style="{StaticResource ListGlyph}"
+                              Stroke="{DynamicResource GlyphDungeonBrush}"
+                              Data="M 5.2,7.5 m -2.6,0 a 2.6,2.6 0 1 0 5.2,0
+                                    a 2.6,2.6 0 1 0 -5.2,0
+                                    M 7.8,7.5 H 12.8 M 10.3,7.5 V 9.8 M 12.4,7.5 V 9.3" />
+                      </Border>
+
+                      <!-- Right-aligned, so the levels read as a ladder
+                           down the band. Empty for the three dungeons
+                           the site gives no level for: they already sit
+                           under a header that says so, and a dash would
+                           say it twice. -->
+                      <TextBlock Grid.Column="1" Text="{Binding Facts.Level}"
+                                 TextAlignment="Right" Margin="0,0,8,0"
+                                 TextWrapping="NoWrap" VerticalAlignment="Center"
+                                 Style="{StaticResource Muted}"
+                                 FontSize="{StaticResource FontSmall}" />
+
+                      <TextBlock Grid.Column="2" Text="{Binding Facts.Size}"
+                                 TextAlignment="Right" Margin="0,0,8,0"
+                                 TextWrapping="NoWrap" VerticalAlignment="Center"
+                                 Style="{StaticResource Muted}"
+                                 FontSize="{StaticResource FontSmall}" />
+
+                      <!-- The one place a fixed pitch earns its keep: in
+                           the proportional face, [7,-25] and [-63,-75]
+                           do not begin at the same offset, so the
+                           brackets never form a column. -->
+                      <TextBlock Grid.Column="3" Text="{Binding Facts.Position}"
+                                 TextAlignment="Right"
+                                 TextWrapping="NoWrap" VerticalAlignment="Center"
+                                 Style="{StaticResource Muted}"
+                                 FontFamily="{StaticResource MonoFont}"
+                                 FontSize="{StaticResource FontSmall}" />
+                    </Grid>
+
+                    <!-- Still the right-hand text of every other kind of
+                         row: the root's counts, a zone's level range, an
+                         achievement's tally. Hidden when empty, since an
+                         empty block still claims its margin. -->
                     <TextBlock Text="{Binding Detail}"
                                VerticalAlignment="Center"
-                               Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" />
+                               Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
+                               Visibility="{Binding Detail,
+                                                    Converter={StaticResource EmptyToVisibility},
+                                                    ConverterParameter=inverse}" />
 
                     <!-- A lock: what keeps the quest closed. A key had
                          been tried first; its ring and its diagonal
@@ -801,20 +960,35 @@
                        The icon comes next, and is set by the row's
                        nature rather than its kind: two branches unfold
                        the same way without denoting the same thing. -->
+                  <!-- **The hierarchy was upside down.** A band header
+                       was set to eleven pixels above the thirteen-pixel
+                       rows it headed, so the thing that organised the
+                       list was the smallest text in it. There is no size
+                       setter here any more: the row keeps the implicit
+                       thirteen, and weight, colour, air and a rule carry
+                       the heading. Fifteen would have shouted.
+
+                       The rule is the one already in the template. A new
+                       band of fifty levels starting here is exactly what
+                       it is for, and Header and Section never appear in
+                       the same list, so borrowing it confuses nothing. -->
                   <DataTrigger Binding="{Binding Kind}" Value="Header">
                     <Setter TargetName="Libelle" Property="FontWeight" Value="SemiBold" />
                     <Setter TargetName="Libelle" Property="Foreground"
                             Value="{DynamicResource AccentBrush}" />
-                    <Setter TargetName="Libelle" Property="FontSize" Value="{StaticResource FontSmall}" />
-                    <Setter TargetName="Ligne" Property="Margin" Value="0,11,0,3" />
+                    <Setter TargetName="Ligne" Property="Margin" Value="0,16,0,4" />
+                    <Setter TargetName="Filet" Property="Visibility" Value="Visible" />
                   </DataTrigger>
 
+                  <!-- The same inversion, corrected the same way. No
+                       rule here: an achievement title already carries a
+                       star, a tally, and the quests indented beneath it
+                       on a connecting line. -->
                   <DataTrigger Binding="{Binding Kind}" Value="Success">
                     <Setter TargetName="Libelle" Property="FontWeight" Value="SemiBold" />
                     <Setter TargetName="Libelle" Property="Foreground"
                             Value="{DynamicResource AccentBrush}" />
-                    <Setter TargetName="Libelle" Property="FontSize" Value="{StaticResource FontSmall}" />
-                    <Setter TargetName="Ligne" Property="Margin" Value="0,11,0,3" />
+                    <Setter TargetName="Ligne" Property="Margin" Value="0,16,0,4" />
                   </DataTrigger>
 
                   <!-- A results group's title dominates everything else:

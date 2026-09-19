@@ -286,11 +286,23 @@ Each of them cost time once. Do not reintroduce them.
   Running the executable after a `dotnet test` runs a stale binary,
   and you then check something other than what you just wrote.
   Build `src/DtHub.App/DtHub.App.csproj` explicitly before launching.
-- **A `Storyboard` triggered from a template does not see its name
-  scope.** A `Storyboard.TargetName` naming an element of the
-  `ControlTemplate` throws an exception every time it is shown,
-  during `Loaded`, which interrupts rendering. Target the element
-  that carries the trigger, unnamed.
+- **Which triggers see a template's name scope, and which do not.**
+  A `ControlTemplate.Triggers` entry *does* see it: a
+  `Storyboard.TargetName` naming an element of the template resolves,
+  and both the spinner and the tabs' underline rely on it. A
+  `FrameworkElement.Triggers` block written on an element *inside* a
+  template does *not*: it resolves against the outer scope, and a
+  `TargetName` there throws every time the element is shown, during
+  `Loaded`, which interrupts rendering. In that case, target the
+  element that carries the trigger, unnamed. This bullet used to state
+  the second half as the whole rule.
+- **The order of the merged dictionaries in `App.xaml` is part of the
+  code.** A `StaticResource` is resolved as its file is read and sees only
+  what has already been merged, so a control template needing a converter
+  requires `Converters.xaml` to come first. Nothing catches this at build
+  time: it dies while the window is being laid out.
+  `ResourceOrderTests` guards the order; `DynamicResource` is not a way
+  out, since `MultiBinding.Converter` is not a dependency property.
 - **The default `ComboBox` ignores the dark theme.** Its template is
   replaced in `Themes/Controls.xaml`.
 

@@ -275,6 +275,157 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
         OnPropertyChanged(nameof(ProblemsBrushKey));
     }
 
+    /// <summary>
+    /// The four readings taken of this device, or <c>null</c> before it
+    /// has been asked anything.
+    /// </summary>
+    private DeviceVitals? _vitals;
+
+    /// <summary>
+    /// True when there is anything at all to show about this device.
+    ///
+    /// Gated on the connection like the battery is: the readings of a
+    /// phone that has left say what was true when it was here, which is
+    /// not the same as what is true.
+    /// </summary>
+    public bool HasVitals => _vitals is { IsEmpty: false } && IsConnected;
+
+    /// <summary>
+    /// True when the device is hot enough for it to be worth a mark.
+    ///
+    /// Same rule as the free space beside it: a reading that is always
+    /// comfortable teaches nothing and occupies a place. "Cool" was true
+    /// on every sweep of every phone the project has ever seen. What is
+    /// worth knowing is the moment it stops being true.
+    /// </summary>
+    public bool HasHeat => _vitals?.Heat is { IsThrottling: true } && IsConnected;
+
+    /// <summary>
+    /// The heat, in one word.
+    ///
+    /// **Never in degrees.** The reading carries a surface temperature
+    /// and the reference phone shows eighty-four while its thermal
+    /// status is zero and nothing is throttled: a figure like that
+    /// raises a false alarm on the one device the project actually
+    /// tests on. The status, which is the verdict Android itself gives,
+    /// says the same thing without inviting the mistake.
+    /// </summary>
+    public string HeatText => _vitals?.Heat switch
+    {
+        { Status: >= ThermalReading.Severe } => Strings.Get("VitalsHeatHot"),
+        { Status: >= ThermalReading.Throttling } => Strings.Get("VitalsHeatWarm"),
+        _ => string.Empty,
+    };
+
+    /// <inheritdoc cref="BatteryBrushKey" />
+    public string HeatBrushKey => _vitals?.Heat switch
+    {
+        { Status: >= ThermalReading.Severe } => "DangerBrush",
+        { Status: >= ThermalReading.Throttling } => "WarningBrush",
+        _ => "TextMutedBrush",
+    };
+
+    /// <summary>
+    /// True when the free space is worth a word, which is to say when
+    /// there is not much of it left.
+    ///
+    /// **It used to show at all times, and said nothing.** The threshold
+    /// is two gigabytes; the reference phones carry three hundred and
+    /// fourteen. A figure that is always comfortable is a binary fact
+    /// dressed as a continuous one, and it asks the reader to know the
+    /// threshold before it means anything. Shown only below it, its mere
+    /// presence is the message.
+    /// </summary>
+    public bool HasStorage => _vitals?.Storage is { IsLow: true } && IsConnected;
+
+    /// <summary>The free space, "292 Go".</summary>
+    public string StorageText => _vitals?.Storage is { } room
+        ? Strings.Format("VitalsStorage", room.FreeGigabytes)
+        : string.Empty;
+
+    /// <inheritdoc cref="BatteryBrushKey" />
+    public string StorageBrushKey => _vitals?.Storage switch
+    {
+        { FreeBytes: <= StorageReading.Critical } => "DangerBrush",
+        { IsLow: true } => "WarningBrush",
+        _ => "TextMutedBrush",
+    };
+
+    /// <summary>
+    /// True when there is a Wi-Fi link to describe, which there is not
+    /// over USB.
+    /// </summary>
+    public bool HasLink => _vitals?.Link is not null && IsConnected;
+
+    /// <summary>
+    /// What there is to know about the link, in the fewest words.
+    ///
+    /// **The colour and the text have to name the same thing.** Saying
+    /// "5 GHz" in amber because the channel was crowded read as though
+    /// 5 GHz were the fault, which is the opposite of the truth: it is
+    /// the good band. When something is wrong, the cell now says what.
+    ///
+    /// The band comes before the crowding, which is the order the health
+    /// check itself uses, so the cell and the sentence beside it can
+    /// never name two different faults.
+    /// </summary>
+    public string LinkText => _vitals?.Link switch
+    {
+        { Is24GHz: true } => Strings.Format("VitalsBand", 2.4),
+        { IsCrowded: true } crowded =>
+            Strings.Format("VitalsLinkCrowded", Math.Round(crowded.RetryShare * 100)),
+        not null => Strings.Format("VitalsBand", 5),
+        _ => string.Empty,
+    };
+
+    /// <summary>The band and the speed it announces.</summary>
+    public string LinkSummary => _vitals?.Link is { } link
+        ? Strings.Format("VitalsLinkTip", link.Is24GHz ? 2.4 : 5, link.LinkSpeedMbps)
+        : string.Empty;
+
+    /// <summary>
+    /// <inheritdoc cref="BatteryBrushKey" path="/summary" />
+    ///
+    /// A crowded channel and the shared band are both worth a colour,
+    /// and the threshold for the first belongs to the link itself, so
+    /// that this band and the findings cannot drift apart.
+    /// </summary>
+    public string LinkBrushKey => _vitals?.Link switch
+    {
+        { IsCrowded: true } => "WarningBrush",
+        { Is24GHz: true } => "WarningBrush",
+        _ => "TextMutedBrush",
+    };
+
+    /// <summary>
+    /// Sets the four readings, and notifies the display.
+    ///
+    /// The early return is why <see cref="DeviceVitals" /> is a record:
+    /// the sweep hands the same values over and over, since each one is
+    /// cached upstream for a minute or more.
+    /// </summary>
+    public void SetVitals(DeviceVitals? vitals)
+    {
+        if (_vitals == vitals)
+        {
+            return;
+        }
+
+        _vitals = vitals;
+
+        OnPropertyChanged(nameof(HasVitals));
+        OnPropertyChanged(nameof(HasHeat));
+        OnPropertyChanged(nameof(HeatText));
+        OnPropertyChanged(nameof(HeatBrushKey));
+        OnPropertyChanged(nameof(HasStorage));
+        OnPropertyChanged(nameof(StorageText));
+        OnPropertyChanged(nameof(StorageBrushKey));
+        OnPropertyChanged(nameof(HasLink));
+        OnPropertyChanged(nameof(LinkText));
+        OnPropertyChanged(nameof(LinkSummary));
+        OnPropertyChanged(nameof(LinkBrushKey));
+    }
+
     /// <summary>Sets the last reading, and notifies the display.</summary>
     public void SetBattery(BatteryReading? battery)
     {
@@ -308,6 +459,15 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
         OnPropertyChanged(nameof(StatusText));
         OnPropertyChanged(nameof(StatusBrushKey));
         OnPropertyChanged(nameof(HasBattery));
+
+        // The four vitals are gated on the connection as well, and
+        // SetVitals returns early when the readings have not changed:
+        // without this, a phone that came back would keep them hidden
+        // until one of its four readings happened to move.
+        OnPropertyChanged(nameof(HasVitals));
+        OnPropertyChanged(nameof(HasHeat));
+        OnPropertyChanged(nameof(HasStorage));
+        OnPropertyChanged(nameof(HasLink));
     }
 
 }

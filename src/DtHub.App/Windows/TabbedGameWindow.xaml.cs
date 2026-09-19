@@ -64,7 +64,8 @@ public partial class TabbedGameWindow : Window
     /// Docks a game window and adds its tab. Has no effect if it is already
     /// there.
     /// </summary>
-    public bool Attach(string key, string title, string? iconPath, nint window, double aspect)
+    public bool Attach(
+        string key, string title, string? iconPath, nint window, double aspect, string? colourBrushKey)
     {
         if (Find(key) is not null || window == 0)
         {
@@ -76,7 +77,7 @@ public partial class TabbedGameWindow : Window
             return false;
         }
 
-        var tab = new GameTabViewModel(key, title, iconPath, window, aspect);
+        var tab = new GameTabViewModel(key, title, iconPath, window, aspect, colourBrushKey);
         tab.PropertyChanged += OnTabChanged;
         Items.Add(tab);
 
@@ -223,6 +224,18 @@ public partial class TabbedGameWindow : Window
 
         tab.Title = title;
         Retitle();
+    }
+
+    /// <summary>
+    /// Changes the mark of a tab that is already housed. Has no effect
+    /// if this account is not in the frame, like renaming.
+    /// </summary>
+    public void Recolour(string key, string? colourBrushKey)
+    {
+        if (Find(key) is { } tab)
+        {
+            tab.ColourBrushKey = colourBrushKey;
+        }
     }
 
     private GameTabViewModel? Find(string key) =>

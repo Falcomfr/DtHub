@@ -32,10 +32,12 @@ change.
 
 ## v0.4 - What is still missing
 
-- On-screen indication of the active instance.
 - Faster guide indexing: the API's `modified_after` filter only hits
   the pages that changed, and dungeons account for four fifths of the
   time. See D141.
+
+Done since: each account carries a colour, on its row and on its tab, and
+the row says what it is doing and for how long.
 
 ## v1.0 - Stable
 

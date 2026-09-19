@@ -8,6 +8,7 @@ using DtHub.Core.Adb;
 using DtHub.Core.Android;
 using DtHub.Core.Devices;
 using DtHub.Core.Localization;
+using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
 
 namespace DtHub.App.ViewModels;
@@ -193,8 +194,15 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// True during a drag and drop. The periodic sweep then holds off
     /// rebuilding the list, otherwise a card would disappear under the
     /// cursor.
+    ///
+    /// **Observable, and it has to be.** The rows' drop hints are laid
+    /// out from this flag so they cost nothing the rest of the time,
+    /// and a plain auto-property is read once by a binding and never
+    /// again: the hints would have been reserved at startup, when the
+    /// answer is no, and never appear.
     /// </summary>
-    public bool IsReordering { get; set; }
+    [ObservableProperty]
+    private bool _isReordering;
 
     /// <summary>
     /// Pace of the device sweep, based on the chosen quality.
@@ -737,12 +745,71 @@ public sealed partial class InstanceListViewModel : ObservableObject
             }
 
             view.SetBattery(_launcher.Batteries.GetValueOrDefault(device.Serial));
+            view.SetVitals(_launcher.Vitals.GetValueOrDefault(device.Serial));
 
             var found = _launcher.HealthByDevice.GetValueOrDefault(device.Serial);
 
             view.SetProblems(found?.Text, found?.Serious ?? false);
             view.SetNeedsPairing(_launcher.NeedsPairing.Contains(device.Id));
         }
+
+        SyncConnected(discovery);
+    }
+
+    /// <summary>
+    /// The phones that are here right now, for the band of vitals under
+    /// the list.
+    ///
+    /// Kept as its own collection rather than filtered in the view: a
+    /// binding cannot watch a dictionary, whose reference never changes.
+    /// </summary>
+    public ObservableCollection<DeviceGroupViewModel> ConnectedDevices { get; } = [];
+
+    /// <summary>
+    /// True when there is more than one phone, which is the only case
+    /// where the band has to name them.
+    ///
+    /// **Naming only where it changes** is this list's own rule, already
+    /// written down for the device headers: with a single phone, every
+    /// line would carry the same name and teach nothing.
+    /// </summary>
+    public bool HasSeveralDevices => ConnectedDevices.Count > 1;
+
+    /// <summary>True when there is a band to show at all.</summary>
+    public bool HasConnectedDevices => ConnectedDevices.Count > 0;
+
+    /// <summary>
+    /// Brings the band in line with what is connected.
+    ///
+    /// Moves and adds rather than clearing and refilling, the same way
+    /// the rows do: a Clear on every sweep would make the band blink
+    /// three times a second.
+    /// </summary>
+    private void SyncConnected(DeviceDiscoveryResult discovery)
+    {
+        List<DeviceGroupViewModel> wanted =
+        [
+            .. discovery.Devices
+                .Where(d => d.IsConnected)
+                .Select(d => _devices.GetValueOrDefault(d.Id))
+                .OfType<DeviceGroupViewModel>(),
+        ];
+
+        for (var position = ConnectedDevices.Count - 1; position >= 0; position--)
+        {
+            if (!wanted.Contains(ConnectedDevices[position]))
+            {
+                ConnectedDevices.RemoveAt(position);
+            }
+        }
+
+        foreach (var view in wanted.Where(v => !ConnectedDevices.Contains(v)))
+        {
+            ConnectedDevices.Add(view);
+        }
+
+        OnPropertyChanged(nameof(HasSeveralDevices));
+        OnPropertyChanged(nameof(HasConnectedDevices));
     }
 
     private readonly IAppIconProvider _icons;
@@ -934,15 +1001,33 @@ public sealed partial class InstanceListViewModel : ObservableObject
     private readonly HashSet<string> _engages = new(StringComparer.Ordinal);
 
     /// <summary>
-    /// Refreshes only the open or closed state of each instance.
+    /// Refreshes what each instance is doing, and how long it has been
+    /// doing it.
+    ///
+    /// **The clock is moved on from here and not from the row's own
+    /// refresh.** That one is only reached when the cached instance
+    /// list is still held, and the list is dropped after every settings
+    /// write: a clock ticking from there would stop for close to three
+    /// seconds at a time, with nothing on screen saying it had. This
+    /// runs on every sweep, the moment a session is born or dies, and
+    /// at the end of every action on a row.
     /// </summary>
     public void RefreshRunningState()
     {
         foreach (var row in Rows)
         {
-            row.IsRunning = _launcher.IsOpen(row.Instance);
+            row.Activity = ActivityOf(row.Instance);
+            row.TickSession(_launcher.SessionStartedUtc(row.Instance));
         }
     }
+
+    /// <summary>
+    /// What an account is doing, as the launcher sees it. The rule
+    /// itself is in <see cref="InstanceActivities.Of" />, where it is
+    /// tested; this only asks the two questions it needs.
+    /// </summary>
+    private InstanceActivity ActivityOf(Core.Dofus.DofusInstance instance) =>
+        InstanceActivities.Of(_launcher.SessionStateOf(instance), _launcher.IsRecovering(instance.Key));
 
     /// <summary>Opens an instance that is not open yet.</summary>
     [RelayCommand(AllowConcurrentExecutions = true)]
@@ -1043,19 +1128,22 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
             if (row is null)
             {
-                row = new InstanceRowViewModel(instance) { IsRunning = _launcher.IsOpen(instance) };
+                row = new InstanceRowViewModel(instance) { Activity = ActivityOf(instance) };
                 row.EnabledChanged += OnEnabledChanged;
                 row.ManagedChanged += OnManagedChanged;
                 row.TabbedChanged += OnTabbedChanged;
                 row.QualityChanged += OnQualityChanged;
                 row.ZoomChanged += OnZoomChanged;
+                row.ColourChanged += OnColourChanged;
                 row.NameChanged += OnNameChanged;
                 Rows.Add(row);
             }
             else
             {
-                row.Update(instance, _launcher.IsOpen(instance));
+                row.Update(instance, ActivityOf(instance));
             }
+
+            row.TickSession(_launcher.SessionStartedUtc(instance));
 
             row.Device = _devices.GetValueOrDefault(instance.DeviceId);
 
@@ -1391,6 +1479,29 @@ public sealed partial class InstanceListViewModel : ObservableObject
         finally
         {
             row.IsTabbedPending = false;
+        }
+    }
+
+    private async void OnColourChanged(object? sender, InstanceRowViewModel row)
+    {
+        ArgumentNullException.ThrowIfNull(row);
+
+        try
+        {
+            await _settings.SetInstanceColourAsync(row.Key, row.Colour).ConfigureAwait(true);
+
+            // Same trap as for the tier and the distance: the cached
+            // list still holds the old value, and the next sweep would
+            // put it back.
+            _instances = null;
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            ShowBanner(exception.Message);
+        }
+        finally
+        {
+            row.IsColourPending = false;
         }
     }
 

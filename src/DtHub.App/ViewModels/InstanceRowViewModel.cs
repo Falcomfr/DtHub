@@ -1,8 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
+using DtHub.App.Services;
+
 using DtHub.Core.Dofus;
 using DtHub.Core.Localization;
+using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
 
 namespace DtHub.App.ViewModels;
@@ -18,6 +21,19 @@ public sealed partial class InstanceRowViewModel : ObservableObject
         _isEnabled = instance.IsEnabled;
         _isManaged = instance.IsManaged;
         _name = instance.DisplayName;
+
+        // Carried from the start and not left to the first sweep, which
+        // is up to six seconds away: a row would appear unmarked and
+        // then gain its colour on its own, which reads as a fault.
+        //
+        // The field and not the property, like the three above: the
+        // property would take this for a user's choice and write it
+        // back to the settings.
+        //
+        // The tier and the distance are still left to the sweep. Their
+        // common value is "follow the shared setting", which shows
+        // nothing either way, so the delay has never been visible.
+        _colour = instance.Colour;
     }
 
     private bool _applying;
@@ -54,9 +70,26 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     [ObservableProperty]
     private string _name;
 
-    /// <summary>True if a window is open for this instance.</summary>
+    /// <summary>
+    /// What this account is doing. The row reads everything it shows
+    /// about state from this one value.
+    /// </summary>
     [ObservableProperty]
-    private bool _isRunning;
+    [NotifyPropertyChangedFor(nameof(IsRunning))]
+    [NotifyPropertyChangedFor(nameof(StatusLine))]
+    [NotifyPropertyChangedFor(nameof(StatusLineBrushKey))]
+    [NotifyPropertyChangedFor(nameof(ActivityBrushKey))]
+    private InstanceActivity _activity;
+
+    /// <summary>
+    /// True if a window is open for this instance.
+    ///
+    /// Derived rather than stored, so that the three buttons it governs
+    /// cannot disagree with what the row says it is doing. The rule
+    /// itself lives in <see cref="InstanceActivities.HasWindow" />,
+    /// where it is tested.
+    /// </summary>
+    public bool IsRunning => Activity.HasWindow();
 
     /// <summary>
     /// True while an action is in progress on this instance. A restart chains
@@ -161,6 +194,78 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     public bool ShowUserLabel =>
         !string.Equals(Name, Instance.UserName, StringComparison.Ordinal);
 
+    /// <summary>
+    /// When this account's window was opened, or <c>null</c>. Held
+    /// rather than the elapsed time itself: a duration would have to be
+    /// recomputed to stay true, a moment stays true on its own.
+    /// </summary>
+    private DateTimeOffset? _startedUtc;
+
+    /// <summary>
+    /// The second line of the row: what is happening, or failing that,
+    /// which profile this account came from.
+    ///
+    /// **One line, never two.** The slot already existed and was blank
+    /// unless the account had been renamed, which is most of the time.
+    /// Filling it costs no height that is not already paid for, and
+    /// keeping it to a single line is what stops a row from growing the
+    /// moment its window opens.
+    ///
+    /// The order is a precedence, not a list: a reconnection outranks
+    /// an opening, which outranks how long it has been running, which
+    /// outranks where the account came from.
+    /// </summary>
+    public string? StatusLine => Activity switch
+    {
+        InstanceActivity.Recovering => Strings.Get("StatusReconnecting"),
+        InstanceActivity.Starting => Strings.Get("StatusOpening"),
+        InstanceActivity.Running when _startedUtc is { } since =>
+            SessionClock.Describe(DateTimeOffset.UtcNow - since),
+        _ => ShowUserLabel ? UserLabel : null,
+    };
+
+    /// <summary>
+    /// Which brush the row's state dot takes, named by its resource key.
+    ///
+    /// It rhymes with the dot on the device header one level up, which
+    /// is already this list's way of saying "state of a thing". Green
+    /// runs, amber is on its way or coming back, and an unlit socket is
+    /// at rest.
+    /// </summary>
+    public string ActivityBrushKey => Activity switch
+    {
+        InstanceActivity.Running => "SuccessBrush",
+        InstanceActivity.Starting or InstanceActivity.Recovering => "WarningBrush",
+        _ => "EmptySocketBrush",
+    };
+
+    /// <summary>
+    /// Which brush the second line takes, named by its resource key so
+    /// the palette stays the only place a colour is written down.
+    ///
+    /// Only a reconnection earns a colour: it is the one line that
+    /// reports something the reader may want to act on.
+    /// </summary>
+    public string StatusLineBrushKey =>
+        Activity == InstanceActivity.Recovering ? "WarningBrush" : "TextMutedBrush";
+
+    /// <summary>
+    /// Moves the session clock on.
+    ///
+    /// Called from the device sweep rather than from
+    /// <see cref="Update" />, which is skipped whenever the cached
+    /// instance list has been dropped: the clock would then freeze for
+    /// seconds at a time with nothing on screen saying so.
+    ///
+    /// Raising the line unconditionally is free: an unchanged string
+    /// short-circuits in the binding and produces no render work.
+    /// </summary>
+    public void TickSession(DateTimeOffset? startedUtc)
+    {
+        _startedUtc = startedUtc;
+        OnPropertyChanged(nameof(StatusLine));
+    }
+
     /// <summary>Raised when a box is checked or a name changed.</summary>
     public event EventHandler<InstanceRowViewModel>? EnabledChanged;
 
@@ -221,6 +326,44 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     /// </summary>
     [ObservableProperty]
     private StreamQuality? _quality;
+
+    /// <summary>
+    /// The colour marking this account, or <c>null</c> for none.
+    ///
+    /// **<c>null</c> is not "follow the shared setting" here**, unlike
+    /// the tier and the distance beside it: there is no shared colour
+    /// and there must not be one. It means the account carries no mark.
+    /// </summary>
+    [ObservableProperty]
+    private AccountColour? _colour;
+
+    /// <summary>True while the colour is being written.</summary>
+    public bool IsColourPending { get; set; }
+
+    /// <summary>True when the account carries a mark.</summary>
+    public bool HasColour => Colour is not null and not AccountColour.None;
+
+    /// <summary>
+    /// The palette key of the mark, so the palette stays the only place
+    /// a colour is written down.
+    /// </summary>
+    public string? ColourBrushKey => AccountTints.KeyFor(Colour);
+
+    /// <summary>Gives the account a colour.</summary>
+    [RelayCommand]
+    private void PickColour(AccountColour? colour) => Colour = colour;
+
+    /// <summary>
+    /// Takes the mark away, and records that this was asked for.
+    ///
+    /// Not <c>null</c>: that one means nobody has decided, and the next
+    /// sweep would hand a colour straight back.
+    /// </summary>
+    [RelayCommand]
+    private void ClearColour() => Colour = AccountColour.None;
+
+    /// <summary>Raised when the account is given a colour, or loses it.</summary>
+    public event EventHandler<InstanceRowViewModel>? ColourChanged;
 
     /// <summary>True while the tier is being written.</summary>
     public bool IsQualityPending { get; set; }
@@ -357,10 +500,10 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     /// <inheritdoc cref="IsManagedPending" />
     public bool IsEnabledPending { get; set; }
 
-    public void Update(DofusInstance instance, bool isRunning)
+    public void Update(DofusInstance instance, InstanceActivity activity)
     {
         Instance = instance;
-        IsRunning = isRunning;
+        Activity = activity;
 
         if (!IsTabbedPending && IsTabbed != instance.IsTabbed)
         {
@@ -377,6 +520,21 @@ public sealed partial class InstanceRowViewModel : ObservableObject
         }
 
         OnPropertyChanged(nameof(PlaytimeLabel));
+        OnPropertyChanged(nameof(StatusLine));
+
+        if (!IsColourPending && Colour != instance.Colour)
+        {
+            _applying = true;
+
+            try
+            {
+                Colour = instance.Colour;
+            }
+            finally
+            {
+                _applying = false;
+            }
+        }
 
         if (!IsQualityPending && Quality != instance.Quality)
         {
@@ -445,6 +603,23 @@ public sealed partial class InstanceRowViewModel : ObservableObject
         OnPropertyChanged(nameof(IsDeviceConnected));
         OnPropertyChanged(nameof(UserLabel));
         OnPropertyChanged(nameof(ShowUserLabel));
+    }
+
+    partial void OnColourChanged(AccountColour? value)
+    {
+        OnPropertyChanged(nameof(ColourBrushKey));
+        OnPropertyChanged(nameof(HasColour));
+
+        // Write coming from settings: propagating it as a user choice
+        // would trigger a write on every scan, and the launcher would
+        // repaint every window frame twice a second.
+        if (_applying)
+        {
+            return;
+        }
+
+        IsColourPending = true;
+        ColourChanged?.Invoke(this, this);
     }
 
     partial void OnQualityChanged(StreamQuality? value)

@@ -120,6 +120,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         {
             _sessions.StopAppOnClose = document.StopAppOnClose;
             ApplyRenames(document);
+            ApplyColours(document);
         };
 
         // The window is placed before the game opens, so that it is
@@ -295,6 +296,26 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private TimedNotice _recovery;
 
     /// <summary>
+    /// True while this account's window is being brought back.
+    ///
+    /// <see cref="RecoveryNotice" /> says the same thing in the banner,
+    /// but it says it once for everyone: with four accounts open, the
+    /// reader is told a window is coming back without being told whose
+    /// row to watch. This answers per account.
+    ///
+    /// **It is a self-expiring notice and not a flag.** If the recovery
+    /// itself throws, the caller logs it and carries on, and nothing
+    /// would ever clear a plain flag: the row would say "reconnecting"
+    /// for as long as the application ran. A notice says by itself
+    /// whether it is still true.
+    /// </summary>
+    public bool IsRecovering(string key) =>
+        _recovering.TryGetValue(key, out var notice)
+        && notice.IsLiveAt(DateTimeOffset.UtcNow, RecoveryNoticeLife);
+
+    private readonly Dictionary<string, TimedNotice> _recovering = new(StringComparer.Ordinal);
+
+    /// <summary>
     /// The device and the moment of the current recovery notice.
     ///
     /// **A recovery notice is an event, not a state.** It promises a
@@ -388,6 +409,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         if (session.State == ScrcpySessionState.Running)
         {
             _recovery = default;
+            _ = _recovering.Remove(session.Target.Key);
         }
 
         if (session.IsAlive || _closing)
@@ -454,6 +476,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     Strings.Format("SessionRecoveryGaveUp", instance.DisplayName),
                     DateTimeOffset.UtcNow);
                 _recoveryDevice = instance.DeviceId;
+
+                // Given up is the opposite of recovering: the row must
+                // stop promising a window that is not coming.
+                _ = _recovering.Remove(key);
+
                 LogRecoveryGaveUp(instance.DisplayName, already);
             }
 
@@ -465,6 +492,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _recovery = TimedNotice.Raised(
             Strings.Format("SessionRecovering", instance.DisplayName), DateTimeOffset.UtcNow);
         _recoveryDevice = instance.DeviceId;
+
+        _recovering[key] = _recovery;
 
         LogRecovering(instance.DisplayName, already + 1, (int)decision.Delay.TotalSeconds);
 
@@ -812,6 +841,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     private readonly Dictionary<string, BatteryReading> _batteries = new(StringComparer.Ordinal);
 
+    /// <summary>
+    /// The four readings taken of each device, kept whole.
+    ///
+    /// The health sweep already awaits all four per device and then
+    /// drops the objects, keeping only the sentences they produced. So
+    /// a phone with nothing wrong had nothing to show: no finding, and
+    /// no state either. These are the same readings, at no extra cost,
+    /// carried far enough to be displayed.
+    /// </summary>
+    public IReadOnlyDictionary<string, DeviceVitals> Vitals => _vitals;
+
+    private readonly Dictionary<string, DeviceVitals> _vitals = new(StringComparer.Ordinal);
+
     /// <summary>Last thermal state logged per device.</summary>
     private readonly Dictionary<string, int> _loggedHeat = new(StringComparer.Ordinal);
 
@@ -887,6 +929,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         {
             HealthIsSerious = false;
             _health.Clear();
+            _vitals.Clear();
             _loggedHeat.Clear();
             _loggedBattery.Clear();
             _loggedStorage.Clear();
@@ -901,6 +944,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
             var battery = await _devices.GetBatteryAsync(serial, cancellationToken).ConfigureAwait(false);
             var storage = await _devices.GetStorageAsync(serial, cancellationToken).ConfigureAwait(false);
             var link = await _devices.GetWifiLinkAsync(serial, cancellationToken).ConfigureAwait(false);
+
+            // The same four, kept whole. The findings below turn them
+            // into sentences and keep only those; the panel needs the
+            // state as well, and asking the phone twice for it would
+            // double the slowest part of the sweep.
+            _vitals[serial] = new DeviceVitals(battery, heat, storage, link);
 
             // Do this device's windows show the lock icon rather
             // than the game? The question is only asked where there
@@ -967,6 +1016,22 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
+    /// Drops what is known about devices that are no longer there.
+    ///
+    /// Four dictionaries are keyed by serial and all four have to be
+    /// pruned the same way. They were three near-identical loops, and
+    /// the fourth was added the day someone noticed the second had
+    /// been missing for months.
+    /// </summary>
+    private static void Forget<T>(Dictionary<string, T> known, List<string> connected)
+    {
+        foreach (var gone in known.Keys.Where(s => !connected.Contains(s, StringComparer.Ordinal)).ToList())
+        {
+            _ = known.Remove(gone);
+        }
+    }
+
+    /// <summary>
     /// Reads the battery level of every reachable device.
     ///
     /// All of them, not only those carrying a window: a phone
@@ -988,24 +1053,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
             .Distinct(StringComparer.Ordinal)
             .ToList();
 
-        foreach (var gone in _health.Keys.Where(s => !connected.Contains(s, StringComparer.Ordinal)).ToList())
-        {
-            _ = _health.Remove(gone);
-        }
-
-        foreach (var gone in _batteries.Keys.Where(s => !connected.Contains(s, StringComparer.Ordinal)).ToList())
-        {
-            _ = _batteries.Remove(gone);
-        }
+        Forget(_health, connected);
+        Forget(_batteries, connected);
+        Forget(_vitals, connected);
 
         // The input verdict says it is "kept until the device
         // disappears", and nothing made that true: a phone that
         // refused input once kept the simulated mouse offered in the
         // settings long after it had been unplugged.
-        foreach (var gone in _inputs.Keys.Where(s => !connected.Contains(s, StringComparer.Ordinal)).ToList())
-        {
-            _ = _inputs.Remove(gone);
-        }
+        Forget(_inputs, connected);
 
         foreach (var serial in connected)
         {
@@ -2324,6 +2380,24 @@ public sealed partial class GameLauncher : IAsyncDisposable
     public bool IsOpen(DofusInstance instance) => FindSession(instance) is not null;
 
     /// <summary>
+    /// Where this account's window is in its life, or <c>null</c> when
+    /// it has none.
+    ///
+    /// <see cref="IsOpen" /> answers the same question with a boolean,
+    /// and that is all it ever could: a window being built and a window
+    /// showing the game are both "open" to it. The row needs to tell
+    /// them apart.
+    /// </summary>
+    public ScrcpySessionState? SessionStateOf(DofusInstance instance) => FindSession(instance)?.State;
+
+    /// <summary>
+    /// When this account's window was opened, or <c>null</c> when it
+    /// has none. The elapsed time is worked out by the caller: this
+    /// type does not own a clock.
+    /// </summary>
+    public DateTimeOffset? SessionStartedUtc(DofusInstance instance) => FindSession(instance)?.StartedUtc;
+
+    /// <summary>
     /// The distance this account's window was opened with, or
     /// <c>null</c> if it has none.
     /// </summary>
@@ -2388,6 +2462,86 @@ public sealed partial class GameLauncher : IAsyncDisposable
         key => document.Instances
             .Find(i => string.Equals(i.Key, key, StringComparison.Ordinal))
             ?.CustomName;
+
+    /// <summary>
+    /// Carries a changed account colour through to the tab that shows
+    /// it.
+    ///
+    /// **Guarded like the renames, and for the same reason**, written
+    /// out in the comment above: this event fires on every write of the
+    /// settings, a window being dragged included. Without the map below,
+    /// every drag would repaint every tab.
+    ///
+    /// Only the tabs are updated here, because a tab is the only surface
+    /// that keeps a copy of the colour of its own. A free window's frame
+    /// would be repainted here too, if it could be: whether a colour can
+    /// be set on a window scrcpy owns is what `build/sonde-bordure`
+    /// exists to answer, and it has not been answered yet.
+    /// </summary>
+    private void ApplyColours(AppSettingsDocument document)
+    {
+        Dictionary<string, AccountColour?> wanted = [];
+
+        foreach (var instance in document.Instances)
+        {
+            wanted[instance.Key] = instance.Colour;
+        }
+
+        if (wanted.Count == _colours.Count
+            && wanted.All(pair => _colours.TryGetValue(pair.Key, out var had) && had == pair.Value))
+        {
+            return;
+        }
+
+        _colours = wanted;
+
+        // The launched copy carries the colour that the tabbed frame
+        // reads when a window is docked. Left untouched, a colour
+        // changed while the window was free came back to the launch-time
+        // one the moment it entered the frame, and stayed wrong for the
+        // rest of the session. The renames above keep their copy in step
+        // for exactly this reason.
+        foreach (var (key, colour) in wanted)
+        {
+            if (_launched.TryGetValue(key, out var instance) && instance.Colour != colour)
+            {
+                _launched[key] = instance with { Colour = colour };
+            }
+        }
+
+        var repaint = wanted
+            .Where(pair => _launched.ContainsKey(pair.Key))
+            .ToList();
+
+        if (repaint.Count == 0)
+        {
+            return;
+        }
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await OnUiAsync(() =>
+                {
+                    foreach (var (key, colour) in repaint)
+                    {
+                        _tabs?.Recolour(key, AccountTints.KeyFor(colour));
+                    }
+                }).ConfigureAwait(false);
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                LogColourFailure(exception);
+            }
+        });
+    }
+
+    /// <summary>
+    /// The colours last carried through, so that a settings write that
+    /// changed none of them costs nothing.
+    /// </summary>
+    private Dictionary<string, AccountColour?> _colours = [];
 
     /// <summary>
     /// Carries onto the open windows the names the settings have
@@ -2757,7 +2911,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 name,
                 IconFor(session),
                 handle,
-                session.SourceAspectRatio);
+                session.SourceAspectRatio,
+                // From the launched copy and not from the target: a
+                // launch target carries what scrcpy needs, and a colour
+                // is not one of those things.
+                AccountTints.KeyFor(_launched.GetValueOrDefault(session.Target.Key)?.Colour));
 
             frame.Reorder(order);
         }).ConfigureAwait(false);
@@ -3336,6 +3494,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "Le nouveau nom n'a pas pu être posé sur les fenêtres ouvertes.")]
     private partial void LogRenameFailure(Exception exception);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "La nouvelle couleur n'a pas pu être posée sur les onglets ouverts.")]
+    private partial void LogColourFailure(Exception exception);
 
 
     [LoggerMessage(

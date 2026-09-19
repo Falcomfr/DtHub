@@ -57,6 +57,22 @@
                            PreviewMouseLeftButtonDown="OnTabPressed"
                            PreviewMouseMove="OnTabMoved">
                 <StackPanel Orientation="Horizontal">
+                  <!-- The account's own mark, the same bar the row wears
+                       in the panel, so the two surfaces teach one shape.
+
+                       Not the tab's underline: that one is the accent and
+                       says "this is the tab you are looking at". Marking
+                       it would steal the accent's single job and leave
+                       the unselected tabs unmarked, which is exactly the
+                       case a multi-account player needs.
+
+                       Opacity and not visibility, so an unmarked account
+                       indents like a marked one. -->
+                  <Border Width="2" CornerRadius="1" Margin="0,3,7,3"
+                          VerticalAlignment="Stretch"
+                          Background="{Binding ColourBrushKey, Converter={StaticResource KeyToBrush}}"
+                          Opacity="{Binding HasColour, Converter={StaticResource BoolToOpacity}}" />
+
                   <Image Width="16" Height="16" Margin="0,0,6,0" Stretch="Uniform"
                          RenderOptions.BitmapScalingMode="HighQuality"
                          Source="{Binding IconPath, Converter={StaticResource IconPath}}" />

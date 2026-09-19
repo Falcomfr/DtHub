@@ -13,9 +13,44 @@
         Background="Transparent"
         TextOptions.TextFormattingMode="Display">
 
-  <Border Background="{DynamicResource SurfaceAltBrush}"
+  <Window.Resources>
+    <!-- The panel fades in and out on Ctrl+P.
+
+         **The slide happens inside the window, never on Window.Top.**
+         The placement is read and written to disk, so a vanish
+         interrupted by a quit would persist a displaced panel; and each
+         frame would be a Win32 move of a topmost layered window sitting
+         over the game. Against a transparent window, sliding the chassis
+         instead is indistinguishable, costs no move, and touches no
+         saved state.
+
+         Linear, with no easing: at a hundred and twenty milliseconds an
+         ease is below the threshold of perception, and it would be the
+         first one in the repository, for nothing. -->
+    <Storyboard x:Key="Reveal">
+      <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                       To="1" Duration="0:0:0.12" />
+      <DoubleAnimation Storyboard.TargetName="Chassis"
+                       Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                       To="0" Duration="0:0:0.12" />
+    </Storyboard>
+
+    <Storyboard x:Key="Vanish">
+      <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                       To="0" Duration="0:0:0.12" />
+      <DoubleAnimation Storyboard.TargetName="Chassis"
+                       Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                       To="6" Duration="0:0:0.12" />
+    </Storyboard>
+  </Window.Resources>
+
+  <Border x:Name="Chassis"
+          Background="{DynamicResource SurfaceAltBrush}"
           BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
           CornerRadius="{StaticResource Radius}">
+    <Border.RenderTransform>
+      <TranslateTransform />
+    </Border.RenderTransform>
     <DockPanel>
 
       <!-- Header bar: also serves as a drag handle. -->
@@ -890,6 +925,97 @@
         <StackPanel Grid.Row="2" Margin="0,6,0,0"
                     Visibility="{Binding IsChecked, ElementName=TabDevices,
                                          Converter={StaticResource BoolToVisibility}}">
+          <!-- What each phone is like right now, pinned under the list.
+
+               **It is the state, not the findings.** The health check
+               already says what is wrong, in a sentence, under the name
+               of the phone it concerns. A phone with nothing wrong had
+               nothing to show at all, and these four readings were being
+               taken every minute and thrown away. They now fill the
+               bottom of a page that used to simply stop half way.
+
+               Pinned rather than placed above the list, for the reason
+               the two help lines below already state: the bottom is
+               where the empty space is, and a card above the accounts
+               would take room from the thing that needs it.
+
+               One line per phone, and the name only where there is more
+               than one. Never a worst-of across phones: that is how a
+               device carrying three findings at once showed only one,
+               and the first had to be fixed to learn the second
+               existed. -->
+          <StackPanel Visibility="{Binding Instances.HasConnectedDevices,
+                                           Converter={StaticResource BoolToVisibility}}">
+            <!-- Groove is written for a Control, and is worn by one. It
+                 was defined when the chassis was built and had never
+                 been used since. Its own margin is ten pixels, which
+                 would cost twenty-two for a two-pixel line. -->
+            <Control Style="{StaticResource Groove}" Margin="0,0,0,7" />
+
+            <ItemsControl ItemsSource="{Binding Instances.ConnectedDevices}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <!-- A phone that has not been asked anything yet has
+                       nothing to say, and used to take a whole blank line
+                       under the rule while it waited. -->
+                  <StackPanel Orientation="Horizontal" Margin="0,0,0,4"
+                              Visibility="{Binding HasVitals,
+                                                   Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Text="{Binding Name}" Style="{StaticResource DeviceHeader}"
+                               VerticalAlignment="Center" Margin="0,0,10,0"
+                               MaxWidth="96" TextTrimming="CharacterEllipsis"
+                               Visibility="{Binding DataContext.Instances.HasSeveralDevices,
+                                                    RelativeSource={RelativeSource AncestorType=Window},
+                                                    Converter={StaticResource BoolToVisibility}}" />
+
+                    <TextBlock Text="{Binding BatteryText}" Style="{StaticResource Muted}"
+                               FontSize="{StaticResource FontSmall}" TextWrapping="NoWrap"
+                               VerticalAlignment="Center" Margin="0,0,12,0"
+                               ToolTip="{Binding BatterySummary}"
+                               Foreground="{Binding BatteryBrushKey,
+                                                    Converter={StaticResource KeyToBrush}}"
+                               Visibility="{Binding HasBattery,
+                                                    Converter={StaticResource BoolToVisibility}}" />
+
+                    <!-- A thermometer rather than a word. It only ever
+                         appears when the phone is throttling, so there is
+                         nothing to read most of the time and a glyph says
+                         "this one is hot" faster than any word could. The
+                         word stays on hover, and the full sentence is
+                         under the device's name as always. -->
+                    <Path Style="{StaticResource ListGlyph}" StrokeThickness="1.3"
+                          VerticalAlignment="Center" Margin="0,0,12,0"
+                          ToolTip="{Binding HeatText}"
+                          Stroke="{Binding HeatBrushKey,
+                                           Converter={StaticResource KeyToBrush}}"
+                          Data="M 7.5,2.8 V 8.8
+                                M 7.5,10.8 m -2.3,0 a 2.3,2.3 0 1 0 4.6,0 a 2.3,2.3 0 1 0 -4.6,0
+                                M 9.4,4.4 H 10.8 M 9.4,6.4 H 10.8"
+                          Visibility="{Binding HasHeat,
+                                               Converter={StaticResource BoolToVisibility}}" />
+
+                    <TextBlock Text="{Binding StorageText}" Style="{StaticResource Muted}"
+                               FontSize="{StaticResource FontSmall}" TextWrapping="NoWrap"
+                               VerticalAlignment="Center" Margin="0,0,12,0"
+                               Foreground="{Binding StorageBrushKey,
+                                                    Converter={StaticResource KeyToBrush}}"
+                               Visibility="{Binding HasStorage,
+                                                    Converter={StaticResource BoolToVisibility}}" />
+
+                    <TextBlock Text="{Binding LinkText}" Style="{StaticResource Muted}"
+                               FontSize="{StaticResource FontSmall}" TextWrapping="NoWrap"
+                               VerticalAlignment="Center"
+                               ToolTip="{Binding LinkSummary}"
+                               Foreground="{Binding LinkBrushKey,
+                                                    Converter={StaticResource KeyToBrush}}"
+                               Visibility="{Binding HasLink,
+                                                    Converter={StaticResource BoolToVisibility}}" />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
           <!-- Two conditions, so two panels: the tab outside, the phone
                inside. They don't replace each other, they add up.
                Without a reachable phone there's no game window, and
