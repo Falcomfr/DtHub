@@ -44,29 +44,46 @@ French.
 
 ### Fixed
 
+**Game windows**
+
 - A game window stayed black for a long time and nothing said why.
-- A phone left connected and idle kept showing a stale warning.
-- A launch that opened some windows said nothing about the ones it failed to
-  open.
-- A failed action vanished before it could be read, and a successful one erased
-  a warning that was still true.
-- The simulated mouse stayed offered after the phone that needed it was
-  unplugged.
-- A launch failure never reached the screen.
-- A quest guide counted the wrong number of quests in an achievement.
+- The first launch on a phone sometimes did nothing and had to be clicked again.
+- Closing the game on a phone under Android 11 reopened its window by itself.
+- The phone's sound never reached the PC.
+
+**Accounts**
+
 - An account moved down the list on its own, and lost its name.
 - A renamed account went back to its old name a few seconds later.
 - A tab kept the old name after a rename.
 - Pressing Enter on a renamed account did nothing.
-- The first launch on a phone sometimes did nothing and had to be clicked again.
-- The phone's sound never reached the PC.
-- The desktop shortcut opened a console on every launch.
-- Closing the game on a phone under Android 11 reopened its window by itself.
+
+**Phones**
+
+- A phone left connected and idle kept showing a stale warning.
 - Both phones announced "Game not installed" several times a minute.
 - Pairing a new phone could become impossible, and the message sent you the
   wrong way.
 - A phone whose address had changed stayed stuck on the old one.
 - A phone could be wrongly reported as having lost its pairing key.
+- The simulated mouse stayed offered after the phone that needed it was
+  unplugged.
+
+**What the panel tells you**
+
+- A launch that opened some windows said nothing about the ones it failed to
+  open.
+- A failed action vanished before it could be read, and a successful one erased
+  a warning that was still true.
+- A launch failure never reached the screen.
+
+**Guides**
+
+- A quest guide counted the wrong number of quests in an achievement.
+
+**The application**
+
+- The desktop shortcut opened a console on every launch.
 
 ### Changed
 
@@ -81,52 +98,80 @@ French.
 
 ### Changed
 
-- The success tree opens in the browser.
-- Guide indexing now says what it is doing.
-- A simulated physical mouse, as a last resort.
-- The application says when a phone refuses clicks.
-- "Needs pairing" instead of "Offline".
-- A search indicator at startup.
-- The application finally checks that the battery setup was done.
+**The panel**
+
 - The banner shows every finding, one per line.
 - Each phone's battery level, permanently.
 - The phone's summary, before launching and not only during.
-- The month's event in the Almanax window.
+- A search indicator at startup.
+- Warnings fit on one line.
+- "Needs pairing" instead of "Offline".
+- The application says when a phone refuses clicks.
+- A window that will only ever show the lock screen says so.
+- Time spent on each account this week.
+
+**Image and connection**
+
 - A quality tier per account.
+- An account's tier now also sets its frame rate.
 - A fluidity diagnostic.
 - The hardware encoder is forced when the device would put a software one ahead
   of it.
-- Save and restore your settings.
-- Time spent on each account this week.
-- Warnings fit on one line.
 - The display buffer is now per phone.
-- A window that will only ever show the lock screen says so.
-- An account's tier now also sets its frame rate.
+
+**Phones**
+
+- The application finally checks that the battery setup was done.
+- A simulated physical mouse, as a last resort.
+
+**Guides and Almanax**
+
+- The success tree opens in the browser.
+- Guide indexing now says what it is doing.
+- The month's event in the Almanax window.
+
+**Settings**
+
+- Save and restore your settings.
 
 ### Fixed
 
+**The application**
+
 - The application appears four and a half times sooner.
-- Forgetting a device took two clicks, and lied in between.
+- The application crashed at startup when no window opened.
+- Startup waited for absent phones one after another.
+- A dropped link no longer closes the application.
+- A dropped link is finally recognised as one.
+
+**Game windows**
+
 - The game left an empty card in the phone's running applications list.
 - The game stayed open on the phone after its window was closed.
-- The application crashed at startup when no window opened.
-- The reconnection notice stayed on screen after the phone left.
 - The application woke the phone twice as often as needed during play.
-- An offline device explains what to check.
+
+**Phones**
+
+- Forgetting a device took two clicks, and lied in between.
 - The button that forgets a device was called "Unpair".
 - A device that needs pairing says where to go.
-- Startup waited for absent phones one after another.
+- An offline device explains what to check.
+- The reconnection notice stayed on screen after the phone left.
+
+**The panel**
+
 - Each device's summary appears under its name.
 - The device summary did not say which device it was talking about.
 - The input probe's verdict was drawn in black on a dark background.
 - The padlock warning shouted when all was well, and fell silent when it
   mattered.
+
+**Language and text**
+
 - The language setting had no effect.
 - Ten displayed strings were written in French in the code.
 - Three help texts were wrong.
 - Spanish mixed familiar and formal address.
-- A dropped link no longer closes the application.
-- A dropped link is finally recognised as one.
 
 ## [0.2.0] - 2026-09-09
 

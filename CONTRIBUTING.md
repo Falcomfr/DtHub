@@ -72,6 +72,12 @@ changed and nothing else.
 The reason a change was made belongs in `docs/DECISIONS.md`, which exists for
 it. Writing it in both places served only one of the two readers.
 
+**Group a long list by what it touches.** Past a handful of lines, a flat list
+is read from the top or not at all. Game windows, accounts, phones, guides, the
+panel: a bold line above each run, and the reader finds their subject at a
+glance. Below four or five lines there is nothing to group, and a heading there
+is noise.
+
 **This applies to the notes already published too.** 0.3.0 and 0.4.0 went out at
 2256 and 2215 words and were shortened afterwards, on the same GitHub releases,
 with `gh release edit`. A release note is not a record of what was said on the
