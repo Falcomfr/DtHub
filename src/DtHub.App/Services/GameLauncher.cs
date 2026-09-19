@@ -1684,6 +1684,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 await AttachToTabsAsync(session, cancellationToken).ConfigureAwait(false);
             }
 
+            // The account's mark on the window's own frame. After the
+            // docking, because a window that has just joined the frame
+            // no longer has a frame of its own to carry it.
+            await OnUiAsync(() => RefreshWindowColours()).ConfigureAwait(false);
         }
 
         // What has just opened will reopen at the next launch. Only
@@ -2436,6 +2440,20 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
+    /// Tints the frame of every open game window with its account's
+    /// colour.
+    ///
+    /// The colour comes from the launched copy, which
+    /// <see cref="ApplyColours" /> keeps in step, and not from the
+    /// target, which carries what scrcpy needed and nothing else.
+    /// </summary>
+    public int RefreshWindowColours() =>
+        _windows.Recolour(
+            _sessions.ActiveSessions,
+            session => AccountTints.FrameColourRefFor(
+                _launched.GetValueOrDefault(session.Target.Key)?.Colour));
+
+    /// <summary>
     /// The name this account carries now, not the one it carried at
     /// launch.
     ///
@@ -2528,6 +2546,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     {
                         _tabs?.Recolour(key, AccountTints.KeyFor(colour));
                     }
+
+                    // And the free windows, whose frame carries the same
+                    // mark. A docked one has had its caption taken away
+                    // by the frame, so there is nothing to paint and
+                    // nothing that fails.
+                    _ = RefreshWindowColours();
                 }).ConfigureAwait(false);
             }
             catch (Exception exception) when (exception is not OutOfMemoryException)

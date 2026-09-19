@@ -116,6 +116,18 @@ public interface IWindowController
     /// </summary>
     void SetBorderless(nint handle, bool borderless);
 
+    /// <summary>
+    /// Tints a window's frame and title bar, or gives them back the
+    /// system's own colour with <c>null</c>.
+    ///
+    /// The window belongs to scrcpy and not to us, which was the open
+    /// question: `build/sonde-bordure` settled it by reading the frame's
+    /// pixels before and after, on a real game window. Windows 11 only,
+    /// and a window stripped of its frame for full screen has nothing
+    /// left to tint; both cases do nothing rather than fail.
+    /// </summary>
+    void SetFrameColour(nint handle, int? colourRef);
+
     /// <summary>Handle of the active window, across all processes.</summary>
     nint GetForegroundWindow();
 

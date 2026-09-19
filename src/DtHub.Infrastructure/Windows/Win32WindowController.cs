@@ -232,6 +232,36 @@ public sealed partial class Win32WindowController : IWindowController
         _ = SetForegroundWindow(handle);
     }
 
+    /// <summary>Frame colour, Windows 11 build 22000 and later.</summary>
+    private const int BorderColour = 34;
+
+    /// <summary>Title bar colour, same vintage.</summary>
+    private const int CaptionColour = 35;
+
+    /// <summary>Hands the colour back to the system.</summary>
+    private const uint ColourDefault = 0xFFFFFFFF;
+
+    public void SetFrameColour(nint handle, int? colourRef)
+    {
+        if (handle == 0)
+        {
+            return;
+        }
+
+        // COLORREF, so 0x00BBGGRR and not RGB: getting the order wrong
+        // gives a plausible colour, which is the worst kind of bug to
+        // find. The default sentinel hands the frame back to Windows.
+        var value = colourRef is { } c ? (uint)c : ColourDefault;
+
+        // Both, deliberately. The border is a single pixel, which is
+        // nothing across a room; the title bar is what tells two
+        // windows apart at a glance. Neither is fatal: an older Windows
+        // answers E_INVALIDARG and the rest of the application does not
+        // care.
+        _ = DwmSetWindowAttribute(handle, BorderColour, ref value, sizeof(uint));
+        _ = DwmSetWindowAttribute(handle, CaptionColour, ref value, sizeof(uint));
+    }
+
     public void SetBorderless(nint handle, bool borderless)
     {
         if (handle == 0)
@@ -608,6 +638,13 @@ public sealed partial class Win32WindowController : IWindowController
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool GetWindowPlacement(nint handle, ref WindowPlacementRaw placement);
+
+    // DllImport and not LibraryImport: the latter wants unsafe code for
+    // a parameter passed by reference, which this project does not
+    // allow, and it is the form the other calls here already use.
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(
+        nint window, int attribute, ref uint value, int size);
 
     [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")]
     private static extern int GetWindowLong(nint handle, int index);

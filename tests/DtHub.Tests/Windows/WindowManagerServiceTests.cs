@@ -661,6 +661,44 @@ public class WindowManagerServiceTests
         Assert.Equal("DT Hub 10 (Ctrl + N)", desktop.Titles[sessions[1].WindowHandle]);
     }
 
+    /// <summary>
+    /// The account's mark on the window's own frame. That DWM accepts
+    /// this on a window scrcpy owns was the open question; the probe in
+    /// `build/sonde-bordure` settled it by reading the frame's pixels
+    /// before and after, on a real game window.
+    /// </summary>
+    [Fact]
+    public async Task Le_cadre_des_fenetres_ouvertes_peut_etre_teinte()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(2);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
+
+        var painted = service.Recolour(sessions, s => s.Target.UserId == 0 ? 0x00888D3F : null);
+
+        Assert.Equal(2, painted);
+        Assert.Equal(0x00888D3F, desktop.FrameColours[sessions[0].WindowHandle]);
+        Assert.Null(desktop.FrameColours[sessions[1].WindowHandle]);
+    }
+
+    /// <summary>
+    /// A window that never opened has no frame to paint, and asking
+    /// about a dead session is asking the phone for nothing.
+    /// </summary>
+    [Fact]
+    public async Task Une_session_sans_fenetre_n_est_pas_teintee()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        Assert.Equal(0, service.Recolour([], _ => 0x00888D3F));
+        Assert.Empty(desktop.FrameColours);
+    }
+
     [Fact]
     public async Task Changer_la_taille_conserve_les_ecarts_entre_fenetres()
     {

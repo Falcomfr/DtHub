@@ -9359,3 +9359,42 @@ cinquante pour cent par heure et qu'on décide en la regardant. La bande, parce
 qu'elle tient en trois caractères et qu'elle répond à « pourquoi ça saccade »
 avant qu'on pose la question. Et rien d'autre : une ligne de téléphone sain porte
 désormais deux valeurs, pas quatre.
+
+## D173 - Le cadre d'une fenêtre de jeu porte la couleur du compte
+
+**Date** : 2026-09-19
+
+D167 laissait cette surface ouverte, et la raison était bonne : la fenêtre
+appartient à scrcpy, `DwmSetWindowAttribute` devrait traverser les processus
+mais tous les usages qu'on pouvait citer étaient intra-processus. La sonde
+`build/sonde-bordure` existait pour trancher, et personne ne l'avait lancée.
+
+**Elle a tranché deux fois.** Sur une fenêtre quelconque d'un autre processus,
+le bord haut est passé de `R8E V94 B4D` à `R3F V8D B88`, soit exactement la
+couleur appliquée. Puis sur une vraie fenêtre de jeu scrcpy, de `R54 V60 B3F` à
+la même valeur. Les deux questions, « DWM traverse-t-il » et « une fenêtre SDL
+a-t-elle un cadre », sont donc réglées par la mesure et non par le raisonnement.
+
+**La sonde a été corrigée pour y arriver.** Elle se contentait d'afficher le
+code de retour et de dire d'aller regarder, ce qui était honnête et inutilisable
+à distance. Elle échantillonne maintenant quatre points du cadre avant et après,
+par le contexte d'affichage de l'écran, et dit lesquels ont bougé. Elle se
+déclare consciente du DPI par moniteur au démarrage, faute de quoi
+`GetWindowRect` et `GetPixel` ne parlent pas des mêmes pixels sur un écran à
+l'échelle : trois captures ont été perdues avant que la cause soit nommée.
+
+**Ce que ça coûte à ceux qui n'ont pas Windows 11.** Les attributs 34 et 35
+datent du build 22000, et la base déclarée du projet est Windows 10 1809. Sur
+Windows 10 l'appel renvoie `E_INVALIDARG` et ne fait rien, ce qui est la bonne
+dégradation, déjà celle sur laquelle `DarkTitleBar` repose. La ligne et l'onglet
+portent la marque comme avant. C'est dit dans le README plutôt que laissé à
+découvrir.
+
+**Les deux attributs, pas un seul.** La bordure fait un pixel, ce qui n'est rien
+à deux mètres d'un écran ; la barre de titre est ce qui distingue deux fenêtres
+d'un coup d'oeil. Poser les deux coûte un appel de plus et rien d'autre.
+
+**Une fenêtre logée dans le cadre à onglets n'a rien à teindre**, sa barre de
+titre lui ayant été retirée, et une fenêtre en plein écran sans bordure non
+plus. Les deux cas n'échouent pas, ils ne font rien : c'est l'onglet qui porte
+la marque dans le premier cas, et le second n'a de toute façon plus de cadre.

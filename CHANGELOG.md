@@ -17,7 +17,8 @@ French.
 - The panel now says what each account is doing, and for how long.
 - Each phone's line shows its charge and its Wi-Fi link, plus its heat and its
   free space when either is worth a word.
-- Every account carries a colour, on its row and on its tab in the frame.
+- Every account carries a colour: on its row, on its tab in the frame, and on
+  the window's own border and title bar. That last one needs Windows 11.
 
 ### Changed
 

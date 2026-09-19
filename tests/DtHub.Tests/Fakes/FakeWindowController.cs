@@ -107,6 +107,11 @@ public sealed class FakeWindowController : IWindowController
     public int GetWindowProcessId(nint handle) =>
         _windows.FirstOrDefault(w => w.Handle == handle).ProcessId;
 
+    /// <summary>The frame colour asked of each window, last one wins.</summary>
+    public Dictionary<nint, int?> FrameColours { get; } = [];
+
+    public void SetFrameColour(nint handle, int? colourRef) => FrameColours[handle] = colourRef;
+
     public void SetBorderless(nint handle, bool borderless)
     {
         if (borderless)

@@ -94,9 +94,10 @@ window on your PC.
   window position, the device list and the shortcuts. Each row says what its
   account is doing and for how long its window has been open, and each phone
   gets a line of its own for its charge and its link.
-- **A colour per account**, on its row and on its tab in the frame. Accounts are
-  given one on their own; you can change it or take it away, and what you take
-  away stays away.
+- **A colour per account**, on its row, on its tab in the frame, and on the
+  window's own border and title bar. Accounts are given one on their own; you
+  can change it or take it away, and what you take away stays away. The window
+  frame needs Windows 11: everything else works from Windows 10 1809.
 - **Clipboard sync** both ways, through scrcpy's own mechanism.
 - **A quest guide**, opened with `Ctrl+Q`, that reads
   [papycha.fr](https://papycha.fr) beside the game and remembers where you
@@ -181,6 +182,8 @@ that folder to reset everything.
 ## Limitations
 
 - Windows only, x64 only.
+- The colour on a game window's frame needs Windows 11. The row and the tab
+  carry it on Windows 10 as before.
 - Wireless pairing needs Android 11 or later. USB works further back.
 - Virtual displays need Android 11 or later.
 - A cloned Android profile must exist on the phone; DT Hub does not create one.

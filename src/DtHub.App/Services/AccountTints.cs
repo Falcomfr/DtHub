@@ -1,4 +1,7 @@
-﻿using DtHub.Core.Settings;
+﻿using System.Windows;
+using System.Windows.Media;
+
+using DtHub.Core.Settings;
 
 namespace DtHub.App.Services;
 
@@ -34,4 +37,30 @@ public static class AccountTints
         // None and null both land here: neither wears a tint.
         _ => null,
     };
+
+    /// <summary>
+    /// The same colour as Windows wants it for a window frame, or
+    /// <c>null</c> to hand the frame back to the system.
+    ///
+    /// COLORREF is 0x00BBGGRR and not RGB. Getting the order wrong
+    /// gives a plausible colour rather than an error, which is the
+    /// worst kind of mistake to go looking for, so the swap happens
+    /// once, here.
+    ///
+    /// The value is read from the palette rather than written a second
+    /// time: one hexadecimal per tint, in the dictionary, even when it
+    /// ends up crossing into Win32.
+    /// </summary>
+    public static int? FrameColourRefFor(AccountColour? colour)
+    {
+        if (KeyFor(colour) is not { } key
+            || Application.Current?.TryFindResource(key) is not SolidColorBrush brush)
+        {
+            return null;
+        }
+
+        var c = brush.Color;
+
+        return c.R | (c.G << 8) | (c.B << 16);
+    }
 }

@@ -951,6 +951,30 @@ public sealed class WindowManagerService
     /// stay stale until the next opening.
     /// </summary>
     /// <returns>Number of windows renamed.</returns>
+    /// <summary>
+    /// Tints the frame of every open game window, from whatever the
+    /// caller knows about each session's account.
+    ///
+    /// Shaped like <see cref="Retitle" /> down to the guard: a session
+    /// with no window has nothing to paint, and a dead one is not worth
+    /// asking about.
+    /// </summary>
+    public int Recolour(IReadOnlyList<ScrcpySession> sessions, Func<ScrcpySession, int?> colour)
+    {
+        ArgumentNullException.ThrowIfNull(sessions);
+        ArgumentNullException.ThrowIfNull(colour);
+
+        var painted = 0;
+
+        foreach (var session in sessions.Where(s => s.IsAlive && s.WindowHandle != 0))
+        {
+            _controller.SetFrameColour(session.WindowHandle, colour(session));
+            painted++;
+        }
+
+        return painted;
+    }
+
     public int Retitle(IReadOnlyList<ScrcpySession> sessions, Func<ScrcpySession, string> title)
     {
         ArgumentNullException.ThrowIfNull(sessions);
