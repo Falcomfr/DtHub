@@ -21,17 +21,15 @@ French.
   a pixel shorter than before, because the two drag hints stopped reserving
   fourteen pixels per row for a mark that only shows during a drag.
 
-- **A band under the list says what each phone is like.** Charge, heat and the
-  Wi-Fi link, all three already being read every minute and thrown away once they
-  had been turned into warnings, so a phone with nothing wrong had nothing to
-  show at all.
+- **Each phone's line says how it is doing.** Beside the charge it already
+  carried: the Wi-Fi link at all times, a thermometer once Android says it is
+  throttling, and the free space once there is little of it left. All three were
+  already being read every minute and thrown away once they had been turned into
+  warnings, so a phone with nothing wrong had nothing to show at all.
 
-  A healthy phone shows its charge and its band, and nothing else. Heat appears
-  as a thermometer only once Android says it is throttling, never as a
-  temperature: the reference phone reads 84 °C while nothing is being throttled.
-  Free space appears only when there is little of it left. And the link names
-  what is wrong with it, a crowded channel or the shared band, rather than the
-  band it happens to be on.
+  Heat is never given as a temperature: the reference phone reads 84 °C while
+  nothing is being throttled. And the link names what is wrong with it, a crowded
+  channel or the shared band, rather than the band it happens to be on.
 
 - **Every account can carry a colour**, on its row and on its tab in the frame.
   Six tints, chosen so that none of them can be mistaken for the blue of a

@@ -282,15 +282,6 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     private DeviceVitals? _vitals;
 
     /// <summary>
-    /// True when there is anything at all to show about this device.
-    ///
-    /// Gated on the connection like the battery is: the readings of a
-    /// phone that has left say what was true when it was here, which is
-    /// not the same as what is true.
-    /// </summary>
-    public bool HasVitals => _vitals is { IsEmpty: false } && IsConnected;
-
-    /// <summary>
     /// True when the device is hot enough for it to be worth a mark.
     ///
     /// Same rule as the free space beside it: a reading that is always
@@ -413,7 +404,6 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
 
         _vitals = vitals;
 
-        OnPropertyChanged(nameof(HasVitals));
         OnPropertyChanged(nameof(HasHeat));
         OnPropertyChanged(nameof(HeatText));
         OnPropertyChanged(nameof(HeatBrushKey));
@@ -464,7 +454,6 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
         // SetVitals returns early when the readings have not changed:
         // without this, a phone that came back would keep them hidden
         // until one of its four readings happened to move.
-        OnPropertyChanged(nameof(HasVitals));
         OnPropertyChanged(nameof(HasHeat));
         OnPropertyChanged(nameof(HasStorage));
         OnPropertyChanged(nameof(HasLink));

@@ -753,63 +753,6 @@ public sealed partial class InstanceListViewModel : ObservableObject
             view.SetNeedsPairing(_launcher.NeedsPairing.Contains(device.Id));
         }
 
-        SyncConnected(discovery);
-    }
-
-    /// <summary>
-    /// The phones that are here right now, for the band of vitals under
-    /// the list.
-    ///
-    /// Kept as its own collection rather than filtered in the view: a
-    /// binding cannot watch a dictionary, whose reference never changes.
-    /// </summary>
-    public ObservableCollection<DeviceGroupViewModel> ConnectedDevices { get; } = [];
-
-    /// <summary>
-    /// True when there is more than one phone, which is the only case
-    /// where the band has to name them.
-    ///
-    /// **Naming only where it changes** is this list's own rule, already
-    /// written down for the device headers: with a single phone, every
-    /// line would carry the same name and teach nothing.
-    /// </summary>
-    public bool HasSeveralDevices => ConnectedDevices.Count > 1;
-
-    /// <summary>True when there is a band to show at all.</summary>
-    public bool HasConnectedDevices => ConnectedDevices.Count > 0;
-
-    /// <summary>
-    /// Brings the band in line with what is connected.
-    ///
-    /// Moves and adds rather than clearing and refilling, the same way
-    /// the rows do: a Clear on every sweep would make the band blink
-    /// three times a second.
-    /// </summary>
-    private void SyncConnected(DeviceDiscoveryResult discovery)
-    {
-        List<DeviceGroupViewModel> wanted =
-        [
-            .. discovery.Devices
-                .Where(d => d.IsConnected)
-                .Select(d => _devices.GetValueOrDefault(d.Id))
-                .OfType<DeviceGroupViewModel>(),
-        ];
-
-        for (var position = ConnectedDevices.Count - 1; position >= 0; position--)
-        {
-            if (!wanted.Contains(ConnectedDevices[position]))
-            {
-                ConnectedDevices.RemoveAt(position);
-            }
-        }
-
-        foreach (var view in wanted.Where(v => !ConnectedDevices.Contains(v)))
-        {
-            ConnectedDevices.Add(view);
-        }
-
-        OnPropertyChanged(nameof(HasSeveralDevices));
-        OnPropertyChanged(nameof(HasConnectedDevices));
     }
 
     private readonly IAppIconProvider _icons;
