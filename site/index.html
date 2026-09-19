@@ -30,13 +30,38 @@
 </script>
 </head>
 <body>
+
+<!-- Icons, drawn here rather than fetched: the project promises to send
+     nothing without being asked, and a page that pulls an icon font from a
+     stranger's server breaks that promise for decoration.
+
+     Four of them are the application's own glyphs, copied path for path:
+     stacked windows, the Almanax calendar, the sliders of an account's
+     settings. The rest are drawn in the same hand, one stroke, round ends,
+     on the same fifteen unit grid. -->
+<svg class="jeu-icones" aria-hidden="true" focusable="false"><defs>
+  <g id="i-soleil"><circle cx="7.5" cy="7.5" r="2.7"/><path d="M7.5 1.4V3M7.5 12v1.6M1.4 7.5H3M12 7.5h1.6M3.2 3.2l1.2 1.2M10.6 10.6l1.2 1.2M11.8 3.2l-1.2 1.2M4.4 10.6l-1.2 1.2"/></g>
+  <g id="i-fenetres"><path d="M1.8 2.2h8.4v6.2H1.8ZM4.8 6.6h8.4v6.2H4.8Z"/></g>
+  <g id="i-panneau"><path d="M1.8 5h11.4M1.8 10h11.4"/><circle cx="5" cy="5" r="1.6"/><circle cx="10" cy="10" r="1.6"/></g>
+  <g id="i-guides"><path d="M7.5 4.3C6 3.1 4 2.8 2 3.1v8.6c2-.3 4 0 5.5 1.2 1.5-1.2 3.5-1.5 5.5-1.2V3.1c-2-.3-4 0-5.5 1.2ZM7.5 4.3v8.6"/></g>
+  <g id="i-almanax"><path d="M3 4.5h10v9H3ZM3 7.5h10M6 3v3M10 3v3"/></g>
+  <g id="i-regles"><path d="M7.5 1.8 12.6 3.7v4.1c0 2.9-2.2 4.7-5.1 5.5-2.9-.8-5.1-2.6-5.1-5.5V3.7Z"/><path d="m5.5 7.6 1.6 1.6 3-3.2"/></g>
+  <g id="i-reste"><path d="M7.5 1.9 13 4.7v5.6L7.5 13.1 2 10.3V4.7ZM2 4.7l5.5 2.8L13 4.7M7.5 7.5v5.6"/></g>
+  <g id="i-telecharger"><path d="M7.5 2.2v7.6M4.4 6.9l3.1 3.1 3.1-3.1M2.6 12.8h9.8"/></g>
+  <g id="i-merci"><path d="M7.5 12.8C4 10.4 1.9 8.4 1.9 6.2A2.9 2.9 0 0 1 7.5 4.8 2.9 2.9 0 0 1 13.1 6.2c0 2.2-2.1 4.2-5.6 6.6Z"/></g>
+  <g id="i-gratuit"><path d="M2.3 7.9V2.6h5.3l5.2 5.3-4.9 4.9Z"/><circle cx="4.9" cy="5.1" r=".8"/></g>
+  <g id="i-vous"><path d="M2.2 3.4h10.6v6.8H7.2l-3 2.6v-2.6H2.2Z"/></g>
+  <g id="i-info"><circle cx="7.5" cy="7.5" r="5.7"/><path d="M7.5 6.8v3.6M7.5 4.6v.1"/></g>
+  <g id="i-github"><path d="M7.5 1.2a6.3 6.3 0 0 0-2 12.3c.31.06.43-.14.43-.3v-1.08c-1.75.38-2.12-.84-2.12-.84-.29-.73-.7-.92-.7-.92-.57-.39.04-.38.04-.38.63.04.97.65.97.65.56.97 1.48.69 1.84.53.06-.41.22-.69.4-.85-1.4-.16-2.87-.7-2.87-3.11 0-.69.25-1.25.65-1.69-.07-.16-.28-.81.06-1.68 0 0 .53-.17 1.74.64a6 6 0 0 1 3.16 0c1.2-.81 1.73-.64 1.73-.64.35.87.13 1.52.07 1.68.4.44.65 1 .65 1.69 0 2.42-1.48 2.95-2.88 3.1.23.2.43.58.43 1.17v1.73c0 .17.11.37.43.3A6.3 6.3 0 0 0 7.5 1.2Z" fill="currentColor" stroke="none"/></g>
+</defs></svg>
+
 <div class="page">
 
 <div class="barre">
   <span class="marque"><img src="app.png" alt="" width="30" height="30">DT Hub</span>
   <nav>
     <a href="https://github.com/Falcomfr/DtHub/releases">Releases</a>
-    <a href="https://github.com/Falcomfr/DtHub">GitHub</a>
+    <a href="https://github.com/Falcomfr/DtHub"><svg class="ic"><use href="#i-github"/></svg>GitHub</a>
     <a href="index.fr.html?lang=fr">Français</a>
   </nav>
 </div>
@@ -49,20 +74,21 @@
   </p>
 
   <ul class="faits-cles">
-    <li><b>Free</b><span>No ads, no account, no paid feature.</span></li>
-    <li><b>Within the game's rules</b><span>No bot, no macro, no modification of the game.</span></li>
-    <li><b>Guides with permission</b><span>Those of <a href="https://papycha.fr">papycha.fr</a>, with their agreement.</span></li>
-    <li><b>Built with you</b><span>Every reported defect gets fixed.</span></li>
+    <li><b><svg class="ic"><use href="#i-gratuit"/></svg>Free</b><span>No ads, no account, no paid feature.</span></li>
+    <li><b><svg class="ic"><use href="#i-regles"/></svg>Within the game's rules</b><span>No bot, no macro, no modification of the game.</span></li>
+    <li><b><svg class="ic"><use href="#i-guides"/></svg>Guides with permission</b><span>Those of <a href="https://papycha.fr">papycha.fr</a>, with their agreement.</span></li>
+    <li><b><svg class="ic"><use href="#i-vous"/></svg>Built with you</b><span>Every reported defect gets fixed.</span></li>
   </ul>
 
   <div class="telecharger">
-    <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe">Download DtHub.exe</a>
+    <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe"><svg class="ic"><use href="#i-telecharger"/></svg>Download DtHub.exe</a>
     <span class="sous-bouton">Windows 10 or 11, 64 bit · nothing to install · MIT licence</span>
+  <div class="avertissement"><svg class="ic"><use href="#i-info"/></svg><span>On the first launch, Windows warns: it does not yet know an application this new. <b>More info</b>, then <b>Run anyway</b>. Only until it is signed. <a href="#download">The detail</a>.</span></div>
   </div>
 </header>
 
 <section id="built-for">
-  <h2>Built for DOFUS&nbsp;Touch</h2>
+  <h2><svg class="ic"><use href="#i-soleil"/></svg><span>Built for DOFUS&nbsp;Touch</span></h2>
   <ul class="liste">
     <li>Windows at the size the game requires</li>
     <li>Display cut for the game</li>
@@ -73,7 +99,7 @@
 </section>
 
 <section id="windows">
-  <h2>The windows</h2>
+  <h2><svg class="ic"><use href="#i-fenetres"/></svg><span>The windows</span></h2>
   <div class="categorie">
     <div>
       <ul class="liste">
@@ -90,7 +116,7 @@
 </section>
 
 <section id="panel">
-  <h2>The panel</h2>
+  <h2><svg class="ic"><use href="#i-panneau"/></svg><span>The panel</span></h2>
   <div class="categorie">
     <div>
       <ul class="liste">
@@ -109,7 +135,7 @@
 </section>
 
 <section id="guides">
-  <h2>The guides</h2>
+  <h2><svg class="ic"><use href="#i-guides"/></svg><span>The guides</span></h2>
   <div class="categorie">
     <div>
       <ul class="liste">
@@ -125,7 +151,7 @@
 </section>
 
 <section id="almanax">
-  <h2>The Almanax</h2>
+  <h2><svg class="ic"><use href="#i-almanax"/></svg><span>The Almanax</span></h2>
   <div class="categorie">
     <div>
       <ul class="liste">
@@ -141,7 +167,7 @@
 </section>
 
 <section id="rules">
-  <h2>Within the game's rules</h2>
+  <h2><svg class="ic"><use href="#i-regles"/></svg><span>Within the game's rules</span></h2>
   <ul class="liste">
     <li>No bot, no macro, no input replay</li>
     <li>No action repeated across several accounts</li>
@@ -152,7 +178,7 @@
 </section>
 
 <section id="rest">
-  <h2>The rest</h2>
+  <h2><svg class="ic"><use href="#i-reste"/></svg><span>The rest</span></h2>
   <ul class="liste">
     <li>One file, no installer</li>
     <li>USB or Wi-Fi, with automatic reconnection</li>
@@ -163,10 +189,10 @@
 </section>
 
 <section id="download">
-  <h2>Download</h2>
+  <h2><svg class="ic"><use href="#i-telecharger"/></svg><span>Download</span></h2>
 
   <div class="telecharger">
-    <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe">Download DtHub.exe</a>
+    <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe"><svg class="ic"><use href="#i-telecharger"/></svg>Download DtHub.exe</a>
     <span class="sous-bouton">
       <a href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe.sha256">SHA256 checksum</a> ·
       <a href="https://github.com/Falcomfr/DtHub/releases">all releases</a>
@@ -199,7 +225,7 @@
 </section>
 
 <section id="thanks">
-  <h2>Thanks</h2>
+  <h2><svg class="ic"><use href="#i-merci"/></svg><span>Thanks</span></h2>
   <p>
     To <a href="https://papycha.fr">papycha.fr</a>, whose guides are shown here
     with their agreement. To <a href="https://github.com/Genymobile/scrcpy">scrcpy</a>,

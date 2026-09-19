@@ -49,7 +49,9 @@ a:hover { color: #a8cfff; }
 }
 .barre .marque { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 18px; }
 .barre .marque img { width: 30px; height: 30px; }
-.barre nav { display: flex; gap: 16px; }
+.barre nav { display: flex; align-items: center; gap: 16px; }
+.barre nav a { display: inline-flex; align-items: center; }
+.barre nav a .ic { margin-right: 6px; }
 .barre nav a[aria-current] { color: var(--doux); text-decoration: none; }
 
 /* Header */
@@ -150,3 +152,65 @@ footer .liens { display: flex; flex-wrap: wrap; gap: 18px; margin-bottom: 16px; 
 @media (prefers-reduced-motion: no-preference) {
   a, .bouton { transition: color .12s ease, background-color .12s ease; }
 }
+
+/* Icons.
+ *
+ * Drawn on the page, in the application's own hand: several are its glyphs
+ * copied path for path, so the page and the software say the same thing the
+ * same way. No icon font, for the reason at the top of this file.
+ *
+ * They decorate text that already carries the meaning, so the whole set is
+ * hidden from screen readers rather than given labels nobody wrote. */
+
+.jeu-icones { display: none; }
+
+.ic {
+  width: 1em; height: 1em; flex: none;
+  fill: none; stroke: currentColor;
+  stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round;
+  vertical-align: -0.12em;
+}
+
+h2 { display: flex; align-items: center; gap: 11px; padding-bottom: 12px; }
+h2 .ic { color: var(--accent); width: 1.05em; height: 1.05em; }
+
+/* A fixed width on the label so the four descriptions start on the same
+   line. Ragged, the eye reads four separate rows instead of a table. It
+   gives way below its own width, where the list stacks anyway. */
+ul.faits-cles b { display: flex; align-items: center; gap: 9px; min-width: 206px; }
+ul.faits-cles b .ic { color: var(--vert); width: 18px; height: 18px; }
+
+.bouton { display: inline-flex; align-items: center; }
+.bouton .ic { margin-right: 9px; stroke-width: 1.6; }
+
+/* The mark, a touch warmer than a flat image on a flat bar. */
+
+.barre .marque img {
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px var(--trait), 0 2px 10px rgba(0, 0, 0, .35);
+}
+
+/* A glow behind the title. Barely there: it lifts the top of the page off
+ * the flat background without becoming something anyone notices. */
+
+header.hero { position: relative; }
+header.hero::before {
+  content: ""; position: absolute; z-index: -1;
+  left: -12%; right: -12%; top: -70px; height: 340px;
+  background: radial-gradient(60% 70% at 30% 0%, rgba(240, 180, 41, .10), transparent 70%);
+  pointer-events: none;
+}
+
+/* The warning that greets a first launch, said in two lines under the
+ * button rather than only in the section far below. Someone who downloads
+ * from the top of the page meets Windows before they ever scroll. */
+
+.avertissement {
+  display: flex; align-items: flex-start; gap: 11px;
+  /* Its own line: the download block is a flex row, and without this the
+     note would sit beside the button instead of under it. */
+  flex-basis: 100%;
+  margin: 4px 0 0; max-width: 62ch;
+  color: var(--doux); font-size: 15px; line-height: 1.5;
+}
+.avertissement .ic { color: var(--accent); width: 17px; height: 17px; margin-top: 3px; }
