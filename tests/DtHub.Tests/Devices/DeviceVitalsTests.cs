@@ -28,16 +28,4 @@ public class DeviceVitalsTests
     {
         Assert.NotEqual(Releve(), Releve(percent: 63));
     }
-
-    [Fact]
-    public void Un_appareil_dont_on_ne_sait_rien_est_vide()
-    {
-        Assert.True(new DeviceVitals(null, null, null, null).IsEmpty);
-    }
-
-    [Fact]
-    public void Une_seule_lecture_suffit_a_ne_plus_etre_vide()
-    {
-        Assert.False(new DeviceVitals(null, new ThermalReading(0, null), null, null).IsEmpty);
-    }
 }

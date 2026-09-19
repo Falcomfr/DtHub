@@ -28,12 +28,4 @@ public sealed record DeviceVitals(
     BatteryReading? Battery,
     ThermalReading? Heat,
     StorageReading? Storage,
-    WifiLink? Link)
-{
-    /// <summary>
-    /// True when not one of the four readings came back, which is the
-    /// ordinary case for a device that has just appeared and has not
-    /// been asked anything yet.
-    /// </summary>
-    public bool IsEmpty => Battery is null && Heat is null && Storage is null && Link is null;
-}
+    WifiLink? Link);
