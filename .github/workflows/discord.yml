@@ -1,0 +1,106 @@
+# Relays a published release to the Discord channel #changelog.
+#
+# GitHub's own Discord integration was tried first and dropped: its format is
+# fixed, and what it sends is a title and a link. The notes themselves never
+# appear, which is the one thing worth reading.
+#
+# **The notes are cut when they have to be.** A Discord embed description
+# stops at 4096 characters. They fit today: the notes were rewritten to one
+# line per change, and 0.3.0, the longest, is 2374 characters over 42 lines.
+# The cut is a guard against Discord's ceiling and not against a habit, and a
+# release with a hundred entries would still meet it. When it fires, the head
+# is sent, cut between two entries, and the footer says how much was left
+# behind. The title carries the link to the rest.
+#
+# No third-party action, per the rule the other pipelines follow: the payload
+# already holds the notes, so there is nothing to check out and nothing to
+# borrow. The notes travel through the environment and never through string
+# interpolation, which would let a release body close the quote and run.
+#
+# The secret is DISCORD_WEBHOOK_URL, and it is the **plain** webhook URL. The
+# /github suffix belongs to GitHub's native integration, which this replaces:
+# with the suffix Discord expects a GitHub payload and answers 400.
+name: Discord
+
+on:
+  release:
+    types: [published]
+
+permissions: {}
+
+jobs:
+  annoncer:
+    runs-on: ubuntu-latest
+
+    # Two releases published within seconds of each other would still be two
+    # messages, in order, rather than one cancelling the other.
+    concurrency:
+      group: discord
+      cancel-in-progress: false
+
+    steps:
+      - name: Send the notes to Discord
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          TITRE: ${{ github.event.release.name }}
+          LIEN: ${{ github.event.release.html_url }}
+          NOTES: ${{ github.event.release.body }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+
+          # 4096 is the hard ceiling for an embed description. The margin
+          # carries the cut marker and any stray character the counter and
+          # Discord disagree about.
+          LIMITE = 3800
+
+          webhook = os.environ["WEBHOOK"]
+          titre = os.environ.get("TITRE") or "New release"
+          lien = os.environ["LIEN"]
+          notes = (os.environ.get("NOTES") or "").strip()
+
+          entier = len(notes)
+          if entier <= LIMITE:
+              corps, pied = notes, None
+          else:
+              tete = notes[:LIMITE]
+              # Back off to the start of the last entry, so the cut falls
+              # between two of them rather than inside a sentence. The list
+              # items carry no blank line between them -- "Fixed" runs four
+              # thousand characters without one -- so a blank line is only the
+              # fallback, and a bare line break the last resort.
+              coupe = max(tete.rfind("\n- "), tete.rfind("\n### "))
+              if coupe < LIMITE // 3:
+                  coupe = tete.rfind("\n\n")
+              if coupe < LIMITE // 3:
+                  coupe = tete.rfind("\n")
+              if coupe > 0:
+                  tete = tete[:coupe]
+              corps = tete.rstrip()
+              pied = f"Cut at {len(corps)} of {entier} characters. Full notes on GitHub."
+
+          embed = {
+              "title": titre,
+              "url": lien,
+              "description": corps or lien,
+              "color": 0xC4A63F,
+          }
+          if pied:
+              embed["footer"] = {"text": pied}
+
+          charge = json.dumps({"embeds": [embed]}).encode()
+          # Discord sits behind Cloudflare, which answers 403 to urllib's
+          # default "Python-urllib/3.12" without reading the body. A named
+          # agent is not politeness here, it is what gets through.
+          requete = urllib.request.Request(
+              webhook,
+              data=charge,
+              headers={
+                  "Content-Type": "application/json",
+                  "User-Agent": "DtHub-Release-Relay/1.0 (+https://github.com/Falcomfr/DtHub)",
+              },
+              method="POST",
+          )
+          with urllib.request.urlopen(requete) as reponse:
+              print(f"Discord answered {reponse.status}")
+          PY
