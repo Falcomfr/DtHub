@@ -52,12 +52,12 @@ the first time: DT Hub then fetches ADB and scrcpy from Google and Genymobile,
 *Two accounts in one tabbed frame. They can also stand side by side, each in its
 own window.*
 
-<img src="assets/screenshots/appareils.png" alt="The configurator, one phone and its two accounts" width="380"> <img src="assets/screenshots/almanax.png" alt="The Almanax window" width="380">
+<img src="assets/screenshots/appareils.en.png" alt="The configurator, two phones and their four accounts" width="380"> <img src="assets/screenshots/almanax.png" alt="The Almanax window" width="380">
 
-*The configurator, showing the Android profile behind each account, and the
-Almanax of the day.*
+*The configurator: each phone's charge and link on its own line, a colour and a
+state for each account, and the Almanax of the day.*
 
-<img src="assets/screenshots/liste-des-donjons.png" alt="The dungeon list sorted by level" width="560">
+<img src="assets/screenshots/liste-des-donjons.en.png" alt="The dungeon list sorted by level" width="560">
 
 *Dungeons sorted by level, size and area, with coordinates and prerequisites.
 That list is one DT Hub builds itself.*

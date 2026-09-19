@@ -55,6 +55,22 @@ French.
 - **The panel fades in and out on Ctrl+P**, tabs cross over instead of blinking,
   and a row fades in when a phone is found. Nothing else moves.
 
+### Fixed
+
+- **A phone could be told its Wi-Fi channel was crowded when it was not.** The
+  share of retransmitted frames is counted from the moment the phone associates,
+  so the first seconds of a video stream are a burst against an almost empty
+  sample: a panel showed 41 % on a link that read 15 % once it had run for a
+  minute. The figure is now believed only past ten thousand frames, about a
+  minute of streaming.
+
+- **The chosen language only reached what was built at startup.** A panel set to
+  English showed "Devices" and "Shortcuts" beside "Connecté en Wi-Fi" and
+  "ouvert à l'instant": the labels written into the windows were built while the
+  language was still set, everything the device sweep produced afterwards ran
+  from a timer callback and came back in Windows' language. What the application
+  decided to speak no longer depends on which thread asks.
+
 ## [0.4.0] - 2026-09-14
 
 ### Added
