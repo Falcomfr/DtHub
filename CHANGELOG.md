@@ -14,62 +14,23 @@ French.
 
 ### Added
 
-- **The panel now says what each account is doing, and for how long.** A dot on
-  the row for the state, and a second line that names a reconnection, an opening,
-  or how long the window has been up. The line was already there and stood empty
-  unless the account had been renamed, so it costs no height: the row is in fact
-  a pixel shorter than before, because the two drag hints stopped reserving
-  fourteen pixels per row for a mark that only shows during a drag.
-
-- **Each phone's line says how it is doing.** Beside the charge it already
-  carried: the Wi-Fi link at all times, a thermometer once Android says it is
-  throttling, and the free space once there is little of it left. All three were
-  already being read every minute and thrown away once they had been turned into
-  warnings, so a phone with nothing wrong had nothing to show at all.
-
-  Heat is never given as a temperature: the reference phone reads 84 °C while
-  nothing is being throttled. And the link names what is wrong with it, a crowded
-  channel or the shared band, rather than the band it happens to be on.
-
-- **Every account can carry a colour**, on its row and on its tab in the frame.
-  Six tints, chosen so that none of them can be mistaken for the blue of a
-  selection or for the three status colours. New accounts are given one, and so
-  are the accounts you already have. A seventh account is left unmarked rather
-  than handed a duplicate, and an account you strip of its colour stays stripped:
-  the application only decides for accounts nobody has decided for.
+- The panel now says what each account is doing, and for how long.
+- Each phone's line shows its charge and its Wi-Fi link, plus its heat and its
+  free space when either is worth a word.
+- Every account carries a colour, on its row and on its tab in the frame.
 
 ### Changed
 
-- **The launch and stop buttons now stand out from the settings beside them.**
-  They are raised, where the rest of the row is flat, and they share one place
-  instead of moving as windows open and close. The per-account quality and
-  distance moved into a single chip, with the colour, so a row carries three
-  controls and not five.
-
-- **The dungeon list reads in columns.** Level, size and coordinates each have
-  their own, right-aligned, with the coordinates in a fixed-pitch face so the
-  brackets line up. The band headers are no longer smaller than the rows they
-  head, and the list finally answers to the pointer and to the keyboard with the
-  application's own colours rather than Windows' pale blue.
-
-- **The panel fades in and out on Ctrl+P**, tabs cross over instead of blinking,
-  and a row fades in when a phone is found. Nothing else moves.
+- The launch and stop buttons stand out from the rest of the row and share one
+  place; the per-account quality, distance and colour fit in a single chip.
+- The dungeon list reads in columns: level, size and coordinates, each aligned.
+- The panel fades in and out on Ctrl+P, tabs cross over instead of blinking, and
+  a row fades in when a phone is found.
 
 ### Fixed
 
-- **A phone could be told its Wi-Fi channel was crowded when it was not.** The
-  share of retransmitted frames is counted from the moment the phone associates,
-  so the first seconds of a video stream are a burst against an almost empty
-  sample: a panel showed 41 % on a link that read 15 % once it had run for a
-  minute. The figure is now believed only past ten thousand frames, about a
-  minute of streaming.
-
-- **The chosen language only reached what was built at startup.** A panel set to
-  English showed "Devices" and "Shortcuts" beside "Connecté en Wi-Fi" and
-  "ouvert à l'instant": the labels written into the windows were built while the
-  language was still set, everything the device sweep produced afterwards ran
-  from a timer callback and came back in Windows' language. What the application
-  decided to speak no longer depends on which thread asks.
+- A phone could be told its Wi-Fi channel was crowded when it was not.
+- The chosen language only reached what was built at startup.
 
 ## [0.4.0] - 2026-09-14
 

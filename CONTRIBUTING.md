@@ -64,6 +64,15 @@ What the user reads on screen never lives in the code at all: it goes through
 `src/DtHub.Core/Localization/Strings*.resx`, in the three languages the
 application ships.
 
+**A changelog entry is one line.** The section of a version is published
+verbatim as its release note, on GitHub and inside the application's own update
+window, where it lands in a single text block. One line per change, saying what
+changed and nothing else.
+
+The reason a change was made belongs in `docs/DECISIONS.md`, which exists for
+it. The 0.3.0 and 0.4.0 sections carry both, over two thousand words each, and
+they stay as they are for the reason given just above: they have been read.
+
 **Decisions get recorded.** An architecture choice, a trade off, something
 given up: that goes in `docs/DECISIONS.md`, in French like the rest of that
 file, with what was measured and what was set aside. It is the memory of the
