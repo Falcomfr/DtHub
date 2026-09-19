@@ -29,6 +29,11 @@ const uint ColourDefault = 0xFFFFFFFF;
 // couleur plausible, ce qui est le pire des cas pour une sonde.
 const uint Essai = 0x00888D3F;
 
+// Sans cela, GetWindowRect et GetPixel ne parlent pas de la meme
+// chose sur un ecran a l'echelle : les coordonnees rendues sont
+// virtualisees et l'echantillon tombe a cote de la fenetre.
+_ = SetProcessDpiAwarenessContext(-4);
+
 if (!OperatingSystem.IsWindows())
 {
     Console.WriteLine("Windows seulement.");
@@ -61,11 +66,45 @@ var fenetre = (nint)brut;
 Console.WriteLine($"cible : {Decrire(fenetre)}");
 Console.WriteLine();
 
+var avant = Echantillon(fenetre);
+
 var bordure = Teindre(fenetre, BorderColour, Essai);
 var barre = Teindre(fenetre, CaptionColour, Essai);
 
 Console.WriteLine($"  DWMWA_BORDER_COLOR  -> {Verdict(bordure)}");
 Console.WriteLine($"  DWMWA_CAPTION_COLOR -> {Verdict(barre)}");
+Console.WriteLine();
+
+// Le temps que la composition rattrape.
+Thread.Sleep(900);
+
+var apres = Echantillon(fenetre);
+
+Console.WriteLine("  cadre, avant -> apres :");
+
+// Quatre points pris sur le cadre lui-meme, a un pixel du bord, la ou
+// DWM dessine : haut et bas au milieu, gauche et droite a mi-hauteur.
+string[] coins = ["bord haut", "bord bas", "bord gauche", "bord droit"];
+
+var change = 0;
+
+for (var i = 0; i < avant.Length; i++)
+{
+    var bouge = avant[i] != apres[i];
+
+    if (bouge)
+    {
+        change++;
+    }
+
+    Console.WriteLine(
+        $"    {coins[i],-14} {Ecrire(avant[i])} -> {Ecrire(apres[i])}{(bouge ? "   change" : string.Empty)}");
+}
+
+Console.WriteLine();
+Console.WriteLine(change > 0
+    ? $"**Le cadre a change sur {change} des {avant.Length} points.** DWM peint bien une fenetre voisine."
+    : "**Aucun pixel du cadre n'a bouge.** L'appel est accepte et ne peint rien de visible.");
 Console.WriteLine();
 
 if (bordure != 0 && barre != 0)
@@ -86,6 +125,38 @@ _ = Teindre(fenetre, CaptionColour, ColourDefault);
 
 Console.WriteLine("rendu.");
 return 0;
+
+static uint[] Echantillon(nint fenetre)
+{
+    if (!GetWindowRect(fenetre, out var r))
+    {
+        return [0, 0, 0, 0];
+    }
+
+    var ecran = GetDC(nint.Zero);
+
+    try
+    {
+        var cx = (r.Left + r.Right) / 2;
+        var cy = (r.Top + r.Bottom) / 2;
+
+        return
+        [
+            GetPixel(ecran, cx, r.Top),
+            GetPixel(ecran, cx, r.Bottom - 1),
+            GetPixel(ecran, r.Left, cy),
+            GetPixel(ecran, r.Right - 1, cy),
+        ];
+    }
+    finally
+    {
+        _ = ReleaseDC(nint.Zero, ecran);
+    }
+}
+
+static string Ecrire(uint colorref) => colorref == 0xFFFFFFFF
+    ? "illisible"
+    : $"R{colorref & 0xFF:X2} V{(colorref >> 8) & 0xFF:X2} B{(colorref >> 16) & 0xFF:X2}";
 
 static int Teindre(nint fenetre, int attribut, uint couleur) =>
     DwmSetWindowAttribute(fenetre, attribut, ref couleur, sizeof(uint));
@@ -156,5 +227,26 @@ static extern int GetWindowText(nint window, StringBuilder text, int count);
 
 [DllImport("user32.dll")]
 static extern uint GetWindowThreadProcessId(nint window, out uint processId);
+
+[DllImport("user32.dll")]
+static extern bool GetWindowRect(nint window, out Rect rect);
+
+[DllImport("user32.dll")]
+static extern nint GetDC(nint window);
+
+[DllImport("user32.dll")]
+static extern int ReleaseDC(nint window, nint dc);
+
+[DllImport("user32.dll")]
+static extern nint SetProcessDpiAwarenessContext(nint context);
+
+[DllImport("gdi32.dll")]
+static extern uint GetPixel(nint dc, int x, int y);
+
+[StructLayout(LayoutKind.Sequential)]
+struct Rect
+{
+    public int Left, Top, Right, Bottom;
+}
 
 delegate bool EnumWindowsProc(nint window, nint parameter);
