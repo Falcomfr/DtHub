@@ -13,6 +13,18 @@ public class ProductInfoTests
     }
 
     [Fact]
+    public void DiscordUrl_est_une_invitation_https_que_OpenUrl_accepte()
+    {
+        // OpenUrl ignores anything but https: a plain http link would make
+        // the button do nothing at all, without a word.
+        var uri = new Uri(ProductInfo.DiscordUrl);
+
+        Assert.Equal(Uri.UriSchemeHttps, uri.Scheme);
+        Assert.Equal("discord.gg", uri.Host);
+        Assert.Matches("^/[A-Za-z0-9]+$", uri.AbsolutePath);
+    }
+
+    [Fact]
     public void Version_est_renseignee()
     {
         Assert.Matches(@"^\d+\.\d+\.\d+", ProductInfo.Version);

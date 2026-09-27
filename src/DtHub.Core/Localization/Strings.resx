@@ -723,6 +723,9 @@ On a {0} device, the manual copy goes through: {1}.</value>
   <data name="AlmanaxTip" xml:space="preserve">
     <value>Today's offering and bonus for DOFUS Touch, read from Ankama's own portal.</value>
   </data>
+  <data name="DiscordTip" xml:space="preserve">
+    <value>Join the DT Hub Discord server: news, questions, help.</value>
+  </data>
   <data name="AlmanaxWindowTitle" xml:space="preserve">
     <value>Almanax - DOFUS Touch</value>
   </data>

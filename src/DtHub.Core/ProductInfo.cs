@@ -22,6 +22,13 @@ public static class ProductInfo
     /// <summary>Public repository, used by the update check.</summary>
     public const string RepositoryUrl = "https://github.com/Falcomfr/DtHub";
 
+    /// <summary>
+    /// Invitation to the community server, reached from the configurator's
+    /// footer. Permanent and without a use limit, so it never has to be
+    /// shipped again.
+    /// </summary>
+    public const string DiscordUrl = "https://discord.gg/aauJcga6eG";
+
     /// <summary>Displayed version, fed by the assembly at runtime.</summary>
     public static string Version { get; } =
         typeof(ProductInfo).Assembly

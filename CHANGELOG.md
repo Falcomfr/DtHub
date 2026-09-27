@@ -14,6 +14,7 @@ French.
 
 ### Added
 
+- A small key at the foot of the panel opens the DT Hub Discord server.
 - The panel now says what each account is doing, and for how long.
 - Each phone's line shows its charge and its Wi-Fi link, plus its heat and its
   free space when either is worth a word.

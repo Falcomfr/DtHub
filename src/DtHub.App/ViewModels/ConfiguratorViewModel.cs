@@ -974,6 +974,13 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// <summary>Requested from the tool button, same reason.</summary>
     public event EventHandler? AlmanaxRequested;
 
+    /// <summary>
+    /// Opens the community server in the browser. Nothing to build here,
+    /// so no event: the model hands the address over itself.
+    /// </summary>
+    [RelayCommand]
+    private void Discord() => _dialogs.OpenUrl(ProductInfo.DiscordUrl);
+
     /// <summary>Shows what the pending version brings.</summary>
     [RelayCommand]
     private void UpdateNotes() => UpdateNotesRequested?.Invoke(this, EventArgs.Empty);
