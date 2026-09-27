@@ -16,7 +16,6 @@ using DtHub.Core.Scrcpy;
 using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
 using DtHub.Core.Storage;
-using DtHub.Core.Touch;
 using DtHub.Core.Updates;
 using DtHub.Core.Users;
 using DtHub.Core.Windows;
@@ -114,7 +113,6 @@ public static class AppServices
         services.AddSingleton<IAppIconProvider, AppIconProvider>();
         services.AddSingleton<IAppLauncher, AndroidAppLauncher>();
         services.AddSingleton<AppRestartService>();
-        services.AddSingleton<StuckTouchWatcher>();
         services.AddSingleton<ScrcpySessionManager>();
 
         // Windows and shortcuts.

@@ -82,16 +82,6 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     private InstanceActivity _activity;
 
     /// <summary>
-    /// Fingers stay down on this account's display and releasing them from
-    /// DT Hub was not enough: the map ignores every click until the player
-    /// clicks it a few times, which is what freed it by hand.
-    /// </summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(StatusLine))]
-    [NotifyPropertyChangedFor(nameof(StatusLineBrushKey))]
-    private bool _touchStuck;
-
-    /// <summary>
     /// True if a window is open for this instance.
     ///
     /// Derived rather than stored, so that the three buttons it governs
@@ -227,7 +217,6 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     /// </summary>
     public string? StatusLine => Activity switch
     {
-        InstanceActivity.Running when TouchStuck => Strings.Get("StatusTouchStuck"),
         InstanceActivity.Recovering => Strings.Get("StatusReconnecting"),
         InstanceActivity.Starting => Strings.Get("StatusOpening"),
         InstanceActivity.Running when _startedUtc is { } since =>
@@ -258,9 +247,7 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     /// reports something the reader may want to act on.
     /// </summary>
     public string StatusLineBrushKey =>
-        Activity == InstanceActivity.Recovering || (Activity == InstanceActivity.Running && TouchStuck)
-            ? "WarningBrush"
-            : "TextMutedBrush";
+        Activity == InstanceActivity.Recovering ? "WarningBrush" : "TextMutedBrush";
 
     /// <summary>
     /// Moves the session clock on.

@@ -565,9 +565,6 @@ Cruza las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
   <data name="StatusReconnecting" xml:space="preserve">
     <value>reconectando</value>
   </data>
-  <data name="StatusTouchStuck" xml:space="preserve">
-    <value>bloqueado: haz clic varias veces en el mapa</value>
-  </data>
   <data name="InstanceSettingsTip" xml:space="preserve">
     <value>La calidad y la distancia de esta cuenta, cuando deben diferir de los ajustes compartidos.</value>
   </data>

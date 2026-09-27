@@ -565,9 +565,6 @@ Cross the tests: another device on this port, and this phone on another PC. You 
   <data name="StatusReconnecting" xml:space="preserve">
     <value>reconnecting</value>
   </data>
-  <data name="StatusTouchStuck" xml:space="preserve">
-    <value>stuck: click the map a few times</value>
-  </data>
   <data name="InstanceSettingsTip" xml:space="preserve">
     <value>This account's own quality and distance, when they have to differ from the shared settings.</value>
   </data>

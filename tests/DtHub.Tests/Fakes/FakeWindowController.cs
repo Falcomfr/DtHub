@@ -36,16 +36,6 @@ public sealed class FakeWindowController : IWindowController
     /// <summary>Order of focus calls, to verify the traversal.</summary>
     public List<nint> FocusCalls { get; } = [];
 
-    /// <summary>What <see cref="IsMouseButtonDown" /> answers.</summary>
-    public bool MouseDown { get; set; }
-
-    /// <summary>Windows a mouse button release was posted to, in order.</summary>
-    public List<nint> Releases { get; } = [];
-
-    public bool IsMouseButtonDown() => MouseDown;
-
-    public void ReleaseMouseButton(nint handle) => Releases.Add(handle);
-
     /// <summary>What <see cref="IsModifierKeyDown" /> answers.</summary>
     public bool ModifierDown { get; set; }
 

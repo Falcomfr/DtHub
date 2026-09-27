@@ -7,7 +7,6 @@ using DtHub.Core.Localization;
 using DtHub.Core.Scrcpy;
 using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
-using DtHub.Core.Touch;
 using DtHub.Core.Windows;
 
 using Microsoft.Extensions.Logging;
@@ -54,12 +53,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private readonly IHotkeyRegistrar _hotkeys;
     private readonly AppRestartService _restarts;
     private readonly WindowPlacements _placements;
-    private readonly StuckTouchWatcher _touches;
     private readonly ModifierKeyRelease _modifiers;
     private readonly ILogger<GameLauncher> _logger;
-
-    private readonly CancellationTokenSource _touchWatchStop = new();
-    private readonly Task _touchWatch;
 
     private bool _hotkeysWired;
 
@@ -93,7 +88,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
         IHotkeyRegistrar hotkeys,
         AppRestartService restarts,
         WindowPlacements placements,
-        StuckTouchWatcher touches,
         ILogger<GameLauncher> logger)
     {
         _sessions = sessions;
@@ -107,15 +101,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _hotkeys = hotkeys;
         _restarts = restarts;
         _placements = placements;
-        _touches = touches;
         _modifiers = new ModifierKeyRelease(windows.Controller);
         _logger = logger;
-
-        // Fingers scrcpy left down on a game's display: the map then ignored
-        // every click. The watcher lifts them; it reads each phone only while
-        // one of its game windows is open.
-        _touches.Reported += OnTouchReported;
-        _touchWatch = Task.Run(WatchTouchesAsync);
 
         // A session that dies right after opening left no trace at
         // all: the window vanished and the log stayed silent.
@@ -2387,61 +2374,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// <summary>
     /// Open session matching an instance, if there is one.
     /// </summary>
-    /// <summary>
-    /// Raised when an account's fingers were found stuck, and again when they
-    /// are free. Not on the interface thread.
-    /// </summary>
-    public event EventHandler<StuckTouchReport>? TouchReported;
-
     /// <summary>Every open game window, docked in the frame or free.</summary>
     private IEnumerable<nint> GameWindows() =>
         _sessions.ActiveSessions.Select(s => s.WindowHandle).Where(h => h != 0);
-
-    /// <summary>Game windows open and drawn, with the display they draw.</summary>
-    private IReadOnlyList<WatchedDisplay> WatchedDisplays() =>
-        [.. _sessions.ActiveSessions
-            .Where(s => s.State == ScrcpySessionState.Running && s.WindowHandle != 0)
-            .Where(s => s.VirtualDisplayId is not null)
-            .Select(s => new WatchedDisplay(s.Target.Key, s.Serial, s.VirtualDisplayId!.Value, s.WindowHandle))];
-
-    /// <summary>
-    /// Runs the watcher, and keeps an unexpected fault from vanishing with
-    /// it: the loop would stop without a word, and the fault only come back
-    /// at closing, from the await in <see cref="DisposeAsync" />.
-    /// </summary>
-    private async Task WatchTouchesAsync()
-    {
-        try
-        {
-            await _touches.RunAsync(WatchedDisplays, _touchWatchStop.Token).ConfigureAwait(false);
-        }
-        catch (Exception exception) when (exception is not OperationCanceledException and not OutOfMemoryException)
-        {
-            LogTouchWatchFailure(exception);
-        }
-    }
-
-    private void OnTouchReported(object? sender, StuckTouchReport report)
-    {
-        var name = _sessions.ActiveSessions
-            .FirstOrDefault(s => string.Equals(s.Target.Key, report.Key, StringComparison.Ordinal))
-            ?.DisplayName ?? report.Key;
-
-        switch (report.Outcome)
-        {
-            case StuckTouchOutcome.Released:
-                LogTouchReleased(name, report.Fingers);
-                break;
-            case StuckTouchOutcome.NeedsClicks:
-                LogTouchNeedsClicks(name, report.Fingers);
-                break;
-            default:
-                LogTouchCleared(name);
-                break;
-        }
-
-        TouchReported?.Invoke(this, report);
-    }
 
     public ScrcpySession? FindSession(DofusInstance instance)
     {
@@ -2711,11 +2646,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         _hotkeys.HotkeyPressed -= OnHotkeyPressed;
         _hotkeys.ForegroundWindowChanged -= OnForegroundChanged;
-
-        await _touchWatchStop.CancelAsync().ConfigureAwait(false);
-        await _touchWatch.ConfigureAwait(false);
-        _touchWatchStop.Dispose();
-        _touches.Reported -= OnTouchReported;
 
         await _sessions.DisposeAsync().ConfigureAwait(false);
     }
@@ -3592,25 +3522,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "Relance courte de {instance} impossible ({reason}) : la fenêtre est rouverte.")]
     private partial void LogRestartFallback(string instance, string reason);
-
-    [LoggerMessage(
-        Level = LogLevel.Information,
-        Message = "{instance} : {fingers} doigt(s) resté(s) posé(s) sur l'écran du jeu, relâché(s).")]
-    private partial void LogTouchReleased(string instance, int fingers);
-
-    [LoggerMessage(
-        Level = LogLevel.Warning,
-        Message = "{instance} : {fingers} doigt(s) resté(s) posé(s), le relâchement n'a pas suffi. "
-            + "La ligne du compte demande de cliquer sur la carte.")]
-    private partial void LogTouchNeedsClicks(string instance, int fingers);
-
-    [LoggerMessage(
-        Level = LogLevel.Warning,
-        Message = "La surveillance des doigts restés posés s'est arrêtée sur une erreur.")]
-    private partial void LogTouchWatchFailure(Exception exception);
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "{instance} : les doigts restés posés sont libérés.")]
-    private partial void LogTouchCleared(string instance);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Un raccourci n'a pas pu être traité.")]
     private partial void LogHotkeyFailure(Exception exception);

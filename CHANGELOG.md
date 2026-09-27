@@ -19,9 +19,6 @@ French.
   The window left behind never saw Ctrl come back up, and turned every click
   into a two finger pinch. DT Hub now tells it, at every shortcut and whenever
   a game window comes back to the front.
-- Should fingers still be left down on an account's screen, DT Hub lifts them
-  by itself, and if that is not enough the account's line says to click the map
-  a few times.
 
 ## [0.5.0] - 2026-09-27
 

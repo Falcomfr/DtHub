@@ -565,9 +565,6 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
   <data name="StatusReconnecting" xml:space="preserve">
     <value>reconnexion</value>
   </data>
-  <data name="StatusTouchStuck" xml:space="preserve">
-    <value>bloqué : cliquez plusieurs fois sur la carte</value>
-  </data>
   <data name="InstanceSettingsTip" xml:space="preserve">
     <value>La qualité et la distance de ce compte seul, quand elles doivent différer des réglages partagés.</value>
   </data>
