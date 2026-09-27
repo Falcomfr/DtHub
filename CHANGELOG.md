@@ -10,7 +10,7 @@ published on GitHub and shown inside the application, and those exist in a
 single version. The 0.2.0 and 0.1.0 sections predate that rule and stay in
 French.
 
-## [Unreleased]
+## [0.5.2] - 2026-09-27
 
 ### Added
 
