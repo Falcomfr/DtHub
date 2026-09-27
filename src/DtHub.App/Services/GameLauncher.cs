@@ -1062,6 +1062,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Forget(_health, connected);
         Forget(_batteries, connected);
         Forget(_vitals, connected);
+        Forget(_loggedMemory, connected);
 
         // The input verdict says it is "kept until the device
         // disappears", and nothing made that true: a phone that

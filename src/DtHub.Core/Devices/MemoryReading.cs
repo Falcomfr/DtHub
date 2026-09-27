@@ -44,6 +44,16 @@ public sealed partial record MemoryReading(MemoryPressure Level, long AvailableB
     /// <summary>The same, for critical.</summary>
     public const double CriticalShare = 0.05;
 
+    /// <summary>
+    /// Share available above which even Android's verdict is not believed.
+    ///
+    /// Android can derive its level from how many background apps it keeps
+    /// cached rather than from free memory. Once the player has closed them,
+    /// as the warning asks, it may say low with 42 % free, and naming that
+    /// would be the false alarm the verdict was chosen to avoid.
+    /// </summary>
+    public const double VerdictShare = 0.25;
+
     /// <summary>Available memory in gigabytes, one decimal.</summary>
     public double AvailableGigabytes => Math.Round(AvailableBytes / (1024.0 * 1024 * 1024), 1);
 
@@ -66,10 +76,13 @@ public sealed partial record MemoryReading(MemoryPressure Level, long AvailableB
             return null;
         }
 
-        return new MemoryReading(
-            Verdict(factor) ?? FromShare(available / (double)total),
-            available * 1024,
-            total * 1024);
+        var share = available / (double)total;
+
+        var level = Verdict(factor) is { } verdict
+            ? share < VerdictShare ? verdict : MemoryPressure.Normal
+            : FromShare(share);
+
+        return new MemoryReading(level, available * 1024, total * 1024);
     }
 
     /// <summary>What the phone's line says, or nothing below low.</summary>

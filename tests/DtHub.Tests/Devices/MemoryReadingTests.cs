@@ -15,6 +15,13 @@ public class MemoryReadingTests
     private const string MeminfoReel =
         "MemTotal:       11616040 kB\r\nMemFree:          161396 kB\r\nMemAvailable:    4913428 kB\r\n";
 
+    /// <summary>
+    /// The same phone with 15 % available, the figure lowered by hand:
+    /// constructed, the saturated state was never captured.
+    /// </summary>
+    private const string MeminfoSerre =
+        "MemTotal:       11616040 kB\r\nMemFree:          161396 kB\r\nMemAvailable:    1742406 kB\r\n";
+
     [Fact]
     public void Le_releve_reel_se_lit_et_ne_dit_rien()
     {
@@ -36,9 +43,24 @@ public class MemoryReadingTests
     {
         // Constructed from the real line: Android's own verdict, not a
         // threshold of ours, since it is the one it trims apps by.
-        var memory = MemoryReading.Parse(factor + "\r\n", MeminfoReel);
+        var memory = MemoryReading.Parse(factor + "\r\n", MeminfoSerre);
 
         Assert.Equal(expected, memory!.Level);
+    }
+
+    [Theory]
+    [InlineData("LOW")]
+    [InlineData("CRITICAL")]
+    public void Un_verdict_alarmant_avec_de_la_memoire_libre_ne_dit_rien(string factor)
+    {
+        // Android can derive its level from how many background apps it
+        // keeps cached, not from free memory: once the player has closed
+        // them, as the warning asks, it may say LOW with 42 % free. Naming
+        // that would be the false alarm the verdict was chosen to avoid.
+        var memory = MemoryReading.Parse(factor, MeminfoReel);
+
+        Assert.Equal(MemoryPressure.Normal, memory!.Level);
+        Assert.Null(memory.Describe());
     }
 
     [Fact]
@@ -55,8 +77,8 @@ public class MemoryReadingTests
     [Fact]
     public void Saturee_et_critique_se_disent_avec_la_memoire_disponible()
     {
-        var low = MemoryReading.Parse("LOW", MeminfoReel)!;
-        var critical = MemoryReading.Parse("CRITICAL", MeminfoReel)!;
+        var low = MemoryReading.Parse("LOW", MeminfoSerre)!;
+        var critical = MemoryReading.Parse("CRITICAL", MeminfoSerre)!;
 
         Assert.True(low.IsLow);
         Assert.Contains(low.AvailableGigabytes.ToString(System.Globalization.CultureInfo.CurrentCulture), low.Describe(), StringComparison.Ordinal);
@@ -91,8 +113,8 @@ public class MemoryReadingTests
     [Fact]
     public void La_revue_de_sante_nomme_la_memoire_saturee()
     {
-        var low = MemoryReading.Parse("LOW", MeminfoReel);
-        var critical = MemoryReading.Parse("CRITICAL", MeminfoReel);
+        var low = MemoryReading.Parse("LOW", MeminfoSerre);
+        var critical = MemoryReading.Parse("CRITICAL", MeminfoSerre);
 
         var warning = Assert.Single(DeviceHealth.Review(null, null, null, null, memory: low));
         var serious = Assert.Single(DeviceHealth.Review(null, null, null, null, memory: critical));

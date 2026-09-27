@@ -512,10 +512,10 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
     <value>Il ne reste que {0} Go libres sur le téléphone. DOFUS Touch peut échouer sans dire pourquoi quand la place manque.</value>
   </data>
   <data name="DeviceMemoryLow" xml:space="preserve">
-    <value>Mémoire du téléphone saturée ({0} Go disponibles) : les actions peuvent accrocher. Fermez les autres applications ou redémarrez le téléphone.</value>
+    <value>Mémoire du téléphone saturée ({0} Go disponibles) : les actions peuvent accrocher. Fermez les autres applications, baissez la qualité d'un compte ou redémarrez le téléphone.</value>
   </data>
   <data name="DeviceMemoryCritical" xml:space="preserve">
-    <value>Mémoire du téléphone presque épuisée ({0} Go disponibles) : Android va fermer des applications, le jeu compris. Fermez les autres applications ou redémarrez le téléphone.</value>
+    <value>Mémoire du téléphone presque épuisée ({0} Go disponibles) : Android va fermer des applications, le jeu compris. Fermez les autres applications, baissez la qualité d'un compte ou redémarrez le téléphone.</value>
   </data>
   <data name="VitalsMemoryTip" xml:space="preserve">
     <value>mémoire saturée, {0} Go disponibles</value>
