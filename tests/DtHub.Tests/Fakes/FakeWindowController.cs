@@ -46,6 +46,16 @@ public sealed class FakeWindowController : IWindowController
 
     public void ReleaseMouseButton(nint handle) => Releases.Add(handle);
 
+    /// <summary>What <see cref="IsModifierKeyDown" /> answers.</summary>
+    public bool ModifierDown { get; set; }
+
+    /// <summary>Windows a Ctrl and Shift release was posted to, in order.</summary>
+    public List<nint> ModifierReleases { get; } = [];
+
+    public bool IsModifierKeyDown() => ModifierDown;
+
+    public void ReleaseModifierKeys(nint handle) => ModifierReleases.Add(handle);
+
     /// <summary>Declares a window belonging to a process.</summary>
     public FakeWindowController AddWindow(nint handle, int processId, string title)
     {

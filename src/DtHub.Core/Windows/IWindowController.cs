@@ -196,4 +196,15 @@ public interface IWindowController
     /// No effect if the window has gone.
     /// </summary>
     void ReleaseMouseButton(nint handle);
+
+    /// <summary>True while Ctrl or Shift is physically held.</summary>
+    bool IsModifierKeyDown();
+
+    /// <summary>
+    /// Posts to a scrcpy window the release of both Ctrl keys and both
+    /// Shift keys. A window that did not believe them down ignores it; one
+    /// that did stops turning clicks into a pinch. See
+    /// <see cref="ModifierKeyRelease" />.
+    /// </summary>
+    void ReleaseModifierKeys(nint handle);
 }

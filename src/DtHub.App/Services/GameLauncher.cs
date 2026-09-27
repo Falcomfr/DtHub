@@ -55,6 +55,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private readonly AppRestartService _restarts;
     private readonly WindowPlacements _placements;
     private readonly StuckTouchWatcher _touches;
+    private readonly ModifierKeyRelease _modifiers;
     private readonly ILogger<GameLauncher> _logger;
 
     private readonly CancellationTokenSource _touchWatchStop = new();
@@ -107,6 +108,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _restarts = restarts;
         _placements = placements;
         _touches = touches;
+        _modifiers = new ModifierKeyRelease(windows.Controller);
         _logger = logger;
 
         // Fingers scrcpy left down on a game's display: the map then ignored
@@ -2391,6 +2393,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     public event EventHandler<StuckTouchReport>? TouchReported;
 
+    /// <summary>Every open game window, docked in the frame or free.</summary>
+    private IEnumerable<nint> GameWindows() =>
+        _sessions.ActiveSessions.Select(s => s.WindowHandle).Where(h => h != 0);
+
     /// <summary>Game windows open and drawn, with the display they draw.</summary>
     private IReadOnlyList<WatchedDisplay> WatchedDisplays() =>
         [.. _sessions.ActiveSessions
@@ -3278,6 +3284,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 _sessions.ActiveSessions.Select(s => new SessionWindow(s.WindowHandle, s.ProcessId)),
                 ours);
 
+            // Back on one of ours by a click, a tab or Alt+Tab: a game window
+            // left behind by a shortcut may still believe Ctrl is down.
+            if (mine)
+            {
+                _ = _modifiers.ReleaseUnlessHeld(GameWindows());
+            }
+
             // The toggle is logged: without it, shortcuts turned off
             // by an unrecognized window left no trace, and the
             // symptom looked like a shortcut that "no longer works".
@@ -3344,6 +3357,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         try
         {
+            // First, before the shortcut moves the focus: the window it was
+            // typed in got the Ctrl press, and the release will go elsewhere.
+            _modifiers.Release(GameWindows());
+
             switch (action)
             {
                 case HotkeyAction.ToggleConfigurator:

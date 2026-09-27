@@ -246,6 +246,35 @@ public sealed partial class Win32WindowController : IWindowController
         _ = PostMessage(handle, WmLButtonUp, 0, (y << 16) | (x & 0xFFFF));
     }
 
+    public bool IsModifierKeyDown() =>
+        (GetAsyncKeyState(VkControl) & KeyDown) != 0
+        || (GetAsyncKeyState(VkShift) & KeyDown) != 0;
+
+    public void ReleaseModifierKeys(nint handle)
+    {
+        if (handle == 0 || !IsWindowCore(handle))
+        {
+            return;
+        }
+
+        // The window tells the two keys of each pair apart by their scan
+        // code and the extended bit, so each one gets its own release: the
+        // right Ctrl is the left one's code, extended.
+        foreach (var (key, scan, extended) in ModifierKeys)
+        {
+            var lParam = 1L | ((long)scan << 16) | (extended ? 1L << 24 : 0) | (1L << 30) | (1L << 31);
+            _ = PostMessage(handle, WmKeyUp, key, (nint)lParam);
+        }
+    }
+
+    private static readonly (int Key, int Scan, bool Extended)[] ModifierKeys =
+    [
+        (VkControl, 0x1D, false),
+        (VkControl, 0x1D, true),
+        (VkShift, 0x2A, false),
+        (VkShift, 0x36, false),
+    ];
+
     public void Focus(nint handle)
     {
         if (handle == 0)
@@ -446,6 +475,9 @@ public sealed partial class Win32WindowController : IWindowController
     private const nint HwndTop = 0;
     private const uint WmClose = 0x0010;
     private const uint WmLButtonUp = 0x0202;
+    private const uint WmKeyUp = 0x0101;
+    private const int VkShift = 0x10;
+    private const int VkControl = 0x11;
     private const int VkLButton = 0x01;
     private const int VkRButton = 0x02;
     private const int VkMButton = 0x04;

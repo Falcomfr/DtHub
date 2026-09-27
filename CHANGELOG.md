@@ -14,11 +14,14 @@ French.
 
 ### Fixed
 
-- An account could stop moving its character: clicks on the map did nothing
-  while the menus still opened, and dragging the map zoomed it. The phone kept
-  fingers down that the mouse had long let go of. DT Hub now lifts them by
-  itself, and if that is not enough the account's line says to click the map a
-  few times.
+- An account could stop moving its character after a Ctrl+Tab: clicks on the
+  map did nothing while the menus still opened, and dragging the map zoomed it.
+  The window left behind never saw Ctrl come back up, and turned every click
+  into a two finger pinch. DT Hub now tells it, at every shortcut and whenever
+  a game window comes back to the front.
+- Should fingers still be left down on an account's screen, DT Hub lifts them
+  by itself, and if that is not enough the account's line says to click the map
+  a few times.
 
 ## [0.5.0] - 2026-09-27
 
