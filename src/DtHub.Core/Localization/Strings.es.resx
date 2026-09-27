@@ -517,11 +517,8 @@ Cruza las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
   <data name="DeviceMemoryCritical" xml:space="preserve">
     <value>Al teléfono casi no le queda memoria ({0} GB disponibles): Android cerrará aplicaciones, el juego incluido. Cierra las demás aplicaciones o reinicia el teléfono.</value>
   </data>
-  <data name="VitalsMemory" xml:space="preserve">
-    <value>memoria llena</value>
-  </data>
   <data name="VitalsMemoryTip" xml:space="preserve">
-    <value>{0} GB de memoria disponibles</value>
+    <value>memoria llena, {0} GB disponibles</value>
   </data>
   <data name="DeviceStorageCritical" xml:space="preserve">
     <value>Solo quedan {0} GB libres en el teléfono. Haz sitio antes de jugar: el juego fallará.</value>

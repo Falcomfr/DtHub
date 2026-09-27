@@ -386,12 +386,7 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     /// </summary>
     public bool HasMemory => _vitals?.Memory is { IsLow: true } && IsConnected;
 
-    /// <summary>"mémoire saturée".</summary>
-    public string MemoryText => _vitals?.Memory is { IsLow: true }
-        ? Strings.Get("VitalsMemory")
-        : string.Empty;
-
-    /// <summary>What is still available, on hover.</summary>
+    /// <summary>On hover of the chip: "mémoire saturée, 4,4 Go disponibles".</summary>
     public string MemoryTip => _vitals?.Memory is { } memory
         ? Strings.Format("VitalsMemoryTip", memory.AvailableGigabytes)
         : string.Empty;
@@ -473,7 +468,6 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
         OnPropertyChanged(nameof(StorageText));
         OnPropertyChanged(nameof(StorageBrushKey));
         OnPropertyChanged(nameof(HasMemory));
-        OnPropertyChanged(nameof(MemoryText));
         OnPropertyChanged(nameof(MemoryTip));
         OnPropertyChanged(nameof(MemoryBrushKey));
         OnPropertyChanged(nameof(HasLink));

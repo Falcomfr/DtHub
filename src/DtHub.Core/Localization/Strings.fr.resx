@@ -517,11 +517,8 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
   <data name="DeviceMemoryCritical" xml:space="preserve">
     <value>Mémoire du téléphone presque épuisée ({0} Go disponibles) : Android va fermer des applications, le jeu compris. Fermez les autres applications ou redémarrez le téléphone.</value>
   </data>
-  <data name="VitalsMemory" xml:space="preserve">
-    <value>mémoire saturée</value>
-  </data>
   <data name="VitalsMemoryTip" xml:space="preserve">
-    <value>{0} Go de mémoire disponible</value>
+    <value>mémoire saturée, {0} Go disponibles</value>
   </data>
   <data name="DeviceStorageCritical" xml:space="preserve">
     <value>Il ne reste que {0} Go libres sur le téléphone. Faites de la place avant de jouer : le jeu échouera.</value>
