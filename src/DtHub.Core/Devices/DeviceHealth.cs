@@ -65,7 +65,8 @@ public static class DeviceHealth
         WifiLink? link,
         bool lockedWindows = false,
         bool unpreparedBattery = false,
-        bool deadInput = false)
+        bool deadInput = false,
+        MemoryReading? memory = null)
     {
         List<HealthFinding> findings = [];
 
@@ -97,6 +98,16 @@ public static class DeviceHealth
             findings.Add(new HealthFinding(
                 storage.FreeBytes <= StorageReading.Critical ? HealthSeverity.Serious : HealthSeverity.Warning,
                 room));
+        }
+
+        // Beside the free space and for the same reason: nothing is broken
+        // yet, but everything slows. It is the answer to "it lags after an
+        // hour", which was put down to DT Hub the first time.
+        if (memory?.Describe() is { } tight)
+        {
+            findings.Add(new HealthFinding(
+                memory.Level >= MemoryPressure.Critical ? HealthSeverity.Serious : HealthSeverity.Warning,
+                tight));
         }
 
         if (heat?.Describe() is { } warm)

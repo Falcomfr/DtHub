@@ -24,8 +24,10 @@
 /// <param name="Heat">Thermal state, never a temperature in degrees.</param>
 /// <param name="Storage">Free space on the data partition.</param>
 /// <param name="Link">The Wi-Fi link, absent over USB.</param>
+/// <param name="Memory">Android's verdict on its memory.</param>
 public sealed record DeviceVitals(
     BatteryReading? Battery,
     ThermalReading? Heat,
     StorageReading? Storage,
-    WifiLink? Link);
+    WifiLink? Link,
+    MemoryReading? Memory = null);

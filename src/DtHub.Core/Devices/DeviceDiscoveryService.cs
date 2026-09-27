@@ -484,6 +484,66 @@ public sealed class DeviceDiscoveryService : IDisposable
     /// </summary>
     private static readonly TimeSpan StorageFreshness = TimeSpan.FromMinutes(15);
 
+    private readonly Dictionary<string, (MemoryReading? Reading, System.Diagnostics.Stopwatch Vu)> _memory =
+        new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// A minute, like the battery: memory moves within a session, and the
+    /// two readings cost about a hundred milliseconds together.
+    /// </summary>
+    private static readonly TimeSpan MemoryFreshness = TimeSpan.FromMinutes(1);
+
+    /// <summary>
+    /// Android's verdict on its memory, or <c>null</c> if the device says
+    /// nothing.
+    /// </summary>
+    public async Task<MemoryReading?> GetMemoryAsync(
+        string serial,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(serial))
+        {
+            return null;
+        }
+
+        if (_memory.TryGetValue(serial, out var garde) && garde.Vu.Elapsed < MemoryFreshness)
+        {
+            return garde.Reading;
+        }
+
+        try
+        {
+            var meminfo = await _adb
+                .ShellAsync(serial, ["cat", "/proc/meminfo"], cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            string? factor = null;
+
+            try
+            {
+                factor = await _adb
+                    .ShellAsync(serial, ["am", "memory-factor", "show"], cancellationToken: cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (AdbException)
+            {
+                // Android 11 has no such command: the reading falls back on
+                // the share available, which is why it is read apart.
+            }
+
+            var reading = MemoryReading.Parse(factor, meminfo);
+
+            _memory[serial] = (reading, System.Diagnostics.Stopwatch.StartNew());
+
+            return reading;
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // Same silence taken deliberately as for the other side probes.
+            return null;
+        }
+    }
+
     /// <summary>
     /// What the device says about its free space, or <c>null</c> if it says
     /// nothing.

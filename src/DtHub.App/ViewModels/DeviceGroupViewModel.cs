@@ -380,6 +380,31 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     };
 
     /// <summary>
+    /// True when Android says its memory is low or critical. Same rule as
+    /// the free space: a phone keeps its memory full of cache on purpose,
+    /// and only the verdict of the system says when it is short.
+    /// </summary>
+    public bool HasMemory => _vitals?.Memory is { IsLow: true } && IsConnected;
+
+    /// <summary>"mémoire saturée".</summary>
+    public string MemoryText => _vitals?.Memory is { IsLow: true }
+        ? Strings.Get("VitalsMemory")
+        : string.Empty;
+
+    /// <summary>What is still available, on hover.</summary>
+    public string MemoryTip => _vitals?.Memory is { } memory
+        ? Strings.Format("VitalsMemoryTip", memory.AvailableGigabytes)
+        : string.Empty;
+
+    /// <inheritdoc cref="BatteryBrushKey" />
+    public string MemoryBrushKey => _vitals?.Memory switch
+    {
+        { Level: MemoryPressure.Critical } => "DangerBrush",
+        { IsLow: true } => "WarningBrush",
+        _ => "TextMutedBrush",
+    };
+
+    /// <summary>
     /// True when there is a Wi-Fi link to describe, which there is not
     /// over USB.
     /// </summary>
@@ -447,6 +472,10 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
         OnPropertyChanged(nameof(HasStorage));
         OnPropertyChanged(nameof(StorageText));
         OnPropertyChanged(nameof(StorageBrushKey));
+        OnPropertyChanged(nameof(HasMemory));
+        OnPropertyChanged(nameof(MemoryText));
+        OnPropertyChanged(nameof(MemoryTip));
+        OnPropertyChanged(nameof(MemoryBrushKey));
         OnPropertyChanged(nameof(HasLink));
         OnPropertyChanged(nameof(LinkText));
         OnPropertyChanged(nameof(LinkSummary));
@@ -505,6 +534,7 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
         // until one of its four readings happened to move.
         OnPropertyChanged(nameof(HasHeat));
         OnPropertyChanged(nameof(HasStorage));
+        OnPropertyChanged(nameof(HasMemory));
         OnPropertyChanged(nameof(HasLink));
     }
 

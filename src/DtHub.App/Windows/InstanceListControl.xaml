@@ -162,6 +162,15 @@
                              Visibility="{Binding Device.HasStorage,
                                                   Converter={StaticResource BoolToVisibility}}" />
 
+                  <TextBlock Text="{Binding Device.MemoryText}" Style="{StaticResource Muted}"
+                             FontSize="{StaticResource FontTiny}" Margin="10,1,0,0"
+                             TextWrapping="NoWrap" VerticalAlignment="Center"
+                             ToolTip="{Binding Device.MemoryTip}"
+                             Foreground="{Binding Device.MemoryBrushKey,
+                                                  Converter={StaticResource KeyToBrush}}"
+                             Visibility="{Binding Device.HasMemory,
+                                                  Converter={StaticResource BoolToVisibility}}" />
+
                   <TextBlock Text="{Binding Device.LinkText}" Style="{StaticResource Muted}"
                              FontSize="{StaticResource FontTiny}" Margin="10,1,0,0"
                              TextWrapping="NoWrap" VerticalAlignment="Center"

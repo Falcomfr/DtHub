@@ -866,6 +866,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// Devices whose lack of storage has already been logged.
     /// </summary>
     private readonly HashSet<string> _loggedStorage = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, MemoryPressure> _loggedMemory = new(StringComparer.Ordinal);
 
     /// <summary>
     /// Rereads the devices' state and draws a summary from it.
@@ -935,6 +936,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             _loggedHeat.Clear();
             _loggedBattery.Clear();
             _loggedStorage.Clear();
+            _loggedMemory.Clear();
             return;
         }
 
@@ -946,12 +948,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
             var battery = await _devices.GetBatteryAsync(serial, cancellationToken).ConfigureAwait(false);
             var storage = await _devices.GetStorageAsync(serial, cancellationToken).ConfigureAwait(false);
             var link = await _devices.GetWifiLinkAsync(serial, cancellationToken).ConfigureAwait(false);
+            var memory = await _devices.GetMemoryAsync(serial, cancellationToken).ConfigureAwait(false);
 
             // The same four, kept whole. The findings below turn them
             // into sentences and keep only those; the panel needs the
             // state as well, and asking the phone twice for it would
             // double the slowest part of the sweep.
-            _vitals[serial] = new DeviceVitals(battery, heat, storage, link);
+            _vitals[serial] = new DeviceVitals(battery, heat, storage, link, memory);
 
             // Do this device's windows show the lock icon rather
             // than the game? The question is only asked where there
@@ -990,12 +993,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 && await Inputs(serial, cancellationToken).ConfigureAwait(false) == InputInjection.Denied;
 
             Trace(serial, heat, battery, storage);
+            TraceMemory(serial, memory);
             TraceLock(serial, locked);
             TracePreparation(serial, unprepared);
             TraceDeadInput(serial, dead);
 
             var seen = DeviceHealth.Review(
-                heat, battery, storage, link, locked, unprepared, dead);
+                heat, battery, storage, link, locked, unprepared, dead, memory);
 
             if (DeviceHealth.Every(seen) is { } said)
             {
@@ -1191,6 +1195,25 @@ public sealed partial class GameLauncher : IAsyncDisposable
         else
         {
             _ = _loggedDeadInput.Remove(serial);
+        }
+    }
+
+    /// <summary>
+    /// Logs Android's memory verdict whenever it changes, back to normal
+    /// included: the next "it lags after an hour" will show in the log
+    /// whether the phone was short of memory at the time.
+    /// </summary>
+    private void TraceMemory(string serial, MemoryReading? memory)
+    {
+        if (memory is null)
+        {
+            return;
+        }
+
+        if (_loggedMemory.TryGetValue(serial, out var already) ? already != memory.Level : memory.Level != MemoryPressure.Normal)
+        {
+            _loggedMemory[serial] = memory.Level;
+            LogMemory(serial, memory.Level.ToString(), memory.AvailableGigabytes);
         }
     }
 
@@ -3522,6 +3545,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "Relance courte de {instance} impossible ({reason}) : la fenêtre est rouverte.")]
     private partial void LogRestartFallback(string instance, string reason);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Mémoire de l'appareil {serial} selon Android : {level}, {available} Go disponibles.")]
+    private partial void LogMemory(string serial, string level, double available);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Un raccourci n'a pas pu être traité.")]
     private partial void LogHotkeyFailure(Exception exception);

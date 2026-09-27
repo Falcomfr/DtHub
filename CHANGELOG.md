@@ -10,6 +10,14 @@ published on GitHub and shown inside the application, and those exist in a
 single version. The 0.2.0 and 0.1.0 sections predate that rule and stay in
 French.
 
+## [Unreleased]
+
+### Added
+
+- The phone's line now says when its memory is full, as Android itself judges
+  it, with what is still available: that is when actions start to lag, after
+  an hour or two of play.
+
 ## [0.5.1] - 2026-09-27
 
 ### Fixed
