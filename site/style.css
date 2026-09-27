@@ -45,11 +45,13 @@ a:hover { color: #a8cfff; }
 
 .barre {
   display: flex; align-items: center; justify-content: space-between;
-  gap: 16px; padding: 20px 0 0; font-size: 15px;
+  flex-wrap: wrap; gap: 10px 16px; padding: 20px 0 0; font-size: 15px;
 }
-.barre .marque { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 18px; }
+.barre .marque { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 18px; white-space: nowrap; }
 .barre .marque img { width: 30px; height: 30px; }
-.barre nav { display: flex; align-items: center; gap: 16px; }
+/* Four links no longer fit beside the name on a phone: they wrap under it
+   rather than push the page sideways. */
+.barre nav { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; }
 .barre nav a { display: inline-flex; align-items: center; }
 .barre nav a .ic { margin-right: 6px; }
 .barre nav a[aria-current] { color: var(--doux); text-decoration: none; }
@@ -199,6 +201,13 @@ header.hero::before {
   left: -12%; right: -12%; top: -70px; height: 340px;
   background: radial-gradient(60% 70% at 30% 0%, rgba(240, 180, 41, .10), transparent 70%);
   pointer-events: none;
+}
+
+/* It reaches 12 % past the column on each side. The margins absorb that on
+ * a desktop; on a phone there are none, and the page scrolled sideways by
+ * the width of a glow nobody sees. */
+@media (max-width: 800px) {
+  header.hero::before { left: 0; right: 0; }
 }
 
 /* The warning that greets a first launch, said in two lines under the
