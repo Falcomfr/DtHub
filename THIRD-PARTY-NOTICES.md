@@ -18,6 +18,7 @@ No copyright notice or third-party licence text may be removed.
 | Microsoft.Extensions.* | MIT | NuGet packages |
 | Microsoft.Web.WebView2 | Proprietary Microsoft licence | NuGet package, engine provided by Windows |
 | papycha.fr logo | Author's agreement, see below | File embedded in the executable |
+| Discord logo | Discord's brand guidelines, see below | Vector outline in the configurator's XAML |
 | papycha.fr quest data | Proprietary, see below | File embedded in the executable |
 | xUnit, coverlet | Apache License 2.0, MIT | Test dependencies, not distributed |
 
@@ -118,6 +119,21 @@ managed bindings, is distributed with the executable; the rendering
 engine itself is **not** distributed by DT Hub, it is provided with
 Windows 11 and reaches Windows 10 through Microsoft Edge. Its absence is
 detected and reported to the user; it only prevents the guide windows.
+
+## Discord logo
+
+- Source: Discord's brand kit, https://discord.com/branding
+- Where: the key that opens the DT Hub server, at the foot of the
+  configurator, drawn as a vector outline in `ConfiguratorWindow.xaml`
+
+Discord's brand guidelines let a community use the mark to link to its
+own server, which is all this key does. It is shown whole and
+unaltered, in a single colour, as those guidelines allow; the colour is
+the interface's text colour so the key stays as quiet as its
+neighbours.
+
+**The mark is not covered by DT Hub's MIT licence.** It remains
+Discord's trademark. DT Hub is not affiliated with Discord.
 
 ## papycha.fr logo
 

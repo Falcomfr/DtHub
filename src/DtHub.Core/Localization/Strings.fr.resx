@@ -723,6 +723,9 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
   <data name="AlmanaxTip" xml:space="preserve">
     <value>L'offrande et le bonus du jour pour DOFUS Touch, lus sur le portail d'Ankama.</value>
   </data>
+  <data name="DiscordTip" xml:space="preserve">
+    <value>Rejoindre le serveur Discord de DT Hub : nouveautés, questions, aide.</value>
+  </data>
   <data name="AlmanaxWindowTitle" xml:space="preserve">
     <value>Almanax - DOFUS Touch</value>
   </data>
