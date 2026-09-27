@@ -286,4 +286,49 @@ public sealed class DeviceRegistryTests : IDisposable
 
         Assert.Contains("MATERIEL123", (await relu.GetSnapshotAsync(CancellationToken.None)).Discarded);
     }
+
+    [Fact]
+    public async Task Une_identite_batie_sur_une_adresse_n_est_pas_retenue()
+    {
+        // An address is not a phone. It is what ResolveId falls back on
+        // when a wireless device answers no getprop, and it dies at the
+        // next network lease: writing it down turns a passing failure
+        // into a line that can never match anything again.
+        var passager = Device(
+            id: DeviceFactory.FallbackIdPrefix + "192.168.1.14:39461",
+            serial: "192.168.1.14:39461");
+
+        await _registry.UpsertRangeAsync([passager, Device()], CancellationToken.None);
+
+        var retenus = await _registry.GetKnownAsync(CancellationToken.None);
+
+        Assert.Equal(["MATERIEL123"], retenus.Select(d => d.Id));
+    }
+
+    [Fact]
+    public async Task Une_adresse_deja_sur_disque_disparait_a_la_lecture()
+    {
+        // The observed case: the phone had been seen at 192.168.1.14
+        // without answering, then came back three minutes later at
+        // another address and under its real serial. The first line
+        // stayed, offline forever, under its bare model number.
+        await _registry.UpsertRangeAsync([Device()], CancellationToken.None);
+
+        var document = await _store.LoadAsync(CancellationToken.None);
+
+        document.Devices.Add(new StoredDevice
+        {
+            Id = DeviceFactory.FallbackIdPrefix + "192.168.1.14:39461",
+            Serial = "192.168.1.14:39461",
+            Model = "23078PND5G",
+            DeviceCodename = "corot",
+        });
+
+        await _store.SaveAsync(document, CancellationToken.None);
+
+        var relu = new DeviceRegistry(_store);
+        var retenus = await relu.GetKnownAsync(CancellationToken.None);
+
+        Assert.Equal(["MATERIEL123"], retenus.Select(d => d.Id));
+    }
 }

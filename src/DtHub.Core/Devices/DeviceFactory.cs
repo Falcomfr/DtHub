@@ -16,6 +16,24 @@ public static class DeviceFactory
     public const string FallbackIdPrefix = "adb:";
 
     /// <summary>
+    /// True when this identity is an address rather than a phone.
+    ///
+    /// **It is good for the session and for nothing longer.** The
+    /// fallback only applies to a wireless device that answered no
+    /// getprop and announces no serial in its name, so what is left to
+    /// name it by is the address it happens to hold. The next lease
+    /// gives it another, the phone comes back under its real number,
+    /// and the old line stays behind: offline forever, with neither
+    /// maker nor market name, since nothing ever answered for it.
+    ///
+    /// Nothing is lost by refusing to write it down. Such a device
+    /// carries no name, no pairing and no choice of the user's, and it
+    /// is remembered properly the moment it answers.
+    /// </summary>
+    public static bool IsProvisionalId(string? id) =>
+        id is not null && id.StartsWith(FallbackIdPrefix, StringComparison.Ordinal);
+
+    /// <summary>
     /// Merges the three sources. The user's choices, carried by
     /// <paramref name="known"/>, are never overwritten by a
     /// discovery.

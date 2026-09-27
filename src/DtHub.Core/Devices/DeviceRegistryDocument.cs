@@ -33,6 +33,23 @@ public sealed class DeviceRegistryDocument
     public List<string> Discarded { get; set; } = [];
 
     /// <summary>
+    /// Drops the lines named after an address, and returns true if the
+    /// file changed.
+    ///
+    /// Unlike <see cref="MergeDuplicates" /> this is not a migration
+    /// and runs on every read: the lines it removes are produced by the
+    /// current version, every time a wireless phone is seen at a moment
+    /// when it cannot answer. One was found in the field as
+    /// "23078PND5G, offline", three minutes older than the very same
+    /// phone listed properly right above it.
+    ///
+    /// Nothing of the user's is lost by it, for the reason set out in
+    /// <see cref="DeviceFactory.IsProvisionalId" />.
+    /// </summary>
+    public bool DropProvisional() =>
+        Devices.RemoveAll(d => DeviceFactory.IsProvisionalId(d.Id)) > 0;
+
+    /// <summary>
     /// Merges the duplicates left by version 1, and returns true if the
     /// file changed.
     ///

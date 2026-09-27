@@ -31,8 +31,16 @@ public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
     {
         var document = await _store.LoadAsync(cancellationToken).ConfigureAwait(false);
 
-        if (document.SchemaVersion < DeviceRegistryDocument.CurrentSchemaVersion
-            && document.MergeDuplicates())
+        var migrated = document.SchemaVersion < DeviceRegistryDocument.CurrentSchemaVersion
+            && document.MergeDuplicates();
+
+        // Not gated on the schema version: these lines are written by
+        // the current version too, so a file already up to date can
+        // carry them. Sweeping them on read is what clears the ones
+        // saved before the refusal to write them existed.
+        var dropped = document.DropProvisional();
+
+        if (migrated || dropped)
         {
             document.SchemaVersion = DeviceRegistryDocument.CurrentSchemaVersion;
 
@@ -54,7 +62,14 @@ public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
     {
         ArgumentNullException.ThrowIfNull(devices);
 
-        var incoming = devices.Where(d => !string.IsNullOrEmpty(d.Id)).ToList();
+        // An identity built on an address is refused here rather than
+        // cleaned up later: it is good until the next network lease,
+        // and writing it down is what leaves a line nothing can ever
+        // match again.
+        var incoming = devices
+            .Where(d => !string.IsNullOrEmpty(d.Id) && !DeviceFactory.IsProvisionalId(d.Id))
+            .ToList();
+
         if (incoming.Count == 0)
         {
             return;
