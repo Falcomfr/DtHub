@@ -16,6 +16,13 @@ trim_trailing_whitespace = true
 # LF, because that is already what git stores under "* text=auto".
 end_of_line = lf
 
+# Except git's own files, which git reads byte for byte: a BOM glues itself
+# to the first line, and "eol is not a valid attribute name" was the only
+# sign of it. Harmless while that line is a comment, silent the day it is a
+# rule.
+[.git{attributes,ignore}]
+charset = utf-8
+
 # Except the Windows scripts, which an older cmd.exe reads wrong in LF.
 # Same rule as .gitattributes, which marks them "eol=crlf".
 [*.{cmd,ps1}]

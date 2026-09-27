@@ -1,4 +1,4 @@
-﻿# **"eol=lf" and not "text=auto" alone, and that is a fix.**
+# **"eol=lf" and not "text=auto" alone, and that is a fix.**
 #
 # With "text=auto", git does store LF but leaves each machine to decide what
 # it writes on disk. GitHub's Windows runners have "core.autocrlf=true", so
