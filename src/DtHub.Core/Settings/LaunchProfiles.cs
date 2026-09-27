@@ -67,6 +67,28 @@ public static class LaunchProfiles
         Normalize(defaultProfile) ?? Strings.Get("Profiles");
 
     /// <summary>
+    /// The name of the profile kept for startup, empty if there is
+    /// none.
+    ///
+    /// **It is read from the settings alone.** The panel used to take
+    /// it from the rebuilt row, which meant waiting for the sweep that
+    /// asks the phones, some three seconds. For those three seconds the
+    /// button carried the generic word, which is also what it carries
+    /// when no profile is kept: nothing told "not known yet" from
+    /// "none", and the button stated the second while the first was
+    /// true. The same confusion once stamped every phone "game not
+    /// installed" during a sweep, for the same reason.
+    ///
+    /// The name returned is the stored profile's own, not the setting's
+    /// spelling, so the button and the highlighted line cannot diverge
+    /// over a difference of case or of edge spaces.
+    /// </summary>
+    public static string ActiveName(
+        IEnumerable<StoredLaunchProfile>? profiles,
+        string? defaultProfile) =>
+        Find(profiles, defaultProfile)?.Name ?? string.Empty;
+
+    /// <summary>
     /// The profile with this name, or <c>null</c>.
     ///
     /// Case is ignored: "Duo" and "duo" would be two indistinguishable

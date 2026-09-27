@@ -294,10 +294,15 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// <summary>
     /// Name of the profile kept for startup, empty if there is none.
     ///
-    /// Taken from the row itself and not from the setting: this is how
-    /// the button says exactly what the list shows in its accent,
-    /// without a difference in case or spaces being able to make them
-    /// diverge.
+    /// Taken from the stored profile and not from the setting's own
+    /// spelling: this is how the button says exactly what the list
+    /// shows in its accent, without a difference in case or spaces
+    /// being able to make them diverge.
+    ///
+    /// It is set twice on purpose. Once at the top of the sweep, from
+    /// the settings alone, so the button is right before the phones
+    /// have answered; once again when the rows are rebuilt, which
+    /// costs nothing since both resolve to the same stored name.
     /// </summary>
     public string ActiveProfileName { get; private set; } = string.Empty;
 
@@ -317,6 +322,36 @@ public sealed partial class InstanceListViewModel : ObservableObject
     public string ProfilesTooltip => HasActiveProfile
         ? Strings.Format("ProfilesActiveTip", ActiveProfileName)
         : Strings.Get("ProfilesTip");
+
+    /// <summary>
+    /// Puts the kept profile's name on the button, without touching the
+    /// rows.
+    ///
+    /// The rows cannot be built this early: their summaries quote the
+    /// account names, which are only known once the phones have
+    /// answered. The button's name owes nothing to any of that, and
+    /// the settings are a local file the service already holds in
+    /// memory, so it is available at once.
+    /// </summary>
+    private async Task SyncActiveProfileAsync(CancellationToken cancellationToken = default)
+    {
+        var settings = await _settings.GetAsync(cancellationToken).ConfigureAwait(true);
+        var name = LaunchProfiles.ActiveName(
+            settings.LaunchProfiles,
+            settings.DefaultLaunchProfile);
+
+        if (string.Equals(name, ActiveProfileName, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        ActiveProfileName = name;
+
+        OnPropertyChanged(nameof(ActiveProfileName));
+        OnPropertyChanged(nameof(HasActiveProfile));
+        OnPropertyChanged(nameof(ProfilesButtonText));
+        OnPropertyChanged(nameof(ProfilesTooltip));
+    }
 
     /// <summary>
     /// Refreshes the saved profiles.
@@ -517,6 +552,12 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
         try
         {
+            // Before the phones are asked anything. The button's name
+            // comes from the settings file, which owes nothing to
+            // discovery, and reading it here is what keeps the button
+            // from spending the sweep saying no profile is kept.
+            await SyncActiveProfileAsync(cancellationToken).ConfigureAwait(true);
+
             var discovery = await _launcher.RefreshDevicesAsync(cancellationToken).ConfigureAwait(true);
 
             foreach (var device in discovery.Devices)

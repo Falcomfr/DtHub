@@ -213,4 +213,48 @@ public class LaunchProfilesTests
 
         Assert.Equal(LaunchProfiles.MaxNameLength, LaunchProfiles.ButtonLabel(long_).Length);
     }
+
+    [Fact]
+    public void Le_nom_actif_se_lit_sans_la_liste_des_comptes()
+    {
+        // This is what lets the button be right at startup. The name
+        // depends on the settings alone and never on the instances,
+        // which only exist once the phones have answered: the button
+        // used to wait for that sweep, and for those seconds it carried
+        // the generic word, which is also what it carries when no
+        // profile is kept at all. Nothing told the two apart.
+        List<StoredLaunchProfile> profils = [Profil("Duo pêche")];
+
+        Assert.Equal("Duo pêche", LaunchProfiles.ActiveName(profils, "Duo pêche"));
+    }
+
+    [Fact]
+    public void Le_nom_actif_vient_du_profil_stocke_et_non_du_reglage()
+    {
+        // Taken from the stored profile, never from the setting: the
+        // two may differ in case or in edge spaces, and the button
+        // would then not say what the highlighted line says.
+        List<StoredLaunchProfile> profils = [Profil("Duo pêche", Principal, XSpace)];
+
+        Assert.Equal("Duo pêche", LaunchProfiles.ActiveName(profils, "  duo PÊCHE "));
+    }
+
+    [Fact]
+    public void Sans_profil_par_defaut_le_nom_actif_est_vide()
+    {
+        List<StoredLaunchProfile> profils = [Profil("Duo pêche", Principal, XSpace)];
+
+        Assert.Equal(string.Empty, LaunchProfiles.ActiveName(profils, null));
+    }
+
+    [Fact]
+    public void Un_reglage_qui_ne_designe_plus_rien_donne_un_nom_vide()
+    {
+        // The profile was deleted and the setting kept its name. An
+        // empty name is already what stands for "none", and it is the
+        // honest answer here too.
+        List<StoredLaunchProfile> profils = [Profil("Duo pêche", Principal, XSpace)];
+
+        Assert.Equal(string.Empty, LaunchProfiles.ActiveName(profils, "Trio"));
+    }
 }
