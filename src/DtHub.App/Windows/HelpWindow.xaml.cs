@@ -21,5 +21,12 @@ public partial class HelpWindow : Window
         Loaded += async (_, _) => await _viewModel.InitializeAsync(CancellationToken.None).ConfigureAwait(true);
     }
 
+    /// <summary>
+    /// Opens the steps on this phone's brand instead of guessing from
+    /// whoever is answering. Called before showing, since the brand is
+    /// settled when the window loads.
+    /// </summary>
+    public void OpenFor(string? manufacturer) => _viewModel.OpenedFor = manufacturer;
+
     private void OnClose(object sender, RoutedEventArgs e) => Close();
 }

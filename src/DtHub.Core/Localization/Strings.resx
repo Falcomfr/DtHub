@@ -1941,7 +1941,22 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>This phone is announcing itself on the network but refuses this PC: it no longer recognises its key. Enabling wireless debugging is not enough, it has to be paired again. "Pair a new device", and on the phone "Pair device with pairing code".</value>
   </data>
   <data name="OfflineTip" xml:space="preserve">
+    <value>The phone must be on and its debugging active, over the cable or wirelessly depending on how it was attached. If you no longer remember which, plug it back in with its cable: that is the shortest way to see it appear again.</value>
+  </data>
+  <data name="OfflineTipWireless" xml:space="preserve">
     <value>The phone must be on, on the same Wi-Fi network as this PC, and its wireless debugging must be on. If all of that is true, then the pairing has been lost: pair it again with "Pair a new device". A phone forgets a PC on its own more often than you would think, and turning wireless debugging back on does not restore it.</value>
+  </data>
+  <data name="OfflineTipUsb" xml:space="preserve">
+    <value>The phone must be on, plugged in with its cable, and its USB debugging must be on. A charge-only cable carries no data: that is the most common failure, and nothing announces it. Try another cable and another port before looking further.</value>
+  </data>
+  <data name="OfflineHowUsb" xml:space="preserve">
+    <value>Check the cable, then USB debugging on the phone.</value>
+  </data>
+  <data name="OfflineHowWireless" xml:space="preserve">
+    <value>Check the Wi-Fi, then wireless debugging on the phone.</value>
+  </data>
+  <data name="OfflineHowUnknown" xml:space="preserve">
+    <value>Check that the phone is on and its debugging active.</value>
   </data>
   <data name="ToPairAgainHow" xml:space="preserve">
     <value>Through "Pair a new device", above.</value>

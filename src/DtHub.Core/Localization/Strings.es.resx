@@ -1941,7 +1941,22 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Este teléfono se anuncia en la red pero rechaza este PC: ya no reconoce su clave. Encender la depuración inalámbrica no basta, hay que volver a vincularlo. «Vincular un nuevo dispositivo», y en el teléfono «Vincular dispositivo con código de vinculación».</value>
   </data>
   <data name="OfflineTip" xml:space="preserve">
+    <value>El teléfono debe estar encendido y su depuración activa, por cable o de forma inalámbrica según cómo estuviera conectado. Si ya no recuerdas cuál era, vuelve a conectarlo con su cable: es el camino más corto para verlo aparecer de nuevo.</value>
+  </data>
+  <data name="OfflineTipWireless" xml:space="preserve">
     <value>El teléfono debe estar encendido, en la misma red Wi-Fi que este PC, y con la depuración inalámbrica activa. Si todo eso es cierto, la vinculación se ha perdido: vuelve a vincularlo con «Vincular un nuevo dispositivo». Un teléfono olvida un PC por su cuenta más a menudo de lo que parece, y volver a encender la depuración inalámbrica no la restablece.</value>
+  </data>
+  <data name="OfflineTipUsb" xml:space="preserve">
+    <value>El teléfono debe estar encendido, conectado con su cable, y con la depuración USB activa. Un cable solo de carga no transporta datos: es la avería más frecuente, y nada lo indica. Prueba otro cable y otro puerto antes de buscar más lejos.</value>
+  </data>
+  <data name="OfflineHowUsb" xml:space="preserve">
+    <value>Comprueba el cable y luego la depuración USB en el teléfono.</value>
+  </data>
+  <data name="OfflineHowWireless" xml:space="preserve">
+    <value>Comprueba el Wi-Fi y luego la depuración inalámbrica en el teléfono.</value>
+  </data>
+  <data name="OfflineHowUnknown" xml:space="preserve">
+    <value>Comprueba que el teléfono esté encendido y su depuración activa.</value>
   </data>
   <data name="ToPairAgainHow" xml:space="preserve">
     <value>Por «Vincular un nuevo dispositivo», arriba.</value>

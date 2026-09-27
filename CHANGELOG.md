@@ -19,6 +19,8 @@ French.
   free space when either is worth a word.
 - Every account carries a colour: on its row, on its tab in the frame, and on
   the window's own border and title bar. That last one needs Windows 11.
+- A phone that is not answering now says where to look, and carries a link to
+  the steps for its own brand.
 
 ### Changed
 
@@ -32,6 +34,10 @@ French.
 
 - A phone could be told its Wi-Fi channel was crowded when it was not.
 - The chosen language only reached what was built at startup.
+- The profiles button said no profile was kept until the phones had answered.
+- The advice for an unreachable phone spoke only of Wi-Fi, even on a cable.
+- The same phone could be listed twice, the second time offline and under its
+  bare model number, after its address had changed.
 
 ## [0.4.0] - 2026-09-14
 

@@ -3,6 +3,7 @@
 using DtHub.Core.Adb;
 using DtHub.Core.Devices;
 using DtHub.Core.Dofus;
+using DtHub.Core.Guidance;
 using DtHub.Core.Localization;
 
 namespace DtHub.App.ViewModels;
@@ -45,6 +46,14 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
 
     [ObservableProperty]
     private AdbConnectionKind _connection = AdbConnectionKind.Unknown;
+
+    /// <summary>
+    /// The maker, as the phone declared it. Kept only to open the help
+    /// on the right brand's steps: the paths differ enough from one to
+    /// the next that showing another's is worse than showing none.
+    /// </summary>
+    [ObservableProperty]
+    private string? _manufacturer;
 
     public bool IsConnected => State == AdbDeviceState.Device;
 
@@ -134,6 +143,11 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
         OnPropertyChanged(nameof(StatusText));
         OnPropertyChanged(nameof(StatusTip));
         OnPropertyChanged(nameof(StatusBrushKey));
+
+        // The two lines are exclusive: whichever appears, the other has
+        // to leave, or an unreachable phone would carry both.
+        OnPropertyChanged(nameof(ShowsOfflineHelp));
+        OnPropertyChanged(nameof(OfflineHow));
     }
 
     public string StatusText => _needsPairing && !IsConnected
@@ -165,10 +179,33 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     /// It cannot decide, but it can say in what order to look, instead
     /// of leaving it to guesswork. A user spent an evening on exactly
     /// this question, and the answer was the last one on the list.
+    ///
+    /// What it does know is how the phone was attached, which the
+    /// serial alone settles: the order to look in is not the same over
+    /// a cable as over the air.
     /// </summary>
     public string? StatusTip => !IsConnected
-        ? Strings.Get(_needsPairing ? "ToPairAgainTip" : "OfflineTip")
+        ? Strings.Get(_needsPairing ? "ToPairAgainTip" : OfflineAdvice.TipKey(Connection))
         : null;
+
+    /// <summary>
+    /// True when the line and the help button belong under this phone.
+    ///
+    /// Not for a phone still to be paired: that one already carries its
+    /// own line, and it names the one gesture that settles it. Sending
+    /// it to the debugging steps instead would be sending it to read
+    /// how to turn on what is demonstrably already on, since a phone
+    /// that asks to be paired again is announcing itself on the
+    /// network.
+    /// </summary>
+    public bool ShowsOfflineHelp => !IsConnected && !_needsPairing;
+
+    /// <summary>
+    /// The one line shown under an unreachable phone, where there used
+    /// to be nothing at all: the explanation existed, but only on
+    /// hover, so it was read by whoever already suspected it was there.
+    /// </summary>
+    public string OfflineHow => Strings.Get(OfflineAdvice.HowKey(Connection));
 
     public string StatusBrushKey => _needsPairing && !IsConnected
         ? "WarningBrush"
@@ -443,12 +480,24 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
         State = device.State;
         Connection = device.ConnectionKind;
 
+        // Kept so the help opens on this phone's own steps. The factory
+        // falls back on what was remembered, so a phone that is not
+        // answering still says whose it is.
+        Manufacturer = device.Manufacturer;
+
         OnPropertyChanged(nameof(IsConnected));
         OnPropertyChanged(nameof(HasNoGame));
         OnPropertyChanged(nameof(IsLookingForGames));
         OnPropertyChanged(nameof(StatusText));
         OnPropertyChanged(nameof(StatusBrushKey));
         OnPropertyChanged(nameof(HasBattery));
+
+        // The tip was never raised here: a phone that came back kept
+        // the sentence explaining why it was away. The line and the
+        // button follow the same three states, so they go with it.
+        OnPropertyChanged(nameof(StatusTip));
+        OnPropertyChanged(nameof(ShowsOfflineHelp));
+        OnPropertyChanged(nameof(OfflineHow));
 
         // The four vitals are gated on the connection as well, and
         // SetVitals returns early when the readings have not changed:

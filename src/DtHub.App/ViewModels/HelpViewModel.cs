@@ -29,11 +29,28 @@ public sealed partial class HelpViewModel : ObservableObject
     public bool HasWarning => !string.IsNullOrWhiteSpace(Brand.Warning);
 
     /// <summary>
+    /// The maker of the phone this help was opened for, when it was
+    /// opened from one rather than from the pairing window.
+    /// </summary>
+    public string? OpenedFor { get; set; }
+
+    /// <summary>
     /// Preselects the brand of an already known phone: a second
     /// device of the same brand is often added.
+    ///
+    /// When the help was opened from one phone in particular, that one
+    /// wins and nothing is discovered: it is the phone whose steps are
+    /// wanted, and it is precisely the one that is not answering, so
+    /// asking the others would name a brand that is not its own.
     /// </summary>
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
+        if (!string.IsNullOrWhiteSpace(OpenedFor))
+        {
+            Brand = PhoneBrands.FromManufacturer(OpenedFor);
+            return;
+        }
+
         try
         {
             var discovery = await _devices.RefreshAsync(cancellationToken).ConfigureAwait(true);

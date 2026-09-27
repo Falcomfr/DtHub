@@ -796,6 +796,26 @@
                          Foreground="{DynamicResource WarningBrush}"
                          Visibility="{Binding NeedsPairing,
                                               Converter={StaticResource BoolToVisibility}}" />
+
+              <!-- Where to look, on a phone that has simply stopped
+                   answering. The sentence already existed but only on
+                   hover, so it reached whoever already suspected it was
+                   there. It stays muted: a phone that is off is not an
+                   alarm. The link opens the full steps, on this phone's
+                   own brand. -->
+              <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal"
+                          Margin="0,1,0,2"
+                          Visibility="{Binding ShowsOfflineHelp,
+                                               Converter={StaticResource BoolToVisibility}}">
+                <TextBlock Text="{Binding OfflineHow}" Style="{StaticResource Muted}"
+                           FontSize="{StaticResource FontTiny}" VerticalAlignment="Center"
+                           ToolTip="{Binding StatusTip}" />
+
+                <Button Style="{StaticResource LinkButton}" Content="{loc:T Help}"
+                        Margin="6,0,0,0" VerticalAlignment="Center"
+                        FontSize="{StaticResource FontTiny}"
+                        ToolTip="{loc:T HelpTip}" Click="OnDeviceHelp" />
+              </StackPanel>
             </Grid>
           </DataTemplate>
         </ItemsControl.ItemTemplate>

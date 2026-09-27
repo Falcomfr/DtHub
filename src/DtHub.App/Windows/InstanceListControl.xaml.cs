@@ -7,6 +7,8 @@ using System.Windows.Media;
 
 using DtHub.App.ViewModels;
 
+using Microsoft.Extensions.DependencyInjection;
+
 namespace DtHub.App.Windows;
 
 /// <summary>
@@ -248,5 +250,27 @@ public partial class InstanceListControl : UserControl
             binding.UpdateTarget();
             e.Handled = true;
         }
+    }
+
+    /// <summary>
+    /// Opens the steps to follow on the phone that is not answering.
+    ///
+    /// Here rather than in the view model, as everywhere else a window
+    /// is opened in this application. The brand travels with it: the
+    /// help otherwise asks discovery, which on an unreachable phone
+    /// would answer with somebody else's brand or with nothing.
+    /// </summary>
+    private void OnDeviceHelp(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { DataContext: DeviceGroupViewModel device })
+        {
+            return;
+        }
+
+        var help = AppHost.Services.GetRequiredService<HelpWindow>();
+
+        help.OpenFor(device.Manufacturer);
+        help.Owner = Window.GetWindow(this);
+        help.ShowDialog();
     }
 }

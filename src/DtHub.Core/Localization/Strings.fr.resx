@@ -1941,7 +1941,22 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>Ce téléphone s'annonce sur le réseau mais refuse ce PC : il ne reconnaît plus sa clé. Rallumer le débogage sans fil ne suffit pas, il faut refaire l'association. « Associer un nouvel appareil », et sur le téléphone « Associer l'appareil avec un code d'association ».</value>
   </data>
   <data name="OfflineTip" xml:space="preserve">
+    <value>Le téléphone doit être allumé et son débogage actif, par câble ou sans fil selon la façon dont il était relié. Si vous ne savez plus laquelle, rebranchez-le par son câble : c'est le chemin le plus court pour le revoir apparaître.</value>
+  </data>
+  <data name="OfflineTipWireless" xml:space="preserve">
     <value>Le téléphone doit être allumé, sur le même réseau Wi-Fi que ce PC, et son débogage sans fil actif. Si tout cela est vrai, c'est que l'association a été perdue : réassociez-le avec « Associer un nouvel appareil ». Un téléphone oublie un PC tout seul plus souvent qu'on ne croit, et rallumer le débogage sans fil ne la rétablit pas.</value>
+  </data>
+  <data name="OfflineTipUsb" xml:space="preserve">
+    <value>Le téléphone doit être allumé, relié par son câble, et son débogage USB actif. Un câble prévu pour la seule charge ne transporte pas de données : c'est la panne la plus fréquente, et rien ne la signale. Essayez un autre câble et un autre port avant de chercher plus loin.</value>
+  </data>
+  <data name="OfflineHowUsb" xml:space="preserve">
+    <value>Vérifiez le câble, puis le débogage USB sur le téléphone.</value>
+  </data>
+  <data name="OfflineHowWireless" xml:space="preserve">
+    <value>Vérifiez le Wi-Fi, puis le débogage sans fil sur le téléphone.</value>
+  </data>
+  <data name="OfflineHowUnknown" xml:space="preserve">
+    <value>Vérifiez que le téléphone est allumé et son débogage actif.</value>
   </data>
   <data name="ToPairAgainHow" xml:space="preserve">
     <value>Par « Associer un nouvel appareil », en haut.</value>
