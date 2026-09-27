@@ -10,11 +10,10 @@ published on GitHub and shown inside the application, and those exist in a
 single version. The 0.2.0 and 0.1.0 sections predate that rule and stay in
 French.
 
-## [0.5.0] - 2026-09-19
+## [0.5.0] - 2026-09-27
 
 ### Added
 
-- A small key at the foot of the panel opens the DT Hub Discord server.
 - The panel now says what each account is doing, and for how long.
 - Each phone's line shows its charge and its Wi-Fi link, plus its heat and its
   free space when either is worth a word.
@@ -22,6 +21,7 @@ French.
   the window's own border and title bar. That last one needs Windows 11.
 - A phone that is not answering now says where to look, and carries a link to
   the steps for its own brand.
+- A small key at the foot of the panel opens the DT Hub Discord server.
 
 ### Changed
 
