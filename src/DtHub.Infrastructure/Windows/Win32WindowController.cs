@@ -217,6 +217,35 @@ public sealed partial class Win32WindowController : IWindowController
         _ = PostMessage(handle, WmClose, 0, 0);
     }
 
+    public bool IsMouseButtonDown() =>
+        (GetAsyncKeyState(VkLButton) & KeyDown) != 0
+        || (GetAsyncKeyState(VkRButton) & KeyDown) != 0
+        || (GetAsyncKeyState(VkMButton) & KeyDown) != 0;
+
+    public void ReleaseMouseButton(nint handle)
+    {
+        if (handle == 0 || !IsWindowCore(handle) || !GetClientRectCore(handle, out var client))
+        {
+            return;
+        }
+
+        // Where the cursor is when it sits over the window, the middle
+        // otherwise: the game sees the finger lift there, and a lift far
+        // from where the player is looking could read as a swipe.
+        var x = client.Right / 2;
+        var y = client.Bottom / 2;
+
+        if (GetCursorPos(out var cursor)
+            && ScreenToClient(handle, ref cursor)
+            && cursor.X >= 0 && cursor.Y >= 0 && cursor.X < client.Right && cursor.Y < client.Bottom)
+        {
+            x = cursor.X;
+            y = cursor.Y;
+        }
+
+        _ = PostMessage(handle, WmLButtonUp, 0, (y << 16) | (x & 0xFFFF));
+    }
+
     public void Focus(nint handle)
     {
         if (handle == 0)
@@ -416,6 +445,11 @@ public sealed partial class Win32WindowController : IWindowController
     private const uint SwpNoActivate = 0x0010;
     private const nint HwndTop = 0;
     private const uint WmClose = 0x0010;
+    private const uint WmLButtonUp = 0x0202;
+    private const int VkLButton = 0x01;
+    private const int VkRButton = 0x02;
+    private const int VkMButton = 0x04;
+    private const int KeyDown = 0x8000;
 
     [StructLayout(LayoutKind.Sequential)]
     private struct Rect
@@ -530,6 +564,17 @@ public sealed partial class Win32WindowController : IWindowController
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool PostMessage(nint hWnd, uint message, nint wParam, nint lParam);
+
+    [DllImport("user32.dll")]
+    private static extern short GetAsyncKeyState(int virtualKey);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetCursorPos(out Point point);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool ScreenToClient(nint handle, ref Point point);
 
     [DllImport("user32.dll")]
     private static extern uint GetWindowThreadProcessId(nint handle, out uint processId);

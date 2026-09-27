@@ -178,4 +178,22 @@ public interface IWindowController
     /// False if the window has disappeared or is not docked.
     /// </returns>
     bool GiveKeyboardFocus(nint child);
+
+    /// <summary>
+    /// True while a mouse button is physically held, whatever window has
+    /// it. A finger left down on a game's display is only taken for stuck
+    /// when the player is not holding one: a drag holds it too.
+    /// </summary>
+    bool IsMouseButtonDown();
+
+    /// <summary>
+    /// Posts a left button release to a scrcpy window, without any press
+    /// before it.
+    ///
+    /// scrcpy then lifts the fingers it believes down, its Ctrl pinch
+    /// finger included, and the game receives the end of the very gesture
+    /// it is waiting on. Measured on a held click and on a held Ctrl+click.
+    /// No effect if the window has gone.
+    /// </summary>
+    void ReleaseMouseButton(nint handle);
 }

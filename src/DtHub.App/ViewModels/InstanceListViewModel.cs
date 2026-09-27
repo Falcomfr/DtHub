@@ -40,6 +40,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         // no longer existed.
         _launcher.SessionChanged += OnSessionChanged;
         _launcher.DeviceBusyChanged += OnDeviceBusyChanged;
+        _launcher.TouchReported += OnTouchReported;
     }
 
     private void OnSessionChanged(object? sender, Core.Scrcpy.ScrcpySession session)
@@ -923,6 +924,24 @@ public sealed partial class InstanceListViewModel : ObservableObject
             await _launcher.ReopenAsync().ConfigureAwait(true);
             await _launcher.ApplyWindowOrderAsync().ConfigureAwait(true);
         }
+    }
+
+    private void OnTouchReported(object? sender, Core.Touch.StuckTouchReport report)
+    {
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+
+        if (dispatcher is null)
+        {
+            return;
+        }
+
+        _ = dispatcher.BeginInvoke(() =>
+        {
+            foreach (var row in Rows.Where(r => string.Equals(r.Instance.Key, report.Key, StringComparison.Ordinal)))
+            {
+                row.TouchStuck = report.Outcome == Core.Touch.StuckTouchOutcome.NeedsClicks;
+            }
+        });
     }
 
     private void OnDeviceBusyChanged(object? sender, Core.Scrcpy.DeviceBusyChangedEventArgs args)

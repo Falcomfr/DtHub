@@ -10,6 +10,16 @@ published on GitHub and shown inside the application, and those exist in a
 single version. The 0.2.0 and 0.1.0 sections predate that rule and stay in
 French.
 
+## [Unreleased]
+
+### Fixed
+
+- An account could stop moving its character: clicks on the map did nothing
+  while the menus still opened, and dragging the map zoomed it. The phone kept
+  fingers down that the mouse had long let go of. DT Hub now lifts them by
+  itself, and if that is not enough the account's line says to click the map a
+  few times.
+
 ## [0.5.0] - 2026-09-27
 
 ### Added
