@@ -13,34 +13,28 @@ translations travel as release assets: they are what the application shows in
 French or Spanish, and the French one is what the Discord channel receives. The
 0.2.0 and 0.1.0 sections predate the English rule and stay in French.
 
+Keep each entry to one short line saying what the player gets; the why
+belongs in the commits and in `docs/DECISIONS.md`.
+
 ## [0.6.1] - 2026-09-28
 
 ### Fixed
 
-- Removing an application added from the + button showed nothing for a few
-  seconds, while the phone was swept again, so the bin looked dead. The row
-  now shows it is busy until the application has left the list.
+- Removing an added app shows a loader instead of seeming to do nothing.
 
 ## [0.6.0] - 2026-09-28
 
 ### Added
 
-- A setting turns the phone's screen off while its accounts play on the PC.
-  The game keeps running, the phone heats up less and its battery lasts
-  longer, which matters when the PC's USB port charges more slowly than the
-  game drains it. The screen comes back on when the last account closes.
-- The + button of a phone now opens a window with two separate choices. Show
-  an application the phone already has, found by searching its name, which
-  installs and copies nothing: a copy of the game made by a cloning app, or
-  any other application, then opens in its own window like the game. Or clone
-  the game onto a new account, as the button used to do.
-- An application added that way can be taken out of the list again with the
-  bin on its row. It stays on the phone. The game's own rows are always shown.
+- Option to turn the phone's screen off while you play: it heats less and the
+  battery lasts longer.
+- The + button can show any app already on the phone, such as a cloned
+  DOFUS Touch, or clone the game onto a new account as before.
+- An app added this way is removed with the bin on its row.
 
 ### Changed
 
-- In the tabbed frame, each tab is tinted with its account's colour, so the
-  accounts can be told apart at a glance and not only by a thin bar.
+- Tabs take their account's colour.
 
 ## [0.5.2] - 2026-09-27
 
