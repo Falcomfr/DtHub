@@ -4,6 +4,13 @@
 # fixed, and what it sends is a title and a link. The notes themselves never
 # appear, which is the one thing worth reading.
 #
+# **The notes sent are the French ones.** The channel speaks French, and each
+# release carries its French section as the asset notes.fr.md, beside an
+# English body kept for the versions already installed. The asset is fetched
+# here; when it is missing, as on every release before it existed, or does
+# not answer, the English body goes out instead: a release is announced in
+# the wrong language rather than not at all.
+#
 # **The notes are cut when they have to be.** A Discord embed description
 # stops at 4096 characters. They fit today: the notes were rewritten to one
 # line per change, and 0.3.0, the longest, is 2374 characters over 42 lines.
@@ -13,8 +20,8 @@
 # behind. The title carries the link to the rest.
 #
 # No third-party action, per the rule the other pipelines follow: the payload
-# already holds the notes, so there is nothing to check out and nothing to
-# borrow. The notes travel through the environment and never through string
+# already holds the notes and the address of their translation, so there is
+# nothing to check out and nothing to borrow. The notes and the assets travel through the environment and never through string
 # interpolation, which would let a release body close the quote and run.
 #
 # The secret is DISCORD_WEBHOOK_URL, and it is the **plain** webhook URL. The
@@ -45,19 +52,44 @@ jobs:
           TITRE: ${{ github.event.release.name }}
           LIEN: ${{ github.event.release.html_url }}
           NOTES: ${{ github.event.release.body }}
+          ASSETS: ${{ toJson(github.event.release.assets) }}
         run: |
           python3 - <<'PY'
-          import json, os, urllib.request
+          import json, os, urllib.error, urllib.request
 
           # 4096 is the hard ceiling for an embed description. The margin
           # carries the cut marker and any stray character the counter and
           # Discord disagree about.
           LIMITE = 3800
 
+          # Discord sits behind Cloudflare, which answers 403 to urllib's
+          # default "Python-urllib/3.12" without reading the body. A named
+          # agent is not politeness here, it is what gets through.
+          AGENT = "DtHub-Release-Relay/1.0 (+https://github.com/Falcomfr/DtHub)"
+
           webhook = os.environ["WEBHOOK"]
-          titre = os.environ.get("TITRE") or "New release"
+          titre = os.environ.get("TITRE") or "Nouvelle version"
           lien = os.environ["LIEN"]
           notes = (os.environ.get("NOTES") or "").strip()
+
+          francaise = next(
+              (a for a in json.loads(os.environ.get("ASSETS") or "[]")
+               if a.get("name") == "notes.fr.md"),
+              None)
+          if francaise is None:
+              print("No notes.fr.md on this release, sending the English body.")
+          else:
+              try:
+                  requete = urllib.request.Request(
+                      francaise["browser_download_url"], headers={"User-Agent": AGENT})
+                  with urllib.request.urlopen(requete, timeout=30) as reponse:
+                      texte = reponse.read().decode("utf-8-sig").strip()
+                  if texte:
+                      notes = texte
+                  else:
+                      print("notes.fr.md is empty, sending the English body.")
+              except (urllib.error.URLError, TimeoutError) as erreur:
+                  print(f"notes.fr.md did not answer ({erreur}), sending the English body.")
 
           entier = len(notes)
           if entier <= LIMITE:
@@ -77,7 +109,7 @@ jobs:
               if coupe > 0:
                   tete = tete[:coupe]
               corps = tete.rstrip()
-              pied = f"Cut at {len(corps)} of {entier} characters. Full notes on GitHub."
+              pied = f"Coupé à {len(corps)} caractères sur {entier}. La suite est sur GitHub."
 
           embed = {
               "title": titre,
@@ -89,15 +121,12 @@ jobs:
               embed["footer"] = {"text": pied}
 
           charge = json.dumps({"embeds": [embed]}).encode()
-          # Discord sits behind Cloudflare, which answers 403 to urllib's
-          # default "Python-urllib/3.12" without reading the body. A named
-          # agent is not politeness here, it is what gets through.
           requete = urllib.request.Request(
               webhook,
               data=charge,
               headers={
                   "Content-Type": "application/json",
-                  "User-Agent": "DtHub-Release-Relay/1.0 (+https://github.com/Falcomfr/DtHub)",
+                  "User-Agent": AGENT,
               },
               method="POST",
           )
