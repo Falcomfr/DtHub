@@ -13,6 +13,14 @@ translations travel as release assets: they are what the application shows in
 French or Spanish, and the French one is what the Discord channel receives. The
 0.2.0 and 0.1.0 sections predate the English rule and stay in French.
 
+## [Unreleased]
+
+### Fixed
+
+- Removing an application added from the + button showed nothing for a few
+  seconds, while the phone was swept again, so the bin looked dead. The row
+  now shows it is busy until the application has left the list.
+
 ## [0.6.0] - 2026-09-28
 
 ### Added

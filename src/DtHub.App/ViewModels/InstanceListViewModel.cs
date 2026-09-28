@@ -1032,21 +1032,33 @@ public sealed partial class InstanceListViewModel : ObservableObject
     [RelayCommand]
     private async Task RemoveAppAsync(InstanceRowViewModel? row)
     {
-        if (row is not { IsShownApp: true, IsRunning: false })
+        if (row is not { IsShownApp: true, IsRunning: false, IsWorking: false })
         {
             return;
         }
 
-        var key = row.Instance.Key;
-        var rest = (await _launcher.GetShownAppsAsync().ConfigureAwait(true))
-            .Where(a => string.Equals(a.DeviceId, row.DeviceId, StringComparison.Ordinal)
-                        && !string.Equals(a.Key, key, StringComparison.Ordinal))
-            .ToList();
+        // The row only leaves once the phone has been swept again, a few
+        // seconds: until then the bin gives way to the busy indicator, or
+        // it looks like the click did nothing.
+        row.IsWorking = true;
 
-        await _launcher.SetShownAppsAsync(row.DeviceId, rest).ConfigureAwait(true);
+        try
+        {
+            var key = row.Instance.Key;
+            var rest = (await _launcher.GetShownAppsAsync().ConfigureAwait(true))
+                .Where(a => string.Equals(a.DeviceId, row.DeviceId, StringComparison.Ordinal)
+                            && !string.Equals(a.Key, key, StringComparison.Ordinal))
+                .ToList();
 
-        _instances = null;
-        await RefreshAsync().ConfigureAwait(true);
+            await _launcher.SetShownAppsAsync(row.DeviceId, rest).ConfigureAwait(true);
+
+            _instances = null;
+            await RefreshAsync().ConfigureAwait(true);
+        }
+        finally
+        {
+            row.IsWorking = false;
+        }
     }
 
     /// <summary>
