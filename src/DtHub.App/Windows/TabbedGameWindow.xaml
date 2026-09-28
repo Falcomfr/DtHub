@@ -68,7 +68,7 @@
 
                        Opacity and not visibility, so an unmarked account
                        indents like a marked one. -->
-                  <Border Width="2" CornerRadius="1" Margin="0,3,7,3"
+                  <Border Width="4" CornerRadius="2" Margin="0,2,7,2"
                           VerticalAlignment="Stretch"
                           Background="{Binding ColourBrushKey, Converter={StaticResource KeyToBrush}}"
                           Opacity="{Binding HasColour, Converter={StaticResource BoolToOpacity}}" />
@@ -79,6 +79,20 @@
                   <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
                 </StackPanel>
               </RadioButton>
+
+              <!-- The whole tab tinted with the account's colour, so that
+                   it reads at a glance on every tab and not only through
+                   the side bar, which was too thin to be seen from a
+                   distance. Above the tab rather than behind it: the
+                   tab's hover background is opaque and would hide it.
+                   Light enough for the title to stay readable, and blind
+                   to the mouse so the tab keeps every click. -->
+              <Border Grid.Column="1" IsHitTestVisible="False"
+                      CornerRadius="{StaticResource RadiusTop}"
+                      Opacity="{Binding HasColour, Converter={StaticResource BoolToOpacity}}">
+                <Border CornerRadius="{StaticResource RadiusTop}" Opacity="0.35"
+                        Background="{Binding ColourBrushKey, Converter={StaticResource KeyToBrush}}" />
+              </Border>
 
               <Border Grid.Column="2" Width="2" Margin="1,4,1,4" CornerRadius="1"
                       Background="{DynamicResource AccentBrush}"
