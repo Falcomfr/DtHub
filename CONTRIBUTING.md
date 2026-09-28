@@ -85,7 +85,9 @@ is noise.
 2256 and 2215 words and were shortened afterwards, on the same GitHub releases,
 with `gh release edit`. A release note is not a record of what was said on the
 day; it is the page someone lands on, and a page nobody reads to the end
-announces nothing. What was said on the day is in the commits.
+announces nothing. What was said on the day is in the commits. Since the notes
+also ship translated, an edit touches the three changelogs and the two note
+assets: `docs/LIVRAISON.md` gives the commands.
 
 **Decisions get recorded.** An architecture choice, a trade off, something
 given up: that goes in `docs/DECISIONS.md`, in French like the rest of that

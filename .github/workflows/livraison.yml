@@ -168,7 +168,9 @@ jobs:
 
             if (-not $debut) { throw "$source does not describe version $env:VERSION." }
 
-            $entrees = @($note | Where-Object { $_ -match '^\s*[-*+] ' }).Count
+            # Only a bullet at the margin is an entry: a wrapped line may
+            # start with "- " too, the hyphen that stands in for a dash.
+            $entrees = @($note | Where-Object { $_ -match '^[-*+] ' }).Count
 
             if ($entrees -eq 0) { throw "$source has no entry for version $env:VERSION." }
 

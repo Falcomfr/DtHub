@@ -111,7 +111,7 @@ jobs:
               if coupe > 0:
                   tete = tete[:coupe]
               corps = tete.rstrip()
-              pied = f"Coupé à {len(corps)} caractères sur {entier}. La suite est sur GitHub."
+              pied = f"Coupé à {len(corps)} caractères sur {entier}. La suite est sur GitHub, en anglais."
 
           embed = {
               "title": titre,

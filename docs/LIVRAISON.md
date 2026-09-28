@@ -146,3 +146,17 @@ sha256sum DtHub.exe
 ```
 
 The checksum shown must match the one in the release's `.sha256` file.
+
+## Editing a published note
+
+`gh release edit --notes-file` rewrites the English body only. The French and
+Spanish notes are assets, and the application shows them first: edit the
+section in the three changelogs, write each translated section to
+`notes.fr.md` and `notes.es.md`, then replace the assets.
+
+```
+gh release edit v0.3.0 --notes-file note.md
+gh release upload v0.3.0 notes.fr.md notes.es.md --clobber
+```
+
+Discord is not told: the message already posted stays as it was.
