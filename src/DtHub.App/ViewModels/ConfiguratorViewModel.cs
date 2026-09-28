@@ -496,6 +496,24 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     }
 
     /// <summary>
+    /// True when the phone's own screen goes dark while its accounts
+    /// play on the PC. A scrcpy startup argument, so the open windows
+    /// are reopened to apply it, as for the sound.
+    /// </summary>
+    [ObservableProperty]
+    private bool _turnScreenOff;
+
+    partial void OnTurnScreenOffChanged(bool value)
+    {
+        if (_loading)
+        {
+            return;
+        }
+
+        _ = ApplyStartupSettingAsync(() => _settings.SetTurnScreenOffAsync(value));
+    }
+
+    /// <summary>
     /// True when the keyboard is presented to the phone as a
     /// plugged-in physical keyboard. The on-screen keyboard of some
     /// manufacturer overlays swallows the characters, and the window
@@ -612,6 +630,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             Zoom = settings.GameZoom;
             UpdatesAutomatic = settings.UpdatesAutomatic;
             StopAppOnClose = settings.StopAppOnClose;
+            TurnScreenOff = settings.TurnScreenOff;
             SimulatedPhysicalKeyboard = settings.SimulatedPhysicalKeyboard;
             SimulatedPhysicalMouse = settings.SimulatedPhysicalMouse;
             Language = settings.Language;

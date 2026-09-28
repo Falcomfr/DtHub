@@ -872,6 +872,21 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task L_ecran_eteint_se_demande_et_arrive_jusqu_a_scrcpy()
+    {
+        var before = await _service.GetScrcpyOptionsAsync(CancellationToken.None);
+
+        Assert.False(before.TurnScreenOff);
+
+        await _service.SetTurnScreenOffAsync(true, CancellationToken.None);
+
+        var options = await _service.GetScrcpyOptionsAsync(CancellationToken.None);
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments("SERIE", "titre", options);
+
+        Assert.Contains("--turn-screen-off", arguments, StringComparer.Ordinal);
+    }
+
+    [Fact]
     public async Task Les_images_par_seconde_et_le_debit_viennent_de_la_qualite()
     {
         // Two sources for the same setting would eventually have diverged:

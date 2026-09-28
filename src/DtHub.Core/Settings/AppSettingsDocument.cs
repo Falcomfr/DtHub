@@ -137,6 +137,19 @@ public sealed class AppSettingsDocument
     public bool StopAppOnClose { get; set; } = true;
 
     /// <summary>
+    /// True if the phone's own screen goes dark while its accounts play on
+    /// the PC. The game keeps running on its virtual display.
+    ///
+    /// False by default: a dark phone that still answers is surprising the
+    /// first time, and nothing changes for whoever does not ask for it.
+    ///
+    /// Absent from <see cref="StoredLaunchProfile" /> for the same reason as
+    /// <see cref="StopAppOnClose" />: it concerns the phone on the desk, not
+    /// the game environment a profile reproduces.
+    /// </summary>
+    public bool TurnScreenOff { get; set; }
+
+    /// <summary>
     /// True if the keyboard is presented to the phone as a physical
     /// keyboard plugged in, rather than injected through the Android API.
     ///

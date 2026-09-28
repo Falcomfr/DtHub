@@ -139,6 +139,21 @@ public static class ScrcpyCommandBuilder
             arguments.Add("--keep-active");
         }
 
+        // With --new-display, scrcpy powers off the main display, the
+        // phone's own panel, and leaves the virtual one running. Read in
+        // the v4.1 server, Controller.setDisplayPower.
+        //
+        // Every session asks for it, not only the first. scrcpy turns
+        // the screen back on when a session that switched it off closes,
+        // and the screen state is shared by the whole phone: closing one
+        // account lights it up again under the others. The next session
+        // opened switches it off again, which a first-only rule would
+        // not do.
+        if (sanitized.TurnScreenOff)
+        {
+            arguments.Add("--turn-screen-off");
+        }
+
         if (!string.IsNullOrWhiteSpace(sanitized.VideoCodec))
         {
             arguments.Add(Option("video-codec", sanitized.VideoCodec));

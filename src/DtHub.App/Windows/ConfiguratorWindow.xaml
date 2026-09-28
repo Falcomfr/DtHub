@@ -622,6 +622,12 @@
                           IsChecked="{Binding StopAppOnClose}"
                           ToolTip="{loc:T StopAppOnCloseTip}" />
 
+                <!-- Also about the phone. The tooltip says the game goes
+                     on: a dark phone reads as a stopped one otherwise. -->
+                <CheckBox Content="{loc:T TurnScreenOff}" Margin="0,0,0,8"
+                          IsChecked="{Binding TurnScreenOff}"
+                          ToolTip="{loc:T TurnScreenOffTip}" />
+
                 <!-- Placed with the sound and stopping the game: it too
                      describes what happens to the phone. The layout's
                      trap is stated under the checkbox, not in a

@@ -236,6 +236,12 @@
   <data name="StopAppOnCloseTip" xml:space="preserve">
     <value>When you close a game window, the game is also stopped on the phone. Unchecked, it keeps running: reopening the window finds your character still logged in, but the account goes on using the phone's memory, window closed or not.</value>
   </data>
+  <data name="TurnScreenOff" xml:space="preserve">
+    <value>Turn the phone's screen off while playing</value>
+  </data>
+  <data name="TurnScreenOffTip" xml:space="preserve">
+    <value>The phone's screen goes dark as soon as a game window opens, and the game keeps running on the PC. The phone heats up less and its battery lasts longer. Closing one of the accounts turns the screen back on, the next window opened switches it off again.</value>
+  </data>
   <data name="OpenLogFolder" xml:space="preserve">
     <value>Open the log folder</value>
   </data>

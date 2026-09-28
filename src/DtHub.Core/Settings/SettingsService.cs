@@ -264,6 +264,7 @@ public sealed class SettingsService : IDisposable
         {
             AudioEnabled = settings.AudioEnabled,
             ClipboardSyncEnabled = settings.ClipboardSyncEnabled,
+            TurnScreenOff = settings.TurnScreenOff,
 
             // The simulated physical keyboard bypasses the device's
             // virtual keyboard, which swallows characters across
@@ -318,6 +319,12 @@ public sealed class SettingsService : IDisposable
     /// </summary>
     public Task SetAudioEnabledAsync(bool enabled, CancellationToken cancellationToken = default) =>
         UpdateAsync(settings => settings.AudioEnabled = enabled, cancellationToken);
+
+    /// <summary>
+    /// Remembers whether the phone's screen goes dark during the game.
+    /// </summary>
+    public Task SetTurnScreenOffAsync(bool enabled, CancellationToken cancellationToken = default) =>
+        UpdateAsync(settings => settings.TurnScreenOff = enabled, cancellationToken);
 
     /// <summary>Remembers the chosen keyboard mode.</summary>
     public Task SetSimulatedPhysicalKeyboardAsync(

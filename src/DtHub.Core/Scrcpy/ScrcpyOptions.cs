@@ -172,6 +172,20 @@ public sealed record ScrcpyOptions
     /// </summary>
     public bool KeepDeviceAwake { get; init; } = true;
 
+    /// <summary>
+    /// Turn the phone's own screen off while the game plays on the PC.
+    ///
+    /// Only the panel goes dark: the game runs on its virtual display,
+    /// which keeps rendering and streaming. It saves the panel's power,
+    /// which matters when the PC's USB port charges more slowly than the
+    /// game drains the battery, and it keeps the phone cooler.
+    ///
+    /// It does not replace <see cref="KeepDeviceAwake" />, it relies on
+    /// it: the phone must stay awake for the virtual display to keep
+    /// running, only its screen is switched off.
+    /// </summary>
+    public bool TurnScreenOff { get; init; }
+
     /// <summary>Video codec, <c>null</c> to let scrcpy decide.</summary>
     public string? VideoCodec { get; init; }
 

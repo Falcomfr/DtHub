@@ -101,6 +101,26 @@ public class ScrcpyCommandBuilderTests
     }
 
     [Fact]
+    public void L_ecran_du_telephone_reste_allume_par_defaut()
+    {
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments("USB0001", "T", ScrcpyOptions.Default);
+
+        Assert.DoesNotContain("--turn-screen-off", arguments);
+    }
+
+    [Fact]
+    public void Eteindre_l_ecran_garde_le_telephone_eveille()
+    {
+        // The panel goes dark, the phone does not sleep: without
+        // --keep-active the virtual display carrying the game would stop.
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001", "T", ScrcpyOptions.Default with { TurnScreenOff = true });
+
+        Assert.Contains("--turn-screen-off", arguments);
+        Assert.Contains("--keep-active", arguments);
+    }
+
+    [Fact]
     public void Le_presse_papiers_reste_synchronise_par_defaut()
     {
         var synced = ScrcpyCommandBuilder.BuildMirrorArguments("USB0001", "T", ScrcpyOptions.Default);

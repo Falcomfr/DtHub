@@ -236,6 +236,12 @@
   <data name="StopAppOnCloseTip" xml:space="preserve">
     <value>Fermer une fenêtre de jeu arrête aussi le jeu sur le téléphone. Décoché, il continue de tourner : rouvrir la fenêtre retrouve le personnage connecté, mais le compte continue d'occuper la mémoire du téléphone, fenêtre fermée ou non.</value>
   </data>
+  <data name="TurnScreenOff" xml:space="preserve">
+    <value>Éteindre l'écran du téléphone pendant le jeu</value>
+  </data>
+  <data name="TurnScreenOffTip" xml:space="preserve">
+    <value>L'écran du téléphone s'éteint dès qu'une fenêtre de jeu s'ouvre, et le jeu continue sur le PC. Le téléphone chauffe moins et sa batterie tient plus longtemps. Fermer un des comptes rallume l'écran, la prochaine fenêtre ouverte l'éteint de nouveau.</value>
+  </data>
   <data name="OpenLogFolder" xml:space="preserve">
     <value>Ouvrir le dossier des journaux</value>
   </data>

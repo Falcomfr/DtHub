@@ -236,6 +236,12 @@
   <data name="StopAppOnCloseTip" xml:space="preserve">
     <value>Al cerrar una ventana de juego, el juego también se detiene en el teléfono. Sin marcar, sigue funcionando: al reabrir la ventana el personaje sigue conectado, pero la cuenta sigue ocupando la memoria del teléfono, con la ventana cerrada o no.</value>
   </data>
+  <data name="TurnScreenOff" xml:space="preserve">
+    <value>Apagar la pantalla del teléfono mientras se juega</value>
+  </data>
+  <data name="TurnScreenOffTip" xml:space="preserve">
+    <value>La pantalla del teléfono se apaga en cuanto se abre una ventana de juego, y el juego sigue en el PC. El teléfono se calienta menos y su batería dura más. Cerrar una de las cuentas vuelve a encender la pantalla, la siguiente ventana abierta la apaga de nuevo.</value>
+  </data>
   <data name="OpenLogFolder" xml:space="preserve">
     <value>Abrir la carpeta de registros</value>
   </data>

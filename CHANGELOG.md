@@ -10,6 +10,16 @@ published on GitHub and shown inside the application, and those exist in a
 single version. The 0.2.0 and 0.1.0 sections predate that rule and stay in
 French.
 
+## [Unreleased]
+
+### Added
+
+- A setting turns the phone's screen off while its accounts play on the PC.
+  The game keeps running, the phone heats up less and its battery lasts
+  longer, which matters when the PC's USB port charges more slowly than the
+  game drains it. Closing one account turns the screen back on, the next
+  window opened switches it off again.
+
 ## [0.5.2] - 2026-09-27
 
 ### Added
