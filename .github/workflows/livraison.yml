@@ -1,4 +1,4 @@
-# Publishes a release when a "v..." tag is pushed.
+﻿# Publishes a release when a "v..." tag is pushed.
 #
 # Nothing automatic on commits: the tag decides. The procedure is in
 # docs/LIVRAISON.md.
@@ -151,10 +151,12 @@ jobs:
           # being shipped, in three languages. The English one is the
           # release body, which every installed version reads; the French
           # and Spanish ones travel as assets, read by the application in
-          # its own language and by the Discord relay. A language missing
-          # the version, or holding an empty section for it, is a forgotten
-          # translation and stops the release.
-          function Extraire($source, $cible) {
+          # its own language and by the Discord relay. A translation missing
+          # the version, or listing fewer or more entries than the English
+          # section, is forgotten or unfinished and stops the release: a
+          # French section holding only its headings would otherwise replace
+          # the real note on screen and on Discord.
+          function Extraire($source, $cible, $attendues) {
             $debut = $null
             $note = @()
 
@@ -166,16 +168,22 @@ jobs:
 
             if (-not $debut) { throw "$source does not describe version $env:VERSION." }
 
-            $texte = ($note -join "`n").Trim()
+            $entrees = @($note | Where-Object { $_ -match '^\s*[-*+] ' }).Count
 
-            if ($texte.Length -eq 0) { throw "$source has an empty section for version $env:VERSION." }
+            if ($entrees -eq 0) { throw "$source has no entry for version $env:VERSION." }
 
-            $texte | Set-Content $cible -Encoding utf8
+            if ($attendues -and $entrees -ne $attendues) {
+              throw "$source lists $entrees entries for version $env:VERSION, CHANGELOG.md lists $attendues."
+            }
+
+            ($note -join "`n").Trim() | Set-Content $cible -Encoding utf8
+
+            return $entrees
           }
 
-          Extraire CHANGELOG.md note.md
-          Extraire CHANGELOG.fr.md notes.fr.md
-          Extraire CHANGELOG.es.md notes.es.md
+          $anglaises = Extraire CHANGELOG.md note.md $null
+          $null = Extraire CHANGELOG.fr.md notes.fr.md $anglaises
+          $null = Extraire CHANGELOG.es.md notes.es.md $anglaises
 
       - name: Create the release
         shell: pwsh

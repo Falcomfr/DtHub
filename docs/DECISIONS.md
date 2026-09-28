@@ -9485,8 +9485,10 @@ et des notes embarquées dans l'exécutable, qui ne peut pas connaître les note
 de la version qui arrive après lui.
 
 **Ce que ça coûte.** Chaque livraison s'écrit trois fois, et le pipeline
-refuse de livrer si une langue ne décrit pas la version ou la laisse vide :
-un oubli se voit avant la publication plutôt qu'après. Les versions passées ne
+refuse de livrer si une langue ne décrit pas la version, ou si une traduction
+n'en compte pas autant d'entrées que l'anglais : une section française réduite
+à ses titres remplacerait sinon la vraie note à l'écran comme sur Discord. Un
+oubli se voit avant la publication plutôt qu'après. Les versions passées ne
 sont pas traduites, seules les notes de la version qui arrive étant jamais
 affichées. Une limite est assumée : si la langue change entre le
 téléchargement et le redémarrage, la fenêtre « vient d'être installée »

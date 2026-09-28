@@ -55,7 +55,7 @@ jobs:
           ASSETS: ${{ toJson(github.event.release.assets) }}
         run: |
           python3 - <<'PY'
-          import json, os, urllib.error, urllib.request
+          import http.client, json, os, urllib.request
 
           # 4096 is the hard ceiling for an embed description. The margin
           # carries the cut marker and any stray character the counter and
@@ -88,7 +88,9 @@ jobs:
                       notes = texte
                   else:
                       print("notes.fr.md is empty, sending the English body.")
-              except (urllib.error.URLError, TimeoutError) as erreur:
+              # OSError covers URLError and timeouts, HTTPException a body
+              # cut short, ValueError a body that is not UTF-8.
+              except (OSError, http.client.HTTPException, ValueError) as erreur:
                   print(f"notes.fr.md did not answer ({erreur}), sending the English body.")
 
           entier = len(notes)

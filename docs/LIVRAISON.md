@@ -27,8 +27,9 @@ nothing is shown.
 2. Close the `## [Unreleased]` section in the three changelogs,
    `CHANGELOG.md`, `CHANGELOG.fr.md` and `CHANGELOG.es.md`: rename it to
    `## [0.2.0] - 2026-09-02`. The release pipeline reads the release notes
-   there, and refuses to ship if one of the three is missing the version or
-   holds an empty section for it.
+   there, and refuses to ship if one of the three is missing the version, or
+   if a translation lists a different number of entries than the English
+   section.
 3. Commit both, then tag with the same number:
 
    ```
