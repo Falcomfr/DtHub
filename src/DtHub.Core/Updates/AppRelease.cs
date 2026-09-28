@@ -19,4 +19,14 @@ public sealed record AppRelease(
     string Notes,
     string DownloadUrl,
     long SizeBytes,
-    string DigestUrl);
+    string DigestUrl)
+{
+    /// <summary>
+    /// The translated notes the release carries, by language code
+    /// ("fr", "es"). The body stays English, because the versions
+    /// already installed read it; the translations travel beside it.
+    /// Empty for every release published before them.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> NoteUrls { get; init; } =
+        new Dictionary<string, string>();
+}

@@ -32,6 +32,37 @@ public sealed class ReleaseParserTests
         Assert.Contains("Une chose.", release.Notes, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Lit_les_notes_traduites_jointes_a_la_livraison()
+    {
+        var json = Json.Replace(
+            "\"assets\": [",
+            """
+            "assets": [
+                { "name": "notes.fr.md", "size": 120,
+                  "browser_download_url": "https://exemple/notes.fr.md" },
+                { "name": "Notes.ES.md", "size": 118,
+                  "browser_download_url": "https://exemple/notes.es.md" },
+            """,
+            StringComparison.Ordinal);
+
+        var release = ReleaseParser.Parse(json, "DtHub.exe");
+
+        Assert.NotNull(release);
+        Assert.Equal("https://exemple/notes.fr.md", release.NoteUrls["fr"]);
+        Assert.Equal("https://exemple/notes.es.md", release.NoteUrls["es"]);
+        Assert.Equal(2, release.NoteUrls.Count);
+    }
+
+    [Fact]
+    public void Une_livraison_sans_notes_traduites_reste_utilisable()
+    {
+        var release = ReleaseParser.Parse(Json, "DtHub.exe");
+
+        Assert.NotNull(release);
+        Assert.Empty(release.NoteUrls);
+    }
+
     [Theory]
     [InlineData("\"draft\": false", "\"draft\": true")]
     [InlineData("\"prerelease\": false", "\"prerelease\": true")]

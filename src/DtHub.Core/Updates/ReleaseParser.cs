@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace DtHub.Core.Updates;
 
@@ -8,7 +9,7 @@ namespace DtHub.Core.Updates;
 /// Separated from the network: this is the part that can get it
 /// wrong, and so the part we test.
 /// </summary>
-public static class ReleaseParser
+public static partial class ReleaseParser
 {
     /// <summary>
     /// The release described by this document, or <c>null</c> if it
@@ -53,7 +54,10 @@ public static class ReleaseParser
                     Text(root, "body").Replace("\r\n", "\n", StringComparison.Ordinal).Trim(),
                     binary.Value.Url,
                     binary.Value.Size,
-                    digest.Value.Url);
+                    digest.Value.Url)
+                {
+                    NoteUrls = NoteUrls(root),
+                };
         }
         catch (JsonException)
         {
@@ -123,6 +127,37 @@ public static class ReleaseParser
 
         return null;
     }
+
+    /// <summary>
+    /// The assets named "notes.xx.md", by language. Their absence is
+    /// not a fault: the English body is still there to be read.
+    /// </summary>
+    private static Dictionary<string, string> NoteUrls(JsonElement root)
+    {
+        var found = new Dictionary<string, string>(StringComparer.Ordinal);
+
+        if (!root.TryGetProperty("assets", out var assets)
+            || assets.ValueKind != JsonValueKind.Array)
+        {
+            return found;
+        }
+
+        foreach (var asset in assets.EnumerateArray())
+        {
+            var match = NotePattern().Match(Text(asset, "name"));
+            var url = Text(asset, "browser_download_url");
+
+            if (match.Success && url.Length > 0)
+            {
+                found[match.Groups[1].Value.ToLowerInvariant()] = url;
+            }
+        }
+
+        return found;
+    }
+
+    [GeneratedRegex(@"^notes\.([a-z]{2})\.md$", RegexOptions.IgnoreCase, 2000)]
+    private static partial Regex NotePattern();
 
     private static string Text(JsonElement element, string name) =>
         element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String
