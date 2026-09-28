@@ -7,7 +7,7 @@ and the project uses [semantic versioning](https://semver.org/).
 
 Entries are written in English from 0.3.0 onward: the section of a version is
 the body of its release on GitHub, the one every installed version reads. From
-the version after 0.5.2, each section is also translated in
+0.3.0 onward, each section is also translated in
 [CHANGELOG.fr.md](CHANGELOG.fr.md) and [CHANGELOG.es.md](CHANGELOG.es.md). The
 translations travel as release assets: they are what the application shows in
 French or Spanish, and the French one is what the Discord channel receives. The
@@ -40,190 +40,79 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 ### Added
 
-- The phone's line now says when its memory is full, as Android itself judges
-  it, with what is still available: that is when actions start to lag, after
-  an hour or two of play.
+- Each phone's line says when its memory is full, the moment actions start to
+  lag.
 
 ## [0.5.1] - 2026-09-27
 
 ### Fixed
 
-- An account could stop moving its character after a Ctrl+Tab: clicks on the
-  map did nothing while the menus still opened, and dragging the map zoomed it.
-  The window left behind never saw Ctrl come back up, and turned every click
-  into a two finger pinch. DT Hub now tells it, at every shortcut and whenever
-  a game window comes back to the front.
+- After a Ctrl+Tab, an account could stop moving its character.
 
 ## [0.5.0] - 2026-09-27
 
 ### Added
 
-- The panel now says what each account is doing, and for how long.
-- Each phone's line shows its charge and its Wi-Fi link, plus its heat and its
-  free space when either is worth a word.
-- Every account carries a colour: on its row, on its tab in the frame, and on
-  the window's own border and title bar. That last one needs Windows 11.
-- A phone that is not answering now says where to look, and carries a link to
-  the steps for its own brand.
-- A small key at the foot of the panel opens the DT Hub Discord server.
+- The panel shows what each account is doing, and for how long.
+- Each phone shows its battery and Wi-Fi, plus its heat or free space when it
+  matters.
+- Each account has a colour, on its row, its tab and its window (Windows 11
+  for the window).
+- A phone that does not answer says where to look, with the steps for its
+  brand.
+- A button at the foot of the panel opens the DT Hub Discord.
 
 ### Changed
 
-- The launch and stop buttons stand out from the rest of the row and share one
-  place; the per-account quality, distance and colour fit in a single chip.
-- The dungeon list reads in columns: level, size and coordinates, each aligned.
-- The panel fades in and out on Ctrl+P, tabs cross over instead of blinking, and
-  a row fades in when a phone is found.
+- Clearer rows: launch and stop in one place, per-account settings in one chip.
 
 ### Fixed
 
-- A phone could be told its Wi-Fi channel was crowded when it was not.
-- The chosen language only reached what was built at startup.
-- The profiles button said no profile was kept until the phones had answered.
-- The advice for an unreachable phone spoke only of Wi-Fi, even on a cable.
-- The same phone could be listed twice, the second time offline and under its
-  bare model number, after its address had changed.
+- The chosen language applies everywhere, and a phone is no longer listed
+  twice.
 
 ## [0.4.0] - 2026-09-14
 
 ### Added
 
-- The distance in the game is now set per account, like the quality tier.
+- The in-game distance is set per account, like the quality.
 
 ### Removed
 
-- The "Log the frame rate" setting is gone.
+- The "Log the frame rate" setting.
 
 ### Fixed
 
-**Game windows**
-
-- A game window stayed black for a long time and nothing said why.
-- The first launch on a phone sometimes did nothing and had to be clicked again.
-- Closing the game on a phone under Android 11 reopened its window by itself.
-- The phone's sound never reached the PC.
-
-**Accounts**
-
-- An account moved down the list on its own, and lost its name.
-- A renamed account went back to its old name a few seconds later.
-- A tab kept the old name after a rename.
-- Pressing Enter on a renamed account did nothing.
-
-**Phones**
-
-- A phone left connected and idle kept showing a stale warning.
-- Both phones announced "Game not installed" several times a minute.
-- Pairing a new phone could become impossible, and the message sent you the
-  wrong way.
-- A phone whose address had changed stayed stuck on the old one.
-- A phone could be wrongly reported as having lost its pairing key.
-- The simulated mouse stayed offered after the phone that needed it was
-  unplugged.
-
-**What the panel tells you**
-
-- A launch that opened some windows said nothing about the ones it failed to
-  open.
-- A failed action vanished before it could be read, and a successful one erased
-  a warning that was still true.
-- A launch failure never reached the screen.
-
-**Guides**
-
-- A quest guide counted the wrong number of quests in an achievement.
-
-**The application**
-
-- The desktop shortcut opened a console on every launch.
+- Game windows no longer stay black, nor need a second click on the first
+  launch.
+- A renamed account keeps its name and its place in the list.
+- A phone whose address changed reconnects, and pairing a new one works again.
+- A failed launch or action is reported and stays readable.
 
 ### Changed
 
-- The phone list no longer waits on the health readings.
-- Your phones appear before their accounts are looked for.
+- The phone list shows up faster.
 
 ## [0.3.0] - 2026-09-12
 
 ### Added
 
-- A quest's end now says what it unlocks.
+- The end of a quest says what it unlocks.
 
 ### Changed
 
-**The panel**
-
-- The banner shows every finding, one per line.
-- Each phone's battery level, permanently.
-- The phone's summary, before launching and not only during.
-- A search indicator at startup.
-- Warnings fit on one line.
-- "Needs pairing" instead of "Offline".
-- The application says when a phone refuses clicks.
-- A window that will only ever show the lock screen says so.
-- Time spent on each account this week.
-
-**Image and connection**
-
-- A quality tier per account.
-- An account's tier now also sets its frame rate.
-- A fluidity diagnostic.
-- The hardware encoder is forced when the device would put a software one ahead
-  of it.
-- The display buffer is now per phone.
-
-**Phones**
-
-- The application finally checks that the battery setup was done.
-- A simulated physical mouse, as a last resort.
-
-**Guides and Almanax**
-
-- The success tree opens in the browser.
-- Guide indexing now says what it is doing.
-- The month's event in the Almanax window.
-
-**Settings**
-
-- Save and restore your settings.
+- The panel shows each phone's battery and summary, and the week's play time
+  per account.
+- A quality tier per account, with its own frame rate.
+- A simulated mouse, as a last resort for phones that refuse clicks.
+- Settings can be saved and restored.
 
 ### Fixed
 
-**The application**
-
-- The application appears four and a half times sooner.
-- The application crashed at startup when no window opened.
-- Startup waited for absent phones one after another.
-- A dropped link no longer closes the application.
-- A dropped link is finally recognised as one.
-
-**Game windows**
-
-- The game left an empty card in the phone's running applications list.
-- The game stayed open on the phone after its window was closed.
-- The application woke the phone twice as often as needed during play.
-
-**Phones**
-
-- Forgetting a device took two clicks, and lied in between.
-- The button that forgets a device was called "Unpair".
-- A device that needs pairing says where to go.
-- An offline device explains what to check.
-- The reconnection notice stayed on screen after the phone left.
-
-**The panel**
-
-- Each device's summary appears under its name.
-- The device summary did not say which device it was talking about.
-- The input probe's verdict was drawn in black on a dark background.
-- The padlock warning shouted when all was well, and fell silent when it
-  mattered.
-
-**Language and text**
-
-- The language setting had no effect.
-- Ten displayed strings were written in French in the code.
-- Three help texts were wrong.
-- Spanish mixed familiar and formal address.
+- The app opens four and a half times faster and no longer crashes at startup.
+- A dropped link no longer closes the app.
+- Closing a window also closes the game on the phone.
+- The language setting works, and the Spanish no longer mixes tú and usted.
 
 ## [0.2.0] - 2026-09-09
 
