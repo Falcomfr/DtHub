@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Security.Cryptography;
 
+using DtHub.Core.Localization;
 using DtHub.Core.Storage;
 using DtHub.Core.Updates;
 
@@ -18,7 +19,8 @@ namespace DtHub.Infrastructure.Updates;
 /// Nothing is replaced in the middle of a session: the swap happens at
 /// shutdown, when nothing is running anymore. The release notes, for
 /// their part, wait for the next startup, the one that finally runs the
-/// new version.
+/// new version. They come in the interface language when the release
+/// carries it, and in English otherwise.
 ///
 /// No failure is a fault: no network, missing repository, wrong
 /// digest, locked file, the application keeps going with the version
@@ -70,13 +72,45 @@ public sealed partial class UpdateService(
             return;
         }
 
-        Available = latest;
+        Available = await TranslatedAsync(latest, cancellationToken).ConfigureAwait(true);
         LogFound(latest.Version.ToString(), Running.ToString());
         Changed?.Invoke(this, EventArgs.Empty);
 
         if (automatic)
         {
             _ = await PrepareAsync(cancellationToken).ConfigureAwait(true);
+        }
+    }
+
+    /// <summary>
+    /// The release with its notes in the interface language, or as it
+    /// came when that language has no note of its own. A translation
+    /// that does not arrive is no reason to hide the English one.
+    /// </summary>
+    private async Task<AppRelease> TranslatedAsync(
+        AppRelease release,
+        CancellationToken cancellationToken)
+    {
+        var language = Strings.Spoken.TwoLetterISOLanguageName;
+
+        if (!release.NoteUrls.TryGetValue(language, out var url))
+        {
+            return release;
+        }
+
+        try
+        {
+            var notes = (await _source.ReadAsync(url, cancellationToken).ConfigureAwait(true))
+                .Replace("\r\n", "\n", StringComparison.Ordinal)
+                .Trim();
+
+            return notes.Length > 0 ? release with { Notes = notes } : release;
+        }
+        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
+        {
+            LogTranslationUnread(language);
+
+            return release;
         }
     }
 
@@ -317,6 +351,9 @@ public sealed partial class UpdateService(
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Livraison {version} disponible, la version en cours est {running}.")]
     private partial void LogFound(string version, string running);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Note de version en {language} illisible, l'anglais reste.")]
+    private partial void LogTranslationUnread(string language);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Livraison {version} ignorée : l'exécutable sort d'un arbre de sources.")]
     private partial void LogSourceTree(string version);

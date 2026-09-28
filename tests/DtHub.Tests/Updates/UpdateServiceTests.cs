@@ -1,6 +1,8 @@
-﻿using System.Security.Cryptography;
+﻿using System.Globalization;
+using System.Security.Cryptography;
 using System.Text;
 
+using DtHub.Core.Localization;
 using DtHub.Core.Updates;
 using DtHub.Infrastructure.Updates;
 using DtHub.Tests.Fakes;
@@ -30,6 +32,8 @@ public sealed class UpdateServiceTests : IDisposable
 
     public void Dispose()
     {
+        Strings.Speak(null);
+
         try
         {
             Directory.Delete(_root, recursive: true);
@@ -48,12 +52,16 @@ public sealed class UpdateServiceTests : IDisposable
 
     private (UpdateService Service, FakeReleaseSource Source) Monter(
         string digest,
-        Version version)
+        Version version,
+        IReadOnlyDictionary<string, string>? noteUrls = null)
     {
         var source = new FakeReleaseSource
         {
             Latest = new AppRelease(
-                version, "### Ajouté\n- Une chose.", "https://exemple/exe", 16, "https://exemple/sha"),
+                version, "### Ajouté\n- Une chose.", "https://exemple/exe", 16, "https://exemple/sha")
+            {
+                NoteUrls = noteUrls ?? new Dictionary<string, string>(),
+            },
         };
 
         _ = source.WithFile("https://exemple/exe", Neuf);
@@ -158,6 +166,85 @@ public sealed class UpdateServiceTests : IDisposable
         Assert.Contains("Une chose.", notes, StringComparison.Ordinal);
         Assert.DoesNotContain("###", notes, StringComparison.Ordinal);
         Assert.Empty(posee.TakeNotes());
+    }
+
+    private static readonly Dictionary<string, string> Traduites = new()
+    {
+        ["fr"] = "https://exemple/notes.fr.md",
+        ["es"] = "https://exemple/notes.es.md",
+    };
+
+    [Theory]
+    [InlineData("fr", "Une chose, en français.")]
+    [InlineData("fr-FR", "Une chose, en français.")]
+    [InlineData("es-ES", "Una cosa, en español.")]
+    public async Task Annonce_la_note_dans_la_langue_parlee(string langue, string attendu)
+    {
+        Strings.Speak(CultureInfo.GetCultureInfo(langue));
+        var (service, source) = Monter(Empreinte(Neuf), new Version(0, 2, 0), Traduites);
+        _ = source.WithText("https://exemple/notes.fr.md", "### Ajouté\n- Une chose, en français.");
+        _ = source.WithText("https://exemple/notes.es.md", "### Añadido\n- Una cosa, en español.");
+
+        // Manual check: the "update available" window reads Available too.
+        await service.CheckAsync(automatic: false);
+
+        Assert.Contains(attendu, service.Available!.Notes, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Garde_l_anglais_quand_la_note_traduite_ne_repond_pas()
+    {
+        Strings.Speak(CultureInfo.GetCultureInfo("fr"));
+        var (service, source) = Monter(Empreinte(Neuf), new Version(0, 2, 0), Traduites);
+        _ = source.WithFailure("https://exemple/notes.fr.md");
+
+        await service.CheckAsync(automatic: false);
+
+        Assert.Equal("### Ajouté\n- Une chose.", service.Available!.Notes);
+    }
+
+    [Fact]
+    public async Task Garde_l_anglais_quand_la_note_traduite_est_vide()
+    {
+        // FakeReleaseSource answers an empty string for an unknown URL.
+        Strings.Speak(CultureInfo.GetCultureInfo("fr"));
+        var (service, _) = Monter(Empreinte(Neuf), new Version(0, 2, 0), Traduites);
+
+        await service.CheckAsync(automatic: false);
+
+        Assert.Equal("### Ajouté\n- Une chose.", service.Available!.Notes);
+    }
+
+    [Fact]
+    public async Task En_anglais_garde_le_corps_de_la_livraison()
+    {
+        // Both translations are served: English must still not pick one.
+        Strings.Speak(CultureInfo.GetCultureInfo("en"));
+        var (service, source) = Monter(Empreinte(Neuf), new Version(0, 2, 0), Traduites);
+        _ = source.WithText("https://exemple/notes.fr.md", "- Une chose, en français.");
+        _ = source.WithText("https://exemple/notes.es.md", "- Una cosa, en español.");
+
+        await service.CheckAsync(automatic: false);
+
+        Assert.Equal("### Ajouté\n- Une chose.", service.Available!.Notes);
+    }
+
+    [Fact]
+    public async Task Ecrit_la_note_traduite_pour_le_demarrage_suivant()
+    {
+        Strings.Speak(CultureInfo.GetCultureInfo("fr"));
+        var (service, source) = Monter(Empreinte(Neuf), new Version(0, 2, 0), Traduites);
+        _ = source.WithText("https://exemple/notes.fr.md", "### Ajouté\n- Une chose, en français.");
+
+        await service.CheckAsync(automatic: true);
+
+        var posee = new UpdateService(
+            new FakeReleaseSource(),
+            _paths,
+            new UpdateTarget(new Version(0, 2, 0), _executable),
+            NullLogger<UpdateService>.Instance);
+
+        Assert.Contains("Une chose, en français.", posee.TakeNotes(), StringComparison.Ordinal);
     }
 
     [Fact]

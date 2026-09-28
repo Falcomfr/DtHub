@@ -40,9 +40,10 @@ public static class Strings
     /// <summary>
     /// The language the interface speaks, falling back to the thread's
     /// own while nothing has been chosen, which is what tests and the
-    /// domain's own callers get.
+    /// domain's own callers get. Read by the update service too, which
+    /// fetches the release notes written in this language.
     /// </summary>
-    private static CultureInfo Spoken => _chosen ?? CultureInfo.CurrentUICulture;
+    public static CultureInfo Spoken => _chosen ?? CultureInfo.CurrentUICulture;
 
     /// <summary>
     /// Fixes the language for the rest of the run.
