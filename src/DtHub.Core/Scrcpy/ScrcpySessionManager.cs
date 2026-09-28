@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using DtHub.Core.Android;
 using DtHub.Core.Dependencies;
 using DtHub.Core.Localization;
 using DtHub.Core.Processes;
@@ -534,6 +535,56 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             return [];
         }
 
+        var output = await RunListingAsync(
+            deviceId,
+            ScrcpyCommandBuilder.BuildListEncodersArguments(serial),
+            cancellationToken).ConfigureAwait(false);
+
+        // A device that does not respond, scrcpy missing, a timeout
+        // exceeded: not knowing the encoders is a valid result, and the
+        // caller does without it. This is the same accepted silence as
+        // for heat and battery.
+        return output is null ? [] : ScrcpyEncoders.Parse(output);
+    }
+
+    /// <summary>
+    /// The applications of the phone's main profile, with the names
+    /// the phone gives them, or an empty list if the question did not
+    /// succeed.
+    ///
+    /// Asked of scrcpy and not of ADB because only it reaches the
+    /// labels: the shell's package commands know packages, not names.
+    /// Same cost and same queue as the encoder question.
+    /// </summary>
+    public async Task<IReadOnlyList<DeviceApp>> ListAppsAsync(
+        string deviceId,
+        string serial,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(serial))
+        {
+            return [];
+        }
+
+        var output = await RunListingAsync(
+            deviceId,
+            ScrcpyCommandBuilder.BuildListAppsArguments(serial),
+            cancellationToken).ConfigureAwait(false);
+
+        // Without names the caller still lists the packages: nothing is
+        // lost but the labels, which is no reason to fail.
+        return output is null ? [] : DeviceAppList.Parse(output);
+    }
+
+    /// <summary>
+    /// Runs a scrcpy question that opens no window and collects what
+    /// it writes, or returns <c>null</c> if it did not succeed.
+    /// </summary>
+    private async Task<string?> RunListingAsync(
+        string deviceId,
+        IReadOnlyList<string> arguments,
+        CancellationToken cancellationToken)
+    {
         try
         {
             var scrcpyPath = await _scrcpy.GetScrcpyPathAsync(cancellationToken).ConfigureAwait(false);
@@ -542,7 +593,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             var request = new ProcessRequest
             {
                 FileName = scrcpyPath,
-                Arguments = ScrcpyCommandBuilder.BuildListEncodersArguments(serial),
+                Arguments = arguments,
                 Environment = new Dictionary<string, string?> { ["ADB"] = adbPath },
             };
 
@@ -575,15 +626,13 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                 lines.Add(line.Text);
             }
 
-            return ScrcpyEncoders.Parse(string.Join('\n', lines));
+            return string.Join('\n', lines);
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            // A device that does not respond, scrcpy missing, a
-            // timeout exceeded: not knowing the encoders is a valid
-            // result, and the caller does without it. This is the
-            // same accepted silence as for heat and battery.
-            return [];
+            // Each caller says what the silence means for its question:
+            // both are pieces of information, not launch steps.
+            return null;
         }
     }
 

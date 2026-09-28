@@ -1347,6 +1347,88 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.Equal([0], merged.Select(i => i.UserId));
     }
 
+    private static readonly ShownApp Player = new("MATERIEL123", 999, "com.aimp.player", "AIMP");
+
+    private static DofusInstance PlayerInstance() => Instance(999) with
+    {
+        PackageName = "com.aimp.player",
+        LaunchComponent = "com.aimp.player/.MainActivity",
+        AppLabel = "AIMP",
+    };
+
+    [Fact]
+    public async Task Une_application_choisie_prend_son_nom_a_la_premiere_decouverte()
+    {
+        await _service.SetShownAppsAsync("MATERIEL123", [Player], CancellationToken.None);
+
+        var merged = await _service.MergeInstancesAsync([Instance(0), PlayerInstance()], CancellationToken.None);
+
+        Assert.Equal("AIMP", merged.Single(i => i.PackageName == "com.aimp.player").DisplayName);
+
+        // The game keeps its profile's name.
+        Assert.Equal("Alice Martin", merged.Single(i => i.UserId == 0).DisplayName);
+    }
+
+    [Fact]
+    public async Task Une_application_choisie_survit_a_un_profil_sans_le_jeu()
+    {
+        // The player lives on a profile the game was removed from: that
+        // absence concerns the game's row, not the player's.
+        await _service.SetShownAppsAsync("MATERIEL123", [Player], CancellationToken.None);
+        await _service.MergeInstancesAsync([Instance(999), PlayerInstance()], CancellationToken.None);
+
+        var oubliees = await _service.ForgetMissingProfilesAsync(
+            new Dictionary<string, IReadOnlyList<int>>(StringComparer.Ordinal)
+            {
+                ["MATERIEL123"] = [0, 999],
+            },
+            new Dictionary<string, IReadOnlyList<int>>(StringComparer.Ordinal)
+            {
+                ["MATERIEL123"] = [999],
+            },
+            CancellationToken.None);
+
+        Assert.Equal(1, oubliees);
+
+        var merged = await _service.MergeInstancesAsync([], CancellationToken.None);
+
+        Assert.Equal("com.aimp.player", Assert.Single(merged).PackageName);
+    }
+
+    [Fact]
+    public async Task Decocher_une_application_la_retire_de_la_liste_sans_toucher_au_jeu()
+    {
+        await _service.SetShownAppsAsync("MATERIEL123", [Player], CancellationToken.None);
+        await _service.MergeInstancesAsync([Instance(0), PlayerInstance()], CancellationToken.None);
+
+        Assert.True(await _service.SetShownAppsAsync("MATERIEL123", [], CancellationToken.None));
+
+        var merged = await _service.MergeInstancesAsync([], CancellationToken.None);
+
+        Assert.Equal(DofusPackages.DofusTouch, Assert.Single(merged).PackageName);
+        Assert.Empty(await _service.GetShownAppsAsync(CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Le_choix_d_un_telephone_ne_touche_pas_celui_d_un_autre()
+    {
+        var other = new ShownApp("AUTRE", 0, "com.aimp.player", "AIMP");
+
+        await _service.SetShownAppsAsync("AUTRE", [other], CancellationToken.None);
+        await _service.SetShownAppsAsync("MATERIEL123", [Player], CancellationToken.None);
+        await _service.SetShownAppsAsync("MATERIEL123", [], CancellationToken.None);
+
+        Assert.Equal(other, Assert.Single(await _service.GetShownAppsAsync(CancellationToken.None)));
+    }
+
+    [Fact]
+    public async Task Le_meme_choix_n_ecrit_rien()
+    {
+        await _service.SetShownAppsAsync("MATERIEL123", [Player], CancellationToken.None);
+
+        Assert.False(await _service.SetShownAppsAsync("MATERIEL123", [Player], CancellationToken.None));
+    }
+
     /// <summary>
     /// A profile whose query did not complete proves nothing.
     ///

@@ -27,6 +27,17 @@ public sealed class AppSettingsDocument
     public List<StoredInstance> Instances { get; set; } = [];
 
     /// <summary>
+    /// Applications picked by hand to appear in the list, beside the game
+    /// found on its own.
+    ///
+    /// Kept apart from <see cref="Instances" /> because it is a request and
+    /// not a finding: the phone is asked for these packages on every sweep,
+    /// and an instance only exists once the phone has said it has one.
+    /// Nothing is installed or copied for them.
+    /// </summary>
+    public List<StoredShownApp> ShownApps { get; set; } = [];
+
+    /// <summary>
     /// Named sessions: groups of accounts opened with a single gesture.
     ///
     /// Kept apart from the startup set, and that is the whole point: the
@@ -296,6 +307,29 @@ public sealed class StoredLaunchProfile
 }
 
 /// <summary>An instance remembered between two launches.</summary>
+/// <summary>
+/// An application shown by request, on one profile of one phone.
+/// </summary>
+public sealed class StoredShownApp
+{
+    public string DeviceId { get; set; } = string.Empty;
+
+    public int UserId { get; set; }
+
+    public string PackageName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The name the phone gave it when it was picked. It names the row
+    /// the first time the application is found, and the choice window
+    /// while the phone is away.
+    /// </summary>
+    public string Label { get; set; } = string.Empty;
+
+    /// <summary>Same shape as <see cref="StoredInstance.Key" />.</summary>
+    [JsonIgnore]
+    public string Key => $"{DeviceId}|{UserId}|{PackageName}";
+}
+
 public sealed class StoredInstance
 {
     public string DeviceId { get; set; } = string.Empty;

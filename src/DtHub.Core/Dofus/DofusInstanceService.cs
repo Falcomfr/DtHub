@@ -31,6 +31,13 @@ public sealed class DofusInstanceService
     public string PackageName { get; set; } = DofusPackages.DofusTouch;
 
     /// <summary>
+    /// Applications the user asked to see besides the game, on given
+    /// profiles. The sweep reports each one the phone says it has, as an
+    /// instance like the game's.
+    /// </summary>
+    public IReadOnlyList<ShownApp> ShownApps { get; set; } = [];
+
+    /// <summary>
     /// A package scan can drag on when a phone is under load.
     /// </summary>
     public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(45);
@@ -171,6 +178,9 @@ public sealed class DofusInstanceService
                     IsDeviceConnected = true,
                 });
             }
+
+            instances.AddRange(await DiscoverShownAppsAsync(
+                device, user, packages ?? [], cancellationToken).ConfigureAwait(false));
         }
 
         // Only set if the profile list itself was actually read: without it,
@@ -184,8 +194,141 @@ public sealed class DofusInstanceService
     }
 
     /// <summary>
-    /// True if the game is installed for this Android profile.
+    /// The applications shown by request that this profile has.
+    ///
+    /// A single question per profile, and only on a profile that has
+    /// some: the full package list, once, rather than one command per
+    /// application. A profile with none costs nothing more than before.
+    /// An application the game search already found is not reported a
+    /// second time.
     /// </summary>
+    private async Task<IReadOnlyList<DofusInstance>> DiscoverShownAppsAsync(
+        AndroidDevice device,
+        AndroidUser user,
+        IReadOnlyList<string> alreadyFound,
+        CancellationToken cancellationToken)
+    {
+        var wanted = ShownApps
+            .Where(a => string.Equals(a.DeviceId, device.Id, StringComparison.Ordinal)
+                        && a.UserId == user.Id
+                        && !alreadyFound.Contains(a.PackageName, StringComparer.Ordinal))
+            .ToList();
+
+        if (wanted.Count == 0)
+        {
+            return [];
+        }
+
+        // Null when the profile did not answer: nothing is shown for it,
+        // and its remembered rows stay, offline, as for the game.
+        if (await TryEnumerateAsync(device.Serial, user.Id, cancellationToken).ConfigureAwait(false)
+            is not { } installed)
+        {
+            return [];
+        }
+
+        List<DofusInstance> found = [];
+
+        foreach (var app in wanted.Where(a => installed.Contains(a.PackageName, StringComparer.Ordinal)))
+        {
+            var component = await ResolveComponentAsync(
+                device.Serial, user.Id, app.PackageName, cancellationToken).ConfigureAwait(false);
+
+            found.Add(new DofusInstance
+            {
+                DeviceId = device.Id,
+                DeviceName = device.DisplayName,
+                UserId = user.Id,
+                UserName = user.DisplayName,
+                PackageName = app.PackageName,
+                LaunchComponent = component?.Value,
+                IsDeviceConnected = true,
+                AppLabel = app.Label,
+            });
+        }
+
+        return found;
+    }
+
+    /// <summary>
+    /// The applications a phone can open, profile by profile, with the
+    /// names the phone gives them: what the choice window lists.
+    ///
+    /// Launchable means what the phone's home screen shows, asked of
+    /// each profile. The names come from <paramref name="labels" />,
+    /// read on the main profile: a clone or work profile holds copies of
+    /// the same packages, under the same names. A package the main
+    /// profile does not know keeps its package name as its label.
+    ///
+    /// The game is left out: it is found on its own, and the choice
+    /// window offers a separate way to add an account for it.
+    /// </summary>
+    public async Task<IReadOnlyList<ProfileApps>> ListLaunchableAppsAsync(
+        AndroidDevice device,
+        IReadOnlyList<DeviceApp> labels,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(device);
+        ArgumentNullException.ThrowIfNull(labels);
+
+        var names = labels
+            .GroupBy(a => a.PackageName, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.Ordinal);
+
+        var users = await _users.GetUsersAsync(device.Serial, refresh: true, cancellationToken)
+            .ConfigureAwait(false);
+
+        List<ProfileApps> profiles = [];
+
+        foreach (var user in users)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            IReadOnlyList<string> packages;
+
+            try
+            {
+                var output = await _adb.ShellAsync(
+                    device.Serial,
+                    [
+                        "cmd", "package", "query-activities", "--brief",
+                        "--user", Text(user.Id),
+                        "-a", "android.intent.action.MAIN",
+                        "-c", "android.intent.category.LAUNCHER",
+                    ],
+                    Timeout,
+                    cancellationToken).ConfigureAwait(false);
+
+                packages = [.. PackageParser.ParseComponents(output)
+                    .Select(c => c.PackageName)
+                    .Distinct(StringComparer.Ordinal)];
+            }
+            catch (AdbException)
+            {
+                // A profile that refuses the question is simply not
+                // offered: the others remain, and nothing it holds is
+                // touched.
+                continue;
+            }
+
+            List<DeviceApp> apps = [.. packages
+                .Where(p => !IsGame(p))
+                .Select(p => names.TryGetValue(p, out var known)
+                    ? known
+                    : new DeviceApp(p, p, IsSystem: false))
+                .OrderBy(a => a.IsSystem)
+                .ThenBy(a => a.Label, StringComparer.CurrentCultureIgnoreCase)];
+
+            profiles.Add(new ProfileApps(user.Id, user.DisplayName, user.Type, apps));
+        }
+
+        return profiles;
+    }
+
+    /// <summary>True for the game's package or one of its renamed copies.</summary>
+    private bool IsGame(string package) =>
+        string.Equals(package, PackageName, StringComparison.Ordinal) || IsDerived(package);
+
     /// <summary>
     /// Adds an account: a fresh Android profile, the game inside it, and the
     /// profile started so it can be opened right away.

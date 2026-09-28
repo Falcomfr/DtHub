@@ -76,6 +76,16 @@ public sealed record DofusInstance
     public bool IsDeviceConnected { get; init; }
 
     /// <summary>
+    /// The application's name, for an application shown by request and
+    /// not the game. <c>null</c> for the game, whose rows are named after
+    /// their profile.
+    ///
+    /// Only read when the row is first remembered, to name it: a profile
+    /// name would say nothing about which application the row opens.
+    /// </summary>
+    public string? AppLabel { get; init; }
+
+    /// <summary>
     /// Stable key of the instance. Used to remember it and find it
     /// again between two launches, even when the phone changes
     /// address.

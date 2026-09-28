@@ -1,4 +1,5 @@
 ﻿using DtHub.Core.Adb;
+using DtHub.Core.Android;
 using DtHub.Core.Devices;
 using DtHub.Core.Dofus;
 using DtHub.Core.Users;
@@ -373,5 +374,98 @@ public class DofusInstanceServiceTests
         _ = await service.DiscoverOnDeviceAsync(Device(), CancellationToken.None);
 
         Assert.DoesNotContain("MATERIEL123", service.ProfilesWithoutGame.Keys);
+    }
+
+    /// <summary>
+    /// The main profile holds the game and a music player, the clone
+    /// holds the game only. Most specific rules first: the fake answers
+    /// with the first one contained in the command.
+    /// </summary>
+    private static FakeAdbClient PhoneWithPlayer() => new FakeAdbClient()
+        .WithShell("pm list users", RealUsers)
+        .WithShell("pm list packages --user 0 dofustouch", "package:com.ankama.dofustouch")
+        .WithShell("pm list packages --user 999 dofustouch", "package:com.ankama.dofustouch")
+        .WithShell("pm list packages --user 0", "package:com.ankama.dofustouch\npackage:com.aimp.player")
+        .WithShell("pm list packages --user 999", "package:com.ankama.dofustouch")
+        .WithShell("resolve-activity --brief --user 0 -c android.intent.category.LAUNCHER com.aimp.player",
+            "com.aimp.player/.MainActivity")
+        .WithShell("resolve-activity", "com.ankama.dofustouch/.MainActivity");
+
+    private static readonly ShownApp Player = new("MATERIEL123", 0, "com.aimp.player", "AIMP");
+
+    [Fact]
+    public async Task Une_application_choisie_est_trouvee_sur_son_profil_avec_son_nom()
+    {
+        var service = Service(PhoneWithPlayer());
+        service.ShownApps = [Player];
+
+        var instances = await service.DiscoverOnDeviceAsync(Device(), CancellationToken.None);
+
+        var player = Assert.Single(instances, i => i.PackageName == "com.aimp.player");
+        Assert.Equal(0, player.UserId);
+        Assert.Equal("AIMP", player.AppLabel);
+        Assert.Equal("com.aimp.player/com.aimp.player.MainActivity", player.LaunchComponent);
+
+        // The game is still found beside it, on both profiles.
+        Assert.Equal(2, instances.Count(i => i.PackageName == "com.ankama.dofustouch"));
+    }
+
+    [Fact]
+    public async Task Une_application_choisie_absente_de_son_profil_ne_donne_rien()
+    {
+        var service = Service(PhoneWithPlayer());
+        service.ShownApps = [Player with { UserId = 999 }];
+
+        var instances = await service.DiscoverOnDeviceAsync(Device(), CancellationToken.None);
+
+        Assert.DoesNotContain(instances, i => i.PackageName == "com.aimp.player");
+    }
+
+    [Fact]
+    public async Task Sans_application_choisie_le_balayage_ne_pose_aucune_question_de_plus()
+    {
+        var adb = PhoneWithPlayer();
+
+        _ = await Service(adb).DiscoverOnDeviceAsync(Device(), CancellationToken.None);
+
+        // The full list is only asked of a profile that needs it.
+        Assert.DoesNotContain("pm list packages --user 0", adb.ShellCalls);
+        Assert.DoesNotContain("pm list packages --user 999", adb.ShellCalls);
+    }
+
+    [Fact]
+    public async Task La_liste_a_choisir_donne_les_applications_de_chaque_profil_sans_le_jeu()
+    {
+        var adb = new FakeAdbClient()
+            .WithShell("pm list users", RealUsers)
+            .WithShell("query-activities --brief --user 0",
+                """
+                3 activities found:
+                  Activity #0:
+                    priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+                    com.ankama.dofustouch/.MainActivity
+                  Activity #1:
+                    priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+                    com.aimp.player/.MainActivity
+                  Activity #2:
+                    priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+                    com.inconnu.app/.Main
+                """)
+            .WithShell("query-activities --brief --user 999",
+                """
+                1 activities found:
+                  Activity #0:
+                    com.ankama.dofustouch/.MainActivity
+                """);
+
+        var profiles = await Service(adb).ListLaunchableAppsAsync(
+            Device(),
+            [new DeviceApp("AIMP", "com.aimp.player", false)],
+            CancellationToken.None);
+
+        var main = profiles.Single(p => p.UserId == 0);
+
+        Assert.Equal(["AIMP", "com.inconnu.app"], main.Apps.Select(a => a.Label));
+        Assert.Empty(profiles.Single(p => p.UserId == 999).Apps);
     }
 }

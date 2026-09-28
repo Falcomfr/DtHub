@@ -884,6 +884,73 @@ public sealed class SettingsService : IDisposable
             cancellationToken);
     }
 
+    /// <summary>The applications shown by request, on every phone.</summary>
+    public async Task<IReadOnlyList<ShownApp>> GetShownAppsAsync(CancellationToken cancellationToken = default)
+    {
+        var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
+
+        return [.. settings.ShownApps
+            .Where(a => !string.IsNullOrWhiteSpace(a.DeviceId) && !string.IsNullOrWhiteSpace(a.PackageName))
+            .Select(a => new ShownApp(a.DeviceId, a.UserId, a.PackageName, a.Label))];
+    }
+
+    /// <summary>
+    /// Replaces the applications shown on one phone with this choice.
+    ///
+    /// An application unticked leaves the list at once, row included: it
+    /// was only there because it had been asked for. Rows of the game are
+    /// never touched here, whatever the choice holds.
+    /// </summary>
+    /// <returns>True if something changed.</returns>
+    public Task<bool> SetShownAppsAsync(
+        string deviceId,
+        IReadOnlyList<ShownApp> chosen,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(deviceId);
+        ArgumentNullException.ThrowIfNull(chosen);
+
+        var wanted = chosen
+            .Where(a => string.Equals(a.DeviceId, deviceId, StringComparison.Ordinal))
+            .DistinctBy(a => a.Key, StringComparer.Ordinal)
+            .ToList();
+
+        return UpdateIfChangedAsync(
+            document =>
+            {
+                var before = document.ShownApps
+                    .Where(a => string.Equals(a.DeviceId, deviceId, StringComparison.Ordinal))
+                    .Select(a => a.Key)
+                    .ToHashSet(StringComparer.Ordinal);
+
+                var after = wanted.Select(a => a.Key).ToHashSet(StringComparer.Ordinal);
+
+                if (before.SetEquals(after))
+                {
+                    return false;
+                }
+
+                _ = document.ShownApps.RemoveAll(a => string.Equals(a.DeviceId, deviceId, StringComparison.Ordinal));
+                document.ShownApps.AddRange(wanted.Select(a => new StoredShownApp
+                {
+                    DeviceId = a.DeviceId,
+                    UserId = a.UserId,
+                    PackageName = a.PackageName,
+                    Label = a.Label,
+                }));
+
+                before.ExceptWith(after);
+
+                if (document.Instances.RemoveAll(i => before.Contains(i.Key)) > 0)
+                {
+                    InstanceOrdering.Normalize(document);
+                }
+
+                return true;
+            },
+            cancellationToken);
+    }
+
     /// <summary>
     /// Forgets instances whose Android profile no longer exists.
     ///
@@ -933,7 +1000,12 @@ public sealed class SettingsService : IDisposable
 
         if (withoutGame is not null)
         {
-            foreach (var instance in settings.Instances)
+            // An application shown by request says nothing about the game:
+            // it lives on its profile whether the game is there or not,
+            // and leaves only when it is unticked.
+            var shown = settings.ShownApps.Select(a => a.Key).ToHashSet(StringComparer.Ordinal);
+
+            foreach (var instance in settings.Instances.Where(i => !shown.Contains(i.Key)))
             {
                 if (withoutGame.TryGetValue(instance.DeviceId, out var empty)
                     && empty.Contains(instance.UserId))
@@ -1010,6 +1082,14 @@ public sealed class SettingsService : IDisposable
                     UserName = instance.UserName,
                     LaunchComponent = instance.LaunchComponent,
                     IsEnabled = false,
+
+                    // An application shown by request is named after
+                    // itself: its profile's name would not say which
+                    // application the row opens. Only at birth, like any
+                    // name, which the user can then change.
+                    CustomName = string.IsNullOrWhiteSpace(instance.AppLabel)
+                        ? null
+                        : instance.AppLabel.Trim(),
 
                     // Computed before the ordering inserts the entry, or
                     // it would see itself and skip its own turn.
