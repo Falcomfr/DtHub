@@ -53,7 +53,8 @@ public sealed class UpdateServiceTests : IDisposable
     private (UpdateService Service, FakeReleaseSource Source) Monter(
         string digest,
         Version version,
-        IReadOnlyDictionary<string, string>? noteUrls = null)
+        IReadOnlyDictionary<string, string>? noteUrls = null,
+        TimeSpan? noteWait = null)
     {
         var source = new FakeReleaseSource
         {
@@ -71,7 +72,8 @@ public sealed class UpdateServiceTests : IDisposable
             source,
             _paths,
             new UpdateTarget(new Version(0, 1, 0), _executable),
-            NullLogger<UpdateService>.Instance);
+            NullLogger<UpdateService>.Instance,
+            noteWait);
 
         return (service, source);
     }
@@ -201,6 +203,50 @@ public sealed class UpdateServiceTests : IDisposable
         await service.CheckAsync(automatic: false);
 
         Assert.Equal("### Ajouté\n- Une chose.", service.Available!.Notes);
+    }
+
+    [Fact]
+    public async Task Garde_l_anglais_quand_la_note_traduite_leve_une_autre_erreur()
+    {
+        // A response whose charset .NET does not know: ReadAsStringAsync
+        // throws InvalidOperationException, not HttpRequestException.
+        Strings.Speak(CultureInfo.GetCultureInfo("fr"));
+        var (service, source) = Monter(Empreinte(Neuf), new Version(0, 2, 0), Traduites);
+        _ = source.WithFailure("https://exemple/notes.fr.md", new InvalidOperationException("Jeu de caractères inconnu."));
+
+        await service.CheckAsync(automatic: false);
+
+        Assert.Equal("### Ajouté\n- Une chose.", service.Available!.Notes);
+    }
+
+    [Fact]
+    public async Task Ne_retient_pas_la_livraison_pour_une_note_qui_tarde()
+    {
+        // The updates client waits ten minutes: a note that never answers
+        // must not hold the update back that long.
+        Strings.Speak(CultureInfo.GetCultureInfo("fr"));
+        var (service, source) = Monter(
+            Empreinte(Neuf), new Version(0, 2, 0), Traduites, TimeSpan.FromMilliseconds(50));
+        _ = source.WithHang("https://exemple/notes.fr.md");
+
+        var check = service.CheckAsync(automatic: false);
+
+        Assert.Same(check, await Task.WhenAny(check, Task.Delay(TimeSpan.FromSeconds(5))));
+        Assert.Equal("### Ajouté\n- Une chose.", service.Available!.Notes);
+    }
+
+    [Fact]
+    public async Task Rend_l_annulation_demandee_pendant_la_lecture_de_la_note()
+    {
+        Strings.Speak(CultureInfo.GetCultureInfo("fr"));
+        var (service, source) = Monter(Empreinte(Neuf), new Version(0, 2, 0), Traduites);
+        _ = source.WithHang("https://exemple/notes.fr.md");
+        using var annulation = new CancellationTokenSource(TimeSpan.FromMilliseconds(50));
+
+        _ = await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => service.CheckAsync(automatic: true, annulation.Token));
+
+        Assert.Null(service.Available);
     }
 
     [Fact]

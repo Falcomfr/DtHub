@@ -26,16 +26,30 @@ namespace DtHub.Infrastructure.Updates;
 /// digest, locked file, the application keeps going with the version
 /// it has.
 /// </summary>
+/// <param name="noteWait">
+/// What is granted to the translated note before the English one is
+/// kept. The production value is that of <see cref="NoteWait" />;
+/// tests shorten it so as not to wait for real.
+/// </param>
 public sealed partial class UpdateService(
     IReleaseSource source,
     IAppPaths paths,
     UpdateTarget target,
-    ILogger<UpdateService> logger)
+    ILogger<UpdateService> logger,
+    TimeSpan? noteWait = null)
 {
     private readonly IReleaseSource _source = source;
     private readonly IAppPaths _paths = paths;
     private readonly UpdateTarget _target = target;
     private readonly ILogger<UpdateService> _logger = logger;
+    private readonly TimeSpan _noteWait = noteWait ?? NoteWait;
+
+    /// <summary>
+    /// What a translated note is granted. The updates client waits ten
+    /// minutes, which suits a sixty megabyte download and not a nicety
+    /// that holds the whole update back while it is read.
+    /// </summary>
+    public static readonly TimeSpan NoteWait = TimeSpan.FromSeconds(30);
 
     /// <summary>The version that is running.</summary>
     public Version Running { get; } = ReleaseParser.Normalize(target?.Running);
@@ -98,15 +112,23 @@ public sealed partial class UpdateService(
             return release;
         }
 
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(_noteWait);
+
         try
         {
-            var notes = (await _source.ReadAsync(url, cancellationToken).ConfigureAwait(true))
+            var notes = (await _source.ReadAsync(url, deadline.Token).ConfigureAwait(true))
                 .Replace("\r\n", "\n", StringComparison.Ordinal)
                 .Trim();
 
             return notes.Length > 0 ? release with { Notes = notes } : release;
         }
-        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
+        // A charset .NET does not know throws InvalidOperationException,
+        // a malformed address UriFormatException. A cancellation asked by
+        // the caller goes back up; one that is only the deadline does not.
+        catch (Exception exception) when (exception is HttpRequestException
+            or InvalidOperationException or UriFormatException
+            || (exception is OperationCanceledException && !cancellationToken.IsCancellationRequested))
         {
             LogTranslationUnread(language);
 

@@ -7,7 +7,8 @@ public sealed class FakeReleaseSource : IReleaseSource
 {
     private readonly Dictionary<string, string> _texts = new(StringComparer.Ordinal);
     private readonly Dictionary<string, byte[]> _files = new(StringComparer.Ordinal);
-    private readonly HashSet<string> _failing = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, Exception> _failing = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _hanging = new(StringComparer.Ordinal);
 
     public AppRelease? Latest { get; set; }
 
@@ -20,10 +21,21 @@ public sealed class FakeReleaseSource : IReleaseSource
         return this;
     }
 
-    /// <summary>Reading this address fails, as a network that drops would.</summary>
-    public FakeReleaseSource WithFailure(string url)
+    /// <summary>
+    /// Reading this address fails, by default as a network that drops
+    /// would.
+    /// </summary>
+    public FakeReleaseSource WithFailure(string url, Exception? error = null)
     {
-        _ = _failing.Add(url);
+        _failing[url] = error ?? new HttpRequestException("Pas de réseau.");
+
+        return this;
+    }
+
+    /// <summary>Reading this address never answers until it is cancelled.</summary>
+    public FakeReleaseSource WithHang(string url)
+    {
+        _ = _hanging.Add(url);
 
         return this;
     }
@@ -38,10 +50,17 @@ public sealed class FakeReleaseSource : IReleaseSource
     public Task<AppRelease?> GetLatestAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult(Latest);
 
-    public Task<string> ReadAsync(string url, CancellationToken cancellationToken = default) =>
-        _failing.Contains(url)
-            ? Task.FromException<string>(new HttpRequestException("Pas de réseau."))
-            : Task.FromResult(_texts.GetValueOrDefault(url, string.Empty));
+    public async Task<string> ReadAsync(string url, CancellationToken cancellationToken = default)
+    {
+        if (_hanging.Contains(url))
+        {
+            await Task.Delay(Timeout.Infinite, cancellationToken).ConfigureAwait(false);
+        }
+
+        return _failing.TryGetValue(url, out var error)
+            ? throw error
+            : _texts.GetValueOrDefault(url, string.Empty);
+    }
 
     public async Task DownloadAsync(
         string url,
