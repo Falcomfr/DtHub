@@ -1031,6 +1031,31 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// greying out the neighbours would force closing one account at a
     /// time.
     /// </summary>
+    /// <summary>
+    /// Takes an application added from the plus button out of the list.
+    /// It stays on the phone, and can be ticked again from the same
+    /// window: no confirmation, since nothing is lost.
+    /// </summary>
+    [RelayCommand]
+    private async Task RemoveAppAsync(InstanceRowViewModel? row)
+    {
+        if (row is not { IsShownApp: true, IsRunning: false })
+        {
+            return;
+        }
+
+        var key = row.Instance.Key;
+        var rest = (await _launcher.GetShownAppsAsync().ConfigureAwait(true))
+            .Where(a => string.Equals(a.DeviceId, row.DeviceId, StringComparison.Ordinal)
+                        && !string.Equals(a.Key, key, StringComparison.Ordinal))
+            .ToList();
+
+        await _launcher.SetShownAppsAsync(row.DeviceId, rest).ConfigureAwait(true);
+
+        _instances = null;
+        await RefreshAsync().ConfigureAwait(true);
+    }
+
     [RelayCommand(AllowConcurrentExecutions = true)]
     private Task StopAsync(InstanceRowViewModel? row) =>
         ActOnAsync(
@@ -1207,6 +1232,45 @@ public sealed partial class InstanceListViewModel : ObservableObject
         {
             Rows[i].ShowDeviceHeader = headers[i];
             Rows[i].IsFirstOfDevice = firsts[i];
+        }
+    }
+
+    /// <summary>
+    /// The phone's plus button: choose which of its applications the list
+    /// shows, or ask for a new account.
+    ///
+    /// Both live behind the same button because both answer "I want
+    /// another line here", and the window keeps them visibly apart: one
+    /// installs nothing, the other creates a profile on the phone.
+    /// </summary>
+    [RelayCommand]
+    private async Task ManageAppsAsync(DeviceGroupViewModel? device)
+    {
+        if (device is null)
+        {
+            return;
+        }
+
+        var picker = new AppPickerViewModel(_launcher, device.DeviceId, device.Name);
+
+        switch (_dialogs.ChooseApps(picker))
+        {
+            case AppPickerOutcome.Saved:
+                await _launcher.SetShownAppsAsync(device.DeviceId, picker.Chosen).ConfigureAwait(true);
+
+                // Same reason as after adding an account: without it the
+                // new rows would wait for the next rediscovery.
+                _instances = null;
+                await RefreshAsync().ConfigureAwait(true);
+                break;
+
+            case AppPickerOutcome.CloneRequested:
+                await AddAccountAsync(device).ConfigureAwait(true);
+                break;
+
+            case AppPickerOutcome.Cancelled:
+            default:
+                break;
         }
     }
 

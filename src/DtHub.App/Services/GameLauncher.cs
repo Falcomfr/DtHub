@@ -752,6 +752,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         var settings = await _settings.GetAsync(cancellationToken).ConfigureAwait(false);
         _instances.PackageName = settings.PackageName;
+        _instances.ShownApps = await _settings.GetShownAppsAsync(cancellationToken).ConfigureAwait(false);
 
         var discovery = await _devices.RefreshAsync(cancellationToken).ConfigureAwait(false);
 
@@ -1894,6 +1895,60 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // sentence that was not.
             Message = result.Message + Strings.Format("OnBrandUseClonePath", brand.Name, brand.ClonePath),
         };
+    }
+
+    /// <summary>
+    /// The applications a phone can open, profile by profile, for the
+    /// choice window. <c>null</c> when the phone is not connected.
+    ///
+    /// Two questions: the names, asked of scrcpy since only it reaches
+    /// them, then the launchable packages of each profile. Without the
+    /// names, the packages are still listed under their package name.
+    /// </summary>
+    public async Task<IReadOnlyList<ProfileApps>?> ListAppsAsync(
+        string deviceId,
+        CancellationToken cancellationToken = default)
+    {
+        var devices = await ResolveDevicesAsync(cancellationToken).ConfigureAwait(false);
+
+        if (!devices.TryGetValue(deviceId, out var device))
+        {
+            return null;
+        }
+
+        var settings = await _settings.GetAsync(cancellationToken).ConfigureAwait(false);
+        _instances.PackageName = settings.PackageName;
+
+        var labels = await _sessions
+            .ListAppsAsync(device.Id, device.Serial, cancellationToken)
+            .ConfigureAwait(false);
+
+        var profiles = await _instances
+            .ListLaunchableAppsAsync(device, labels, cancellationToken)
+            .ConfigureAwait(false);
+
+        LogAppsListed(device.DisplayName, labels.Count, profiles.Sum(p => p.Apps.Count));
+
+        return profiles;
+    }
+
+    /// <summary>The applications currently shown by request.</summary>
+    public Task<IReadOnlyList<ShownApp>> GetShownAppsAsync(CancellationToken cancellationToken = default) =>
+        _settings.GetShownAppsAsync(cancellationToken);
+
+    /// <summary>
+    /// Remembers which applications a phone shows beside the game.
+    /// Their rows appear or leave on the next sweep.
+    /// </summary>
+    public async Task SetShownAppsAsync(
+        string deviceId,
+        IReadOnlyList<ShownApp> chosen,
+        CancellationToken cancellationToken = default)
+    {
+        if (await _settings.SetShownAppsAsync(deviceId, chosen, cancellationToken).ConfigureAwait(false))
+        {
+            LogShownAppsChanged(deviceId, chosen.Count);
+        }
     }
 
     /// <summary>
@@ -3509,6 +3564,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Information,
         Message = "Compte « {name} » ajouté sur {device} : {succeeded}. {message}")]
     private partial void LogAccountAdded(string device, string name, bool succeeded, string message);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Applications de {device} lues : {labels} nom(s), {apps} application(s) lançable(s) hors jeu.")]
+    private partial void LogAppsListed(string device, int labels, int apps);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Applications affichées sur {deviceId} : {count} choisie(s).")]
+    private partial void LogShownAppsChanged(string deviceId, int count);
 
     [LoggerMessage(
         Level = LogLevel.Information,

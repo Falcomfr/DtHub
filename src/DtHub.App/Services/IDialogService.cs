@@ -58,6 +58,12 @@ public interface IDialogService
         string? title = null,
         string? details = null,
         string? acceptLabel = null);
+
+    /// <summary>
+    /// Opens a phone's application window and returns what was decided
+    /// there. The view model carries the ticked applications.
+    /// </summary>
+    ViewModels.AppPickerOutcome ChooseApps(ViewModels.AppPickerViewModel viewModel);
 }
 
 /// <summary>WPF implementation.</summary>
@@ -79,6 +85,18 @@ public sealed class DialogService : IDialogService
         };
 
         return window.ShowDialog() == true ? window.Answer : null;
+    }
+
+    public ViewModels.AppPickerOutcome ChooseApps(ViewModels.AppPickerViewModel viewModel)
+    {
+        var window = new Windows.AppPickerWindow(viewModel)
+        {
+            Owner = Application.Current?.Windows
+                .OfType<Window>()
+                .FirstOrDefault(w => w.IsActive && w.IsVisible),
+        };
+
+        return window.ShowDialog() == true ? viewModel.Outcome : ViewModels.AppPickerOutcome.Cancelled;
     }
 
     public void ShowInformation(string message, string? title = null) =>

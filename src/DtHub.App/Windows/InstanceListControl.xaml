@@ -190,15 +190,15 @@
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
 
-                <!-- Add an account: a fresh Android profile, with the game
-                     inside. It's Android's own multiple-user mechanism,
-                     the same one the phone's manufacturer overlay uses
-                     itself. A solid plus sign, because adding has no
+                <!-- Add a line: an application already on the phone, or a
+                     new account for the game. The window it opens keeps
+                     the two apart, since only the second changes the
+                     phone. A solid plus sign, because adding has no
                      other icon. -->
                 <Button Style="{StaticResource IconButton}" AllowDrop="False"
                         IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"
                         ToolTip="{loc:T AddAccountTip}"
-                        Command="{Binding DataContext.AddAccountCommand,
+                        Command="{Binding DataContext.ManageAppsCommand,
                                           RelativeSource={RelativeSource AncestorType=UserControl}}"
                         CommandParameter="{Binding Device}">
                   <Path Data="M 7.5,3 L 7.5,12 M 3,7.5 L 12,7.5"
@@ -703,6 +703,26 @@
                            cross, and in a list a cross means "delete this
                            row" to almost everyone; nothing is deleted
                            here, which is also why it is not red. -->
+                      <!-- Only on a row added from the plus button, and only
+                           while its window is closed: the game's rows are
+                           found on their own and would come straight back. A
+                           bin, because the row does leave the list; the
+                           application itself stays on the phone. -->
+                      <Button Style="{StaticResource DangerIconButton}" AllowDrop="False"
+                              ToolTip="{loc:T RemoveAppTip}"
+                              Command="{Binding DataContext.RemoveAppCommand,
+                                                RelativeSource={RelativeSource AncestorType=UserControl}}"
+                              CommandParameter="{Binding}">
+                        <Path Style="{StaticResource BinGlyph}" />
+
+                        <Button.Visibility>
+                          <MultiBinding Converter="{StaticResource AllTrue}">
+                            <Binding Path="IsShownApp" />
+                            <Binding Path="IsRunning" Converter="{StaticResource InverseBool}" />
+                          </MultiBinding>
+                        </Button.Visibility>
+                      </Button>
+
                       <Grid>
                         <Button Style="{StaticResource RowActionButton}" AllowDrop="False"
                                 ToolTip="{loc:T OpenInstanceTip}"

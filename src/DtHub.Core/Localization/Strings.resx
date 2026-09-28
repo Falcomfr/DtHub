@@ -242,6 +242,45 @@
   <data name="TurnScreenOffTip" xml:space="preserve">
     <value>The phone's screen goes dark as soon as a game window opens, and the game keeps running on the PC. The phone heats up less and its battery lasts longer. The screen comes back on when the last account closes.</value>
   </data>
+  <data name="AppPickerTitle" xml:space="preserve">
+    <value>Applications on {0}</value>
+  </data>
+  <data name="AppPickerShowHeader" xml:space="preserve">
+    <value>Show an application already installed</value>
+  </data>
+  <data name="AppPickerShowHelp" xml:space="preserve">
+    <value>Ticked, it appears in the list and opens in its own window, like the game. Nothing is installed or copied on the phone.</value>
+  </data>
+  <data name="AppPickerSearch" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="AppPickerSystemApps" xml:space="preserve">
+    <value>Also show the phone's own applications</value>
+  </data>
+  <data name="AppPickerLoading" xml:space="preserve">
+    <value>Reading the phone's applications...</value>
+  </data>
+  <data name="AppPickerEmpty" xml:space="preserve">
+    <value>No application matches.</value>
+  </data>
+  <data name="AppPickerNotListed" xml:space="preserve">
+    <value>Not found on the phone this time</value>
+  </data>
+  <data name="AppPickerMainProfile" xml:space="preserve">
+    <value>Main profile</value>
+  </data>
+  <data name="AppPickerCloneHeader" xml:space="preserve">
+    <value>Clone the game onto a new account</value>
+  </data>
+  <data name="AppPickerCloneHelp" xml:space="preserve">
+    <value>Creates a new Android profile on the phone, with its own copy of the game, for one more account. The game will ask again for its resources and the login.</value>
+  </data>
+  <data name="AppPickerCloneButton" xml:space="preserve">
+    <value>Clone the game</value>
+  </data>
+  <data name="RemoveAppTip" xml:space="preserve">
+    <value>Remove from the list. The application stays on the phone, and can be shown again from the + button.</value>
+  </data>
   <data name="OpenLogFolder" xml:space="preserve">
     <value>Open the log folder</value>
   </data>
@@ -396,7 +435,7 @@
     <value>Defaults</value>
   </data>
   <data name="AddAccountTip" xml:space="preserve">
-    <value>Add an account on this phone: a fresh Android profile, with the game already in it. It will open like a new installation, to be logged in again.</value>
+    <value>Show another application of this phone, or clone the game onto a new account.</value>
   </data>
   <data name="ForgetDeviceTip" xml:space="preserve">
     <value>Forget this device on this PC. Its windows close, and its instances as well as their settings are erased. The phone itself is not touched. A confirmation is asked.</value>

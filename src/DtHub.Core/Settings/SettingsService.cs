@@ -1114,6 +1114,13 @@ public sealed class SettingsService : IDisposable
 
             var live = discovered.Select(i => i.Key).ToHashSet(StringComparer.Ordinal);
 
+            // Carried on every row of an application shown by request,
+            // offline ones included: it is what lets the list offer to
+            // take the row out again, and never on a row of the game.
+            var shown = settings.ShownApps
+                .GroupBy(a => a.Key, StringComparer.Ordinal)
+                .ToDictionary(g => g.Key, g => g.First().Label, StringComparer.Ordinal);
+
             merged = [.. settings.Instances
                 .OrderBy(i => i.Order)
                 .Select(i => new DofusInstance
@@ -1133,6 +1140,7 @@ public sealed class SettingsService : IDisposable
                     Colour = i.Colour,
                     PlayedThisWeek = PlaytimeLog.Week(i.Playtime, DateOnly.FromDateTime(DateTime.Now)),
                     IsDeviceConnected = live.Contains(i.Key),
+                    AppLabel = shown.GetValueOrDefault(i.Key),
                 })];
         }, cancellationToken).ConfigureAwait(false);
 

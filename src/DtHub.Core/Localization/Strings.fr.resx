@@ -242,6 +242,45 @@
   <data name="TurnScreenOffTip" xml:space="preserve">
     <value>L'écran du téléphone s'éteint dès qu'une fenêtre de jeu s'ouvre, et le jeu continue sur le PC. Le téléphone chauffe moins et sa batterie tient plus longtemps. L'écran se rallume quand le dernier compte se ferme.</value>
   </data>
+  <data name="AppPickerTitle" xml:space="preserve">
+    <value>Applications de {0}</value>
+  </data>
+  <data name="AppPickerShowHeader" xml:space="preserve">
+    <value>Afficher une application déjà installée</value>
+  </data>
+  <data name="AppPickerShowHelp" xml:space="preserve">
+    <value>Cochée, elle apparaît dans la liste et s'ouvre dans sa propre fenêtre, comme le jeu. Rien n'est installé ni copié sur le téléphone.</value>
+  </data>
+  <data name="AppPickerSearch" xml:space="preserve">
+    <value>Rechercher</value>
+  </data>
+  <data name="AppPickerSystemApps" xml:space="preserve">
+    <value>Montrer aussi les applications du téléphone</value>
+  </data>
+  <data name="AppPickerLoading" xml:space="preserve">
+    <value>Lecture des applications du téléphone...</value>
+  </data>
+  <data name="AppPickerEmpty" xml:space="preserve">
+    <value>Aucune application ne correspond.</value>
+  </data>
+  <data name="AppPickerNotListed" xml:space="preserve">
+    <value>Pas trouvées sur le téléphone cette fois</value>
+  </data>
+  <data name="AppPickerMainProfile" xml:space="preserve">
+    <value>Profil principal</value>
+  </data>
+  <data name="AppPickerCloneHeader" xml:space="preserve">
+    <value>Cloner le jeu sur un nouveau compte</value>
+  </data>
+  <data name="AppPickerCloneHelp" xml:space="preserve">
+    <value>Crée un nouveau profil Android sur le téléphone, avec sa propre copie du jeu, pour un compte de plus. Le jeu y redemandera ses ressources et la connexion.</value>
+  </data>
+  <data name="AppPickerCloneButton" xml:space="preserve">
+    <value>Cloner le jeu</value>
+  </data>
+  <data name="RemoveAppTip" xml:space="preserve">
+    <value>Retirer de la liste. L'application reste sur le téléphone, et se réaffiche depuis le bouton +.</value>
+  </data>
   <data name="OpenLogFolder" xml:space="preserve">
     <value>Ouvrir le dossier des journaux</value>
   </data>
@@ -396,7 +435,7 @@
     <value>Valeurs par défaut</value>
   </data>
   <data name="AddAccountTip" xml:space="preserve">
-    <value>Ajouter un compte sur ce téléphone : un profil Android neuf, avec le jeu déjà dedans. Il s'ouvrira comme une installation neuve, à reconnecter.</value>
+    <value>Afficher une autre application de ce téléphone, ou cloner le jeu sur un nouveau compte.</value>
   </data>
   <data name="ForgetDeviceTip" xml:space="preserve">
     <value>Oublier cet appareil sur ce PC. Ses fenêtres se ferment, et ses instances comme leurs réglages sont effacés. Le téléphone, lui, n'est pas touché. Une confirmation est demandée.</value>

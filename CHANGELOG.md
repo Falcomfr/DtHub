@@ -18,6 +18,18 @@ French.
   The game keeps running, the phone heats up less and its battery lasts
   longer, which matters when the PC's USB port charges more slowly than the
   game drains it. The screen comes back on when the last account closes.
+- The + button of a phone now opens a window with two separate choices. Show
+  an application the phone already has, found by searching its name, which
+  installs and copies nothing: a copy of the game made by a cloning app, or
+  any other application, then opens in its own window like the game. Or clone
+  the game onto a new account, as the button used to do.
+- An application added that way can be taken out of the list again with the
+  bin on its row. It stays on the phone. The game's own rows are always shown.
+
+### Changed
+
+- In the tabbed frame, each tab is tinted with its account's colour, so the
+  accounts can be told apart at a glance and not only by a thin bar.
 
 ## [0.5.2] - 2026-09-27
 

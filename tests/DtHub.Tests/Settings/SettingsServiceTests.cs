@@ -1370,6 +1370,19 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Seules_les_applications_choisies_portent_leur_libelle_meme_hors_ligne()
+    {
+        // What lets the list offer the bin on a row, and never on the game's.
+        await _service.SetShownAppsAsync("MATERIEL123", [Player], CancellationToken.None);
+        await _service.MergeInstancesAsync([Instance(0), PlayerInstance()], CancellationToken.None);
+
+        var offline = await _service.MergeInstancesAsync([], CancellationToken.None);
+
+        Assert.Equal("AIMP", offline.Single(i => i.PackageName == "com.aimp.player").AppLabel);
+        Assert.Null(offline.Single(i => i.UserId == 0).AppLabel);
+    }
+
+    [Fact]
     public async Task Une_application_choisie_survit_a_un_profil_sans_le_jeu()
     {
         // The player lives on a profile the game was removed from: that

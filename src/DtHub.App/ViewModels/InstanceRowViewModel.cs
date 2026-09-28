@@ -39,7 +39,15 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     private bool _applying;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsShownApp))]
     private DofusInstance _instance;
+
+    /// <summary>
+    /// True for an application added from the plus button, which can be
+    /// taken out of the list again. The game's rows cannot: they are found
+    /// on their own, and would come back on the next sweep.
+    /// </summary>
+    public bool IsShownApp => Instance.AppLabel is not null;
 
     /// <summary>Checked for automatic launch.</summary>
     [ObservableProperty]
