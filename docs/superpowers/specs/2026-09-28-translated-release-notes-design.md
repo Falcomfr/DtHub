@@ -95,7 +95,7 @@ it would reach those users raw, once.
 - The header paragraph of `CHANGELOG.md` ("exist in a single version").
 - `AGENTS.md` and `CONTRIBUTING.md`, language section: the two translated
   changelogs join the exceptions to "the repository is written in English".
-- `docs/DECISIONS.md`: a new entry, D174, in French like the rest of the file,
+- `docs/DECISIONS.md`: a new entry, D176, in French like the rest of the file,
   which reverses the line of D80 on release notes and gives the reason.
 
 ## Testing

@@ -185,7 +185,7 @@ Plus, beside `Ecrit_la_note_de_version_et_ne_la_rend_qu_une_fois`, a `[Fact] Ecr
 **Files:**
 - Create: `CHANGELOG.fr.md`, `CHANGELOG.es.md`
 - Modify: `.github/workflows/livraison.yml` (steps "Release notes" and "Create the release")
-- Modify: `CHANGELOG.md` (header paragraph), `docs/LIVRAISON.md` (step 2 and the "two files" paragraph), `AGENTS.md` and `CONTRIBUTING.md` (language section), `docs/DECISIONS.md` (new D174 at the end)
+- Modify: `CHANGELOG.md` (header paragraph), `docs/LIVRAISON.md` (step 2 and the "two files" paragraph), `AGENTS.md` and `CONTRIBUTING.md` (language section), `docs/DECISIONS.md` (new D176 at the end)
 
 **Interfaces:**
 - Produces: assets `notes.fr.md` and `notes.es.md` on every release from now on (consumed by Tasks 1, 2 and 4).
@@ -200,7 +200,7 @@ Plus, beside `Ecrit_la_note_de_version_et_ne_la_rend_qu_une_fois`, a `[Fact] Ecr
   - `CHANGELOG.md` header: entries are written in English and translated in `CHANGELOG.fr.md` and `CHANGELOG.es.md` from the version after 0.5.2; the English section is the release body, the translations travel as assets and are what the application shows in French or Spanish, and what Discord receives.
   - `docs/LIVRAISON.md` step 2: close `[Unreleased]` in the three changelogs; the pipeline refuses to ship when one of them is missing the version or has it empty. The paragraph listing the release files: four files, and only the first two are required by the application.
   - `AGENTS.md` and `CONTRIBUTING.md`: the translated changelogs join the exceptions to "the repository is written in English", with the reason in one line (they are shown to users in their language). `AGENTS.md` says "Five things stay French": make the count and the list true.
-  - `docs/DECISIONS.md`, `## D174 - Les notes de version parlent la langue de l'application`, dated 2026-09-28, "Acceptée", in French: the need (notes shown in the chosen language, Discord in French), what D80 said, why the body stays English (installed versions), why assets rather than markers in the body or text built into the executable, the known limit (language changed between download and restart).
+  - `docs/DECISIONS.md`, `## D176 - Les notes de version parlent la langue de l'application`, dated 2026-09-28, "Acceptée", in French: the need (notes shown in the chosen language, Discord in French), what D80 said, why the body stays English (installed versions), why assets rather than markers in the body or text built into the executable, the known limit (language changed between download and restart).
 
 - [ ] **Step 5: Commit** `Ship the release notes in three languages`.
 
