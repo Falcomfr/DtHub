@@ -81,6 +81,23 @@ public sealed partial class InstanceListViewModel : ObservableObject
     private IReadOnlyList<Core.Dofus.DofusInstance>? _instances;
 
     /// <summary>
+    /// Counts the invalidations of <see cref="_instances" />. A sweep that
+    /// started before one read the settings as they were, and must not put
+    /// its answer back in the cache when it ends.
+    /// </summary>
+    private int _invalidations;
+
+    /// <summary>
+    /// Drops the accounts found, so that the next sweep asks the phones
+    /// again: something was just changed that they alone can confirm.
+    /// </summary>
+    private void InvalidateInstances()
+    {
+        _instances = null;
+        _invalidations++;
+    }
+
+    /// <summary>
     /// Fingerprint of devices seen, to know when to rediscover.
     /// </summary>
     private string? _signature;
@@ -546,7 +563,20 @@ public sealed partial class InstanceListViewModel : ObservableObject
     {
         if (IsBusy || IsReordering)
         {
-            return;
+            // Nothing new to ask: the sweep in progress will do.
+            if (_instances is not null)
+            {
+                return;
+            }
+
+            // Something was changed during a sweep, which read the settings
+            // before it. Returning here left the change unseen until the
+            // next periodic pass, the removed application still listed and
+            // its bin looking dead. The sweep is let finish, then redone.
+            while (IsBusy || IsReordering)
+            {
+                await Task.Delay(100, cancellationToken).ConfigureAwait(true);
+            }
         }
 
         IsBusy = true;
@@ -587,6 +617,8 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 "|",
                 discovery.Devices.Select(d => $"{d.Id}:{d.State}").Order(StringComparer.Ordinal));
 
+            IReadOnlyList<Core.Dofus.DofusInstance>? instancesShown = null;
+
             var looking = _instances is null
                 || !string.Equals(signature, _signature, StringComparison.Ordinal)
                 || DateTimeOffset.UtcNow - _discoveredAt >= _launcher.Quality.InstanceRediscovery;
@@ -607,14 +639,25 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 // ordinary gestures invalidated the cache.
                 ShowList(discovery, _instances);
 
-                _instances = await _launcher.RefreshInstancesAsync(cancellationToken).ConfigureAwait(true);
-                _signature = signature;
-                _discoveredAt = DateTimeOffset.UtcNow;
+                var asked = _invalidations;
+                var found = await _launcher.RefreshInstancesAsync(cancellationToken).ConfigureAwait(true);
+
+                // Invalidated while the phones answered: the answer is
+                // shown, it is the best there is, but not kept. The next
+                // sweep asks again, with the settings as they are now.
+                if (asked == _invalidations)
+                {
+                    _instances = found;
+                    _signature = signature;
+                    _discoveredAt = DateTimeOffset.UtcNow;
+                }
+
+                instancesShown = found;
             }
 
             // The looking branch above has just filled it; when it did not run,
             // `looking` was false, which is only possible with a list in hand.
-            var instances = _instances;
+            var instances = instancesShown ?? _instances;
 
             ShowList(discovery, instances);
 
@@ -906,7 +949,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
             // The discovery cache carries the old order: keeping it
             // would bring the row back to its place under the cursor. Any
             // write to the settings must invalidate it.
-            _instances = null;
+            InvalidateInstances();
 
             // The order of the list drives the order of the windows:
             // without this, moving a row only changed the keyboard path.
@@ -1052,7 +1095,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
             await _launcher.SetShownAppsAsync(row.DeviceId, rest).ConfigureAwait(true);
 
-            _instances = null;
+            InvalidateInstances();
             await RefreshAsync().ConfigureAwait(true);
         }
         finally
@@ -1138,7 +1181,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
             // An action may have changed what the device carries: the
             // next sweep rediscovers rather than reusing the cache.
-            _instances = null;
+            InvalidateInstances();
         }
     }
 
@@ -1294,7 +1337,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
                 // Same reason as after adding an account: without it the
                 // new rows would wait for the next rediscovery.
-                _instances = null;
+                InvalidateInstances();
                 await RefreshAsync().ConfigureAwait(true);
                 break;
 
@@ -1371,7 +1414,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         // only appears after the rediscovery interval, fifteen to sixty
         // seconds depending on the tier. The same gesture already exists
         // in ActOnAsync.
-        _instances = null;
+        InvalidateInstances();
 
         await RefreshAsync().ConfigureAwait(true);
     }
@@ -1444,7 +1487,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         // The cache is discarded, otherwise the sweep resumes what it
         // already knows and the device's rows stay on screen until the
         // rediscovery interval. Same gesture as for adding an account.
-        _instances = null;
+        InvalidateInstances();
 
         await RefreshAsync().ConfigureAwait(true);
     }
@@ -1477,7 +1520,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
             // The discovery cache carries the old value: keeping it
             // would bring the checkbox back to its previous state at the
             // next sweep.
-            _instances = null;
+            InvalidateInstances();
         }
         finally
         {
@@ -1496,7 +1539,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
             // Same trap as for sorting and for the checkboxes: any write
             // to the settings must invalidate the cache, otherwise the
             // lock reopens on its own at the next sweep.
-            _instances = null;
+            InvalidateInstances();
 
             // The launcher rereads the list of set-aside ones at the
             // next placement.
@@ -1532,7 +1575,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
             // Same trap as for the lock: without this the next sweep
             // would give the row back its old tier.
-            _instances = null;
+            InvalidateInstances();
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
@@ -1552,7 +1595,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
             // Same trap as for the lock: without this the next sweep
             // would give the row back its old state.
-            _instances = null;
+            InvalidateInstances();
         }
         catch (AdbException exception)
         {
@@ -1575,7 +1618,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
             // Same trap as for the tier and the distance: the cached
             // list still holds the old value, and the next sweep would
             // put it back.
-            _instances = null;
+            InvalidateInstances();
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
@@ -1597,7 +1640,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
             // Same trap as for the tier: without this the next sweep
             // would give the row back its old distance.
-            _instances = null;
+            InvalidateInstances();
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
@@ -1624,7 +1667,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
             // returns at the next full rediscovery, fifteen to sixty seconds
             // further on. D150 named this trap and spared the other settings
             // from it.
-            _instances = null;
+            InvalidateInstances();
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
