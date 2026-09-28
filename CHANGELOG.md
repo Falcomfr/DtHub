@@ -5,10 +5,13 @@ All notable changes to this project are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and the project uses [semantic versioning](https://semver.org/).
 
-Entries are written in English from 0.3.0 onward: they become the release notes
-published on GitHub and shown inside the application, and those exist in a
-single version. The 0.2.0 and 0.1.0 sections predate that rule and stay in
-French.
+Entries are written in English from 0.3.0 onward: the section of a version is
+the body of its release on GitHub, the one every installed version reads. From
+the version after 0.5.2, each section is also translated in
+[CHANGELOG.fr.md](CHANGELOG.fr.md) and [CHANGELOG.es.md](CHANGELOG.es.md). The
+translations travel as release assets: they are what the application shows in
+French or Spanish, and the French one is what the Discord channel receives. The
+0.2.0 and 0.1.0 sections predate the English rule and stay in French.
 
 ## [0.6.0] - 2026-09-28
 

@@ -35,7 +35,10 @@ that is what makes them useful.
 
 **The language.** The repository is written in English: documents, code
 comments, commit messages, release notes, issue templates. What cannot exist
-in two versions is written once, in English.
+in two versions is written once, in English. The release notes are the one
+text shown to users that lives outside the resource files, so they are also
+translated, in `CHANGELOG.fr.md` and `CHANGELOG.es.md`, and shipped beside
+each release for the application to show in its own language.
 
 Five things stay French on purpose, and it is better to name them than to
 let them read as oversights:

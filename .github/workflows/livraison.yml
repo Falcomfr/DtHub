@@ -147,22 +147,35 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.numero }}
         run: |
-          # The notes come from the changelog, the section of the version
-          # being shipped. Written once, read by the repository and by the
-          # application.
-          $lignes = Get-Content CHANGELOG.md
-          $debut = $null
-          $note = @()
+          # The notes come from the changelogs, the section of the version
+          # being shipped, in three languages. The English one is the
+          # release body, which every installed version reads; the French
+          # and Spanish ones travel as assets, read by the application in
+          # its own language and by the Discord relay. A language missing
+          # the version, or holding an empty section for it, is a forgotten
+          # translation and stops the release.
+          function Extraire($source, $cible) {
+            $debut = $null
+            $note = @()
 
-          foreach ($ligne in $lignes) {
-            if ($ligne -match ('^## \[' + [regex]::Escape($env:VERSION) + '\]')) { $debut = $true; continue }
-            if ($debut -and $ligne -match '^## ') { break }
-            if ($debut) { $note += $ligne }
+            foreach ($ligne in Get-Content $source -Encoding utf8) {
+              if ($ligne -match ('^## \[' + [regex]::Escape($env:VERSION) + '\]')) { $debut = $true; continue }
+              if ($debut -and $ligne -match '^## ') { break }
+              if ($debut) { $note += $ligne }
+            }
+
+            if (-not $debut) { throw "$source does not describe version $env:VERSION." }
+
+            $texte = ($note -join "`n").Trim()
+
+            if ($texte.Length -eq 0) { throw "$source has an empty section for version $env:VERSION." }
+
+            $texte | Set-Content $cible -Encoding utf8
           }
 
-          if (-not $debut) { throw "The changelog does not describe version $env:VERSION." }
-
-          ($note -join "`n").Trim() | Set-Content note.md
+          Extraire CHANGELOG.md note.md
+          Extraire CHANGELOG.fr.md notes.fr.md
+          Extraire CHANGELOG.es.md notes.es.md
 
       - name: Create the release
         shell: pwsh
@@ -183,6 +196,8 @@ jobs:
           gh release create $env:ETIQUETTE
           publication/DtHub.exe
           publication/DtHub.exe.sha256
+          notes.fr.md
+          notes.es.md
           --title "DT Hub $env:VERSION"
           --notes-file note.md
           --draft

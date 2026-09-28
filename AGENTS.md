@@ -245,7 +245,9 @@ server for the whole machine. A test verifies this.
   the log messages, which are a diagnostic tool for whoever runs the
   application; `docs/DECISIONS.md`, whose worth is its precision and
   which new entries keep extending in French; and the 0.1.0 and 0.2.0
-  sections of the changelog, published before the rule. See
+  sections of the changelog, published before the rule. Two files are
+  translations on purpose, `CHANGELOG.fr.md` and `CHANGELOG.es.md`: the
+  application shows the release notes in the user's language. See
   `CONTRIBUTING.md` for the detail and the reason.
 - No em dash in produced texts.
 - Files in UTF-8, LF line endings in the repository.

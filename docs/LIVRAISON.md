@@ -24,9 +24,11 @@ nothing is shown.
    assumes to be there. A legitimate discrepancy is reblessed with
    `-- --benir`.
 1. Bump the version in `Directory.Build.props`, field `VersionPrefix`.
-2. Close the `## [Unreleased]` section of the changelog: rename it to
-   `## [0.2.0] - 2026-09-02`. The release pipeline reads the release note
-   there, and refuses to ship if it cannot find it.
+2. Close the `## [Unreleased]` section in the three changelogs,
+   `CHANGELOG.md`, `CHANGELOG.fr.md` and `CHANGELOG.es.md`: rename it to
+   `## [0.2.0] - 2026-09-02`. The release pipeline reads the release notes
+   there, and refuses to ship if one of the three is missing the version or
+   holds an empty section for it.
 3. Commit both, then tag with the same number:
 
    ```
@@ -35,9 +37,10 @@ nothing is shown.
    ```
 
 The pipeline builds, publishes, computes the checksum and creates the
-release with two files: `DtHub.exe` and `DtHub.exe.sha256`. These are the
-two names the application expects; a release missing either one is
-ignored.
+release with four files: `DtHub.exe`, `DtHub.exe.sha256`, `notes.fr.md` and
+`notes.es.md`. The first two are the names the application requires; a
+release missing either one is ignored. The notes are optional to it: without
+them it shows the English body.
 
 ## What the file is published with
 

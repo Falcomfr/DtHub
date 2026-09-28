@@ -9454,3 +9454,40 @@ instances (`ShownApps`), et une instance n'existe que lorsque le téléphone dit
 avoir l'application. Une application choisie n'est jamais oubliée parce que son
 profil n'a pas le jeu, et la corbeille de sa ligne la retire. Les lignes du jeu
 n'ont pas de corbeille : elles reviendraient au balayage suivant.
+
+## D176 - Les notes de version parlent la langue de l'application
+
+**2026-09-28 - Acceptée**
+
+D80 rangeait les notes de version parmi ce qui resterait anglais, en notant que
+c'était le seul de ces points qui dépendait de nous. Il en dépendait, et le
+besoin est venu : l'application doit les afficher dans la langue choisie, et
+le salon Discord `#changelog` doit les recevoir en français. Cette entrée
+annule la ligne de D80 sur les notes de version, et elle seule.
+
+**Le corps de la livraison reste anglais**, et c'est la contrainte qui décide
+de tout le reste. Chaque version déjà installée, jusqu'à la 0.5.2, lit ce corps
+avec son propre code pour annoncer la version qu'elle s'apprête à poser. Un
+corps qui porterait trois langues séparées par des balises arriverait tel quel
+chez elles, balises comprises, une fois.
+
+**Les traductions voyagent en pièces jointes.** `CHANGELOG.fr.md` et
+`CHANGELOG.es.md` suivent la structure de l'anglais, et le pipeline joint la
+section de la version sous les noms `notes.fr.md` et `notes.es.md`, à côté de
+l'exécutable et de son empreinte. L'application lit celle de sa langue quand
+elle trouve une livraison plus récente, avec le même appel que l'empreinte ;
+le relais Discord envoie la française. Tous deux retombent sur l'anglais quand
+la pièce manque ou ne répond pas : une traduction absente ne doit jamais
+cacher la note qui existe.
+
+**Écartées** : les trois langues dans le corps, pour la raison dite plus haut ;
+et des notes embarquées dans l'exécutable, qui ne peut pas connaître les notes
+de la version qui arrive après lui.
+
+**Ce que ça coûte.** Chaque livraison s'écrit trois fois, et le pipeline
+refuse de livrer si une langue ne décrit pas la version ou la laisse vide :
+un oubli se voit avant la publication plutôt qu'après. Les versions passées ne
+sont pas traduites, seules les notes de la version qui arrive étant jamais
+affichées. Une limite est assumée : si la langue change entre le
+téléchargement et le redémarrage, la fenêtre « vient d'être installée »
+parle l'ancienne.
