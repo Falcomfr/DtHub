@@ -9398,3 +9398,59 @@ d'un coup d'oeil. Poser les deux coûte un appel de plus et rien d'autre.
 titre lui ayant été retirée, et une fenêtre en plein écran sans bordure non
 plus. Les deux cas n'échouent pas, ils ne font rien : c'est l'onglet qui porte
 la marque dans le premier cas, et le second n'a de toute façon plus de cadre.
+
+## D174 - L'écran éteint est tenu par une session à lui, une par téléphone
+
+Demandé par un utilisateur : éteindre l'écran du téléphone pendant le jeu, pour
+qu'il chauffe moins et que la batterie tienne quand le port USB du PC charge
+moins vite que le jeu ne consomme.
+
+**`--turn-screen-off` sur chaque session ne tient pas.** Mesuré sur le 13T Pro,
+`powerMode` lu dans `dumpsys SurfaceFlinger` : une session qui a éteint l'écran
+le rallume en se fermant (`CleanUp.restoreDisplayPower` dans le serveur v4.1),
+et l'écran est celui de tout le téléphone. Fermer un compte sur deux rallumait
+l'écran sous l'autre en moins d'une seconde.
+
+**Une session scrcpy sans fenêtre le tient à la place**
+(`--no-video --no-audio --no-window --turn-screen-off`). Elle démarre après le
+jeu du premier compte d'un téléphone, dans la même file que les ouvertures
+puisqu'elle pousse un serveur, et elle est tuée quand le dernier compte de ce
+téléphone se ferme. Mesuré de la même façon : l'écran reste éteint pendant que
+des sessions de jeu s'ouvrent et se ferment à côté, et se rallume en une
+seconde quand elle est tuée, même brutalement. Avec `--new-display`, scrcpy
+éteint l'écran principal et laisse tourner les afficheurs virtuels.
+
+**`--keep-active` reste sur les sessions de jeu.** Sans lui le téléphone se met
+en veille et l'afficheur virtuel s'arrête. La session d'écran éteint n'en a pas
+besoin : elle ne survit jamais aux sessions de jeu.
+
+**Piège de mesure.** Un téléphone sans session passe en veille
+(`mWakefulness=Dozing`) et affiche lui aussi `powerMode=Off`. Relever la veille
+avec l'écran, sinon on conclut à tort que l'écran est tenu éteint.
+
+## D175 - Afficher une application et cloner le jeu sont deux gestes distincts
+
+Demandé par le même utilisateur : ses copies du jeu faites par une application
+de clonage n'étaient pas vues, seul son profil pro l'était. Une copie renommée
+sous un paquet sans rapport avec le nom du jeu échappe à toute détection par le
+nom, et un clone qui tourne à l'intérieur de l'application de clonage n'a aucun
+paquet à lancer : ce second cas ne sera jamais pris en charge.
+
+**Le + d'un téléphone ouvre une fenêtre à deux parties séparées.** Afficher une
+application déjà installée n'installe ni ne copie rien : la ligne ouvre cette
+application dans sa fenêtre, comme le jeu. Cloner le jeu crée un profil
+Android, avec la confirmation d'avant. Chaque partie a sa carte, sa phrase qui
+dit ce qu'elle fait au téléphone et son bouton, pour qu'aucune ne se lise comme
+l'autre.
+
+**Les noms viennent de `scrcpy --list-apps`**, le seul chemin qui les donne :
+les commandes du gestionnaire de paquets ne connaissent que les paquets. Ils
+sont lus sur le profil principal ; un paquet que celui-ci ne connaît pas garde
+son nom de paquet. Les applications lançables de chaque profil viennent de
+`cmd package query-activities`.
+
+**Un choix est une demande, pas un constat** : il est gardé à part des
+instances (`ShownApps`), et une instance n'existe que lorsque le téléphone dit
+avoir l'application. Une application choisie n'est jamais oubliée parce que son
+profil n'a pas le jeu, et la corbeille de sa ligne la retire. Les lignes du jeu
+n'ont pas de corbeille : elles reviendraient au balayage suivant.
