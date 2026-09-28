@@ -8,6 +8,15 @@ et elle qu'annonce le salon Discord.
 Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 `### Corrigé`.
 
+## [0.6.1] - 2026-09-28
+
+### Corrigé
+
+- Retirer une application ajoutée par le bouton + ne montrait rien pendant
+  quelques secondes, le temps de balayer à nouveau le téléphone, et la corbeille
+  semblait morte. La ligne indique maintenant qu'elle travaille jusqu'à ce que
+  l'application ait quitté la liste.
+
 ## [0.6.0] - 2026-09-28
 
 ### Ajouté

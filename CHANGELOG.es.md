@@ -7,6 +7,15 @@ con el nombre `notes.es.md`: es la que la aplicación muestra en español.
 Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 `### Corregido`.
 
+## [0.6.1] - 2026-09-28
+
+### Corregido
+
+- Quitar una aplicación añadida con el botón + no mostraba nada durante unos
+  segundos, mientras se volvía a revisar el teléfono, y la papelera parecía no
+  funcionar. La fila indica ahora que está trabajando hasta que la aplicación
+  sale de la lista.
+
 ## [0.6.0] - 2026-09-28
 
 ### Añadido

@@ -13,7 +13,7 @@ translations travel as release assets: they are what the application shows in
 French or Spanish, and the French one is what the Discord channel receives. The
 0.2.0 and 0.1.0 sections predate the English rule and stay in French.
 
-## [Unreleased]
+## [0.6.1] - 2026-09-28
 
 ### Fixed
 
