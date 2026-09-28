@@ -87,6 +87,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// </summary>
     private int _invalidations;
 
+    /// <summary>The invalidation count when the sweep in progress began.</summary>
+    private int _sweepStartedAt;
+
     /// <summary>
     /// Drops the accounts found, so that the next sweep asks the phones
     /// again: something was just changed that they alone can confirm.
@@ -563,8 +566,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
     {
         if (IsBusy || IsReordering)
         {
-            // Nothing new to ask: the sweep in progress will do.
-            if (_instances is not null)
+            // Nothing changed since the sweep in progress began: it will
+            // do. This is the periodic tick's case, first sweep included.
+            if (_invalidations == _sweepStartedAt)
             {
                 return;
             }
@@ -580,6 +584,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         }
 
         IsBusy = true;
+        _sweepStartedAt = _invalidations;
 
         try
         {
