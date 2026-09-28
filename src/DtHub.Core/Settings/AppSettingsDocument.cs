@@ -306,7 +306,6 @@ public sealed class StoredLaunchProfile
     public List<string> TabbedKeys { get; set; } = [];
 }
 
-/// <summary>An instance remembered between two launches.</summary>
 /// <summary>
 /// An application shown by request, on one profile of one phone.
 /// </summary>
@@ -330,6 +329,7 @@ public sealed class StoredShownApp
     public string Key => $"{DeviceId}|{UserId}|{PackageName}";
 }
 
+/// <summary>An instance remembered between two launches.</summary>
 public sealed class StoredInstance
 {
     public string DeviceId { get; set; } = string.Empty;

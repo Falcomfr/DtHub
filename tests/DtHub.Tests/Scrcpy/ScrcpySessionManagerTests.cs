@@ -313,6 +313,54 @@ public class ScrcpySessionManagerTests
     }
 
     [Fact]
+    public async Task Deux_comptes_fermes_ensemble_rallument_l_ecran()
+    {
+        // Each read loop used to look for a live neighbour before marking
+        // its own session stopped: closed together, each saw the other
+        // alive and neither stopped the screen-off session.
+        var a = new FakeProcessSession(1).Emit(NewDisplayLine);
+        var keeper = new FakeProcessSession(9).Emit(ScreenOffLine);
+        var b = new FakeProcessSession(2).Emit(NewDisplayLine);
+        var launcher = new FakeProcessLauncher().Prepare(a).Prepare(keeper).Prepare(b);
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        await manager.StartAsync(Target(0), DarkScreen, null, CancellationToken.None);
+        await manager.StartAsync(Target(999), DarkScreen, null, CancellationToken.None);
+
+        a.Exit();
+        b.Exit();
+
+        await keeper.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.True(keeper.WasKilled);
+    }
+
+    [Fact]
+    public async Task Un_ecran_eteint_mort_de_lui_meme_est_libere_quand_il_est_remplace()
+    {
+        var first = new FakeProcessSession(9).Emit(ScreenOffLine);
+        var second = new FakeProcessSession(10).Emit(ScreenOffLine);
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(first)
+            .Prepare(new FakeProcessSession(2).Emit(NewDisplayLine))
+            .Prepare(second);
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        await manager.StartAsync(Target(0), DarkScreen, null, CancellationToken.None);
+
+        // The Wi-Fi drops it, the game session survives.
+        first.Exit(1);
+
+        await manager.StartAsync(Target(999), DarkScreen, null, CancellationToken.None);
+
+        Assert.True(first.WasDisposed);
+        Assert.Equal(2, launcher.Requests.Count(IsScreenKeeper));
+    }
+
+    [Fact]
     public async Task Un_ecran_qui_ne_confirme_pas_ne_bloque_pas_l_ouverture()
     {
         // A keeper that never says the screen is off: the opening goes

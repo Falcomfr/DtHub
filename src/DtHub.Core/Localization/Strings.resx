@@ -281,6 +281,12 @@
   <data name="RemoveAppTip" xml:space="preserve">
     <value>Remove from the list. The application stays on the phone, and can be shown again from the + button.</value>
   </data>
+  <data name="AppPickerLoadFailed" xml:space="preserve">
+    <value>The phone's applications could not be read. Close this window and try again.</value>
+  </data>
+  <data name="AppsStillOpen" xml:space="preserve">
+    <value>Still open, so kept in the list: {0}. Close its window, then remove it.</value>
+  </data>
   <data name="OpenLogFolder" xml:space="preserve">
     <value>Open the log folder</value>
   </data>

@@ -7,6 +7,7 @@ using DtHub.App.Services;
 using DtHub.Core.Adb;
 using DtHub.Core.Android;
 using DtHub.Core.Devices;
+using DtHub.Core.Dofus;
 using DtHub.Core.Localization;
 using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
@@ -1024,14 +1025,6 @@ public sealed partial class InstanceListViewModel : ObservableObject
         ActOnAsync(row, instance => _launcher.RestartAsync(instance), engageDevice: true);
 
     /// <summary>
-    /// Closes an instance's window.
-    ///
-    /// Without engaging the device: closing does not go through the
-    /// opening lock, two closures do not get in each other's way, and
-    /// greying out the neighbours would force closing one account at a
-    /// time.
-    /// </summary>
-    /// <summary>
     /// Takes an application added from the plus button out of the list.
     /// It stays on the phone, and can be ticked again from the same
     /// window: no confirmation, since nothing is lost.
@@ -1056,6 +1049,14 @@ public sealed partial class InstanceListViewModel : ObservableObject
         await RefreshAsync().ConfigureAwait(true);
     }
 
+    /// <summary>
+    /// Closes an instance's window.
+    ///
+    /// Without engaging the device: closing does not go through the
+    /// opening lock, two closures do not get in each other's way, and
+    /// greying out the neighbours would force closing one account at a
+    /// time.
+    /// </summary>
     [RelayCommand(AllowConcurrentExecutions = true)]
     private Task StopAsync(InstanceRowViewModel? row) =>
         ActOnAsync(
@@ -1256,7 +1257,28 @@ public sealed partial class InstanceListViewModel : ObservableObject
         switch (_dialogs.ChooseApps(picker))
         {
             case AppPickerOutcome.Saved:
-                await _launcher.SetShownAppsAsync(device.DeviceId, picker.Chosen).ConfigureAwait(true);
+                var chosen = picker.Chosen.ToList();
+
+                // An application whose window is open stays, unticked or
+                // not: removing it would drop the row of a window still
+                // running, which nothing could then close or restart.
+                var open = Rows
+                    .Where(r => r is { IsShownApp: true, IsRunning: true }
+                                && string.Equals(r.DeviceId, device.DeviceId, StringComparison.Ordinal)
+                                && !chosen.Any(c => string.Equals(c.Key, r.Instance.Key, StringComparison.Ordinal)))
+                    .ToList();
+
+                if (open.Count > 0)
+                {
+                    chosen.AddRange(open.Select(r => new ShownApp(
+                        r.DeviceId, r.Instance.UserId, r.Instance.PackageName, r.Instance.AppLabel ?? r.Name)));
+
+                    _dialogs.ShowInformation(
+                        Strings.Format("AppsStillOpen", string.Join(", ", open.Select(r => r.Name))),
+                        picker.Title);
+                }
+
+                await _launcher.SetShownAppsAsync(device.DeviceId, chosen).ConfigureAwait(true);
 
                 // Same reason as after adding an account: without it the
                 // new rows would wait for the next rediscovery.

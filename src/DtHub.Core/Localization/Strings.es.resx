@@ -281,6 +281,12 @@
   <data name="RemoveAppTip" xml:space="preserve">
     <value>Quitar de la lista. La aplicación sigue en el teléfono, y se vuelve a mostrar desde el botón +.</value>
   </data>
+  <data name="AppPickerLoadFailed" xml:space="preserve">
+    <value>No se han podido leer las aplicaciones del teléfono. Cierre esta ventana y vuelva a intentarlo.</value>
+  </data>
+  <data name="AppsStillOpen" xml:space="preserve">
+    <value>Todavía abierta, así que se mantiene en la lista: {0}. Cierre su ventana y luego quítela.</value>
+  </data>
   <data name="OpenLogFolder" xml:space="preserve">
     <value>Abrir la carpeta de registros</value>
   </data>

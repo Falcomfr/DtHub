@@ -690,19 +690,6 @@
                               Data="M 13,7.5 A 5.5,5.5 0 1 1 11.1,3.3 M 13,1.5 V 4.2 H 10.3" />
                       </Button>
 
-                      <!-- The row's action, and always in the same place.
-
-                           The two share one cell rather than sitting side
-                           by side: they are the same button answering to
-                           the state, and laid out in sequence the thing
-                           you reach for moved every time a window opened
-                           or closed.
-
-                           A solid triangle and a solid square, the pair
-                           nobody needs to learn. The square used to be a
-                           cross, and in a list a cross means "delete this
-                           row" to almost everyone; nothing is deleted
-                           here, which is also why it is not red. -->
                       <!-- Only on a row added from the plus button, and only
                            while its window is closed: the game's rows are
                            found on their own and would come straight back. A
@@ -723,6 +710,19 @@
                         </Button.Visibility>
                       </Button>
 
+                      <!-- The row's action, and always in the same place.
+
+                           The two share one cell rather than sitting side
+                           by side: they are the same button answering to
+                           the state, and laid out in sequence the thing
+                           you reach for moved every time a window opened
+                           or closed.
+
+                           A solid triangle and a solid square, the pair
+                           nobody needs to learn. The square used to be a
+                           cross, and in a list a cross means "delete this
+                           row" to almost everyone; nothing is deleted
+                           here, which is also why it is not red. -->
                       <Grid>
                         <Button Style="{StaticResource RowActionButton}" AllowDrop="False"
                                 ToolTip="{loc:T OpenInstanceTip}"

@@ -281,6 +281,12 @@
   <data name="RemoveAppTip" xml:space="preserve">
     <value>Retirer de la liste. L'application reste sur le téléphone, et se réaffiche depuis le bouton +.</value>
   </data>
+  <data name="AppPickerLoadFailed" xml:space="preserve">
+    <value>Les applications du téléphone n'ont pas pu être lues. Fermez cette fenêtre et réessayez.</value>
+  </data>
+  <data name="AppsStillOpen" xml:space="preserve">
+    <value>Encore ouverte, donc gardée dans la liste : {0}. Fermez sa fenêtre, puis retirez-la.</value>
+  </data>
   <data name="OpenLogFolder" xml:space="preserve">
     <value>Ouvrir le dossier des journaux</value>
   </data>

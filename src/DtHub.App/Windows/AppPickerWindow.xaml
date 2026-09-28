@@ -23,7 +23,7 @@
       <Button Content="{loc:T Cancel}" Style="{StaticResource QuietButton}" Padding="14,6"
               Margin="0,0,8,0" IsCancel="True" />
       <Button Content="{loc:T Save}" Padding="14,6" IsDefault="True" Click="OnSave"
-              IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBool}}" />
+              IsEnabled="{Binding CanSave}" />
     </StackPanel>
 
     <!-- The clone, below the list and apart from it: it is the rarer

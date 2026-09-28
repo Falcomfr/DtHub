@@ -78,6 +78,14 @@ public sealed partial class AppPickerViewModel : ObservableObject
     [ObservableProperty]
     private bool _showSystemApps;
 
+    /// <summary>
+    /// True once the choices already made have been read. Saving before
+    /// that, or after a failed read, would write an empty choice and take
+    /// every application off the list.
+    /// </summary>
+    [ObservableProperty]
+    private bool _canSave;
+
     public AppPickerOutcome Outcome { get; set; } = AppPickerOutcome.Cancelled;
 
     /// <summary>The ticked applications, what the window saves.</summary>
@@ -108,6 +116,13 @@ public sealed partial class AppPickerViewModel : ObservableObject
             }
 
             Fill(profiles ?? [], shown);
+            CanSave = true;
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // Said on the window, and Save stays off: the choices already
+            // made are unknown, and saving would erase them.
+            Problem = Strings.Get("AppPickerLoadFailed");
         }
         finally
         {

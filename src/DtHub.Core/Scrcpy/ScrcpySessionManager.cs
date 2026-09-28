@@ -341,8 +341,17 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         // screen going dark a second later costs nothing.
         if (options.TurnScreenOff && session.IsAlive)
         {
-            await HoldScreenOffAsync(target.DeviceId, serial, scrcpyPath, adbPath, cancellationToken)
-                .ConfigureAwait(false);
+            try
+            {
+                await HoldScreenOffAsync(target.DeviceId, serial, scrcpyPath, adbPath, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // The game session is open and must reach the caller,
+                // which tracks its window: throwing here would leave a
+                // window nobody manages. Only the screen stays on.
+            }
         }
 
         return session;
@@ -358,13 +367,25 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         string adbPath,
         CancellationToken cancellationToken)
     {
+        // ponytail: one lock for every phone, held until the screen is off
+        // (under a second measured, ScreenOffTimeout at worst). A phone that
+        // never confirms delays the others by that much; a lock per phone if
+        // it ever shows.
         await _screenKeepersLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
-            if (_screenKeepers.TryGetValue(deviceId, out var running) && !running.HasExited)
+            if (_screenKeepers.TryGetValue(deviceId, out var running))
             {
-                return;
+                if (!running.HasExited)
+                {
+                    return;
+                }
+
+                // Died on its own, a Wi-Fi drop for instance, while the
+                // game sessions lived on: released before it is replaced.
+                _ = _screenKeepers.Remove(deviceId);
+                await StopScreenKeeperAsync(running).ConfigureAwait(false);
             }
 
             // It pushes a server like an opening does, so it takes its
@@ -478,18 +499,17 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     {
         var deviceId = ending.Target.DeviceId;
 
-        if (HasLiveSessionOn(deviceId, except: ending))
-        {
-            return;
-        }
-
         IProcessSession? keeper;
 
         await _screenKeepersLock.WaitAsync().ConfigureAwait(false);
 
         try
         {
-            if (!_screenKeepers.Remove(deviceId, out keeper))
+            // Asked under the lock: asked before it, an account opening
+            // meanwhile could find this screen-off session running, keep
+            // it, and see it killed a moment later.
+            if (HasLiveSessionOn(deviceId, except: ending)
+                || !_screenKeepers.Remove(deviceId, out keeper))
             {
                 return;
             }
@@ -940,7 +960,23 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
         _sessions.Clear();
 
-        foreach (var keeper in _screenKeepers.Values)
+        // Taken under the lock: the read loops woken just above release
+        // these same sessions from their side.
+        List<IProcessSession> keepers;
+
+        await _screenKeepersLock.WaitAsync().ConfigureAwait(false);
+
+        try
+        {
+            keepers = [.. _screenKeepers.Values];
+            _screenKeepers.Clear();
+        }
+        finally
+        {
+            _screenKeepersLock.Release();
+        }
+
+        foreach (var keeper in keepers)
         {
             await StopScreenKeeperAsync(keeper).ConfigureAwait(false);
         }
@@ -948,7 +984,6 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         // The lock is not disposed: a read loop still finishing may ask
         // for it after this point, and a SemaphoreSlim whose wait handle
         // was never requested holds nothing to release.
-        _screenKeepers.Clear();
         _gate.Dispose();
     }
 
@@ -1147,19 +1182,13 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         // prevents the double round trip.
         await StopAppOnDeviceAsync(session, CancellationToken.None).ConfigureAwait(false);
 
-        // The window closed by hand and the unplugged phone pass only
-        // through here: the last account gone, the screen comes back.
-        await ReleaseScreenIfLastAsync(session).ConfigureAwait(false);
-
         var exitCode = session.Process.ExitCode ?? -1;
 
         if (session.State == ScrcpySessionState.Failed)
         {
             SessionChanged?.Invoke(this, session);
-            return;
         }
-
-        if (exitCode == 0 || session.FailureMessage is null)
+        else if (exitCode == 0 || session.FailureMessage is null)
         {
             Transition(session, ScrcpySessionState.Stopped);
         }
@@ -1167,6 +1196,15 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         {
             Fail(session, session.FailureMessage);
         }
+
+        // The window closed by hand and the unplugged phone pass only
+        // through here: the last account gone, the screen comes back.
+        //
+        // After this session's own state has changed, never before. Two
+        // accounts closed together each looked for a live neighbour while
+        // still alive themselves, both found one, and the screen stayed
+        // dark with no game open.
+        await ReleaseScreenIfLastAsync(session).ConfigureAwait(false);
     }
 
     private ScrcpySession FailedSession(
