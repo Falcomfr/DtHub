@@ -240,7 +240,7 @@
     <value>Apagar la pantalla del teléfono mientras se juega</value>
   </data>
   <data name="TurnScreenOffTip" xml:space="preserve">
-    <value>La pantalla del teléfono se apaga en cuanto se abre una ventana de juego, y el juego sigue en el PC. El teléfono se calienta menos y su batería dura más. Cerrar una de las cuentas vuelve a encender la pantalla, la siguiente ventana abierta la apaga de nuevo.</value>
+    <value>La pantalla del teléfono se apaga en cuanto se abre una ventana de juego, y el juego sigue en el PC. El teléfono se calienta menos y su batería dura más. La pantalla vuelve a encenderse cuando se cierra la última cuenta.</value>
   </data>
   <data name="OpenLogFolder" xml:space="preserve">
     <value>Abrir la carpeta de registros</value>

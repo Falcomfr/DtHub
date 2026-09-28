@@ -240,7 +240,7 @@
     <value>Éteindre l'écran du téléphone pendant le jeu</value>
   </data>
   <data name="TurnScreenOffTip" xml:space="preserve">
-    <value>L'écran du téléphone s'éteint dès qu'une fenêtre de jeu s'ouvre, et le jeu continue sur le PC. Le téléphone chauffe moins et sa batterie tient plus longtemps. Fermer un des comptes rallume l'écran, la prochaine fenêtre ouverte l'éteint de nouveau.</value>
+    <value>L'écran du téléphone s'éteint dès qu'une fenêtre de jeu s'ouvre, et le jeu continue sur le PC. Le téléphone chauffe moins et sa batterie tient plus longtemps. L'écran se rallume quand le dernier compte se ferme.</value>
   </data>
   <data name="OpenLogFolder" xml:space="preserve">
     <value>Ouvrir le dossier des journaux</value>

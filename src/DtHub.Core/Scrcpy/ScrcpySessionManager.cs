@@ -155,6 +155,25 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     private readonly DeviceStartupGate _gate = new();
 
     /// <summary>
+    /// The windowless session holding each phone's screen off, by device
+    /// identifier. See <see cref="ScrcpyCommandBuilder.BuildScreenOffArguments" />
+    /// for why it is one per phone and not an option of every session.
+    /// </summary>
+    private readonly Dictionary<string, IProcessSession> _screenKeepers = new(StringComparer.Ordinal);
+
+    private readonly SemaphoreSlim _screenKeepersLock = new(1, 1);
+
+    /// <summary>
+    /// How long the screen-off session is given to say the screen is off.
+    /// Past this it is kept all the same: the wait only decides when the
+    /// next opening may push its own server.
+    /// </summary>
+    public TimeSpan ScreenOffTimeout { get; init; } = TimeSpan.FromSeconds(10);
+
+    /// <summary>What scrcpy writes once the phone's screen is off.</summary>
+    private const string ScreenOffLine = "Device display turned off";
+
+    /// <summary>
     /// Rest period left on a device after an opening. Zero by
     /// default: the lock already imposes the spacing of a full
     /// opening.
@@ -317,7 +336,184 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
         session.StartupMs = chrono.ElapsedMilliseconds;
 
+        // After the game, which is what the person is waiting for: the
+        // screen going dark a second later costs nothing.
+        if (options.TurnScreenOff && session.IsAlive)
+        {
+            await HoldScreenOffAsync(target.DeviceId, serial, scrcpyPath, adbPath, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
         return session;
+    }
+
+    /// <summary>
+    /// Starts the phone's screen-off session, unless it already runs.
+    /// </summary>
+    private async Task HoldScreenOffAsync(
+        string deviceId,
+        string serial,
+        string scrcpyPath,
+        string adbPath,
+        CancellationToken cancellationToken)
+    {
+        await _screenKeepersLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            if (_screenKeepers.TryGetValue(deviceId, out var running) && !running.HasExited)
+            {
+                return;
+            }
+
+            // It pushes a server like an opening does, so it takes its
+            // turn in the same queue, and holds it until the screen is
+            // off: two pushes that overlap break.
+            await using var lease = await _gate
+                .EnterAsync(deviceId, cancellationToken)
+                .ConfigureAwait(false);
+
+            IProcessSession keeper;
+
+            try
+            {
+                keeper = _launcher.Start(new ProcessRequest
+                {
+                    FileName = scrcpyPath,
+                    Arguments = ScrcpyCommandBuilder.BuildScreenOffArguments(serial),
+                    Environment = new Dictionary<string, string?> { ["ADB"] = adbPath },
+                });
+            }
+            catch (ProcessLaunchException)
+            {
+                // The screen simply stays on. It is a comfort, and the
+                // game is already running: failing the opening for it
+                // would take away what works to punish what does not.
+                return;
+            }
+
+            _screenKeepers[deviceId] = keeper;
+
+            await AwaitScreenOffAsync(keeper, cancellationToken).ConfigureAwait(false);
+
+            // The account it was started for may have closed meanwhile,
+            // and its release found nothing to stop yet.
+            if (!HasLiveSessionOn(deviceId, except: null))
+            {
+                _ = _screenKeepers.Remove(deviceId);
+                await StopScreenKeeperAsync(keeper).ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            _screenKeepersLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Waits for scrcpy to say the screen is off, or for the deadline,
+    /// then leaves the rest of its output to be read in the background.
+    /// </summary>
+    private async Task AwaitScreenOffAsync(IProcessSession keeper, CancellationToken cancellationToken)
+    {
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(ScreenOffTimeout);
+
+        try
+        {
+            await foreach (var line in keeper.Output.ReadAllAsync(deadline.Token).ConfigureAwait(false))
+            {
+                if (line.Text.Contains(ScreenOffLine, StringComparison.Ordinal))
+                {
+                    break;
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Past the deadline, or the caller gave up: the session is
+            // kept either way, only the wait ends. The next opening
+            // goes ahead, and the screen will go dark when it can.
+        }
+
+        _ = Task.Run(() => DrainAsync(keeper), CancellationToken.None);
+    }
+
+    /// <summary>
+    /// Reads an output nobody needs, so that the process never waits on
+    /// a full pipe.
+    /// </summary>
+    private static async Task DrainAsync(IProcessSession process)
+    {
+        try
+        {
+            await foreach (var _ in process.Output.ReadAllAsync().ConfigureAwait(false))
+            {
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // The channel closed with the process: the end of the
+            // reading, and nothing to report.
+        }
+    }
+
+    /// <summary>
+    /// True if a session other than <paramref name="except" /> is
+    /// opening or open on this phone.
+    /// </summary>
+    private bool HasLiveSessionOn(string deviceId, ScrcpySession? except) =>
+        _sessions.Values.Any(s =>
+            !ReferenceEquals(s, except)
+            && s.IsAlive
+            && string.Equals(s.Target.DeviceId, deviceId, StringComparison.Ordinal));
+
+    /// <summary>
+    /// Stops the phone's screen-off session once its last account has
+    /// closed. Called from both ends of a session, the voluntary close
+    /// and the read loop, and harmless the second time.
+    /// </summary>
+    private async Task ReleaseScreenIfLastAsync(ScrcpySession ending)
+    {
+        var deviceId = ending.Target.DeviceId;
+
+        if (HasLiveSessionOn(deviceId, except: ending))
+        {
+            return;
+        }
+
+        IProcessSession? keeper;
+
+        await _screenKeepersLock.WaitAsync().ConfigureAwait(false);
+
+        try
+        {
+            if (!_screenKeepers.Remove(deviceId, out keeper))
+            {
+                return;
+            }
+        }
+        finally
+        {
+            _screenKeepersLock.Release();
+        }
+
+        await StopScreenKeeperAsync(keeper).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Killed outright, since it has no window to be asked to close.
+    /// Measured on the 13T Pro: the phone's own clean-up turns the
+    /// screen back on within a second all the same.
+    /// </summary>
+    private static async Task StopScreenKeeperAsync(IProcessSession keeper)
+    {
+        if (!keeper.HasExited)
+        {
+            keeper.Kill();
+        }
+
+        await keeper.DisposeAsync().ConfigureAwait(false);
     }
 
     /// <summary>
@@ -442,6 +638,12 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         }
 
         Transition(session, ScrcpySessionState.Stopped);
+
+        // Awaited here as well as at the end of the read loop, for the
+        // same reason as stopping the game: quitting the application
+        // does not leave the loop time to finish, and the phone would
+        // be left dark.
+        await ReleaseScreenIfLastAsync(session).ConfigureAwait(false);
 
         // After scrcpy has left, never before: it is the one that
         // notifies its server, and the server that returns the
@@ -688,6 +890,16 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         }
 
         _sessions.Clear();
+
+        foreach (var keeper in _screenKeepers.Values)
+        {
+            await StopScreenKeeperAsync(keeper).ConfigureAwait(false);
+        }
+
+        // The lock is not disposed: a read loop still finishing may ask
+        // for it after this point, and a SemaphoreSlim whose wait handle
+        // was never requested holds nothing to release.
+        _screenKeepers.Clear();
         _gate.Dispose();
     }
 
@@ -885,6 +1097,10 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         // already handled by StopAsync, and the single-use claim
         // prevents the double round trip.
         await StopAppOnDeviceAsync(session, CancellationToken.None).ConfigureAwait(false);
+
+        // The window closed by hand and the unplugged phone pass only
+        // through here: the last account gone, the screen comes back.
+        await ReleaseScreenIfLastAsync(session).ConfigureAwait(false);
 
         var exitCode = session.Process.ExitCode ?? -1;
 

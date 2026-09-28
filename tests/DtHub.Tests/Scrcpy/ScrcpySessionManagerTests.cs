@@ -231,6 +231,108 @@ public class ScrcpySessionManagerTests
         Assert.Empty(manager.ActiveSessions);
     }
 
+    private const string ScreenOffLine = "[server] INFO: Device display turned off";
+
+    private static readonly ScrcpyOptions DarkScreen = ScrcpyOptions.Default with { TurnScreenOff = true };
+
+    private static bool IsScreenKeeper(ProcessRequest request) =>
+        request.Arguments.Contains("--no-window");
+
+    [Fact]
+    public async Task Un_seul_ecran_eteint_par_telephone_quel_que_soit_le_nombre_de_comptes()
+    {
+        var keeper = new FakeProcessSession(9).Emit(ScreenOffLine);
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(keeper)
+            .Prepare(new FakeProcessSession(2).Emit(NewDisplayLine));
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        await manager.StartAsync(Target(0), DarkScreen, null, CancellationToken.None);
+        await manager.StartAsync(Target(999), DarkScreen, null, CancellationToken.None);
+
+        Assert.Single(launcher.Requests, IsScreenKeeper);
+        Assert.DoesNotContain(
+            launcher.Requests.Where(r => !IsScreenKeeper(r)),
+            r => r.Arguments.Contains("--turn-screen-off"));
+    }
+
+    [Fact]
+    public async Task Fermer_un_compte_laisse_l_ecran_eteint_sous_les_autres()
+    {
+        var keeper = new FakeProcessSession(9).Emit(ScreenOffLine);
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(keeper)
+            .Prepare(new FakeProcessSession(2).Emit(NewDisplayLine));
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var a = await manager.StartAsync(Target(0), DarkScreen, null, CancellationToken.None);
+        var b = await manager.StartAsync(Target(999), DarkScreen, null, CancellationToken.None);
+
+        await manager.StopAsync(a.Id, CancellationToken.None);
+
+        Assert.False(keeper.WasKilled);
+
+        await manager.StopAsync(b.Id, CancellationToken.None);
+
+        Assert.True(keeper.WasKilled);
+    }
+
+    [Fact]
+    public async Task Une_fenetre_fermee_a_la_main_rallume_l_ecran_si_c_etait_la_derniere()
+    {
+        var game = new FakeProcessSession(1).Emit(NewDisplayLine);
+        var keeper = new FakeProcessSession(9).Emit(ScreenOffLine);
+        var launcher = new FakeProcessLauncher().Prepare(game).Prepare(keeper);
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        await manager.StartAsync(Target(), DarkScreen, null, CancellationToken.None);
+
+        // Closed by hand: none of our code is called, the output just ends.
+        game.Exit();
+
+        await keeper.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.True(keeper.WasKilled);
+    }
+
+    [Fact]
+    public async Task Sans_le_reglage_l_ecran_du_telephone_n_est_pas_touche()
+    {
+        var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        await manager.StartAsync(Target(), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        Assert.DoesNotContain(launcher.Requests, IsScreenKeeper);
+    }
+
+    [Fact]
+    public async Task Un_ecran_qui_ne_confirme_pas_ne_bloque_pas_l_ouverture()
+    {
+        // A keeper that never says the screen is off: the opening goes
+        // ahead once the deadline has passed, and the game is running.
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(9));
+
+        await using var manager = new ScrcpySessionManager(
+            new FakeScrcpyLocator(), new FakeAdbLocator(), launcher, new FakeAppLauncher())
+        {
+            StartupTimeout = TimeSpan.FromSeconds(5),
+            ScreenOffTimeout = TimeSpan.FromMilliseconds(100),
+        };
+
+        var session = await manager.StartAsync(Target(), DarkScreen, null, CancellationToken.None);
+
+        Assert.Equal(ScrcpySessionState.Running, session.State);
+    }
+
     [Fact]
     public async Task Une_session_fermee_isolement_laisse_les_autres_ouvertes()
     {

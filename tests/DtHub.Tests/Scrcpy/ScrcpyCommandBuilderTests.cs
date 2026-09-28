@@ -101,23 +101,25 @@ public class ScrcpyCommandBuilderTests
     }
 
     [Fact]
-    public void L_ecran_du_telephone_reste_allume_par_defaut()
+    public void Une_session_de_jeu_ne_touche_jamais_a_l_ecran_du_telephone()
     {
-        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments("USB0001", "T", ScrcpyOptions.Default);
-
-        Assert.DoesNotContain("--turn-screen-off", arguments);
-    }
-
-    [Fact]
-    public void Eteindre_l_ecran_garde_le_telephone_eveille()
-    {
-        // The panel goes dark, the phone does not sleep: without
-        // --keep-active the virtual display carrying the game would stop.
+        // Closing it would turn the screen back on under the other
+        // accounts: the screen belongs to a session of its own.
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "T", ScrcpyOptions.Default with { TurnScreenOff = true });
 
-        Assert.Contains("--turn-screen-off", arguments);
+        Assert.DoesNotContain("--turn-screen-off", arguments);
         Assert.Contains("--keep-active", arguments);
+    }
+
+    [Fact]
+    public void La_session_d_ecran_eteint_ne_montre_rien_et_ne_fait_que_l_eteindre()
+    {
+        var arguments = ScrcpyCommandBuilder.BuildScreenOffArguments("USB0001");
+
+        Assert.Equal(
+            ["--serial=USB0001", "--no-video", "--no-audio", "--no-window", "--turn-screen-off"],
+            arguments);
     }
 
     [Fact]

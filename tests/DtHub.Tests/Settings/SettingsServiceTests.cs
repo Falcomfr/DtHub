@@ -872,7 +872,7 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task L_ecran_eteint_se_demande_et_arrive_jusqu_a_scrcpy()
+    public async Task L_ecran_eteint_se_demande_et_arrive_jusqu_aux_sessions()
     {
         var before = await _service.GetScrcpyOptionsAsync(CancellationToken.None);
 
@@ -881,9 +881,8 @@ public sealed class SettingsServiceTests : IDisposable
         await _service.SetTurnScreenOffAsync(true, CancellationToken.None);
 
         var options = await _service.GetScrcpyOptionsAsync(CancellationToken.None);
-        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments("SERIE", "titre", options);
 
-        Assert.Contains("--turn-screen-off", arguments, StringComparer.Ordinal);
+        Assert.True(options.TurnScreenOff);
     }
 
     [Fact]

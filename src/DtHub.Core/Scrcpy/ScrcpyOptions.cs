@@ -183,6 +183,10 @@ public sealed record ScrcpyOptions
     /// It does not replace <see cref="KeepDeviceAwake" />, it relies on
     /// it: the phone must stay awake for the virtual display to keep
     /// running, only its screen is switched off.
+    ///
+    /// Not a scrcpy argument of the session itself: the session manager
+    /// holds the screen off with one windowless session per phone. See
+    /// <see cref="ScrcpyCommandBuilder.BuildScreenOffArguments" />.
     /// </summary>
     public bool TurnScreenOff { get; init; }
 

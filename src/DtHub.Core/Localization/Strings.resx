@@ -240,7 +240,7 @@
     <value>Turn the phone's screen off while playing</value>
   </data>
   <data name="TurnScreenOffTip" xml:space="preserve">
-    <value>The phone's screen goes dark as soon as a game window opens, and the game keeps running on the PC. The phone heats up less and its battery lasts longer. Closing one of the accounts turns the screen back on, the next window opened switches it off again.</value>
+    <value>The phone's screen goes dark as soon as a game window opens, and the game keeps running on the PC. The phone heats up less and its battery lasts longer. The screen comes back on when the last account closes.</value>
   </data>
   <data name="OpenLogFolder" xml:space="preserve">
     <value>Open the log folder</value>

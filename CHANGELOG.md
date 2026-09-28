@@ -17,8 +17,7 @@ French.
 - A setting turns the phone's screen off while its accounts play on the PC.
   The game keeps running, the phone heats up less and its battery lasts
   longer, which matters when the PC's USB port charges more slowly than the
-  game drains it. Closing one account turns the screen back on, the next
-  window opened switches it off again.
+  game drains it. The screen comes back on when the last account closes.
 
 ## [0.5.2] - 2026-09-27
 

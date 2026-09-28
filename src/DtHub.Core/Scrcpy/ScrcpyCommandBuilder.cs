@@ -139,20 +139,12 @@ public static class ScrcpyCommandBuilder
             arguments.Add("--keep-active");
         }
 
-        // With --new-display, scrcpy powers off the main display, the
-        // phone's own panel, and leaves the virtual one running. Read in
-        // the v4.1 server, Controller.setDisplayPower.
-        //
-        // Every session asks for it, not only the first. scrcpy turns
-        // the screen back on when a session that switched it off closes,
-        // and the screen state is shared by the whole phone: closing one
-        // account lights it up again under the others. The next session
-        // opened switches it off again, which a first-only rule would
-        // not do.
-        if (sanitized.TurnScreenOff)
-        {
-            arguments.Add("--turn-screen-off");
-        }
+        // Deliberately absent: --turn-screen-off. A session that switched
+        // the screen off turns it back on when it closes, and the screen
+        // is shared by the whole phone, so closing one account lit it up
+        // under the others. Measured on the 13T Pro, powerMode read from
+        // SurfaceFlinger. The screen is held off by a windowless session
+        // of its own instead, see BuildScreenOffArguments.
 
         if (!string.IsNullOrWhiteSpace(sanitized.VideoCodec))
         {
@@ -206,6 +198,34 @@ public static class ScrcpyCommandBuilder
         // shared with the rest of the machine and must not go down
         // with a DT Hub session.
         return arguments;
+    }
+
+    /// <summary>
+    /// A session that shows nothing and only holds the phone's screen
+    /// off, one per phone, alive as long as one of its accounts is.
+    ///
+    /// Measured on the 13T Pro, powerMode read from SurfaceFlinger: the
+    /// screen goes off within two seconds, stays off while game sessions
+    /// open and close beside it, and comes back on when this one is
+    /// killed, even outright. With --new-display, scrcpy powers off the
+    /// main display, the phone's own panel, and leaves the virtual ones
+    /// running (Controller.setDisplayPower in the v4.1 server).
+    ///
+    /// No --keep-active here: the game sessions carry it, and this one
+    /// never outlives them.
+    /// </summary>
+    public static IReadOnlyList<string> BuildScreenOffArguments(string serial)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(serial);
+
+        return
+        [
+            Option("serial", serial),
+            "--no-video",
+            "--no-audio",
+            "--no-window",
+            "--turn-screen-off",
+        ];
     }
 
     /// <summary>Arguments to fetch the named list of applications.</summary>
