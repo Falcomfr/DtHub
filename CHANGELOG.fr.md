@@ -11,6 +11,13 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.6.2] - 2026-09-30
+
+### Corrigé
+
+- Fermer la fenêtre à onglets n'oublie plus ses comptes ni sa place : tout
+  revient au lancement suivant.
+
 ## [0.6.1] - 2026-09-28
 
 ### Corrigé

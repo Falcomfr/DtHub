@@ -10,6 +10,13 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.6.2] - 2026-09-30
+
+### Corregido
+
+- Cerrar la ventana de pestañas ya no olvida sus cuentas ni su lugar: todo
+  vuelve en el siguiente inicio.
+
 ## [0.6.1] - 2026-09-28
 
 ### Corregido

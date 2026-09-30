@@ -16,7 +16,7 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
-## [Unreleased]
+## [0.6.2] - 2026-09-30
 
 ### Fixed
 
