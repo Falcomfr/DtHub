@@ -3056,9 +3056,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// Closes the accounts the tabbed frame was housing.
     ///
     /// The account behaves as if its window had been closed one by
-    /// one: its place is remembered, and it will not reopen on its
-    /// own at the next startup. It stays housed in tabs, so it will
-    /// return there the day it is reopened.
+    /// one: its place is remembered, and it reopens at the next
+    /// startup, as D22 wants for any window closed by hand. Only the
+    /// "Close" button takes it out of that set. It stays housed in
+    /// tabs, so it returns there.
     ///
     /// A session that survives the stop gets its window back
     /// visible: it left the frame hidden, and leaving it that way
@@ -3066,8 +3067,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private async Task CloseTabbedAsync(IReadOnlyList<string> keys)
     {
-        List<string> fermes = [];
-
         foreach (var key in keys)
         {
             if (_sessions.ActiveSessions.FirstOrDefault(
@@ -3082,16 +3081,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             {
                 await OnUiAsync(() => _windows.Controller.SetVisible(session.WindowHandle, true))
                     .ConfigureAwait(false);
-
-                continue;
             }
-
-            fermes.Add(key);
-        }
-
-        if (fermes.Count > 0)
-        {
-            await _settings.SetInstancesEnabledAsync(fermes, enabled: false).ConfigureAwait(false);
         }
 
         NotifyIfNothingLeft();
