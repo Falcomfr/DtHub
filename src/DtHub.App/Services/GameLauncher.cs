@@ -3050,9 +3050,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// The frame, created on first need and kept open afterwards.
-    /// </summary>
-    /// <summary>
     /// Closes the accounts the tabbed frame was housing.
     ///
     /// The account behaves as if its window had been closed one by
@@ -3067,6 +3064,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private async Task CloseTabbedAsync(IReadOnlyList<string> keys)
     {
+        // First, while the frame still exists: once closed it is
+        // forgotten, and the save made on exit no longer sees it.
+        // The frame then came back where it stood two runs ago.
+        await CaptureTabsPlacementAsync(CancellationToken.None).ConfigureAwait(false);
+
         foreach (var key in keys)
         {
             if (_sessions.ActiveSessions.FirstOrDefault(
@@ -3087,6 +3089,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
         NotifyIfNothingLeft();
     }
 
+    /// <summary>
+    /// The frame, created on first need and kept open afterwards.
+    /// </summary>
     private Windows.TabbedGameWindow EnsureTabs(AppSettingsDocument document)
     {
         if (_tabs is { } existant)

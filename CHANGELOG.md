@@ -20,8 +20,8 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 ### Fixed
 
-- Closing the tabbed frame no longer forgets its accounts: they reopen at the
-  next launch.
+- Closing the tabbed frame no longer forgets its accounts or its place: both
+  come back at the next launch.
 
 ## [0.6.1] - 2026-09-28
 
