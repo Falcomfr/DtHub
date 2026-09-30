@@ -607,7 +607,10 @@ public sealed partial class Win32WindowController : IWindowController
     /// </summary>
     public WindowPlacement? GetPlacement(nint handle)
     {
-        if (handle == 0 || !GetWindowRectCore(handle, out var rect))
+        // Minimized, same trap as GetWindowRect: (-32000, -32000) would
+        // replace the good place, and the window would reopen at its
+        // default one.
+        if (handle == 0 || IsIconic(handle) || !GetWindowRectCore(handle, out var rect))
         {
             return null;
         }
