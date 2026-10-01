@@ -1488,8 +1488,8 @@ public sealed partial class QuestViewModel : ObservableObject
     /// What is needed to report an error on what is in front of us: the page,
     /// and the marker to carry into the site's form.
     ///
-    /// The marker is the area, the quest and its achievement, that is to say
-    /// what the site itself names. The achievement comes from the quest and
+    /// The marker is the area, the quest, its achievement and the page address:
+    /// what the site itself names, and where to open it. The achievement comes from the quest and
     /// not from <c>ChainText</c>, which the banner diverts to say "Path" on a
     /// path and the key on a dungeon. The step's rank used to appear there
     /// first; that is a numbering that exists only in this window, and so it
@@ -1497,7 +1497,7 @@ public sealed partial class QuestViewModel : ObservableObject
     /// </summary>
     public (string Url, string Location)? ErrorReport() =>
         CanReport
-            ? (CurrentUrl!, PapychaReport.Location(ZoneName(), QuestTitle, _current?.SuccessName))
+            ? (CurrentUrl!, PapychaReport.Location(ZoneName(), QuestTitle, _current?.SuccessName, CurrentUrl))
             : null;
 
     /// <summary>

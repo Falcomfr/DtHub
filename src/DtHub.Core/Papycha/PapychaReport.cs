@@ -31,12 +31,38 @@ public static class PapychaReport
 
     /// <summary>
     /// Where we were reading, in the site's own terms: the zone, the
-    /// quest, and the achievement in parentheses.
+    /// quest, the achievement in parentheses, then the page's address
+    /// in parentheses too.
+    ///
+    /// The address is what whoever receives the report can open
+    /// without searching: a title alone has to be looked up, and some
+    /// are shared by several pages. It is never cut, a truncated
+    /// address leading nowhere; the landmark gives way to it.
     ///
     /// Empty when nothing is known: a made-up landmark would be
     /// worth less than the field left blank.
     /// </summary>
-    public static string Location(string? zone, string? quest, string? success = null)
+    public static string Location(string? zone, string? quest, string? success = null, string? url = null)
+    {
+        var landmark = Landmark(zone, quest, success);
+        var address = (url ?? string.Empty).Trim();
+
+        if (address.Length == 0)
+        {
+            return landmark;
+        }
+
+        if (landmark.Length == 0)
+        {
+            return Cut(address);
+        }
+
+        var suffix = $" ({address})";
+
+        return Cut(landmark, MaxLocationLength - suffix.Length) + suffix;
+    }
+
+    private static string Landmark(string? zone, string? quest, string? success)
     {
         var title = Flatten(quest);
         var rubrique = Flatten(zone);
@@ -73,6 +99,6 @@ public static class PapychaReport
     /// occur, a zone name and a quest title fitting well within it;
     /// it is a safeguard against input truncated by the browser.
     /// </summary>
-    private static string Cut(string text) =>
-        text.Length <= MaxLocationLength ? text : text[..MaxLocationLength].TrimEnd();
+    private static string Cut(string text, int max = MaxLocationLength) =>
+        text.Length <= max ? text : text[..Math.Max(0, max)].TrimEnd();
 }

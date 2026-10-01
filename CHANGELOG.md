@@ -18,6 +18,11 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 ## [Unreleased]
 
+### Changed
+
+- The error report now gives the page's address after where the error is, so
+  Papycha can open it directly.
+
 ### Fixed
 
 - Papycha's top bar no longer covers the guides and the error report since the

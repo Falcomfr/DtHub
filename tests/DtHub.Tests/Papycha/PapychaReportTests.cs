@@ -85,4 +85,30 @@ public class PapychaReportTests
             "Antiroyaliste (Halte au péage)",
             PapychaReport.Location(null, "Antiroyaliste", "Halte au péage"));
     }
+
+    private const string Page = "https://papycha.fr/quete-la-potion-leche-bottes";
+
+    [Fact]
+    public void L_adresse_de_la_page_suit_entre_parentheses()
+    {
+        Assert.Equal(
+            "Port de Madrestam  ›  La potion Lèche-bottes (" + Page + ")",
+            PapychaReport.Location("Port de Madrestam", "La potion Lèche-bottes", null, Page));
+    }
+
+    [Fact]
+    public void L_adresse_seule_part_sans_parentheses()
+    {
+        Assert.Equal(Page, PapychaReport.Location(null, null, null, Page));
+    }
+
+    [Fact]
+    public void L_adresse_n_est_jamais_tronquee()
+    {
+        // A cut address leads nowhere: the landmark gives way, not it.
+        var pris = PapychaReport.Location(new string('z', 200), new string('q', 200), null, Page);
+
+        Assert.True(pris.Length <= PapychaReport.MaxLocationLength, pris);
+        Assert.EndsWith(" (" + Page + ")", pris);
+    }
 }
