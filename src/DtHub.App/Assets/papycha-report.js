@@ -31,8 +31,12 @@
     // break anything the site expects around its form.
     var style = document.createElement('style');
 
-    style.textContent =
-        '[data-dthub-report-hidden]{display:none !important}'
+    // In a cascade layer, for the same reason as the bridge: the site
+    // forces its banner back with an id selector and "!important", and
+    // only a layered important declaration outweighs it whatever its
+    // specificity.
+    style.textContent = '@layer dthub{'
+        + '[data-dthub-report-hidden]{display:none !important}'
 
         // The levels passed through lose everything that made them wide,
         // decorated or scrollable: the site's layout assumes a full page,
@@ -53,7 +57,7 @@
         + 'body{background:#12141a !important;height:100% !important;'
         + 'overflow-x:hidden !important;overflow-y:auto !important;'
         + 'margin:0 !important;padding:0 !important;width:auto !important;'
-        + 'max-width:none !important}'
+        + 'max-width:none !important;border:0 !important}'
 
         + '#papycha-report-error{margin:14px !important;overflow:visible !important}'
 
@@ -98,7 +102,7 @@
         // system-color vocabulary, so it follows the light or dark theme.
         + '#papycha-report-error .papycha-report__submit{background:CanvasText !important;'
         + 'border-color:CanvasText !important;color:Canvas !important;'
-        + 'margin-top:8px !important}';
+        + 'margin-top:8px !important}}';
 
     document.head.appendChild(style);
 

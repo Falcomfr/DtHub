@@ -16,6 +16,13 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Fixed
+
+- Papycha's top bar no longer covers the guides and the error report since the
+  site's October update.
+
 ## [0.6.2] - 2026-09-30
 
 ### Fixed

@@ -117,7 +117,13 @@
 
         var hidden = framingOnly ? HIDDEN : HIDDEN.concat(HIDDEN_IN_QUEST);
 
-        style.textContent =
+        // Everything goes in a cascade layer. An important declaration
+        // in a layer wins over every unlayered important one, whatever
+        // its specificity: the site's October 2026 theme forces its
+        // banner back with "body.papycha-theme-preview #menu-primary
+        // {display:block !important}", and an id outweighed our
+        // attribute selector. The layer ends that race for good.
+        style.textContent = '@layer dthub{' +
             hidden.join(',') + '{display:none !important}' +
             '[' + MARK + ']{display:none !important}' +
 
@@ -157,7 +163,7 @@
             // Measured on two dungeons, from nine hundred twenty-two to one
             // thousand nine hundred pixels: overlap everywhere before,
             // nowhere after.
-            '.pcd-info__map{margin-top:0 !important}';
+            '.pcd-info__map{margin-top:0 !important}}';
     }
 
     function keepOnlyArticle() {
