@@ -10,6 +10,18 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.7.0] - 2026-10-01
+
+### Cambiado
+
+- El informe de error indica la dirección de la página tras el lugar del
+  error, para que Papycha la abra directamente.
+
+### Corregido
+
+- La barra superior de Papycha ya no tapa las guías ni el informe de error
+  desde la actualización de octubre del sitio.
+
 ## [0.6.2] - 2026-09-30
 
 ### Corregido

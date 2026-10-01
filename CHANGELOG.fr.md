@@ -11,6 +11,18 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.7.0] - 2026-10-01
+
+### Modifié
+
+- Le signalement d'erreur donne l'adresse de la page après l'endroit de
+  l'erreur, pour que Papycha l'ouvre directement.
+
+### Corrigé
+
+- La barre du haut de Papycha ne recouvre plus les guides ni le signalement
+  d'erreur depuis la mise à jour d'octobre du site.
+
 ## [0.6.2] - 2026-09-30
 
 ### Corrigé
