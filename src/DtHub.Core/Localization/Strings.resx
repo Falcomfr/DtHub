@@ -1613,9 +1613,6 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="LevelRange" xml:space="preserve">
     <value>Level {0} to {1}</value>
   </data>
-  <data name="LevelRangeStone" xml:space="preserve">
-    <value>{0} · {1} soul stone</value>
-  </data>
   <data name="LevelSpan" xml:space="preserve">
     <value>level {0}</value>
   </data>
@@ -1969,9 +1966,6 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   </data>
   <data name="ProfileOrigin" xml:space="preserve">
     <value>profile {0} · {1}</value>
-  </data>
-  <data name="DungeonLevelShort" xml:space="preserve">
-    <value>lvl {0}</value>
   </data>
   <data name="DefaultAccountName" xml:space="preserve">
     <value>Account {0}</value>

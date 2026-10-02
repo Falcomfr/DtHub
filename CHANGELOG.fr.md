@@ -11,6 +11,17 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Modifié
+
+- Une ligne de donjon commence par son niveau, finit par sa clé, et affiche
+  de nouveau sa pierre d'âme, avec son icône.
+
+### Corrigé
+
+- Toutes les positions de donjon s'écrivent avec une virgule.
+
 ## [0.7.1] - 2026-10-02
 
 ### Modifié

@@ -119,4 +119,22 @@
   <SolidColorBrush x:Key="GlyphSuccessBrush" Color="#FFE0BE58" />
   <SolidColorBrush x:Key="GlyphNeedBrush" Color="#FF6F9CC4" />
 
+  <!-- The soul stones beside a dungeon's size, one hue per size as in the
+       game: green, grey, lavender, pink, under the same mauve tip. Drawn
+       here rather than taken from the game, whose artwork the project
+       does not embed. The body hues are read off the in-game icons; the
+       shades and lights on top are shared, so the four stones differ by
+       their body alone, as they do in the game. -->
+  <SolidColorBrush x:Key="SoulStoneTipBrush" Color="#FF8E4E8C" />
+  <SolidColorBrush x:Key="SoulStoneSmallBrush" Color="#FF8FB592" />
+  <SolidColorBrush x:Key="SoulStoneMediumBrush" Color="#FFB39C84" />
+  <SolidColorBrush x:Key="SoulStoneLargeBrush" Color="#FFA69BD6" />
+  <SolidColorBrush x:Key="SoulStoneHugeBrush" Color="#FFE79A92" />
+  <SolidColorBrush x:Key="SoulStoneEdgeBrush" Color="#C0000000" />
+  <SolidColorBrush x:Key="SoulStoneDeepBrush" Color="#55000000" />
+  <SolidColorBrush x:Key="SoulStoneShadeBrush" Color="#35000000" />
+  <SolidColorBrush x:Key="SoulStoneSheenBrush" Color="#30FFFFFF" />
+  <SolidColorBrush x:Key="SoulStoneLightBrush" Color="#50FFFFFF" />
+  <SolidColorBrush x:Key="SoulStoneGlintBrush" Color="#78FFFFFF" />
+
 </ResourceDictionary>

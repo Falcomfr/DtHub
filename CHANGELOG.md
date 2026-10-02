@@ -16,6 +16,17 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Changed
+
+- A dungeon row starts with its level, ends with its key, and shows its soul
+  stone again, with its icon.
+
+### Fixed
+
+- Every dungeon position is written with a comma.
+
 ## [0.7.1] - 2026-10-02
 
 ### Changed

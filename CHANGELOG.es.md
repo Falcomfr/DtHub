@@ -10,6 +10,17 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Cambiado
+
+- Una fila de mazmorra empieza por su nivel, termina con su llave y vuelve a
+  mostrar su piedra de alma, con su icono.
+
+### Corregido
+
+- Todas las posiciones de mazmorra se escriben con una coma.
+
 ## [0.7.1] - 2026-10-02
 
 ### Cambiado

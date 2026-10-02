@@ -31,9 +31,21 @@ public class DungeonFactsTests
     {
         var facts = DungeonFacts.Of(Donjon());
 
-        Assert.Equal("niv. 30", facts.Level);
+        Assert.Equal("30", facts.Level);
         Assert.Equal("petite", facts.Size);
         Assert.Equal("[7,-25]", facts.Position);
+    }
+
+    /// <summary>
+    /// The site writes a few positions with a semicolon, "[9;-13]": in a
+    /// column of "[9,-57]" they read as a typo.
+    /// </summary>
+    [Fact]
+    public void Une_position_s_ecrit_toujours_avec_une_virgule()
+    {
+        var nowel = new DungeonSummary { Title = "Nowel", Position = "[-32;-89]" };
+
+        Assert.Equal("[-32,-89]", DungeonFacts.Of(nowel).Position);
     }
 
     /// <summary>

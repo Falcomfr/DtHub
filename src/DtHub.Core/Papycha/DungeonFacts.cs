@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using DtHub.Core.Localization;
 
 namespace DtHub.Core.Papycha;
 
@@ -14,14 +13,12 @@ namespace DtHub.Core.Papycha;
 /// and eighty-three lines had to be read one by one.
 ///
 /// Kept pre-formatted here rather than reached through the dungeon from
-/// the view: the level needs a localized unit, and a window is not
-/// allowed to carry a literal word. The soul-stone rule, which strips a
-/// phrase that every line would otherwise repeat, also stays a single
-/// rule in a single place.
+/// the view: the soul-stone rule, which strips a phrase that every line
+/// would otherwise repeat, stays a single rule in a single place.
 /// </summary>
 /// <param name="Level">
-/// The level with its unit, "niv. 30", or empty for the three dungeons
-/// the site gives none for.
+/// The level, "30", or empty for the three dungeons the site gives none
+/// for.
 /// </param>
 /// <param name="Size">
 /// The soul stone's size alone, "petite", "gigantesque".
@@ -35,32 +32,17 @@ public sealed record DungeonFacts(string Level, string Size, string Position)
         ArgumentNullException.ThrowIfNull(dungeon);
 
         return new DungeonFacts(
-            dungeon.Level > 0 ? Strings.Format("DungeonLevelShort", dungeon.Level) : string.Empty,
-            SizeOf(dungeon.SoulStone),
-            dungeon.Position);
-    }
-
-    /// <summary>
-    /// The facts of a line under a band header. The header already says
-    /// "Niveau" and the soul stone the band shares, so the level goes
-    /// bare and the size is only stated when it differs.
-    /// </summary>
-    /// <param name="sharedStone">The band's soul stone, or empty if it has none.</param>
-    public static DungeonFacts InBand(DungeonSummary dungeon, string sharedStone)
-    {
-        ArgumentNullException.ThrowIfNull(dungeon);
-
-        return new DungeonFacts(
+            // The bare number: it stands in its own column at the head of
+            // the row, where a level is the only thing a number can be.
             dungeon.Level > 0 ? dungeon.Level.ToString(CultureInfo.CurrentCulture) : string.Empty,
-            sharedStone.Length > 0 && dungeon.SoulStone == sharedStone ? string.Empty : SizeOf(dungeon.SoulStone),
-            dungeon.Position);
-    }
 
-    /// <summary>
-    /// The size alone. "gigantesque pierre d'âme" ("gigantic soul stone")
-    /// says "pierre d'âme" ("soul stone") twice in a column where every
-    /// line already carries one: the size is enough.
-    /// </summary>
-    public static string SizeOf(string soulStone) =>
-        soulStone.Replace(" pierre d’âme", string.Empty, StringComparison.Ordinal);
+            // "gigantesque pierre d'âme" ("gigantic soul stone") says
+            // "pierre d'âme" ("soul stone") twice in a column where
+            // every line already carries one: the size is enough.
+            dungeon.SoulStone.Replace(" pierre d’âme", string.Empty, StringComparison.Ordinal),
+
+            // The site writes a few as "[9;-13]", which reads as a typo
+            // among "[9,-57]".
+            dungeon.Position.Replace(';', ','));
+    }
 }
