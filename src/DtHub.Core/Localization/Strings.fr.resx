@@ -1613,6 +1613,9 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="LevelRange" xml:space="preserve">
     <value>Niveau {0} à {1}</value>
   </data>
+  <data name="LevelRangeStone" xml:space="preserve">
+    <value>{0} · pierre {1}</value>
+  </data>
   <data name="LevelSpan" xml:space="preserve">
     <value>niveau {0}</value>
   </data>

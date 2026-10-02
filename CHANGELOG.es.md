@@ -10,6 +10,17 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Cambiado
+
+- Las filas de mazmorras son más ligeras: la cabecera del tramo indica la
+  piedra de alma común, y una fila solo muestra el tamaño si es distinto.
+
+### Corregido
+
+- El nivel de las mazmorras de nivel 200 ya no aparece cortado.
+
 ## [0.7.0] - 2026-10-01
 
 ### Cambiado

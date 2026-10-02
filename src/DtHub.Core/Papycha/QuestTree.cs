@@ -129,29 +129,44 @@ public sealed class QuestTree
     /// site does not give a level bring up the rear under their own header,
     /// rather than passing for level zero.
     /// </summary>
-    public IEnumerable<QuestNode> DungeonNodes()
+    public IEnumerable<QuestNode> DungeonNodes() => Banded(Fighting(DungeonKind.Dungeon));
+
+    /// <summary>
+    /// Dungeons cut into bands, each header naming the soul stone most of
+    /// its band shares.
+    ///
+    /// **The size follows the level.** All thirty dungeons from 151 to 200
+    /// say "gigantesque": repeated on every line, it was the heaviest column
+    /// and told nothing. Said once in the header, a line only shows a size
+    /// that differs. "Most" means more than half: the levelless band holds
+    /// one "grande" and one "moyenne", and naming either would mislabel the
+    /// other.
+    /// </summary>
+    public static IEnumerable<QuestNode> Banded(IEnumerable<DungeonSummary> dungeons)
     {
-        var ordered = Fighting(DungeonKind.Dungeon)
+        var bands = dungeons
             .OrderBy(d => DungeonLevelBand.RankOf(d.Level))
             .ThenBy(d => d.Level)
-            .ThenBy(d => d.Title, StringComparer.CurrentCulture);
+            .ThenBy(d => d.Title, StringComparer.CurrentCulture)
+            .GroupBy(d => DungeonLevelBand.RankOf(d.Level));
 
-        var band = int.MinValue;
-
-        foreach (var dungeon in ordered)
+        foreach (var band in bands)
         {
-            var rank = DungeonLevelBand.RankOf(dungeon.Level);
+            var places = band.ToList();
+            var shared = places
+                .GroupBy(d => d.SoulStone)
+                .FirstOrDefault(g => g.Key.Length > 0 && g.Count() * 2 > places.Count)?.Key ?? string.Empty;
 
-            if (rank != band)
+            var name = DungeonLevelBand.NameOf(places[0].Level);
+
+            yield return new QuestNode(
+                QuestNodeKind.Header,
+                shared.Length > 0 ? Strings.Format("LevelRangeStone", name, DungeonFacts.SizeOf(shared)) : name);
+
+            foreach (var dungeon in places)
             {
-                band = rank;
-
-                yield return new QuestNode(
-                    QuestNodeKind.Header,
-                    DungeonLevelBand.NameOf(dungeon.Level));
+                yield return NodeOf(dungeon) with { Facts = DungeonFacts.InBand(dungeon, shared) };
             }
-
-            yield return NodeOf(dungeon);
         }
     }
 

@@ -16,6 +16,17 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Changed
+
+- Dungeon rows are lighter: the band header names the soul stone its
+  dungeons share, and a row only shows a size that differs.
+
+### Fixed
+
+- The level of a level 200 dungeon is no longer cut off.
+
 ## [0.7.0] - 2026-10-01
 
 ### Changed

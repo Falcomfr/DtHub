@@ -788,7 +788,8 @@
 
                          The widths come from the catalogue rather than
                          from a guess: the longest position it holds is
-                         nine characters, the longest level is "niv. 200",
+                         nine characters, the longest level is "niv. 200"
+                         (37.4 px at FontSmall, measured: 44 clipped it),
                          and the longest size is "gigantesque".
 
                          Collapsed whole for every row that is not a
@@ -800,8 +801,8 @@
                                                ConverterParameter=inverse}">
                       <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="20" />
-                        <ColumnDefinition Width="44" />
                         <ColumnDefinition Width="70" />
+                        <ColumnDefinition Width="48" />
                         <ColumnDefinition Width="66" />
                       </Grid.ColumnDefinitions>
 
@@ -833,14 +834,18 @@
                            down the band. Empty for the three dungeons
                            the site gives no level for: they already sit
                            under a header that says so, and a dash would
-                           say it twice. -->
-                      <TextBlock Grid.Column="1" Text="{Binding Facts.Level}"
+                           say it twice.
+
+                           Bare under a band header, which already says
+                           "Niveau"; "niv. 200" in search results, the
+                           widest form, hence the column's width. -->
+                      <TextBlock Grid.Column="2" Text="{Binding Facts.Level}"
                                  TextAlignment="Right" Margin="0,0,8,0"
                                  TextWrapping="NoWrap" VerticalAlignment="Center"
                                  Style="{StaticResource Muted}"
                                  FontSize="{StaticResource FontSmall}" />
 
-                      <TextBlock Grid.Column="2" Text="{Binding Facts.Size}"
+                      <TextBlock Grid.Column="1" Text="{Binding Facts.Size}"
                                  TextAlignment="Right" Margin="0,0,8,0"
                                  TextWrapping="NoWrap" VerticalAlignment="Center"
                                  Style="{StaticResource Muted}"
