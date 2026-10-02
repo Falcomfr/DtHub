@@ -17,6 +17,8 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 - Les lignes des donjons sont allégées : l'en-tête de tranche dit la pierre
   d'âme commune, et une ligne n'affiche la taille que si elle diffère.
+- Les boutons encadrés prennent un léger contour bleu au survol, le focus
+  clavier se voit en anneau arrondi, et chaque bouton répond au clic.
 
 ### Corrigé
 

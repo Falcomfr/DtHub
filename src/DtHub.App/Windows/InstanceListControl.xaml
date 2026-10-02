@@ -400,6 +400,10 @@
                             <Setter TargetName="Trait" Property="Stroke"
                                     Value="{DynamicResource AccentBrush}" />
                           </Trigger>
+                          <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Fond" Property="Background"
+                                    Value="{DynamicResource AccentSoftBrush}" />
+                          </Trigger>
                         </ControlTemplate.Triggers>
                       </ControlTemplate>
                     </ToggleButton.Template>
@@ -562,31 +566,37 @@
                                 <Button Style="{StaticResource ColourSwatch}"
                                         Background="{StaticResource AccountTintA}"
                                         Tag="{x:Static s:AccountColour.Teal}"
+                                        ToolTip="{loc:T ColourTeal}"
                                         Command="{Binding PickColourCommand}"
                                         CommandParameter="{x:Static s:AccountColour.Teal}" />
                                 <Button Style="{StaticResource ColourSwatch}"
                                         Background="{StaticResource AccountTintB}"
                                         Tag="{x:Static s:AccountColour.Moss}"
+                                        ToolTip="{loc:T ColourMoss}"
                                         Command="{Binding PickColourCommand}"
                                         CommandParameter="{x:Static s:AccountColour.Moss}" />
                                 <Button Style="{StaticResource ColourSwatch}"
                                         Background="{StaticResource AccountTintC}"
                                         Tag="{x:Static s:AccountColour.Brass}"
+                                        ToolTip="{loc:T ColourBrass}"
                                         Command="{Binding PickColourCommand}"
                                         CommandParameter="{x:Static s:AccountColour.Brass}" />
                                 <Button Style="{StaticResource ColourSwatch}"
                                         Background="{StaticResource AccountTintD}"
                                         Tag="{x:Static s:AccountColour.Indigo}"
+                                        ToolTip="{loc:T ColourIndigo}"
                                         Command="{Binding PickColourCommand}"
                                         CommandParameter="{x:Static s:AccountColour.Indigo}" />
                                 <Button Style="{StaticResource ColourSwatch}"
                                         Background="{StaticResource AccountTintE}"
                                         Tag="{x:Static s:AccountColour.Orchid}"
+                                        ToolTip="{loc:T ColourOrchid}"
                                         Command="{Binding PickColourCommand}"
                                         CommandParameter="{x:Static s:AccountColour.Orchid}" />
                                 <Button Style="{StaticResource ColourSwatch}"
                                         Background="{StaticResource AccountTintF}"
                                         Tag="{x:Static s:AccountColour.Rose}"
+                                        ToolTip="{loc:T ColourRose}"
                                         Command="{Binding PickColourCommand}"
                                         CommandParameter="{x:Static s:AccountColour.Rose}" />
                               </WrapPanel>

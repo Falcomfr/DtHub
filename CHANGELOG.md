@@ -22,6 +22,8 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 - Dungeon rows are lighter: the band header names the soul stone its
   dungeons share, and a row only shows a size that differs.
+- Framed buttons take a soft accent outline on hover, keyboard focus shows
+  a rounded ring, and every button answers the press.
 
 ### Fixed
 

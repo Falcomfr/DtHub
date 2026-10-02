@@ -2039,4 +2039,28 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="SimulatedMouseHelp" xml:space="preserve">
     <value>In exchange, the PC loses its own cursor while a game window has the focus: a simulated mouse sends movements, not positions. Press LEFT ALT to get the cursor back, or one of the Windows keys. Fine for a single account, painful for several.</value>
   </data>
+  <data name="PreviousMonth" xml:space="preserve">
+    <value>Previous month</value>
+  </data>
+  <data name="NextMonth" xml:space="preserve">
+    <value>Next month</value>
+  </data>
+  <data name="ColourTeal" xml:space="preserve">
+    <value>Teal</value>
+  </data>
+  <data name="ColourMoss" xml:space="preserve">
+    <value>Moss</value>
+  </data>
+  <data name="ColourBrass" xml:space="preserve">
+    <value>Brass</value>
+  </data>
+  <data name="ColourIndigo" xml:space="preserve">
+    <value>Indigo</value>
+  </data>
+  <data name="ColourOrchid" xml:space="preserve">
+    <value>Orchid</value>
+  </data>
+  <data name="ColourRose" xml:space="preserve">
+    <value>Rose</value>
+  </data>
 </root>

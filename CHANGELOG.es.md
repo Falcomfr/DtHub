@@ -16,6 +16,9 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 
 - Las filas de mazmorras son más ligeras: la cabecera del tramo indica la
   piedra de alma común, y una fila solo muestra el tamaño si es distinto.
+- Los botones con marco toman un leve contorno azul al pasar el ratón, el
+  foco del teclado se ve como un anillo redondeado y cada botón responde al
+  clic.
 
 ### Corregido
 

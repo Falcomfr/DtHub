@@ -404,6 +404,10 @@
                               <Setter TargetName="Fond" Property="Background"
                                       Value="{DynamicResource SurfaceAltBrush}" />
                             </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                              <Setter TargetName="Fond" Property="Background"
+                                      Value="{DynamicResource AccentSoftBrush}" />
+                            </Trigger>
                           </ControlTemplate.Triggers>
                         </ControlTemplate>
                       </ToggleButton.Template>

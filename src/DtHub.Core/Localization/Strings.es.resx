@@ -2039,4 +2039,28 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="SimulatedMouseHelp" xml:space="preserve">
     <value>A cambio, el PC pierde su propio cursor mientras una ventana de juego tiene el foco: un ratón simulado envía desplazamientos, no posiciones. Pulsa ALT IZQUIERDO para recuperar el cursor, o una de las teclas Windows. Vale para una sola cuenta, molesto para varias.</value>
   </data>
+  <data name="PreviousMonth" xml:space="preserve">
+    <value>Mes anterior</value>
+  </data>
+  <data name="NextMonth" xml:space="preserve">
+    <value>Mes siguiente</value>
+  </data>
+  <data name="ColourTeal" xml:space="preserve">
+    <value>Verde azulado</value>
+  </data>
+  <data name="ColourMoss" xml:space="preserve">
+    <value>Musgo</value>
+  </data>
+  <data name="ColourBrass" xml:space="preserve">
+    <value>Latón</value>
+  </data>
+  <data name="ColourIndigo" xml:space="preserve">
+    <value>Índigo</value>
+  </data>
+  <data name="ColourOrchid" xml:space="preserve">
+    <value>Orquídea</value>
+  </data>
+  <data name="ColourRose" xml:space="preserve">
+    <value>Rosa</value>
+  </data>
 </root>

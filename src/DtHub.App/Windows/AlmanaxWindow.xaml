@@ -144,12 +144,14 @@
                 <!-- The month header: go back, the month, go forward. -->
                 <DockPanel Margin="0,0,0,8">
                   <Button DockPanel.Dock="Left" Style="{StaticResource IconButton}"
-                          Command="{Binding PreviousMonthCommand}">
+                          Command="{Binding PreviousMonthCommand}"
+                          ToolTip="{loc:T PreviousMonth}">
                     <Path Style="{StaticResource RowGlyph}" Data="M 9,3 L 5,7.5 L 9,12" />
                   </Button>
 
                   <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}"
-                          Command="{Binding NextMonthCommand}">
+                          Command="{Binding NextMonthCommand}"
+                          ToolTip="{loc:T NextMonth}">
                     <Path Style="{StaticResource RowGlyph}" Data="M 6,3 L 10,7.5 L 6,12" />
                   </Button>
 
