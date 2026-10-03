@@ -117,8 +117,8 @@ public interface IWindowController
     void SetBorderless(nint handle, bool borderless);
 
     /// <summary>
-    /// Tints a window's frame and title bar, or gives them back the
-    /// system's own colour with <c>null</c>.
+    /// Tints a window's border, muted, or gives it back the system's own
+    /// colour with <c>null</c>. The title bar is left to Windows.
     ///
     /// The window belongs to scrcpy and not to us, which was the open
     /// question: `build/sonde-bordure` settled it by reading the frame's

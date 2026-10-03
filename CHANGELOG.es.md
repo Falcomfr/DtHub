@@ -10,6 +10,25 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Añadido
+
+- El título del marco con pestañas recuerda los atajos, como las ventanas
+  libres.
+
+### Cambiado
+
+- Una ventana solo lleva el color de su cuenta en el borde, suavizado, en
+  el marco como en ventana libre; la barra de título queda como la dibuja
+  Windows.
+- Las pestañas pierden su fondo teñido, y la activa se subraya con el color
+  de su cuenta.
+
+### Corregido
+
+- Una cuenta sacada del marco recupera el color de su borde.
+
 ## [0.7.6] - 2026-10-03
 
 ### Corregido

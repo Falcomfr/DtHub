@@ -16,6 +16,23 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Added
+
+- The tabbed frame's title shows the shortcut reminder, as free windows do.
+
+### Changed
+
+- A window wears its account's colour on its border only, toned down, in
+  the frame as on free windows; title bars stay as Windows draws them.
+- Tabs lose their tinted background, and the active one is underlined in
+  its account's colour.
+
+### Fixed
+
+- An account taken out of the frame gets its border colour back.
+
 ## [0.7.6] - 2026-10-03
 
 ### Fixed

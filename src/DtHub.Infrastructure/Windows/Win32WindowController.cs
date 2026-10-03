@@ -272,9 +272,6 @@ public sealed partial class Win32WindowController : IWindowController
     /// <summary>Frame colour, Windows 11 build 22000 and later.</summary>
     private const int BorderColour = 34;
 
-    /// <summary>Title bar colour, same vintage.</summary>
-    private const int CaptionColour = 35;
-
     /// <summary>Hands the colour back to the system.</summary>
     private const uint ColourDefault = 0xFFFFFFFF;
 
@@ -288,15 +285,17 @@ public sealed partial class Win32WindowController : IWindowController
         // COLORREF, so 0x00BBGGRR and not RGB: getting the order wrong
         // gives a plausible colour, which is the worst kind of bug to
         // find. The default sentinel hands the frame back to Windows.
-        var value = colourRef is { } c ? (uint)c : ColourDefault;
+        var border = colourRef is { } c ? (uint)FrameTint.Border(c) : ColourDefault;
 
-        // Both, deliberately. The border is a single pixel, which is
-        // nothing across a room; the title bar is what tells two
-        // windows apart at a glance. Neither is fatal: an older Windows
-        // answers E_INVALIDARG and the rest of the application does not
-        // care.
-        _ = DwmSetWindowAttribute(handle, BorderColour, ref value, sizeof(uint));
-        _ = DwmSetWindowAttribute(handle, CaptionColour, ref value, sizeof(uint));
+        // **The border only, muted, see FrameTint.** The title bar used to
+        // wear the tint, and across a whole bar it was too bright, "ça pique
+        // les yeux"; forced to a plain dark bar it still differed from an
+        // account without a colour, whose bar Windows draws itself, and that
+        // one looked better. The bar and its title are now left to Windows in
+        // every case, the same whether the account has a colour or not. Not
+        // fatal either way: an older Windows answers E_INVALIDARG and the
+        // rest of the application does not care.
+        _ = DwmSetWindowAttribute(handle, BorderColour, ref border, sizeof(uint));
     }
 
     public void SetBorderless(nint handle, bool borderless)

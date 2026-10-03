@@ -6,6 +6,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
 
+using DtHub.App.Services;
 using DtHub.App.ViewModels;
 using DtHub.Core.Windows;
 
@@ -235,8 +236,19 @@ public partial class TabbedGameWindow : Window
         if (Find(key) is { } tab)
         {
             tab.ColourBrushKey = colourBrushKey;
+            Tint();
         }
     }
+
+    /// <summary>
+    /// The frame's border wears the active account's colour, as a free
+    /// window's does: in tabbed mode nothing around the game said whose it
+    /// was, save the tab itself.
+    /// </summary>
+    private void Tint() =>
+        _windows.SetFrameColour(
+            Handle,
+            AccountTints.ColourRefFor(Items.FirstOrDefault(t => t.IsSelected)?.ColourBrushKey));
 
     private GameTabViewModel? Find(string key) =>
         Items.FirstOrDefault(t => string.Equals(t.Key, key, StringComparison.Ordinal));
@@ -656,10 +668,35 @@ public partial class TabbedGameWindow : Window
                 pris.Height));
     }
 
-    private void Retitle() =>
-        Title = Items.FirstOrDefault(t => t.IsSelected) is { } tab
+    /// <summary>
+    /// The shortcut reminder free windows carry in their title, "Ctrl + P :
+    /// réglages · Ctrl + Tab : fenêtre suivante". The frame had none, and in
+    /// tabbed mode the combinations were written nowhere on screen.
+    /// </summary>
+    public string? ShortcutReminder
+    {
+        get => _reminder;
+        set
+        {
+            _reminder = value;
+            Retitle();
+        }
+    }
+
+    private string? _reminder;
+
+    private void Retitle()
+    {
+        var title = Items.FirstOrDefault(t => t.IsSelected) is { } tab
             ? $"{Core.ProductInfo.Name}  ·  {tab.Title}"
             : $"{Core.ProductInfo.Name}  ·  onglets";
+
+        // The free windows' format, see ScrcpyCommandBuilder.BuildWindowTitle.
+        Title = string.IsNullOrWhiteSpace(_reminder) ? title : $"{title}  ({_reminder.Trim()})";
+
+        // Every place that changes the active tab comes through here.
+        Tint();
+    }
 
     // Dragging a tab, on the model of the accounts list.
 
@@ -838,6 +875,8 @@ public partial class TabbedGameWindow : Window
         base.OnSourceInitialized(e);
 
         Handle = new WindowInteropHelper(this).Handle;
+
+        Tint();
 
         if (PresentationSource.FromVisual(this) is HwndSource source)
         {

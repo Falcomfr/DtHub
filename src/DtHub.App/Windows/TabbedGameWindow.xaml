@@ -60,11 +60,9 @@
                   <!-- The account's own mark, the same bar the row wears
                        in the panel, so the two surfaces teach one shape.
 
-                       Not the tab's underline: that one is the accent and
-                       says "this is the tab you are looking at". Marking
-                       it would steal the accent's single job and leave
-                       the unselected tabs unmarked, which is exactly the
-                       case a multi-account player needs.
+                       The bar marks every tab, selected or not, which is
+                       what a multi-account player needs; the active tab's
+                       underline takes the colour too, further down.
 
                        Opacity and not visibility, so an unmarked account
                        indents like a marked one. -->
@@ -76,22 +74,26 @@
                   <Image Width="16" Height="16" Margin="0,0,6,0" Stretch="Uniform"
                          RenderOptions.BitmapScalingMode="HighQuality"
                          Source="{Binding IconPath, Converter={StaticResource IconPath}}" />
-                  <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
+                  <!-- A touch quieter than the panel's text: with no wash
+                       behind it any more, full white read "un poil trop
+                       visible". -->
+                  <TextBlock Text="{Binding Title}" VerticalAlignment="Center" Opacity="0.85" />
                 </StackPanel>
               </RadioButton>
 
-              <!-- The whole tab tinted with the account's colour, so that
-                   it reads at a glance on every tab and not only through
-                   the side bar, which was too thin to be seen from a
-                   distance. Above the tab rather than behind it: the
-                   tab's hover background is opaque and would hide it.
-                   Light enough for the title to stay readable, and blind
-                   to the mouse so the tab keeps every click. -->
-              <Border Grid.Column="1" IsHitTestVisible="False"
-                      CornerRadius="{StaticResource RadiusTop}"
-                      Opacity="{Binding HasColour, Converter={StaticResource BoolToOpacity}}">
-                <Border CornerRadius="{StaticResource RadiusTop}" Opacity="0.35"
-                        Background="{Binding ColourBrushKey, Converter={StaticResource KeyToBrush}}" />
+              <!-- The active tab's underline in its account's colour, laid
+                   over the accent one; an account without a colour keeps the
+                   accent. The tab used to be washed with the colour as well:
+                   at 0.45 the title read poorly, and even lighter it was too
+                   much colour, so the bar and this underline mark it alone. -->
+              <Border Grid.Column="1" Height="2" VerticalAlignment="Bottom" IsHitTestVisible="False"
+                      Background="{Binding ColourBrushKey, Converter={StaticResource KeyToBrush}}">
+                <Border.Visibility>
+                  <MultiBinding Converter="{StaticResource AllTrue}">
+                    <Binding Path="IsSelected" />
+                    <Binding Path="HasColour" />
+                  </MultiBinding>
+                </Border.Visibility>
               </Border>
 
               <Border Grid.Column="2" Width="2" Margin="1,4,1,4" CornerRadius="1"

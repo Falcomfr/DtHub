@@ -51,9 +51,12 @@ public static class AccountTints
     /// time: one hexadecimal per tint, in the dictionary, even when it
     /// ends up crossing into Win32.
     /// </summary>
-    public static int? FrameColourRefFor(AccountColour? colour)
+    public static int? FrameColourRefFor(AccountColour? colour) => ColourRefFor(KeyFor(colour));
+
+    /// <summary>The same, from the palette key a tab already carries.</summary>
+    public static int? ColourRefFor(string? key)
     {
-        if (KeyFor(colour) is not { } key
+        if (key is null
             || Application.Current?.TryFindResource(key) is not SolidColorBrush brush)
         {
             return null;

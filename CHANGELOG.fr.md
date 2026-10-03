@@ -11,6 +11,25 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Ajouté
+
+- Le titre du cadre à onglets rappelle les raccourcis, comme les fenêtres
+  libres.
+
+### Modifié
+
+- Une fenêtre ne porte plus la couleur de son compte que sur son liseré,
+  adouci, dans le cadre comme en fenêtre libre ; la barre de titre reste
+  celle de Windows.
+- Les onglets perdent leur fond teinté, et l'onglet actif est souligné à la
+  couleur de son compte.
+
+### Corrigé
+
+- Un compte sorti du cadre retrouve la couleur de son liseré.
+
 ## [0.7.6] - 2026-10-03
 
 ### Corrigé

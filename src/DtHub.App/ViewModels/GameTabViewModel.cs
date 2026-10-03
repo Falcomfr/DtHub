@@ -21,10 +21,9 @@ public sealed partial class GameTabViewModel : ObservableObject
     /// <summary>
     /// The palette key of the account's mark, or <c>null</c> for none.
     ///
-    /// The same mark the row wears, so the two surfaces teach one shape.
-    /// It is deliberately not the tab's selection underline: that one
-    /// says "this is the tab you are looking at", and it is the
-    /// unselected tabs that a multi-account player needs to tell apart.
+    /// The same mark the row wears, so the two surfaces teach one shape,
+    /// on every tab, since it is the unselected tabs that a multi-account
+    /// player needs to tell apart. The active tab's underline takes it too.
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasColour))]

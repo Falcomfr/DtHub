@@ -2739,6 +2739,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
         var hint = await BuildTitleHintAsync(cancellationToken).ConfigureAwait(false);
         var settings = await _settings.GetAsync(cancellationToken).ConfigureAwait(false);
 
+        await OnUiAsync(() =>
+        {
+            if (_tabs is { } frame)
+            {
+                frame.ShortcutReminder = hint;
+            }
+        }).ConfigureAwait(false);
+
         return _windows.Retitle(
             _sessions.ActiveSessions,
             session => ScrcpyCommandBuilder.BuildWindowTitle(CurrentName(session, settings), hint));
@@ -3116,8 +3124,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
             parts.Add(Strings.Format("TitleHintNextWindow", next.DisplayText));
         }
 
-        return parts.Count > 0 ? string.Join("  ·  ", parts) : null;
+        // Kept for the tabbed frame, which is created later and on the
+        // interface thread.
+        _titleHint = parts.Count > 0 ? string.Join("  ·  ", parts) : null;
+
+        return _titleHint;
     }
+
+    /// <summary>The last shortcut reminder built, for the tabbed frame's title.</summary>
+    private volatile string? _titleHint;
 
     private static LaunchTarget ToTarget(DofusInstance instance, string serial) => new()
     {
@@ -3306,6 +3321,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
             }
         }
 
+        // A session that outlived its stop is a free window again, and it
+        // was docked when the colours were set: see SetTabbedAsync.
+        await OnUiAsync(() => RefreshWindowColours()).ConfigureAwait(false);
+
         NotifyIfNothingLeft();
     }
 
@@ -3319,7 +3338,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             return existant;
         }
 
-        var frame = new Windows.TabbedGameWindow(_windows.Controller);
+        var frame = new Windows.TabbedGameWindow(_windows.Controller) { ShortcutReminder = _titleHint };
 
         frame.Closed += (_, _) => _tabs = null;
 
@@ -3411,6 +3430,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         else
         {
             await OnUiAsync(() => _tabs?.Detach(instance.Key)).ConfigureAwait(false);
+
+            // The colour is set once, at launch, and a window docked then
+            // had no frame of its own to carry it: taken out of the frame,
+            // it came back with no border colour at all.
+            await OnUiAsync(() => RefreshWindowColours()).ConfigureAwait(false);
         }
 
         // A second time, and it is the only one that matters for the

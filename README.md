@@ -98,7 +98,7 @@ window on your PC.
   account is doing and for how long its window has been open, and each phone
   gets a line of its own for its charge and its link.
 - **A colour per account**, on its row, on its tab in the frame, and on the
-  window's own border and title bar. Accounts are given one on their own; you
+  window's own border. Accounts are given one on their own; you
   can change it or take it away, and what you take away stays away. The window
   frame needs Windows 11: everything else works from Windows 10 1809.
 - **Clipboard sync** both ways, through scrcpy's own mechanism.
