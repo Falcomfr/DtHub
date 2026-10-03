@@ -291,6 +291,18 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     public string Problems => _problems ?? string.Empty;
 
     /// <summary>
+    /// The most serious finding, the only one written out: three findings
+    /// used to take three rows, and the panel was asked not to fill up.
+    /// The others are counted beside it and listed on hover.
+    /// </summary>
+    public string Headline => Problems.Split(Environment.NewLine)[0];
+
+    /// <summary>"(+2)" when two more findings hide behind the headline, else empty.</summary>
+    public string More => Problems.Split(Environment.NewLine).Length is > 1 and var count
+        ? $"(+{count - 1})"
+        : string.Empty;
+
+    /// <summary>
     /// The color of the icon and the text: red if the session is at
     /// stake.
     /// </summary>
@@ -309,6 +321,8 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
 
         OnPropertyChanged(nameof(HasProblems));
         OnPropertyChanged(nameof(Problems));
+        OnPropertyChanged(nameof(Headline));
+        OnPropertyChanged(nameof(More));
         OnPropertyChanged(nameof(ProblemsBrushKey));
     }
 
@@ -411,36 +425,53 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     /// **The colour and the text have to name the same thing.** Saying
     /// "5 GHz" in amber because the channel was crowded read as though
     /// 5 GHz were the fault, which is the opposite of the truth: it is
-    /// the good band. When something is wrong, the cell now says what.
+    /// the good band. When something is wrong, the cell says what.
     ///
-    /// The band comes before the crowding, which is the order the health
-    /// check itself uses, so the cell and the sentence beside it can
-    /// never name two different faults.
+    /// **Only what is going on now.** The retry share is counted since the
+    /// phone joined the network: "40 % lost" stayed amber all session,
+    /// unchanged by a change of channel, and taught to ignore the cell. It
+    /// moved to the tooltip; the spikes, measured over the last minute,
+    /// took its place.
     /// </summary>
     public string LinkText => _vitals?.Link switch
     {
+        // First: the only one that says the game is lagging right now.
+        not null when HasSpikes => Strings.Format("VitalsLinkSpikes", _vitals.WifiSpikes!.Value.Worst),
         { Is24GHz: true } => Strings.Format("VitalsBand", 2.4),
-        { IsCrowded: true } crowded =>
-            Strings.Format("VitalsLinkCrowded", Math.Round(crowded.RetryShare * 100)),
         not null => Strings.Format("VitalsBand", 5),
         _ => string.Empty,
     };
 
-    /// <summary>The band and the speed it announces.</summary>
+    /// <summary>
+    /// The band and the speed it announces, then the advice when the chip is
+    /// coloured: the Wi-Fi no longer has a line of its own under the name.
+    /// </summary>
     public string LinkSummary => _vitals?.Link is { } link
-        ? Strings.Format("VitalsLinkTip", link.Is24GHz ? 2.4 : 5, link.LinkSpeedMbps)
+        ? string.Join(
+            Environment.NewLine,
+            new[]
+            {
+                Strings.Format("VitalsLinkTip", link.Is24GHz ? 2.4 : 5, link.LinkSpeedMbps),
+                HasSpikes
+                    ? Strings.Format("PhoneWifiSpikes", _vitals.WifiSpikes!.Value.Count, _vitals.WifiSpikes.Value.Worst)
+                    : null,
+                link.Advice(),
+            }.OfType<string>())
         : string.Empty;
+
+    /// <summary>Enough Wi-Fi latency spikes in the last minute to be felt in game.</summary>
+    private bool HasSpikes => _vitals?.WifiSpikes is { Count: >= PingSpikes.Enough };
 
     /// <summary>
     /// <inheritdoc cref="BatteryBrushKey" path="/summary" />
     ///
-    /// A crowded channel and the shared band are both worth a colour,
-    /// and the threshold for the first belongs to the link itself, so
-    /// that this band and the findings cannot drift apart.
+    /// Spikes going on and the shared band are worth a colour, the first
+    /// because the game feels it now, the second because changing band
+    /// fixes it.
     /// </summary>
     public string LinkBrushKey => _vitals?.Link switch
     {
-        { IsCrowded: true } => "WarningBrush",
+        not null when HasSpikes => "WarningBrush",
         { Is24GHz: true } => "WarningBrush",
         _ => "TextMutedBrush",
     };

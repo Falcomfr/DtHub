@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using DtHub.Core.Localization;
 
 namespace DtHub.Core.Devices;
 
@@ -86,6 +87,16 @@ public sealed record WifiLink(
     /// while a 5 GHz losing four frames in ten was not.
     /// </summary>
     public bool IsCrowded => TxPackets >= Sample && RetryShare >= Crowded;
+
+    /// <summary>
+    /// The advice the link's chip gives on hover, or <c>null</c> when the
+    /// link is fine. The band before the crowding: changing band does more
+    /// than changing channel.
+    /// </summary>
+    public string? Advice() =>
+        Is24GHz ? Strings.Get("DeviceOn24GHz")
+        : IsCrowded ? Strings.Format("DeviceLinkCrowded", Math.Round(RetryShare * 100))
+        : null;
 
     /// <summary>
     /// Reads the state returned by <c>cmd wifi status</c>.

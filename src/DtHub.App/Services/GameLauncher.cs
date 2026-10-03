@@ -896,13 +896,20 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         await RefreshBatteriesAsync(discovery, cancellationToken).ConfigureAwait(false);
 
-        var alive = _sessions.ActiveSessions
+        // **A session keeps the serial it was opened on**: the mDNS name
+        // when the phone had no other at launch, or an address whose port
+        // wireless debugging has changed since. Discovery holds the serial
+        // that answers now, and the phone was swept twice, once under each,
+        // its second findings landing in the banner at the bottom of the
+        // list, which no account carries. Measured on 2026-10-03 with the
+        // 13T Pro. The device id, which does not change, ties them.
+        var playing = _sessions.ActiveSessions
             .Where(s => s.IsAlive)
-            .Select(s => s.Target.Serial)
+            .Select(s => discovery.Devices.FirstOrDefault(d => d.IsConnected && d.Id == s.Target.DeviceId)?.Serial
+                ?? s.Target.Serial)
             .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Distinct(StringComparer.Ordinal)
             .ToList();
-
-        var playing = alive.Distinct(StringComparer.Ordinal).ToList();
 
         // **Every connected phone, and not only those playing.** The
         // shortcut used to stop at the phones carrying a window as
@@ -943,6 +950,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         List<HealthFinding> findings = [];
 
+        int? pcBusy = _pcBusy is >= 0 and var busy ? busy : null;
+
         foreach (var serial in serials)
         {
             var heat = await _devices.GetThermalAsync(serial, cancellationToken).ConfigureAwait(false);
@@ -950,12 +959,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
             var storage = await _devices.GetStorageAsync(serial, cancellationToken).ConfigureAwait(false);
             var link = await _devices.GetWifiLinkAsync(serial, cancellationToken).ConfigureAwait(false);
             var memory = await _devices.GetMemoryAsync(serial, cancellationToken).ConfigureAwait(false);
+            var strain = _strains.GetValueOrDefault(serial);
 
             // The same four, kept whole. The findings below turn them
             // into sentences and keep only those; the panel needs the
             // state as well, and asking the phone twice for it would
             // double the slowest part of the sweep.
-            _vitals[serial] = new DeviceVitals(battery, heat, storage, link, memory);
+            _vitals[serial] = new DeviceVitals(
+                battery, heat, storage, link, memory,
+                _pings.TryGetValue(serial, out var spikes) ? spikes.Since(DateTimeOffset.UtcNow) : null);
 
             // Do this device's windows show the lock icon rather
             // than the game? The question is only asked where there
@@ -1000,7 +1012,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
             TraceDeadInput(serial, dead);
 
             var seen = DeviceHealth.Review(
-                heat, battery, storage, link, locked, unprepared, dead, memory);
+                heat, battery, storage, locked, unprepared, dead, memory,
+                strain,
+                playing.Count > 0 && serial == playing[0] ? pcBusy : null);
 
             if (DeviceHealth.Every(seen) is { } said)
             {
@@ -1197,6 +1211,199 @@ public sealed partial class GameLauncher : IAsyncDisposable
         else
         {
             _ = _loggedDeadInput.Remove(serial);
+        }
+    }
+
+    /// <summary>The PC's processor counters at the last minute's reading.</summary>
+    private (long Idle, long Total)? _pcTimes;
+
+    /// <summary>
+    /// The PC's processor load over the last two minutes, the lower of the
+    /// two, in percent, or -1 until both are known. Written by the window
+    /// watch, read by the sweep.
+    /// </summary>
+    private volatile int _pcBusy = -1;
+
+    /// <summary>The last minute's load as read, before two minutes are combined.</summary>
+    private int _pcMinute = -1;
+
+    /// <summary>Takes the minute's reading of the PC's processor.</summary>
+    private void SamplePc()
+    {
+        if (!PcProcessor.Times(out var idle, out var total))
+        {
+            _pcBusy = -1;
+            return;
+        }
+
+        var minute = _pcTimes is { } before && total > before.Total
+            ? (int)Math.Round(100.0 * (1 - ((double)(idle - before.Idle) / (total - before.Total))))
+            : -1;
+
+        // The lower of two minutes in a row, as for the phone: a build or a
+        // game launch fills one minute, a PC that stays loaded fills both.
+        _pcBusy = Math.Min(_pcMinute, minute);
+        _pcMinute = minute;
+        _pcTimes = (idle, total);
+    }
+
+    /// <summary>Wi-Fi latency spikes per device, fed by <see cref="SampleInBackground" />.</summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, PingSpikes> _pings =
+        new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// The last minute of each playing phone's processor, by serial, read by
+    /// the health sweep.
+    /// </summary>
+    private volatile IReadOnlyDictionary<string, PhoneStrain> _strains = new Dictionary<string, PhoneStrain>();
+
+    /// <summary>Each phone's last minute as read, before two minutes are combined.</summary>
+    private Dictionary<string, PhoneStrain> _minutes = new(StringComparer.Ordinal);
+
+    private readonly System.Diagnostics.Stopwatch _sincePing = System.Diagnostics.Stopwatch.StartNew();
+
+    private System.Diagnostics.Stopwatch? _sinceStrain;
+
+    /// <summary>1 while a minute's phone readings are under way.</summary>
+    private int _sampling;
+
+    /// <summary>
+    /// Measures, in the background, what the lag finding needs: a ping a
+    /// second and a processor reading a minute, for every phone carrying a
+    /// game.
+    ///
+    /// **From the window watch and not from the panel's sweep**: the panel
+    /// only sweeps while it shows, and the player opens it when the game
+    /// lags. It would then have waited a minute, the time for two readings,
+    /// before saying anything.
+    /// </summary>
+    private void SampleInBackground()
+    {
+        if (_sincePing.Elapsed < TimeSpan.FromMilliseconds(900))
+        {
+            return;
+        }
+
+        _sincePing.Restart();
+
+        List<string> phones =
+        [
+            .. _sessions.ActiveSessions
+                .Where(s => s.IsAlive)
+                .Select(s => Routable(s.Target))
+                .Distinct(StringComparer.Ordinal),
+        ];
+
+        foreach (var serial in phones)
+        {
+            // Only the address adb reaches the phone at right now, so it is
+            // alive and on Wi-Fi by definition. Not a USB serial, nor an mDNS
+            // name: the address remembered for those may be days old, and a
+            // ping lost to a moved phone would read as a spike.
+            if (PingSpikes.HostOf(serial) is { } host)
+            {
+                _ = PingAsync(host, _pings.GetOrAdd(serial, _ => new PingSpikes()));
+            }
+        }
+
+        // A serial no longer playing, an old port after wireless debugging
+        // resumed for instance, would otherwise stay forever.
+        foreach (var gone in _pings.Keys.Where(k => !phones.Contains(k, StringComparer.Ordinal)))
+        {
+            _ = _pings.TryRemove(gone, out _);
+        }
+
+        if (_sinceStrain is null || _sinceStrain.Elapsed >= TimeSpan.FromMinutes(1))
+        {
+            _sinceStrain = System.Diagnostics.Stopwatch.StartNew();
+
+            SamplePc();
+
+            // Off the interface thread, which starts adb otherwise, and never
+            // two at once: a phone slow to answer would have the next minute
+            // read the same counters concurrently.
+            if (Interlocked.Exchange(ref _sampling, 1) == 0)
+            {
+                IReadOnlyList<string> serials = phones;
+
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await SampleStrainsAsync(serials).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        _ = Interlocked.Exchange(ref _sampling, 0);
+                    }
+                });
+            }
+        }
+    }
+
+    /// <summary>
+    /// One processor reading per phone, the strain of each over the minute
+    /// since the previous one, and a log line for each: the limits were set
+    /// on two phones, one lagging and one fresh, and only the field can say
+    /// whether they hold.
+    /// </summary>
+    private async Task SampleStrainsAsync(IReadOnlyList<string> serials)
+    {
+        Dictionary<string, PhoneStrain> minutes = new(StringComparer.Ordinal);
+        Dictionary<string, PhoneStrain> strains = new(StringComparer.Ordinal);
+
+        foreach (var serial in serials)
+        {
+            if (await _devices.GetPhoneStrainAsync(serial).ConfigureAwait(false) is { } strain)
+            {
+                minutes[serial] = strain;
+
+                // Shown only once two minutes in a row agree: one busy
+                // minute is not a lag.
+                if (_minutes.TryGetValue(serial, out var before))
+                {
+                    strains[serial] = PhoneStrain.Sustained(before, strain);
+                }
+
+                LogStrain(
+                    serial,
+                    Math.Round(strain.BusyShare * 100),
+                    Math.Round(strain.GameShare * 100),
+                    Math.Round(strain.ReclaimCore * 100),
+                    Math.Round(strain.Uptime.TotalDays, 1));
+            }
+        }
+
+        // Rebuilt whole: a phone no longer playing must not keep its last
+        // minute on screen.
+        _minutes = minutes;
+        _strains = strains;
+    }
+
+    /// <summary>
+    /// The serial to ask a session's phone through: the one discovery last
+    /// kept for it, rather than the mDNS name the session may have been
+    /// opened on, which adb often refuses.
+    /// </summary>
+    private string Routable(LaunchTarget target) =>
+        _serials.GetValueOrDefault(target.DeviceId) ?? target.Serial;
+
+    private static async Task PingAsync(string host, PingSpikes spikes)
+    {
+        using var ping = new System.Net.NetworkInformation.Ping();
+
+        try
+        {
+            var reply = await ping.SendPingAsync(host, PingSpikes.Timeout).ConfigureAwait(false);
+
+            spikes.Add(
+                DateTimeOffset.UtcNow,
+                reply.Status == System.Net.NetworkInformation.IPStatus.Success ? reply.RoundtripTime : null);
+        }
+        catch (System.Net.NetworkInformation.PingException)
+        {
+            // The PC has no network to send it on: that says nothing about
+            // the phone's Wi-Fi, and the lost session already shows.
         }
     }
 
@@ -2185,6 +2392,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             [.. _sessions.ActiveSessions.Select(s => s.Target.Key)]);
 
         ReportFirstImages();
+
+        SampleInBackground();
     }
 
     /// <summary>Sessions whose first image has already been recorded.</summary>
@@ -3611,6 +3820,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Information,
         Message = "Mémoire de l'appareil {serial} selon Android : {level}, {available} Go disponibles.")]
     private partial void LogMemory(string serial, string level, double available);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Processeur de l'appareil {serial} sur la dernière minute : {busy} % occupé, {game} % pour le jeu, kswapd0 à {reclaim} % d'un cœur, allumé depuis {days} j.")]
+    private partial void LogStrain(string serial, double busy, double game, double reclaim, double days);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Un raccourci n'a pas pu être traité.")]
     private partial void LogHotkeyFailure(Exception exception);

@@ -568,6 +568,24 @@ Cruza las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
   <data name="DeviceMemoryCritical" xml:space="preserve">
     <value>Al teléfono casi no le queda memoria ({0} GB disponibles): Android cerrará aplicaciones, el juego incluido. Cierra las demás aplicaciones, baja la calidad de una cuenta o reinicia el teléfono.</value>
   </data>
+  <data name="PhoneUptime" xml:space="preserve">
+    <value> (encendido desde hace {0} días)</value>
+  </data>
+  <data name="PhoneMemoryStrain" xml:space="preserve">
+    <value>Teléfono saturado: le falta memoria y pasa el tiempo liberándola{0}. Reinícialo y cierra las aplicaciones en segundo plano.</value>
+  </data>
+  <data name="PhoneGameHeavy" xml:space="preserve">
+    <value>DOFUS Touch ocupa el {0} % del procesador del teléfono: baja los gráficos en las opciones del juego o pon la calidad en Baja.</value>
+  </data>
+  <data name="PhoneBusy" xml:space="preserve">
+    <value>Procesador del teléfono saturado por otras aplicaciones{0}: ciérralas o reinicia el teléfono.</value>
+  </data>
+  <data name="PhoneWifiSpikes" xml:space="preserve">
+    <value>Wi-Fi inestable: {0} picos de latencia en un minuto, hasta {1} ms. Acerca el teléfono al router o conéctalo por USB.</value>
+  </data>
+  <data name="PcBusy" xml:space="preserve">
+    <value>El PC está ocupado al {0} %: cierra los programas pesados o pon la calidad en Baja.</value>
+  </data>
   <data name="VitalsMemoryTip" xml:space="preserve">
     <value>memoria llena, {0} GB disponibles</value>
   </data>
@@ -643,8 +661,8 @@ Cruza las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
   <data name="VitalsLinkTip" xml:space="preserve">
     <value>{0} GHz, {1} Mb/s</value>
   </data>
-  <data name="VitalsLinkCrowded" xml:space="preserve">
-    <value>{0} % perdidas</value>
+  <data name="VitalsLinkSpikes" xml:space="preserve">
+    <value>picos de {0} ms</value>
   </data>
   <data name="ColourHeading" xml:space="preserve">
     <value>COLOR</value>

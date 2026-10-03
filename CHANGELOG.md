@@ -16,6 +16,25 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Added
+
+- The panel says when the phone, its Wi-Fi or the PC makes the game lag,
+  and what to do about it.
+
+### Changed
+
+- A phone shows a single line of findings: the most serious, with the
+  count of the others, all of them on hover.
+- Wi-Fi advice lives in the link cell beside the phone's name, which only
+  turns amber for something going on now.
+
+### Fixed
+
+- A phone connected both by its name and by its address no longer shows
+  its findings twice.
+
 ## [0.7.2] - 2026-10-02
 
 ### Changed

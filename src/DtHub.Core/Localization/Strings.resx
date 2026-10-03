@@ -568,6 +568,24 @@ Cross the tests: another device on this port, and this phone on another PC. You 
   <data name="DeviceMemoryCritical" xml:space="preserve">
     <value>The phone is almost out of memory ({0} GB available): Android will close apps, the game included. Close the other apps, lower an account's quality or restart the phone.</value>
   </data>
+  <data name="PhoneUptime" xml:space="preserve">
+    <value> (on for {0} days)</value>
+  </data>
+  <data name="PhoneMemoryStrain" xml:space="preserve">
+    <value>The phone is overloaded: it is short of memory and keeps freeing some{0}. Restart it and close the apps running in the background.</value>
+  </data>
+  <data name="PhoneGameHeavy" xml:space="preserve">
+    <value>DOFUS Touch takes {0} % of the phone's processor: lower the graphics in the game's options or set the quality to Low.</value>
+  </data>
+  <data name="PhoneBusy" xml:space="preserve">
+    <value>The phone's processor is saturated by other apps{0}: close them or restart the phone.</value>
+  </data>
+  <data name="PhoneWifiSpikes" xml:space="preserve">
+    <value>Unstable Wi-Fi: {0} latency spikes in a minute, up to {1} ms. Move the phone closer to the router or plug it in over USB.</value>
+  </data>
+  <data name="PcBusy" xml:space="preserve">
+    <value>The PC is {0} % busy: close heavy programs or set the quality to Low.</value>
+  </data>
   <data name="VitalsMemoryTip" xml:space="preserve">
     <value>memory full, {0} GB available</value>
   </data>
@@ -643,8 +661,8 @@ Cross the tests: another device on this port, and this phone on another PC. You 
   <data name="VitalsLinkTip" xml:space="preserve">
     <value>{0} GHz, {1} Mb/s</value>
   </data>
-  <data name="VitalsLinkCrowded" xml:space="preserve">
-    <value>{0} % lost</value>
+  <data name="VitalsLinkSpikes" xml:space="preserve">
+    <value>spikes {0} ms</value>
   </data>
   <data name="ColourHeading" xml:space="preserve">
     <value>COLOUR</value>

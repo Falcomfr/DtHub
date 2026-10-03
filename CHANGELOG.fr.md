@@ -11,6 +11,25 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Ajouté
+
+- Le panneau dit quand le téléphone, son Wi-Fi ou le PC fait ramer le jeu,
+  et quoi faire.
+
+### Modifié
+
+- Un téléphone n'affiche qu'une ligne de constats : le plus grave, avec le
+  nombre des autres, tous visibles au survol.
+- Les conseils Wi-Fi passent dans la case de liaison à côté du nom, qui ne
+  jaunit plus que pour un souci en cours.
+
+### Corrigé
+
+- Un téléphone connecté à la fois par son nom et par son adresse n'affiche
+  plus ses constats en double.
+
 ## [0.7.2] - 2026-10-02
 
 ### Modifié

@@ -25,9 +25,11 @@
 /// <param name="Storage">Free space on the data partition.</param>
 /// <param name="Link">The Wi-Fi link, absent over USB.</param>
 /// <param name="Memory">Android's verdict on its memory.</param>
+/// <param name="WifiSpikes">Wi-Fi latency spikes over the last minute, and the worst, absent over USB.</param>
 public sealed record DeviceVitals(
     BatteryReading? Battery,
     ThermalReading? Heat,
     StorageReading? Storage,
     WifiLink? Link,
-    MemoryReading? Memory = null);
+    MemoryReading? Memory = null,
+    (int Count, long Worst)? WifiSpikes = null);

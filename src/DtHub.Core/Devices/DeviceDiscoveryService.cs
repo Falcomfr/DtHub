@@ -544,6 +544,50 @@ public sealed class DeviceDiscoveryService : IDisposable
         }
     }
 
+    private readonly Dictionary<string, PhoneLoad> _load = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// What the phone's processor did since the previous call, or
+    /// <c>null</c> on the first one, or if the device says nothing.
+    ///
+    /// Not cached: the caller sets the pace, once a minute, and the
+    /// difference spans that minute. A spike of a few seconds is smoothed
+    /// away, a phone that stays saturated is not, so the finding does not
+    /// blink. Called from one place only, the dictionary is not shared.
+    /// </summary>
+    public async Task<PhoneStrain?> GetPhoneStrainAsync(
+        string serial,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(serial))
+        {
+            return null;
+        }
+
+        try
+        {
+            var load = PhoneLoad.Parse(await _adb
+                .ShellAsync(serial, [PhoneLoad.Command], cancellationToken: cancellationToken)
+                .ConfigureAwait(false));
+
+            if (load is null)
+            {
+                return null;
+            }
+
+            var strain = _load.TryGetValue(serial, out var before) ? PhoneStrain.Between(before, load) : null;
+
+            _load[serial] = load;
+
+            return strain;
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // Same silence taken deliberately as for the other side probes.
+            return null;
+        }
+    }
+
     /// <summary>
     /// What the device says about its free space, or <c>null</c> if it says
     /// nothing.

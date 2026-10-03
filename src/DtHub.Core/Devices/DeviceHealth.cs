@@ -39,6 +39,9 @@ public readonly record struct HealthFinding(HealthSeverity Severity, string Mess
 /// </summary>
 public static class DeviceHealth
 {
+    /// <summary>The PC's processor load, in percent, from which it is said to lag.</summary>
+    public const int PcBusyLimit = 85;
+
     /// <summary>
     /// The findings, from the most serious to the most trivial, at
     /// equal severity in the order they matter: what ends the
@@ -53,6 +56,14 @@ public static class DeviceHealth
     /// True when the device refuses input coming from the PC: the
     /// windows show the game and respond to nothing.
     /// </param>
+    /// <param name="strain">
+    /// What the phone's processor did over the last minute.
+    /// </param>
+    /// <param name="pcBusyPercent">
+    /// The PC's processor load over the last minute, given to one device
+    /// only: the PC is shared, and saying it under every phone would be
+    /// lines too many.
+    /// </param>
     /// <param name="lockedWindows">
     /// True when this device's game windows show its lock screen
     /// instead of the game, that is, when its virtual display follows
@@ -62,11 +73,12 @@ public static class DeviceHealth
         ThermalReading? heat,
         BatteryReading? battery,
         StorageReading? storage,
-        WifiLink? link,
         bool lockedWindows = false,
         bool unpreparedBattery = false,
         bool deadInput = false,
-        MemoryReading? memory = null)
+        MemoryReading? memory = null,
+        PhoneStrain? strain = null,
+        int? pcBusyPercent = null)
     {
         List<HealthFinding> findings = [];
 
@@ -110,6 +122,22 @@ public static class DeviceHealth
                 tight));
         }
 
+        // **One lag finding at most**, asked for so the panel does not
+        // fill up: the phone first, the cause that is easiest to fix, then
+        // the PC. Memory strain already told by Android's verdict is not
+        // told twice. The Wi-Fi has no line at all: see the end.
+        var lag = strain?.Describe() is { } strained
+                && !(memory?.IsLow == true && strain.ReclaimCore >= PhoneStrain.ReclaimLimit)
+            ? strained
+            : pcBusyPercent >= PcBusyLimit
+                ? Strings.Format("PcBusy", pcBusyPercent)
+                : null;
+
+        if (lag is not null)
+        {
+            findings.Add(new HealthFinding(HealthSeverity.Warning, lag));
+        }
+
         if (heat?.Describe() is { } warm)
         {
             findings.Add(new HealthFinding(
@@ -127,32 +155,11 @@ public static class DeviceHealth
             findings.Add(new HealthFinding(HealthSeverity.Warning, Strings.Get("BatteryNotPrepared")));
         }
 
-        // The link breaks nothing and is already compensated for on
-        // its own by the video buffer. It is stated so that "it
-        // stutters" has an answer, not to alarm: hence the lowest
-        // rank.
-        if (link is { Is24GHz: true })
-        {
-            findings.Add(new HealthFinding(HealthSeverity.Notice, Strings.Get("DeviceOn24GHz")));
-        }
-
-        // **A congested 5 GHz channel said nothing at all.** The band
-        // was the only thing the link could report, so a clean 2.4 GHz
-        // was named while a 5 GHz losing four frames in ten was not.
-        // The retry share was measured, written to the log and fed to
-        // the video buffer, and never reached the screen: "why is the
-        // window black for so long" had no answer anywhere.
-        //
-        // The threshold is the video buffer's own worst bucket, and it
-        // is stated once, on the link itself: the vitals band shows the
-        // same fact and must not carry a second copy of the figure.
-        else if (link is { IsCrowded: true })
-        {
-            findings.Add(new HealthFinding(
-                HealthSeverity.Notice,
-                Strings.Format("DeviceLinkCrowded", Math.Round(link.RetryShare * 100))));
-        }
-
+        // **The Wi-Fi never takes a line.** A 2.4 GHz band and a crowded
+        // channel used to, under every phone, all session long: the player
+        // had already changed channel, nothing changed, and the line stayed,
+        // which taught to ignore the panel. The link's chip beside the name
+        // says it in a word, and its tooltip gives the advice.
         return [.. findings.OrderByDescending(f => f.Severity)];
     }
 

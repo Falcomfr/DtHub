@@ -10,6 +10,25 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Añadido
+
+- El panel indica cuándo el teléfono, su Wi-Fi o el PC hacen que el juego
+  vaya a tirones, y qué hacer.
+
+### Cambiado
+
+- Un teléfono muestra una sola línea de avisos: el más grave, con el número
+  de los demás, todos visibles al pasar el ratón.
+- Los consejos de Wi-Fi pasan a la casilla de conexión junto al nombre, que
+  solo se pone ámbar por un problema en curso.
+
+### Corregido
+
+- Un teléfono conectado a la vez por su nombre y por su dirección ya no
+  muestra sus avisos dos veces.
+
 ## [0.7.2] - 2026-10-02
 
 ### Cambiado

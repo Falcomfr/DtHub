@@ -1,4 +1,5 @@
 ﻿using DtHub.Core.Devices;
+using DtHub.Core.Localization;
 
 namespace DtHub.Tests.Devices;
 
@@ -154,6 +155,24 @@ public class WifiLinkTests
     public void Un_telephone_muet_n_est_pas_encombre()
     {
         Assert.False(Liaison(0, txPackets: 0).IsCrowded);
+    }
+
+    [Fact]
+    public void Un_canal_encombre_est_conseille_meme_en_5_GHz()
+    {
+        // Measured on a real session: 38.7 % of retries at 5220 MHz.
+        Assert.Equal(Strings.Format("DeviceLinkCrowded", 39), Liaison(0.387).Advice());
+        Assert.Null(Liaison(0.05).Advice());
+    }
+
+    [Fact]
+    public void La_bande_passe_avant_l_encombrement()
+    {
+        // Changing band does more than changing channel: a crowded
+        // 2.4 GHz link has one piece of advice to give.
+        var link = new WifiLink(LinkSpeedMbps: 144, FrequencyMhz: 2437, Standard: "11n", Rssi: -59, RetryShare: 0.40, TxPackets: 50_000);
+
+        Assert.Equal(Strings.Get("DeviceOn24GHz"), link.Advice());
     }
 
     private static WifiLink Liaison(double retryShare, int txPackets = 50_000) =>

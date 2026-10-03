@@ -244,13 +244,15 @@
                    with nothing wrong. The message's placement was half
                    the message.
 
-                   One finding per row, each one truncated, full text on
-                   hover: the number of rows follows that of the actual
-                   problems, which is zero most of the time. -->
+                   One row whatever the count: the most serious finding,
+                   truncated, then "(+2)" for the others, which the
+                   tooltip lists in full. One row per finding used to let
+                   three problems take three rows. -->
               <Grid Margin="16,0,0,4" ToolTip="{Binding Device.Problems}">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="Auto" />
                   <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <Grid.Visibility>
@@ -265,9 +267,14 @@
                       Stroke="{Binding Device.ProblemsBrushKey, Converter={StaticResource KeyToBrush}}"
                       Data="M 6.5,2 L 12.5,11.5 H 0.5 Z M 6.5,5.5 V 8 M 6.5,9.6 V 10.1" />
 
-                <TextBlock Grid.Column="1" Text="{Binding Device.Problems}"
+                <TextBlock Grid.Column="1" Text="{Binding Device.Headline}"
                            FontFamily="{StaticResource UiFont}" FontSize="{StaticResource FontSmall}"
                            TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                           Foreground="{Binding Device.ProblemsBrushKey,
+                                                Converter={StaticResource KeyToBrush}}" />
+
+                <TextBlock Grid.Column="2" Text="{Binding Device.More}" Margin="4,0,0,0"
+                           FontFamily="{StaticResource UiFont}" FontSize="{StaticResource FontSmall}"
                            Foreground="{Binding Device.ProblemsBrushKey,
                                                 Converter={StaticResource KeyToBrush}}" />
               </Grid>

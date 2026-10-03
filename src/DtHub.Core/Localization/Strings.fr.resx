@@ -568,6 +568,24 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
   <data name="DeviceMemoryCritical" xml:space="preserve">
     <value>Mémoire du téléphone presque épuisée ({0} Go disponibles) : Android va fermer des applications, le jeu compris. Fermez les autres applications, baissez la qualité d'un compte ou redémarrez le téléphone.</value>
   </data>
+  <data name="PhoneUptime" xml:space="preserve">
+    <value> (allumé depuis {0} jours)</value>
+  </data>
+  <data name="PhoneMemoryStrain" xml:space="preserve">
+    <value>Téléphone saturé : il manque de mémoire et passe son temps à en libérer{0}. Redémarrez-le et fermez les applications en arrière-plan.</value>
+  </data>
+  <data name="PhoneGameHeavy" xml:space="preserve">
+    <value>DOFUS Touch occupe {0} % du processeur du téléphone : baissez les graphismes dans les options du jeu ou passez la qualité en Basse.</value>
+  </data>
+  <data name="PhoneBusy" xml:space="preserve">
+    <value>Processeur du téléphone saturé par d'autres applications{0} : fermez-les ou redémarrez le téléphone.</value>
+  </data>
+  <data name="PhoneWifiSpikes" xml:space="preserve">
+    <value>Wi-Fi instable : {0} pics de latence en une minute, jusqu'à {1} ms. Rapprochez le téléphone de la box ou branchez-le en USB.</value>
+  </data>
+  <data name="PcBusy" xml:space="preserve">
+    <value>Le PC est chargé à {0} % : fermez les programmes lourds ou passez la qualité en Basse.</value>
+  </data>
   <data name="VitalsMemoryTip" xml:space="preserve">
     <value>mémoire saturée, {0} Go disponibles</value>
   </data>
@@ -643,8 +661,8 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
   <data name="VitalsLinkTip" xml:space="preserve">
     <value>{0} GHz, {1} Mb/s</value>
   </data>
-  <data name="VitalsLinkCrowded" xml:space="preserve">
-    <value>{0} % perdus</value>
+  <data name="VitalsLinkSpikes" xml:space="preserve">
+    <value>pics à {0} ms</value>
   </data>
   <data name="ColourHeading" xml:space="preserve">
     <value>COULEUR</value>

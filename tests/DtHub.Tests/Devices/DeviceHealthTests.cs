@@ -1,4 +1,5 @@
 ﻿using DtHub.Core.Devices;
+using DtHub.Core.Localization;
 
 namespace DtHub.Tests.Devices;
 
@@ -10,10 +11,6 @@ public class DeviceHealthTests
     private static StorageReading Storage(double gigabytes) =>
         new((long)(gigabytes * 1024 * 1024 * 1024));
 
-    private static WifiLink Link(int frequency) =>
-        new(LinkSpeedMbps: 144, FrequencyMhz: frequency, Standard: "11n", Rssi: -57,
-            RetryShare: 0.1, TxPackets: 50_000);
-
     [Fact]
     public void La_bulle_porte_tous_les_constats_quand_le_bandeau_n_en_montre_qu_un()
     {
@@ -24,13 +21,12 @@ public class DeviceHealthTests
             null,
             Battery(6),
             null,
-            Link(2437),
             lockedWindows: true,
             unpreparedBattery: true);
 
         var tout = DeviceHealth.Every(findings);
 
-        Assert.Equal(4, findings.Count);
+        Assert.Equal(3, findings.Count);
         Assert.All(findings, f => Assert.Contains(f.Message, tout, StringComparison.Ordinal));
 
         // One line per finding, and nothing more.
@@ -42,16 +38,16 @@ public class DeviceHealthTests
     [Fact]
     public void Sans_constat_la_bulle_ne_dit_rien()
     {
-        Assert.Null(DeviceHealth.Every(DeviceHealth.Review(null, null, null, null)));
+        Assert.Null(DeviceHealth.Every(DeviceHealth.Review(null, null, null)));
     }
 
     [Fact]
     public void Un_appareil_qui_refuse_les_clics_le_dit()
     {
-        var mort = DeviceHealth.Review(null, null, null, null, deadInput: true);
+        var mort = DeviceHealth.Review(null, null, null, deadInput: true);
 
         Assert.Equal(HealthSeverity.Serious, Assert.Single(mort).Severity);
-        Assert.Empty(DeviceHealth.Review(null, null, null, null));
+        Assert.Empty(DeviceHealth.Review(null, null, null));
     }
 
     [Fact]
@@ -59,8 +55,8 @@ public class DeviceHealthTests
     {
         // Both are serious, but as long as the lock is there we cannot
         // even see the game: there is nowhere to click.
-        var deux = DeviceHealth.Review(null, null, null, null, lockedWindows: true, deadInput: true);
-        var cadenas = DeviceHealth.Review(null, null, null, null, lockedWindows: true);
+        var deux = DeviceHealth.Review(null, null, null, lockedWindows: true, deadInput: true);
+        var cadenas = DeviceHealth.Review(null, null, null, lockedWindows: true);
 
         Assert.Equal(2, deux.Count);
         Assert.Equal(Assert.Single(cadenas).Message, deux[0].Message);
@@ -69,10 +65,10 @@ public class DeviceHealthTests
     [Fact]
     public void Une_preparation_batterie_manquante_se_dit()
     {
-        var sans = DeviceHealth.Review(null, null, null, null, unpreparedBattery: true);
+        var sans = DeviceHealth.Review(null, null, null, unpreparedBattery: true);
 
         Assert.Equal(HealthSeverity.Warning, Assert.Single(sans).Severity);
-        Assert.Empty(DeviceHealth.Review(null, null, null, null));
+        Assert.Empty(DeviceHealth.Review(null, null, null));
     }
 
     [Fact]
@@ -85,7 +81,6 @@ public class DeviceHealthTests
             new ThermalReading(3, 44.0),
             Battery(5),
             Storage(1),
-            Link(2437),
             lockedWindows: true);
 
         Assert.Equal(HealthSeverity.Serious, findings[0].Severity);
@@ -95,8 +90,8 @@ public class DeviceHealthTests
     [Fact]
     public void Sans_cadenas_rien_n_est_dit_du_verrouillage()
     {
-        var avec = DeviceHealth.Review(null, null, null, null, lockedWindows: true);
-        var sans = DeviceHealth.Review(null, null, null, null);
+        var avec = DeviceHealth.Review(null, null, null, lockedWindows: true);
+        var sans = DeviceHealth.Review(null, null, null);
 
         Assert.Single(avec);
         Assert.Empty(sans);
@@ -108,8 +103,7 @@ public class DeviceHealthTests
         var findings = DeviceHealth.Review(
             new ThermalReading(0, 34.4),
             Battery(80),
-            Storage(299),
-            Link(5180));
+            Storage(299));
 
         Assert.Empty(findings);
     }
@@ -117,7 +111,7 @@ public class DeviceHealthTests
     [Fact]
     public void Un_appareil_muet_sur_tout_n_invente_rien()
     {
-        Assert.Empty(DeviceHealth.Review(null, null, null, null));
+        Assert.Empty(DeviceHealth.Review(null, null, null));
     }
 
     [Fact]
@@ -129,35 +123,16 @@ public class DeviceHealthTests
         var findings = DeviceHealth.Review(
             new ThermalReading(ThermalReading.Throttling, 44),
             Battery(5),
-            Storage(299),
-            Link(2412));
+            Storage(299));
 
         Assert.Equal(HealthSeverity.Serious, findings[0].Severity);
         Assert.Contains("5", findings[0].Message, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void La_liaison_ferme_toujours_la_marche()
-    {
-        // It breaks nothing and is already compensated for by the
-        // video buffer: it is reported so that "ça saccade" ("it's
-        // stuttering") has an answer, not to raise an alarm.
-        var findings = DeviceHealth.Review(null, Battery(15), null, Link(2412));
-
-        Assert.Equal(2, findings.Count);
-        Assert.Equal(HealthSeverity.Notice, findings[^1].Severity);
-    }
-
-    [Fact]
-    public void Une_liaison_en_cinq_gigahertz_ne_dit_rien()
-    {
-        Assert.Empty(DeviceHealth.Review(null, null, null, Link(5180)));
-    }
-
-    [Fact]
     public void Un_telephone_branche_ne_figure_pas_au_bilan()
     {
-        Assert.Empty(DeviceHealth.Review(null, Battery(4, charging: true), null, null));
+        Assert.Empty(DeviceHealth.Review(null, Battery(4, charging: true), null));
     }
 
     [Theory]
@@ -167,7 +142,7 @@ public class DeviceHealthTests
     [InlineData(20, HealthSeverity.Warning)]
     public void La_batterie_durcit_sous_dix_pour_cent(int percent, HealthSeverity expected)
     {
-        var findings = DeviceHealth.Review(null, Battery(percent), null, null);
+        var findings = DeviceHealth.Review(null, Battery(percent), null);
 
         Assert.Equal(expected, Assert.Single(findings).Severity);
     }
@@ -177,7 +152,7 @@ public class DeviceHealthTests
     [InlineData(1.5, HealthSeverity.Warning)]
     public void La_place_libre_durcit_au_bord_du_vide(double gigabytes, HealthSeverity expected)
     {
-        var findings = DeviceHealth.Review(null, null, Storage(gigabytes), null);
+        var findings = DeviceHealth.Review(null, null, Storage(gigabytes));
 
         Assert.Equal(expected, Assert.Single(findings).Severity);
     }
@@ -187,7 +162,7 @@ public class DeviceHealthTests
     [InlineData(ThermalReading.Throttling, HealthSeverity.Warning)]
     public void La_chaleur_durcit_au_bridage_lourd(int status, HealthSeverity expected)
     {
-        var findings = DeviceHealth.Review(new ThermalReading(status, 50), null, null, null);
+        var findings = DeviceHealth.Review(new ThermalReading(status, 50), null, null);
 
         Assert.Equal(expected, Assert.Single(findings).Severity);
     }
@@ -198,7 +173,7 @@ public class DeviceHealthTests
         // Two texts for the same fact would eventually drift apart.
         var battery = Battery(7);
 
-        var findings = DeviceHealth.Review(null, battery, null, null);
+        var findings = DeviceHealth.Review(null, battery, null);
 
         Assert.Equal(battery.Describe(), Assert.Single(findings).Message);
     }
@@ -209,58 +184,98 @@ public class DeviceHealthTests
         var findings = DeviceHealth.Review(
             new ThermalReading(ThermalReading.Severe, 60),
             Battery(3),
-            Storage(0.2),
-            Link(2412));
+            Storage(0.2));
 
-        Assert.Equal(4, findings.Count);
-        Assert.Equal(3, findings.Count(f => f.Severity == HealthSeverity.Serious));
-        Assert.Equal(HealthSeverity.Notice, findings[^1].Severity);
+        Assert.Equal(3, findings.Count);
+        Assert.All(findings, f => Assert.Equal(HealthSeverity.Serious, f.Severity));
     }
 
     [Fact]
-    public void Le_cas_reel_du_second_appareil_ne_dit_que_la_bande()
+    public void Le_cas_reel_du_second_appareil_ne_dit_rien()
     {
         // Mi 9T Pro captured in the field: 20 percent but charging, 16
-        // gigabytes free, no heat, and a link on 2.4 GHz. Only one
-        // finding should come out, and it is the mildest one.
-        var findings = DeviceHealth.Review(
+        // gigabytes free, no heat. Its 2.4 GHz link used to make a line,
+        // and now only colours the link's chip.
+        Assert.Empty(DeviceHealth.Review(
             new ThermalReading(0, null),
             new BatteryReading(20, Charging: true, Celsius: 36.2),
-            new StorageReading(17159944L * 1024),
-            new WifiLink(144, 2462, "4", -61, 0.0, 50_000));
+            new StorageReading(17159944L * 1024)));
+    }
 
-        var finding = Assert.Single(findings);
+    private static PhoneStrain Strain(double busy = 0.40, double game = 0.20, double reclaim = 0, double days = 0.1) =>
+        new(busy, game, reclaim, TimeSpan.FromDays(days));
 
-        Assert.Equal(HealthSeverity.Notice, finding.Severity);
+    [Fact]
+    public void Un_telephone_qui_court_apres_sa_memoire_le_dit_avec_ses_jours_sans_redemarrage()
+    {
+        // 2026-10-03: kswapd0 at 38 % of a core, four days without a
+        // restart, and 35 % of memory available, so Android's verdict
+        // said nothing.
+        var finding = Assert.Single(DeviceHealth.Review(null, null, null, strain: Strain(reclaim: 0.38, days: 4.1)));
+
+        Assert.Equal(HealthSeverity.Warning, finding.Severity);
+        Assert.Equal(Strings.Format("PhoneMemoryStrain", Strings.Format("PhoneUptime", 4)), finding.Message);
     }
 
     [Fact]
-    public void Un_canal_encombre_est_nomme_meme_en_5_GHz()
+    public void Redemarre_recemment_le_message_ne_parle_pas_de_jours()
     {
-        // Mesuré sur une vraie session : 38,7 % de réémissions à
-        // 5220 MHz. L'application le mesurait, le journalisait, en
-        // nourrissait le tampon vidéo, et ne le disait nulle part.
-        var findings = DeviceHealth.Review(null, null, null, new WifiLink(LinkSpeedMbps: 866, FrequencyMhz: 5220, Standard: "11ac", Rssi: -59, RetryShare: 0.387, TxPackets: 50_000));
+        var finding = Assert.Single(DeviceHealth.Review(null, null, null, strain: Strain(reclaim: 0.38, days: 1)));
 
-        Assert.Single(findings);
-        Assert.Equal(HealthSeverity.Notice, findings[0].Severity);
-        Assert.Contains("39", findings[0].Message, StringComparison.Ordinal);
+        Assert.Equal(Strings.Format("PhoneMemoryStrain", string.Empty), finding.Message);
     }
 
     [Fact]
-    public void Un_canal_calme_ne_dit_rien()
+    public void Un_processeur_pris_par_le_jeu_conseille_de_baisser_les_graphismes()
     {
-        Assert.Empty(DeviceHealth.Review(null, null, null, new WifiLink(LinkSpeedMbps: 866, FrequencyMhz: 5220, Standard: "11ac", Rssi: -59, RetryShare: 0.05, TxPackets: 50_000)));
+        var finding = Assert.Single(DeviceHealth.Review(null, null, null, strain: Strain(busy: 0.90, game: 0.60)));
+
+        Assert.Equal(Strings.Format("PhoneGameHeavy", 60), finding.Message);
     }
 
     [Fact]
-    public void La_bande_passe_avant_l_encombrement()
+    public void Un_processeur_pris_par_autre_chose_conseille_de_fermer_les_applications()
     {
-        // Changer de bande apporte plus que changer de canal : une
-        // liaison 2,4 GHz encombrée n'a qu'un conseil à donner.
-        var findings = DeviceHealth.Review(null, null, null, new WifiLink(LinkSpeedMbps: 144, FrequencyMhz: 2437, Standard: "11n", Rssi: -59, RetryShare: 0.40, TxPackets: 50_000));
+        var finding = Assert.Single(DeviceHealth.Review(null, null, null, strain: Strain(busy: 0.90, game: 0.20, days: 4)));
 
-        Assert.Single(findings);
-        Assert.Contains("2,4 GHz", findings[0].Message, StringComparison.Ordinal);
+        Assert.Equal(Strings.Format("PhoneBusy", Strings.Format("PhoneUptime", 4)), finding.Message);
+    }
+
+    [Fact]
+    public void Un_telephone_au_calme_ne_dit_rien()
+    {
+        Assert.Empty(DeviceHealth.Review(null, null, null, strain: Strain(), pcBusyPercent: 40));
+    }
+
+    [Fact]
+    public void Un_pc_charge_le_dit()
+    {
+        var finding = Assert.Single(DeviceHealth.Review(null, null, null, pcBusyPercent: 92));
+
+        Assert.Equal(Strings.Format("PcBusy", 92), finding.Message);
+    }
+
+    [Fact]
+    public void Un_seul_constat_de_lag_et_c_est_le_telephone_qui_passe_devant()
+    {
+        // Asked for: do not bury the panel under findings. Two causes at
+        // once give one line, the one that is easiest to fix.
+        var findings = DeviceHealth.Review(
+            null, null, null,
+            strain: Strain(reclaim: 0.38), pcBusyPercent: 95);
+
+        Assert.Equal(Strings.Format("PhoneMemoryStrain", string.Empty), Assert.Single(findings).Message);
+    }
+
+    [Fact]
+    public void La_memoire_deja_signalee_n_est_pas_redite()
+    {
+        // Android's verdict already advised a restart: the same advice
+        // under another name would be one line too many.
+        var serree = MemoryReading.Parse("LOW", "MemTotal: 11616040 kB\r\nMemAvailable: 1161604 kB\r\n");
+
+        var findings = DeviceHealth.Review(null, null, null, memory: serree, strain: Strain(reclaim: 0.38));
+
+        Assert.Equal(serree!.Describe(), Assert.Single(findings).Message);
     }
 }

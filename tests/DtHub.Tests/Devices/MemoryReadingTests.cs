@@ -116,8 +116,8 @@ public class MemoryReadingTests
         var low = MemoryReading.Parse("LOW", MeminfoSerre);
         var critical = MemoryReading.Parse("CRITICAL", MeminfoSerre);
 
-        var warning = Assert.Single(DeviceHealth.Review(null, null, null, null, memory: low));
-        var serious = Assert.Single(DeviceHealth.Review(null, null, null, null, memory: critical));
+        var warning = Assert.Single(DeviceHealth.Review(null, null, null, memory: low));
+        var serious = Assert.Single(DeviceHealth.Review(null, null, null, memory: critical));
 
         Assert.Equal(HealthSeverity.Warning, warning.Severity);
         Assert.Equal(HealthSeverity.Serious, serious.Severity);
@@ -126,6 +126,6 @@ public class MemoryReadingTests
     [Fact]
     public void Une_memoire_normale_ne_fait_aucun_constat()
     {
-        Assert.Empty(DeviceHealth.Review(null, null, null, null, memory: MemoryReading.Parse(FacteurReel, MeminfoReel)));
+        Assert.Empty(DeviceHealth.Review(null, null, null, memory: MemoryReading.Parse(FacteurReel, MeminfoReel)));
     }
 }
