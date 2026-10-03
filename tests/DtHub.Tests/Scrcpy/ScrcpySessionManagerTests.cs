@@ -595,7 +595,7 @@ public class ScrcpySessionManagerTests
     }
 
     /// <summary>The mDNS name under which the phone stays reachable.</summary>
-    private const string NomMdns = "adb-96ca0f7b-rq6A0u._adb-tls-connect._tcp";
+    private const string NomMdns = "adb-MATERIEL456-rq6A0u._adb-tls-connect._tcp";
 
     [Fact]
     public async Task Quand_les_adresses_connues_echouent_on_redemande_ou_est_l_appareil()

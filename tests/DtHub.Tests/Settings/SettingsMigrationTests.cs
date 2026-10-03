@@ -333,11 +333,11 @@ public sealed class SettingsMigrationTests : IDisposable
     {
         await WriteAsync("""
         { "schemaVersion": 9, "instances": [
-            { "deviceId": "96ca0f7b", "userId": 0, "packageName": "com.ankama.dofustouch", "order": 0 },
-            { "deviceId": "96ca0f7b", "userId": 10, "packageName": "com.ankama.dofustouch", "order": 1 },
-            { "deviceId": "CMBU79RCINVSFYUO", "userId": 0, "packageName": "com.ankama.dofustouch",
+            { "deviceId": "MATERIEL456", "userId": 0, "packageName": "com.ankama.dofustouch", "order": 0 },
+            { "deviceId": "MATERIEL456", "userId": 10, "packageName": "com.ankama.dofustouch", "order": 1 },
+            { "deviceId": "SERIAL0123456789", "userId": 0, "packageName": "com.ankama.dofustouch",
               "order": 2, "customName": "Cra, Enu" },
-            { "deviceId": "CMBU79RCINVSFYUO", "userId": 999, "packageName": "com.ankama.dofustouch",
+            { "deviceId": "SERIAL0123456789", "userId": 999, "packageName": "com.ankama.dofustouch",
               "order": 3, "customName": "Iop, Eni" }
         ] }
         """);
@@ -362,8 +362,8 @@ public sealed class SettingsMigrationTests : IDisposable
     {
         await WriteAsync("""
         { "schemaVersion": 10, "instances": [
-            { "deviceId": "96ca0f7b", "userId": 0, "packageName": "p", "order": 0, "colour": "Teal" },
-            { "deviceId": "96ca0f7b", "userId": 10, "packageName": "p", "order": 1, "colour": "Brass" }
+            { "deviceId": "MATERIEL456", "userId": 0, "packageName": "p", "order": 0, "colour": "Teal" },
+            { "deviceId": "MATERIEL456", "userId": 10, "packageName": "p", "order": 1, "colour": "Brass" }
         ] }
         """);
 
@@ -373,19 +373,19 @@ public sealed class SettingsMigrationTests : IDisposable
             [
                 new DtHub.Core.Dofus.DofusInstance
                 {
-                    DeviceId = "CMBU79RCINVSFYUO", UserId = 0, PackageName = "p",
+                    DeviceId = "SERIAL0123456789", UserId = 0, PackageName = "p",
                     DeviceName = "Mi 9T Pro", UserName = "Principal",
                 },
                 new DtHub.Core.Dofus.DofusInstance
                 {
-                    DeviceId = "CMBU79RCINVSFYUO", UserId = 999, PackageName = "p",
+                    DeviceId = "SERIAL0123456789", UserId = 999, PackageName = "p",
                     DeviceName = "Mi 9T Pro", UserName = "XSpace",
                 },
             ],
             CancellationToken.None);
 
         var nouveaux = merged
-            .Where(i => string.Equals(i.DeviceId, "CMBU79RCINVSFYUO", StringComparison.Ordinal))
+            .Where(i => string.Equals(i.DeviceId, "SERIAL0123456789", StringComparison.Ordinal))
             .ToList();
 
         Assert.Equal(2, nouveaux.Count);
@@ -404,7 +404,7 @@ public sealed class SettingsMigrationTests : IDisposable
     {
         await WriteAsync("""
         { "schemaVersion": 10, "instances": [
-            { "deviceId": "CMBU79RCINVSFYUO", "userId": 0, "packageName": "p",
+            { "deviceId": "SERIAL0123456789", "userId": 0, "packageName": "p",
               "order": 0, "customName": "Cra, Enu" }
         ] }
         """);
@@ -415,7 +415,7 @@ public sealed class SettingsMigrationTests : IDisposable
             [
                 new DtHub.Core.Dofus.DofusInstance
                 {
-                    DeviceId = "CMBU79RCINVSFYUO", UserId = 0, PackageName = "p",
+                    DeviceId = "SERIAL0123456789", UserId = 0, PackageName = "p",
                     DeviceName = "Mi 9T Pro", UserName = "Principal",
                 },
             ],
@@ -434,7 +434,7 @@ public sealed class SettingsMigrationTests : IDisposable
     {
         await WriteAsync("""
         { "schemaVersion": 10, "instances": [
-            { "deviceId": "CMBU79RCINVSFYUO", "userId": 0, "packageName": "p",
+            { "deviceId": "SERIAL0123456789", "userId": 0, "packageName": "p",
               "order": 0, "colour": "None" }
         ] }
         """);
@@ -445,7 +445,7 @@ public sealed class SettingsMigrationTests : IDisposable
             [
                 new DtHub.Core.Dofus.DofusInstance
                 {
-                    DeviceId = "CMBU79RCINVSFYUO", UserId = 0, PackageName = "p",
+                    DeviceId = "SERIAL0123456789", UserId = 0, PackageName = "p",
                     DeviceName = "Mi 9T Pro", UserName = "Principal",
                 },
             ],
