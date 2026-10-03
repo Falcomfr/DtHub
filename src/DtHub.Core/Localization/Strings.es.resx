@@ -2075,4 +2075,22 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="ColourRose" xml:space="preserve">
     <value>Rosa</value>
   </data>
+  <data name="ColourAqua" xml:space="preserve">
+    <value>Aguamarina</value>
+  </data>
+  <data name="ColourLime" xml:space="preserve">
+    <value>Lima</value>
+  </data>
+  <data name="ColourHoney" xml:space="preserve">
+    <value>Miel</value>
+  </data>
+  <data name="ColourPeriwinkle" xml:space="preserve">
+    <value>Pervinca</value>
+  </data>
+  <data name="ColourLilac" xml:space="preserve">
+    <value>Lila</value>
+  </data>
+  <data name="ColourBlush" xml:space="preserve">
+    <value>Rosa claro</value>
+  </data>
 </root>

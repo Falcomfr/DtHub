@@ -2075,4 +2075,22 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="ColourRose" xml:space="preserve">
     <value>Rose</value>
   </data>
+  <data name="ColourAqua" xml:space="preserve">
+    <value>Aqua</value>
+  </data>
+  <data name="ColourLime" xml:space="preserve">
+    <value>Lime</value>
+  </data>
+  <data name="ColourHoney" xml:space="preserve">
+    <value>Honey</value>
+  </data>
+  <data name="ColourPeriwinkle" xml:space="preserve">
+    <value>Periwinkle</value>
+  </data>
+  <data name="ColourLilac" xml:space="preserve">
+    <value>Lilac</value>
+  </data>
+  <data name="ColourBlush" xml:space="preserve">
+    <value>Blush</value>
+  </data>
 </root>

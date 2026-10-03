@@ -21,11 +21,12 @@ public static class AccountColours
     /// The order colours are handed out in, which is not the order they
     /// are declared in.
     ///
-    /// Declaration order runs round the wheel, so the first two accounts
+    /// Declaration order runs round the wheel, twice, so the first two accounts
     /// would get two neighbouring hues, and two accounts is the common
     /// case. This order gives the first three the three widest-apart
     /// colours of the set, and it never hands out Indigo and Orchid one
-    /// after the other, which are the closest pair.
+    /// after the other, which are the closest pair. The light tones come
+    /// after every vivid one, and never right after their own vivid twin.
     /// </summary>
     public static readonly AccountColour[] AssignmentOrder =
     [
@@ -35,13 +36,20 @@ public static class AccountColours
         AccountColour.Moss,
         AccountColour.Rose,
         AccountColour.Orchid,
+        AccountColour.Lime,
+        AccountColour.Periwinkle,
+        AccountColour.Honey,
+        AccountColour.Aqua,
+        AccountColour.Blush,
+        AccountColour.Lilac,
     ];
 
     /// <summary>
-    /// The first colour nobody is using, or <c>null</c> when all six are
+    /// The first colour nobody is using, or <c>null</c> when all twelve are
     /// taken.
     ///
-    /// **The seventh account gets no colour, and does not wrap around.**
+    /// **One account more than there are colours gets none, and the order
+    /// does not wrap around.**
     /// Two accounts sharing a colour is not a smaller version of the
     /// feature, it is the feature lying: someone who trusts the colour
     /// and acts on the wrong window is worse off than someone who knows

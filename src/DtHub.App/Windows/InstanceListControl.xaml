@@ -569,7 +569,11 @@
                                    fourth control on the row would undo
                                    the very thing merging the other two
                                    was for. -->
-                              <WrapPanel Margin="6,0,0,4">
+                              <!-- Two rows of six, 26 px a swatch: the vivid
+                                   tones above, each light tone under its own.
+                                   Unbounded, the twelve made one row twice as
+                                   wide as the popup was tuned for. -->
+                              <WrapPanel Margin="6,0,0,4" MaxWidth="156">
                                 <Button Style="{StaticResource ColourSwatch}"
                                         Background="{StaticResource AccountTintA}"
                                         Tag="{x:Static s:AccountColour.Teal}"
@@ -606,6 +610,42 @@
                                         ToolTip="{loc:T ColourRose}"
                                         Command="{Binding PickColourCommand}"
                                         CommandParameter="{x:Static s:AccountColour.Rose}" />
+                                <Button Style="{StaticResource ColourSwatch}"
+                                        Background="{StaticResource AccountTintG}"
+                                        Tag="{x:Static s:AccountColour.Aqua}"
+                                        ToolTip="{loc:T ColourAqua}"
+                                        Command="{Binding PickColourCommand}"
+                                        CommandParameter="{x:Static s:AccountColour.Aqua}" />
+                                <Button Style="{StaticResource ColourSwatch}"
+                                        Background="{StaticResource AccountTintH}"
+                                        Tag="{x:Static s:AccountColour.Lime}"
+                                        ToolTip="{loc:T ColourLime}"
+                                        Command="{Binding PickColourCommand}"
+                                        CommandParameter="{x:Static s:AccountColour.Lime}" />
+                                <Button Style="{StaticResource ColourSwatch}"
+                                        Background="{StaticResource AccountTintI}"
+                                        Tag="{x:Static s:AccountColour.Honey}"
+                                        ToolTip="{loc:T ColourHoney}"
+                                        Command="{Binding PickColourCommand}"
+                                        CommandParameter="{x:Static s:AccountColour.Honey}" />
+                                <Button Style="{StaticResource ColourSwatch}"
+                                        Background="{StaticResource AccountTintJ}"
+                                        Tag="{x:Static s:AccountColour.Periwinkle}"
+                                        ToolTip="{loc:T ColourPeriwinkle}"
+                                        Command="{Binding PickColourCommand}"
+                                        CommandParameter="{x:Static s:AccountColour.Periwinkle}" />
+                                <Button Style="{StaticResource ColourSwatch}"
+                                        Background="{StaticResource AccountTintK}"
+                                        Tag="{x:Static s:AccountColour.Lilac}"
+                                        ToolTip="{loc:T ColourLilac}"
+                                        Command="{Binding PickColourCommand}"
+                                        CommandParameter="{x:Static s:AccountColour.Lilac}" />
+                                <Button Style="{StaticResource ColourSwatch}"
+                                        Background="{StaticResource AccountTintL}"
+                                        Tag="{x:Static s:AccountColour.Blush}"
+                                        ToolTip="{loc:T ColourBlush}"
+                                        Command="{Binding PickColourCommand}"
+                                        CommandParameter="{x:Static s:AccountColour.Blush}" />
                               </WrapPanel>
 
                               <Button Style="{StaticResource QuietButton}" Padding="8,5"

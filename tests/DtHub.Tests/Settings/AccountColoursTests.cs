@@ -49,13 +49,14 @@ public class AccountColoursTests
     }
 
     /// <summary>
-    /// The seventh account gets nothing rather than a duplicate. Two
+    /// One account more than there are colours gets nothing rather than a
+    /// duplicate. Two
     /// accounts sharing a colour is not a smaller version of the
     /// feature, it is the feature lying, and acting on the wrong window
     /// is worse than knowing one account is unmarked.
     /// </summary>
     [Fact]
-    public void Le_septieme_compte_n_a_pas_de_couleur()
+    public void Un_compte_de_plus_que_de_couleurs_n_a_pas_de_couleur()
     {
         Assert.Null(AccountColours.NextFree(AccountColours.All.Select(c => (AccountColour?)c)));
     }

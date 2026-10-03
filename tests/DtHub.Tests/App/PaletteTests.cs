@@ -7,7 +7,7 @@ namespace DtHub.Tests.App;
 /// written rather than at what runs.
 ///
 /// The rules here are the ones a well-meaning tweak breaks silently: a
-/// tint nudged onto the accent, or two of the six made equal, changes
+/// tint nudged onto the accent, or two of the twelve made equal, changes
 /// nothing that builds and everything that the colours are for.
 /// </summary>
 public class PaletteTests
@@ -27,10 +27,13 @@ public class PaletteTests
     }
 
     private static readonly string[] Comptes =
-        ["AccountTintA", "AccountTintB", "AccountTintC", "AccountTintD", "AccountTintE", "AccountTintF"];
+    [
+        "AccountTintA", "AccountTintB", "AccountTintC", "AccountTintD", "AccountTintE", "AccountTintF",
+        "AccountTintG", "AccountTintH", "AccountTintI", "AccountTintJ", "AccountTintK", "AccountTintL",
+    ];
 
     [Fact]
-    public void Les_six_teintes_de_compte_existent()
+    public void Les_douze_teintes_de_compte_existent()
     {
         foreach (var key in Comptes)
         {
@@ -39,7 +42,7 @@ public class PaletteTests
     }
 
     [Fact]
-    public void Les_six_teintes_de_compte_sont_distinctes()
+    public void Les_douze_teintes_de_compte_sont_distinctes()
     {
         var values = Comptes.Select(k => Palette[k]).ToList();
 

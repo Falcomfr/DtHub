@@ -21,6 +21,7 @@ belongs in the commits and in `docs/DECISIONS.md`.
 ### Added
 
 - The tabbed frame's title shows the shortcut reminder, as free windows do.
+- Six new account colours, a light tone for each of the six.
 
 ### Changed
 
@@ -28,6 +29,7 @@ belongs in the commits and in `docs/DECISIONS.md`.
   the frame as on free windows; title bars stay as Windows draws them.
 - Tabs lose their tinted background, and the active one is underlined in
   its account's colour.
+- Account colours are brighter.
 
 ### Fixed
 

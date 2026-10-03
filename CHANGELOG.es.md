@@ -16,6 +16,7 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 
 - El título del marco con pestañas recuerda los atajos, como las ventanas
   libres.
+- Seis nuevos colores de cuenta, un tono claro para cada uno de los seis.
 
 ### Cambiado
 
@@ -24,6 +25,7 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
   Windows.
 - Las pestañas pierden su fondo teñido, y la activa se subraya con el color
   de su cuenta.
+- Los colores de cuenta son más vivos.
 
 ### Corregido
 

@@ -10,7 +10,10 @@ namespace DtHub.Core.Settings;
 /// only way to know which was which was to read the title. The colour
 /// marks the row, its tab in the frame, and the window itself.
 ///
-/// Six hues, named for what they look like and not for a role. A role
+/// Six hues, each in a vivid and a light tone, named for what they look
+/// like and not for a role. The first palette was muted, chosen to fill a
+/// whole title bar; once the colour only marked a border, a tab and a row,
+/// it read as dull, and the vivid tones replaced it on 2026-10-03. A role
 /// would be a lie the first time someone reordered their accounts: a
 /// colour means nothing except "this one, not that one".
 ///
@@ -38,8 +41,26 @@ public enum AccountColour
     /// <summary>Warm violet.</summary>
     Orchid,
 
-    /// <summary>Dusty pink, well clear of the danger indicator's red.</summary>
+    /// <summary>Pink, about thirteen degrees from the danger indicator's red.</summary>
     Rose,
+
+    /// <summary>Teal's light tone.</summary>
+    Aqua,
+
+    /// <summary>Moss's light tone.</summary>
+    Lime,
+
+    /// <summary>Brass's light tone.</summary>
+    Honey,
+
+    /// <summary>Indigo's light tone.</summary>
+    Periwinkle,
+
+    /// <summary>Orchid's light tone.</summary>
+    Lilac,
+
+    /// <summary>Rose's light tone.</summary>
+    Blush,
 
     /// <summary>
     /// No mark, because that is what the user asked for.

@@ -1371,7 +1371,7 @@
     </Setter>
   </Style>
 
-  <!-- One of the six colours an account can be marked with.
+  <!-- One of the twelve colours an account can be marked with.
 
        A square of colour and nothing else. The ring appears on the one
        the account already wears, which is why each swatch carries its
@@ -1397,6 +1397,11 @@
             <Border x:Name="Ring" Margin="3" Opacity="0"
                     CornerRadius="1"
                     BorderBrush="{DynamicResource TextBrush}" BorderThickness="1.5" />
+
+            <!-- A dark line inside the light ring: on the light tones the
+                 ring alone vanished into the swatch. -->
+            <Border x:Name="RingShadow" Margin="4.5" Opacity="0"
+                    BorderBrush="{DynamicResource SurfaceBrush}" BorderThickness="1" />
             <Border Style="{StaticResource HoverRing}" CornerRadius="{StaticResource Radius}" />
           </Grid>
           <ControlTemplate.Triggers>
@@ -1414,6 +1419,7 @@
                 </MultiBinding>
               </DataTrigger.Binding>
               <Setter TargetName="Ring" Property="Opacity" Value="1" />
+              <Setter TargetName="RingShadow" Property="Opacity" Value="1" />
             </DataTrigger>
           </ControlTemplate.Triggers>
         </ControlTemplate>

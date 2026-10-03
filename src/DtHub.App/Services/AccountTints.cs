@@ -33,6 +33,12 @@ public static class AccountTints
         AccountColour.Indigo => "AccountTintD",
         AccountColour.Orchid => "AccountTintE",
         AccountColour.Rose => "AccountTintF",
+        AccountColour.Aqua => "AccountTintG",
+        AccountColour.Lime => "AccountTintH",
+        AccountColour.Honey => "AccountTintI",
+        AccountColour.Periwinkle => "AccountTintJ",
+        AccountColour.Lilac => "AccountTintK",
+        AccountColour.Blush => "AccountTintL",
 
         // None and null both land here: neither wears a tint.
         _ => null,

@@ -9493,3 +9493,39 @@ sont pas traduites, seules les notes de la version qui arrive étant jamais
 affichées. Une limite est assumée : si la langue change entre le
 téléchargement et le redémarrage, la fenêtre « vient d'être installée »
 parle l'ancienne.
+
+## D177 - La couleur du compte sur le liseré seulement, assourdi, et douze teintes vives
+
+**Date** : 2026-10-03
+
+Remplace le paragraphe « Les deux attributs, pas un seul » de D173.
+
+**La barre de titre ne porte plus la couleur.** Pleine sur toute la barre,
+elle « piquait les yeux » ; assombrie au tiers, elle restait trop visible ;
+forcée en gris sombre neutre, elle différait encore d'un compte sans couleur,
+dont Windows dessine la barre lui-même, et c'est celle-là que le joueur
+préférait. DT Hub ne pose donc plus que l'attribut 34, la bordure, et laisse
+la barre et son texte à Windows dans tous les cas.
+
+**Le liseré est assourdi**, 45 % de la teinte mêlée au gris sombre de Windows
+(`FrameTint.Border`), le même sur une fenêtre libre et sur le cadre à onglets,
+qui prend celui de l'onglet actif. À pleine teinte il attirait l'œil ; à un
+peu plus de la moitié, il restait « à peine trop vif ».
+
+**La palette passe en teintes vives, avec une variante claire par teinte**,
+douze couleurs au lieu de six. La première, sourde par construction, avait été
+pensée pour remplir des barres de titre ; réduite à une ligne, un onglet et un
+liseré assourdi, elle paraissait terne. Le choix s'est fait sur un aperçu côte
+à côte. Rose, Miel et Laiton passent près des voyants rouge et jaune ; c'est
+accepté et noté dans la palette.
+
+**L'onglet perd son fond teinté et l'onglet actif est souligné à la couleur du
+compte.** Le fond à 45 % faisait tomber le titre à un contraste de 4,2 sur les
+teintes claires, et même plus léger il faisait trop de couleur. La barre de
+couleur, le soulignement et le titre atténué à 85 % suffisent.
+
+**Écartées** : la barre de titre à une fraction de la teinte, vers le gris ou
+vers le noir, essayée en direct sur la fenêtre et refusée ; la bordure seule à
+pleine teinte ; douze teintes réparties sur tout le cercle, proposées et non
+retenues.
+

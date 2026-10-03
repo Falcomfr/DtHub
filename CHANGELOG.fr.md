@@ -17,6 +17,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 - Le titre du cadre à onglets rappelle les raccourcis, comme les fenêtres
   libres.
+- Six nouvelles couleurs de compte, une teinte claire pour chacune des six.
 
 ### Modifié
 
@@ -25,6 +26,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
   celle de Windows.
 - Les onglets perdent leur fond teinté, et l'onglet actif est souligné à la
   couleur de son compte.
+- Les couleurs de compte sont plus vives.
 
 ### Corrigé
 
