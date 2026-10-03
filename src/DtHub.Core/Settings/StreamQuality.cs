@@ -220,8 +220,14 @@ public sealed record QualityProfile(
             InstanceRediscovery: TimeSpan.FromSeconds(15),
             WindowWatch: TimeSpan.FromMilliseconds(500)),
 
+        // **Thirty frames, measured on 2026-10-03**: two accounts on a 13T
+        // Pro, 60 then 30, the phone hot in both. The stream went from about
+        // 1.9 cores to 1.4, the encoder from 56 % to 33 %, the game's share
+        // unchanged, and the bitrate halved with it. Once the phone throttles
+        // on its skin, that core is what separated playing from lagging. The
+        // game turns by turns; the high tier keeps sixty for whoever wants it.
         _ => new QualityProfile(
-            MaxFps: 60,
+            MaxFps: 30,
             BitsPerPixel: 0.09,
             CeilingKbps: 12000,
             MaximumDisplayHeight: 1080,

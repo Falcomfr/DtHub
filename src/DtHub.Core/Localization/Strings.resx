@@ -138,13 +138,13 @@
     <value>Medium</value>
   </data>
   <data name="QualityMediumTip" xml:space="preserve">
-    <value>1080 at most, 60 frames per second. The original setting, which suits most machines.</value>
+    <value>1080 at most, 30 frames per second. The original setting, which suits most machines.</value>
   </data>
   <data name="QualityHigh" xml:space="preserve">
     <value>High</value>
   </data>
   <data name="QualityHighTip" xml:space="preserve">
-    <value>Image at 1440 at most, 60 frames per second, and double the bitrate. Hard on the phone: keep it for a recent device, and over Wi-Fi for a network that keeps up.</value>
+    <value>Image at 1440 at most, 60 frames per second. Hard on the phone: keep it for a recent device, and over Wi-Fi for a network that keeps up.</value>
   </data>
   <data name="QualityCustom" xml:space="preserve">
     <value>Custom</value>

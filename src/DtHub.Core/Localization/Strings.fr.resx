@@ -138,13 +138,13 @@
     <value>Moyenne</value>
   </data>
   <data name="QualityMediumTip" xml:space="preserve">
-    <value>Image en 1080 au plus, 60 images par seconde. Le réglage d'origine, qui convient à la plupart des machines.</value>
+    <value>Image en 1080 au plus, 30 images par seconde. Le réglage d'origine, qui convient à la plupart des machines.</value>
   </data>
   <data name="QualityHigh" xml:space="preserve">
     <value>Haute</value>
   </data>
   <data name="QualityHighTip" xml:space="preserve">
-    <value>Image en 1440 au plus, 60 images par seconde, et débit doublé. Sans ménagement pour le téléphone : à réserver à un appareil récent, et en Wi-Fi à un réseau qui suit.</value>
+    <value>Image en 1440 au plus, 60 images par seconde. Sans ménagement pour le téléphone : à réserver à un appareil récent, et en Wi-Fi à un réseau qui suit.</value>
   </data>
   <data name="QualityCustom" xml:space="preserve">
     <value>Personnalisé</value>

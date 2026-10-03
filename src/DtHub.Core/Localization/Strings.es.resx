@@ -138,13 +138,13 @@
     <value>Media</value>
   </data>
   <data name="QualityMediumTip" xml:space="preserve">
-    <value>Imagen de 1080 como máximo, 60 imágenes por segundo. El ajuste de origen, que conviene a la mayoría de los equipos.</value>
+    <value>Imagen de 1080 como máximo, 30 imágenes por segundo. El ajuste de origen, que conviene a la mayoría de los equipos.</value>
   </data>
   <data name="QualityHigh" xml:space="preserve">
     <value>Alta</value>
   </data>
   <data name="QualityHighTip" xml:space="preserve">
-    <value>Imagen en 1440 como máximo, 60 imágenes por segundo, y tasa de bits doble. Duro para el teléfono: resérvalo para un aparato reciente, y en Wi-Fi para una red que aguante.</value>
+    <value>Imagen en 1440 como máximo, 60 imágenes por segundo. Duro para el teléfono: resérvalo para un aparato reciente, y en Wi-Fi para una red que aguante.</value>
   </data>
   <data name="QualityCustom" xml:space="preserve">
     <value>Personalizada</value>

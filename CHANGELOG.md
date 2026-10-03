@@ -18,6 +18,11 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 ## [Unreleased]
 
+### Changed
+
+- The medium quality streams at 30 frames per second: about half a core
+  less on the phone, and half the bitrate.
+
 ### Fixed
 
 - A phone that slows down because its surface is too hot is now named, on

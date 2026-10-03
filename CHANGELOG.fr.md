@@ -13,6 +13,11 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 ## [Unreleased]
 
+### Modifié
+
+- La qualité moyenne passe à 30 images par seconde : environ un demi-cœur
+  de moins sur le téléphone, et un débit divisé par deux.
+
 ### Corrigé
 
 - Un téléphone qui ralentit parce que sa coque est trop chaude est

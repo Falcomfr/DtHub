@@ -12,6 +12,11 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 
 ## [Unreleased]
 
+### Cambiado
+
+- La calidad media pasa a 30 imágenes por segundo: alrededor de medio núcleo
+  menos en el teléfono, y la mitad de tasa de bits.
+
 ### Corregido
 
 - Un teléfono que se ralentiza porque su superficie está demasiado caliente
