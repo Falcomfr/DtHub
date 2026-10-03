@@ -44,7 +44,18 @@ public sealed class FakeWindowController : IWindowController
 
     public bool IsModifierKeyDown() => ModifierDown;
 
-    public void ReleaseModifierKeys(nint handle) => ModifierReleases.Add(handle);
+    /// <summary>Windows whose release also covered both Alt keys, in order.</summary>
+    public List<nint> AltReleases { get; } = [];
+
+    public void ReleaseModifierKeys(nint handle, bool alt)
+    {
+        ModifierReleases.Add(handle);
+
+        if (alt)
+        {
+            AltReleases.Add(handle);
+        }
+    }
 
     /// <summary>Declares a window belonging to a process.</summary>
     public FakeWindowController AddWindow(nint handle, int processId, string title)

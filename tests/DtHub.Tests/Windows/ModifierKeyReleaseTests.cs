@@ -63,4 +63,18 @@ public class ModifierKeyReleaseTests
         Assert.False(sent);
         Assert.Empty(_windows.ModifierReleases);
     }
+
+    [Fact]
+    public void Alt_est_relache_aussi_sauf_dans_une_fenetre_qui_capture_la_souris()
+    {
+        // 2026-10-03: after an Alt+Tab, scrcpy kept Left Alt down, its
+        // shortcut key, and held back every keystroke: nothing reached the
+        // chat until Alt was pressed again in the window. A window whose
+        // mouse is captured is left alone: there, Left Alt toggles the
+        // capture, and a stray release could grab the mouse.
+        new ModifierKeyRelease(_windows).Release([0x1200, 0x1300], capturingMouse: new HashSet<nint> { 0x1300 });
+
+        Assert.Equal([0x1200, 0x1300], _windows.ModifierReleases);
+        Assert.Equal([0x1200], _windows.AltReleases);
+    }
 }

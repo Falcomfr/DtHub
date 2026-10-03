@@ -1,7 +1,7 @@
 ﻿namespace DtHub.Core.Windows;
 
 /// <summary>
-/// Tells game windows that Ctrl and Shift are up.
+/// Tells game windows that Ctrl, Shift and Alt are up.
 ///
 /// **The fault, measured on 2026-09-27.** A shortcut such as Ctrl+Tab is
 /// typed in a game window: that window gets the Ctrl press, DT Hub takes
@@ -12,6 +12,13 @@
 /// zoomed on a drag, and the character no longer moved. Pressing and
 /// letting go of Ctrl in that window freed it, and so did a release posted
 /// by DT Hub.
+///
+/// **Alt, measured on 2026-10-03.** The same with Alt+Tab: the window got
+/// the Left Alt press, the release went to the next program, and scrcpy,
+/// whose shortcut key Left Alt is, kept every keystroke for itself. Nothing
+/// reached the chat until Alt was pressed and let go in the window. Not in a
+/// window whose mouse is captured: there Left Alt toggles the capture, and a
+/// stray release could grab the mouse.
 /// </summary>
 public sealed class ModifierKeyRelease
 {
@@ -29,30 +36,32 @@ public sealed class ModifierKeyRelease
     /// held, since holding it is how the shortcut was typed. The window
     /// left behind needs its release now or never.
     /// </summary>
-    public void Release(IEnumerable<nint> windows)
+    /// <param name="windows">The game windows.</param>
+    /// <param name="capturingMouse">Those whose mouse is captured, which keep their Alt.</param>
+    public void Release(IEnumerable<nint> windows, IReadOnlySet<nint>? capturingMouse = null)
     {
         ArgumentNullException.ThrowIfNull(windows);
 
         foreach (var window in windows.Where(w => w != 0).Distinct())
         {
-            _windows.ReleaseModifierKeys(window);
+            _windows.ReleaseModifierKeys(window, alt: capturingMouse?.Contains(window) != true);
         }
     }
 
     /// <summary>
-    /// When one of ours comes to the front: only if nothing holds Ctrl or
-    /// Shift. Arrived by Ctrl+Tab with the key still down, the window will
-    /// get the real release when the player lets go.
+    /// When one of ours comes to the front: only if nothing holds Ctrl,
+    /// Shift or Alt. Arrived by Ctrl+Tab or Alt+Tab with the key still down,
+    /// the window will get the real release when the player lets go.
     /// </summary>
     /// <returns>True if the releases were sent.</returns>
-    public bool ReleaseUnlessHeld(IEnumerable<nint> windows)
+    public bool ReleaseUnlessHeld(IEnumerable<nint> windows, IReadOnlySet<nint>? capturingMouse = null)
     {
         if (_windows.IsModifierKeyDown())
         {
             return false;
         }
 
-        Release(windows);
+        Release(windows, capturingMouse);
 
         return true;
     }

@@ -219,9 +219,10 @@ public sealed partial class Win32WindowController : IWindowController
 
     public bool IsModifierKeyDown() =>
         (GetAsyncKeyState(VkControl) & KeyDown) != 0
-        || (GetAsyncKeyState(VkShift) & KeyDown) != 0;
+        || (GetAsyncKeyState(VkShift) & KeyDown) != 0
+        || (GetAsyncKeyState(VkMenu) & KeyDown) != 0;
 
-    public void ReleaseModifierKeys(nint handle)
+    public void ReleaseModifierKeys(nint handle, bool alt)
     {
         if (handle == 0 || !IsWindowCore(handle))
         {
@@ -231,7 +232,7 @@ public sealed partial class Win32WindowController : IWindowController
         // The window tells the two keys of each pair apart by their scan
         // code and the extended bit, so each one gets its own release: the
         // right Ctrl is the left one's code, extended.
-        foreach (var (key, scan, extended) in ModifierKeys)
+        foreach (var (key, scan, extended) in alt ? [.. ModifierKeys, .. AltKeys] : ModifierKeys)
         {
             var lParam = 1L | ((long)scan << 16) | (extended ? 1L << 24 : 0) | (1L << 30) | (1L << 31);
             _ = PostMessage(handle, WmKeyUp, key, (nint)lParam);
@@ -244,6 +245,13 @@ public sealed partial class Win32WindowController : IWindowController
         (VkControl, 0x1D, true),
         (VkShift, 0x2A, false),
         (VkShift, 0x36, false),
+    ];
+
+    /// <summary>Left Alt, and right Alt, which is the left one's code, extended.</summary>
+    private static readonly (int Key, int Scan, bool Extended)[] AltKeys =
+    [
+        (VkMenu, 0x38, false),
+        (VkMenu, 0x38, true),
     ];
 
     public void Focus(nint handle)
@@ -448,6 +456,7 @@ public sealed partial class Win32WindowController : IWindowController
     private const uint WmKeyUp = 0x0101;
     private const int VkShift = 0x10;
     private const int VkControl = 0x11;
+    private const int VkMenu = 0x12;
     private const int KeyDown = 0x8000;
 
     [StructLayout(LayoutKind.Sequential)]

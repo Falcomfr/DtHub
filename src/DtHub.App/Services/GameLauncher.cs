@@ -2666,6 +2666,17 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private IEnumerable<nint> GameWindows() =>
         _sessions.ActiveSessions.Select(s => s.WindowHandle).Where(h => h != 0);
 
+    /// <summary>
+    /// Game windows whose mouse scrcpy captures, read from their own command
+    /// line: the setting may have changed since they opened.
+    /// </summary>
+    private HashSet<nint> MouseCapturingWindows() =>
+    [
+        .. _sessions.ActiveSessions
+            .Where(s => s.WindowHandle != 0 && s.CommandLine.Contains("--mouse=uhid", StringComparison.Ordinal))
+            .Select(s => s.WindowHandle),
+    ];
+
     public ScrcpySession? FindSession(DofusInstance instance)
     {
         ArgumentNullException.ThrowIfNull(instance);
@@ -3514,7 +3525,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // left behind by a shortcut may still believe Ctrl is down.
             if (mine)
             {
-                _ = _modifiers.ReleaseUnlessHeld(GameWindows());
+                _ = _modifiers.ReleaseUnlessHeld(GameWindows(), MouseCapturingWindows());
             }
 
             // The toggle is logged: without it, shortcuts turned off
@@ -3608,7 +3619,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         {
             // First, before the shortcut moves the focus: the window it was
             // typed in got the Ctrl press, and the release will go elsewhere.
-            _modifiers.Release(GameWindows());
+            _modifiers.Release(GameWindows(), MouseCapturingWindows());
 
             switch (action)
             {

@@ -179,14 +179,15 @@ public interface IWindowController
     /// </returns>
     bool GiveKeyboardFocus(nint child);
 
-    /// <summary>True while Ctrl or Shift is physically held.</summary>
+    /// <summary>True while Ctrl, Shift or Alt is physically held.</summary>
     bool IsModifierKeyDown();
 
     /// <summary>
     /// Posts to a scrcpy window the release of both Ctrl keys and both
-    /// Shift keys. A window that did not believe them down ignores it; one
-    /// that did stops turning clicks into a pinch. See
+    /// Shift keys, and of both Alt keys when <paramref name="alt" /> is set.
+    /// A window that did not believe them down ignores it; one that did
+    /// stops turning clicks into a pinch, or keystrokes into shortcuts. See
     /// <see cref="ModifierKeyRelease" />.
     /// </summary>
-    void ReleaseModifierKeys(nint handle);
+    void ReleaseModifierKeys(nint handle, bool alt);
 }

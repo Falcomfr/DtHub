@@ -10,6 +10,13 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Corregido
+
+- Tras un Alt+Tab, el teclado sigue llegando al juego: una ventana de juego
+  podía creer que Alt seguía pulsado y quedarse con todas las teclas.
+
 ## [0.7.5] - 2026-10-03
 
 ### Cambiado

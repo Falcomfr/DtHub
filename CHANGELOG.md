@@ -16,6 +16,13 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Fixed
+
+- After an Alt+Tab, the keyboard keeps reaching the game: a game window
+  could believe Alt was still held and keep every keystroke.
+
 ## [0.7.5] - 2026-10-03
 
 ### Changed
