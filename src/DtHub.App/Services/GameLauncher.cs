@@ -3543,8 +3543,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private bool _hotkeysActive = true;
 
     /// <summary>
-    /// Keyboard navigation switches tabs when the frame has focus,
-    /// and switches free windows otherwise.
+    /// Keyboard navigation switches free windows when one of them is in
+    /// front, and the frame's tabs otherwise, bringing the frame back
+    /// first if another of our windows held the keyboard.
     ///
     /// Ctrl+Tab used to do nothing inside the frame: navigation goes
     /// through <see cref="ManagedSessions"/>, which sets housed
@@ -3559,16 +3560,38 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private async Task<bool> CycleTabsAsync(bool forward)
     {
-        if (_tabs is not { } frame
-            || frame.Handle == 0
-            || _windows.Controller.GetForegroundWindow() != frame.Handle)
+        if (_tabs is not { } frame || frame.Handle == 0)
         {
             return false;
         }
 
+        var foreground = _windows.Controller.GetForegroundWindow();
+
+        // A free game window in front keeps cycling among the free ones.
+        if (foreground != frame.Handle
+            && ManagedSessions.Any(s => s.IsAlive && s.WindowHandle == foreground))
+        {
+            return false;
+        }
+
+        // **From another of our windows, the frame comes back.** Typed in
+        // the guides, the panel or the almanax, Ctrl+Tab did nothing: the
+        // frame was not in front, and there was no free window to move to.
+        // It stayed dead until one clicked back into the game. Seen on
+        // 2026-10-03 at 15:53:39, the guides holding the keyboard. Free
+        // windows already come forward this way.
+        var raise = foreground != frame.Handle;
         var tourne = false;
 
-        await OnUiAsync(() => tourne = frame.Cycle(forward)).ConfigureAwait(false);
+        await OnUiAsync(() =>
+        {
+            if (raise)
+            {
+                _ = frame.Activate();
+            }
+
+            tourne = frame.Cycle(forward);
+        }).ConfigureAwait(false);
 
         return tourne;
     }

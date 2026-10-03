@@ -17,6 +17,8 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 - Un teléfono que se ralentiza porque su superficie está demasiado caliente
   ahora se indica, en teléfonos como los Xiaomi que solo lo dicen por ese
   sensor.
+- Ctrl+Tab pulsado en las guías, el panel o el almanax devuelve el marco con
+  pestañas y cambia de cuenta.
 
 ## [0.7.4] - 2026-10-03
 

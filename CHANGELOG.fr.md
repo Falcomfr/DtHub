@@ -18,6 +18,8 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - Un téléphone qui ralentit parce que sa coque est trop chaude est
   désormais signalé, sur les téléphones comme les Xiaomi qui ne le disent
   que par cette sonde.
+- Ctrl+Tab tapé dans les guides, le panneau ou l'almanax ramène le cadre à
+  onglets et change de compte.
 
 ## [0.7.4] - 2026-10-03
 

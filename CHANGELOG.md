@@ -22,6 +22,8 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 - A phone that slows down because its surface is too hot is now named, on
   phones such as Xiaomi that only say so through that sensor.
+- Ctrl+Tab typed in the guides, the panel or the almanax brings the tabbed
+  frame back and switches account.
 
 ## [0.7.4] - 2026-10-03
 
