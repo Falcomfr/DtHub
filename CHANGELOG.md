@@ -16,6 +16,13 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Fixed
+
+- A phone that slows down because its surface is too hot is now named, on
+  phones such as Xiaomi that only say so through that sensor.
+
 ## [0.7.4] - 2026-10-03
 
 ### Fixed

@@ -707,10 +707,10 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
     <value>Le téléphone est verrouillé, et ses fenêtres de jeu montrent donc son écran de verrouillage au lieu du jeu. Ce téléphone ne sait pas créer un afficheur virtuel déverrouillé, et Android y impose son verrou. Déverrouillez-le : les fenêtres montrent alors le jeu, et le gardent tant que l'une d'elles reste ouverte.</value>
   </data>
   <data name="DeviceThrottling" xml:space="preserve">
-    <value>L'appareil chauffe et commence à se brider. Fermez un compte, ou descendez d'un palier de qualité, et il repartira.</value>
+    <value>L'appareil chauffe et commence à se brider. Débranchez le chargeur, fermez un compte ou descendez d'un palier de qualité, et il repartira.</value>
   </data>
   <data name="DeviceThrottlingSevere" xml:space="preserve">
-    <value>L'appareil est trop chaud et se bride lourdement. Fermez un compte ou descendez d'un palier sans attendre : en dessous, Android suspend les fenêtres le temps qu'il refroidisse.</value>
+    <value>L'appareil est trop chaud et se bride lourdement. Débranchez le chargeur, fermez un compte ou descendez d'un palier sans attendre : en dessous, Android suspend les fenêtres le temps qu'il refroidisse.</value>
   </data>
   <data name="DeadInputHelp" xml:space="preserve">
     <value>La souris ne fait rien dans la fenêtre ?</value>

@@ -707,10 +707,10 @@ Cross the tests: another device on this port, and this phone on another PC. You 
     <value>The phone is locked, so its game windows show its lock screen instead of the game. This phone cannot create an unlocked virtual display, so Android imposes its lock on it. Unlock the phone: the windows then show the game, and keep it as long as one of them stays open.</value>
   </data>
   <data name="DeviceThrottling" xml:space="preserve">
-    <value>The device is heating up and is starting to slow itself down. Close an account, or drop one quality step, and it will pick up again.</value>
+    <value>The device is heating up and is starting to slow itself down. Unplug the charger, close an account or drop one quality step, and it will pick up again.</value>
   </data>
   <data name="DeviceThrottlingSevere" xml:space="preserve">
-    <value>The device is too hot and is heavily slowing itself down. Close an account or drop one quality step now: below this, Android suspends the windows until it cools off.</value>
+    <value>The device is too hot and is heavily slowing itself down. Unplug the charger, close an account or drop one quality step now: below this, Android suspends the windows until it cools off.</value>
   </data>
   <data name="DeadInputHelp" xml:space="preserve">
     <value>The mouse does nothing in the window?</value>

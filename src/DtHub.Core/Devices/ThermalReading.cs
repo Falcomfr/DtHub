@@ -23,6 +23,13 @@ namespace DtHub.Core.Devices;
 /// phone, the processor shows 84 ° while the status is zero and
 /// nothing is throttled. A number like that in a message would raise
 /// a false alarm for nothing.
+///
+/// **Except the skin sensor's own level.** Xiaomi throttles on it and
+/// leaves the global status at zero: on 2026-10-03 the reference phone
+/// ran half an hour with its big cores at 1.1 and 1.3 GHz out of 3.0
+/// and 3.35, its skin at 50.8 ° on level 3, and the global status said
+/// 0. The higher of the two is the verdict. The processor's level is
+/// still left out, for the reason above.
 /// </summary>
 /// <param name="Status">
 /// Thermal state, from 0 (nothing) to 6 (shutdown).
@@ -66,7 +73,7 @@ public sealed partial record ThermalReading(int Status, double? SkinCelsius)
             return null;
         }
 
-        return new ThermalReading(value, Skin(dumpsys));
+        return new ThermalReading(Math.Max(value, SkinLevel(dumpsys)), Skin(dumpsys));
     }
 
     /// <summary>
@@ -92,11 +99,7 @@ public sealed partial record ThermalReading(int Status, double? SkinCelsius)
     /// </summary>
     private static double? Skin(string dumpsys)
     {
-        var current = dumpsys.IndexOf("Current temperatures", StringComparison.OrdinalIgnoreCase);
-
-        // An Android version that does not separate the two sections
-        // falls back to the single reading, which is then correct.
-        var skin = SkinPattern().Match(current >= 0 ? dumpsys[current..] : dumpsys);
+        var skin = SkinPattern().Match(Current(dumpsys));
 
         return skin.Success
             && double.TryParse(
@@ -105,9 +108,35 @@ public sealed partial record ThermalReading(int Status, double? SkinCelsius)
             : null;
     }
 
+    /// <summary>The current skin sensor's throttling level, 0 when it gives none.</summary>
+    private static int SkinLevel(string dumpsys)
+    {
+        var level = SkinLevelPattern().Match(Current(dumpsys));
+
+        return level.Success
+            && int.TryParse(level.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value)
+            ? value
+            : 0;
+    }
+
+    /// <summary>
+    /// From the "Current temperatures" section on. An Android version that
+    /// does not separate it from the cache falls back to the single
+    /// reading, which is then correct.
+    /// </summary>
+    private static string Current(string dumpsys)
+    {
+        var current = dumpsys.IndexOf("Current temperatures", StringComparison.OrdinalIgnoreCase);
+
+        return current >= 0 ? dumpsys[current..] : dumpsys;
+    }
+
     [GeneratedRegex(@"Thermal Status:\s*(\d+)", RegexOptions.IgnoreCase)]
     private static partial Regex StatusPattern();
 
     [GeneratedRegex(@"Temperature\{mValue=(-?[\d.]+),\s*mType=3\b", RegexOptions.IgnoreCase)]
     private static partial Regex SkinPattern();
+
+    [GeneratedRegex(@"Temperature\{mValue=-?[\d.]+,\s*mType=3\b[^}]*mStatus=(\d+)", RegexOptions.IgnoreCase)]
+    private static partial Regex SkinLevelPattern();
 }

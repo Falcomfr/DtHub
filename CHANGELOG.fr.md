@@ -11,6 +11,14 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Corrigé
+
+- Un téléphone qui ralentit parce que sa coque est trop chaude est
+  désormais signalé, sur les téléphones comme les Xiaomi qui ne le disent
+  que par cette sonde.
+
 ## [0.7.4] - 2026-10-03
 
 ### Corrigé

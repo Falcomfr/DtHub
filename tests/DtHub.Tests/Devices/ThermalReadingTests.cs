@@ -134,4 +134,64 @@ Temperature static thresholds from HAL:
         Assert.Equal(3, reading.Status);
         Assert.Null(reading.SkinCelsius);
     }
+
+    /// <summary>
+    /// Captured on the reference phone on 2026-10-03 at 15:43, two game
+    /// windows open, plugged in at 100 %, while it lagged: the global
+    /// status says 0, the current skin sensor says 3 at 50.8 °, and the
+    /// big cores sat at 1.1 and 1.3 GHz out of 3.0 and 3.35.
+    /// </summary>
+    private const string BrideParLaSurface = """
+IsStatusOverride: false
+ThermalEventListeners:
+	callbacks: 6
+	killed: false
+	broadcasts count: -1
+ThermalStatusListeners:
+	callbacks: 9
+	killed: false
+	broadcasts count: -1
+Thermal Status: 0
+Cached temperatures:
+	Temperature{mValue=87.556, mType=0, mName=CPU, mStatus=3}
+	Temperature{mValue=86.999, mType=1, mName=GPU, mStatus=3}
+	Temperature{mValue=86.999, mType=9, mName=NPU, mStatus=3}
+	Temperature{mValue=49.202, mType=3, mName=SKIN, mStatus=0}
+	Temperature{mValue=42.3, mType=2, mName=BATTERY, mStatus=0}
+	Temperature{mValue=46.489, mType=5, mName=POWER_AMPLIFIER, mStatus=0}
+HAL Ready: true
+Current temperatures from HAL:
+	Temperature{mValue=62.842, mType=0, mName=CPU, mStatus=0}
+	Temperature{mValue=62.842, mType=1, mName=GPU, mStatus=0}
+	Temperature{mValue=44.3, mType=2, mName=BATTERY, mStatus=0}
+	Temperature{mValue=50.77, mType=3, mName=SKIN, mStatus=3}
+	Temperature{mValue=49.696, mType=5, mName=POWER_AMPLIFIER, mStatus=0}
+	Temperature{mValue=62.77, mType=9, mName=NPU, mStatus=0}
+Current cooling devices from HAL:
+""";
+
+    [Fact]
+    public void Une_surface_au_palier_lourd_se_dit_meme_quand_l_etat_global_se_tait()
+    {
+        // Xiaomi throttles on the skin sensor and leaves the global status
+        // at zero: read alone, it said nothing for the half hour the phone
+        // ran at a third of its speed.
+        var reading = ThermalReading.Parse(BrideParLaSurface);
+
+        Assert.NotNull(reading);
+        Assert.Equal(ThermalReading.Severe, reading.Status);
+        Assert.Equal(50.77, reading.SkinCelsius);
+    }
+
+    [Fact]
+    public void Le_palier_du_processeur_en_cache_ne_compte_pas()
+    {
+        // The cached CPU at 87.6 ° says 3 as well, but the processor's
+        // figures were already seen high with nothing throttled: only the
+        // current skin counts. Lowered to 0 here, nothing is left to say.
+        var reading = ThermalReading.Parse(
+            BrideParLaSurface.Replace("mName=SKIN, mStatus=3", "mName=SKIN, mStatus=0", StringComparison.Ordinal));
+
+        Assert.Equal(0, reading!.Status);
+    }
 }

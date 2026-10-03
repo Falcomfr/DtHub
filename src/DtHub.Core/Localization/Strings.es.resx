@@ -707,10 +707,10 @@ Cruza las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
     <value>El teléfono está bloqueado, así que sus ventanas de juego muestran la pantalla de bloqueo en lugar del juego. Este teléfono no sabe crear una pantalla virtual desbloqueada, y Android le impone su bloqueo. Desbloquéalo: las ventanas muestran entonces el juego, y lo mantienen mientras una de ellas siga abierta.</value>
   </data>
   <data name="DeviceThrottling" xml:space="preserve">
-    <value>El dispositivo se está calentando y empieza a limitarse. Cierra una cuenta, o baja un nivel de calidad, y volverá a rendir.</value>
+    <value>El dispositivo se está calentando y empieza a limitarse. Desconecta el cargador, cierra una cuenta o baja un nivel de calidad, y volverá a rendir.</value>
   </data>
   <data name="DeviceThrottlingSevere" xml:space="preserve">
-    <value>El dispositivo está demasiado caliente y se limita mucho. Cierra una cuenta o baja un nivel sin esperar: por debajo de esto, Android suspende las ventanas hasta que se enfríe.</value>
+    <value>El dispositivo está demasiado caliente y se limita mucho. Desconecta el cargador, cierra una cuenta o baja un nivel sin esperar: por debajo de esto, Android suspende las ventanas hasta que se enfríe.</value>
   </data>
   <data name="DeadInputHelp" xml:space="preserve">
     <value>¿El ratón no hace nada en la ventana?</value>
