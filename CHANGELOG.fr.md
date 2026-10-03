@@ -11,6 +11,13 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Corrigé
+
+- Dans le cadre à onglets, Ctrl+Tab change toujours de compte après un
+  Alt+Tab pour y revenir.
+
 ## [0.7.3] - 2026-10-03
 
 ### Ajouté

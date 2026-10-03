@@ -10,6 +10,13 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Corregido
+
+- En el marco con pestañas, Ctrl+Tab sigue cambiando de cuenta tras volver
+  a él con Alt+Tab.
+
 ## [0.7.3] - 2026-10-03
 
 ### Añadido

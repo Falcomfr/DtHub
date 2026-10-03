@@ -3476,6 +3476,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         try
         {
+            // **The window in the foreground now, not the one the event
+            // names.** Alt+Tab back to the frame raised the frame's event,
+            // then one more for Windows' switcher as it went away: the
+            // shortcuts turned on, then off, with the frame in front, and
+            // Ctrl+Tab stayed dead until one left the window and came back.
+            // Measured on 2026-10-03: "actifs" at 14:57:18.573, "en veille"
+            // for the switcher at .575. A late event then reads the window
+            // that is really there.
+            if (_windows.Controller.GetForegroundWindow() is var current and not 0)
+            {
+                window = current;
+            }
+
             // Recognized by its process, not by the handle we have
             // on record: that of a freshly reopened session is not
             // resolved yet, and the shortcuts would then think they
