@@ -60,7 +60,7 @@ public class PingSpikesTests
 
     [Theory]
     [InlineData("192.168.1.16:34169", "192.168.1.16")]
-    [InlineData("adb-CMBU79RCINVSFYUO-1V3FXQ._adb-tls-connect._tcp", null)]
+    [InlineData("adb-SERIAL0123456789-1V3FXQ._adb-tls-connect._tcp", null)]
     [InlineData("12345678", null)]
     [InlineData("1a2b3c4d", null)]
     public void Seul_un_appareil_branche_par_son_adresse_se_ping(string serial, string? expected)
