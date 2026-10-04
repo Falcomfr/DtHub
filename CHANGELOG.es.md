@@ -10,6 +10,20 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Cambiado
+
+- Un aviso de lag aparece en un minuto aproximadamente en lugar de dos, y
+  los avisos de calor y memoria se actualizan cada treinta segundos.
+
+### Corregido
+
+- Un teléfono que pierde el Wi-Fi sale del panel en un segundo
+  aproximadamente, y ya no en varios.
+- Un teléfono conectado durante un barrido ya no espera al siguiente para
+  aparecer.
+
 ## [0.7.7] - 2026-10-03
 
 ### Añadido

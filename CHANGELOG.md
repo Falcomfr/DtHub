@@ -16,6 +16,20 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Changed
+
+- A lag finding shows after about a minute instead of two, and heat and
+  memory findings are refreshed every thirty seconds.
+
+### Fixed
+
+- A phone that drops off Wi-Fi leaves the panel within about a second
+  instead of several.
+- A phone plugged in during a sweep no longer waits for the next one to
+  show.
+
 ## [0.7.7] - 2026-10-03
 
 ### Added

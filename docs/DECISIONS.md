@@ -9529,3 +9529,39 @@ vers le noir, essayée en direct sur la fenêtre et refusée ; la bordure seule 
 pleine teinte ; douze teintes réparties sur tout le cercle, proposées et non
 retenues.
 
+## D178 - Le serveur ADB annonce les appareils, et le lag se mesure toutes les trente secondes
+
+**Date** : 2026-10-04
+
+**Le panneau écoute le serveur ADB au lieu d'attendre son tick.** Le
+2026-10-04 à 15:45:51, ADB a vu le téléphone coupé dans la seconde ; le
+panneau ne l'a montré parti que 5,7 secondes plus tard. Il interroge ADB
+toutes les trois secondes et saute un tick tant qu'un balayage tourne, compte
+et santé compris. `AdbDeviceWatch` tient ouverte la requête
+`host:track-devices` sur le port 5037 : le serveur écrit une liste à chaque
+changement, et rien n'est demandé entre deux. Chaque liste relance le minuteur
+d'une seconde qui servait déjà au signal USB de Windows. Le tick de trois
+secondes reste tel quel.
+
+**Le protocole, pas la commande `adb track-devices`.** Le lanceur de
+processus lit la sortie ligne par ligne, et la liste vide, le dernier
+téléphone parti, s'écrit « 0000 » sans saut de ligne : la déconnexion qui
+compte le plus n'aurait jamais été lue. Le protocole encadre chaque liste par
+sa longueur, et c'est ce cadre qui est lu.
+
+**Un signal reçu pendant un balayage n'est plus perdu.** `RefreshAsync`
+rendait la main sans rien faire, et le changement attendait le tick suivant ;
+l'USB avait le même trou. Le minuteur continue tant qu'un balayage tourne et
+redemande une seconde plus tard.
+
+**Le lag se mesure toutes les trente secondes au lieu d'une minute**, chaleur
+et mémoire relues au même rythme. Le constat attend deux mesures de suite :
+il venait au mieux deux minutes après le début du lag, et un lag de
+quatre-vingt-dix secondes était fini avant d'être dit. Les seuils ne bougent pas,
+les parts qu'ils comparent ne dépendent pas de la longueur de la fenêtre. Le
+même jour à 15:12, 79 % occupé pour un seuil à 80 % : pas de constat, et ce
+n'est pas un défaut d'affichage.
+
+**Écartés** : abaisser le tick, qui multiplie les lancements d'adb.exe sans
+rien apprendre de plus tôt ; abaisser les seuils, qui ramènerait les lignes
+qu'on apprend à ignorer.

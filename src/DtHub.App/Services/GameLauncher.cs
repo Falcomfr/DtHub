@@ -1214,20 +1214,20 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
     }
 
-    /// <summary>The PC's processor counters at the last minute's reading.</summary>
+    /// <summary>The PC's processor counters at the last reading.</summary>
     private (long Idle, long Total)? _pcTimes;
 
     /// <summary>
-    /// The PC's processor load over the last two minutes, the lower of the
+    /// The PC's processor load over the last two readings, the lower of the
     /// two, in percent, or -1 until both are known. Written by the window
     /// watch, read by the sweep.
     /// </summary>
     private volatile int _pcBusy = -1;
 
-    /// <summary>The last minute's load as read, before two minutes are combined.</summary>
+    /// <summary>The last reading's load, before two readings are combined.</summary>
     private int _pcMinute = -1;
 
-    /// <summary>Takes the minute's reading of the PC's processor.</summary>
+    /// <summary>Takes a reading of the PC's processor.</summary>
     private void SamplePc()
     {
         if (!PcProcessor.Times(out var idle, out var total))
@@ -1240,8 +1240,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             ? (int)Math.Round(100.0 * (1 - ((double)(idle - before.Idle) / (total - before.Total))))
             : -1;
 
-        // The lower of two minutes in a row, as for the phone: a build or a
-        // game launch fills one minute, a PC that stays loaded fills both.
+        // The lower of two readings in a row, as for the phone: a build or a
+        // game launch fills one, a PC that stays loaded fills both.
         _pcBusy = Math.Min(_pcMinute, minute);
         _pcMinute = minute;
         _pcTimes = (idle, total);
@@ -1252,30 +1252,41 @@ public sealed partial class GameLauncher : IAsyncDisposable
         new(StringComparer.Ordinal);
 
     /// <summary>
-    /// The last minute of each playing phone's processor, by serial, read by
+    /// The last readings of each playing phone's processor, by serial, read by
     /// the health sweep.
     /// </summary>
     private volatile IReadOnlyDictionary<string, PhoneStrain> _strains = new Dictionary<string, PhoneStrain>();
 
-    /// <summary>Each phone's last minute as read, before two minutes are combined.</summary>
+    /// <summary>Each phone's last reading, before two readings are combined.</summary>
     private Dictionary<string, PhoneStrain> _minutes = new(StringComparer.Ordinal);
 
     private readonly System.Diagnostics.Stopwatch _sincePing = System.Diagnostics.Stopwatch.StartNew();
 
     private System.Diagnostics.Stopwatch? _sinceStrain;
 
-    /// <summary>1 while a minute's phone readings are under way.</summary>
+    /// <summary>1 while a round of phone readings is under way.</summary>
     private int _sampling;
 
     /// <summary>
+    /// Time between two processor readings, phones and PC.
+    ///
+    /// **Thirty seconds, no longer a minute.** The finding waits for two
+    /// readings in a row, so a lag took two minutes to show, and a lag of
+    /// ninety seconds was over before the panel spoke of it. One more adb
+    /// call per playing phone and per minute. The limits are unchanged: the
+    /// shares they compare do not depend on the length of the window.
+    /// </summary>
+    private static readonly TimeSpan StrainInterval = TimeSpan.FromSeconds(30);
+
+    /// <summary>
     /// Measures, in the background, what the lag finding needs: a ping a
-    /// second and a processor reading a minute, for every phone carrying a
-    /// game.
+    /// second and a processor reading every <see cref="StrainInterval" />,
+    /// for every phone carrying a game.
     ///
     /// **From the window watch and not from the panel's sweep**: the panel
     /// only sweeps while it shows, and the player opens it when the game
-    /// lags. It would then have waited a minute, the time for two readings,
-    /// before saying anything.
+    /// lags. It would then have waited for two readings before saying
+    /// anything.
     /// </summary>
     private void SampleInBackground()
     {
@@ -1313,14 +1324,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
             _ = _pings.TryRemove(gone, out _);
         }
 
-        if (_sinceStrain is null || _sinceStrain.Elapsed >= TimeSpan.FromMinutes(1))
+        if (_sinceStrain is null || _sinceStrain.Elapsed >= StrainInterval)
         {
             _sinceStrain = System.Diagnostics.Stopwatch.StartNew();
 
             SamplePc();
 
             // Off the interface thread, which starts adb otherwise, and never
-            // two at once: a phone slow to answer would have the next minute
+            // two at once: a phone slow to answer would have the next round
             // read the same counters concurrently.
             if (Interlocked.Exchange(ref _sampling, 1) == 0)
             {
@@ -1342,8 +1353,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// One processor reading per phone, the strain of each over the minute
-    /// since the previous one, and a log line for each: the limits were set
+    /// One processor reading per phone, the strain of each since the previous
+    /// one, and a log line for each: the limits were set
     /// on two phones, one lagging and one fresh, and only the field can say
     /// whether they hold.
     /// </summary>
@@ -1358,8 +1369,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             {
                 minutes[serial] = strain;
 
-                // Shown only once two minutes in a row agree: one busy
-                // minute is not a lag.
+                // Shown only once two readings in a row agree: one busy
+                // half minute is not a lag.
                 if (_minutes.TryGetValue(serial, out var before))
                 {
                     strains[serial] = PhoneStrain.Sustained(before, strain);
@@ -1375,7 +1386,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
 
         // Rebuilt whole: a phone no longer playing must not keep its last
-        // minute on screen.
+        // reading on screen.
         _minutes = minutes;
         _strains = strains;
     }
@@ -3894,7 +3905,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     [LoggerMessage(
         Level = LogLevel.Information,
-        Message = "Processeur de l'appareil {serial} sur la dernière minute : {busy} % occupé, {game} % pour le jeu, kswapd0 à {reclaim} % d'un cœur, allumé depuis {days} j.")]
+        Message = "Processeur de l'appareil {serial} sur les 30 dernières secondes : {busy} % occupé, {game} % pour le jeu, kswapd0 à {reclaim} % d'un cœur, allumé depuis {days} j.")]
     private partial void LogStrain(string serial, double busy, double game, double reclaim, double days);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Un raccourci n'a pas pu être traité.")]

@@ -11,6 +11,21 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Modifié
+
+- Une alerte de lag s'affiche en une minute environ au lieu de deux, et les
+  alertes de chaleur et de mémoire se rafraîchissent toutes les trente
+  secondes.
+
+### Corrigé
+
+- Un téléphone qui décroche du Wi-Fi quitte le panneau en une seconde
+  environ, et non plus en plusieurs.
+- Un téléphone branché pendant un balayage n'attend plus le suivant pour
+  apparaître.
+
 ## [0.7.7] - 2026-10-03
 
 ### Ajouté

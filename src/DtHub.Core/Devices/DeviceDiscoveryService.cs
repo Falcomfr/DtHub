@@ -162,10 +162,13 @@ public sealed class DeviceDiscoveryService : IDisposable
     /// <summary>
     /// How long a heat reading stays valid.
     ///
-    /// Longer than the link's: a device does not move from one thermal tier to
-    /// another in a few seconds, and the question costs a shell round trip.
+    /// A device does not move from one thermal tier to another in a few
+    /// seconds, and the question costs a shell round trip. Thirty seconds and
+    /// no longer: at a minute, a phone that started throttling could wait that
+    /// long before the panel said so, and the player had asked why it lags
+    /// in between.
     /// </summary>
-    private static readonly TimeSpan HeatFreshness = TimeSpan.FromMinutes(1);
+    private static readonly TimeSpan HeatFreshness = TimeSpan.FromSeconds(30);
 
     /// <summary>
     /// What the device says about its heat, or <c>null</c> if it says nothing.
@@ -488,10 +491,10 @@ public sealed class DeviceDiscoveryService : IDisposable
         new(StringComparer.Ordinal);
 
     /// <summary>
-    /// A minute, like the battery: memory moves within a session, and the
+    /// Thirty seconds, like the heat: memory moves within a session, and the
     /// two readings cost about a hundred milliseconds together.
     /// </summary>
-    private static readonly TimeSpan MemoryFreshness = TimeSpan.FromMinutes(1);
+    private static readonly TimeSpan MemoryFreshness = TimeSpan.FromSeconds(30);
 
     /// <summary>
     /// Android's verdict on its memory, or <c>null</c> if the device says

@@ -8,6 +8,7 @@ using DtHub.App.Services;
 using DtHub.App.ViewModels;
 using DtHub.Core.Settings;
 using DtHub.Core.Windows;
+using DtHub.Infrastructure.Adb;
 using Microsoft.Extensions.DependencyInjection;
 
 using Serilog;
@@ -29,11 +30,13 @@ public partial class ConfiguratorWindow : Window
     public ConfiguratorWindow(
         ConfiguratorViewModel viewModel,
         GameLauncher launcher,
-        WindowPlacements placements)
+        WindowPlacements placements,
+        AdbDeviceWatch adbWatch)
     {
         _viewModel = viewModel;
         _launcher = launcher;
         _placements = placements;
+        _adbWatch = adbWatch;
 
         InitializeComponent();
         DataContext = viewModel;
@@ -95,6 +98,15 @@ public partial class ConfiguratorWindow : Window
         // One second, one single poll.
         _afterDeviceChange.Tick += async (_, _) =>
         {
+            // A sweep under way read the devices before the change, and
+            // RefreshAsync drops a call made during it: the change then
+            // waited for the next periodic tick. The timer keeps running and
+            // asks again in a second.
+            if (_viewModel.Instances.IsBusy)
+            {
+                return;
+            }
+
             _afterDeviceChange.Stop();
 
             Log.Information("Changement de périphériques signalé par Windows : balayage.");
@@ -104,6 +116,13 @@ public partial class ConfiguratorWindow : Window
     }
 
     private readonly DispatcherTimer _afterDeviceChange = new() { Interval = TimeSpan.FromSeconds(1) };
+
+    /// <summary>
+    /// The same signal for what Windows does not see: a phone joining or
+    /// leaving over Wi-Fi, or going offline. ADB tells it the moment it
+    /// knows, and it goes through the same timer, burst absorbed included.
+    /// </summary>
+    private readonly AdbDeviceWatch _adbWatch;
 
     /// <summary>
     /// A bounded poll, and it is the pace that demands it. The poll only
@@ -433,6 +452,16 @@ public partial class ConfiguratorWindow : Window
         {
             source.AddHook(OnWindowMessage);
         }
+
+        _adbWatch.Changed += () => Dispatcher.BeginInvoke(() =>
+        {
+            _afterDeviceChange.Stop();
+            _afterDeviceChange.Start();
+        });
+
+        // For the life of the application, like this window: an idle socket
+        // holds nothing back when the process exits.
+        _ = _adbWatch.RunAsync(CancellationToken.None);
     }
 
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
