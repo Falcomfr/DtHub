@@ -11,11 +11,16 @@ namespace DtHub.Infrastructure.Scrcpy;
 public sealed class ScrcpyLocator : IScrcpyLocator, IDisposable
 {
     private readonly IDependencyProvisioner _provisioner;
+    private readonly SdlFocusFix _sdlFocusFix;
     private readonly SemaphoreSlim _gate = new(1, 1);
 
     private string? _resolved;
 
-    public ScrcpyLocator(IDependencyProvisioner provisioner) => _provisioner = provisioner;
+    public ScrcpyLocator(IDependencyProvisioner provisioner, SdlFocusFix sdlFocusFix)
+    {
+        _provisioner = provisioner;
+        _sdlFocusFix = sdlFocusFix;
+    }
 
     public string Version => DependencyManifest.Get(DependencyManifest.ScrcpyKey).Version;
 
@@ -32,10 +37,17 @@ public sealed class ScrcpyLocator : IScrcpyLocator, IDisposable
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            _resolved ??= await _provisioner
-                .EnsureAvailableAsync(
-                    DependencyManifest.Get(DependencyManifest.ScrcpyKey), progress: null, cancellationToken)
-                .ConfigureAwait(false);
+            if (_resolved is null)
+            {
+                var path = await _provisioner
+                    .EnsureAvailableAsync(
+                        DependencyManifest.Get(DependencyManifest.ScrcpyKey), progress: null, cancellationToken)
+                    .ConfigureAwait(false);
+
+                // Before the first session, so that no scrcpy holds the file yet.
+                await _sdlFocusFix.ApplyAsync(path, cancellationToken).ConfigureAwait(false);
+                _resolved = path;
+            }
 
             return _resolved;
         }

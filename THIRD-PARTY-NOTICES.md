@@ -11,6 +11,7 @@ No copyright notice or third-party licence text may be removed.
 | Component | Licence | Distribution mode |
 |---|---|---|
 | scrcpy | Apache License 2.0 | Downloaded from GitHub on first launch |
+| SDL (patched) | zlib | File embedded in the executable, written over scrcpy's |
 | Android SDK Platform Tools (adb) | Android SDK License Agreement | Downloaded from Google on first launch |
 | .NET runtime | MIT | Included by the self-contained publish |
 | CommunityToolkit.Mvvm | MIT | NuGet package |
@@ -45,6 +46,9 @@ The corresponding obligations are met as follows:
 - should a modification ever become necessary, it would be recorded in
   that same file, together with a reproducible patch.
 
+The archive's `SDL3.dll` is the exception: DT Hub replaces it with a
+patched build of SDL, see the SDL section below.
+
 scrcpy's Windows archive itself contains a copy of `adb.exe`. DT Hub does
 not use it: it uses its own, obtained directly from Google, whose version
 it controls. The path to it is given by the `ADB` environment variable,
@@ -52,6 +56,18 @@ which scrcpy honours.
 
 DT Hub is not affiliated with Genymobile or the scrcpy authors, and does
 not use their name or logos as part of its own identity.
+
+## SDL
+
+- Project: https://github.com/libsdl-org/SDL
+- Copyright: Copyright (C) 1997-2026 Sam Lantinga
+- Licence: zlib
+
+DT Hub embeds a build of SDL release-3.4.12 with one patch, so that a game
+window docked in a tab receives text input, and writes it over the
+`SDL3.dll` of scrcpy 4.1. This is an altered version, not the original
+software. The patch, the reason for it, the rebuild procedure and SDL's
+licence are in `third_party/sdl/`.
 
 ## Android SDK Platform Tools (adb)
 

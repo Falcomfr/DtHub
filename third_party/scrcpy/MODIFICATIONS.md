@@ -5,7 +5,8 @@
 DT Hub uses scrcpy as published by the upstream project. The official
 archive is downloaded, its checksum verified, and extracted without altering
 a single file. The `LICENSE.txt` provided upstream is kept alongside the
-executable.
+executable. The bundled `SDL3.dll` is SDL's, not scrcpy's, and DT Hub
+replaces it: see `third_party/sdl/MODIFICATIONS.md`.
 
 This file exists for two reasons: to document this absence of modification,
 and to set out the procedure to follow should one become necessary, since

@@ -196,7 +196,8 @@ goes into the logs.
 One scrcpy session per instance, each on its own virtual display. DT
 Hub reads the display identifier that scrcpy logs at creation, then
 launches the game through ADB with `--user`. scrcpy is not modified:
-see `third_party/scrcpy/MODIFICATIONS.md`.
+see `third_party/scrcpy/MODIFICATIONS.md`. Its `SDL3.dll` is replaced by
+a patched build, see `third_party/sdl/MODIFICATIONS.md`.
 
 `--kill-adb-on-close` is deliberately absent: it would cut the ADB
 server for the whole machine. A test verifies this.

@@ -23,6 +23,10 @@ belongs in the commits and in `docs/DECISIONS.md`.
 - The problem report window can send you to the Discord server, report
   copied, to get help there without a GitHub account.
 
+### Fixed
+
+- In a tab, é, à, ? and the other non-letter keys type again in the game.
+
 ## [0.7.8] - 2026-10-04
 
 ### Changed

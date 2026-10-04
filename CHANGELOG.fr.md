@@ -18,6 +18,11 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - La fenêtre de rapport de problème mène aussi au serveur Discord, rapport
   copié, pour y trouver de l'aide sans compte GitHub.
 
+### Corrigé
+
+- Dans un onglet, é, à, ? et les autres touches qui ne sont pas des lettres
+  écrivent de nouveau dans le jeu.
+
 ## [0.7.8] - 2026-10-04
 
 ### Modifié

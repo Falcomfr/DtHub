@@ -25,6 +25,10 @@
          block of each quest, which costs thirteen megabytes, for
          information that only changes when the game is updated. -->
     <EmbeddedResource Include="..\..\assets\quest-successes.json" LogicalName="DtHub.Infrastructure.quest-successes.json" />
+
+    <!-- SDL patched so that a window docked in a tab receives text input.
+         See third_party/sdl/MODIFICATIONS.md. -->
+    <EmbeddedResource Include="..\..\third_party\sdl\SDL3.dll" LogicalName="DtHub.Infrastructure.SDL3.dll" />
   </ItemGroup>
 
 </Project>

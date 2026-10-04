@@ -9565,3 +9565,37 @@ n'est pas un défaut d'affichage.
 **Écartés** : abaisser le tick, qui multiplie les lancements d'adb.exe sans
 rien apprendre de plus tôt ; abaisser les seuils, qui ramènerait les lignes
 qu'on apprend à ignorer.
+
+## D179 - Un SDL corrigé pour le texte dans les onglets
+
+**Date** : 2026-10-04
+
+**Le défaut.** Dans le cadre à onglets, é, à, ? et toute touche qui n'est
+pas une lettre n'écrivaient rien, les lettres passaient. Appuyer sur Ctrl,
+Alt ou Maj ne débloquait rien ; en fenêtre séparée, tout marchait. scrcpy
+envoie les lettres en touches et le reste en texte. SDL 3.4.12 n'envoie le
+texte qu'à la fenêtre qu'il tient pour active, et `WIN_UpdateFocus` ne la
+tient pour active que si elle est au premier plan. Une fenêtre logée est
+enfant du cadre, jamais au premier plan : au premier changement d'onglet,
+elle perd ce focus pour de bon.
+
+**Le correctif.** Une ligne dans SDL : la fenêtre compte aussi comme active
+quand elle a le focus clavier et que sa fenêtre racine est au premier plan.
+Testé le 2026-10-04 par le joueur, en onglet : é, à et ? passent, après
+changement d'onglet et après Alt+Tab. Le DLL testé est versionné dans
+`third_party/sdl/`, embarqué dans l'exécutable, et `SdlFocusFix` le pose sur
+celui de scrcpy 4.1, reconnu à son empreinte, avant la première session.
+Puis il lance `scrcpy --version`, qui charge SDL, et remet l'original si
+scrcpy ne démarre plus : pas d'accents dans les onglets vaut mieux que pas de
+fenêtre du tout.
+
+**Écartés** : `--keyboard=uhid`, qui reste en QWERTY sur HyperOS ; une
+fenêtre sans bordure collée au cadre au lieu d'une fenêtre enfant, gros
+chantier pour un cadre qui paraîtrait inactif ; sortir et remettre la
+fenêtre à chaque onglet, bricolage qui clignote ; compiler SDL dans la CI,
+qui livrerait un binaire autre que celui testé, la compilation n'étant pas
+reproductible à l'octet.
+
+**À suivre** : l'issue amont libsdl-org/SDL#13777 porte sur le même test. Une
+mise à jour de scrcpy apporte un autre SDL, que `SdlFocusFix` laisse en place :
+réappliquer le patch ou constater le correctif amont.

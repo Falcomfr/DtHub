@@ -95,6 +95,7 @@ public static class AppServices
         services.AddSingleton<IQuestSuccessSeed, EmbeddedQuestSuccessSeed>();
         services.AddSingleton<QuestCatalogService>();
         services.AddSingleton<IAdbLocator, AdbLocator>();
+        services.AddSingleton<SdlFocusFix>();
         services.AddSingleton<IScrcpyLocator, ScrcpyLocator>();
         services.AddSingleton<ToolPreparation>();
 

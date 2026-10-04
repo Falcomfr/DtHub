@@ -17,6 +17,11 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 - La ventana de informe de problemas también lleva al servidor Discord, con
   el informe copiado, para recibir ayuda sin cuenta de GitHub.
 
+### Corregido
+
+- En una pestaña, é, à, ? y las demás teclas que no son letras vuelven a
+  escribir en el juego.
+
 ## [0.7.8] - 2026-10-04
 
 ### Cambiado

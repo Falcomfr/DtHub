@@ -1,0 +1,17 @@
+diff -ru a/src/video/windows/SDL_windowsevents.c b/src/video/windows/SDL_windowsevents.c
+--- a/src/video/windows/SDL_windowsevents.c
++++ b/src/video/windows/SDL_windowsevents.c
+@@ -334,7 +334,12 @@
+     SDL_WindowData *data = window->internal;
+     HWND hwnd = data->hwnd;
+     bool had_focus = (SDL_GetKeyboardFocus() == window);
+-    bool has_focus = (GetForegroundWindow() == hwnd);
++    /* A window embedded as a child of another top-level window is never the
++       foreground window itself: it has focus when it holds the keyboard focus
++       and its top-level ancestor is in the foreground. */
++    HWND foreground = GetForegroundWindow();
++    bool has_focus = (foreground == hwnd) ||
++                     (foreground == GetAncestor(hwnd, GA_ROOT) && GetFocus() == hwnd);
+ 
+     if (had_focus == has_focus || has_focus != expect_focus) {
+         return;
