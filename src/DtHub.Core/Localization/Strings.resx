@@ -1700,6 +1700,12 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="ReportProblemTip" xml:space="preserve">
     <value>Copy the report, then paste it into the form that opens. Nothing is sent until you press: the report goes to your clipboard and you decide what to do with it.</value>
   </data>
+  <data name="ReportOnDiscord" xml:space="preserve">
+    <value>Report on Discord</value>
+  </data>
+  <data name="ReportOnDiscordTip" xml:space="preserve">
+    <value>Copies the report and opens the DT Hub Discord server, to paste it there and get help.</value>
+  </data>
   <data name="ReportContents" xml:space="preserve">
     <value>The report carries the version, your screens, the error and the useful lines of today's log. Device serials, addresses and your Windows account name are removed from it.</value>
   </data>

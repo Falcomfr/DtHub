@@ -1700,6 +1700,12 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="ReportProblemTip" xml:space="preserve">
     <value>Copia el informe y pégalo en el formulario que se abre. No se envía nada hasta que pulses: el informe va a tu portapapeles y decides qué hacer con él.</value>
   </data>
+  <data name="ReportOnDiscord" xml:space="preserve">
+    <value>Informar en Discord</value>
+  </data>
+  <data name="ReportOnDiscordTip" xml:space="preserve">
+    <value>Copia el informe y abre el servidor Discord de DT Hub, para pegarlo allí y recibir ayuda.</value>
+  </data>
   <data name="ReportContents" xml:space="preserve">
     <value>El informe lleva la versión, tus pantallas, el error y las líneas útiles del registro de hoy. Los números de serie, las direcciones y el nombre de tu cuenta de Windows se quitan de él.</value>
   </data>

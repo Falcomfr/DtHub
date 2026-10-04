@@ -46,7 +46,7 @@
                FontSize="{StaticResource FontSmall}" Margin="0,0,0,8" Visibility="Collapsed"
                Foreground="{DynamicResource SuccessBrush}" />
 
-    <!-- Four buttons, two of them with long names: they wrap onto a new
+    <!-- Five buttons, several with long names: they wrap onto a new
          line rather than getting cut off. -->
     <WrapPanel HorizontalAlignment="Right">
       <Button Content="{loc:T OpenLogFolder}" Style="{StaticResource QuietButton}"
@@ -55,6 +55,10 @@
       <Button Content="{loc:T ReportProblem}" Style="{StaticResource QuietButton}"
               Padding="12,6" Margin="0,0,8,4" Click="OnReport"
               ToolTip="{loc:T ReportProblemTip}" />
+
+      <Button Content="{loc:T ReportOnDiscord}" Style="{StaticResource QuietButton}"
+              Padding="12,6" Margin="0,0,8,4" Click="OnDiscord"
+              ToolTip="{loc:T ReportOnDiscordTip}" />
 
       <Button Content="{loc:T CopyReport}" Padding="14,6" Margin="0,0,8,4"
               IsDefault="True" Click="OnCopy" />

@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 
 using DtHub.App.Services;
+using DtHub.Core;
 using DtHub.Core.Localization;
 
 namespace DtHub.App.Windows;
@@ -64,6 +65,17 @@ public partial class ProblemWindow : Window
         Copied.Visibility = Visibility.Visible;
 
         _dialogs.OpenUrl(DiagnosticReporter.IssueUrl(_headline));
+    }
+
+    /// <summary>
+    /// The same, toward the community server: a player without a GitHub
+    /// account can still be helped there, with the report pasted in.
+    /// </summary>
+    private void OnDiscord(object sender, RoutedEventArgs e)
+    {
+        _dialogs.CopyToClipboard(_report);
+        Copied.Visibility = Visibility.Visible;
+        _dialogs.OpenUrl(ProductInfo.DiscordUrl);
     }
 
     /// <summary>The logs folder, set by the caller.</summary>

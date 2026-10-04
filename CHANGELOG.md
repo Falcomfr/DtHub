@@ -16,6 +16,13 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Added
+
+- The problem report window can send you to the Discord server, report
+  copied, to get help there without a GitHub account.
+
 ## [0.7.8] - 2026-10-04
 
 ### Changed

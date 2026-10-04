@@ -10,6 +10,13 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Añadido
+
+- La ventana de informe de problemas también lleva al servidor Discord, con
+  el informe copiado, para recibir ayuda sin cuenta de GitHub.
+
 ## [0.7.8] - 2026-10-04
 
 ### Cambiado
