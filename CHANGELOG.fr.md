@@ -11,6 +11,19 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.7.11] - 2026-10-10
+
+### Modifié
+
+- L'aide Samsung dit quoi faire quand le débogage USB est grisé par le
+  bloqueur automatique.
+
+### Corrigé
+
+- Kaspersky supprimait DT Hub comme cheval de Troie : il cherche désormais
+  ses mises à jour sans l'API de GitHub, et ne réécrit plus ses raccourcis
+  quand ils sont déjà bons.
+
 ## [0.7.10] - 2026-10-10
 
 ### Modifié

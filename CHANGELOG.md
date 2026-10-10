@@ -6,7 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and the project uses [semantic versioning](https://semver.org/).
 
 Entries are written in English from 0.3.0 onward: the section of a version is
-the body of its release on GitHub, the one every installed version reads. From
+the body of its release on GitHub, and its asset `notes.en.md`, which the
+application reads from 0.7.11 onward. From
 0.3.0 onward, each section is also translated in
 [CHANGELOG.fr.md](CHANGELOG.fr.md) and [CHANGELOG.es.md](CHANGELOG.es.md). The
 translations travel as release assets: they are what the application shows in
@@ -15,6 +16,18 @@ French or Spanish, and the French one is what the Discord channel receives. The
 
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
+
+## [0.7.11] - 2026-10-10
+
+### Changed
+
+- The Samsung help says what to do when USB debugging is greyed out by
+  Auto Blocker.
+
+### Fixed
+
+- Kaspersky deleted DT Hub as a trojan: it now checks for updates without
+  the GitHub API, and leaves its shortcuts alone when they are already right.
 
 ## [0.7.10] - 2026-10-10
 

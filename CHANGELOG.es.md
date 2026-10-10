@@ -10,6 +10,19 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.7.11] - 2026-10-10
+
+### Cambiado
+
+- La ayuda de Samsung indica qué hacer cuando la depuración USB aparece en
+  gris por el Bloqueador automático.
+
+### Corregido
+
+- Kaspersky eliminaba DT Hub como troyano: ahora busca sus actualizaciones
+  sin la API de GitHub, y ya no reescribe sus accesos directos cuando ya son
+  correctos.
+
 ## [0.7.10] - 2026-10-10
 
 ### Cambiado
