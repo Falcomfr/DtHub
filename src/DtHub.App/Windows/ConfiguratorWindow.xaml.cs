@@ -415,14 +415,14 @@ public partial class ConfiguratorWindow : Window
 
     /// <summary>
     /// A click anywhere else in the window closes the tools menu, with its
-    /// fade. Clicks inside the menu do not reach here: it is a
-    /// window of its own.
+    /// fade. Clicks inside the menu reach here too, routed through the
+    /// popup's parent, and must not close it before they land.
     /// </summary>
     protected override void OnPreviewMouseDown(System.Windows.Input.MouseButtonEventArgs e)
     {
         base.OnPreviewMouseDown(e);
 
-        if (PartnerToggle.IsChecked == true && !PartnerToggle.IsMouseOver)
+        if (PartnerToggle.IsChecked == true && !PartnerToggle.IsMouseOver && !PartnerPanel.IsMouseOver)
         {
             PartnerToggle.IsChecked = false;
         }
@@ -433,7 +433,7 @@ public partial class ConfiguratorWindow : Window
     {
         base.OnDeactivated(e);
 
-        if (PartnerToggle.IsChecked == true && !PartnerMenu.IsMouseOver)
+        if (PartnerToggle.IsChecked == true && !PartnerPanel.IsMouseOver)
         {
             PartnerToggle.IsChecked = false;
         }

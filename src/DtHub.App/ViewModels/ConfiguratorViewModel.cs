@@ -117,9 +117,21 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// </summary>
     private async Task ActOnPartnerAsync(PartnerApp app, bool installed, string deviceId)
     {
-        var outcome = installed
-            ? await _launcher.OpenPartnerAppAsync(deviceId, app.PackageName).ConfigureAwait(true)
-            : await _launcher.OpenStoreAsync(deviceId, app.PackageName).ConfigureAwait(true);
+        PartnerOpening outcome;
+
+        try
+        {
+            outcome = installed
+                ? await _launcher.OpenPartnerAppAsync(deviceId, app.PackageName).ConfigureAwait(true)
+                : await _launcher.OpenStoreAsync(deviceId, app.PackageName).ConfigureAwait(true);
+        }
+        catch (AdbException exception)
+        {
+            // The same answer as the account rows give: the reason in the
+            // banner, not the generic error window.
+            Instances.ShowBanner(exception.UserMessage);
+            return;
+        }
 
         switch (outcome)
         {

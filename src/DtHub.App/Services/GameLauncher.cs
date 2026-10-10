@@ -846,7 +846,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 PackageName = "com.android.vending",
             }) is { } store)
         {
-            _ = WatchInstallAsync(store, watched, deviceId, app);
+            WatchInstall(store, watched, deviceId, app.PackageName);
         }
 
         if (opening != PartnerOpening.Failed || !_serials.TryGetValue(deviceId, out var serial))
@@ -863,36 +863,104 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 : PartnerOpening.Failed;
     }
 
+    /// <summary>The apps each open store window is waiting for, by session.</summary>
+    private readonly Dictionary<string, HashSet<string>> _awaitedInstalls = new(StringComparer.Ordinal);
+
+    private readonly Lock _awaitedLock = new();
+
     /// <summary>
-    /// Watches the phone while its store window is open: once the app is
-    /// installed, the line turns to Open at once, without waiting for the
-    /// next sweep, and the store window closes, its work done. Measured on
-    /// 2026-10-10: left open, the player did not know what to do next.
+    /// Watches the phone while its store window is open. One watch per
+    /// window, which may wait for both apps: the window is shared, and a
+    /// watch per click closed it as soon as the first app arrived, under a
+    /// player about to install the second.
     /// </summary>
-    private async Task WatchInstallAsync(ScrcpySession store, string serial, string deviceId, PartnerApp app)
+    private void WatchInstall(ScrcpySession store, string serial, string deviceId, string packageName)
     {
-        // ponytail: polls every 3 s for 15 min at most; only adb is on the
-        // phone, nothing there could announce the install instead.
-        for (var round = 0; round < 300 && store.IsAlive; round++)
+        lock (_awaitedLock)
         {
-            await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
-
-            if (await _instances.TryListPackagesAsync(serial, 0).ConfigureAwait(false) is not { } packages
-                || !packages.Contains(app.PackageName, StringComparer.Ordinal))
+            if (_awaitedInstalls.TryGetValue(store.Id, out var awaited))
             {
-                continue;
+                _ = awaited.Add(packageName);
+                return;
             }
 
-            PartnerAvailability = PartnerApps.WithInstalled(PartnerAvailability, app.PackageName, deviceId);
-            PartnerAvailabilityChanged?.Invoke(this, EventArgs.Empty);
-            LogPartnerInstalled(app.Name, deviceId);
+            _awaitedInstalls[store.Id] = new HashSet<string>(StringComparer.Ordinal) { packageName };
+        }
 
-            if (store.IsAlive)
+        _ = WatchInstallAsync(store, serial, deviceId);
+    }
+
+    /// <summary>
+    /// Each app that arrives turns its line to Open at once, without waiting
+    /// for the next sweep. Once every awaited app is there, the store window
+    /// closes, its work done. Measured on 2026-10-10: left open, the player
+    /// did not know what to do next.
+    /// </summary>
+    private async Task WatchInstallAsync(ScrcpySession store, string serial, string deviceId)
+    {
+        try
+        {
+            // ponytail: polls every 3 s for 15 min at most; only adb is on the
+            // phone, nothing there could announce the install instead.
+            for (var round = 0; round < 300 && store.IsAlive; round++)
             {
-                await StopSessionAsync(store, CancellationToken.None).ConfigureAwait(false);
-            }
+                await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
 
-            return;
+                if (await _instances.TryListPackagesAsync(serial, 0).ConfigureAwait(false) is not { } packages)
+                {
+                    continue;
+                }
+
+                List<string> arrived;
+                bool done;
+
+                lock (_awaitedLock)
+                {
+                    var awaited = _awaitedInstalls[store.Id];
+                    arrived = [.. awaited.Where(p => packages.Contains(p, StringComparer.Ordinal))];
+                    awaited.ExceptWith(arrived);
+                    done = awaited.Count == 0;
+                }
+
+                foreach (var package in arrived)
+                {
+                    PartnerAvailability = PartnerApps.WithInstalled(PartnerAvailability, package, deviceId);
+                    LogPartnerInstalled(PartnerApps.All.First(a => a.PackageName == package).Name, deviceId);
+                }
+
+                if (arrived.Count > 0)
+                {
+                    PartnerAvailabilityChanged?.Invoke(this, EventArgs.Empty);
+                }
+
+                if (!done)
+                {
+                    continue;
+                }
+
+                if (store.IsAlive)
+                {
+                    await StopSessionAsync(store, CancellationToken.None).ConfigureAwait(false);
+
+                    // A deliberate close, like the others: with the panel
+                    // hidden and no game window, the application must not
+                    // stay alive with nothing on screen.
+                    NotifyIfNothingLeft();
+                }
+
+                return;
+            }
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            LogStoreWatchFailed(exception);
+        }
+        finally
+        {
+            lock (_awaitedLock)
+            {
+                _ = _awaitedInstalls.Remove(store.Id);
+            }
         }
     }
 
@@ -2068,11 +2136,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // 1080x1920 at 320 dpi, it is the ordinary page.
             if (instance.IsTransient)
             {
+                // Never the sound either: a phone's sound goes to its first
+                // window and is not handed back, and the store must not take
+                // it from the game opened next.
                 display = display with
                 {
                     VirtualDisplayWidth = 1080,
                     VirtualDisplayHeight = 1920,
                     VirtualDisplayDpi = 320,
+                    AudioEnabled = false,
                 };
             }
 
@@ -3963,6 +4035,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
             LogHotkeyFailure(exception);
         }
     }
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "La surveillance d'une installation depuis le Play Store a échoué.")]
+    private partial void LogStoreWatchFailed(Exception exception);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "{App} installée sur {Device} : la fenêtre du Play Store se ferme.")]
     private partial void LogPartnerInstalled(string app, string device);
