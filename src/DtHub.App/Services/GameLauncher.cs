@@ -793,6 +793,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
     public IReadOnlyList<PartnerAvailability> PartnerAvailability { get; private set; } =
         PartnerApps.Availability([]);
 
+    /// <summary>Raised after each sweep, off the interface thread.</summary>
+    public event EventHandler? PartnerAvailabilityChanged;
+
     /// <summary>The display name of each phone seen at the last sweep.</summary>
     public IReadOnlyDictionary<string, string> PartnerDeviceNames { get; private set; } =
         new Dictionary<string, string>(StringComparer.Ordinal);
@@ -925,6 +928,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
         PartnerDeviceNames = devices
             .Where(d => d.IsConnected)
             .ToDictionary(d => d.Id, d => d.DisplayName, StringComparer.Ordinal);
+
+        PartnerAvailabilityChanged?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>

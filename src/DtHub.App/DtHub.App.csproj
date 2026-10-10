@@ -36,6 +36,9 @@
     <!-- The papycha.fr logo, used with their agreement. See
          THIRD-PARTY-NOTICES.md: it is not covered by the MIT licence. -->
     <Resource Include="..\..\assets\papycha.png" Link="assets\papycha.png" />
+    <!-- MakeInTouch's icons, shown with its agreement, see THIRD-PARTY-NOTICES.md. -->
+    <Resource Include="..\..\assets\dtstuff.png" Link="assets\dtstuff.png" />
+    <Resource Include="..\..\assets\ocrapp.png" Link="assets\ocrapp.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -65,6 +68,8 @@
            Text="The icon handed to scrcpy is no longer embedded: app.png is missing from Resource." />
     <Error Condition="'@(Resource->WithMetadataValue('Link', 'assets\papycha.png'))' == ''"
            Text="The guide logo is no longer embedded: papycha.png is missing from Resource." />
+    <Error Condition="'@(Resource->WithMetadataValue('Link', 'assets\dtstuff.png'))' == '' Or '@(Resource->WithMetadataValue('Link', 'assets\ocrapp.png'))' == ''"
+           Text="A MakeInTouch icon is no longer embedded: dtstuff.png or ocrapp.png is missing from Resource." />
 
     <!-- The filter above drops the translations "without a word", and
          nothing in the published binary lets you notice it: the embedded

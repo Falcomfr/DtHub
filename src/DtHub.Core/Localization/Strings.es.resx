@@ -2102,4 +2102,34 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="PlayStoreMissing" xml:space="preserve">
     <value>Google Play Store no está en este dispositivo.</value>
   </data>
+  <data name="PartnerBlockHeading" xml:space="preserve">
+    <value>Las apps de MakeInTouch para DOFUS Touch</value>
+  </data>
+  <data name="PartnerDtStuffLine" xml:space="preserve">
+    <value>Optimiza tu equipo y crea los mejores stuffs.</value>
+  </data>
+  <data name="PartnerOcrAppLine" xml:space="preserve">
+    <value>Lánzate a la conquista del Dofus Ocre.</value>
+  </data>
+  <data name="PartnerInstall" xml:space="preserve">
+    <value>Instalar</value>
+  </data>
+  <data name="PartnerOpen" xml:space="preserve">
+    <value>Abrir</value>
+  </data>
+  <data name="PartnerBlockHide" xml:space="preserve">
+    <value>Ocultar</value>
+  </data>
+  <data name="PartnerBlockShow" xml:space="preserve">
+    <value>Mostrar las apps de MakeInTouch</value>
+  </data>
+  <data name="PartnerNoDevice" xml:space="preserve">
+    <value>Conecta primero un dispositivo</value>
+  </data>
+  <data name="PartnerOnPhone" xml:space="preserve">
+    <value>Desbloquea tu teléfono y pulsa Instalar.</value>
+  </data>
+  <data name="PartnerFailed" xml:space="preserve">
+    <value>No se pudo abrir {0} en este dispositivo.</value>
+  </data>
 </root>

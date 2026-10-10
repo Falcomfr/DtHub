@@ -9,6 +9,7 @@ using DtHub.App.Services;
 using DtHub.Core;
 using DtHub.Core.Adb;
 using DtHub.Core.Devices;
+using DtHub.Core.Dofus;
 using DtHub.Core.Hotkeys;
 using DtHub.Core.Localization;
 using DtHub.Core.Settings;
@@ -75,6 +76,86 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         // touches no session, yet both arrangement shortcuts still
         // have to disappear.
         _launcher.ArrangeableChanged += OnArrangeableChanged;
+
+        // Every sweep may have seen a MakeInTouch app appear or go: the
+        // block follows, on the interface thread.
+        _launcher.PartnerAvailabilityChanged += (_, _) =>
+            System.Windows.Application.Current?.Dispatcher.InvokeAsync(RebuildPartnerTiles);
+
+        RebuildPartnerTiles();
+    }
+
+    /// <summary>The MakeInTouch apps, at the bottom of the Devices tab.</summary>
+    public System.Collections.ObjectModel.ObservableCollection<PartnerTileViewModel> PartnerTiles { get; } = [];
+
+    /// <summary>True once the player has hidden the MakeInTouch block.</summary>
+    [ObservableProperty]
+    private bool _partnerBlockHidden;
+
+    partial void OnPartnerBlockHiddenChanged(bool value)
+    {
+        if (_loading)
+        {
+            return;
+        }
+
+        _ = SaveAsync(settings => settings.PartnerAppsCardHidden = value);
+    }
+
+    [RelayCommand]
+    private void HidePartnerBlock() => PartnerBlockHidden = true;
+
+    [RelayCommand]
+    private void ShowPartnerBlock() => PartnerBlockHidden = false;
+
+    /// <summary>
+    /// One tile per app: installed somewhere, it opens on the phones that
+    /// have it; installed nowhere, it installs on the phones that lack it.
+    /// </summary>
+    private void RebuildPartnerTiles()
+    {
+        PartnerTiles.Clear();
+
+        foreach (var availability in _launcher.PartnerAvailability)
+        {
+            var installed = availability.WithApp.Count > 0;
+            var app = availability.App;
+
+            PartnerTiles.Add(new PartnerTileViewModel(
+                app,
+                installed,
+                [.. (installed ? availability.WithApp : availability.WithoutApp).Select(deviceId =>
+                    new PartnerTarget(
+                        _launcher.PartnerDeviceNames.GetValueOrDefault(deviceId, deviceId),
+                        new AsyncRelayCommand(() => ActOnPartnerAsync(app, installed, deviceId))))]));
+        }
+    }
+
+    /// <summary>
+    /// Opens the app, or its store page. Anything but a window on the PC is
+    /// said in the banner: the page went to the phone, or nothing opened.
+    /// </summary>
+    private async Task ActOnPartnerAsync(PartnerApp app, bool installed, string deviceId)
+    {
+        var outcome = installed
+            ? await _launcher.OpenPartnerAppAsync(deviceId, app.PackageName).ConfigureAwait(true)
+            : await _launcher.OpenStoreAsync(deviceId, app.PackageName).ConfigureAwait(true);
+
+        switch (outcome)
+        {
+            case PartnerOpening.OnPhone:
+                Instances.ShowBanner(Strings.Get("PartnerOnPhone"));
+                break;
+            case PartnerOpening.StoreMissing:
+                Instances.ShowBanner(Strings.Get("PlayStoreMissing"));
+                break;
+            case PartnerOpening.Failed:
+                Instances.ShowBanner(Strings.Format("PartnerFailed", app.Name));
+                break;
+            case PartnerOpening.InWindow:
+            default:
+                break;
+        }
     }
 
     /// <summary>
@@ -631,6 +712,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             UpdatesAutomatic = settings.UpdatesAutomatic;
             StopAppOnClose = settings.StopAppOnClose;
             TurnScreenOff = settings.TurnScreenOff;
+            PartnerBlockHidden = settings.PartnerAppsCardHidden;
             SimulatedPhysicalKeyboard = settings.SimulatedPhysicalKeyboard;
             SimulatedPhysicalMouse = settings.SimulatedPhysicalMouse;
             Language = settings.Language;

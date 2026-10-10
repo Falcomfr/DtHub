@@ -363,6 +363,48 @@ public partial class ConfiguratorWindow : Window
 
     private void OnHide(object sender, RoutedEventArgs e) => Vanish();
 
+    /// <summary>The Help button opens its menu on a plain click.</summary>
+    private void OnDevicesHelp(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { ContextMenu: { } menu } button)
+        {
+            menu.PlacementTarget = button;
+            menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Top;
+            menu.IsOpen = true;
+        }
+    }
+
+    /// <summary>
+    /// A MakeInTouch app's button: one phone acts at once, several are
+    /// offered in a menu under their names.
+    /// </summary>
+    private void OnPartnerAct(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { DataContext: ViewModels.PartnerTileViewModel tile } button)
+        {
+            return;
+        }
+
+        if (tile.Targets.Count == 1)
+        {
+            tile.Targets[0].Act.Execute(null);
+            return;
+        }
+
+        var menu = new System.Windows.Controls.ContextMenu
+        {
+            PlacementTarget = button,
+            Placement = System.Windows.Controls.Primitives.PlacementMode.Top,
+        };
+
+        foreach (var target in tile.Targets)
+        {
+            menu.Items.Add(new System.Windows.Controls.MenuItem { Header = target.DeviceName, Command = target.Act });
+        }
+
+        menu.IsOpen = true;
+    }
+
     private void OnSleepHelp(object sender, RoutedEventArgs e)
     {
         var help = AppHost.Services.GetRequiredService<SleepHelpWindow>();

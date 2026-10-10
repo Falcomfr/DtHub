@@ -20,6 +20,7 @@ No copyright notice or third-party licence text may be removed.
 | Microsoft.Web.WebView2 | Proprietary Microsoft licence | NuGet package, engine provided by Windows |
 | papycha.fr logo | Author's agreement, see below | File embedded in the executable |
 | Discord logo | Discord's brand guidelines, see below | Vector outline in the configurator's XAML |
+| DTStuff and OcrApp icons | MakeInTouch's agreement, see below | Files embedded in the executable |
 | papycha.fr quest data | Proprietary, see below | File embedded in the executable |
 | xUnit, coverlet | Apache License 2.0, MIT | Test dependencies, not distributed |
 
@@ -150,6 +151,23 @@ neighbours.
 
 **The mark is not covered by DT Hub's MIT licence.** It remains
 Discord's trademark. DT Hub is not affiliated with Discord.
+
+## DTStuff and OcrApp icons
+
+- Source: the icons of the two apps' Play Store pages,
+  https://play.google.com/store/apps/details?id=com.makeintouch.dtstuff and
+  https://play.google.com/store/apps/details?id=com.makeintouch.ocrapp,
+  at 128 pixels
+- Files: `assets/dtstuff.png`, `assets/ocrapp.png`, embedded in the executable
+- Recorded on 2026-10-10, **with MakeInTouch's agreement**, as stated by the
+  project owner
+
+They mark the two apps in the MakeInTouch block at the bottom of the Devices
+tab, next to their names.
+
+**These files are not covered by DT Hub's MIT licence.** The agreement
+applies to DT Hub, not to anyone reusing this repository, who must contact
+MakeInTouch.
 
 ## papycha.fr logo
 
