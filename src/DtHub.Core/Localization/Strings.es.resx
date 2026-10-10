@@ -294,7 +294,7 @@
     <value>Vincular un aparato nuevo</value>
   </data>
   <data name="PairDeviceTip" xml:space="preserve">
-    <value>Se hace una sola vez por aparato. Los aparatos ya vinculados se conectan solos.</value>
+    <value>Se hace una sola vez por aparato. Los aparatos ya vinculados se conectan solos. Solo para la conexión inalámbrica: por USB, basta con conectar el cable.</value>
   </data>
   <data name="Profiles" xml:space="preserve">
     <value>Perfiles</value>
@@ -1318,7 +1318,7 @@ El detalle está en los registros:
     <value>¿Olvidar {0}?</value>
   </data>
   <data name="ForgetDeviceConsequence" xml:space="preserve">
-    <value>Sus cuentas y sus ajustes se borrarán, y este PC dejará de conectarse solo. El teléfono conserva su propia lista: quita este PC desde « Depuración inalámbrica » si también quieres borrarlo allí.</value>
+    <value>Sus cuentas y sus ajustes se borrarán, y este PC dejará de conectarse solo. El teléfono conserva su propia lista: quita este PC desde « Depuración inalámbrica » si también quieres borrarlo allí. Para recuperarlo, vuelve a conectar su cable USB o vincúlalo de nuevo de forma inalámbrica.</value>
   </data>
   <data name="GameNotInstalled" xml:space="preserve">
     <value>Juego no instalado</value>

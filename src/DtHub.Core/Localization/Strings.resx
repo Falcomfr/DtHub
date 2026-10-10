@@ -294,7 +294,7 @@
     <value>Pair a new device</value>
   </data>
   <data name="PairDeviceTip" xml:space="preserve">
-    <value>To be done once per device. Devices already paired connect on their own.</value>
+    <value>To be done once per device. Devices already paired connect on their own. Wireless only: over USB, plugging in the cable is enough.</value>
   </data>
   <data name="Profiles" xml:space="preserve">
     <value>Profiles</value>
@@ -1318,7 +1318,7 @@ The detail is in the logs:
     <value>Forget {0}?</value>
   </data>
   <data name="ForgetDeviceConsequence" xml:space="preserve">
-    <value>Its accounts and their settings will be erased, and this PC will stop connecting to it on its own. The phone keeps its own record: remove it from « Wireless debugging » if you want it gone there too.</value>
+    <value>Its accounts and their settings will be erased, and this PC will stop connecting to it on its own. The phone keeps its own record: remove it from « Wireless debugging » if you want it gone there too. To bring it back, plug its USB cable back in or pair it again wirelessly.</value>
   </data>
   <data name="GameNotInstalled" xml:space="preserve">
     <value>Game not installed</value>

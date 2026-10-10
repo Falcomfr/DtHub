@@ -294,7 +294,7 @@
     <value>Associer un nouvel appareil</value>
   </data>
   <data name="PairDeviceTip" xml:space="preserve">
-    <value>À faire une seule fois par appareil. Les appareils déjà associés se connectent tout seuls.</value>
+    <value>À faire une seule fois par appareil. Les appareils déjà associés se connectent tout seuls. Seulement pour le sans-fil : en USB, il suffit de brancher le câble.</value>
   </data>
   <data name="Profiles" xml:space="preserve">
     <value>Profils</value>
@@ -1318,7 +1318,7 @@ Le détail se trouve dans les journaux :
     <value>Oublier {0} ?</value>
   </data>
   <data name="ForgetDeviceConsequence" xml:space="preserve">
-    <value>Ses comptes et leurs réglages seront effacés, et ce PC cessera de s'y connecter de lui-même. Le téléphone garde sa propre liste : retirez-y ce PC depuis « Débogage sans fil » si vous voulez l'en effacer aussi.</value>
+    <value>Ses comptes et leurs réglages seront effacés, et ce PC cessera de s'y connecter de lui-même. Le téléphone garde sa propre liste : retirez-y ce PC depuis « Débogage sans fil » si vous voulez l'en effacer aussi. Pour le retrouver, rebranchez son câble USB ou associez-le à nouveau en sans-fil.</value>
   </data>
   <data name="GameNotInstalled" xml:space="preserve">
     <value>Jeu non installé</value>

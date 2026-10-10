@@ -27,6 +27,9 @@ public sealed class DeviceDiscoveryService : IDisposable
     private readonly IDeviceRegistry _registry;
     private readonly SemaphoreSlim _gate = new(1, 1);
 
+    /// <summary>Devices seen over USB by the previous scan.</summary>
+    private HashSet<string> _onUsb = new(StringComparer.Ordinal);
+
     public DeviceDiscoveryService(IAdbClient adb, IDeviceRegistry registry)
     {
         _adb = adb;
@@ -796,15 +799,36 @@ public sealed class DeviceDiscoveryService : IDisposable
         // connected over Wi-Fi. We keep the better of the two entries.
         var deduplicated = Deduplicate(discovered);
 
+        // Plugging the cable in lifts a discard, as pairing does over
+        // Wi-Fi: a USB phone is never paired, so before this it stayed
+        // hidden for good. Only a new plug counts, so a phone discarded
+        // while plugged in stays out until it is unplugged.
+        var onUsb = deduplicated
+            .Where(d => d.ConnectionKind == AdbConnectionKind.Usb)
+            .Select(d => d.Id)
+            .ToHashSet(StringComparer.Ordinal);
+
+        var pluggedBack = onUsb.Where(id => discarded.Contains(id) && !_onUsb.Contains(id)).ToList();
+
+        foreach (var id in pluggedBack)
+        {
+            await _registry.WelcomeBackAsync(id, cancellationToken).ConfigureAwait(false);
+        }
+
+        // The snapshot predates the lift, hence a set of its own.
+        var hidden = discarded.Except(pluggedBack, StringComparer.Ordinal).ToHashSet(StringComparer.Ordinal);
+
+        _onUsb = onUsb;
+
         // A discarded device drops out of the entire scan, not just out of the
         // write to the registry. The ADB disconnect does not hold forever: the
         // server rejoins on its own a phone that announces itself and whose
         // key it has kept, whether the server restarts or wireless debugging
         // gets turned back on. Filtering only the registry used to let the
         // entry come back on screen, which is the reported bug.
-        var merged = discarded.Count == 0
+        var merged = hidden.Count == 0
             ? deduplicated
-            : deduplicated.Where(d => !discarded.Contains(d.Id)).ToList();
+            : deduplicated.Where(d => !hidden.Contains(d.Id)).ToList();
 
         await _registry.UpsertRangeAsync(merged, cancellationToken).ConfigureAwait(false);
 
@@ -812,7 +836,7 @@ public sealed class DeviceDiscoveryService : IDisposable
 
         // What is remembered is filtered like what is discovered: a discarded
         // device has no business coming back through the offline list.
-        var offline = known.Where(d => !seen.Contains(d.Id) && !discarded.Contains(d.Id));
+        var offline = known.Where(d => !seen.Contains(d.Id) && !hidden.Contains(d.Id));
 
         var all = merged
             .Concat(offline)

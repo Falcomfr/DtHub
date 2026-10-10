@@ -563,16 +563,16 @@ public class DeviceDiscoveryServiceTests
         // The reported defect: breaking the association did erase the
         // entry, but the next scan then put it right back, since the
         // phone was still reachable. The break therefore only lasted a
-        // moment.
+        // moment. Over Wi-Fi: a cable plugged in lifts the break.
         var adb = new FakeAdbClient
         {
             DevicesOutput = """
                 List of devices attached
-                USB0001  device usb:1-2 transport_id:1
+                192.168.1.16:44477  device product:corot_global transport_id:1
                 USB0002  device usb:1-3 transport_id:2
                 """,
         }
-            .WithProperties("USB0001", XiaomiProps)
+            .WithProperties("192.168.1.16:44477", XiaomiProps)
             .WithProperties("USB0002", SamsungProps);
 
         var registry = new InMemoryDeviceRegistry();
@@ -614,5 +614,32 @@ public class DeviceDiscoveryServiceTests
         var discovery = await service.RefreshAsync(CancellationToken.None);
 
         Assert.Empty(discovery.Devices);
+    }
+
+    [Fact]
+    public async Task Un_appareil_ecarte_revient_quand_on_rebranche_le_cable()
+    {
+        // The reported defect: only a wireless pairing lifted the break,
+        // so a phone discarded and then plugged in over USB stayed hidden
+        // for good. Plugging the cable back in is the USB counterpart of
+        // pairing; staying plugged in is not.
+        const string Plugged = "List of devices attached\nUSB0001 device usb:1-2\n";
+
+        var adb = new FakeAdbClient { DevicesOutput = Plugged }.WithProperties("USB0001", XiaomiProps);
+        var registry = new InMemoryDeviceRegistry();
+        using var service = new DeviceDiscoveryService(adb, registry);
+
+        Assert.Single((await service.RefreshAsync(CancellationToken.None)).Devices);
+
+        _ = registry.Discarded.Add("MATERIEL123");
+
+        Assert.Empty((await service.RefreshAsync(CancellationToken.None)).Devices);
+
+        adb.DevicesOutput = "List of devices attached\n";
+        _ = await service.RefreshAsync(CancellationToken.None);
+        adb.DevicesOutput = Plugged;
+
+        Assert.Equal("MATERIEL123", Assert.Single((await service.RefreshAsync(CancellationToken.None)).Devices).Id);
+        Assert.Empty(registry.Discarded);
     }
 }
