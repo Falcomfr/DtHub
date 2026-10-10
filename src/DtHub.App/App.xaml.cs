@@ -513,6 +513,10 @@ public partial class App : Application, IDisposable
     {
         Log.Information("Fin de session Windows : l'état est retenu avant l'arrêt.");
 
+        // The shutdown follows, and with it the same trap as in
+        // RequestQuitAsync.
+        _quitting = true;
+
         var frame = new DispatcherFrame();
 
         var limit = new DispatcherTimer(
@@ -541,6 +545,13 @@ public partial class App : Application, IDisposable
     /// </summary>
     internal async Task RequestQuitAsync()
     {
+        // Before anything else: the shutdown closes the tabbed frame,
+        // whose accounts closing one by one report that nothing is left.
+        // OnNothingLeft then saved the panel as hidden, over what was
+        // just saved here. Measured on 2026-10-10: quitting with the
+        // panel shown brought it back hidden at the next launch.
+        _quitting = true;
+
         // Quitting from the panel or via the shortcut: its state at
         // that moment is what counts.
         await SaveSessionStateAsync(_configurator?.IsVisible == true).ConfigureAwait(true);
