@@ -16,6 +16,22 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.7.10] - 2026-10-10
+
+### Changed
+
+- The pairing tip and the removal confirmation say that pairing is for
+  wireless only, and how to bring a removed phone back.
+
+### Fixed
+
+- A removed phone comes back as soon as its USB cable is plugged in again.
+- The settings chip and the buttons of each account stay in line from one
+  row to the next, whatever distance or quality is shown, and beside an
+  added app.
+- The buttons on the right no longer shift when the device list starts
+  scrolling.
+
 ## [0.7.9] - 2026-10-04
 
 ### Added

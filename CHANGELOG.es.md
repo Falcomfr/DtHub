@@ -10,6 +10,23 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.7.10] - 2026-10-10
+
+### Cambiado
+
+- La ayuda del botón de vinculación y la confirmación de eliminación indican
+  que la vinculación solo sirve para la conexión inalámbrica, y cómo recuperar
+  un aparato eliminado.
+
+### Corregido
+
+- Un aparato eliminado vuelve en cuanto se conecta de nuevo su cable USB.
+- La pastilla de ajustes y los botones de cada cuenta quedan alineados de una
+  fila a otra, sea cual sea la distancia o la calidad mostrada, y junto a una
+  aplicación añadida.
+- Los botones de la derecha ya no se desplazan cuando la lista de aparatos
+  empieza a desplazarse.
+
 ## [0.7.9] - 2026-10-04
 
 ### Añadido

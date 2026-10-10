@@ -11,6 +11,23 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.7.10] - 2026-10-10
+
+### Modifié
+
+- L'aide du bouton d'association et la confirmation de suppression précisent
+  que l'association ne sert qu'au sans-fil, et comment retrouver un appareil
+  supprimé.
+
+### Corrigé
+
+- Un appareil supprimé revient dès que son câble USB est rebranché.
+- La puce de réglages et les boutons de chaque compte restent alignés d'une
+  ligne à l'autre, quelle que soit la distance ou la qualité affichée, et à
+  côté d'une application ajoutée.
+- Les boutons de droite ne se décalent plus quand la liste des appareils se
+  met à défiler.
+
 ## [0.7.9] - 2026-10-04
 
 ### Ajouté
