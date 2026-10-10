@@ -48,7 +48,7 @@
 - [ ] **Step 2: Run** `dotnet test --filter FullyQualifiedName~PartnerAppsTests`, expect a compile failure on `PartnerApps`.
 - [ ] **Step 3: Implement `PartnerApps`.**
 - [ ] **Step 4: Run, expect PASS.**
-- [ ] **Step 5: Commit** — `Know the MakeInTouch apps and which phones have them`
+- [ ] **Step 5: Commit** - `Know the MakeInTouch apps and which phones have them`
 
 ### Task 2: The hidden block setting, and the sweep
 
@@ -69,7 +69,7 @@
 - [ ] **Step 1: Failing test** `Retient_le_bloc_MakeInTouch_masque`, then implement the setting.
 - [ ] **Step 2:** In `RefreshInstancesAsync`, after `_devices.RefreshAsync`: for each connected device, `TryListPackagesAsync(serial, 0)` (null means the device is left out of this sweep's availability), then `PartnerApps = PartnerApps.Availability(...)`. One `pm list packages` per device and sweep.
 - [ ] **Step 3:** Build, full suite. `GameLauncher` has no unit test (App project); covered by Task 5.
-- [ ] **Step 4: Commit** — `Look for the MakeInTouch apps on every sweep`
+- [ ] **Step 4: Commit** - `Look for the MakeInTouch apps on every sweep`
 
 ### Task 3: Transient windows: store page and app
 
@@ -92,7 +92,7 @@
 - [ ] **Step 2: Run, expect compile failure.**
 - [ ] **Step 3: Implement** `UriArguments` and `OpenUriAsync`. In `LaunchGameAsync`, when `session.Target.StartUri` is set: no `ForceStopAsync`, `OpenUriAsync` instead of `LaunchAsync`.
 - [ ] **Step 4: Implement the two `GameLauncher` methods.** Store: transient `DofusInstance` with `PackageName = "com.android.vending"`, `UserId = 0`, `AppLabel = "Play Store - " + Name`, `StartUri = StoreUri(package)`, `IsTransient = true`. App: `PackageName = package`, `AppLabel = Name`, `LaunchComponent` from `ResolveComponentAsync`, `IsTransient = true`. Both through the existing private `LaunchAsync(instances, remembered: null)`. Then go through every settings write on the launch and close paths (enabled set, geometry capture, tabs, playtime, recovery) and skip it for `IsTransient` (Review Focus 1). A live session with the same key: bring its window forward, return `InWindow` (Focus 2). Store launch that opened nothing: `OpenUriAsync(serial, 0, uri, null)`, return `OnPhone` or `StoreMissing`. Device gone: `Failed` (Focus 4).
-- [ ] **Step 5: Full suite, expect PASS. Commit** — `Open the Play Store page and the MakeInTouch apps in passing windows`
+- [ ] **Step 5: Full suite, expect PASS. Commit** - `Open the Play Store page and the MakeInTouch apps in passing windows`
 
 ### Task 4: Help menu and the MakeInTouch block
 
@@ -110,7 +110,7 @@
 - [ ] **Step 1: Strings**, French copy (English and Spanish to match): `DevicesHelp` « Aide »; `PartnerBlockHeading` « Les apps de MakeInTouch pour DOFUS Touch »; `PartnerDtStuffLine` « Optimisez vos équipements et créez les meilleurs stuffs. »; `PartnerOcrAppLine` « Partez à la conquête du Dofus Ocre. »; `PartnerInstall` « Installer »; `PartnerOpen` « Ouvrir »; `PartnerBlockHide` « Masquer »; `PartnerBlockShow` « Afficher les apps de MakeInTouch »; `PartnerNoDevice` « Connectez d'abord un appareil »; `PartnerOnPhone` « Déverrouillez votre téléphone et appuyez sur Installer. »; `PlayStoreMissing` « Le Play Store est absent de cet appareil. »; `PartnerFailed` « Impossible d'ouvrir {0} sur cet appareil. »
 - [ ] **Step 2: XAML.** The two quiet buttons go into a `ContextMenu` of one `Help` button, same visibility binding. Below, the block (`Card` style, accent tint), one entry per app: compact line with Open when installed, presentation with Install otherwise; close cross top right; the 16 px show-again button when hidden. Several target devices: the button opens a `ContextMenu` of their names. Outcomes other than `InWindow` go to the panel's banner.
 - [ ] **Step 3:** Build, full suite, render with the throwaway WPF program outside the repository: light and dark, French, both presentations, one installed and one not, hidden. Show the user.
-- [ ] **Step 4: Commit** — `Present the MakeInTouch apps under a Help menu`
+- [ ] **Step 4: Commit** - `Present the MakeInTouch apps under a Help menu`
 
 ### Task 5: On a phone, then the record
 
@@ -118,4 +118,4 @@
 - Modify: `docs/DECISIONS.md` (D181, in French as the file is)
 
 - [ ] **Step 1: Manual check on the 13T Pro, with the user:** the block shows; Install opens the store window; once DTStuff is installed, its line turns into Open at the next sweep; Open opens DTStuff in a window; quit and relaunch: no store or DTStuff window reopens, no new account row; the panel's state survives the quit.
-- [ ] **Step 2:** D181, then commit — `Record the MakeInTouch block`
+- [ ] **Step 2:** D181, then commit - `Record the MakeInTouch block`
