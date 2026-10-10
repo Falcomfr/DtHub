@@ -240,6 +240,16 @@ is its precision, and the 0.1.0 and 0.2.0 sections of the changelog, published
 before the rule. Conventions are set out in
 [CONTRIBUTING.md](CONTRIBUTING.md) and `AGENTS.md`.
 
+## Thanks
+
+- [papycha.fr](https://papycha.fr), whose guides DT Hub shows with their
+  agreement, and [their Discord](https://discord.gg/b8MHM9v).
+- Lomitall, who presented DT Hub in a video:
+  [YouTube channel](https://www.youtube.com/@Lomitall) and
+  [Discord](https://discord.gg/RnKWEX2n5V).
+- [scrcpy](https://github.com/Genymobile/scrcpy), which carries the whole
+  mirroring.
+
 ## Licences
 
 DT Hub is released under the [MIT licence](LICENSE). Third party components
