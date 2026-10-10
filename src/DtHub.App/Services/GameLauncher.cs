@@ -896,14 +896,21 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
     }
 
-    /// <summary>Opens an installed MakeInTouch app in a window on the PC.</summary>
+    /// <summary>
+    /// Opens an installed MakeInTouch app on the phone's own screen.
+    ///
+    /// Not in a window on the PC, and measured why on 2026-10-10, 13T Pro,
+    /// Android 16: such a window's virtual display has its own power group,
+    /// which Android puts to sleep with the phone. Within a minute the window
+    /// turned black and ignored clicks. A battery exemption, a longer screen
+    /// timeout and simulated activity every 20 s each failed to keep it
+    /// awake. DOFUS Touch escapes it, these two apps do not.
+    /// </summary>
     public async Task<PartnerOpening> OpenPartnerAppAsync(
         string deviceId,
         string packageName,
         CancellationToken cancellationToken = default)
     {
-        var app = PartnerApps.All.First(a => string.Equals(a.PackageName, packageName, StringComparison.Ordinal));
-
         if (!_serials.TryGetValue(deviceId, out var serial))
         {
             return PartnerOpening.Failed;
@@ -912,21 +919,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         var component = await _instances.ResolveComponentAsync(serial, 0, packageName, cancellationToken)
             .ConfigureAwait(false);
 
-        return await OpenPassingAsync(
-            deviceId,
-            new DofusInstance
-            {
-                DeviceId = deviceId,
-                DeviceName = PartnerDeviceNames.GetValueOrDefault(deviceId, deviceId),
-                UserId = 0,
-                UserName = app.Name,
-                PackageName = packageName,
-                LaunchComponent = component?.Value,
-                AppLabel = app.Name,
-                IsTransient = true,
-                IsDeviceConnected = true,
-            },
-            cancellationToken).ConfigureAwait(false);
+        var launch = await _appLauncher
+            .LaunchAsync(serial, 0, packageName, component?.Value, displayId: null, cancellationToken)
+            .ConfigureAwait(false);
+
+        return launch.Succeeded ? PartnerOpening.OpenedOnPhone : PartnerOpening.Failed;
     }
 
     /// <summary>
@@ -4188,6 +4185,9 @@ public enum PartnerOpening
 
     /// <summary>On the phone's own screen, the window having failed.</summary>
     OnPhone,
+
+    /// <summary>An installed app, opened on the phone's own screen.</summary>
+    OpenedOnPhone,
 
     /// <summary>The phone has no Play Store.</summary>
     StoreMissing,

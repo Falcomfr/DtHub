@@ -126,6 +126,9 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             case PartnerOpening.OnPhone:
                 Instances.ShowBanner(Strings.Get("PartnerOnPhone"));
                 break;
+            case PartnerOpening.OpenedOnPhone:
+                Instances.ShowBanner(Strings.Format("PartnerOpenedOnPhone", app.Name));
+                break;
             case PartnerOpening.StoreMissing:
                 Instances.ShowBanner(Strings.Get("PlayStoreMissing"));
                 break;

@@ -9638,3 +9638,54 @@ la vraie réponse : SignPath demande un projet déjà connu, pas encore le cas.
 
 **Écarté** : demander une exclusion au joueur, pour la raison déjà écrite
 dans `docs/CONFIANCE.md`.
+
+## D181 - Les outils DOFUS Touch : installer depuis le PC, ouvrir sur le téléphone
+
+**Date** : 2026-10-11
+
+**La demande.** Proposer DTStuff et OcrApp, deux apps de MakeInTouch qui a
+donné son accord pour leurs noms et leurs icônes, aider à les installer, et les
+ouvrir une fois installées. Discrètement : le premier encart coloré a été jugé
+« beaucoup trop visible » à la première vue. Il est devenu un petit bouton
+« Outils DOFUS Touch », en bas de l'onglet Appareils, qui ouvre un panneau vers
+le haut par-dessus la liste. Le nom ne cite pas MakeInTouch : d'autres outils
+pourront y entrer. Les deux questions d'aide qui occupaient ce bas d'onglet sont
+passées derrière un bouton « Aide », à droite.
+
+**L'installation passe par le Play Store, dans une fenêtre sur le PC.** Google
+ne laisse rien installer par adb depuis son Store, et appuyer sur « Installer »
+à la place du joueur dépend de la langue, de la mise en page et d'un téléphone
+déverrouillé. DT Hub ouvre donc `market://details?id=…` sur un écran virtuel,
+et le joueur clique lui-même. Trois mesures ont fixé la forme de cette fenêtre :
+
+- sur l'écran paysage du jeu, 1920x1080, la page du Store cassait sa propre mise
+  en page, le texte revenant à la ligne lettre par lettre ; en portrait,
+  1080x1920 à 320 ppp, c'est la page ordinaire ;
+- une fenêtre laissée au dimensionnement de scrcpy ignorait les clics jusqu'à un
+  redimensionnement à la main : DT Hub la place, comme une fenêtre de jeu ;
+- un seul Play Store par téléphone, donc une seule fenêtre, réutilisée pour la
+  page de l'autre app. Son identité est celle du Store : deux fenêtres auraient
+  porté la même, et la seconde ne faisait que ramener la première.
+
+Le Store n'est ni arrêté avant d'ouvrir la page ni à la fermeture de la fenêtre :
+ce serait annuler un téléchargement. Pendant que la fenêtre est ouverte, DT Hub
+regarde toutes les trois secondes si l'app est arrivée ; elle passe alors à
+« Ouvrir » et la fenêtre se ferme. Ces fenêtres sont passagères : jamais
+rouvertes au lancement suivant, ni rangées avec les fenêtres de jeu, ni comptées
+dans les réglages.
+
+**L'ouverture se fait sur l'écran du téléphone, et c'est la mesure qui l'a
+imposé.** Dans une fenêtre sur le PC, DTStuff devenait noir au bout d'une minute
+et ne répondait plus. L'écran virtuel a son propre groupe d'affichage
+(`FLAG_OWN_DISPLAY_GROUP`), qu'Android 16 endort avec le téléphone, au délai de
+mise en veille, soixante secondes sur le 13T Pro. Trois remèdes, aucun suffisant :
+l'exemption de batterie, `--screen-off-timeout=1800` (la fenêtre tient un peu
+plus, puis noircit), une touche neutre envoyée toutes les vingt secondes. DOFUS
+Touch y échappe, très probablement parce qu'il demande à garder l'écran allumé.
+Une piste écartée en route : `input -d <écran> keyevent WAKEUP` réveille l'écran
+du téléphone, pas l'écran virtuel.
+
+**Écarté** : ajouter les apps comme lignes sous chaque téléphone, alors qu'elles
+s'ouvrent de temps en temps et pas à chaque lancement ; un menu système Windows
+pour choisir l'appareil, illisible sur le thème sombre, remplacé par un bouton
+par appareil.

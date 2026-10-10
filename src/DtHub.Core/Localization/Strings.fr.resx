@@ -2129,4 +2129,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="PartnerTargetLabel" xml:space="preserve">
     <value>{0} · {1}</value>
   </data>
+  <data name="PartnerOpenedOnPhone" xml:space="preserve">
+    <value>Déverrouillez votre téléphone : {0} y est ouvert.</value>
+  </data>
 </root>

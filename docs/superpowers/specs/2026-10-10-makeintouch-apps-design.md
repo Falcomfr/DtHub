@@ -1,7 +1,7 @@
 ﻿# MakeInTouch apps in the Devices tab
 
 **Date:** 2026-10-10
-**Status:** approved design, not implemented
+**Status:** implemented on branch feature/apps-makeintouch, revised after the user's review in the app
 
 ## Goal
 
@@ -91,15 +91,19 @@ from their Play Store pages and bundled with the application, as
 
 ### 3. Opening an installed app
 
-- **Open** targets a connected device that has the app (user 0). With one
-  such device it acts at once; with several, a small menu lists them by
-  display name.
-- The app opens in a window on the PC, on its own virtual display, like a
-  shown app.
-- The store window and the app window are **transient**: launched, never
-  remembered. They do not reopen at the next launch, do not become accounts,
-  and leave no geometry, tab or play time in the settings. A second click
-  while that window is open brings it forward instead of opening another.
+- **Open** targets a connected device that has the app (user 0), one button
+  per device when there is a choice.
+- The app opens **on the phone's own screen**, not in a window on the PC,
+  and the banner says "Unlock your phone: DTStuff is open on it."
+  Measured on 2026-10-10 (13T Pro, Android 16): a window's virtual display
+  has its own power group, which Android puts to sleep with the phone; the
+  window turned black within a minute and ignored clicks. A battery
+  exemption, a longer screen timeout and simulated activity each failed to
+  keep it awake. DOFUS Touch is not affected.
+- The store window is **transient**: launched, never remembered, portrait
+  1080x1920 at 320 dpi, placed by DT Hub, one per phone and reused for the
+  other app's page. While it is open the phone is watched every 3 seconds;
+  once the app is installed, its line turns to Open and the window closes.
 - Nothing is added to `ShownApps`; the "+" picker is unchanged.
 
 ### 4. Texts and languages
