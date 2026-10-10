@@ -6,8 +6,10 @@
 ## Goal
 
 DT Hub presents two DOFUS Touch companion apps by MakeInTouch, helps the
-player install them on a phone or tablet, and once installed shows them in
-the accounts list like a game account, only smaller. The two help questions
+player install them on a phone or tablet, and once installed lets them open
+it in a window on the PC from a compact line, choosing the device. These apps
+are opened now and then, not on every phone at every launch: they get one
+line each, not a row under every device. The two help questions
 at the bottom of the Devices tab move behind a single "Help" button to make
 room.
 
@@ -54,17 +56,17 @@ from their Play Store pages and bundled with the application, as
   menu holding the two existing entries, which open the same windows as
   today. The button is shown under the same condition as the two questions
   were (`ShowsWindowHelp`).
-- Below it, a coloured **card** presents, side by side or stacked depending on
-  the width, each MakeInTouch app **installed on no known device**: its icon,
-  its name, its one line, and an **Install** button.
-- A **close cross** on the card hides it. Once hidden, only a very small
-  button (a 16 px icon, with a tooltip naming the two apps) remains at the
-  bottom of the tab to show it again. The choice is a setting, kept across
-  launches (`PartnerAppsCardHidden`, default false).
-- When both apps are installed on at least one device each, the card and its
-  small button are gone.
-- With no device connected, the card still shows, its Install buttons
-  disabled, with "Connect a device first" in muted text.
+- Below it, a coloured **MakeInTouch block** holds one entry per app:
+  - an app **installed on at least one connected device** is a **compact
+    line**: 16 px icon, name, and an **Open** button;
+  - an app installed on none is a **presentation**: its icon, its name, its
+    one line, and an **Install** button.
+- A **close cross** hides the whole block, installed apps included. Once
+  hidden, only a very small button (a 16 px icon, with a tooltip naming the
+  two apps) remains at the bottom of the tab to show it again. The choice is a
+  setting, kept across launches (`PartnerAppsCardHidden`, default false).
+- With no device connected, the block still shows the presentations, their
+  Install buttons disabled, with "Connect a device first" in muted text.
 
 ### 2. Guided install
 
@@ -84,29 +86,26 @@ from their Play Store pages and bundled with the application, as
   "Activity not started, unable to resolve Intent"), DT Hub says the Play
   Store is missing on that device. AppGallery is left for later.
 - **After the install.** Nothing polls. The existing device scan finds the
-  new package (section 3); the store window is an ordinary session that the
-  player closes like any other.
+  new package, and the app's presentation turns into its compact line; the
+  store window is an ordinary session that the player closes like any other.
 
-### 3. Rows in the accounts list
+### 3. Opening an installed app
 
-- On each device scan, for each device where a MakeInTouch package is
-  installed (user 0 only), DT Hub adds a `StoredShownApp` for it **unless the
-  player removed it before** on that device.
-- Removing one with the bin records its key in a new setting,
-  `DeclinedPartnerApps` (a set of `StoredShownApp.Key`). A declined app is
-  never added again automatically on that device; ticking it again in the
-  "+" picker takes it out of that set.
-- The row is **compact**: one line, a 16 px icon instead of 20, no device
-  status line, smaller vertical padding. It opens its window like any shown
-  app, with its own virtual display, and keeps the bin and restart buttons.
-  It is placed after the game accounts of its device.
-- The row is compact only for the two MakeInTouch packages; other shown apps
-  keep today's layout.
+- **Open** targets a connected device that has the app (user 0). With one
+  such device it acts at once; with several, a small menu lists them by
+  display name.
+- The app opens in a window on the PC, on its own virtual display, like a
+  shown app.
+- The store window and the app window are **transient**: launched, never
+  remembered. They do not reopen at the next launch, do not become accounts,
+  and leave no geometry, tab or play time in the settings. A second click
+  while that window is open brings it forward instead of opening another.
+- Nothing is added to `ShownApps`; the "+" picker is unchanged.
 
 ### 4. Texts and languages
 
 All new texts in `Strings.resx`, `Strings.fr.resx` and `Strings.es.resx`:
-the Help button and its tooltip, the card's heading, the two one-line
+the Help button and its tooltip, the block's heading, Open, the two one-line
 descriptions, Install, the close and show-again tooltips, "Connect a device
 first", the route B message, and the missing Play Store message. The app
 names are not translated.
@@ -123,15 +122,15 @@ names are not translated.
 ## Testing
 
 - Unit tests, `DtHub.Tests`:
-  - which apps the card offers given the packages installed per device;
-  - auto-add skips a declined key, and ticking the app in the picker clears
-    the decline;
+  - for each app, which devices have it and which lack it, given the
+    packages installed per device; clone profiles do not count;
+  - the hidden block setting is kept;
   - the store intent's arguments, with and without `--display`;
   - reading "unable to resolve Intent" as a missing Play Store.
 - First step of the implementation, before anything else: open the Play
   Store page on a virtual display of the 13T Pro by hand, and record whether
   it renders and accepts clicks. If it does not, route B becomes the only
   route, and this spec is amended before going on.
-- The card, the Help menu and the compact row are checked with the
+- The block, its two kinds of entry and the Help menu are checked with the
   throwaway WPF program kept outside the repository, as for earlier changes
   to the list, in the light and dark themes, in French.
