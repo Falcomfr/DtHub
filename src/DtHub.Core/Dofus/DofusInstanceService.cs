@@ -221,7 +221,7 @@ public sealed class DofusInstanceService
 
         // Null when the profile did not answer: nothing is shown for it,
         // and its remembered rows stay, offline, as for the game.
-        if (await TryEnumerateAsync(device.Serial, user.Id, cancellationToken).ConfigureAwait(false)
+        if (await TryListPackagesAsync(device.Serial, user.Id, cancellationToken).ConfigureAwait(false)
             is not { } installed)
         {
             return [];
@@ -578,7 +578,7 @@ public sealed class DofusInstanceService
         // The extra call only happens on a profile that already looked
         // game-less, so at most twice per phone per sweep.
         if (matches.Count == 0
-            && await TryEnumerateAsync(serial, userId, cancellationToken).ConfigureAwait(false) is null)
+            && await TryListPackagesAsync(serial, userId, cancellationToken).ConfigureAwait(false) is null)
         {
             return null;
         }
@@ -588,12 +588,13 @@ public sealed class DofusInstanceService
 
     /// <summary>
     /// Every package of a profile, or <c>null</c> when the profile did
-    /// not answer. Used only to tell an empty answer from an absent one.
+    /// not answer. Used to tell an empty answer from an absent one, and by
+    /// the sweep that looks for the MakeInTouch apps.
     /// </summary>
-    private async Task<IReadOnlyList<string>?> TryEnumerateAsync(
+    public async Task<IReadOnlyList<string>?> TryListPackagesAsync(
         string serial,
         int userId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         try
         {

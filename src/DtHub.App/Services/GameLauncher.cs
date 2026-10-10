@@ -758,6 +758,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         RememberSerials(discovery);
 
+        await SweepPartnerAppsAsync(discovery.Devices, cancellationToken).ConfigureAwait(false);
+
         var found = await _instances.DiscoverAsync(discovery.Devices, cancellationToken)
             .ConfigureAwait(false);
 
@@ -780,6 +782,36 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
 
         return await _settings.MergeInstancesAsync(found, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Which connected phones have each MakeInTouch app, as of the last
+    /// sweep. Main profile only: the apps are opened from user 0.
+    /// </summary>
+    public IReadOnlyList<PartnerAvailability> PartnerAvailability { get; private set; } =
+        PartnerApps.Availability([]);
+
+    /// <summary>
+    /// One "pm list packages" per connected phone and sweep. A phone that
+    /// does not answer is left out of this sweep rather than counted as
+    /// lacking the apps.
+    /// </summary>
+    private async Task SweepPartnerAppsAsync(
+        IReadOnlyList<AndroidDevice> devices,
+        CancellationToken cancellationToken)
+    {
+        List<(string DeviceId, IReadOnlyList<string> PackagesUser0)> seen = [];
+
+        foreach (var device in devices.Where(d => d.IsConnected))
+        {
+            if (await _instances.TryListPackagesAsync(device.Serial, 0, cancellationToken).ConfigureAwait(false)
+                is { } packages)
+            {
+                seen.Add((device.Id, packages));
+            }
+        }
+
+        PartnerAvailability = PartnerApps.Availability(seen);
     }
 
     /// <summary>

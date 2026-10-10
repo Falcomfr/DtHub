@@ -886,6 +886,16 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Retient_le_bloc_MakeInTouch_masque()
+    {
+        Assert.False((await _service.GetAsync(CancellationToken.None)).PartnerAppsCardHidden);
+
+        await _service.SetPartnerAppsCardHiddenAsync(true, CancellationToken.None);
+
+        Assert.True((await _service.GetAsync(CancellationToken.None)).PartnerAppsCardHidden);
+    }
+
+    [Fact]
     public async Task Les_images_par_seconde_et_le_debit_viennent_de_la_qualite()
     {
         // Two sources for the same setting would eventually have diverged:
