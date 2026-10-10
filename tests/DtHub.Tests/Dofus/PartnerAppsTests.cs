@@ -67,6 +67,29 @@ public sealed class PartnerAppsTests
     }
 
     [Fact]
+    public void Une_installation_fait_passer_l_appareil_du_cote_de_l_app()
+    {
+        var before = PartnerApps.Availability([("tel", []), ("tablette", [])]);
+
+        var after = PartnerApps.WithInstalled(before, DtStuff, "tel");
+
+        var dtStuff = after.Single(a => a.App.PackageName == DtStuff);
+        Assert.Equal(["tel"], dtStuff.WithApp);
+        Assert.Equal(["tablette"], dtStuff.WithoutApp);
+        Assert.Equal(["tel", "tablette"], after.Single(a => a.App.PackageName == OcrApp).WithoutApp);
+    }
+
+    [Fact]
+    public void Une_installation_deja_connue_ne_change_rien()
+    {
+        var before = PartnerApps.Availability([("tel", [DtStuff])]);
+
+        var after = PartnerApps.WithInstalled(before, DtStuff, "tel");
+
+        Assert.Equal(["tel"], after.Single(a => a.App.PackageName == DtStuff).WithApp);
+    }
+
+    [Fact]
     public void L_adresse_du_store_vise_le_paquet() =>
         Assert.Equal("market://details?id=com.makeintouch.ocrapp", PartnerApps.StoreUri(OcrApp));
 }

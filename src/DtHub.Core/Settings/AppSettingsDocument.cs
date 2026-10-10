@@ -161,12 +161,6 @@ public sealed class AppSettingsDocument
     public bool TurnScreenOff { get; set; }
 
     /// <summary>
-    /// True once the player has hidden the MakeInTouch block at the bottom of
-    /// the Devices tab. Only a small button then remains to bring it back.
-    /// </summary>
-    public bool PartnerAppsCardHidden { get; set; }
-
-    /// <summary>
     /// True if the keyboard is presented to the phone as a physical
     /// keyboard plugged in, rather than injected through the Android API.
     ///

@@ -326,10 +326,6 @@ public sealed class SettingsService : IDisposable
     public Task SetTurnScreenOffAsync(bool enabled, CancellationToken cancellationToken = default) =>
         UpdateAsync(settings => settings.TurnScreenOff = enabled, cancellationToken);
 
-    /// <summary>Remembers whether the MakeInTouch block is hidden.</summary>
-    public Task SetPartnerAppsCardHiddenAsync(bool hidden, CancellationToken cancellationToken = default) =>
-        UpdateAsync(settings => settings.PartnerAppsCardHidden = hidden, cancellationToken);
-
     /// <summary>Remembers the chosen keyboard mode.</summary>
     public Task SetSimulatedPhysicalKeyboardAsync(
         bool simulated,

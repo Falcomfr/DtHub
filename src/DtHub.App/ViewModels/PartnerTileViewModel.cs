@@ -5,10 +5,14 @@ using DtHub.Core.Localization;
 
 namespace DtHub.App.ViewModels;
 
-/// <summary>A phone the tile's button can act on, for its menu.</summary>
+/// <summary>A phone the tile can act on, one button each.</summary>
 /// <param name="DeviceName">The phone's name, as the list shows it.</param>
 /// <param name="Act">Installs or opens the app on that phone.</param>
-public sealed record PartnerTarget(string DeviceName, ICommand Act);
+public sealed record PartnerTarget(string DeviceName, ICommand Act)
+{
+    /// <summary>The button's text, set by the tile: it knows whether there is a choice.</summary>
+    public string Label { get; init; } = string.Empty;
+}
 
 /// <summary>
 /// One MakeInTouch app in the block at the bottom of the Devices tab: a
@@ -21,13 +25,29 @@ public sealed class PartnerTileViewModel(PartnerApp app, bool isInstalled, IRead
 
     public string Line => Strings.Get(app.LineKey);
 
+    /// <summary>
+    /// Under the name: a reason when no phone can act, the one line
+    /// presentation otherwise.
+    /// </summary>
+    public string Detail => targets.Count == 0 ? Strings.Get("PartnerNoDevice") : Line;
+
     public string Icon => app.IconAsset;
 
     public bool IsInstalled => isInstalled;
 
     public string ActionText => Strings.Get(isInstalled ? "PartnerOpen" : "PartnerInstall");
 
-    public IReadOnlyList<PartnerTarget> Targets => targets;
+    /// <summary>
+    /// The buttons: "Install" alone for one phone, "Install · phone" for
+    /// each when there is a choice.
+    /// </summary>
+    public IReadOnlyList<PartnerTarget> Targets { get; } =
+        [.. targets.Select(t => t with
+        {
+            Label = targets.Count == 1
+                ? Strings.Get(isInstalled ? "PartnerOpen" : "PartnerInstall")
+                : Strings.Format("PartnerTargetLabel", Strings.Get(isInstalled ? "PartnerOpen" : "PartnerInstall"), t.DeviceName),
+        })];
 
     /// <summary>False with no phone to act on: the button greys out.</summary>
     public bool CanAct => targets.Count > 0;

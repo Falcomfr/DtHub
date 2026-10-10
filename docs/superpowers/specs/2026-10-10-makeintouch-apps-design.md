@@ -18,7 +18,7 @@ The two apps:
 | App | Package | One line (from its store page) |
 |---|---|---|
 | DTStuff | `com.makeintouch.dtstuff` | Optimise your gear and build the best stuffs for DOFUS Touch. |
-| OcrApp | `com.makeintouch.ocrapp` | Set out to conquer the Ochre Dofus with OcrApp. |
+| OcrApp | `com.makeintouch.ocrapp` | Your companion for the Ochre Dofus. |
 
 MakeInTouch gave its agreement to show the names and the icons of both apps
 in DT Hub (stated by the project owner on 2026-10-10). The icons are taken

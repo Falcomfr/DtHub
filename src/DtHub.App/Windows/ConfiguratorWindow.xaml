@@ -952,96 +952,121 @@
         </ScrollViewer>
 
         <!-- The bottom of the Devices tab, outside the scrolling content: it
-             stays pinned no matter how long the list is. The two tips sit
-             behind one Help button, to leave room for the MakeInTouch block
-             below them. The negative margin cancels the button's padding and
-             border, nine pixels, so the text starts from the same edge as
-             the list above. -->
-        <StackPanel Grid.Row="2" Margin="0,6,0,0"
-                    Visibility="{Binding IsChecked, ElementName=TabDevices,
-                                         Converter={StaticResource BoolToVisibility}}">
-          <DockPanel LastChildFill="False">
-            <!-- Without a reachable phone there's no game window, and the
-                 two tips would have nothing to talk about. -->
-            <Button DockPanel.Dock="Left" Content="{loc:T Help}"
-                    Style="{StaticResource QuietButton}" Margin="-9,0,0,0"
-                    Click="OnDevicesHelp"
-                    Visibility="{Binding Instances.ShowsWindowHelp,
-                                         Converter={StaticResource BoolToVisibility}}">
-              <Button.ContextMenu>
-                <ContextMenu>
-                  <MenuItem Header="{loc:T FrozenWindowHelp}" Click="OnSleepHelp" />
-                  <MenuItem Header="{loc:T DeadInputHelp}" Click="OnInputHelp" />
-                </ContextMenu>
-              </Button.ContextMenu>
-            </Button>
-
-            <!-- All that remains of the block once hidden: a sixteen pixel
-                 icon, on purpose easy to miss. -->
-            <Button DockPanel.Dock="Right" Style="{StaticResource QuietButton}" Padding="4,2"
-                    ToolTip="{loc:T PartnerBlockShow}" Command="{Binding ShowPartnerBlockCommand}"
-                    Visibility="{Binding PartnerBlockHidden, Converter={StaticResource BoolToVisibility}}">
+             stays pinned no matter how long the list is. A small button
+             opens the DOFUS Touch tools menu upwards, over the list: a
+             suggestion that takes no room until asked for. The two tips that were here
+             moved behind the Help button, next to Quit. -->
+        <Grid Grid.Row="2" Margin="0,6,0,0"
+              Visibility="{Binding IsChecked, ElementName=TabDevices,
+                                   Converter={StaticResource BoolToVisibility}}">
+          <ToggleButton x:Name="PartnerToggle" Padding="6,2" HorizontalAlignment="Left" Margin="-6,0,0,0"
+                        Background="Transparent" BorderThickness="0"
+                        Cursor="Hand" Checked="OnPartnerMenuOpened" Unchecked="OnPartnerMenuClosing">
+            <ToggleButton.Template>
+              <ControlTemplate TargetType="ToggleButton">
+                <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}"
+                        CornerRadius="{StaticResource Radius}">
+                  <ContentPresenter />
+                </Border>
+                <ControlTemplate.Triggers>
+                  <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+                  </Trigger>
+                </ControlTemplate.Triggers>
+              </ControlTemplate>
+            </ToggleButton.Template>
+            <StackPanel Orientation="Horizontal">
               <Image Source="/assets/dtstuff.png" Width="16" Height="16"
                      RenderOptions.BitmapScalingMode="HighQuality" />
-            </Button>
-          </DockPanel>
+              <Image Source="/assets/ocrapp.png" Width="16" Height="16" Margin="-4,0,0,0"
+                     RenderOptions.BitmapScalingMode="HighQuality" />
+              <TextBlock Text="{loc:T PartnerMenu}" Style="{StaticResource Muted}"
+                         FontSize="{StaticResource FontSmall}" Margin="6,0,0,0"
+                         VerticalAlignment="Center" />
+              <Path x:Name="PartnerChevron" Data="M 0,4 L 3.5,0 L 7,4 Z" Width="7" Height="4"
+                    Fill="{DynamicResource TextMutedBrush}" Margin="5,0,0,0"
+                    VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                <Path.RenderTransform>
+                  <RotateTransform />
+                </Path.RenderTransform>
+              </Path>
+            </StackPanel>
+          </ToggleButton>
 
-          <!-- The MakeInTouch block, in the colours of the two apps' icons,
-               which read the same on the light and the dark theme. -->
-          <Border CornerRadius="{StaticResource Radius}" Padding="10,8" Margin="0,6,0,0"
-                  Visibility="{Binding PartnerBlockHidden, Converter={StaticResource InverseBoolToVisibility}}">
-            <Border.Background>
-              <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Color="#5B2C8F" Offset="0" />
-                <GradientStop Color="#1F4FA8" Offset="1" />
-              </LinearGradientBrush>
-            </Border.Background>
-            <StackPanel TextElement.Foreground="White">
-              <DockPanel Margin="0,0,0,6">
-                <Button DockPanel.Dock="Right" Content="✕" Padding="6,0" Margin="6,0,0,0"
-                        Background="Transparent" BorderThickness="0" Foreground="White"
-                        Cursor="Hand" ToolTip="{loc:T PartnerBlockHide}"
-                        Command="{Binding HidePartnerBlockCommand}" />
-                <TextBlock Text="{loc:T PartnerBlockHeading}" FontWeight="SemiBold"
-                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-              </DockPanel>
+          <!-- Help, at the far right: the two tips that used to sit here, in a
+               panel of the theme's colours like the menu's. -->
+          <Button x:Name="HelpButton" Content="{loc:T Help}" Style="{StaticResource QuietButton}"
+                  HorizontalAlignment="Right" Margin="0,0,-6,0" Padding="6,2"
+                  FontSize="{StaticResource FontSmall}"
+                  VerticalAlignment="Center" Click="OnDevicesHelp" />
 
+          <Popup x:Name="HelpMenu" PlacementTarget="{Binding ElementName=HelpButton}"
+                 Placement="Top" VerticalOffset="-4" AllowsTransparency="True" StaysOpen="False">
+            <Border Margin="8" Padding="4"
+                    Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BevelBrush}" BorderThickness="1"
+                    CornerRadius="{StaticResource Radius}">
+              <Border.Effect>
+                <DropShadowEffect BlurRadius="14" ShadowDepth="2" Opacity="0.35" />
+              </Border.Effect>
+              <StackPanel>
+                <Button Content="{loc:T FrozenWindowHelp}" Style="{StaticResource QuietButton}"
+                        HorizontalContentAlignment="Left" Click="OnSleepHelp" />
+                <Button Content="{loc:T DeadInputHelp}" Style="{StaticResource QuietButton}"
+                        HorizontalContentAlignment="Left" Click="OnInputHelp" />
+              </StackPanel>
+            </Border>
+          </Popup>
+
+          <!-- Opens upwards from the button, over the list, fading in while
+               it slides up a few pixels, and the reverse on closing, also
+               when the click lands elsewhere in the window: WPF's own
+               StaysOpen would cut it off without the fade. -->
+          <Popup x:Name="PartnerMenu" PlacementTarget="{Binding ElementName=PartnerToggle}"
+                 Placement="Top" VerticalOffset="-4" AllowsTransparency="True"
+                 StaysOpen="True">
+            <Border x:Name="PartnerPanel" Width="340" Margin="8" Padding="10,8"
+                    Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BevelBrush}" BorderThickness="1"
+                    CornerRadius="{StaticResource Radius}">
+              <Border.RenderTransform>
+                <TranslateTransform />
+              </Border.RenderTransform>
+              <Border.Effect>
+                <DropShadowEffect BlurRadius="14" ShadowDepth="2" Opacity="0.35" />
+              </Border.Effect>
               <ItemsControl ItemsSource="{Binding PartnerTiles}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
-                    <DockPanel Margin="0,3,0,3">
-                      <Image x:Name="Icon" DockPanel.Dock="Left" Source="{Binding Icon}"
-                             Width="32" Height="32" Margin="0,0,10,0" VerticalAlignment="Center"
+                    <DockPanel Margin="0,4,0,4">
+                      <Image DockPanel.Dock="Left" Source="{Binding Icon}" Width="28" Height="28"
+                             Margin="0,0,10,0" VerticalAlignment="Center"
                              RenderOptions.BitmapScalingMode="HighQuality" />
-                      <Button DockPanel.Dock="Right" Content="{Binding ActionText}" Padding="12,4"
-                              Margin="10,0,0,0" VerticalAlignment="Center"
-                              IsEnabled="{Binding CanAct}" Click="OnPartnerAct" />
+                      <!-- One button per phone it can act on: no menu to
+                           open, and the phone's name only when there is a
+                           choice to make. -->
+                      <ItemsControl DockPanel.Dock="Right" ItemsSource="{Binding Targets}"
+                                    Margin="10,0,0,0" VerticalAlignment="Center">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate>
+                            <Button Content="{Binding Label}" Command="{Binding Act}" Padding="10,3"
+                                    Margin="0,1,0,1" HorizontalAlignment="Right"
+                                    Style="{StaticResource OutlineButton}" Click="OnPartnerChosen" />
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
                       <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
-                        <TextBlock x:Name="Line" Text="{Binding Line}" TextWrapping="Wrap" Opacity="0.85"
-                                   FontSize="{StaticResource FontSmall}" />
-                        <TextBlock x:Name="NoDevice" Text="{loc:T PartnerNoDevice}" Opacity="0.85"
-                                   FontSize="{StaticResource FontSmall}" Visibility="Collapsed" />
+                        <TextBlock Text="{Binding Detail}" Style="{StaticResource Muted}"
+                                   FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" />
                       </StackPanel>
                     </DockPanel>
-                    <DataTemplate.Triggers>
-                      <!-- Installed: a compact line, the presentation having
-                           done its job. -->
-                      <DataTrigger Binding="{Binding IsInstalled}" Value="True">
-                        <Setter TargetName="Icon" Property="Width" Value="16" />
-                        <Setter TargetName="Icon" Property="Height" Value="16" />
-                        <Setter TargetName="Line" Property="Visibility" Value="Collapsed" />
-                      </DataTrigger>
-                      <DataTrigger Binding="{Binding CanAct}" Value="False">
-                        <Setter TargetName="NoDevice" Property="Visibility" Value="Visible" />
-                      </DataTrigger>
-                    </DataTemplate.Triggers>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
-            </StackPanel>
-          </Border>
-        </StackPanel>
+            </Border>
+          </Popup>
+        </Grid>
       </Grid>
 
     </DockPanel>

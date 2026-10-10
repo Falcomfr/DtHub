@@ -2102,26 +2102,17 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="PlayStoreMissing" xml:space="preserve">
     <value>Le Play Store est absent de cet appareil.</value>
   </data>
-  <data name="PartnerBlockHeading" xml:space="preserve">
-    <value>Les apps de MakeInTouch pour DOFUS Touch</value>
-  </data>
   <data name="PartnerDtStuffLine" xml:space="preserve">
     <value>Optimisez vos équipements et créez les meilleurs stuffs.</value>
   </data>
   <data name="PartnerOcrAppLine" xml:space="preserve">
-    <value>Partez à la conquête du Dofus Ocre.</value>
+    <value>Suivez vos captures du Dofus Ocre, étape par étape.</value>
   </data>
   <data name="PartnerInstall" xml:space="preserve">
     <value>Installer</value>
   </data>
   <data name="PartnerOpen" xml:space="preserve">
     <value>Ouvrir</value>
-  </data>
-  <data name="PartnerBlockHide" xml:space="preserve">
-    <value>Masquer</value>
-  </data>
-  <data name="PartnerBlockShow" xml:space="preserve">
-    <value>Afficher les apps de MakeInTouch</value>
   </data>
   <data name="PartnerNoDevice" xml:space="preserve">
     <value>Connectez d'abord un appareil</value>
@@ -2131,5 +2122,11 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   </data>
   <data name="PartnerFailed" xml:space="preserve">
     <value>Impossible d'ouvrir {0} sur cet appareil.</value>
+  </data>
+  <data name="PartnerMenu" xml:space="preserve">
+    <value>Outils DOFUS Touch</value>
+  </data>
+  <data name="PartnerTargetLabel" xml:space="preserve">
+    <value>{0} · {1}</value>
   </data>
 </root>

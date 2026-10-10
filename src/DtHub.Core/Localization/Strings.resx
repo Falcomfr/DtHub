@@ -2102,26 +2102,17 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="PlayStoreMissing" xml:space="preserve">
     <value>The Play Store is missing on this device.</value>
   </data>
-  <data name="PartnerBlockHeading" xml:space="preserve">
-    <value>MakeInTouch apps for DOFUS Touch</value>
-  </data>
   <data name="PartnerDtStuffLine" xml:space="preserve">
     <value>Optimise your gear and build the best stuffs.</value>
   </data>
   <data name="PartnerOcrAppLine" xml:space="preserve">
-    <value>Set out to conquer the Ochre Dofus.</value>
+    <value>Track your Ochre Dofus captures, step by step.</value>
   </data>
   <data name="PartnerInstall" xml:space="preserve">
     <value>Install</value>
   </data>
   <data name="PartnerOpen" xml:space="preserve">
     <value>Open</value>
-  </data>
-  <data name="PartnerBlockHide" xml:space="preserve">
-    <value>Hide</value>
-  </data>
-  <data name="PartnerBlockShow" xml:space="preserve">
-    <value>Show the MakeInTouch apps</value>
   </data>
   <data name="PartnerNoDevice" xml:space="preserve">
     <value>Connect a device first</value>
@@ -2131,5 +2122,11 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   </data>
   <data name="PartnerFailed" xml:space="preserve">
     <value>Could not open {0} on this device.</value>
+  </data>
+  <data name="PartnerMenu" xml:space="preserve">
+    <value>DOFUS Touch tools</value>
+  </data>
+  <data name="PartnerTargetLabel" xml:space="preserve">
+    <value>{0} · {1}</value>
   </data>
 </root>

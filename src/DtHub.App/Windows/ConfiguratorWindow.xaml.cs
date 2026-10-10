@@ -363,47 +363,84 @@ public partial class ConfiguratorWindow : Window
 
     private void OnHide(object sender, RoutedEventArgs e) => Vanish();
 
-    /// <summary>The Help button opens its menu on a plain click.</summary>
-    private void OnDevicesHelp(object sender, RoutedEventArgs e)
+    /// <summary>The Help button opens its two tips above it.</summary>
+    private void OnDevicesHelp(object sender, RoutedEventArgs e) => HelpMenu.IsOpen = true;
+
+    private static readonly Duration PartnerOpening = TimeSpan.FromMilliseconds(180);
+    private static readonly Duration PartnerClosing = TimeSpan.FromMilliseconds(130);
+
+    /// <summary>The tools menu fades in, sliding up from its button.</summary>
+    private void OnPartnerMenuOpened(object sender, RoutedEventArgs e)
     {
-        if (sender is FrameworkElement { ContextMenu: { } menu } button)
+        PartnerMenu.IsOpen = true;
+        AnimatePartnerMenu(opening: true, then: null);
+    }
+
+    /// <summary>It fades out, sliding back down, before it disappears.</summary>
+    private void OnPartnerMenuClosing(object sender, RoutedEventArgs e) =>
+        AnimatePartnerMenu(opening: false, then: () => PartnerMenu.IsOpen = false);
+
+    private void AnimatePartnerMenu(bool opening, Action? then)
+    {
+        var duration = opening ? PartnerOpening : PartnerClosing;
+        var ease = new System.Windows.Media.Animation.CubicEase
         {
-            menu.PlacementTarget = button;
-            menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Top;
-            menu.IsOpen = true;
+            EasingMode = opening
+                ? System.Windows.Media.Animation.EasingMode.EaseOut
+                : System.Windows.Media.Animation.EasingMode.EaseIn,
+        };
+
+        var fade = new System.Windows.Media.Animation.DoubleAnimation(opening ? 0 : 1, opening ? 1 : 0, duration)
+        {
+            EasingFunction = ease,
+        };
+
+        if (then is not null)
+        {
+            fade.Completed += (_, _) => then();
         }
+
+        ((System.Windows.Media.TranslateTransform)PartnerPanel.RenderTransform).BeginAnimation(
+            System.Windows.Media.TranslateTransform.YProperty,
+            new System.Windows.Media.Animation.DoubleAnimation(opening ? 8 : 0, opening ? 0 : 8, duration)
+            {
+                EasingFunction = ease,
+            });
+        PartnerPanel.BeginAnimation(OpacityProperty, fade);
+
+        ((System.Windows.Media.RotateTransform)PartnerChevron.RenderTransform).BeginAnimation(
+            System.Windows.Media.RotateTransform.AngleProperty,
+            new System.Windows.Media.Animation.DoubleAnimation(opening ? 180 : 0, duration) { EasingFunction = ease });
     }
 
     /// <summary>
-    /// A MakeInTouch app's button: one phone acts at once, several are
-    /// offered in a menu under their names.
+    /// A click anywhere else in the window closes the tools menu, with its
+    /// fade. Clicks inside the menu do not reach here: it is a
+    /// window of its own.
     /// </summary>
-    private void OnPartnerAct(object sender, RoutedEventArgs e)
+    protected override void OnPreviewMouseDown(System.Windows.Input.MouseButtonEventArgs e)
     {
-        if (sender is not FrameworkElement { DataContext: ViewModels.PartnerTileViewModel tile } button)
+        base.OnPreviewMouseDown(e);
+
+        if (PartnerToggle.IsChecked == true && !PartnerToggle.IsMouseOver)
         {
-            return;
+            PartnerToggle.IsChecked = false;
         }
-
-        if (tile.Targets.Count == 1)
-        {
-            tile.Targets[0].Act.Execute(null);
-            return;
-        }
-
-        var menu = new System.Windows.Controls.ContextMenu
-        {
-            PlacementTarget = button,
-            Placement = System.Windows.Controls.Primitives.PlacementMode.Top,
-        };
-
-        foreach (var target in tile.Targets)
-        {
-            menu.Items.Add(new System.Windows.Controls.MenuItem { Header = target.DeviceName, Command = target.Act });
-        }
-
-        menu.IsOpen = true;
     }
+
+    /// <summary>Leaving the window closes the menu too.</summary>
+    protected override void OnDeactivated(EventArgs e)
+    {
+        base.OnDeactivated(e);
+
+        if (PartnerToggle.IsChecked == true && !PartnerMenu.IsMouseOver)
+        {
+            PartnerToggle.IsChecked = false;
+        }
+    }
+
+    /// <summary>A phone chosen in the tools menu: the menu closes.</summary>
+    private void OnPartnerChosen(object sender, RoutedEventArgs e) => PartnerToggle.IsChecked = false;
 
     private void OnSleepHelp(object sender, RoutedEventArgs e)
     {

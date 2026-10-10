@@ -610,9 +610,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// navigation, rearranging, tiling and sizes all ignore it. It
     /// opens, closes and remembers its place like the others.
     /// </summary>
+    /// <remarks>
+    /// Windows opened in passing are left out: stacking or tiling a portrait
+    /// store page among the game windows would squash it.
+    /// </remarks>
     public IReadOnlyList<ScrcpySession> ManagedSessions =>
         [.. _sessions.ActiveSessions.Where(
-            s => !_unmanaged.Contains(s.Target.Key) && !_tabbed.Contains(s.Target.Key))];
+            s => !_unmanaged.Contains(s.Target.Key) && !_tabbed.Contains(s.Target.Key) && !s.Target.IsTransient)];
 
     /// <summary>
     /// Accounts actually housed in the tabbed frame.
@@ -822,14 +826,28 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 DeviceId = deviceId,
                 DeviceName = PartnerDeviceNames.GetValueOrDefault(deviceId, deviceId),
                 UserId = 0,
-                UserName = "Play Store - " + app.Name,
+                UserName = "Play Store",
                 PackageName = "com.android.vending",
-                AppLabel = "Play Store - " + app.Name,
+                AppLabel = "Play Store",
                 StartUri = uri,
                 IsTransient = true,
                 IsDeviceConnected = true,
             },
             cancellationToken).ConfigureAwait(false);
+
+        if (opening == PartnerOpening.InWindow
+            && _serials.TryGetValue(deviceId, out var watched)
+            && FindSession(new DofusInstance
+            {
+                DeviceId = deviceId,
+                DeviceName = string.Empty,
+                UserId = 0,
+                UserName = string.Empty,
+                PackageName = "com.android.vending",
+            }) is { } store)
+        {
+            _ = WatchInstallAsync(store, watched, deviceId, app);
+        }
 
         if (opening != PartnerOpening.Failed || !_serials.TryGetValue(deviceId, out var serial))
         {
@@ -843,6 +861,39 @@ public sealed partial class GameLauncher : IAsyncDisposable
             : string.Equals(onPhone.UserMessage, Strings.Get("PlayStoreMissing"), StringComparison.Ordinal)
                 ? PartnerOpening.StoreMissing
                 : PartnerOpening.Failed;
+    }
+
+    /// <summary>
+    /// Watches the phone while its store window is open: once the app is
+    /// installed, the line turns to Open at once, without waiting for the
+    /// next sweep, and the store window closes, its work done. Measured on
+    /// 2026-10-10: left open, the player did not know what to do next.
+    /// </summary>
+    private async Task WatchInstallAsync(ScrcpySession store, string serial, string deviceId, PartnerApp app)
+    {
+        // ponytail: polls every 3 s for 15 min at most; only adb is on the
+        // phone, nothing there could announce the install instead.
+        for (var round = 0; round < 300 && store.IsAlive; round++)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
+
+            if (await _instances.TryListPackagesAsync(serial, 0).ConfigureAwait(false) is not { } packages
+                || !packages.Contains(app.PackageName, StringComparer.Ordinal))
+            {
+                continue;
+            }
+
+            PartnerAvailability = PartnerApps.WithInstalled(PartnerAvailability, app.PackageName, deviceId);
+            PartnerAvailabilityChanged?.Invoke(this, EventArgs.Empty);
+            LogPartnerInstalled(app.Name, deviceId);
+
+            if (store.IsAlive)
+            {
+                await StopSessionAsync(store, CancellationToken.None).ConfigureAwait(false);
+            }
+
+            return;
+        }
     }
 
     /// <summary>Opens an installed MakeInTouch app in a window on the PC.</summary>
@@ -889,6 +940,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         if (FindSession(instance) is { } open)
         {
+            // One Play Store per phone, so one store window: the other app's
+            // page opens in the window already there. Measured: with OcrApp's
+            // page open, Install on DTStuff only brought that window forward.
+            if (instance.StartUri is { } uri && open.VirtualDisplayId is { } display)
+            {
+                _ = await _appLauncher.OpenUriAsync(open.Serial, 0, uri, display, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
             await OnUiAsync(() => _windows.Focus(open)).ConfigureAwait(false);
 
             return PartnerOpening.InWindow;
@@ -1951,7 +2011,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             remembered.TryGetValue(instance.Key, out var stored);
 
-            var placement = ComputePlacement(options, stored);
+            // A window opened in passing gets a portrait frame of its own,
+            // never remembered. Placed by us like a game window, and not
+            // left to scrcpy: measured on 2026-10-10, a window scrcpy sized
+            // alone ignored clicks until it was resized by hand.
+            var placement = instance.IsTransient
+                ? ComputePlacement(options with { VirtualDisplayWidth = 1080, VirtualDisplayHeight = 1920 }, remembered: null)
+                : ComputePlacement(options, stored);
 
             var target = ToTarget(instance, device.Serial);
 
@@ -1996,6 +2062,21 @@ public sealed partial class GameLauncher : IAsyncDisposable
             if (display.AudioEnabled && HasOpenSessionOn(instance.DeviceId))
             {
                 display = display with { AudioEnabled = false };
+            }
+
+            // The Play Store and the MakeInTouch apps are phone apps, made
+            // for a portrait screen. Measured on 2026-10-10 on the 13T Pro:
+            // on the game's 1920x1080 landscape display, the store's details
+            // page broke its own layout, text wrapping letter by letter; on
+            // 1080x1920 at 320 dpi, it is the ordinary page.
+            if (instance.IsTransient)
+            {
+                display = display with
+                {
+                    VirtualDisplayWidth = 1080,
+                    VirtualDisplayHeight = 1920,
+                    VirtualDisplayDpi = 320,
+                };
             }
 
             var session = await _sessions.StartAsync(
@@ -3885,6 +3966,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
             LogHotkeyFailure(exception);
         }
     }
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "{App} installée sur {Device} : la fenêtre du Play Store se ferme.")]
+    private partial void LogPartnerInstalled(string app, string device);
 
     [LoggerMessage(
         Level = LogLevel.Information,

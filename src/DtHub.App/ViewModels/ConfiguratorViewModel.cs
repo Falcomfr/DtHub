@@ -88,26 +88,6 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// <summary>The MakeInTouch apps, at the bottom of the Devices tab.</summary>
     public System.Collections.ObjectModel.ObservableCollection<PartnerTileViewModel> PartnerTiles { get; } = [];
 
-    /// <summary>True once the player has hidden the MakeInTouch block.</summary>
-    [ObservableProperty]
-    private bool _partnerBlockHidden;
-
-    partial void OnPartnerBlockHiddenChanged(bool value)
-    {
-        if (_loading)
-        {
-            return;
-        }
-
-        _ = SaveAsync(settings => settings.PartnerAppsCardHidden = value);
-    }
-
-    [RelayCommand]
-    private void HidePartnerBlock() => PartnerBlockHidden = true;
-
-    [RelayCommand]
-    private void ShowPartnerBlock() => PartnerBlockHidden = false;
-
     /// <summary>
     /// One tile per app: installed somewhere, it opens on the phones that
     /// have it; installed nowhere, it installs on the phones that lack it.
@@ -712,7 +692,6 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             UpdatesAutomatic = settings.UpdatesAutomatic;
             StopAppOnClose = settings.StopAppOnClose;
             TurnScreenOff = settings.TurnScreenOff;
-            PartnerBlockHidden = settings.PartnerAppsCardHidden;
             SimulatedPhysicalKeyboard = settings.SimulatedPhysicalKeyboard;
             SimulatedPhysicalMouse = settings.SimulatedPhysicalMouse;
             Language = settings.Language;

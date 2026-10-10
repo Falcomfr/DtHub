@@ -38,6 +38,24 @@ public static class PartnerApps
     public static string StoreUri(string packageName) => $"market://details?id={packageName}";
 
     /// <summary>
+    /// The same availability, with one app now installed on one device:
+    /// what a store window learns before the next sweep does.
+    /// </summary>
+    public static IReadOnlyList<PartnerAvailability> WithInstalled(
+        IReadOnlyList<PartnerAvailability> availability,
+        string packageName,
+        string deviceId) =>
+        [.. availability.Select(a =>
+            !string.Equals(a.App.PackageName, packageName, StringComparison.Ordinal)
+            || a.WithApp.Contains(deviceId, StringComparer.Ordinal)
+                ? a
+                : a with
+                {
+                    WithApp = [.. a.WithApp, deviceId],
+                    WithoutApp = [.. a.WithoutApp.Where(d => !string.Equals(d, deviceId, StringComparison.Ordinal))],
+                })];
+
+    /// <summary>
     /// For each app, in <see cref="All" /> order, the devices that have it
     /// and those that do not.
     /// </summary>
