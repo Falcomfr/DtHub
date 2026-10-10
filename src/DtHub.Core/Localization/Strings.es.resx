@@ -527,7 +527,7 @@ Cruza las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
     <value>El teléfono no abrió una pantalla virtual a tiempo. Prueba primero sin sonido: en algunas tabletas, activarlo basta para impedir que la pantalla se abra.</value>
   </data>
   <data name="BrandSamsungWarning" xml:space="preserve">
-    <value>Si la tableta no se detecta en absoluto, desactiva «Bloqueador automático» en Ajustes > Seguridad y privacidad, y después «Bloquear conexiones USB» en los demás ajustes de seguridad. Una carpeta segura debe desbloquearse antes de iniciar, o el juego no se encontrará en ella.</value>
+    <value>Si «Depuración por USB» aparece en gris con «Bloqueado por el Bloqueador automático», o si el dispositivo no se detecta en absoluto, desactiva «Bloqueador automático» en Ajustes > Seguridad y privacidad, y después «Bloquear conexiones USB» en los demás ajustes de seguridad. Una carpeta segura debe desbloquearse antes de iniciar, o el juego no se encontrará en ella.</value>
   </data>
   <data name="BrandOnePlusWarning" xml:space="preserve">
     <value>Activa también «Depuración USB (ajustes de seguridad)» e «Instalar vía USB» en el mismo menú. Sin la primera, la imagen se ve pero el ratón y el teclado no hacen nada.</value>

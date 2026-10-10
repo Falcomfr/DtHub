@@ -527,7 +527,7 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
     <value>Le téléphone n'a pas ouvert d'écran virtuel à temps. Essayez d'abord sans le son : sur certaines tablettes, l'activer suffit à empêcher l'écran de s'ouvrir.</value>
   </data>
   <data name="BrandSamsungWarning" xml:space="preserve">
-    <value>Si la tablette n'est pas détectée du tout, désactivez « Bloqueur automatique » dans Paramètres > Sécurité et confidentialité, puis « Bloquer les connexions USB » dans les autres paramètres de sécurité. Un dossier sécurisé doit être déverrouillé avant le lancement, sans quoi le jeu n'y sera pas trouvé.</value>
+    <value>Si « Débogage USB » est grisé avec « Bloqué(e) par le bloqueur automatique », ou si l'appareil n'est pas détecté du tout, désactivez « Bloqueur automatique » dans Paramètres > Sécurité et confidentialité, puis « Bloquer les connexions USB » dans les autres paramètres de sécurité. Un dossier sécurisé doit être déverrouillé avant le lancement, sans quoi le jeu n'y sera pas trouvé.</value>
   </data>
   <data name="BrandOnePlusWarning" xml:space="preserve">
     <value>Activez aussi « Débogage USB (paramètres de sécurité) » et « Installer via USB » dans le même menu. Sans le premier, l'image s'affiche mais la souris et le clavier ne font rien.</value>

@@ -527,7 +527,7 @@ Cross the tests: another device on this port, and this phone on another PC. You 
     <value>The phone did not open a virtual display in time. Try without sound first: on some tablets, turning it on is enough to stop the display from opening.</value>
   </data>
   <data name="BrandSamsungWarning" xml:space="preserve">
-    <value>If the tablet is not detected at all, turn off “Auto blocker” in Settings > Security and privacy, then “Block USB connections” in the other security settings. A secure folder has to be unlocked before launching, or the game will not be found in it.</value>
+    <value>If “USB debugging” is greyed out with “Blocked by Auto Blocker”, or the device is not detected at all, turn off “Auto Blocker” in Settings > Security and privacy, then “Block USB connections” in the other security settings. A secure folder has to be unlocked before launching, or the game will not be found in it.</value>
   </data>
   <data name="BrandOnePlusWarning" xml:space="preserve">
     <value>Also turn on “USB debugging (security settings)” and “Install via USB” in the same menu. Without the first one the picture shows but the mouse and keyboard do nothing.</value>
