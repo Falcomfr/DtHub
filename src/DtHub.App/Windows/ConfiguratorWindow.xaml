@@ -277,7 +277,11 @@
                        GroupName="Tabs" />
         </StackPanel>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,10,0">
+        <!-- The bar always holds its eight pixels, and only shows once
+             there is something to scroll. On "Auto", the row that tipped
+             the list into scrolling, an added app for one, made it appear
+             and pushed every right-hand button eight pixels in. -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled" Padding="0,0,10,0">
           <Grid>
 
             <!-- Shortcuts tab, read-only -->

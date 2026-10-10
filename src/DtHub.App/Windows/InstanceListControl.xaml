@@ -500,6 +500,29 @@
                                       Style="{StaticResource RowChipToggle}"
                                       ToolTip="{loc:T InstanceSettingsTip}">
                           <StackPanel Orientation="Horizontal">
+                            <!-- Each label appears only where this account
+                                 departs from the shared setting, so the
+                                 common case is a glyph and nothing else,
+                                 and a row that does depart says which way
+                                 without being opened.
+
+                                 Before the glyph, not after: the chip grows
+                                 leftward, so a label after the glyph pushed
+                                 it out of line with the rows above and
+                                 below. Here the glyph stays put and only
+                                 the name of that one row gives way. -->
+                            <TextBlock Text="{Binding QualityLabel}" Margin="0,0,4,0"
+                                       VerticalAlignment="Center" TextWrapping="NoWrap"
+                                       Visibility="{Binding QualityLabel,
+                                                    Converter={StaticResource EmptyToVisibility},
+                                                    ConverterParameter=inverse}" />
+
+                            <TextBlock Text="{Binding ZoomLabel}" Margin="0,0,4,0"
+                                       VerticalAlignment="Center" TextWrapping="NoWrap"
+                                       Visibility="{Binding ZoomLabel,
+                                                    Converter={StaticResource EmptyToVisibility},
+                                                    ConverterParameter=inverse}" />
+
                             <!-- Two sliders: the settings of one thing,
                                  which is what this opens. Neither the
                                  rising bars nor the nested frames would
@@ -518,23 +541,6 @@
                                   Data="M 1.5,4.5 H 11.5 M 1.5,9.5 H 11.5
                                         M 4.3,4.5 m -1.5,0 a 1.5,1.5 0 1 0 3,0 a 1.5,1.5 0 1 0 -3,0
                                         M 8.7,9.5 m -1.5,0 a 1.5,1.5 0 1 0 3,0 a 1.5,1.5 0 1 0 -3,0" />
-
-                            <!-- Each label appears only where this account
-                                 departs from the shared setting, so the
-                                 common case is a glyph and nothing else,
-                                 and a row that does depart says which way
-                                 without being opened. -->
-                            <TextBlock Text="{Binding QualityLabel}" Margin="4,0,0,0"
-                                       VerticalAlignment="Center" TextWrapping="NoWrap"
-                                       Visibility="{Binding QualityLabel,
-                                                    Converter={StaticResource EmptyToVisibility},
-                                                    ConverterParameter=inverse}" />
-
-                            <TextBlock Text="{Binding ZoomLabel}" Margin="4,0,0,0"
-                                       VerticalAlignment="Center" TextWrapping="NoWrap"
-                                       Visibility="{Binding ZoomLabel,
-                                                    Converter={StaticResource EmptyToVisibility},
-                                                    ConverterParameter=inverse}" />
                           </StackPanel>
                         </ToggleButton>
 
@@ -716,56 +722,63 @@
                         </Popup>
                       </Grid>
 
-                      <!-- An arrow that loops back: the game restarts, the
-                           window stays. It stays the considered action,
-                           at the weight of its neighbours, and it keeps
-                           its slot when there is nothing to restart:
-                           collapsing it would resize the name column the
-                           moment a window opened.
+                      <!-- Restart and the bin share one slot: restart only
+                           shows while the window is open, the bin only while
+                           it is closed. Side by side, the bin made an added
+                           app's row wider than the game's and pushed its
+                           chip out of line. -->
+                      <Grid>
+                        <!-- An arrow that loops back: the game restarts, the
+                             window stays. It stays the considered action,
+                             at the weight of its neighbours, and it keeps
+                             its slot when there is nothing to restart:
+                             collapsing it would resize the name column the
+                             moment a window opened.
 
-                           Hidden rather than collapsed needs a style,
-                           since the converters only ever collapse. The
-                           BasedOn is not optional: without it the style
-                           would replace the named one rather than extend
-                           it, and the button would lose its shape. -->
-                      <Button AllowDrop="False"
-                              ToolTip="{loc:T RestartTip}"
-                              Command="{Binding DataContext.RestartCommand,
-                                                RelativeSource={RelativeSource AncestorType=UserControl}}"
-                              CommandParameter="{Binding}">
-                        <Button.Style>
-                          <Style TargetType="Button" BasedOn="{StaticResource IconButton}">
-                            <Setter Property="Visibility" Value="Hidden" />
-                            <Style.Triggers>
-                              <DataTrigger Binding="{Binding IsRunning}" Value="True">
-                                <Setter Property="Visibility" Value="Visible" />
-                              </DataTrigger>
-                            </Style.Triggers>
-                          </Style>
-                        </Button.Style>
-                        <Path Style="{StaticResource RowGlyph}"
-                              Data="M 13,7.5 A 5.5,5.5 0 1 1 11.1,3.3 M 13,1.5 V 4.2 H 10.3" />
-                      </Button>
+                             Hidden rather than collapsed needs a style,
+                             since the converters only ever collapse. The
+                             BasedOn is not optional: without it the style
+                             would replace the named one rather than extend
+                             it, and the button would lose its shape. -->
+                        <Button AllowDrop="False"
+                                ToolTip="{loc:T RestartTip}"
+                                Command="{Binding DataContext.RestartCommand,
+                                                  RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding}">
+                          <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource IconButton}">
+                              <Setter Property="Visibility" Value="Hidden" />
+                              <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                  <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                              </Style.Triggers>
+                            </Style>
+                          </Button.Style>
+                          <Path Style="{StaticResource RowGlyph}"
+                                Data="M 13,7.5 A 5.5,5.5 0 1 1 11.1,3.3 M 13,1.5 V 4.2 H 10.3" />
+                        </Button>
 
-                      <!-- Only on a row added from the plus button, and only
-                           while its window is closed: the game's rows are
-                           found on their own and would come straight back. A
-                           bin, because the row does leave the list; the
-                           application itself stays on the phone. -->
-                      <Button Style="{StaticResource DangerIconButton}" AllowDrop="False"
-                              ToolTip="{loc:T RemoveAppTip}"
-                              Command="{Binding DataContext.RemoveAppCommand,
-                                                RelativeSource={RelativeSource AncestorType=UserControl}}"
-                              CommandParameter="{Binding}">
-                        <Path Style="{StaticResource BinGlyph}" />
+                        <!-- Only on a row added from the plus button, and only
+                             while its window is closed: the game's rows are
+                             found on their own and would come straight back. A
+                             bin, because the row does leave the list; the
+                             application itself stays on the phone. -->
+                        <Button Style="{StaticResource DangerIconButton}" AllowDrop="False"
+                                ToolTip="{loc:T RemoveAppTip}"
+                                Command="{Binding DataContext.RemoveAppCommand,
+                                                  RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding}">
+                          <Path Style="{StaticResource BinGlyph}" />
 
-                        <Button.Visibility>
-                          <MultiBinding Converter="{StaticResource AllTrue}">
-                            <Binding Path="IsShownApp" />
-                            <Binding Path="IsRunning" Converter="{StaticResource InverseBool}" />
-                          </MultiBinding>
-                        </Button.Visibility>
-                      </Button>
+                          <Button.Visibility>
+                            <MultiBinding Converter="{StaticResource AllTrue}">
+                              <Binding Path="IsShownApp" />
+                              <Binding Path="IsRunning" Converter="{StaticResource InverseBool}" />
+                            </MultiBinding>
+                          </Button.Visibility>
+                        </Button>
+                      </Grid>
 
                       <!-- The row's action, and always in the same place.
 

@@ -810,6 +810,13 @@
         <Setter Property="Width" Value="Auto" />
         <Setter Property="Height" Value="8" />
       </Trigger>
+
+      <!-- A bar kept visible with nothing to scroll is disabled: it
+           keeps its room but draws nothing. Opacity, because the
+           ScrollViewer binds the bar's visibility itself. -->
+      <Trigger Property="IsEnabled" Value="False">
+        <Setter Property="Opacity" Value="0" />
+      </Trigger>
     </Style.Triggers>
   </Style>
 
