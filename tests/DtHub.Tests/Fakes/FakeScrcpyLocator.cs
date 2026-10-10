@@ -32,6 +32,22 @@ public sealed class FakeAppLauncher : IAppLauncher
 
     public List<LaunchCall> Calls { get; } = [];
 
+    public sealed record UriCall(string Serial, int UserId, string Uri, int? DisplayId);
+
+    /// <summary>Links opened, in order.</summary>
+    public List<UriCall> UriCalls { get; } = [];
+
+    public Task<AppLaunchResult> OpenUriAsync(
+        string serial,
+        int userId,
+        string uri,
+        int? displayId,
+        CancellationToken cancellationToken = default)
+    {
+        UriCalls.Add(new UriCall(serial, userId, uri, displayId));
+        return Task.FromResult(Outcome);
+    }
+
     /// <summary>Result returned on every call.</summary>
     public AppLaunchResult Outcome { get; set; } = AppLaunchResult.Success;
 

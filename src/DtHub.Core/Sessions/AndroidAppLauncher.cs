@@ -152,6 +152,62 @@ public sealed class AndroidAppLauncher : IAppLauncher
             : Strings.Format("ProfileCouldNotStart", user.DisplayName);
     }
 
+    /// <summary>
+    /// Opens a link on the phone, a Play Store page above all: Android picks
+    /// the app that handles it. On a virtual display, the same flag as a game
+    /// keeps an empty card out of the phone's recent apps.
+    /// </summary>
+    public async Task<AppLaunchResult> OpenUriAsync(
+        string serial,
+        int userId,
+        string uri,
+        int? displayId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(serial);
+        ArgumentException.ThrowIfNullOrWhiteSpace(uri);
+
+        if (await PrepareUserAsync(serial, userId, cancellationToken).ConfigureAwait(false)
+            is { } refusal)
+        {
+            return AppLaunchResult.Failure(refusal, Strings.Get("ProfileCannotHostWindow"));
+        }
+
+        try
+        {
+            var output = await _adb.ShellAsync(serial, UriArguments(userId, uri, displayId), null, cancellationToken)
+                .ConfigureAwait(false);
+
+            // Recorded on the 13T Pro: a link nobody handles is refused with
+            // these words, and "am start" still returns zero.
+            if (output.Contains("unable to resolve Intent", StringComparison.Ordinal))
+            {
+                return AppLaunchResult.Failure(Strings.Get("PlayStoreMissing"), output.Trim());
+            }
+
+            return Judge(output);
+        }
+        catch (AdbException exception)
+        {
+            return AppLaunchResult.Failure(exception.UserMessage, exception.Details);
+        }
+    }
+
+    /// <summary>The "am start" that opens a link, on a virtual display or not.</summary>
+    public static IReadOnlyList<string> UriArguments(int userId, string uri, int? displayId)
+    {
+        List<string> arguments = ["am", "start", "--user", Text(userId)];
+
+        if (displayId is { } display)
+        {
+            arguments.AddRange(["--display", Text(display), "--activity-exclude-from-recents"]);
+        }
+
+        arguments.AddRange(["-a", "android.intent.action.VIEW", "-d", uri]);
+
+        return arguments;
+    }
+
     private async Task<AppLaunchResult> TryStartAsync(
         string serial,
         int userId,
@@ -207,26 +263,30 @@ public sealed class AndroidAppLauncher : IAppLauncher
             var output = await _adb.ShellAsync(serial, arguments, null, cancellationToken)
                 .ConfigureAwait(false);
 
-            // "am start" returns zero even when it fails: the output
-            // is what counts.
-            if (output.Contains("Error", StringComparison.OrdinalIgnoreCase)
-                || output.Contains("Exception", StringComparison.Ordinal))
-            {
-                // An unknown failure stays unknown. Assuming
-                // "application missing" used to send people to
-                // reinstall a perfectly present game every time the
-                // phone refused for another reason, a permission
-                // refusal first and foremost.
-                var kind = AdbErrorInterpreter.Classify(output) ?? AdbErrorKind.Unknown;
-                return AppLaunchResult.Failure(AdbErrorInterpreter.Describe(kind), output.Trim());
-            }
-
-            return AppLaunchResult.Success;
+            return Judge(output);
         }
         catch (AdbException exception)
         {
             return AppLaunchResult.Failure(exception.UserMessage, exception.Details);
         }
+    }
+
+    private static AppLaunchResult Judge(string output)
+    {
+        // "am start" returns zero even when it fails: the output is what
+        // counts.
+        if (output.Contains("Error", StringComparison.OrdinalIgnoreCase)
+            || output.Contains("Exception", StringComparison.Ordinal))
+        {
+            // An unknown failure stays unknown. Assuming "application
+            // missing" used to send people to reinstall a perfectly present
+            // game every time the phone refused for another reason, a
+            // permission refusal first and foremost.
+            var kind = AdbErrorInterpreter.Classify(output) ?? AdbErrorKind.Unknown;
+            return AppLaunchResult.Failure(AdbErrorInterpreter.Describe(kind), output.Trim());
+        }
+
+        return AppLaunchResult.Success;
     }
 
     private static string Text(int value) => value.ToString(CultureInfo.InvariantCulture);

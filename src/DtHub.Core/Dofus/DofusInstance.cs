@@ -30,6 +30,20 @@ public sealed record DofusInstance
     public string? LaunchComponent { get; init; }
 
     /// <summary>
+    /// A link to open instead of the app's own activity, a Play Store page
+    /// above all. Its target is then neither stopped before opening nor
+    /// when its window closes: that would cancel a download in progress.
+    /// </summary>
+    public string? StartUri { get; init; }
+
+    /// <summary>
+    /// True for a window opened in passing: launched, never remembered. It
+    /// does not reopen at the next launch and leaves no geometry, tab or
+    /// play time behind.
+    /// </summary>
+    public bool IsTransient { get; init; }
+
+    /// <summary>
     /// Name chosen by the user, shown in the window's title.
     /// </summary>
     public string? CustomName { get; init; }

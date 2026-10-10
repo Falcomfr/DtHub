@@ -509,6 +509,39 @@ public class ScrcpySessionManagerTests
     }
 
     [Fact]
+    public async Task Une_cible_avec_adresse_ouvre_l_adresse_sans_arreter_l_app()
+    {
+        // The Play Store window: stopping the store before opening the page,
+        // or when the window closes, would cancel a download in progress.
+        var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
+        var appLauncher = new FakeAppLauncher();
+
+        await using var manager = Manager(launcher, appLauncher);
+        manager.StopAppOnClose = true;
+
+        var session = await manager.StartAsync(
+            Target(userId: 0) with
+            {
+                PackageName = "com.android.vending",
+                LaunchComponent = null,
+                StartUri = "market://details?id=com.makeintouch.dtstuff",
+            },
+            ScrcpyOptions.Default,
+            null,
+            CancellationToken.None);
+
+        Assert.Equal(
+            new FakeAppLauncher.UriCall("USB0001", 0, "market://details?id=com.makeintouch.dtstuff", 7),
+            Assert.Single(appLauncher.UriCalls));
+        Assert.Empty(appLauncher.Calls);
+        Assert.Empty(appLauncher.ForceStops);
+
+        await manager.StopAsync(session.Id, CancellationToken.None);
+
+        Assert.Empty(appLauncher.ForceStops);
+    }
+
+    [Fact]
     public async Task Fermer_une_fenetre_arrete_le_jeu_sur_le_telephone()
     {
         var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));

@@ -33,6 +33,13 @@ public interface IAppLauncher
     /// claimed: without it, a shutdown that leaves the game running
     /// looks exactly like a successful shutdown.
     /// </summary>
+    Task<AppLaunchResult> OpenUriAsync(
+        string serial,
+        int userId,
+        string uri,
+        int? displayId,
+        CancellationToken cancellationToken = default);
+
     Task<bool> ForceStopAsync(
         string serial,
         int userId,

@@ -88,8 +88,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
         IHotkeyRegistrar hotkeys,
         AppRestartService restarts,
         WindowPlacements placements,
+        IAppLauncher appLauncher,
         ILogger<GameLauncher> logger)
     {
+        _appLauncher = appLauncher;
         _sessions = sessions;
         _windows = windows;
         _devices = devices;
@@ -519,7 +521,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private void CountPlaytime(ScrcpySession session)
     {
-        if (!session.EverRan || !_counted.Add(session.Id))
+        if (!session.EverRan || session.Target.IsTransient || !_counted.Add(session.Id))
         {
             return;
         }
@@ -791,6 +793,114 @@ public sealed partial class GameLauncher : IAsyncDisposable
     public IReadOnlyList<PartnerAvailability> PartnerAvailability { get; private set; } =
         PartnerApps.Availability([]);
 
+    /// <summary>The display name of each phone seen at the last sweep.</summary>
+    public IReadOnlyDictionary<string, string> PartnerDeviceNames { get; private set; } =
+        new Dictionary<string, string>(StringComparer.Ordinal);
+
+    private readonly IAppLauncher _appLauncher;
+
+    /// <summary>
+    /// Opens a MakeInTouch app's Play Store page in a window on the PC, on a
+    /// virtual display of that phone. When no window could open, the page
+    /// goes to the phone's own screen instead.
+    /// </summary>
+    public async Task<PartnerOpening> OpenStoreAsync(
+        string deviceId,
+        string packageName,
+        CancellationToken cancellationToken = default)
+    {
+        var app = PartnerApps.All.First(a => string.Equals(a.PackageName, packageName, StringComparison.Ordinal));
+        var uri = PartnerApps.StoreUri(packageName);
+
+        var opening = await OpenPassingAsync(
+            deviceId,
+            new DofusInstance
+            {
+                DeviceId = deviceId,
+                DeviceName = PartnerDeviceNames.GetValueOrDefault(deviceId, deviceId),
+                UserId = 0,
+                UserName = "Play Store - " + app.Name,
+                PackageName = "com.android.vending",
+                AppLabel = "Play Store - " + app.Name,
+                StartUri = uri,
+                IsTransient = true,
+                IsDeviceConnected = true,
+            },
+            cancellationToken).ConfigureAwait(false);
+
+        if (opening != PartnerOpening.Failed || !_serials.TryGetValue(deviceId, out var serial))
+        {
+            return opening;
+        }
+
+        var onPhone = await _appLauncher.OpenUriAsync(serial, 0, uri, displayId: null, cancellationToken)
+            .ConfigureAwait(false);
+
+        return onPhone.Succeeded ? PartnerOpening.OnPhone
+            : string.Equals(onPhone.UserMessage, Strings.Get("PlayStoreMissing"), StringComparison.Ordinal)
+                ? PartnerOpening.StoreMissing
+                : PartnerOpening.Failed;
+    }
+
+    /// <summary>Opens an installed MakeInTouch app in a window on the PC.</summary>
+    public async Task<PartnerOpening> OpenPartnerAppAsync(
+        string deviceId,
+        string packageName,
+        CancellationToken cancellationToken = default)
+    {
+        var app = PartnerApps.All.First(a => string.Equals(a.PackageName, packageName, StringComparison.Ordinal));
+
+        if (!_serials.TryGetValue(deviceId, out var serial))
+        {
+            return PartnerOpening.Failed;
+        }
+
+        var component = await _instances.ResolveComponentAsync(serial, 0, packageName, cancellationToken)
+            .ConfigureAwait(false);
+
+        return await OpenPassingAsync(
+            deviceId,
+            new DofusInstance
+            {
+                DeviceId = deviceId,
+                DeviceName = PartnerDeviceNames.GetValueOrDefault(deviceId, deviceId),
+                UserId = 0,
+                UserName = app.Name,
+                PackageName = packageName,
+                LaunchComponent = component?.Value,
+                AppLabel = app.Name,
+                IsTransient = true,
+                IsDeviceConnected = true,
+            },
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// A window opened in passing: brought forward when it is already open,
+    /// launched otherwise. A phone gone meanwhile is a failure, not a throw.
+    /// </summary>
+    private async Task<PartnerOpening> OpenPassingAsync(
+        string deviceId,
+        DofusInstance instance,
+        CancellationToken cancellationToken)
+    {
+        if (FindSession(instance) is { } open)
+        {
+            await OnUiAsync(() => _windows.Focus(open)).ConfigureAwait(false);
+
+            return PartnerOpening.InWindow;
+        }
+
+        if (!_serials.ContainsKey(deviceId))
+        {
+            return PartnerOpening.Failed;
+        }
+
+        var report = await LaunchAsync([instance], cancellationToken).ConfigureAwait(false);
+
+        return report.Opened > 0 ? PartnerOpening.InWindow : PartnerOpening.Failed;
+    }
+
     /// <summary>
     /// One "pm list packages" per connected phone and sweep. A phone that
     /// does not answer is left out of this sweep rather than counted as
@@ -812,6 +922,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
 
         PartnerAvailability = PartnerApps.Availability(seen);
+        PartnerDeviceNames = devices
+            .Where(d => d.IsConnected)
+            .ToDictionary(d => d.Id, d => d.DisplayName, StringComparer.Ordinal);
     }
 
     /// <summary>
@@ -1970,10 +2083,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // What has just opened will reopen at the next launch. Only
         // the "Close" button removes an instance from this set:
         // closing a game window by hand should change nothing here.
-        if (started.Count > 0)
+        // A window opened in passing, the Play Store's or a MakeInTouch
+        // app's, is never part of that set.
+        if (started.Where(s => !s.Target.IsTransient).Select(s => s.Target.Key).ToList() is { Count: > 0 } kept)
         {
-            await _settings.SetInstancesEnabledAsync(
-                [.. started.Select(s => s.Target.Key)], enabled: true, cancellationToken)
+            await _settings.SetInstancesEnabledAsync(kept, enabled: true, cancellationToken)
                 .ConfigureAwait(false);
         }
 
@@ -2370,7 +2484,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // spot made them reappear in the middle of the screen the
         // day they were taken out of the tabs.
         var captured = _windows.CaptureGeometries(
-            [.. _sessions.ActiveSessions.Where(s => !_tabbed.Contains(s.Target.Key))]);
+            [.. _sessions.ActiveSessions.Where(s => !_tabbed.Contains(s.Target.Key) && !s.Target.IsTransient)]);
 
         if (captured.Count == 0)
         {
@@ -3185,6 +3299,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
         PackageName = instance.PackageName,
         LaunchComponent = instance.LaunchComponent,
         DisplayName = instance.DisplayName,
+        StartUri = instance.StartUri,
+        IsTransient = instance.IsTransient,
     };
 
     /// <summary>
@@ -3973,4 +4089,20 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Information,
         Message = "Association rompue avec {device} : ses comptes et ses réglages sont effacés.")]
     private partial void LogDeviceForgotten(string device);
+}
+
+/// <summary>How opening a MakeInTouch app, or its store page, went.</summary>
+public enum PartnerOpening
+{
+    /// <summary>In a window on the PC.</summary>
+    InWindow,
+
+    /// <summary>On the phone's own screen, the window having failed.</summary>
+    OnPhone,
+
+    /// <summary>The phone has no Play Store.</summary>
+    StoreMissing,
+
+    /// <summary>Nothing opened.</summary>
+    Failed,
 }

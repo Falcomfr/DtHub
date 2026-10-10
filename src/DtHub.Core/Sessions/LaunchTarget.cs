@@ -21,6 +21,20 @@ public sealed record LaunchTarget
     /// </summary>
     public string? LaunchComponent { get; init; }
 
+    /// <summary>
+    /// A link to open instead of the app's own activity, a Play Store page
+    /// above all. Its target is then neither stopped before opening nor
+    /// when its window closes: that would cancel a download in progress.
+    /// </summary>
+    public string? StartUri { get; init; }
+
+    /// <summary>
+    /// True for a window opened in passing: launched, never remembered. It
+    /// does not reopen at the next launch and leaves no geometry, tab or
+    /// play time behind.
+    /// </summary>
+    public bool IsTransient { get; init; }
+
     /// <summary>Name displayed in the window title.</summary>
     public required string DisplayName { get; init; }
 

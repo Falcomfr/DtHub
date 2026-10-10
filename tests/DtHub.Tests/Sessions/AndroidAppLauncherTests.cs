@@ -1,5 +1,6 @@
 ﻿using DtHub.Core.Adb;
 using DtHub.Core.Dofus;
+using DtHub.Core.Localization;
 using DtHub.Core.Sessions;
 using DtHub.Core.Users;
 using DtHub.Tests.Fakes;
@@ -36,6 +37,50 @@ public class AndroidAppLauncherTests
     {
         var users = new AndroidUserService(adb);
         return new AndroidAppLauncher(adb, users, new DofusInstanceService(adb, users));
+    }
+
+    [Fact]
+    public void Les_arguments_ouvrent_l_adresse_sur_l_ecran_virtuel() =>
+        Assert.Equal(
+            ["am", "start", "--user", "0", "--display", "62", "--activity-exclude-from-recents",
+             "-a", "android.intent.action.VIEW", "-d", "market://details?id=com.makeintouch.dtstuff"],
+            AndroidAppLauncher.UriArguments(0, "market://details?id=com.makeintouch.dtstuff", 62));
+
+    [Fact]
+    public void Sans_ecran_virtuel_pas_de_display() =>
+        Assert.Equal(
+            ["am", "start", "--user", "0",
+             "-a", "android.intent.action.VIEW", "-d", "market://details?id=com.makeintouch.ocrapp"],
+            AndroidAppLauncher.UriArguments(0, "market://details?id=com.makeintouch.ocrapp", null));
+
+    [Fact]
+    public async Task Un_intent_sans_destinataire_dit_que_le_store_manque()
+    {
+        // Recorded on the 13T Pro with a link no installed app handles.
+        var adb = new FakeAdbClient()
+            .WithShell("pm list users", DeuxProfils)
+            .WithShell("am start", "Starting: Intent { act=android.intent.action.VIEW dat=market://details/... }\n"
+                + "Error: Activity not started, unable to resolve Intent { act=android.intent.action.VIEW dat=market://details/... flg=0x10000000 }");
+
+        var result = await Build(adb).OpenUriAsync(Serial, 0, "market://details?id=com.makeintouch.dtstuff", 62);
+
+        Assert.False(result.Succeeded);
+        Assert.Equal(Strings.Get("PlayStoreMissing"), result.UserMessage);
+    }
+
+    [Fact]
+    public async Task L_adresse_ouverte_sans_erreur_reussit()
+    {
+        var adb = new FakeAdbClient()
+            .WithShell("pm list users", DeuxProfils)
+            .WithShell("am start", "Starting: Intent { act=android.intent.action.VIEW dat=market://details/... }");
+
+        var result = await Build(adb).OpenUriAsync(Serial, 0, "market://details?id=com.makeintouch.dtstuff", 62);
+
+        Assert.True(result.Succeeded);
+        Assert.Contains(
+            "am start --user 0 --display 62 --activity-exclude-from-recents -a android.intent.action.VIEW -d market://details?id=com.makeintouch.dtstuff",
+            adb.ShellCalls);
     }
 
     [Fact]

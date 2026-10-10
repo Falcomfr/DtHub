@@ -2099,4 +2099,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="ColourBlush" xml:space="preserve">
     <value>Rose clair</value>
   </data>
+  <data name="PlayStoreMissing" xml:space="preserve">
+    <value>Le Play Store est absent de cet appareil.</value>
+  </data>
 </root>

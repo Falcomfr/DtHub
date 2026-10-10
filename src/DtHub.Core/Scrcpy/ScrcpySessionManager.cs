@@ -1088,24 +1088,41 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         // empty, hence the gray window. Stopping the task is the
         // only sure way to make it reborn in the right place;
         // opening a window restarts the game anyway.
-        _ = await _appLauncher.ForceStopAsync(
-            session.Serial,
-            session.Target.UserId,
-            session.Target.PackageName,
-            cancellationToken).ConfigureAwait(false);
+        AppLaunchResult launch;
 
-        var launch = await _appLauncher.LaunchAsync(
-            session.Serial,
-            session.Target.UserId,
-            session.Target.PackageName,
-            session.Target.LaunchComponent,
-            displayId,
-            cancellationToken).ConfigureAwait(false);
+        if (session.Target.StartUri is { } uri)
+        {
+            // A link, the Play Store's page of an app: the store is
+            // neither stopped first nor counted as ours, so closing the
+            // window leaves a download in progress alone.
+            launch = await _appLauncher.OpenUriAsync(
+                session.Serial,
+                session.Target.UserId,
+                uri,
+                displayId,
+                cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            _ = await _appLauncher.ForceStopAsync(
+                session.Serial,
+                session.Target.UserId,
+                session.Target.PackageName,
+                cancellationToken).ConfigureAwait(false);
 
-        // Set even when opening fails: "am start" may have launched
-        // the game and still returned a fault, and when in doubt,
-        // the game we leave running is indeed our own.
-        session.AppLaunchedByUs = true;
+            launch = await _appLauncher.LaunchAsync(
+                session.Serial,
+                session.Target.UserId,
+                session.Target.PackageName,
+                session.Target.LaunchComponent,
+                displayId,
+                cancellationToken).ConfigureAwait(false);
+
+            // Set even when opening fails: "am start" may have launched
+            // the game and still returned a fault, and when in doubt,
+            // the game we leave running is indeed our own.
+            session.AppLaunchedByUs = true;
+        }
 
         if (!launch.Succeeded)
         {
