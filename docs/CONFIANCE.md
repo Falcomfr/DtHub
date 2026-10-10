@@ -96,6 +96,9 @@ must **already have a release** in the form to be signed. The MIT license
 qualifies. Reviewing the application takes anywhere from a few days to a
 few weeks.
 
+**Asked on 2026-10-10: not yet.** SignPath wants a project that is already
+known and used, which DT Hub is not yet. To ask again once it is.
+
 One point to check in their terms before committing: the publisher shown
 is the foundation's, which vouches for the project, and not "Falcomfr".
 That is a choice, not a detail.

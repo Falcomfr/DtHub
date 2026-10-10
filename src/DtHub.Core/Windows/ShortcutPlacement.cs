@@ -18,7 +18,8 @@ public static class ShortcutPlacement
     /// application forces its presence onto someone's desktop at
     /// every startup.
     ///
-    /// The Start menu shortcut, for its part, is always rewritten:
+    /// The Start menu shortcut, for its part, is always written, the
+    /// writer leaving alone one that already leads to the executable:
     /// it settles the matter between the two. Its absence signals a
     /// first installation, where both are placed. Its presence
     /// signals an already known installation, where an empty desktop
@@ -26,7 +27,7 @@ public static class ShortcutPlacement
     ///
     /// There remains the case of a moved executable: the desktop
     /// shortcut would then point to the old location forever. That
-    /// is why an existing shortcut is rewritten, exactly like the
+    /// is why an existing shortcut is written again, exactly like the
     /// Start menu one.
     /// </summary>
     /// <param name="desktopLinkExists">

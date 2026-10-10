@@ -8,9 +8,9 @@ startup, the one that finally runs the new version.
 
 ## What only needs doing once
 
-The repository must be **public**: the application queries the API without
-a token, and a token embedded in the executable would be readable by anyone
-who opens it. Its account and its name are written in
+The repository must be **public**: the application follows its
+`releases/latest` link without a token, and versions up to 0.7.10 query the
+API the same way. Its account and its name are written in
 `src/DtHub.Core/Updates/ReleaseChannel.cs`.
 
 As long as the repository does not exist, the request returns "nothing to
@@ -38,10 +38,11 @@ nothing is shown.
    ```
 
 The pipeline builds, publishes, computes the checksum and creates the
-release with four files: `DtHub.exe`, `DtHub.exe.sha256`, `notes.fr.md` and
-`notes.es.md`. The first two are the names the application requires; a
-release missing either one is ignored. The notes are optional to it: without
-them it shows the English body.
+release with five files: `DtHub.exe`, `DtHub.exe.sha256`, `notes.en.md`,
+`notes.fr.md` and `notes.es.md`. The first two are the names the application
+requires: from 0.7.11 onward it builds their addresses from the tag, and a
+release missing either one fails to download without replacing anything. The
+notes are optional to it: without them it shows no note.
 
 ## What the file is published with
 
@@ -149,14 +150,15 @@ The checksum shown must match the one in the release's `.sha256` file.
 
 ## Editing a published note
 
-`gh release edit --notes-file` rewrites the English body only. The French and
-Spanish notes are assets, and the application shows them first: edit the
-section in the three changelogs, write each translated section to
-`notes.fr.md` and `notes.es.md`, then replace the assets.
+`gh release edit --notes-file` rewrites the English body only, which versions
+up to 0.7.10 read. The later ones read the three notes as assets, and the
+application shows them first: edit the section in the three changelogs, write
+each section to `notes.en.md`, `notes.fr.md` and `notes.es.md`, then replace
+the body and the assets.
 
 ```
-gh release edit v0.3.0 --notes-file note.md
-gh release upload v0.3.0 notes.fr.md notes.es.md --clobber
+gh release edit v0.3.0 --notes-file notes.en.md
+gh release upload v0.3.0 notes.en.md notes.fr.md notes.es.md --clobber
 ```
 
 Discord is not told: the message already posted stays as it was.

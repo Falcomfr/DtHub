@@ -10,10 +10,9 @@ namespace DtHub.Infrastructure.Updates;
 /// <summary>
 /// Releases published on the repository.
 ///
-/// No token: the repository's API returns public releases to
-/// anyone who asks, sixty times per hour and per address, which is
-/// far more than a check per startup. A token embedded in the
-/// executable would be readable by anyone who opened it anyway.
+/// No API: "releases/latest" on the site redirects to the page of the
+/// last release, and its assets sit at fixed addresses beside it. See
+/// <see cref="ReleaseParser.FromTagPage" /> for why the API is avoided.
 ///
 /// Nothing that fails here is an outage: no network, repository not
 /// yet there, quota reached, the application keeps running without
@@ -33,16 +32,14 @@ public sealed partial class GitHubReleaseSource(
     /// <inheritdoc />
     public async Task<AppRelease?> GetLatestAsync(CancellationToken cancellationToken = default)
     {
-        var url = $"https://api.github.com/repos/{_owner}/{_repository}/releases/latest";
+        var url = $"https://github.com/{_owner}/{_repository}/releases/latest";
 
         try
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, url);
-
-            // The API refuses an anonymous request: it wants to
-            // know who is speaking.
+            // HEAD: only the address the redirect lands on is read, not
+            // the page itself.
+            using var request = new HttpRequestMessage(HttpMethod.Head, url);
             request.Headers.UserAgent.Add(new ProductInfoHeaderValue("DtHub", "1.0"));
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
 
             using var response = await _client
                 .SendAsync(request, cancellationToken)
@@ -50,9 +47,8 @@ public sealed partial class GitHubReleaseSource(
 
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
-                // Neither repository nor release: the application
-                // is simply alone in the world, which is the case
-                // as long as nothing is published.
+                // No repository: the application is simply alone in
+                // the world.
                 return null;
             }
 
@@ -63,11 +59,9 @@ public sealed partial class GitHubReleaseSource(
                 return null;
             }
 
-            var json = await response.Content
-                .ReadAsStringAsync(cancellationToken)
-                .ConfigureAwait(false);
-
-            return ReleaseParser.Parse(json, UpdatePaths.Executable);
+            return response.RequestMessage?.RequestUri is { } landed
+                ? ReleaseParser.FromTagPage(landed, UpdatePaths.Executable)
+                : null;
         }
         catch (HttpRequestException exception)
         {

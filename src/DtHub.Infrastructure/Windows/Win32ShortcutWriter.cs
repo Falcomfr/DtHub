@@ -12,9 +12,14 @@ namespace DtHub.Infrastructure.Windows;
 /// forbidden at runtime.
 ///
 /// The shortcut targets the executable wherever it is, without
-/// copying or moving anything. The application rewrites it on
-/// every startup: moving the file is then enough to fix the
-/// shortcut, without asking anyone anything.
+/// copying or moving anything. The application checks it on every
+/// startup: moving the file is then enough to fix the shortcut,
+/// without asking anyone anything.
+///
+/// It is rewritten only when it leads elsewhere. A program that
+/// rewrites a shortcut to itself at every startup is what Kaspersky's
+/// behavior detection expects of a trojan settling in, and DT Hub was
+/// deleted as PDM:Trojan.Win32.Generic on 2026-10-10.
 /// </summary>
 public sealed class Win32ShortcutWriter : IShortcutWriter
 {
@@ -23,6 +28,12 @@ public sealed class Win32ShortcutWriter : IShortcutWriter
     {
         ArgumentException.ThrowIfNullOrEmpty(linkPath);
         ArgumentException.ThrowIfNullOrEmpty(targetPath);
+
+        if (File.Exists(linkPath)
+            && string.Equals(TargetOf(linkPath), targetPath, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
 
         try
         {
@@ -56,6 +67,33 @@ public sealed class Win32ShortcutWriter : IShortcutWriter
             return false;
         }
     }
+
+    /// <summary>
+    /// The executable an existing shortcut leads to, or <c>null</c> when
+    /// it cannot be read, in which case it is rewritten.
+    /// </summary>
+    private static string? TargetOf(string linkPath)
+    {
+        try
+        {
+            var link = (IShellLinkW)new ShellLink();
+            ((IPersistFile)link).Load(linkPath, 0);
+
+            var target = new System.Text.StringBuilder(1024);
+            link.GetPath(target, target.Capacity, 0, RawPath);
+
+            return target.ToString();
+        }
+        catch (Exception exception) when (exception is COMException
+            or IOException or UnauthorizedAccessException)
+        {
+            // Unreadable: written again, as if it were not there.
+            return null;
+        }
+    }
+
+    /// <summary>SLGP_RAWPATH: the path as it was set, untouched.</summary>
+    private const int RawPath = 4;
 
     [ComImport]
     // Not sealed: the compiler refuses to convert a sealed class to

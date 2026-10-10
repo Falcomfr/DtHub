@@ -433,8 +433,9 @@ public partial class App : Application, IDisposable
     ///
     /// The application is not installed: it is a file placed wherever
     /// one wants. Without a shortcut, we go look for it where we put
-    /// it, and there is nothing to pin. The shortcut is rewritten at
-    /// every startup, so moving the file is enough to fix it.
+    /// it, and there is nothing to pin. The shortcut is checked at
+    /// every startup, and rewritten only when it leads elsewhere, so
+    /// moving the file is enough to fix it.
     ///
     /// Nothing is copied or moved: copying itself would leave an
     /// orphaned executable that would never update, and moving itself
@@ -444,7 +445,7 @@ public partial class App : Application, IDisposable
     /// the publish output, which the development launcher rewrites
     /// every time. That is the rule already written for the update.
     ///
-    /// The Start menu is rewritten every time; the desktop follows a
+    /// The Start menu is checked every time; the desktop follows a
     /// rule of its own, written in <see cref="ShortcutPlacement" />,
     /// so as not to put back a shortcut that was just deleted.
     ///

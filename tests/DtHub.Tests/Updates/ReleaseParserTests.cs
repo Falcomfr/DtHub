@@ -4,93 +4,6 @@ namespace DtHub.Tests.Updates;
 
 public sealed class ReleaseParserTests
 {
-    private const string Json = """
-        {
-          "tag_name": "v0.2.0",
-          "draft": false,
-          "prerelease": false,
-          "body": "### Ajoute\n- Une chose.",
-          "assets": [
-            { "name": "DtHub.exe", "size": 63212298,
-              "browser_download_url": "https://exemple/DtHub.exe" },
-            { "name": "DtHub.exe.sha256", "size": 74,
-              "browser_download_url": "https://exemple/DtHub.exe.sha256" }
-          ]
-        }
-        """;
-
-    [Fact]
-    public void Lit_une_livraison_complete()
-    {
-        var release = ReleaseParser.Parse(Json, "DtHub.exe");
-
-        Assert.NotNull(release);
-        Assert.Equal(new Version(0, 2, 0), release.Version);
-        Assert.Equal("https://exemple/DtHub.exe", release.DownloadUrl);
-        Assert.Equal("https://exemple/DtHub.exe.sha256", release.DigestUrl);
-        Assert.Equal(63212298, release.SizeBytes);
-        Assert.Contains("Une chose.", release.Notes, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void Lit_les_notes_traduites_jointes_a_la_livraison()
-    {
-        var json = Json.Replace(
-            "\"assets\": [",
-            """
-            "assets": [
-                { "name": "notes.fr.md", "size": 120,
-                  "browser_download_url": "https://exemple/notes.fr.md" },
-                { "name": "Notes.ES.md", "size": 118,
-                  "browser_download_url": "https://exemple/notes.es.md" },
-            """,
-            StringComparison.Ordinal);
-
-        var release = ReleaseParser.Parse(json, "DtHub.exe");
-
-        Assert.NotNull(release);
-        Assert.Equal("https://exemple/notes.fr.md", release.NoteUrls["fr"]);
-        Assert.Equal("https://exemple/notes.es.md", release.NoteUrls["es"]);
-        Assert.Equal(2, release.NoteUrls.Count);
-    }
-
-    [Fact]
-    public void Une_livraison_sans_notes_traduites_reste_utilisable()
-    {
-        var release = ReleaseParser.Parse(Json, "DtHub.exe");
-
-        Assert.NotNull(release);
-        Assert.Empty(release.NoteUrls);
-    }
-
-    [Theory]
-    [InlineData("\"draft\": false", "\"draft\": true")]
-    [InlineData("\"prerelease\": false", "\"prerelease\": true")]
-    public void Ecarte_un_brouillon_et_un_essai(string from, string to) =>
-        Assert.Null(ReleaseParser.Parse(Json.Replace(from, to, StringComparison.Ordinal), "DtHub.exe"));
-
-    [Fact]
-    public void Ecarte_une_livraison_sans_empreinte()
-    {
-        // An executable that cannot be verified is not offered.
-        var json = Json.Replace("DtHub.exe.sha256", "autre-chose.txt", StringComparison.Ordinal);
-
-        Assert.Null(ReleaseParser.Parse(json, "DtHub.exe"));
-    }
-
-    [Fact]
-    public void Ecarte_une_livraison_sans_executable()
-    {
-        var json = Json.Replace("\"name\": \"DtHub.exe\"", "\"name\": \"DtHub.zip\"", StringComparison.Ordinal);
-
-        Assert.Null(ReleaseParser.Parse(json, "DtHub.exe"));
-    }
-
-    [Fact]
-    public void Ecarte_une_etiquette_qui_ne_porte_pas_de_version() =>
-        Assert.Null(ReleaseParser.Parse(
-            Json.Replace("v0.2.0", "derniere", StringComparison.Ordinal), "DtHub.exe"));
-
     [Theory]
     [InlineData("v0.2.0", 0, 2, 0)]
     [InlineData("V1.4.12", 1, 4, 12)]
@@ -110,10 +23,32 @@ public sealed class ReleaseParserTests
     }
 
     [Fact]
-    public void Ne_s_etrangle_pas_sur_un_document_illisible()
+    public void Lit_la_livraison_depuis_la_page_ou_mene_latest()
     {
-        Assert.Null(ReleaseParser.Parse("ceci n'est pas du json", "DtHub.exe"));
-        Assert.Null(ReleaseParser.Parse(null, "DtHub.exe"));
-        Assert.Null(ReleaseParser.Parse("[]", "DtHub.exe"));
+        var release = ReleaseParser.FromTagPage(
+            new Uri("https://github.com/Falcomfr/DtHub/releases/tag/v0.7.11"), "DtHub.exe");
+
+        Assert.NotNull(release);
+        Assert.Equal(new Version(0, 7, 11), release.Version);
+        Assert.Equal(
+            "https://github.com/Falcomfr/DtHub/releases/download/v0.7.11/DtHub.exe",
+            release.DownloadUrl);
+        Assert.Equal(
+            "https://github.com/Falcomfr/DtHub/releases/download/v0.7.11/DtHub.exe.sha256",
+            release.DigestUrl);
+        Assert.Equal(
+            "https://github.com/Falcomfr/DtHub/releases/download/v0.7.11/notes.en.md",
+            release.NoteUrls["en"]);
+        Assert.Equal(
+            "https://github.com/Falcomfr/DtHub/releases/download/v0.7.11/notes.fr.md",
+            release.NoteUrls["fr"]);
     }
+
+    [Theory]
+    // No release yet: GitHub sends "latest" back to the list.
+    [InlineData("https://github.com/Falcomfr/DtHub/releases")]
+    [InlineData("https://github.com/Falcomfr/DtHub/releases/tag/derniere")]
+    [InlineData("https://github.com/login")]
+    public void Ecarte_une_page_qui_n_est_pas_celle_d_une_version(string landed) =>
+        Assert.Null(ReleaseParser.FromTagPage(new Uri(landed), "DtHub.exe"));
 }

@@ -3,10 +3,9 @@
 /// <summary>
 /// Where releases come from.
 ///
-/// A public repository: the application queries the API without a
-/// token, and a token embedded in the executable would be readable
-/// by anyone who opens it anyway. As long as the repository does not
-/// exist, the request returns "nothing to report" and the
+/// A public repository: the application follows its "releases/latest"
+/// link, without a token or the API. As long as the repository does
+/// not exist, the request returns "nothing to report" and the
 /// application knows no more.
 ///
 /// The procedure for releasing is in docs/LIVRAISON.md.

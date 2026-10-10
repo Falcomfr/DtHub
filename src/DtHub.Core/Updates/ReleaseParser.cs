@@ -1,72 +1,49 @@
-﻿using System.Text.Json;
-using System.Text.RegularExpressions;
+﻿using DtHub.Core.Localization;
 
 namespace DtHub.Core.Updates;
 
 /// <summary>
-/// Reads what the repository API returns for a release.
+/// Reads where the repository sends "releases/latest".
 ///
 /// Separated from the network: this is the part that can get it
 /// wrong, and so the part we test.
 /// </summary>
-public static partial class ReleaseParser
+public static class ReleaseParser
 {
     /// <summary>
-    /// The release described by this document, or <c>null</c> if it
-    /// is not usable.
+    /// The release whose page "releases/latest" lands on, read from the
+    /// address alone. GitHub sends that link to the last published
+    /// release, drafts and prereleases left out, and to the list when
+    /// there is none.
     ///
-    /// Ruled out: a release in draft or marked as a prerelease, a tag
-    /// that does not carry a readable version, and a release missing
-    /// its executable or its checksum: better to offer nothing than
-    /// to offer something we cannot verify.
+    /// Asked this way rather than through the API: Kaspersky flags a
+    /// program that queries "api.github.com/repos" as using GitHub to
+    /// receive orders (NetTool.GitHubGetRepo.HTTP.C&amp;C, 2026-10-10).
+    /// The assets sit at fixed addresses beside the tag. The size is
+    /// not known, nothing reads it, and the notes come from the
+    /// "notes.xx.md" assets, English included.
     /// </summary>
-    /// <param name="json">The document returned by the API.</param>
-    /// <param name="assetName">The name of the expected executable.</param>
-    public static AppRelease? Parse(string? json, string assetName)
+    public static AppRelease? FromTagPage(Uri landed, string assetName)
     {
+        ArgumentNullException.ThrowIfNull(landed);
         ArgumentException.ThrowIfNullOrEmpty(assetName);
 
-        if (string.IsNullOrWhiteSpace(json))
+        var segments = landed.AbsolutePath.Trim('/').Split('/');
+
+        if (segments.Length != 5
+            || segments[2] != "releases"
+            || segments[3] != "tag"
+            || VersionOf(Uri.UnescapeDataString(segments[4])) is not { } version)
         {
             return null;
         }
 
-        try
+        var folder = $"{landed.GetLeftPart(UriPartial.Authority)}/{segments[0]}/{segments[1]}/releases/download/{segments[4]}/";
+
+        return new AppRelease(version, string.Empty, folder + assetName, 0, folder + assetName + ".sha256")
         {
-            using var document = JsonDocument.Parse(json);
-            var root = document.RootElement;
-
-            if (root.ValueKind != JsonValueKind.Object
-                || Flag(root, "draft")
-                || Flag(root, "prerelease")
-                || VersionOf(Text(root, "tag_name")) is not { } version)
-            {
-                return null;
-            }
-
-            var binary = Asset(root, assetName);
-            var digest = Asset(root, assetName + ".sha256");
-
-            return binary is null || digest is null
-                ? null
-                : new AppRelease(
-                    version,
-                    Text(root, "body").Replace("\r\n", "\n", StringComparison.Ordinal).Trim(),
-                    binary.Value.Url,
-                    binary.Value.Size,
-                    digest.Value.Url)
-                {
-                    NoteUrls = NoteUrls(root),
-                };
-        }
-        catch (JsonException)
-        {
-            // Silence is intentional: updating is a convenience
-            // service, not a dependency. An unreadable response is
-            // treated as an absence of version, and the application
-            // starts all the same.
-            return null;
-        }
+            NoteUrls = AppLanguage.Supported.ToDictionary(l => l, l => $"{folder}notes.{l}.md"),
+        };
     }
 
     /// <summary>
@@ -98,72 +75,4 @@ public static partial class ReleaseParser
                 version.Major,
                 version.Minor,
                 version.Build < 0 ? 0 : version.Build);
-
-    private static (string Url, long Size)? Asset(JsonElement root, string name)
-    {
-        if (!root.TryGetProperty("assets", out var assets)
-            || assets.ValueKind != JsonValueKind.Array)
-        {
-            return null;
-        }
-
-        foreach (var asset in assets.EnumerateArray())
-        {
-            if (!string.Equals(Text(asset, "name"), name, StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
-
-            var url = Text(asset, "browser_download_url");
-
-            if (url.Length == 0)
-            {
-                continue;
-            }
-
-            return (url, asset.TryGetProperty("size", out var size)
-                && size.TryGetInt64(out var bytes) ? bytes : 0);
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// The assets named "notes.xx.md", by language. Their absence is
-    /// not a fault: the English body is still there to be read.
-    /// </summary>
-    private static Dictionary<string, string> NoteUrls(JsonElement root)
-    {
-        var found = new Dictionary<string, string>(StringComparer.Ordinal);
-
-        if (!root.TryGetProperty("assets", out var assets)
-            || assets.ValueKind != JsonValueKind.Array)
-        {
-            return found;
-        }
-
-        foreach (var asset in assets.EnumerateArray())
-        {
-            var match = NotePattern().Match(Text(asset, "name"));
-            var url = Text(asset, "browser_download_url");
-
-            if (match.Success && url.Length > 0)
-            {
-                found[match.Groups[1].Value.ToLowerInvariant()] = url;
-            }
-        }
-
-        return found;
-    }
-
-    [GeneratedRegex(@"^notes\.([a-z]{2})\.md$", RegexOptions.IgnoreCase, 2000)]
-    private static partial Regex NotePattern();
-
-    private static string Text(JsonElement element, string name) =>
-        element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String
-            ? value.GetString() ?? string.Empty
-            : string.Empty;
-
-    private static bool Flag(JsonElement element, string name) =>
-        element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.True;
 }

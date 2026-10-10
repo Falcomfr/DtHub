@@ -9599,3 +9599,42 @@ reproductible à l'octet.
 **À suivre** : l'issue amont libsdl-org/SDL#13777 porte sur le même test. Une
 mise à jour de scrcpy apporte un autre SDL, que `SdlFocusFix` laisse en place :
 réappliquer le patch ou constater le correctif amont.
+
+## D180 - Moins ressembler à un cheval de troie aux yeux de Kaspersky
+
+**Date** : 2026-10-10
+
+**Le constat.** Chez un joueur, Kaspersky Standard a arrêté DT Hub 0.7.10,
+l'a mis en quarantaine et a annulé tout ce qu'il avait créé :
+`PDM:Trojan.Win32.Generic`, module « Surveillance du système », raison
+« Analyse comportementale ». Le fichier est propre en statique : 0 sur
+VirusTotal, « Clean » sur le Threat Intelligence Portal à sa première
+analyse. Quelques heures plus tard, le portail le classe pourtant :
+`BSS:Trojan.Win32.Generic` (modèle de comportement) et
+`NetTool.GitHubGetRepo.HTTP.C&C`. Son bac à sable n'avait pas de réseau :
+ni scrcpy ni adb n'y ont été téléchargés. Ce qui déclenche se joue donc au
+démarrage, avant tout téléchargement.
+
+**Les deux changements.**
+- La recherche de mise à jour n'appelle plus `api.github.com/repos/.../releases/latest`,
+  motif exact de la seconde détection. Elle suit le lien
+  `github.com/<dépôt>/releases/latest`, qui redirige vers la page de la
+  dernière version publiée, et lit la version dans l'adresse d'arrivée. Les
+  fichiers sont à des adresses fixes à côté de l'étiquette. Les notes
+  anglaises, que seule l'API donnait, voyagent désormais aussi en
+  `notes.en.md`. Les versions jusqu'à la 0.7.10 continuent de lire le corps
+  de la livraison par l'API, qui ne change pas.
+- Les raccourcis ne sont réécrits que s'ils mènent ailleurs. Un programme
+  inconnu qui réécrit à chaque démarrage des raccourcis vers lui-même, c'est
+  ce que la détection de comportement attend d'un cheval de troie qui
+  s'installe.
+
+**Ce qu'on ne sait pas.** Kaspersky ne publie pas ses modèles : rien ne dit
+que ces deux gestes suffisent. Une version d'essai envoyée au portail, dont
+le bac à sable a produit les deux détections, dira si elles reviennent.
+Restent comme pistes l'archive scrcpy extraite en entier (`.bat`, `.vbs`) et
+le `SDL3.dll` remplacé, qui ne jouent que chez le joueur. La signature reste
+la vraie réponse : SignPath demande un projet déjà connu, pas encore le cas.
+
+**Écarté** : demander une exclusion au joueur, pour la raison déjà écrite
+dans `docs/CONFIANCE.md`.

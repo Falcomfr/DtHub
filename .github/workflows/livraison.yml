@@ -149,9 +149,11 @@ jobs:
         run: |
           # The notes come from the changelogs, the section of the version
           # being shipped, in three languages. The English one is the
-          # release body, which every installed version reads; the French
-          # and Spanish ones travel as assets, read by the application in
-          # its own language and by the Discord relay. A translation missing
+          # release body, which versions up to 0.7.10 read through the API,
+          # and the asset notes.en.md for the later ones, which no longer
+          # call the API. The French and Spanish ones travel as assets,
+          # read by the application in its own language and by the Discord
+          # relay. A translation missing
           # the version, or listing fewer or more entries than the English
           # section, is forgotten or unfinished and stops the release: a
           # French section holding only its headings would otherwise replace
@@ -183,7 +185,7 @@ jobs:
             return $entrees
           }
 
-          $anglaises = Extraire CHANGELOG.md note.md $null
+          $anglaises = Extraire CHANGELOG.md notes.en.md $null
           $null = Extraire CHANGELOG.fr.md notes.fr.md $anglaises
           $null = Extraire CHANGELOG.es.md notes.es.md $anglaises
 
@@ -206,8 +208,9 @@ jobs:
           gh release create $env:ETIQUETTE
           publication/DtHub.exe
           publication/DtHub.exe.sha256
+          notes.en.md
           notes.fr.md
           notes.es.md
           --title "DT Hub $env:VERSION"
-          --notes-file note.md
+          --notes-file notes.en.md
           --draft
