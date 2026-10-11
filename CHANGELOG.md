@@ -17,6 +17,13 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.8.3] - 2026-10-12
+
+### Added
+
+- A "Sharper image" box under the quality tiers renders the game at twice the
+  window's size, so coloured text such as red on grey is as sharp as white.
+
 ## [0.8.2] - 2026-10-11
 
 ### Fixed

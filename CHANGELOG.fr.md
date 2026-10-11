@@ -11,6 +11,14 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.8.3] - 2026-10-12
+
+### Ajouté
+
+- Une case « Image plus nette » sous les paliers de qualité rend le jeu au
+  double de la taille de la fenêtre : le texte coloré, comme le rouge sur gris,
+  devient aussi net que le blanc.
+
 ## [0.8.2] - 2026-10-11
 
 ### Corrigé

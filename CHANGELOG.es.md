@@ -10,6 +10,14 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.8.3] - 2026-10-12
+
+### Añadido
+
+- Una casilla «Imagen más nítida» bajo los niveles de calidad dibuja el juego
+  al doble del tamaño de la ventana: el texto de color, como el rojo sobre
+  gris, queda tan nítido como el blanco.
+
 ## [0.8.2] - 2026-10-11
 
 ### Corregido
