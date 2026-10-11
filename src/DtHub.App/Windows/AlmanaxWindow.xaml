@@ -224,7 +224,6 @@
           <ItemsControl.ItemTemplate>
             <DataTemplate>
               <Button Style="{StaticResource DayChip}"
-                      VerticalContentAlignment="Top"
                       Command="{Binding DataContext.PickCommand,
                                 RelativeSource={RelativeSource AncestorType=Window}}"
                       CommandParameter="{Binding}">
@@ -237,29 +236,6 @@
                              TextWrapping="NoWrap" Margin="0,1,0,0"
                              FontSize="15" FontWeight="SemiBold" />
                   <Ellipse Style="{StaticResource TodayDot}" />
-
-                  <!-- The day's bonus, so the week reads at a glance:
-                       which day for farming, for gathering, for a
-                       quest elsewhere. Two lines at most, the whole
-                       title in the tooltip. Fixed height, so the
-                       chips stay aligned whether it is known or not. -->
-                  <TextBlock Text="{Binding Bonus}" Height="26" Margin="0,3,0,0"
-                             TextAlignment="Center" TextWrapping="WrapWithOverflow"
-                             TextTrimming="CharacterEllipsis" LineHeight="13"
-                             LineStackingStrategy="BlockLineHeight"
-                             FontSize="10">
-                    <TextBlock.Style>
-                      <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-                        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
-                        <Style.Triggers>
-                          <DataTrigger Binding="{Binding CallsElsewhere}" Value="True">
-                            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
-                            <Setter Property="FontWeight" Value="SemiBold" />
-                          </DataTrigger>
-                        </Style.Triggers>
-                      </Style>
-                    </TextBlock.Style>
-                  </TextBlock>
                 </StackPanel>
               </Button>
             </DataTemplate>
@@ -494,6 +470,74 @@
             <TextBlock Text="{Binding MonthEvent}" TextWrapping="Wrap" Margin="0,2,0,0"
                        FontSize="{StaticResource FontBody}" />
           </StackPanel>
+
+          <!-- Getting ready, on request only: each button reads several
+               pages of the portal, one a second, so nothing here starts
+               on its own. See D190. -->
+          <Rectangle Height="1" Margin="0,16,0,0"
+                     Fill="{DynamicResource GrooveBrush}" />
+
+          <TextBlock Text="{loc:T AlmanaxGetReady}" Style="{StaticResource FieldLabel}"
+                     Margin="0,12,0,0" />
+
+          <!-- The week's offerings: the seven days of the strip, one line
+               each. -->
+          <Button Margin="0,8,0,0" Padding="10,5" HorizontalAlignment="Left"
+                  Style="{StaticResource OutlineButton}"
+                  Content="{loc:T AlmanaxPrepare}" ToolTip="{loc:T AlmanaxPrepareTip}"
+                  Command="{Binding PrepareWeekCommand}" />
+
+          <ItemsControl ItemsSource="{Binding Shopping}" Margin="0,8,0,0">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Grid Margin="0,3">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="64" />
+                    <ColumnDefinition Width="30" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Grid.Column="0" Text="{Binding Day}" TextWrapping="NoWrap"
+                             Foreground="{DynamicResource TextMutedBrush}" />
+                  <TextBlock Grid.Column="1" Text="{Binding Count}" TextWrapping="NoWrap"
+                             FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                  <TextBlock Grid.Column="2" Text="{Binding Item}" TextWrapping="Wrap" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <!-- The next day of a bonus, typed in any case, with or
+               without accents. -->
+          <Grid Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox Grid.Column="0" Padding="7,4"
+                     Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
+                     Tag="{loc:T AlmanaxSearchHint}" ToolTip="{loc:T AlmanaxSearchTip}" />
+            <Button Grid.Column="1" Margin="6,0,0,0" Padding="10,5"
+                    Style="{StaticResource OutlineButton}" IsDefault="False"
+                    Content="{loc:T AlmanaxSearch}" ToolTip="{loc:T AlmanaxSearchTip}"
+                    Command="{Binding SearchCommand}" />
+          </Grid>
+
+          <Button Margin="0,6,0,0" Padding="4,3" HorizontalAlignment="Left"
+                  Style="{StaticResource QuietButton}"
+                  Command="{Binding OpenFoundCommand}"
+                  Visibility="{Binding SearchResult, Converter={StaticResource EmptyToVisibility},
+                                       ConverterParameter=inverse}">
+            <TextBlock Text="{Binding SearchResult}" TextWrapping="Wrap" />
+          </Button>
+
+          <!-- While a batch reads: where it is, and how to stop it. -->
+          <DockPanel Margin="0,8,0,0"
+                     Visibility="{Binding IsBatchBusy, Converter={StaticResource BoolToVisibility}}">
+            <Button DockPanel.Dock="Right" Padding="10,4" Style="{StaticResource QuietButton}"
+                    Content="{loc:T AlmanaxStop}" Command="{Binding StopBatchCommand}" />
+            <TextBlock Text="{Binding BatchProgress}" VerticalAlignment="Center"
+                       Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" />
+          </DockPanel>
 
         </StackPanel>
       </ScrollViewer>

@@ -1,4 +1,6 @@
-﻿namespace DtHub.Core.Almanax;
+﻿using System.Globalization;
+
+namespace DtHub.Core.Almanax;
 
 /// <summary>
 /// Reading the Almanax page without depending on a language.
@@ -144,14 +146,30 @@ public static class AlmanaxReading
 
     /// <summary>
     /// True when the bonus asks to go somewhere, on top of the
-    /// offering. Given the title alone, as the week page has it, or
-    /// the title and its detail.
+    /// offering. Given the title and its detail.
     /// </summary>
     public static bool CallsElsewhere(string? bonus)
     {
         var whole = Clean(bonus);
 
         return Elsewhere.Any(word => whole.Contains(word, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// True when the bonus title contains what was typed, whatever
+    /// the case and the accents: "economie" finds "Économie
+    /// d'ingrédients", "brakmar" finds "Bonta et Brâkmar". Nobody
+    /// types the accents of a word they are only looking for.
+    /// </summary>
+    public static bool Mentions(string? title, string? query)
+    {
+        var wanted = Clean(query);
+
+        return wanted.Length > 0
+            && CultureInfo.InvariantCulture.CompareInfo.IndexOf(
+                Clean(title),
+                wanted,
+                CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace) >= 0;
     }
 
     /// <summary>

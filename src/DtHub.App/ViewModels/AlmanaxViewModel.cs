@@ -59,19 +59,20 @@ public sealed partial class AlmanaxChip : ObservableObject
     private bool _isSelected;
 
     /// <summary>
-    /// The day's bonus title, empty until it is known: from the week
-    /// page, or from the day once it has been read.
+    /// The day's bonus title, in the chip's tooltip, empty until it is
+    /// known: from the week page, or from the day once it has been
+    /// read. Not written under the number: at seven chips across, the
+    /// titles were cut on every day, and the user had them removed.
     /// </summary>
     [ObservableProperty]
     private string _bonus = string.Empty;
-
-    /// <summary>
-    /// True when the day asks to go somewhere on top of the offering,
-    /// a special repeatable quest or a blessing.
-    /// </summary>
-    [ObservableProperty]
-    private bool _callsElsewhere;
 }
+
+/// <summary>
+/// A line of the week's offerings: the day, then what to bring, or
+/// that the day could not be read.
+/// </summary>
+public sealed record AlmanaxShoppingLine(DateOnly Date, string Day, string Count, string Item);
 
 /// <summary>A cell of the drop-down calendar.</summary>
 public sealed partial class AlmanaxCell : ObservableObject
@@ -256,10 +257,7 @@ public sealed partial class AlmanaxViewModel : ObservableObject
         CallsElsewhere = AlmanaxReading.CallsElsewhere(day.Bonus + " " + day.BonusDetail);
         Copied = false;
 
-        // The day read says more than the week page, which only has the
-        // title: it replaces it.
-        _bonuses[day.Date] = (day.Bonus, CallsElsewhere);
-        RefreshChip(day.Date);
+        Remember(day);
         Quest = day.Quest;
         Meryde = day.Meryde;
         MonthEvent = day.MonthEvent;
@@ -273,7 +271,172 @@ public sealed partial class AlmanaxViewModel : ObservableObject
     /// What is known of each day's bonus, for the strip. In memory, for
     /// the session, like the days read.
     /// </summary>
-    private readonly Dictionary<DateOnly, (string Title, bool Elsewhere)> _bonuses = [];
+    private readonly Dictionary<DateOnly, string> _bonuses = [];
+
+    /// <summary>
+    /// A day read, shown or not, for its chip in the strip. The day
+    /// read says more than the week page, which only has the title:
+    /// it replaces it.
+    /// </summary>
+    public void Remember(AlmanaxDay day)
+    {
+        ArgumentNullException.ThrowIfNull(day);
+
+        _bonuses[day.Date] = day.Bonus;
+
+        RefreshChip(day.Date);
+    }
+
+    /// <summary>
+    /// Reads a day for a batch, from the session's memory or the
+    /// portal, at most one page a second. Set by the window, which
+    /// owns the reader; <c>null</c> until then.
+    /// </summary>
+    public Func<DateOnly, CancellationToken, Task<AlmanaxDay?>>? DayReader { get; set; }
+
+    /// <summary>The week's offerings, once prepared.</summary>
+    public ObservableCollection<AlmanaxShoppingLine> Shopping { get; } = [];
+
+    /// <summary>True while a batch reads, the preparation or a search.</summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(PrepareWeekCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SearchCommand))]
+    private bool _isBatchBusy;
+
+    /// <summary>"Reading 3 of 7", while a batch reads.</summary>
+    [ObservableProperty]
+    private string _batchProgress = string.Empty;
+
+    /// <summary>The bonus to look for, as typed.</summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SearchCommand))]
+    private string _searchQuery = string.Empty;
+
+    /// <summary>What the search found, or that it found nothing.</summary>
+    [ObservableProperty]
+    private string _searchResult = string.Empty;
+
+    /// <summary>The day found, which a click opens.</summary>
+    private DateOnly? _found;
+
+    private CancellationTokenSource? _batchStop;
+
+    private bool CanStartBatch => !IsBatchBusy && DayReader is not null;
+
+    /// <summary>
+    /// Reads the seven days of the strip and lists their offerings.
+    /// On a click only: these are seven pages of the portal.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanStartBatch))]
+    private async Task PrepareWeek()
+    {
+        var dates = Days.Select(chip => chip.Date).ToList();
+
+        var days = await RunBatchAsync(dates.Count, (progress, stop) =>
+            AlmanaxBatch.ReadAsync(dates, DayReader!, progress, stop)).ConfigureAwait(true);
+
+        if (days is null)
+        {
+            return;
+        }
+
+        Shopping.Clear();
+
+        foreach (var (date, day) in days)
+        {
+            var label = date.ToDateTime(TimeOnly.MinValue).ToString("ddd d", DisplayCulture.Current);
+            var read = day?.Item is { Length: > 0 };
+
+            Shopping.Add(new AlmanaxShoppingLine(
+                date,
+                label,
+                read ? day!.Quantity?.ToString(DisplayCulture.Current) ?? string.Empty : string.Empty,
+                day is null ? Strings.Get("AlmanaxNotRead") : read ? day.Item! : day.Offering));
+        }
+    }
+
+    private bool CanSearch => CanStartBatch && SearchQuery.Trim().Length > 0;
+
+    /// <summary>
+    /// The next day, from tomorrow, whose bonus mentions what was
+    /// typed. Stops at the first one, or after two months.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanSearch))]
+    private async Task Search()
+    {
+        var query = SearchQuery.Trim();
+        var from = DateOnly.FromDateTime(DateTime.Now).AddDays(1);
+
+        _found = null;
+        SearchResult = string.Empty;
+
+        var result = await RunBatchAsync(AlmanaxBatch.SearchDays, async (progress, stop) =>
+            new[] { await AlmanaxBatch.FindAsync(from, AlmanaxBatch.SearchDays, query, DayReader!, progress, stop).ConfigureAwait(true) })
+            .ConfigureAwait(true);
+
+        if (result is null)
+        {
+            return;
+        }
+
+        if (result[0] is { } day)
+        {
+            _found = day.Date;
+            SearchResult = Strings.Format(
+                "AlmanaxFound",
+                day.Date.ToDateTime(TimeOnly.MinValue).ToString("D", DisplayCulture.Current),
+                day.Bonus);
+        }
+        else
+        {
+            SearchResult = Strings.Format("AlmanaxNotFound", AlmanaxBatch.SearchDays);
+        }
+    }
+
+    [RelayCommand]
+    private void OpenFound()
+    {
+        if (_found is { } date)
+        {
+            Go(date);
+        }
+    }
+
+    [RelayCommand]
+    private void StopBatch() => _batchStop?.Cancel();
+
+    /// <summary>
+    /// One batch at a time, with its progress and its stop. Returns
+    /// <c>null</c> when stopped.
+    /// </summary>
+    private async Task<T?> RunBatchAsync<T>(int total, Func<IProgress<int>, CancellationToken, Task<T>> batch)
+        where T : class
+    {
+        using var stop = new CancellationTokenSource();
+
+        _batchStop = stop;
+        IsBatchBusy = true;
+        BatchProgress = Strings.Format("AlmanaxProgress", 0, total);
+
+        try
+        {
+            return await batch(
+                new Progress<int>(done => BatchProgress = Strings.Format("AlmanaxProgress", done, total)),
+                stop.Token).ConfigureAwait(true);
+        }
+        catch (OperationCanceledException)
+        {
+            // The stop button: what was read stays in the session's
+            // memory, nothing else to undo.
+            return null;
+        }
+        finally
+        {
+            _batchStop = null;
+            IsBatchBusy = false;
+            BatchProgress = string.Empty;
+        }
+    }
 
     /// <summary>
     /// The week page's bonuses. A day already read keeps its own.
@@ -282,7 +445,7 @@ public sealed partial class AlmanaxViewModel : ObservableObject
     {
         foreach (var (date, title) in week)
         {
-            if (_bonuses.TryAdd(date, (title, AlmanaxReading.CallsElsewhere(title))))
+            if (_bonuses.TryAdd(date, title))
             {
                 RefreshChip(date);
             }
@@ -295,8 +458,7 @@ public sealed partial class AlmanaxViewModel : ObservableObject
         {
             if (chip.Date == date && _bonuses.TryGetValue(date, out var known))
             {
-                chip.Bonus = known.Title;
-                chip.CallsElsewhere = known.Elsewhere;
+                chip.Bonus = known;
             }
         }
     }

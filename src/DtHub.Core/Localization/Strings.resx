@@ -825,6 +825,39 @@ On a {0} device, the manual copy goes through: {1}.</value>
   <data name="AlmanaxCopyTip" xml:space="preserve">
     <value>Copies the item's name. Ctrl+V in the game's marketplace search pastes it.</value>
   </data>
+  <data name="AlmanaxGetReady" xml:space="preserve">
+    <value>Get ready</value>
+  </data>
+  <data name="AlmanaxPrepare" xml:space="preserve">
+    <value>The week's offerings</value>
+  </data>
+  <data name="AlmanaxPrepareTip" xml:space="preserve">
+    <value>Reads the seven days of the strip from the official Almanax, one page a second, and lists what to bring.</value>
+  </data>
+  <data name="AlmanaxNotRead" xml:space="preserve">
+    <value>Could not be read</value>
+  </data>
+  <data name="AlmanaxSearch" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="AlmanaxSearchHint" xml:space="preserve">
+    <value>Next bonus, for instance Ore</value>
+  </data>
+  <data name="AlmanaxSearchTip" xml:space="preserve">
+    <value>Reads the following days one by one, up to two months, and stops at the first one whose bonus matches.</value>
+  </data>
+  <data name="AlmanaxFound" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="AlmanaxNotFound" xml:space="preserve">
+    <value>Not in the next {0} days.</value>
+  </data>
+  <data name="AlmanaxProgress" xml:space="preserve">
+    <value>Reading {0} of {1}</value>
+  </data>
+  <data name="AlmanaxStop" xml:space="preserve">
+    <value>Stop</value>
+  </data>
   <data name="AlmanaxQuest" xml:space="preserve">
     <value>Quest</value>
   </data>

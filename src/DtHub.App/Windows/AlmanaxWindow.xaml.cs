@@ -74,6 +74,8 @@ public partial class AlmanaxWindow : Window
 
         InitializeComponent();
 
+        _model.DayReader = ReadForBatchAsync;
+
         DataContext = _model;
 
         _model.DateRequested += (_, date) => _ = LoadAsync(date);
@@ -174,36 +176,58 @@ public partial class AlmanaxWindow : Window
     {
         try
         {
-            await WeekView
-                .EnsureCoreWebView2Async(await _engine.GetAsync().ConfigureAwait(true))
-                .ConfigureAwait(true);
-
-            await WeekView.CoreWebView2
-                .AddScriptToExecuteOnDocumentCreatedAsync(AlmanaxBridge.Script())
-                .ConfigureAwait(true);
-
-            WeekView.CoreWebView2.WebMessageReceived += OnWeekMessage;
-            WeekView.CoreWebView2.NavigationCompleted += (_, e) =>
-            {
-                if (!e.IsSuccess)
-                {
-                    Log.Warning("La semaine de l'Almanax n'a pas pu être jointe : {Etat}.", e.WebErrorStatus);
-                }
-            };
-
-            // Same reason as the day's reader: nothing is shown, so
-            // nothing opens.
-            WeekView.CoreWebView2.NewWindowRequested += (_, e) => e.Handled = true;
+            await PrepareWeekViewAsync().ConfigureAwait(true);
 
             WeekView.CoreWebView2.Navigate(
                 AlmanaxCalendar.WeekUrlFor(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName));
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
+            // Forgotten, as for the day's reader: a failed setup kept as
+            // is would fail every batch without trying.
+            _weekPreparing = null;
+
             Log.Warning(exception, "La semaine de l'Almanax n'a pas pu être chargée.");
         }
     }
 
+    /// <summary>The second reader's setup, once, like the first one's.</summary>
+    private Task? _weekPreparing;
+
+    private Task PrepareWeekViewAsync() => _weekPreparing ??= SetUpWeekViewAsync();
+
+    private async Task SetUpWeekViewAsync()
+    {
+        await WeekView
+            .EnsureCoreWebView2Async(await _engine.GetAsync().ConfigureAwait(true))
+            .ConfigureAwait(true);
+
+        await WeekView.CoreWebView2
+            .AddScriptToExecuteOnDocumentCreatedAsync(AlmanaxBridge.Script())
+            .ConfigureAwait(true);
+
+        WeekView.CoreWebView2.WebMessageReceived += OnWeekMessage;
+        WeekView.CoreWebView2.NavigationCompleted += (_, e) =>
+        {
+            if (!e.IsSuccess)
+            {
+                Log.Warning("Une page de l'Almanax n'a pas pu être jointe en arrière-plan : {Etat}.", e.WebErrorStatus);
+
+                _batchWait?.TrySetResult(null);
+            }
+        };
+
+        // Same reason as the day's reader: nothing is shown, so nothing
+        // opens.
+        WeekView.CoreWebView2.NewWindowRequested += (_, e) => e.Handled = true;
+    }
+
+    /// <summary>
+    /// The second reader's messages: the week page, or a day read for
+    /// a batch. The week is tried first, since a day's message never
+    /// carries a week, and a week page still arriving when a batch
+    /// starts must not pass for the batch's day.
+    /// </summary>
     private void OnWeekMessage(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
     {
         string payload;
@@ -220,14 +244,82 @@ public partial class AlmanaxWindow : Window
 
         var week = AlmanaxWeek.From(payload);
 
-        if (week.Count == 0)
+        if (week.Count > 0)
         {
-            Log.Warning("La semaine de l'Almanax lue ne donne aucun bonus de DOFUS Touch, ou la page a changé.");
+            _model.KnowWeek(week);
 
             return;
         }
 
-        _model.KnowWeek(week);
+        if (_batchWait is { } wait)
+        {
+            // Null when refused, as on the day's reader: not Touch's
+            // block, or the page changed. The batch then marks the day
+            // as not read.
+            wait.TrySetResult(AlmanaxMessage.From(payload, _batchDate));
+
+            return;
+        }
+
+        Log.Warning("La semaine de l'Almanax lue ne donne aucun bonus de DOFUS Touch, ou la page a changé.");
+    }
+
+    private DateOnly _batchDate;
+    private TaskCompletionSource<AlmanaxDay?>? _batchWait;
+
+    /// <summary>
+    /// A day for the preparation or the search: from the session's
+    /// memory when it was already read, from the portal otherwise, on
+    /// the second reader so that clicking in the strip goes on.
+    ///
+    /// **At most one page a second**, waited for even when the page
+    /// came sooner: these reads follow one another without anyone
+    /// clicking between them, and they should not reach the portal
+    /// faster than someone clicking the days by hand. See D190.
+    /// </summary>
+    private async Task<AlmanaxDay?> ReadForBatchAsync(DateOnly date, CancellationToken cancellationToken)
+    {
+        if (_read.TryGetValue(date, out var known))
+        {
+            return known;
+        }
+
+        await PrepareWeekViewAsync().ConfigureAwait(true);
+
+        var pace = Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+
+        _batchDate = date;
+        _batchWait = new TaskCompletionSource<AlmanaxDay?>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        AlmanaxDay? day;
+
+        try
+        {
+            WeekView.CoreWebView2.Navigate(
+                AlmanaxCalendar.UrlFor(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, date));
+
+            day = await _batchWait.Task.WaitAsync(TimeSpan.FromSeconds(20), cancellationToken).ConfigureAwait(true);
+        }
+        catch (TimeoutException)
+        {
+            Log.Warning("Le jour {Jour} de l'Almanax n'a rien rendu en vingt secondes.", date);
+
+            day = null;
+        }
+        finally
+        {
+            _batchWait = null;
+        }
+
+        await pace.ConfigureAwait(true);
+
+        if (day is not null)
+        {
+            _read[day.Date] = day;
+            _model.Remember(day);
+        }
+
+        return day;
     }
 
     /// <summary>

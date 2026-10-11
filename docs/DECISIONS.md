@@ -9972,25 +9972,48 @@ Trois ajouts :
   (`AlmanaxReading.CallsElsewhere`) : « quête répétable », « bénédiction », et
   leurs équivalents relevés en anglais et en espagnol. Le texte reste celui du
   portail.
-- **Le bonus sous chaque jour de la bande**, pour voir d'un coup d'œil quel
-  jour farmer, récolter ou faire une quête ailleurs. Il vient de la page
+- **Le bonus de chaque jour au survol de sa pastille.** Il vient de la page
   « semaine » du portail, une seule page pour les sept jours suivants, lue
   dans un second lecteur de hauteur nulle : le premier navigue à chaque clic
   dans la bande, et une page interrompue par l'autre aurait dû se distinguer
-  d'un vrai échec. Les jours lus remplacent le titre de la semaine par le leur,
-  qui dit davantage (le 12/09 ne se reconnaît qu'au détail).
+  d'un vrai échec. Les jours lus remplacent le titre de la semaine par le leur.
+  Il était d'abord écrit sous le numéro, sur deux lignes : à sept pastilles de
+  front, presque tous les titres étaient coupés, et l'utilisateur les a fait
+  retirer.
 - **Un bouton « Copier » à côté de l'offrande.** Le nom de l'objet part dans le
   presse-papiers, que scrcpy synchronise avec le téléphone : Ctrl+V le colle
   dans la recherche de l'hôtel de vente.
 
+### Deux lectures en série, sur un bouton
+
+Choix de l'utilisateur : **les offrandes de la semaine** (les sept jours de la
+bande, une ligne par jour) et **le prochain jour d'un bonus** (texte libre,
+sans casse ni accents, « minerai » trouve « Minerai abondant », « ore » et
+« mineral » marchent en anglais et en espagnol). La page semaine ne porte pas
+les offrandes, et le portail n'a pas de semaine suivante (`semaine/<date>`
+répond 404) : les deux lisent donc les jours un par un, sur le second lecteur.
+
+- **Une page par seconde au plus**, même quand elle arrive plus tôt, comme
+  quelqu'un qui cliquerait les jours. Mesuré : sept jours en 6 s, le jour
+  courant venant de la mémoire.
+- **La recherche s'arrête au premier jour trouvé, ou après 60 jours.** Sur 2027,
+  les bonus de récolte reviennent environ toutes les cinq semaines ; ceux qui ne
+  tombent qu'une fois par an restent au calendrier.
+- **Tout jour lu est gardé pour la séance**, comme les autres : cliquer ensuite
+  sur un jour de la liste ou sur le jour trouvé ne recharge rien. Un bouton
+  Arrêter interrompt la lecture.
+- **Un défaut trouvé à la mesure, pas par les tests.** `AlmanaxBatch` reprenait
+  son cours hors du fil de l'interface (`ConfigureAwait(false)`), et le lecteur
+  de la fenêtre, appelé depuis le pool dès le deuxième jour, faisait lever
+  WebView2. Les lectures factices des tests rendaient la main tout de suite et
+  ne changeaient pas de fil. Un test le reproduit désormais avec un contexte de
+  synchronisation qui poste sur le pool.
+
 ### Ce que ça change à D112
 
 D112 dit « une page chargée à la demande de la personne qui l'ouvre ». Ouvrir
-la fenêtre en charge maintenant deux, le jour et la semaine. C'est toujours une
-lecture déclenchée par l'ouverture, comme le serait un clic sur « Cette
-semaine » dans le portail, et rien n'est gardé après la séance.
-
-Ce qui a été écarté pour cette raison, en attendant l'avis du mainteneur : une
-liste de courses des offrandes de la semaine (la page semaine ne les porte pas,
-il faudrait sept pages de jour d'un coup) et la recherche du prochain jour d'un
-bonus donné (des dizaines de pages).
+la fenêtre en charge maintenant deux, le jour et la semaine, et les deux
+boutons en chargent jusqu'à 7 et 60, à une page par seconde. Chaque lecture
+reste déclenchée par un geste de la personne, et rien n'est gardé après la
+séance : c'est l'assouplissement assumé, décidé par le mainteneur le
+11/10/2026.

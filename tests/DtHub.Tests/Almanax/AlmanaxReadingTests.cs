@@ -108,9 +108,8 @@ public class AlmanaxReadingTests
     [InlineData("Repeatable quest")]
     [InlineData("Misión repetible")]
     [InlineData("Bénédiction de Miss Triste")]
-    public void Le_titre_seul_suffit_pour_la_bande_des_jours(string title)
+    public void Le_titre_seul_suffit(string title)
     {
-        // The week page carries only the title.
         Assert.True(AlmanaxReading.CallsElsewhere(title));
     }
 
