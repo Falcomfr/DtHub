@@ -42,24 +42,21 @@ public class AlmanaxBatchTests
     }
 
     [Fact]
-    public async Task Chercher_s_arrete_au_premier_jour_qui_porte_le_bonus()
+    public async Task Tout_chercher_rend_chaque_jour_qui_correspond_au_fil_de_la_lecture()
     {
-        var reads = 0;
+        var found = new List<DateOnly>();
 
-        var found = await AlmanaxBatch.FindAsync(
+        var days = await AlmanaxBatch.FindAllAsync(
             Monday,
-            60,
-            "minerai",
-            (date, _) =>
-            {
-                reads++;
-                return Task.FromResult<AlmanaxDay?>(Day(date, date == Monday.AddDays(3) ? "Minerai abondant" : "Butin"));
-            },
+            10,
+            day => day.Bonus == "Minerai abondant",
+            (date, _) => Task.FromResult<AlmanaxDay?>(Day(date, date.Day % 4 == 0 ? "Minerai abondant" : "Butin")),
             null,
+            day => found.Add(day.Date),
             CancellationToken.None);
 
-        Assert.Equal(Monday.AddDays(3), found?.Date);
-        Assert.Equal(4, reads);
+        Assert.Equal([new DateOnly(2026, 10, 12), new DateOnly(2026, 10, 16), new DateOnly(2026, 10, 20)], days.Select(d => d.Date));
+        Assert.Equal(days.Select(d => d.Date), found);
     }
 
     [Fact]
@@ -67,34 +64,36 @@ public class AlmanaxBatchTests
     {
         var reads = 0;
 
-        var found = await AlmanaxBatch.FindAsync(
+        var found = await AlmanaxBatch.FindAllAsync(
             Monday,
             5,
-            "Dremoan",
+            day => day.Bonus == "Dremoan",
             (date, _) =>
             {
                 reads++;
                 return Task.FromResult<AlmanaxDay?>(Day(date, "Butin"));
             },
             null,
+            null,
             CancellationToken.None);
 
-        Assert.Null(found);
+        Assert.Empty(found);
         Assert.Equal(5, reads);
     }
 
     [Fact]
     public async Task Chercher_passe_un_jour_illisible()
     {
-        var found = await AlmanaxBatch.FindAsync(
+        var found = await AlmanaxBatch.FindAllAsync(
             Monday,
             3,
-            "Butin",
+            day => day.Bonus == "Butin",
             (date, _) => Task.FromResult(date == Monday ? null : Day(date, "Butin")),
+            null,
             null,
             CancellationToken.None);
 
-        Assert.Equal(Monday.AddDays(1), found?.Date);
+        Assert.Equal([Monday.AddDays(1), Monday.AddDays(2)], found.Select(d => d.Date));
     }
 
     [Fact]
@@ -103,10 +102,10 @@ public class AlmanaxBatchTests
         using var stop = new CancellationTokenSource();
         var reads = 0;
 
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => AlmanaxBatch.FindAsync(
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => AlmanaxBatch.FindAllAsync(
             Monday,
             60,
-            "Dremoan",
+            day => false,
             (date, _) =>
             {
                 if (++reads == 2)
@@ -116,6 +115,7 @@ public class AlmanaxBatchTests
 
                 return Task.FromResult<AlmanaxDay?>(Day(date, "Butin"));
             },
+            null,
             null,
             stop.Token));
 

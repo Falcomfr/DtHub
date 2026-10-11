@@ -9987,18 +9987,31 @@ Trois ajouts :
 ### Deux lectures en série, sur un bouton
 
 Choix de l'utilisateur : **les offrandes de la semaine** (les sept jours de la
-bande, une ligne par jour) et **le prochain jour d'un bonus** (texte libre,
-sans casse ni accents, « minerai » trouve « Minerai abondant », « ore » et
-« mineral » marchent en anglais et en espagnol). La page semaine ne porte pas
+bande, une ligne par jour) et **les jours d'un métier ou d'un bonus** (texte
+libre, sans casse ni accents). La page semaine ne porte pas
 les offrandes, et le portail n'a pas de semaine suivante (`semaine/<date>`
 répond 404) : les deux lisent donc les jours un par un, sur le second lecteur.
 
 - **Une page par seconde au plus**, même quand elle arrive plus tôt, comme
   quelqu'un qui cliquerait les jours. Mesuré : sept jours en 6 s, le jour
   courant venant de la mémoire.
-- **La recherche s'arrête au premier jour trouvé, ou après 60 jours.** Sur 2027,
-  les bonus de récolte reviennent environ toutes les cinq semaines ; ceux qui ne
-  tombent qu'une fois par an restent au calendrier.
+- **La recherche liste tous les jours trouvés sur 60 jours**, au fil de la
+  lecture : une minute la première fois, rien ensuite. Elle s'arrêtait d'abord au
+  premier jour d'un mot du titre ; l'utilisateur, mineur, voulait voir tous les
+  jours qui le concernent, récolte et craft.
+- **Un métier se lit dans le détail du bonus, jamais dans son titre**
+  (« Minerai abondant », puis « récupérées par les Mineurs »). Relevé sur 2027
+  dans les trois langues : un métier de récolte est nommé une douzaine de jours
+  par an, un métier de craft deux à quatre. `AlmanaxProfessions` tient les noms
+  des seize métiers en français, anglais et espagnol, et ajoute les jours qui
+  valent pour tout leur genre sans les nommer : tous les métiers, les artisans
+  d'une zone, et pour la récolte les récolteurs et les métiers de récolte.
+  « mineur » ramène ainsi 30 jours sur l'année 2027. Les pièges relevés : les
+  Artisans Sombres sont des monstres (« Dark Craftsmen », « artesanos
+  oscuros »), le « Blacksmith Dungeon » et la « Mazmorra de los Herreros » ne
+  sont pas des bonus de forgeur, et « craftsmen » en anglais désigne aussi le
+  seul jour des consommables. Les tournures générales sont donc cherchées en
+  entier, jamais sur le mot seul.
 - **Tout jour lu est gardé pour la séance**, comme les autres : cliquer ensuite
   sur un jour de la liste ou sur le jour trouvé ne recharge rien. Un bouton
   Arrêter interrompt la lecture.

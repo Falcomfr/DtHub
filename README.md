@@ -108,7 +108,8 @@ window on your PC.
 - **The Almanax of DOFUS Touch**, read from the official calendar filtered on
   Touch: the day's offering, copied in one click for the marketplace search,
   the days that also hold a special repeatable quest or a blessing, flagged,
-  the week's offerings in one list, and the next day of a given bonus.
+  the week's offerings in one list, and the days of your profession over the
+  next two months.
 - **DOFUS Touch tools** one click away:
   [Dofus Touch Map](https://www.dofus-touch-map.com/) and
   [Calcofus](https://calcofus.fr/) in a DT Hub window beside the game,

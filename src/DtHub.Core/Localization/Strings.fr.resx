@@ -841,13 +841,10 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
     <value>Chercher</value>
   </data>
   <data name="AlmanaxSearchHint" xml:space="preserve">
-    <value>Prochain bonus, par exemple Minerai</value>
+    <value>Un métier ou un bonus, par exemple Mineur</value>
   </data>
   <data name="AlmanaxSearchTip" xml:space="preserve">
-    <value>Lit les jours suivants un par un, jusqu'à deux mois, et s'arrête au premier dont le bonus correspond.</value>
-  </data>
-  <data name="AlmanaxFound" xml:space="preserve">
-    <value>{0} : {1}</value>
+    <value>Lit les deux prochains mois jour par jour et liste chaque jour dont le bonus correspond. Un métier ramène aussi les jours bons pour tous ceux de son genre.</value>
   </data>
   <data name="AlmanaxNotFound" xml:space="preserve">
     <value>Pas dans les {0} prochains jours.</value>

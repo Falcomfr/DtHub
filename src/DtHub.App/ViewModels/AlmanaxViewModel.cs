@@ -74,6 +74,9 @@ public sealed partial class AlmanaxChip : ObservableObject
 /// </summary>
 public sealed record AlmanaxShoppingLine(DateOnly Date, string Day, string Count, string Item);
 
+/// <summary>A day found by the search: when, the bonus, what it does.</summary>
+public sealed record AlmanaxFoundLine(string Day, string Bonus, string Detail);
+
 /// <summary>A cell of the drop-down calendar.</summary>
 public sealed partial class AlmanaxCell : ObservableObject
 {
@@ -312,12 +315,12 @@ public sealed partial class AlmanaxViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(SearchCommand))]
     private string _searchQuery = string.Empty;
 
-    /// <summary>What the search found, or that it found nothing.</summary>
+    /// <summary>The days the search found, filled in as they are read.</summary>
+    public ObservableCollection<AlmanaxFoundLine> Found { get; } = [];
+
+    /// <summary>That the search found nothing, once it is over.</summary>
     [ObservableProperty]
     private string _searchResult = string.Empty;
-
-    /// <summary>The day found, which a click opens.</summary>
-    private DateOnly? _found;
 
     private CancellationTokenSource? _batchStop;
 
@@ -358,8 +361,10 @@ public sealed partial class AlmanaxViewModel : ObservableObject
     private bool CanSearch => CanStartBatch && SearchQuery.Trim().Length > 0;
 
     /// <summary>
-    /// The next day, from tomorrow, whose bonus mentions what was
-    /// typed. Stops at the first one, or after two months.
+    /// Every day of the next two months, from tomorrow, whose bonus
+    /// concerns what was typed: a word of the bonus, or a profession
+    /// with the days good for all of its kind. See
+    /// <see cref="AlmanaxProfessions" />.
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanSearch))]
     private async Task Search()
@@ -367,39 +372,37 @@ public sealed partial class AlmanaxViewModel : ObservableObject
         var query = SearchQuery.Trim();
         var from = DateOnly.FromDateTime(DateTime.Now).AddDays(1);
 
-        _found = null;
+        Found.Clear();
         SearchResult = string.Empty;
 
-        var result = await RunBatchAsync(AlmanaxBatch.SearchDays, async (progress, stop) =>
-            new[] { await AlmanaxBatch.FindAsync(from, AlmanaxBatch.SearchDays, query, DayReader!, progress, stop).ConfigureAwait(true) })
-            .ConfigureAwait(true);
+        var result = await RunBatchAsync(AlmanaxBatch.SearchDays, (progress, stop) =>
+            AlmanaxBatch.FindAllAsync(
+                from,
+                AlmanaxBatch.SearchDays,
+                day => AlmanaxProfessions.Matches(day, query),
+                DayReader!,
+                progress,
+                day => Found.Add(new AlmanaxFoundLine(
+                    Short(day.Date),
+                    day.Bonus,
+                    day.BonusDetail)),
+                stop)).ConfigureAwait(true);
 
-        if (result is null)
-        {
-            return;
-        }
-
-        if (result[0] is { } day)
-        {
-            _found = day.Date;
-            SearchResult = Strings.Format(
-                "AlmanaxFound",
-                day.Date.ToDateTime(TimeOnly.MinValue).ToString("D", DisplayCulture.Current),
-                day.Bonus);
-        }
-        else
+        if (result is { Count: 0 })
         {
             SearchResult = Strings.Format("AlmanaxNotFound", AlmanaxBatch.SearchDays);
         }
     }
 
-    [RelayCommand]
-    private void OpenFound()
+    /// <summary>
+    /// "sam. 24 octobre": the short day name, then the culture's own
+    /// day and month pattern, which orders them as the reader expects.
+    /// </summary>
+    private static string Short(DateOnly date)
     {
-        if (_found is { } date)
-        {
-            Go(date);
-        }
+        var when = date.ToDateTime(TimeOnly.MinValue);
+
+        return when.ToString("ddd", DisplayCulture.Current) + " " + when.ToString("M", DisplayCulture.Current);
     }
 
     [RelayCommand]

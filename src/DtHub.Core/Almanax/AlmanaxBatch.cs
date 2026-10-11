@@ -54,20 +54,26 @@ public static class AlmanaxBatch
     }
 
     /// <summary>
-    /// The first day from <paramref name="from" /> on whose bonus
-    /// title mentions <paramref name="query" />, or <c>null</c> within
-    /// <paramref name="days" /> days. A day that cannot be read is
+    /// Every day from <paramref name="from" /> on, within
+    /// <paramref name="days" /> days, that <paramref name="match" />
+    /// accepts, each one also handed to <paramref name="found" /> as
+    /// soon as it is read: a search of two months takes a minute, and
+    /// the list fills in meanwhile. A day that cannot be read is
     /// passed over.
     /// </summary>
-    public static async Task<AlmanaxDay?> FindAsync(
+    public static async Task<IReadOnlyList<AlmanaxDay>> FindAllAsync(
         DateOnly from,
         int days,
-        string query,
+        Func<AlmanaxDay, bool> match,
         Func<DateOnly, CancellationToken, Task<AlmanaxDay?>> read,
         IProgress<int>? progress,
+        Action<AlmanaxDay>? found,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(match);
         ArgumentNullException.ThrowIfNull(read);
+
+        var matches = new List<AlmanaxDay>();
 
         for (var i = 0; i < days; i++)
         {
@@ -78,12 +84,13 @@ public static class AlmanaxBatch
 
             progress?.Report(i + 1);
 
-            if (day is not null && AlmanaxReading.Mentions(day.Bonus, query))
+            if (day is not null && match(day))
             {
-                return day;
+                matches.Add(day);
+                found?.Invoke(day);
             }
         }
 
-        return null;
+        return matches;
     }
 }
