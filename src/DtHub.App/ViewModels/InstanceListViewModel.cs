@@ -827,7 +827,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
             var found = _launcher.HealthByDevice.GetValueOrDefault(device.Serial);
 
-            view.SetProblems(found?.Text, found?.Serious ?? false, found?.Help ?? HealthHelp.None, found?.HelpApp);
+            view.SetProblems(found?.Text, found?.Serious ?? false, found?.Helps ?? []);
             view.SetNeedsPairing(_launcher.NeedsPairing.Contains(device.Id));
         }
 

@@ -37,8 +37,7 @@ public sealed record DeviceFindings(
     string Text,
     bool Serious,
     string? Device,
-    HealthHelp Help = HealthHelp.None,
-    string? HelpApp = null);
+    IReadOnlyList<HealthFinding>? Helps = null);
 
 /// <summary>
 /// Opens the checked instances, places their windows and wires up
@@ -1384,8 +1383,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     said,
                     seen[0].Severity == HealthSeverity.Serious,
                     Named(discovery, serial),
-                    seen[0].Help,
-                    seen[0].App);
+                    [.. seen.Where(f => f.Help != HealthHelp.None)]);
             }
             else
             {

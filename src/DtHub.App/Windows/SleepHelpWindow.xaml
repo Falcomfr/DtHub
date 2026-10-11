@@ -12,9 +12,9 @@
   <DockPanel Margin="20">
 
     <StackPanel DockPanel.Dock="Top" Margin="0,0,0,14">
-      <TextBlock Text="{loc:T WindowFreezes}" Style="{StaticResource Title}" />
+      <TextBlock Text="{Binding Heading}" Style="{StaticResource Title}" />
       <TextBlock Style="{StaticResource Muted}" Margin="0,6,0,0"
-                 Text="{loc:T SleepExplanation}" />
+                 Text="{Binding Explanation}" />
     </StackPanel>
 
     <Border DockPanel.Dock="Bottom" Margin="0,14,0,0">
@@ -39,7 +39,7 @@
 
         <Border Style="{StaticResource Card}">
           <StackPanel>
-            <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T OpenBatterySetting}" />
+            <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{Binding OpenStep}" />
             <w:MenuPathControl Path="{Binding BatteryPath}" Margin="0,2,0,4" />
             <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap">
               <Run Text="{loc:T SettingCalledPrefix}" />
@@ -53,11 +53,12 @@
           <StackPanel>
             <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T RemoveRestrictions}" />
             <TextBlock Style="{StaticResource Muted}"
-                       Text="{loc:T RemoveRestrictionsHelp}" />
+                       Text="{Binding RemoveHelp}" />
           </StackPanel>
         </Border>
 
-        <Border Style="{StaticResource Card}">
+        <Border Style="{StaticResource Card}"
+                Visibility="{Binding IsTool, Converter={StaticResource InverseBoolToVisibility}}">
           <StackPanel>
             <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T RepeatForEachCopy}" />
             <TextBlock Style="{StaticResource Muted}"
@@ -66,7 +67,7 @@
         </Border>
 
         <TextBlock Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" Margin="2,0,0,4" TextWrapping="Wrap"
-                   Text="{loc:T AlreadyFrozenHelp}" />
+                   Text="{Binding FrozenHelp}" />
 
       </StackPanel>
     </ScrollViewer>

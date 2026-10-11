@@ -93,19 +93,66 @@ public partial class InstanceListControl : UserControl
     /// in the rename field.
     /// </summary>
     /// <summary>
-    /// The alert line's Help link: the click setting of the phone, or the
-    /// battery page of the app the line names.
+    /// The alert line's Help link: one help opens straight away; several are
+    /// offered in a small panel of the theme's colours, one line each, the
+    /// app named, so a second problem is not hidden behind the first.
     /// </summary>
     private void OnProblemHelp(object sender, RoutedEventArgs e)
     {
-        if (sender is not FrameworkElement { DataContext: InstanceRowViewModel { Device: { } device } })
+        if (sender is not FrameworkElement { DataContext: InstanceRowViewModel { Device: { } device } } link)
         {
             return;
         }
 
+        if (device.Helps.Count == 1)
+        {
+            OpenHelp(device.Helps[0]);
+            return;
+        }
+
+        var menu = new Popup
+        {
+            PlacementTarget = link,
+            Placement = PlacementMode.Bottom,
+            StaysOpen = false,
+            AllowsTransparency = true,
+        };
+
+        var items = new StackPanel();
+
+        foreach (var help in device.Helps)
+        {
+            var item = new Button
+            {
+                Content = help.Help == HealthHelp.Input
+                    ? Core.Localization.Strings.Get("HelpMenuInput")
+                    : Core.Localization.Strings.Format("HelpMenuBattery", help.App ?? string.Empty),
+                HorizontalContentAlignment = HorizontalAlignment.Left,
+            };
+            item.SetResourceReference(StyleProperty, "QuietButton");
+            item.Click += (_, _) =>
+            {
+                menu.IsOpen = false;
+                OpenHelp(help);
+            };
+            _ = items.Children.Add(item);
+        }
+
+        var panel = new Border { Margin = new Thickness(8), Padding = new Thickness(4), BorderThickness = new Thickness(1), Child = items };
+        panel.SetResourceReference(Border.BackgroundProperty, "SurfaceBrush");
+        panel.SetResourceReference(Border.BorderBrushProperty, "BevelBrush");
+        panel.SetResourceReference(Border.CornerRadiusProperty, "Radius");
+
+        menu.Child = panel;
+        menu.IsOpen = true;
+    }
+
+    /// <summary>The click setting of the phone, or the battery page of the app the finding names.</summary>
+    private void OpenHelp(HealthFinding finding)
+    {
         Window help;
 
-        if (device.Help == HealthHelp.Input)
+        if (finding.Help == HealthHelp.Input)
         {
             help = AppHost.Services.GetRequiredService<InputHelpWindow>();
         }
@@ -113,7 +160,7 @@ public partial class InstanceListControl : UserControl
         {
             help = AppHost.Services.GetRequiredService<SleepHelpWindow>();
 
-            if (help.DataContext is SleepHelpViewModel sleep && device.HelpApp is { } app)
+            if (help.DataContext is SleepHelpViewModel sleep && finding.App is { } app)
             {
                 sleep.App = app;
             }

@@ -2135,4 +2135,25 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="ToolMapLine" xml:space="preserve">
     <value>Carte interactive des ressources du monde des Douze.</value>
   </data>
+  <data name="ToolWindowFreezes" xml:space="preserve">
+    <value>{0} : sa fenêtre se fige</value>
+  </data>
+  <data name="ToolSleepExplanation" xml:space="preserve">
+    <value>Android, et par-dessus l'économiseur de batterie propre à certaines marques, endort les applications qu'il juge inactives. Contrairement au jeu, {0} ne garde pas son écran allumé : sans ce réglage, sa fenêtre se fige au bout d'une minute environ et ne répond plus aux clics.</value>
+  </data>
+  <data name="ToolOpenBatterySetting" xml:space="preserve">
+    <value>1. Ouvrir le réglage de batterie de {0}</value>
+  </data>
+  <data name="ToolRemoveRestrictionsHelp" xml:space="preserve">
+    <value>{0} doit pouvoir tourner en arrière-plan sans limite. Le réglage survit aux redémarrages.</value>
+  </data>
+  <data name="ToolAlreadyFrozenHelp" xml:space="preserve">
+    <value>Une fenêtre déjà figée se répare en la fermant, puis en rouvrant {0} depuis Outils DOFUS Touch.</value>
+  </data>
+  <data name="HelpMenuBattery" xml:space="preserve">
+    <value>{0} : sa fenêtre se figera</value>
+  </data>
+  <data name="HelpMenuInput" xml:space="preserve">
+    <value>Les clics du PC ne passent pas</value>
+  </data>
 </root>

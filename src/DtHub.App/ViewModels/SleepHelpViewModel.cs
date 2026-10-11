@@ -4,6 +4,7 @@ using DtHub.Core.Adb;
 using DtHub.Core.Devices;
 using DtHub.Core.Dofus;
 using DtHub.Core.Guidance;
+using DtHub.Core.Localization;
 
 namespace DtHub.App.ViewModels;
 
@@ -67,8 +68,22 @@ public sealed partial class SleepHelpViewModel : ObservableObject
     /// DOFUS Touch tool when its alert line opened this help.
     /// </summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(BatteryPath))]
+    [NotifyPropertyChangedFor(nameof(BatteryPath), nameof(IsTool), nameof(Heading), nameof(Explanation),
+        nameof(OpenStep), nameof(RemoveHelp), nameof(FrozenHelp))]
     private string _app = DofusPackages.GameName;
+
+    /// <summary>A DOFUS Touch tool rather than the game: the texts name it.</summary>
+    public bool IsTool => !string.Equals(App, DofusPackages.GameName, StringComparison.Ordinal);
+
+    public string Heading => IsTool ? Strings.Format("ToolWindowFreezes", App) : Strings.Get("WindowFreezes");
+
+    public string Explanation => IsTool ? Strings.Format("ToolSleepExplanation", App) : Strings.Get("SleepExplanation");
+
+    public string OpenStep => IsTool ? Strings.Format("ToolOpenBatterySetting", App) : Strings.Get("OpenBatterySetting");
+
+    public string RemoveHelp => IsTool ? Strings.Format("ToolRemoveRestrictionsHelp", App) : Strings.Get("RemoveRestrictionsHelp");
+
+    public string FrozenHelp => IsTool ? Strings.Format("ToolAlreadyFrozenHelp", App) : Strings.Get("AlreadyFrozenHelp");
 
     /// <summary>
     /// The brand's path, with the app's name in place of the game's: every

@@ -2135,4 +2135,25 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="ToolMapLine" xml:space="preserve">
     <value>Interactive map of the resources of the World of Twelve.</value>
   </data>
+  <data name="ToolWindowFreezes" xml:space="preserve">
+    <value>{0}: its window freezes</value>
+  </data>
+  <data name="ToolSleepExplanation" xml:space="preserve">
+    <value>Android, and on top of it some brands' own battery saver, puts to sleep the apps it deems idle. Unlike the game, {0} does not keep its screen on: without this setting, its window freezes after a minute or so and stops answering clicks.</value>
+  </data>
+  <data name="ToolOpenBatterySetting" xml:space="preserve">
+    <value>1. Open {0}'s battery setting</value>
+  </data>
+  <data name="ToolRemoveRestrictionsHelp" xml:space="preserve">
+    <value>{0} must be allowed to run in the background without limit. The setting survives restarts.</value>
+  </data>
+  <data name="ToolAlreadyFrozenHelp" xml:space="preserve">
+    <value>A window already frozen is fixed by closing it, then opening {0} again from DOFUS Touch tools.</value>
+  </data>
+  <data name="HelpMenuBattery" xml:space="preserve">
+    <value>{0}: its window will freeze</value>
+  </data>
+  <data name="HelpMenuInput" xml:space="preserve">
+    <value>Clicks from the PC do not get through</value>
+  </data>
 </root>
