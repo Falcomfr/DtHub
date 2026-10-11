@@ -1451,32 +1451,38 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// whole session. The choice to reopen rather than wait for next
     /// time belongs to the user, who did not understand why the
     /// setting seemed dead.
+    ///
+    /// The setting is saved first, always: a change made while the
+    /// windows were reopening used to be dropped without a word. The
+    /// reopen then runs again once, see <see cref="CoalescedRun" />.
     /// </summary>
     private async Task ApplyStartupSettingAsync(Func<Task> write)
     {
-        if (IsReopening)
-        {
-            return;
-        }
+        await write().ConfigureAwait(true);
 
         IsReopening = true;
 
         try
         {
-            await write().ConfigureAwait(true);
-
-            var report = await _launcher.ReopenAsync().ConfigureAwait(true);
-
-            if (report.Problems.Count > 0)
+            await _reopen.RunAsync(async () =>
             {
-                _dialogs.ShowWarning(string.Join(Environment.NewLine, report.Problems));
-            }
+                var report = await _launcher.ReopenAsync().ConfigureAwait(true);
+
+                if (report.Problems.Count > 0)
+                {
+                    _dialogs.ShowWarning(string.Join(Environment.NewLine, report.Problems));
+                }
+            }).ConfigureAwait(true);
         }
         finally
         {
-            IsReopening = false;
+            // A change during the reopen returns at once, while the reopen
+            // goes on: the line saying so stays until the last pass ends.
+            IsReopening = _reopen.IsRunning;
         }
     }
+
+    private readonly CoalescedRun _reopen = new();
 
 
 }
