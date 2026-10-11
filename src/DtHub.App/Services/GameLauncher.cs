@@ -1325,36 +1325,40 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     .IsDeviceLockedAsync(serial, cancellationToken)
                     .ConfigureAwait(false) == true;
 
-            // Battery preparation has long been described in the
-            // help; this check only says whether it has been done.
-            // The question also matters before launch: that is the
-            // moment when it can still be fixed.
-            var unprepared = await _devices
-                .IsBatteryExemptAsync(serial, DofusPackages.DofusTouch, cancellationToken)
-                .ConfigureAwait(false) == false;
-
-            // The same question for the DOFUS Touch tools installed here:
-            // without it, HyperOS froze DTStuff in its window.
+            // **An alert only while the app it is about runs**, in a window
+            // on this phone (asked on 2026-10-11): a warning about an app
+            // nobody has open is noise. Battery preparation has long been
+            // described in the help; this check only says whether it has
+            // been done, for the game and for each DOFUS Touch tool, whose
+            // window HyperOS froze without it.
             var deviceId = discovery.Devices
                 .FirstOrDefault(d => string.Equals(d.Serial, serial, StringComparison.Ordinal))?.Id;
+            var running = _sessions.ActiveSessions
+                .Where(s => string.Equals(s.Target.DeviceId, deviceId, StringComparison.Ordinal))
+                .ToList();
+
+            var unprepared = running.Any(s => !s.Target.IsTransient)
+                && await _devices
+                    .IsBatteryExemptAsync(serial, DofusPackages.DofusTouch, cancellationToken)
+                    .ConfigureAwait(false) == false;
+
             List<string> unpreparedTools = [];
 
-            foreach (var tool in PartnerAvailability.Where(
-                         a => deviceId is not null && a.WithApp.Contains(deviceId, StringComparer.Ordinal)))
+            foreach (var tool in PartnerApps.All.Where(a => running.Any(
+                         s => s.Target.IsTransient && string.Equals(s.Target.PackageName, a.PackageName, StringComparison.Ordinal))))
             {
-                if (await _devices.IsBatteryExemptAsync(serial, tool.App.PackageName, cancellationToken)
+                if (await _devices.IsBatteryExemptAsync(serial, tool.PackageName, cancellationToken)
                         .ConfigureAwait(false) == false)
                 {
-                    unpreparedTools.Add(tool.App.Name);
+                    unpreparedTools.Add(tool.Name);
                 }
             }
 
-            // **The input probe, once per device, as soon as it is
-            // connected.** It sends Android's "unknown" key, which
+            // **The input probe, once per device, on its first
+            // window.** It sends Android's "unknown" key, which
             // triggers nothing anywhere, and returns its verdict
-            // within a second. Asked before any window since
-            // 2026-10-11: the alert line is where the player is told,
-            // and it should say so before the first window, not after.
+            // within a second. Its alert, like the others, only shows
+            // while a window is open on the phone.
             //
             // The type that carries it used to say it is only sent
             // on request. That rule changes here, and the field
@@ -1363,7 +1367,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // setting unchecks itself on its own at restart. Never
             // during a game, never repeatedly: one question, at the
             // moment the first window opens.
-            var dead = await Inputs(serial, cancellationToken).ConfigureAwait(false) == InputInjection.Denied;
+            var dead = running.Count > 0
+                && await Inputs(serial, cancellationToken).ConfigureAwait(false) == InputInjection.Denied;
 
             Trace(serial, heat, battery, storage);
             TraceMemory(serial, memory);

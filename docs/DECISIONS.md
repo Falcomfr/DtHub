@@ -9718,11 +9718,14 @@ pas : HyperOS lit son propre réglage, pas seulement la liste d'Android.
 Appareils disparaît. Chaque constat de la ligne d'alerte d'un téléphone porte
 l'aide qui lui répond, et la ligne gagne un lien « Aide » qui l'ouvre : la fiche
 batterie de l'app que la ligne nomme, le jeu, DTStuff ou OcrApp, ou le réglage
-des clics du téléphone. Rien ne s'affiche quand tout est en ordre. Le balayage
-pose la question de la batterie pour chaque outil installé, et le cache garde
-désormais la liste lue sur le téléphone, non la réponse : gardée par appareil,
-elle donnait à DTStuff le verdict du jeu. Le test des clics part dès la
-connexion du téléphone, plus seulement à la première fenêtre, pour prévenir
-avant d'ouvrir plutôt qu'après. Les fenêtres des outils ne rappellent plus les
+des clics du téléphone. Rien ne s'affiche quand tout est en ordre, et une alerte
+ne s'affiche que **pendant que l'app qu'elle concerne a une fenêtre ouverte** sur
+ce téléphone : le jeu pour sa batterie, DTStuff ou OcrApp pour la leur, une
+fenêtre quelconque pour les clics. Prévenir dès l'installation a été essayé et
+abandonné le même jour : une alerte sur une app que personne n'a ouverte est du
+bruit. Le cache garde désormais la liste lue sur le téléphone, non la réponse :
+gardée par appareil, elle donnait à DTStuff le verdict du jeu. Il dure quinze
+secondes au lieu de deux minutes, et il est vidé à chaque lancement : l'alerte
+disparaît vite une fois le réglage corrigé. Les fenêtres des outils ne rappellent plus les
 raccourcis des comptes dans leur titre, et celle du Store dit qu'on peut la
 fermer une fois l'app installée.
