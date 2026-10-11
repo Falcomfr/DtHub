@@ -492,7 +492,10 @@
     <value>A device is plugged in but Windows could not read its identity. The cable, the port or the connector is at fault, not the phone.</value>
   </data>
   <data name="CheckUsbDriverMissing" xml:space="preserve">
-    <value>A device is plugged in but Windows has no driver for it. The manufacturer's ADB driver has to be installed, with administrator rights.</value>
+    <value>A device is plugged in but Windows has no driver for it; on a phone, that is its debugging interface.
+1. Download Google's USB driver from developer.android.com/studio/run/win-usb and unzip it.
+2. Device Manager › right-click the line with the yellow triangle › Update driver › Browse my computer › Let me pick from a list › Have Disk › the folder's android_winusb.inf file › "Android ADB Interface". Windows asks for administrator rights and may warn the driver does not look made for the device: confirm.
+3. Unplug and replug the cable.</value>
   </data>
   <data name="CheckUsbOther" xml:space="preserve">
     <value>A device is plugged in and Windows turned it away. The detail is in Device Manager.</value>
@@ -2199,5 +2202,11 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   </data>
   <data name="ToolDofusBookLine" xml:space="preserve">
     <value>Stuff builder and library. Opens in the browser.</value>
+  </data>
+  <data name="CheckAdbDriverUnusable" xml:space="preserve">
+    <value>The phone does offer its debugging, but the driver Windows gave it does not hand it to adb, often a maker's suite such as HiSuite. Quit that software first, then:
+1. Download Google's USB driver from developer.android.com/studio/run/win-usb and unzip it.
+2. Device Manager › right-click the phone's line, often "ADB Interface" or "HDB Interface" › Update driver › Browse my computer › Let me pick from a list › Have Disk › the folder's android_winusb.inf file › "Android ADB Interface". Windows asks for administrator rights and may warn the driver does not look made for the device: confirm.
+3. Unplug and replug the cable.</value>
   </data>
 </root>

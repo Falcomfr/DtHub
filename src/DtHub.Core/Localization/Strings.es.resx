@@ -492,7 +492,10 @@
     <value>Hay un dispositivo conectado pero Windows no ha podido leer su identidad. La culpa es del cable, del puerto o del conector, no del teléfono.</value>
   </data>
   <data name="CheckUsbDriverMissing" xml:space="preserve">
-    <value>Hay un dispositivo conectado pero Windows no tiene ningún controlador para él. Hay que instalar el controlador ADB del fabricante, con derechos de administrador.</value>
+    <value>Hay un dispositivo conectado pero Windows no tiene controlador para él; en un teléfono, es su interfaz de depuración.
+1. Descarga el controlador USB de Google en developer.android.com/studio/run/win-usb y descomprímelo.
+2. Administrador de dispositivos › clic derecho en la línea con el triángulo amarillo › Actualizar controlador › Buscar en mi equipo › Elegir en una lista › Usar disco › el archivo android_winusb.inf de la carpeta › «Android ADB Interface». Windows pide derechos de administrador y puede avisar de que el controlador no parece hecho para el dispositivo: confirma.
+3. Desconecta y vuelve a conectar el cable.</value>
   </data>
   <data name="CheckUsbOther" xml:space="preserve">
     <value>Hay un dispositivo conectado y Windows lo ha descartado. El detalle está en el Administrador de dispositivos.</value>
@@ -2199,5 +2202,11 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   </data>
   <data name="ToolDofusBookLine" xml:space="preserve">
     <value>Creador y biblioteca de equipamientos. Se abre en el navegador.</value>
+  </data>
+  <data name="CheckAdbDriverUnusable" xml:space="preserve">
+    <value>El teléfono ofrece su depuración, pero el controlador que Windows le dio no se la pasa a adb, a menudo el de un programa del fabricante como HiSuite. Cierra primero ese programa y luego:
+1. Descarga el controlador USB de Google en developer.android.com/studio/run/win-usb y descomprímelo.
+2. Administrador de dispositivos › clic derecho en la línea del teléfono, a menudo «ADB Interface» o «HDB Interface» › Actualizar controlador › Buscar en mi equipo › Elegir en una lista › Usar disco › el archivo android_winusb.inf de la carpeta › «Android ADB Interface». Windows pide derechos de administrador y puede avisar de que el controlador no parece hecho para el dispositivo: confirma.
+3. Desconecta y vuelve a conectar el cable.</value>
   </data>
 </root>

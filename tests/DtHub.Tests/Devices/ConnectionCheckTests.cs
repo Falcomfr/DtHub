@@ -15,6 +15,10 @@ public class ConnectionCheckTests
 {
     private static UsbFault Fault(int code) => new(UsbFault.KindOf(code), code, @"USB\VID_0000&PID_0002");
 
+    private const string AdbClass = @"USB\Class_FF&SubClass_42&Prot_01";
+
+    private static UsbPresence Usb(string id, params string[] compatible) => new(id, compatible, Service: null);
+
     [Fact]
     public void Un_telephone_qui_repond_l_emporte_sur_tout_le_reste()
     {
@@ -160,7 +164,7 @@ public class ConnectionCheckTests
     {
         // Charge only by default, and a debugging option of their own:
         // ADB sees nothing, Windows sees the phone by its maker's code.
-        Assert.Equal(attendu, ConnectionCheck.Of([], [], toolsReady: true, present: [id]));
+        Assert.Equal(attendu, ConnectionCheck.Of([], [], toolsReady: true, present: [Usb(id)]));
     }
 
     [Fact]
@@ -168,7 +172,7 @@ public class ConnectionCheckTests
     {
         Assert.Equal(
             ConnectionVerdict.NoDevice,
-            ConnectionCheck.Of([], [], toolsReady: true, present: [@"USB\VID_046D&PID_C52B\5&1"]));
+            ConnectionCheck.Of([], [], toolsReady: true, present: [Usb(@"USB\VID_046D&PID_C52B\5&1")]));
     }
 
     [Fact]
@@ -176,7 +180,7 @@ public class ConnectionCheckTests
     {
         Assert.Equal(
             ConnectionVerdict.Ready,
-            ConnectionCheck.Of([AdbDeviceState.Device], [], toolsReady: true, present: [@"USB\VID_339B&PID_107E\A"]));
+            ConnectionCheck.Of([AdbDeviceState.Device], [], toolsReady: true, present: [Usb(@"USB\VID_339B&PID_107E\A")]));
     }
 
     [Fact]
@@ -185,7 +189,7 @@ public class ConnectionCheckTests
         // The fault names the cable or the driver, which comes first.
         Assert.Equal(
             ConnectionVerdict.UsbUnreadable,
-            ConnectionCheck.Of([], [Fault(43)], toolsReady: true, present: [@"USB\VID_339B&PID_107E\A"]));
+            ConnectionCheck.Of([], [Fault(43)], toolsReady: true, present: [Usb(@"USB\VID_339B&PID_107E\A")]));
     }
 
     [Fact]
@@ -197,5 +201,53 @@ public class ConnectionCheckTests
         Assert.Contains("Honor", phrase, StringComparison.Ordinal);
         Assert.Contains("photos", phrase, StringComparison.Ordinal);
         Assert.Contains("Débogage ADB en mode Charger uniquement", phrase, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Un_debogage_tenu_par_un_pilote_qu_adb_ne_voit_pas_est_nomme()
+    {
+        // The interface is there, healthy for Windows, and no driver gave it
+        // the Android interface adb looks for: Windows reports no fault.
+        Assert.Equal(
+            ConnectionVerdict.AdbDriverUnusable,
+            ConnectionCheck.Of([], [], toolsReady: true, present: [Usb(@"USB\VID_339B&PID_107E&MI_01\7&1", AdbClass)], adbInterfaces: 0));
+    }
+
+    [Fact]
+    public void Un_debogage_que_le_pilote_rend_a_adb_ne_change_rien()
+    {
+        Assert.Equal(
+            ConnectionVerdict.NoDevice,
+            ConnectionCheck.Of([], [], toolsReady: true, present: [Usb(@"USB\VID_2717&PID_FF48&MI_01\7&1", AdbClass)], adbInterfaces: 1));
+    }
+
+    [Fact]
+    public void Le_pilote_inutilisable_passe_avant_la_marque()
+    {
+        // The Honor's steps say to turn debugging on: it already is.
+        Assert.Equal(
+            ConnectionVerdict.AdbDriverUnusable,
+            ConnectionCheck.Of(
+                [],
+                [],
+                toolsReady: true,
+                present: [Usb(@"USB\VID_339B&PID_107E\A"), Usb(@"USB\VID_339B&PID_107E&MI_01\7&1", AdbClass)],
+                adbInterfaces: 0));
+    }
+
+    [Fact]
+    public void Le_resume_usb_ne_garde_que_les_telephones_et_jamais_leur_numero()
+    {
+        var summary = UsbPresence.Summarize(
+        [
+            new(@"USB\VID_339B&PID_107E\AB12CD34EF", [@"USB\Class_00"], "WUDFWpdMtp"),
+            new(@"USB\VID_339B&PID_107E&MI_01\7&2A3B&0&0001", [AdbClass], "hwusbdev"),
+            new(@"USB\VID_046D&PID_C52B\5&1", [@"USB\Class_03"], "HidUsb"),
+        ]);
+
+        Assert.Contains(@"VID_339B&PID_107E (WUDFWpdMtp)", summary, StringComparison.Ordinal);
+        Assert.Contains(@"VID_339B&PID_107E&MI_01 débogage (hwusbdev)", summary, StringComparison.Ordinal);
+        Assert.DoesNotContain("AB12CD34EF", summary, StringComparison.Ordinal);
+        Assert.DoesNotContain("VID_046D", summary, StringComparison.Ordinal);
     }
 }

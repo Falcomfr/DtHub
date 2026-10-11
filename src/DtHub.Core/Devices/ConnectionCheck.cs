@@ -49,6 +49,12 @@ public enum ConnectionVerdict
     /// <summary>The same, for a Huawei phone.</summary>
     HuaweiNotDebugging,
 
+    /// <summary>
+    /// The phone offers its debugging interface, and the driver Windows
+    /// bound to it does not hand it to adb: often a maker's suite.
+    /// </summary>
+    AdbDriverUnusable,
+
     /// <summary>Nothing plugged in, nothing reachable.</summary>
     NoDevice,
 }
@@ -86,14 +92,16 @@ public static class ConnectionCheck
     /// False if the ADB executable is missing or silent.
     /// </param>
     /// <param name="present">
-    /// The identifiers of the USB devices Windows holds, read only when
-    /// nothing else explains the silence.
+    /// The USB devices Windows holds, read only when nothing else explains
+    /// the silence.
     /// </param>
+    /// <param name="adbInterfaces">How many Android interfaces drivers declared.</param>
     public static ConnectionVerdict Of(
         IReadOnlyList<AdbDeviceState> states,
         IReadOnlyList<UsbFault> faults,
         bool toolsReady,
-        IReadOnlyList<string>? present = null)
+        IReadOnlyList<UsbPresence>? present = null,
+        int adbInterfaces = 0)
     {
         ArgumentNullException.ThrowIfNull(states);
         ArgumentNullException.ThrowIfNull(faults);
@@ -127,7 +135,7 @@ public static class ConnectionCheck
             UsbFaultKind.Unreadable => ConnectionVerdict.UsbUnreadable,
             UsbFaultKind.DriverMissing => ConnectionVerdict.UsbDriverMissing,
             UsbFaultKind.Other => ConnectionVerdict.UsbOther,
-            _ => PhoneOnUsb(present ?? []),
+            _ => PhoneOnUsb(present ?? [], adbInterfaces),
         };
     }
 
@@ -139,14 +147,20 @@ public static class ConnectionCheck
     /// </summary>
     // ponytail: two vendor codes; other brands when their help needs it
     // (Samsung's 04E8 is also its SSDs, so it would need more than a code).
-    private static ConnectionVerdict PhoneOnUsb(IReadOnlyList<string> present)
+    private static ConnectionVerdict PhoneOnUsb(IReadOnlyList<UsbPresence> present, int adbInterfaces)
     {
-        if (present.Any(id => id.Contains("VID_339B", StringComparison.OrdinalIgnoreCase)))
+        // Debugging is already on: the brand's steps would only repeat it.
+        if (adbInterfaces == 0 && present.Any(d => d.IsDebugInterface))
+        {
+            return ConnectionVerdict.AdbDriverUnusable;
+        }
+
+        if (present.Any(d => d.Id.Contains("VID_339B", StringComparison.OrdinalIgnoreCase)))
         {
             return ConnectionVerdict.HonorNotDebugging;
         }
 
-        return present.Any(id => id.Contains("VID_12D1", StringComparison.OrdinalIgnoreCase))
+        return present.Any(d => d.Id.Contains("VID_12D1", StringComparison.OrdinalIgnoreCase))
             ? ConnectionVerdict.HuaweiNotDebugging
             : ConnectionVerdict.NoDevice;
     }
@@ -187,6 +201,7 @@ public static class ConnectionCheck
         ConnectionVerdict.UsbOther => "CheckUsbOther",
         ConnectionVerdict.HonorNotDebugging => "CheckHonorNotDebugging",
         ConnectionVerdict.HuaweiNotDebugging => "CheckHuaweiNotDebugging",
+        ConnectionVerdict.AdbDriverUnusable => "CheckAdbDriverUnusable",
         _ => "CheckNoDevice",
     });
 

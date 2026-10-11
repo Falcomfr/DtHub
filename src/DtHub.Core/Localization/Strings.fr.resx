@@ -492,7 +492,10 @@
     <value>Un appareil est branché mais Windows n'a pas pu lire son identité. Le câble, le port ou le connecteur sont en cause, pas le téléphone.</value>
   </data>
   <data name="CheckUsbDriverMissing" xml:space="preserve">
-    <value>Un appareil est branché mais Windows n'a aucun pilote pour lui. Il faut installer le pilote ADB du constructeur, avec les droits d'administrateur.</value>
+    <value>Un appareil est branché mais Windows n'a aucun pilote pour lui ; sur un téléphone, c'est son interface de débogage.
+1. Téléchargez le pilote USB de Google sur developer.android.com/studio/run/win-usb et décompressez-le.
+2. Gestionnaire de périphériques › clic droit sur la ligne au triangle jaune › Mettre à jour le pilote › Parcourir mon poste de travail › Choisir parmi une liste › Disque fourni › le fichier android_winusb.inf du dossier › « Android ADB Interface ». Windows demande les droits d'administrateur et peut avertir que le pilote ne semble pas fait pour l'appareil : confirmez.
+3. Débranchez puis rebranchez le câble.</value>
   </data>
   <data name="CheckUsbOther" xml:space="preserve">
     <value>Un appareil est branché et Windows l'a écarté. Le détail figure dans le Gestionnaire de périphériques.</value>
@@ -2199,5 +2202,11 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   </data>
   <data name="ToolDofusBookLine" xml:space="preserve">
     <value>Créateur et bibliothèque de stuffs. S'ouvre dans le navigateur.</value>
+  </data>
+  <data name="CheckAdbDriverUnusable" xml:space="preserve">
+    <value>Le téléphone propose bien son débogage, mais le pilote que Windows lui a donné ne le rend pas à adb, souvent celui d'un logiciel du constructeur comme HiSuite. Quittez d'abord ce logiciel, puis :
+1. Téléchargez le pilote USB de Google sur developer.android.com/studio/run/win-usb et décompressez-le.
+2. Gestionnaire de périphériques › clic droit sur la ligne du téléphone, souvent « ADB Interface » ou « HDB Interface » › Mettre à jour le pilote › Parcourir mon poste de travail › Choisir parmi une liste › Disque fourni › le fichier android_winusb.inf du dossier › « Android ADB Interface ». Windows demande les droits d'administrateur et peut avertir que le pilote ne semble pas fait pour l'appareil : confirmez.
+3. Débranchez puis rebranchez le câble.</value>
   </data>
 </root>

@@ -9881,3 +9881,33 @@ autres.
 
 La ligne « profil 0 · Principal » sous un compte renommé disparaît : elle
 rappelait le profil Android d'origine, ce qui ne sert à rien au joueur.
+
+## D188 - Quand adb ne voit rien, demander à Windows qui tient le débogage
+
+Un joueur Honor, le 11/10/2026 : les deux réglages essayés, téléphone branché,
+« aucun appareil détecté ». Le verdict ne disait que ce qu'adb ne voyait pas.
+Trois causes restaient indiscernables : le téléphone n'offre pas son
+débogage, un pilote le tient sans le rendre à adb (souvent celui d'un logiciel
+du constructeur), ou le téléphone attend une autorisation.
+
+Windows sait trancher. Chaque appareil USB déclare ses codes de classe, et
+l'interface de débogage Android porte `Class_FF&SubClass_42&Prot_01`, quelle
+que soit la marque. adb n'ouvre, lui, que les interfaces qu'un pilote a
+déclarées sous la classe Android `F72FE0D4-CBCB-407D-8814-9ED673D0DD6B`
+(ANDROID_USB_CLASS_ID dans ses sources). Une interface de débogage sans
+interface Android déclarée est donc hors de portée d'adb, sans qu'aucune erreur
+ne s'affiche dans Windows : verdict `AdbDriverUnusable`, avec la marche à suivre
+du pilote USB de Google (« Disque fourni », `android_winusb.inf`, « Android
+ADB Interface »). Le pilote manquant (code 28) reçoit les mêmes étapes, au lieu
+de « installer le pilote du constructeur ».
+
+Ce que Windows tient est écrit au journal à chaque changement, pour les seuls
+téléphones et interfaces de débogage, sans numéro de série : « USB vu par
+Windows : VID_339B&PID_107E&MI_01 débogage (service) ; interfaces Android : 0 ».
+Le rapport « Signaler un problème » le contient, sans capture à demander.
+Vérifié sur la machine de l'utilisateur : Windows 11 écrit les codes de classe
+`USB\COMPAT_VID_xxxx&Class_...`, reconnus aussi.
+
+La carte « Aucun téléphone détecté » affiche désormais le verdict dès qu'il a
+quelque chose à dire, et plus seulement pour Honor et Huawei : le texte général
+cachait un pilote manquant que seul l'onglet de la liaison nommait.

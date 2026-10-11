@@ -28,14 +28,60 @@ public sealed class WindowsUsbInspector : IUsbEnumerationInspector
 {
     public IReadOnlyList<UsbFault> Faults() =>
         [.. Enumerate().Where(d => d.Problem != 0)
-            .Select(d => new UsbFault(UsbFault.KindOf((int)d.Problem), (int)d.Problem, d.Id))];
+            .Select(d => new UsbFault(UsbFault.KindOf((int)d.Problem), (int)d.Problem, d.Device.Id))];
 
-    public IReadOnlyList<string> Present() => [.. Enumerate().Select(d => d.Id)];
+    public IReadOnlyList<UsbPresence> Present() => [.. Enumerate().Select(d => d.Device)];
+
+    /// <summary>
+    /// The Android USB interface class adb enumerates, ANDROID_USB_CLASS_ID
+    /// in its sources: any driver it can use declares it, Google's and the
+    /// makers' alike.
+    /// </summary>
+    private static readonly Guid AndroidUsbInterface = new("F72FE0D4-CBCB-407D-8814-9ED673D0DD6B");
+
+    public int AdbInterfaces()
+    {
+        var guid = AndroidUsbInterface;
+        var set = SetupDiGetClassDevsByGuid(ref guid, null, 0, DigcfPresent | DigcfDeviceInterface);
+
+        if (set == InvalidHandle)
+        {
+            return 0;
+        }
+
+        try
+        {
+            var data = default(DeviceInterfaceData);
+            data.Size = Marshal.SizeOf<DeviceInterfaceData>();
+
+            var count = 0;
+
+            while (SetupDiEnumDeviceInterfaces(set, 0, ref guid, (uint)count, ref data))
+            {
+                count++;
+            }
+
+            return count;
+        }
+        catch (DllNotFoundException)
+        {
+            // As for the faults: not knowing, the count says none.
+            return 0;
+        }
+        catch (EntryPointNotFoundException)
+        {
+            return 0;
+        }
+        finally
+        {
+            _ = SetupDiDestroyDeviceInfoList(set);
+        }
+    }
 
     /// <summary>
     /// Every present USB device, with its problem code, zero when it runs.
     /// </summary>
-    private static List<(uint Problem, string Id)> Enumerate()
+    private static List<(uint Problem, UsbPresence Device)> Enumerate()
     {
         var set = SetupDiGetClassDevs(0, "USB", 0, DigcfPresent | DigcfAllClasses);
 
@@ -46,7 +92,7 @@ public sealed class WindowsUsbInspector : IUsbEnumerationInspector
 
         try
         {
-            List<(uint Problem, string Id)> devices = [];
+            List<(uint Problem, UsbPresence Device)> devices = [];
 
             var info = default(DeviceInfoData);
             info.Size = Marshal.SizeOf<DeviceInfoData>();
@@ -58,7 +104,10 @@ public sealed class WindowsUsbInspector : IUsbEnumerationInspector
                     continue;
                 }
 
-                devices.Add((problem, InstanceId(set, ref info)));
+                devices.Add((problem, new UsbPresence(
+                    InstanceId(set, ref info),
+                    Property(set, ref info, SpdrpCompatibleIds),
+                    Property(set, ref info, SpdrpService) is [var service, ..] ? service : null)));
             }
 
             return devices;
@@ -96,6 +145,23 @@ public sealed class WindowsUsbInspector : IUsbEnumerationInspector
                 : string.Empty;
     }
 
+    /// <summary>
+    /// A text property of the device, split when it is a list. Empty when
+    /// it has none: a device without a driver has no service.
+    /// </summary>
+    private static string[] Property(nint set, ref DeviceInfoData info, int property)
+    {
+        var buffer = new byte[2048];
+
+        return SetupDiGetDeviceRegistryProperty(set, ref info, property, out _, buffer, buffer.Length, out var used)
+            && used > 2
+                ? System.Text.Encoding.Unicode.GetString(buffer, 0, used).Split('\0', StringSplitOptions.RemoveEmptyEntries)
+                : [];
+    }
+
+    private const int SpdrpCompatibleIds = 0x00000002;
+    private const int SpdrpService = 0x00000004;
+    private const int DigcfDeviceInterface = 0x00000010;
     private const int DigcfPresent = 0x00000002;
     private const int DigcfAllClasses = 0x00000004;
     private const int Success = 0;
@@ -112,6 +178,28 @@ public sealed class WindowsUsbInspector : IUsbEnumerationInspector
 
     [DllImport("setupapi.dll", CharSet = CharSet.Unicode, EntryPoint = "SetupDiGetClassDevsW")]
     private static extern nint SetupDiGetClassDevs(nint classGuid, string? enumerator, nint parent, int flags);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct DeviceInterfaceData
+    {
+        public int Size;
+        public Guid InterfaceClassGuid;
+        public int Flags;
+        public nint Reserved;
+    }
+
+    [DllImport("setupapi.dll", CharSet = CharSet.Unicode, EntryPoint = "SetupDiGetClassDevsW")]
+    private static extern nint SetupDiGetClassDevsByGuid(ref Guid classGuid, string? enumerator, nint parent, int flags);
+
+    [DllImport("setupapi.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetupDiEnumDeviceInterfaces(
+        nint set, nint info, ref Guid interfaceClass, uint index, ref DeviceInterfaceData data);
+
+    [DllImport("setupapi.dll", CharSet = CharSet.Unicode, EntryPoint = "SetupDiGetDeviceRegistryPropertyW")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetupDiGetDeviceRegistryProperty(
+        nint set, ref DeviceInfoData info, int property, out int type, [Out] byte[] buffer, int size, out int used);
 
     [DllImport("setupapi.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]

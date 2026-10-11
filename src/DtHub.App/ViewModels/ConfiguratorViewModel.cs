@@ -846,6 +846,8 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// </summary>
     private bool _connectionKnown;
 
+    private string _lastUsbSummary = string.Empty;
+
     /// <summary>The sentence itself.</summary>
     public string ConnectionMessage => ConnectionCheck.Describe(Connection);
 
@@ -880,19 +882,32 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
         // Only when ADB is silent and Windows blames nothing: the one case
         // where knowing an Honor or Huawei is plugged in changes the advice.
-        var present = seen || faults.Count > 0 || states.Count > 0 ? [] : _usb.Present();
+        IReadOnlyList<UsbPresence> present = seen || faults.Count > 0 || states.Count > 0 ? [] : _usb.Present();
+        var adbInterfaces = present.Any(d => d.IsDebugInterface) ? _usb.AdbInterfaces() : 0;
 
         var avant = Connection;
         var connuAvant = _connectionKnown;
 
-        Connection = ConnectionCheck.Of(states, faults, toolsReady: true, present);
+        Connection = ConnectionCheck.Of(states, faults, toolsReady: true, present, adbInterfaces);
         _connectionKnown = true;
 
         OnPropertyChanged(nameof(ConnectionMessage));
 
-        Instances.NoDeviceHelp = Connection is ConnectionVerdict.HonorNotDebugging or ConnectionVerdict.HuaweiNotDebugging
+        // The empty list says the real reason when there is one, not the
+        // general steps: a player who reads "no device" while Windows knows
+        // the driver is missing went looking in the wrong place.
+        Instances.NoDeviceHelp = ConnectionCheck.NeedsExplaining(Connection)
             ? ConnectionMessage
             : Strings.Get("NoDeviceHelp");
+
+        // What Windows holds, once per change: from a player's report, it
+        // tells why adb sees nothing, without asking for a screenshot.
+        if (UsbPresence.Summarize(present) is { Length: > 0 } usb && usb != _lastUsbSummary)
+        {
+            Serilog.Log.Information("USB vu par Windows : {Usb} ; interfaces Android : {Adb}.", usb, adbInterfaces);
+        }
+
+        _lastUsbSummary = UsbPresence.Summarize(present);
 
         // The first check does not necessarily change the verdict,
         // but it changes the right to show it.
