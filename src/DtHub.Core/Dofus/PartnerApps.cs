@@ -71,3 +71,17 @@ public static class PartnerApps
             [.. devices.Where(d => d.PackagesUser0.Contains(app.PackageName, StringComparer.Ordinal)).Select(d => d.DeviceId)],
             [.. devices.Where(d => !d.PackagesUser0.Contains(app.PackageName, StringComparer.Ordinal)).Select(d => d.DeviceId)]))];
 }
+
+/// <summary>
+/// The DOFUS Touch map, first of the tools: a web site shown in a DT Hub
+/// window, which needs no phone. Its logo is drawn for DT Hub, not the
+/// site's own.
+/// </summary>
+public static class DofusTouchMap
+{
+    /// <summary>The site, as given by the project owner on 2026-10-11.</summary>
+    public const string Address = "https://www.dofus-touch-map.com/";
+
+    /// <summary>The pack path of its bundled logo.</summary>
+    public const string IconAsset = "/assets/dtmap.png";
+}

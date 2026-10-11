@@ -39,6 +39,8 @@
     <!-- MakeInTouch's icons, shown with its agreement, see THIRD-PARTY-NOTICES.md. -->
     <Resource Include="..\..\assets\dtstuff.png" Link="assets\dtstuff.png" />
     <Resource Include="..\..\assets\ocrapp.png" Link="assets\ocrapp.png" />
+    <!-- The map's logo, drawn for DT Hub: not the site's own. -->
+    <Resource Include="..\..\assets\dtmap.png" Link="assets\dtmap.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -70,6 +72,8 @@
            Text="The guide logo is no longer embedded: papycha.png is missing from Resource." />
     <Error Condition="'@(Resource->WithMetadataValue('Link', 'assets\dtstuff.png'))' == '' Or '@(Resource->WithMetadataValue('Link', 'assets\ocrapp.png'))' == ''"
            Text="A MakeInTouch icon is no longer embedded: dtstuff.png or ocrapp.png is missing from Resource." />
+    <Error Condition="'@(Resource->WithMetadataValue('Link', 'assets\dtmap.png'))' == ''"
+           Text="The map's logo is no longer embedded: dtmap.png is missing from Resource." />
 
     <!-- The filter above drops the translations "without a word", and
          nothing in the published binary lets you notice it: the embedded

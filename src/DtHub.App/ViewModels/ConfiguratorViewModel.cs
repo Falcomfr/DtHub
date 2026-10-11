@@ -96,6 +96,15 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     {
         PartnerTiles.Clear();
 
+        // The map first, as asked: a web site, it needs no phone and opens
+        // in a DT Hub window.
+        PartnerTiles.Add(new PartnerTileViewModel(
+            Strings.Get("ToolMapName"),
+            Strings.Get("ToolMapLine"),
+            DofusTouchMap.IconAsset,
+            isInstalled: true,
+            [new PartnerTarget(string.Empty, new RelayCommand(() => MapRequested?.Invoke(this, EventArgs.Empty)))]));
+
         foreach (var availability in _launcher.PartnerAvailability)
         {
             var installed = availability.WithApp.Count > 0;
@@ -1065,6 +1074,9 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
     /// <summary>Requested from the tool button, same reason.</summary>
     public event EventHandler? AlmanaxRequested;
+
+    /// <summary>Requested from the DOFUS Touch tools menu: the map.</summary>
+    public event EventHandler? MapRequested;
 
     /// <summary>
     /// Opens the community server in the browser. Nothing to build here,

@@ -2129,4 +2129,10 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="ToolBatteryNotPrepared" xml:space="preserve">
     <value>{0} is not shielded from battery saving: its window will freeze and stop answering. Set it to "Unrestricted" in its battery page.</value>
   </data>
+  <data name="ToolMapName" xml:space="preserve">
+    <value>Dofus Touch Map</value>
+  </data>
+  <data name="ToolMapLine" xml:space="preserve">
+    <value>Interactive map of the resources of the World of Twelve.</value>
+  </data>
 </root>

@@ -2129,4 +2129,10 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="ToolBatteryNotPrepared" xml:space="preserve">
     <value>{0} no está a salvo del ahorro de energía: su ventana se congelará y dejará de responder. Elige «Sin restricciones» en su ficha de batería.</value>
   </data>
+  <data name="ToolMapName" xml:space="preserve">
+    <value>Dofus Touch Map</value>
+  </data>
+  <data name="ToolMapLine" xml:space="preserve">
+    <value>Mapa interactivo de los recursos del Mundo de los Doce.</value>
+  </data>
 </root>

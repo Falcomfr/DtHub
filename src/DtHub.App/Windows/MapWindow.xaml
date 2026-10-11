@@ -1,0 +1,15 @@
+﻿<Window x:Class="DtHub.App.Windows.MapWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:DtHub.App.Localization"
+        xmlns:wv="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        Title="{loc:T ToolMapName}"
+        Width="1280" Height="800" MinWidth="640" MinHeight="420"
+        WindowStartupLocation="CenterScreen" ShowInTaskbar="True"
+        Background="{DynamicResource SurfaceAltBrush}">
+
+  <!-- dofus-touch-map.com, as the site shows itself: a map wants the room,
+       so the window opens on two thirds of the screen the first time, then
+       where it was left. -->
+  <wv:WebView2 x:Name="View" />
+</Window>

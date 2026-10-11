@@ -19,20 +19,24 @@ public sealed record PartnerTarget(string DeviceName, ICommand Act)
 /// compact line with Open once it is on a phone, a presentation with
 /// Install otherwise.
 /// </summary>
-public sealed class PartnerTileViewModel(PartnerApp app, bool isInstalled, IReadOnlyList<PartnerTarget> targets)
+public sealed class PartnerTileViewModel(
+    string name,
+    string line,
+    string icon,
+    bool isInstalled,
+    IReadOnlyList<PartnerTarget> targets)
 {
-    public string Name => app.Name;
+    /// <summary>A MakeInTouch app, from the catalogue.</summary>
+    public PartnerTileViewModel(PartnerApp app, bool isInstalled, IReadOnlyList<PartnerTarget> targets)
+        : this(app.Name, Strings.Get(app.LineKey), app.IconAsset, isInstalled, targets)
+    {
+    }
 
-    public string Line => Strings.Get(app.LineKey);
+    public string Name => name;
 
-    /// <summary>
-    /// Under the name: a reason when no phone can act, the one line
-    /// presentation otherwise.
-    /// </summary>
-    public string Detail => targets.Count == 0 ? Strings.Get("PartnerNoDevice") : Line;
+    public string Line => line;
 
-    public string Icon => app.IconAsset;
-
+    public string Icon => icon;
     public bool IsInstalled => isInstalled;
 
     public string ActionText => Strings.Get(isInstalled ? "PartnerOpen" : "PartnerInstall");

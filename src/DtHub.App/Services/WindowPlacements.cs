@@ -34,6 +34,9 @@ public sealed class WindowPlacements(IWindowController windows, SettingsService 
     /// <summary>Today's Almanax.</summary>
     public const string Almanax = "almanax";
 
+    /// <summary>The DOFUS Touch map, first of the tools.</summary>
+    public const string Map = "map";
+
     /// <summary>The settings panel.</summary>
     public const string Configurator = "configurator";
 

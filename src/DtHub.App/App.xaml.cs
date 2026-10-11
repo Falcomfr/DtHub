@@ -50,6 +50,8 @@ public partial class App : Application, IDisposable
     private IHost? _host;
     private ConfiguratorWindow? _configurator;
     private QuestWindow? _quests;
+
+    private MapWindow? _map;
     private AlmanaxWindow? _almanax;
     /// <summary>
     /// What we allow ourselves to save the state when Windows closes
@@ -186,6 +188,9 @@ public partial class App : Application, IDisposable
 
         services.GetRequiredService<ConfiguratorViewModel>().AlmanaxRequested +=
             (_, _) => Dispatcher.Invoke(ShowAlmanax);
+
+        services.GetRequiredService<ConfiguratorViewModel>().MapRequested +=
+            (_, _) => Dispatcher.Invoke(ShowMap);
         launcher.QuitRequested += (_, _) => Dispatcher.Invoke(async () => await RequestQuitAsync().ConfigureAwait(true));
         // Recovering a lost window is requested from scrcpy's read
         // loop, which does not live on the UI thread. It therefore
@@ -894,6 +899,30 @@ public partial class App : Application, IDisposable
     /// remains: we do not open DT Hub just to check a calendar, and
     /// the application does not have to survive for it alone.
     /// </summary>
+    /// <summary>
+    /// The DOFUS Touch map: brought forward when already open, opened
+    /// otherwise, like the Almanax.
+    /// </summary>
+    private void ShowMap()
+    {
+        if (_map is { IsLoaded: true })
+        {
+            _map.Activate();
+
+            return;
+        }
+
+        _map = _host?.Services.GetRequiredService<MapWindow>();
+
+        if (_map is null)
+        {
+            return;
+        }
+
+        _map.Closed += (_, _) => _map = null;
+        _map.Show();
+    }
+
     private void ShowAlmanax()
     {
         if (_almanax is { IsLoaded: true })
