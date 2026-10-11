@@ -1851,13 +1851,13 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>Samsung</value>
   </data>
   <data name="BrandSamsungCloneFeature" xml:space="preserve">
-    <value>Secure Folder</value>
+    <value>Work profile (Island)</value>
   </data>
   <data name="BrandSamsungClonePath" xml:space="preserve">
-    <value>Settings  ›  Security and privacy  ›  Secure Folder</value>
+    <value>the Island app from the Play Store, which makes a work profile to clone the game into</value>
   </data>
   <data name="BrandSamsungCloneNote" xml:space="preserve">
-    <value>Dual Messenger only duplicates messaging apps, so it will not do for a game. Secure Folder takes any app, and asks for a Samsung account. It has to be unlocked before launching: locked, the game inside it stays out of reach from the PC.</value>
+    <value>Samsung keeps the Secure Folder closed to a PC, even unlocked: DT Hub cannot open the game there. Dual Messenger only duplicates messaging apps. Island makes a work profile, which DT Hub opens like the other accounts.</value>
   </data>
   <data name="BrandSamsungBatteryFeature" xml:space="preserve">
     <value>Allow background activity</value>

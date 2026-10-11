@@ -1851,13 +1851,13 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>Samsung</value>
   </data>
   <data name="BrandSamsungCloneFeature" xml:space="preserve">
-    <value>Dossier sécurisé</value>
+    <value>Profil de travail (Island)</value>
   </data>
   <data name="BrandSamsungClonePath" xml:space="preserve">
-    <value>Paramètres  ›  Sécurité et confidentialité  ›  Dossier sécurisé</value>
+    <value>l'application Island du Play Store, qui crée un profil de travail où cloner le jeu</value>
   </data>
   <data name="BrandSamsungCloneNote" xml:space="preserve">
-    <value>« Dual Messenger » ne duplique que les applications de messagerie et ne convient donc pas pour un jeu. Le dossier sécurisé accepte n'importe quelle application, et demande un compte Samsung. Il doit être déverrouillé avant le lancement : verrouillé, le jeu qu'il contient reste introuvable depuis le PC.</value>
+    <value>Samsung ferme le Dossier sécurisé au PC, même déverrouillé : DT Hub ne peut pas y ouvrir le jeu. « Dual Messenger » ne duplique que les applications de messagerie. Island crée un profil de travail, que DT Hub ouvre comme les autres comptes.</value>
   </data>
   <data name="BrandSamsungBatteryFeature" xml:space="preserve">
     <value>Autoriser l'activité en arrière-plan</value>

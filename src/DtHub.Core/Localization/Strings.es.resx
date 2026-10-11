@@ -1851,13 +1851,13 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Samsung</value>
   </data>
   <data name="BrandSamsungCloneFeature" xml:space="preserve">
-    <value>Carpeta segura</value>
+    <value>Perfil de trabajo (Island)</value>
   </data>
   <data name="BrandSamsungClonePath" xml:space="preserve">
-    <value>Ajustes  ›  Seguridad y privacidad  ›  Carpeta segura</value>
+    <value>la aplicación Island de Play Store, que crea un perfil de trabajo donde clonar el juego</value>
   </data>
   <data name="BrandSamsungCloneNote" xml:space="preserve">
-    <value>« Dual Messenger » solo duplica aplicaciones de mensajería, así que no sirve para un juego. La carpeta segura acepta cualquier aplicación, y pide una cuenta Samsung. Debe desbloquearse antes de iniciar: bloqueada, el juego que contiene queda fuera del alcance del PC.</value>
+    <value>Samsung cierra la Carpeta segura al PC, incluso desbloqueada: DT Hub no puede abrir el juego allí. « Dual Messenger » solo duplica aplicaciones de mensajería. Island crea un perfil de trabajo, que DT Hub abre como las demás cuentas.</value>
   </data>
   <data name="BrandSamsungBatteryFeature" xml:space="preserve">
     <value>Permitir actividad en segundo plano</value>

@@ -187,4 +187,19 @@ public class PhoneBrandsTests
         Assert.NotNull(fire.Warning);
         Assert.Contains("Play Store", fire.Warning, StringComparison.Ordinal);
     }
+
+    [Theory]
+    [InlineData("en", "Secure Folder")]
+    [InlineData("fr", "Dossier sécurisé")]
+    [InlineData("es", "Carpeta segura")]
+    public void Samsung_envoie_vers_island_et_plus_vers_le_dossier_securise(string langue, string dossier)
+    {
+        // Knox forbids debugging in the Secure Folder: a player's S21
+        // Ultra confirmed it on 11/10/2026, see D191. The way left is a
+        // work profile, which Island makes.
+        var path = Strings.GetIn("BrandSamsungClonePath", CultureInfo.GetCultureInfo(langue));
+
+        Assert.Contains("Island", path, StringComparison.Ordinal);
+        Assert.DoesNotContain(dossier, path, StringComparison.Ordinal);
+    }
 }

@@ -10055,5 +10055,6 @@ Samsung interdit l'accès au PC, sans demander de déverrouiller, et propose un
 profil de travail créé avec Island, voie déjà ouverte par DT Hub (profil
 rattaché). Island plutôt que Shelter : il s'installe depuis le Play Store.
 
-Reste à revoir, une fois le blocage confirmé chez le joueur : le conseil Samsung
-du bouton « + » recommande justement le Dossier sécurisé.
+Le joueur a confirmé le même jour que le Dossier sécurisé ne marche pas. Le
+conseil Samsung du bouton « + », qui le recommandait, envoie désormais vers
+Island et un profil de travail.
