@@ -105,6 +105,17 @@ window on your PC.
 - **A quest guide**, opened with `Ctrl+Q`, that reads
   [papycha.fr](https://papycha.fr) beside the game and remembers where you
   stopped. It shows the site's own pages; it never plays for you.
+- **The Almanax of DOFUS Touch**, read from the official calendar filtered on
+  Touch: the day's offering, copied in one click for the marketplace search,
+  the days that also hold a special repeatable quest or a blessing, flagged,
+  the week's offerings in one list, and the next day of a given bonus.
+- **DOFUS Touch tools** one click away:
+  [Dofus Touch Map](https://www.dofus-touch-map.com/) and
+  [Calcofus](https://calcofus.fr/) in a DT Hub window beside the game,
+  [DTStuff](https://play.google.com/store/apps/details?id=com.makeintouch.dtstuff)
+  and [OcrApp](https://play.google.com/store/apps/details?id=com.makeintouch.ocrapp)
+  installed and opened from the PC, [DofusBook](https://touch.dofusbook.net/)
+  in the browser.
 - **English, French and Spanish**, following your Windows display language, and
   English for anything else.
 - **A report you can send.** When something fails, DT Hub shows what happened
@@ -249,6 +260,11 @@ before the rule. Conventions are set out in
   [Discord](https://discord.gg/RnKWEX2n5V).
 - [scrcpy](https://github.com/Genymobile/scrcpy), which carries the whole
   mirroring.
+- MakeInTouch, for DTStuff and OcrApp, and [calcofus.fr](https://calcofus.fr/),
+  who agreed to DT Hub showing their names and logos.
+- [Dofus Touch Map](https://www.dofus-touch-map.com/), which you can
+  [support here](https://www.dofus-touch-map.com/donation), and
+  [DofusBook](https://touch.dofusbook.net/).
 
 ## Licences
 
