@@ -509,15 +509,17 @@ public class ScrcpySessionManagerTests
     }
 
     [Fact]
-    public async Task Une_cible_avec_adresse_ouvre_l_adresse_sans_arreter_l_app()
+    public async Task La_fenetre_du_store_ouvre_l_adresse_et_ferme_le_store_avec_elle()
     {
-        // The Play Store window: stopping the store before opening the page,
-        // or when the window closes, would cancel a download in progress.
+        // The Play Store is not stopped before the page opens, which would
+        // cancel a download already running. It is stopped with its window,
+        // even with the setting off: a passing window leaves nothing behind
+        // on the phone (asked on 2026-10-11).
         var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
         var appLauncher = new FakeAppLauncher();
 
         await using var manager = Manager(launcher, appLauncher);
-        manager.StopAppOnClose = true;
+        manager.StopAppOnClose = false;
 
         var session = await manager.StartAsync(
             Target(userId: 0) with
@@ -525,6 +527,7 @@ public class ScrcpySessionManagerTests
                 PackageName = "com.android.vending",
                 LaunchComponent = null,
                 StartUri = "market://details?id=com.makeintouch.dtstuff",
+                IsTransient = true,
             },
             ScrcpyOptions.Default,
             null,
@@ -538,7 +541,34 @@ public class ScrcpySessionManagerTests
 
         await manager.StopAsync(session.Id, CancellationToken.None);
 
-        Assert.Empty(appLauncher.ForceStops);
+        Assert.Equal("USB0001|0|com.android.vending", Assert.Single(appLauncher.ForceStops));
+    }
+
+    [Fact]
+    public async Task Une_fenetre_d_outil_arrete_son_app_meme_option_desactivee()
+    {
+        var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
+        var appLauncher = new FakeAppLauncher();
+
+        await using var manager = Manager(launcher, appLauncher);
+        manager.StopAppOnClose = false;
+
+        var session = await manager.StartAsync(
+            Target(userId: 0) with
+            {
+                PackageName = "com.makeintouch.dtstuff",
+                LaunchComponent = "com.makeintouch.dtstuff/.MainActivity",
+                IsTransient = true,
+            },
+            ScrcpyOptions.Default,
+            null,
+            CancellationToken.None);
+
+        appLauncher.ForceStops.Clear();
+
+        await manager.StopAsync(session.Id, CancellationToken.None);
+
+        Assert.Equal("USB0001|0|com.makeintouch.dtstuff", Assert.Single(appLauncher.ForceStops));
     }
 
     [Fact]

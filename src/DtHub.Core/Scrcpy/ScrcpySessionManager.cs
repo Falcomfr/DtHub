@@ -682,7 +682,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         // this method would then have returned control without
         // waiting for anything, and quitting the application could
         // have cut the stop short mid-flight.
-        var mine = StopAppOnClose && session.ClaimAppStop();
+        var mine = StopsAppOnClose(session) && session.ClaimAppStop();
 
         // scrcpy is asked to leave before being killed: it is the
         // one that notifies its server, and the server that returns
@@ -738,13 +738,21 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     /// </summary>
     private async Task StopAppOnDeviceAsync(ScrcpySession session, CancellationToken cancellationToken)
     {
-        if (!StopAppOnClose || !session.ClaimAppStop())
+        if (!StopsAppOnClose(session) || !session.ClaimAppStop())
         {
             return;
         }
 
         await ForceStopGameAsync(session, cancellationToken).ConfigureAwait(false);
     }
+
+    /// <summary>
+    /// The setting decides for the game. A window opened in passing, a DOFUS
+    /// Touch tool or the Play Store, always stops its app: it is not one the
+    /// player keeps running, and left behind it stayed open on the phone
+    /// (asked on 2026-10-11).
+    /// </summary>
+    private bool StopsAppOnClose(ScrcpySession session) => StopAppOnClose || session.Target.IsTransient;
 
     /// <summary>
     /// Stops the game, without asking whether it is the right
@@ -1093,15 +1101,18 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
         if (session.Target.StartUri is { } uri)
         {
-            // A link, the Play Store's page of an app: the store is
-            // neither stopped first nor counted as ours, so closing the
-            // window leaves a download in progress alone.
+            // A link, the Play Store's page of an app: the store is not
+            // stopped first, which would cancel a download already
+            // running. It is ours from here, and closes with its window,
+            // whose title says to close it once the app is installed.
             launch = await _appLauncher.OpenUriAsync(
                 session.Serial,
                 session.Target.UserId,
                 uri,
                 displayId,
                 cancellationToken).ConfigureAwait(false);
+
+            session.AppLaunchedByUs = true;
         }
         else
         {

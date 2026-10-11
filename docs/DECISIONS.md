@@ -9667,8 +9667,12 @@ et le joueur clique lui-même. Trois mesures ont fixé la forme de cette fenêtr
   page de l'autre app. Son identité est celle du Store : deux fenêtres auraient
   porté la même, et la seconde ne faisait que ramener la première.
 
-Le Store n'est ni arrêté avant d'ouvrir la page ni à la fermeture de la fenêtre :
-ce serait annuler un téléchargement. Pendant que la fenêtre est ouverte, DT Hub
+Le Store n'est pas arrêté avant d'ouvrir la page, ce qui annulerait un
+téléchargement déjà lancé. Il l'est avec sa fenêtre, dont le titre dit de la
+fermer une fois l'app installée. Laissé ouvert, il restait sur le téléphone. Plus
+largement, une fenêtre passagère (le Store, DTStuff, OcrApp) arrête toujours son
+app à la fermeture, même si l'option « arrêter l'app à la fermeture » est
+désactivée : elle ne laisse rien derrière elle sur le téléphone. Pendant que la fenêtre est ouverte, DT Hub
 regarde toutes les trois secondes si l'app est arrivée ; elle passe alors à
 « Ouvrir » et la fenêtre se ferme. Ces fenêtres sont passagères : jamais
 rouvertes au lancement suivant, ni rangées avec les fenêtres de jeu, ni comptées
