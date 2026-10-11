@@ -33,10 +33,15 @@ public sealed partial class HotkeyRowViewModel : ObservableObject
     public bool HasError => !string.IsNullOrWhiteSpace(Error);
 
     /// <summary>
-    /// A key alone: it no longer reaches the game while a DT Hub window is in
-    /// front, which the row says under the shortcut.
+    /// A typing key alone: it would no longer write in the game's chat while
+    /// a DT Hub window is in front, which the row says under the shortcut.
+    /// Tab and the other keys that type nothing get no warning: claiming they
+    /// did something in the game was not true (2026-10-11).
     /// </summary>
-    public bool TakesKeyFromGame => Binding.IsAssigned && Binding.Modifiers == HotkeyModifiers.None && !HasError;
+    public bool TakesKeyFromGame => Binding.IsAssigned
+        && Binding.Modifiers == HotkeyModifiers.None
+        && VirtualKeys.IsTypingKey(Binding.VirtualKey)
+        && !HasError;
 
     /// <summary>
     /// What it costs, said with the key and the action: "the key no longer

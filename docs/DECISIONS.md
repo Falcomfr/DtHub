@@ -9745,8 +9745,11 @@ modificateur, sauf pour les touches F1 à F24.
 **Ce qui change.** Une touche seule est acceptée, à l'éditeur comme à la
 relecture des réglages, qui écartait jusqu'ici tout raccourci sans modificateur
 et l'aurait fait disparaître au démarrage suivant. Elle n'arrive alors plus au
-jeu tant qu'une fenêtre de DT Hub est au premier plan, et l'éditeur l'écrit sous
-le raccourci. Rien n'est pris aux autres logiciels : les raccourcis ne sont armés
+jeu tant qu'une fenêtre de DT Hub est au premier plan. L'éditeur ne le dit que
+pour une touche qui sert à écrire, lettre, chiffre, espace, Entrée, Effacement ou
+ponctuation : au clavier, DOFUS Touch sert surtout à écrire dans son chat, et rien
+ne montre que Tab, les touches F ou les flèches y fassent quoi que ce soit. Un
+premier message, posé sur toute touche seule, affirmait le contraire pour Tab. Rien n'est pris aux autres logiciels : les raccourcis ne sont armés
 que quand une fenêtre de DT Hub est au premier plan, règle inchangée (HotkeyScope).
 Restent refusées une touche de modification seule, les combinaisons que Windows
 se réserve et celles d'édition.

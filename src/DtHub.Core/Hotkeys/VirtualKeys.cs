@@ -65,6 +65,24 @@ public static class VirtualKeys
         _ => false,
     };
 
+    /// <summary>
+    /// A key that writes in a text field: a letter, a digit, the space,
+    /// Enter, Backspace, punctuation. With a keyboard, DOFUS Touch mostly
+    /// serves to type in its chat; these are the keys a hotkey would take
+    /// from it. Tab, the function keys and the arrows type nothing there.
+    /// </summary>
+    public static bool IsTypingKey(int virtualKey) => virtualKey switch
+    {
+        Back or Enter or Space => true,
+        >= D0 and <= 0x39 => true,
+        >= A and <= 0x5A => true,
+        >= NumPad0 and <= 0x6F => true,
+        >= 0xBA and <= 0xC0 => true,
+        >= 0xDB and <= 0xDF => true,
+        0xE2 => true,
+        _ => false,
+    };
+
     /// <summary>True if the code designates a function key.</summary>
     public static bool IsFunctionKey(int virtualKey) => virtualKey is >= F1 and <= F24;
 

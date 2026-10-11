@@ -2154,6 +2154,6 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Una tecla sola también funciona, Tab por ejemplo. Para un botón del ratón, haz que el programa de tu ratón envíe una tecla y elige esa tecla aquí: DT Hub no vigila el ratón, lo que los antivirus tomarían por un programa espía.</value>
   </data>
   <data name="HotkeyBareKeyNotice" xml:space="preserve">
-    <value>En DOFUS Touch, {0} ya no hará nada: DT Hub la usa para «{1}».</value>
+    <value>En el chat de DOFUS Touch, {0} ya no se escribirá: DT Hub la usa para «{1}».</value>
   </data>
 </root>
