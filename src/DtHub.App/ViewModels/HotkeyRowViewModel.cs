@@ -32,9 +32,23 @@ public sealed partial class HotkeyRowViewModel : ObservableObject
 
     public bool HasError => !string.IsNullOrWhiteSpace(Error);
 
-    partial void OnBindingChanged(HotkeyBinding value) => OnPropertyChanged(nameof(ShortcutText));
+    /// <summary>
+    /// A key alone: it no longer reaches the game while a DT Hub window is in
+    /// front, which the row says under the shortcut.
+    /// </summary>
+    public bool TakesKeyFromGame => Binding.IsAssigned && Binding.Modifiers == HotkeyModifiers.None && !HasError;
+
+    partial void OnBindingChanged(HotkeyBinding value)
+    {
+        OnPropertyChanged(nameof(ShortcutText));
+        OnPropertyChanged(nameof(TakesKeyFromGame));
+    }
 
     partial void OnIsCapturingChanged(bool value) => OnPropertyChanged(nameof(ShortcutText));
 
-    partial void OnErrorChanged(string? value) => OnPropertyChanged(nameof(HasError));
+    partial void OnErrorChanged(string? value)
+    {
+        OnPropertyChanged(nameof(HasError));
+        OnPropertyChanged(nameof(TakesKeyFromGame));
+    }
 }

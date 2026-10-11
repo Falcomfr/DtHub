@@ -432,7 +432,7 @@
     <value>Only Android devices will do. iOS allows neither opening an extra display nor installing the same application twice.</value>
   </data>
   <data name="ShortcutsScopeNotice" xml:space="preserve">
-    <value>They act only while a window of the application is active. Ctrl+Tab therefore stays available in your other software.</value>
+    <value>They only act while a window of the application is active, so your other programs keep every key.</value>
   </data>
   <data name="Defaults" xml:space="preserve">
     <value>Defaults</value>
@@ -1070,9 +1070,6 @@ On a {0} device, the manual copy goes through: {1}.</value>
   </data>
   <data name="HotkeyModifierOnly" xml:space="preserve">
     <value>Add a key besides the modifier.</value>
-  </data>
-  <data name="HotkeyMissingModifier" xml:space="preserve">
-    <value>Add Ctrl, Alt or Shift, otherwise the key would be caught while you play.</value>
   </data>
   <data name="HotkeyEditingKey" xml:space="preserve">
     <value>Ctrl+A, Ctrl+C, Ctrl+V and Ctrl+X stay available for editing.</value>
@@ -2152,5 +2149,11 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   </data>
   <data name="HelpMenuInput" xml:space="preserve">
     <value>Clicks from the PC do not get through</value>
+  </data>
+  <data name="ShortcutsMouseNotice" xml:space="preserve">
+    <value>A key alone works too, Tab for instance. For a mouse button, have your mouse's software send a key, then pick that key here: DT Hub does not watch the mouse, which antivirus software would take for spyware.</value>
+  </data>
+  <data name="HotkeyBareKeyNotice" xml:space="preserve">
+    <value>This key no longer reaches the game while a DT Hub window is in front.</value>
   </data>
 </root>

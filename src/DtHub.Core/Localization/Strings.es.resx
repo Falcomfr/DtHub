@@ -432,7 +432,7 @@
     <value>Solo sirven los aparatos Android. iOS no permite abrir una pantalla adicional ni instalar dos veces la misma aplicación.</value>
   </data>
   <data name="ShortcutsScopeNotice" xml:space="preserve">
-    <value>Solo actúan mientras una ventana de la aplicación está activa. Por eso Ctrl+Tab sigue disponible en tus otros programas.</value>
+    <value>Solo actúan mientras una ventana de la aplicación está activa: tus otros programas conservan todas sus teclas.</value>
   </data>
   <data name="Defaults" xml:space="preserve">
     <value>Valores por defecto</value>
@@ -1070,9 +1070,6 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
   </data>
   <data name="HotkeyModifierOnly" xml:space="preserve">
     <value>Añade una tecla además del modificador.</value>
-  </data>
-  <data name="HotkeyMissingModifier" xml:space="preserve">
-    <value>Añade Ctrl, Alt o Mayús, si no la tecla se interceptaría mientras juegas.</value>
   </data>
   <data name="HotkeyEditingKey" xml:space="preserve">
     <value>Ctrl+A, Ctrl+C, Ctrl+V y Ctrl+X quedan para la edición.</value>
@@ -2152,5 +2149,11 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   </data>
   <data name="HelpMenuInput" xml:space="preserve">
     <value>Los clics del PC no llegan</value>
+  </data>
+  <data name="ShortcutsMouseNotice" xml:space="preserve">
+    <value>Una tecla sola también funciona, Tab por ejemplo. Para un botón del ratón, haz que el programa de tu ratón envíe una tecla y elige esa tecla aquí: DT Hub no vigila el ratón, lo que los antivirus tomarían por un programa espía.</value>
+  </data>
+  <data name="HotkeyBareKeyNotice" xml:space="preserve">
+    <value>Esta tecla ya no llega al juego mientras una ventana de DT Hub esté en primer plano.</value>
   </data>
 </root>

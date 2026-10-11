@@ -9733,3 +9733,28 @@ secondes au lieu de deux minutes, et il est vidé à chaque lancement : l'alerte
 disparaît vite une fois le réglage corrigé. Les fenêtres des outils ne rappellent plus les
 raccourcis des comptes dans leur titre, et celle du Store dit qu'on peut la
 fermer une fois l'app installée.
+
+## D182 - Une touche seule comme raccourci, et toujours pas la souris
+
+**Date** : 2026-10-11
+
+**La demande.** Un joueur voulait Tab seul pour passer d'une fenêtre à l'autre,
+sans Ctrl, et le bouton de sa souris qui envoie Tab. DT Hub exigeait un
+modificateur, sauf pour les touches F1 à F24.
+
+**Ce qui change.** Une touche seule est acceptée, à l'éditeur comme à la
+relecture des réglages, qui écartait jusqu'ici tout raccourci sans modificateur
+et l'aurait fait disparaître au démarrage suivant. Elle n'arrive alors plus au
+jeu tant qu'une fenêtre de DT Hub est au premier plan, et l'éditeur l'écrit sous
+le raccourci. Rien n'est pris aux autres logiciels : les raccourcis ne sont armés
+que quand une fenêtre de DT Hub est au premier plan, règle inchangée (HotkeyScope).
+Restent refusées une touche de modification seule, les combinaisons que Windows
+se réserve et celles d'édition.
+
+**Ce qui ne change pas : la souris.** Un clic ne peut pas être un raccourci
+Windows. Il faudrait surveiller toute la souris du système, comportement que les
+antivirus classent comme espion, et DT Hub sort à peine d'une détection Kaspersky
+(D180, D181). L'éditeur dit comment faire : faire envoyer une touche au bouton par
+le logiciel de la souris, ce que proposent la plupart des souris de jeu, puis
+choisir cette touche. C'est exactement le cas du joueur, dont le bouton envoie
+déjà Tab.

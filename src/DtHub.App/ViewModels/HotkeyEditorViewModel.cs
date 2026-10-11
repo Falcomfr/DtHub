@@ -144,7 +144,6 @@ public sealed partial class HotkeyEditorViewModel : ObservableObject
     {
         HotkeyValidationResult.NoKey => Strings.Get("HotkeyNoKey"),
         HotkeyValidationResult.ModifierOnly => Strings.Get("HotkeyModifierOnly"),
-        HotkeyValidationResult.MissingModifier => Strings.Get("HotkeyMissingModifier"),
         HotkeyValidationResult.ReservedBySystem => Strings.Get("HotkeyReserved"),
         HotkeyValidationResult.ReservedForEditing => Strings.Get("HotkeyEditingKey"),
         HotkeyValidationResult.Duplicate when conflict is { } action =>

@@ -432,7 +432,7 @@
     <value>Seuls les appareils Android conviennent. iOS ne permet ni d'ouvrir un écran supplémentaire, ni d'y installer deux fois la même application.</value>
   </data>
   <data name="ShortcutsScopeNotice" xml:space="preserve">
-    <value>Ils n'agissent que pendant qu'une fenêtre de l'application est active. Ctrl+Tab reste donc disponible dans vos autres logiciels.</value>
+    <value>Ils n'agissent que pendant qu'une fenêtre de l'application est active : vos autres logiciels gardent donc toutes leurs touches.</value>
   </data>
   <data name="Defaults" xml:space="preserve">
     <value>Valeurs par défaut</value>
@@ -1070,9 +1070,6 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
   </data>
   <data name="HotkeyModifierOnly" xml:space="preserve">
     <value>Ajoutez une touche en plus du modificateur.</value>
-  </data>
-  <data name="HotkeyMissingModifier" xml:space="preserve">
-    <value>Ajoutez Ctrl, Alt ou Maj, sinon la touche serait interceptée pendant que vous jouez.</value>
   </data>
   <data name="HotkeyEditingKey" xml:space="preserve">
     <value>Ctrl+A, Ctrl+C, Ctrl+V et Ctrl+X restent aux gestes d'édition.</value>
@@ -2152,5 +2149,11 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   </data>
   <data name="HelpMenuInput" xml:space="preserve">
     <value>Les clics du PC ne passent pas</value>
+  </data>
+  <data name="ShortcutsMouseNotice" xml:space="preserve">
+    <value>Une touche seule fonctionne aussi, Tab par exemple. Pour un bouton de souris, faites-lui envoyer une touche par le logiciel de votre souris, puis choisissez cette touche ici : DT Hub ne surveille pas la souris, ce que les antivirus prendraient pour un espion.</value>
+  </data>
+  <data name="HotkeyBareKeyNotice" xml:space="preserve">
+    <value>Cette touche n'arrive plus au jeu tant qu'une fenêtre de DT Hub est au premier plan.</value>
   </data>
 </root>

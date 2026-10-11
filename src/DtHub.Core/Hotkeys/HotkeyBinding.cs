@@ -14,12 +14,6 @@ public enum HotkeyValidationResult
     ModifierOnly,
 
     /// <summary>
-    /// Without a modifier, the hotkey would trigger on every
-    /// keystroke in the mirrored application.
-    /// </summary>
-    MissingModifier,
-
-    /// <summary>
     /// Combination reserved by Windows, impossible to intercept.
     /// </summary>
     ReservedBySystem,

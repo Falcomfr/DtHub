@@ -14,6 +14,8 @@
       <TextBlock Text="{loc:T TabShortcuts}" Style="{StaticResource Title}" />
       <TextBlock Style="{StaticResource Muted}" Margin="0,6,0,0"
                  Text="{loc:T ShortcutsScopeNotice}" />
+      <TextBlock Style="{StaticResource Muted}" Margin="0,6,0,0" TextWrapping="Wrap"
+                 Text="{loc:T ShortcutsMouseNotice}" />
     </StackPanel>
 
     <Border DockPanel.Dock="Bottom" Margin="0,14,0,0">
@@ -62,6 +64,10 @@
                 <TextBlock Text="{Binding Error}" Foreground="{DynamicResource DangerBrush}"
                            FontSize="{StaticResource FontSmall}" Margin="2,4,0,0" TextWrapping="Wrap"
                            Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}" />
+
+                <TextBlock Text="{loc:T HotkeyBareKeyNotice}" Foreground="{DynamicResource WarningBrush}"
+                           FontSize="{StaticResource FontSmall}" Margin="2,4,0,0" TextWrapping="Wrap"
+                           Visibility="{Binding TakesKeyFromGame, Converter={StaticResource BoolToVisibility}}" />
               </StackPanel>
             </DataTemplate>
           </ItemsControl.ItemTemplate>

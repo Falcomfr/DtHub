@@ -86,12 +86,17 @@ public class HotkeySetTests
     }
 
     [Fact]
-    public void Une_touche_sans_modificateur_est_refusee()
+    public void Une_touche_seule_est_acceptee()
     {
-        // Otherwise the shortcut would trigger on every keystroke in the
-        // game.
+        // Asked by a player on 2026-10-11: Tab alone to change window, and
+        // the side button of a mouse that sends Tab. The key then no longer
+        // reaches the game while a DT Hub window is in front, which the
+        // editor says.
         Assert.Equal(
-            HotkeyValidationResult.MissingModifier,
+            HotkeyValidationResult.Valid,
+            HotkeySet.Default.Validate(HotkeyAction.NextInstance, VirtualKeys.Tab, HotkeyModifiers.None));
+        Assert.Equal(
+            HotkeyValidationResult.Valid,
             HotkeySet.Default.Validate(HotkeyAction.Rearrange, VirtualKeys.A, HotkeyModifiers.None));
     }
 
@@ -241,7 +246,8 @@ public class HotkeySetTests
     {
         var bindings = new[]
         {
-            new HotkeyBinding { Action = HotkeyAction.Rearrange, VirtualKey = VirtualKeys.A, Modifiers = HotkeyModifiers.None },
+            // A modifier alone: still no shortcut, now that a key alone is one.
+            new HotkeyBinding { Action = HotkeyAction.Rearrange, VirtualKey = VirtualKeys.Shift, Modifiers = HotkeyModifiers.None },
         };
 
         Assert.Equal("Ctrl + R", HotkeySet.FromBindings(bindings).For(HotkeyAction.Rearrange)!.DisplayText);
@@ -357,5 +363,22 @@ public class HotkeySetTests
         };
 
         Assert.Equal("Ctrl + Alt + Maj + A", binding.DisplayText);
+    }
+
+    [Fact]
+    public void Une_touche_seule_survit_a_la_relecture_des_reglages()
+    {
+        // Accepted by the editor, it must not be thrown away at the next
+        // start, when the settings are read back.
+        var relu = HotkeySet.FromBindings(
+        [
+            new HotkeyBinding { Action = HotkeyAction.NextInstance, VirtualKey = VirtualKeys.Tab },
+        ]);
+
+        var binding = relu.For(HotkeyAction.NextInstance);
+
+        Assert.NotNull(binding);
+        Assert.Equal(VirtualKeys.Tab, binding.VirtualKey);
+        Assert.Equal(HotkeyModifiers.None, binding.Modifiers);
     }
 }

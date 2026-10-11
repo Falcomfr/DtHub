@@ -73,13 +73,11 @@ public sealed class HotkeySet
             return HotkeyValidationResult.ModifierOnly;
         }
 
-        // Without a modifier, the key would be intercepted at every
-        // keystroke. Function keys are an exception: they are not
-        // used for typing.
-        if (modifiers == HotkeyModifiers.None && !VirtualKeys.IsFunctionKey(virtualKey))
-        {
-            return HotkeyValidationResult.MissingModifier;
-        }
+        // A key alone is accepted since 2026-10-11, at a player's request:
+        // Tab alone to change window, or a mouse button its software maps
+        // to Tab. It no longer reaches the game while a DT Hub window is in
+        // front, and the editor says so next to the shortcut. The hotkeys
+        // stay armed only then, so nothing is taken from other programs.
 
         if (IsReserved(virtualKey, modifiers))
         {
@@ -159,9 +157,9 @@ public sealed class HotkeySet
                 continue;
             }
 
+            // The same rules as the editor's: a key alone is kept, and was
+            // thrown away here at every start until 2026-10-11.
             var acceptable = !VirtualKeys.IsModifierKey(binding.VirtualKey)
-                             && (binding.Modifiers != HotkeyModifiers.None
-                                 || VirtualKeys.IsFunctionKey(binding.VirtualKey))
                              && !IsReserved(binding.VirtualKey, binding.Modifiers)
                              && !IsEditing(binding.VirtualKey, binding.Modifiers)
                              && used.Add(binding.Combination);
