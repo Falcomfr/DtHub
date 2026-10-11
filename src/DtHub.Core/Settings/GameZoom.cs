@@ -75,9 +75,15 @@ public static class ZoomProfile
     /// Density to request for a given resolution. Clamped to the
     /// values Android accepts, otherwise the display is refused.
     /// </summary>
-    public static int DpiFor(int displayHeight, GameZoom zoom)
+    public static int DpiFor(int displayHeight, GameZoom zoom) => DpiFor(displayHeight, zoom, layoutHeight: 0);
+
+    /// <summary>
+    /// The same, with a layout height chosen by hand in the custom quality,
+    /// which takes the distance's place when it is not zero.
+    /// </summary>
+    public static int DpiFor(int displayHeight, GameZoom zoom, int layoutHeight)
     {
-        var layout = LayoutHeightFor(zoom);
+        var layout = layoutHeight > 0 ? layoutHeight : LayoutHeightFor(zoom);
 
         if (displayHeight <= 0 || layout <= 0)
         {
@@ -97,4 +103,12 @@ public static class ZoomProfile
             ScrcpyOptions.MinDisplayDpi,
             ScrcpyOptions.MaxDisplayDpi);
     }
+
+    /// <summary>
+    /// The layout height a density gives at a display height: how a DPI
+    /// typed for one definition is kept, so the game's interface stays the
+    /// same size when the window, and so the definition, is smaller.
+    /// </summary>
+    public static int LayoutForDpi(int dpi, int displayHeight) =>
+        dpi <= 0 || displayHeight <= 0 ? 0 : (int)Math.Round(displayHeight * 160.0 / dpi);
 }

@@ -89,6 +89,13 @@ public sealed record CustomQuality
     public string VideoCodec { get; init; } = "h264";
 
     /// <summary>
+    /// The game's layout height in points, chosen through a density, or 0 to
+    /// leave it to the distance. Stored as points rather than the DPI typed:
+    /// the DPI holds for one definition only, the points for all of them.
+    /// </summary>
+    public int LayoutHeight { get; init; }
+
+    /// <summary>
     /// Returns a copy with workable values. The settings file can be edited by
     /// hand: it gets corrected rather than refusing to start.
     /// </summary>
@@ -101,6 +108,10 @@ public sealed record CustomQuality
         // the eye can distinguish. Between the two, it is the choice of
         // whoever adjusts it.
         BitsPerPixel = Math.Clamp(BitsPerPixel, 0.03, 0.30),
+
+        // From a bigger interface than the closest distance to more ground
+        // than the widest: beyond, the game is unreadable or tiny.
+        LayoutHeight = LayoutHeight <= 0 ? 0 : Math.Clamp(LayoutHeight, 200, 2000),
         VideoCodec = string.Equals(VideoCodec?.Trim(), "h265", StringComparison.OrdinalIgnoreCase)
             ? "h265"
             : "h264",
@@ -157,6 +168,12 @@ public sealed record QualityProfile(
     /// that nobody wants, and the saving would not be felt on anything.
     /// </summary>
     public const int FloorKbps = 1500;
+
+    /// <summary>
+    /// The layout height the custom quality sets, 0 when the distance
+    /// decides, which is always the case for the three tiers.
+    /// </summary>
+    public int LayoutHeight { get; init; }
 
     /// <summary>
     /// Bitrate to request for a given resolution, in kb/s.
@@ -253,6 +270,7 @@ public sealed record QualityProfile(
             MaxFps = wanted.MaxFps,
             MaximumDisplayHeight = wanted.MaximumDisplayHeight,
             BitsPerPixel = wanted.BitsPerPixel,
+            LayoutHeight = wanted.LayoutHeight,
 
             // The ceiling stays, and it is that of the highest tier. It
             // protects not from the user but from the link: several open

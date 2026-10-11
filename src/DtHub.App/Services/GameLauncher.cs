@@ -2215,9 +2215,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // The account's own distance, or the shared one if not chosen.
             var zoom = zooms.TryGetValue(instance.Key, out var ownZoom) ? ownZoom : _zoom;
 
+            // The density typed in the custom quality takes the global
+            // distance's place, never an account's own distance: that one
+            // was set for this account on purpose.
+            var layoutHeight = zooms.ContainsKey(instance.Key) ? 0 : quality.LayoutHeight;
+
             _zoomsInUse[instance.Key] = zoom;
 
-            var display = WithDisplayFor(options, placement, stored, quality, zoom) with
+            var display = WithDisplayFor(options, placement, stored, quality, zoom, layoutHeight) with
             {
                 // Specific to the device: two phones on different
                 // bands do not need the same buffer.
@@ -2298,7 +2303,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 {
                     VirtualDisplayWidth = smaller.Width,
                     VirtualDisplayHeight = smaller.Height,
-                    VirtualDisplayDpi = ZoomProfile.DpiFor(smaller.Height, _zoom),
+                    VirtualDisplayDpi = ZoomProfile.DpiFor(smaller.Height, zoom, layoutHeight),
                     VideoBitrateKbps = quality.BitrateFor(smaller.Width, smaller.Height),
                 };
 
@@ -3469,7 +3474,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
         ScrcpyWindowPlacement? placement,
         StoredWindowRect? remembered,
         QualityProfile quality,
-        GameZoom zoom)
+        GameZoom zoom,
+        int layoutHeight)
     {
         if (placement is not { Height: > 0 } window
             || _windows.MonitorBoundsFor(remembered) is not { } screen)
@@ -3491,7 +3497,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         {
             VirtualDisplayWidth = width,
             VirtualDisplayHeight = height,
-            VirtualDisplayDpi = ZoomProfile.DpiFor(height, zoom),
+            VirtualDisplayDpi = ZoomProfile.DpiFor(height, zoom, layoutHeight),
             VideoBitrateKbps = quality.BitrateFor(width, height),
 
             // The frame rate too, and it is the one that gets

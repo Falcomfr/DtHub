@@ -2209,4 +2209,25 @@ In the meantime, the button at the bottom opens the page in your browser.</value
 2. Device Manager › right-click the phone's line, often "ADB Interface" or "HDB Interface" › Update driver › Browse my computer › Let me pick from a list › Have Disk › the folder's android_winusb.inf file › "Android ADB Interface". Windows asks for administrator rights and may warn the driver does not look made for the device: confirm.
 3. Unplug and replug the cable.</value>
   </data>
+  <data name="Density" xml:space="preserve">
+    <value>Density</value>
+  </data>
+  <data name="DensityTip" xml:space="preserve">
+    <value>The density of the game's screen, in dots per inch, for the max definition. The higher it is, the bigger the game's interface. A smaller window gets its own density, to keep the same interface.</value>
+  </data>
+  <data name="DensityFollowsDistance" xml:space="preserve">
+    <value>From the distance</value>
+  </data>
+  <data name="DensityValue" xml:space="preserve">
+    <value>{0} dpi</value>
+  </data>
+  <data name="DensityTierValue" xml:space="preserve">
+    <value>{0} dpi ({1})</value>
+  </data>
+  <data name="DensityDetail" xml:space="preserve">
+    <value>same interface at 1080p with {0} dpi, at 720p with {1} dpi</value>
+  </data>
+  <data name="ZoomReplacedByDensity" xml:space="preserve">
+    <value>The density chosen in the quality's fine settings replaces the distance.</value>
+  </data>
 </root>

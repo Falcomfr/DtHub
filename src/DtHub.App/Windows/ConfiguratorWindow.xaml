@@ -522,6 +522,27 @@
               </ComboBox>
             </Grid>
 
+            <!-- The density, typed or picked, for the max definition. A
+                 smaller window gets its own DPI for the same interface,
+                 which the line below spells out. -->
+            <Grid Margin="0,0,0,7">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="118" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <TextBlock Text="{loc:T Density}" VerticalAlignment="Center"
+                         Style="{StaticResource Muted}"
+                         ToolTip="{loc:T DensityTip}" />
+              <ComboBox Grid.Column="1" IsEditable="True" IsTextSearchEnabled="False"
+                        ItemsSource="{Binding DensityChoices}"
+                        Text="{Binding DensityText, UpdateSourceTrigger=LostFocus}"
+                        ToolTip="{loc:T DensityTip}" />
+            </Grid>
+            <TextBlock Text="{Binding DensityDetail}" Style="{StaticResource Muted}"
+                       FontSize="{StaticResource FontSmall}" Margin="118,-3,0,7" TextWrapping="Wrap"
+                       Visibility="{Binding DensityDetail, Converter={StaticResource EmptyToVisibility},
+                                            ConverterParameter=inverse}" />
+
                         <TextBlock Text="{Binding BitrateSummary}" FontWeight="SemiBold"
                                    FontFamily="{StaticResource MonoFont}" FontSize="{StaticResource FontSmall}"
                                    TextWrapping="Wrap" Margin="0,4,0,0"
@@ -581,6 +602,13 @@
                                  IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Close}" />
                   </WrapPanel>
+
+                  <!-- Said here, where the tiers seem to do nothing: the
+                       density of the custom quality has their place. -->
+                  <TextBlock Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
+                             TextWrapping="Wrap" Margin="0,0,0,4"
+                             Visibility="{Binding ZoomReplacedByDensity, Converter={StaticResource BoolToVisibility}}"
+                             Text="{loc:T ZoomReplacedByDensity}" />
 
                   <TextBlock Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
                              Visibility="{Binding IsReopening, Converter={StaticResource BoolToVisibility}}"

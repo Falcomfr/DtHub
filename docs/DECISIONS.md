@@ -9911,3 +9911,25 @@ Vérifié sur la machine de l'utilisateur : Windows 11 écrit les codes de class
 La carte « Aucun téléphone détecté » affiche désormais le verdict dès qu'il a
 quelque chose à dire, et plus seulement pour Honor et Huawei : le texte général
 cachait un pilote manquant que seul l'onglet de la liaison nommait.
+
+## D189 - Une densité au choix dans la qualité personnalisée
+
+Demande d'un joueur le 11/10/2026 : régler le DPI de l'écran virtuel à la valeur
+voulue, avec ses combinaisons 2560x1440/335, 1920x1080/251 et 1280x720/167.
+Les trois donnent la même mise en page, environ 688 points de haut : c'est une
+distance, un peu plus proche que « Normal » (720), déclinée selon la définition.
+
+Les réglages fins gagnent une ligne « Densité » : « Selon la distance » par
+défaut, ou un DPI tapé ou choisi, valable pour la définition max. Il est gardé en
+points (`CustomQuality.LayoutHeight`), et non en DPI : une fenêtre plus petite
+tourne à une définition plus basse et reçoit son propre DPI, pour la même
+interface, ce que la ligne sous le champ chiffre en 1080 p et en 720 p. Un DPI
+fixe aurait refait le défaut que `ZoomProfile` corrige, une interface qui change
+de taille avec la fenêtre. La liste propose les quatre distances et des paliers
+intermédiaires, chiffrés pour la définition max.
+
+Priorité : la distance propre à un compte, puis cette densité, puis la distance
+globale, sous laquelle une ligne dit qu'elle est remplacée. Bornes : 200 à 2000
+points, et le DPI final dans celles d'Android. En passant, la relance en
+définition plus basse après un refus calculait sa densité avec la distance
+globale, en oubliant celle du compte : corrigé.

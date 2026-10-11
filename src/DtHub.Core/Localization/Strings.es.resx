@@ -2209,4 +2209,25 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
 2. Administrador de dispositivos › clic derecho en la línea del teléfono, a menudo «ADB Interface» o «HDB Interface» › Actualizar controlador › Buscar en mi equipo › Elegir en una lista › Usar disco › el archivo android_winusb.inf de la carpeta › «Android ADB Interface». Windows pide derechos de administrador y puede avisar de que el controlador no parece hecho para el dispositivo: confirma.
 3. Desconecta y vuelve a conectar el cable.</value>
   </data>
+  <data name="Density" xml:space="preserve">
+    <value>Densidad</value>
+  </data>
+  <data name="DensityTip" xml:space="preserve">
+    <value>La densidad de la pantalla del juego, en puntos por pulgada, para la definición máxima. Cuanto más alta, más grande es la interfaz del juego. Una ventana más pequeña recibe su propia densidad, para mantener la misma interfaz.</value>
+  </data>
+  <data name="DensityFollowsDistance" xml:space="preserve">
+    <value>Según la distancia</value>
+  </data>
+  <data name="DensityValue" xml:space="preserve">
+    <value>{0} ppp</value>
+  </data>
+  <data name="DensityTierValue" xml:space="preserve">
+    <value>{0} ppp ({1})</value>
+  </data>
+  <data name="DensityDetail" xml:space="preserve">
+    <value>misma interfaz en 1080p con {0} ppp, en 720p con {1} ppp</value>
+  </data>
+  <data name="ZoomReplacedByDensity" xml:space="preserve">
+    <value>La densidad elegida en los ajustes finos de la calidad sustituye a la distancia.</value>
+  </data>
 </root>

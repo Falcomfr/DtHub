@@ -335,6 +335,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsCustomQuality))]
+    [NotifyPropertyChangedFor(nameof(ZoomReplacedByDensity))]
     private StreamQuality _quality = StreamQuality.Medium;
 
     /// <summary>
@@ -349,7 +350,79 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(BitrateSummary))]
     [NotifyPropertyChangedFor(nameof(LinkSummary))]
     [NotifyPropertyChangedFor(nameof(DisplayFitSummary))]
+    [NotifyPropertyChangedFor(nameof(DensityText))]
+    [NotifyPropertyChangedFor(nameof(DensityChoices))]
+    [NotifyPropertyChangedFor(nameof(DensityDetail))]
     private int _customHeight = 1080;
+
+    /// <summary>
+    /// The game's layout height chosen through a density, 0 to leave it to
+    /// the distance. Kept in points: the DPI shown is the one of the max
+    /// definition, and a smaller window gets its own, for the same interface.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DensityText))]
+    [NotifyPropertyChangedFor(nameof(DensityDetail))]
+    [NotifyPropertyChangedFor(nameof(ZoomReplacedByDensity))]
+    private int _customLayoutHeight;
+
+    /// <summary>The layouts offered, from the widest distance to the closest.</summary>
+    private static readonly (int Layout, string? TierKey)[] SuggestedLayouts =
+        [(1120, "ZoomVeryFar"), (1000, null), (900, "ZoomFar"), (800, null), (720, "ZoomNormal"), (640, null), (560, null), (460, "ZoomClose")];
+
+    /// <summary>
+    /// The density's list: the distance first, then DPIs at the max
+    /// definition, the distance tiers named among them. Any other value
+    /// can be typed.
+    /// </summary>
+    public IReadOnlyList<string> DensityChoices =>
+    [
+        Strings.Get("DensityFollowsDistance"),
+        .. SuggestedLayouts.Select(s => s.TierKey is { } tier
+            ? Strings.Format("DensityTierValue", ZoomProfile.DpiFor(CustomHeight, GameZoom.Normal, s.Layout), Strings.Get(tier))
+            : Strings.Format("DensityValue", ZoomProfile.DpiFor(CustomHeight, GameZoom.Normal, s.Layout))),
+    ];
+
+    /// <summary>
+    /// The density as typed or picked: a DPI for the max definition. Its
+    /// first number is read; anything without one gives the distance back.
+    /// </summary>
+    public string DensityText
+    {
+        get => CustomLayoutHeight <= 0
+            ? Strings.Get("DensityFollowsDistance")
+            : Strings.Format("DensityValue", ZoomProfile.DpiFor(CustomHeight, GameZoom.Normal, CustomLayoutHeight));
+        set
+        {
+            var digits = new string((value ?? string.Empty).SkipWhile(c => !char.IsAsciiDigit(c)).TakeWhile(char.IsAsciiDigit).ToArray());
+
+            CustomLayoutHeight = int.TryParse(digits, NumberStyles.None, CultureInfo.InvariantCulture, out var dpi) && dpi > 0
+                ? new CustomQuality
+                {
+                    LayoutHeight = ZoomProfile.LayoutForDpi(
+                        Math.Clamp(dpi, Core.Scrcpy.ScrcpyOptions.MinDisplayDpi, Core.Scrcpy.ScrcpyOptions.MaxDisplayDpi),
+                        CustomHeight),
+                }.Sanitized().LayoutHeight
+                : 0;
+
+            // Rewritten in its own form, "335 ppp", whatever was typed.
+            OnPropertyChanged();
+        }
+    }
+
+    /// <summary>
+    /// What the same interface asks at the smaller definitions, the ones a
+    /// smaller window runs at: the answer to "and in 1080?".
+    /// </summary>
+    public string DensityDetail => CustomLayoutHeight <= 0
+        ? string.Empty
+        : Strings.Format(
+            "DensityDetail",
+            ZoomProfile.DpiFor(1080, GameZoom.Normal, CustomLayoutHeight),
+            ZoomProfile.DpiFor(720, GameZoom.Normal, CustomLayoutHeight));
+
+    /// <summary>True when the density typed in the custom quality takes the distance's place.</summary>
+    public bool ZoomReplacedByDensity => IsCustomQuality && CustomLayoutHeight > 0;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BitrateSummary))]
@@ -1305,6 +1378,8 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
     partial void OnCustomCodecChanged(string value) => SaveCustomQuality();
 
+    partial void OnCustomLayoutHeightChanged(int value) => SaveCustomQuality();
+
     /// <summary>
     /// Restores the four fine values from the settings. Called
     /// under the loading guard, like the quality and the distance.
@@ -1317,6 +1392,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         CustomFps = custom.MaxFps;
         CustomBitsPerPixel = custom.BitsPerPixel;
         CustomCodec = custom.VideoCodec;
+        CustomLayoutHeight = custom.LayoutHeight;
     }
 
     /// <summary>
@@ -1340,6 +1416,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             MaxFps = CustomFps,
             BitsPerPixel = CustomBitsPerPixel,
             VideoCodec = CustomCodec,
+            LayoutHeight = CustomLayoutHeight,
         }.Sanitized();
 
         if (Quality == StreamQuality.Custom)

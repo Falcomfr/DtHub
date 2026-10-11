@@ -73,4 +73,38 @@ public class ZoomProfileTests
         // DPI.
         Assert.Equal(720, ZoomProfile.LayoutHeightFor(GameZoom.Normal));
     }
+
+    [Fact]
+    public void Une_densite_choisie_garde_la_meme_interface_a_toute_definition()
+    {
+        // A player's own combinations, 2026-10-11: one layout, three sizes.
+        var layout = ZoomProfile.LayoutForDpi(335, 1440);
+
+        Assert.Equal(335, ZoomProfile.DpiFor(1440, GameZoom.Widest, layout));
+        Assert.Equal(251, ZoomProfile.DpiFor(1080, GameZoom.Widest, layout));
+        Assert.Equal(167, ZoomProfile.DpiFor(720, GameZoom.Widest, layout));
+    }
+
+    [Fact]
+    public void Sans_densite_choisie_la_distance_decide()
+    {
+        Assert.Equal(ZoomProfile.DpiFor(1080, GameZoom.Close), ZoomProfile.DpiFor(1080, GameZoom.Close, layoutHeight: 0));
+    }
+
+    [Theory]
+    [InlineData(0, 0)]
+    [InlineData(100, 200)]
+    [InlineData(688, 688)]
+    [InlineData(99999, 2000)]
+    public void La_densite_enregistree_reste_dans_des_bornes_utiles(int stored, int expected) =>
+        Assert.Equal(expected, new CustomQuality { LayoutHeight = stored }.Sanitized().LayoutHeight);
+
+    [Fact]
+    public void La_qualite_personnalisee_porte_sa_densite()
+    {
+        var profile = QualityProfile.For(StreamQuality.Custom, new CustomQuality { LayoutHeight = 688 });
+
+        Assert.Equal(688, profile.LayoutHeight);
+        Assert.Equal(0, QualityProfile.For(StreamQuality.Maximum).LayoutHeight);
+    }
 }
