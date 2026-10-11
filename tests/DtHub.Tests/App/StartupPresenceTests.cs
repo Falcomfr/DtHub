@@ -62,4 +62,28 @@ public class StartupPresenceTests
     {
         Assert.True(StartupPresence.ShowBeforeLaunch(remembered: true));
     }
+
+    [Fact]
+    public void Le_panneau_se_masque_quand_tout_ce_qui_est_coche_est_lance()
+    {
+        Assert.True(StartupPresence.HideAfterLaunch(opened: 1, problems: 0, checkedNotRunning: 0));
+    }
+
+    [Fact]
+    public void Le_panneau_reste_tant_qu_un_compte_coche_attend()
+    {
+        // A player opening four accounts one by one would otherwise have
+        // to bring the panel back three times.
+        Assert.False(StartupPresence.HideAfterLaunch(opened: 1, problems: 0, checkedNotRunning: 2));
+    }
+
+    [Theory]
+    [InlineData(0, 0)]
+    [InlineData(1, 1)]
+    [InlineData(0, 1)]
+    public void Le_panneau_reste_si_le_lancement_n_a_pas_abouti(int opened, int problems)
+    {
+        // The banner carries the problem: hiding it would hide the reason.
+        Assert.False(StartupPresence.HideAfterLaunch(opened, problems, checkedNotRunning: 0));
+    }
 }

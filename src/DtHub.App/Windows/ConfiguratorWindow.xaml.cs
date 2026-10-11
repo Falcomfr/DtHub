@@ -41,6 +41,8 @@ public partial class ConfiguratorWindow : Window
         InitializeComponent();
         DataContext = viewModel;
 
+        viewModel.Instances.LaunchSettled += (_, _) => Vanish();
+
         Loaded += async (_, _) => await _viewModel.LoadAsync(CancellationToken.None).ConfigureAwait(true);
 
         // The polling follows visibility, not loading. It used to never stop:

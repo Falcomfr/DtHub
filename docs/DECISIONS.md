@@ -9771,3 +9771,16 @@ quitter. Les joueurs attendent ce geste, celui de scrcpy : il revient
 (`--mouse-bind=b---:bhsn`). Les fenêtres des outils (DTStuff, OcrApp, Play
 Store) le gardent coupé, parce qu'un Retour depuis leur premier écran les
 quitte. Maj + clic droit donne toujours les quatre actions partout.
+
+## D184 - Le panneau s'efface après le lancement, et sa croix devient un trait
+
+Demande d'un joueur le 11/10/2026 : ne plus passer par Ctrl + P à une main pour
+retrouver le jeu. Après un lancement depuis le panneau, celui-ci s'efface quand
+le lancement a ouvert une fenêtre sans problème et qu'aucun compte coché, sur un
+appareil connecté, n'attend encore d'être ouvert. Sinon un joueur qui lance ses
+comptes un par un devrait rouvrir le panneau après chacun, et un échec cacherait
+son bandeau. Sans compte coché, le premier lancement réussi l'efface.
+
+Le joueur demandait aussi un bouton pour masquer à côté de la croix : la croix
+masquait déjà, mais une croix se lit comme « fermer ». Elle devient un trait, le
+signe habituel de « réduire », plutôt que d'ajouter un second bouton identique.

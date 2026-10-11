@@ -1052,8 +1052,32 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
     /// <summary>Opens an instance that is not open yet.</summary>
     [RelayCommand(AllowConcurrentExecutions = true)]
-    private Task LaunchInstanceAsync(InstanceRowViewModel? row) =>
-        ActOnAsync(row, instance => _launcher.LaunchAsync([instance]), engageDevice: true);
+    private async Task LaunchInstanceAsync(InstanceRowViewModel? row)
+    {
+        LaunchReport? report = null;
+
+        await ActOnAsync(
+            row,
+            async instance => report = await _launcher.LaunchAsync([instance]).ConfigureAwait(true),
+            engageDevice: true).ConfigureAwait(true);
+
+        // After ActOnAsync, which rereads the running state: the row just
+        // opened counts as running here.
+        if (report is not null
+            && StartupPresence.HideAfterLaunch(
+                report.Opened,
+                report.Problems.Count,
+                Rows.Count(r => r.IsEnabled && r.IsDeviceConnected && !r.IsRunning)))
+        {
+            LaunchSettled?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    /// <summary>
+    /// Raised when a launch from the panel leaves nothing checked to open:
+    /// the panel can step aside.
+    /// </summary>
+    public event EventHandler? LaunchSettled;
 
     /// <summary>Closes the game on the device, then reopens it.</summary>
     [RelayCommand(AllowConcurrentExecutions = true)]

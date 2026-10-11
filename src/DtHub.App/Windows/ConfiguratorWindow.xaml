@@ -85,9 +85,14 @@
             </TextBlock>
           </StackPanel>
 
-          <Button Grid.Column="2" Content="✕" Style="{StaticResource QuietButton}"
-                  FontSize="14" Padding="8,2" Click="OnHide"
-                  ToolTip="{loc:T HideThisWindow}" />
+          <!-- A bar, not a cross: a cross reads as quitting, and players
+               dared not click it to hide the panel (2026-10-11). -->
+          <Button Grid.Column="2" Style="{StaticResource QuietButton}"
+                  Padding="8,2" Click="OnHide"
+                  ToolTip="{loc:T HideThisWindow}">
+            <Path Data="M 0,6 H 11" StrokeThickness="1.5" Width="11" Height="12" Stretch="None"
+                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+          </Button>
         </Grid>
       </Border>
 
