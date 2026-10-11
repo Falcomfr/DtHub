@@ -955,7 +955,8 @@
              stays pinned no matter how long the list is. A small button
              opens the DOFUS Touch tools menu upwards, over the list: a
              suggestion that takes no room until asked for. The two tips that were here
-             moved behind the Help button, next to Quit. -->
+             are gone: the help now comes with the problem, in the device's
+             alert line, and only when one is found. -->
         <Grid Grid.Row="2" Margin="0,6,0,0"
               Visibility="{Binding IsChecked, ElementName=TabDevices,
                                    Converter={StaticResource BoolToVisibility}}">
@@ -992,31 +993,6 @@
               </Path>
             </StackPanel>
           </ToggleButton>
-
-          <!-- Help, at the far right: the two tips that used to sit here, in a
-               panel of the theme's colours like the menu's. -->
-          <Button x:Name="HelpButton" Content="{loc:T Help}" Style="{StaticResource QuietButton}"
-                  HorizontalAlignment="Right" Margin="0,0,-6,0" Padding="6,2"
-                  FontSize="{StaticResource FontSmall}"
-                  VerticalAlignment="Center" Click="OnDevicesHelp" />
-
-          <Popup x:Name="HelpMenu" PlacementTarget="{Binding ElementName=HelpButton}"
-                 Placement="Top" VerticalOffset="-4" AllowsTransparency="True" StaysOpen="False">
-            <Border Margin="8" Padding="4"
-                    Background="{DynamicResource SurfaceBrush}"
-                    BorderBrush="{DynamicResource BevelBrush}" BorderThickness="1"
-                    CornerRadius="{StaticResource Radius}">
-              <Border.Effect>
-                <DropShadowEffect BlurRadius="14" ShadowDepth="2" Opacity="0.35" />
-              </Border.Effect>
-              <StackPanel>
-                <Button Content="{loc:T FrozenWindowHelp}" Style="{StaticResource QuietButton}"
-                        HorizontalContentAlignment="Left" Click="OnSleepHelp" />
-                <Button Content="{loc:T DeadInputHelp}" Style="{StaticResource QuietButton}"
-                        HorizontalContentAlignment="Left" Click="OnInputHelp" />
-              </StackPanel>
-            </Border>
-          </Popup>
 
           <!-- Opens upwards from the button, over the list, fading in while
                it slides up a few pixels, and the reverse on closing, also

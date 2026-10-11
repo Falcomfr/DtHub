@@ -17,8 +17,29 @@ public enum HealthSeverity
     Serious,
 }
 
+/// <summary>Which help a finding opens from the device's alert line.</summary>
+public enum HealthHelp
+{
+    /// <summary>No help: the message says it all.</summary>
+    None,
+
+    /// <summary>Where to lift an app's battery restriction.</summary>
+    Battery,
+
+    /// <summary>Where to let the phone accept clicks from the PC.</summary>
+    Input,
+}
+
 /// <summary>A finding about a device's state.</summary>
-public readonly record struct HealthFinding(HealthSeverity Severity, string Message);
+/// <param name="Severity">How much it gets in the way.</param>
+/// <param name="Message">What the alert line says.</param>
+/// <param name="Help">The help its "Help" link opens.</param>
+/// <param name="App">For a battery finding, the app whose settings to change.</param>
+public readonly record struct HealthFinding(
+    HealthSeverity Severity,
+    string Message,
+    HealthHelp Help = HealthHelp.None,
+    string? App = null);
 
 /// <summary>
 /// The health check of a device, before launching anything.
@@ -52,6 +73,10 @@ public static class DeviceHealth
     /// device, that is, when the preparation described in the help
     /// was never done on it.
     /// </param>
+    /// <param name="unpreparedTools">
+    /// The DOFUS Touch tools installed on this device and not shielded from
+    /// battery saving, by name.
+    /// </param>
     /// <param name="deadInput">
     /// True when the device refuses input coming from the PC: the
     /// windows show the game and respond to nothing.
@@ -78,7 +103,8 @@ public static class DeviceHealth
         bool deadInput = false,
         MemoryReading? memory = null,
         PhoneStrain? strain = null,
-        int? pcBusyPercent = null)
+        int? pcBusyPercent = null,
+        IReadOnlyList<string>? unpreparedTools = null)
     {
         List<HealthFinding> findings = [];
 
@@ -97,7 +123,7 @@ public static class DeviceHealth
         // evening to name.
         if (deadInput)
         {
-            findings.Add(new HealthFinding(HealthSeverity.Serious, Strings.Get("DeadInputFound")));
+            findings.Add(new HealthFinding(HealthSeverity.Serious, Strings.Get("DeadInputFound"), HealthHelp.Input));
         }
 
         if (battery?.Describe() is { } power && battery.Concern is { } level)
@@ -152,7 +178,17 @@ public static class DeviceHealth
         // it without ever checking.
         if (unpreparedBattery)
         {
-            findings.Add(new HealthFinding(HealthSeverity.Warning, Strings.Get("BatteryNotPrepared")));
+            findings.Add(new HealthFinding(
+                HealthSeverity.Warning, Strings.Get("BatteryNotPrepared"), HealthHelp.Battery, Dofus.DofusPackages.GameName));
+        }
+
+        // The DOFUS Touch tools, measured on 2026-10-11 on a Xiaomi: without
+        // the same setting as the game, HyperOS froze DTStuff for thirty
+        // seconds at a time in its window, and clicks waited fourteen.
+        foreach (var tool in unpreparedTools ?? [])
+        {
+            findings.Add(new HealthFinding(
+                HealthSeverity.Warning, Strings.Format("ToolBatteryNotPrepared", tool), HealthHelp.Battery, tool));
         }
 
         // **The Wi-Fi never takes a line.** A 2.4 GHz band and a crowded

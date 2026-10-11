@@ -698,4 +698,10 @@ public static class DofusPackages
 {
     /// <summary>Official package of DOFUS Touch.</summary>
     public const string DofusTouch = "com.ankama.dofustouch";
+
+    /// <summary>
+    /// The game's name, the same in every language, as the help's menu
+    /// paths write it.
+    /// </summary>
+    public const string GameName = "DOFUS Touch";
 }

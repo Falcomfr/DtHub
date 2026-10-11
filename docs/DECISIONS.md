@@ -9700,3 +9700,25 @@ la demande était une fenêtre sur le PC, et c'est ce qui reste.
 s'ouvrent de temps en temps et pas à chaque lancement ; un menu système Windows
 pour choisir l'appareil, illisible sur le thème sombre, remplacé par un bouton
 par appareil.
+
+**La lenteur venait de l'économiseur de batterie d'HyperOS, mesuré le
+2026-10-11.** Même avec la touche neutre, DTStuff ramait et perdait des clics.
+Le journal du téléphone l'a montré bloqué trente secondes d'affilée (« Skipped
+1866 frames »), des clics traités avec quatorze secondes de retard, alors que le
+jeu tournait normalement au même moment. Le jeu était sur « Aucune restriction »
+dans son économiseur de batterie, DTStuff non. Passé au même réglage, DTStuff
+est devenu fluide. L'exemption posée par adb, `deviceidle whitelist`, ne suffit
+pas : HyperOS lit son propre réglage, pas seulement la liste d'Android.
+
+**L'aide vient avec le problème.** Le bouton « Aide » du bas de l'onglet
+Appareils disparaît. Chaque constat de la ligne d'alerte d'un téléphone porte
+l'aide qui lui répond, et la ligne gagne un lien « Aide » qui l'ouvre : la fiche
+batterie de l'app que la ligne nomme, le jeu, DTStuff ou OcrApp, ou le réglage
+des clics du téléphone. Rien ne s'affiche quand tout est en ordre. Le balayage
+pose la question de la batterie pour chaque outil installé, et le cache garde
+désormais la liste lue sur le téléphone, non la réponse : gardée par appareil,
+elle donnait à DTStuff le verdict du jeu. Le test des clics part dès la
+connexion du téléphone, plus seulement à la première fenêtre, pour prévenir
+avant d'ouvrir plutôt qu'après. Les fenêtres des outils ne rappellent plus les
+raccourcis des comptes dans leur titre, et celle du Store dit qu'on peut la
+fermer une fois l'app installée.

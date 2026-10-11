@@ -6,6 +6,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 
 using DtHub.App.ViewModels;
+using DtHub.Core.Devices;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -91,6 +92,37 @@ public partial class InstanceListControl : UserControl
     /// drag: an entire row would make it impossible to select text
     /// in the rename field.
     /// </summary>
+    /// <summary>
+    /// The alert line's Help link: the click setting of the phone, or the
+    /// battery page of the app the line names.
+    /// </summary>
+    private void OnProblemHelp(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { DataContext: InstanceRowViewModel { Device: { } device } })
+        {
+            return;
+        }
+
+        Window help;
+
+        if (device.Help == HealthHelp.Input)
+        {
+            help = AppHost.Services.GetRequiredService<InputHelpWindow>();
+        }
+        else
+        {
+            help = AppHost.Services.GetRequiredService<SleepHelpWindow>();
+
+            if (help.DataContext is SleepHelpViewModel sleep && device.HelpApp is { } app)
+            {
+                sleep.App = app;
+            }
+        }
+
+        help.Owner = Window.GetWindow(this);
+        _ = help.ShowDialog();
+    }
+
     private void OnDragSourcePressed(object sender, MouseButtonEventArgs e)
     {
         _pending = ShowOrdering && sender is FrameworkElement { DataContext: InstanceRowViewModel row }

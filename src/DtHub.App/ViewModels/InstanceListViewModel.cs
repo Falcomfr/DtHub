@@ -276,17 +276,6 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// </summary>
     public bool ShowsNoDeviceCard => _scanned && HasNoConnectedDevice && !HasInactiveDevices;
 
-    /// <summary>
-    /// True when the tips about the game windows have something to
-    /// point to.
-    ///
-    /// They talk about a window that freezes and a window where the
-    /// mouse does nothing. With no phone reachable there is no window,
-    /// and these two lines become just more text on a screen that has
-    /// nothing to say. As with the other blocks, nothing is asserted
-    /// before the first sweep.
-    /// </summary>
-    public bool ShowsWindowHelp => _scanned && !HasNoConnectedDevice;
 
     /// <summary>
     /// True as long as the first sweep has produced nothing yet.
@@ -740,7 +729,6 @@ public sealed partial class InstanceListViewModel : ObservableObject
         OnPropertyChanged(nameof(HasNoConnectedDevice));
         OnPropertyChanged(nameof(ShowsNoDeviceCard));
         OnPropertyChanged(nameof(ShowsSearching));
-        OnPropertyChanged(nameof(ShowsWindowHelp));
         OnPropertyChanged(nameof(HasConnectedDevice));
         OnPropertyChanged(nameof(EnabledCount));
     }
@@ -839,7 +827,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
             var found = _launcher.HealthByDevice.GetValueOrDefault(device.Serial);
 
-            view.SetProblems(found?.Text, found?.Serious ?? false);
+            view.SetProblems(found?.Text, found?.Serious ?? false, found?.Help ?? HealthHelp.None, found?.HelpApp);
             view.SetNeedsPairing(_launcher.NeedsPairing.Contains(device.Id));
         }
 

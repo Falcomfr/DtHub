@@ -332,9 +332,6 @@
   <data name="AccountsTip" xml:space="preserve">
     <value>Un compte par profil Android où le jeu est installé.</value>
   </data>
-  <data name="FrozenWindowHelp" xml:space="preserve">
-    <value>Une fenêtre se fige au bout d'un moment ?</value>
-  </data>
   <data name="LanguageHeading" xml:space="preserve">
     <value>LANGUE</value>
   </data>
@@ -711,9 +708,6 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
   </data>
   <data name="DeviceThrottlingSevere" xml:space="preserve">
     <value>L'appareil est trop chaud et se bride lourdement. Débranchez le chargeur, fermez un compte ou descendez d'un palier sans attendre : en dessous, Android suspend les fenêtres le temps qu'il refroidisse.</value>
-  </data>
-  <data name="DeadInputHelp" xml:space="preserve">
-    <value>La souris ne fait rien dans la fenêtre ?</value>
   </data>
   <data name="DeadInputTitle" xml:space="preserve">
     <value>Rien ne répond dans la fenêtre</value>
@@ -2010,7 +2004,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>Profil</value>
   </data>
   <data name="BatteryNotPrepared" xml:space="preserve">
-    <value>Android n'a pas ce jeu dans sa liste des applications à l'abri de l'économie d'énergie. Il finira par le geler, et les fenêtres se figeront une à une, la plus ancienne d'abord. Le réglage qui compte pour lui s'appelle « Sans restriction », dans la fiche batterie du jeu ; votre marque peut en demander d'autres en plus, et l'aide en bas les énumère.</value>
+    <value>Android n'a pas ce jeu dans sa liste des applications à l'abri de l'économie d'énergie. Il finira par le geler, et les fenêtres se figeront une à une, la plus ancienne d'abord. Le réglage qui compte pour lui s'appelle « Sans restriction », dans la fiche batterie du jeu ; votre marque peut en demander d'autres en plus, et le lien Aide les énumère.</value>
   </data>
   <data name="NamedFinding" xml:space="preserve">
     <value>{0} : {1}</value>
@@ -2046,7 +2040,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>Par « Associer un nouvel appareil », en haut.</value>
   </data>
   <data name="DeadInputFound" xml:space="preserve">
-    <value>Ce téléphone refuse les clics et les frappes venus du PC : ses fenêtres montrent le jeu et ne répondent à rien. Le réglage s'appelle « Débogage USB (paramètres de sécurité) », et l'aide en bas dit où. Sur les anciennes versions de Xiaomi, relevé sur Android 11, il réclame en plus une carte SIM et ne survit pas à un redémarrage sans elle.</value>
+    <value>Ce téléphone refuse les clics et les frappes venus du PC : ses fenêtres montrent le jeu et ne répondent à rien. Le réglage s'appelle « Débogage USB (paramètres de sécurité) », et le lien Aide dit où. Sur les anciennes versions de Xiaomi, relevé sur Android 11, il réclame en plus une carte SIM et ne survit pas à un redémarrage sans elle.</value>
   </data>
   <data name="SimulatedMouse" xml:space="preserve">
     <value>Souris physique simulée</value>
@@ -2128,5 +2122,11 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   </data>
   <data name="PartnerTargetLabel" xml:space="preserve">
     <value>{0} · {1}</value>
+  </data>
+  <data name="StoreWindowHint" xml:space="preserve">
+    <value>fermez cette fenêtre une fois l'app installée</value>
+  </data>
+  <data name="ToolBatteryNotPrepared" xml:space="preserve">
+    <value>{0} n'est pas à l'abri de l'économie d'énergie : sa fenêtre se figera et ne répondra plus. Réglez « Aucune restriction » dans sa fiche batterie.</value>
   </data>
 </root>

@@ -33,7 +33,12 @@ public sealed record LaunchReport(int Opened, IReadOnlyList<string> Problems)
 /// <param name="Device">
 /// The device's readable name, when it is known.
 /// </param>
-public sealed record DeviceFindings(string Text, bool Serious, string? Device);
+public sealed record DeviceFindings(
+    string Text,
+    bool Serious,
+    string? Device,
+    HealthHelp Help = HealthHelp.None,
+    string? HelpApp = null);
 
 /// <summary>
 /// Opens the checked instances, places their windows and wires up
@@ -1329,10 +1334,28 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 .IsBatteryExemptAsync(serial, DofusPackages.DofusTouch, cancellationToken)
                 .ConfigureAwait(false) == false;
 
-            // **The input probe, once per device, on its first
-            // window.** It sends Android's "unknown" key, which
+            // The same question for the DOFUS Touch tools installed here:
+            // without it, HyperOS froze DTStuff in its window.
+            var deviceId = discovery.Devices
+                .FirstOrDefault(d => string.Equals(d.Serial, serial, StringComparison.Ordinal))?.Id;
+            List<string> unpreparedTools = [];
+
+            foreach (var tool in PartnerAvailability.Where(
+                         a => deviceId is not null && a.WithApp.Contains(deviceId, StringComparer.Ordinal)))
+            {
+                if (await _devices.IsBatteryExemptAsync(serial, tool.App.PackageName, cancellationToken)
+                        .ConfigureAwait(false) == false)
+                {
+                    unpreparedTools.Add(tool.App.Name);
+                }
+            }
+
+            // **The input probe, once per device, as soon as it is
+            // connected.** It sends Android's "unknown" key, which
             // triggers nothing anywhere, and returns its verdict
-            // within a second.
+            // within a second. Asked before any window since
+            // 2026-10-11: the alert line is where the player is told,
+            // and it should say so before the first window, not after.
             //
             // The type that carries it used to say it is only sent
             // on request. That rule changes here, and the field
@@ -1341,8 +1364,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // setting unchecks itself on its own at restart. Never
             // during a game, never repeatedly: one question, at the
             // moment the first window opens.
-            var dead = playing.Contains(serial, StringComparer.Ordinal)
-                && await Inputs(serial, cancellationToken).ConfigureAwait(false) == InputInjection.Denied;
+            var dead = await Inputs(serial, cancellationToken).ConfigureAwait(false) == InputInjection.Denied;
 
             Trace(serial, heat, battery, storage);
             TraceMemory(serial, memory);
@@ -1353,14 +1375,17 @@ public sealed partial class GameLauncher : IAsyncDisposable
             var seen = DeviceHealth.Review(
                 heat, battery, storage, locked, unprepared, dead, memory,
                 strain,
-                playing.Count > 0 && serial == playing[0] ? pcBusy : null);
+                playing.Count > 0 && serial == playing[0] ? pcBusy : null,
+                unpreparedTools);
 
             if (DeviceHealth.Every(seen) is { } said)
             {
                 _health[serial] = new DeviceFindings(
                     said,
                     seen[0].Severity == HealthSeverity.Serious,
-                    Named(discovery, serial));
+                    Named(discovery, serial),
+                    seen[0].Help,
+                    seen[0].App);
             }
             else
             {
@@ -2209,6 +2234,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     VirtualDisplayHeight = 1920,
                     VirtualDisplayDpi = 320,
                     AudioEnabled = false,
+                    WindowTitleHint = PassingTitleHint(instance.StartUri),
                 };
             }
 
@@ -3125,8 +3151,18 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         return _windows.Retitle(
             _sessions.ActiveSessions,
-            session => ScrcpyCommandBuilder.BuildWindowTitle(CurrentName(session, settings), hint));
+            session => ScrcpyCommandBuilder.BuildWindowTitle(
+                CurrentName(session, settings),
+                session.Target.IsTransient ? PassingTitleHint(session.Target.StartUri) : hint));
     }
+
+    /// <summary>
+    /// What a window opened in passing says in its title. Not the game's
+    /// shortcuts, which serve the accounts and not DTStuff or OcrApp; for the
+    /// store window, that it can be closed once the app is installed.
+    /// </summary>
+    private static string? PassingTitleHint(string? startUri) =>
+        startUri is null ? null : Strings.Get("StoreWindowHint");
 
     /// <summary>
     /// Tints the frame of every open game window with its account's

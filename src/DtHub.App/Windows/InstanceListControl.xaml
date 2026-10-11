@@ -253,6 +253,7 @@
                   <ColumnDefinition Width="Auto" />
                   <ColumnDefinition Width="*" />
                   <ColumnDefinition Width="Auto" />
+                  <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <Grid.Visibility>
@@ -277,6 +278,14 @@
                            FontFamily="{StaticResource UiFont}" FontSize="{StaticResource FontSmall}"
                            Foreground="{Binding Device.ProblemsBrushKey,
                                                 Converter={StaticResource KeyToBrush}}" />
+
+                <!-- The help comes with the problem it answers, and only
+                     then: the battery page of the app the line names, or
+                     the phone's click setting. -->
+                <Button Grid.Column="3" Style="{StaticResource LinkButton}" Content="{loc:T Help}"
+                        Margin="8,0,0,0" FontSize="{StaticResource FontSmall}" VerticalAlignment="Top"
+                        Visibility="{Binding Device.HasHelp, Converter={StaticResource BoolToVisibility}}"
+                        Click="OnProblemHelp" />
               </Grid>
 
               <!-- Drop surface: the row and its two markers, nothing else. -->

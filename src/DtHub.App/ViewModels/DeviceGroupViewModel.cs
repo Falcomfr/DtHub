@@ -309,15 +309,33 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     public string ProblemsBrushKey => _problemsAreSerious ? "DangerBrush" : "WarningBrush";
 
     /// <summary>Sets what the health check found for this device.</summary>
-    public void SetProblems(string? problems, bool serious)
+    /// <summary>
+    /// The help the alert line's link opens, for its headline finding: the
+    /// battery page of an app, or the phone's click setting. The help button
+    /// that used to sit at the bottom of the tab is gone; the help comes with
+    /// the problem, and only then.
+    /// </summary>
+    public HealthHelp Help { get; private set; }
+
+    /// <summary>For a battery help, the app whose settings to change.</summary>
+    public string? HelpApp { get; private set; }
+
+    public bool HasHelp => HasProblems && Help != HealthHelp.None;
+
+    public void SetProblems(string? problems, bool serious, HealthHelp help = HealthHelp.None, string? helpApp = null)
     {
         if (string.Equals(_problems, problems, StringComparison.Ordinal)
-            && _problemsAreSerious == serious)
+            && _problemsAreSerious == serious
+            && Help == help
+            && string.Equals(HelpApp, helpApp, StringComparison.Ordinal))
         {
             return;
         }
 
         (_problems, _problemsAreSerious) = (problems, serious);
+        (Help, HelpApp) = (help, helpApp);
+
+        OnPropertyChanged(nameof(HasHelp));
 
         OnPropertyChanged(nameof(HasProblems));
         OnPropertyChanged(nameof(Problems));

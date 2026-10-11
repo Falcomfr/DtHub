@@ -642,4 +642,18 @@ public class DeviceDiscoveryServiceTests
         Assert.Equal("MATERIEL123", Assert.Single((await service.RefreshAsync(CancellationToken.None)).Devices).Id);
         Assert.Empty(registry.Discarded);
     }
+
+    [Fact]
+    public async Task L_exemption_de_batterie_se_lit_app_par_app()
+    {
+        // The game is exempt, DTStuff is not: the answer kept for the first
+        // must not be handed out for the second.
+        var adb = new FakeAdbClient()
+            .WithShell("dumpsys deviceidle whitelist", "user,com.ankama.dofustouch,10475\nsystem,android,1000");
+
+        using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry());
+
+        Assert.True(await service.IsBatteryExemptAsync("USB0001", "com.ankama.dofustouch"));
+        Assert.False(await service.IsBatteryExemptAsync("USB0001", "com.makeintouch.dtstuff"));
+    }
 }

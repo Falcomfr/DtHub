@@ -278,4 +278,27 @@ public class DeviceHealthTests
 
         Assert.Equal(serree!.Describe(), Assert.Single(findings).Message);
     }
+
+    [Fact]
+    public void Une_app_d_outil_non_exemptee_est_nommee()
+    {
+        var finding = Assert.Single(DeviceHealth.Review(null, null, null, unpreparedTools: ["DTStuff"]));
+
+        Assert.Contains("DTStuff", finding.Message, StringComparison.Ordinal);
+        Assert.Equal(HealthHelp.Battery, finding.Help);
+        Assert.Equal("DTStuff", finding.App);
+    }
+
+    [Fact]
+    public void Le_jeu_non_exempte_ouvre_l_aide_batterie()
+    {
+        var finding = Assert.Single(DeviceHealth.Review(null, null, null, unpreparedBattery: true));
+
+        Assert.Equal(HealthHelp.Battery, finding.Help);
+        Assert.Equal("DOFUS Touch", finding.App);
+    }
+
+    [Fact]
+    public void Les_clics_refuses_ouvrent_l_aide_souris() =>
+        Assert.Equal(HealthHelp.Input, Assert.Single(DeviceHealth.Review(null, null, null, deadInput: true)).Help);
 }

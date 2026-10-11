@@ -363,8 +363,6 @@ public partial class ConfiguratorWindow : Window
 
     private void OnHide(object sender, RoutedEventArgs e) => Vanish();
 
-    /// <summary>The Help button opens its two tips above it.</summary>
-    private void OnDevicesHelp(object sender, RoutedEventArgs e) => HelpMenu.IsOpen = true;
 
     private static readonly Duration PartnerOpening = TimeSpan.FromMilliseconds(180);
     private static readonly Duration PartnerClosing = TimeSpan.FromMilliseconds(130);
@@ -441,25 +439,6 @@ public partial class ConfiguratorWindow : Window
 
     /// <summary>A phone chosen in the tools menu: the menu closes.</summary>
     private void OnPartnerChosen(object sender, RoutedEventArgs e) => PartnerToggle.IsChecked = false;
-
-    private void OnSleepHelp(object sender, RoutedEventArgs e)
-    {
-        var help = AppHost.Services.GetRequiredService<SleepHelpWindow>();
-        help.Owner = this;
-        help.ShowDialog();
-    }
-
-    /// <summary>
-    /// What to do when the picture comes through but nothing responds. The
-    /// symptom is silent by nature: no error is raised, and without this
-    /// door the person has nothing to hold on to.
-    /// </summary>
-    private void OnInputHelp(object sender, RoutedEventArgs e)
-    {
-        var help = AppHost.Services.GetRequiredService<InputHelpWindow>();
-        help.Owner = this;
-        help.ShowDialog();
-    }
 
     /// <summary>Opens the hotkey editor, then rereads what changed.</summary>
     private async void OnEditHotkeys(object sender, RoutedEventArgs e)

@@ -380,7 +380,12 @@ public sealed class DeviceDiscoveryService : IDisposable
     /// the phone, and the warning must go out shortly after, without asking
     /// the question every two seconds for all that.
     /// </summary>
-    private readonly Dictionary<string, (bool? Exempt, System.Diagnostics.Stopwatch Vu)> _exempt =
+    /// <remarks>
+    /// The list is kept, not the answer: the game and the MakeInTouch apps
+    /// are asked about in the same sweep, and an answer kept by device used
+    /// to hand the game's verdict to DTStuff.
+    /// </remarks>
+    private readonly Dictionary<string, (string Whitelist, System.Diagnostics.Stopwatch Vu)> _exempt =
         new(StringComparer.Ordinal);
 
     private static readonly TimeSpan ExemptFreshness = TimeSpan.FromMinutes(2);
@@ -401,7 +406,7 @@ public sealed class DeviceDiscoveryService : IDisposable
 
         if (_exempt.TryGetValue(serial, out var garde) && garde.Vu.Elapsed < ExemptFreshness)
         {
-            return garde.Exempt;
+            return BatteryExemption.Covers(garde.Whitelist, package);
         }
 
         try
@@ -413,11 +418,9 @@ public sealed class DeviceDiscoveryService : IDisposable
                     cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
 
-            var exempt = BatteryExemption.Covers(dump, package);
+            _exempt[serial] = (dump, System.Diagnostics.Stopwatch.StartNew());
 
-            _exempt[serial] = (exempt, System.Diagnostics.Stopwatch.StartNew());
-
-            return exempt;
+            return BatteryExemption.Covers(dump, package);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {

@@ -332,9 +332,6 @@
   <data name="AccountsTip" xml:space="preserve">
     <value>Una cuenta por perfil de Android donde el juego está instalado.</value>
   </data>
-  <data name="FrozenWindowHelp" xml:space="preserve">
-    <value>¿Una ventana se congela al cabo de un rato?</value>
-  </data>
   <data name="LanguageHeading" xml:space="preserve">
     <value>IDIOMA</value>
   </data>
@@ -711,9 +708,6 @@ Cruza las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
   </data>
   <data name="DeviceThrottlingSevere" xml:space="preserve">
     <value>El dispositivo está demasiado caliente y se limita mucho. Desconecta el cargador, cierra una cuenta o baja un nivel sin esperar: por debajo de esto, Android suspende las ventanas hasta que se enfríe.</value>
-  </data>
-  <data name="DeadInputHelp" xml:space="preserve">
-    <value>¿El ratón no hace nada en la ventana?</value>
   </data>
   <data name="DeadInputTitle" xml:space="preserve">
     <value>Nada responde en la ventana</value>
@@ -2010,7 +2004,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Perfil</value>
   </data>
   <data name="BatteryNotPrepared" xml:space="preserve">
-    <value>Android no tiene este juego en su lista de aplicaciones a salvo del ahorro de energía. Acabará congelándolo, y las ventanas se bloquearán una a una, la más antigua primero. El ajuste que cuenta para él se llama «Sin restricciones», en la ficha de batería del juego; tu marca puede pedir otros además, y la ayuda de abajo los enumera.</value>
+    <value>Android no tiene este juego en su lista de aplicaciones a salvo del ahorro de energía. Acabará congelándolo, y las ventanas se bloquearán una a una, la más antigua primero. El ajuste que cuenta para él se llama «Sin restricciones», en la ficha de batería del juego; tu marca puede pedir otros además, y el enlace Ayuda los enumera.</value>
   </data>
   <data name="NamedFinding" xml:space="preserve">
     <value>{0}: {1}</value>
@@ -2046,7 +2040,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Por «Vincular un nuevo dispositivo», arriba.</value>
   </data>
   <data name="DeadInputFound" xml:space="preserve">
-    <value>Este teléfono rechaza los clics y las teclas que vienen del PC: sus ventanas muestran el juego y no responden a nada. El ajuste se llama «Depuración USB (ajustes de seguridad)», y la ayuda de abajo dice dónde. En las versiones antiguas de Xiaomi, medido en Android 11, exige además una tarjeta SIM y no sobrevive a un reinicio sin ella.</value>
+    <value>Este teléfono rechaza los clics y las teclas que vienen del PC: sus ventanas muestran el juego y no responden a nada. El ajuste se llama «Depuración USB (ajustes de seguridad)», y el enlace Ayuda dice dónde. En las versiones antiguas de Xiaomi, medido en Android 11, exige además una tarjeta SIM y no sobrevive a un reinicio sin ella.</value>
   </data>
   <data name="SimulatedMouse" xml:space="preserve">
     <value>Ratón físico simulado</value>
@@ -2128,5 +2122,11 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   </data>
   <data name="PartnerTargetLabel" xml:space="preserve">
     <value>{0} · {1}</value>
+  </data>
+  <data name="StoreWindowHint" xml:space="preserve">
+    <value>cierra esta ventana cuando la app esté instalada</value>
+  </data>
+  <data name="ToolBatteryNotPrepared" xml:space="preserve">
+    <value>{0} no está a salvo del ahorro de energía: su ventana se congelará y dejará de responder. Elige «Sin restricciones» en su ficha de batería.</value>
   </data>
 </root>

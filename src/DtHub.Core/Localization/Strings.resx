@@ -332,9 +332,6 @@
   <data name="AccountsTip" xml:space="preserve">
     <value>One account per Android profile where the game is installed.</value>
   </data>
-  <data name="FrozenWindowHelp" xml:space="preserve">
-    <value>A window freezes after a while?</value>
-  </data>
   <data name="LanguageHeading" xml:space="preserve">
     <value>LANGUAGE</value>
   </data>
@@ -711,9 +708,6 @@ Cross the tests: another device on this port, and this phone on another PC. You 
   </data>
   <data name="DeviceThrottlingSevere" xml:space="preserve">
     <value>The device is too hot and is heavily slowing itself down. Unplug the charger, close an account or drop one quality step now: below this, Android suspends the windows until it cools off.</value>
-  </data>
-  <data name="DeadInputHelp" xml:space="preserve">
-    <value>The mouse does nothing in the window?</value>
   </data>
   <data name="DeadInputTitle" xml:space="preserve">
     <value>Nothing responds in the window</value>
@@ -2010,7 +2004,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>Profile</value>
   </data>
   <data name="BatteryNotPrepared" xml:space="preserve">
-    <value>Android does not have this game in its list of apps shielded from battery saving. It will freeze it sooner or later, and the windows will lock up one by one, oldest first. The setting that counts for Android is "Unrestricted", in the game's battery page; your brand may want others on top, and the help below lists them.</value>
+    <value>Android does not have this game in its list of apps shielded from battery saving. It will freeze it sooner or later, and the windows will lock up one by one, oldest first. The setting that counts for Android is "Unrestricted", in the game's battery page; your brand may want others on top, and the Help link lists them.</value>
   </data>
   <data name="NamedFinding" xml:space="preserve">
     <value>{0}: {1}</value>
@@ -2046,7 +2040,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>Through "Pair a new device", above.</value>
   </data>
   <data name="DeadInputFound" xml:space="preserve">
-    <value>This phone refuses clicks and keystrokes coming from the PC: its windows show the game and respond to nothing. The setting is called "USB debugging (Security settings)", and the help below says where. On older Xiaomi versions, measured on Android 11, it also needs a SIM card in the phone and does not survive a reboot without one.</value>
+    <value>This phone refuses clicks and keystrokes coming from the PC: its windows show the game and respond to nothing. The setting is called "USB debugging (Security settings)", and the Help link says where. On older Xiaomi versions, measured on Android 11, it also needs a SIM card in the phone and does not survive a reboot without one.</value>
   </data>
   <data name="SimulatedMouse" xml:space="preserve">
     <value>Simulated physical mouse</value>
@@ -2128,5 +2122,11 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   </data>
   <data name="PartnerTargetLabel" xml:space="preserve">
     <value>{0} · {1}</value>
+  </data>
+  <data name="StoreWindowHint" xml:space="preserve">
+    <value>close this window once the app is installed</value>
+  </data>
+  <data name="ToolBatteryNotPrepared" xml:space="preserve">
+    <value>{0} is not shielded from battery saving: its window will freeze and stop answering. Set it to "Unrestricted" in its battery page.</value>
   </data>
 </root>

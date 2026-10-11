@@ -40,7 +40,7 @@
         <Border Style="{StaticResource Card}">
           <StackPanel>
             <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T OpenBatterySetting}" />
-            <w:MenuPathControl Path="{Binding Brand.BatteryPath}" Margin="0,2,0,4" />
+            <w:MenuPathControl Path="{Binding BatteryPath}" Margin="0,2,0,4" />
             <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap">
               <Run Text="{loc:T SettingCalledPrefix}" />
               <Run Text="{Binding Brand.BatteryFeature, Mode=OneWay}" FontWeight="SemiBold" />

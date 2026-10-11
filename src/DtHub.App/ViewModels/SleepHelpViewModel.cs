@@ -2,6 +2,7 @@
 
 using DtHub.Core.Adb;
 using DtHub.Core.Devices;
+using DtHub.Core.Dofus;
 using DtHub.Core.Guidance;
 
 namespace DtHub.App.ViewModels;
@@ -55,5 +56,23 @@ public sealed partial class SleepHelpViewModel : ObservableObject
         }
     }
 
-    partial void OnBrandChanged(PhoneBrand value) => OnPropertyChanged(nameof(HasNote));
+    partial void OnBrandChanged(PhoneBrand value)
+    {
+        OnPropertyChanged(nameof(HasNote));
+        OnPropertyChanged(nameof(BatteryPath));
+    }
+
+    /// <summary>
+    /// The app whose battery settings to change: the game by default, a
+    /// DOFUS Touch tool when its alert line opened this help.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BatteryPath))]
+    private string _app = DofusPackages.GameName;
+
+    /// <summary>
+    /// The brand's path, with the app's name in place of the game's: every
+    /// brand's path names the game the same way, in every language.
+    /// </summary>
+    public string BatteryPath => Brand.BatteryPath.Replace(DofusPackages.GameName, App, StringComparison.Ordinal);
 }
