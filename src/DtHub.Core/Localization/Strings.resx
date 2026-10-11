@@ -2240,7 +2240,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>{0} on which device?</value>
   </data>
   <data name="ToolMapDonate" xml:space="preserve">
-    <value>Donate</value>
+    <value>Donate to Dofus Touch Map</value>
   </data>
   <data name="ToolDofusBookName" xml:space="preserve">
     <value>DofusBook</value>
