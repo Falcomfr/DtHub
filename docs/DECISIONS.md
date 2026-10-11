@@ -10140,6 +10140,20 @@ scrcpy après chaque réouverture :
 - Mise à jour automatique : observée le même jour, la 0.7.11 installée a
   téléchargé, vérifié et démarré la 0.8.0 seule.
 
-Relevé au passage, pour l'accessibilité : plusieurs boutons de ligne n'ont pas de
-nom, et un lecteur d'écran lit les choix des listes « IntChoice { Label = 1280 x
-720, Value = 720 } ».
+### L'accessibilité, relevée au passage
+
+Le même pilotage a montré ce qu'entend un lecteur d'écran : 16 boutons sans nom
+dans l'onglet Appareils, 16 dans Fenêtres, et les choix des listes lus
+« IntChoice { Label = 1280 x 720, Value = 720 } ».
+
+- Les choix : `IntChoice`, `TextChoice` et `DoubleChoice` rendent leur libellé
+  par `ToString`, ce que lit l'automatisation.
+- Les boutons : WPF ne nomme un bouton d'après son contenu que si c'est du
+  texte. Un gestionnaire de classe, posé au démarrage, nomme tout autre bouton
+  d'après le texte visible de son panneau, à défaut d'après son info-bulle, lié
+  pour suivre l'état. Un seul point plutôt qu'un setter par style : les icônes
+  passent par une dizaine de styles et de gabarits. Sur `SizeChanged` et non
+  `Loaded`, mesuré : WPF diffuse `Loaded` sans les gestionnaires de classe.
+- Remesuré : 0 bouton sans nom dans Appareils et Raccourcis, 4 dans Fenêtres,
+  les boutons internes du curseur et de la barre de défilement, que les
+  lecteurs d'écran contournent par le contrôle lui-même.

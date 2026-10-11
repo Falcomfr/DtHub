@@ -20,6 +20,8 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 - Un ajuste cambiado mientras las ventanas se reabren ya no se pierde.
 - La ventana de Dofus Touch Map ya no envía sus ventanas publicitarias al
   navegador.
+- Los lectores de pantalla nombran los botones de icono del panel y leen las
+  opciones de sus listas tal como se muestran.
 
 ## [0.8.0] - 2026-10-11
 

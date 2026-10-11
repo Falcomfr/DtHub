@@ -21,6 +21,8 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - Un réglage changé pendant la réouverture des fenêtres n'est plus perdu.
 - La fenêtre Dofus Touch Map n'envoie plus ses fenêtres publicitaires au
   navigateur.
+- Les lecteurs d'écran nomment les boutons à icône du panneau et lisent les
+  choix de ses listes tels qu'ils s'affichent.
 
 ## [0.8.0] - 2026-10-11
 

@@ -88,6 +88,11 @@ public partial class App : Application, IDisposable
     {
         base.OnStartup(e);
 
+        EventManager.RegisterClassHandler(
+            typeof(System.Windows.Controls.Primitives.ButtonBase),
+            FrameworkElement.SizeChangedEvent,
+            new SizeChangedEventHandler(NameIconButton));
+
         // The game windows are not WPF windows: the application must
         // not close when the configurator is hidden.
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
@@ -1235,5 +1240,50 @@ public partial class App : Application, IDisposable
         }
 
         Log.Information("Session « {Profile} » retenue : {Count} compte(s).", name, keys.Count);
+    }
+
+    /// <summary>
+    /// A button whose content is not plain text gets an accessible name.
+    ///
+    /// WPF names a button after its content only when that content is
+    /// text: an icon, or an icon beside a label in a panel, left it empty.
+    /// Measured on 11/10/2026, most buttons of the panel read as a bare
+    /// "button", the tooltip only coming as help. The label shown in the
+    /// panel is taken first, so that what is read matches what is seen;
+    /// failing that, the tooltip. Bound, not copied, since both follow the
+    /// state ("Open" then "Close"). A name set in the markup wins.
+    ///
+    /// One handler for every button rather than a setter in each style:
+    /// the icons go through a dozen styles and templates, and a style left
+    /// out would stay silent. On the first layout and not on Loaded: WPF
+    /// broadcasts Loaded without going through class handlers, measured,
+    /// the handler was never called. Once named, the later resizes return
+    /// at once.
+    /// </summary>
+    private static void NameIconButton(object sender, RoutedEventArgs e)
+    {
+        if (sender is not System.Windows.Controls.Primitives.ButtonBase button
+            || button.Content is string or System.Windows.Controls.TextBlock
+            || System.Windows.Automation.AutomationProperties.GetName(button).Length > 0)
+        {
+            return;
+        }
+
+        var label = (button.Content as System.Windows.Controls.Panel)?.Children
+            .OfType<System.Windows.Controls.TextBlock>()
+            .FirstOrDefault(text => text.Text.Length > 0);
+
+        if (label is not null)
+        {
+            button.SetBinding(
+                System.Windows.Automation.AutomationProperties.NameProperty,
+                new System.Windows.Data.Binding(nameof(label.Text)) { Source = label });
+        }
+        else if (button.ToolTip is string)
+        {
+            button.SetBinding(
+                System.Windows.Automation.AutomationProperties.NameProperty,
+                new System.Windows.Data.Binding(nameof(button.ToolTip)) { Source = button });
+        }
     }
 }

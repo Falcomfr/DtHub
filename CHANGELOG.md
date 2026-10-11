@@ -26,6 +26,8 @@ belongs in the commits and in `docs/DECISIONS.md`.
   as soon as it is picked.
 - A setting changed while the windows reopen is no longer lost.
 - The Dofus Touch Map window no longer sends its ad pop-ups to the browser.
+- Screen readers name the panel's icon buttons and read the choices of its
+  lists as shown.
 
 ## [0.8.0] - 2026-10-11
 
