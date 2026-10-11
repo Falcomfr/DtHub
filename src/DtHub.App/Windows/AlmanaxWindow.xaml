@@ -490,17 +490,42 @@
           <ItemsControl ItemsSource="{Binding Shopping}" Margin="0,8,0,0">
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <Grid Margin="0,3">
+                <Grid Margin="0,1">
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="64" />
                     <ColumnDefinition Width="30" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                   </Grid.ColumnDefinitions>
                   <TextBlock Grid.Column="0" Text="{Binding Day}" TextWrapping="NoWrap"
+                             VerticalAlignment="Center"
                              Foreground="{DynamicResource TextMutedBrush}" />
                   <TextBlock Grid.Column="1" Text="{Binding Count}" TextWrapping="NoWrap"
+                             VerticalAlignment="Center"
                              FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
-                  <TextBlock Grid.Column="2" Text="{Binding Item}" TextWrapping="Wrap" />
+                  <TextBlock Grid.Column="2" Text="{Binding Item}" TextWrapping="Wrap"
+                             VerticalAlignment="Center" />
+
+                  <!-- Same copy as the day's offering, line by line. -->
+                  <Button Grid.Column="3" Margin="8,0,0,0" Padding="8,3"
+                          FontSize="{StaticResource FontSmall}"
+                          ToolTip="{loc:T AlmanaxCopyTip}"
+                          Command="{Binding DataContext.CopyLineCommand,
+                                    RelativeSource={RelativeSource AncestorType=Window}}"
+                          CommandParameter="{Binding}"
+                          Visibility="{Binding Count, Converter={StaticResource EmptyToVisibility},
+                                               ConverterParameter=inverse}">
+                    <Button.Style>
+                      <Style TargetType="Button" BasedOn="{StaticResource QuietButton}">
+                        <Setter Property="Content" Value="{loc:T AlmanaxCopy}" />
+                        <Style.Triggers>
+                          <DataTrigger Binding="{Binding Copied}" Value="True">
+                            <Setter Property="Content" Value="{loc:T AlmanaxCopied}" />
+                          </DataTrigger>
+                        </Style.Triggers>
+                      </Style>
+                    </Button.Style>
+                  </Button>
                 </Grid>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
@@ -524,15 +549,20 @@
 
           <!-- Every day found, as it is read: the day, the bonus, and
                what it does, since the profession is only named there. -->
-          <ItemsControl ItemsSource="{Binding Found}" Margin="0,6,0,0">
+          <ItemsControl ItemsSource="{Binding Found}" Margin="0,6,0,0"
+                        Grid.IsSharedSizeScope="True">
             <ItemsControl.ItemTemplate>
               <DataTemplate>
                 <Grid Margin="0,4">
                   <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="84" />
+                    <!-- As wide as the longest date, the same on every
+                         line: "mer. 2 décembre" does not fit a fixed
+                         width in every language. -->
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="FoundDay" />
                     <ColumnDefinition Width="*" />
                   </Grid.ColumnDefinitions>
                   <TextBlock Grid.Column="0" Text="{Binding Day}" TextWrapping="NoWrap"
+                             Margin="0,0,12,0"
                              Foreground="{DynamicResource TextMutedBrush}" />
                   <StackPanel Grid.Column="1">
                     <TextBlock Text="{Binding Bonus}" TextWrapping="Wrap" FontWeight="SemiBold" />

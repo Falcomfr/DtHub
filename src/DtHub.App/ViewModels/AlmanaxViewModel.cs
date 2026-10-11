@@ -72,7 +72,21 @@ public sealed partial class AlmanaxChip : ObservableObject
 /// A line of the week's offerings: the day, then what to bring, or
 /// that the day could not be read.
 /// </summary>
-public sealed record AlmanaxShoppingLine(DateOnly Date, string Day, string Count, string Item);
+public sealed partial class AlmanaxShoppingLine(DateOnly date, string day, string count, string item) : ObservableObject
+{
+    public DateOnly Date { get; } = date;
+
+    public string Day { get; } = day;
+
+    /// <summary>Empty when the day could not be read: nothing to copy.</summary>
+    public string Count { get; } = count;
+
+    public string Item { get; } = item;
+
+    /// <summary>True for a moment after this line was copied.</summary>
+    [ObservableProperty]
+    private bool _copied;
+}
 
 /// <summary>A day found by the search: when, the bonus, what it does.</summary>
 public sealed record AlmanaxFoundLine(string Day, string Bonus, string Detail);
@@ -471,11 +485,27 @@ public sealed partial class AlmanaxViewModel : ObservableObject
     /// the phone, where Ctrl+V pastes it into the marketplace search.
     /// </summary>
     [RelayCommand]
-    private async Task CopyOffering()
+    private Task CopyOffering() => CopyAsync(OfferingItem, copied => Copied = copied);
+
+    /// <summary>
+    /// A line of the week's offerings, for the same search: bought one
+    /// after the other at the marketplace. Concurrent: one command
+    /// serves every line, and while a copy says "Copied" the others
+    /// would otherwise be greyed out.
+    /// </summary>
+    [RelayCommand(AllowConcurrentExecutions = true)]
+    private Task CopyLine(AlmanaxShoppingLine? line) =>
+        line is null ? Task.CompletedTask : CopyAsync(line.Item, copied => line.Copied = copied);
+
+    /// <summary>
+    /// The text into the clipboard, and "Copied" for a moment on the
+    /// button that asked.
+    /// </summary>
+    private static async Task CopyAsync(string text, Action<bool> show)
     {
         try
         {
-            System.Windows.Clipboard.SetText(OfferingItem);
+            System.Windows.Clipboard.SetText(text);
         }
         catch (System.Runtime.InteropServices.ExternalException exception)
         {
@@ -487,11 +517,11 @@ public sealed partial class AlmanaxViewModel : ObservableObject
             return;
         }
 
-        Copied = true;
+        show(true);
 
         await Task.Delay(TimeSpan.FromSeconds(1.5)).ConfigureAwait(true);
 
-        Copied = false;
+        show(false);
     }
 
     /// <summary>
