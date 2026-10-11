@@ -509,6 +509,32 @@ public class DofusInstanceServiceTests
     }
 
     [Fact]
+    public async Task Un_dossier_securise_ferme_au_pc_par_samsung_le_dit_sans_demander_de_deverrouiller()
+    {
+        // Reported on a Galaxy S21 Ultra on 11/10/2026, unlocked, game
+        // inside, nothing listed. The refusal Android writes when the
+        // profile forbids debugging, as relayed by the ADB client: it is
+        // not the lock, so unlocking is not the remedy.
+        var adb = new FakeAdbClient()
+            .WithShell("pm list users", SamsungUsers)
+            .WithShell("--user 150", () => throw new AdbException(
+                AdbErrorKind.PermissionDenied,
+                "refus",
+                "shell pm list packages --user 150 dofustouch (code 255) : Exception occurred while executing 'list':\n"
+                + "java.lang.SecurityException: Shell does not have permission to access user 150"))
+            .WithShell("pm list packages", "package:com.android.chrome")
+            .WithShell("dumpsys package", InstalledIn(150));
+
+        var service = Service(adb);
+        await service.DiscoverAsync([Samsung()], CancellationToken.None);
+
+        var warning = Assert.Single(service.Warnings);
+        Assert.StartsWith("Galaxy S23 : Samsung", warning, StringComparison.Ordinal);
+        Assert.Contains("Island", warning, StringComparison.Ordinal);
+        Assert.DoesNotContain("déverrouillez", warning, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task Un_dossier_securise_sans_le_jeu_ne_dit_rien()
     {
         // A locked Secure Folder is many Samsung owners' normal state:

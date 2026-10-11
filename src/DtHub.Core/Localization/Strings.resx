@@ -2209,6 +2209,9 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="SecureFolderUnreachable" xml:space="preserve">
     <value>{0}: unlock the Secure Folder, the game is in it and DT Hub cannot see it while it is closed. Its accounts show up here a few seconds later. So it does not lock again mid-game: {1}  ›  "Auto lock Secure Folder", pick the longest option. If nothing shows once unlocked, Samsung blocks access from a PC on this phone: install the game outside the Secure Folder.</value>
   </data>
+  <data name="SecureFolderForbidden" xml:space="preserve">
+    <value>{0}: Samsung does not let a PC into the Secure Folder on this phone, even unlocked, so DT Hub cannot open the game there. Install this account outside the Secure Folder, for instance in a work profile made with the Island app from the Play Store: DT Hub opens it like the other accounts.</value>
+  </data>
   <data name="SecureFolderLocked" xml:space="preserve">
     <value>{0}: the Secure Folder has locked, unlock it to get its accounts back. They return a few seconds later. So it does not lock again mid-game: {1}  ›  "Auto lock Secure Folder", pick the longest option.</value>
   </data>

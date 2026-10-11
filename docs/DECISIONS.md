@@ -10030,3 +10030,30 @@ boutons en chargent jusqu'à 7 et 60, à une page par seconde. Chaque lecture
 reste déclenchée par un geste de la personne, et rien n'est gardé après la
 séance : c'est l'assouplissement assumé, décidé par le mainteneur le
 11/10/2026.
+
+## D191 - Le Dossier sécurisé que Samsung ferme au PC
+
+Remontée du 11/10/2026, Galaxy S21 Ultra : le jeu est dans le Dossier sécurisé,
+déverrouillé, et DT Hub ne le trouve pas, même après avoir changé de code. Le
+« créez le Dossier sécurisé à la main » qu'il a lu venait du bouton « + », qui
+tente de créer un profil neuf et, refusé par Samsung, ajoute le conseil de la
+marque : ce n'est pas un verdict sur son dossier.
+
+La cause la plus probable est écrite par Android lui-même : « Shell does not have
+permission to access user 150 ». `UserController.handleIncomingUser` la lève
+quand le profil visé porte `DISALLOW_DEBUGGING_FEATURES`, que Knox pose sur le
+Dossier sécurisé. Relevée par des développeurs sur un Galaxy Z Fold5 (Android 14)
+et un S24, sans réglage pour la lever côté particulier : seule une console Knox
+d'entreprise touche au débogage, et pour tout le téléphone. Ce n'est pas le
+verrou, donc déverrouiller n'y fait rien. **Non vérifié sur l'appareil du joueur**
+au moment d'écrire : une commande de test lui a été proposée.
+
+Ce refus est déjà au journal, avec la sortie d'Android, par le client ADB (code de
+sortie 255). Ce qui manquait est de le lire : `DofusInstanceService` retient les
+profils qui l'ont renvoyé, et l'avertissement du Dossier sécurisé dit alors que
+Samsung interdit l'accès au PC, sans demander de déverrouiller, et propose un
+profil de travail créé avec Island, voie déjà ouverte par DT Hub (profil
+rattaché). Island plutôt que Shelter : il s'installe depuis le Play Store.
+
+Reste à revoir, une fois le blocage confirmé chez le joueur : le conseil Samsung
+du bouton « + » recommande justement le Dossier sécurisé.

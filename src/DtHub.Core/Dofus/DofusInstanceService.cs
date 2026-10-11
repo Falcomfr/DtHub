@@ -52,6 +52,14 @@ public sealed class DofusInstanceService
     private readonly HashSet<(string DeviceId, int UserId)> _reached = [];
 
     /// <summary>
+    /// The profiles whose last refusal was Android's "Shell does not have
+    /// permission to access user", by serial: the profile forbids
+    /// debugging, which Knox sets on the Secure Folder. Unlike a lock,
+    /// nothing done on the phone lifts it.
+    /// </summary>
+    private readonly HashSet<(string Serial, int UserId)> _forbidden = [];
+
+    /// <summary>
     /// Non-blocking issues from the last scan. A device whose profile list
     /// could not be read still yields an instance, that of the main profile:
     /// without a word about it, nothing distinguishes this case from a device
@@ -176,7 +184,10 @@ public sealed class DofusInstanceService
             else if (IsSecureFolder(device, user)
                      && await HoldsGameAsync(device.Serial, user.Id, cancellationToken).ConfigureAwait(false))
             {
-                _warnings.Add(SecureFolderWarning(device, _reached.Contains((device.Id, user.Id))));
+                _warnings.Add(SecureFolderWarning(
+                    device,
+                    _reached.Contains((device.Id, user.Id)),
+                    _forbidden.Contains((device.Serial, user.Id))));
             }
 
             foreach (var package in packages ?? [])
@@ -567,11 +578,20 @@ public sealed class DofusInstanceService
 
             found = PackageParser.ParsePackageList(output);
         }
-        catch (AdbException)
+        catch (AdbException exception)
         {
             // A profile that refuses the question does not make the scan fail,
             // and produces no instance. It is simply not declared as lacking
-            // the game: we know nothing about it.
+            // the game: we know nothing about it, except why it refused, which
+            // the Secure Folder warning needs. Android's own sentence, raised
+            // in UserController.handleIncomingUser for a profile under
+            // DISALLOW_DEBUGGING_FEATURES; reported on a Galaxy Z Fold5 and an
+            // S24, and on a player's S21 Ultra that stayed empty unlocked.
+            if (exception.Details?.Contains("does not have permission to access user", StringComparison.Ordinal) == true)
+            {
+                _ = _forbidden.Add((serial, userId));
+            }
+
             return null;
         }
 
@@ -671,11 +691,13 @@ public sealed class DofusInstanceService
     /// What to do, in order, with the settings path of this phone's
     /// version: Samsung moved it with One UI 5, on Android 13.
     /// </summary>
-    private static string SecureFolderWarning(AndroidDevice device, bool reachedBefore) =>
-        Strings.Format(
-            reachedBefore ? "SecureFolderLocked" : "SecureFolderUnreachable",
-            device.DisplayName,
-            Strings.Get(device.SdkVersion is null or >= 33 ? "SecureFolderPathRecent" : "SecureFolderPathOlder"));
+    private static string SecureFolderWarning(AndroidDevice device, bool reachedBefore, bool forbidden) =>
+        forbidden
+            ? Strings.Format("SecureFolderForbidden", device.DisplayName)
+            : Strings.Format(
+                reachedBefore ? "SecureFolderLocked" : "SecureFolderUnreachable",
+                device.DisplayName,
+                Strings.Get(device.SdkVersion is null or >= 33 ? "SecureFolderPathRecent" : "SecureFolderPathOlder"));
 
     /// <summary>
     /// Resolves the activity to launch for an Android profile.

@@ -2209,6 +2209,9 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="SecureFolderUnreachable" xml:space="preserve">
     <value>{0} : déverrouillez le Dossier sécurisé, le jeu y est et DT Hub ne le voit pas tant qu'il est fermé. Ses comptes apparaissent ici quelques secondes après. Pour qu'il ne se reverrouille pas en jeu : {1}  ›  « Verrouillage auto. Dossier sécurisé », choisissez l'option la plus longue. Si rien n'apparaît une fois déverrouillé, Samsung bloque l'accès depuis un PC sur ce téléphone : installez le jeu hors du Dossier sécurisé.</value>
   </data>
+  <data name="SecureFolderForbidden" xml:space="preserve">
+    <value>{0} : Samsung interdit au PC l'accès au Dossier sécurisé sur ce téléphone, même déverrouillé, et DT Hub ne peut pas y ouvrir le jeu. Installez ce compte hors du Dossier sécurisé, par exemple dans un profil de travail créé avec l'application Island du Play Store : DT Hub l'ouvre comme les autres comptes.</value>
+  </data>
   <data name="SecureFolderLocked" xml:space="preserve">
     <value>{0} : le Dossier sécurisé s'est verrouillé, déverrouillez-le pour retrouver ses comptes. Ils reviennent quelques secondes après. Pour qu'il ne se reverrouille pas en jeu : {1}  ›  « Verrouillage auto. Dossier sécurisé », choisissez l'option la plus longue.</value>
   </data>
