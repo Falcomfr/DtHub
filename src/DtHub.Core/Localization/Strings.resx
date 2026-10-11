@@ -2123,9 +2123,6 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="PartnerTargetLabel" xml:space="preserve">
     <value>{0} · {1}</value>
   </data>
-  <data name="StoreWindowHint" xml:space="preserve">
-    <value>close this window once the app is installed</value>
-  </data>
   <data name="ToolBatteryNotPrepared" xml:space="preserve">
     <value>{0} is not shielded from battery saving: its window will freeze and stop answering. Set it to "Unrestricted" in its battery page.</value>
   </data>

@@ -368,10 +368,16 @@ public partial class ConfiguratorWindow : Window
     private static readonly Duration PartnerClosing = TimeSpan.FromMilliseconds(130);
 
     /// <summary>The tools menu fades in, sliding up from its button.</summary>
-    private void OnPartnerMenuOpened(object sender, RoutedEventArgs e)
+    private async void OnPartnerMenuOpened(object sender, RoutedEventArgs e)
     {
         PartnerMenu.IsOpen = true;
         AnimatePartnerMenu(opening: true, then: null);
+
+        // What is installed may have changed since the last sweep.
+        if (DataContext is ViewModels.ConfiguratorViewModel model)
+        {
+            await model.RefreshPartnerTilesAsync().ConfigureAwait(true);
+        }
     }
 
     /// <summary>It fades out, sliding back down, before it disappears.</summary>

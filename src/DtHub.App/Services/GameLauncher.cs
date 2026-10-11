@@ -803,6 +803,17 @@ public sealed partial class GameLauncher : IAsyncDisposable
     public IReadOnlyList<PartnerAvailability> PartnerAvailability { get; private set; } =
         PartnerApps.Availability([]);
 
+    /// <summary>The phones of the last sweep, for a refresh between two.</summary>
+    private IReadOnlyList<AndroidDevice> _sweptDevices = [];
+
+    /// <summary>
+    /// Reads again which phones have each tool, on the phones of the last
+    /// sweep. Called when the tools menu opens: the full sweep comes seldom,
+    /// and an app uninstalled meanwhile kept offering Open (2026-10-11).
+    /// </summary>
+    public Task RefreshPartnerAppsAsync(CancellationToken cancellationToken = default) =>
+        SweepPartnerAppsAsync(_sweptDevices, cancellationToken);
+
     /// <summary>Raised after each sweep, off the interface thread.</summary>
     public event EventHandler? PartnerAvailabilityChanged;
 
@@ -949,12 +960,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 if (store.IsAlive)
                 {
                     await StopSessionAsync(store, CancellationToken.None).ConfigureAwait(false);
-
-                    // A deliberate close, like the others: with the panel
-                    // hidden and no game window, the application must not
-                    // stay alive with nothing on screen.
-                    NotifyIfNothingLeft();
                 }
+
+                // The app just installed opens at once in its own window: the
+                // player installed it to use it (asked on 2026-10-11).
+                foreach (var package in arrived)
+                {
+                    _ = await OpenPartnerAppAsync(deviceId, package).ConfigureAwait(false);
+                }
+
+                // A deliberate close, like the others: with the panel hidden
+                // and no window left, the application must not stay alive
+                // with nothing on screen.
+                NotifyIfNothingLeft();
 
                 return;
             }
@@ -1106,6 +1124,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
         IReadOnlyList<AndroidDevice> devices,
         CancellationToken cancellationToken)
     {
+        _sweptDevices = devices;
+
         List<(string DeviceId, IReadOnlyList<string> PackagesUser0)> seen = [];
 
         foreach (var device in devices.Where(d => d.IsConnected))
@@ -2248,7 +2268,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     VirtualDisplayHeight = 1920,
                     VirtualDisplayDpi = 320,
                     AudioEnabled = false,
-                    WindowTitleHint = PassingTitleHint(instance.StartUri),
+                    WindowTitleHint = null,
                 };
             }
 
@@ -3167,17 +3187,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
             _sessions.ActiveSessions,
             session => ScrcpyCommandBuilder.BuildWindowTitle(
                 CurrentName(session, settings),
-                session.Target.IsTransient ? PassingTitleHint(session.Target.StartUri) : hint,
+                session.Target.IsTransient ? null : hint,
                 branded: !session.Target.IsTransient));
     }
 
-    /// <summary>
-    /// What a window opened in passing says in its title. Not the game's
-    /// shortcuts, which serve the accounts and not DTStuff or OcrApp; for the
-    /// store window, that it can be closed once the app is installed.
-    /// </summary>
-    private static string? PassingTitleHint(string? startUri) =>
-        startUri is null ? null : Strings.Get("StoreWindowHint");
 
     /// <summary>
     /// Tints the frame of every open game window with its account's

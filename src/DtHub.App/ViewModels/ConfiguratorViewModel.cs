@@ -85,6 +85,16 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         RebuildPartnerTiles();
     }
 
+    /// <summary>
+    /// Reads again which phones have each tool, then redraws the menu. Called
+    /// as the tools menu opens.
+    /// </summary>
+    public async Task RefreshPartnerTilesAsync()
+    {
+        await _launcher.RefreshPartnerAppsAsync().ConfigureAwait(true);
+        RebuildPartnerTiles();
+    }
+
     /// <summary>The MakeInTouch apps, at the bottom of the Devices tab.</summary>
     public System.Collections.ObjectModel.ObservableCollection<PartnerTileViewModel> PartnerTiles { get; } = [];
 

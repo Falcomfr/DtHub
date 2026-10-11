@@ -2123,9 +2123,6 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="PartnerTargetLabel" xml:space="preserve">
     <value>{0} · {1}</value>
   </data>
-  <data name="StoreWindowHint" xml:space="preserve">
-    <value>fermez cette fenêtre une fois l'app installée</value>
-  </data>
   <data name="ToolBatteryNotPrepared" xml:space="preserve">
     <value>{0} n'est pas à l'abri de l'économie d'énergie : sa fenêtre se figera et ne répondra plus. Réglez « Aucune restriction » dans sa fiche batterie.</value>
   </data>

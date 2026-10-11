@@ -9674,7 +9674,11 @@ largement, une fenêtre passagère (le Store, DTStuff, OcrApp) arrête toujours 
 app à la fermeture, même si l'option « arrêter l'app à la fermeture » est
 désactivée : elle ne laisse rien derrière elle sur le téléphone. Pendant que la fenêtre est ouverte, DT Hub
 regarde toutes les trois secondes si l'app est arrivée ; elle passe alors à
-« Ouvrir » et la fenêtre se ferme. Ces fenêtres sont passagères : jamais
+« Ouvrir », la fenêtre du Store se ferme, et l'app s'ouvre aussitôt dans la
+sienne. La fenêtre du Store ne dit donc plus de la fermer une fois l'app
+installée. Le menu des outils relit ce qui est installé à chaque ouverture : le
+balayage complet est espacé, et une app désinstallée proposait encore
+« Ouvrir ». Ces fenêtres sont passagères : jamais
 rouvertes au lancement suivant, ni rangées avec les fenêtres de jeu, ni comptées
 dans les réglages.
 
