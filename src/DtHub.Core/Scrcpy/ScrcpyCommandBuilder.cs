@@ -65,12 +65,14 @@ public static class ScrcpyCommandBuilder
             Option("keyboard", sanitized.KeyboardMode == ScrcpyKeyboardMode.Uhid ? "uhid" : "sdk"),
             Option("mouse", sanitized.MouseMode == ScrcpyMouseMode.Uhid ? "uhid" : "sdk"),
 
-            // Secondary clicks do nothing by default. Otherwise
-            // scrcpy binds the right click to BACK: on a display that
-            // carries only the game, that back action exits the
-            // activity and leaves a black screen. The four actions
-            // stay accessible by holding Shift.
-            Option("mouse-bind", "----:bhsn"),
+            // The right click sends BACK, as in scrcpy and as players
+            // expect: measured on 2026-10-11, DOFUS Touch closes the open
+            // interface, and with none open shows its main menu, without
+            // quitting. It once stayed off, for fear of a BACK that leaves
+            // a black screen; that is true of an ordinary app's first
+            // screen, so a tool's window keeps it off. The middle and side
+            // buttons do nothing; Shift restores all four actions.
+            Option("mouse-bind", sanitized.RightClickBack ? "b---:bhsn" : "----:bhsn"),
         ];
 
         // --prefer-text swallows the modifiers: alphabetic keys go

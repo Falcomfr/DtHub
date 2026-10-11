@@ -134,6 +134,14 @@ public sealed record ScrcpyOptions
     public string? WindowTitleHint { get; init; }
 
     /// <summary>
+    /// True when the right click sends BACK, as in scrcpy: in DOFUS Touch it
+    /// closes the open interface, and with none open shows the main menu.
+    /// False for a DOFUS Touch tool's window, where a BACK from the first
+    /// screen quits the app and leaves the window black.
+    /// </summary>
+    public bool RightClickBack { get; init; } = true;
+
+    /// <summary>
     /// Folder where scrcpy looks for its windows' icon. Otherwise they carry
     /// scrcpy's own icon, which has nothing to do with the application. The
     /// folder must contain a <c>scrcpy.png</c>.

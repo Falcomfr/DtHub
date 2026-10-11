@@ -365,13 +365,25 @@ public class ScrcpyCommandBuilderTests
     }
 
     [Fact]
-    public void Les_clics_secondaires_ne_declenchent_rien_par_defaut()
+    public void Le_clic_droit_fait_retour_dans_une_fenetre_de_jeu()
     {
-        // Otherwise scrcpy binds the right click to BACK, which quits
-        // the game and leaves a black screen. Shift restores all four
-        // actions.
+        // As in scrcpy, and as players expect: in DOFUS Touch, BACK closes
+        // the open interface, and with none open shows the main menu, it
+        // does not quit (measured on 2026-10-11). The middle and side
+        // buttons still do nothing; Shift restores all four actions.
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
             "USB0001", "DT Hub", ScrcpyOptions.Default, null);
+
+        Assert.Equal("b---:bhsn", ValueOf(arguments, "--mouse-bind"));
+    }
+
+    [Fact]
+    public void Le_clic_droit_ne_fait_rien_dans_une_fenetre_d_outil()
+    {
+        // An ordinary app does quit on a BACK from its first screen, and its
+        // window would turn black.
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001", "DTStuff", ScrcpyOptions.Default with { RightClickBack = false }, null);
 
         Assert.Equal("----:bhsn", ValueOf(arguments, "--mouse-bind"));
     }

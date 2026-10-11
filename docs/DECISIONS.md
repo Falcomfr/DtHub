@@ -9761,3 +9761,13 @@ antivirus classent comme espion, et DT Hub sort à peine d'une détection Kasper
 le logiciel de la souris, ce que proposent la plupart des souris de jeu, puis
 choisir cette touche. C'est exactement le cas du joueur, dont le bouton envoie
 déjà Tab.
+
+## D183 - Le clic droit fait Retour dans les fenêtres de jeu
+
+Le clic droit ne faisait rien, par crainte qu'un Retour ferme le jeu et laisse
+un écran noir. Mesuré le 11/10/2026 : dans DOFUS Touch, Retour ferme
+l'interface ouverte, et sans interface ouverte affiche le menu principal, sans
+quitter. Les joueurs attendent ce geste, celui de scrcpy : il revient
+(`--mouse-bind=b---:bhsn`). Les fenêtres des outils (DTStuff, OcrApp, Play
+Store) le gardent coupé, parce qu'un Retour depuis leur premier écran les
+quitte. Maj + clic droit donne toujours les quatre actions partout.

@@ -2269,6 +2269,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     VirtualDisplayDpi = 320,
                     AudioEnabled = false,
                     WindowTitleHint = null,
+                    RightClickBack = false,
                 };
             }
 
