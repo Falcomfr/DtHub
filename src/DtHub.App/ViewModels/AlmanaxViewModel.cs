@@ -57,6 +57,20 @@ public sealed partial class AlmanaxChip : ObservableObject
 
     [ObservableProperty]
     private bool _isSelected;
+
+    /// <summary>
+    /// The day's bonus title, empty until it is known: from the week
+    /// page, or from the day once it has been read.
+    /// </summary>
+    [ObservableProperty]
+    private string _bonus = string.Empty;
+
+    /// <summary>
+    /// True when the day asks to go somewhere on top of the offering,
+    /// a special repeatable quest or a blessing.
+    /// </summary>
+    [ObservableProperty]
+    private bool _callsElsewhere;
 }
 
 /// <summary>A cell of the drop-down calendar.</summary>
@@ -170,6 +184,20 @@ public sealed partial class AlmanaxViewModel : ObservableObject
     [ObservableProperty]
     private string _bonusDetail = string.Empty;
 
+    /// <summary>
+    /// True when the shown day asks to go somewhere on top of the
+    /// offering: the bonus then reads as something to do.
+    /// </summary>
+    [ObservableProperty]
+    private bool _callsElsewhere;
+
+    /// <summary>
+    /// True for a moment after the offering was copied, the time for
+    /// the button to say so.
+    /// </summary>
+    [ObservableProperty]
+    private bool _copied;
+
     [ObservableProperty]
     private string _quest = string.Empty;
 
@@ -225,6 +253,13 @@ public sealed partial class AlmanaxViewModel : ObservableObject
 
         Bonus = day.Bonus;
         BonusDetail = day.BonusDetail;
+        CallsElsewhere = AlmanaxReading.CallsElsewhere(day.Bonus + " " + day.BonusDetail);
+        Copied = false;
+
+        // The day read says more than the week page, which only has the
+        // title: it replaces it.
+        _bonuses[day.Date] = (day.Bonus, CallsElsewhere);
+        RefreshChip(day.Date);
         Quest = day.Quest;
         Meryde = day.Meryde;
         MonthEvent = day.MonthEvent;
@@ -232,6 +267,66 @@ public sealed partial class AlmanaxViewModel : ObservableObject
         Problem = string.Empty;
         HasDay = true;
         IsLoading = false;
+    }
+
+    /// <summary>
+    /// What is known of each day's bonus, for the strip. In memory, for
+    /// the session, like the days read.
+    /// </summary>
+    private readonly Dictionary<DateOnly, (string Title, bool Elsewhere)> _bonuses = [];
+
+    /// <summary>
+    /// The week page's bonuses. A day already read keeps its own.
+    /// </summary>
+    public void KnowWeek(IReadOnlyDictionary<DateOnly, string> week)
+    {
+        foreach (var (date, title) in week)
+        {
+            if (_bonuses.TryAdd(date, (title, AlmanaxReading.CallsElsewhere(title))))
+            {
+                RefreshChip(date);
+            }
+        }
+    }
+
+    private void RefreshChip(DateOnly date)
+    {
+        foreach (var chip in Days)
+        {
+            if (chip.Date == date && _bonuses.TryGetValue(date, out var known))
+            {
+                chip.Bonus = known.Title;
+                chip.CallsElsewhere = known.Elsewhere;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Puts the item's name in the clipboard. scrcpy hands it over to
+    /// the phone, where Ctrl+V pastes it into the marketplace search.
+    /// </summary>
+    [RelayCommand]
+    private async Task CopyOffering()
+    {
+        try
+        {
+            System.Windows.Clipboard.SetText(OfferingItem);
+        }
+        catch (System.Runtime.InteropServices.ExternalException exception)
+        {
+            // Another application holds the clipboard. Nothing is lost:
+            // the name stays on screen, and the button does not claim
+            // a copy that did not happen.
+            Serilog.Log.Warning(exception, "Le presse-papiers n'a pas pris l'offrande.");
+
+            return;
+        }
+
+        Copied = true;
+
+        await Task.Delay(TimeSpan.FromSeconds(1.5)).ConfigureAwait(true);
+
+        Copied = false;
     }
 
     /// <summary>
@@ -465,6 +560,8 @@ public sealed partial class AlmanaxViewModel : ObservableObject
             var date = _anchor.AddDays(i);
 
             Days.Add(new AlmanaxChip(date, date == today) { IsSelected = date == Selected });
+
+            RefreshChip(date);
         }
     }
 }

@@ -813,6 +813,18 @@ On a {0} device, the manual copy goes through: {1}.</value>
   <data name="AlmanaxBonus" xml:space="preserve">
     <value>Bonus</value>
   </data>
+  <data name="AlmanaxElsewhere" xml:space="preserve">
+    <value>Also to do today</value>
+  </data>
+  <data name="AlmanaxCopy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="AlmanaxCopied" xml:space="preserve">
+    <value>Copied</value>
+  </data>
+  <data name="AlmanaxCopyTip" xml:space="preserve">
+    <value>Copies the item's name. Ctrl+V in the game's marketplace search pastes it.</value>
+  </data>
   <data name="AlmanaxQuest" xml:space="preserve">
     <value>Quest</value>
   </data>

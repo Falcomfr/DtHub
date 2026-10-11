@@ -9940,3 +9940,57 @@ globale, sous laquelle une ligne dit qu'elle est remplacée. Bornes : 200 à 200
 points, et le DPI final dans celles d'Android. En passant, la relance en
 définition plus basse après un refus calculait sa densité avec la distance
 globale, en oubliant celle du compte : corrigé.
+
+## D190 - Les jours de l'Almanax qui demandent d'aller ailleurs
+
+Question d'un joueur le 11/10/2026 : certains jours, l'Almanax demande autre
+chose que de parler au PNJ, faut-il l'aider ? Relevé sur le bloc Touch du
+portail, les 365 jours de 2027 : **la quête d'offrande ne change jamais**,
+« Récupérer N objet et rapporter l'offrande à Théodoran Ax » tous les jours.
+Ce qui change tient dans le bonus, neuf jours par an :
+
+```
+06/01  quête répétable, atelier des boulangers d'Amakna
+17/03  bénédiction d'Ayiri Chkofi, taverne d'Amakna
+08/05  quête répétable, château d'Amakna
+03/08  quête répétable, sud des portes de Bonta
+12/09  quête répétable, milices de Bonta ou de Brâkmar (titre « Bonta et Brâkmar »)
+03/10  quête répétable, fontaine d'Amakna
+11/11  bénédiction de Miss Triste, fontaine d'Amakna
+15/11  quête répétable, église en ruine d'Astrub
+12/12  quête répétable, portes de Brâkmar
+```
+
+Les chasses au trésor de Méryde et les quêtes des fêtes mobiles que listent les
+guides du web sont celles de DOFUS, absentes du bloc Touch.
+
+La fenêtre affichait déjà ce texte, mais avec l'allure d'un bonus d'expérience.
+Trois ajouts :
+
+- **Ces jours-là, le bonus devient « À faire aussi aujourd'hui »**, en encadré
+  d'accent. La reconnaissance tient sur six tournures, deux par langue
+  (`AlmanaxReading.CallsElsewhere`) : « quête répétable », « bénédiction », et
+  leurs équivalents relevés en anglais et en espagnol. Le texte reste celui du
+  portail.
+- **Le bonus sous chaque jour de la bande**, pour voir d'un coup d'œil quel
+  jour farmer, récolter ou faire une quête ailleurs. Il vient de la page
+  « semaine » du portail, une seule page pour les sept jours suivants, lue
+  dans un second lecteur de hauteur nulle : le premier navigue à chaque clic
+  dans la bande, et une page interrompue par l'autre aurait dû se distinguer
+  d'un vrai échec. Les jours lus remplacent le titre de la semaine par le leur,
+  qui dit davantage (le 12/09 ne se reconnaît qu'au détail).
+- **Un bouton « Copier » à côté de l'offrande.** Le nom de l'objet part dans le
+  presse-papiers, que scrcpy synchronise avec le téléphone : Ctrl+V le colle
+  dans la recherche de l'hôtel de vente.
+
+### Ce que ça change à D112
+
+D112 dit « une page chargée à la demande de la personne qui l'ouvre ». Ouvrir
+la fenêtre en charge maintenant deux, le jour et la semaine. C'est toujours une
+lecture déclenchée par l'ouverture, comme le serait un clic sur « Cette
+semaine » dans le portail, et rien n'est gardé après la séance.
+
+Ce qui a été écarté pour cette raison, en attendant l'avis du mainteneur : une
+liste de courses des offrandes de la semaine (la page semaine ne les porte pas,
+il faudrait sept pages de jour d'un coup) et la recherche du prochain jour d'un
+bonus donné (des dizaines de pages).

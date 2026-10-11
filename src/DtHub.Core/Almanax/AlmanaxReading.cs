@@ -125,6 +125,36 @@ public static class AlmanaxReading
     }
 
     /// <summary>
+    /// The words that announce something to do elsewhere than at the
+    /// temple, in the languages the application serves.
+    ///
+    /// Read over the whole 2027 Touch calendar, nine days out of 365:
+    /// seven special repeatable quests, near a workshop, a castle, a
+    /// city gate or inside the militias, and two blessings given by
+    /// a character waiting near the tavern or the fountain of Amakna.
+    /// The quests carry their name in the title, except the Bonta and
+    /// Brâkmar day where it only appears in the detail; the blessings
+    /// carry theirs in the title.
+    /// </summary>
+    private static readonly string[] Elsewhere =
+    [
+        "quête répétable", "repeatable quest", "misión repetible",
+        "bénédiction", "blessing", "bendición",
+    ];
+
+    /// <summary>
+    /// True when the bonus asks to go somewhere, on top of the
+    /// offering. Given the title alone, as the week page has it, or
+    /// the title and its detail.
+    /// </summary>
+    public static bool CallsElsewhere(string? bonus)
+    {
+        var whole = Clean(bonus);
+
+        return Elsewhere.Any(word => whole.Contains(word, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
     /// The text stripped of the template's blanks: the page renders
     /// its values over several lines, indented, and the raw text
     /// arrives riddled with spaces and line breaks.

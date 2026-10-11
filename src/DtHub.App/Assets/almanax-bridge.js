@@ -85,9 +85,36 @@
         };
     }
 
+    // The week page: one summary per day, Touch's lines marked by their
+    // class. Each line goes out with its label, which carries the game's
+    // name and says bonus or quest; the C# side sorts them. The "know
+    // more" link carries the ISO date the summary title does not.
+    function lireSemaine(resumes) {
+        var lignes = [];
+
+        for (var r = 0; r < resumes.length; r++) {
+            var lien = resumes[r].querySelector('a.knowmore');
+            var href = lien ? (lien.getAttribute('href') || '') : '';
+            var items = resumes[r].querySelectorAll('li.dofustouch');
+
+            for (var i = 0; i < items.length; i++) {
+                lignes.push({
+                    href: href,
+                    label: texte(items[i].querySelector('span')),
+                    value: texteSansEnfants(items[i], 'span')
+                });
+            }
+        }
+
+        return { week: lignes };
+    }
+
     function poster() {
         try {
-            window.chrome.webview.postMessage(JSON.stringify(lire()));
+            var resumes = document.querySelectorAll('.almanax_summary');
+
+            window.chrome.webview.postMessage(JSON.stringify(
+                resumes.length > 0 ? lireSemaine(resumes) : lire()));
         } catch (erreur) {
             // Nothing to do: the window has its own timeout and will say
             // it could not read.

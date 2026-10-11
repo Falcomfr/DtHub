@@ -142,6 +142,7 @@ public partial class AlmanaxWindow : Window
         }
 
         View.Dispose();
+        WeekView.Dispose();
 
         base.OnClosed(e);
     }
@@ -153,6 +154,80 @@ public partial class AlmanaxWindow : Window
         Activate();
 
         await LoadAsync(DateOnly.FromDateTime(DateTime.Now)).ConfigureAwait(true);
+
+        await LoadWeekAsync().ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// The week page, read once per opening, in its own reader.
+    ///
+    /// Its own and not the day's: the day's reader navigates at every
+    /// click in the strip, and a week page interrupted by a click, or
+    /// a click's page interrupted by the week, would each have had to
+    /// be told apart from a real failure. Two readers, and neither
+    /// waits for the other.
+    ///
+    /// A failure here only costs the bonuses under the strip, which
+    /// still fill in as days are read: it is logged, not shown.
+    /// </summary>
+    private async Task LoadWeekAsync()
+    {
+        try
+        {
+            await WeekView
+                .EnsureCoreWebView2Async(await _engine.GetAsync().ConfigureAwait(true))
+                .ConfigureAwait(true);
+
+            await WeekView.CoreWebView2
+                .AddScriptToExecuteOnDocumentCreatedAsync(AlmanaxBridge.Script())
+                .ConfigureAwait(true);
+
+            WeekView.CoreWebView2.WebMessageReceived += OnWeekMessage;
+            WeekView.CoreWebView2.NavigationCompleted += (_, e) =>
+            {
+                if (!e.IsSuccess)
+                {
+                    Log.Warning("La semaine de l'Almanax n'a pas pu être jointe : {Etat}.", e.WebErrorStatus);
+                }
+            };
+
+            // Same reason as the day's reader: nothing is shown, so
+            // nothing opens.
+            WeekView.CoreWebView2.NewWindowRequested += (_, e) => e.Handled = true;
+
+            WeekView.CoreWebView2.Navigate(
+                AlmanaxCalendar.WeekUrlFor(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName));
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Log.Warning(exception, "La semaine de l'Almanax n'a pas pu être chargée.");
+        }
+    }
+
+    private void OnWeekMessage(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+    {
+        string payload;
+
+        try
+        {
+            payload = e.TryGetWebMessageAsString();
+        }
+        catch (ArgumentException)
+        {
+            // Not text: same case as the day's reader.
+            return;
+        }
+
+        var week = AlmanaxWeek.From(payload);
+
+        if (week.Count == 0)
+        {
+            Log.Warning("La semaine de l'Almanax lue ne donne aucun bonus de DOFUS Touch, ou la page a changé.");
+
+            return;
+        }
+
+        _model.KnowWeek(week);
     }
 
     /// <summary>

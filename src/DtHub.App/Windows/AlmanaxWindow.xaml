@@ -30,7 +30,14 @@
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderBrush" Value="Transparent" />
       <Setter Property="HorizontalContentAlignment" Value="Center" />
+
+      <!-- The bonus title in full, the chip only has room for two
+           lines of it. None while it is unknown. -->
+      <Setter Property="ToolTip" Value="{Binding Bonus}" />
       <Style.Triggers>
+        <DataTrigger Binding="{Binding Bonus}" Value="">
+          <Setter Property="ToolTip" Value="{x:Null}" />
+        </DataTrigger>
         <DataTrigger Binding="{Binding IsSelected}" Value="True">
           <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
           <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
@@ -217,6 +224,7 @@
           <ItemsControl.ItemTemplate>
             <DataTemplate>
               <Button Style="{StaticResource DayChip}"
+                      VerticalContentAlignment="Top"
                       Command="{Binding DataContext.PickCommand,
                                 RelativeSource={RelativeSource AncestorType=Window}}"
                       CommandParameter="{Binding}">
@@ -229,6 +237,29 @@
                              TextWrapping="NoWrap" Margin="0,1,0,0"
                              FontSize="15" FontWeight="SemiBold" />
                   <Ellipse Style="{StaticResource TodayDot}" />
+
+                  <!-- The day's bonus, so the week reads at a glance:
+                       which day for farming, for gathering, for a
+                       quest elsewhere. Two lines at most, the whole
+                       title in the tooltip. Fixed height, so the
+                       chips stay aligned whether it is known or not. -->
+                  <TextBlock Text="{Binding Bonus}" Height="26" Margin="0,3,0,0"
+                             TextAlignment="Center" TextWrapping="WrapWithOverflow"
+                             TextTrimming="CharacterEllipsis" LineHeight="13"
+                             LineStackingStrategy="BlockLineHeight"
+                             FontSize="10">
+                    <TextBlock.Style>
+                      <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+                        <Style.Triggers>
+                          <DataTrigger Binding="{Binding CallsElsewhere}" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+                            <Setter Property="FontWeight" Value="SemiBold" />
+                          </DataTrigger>
+                        </Style.Triggers>
+                      </Style>
+                    </TextBlock.Style>
+                  </TextBlock>
                 </StackPanel>
               </Button>
             </DataTemplate>
@@ -268,6 +299,9 @@
          from the tree would put it to sleep, and there would be
          nothing left to read. -->
     <wv:WebView2 x:Name="View" DockPanel.Dock="Bottom" Height="0" />
+
+    <!-- The week's reader, same reason, read once per opening. -->
+    <wv:WebView2 x:Name="WeekView" DockPanel.Dock="Bottom" Height="0" />
 
     <!-- Loading is shown here, under the strip: the content below fades
          out for the duration of the read rather than disappearing, so
@@ -329,7 +363,30 @@
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="Auto" />
               <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
+
+            <!-- Copy, to paste into the marketplace search on the phone.
+                 Only when the item could be read: copying the whole
+                 sentence would find nothing there. -->
+            <Button Grid.Column="2" Margin="10,0,0,0" Padding="8,5"
+                    VerticalAlignment="Center"
+                    FontSize="{StaticResource FontSmall}"
+                    ToolTip="{loc:T AlmanaxCopyTip}"
+                    Command="{Binding CopyOfferingCommand}"
+                    Visibility="{Binding OfferingCount, Converter={StaticResource EmptyToVisibility},
+                                         ConverterParameter=inverse}">
+              <Button.Style>
+                <Style TargetType="Button" BasedOn="{StaticResource QuietButton}">
+                  <Setter Property="Content" Value="{loc:T AlmanaxCopy}" />
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding Copied}" Value="True">
+                      <Setter Property="Content" Value="{loc:T AlmanaxCopied}" />
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </Button.Style>
+            </Button>
 
             <TextBlock Grid.Column="0" Text="{Binding OfferingCount}"
                        FontSize="30" FontWeight="Bold" Margin="0,0,10,0"
@@ -350,15 +407,39 @@
                                           ConverterParameter=inverse}" />
 
           <!-- The bonus, next: it applies to the whole day, not just to
-               the quest. -->
-          <Border Margin="0,18,0,0" Padding="12,10"
-                  Background="{DynamicResource SurfaceBrush}"
-                  BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="1"
+               the quest. On the days it asks to go somewhere, a special
+               repeatable quest or a blessing, it reads as something to
+               do and takes the accent: the offering alone does not
+               finish that day. -->
+          <Border Margin="0,18,0,0" Padding="12,10" BorderThickness="1"
                   CornerRadius="{StaticResource RadiusKey}"
                   Visibility="{Binding Bonus, Converter={StaticResource EmptyToVisibility},
                                        ConverterParameter=inverse}">
+            <Border.Style>
+              <Style TargetType="Border">
+                <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource GrooveBrush}" />
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding CallsElsewhere}" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </Border.Style>
             <StackPanel>
-              <TextBlock Text="{loc:T AlmanaxBonus}" Style="{StaticResource FieldLabel}" />
+              <TextBlock>
+                <TextBlock.Style>
+                  <Style TargetType="TextBlock" BasedOn="{StaticResource FieldLabel}">
+                    <Setter Property="Text" Value="{loc:T AlmanaxBonus}" />
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding CallsElsewhere}" Value="True">
+                        <Setter Property="Text" Value="{loc:T AlmanaxElsewhere}" />
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </TextBlock.Style>
+              </TextBlock>
               <TextBlock Text="{Binding Bonus}" TextWrapping="Wrap"
                          FontSize="14" FontWeight="SemiBold" Margin="0,3,0,0" />
               <TextBlock Text="{Binding BonusDetail}" TextWrapping="Wrap"

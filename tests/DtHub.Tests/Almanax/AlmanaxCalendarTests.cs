@@ -50,6 +50,20 @@ public class AlmanaxCalendarTests
     }
 
     [Fact]
+    public void L_adresse_de_la_semaine_porte_la_langue_et_le_filtre()
+    {
+        Assert.Equal(
+            "https://www.krosmoz.com/es/almanax/semaine?game=dofustouch",
+            AlmanaxCalendar.WeekUrlFor("es"));
+    }
+
+    [Fact]
+    public void L_adresse_de_la_semaine_franchit_son_propre_controle()
+    {
+        Assert.True(AlmanaxCalendar.Owns(AlmanaxCalendar.WeekUrlFor("fr")));
+    }
+
+    [Fact]
     public void L_adresse_d_un_jour_porte_la_date_et_le_filtre()
     {
         Assert.Equal(

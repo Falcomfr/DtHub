@@ -10,7 +10,7 @@
 // It returns zero if the reading succeeds and the block read is
 // indeed that of DOFUS Touch, one otherwise.
 //
-// To run: dotnet run --project build/sonde-almanax -- [yyyy-mm-dd]
+// To run: dotnet run --project build/sonde-almanax -- [yyyy-mm-dd | semaine]
 using System.Globalization;
 using System.IO;
 using System.Windows;
@@ -22,8 +22,9 @@ var jour = args.Length > 0 && DateOnly.TryParse(args[0], CultureInfo.InvariantCu
     ? lu
     : DateOnly.FromDateTime(DateTime.Now);
 
+// "semaine" reads the week page instead of a day.
 var adresse = "https://www.krosmoz.com/fr/almanax/"
-    + jour.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+    + (args.Length > 0 && args[0] == "semaine" ? "semaine" : jour.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture))
     + "?game=dofustouch";
 
 var pont = File.ReadAllText(Path.Combine(

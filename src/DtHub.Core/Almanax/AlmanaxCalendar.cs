@@ -83,16 +83,22 @@ public static class AlmanaxCalendar
     /// own clock. The two cross paths around midnight, and the date
     /// shown would then no longer be that of the data.
     /// </summary>
-    public static string UrlFor(string? language, DateOnly date)
+    public static string UrlFor(string? language, DateOnly date) =>
+        WithSegment(language, date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+
+    /// <summary>
+    /// The address of the coming week: the seven days after today,
+    /// with each day's bonus title and no offering. The path segment
+    /// is "semaine" in every language, the portal's own links say so.
+    /// </summary>
+    public static string WeekUrlFor(string? language) => WithSegment(language, "semaine");
+
+    private static string WithSegment(string? language, string segment)
     {
         var root = UrlFor(language);
         var filter = root.IndexOf('?', StringComparison.Ordinal);
 
-        return string.Concat(
-            root.AsSpan(0, filter),
-            "/",
-            date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-            root.AsSpan(filter));
+        return string.Concat(root.AsSpan(0, filter), "/", segment, root.AsSpan(filter));
     }
 
     /// <summary>

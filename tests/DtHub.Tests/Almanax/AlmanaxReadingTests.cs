@@ -87,4 +87,41 @@ public class AlmanaxReadingTests
     {
         Assert.Null(AlmanaxReading.Offering("Récupérer 1 et rapporter l'offrande"));
     }
+
+    // Read from the portal's Touch block, January 6, March 17 and
+    // September 12, 2027, in the three languages.
+    [Theory]
+    [InlineData("Quête répétable Une quête répétable spéciale est disponible aujourd'hui près de l'atelier des boulangers du village d'Amakna .")]
+    [InlineData("Repeatable quest A special repeatable quest is available today near the Bakers' Workshop in Amakna Village .")]
+    [InlineData("Misión repetible Hoy se podrá hacer una misión repetible especial cerca del taller de panaderos del pueblo de Amakna .")]
+    [InlineData("Bénédiction du Fin Patraque Ayiri Chkofi attend les aventuriers qui veulent boire un petit coup près de la taverne du village d'Amakna.")]
+    [InlineData("Saint Potrick blessing Ayerish Kaffee is waiting near the Amakna Village Inn for adventurers who want to join him for a drink.")]
+    [InlineData("Bendición de San Patírico Airish Kofi espera a los aventureros que deseen beber un trago ceca de la taberna del pueblo de Amakna.")]
+    [InlineData("Bonta et Brâkmar Les récompenses en points d'expérience des quêtes d'alignement sont augmentées de 100 %. De plus, une quête répétable spéciale est disponible aujourd'hui à l'intérieur des milices de Bonta ou de Brâkmar .")]
+    public void Un_jour_qui_demande_d_aller_ailleurs_se_reconnait(string bonus)
+    {
+        Assert.True(AlmanaxReading.CallsElsewhere(bonus));
+    }
+
+    [Theory]
+    [InlineData("Quête répétable")]
+    [InlineData("Repeatable quest")]
+    [InlineData("Misión repetible")]
+    [InlineData("Bénédiction de Miss Triste")]
+    public void Le_titre_seul_suffit_pour_la_bande_des_jours(string title)
+    {
+        // The week page carries only the title.
+        Assert.True(AlmanaxReading.CallsElsewhere(title));
+    }
+
+    [Theory]
+    [InlineData("Butin Les chances d'obtenir du butin sont augmentées de 75 % sur les créatures de type Monstres des Crocs de Verre .")]
+    [InlineData("Expérience des quêtes Les gains d'expérience sont augmentés de 100 % pour toutes les quêtes.")]
+    [InlineData("Quest experience")]
+    [InlineData("")]
+    [InlineData(null)]
+    public void Un_bonus_ordinaire_ne_demande_rien_ailleurs(string? bonus)
+    {
+        Assert.False(AlmanaxReading.CallsElsewhere(bonus));
+    }
 }
