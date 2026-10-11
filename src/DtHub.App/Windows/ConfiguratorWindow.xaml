@@ -985,6 +985,8 @@
                      RenderOptions.BitmapScalingMode="HighQuality" />
               <Image Source="/assets/calcofus.png" Width="16" Height="16" Margin="-4,0,0,0"
                      RenderOptions.BitmapScalingMode="HighQuality" />
+              <Image Source="/assets/dofusbook.png" Width="16" Height="16" Margin="-4,0,0,0"
+                     RenderOptions.BitmapScalingMode="HighQuality" />
               <TextBlock Text="{loc:T PartnerMenu}" Style="{StaticResource Muted}"
                          FontSize="{StaticResource FontSmall}" Margin="6,0,0,0"
                          VerticalAlignment="Center" />

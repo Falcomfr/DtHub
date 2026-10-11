@@ -94,6 +94,38 @@ public static class DofusTouchMap
 
     /// <summary>The pack path of its bundled logo.</summary>
     public const string IconAsset = "/assets/dtmap.png";
+
+    /// <summary>Its donation page, the link its own banner carries.</summary>
+    public const string DonationAddress = "https://www.dofus-touch-map.com/donation";
+
+    /// <summary>
+    /// The hosts its ads came from on 2026-10-11, both of the Adsterra
+    /// network, which set off the project owner's antivirus on opening.
+    /// Not loaded in DT Hub, by the owner's choice: the site then shows its
+    /// donation banner in their place.
+    /// </summary>
+    // ponytail: the two hosts seen; Adsterra rotates domains, add any new
+    // one the antivirus names.
+    public static IReadOnlyList<string> BlockedAdHosts { get; } = ["highperformanceformat.com", "topcreativeformat.com"];
+
+    /// <summary>True for a request to one of those hosts or their subdomains.</summary>
+    public static bool IsBlockedAd(string? url) =>
+        Uri.TryCreate(url, UriKind.Absolute, out var uri)
+        && BlockedAdHosts.Any(host =>
+            uri.Host.Equals(host, StringComparison.OrdinalIgnoreCase)
+            || uri.Host.EndsWith("." + host, StringComparison.OrdinalIgnoreCase));
+}
+
+/// <summary>
+/// DofusBook, the stuff builder: a link only, opened in the browser, as the
+/// project owner asked (2026-10-11).
+/// </summary>
+public static class DofusBook
+{
+    public const string Address = "https://touch.dofusbook.net/";
+
+    /// <summary>The pack path of its bundled logo.</summary>
+    public const string IconAsset = "/assets/dofusbook.png";
 }
 
 /// <summary>

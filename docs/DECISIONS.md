@@ -9856,3 +9856,28 @@ coupé.
 Le Tofu du logo du site, sans sa bulle, sur un carré arrondi sombre au liseré
 vert olive du nom, comme les trois autres outils. Déclaré dans
 THIRD-PARTY-NOTICES.md, hors licence MIT.
+
+## D187 - La carte sans sa régie Adsterra, un bas de fenêtre, DofusBook en lien
+
+Le 11/10/2026, l'antivirus de l'utilisateur réagit à l'ouverture de la carte.
+Rendue dans un navigateur, la page charge, en plus des siens, deux hôtes de la
+régie Adsterra, `highperformanceformat.com` et `topcreativeformat.com`, connue
+pour ses publicités piégées que les antivirus bloquent. Sur le choix de
+l'utilisateur, la fenêtre Carte les refuse avant qu'ils partent du PC (filtre
+WebView2, réponse 403, une ligne au journal par refus) : sans requête, l'antivirus
+n'a rien à arrêter. Le site prévoit ce cas et affiche à la place sa bannière de
+don. Le navigateur, lui, montre le site tel quel. Adsterra change de domaines :
+un nouvel hôte nommé par un antivirus s'ajoute à la liste.
+
+Les fenêtres web portent en bas « Ouvrir dans le navigateur » (la page affichée),
+et la carte « Faire un don », qui ouvre `https://www.dofus-touch-map.com/donation`,
+le lien de sa propre bannière.
+
+DofusBook (`https://touch.dofusbook.net/`) entre en cinquième tuile, sans
+fenêtre : un clic ouvre le site dans le navigateur. Le site refuse les
+navigateurs automatisés (Cloudflare) : son logo vient de son favicon, en 48
+pixels, sur un carré clair, son noir ne se lisant pas sur le fond sombre des
+autres.
+
+La ligne « profil 0 · Principal » sous un compte renommé disparaît : elle
+rappelait le profil Android d'origine, ce qui ne sert à rien au joueur.

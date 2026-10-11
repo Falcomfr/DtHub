@@ -128,6 +128,14 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
         // Fourth, as asked: the calculators, a web site like the map.
         PartnerTiles.Add(WebToolTile(WebTool.Calcofus, "ToolCalcofusName", "ToolCalcofusLine", Calcofus.IconAsset));
+
+        // Last, a plain link: the site opens in the browser, nothing more.
+        PartnerTiles.Add(new PartnerTileViewModel(
+            Strings.Get("ToolDofusBookName"),
+            Strings.Get("ToolDofusBookLine"),
+            DofusBook.IconAsset,
+            isInstalled: true,
+            [new PartnerTarget(string.Empty, new RelayCommand(() => _dialogs.OpenUrl(DofusBook.Address)))]));
     }
 
     private PartnerTileViewModel WebToolTile(WebTool tool, string nameKey, string lineKey, string icon) =>

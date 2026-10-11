@@ -110,4 +110,20 @@ public sealed class PartnerAppsTests
         // is not a calculator to come back to.
         Assert.Equal("https://calcofus.fr/", Calcofus.StartAddress(remembered));
     }
+
+    [Theory]
+    [InlineData("https://www.highperformanceformat.com/abc/invoke.js", true)]
+    [InlineData("https://highperformanceformat.com/x", true)]
+    [InlineData("https://www.topcreativeformat.com/watch.1234", true)]
+    [InlineData("https://www.dofus-touch-map.com/img/icons/favicon.png", false)]
+    [InlineData("https://api.dofus-touch-map.com/?ref=highperformanceformat.com", false)]
+    [InlineData("https://nothighperformanceformat.com/x", false)]
+    [InlineData("pas une adresse", false)]
+    public void Seule_la_regie_adsterra_de_la_carte_est_bloquee(string url, bool blocked)
+    {
+        // The two hosts its ads came from on 2026-10-11, which set off the
+        // project owner's antivirus. The site itself, and an address that
+        // merely mentions one of them, still load.
+        Assert.Equal(blocked, DofusTouchMap.IsBlockedAd(url));
+    }
 }

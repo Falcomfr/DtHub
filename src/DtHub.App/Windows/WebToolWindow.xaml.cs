@@ -63,6 +63,12 @@ public partial class WebToolWindow : Window
 
             if (Tool == WebTool.Map)
             {
+                foreach (var host in DofusTouchMap.BlockedAdHosts)
+                {
+                    View.CoreWebView2.AddWebResourceRequestedFilter($"*{host}/*", CoreWebView2WebResourceContext.All);
+                }
+
+                View.CoreWebView2.WebResourceRequested += OnMapRequest;
                 View.CoreWebView2.Navigate(DofusTouchMap.Address);
                 return;
             }
@@ -78,6 +84,27 @@ public partial class WebToolWindow : Window
             Log.Warning(exception, "L'outil web {Outil} n'a pas pu s'ouvrir.", Tool);
         }
     }
+
+    /// <summary>
+    /// The map's ads, refused before they leave the PC: no request, nothing
+    /// for an antivirus to stop. The filter is a wildcard, so the host is
+    /// checked again exactly.
+    /// </summary>
+    private void OnMapRequest(object? sender, CoreWebView2WebResourceRequestedEventArgs e)
+    {
+        if (DofusTouchMap.IsBlockedAd(e.Request.Uri))
+        {
+            e.Response = View.CoreWebView2.Environment.CreateWebResourceResponse(null, 403, "Blocked", string.Empty);
+            Log.Information("Carte : publicité refusée ({Hote}).", new Uri(e.Request.Uri).Host);
+        }
+    }
+
+    private void OnOpenInBrowser(object sender, RoutedEventArgs e) =>
+        _dialogs.OpenUrl(View.CoreWebView2?.Source is { Length: > 0 } page
+            ? page
+            : Tool == WebTool.Map ? DofusTouchMap.Address : Calcofus.Address);
+
+    private void OnDonate(object sender, RoutedEventArgs e) => _dialogs.OpenUrl(DofusTouchMap.DonationAddress);
 
     /// <summary>
     /// target="_blank", which the engine would otherwise open in a window of
@@ -120,6 +147,7 @@ public partial class WebToolWindow : Window
     protected override async void OnSourceInitialized(EventArgs e)
     {
         Title = Strings.Get(Tool == WebTool.Map ? "ToolMapName" : "ToolCalcofusName");
+        Donate.Visibility = Tool == WebTool.Map ? Visibility.Visible : Visibility.Collapsed;
 
         base.OnSourceInitialized(e);
 

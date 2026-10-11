@@ -1979,9 +1979,6 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="IndexingProgress" xml:space="preserve">
     <value>Indexando {0} / {1}</value>
   </data>
-  <data name="ProfileOrigin" xml:space="preserve">
-    <value>perfil {0} · {1}</value>
-  </data>
   <data name="DefaultAccountName" xml:space="preserve">
     <value>Cuenta {0}</value>
   </data>
@@ -2193,5 +2190,14 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   </data>
   <data name="PartnerPickDevice" xml:space="preserve">
     <value>¿{0} en qué dispositivo?</value>
+  </data>
+  <data name="ToolMapDonate" xml:space="preserve">
+    <value>Hacer una donación</value>
+  </data>
+  <data name="ToolDofusBookName" xml:space="preserve">
+    <value>DofusBook</value>
+  </data>
+  <data name="ToolDofusBookLine" xml:space="preserve">
+    <value>Creador y biblioteca de equipamientos. Se abre en el navegador.</value>
   </data>
 </root>

@@ -190,19 +190,6 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     public bool IsDeviceConnected => Instance.IsDeviceConnected;
 
     /// <summary>
-    /// Originating Android profile, shown in the background.
-    /// </summary>
-    public string UserLabel => Strings.Format("ProfileOrigin", Instance.UserId, Instance.UserName);
-
-    /// <summary>
-    /// True when the displayed name no longer says which profile this is, that
-    /// is, when the user has renamed it. Without a renaming, the reminder
-    /// would repeat the name right above it and would cost a line for nothing.
-    /// </summary>
-    public bool ShowUserLabel =>
-        !string.Equals(Name, Instance.UserName, StringComparison.Ordinal);
-
-    /// <summary>
     /// When this account's window was opened, or <c>null</c>. Held
     /// rather than the elapsed time itself: a duration would have to be
     /// recomputed to stay true, a moment stays true on its own.
@@ -229,7 +216,10 @@ public sealed partial class InstanceRowViewModel : ObservableObject
         InstanceActivity.Starting => Strings.Get("StatusOpening"),
         InstanceActivity.Running when _startedUtc is { } since =>
             SessionClock.Describe(DateTimeOffset.UtcNow - since),
-        _ => ShowUserLabel ? UserLabel : null,
+        // The Android profile a renamed account came from ("profile 0 ·
+        // Main") used to fill the line: dropped on 2026-10-11, it told the
+        // player nothing they act on.
+        _ => null,
     };
 
     /// <summary>
@@ -609,8 +599,6 @@ public sealed partial class InstanceRowViewModel : ObservableObject
         }
 
         OnPropertyChanged(nameof(IsDeviceConnected));
-        OnPropertyChanged(nameof(UserLabel));
-        OnPropertyChanged(nameof(ShowUserLabel));
     }
 
     partial void OnColourChanged(AccountColour? value)
@@ -694,8 +682,6 @@ public sealed partial class InstanceRowViewModel : ObservableObject
 
     partial void OnNameChanged(string value)
     {
-        OnPropertyChanged(nameof(ShowUserLabel));
-
         if (_applying)
         {
             return;

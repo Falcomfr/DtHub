@@ -183,6 +183,19 @@ It marks the Calcofus tile in the DOFUS Touch tools menu.
 DT Hub, not to anyone reusing this repository, who must contact the owner of
 calcofus.fr.
 
+## DofusBook logo
+
+- Source: the site's favicon, https://touch.dofusbook.net/favicon.ico, at 48
+  pixels, set on a rounded square drawn for DT Hub in the style of the other
+  tools, light so its black stays readable
+- File: `assets/dofusbook.png`, embedded in the executable
+- Recorded on 2026-10-11, at the project owner's request
+
+It marks the DofusBook tile in the DOFUS Touch tools menu, a plain link that
+opens the site in the browser.
+
+**This file is not covered by DT Hub's MIT licence.** It remains DofusBook's.
+
 ## papycha.fr logo
 
 - Source: https://papycha.fr/wp-content/uploads/2022/04/cropped-luis-192x192.png

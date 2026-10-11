@@ -54,7 +54,7 @@ public class StringsLanguageTests : IDisposable
     {
         Strings.Speak(CultureInfo.GetCultureInfo("en"));
 
-        Assert.StartsWith("profile ", Strings.Format("ProfileOrigin", 0, "Main"), StringComparison.Ordinal);
+        Assert.Equal("Open on which device?", Strings.Format("PartnerPickDevice", "Open"));
     }
 
     [Fact]
