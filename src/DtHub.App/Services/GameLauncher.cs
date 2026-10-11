@@ -249,6 +249,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private QualityProfile _quality = QualityProfile.For(StreamQuality.Medium);
     private GameZoom _zoom = GameZoom.Normal;
+    private bool _sharpImage;
 
     /// <summary>
     /// Display delay suited to this link, in milliseconds.
@@ -3553,7 +3554,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
 
         var (width, height) = DisplayLadder.For(
-            window.Height, screen.Width, screen.Height, quality.MaximumDisplayHeight);
+            window.Height, screen.Width, screen.Height, quality.MaximumDisplayHeight, _sharpImage);
 
         // Density is derived from the chosen resolution: leaving it
         // fixed made the game's zoom vary with the window's size,
@@ -3987,6 +3988,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _quality = QualityProfile.For(settings.Quality, settings.CustomQuality);
 
         _zoom = settings.GameZoom;
+        _sharpImage = settings.SharpImage;
         _sessions.StopAppOnClose = settings.StopAppOnClose;
         _windows.Anchor = settings.GameAnchor;
         _windows.Presets = await _settings.GetSizePresetsAsync(cancellationToken).ConfigureAwait(false);

@@ -818,6 +818,9 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [ObservableProperty]
     private bool _audioEnabled;
 
+    [ObservableProperty]
+    private bool _sharpImage;
+
     public string Disclaimer =>
         Strings.Get("Disclaimer");
 
@@ -848,6 +851,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             SimulatedPhysicalMouse = settings.SimulatedPhysicalMouse;
             Language = settings.Language;
             AudioEnabled = settings.AudioEnabled;
+        SharpImage = settings.SharpImage;
             ReadCustomQuality(settings);
 
             SizePercent = settings.CustomSizePercent > 0
@@ -1440,6 +1444,20 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         }
 
         _ = ApplyStartupSettingAsync(() => _settings.SetAudioEnabledAsync(value));
+    }
+
+    /// <summary>
+    /// Applied like the quality: the display's resolution is fixed when a
+    /// session opens, so the windows reopen.
+    /// </summary>
+    partial void OnSharpImageChanged(bool value)
+    {
+        if (_loading)
+        {
+            return;
+        }
+
+        _ = ApplyStartupSettingAsync(() => _settings.SetSharpImageAsync(value));
     }
 
     /// <summary>

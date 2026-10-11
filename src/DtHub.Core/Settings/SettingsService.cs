@@ -320,6 +320,9 @@ public sealed class SettingsService : IDisposable
     public Task SetAudioEnabledAsync(bool enabled, CancellationToken cancellationToken = default) =>
         UpdateAsync(settings => settings.AudioEnabled = enabled, cancellationToken);
 
+    public Task SetSharpImageAsync(bool enabled, CancellationToken cancellationToken = default) =>
+        UpdateAsync(settings => settings.SharpImage = enabled, cancellationToken);
+
     /// <summary>
     /// Remembers whether the phone's screen goes dark during the game.
     /// </summary>

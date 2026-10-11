@@ -99,13 +99,26 @@ public static class DisplayLadder
     /// The aspect ratio is the screen's: that is the one the window
     /// keeps, and departing from it would leave a band. The chosen
     /// quality can cap the height, which lightens the phone's encoder.
+    ///
+    /// <paramref name="sharpImage"/> asks for twice the window's height.
+    /// The video carries colour at half resolution, so red text on grey,
+    /// which differs from its background by colour alone, smears in a
+    /// window of its own size. Rendered twice as large and shrunk by the
+    /// PC, the colour arrives at the window's resolution. The screen and
+    /// the tier still cap it.
     /// </summary>
     public static (int Width, int Height) For(
         int clientHeight,
         int screenWidth,
         int screenHeight,
-        int maximumHeight = int.MaxValue)
+        int maximumHeight = int.MaxValue,
+        bool sharpImage = false)
     {
+        if (sharpImage)
+        {
+            clientHeight *= 2;
+        }
+
         if (screenWidth <= 0 || screenHeight <= 0)
         {
             return (FallbackWidth, FallbackHeight);

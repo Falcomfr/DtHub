@@ -224,6 +224,12 @@
   <data name="PhoneAudioTip" xml:space="preserve">
     <value>Android no sabe aislar el sonido de una aplicación: llega el del teléfono entero, con todas las cuentas abiertas mezcladas. Una sola ventana por aparato lo lleva.</value>
   </data>
+  <data name="SharpImage" xml:space="preserve">
+    <value>Imagen más nítida</value>
+  </data>
+  <data name="SharpImageTip" xml:space="preserve">
+    <value>El juego se dibuja al doble del tamaño de la ventana, dentro del límite de la calidad elegida. El texto de color, como el rojo sobre gris, queda tan nítido como el blanco. Exige más esfuerzo al teléfono y más ancho de banda Wi-Fi: déjala desactivada en un teléfono o una tableta modestos.</value>
+  </data>
   <data name="AutomaticUpdates" xml:space="preserve">
     <value>Actualización automática</value>
   </data>

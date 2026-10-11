@@ -10157,3 +10157,35 @@ dans l'onglet Appareils, 16 dans Fenêtres, et les choix des listes lus
 - Remesuré : 0 bouton sans nom dans Appareils et Raccourcis, 4 dans Fenêtres,
   les boutons internes du curseur et de la barre de défilement, que les
   lecteurs d'écran contournent par le contrôle lui-même.
+
+## D193 - Une image plus nette, au double de la fenêtre
+
+Le 11/10/2026, un joueur sur POCO Pad M1 trouvait flou le « Niveau requis :
+200 » rouge de la fenêtre des sorts, alors que le texte blanc juste au-dessus
+était net. Mesuré sur sa capture : le rouge a une luminance moyenne de 69, le
+fond gris de 66. La forme des lettres ne passe que par la couleur, et la vidéo
+H.264 ou H.265 en 4:2:0 transmet la couleur à demi-résolution. Ni le débit ni
+le codec n'y changent rien, et ni scrcpy ni les encodeurs matériels Android ne
+proposent le 4:4:4.
+
+Mesuré sur le 13T Pro le 12/10/2026, page de texte rouge sur gris dans Chrome,
+fenêtre 1915x800, même débit : à 2144x896, le rouge bave comme chez le joueur ;
+à 3440x1440, il est aussi net que le blanc, même en 9 px. Rendue deux fois plus
+grande puis réduite par le PC, la couleur arrive à la résolution de la fenêtre.
+
+- Une case globale, « Image plus nette », décochée par défaut : `DisplayLadder.For`
+  double la hauteur de la fenêtre avant de choisir le palier. Pas par compte :
+  une seule case couvre le besoin.
+- Le plafond du palier de qualité reste le plafond, et l'écran aussi : un palier
+  continue de désigner une charge connue. En Moyenne (1080), le gain n'est que
+  partiel ; il est complet en Haute ou en personnalisé.
+- La densité et le débit suivent déjà la définition : l'interface du jeu garde
+  sa taille, et le débit monte avec les pixels, sous le plafond du palier.
+- Pas automatique : sur la tablette du joueur, l'encodeur refusait déjà une
+  troisième fenêtre en 2144x896. Le repli vers 1080 puis 720 s'applique si
+  l'encodeur refuse, et le gain est alors perdu sans rien casser.
+
+Vérifié sur la version publiée en local, qualité personnalisée plafonnée à 2160,
+fenêtre de 1279 de haut : `--new-display=2560x1440/320` sans la case,
+`3840x2160/480` avec, et la case décochée dans le panneau rouvre la fenêtre à
+2560x1440.

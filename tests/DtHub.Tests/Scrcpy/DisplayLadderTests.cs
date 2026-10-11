@@ -219,4 +219,23 @@ public sealed class DisplayLadderTests
     {
         Assert.Equal((1920, 1080), DisplayLadder.At(1080, 0, 0));
     }
+
+    [Fact]
+    public void L_image_plus_nette_double_la_hauteur_demandee()
+    {
+        // The video carries colour at half resolution. Measured on the 13T
+        // Pro on 2026-10-12: red text on grey, window 1915x800, smeared at
+        // 2144x896 and as sharp as white text at 3440x1440.
+        Assert.Equal((2144, 896), DisplayLadder.For(835, 3440, 1440, 1440));
+        Assert.Equal((3440, 1440), DisplayLadder.For(835, 3440, 1440, 1440, sharpImage: true));
+    }
+
+    [Fact]
+    public void L_image_plus_nette_reste_sous_le_plafond_du_palier()
+    {
+        // A tier still names a known load for the phone.
+        var (_, height) = DisplayLadder.For(835, 3440, 1440, 1080, sharpImage: true);
+
+        Assert.Equal(1080, height);
+    }
 }

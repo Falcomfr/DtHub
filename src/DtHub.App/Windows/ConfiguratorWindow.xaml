@@ -442,6 +442,10 @@
                                                      ConverterParameter=Custom}" />
                   </WrapPanel>
 
+                  <CheckBox Content="{loc:T SharpImage}" Margin="0,0,0,5"
+                            IsChecked="{Binding SharpImage}"
+                            ToolTip="{loc:T SharpImageTip}" />
+
                   <Popup IsOpen="{Binding IsChecked, ElementName=CustomGear, Mode=TwoWay}" StaysOpen="False"
                          Placement="Bottom" PlacementTarget="{Binding ElementName=CustomGear}"
                          AllowsTransparency="True" PopupAnimation="Fade" HorizontalOffset="-296">

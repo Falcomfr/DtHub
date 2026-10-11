@@ -217,6 +217,13 @@ public sealed class AppSettingsDocument
     public CustomQuality CustomQuality { get; set; } = new();
 
     /// <summary>
+    /// Renders the game at twice the window's height, within the tier's
+    /// ceiling, so coloured text stays sharp. Off by default: it costs the
+    /// phone's encoder and the link. See <c>DisplayLadder.For</c>.
+    /// </summary>
+    public bool SharpImage { get; set; }
+
+    /// <summary>
     /// Apparent distance in the game. Like quality, it is fixed when a
     /// session opens: changing it reopens the windows.
     /// </summary>

@@ -691,8 +691,17 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.Equal(1, settings.SizeIndex);
         Assert.Equal(StreamQuality.Medium, settings.Quality);
         Assert.False(settings.AudioEnabled);
+        Assert.False(settings.SharpImage);
         Assert.True(settings.ClipboardSyncEnabled);
         Assert.Equal("com.ankama.dofustouch", settings.PackageName);
+    }
+
+    [Fact]
+    public async Task L_image_plus_nette_est_retenue()
+    {
+        await _service.SetSharpImageAsync(true, CancellationToken.None);
+
+        Assert.True((await _service.GetAsync(CancellationToken.None)).SharpImage);
     }
 
     [Fact]
