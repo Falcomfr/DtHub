@@ -17,6 +17,15 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.8.1] - 2026-10-11
+
+### Fixed
+
+- The density of the custom quality shows its value, can be typed into, and
+  applies as soon as it is picked.
+- A setting changed while the windows reopen is no longer lost.
+- The Dofus Touch Map window no longer sends its ad pop-ups to the browser.
+
 ## [0.8.0] - 2026-10-11
 
 ### Added

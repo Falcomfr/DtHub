@@ -11,6 +11,16 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.8.1] - 2026-10-11
+
+### Corrigé
+
+- La densité de la qualité personnalisée affiche sa valeur, se tape, et
+  s'applique dès qu'on la choisit.
+- Un réglage changé pendant la réouverture des fenêtres n'est plus perdu.
+- La fenêtre Dofus Touch Map n'envoie plus ses fenêtres publicitaires au
+  navigateur.
+
 ## [0.8.0] - 2026-10-11
 
 ### Ajouté

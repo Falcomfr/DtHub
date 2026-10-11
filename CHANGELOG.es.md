@@ -10,6 +10,16 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.8.1] - 2026-10-11
+
+### Corregido
+
+- La densidad de la calidad personalizada muestra su valor, se puede escribir y
+  se aplica en cuanto se elige.
+- Un ajuste cambiado mientras las ventanas se reabren ya no se pierde.
+- La ventana de Dofus Touch Map ya no envía sus ventanas publicitarias al
+  navegador.
+
 ## [0.8.0] - 2026-10-11
 
 ### Añadido
