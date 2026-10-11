@@ -29,6 +29,12 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
   teléfono no aparece.
 - La calidad personalizada permite ajustar la densidad de la pantalla del
   juego: la interfaz mantiene su tamaño cuando la ventana es más pequeña.
+- El Almanax lista las ofrendas de la semana, cada una lista para copiar en la
+  búsqueda del mercadillo, y la ofrenda del día se copia con un clic.
+- Buscar un oficio en el Almanax, como Minero, lista sus días de bonus en los
+  próximos dos meses, recolección y fabricación.
+- El Almanax señala los días que tienen además una misión repetible especial
+  o una bendición, con adónde ir.
 
 ### Cambiado
 
@@ -39,6 +45,8 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
   dan la causa real y qué hacer.
 - La ventana Dofus Touch Map se carga sin los anuncios que activaban los
   antivirus, y ofrece abrir el sitio en el navegador o hacer una donación.
+- Una Carpeta segura que Samsung cierra al PC se dice tal cual, y el consejo
+  de Samsung ahora lleva a un perfil de trabajo creado con Island.
 
 ### Eliminado
 

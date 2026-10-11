@@ -31,6 +31,12 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
   n'apparaît pas.
 - La qualité personnalisée permet de régler la densité de l'écran du jeu :
   l'interface garde sa taille quand la fenêtre est plus petite.
+- L'Almanax liste les offrandes de la semaine, chacune prête à copier pour la
+  recherche de l'hôtel de vente, et l'offrande du jour se copie d'un clic.
+- Chercher un métier dans l'Almanax, comme Mineur, liste ses jours de bonus
+  sur les deux prochains mois, récolte et craft.
+- L'Almanax signale les jours qui ont aussi une quête répétable spéciale ou
+  une bénédiction, avec où aller.
 
 ### Modifié
 
@@ -42,6 +48,8 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - La fenêtre Dofus Touch Map se charge sans les publicités qui déclenchaient
   les antivirus, et propose d'ouvrir le site dans le navigateur ou de faire un
   don.
+- Un Dossier sécurisé que Samsung ferme au PC est dit tel quel, et le conseil
+  Samsung envoie désormais vers un profil de travail créé avec Island.
 
 ### Supprimé
 

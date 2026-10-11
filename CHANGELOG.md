@@ -36,6 +36,12 @@ belongs in the commits and in `docs/DECISIONS.md`.
   show up.
 - The custom quality lets you set the game screen's density: the interface
   keeps its size when the window is smaller.
+- The Almanax lists the week's offerings, each one ready to copy for the
+  marketplace search, and the day's offering copies in one click.
+- Searching a profession in the Almanax, such as Miner, lists its bonus days
+  over the next two months, gathering and crafting.
+- The Almanax flags the days that also hold a special repeatable quest or a
+  blessing, with where to go.
 
 ### Changed
 
@@ -46,6 +52,8 @@ belongs in the commits and in `docs/DECISIONS.md`.
   cause and what to do.
 - The Dofus Touch Map window loads without the ads that set off antiviruses,
   and offers to open the site in the browser or to donate.
+- A Samsung Secure Folder that Samsung keeps closed to the PC is said so, and
+  Samsung's advice now points to a work profile made with Island.
 
 ### Removed
 
