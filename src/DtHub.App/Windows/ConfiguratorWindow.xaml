@@ -977,7 +977,9 @@
               </ControlTemplate>
             </ToggleButton.Template>
             <StackPanel Orientation="Horizontal">
-              <Image Source="/assets/dtstuff.png" Width="16" Height="16"
+              <Image Source="/assets/dtmap.png" Width="16" Height="16"
+                     RenderOptions.BitmapScalingMode="HighQuality" />
+              <Image Source="/assets/dtstuff.png" Width="16" Height="16" Margin="-4,0,0,0"
                      RenderOptions.BitmapScalingMode="HighQuality" />
               <Image Source="/assets/ocrapp.png" Width="16" Height="16" Margin="-4,0,0,0"
                      RenderOptions.BitmapScalingMode="HighQuality" />

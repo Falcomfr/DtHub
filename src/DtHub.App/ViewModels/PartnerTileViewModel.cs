@@ -37,6 +37,13 @@ public sealed class PartnerTileViewModel(
     public string Line => line;
 
     public string Icon => icon;
+
+    /// <summary>
+    /// Under the name: a reason when no phone can act, the one line
+    /// presentation otherwise.
+    /// </summary>
+    public string Detail => targets.Count == 0 ? Strings.Get("PartnerNoDevice") : line;
+
     public bool IsInstalled => isInstalled;
 
     public string ActionText => Strings.Get(isInstalled ? "PartnerOpen" : "PartnerInstall");
