@@ -890,17 +890,6 @@ public partial class App : Application, IDisposable
     private void ToggleQuests() => Quests()?.Toggle();
 
     /// <summary>
-    /// Opens the day's Almanax, one window at a time.
-    ///
-    /// Only one because there is only one Almanax: two windows would
-    /// show the same thing, and the second would make us forget the
-    /// first. If it is already there, we bring it to the front.
-    ///
-    /// It, however, does not count when deciding whether something
-    /// remains: we do not open DT Hub just to check a calendar, and
-    /// the application does not have to survive for it alone.
-    /// </summary>
-    /// <summary>
     /// A DOFUS Touch web tool: brought forward when already open, opened
     /// otherwise, like the Almanax.
     /// </summary>
@@ -924,6 +913,17 @@ public partial class App : Application, IDisposable
         window.Show();
     }
 
+    /// <summary>
+    /// Opens the day's Almanax, one window at a time.
+    ///
+    /// Only one because there is only one Almanax: two windows would
+    /// show the same thing, and the second would make us forget the
+    /// first. If it is already there, we bring it to the front.
+    ///
+    /// It, however, does not count when deciding whether something
+    /// remains: we do not open DT Hub just to check a calendar, and
+    /// the application does not have to survive for it alone.
+    /// </summary>
     private void ShowAlmanax()
     {
         if (_almanax is { IsLoaded: true })

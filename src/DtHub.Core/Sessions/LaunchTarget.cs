@@ -23,8 +23,9 @@ public sealed record LaunchTarget
 
     /// <summary>
     /// A link to open instead of the app's own activity, a Play Store page
-    /// above all. Its target is then neither stopped before opening nor
-    /// when its window closes: that would cancel a download in progress.
+    /// above all. Its target is not stopped before opening, which would
+    /// cancel a download in progress; it is stopped with its window, like
+    /// every tool window.
     /// </summary>
     public string? StartUri { get; init; }
 
@@ -41,5 +42,6 @@ public sealed record LaunchTarget
     /// <summary>
     /// Stable key, identical to that of the corresponding instance.
     /// </summary>
-    public string Key => $"{DeviceId}|{UserId}|{PackageName}";
+    /// <remarks>The same as <see cref="Dofus.DofusInstance.Key" />, a tool window's set apart.</remarks>
+    public string Key => IsTransient ? $"{DeviceId}|{UserId}|{PackageName}|tool" : $"{DeviceId}|{UserId}|{PackageName}";
 }

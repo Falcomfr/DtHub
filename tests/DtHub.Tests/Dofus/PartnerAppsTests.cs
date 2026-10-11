@@ -126,4 +126,40 @@ public sealed class PartnerAppsTests
         // merely mentions one of them, still load.
         Assert.Equal(blocked, DofusTouchMap.IsBlockedAd(url));
     }
+
+    [Fact]
+    public void Une_fenetre_d_outil_n_a_jamais_la_cle_d_un_compte_du_meme_paquet()
+    {
+        // A player may have added DTStuff with "+" before the tools existed:
+        // sharing its key, the tool window took its place, its tab and its
+        // running state.
+        var account = new DofusInstance { DeviceId = "tel", DeviceName = "Tel", UserId = 0, UserName = "Main", PackageName = DtStuff };
+        var tool = account with { IsTransient = true };
+        var target = new DtHub.Core.Sessions.LaunchTarget
+        {
+            DeviceId = "tel",
+            Serial = "s",
+            UserId = 0,
+            PackageName = DtStuff,
+            DisplayName = "DTStuff",
+            IsTransient = true,
+        };
+
+        Assert.NotEqual(account.Key, tool.Key);
+        Assert.Equal(tool.Key, target.Key);
+    }
+
+    [Theory]
+    [InlineData("https://calcofus.fr/page_invo", true)]
+    [InlineData("https://www.calcofus.fr/page_invo", true)]
+    [InlineData("https://calcofus.fr/page%5Finvo", true)]
+    [InlineData("https://discord.gg/dfDV8Zvwqp", false)]
+    [InlineData("http://calcofus.fr/", false)]
+    [InlineData("https://calcofus.fr.example.com/", false)]
+    public void Une_page_de_calcofus_se_reconnait_a_son_hote(string url, bool own)
+    {
+        // Compared as text, an escaped character or the www form sent an
+        // in-site page to the browser.
+        Assert.Equal(own, Calcofus.IsOwnPage(url));
+    }
 }

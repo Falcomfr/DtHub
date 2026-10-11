@@ -9639,7 +9639,7 @@ la vraie réponse : SignPath demande un projet déjà connu, pas encore le cas.
 **Écarté** : demander une exclusion au joueur, pour la raison déjà écrite
 dans `docs/CONFIANCE.md`.
 
-## D181 - Les outils DOFUS Touch : installer depuis le PC, ouvrir sur le téléphone
+## D181 - Les outils DOFUS Touch : installer depuis le PC, ouvrir dans une fenêtre du PC
 
 **Date** : 2026-10-11
 
@@ -9771,6 +9771,13 @@ quitter. Les joueurs attendent ce geste, celui de scrcpy : il revient
 (`--mouse-bind=b---:bhsn`). Les fenêtres des outils (DTStuff, OcrApp, Play
 Store) le gardent coupé, parce qu'un Retour depuis leur premier écran les
 quitte. Maj + clic droit donne toujours les quatre actions partout.
+
+## D184 - Le panneau qui s'efface au lancement : annulé
+
+Essayé le 11/10/2026 à la demande d'un joueur, retiré le jour même : lancer
+plusieurs comptes ou outils d'affilée demandait de rouvrir le panneau à chaque
+fois, et sa croix le masquait déjà. Le numéro reste pris pour que la suite des
+décisions ne saute pas.
 
 ## D185 - Honor, Huawei, Dossier sécurisé et Wi-Fi muet : dire quoi faire, à qui c'est arrivé
 

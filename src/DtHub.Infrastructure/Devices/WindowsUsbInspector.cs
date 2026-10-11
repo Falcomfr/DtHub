@@ -70,6 +70,7 @@ public sealed class WindowsUsbInspector : IUsbEnumerationInspector
         }
         catch (EntryPointNotFoundException)
         {
+            // A system library without this call: not knowing, as above.
             return 0;
         }
         finally
@@ -121,6 +122,7 @@ public sealed class WindowsUsbInspector : IUsbEnumerationInspector
         }
         catch (EntryPointNotFoundException)
         {
+            // A system library without this call: not knowing, as above.
             return [];
         }
         finally

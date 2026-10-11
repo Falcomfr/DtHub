@@ -250,4 +250,21 @@ public class ConnectionCheckTests
         Assert.DoesNotContain("AB12CD34EF", summary, StringComparison.Ordinal);
         Assert.DoesNotContain("VID_046D", summary, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void Un_honor_dont_le_debogage_est_deja_actif_n_entend_pas_qu_il_faut_l_activer()
+    {
+        // Debugging on and its driver fine, yet adb lists nothing: adb is
+        // catching up, or a maker's suite runs an adb of its own. Telling
+        // the player to turn debugging on would send them to a switch
+        // already on.
+        Assert.Equal(
+            ConnectionVerdict.NoDevice,
+            ConnectionCheck.Of(
+                [],
+                [],
+                toolsReady: true,
+                present: [Usb(@"USB\VID_339B&PID_107E\A"), Usb(@"USB\VID_339B&PID_107E&MI_01\7&1", AdbClass)],
+                adbInterfaces: 1));
+    }
 }

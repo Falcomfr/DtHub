@@ -146,9 +146,15 @@ public static class Calcofus
     /// site, to Discord or a stuff library, is not one to come back to.
     /// </summary>
     public static string StartAddress(string? remembered) =>
-        Uri.TryCreate(remembered, UriKind.Absolute, out var uri)
+        IsOwnPage(remembered) ? new Uri(remembered!).AbsoluteUri : Address;
+
+    /// <summary>
+    /// True for a page of the site, by its host, the www form included:
+    /// compared as text, an escaped character sent an in-site page out.
+    /// </summary>
+    public static bool IsOwnPage(string? url) =>
+        Uri.TryCreate(url, UriKind.Absolute, out var uri)
         && uri.Scheme == Uri.UriSchemeHttps
-        && string.Equals(uri.Host, "calcofus.fr", StringComparison.OrdinalIgnoreCase)
-            ? uri.AbsoluteUri
-            : Address;
+        && (uri.Host.Equals("calcofus.fr", StringComparison.OrdinalIgnoreCase)
+            || uri.Host.Equals("www.calcofus.fr", StringComparison.OrdinalIgnoreCase));
 }

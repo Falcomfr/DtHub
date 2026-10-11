@@ -91,8 +91,8 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// </summary>
     public async Task RefreshPartnerTilesAsync()
     {
+        // The refresh raises PartnerAvailabilityChanged, which rebuilds.
         await _launcher.RefreshPartnerAppsAsync().ConfigureAwait(true);
-        RebuildPartnerTiles();
     }
 
     /// <summary>The MakeInTouch apps, at the bottom of the Devices tab.</summary>
@@ -104,9 +104,11 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// </summary>
     private void RebuildPartnerTiles()
     {
-        PartnerTiles.Clear();
+        // The phone choice survives a rebuild: the menu's own refresh lands
+        // right after a click, and the choice vanished under the player.
+        var picking = PickingTile?.Name;
 
-        PickingTile = null;
+        PartnerTiles.Clear();
 
         // The map first, as asked: a web site, it needs no phone and opens
         // in a DT Hub window.
@@ -136,6 +138,8 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             DofusBook.IconAsset,
             isInstalled: true,
             [new PartnerTarget(string.Empty, new RelayCommand(() => _dialogs.OpenUrl(DofusBook.Address)))]));
+
+        PickingTile = PartnerTiles.FirstOrDefault(t => t.Name == picking && t.Targets.Count > 1);
     }
 
     private PartnerTileViewModel WebToolTile(WebTool tool, string nameKey, string lineKey, string icon) =>

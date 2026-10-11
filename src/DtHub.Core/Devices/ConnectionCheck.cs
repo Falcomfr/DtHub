@@ -150,9 +150,11 @@ public static class ConnectionCheck
     private static ConnectionVerdict PhoneOnUsb(IReadOnlyList<UsbPresence> present, int adbInterfaces)
     {
         // Debugging is already on: the brand's steps would only repeat it.
-        if (adbInterfaces == 0 && present.Any(d => d.IsDebugInterface))
+        // With a usable driver, adb is catching up or a maker's suite runs
+        // its own: nothing more to tell.
+        if (present.Any(d => d.IsDebugInterface))
         {
-            return ConnectionVerdict.AdbDriverUnusable;
+            return adbInterfaces == 0 ? ConnectionVerdict.AdbDriverUnusable : ConnectionVerdict.NoDevice;
         }
 
         if (present.Any(d => d.Id.Contains("VID_339B", StringComparison.OrdinalIgnoreCase)))

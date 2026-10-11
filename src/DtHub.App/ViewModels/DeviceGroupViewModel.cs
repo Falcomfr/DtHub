@@ -308,7 +308,6 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     /// </summary>
     public string ProblemsBrushKey => _problemsAreSerious ? "DangerBrush" : "WarningBrush";
 
-    /// <summary>Sets what the health check found for this device.</summary>
     /// <summary>
     /// The findings of the alert line that come with a help: the battery page
     /// of an app, or the phone's click setting. One opens straight away from
@@ -320,6 +319,7 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
 
     public bool HasHelp => HasProblems && Helps.Count > 0;
 
+    /// <summary>Sets what the health check found for this device.</summary>
     public void SetProblems(string? problems, bool serious, IReadOnlyList<HealthFinding>? helps = null)
     {
         helps ??= [];

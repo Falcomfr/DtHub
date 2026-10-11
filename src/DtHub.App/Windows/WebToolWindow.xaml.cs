@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.IO;
+using System.Windows;
 
 using DtHub.App.Services;
 using DtHub.Core.Dofus;
@@ -65,7 +66,11 @@ public partial class WebToolWindow : Window
             {
                 foreach (var host in DofusTouchMap.BlockedAdHosts)
                 {
-                    View.CoreWebView2.AddWebResourceRequestedFilter($"*{host}/*", CoreWebView2WebResourceContext.All);
+                    // Workers included: Adsterra's push ads run in one.
+                    View.CoreWebView2.AddWebResourceRequestedFilter(
+                        $"*{host}/*",
+                        CoreWebView2WebResourceContext.All,
+                        CoreWebView2WebResourceRequestSourceKinds.All);
                 }
 
                 View.CoreWebView2.WebResourceRequested += OnMapRequest;
@@ -123,7 +128,7 @@ public partial class WebToolWindow : Window
     /// </summary>
     private void OnCalcofusNavigating(object? sender, CoreWebView2NavigationStartingEventArgs e)
     {
-        if (Calcofus.StartAddress(e.Uri) != e.Uri)
+        if (!Calcofus.IsOwnPage(e.Uri))
         {
             e.Cancel = true;
             _dialogs.OpenUrl(e.Uri);
@@ -138,9 +143,22 @@ public partial class WebToolWindow : Window
     {
         var url = View.CoreWebView2.Source;
 
-        if (Calcofus.StartAddress(url) == url)
+        if (Calcofus.IsOwnPage(url))
         {
-            _ = _settings.SetLastCalcofusUrlAsync(url);
+            _ = RememberCalcofusPageAsync(url);
+        }
+    }
+
+    /// <summary>Remembered without blocking, and a failed write said in the log.</summary>
+    private async Task RememberCalcofusPageAsync(string url)
+    {
+        try
+        {
+            await _settings.SetLastCalcofusUrlAsync(url).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            Log.Warning(exception, "La page de Calcofus n'a pas pu être retenue.");
         }
     }
 

@@ -1104,7 +1104,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             // A link, the Play Store's page of an app: the store is not
             // stopped first, which would cancel a download already
             // running. It is ours from here, and closes with its window,
-            // whose title says to close it once the app is installed.
+            // on its own once the app is installed.
             launch = await _appLauncher.OpenUriAsync(
                 session.Serial,
                 session.Target.UserId,

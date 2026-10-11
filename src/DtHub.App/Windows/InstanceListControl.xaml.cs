@@ -88,11 +88,6 @@ public partial class InstanceListControl : UserControl
     private InstanceListViewModel? ViewModel => DataContext as InstanceListViewModel;
 
     /// <summary>
-    /// Remembers the starting point. Only the handle triggers a
-    /// drag: an entire row would make it impossible to select text
-    /// in the rename field.
-    /// </summary>
-    /// <summary>
     /// The alert line's Help link: one help opens straight away; several are
     /// offered in a small panel of the theme's colours, one line each, the
     /// app named, so a second problem is not hidden behind the first.
@@ -170,6 +165,11 @@ public partial class InstanceListControl : UserControl
         _ = help.ShowDialog();
     }
 
+    /// <summary>
+    /// Remembers the starting point. Only the handle triggers a
+    /// drag: an entire row would make it impossible to select text
+    /// in the rename field.
+    /// </summary>
     private void OnDragSourcePressed(object sender, MouseButtonEventArgs e)
     {
         _pending = ShowOrdering && sender is FrameworkElement { DataContext: InstanceRowViewModel row }

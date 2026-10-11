@@ -770,7 +770,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         RememberSerials(discovery);
 
-        await SweepPartnerAppsAsync(discovery.Devices, cancellationToken).ConfigureAwait(false);
+        // Not awaited: one package listing per phone, up to its timeout on a
+        // phone in deep doze, held back the accounts' discovery and their
+        // reopening at startup for every player, tools used or not.
+        _ = SweepPartnerAppsInBackgroundAsync(discovery.Devices, cancellationToken);
 
         var found = await _instances.DiscoverAsync(discovery.Devices, cancellationToken)
             .ConfigureAwait(false);
@@ -1105,15 +1108,67 @@ public sealed partial class GameLauncher : IAsyncDisposable
             return PartnerOpening.Failed;
         }
 
-        var report = await LaunchAsync([instance], cancellationToken).ConfigureAwait(false);
-
-        if (FindSession(instance) is { } opened)
+        // A second click while the first window is still opening: the
+        // session only exists once scrcpy is up, a few seconds later, and
+        // two windows on two displays left one black.
+        lock (_openingPassing)
         {
-            _ = KeepAwakeAsync(opened);
+            if (!_openingPassing.Add(instance.Key))
+            {
+                return PartnerOpening.InWindow;
+            }
         }
 
-        return report.Opened > 0 ? PartnerOpening.InWindow : PartnerOpening.Failed;
+        try
+        {
+            var report = await LaunchAsync([instance], cancellationToken).ConfigureAwait(false);
+
+            return report.Opened > 0 ? PartnerOpening.InWindow : PartnerOpening.Failed;
+        }
+        finally
+        {
+            lock (_openingPassing)
+            {
+                _ = _openingPassing.Remove(instance.Key);
+            }
+        }
     }
+
+    /// <summary>The passing windows being opened, by key.</summary>
+    private readonly HashSet<string> _openingPassing = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// The tools' sweep beside the accounts' one, never two at a time: a
+    /// slow phone would otherwise stack them up, sweep after sweep.
+    /// </summary>
+    private async Task SweepPartnerAppsInBackgroundAsync(
+        IReadOnlyList<AndroidDevice> devices,
+        CancellationToken cancellationToken)
+    {
+        if (Interlocked.CompareExchange(ref _partnerSweeping, 1, 0) != 0)
+        {
+            return;
+        }
+
+        try
+        {
+            await SweepPartnerAppsAsync(devices, cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            // The sweep that asked for it was cancelled: the next one redoes it.
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            LogPartnerSweepFailed(exception);
+        }
+        finally
+        {
+            _ = Interlocked.Exchange(ref _partnerSweeping, 0);
+        }
+    }
+
+    private int _partnerSweeping;
 
     /// <summary>
     /// One "pm list packages" per connected phone and sweep. A phone that
@@ -2340,6 +2395,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 display.VideoBitrateKbps);
 
             started.Add(session);
+
+            // Here and not only from the tools menu: a recovery reopens a
+            // tool window through this same path, and without its keep-awake
+            // the app froze within two minutes of the phone dozing.
+            if (session.Target.IsTransient)
+            {
+                _ = KeepAwakeAsync(session);
+            }
         }
 
         // Only the windows that just opened are placed. Repositioning
@@ -4176,6 +4239,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "La surveillance d'une installation depuis le Play Store a échoué.")]
     private partial void LogStoreWatchFailed(Exception exception);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Recherche des outils DOFUS Touch interrompue.")]
+    private partial void LogPartnerSweepFailed(Exception exception);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "{App} installée sur {Device} : la fenêtre du Play Store se ferme.")]
     private partial void LogPartnerInstalled(string app, string device);
