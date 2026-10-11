@@ -45,6 +45,13 @@ public sealed class DofusInstanceService
     private readonly List<string> _warnings = [];
 
     /// <summary>
+    /// The profiles that have answered at least once since startup. Kept
+    /// across scans: a Secure Folder seen open is one the PC may reach, so
+    /// its later refusal can only be its lock.
+    /// </summary>
+    private readonly HashSet<(string DeviceId, int UserId)> _reached = [];
+
+    /// <summary>
     /// Non-blocking issues from the last scan. A device whose profile list
     /// could not be read still yields an instance, that of the main profile:
     /// without a word about it, nothing distinguishes this case from a device
@@ -160,6 +167,16 @@ public sealed class DofusInstanceService
             if (packages is { Count: 0 } && user is { IsRunning: true, IsPaused: false })
             {
                 sansJeu.Add(user.Id);
+            }
+
+            if (packages is not null)
+            {
+                _ = _reached.Add((device.Id, user.Id));
+            }
+            else if (IsSecureFolder(device, user)
+                     && await HoldsGameAsync(device.Serial, user.Id, cancellationToken).ConfigureAwait(false))
+            {
+                _warnings.Add(SecureFolderWarning(device, _reached.Contains((device.Id, user.Id))));
             }
 
             foreach (var package in packages ?? [])
@@ -616,6 +633,49 @@ public sealed class DofusInstanceService
             return null;
         }
     }
+
+    /// <summary>
+    /// Samsung's Secure Folder, a Knox profile. It locks on its own, and
+    /// locked it refuses the shell: the game in it vanished from the list
+    /// without a word.
+    /// </summary>
+    // ponytail: Knox numbers its Secure Folder from 150, as every report
+    // of "user 150" shows; read its type from dumpsys if one ever differs.
+    private static bool IsSecureFolder(AndroidDevice device, AndroidUser user) =>
+        string.Equals(device.Manufacturer, "samsung", StringComparison.OrdinalIgnoreCase)
+        && user.Id is >= 150 and < 160;
+
+    /// <summary>
+    /// True if the game is installed in a profile that refuses to list its
+    /// packages. The main profile's <c>dumpsys package</c> knows every
+    /// profile's installs, so the warning only speaks to those who put the
+    /// game there.
+    /// </summary>
+    private async Task<bool> HoldsGameAsync(string serial, int userId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var output = await _adb.ShellAsync(serial, ["dumpsys", "package", PackageName], Timeout, cancellationToken)
+                .ConfigureAwait(false);
+
+            return PackageParser.ParseInstalledUsers(output).Contains(userId);
+        }
+        catch (AdbException)
+        {
+            // Not knowing is not knowing: no warning rather than a guess.
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// What to do, in order, with the settings path of this phone's
+    /// version: Samsung moved it with One UI 5, on Android 13.
+    /// </summary>
+    private static string SecureFolderWarning(AndroidDevice device, bool reachedBefore) =>
+        Strings.Format(
+            reachedBefore ? "SecureFolderLocked" : "SecureFolderUnreachable",
+            device.DisplayName,
+            Strings.Get(device.SdkVersion is null or >= 33 ? "SecureFolderPathRecent" : "SecureFolderPathOlder"));
 
     /// <summary>
     /// Resolves the activity to launch for an Android profile.

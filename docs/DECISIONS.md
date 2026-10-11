@@ -9771,3 +9771,45 @@ quitter. Les joueurs attendent ce geste, celui de scrcpy : il revient
 (`--mouse-bind=b---:bhsn`). Les fenêtres des outils (DTStuff, OcrApp, Play
 Store) le gardent coupé, parce qu'un Retour depuis leur premier écran les
 quitte. Maj + clic droit donne toujours les quatre actions partout.
+
+## D185 - Honor, Huawei, Dossier sécurisé et Wi-Fi muet : dire quoi faire, à qui c'est arrivé
+
+Remontées du 11/10/2026 : beaucoup de Honor n'apparaissent pas, et un jeu rangé
+dans le Dossier sécurisé de Samsung n'apparaît pas « par défaut ». Consigne de
+l'utilisateur : n'afficher chaque aide que sur l'appareil concerné, adaptée à
+lui, et que la personne comprenne quoi faire.
+
+### Honor et Huawei sur le câble
+
+Quand adb ne voit rien et que Windows ne signale aucun défaut, DT Hub lit les
+appareils USB présents. Le code constructeur 339B (Honor depuis sa séparation)
+ou 12D1 (Huawei, et les Honor d'avant) donne un message à étapes, dans le bloc
+de liaison et dans la carte « Aucun téléphone détecté ». Il nomme « Débogage
+ADB en mode Charger uniquement », option confirmée par le support Huawei
+français, et seulement « si votre version le propose » chez Honor : aucune
+source ne la montre sous MagicOS. Il demande un mode de transfert « de
+fichiers ou de photos » : un joueur rapporte que les Honor n'offrent pas
+toujours « Transfert de fichiers ». Aucun pilote Honor n'est nommé, faute d'un
+paquet officiel identifié. Les autres marques ne sont pas reconnues par leur
+code : celui de Samsung, 04E8, est aussi celui de ses disques SSD.
+
+### Dossier sécurisé
+
+Verrouillé, il refuse le shell, et le jeu disparaissait sans un mot. DT Hub
+demande désormais à `dumpsys package` du profil principal, qui connaît les
+installations de tous les profils, si le jeu est dans le profil 150 à 159 d'un
+Samsung. Seulement alors, un avertissement commence par l'action à faire
+(déverrouiller), donne le chemin du réglage « Verrouillage auto. Dossier
+sécurisé » selon la version (« Sécurité et confidentialité › Autres paramètres
+de sécurité » depuis Android 13, « Biométrie et sécurité » avant), et, tant que
+le dossier n'a jamais été lu, ajoute que Samsung peut en bloquer l'accès : des
+développeurs le rapportent depuis One UI 5. Un dossier déjà lu puis refusé est
+dit verrouillé, sans cette phrase. Rien n'est vérifié sur un Samsung.
+
+### Association sans fil sans annonce
+
+L'association exigeait que le téléphone s'annonce sur le réseau : une box qui
+filtre le multicast rendait même l'adresse tapée inutile. Après trois balayages
+sans téléphone, la fenêtre propose l'adresse et le code affichés sur l'écran
+d'association, et la connexion vise l'hôte associé quand aucune annonce ne le
+nomme.

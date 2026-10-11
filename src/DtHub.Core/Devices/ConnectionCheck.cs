@@ -39,6 +39,16 @@ public enum ConnectionVerdict
     /// </summary>
     UsbOther,
 
+    /// <summary>
+    /// Windows sees an Honor phone that ADB does not: still on charge
+    /// only, or with debugging off. Its own words, since its menus are
+    /// not those of other brands.
+    /// </summary>
+    HonorNotDebugging,
+
+    /// <summary>The same, for a Huawei phone.</summary>
+    HuaweiNotDebugging,
+
     /// <summary>Nothing plugged in, nothing reachable.</summary>
     NoDevice,
 }
@@ -75,10 +85,15 @@ public static class ConnectionCheck
     /// <param name="toolsReady">
     /// False if the ADB executable is missing or silent.
     /// </param>
+    /// <param name="present">
+    /// The identifiers of the USB devices Windows holds, read only when
+    /// nothing else explains the silence.
+    /// </param>
     public static ConnectionVerdict Of(
         IReadOnlyList<AdbDeviceState> states,
         IReadOnlyList<UsbFault> faults,
-        bool toolsReady)
+        bool toolsReady,
+        IReadOnlyList<string>? present = null)
     {
         ArgumentNullException.ThrowIfNull(states);
         ArgumentNullException.ThrowIfNull(faults);
@@ -112,8 +127,28 @@ public static class ConnectionCheck
             UsbFaultKind.Unreadable => ConnectionVerdict.UsbUnreadable,
             UsbFaultKind.DriverMissing => ConnectionVerdict.UsbDriverMissing,
             UsbFaultKind.Other => ConnectionVerdict.UsbOther,
-            _ => ConnectionVerdict.NoDevice,
+            _ => PhoneOnUsb(present ?? []),
         };
+    }
+
+    /// <summary>
+    /// A phone Windows holds and ADB does not, recognised by its maker's
+    /// USB code. Only the two brands whose help differs from everyone
+    /// else's: 339B is Honor since its split from Huawei, 12D1 Huawei and
+    /// the Honor phones made before it.
+    /// </summary>
+    // ponytail: two vendor codes; other brands when their help needs it
+    // (Samsung's 04E8 is also its SSDs, so it would need more than a code).
+    private static ConnectionVerdict PhoneOnUsb(IReadOnlyList<string> present)
+    {
+        if (present.Any(id => id.Contains("VID_339B", StringComparison.OrdinalIgnoreCase)))
+        {
+            return ConnectionVerdict.HonorNotDebugging;
+        }
+
+        return present.Any(id => id.Contains("VID_12D1", StringComparison.OrdinalIgnoreCase))
+            ? ConnectionVerdict.HuaweiNotDebugging
+            : ConnectionVerdict.NoDevice;
     }
 
     /// <summary>
@@ -150,6 +185,8 @@ public static class ConnectionCheck
         ConnectionVerdict.UsbUnreadable => "CheckUsbUnreadable",
         ConnectionVerdict.UsbDriverMissing => "CheckUsbDriverMissing",
         ConnectionVerdict.UsbOther => "CheckUsbOther",
+        ConnectionVerdict.HonorNotDebugging => "CheckHonorNotDebugging",
+        ConnectionVerdict.HuaweiNotDebugging => "CheckHuaweiNotDebugging",
         _ => "CheckNoDevice",
     });
 

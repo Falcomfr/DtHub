@@ -74,6 +74,40 @@ public sealed partial class AddDeviceViewModel : ObservableObject
     /// </summary>
     private string? _awaitedHost;
 
+    /// <summary>
+    /// Host the last code was sent to: the connection goes there when no
+    /// announcement names the phone.
+    /// </summary>
+    private string? _pairedHost;
+
+    /// <summary>
+    /// Scans in a row that found no phone. After a few, the phone is not
+    /// going to announce itself: a box that drops multicast, a firewall,
+    /// a guest network. Pairing by the address shown on the phone then
+    /// needs no announcement at all.
+    /// </summary>
+    private int _emptyScans;
+
+    private const int ScansBeforeManualEntry = 3;
+
+    /// <summary>
+    /// True once the phone has had time to announce itself and has not:
+    /// the address and code fields then appear without waiting for it.
+    /// </summary>
+    public bool OffersManualEntry => Candidates.Count == 0 && _emptyScans >= ScansBeforeManualEntry;
+
+    /// <summary>The address field: asked for, or offered for lack of an announcement.</summary>
+    public bool ShowsAddress => NeedsAddress || OffersManualEntry;
+
+    /// <summary>The code field and its button.</summary>
+    public bool ShowsCodeEntry => Candidates.Count > 0 || OffersManualEntry;
+
+    /// <summary>The address typed in, when it reads as host and port.</summary>
+    private (string Host, int Port)? TypedAddress =>
+        AdbOutputParser.SplitNetworkSerial(PairingAddress.Trim()) is { Host: { } host, Port: { } port }
+            ? (host, port)
+            : null;
+
     public AddDeviceViewModel(DevicePairingService pairing, IDeviceRegistry registry)
     {
         _pairing = pairing;
@@ -124,10 +158,11 @@ public sealed partial class AddDeviceViewModel : ObservableObject
     /// <summary>Raised after a successful pairing.</summary>
     public event EventHandler? DevicePaired;
 
-    public bool CanPair => SelectedCandidate is not null && PairingCode.Trim().Length > 0 && !IsBusy;
+    public bool CanPair =>
+        (SelectedCandidate is not null || TypedAddress is not null) && PairingCode.Trim().Length > 0 && !IsBusy;
 
     public bool CanConnect =>
-        SelectedCandidate is not null
+        (SelectedCandidate is not null || _pairedHost is not null)
         && !IsBusy
         && int.TryParse(ConnectPort.Trim(), out var port)
         && port is > 0 and <= 65535;
@@ -192,6 +227,12 @@ public sealed partial class AddDeviceViewModel : ObservableObject
             {
                 SelectedCandidate = Candidates.FirstOrDefault();
             }
+
+            _emptyScans = Candidates.Count == 0 ? _emptyScans + 1 : 0;
+            OnPropertyChanged(nameof(OffersManualEntry));
+            OnPropertyChanged(nameof(ShowsAddress));
+            OnPropertyChanged(nameof(ShowsCodeEntry));
+            OnPropertyChanged(nameof(CanPair));
         }
         catch (AdbException exception)
         {
@@ -227,7 +268,9 @@ public sealed partial class AddDeviceViewModel : ObservableObject
     [RelayCommand]
     private async Task PairAsync(CancellationToken cancellationToken)
     {
-        if (SelectedCandidate is not { } candidate)
+        var candidate = SelectedCandidate;
+
+        if (candidate is null && TypedAddress is null)
         {
             Status = Strings.Get("NoPairingCodeYet");
             return;
@@ -246,7 +289,8 @@ public sealed partial class AddDeviceViewModel : ObservableObject
 
         try
         {
-            var (host, port) = AddressToUse(candidate);
+            var (host, port) = candidate is null ? TypedAddress!.Value : AddressToUse(candidate);
+            _pairedHost = host;
 
             var result = await _pairing
                 .PairAndConnectAsync(host, port, code, cancellationToken)
@@ -267,6 +311,7 @@ public sealed partial class AddDeviceViewModel : ObservableObject
             // refused even though its code had just been retyped, and
             // nothing would say so.
             if (result.Paired
+                && candidate is not null
                 && MdnsDeviceName.HardwareSerialFromInstance(candidate.Service.Name) is { Length: > 0 } serial)
             {
                 await _registry.WelcomeBackAsync(serial, cancellationToken).ConfigureAwait(true);
@@ -322,7 +367,7 @@ public sealed partial class AddDeviceViewModel : ObservableObject
     [RelayCommand]
     private async Task ConnectAsync(CancellationToken cancellationToken)
     {
-        if (SelectedCandidate is not { } candidate
+        if ((SelectedCandidate?.Service.Host ?? _pairedHost) is not { } host
             || !int.TryParse(ConnectPort.Trim(), out var port))
         {
             return;
@@ -335,7 +380,7 @@ public sealed partial class AddDeviceViewModel : ObservableObject
         try
         {
             Settle(await _pairing
-                .ConnectAsync(candidate.Service.Host, port, cancellationToken)
+                .ConnectAsync(host, port, cancellationToken)
                 .ConfigureAwait(true));
         }
         catch (AdbException exception)
@@ -367,6 +412,7 @@ public sealed partial class AddDeviceViewModel : ObservableObject
         // copying, and pulling it back on every attempt would take away what
         // was just handed to them.
         NeedsAddress |= result.NeedsAddress;
+        OnPropertyChanged(nameof(ShowsAddress));
 
         Status = result.Connected
             ? Strings.Get("PhonePaired")
@@ -379,6 +425,8 @@ public sealed partial class AddDeviceViewModel : ObservableObject
     }
 
     partial void OnPairingCodeChanged(string value) => OnPropertyChanged(nameof(CanPair));
+
+    partial void OnPairingAddressChanged(string value) => OnPropertyChanged(nameof(CanPair));
 
     partial void OnConnectPortChanged(string value) => OnPropertyChanged(nameof(CanConnect));
 

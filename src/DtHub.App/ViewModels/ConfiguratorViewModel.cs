@@ -831,17 +831,24 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     {
         var states = Instances.DeviceStates;
 
-        var faults = states.Contains(AdbDeviceState.Device)
-            ? []
-            : _usb.Faults();
+        var seen = states.Contains(AdbDeviceState.Device);
+        var faults = seen ? [] : _usb.Faults();
+
+        // Only when ADB is silent and Windows blames nothing: the one case
+        // where knowing an Honor or Huawei is plugged in changes the advice.
+        var present = seen || faults.Count > 0 || states.Count > 0 ? [] : _usb.Present();
 
         var avant = Connection;
         var connuAvant = _connectionKnown;
 
-        Connection = ConnectionCheck.Of(states, faults, toolsReady: true);
+        Connection = ConnectionCheck.Of(states, faults, toolsReady: true, present);
         _connectionKnown = true;
 
         OnPropertyChanged(nameof(ConnectionMessage));
+
+        Instances.NoDeviceHelp = Connection is ConnectionVerdict.HonorNotDebugging or ConnectionVerdict.HuaweiNotDebugging
+            ? ConnectionMessage
+            : Strings.Get("NoDeviceHelp");
 
         // The first check does not necessarily change the verdict,
         // but it changes the right to show it.

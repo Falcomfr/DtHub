@@ -276,6 +276,13 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// </summary>
     public bool ShowsNoDeviceCard => _scanned && HasNoConnectedDevice && !HasInactiveDevices;
 
+    /// <summary>
+    /// What the empty list advises: the general steps, or those of the
+    /// brand Windows recognises on the cable, whose menus differ.
+    /// </summary>
+    [ObservableProperty]
+    private string _noDeviceHelp = Strings.Get("NoDeviceHelp");
+
 
     /// <summary>
     /// True as long as the first sweep has produced nothing yet.

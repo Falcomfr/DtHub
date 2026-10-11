@@ -75,4 +75,10 @@ public interface IUsbEnumerationInspector
     /// without this information.
     /// </summary>
     IReadOnlyList<UsbFault> Faults();
+
+    /// <summary>
+    /// The identifiers of every USB device Windows holds, faulty or not:
+    /// a phone on charge only is there, healthy, and silent to ADB.
+    /// </summary>
+    IReadOnlyList<string> Present();
 }

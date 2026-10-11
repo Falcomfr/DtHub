@@ -955,7 +955,7 @@
       <StackPanel>
         <TextBlock Text="{loc:T NoDeviceFound}" Style="{StaticResource SectionLabel}" />
         <TextBlock Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
-                   Text="{loc:T NoDeviceHelp}" />
+                   Text="{Binding NoDeviceHelp}" />
       </StackPanel>
     </Border>
 

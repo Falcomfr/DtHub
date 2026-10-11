@@ -9,6 +9,19 @@ namespace DtHub.Core.Android;
 public static partial class PackageParser
 {
     /// <summary>
+    /// Reads, from <c>dumpsys package</c> for one package, the profiles
+    /// where it is installed. The main profile's shell may read this for
+    /// every profile, even one that refuses to list its own packages.
+    /// </summary>
+    public static IReadOnlyList<int> ParseInstalledUsers(string? output) =>
+        string.IsNullOrEmpty(output)
+            ? []
+            : [.. InstalledUserLine().Matches(output).Select(m => int.Parse(m.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture)).Distinct()];
+
+    [GeneratedRegex(@"^\s*User (\d+):.*\binstalled=true", RegexOptions.Multiline)]
+    private static partial Regex InstalledUserLine();
+
+    /// <summary>
     /// Reads <c>pm list packages</c>. Handles the simple form
     /// <c>package:name</c> and the detailed form
     /// <c>package:/path/base.apk=name</c>.

@@ -151,4 +151,51 @@ public class ConnectionCheckTests
         // for these cases, and for these alone.
         Assert.True(ConnectionCheck.NeedsExplaining(verdict));
     }
+
+    [Theory]
+    [InlineData(@"USB\VID_339B&PID_107E\ABC123", ConnectionVerdict.HonorNotDebugging)]
+    [InlineData(@"usb\vid_339b&pid_5000\x", ConnectionVerdict.HonorNotDebugging)]
+    [InlineData(@"USB\VID_12D1&PID_107E\ABC123", ConnectionVerdict.HuaweiNotDebugging)]
+    public void Un_honor_que_windows_voit_sans_adb_est_nomme(string id, ConnectionVerdict attendu)
+    {
+        // Charge only by default, and a debugging option of their own:
+        // ADB sees nothing, Windows sees the phone by its maker's code.
+        Assert.Equal(attendu, ConnectionCheck.Of([], [], toolsReady: true, present: [id]));
+    }
+
+    [Fact]
+    public void Un_autre_appareil_usb_ne_change_rien()
+    {
+        Assert.Equal(
+            ConnectionVerdict.NoDevice,
+            ConnectionCheck.Of([], [], toolsReady: true, present: [@"USB\VID_046D&PID_C52B\5&1"]));
+    }
+
+    [Fact]
+    public void Un_honor_vu_par_adb_n_a_rien_a_expliquer()
+    {
+        Assert.Equal(
+            ConnectionVerdict.Ready,
+            ConnectionCheck.Of([AdbDeviceState.Device], [], toolsReady: true, present: [@"USB\VID_339B&PID_107E\A"]));
+    }
+
+    [Fact]
+    public void Un_defaut_usb_l_emporte_sur_la_marque()
+    {
+        // The fault names the cable or the driver, which comes first.
+        Assert.Equal(
+            ConnectionVerdict.UsbUnreadable,
+            ConnectionCheck.Of([], [Fault(43)], toolsReady: true, present: [@"USB\VID_339B&PID_107E\A"]));
+    }
+
+    [Fact]
+    public void Le_message_honor_ne_suppose_pas_le_transfert_de_fichiers()
+    {
+        // Some Honor phones offer photos but not files: either does.
+        var phrase = ConnectionCheck.Describe(ConnectionVerdict.HonorNotDebugging);
+
+        Assert.Contains("Honor", phrase, StringComparison.Ordinal);
+        Assert.Contains("photos", phrase, StringComparison.Ordinal);
+        Assert.Contains("Débogage ADB en mode Charger uniquement", phrase, StringComparison.Ordinal);
+    }
 }

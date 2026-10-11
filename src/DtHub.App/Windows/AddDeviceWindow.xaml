@@ -49,15 +49,20 @@
 
       <Border Style="{StaticResource Card}"
               Visibility="{Binding Candidates.Count, Converter={StaticResource EmptyToVisibility}}">
-        <TextBlock Style="{StaticResource Muted}"
-                   Text="{loc:T WaitingForDevice}" />
+        <StackPanel>
+          <TextBlock Style="{StaticResource Muted}"
+                     Text="{loc:T WaitingForDevice}" />
+          <TextBlock Style="{StaticResource Muted}" Margin="0,6,0,0"
+                     Text="{loc:T ManualPairingHint}"
+                     Visibility="{Binding OffersManualEntry, Converter={StaticResource BoolToVisibility}}" />
+        </StackPanel>
       </Border>
 
-      <!-- The address is only asked for when the one the network announced did
-           not answer. The code has not served then: it stays in its field, and
-           the same button retries against the address read on the phone. -->
+      <!-- The address is asked for when the one the network announced did
+           not answer, and offered when nothing was announced at all: the
+           phone shows it under its code, and pairing needs nothing else. -->
       <StackPanel Margin="0,0,0,12"
-                  Visibility="{Binding NeedsAddress, Converter={StaticResource BoolToVisibility}}">
+                  Visibility="{Binding ShowsAddress, Converter={StaticResource BoolToVisibility}}">
         <TextBlock Text="{loc:T PairingAddressLabel}" Style="{StaticResource Muted}"
                    FontSize="{StaticResource FontSmall}" Margin="2,0,0,4" />
         <TextBox Text="{Binding PairingAddress, UpdateSourceTrigger=PropertyChanged}"
@@ -66,8 +71,7 @@
       </StackPanel>
 
       <StackPanel Orientation="Horizontal"
-                  Visibility="{Binding Candidates.Count, Converter={StaticResource EmptyToVisibility},
-                                       ConverterParameter=inverse}">
+                  Visibility="{Binding ShowsCodeEntry, Converter={StaticResource BoolToVisibility}}">
         <TextBox x:Name="Code" Text="{Binding PairingCode, UpdateSourceTrigger=PropertyChanged}"
                  Width="150" Margin="0,0,8,0" FontSize="{StaticResource FontLarge}"
                  KeyDown="OnCodeKey"

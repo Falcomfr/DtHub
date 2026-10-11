@@ -2156,4 +2156,30 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="HotkeyBareKeyNotice" xml:space="preserve">
     <value>En el chat de DOFUS Touch, {0} ya no se escribirá: DT Hub la usa para «{1}».</value>
   </data>
+  <data name="CheckHonorNotDebugging" xml:space="preserve">
+    <value>Hay un teléfono Honor conectado, pero no está abierto a la depuración. En el teléfono:
+1. Abre la notificación USB y elige un modo de transferencia, de archivos o de fotos, no «Solo carga».
+2. En Ajustes › Sistema y actualizaciones › Opciones de desarrollador, activa «Depuración USB», y «Depuración ADB en modo Solo carga» si tu versión lo ofrece.
+3. Acepta la solicitud de autorización que aparece.</value>
+  </data>
+  <data name="CheckHuaweiNotDebugging" xml:space="preserve">
+    <value>Hay un teléfono Huawei conectado, pero no está abierto a la depuración. En el teléfono:
+1. En Ajustes › Sistema y actualizaciones › Opciones de desarrollador, activa «Depuración USB» y «Depuración ADB en modo Solo carga».
+2. Desconecta y vuelve a conectar el cable, y acepta la solicitud de autorización que aparece.</value>
+  </data>
+  <data name="SecureFolderUnreachable" xml:space="preserve">
+    <value>{0}: desbloquea la Carpeta segura, el juego está en ella y DT Hub no lo ve mientras está cerrada. Sus cuentas aparecen aquí unos segundos después. Para que no se vuelva a bloquear en pleno juego: {1}  ›  «Bloqueo automático de Carpeta segura», elige la opción más larga. Si no aparece nada una vez desbloqueada, Samsung bloquea el acceso desde un PC en este teléfono: instala el juego fuera de la Carpeta segura.</value>
+  </data>
+  <data name="SecureFolderLocked" xml:space="preserve">
+    <value>{0}: la Carpeta segura se ha bloqueado, desbloquéala para recuperar sus cuentas. Vuelven unos segundos después. Para que no se vuelva a bloquear en pleno juego: {1}  ›  «Bloqueo automático de Carpeta segura», elige la opción más larga.</value>
+  </data>
+  <data name="SecureFolderPathRecent" xml:space="preserve">
+    <value>Ajustes  ›  Seguridad y privacidad  ›  Más ajustes de seguridad  ›  Carpeta segura</value>
+  </data>
+  <data name="SecureFolderPathOlder" xml:space="preserve">
+    <value>Ajustes  ›  Datos biométricos y seguridad  ›  Carpeta segura</value>
+  </data>
+  <data name="ManualPairingHint" xml:space="preserve">
+    <value>¿Tu dispositivo no aparece? En su pantalla de vinculación, copia abajo «Dirección IP y puerto» y luego el código de seis dígitos.</value>
+  </data>
 </root>

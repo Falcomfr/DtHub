@@ -2156,4 +2156,30 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="HotkeyBareKeyNotice" xml:space="preserve">
     <value>Dans le chat de DOFUS Touch, {0} ne s'écrira plus : DT Hub s'en sert pour « {1} ».</value>
   </data>
+  <data name="CheckHonorNotDebugging" xml:space="preserve">
+    <value>Un téléphone Honor est branché, mais il ne s'ouvre pas au débogage. Sur le téléphone :
+1. Ouvrez la notification USB et choisissez un mode de transfert, de fichiers ou de photos, pas « Recharge uniquement ».
+2. Dans Paramètres › Système et mises à jour › Options pour les développeurs, activez « Débogage USB », et « Débogage ADB en mode Charger uniquement » si votre version le propose.
+3. Acceptez la demande d'autorisation qui s'affiche.</value>
+  </data>
+  <data name="CheckHuaweiNotDebugging" xml:space="preserve">
+    <value>Un téléphone Huawei est branché, mais il ne s'ouvre pas au débogage. Sur le téléphone :
+1. Dans Paramètres › Système et mises à jour › Options pour les développeurs, activez « Débogage USB » et « Débogage ADB en mode Charger uniquement ».
+2. Débranchez puis rebranchez le câble, et acceptez la demande d'autorisation qui s'affiche.</value>
+  </data>
+  <data name="SecureFolderUnreachable" xml:space="preserve">
+    <value>{0} : déverrouillez le Dossier sécurisé, le jeu y est et DT Hub ne le voit pas tant qu'il est fermé. Ses comptes apparaissent ici quelques secondes après. Pour qu'il ne se reverrouille pas en jeu : {1}  ›  « Verrouillage auto. Dossier sécurisé », choisissez l'option la plus longue. Si rien n'apparaît une fois déverrouillé, Samsung bloque l'accès depuis un PC sur ce téléphone : installez le jeu hors du Dossier sécurisé.</value>
+  </data>
+  <data name="SecureFolderLocked" xml:space="preserve">
+    <value>{0} : le Dossier sécurisé s'est verrouillé, déverrouillez-le pour retrouver ses comptes. Ils reviennent quelques secondes après. Pour qu'il ne se reverrouille pas en jeu : {1}  ›  « Verrouillage auto. Dossier sécurisé », choisissez l'option la plus longue.</value>
+  </data>
+  <data name="SecureFolderPathRecent" xml:space="preserve">
+    <value>Paramètres  ›  Sécurité et confidentialité  ›  Autres paramètres de sécurité  ›  Dossier sécurisé</value>
+  </data>
+  <data name="SecureFolderPathOlder" xml:space="preserve">
+    <value>Paramètres  ›  Biométrie et sécurité  ›  Dossier sécurisé</value>
+  </data>
+  <data name="ManualPairingHint" xml:space="preserve">
+    <value>Votre appareil n'apparaît pas ? Sur son écran d'association, recopiez ci-dessous « Adresse IP et port », puis le code à six chiffres.</value>
+  </data>
 </root>

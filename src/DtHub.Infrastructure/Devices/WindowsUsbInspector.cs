@@ -26,7 +26,16 @@ namespace DtHub.Infrastructure.Devices;
 /// </summary>
 public sealed class WindowsUsbInspector : IUsbEnumerationInspector
 {
-    public IReadOnlyList<UsbFault> Faults()
+    public IReadOnlyList<UsbFault> Faults() =>
+        [.. Enumerate().Where(d => d.Problem != 0)
+            .Select(d => new UsbFault(UsbFault.KindOf((int)d.Problem), (int)d.Problem, d.Id))];
+
+    public IReadOnlyList<string> Present() => [.. Enumerate().Select(d => d.Id)];
+
+    /// <summary>
+    /// Every present USB device, with its problem code, zero when it runs.
+    /// </summary>
+    private static List<(uint Problem, string Id)> Enumerate()
     {
         var set = SetupDiGetClassDevs(0, "USB", 0, DigcfPresent | DigcfAllClasses);
 
@@ -37,23 +46,22 @@ public sealed class WindowsUsbInspector : IUsbEnumerationInspector
 
         try
         {
-            List<UsbFault> faults = [];
+            List<(uint Problem, string Id)> devices = [];
 
             var info = default(DeviceInfoData);
             info.Size = Marshal.SizeOf<DeviceInfoData>();
 
             for (var index = 0u; SetupDiEnumDeviceInfo(set, index, ref info); index++)
             {
-                if (CmGetDevNodeStatus(out _, out var problem, info.DevInst, 0) != Success
-                    || problem == 0)
+                if (CmGetDevNodeStatus(out _, out var problem, info.DevInst, 0) != Success)
                 {
                     continue;
                 }
 
-                faults.Add(new UsbFault(UsbFault.KindOf((int)problem), (int)problem, InstanceId(set, ref info)));
+                devices.Add((problem, InstanceId(set, ref info)));
             }
 
-            return faults;
+            return devices;
         }
         catch (DllNotFoundException)
         {

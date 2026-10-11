@@ -101,4 +101,21 @@ public class PackageParserTests
 
         Assert.Single(PackageParser.ParseComponents(output));
     }
+
+    [Fact]
+    public void Les_profils_ou_le_paquet_est_installe_se_lisent_dans_dumpsys()
+    {
+        const string output = """
+            Packages:
+              Package [com.ankama.dofustouch] (4f2a1c):
+                userId=10234
+                User 0: ceDataInode=12345 installed=true hidden=false suspended=false stopped=false
+                  gids=[3003]
+                User 95: ceDataInode=0 installed=false hidden=false suspended=false stopped=true
+                User 150: ceDataInode=0 installed=true hidden=false suspended=false stopped=true
+            """;
+
+        Assert.Equal([0, 150], PackageParser.ParseInstalledUsers(output));
+        Assert.Empty(PackageParser.ParseInstalledUsers(null));
+    }
 }

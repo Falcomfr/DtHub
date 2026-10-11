@@ -125,6 +125,16 @@ public sealed class FakeAdbClient : IAdbClient
     }
 
     /// <summary>
+    /// Declares a shell answer computed on each call, which may throw: a
+    /// profile that answers, then locks.
+    /// </summary>
+    public FakeAdbClient WithShell(string argumentsContain, Func<string> respond)
+    {
+        _shellRules.Add((argumentsContain, respond));
+        return this;
+    }
+
+    /// <summary>
     /// Declares a sequence of outputs for the same command, the last one
     /// holding for every following call.
     ///

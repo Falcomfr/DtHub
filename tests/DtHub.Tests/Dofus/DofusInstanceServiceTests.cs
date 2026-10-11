@@ -468,4 +468,102 @@ public class DofusInstanceServiceTests
         Assert.Equal(["AIMP", "com.inconnu.app"], main.Apps.Select(a => a.Label));
         Assert.Empty(profiles.Single(p => p.UserId == 999).Apps);
     }
+
+    private const string SamsungUsers = """
+        Users:
+        	UserInfo{0:Propriétaire:c13} running
+        	UserInfo{150:Dossier sécurisé:1030} running
+        """;
+
+    private static AndroidDevice Samsung(int sdk = 34) => new()
+    {
+        Id = "R5CW",
+        Serial = "R5CW",
+        State = AdbDeviceState.Device,
+        Manufacturer = "samsung",
+        Model = "SM-S911B",
+        MarketName = "Galaxy S23",
+        SdkVersion = sdk,
+    };
+
+    private static string InstalledIn(params int[] users) =>
+        "Package [com.ankama.dofustouch] (1):\n"
+        + string.Concat(users.Select(u => $"    User {u}: ceDataInode=0 installed=true hidden=false\n"));
+
+    [Fact]
+    public async Task Un_dossier_securise_qui_garde_le_jeu_le_dit()
+    {
+        var adb = new FakeAdbClient()
+            .WithShell("pm list users", SamsungUsers)
+            .FailShell("--user 150", AdbErrorKind.PermissionDenied)
+            .WithShell("pm list packages", "package:com.android.chrome")
+            .WithShell("dumpsys package", InstalledIn(150));
+
+        var service = Service(adb);
+        await service.DiscoverAsync([Samsung()], CancellationToken.None);
+
+        var warning = Assert.Single(service.Warnings);
+        Assert.Contains("Dossier sécurisé", warning, StringComparison.Ordinal);
+        Assert.StartsWith("Galaxy S23 : déverrouillez le Dossier sécurisé", warning, StringComparison.Ordinal);
+        Assert.Contains("Sécurité et confidentialité", warning, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Un_dossier_securise_sans_le_jeu_ne_dit_rien()
+    {
+        // A locked Secure Folder is many Samsung owners' normal state:
+        // speaking up without the game in it would be noise.
+        var adb = new FakeAdbClient()
+            .WithShell("pm list users", SamsungUsers)
+            .FailShell("--user 150", AdbErrorKind.PermissionDenied)
+            .WithShell("pm list packages", "package:com.ankama.dofustouch")
+            .WithShell("resolve-activity", "com.ankama.dofustouch/.MainActivity")
+            .WithShell("dumpsys package", InstalledIn(0));
+
+        var service = Service(adb);
+        await service.DiscoverAsync([Samsung()], CancellationToken.None);
+
+        Assert.Empty(service.Warnings);
+    }
+
+    [Fact]
+    public async Task Le_chemin_du_reglage_suit_la_version_d_android()
+    {
+        var adb = new FakeAdbClient()
+            .WithShell("pm list users", SamsungUsers)
+            .FailShell("--user 150", AdbErrorKind.PermissionDenied)
+            .WithShell("pm list packages", "package:com.android.chrome")
+            .WithShell("dumpsys package", InstalledIn(150));
+
+        var service = Service(adb);
+        await service.DiscoverAsync([Samsung(sdk: 31)], CancellationToken.None);
+
+        Assert.Contains("Biométrie et sécurité", Assert.Single(service.Warnings), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Un_dossier_deja_lu_puis_refuse_est_dit_verrouille()
+    {
+        // Seen open earlier: the PC can reach it, so the only remedy left
+        // is unlocking, and the sentence about Samsung blocking it goes.
+        var calls = 0;
+        var adb = new FakeAdbClient()
+            .WithShell("pm list users", SamsungUsers)
+            .WithShell("--user 150", () => calls++ < 2
+                ? "package:com.ankama.dofustouch"
+                : throw new AdbException(AdbErrorKind.PermissionDenied, "refus"))
+            .WithShell("pm list packages", "package:com.android.chrome")
+            .WithShell("resolve-activity", "com.ankama.dofustouch/.MainActivity")
+            .WithShell("dumpsys package", InstalledIn(150));
+
+        var service = Service(adb);
+        await service.DiscoverAsync([Samsung()], CancellationToken.None);
+        Assert.Empty(service.Warnings);
+
+        await service.DiscoverAsync([Samsung()], CancellationToken.None);
+
+        var warning = Assert.Single(service.Warnings);
+        Assert.Contains("verrouillé", warning, StringComparison.Ordinal);
+        Assert.DoesNotContain("bloque", warning, StringComparison.Ordinal);
+    }
 }
