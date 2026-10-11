@@ -1004,15 +1004,20 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// <summary>
     /// Keeps an app opened in passing alive while its window is open.
     ///
-    /// Its virtual display has its own power group, and Android 16 freezes
-    /// what runs there once the phone dozes: within two minutes the window
-    /// showed its last frame and ignored clicks. DOFUS Touch escapes it by
-    /// keeping its screen on; these apps do not. Measured on 2026-10-11, 13T
-    /// Pro: a neutral key every twenty seconds from the window's opening kept
-    /// DTStuff answering with the phone dozing, and does not light the
-    /// phone's screen. Once frozen, the key no longer revives it: it has to
-    /// start with the window. A battery exemption and a longer screen
-    /// timeout had both failed.
+    /// Its virtual display has its own power group, and once the phone dozes
+    /// Android 16 stops handing it input: the window keeps its last frame,
+    /// the window manager still names the app as focused, and the input
+    /// dispatcher has no focused window on that display, so every click is
+    /// lost. DOFUS Touch escapes it by keeping its screen on; these apps do
+    /// not. Measured on 2026-10-11, 13T Pro: a neutral key sent to the
+    /// window's own display, "input -d id keyevent 0", gave the focus back at
+    /// once without waking the phone. Sent to the phone's display instead, it
+    /// only delayed the loss.
+    ///
+    /// The same round renews a one minute exemption from deep doze for the
+    /// app, which gives it back the network: DTStuff loads its data online,
+    /// and crawled without it. It lapses on its own, so nothing stays on the
+    /// phone once the window closes.
     /// </summary>
     private async Task KeepAwakeAsync(ScrcpySession session)
     {
@@ -1020,11 +1025,23 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // would need code running on the phone.
         while (session.IsAlive)
         {
-            if (_serials.TryGetValue(session.Target.DeviceId, out var serial))
+            if (_serials.TryGetValue(session.Target.DeviceId, out var serial)
+                && session.VirtualDisplayId is { } display)
             {
                 try
                 {
-                    _ = await _adb.ShellAsync(serial, ["input", "keyevent", "0"], TimeSpan.FromSeconds(5), CancellationToken.None)
+                    _ = await _adb.ShellAsync(
+                            serial,
+                            ["input", "-d", display.ToString(System.Globalization.CultureInfo.InvariantCulture), "keyevent", "0"],
+                            TimeSpan.FromSeconds(5),
+                            CancellationToken.None)
+                        .ConfigureAwait(false);
+
+                    _ = await _adb.ShellAsync(
+                            serial,
+                            ["cmd", "deviceidle", "tempwhitelist", "-d", "60000", session.Target.PackageName],
+                            TimeSpan.FromSeconds(5),
+                            CancellationToken.None)
                         .ConfigureAwait(false);
                 }
                 catch (AdbException exception)

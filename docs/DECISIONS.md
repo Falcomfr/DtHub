@@ -9682,12 +9682,16 @@ DOFUS Touch y échappe, très probablement parce qu'il demande à garder l'écra
 allumé. Ce qui n'a pas suffi : l'exemption de batterie, `--screen-off-timeout`
 (la fenêtre tient un peu plus, puis se fige), `input -d <écran> keyevent WAKEUP`
 (il réveille l'écran du téléphone, pas l'écran virtuel). Ce qui marche, mesuré le
-2026-10-11 : une touche neutre, `input keyevent 0`, toutes les vingt secondes
-dès l'ouverture de la fenêtre. DTStuff a répondu pendant deux minutes quarante,
-téléphone en veille et écran éteint ; sans elle, il était figé deux minutes plus
-tard. Elle doit partir avec la fenêtre : une app déjà figée ne repart pas avec
-elle. Un premier essai de cette touche, la veille, avait échoué pour une autre
-raison : l'app s'était ouverte sur un autre écran que celui observé.
+2026-10-11 : une touche neutre envoyée **sur l'écran virtuel lui-même**,
+`input -d <écran> keyevent 0`, toutes les vingt secondes. L'app figée avait
+encore le focus aux yeux du gestionnaire de fenêtres, mais le répartiteur
+d'entrées ne lui en donnait aucun sur cet écran : tous les clics étaient perdus.
+La touche sur l'écran virtuel a rendu le focus sur-le-champ, téléphone toujours
+en veille. Envoyée sur l'écran du téléphone, elle ne faisait que retarder la
+perte. Le même tour renouvelle une exemption temporaire de veille profonde, une
+minute, `cmd deviceidle tempwhitelist` : DTStuff charge ses données en ligne et
+rampait sans réseau. Elle expire seule, rien ne reste sur le téléphone après la
+fenêtre.
 
 Un temps, l'ouverture s'est faite sur l'écran du téléphone, en attendant mieux ;
 la demande était une fenêtre sur le PC, et c'est ce qui reste.

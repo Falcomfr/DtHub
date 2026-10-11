@@ -94,14 +94,14 @@ from their Play Store pages and bundled with the application, as
 - **Open** targets a connected device that has the app (user 0), one button
   per device when there is a choice.
 - The app opens **in a window on the PC**, portrait, like the store page.
-  Its virtual display has its own power group, which Android 16 freezes
-  once the phone dozes: within two minutes the window showed its last frame
-  and ignored clicks. While any passing window is open, DT Hub sends a
-  neutral key (`input keyevent 0`) to its phone every 20 seconds, which
-  keeps the app answering without lighting the phone's screen (measured on
-  2026-10-11, 13T Pro). The key must start with the window: it does not
-  revive an app already frozen. DOFUS Touch keeps its own screen on and
-  needs none of this.
+  Its virtual display has its own power group: once the phone dozes,
+  Android 16 stops giving that display an input focus and every click is
+  lost. While any passing window is open, DT Hub sends every 20 seconds a
+  neutral key to that display (`input -d <display> keyevent 0`), which gives
+  the focus back without waking the phone, and renews a one minute deep doze
+  exemption for the app (`cmd deviceidle tempwhitelist -d 60000`), which
+  gives it the network back. Measured on 2026-10-11, 13T Pro. DOFUS Touch
+  keeps its own screen on and needs none of this.
 - The store window is **transient**: launched, never remembered, portrait
   1080x1920 at 320 dpi, placed by DT Hub, one per phone and reused for the
   other app's page. While it is open the phone is watched every 3 seconds;
