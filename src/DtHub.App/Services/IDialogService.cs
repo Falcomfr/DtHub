@@ -165,6 +165,10 @@ public sealed class DialogService : IDialogService
         if (Uri.TryCreate(url, UriKind.Absolute, out var uri)
             && string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.Ordinal))
         {
+            // The host only, not the address: enough to tell, the day an
+            // antivirus stops a page, whether DT Hub sent it there.
+            Serilog.Log.Information("Ouvert dans le navigateur : {Hote}.", uri.Host);
+
             Start(uri.ToString());
         }
     }

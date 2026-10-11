@@ -114,10 +114,22 @@ public partial class WebToolWindow : Window
     /// <summary>
     /// target="_blank", which the engine would otherwise open in a window of
     /// its own, outside any control: the system browser takes it.
+    ///
+    /// Except the map's ads. Refused inside the window, a pop-under could
+    /// still reach the system browser this way. Bitdefender stopped
+    /// highperformanceformat.com as phishing on 11/10/2026, path not
+    /// established: see D192.
     /// </summary>
     private void OnNewWindowRequested(object? sender, CoreWebView2NewWindowRequestedEventArgs e)
     {
         e.Handled = true;
+
+        if (DofusTouchMap.IsBlockedAd(e.Uri))
+        {
+            Log.Information("Carte : fenêtre publicitaire refusée ({Hote}).", new Uri(e.Uri).Host);
+
+            return;
+        }
 
         _dialogs.OpenUrl(e.Uri);
     }

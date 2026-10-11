@@ -10058,3 +10058,49 @@ rattaché). Island plutôt que Shelter : il s'installe depuis le Play Store.
 Le joueur a confirmé le même jour que le Dossier sécurisé ne marche pas. Le
 conseil Samsung du bouton « + », qui le recommandait, envoie désormais vers
 Island et un profil de travail.
+
+## D192 - La densité qui ne s'affichait pas, et la page Adsterra bloquée par Bitdefender
+
+Retours du 11/10/2026, au soir de la 0.8.0.
+
+### La densité
+
+« Le DPI ne s'affiche pas quand on le sélectionne, et ça ne semble pas
+s'appliquer. » Deux défauts, mesurés avec le vrai thème dans un programme
+jetable avant d'y toucher :
+
+- Le gabarit sombre des listes (`Themes/Controls.xaml`) n'avait pas de
+  `PART_EditableTextBox`. En mode éditable, WPF écrit dans cette zone et laisse
+  `SelectionBoxItem` vide : la liste Densité n'affichait rien, pas même « Selon
+  la distance », et on ne pouvait pas y taper. Elle est la seule liste éditable
+  de l'application, mais la zone est dans le gabarit commun.
+- La liaison n'envoie la valeur qu'à la perte du focus, pour ne pas réécrire un
+  nombre en cours de frappe. Après un choix, le focus restait sur la liste :
+  fermer le panneau d'abord perdait la valeur. Elle part maintenant aussi à la
+  fermeture de la liste et sur Entrée.
+
+Au passage, un défaut voisin : un réglage qui rouvre les fenêtres (qualité,
+distance, densité, son, écran éteint, souris et clavier simulés), changé pendant
+une réouverture, était ignoré sans un mot. Il est désormais toujours enregistré,
+et la réouverture refaite une fois à la fin (`CoalescedRun`, testé dans Core).
+
+### La page Adsterra
+
+Bitdefender (« Prévention menaces en ligne ») a bloqué
+`https://www.highperformanceformat.com/` comme page d'hameçonnage chez le
+mainteneur, sans qu'il sache ce qui l'avait déclenchée. Ce que le journal et une
+mesure établissent :
+
+- Dans la fenêtre de la carte, le blocage tient : à chaque ouverture du jour, les
+  requêtes vers les deux domaines Adsterra sont refusées avant de partir.
+- Pas de préconnexion : la carte ouverte vingt secondes, aucune connexion
+  n'est partie vers les adresses du domaine (dix adresses relevées, plages
+  172.240, 172.255 et 23.111.84).
+
+Restent deux chemins, que rien n'a permis de départager : le bouton « Ouvrir
+dans le navigateur », qui montre le site avec ses publicités dans le
+navigateur, où DT Hub ne filtre rien ; ou une fenêtre publicitaire ouverte au
+clic, que DT Hub confiait au navigateur sans filtre. Le second est fermé : une
+nouvelle fenêtre vers un domaine bloqué est refusée et notée au journal. Et
+chaque ouverture dans le navigateur note désormais son domaine, ce qui
+tranchera la prochaine fois.
