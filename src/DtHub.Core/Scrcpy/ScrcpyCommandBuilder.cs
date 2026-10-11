@@ -16,11 +16,17 @@ public static class ScrcpyCommandBuilder
     /// name chosen by the user. No technical identifier appears in
     /// it, since the window is found by its process.
     /// </summary>
-    public static string BuildWindowTitle(string? name, string? hint = null)
+    /// <param name="name">The account's name, or the tool's.</param>
+    /// <param name="hint">What follows in brackets, the shortcuts most often.</param>
+    /// <param name="branded">
+    /// False for a DOFUS Touch tool's window: it is not the game, and says
+    /// its name alone, as the app does on the phone.
+    /// </param>
+    public static string BuildWindowTitle(string? name, string? hint = null, bool branded = true)
     {
         var title = string.IsNullOrWhiteSpace(name)
             ? DtHub.Core.ProductInfo.Name
-            : $"{DtHub.Core.ProductInfo.Name} {name.Trim()}";
+            : branded ? $"{DtHub.Core.ProductInfo.Name} {name.Trim()}" : name.Trim();
 
         return string.IsNullOrWhiteSpace(hint) ? title : $"{title}  ({hint.Trim()})";
     }

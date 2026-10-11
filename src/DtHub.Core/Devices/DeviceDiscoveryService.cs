@@ -385,10 +385,22 @@ public sealed class DeviceDiscoveryService : IDisposable
     /// are asked about in the same sweep, and an answer kept by device used
     /// to hand the game's verdict to DTStuff.
     /// </remarks>
-    private readonly Dictionary<string, (string Whitelist, System.Diagnostics.Stopwatch Vu)> _exempt =
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, (string Whitelist, System.Diagnostics.Stopwatch Vu)> _exempt =
         new(StringComparer.Ordinal);
 
-    private static readonly TimeSpan ExemptFreshness = TimeSpan.FromMinutes(2);
+    /// <remarks>
+    /// Fifteen seconds and not two minutes: a player who has just changed the
+    /// setting waited that long for the alert to go (2026-10-11). One
+    /// "dumpsys" every fifteen seconds per phone costs nothing.
+    /// </remarks>
+    private static readonly TimeSpan ExemptFreshness = TimeSpan.FromSeconds(15);
+
+    /// <summary>
+    /// Drops what was read of this phone's battery exemptions, so the next
+    /// question asks the phone again: at a launch, the moment the player has
+    /// most likely just been in the phone's settings.
+    /// </summary>
+    public void ForgetBatteryExemption(string serial) => _ = _exempt.TryRemove(serial, out _);
 
     /// <summary>
     /// Is the game shielded from battery saving on this device, or <c>null</c>

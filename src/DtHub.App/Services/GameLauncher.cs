@@ -2074,6 +2074,17 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(instances);
 
+        // A launch is when the player has most likely just been in the
+        // phone's settings: the battery question is asked again at the next
+        // sweep, not up to fifteen seconds later.
+        foreach (var deviceId in instances.Select(i => i.DeviceId).Distinct(StringComparer.Ordinal))
+        {
+            if (_serials.TryGetValue(deviceId, out var launchedOn))
+            {
+                _devices.ForgetBatteryExemption(launchedOn);
+            }
+        }
+
         // The preamble is timed because it is visible: nothing opens
         // during that time, and the other accounts' buttons wait.
         // Without these three numbers, "this takes too long to
@@ -3153,7 +3164,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             _sessions.ActiveSessions,
             session => ScrcpyCommandBuilder.BuildWindowTitle(
                 CurrentName(session, settings),
-                session.Target.IsTransient ? PassingTitleHint(session.Target.StartUri) : hint));
+                session.Target.IsTransient ? PassingTitleHint(session.Target.StartUri) : hint,
+                branded: !session.Target.IsTransient));
     }
 
     /// <summary>

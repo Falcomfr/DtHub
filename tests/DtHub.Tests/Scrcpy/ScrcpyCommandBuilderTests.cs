@@ -322,6 +322,17 @@ public class ScrcpyCommandBuilderTests
     }
 
     [Fact]
+    public void Une_fenetre_d_outil_porte_son_seul_nom()
+    {
+        // DTStuff and OcrApp are not the game: their window says their name,
+        // as the app does on the phone.
+        Assert.Equal("DTStuff", ScrcpyCommandBuilder.BuildWindowTitle("DTStuff", branded: false));
+        Assert.Equal(
+            "Play Store  (fermez cette fenêtre)",
+            ScrcpyCommandBuilder.BuildWindowTitle("Play Store", "fermez cette fenêtre", branded: false));
+    }
+
+    [Fact]
     public void Un_nom_vide_retombe_sur_le_nom_du_produit()
     {
         Assert.Equal(ProductInfo.Name, ScrcpyCommandBuilder.BuildWindowTitle(null));

@@ -656,4 +656,24 @@ public class DeviceDiscoveryServiceTests
         Assert.True(await service.IsBatteryExemptAsync("USB0001", "com.ankama.dofustouch"));
         Assert.False(await service.IsBatteryExemptAsync("USB0001", "com.makeintouch.dtstuff"));
     }
+
+    [Fact]
+    public async Task Oublier_l_exemption_fait_relire_le_telephone()
+    {
+        // The player has just set DTStuff to "No restrictions" and opens it:
+        // the alert must not wait for the cache to age.
+        var adb = new FakeAdbClient()
+            .WithShellChanging(
+                "dumpsys deviceidle whitelist",
+                "user,com.ankama.dofustouch,10475",
+                "user,com.ankama.dofustouch,10475\nuser,com.makeintouch.dtstuff,10304");
+
+        using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry());
+
+        Assert.False(await service.IsBatteryExemptAsync("USB0001", "com.makeintouch.dtstuff"));
+
+        service.ForgetBatteryExemption("USB0001");
+
+        Assert.True(await service.IsBatteryExemptAsync("USB0001", "com.makeintouch.dtstuff"));
+    }
 }
