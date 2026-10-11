@@ -625,10 +625,27 @@
 
             <Border Style="{StaticResource HoverRing}" CornerRadius="{StaticResource Radius}" />
 
-            <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
+            <ContentPresenter x:Name="Selection" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
                               IsHitTestVisible="False"
                               Content="{TemplateBinding SelectionBoxItem}"
                               ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" />
+
+            <!-- An editable list writes into this box, not into the
+                 selection above: WPF leaves SelectionBoxItem empty in
+                 that mode. Without it the density list showed nothing,
+                 not even its default, and could not be typed into. Right
+                 margin left for the arrow. -->
+            <TextBox x:Name="PART_EditableTextBox" Visibility="Collapsed"
+                     Margin="4,0,24,0" VerticalAlignment="Center"
+                     Background="Transparent" BorderThickness="0"
+                     Foreground="{TemplateBinding Foreground}"
+                     IsReadOnly="{TemplateBinding IsReadOnly}">
+              <TextBox.Template>
+                <ControlTemplate TargetType="TextBox">
+                  <ScrollViewer x:Name="PART_ContentHost" Padding="{TemplateBinding Padding}" />
+                </ControlTemplate>
+              </TextBox.Template>
+            </TextBox>
 
             <Popup IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom"
                    AllowsTransparency="True" Focusable="False" PopupAnimation="Fade">
@@ -643,6 +660,10 @@
             </Popup>
           </Grid>
           <ControlTemplate.Triggers>
+            <Trigger Property="IsEditable" Value="True">
+              <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Visible" />
+              <Setter TargetName="Selection" Property="Visibility" Value="Collapsed" />
+            </Trigger>
             <Trigger Property="IsEnabled" Value="False">
               <Setter Property="Opacity" Value="0.4" />
             </Trigger>

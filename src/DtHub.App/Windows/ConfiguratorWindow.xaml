@@ -536,6 +536,7 @@
               <ComboBox Grid.Column="1" IsEditable="True" IsTextSearchEnabled="False"
                         ItemsSource="{Binding DensityChoices}"
                         Text="{Binding DensityText, UpdateSourceTrigger=LostFocus}"
+                        DropDownClosed="OnDensityPicked" KeyDown="OnDensityKey"
                         ToolTip="{loc:T DensityTip}" />
             </Grid>
             <TextBlock Text="{Binding DensityDetail}" Style="{StaticResource Muted}"

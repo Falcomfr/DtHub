@@ -363,6 +363,24 @@ public partial class ConfiguratorWindow : Window
 
     private void OnHide(object sender, RoutedEventArgs e) => Vanish();
 
+    /// <summary>
+    /// The density takes effect as soon as it is picked, or typed and
+    /// confirmed with Enter. Its binding waits for the focus to leave, so
+    /// that a value being typed is not rewritten under the cursor, and
+    /// the focus stays on the list after a pick: the choice was lost when
+    /// the panel closed first. A player saw "nothing applies".
+    /// </summary>
+    private void OnDensityPicked(object sender, EventArgs e) =>
+        ((System.Windows.Controls.ComboBox)sender).GetBindingExpression(System.Windows.Controls.ComboBox.TextProperty)?.UpdateSource();
+
+    private void OnDensityKey(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            OnDensityPicked(sender, e);
+        }
+    }
+
 
     private static readonly Duration PartnerOpening = TimeSpan.FromMilliseconds(180);
     private static readonly Duration PartnerClosing = TimeSpan.FromMilliseconds(130);
