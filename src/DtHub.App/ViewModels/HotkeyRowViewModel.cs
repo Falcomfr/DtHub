@@ -38,10 +38,18 @@ public sealed partial class HotkeyRowViewModel : ObservableObject
     /// </summary>
     public bool TakesKeyFromGame => Binding.IsAssigned && Binding.Modifiers == HotkeyModifiers.None && !HasError;
 
+    /// <summary>
+    /// What it costs, said with the key and the action: "the key no longer
+    /// reaches the game while a DT Hub window is in front" was not
+    /// understood (2026-10-11).
+    /// </summary>
+    public string BareKeyNotice => Strings.Format("HotkeyBareKeyNotice", Binding.DisplayText, ActionLabel);
+
     partial void OnBindingChanged(HotkeyBinding value)
     {
         OnPropertyChanged(nameof(ShortcutText));
         OnPropertyChanged(nameof(TakesKeyFromGame));
+        OnPropertyChanged(nameof(BareKeyNotice));
     }
 
     partial void OnIsCapturingChanged(bool value) => OnPropertyChanged(nameof(ShortcutText));

@@ -65,7 +65,7 @@
                            FontSize="{StaticResource FontSmall}" Margin="2,4,0,0" TextWrapping="Wrap"
                            Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}" />
 
-                <TextBlock Text="{loc:T HotkeyBareKeyNotice}" Foreground="{DynamicResource WarningBrush}"
+                <TextBlock Text="{Binding BareKeyNotice}" Foreground="{DynamicResource WarningBrush}"
                            FontSize="{StaticResource FontSmall}" Margin="2,4,0,0" TextWrapping="Wrap"
                            Visibility="{Binding TakesKeyFromGame, Converter={StaticResource BoolToVisibility}}" />
               </StackPanel>

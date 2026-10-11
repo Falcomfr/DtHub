@@ -2154,6 +2154,6 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>A key alone works too, Tab for instance. For a mouse button, have your mouse's software send a key, then pick that key here: DT Hub does not watch the mouse, which antivirus software would take for spyware.</value>
   </data>
   <data name="HotkeyBareKeyNotice" xml:space="preserve">
-    <value>This key no longer reaches the game while a DT Hub window is in front.</value>
+    <value>In DOFUS Touch, {0} will do nothing any more: DT Hub uses it for “{1}”.</value>
   </data>
 </root>
