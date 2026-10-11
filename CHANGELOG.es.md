@@ -10,6 +10,13 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.8.2] - 2026-10-11
+
+### Corregido
+
+- En tableta, el juego se abre a pantalla completa en su ventana en lugar de
+  una ventana flotante dentro de ella, y el chat vuelve a verse.
+
 ## [0.8.1] - 2026-10-11
 
 ### Corregido

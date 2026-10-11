@@ -11,6 +11,13 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.8.2] - 2026-10-11
+
+### Corrigé
+
+- Sur tablette, le jeu s'ouvre en plein écran dans sa fenêtre au lieu d'une
+  fenêtre flottante à l'intérieur, et le tchat redevient visible.
+
 ## [0.8.1] - 2026-10-11
 
 ### Corrigé
