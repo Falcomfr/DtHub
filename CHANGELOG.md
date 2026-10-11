@@ -17,6 +17,44 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.8.0] - 2026-10-11
+
+### Added
+
+- A DOFUS Touch tools menu in the Devices tab: Dofus Touch Map and Calcofus
+  open in a DT Hub window, DTStuff and OcrApp install and open from the PC,
+  DofusBook opens in the browser.
+- Each alert line has a Help link, suited to the app concerned and to the
+  phone's brand.
+- An Honor or Huawei phone that is plugged in but not seen gets the steps for
+  its own menus.
+- A driver that holds the phone's debugging without handing it to DT Hub is
+  named, with the steps to replace it.
+- A game kept in a locked Samsung Secure Folder is reported, with how to
+  unlock it and keep it open.
+- Wireless pairing accepts the address typed by hand when the phone does not
+  show up.
+- The custom quality lets you set the game screen's density: the interface
+  keeps its size when the window is smaller.
+
+### Changed
+
+- A hotkey can be a single key, such as Tab; only the keys that type in the
+  game's chat get a warning.
+- Right click does Back in the game windows, as in scrcpy.
+- The "No device found" card and the missing driver message give the actual
+  cause and what to do.
+- The Dofus Touch Map window loads without the ads that set off antiviruses,
+  and offers to open the site in the browser or to donate.
+
+### Removed
+
+- The Android profile line under a renamed account.
+
+### Fixed
+
+- The panel stays shown after quitting with accounts in tabs.
+
 ## [0.7.11] - 2026-10-10
 
 ### Changed

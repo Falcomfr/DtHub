@@ -10,6 +10,44 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.8.0] - 2026-10-11
+
+### Añadido
+
+- Un menú de herramientas de DOFUS Touch en la pestaña Dispositivos: Dofus Touch
+  Map y Calcofus se abren en una ventana de DT Hub, DTStuff y OcrApp se
+  instalan y se abren desde el PC, DofusBook se abre en el navegador.
+- Cada línea de alerta tiene un enlace Ayuda, adaptado a la aplicación en
+  cuestión y a la marca del teléfono.
+- Un teléfono Honor o Huawei conectado pero no detectado recibe los pasos de
+  sus propios menús.
+- Un controlador que retiene la depuración del teléfono sin pasársela a DT Hub
+  se nombra, con los pasos para sustituirlo.
+- Un juego guardado en una Carpeta segura de Samsung bloqueada se indica, con
+  cómo desbloquearla y mantenerla abierta.
+- La vinculación inalámbrica acepta la dirección escrita a mano cuando el
+  teléfono no aparece.
+- La calidad personalizada permite ajustar la densidad de la pantalla del
+  juego: la interfaz mantiene su tamaño cuando la ventana es más pequeña.
+
+### Cambiado
+
+- Un atajo puede ser una sola tecla, como Tab; solo las teclas que escriben
+  en el chat del juego reciben un aviso.
+- El clic derecho hace Atrás en las ventanas de juego, como en scrcpy.
+- La tarjeta «Ningún aparato detectado» y el mensaje de controlador ausente
+  dan la causa real y qué hacer.
+- La ventana Dofus Touch Map se carga sin los anuncios que activaban los
+  antivirus, y ofrece abrir el sitio en el navegador o hacer una donación.
+
+### Eliminado
+
+- La línea del perfil Android bajo una cuenta renombrada.
+
+### Corregido
+
+- El panel sigue visible tras salir con cuentas en pestañas.
+
 ## [0.7.11] - 2026-10-10
 
 ### Cambiado
