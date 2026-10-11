@@ -21,8 +21,9 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 ### Fixed
 
-- The density of the custom quality shows its value, can be typed into, and
-  applies as soon as it is picked.
+- The density of the custom quality now reaches the game: it was ignored for
+  every account. Its list also shows its value, can be typed into, and applies
+  as soon as it is picked.
 - A setting changed while the windows reopen is no longer lost.
 - The Dofus Touch Map window no longer sends its ad pop-ups to the browser.
 

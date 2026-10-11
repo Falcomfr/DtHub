@@ -668,6 +668,24 @@ public sealed class SettingsService : IDisposable
             cancellationToken);
 
     /// <summary>
+    /// The accounts that chose a distance of their own. Not the same
+    /// question as <see cref="GetInstanceZoomsAsync"/>, which gives every
+    /// account its effective distance: the custom density gives way to an
+    /// account's own distance only, and asking the effective map left it
+    /// out for every account.
+    /// </summary>
+    public async Task<IReadOnlySet<string>> GetAccountsWithOwnZoomAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
+
+        return settings.Instances
+            .Where(i => i.GameZoom is not null)
+            .Select(i => i.Key)
+            .ToHashSet(StringComparer.Ordinal);
+    }
+
+    /// <summary>
     /// The distance that applies to each account, its own if it has
     /// one, otherwise the shared one.
     ///

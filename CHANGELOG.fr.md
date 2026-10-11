@@ -15,7 +15,8 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 ### Corrigé
 
-- La densité de la qualité personnalisée affiche sa valeur, se tape, et
+- La densité de la qualité personnalisée arrive enfin au jeu : elle était
+  ignorée pour tous les comptes. Sa liste affiche aussi sa valeur, se tape, et
   s'applique dès qu'on la choisit.
 - Un réglage changé pendant la réouverture des fenêtres n'est plus perdu.
 - La fenêtre Dofus Touch Map n'envoie plus ses fenêtres publicitaires au

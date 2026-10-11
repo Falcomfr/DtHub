@@ -14,7 +14,8 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 
 ### Corregido
 
-- La densidad de la calidad personalizada muestra su valor, se puede escribir y
+- La densidad de la calidad personalizada por fin llega al juego: se ignoraba
+  en todas las cuentas. Su lista también muestra su valor, se puede escribir y
   se aplica en cuanto se elige.
 - Un ajuste cambiado mientras las ventanas se reabren ya no se pierde.
 - La ventana de Dofus Touch Map ya no envía sus ventanas publicitarias al

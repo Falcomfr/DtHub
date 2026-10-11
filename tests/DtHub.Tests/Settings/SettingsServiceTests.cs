@@ -621,6 +621,25 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Seuls_les_comptes_qui_ont_choisi_leur_distance_en_ont_une_propre()
+    {
+        // The launcher let the custom density give way to an account's own
+        // distance, and asked the effective map whether the account had
+        // one: every account is in it, so the density was never applied.
+        // Measured on 11/10/2026, 128 ppp chosen, 160 sent to scrcpy.
+        await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
+        await _service.SetZoomAsync(GameZoom.Close, CancellationToken.None);
+
+        var mule = Instance(999).Key;
+
+        await _service.SetInstanceZoomAsync(mule, GameZoom.Widest, CancellationToken.None);
+
+        var own = await _service.GetAccountsWithOwnZoomAsync(CancellationToken.None);
+
+        Assert.Equal([mule], own);
+    }
+
+    [Fact]
     public async Task Un_compte_sans_distance_propre_suit_le_commun()
     {
         await _service.MergeInstancesAsync([Instance(0)], CancellationToken.None);

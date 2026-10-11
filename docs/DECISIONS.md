@@ -10104,3 +10104,42 @@ clic, que DT Hub confiait au navigateur sans filtre. Le second est fermé : une
 nouvelle fenêtre vers un domaine bloqué est refusée et notée au journal. Et
 chaque ouverture dans le navigateur note désormais son domaine, ce qui
 tranchera la prochaine fois.
+
+### La densité n'atteignait jamais le jeu
+
+Les deux défauts ci-dessus réparés, la densité restait sans effet. Mesuré sur le
+téléphone en pilotant le vrai panneau par l'accessibilité de Windows : 128 ppp
+choisis, enregistrés (`layoutHeight` 900), fenêtre rouverte, et scrcpy recevait
+toujours `--new-display=…/160`. Le lanceur laisse la densité céder devant la
+distance propre d'un compte, et le demandait à `GetInstanceZoomsAsync`, qui donne
+à **chaque** compte sa distance effective, la commune à défaut : la clé était
+toujours là, la densité toujours écartée, pour tous les comptes, depuis la 0.8.0.
+Il le demande désormais à `GetAccountsWithOwnZoomAsync`, les seuls comptes qui
+en ont choisi une. Remesuré : 192 ppp choisis, `--new-display=1920x1080/192`.
+
+### Ce que fait vraiment chaque réglage, mesuré
+
+Même méthode, sur un Xiaomi 13T en Wi-Fi, en lisant la ligne de commande de
+scrcpy après chaque réouverture :
+
+- Qualité Basse : 1280x720/160, 30 im/s, 2212K. Moyenne : 1920x1080/240, 30 im/s.
+  Haute : 2560x1440/320, 60 im/s, 24330K. Personnalisée : ses propres valeurs.
+- Personnalisée : définition 720 (1280x720/160), cadence 60 (`--max-fps=60`),
+  finesse économe (débit 4977K vers 3318K), codec H.265, densité (corrigée).
+- Distance : Proche 376 ppp, Très éloignée 154, Normale 240.
+- Son : `--no-audio` laisse place à `--audio-source=playback`.
+- Clavier simulé : `--keyboard=uhid`. La souris simulée ne s'affiche que si un
+  téléphone a refusé la saisie, ce que le 13T ne fait pas : non mesurée.
+- Écran éteint : un scrcpy sans fenêtre `--turn-screen-off` tourne, le téléphone
+  est en veille ; décochée, il s'arrête. Le téléphone n'est pas rallumé.
+- Taille : le cadre passe de 3540x2088 (100) à 941x626 (30), sans réouverture.
+- Fermer aussi le jeu : cochée, le jeu s'arrête sur le téléphone à la fermeture
+  de la fenêtre ; décochée, il continue.
+- Langue : enregistrée, « La langue change au prochain démarrage », message qui
+  disparaît si l'on revient au choix d'origine.
+- Mise à jour automatique : observée le même jour, la 0.7.11 installée a
+  téléchargé, vérifié et démarré la 0.8.0 seule.
+
+Relevé au passage, pour l'accessibilité : plusieurs boutons de ligne n'ont pas de
+nom, et un lecteur d'écran lit les choix des listes « IntChoice { Label = 1280 x
+720, Value = 720 } ».

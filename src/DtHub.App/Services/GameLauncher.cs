@@ -2217,6 +2217,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
             .GetInstanceQualitiesAsync(cancellationToken)
             .ConfigureAwait(false);
 
+        var ownZooms = await _settings
+            .GetAccountsWithOwnZoomAsync(cancellationToken)
+            .ConfigureAwait(false);
+
         ProbeEncoders(instances, devices);
 
         List<ScrcpySession> started = [];
@@ -2272,8 +2276,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             // The density typed in the custom quality takes the global
             // distance's place, never an account's own distance: that one
-            // was set for this account on purpose.
-            var layoutHeight = zooms.ContainsKey(instance.Key) ? 0 : quality.LayoutHeight;
+            // was set for this account on purpose. Asked of the accounts
+            // that chose one, not of the effective map, which holds every
+            // account: the density was ignored everywhere (D192).
+            var layoutHeight = ownZooms.Contains(instance.Key) ? 0 : quality.LayoutHeight;
 
             _zoomsInUse[instance.Key] = zoom;
 
