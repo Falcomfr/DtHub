@@ -9674,16 +9674,23 @@ regarde toutes les trois secondes si l'app est arrivée ; elle passe alors à
 rouvertes au lancement suivant, ni rangées avec les fenêtres de jeu, ni comptées
 dans les réglages.
 
-**L'ouverture se fait sur l'écran du téléphone, et c'est la mesure qui l'a
-imposé.** Dans une fenêtre sur le PC, DTStuff devenait noir au bout d'une minute
-et ne répondait plus. L'écran virtuel a son propre groupe d'affichage
-(`FLAG_OWN_DISPLAY_GROUP`), qu'Android 16 endort avec le téléphone, au délai de
-mise en veille, soixante secondes sur le 13T Pro. Trois remèdes, aucun suffisant :
-l'exemption de batterie, `--screen-off-timeout=1800` (la fenêtre tient un peu
-plus, puis noircit), une touche neutre envoyée toutes les vingt secondes. DOFUS
-Touch y échappe, très probablement parce qu'il demande à garder l'écran allumé.
-Une piste écartée en route : `input -d <écran> keyevent WAKEUP` réveille l'écran
-du téléphone, pas l'écran virtuel.
+**L'ouverture se fait aussi dans une fenêtre sur le PC, et il a fallu la tenir
+éveillée.** DTStuff y devenait noir ou se figeait en moins de deux minutes, et
+ne répondait plus. L'écran virtuel a son propre groupe d'affichage
+(`FLAG_OWN_DISPLAY_GROUP`), qu'Android 16 gèle une fois le téléphone en veille.
+DOFUS Touch y échappe, très probablement parce qu'il demande à garder l'écran
+allumé. Ce qui n'a pas suffi : l'exemption de batterie, `--screen-off-timeout`
+(la fenêtre tient un peu plus, puis se fige), `input -d <écran> keyevent WAKEUP`
+(il réveille l'écran du téléphone, pas l'écran virtuel). Ce qui marche, mesuré le
+2026-10-11 : une touche neutre, `input keyevent 0`, toutes les vingt secondes
+dès l'ouverture de la fenêtre. DTStuff a répondu pendant deux minutes quarante,
+téléphone en veille et écran éteint ; sans elle, il était figé deux minutes plus
+tard. Elle doit partir avec la fenêtre : une app déjà figée ne repart pas avec
+elle. Un premier essai de cette touche, la veille, avait échoué pour une autre
+raison : l'app s'était ouverte sur un autre écran que celui observé.
+
+Un temps, l'ouverture s'est faite sur l'écran du téléphone, en attendant mieux ;
+la demande était une fenêtre sur le PC, et c'est ce qui reste.
 
 **Écarté** : ajouter les apps comme lignes sous chaque téléphone, alors qu'elles
 s'ouvrent de temps en temps et pas à chaque lancement ; un menu système Windows

@@ -2129,7 +2129,4 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="PartnerTargetLabel" xml:space="preserve">
     <value>{0} · {1}</value>
   </data>
-  <data name="PartnerOpenedOnPhone" xml:space="preserve">
-    <value>Desbloquea tu teléfono: {0} está abierto en él.</value>
-  </data>
 </root>

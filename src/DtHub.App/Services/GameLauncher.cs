@@ -89,9 +89,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         AppRestartService restarts,
         WindowPlacements placements,
         IAppLauncher appLauncher,
+        IAdbClient adb,
         ILogger<GameLauncher> logger)
     {
         _appLauncher = appLauncher;
+        _adb = adb;
         _sessions = sessions;
         _windows = windows;
         _devices = devices;
@@ -806,6 +808,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     private readonly IAppLauncher _appLauncher;
 
+    private readonly IAdbClient _adb;
+
     /// <summary>
     /// Opens a MakeInTouch app's Play Store page in a window on the PC, on a
     /// virtual display of that phone. When no window could open, the page
@@ -964,21 +968,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
     }
 
-    /// <summary>
-    /// Opens an installed MakeInTouch app on the phone's own screen.
-    ///
-    /// Not in a window on the PC, and measured why on 2026-10-10, 13T Pro,
-    /// Android 16: such a window's virtual display has its own power group,
-    /// which Android puts to sleep with the phone. Within a minute the window
-    /// turned black and ignored clicks. A battery exemption, a longer screen
-    /// timeout and simulated activity every 20 s each failed to keep it
-    /// awake. DOFUS Touch escapes it, these two apps do not.
-    /// </summary>
+    /// <summary>Opens an installed MakeInTouch app in a window on the PC.</summary>
     public async Task<PartnerOpening> OpenPartnerAppAsync(
         string deviceId,
         string packageName,
         CancellationToken cancellationToken = default)
     {
+        var app = PartnerApps.All.First(a => string.Equals(a.PackageName, packageName, StringComparison.Ordinal));
+
         if (!_serials.TryGetValue(deviceId, out var serial))
         {
             return PartnerOpening.Failed;
@@ -987,11 +984,57 @@ public sealed partial class GameLauncher : IAsyncDisposable
         var component = await _instances.ResolveComponentAsync(serial, 0, packageName, cancellationToken)
             .ConfigureAwait(false);
 
-        var launch = await _appLauncher
-            .LaunchAsync(serial, 0, packageName, component?.Value, displayId: null, cancellationToken)
-            .ConfigureAwait(false);
+        return await OpenPassingAsync(
+            deviceId,
+            new DofusInstance
+            {
+                DeviceId = deviceId,
+                DeviceName = PartnerDeviceNames.GetValueOrDefault(deviceId, deviceId),
+                UserId = 0,
+                UserName = app.Name,
+                PackageName = packageName,
+                LaunchComponent = component?.Value,
+                AppLabel = app.Name,
+                IsTransient = true,
+                IsDeviceConnected = true,
+            },
+            cancellationToken).ConfigureAwait(false);
+    }
 
-        return launch.Succeeded ? PartnerOpening.OpenedOnPhone : PartnerOpening.Failed;
+    /// <summary>
+    /// Keeps an app opened in passing alive while its window is open.
+    ///
+    /// Its virtual display has its own power group, and Android 16 freezes
+    /// what runs there once the phone dozes: within two minutes the window
+    /// showed its last frame and ignored clicks. DOFUS Touch escapes it by
+    /// keeping its screen on; these apps do not. Measured on 2026-10-11, 13T
+    /// Pro: a neutral key every twenty seconds from the window's opening kept
+    /// DTStuff answering with the phone dozing, and does not light the
+    /// phone's screen. Once frozen, the key no longer revives it: it has to
+    /// start with the window. A battery exemption and a longer screen
+    /// timeout had both failed.
+    /// </summary>
+    private async Task KeepAwakeAsync(ScrcpySession session)
+    {
+        // ponytail: one adb call every 20 s per passing window; a wake lock
+        // would need code running on the phone.
+        while (session.IsAlive)
+        {
+            if (_serials.TryGetValue(session.Target.DeviceId, out var serial))
+            {
+                try
+                {
+                    _ = await _adb.ShellAsync(serial, ["input", "keyevent", "0"], TimeSpan.FromSeconds(5), CancellationToken.None)
+                        .ConfigureAwait(false);
+                }
+                catch (AdbException exception)
+                {
+                    LogKeepAwakeFailed(session.Target.DisplayName, exception.Message);
+                }
+            }
+
+            await Task.Delay(TimeSpan.FromSeconds(20)).ConfigureAwait(false);
+        }
     }
 
     /// <summary>
@@ -1025,6 +1068,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
 
         var report = await LaunchAsync([instance], cancellationToken).ConfigureAwait(false);
+
+        if (FindSession(instance) is { } opened)
+        {
+            _ = KeepAwakeAsync(opened);
+        }
 
         return report.Opened > 0 ? PartnerOpening.InWindow : PartnerOpening.Failed;
     }
@@ -4036,6 +4084,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
     }
 
+    [LoggerMessage(Level = LogLevel.Debug, Message = "{Window} : le signal qui garde l'app éveillée n'est pas passé : {Reason}")]
+    private partial void LogKeepAwakeFailed(string window, string reason);
+
     [LoggerMessage(Level = LogLevel.Warning, Message = "La surveillance d'une installation depuis le Play Store a échoué.")]
     private partial void LogStoreWatchFailed(Exception exception);
 
@@ -4260,9 +4311,6 @@ public enum PartnerOpening
 
     /// <summary>On the phone's own screen, the window having failed.</summary>
     OnPhone,
-
-    /// <summary>An installed app, opened on the phone's own screen.</summary>
-    OpenedOnPhone,
 
     /// <summary>The phone has no Play Store.</summary>
     StoreMissing,
