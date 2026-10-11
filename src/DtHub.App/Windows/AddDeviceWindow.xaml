@@ -52,9 +52,13 @@
         <StackPanel>
           <TextBlock Style="{StaticResource Muted}"
                      Text="{loc:T WaitingForDevice}" />
+          <Button Style="{StaticResource LinkButton}" Margin="0,6,0,0" HorizontalAlignment="Left"
+                  FontSize="{StaticResource FontSmall}"
+                  Content="{loc:T ManualPairingLink}" Command="{Binding EnterManuallyCommand}"
+                  Visibility="{Binding OffersManualEntry, Converter={StaticResource BoolToVisibility}}" />
           <TextBlock Style="{StaticResource Muted}" Margin="0,6,0,0"
                      Text="{loc:T ManualPairingHint}"
-                     Visibility="{Binding OffersManualEntry, Converter={StaticResource BoolToVisibility}}" />
+                     Visibility="{Binding ManualEntry, Converter={StaticResource BoolToVisibility}}" />
         </StackPanel>
       </Border>
 

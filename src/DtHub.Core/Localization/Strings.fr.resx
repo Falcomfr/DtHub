@@ -2180,6 +2180,9 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>Paramètres  ›  Biométrie et sécurité  ›  Dossier sécurisé</value>
   </data>
   <data name="ManualPairingHint" xml:space="preserve">
-    <value>Votre appareil n'apparaît pas ? Sur son écran d'association, recopiez ci-dessous « Adresse IP et port », puis le code à six chiffres.</value>
+    <value>Sur l'écran d'association de l'appareil, recopiez ci-dessous « Adresse IP et port », puis le code à six chiffres.</value>
+  </data>
+  <data name="ManualPairingLink" xml:space="preserve">
+    <value>L'appareil n'apparaît pas ? Saisir son adresse à la main</value>
   </data>
 </root>

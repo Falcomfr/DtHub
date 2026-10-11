@@ -9809,7 +9809,8 @@ dit verrouillé, sans cette phrase. Rien n'est vérifié sur un Samsung.
 ### Association sans fil sans annonce
 
 L'association exigeait que le téléphone s'annonce sur le réseau : une box qui
-filtre le multicast rendait même l'adresse tapée inutile. Après trois balayages
-sans téléphone, la fenêtre propose l'adresse et le code affichés sur l'écran
-d'association, et la connexion vise l'hôte associé quand aucune annonce ne le
-nomme.
+filtre le multicast rendait même l'adresse tapée inutile. Tant qu'aucun téléphone
+n'est repéré, un petit lien « Saisir son adresse à la main » ouvre les champs
+adresse et code de l'écran d'association, et la connexion vise l'hôte associé
+quand aucune annonce ne le nomme. Seulement sur demande : ouverts d'office, ces
+champs encombraient une fenêtre qui marche seule pour presque tout le monde.

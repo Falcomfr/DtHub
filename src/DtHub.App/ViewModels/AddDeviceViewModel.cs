@@ -81,26 +81,30 @@ public sealed partial class AddDeviceViewModel : ObservableObject
     private string? _pairedHost;
 
     /// <summary>
-    /// Scans in a row that found no phone. After a few, the phone is not
-    /// going to announce itself: a box that drops multicast, a firewall,
-    /// a guest network. Pairing by the address shown on the phone then
-    /// needs no announcement at all.
+    /// True once the user asked to type the address. Only on request: the
+    /// announcement works for nearly everyone, and the fields would only
+    /// clutter the window. It is for the phone that never announces
+    /// itself, behind a box that drops multicast, a firewall, a guest
+    /// network: pairing by the address shown on the phone needs no
+    /// announcement at all.
     /// </summary>
-    private int _emptyScans;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsAddress))]
+    [NotifyPropertyChangedFor(nameof(ShowsCodeEntry))]
+    [NotifyPropertyChangedFor(nameof(OffersManualEntry))]
+    private bool _manualEntry;
 
-    private const int ScansBeforeManualEntry = 3;
+    /// <summary>The small link that opens the manual entry, while no phone shows.</summary>
+    public bool OffersManualEntry => Candidates.Count == 0 && !ManualEntry;
 
-    /// <summary>
-    /// True once the phone has had time to announce itself and has not:
-    /// the address and code fields then appear without waiting for it.
-    /// </summary>
-    public bool OffersManualEntry => Candidates.Count == 0 && _emptyScans >= ScansBeforeManualEntry;
-
-    /// <summary>The address field: asked for, or offered for lack of an announcement.</summary>
-    public bool ShowsAddress => NeedsAddress || OffersManualEntry;
+    /// <summary>The address field: asked for, or requested by the user.</summary>
+    public bool ShowsAddress => NeedsAddress || ManualEntry;
 
     /// <summary>The code field and its button.</summary>
-    public bool ShowsCodeEntry => Candidates.Count > 0 || OffersManualEntry;
+    public bool ShowsCodeEntry => Candidates.Count > 0 || ManualEntry;
+
+    [RelayCommand]
+    private void EnterManually() => ManualEntry = true;
 
     /// <summary>The address typed in, when it reads as host and port.</summary>
     private (string Host, int Port)? TypedAddress =>
@@ -228,7 +232,6 @@ public sealed partial class AddDeviceViewModel : ObservableObject
                 SelectedCandidate = Candidates.FirstOrDefault();
             }
 
-            _emptyScans = Candidates.Count == 0 ? _emptyScans + 1 : 0;
             OnPropertyChanged(nameof(OffersManualEntry));
             OnPropertyChanged(nameof(ShowsAddress));
             OnPropertyChanged(nameof(ShowsCodeEntry));

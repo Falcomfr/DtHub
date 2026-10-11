@@ -2180,6 +2180,9 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Ajustes  ›  Datos biométricos y seguridad  ›  Carpeta segura</value>
   </data>
   <data name="ManualPairingHint" xml:space="preserve">
-    <value>¿Tu dispositivo no aparece? En su pantalla de vinculación, copia abajo «Dirección IP y puerto» y luego el código de seis dígitos.</value>
+    <value>En la pantalla de vinculación del dispositivo, copia abajo «Dirección IP y puerto» y luego el código de seis dígitos.</value>
+  </data>
+  <data name="ManualPairingLink" xml:space="preserve">
+    <value>¿No aparece el dispositivo? Escribe su dirección a mano</value>
   </data>
 </root>

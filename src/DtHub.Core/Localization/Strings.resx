@@ -2180,6 +2180,9 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>Settings  ›  Biometrics and security  ›  Secure Folder</value>
   </data>
   <data name="ManualPairingHint" xml:space="preserve">
-    <value>Your device does not show up? On its pairing screen, copy the "IP address &amp; Port" below, then the six-digit code.</value>
+    <value>On the device's pairing screen, copy the "IP address &amp; Port" below, then the six-digit code.</value>
+  </data>
+  <data name="ManualPairingLink" xml:space="preserve">
+    <value>Device not showing up? Type its address by hand</value>
   </data>
 </root>
