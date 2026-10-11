@@ -42,7 +42,7 @@ public class AndroidAppLauncherTests
     [Fact]
     public void Les_arguments_ouvrent_l_adresse_sur_l_ecran_virtuel() =>
         Assert.Equal(
-            ["am", "start", "--user", "0", "--display", "62", "--activity-exclude-from-recents",
+            ["am", "start", "--user", "0", "--display", "62", "--windowingMode", "1", "--activity-exclude-from-recents",
              "-a", "android.intent.action.VIEW", "-d", "market://details?id=com.makeintouch.dtstuff"],
             AndroidAppLauncher.UriArguments(0, "market://details?id=com.makeintouch.dtstuff", 62));
 
@@ -79,7 +79,7 @@ public class AndroidAppLauncherTests
 
         Assert.True(result.Succeeded);
         Assert.Contains(
-            "am start --user 0 --display 62 --activity-exclude-from-recents -a android.intent.action.VIEW -d market://details?id=com.makeintouch.dtstuff",
+            "am start --user 0 --display 62 --windowingMode 1 --activity-exclude-from-recents -a android.intent.action.VIEW -d market://details?id=com.makeintouch.dtstuff",
             adb.ShellCalls);
     }
 
@@ -96,7 +96,7 @@ public class AndroidAppLauncherTests
 
         Assert.True(result.Succeeded);
         Assert.Contains(
-            "am start --user 999 --display 42 --activity-exclude-from-recents -n " + Component,
+            "am start --user 999 --display 42 --windowingMode 1 --activity-exclude-from-recents -n " + Component,
             adb.ShellCalls);
     }
 
@@ -202,6 +202,24 @@ public class AndroidAppLauncherTests
         Assert.Contains(
             adb.ShellCalls,
             call => call.Contains("--activity-exclude-from-recents", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Sur_un_afficheur_virtuel_le_jeu_s_ouvre_en_plein_ecran()
+    {
+        // **Without it, a Xiaomi Pad 6 under HyperOS (Android 14) opened the
+        // game as a floating window inside the virtual display**: rounded
+        // corners, a drag handle on top, the game a fraction of the window.
+        // Seen on a player's screenshots on 2026-10-11. Enlarging that window
+        // afterwards did not help: the game keeps the layout of its first
+        // size, and the chat stayed out of view. Phones already open it full
+        // screen, so the flag changes nothing for them.
+        var adb = new FakeAdbClient().WithShell("am start", "Status: ok");
+
+        _ = await Build(adb).LaunchAsync(Serial, 0, Package, Component, displayId: 7);
+        _ = await Build(adb).OpenUriAsync(Serial, 0, "market://details?id=com.makeintouch.dtstuff", 7);
+
+        Assert.Equal(2, adb.ShellCalls.Count(call => call.Contains("--windowingMode 1", StringComparison.Ordinal)));
     }
 
     [Fact]

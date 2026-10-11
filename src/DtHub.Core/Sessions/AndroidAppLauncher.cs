@@ -200,7 +200,7 @@ public sealed class AndroidAppLauncher : IAppLauncher
 
         if (displayId is { } display)
         {
-            arguments.AddRange(["--display", Text(display), "--activity-exclude-from-recents"]);
+            arguments.AddRange(["--display", Text(display), "--windowingMode", "1", "--activity-exclude-from-recents"]);
         }
 
         arguments.AddRange(["-a", "android.intent.action.VIEW", "-d", uri]);
@@ -228,6 +228,14 @@ public sealed class AndroidAppLauncher : IAppLauncher
         {
             arguments.Add("--display");
             arguments.Add(Text(display));
+
+            // Full screen, said outright: left to the system, HyperOS on a
+            // tablet (Xiaomi Pad 6, Android 14) opened the game as a floating
+            // window inside the virtual display, and the game kept that
+            // first size's layout once enlarged, the chat out of view.
+            // 1 is WINDOWING_MODE_FULLSCREEN, what phones pick on their own.
+            arguments.Add("--windowingMode");
+            arguments.Add("1");
 
             // **On a virtual display only, and that is the key point.**
             //
