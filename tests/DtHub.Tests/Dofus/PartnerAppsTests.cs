@@ -92,4 +92,22 @@ public sealed class PartnerAppsTests
     [Fact]
     public void L_adresse_du_store_vise_le_paquet() =>
         Assert.Equal("market://details?id=com.makeintouch.ocrapp", PartnerApps.StoreUri(OcrApp));
+
+    [Fact]
+    public void Calcofus_rouvre_sur_le_dernier_calculateur() =>
+        Assert.Equal("https://calcofus.fr/page_bombes", Calcofus.StartAddress("https://calcofus.fr/page_bombes"));
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("https://discord.gg/dfDV8Zvwqp")]
+    [InlineData("https://calcofus.fr.example.com/page_invo")]
+    [InlineData("http://calcofus.fr/page_invo")]
+    [InlineData("pas une adresse")]
+    public void Calcofus_ne_rouvre_que_ses_propres_pages(string? remembered)
+    {
+        // A link followed out of the site, to Discord or a stuff library,
+        // is not a calculator to come back to.
+        Assert.Equal("https://calcofus.fr/", Calcofus.StartAddress(remembered));
+    }
 }

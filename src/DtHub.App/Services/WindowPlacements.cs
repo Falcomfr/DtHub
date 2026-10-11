@@ -37,6 +37,9 @@ public sealed class WindowPlacements(IWindowController windows, SettingsService 
     /// <summary>The DOFUS Touch map, first of the tools.</summary>
     public const string Map = "map";
 
+    /// <summary>The Calcofus calculators.</summary>
+    public const string Calcofus = "calcofus";
+
     /// <summary>The settings panel.</summary>
     public const string Configurator = "configurator";
 

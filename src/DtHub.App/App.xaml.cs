@@ -8,6 +8,7 @@ using DtHub.App.Windows;
 using DtHub.Core;
 using DtHub.Core.Devices;
 using DtHub.Core.Diagnostics;
+using DtHub.Core.Dofus;
 using DtHub.Core.Localization;
 using DtHub.Core.Scrcpy;
 using DtHub.Core.Sessions;
@@ -51,7 +52,7 @@ public partial class App : Application, IDisposable
     private ConfiguratorWindow? _configurator;
     private QuestWindow? _quests;
 
-    private MapWindow? _map;
+    private readonly Dictionary<WebTool, WebToolWindow> _webTools = [];
     private AlmanaxWindow? _almanax;
     /// <summary>
     /// What we allow ourselves to save the state when Windows closes
@@ -189,8 +190,8 @@ public partial class App : Application, IDisposable
         services.GetRequiredService<ConfiguratorViewModel>().AlmanaxRequested +=
             (_, _) => Dispatcher.Invoke(ShowAlmanax);
 
-        services.GetRequiredService<ConfiguratorViewModel>().MapRequested +=
-            (_, _) => Dispatcher.Invoke(ShowMap);
+        services.GetRequiredService<ConfiguratorViewModel>().WebToolRequested +=
+            (_, tool) => Dispatcher.Invoke(() => ShowWebTool(tool));
         launcher.QuitRequested += (_, _) => Dispatcher.Invoke(async () => await RequestQuitAsync().ConfigureAwait(true));
         // Recovering a lost window is requested from scrcpy's read
         // loop, which does not live on the UI thread. It therefore
@@ -900,27 +901,27 @@ public partial class App : Application, IDisposable
     /// the application does not have to survive for it alone.
     /// </summary>
     /// <summary>
-    /// The DOFUS Touch map: brought forward when already open, opened
+    /// A DOFUS Touch web tool: brought forward when already open, opened
     /// otherwise, like the Almanax.
     /// </summary>
-    private void ShowMap()
+    private void ShowWebTool(WebTool tool)
     {
-        if (_map is { IsLoaded: true })
+        if (_webTools.TryGetValue(tool, out var open) && open.IsLoaded)
         {
-            _map.Activate();
+            open.Activate();
 
             return;
         }
 
-        _map = _host?.Services.GetRequiredService<MapWindow>();
-
-        if (_map is null)
+        if (_host?.Services.GetRequiredService<WebToolWindow>() is not { } window)
         {
             return;
         }
 
-        _map.Closed += (_, _) => _map = null;
-        _map.Show();
+        window.Tool = tool;
+        window.Closed += (_, _) => _webTools.Remove(tool);
+        _webTools[tool] = window;
+        window.Show();
     }
 
     private void ShowAlmanax()

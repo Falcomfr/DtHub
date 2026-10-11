@@ -93,6 +93,9 @@ public sealed class AppSettingsDocument
     /// </summary>
     public string LastQuestUrl { get; set; } = string.Empty;
 
+    /// <summary>The Calcofus page last shown, to reopen on that calculator.</summary>
+    public string LastCalcofusUrl { get; set; } = string.Empty;
+
     /// <summary>
     /// The step reached in that guide. Only the address used to be kept:
     /// the right guide reopened at its first step, and the path had to be

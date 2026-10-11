@@ -382,7 +382,11 @@ public partial class ConfiguratorWindow : Window
 
     /// <summary>It fades out, sliding back down, before it disappears.</summary>
     private void OnPartnerMenuClosing(object sender, RoutedEventArgs e) =>
-        AnimatePartnerMenu(opening: false, then: () => PartnerMenu.IsOpen = false);
+        AnimatePartnerMenu(opening: false, then: () =>
+        {
+            PartnerMenu.IsOpen = false;
+            _viewModel.PickingTile = null;
+        });
 
     private void AnimatePartnerMenu(bool opening, Action? then)
     {
@@ -445,6 +449,16 @@ public partial class ConfiguratorWindow : Window
 
     /// <summary>A phone chosen in the tools menu: the menu closes.</summary>
     private void OnPartnerChosen(object sender, RoutedEventArgs e) => PartnerToggle.IsChecked = false;
+
+    /// <summary>A tile: its action runs and the menu closes, or its phones show.</summary>
+    private void OnToolTile(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is ViewModels.PartnerTileViewModel tile
+            && _viewModel.ChooseTool(tile))
+        {
+            PartnerToggle.IsChecked = false;
+        }
+    }
 
     /// <summary>Opens the hotkey editor, then rereads what changed.</summary>
     private async void OnEditHotkeys(object sender, RoutedEventArgs e)

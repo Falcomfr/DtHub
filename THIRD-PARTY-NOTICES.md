@@ -169,6 +169,20 @@ tab, next to their names.
 applies to DT Hub, not to anyone reusing this repository, who must contact
 MakeInTouch.
 
+## Calcofus logo
+
+- Source: the Tofu of the site's own logo, https://calcofus.fr/media/10858951a40c870c7eec74fbdf5155a6.png,
+  set on a rounded square drawn for DT Hub in the style of the other tools
+- File: `assets/calcofus.png`, embedded in the executable
+- Recorded on 2026-10-11, **with the site owner's agreement** to the name and
+  logo, as stated by the project owner
+
+It marks the Calcofus tile in the DOFUS Touch tools menu.
+
+**This file is not covered by DT Hub's MIT licence.** The agreement applies to
+DT Hub, not to anyone reusing this repository, who must contact the owner of
+calcofus.fr.
+
 ## papycha.fr logo
 
 - Source: https://papycha.fr/wp-content/uploads/2022/04/cropped-luis-192x192.png

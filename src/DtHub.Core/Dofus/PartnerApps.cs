@@ -72,6 +72,16 @@ public static class PartnerApps
             [.. devices.Where(d => !d.PackagesUser0.Contains(app.PackageName, StringComparer.Ordinal)).Select(d => d.DeviceId)]))];
 }
 
+/// <summary>The DOFUS Touch tools that are web sites, each in a DT Hub window.</summary>
+public enum WebTool
+{
+    /// <summary>The interactive map of the resources.</summary>
+    Map,
+
+    /// <summary>The damage calculators.</summary>
+    Calcofus,
+}
+
 /// <summary>
 /// The DOFUS Touch map, first of the tools: a web site shown in a DT Hub
 /// window, which needs no phone. Its logo is drawn for DT Hub, not the
@@ -84,4 +94,29 @@ public static class DofusTouchMap
 
     /// <summary>The pack path of its bundled logo.</summary>
     public const string IconAsset = "/assets/dtmap.png";
+}
+
+/// <summary>
+/// Calcofus, the damage calculators of DOFUS Touch: a web site shown in a
+/// narrow DT Hub window beside the game. Its owner gave DT Hub the right
+/// to its name and logo (2026-10-11).
+/// </summary>
+public static class Calcofus
+{
+    public const string Address = "https://calcofus.fr/";
+
+    /// <summary>The pack path of its bundled logo.</summary>
+    public const string IconAsset = "/assets/calcofus.png";
+
+    /// <summary>
+    /// Where the window opens: the calculator last used, when it is one of
+    /// the site's pages, its home otherwise. A link followed out of the
+    /// site, to Discord or a stuff library, is not one to come back to.
+    /// </summary>
+    public static string StartAddress(string? remembered) =>
+        Uri.TryCreate(remembered, UriKind.Absolute, out var uri)
+        && uri.Scheme == Uri.UriSchemeHttps
+        && string.Equals(uri.Host, "calcofus.fr", StringComparison.OrdinalIgnoreCase)
+            ? uri.AbsoluteUri
+            : Address;
 }

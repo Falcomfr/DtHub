@@ -145,7 +145,7 @@ public static class AppServices
         // wanted side by side.
         services.AddTransient<QuestPageWindow>();
         services.AddTransient<AlmanaxWindow>();
-        services.AddTransient<MapWindow>();
+        services.AddTransient<WebToolWindow>();
         services.AddTransient<HotkeyEditorViewModel>();
         services.AddTransient<HotkeyEditorWindow>();
         services.AddSingleton<ConfiguratorViewModel>();

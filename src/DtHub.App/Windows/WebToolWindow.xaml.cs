@@ -1,0 +1,169 @@
+﻿using System.Windows;
+
+using DtHub.App.Services;
+using DtHub.Core.Dofus;
+using DtHub.Core.Localization;
+using DtHub.Core.Settings;
+
+using Microsoft.Web.WebView2.Core;
+
+using Serilog;
+
+namespace DtHub.App.Windows;
+
+/// <summary>
+/// A DOFUS Touch tool that is a web site, shown in DT Hub's own engine like
+/// the guides. One window per tool, each with its own place.
+/// </summary>
+public partial class WebToolWindow : Window
+{
+    /// <summary>The share of the work area the map takes the first time.</summary>
+    private const double MapShare = 0.65;
+
+    /// <summary>
+    /// Calcofus's first width: its narrow layout, measured readable at 460
+    /// pixels on 2026-10-11, leaves the game the rest of the screen.
+    /// </summary>
+    private const double CalcofusWidth = 480;
+
+    private const double CalcofusHeightShare = 0.85;
+
+    private readonly WindowPlacements _placements;
+    private readonly SettingsService _settings;
+    private readonly WebViewEnvironment _engine;
+    private readonly IDialogService _dialogs;
+
+    public WebToolWindow(
+        WindowPlacements placements,
+        SettingsService settings,
+        WebViewEnvironment engine,
+        IDialogService dialogs)
+    {
+        InitializeComponent();
+
+        _placements = placements;
+        _settings = settings;
+        _engine = engine;
+        _dialogs = dialogs;
+
+        Loaded += async (_, _) => await OpenAsync().ConfigureAwait(true);
+    }
+
+    /// <summary>Which tool this window shows. Set before it is shown.</summary>
+    public WebTool Tool { get; set; }
+
+    private string PlacementKey => Tool == WebTool.Map ? WindowPlacements.Map : WindowPlacements.Calcofus;
+
+    private async Task OpenAsync()
+    {
+        try
+        {
+            await View.EnsureCoreWebView2Async(await _engine.GetAsync().ConfigureAwait(true)).ConfigureAwait(true);
+            View.CoreWebView2.NewWindowRequested += OnNewWindowRequested;
+
+            if (Tool == WebTool.Map)
+            {
+                View.CoreWebView2.Navigate(DofusTouchMap.Address);
+                return;
+            }
+
+            View.CoreWebView2.NavigationStarting += OnCalcofusNavigating;
+            View.CoreWebView2.SourceChanged += OnCalcofusPageChanged;
+
+            var document = await _settings.GetAsync().ConfigureAwait(true);
+            View.CoreWebView2.Navigate(Calcofus.StartAddress(document.LastCalcofusUrl));
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Log.Warning(exception, "L'outil web {Outil} n'a pas pu s'ouvrir.", Tool);
+        }
+    }
+
+    /// <summary>
+    /// target="_blank", which the engine would otherwise open in a window of
+    /// its own, outside any control: the system browser takes it.
+    /// </summary>
+    private void OnNewWindowRequested(object? sender, CoreWebView2NewWindowRequestedEventArgs e)
+    {
+        e.Handled = true;
+
+        _dialogs.OpenUrl(e.Uri);
+    }
+
+    /// <summary>
+    /// A link out of Calcofus, to Discord, Twitch or a stuff library, goes
+    /// to the browser: the narrow window is for the calculators.
+    /// </summary>
+    private void OnCalcofusNavigating(object? sender, CoreWebView2NavigationStartingEventArgs e)
+    {
+        if (Calcofus.StartAddress(e.Uri) != e.Uri)
+        {
+            e.Cancel = true;
+            _dialogs.OpenUrl(e.Uri);
+        }
+    }
+
+    /// <summary>
+    /// The calculator shown, remembered on each change: the site moves
+    /// between pages without reloading, and the window reopens there.
+    /// </summary>
+    private void OnCalcofusPageChanged(object? sender, CoreWebView2SourceChangedEventArgs e)
+    {
+        var url = View.CoreWebView2.Source;
+
+        if (Calcofus.StartAddress(url) == url)
+        {
+            _ = _settings.SetLastCalcofusUrlAsync(url);
+        }
+    }
+
+    protected override async void OnSourceInitialized(EventArgs e)
+    {
+        Title = Strings.Get(Tool == WebTool.Map ? "ToolMapName" : "ToolCalcofusName");
+
+        base.OnSourceInitialized(e);
+
+        try
+        {
+            var document = await _settings.GetAsync().ConfigureAwait(true);
+
+            if (!_placements.Restore(this, PlacementKey, document))
+            {
+                PlaceFirstTime();
+            }
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Log.Warning(exception, "La place de l'outil web {Outil} n'a pas pu être rétablie.", Tool);
+        }
+    }
+
+    private void PlaceFirstTime()
+    {
+        var area = SystemParameters.WorkArea;
+
+        if (Tool == WebTool.Map)
+        {
+            Width = area.Width * MapShare;
+            Height = area.Height * MapShare;
+            Left = area.Left + ((area.Width - Width) / 2);
+            Top = area.Top + ((area.Height - Height) / 2);
+            return;
+        }
+
+        // Against the right edge, where it covers the least of a game
+        // window centred or docked on the left.
+        Width = Math.Min(CalcofusWidth, area.Width);
+        Height = area.Height * CalcofusHeightShare;
+        Left = area.Right - Width;
+        Top = area.Top + ((area.Height - Height) / 2);
+    }
+
+    /// <summary>Remembered here: the handle is gone by OnClosed.</summary>
+    protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+    {
+        _ = _placements.SaveAsync(this, PlacementKey);
+
+        base.OnClosing(e);
+    }
+}

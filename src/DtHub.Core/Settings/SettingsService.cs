@@ -1381,6 +1381,21 @@ public sealed class SettingsService : IDisposable
             },
             cancellationToken);
 
+    /// <summary>Remembers the Calcofus page last shown.</summary>
+    public Task SetLastCalcofusUrlAsync(string url, CancellationToken cancellationToken = default) =>
+        UpdateIfChangedAsync(
+            settings =>
+            {
+                if (settings.LastCalcofusUrl == url)
+                {
+                    return false;
+                }
+
+                settings.LastCalcofusUrl = url;
+                return true;
+            },
+            cancellationToken);
+
     /// <summary>
     /// Remembers where a window was. A placement with no size is not
     /// saved: that is what a window that was never shown returns.

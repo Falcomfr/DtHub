@@ -15,9 +15,9 @@ public sealed record PartnerTarget(string DeviceName, ICommand Act)
 }
 
 /// <summary>
-/// One MakeInTouch app in the block at the bottom of the Devices tab: a
-/// compact line with Open once it is on a phone, a presentation with
-/// Install otherwise.
+/// One tool in the tools menu, a tile of its icon and name: a click opens
+/// it, or installs it where it is missing. Its presentation is the tile's
+/// tooltip, so the menu stays one row.
 /// </summary>
 public sealed class PartnerTileViewModel(
     string name,
@@ -49,16 +49,23 @@ public sealed class PartnerTileViewModel(
     public string ActionText => Strings.Get(isInstalled ? "PartnerOpen" : "PartnerInstall");
 
     /// <summary>
-    /// The buttons: "Install" alone for one phone, "Install · phone" for
-    /// each when there is a choice.
+    /// The phones it can act on. With one, the tile's click acts; with
+    /// several, each is offered by name under the grid.
     /// </summary>
     public IReadOnlyList<PartnerTarget> Targets { get; } =
-        [.. targets.Select(t => t with
-        {
-            Label = targets.Count == 1
-                ? Strings.Get(isInstalled ? "PartnerOpen" : "PartnerInstall")
-                : Strings.Format("PartnerTargetLabel", Strings.Get(isInstalled ? "PartnerOpen" : "PartnerInstall"), t.DeviceName),
-        })];
+        [.. targets.Select(t => t with { Label = t.DeviceName })];
+
+    /// <summary>
+    /// Under the name, only when the click will not simply open: the app
+    /// is to install, or no phone can take it.
+    /// </summary>
+    public string? Badge =>
+        targets.Count == 0 ? Strings.Get("PartnerNoDeviceShort")
+        : isInstalled ? null
+        : Strings.Get("PartnerInstall");
+
+    /// <summary>The question above the phones, when there is a choice.</summary>
+    public string PickPrompt => Strings.Format("PartnerPickDevice", ActionText);
 
     /// <summary>False with no phone to act on: the button greys out.</summary>
     public bool CanAct => targets.Count > 0;

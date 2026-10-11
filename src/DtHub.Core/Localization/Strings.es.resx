@@ -2117,9 +2117,6 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="PartnerMenu" xml:space="preserve">
     <value>Herramientas DOFUS Touch</value>
   </data>
-  <data name="PartnerTargetLabel" xml:space="preserve">
-    <value>{0} · {1}</value>
-  </data>
   <data name="ToolBatteryNotPrepared" xml:space="preserve">
     <value>{0} no está a salvo del ahorro de energía: su ventana se congelará y dejará de responder. Elige «Sin restricciones» en su ficha de batería.</value>
   </data>
@@ -2184,5 +2181,17 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   </data>
   <data name="ManualPairingLink" xml:space="preserve">
     <value>¿No aparece el dispositivo? Escribe su dirección a mano</value>
+  </data>
+  <data name="ToolCalcofusName" xml:space="preserve">
+    <value>Calcofus</value>
+  </data>
+  <data name="ToolCalcofusLine" xml:space="preserve">
+    <value>Calculadoras de daño: invocaciones, bombas, hechizos, empuje, placaje y huida, retirada de PA y PM.</value>
+  </data>
+  <data name="PartnerNoDeviceShort" xml:space="preserve">
+    <value>Ningún dispositivo</value>
+  </data>
+  <data name="PartnerPickDevice" xml:space="preserve">
+    <value>¿{0} en qué dispositivo?</value>
   </data>
 </root>

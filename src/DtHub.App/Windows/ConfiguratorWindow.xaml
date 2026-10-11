@@ -983,6 +983,8 @@
                      RenderOptions.BitmapScalingMode="HighQuality" />
               <Image Source="/assets/ocrapp.png" Width="16" Height="16" Margin="-4,0,0,0"
                      RenderOptions.BitmapScalingMode="HighQuality" />
+              <Image Source="/assets/calcofus.png" Width="16" Height="16" Margin="-4,0,0,0"
+                     RenderOptions.BitmapScalingMode="HighQuality" />
               <TextBlock Text="{loc:T PartnerMenu}" Style="{StaticResource Muted}"
                          FontSize="{StaticResource FontSmall}" Margin="6,0,0,0"
                          VerticalAlignment="Center" />
@@ -1003,7 +1005,7 @@
           <Popup x:Name="PartnerMenu" PlacementTarget="{Binding ElementName=PartnerToggle}"
                  Placement="Top" VerticalOffset="-4" AllowsTransparency="True"
                  StaysOpen="True">
-            <Border x:Name="PartnerPanel" Width="340" Margin="8" Padding="10,8"
+            <Border x:Name="PartnerPanel" Margin="8" Padding="6"
                     Background="{DynamicResource SurfaceBrush}"
                     BorderBrush="{DynamicResource BevelBrush}" BorderThickness="1"
                     CornerRadius="{StaticResource Radius}">
@@ -1013,35 +1015,73 @@
               <Border.Effect>
                 <DropShadowEffect BlurRadius="14" ShadowDepth="2" Opacity="0.35" />
               </Border.Effect>
-              <ItemsControl ItemsSource="{Binding PartnerTiles}">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                    <DockPanel Margin="0,4,0,4">
-                      <Image DockPanel.Dock="Left" Source="{Binding Icon}" Width="28" Height="28"
-                             Margin="0,0,10,0" VerticalAlignment="Center"
-                             RenderOptions.BitmapScalingMode="HighQuality" />
-                      <!-- One button per phone it can act on: no menu to
-                           open, and the phone's name only when there is a
-                           choice to make. -->
-                      <ItemsControl DockPanel.Dock="Right" ItemsSource="{Binding Targets}"
-                                    Margin="10,0,0,0" VerticalAlignment="Center">
-                        <ItemsControl.ItemTemplate>
-                          <DataTemplate>
-                            <Button Content="{Binding Label}" Command="{Binding Act}" Padding="10,3"
-                                    Margin="0,1,0,1" HorizontalAlignment="Right"
-                                    Style="{StaticResource OutlineButton}" Click="OnPartnerChosen" />
-                          </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                      </ItemsControl>
-                      <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
-                        <TextBlock Text="{Binding Detail}" Style="{StaticResource Muted}"
-                                   FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" />
-                      </StackPanel>
-                    </DockPanel>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
+              <!-- One row of tiles, icon over name: a click opens the tool, or
+                   installs it where it is missing, as the small line under
+                   the name says. What each tool does is its tooltip. -->
+              <StackPanel>
+                <ItemsControl ItemsSource="{Binding PartnerTiles}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <StackPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Button Width="74" Padding="4,6" Margin="1,0" Cursor="Hand"
+                              ToolTip="{Binding Detail}" IsEnabled="{Binding CanAct}"
+                              Click="OnToolTile">
+                        <Button.Template>
+                          <ControlTemplate TargetType="Button">
+                            <Border x:Name="Face" Background="Transparent" Padding="{TemplateBinding Padding}"
+                                    CornerRadius="{StaticResource Radius}">
+                              <ContentPresenter />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                              <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Face" Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+                              </Trigger>
+                              <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Face" Property="Opacity" Value="0.45" />
+                              </Trigger>
+                            </ControlTemplate.Triggers>
+                          </ControlTemplate>
+                        </Button.Template>
+                        <StackPanel HorizontalAlignment="Center">
+                          <Image Source="{Binding Icon}" Width="32" Height="32" HorizontalAlignment="Center"
+                                 RenderOptions.BitmapScalingMode="HighQuality" />
+                          <TextBlock Text="{Binding Name}" Margin="0,4,0,0" HorizontalAlignment="Center"
+                                     FontSize="{StaticResource FontSmall}" TextWrapping="Wrap"
+                                     TextAlignment="Center" />
+                          <TextBlock Text="{Binding Badge}" HorizontalAlignment="Center"
+                                     Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
+                                     Visibility="{Binding Badge, Converter={StaticResource EmptyToVisibility},
+                                                          ConverterParameter=inverse}" />
+                        </StackPanel>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Only when the tool is on several phones: which one. -->
+                <StackPanel Margin="4,6,4,2"
+                            Visibility="{Binding IsPickingDevice, Converter={StaticResource BoolToVisibility}}">
+                  <TextBlock Text="{Binding PickingTile.PickPrompt}" Style="{StaticResource Muted}"
+                             FontSize="{StaticResource FontSmall}" />
+                  <ItemsControl ItemsSource="{Binding PickingTile.Targets}" Margin="0,4,0,0">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <WrapPanel />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Button Content="{Binding Label}" Command="{Binding Act}" Padding="10,3"
+                                Margin="0,0,4,4" Style="{StaticResource OutlineButton}" Click="OnPartnerChosen" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </StackPanel>
             </Border>
           </Popup>
         </Grid>

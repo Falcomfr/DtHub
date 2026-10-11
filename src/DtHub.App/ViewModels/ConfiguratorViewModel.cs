@@ -106,14 +106,11 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     {
         PartnerTiles.Clear();
 
+        PickingTile = null;
+
         // The map first, as asked: a web site, it needs no phone and opens
         // in a DT Hub window.
-        PartnerTiles.Add(new PartnerTileViewModel(
-            Strings.Get("ToolMapName"),
-            Strings.Get("ToolMapLine"),
-            DofusTouchMap.IconAsset,
-            isInstalled: true,
-            [new PartnerTarget(string.Empty, new RelayCommand(() => MapRequested?.Invoke(this, EventArgs.Empty)))]));
+        PartnerTiles.Add(WebToolTile(WebTool.Map, "ToolMapName", "ToolMapLine", DofusTouchMap.IconAsset));
 
         foreach (var availability in _launcher.PartnerAvailability)
         {
@@ -128,6 +125,45 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
                         _launcher.PartnerDeviceNames.GetValueOrDefault(deviceId, deviceId),
                         new AsyncRelayCommand(() => ActOnPartnerAsync(app, installed, deviceId))))]));
         }
+
+        // Fourth, as asked: the calculators, a web site like the map.
+        PartnerTiles.Add(WebToolTile(WebTool.Calcofus, "ToolCalcofusName", "ToolCalcofusLine", Calcofus.IconAsset));
+    }
+
+    private PartnerTileViewModel WebToolTile(WebTool tool, string nameKey, string lineKey, string icon) =>
+        new(
+            Strings.Get(nameKey),
+            Strings.Get(lineKey),
+            icon,
+            isInstalled: true,
+            [new PartnerTarget(string.Empty, new RelayCommand(() => WebToolRequested?.Invoke(this, tool)))]);
+
+    /// <summary>
+    /// The tile whose phone is being chosen: its phones show under the grid.
+    /// Null the rest of the time, so the menu stays one row of tiles.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsPickingDevice))]
+    private PartnerTileViewModel? _pickingTile;
+
+    public bool IsPickingDevice => PickingTile is not null;
+
+    /// <summary>
+    /// A tile clicked: its one action runs at once; with several phones,
+    /// they are offered below instead, and the click on one runs it.
+    /// </summary>
+    /// <returns>True when something ran, so the menu can close.</returns>
+    public bool ChooseTool(PartnerTileViewModel tile)
+    {
+        if (tile.Targets.Count == 1)
+        {
+            PickingTile = null;
+            tile.Targets[0].Act.Execute(null);
+            return true;
+        }
+
+        PickingTile = tile.Targets.Count > 1 && PickingTile != tile ? tile : null;
+        return false;
     }
 
     /// <summary>
@@ -1092,8 +1128,8 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// <summary>Requested from the tool button, same reason.</summary>
     public event EventHandler? AlmanaxRequested;
 
-    /// <summary>Requested from the DOFUS Touch tools menu: the map.</summary>
-    public event EventHandler? MapRequested;
+    /// <summary>Requested from the DOFUS Touch tools menu: a web tool's window.</summary>
+    public event EventHandler<WebTool>? WebToolRequested;
 
     /// <summary>
     /// Opens the community server in the browser. Nothing to build here,

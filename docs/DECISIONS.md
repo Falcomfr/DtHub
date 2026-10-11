@@ -9814,3 +9814,45 @@ n'est repéré, un petit lien « Saisir son adresse à la main » ouvre les cham
 adresse et code de l'écran d'association, et la connexion vise l'hôte associé
 quand aucune annonce ne le nomme. Seulement sur demande : ouverts d'office, ces
 champs encombraient une fenêtre qui marche seule pour presque tout le monde.
+
+## D186 - Calcofus, quatrième outil, et un menu d'outils en une ligne
+
+Demande du 11/10/2026 : ajouter calcofus.fr, dont le propriétaire a donné à
+DT Hub le droit d'utiliser son nom et son logo, et simplifier le menu pour qu'il
+prenne le moins de place possible. Choix de l'utilisateur sur maquettes : une
+grille d'icônes, et une fenêtre étroite qui se souvient du calculateur.
+
+### Le site
+
+Une application Streamlit : la page n'existe qu'une fois rendue, d'où l'analyse
+dans un vrai navigateur. Dix calculateurs, chacun à sa propre adresse
+(`/page_invo`, `/page_bombes`...), et une mise en page qui reste lisible à
+460 pixels de large. Le mode `?embed=true` de Streamlit n'enlève que le menu en
+haut à droite : il n'est pas employé, la barre latérale du site sert de
+navigation.
+
+### La fenêtre
+
+La fenêtre de la carte devient `WebToolWindow`, une par outil web, chacune avec
+sa place. Calcofus s'ouvre la première fois en 480 pixels de large contre le
+bord droit de l'écran, sur 85 % de sa hauteur, puis là où on l'a laissée. Il se
+rouvre sur la dernière page du site affichée (`LastCalcofusUrl`), jamais sur un
+lien sorti du site. Un lien vers Discord, Twitch ou une bibliothèque de stuffs
+part dans le navigateur.
+
+### Le menu
+
+Une ligne de tuiles, icône de 32 pixels au-dessus du nom. Un clic ouvre l'outil
+ou l'installe ; sous le nom, une petite ligne seulement quand le clic n'ouvrira
+pas (« Installer », « Aucun appareil »). La présentation de chaque outil passe
+en info-bulle. Quand l'outil vise plusieurs téléphones, leurs noms s'affichent
+sous la grille après le clic, au lieu d'un bouton par téléphone sur chaque
+ligne. Le bouton du menu porte les quatre icônes. Vérifié sur l'écran de
+l'utilisateur : « Dofus Touch Map » passe sur deux lignes plutôt que d'être
+coupé.
+
+### Le logo
+
+Le Tofu du logo du site, sans sa bulle, sur un carré arrondi sombre au liseré
+vert olive du nom, comme les trois autres outils. Déclaré dans
+THIRD-PARTY-NOTICES.md, hors licence MIT.
