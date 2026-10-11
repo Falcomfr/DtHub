@@ -42,20 +42,4 @@ public static class StartupPresence
     /// </summary>
     /// <param name="remembered">Was the panel shown at exit.</param>
     public static bool ShowBeforeLaunch(bool remembered) => remembered;
-
-    /// <summary>
-    /// True if the panel steps aside after an instance is opened from it,
-    /// so the player goes straight to the game without Ctrl+P.
-    ///
-    /// Only once nothing checked is left to open: launching accounts one
-    /// by one would otherwise bring the panel back after each. And never
-    /// after a failure, whose banner is the one thing worth reading.
-    /// </summary>
-    /// <param name="opened">Windows the launch opened.</param>
-    /// <param name="problems">Problems it reported.</param>
-    /// <param name="checkedNotRunning">
-    /// Checked instances, on a connected device, still without a window.
-    /// </param>
-    public static bool HideAfterLaunch(int opened, int problems, int checkedNotRunning) =>
-        opened > 0 && problems == 0 && checkedNotRunning == 0;
 }
