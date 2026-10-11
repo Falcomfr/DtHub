@@ -1028,25 +1028,24 @@ public sealed partial class GameLauncher : IAsyncDisposable
             if (_serials.TryGetValue(session.Target.DeviceId, out var serial)
                 && session.VirtualDisplayId is { } display)
             {
-                try
+                // Each on its own, and with a minute to answer: in deep doze
+                // the phone took 33 s to run the first "input" (measured on
+                // 2026-10-11), and a five second limit cut every one of them.
+                foreach (IReadOnlyList<string> command in (IReadOnlyList<string>[])
+                [
+                    ["input", "-d", display.ToString(System.Globalization.CultureInfo.InvariantCulture), "keyevent", "0"],
+                    ["cmd", "deviceidle", "tempwhitelist", "-d", "60000", session.Target.PackageName],
+                ])
                 {
-                    _ = await _adb.ShellAsync(
-                            serial,
-                            ["input", "-d", display.ToString(System.Globalization.CultureInfo.InvariantCulture), "keyevent", "0"],
-                            TimeSpan.FromSeconds(5),
-                            CancellationToken.None)
-                        .ConfigureAwait(false);
-
-                    _ = await _adb.ShellAsync(
-                            serial,
-                            ["cmd", "deviceidle", "tempwhitelist", "-d", "60000", session.Target.PackageName],
-                            TimeSpan.FromSeconds(5),
-                            CancellationToken.None)
-                        .ConfigureAwait(false);
-                }
-                catch (AdbException exception)
-                {
-                    LogKeepAwakeFailed(session.Target.DisplayName, exception.Message);
+                    try
+                    {
+                        _ = await _adb.ShellAsync(serial, command, TimeSpan.FromSeconds(60), CancellationToken.None)
+                            .ConfigureAwait(false);
+                    }
+                    catch (AdbException exception)
+                    {
+                        LogKeepAwakeFailed(session.Target.DisplayName, exception.Message);
+                    }
                 }
             }
 
