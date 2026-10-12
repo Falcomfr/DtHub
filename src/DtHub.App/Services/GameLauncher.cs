@@ -695,7 +695,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 }
 
                 // The previous rectangle is kept by the frame itself.
+                var leaving = frame.IsFullscreen;
                 frame.SetFullscreen(false, default);
+
+                // Back at the size from before, the frame keeps that
+                // rectangle, as the free windows do: recomputed from
+                // the share, a frame sized by hand came back smaller.
+                if (leaving && _windows.SizePercent == _windows.PercentBeforeFullscreen)
+                {
+                    return;
+                }
 
                 if (frame.Chassis is { } chassis
                     && _windows.ResizedRect(frame.Handle, frame.SelectedAspect ?? 0, chassis)
