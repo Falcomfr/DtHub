@@ -10,6 +10,13 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.8.6] - 2026-10-13
+
+### Añadido
+
+- La calidad personalizada ofrece 90 y 120 imágenes por segundo, para los
+  teléfonos con pantalla rápida.
+
 ## [0.8.5] - 2026-10-12
 
 ### Corregido

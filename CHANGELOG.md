@@ -17,6 +17,13 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.8.6] - 2026-10-13
+
+### Added
+
+- The custom quality offers 90 and 120 frames per second, for phones with a
+  fast screen.
+
 ## [0.8.5] - 2026-10-12
 
 ### Fixed

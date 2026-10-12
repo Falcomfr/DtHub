@@ -11,6 +11,13 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.8.6] - 2026-10-13
+
+### Ajouté
+
+- La qualité personnalisée propose 90 et 120 images par seconde, pour les
+  téléphones à écran rapide.
+
 ## [0.8.5] - 2026-10-12
 
 ### Corrigé
