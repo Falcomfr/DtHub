@@ -11,6 +11,21 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.8.4] - 2026-10-12
+
+### Modifié
+
+- L'option « Image plus nette » n'augmente plus le débit Wi-Fi, ce qui
+  faisait ramer le jeu avec plusieurs comptes ouverts.
+
+### Corrigé
+
+- Ctrl+5, pressé une deuxième fois, sort du plein écran et rend aux fenêtres
+  leur taille et leur place.
+- Le panneau des réglages ne peut plus être agrandi en le glissant en haut de
+  l'écran, et un panneau resté agrandi rouvre à sa taille normale.
+- Le cadre à onglets sort du plein écran à la taille qu'il avait.
+
 ## [0.8.3] - 2026-10-12
 
 ### Ajouté

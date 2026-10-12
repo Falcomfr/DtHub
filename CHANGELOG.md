@@ -17,6 +17,21 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.8.4] - 2026-10-12
+
+### Changed
+
+- The "Sharper image" option no longer raises the Wi-Fi bitrate, which made
+  the game lag with several accounts open.
+
+### Fixed
+
+- Ctrl+5, pressed again, leaves full screen and gives the windows back their
+  size and place.
+- The settings panel can no longer be maximized by dragging it to the top of
+  the screen, and a panel stuck maximized reopens at its normal size.
+- The tabbed frame comes out of full screen at the size it had.
+
 ## [0.8.3] - 2026-10-12
 
 ### Added

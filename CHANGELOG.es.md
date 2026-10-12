@@ -10,6 +10,22 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.8.4] - 2026-10-12
+
+### Cambiado
+
+- La opción «Imagen más nítida» ya no aumenta el ancho de banda Wi-Fi, que
+  hacía ir el juego a tirones con varias cuentas abiertas.
+
+### Corregido
+
+- Ctrl+5, pulsado una segunda vez, sale de la pantalla completa y devuelve a
+  las ventanas su tamaño y su sitio.
+- El panel de ajustes ya no se puede maximizar arrastrándolo a la parte de
+  arriba de la pantalla, y un panel que se quedó maximizado vuelve a abrirse a
+  su tamaño normal.
+- El marco con pestañas sale de la pantalla completa al tamaño que tenía.
+
 ## [0.8.3] - 2026-10-12
 
 ### Añadido
