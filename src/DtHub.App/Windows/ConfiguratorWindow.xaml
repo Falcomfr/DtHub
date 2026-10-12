@@ -8,6 +8,7 @@
         MinWidth="360" MinHeight="380"
         Topmost="True"
         ShowInTaskbar="True"
+        ResizeMode="CanMinimize"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"

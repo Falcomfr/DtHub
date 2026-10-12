@@ -164,6 +164,17 @@ public partial class ConfiguratorWindow : Window
     /// </summary>
     public bool RestorePlacement(AppSettingsDocument document)
     {
+        // Before 0.8.4 the panel could be maximized, and its saved place
+        // is then the whole screen: it would reopen maximized with no
+        // title bar to bring it back. Its default place is better.
+        if (document.WindowPlacements.TryGetValue(WindowPlacements.Configurator, out var saved)
+            && saved.Maximized)
+        {
+            Placed = false;
+
+            return Placed;
+        }
+
         Placed = _placements.Restore(this, WindowPlacements.Configurator, document);
 
         return Placed;
