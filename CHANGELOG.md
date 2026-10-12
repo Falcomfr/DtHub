@@ -17,6 +17,13 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.8.5] - 2026-10-12
+
+### Fixed
+
+- Switching tabs in the tabbed frame no longer flashes part of the window
+  white.
+
 ## [0.8.4] - 2026-10-12
 
 ### Changed

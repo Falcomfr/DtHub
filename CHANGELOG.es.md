@@ -10,6 +10,13 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.8.5] - 2026-10-12
+
+### Corregido
+
+- Cambiar de pestaña en el marco con pestañas ya no hace parpadear en blanco
+  una parte de la ventana.
+
 ## [0.8.4] - 2026-10-12
 
 ### Cambiado

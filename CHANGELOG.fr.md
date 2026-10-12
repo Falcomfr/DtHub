@@ -11,6 +11,13 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.8.5] - 2026-10-12
+
+### Corrigé
+
+- Changer d'onglet dans le cadre à onglets ne fait plus clignoter une partie
+  de la fenêtre en blanc.
+
 ## [0.8.4] - 2026-10-12
 
 ### Modifié
