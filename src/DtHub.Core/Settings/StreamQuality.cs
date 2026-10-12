@@ -221,9 +221,11 @@ public sealed record QualityProfile(
             InstanceRediscovery: TimeSpan.FromSeconds(60),
             WindowWatch: TimeSpan.FromSeconds(1)),
 
-        // Sixty frames and not one hundred and twenty: measured on the game,
-        // it renders thirty-eight. The one hundred and twenty only served to
-        // halve the bits granted to each frame that actually exists.
+        // Sixty frames and not one hundred and twenty, although one account
+        // on a 13T Pro renders about a hundred (D194). At 1440p and 120 the
+        // bitrate would hit the ceiling and every frame would get fewer
+        // bits, on every phone set to this tier. Whoever has the phone and
+        // the link for more takes the custom tier, which offers 90 and 120.
         StreamQuality.Maximum => new QualityProfile(
             MaxFps: 60,
             BitsPerPixel: 0.11,

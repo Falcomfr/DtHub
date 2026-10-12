@@ -922,9 +922,8 @@ public sealed class SettingsServiceTests : IDisposable
 
         var options = await _service.GetScrcpyOptionsAsync(CancellationToken.None);
 
-        // Sixty frames and not one hundred twenty: the game renders
-        // thirty-eight, as measured, and the one hundred twenty only served to
-        // halve the bits given to each frame that actually exists.
+        // Sixty frames: more is offered by the custom tier only, see
+        // QualityProfile.For.
         Assert.Equal(60, options.MaxFps);
 
         // Bitrate follows the resolution: 0.11 bit per pixel per frame at

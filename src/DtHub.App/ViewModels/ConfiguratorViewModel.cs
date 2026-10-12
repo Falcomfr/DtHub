@@ -549,15 +549,18 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     ];
 
     /// <summary>
-    /// The frame rates on offer. No 120: measured on the game, it
-    /// delivers thirty-eight, and asking for more would only divide
-    /// the bits granted to each frame that actually exists.
+    /// The frame rates on offer. Ninety and a hundred and twenty are for
+    /// fast screens: one account on a 13T Pro renders about a hundred
+    /// frames on the virtual display (D194). A slower phone simply sends
+    /// fewer, the value is a ceiling.
     /// </summary>
     public IReadOnlyList<IntChoice> FpsChoices { get; } =
     [
         new(Strings.Format("FpsChoice", 30), 30),
         new(Strings.Format("FpsChoice", 45), 45),
         new(Strings.Format("FpsChoice", 60), 60),
+        new(Strings.Format("FpsChoice", 90), 90),
+        new(Strings.Format("FpsChoice", 120), 120),
     ];
 
     /// <summary>

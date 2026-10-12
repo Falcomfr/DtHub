@@ -10189,3 +10189,41 @@ Vérifié sur la version publiée en local, qualité personnalisée plafonnée �
 fenêtre de 1279 de haut : `--new-display=2560x1440/320` sans la case,
 `3840x2160/480` avec, et la case décochée dans le panneau rouvre la fenêtre à
 2560x1440.
+
+## D194 - Le jeu ne plafonne pas à trente-huit images
+
+Le 13/10/2026, un joueur avec un écran à 120 Hz voyait ses personnages bouger
+« à 20 images par seconde ». En qualité Moyenne, celle d'origine, DT Hub
+plafonne à 30, et nulle part au-dessus de 60, y compris en personnalisé, sur la
+foi de D117 : « le jeu rend trente-huit images par seconde ».
+
+**Cette mesure était fausse.** Elle venait de `dumpsys gfxinfo`, dont le total
+d'images rendues a compté jusqu'à 182 par seconde sur un écran qui en affiche
+144 au plus : il compte autre chose que les images présentées. D133, qui la
+confirmait vers quarante, mesurait au `--print-fps` de scrcpy sur l'écran de
+connexion, et le disait, alors que scrcpy n'envoie que ce qui change.
+
+Remesuré sur le 13T Pro, un seul compte, personnage en marche, état thermique
+0, par les horodatages de présentation de SurfaceFlinger
+(`dumpsys SurfaceFlinger --latency`, relu toutes les 0,4 s) recoupés avec
+`--print-fps` :
+
+| Où tourne le jeu | rendu par le jeu | reçu par le PC |
+| :-- | --: | --: |
+| écran du téléphone, 120 Hz | 76 à 100 | |
+| écran virtuel, `--max-fps=120` | environ 100 | 100 à 115 |
+
+L'écran virtuel s'annonce à 60 Hz dans `dumpsys display`, mais ne bride pas.
+
+**Ce qui change** : le palier personnalisé propose 90 et 120. Les paliers ne
+bougent pas. La Moyenne à 30 tient à la chauffe mesurée le 03/10, pas aux
+trente-huit. La Haute reste à 60 : à 1440p et 120, le débit calculé atteindrait
+le plafond de 25 Mb/s pour tous ceux qui l'ont choisie, téléphone rapide ou
+non. Le choix par compte existe déjà : un compte principal à 120, les mules
+plus bas.
+
+**Ce qui ne change pas** : le calcul du débit part de la cadence demandée, pas
+de celle rendue, et n'a donc jamais reposé sur les trente-huit. Les
+conclusions de D133 sur le tuyau restent vraies au plafond de 60.
+
+Pas encore mesuré : deux comptes à 120, et un téléphone plus modeste.

@@ -130,4 +130,24 @@ public sealed class QualityProfileTests
         // ... but bits per pixel of the same order of magnitude.
         Assert.True(basse.BitsPerPixel >= maximale.BitsPerPixel * 0.6);
     }
+
+    /// <summary>
+    /// The custom tier is where a phone with a fast screen gets its frames.
+    /// Measured on 2026-10-13, one account on a 13T Pro: the game renders
+    /// about a hundred frames on the virtual display, and scrcpy sends up
+    /// to a hundred and fifteen. Nothing on the way may bring it back to
+    /// sixty, and the bitrate stays under the link's ceiling.
+    /// </summary>
+    [Fact]
+    public void Le_palier_personnalise_laisse_passer_cent_vingt_images()
+    {
+        var profile = QualityProfile.For(
+            StreamQuality.Custom,
+            new CustomQuality { MaxFps = 120, MaximumDisplayHeight = 1440 });
+
+        Assert.Equal(120, profile.MaxFps);
+        Assert.Equal(
+            QualityProfile.For(StreamQuality.Maximum).CeilingKbps,
+            profile.BitrateFor(2560, 1440));
+    }
 }
