@@ -228,7 +228,7 @@
     <value>Sharper image</value>
   </data>
   <data name="SharpImageTip" xml:space="preserve">
-    <value>Renders the game at twice the window's size, within the chosen quality. Coloured text, such as red on grey, becomes as sharp as white text. It costs the phone more work and more Wi-Fi bandwidth: leave it off on a modest phone or tablet.</value>
+    <value>Renders the game at twice the window's size, within the chosen quality. Coloured text, such as red on grey, becomes as sharp as white text. It costs the phone and the PC more work, but no more Wi-Fi bandwidth: leave it off on a modest phone, tablet or PC.</value>
   </data>
   <data name="AutomaticUpdates" xml:space="preserve">
     <value>Automatic updates</value>

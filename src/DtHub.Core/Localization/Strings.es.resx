@@ -228,7 +228,7 @@
     <value>Imagen más nítida</value>
   </data>
   <data name="SharpImageTip" xml:space="preserve">
-    <value>El juego se dibuja al doble del tamaño de la ventana, dentro del límite de la calidad elegida. El texto de color, como el rojo sobre gris, queda tan nítido como el blanco. Exige más esfuerzo al teléfono y más ancho de banda Wi-Fi: déjala desactivada en un teléfono o una tableta modestos.</value>
+    <value>El juego se dibuja al doble del tamaño de la ventana, dentro del límite de la calidad elegida. El texto de color, como el rojo sobre gris, queda tan nítido como el blanco. Exige más esfuerzo al teléfono y al PC, sin más ancho de banda Wi-Fi: déjala desactivada en un teléfono, una tableta o un PC modestos.</value>
   </data>
   <data name="AutomaticUpdates" xml:space="preserve">
     <value>Actualización automática</value>

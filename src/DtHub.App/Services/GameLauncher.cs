@@ -2375,7 +2375,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     VirtualDisplayWidth = smaller.Width,
                     VirtualDisplayHeight = smaller.Height,
                     VirtualDisplayDpi = ZoomProfile.DpiFor(smaller.Height, zoom, layoutHeight),
-                    VideoBitrateKbps = quality.BitrateFor(smaller.Width, smaller.Height),
+                    // Never above the bitrate already chosen: with the
+                    // sharper image, it follows the window, not the
+                    // display, and the smaller display would raise it.
+                    VideoBitrateKbps = Math.Min(
+                        display.VideoBitrateKbps,
+                        quality.BitrateFor(smaller.Width, smaller.Height)),
                 };
 
                 session = await _sessions.StartAsync(
@@ -3594,6 +3599,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
         var (width, height) = DisplayLadder.For(
             window.Height, screen.Width, screen.Height, quality.MaximumDisplayHeight, _sharpImage);
 
+        // The sharper image is paid for in pixels, not in bits. Measured
+        // when it was made: at the bitrate of the window's own size, the
+        // red text is already as sharp as the white. Following the doubled
+        // size instead multiplied the bitrate by up to two and a half,
+        // 9.5 to 24.3 Mb/s on the 13T Pro in the high tier, per account,
+        // and the players said it lagged.
+        var (bitrateWidth, bitrateHeight) = _sharpImage
+            ? DisplayLadder.For(window.Height, screen.Width, screen.Height, quality.MaximumDisplayHeight)
+            : (width, height);
+
         // Density is derived from the chosen resolution: leaving it
         // fixed made the game's zoom vary with the window's size,
         // since the resolution does follow it.
@@ -3606,7 +3621,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             VirtualDisplayWidth = width,
             VirtualDisplayHeight = height,
             VirtualDisplayDpi = ZoomProfile.DpiFor(height, zoom, layoutHeight),
-            VideoBitrateKbps = quality.BitrateFor(width, height),
+            VideoBitrateKbps = quality.BitrateFor(bitrateWidth, bitrateHeight),
 
             // The frame rate too, and it is the one that gets
             // forgotten: resolution and bitrate did go down, but an
