@@ -270,10 +270,20 @@ public partial class TabbedGameWindow : Window
     /// </summary>
     private void Select(GameTabViewModel tab)
     {
+        // The new window first, the others after. Walking the list in
+        // order hid the old one first whenever the new one came later in
+        // it: for an instant no game covered the hosting area, and part of
+        // the frame flashed white, always on the way to the same tab.
+        _windows.SetVisible(tab.Window, true);
+
         foreach (var other in Items)
         {
             other.IsSelected = ReferenceEquals(other, tab);
-            _windows.SetVisible(other.Window, other.IsSelected);
+
+            if (!other.IsSelected)
+            {
+                _windows.SetVisible(other.Window, false);
+            }
         }
 
         Fit(tab);
