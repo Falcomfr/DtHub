@@ -851,7 +851,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             SimulatedPhysicalMouse = settings.SimulatedPhysicalMouse;
             Language = settings.Language;
             AudioEnabled = settings.AudioEnabled;
-        SharpImage = settings.SharpImage;
+            SharpImage = settings.SharpImage;
             ReadCustomQuality(settings);
 
             SizePercent = settings.CustomSizePercent > 0
