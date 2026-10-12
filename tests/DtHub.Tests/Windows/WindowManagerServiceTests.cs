@@ -229,6 +229,43 @@ public class WindowManagerServiceTests
     }
 
     [Fact]
+    public async Task Sortir_du_plein_ecran_vers_la_taille_d_avant_rend_la_place_exacte()
+    {
+        // The full screen shortcut, pressed again, must give the windows
+        // back: a player stuck in full screen had only the slider.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
+        await service.ApplyPercentAsync(sessions, 75, CancellationToken.None);
+        var before = desktop.GetWindowRect(sessions[0].WindowHandle);
+
+        await service.ApplySizeAsync(sessions, service.Presets.FullscreenIndex, CancellationToken.None);
+        Assert.Equal(75, service.PercentBeforeFullscreen);
+
+        await service.ApplyPercentAsync(sessions, service.PercentBeforeFullscreen, CancellationToken.None);
+
+        Assert.Equal(before, desktop.GetWindowRect(sessions[0].WindowHandle));
+        Assert.Empty(desktop.Borderless);
+    }
+
+    [Fact]
+    public async Task Un_plein_ecran_remis_au_demarrage_ressort_a_la_taille_par_defaut()
+    {
+        // Saved in the settings, full screen comes back before any
+        // window exists. Leaving it then must not open the windows to
+        // the whole usable area.
+        var desktop = new FakeWindowController();
+        var service = new WindowManagerService(desktop, NoDelay);
+        var defaultPercent = service.SizePercent;
+
+        await service.ApplySizeAsync([], service.Presets.FullscreenIndex, CancellationToken.None);
+
+        Assert.Equal(defaultPercent, service.PercentBeforeFullscreen);
+    }
+
+    [Fact]
     public async Task Un_indice_de_taille_hors_bornes_est_ramene_dans_les_limites()
     {
         var (manager, sessions, desktop) = await OpenSessionsAsync(1);

@@ -52,6 +52,12 @@ public sealed class WindowManagerService
     /// <summary>Size in force before switching to full screen.</summary>
     private int _percentBeforeFullscreen = 100;
 
+    /// <summary>
+    /// Size in force before switching to full screen, the one the full
+    /// screen shortcut goes back to when pressed again.
+    /// </summary>
+    public int PercentBeforeFullscreen => _percentBeforeFullscreen;
+
 
     public WindowManagerService(
         IWindowController controller,
@@ -510,15 +516,19 @@ public sealed class WindowManagerService
         int previousPercent,
         CancellationToken cancellationToken)
     {
+        _beforeFullscreen.Clear();
+
+        // Before the guard: at startup, full screen comes back from the
+        // settings with no window yet, and leaving it must still find
+        // the size from before rather than the whole usable area.
+        _percentBeforeFullscreen = previousPercent;
+
         var monitors = _controller.GetMonitors();
 
         if (sessions.Count == 0 || monitors.Count == 0)
         {
             return 0;
         }
-
-        _beforeFullscreen.Clear();
-        _percentBeforeFullscreen = previousPercent;
 
         var moved = 0;
 

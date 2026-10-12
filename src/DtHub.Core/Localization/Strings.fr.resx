@@ -1105,7 +1105,7 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
     <value>La plus grande des quatre tailles. Elle couvre la zone utile de l'écran, barre des tâches exclue : ce n'est pas le plein écran.</value>
   </data>
   <data name="ActionFullscreenDetail" xml:space="preserve">
-    <value>Couvre l'écran entier, sans bordure. Y revenir rend à chaque fenêtre la place qu'elle avait.</value>
+    <value>Couvre l'écran entier, sans bordure. Appuyer à nouveau en sort et rend à chaque fenêtre la place qu'elle avait.</value>
   </data>
   <data name="ActionQuitDetail" xml:space="preserve">
     <value>Ferme l'application et toutes les fenêtres de jeu.</value>

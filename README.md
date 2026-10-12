@@ -174,7 +174,7 @@ port changes after a reboot.
 | `Ctrl+R` | Put every window back in place |
 | `Ctrl+T` | Tile the windows side by side |
 | `Ctrl+1` … `Ctrl+4` | Resize every window to one of four steps |
-| `Ctrl+5` | Full screen |
+| `Ctrl+5` | Full screen (press again to leave it) |
 | `Ctrl+Q` | Show or hide the quest guide |
 | `Ctrl+0` | Close every window |
 

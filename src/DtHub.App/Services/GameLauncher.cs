@@ -3147,6 +3147,35 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// Switches to full screen, or, if already there, goes back to the
+    /// size from before. The shortcut used to only enter it: a player
+    /// pressing it again stayed stuck, with the slider as the only way
+    /// out.
+    /// </summary>
+    public async Task ToggleFullscreenAsync(CancellationToken cancellationToken = default)
+    {
+        await _arranging.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            if (_windows.IsFullscreen)
+            {
+                _ = await ApplyPercentAsync(_windows.PercentBeforeFullscreen, cancellationToken: cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                _ = await ApplySizeCoreAsync(_windows.Presets.FullscreenIndex, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            _ = _arranging.Release();
+        }
+    }
+
     private async Task<int> ApplySizeCoreAsync(int sizeIndex, CancellationToken cancellationToken)
     {
         await ApplyWindowSettingsAsync(cancellationToken).ConfigureAwait(false);
@@ -4220,7 +4249,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     break;
 
                 case HotkeyAction.Fullscreen:
-                    await ApplySizeAsync(_windows.Presets.FullscreenIndex).ConfigureAwait(false);
+                    await ToggleFullscreenAsync().ConfigureAwait(false);
                     break;
 
                 case HotkeyAction.Quit:
