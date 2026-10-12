@@ -1767,6 +1767,10 @@ grassement une petite fenêtre et affamait une grande.
   comptes, deux surfaces). La cadence maximale descend donc de 120 à 60 : les
   cent vingt ne servaient qu'à diviser par deux les bits accordés à chaque image
   qui existe vraiment.
+
+  > **Corrigé par D194.** Mesure fausse : ce compteur surcompte, et un compte
+  > en marche rend une centaine d'images.
+
 - **Le téléphone a un encodeur matériel H.264 et un H.265**, AV1 en logiciel
   seulement. Le H.265 vaudrait environ 40 % de débit en moins à qualité égale :
   c'est le prochain levier, et la plomberie existe déjà, `ScrcpyOptions.VideoCodec`
@@ -7344,7 +7348,10 @@ plus lent. Ce qui se compare est le pic, qui dit si quelque chose sature.
 Il est identique dans les trois cas, et bien en dessous du plafond de
 soixante. **Le tuyau ne sature jamais** : ni l'encodeur, ni la liaison, ni la
 chaleur. Ce qui plafonne est le jeu lui-même, autour de quarante images, ce
-que D117 avait déjà mesuré à trente-huit.
+que D63 avait déjà mesuré à trente-huit.
+
+> **Corrigé par D194.** Vrai pour l'écran de connexion seulement : un
+> personnage en marche fait rendre une centaine d'images au jeu.
 
 Batterie 62 à 61 pour cent sur l'ensemble des essais, température 29,8 à
 30,3 °C, état thermique nominal du début à la fin, y compris en 1440p à
@@ -10195,7 +10202,7 @@ fenêtre de 1279 de haut : `--new-display=2560x1440/320` sans la case,
 Le 13/10/2026, un joueur avec un écran à 120 Hz voyait ses personnages bouger
 « à 20 images par seconde ». En qualité Moyenne, celle d'origine, DT Hub
 plafonne à 30, et nulle part au-dessus de 60, y compris en personnalisé, sur la
-foi de D117 : « le jeu rend trente-huit images par seconde ».
+foi de D63 : « le jeu rend trente-huit images par seconde ».
 
 **Cette mesure était fausse.** Elle venait de `dumpsys gfxinfo`, dont le total
 d'images rendues a compté jusqu'à 182 par seconde sur un écran qui en affiche
@@ -10211,7 +10218,11 @@ Remesuré sur le 13T Pro, un seul compte, personnage en marche, état thermique
 | Où tourne le jeu | rendu par le jeu | reçu par le PC |
 | :-- | --: | --: |
 | écran du téléphone, 120 Hz | 76 à 100 | |
-| écran virtuel, `--max-fps=120` | environ 100 | 100 à 115 |
+| écran virtuel 1920x1080, `--max-fps=120` | environ 100 | 100 à 115 |
+
+Le débit suit la cible et ne la dépasse pas : deux comptes ouverts par DT Hub
+en personnalisé à 120, 22,4 Mb/s demandés chacun, un personnage en marche,
+18 à 24 Mb/s sortent du téléphone pour les deux flux réunis.
 
 L'écran virtuel s'annonce à 60 Hz dans `dumpsys display`, mais ne bride pas.
 
@@ -10226,4 +10237,5 @@ plus bas.
 de celle rendue, et n'a donc jamais reposé sur les trente-huit. Les
 conclusions de D133 sur le tuyau restent vraies au plafond de 60.
 
-Pas encore mesuré : deux comptes à 120, et un téléphone plus modeste.
+Pas encore mesuré : deux comptes en marche à 120 en même temps, un téléphone
+plus modeste, et l'image plus nette de D193 (2160p) à 120.

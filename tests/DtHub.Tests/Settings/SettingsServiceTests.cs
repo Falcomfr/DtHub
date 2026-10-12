@@ -932,6 +932,24 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Le_palier_personnalise_laisse_passer_cent_vingt_images()
+    {
+        // One account on a 13T Pro renders about a hundred frames on the
+        // virtual display (D194): nothing between the stored setting and
+        // --max-fps may bring it back to sixty.
+        await _service.SetCustomQualityAsync(new CustomQuality { MaxFps = 120 }, CancellationToken.None);
+        await _service.SetQualityAsync(StreamQuality.Custom, CancellationToken.None);
+
+        var options = await _service.GetScrcpyOptionsAsync(CancellationToken.None);
+
+        Assert.Equal(120, options.MaxFps);
+
+        // 0.09 bit per pixel per frame at 1920x1080 and 120 frames, under
+        // the 25 Mb/s ceiling.
+        Assert.Equal(22395, options.VideoBitrateKbps);
+    }
+
+    [Fact]
     public async Task Sans_raccourci_enregistre_les_valeurs_par_defaut_sont_rendues()
     {
         var hotkeys = await _service.GetHotkeysAsync(CancellationToken.None);

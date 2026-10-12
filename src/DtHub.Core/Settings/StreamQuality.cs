@@ -18,7 +18,7 @@ public enum StreamQuality
     Medium,
 
     /// <summary>
-    /// No mercy for the phone: 1440p, bitrate and frame rate at their maximum.
+    /// No mercy for the phone: 1440p, sixty frames, the highest bitrate.
     /// Requires a recent device and, over Wi-Fi, a network that keeps up.
     ///
     /// The resolution used to be unbounded, and therefore followed the
