@@ -1422,7 +1422,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 .Where(s => string.Equals(s.Target.DeviceId, deviceId, StringComparison.Ordinal))
                 .ToList();
 
+            // An alert the player hid from its help page stays hidden: on a
+            // Galaxy Tab the setting does not exist and Android's list stays
+            // empty however well the game runs (2026-10-13).
             var unprepared = running.Any(s => !s.Target.IsTransient)
+                && !await _settings
+                    .IsBatteryAlertMutedAsync(deviceId ?? serial, DofusPackages.GameName, cancellationToken)
+                    .ConfigureAwait(false)
                 && await _devices
                     .IsBatteryExemptAsync(serial, DofusPackages.DofusTouch, cancellationToken)
                     .ConfigureAwait(false) == false;
@@ -1432,7 +1438,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
             foreach (var tool in PartnerApps.All.Where(a => running.Any(
                          s => s.Target.IsTransient && string.Equals(s.Target.PackageName, a.PackageName, StringComparison.Ordinal))))
             {
-                if (await _devices.IsBatteryExemptAsync(serial, tool.PackageName, cancellationToken)
+                if (!await _settings.IsBatteryAlertMutedAsync(deviceId ?? serial, tool.Name, cancellationToken)
+                        .ConfigureAwait(false)
+                    && await _devices.IsBatteryExemptAsync(serial, tool.PackageName, cancellationToken)
                         .ConfigureAwait(false) == false)
                 {
                     unpreparedTools.Add(tool.Name);

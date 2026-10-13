@@ -38,6 +38,15 @@ public sealed class AppSettingsDocument
     public List<StoredShownApp> ShownApps { get; set; } = [];
 
     /// <summary>
+    /// Battery alerts the player hid, as "deviceId|app". Asked for on a
+    /// Galaxy Tab whose overlay has no such setting and whose game runs
+    /// unhindered: Android's own list stays empty there, and the alert
+    /// stayed up for nothing. Hidden from the help page only, and given
+    /// back from the general help.
+    /// </summary>
+    public List<string> MutedBatteryAlerts { get; set; } = [];
+
+    /// <summary>
     /// Named sessions: groups of accounts opened with a single gesture.
     ///
     /// Kept apart from the startup set, and that is the whole point: the

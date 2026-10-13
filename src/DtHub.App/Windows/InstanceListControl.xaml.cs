@@ -101,7 +101,7 @@ public partial class InstanceListControl : UserControl
 
         if (device.Helps.Count == 1)
         {
-            OpenHelp(device.Helps[0]);
+            OpenHelp(device.Helps[0], device.DeviceId);
             return;
         }
 
@@ -128,7 +128,7 @@ public partial class InstanceListControl : UserControl
             item.Click += (_, _) =>
             {
                 menu.IsOpen = false;
-                OpenHelp(help);
+                OpenHelp(help, device.DeviceId);
             };
             _ = items.Children.Add(item);
         }
@@ -143,7 +143,7 @@ public partial class InstanceListControl : UserControl
     }
 
     /// <summary>The click setting of the phone, or the battery page of the app the finding names.</summary>
-    private void OpenHelp(HealthFinding finding)
+    private void OpenHelp(HealthFinding finding, string deviceId)
     {
         Window help;
 
@@ -158,6 +158,7 @@ public partial class InstanceListControl : UserControl
             if (help.DataContext is SleepHelpViewModel sleep && finding.App is { } app)
             {
                 sleep.App = app;
+                sleep.DeviceId = deviceId;
             }
         }
 

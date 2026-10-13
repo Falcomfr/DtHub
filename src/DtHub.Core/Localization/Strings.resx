@@ -2308,4 +2308,22 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="ZoomReplacedByDensity" xml:space="preserve">
     <value>The density chosen in the quality's fine settings replaces the distance.</value>
   </data>
+  <data name="MuteBatteryAlert" xml:space="preserve">
+    <value>Hide this alert</value>
+  </data>
+  <data name="MuteBatteryAlertNote" xml:space="preserve">
+    <value>Hiding the alert fixes nothing: if Android really puts {0} to sleep, its windows will freeze all the same. Only do it if this setting doesn't exist on this device. This help stays in Help, where the alert can be brought back.</value>
+  </data>
+  <data name="UnmuteBatteryAlerts" xml:space="preserve">
+    <value>Show hidden battery alerts again</value>
+  </data>
+  <data name="WindowFreezesHelpEntry" xml:space="preserve">
+    <value>Android puts to sleep the apps whose battery is restricted. This help shows where to lift that restriction on your brand.</value>
+  </data>
+  <data name="OpenSleepHelp" xml:space="preserve">
+    <value>Open the battery help</value>
+  </data>
+  <data name="MuteBatteryAlertHeader" xml:space="preserve">
+    <value>This setting doesn't exist on your device?</value>
+  </data>
 </root>

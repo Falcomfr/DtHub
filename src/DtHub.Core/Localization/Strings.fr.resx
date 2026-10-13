@@ -2308,4 +2308,22 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="ZoomReplacedByDensity" xml:space="preserve">
     <value>La densité choisie dans les réglages fins de la qualité remplace la distance.</value>
   </data>
+  <data name="MuteBatteryAlert" xml:space="preserve">
+    <value>Masquer cette alerte</value>
+  </data>
+  <data name="MuteBatteryAlertNote" xml:space="preserve">
+    <value>Masquer l'alerte ne règle rien : si Android met vraiment {0} en veille, ses fenêtres se figeront quand même. À faire seulement si ce réglage n'existe pas sur cet appareil. Cette aide reste dans Aide, d'où vous pourrez réafficher l'alerte.</value>
+  </data>
+  <data name="UnmuteBatteryAlerts" xml:space="preserve">
+    <value>Réafficher les alertes batterie masquées</value>
+  </data>
+  <data name="WindowFreezesHelpEntry" xml:space="preserve">
+    <value>Android endort les applications dont la batterie est restreinte. Cette aide montre où lever la restriction selon votre marque.</value>
+  </data>
+  <data name="OpenSleepHelp" xml:space="preserve">
+    <value>Ouvrir l'aide batterie</value>
+  </data>
+  <data name="MuteBatteryAlertHeader" xml:space="preserve">
+    <value>Ce réglage n'existe pas sur votre appareil ?</value>
+  </data>
 </root>

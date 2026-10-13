@@ -5,6 +5,7 @@ using DtHub.Core.Devices;
 using DtHub.Core.Dofus;
 using DtHub.Core.Guidance;
 using DtHub.Core.Localization;
+using DtHub.Core.Settings;
 
 namespace DtHub.App.ViewModels;
 
@@ -17,11 +18,44 @@ namespace DtHub.App.ViewModels;
 public sealed partial class SleepHelpViewModel : ObservableObject
 {
     private readonly DeviceDiscoveryService _devices;
+    private readonly SettingsService _settings;
 
-    public SleepHelpViewModel(DeviceDiscoveryService devices)
+    public SleepHelpViewModel(DeviceDiscoveryService devices, SettingsService settings)
     {
         _devices = devices;
+        _settings = settings;
         _brand = PhoneBrands.Standard;
+    }
+
+    /// <summary>
+    /// The phone whose alert opened this help, or <c>null</c> from the
+    /// general help. Only then can its alert be hidden: the button sits
+    /// here, under the steps, so it is never pressed without seeing them.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanMute))]
+    private string? _deviceId;
+
+    public bool CanMute => DeviceId is not null;
+
+    public string MuteNote => Strings.Format("MuteBatteryAlertNote", App);
+
+    /// <summary>True when an alert was hidden somewhere, so it can be given back.</summary>
+    [ObservableProperty]
+    private bool _hasMuted;
+
+    public async Task MuteAsync()
+    {
+        if (DeviceId is not null)
+        {
+            _ = await _settings.MuteBatteryAlertAsync(DeviceId, App).ConfigureAwait(true);
+        }
+    }
+
+    public async Task UnmuteAllAsync()
+    {
+        _ = await _settings.UnmuteBatteryAlertsAsync().ConfigureAwait(true);
+        HasMuted = false;
     }
 
     /// <summary>
@@ -35,14 +69,21 @@ public sealed partial class SleepHelpViewModel : ObservableObject
 
     public bool HasNote => !string.IsNullOrWhiteSpace(Brand.BatteryNote);
 
-    /// <summary>Preselects the brand of the connected device.</summary>
+    /// <summary>
+    /// Preselects the brand of the phone the alert is about, or else of
+    /// the first connected one: a Galaxy Tab beside a Xiaomi used to get
+    /// the Xiaomi path.
+    /// </summary>
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
+        HasMuted = (await _settings.GetAsync(cancellationToken).ConfigureAwait(true)).MutedBatteryAlerts.Count > 0;
+
         try
         {
             var discovery = await _devices.RefreshAsync(cancellationToken).ConfigureAwait(true);
 
             var manufacturer = discovery.Devices
+                .OrderByDescending(d => string.Equals(d.Id, DeviceId, StringComparison.Ordinal))
                 .Select(d => d.Manufacturer)
                 .FirstOrDefault(m => !string.IsNullOrWhiteSpace(m));
 
@@ -69,7 +110,7 @@ public sealed partial class SleepHelpViewModel : ObservableObject
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BatteryPath), nameof(IsTool), nameof(Heading), nameof(Explanation),
-        nameof(OpenStep), nameof(RemoveHelp), nameof(FrozenHelp))]
+        nameof(OpenStep), nameof(RemoveHelp), nameof(FrozenHelp), nameof(MuteNote))]
     private string _app = DofusPackages.GameName;
 
     /// <summary>A DOFUS Touch tool rather than the game: the texts name it.</summary>

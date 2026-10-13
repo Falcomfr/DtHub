@@ -9,8 +9,12 @@ namespace DtHub.App.Windows;
 /// </summary>
 public partial class SleepHelpWindow : Window
 {
+    private readonly SleepHelpViewModel _viewModel;
+
     public SleepHelpWindow(SleepHelpViewModel viewModel)
     {
+        _viewModel = viewModel;
+
         InitializeComponent();
 
         DataContext = viewModel;
@@ -18,4 +22,13 @@ public partial class SleepHelpWindow : Window
     }
 
     private void OnClose(object sender, RoutedEventArgs e) => Close();
+
+    private async void OnMute(object sender, RoutedEventArgs e)
+    {
+        await _viewModel.MuteAsync().ConfigureAwait(true);
+        Close();
+    }
+
+    private async void OnUnmute(object sender, RoutedEventArgs e) =>
+        await _viewModel.UnmuteAllAsync().ConfigureAwait(true);
 }

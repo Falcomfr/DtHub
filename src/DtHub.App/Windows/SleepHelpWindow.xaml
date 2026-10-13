@@ -69,6 +69,23 @@
         <TextBlock Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" Margin="2,0,0,4" TextWrapping="Wrap"
                    Text="{Binding FrozenHelp}" />
 
+        <!-- Under the steps, never on the alert line: hiding the alert
+             means having seen where the setting would be. -->
+        <Border Style="{StaticResource Card}" Margin="0,10,0,0"
+                Visibility="{Binding CanMute, Converter={StaticResource BoolToVisibility}}">
+          <StackPanel>
+            <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T MuteBatteryAlertHeader}" />
+            <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,8"
+                       Text="{Binding MuteNote}" />
+            <Button Style="{StaticResource OutlineButton}" HorizontalAlignment="Left" Padding="12,6"
+                    Content="{loc:T MuteBatteryAlert}" Click="OnMute" />
+          </StackPanel>
+        </Border>
+
+        <Button Style="{StaticResource LinkButton}" HorizontalAlignment="Left" Margin="2,10,0,0"
+                Content="{loc:T UnmuteBatteryAlerts}" Click="OnUnmute"
+                Visibility="{Binding HasMuted, Converter={StaticResource BoolToVisibility}}" />
+
       </StackPanel>
     </ScrollViewer>
 

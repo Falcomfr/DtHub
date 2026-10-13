@@ -905,6 +905,48 @@ public sealed class SettingsService : IDisposable
             cancellationToken);
     }
 
+    /// <summary>Hides the battery alert about this app on this phone.</summary>
+    /// <returns>True if something changed.</returns>
+    public Task<bool> MuteBatteryAlertAsync(string deviceId, string app, CancellationToken cancellationToken = default)
+    {
+        var key = BatteryAlertKey(deviceId, app);
+
+        return UpdateIfChangedAsync(
+            document =>
+            {
+                if (document.MutedBatteryAlerts.Contains(key, StringComparer.Ordinal))
+                {
+                    return false;
+                }
+
+                document.MutedBatteryAlerts.Add(key);
+                return true;
+            },
+            cancellationToken);
+    }
+
+    public async Task<bool> IsBatteryAlertMutedAsync(string deviceId, string app, CancellationToken cancellationToken = default) =>
+        (await GetAsync(cancellationToken).ConfigureAwait(false)).MutedBatteryAlerts
+            .Contains(BatteryAlertKey(deviceId, app), StringComparer.Ordinal);
+
+    /// <summary>Gives back every hidden battery alert, on every phone.</summary>
+    /// <returns>True if one was hidden.</returns>
+    public Task<bool> UnmuteBatteryAlertsAsync(CancellationToken cancellationToken = default) =>
+        UpdateIfChangedAsync(
+            document =>
+            {
+                if (document.MutedBatteryAlerts.Count == 0)
+                {
+                    return false;
+                }
+
+                document.MutedBatteryAlerts.Clear();
+                return true;
+            },
+            cancellationToken);
+
+    private static string BatteryAlertKey(string deviceId, string app) => $"{deviceId}|{app}";
+
     /// <summary>The applications shown by request, on every phone.</summary>
     public async Task<IReadOnlyList<ShownApp>> GetShownAppsAsync(CancellationToken cancellationToken = default)
     {

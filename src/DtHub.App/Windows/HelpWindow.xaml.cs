@@ -2,6 +2,8 @@
 
 using DtHub.App.ViewModels;
 
+using Microsoft.Extensions.DependencyInjection;
+
 namespace DtHub.App.Windows;
 
 /// <summary>
@@ -29,4 +31,11 @@ public partial class HelpWindow : Window
     public void OpenFor(string? manufacturer) => _viewModel.OpenedFor = manufacturer;
 
     private void OnClose(object sender, RoutedEventArgs e) => Close();
+
+    private void OnSleepHelp(object sender, RoutedEventArgs e)
+    {
+        var help = AppHost.Services.GetRequiredService<SleepHelpWindow>();
+        help.Owner = this;
+        _ = help.ShowDialog();
+    }
 }

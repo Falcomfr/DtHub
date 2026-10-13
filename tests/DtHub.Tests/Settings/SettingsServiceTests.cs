@@ -1532,4 +1532,28 @@ public sealed class SettingsServiceTests : IDisposable
 
         Assert.Equal(0, oubliees);
     }
+
+    [Fact]
+    public async Task Masquer_une_alerte_batterie_ne_vaut_que_pour_cet_appareil_et_cette_app()
+    {
+        // A Galaxy Tab without the setting: its game alert goes, the same
+        // game's alert on the other phone and the tool's on this one stay.
+        Assert.True(await _service.MuteBatteryAlertAsync("TAB11", "DOFUS Touch", CancellationToken.None));
+
+        Assert.True(await _service.IsBatteryAlertMutedAsync("TAB11", "DOFUS Touch", CancellationToken.None));
+        Assert.False(await _service.IsBatteryAlertMutedAsync("XIAOMI", "DOFUS Touch", CancellationToken.None));
+        Assert.False(await _service.IsBatteryAlertMutedAsync("TAB11", "DTStuff", CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Reafficher_les_alertes_batterie_les_rend_toutes()
+    {
+        await _service.MuteBatteryAlertAsync("TAB11", "DOFUS Touch", CancellationToken.None);
+        await _service.MuteBatteryAlertAsync("TAB11", "DTStuff", CancellationToken.None);
+
+        Assert.True(await _service.UnmuteBatteryAlertsAsync(CancellationToken.None));
+
+        Assert.False(await _service.IsBatteryAlertMutedAsync("TAB11", "DOFUS Touch", CancellationToken.None));
+        Assert.False(await _service.UnmuteBatteryAlertsAsync(CancellationToken.None));
+    }
 }
