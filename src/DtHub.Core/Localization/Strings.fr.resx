@@ -2323,6 +2323,9 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="OpenSleepHelp" xml:space="preserve">
     <value>Ouvrir l'aide batterie</value>
   </data>
+  <data name="AddAppTip" xml:space="preserve">
+    <value>Afficher une application de cet appareil.</value>
+  </data>
   <data name="MuteBatteryAlertHeader" xml:space="preserve">
     <value>Ce réglage n'existe pas sur votre appareil ?</value>
   </data>

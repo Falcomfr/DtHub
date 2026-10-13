@@ -49,6 +49,9 @@ public sealed partial class AppPickerViewModel : ObservableObject
 
     public string Title { get; }
 
+    /// <summary>False on a phone without the game: there is nothing to clone.</summary>
+    public bool CanClone { get; init; } = true;
+
     /// <summary>Every application offered, ticked or not.</summary>
     public ObservableCollection<AppChoiceRow> Rows { get; } = [];
 

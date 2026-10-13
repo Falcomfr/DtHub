@@ -890,7 +890,29 @@
                 </TextBlock>
               </StackPanel>
 
-              <Button Grid.Column="2" Style="{StaticResource DangerIconButton}"
+              <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+
+              <!-- The same plus as on a row: a phone without the game can
+                   still show its other apps, and once one is chosen the
+                   phone gets rows like any other. -->
+              <Button Style="{StaticResource IconButton}" AllowDrop="False"
+                      ToolTip="{loc:T AddAppTip}"
+                      Command="{Binding DataContext.ManageAppsCommand,
+                                        RelativeSource={RelativeSource AncestorType=UserControl}}"
+                      CommandParameter="{Binding}">
+                <Path Data="M 7.5,3 L 7.5,12 M 3,7.5 L 12,7.5"
+                      Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                      StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+
+                <Button.Visibility>
+                  <MultiBinding Converter="{StaticResource AllTrue}">
+                    <Binding Path="ShowActions" RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                    <Binding Path="HasNoGame" />
+                  </MultiBinding>
+                </Button.Visibility>
+              </Button>
+
+              <Button Style="{StaticResource DangerIconButton}"
                       ToolTip="{loc:T ForgetDeviceShortTip}"
                       Visibility="{Binding ShowActions,
                                            RelativeSource={RelativeSource AncestorType=UserControl},
@@ -900,6 +922,8 @@
                       CommandParameter="{Binding}">
                 <Path Style="{StaticResource BinGlyph}" />
               </Button>
+
+              </StackPanel>
 
               <!-- Where to fix it, on the only device where the refusal
                    was observed. A short line: "To pair again" says

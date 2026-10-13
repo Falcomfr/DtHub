@@ -2323,6 +2323,9 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="OpenSleepHelp" xml:space="preserve">
     <value>Open the battery help</value>
   </data>
+  <data name="AddAppTip" xml:space="preserve">
+    <value>Show another app from this device.</value>
+  </data>
   <data name="MuteBatteryAlertHeader" xml:space="preserve">
     <value>This setting doesn't exist on your device?</value>
   </data>

@@ -1307,7 +1307,12 @@ public sealed partial class InstanceListViewModel : ObservableObject
             return;
         }
 
-        var picker = new AppPickerViewModel(_launcher, device.DeviceId, device.Name);
+        // Cloning copies the game: without it on the phone, only the
+        // other apps are offered.
+        var picker = new AppPickerViewModel(_launcher, device.DeviceId, device.Name)
+        {
+            CanClone = Rows.Any(r => !r.IsShownApp && string.Equals(r.DeviceId, device.DeviceId, StringComparison.Ordinal)),
+        };
 
         switch (_dialogs.ChooseApps(picker))
         {
