@@ -390,7 +390,7 @@
     <value>Associer</value>
   </data>
   <data name="PortTip" xml:space="preserve">
-    <value>Le port affiché sous « Débogage sans fil » sur le téléphone</value>
+    <value>Le nombre qui suit les « : » dans « Adresse IP et port », sur l'écran principal Débogage sans fil</value>
   </data>
   <data name="Connect" xml:space="preserve">
     <value>Connecter</value>
@@ -432,7 +432,28 @@
     <value>L'appareil affiche un code à six chiffres et apparaît dans la fenêtre d'association.</value>
   </data>
   <data name="SameNetworkNotice" xml:space="preserve">
-    <value>L'appareil et le PC doivent être sur le même réseau Wi-Fi, et Android 11 au minimum. Ensuite, la connexion se refait toute seule à chaque lancement.</value>
+    <value>L'appareil et le PC doivent être sur le même réseau Wi-Fi, et Android 11 au minimum. Ensuite, la connexion se refait toute seule à chaque lancement, si le réseau laisse passer l'annonce de l'appareil (voir 5).</value>
+  </data>
+  <data name="StaysOffline" xml:space="preserve">
+    <value>5. Associé, mais l'appareil reste hors ligne</value>
+  </data>
+  <data name="StaysOfflineCause" xml:space="preserve">
+    <value>Le PC atteint l'appareil, mais ne reçoit pas son annonce sur le réseau. Vérifiez dans l'ordre :</value>
+  </data>
+  <data name="StaysOfflineSameBand" xml:space="preserve">
+    <value>• le PC et l'appareil sur le même Wi-Fi : pas l'un en 2,4 GHz et l'autre en 5 GHz, ni le PC en câble si la box sépare les deux ;</value>
+  </data>
+  <data name="StaysOfflinePrivate" xml:space="preserve">
+    <value>• dans Windows, le profil du réseau sur « Privé » (Paramètres › Réseau et Internet) ;</value>
+  </data>
+  <data name="StaysOfflineFirewall" xml:space="preserve">
+    <value>• dans le pare-feu Windows, « Android Debug Bridge » autorisé en Privé et en Public ;</value>
+  </data>
+  <data name="StaysOfflineVpn" xml:space="preserve">
+    <value>• le VPN du PC coupé, s'il y en a un.</value>
+  </data>
+  <data name="StaysOfflineByHand" xml:space="preserve">
+    <value>En attendant, l'association marche à la main : après le code, saisissez le nombre qui suit les « : » dans « Adresse IP et port », sur l'écran Débogage sans fil. Il change à chaque redémarrage de l'appareil.</value>
   </data>
   <data name="AndroidOnly" xml:space="preserve">
     <value>Seuls les appareils Android conviennent. iOS ne permet ni d'ouvrir un écran supplémentaire, ni d'y installer deux fois la même application.</value>
@@ -1270,7 +1291,7 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
     <value>Le profil « {0} » n'a pas pu être démarré. Ouvrez-le une fois sur le téléphone, puis réessayez.</value>
   </data>
   <data name="PairedButPortUnknown" xml:space="preserve">
-    <value>Le téléphone est appairé, mais son port de connexion n'a pas été trouvé sur le réseau. Saisissez le port affiché sous « Débogage sans fil » sur le téléphone.</value>
+    <value>Le téléphone est appairé, mais son port de connexion n'a pas été trouvé sur le réseau. Saisissez le nombre qui suit les « : » dans « Adresse IP et port », sur l'écran principal Débogage sans fil, pas celui du code.</value>
   </data>
   <data name="PairingAddressUnreachable" xml:space="preserve">
     <value>L'adresse annoncée sur le réseau ne répond pas, le code n'a donc pas été utilisé. Saisissez l'« adresse IP et port » affichée sur le téléphone, sous le code d'association.</value>

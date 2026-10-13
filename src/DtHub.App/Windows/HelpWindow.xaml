@@ -85,6 +85,27 @@
           </StackPanel>
         </Border>
 
+        <!-- Paired, yet offline: the pairing reached the phone, but its
+             mDNS announcement never reached the PC. This is where the
+             device row's help link lands. -->
+        <Border Style="{StaticResource Card}">
+          <StackPanel>
+            <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T StaysOffline}" />
+            <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3"
+                       Text="{loc:T StaysOfflineCause}" />
+            <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3"
+                       Text="{loc:T StaysOfflineSameBand}" />
+            <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3"
+                       Text="{loc:T StaysOfflinePrivate}" />
+            <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3"
+                       Text="{loc:T StaysOfflineFirewall}" />
+            <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3"
+                       Text="{loc:T StaysOfflineVpn}" />
+            <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap"
+                       Text="{loc:T StaysOfflineByHand}" />
+          </StackPanel>
+        </Border>
+
         <TextBlock Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" Margin="2,0,0,4"
                    Text="{loc:T AndroidOnly}" />
 

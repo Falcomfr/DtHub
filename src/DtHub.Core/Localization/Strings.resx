@@ -390,7 +390,7 @@
     <value>Pair</value>
   </data>
   <data name="PortTip" xml:space="preserve">
-    <value>The port shown under “Wireless debugging” on the phone</value>
+    <value>The number after the “:” in “IP address &amp; Port”, on the main Wireless debugging screen</value>
   </data>
   <data name="Connect" xml:space="preserve">
     <value>Connect</value>
@@ -432,7 +432,28 @@
     <value>The device shows a six-digit code and appears in the pairing window.</value>
   </data>
   <data name="SameNetworkNotice" xml:space="preserve">
-    <value>The device and the PC must be on the same Wi-Fi network, and Android 11 at least. After that, the connection is made again on its own at every start.</value>
+    <value>The device and the PC must be on the same Wi-Fi network, and Android 11 at least. After that, the connection is made again on its own at every start, if the network lets the device's announcement through (see 5).</value>
+  </data>
+  <data name="StaysOffline" xml:space="preserve">
+    <value>5. Paired, but the device stays offline</value>
+  </data>
+  <data name="StaysOfflineCause" xml:space="preserve">
+    <value>The PC reaches the device, but does not receive its announcement on the network. Check, in this order:</value>
+  </data>
+  <data name="StaysOfflineSameBand" xml:space="preserve">
+    <value>• the PC and the device on the same Wi-Fi: not one on 2.4 GHz and the other on 5 GHz, nor the PC on a cable if the router keeps the two apart;</value>
+  </data>
+  <data name="StaysOfflinePrivate" xml:space="preserve">
+    <value>• in Windows, the network profile set to “Private” (Settings › Network &amp; internet);</value>
+  </data>
+  <data name="StaysOfflineFirewall" xml:space="preserve">
+    <value>• in Windows Firewall, “Android Debug Bridge” allowed on Private and Public;</value>
+  </data>
+  <data name="StaysOfflineVpn" xml:space="preserve">
+    <value>• the PC's VPN turned off, if there is one.</value>
+  </data>
+  <data name="StaysOfflineByHand" xml:space="preserve">
+    <value>Meanwhile, pairing works by hand: after the code, enter the number after the “:” in “IP address &amp; Port”, on the Wireless debugging screen. It changes every time the device restarts.</value>
   </data>
   <data name="AndroidOnly" xml:space="preserve">
     <value>Only Android devices will do. iOS allows neither opening an extra display nor installing the same application twice.</value>
@@ -1270,7 +1291,7 @@ On a {0} device, the manual copy goes through: {1}.</value>
     <value>The profile “{0}” could not be started. Open it once on the phone, then try again.</value>
   </data>
   <data name="PairedButPortUnknown" xml:space="preserve">
-    <value>The phone is paired, but its connection port was not found on the network. Enter the port shown under “Wireless debugging” on the phone.</value>
+    <value>The phone is paired, but its connection port was not found on the network. Enter the number after the “:” in “IP address &amp; Port”, on the main Wireless debugging screen, not the code screen.</value>
   </data>
   <data name="PairingAddressUnreachable" xml:space="preserve">
     <value>The address announced on the network does not answer, so the code was not used. Enter the “IP address and port” shown on the phone, under the pairing code.</value>
