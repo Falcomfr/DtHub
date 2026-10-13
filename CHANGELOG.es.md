@@ -10,6 +10,18 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.8.8] - 2026-10-13
+
+### Corregido
+
+- DofusRoom: el editor de mapa queda justo bajo la barra de título, y la
+  lista ya no se desplaza al vacío cuando un anuncio queda vacío.
+
+### Cambiado
+
+- El menú de herramientas dice para qué sirve DofusRoom: las líneas de
+  visión de los mapas de combate.
+
 ## [0.8.7] - 2026-10-13
 
 ### Añadido

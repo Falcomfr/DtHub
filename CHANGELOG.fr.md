@@ -11,6 +11,18 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.8.8] - 2026-10-13
+
+### Corrigé
+
+- DofusRoom : l'éditeur de carte colle sous la barre de titre, et la liste ne
+  défile plus dans le vide quand une publicité reste vide.
+
+### Modifié
+
+- Le menu des outils dit à quoi sert DofusRoom : les lignes de vue des
+  cartes de combat.
+
 ## [0.8.7] - 2026-10-13
 
 ### Ajouté

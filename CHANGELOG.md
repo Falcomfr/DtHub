@@ -17,6 +17,18 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.8.8] - 2026-10-13
+
+### Fixed
+
+- DofusRoom: the map editor sits right under the title bar, and the list no
+  longer scrolls into blank space when an ad stays empty.
+
+### Changed
+
+- The tools menu says what DofusRoom is for: the lines of sight of the
+  fight maps.
+
 ## [0.8.7] - 2026-10-13
 
 ### Added
