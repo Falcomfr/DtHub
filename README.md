@@ -112,7 +112,9 @@ window on your PC.
   next two months.
 - **DOFUS Touch tools** one click away:
   [Dofus Touch Map](https://www.dofus-touch-map.com/) and
-  [Calcofus](https://calcofus.fr/) in a DT Hub window beside the game,
+  [Calcofus](https://calcofus.fr/) and the DOFUS Touch fight maps of
+  [DofusRoom](https://www.dofusroom.com/insightroom) in a DT Hub window beside
+  the game,
   [DTStuff](https://play.google.com/store/apps/details?id=com.makeintouch.dtstuff)
   and [OcrApp](https://play.google.com/store/apps/details?id=com.makeintouch.ocrapp)
   installed and opened from the PC, [DofusBook](https://touch.dofusbook.net/)
@@ -261,8 +263,9 @@ before the rule. Conventions are set out in
   [Discord](https://discord.gg/RnKWEX2n5V).
 - [scrcpy](https://github.com/Genymobile/scrcpy), which carries the whole
   mirroring.
-- MakeInTouch, for DTStuff and OcrApp, and [calcofus.fr](https://calcofus.fr/),
-  who agreed to DT Hub showing their names and logos.
+- MakeInTouch, for DTStuff and OcrApp, [calcofus.fr](https://calcofus.fr/) and
+  [dofusroom.com](https://www.dofusroom.com/), who agreed to DT Hub showing
+  their names and logos.
 - [Dofus Touch Map](https://www.dofus-touch-map.com/), which you can
   [support here](https://www.dofus-touch-map.com/donation), and
   [DofusBook](https://touch.dofusbook.net/).
