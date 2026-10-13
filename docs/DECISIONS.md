@@ -10316,3 +10316,25 @@ DofusRoom demande le consentement aux cookies (Google), puis affiche son
 journal des modifications. Le choix est retenu dans le profil WebView2 de
 DT Hub ; le journal revient à chaque mise à jour du site, comme dans un
 navigateur. DT Hub ne répond pas au consentement à la place du joueur.
+
+## D196 - Une alerte batterie se masque, appareil par appareil
+
+Demande du 13/10/2026 : sur une Galaxy Tab, la surcouche n'a pas le réglage
+de batterie du jeu, la liste d'Android reste vide alors que le jeu tourne
+sans souci, et l'alerte restait affichée pour rien.
+
+L'alerte se masque **depuis sa page d'aide seulement**, sous les étapes :
+on ne la masque pas sans avoir vu où le réglage se trouverait. Elle se
+masque pour un appareil et une app (`MutedBatteryAlerts`, clés
+`appareil|app`) : l'alerte du jeu sur un autre téléphone, ou celle d'un
+outil sur la même tablette, restent. Les deux côtés passent par la même
+clé, écrite par l'aide et lue par le relevé de santé, qui ne questionne
+plus le téléphone pour une alerte masquée.
+
+L'aide générale gagne une entrée vers l'aide batterie, d'où toutes les
+alertes masquées se réaffichent : ce qu'elle signalait doit rester
+trouvable. Masquer et réafficher s'écrivent au journal, sans quoi un
+appareil masqué se lit comme un appareil préparé si ses fenêtres se figent
+plus tard.
+
+L'alerte disparaît au relevé suivant, et non au clic.

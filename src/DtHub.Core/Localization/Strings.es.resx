@@ -2312,13 +2312,13 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Ocultar esta alerta</value>
   </data>
   <data name="MuteBatteryAlertNote" xml:space="preserve">
-    <value>Ocultar la alerta no arregla nada: si Android suspende de verdad {0}, sus ventanas se congelarán igualmente. Hágalo solo si este ajuste no existe en este dispositivo. Esta ayuda sigue en Ayuda, desde donde podrá volver a mostrar la alerta.</value>
+    <value>Ocultar la alerta no arregla nada: si Android suspende de verdad {0}, sus ventanas se congelarán igualmente. Hazlo solo si este ajuste no existe en este dispositivo. Esta ayuda sigue en Ayuda, desde donde podrás volver a mostrar la alerta.</value>
   </data>
   <data name="UnmuteBatteryAlerts" xml:space="preserve">
     <value>Volver a mostrar las alertas de batería ocultas</value>
   </data>
   <data name="WindowFreezesHelpEntry" xml:space="preserve">
-    <value>Android duerme las aplicaciones cuya batería está restringida. Esta ayuda muestra dónde quitar la restricción según su marca.</value>
+    <value>Android duerme las aplicaciones cuya batería está restringida. Esta ayuda muestra dónde quitar la restricción según tu marca.</value>
   </data>
   <data name="OpenSleepHelp" xml:space="preserve">
     <value>Abrir la ayuda de batería</value>
@@ -2327,6 +2327,6 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Mostrar una aplicación de este dispositivo.</value>
   </data>
   <data name="MuteBatteryAlertHeader" xml:space="preserve">
-    <value>¿Este ajuste no existe en su dispositivo?</value>
+    <value>¿Este ajuste no existe en tu dispositivo?</value>
   </data>
 </root>

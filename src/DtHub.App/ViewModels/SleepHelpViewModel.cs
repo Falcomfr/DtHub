@@ -7,6 +7,8 @@ using DtHub.Core.Guidance;
 using DtHub.Core.Localization;
 using DtHub.Core.Settings;
 
+using Serilog;
+
 namespace DtHub.App.ViewModels;
 
 /// <summary>
@@ -49,6 +51,10 @@ public sealed partial class SleepHelpViewModel : ObservableObject
         if (DeviceId is not null)
         {
             _ = await _settings.MuteBatteryAlertAsync(DeviceId, App).ConfigureAwait(true);
+
+            // Said in the log: a muted phone otherwise reads like a prepared
+            // one, should its windows freeze later.
+            Log.Information("Alerte batterie masquée : {App} sur {Appareil}.", App, DeviceId);
         }
     }
 
@@ -56,6 +62,7 @@ public sealed partial class SleepHelpViewModel : ObservableObject
     {
         _ = await _settings.UnmuteBatteryAlertsAsync().ConfigureAwait(true);
         HasMuted = false;
+        Log.Information("Alertes batterie masquées réaffichées.");
     }
 
     /// <summary>
