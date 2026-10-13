@@ -10,6 +10,23 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.8.7] - 2026-10-13
+
+### Añadido
+
+- DofusRoom se suma a las herramientas de DOFUS Touch: solo sus mapas de
+  combate de Touch, en una ventana junto al juego, para colocar zanahowias y
+  portales.
+- Una alerta de batería se puede ocultar desde su página de ayuda, en un
+  dispositivo que no tiene ese ajuste, y volver a mostrar desde la ayuda.
+- Un teléfono sin el juego puede mostrar igualmente sus otras aplicaciones,
+  con el «+».
+
+### Cambiado
+
+- La ayuda para un dispositivo que sigue sin conexión tras el emparejamiento
+  nombra las causas habituales: banda wifi, red pública, cortafuegos, VPN.
+
 ## [0.8.6] - 2026-10-13
 
 ### Añadido

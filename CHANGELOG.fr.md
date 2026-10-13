@@ -11,6 +11,22 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.8.7] - 2026-10-13
+
+### Ajouté
+
+- DofusRoom rejoint les outils DOFUS Touch : ses seules cartes de combat
+  Touch, dans une fenêtre à côté du jeu, pour placer cawottes et portails.
+- Une alerte batterie se masque depuis sa page d'aide, sur un appareil qui
+  n'a pas ce réglage, et se réaffiche depuis l'aide.
+- Un téléphone sans le jeu peut quand même afficher ses autres applications,
+  avec le « + ».
+
+### Modifié
+
+- L'aide pour un appareil qui reste hors ligne après l'association nomme les
+  causes habituelles : bande Wi-Fi, réseau public, pare-feu, VPN.
+
 ## [0.8.6] - 2026-10-13
 
 ### Ajouté

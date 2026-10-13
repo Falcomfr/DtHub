@@ -17,6 +17,21 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.8.7] - 2026-10-13
+
+### Added
+
+- DofusRoom joins the DOFUS Touch tools: its Touch fight maps alone, in a
+  window beside the game, to place cawottes and portals.
+- A battery alert can be hidden from its help page, on a device that has no
+  such setting, and shown again from the help.
+- A phone without the game can still show its other apps, with the "+".
+
+### Changed
+
+- The help for a device that stays offline after pairing names the usual
+  culprits: Wi-Fi band, public network, firewall, VPN.
+
 ## [0.8.6] - 2026-10-13
 
 ### Added
