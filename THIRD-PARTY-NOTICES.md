@@ -183,6 +183,21 @@ It marks the Calcofus tile in the DOFUS Touch tools menu.
 DT Hub, not to anyone reusing this repository, who must contact the owner of
 calcofus.fr.
 
+## DofusRoom logo
+
+- Source: the site's own egg, https://www.dofusroom.com/img/new-favicon.png,
+  set on a rounded square drawn for DT Hub in the style of the other tools,
+  edged in the site's orange
+- File: `assets/dofusroom.png`, embedded in the executable
+- Recorded on 2026-10-13, **with the right to the name and logo, and to
+  change how the site shows inside DT Hub**, as stated by the project owner
+
+It marks the DofusRoom tile in the DOFUS Touch tools menu.
+
+**This file is not covered by DT Hub's MIT licence.** The right applies to
+DT Hub, not to anyone reusing this repository, who must contact the owners of
+dofusroom.com.
+
 ## DofusBook logo
 
 - Source: the site's favicon, https://touch.dofusbook.net/favicon.ico, at 48

@@ -2260,6 +2260,12 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="ToolCalcofusLine" xml:space="preserve">
     <value>Calculateurs de dégâts : invocations, bombes, sorts, poussée, tacle et fuite, retrait PA et PM.</value>
   </data>
+  <data name="ToolDofusRoomName" xml:space="preserve">
+    <value>DofusRoom</value>
+  </data>
+  <data name="ToolDofusRoomLine" xml:space="preserve">
+    <value>Cartes de combat de DOFUS Touch, pour placer cawottes et portails.</value>
+  </data>
   <data name="PartnerNoDeviceShort" xml:space="preserve">
     <value>Aucun appareil</value>
   </data>

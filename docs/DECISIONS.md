@@ -10239,3 +10239,80 @@ conclusions de D133 sur le tuyau restent vraies au plafond de 60.
 
 Pas encore mesuré : deux comptes en marche à 120 en même temps, un téléphone
 plus modeste, et l'image plus nette de D193 (2160p) à 120.
+
+## D195 - DofusRoom, la catégorie Dofus Touch de l'Insightroom seule
+
+Demande du 13/10/2026 : ajouter https://www.dofusroom.com/insightroom, mais
+seulement sa partie Dofus Touch, intégrée comme Calcofus plutôt que dans un
+navigateur. Le propriétaire du projet a le droit d'utiliser le nom et le logo
+du site et de changer son affichage. Les publicités restent, à sa demande :
+AdSense n'est pas la régie Adsterra que l'antivirus arrêtait sur la carte
+(D192).
+
+### Le site
+
+L'Insightroom est un éditeur de placements de combat (cawottes, portails),
+adapté de Dofus-insight. Toutes les catégories (Kolizéum, donjons, Dofus
+Touch, Dofus Retro...) sont dans la page servie : changer de catégorie masque
+un bloc et en montre un autre, sans requête. Une carte s'ouvre dans une
+fenêtre modale sur la même adresse. Le nom « Dofus Touch » est le même en
+français, en anglais et en espagnol.
+
+### Ce que fait DT Hub
+
+Un cinquième outil web, dans `WebToolWindow`, avec sa place
+(`dofusroom`). Un script injecté à la création du document
+(`DofusRoom.TouchOnlyScript`), dans le cadre principal seulement :
+
+- trouve la catégorie par son nom, pas par son identifiant (`cat-6`) ; s'il
+  ne la trouve pas, il ne touche à rien, plutôt que de laisser le joueur sur
+  le Kolizéum sans menu ;
+- masque la barre du site, la colonne des catégories et le pied de page, et
+  donne toute la largeur aux cartes ;
+- clique sur la catégorie toutes les 200 ms, 50 fois au plus, jusqu'à ce que
+  son bloc s'affiche : au `load`, le site n'a pas encore branché ses clics,
+  et il ne réagit qu'au troisième essai, vers 600 ms ;
+- coupe ce qui dépasse en largeur (`overflow-x: hidden`) : une publicité
+  AdSense pleine largeur élargissait la page à 870 pixels pour une fenêtre
+  de 600, et à 1020 pour 700. La publicité reste affichée.
+
+Au premier essai, le script plantait sans rien dire : exécuté avant que
+`document.documentElement` existe, son `appendChild` échouait. Tout se fait
+donc au `DOMContentLoaded`.
+
+Toute navigation hors de `/insightroom` (profil d'un auteur, autre salle du
+site, Discord) part dans le navigateur, comme pour Calcofus.
+
+### Revenir à la liste
+
+Remarqué par l'utilisateur : une fois dans une carte, on ne revient plus à la
+liste. L'éditeur occupe toute la fenêtre et son bouton « Fermer » a une
+hauteur nulle, sur le site d'origine aussi, sans DT Hub. Restaient une petite
+croix grise et Échap. La croix est agrandie et passe dans l'orange du site, et
+le bouton « précédent » de la souris ferme l'éditeur. Sans cela, il faisait un
+retour d'historique : sans effet dans DT Hub, qui n'a qu'une page, mais il
+quittait la page dans Chromium.
+
+### La fenêtre
+
+600 pixels de large la première fois, contre le bord droit, sur 85 % de la
+hauteur, puis là où on l'a laissée. Mesuré le 13/10/2026 dans Chromium :
+l'éditeur prend la largeur de la fenêtre, et à 480 pixels comme Calcofus, ses
+cases deviennent trop petites pour viser.
+
+Pas de mémoire de la dernière carte : elles s'ouvrent toutes sur la même
+adresse.
+
+### Le menu
+
+Six tuiles de 74 pixels dépassaient le panneau d'une cinquantaine de pixels
+à droite, sur le jeu. Elles passent à 68 pixels, avec 2 pixels de marge
+intérieure au lieu de 4. Vérifié sur capture : « Dofus Touch Map » tient
+toujours sur deux lignes et « DofusRoom » sur une.
+
+### Premier lancement
+
+DofusRoom demande le consentement aux cookies (Google), puis affiche son
+journal des modifications. Le choix est retenu dans le profil WebView2 de
+DT Hub ; le journal revient à chaque mise à jour du site, comme dans un
+navigateur. DT Hub ne répond pas au consentement à la place du joueur.

@@ -2260,6 +2260,12 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="ToolCalcofusLine" xml:space="preserve">
     <value>Calculadoras de daño: invocaciones, bombas, hechizos, empuje, placaje y huida, retirada de PA y PM.</value>
   </data>
+  <data name="ToolDofusRoomName" xml:space="preserve">
+    <value>DofusRoom</value>
+  </data>
+  <data name="ToolDofusRoomLine" xml:space="preserve">
+    <value>Mapas de combate de DOFUS Touch, para colocar zanahowias y portales.</value>
+  </data>
   <data name="PartnerNoDeviceShort" xml:space="preserve">
     <value>Ningún dispositivo</value>
   </data>

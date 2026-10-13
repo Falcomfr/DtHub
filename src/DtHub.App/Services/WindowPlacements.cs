@@ -40,6 +40,9 @@ public sealed class WindowPlacements(IWindowController windows, SettingsService 
     /// <summary>The Calcofus calculators.</summary>
     public const string Calcofus = "calcofus";
 
+    /// <summary>The Touch maps of DofusRoom's Insightroom.</summary>
+    public const string DofusRoom = "dofusroom";
+
     /// <summary>The settings panel.</summary>
     public const string Configurator = "configurator";
 

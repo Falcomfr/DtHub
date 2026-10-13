@@ -29,6 +29,13 @@ public partial class WebToolWindow : Window
 
     private const double CalcofusHeightShare = 0.85;
 
+    /// <summary>
+    /// DofusRoom's first width: its map editor scales to the window, and was
+    /// still readable at 600 pixels on 2026-10-13, where 480 left the cells
+    /// too small to click. Same height and edge as Calcofus.
+    /// </summary>
+    private const double DofusRoomWidth = 600;
+
     private readonly WindowPlacements _placements;
     private readonly SettingsService _settings;
     private readonly WebViewEnvironment _engine;
@@ -53,7 +60,19 @@ public partial class WebToolWindow : Window
     /// <summary>Which tool this window shows. Set before it is shown.</summary>
     public WebTool Tool { get; set; }
 
-    private string PlacementKey => Tool == WebTool.Map ? WindowPlacements.Map : WindowPlacements.Calcofus;
+    private string PlacementKey => Tool switch
+    {
+        WebTool.Map => WindowPlacements.Map,
+        WebTool.Calcofus => WindowPlacements.Calcofus,
+        _ => WindowPlacements.DofusRoom,
+    };
+
+    private string HomeAddress => Tool switch
+    {
+        WebTool.Map => DofusTouchMap.Address,
+        WebTool.Calcofus => Calcofus.Address,
+        _ => DofusRoom.Address,
+    };
 
     private async Task OpenAsync()
     {
@@ -78,7 +97,15 @@ public partial class WebToolWindow : Window
                 return;
             }
 
-            View.CoreWebView2.NavigationStarting += OnCalcofusNavigating;
+            View.CoreWebView2.NavigationStarting += OnToolNavigating;
+
+            if (Tool == WebTool.DofusRoom)
+            {
+                await View.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(DofusRoom.TouchOnlyScript).ConfigureAwait(true);
+                View.CoreWebView2.Navigate(DofusRoom.Address);
+                return;
+            }
+
             View.CoreWebView2.SourceChanged += OnCalcofusPageChanged;
 
             var document = await _settings.GetAsync().ConfigureAwait(true);
@@ -107,7 +134,7 @@ public partial class WebToolWindow : Window
     private void OnOpenInBrowser(object sender, RoutedEventArgs e) =>
         _dialogs.OpenUrl(View.CoreWebView2?.Source is { Length: > 0 } page
             ? page
-            : Tool == WebTool.Map ? DofusTouchMap.Address : Calcofus.Address);
+            : HomeAddress);
 
     private void OnDonate(object sender, RoutedEventArgs e) => _dialogs.OpenUrl(DofusTouchMap.DonationAddress);
 
@@ -135,12 +162,13 @@ public partial class WebToolWindow : Window
     }
 
     /// <summary>
-    /// A link out of Calcofus, to Discord, Twitch or a stuff library, goes
-    /// to the browser: the narrow window is for the calculators.
+    /// A link out of the tool, to Discord, Twitch, a stuff library or a
+    /// player's profile, goes to the browser: the narrow window is for the
+    /// tool alone.
     /// </summary>
-    private void OnCalcofusNavigating(object? sender, CoreWebView2NavigationStartingEventArgs e)
+    private void OnToolNavigating(object? sender, CoreWebView2NavigationStartingEventArgs e)
     {
-        if (!Calcofus.IsOwnPage(e.Uri))
+        if (!(Tool == WebTool.Calcofus ? Calcofus.IsOwnPage(e.Uri) : DofusRoom.IsOwnPage(e.Uri)))
         {
             e.Cancel = true;
             _dialogs.OpenUrl(e.Uri);
@@ -176,7 +204,12 @@ public partial class WebToolWindow : Window
 
     protected override async void OnSourceInitialized(EventArgs e)
     {
-        Title = Strings.Get(Tool == WebTool.Map ? "ToolMapName" : "ToolCalcofusName");
+        Title = Strings.Get(Tool switch
+        {
+            WebTool.Map => "ToolMapName",
+            WebTool.Calcofus => "ToolCalcofusName",
+            _ => "ToolDofusRoomName",
+        });
         Donate.Visibility = Tool == WebTool.Map ? Visibility.Visible : Visibility.Collapsed;
 
         base.OnSourceInitialized(e);
@@ -211,7 +244,7 @@ public partial class WebToolWindow : Window
 
         // Against the right edge, where it covers the least of a game
         // window centred or docked on the left.
-        Width = Math.Min(CalcofusWidth, area.Width);
+        Width = Math.Min(Tool == WebTool.Calcofus ? CalcofusWidth : DofusRoomWidth, area.Width);
         Height = area.Height * CalcofusHeightShare;
         Left = area.Right - Width;
         Top = area.Top + ((area.Height - Height) / 2);

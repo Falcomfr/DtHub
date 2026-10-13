@@ -80,6 +80,9 @@ public enum WebTool
 
     /// <summary>The damage calculators.</summary>
     Calcofus,
+
+    /// <summary>The fight placements of DofusRoom's Insightroom, Touch maps only.</summary>
+    DofusRoom,
 }
 
 /// <summary>
@@ -157,4 +160,69 @@ public static class Calcofus
         && uri.Scheme == Uri.UriSchemeHttps
         && (uri.Host.Equals("calcofus.fr", StringComparison.OrdinalIgnoreCase)
             || uri.Host.Equals("www.calcofus.fr", StringComparison.OrdinalIgnoreCase));
+}
+
+/// <summary>
+/// DofusRoom's Insightroom, the fight placement maps, cut down to its DOFUS
+/// Touch category in a DT Hub window. The project owner holds the right to
+/// its name, logo and to change how it shows (2026-10-13). Its ads stay, by
+/// the owner's choice.
+/// </summary>
+public static class DofusRoom
+{
+    public const string Address = "https://www.dofusroom.com/insightroom";
+
+    /// <summary>The pack path of its bundled logo.</summary>
+    public const string IconAsset = "/assets/dofusroom.png";
+
+    /// <summary>
+    /// Run in each new document: selects the Touch category and hides the
+    /// site's menus. The map editor fills the window and hides its own
+    /// "Close" button, on the site too: its small grey cross was the only
+    /// way back to the list, so it is enlarged in the site's orange, and the
+    /// mouse's back button closes the editor instead of leaving the page. The category is found by its name, not its id; when it
+    /// is not, the page stays whole rather than strand the player on
+    /// another category with no menu. The site wires its clicks some time
+    /// after load, hence the retries. Ads that spill past the window's edge
+    /// are clipped, not hidden: a 728 pixel AdSense frame widened the page
+    /// at 600 and 700 pixels on 2026-10-13.
+    /// </summary>
+    public const string TouchOnlyScript = """
+        window === window.top && window.addEventListener('DOMContentLoaded', () => {
+          const touch = [...document.querySelectorAll('[data-loadable-category]')]
+            .find(a => a.querySelector('span:last-of-type')?.textContent.trim() === 'Dofus Touch');
+          const panel = touch && document.querySelector(`[data-panel-id="${touch.id}"]`);
+          if (!panel) return;
+          const style = document.createElement('style');
+          style.textContent = `
+            html, body { overflow-x: hidden; }
+            nav.navbar, footer, #back-to-top,
+            #app_root > .row > div:has(> #insightroom-nav) { display: none !important; }
+            #app_root > .row > div:has([data-panel-id]) { flex: 0 0 100%; max-width: 100%; }
+            #map-modal .modal-header .close { font-size: 2.5rem; opacity: 1; color: #FDB950; text-shadow: none; }`;
+          document.head.appendChild(style);
+          document.addEventListener('mouseup', e => {
+            if (e.button !== 3) return;
+            e.preventDefault();
+            window.jQuery?.('#map-modal').modal('hide');
+          });
+          let tries = 0;
+          const timer = setInterval(() => {
+            if (!panel.classList.contains('d-none') || ++tries > 50) return clearInterval(timer);
+            touch.click();
+          }, 200);
+        });
+        """;
+
+    /// <summary>
+    /// True for the Insightroom page, by host, the bare form included, and
+    /// path. Its maps open in a dialog on that same page, so any other
+    /// address is a link out of the tool.
+    /// </summary>
+    public static bool IsOwnPage(string? url) =>
+        Uri.TryCreate(url, UriKind.Absolute, out var uri)
+        && uri.Scheme == Uri.UriSchemeHttps
+        && (uri.Host.Equals("dofusroom.com", StringComparison.OrdinalIgnoreCase)
+            || uri.Host.Equals("www.dofusroom.com", StringComparison.OrdinalIgnoreCase))
+        && uri.AbsolutePath.TrimEnd('/').Equals("/insightroom", StringComparison.OrdinalIgnoreCase);
 }

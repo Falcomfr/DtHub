@@ -162,4 +162,24 @@ public sealed class PartnerAppsTests
         // in-site page to the browser.
         Assert.Equal(own, Calcofus.IsOwnPage(url));
     }
+
+    [Theory]
+    [InlineData("https://www.dofusroom.com/insightroom", true)]
+    [InlineData("https://dofusroom.com/insightroom", true)]
+    [InlineData("https://www.dofusroom.com/insightroom/", true)]
+    [InlineData("https://www.dofusroom.com/insightroom?lang=en", true)]
+    [InlineData("https://www.dofusroom.com/INSIGHTROOM", true)]
+    [InlineData("https://www.dofusroom.com/user/page/show/37312", false)]
+    [InlineData("https://www.dofusroom.com/buildroom", false)]
+    [InlineData("https://www.dofusroom.com/insightroomx", false)]
+    [InlineData("http://www.dofusroom.com/insightroom", false)]
+    [InlineData("https://www.dofusroom.com.example.com/insightroom", false)]
+    [InlineData("https://discord.com/invite/kfNS5h7", false)]
+    [InlineData("pas une adresse", false)]
+    public void Seule_l_insightroom_de_dofusroom_reste_dans_sa_fenetre(string url, bool own)
+    {
+        // The window shows the Touch maps only: a profile, another room of
+        // the site or Discord goes to the browser.
+        Assert.Equal(own, DofusRoom.IsOwnPage(url));
+    }
 }
