@@ -10293,6 +10293,17 @@ le bouton « précédent » de la souris ferme l'éditeur. Sans cela, il faisait
 retour d'historique : sans effet dans DT Hub, qui n'a qu'une page, mais il
 quittait la page dans Chromium.
 
+### Retouches après la 0.8.7
+
+Signalé par l'utilisateur le soir même. L'outil sert à connaître les
+**lignes de vue** des cartes, pas à placer cawottes et portails : la ligne de
+la tuile, le site et le README le disent désormais. L'éditeur gardait ses
+coins arrondis, d'où un liseré sous la barre de titre, et son corps défilait
+de 12 pixels dans le vide : coins droits, défilement coupé. En bas de la
+liste, deux publicités que Google n'avait pas remplies (`data-ad-status`
+« unfill-optimized ») laissaient environ 340 pixels de page vide : seules
+celles-là sont masquées, une publicité affichée reste.
+
 ### La fenêtre
 
 600 pixels de large la première fois, contre le bord droit, sur 85 % de la

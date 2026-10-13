@@ -81,7 +81,7 @@ public enum WebTool
     /// <summary>The damage calculators.</summary>
     Calcofus,
 
-    /// <summary>The fight placements of DofusRoom's Insightroom, Touch maps only.</summary>
+    /// <summary>The lines of sight of DofusRoom's Insightroom, Touch maps only.</summary>
     DofusRoom,
 }
 
@@ -163,10 +163,10 @@ public static class Calcofus
 }
 
 /// <summary>
-/// DofusRoom's Insightroom, the fight placement maps, cut down to its DOFUS
-/// Touch category in a DT Hub window. The project owner holds the right to
-/// its name, logo and to change how it shows (2026-10-13). Its ads stay, by
-/// the owner's choice.
+/// DofusRoom's Insightroom, the lines of sight of the fight maps, cut down
+/// to its DOFUS Touch category in a DT Hub window. The project owner holds
+/// the right to its name, logo and to change how it shows (2026-10-13). Its
+/// ads stay, by the owner's choice.
 /// </summary>
 public static class DofusRoom
 {
@@ -180,7 +180,11 @@ public static class DofusRoom
     /// site's menus. The map editor fills the window and hides its own
     /// "Close" button, on the site too: its small grey cross was the only
     /// way back to the list, so it is enlarged in the site's orange, and the
-    /// mouse's back button closes the editor instead of leaving the page. The category is found by its name, not its id; when it
+    /// mouse's back button closes the editor instead of leaving the page.
+    /// The editor also lost its rounded corners, which left a gap under the
+    /// title bar, and the twelve pixels its body scrolled into nothing. An
+    /// ad Google left empty ("unfill") is hidden: two of them made 340
+    /// pixels of blank page on 2026-10-13; an ad that shows stays. The category is found by its name, not its id; when it
     /// is not, the page stays whole rather than strand the player on
     /// another category with no menu. The site wires its clicks some time
     /// after load, hence the retries. Ads that spill past the window's edge
@@ -199,7 +203,10 @@ public static class DofusRoom
             nav.navbar, footer, #back-to-top,
             #app_root > .row > div:has(> #insightroom-nav) { display: none !important; }
             #app_root > .row > div:has([data-panel-id]) { flex: 0 0 100%; max-width: 100%; }
-            #map-modal .modal-header .close { font-size: 2.5rem; opacity: 1; color: #FDB950; text-shadow: none; }`;
+            #map-modal .modal-header .close { font-size: 2.5rem; opacity: 1; color: #FDB950; text-shadow: none; }
+            #map-modal .modal-content { border: 0; border-radius: 0; }
+            #map-modal .modal-body { overflow: hidden; }
+            ins.adsbygoogle[data-ad-status^="unfill"] { display: none !important; }`;
           document.head.appendChild(style);
           document.addEventListener('mouseup', e => {
             if (e.button !== 3) return;
