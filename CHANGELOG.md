@@ -21,8 +21,8 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 ### Added
 
-- DofusRoom joins the DOFUS Touch tools: its Touch fight maps alone, in a
-  window beside the game, to place cawottes and portals.
+- DofusRoom joins the DOFUS Touch tools: the lines of sight of the Touch
+  fight maps, in a window beside the game.
 - A battery alert can be hidden from its help page, on a device that has no
   such setting, and shown again from the help.
 - A phone without the game can still show its other apps, with the "+".

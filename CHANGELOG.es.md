@@ -14,9 +14,8 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 
 ### Añadido
 
-- DofusRoom se suma a las herramientas de DOFUS Touch: solo sus mapas de
-  combate de Touch, en una ventana junto al juego, para colocar zanahowias y
-  portales.
+- DofusRoom se suma a las herramientas de DOFUS Touch: las líneas de visión
+  de los mapas de combate de Touch, en una ventana junto al juego.
 - Una alerta de batería se puede ocultar desde su página de ayuda, en un
   dispositivo que no tiene ese ajuste, y volver a mostrar desde la ayuda.
 - Un teléfono sin el juego puede mostrar igualmente sus otras aplicaciones,

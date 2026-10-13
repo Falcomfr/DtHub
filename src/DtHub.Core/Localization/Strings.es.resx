@@ -2264,7 +2264,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>DofusRoom</value>
   </data>
   <data name="ToolDofusRoomLine" xml:space="preserve">
-    <value>Mapas de combate de DOFUS Touch, para colocar zanahowias y portales.</value>
+    <value>Las líneas de visión de los mapas de combate de DOFUS Touch.</value>
   </data>
   <data name="PartnerNoDeviceShort" xml:space="preserve">
     <value>Ningún dispositivo</value>

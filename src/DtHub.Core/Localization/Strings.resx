@@ -2264,7 +2264,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>DofusRoom</value>
   </data>
   <data name="ToolDofusRoomLine" xml:space="preserve">
-    <value>DOFUS Touch fight maps, to place cawottes and portals.</value>
+    <value>Lines of sight on the DOFUS Touch fight maps.</value>
   </data>
   <data name="PartnerNoDeviceShort" xml:space="preserve">
     <value>No device</value>

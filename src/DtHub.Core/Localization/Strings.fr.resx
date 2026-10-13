@@ -2264,7 +2264,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>DofusRoom</value>
   </data>
   <data name="ToolDofusRoomLine" xml:space="preserve">
-    <value>Cartes de combat de DOFUS Touch, pour placer cawottes et portails.</value>
+    <value>Les lignes de vue des cartes de combat de DOFUS Touch.</value>
   </data>
   <data name="PartnerNoDeviceShort" xml:space="preserve">
     <value>Aucun appareil</value>

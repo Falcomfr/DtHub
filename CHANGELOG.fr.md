@@ -15,8 +15,8 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 ### Ajouté
 
-- DofusRoom rejoint les outils DOFUS Touch : ses seules cartes de combat
-  Touch, dans une fenêtre à côté du jeu, pour placer cawottes et portails.
+- DofusRoom rejoint les outils DOFUS Touch : les lignes de vue des cartes de
+  combat Touch, dans une fenêtre à côté du jeu.
 - Une alerte batterie se masque depuis sa page d'aide, sur un appareil qui
   n'a pas ce réglage, et se réaffiche depuis l'aide.
 - Un téléphone sans le jeu peut quand même afficher ses autres applications,

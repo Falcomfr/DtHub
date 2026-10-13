@@ -112,9 +112,9 @@ window on your PC.
   next two months.
 - **DOFUS Touch tools** one click away:
   [Dofus Touch Map](https://www.dofus-touch-map.com/) and
-  [Calcofus](https://calcofus.fr/) and the DOFUS Touch fight maps of
-  [DofusRoom](https://www.dofusroom.com/insightroom) in a DT Hub window beside
-  the game,
+  [Calcofus](https://calcofus.fr/) and the lines of sight of
+  [DofusRoom](https://www.dofusroom.com/insightroom)'s DOFUS Touch fight maps
+  in a DT Hub window beside the game,
   [DTStuff](https://play.google.com/store/apps/details?id=com.makeintouch.dtstuff)
   and [OcrApp](https://play.google.com/store/apps/details?id=com.makeintouch.ocrapp)
   installed and opened from the PC, [DofusBook](https://touch.dofusbook.net/)
