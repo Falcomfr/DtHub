@@ -82,6 +82,25 @@ public sealed class DisplayLadderTests
     }
 
     [Fact]
+    public void Un_palier_garde_son_nombre_de_pixels_sur_un_telephone_allonge()
+    {
+        // A tier names a known load. Taken as a height, a 20:9 phone got
+        // 2400x1080 in the medium tier, a quarter more pixels than the
+        // 1920x1080 it stood for; the load is now the same at any ratio.
+        var phone = 2712 / 1220.0;
+
+        var (width, height) = DisplayLadder.For(1300, 3840, 2160, maximumHeight: 1080, phoneAspect: phone);
+
+        Assert.True(width * height <= 1920 * 1080, $"{width}x{height}");
+        Assert.True(width * height > 1920 * 1080 * 0.95, $"{width}x{height}");
+        Assert.Equal(phone, width / (double)height, precision: 2);
+    }
+
+    [Fact]
+    public void Un_telephone_moins_allonge_ne_depasse_pas_la_hauteur_du_palier() =>
+        Assert.Equal((1728, 1080), DisplayLadder.For(1300, 3840, 2160, maximumHeight: 1080, phoneAspect: 1.6));
+
+    [Fact]
     public void Un_telephone_plus_allonge_que_l_ecran_du_pc_est_borne_par_sa_largeur()
     {
         var (width, height) = DisplayLadder.For(1900, 1920, 1080, phoneAspect: 2712 / 1220.0);
