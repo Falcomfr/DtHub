@@ -10379,3 +10379,14 @@ l'écran du PC reste, comme avant.
 Le 16:10 pour tous avait été décidé, puis réfuté par l'essai sur le 13T Pro
 avant publication. La relance de la 0.8.9 est retirée ; la ligne « Jeu à
 l'écran » du rapport reste, c'est elle qui a tranché.
+
+**Révisé le 14/10/2026 (0.8.11).** Le format du téléphone pour tous a coûté
+le plein écran à un joueur en 19,5:9 sur un écran 16:9 : des bandes en haut
+et en bas, là où le format de l'écran du PC lui allait très bien. Le format
+de l'écran du PC redevient la règle, comme avant la 0.8.10. Le format du
+téléphone devient un choix par compte, « Corriger un jeu décalé » dans le
+menu du compte, pour les appareils qui dessinent mal le jeu au format de
+l'écran, comme la Galaxy Tab S10 Ultra en 21:9. `wm size` n'est lu que pour
+ces comptes. Le reste de la 0.8.10 demeure : un palier garde son nombre de
+pixels, le repli encodeur tient dans 1920 de large, une fenêtre trop haute
+cède sur sa largeur.

@@ -11,6 +11,21 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.8.11] - 2026-10-14
+
+### Corrigé
+
+- Le jeu remplit de nouveau l'écran du PC, comme avant la 0.8.10, qui lui
+  donnait le format du téléphone avec des bandes autour.
+
+### Ajouté
+
+- « Corriger un jeu décalé », dans le menu d'un compte : pour un appareil qui
+  dessine le jeu décalé ou coupé sur votre écran, comme une Galaxy Tab S10
+  Ultra sur un écran ultra-large, le jeu garde le format de l'écran du
+  téléphone ou de la tablette.
+- Le panneau de DT Hub s'étire en hauteur par son bord bas.
+
 ## [0.8.10] - 2026-10-14
 
 ### Corrigé

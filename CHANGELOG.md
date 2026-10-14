@@ -17,6 +17,20 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.8.11] - 2026-10-14
+
+### Fixed
+
+- The game fills the PC screen again, as before 0.8.10, which had given it
+  the phone's ratio with bands around it.
+
+### Added
+
+- "Fix a shifted game", in an account's menu: for a device that draws the
+  game shifted or cut off on your screen, such as a Galaxy Tab S10 Ultra on
+  an ultra-wide screen, the game keeps its phone or tablet screen's ratio.
+- The DT Hub panel stretches in height by its bottom edge.
+
 ## [0.8.10] - 2026-10-14
 
 ### Fixed

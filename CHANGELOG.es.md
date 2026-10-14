@@ -10,6 +10,21 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.8.11] - 2026-10-14
+
+### Corregido
+
+- El juego vuelve a llenar la pantalla del PC, como antes de la 0.8.10, que
+  le daba el formato del teléfono con franjas alrededor.
+
+### Añadido
+
+- «Corregir un juego desplazado», en el menú de una cuenta: para un
+  dispositivo que dibuja el juego desplazado o cortado en tu pantalla, como
+  una Galaxy Tab S10 Ultra en una pantalla ultrapanorámica, el juego conserva
+  el formato de la pantalla del teléfono o la tableta.
+- El panel de DT Hub se estira en altura por su borde inferior.
+
 ## [0.8.10] - 2026-10-14
 
 ### Corregido
