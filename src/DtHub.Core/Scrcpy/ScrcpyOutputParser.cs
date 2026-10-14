@@ -81,6 +81,20 @@ public static partial class ScrcpyOutputParser
             : null;
     }
 
+    /// <summary>
+    /// Size of the virtual display as scrcpy created it, from the same line.
+    /// Not always the one requested: scrcpy aligns the sides.
+    /// </summary>
+    public static (int Width, int Height)? TryParseVirtualDisplaySize(string? line)
+    {
+        var match = NewDisplaySize().Match(line ?? string.Empty);
+
+        return match.Success
+            ? (int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture),
+               int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture))
+            : null;
+    }
+
     /// <summary>True if the line is an error reported by scrcpy.</summary>
     public static bool IsError(string? line) =>
         !string.IsNullOrWhiteSpace(line)
@@ -256,6 +270,9 @@ public static partial class ScrcpyOutputParser
 
     [GeneratedRegex(@"New display:.*?\(id=(\d+)\)", RegexOptions.IgnoreCase)]
     private static partial Regex NewDisplay();
+
+    [GeneratedRegex(@"New display: (\d+)x(\d+)/", RegexOptions.IgnoreCase)]
+    private static partial Regex NewDisplaySize();
 
     [GeneratedRegex(@"\bTexture:\s*\d+x\d+", RegexOptions.IgnoreCase)]
     private static partial Regex FirstImage();

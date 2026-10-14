@@ -56,6 +56,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private readonly SettingsService _settings;
     private readonly IHotkeyRegistrar _hotkeys;
     private readonly AppRestartService _restarts;
+    private readonly GameFitCheck _fit;
     private readonly WindowPlacements _placements;
     private readonly ModifierKeyRelease _modifiers;
     private readonly ILogger<GameLauncher> _logger;
@@ -91,6 +92,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         SettingsService settings,
         IHotkeyRegistrar hotkeys,
         AppRestartService restarts,
+        GameFitCheck fit,
         WindowPlacements placements,
         IAppLauncher appLauncher,
         IAdbClient adb,
@@ -108,6 +110,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _settings = settings;
         _hotkeys = hotkeys;
         _restarts = restarts;
+        _fit = fit;
         _placements = placements;
         _modifiers = new ModifierKeyRelease(windows.Controller);
         _logger = logger;
@@ -598,6 +601,21 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// <summary>Currently open sessions.</summary>
     public IReadOnlyList<ScrcpySession> ActiveSessions => _sessions.ActiveSessions;
 
+    /// <summary>
+    /// What the phone said of each open game's window at its last check,
+    /// for the diagnostic report: a player sends it while the fault is on
+    /// screen, and the phone's own words are what we lack.
+    /// </summary>
+    public IReadOnlyList<string> WindowStates =>
+    [
+        .. ActiveSessions
+            .Select(s => _windowStates.TryGetValue(s.Id, out var state) ? state : null)
+            .OfType<string>(),
+    ];
+
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _windowStates =
+        new(StringComparer.Ordinal);
+
     /// <summary>True if an opening is in progress on this phone.</summary>
     public bool IsDeviceBusy(string deviceId) => _sessions.IsDeviceBusy(deviceId);
 
@@ -1054,6 +1072,54 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// and crawled without it. It lapses on its own, so nothing stays on the
     /// phone once the window closes.
     /// </summary>
+    /// <summary>
+    /// Relaunches once a game Android did not give its whole display, and
+    /// logs what it saw: see <see cref="GameFitCheck"/>.
+    /// </summary>
+    private async Task CheckFitAsync(ScrcpySession session)
+    {
+        try
+        {
+            var fit = await _fit.CheckAsync(session, CancellationToken.None).ConfigureAwait(false);
+            var display = DisplaySize(session);
+
+            if (fit.State is { } state)
+            {
+                _windowStates[session.Id] = $"{session.DisplayName} ({display}) : {state}";
+            }
+
+            switch (fit.Outcome)
+            {
+                case GameFitOutcome.Fills:
+                    LogGameFits(session.DisplayName, display, fit.State ?? "?");
+                    break;
+
+                case GameFitOutcome.Relaunched:
+                    LogGameRelaunchedToFit(
+                        session.DisplayName, display, $"{fit.Before}", $"{fit.After}", fit.State ?? "?");
+                    break;
+
+                // A window closed during the wait is not worth a line.
+                default:
+                    if (session.IsAlive)
+                    {
+                        LogGameFitUnknown(session.DisplayName, display, fit.State ?? "?");
+                    }
+
+                    break;
+            }
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            LogGameFitUnknown(session.DisplayName, DisplaySize(session), exception.Message);
+        }
+    }
+
+    private static string DisplaySize(ScrcpySession session) =>
+        session.VirtualDisplaySize is { } size
+            ? string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{size.Width}x{size.Height}")
+            : "?";
+
     private async Task KeepAwakeAsync(ScrcpySession session)
     {
         // ponytail: one adb call every 20 s per passing window; a wake lock
@@ -2424,6 +2490,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 display.VideoBitrateKbps);
 
             started.Add(session);
+
+            if (session.Target.StartUri is null && session.VirtualDisplayId is not null)
+            {
+                _ = CheckFitAsync(session);
+            }
 
             // Here and not only from the tools menu: a recovery reopens a
             // tool window through this same path, and without its keep-awake
@@ -4302,6 +4373,21 @@ public sealed partial class GameLauncher : IAsyncDisposable
             LogHotkeyFailure(exception);
         }
     }
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "{Window} : le jeu ne couvrait pas son afficheur {Display} (cadre {Before}), relancé une fois, cadre ensuite {After} ; {State}")]
+    private partial void LogGameRelaunchedToFit(string window, string display, string before, string after, string state);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "{Window} : le jeu couvre son afficheur {Display} ; {State}")]
+    private partial void LogGameFits(string window, string display, string state);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "{Window} : cadre du jeu sur l'afficheur {Display} illisible ({Detail}).")]
+    private partial void LogGameFitUnknown(string window, string display, string detail);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "{Window} : le signal qui garde l'app éveillée n'est pas passé : {Reason}")]
     private partial void LogKeepAwakeFailed(string window, string reason);

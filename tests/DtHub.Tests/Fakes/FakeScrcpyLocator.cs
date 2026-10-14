@@ -92,4 +92,18 @@ public sealed class FakeAppLauncher : IAppLauncher
         ForceStops.Add($"{serial}|{userId}|{packageName}");
         return Task.FromResult(!Unreachable.Contains(serial));
     }
+
+    /// <summary>Game bounds read in turn, unreadable once empty.</summary>
+    public Queue<(int Left, int Top, int Right, int Bottom)> Bounds { get; } = [];
+
+    private int _reads;
+
+    public Task<GameWindow> ReadGameWindowAsync(
+        string serial,
+        int displayId,
+        string packageName,
+        CancellationToken cancellationToken = default) =>
+        Task.FromResult(new GameWindow(
+            Bounds.TryDequeue(out var bounds) ? bounds : null,
+            $"lecture {++_reads}"));
 }

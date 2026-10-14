@@ -62,6 +62,9 @@ public sealed class ScrcpySession
     /// </summary>
     public int? VirtualDisplayId { get; internal set; }
 
+    /// <summary>Size of that display, as scrcpy announced it.</summary>
+    public (int Width, int Height)? VirtualDisplaySize { get; internal set; }
+
     /// <summary>
     /// Width to height ratio of the source, taken from the session's
     /// settings. The window manager uses it so as not to distort the

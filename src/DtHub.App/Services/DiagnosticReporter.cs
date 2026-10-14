@@ -114,7 +114,8 @@ public sealed class DiagnosticReporter
             Devices(),
             string.Create(
                 CultureInfo.InvariantCulture,
-                $"Comptes ouverts : {sessions}, dont {Math.Max(0, tabbed)} en onglets"));
+                $"Comptes ouverts : {sessions}, dont {Math.Max(0, tabbed)} en onglets")
+            + string.Concat((Launcher?.WindowStates ?? []).Select(state => "\nJeu à l'écran : " + state)));
     }
 
     /// <summary>

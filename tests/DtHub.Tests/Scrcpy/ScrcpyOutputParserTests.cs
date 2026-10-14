@@ -22,6 +22,22 @@ public class ScrcpyOutputParserTests
             ScrcpyOutputParser.TryParseVirtualDisplayId("[server] INFO: New display: 800x600/240 (id=147)"));
     }
 
+    [Fact]
+    public void La_taille_de_l_ecran_virtuel_est_celle_que_scrcpy_annonce()
+    {
+        // Not the one requested: asked for 2580x1080 on 14/10/2026, the
+        // 13T Pro created 2576x1080.
+        Assert.Equal(
+            (2576, 1080),
+            ScrcpyOutputParser.TryParseVirtualDisplaySize("[server] INFO: New display: 2576x1080/240 (id=182)"));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("INFO: Texture: 2576x1080")]
+    public void Une_ligne_sans_ecran_ne_donne_aucune_taille(string? line) =>
+        Assert.Null(ScrcpyOutputParser.TryParseVirtualDisplaySize(line));
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]

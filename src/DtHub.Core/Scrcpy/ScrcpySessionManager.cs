@@ -1168,6 +1168,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                     && !displayReady.Task.IsCompleted
                     && ScrcpyOutputParser.TryParseVirtualDisplayId(line.Text) is { } displayId)
                 {
+                    session.VirtualDisplaySize = ScrcpyOutputParser.TryParseVirtualDisplaySize(line.Text);
                     displayReady.TrySetResult(displayId);
                     continue;
                 }

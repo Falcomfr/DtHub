@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Text.RegularExpressions;
 
 using DtHub.Core.Adb;
 using DtHub.Core.Dofus;
@@ -12,7 +13,7 @@ namespace DtHub.Core.Sessions;
 /// launch fails: an update may have renamed the main activity. A
 /// stopped Android profile is started and then retried.
 /// </summary>
-public sealed class AndroidAppLauncher : IAppLauncher
+public sealed partial class AndroidAppLauncher : IAppLauncher
 {
     private readonly IAdbClient _adb;
     private readonly AndroidUserService _users;
@@ -296,6 +297,188 @@ public sealed class AndroidAppLauncher : IAppLauncher
 
         return AppLaunchResult.Success;
     }
+
+    public async Task<GameWindow> ReadGameWindowAsync(
+        string serial,
+        int displayId,
+        string packageName,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var activities = await _adb.ShellAsync(serial, ["dumpsys", "activity", "activities"], null, cancellationToken)
+                .ConfigureAwait(false);
+            var windows = await _adb.ShellAsync(serial, ["dumpsys", "window", "windows"], null, cancellationToken)
+                .ConfigureAwait(false);
+            var layers = await _adb.ShellAsync(serial, ["dumpsys", "SurfaceFlinger"], null, cancellationToken)
+                .ConfigureAwait(false);
+
+            return new GameWindow(
+                GameBounds(activities, displayId, packageName),
+                GameWindowState(activities, windows, layers, displayId, packageName));
+        }
+        catch (AdbException exception)
+        {
+            // Unreadable, as an unknown dump would be: the caller logs it.
+            return new GameWindow(null, exception.Message);
+        }
+    }
+
+    /// <summary>
+    /// What the phone says of the game's window, in one line: the task's
+    /// windowing mode, the bounds it was given, its window's frame, and its
+    /// layer's on-screen geometry. The three can disagree: on Xiaomi, a
+    /// floating window shrunk by scaling claims the whole display everywhere
+    /// but in the layer. "?" for what could not be found.
+    /// </summary>
+    public static string GameWindowState(
+        string activities,
+        string windows,
+        string layers,
+        int displayId,
+        string packageName)
+    {
+        var mode = Section(activities, displayId)
+            .Where(l => l.Contains("Task{", StringComparison.Ordinal)
+                && l.Contains(":" + packageName + " ", StringComparison.Ordinal))
+            .Select(l => ModePattern().Match(l))
+            .FirstOrDefault(m => m.Success)?.Groups[1].Value ?? "?";
+
+        var bounds = GameBounds(activities, displayId, packageName) is { } b
+            ? string.Create(CultureInfo.InvariantCulture, $"({b.Left}, {b.Top}, {b.Right}, {b.Bottom})")
+            : "?";
+
+        string? frame = null;
+        string? layer = null;
+        var lines = windows.Split('\n');
+
+        // A window's block: its header names the package, the next line its
+        // display, then its frame and its surface, whose number is the layer's.
+        for (var i = 0; i + 1 < lines.Length && frame is null; i++)
+        {
+            if (!lines[i].TrimStart().StartsWith("Window #", StringComparison.Ordinal)
+                || !lines[i].Contains(" " + packageName + "/", StringComparison.Ordinal)
+                || !lines[i + 1].Contains($"mDisplayId={Text(displayId)} ", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            for (var j = i + 2; j < lines.Length && !lines[j].TrimStart().StartsWith("Window #", StringComparison.Ordinal); j++)
+            {
+                frame ??= FramePattern().Match(lines[j]) is { Success: true } f ? f.Value : null;
+                layer ??= SurfacePattern().Match(lines[j]) is { Success: true } n ? n.Groups[1].Value : null;
+            }
+        }
+
+        var geometry = layer is null ? null : LayerGeometry(layers, layer);
+
+        return $"mode={mode}, cadre {bounds}, fenêtre {frame ?? "?"}, couche {geometry ?? "?"}";
+    }
+
+    /// <summary>The line after "Layer [n]" that gives its on-screen geometry.</summary>
+    private static string? LayerGeometry(string layers, string number)
+    {
+        var lines = layers.Split('\n');
+        var header = $"Layer [{number}]";
+
+        for (var i = 0; i < lines.Length; i++)
+        {
+            if (!lines[i].TrimStart().StartsWith(header, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            for (var j = i + 1; j < Math.Min(lines.Length, i + 4); j++)
+            {
+                if (GeometryPattern().Match(lines[j]) is { Success: true } g)
+                {
+                    return g.Value;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>The lines of one display's section in "dumpsys activity activities".</summary>
+    private static IEnumerable<string> Section(string activities, int displayId)
+    {
+        var header = $"Display #{Text(displayId)} ";
+        var inside = false;
+
+        foreach (var line in activities.Split('\n'))
+        {
+            if (line.StartsWith("Display #", StringComparison.Ordinal))
+            {
+                if (inside)
+                {
+                    yield break;
+                }
+
+                inside = line.StartsWith(header, StringComparison.Ordinal);
+                continue;
+            }
+
+            if (inside)
+            {
+                yield return line;
+            }
+        }
+    }
+
+    /// <summary>
+    /// The game's bounds on one display, read from "dumpsys activity
+    /// activities": the "CurrentConfiguration" of the game's top activity in
+    /// that display's section. That configuration is what the game was given,
+    /// so a game held at an old size by Android shows its real bounds there.
+    /// </summary>
+    public static (int Left, int Top, int Right, int Bottom)? GameBounds(
+        string dumpsys,
+        int displayId,
+        string packageName)
+    {
+        var inGame = false;
+
+        foreach (var line in Section(dumpsys, displayId))
+        {
+            if (line.Contains("Hist", StringComparison.Ordinal)
+                && line.Contains("ActivityRecord{", StringComparison.Ordinal))
+            {
+                inGame = line.Contains(" " + packageName + "/", StringComparison.Ordinal);
+                continue;
+            }
+
+            if (inGame && line.TrimStart().StartsWith("CurrentConfiguration=", StringComparison.Ordinal))
+            {
+                var match = BoundsPattern().Match(line);
+
+                return match.Success
+                    ? (Number(match, 1), Number(match, 2), Number(match, 3), Number(match, 4))
+                    : null;
+            }
+        }
+
+        return null;
+    }
+
+    private static int Number(Match match, int group) =>
+        int.Parse(match.Groups[group].Value, CultureInfo.InvariantCulture);
+
+    [GeneratedRegex(@"mBounds=Rect\((-?\d+), (-?\d+) - (-?\d+), (-?\d+)\)")]
+    private static partial Regex BoundsPattern();
+
+    [GeneratedRegex(@"\bmode=(\w+)")]
+    private static partial Regex ModePattern();
+
+    [GeneratedRegex(@"\bframe=\[[^\]]*\]\[[^\]]*\]")]
+    private static partial Regex FramePattern();
+
+    [GeneratedRegex(@"mSurface=Surface\(name=[^)]*#(\d+)\)")]
+    private static partial Regex SurfacePattern();
+
+    // The transform is only written when there is one.
+    [GeneratedRegex(@"\bbounds=\{[^}]*\}(?: toDisplayTransform=\{[^}]*\})?")]
+    private static partial Regex GeometryPattern();
 
     private static string Text(int value) => value.ToString(CultureInfo.InvariantCulture);
 }

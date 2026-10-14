@@ -273,4 +273,148 @@ public class AndroidAppLauncherTests
 
         Assert.Empty(adb.ShellCalls);
     }
+
+    /// <summary>
+    /// "dumpsys activity activities" recorded on the 13T Pro on 14/10/2026,
+    /// game opened by DT Hub on a 2576x1080 virtual display, trimmed to the
+    /// lines that matter. The phone's own screen holds another game task:
+    /// only the virtual display's must be read.
+    /// </summary>
+    private static string Activites(string boundsOnDisplay) => string.Join(
+        '\n',
+        "ACTIVITY MANAGER ACTIVITIES (dumpsys activity activities)",
+        "Display #183 (activities from top to bottom):",
+        "  * Task{6e050f8 #828 type=standard A=10475:com.ankama.dofustouch U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}",
+        "    mLastNonFullscreenBounds=Rect(1107, 41 - 1469, 968)",
+        "    * Hist  #0: ActivityRecord{262467391 u0 com.ankama.dofustouch/.MainActivity t828}",
+        "      packageName=com.ankama.dofustouch processName=com.ankama.dofustouch",
+        "      mLastReportedConfigurations:",
+        "        mGlobalConfig={1.0 208mcc1mnc [fr_FR] ldltr sw720dp w1717dp h720dp 240dpi xlrg long land night -touch -keyb/v/h -nav/h winConfig={ mBounds=Rect(0, 0 - 2576, 1080) mAppBounds=Rect(0, 0 - 2576, 1080) mWindowingMode=fullscreen}}",
+        "      CurrentConfiguration={1.0 208mcc1mnc [fr_FR] ldltr sw720dp w1717dp h720dp 240dpi xlrg long land night -touch -keyb/v/h -nav/h winConfig={ mBounds=" + boundsOnDisplay + " mAppBounds=Rect(0, 0 - 2576, 1080) mWindowingMode=fullscreen}}",
+        "      supportsSizeChanges=SIZE_CHANGES_UNSUPPORTED_METADATA",
+        "Display #0 (activities from top to bottom):",
+        "  * Task{1a2b3c4 #800 type=standard A=10475:com.ankama.dofustouch U=999 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}",
+        "    * Hist  #0: ActivityRecord{11111111 u999 com.ankama.dofustouch/.MainActivity t800}",
+        "      CurrentConfiguration={1.0 winConfig={ mBounds=Rect(0, 0 - 1220, 2712) mAppBounds=Rect(0, 0 - 1220, 2712)}}");
+
+    [Fact]
+    public void Le_cadre_du_jeu_se_lit_sur_son_ecran_virtuel() =>
+        Assert.Equal(
+            (0, 0, 2576, 1080),
+            AndroidAppLauncher.GameBounds(Activites("Rect(0, 0 - 2576, 1080)"), 183, Package));
+
+    [Fact]
+    public void Un_cadre_decale_est_lu_tel_quel()
+    {
+        // What Android does to a game that does not support size changes
+        // when its display changes after it opened: it keeps the old size,
+        // moved inside the display. The player's screenshot of 14/10/2026.
+        Assert.Equal(
+            (472, 0, 2104, 1080),
+            AndroidAppLauncher.GameBounds(Activites("Rect(472, 0 - 2104, 1080)"), 183, Package));
+    }
+
+    [Fact]
+    public void Le_jeu_d_un_autre_ecran_n_est_pas_lu() =>
+        Assert.Equal(
+            (0, 0, 1220, 2712),
+            AndroidAppLauncher.GameBounds(Activites("Rect(0, 0 - 2576, 1080)"), 0, Package));
+
+    [Theory]
+    [InlineData(184)]
+    [InlineData(-1)]
+    public void Sans_le_jeu_sur_cet_ecran_rien_n_est_lu(int display) =>
+        Assert.Null(AndroidAppLauncher.GameBounds(Activites("Rect(0, 0 - 2576, 1080)"), display, Package));
+
+    [Fact]
+    public void Une_sortie_inconnue_ne_donne_aucun_cadre() =>
+        Assert.Null(AndroidAppLauncher.GameBounds("Can't find service: activity", 183, Package));
+
+    /// <summary>
+    /// "dumpsys window windows" and "dumpsys SurfaceFlinger" recorded on the
+    /// 13T Pro on 14/10/2026, game opened small in a floating window then
+    /// enlarged: the window claims the whole display, and only the layer's
+    /// scale says the game is drawn at 59 %.
+    /// </summary>
+    private const string Fenetres = """
+        WINDOW MANAGER WINDOWS (dumpsys window windows)
+          Window #0 Window{15f852a u0 NavigationBar185}:
+            mDisplayId=185 mSession=Session{b25c1ff 2749:1000} mClient=android.os.BinderProxy@ea40ea3
+            Frames: parent=[0,0][2576,1080] display=[0,0][2576,1080] frame=[0,1009][2576,1080] last=[0,1009][2576,1080] insetsChanged=false
+              mSurface=Surface(name=NavigationBar185#55731)/@0x55e0bf2
+          Window #1 Window{7a37633 u0 com.ankama.dofustouch/com.ankama.dofustouch.MainActivity}:
+            mDisplayId=185 taskId=835 mSession=Session{82caecf 24362:u0a10475} mClient=android.os.BinderProxy@25119a2
+            Frames: parent=[0,0][2576,1080] display=[0,0][2576,1080] frame=[0,0][2576,1080] last=[0,0][2576,1080] insetsChanged=false
+              mSurface=Surface(name=com.ankama.dofustouch/com.ankama.dofustouch.MainActivity#55752)/@0xd8c6626
+        """;
+
+    private const string Couches = """
+          Layer [55731] NavigationBar185#55731
+            bounds={0,1009,2576,1080} toDisplayTransform={ scale x=1.0000 y=1.0000 }
+          Layer [55752] com.ankama.dofustouch/com.ankama.dofustouch.MainActivity#55752
+            visible reason= buffer=104633993265161 frame=3272
+            bounds={0,0,637.092,1519.58} toDisplayTransform={ scale x=0.5899 y=0.5899 }
+        """;
+
+    [Fact]
+    public void L_etat_reel_reunit_la_tache_le_cadre_la_fenetre_et_la_couche() =>
+        Assert.Equal(
+            "mode=fullscreen, cadre (472, 0, 2104, 1080), fenêtre frame=[0,0][2576,1080], "
+            + "couche bounds={0,0,637.092,1519.58} toDisplayTransform={ scale x=0.5899 y=0.5899 }",
+            AndroidAppLauncher.GameWindowState(
+                Activites("Rect(472, 0 - 2104, 1080)").Replace("#183", "#185", StringComparison.Ordinal),
+                Fenetres,
+                Couches,
+                185,
+                Package));
+
+    [Fact]
+    public void Une_couche_sans_transformation_donne_ses_seules_bornes()
+    {
+        // Recorded on the 13T Pro, game full screen on a 1920x1080 display:
+        // with nothing to transform, the line stops at the bounds.
+        const string couche = """
+              Layer [55752] com.ankama.dofustouch/com.ankama.dofustouch.MainActivity#55752
+                visible reason= buffer=104921756073985 frame=455
+                bounds={0,0,1080,1920}
+                input{(0x0) canOccludePresentation touchCropId=55781 touchableRegion={0,0,1080,1920}}
+            """;
+
+        Assert.EndsWith(
+            "couche bounds={0,0,1080,1920}",
+            AndroidAppLauncher.GameWindowState("", Fenetres, couche, 185, Package),
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Ce_qui_manque_est_marque_d_un_point_d_interrogation() =>
+        Assert.Equal(
+            "mode=?, cadre ?, fenêtre ?, couche ?",
+            AndroidAppLauncher.GameWindowState("", "", "", 185, Package));
+
+    [Fact]
+    public async Task Le_cadre_et_l_etat_sont_demandes_au_telephone()
+    {
+        var adb = new FakeAdbClient()
+            .WithShell("dumpsys activity activities", Activites("Rect(0, 0 - 2576, 1080)"))
+            .WithShell("dumpsys window windows", Fenetres)
+            .WithShell("dumpsys SurfaceFlinger", Couches);
+
+        var window = await Build(adb).ReadGameWindowAsync(Serial, 183, Package);
+
+        Assert.Equal((0, 0, 2576, 1080), window.Bounds);
+        Assert.StartsWith("mode=fullscreen, cadre (0, 0, 2576, 1080)", window.State, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Un_telephone_qui_ne_repond_pas_donne_un_etat_illisible()
+    {
+        var adb = new FakeAdbClient()
+            .WithShell("dumpsys", () => throw new AdbException(AdbErrorKind.Unknown, "device offline"));
+
+        var window = await Build(adb).ReadGameWindowAsync(Serial, 183, Package);
+
+        Assert.Null(window.Bounds);
+        Assert.Contains("device offline", window.State, StringComparison.Ordinal);
+    }
 }
