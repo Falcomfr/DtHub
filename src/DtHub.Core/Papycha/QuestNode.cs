@@ -106,6 +106,10 @@ public enum QuestNodeGlyph
 /// than three, since six of the seven kinds have none: the template
 /// then has a single question to ask before laying the columns out.
 /// </param>
+/// <param name="Mark">
+/// What the player's tracker says of the quest: laid over the row, never
+/// used to order it.
+/// </param>
 public sealed record QuestNode(
     QuestNodeKind Kind,
     string Label,
@@ -118,7 +122,8 @@ public sealed record QuestNode(
     IReadOnlyList<QuestNeed>? Needs = null,
     bool InSuccess = false,
     bool Spaced = false,
-    DungeonFacts? Facts = null)
+    DungeonFacts? Facts = null,
+    QuestMark Mark = QuestMark.None)
 {
     /// <summary>
     /// Neither unmade branches nor subheadings are clickable.

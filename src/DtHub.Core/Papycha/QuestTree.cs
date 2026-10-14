@@ -29,6 +29,9 @@ public sealed class QuestTree
     public const int QuestPathSection = -103;
     public const int DungeonPathSection = -104;
 
+    /// <summary>The quests the tracker suggests next, in the site's order.</summary>
+    public const int NextSection = -105;
+
     /// <summary>
     /// The chevron that separates the levels of a breadcrumb trail. It lives
     /// here because three places used to write it each on their own: the

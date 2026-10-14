@@ -2371,4 +2371,13 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="MuteBatteryAlertHeader" xml:space="preserve">
     <value>This setting doesn't exist on your device?</value>
   </data>
+  <data name="FilterToDo" xml:space="preserve">
+    <value>To do</value>
+  </data>
+  <data name="FilterAvailable" xml:space="preserve">
+    <value>Available</value>
+  </data>
+  <data name="NextQuests" xml:space="preserve">
+    <value>Next</value>
+  </data>
 </root>

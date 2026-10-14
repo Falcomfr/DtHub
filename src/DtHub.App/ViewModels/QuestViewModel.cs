@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 using DtHub.App.Services;
 using DtHub.Core.Localization;
 using DtHub.Core.Papycha;
+using DtHub.Core.Settings;
 
 namespace DtHub.App.ViewModels;
 
@@ -16,10 +17,13 @@ public sealed partial class QuestViewModel : ObservableObject
 {
     private readonly QuestCatalogService _catalog;
     private readonly IDialogService _dialogs;
+    private readonly SettingsService _settings;
 
-    public QuestViewModel(QuestCatalogService catalog, IDialogService dialogs, QuestTrackerViewModel tracker)
+    public QuestViewModel(QuestCatalogService catalog, IDialogService dialogs, QuestTrackerViewModel tracker, SettingsService settings)
     {
         Tracker = tracker;
+        _settings = settings;
+        tracker.ProgressChanged += (_, _) => Redraw();
         _catalog = catalog;
         _tree = new QuestTree(catalog, _sectionCounts);
         _dialogs = dialogs;
@@ -46,11 +50,68 @@ public sealed partial class QuestViewModel : ObservableObject
     public int StepCount => _steps.Count;
 
     /// <summary>Places in the list the rows the tree builds.</summary>
-    private void AddBySuccess(IReadOnlyList<QuestSummary> quests)
+    private void AddBySuccess(IEnumerable<QuestSummary> quests)
     {
-        foreach (var node in _tree.BySuccess(quests))
+        // Filtered before the grouping, so an achievement left with no quest
+        // loses its heading too.
+        foreach (var node in _tree.BySuccess([.. quests.Where(Passes)]))
         {
-            Nodes.Add(node);
+            Nodes.Add(Marked(node));
+        }
+    }
+
+    /// <summary>Lays the tracker's mark over a quest row; other rows pass through.</summary>
+    private QuestNode Marked(QuestNode node) =>
+        node.Quest is { } quest ? node with { Mark = QuestTracking.MarkOf(Tracker.Progress, quest.Id) } : node;
+
+    private bool Passes(QuestSummary quest) =>
+        QuestTracking.Passes(Tracker.Progress, quest.Id, FilterToDo, FilterAvailable);
+
+    /// <summary>The "to do" filter of the list, remembered.</summary>
+    [ObservableProperty]
+    private bool _filterToDo;
+
+    /// <summary>The "available" filter of the list, remembered.</summary>
+    [ObservableProperty]
+    private bool _filterAvailable;
+
+    partial void OnFilterToDoChanged(bool value) => FiltersChanged();
+
+    partial void OnFilterAvailableChanged(bool value) => FiltersChanged();
+
+    /// <summary>True while the remembered filters are put back: nothing to redraw or save.</summary>
+    private bool _loadingFilters;
+
+    private void FiltersChanged()
+    {
+        if (_loadingFilters)
+        {
+            return;
+        }
+
+        Redraw();
+        _ = _settings.SetQuestFiltersAsync(FilterToDo, FilterAvailable);
+    }
+
+    /// <summary>
+    /// Draws the open level again after the marks or the filters changed. It
+    /// runs inside a fire-and-forget refresh, so it has nothing to say to
+    /// anyone and nothing to throw: before the first display it does nothing.
+    /// </summary>
+    private void Redraw()
+    {
+        if (Nodes.Count == 0)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(Query))
+        {
+            ShowSection(_section);
+        }
+        else
+        {
+            ShowSearch(Query);
         }
     }
 
@@ -284,6 +345,12 @@ public sealed partial class QuestViewModel : ObservableObject
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         var before = QuestTally.Of(_catalog.Catalog);
+
+        var saved = await _settings.GetAsync(cancellationToken).ConfigureAwait(true);
+        _loadingFilters = true;
+        FilterToDo = saved.QuestFilterToDo;
+        FilterAvailable = saved.QuestFilterAvailable;
+        _loadingFilters = false;
 
         IsBusy = true;
 
@@ -559,11 +626,42 @@ public sealed partial class QuestViewModel : ObservableObject
             Breadcrumb = Strings.Get("QuestAreaCrumb");
             SetBack(target: 0);
 
+            if (NextQuests().Any())
+            {
+                Nodes.Add(new QuestNode(
+                    QuestNodeKind.Branch,
+                    Strings.Get("NextQuests"),
+                    QuestTree.Nombre(NextQuests().Count()),
+                    Id: QuestTree.NextSection,
+                    Glyph: QuestNodeGlyph.Family));
+            }
+
             Nodes.Add(_tree.PathBranch(PathSide.Quests, QuestTree.QuestPathSection));
+
+            // With a filter on, a zone with nothing left to show would open
+            // onto an empty list.
+            var filtering = Tracker.Progress is not null && (FilterToDo || FilterAvailable);
 
             foreach (var branch in _tree.Branches())
             {
-                Nodes.Add(branch);
+                if (!filtering || _catalog.InSection(branch.Id).Any(Passes))
+                {
+                    Nodes.Add(branch);
+                }
+            }
+
+            return;
+        }
+
+        if (section == QuestTree.NextSection)
+        {
+            Breadcrumb = Strings.Get("QuestAreaCrumb") + Separator + Strings.Get("NextQuests");
+            SetBack(target: QuestTree.RootSection);
+
+            // The site's order, not DT Hub's: these are its suggestions.
+            foreach (var quest in NextQuests().Where(Passes))
+            {
+                Nodes.Add(Marked(_tree.NodeOf(quest)));
             }
 
             return;
@@ -573,6 +671,19 @@ public sealed partial class QuestViewModel : ObservableObject
         SetBack(target: QuestTree.RootSection);
 
         AddBySuccess(_catalog.InSection(section));
+    }
+
+    /// <summary>The catalogue quests the site suggests next, in its order.</summary>
+    private IEnumerable<QuestSummary> NextQuests()
+    {
+        if (Tracker.Progress is not { } progress)
+        {
+            return [];
+        }
+
+        var byId = _catalog.Catalog.Quests.ToLookup(q => q.Id);
+
+        return progress.Next.SelectMany(id => byId[id].Take(1));
     }
 
     /// <summary>
@@ -696,7 +807,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
                 foreach (var quest in quests)
                 {
-                    Nodes.Add(_tree.NodeOf(quest) with { InSuccess = true });
+                    Nodes.Add(Marked(_tree.NodeOf(quest) with { InSuccess = true }));
                 }
             }
         }
@@ -741,7 +852,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
             foreach (var quest in found.Quests)
             {
-                Nodes.Add(_tree.NodeOf(quest));
+                Nodes.Add(Marked(_tree.NodeOf(quest)));
             }
         }
 

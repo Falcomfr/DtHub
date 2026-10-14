@@ -27,6 +27,11 @@
         <!-- The field takes up the full width: the quest count that used
              to cut into it didn't say anything worth reading twice. -->
         <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+
           <!-- The right padding is wider than the others: it reserves
                room for the cross, which sits above the field. It's set
                to half the width wanted, since the field applies its
@@ -51,6 +56,23 @@
                                        ConverterParameter=inverse}">
             <Path Style="{StaticResource RowGlyph}" Data="M 4,4 L 11,11 M 11,4 L 4,11" />
           </Button>
+
+          <!-- Only once linked: without a tracker there is nothing to
+               filter on. -->
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="6,0,0,0"
+                      Visibility="{Binding Tracker.IsLinked,
+                                           Converter={StaticResource BoolToVisibility}}">
+            <ToggleButton Style="{StaticResource OutlineToggle}" Padding="8,3"
+                          Background="Transparent"
+                          BorderBrush="{DynamicResource BorderBrush}"
+                          Content="{loc:T FilterToDo}"
+                          IsChecked="{Binding FilterToDo, Mode=TwoWay}" />
+            <ToggleButton Style="{StaticResource OutlineToggle}" Padding="8,3" Margin="4,0,0,0"
+                          Background="Transparent"
+                          BorderBrush="{DynamicResource BorderBrush}"
+                          Content="{loc:T FilterAvailable}"
+                          IsChecked="{Binding FilterAvailable, Mode=TwoWay}" />
+          </StackPanel>
         </Grid>
 
         <!-- Only when there's something to say: an indexing in progress,
@@ -960,6 +982,15 @@
                                                     Converter={StaticResource EmptyToVisibility},
                                                     ConverterParameter=inverse}" />
 
+                    <!-- The tracker's mark: a check for a finished
+                         quest, a dot for one in progress. Collapsed for
+                         every other row so the labels keep their place. -->
+                    <Path x:Name="Marque" DockPanel.Dock="Left" Width="12" Height="12"
+                          Margin="0,0,6,0" VerticalAlignment="Center" Stretch="None"
+                          Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                          StrokeLineJoin="Round" Visibility="Collapsed" />
+
                     <TextBlock x:Name="Libelle" Text="{Binding Label}"
                                TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                   </DockPanel>
@@ -1443,6 +1474,24 @@
                                    a 1.15,1.55 0 1 0 -2.3,0 Z
                                    M 11.1,7 a 1.15,1.55 0 1 0 2.3,0
                                    a 1.15,1.55 0 1 0 -2.3,0 Z" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Mark}" Value="Done">
+                    <Setter TargetName="Marque" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Marque" Property="Data" Value="M 2,6.5 L 5,9.5 L 10.5,3" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Mark}" Value="InProgress">
+                    <Setter TargetName="Marque" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Marque" Property="Fill"
+                            Value="{DynamicResource AccentBrush}" />
+                    <Setter TargetName="Marque" Property="Data"
+                            Value="M 3.5,6 A 2.5,2.5 0 1 0 8.5,6 A 2.5,2.5 0 1 0 3.5,6 Z" />
+                  </DataTrigger>
+
+                  <!-- Blocked or ignored: still there, but out of the way. -->
+                  <DataTrigger Binding="{Binding Mark}" Value="Dimmed">
+                    <Setter TargetName="Ligne" Property="Opacity" Value="0.5" />
                   </DataTrigger>
                 </DataTemplate.Triggers>
               </DataTemplate>
