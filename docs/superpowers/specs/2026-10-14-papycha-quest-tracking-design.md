@@ -90,9 +90,11 @@ builds. The tracker works on the cached catalogue as it is.
   navigation the window asks the `CookieManager` for
   `papycha_tracker_code_v2`; as soon as it exists, the window closes itself
   and the guides window fills its bar.
-- **What DT Hub keeps.** Nothing secret: the cookie stays in the WebView
-  profile, DT Hub never sees the phrase. `settings.json` keeps only the id
-  of the last chosen character.
+- **What DT Hub keeps.** The site's cookie, in the WebView profile, as any
+  browser keeps it. Its value carries the phrase itself (checked on
+  2026-10-14: it starts with the phrase's first word), so DT Hub reads it to
+  send it back to the site, and never writes it anywhere else: no log, no
+  settings. `settings.json` keeps only the id of the last chosen character.
 - **Unlinking.** "Délier" in the bar's menu deletes the cookie from DT Hub's
   profile. The Papycha account and its phrase are untouched.
 - **Lost link.** A renewed phrase or an expired cookie makes the page come

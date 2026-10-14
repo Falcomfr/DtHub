@@ -14,7 +14,7 @@
 
 - Never reorder the guides list from the site: marks and filters are laid over DT Hub's own order.
 - Never extract from Papycha's HTML anything its API or tracker does not hand over; the tracker page is read only for `window.PAPYCHA_QUEST_TRACKER`.
-- The access phrase is never seen nor stored by DT Hub; only the cookie `papycha_tracker_code_v2`, kept in the WebView profile.
+- The access phrase is never stored by DT Hub itself; only the cookie `papycha_tracker_code_v2`, kept in the WebView profile (its value carries the phrase: never log it).
 - Site values, verbatim: tracker page `https://papycha.fr/suivi-quetes/`, ajax `https://papycha.fr/wp-admin/admin-ajax.php`, action `papycha_tracker_quest_status`, statuses `""`, `in_progress`, `completed`, `blocked`, `ignored`.
 - Every new label in `Strings.resx` (English), `Strings.fr.resx`, `Strings.es.resx` (Spanish in the familiar register, `tú`); `StringsResourceTests` must stay green.
 - New files: UTF-8 with BOM, LF (`.editorconfig`). Comments in English, log messages in French, matching the files around them.
