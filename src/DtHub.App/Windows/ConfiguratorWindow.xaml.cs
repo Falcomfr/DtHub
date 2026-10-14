@@ -211,10 +211,13 @@ public partial class ConfiguratorWindow : Window
         return 0;
     }
 
-    /// <summary>Shows or hides the window, depending on its state.</summary>
+    /// <summary>
+    /// Shows or hides the window, depending on its state. A minimized panel
+    /// is still meant to be shown, but out of sight: Ctrl+P brings it back.
+    /// </summary>
     public void Toggle()
     {
-        if (_shown)
+        if (_shown && WindowState != WindowState.Minimized)
         {
             Vanish();
             return;
@@ -250,6 +253,11 @@ public partial class ConfiguratorWindow : Window
         {
             Opacity = 0;
             Show();
+        }
+
+        if (WindowState == WindowState.Minimized)
+        {
+            WindowState = WindowState.Normal;
         }
 
         Activate();
@@ -374,6 +382,8 @@ public partial class ConfiguratorWindow : Window
     }
 
     private void OnHide(object sender, RoutedEventArgs e) => Vanish();
+
+    private void OnMinimize(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
 
     private void OnHeightDrag(object sender, DragDeltaEventArgs e) =>
         Height = Math.Clamp(ActualHeight + e.VerticalChange, MinHeight, MaxHeight);
