@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -373,6 +374,9 @@ public partial class ConfiguratorWindow : Window
     }
 
     private void OnHide(object sender, RoutedEventArgs e) => Vanish();
+
+    private void OnHeightDrag(object sender, DragDeltaEventArgs e) =>
+        Height = Math.Clamp(ActualHeight + e.VerticalChange, MinHeight, MaxHeight);
 
     /// <summary>
     /// The density takes effect as soon as it is picked, or typed and

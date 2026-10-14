@@ -5,7 +5,7 @@
         xmlns:loc="clr-namespace:DtHub.App.Localization"
         Title="DT Hub"
         Width="440" Height="580"
-        MinWidth="360" MinHeight="380"
+        MinWidth="360" MinHeight="380" MaxHeight="1000"
         Topmost="True"
         ShowInTaskbar="True"
         ResizeMode="CanMinimize"
@@ -117,8 +117,23 @@
         </Grid>
       </Border>
 
+      <!-- The bottom edge stretches the panel's height, between its
+           MinHeight and MaxHeight. Drawn by DT Hub rather than by
+           Windows: ResizeMode stays CanMinimize, so that Windows can
+           never maximize the borderless panel again (0.8.4). It wears
+           the bar's surface, and the bar gives up as much padding. -->
+      <Thumb DockPanel.Dock="Bottom" Height="4" Cursor="SizeNS"
+             Background="{StaticResource BrushedPanelBrush}"
+             DragDelta="OnHeightDrag">
+        <Thumb.Template>
+          <ControlTemplate TargetType="Thumb">
+            <Border Background="{TemplateBinding Background}" />
+          </ControlTemplate>
+        </Thumb.Template>
+      </Thumb>
+
       <!-- Bottom bar: tools on the left, quit on the right. -->
-      <Border DockPanel.Dock="Bottom" Padding="10,8"
+      <Border DockPanel.Dock="Bottom" Padding="10,8,10,4"
               Background="{StaticResource BrushedPanelBrush}"
               BorderBrush="{DynamicResource BevelBrush}" BorderThickness="0,1,0,0">
         <Grid>
