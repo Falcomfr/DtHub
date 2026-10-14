@@ -1277,6 +1277,7 @@ public sealed partial class QuestViewModel : ObservableObject
         // were in the same case, and were the last to be let through: the
         // page's own sequence was weighed against the rank of a quest we had
         // already left.
+        Tracker.ShowQuest(null);
         _current = null;
         _currentDungeon = null;
         _currentPath = null;
@@ -1445,6 +1446,7 @@ public sealed partial class QuestViewModel : ObservableObject
     {
         ArgumentNullException.ThrowIfNull(exception);
 
+        Tracker.ShowQuest(null);
         HasQuest = false;
         IsLoadingPage = false;
         Placeholder =

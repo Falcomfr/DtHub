@@ -28,10 +28,7 @@
         '.pqa-quest-intro__start',
 
         'footer.papycha-article-footer',
-        'footer.entry-footer',
-
-        // The tracker's own status bar: DT Hub's bar asks the same.
-        '.pqt-quest-actions'
+        'footer.entry-footer'
     ];
 
     // The article title, reproduced by the quest window's banner. Kept in
@@ -73,7 +70,12 @@
     // "nav" and its subheadings are "h3".
     var HIDDEN_IN_QUEST = [
         TITLE,
-        '.pqa-quest-intro'
+        '.pqa-quest-intro',
+
+        // The tracker's own status bar: the quest window's bar asks the
+        // same. The linked-pages window has no such bar, so it keeps the
+        // site's.
+        '.pqt-quest-actions'
     ];
 
     // Mark placed on whatever does not belong to the guide.

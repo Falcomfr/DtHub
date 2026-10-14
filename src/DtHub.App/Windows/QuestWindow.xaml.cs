@@ -84,6 +84,10 @@ public partial class QuestWindow : Window
         Show();
         Activate();
 
+        // The tracker is read as soon as the window first shows, not only
+        // when a page opens: the list alone needs the link and the marks.
+        _ = PrepareOnShowAsync();
+
         // The cursor in the search box, and the list expanded: this
         // window is opened to find a quest, never to look at emptiness.
         SearchBox.Focus();
@@ -310,7 +314,46 @@ public partial class QuestWindow : Window
     /// The script is set before any document loads: set afterward, it
     /// would let the site's own look show through for an instant.
     /// </summary>
+    private async Task PrepareOnShowAsync()
+    {
+        try
+        {
+            await PrepareAsync().ConfigureAwait(true);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // No engine: the list still works, the page cannot show.
+            _viewModel.ReportViewFailure(exception);
+        }
+    }
+
+    /// <summary>One preparation for the window's life: later calls share it.</summary>
     private async Task PrepareAsync()
+    {
+        _preparing ??= PrepareCoreAsync();
+
+        try
+        {
+            await _preparing.ConfigureAwait(true);
+        }
+        catch (Exception) when (Forget())
+        {
+            // Unreachable: Forget() is false. It only drops a failed
+            // preparation so that the next attempt starts again.
+            throw;
+        }
+    }
+
+    private bool Forget()
+    {
+        _preparing = null;
+
+        return false;
+    }
+
+    private Task? _preparing;
+
+    private async Task PrepareCoreAsync()
     {
         // The environment tells the engine where to write and how much
         // to keep. Without it, it puts its cache next to the executable
@@ -562,6 +605,7 @@ public partial class QuestWindow : Window
 
         var window = _trackerWindow();
 
+        window.Owner = this;
         window.Tool = WebTool.PapychaTracker;
         window.Linked += (_, _) => _ = _viewModel.Tracker.RefreshAsync();
         window.Closed += (_, _) => _linking = null;
@@ -646,6 +690,11 @@ public partial class QuestWindow : Window
                 .ConfigureAwait(true);
 
             _viewModel.SetStep(index);
+
+            // The bridge posts no Step message for a requested jump, so the
+            // tracker hears of it here. A move reported by both paths is
+            // counted once: OnStepAsync starts a quest at most once.
+            _ = _viewModel.Tracker.OnStepAsync(index, _viewModel.StepCount, _resumedStep);
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {

@@ -70,8 +70,8 @@
 
     <!-- The player's Papycha tracker: the link when there is none, the
          character and the menu once linked. The strip disappears while
-         nothing is known and nothing is to be said, so a player who never
-         links sees the window as it always was. -->
+         nothing is known and nothing is to be said; a player who never
+         linked sees only the link button. -->
     <Border DockPanel.Dock="Top" Padding="10,6" DataContext="{Binding Tracker}"
             BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1">
       <Border.Style>
