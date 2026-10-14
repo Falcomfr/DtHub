@@ -11,6 +11,19 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.8.9] - 2026-10-14
+
+### Corrigé
+
+- Un jeu que le téléphone laisse à la mauvaise taille dans sa fenêtre,
+  décalé avec une bande noire et son panneau coupé, est relancé une fois en
+  pleine taille. Vu sur une Galaxy Tab S10 Ultra.
+
+### Modifié
+
+- Le rapport de diagnostic dit comment le téléphone place chaque jeu ouvert,
+  pour trouver ce qui cloche sur un appareil qu'on ne peut pas tester.
+
 ## [0.8.8] - 2026-10-13
 
 ### Corrigé

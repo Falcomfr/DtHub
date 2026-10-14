@@ -10,6 +10,19 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.8.9] - 2026-10-14
+
+### Corregido
+
+- Un juego que el teléfono deja con un tamaño incorrecto en su ventana,
+  desplazado con una franja negra y su panel cortado, se relanza una vez a
+  tamaño completo. Visto en una Galaxy Tab S10 Ultra.
+
+### Cambiado
+
+- El informe de diagnóstico dice cómo coloca el teléfono cada juego abierto,
+  para encontrar lo que falla en un dispositivo que no podemos probar.
+
 ## [0.8.8] - 2026-10-13
 
 ### Corregido

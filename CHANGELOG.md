@@ -17,6 +17,19 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.8.9] - 2026-10-14
+
+### Fixed
+
+- A game the phone leaves at the wrong size in its window, shifted with a
+  black band and its panel cut, is relaunched once at full size. Seen on a
+  Galaxy Tab S10 Ultra.
+
+### Changed
+
+- The diagnostic report says how the phone places each open game, to find
+  what goes wrong on a device we cannot test.
+
 ## [0.8.8] - 2026-10-13
 
 ### Fixed
