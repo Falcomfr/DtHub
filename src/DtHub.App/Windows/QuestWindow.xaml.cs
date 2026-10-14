@@ -86,8 +86,11 @@ public partial class QuestWindow : Window
 
         // The tracker is read each time the window shows, not only when a
         // page opens: the list alone needs the link and the marks, and a
-        // status may have changed elsewhere since.
-        _ = PrepareOnShowAsync();
+        // status may have changed elsewhere since. Queued below the
+        // Loaded-priority wake-up of OnVisibilityChanged, so the cookie is
+        // never asked of an engine still asleep.
+        _ = Dispatcher.BeginInvoke(
+            DispatcherPriority.Background, () => _ = PrepareOnShowAsync());
 
         // The cursor in the search box, and the list expanded: this
         // window is opened to find a quest, never to look at emptiness.

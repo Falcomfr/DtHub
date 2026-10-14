@@ -193,8 +193,10 @@ public sealed partial class QuestTrackerViewModel(
     {
         HighlightsDone = !IsDone && QuestTracking.IsLastStep(stepCount, index);
 
+        // No quest to start (a dungeon, a path, no character): no read at all,
+        // the page weighs 1.3 MB.
         if (_startedThisQuest
-            || !IsLinked
+            || !ShowsQuestStatus
             || !QuestTracking.ShouldStart(CurrentStatus, stepCount, index, resumedIndex))
         {
             return;
