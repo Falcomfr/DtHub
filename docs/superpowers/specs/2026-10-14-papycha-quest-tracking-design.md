@@ -17,14 +17,23 @@ and DT Hub always show the same progress.
 Papycha answered that connecting through the access phrase, or through what
 the browser keeps, is fine (relayed by the project owner on 2026-10-14).
 
-## Prerequisite
+## The list stays DT Hub's own
 
-The guides list still reads WordPress `wp/v2`, closed with a 401 since
-2026-10-12: only players who already had the catalogue cached see it. The
-switch of the list to `papycha-public/v1` is its own design and ships
-first. This design only needs quest ids, and those are the same everywhere:
-the WordPress post id is used by `wp/v2`, by `papycha-public` and by the
-tracker (47974 is "L'île des naufragés" in all three).
+The tracker only reads and writes statuses. The guides list keeps its own
+catalogue, its own sections and its own order, which the project owner
+finds more coherent than the site's: nothing in this design reorders it.
+Marks and filters are laid over it; the "Suivantes" group is added on
+top of it and changes nothing below.
+
+This needs nothing more than quest ids, and those are the same everywhere:
+the WordPress post id is used by the catalogue, by `papycha-public` and by
+the tracker (47974 is "L'île des naufragés" in all three).
+
+Switching the catalogue to `papycha-public/v1` (`wp/v2` answers 401 since
+2026-10-12) was considered and set aside on 2026-10-14: the site's usage
+policy forbids rebuilding locked fields such as `successes` by extraction,
+so the switch would lose the grouping by success and the order DT Hub
+builds. The tracker works on the cached catalogue as it is.
 
 ## What the site offers (verified 2026-10-14, read only, owner's account)
 
@@ -61,7 +70,7 @@ tracker (47974 is "L'île des naufragés" in all three).
 ## Decisions taken with the project owner
 
 | Question | Answer |
-|---|---|
+| --- | --- |
 | How far to automate | "In progress" as soon as the player moves past the first step; "Done" offered in one click at the last step, never written without a click |
 | Which character | A selector at the top, the site's active character by default, then the last one chosen, remembered |
 | What the list shows | A mark per quest, a "to do" filter, an "available" filter, the site's suggested next quests |
