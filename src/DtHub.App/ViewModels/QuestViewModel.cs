@@ -26,6 +26,13 @@ public sealed partial class QuestViewModel : ObservableObject
         Tracker = tracker;
         _settings = settings;
         tracker.ProgressChanged += (_, _) => RedrawAfterRead();
+        tracker.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(QuestTrackerViewModel.IsLinked))
+            {
+                OnPropertyChanged(nameof(ShowsFilters));
+            }
+        };
         _catalog = catalog;
         _tree = new QuestTree(catalog, _sectionCounts);
         _dialogs = dialogs;
@@ -182,6 +189,7 @@ public sealed partial class QuestViewModel : ObservableObject
     private string? _anchorUrl;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsFilters))]
     private string _query = string.Empty;
 
     /// <summary>
@@ -275,6 +283,7 @@ public sealed partial class QuestViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(CanReport))]
     [NotifyPropertyChangedFor(nameof(CanCloseList))]
     [NotifyPropertyChangedFor(nameof(ShowsSiteSearch))]
+    [NotifyPropertyChangedFor(nameof(ShowsFilters))]
     private bool _isListOpen;
 
     /// <summary>
@@ -313,6 +322,13 @@ public sealed partial class QuestViewModel : ObservableObject
     /// height, and we do not consult a step and a list at the same time.
     /// </summary>
     public bool ShowsQuestChrome => HasQuest && !IsListOpen;
+
+    /// <summary>
+    /// The "to do" and "available" filters: only where they act, the lists of
+    /// quests, linked and not searching. A search is never filtered, and a
+    /// guide has nothing to filter.
+    /// </summary>
+    public bool ShowsFilters => Tracker.IsLinked && IsListOpen && Query.Length == 0;
 
     /// <summary>
     /// True if closing the list leads somewhere.

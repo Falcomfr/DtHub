@@ -57,10 +57,10 @@
             <Path Style="{StaticResource RowGlyph}" Data="M 4,4 L 11,11 M 11,4 L 4,11" />
           </Button>
 
-          <!-- Only once linked: without a tracker there is nothing to
-               filter on. -->
+          <!-- Only where they act: a list of quests, once linked, and no
+               search under way, since a search is never filtered. -->
           <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="6,0,0,0"
-                      Visibility="{Binding Tracker.IsLinked,
+                      Visibility="{Binding ShowsFilters,
                                            Converter={StaticResource BoolToVisibility}}">
             <ToggleButton Style="{StaticResource OutlineToggle}" Padding="8,3"
                           Background="Transparent"
