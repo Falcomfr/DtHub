@@ -56,6 +56,18 @@ public partial class QuestWindow : Window
         _logger = logger;
         DataContext = viewModel;
 
+        // A character picked in the bar is shown in the tracker window too,
+        // when it is open on the player's quests.
+        viewModel.Tracker.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(QuestTrackerViewModel.SelectedCharacter)
+                && _linking is { IsLoaded: true, ShowsQuests: true } window
+                && viewModel.Tracker.SelectedCharacter is { } character)
+            {
+                _ = window.ShowCharacterAsync(character.Id);
+            }
+        };
+
         // The rendering engine keeps six processes and half a gigabyte
         // when the window is hidden, which is the case most of the time:
         // guides are opened to read a step, then play resumes. It can go
@@ -639,6 +651,8 @@ public partial class QuestWindow : Window
         window.Owner = this;
         window.Tool = WebTool.PapychaTracker;
         window.ShowsQuests = quests;
+        window.TrackerCharacterId = _viewModel.Tracker.SelectedCharacter?.Id;
+        window.CharacterPicked += (_, id) => _viewModel.Tracker.PickCharacter(id);
         window.GuideRequested += (_, url) =>
         {
             Route(url);

@@ -461,6 +461,15 @@ public sealed partial class QuestTrackerViewModel(
         }
     }
 
+    /// <summary>Picks a character by its id, as the site's tracker did; an unknown id is ignored.</summary>
+    public void PickCharacter(string id)
+    {
+        if (Characters.FirstOrDefault(c => c.Id == id) is { } character && character != SelectedCharacter)
+        {
+            SelectedCharacter = character;
+        }
+    }
+
     partial void OnSelectedCharacterChanged(TrackerCharacter? value)
     {
         if (value is null || _state is null || _filling)

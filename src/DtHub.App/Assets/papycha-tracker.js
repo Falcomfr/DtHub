@@ -18,6 +18,8 @@
     // was opened to show the player's quests.
     var TEXT = __DTHUB_TEXT__;
     var QUESTS = __DTHUB_QUESTS__;
+    // The character chosen in DT Hub, or '' when none.
+    var CHARACTER = __DTHUB_CHARACTER__;
     var OFF = 'data-dthub-off';
 
     // The site keeps the open tab in its own storage and reads it as the app
@@ -25,9 +27,38 @@
     if (QUESTS) {
         try {
             localStorage.setItem('pqt_active_panel', 'quests');
+
+            // The site opens on the character it remembers in the same
+            // storage: DT Hub's choice is written there, once per window,
+            // since this script runs again on every reload and the player
+            // may have picked another character on the site meanwhile.
+            if (CHARACTER && !sessionStorage.getItem('dthub-character')) {
+                localStorage.setItem('pqt_active_character', CHARACTER);
+                sessionStorage.setItem('dthub-character', '1');
+            }
         } catch (e) {
             // Storage refused: the site opens on its home tab, nothing worse.
         }
+
+        // And the other way: a character picked on the site is the one the
+        // site writes to that storage key. DT Hub is told, so its own bar
+        // follows. Wrapped once, before any of the site's scripts runs.
+        var write = Storage.prototype.setItem;
+        var told = CHARACTER;
+
+        Storage.prototype.setItem = function (key, value) {
+            write.apply(this, arguments);
+
+            if (this === window.localStorage && key === 'pqt_active_character' && value && value !== told) {
+                told = value;
+
+                try {
+                    window.chrome.webview.postMessage(JSON.stringify({ kind: 'trackerCharacter', id: value }));
+                } catch (e) {
+                    // Outside DT Hub there is no one to tell.
+                }
+            }
+        };
     }
 
     function style() {

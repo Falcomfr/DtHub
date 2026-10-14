@@ -58,7 +58,7 @@ internal static class QuestBridge
     /// a button, and the player's quests in progress when <paramref name="quests"/>.
     /// Goes on top of <see cref="Script"/> in framing mode.
     /// </summary>
-    public static string TrackerScript(bool quests) =>
+    public static string TrackerScript(bool quests, string? character = null) =>
         Read("DtHub.App.papycha-tracker.js")
             .Replace(
                 "__DTHUB_TEXT__",
@@ -75,7 +75,8 @@ internal static class QuestBridge
                     },
                 }),
                 StringComparison.Ordinal)
-            .Replace("__DTHUB_QUESTS__", quests ? "true" : "false", StringComparison.Ordinal);
+            .Replace("__DTHUB_QUESTS__", quests ? "true" : "false", StringComparison.Ordinal)
+            .Replace("__DTHUB_CHARACTER__", JsonSerializer.Serialize(character ?? string.Empty), StringComparison.Ordinal);
 
     private static string Read(string name)
     {

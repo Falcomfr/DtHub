@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Text.Json;
 using System.Windows;
 
 using DtHub.App.Services;
@@ -151,6 +152,63 @@ public partial class WebToolWindow : Window
     public event EventHandler<string>? GuideRequested;
 
     /// <summary>
+    /// The character the tracker shows: DT Hub's choice at opening, then
+    /// whatever either side picks. Set before the window is shown.
+    /// </summary>
+    public string? TrackerCharacterId { get; set; }
+
+    /// <summary>A character picked on the site, for DT Hub's bar to follow.</summary>
+    public event EventHandler<string>? CharacterPicked;
+
+    /// <summary>
+    /// Shows another character, picked in DT Hub's bar: written where the
+    /// site looks for it, and the page reloaded.
+    /// </summary>
+    public async Task ShowCharacterAsync(string id)
+    {
+        if (id == TrackerCharacterId || View.CoreWebView2 is not { } engine)
+        {
+            return;
+        }
+
+        TrackerCharacterId = id;
+
+        try
+        {
+            await engine.ExecuteScriptAsync(
+                "localStorage.setItem('pqt_active_character'," + JsonSerializer.Serialize(id) + ");location.reload();")
+                .ConfigureAwait(true);
+        }
+        catch (Exception exception) when (exception is InvalidOperationException
+            or System.Runtime.InteropServices.COMException or ObjectDisposedException)
+        {
+            // The window closing under the call: nothing left to show.
+            Log.Warning(exception, "Le personnage n'a pas pu être montré dans le suivi Papycha.");
+        }
+    }
+
+    private void OnTrackerMessage(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+    {
+        string payload;
+
+        try
+        {
+            payload = e.TryGetWebMessageAsString();
+        }
+        catch (ArgumentException)
+        {
+            // Not text: not the tracker's message.
+            return;
+        }
+
+        if (TrackerCharacterMessage.Parse(payload) is { } id && id != TrackerCharacterId)
+        {
+            TrackerCharacterId = id;
+            CharacterPicked?.Invoke(this, id);
+        }
+    }
+
+    /// <summary>
     /// The tracker page, framed down to its own content. To sign in, the
     /// player types their phrase there, and only the cookie the site then sets
     /// is looked for. The value at opening is remembered, because a lost link
@@ -165,8 +223,13 @@ public partial class WebToolWindow : Window
             .AddScriptToExecuteOnDocumentCreatedAsync(QuestBridge.Script(framingOnly: true))
             .ConfigureAwait(true);
         await View.CoreWebView2
-            .AddScriptToExecuteOnDocumentCreatedAsync(QuestBridge.TrackerScript(ShowsQuests))
+            .AddScriptToExecuteOnDocumentCreatedAsync(QuestBridge.TrackerScript(ShowsQuests, TrackerCharacterId))
             .ConfigureAwait(true);
+
+        if (ShowsQuests)
+        {
+            View.CoreWebView2.WebMessageReceived += OnTrackerMessage;
+        }
         View.CoreWebView2.NavigationCompleted += OnTrackerNavigated;
 
         // The quests are on the site's home page once signed in; the tracker
