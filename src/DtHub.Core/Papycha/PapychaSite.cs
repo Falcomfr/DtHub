@@ -24,6 +24,15 @@ public static class PapychaSite
     /// <summary>Root of the site.</summary>
     public const string Root = "https://" + Host + "/";
 
+    /// <summary>Quest tracker page of the linked player.</summary>
+    public const string TrackerUrl = Root + "suivi-quetes/";
+
+    /// <summary>WordPress AJAX endpoint the tracker talks to.</summary>
+    public const string AjaxUrl = Root + "wp-admin/admin-ajax.php";
+
+    /// <summary>Cookie holding the player's tracker code.</summary>
+    public const string TrackerCookie = "papycha_tracker_code_v2";
+
     /// <summary>
     /// Search URL of the site for this text, or <c>null</c> when
     /// there is nothing to search for.
