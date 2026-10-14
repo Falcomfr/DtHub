@@ -21,7 +21,8 @@ public sealed partial class PapychaTracker : IPapychaTracker
     private readonly HttpClient _http;
     private readonly ILogger<PapychaTracker> _logger;
 
-    // Nonce of the last read; a write without one reads first.
+    // Nonce of the last read; a write without one reads first. Writes are
+    // serialised by the caller, so no lock.
     private string? _nonce;
 
     public PapychaTracker(HttpClient http, ILogger<PapychaTracker> logger)
@@ -61,16 +62,16 @@ public sealed partial class PapychaTracker : IPapychaTracker
 
             var html = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             var result = TrackerPageParser.Parse(html);
-            if (result.State is { } state)
-            {
-                _nonce = state.Nonce;
-            }
+
+            // A dead cookie must not keep posting with a stale nonce.
+            _nonce = result.State?.Nonce;
 
             return result;
         }
         catch (Exception ex) when (IsNetworkFailure(ex, cancellationToken))
         {
             LogReadFailed(ex.Message);
+            _nonce = null;
 
             return new TrackerReadResult(TrackerReadOutcome.Unreadable, null);
         }
@@ -107,10 +108,10 @@ public sealed partial class PapychaTracker : IPapychaTracker
 
         var retry = await PostAsync(cookie, characterId, questId, status, cancellationToken).ConfigureAwait(false);
 
-        return retry with { After = TrackerReadOutcome.Linked };
+        return retry.After is null ? retry with { After = TrackerReadOutcome.Linked } : retry;
     }
 
-    // After is set here only for a network failure, which a retry would not fix.
+    // After is set here only for a network failure (Unreadable), which a retry would not fix.
     private async Task<TrackerWriteResult> PostAsync(
         string cookie, string characterId, int questId, QuestStatus status, CancellationToken cancellationToken)
     {

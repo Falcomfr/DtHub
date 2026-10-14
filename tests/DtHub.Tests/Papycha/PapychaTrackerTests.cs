@@ -13,6 +13,9 @@ public class PapychaTrackerTests
 
     private const string Anonymous = """<script>window.PAPYCHA_QUEST_TRACKER = {"nonce":"n","space":null,"views":[]};</script>""";
 
+    // Answer body that makes the stub throw a network failure.
+    private const string Throw = "<throw>";
+
     private sealed record Seen(HttpMethod Method, string Uri, string? Cookie, string Body);
 
     private sealed class StubHandler(params (HttpStatusCode Status, string Body)[] answers) : HttpMessageHandler
@@ -20,8 +23,6 @@ public class PapychaTrackerTests
         private readonly Queue<(HttpStatusCode Status, string Body)> _answers = new(answers);
 
         public List<Seen> Requests { get; } = [];
-
-        public bool Fail { get; init; }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -31,12 +32,11 @@ public class PapychaTrackerTests
                 request.Headers.TryGetValues("Cookie", out var cookie) ? string.Join(";", cookie) : null,
                 request.Content is null ? string.Empty : await request.Content.ReadAsStringAsync(cancellationToken)));
 
-            if (Fail)
+            var (status, body) = _answers.Dequeue();
+            if (body == Throw)
             {
                 throw new HttpRequestException("down");
             }
-
-            var (status, body) = _answers.Dequeue();
 
             return new HttpResponseMessage(status) { Content = new StringContent(body) };
         }
@@ -79,7 +79,7 @@ public class PapychaTrackerTests
     [Fact]
     public async Task Read_network_failure_is_unreadable()
     {
-        var (tracker, _) = Make(new StubHandler { Fail = true });
+        var (tracker, _) = Make(Throw);
 
         Assert.Equal(TrackerReadOutcome.Unreadable, (await tracker.ReadAsync("abc")).Outcome);
     }
@@ -119,5 +119,74 @@ public class PapychaTrackerTests
         Assert.False(result.Success);
         Assert.Equal(TrackerReadOutcome.NotLinked, result.After);
         Assert.Equal(3, handler.Requests.Count);
+    }
+
+    private const string Refused = """{"success":false,"data":{"message":"Nonce"}}""";
+
+    [Fact]
+    public async Task Retry_network_failure_keeps_unreadable()
+    {
+        var (tracker, _) = Make(Linked, Refused, Linked, Throw);
+
+        var result = await tracker.SetStatusAsync("abc", "b", 1, QuestStatus.Completed);
+
+        Assert.False(result.Success);
+        Assert.Equal(TrackerReadOutcome.Unreadable, result.After);
+    }
+
+    [Fact]
+    public async Task Retry_refused_again_stops_after_four_requests()
+    {
+        var (tracker, handler) = Make(Linked, Refused, Linked, Refused);
+
+        var result = await tracker.SetStatusAsync("abc", "b", 1, QuestStatus.Completed);
+
+        Assert.False(result.Success);
+        Assert.Equal(4, handler.Requests.Count);
+    }
+
+    [Fact]
+    public async Task First_post_network_failure_does_not_retry()
+    {
+        var (tracker, handler) = Make(Linked, Throw);
+
+        var result = await tracker.SetStatusAsync("abc", "b", 1, QuestStatus.Completed);
+
+        Assert.False(result.Success);
+        Assert.Equal(TrackerReadOutcome.Unreadable, result.After);
+        Assert.Equal(2, handler.Requests.Count);
+    }
+
+    [Fact]
+    public async Task Non_json_post_body_is_a_refusal_and_retried()
+    {
+        var (tracker, handler) = Make(Linked, "<html>403</html>", Linked, """{"success":true}""");
+
+        var result = await tracker.SetStatusAsync("abc", "b", 1, QuestStatus.Completed);
+
+        Assert.True(result.Success);
+        Assert.Equal(4, handler.Requests.Count);
+    }
+
+    [Fact]
+    public async Task Write_with_an_unlinked_first_read_does_not_post()
+    {
+        var (tracker, handler) = Make(Anonymous);
+
+        var result = await tracker.SetStatusAsync("abc", "b", 1, QuestStatus.Completed);
+
+        Assert.False(result.Success);
+        Assert.Equal(TrackerReadOutcome.NotLinked, result.After);
+        Assert.Single(handler.Requests);
+    }
+
+    [Fact]
+    public async Task Retry_posts_the_refreshed_nonce()
+    {
+        var (tracker, handler) = Make(Linked, Refused, Linked.Replace("26794092b6", "fresh99"), """{"success":true}""");
+
+        await tracker.SetStatusAsync("abc", "b", 1, QuestStatus.Completed);
+
+        Assert.Contains("nonce=fresh99", handler.Requests[3].Body);
     }
 }
