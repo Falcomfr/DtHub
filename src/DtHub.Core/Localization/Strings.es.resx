@@ -2267,7 +2267,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Las líneas de visión de los mapas de combate de DOFUS Touch.</value>
   </data>
   <data name="TrackerLink" xml:space="preserve">
-    <value>Inicia sesión en Papycha</value>
+    <value>Inicia sesión en el seguimiento de misiones de Papycha</value>
   </data>
   <data name="TrackerLost" xml:space="preserve">
     <value>Seguimiento de Papycha desconectado</value>
@@ -2289,6 +2289,21 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   </data>
   <data name="TrackerBackToSignIn" xml:space="preserve">
     <value>Ya tengo una frase</value>
+  </data>
+  <data name="TrackerHelpTitle" xml:space="preserve">
+    <value>¿Dónde encuentro mi frase?</value>
+  </data>
+  <data name="TrackerHelpSite" xml:space="preserve">
+    <value>En papycha.fr, en «Mon espace de suivi», bajo «Phrase d’accès complète», desde un navegador o un móvil donde ya hayas iniciado sesión.</value>
+  </data>
+  <data name="TrackerHelpLink" xml:space="preserve">
+    <value>En tu enlace para compartir: es el texto después de «pqt_share=».</value>
+  </data>
+  <data name="TrackerHelpMail" xml:space="preserve">
+    <value>Si no, recíbela por correo aquí abajo.</value>
+  </data>
+  <data name="TrackerPitch" xml:space="preserve">
+    <value>Sigue tus misiones en curso y terminadas con tu cuenta de Papycha.</value>
   </data>
   <data name="TrackerWindowTitle" xml:space="preserve">
     <value>Mi seguimiento de Papycha</value>

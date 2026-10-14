@@ -66,6 +66,13 @@ internal static class QuestBridge
                 {
                     create = Strings.Get("TrackerCreateAccount"),
                     back = Strings.Get("TrackerBackToSignIn"),
+                    helpTitle = Strings.Get("TrackerHelpTitle"),
+                    help = new[]
+                    {
+                        Strings.Get("TrackerHelpSite"),
+                        Strings.Get("TrackerHelpLink"),
+                        Strings.Get("TrackerHelpMail"),
+                    },
                 }),
                 StringComparison.Ordinal)
             .Replace("__DTHUB_QUESTS__", quests ? "true" : "false", StringComparison.Ordinal);

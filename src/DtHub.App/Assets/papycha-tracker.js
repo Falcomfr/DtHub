@@ -41,10 +41,59 @@
         // important outside any layer cannot win against it.
         sheet.textContent = '@layer dthub{' +
             '.entry-header,.pqt-hero,.pqt-space-toolbar{display:none !important}' +
-            '[' + OFF + ']{display:none !important}' +
+            '#papycha-quest-tracker [' + OFF + '],[' + OFF + ']{display:none !important}' +
+            // Framed, the tracker's block is the whole window: no bottom
+            // margin left over from the page it came from.
+            '#papycha-quest-tracker{margin-bottom:0 !important}' +
+            '.dthub-help{margin-top:14px}' +
+            '.dthub-help summary{cursor:pointer}' +
+            '.dthub-help ul{margin:8px 0 0;padding-left:18px}' +
             '#dthub-create-toggle{margin-top:16px}' +
             (QUESTS ? '[data-panel="home"]{display:none !important}' : '') + '}';
         document.head.appendChild(sheet);
+    }
+
+    // The site paints its page grey around a darker block, the tracker. With
+    // the page cut down to that block, the grey only showed as a band below
+    // it: the window takes the block's own colour instead, read here so it
+    // follows the site's light or dark theme.
+    function backdrop() {
+        var root = document.getElementById('papycha-quest-tracker');
+        var colour = root ? getComputedStyle(root).backgroundColor : '';
+
+        if (!colour || colour === 'rgba(0, 0, 0, 0)' || colour === 'transparent') {
+            return;
+        }
+
+        var sheet = document.createElement('style');
+        sheet.textContent = '@layer dthub{html,body,#container,.wrap,#main,main#content{' +
+            'background:' + colour + ' !important;background-image:none !important}}';
+        document.head.appendChild(sheet);
+    }
+
+    // Where the phrase can be found, under the field that asks for it.
+    function help(card) {
+        if (card.querySelector('.dthub-help')) {
+            return;
+        }
+
+        var details = document.createElement('details');
+        details.className = 'dthub-help';
+
+        var summary = document.createElement('summary');
+        summary.textContent = TEXT.helpTitle;
+        details.appendChild(summary);
+
+        var list = document.createElement('ul');
+
+        TEXT.help.forEach(function (line) {
+            var item = document.createElement('li');
+            item.textContent = line;
+            list.appendChild(item);
+        });
+
+        details.appendChild(list);
+        card.appendChild(details);
     }
 
     // The tracker alone: its siblings in the article go, whatever they are.
@@ -76,6 +125,8 @@
         if (!create || !open || document.getElementById('dthub-create-toggle')) {
             return;
         }
+
+        help(open);
 
         var creating = false;
         var toggle = document.createElement('button');
@@ -121,6 +172,7 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         style();
+        backdrop();
         isolate();
         welcome();
 

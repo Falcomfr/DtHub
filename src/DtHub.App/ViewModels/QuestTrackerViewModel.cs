@@ -77,6 +77,7 @@ public sealed partial class QuestTrackerViewModel(
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsLinked))]
     [NotifyPropertyChangedFor(nameof(ShowsLinkButton))]
+    [NotifyPropertyChangedFor(nameof(ShowsPitch))]
     [NotifyPropertyChangedFor(nameof(ShowsQuestStatus))]
     private TrackerLink _link = TrackerLink.Unknown;
 
@@ -107,6 +108,12 @@ public sealed partial class QuestTrackerViewModel(
     public bool IsLinked => Link == TrackerLink.Linked;
 
     public bool ShowsLinkButton => Link is TrackerLink.NotLinked or TrackerLink.Lost;
+
+    /// <summary>
+    /// What the link is for, said to a player who never linked: the button
+    /// alone did not tell it was about following quests.
+    /// </summary>
+    public bool ShowsPitch => Link == TrackerLink.NotLinked;
 
     /// <summary>A quest is shown and there is a character to track it for.</summary>
     public bool ShowsQuestStatus => IsLinked && _questId is not null && Progress is not null;

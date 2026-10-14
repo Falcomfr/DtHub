@@ -2267,7 +2267,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>Les lignes de vue des cartes de combat de DOFUS Touch.</value>
   </data>
   <data name="TrackerLink" xml:space="preserve">
-    <value>Se connecter à Papycha</value>
+    <value>Se connecter au suivi de quêtes Papycha</value>
   </data>
   <data name="TrackerLost" xml:space="preserve">
     <value>Suivi Papycha déconnecté</value>
@@ -2289,6 +2289,21 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   </data>
   <data name="TrackerBackToSignIn" xml:space="preserve">
     <value>J'ai déjà une phrase</value>
+  </data>
+  <data name="TrackerHelpTitle" xml:space="preserve">
+    <value>Où trouver ma phrase ?</value>
+  </data>
+  <data name="TrackerHelpSite" xml:space="preserve">
+    <value>Sur papycha.fr, dans « Mon espace de suivi », sous « Phrase d’accès complète », depuis un navigateur ou un téléphone où vous êtes déjà connecté.</value>
+  </data>
+  <data name="TrackerHelpLink" xml:space="preserve">
+    <value>Dans votre lien de partage : c’est le texte après « pqt_share= ».</value>
+  </data>
+  <data name="TrackerHelpMail" xml:space="preserve">
+    <value>Sinon, recevez-la par e-mail ci-dessous.</value>
+  </data>
+  <data name="TrackerPitch" xml:space="preserve">
+    <value>Suivez vos quêtes en cours et terminées avec votre compte Papycha.</value>
   </data>
   <data name="TrackerWindowTitle" xml:space="preserve">
     <value>Mon suivi Papycha</value>

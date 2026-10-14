@@ -37,6 +37,14 @@ public partial class WebToolWindow : Window
     /// </summary>
     private const double DofusRoomWidth = 600;
 
+    /// <summary>
+    /// The Papycha sign-in window: two cards and a button, at the width the
+    /// site lays them out for, tall enough for the help unfolded.
+    /// </summary>
+    private const double SignInWidth = 560;
+
+    private const double SignInHeight = 820;
+
     private readonly WindowPlacements _placements;
     private readonly SettingsService _settings;
     private readonly WebViewEnvironment _engine;
@@ -65,7 +73,7 @@ public partial class WebToolWindow : Window
     {
         WebTool.Map => WindowPlacements.Map,
         WebTool.Calcofus => WindowPlacements.Calcofus,
-        WebTool.PapychaTracker => WindowPlacements.PapychaTracker,
+        WebTool.PapychaTracker => WindowPlacements.PapychaQuests,
         _ => WindowPlacements.DofusRoom,
     };
 
@@ -302,6 +310,13 @@ public partial class WebToolWindow : Window
 
         base.OnSourceInitialized(e);
 
+        if (!Remembers)
+        {
+            PlaceSignIn();
+
+            return;
+        }
+
         try
         {
             var document = await _settings.GetAsync().ConfigureAwait(true);
@@ -344,10 +359,35 @@ public partial class WebToolWindow : Window
         Top = area.Top + ((area.Height - Height) / 2);
     }
 
+    /// <summary>
+    /// False for the Papycha sign-in, a window opened once: its size is set,
+    /// never remembered.
+    /// </summary>
+    private bool Remembers => Tool != WebTool.PapychaTracker || ShowsQuests;
+
+    /// <summary>Centred on the guides window that opened it, or on the screen.</summary>
+    private void PlaceSignIn()
+    {
+        var area = SystemParameters.WorkArea;
+
+        Width = Math.Min(SignInWidth, area.Width);
+        Height = Math.Min(SignInHeight, area.Height);
+
+        var centre = Owner is { } owner
+            ? new Point(owner.Left + (owner.ActualWidth / 2), owner.Top + (owner.ActualHeight / 2))
+            : new Point(area.Left + (area.Width / 2), area.Top + (area.Height / 2));
+
+        Left = Math.Clamp(centre.X - (Width / 2), area.Left, area.Right - Width);
+        Top = Math.Clamp(centre.Y - (Height / 2), area.Top, area.Bottom - Height);
+    }
+
     /// <summary>Remembered here: the handle is gone by OnClosed.</summary>
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
-        _ = _placements.SaveAsync(this, PlacementKey);
+        if (Remembers)
+        {
+            _ = _placements.SaveAsync(this, PlacementKey);
+        }
 
         base.OnClosing(e);
     }
