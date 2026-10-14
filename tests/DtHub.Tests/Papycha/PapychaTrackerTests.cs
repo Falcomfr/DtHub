@@ -155,6 +155,9 @@ public class PapychaTrackerTests
         Assert.False(result.Success);
         Assert.Equal(TrackerReadOutcome.Unreadable, result.After);
         Assert.Equal(2, handler.Requests.Count);
+
+        // Logged, not shown: the bar says "unreadable" in the player's words.
+        Assert.Null(result.Message);
     }
 
     [Fact]

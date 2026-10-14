@@ -84,8 +84,9 @@ public partial class QuestWindow : Window
         Show();
         Activate();
 
-        // The tracker is read as soon as the window first shows, not only
-        // when a page opens: the list alone needs the link and the marks.
+        // The tracker is read each time the window shows, not only when a
+        // page opens: the list alone needs the link and the marks, and a
+        // status may have changed elsewhere since.
         _ = PrepareOnShowAsync();
 
         // The cursor in the search box, and the list expanded: this
@@ -119,6 +120,7 @@ public partial class QuestWindow : Window
         if (string.IsNullOrWhiteSpace(url) || !_viewModel.TryFollowUrl(url))
         {
             _viewModel.OpenList();
+            _ = PrepareOnShowAsync();
 
             return;
         }
@@ -132,7 +134,12 @@ public partial class QuestWindow : Window
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
             _viewModel.ReportViewFailure(exception);
+
+            return;
         }
+
+        // Prepared already: this only reads the tracker, as any show does.
+        _ = PrepareOnShowAsync();
     }
 
     /// <summary>
@@ -309,10 +316,8 @@ public partial class QuestWindow : Window
     }
 
     /// <summary>
-    /// Starts the engine and installs the bridge in it, only once.
-    ///
-    /// The script is set before any document loads: set afterward, it
-    /// would let the site's own look show through for an instant.
+    /// What every show does: prepare the engine, then read the tracker. The
+    /// read waits for the preparation, which hands the view model its cookie.
     /// </summary>
     private async Task PrepareOnShowAsync()
     {
@@ -324,35 +329,43 @@ public partial class QuestWindow : Window
         {
             // No engine: the list still works, the page cannot show.
             _viewModel.ReportViewFailure(exception);
+
+            return;
         }
+
+        await _viewModel.Tracker.RefreshOnShowAsync().ConfigureAwait(true);
     }
 
     /// <summary>One preparation for the window's life: later calls share it.</summary>
     private async Task PrepareAsync()
     {
-        _preparing ??= PrepareCoreAsync();
+        var task = _preparing ??= PrepareCoreAsync();
 
         try
         {
-            await _preparing.ConfigureAwait(true);
+            await task.ConfigureAwait(true);
         }
-        catch (Exception) when (Forget())
+        catch
         {
-            // Unreachable: Forget() is false. It only drops a failed
-            // preparation so that the next attempt starts again.
+            // A failed preparation is dropped so the next attempt starts
+            // again, unless a newer one already replaced it.
+            if (ReferenceEquals(_preparing, task))
+            {
+                _preparing = null;
+            }
+
             throw;
         }
     }
 
-    private bool Forget()
-    {
-        _preparing = null;
-
-        return false;
-    }
-
     private Task? _preparing;
 
+    /// <summary>
+    /// Starts the engine and installs the bridge in it, only once.
+    ///
+    /// The script is set before any document loads: set afterward, it
+    /// would let the site's own look show through for an instant.
+    /// </summary>
     private async Task PrepareCoreAsync()
     {
         // The environment tells the engine where to write and how much
@@ -416,9 +429,6 @@ public partial class QuestWindow : Window
 
             return Task.CompletedTask;
         };
-
-        // Not awaited: the page must not wait for the network. RefreshAsync never throws.
-        _ = _viewModel.Tracker.RefreshAsync();
     }
 
     /// <summary>
@@ -532,7 +542,14 @@ public partial class QuestWindow : Window
 
             case QuestBridgeMessage.Step:
                 _viewModel.SetStep(message.Index);
-                _ = _viewModel.Tracker.OnStepAsync(message.Index, _viewModel.StepCount, _resumedStep);
+
+                // A late step of the previous page (inertial scroll) must not
+                // start the quest now being loaded.
+                if (!_viewModel.IsLoadingPage)
+                {
+                    _ = _viewModel.Tracker.OnStepAsync(message.Index, _viewModel.StepCount, _resumedStep);
+                }
+
                 break;
 
 
@@ -576,8 +593,21 @@ public partial class QuestWindow : Window
         _ = _viewModel.Tracker.UnlinkAsync();
     }
 
-    private void OnMarkDone(object sender, RoutedEventArgs e) =>
+    /// <summary>
+    /// Writes "completed", or once it is, opens the status menu: writing it
+    /// again would change nothing, the menu is how to undo it.
+    /// </summary>
+    private void OnMarkDone(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel.Tracker.IsDone)
+        {
+            StatusMenuToggle.IsChecked = true;
+
+            return;
+        }
+
         _ = _viewModel.Tracker.SetStatusAsync(QuestStatus.Completed);
+    }
 
     private void OnPickStatus(object sender, RoutedEventArgs e)
     {
@@ -592,7 +622,9 @@ public partial class QuestWindow : Window
 
     /// <summary>
     /// Opens the tracker page in its linking window, one at a time. The
-    /// window raises Linked and closes itself when a cookie appears.
+    /// window closes itself when a new cookie appears; whatever closes it,
+    /// the tracker is read again, since the player may have changed
+    /// statuses there.
     /// </summary>
     private void OpenTrackerWindow()
     {
@@ -607,8 +639,11 @@ public partial class QuestWindow : Window
 
         window.Owner = this;
         window.Tool = WebTool.PapychaTracker;
-        window.Linked += (_, _) => _ = _viewModel.Tracker.RefreshAsync();
-        window.Closed += (_, _) => _linking = null;
+        window.Closed += (_, _) =>
+        {
+            _linking = null;
+            _ = _viewModel.Tracker.RefreshAsync();
+        };
         _linking = window;
         window.Show();
     }
@@ -693,8 +728,12 @@ public partial class QuestWindow : Window
 
             // The bridge posts no Step message for a requested jump, so the
             // tracker hears of it here. A move reported by both paths is
-            // counted once: OnStepAsync starts a quest at most once.
-            _ = _viewModel.Tracker.OnStepAsync(index, _viewModel.StepCount, _resumedStep);
+            // counted once: OnStepAsync starts a quest at most once. Not
+            // while a page loads: the step belongs to the one leaving.
+            if (!_viewModel.IsLoadingPage)
+            {
+                _ = _viewModel.Tracker.OnStepAsync(index, _viewModel.StepCount, _resumedStep);
+            }
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {

@@ -8,6 +8,8 @@ using DtHub.Core.Localization;
 using DtHub.Core.Papycha;
 using DtHub.Core.Settings;
 
+using Serilog;
+
 namespace DtHub.App.ViewModels;
 
 /// <summary>
@@ -23,7 +25,7 @@ public sealed partial class QuestViewModel : ObservableObject
     {
         Tracker = tracker;
         _settings = settings;
-        tracker.ProgressChanged += (_, _) => Redraw();
+        tracker.ProgressChanged += (_, _) => RedrawAfterRead();
         _catalog = catalog;
         _tree = new QuestTree(catalog, _sectionCounts);
         _dialogs = dialogs;
@@ -94,9 +96,24 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Draws the open level again after the marks or the filters changed. It
-    /// runs inside a fire-and-forget refresh, so it has nothing to say to
-    /// anyone and nothing to throw: before the first display it does nothing.
+    /// Redraws after a tracker read. The read runs in a refresh nobody
+    /// awaits: a failure here would vanish with that task, so it is logged.
+    /// </summary>
+    private void RedrawAfterRead()
+    {
+        try
+        {
+            Redraw();
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Log.Warning(exception, "Suivi Papycha : la liste des guides n'a pas pu être redessinée.");
+        }
+    }
+
+    /// <summary>
+    /// Draws the open level again after the marks or the filters changed.
+    /// Before the first display it does nothing.
     /// </summary>
     private void Redraw()
     {
@@ -109,7 +126,11 @@ public sealed partial class QuestViewModel : ObservableObject
 
         if (string.IsNullOrWhiteSpace(Query))
         {
-            ShowSection(_section);
+            // "Suivantes" comes from the tracker: once it is gone (unlinked,
+            // lost, unreadable) the level has nothing left to hold.
+            ShowSection(_section == QuestTree.NextSection && !NextQuests().Any()
+                ? QuestTree.RootSection
+                : _section);
         }
         else
         {

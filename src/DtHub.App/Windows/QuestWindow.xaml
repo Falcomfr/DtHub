@@ -983,13 +983,15 @@
                                                     ConverterParameter=inverse}" />
 
                     <!-- The tracker's mark: a check for a finished
-                         quest, a dot for one in progress. Collapsed for
-                         every other row so the labels keep their place. -->
+                         quest, a dot for one in progress. Hidden, not
+                         collapsed, on an unmarked quest row so every
+                         quest label starts at the same place; collapsed
+                         on rows that are not quests. -->
                     <Path x:Name="Marque" DockPanel.Dock="Left" Width="12" Height="12"
                           Margin="0,0,6,0" VerticalAlignment="Center" Stretch="None"
                           Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
                           StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                          StrokeLineJoin="Round" Visibility="Collapsed" />
+                          StrokeLineJoin="Round" Visibility="Hidden" />
 
                     <TextBlock x:Name="Libelle" Text="{Binding Label}"
                                TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
@@ -1474,6 +1476,10 @@
                                    a 1.15,1.55 0 1 0 -2.3,0 Z
                                    M 11.1,7 a 1.15,1.55 0 1 0 2.3,0
                                    a 1.15,1.55 0 1 0 -2.3,0 Z" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Quest}" Value="{x:Null}">
+                    <Setter TargetName="Marque" Property="Visibility" Value="Collapsed" />
                   </DataTrigger>
 
                   <DataTrigger Binding="{Binding Mark}" Value="Done">

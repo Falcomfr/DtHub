@@ -51,6 +51,18 @@ public sealed partial class QuestTrackerViewModel(
     /// </summary>
     private int _writeVersion;
 
+    /// <summary>Bumped by each <see cref="ShowQuest"/>: a check begun before it is about another quest.</summary>
+    private int _shown;
+
+    /// <summary>When a read last put the tracker on screen as linked (Environment.TickCount64).</summary>
+    private long _linkedAt;
+
+    /// <summary>
+    /// A linked tracker is read again on show at most this often: the page
+    /// weighs over a megabyte, and the window is shown many times an hour.
+    /// </summary>
+    private const long ShowReadInterval = 60_000;
+
     /// <summary>Gives the tracker cookie, or null when absent. Set by the guides window.</summary>
     public Func<Task<string?>>? CookieSource { get; set; }
 
@@ -110,8 +122,11 @@ public sealed partial class QuestTrackerViewModel(
         _ => "QuestStatusNotStarted",
     });
 
-    /// <summary>Reads the tracker again. Never throws: a failure becomes a state.</summary>
-    public async Task RefreshAsync()
+    /// <summary>
+    /// Reads the tracker again; a tracker or cookie failure becomes a state.
+    /// True when the read was put on screen, false when a write made it stale.
+    /// </summary>
+    public async Task<bool> RefreshAsync()
     {
         var version = _writeVersion;
         _rememberedId = (await settings.GetAsync()).PapychaCharacterId;
@@ -119,16 +134,12 @@ public sealed partial class QuestTrackerViewModel(
 
         if (cookieFailed)
         {
-            Apply(version, TrackerLink.Unreadable, null);
-
-            return;
+            return Apply(version, TrackerLink.Unreadable, null);
         }
 
         if (cookie is null)
         {
-            Apply(version, TrackerLink.NotLinked, null);
-
-            return;
+            return Apply(version, TrackerLink.NotLinked, null);
         }
 
         TrackerReadResult result;
@@ -142,30 +153,35 @@ public sealed partial class QuestTrackerViewModel(
             // The tracker reports its failures as a result; anything else is
             // a bug that must degrade to "unreadable", not break the window.
             LogReadFailed(exception);
-            Apply(version, TrackerLink.Unreadable, null);
 
-            return;
+            return Apply(version, TrackerLink.Unreadable, null);
         }
 
-        switch (result.Outcome)
+        return result.Outcome switch
         {
-            case TrackerReadOutcome.Linked when result.State is { } state:
-                Apply(version, TrackerLink.Linked, state);
-                break;
-            case TrackerReadOutcome.NotLinked:
-                // A cookie was sent and refused.
-                Apply(version, TrackerLink.Lost, null);
-                break;
-            default:
-                Apply(version, TrackerLink.Unreadable, null);
-                break;
-        }
+            TrackerReadOutcome.Linked when result.State is { } state => Apply(version, TrackerLink.Linked, state),
+
+            // A cookie was sent and refused.
+            TrackerReadOutcome.NotLinked => Apply(version, TrackerLink.Lost, null),
+            _ => Apply(version, TrackerLink.Unreadable, null),
+        };
     }
+
+    /// <summary>
+    /// Reads again as the guides window shows, so a status changed elsewhere
+    /// (site, phone) comes back. A linked tracker is read at most once a
+    /// minute; any other state is read every time, so it can recover.
+    /// </summary>
+    public Task RefreshOnShowAsync() =>
+        Link == TrackerLink.Linked && Environment.TickCount64 - _linkedAt < ShowReadInterval
+            ? Task.CompletedTask
+            : RefreshAsync();
 
     /// <summary>The quest the guides window shows, or null for none.</summary>
     public void ShowQuest(int? questId)
     {
         _questId = questId;
+        _shown++;
         _startedThisQuest = false;
         HighlightsDone = false;
         OnPropertyChanged(nameof(ShowsQuestStatus));
@@ -177,13 +193,31 @@ public sealed partial class QuestTrackerViewModel(
     {
         HighlightsDone = !IsDone && QuestTracking.IsLastStep(stepCount, index);
 
-        if (!_startedThisQuest
-            && IsLinked
-            && QuestTracking.ShouldStart(CurrentStatus, stepCount, index, resumedIndex))
+        if (_startedThisQuest
+            || !IsLinked
+            || !QuestTracking.ShouldStart(CurrentStatus, stepCount, index, resumedIndex))
         {
-            _startedThisQuest = true;
-            await SetStatusAsync(QuestStatus.InProgress);
+            return;
         }
+
+        // Once per shown quest, whatever the fresh read says.
+        _startedThisQuest = true;
+
+        var shown = _shown;
+        var characterId = SelectedCharacter?.Id;
+
+        // The only write the player did not click: judged on a fresh read, so
+        // a status set outside DT Hub (site, phone) is never overwritten.
+        if (!await RefreshAsync()
+            || shown != _shown
+            || !IsLinked
+            || SelectedCharacter?.Id != characterId
+            || !QuestTracking.ShouldStart(CurrentStatus, stepCount, index, resumedIndex))
+        {
+            return;
+        }
+
+        await SetStatusAsync(QuestStatus.InProgress);
     }
 
     /// <summary>
@@ -253,6 +287,10 @@ public sealed partial class QuestTrackerViewModel(
                     ? Strings.Get("TrackerUnreadable")
                     : result.Message;
                 LogWriteRefused(questId, Notice);
+
+                // An earlier write may have succeeded: the marks are read
+                // again, the refusal stays said.
+                _ = RefreshKeepingNoticeAsync(Notice);
             }
         }
         finally
@@ -279,6 +317,22 @@ public sealed partial class QuestTrackerViewModel(
 
         _writeVersion++;
         SetState(TrackerLink.NotLinked);
+    }
+
+    private async Task RefreshKeepingNoticeAsync(string notice)
+    {
+        if (await RefreshAsync() && IsLinked)
+        {
+            Notice = notice;
+        }
+    }
+
+    partial void OnCurrentStatusChanged(QuestStatus value)
+    {
+        if (value == QuestStatus.Completed)
+        {
+            HighlightsDone = false;
+        }
     }
 
     partial void OnSelectedCharacterChanged(TrackerCharacter? value)
@@ -332,13 +386,18 @@ public sealed partial class QuestTrackerViewModel(
 
     /// <summary>
     /// Puts a read's outcome on screen, unless a write began after the read
-    /// did (its status is newer than what the read saw).
+    /// did (its status is newer than what the read saw). True when it did.
     /// </summary>
-    private void Apply(int version, TrackerLink link, TrackerState? state)
+    private bool Apply(int version, TrackerLink link, TrackerState? state)
     {
         if (version != _writeVersion || IsBusy)
         {
-            return;
+            return false;
+        }
+
+        if (link == TrackerLink.Linked)
+        {
+            _linkedAt = Environment.TickCount64;
         }
 
         _state = state;
@@ -368,6 +427,8 @@ public sealed partial class QuestTrackerViewModel(
         ShowProgressOf(picked);
         LogLink(link);
         ProgressChanged?.Invoke(this, EventArgs.Empty);
+
+        return true;
     }
 
     private static string NoticeFor(TrackerLink link) => link switch
@@ -400,11 +461,6 @@ public sealed partial class QuestTrackerViewModel(
     private void RecomputeStatus()
     {
         CurrentStatus = _questId is { } id ? QuestTracking.StatusOf(Progress, id) : QuestStatus.NotStarted;
-
-        if (IsDone)
-        {
-            HighlightsDone = false;
-        }
     }
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Suivi Papycha : état {link}.")]

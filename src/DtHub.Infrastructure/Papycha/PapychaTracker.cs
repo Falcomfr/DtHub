@@ -147,7 +147,8 @@ public sealed partial class PapychaTracker : IPapychaTracker
         {
             LogWriteFailed(ex.Message);
 
-            return new TrackerWriteResult(false, ex.Message, TrackerReadOutcome.Unreadable);
+            // No message: the reason is logged, and the bar says "unreadable" in the player's words.
+            return new TrackerWriteResult(false, null, TrackerReadOutcome.Unreadable);
         }
     }
 
@@ -165,9 +166,9 @@ public sealed partial class PapychaTracker : IPapychaTracker
         ex is HttpRequestException
         || (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Le suivi papycha n'a pas pu être lu : {reason}")]
+    [LoggerMessage(Level = LogLevel.Information, Message = "Suivi Papycha : la page n'a pas pu être lue ({reason}).")]
     private partial void LogReadFailed(string reason);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "L'état de la quête n'a pas pu être écrit sur papycha : {reason}")]
+    [LoggerMessage(Level = LogLevel.Information, Message = "Suivi Papycha : l'état de la quête n'a pas pu être écrit ({reason}).")]
     private partial void LogWriteFailed(string reason);
 }

@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using DtHub.App.Services;
@@ -76,8 +77,15 @@ public static class AppServices
             provider.GetRequiredService<ILogger<PapychaClient>>()));
         // Player's quest tracker. Sends its cookie as a header, so the
         // handler must not keep cookies of its own or the header is dropped.
+        // Compressed: the tracker page weighs over a megabyte and is read
+        // each time the guides window shows.
         services.AddSingleton<IPapychaTracker>(provider => new PapychaTracker(
-            new HttpClient(new SocketsHttpHandler { UseCookies = false }) { Timeout = TimeSpan.FromSeconds(30) },
+            new HttpClient(new SocketsHttpHandler
+            {
+                UseCookies = false,
+                AutomaticDecompression = DecompressionMethods.All,
+            })
+            { Timeout = TimeSpan.FromSeconds(30) },
             provider.GetRequiredService<ILogger<PapychaTracker>>()));
         // Updates. Its own client: a sixty-megabyte executable does
         // not download in the time allotted to a web page.

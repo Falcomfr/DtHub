@@ -58,12 +58,6 @@ public partial class WebToolWindow : Window
         Loaded += async (_, _) => await OpenAsync().ConfigureAwait(true);
     }
 
-    /// <summary>
-    /// Raised once when the tracker cookie shows up while linking, just
-    /// before the window closes.
-    /// </summary>
-    public event EventHandler? Linked;
-
     /// <summary>Which tool this window shows. Set before it is shown.</summary>
     public WebTool Tool { get; set; }
 
@@ -162,9 +156,9 @@ public partial class WebToolWindow : Window
             {
                 View.CoreWebView2.NavigationCompleted -= OnTrackerNavigated;
 
-                // Closed first: a throwing handler must not leave the window open.
+                // Linked: the window's job is done. Its owner reads the
+                // tracker again on Closed, which also covers a plain close.
                 Close();
-                Linked?.Invoke(this, EventArgs.Empty);
             }
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
