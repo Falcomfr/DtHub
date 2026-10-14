@@ -211,6 +211,18 @@ opens the site in the browser.
 
 **This file is not covered by DT Hub's MIT licence.** It remains DofusBook's.
 
+## Lomitall.fr logo
+
+- Source: the site's own logo, https://lomitall.fr/assets/site/brand/logo.png,
+  scaled to 128 pixels and cut to a circle
+- File: `assets/lomitall.png`, embedded in the executable
+- Recorded on 2026-10-14, at the project owner's request
+
+It marks the Lomitall.fr key beside the guides, which opens the portal in a
+DT Hub window.
+
+**This file is not covered by DT Hub's MIT licence.** It remains Lomitall's.
+
 ## papycha.fr logo
 
 - Source: https://papycha.fr/wp-content/uploads/2022/04/cropped-luis-192x192.png

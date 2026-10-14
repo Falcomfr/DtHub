@@ -83,6 +83,9 @@ public enum WebTool
 
     /// <summary>The lines of sight of DofusRoom's Insightroom, Touch maps only.</summary>
     DofusRoom,
+
+    /// <summary>Lomitall's DOFUS Touch portal.</summary>
+    Lomitall,
 }
 
 /// <summary>
@@ -121,7 +124,8 @@ public static class DofusTouchMap
 
 /// <summary>
 /// DofusBook, the stuff builder: a link only, opened in the browser, as the
-/// project owner asked (2026-10-11).
+/// project owner asked (2026-10-11). Shown in a window on 2026-10-14, it set
+/// off the owner's antivirus: it stays in the browser.
 /// </summary>
 public static class DofusBook
 {
@@ -129,6 +133,28 @@ public static class DofusBook
 
     /// <summary>The pack path of its bundled logo.</summary>
     public const string IconAsset = "/assets/dofusbook.png";
+}
+
+/// <summary>
+/// Lomitall.fr, a DOFUS Touch portal, in a large DT Hub window, beside the
+/// guides at the project owner's request (2026-10-14).
+/// </summary>
+public static class Lomitall
+{
+    public const string Address = "https://lomitall.fr/";
+
+    /// <summary>The pack path of its bundled logo, the site's own.</summary>
+    public const string IconAsset = "/assets/lomitall.png";
+
+    /// <summary>
+    /// True for a page of the portal, the www form included. Its links to
+    /// the other tools leave it.
+    /// </summary>
+    public static bool IsOwnPage(string? url) =>
+        Uri.TryCreate(url, UriKind.Absolute, out var uri)
+        && uri.Scheme == Uri.UriSchemeHttps
+        && (uri.Host.Equals("lomitall.fr", StringComparison.OrdinalIgnoreCase)
+            || uri.Host.Equals("www.lomitall.fr", StringComparison.OrdinalIgnoreCase));
 }
 
 /// <summary>

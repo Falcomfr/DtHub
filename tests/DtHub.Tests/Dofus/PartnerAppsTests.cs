@@ -182,4 +182,18 @@ public sealed class PartnerAppsTests
         // the site or Discord goes to the browser.
         Assert.Equal(own, DofusRoom.IsOwnPage(url));
     }
+
+    [Theory]
+    [InlineData("https://lomitall.fr/", true)]
+    [InlineData("https://www.lomitall.fr/guides", true)]
+    [InlineData("https://LOMITALL.fr/", true)]
+    [InlineData("http://lomitall.fr/", false)]
+    [InlineData("https://lomitall.fr.example.com/", false)]
+    [InlineData("https://papycha.fr/", false)]
+    [InlineData("pas une adresse", false)]
+    public void Une_page_de_lomitall_se_reconnait_a_son_hote(string url, bool own)
+    {
+        // The portal links to every other tool: those go to the browser.
+        Assert.Equal(own, Lomitall.IsOwnPage(url));
+    }
 }

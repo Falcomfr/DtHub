@@ -44,6 +44,8 @@
     <Resource Include="..\..\assets\calcofus.png" Link="assets\calcofus.png" />
     <Resource Include="..\..\assets\dofusroom.png" Link="assets\dofusroom.png" />
     <Resource Include="..\..\assets\dofusbook.png" Link="assets\dofusbook.png" />
+    <!-- Lomitall.fr's own logo, see THIRD-PARTY-NOTICES.md. -->
+    <Resource Include="..\..\assets\lomitall.png" Link="assets\lomitall.png" />
   </ItemGroup>
 
   <ItemGroup>

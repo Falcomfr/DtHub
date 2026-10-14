@@ -92,6 +92,9 @@
   <data name="GuidesTip" xml:space="preserve">
     <value>Open the guides, which stay above the game windows. Quests, dungeons, raids, lairs and paths, from papycha.fr.</value>
   </data>
+  <data name="GuidesSource" xml:space="preserve">
+    <value>Papycha.fr</value>
+  </data>
   <data name="Quit" xml:space="preserve">
     <value>Quit</value>
   </data>
@@ -2280,6 +2283,15 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   </data>
   <data name="ToolDofusBookLine" xml:space="preserve">
     <value>Stuff builder and library. Opens in the browser.</value>
+  </data>
+  <data name="ToolLomitallName" xml:space="preserve">
+    <value>Lomitall.fr</value>
+  </data>
+  <data name="ToolLomitallLine" xml:space="preserve">
+    <value>DT portal</value>
+  </data>
+  <data name="LomitallTip" xml:space="preserve">
+    <value>Open lomitall.fr in a large window: DOFUS Touch guides, tools, classes, stuffs and dungeons.</value>
   </data>
   <data name="CheckAdbDriverUnusable" xml:space="preserve">
     <value>The phone does offer its debugging, but the driver Windows gave it does not hand it to adb, often a maker's suite such as HiSuite. Quit that software first, then:

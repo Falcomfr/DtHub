@@ -92,6 +92,9 @@
   <data name="GuidesTip" xml:space="preserve">
     <value>Abrir las guías, que permanecen encima de las ventanas de juego. Misiones, mazmorras, incursiones, guaridas y rutas, de papycha.fr.</value>
   </data>
+  <data name="GuidesSource" xml:space="preserve">
+    <value>Papycha.fr</value>
+  </data>
   <data name="Quit" xml:space="preserve">
     <value>Salir</value>
   </data>
@@ -2280,6 +2283,15 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   </data>
   <data name="ToolDofusBookLine" xml:space="preserve">
     <value>Creador y biblioteca de equipamientos. Se abre en el navegador.</value>
+  </data>
+  <data name="ToolLomitallName" xml:space="preserve">
+    <value>Lomitall.fr</value>
+  </data>
+  <data name="ToolLomitallLine" xml:space="preserve">
+    <value>Portal DT</value>
+  </data>
+  <data name="LomitallTip" xml:space="preserve">
+    <value>Abrir lomitall.fr en una ventana grande: guías, herramientas, clases, equipamientos y mazmorras de DOFUS Touch.</value>
   </data>
   <data name="CheckAdbDriverUnusable" xml:space="preserve">
     <value>El teléfono ofrece su depuración, pero el controlador que Windows le dio no se la pasa a adb, a menudo el de un programa del fabricante como HiSuite. Cierra primero ese programa y luego:
