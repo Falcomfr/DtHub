@@ -100,7 +100,9 @@ public sealed partial class QuestViewModel : ObservableObject
     /// </summary>
     private void Redraw()
     {
-        if (Nodes.Count == 0)
+        // The root always has rows, so an empty root means never shown; an
+        // empty deeper level is a filter's doing and must come back.
+        if (_section == 0 && Nodes.Count == 0)
         {
             return;
         }
@@ -113,6 +115,9 @@ public sealed partial class QuestViewModel : ObservableObject
         {
             ShowSearch(Query);
         }
+
+        // Keeps the highlight on the open guide through the redraw.
+        SelectCurrent();
     }
 
     /// <summary>Open section, or zero at the root.</summary>
@@ -626,26 +631,50 @@ public sealed partial class QuestViewModel : ObservableObject
             Breadcrumb = Strings.Get("QuestAreaCrumb");
             SetBack(target: 0);
 
-            if (NextQuests().Any())
+            // With a filter on, a zone with nothing left to show would open
+            // onto an empty list.
+            var filtering = Tracker.Progress is not null && (FilterToDo || FilterAvailable);
+            var next = NextQuests().ToList();
+
+            if (next.Count > 0 && (!filtering || next.Any(Passes)))
             {
                 Nodes.Add(new QuestNode(
                     QuestNodeKind.Branch,
                     Strings.Get("NextQuests"),
-                    QuestTree.Nombre(NextQuests().Count()),
+                    QuestTree.Nombre(next.Count),
                     Id: QuestTree.NextSection,
                     Glyph: QuestNodeGlyph.Family));
             }
 
             Nodes.Add(_tree.PathBranch(PathSide.Quests, QuestTree.QuestPathSection));
 
-            // With a filter on, a zone with nothing left to show would open
-            // onto an empty list.
-            var filtering = Tracker.Progress is not null && (FilterToDo || FilterAvailable);
+            // A subheading is held back until a branch after it survives.
+            QuestNode? header = null;
 
             foreach (var branch in _tree.Branches())
             {
+                if (branch.Kind != QuestNodeKind.Branch)
+                {
+                    if (branch.Kind == QuestNodeKind.Header && filtering)
+                    {
+                        header = branch;
+                    }
+                    else
+                    {
+                        Nodes.Add(branch);
+                    }
+
+                    continue;
+                }
+
                 if (!filtering || _catalog.InSection(branch.Id).Any(Passes))
                 {
+                    if (header is not null)
+                    {
+                        Nodes.Add(header);
+                        header = null;
+                    }
+
                     Nodes.Add(branch);
                 }
             }
@@ -683,7 +712,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
         var byId = _catalog.Catalog.Quests.ToLookup(q => q.Id);
 
-        return progress.Next.SelectMany(id => byId[id].Take(1));
+        return progress.Next.Distinct().SelectMany(id => byId[id].Take(1));
     }
 
     /// <summary>
