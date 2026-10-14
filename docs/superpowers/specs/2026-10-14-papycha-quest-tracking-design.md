@@ -118,9 +118,14 @@ the guides window's `CoreWebView2.CookieManager` before each call.
 - `SetStatusAsync(cookie, nonce, characterId, questId, status)`: the form
   post above. `success: false` returns the site's message. A failure is
   retried once after a fresh read, which renews the nonce.
-- When it reads: when the guides window opens, when the character changes,
-  and in the background after every write. Not on every quest opened: 1.3
-  MB per read.
+- When it reads: each time the guides window is shown (at most once a
+  minute while linked, every time otherwise, so that "illisible" or
+  "déconnecté" recovers on its own), when the linking window closes, in
+  the background after every write, failed or not, and just before the
+  automatic "in progress", which is the only write the player did not
+  click and must never judge from a stale state. Not on every quest
+  opened: 1.3 MB per read, compressed on the wire. A character change
+  switches between the views the last read already holds.
 
 The cookie is not renewed by DT Hub. If the site ever sends a new one on a
 read, it is ignored; the one-year cookie then ends in the "lost link" state
