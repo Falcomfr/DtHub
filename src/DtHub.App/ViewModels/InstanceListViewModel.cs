@@ -1199,6 +1199,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 row.TabbedChanged += OnTabbedChanged;
                 row.QualityChanged += OnQualityChanged;
                 row.ZoomChanged += OnZoomChanged;
+                row.PhoneFormatChanged += OnPhoneFormatChanged;
                 row.ColourChanged += OnColourChanged;
                 row.NameChanged += OnNameChanged;
                 Rows.Add(row);
@@ -1654,6 +1655,28 @@ public sealed partial class InstanceListViewModel : ObservableObject
         finally
         {
             row.IsZoomPending = false;
+        }
+    }
+
+    private async void OnPhoneFormatChanged(object? sender, InstanceRowViewModel row)
+    {
+        ArgumentNullException.ThrowIfNull(row);
+
+        try
+        {
+            await _settings.SetInstancePhoneFormatAsync(row.Key, row.PhoneFormat).ConfigureAwait(true);
+
+            // Same trap as for the distance: without this the next sweep
+            // would give the row back its old choice.
+            InvalidateInstances();
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            ShowBanner(exception.Message);
+        }
+        finally
+        {
+            row.IsPhoneFormatPending = false;
         }
     }
 

@@ -285,6 +285,9 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     /// <summary>Raised when the account changes in-game distance.</summary>
     public event EventHandler<InstanceRowViewModel>? ZoomChanged;
 
+    /// <summary>Raised when the account changes screen ratio.</summary>
+    public event EventHandler<InstanceRowViewModel>? PhoneFormatChanged;
+
     /// <summary>
     /// The time played this week, "3 h 20", or <c>null</c> if there is none
     /// yet.
@@ -476,6 +479,16 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     private void FollowSharedZoom() => Zoom = null;
 
     /// <summary>
+    /// True to show the game at its phone's own screen ratio rather than the
+    /// PC screen's (D197). Takes effect at the next opening.
+    /// </summary>
+    [ObservableProperty]
+    private bool _phoneFormat;
+
+    /// <summary>True while the ratio choice is being written.</summary>
+    public bool IsPhoneFormatPending { get; set; }
+
+    /// <summary>
     /// True as long as the entered name is not written. The periodic scan must
     /// not replace it with the old one in the meantime: the input would seem
     /// to cancel itself out.
@@ -566,6 +579,21 @@ public sealed partial class InstanceRowViewModel : ObservableObject
             }
         }
 
+        if (!IsPhoneFormatPending && PhoneFormat != instance.PhoneFormat)
+        {
+            // Write coming from settings, as for the distance.
+            _applying = true;
+
+            try
+            {
+                PhoneFormat = instance.PhoneFormat;
+            }
+            finally
+            {
+                _applying = false;
+            }
+        }
+
         if (!IsManagedPending && IsManaged != instance.IsManaged)
         {
             // Write coming from settings: propagating it as a user choice
@@ -645,6 +673,17 @@ public sealed partial class InstanceRowViewModel : ObservableObject
 
         IsZoomPending = true;
         ZoomChanged?.Invoke(this, this);
+    }
+
+    partial void OnPhoneFormatChanged(bool value)
+    {
+        if (_applying)
+        {
+            return;
+        }
+
+        IsPhoneFormatPending = true;
+        PhoneFormatChanged?.Invoke(this, this);
     }
 
     partial void OnIsTabbedChanged(bool value)

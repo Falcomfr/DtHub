@@ -670,6 +670,40 @@ public sealed class SettingsService : IDisposable
             },
             cancellationToken);
 
+    /// <summary>The accounts shown at their phone's own screen ratio.</summary>
+    public async Task<IReadOnlySet<string>> GetAccountsWithPhoneFormatAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var settings = await GetAsync(cancellationToken).ConfigureAwait(false);
+
+        return settings.Instances
+            .Where(i => i.PhoneFormat)
+            .Select(i => i.Key)
+            .ToHashSet(StringComparer.Ordinal);
+    }
+
+    /// <summary>Shows an account at its phone's ratio, or at the screen's.</summary>
+    public Task SetInstancePhoneFormatAsync(
+        string key,
+        bool enabled,
+        CancellationToken cancellationToken = default) =>
+        UpdateIfChangedAsync(
+            settings =>
+            {
+                var instance = settings.Instances
+                    .FirstOrDefault(i => string.Equals(i.Key, key, StringComparison.Ordinal));
+
+                if (instance is null || instance.PhoneFormat == enabled)
+                {
+                    return false;
+                }
+
+                instance.PhoneFormat = enabled;
+
+                return true;
+            },
+            cancellationToken);
+
     /// <summary>
     /// The accounts that chose a distance of their own. Not the same
     /// question as <see cref="GetInstanceZoomsAsync"/>, which gives every
@@ -1200,6 +1234,7 @@ public sealed class SettingsService : IDisposable
                     IsTabbed = i.IsTabbed,
                     Quality = i.Quality,
                     Zoom = i.GameZoom,
+                    PhoneFormat = i.PhoneFormat,
                     Colour = i.Colour,
                     PlayedThisWeek = PlaytimeLog.Week(i.Playtime, DateOnly.FromDateTime(DateTime.Now)),
                     IsDeviceConnected = live.Contains(i.Key),

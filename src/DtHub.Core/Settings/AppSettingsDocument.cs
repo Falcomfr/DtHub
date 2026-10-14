@@ -434,6 +434,15 @@ public sealed class StoredInstance
     public GameZoom? GameZoom { get; set; }
 
     /// <summary>
+    /// True to show this account's game at its phone's own screen ratio
+    /// rather than the PC screen's. Off by default: the screen's ratio fills
+    /// it, and 0.8.10, which took the phone's for everyone, cost players
+    /// their full screen. On for devices drawn wrong at the screen's ratio,
+    /// like a Galaxy Tab S10 Ultra on a 21:9 screen (D197).
+    /// </summary>
+    public bool PhoneFormat { get; set; }
+
+    /// <summary>
     /// The colour that marks this account, or <c>null</c> for none.
     ///
     /// **Here <c>null</c> does not mean "follow the shared setting"**,

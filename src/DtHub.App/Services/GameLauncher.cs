@@ -2315,6 +2315,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
             .GetAccountsWithOwnZoomAsync(cancellationToken)
             .ConfigureAwait(false);
 
+        var phoneFormats = await _settings
+            .GetAccountsWithPhoneFormatAsync(cancellationToken)
+            .ConfigureAwait(false);
+
         ProbeEncoders(instances, devices);
 
         List<ScrcpySession> started = [];
@@ -2352,12 +2356,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             remembered.TryGetValue(instance.Key, out var stored);
 
-            // The game at its phone's own screen ratio, see PhoneScreen: the
-            // window is shaped on it too. Unread, the settings' size stays.
-            // Not for a window opened in passing, which has its own.
+            // The game at its phone's own screen ratio when the account asks
+            // for it, see PhoneScreen: the window is shaped on it too. By
+            // default, and unread, the screen's ratio, as before 0.8.10.
+            // Never for a window opened in passing, which has its own.
             double? phoneAspect = null;
 
-            if (!instance.IsTransient && !phoneAspects.TryGetValue(device.Serial, out phoneAspect))
+            if (!instance.IsTransient
+                && phoneFormats.Contains(instance.Key)
+                && !phoneAspects.TryGetValue(device.Serial, out phoneAspect))
             {
                 phoneAspect = await ReadPhoneAspectAsync(device, cancellationToken).ConfigureAwait(false);
                 phoneAspects[device.Serial] = phoneAspect;

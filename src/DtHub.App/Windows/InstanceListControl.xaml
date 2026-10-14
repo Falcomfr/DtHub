@@ -726,6 +726,16 @@
                                       Content="{loc:T ZoomClose}"
                                       Command="{Binding PickZoomCommand}"
                                       CommandParameter="{x:Static s:GameZoom.Close}" />
+
+                              <Control Style="{StaticResource Groove}" Margin="0,6" />
+
+                              <!-- The PC screen's ratio by default; the phone's
+                                   for devices drawn wrong at it (D197). -->
+                              <CheckBox Margin="8,2,8,4"
+                                        IsChecked="{Binding PhoneFormat}"
+                                        ToolTip="{loc:T PhoneFormatTip}">
+                                <TextBlock Text="{loc:T PhoneFormat}" TextWrapping="Wrap" MaxWidth="220" />
+                              </CheckBox>
                             </StackPanel>
                           </Border>
                         </Popup>

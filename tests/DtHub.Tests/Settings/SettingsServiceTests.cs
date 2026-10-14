@@ -621,6 +621,35 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Seuls_les_comptes_coches_prennent_le_format_du_telephone()
+    {
+        // The screen's ratio by default, as before 0.8.10: a player lost his
+        // full screen when the game took his phone's. The phone's ratio is a
+        // choice per account, for devices drawn wrong at the screen's, like
+        // a Galaxy Tab S10 Ultra on a 21:9 screen.
+        await _service.MergeInstancesAsync([Instance(0), Instance(999)], CancellationToken.None);
+
+        var tablet = Instance(999).Key;
+
+        await _service.SetInstancePhoneFormatAsync(tablet, true, CancellationToken.None);
+
+        Assert.Equal([tablet], await _service.GetAccountsWithPhoneFormatAsync(CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Le_format_du_telephone_se_decoche_et_se_relit_sur_le_compte()
+    {
+        await _service.MergeInstancesAsync([Instance(0)], CancellationToken.None);
+        var key = Instance(0).Key;
+
+        await _service.SetInstancePhoneFormatAsync(key, true, CancellationToken.None);
+        Assert.True(Assert.Single(await _service.MergeInstancesAsync([Instance(0)], CancellationToken.None)).PhoneFormat);
+
+        await _service.SetInstancePhoneFormatAsync(key, false, CancellationToken.None);
+        Assert.Empty(await _service.GetAccountsWithPhoneFormatAsync(CancellationToken.None));
+    }
+
+    [Fact]
     public async Task Seuls_les_comptes_qui_ont_choisi_leur_distance_en_ont_une_propre()
     {
         // The launcher let the custom density give way to an account's own
