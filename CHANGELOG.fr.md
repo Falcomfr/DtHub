@@ -11,13 +11,28 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.8.10] - 2026-10-14
+
+### Corrigé
+
+- Le jeu s'affiche au format de l'écran du téléphone, quel que soit l'écran
+  du PC : sur un écran ultra-large, il ne se dessine plus décalé avec son
+  panneau coupé, comme sur une Galaxy Tab S10 Ultra. La fenêtre du jeu prend
+  ce format elle aussi.
+
+### Supprimé
+
+- La relance automatique ajoutée en 0.8.9 : le défaut qu'elle visait n'était
+  pas celui-là. Le rapport de diagnostic dit toujours comment le téléphone
+  place chaque jeu.
+
 ## [0.8.9] - 2026-10-14
 
 ### Corrigé
 
 - Un jeu que le téléphone laisse à la mauvaise taille dans sa fenêtre,
   décalé avec une bande noire et son panneau coupé, est relancé une fois en
-  pleine taille. Vu sur une Galaxy Tab S10 Ultra.
+  pleine taille.
 
 ### Modifié
 

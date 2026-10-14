@@ -17,13 +17,26 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.8.10] - 2026-10-14
+
+### Fixed
+
+- The game is shown at the phone's own screen ratio, whatever the PC
+  screen: on an ultra-wide screen it no longer draws itself shifted with
+  its panel cut, as on a Galaxy Tab S10 Ultra. The game window takes that
+  ratio too.
+
+### Removed
+
+- The automatic relaunch added in 0.8.9: the fault it aimed at was not this
+  one. The diagnostic report still says how the phone places each game.
+
 ## [0.8.9] - 2026-10-14
 
 ### Fixed
 
 - A game the phone leaves at the wrong size in its window, shifted with a
-  black band and its panel cut, is relaunched once at full size. Seen on a
-  Galaxy Tab S10 Ultra.
+  black band and its panel cut, is relaunched once at full size.
 
 ### Changed
 

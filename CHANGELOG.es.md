@@ -10,13 +10,28 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.8.10] - 2026-10-14
+
+### Corregido
+
+- El juego se muestra con el formato de la pantalla del teléfono, sea cual
+  sea la pantalla del PC: en una pantalla ultrapanorámica ya no se dibuja
+  desplazado con su panel cortado, como en una Galaxy Tab S10 Ultra. La
+  ventana del juego también toma ese formato.
+
+### Eliminado
+
+- El relanzamiento automático añadido en 0.8.9: el fallo al que apuntaba no
+  era este. El informe de diagnóstico sigue diciendo cómo coloca el teléfono
+  cada juego.
+
 ## [0.8.9] - 2026-10-14
 
 ### Corregido
 
 - Un juego que el teléfono deja con un tamaño incorrecto en su ventana,
   desplazado con una franja negra y su panel cortado, se relanza una vez a
-  tamaño completo. Visto en una Galaxy Tab S10 Ultra.
+  tamaño completo.
 
 ### Cambiado
 
