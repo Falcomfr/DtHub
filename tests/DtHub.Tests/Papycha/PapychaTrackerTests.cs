@@ -1,0 +1,123 @@
+﻿using System.Net;
+
+using DtHub.Core.Papycha;
+using DtHub.Infrastructure.Papycha;
+
+using Microsoft.Extensions.Logging.Abstractions;
+
+namespace DtHub.Tests.Papycha;
+
+public class PapychaTrackerTests
+{
+    private const string Linked = """<script>window.PAPYCHA_QUEST_TRACKER = {"nonce":"26794092b6","space":{"active_character_id":"b","characters":[{"id":"b","name":"Falcom","level":190,"quest_statuses":[]}]},"views":{}};</script>""";
+
+    private const string Anonymous = """<script>window.PAPYCHA_QUEST_TRACKER = {"nonce":"n","space":null,"views":[]};</script>""";
+
+    private sealed record Seen(HttpMethod Method, string Uri, string? Cookie, string Body);
+
+    private sealed class StubHandler(params (HttpStatusCode Status, string Body)[] answers) : HttpMessageHandler
+    {
+        private readonly Queue<(HttpStatusCode Status, string Body)> _answers = new(answers);
+
+        public List<Seen> Requests { get; } = [];
+
+        public bool Fail { get; init; }
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            Requests.Add(new Seen(
+                request.Method,
+                request.RequestUri!.ToString(),
+                request.Headers.TryGetValues("Cookie", out var cookie) ? string.Join(";", cookie) : null,
+                request.Content is null ? string.Empty : await request.Content.ReadAsStringAsync(cancellationToken)));
+
+            if (Fail)
+            {
+                throw new HttpRequestException("down");
+            }
+
+            var (status, body) = _answers.Dequeue();
+
+            return new HttpResponseMessage(status) { Content = new StringContent(body) };
+        }
+    }
+
+    private static (PapychaTracker Tracker, StubHandler Handler) Make(params string[] bodies) =>
+        Make(new StubHandler([.. bodies.Select(b => (HttpStatusCode.OK, b))]));
+
+    private static (PapychaTracker Tracker, StubHandler Handler) Make(StubHandler handler) =>
+        (new PapychaTracker(new HttpClient(handler), NullLogger<PapychaTracker>.Instance), handler);
+
+    [Fact]
+    public void StatusForm_has_the_site_fields()
+    {
+        Assert.Equal(
+            [
+                new("action", "papycha_tracker_quest_status"),
+                new("nonce", "n1"),
+                new("character_id", "b"),
+                new("quest_id", "3692"),
+                new("status", "completed"),
+            ],
+            PapychaTracker.StatusForm("n1", "b", 3692, QuestStatus.Completed));
+    }
+
+    [Fact]
+    public async Task Read_sends_the_cookie()
+    {
+        var (tracker, handler) = Make(Linked);
+
+        var result = await tracker.ReadAsync("abc");
+
+        Assert.Equal(TrackerReadOutcome.Linked, result.Outcome);
+        var seen = Assert.Single(handler.Requests);
+        Assert.Equal(HttpMethod.Get, seen.Method);
+        Assert.Equal("https://papycha.fr/suivi-quetes/", seen.Uri);
+        Assert.Equal("papycha_tracker_code_v2=abc", seen.Cookie);
+    }
+
+    [Fact]
+    public async Task Read_network_failure_is_unreadable()
+    {
+        var (tracker, _) = Make(new StubHandler { Fail = true });
+
+        Assert.Equal(TrackerReadOutcome.Unreadable, (await tracker.ReadAsync("abc")).Outcome);
+    }
+
+    [Fact]
+    public async Task Write_reads_first_then_posts()
+    {
+        var (tracker, handler) = Make(Linked, """{"success":true,"data":{}}""");
+
+        var result = await tracker.SetStatusAsync("abc", "b", 3692, QuestStatus.Completed);
+
+        Assert.True(result.Success);
+        Assert.Equal(2, handler.Requests.Count);
+        Assert.Equal(HttpMethod.Post, handler.Requests[1].Method);
+        Assert.Equal("https://papycha.fr/wp-admin/admin-ajax.php", handler.Requests[1].Uri);
+        Assert.Contains("nonce=26794092b6", handler.Requests[1].Body);
+    }
+
+    [Fact]
+    public async Task Write_refused_retries_once_after_a_fresh_read()
+    {
+        var (tracker, handler) = Make(Linked, """{"success":false,"data":{"message":"Nonce"}}""", Linked, """{"success":true}""");
+
+        var result = await tracker.SetStatusAsync("abc", "b", 3692, QuestStatus.Completed);
+
+        Assert.True(result.Success);
+        Assert.Equal(4, handler.Requests.Count);
+    }
+
+    [Fact]
+    public async Task Write_after_phrase_renewed_reports_not_linked()
+    {
+        var (tracker, handler) = Make(Linked, """{"success":false,"data":{"message":"Accès"}}""", Anonymous);
+
+        var result = await tracker.SetStatusAsync("abc", "b", 3692, QuestStatus.Completed);
+
+        Assert.False(result.Success);
+        Assert.Equal(TrackerReadOutcome.NotLinked, result.After);
+        Assert.Equal(3, handler.Requests.Count);
+    }
+}

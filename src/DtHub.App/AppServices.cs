@@ -74,6 +74,11 @@ public static class AppServices
         services.AddSingleton<IPapychaClient>(provider => new PapychaClient(
             new HttpClient { Timeout = TimeSpan.FromSeconds(30) },
             provider.GetRequiredService<ILogger<PapychaClient>>()));
+        // Player's quest tracker. Sends its cookie as a header, so the
+        // handler must not keep cookies of its own or the header is dropped.
+        services.AddSingleton<IPapychaTracker>(provider => new PapychaTracker(
+            new HttpClient(new SocketsHttpHandler { UseCookies = false }) { Timeout = TimeSpan.FromSeconds(30) },
+            provider.GetRequiredService<ILogger<PapychaTracker>>()));
         // Updates. Its own client: a sixty-megabyte executable does
         // not download in the time allotted to a web page.
         services.AddSingleton<IReleaseSource>(provider => new GitHubReleaseSource(
