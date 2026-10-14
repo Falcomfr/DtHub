@@ -2302,6 +2302,12 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="TrackerDone" xml:space="preserve">
     <value>Done ✓</value>
   </data>
+  <data name="TrackerMenuTip" xml:space="preserve">
+    <value>Papycha tracker options</value>
+  </data>
+  <data name="QuestStatusMenuTip" xml:space="preserve">
+    <value>Set another status</value>
+  </data>
   <data name="PartnerNoDeviceShort" xml:space="preserve">
     <value>No device</value>
   </data>

@@ -212,8 +212,8 @@ public sealed partial class QuestTrackerViewModel(
             if (cookie is null)
             {
                 // Progress never held the optimistic value, and the shown quest may
-            // have changed while the write was in flight.
-            RecomputeStatus();
+                // have changed while the write was in flight.
+                RecomputeStatus();
                 SetState(cookieFailed ? TrackerLink.Unreadable : TrackerLink.Lost);
 
                 return;

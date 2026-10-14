@@ -6,6 +6,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using DtHub.App.Services;
 using DtHub.App.ViewModels;
+using DtHub.Core.Dofus;
 using DtHub.Core.Localization;
 using DtHub.Core.Papycha;
 using DtHub.Core.Settings;
@@ -27,6 +28,13 @@ public partial class QuestWindow : Window
     private readonly SettingsService _settings;
     private readonly WebViewEnvironment _engine;
     private readonly IDialogService _dialogs;
+    private readonly Func<WebToolWindow> _trackerWindow;
+
+    /// <summary>The linking window while it is open: one at a time.</summary>
+    private WebToolWindow? _linking;
+
+    /// <summary>The step the page was resumed at, 0 when none.</summary>
+    private int _resumedStep;
 
     public QuestWindow(
         QuestViewModel viewModel,
@@ -34,6 +42,7 @@ public partial class QuestWindow : Window
         SettingsService settings,
         WebViewEnvironment engine,
         IDialogService dialogs,
+        Func<WebToolWindow> trackerWindow,
         ILogger<QuestWindow> logger)
     {
         InitializeComponent();
@@ -43,6 +52,7 @@ public partial class QuestWindow : Window
         _settings = settings;
         _engine = engine;
         _dialogs = dialogs;
+        _trackerWindow = trackerWindow;
         _logger = logger;
         DataContext = viewModel;
 
@@ -345,6 +355,27 @@ public partial class QuestWindow : Window
         await View.CoreWebView2
             .AddScriptToExecuteOnDocumentCreatedAsync(QuestBridge.Script())
             .ConfigureAwait(true);
+
+        // The tracker cookie lives in this WebView's profile: the view
+        // model reads and clears it through the engine, never sees the
+        // access phrase.
+        var cookies = View.CoreWebView2.CookieManager;
+
+        _viewModel.Tracker.CookieSource = async () =>
+        {
+            var found = await cookies.GetCookiesAsync(PapychaSite.Root).ConfigureAwait(true);
+
+            return found.FirstOrDefault(c => c.Name == PapychaSite.TrackerCookie)?.Value;
+        };
+        _viewModel.Tracker.ForgetCookie = () =>
+        {
+            cookies.DeleteCookies(PapychaSite.TrackerCookie, PapychaSite.Root);
+
+            return Task.CompletedTask;
+        };
+
+        // Not awaited: the page must not wait for the network. RefreshAsync never throws.
+        _ = _viewModel.Tracker.RefreshAsync();
     }
 
     /// <summary>
@@ -458,6 +489,7 @@ public partial class QuestWindow : Window
 
             case QuestBridgeMessage.Step:
                 _viewModel.SetStep(message.Index);
+                _ = _viewModel.Tracker.OnStepAsync(message.Index, _viewModel.StepCount, _resumedStep);
                 break;
 
 
@@ -476,11 +508,65 @@ public partial class QuestWindow : Window
         var step = _pendingStep;
 
         _pendingStep = 0;
+        _resumedStep = 0;
 
         if (step > 0 && step < _viewModel.StepCount)
         {
+            _resumedStep = step;
             GoToStep(step);
         }
+    }
+
+    private void OnLinkTracker(object sender, RoutedEventArgs e) => OpenTrackerWindow();
+
+    private void OnOpenTracker(object sender, RoutedEventArgs e)
+    {
+        TrackerMenuToggle.IsChecked = false;
+        OpenTrackerWindow();
+    }
+
+    private void OnUnlinkTracker(object sender, RoutedEventArgs e)
+    {
+        TrackerMenuToggle.IsChecked = false;
+
+        // UnlinkAsync contains its own failures.
+        _ = _viewModel.Tracker.UnlinkAsync();
+    }
+
+    private void OnMarkDone(object sender, RoutedEventArgs e) =>
+        _ = _viewModel.Tracker.SetStatusAsync(QuestStatus.Completed);
+
+    private void OnPickStatus(object sender, RoutedEventArgs e)
+    {
+        StatusMenuToggle.IsChecked = false;
+
+        if (((FrameworkElement)sender).Tag is QuestStatus status)
+        {
+            // SetStatusAsync contains its own failures.
+            _ = _viewModel.Tracker.SetStatusAsync(status);
+        }
+    }
+
+    /// <summary>
+    /// Opens the tracker page in its linking window, one at a time. The
+    /// window raises Linked and closes itself when a cookie appears.
+    /// </summary>
+    private void OpenTrackerWindow()
+    {
+        if (_linking is { IsLoaded: true })
+        {
+            _linking.Activate();
+
+            return;
+        }
+
+        var window = _trackerWindow();
+
+        window.Tool = WebTool.PapychaTracker;
+        window.Linked += (_, _) => _ = _viewModel.Tracker.RefreshAsync();
+        window.Closed += (_, _) => _linking = null;
+        _linking = window;
+        window.Show();
     }
 
     /// <summary>

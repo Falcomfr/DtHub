@@ -28,7 +28,10 @@
         '.pqa-quest-intro__start',
 
         'footer.papycha-article-footer',
-        'footer.entry-footer'
+        'footer.entry-footer',
+
+        // The tracker's own status bar: DT Hub's bar asks the same.
+        '.pqt-quest-actions'
     ];
 
     // The article title, reproduced by the quest window's banner. Kept in

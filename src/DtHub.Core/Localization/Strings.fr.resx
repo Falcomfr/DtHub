@@ -2302,6 +2302,12 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="TrackerDone" xml:space="preserve">
     <value>Terminée ✓</value>
   </data>
+  <data name="TrackerMenuTip" xml:space="preserve">
+    <value>Options du suivi Papycha</value>
+  </data>
+  <data name="QuestStatusMenuTip" xml:space="preserve">
+    <value>Choisir un autre statut</value>
+  </data>
   <data name="PartnerNoDeviceShort" xml:space="preserve">
     <value>Aucun appareil</value>
   </data>

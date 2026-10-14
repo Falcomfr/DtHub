@@ -17,12 +17,16 @@ public sealed partial class QuestViewModel : ObservableObject
     private readonly QuestCatalogService _catalog;
     private readonly IDialogService _dialogs;
 
-    public QuestViewModel(QuestCatalogService catalog, IDialogService dialogs)
+    public QuestViewModel(QuestCatalogService catalog, IDialogService dialogs, QuestTrackerViewModel tracker)
     {
+        Tracker = tracker;
         _catalog = catalog;
         _tree = new QuestTree(catalog, _sectionCounts);
         _dialogs = dialogs;
     }
+
+    /// <summary>The player's Papycha tracker, laid over the open quest.</summary>
+    public QuestTrackerViewModel Tracker { get; }
 
     /// <summary>
     /// What the dropdown list shows at this moment: the branches, the quests
@@ -816,6 +820,8 @@ public sealed partial class QuestViewModel : ObservableObject
     {
         ArgumentNullException.ThrowIfNull(quest);
 
+        Tracker.ShowQuest(quest.Id);
+
         _current = quest;
         _currentDungeon = null;
         _currentPath = null;
@@ -856,6 +862,8 @@ public sealed partial class QuestViewModel : ObservableObject
     {
         ArgumentNullException.ThrowIfNull(dungeon);
 
+        Tracker.ShowQuest(null);
+
         _current = null;
         _currentDungeon = dungeon;
         _currentPath = null;
@@ -894,6 +902,8 @@ public sealed partial class QuestViewModel : ObservableObject
     public void SetCurrent(PathSummary path, bool anchor = true)
     {
         ArgumentNullException.ThrowIfNull(path);
+
+        Tracker.ShowQuest(null);
 
         _current = null;
         _currentDungeon = null;
