@@ -226,7 +226,7 @@
                  arranging that follows. A drawn calendar rather than a
                  logo: the page comes from Ankama, none of whose
                  branding we display. -->
-            <Border Margin="0,3,8,3"
+            <Border Margin="0,3,0,3"
                     Background="{StaticResource KeyFaceBrush}"
                     BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
                     CornerRadius="{StaticResource RadiusKey}">
@@ -244,25 +244,6 @@
               </Button>
             </Border>
 
-            <!-- The community server, kept quiet: an icon without text, in
-                 the text colour rather than Discord's blurple. It is
-                 Discord's own mark, not a drawing of ours, because alone
-                 on a key nothing else says where it leads. Discord's brand
-                 guidelines allow it for linking to a server, see
-                 THIRD-PARTY-NOTICES.md. -->
-            <Border Margin="0,3,8,3"
-                    Background="{StaticResource KeyFaceBrush}"
-                    BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
-                    CornerRadius="{StaticResource RadiusKey}">
-              <Button Style="{StaticResource GroupKey}"
-                      ToolTip="{loc:T DiscordTip}"
-                      AutomationProperties.Name="{loc:T DiscordTip}"
-                      Command="{Binding DiscordCommand}">
-                <Path Width="16" Height="16" Stretch="Uniform" VerticalAlignment="Center"
-                      Fill="{DynamicResource TextBrush}"
-                      Data="M 20.317 4.3698 a 19.7913 19.7913 0 0 0 -4.8851 -1.5152 a .0741 .0741 0 0 0 -.0785 .0371 c -.211 .3753 -.4447 .8648 -.6083 1.2495 c -1.8447 -.2762 -3.68 -.2762 -5.4868 0 c -.1636 -.3933 -.4058 -.8742 -.6177 -1.2495 a .077 .077 0 0 0 -.0785 -.037 a 19.7363 19.7363 0 0 0 -4.8852 1.515 a .0699 .0699 0 0 0 -.0321 .0277 C .5334 9.0458 -.319 13.5799 .0992 18.0578 a .0824 .0824 0 0 0 .0312 .0561 c 2.0528 1.5076 4.0413 2.4228 5.9929 3.0294 a .0777 .0777 0 0 0 .0842 -.0276 c .4616 -.6304 .8731 -1.2952 1.226 -1.9942 a .076 .076 0 0 0 -.0416 -.1057 c -.6528 -.2476 -1.2743 -.5495 -1.8722 -.8923 a .077 .077 0 0 1 -.0076 -.1277 c .1258 -.0943 .2517 -.1923 .3718 -.2914 a .0743 .0743 0 0 1 .0776 -.0105 c 3.9278 1.7933 8.18 1.7933 12.0614 0 a .0739 .0739 0 0 1 .0785 .0095 c .1202 .099 .246 .1981 .3728 .2924 a .077 .077 0 0 1 -.0066 .1276 a 12.2986 12.2986 0 0 1 -1.873 .8914 a .0766 .0766 0 0 0 -.0407 .1067 c .3604 .698 .7719 1.3628 1.225 1.9932 a .076 .076 0 0 0 .0842 .0286 c 1.961 -.6067 3.9495 -1.5219 6.0023 -3.0294 a .077 .077 0 0 0 .0313 -.0552 c .5004 -5.177 -.8382 -9.6739 -3.5485 -13.6604 a .061 .061 0 0 0 -.0312 -.0286 z M 8.02 15.3312 c -1.1825 0 -2.1569 -1.0857 -2.1569 -2.419 c 0 -1.3332 .9555 -2.4189 2.157 -2.4189 c 1.2108 0 2.1757 1.0952 2.1568 2.419 c 0 1.3332 -.9555 2.4189 -2.1569 2.4189 z m 7.9748 0 c -1.1825 0 -2.1569 -1.0857 -2.1569 -2.419 c 0 -1.3332 .9554 -2.4189 2.1569 -2.4189 c 1.2108 0 2.1757 1.0952 2.1568 2.419 c 0 1.3332 -.946 2.4189 -2.1568 2.4189 Z" />
-              </Button>
-            </Border>
 
             <!-- Arranging only appears when there's something to arrange:
                  at least two windows, and only when placements can
@@ -1090,6 +1071,41 @@
               </Path>
             </StackPanel>
           </ToggleButton>
+
+          <!-- The community server, kept quiet across from the tools: an icon
+               without text or frame, in the muted text colour rather than
+               Discord's blurple. It is Discord's own mark, not a drawing of
+               ours, because alone nothing else says where it leads. Discord's
+               brand guidelines allow it for linking to a server, see
+               THIRD-PARTY-NOTICES.md. -->
+          <Button HorizontalAlignment="Right" Padding="6,2" Margin="0,0,-6,0"
+                  Background="Transparent" BorderThickness="0" Cursor="Hand"
+                  ToolTip="{loc:T DiscordTip}"
+                  AutomationProperties.Name="{loc:T DiscordTip}"
+                  Command="{Binding DiscordCommand}">
+            <!-- The tools toggle's own look, across from it. -->
+            <Button.Template>
+              <ControlTemplate TargetType="Button">
+                <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}"
+                        CornerRadius="{StaticResource Radius}">
+                  <ContentPresenter />
+                </Border>
+                <ControlTemplate.Triggers>
+                  <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+                  </Trigger>
+                </ControlTemplate.Triggers>
+              </ControlTemplate>
+            </Button.Template>
+            <StackPanel Orientation="Horizontal">
+              <Path Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center"
+                      Fill="{DynamicResource TextMutedBrush}"
+                      Data="M 20.317 4.3698 a 19.7913 19.7913 0 0 0 -4.8851 -1.5152 a .0741 .0741 0 0 0 -.0785 .0371 c -.211 .3753 -.4447 .8648 -.6083 1.2495 c -1.8447 -.2762 -3.68 -.2762 -5.4868 0 c -.1636 -.3933 -.4058 -.8742 -.6177 -1.2495 a .077 .077 0 0 0 -.0785 -.037 a 19.7363 19.7363 0 0 0 -4.8852 1.515 a .0699 .0699 0 0 0 -.0321 .0277 C .5334 9.0458 -.319 13.5799 .0992 18.0578 a .0824 .0824 0 0 0 .0312 .0561 c 2.0528 1.5076 4.0413 2.4228 5.9929 3.0294 a .0777 .0777 0 0 0 .0842 -.0276 c .4616 -.6304 .8731 -1.2952 1.226 -1.9942 a .076 .076 0 0 0 -.0416 -.1057 c -.6528 -.2476 -1.2743 -.5495 -1.8722 -.8923 a .077 .077 0 0 1 -.0076 -.1277 c .1258 -.0943 .2517 -.1923 .3718 -.2914 a .0743 .0743 0 0 1 .0776 -.0105 c 3.9278 1.7933 8.18 1.7933 12.0614 0 a .0739 .0739 0 0 1 .0785 .0095 c .1202 .099 .246 .1981 .3728 .2924 a .077 .077 0 0 1 -.0066 .1276 a 12.2986 12.2986 0 0 1 -1.873 .8914 a .0766 .0766 0 0 0 -.0407 .1067 c .3604 .698 .7719 1.3628 1.225 1.9932 a .076 .076 0 0 0 .0842 .0286 c 1.961 -.6067 3.9495 -1.5219 6.0023 -3.0294 a .077 .077 0 0 0 .0313 -.0552 c .5004 -5.177 -.8382 -9.6739 -3.5485 -13.6604 a .061 .061 0 0 0 -.0312 -.0286 z M 8.02 15.3312 c -1.1825 0 -2.1569 -1.0857 -2.1569 -2.419 c 0 -1.3332 .9555 -2.4189 2.157 -2.4189 c 1.2108 0 2.1757 1.0952 2.1568 2.419 c 0 1.3332 -.9555 2.4189 -2.1569 2.4189 z m 7.9748 0 c -1.1825 0 -2.1569 -1.0857 -2.1569 -2.419 c 0 -1.3332 .9554 -2.4189 2.1569 -2.4189 c 1.2108 0 2.1757 1.0952 2.1568 2.419 c 0 1.3332 -.946 2.4189 -2.1568 2.4189 Z" />
+              <TextBlock Text="{loc:T DiscordShort}" Style="{StaticResource Muted}"
+                         FontSize="{StaticResource FontSmall}" Margin="6,0,0,0"
+                         VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
 
           <!-- Opens upwards from the button, over the list, fading in while
                it slides up a few pixels, and the reverse on closing, also
