@@ -480,7 +480,7 @@
     <value>Bloquear esta ventana en su sitio. Ya no se moverá al apilar, al poner lado a lado ni al cambiar de tamaño, y el teclado no se detendrá en ella. Las demás ventanas se colocan sin ella. Si la cuenta está en el marco con pestañas, una sola pestaña bloqueada congela todo el marco.</value>
   </data>
   <data name="PhoneFormat" xml:space="preserve">
-    <value>Juego desplazado o cortado: conservar el formato de la pantalla del teléfono o la tableta</value>
+    <value>Corregir un juego desplazado</value>
   </data>
   <data name="PhoneFormatTip" xml:space="preserve">
     <value>El juego toma el formato de la pantalla de tu teléfono o tableta en lugar del de la PC, con franjas alrededor. Márcalo si el juego se ve desplazado, con una franja negra, o cortado en tu pantalla. Se aplica la próxima vez que se abra la ventana.</value>

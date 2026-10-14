@@ -480,7 +480,7 @@
     <value>Verrouiller cette fenêtre à sa place. Elle ne bougera plus lors d'un empilement, d'une mise côte à côte ou d'un changement de taille, et le parcours au clavier ne s'y arrêtera pas. Les autres fenêtres se placent sans elle. Si le compte est logé dans le cadre à onglets, un seul onglet verrouillé fige le cadre entier.</value>
   </data>
   <data name="PhoneFormat" xml:space="preserve">
-    <value>Jeu décalé ou coupé : garder le format de l'écran du téléphone ou de la tablette</value>
+    <value>Corriger un jeu décalé</value>
   </data>
   <data name="PhoneFormatTip" xml:space="preserve">
     <value>Le jeu prend le format de l'écran de votre téléphone ou tablette plutôt que celui du PC, avec des bandes autour. À cocher si le jeu s'affiche décalé, avec une bande noire, ou coupé sur votre écran. S'applique à la prochaine ouverture de la fenêtre.</value>

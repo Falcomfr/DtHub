@@ -480,7 +480,7 @@
     <value>Lock this window in its place. It will no longer move on a stack, a side-by-side or a size change, and the keyboard will not stop on it. The other windows arrange themselves without it. If the account sits in the tabbed frame, one locked tab freezes the whole frame.</value>
   </data>
   <data name="PhoneFormat" xml:space="preserve">
-    <value>Game shifted or cut off: keep the phone or tablet screen's ratio</value>
+    <value>Fix a shifted game</value>
   </data>
   <data name="PhoneFormatTip" xml:space="preserve">
     <value>The game takes the ratio of your phone or tablet's own screen rather than the PC screen's, with bands around it. Tick it if the game shows shifted, with a black band, or cut off on your screen. Applies the next time the window opens.</value>

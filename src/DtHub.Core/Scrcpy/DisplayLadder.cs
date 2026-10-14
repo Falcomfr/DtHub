@@ -105,11 +105,10 @@ public static class DisplayLadder
     /// Resolution to request for a window whose client area is the
     /// given height, on a given screen.
     ///
-    /// The aspect ratio is the phone's own, <paramref name="phoneAspect"/>,
-    /// the one the game is laid out for there (see PhoneScreen). The window
-    /// keeps it, with bands beside or above it on the PC screen, which then
-    /// only caps the size. Unknown, the PC screen's ratio is taken, as
-    /// before. The chosen quality can cap the height, which lightens the
+    /// The aspect ratio is the PC screen's, or the phone's own,
+    /// <paramref name="phoneAspect"/>, for an account that asks for it (see
+    /// PhoneScreen). The window keeps it, and the PC screen then only caps
+    /// the size. The chosen quality can cap the height, which lightens the
     /// phone's encoder.
     ///
     /// <paramref name="sharpImage"/> asks for twice the window's height.

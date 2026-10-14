@@ -10,8 +10,8 @@ namespace DtHub.Core.Devices;
 /// Measured on 14/10/2026: a Galaxy Tab S10 Ultra (16:10) drew it shifted
 /// right with its panel cut in a 21:9 display, though Android gave it the
 /// whole display, and right in 16:10; the 13T Pro (20:9) cut its panel in
-/// 16:10, and was right in 20:9 and 21:9. The virtual display therefore
-/// takes the phone's ratio, not the PC screen's.
+/// 16:10, and was right in 20:9 and 21:9. An account can therefore ask for
+/// its phone's ratio; by default the PC screen's stays (D197).
 /// </summary>
 public static partial class PhoneScreen
 {

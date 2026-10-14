@@ -34,6 +34,10 @@ public sealed partial class InstanceRowViewModel : ObservableObject
         // common value is "follow the shared setting", which shows
         // nothing either way, so the delay has never been visible.
         _colour = instance.Colour;
+
+        // A checkbox shows its state, unlike the tier and the distance: left
+        // to the sweep, a ticked box would read unticked for a few seconds.
+        _phoneFormat = instance.PhoneFormat;
     }
 
     private bool _applying;
