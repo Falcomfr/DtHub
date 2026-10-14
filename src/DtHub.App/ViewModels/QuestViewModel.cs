@@ -365,12 +365,10 @@ public sealed partial class QuestViewModel : ObservableObject
     public bool ShowsLoader => IsLoadingPage && !IsListOpen;
 
     /// <summary>
-    /// True when the step row should be visible.
+    /// True when the step arrows should be visible.
     ///
-    /// It holds its place during loading, when the steps are not yet known:
-    /// without this the banner used to lose a row and then get it back,
-    /// jumping at every quest change. What it shows then is the start, which
-    /// comes from the metadata and does not wait for the page.
+    /// They hold their place during loading, greyed out, when the steps are
+    /// not yet known: the title would otherwise shift at every quest change.
     /// </summary>
     public bool ShowsSteps => HasSteps || IsLoadingPage;
 
@@ -1014,19 +1012,12 @@ public sealed partial class QuestViewModel : ObservableObject
         QuestTitle = quest.Title;
         HasQuest = true;
 
-        _start = QuestStepSummary.OfStart(quest.StartPosition, quest.StartPerson);
-        _startsAtDeparture = false;
-
         SetNeighbours(quest);
 
         // The next page is not loaded yet: keeping the previous one's steps
-        // would show an objective that no longer has anything to do with it.
-        // The start, however, is already known and holds the row in the
-        // meantime.
+        // would let the arrows walk a guide that is no longer shown.
         ResetSteps([]);
         SetStep(-1);
-
-        StepDetail = _start ?? string.Empty;
     }
 
     /// <summary>
@@ -1057,9 +1048,6 @@ public sealed partial class QuestViewModel : ObservableObject
         QuestTitle = dungeon.Title;
         HasQuest = true;
 
-        _start = QuestStepSummary.OfStart(dungeon.Position, dungeon.Person);
-        _startsAtDeparture = false;
-
         ChainText = dungeon.Key.Length > 0 ? dungeon.Key : string.Empty;
         ChainStep = string.Empty;
         PreviousQuest = null;
@@ -1067,8 +1055,6 @@ public sealed partial class QuestViewModel : ObservableObject
 
         ResetSteps([]);
         SetStep(-1);
-
-        StepDetail = _start ?? string.Empty;
     }
 
     /// <summary>
@@ -1100,9 +1086,6 @@ public sealed partial class QuestViewModel : ObservableObject
         QuestTitle = path.Title;
         HasQuest = true;
 
-        _start = null;
-        _startsAtDeparture = false;
-
         ChainText = Strings.Get("Path");
         ChainStep = string.Empty;
         PreviousQuest = null;
@@ -1110,8 +1093,6 @@ public sealed partial class QuestViewModel : ObservableObject
 
         ResetSteps([]);
         SetStep(-1);
-
-        StepDetail = string.Empty;
     }
 
     /// <summary>
@@ -1222,36 +1203,8 @@ public sealed partial class QuestViewModel : ObservableObject
     /// <summary>Steps found in the open page.</summary>
     private IReadOnlyList<QuestStep> _steps = [];
 
-    /// <summary>
-    /// The guide's steps, as picked from the list the rank unrolls. The two
-    /// arrows only move one at a time.
-    /// </summary>
-    public System.Collections.ObjectModel.ObservableCollection<QuestStepRowViewModel> Steps { get; } = [];
-
-    /// <summary>
-    /// Shortcut for the first step, composed from the metadata of the open
-    /// quest. Null when the site says neither where nor with whom it is
-    /// started.
-    /// </summary>
-    private string? _start;
-
-    /// <summary>
-    /// True when the first step is the quest's start and not a paragraph of
-    /// the guide. The bridge announces it, because only it can see whether the
-    /// page carries a start block.
-    /// </summary>
-    private bool _startsAtDeparture;
-
     [ObservableProperty]
     private int _stepIndex = -1;
-
-    /// <summary>"Step 3 / 7", or nothing when the page has no step.</summary>
-    [ObservableProperty]
-    private string _stepText = string.Empty;
-
-    /// <summary>What there is to do at this step, in one line.</summary>
-    [ObservableProperty]
-    private string _stepDetail = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsSteps))]
@@ -1283,12 +1236,9 @@ public sealed partial class QuestViewModel : ObservableObject
     public void SetPage(
         string? introHtml,
         string? chainHtml,
-        IReadOnlyList<QuestStep> steps,
-        bool startsAtDeparture = false)
+        IReadOnlyList<QuestStep> steps)
     {
         ArgumentNullException.ThrowIfNull(steps);
-
-        _startsAtDeparture = startsAtDeparture;
 
         var facts = QuestPageParser.ParseFacts(introHtml);
         var chain = QuestPageParser.ParseChain(chainHtml);
@@ -1346,7 +1296,7 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Scrolling has changed step, or the user has picked one.
+    /// Scrolling or an arrow has changed step.
     /// </summary>
     public void SetStep(int index)
     {
@@ -1354,77 +1304,17 @@ public sealed partial class QuestViewModel : ObservableObject
 
         var total = _steps.Count;
 
-        StepText = index >= 0 && index < total ? StepRank(index) : string.Empty;
-
-        StepDetail = index >= 0 && index < total ? StepLabel(index) : string.Empty;
-
-        foreach (var row in Steps)
-        {
-            row.IsCurrent = row.Index == index;
-        }
-
         CanGoPreviousStep = index > 0;
         CanGoNextStep = index >= 0 && index < total - 1;
     }
 
     /// <summary>
-    /// What is written next to a step's rank. The decision is in the core,
-    /// where it is put to the test; only the rank's computation is left here.
-    /// </summary>
-    private string StepLabel(int index) =>
-        QuestStepLabel.For(_steps[index], IsDeparture(index), _start);
-
-    /// <summary>
-    /// The rank as it reads: "Step 2 / 5", or "Start" for the launch, which is
-    /// not a step of the journey and so is not counted.
-    /// </summary>
-    private string StepRank(int index) =>
-        QuestStepLabel.Numbering(index, _steps.Count, HasDeparture) is { } numbering
-            ? Strings.Format("StepOfTotal", numbering.Rank, numbering.Total)
-            : Strings.Get("StepStart");
-
-    /// <summary>
-    /// The number alone, for the list's narrow column. The start has none: its
-    /// row is recognisable by what it says, "Rendez-vous en…", and writing
-    /// "Start" in twenty-six pixels was impossible.
-    /// </summary>
-    private string StepNumber(int index) =>
-        QuestStepLabel.Numbering(index, _steps.Count, HasDeparture) is { } numbering
-            ? numbering.Rank.ToString(System.Globalization.CultureInfo.InvariantCulture)
-            : string.Empty;
-
-    /// <summary>True when the first rendered step is the launch.</summary>
-    private bool HasDeparture => _steps.Count > 0 && IsDeparture(0);
-
-    private bool IsDeparture(int index) =>
-        QuestStepLabel.IsDeparture(_steps[index], index == 0, _startsAtDeparture);
-
-    /// <summary>
-    /// True when there is something to choose from: starting at two steps.
-    ///
-    /// On a guide with a single step, the badge used to unroll a list of one
-    /// item, which led nowhere.
-    /// </summary>
-    public bool CanPickStep => _steps.Count > 1;
-
-    /// <summary>
-    /// Resets the steps, and the list where they are picked, together.
-    ///
-    /// A single door for both: the list and the count used to contradict each
-    /// other as soon as one code path forgot one of the two lines.
+    /// Resets the steps and their count together.
     /// </summary>
     private void ResetSteps(IReadOnlyList<QuestStep> steps)
     {
         _steps = steps;
         HasSteps = steps.Count > 0;
-        OnPropertyChanged(nameof(CanPickStep));
-
-        Steps.Clear();
-
-        for (var index = 0; index < steps.Count; index++)
-        {
-            Steps.Add(new QuestStepRowViewModel(index, StepNumber(index), StepLabel(index)));
-        }
     }
 
     /// <summary>
@@ -1470,8 +1360,6 @@ public sealed partial class QuestViewModel : ObservableObject
         HasQuest = true;
         IsListOpen = false;
 
-        _start = null;
-        _startsAtDeparture = false;
         ResetSteps([]);
         PreviousQuest = null;
         NextQuest = null;

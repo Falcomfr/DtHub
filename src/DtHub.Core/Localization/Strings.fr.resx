@@ -927,9 +927,6 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
   <data name="QuestSearchPlaceholder" xml:space="preserve">
     <value>Cherchez une quête, une zone, un succès, un donjon ou un chemin</value>
   </data>
-  <data name="LoadingPage" xml:space="preserve">
-    <value>Chargement de la page…</value>
-  </data>
   <data name="ClearSearchTip" xml:space="preserve">
     <value>Vider la recherche</value>
   </data>
@@ -941,9 +938,6 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
   </data>
   <data name="NextStepTip" xml:space="preserve">
     <value>Étape suivante. La page se replace dessus.</value>
-  </data>
-  <data name="PickStepTip" xml:space="preserve">
-    <value>Choisir une étape. La page se replace dessus.</value>
   </data>
   <data name="ReportErrorTip" xml:space="preserve">
     <value>Remonter une erreur à papycha.fr sur cette page. Le formulaire du site s'ouvre avec la zone et la quête déjà notées, et rien n'est envoyé tant que vous n'appuyez pas.</value>
@@ -1673,12 +1667,6 @@ Le reste de l'application fonctionne sans lui.</value>
   </data>
   <data name="SiteDownCached" xml:space="preserve">
     <value>Le site n'a pas répondu ; liste en cache.</value>
-  </data>
-  <data name="StepStart" xml:space="preserve">
-    <value>Départ</value>
-  </data>
-  <data name="StepOfTotal" xml:space="preserve">
-    <value>Étape {0} / {1}</value>
   </data>
   <data name="StepShort" xml:space="preserve">
     <value>Étape {0}/{1}</value>

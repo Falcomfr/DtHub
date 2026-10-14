@@ -550,8 +550,7 @@ public partial class QuestWindow : Window
                 _viewModel.SetPage(
                     message.Intro,
                     message.Chain,
-                    message.Steps,
-                    message.Departure);
+                    message.Steps);
                 ResumeStep();
                 break;
 
@@ -757,20 +756,6 @@ public partial class QuestWindow : Window
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
             _viewModel.ReportViewFailure(exception);
-        }
-    }
-
-    /// <summary>
-    /// A step chosen from the list: it is navigated to, and the list
-    /// closes.
-    /// </summary>
-    private void OnPickStep(object sender, RoutedEventArgs e)
-    {
-        StepsToggle.IsChecked = false;
-
-        if ((sender as FrameworkElement)?.DataContext is ViewModels.QuestStepRowViewModel row)
-        {
-            GoToStep(row.Index);
         }
     }
 

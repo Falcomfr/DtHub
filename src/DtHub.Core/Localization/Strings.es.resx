@@ -927,9 +927,6 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
   <data name="QuestSearchPlaceholder" xml:space="preserve">
     <value>Busca una misión, una zona, un logro, una mazmorra o un camino</value>
   </data>
-  <data name="LoadingPage" xml:space="preserve">
-    <value>Cargando la página…</value>
-  </data>
   <data name="ClearSearchTip" xml:space="preserve">
     <value>Vaciar la búsqueda</value>
   </data>
@@ -941,9 +938,6 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
   </data>
   <data name="NextStepTip" xml:space="preserve">
     <value>Paso siguiente. La página se coloca en él.</value>
-  </data>
-  <data name="PickStepTip" xml:space="preserve">
-    <value>Elegir un paso. La página se coloca en él.</value>
   </data>
   <data name="ReportErrorTip" xml:space="preserve">
     <value>Informar de un error a papycha.fr en esta página. El formulario del sitio se abre con la zona y la misión ya anotadas, y no se envía nada hasta que pulses.</value>
@@ -1673,12 +1667,6 @@ El resto de la aplicación funciona sin él.</value>
   </data>
   <data name="SiteDownCached" xml:space="preserve">
     <value>El sitio no ha respondido; lista en caché.</value>
-  </data>
-  <data name="StepStart" xml:space="preserve">
-    <value>Inicio</value>
-  </data>
-  <data name="StepOfTotal" xml:space="preserve">
-    <value>Paso {0} / {1}</value>
   </data>
   <data name="StepShort" xml:space="preserve">
     <value>Paso {0}/{1}</value>

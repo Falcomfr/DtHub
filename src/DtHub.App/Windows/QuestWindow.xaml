@@ -284,209 +284,81 @@
     <Border DockPanel.Dock="Top" Padding="10,6"
             BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1"
             Visibility="{Binding ShowsQuestChrome, Converter={StaticResource BoolToVisibility}}">
-      <StackPanel>
-        <Grid>
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-          </Grid.ColumnDefinitions>
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
 
-          <!-- Going back where you came from. A curved arrow rather than
-               a chevron: the chevrons on the row below point to the
-               previous and next step, and two left-pointing arrows in
-               the same banner wouldn't say the same thing. -->
-          <Button Grid.Column="0" Style="{StaticResource IconButton}"
-                  Margin="0,0,4,0" VerticalAlignment="Center"
-                  Click="OnGoBackPage"
-                  ToolTip="{loc:T BackToPreviousPageTip}"
-                  Visibility="{Binding CanGoBackPage,
-                                       Converter={StaticResource BoolToVisibility}}">
-            <Path Style="{StaticResource RowGlyph}"
-                  Data="M 3.5,6 L 7,2.5 M 3.5,6 L 7,9.5
-                        M 3.5,6 H 9.5 C 12,6 12.5,7.6 12.5,9.6 V 12.5" />
-          </Button>
+        <!-- Going back where you came from. A curved arrow rather than
+             a chevron: the chevrons on the row below point to the
+             previous and next step, and two left-pointing arrows in
+             the same banner wouldn't say the same thing. -->
+        <Button Grid.Column="0" Style="{StaticResource IconButton}"
+                Margin="0,0,4,0" VerticalAlignment="Center"
+                Click="OnGoBackPage"
+                ToolTip="{loc:T BackToPreviousPageTip}"
+                Visibility="{Binding CanGoBackPage,
+                                     Converter={StaticResource BoolToVisibility}}">
+          <Path Style="{StaticResource RowGlyph}"
+                Data="M 3.5,6 L 7,2.5 M 3.5,6 L 7,9.5
+                      M 3.5,6 H 9.5 C 12,6 12.5,7.6 12.5,9.6 V 12.5" />
+        </Button>
 
-          <!-- The achievement line wasn't declared as spacing, but it
-               acted as one: fifteen pixels of light grey above the
-               title. More than half of quests don't have one, and the
-               title then ended up touching the divider, especially
-               since the page below allows itself twelve pixels of
-               margin. The block therefore gives back a bit of room
-               when the line collapses, without pretending to replace
-               missing text.
+        <!-- The achievement line wasn't declared as spacing, but it
+             acted as one: fifteen pixels of light grey above the
+             title. More than half of quests don't have one, and the
+             title then ended up touching the divider, especially
+             since the page below allows itself twelve pixels of
+             margin. The block therefore gives back a bit of room
+             when the line collapses, without pretending to replace
+             missing text.
 
-               The trigger reads the line's visibility rather than the
-               string itself: it's the same notion of emptiness as the
-               converter, including for a null or blank text, and the
-               two cannot diverge. -->
-          <StackPanel Grid.Column="1">
-            <StackPanel.Style>
-              <Style TargetType="StackPanel">
-                <Style.Triggers>
-                  <DataTrigger Binding="{Binding Visibility, ElementName=HeaderSeries}" Value="Collapsed">
-                    <Setter Property="Margin" Value="0,4" />
-                  </DataTrigger>
-                </Style.Triggers>
-              </Style>
-            </StackPanel.Style>
+             The trigger reads the line's visibility rather than the
+             string itself: it's the same notion of emptiness as the
+             converter, including for a null or blank text, and the
+             two cannot diverge. -->
+        <StackPanel Grid.Column="1">
+          <StackPanel.Style>
+            <Style TargetType="StackPanel">
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding Visibility, ElementName=HeaderSeries}" Value="Collapsed">
+                  <Setter Property="Margin" Value="0,4" />
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </StackPanel.Style>
 
-            <TextBlock x:Name="HeaderSeries"
-                       Text="{Binding ChainText}" Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
-                       Visibility="{Binding ChainText, Converter={StaticResource EmptyToVisibility},
-                                            ConverterParameter=inverse}" />
+          <TextBlock x:Name="HeaderSeries"
+                     Text="{Binding ChainText}" Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
+                     Visibility="{Binding ChainText, Converter={StaticResource EmptyToVisibility},
+                                          ConverterParameter=inverse}" />
 
-            <TextBlock Text="{Binding QuestTitle}" FontWeight="SemiBold"
-                       TextTrimming="CharacterEllipsis" />
+          <TextBlock Text="{Binding QuestTitle}" FontWeight="SemiBold"
+                     TextTrimming="CharacterEllipsis" />
 
-          </StackPanel>
-        </Grid>
+        </StackPanel>
 
-        <!-- The steps: two arrows, the rank, and what there is to do. -->
-        <Grid Margin="0,6,0,0"
-              Visibility="{Binding ShowsSteps, Converter={StaticResource BoolToVisibility}}">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-          </Grid.ColumnDefinitions>
-
-          <Button Grid.Column="0" Style="{StaticResource IconButton}"
+        <!-- The step arrows, on the title's row: the site's intro block,
+             shown again at the top of the guide, now says where the
+             quest starts, and a second row only cost height. -->
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="8,0,0,0"
+                    VerticalAlignment="Center"
+                    Visibility="{Binding ShowsSteps, Converter={StaticResource BoolToVisibility}}">
+          <Button Style="{StaticResource IconButton}"
                   IsEnabled="{Binding CanGoPreviousStep}" Click="OnPreviousStep"
                   ToolTip="{loc:T PreviousStepTip}">
             <Path Style="{StaticResource RowGlyph}" Data="M 9,3 L 5,7.5 L 9,12" />
           </Button>
 
-          <Button Grid.Column="1" Style="{StaticResource IconButton}"
+          <Button Style="{StaticResource IconButton}"
                   IsEnabled="{Binding CanGoNextStep}" Click="OnNextStep"
                   ToolTip="{loc:T NextStepTip}">
             <Path Style="{StaticResource RowGlyph}" Data="M 6,3 L 10,7.5 L 6,12" />
           </Button>
-
-          <!-- The rank unfolds the list of steps. The two arrows only
-               move one at a time: going back to the third step of a
-               guide with twelve of them took nine clicks, and nothing
-               said what you'd find along the way. The rank used to be
-               just text, and nothing hinted there was something else
-               to do here. -->
-          <Grid Grid.Column="2" Margin="4,0,10,0">
-            <!-- The rank in plain text when there's only one step: the
-                 chip would unfold a list with a single item, which led
-                 nowhere. -->
-            <TextBlock VerticalAlignment="Center" Text="{Binding StepText}"
-                       Margin="7,0,0,0" FontFamily="{StaticResource MonoFont}" FontSize="{StaticResource FontSmall}"
-                       Foreground="{DynamicResource AccentBrush}"
-                       Visibility="{Binding CanPickStep,
-                                            Converter={StaticResource InverseBoolToVisibility}}" />
-
-            <ToggleButton x:Name="StepsToggle" Style="{StaticResource OutlineToggle}"
-                          Padding="7,2" VerticalAlignment="Center"
-                          Background="Transparent"
-                          BorderBrush="{DynamicResource BorderBrush}"
-                          ToolTip="{loc:T PickStepTip}"
-                          Visibility="{Binding CanPickStep,
-                                               Converter={StaticResource BoolToVisibility}}">
-              <StackPanel Orientation="Horizontal">
-                <TextBlock Text="{Binding StepText}" VerticalAlignment="Center"
-                           FontFamily="{StaticResource MonoFont}" FontSize="{StaticResource FontSmall}"
-                           Foreground="{DynamicResource AccentBrush}" />
-                <Path Width="8" Height="5" Stretch="None" Margin="6,1,0,0"
-                      VerticalAlignment="Center" StrokeLineJoin="Round"
-                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                      Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.4"
-                      Data="M 0.7,0.7 L 4,4 L 7.3,0.7" />
-              </StackPanel>
-            </ToggleButton>
-
-            <Popup IsOpen="{Binding IsChecked, ElementName=StepsToggle, Mode=TwoWay}" StaysOpen="False"
-                   Placement="Bottom" PlacementTarget="{Binding ElementName=StepsToggle}"
-                   AllowsTransparency="True" PopupAnimation="Fade">
-              <Border Background="{DynamicResource SurfaceBrush}" Width="400"
-                      BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
-                      CornerRadius="{StaticResource Radius}" Margin="0,4,0,0" Padding="6">
-                <!-- A twenty-step guide doesn't fit all at once: the list
-                     scrolls rather than running off the screen. -->
-                <ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto">
-                  <ItemsControl ItemsSource="{Binding Steps}">
-                    <ItemsControl.ItemTemplate>
-                      <DataTemplate>
-                        <Button Padding="8,5" Margin="0,1" Click="OnPickStep">
-                          <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource OutlineButton}">
-                              <Setter Property="Background" Value="Transparent" />
-                              <Setter Property="BorderBrush" Value="Transparent" />
-                              <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsCurrent}" Value="True">
-                                  <Setter Property="Background"
-                                          Value="{DynamicResource AccentSoftBrush}" />
-                                  <Setter Property="BorderBrush"
-                                          Value="{DynamicResource AccentBrush}" />
-                                </DataTrigger>
-                              </Style.Triggers>
-                            </Style>
-                          </Button.Style>
-                          <Grid>
-                            <Grid.ColumnDefinitions>
-                              <ColumnDefinition Width="26" />
-                              <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Text="{Binding Rank}" VerticalAlignment="Top"
-                                       FontFamily="{StaticResource MonoFont}" FontSize="{StaticResource FontSmall}"
-                                       Foreground="{DynamicResource AccentBrush}" />
-
-                            <!-- Most often empty: only a section title is
-                                 written here. The row keeps its height
-                                 and its clickable area through the
-                                 button's fill. -->
-                            <TextBlock Grid.Column="1" Text="{Binding Label}"
-                                       TextWrapping="Wrap" Style="{StaticResource Muted}"
-                                       Visibility="{Binding Label,
-                                           Converter={StaticResource EmptyToVisibility},
-                                           ConverterParameter=inverse}" />
-                          </Grid>
-                        </Button>
-                      </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                  </ItemsControl>
-                </ScrollViewer>
-              </Border>
-            </Popup>
-          </Grid>
-
-          <!-- The row stays during loading so the banner doesn't jump in
-               height; it used to show nothing but two greyed-out
-               arrows there, which read like a broken page. It now says
-               what it's waiting for. -->
-          <TextBlock Grid.Column="3" VerticalAlignment="Center"
-                     FontSize="{StaticResource FontSmall}"
-                     TextTrimming="CharacterEllipsis"
-                     ToolTip="{Binding StepDetail}">
-            <TextBlock.Style>
-              <Style TargetType="TextBlock" BasedOn="{StaticResource Muted}">
-                <Setter Property="Text" Value="{Binding StepDetail}" />
-
-                <Style.Triggers>
-                  <!-- Nothing to say, nothing to show: the rank is enough
-                       on its own. The visibility is set here and not on
-                       the element, since a local value overrides any
-                       style trigger. -->
-                  <DataTrigger Binding="{Binding StepDetail}" Value="">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                  </DataTrigger>
-
-                  <!-- Last, so it wins: the waiting state is shown even
-                       when the step has nothing to display. -->
-                  <DataTrigger Binding="{Binding IsLoadingPage}" Value="True">
-                    <Setter Property="Text" Value="{loc:T LoadingPage}" />
-                    <Setter Property="Visibility" Value="Visible" />
-                  </DataTrigger>
-                </Style.Triggers>
-              </Style>
-            </TextBlock.Style>
-          </TextBlock>
-        </Grid>
-      </StackPanel>
+        </StackPanel>
+      </Grid>
     </Border>
 
     <!-- The source, always credited, and access to the real browser -->

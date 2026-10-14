@@ -5,12 +5,13 @@
 // phrase, recover a forgotten phrase. A player opening DT Hub's window has
 // usually come to sign in, so the creation card waits behind a button.
 //
-// Signed in, the window opens on the player's quests in progress. They live
-// on the site's home page, the "dashboard"; the tracker page itself only
-// manages the account. The bar with the full access phrase and the account
-// tools stays hidden: it is not what the window is for, and the phrase has no
-// business on screen. So does the dashboard's "home" tab, empty there, and
-// whatever the page shows around the tracker (the site's home cards).
+// Signed in, the window opens on the player's stats, with the quests tab
+// already filtered on those in progress. They live on the site's home page,
+// the "dashboard"; the tracker page itself only manages the account. The bar
+// with the full access phrase and the account tools stays hidden: it is not
+// what the window is for, and the phrase has no business on screen. What the
+// page shows around the tracker (welcome text, home cards, Discord) is the
+// dashboard's "home" tab, and shows only under it.
 (function () {
     'use strict';
 
@@ -21,12 +22,13 @@
     // The character chosen in DT Hub, or '' when none.
     var CHARACTER = __DTHUB_CHARACTER__;
     var OFF = 'data-dthub-off';
+    var HOME = 'data-dthub-home';
 
     // The site keeps the open tab in its own storage and reads it as the app
     // starts: written before any of its scripts runs.
     if (QUESTS) {
         try {
-            localStorage.setItem('pqt_active_panel', 'quests');
+            localStorage.setItem('pqt_active_panel', 'stats');
 
             // The site opens on the character it remembers in the same
             // storage: DT Hub's choice is written there, once per window,
@@ -80,7 +82,10 @@
             '.dthub-help summary{cursor:pointer}' +
             '.dthub-help ul{margin:8px 0 0;padding-left:18px}' +
             '#dthub-create-toggle{margin-top:16px}' +
-            (QUESTS ? '[data-panel="home"]{display:none !important}' : '') + '}';
+            // Under the home tab, the site alone decides: it shows its cards
+            // there and hides them elsewhere, but leaves its welcome text
+            // under every tab. Signed out, there is no tab: hidden too.
+            'body:not(:has([data-panel="home"].is-active)) [' + HOME + ']{display:none !important}}';
         document.head.appendChild(sheet);
     }
 
@@ -127,7 +132,8 @@
         card.appendChild(details);
     }
 
-    // The tracker alone: its siblings in the article go, whatever they are.
+    // The tracker alone: its siblings in the article go, whatever they are,
+    // except under the home tab, which is them.
     function isolate() {
         var root = document.getElementById('papycha-quest-tracker');
 
@@ -137,7 +143,7 @@
 
         Array.prototype.forEach.call(root.parentNode.children, function (sibling) {
             if (sibling !== root) {
-                sibling.setAttribute(OFF, '');
+                sibling.setAttribute(HOME, '');
             }
         });
     }
@@ -187,8 +193,9 @@
         show();
     }
 
-    // The site draws its tabs after loading: the "in progress" filter is
-    // pressed as soon as it exists, once per page.
+    // The site draws the quests tab's filters only while that tab is shown,
+    // and the window opens on the stats: the "in progress" filter is pressed
+    // the first time it exists, once per page.
     function quests() {
         var active = document.querySelector('#papycha-quest-tracker [data-filter="active"]');
 
@@ -224,8 +231,5 @@
         });
 
         watch.observe(root, { childList: true, subtree: true });
-        setTimeout(function () {
-            watch.disconnect();
-        }, 10000);
     });
 })();

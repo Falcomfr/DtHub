@@ -927,9 +927,6 @@ On a {0} device, the manual copy goes through: {1}.</value>
   <data name="QuestSearchPlaceholder" xml:space="preserve">
     <value>Search for a quest, an area, an achievement, a dungeon or a path</value>
   </data>
-  <data name="LoadingPage" xml:space="preserve">
-    <value>Loading the page…</value>
-  </data>
   <data name="ClearSearchTip" xml:space="preserve">
     <value>Clear the search</value>
   </data>
@@ -941,9 +938,6 @@ On a {0} device, the manual copy goes through: {1}.</value>
   </data>
   <data name="NextStepTip" xml:space="preserve">
     <value>Next step. The page moves onto it.</value>
-  </data>
-  <data name="PickStepTip" xml:space="preserve">
-    <value>Choose a step. The page moves onto it.</value>
   </data>
   <data name="ReportErrorTip" xml:space="preserve">
     <value>Report an error to papycha.fr on this page. The site's form opens with the area and the quest already noted, and nothing is sent until you press.</value>
@@ -1673,12 +1667,6 @@ The rest of the application works without it.</value>
   </data>
   <data name="SiteDownCached" xml:space="preserve">
     <value>The site did not answer; list from cache.</value>
-  </data>
-  <data name="StepStart" xml:space="preserve">
-    <value>Start</value>
-  </data>
-  <data name="StepOfTotal" xml:space="preserve">
-    <value>Step {0} / {1}</value>
   </data>
   <data name="StepShort" xml:space="preserve">
     <value>Step {0}/{1}</value>

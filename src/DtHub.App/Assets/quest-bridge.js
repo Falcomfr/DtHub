@@ -18,15 +18,13 @@
     window.__dtHubQuestBridge = true;
 
     // What is hidden in all our windows, because none of them has any use
-    // for it: the two banner blocks that our own banner already reproduces,
-    // and the article footer credits.
+    // for it: the article footer credits.
+    //
+    // The site's intro block (success, progress, estimated time, previous
+    // quests, departure) is shown again, as the site draws it: the window's
+    // banner used to redo its departure as a step row, which cost a row of
+    // height and said less than the block.
     var HIDDEN = [
-        // From the green-bordered banner, the two blocks that our own
-        // banner already reproduces: the success with its step, and the
-        // departure sentence.
-        '.pqa-quest-intro__facts',
-        '.pqa-quest-intro__start',
-
         'footer.papycha-article-footer',
         'footer.entry-footer'
     ];
@@ -37,20 +35,7 @@
     var TITLE = '.entry-header';
 
     // What only the quest window hides, because it redoes it its own way:
-    // the title, and the previous quests, which its footer already gives as
-    // buttons. Showing them twice did not help and cost room at the top of
-    // the guide.
-    //
-    // The intro banner is passed in whole, not child by child. All of them
-    // already were except the classification, "Type : Principale", which a
-    // list of children had let through. Since the departure step anchors at
-    // the top of the content, that was what we saw as the first step,
-    // instead of the guide's prose. A list of children would let through
-    // whatever the site adds next; the section, on the other hand, covers
-    // all of them.
-    //
-    // Hiding removes nothing from the document: the bridge still reads the
-    // departure block and still posts the intro banner to the window.
+    // the title, which its banner gives.
     //
     // **The site's progress block is no longer here, and that is a
     // deliberate step back.** It was hidden as long as the window's footer
@@ -70,7 +55,6 @@
     // "nav" and its subheadings are "h3".
     var HIDDEN_IN_QUEST = [
         TITLE,
-        '.pqa-quest-intro',
 
         // The tracker's own status bar: the quest window's bar asks the
         // same. The linked-pages window has no such bar, so it keeps the
@@ -147,10 +131,11 @@
             // here.
             '.entry-content{max-width:none !important;margin:0 !important;padding:12px !important}' +
 
-            // The intro banner now opens the page, its first two blocks
-            // being hidden: its top margin, meant to follow a title, would
-            // otherwise leave only empty space at the top of the window.
-            '.pqa-quest-intro{margin-top:0 !important;padding-top:0 !important}' +
+            // The intro banner opens the page, the title being hidden: its
+            // top margin, meant to follow a title, would otherwise leave
+            // only empty space at the top of the window. Its padding stays:
+            // its first row sits inside the frame it draws.
+            '.pqa-quest-intro{margin-top:0 !important}' +
 
             // A dungeon's card moves up ninety-four pixels to tuck itself
             // next to the header. It used to cover it, and with it the
@@ -673,13 +658,6 @@
             kind: 'loaded',
             intro: intro ? intro.outerHTML : '',
             chain: chain ? chain.outerHTML : '',
-
-            // Tells the window whether the first step is the departure:
-            // it then summarizes it with the quest's metadata, more
-            // reliable than the site's prose. Without this marker, it
-            // would apply this treatment to the first paragraph of guides
-            // that have no departure block.
-            departure: departure() !== null || dungeon() !== null,
 
             // Each step comes with its nature. A section heading presents,
             // an instruction gives orders, and the window does not show

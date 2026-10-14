@@ -156,10 +156,11 @@ and in a guide alike:
 - "Mes quêtes", a visible button: opens the player's tracker in a window
   titled "Mon suivi Papycha". Signed in, the quests live on the site's home
   page (its "dashboard"; `/suivi-quetes/` only manages the account), so the
-  window opens there, framed to the tracker alone, on the "Quêtes" tab with
-  the "En cours ou bloquées" filter pressed. The bar showing the full
-  access phrase and the account tools is hidden, so is the dashboard's
-  empty "Accueil" tab. A guide picked there opens in the guides window, not
+  window opens there, framed to the tracker, on the "Stats" tab; the
+  "En cours ou bloquées" filter is pressed the first time the "Quêtes" tab
+  shows. The bar showing the full access phrase and the account tools is
+  hidden. The rest of the site's home page (welcome text, cards, Discord)
+  shows under the "Accueil" tab only. A guide picked there opens in the guides window, not
   in this one. Closing it reads the tracker again. Placed like the other
   tools against the right edge, 600 wide and at most 960 high, remembered
   under `papychaquests`;
