@@ -142,6 +142,7 @@ public static class AppServices
         services.AddTransient<InputHelpViewModel>();
         services.AddTransient<InputHelpWindow>();
         services.AddSingleton<QuestViewModel>();
+        services.AddSingleton<QuestTrackerViewModel>();
         services.AddSingleton<WindowPlacements>();
         services.AddSingleton<QuestWindow>();
 
@@ -151,6 +152,7 @@ public static class AppServices
         services.AddTransient<QuestPageWindow>();
         services.AddTransient<AlmanaxWindow>();
         services.AddTransient<WebToolWindow>();
+        services.AddSingleton<Func<WebToolWindow>>(p => () => p.GetRequiredService<WebToolWindow>());
         services.AddTransient<HotkeyEditorViewModel>();
         services.AddTransient<HotkeyEditorWindow>();
         services.AddSingleton<ConfiguratorViewModel>();

@@ -2266,6 +2266,42 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="ToolDofusRoomLine" xml:space="preserve">
     <value>Lines of sight on the DOFUS Touch fight maps.</value>
   </data>
+  <data name="TrackerLink" xml:space="preserve">
+    <value>Link my Papycha tracker</value>
+  </data>
+  <data name="TrackerLost" xml:space="preserve">
+    <value>Papycha tracker disconnected</value>
+  </data>
+  <data name="TrackerUnreadable" xml:space="preserve">
+    <value>Papycha tracker unreadable for now</value>
+  </data>
+  <data name="TrackerOpen" xml:space="preserve">
+    <value>Open my tracker on Papycha</value>
+  </data>
+  <data name="TrackerUnlink" xml:space="preserve">
+    <value>Unlink</value>
+  </data>
+  <data name="TrackerWindowTitle" xml:space="preserve">
+    <value>Papycha tracker</value>
+  </data>
+  <data name="QuestStatusNotStarted" xml:space="preserve">
+    <value>Not started</value>
+  </data>
+  <data name="QuestStatusInProgress" xml:space="preserve">
+    <value>In progress</value>
+  </data>
+  <data name="QuestStatusCompleted" xml:space="preserve">
+    <value>Done</value>
+  </data>
+  <data name="QuestStatusBlocked" xml:space="preserve">
+    <value>Blocked</value>
+  </data>
+  <data name="QuestStatusIgnored" xml:space="preserve">
+    <value>Ignored</value>
+  </data>
+  <data name="TrackerDone" xml:space="preserve">
+    <value>Done ✓</value>
+  </data>
   <data name="PartnerNoDeviceShort" xml:space="preserve">
     <value>No device</value>
   </data>

@@ -83,6 +83,12 @@ public enum WebTool
 
     /// <summary>The lines of sight of DofusRoom's Insightroom, Touch maps only.</summary>
     DofusRoom,
+
+    /// <summary>
+    /// The player's quest tracker on papycha.fr, opened to link it. Not a
+    /// tool tile: the guides window opens it.
+    /// </summary>
+    PapychaTracker,
 }
 
 /// <summary>

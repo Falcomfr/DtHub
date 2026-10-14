@@ -4,6 +4,7 @@ using System.Windows;
 using DtHub.App.Services;
 using DtHub.Core.Dofus;
 using DtHub.Core.Localization;
+using DtHub.Core.Papycha;
 using DtHub.Core.Settings;
 
 using Microsoft.Web.WebView2.Core;
@@ -57,6 +58,12 @@ public partial class WebToolWindow : Window
         Loaded += async (_, _) => await OpenAsync().ConfigureAwait(true);
     }
 
+    /// <summary>
+    /// Raised once when the tracker cookie shows up while linking, just
+    /// before the window closes.
+    /// </summary>
+    public event EventHandler? Linked;
+
     /// <summary>Which tool this window shows. Set before it is shown.</summary>
     public WebTool Tool { get; set; }
 
@@ -64,6 +71,7 @@ public partial class WebToolWindow : Window
     {
         WebTool.Map => WindowPlacements.Map,
         WebTool.Calcofus => WindowPlacements.Calcofus,
+        WebTool.PapychaTracker => WindowPlacements.PapychaTracker,
         _ => WindowPlacements.DofusRoom,
     };
 
@@ -71,6 +79,7 @@ public partial class WebToolWindow : Window
     {
         WebTool.Map => DofusTouchMap.Address,
         WebTool.Calcofus => Calcofus.Address,
+        WebTool.PapychaTracker => PapychaSite.TrackerUrl,
         _ => DofusRoom.Address,
     };
 
@@ -99,6 +108,12 @@ public partial class WebToolWindow : Window
 
             View.CoreWebView2.NavigationStarting += OnToolNavigating;
 
+            if (Tool == WebTool.PapychaTracker)
+            {
+                await OpenTrackerAsync().ConfigureAwait(true);
+                return;
+            }
+
             if (Tool == WebTool.DofusRoom)
             {
                 await View.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(DofusRoom.TouchOnlyScript).ConfigureAwait(true);
@@ -114,6 +129,45 @@ public partial class WebToolWindow : Window
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
             Log.Warning(exception, "L'outil web {Outil} n'a pas pu s'ouvrir.", Tool);
+        }
+    }
+
+    /// <summary>
+    /// The tracker page, where the player types their access phrase. DT Hub
+    /// never sees it: only the cookie the site sets is looked for. Already
+    /// linked, the window just stays open on the tracker.
+    /// </summary>
+    private async Task OpenTrackerAsync()
+    {
+        var alreadyLinked = await HasTrackerCookieAsync().ConfigureAwait(true);
+
+        if (!alreadyLinked)
+        {
+            View.CoreWebView2.NavigationCompleted += OnTrackerNavigated;
+        }
+
+        View.CoreWebView2.Navigate(PapychaSite.TrackerUrl);
+    }
+
+    private async Task<bool> HasTrackerCookieAsync() =>
+        (await View.CoreWebView2.CookieManager.GetCookiesAsync(PapychaSite.Root).ConfigureAwait(true))
+        .Any(cookie => cookie.Name == PapychaSite.TrackerCookie);
+
+    private async void OnTrackerNavigated(object? sender, CoreWebView2NavigationCompletedEventArgs e)
+    {
+        try
+        {
+            if (await HasTrackerCookieAsync().ConfigureAwait(true))
+            {
+                View.CoreWebView2.NavigationCompleted -= OnTrackerNavigated;
+                Linked?.Invoke(this, EventArgs.Empty);
+                Close();
+            }
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // An async void handler must not throw; the next navigation checks again.
+            Log.Warning(exception, "Le cookie du suivi Papycha n'a pas pu être lu.");
         }
     }
 
@@ -168,7 +222,14 @@ public partial class WebToolWindow : Window
     /// </summary>
     private void OnToolNavigating(object? sender, CoreWebView2NavigationStartingEventArgs e)
     {
-        if (!(Tool == WebTool.Calcofus ? Calcofus.IsOwnPage(e.Uri) : DofusRoom.IsOwnPage(e.Uri)))
+        var own = Tool switch
+        {
+            WebTool.Calcofus => Calcofus.IsOwnPage(e.Uri),
+            WebTool.PapychaTracker => PapychaSite.Owns(e.Uri),
+            _ => DofusRoom.IsOwnPage(e.Uri),
+        };
+
+        if (!own)
         {
             e.Cancel = true;
             _dialogs.OpenUrl(e.Uri);
@@ -208,6 +269,7 @@ public partial class WebToolWindow : Window
         {
             WebTool.Map => "ToolMapName",
             WebTool.Calcofus => "ToolCalcofusName",
+            WebTool.PapychaTracker => "TrackerWindowTitle",
             _ => "ToolDofusRoomName",
         });
         Donate.Visibility = Tool == WebTool.Map ? Visibility.Visible : Visibility.Collapsed;
@@ -244,7 +306,13 @@ public partial class WebToolWindow : Window
 
         // Against the right edge, where it covers the least of a game
         // window centred or docked on the left.
-        Width = Math.Min(Tool == WebTool.Calcofus ? CalcofusWidth : DofusRoomWidth, area.Width);
+        var width = Tool switch
+        {
+            WebTool.Calcofus => CalcofusWidth,
+            _ => DofusRoomWidth,
+        };
+
+        Width = Math.Min(width, area.Width);
         Height = area.Height * CalcofusHeightShare;
         Left = area.Right - Width;
         Top = area.Top + ((area.Height - Height) / 2);

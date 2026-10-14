@@ -79,5 +79,5 @@ public static class QuestTracking
         IReadOnlyList<TrackerCharacter> characters, string? rememberedId, string? activeId) =>
         characters.FirstOrDefault(c => c.Id == rememberedId)
         ?? characters.FirstOrDefault(c => c.Id == activeId)
-        ?? characters.FirstOrDefault();
+        ?? (characters.Count > 0 ? characters[0] : null);
 }
