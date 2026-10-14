@@ -45,6 +45,13 @@ public partial class WebToolWindow : Window
 
     private const double SignInHeight = 820;
 
+    /// <summary>
+    /// The player's quests: the dashboard's header, tabs and a list of the
+    /// quests in progress, which rarely runs long. The tools' share of the
+    /// screen left its lower third empty on a large screen.
+    /// </summary>
+    private const double QuestsHeight = 960;
+
     private readonly WindowPlacements _placements;
     private readonly SettingsService _settings;
     private readonly WebViewEnvironment _engine;
@@ -354,7 +361,9 @@ public partial class WebToolWindow : Window
         };
 
         Width = Math.Min(width, area.Width);
-        Height = area.Height * CalcofusHeightShare;
+        Height = Tool == WebTool.PapychaTracker
+            ? Math.Min(QuestsHeight, area.Height * CalcofusHeightShare)
+            : area.Height * CalcofusHeightShare;
         Left = area.Right - Width;
         Top = area.Top + ((area.Height - Height) / 2);
     }

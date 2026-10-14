@@ -80,8 +80,9 @@ builds. The tracker works on the cached catalogue as it is.
 
 ### 1. Linking the account (approved section)
 
-- **Not linked.** The guides window shows a single quiet button, "Se
-  connecter à Papycha". Nothing else changes.
+- **Not linked.** The guides window's bar says what it is for, "Suivez vos
+  quêtes en cours et terminées avec votre compte Papycha.", and offers one
+  button, "Se connecter au suivi de quêtes Papycha". Nothing else changes.
 - **Linking.** The button opens a `WebToolWindow` on
   `https://papycha.fr/suivi-quetes/`, through a new `WebTool.PapychaTracker`
   entry: same shared WebView profile, own pages kept in the window, other
@@ -91,7 +92,14 @@ builds. The tracker works on the cached catalogue as it is.
   header, menu, sidebars and footer are hidden, the window opens on "J'ai
   déjà une phrase" and "Phrase oubliée", and the creation form waits behind
   a "Créer un compte" button ("J'ai déjà une phrase" brings the sign-in
-  back). Window title: "Connexion à Papycha". After each
+  back). Under "Ouvrir", a folded "Où trouver ma phrase ?" lists where the
+  phrase is shown: the site's tracker page under "Phrase d'accès
+  complète", the share link after `pqt_share=`, or the recovery e-mail.
+  The site's own design is kept; only the framing is corrected: the window
+  takes the colour of the tracker block instead of the site's grey page,
+  and the block's bottom margin goes. Window title: "Connexion à
+  Papycha", 560 by 820, centred on the guides window, never remembered.
+  After each
   navigation the window asks the `CookieManager` for
   `papycha_tracker_code_v2`; as soon as it exists, the window closes itself
   and the guides window fills its bar.
@@ -152,11 +160,14 @@ and in a guide alike:
   the "En cours ou bloquées" filter pressed. The bar showing the full
   access phrase and the account tools is hidden, so is the dashboard's
   empty "Accueil" tab. A guide picked there opens in the guides window, not
-  in this one. Closing it reads the tracker again;
+  in this one. Closing it reads the tracker again. Placed like the other
+  tools against the right edge, 600 wide and at most 960 high, remembered
+  under `papychaquests`;
 - a menu button with "Délier".
 
-In the quest banner, next to the title, when a quest is shown and the
-account is linked:
+In the same bar, before "Mes quêtes", when a quest is shown and the account
+is linked (moved there from the quest banner on 2026-10-14, at the owner's
+request, so every tracker control sits together):
 
 - the quest's status for the chosen character, as a small label;
 - a "Terminée" button, and beside it a small menu for the other statuses
