@@ -317,8 +317,18 @@
         <!-- The bar always holds its eight pixels, and only shows once
              there is something to scroll. On "Auto", the row that tipped
              the list into scrolling, an added app for one, made it appear
-             and pushed every right-hand button eight pixels in. -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled" Padding="0,0,10,0">
+             and pushed every right-hand button eight pixels in. It sits in
+             the panel's right margin, so the content still ends where the
+             bottom bar's keys do, not eighteen pixels short of them. -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled"
+                      Margin="0,0,-10,0" Padding="0,0,2,0">
+          <!-- The bar is eight wide, but the system's seventeen minimum still
+               held its column: the content stopped nine short of the keys. -->
+          <ScrollViewer.Resources>
+            <Style TargetType="ScrollBar" BasedOn="{StaticResource {x:Type ScrollBar}}">
+              <Setter Property="MinWidth" Value="0" />
+            </Style>
+          </ScrollViewer.Resources>
           <Grid>
 
             <!-- Shortcuts tab, read-only -->
