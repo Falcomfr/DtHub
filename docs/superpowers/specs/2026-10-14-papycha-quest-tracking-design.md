@@ -180,7 +180,8 @@ bridge's `HIDDEN` list): it would ask the same thing a second time.
 
 ### 4. Automation
 
-- **In progress.** When the step moves to an index of 1 or more while a
+- **In progress.** When the player moves, with the step arrows or the step
+  list, to an index of 1 or more while a
   quest is shown, and that quest is "not started" for the chosen
   character, DT Hub writes `in_progress`, once per opening. A step restored
   by `ResumeStep` does not count: only a move made in this opening does.
@@ -193,9 +194,11 @@ bridge's `HIDDEN` list): it would ask the same thing a second time.
 - After a write the state is read again in the background, so that the
   quests the site inferred get their mark in the list.
 
-Known limit: the bridge follows scrolling, so scrolling down a guide just to
-read it counts as moving past the first step. Undoing it is one click
-("Non commencée"). To revisit if it bothers players.
+Revised 2026-10-14 with the owner: only a move the player asks for starts
+the quest, the step arrows or the step list. Scrolling still follows the
+step and the "Terminée" highlight, but reading a guide through no longer
+leaves it "in progress" on the account. A quest started and then left stays
+in progress, as the player did start it.
 
 ### 5. The list
 

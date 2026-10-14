@@ -208,13 +208,18 @@ public sealed partial class QuestTrackerViewModel(
     }
 
     /// <summary>The reader moved to a step: may start the quest, may highlight "done".</summary>
-    public async Task OnStepAsync(int index, int stepCount, int resumedIndex)
+    public async Task OnStepAsync(int index, int stepCount, int resumedIndex, bool deliberate)
     {
         HighlightsDone = !IsDone && QuestTracking.IsLastStep(stepCount, index);
 
+        // Only a move the player asked for starts the quest: the step arrows
+        // or the step list. Scrolling is reading, and a guide read through was
+        // left "in progress" on the account without being played.
+        //
         // No quest to start (a dungeon, a path, no character): no read at all,
         // the page weighs 1.3 MB.
-        if (_startedThisQuest
+        if (!deliberate
+            || _startedThisQuest
             || !ShowsQuestStatus
             || !QuestTracking.ShouldStart(CurrentStatus, stepCount, index, resumedIndex))
         {

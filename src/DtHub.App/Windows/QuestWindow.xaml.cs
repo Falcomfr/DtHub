@@ -562,7 +562,7 @@ public partial class QuestWindow : Window
                 // start the quest now being loaded.
                 if (!_viewModel.IsLoadingPage)
                 {
-                    _ = _viewModel.Tracker.OnStepAsync(message.Index, _viewModel.StepCount, _resumedStep);
+                    _ = _viewModel.Tracker.OnStepAsync(message.Index, _viewModel.StepCount, _resumedStep, deliberate: false);
                 }
 
                 break;
@@ -751,7 +751,7 @@ public partial class QuestWindow : Window
             // while a page loads: the step belongs to the one leaving.
             if (!_viewModel.IsLoadingPage)
             {
-                _ = _viewModel.Tracker.OnStepAsync(index, _viewModel.StepCount, _resumedStep);
+                _ = _viewModel.Tracker.OnStepAsync(index, _viewModel.StepCount, _resumedStep, deliberate: true);
             }
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
