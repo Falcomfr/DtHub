@@ -199,7 +199,6 @@ public sealed partial class QuestTrackerViewModel(
             return;
         }
 
-        var previous = CurrentStatus;
         _writeVersion++;
         IsBusy = true;
 
@@ -212,7 +211,9 @@ public sealed partial class QuestTrackerViewModel(
 
             if (cookie is null)
             {
-                CurrentStatus = previous;
+                // Progress never held the optimistic value, and the shown quest may
+            // have changed while the write was in flight.
+            RecomputeStatus();
                 SetState(cookieFailed ? TrackerLink.Unreadable : TrackerLink.Lost);
 
                 return;
@@ -238,7 +239,9 @@ public sealed partial class QuestTrackerViewModel(
                 return;
             }
 
-            CurrentStatus = previous;
+            // Progress never held the optimistic value, and the shown quest may
+            // have changed while the write was in flight.
+            RecomputeStatus();
 
             if (result.After == TrackerReadOutcome.NotLinked)
             {

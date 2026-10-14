@@ -134,34 +134,37 @@ public partial class WebToolWindow : Window
 
     /// <summary>
     /// The tracker page, where the player types their access phrase. DT Hub
-    /// never sees it: only the cookie the site sets is looked for. Already
-    /// linked, the window just stays open on the tracker.
+    /// never sees it: only the cookie the site sets is looked for. The value
+    /// at opening is remembered, because a lost link leaves a stale cookie in
+    /// the profile: a new phrase is a cookie with another value. Opened from
+    /// "Ouvrir mon suivi", the value stays the same and the window stays open.
     /// </summary>
     private async Task OpenTrackerAsync()
     {
-        var alreadyLinked = await HasTrackerCookieAsync().ConfigureAwait(true);
-
-        if (!alreadyLinked)
-        {
-            View.CoreWebView2.NavigationCompleted += OnTrackerNavigated;
-        }
-
+        _openingCookie = await TrackerCookieValueAsync().ConfigureAwait(true);
+        View.CoreWebView2.NavigationCompleted += OnTrackerNavigated;
         View.CoreWebView2.Navigate(PapychaSite.TrackerUrl);
     }
 
-    private async Task<bool> HasTrackerCookieAsync() =>
+    private string? _openingCookie;
+
+    private async Task<string?> TrackerCookieValueAsync() =>
         (await View.CoreWebView2.CookieManager.GetCookiesAsync(PapychaSite.Root).ConfigureAwait(true))
-        .Any(cookie => cookie.Name == PapychaSite.TrackerCookie);
+        .FirstOrDefault(cookie => cookie.Name == PapychaSite.TrackerCookie)?.Value;
 
     private async void OnTrackerNavigated(object? sender, CoreWebView2NavigationCompletedEventArgs e)
     {
         try
         {
-            if (await HasTrackerCookieAsync().ConfigureAwait(true))
+            var current = await TrackerCookieValueAsync().ConfigureAwait(true);
+
+            if (current is not null && current != _openingCookie)
             {
                 View.CoreWebView2.NavigationCompleted -= OnTrackerNavigated;
-                Linked?.Invoke(this, EventArgs.Empty);
+
+                // Closed first: a throwing handler must not leave the window open.
                 Close();
+                Linked?.Invoke(this, EventArgs.Empty);
             }
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
