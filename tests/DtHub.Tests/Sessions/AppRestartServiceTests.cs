@@ -95,6 +95,24 @@ public sealed class AppRestartServiceTests
     }
 
     [Fact]
+    public async Task Une_fenetre_fermee_pendant_la_relance_ne_relance_pas_le_jeu()
+    {
+        // Its display is gone: "am start" would send the game to the
+        // phone's own screen, where it would keep running unseen.
+        var (manager, session, apps) = await OpenAsync();
+        await using var _ = manager;
+
+        var service = new AppRestartService(
+            apps,
+            (_, token) => manager.StopAsync(session.Id, token));
+
+        var result = await service.RestartAsync(session, CancellationToken.None);
+
+        Assert.Equal(AppRestartOutcome.NoDisplay, result.Outcome);
+        Assert.Empty(apps.Calls);
+    }
+
+    [Fact]
     public async Task Sans_afficheur_connu_la_relance_demande_le_repli()
     {
         // Nothing is attempted: without a display, restarting the

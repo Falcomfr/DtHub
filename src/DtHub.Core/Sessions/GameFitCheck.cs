@@ -13,16 +13,26 @@ public enum GameFitOutcome
 
     /// <summary>It did not, and was relaunched once.</summary>
     Relaunched,
+
+    /// <summary>It did not, and Android refused the relaunch.</summary>
+    RelaunchRefused,
+
+    /// <summary>
+    /// It did not, and a relaunch already failed to change that for this
+    /// phone, game and display size: not relaunched again.
+    /// </summary>
+    Misfit,
 }
 
 /// <summary>
-/// Bounds read before and, after a relaunch, after it.
+/// Bounds and phone's report read first and, after a relaunch, after it.
 /// </summary>
 public sealed record GameFitResult(
     GameFitOutcome Outcome,
     (int Left, int Top, int Right, int Bottom)? Before = null,
     (int Left, int Top, int Right, int Bottom)? After = null,
-    string? State = null);
+    string? State = null,
+    string? StateAfter = null);
 
 /// <summary>
 /// Checks that the game covers its virtual display, and relaunches it once
@@ -42,6 +52,10 @@ public sealed class GameFitCheck
     private readonly IAppLauncher _apps;
     private readonly AppRestartService _restarts;
     private readonly Func<TimeSpan, CancellationToken, Task> _delay;
+
+    // ponytail: forgotten when DT Hub closes; a relaunch per run is the cost.
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> _unrepaired =
+        new(StringComparer.Ordinal);
 
     public GameFitCheck(
         IAppLauncher apps,
@@ -85,18 +99,34 @@ public sealed class GameFitCheck
             return new GameFitResult(GameFitOutcome.Fills, before, State: first?.State);
         }
 
+        var key = $"{session.Serial}|{session.Target.PackageName}|{size.Width}x{size.Height}";
+
+        if (_unrepaired.ContainsKey(key))
+        {
+            return new GameFitResult(GameFitOutcome.Misfit, before, State: first?.State);
+        }
+
         var restart = await _restarts.RestartAsync(session, cancellationToken).ConfigureAwait(false);
 
         if (restart.Outcome != AppRestartOutcome.Restarted)
         {
-            return new GameFitResult(GameFitOutcome.Unknown, before, State: first?.State);
+            return new GameFitResult(
+                restart.Outcome == AppRestartOutcome.Failed ? GameFitOutcome.RelaunchRefused : GameFitOutcome.Unknown,
+                before,
+                State: first?.State,
+                StateAfter: restart.UserMessage);
         }
 
         await _delay(SettleDelay, cancellationToken).ConfigureAwait(false);
 
         var second = await ReadAsync(session, cancellationToken).ConfigureAwait(false);
 
-        return new GameFitResult(GameFitOutcome.Relaunched, before, second?.Bounds, second?.State ?? first?.State);
+        if (second?.Bounds == before)
+        {
+            _unrepaired[key] = true;
+        }
+
+        return new GameFitResult(GameFitOutcome.Relaunched, before, second?.Bounds, first?.State, second?.State);
     }
 
     /// <summary>Nothing to read once the window is gone.</summary>

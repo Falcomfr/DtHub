@@ -73,6 +73,13 @@ public sealed class AppRestartService
 
         await _delay(SettleDelay, cancellationToken).ConfigureAwait(false);
 
+        // Closed meanwhile, its display is gone: "am start" would send the
+        // game to the phone's own screen, to keep running there unseen.
+        if (!session.IsAlive)
+        {
+            return new AppRestartResult(AppRestartOutcome.NoDisplay);
+        }
+
         var launch = await _apps.LaunchAsync(
             target.Serial,
             target.UserId,

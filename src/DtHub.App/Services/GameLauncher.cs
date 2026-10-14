@@ -1055,6 +1055,65 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
+    /// Relaunches once a game Android did not give its whole display, and
+    /// logs what it saw: see <see cref="GameFitCheck"/>.
+    /// </summary>
+    private async Task CheckFitAsync(ScrcpySession session)
+    {
+        try
+        {
+            var fit = await _fit.CheckAsync(session, CancellationToken.None).ConfigureAwait(false);
+            var display = DisplaySize(session);
+            var state = fit.State ?? "?";
+
+            if (fit.State is not null)
+            {
+                _windowStates[session.Id] = fit.Outcome == GameFitOutcome.Relaunched
+                    ? $"{session.DisplayName} ({display}) : avant relance {state} ; après {fit.StateAfter ?? "?"}"
+                    : $"{session.DisplayName} ({display}) : {state}";
+            }
+
+            switch (fit.Outcome)
+            {
+                case GameFitOutcome.Fills:
+                    LogGameFits(session.DisplayName, display, state);
+                    break;
+
+                case GameFitOutcome.Relaunched:
+                    LogGameRelaunchedToFit(
+                        session.DisplayName, display, $"{fit.Before}", $"{fit.After}", state, fit.StateAfter ?? "?");
+                    break;
+
+                case GameFitOutcome.RelaunchRefused:
+                    LogGameFitRelaunchRefused(session.DisplayName, display, $"{fit.Before}", fit.StateAfter ?? "?");
+                    break;
+
+                case GameFitOutcome.Misfit:
+                    LogGameMisfitKept(session.DisplayName, display, state);
+                    break;
+
+                // A window closed during the wait is not worth a line.
+                default:
+                    if (session.IsAlive)
+                    {
+                        LogGameFitUnknown(session.DisplayName, display, state);
+                    }
+
+                    break;
+            }
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            LogGameFitUnknown(session.DisplayName, DisplaySize(session), exception.Message);
+        }
+    }
+
+    private static string DisplaySize(ScrcpySession session) =>
+        session.VirtualDisplaySize is { } size
+            ? string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{size.Width}x{size.Height}")
+            : "?";
+
+    /// <summary>
     /// Keeps an app opened in passing alive while its window is open.
     ///
     /// Its virtual display has its own power group, and once the phone dozes
@@ -1072,54 +1131,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// and crawled without it. It lapses on its own, so nothing stays on the
     /// phone once the window closes.
     /// </summary>
-    /// <summary>
-    /// Relaunches once a game Android did not give its whole display, and
-    /// logs what it saw: see <see cref="GameFitCheck"/>.
-    /// </summary>
-    private async Task CheckFitAsync(ScrcpySession session)
-    {
-        try
-        {
-            var fit = await _fit.CheckAsync(session, CancellationToken.None).ConfigureAwait(false);
-            var display = DisplaySize(session);
-
-            if (fit.State is { } state)
-            {
-                _windowStates[session.Id] = $"{session.DisplayName} ({display}) : {state}";
-            }
-
-            switch (fit.Outcome)
-            {
-                case GameFitOutcome.Fills:
-                    LogGameFits(session.DisplayName, display, fit.State ?? "?");
-                    break;
-
-                case GameFitOutcome.Relaunched:
-                    LogGameRelaunchedToFit(
-                        session.DisplayName, display, $"{fit.Before}", $"{fit.After}", fit.State ?? "?");
-                    break;
-
-                // A window closed during the wait is not worth a line.
-                default:
-                    if (session.IsAlive)
-                    {
-                        LogGameFitUnknown(session.DisplayName, display, fit.State ?? "?");
-                    }
-
-                    break;
-            }
-        }
-        catch (Exception exception) when (exception is not OutOfMemoryException)
-        {
-            LogGameFitUnknown(session.DisplayName, DisplaySize(session), exception.Message);
-        }
-    }
-
-    private static string DisplaySize(ScrcpySession session) =>
-        session.VirtualDisplaySize is { } size
-            ? string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{size.Width}x{size.Height}")
-            : "?";
-
     private async Task KeepAwakeAsync(ScrcpySession session)
     {
         // ponytail: one adb call every 20 s per passing window; a wake lock
@@ -2491,7 +2502,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             started.Add(session);
 
-            if (session.Target.StartUri is null && session.VirtualDisplayId is not null)
+            // The game only: a tool window is a phone app of its own, and a
+            // relaunch would lose what the player did in it.
+            if (!session.Target.IsTransient && session.Target.StartUri is null && session.VirtualDisplayId is not null)
             {
                 _ = CheckFitAsync(session);
             }
@@ -4376,8 +4389,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     [LoggerMessage(
         Level = LogLevel.Warning,
-        Message = "{Window} : le jeu ne couvrait pas son afficheur {Display} (cadre {Before}), relancé une fois, cadre ensuite {After} ; {State}")]
-    private partial void LogGameRelaunchedToFit(string window, string display, string before, string after, string state);
+        Message = "{Window} : le jeu ne couvrait pas son afficheur {Display} (cadre {Before}), relancé une fois, cadre ensuite {After} ; avant : {State} ; après : {StateAfter}")]
+    private partial void LogGameRelaunchedToFit(
+        string window, string display, string before, string after, string state, string stateAfter);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "{Window} : le jeu ne couvrait pas son afficheur {Display} (cadre {Before}), relance refusée : {Reason}")]
+    private partial void LogGameFitRelaunchRefused(string window, string display, string before, string reason);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "{Window} : le jeu ne couvre pas son afficheur {Display}, pas de nouvelle relance, une relance n'y a rien changé ; {State}")]
+    private partial void LogGameMisfitKept(string window, string display, string state);
 
     [LoggerMessage(
         Level = LogLevel.Information,
@@ -4385,7 +4409,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private partial void LogGameFits(string window, string display, string state);
 
     [LoggerMessage(
-        Level = LogLevel.Warning,
+        Level = LogLevel.Information,
         Message = "{Window} : cadre du jeu sur l'afficheur {Display} illisible ({Detail}).")]
     private partial void LogGameFitUnknown(string window, string display, string detail);
 

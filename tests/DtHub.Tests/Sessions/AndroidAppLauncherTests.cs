@@ -407,6 +407,23 @@ public class AndroidAppLauncherTests
     }
 
     [Fact]
+    public async Task Un_dump_de_diagnostic_en_echec_n_empeche_pas_de_lire_le_cadre()
+    {
+        // The windows and layers only feed the report. A multi-megabyte dump
+        // that times out, or that the error classifier mistakes for a refusal,
+        // must not take the decision down with it.
+        var adb = new FakeAdbClient()
+            .WithShell("dumpsys activity activities", Activites("Rect(472, 0 - 2104, 1080)"))
+            .WithShell("dumpsys window windows", Fenetres)
+            .WithShell("dumpsys SurfaceFlinger", () => throw new AdbException(AdbErrorKind.Unknown, "timeout"));
+
+        var window = await Build(adb).ReadGameWindowAsync(Serial, 183, Package);
+
+        Assert.Equal((472, 0, 2104, 1080), window.Bounds);
+        Assert.EndsWith("couche ?", window.State, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Un_telephone_qui_ne_repond_pas_donne_un_etat_illisible()
     {
         var adb = new FakeAdbClient()

@@ -74,7 +74,10 @@ public sealed class GameFitCheckTests
         Assert.Equal(GameFitOutcome.Relaunched, result.Outcome);
         Assert.Equal((472, 0, 2104, 1080), result.Before);
         Assert.Equal((0, 0, 2576, 1080), result.After);
-        Assert.Equal("lecture 2", result.State);
+
+        // The misfit is what the report is for: kept even once repaired.
+        Assert.Equal("lecture 1", result.State);
+        Assert.Equal("lecture 2", result.StateAfter);
         Assert.Equal(["USB0001|0|com.ankama.dofustouch"], apps.ForceStops);
         Assert.Equal(42, Assert.Single(apps.Calls).DisplayId);
     }
@@ -92,6 +95,43 @@ public sealed class GameFitCheckTests
 
         Assert.Equal(GameFitOutcome.Fills, result.Outcome);
         Assert.Empty(apps.Calls);
+    }
+
+    [Fact]
+    public async Task Un_ecart_qu_une_relance_ne_repare_pas_n_est_plus_relance()
+    {
+        // A letterbox on a very wide screen, or a manufacturer that ignores
+        // the full screen request: the relaunch gives the same bounds, and
+        // repeating it at every opening would cost the player for nothing.
+        var (manager, session, apps) = await OpenAsync();
+        await using var _ = manager;
+        var check = Check(apps);
+        apps.Bounds.Enqueue((472, 0, 2104, 1080));
+        apps.Bounds.Enqueue((472, 0, 2104, 1080));
+        await check.CheckAsync(session, CancellationToken.None);
+        apps.Calls.Clear();
+        apps.ForceStops.Clear();
+        apps.Bounds.Enqueue((472, 0, 2104, 1080));
+
+        var result = await check.CheckAsync(session, CancellationToken.None);
+
+        Assert.Equal(GameFitOutcome.Misfit, result.Outcome);
+        Assert.Empty(apps.ForceStops);
+        Assert.Empty(apps.Calls);
+    }
+
+    [Fact]
+    public async Task Une_relance_refusee_est_dite_comme_telle()
+    {
+        var (manager, session, apps) = await OpenAsync();
+        await using var _ = manager;
+        apps.Bounds.Enqueue((472, 0, 2104, 1080));
+        apps.Outcome = AppLaunchResult.Failure("Le profil Android est arrêté.");
+
+        var result = await Check(apps).CheckAsync(session, CancellationToken.None);
+
+        Assert.Equal(GameFitOutcome.RelaunchRefused, result.Outcome);
+        Assert.Equal("lecture 1", result.State);
     }
 
     [Fact]

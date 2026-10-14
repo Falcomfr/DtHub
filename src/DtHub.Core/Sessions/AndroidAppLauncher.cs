@@ -304,23 +304,44 @@ public sealed partial class AndroidAppLauncher : IAppLauncher
         string packageName,
         CancellationToken cancellationToken = default)
     {
+        string activities;
+
         try
         {
-            var activities = await _adb.ShellAsync(serial, ["dumpsys", "activity", "activities"], null, cancellationToken)
+            activities = await _adb.ShellAsync(serial, ["dumpsys", "activity", "activities"], null, cancellationToken)
                 .ConfigureAwait(false);
-            var windows = await _adb.ShellAsync(serial, ["dumpsys", "window", "windows"], null, cancellationToken)
-                .ConfigureAwait(false);
-            var layers = await _adb.ShellAsync(serial, ["dumpsys", "SurfaceFlinger"], null, cancellationToken)
-                .ConfigureAwait(false);
-
-            return new GameWindow(
-                GameBounds(activities, displayId, packageName),
-                GameWindowState(activities, windows, layers, displayId, packageName));
         }
         catch (AdbException exception)
         {
             // Unreadable, as an unknown dump would be: the caller logs it.
             return new GameWindow(null, exception.Message);
+        }
+
+        // Only for the report: one failing, multi-megabyte as they are, must
+        // not take the bounds down with it.
+        var windows = await ReadOrEmptyAsync(serial, ["dumpsys", "window", "windows"], cancellationToken)
+            .ConfigureAwait(false);
+        var layers = await ReadOrEmptyAsync(serial, ["dumpsys", "SurfaceFlinger"], cancellationToken)
+            .ConfigureAwait(false);
+
+        return new GameWindow(
+            GameBounds(activities, displayId, packageName),
+            GameWindowState(activities, windows, layers, displayId, packageName));
+    }
+
+    private async Task<string> ReadOrEmptyAsync(
+        string serial,
+        IReadOnlyList<string> command,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _adb.ShellAsync(serial, command, null, cancellationToken).ConfigureAwait(false);
+        }
+        catch (AdbException)
+        {
+            // Shows as "?" in the excerpt, which is the report's way to say it.
+            return string.Empty;
         }
     }
 
