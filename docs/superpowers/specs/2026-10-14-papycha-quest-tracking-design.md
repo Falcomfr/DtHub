@@ -177,6 +177,8 @@ Only when linked; otherwise the list is exactly as today.
 - **"Accessibles" filter**: keeps only the site's `available_quests`.
 - The two filters are toggles beside the search box, remembered. A
   category left empty by a filter is hidden while the filter is on.
+  They apply to the sections and to "Suivantes", not to a search: a quest
+  looked up by name is found even when done, and keeps its mark.
 - **"Suivantes"**: the site's `nextQuests` as the first group of the root
   list, absent while the site suggests nothing. Its exact shape is checked
   during implementation, once a quest is marked done on the owner's
