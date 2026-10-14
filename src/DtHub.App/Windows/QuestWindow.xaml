@@ -152,7 +152,16 @@
 
         <Grid Grid.Column="1" VerticalAlignment="Center"
               Visibility="{Binding IsLinked, Converter={StaticResource BoolToVisibility}}">
-          <ToggleButton x:Name="TrackerMenuToggle" Style="{StaticResource OutlineToggle}"
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+
+          <Button Style="{StaticResource OutlineButton}" Padding="8,3" Margin="0,0,8,0"
+                  VerticalAlignment="Center" Click="OnOpenTracker"
+                  Content="{loc:T TrackerMyQuests}" />
+
+          <ToggleButton x:Name="TrackerMenuToggle" Grid.Column="1" Style="{StaticResource OutlineToggle}"
                         Padding="8,2" Background="Transparent"
                         BorderBrush="{DynamicResource BorderBrush}"
                         ToolTip="{loc:T TrackerMenuTip}">
@@ -168,10 +177,6 @@
                     BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
                     CornerRadius="{StaticResource Radius}" Margin="0,4,0,0" Padding="6">
               <StackPanel>
-                <Button Style="{StaticResource OutlineButton}" Padding="8,5" Margin="0,1"
-                        HorizontalContentAlignment="Left" Background="Transparent"
-                        BorderBrush="Transparent" Click="OnOpenTracker"
-                        Content="{loc:T TrackerOpen}" />
                 <Button Style="{StaticResource OutlineButton}" Padding="8,5" Margin="0,1"
                         HorizontalContentAlignment="Left" Background="Transparent"
                         BorderBrush="Transparent" Click="OnUnlinkTracker"
@@ -993,6 +998,14 @@
                           StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                           StrokeLineJoin="Round" Visibility="Hidden" />
 
+                    <!-- The tracker's status in words, in a column of its
+                         own at the right of the name so the statuses of a
+                         section line up. Collapsed while nothing is
+                         tracked for the quest. -->
+                    <TextBlock x:Name="Statut" DockPanel.Dock="Right" Margin="10,0,0,0"
+                               VerticalAlignment="Center" Style="{StaticResource Muted}"
+                               FontSize="{StaticResource FontSmall}" Visibility="Collapsed" />
+
                     <TextBlock x:Name="Libelle" Text="{Binding Label}"
                                TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                   </DockPanel>
@@ -1482,22 +1495,36 @@
                     <Setter TargetName="Marque" Property="Visibility" Value="Collapsed" />
                   </DataTrigger>
 
-                  <DataTrigger Binding="{Binding Mark}" Value="Done">
+                  <DataTrigger Binding="{Binding Status}" Value="Completed">
                     <Setter TargetName="Marque" Property="Visibility" Value="Visible" />
                     <Setter TargetName="Marque" Property="Data" Value="M 2,6.5 L 5,9.5 L 10.5,3" />
+                    <Setter TargetName="Statut" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Statut" Property="Text" Value="{loc:T QuestStatusCompleted}" />
                   </DataTrigger>
 
-                  <DataTrigger Binding="{Binding Mark}" Value="InProgress">
+                  <DataTrigger Binding="{Binding Status}" Value="InProgress">
                     <Setter TargetName="Marque" Property="Visibility" Value="Visible" />
                     <Setter TargetName="Marque" Property="Fill"
                             Value="{DynamicResource AccentBrush}" />
                     <Setter TargetName="Marque" Property="Data"
                             Value="M 3.5,6 A 2.5,2.5 0 1 0 8.5,6 A 2.5,2.5 0 1 0 3.5,6 Z" />
+                    <Setter TargetName="Statut" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Statut" Property="Text" Value="{loc:T QuestStatusInProgress}" />
+                    <Setter TargetName="Statut" Property="Foreground"
+                            Value="{DynamicResource AccentBrush}" />
                   </DataTrigger>
 
                   <!-- Blocked or ignored: still there, but out of the way. -->
-                  <DataTrigger Binding="{Binding Mark}" Value="Dimmed">
+                  <DataTrigger Binding="{Binding Status}" Value="Blocked">
                     <Setter TargetName="Ligne" Property="Opacity" Value="0.5" />
+                    <Setter TargetName="Statut" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Statut" Property="Text" Value="{loc:T QuestStatusBlocked}" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Status}" Value="Ignored">
+                    <Setter TargetName="Ligne" Property="Opacity" Value="0.5" />
+                    <Setter TargetName="Statut" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Statut" Property="Text" Value="{loc:T QuestStatusIgnored}" />
                   </DataTrigger>
                 </DataTemplate.Triggers>
               </DataTemplate>

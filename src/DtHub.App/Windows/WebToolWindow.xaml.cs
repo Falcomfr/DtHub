@@ -127,17 +127,36 @@ public partial class WebToolWindow : Window
     }
 
     /// <summary>
-    /// The tracker page, where the player types their access phrase. DT Hub
-    /// never sees it: only the cookie the site sets is looked for. The value
-    /// at opening is remembered, because a lost link leaves a stale cookie in
-    /// the profile: a new phrase is a cookie with another value. Opened from
-    /// "Ouvrir mon suivi", the value stays the same and the window stays open.
+    /// For the Papycha tracker: true opens on the player's quests, false on
+    /// signing in. Set before the window is shown.
+    /// </summary>
+    public bool ShowsQuests { get; set; }
+
+    /// <summary>A guide of the site picked in the tracker, for the guides window to open.</summary>
+    public event EventHandler<string>? GuideRequested;
+
+    /// <summary>
+    /// The tracker page, framed down to its own content. To sign in, the
+    /// player types their phrase there, and only the cookie the site then sets
+    /// is looked for. The value at opening is remembered, because a lost link
+    /// leaves a stale cookie in the profile: a new phrase is a cookie with
+    /// another value. Opened on the quests, the value stays the same and the
+    /// window stays open.
     /// </summary>
     private async Task OpenTrackerAsync()
     {
         _openingCookie = await TrackerCookieValueAsync().ConfigureAwait(true);
+        await View.CoreWebView2
+            .AddScriptToExecuteOnDocumentCreatedAsync(QuestBridge.Script(framingOnly: true))
+            .ConfigureAwait(true);
+        await View.CoreWebView2
+            .AddScriptToExecuteOnDocumentCreatedAsync(QuestBridge.TrackerScript(ShowsQuests))
+            .ConfigureAwait(true);
         View.CoreWebView2.NavigationCompleted += OnTrackerNavigated;
-        View.CoreWebView2.Navigate(PapychaSite.TrackerUrl);
+
+        // The quests are on the site's home page once signed in; the tracker
+        // page only manages the account.
+        View.CoreWebView2.Navigate(ShowsQuests ? PapychaSite.Root : PapychaSite.TrackerUrl);
     }
 
     private string? _openingCookie;
@@ -219,6 +238,16 @@ public partial class WebToolWindow : Window
     /// </summary>
     private void OnToolNavigating(object? sender, CoreWebView2NavigationStartingEventArgs e)
     {
+        // A guide picked in the tracker reads in the guides window, with its
+        // steps and its status, not squeezed into this one.
+        if (Tool == WebTool.PapychaTracker && PapychaSite.Owns(e.Uri) && !PapychaSite.IsTrackerPage(e.Uri))
+        {
+            e.Cancel = true;
+            GuideRequested?.Invoke(this, e.Uri);
+
+            return;
+        }
+
         var own = Tool switch
         {
             WebTool.Calcofus => Calcofus.IsOwnPage(e.Uri),
@@ -266,7 +295,7 @@ public partial class WebToolWindow : Window
         {
             WebTool.Map => "ToolMapName",
             WebTool.Calcofus => "ToolCalcofusName",
-            WebTool.PapychaTracker => "TrackerWindowTitle",
+            WebTool.PapychaTracker => ShowsQuests ? "TrackerWindowTitle" : "TrackerSignInTitle",
             _ => "ToolDofusRoomName",
         });
         Donate.Visibility = Tool == WebTool.Map ? Visibility.Visible : Visibility.Collapsed;

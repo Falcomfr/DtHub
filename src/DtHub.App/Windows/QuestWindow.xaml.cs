@@ -580,13 +580,9 @@ public partial class QuestWindow : Window
         }
     }
 
-    private void OnLinkTracker(object sender, RoutedEventArgs e) => OpenTrackerWindow();
+    private void OnLinkTracker(object sender, RoutedEventArgs e) => OpenTrackerWindow(quests: false);
 
-    private void OnOpenTracker(object sender, RoutedEventArgs e)
-    {
-        TrackerMenuToggle.IsChecked = false;
-        OpenTrackerWindow();
-    }
+    private void OnOpenTracker(object sender, RoutedEventArgs e) => OpenTrackerWindow(quests: true);
 
     private void OnUnlinkTracker(object sender, RoutedEventArgs e)
     {
@@ -624,12 +620,12 @@ public partial class QuestWindow : Window
     }
 
     /// <summary>
-    /// Opens the tracker page in its linking window, one at a time. The
-    /// window closes itself when a new cookie appears; whatever closes it,
-    /// the tracker is read again, since the player may have changed
-    /// statuses there.
+    /// Opens the tracker page, one window at a time: to sign in, or on the
+    /// player's quests. Signing in, the window closes itself when a new
+    /// cookie appears; whatever closes it, the tracker is read again, since
+    /// the player may have changed statuses there.
     /// </summary>
-    private void OpenTrackerWindow()
+    private void OpenTrackerWindow(bool quests)
     {
         if (_linking is { IsLoaded: true })
         {
@@ -642,6 +638,12 @@ public partial class QuestWindow : Window
 
         window.Owner = this;
         window.Tool = WebTool.PapychaTracker;
+        window.ShowsQuests = quests;
+        window.GuideRequested += (_, url) =>
+        {
+            Route(url);
+            Activate();
+        };
         window.Closed += (_, _) =>
         {
             _linking = null;

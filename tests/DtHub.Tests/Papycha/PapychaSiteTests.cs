@@ -127,4 +127,18 @@ public sealed class PapychaSiteTests
         // none of that goes to the browser.
         Assert.False(PapychaSite.IsSuccessTree(url));
     }
+
+    [Theory]
+    [InlineData("https://papycha.fr/", true)]
+    [InlineData("https://papycha.fr", true)]
+    [InlineData("https://papycha.fr/?pqt_onboarding=1", true)]
+    [InlineData("https://papycha.fr/suivi-quetes/", true)]
+    [InlineData("https://papycha.fr/suivi-quetes/?pqt_share=x", true)]
+    [InlineData("https://www.papycha.fr/suivi-quetes", true)]
+    [InlineData("https://papycha.fr/quete-bien-debuter/", false)]
+    [InlineData("https://papycha.fr/suivi-quetes-bis/", false)]
+    [InlineData("https://ailleurs.example/suivi-quetes/", false)]
+    [InlineData(null, false)]
+    public void Les_pages_du_suivi_sont_l_accueil_et_suivi_quetes(string? url, bool expected) =>
+        Assert.Equal(expected, PapychaSite.IsTrackerPage(url));
 }

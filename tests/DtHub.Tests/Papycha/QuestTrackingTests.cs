@@ -18,22 +18,11 @@ public class QuestTrackingTests
         []);
 
     [Theory]
-    [InlineData(1, QuestMark.InProgress)]
-    [InlineData(2, QuestMark.Dimmed)]
-    [InlineData(3, QuestMark.Dimmed)]
-    [InlineData(4, QuestMark.Done)]
-    [InlineData(5, QuestMark.Done)]
-    [InlineData(6, QuestMark.None)]
-    public void MarkOf_follows_the_status(int id, QuestMark expected) =>
-        Assert.Equal(expected, QuestTracking.MarkOf(Progress, id));
-
-    [Fact]
-    public void MarkOf_is_none_without_progress() =>
-        Assert.Equal(QuestMark.None, QuestTracking.MarkOf(null, 1));
-
-    [Theory]
-    [InlineData(5, QuestStatus.Completed)]
+    [InlineData(1, QuestStatus.InProgress)]
     [InlineData(2, QuestStatus.Blocked)]
+    [InlineData(3, QuestStatus.Ignored)]
+    [InlineData(4, QuestStatus.Completed)]
+    [InlineData(5, QuestStatus.Completed)]
     [InlineData(99, QuestStatus.NotStarted)]
     public void StatusOf_prefers_completed_then_explicit(int id, QuestStatus expected) =>
         Assert.Equal(expected, QuestTracking.StatusOf(Progress, id));

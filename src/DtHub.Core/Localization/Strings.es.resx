@@ -2267,7 +2267,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Las líneas de visión de los mapas de combate de DOFUS Touch.</value>
   </data>
   <data name="TrackerLink" xml:space="preserve">
-    <value>Vincula tu seguimiento de Papycha</value>
+    <value>Inicia sesión en Papycha</value>
   </data>
   <data name="TrackerLost" xml:space="preserve">
     <value>Seguimiento de Papycha desconectado</value>
@@ -2275,14 +2275,23 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="TrackerUnreadable" xml:space="preserve">
     <value>Seguimiento de Papycha ilegible por ahora</value>
   </data>
-  <data name="TrackerOpen" xml:space="preserve">
-    <value>Abre tu seguimiento en Papycha</value>
-  </data>
   <data name="TrackerUnlink" xml:space="preserve">
     <value>Desvincular</value>
   </data>
+  <data name="TrackerMyQuests" xml:space="preserve">
+    <value>Mis misiones</value>
+  </data>
+  <data name="TrackerSignInTitle" xml:space="preserve">
+    <value>Inicia sesión en Papycha</value>
+  </data>
+  <data name="TrackerCreateAccount" xml:space="preserve">
+    <value>Crea una cuenta</value>
+  </data>
+  <data name="TrackerBackToSignIn" xml:space="preserve">
+    <value>Ya tengo una frase</value>
+  </data>
   <data name="TrackerWindowTitle" xml:space="preserve">
-    <value>Seguimiento de Papycha</value>
+    <value>Mi seguimiento de Papycha</value>
   </data>
   <data name="QuestStatusNotStarted" xml:space="preserve">
     <value>Sin empezar</value>

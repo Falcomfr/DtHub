@@ -62,9 +62,9 @@ public sealed partial class QuestViewModel : ObservableObject
         }
     }
 
-    /// <summary>Lays the tracker's mark over a quest row; other rows pass through.</summary>
+    /// <summary>Lays the tracker's status over a quest row; other rows pass through.</summary>
     private QuestNode Marked(QuestNode node) =>
-        node.Quest is { } quest ? node with { Mark = QuestTracking.MarkOf(Tracker.Progress, quest.Id) } : node;
+        node.Quest is { } quest ? node with { Status = QuestTracking.StatusOf(Tracker.Progress, quest.Id) } : node;
 
     private bool Passes(QuestSummary quest) =>
         QuestTracking.Passes(Tracker.Progress, quest.Id, FilterToDo, FilterAvailable);

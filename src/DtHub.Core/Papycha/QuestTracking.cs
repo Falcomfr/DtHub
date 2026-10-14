@@ -1,14 +1,5 @@
 ﻿namespace DtHub.Core.Papycha;
 
-/// <summary>How the guides list shows a quest the player tracks.</summary>
-public enum QuestMark
-{
-    None,
-    InProgress,
-    Done,
-    Dimmed,
-}
-
 /// <summary>
 /// The rules that lay the player's tracker over the guides list. Pure, so
 /// the view models stay thin and the rules are tested without a window.
@@ -33,14 +24,6 @@ public static class QuestTracking
 
         return progress.Statuses.TryGetValue(questId, out var status) ? status : QuestStatus.NotStarted;
     }
-
-    public static QuestMark MarkOf(TrackerProgress? progress, int questId) => StatusOf(progress, questId) switch
-    {
-        QuestStatus.Completed => QuestMark.Done,
-        QuestStatus.InProgress => QuestMark.InProgress,
-        QuestStatus.Blocked or QuestStatus.Ignored => QuestMark.Dimmed,
-        _ => QuestMark.None,
-    };
 
     /// <summary>
     /// Whether a quest stays in the list under the two filters. Without a

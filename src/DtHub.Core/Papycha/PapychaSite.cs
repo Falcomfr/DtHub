@@ -55,6 +55,23 @@ public static class PapychaSite
     }
 
     /// <summary>
+    /// True for the pages of the player's tracker: the home page, where the
+    /// signed-in dashboard lives, and the tracker page, which signs in and
+    /// manages the account. Any other page of the site is a guide.
+    /// </summary>
+    public static bool IsTrackerPage(string? url)
+    {
+        if (!Owns(url))
+        {
+            return false;
+        }
+
+        var path = new Uri(url!.Trim()).AbsolutePath.TrimEnd('/');
+
+        return path.Length == 0 || path.Equals("/suivi-quetes", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
     /// True when the address is a page of the site, in plain terms
     /// a secure address of the site's host or one of its subdomains.
     ///

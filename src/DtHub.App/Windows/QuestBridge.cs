@@ -2,6 +2,8 @@
 using System.Reflection;
 using System.Text.Json;
 
+using DtHub.Core.Localization;
+
 namespace DtHub.App.Windows;
 
 /// <summary>
@@ -50,6 +52,23 @@ internal static class QuestBridge
                 "__DTHUB_LOCATION__",
                 JsonSerializer.Serialize(location ?? string.Empty),
                 StringComparison.Ordinal);
+
+    /// <summary>
+    /// The tracker page's own framing: the sign-in cards first, creation behind
+    /// a button, and the player's quests in progress when <paramref name="quests"/>.
+    /// Goes on top of <see cref="Script"/> in framing mode.
+    /// </summary>
+    public static string TrackerScript(bool quests) =>
+        Read("DtHub.App.papycha-tracker.js")
+            .Replace(
+                "__DTHUB_TEXT__",
+                JsonSerializer.Serialize(new
+                {
+                    create = Strings.Get("TrackerCreateAccount"),
+                    back = Strings.Get("TrackerBackToSignIn"),
+                }),
+                StringComparison.Ordinal)
+            .Replace("__DTHUB_QUESTS__", quests ? "true" : "false", StringComparison.Ordinal);
 
     private static string Read(string name)
     {

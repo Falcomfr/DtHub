@@ -80,13 +80,18 @@ builds. The tracker works on the cached catalogue as it is.
 
 ### 1. Linking the account (approved section)
 
-- **Not linked.** The guides window shows a single quiet button, "Lier mon
-  suivi Papycha". Nothing else changes.
+- **Not linked.** The guides window shows a single quiet button, "Se
+  connecter à Papycha". Nothing else changes.
 - **Linking.** The button opens a `WebToolWindow` on
   `https://papycha.fr/suivi-quetes/`, through a new `WebTool.PapychaTracker`
   entry: same shared WebView profile, own pages kept in the window, other
   links sent to the browser like the other tools. The player types their
-  phrase or creates the account on Papycha's own page. After each
+  phrase or creates the account on Papycha's own page, framed down to its
+  content (revised 2026-10-14 after the owner's first try): the site's
+  header, menu, sidebars and footer are hidden, the window opens on "J'ai
+  déjà une phrase" and "Phrase oubliée", and the creation form waits behind
+  a "Créer un compte" button ("J'ai déjà une phrase" brings the sign-in
+  back). Window title: "Connexion à Papycha". After each
   navigation the window asks the `CookieManager` for
   `papycha_tracker_code_v2`; as soon as it exists, the window closes itself
   and the guides window fills its bar.
@@ -140,8 +145,15 @@ and in a guide alike:
 
 - the character: a drop-down of the non-archived characters (name and
   level), reduced to the name alone when there is only one;
-- a menu button: "Ouvrir mon suivi sur Papycha" (opens the linking window,
-  already linked) and "Délier".
+- "Mes quêtes", a visible button: opens the player's tracker in a window
+  titled "Mon suivi Papycha". Signed in, the quests live on the site's home
+  page (its "dashboard"; `/suivi-quetes/` only manages the account), so the
+  window opens there, framed to the tracker alone, on the "Quêtes" tab with
+  the "En cours ou bloquées" filter pressed. The bar showing the full
+  access phrase and the account tools is hidden, so is the dashboard's
+  empty "Accueil" tab. A guide picked there opens in the guides window, not
+  in this one. Closing it reads the tracker again;
+- a menu button with "Délier".
 
 In the quest banner, next to the title, when a quest is shown and the
 account is linked:
@@ -178,8 +190,10 @@ read it counts as moving past the first step. Undoing it is one click
 
 Only when linked; otherwise the list is exactly as today.
 
-- **Mark per quest**: a check for done (explicit or inferred), a dot for in
-  progress, the row dimmed for blocked or ignored.
+- **Status per quest**: in words, in a column at the right of the name
+  ("En cours", "Terminée", "Bloquée", "Ignorée"), with a check for done
+  (explicit or inferred) and a dot for in progress before the name; the
+  row dimmed for blocked or ignored.
 - **"À faire" filter**: hides the done and ignored quests.
 - **"Accessibles" filter**: keeps only the site's `available_quests`.
 - The two filters are toggles beside the search box, remembered. A
