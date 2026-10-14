@@ -276,6 +276,45 @@ public sealed class QuestTree
 
 
     /// <summary>
+    /// The rows of <see cref="BySuccess"/> a filter keeps, in the same order.
+    ///
+    /// The filter comes after the plan, never before: the plan orders a
+    /// section from the quests it is given, and a section filtered first came
+    /// out in another order. A filter only removes rows. An achievement
+    /// heading stays only when one of its quests does.
+    /// </summary>
+    public static IEnumerable<QuestNode> Keep(IEnumerable<QuestNode> rows, Func<QuestSummary, bool> keep)
+    {
+        ArgumentNullException.ThrowIfNull(rows);
+        ArgumentNullException.ThrowIfNull(keep);
+
+        QuestNode? heading = null;
+
+        foreach (var row in rows)
+        {
+            if (row.Kind == QuestNodeKind.Success)
+            {
+                heading = row;
+                continue;
+            }
+
+            if (row.Quest is { } quest && !keep(quest))
+            {
+                continue;
+            }
+
+            if (heading is not null && row.InSuccess)
+            {
+                yield return heading;
+            }
+
+            heading = null;
+
+            yield return row;
+        }
+    }
+
+    /// <summary>
     /// A quest line.
     ///
     /// The right-hand column no longer carries the level: the site only gives

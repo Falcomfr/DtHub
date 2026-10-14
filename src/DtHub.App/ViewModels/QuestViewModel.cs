@@ -54,9 +54,9 @@ public sealed partial class QuestViewModel : ObservableObject
     /// <summary>Places in the list the rows the tree builds.</summary>
     private void AddBySuccess(IEnumerable<QuestSummary> quests)
     {
-        // Filtered before the grouping, so an achievement left with no quest
-        // loses its heading too.
-        foreach (var node in _tree.BySuccess([.. quests.Where(Passes)]))
+        // Ordered on the whole section, filtered afterwards: a filter removes
+        // rows, it never moves the ones left.
+        foreach (var node in QuestTree.Keep(_tree.BySuccess([.. quests]), Passes))
         {
             Nodes.Add(Marked(node));
         }
