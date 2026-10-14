@@ -85,4 +85,31 @@ public class QuestTrackingTests
     [Fact]
     public void PickCharacter_is_null_for_no_character() =>
         Assert.Null(QuestTracking.PickCharacter([], "a", "a"));
+
+    private static TrackerProgress Done(params int[] ids) =>
+        new(new Dictionary<int, QuestStatus>(), new HashSet<int>(ids), new HashSet<int>(), []);
+
+    private static readonly TrackerState Account = new(
+        "n",
+        [new("a", "Falcom", 190), new("b", "Mule", 50), new("c", "Sacri", 120)],
+        "a",
+        new Dictionary<string, TrackerProgress>
+        {
+            ["a"] = Done(),
+            ["b"] = Done(7),
+            ["c"] = Done(),
+        });
+
+    [Fact]
+    public void OthersToFinish_offers_the_other_characters_not_done_yet() =>
+        Assert.Equal(["Sacri"], QuestTracking.OthersToFinish(Account, "a", 7).Select(c => c.Name));
+
+    [Fact]
+    public void OthersToFinish_keeps_the_account_order() =>
+        Assert.Equal(["Mule", "Sacri"], QuestTracking.OthersToFinish(Account, "a", 8).Select(c => c.Name));
+
+    [Fact]
+    public void OthersToFinish_is_empty_with_one_character() =>
+        Assert.Empty(QuestTracking.OthersToFinish(
+            Account with { Characters = [new("a", "Falcom", 190)] }, "a", 8));
 }

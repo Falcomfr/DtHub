@@ -2305,6 +2305,21 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="TrackerPitch" xml:space="preserve">
     <value>Suivez vos quêtes en cours et terminées avec votre compte Papycha.</value>
   </data>
+  <data name="TrackerFinishOffer" xml:space="preserve">
+    <value>Marquer « {0} » terminée ?</value>
+  </data>
+  <data name="TrackerYes" xml:space="preserve">
+    <value>Oui</value>
+  </data>
+  <data name="TrackerNo" xml:space="preserve">
+    <value>Non</value>
+  </data>
+  <data name="TrackerAlsoFor" xml:space="preserve">
+    <value>Aussi pour :</value>
+  </data>
+  <data name="TrackerAllCharacters" xml:space="preserve">
+    <value>Tous</value>
+  </data>
   <data name="TrackerWindowTitle" xml:space="preserve">
     <value>Mon suivi Papycha</value>
   </data>

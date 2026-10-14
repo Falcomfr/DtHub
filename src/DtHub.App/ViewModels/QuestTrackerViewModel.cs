@@ -74,6 +74,16 @@ public sealed partial class QuestTrackerViewModel(
 
     public ObservableCollection<TrackerCharacter> Characters { get; } = [];
 
+    /// <summary>"Marquer « X » terminée ?", or empty when nothing is offered.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsFinishOffer))]
+    private string _finishOffer = string.Empty;
+
+    public bool ShowsFinishOffer => FinishOffer.Length > 0;
+
+    /// <summary>The quest the offer is about, when there is one.</summary>
+    private int? _offeredQuestId;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsLinked))]
     [NotifyPropertyChangedFor(nameof(ShowsLinkButton))]
@@ -187,6 +197,8 @@ public sealed partial class QuestTrackerViewModel(
     /// <summary>The quest the guides window shows, or null for none.</summary>
     public void ShowQuest(int? questId)
     {
+        DismissFinishOffer();
+        DismissOthers();
         _questId = questId;
         _shown++;
         _startedThisQuest = false;
@@ -229,17 +241,111 @@ public sealed partial class QuestTrackerViewModel(
         await SetStatusAsync(QuestStatus.InProgress);
     }
 
+    /// <summary>Writes a status for the shown quest.</summary>
+    public Task SetStatusAsync(QuestStatus status) =>
+        _questId is { } questId ? WriteAsync(questId, status) : Task.CompletedTask;
+
     /// <summary>
-    /// Writes a status for the shown quest. One write at a time: a call made
-    /// while another runs is dropped, so two quick clicks write once. The
-    /// busy flag is the gate: everything here runs on the UI thread, so the
-    /// check and the set cannot interleave.
+    /// The account's other characters still to finish the quest just marked
+    /// done: one click each, or all at once, and ignoring them writes nothing.
     /// </summary>
-    public async Task SetStatusAsync(QuestStatus status)
+    public ObservableCollection<TrackerCharacter> OthersToFinish { get; } = [];
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsAllOthers))]
+    private bool _showsOthers;
+
+    public bool ShowsAllOthers => ShowsOthers && OthersToFinish.Count > 1;
+
+    private int? _othersQuestId;
+
+    private void OfferOthers(IReadOnlyList<TrackerCharacter> others, int questId)
     {
-        if (_questId is not { } questId || SelectedCharacter is not { } character || IsBusy)
+        OthersToFinish.Clear();
+
+        foreach (var character in others)
+        {
+            OthersToFinish.Add(character);
+        }
+
+        _othersQuestId = others.Count > 0 ? questId : null;
+        ShowsOthers = others.Count > 0;
+        OnPropertyChanged(nameof(ShowsAllOthers));
+    }
+
+    public void DismissOthers() => OfferOthers([], 0);
+
+    /// <summary>Marks the quest done for one more character.</summary>
+    public async Task FinishForAsync(TrackerCharacter character)
+    {
+        if (_othersQuestId is not { } questId || !OthersToFinish.Contains(character))
         {
             return;
+        }
+
+        if (await WriteAsync(questId, QuestStatus.Completed, character))
+        {
+            OthersToFinish.Remove(character);
+            ShowsOthers = OthersToFinish.Count > 0;
+            OnPropertyChanged(nameof(ShowsAllOthers));
+        }
+    }
+
+    /// <summary>Marks the quest done for every character offered, one write after the other.</summary>
+    public async Task FinishForAllAsync()
+    {
+        foreach (var character in OthersToFinish.ToList())
+        {
+            await FinishForAsync(character);
+        }
+    }
+
+    /// <summary>
+    /// Offers to mark done the quest the player just left with "next quest".
+    /// Leaving is not finishing, so nothing is written without "Oui"; the
+    /// offer goes as soon as another quest is shown.
+    /// </summary>
+    public void OfferToFinish(int questId, string title)
+    {
+        if (!IsLinked || QuestTracking.StatusOf(Progress, questId) == QuestStatus.Completed)
+        {
+            return;
+        }
+
+        _offeredQuestId = questId;
+        FinishOffer = Strings.Format("TrackerFinishOffer", title);
+    }
+
+    /// <summary>The player said yes: the quest they left is written done.</summary>
+    public async Task AcceptFinishOfferAsync()
+    {
+        if (_offeredQuestId is not { } questId)
+        {
+            return;
+        }
+
+        DismissFinishOffer();
+        await WriteAsync(questId, QuestStatus.Completed);
+    }
+
+    public void DismissFinishOffer()
+    {
+        _offeredQuestId = null;
+        FinishOffer = string.Empty;
+    }
+
+    /// <summary>
+    /// Writes a status for a quest. One write at a time: a call made while
+    /// another runs is dropped, so two quick clicks write once. The busy flag
+    /// is the gate: everything here runs on the UI thread, so the check and
+    /// the set cannot interleave. Only the shown quest takes the status at
+    /// once; any other waits for the read that follows.
+    /// </summary>
+    private async Task<bool> WriteAsync(int questId, QuestStatus status, TrackerCharacter? other = null)
+    {
+        if ((other ?? SelectedCharacter) is not { } character || IsBusy)
+        {
+            return false;
         }
 
         _writeVersion++;
@@ -248,7 +354,11 @@ public sealed partial class QuestTrackerViewModel(
         try
         {
             Notice = string.Empty;
-            CurrentStatus = status;
+
+            if (questId == _questId && other is null)
+            {
+                CurrentStatus = status;
+            }
 
             var (cookie, cookieFailed) = await ReadCookieAsync();
 
@@ -259,7 +369,7 @@ public sealed partial class QuestTrackerViewModel(
                 RecomputeStatus();
                 SetState(cookieFailed ? TrackerLink.Unreadable : TrackerLink.Lost);
 
-                return;
+                return false;
             }
 
             TrackerWriteResult result;
@@ -277,9 +387,14 @@ public sealed partial class QuestTrackerViewModel(
 
             if (result.Success)
             {
+                if (status == QuestStatus.Completed && other is null && _state is { } state)
+                {
+                    OfferOthers(QuestTracking.OthersToFinish(state, character.Id, questId), questId);
+                }
+
                 _ = RefreshAsync();
 
-                return;
+                return true;
             }
 
             // Progress never held the optimistic value, and the shown quest may
@@ -306,6 +421,8 @@ public sealed partial class QuestTrackerViewModel(
         {
             IsBusy = false;
         }
+
+        return false;
     }
 
     /// <summary>Forgets the cookie and drops everything the tracker gave.</summary>

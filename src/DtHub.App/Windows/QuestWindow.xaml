@@ -148,6 +148,46 @@
                      TextWrapping="Wrap"
                      Visibility="{Binding Notice, Converter={StaticResource EmptyToVisibility},
                                           ConverterParameter=inverse}" />
+
+          <!-- Offered after "next quest": leaving a quest is not always
+               finishing it, so it is asked, never written on its own. -->
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                      Visibility="{Binding ShowsFinishOffer, Converter={StaticResource BoolToVisibility}}">
+            <TextBlock Text="{Binding FinishOffer}" VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis" MaxWidth="320" Margin="0,0,8,0" />
+            <Button Style="{StaticResource OutlineButton}" Padding="8,2" Margin="0,0,4,0"
+                    Background="{DynamicResource AccentSoftBrush}"
+                    BorderBrush="{DynamicResource AccentBrush}"
+                    Click="OnAcceptFinish" Content="{loc:T TrackerYes}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}" />
+            <Button Style="{StaticResource OutlineButton}" Padding="8,2"
+                    Click="OnDismissFinish" Content="{loc:T TrackerNo}" />
+          </StackPanel>
+
+          <!-- After "Terminée": the account's other characters still to
+               finish it, one click each or all at once. Ignored, it writes
+               nothing and goes with the next quest shown. -->
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0"
+                      Visibility="{Binding ShowsOthers, Converter={StaticResource BoolToVisibility}}">
+            <TextBlock Text="{loc:T TrackerAlsoFor}" Style="{StaticResource Muted}"
+                       VerticalAlignment="Center" Margin="0,0,6,0" />
+            <ItemsControl ItemsSource="{Binding OthersToFinish}" VerticalAlignment="Center">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Button Style="{StaticResource OutlineButton}" Padding="8,2" Margin="0,0,4,0"
+                          Content="{Binding Name}" Tag="{Binding}" Click="OnFinishForOther" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Button Style="{StaticResource OutlineButton}" Padding="8,2"
+                    Click="OnFinishForAll" Content="{loc:T TrackerAllCharacters}"
+                    Visibility="{Binding ShowsAllOthers, Converter={StaticResource BoolToVisibility}}" />
+          </StackPanel>
         </StackPanel>
 
         <Button Grid.Column="1" Style="{StaticResource OutlineButton}" Padding="8,3"
@@ -165,79 +205,86 @@
 
           <!-- The shown quest's status on the player's tracker, next to the
                other tracker controls. Only while a quest is shown. -->
-          <StackPanel Orientation="Horizontal" Margin="0,0,12,0" VerticalAlignment="Center"
-                      Visibility="{Binding ShowsQuestStatus, Converter={StaticResource BoolToVisibility}}">
-            <TextBlock Text="{Binding CurrentStatusLabel}" Style="{StaticResource Muted}"
-                       FontSize="{StaticResource FontSmall}" VerticalAlignment="Center"
-                       Margin="0,0,10,0" />
-
-            <Button Padding="8,2" VerticalAlignment="Center" Click="OnMarkDone"
-                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}">
-              <Button.Style>
-                <Style TargetType="Button" BasedOn="{StaticResource OutlineButton}">
-                  <Setter Property="Content" Value="{loc:T QuestStatusCompleted}" />
-                  <Style.Triggers>
-                    <DataTrigger Binding="{Binding HighlightsDone}" Value="True">
-                      <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
-                      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-                    </DataTrigger>
-                    <DataTrigger Binding="{Binding IsDone}" Value="True">
-                      <Setter Property="Content" Value="{loc:T TrackerDone}" />
-                    </DataTrigger>
-                  </Style.Triggers>
-                </Style>
-              </Button.Style>
-            </Button>
-
-            <Grid Margin="4,0,0,0" VerticalAlignment="Center">
-              <ToggleButton x:Name="StatusMenuToggle" Style="{StaticResource OutlineToggle}"
-                            Padding="7,2" Background="Transparent"
-                            BorderBrush="{DynamicResource BorderBrush}"
-                            ToolTip="{loc:T QuestStatusMenuTip}"
-                            IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}">
-                <Path Width="8" Height="5" Stretch="None" StrokeLineJoin="Round"
-                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                      Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.4"
-                      Data="M 0.7,0.7 L 4,4 L 7.3,0.7" />
-              </ToggleButton>
-              <Popup IsOpen="{Binding IsChecked, ElementName=StatusMenuToggle, Mode=TwoWay}"
-                     StaysOpen="False" Placement="Bottom"
-                     PlacementTarget="{Binding ElementName=StatusMenuToggle}"
-                     AllowsTransparency="True" PopupAnimation="Fade">
-                <Border Background="{DynamicResource SurfaceBrush}"
-                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
-                        CornerRadius="{StaticResource Radius}" Margin="0,4,0,0" Padding="6">
-                  <StackPanel>
-                    <Button Style="{StaticResource OutlineButton}" Padding="8,5" Margin="0,1"
-                            HorizontalContentAlignment="Left" Background="Transparent"
-                            BorderBrush="Transparent" Click="OnPickStatus"
-                            Tag="{x:Static papycha:QuestStatus.NotStarted}"
-                            Content="{loc:T QuestStatusNotStarted}" />
-                    <Button Style="{StaticResource OutlineButton}" Padding="8,5" Margin="0,1"
-                            HorizontalContentAlignment="Left" Background="Transparent"
-                            BorderBrush="Transparent" Click="OnPickStatus"
-                            Tag="{x:Static papycha:QuestStatus.InProgress}"
-                            Content="{loc:T QuestStatusInProgress}" />
-                    <Button Style="{StaticResource OutlineButton}" Padding="8,5" Margin="0,1"
-                            HorizontalContentAlignment="Left" Background="Transparent"
-                            BorderBrush="Transparent" Click="OnPickStatus"
-                            Tag="{x:Static papycha:QuestStatus.Completed}"
-                            Content="{loc:T QuestStatusCompleted}" />
-                    <Button Style="{StaticResource OutlineButton}" Padding="8,5" Margin="0,1"
-                            HorizontalContentAlignment="Left" Background="Transparent"
-                            BorderBrush="Transparent" Click="OnPickStatus"
-                            Tag="{x:Static papycha:QuestStatus.Blocked}"
-                            Content="{loc:T QuestStatusBlocked}" />
-                    <Button Style="{StaticResource OutlineButton}" Padding="8,5" Margin="0,1"
-                            HorizontalContentAlignment="Left" Background="Transparent"
-                            BorderBrush="Transparent" Click="OnPickStatus"
-                            Tag="{x:Static papycha:QuestStatus.Ignored}"
-                            Content="{loc:T QuestStatusIgnored}" />
-                  </StackPanel>
-                </Border>
-              </Popup>
-            </Grid>
-          </StackPanel>
+          <!-- Only while a guide is on screen: in the list or a search, the
+               buttons would speak of a quest no longer shown. -->
+          <Border VerticalAlignment="Center"
+                  Visibility="{Binding DataContext.ShowsQuestChrome,
+                                       RelativeSource={RelativeSource AncestorType=Window},
+                                       Converter={StaticResource BoolToVisibility}}">
+            <StackPanel Orientation="Horizontal" Margin="0,0,12,0" VerticalAlignment="Center"
+                        Visibility="{Binding ShowsQuestStatus, Converter={StaticResource BoolToVisibility}}">
+              <TextBlock Text="{Binding CurrentStatusLabel}" Style="{StaticResource Muted}"
+                         FontSize="{StaticResource FontSmall}" VerticalAlignment="Center"
+                         Margin="0,0,10,0" />
+  
+              <Button Padding="8,2" VerticalAlignment="Center" Click="OnMarkDone"
+                      IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}">
+                <Button.Style>
+                  <Style TargetType="Button" BasedOn="{StaticResource OutlineButton}">
+                    <Setter Property="Content" Value="{loc:T QuestStatusCompleted}" />
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding HighlightsDone}" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                      </DataTrigger>
+                      <DataTrigger Binding="{Binding IsDone}" Value="True">
+                        <Setter Property="Content" Value="{loc:T TrackerDone}" />
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </Button.Style>
+              </Button>
+  
+              <Grid Margin="4,0,0,0" VerticalAlignment="Center">
+                <ToggleButton x:Name="StatusMenuToggle" Style="{StaticResource OutlineToggle}"
+                              Padding="7,2" Background="Transparent"
+                              BorderBrush="{DynamicResource BorderBrush}"
+                              ToolTip="{loc:T QuestStatusMenuTip}"
+                              IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}">
+                  <Path Width="8" Height="5" Stretch="None" StrokeLineJoin="Round"
+                        StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                        Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.4"
+                        Data="M 0.7,0.7 L 4,4 L 7.3,0.7" />
+                </ToggleButton>
+                <Popup IsOpen="{Binding IsChecked, ElementName=StatusMenuToggle, Mode=TwoWay}"
+                       StaysOpen="False" Placement="Bottom"
+                       PlacementTarget="{Binding ElementName=StatusMenuToggle}"
+                       AllowsTransparency="True" PopupAnimation="Fade">
+                  <Border Background="{DynamicResource SurfaceBrush}"
+                          BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                          CornerRadius="{StaticResource Radius}" Margin="0,4,0,0" Padding="6">
+                    <StackPanel>
+                      <Button Style="{StaticResource OutlineButton}" Padding="8,5" Margin="0,1"
+                              HorizontalContentAlignment="Left" Background="Transparent"
+                              BorderBrush="Transparent" Click="OnPickStatus"
+                              Tag="{x:Static papycha:QuestStatus.NotStarted}"
+                              Content="{loc:T QuestStatusNotStarted}" />
+                      <Button Style="{StaticResource OutlineButton}" Padding="8,5" Margin="0,1"
+                              HorizontalContentAlignment="Left" Background="Transparent"
+                              BorderBrush="Transparent" Click="OnPickStatus"
+                              Tag="{x:Static papycha:QuestStatus.InProgress}"
+                              Content="{loc:T QuestStatusInProgress}" />
+                      <Button Style="{StaticResource OutlineButton}" Padding="8,5" Margin="0,1"
+                              HorizontalContentAlignment="Left" Background="Transparent"
+                              BorderBrush="Transparent" Click="OnPickStatus"
+                              Tag="{x:Static papycha:QuestStatus.Completed}"
+                              Content="{loc:T QuestStatusCompleted}" />
+                      <Button Style="{StaticResource OutlineButton}" Padding="8,5" Margin="0,1"
+                              HorizontalContentAlignment="Left" Background="Transparent"
+                              BorderBrush="Transparent" Click="OnPickStatus"
+                              Tag="{x:Static papycha:QuestStatus.Blocked}"
+                              Content="{loc:T QuestStatusBlocked}" />
+                      <Button Style="{StaticResource OutlineButton}" Padding="8,5" Margin="0,1"
+                              HorizontalContentAlignment="Left" Background="Transparent"
+                              BorderBrush="Transparent" Click="OnPickStatus"
+                              Tag="{x:Static papycha:QuestStatus.Ignored}"
+                              Content="{loc:T QuestStatusIgnored}" />
+                    </StackPanel>
+                  </Border>
+                </Popup>
+              </Grid>
+            </StackPanel>
+          </Border>
 
           <Button Grid.Column="1" Style="{StaticResource OutlineButton}" Padding="8,3" Margin="0,0,8,0"
                   VerticalAlignment="Center" Click="OnOpenTracker"

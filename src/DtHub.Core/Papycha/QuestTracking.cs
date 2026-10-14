@@ -26,6 +26,23 @@ public static class QuestTracking
     }
 
     /// <summary>
+    /// The account's other characters for whom a quest is not done yet, in
+    /// the account's order: offered after it is marked done for one, since a
+    /// player often does a quest with several characters at once.
+    /// </summary>
+    public static IReadOnlyList<TrackerCharacter> OthersToFinish(TrackerState state, string characterId, int questId)
+    {
+        ArgumentNullException.ThrowIfNull(state);
+
+        return
+        [
+            .. state.Characters.Where(c =>
+                c.Id != characterId
+                && StatusOf(state.Progress.GetValueOrDefault(c.Id), questId) != QuestStatus.Completed),
+        ];
+    }
+
+    /// <summary>
     /// Whether a quest stays in the list under the two filters. Without a
     /// linked tracker nothing is filtered: the list must read as before.
     /// </summary>

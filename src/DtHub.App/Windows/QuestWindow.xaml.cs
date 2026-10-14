@@ -1092,10 +1092,35 @@ public partial class QuestWindow : Window
     {
         if ((sender as FrameworkElement)?.Tag is QuestLink link)
         {
+            // Moving on to the next quest often means this one is done, not
+            // always: it is offered, never written on its own.
+            var left = link == _viewModel.NextQuest ? _viewModel.CurrentQuest : null;
+
             _viewModel.Follow(link);
             NavigateTo(link.Url);
+
+            if (left is not null)
+            {
+                _viewModel.Tracker.OfferToFinish(left.Id, left.Title);
+            }
         }
     }
+
+    // AcceptFinishOfferAsync contains its own failures, like every write.
+    private void OnAcceptFinish(object sender, RoutedEventArgs e) => _ = _viewModel.Tracker.AcceptFinishOfferAsync();
+
+    private void OnDismissFinish(object sender, RoutedEventArgs e) => _viewModel.Tracker.DismissFinishOffer();
+
+    // Both contain their own failures, like every write.
+    private void OnFinishForOther(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is TrackerCharacter character)
+        {
+            _ = _viewModel.Tracker.FinishForAsync(character);
+        }
+    }
+
+    private void OnFinishForAll(object sender, RoutedEventArgs e) => _ = _viewModel.Tracker.FinishForAllAsync();
 
     private bool _indexingReported;
 

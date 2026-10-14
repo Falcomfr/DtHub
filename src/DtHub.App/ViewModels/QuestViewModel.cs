@@ -147,6 +147,9 @@ public sealed partial class QuestViewModel : ObservableObject
     /// <summary>The displayed quest, when there is one.</summary>
     private QuestSummary? _current;
 
+    /// <summary>The displayed quest, when there is one.</summary>
+    public QuestSummary? CurrentQuest => _current;
+
     /// <summary>The displayed dungeon, when it is one.</summary>
     private DungeonSummary? _currentDungeon;
 
