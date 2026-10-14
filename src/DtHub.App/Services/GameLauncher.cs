@@ -56,7 +56,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private readonly SettingsService _settings;
     private readonly IHotkeyRegistrar _hotkeys;
     private readonly AppRestartService _restarts;
-    private readonly GameFitCheck _fit;
     private readonly WindowPlacements _placements;
     private readonly ModifierKeyRelease _modifiers;
     private readonly ILogger<GameLauncher> _logger;
@@ -92,7 +91,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
         SettingsService settings,
         IHotkeyRegistrar hotkeys,
         AppRestartService restarts,
-        GameFitCheck fit,
         WindowPlacements placements,
         IAppLauncher appLauncher,
         IAdbClient adb,
@@ -110,7 +108,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _settings = settings;
         _hotkeys = hotkeys;
         _restarts = restarts;
-        _fit = fit;
         _placements = placements;
         _modifiers = new ModifierKeyRelease(windows.Controller);
         _logger = logger;
@@ -1055,56 +1052,56 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Relaunches once a game Android did not give its whole display, and
-    /// logs what it saw: see <see cref="GameFitCheck"/>.
+    /// Notes where the phone actually draws the game, for the log and the
+    /// diagnostic report. On 14/10/2026 this line, sent by a player, showed
+    /// that Android gave the game its whole display: the fault was in how
+    /// the game drew itself on 21:9, not where it was placed.
     /// </summary>
-    private async Task CheckFitAsync(ScrcpySession session)
+    private async Task RecordGameWindowAsync(ScrcpySession session)
     {
         try
         {
-            var fit = await _fit.CheckAsync(session, CancellationToken.None).ConfigureAwait(false);
-            var display = DisplaySize(session);
-            var state = fit.State ?? "?";
+            // The game has opened by then.
+            await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
 
-            if (fit.State is not null)
+            if (!session.IsAlive || session.VirtualDisplayId is not { } display)
             {
-                _windowStates[session.Id] = fit.Outcome == GameFitOutcome.Relaunched
-                    ? $"{session.DisplayName} ({display}) : avant relance {state} ; après {fit.StateAfter ?? "?"}"
-                    : $"{session.DisplayName} ({display}) : {state}";
+                return;
             }
 
-            switch (fit.Outcome)
-            {
-                case GameFitOutcome.Fills:
-                    LogGameFits(session.DisplayName, display, state);
-                    break;
+            var state = await _appLauncher
+                .ReadGameWindowAsync(session.Serial, display, session.Target.PackageName, CancellationToken.None)
+                .ConfigureAwait(false);
 
-                case GameFitOutcome.Relaunched:
-                    LogGameRelaunchedToFit(
-                        session.DisplayName, display, $"{fit.Before}", $"{fit.After}", state, fit.StateAfter ?? "?");
-                    break;
-
-                case GameFitOutcome.RelaunchRefused:
-                    LogGameFitRelaunchRefused(session.DisplayName, display, $"{fit.Before}", fit.StateAfter ?? "?");
-                    break;
-
-                case GameFitOutcome.Misfit:
-                    LogGameMisfitKept(session.DisplayName, display, state);
-                    break;
-
-                // A window closed during the wait is not worth a line.
-                default:
-                    if (session.IsAlive)
-                    {
-                        LogGameFitUnknown(session.DisplayName, display, state);
-                    }
-
-                    break;
-            }
+            _windowStates[session.Id] = $"{session.DisplayName} ({DisplaySize(session)}) : {state}";
+            LogGameWindow(session.DisplayName, DisplaySize(session), state);
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            LogGameFitUnknown(session.DisplayName, DisplaySize(session), exception.Message);
+            _windowStates[session.Id] = $"{session.DisplayName} ({DisplaySize(session)}) : {exception.Message}";
+            LogGameWindow(session.DisplayName, DisplaySize(session), exception.Message);
+        }
+    }
+
+    /// <summary>The phone's screen ratio, or null if "wm size" fails.</summary>
+    private async Task<double?> ReadPhoneAspectAsync(AndroidDevice device, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var output = await _adb.ShellAsync(device.Serial, ["wm", "size"], TimeSpan.FromSeconds(10), cancellationToken)
+                .ConfigureAwait(false);
+            var aspect = PhoneScreen.Aspect(output);
+
+            LogPhoneAspect(
+                device.DisplayName,
+                aspect is { } a ? a.ToString("0.000", System.Globalization.CultureInfo.InvariantCulture) : output.Trim());
+
+            return aspect;
+        }
+        catch (AdbException exception)
+        {
+            LogPhoneAspect(device.DisplayName, exception.Message);
+            return null;
         }
     }
 
@@ -2296,6 +2293,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             IconDirectory = _iconDirectory,
         };
 
+        Dictionary<string, double?> phoneAspects = new(StringComparer.Ordinal);
+
         // The position is given to scrcpy right at launch. Doing it
         // afterwards is not enough: scrcpy recenters its window when
         // it receives the first frame, that is after our placement.
@@ -2353,13 +2352,32 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             remembered.TryGetValue(instance.Key, out var stored);
 
+            // The game at its phone's own screen ratio, see PhoneScreen: the
+            // window is shaped on it too. Unread, the settings' size stays.
+            // Not for a window opened in passing, which has its own.
+            double? phoneAspect = null;
+
+            if (!instance.IsTransient && !phoneAspects.TryGetValue(device.Serial, out phoneAspect))
+            {
+                phoneAspect = await ReadPhoneAspectAsync(device, cancellationToken).ConfigureAwait(false);
+                phoneAspects[device.Serial] = phoneAspect;
+            }
+
+            var gameOptions = phoneAspect is { } ratio
+                ? options with
+                {
+                    VirtualDisplayWidth = (int)Math.Round(DisplayLadder.FallbackHeight * ratio),
+                    VirtualDisplayHeight = DisplayLadder.FallbackHeight,
+                }
+                : options;
+
             // A window opened in passing gets a portrait frame of its own,
             // never remembered. Placed by us like a game window, and not
             // left to scrcpy: measured on 2026-10-10, a window scrcpy sized
             // alone ignored clicks until it was resized by hand.
             var placement = instance.IsTransient
                 ? ComputePlacement(options with { VirtualDisplayWidth = 1080, VirtualDisplayHeight = 1920 }, remembered: null)
-                : ComputePlacement(options, stored);
+                : ComputePlacement(gameOptions, stored);
 
             var target = ToTarget(instance, device.Serial);
 
@@ -2378,7 +2396,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             _zoomsInUse[instance.Key] = zoom;
 
-            var display = WithDisplayFor(options, placement, stored, quality, zoom, layoutHeight) with
+            var display = WithDisplayFor(gameOptions, placement, stored, quality, zoom, layoutHeight, phoneAspect ?? 0) with
             {
                 // Specific to the device: two phones on different
                 // bands do not need the same buffer.
@@ -2502,11 +2520,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             started.Add(session);
 
-            // The game only: a tool window is a phone app of its own, and a
-            // relaunch would lose what the player did in it.
+            // The game only: a tool window is a phone app of its own.
             if (!session.Target.IsTransient && session.Target.StartUri is null && session.VirtualDisplayId is not null)
             {
-                _ = CheckFitAsync(session);
+                _ = RecordGameWindowAsync(session);
             }
 
             // Here and not only from the tools menu: a recovery reopens a
@@ -3680,7 +3697,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
         StoredWindowRect? remembered,
         QualityProfile quality,
         GameZoom zoom,
-        int layoutHeight)
+        int layoutHeight,
+        double phoneAspect)
     {
         if (placement is not { Height: > 0 } window
             || _windows.MonitorBoundsFor(remembered) is not { } screen)
@@ -3689,7 +3707,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
 
         var (width, height) = DisplayLadder.For(
-            window.Height, screen.Width, screen.Height, quality.MaximumDisplayHeight, _sharpImage);
+            window.Height, screen.Width, screen.Height, quality.MaximumDisplayHeight, _sharpImage, phoneAspect);
 
         // The sharper image is paid for in pixels, not in bits. Measured
         // when it was made: at the bitrate of the window's own size, the
@@ -3698,7 +3716,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // 9.5 to 24.3 Mb/s on the 13T Pro in the high tier, per account,
         // and the players said it lagged.
         var (bitrateWidth, bitrateHeight) = _sharpImage
-            ? DisplayLadder.For(window.Height, screen.Width, screen.Height, quality.MaximumDisplayHeight)
+            ? DisplayLadder.For(window.Height, screen.Width, screen.Height, quality.MaximumDisplayHeight, phoneAspect: phoneAspect)
             : (width, height);
 
         // Density is derived from the chosen resolution: leaving it
@@ -4388,30 +4406,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     [LoggerMessage(
-        Level = LogLevel.Warning,
-        Message = "{Window} : le jeu ne couvrait pas son afficheur {Display} (cadre {Before}), relancé une fois, cadre ensuite {After} ; avant : {State} ; après : {StateAfter}")]
-    private partial void LogGameRelaunchedToFit(
-        string window, string display, string before, string after, string state, string stateAfter);
-
-    [LoggerMessage(
-        Level = LogLevel.Warning,
-        Message = "{Window} : le jeu ne couvrait pas son afficheur {Display} (cadre {Before}), relance refusée : {Reason}")]
-    private partial void LogGameFitRelaunchRefused(string window, string display, string before, string reason);
+        Level = LogLevel.Information,
+        Message = "Format de l'écran du téléphone {Device} : {Aspect}.")]
+    private partial void LogPhoneAspect(string device, string aspect);
 
     [LoggerMessage(
         Level = LogLevel.Information,
-        Message = "{Window} : le jeu ne couvre pas son afficheur {Display}, pas de nouvelle relance, une relance n'y a rien changé ; {State}")]
-    private partial void LogGameMisfitKept(string window, string display, string state);
-
-    [LoggerMessage(
-        Level = LogLevel.Information,
-        Message = "{Window} : le jeu couvre son afficheur {Display} ; {State}")]
-    private partial void LogGameFits(string window, string display, string state);
-
-    [LoggerMessage(
-        Level = LogLevel.Information,
-        Message = "{Window} : cadre du jeu sur l'afficheur {Display} illisible ({Detail}).")]
-    private partial void LogGameFitUnknown(string window, string display, string detail);
+        Message = "{Window} : le jeu sur son afficheur {Display} ; {State}")]
+    private partial void LogGameWindow(string window, string display, string state);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "{Window} : le signal qui garde l'app éveillée n'est pas passé : {Reason}")]
     private partial void LogKeepAwakeFailed(string window, string reason);

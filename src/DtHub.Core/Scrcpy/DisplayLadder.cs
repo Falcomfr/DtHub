@@ -60,15 +60,24 @@ public static class DisplayLadder
     ///
     /// The aspect ratio is preserved. The fallback used to impose
     /// 16:9, so the window changed shape between the first attempt
-    /// and the second on a 21:9 or 16:10 screen.
+    /// and the second on a 21:9 or 16:10 screen. The width stays within
+    /// <see cref="FallbackWidth"/>.
     /// </summary>
     public static (int Width, int Height)? Below(int height, int aspectWidth, int aspectHeight)
     {
+        // Within 1920 wide as well: the fallback is there for encoders capped
+        // at 1920x1088, and a 20:9 phone's display at 1080 is 2400 wide.
+        var widest = aspectWidth > 0 && aspectHeight > 0
+            ? (int)(FallbackWidth * (double)aspectHeight / aspectWidth)
+            : int.MaxValue;
+
         foreach (var step in FallbackHeights)
         {
-            if (step < height)
+            var capped = Math.Min(step, widest);
+
+            if (capped < height)
             {
-                return At(step, aspectWidth, aspectHeight);
+                return At(capped, aspectWidth, aspectHeight);
             }
         }
 
@@ -96,9 +105,12 @@ public static class DisplayLadder
     /// Resolution to request for a window whose client area is the
     /// given height, on a given screen.
     ///
-    /// The aspect ratio is the screen's: that is the one the window
-    /// keeps, and departing from it would leave a band. The chosen
-    /// quality can cap the height, which lightens the phone's encoder.
+    /// The aspect ratio is the phone's own, <paramref name="phoneAspect"/>,
+    /// the one the game is laid out for there (see PhoneScreen). The window
+    /// keeps it, with bands beside or above it on the PC screen, which then
+    /// only caps the size. Unknown, the PC screen's ratio is taken, as
+    /// before. The chosen quality can cap the height, which lightens the
+    /// phone's encoder.
     ///
     /// <paramref name="sharpImage"/> asks for twice the window's height.
     /// The video carries colour at half resolution, so red text on grey,
@@ -112,7 +124,8 @@ public static class DisplayLadder
         int screenWidth,
         int screenHeight,
         int maximumHeight = int.MaxValue,
-        bool sharpImage = false)
+        bool sharpImage = false,
+        double phoneAspect = 0)
     {
         if (sharpImage)
         {
@@ -124,10 +137,17 @@ public static class DisplayLadder
             return (FallbackWidth, FallbackHeight);
         }
 
-        var aspect = (double)screenWidth / screenHeight;
-        var height = Math.Min(Choose(clientHeight, screenHeight), Math.Max(360, maximumHeight));
+        var aspect = phoneAspect > 0 ? phoneAspect : (double)screenWidth / screenHeight;
 
-        return (Even((int)Math.Round(height * aspect)), Even(height));
+        // Only for the phone's ratio: at the screen's own, dividing back
+        // could truncate a pixel off its height.
+        var fits = phoneAspect > 0 ? Math.Min(screenHeight, (int)(screenWidth / aspect)) : screenHeight;
+
+        // The width from the aligned height: aligning both on their own
+        // drifts the ratio.
+        var height = Even(Math.Min(Choose(clientHeight, fits), Math.Max(360, maximumHeight)));
+
+        return (Even((int)Math.Round(height * aspect)), height);
     }
 
     /// <summary>

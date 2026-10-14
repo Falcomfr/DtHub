@@ -371,12 +371,24 @@ public sealed class WindowManagerService
                 continue;
             }
 
+            // Taller than the screen, the width gives way: a window
+            // remembered at the PC's ratio and reopened on a 16:10 tablet
+            // used to keep its width and go above the top of the screen.
+            var width = outer.Width;
+
+            if (wanted > work.Height)
+            {
+                wanted = work.Height;
+                width = (int)Math.Round((wanted - chrome.Height) * session.SourceAspectRatio) + chrome.Width;
+            }
+
             // The corrected height pushes toward the available
             // space rather than always downward.
             var target = KeepInside(
                 outer with
                 {
                     Y = Slide(outer.Y, outer.Height, wanted, work.Y, work.Height),
+                    Width = width,
                     Height = wanted,
                 },
                 work);

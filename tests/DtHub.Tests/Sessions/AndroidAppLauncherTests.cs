@@ -393,34 +393,32 @@ public class AndroidAppLauncherTests
             AndroidAppLauncher.GameWindowState("", "", "", 185, Package));
 
     [Fact]
-    public async Task Le_cadre_et_l_etat_sont_demandes_au_telephone()
+    public async Task L_etat_est_demande_au_telephone()
     {
         var adb = new FakeAdbClient()
             .WithShell("dumpsys activity activities", Activites("Rect(0, 0 - 2576, 1080)"))
             .WithShell("dumpsys window windows", Fenetres)
             .WithShell("dumpsys SurfaceFlinger", Couches);
 
-        var window = await Build(adb).ReadGameWindowAsync(Serial, 183, Package);
+        var state = await Build(adb).ReadGameWindowAsync(Serial, 183, Package);
 
-        Assert.Equal((0, 0, 2576, 1080), window.Bounds);
-        Assert.StartsWith("mode=fullscreen, cadre (0, 0, 2576, 1080)", window.State, StringComparison.Ordinal);
+        Assert.StartsWith("mode=fullscreen, cadre (0, 0, 2576, 1080)", state, StringComparison.Ordinal);
     }
 
     [Fact]
-    public async Task Un_dump_de_diagnostic_en_echec_n_empeche_pas_de_lire_le_cadre()
+    public async Task Un_dump_en_echec_n_empeche_pas_de_lire_les_autres()
     {
-        // The windows and layers only feed the report. A multi-megabyte dump
-        // that times out, or that the error classifier mistakes for a refusal,
-        // must not take the decision down with it.
+        // A multi-megabyte dump that times out, or that the error classifier
+        // mistakes for a refusal, must not take the rest of the line with it.
         var adb = new FakeAdbClient()
             .WithShell("dumpsys activity activities", Activites("Rect(472, 0 - 2104, 1080)"))
             .WithShell("dumpsys window windows", Fenetres)
             .WithShell("dumpsys SurfaceFlinger", () => throw new AdbException(AdbErrorKind.Unknown, "timeout"));
 
-        var window = await Build(adb).ReadGameWindowAsync(Serial, 183, Package);
+        var state = await Build(adb).ReadGameWindowAsync(Serial, 183, Package);
 
-        Assert.Equal((472, 0, 2104, 1080), window.Bounds);
-        Assert.EndsWith("couche ?", window.State, StringComparison.Ordinal);
+        Assert.StartsWith("mode=fullscreen, cadre (472, 0, 2104, 1080)", state, StringComparison.Ordinal);
+        Assert.EndsWith("couche ?", state, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -429,9 +427,8 @@ public class AndroidAppLauncherTests
         var adb = new FakeAdbClient()
             .WithShell("dumpsys", () => throw new AdbException(AdbErrorKind.Unknown, "device offline"));
 
-        var window = await Build(adb).ReadGameWindowAsync(Serial, 183, Package);
+        var state = await Build(adb).ReadGameWindowAsync(Serial, 183, Package);
 
-        Assert.Null(window.Bounds);
-        Assert.Contains("device offline", window.State, StringComparison.Ordinal);
+        Assert.Contains("device offline", state, StringComparison.Ordinal);
     }
 }

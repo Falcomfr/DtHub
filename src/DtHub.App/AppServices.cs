@@ -115,7 +115,6 @@ public static class AppServices
         services.AddSingleton<IAppIconProvider, AppIconProvider>();
         services.AddSingleton<IAppLauncher, AndroidAppLauncher>();
         services.AddSingleton<AppRestartService>();
-        services.AddSingleton<GameFitCheck>();
         services.AddSingleton<ScrcpySessionManager>();
 
         // Windows and shortcuts.

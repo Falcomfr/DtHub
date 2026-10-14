@@ -1,11 +1,5 @@
 ﻿namespace DtHub.Core.Sessions;
 
-/// <summary>
-/// The bounds Android gave the game, <c>null</c> when unreadable, and a
-/// readable excerpt of what the phone reported, for the diagnostic report.
-/// </summary>
-public sealed record GameWindow((int Left, int Top, int Right, int Bottom)? Bounds, string State);
-
 /// <summary>Outcome of an attempt to open the game.</summary>
 public sealed record AppLaunchResult(bool Succeeded, string? UserMessage = null, string? Details = null)
 {
@@ -53,10 +47,10 @@ public interface IAppLauncher
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// The game's window on a display, as Android reports it. Asking for
-    /// full screen is not getting it.
+    /// What the phone reports of the game's window on a display, in one
+    /// readable line for the diagnostic report.
     /// </summary>
-    Task<GameWindow> ReadGameWindowAsync(
+    Task<string> ReadGameWindowAsync(
         string serial,
         int displayId,
         string packageName,

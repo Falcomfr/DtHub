@@ -1068,6 +1068,34 @@ public class WindowManagerServiceTests
     }
 
     [Fact]
+    public async Task Une_fenetre_trop_haute_pour_son_rapport_cede_sur_la_largeur()
+    {
+        // A window remembered at the PC screen's ratio, reopened on a 16:10
+        // tablet: keeping its width would make it taller than the screen,
+        // its title bar above the top. The width gives way instead.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(
+            1,
+            ScrcpyOptions.Default with { VirtualDisplayWidth = 1600, VirtualDisplayHeight = 1000 });
+
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.ResolveWindowAsync(sessions[0], CancellationToken.None);
+
+        var work = FakeWindowController.PrimaryMonitor.WorkArea;
+        desktop.MoveWindow(sessions[0].WindowHandle, new ScreenRect(0, 0, work.Width, work.Height));
+
+        service.EnforceAspect(sessions);
+        service.EnforceAspect(sessions);
+
+        var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+        var chrome = desktop.Chrome;
+
+        Assert.True(rect.Y >= work.Y && rect.Y + rect.Height <= work.Y + work.Height, $"{rect} sort de {work}");
+        Assert.Equal(1.6, (rect.Width - chrome.Width) / (double)(rect.Height - chrome.Height), precision: 2);
+    }
+
+    [Fact]
     public async Task Une_fenetre_entierement_visible_n_est_jamais_deplacee()
     {
         var (manager, sessions, desktop) = await OpenSessionsAsync(
@@ -1111,7 +1139,9 @@ public class WindowManagerServiceTests
 
         await service.ResolveWindowAsync(sessions[0], CancellationToken.None);
 
-        desktop.MoveWindow(sessions[0].WindowHandle, new ScreenRect(0, 0, 2604, 2000));
+        // Within the screen: a window taller than it now gives way on its
+        // width (see the test above).
+        desktop.MoveWindow(sessions[0].WindowHandle, new ScreenRect(0, 0, 1302, 1000));
 
         service.EnforceAspect(sessions);
         var corrected = service.EnforceAspect(sessions);
@@ -1119,8 +1149,8 @@ public class WindowManagerServiceTests
         var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
 
         Assert.Equal(1, corrected);
-        Assert.Equal(2604, rect.Width);
-        Assert.Equal(1416, rect.Height);
+        Assert.Equal(1302, rect.Width);
+        Assert.Equal(708, rect.Height);
     }
 
     [Fact]

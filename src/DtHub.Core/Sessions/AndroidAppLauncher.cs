@@ -298,7 +298,7 @@ public sealed partial class AndroidAppLauncher : IAppLauncher
         return AppLaunchResult.Success;
     }
 
-    public async Task<GameWindow> ReadGameWindowAsync(
+    public async Task<string> ReadGameWindowAsync(
         string serial,
         int displayId,
         string packageName,
@@ -313,20 +313,18 @@ public sealed partial class AndroidAppLauncher : IAppLauncher
         }
         catch (AdbException exception)
         {
-            // Unreadable, as an unknown dump would be: the caller logs it.
-            return new GameWindow(null, exception.Message);
+            // The reason takes the line's place: the caller logs it.
+            return exception.Message;
         }
 
-        // Only for the report: one failing, multi-megabyte as they are, must
-        // not take the bounds down with it.
+        // One failing, multi-megabyte as they are, must not take the rest of
+        // the line down with it.
         var windows = await ReadOrEmptyAsync(serial, ["dumpsys", "window", "windows"], cancellationToken)
             .ConfigureAwait(false);
         var layers = await ReadOrEmptyAsync(serial, ["dumpsys", "SurfaceFlinger"], cancellationToken)
             .ConfigureAwait(false);
 
-        return new GameWindow(
-            GameBounds(activities, displayId, packageName),
-            GameWindowState(activities, windows, layers, displayId, packageName));
+        return GameWindowState(activities, windows, layers, displayId, packageName);
     }
 
     private async Task<string> ReadOrEmptyAsync(

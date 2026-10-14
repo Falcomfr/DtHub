@@ -63,6 +63,32 @@ public sealed class DisplayLadderTests
         Assert.Equal(1080d / 2560, height / (double)width, 2);
     }
 
+    [Theory]
+    [InlineData(3440, 1440, 2960, 1848)]
+    [InlineData(3840, 2160, 2712, 1220)]
+    [InlineData(1920, 1080, 2960, 1848)]
+    public void Le_jeu_prend_le_format_de_l_ecran_du_telephone(
+        int screenWidth, int screenHeight, int phoneLong, int phoneShort)
+    {
+        // The game draws itself right at its phone's own ratio, and not
+        // always at another. Measured on 14/10/2026: a Galaxy Tab S10 Ultra
+        // (16:10) shifted and cut in 21:9, right in 16:10; the 13T Pro
+        // (20:9) cut its panel in 16:10, right in 20:9 and 21:9.
+        var phone = phoneLong / (double)phoneShort;
+
+        var (width, height) = DisplayLadder.For(900, screenWidth, screenHeight, phoneAspect: phone);
+
+        Assert.Equal(phone, width / (double)height, precision: 2);
+    }
+
+    [Fact]
+    public void Un_telephone_plus_allonge_que_l_ecran_du_pc_est_borne_par_sa_largeur()
+    {
+        var (width, height) = DisplayLadder.For(1900, 1920, 1080, phoneAspect: 2712 / 1220.0);
+
+        Assert.True(width <= 1920, $"{width}x{height} dépasse la largeur de l'écran");
+    }
+
     [Fact]
     public void Les_cotes_sont_toujours_pairs()
     {
@@ -192,26 +218,24 @@ public sealed class DisplayLadderTests
         Assert.Null(DisplayLadder.Below(540, 960, 540));
     }
 
-    [Fact]
-    public void Le_repli_garde_le_rapport_d_image_de_l_ecran()
+    [Theory]
+    [InlineData(1440, 3440, 1440)]
+    [InlineData(1080, 2400, 1080)]
+    public void Le_repli_garde_le_rapport_et_tient_dans_1920_de_large(int height, int width, int ratioHeight)
     {
         // The fallback used to force 16:9, so the window changed shape
-        // between the first attempt and the second on a wide screen.
-        var (width, height) = DisplayLadder.Below(1440, 3440, 1440)!.Value;
+        // between the first attempt and the second on a wide display. It
+        // keeps the ratio, and now the width too: it exists for encoders
+        // capped at 1920x1088, which a 20:9 phone's 2400x1080 exceeds.
+        var (fallbackWidth, fallbackHeight) = DisplayLadder.Below(height, width, ratioHeight)!.Value;
 
-        Assert.Equal(1080, height);
-        Assert.Equal(2576, width);
-
-        // What this number protects, put another way: the ratio follows
-        // the ultra-wide screen and does not fall back to 16:9. Aligning
-        // the sides to eight pixels drifts a little from it, without
-        // changing the intent.
-        Assert.Equal(3440 / 1440.0, width / (double)height, precision: 2);
-        Assert.True(width > 1920 * 1.2, "Le repli est retombé sur du 16:9.");
+        Assert.True(fallbackWidth <= 1920, $"{fallbackWidth}x{fallbackHeight}");
+        Assert.Equal(width / (double)ratioHeight, fallbackWidth / (double)fallbackHeight, precision: 1);
+        Assert.True(fallbackWidth > 1600, $"Le repli est descendu trop bas : {fallbackWidth}x{fallbackHeight}");
 
         // Both sides are sizes the encoder will render without cropping.
-        Assert.Equal(0, width % 8);
-        Assert.Equal(0, height % 8);
+        Assert.Equal(0, fallbackWidth % 8);
+        Assert.Equal(0, fallbackHeight % 8);
     }
 
     [Fact]
@@ -226,7 +250,8 @@ public sealed class DisplayLadderTests
         // The video carries colour at half resolution. Measured on the 13T
         // Pro on 2026-10-12: red text on grey, window 1915x800, smeared at
         // 2144x896 and as sharp as white text at 3440x1440.
-        Assert.Equal((2144, 896), DisplayLadder.For(835, 3440, 1440, 1440));
+        // 2136 since the width follows the aligned height.
+        Assert.Equal((2136, 896), DisplayLadder.For(835, 3440, 1440, 1440));
         Assert.Equal((3440, 1440), DisplayLadder.For(835, 3440, 1440, 1440, sharpImage: true));
     }
 

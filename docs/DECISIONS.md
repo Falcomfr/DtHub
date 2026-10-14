@@ -475,10 +475,10 @@ lancement, quoi qu'on ait fait de leur position la veille.
 
 ## D20 - Une définition de repli quand l'encodeur de l'appareil plafonne
 
-Rien du mécanisme d'affichage ne dépend de l'appareil : l'afficheur virtuel est
-créé à la définition et à la densité que nous demandons, sans aucun rapport
-avec l'écran du téléphone ou de la tablette. Un appareil en 1220x2712 peut
-parfaitement porter un afficheur 3840x2160 en paysage.
+L'afficheur virtuel est créé à la définition et à la densité que nous
+demandons. Un appareil en 1220x2712 peut parfaitement porter un afficheur
+3840x2160 en paysage. Son **format**, lui, suit l'écran du téléphone depuis
+D197.
 
 Une seule dépendance au matériel subsiste : **l'encodeur vidéo annonce une
 définition maximale**, et elle varie beaucoup. Relevée dans
@@ -487,8 +487,10 @@ pour l'encodeur AVC matériel. Beaucoup d'appareils d'entrée de gamme ou plus
 anciens s'arrêtent à 1920x1088, et une tablette modeste refuserait alors la
 définition demandée sur un grand écran.
 
-Plutôt que de renoncer, une session refusée est retentée une fois en 1920x1080,
-définition qu'aucun appareil capable de faire tourner scrcpy ne refuse. Le
+Plutôt que de renoncer, une session refusée est retentée une fois en 1080 de
+haut, puis en 720, au format de l'afficheur et dans 1920 de large : 1920x1080
+en 16:9, 1920x864 pour un téléphone en 20:9, définitions qu'aucun appareil
+capable de faire tourner scrcpy ne refuse. Le
 journal en garde trace. L'affichage y perd en finesse sur un grand écran, rien
 d'autre.
 
@@ -10349,3 +10351,31 @@ appareil masqué se lit comme un appareil préparé si ses fenêtres se figent
 plus tard.
 
 L'alerte disparaît au relevé suivant, et non au clic.
+
+## D197 - Le jeu prend le format de l'écran de son téléphone
+
+Signalé le 14/10/2026 : une Galaxy Tab S10 Ultra (16:10), sur un écran de PC
+en 3440x1440, montrait le jeu décalé à droite, une bande noire à gauche, son
+panneau coupé. L'afficheur suivait le format de l'écran du PC, donc du 21:9.
+
+La 0.8.9 relançait un jeu qu'Android aurait mal placé. Son rapport a montré
+le contraire : plein écran, cadre égal à l'afficheur (2144x896), couche sans
+transformation. C'est le jeu qui se dessine mal à ce format. Mesures :
+
+- Tab S10 Ultra : 21:9 cassé, 16:10 (l'écran du PC portable du joueur)
+  correct ; le réglage de format de Samsung n'y change rien.
+- 13T Pro (2712x1220, 20:9) : 16:10 coupe le panneau ; 20:9 et 21:9 sont
+  corrects, 16:9 sert tous les jours.
+- Écartés sur le 13T Pro : la densité (160 ppp correct), l'écran physique
+  simulé par `wm size` et `wm density` (correct).
+
+Le jeu se dessine juste au format de l'écran de son téléphone, pas toujours à
+un autre. L'afficheur prend donc ce format, lu par `wm size` (la taille
+imposée l'emporte, grand côté sur petit côté), et l'écran du PC ne fait plus
+que borner sa taille. La fenêtre prend le même format ; plus haute que
+l'écran, c'est sa largeur qui cède. Illisible ou au-delà de 3, le format de
+l'écran du PC reste, comme avant.
+
+Le 16:10 pour tous avait été décidé, puis réfuté par l'essai sur le 13T Pro
+avant publication. La relance de la 0.8.9 est retirée ; la ligne « Jeu à
+l'écran » du rapport reste, c'est elle qui a tranché.
