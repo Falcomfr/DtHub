@@ -64,6 +64,7 @@
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
 
           <Image Grid.Column="0" Source="/assets/app.png" Width="26" Height="26" VerticalAlignment="Center" />
@@ -86,7 +87,13 @@
             </TextBlock>
           </StackPanel>
 
-          <Button Grid.Column="2" Content="✕" Style="{StaticResource QuietButton}"
+          <!-- Minimize, beside the cross that hides: the panel keeps its
+               taskbar entry, where it comes back from. -->
+          <Button Grid.Column="2" Content="–" Style="{StaticResource QuietButton}"
+                  FontSize="14" Padding="8,2" Click="OnMinimize"
+                  ToolTip="{loc:T MinimizeThisWindow}" />
+
+          <Button Grid.Column="3" Content="✕" Style="{StaticResource QuietButton}"
                   FontSize="14" Padding="8,2" Click="OnHide"
                   ToolTip="{loc:T HideThisWindow}" />
         </Grid>

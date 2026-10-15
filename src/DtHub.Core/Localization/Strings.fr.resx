@@ -71,6 +71,9 @@
   <data name="HideThisWindow" xml:space="preserve">
     <value>Masquer cette fenêtre</value>
   </data>
+  <data name="MinimizeThisWindow" xml:space="preserve">
+    <value>Réduire dans la barre des tâches</value>
+  </data>
   <data name="WhatsNew" xml:space="preserve">
     <value>Nouveautés</value>
   </data>

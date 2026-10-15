@@ -207,11 +207,11 @@ public sealed partial class StringsResourceTests
     public void Aucune_fenetre_ne_porte_de_texte_en_dur()
     {
         // The product name, the percent sign, and the glyphs are not
-        // translated: the close mark, breadcrumb chevrons, and the back arrow
-        // of the Android screens drawn in the help.
+        // translated: the close and minimize marks, breadcrumb chevrons, and
+        // the back arrow of the Android screens drawn in the help.
         HashSet<string> admis =
         [
-            "DT Hub", "%", "\u2715",
+            "DT Hub", "%", "\u2715", "\u2013",
             "\u2039", "\u203a", "&#x2039;", "&#x203A;",
             "\u2190", "&#x2190;",
         ];

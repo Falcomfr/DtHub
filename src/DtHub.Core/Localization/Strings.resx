@@ -71,6 +71,9 @@
   <data name="HideThisWindow" xml:space="preserve">
     <value>Hide this window</value>
   </data>
+  <data name="MinimizeThisWindow" xml:space="preserve">
+    <value>Minimize to the taskbar</value>
+  </data>
   <data name="WhatsNew" xml:space="preserve">
     <value>What's new</value>
   </data>
