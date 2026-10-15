@@ -62,11 +62,13 @@ public class ZoomProfileTests
     [Fact]
     public void Les_deux_bouts_vont_aussi_loin_que_le_mecanisme_le_permet()
     {
-        // Four tiers whose two ends are both useful are worth more
-        // than five where two look alike: the closest one takes the
-        // value that used to belong to a fifth tier.
-        Assert.Equal(4, Enum.GetValues<GameZoom>().Length);
+        // The closest one takes the value that used to belong to a
+        // fifth tier. The fifth tier now sits between "far" and
+        // "normal", asked for by the owner on 2026-10-15: the jump
+        // from 900 to 720 points was too wide.
+        Assert.Equal(5, Enum.GetValues<GameZoom>().Length);
         Assert.Equal(1120, ZoomProfile.LayoutHeightFor(GameZoom.Widest));
+        Assert.Equal(800, ZoomProfile.LayoutHeightFor(GameZoom.SlightlyWide));
         Assert.Equal(460, ZoomProfile.LayoutHeightFor(GameZoom.Close));
 
         // Normal remains the original reference: 1080 pixels at 240

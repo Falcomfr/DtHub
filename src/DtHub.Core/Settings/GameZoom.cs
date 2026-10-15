@@ -25,6 +25,9 @@ public enum GameZoom
     /// <summary>Lots of terrain, a small interface.</summary>
     Wide,
 
+    /// <summary>A little more terrain than the original setting.</summary>
+    SlightlyWide,
+
     /// <summary>Original setting.</summary>
     Normal,
 
@@ -67,6 +70,7 @@ public static class ZoomProfile
     {
         GameZoom.Widest => 1120,
         GameZoom.Wide => 900,
+        GameZoom.SlightlyWide => 800,
         GameZoom.Close => 460,
         _ => 720,
     };

@@ -373,7 +373,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
     /// <summary>The layouts offered, from the widest distance to the closest.</summary>
     private static readonly (int Layout, string? TierKey)[] SuggestedLayouts =
-        [(1120, "ZoomVeryFar"), (1000, null), (900, "ZoomFar"), (800, null), (720, "ZoomNormal"), (640, null), (560, null), (460, "ZoomClose")];
+        [(1120, "ZoomVeryFar"), (1000, null), (900, "ZoomFar"), (800, "ZoomSlightlyFar"), (720, "ZoomNormal"), (640, null), (560, null), (460, "ZoomClose")];
 
     /// <summary>
     /// The density's list: the distance first, then DPIs at the max

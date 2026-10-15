@@ -209,6 +209,12 @@
   <data name="ZoomFarTip" xml:space="preserve">
     <value>A lot of ground visible, the game interface small. Handy to follow several accounts at a glance, less comfortable to aim.</value>
   </data>
+  <data name="ZoomSlightlyFar" xml:space="preserve">
+    <value>Slightly far</value>
+  </data>
+  <data name="ZoomSlightlyFarTip" xml:space="preserve">
+    <value>A little more ground than normal, the game interface a little smaller.</value>
+  </data>
   <data name="ZoomNormal" xml:space="preserve">
     <value>Normal</value>
   </data>
@@ -1505,6 +1511,9 @@ The rest of the application works without it.</value>
   </data>
   <data name="ZoomFarWord" xml:space="preserve">
     <value>far</value>
+  </data>
+  <data name="ZoomSlightlyFarWord" xml:space="preserve">
+    <value>slightly far</value>
   </data>
   <data name="ZoomNormalWord" xml:space="preserve">
     <value>normal</value>

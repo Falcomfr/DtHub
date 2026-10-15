@@ -224,6 +224,7 @@ public static class LaunchProfiles
     {
         GameZoom.Widest => Strings.Get("ZoomVeryFarWord"),
         GameZoom.Wide => Strings.Get("ZoomFarWord"),
+        GameZoom.SlightlyWide => Strings.Get("ZoomSlightlyFarWord"),
         GameZoom.Close => Strings.Get("ZoomCloseWord"),
         _ => Strings.Get("ZoomNormalWord"),
     };

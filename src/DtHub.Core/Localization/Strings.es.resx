@@ -209,6 +209,12 @@
   <data name="ZoomFarTip" xml:space="preserve">
     <value>Mucho terreno visible, la interfaz del juego pequeña. Práctico para seguir varias cuentas de un vistazo, menos cómodo para apuntar.</value>
   </data>
+  <data name="ZoomSlightlyFar" xml:space="preserve">
+    <value>Algo lejana</value>
+  </data>
+  <data name="ZoomSlightlyFarTip" xml:space="preserve">
+    <value>Un poco más de terreno que en normal, la interfaz del juego un poco más pequeña.</value>
+  </data>
   <data name="ZoomNormal" xml:space="preserve">
     <value>Normal</value>
   </data>
@@ -1505,6 +1511,9 @@ El resto de la aplicación funciona sin él.</value>
   </data>
   <data name="ZoomFarWord" xml:space="preserve">
     <value>lejana</value>
+  </data>
+  <data name="ZoomSlightlyFarWord" xml:space="preserve">
+    <value>algo lejana</value>
   </data>
   <data name="ZoomNormalWord" xml:space="preserve">
     <value>normal</value>

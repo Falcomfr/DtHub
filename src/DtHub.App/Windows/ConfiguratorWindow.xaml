@@ -644,6 +644,11 @@
                                  ToolTip="{loc:T ZoomFarTip}"
                                  IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Wide}" />
+                    <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="{loc:T ZoomSlightlyFar}"
+                                 Margin="0,0,5,0"
+                                 ToolTip="{loc:T ZoomSlightlyFarTip}"
+                                 IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch},
+                                                     ConverterParameter=SlightlyWide}" />
                     <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="{loc:T ZoomNormal}"
                                  Margin="0,0,5,0"
                                  ToolTip="{loc:T ZoomNormalTip}"

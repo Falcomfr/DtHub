@@ -429,6 +429,7 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     {
         GameZoom.Widest => Strings.Get("ZoomVeryFar"),
         GameZoom.Wide => Strings.Get("ZoomFar"),
+        GameZoom.SlightlyWide => Strings.Get("ZoomSlightlyFar"),
         GameZoom.Normal => Strings.Get("ZoomNormal"),
         GameZoom.Close => Strings.Get("ZoomClose"),
         _ => string.Empty,

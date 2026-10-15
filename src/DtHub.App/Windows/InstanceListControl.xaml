@@ -718,6 +718,11 @@
                                       CommandParameter="{x:Static s:GameZoom.Wide}" />
                               <Button Style="{StaticResource QuietButton}" Padding="8,5"
                                       HorizontalContentAlignment="Left"
+                                      Content="{loc:T ZoomSlightlyFar}"
+                                      Command="{Binding PickZoomCommand}"
+                                      CommandParameter="{x:Static s:GameZoom.SlightlyWide}" />
+                              <Button Style="{StaticResource QuietButton}" Padding="8,5"
+                                      HorizontalContentAlignment="Left"
                                       Content="{loc:T ZoomNormal}"
                                       Command="{Binding PickZoomCommand}"
                                       CommandParameter="{x:Static s:GameZoom.Normal}" />
