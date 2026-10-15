@@ -10,6 +10,20 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.8.14] - 2026-10-15
+
+### Añadido
+
+- Con tu seguimiento de Papycha vinculado, cada zona de misiones muestra
+  cuántas misiones están hechas sobre su total, y cuántas están en curso.
+- Al pasar el ratón, «Por hacer» y «Accesibles» dicen qué deja cada filtro.
+
+### Cambiado
+
+- Con un filtro activo, el número junto a una zona es el de las misiones que
+  siguen mostrándose.
+- Las zonas de misiones ya no muestran rangos de niveles.
+
 ## [0.8.13] - 2026-10-15
 
 ### Corregido

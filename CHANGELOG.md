@@ -17,6 +17,20 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.8.14] - 2026-10-15
+
+### Added
+
+- With your Papycha tracker linked, each quest zone shows how many quests
+  are done out of its total, and how many are in progress.
+- Hovering "To do" or "Available" says what each filter keeps.
+
+### Changed
+
+- With a filter on, the count beside a zone is the number of quests it keeps
+  showing.
+- The quest zones no longer show level ranges.
+
 ## [0.8.13] - 2026-10-15
 
 ### Fixed

@@ -11,6 +11,20 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.8.14] - 2026-10-15
+
+### Ajouté
+
+- Avec votre suivi Papycha relié, chaque zone de quêtes montre combien de
+  quêtes sont faites sur son total, et combien sont en cours.
+- Au survol, « À faire » et « Accessibles » disent ce que chaque filtre garde.
+
+### Modifié
+
+- Avec un filtre actif, le nombre à côté d'une zone est celui des quêtes qui
+  restent affichées.
+- Les zones de quêtes n'affichent plus de plages de niveaux.
+
 ## [0.8.13] - 2026-10-15
 
 ### Corrigé
