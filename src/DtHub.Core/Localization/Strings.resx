@@ -1461,6 +1461,27 @@ The detail is in the logs:
   <data name="TitleHintNextWindow" xml:space="preserve">
     <value>{0}: next window</value>
   </data>
+  <data name="TitleBattery" xml:space="preserve">
+    <value>battery {0}%</value>
+  </data>
+  <data name="TitleBatteryCharging" xml:space="preserve">
+    <value>battery {0}% charging</value>
+  </data>
+  <data name="TitleHeatWarm" xml:space="preserve">
+    <value>hot</value>
+  </data>
+  <data name="TitleHeatHot" xml:space="preserve">
+    <value>overheating</value>
+  </data>
+  <data name="TitleLag" xml:space="preserve">
+    <value>lag</value>
+  </data>
+  <data name="TitleShowsStatus" xml:space="preserve">
+    <value>Show the phone's state and play time in the windows' title</value>
+  </data>
+  <data name="TitleShowsStatusTip" xml:space="preserve">
+    <value>Each game window says its phone's battery, its heat and a detected lag when there is some, and how long it has been open, next to the account's name. Refreshed every thirty seconds or so.</value>
+  </data>
   <data name="FolderDoesNotExistYet" xml:space="preserve">
     <value>The folder does not exist yet:
 {0}</value>

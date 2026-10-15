@@ -1,6 +1,8 @@
 ﻿using System.Globalization;
 
 using DtHub.Core.Devices;
+using DtHub.Core.Localization;
+using DtHub.Core.Sessions;
 
 namespace DtHub.Core.Scrcpy;
 
@@ -29,6 +31,38 @@ public static class ScrcpyCommandBuilder
             : branded ? $"{DtHub.Core.ProductInfo.Name} {name.Trim()}" : name.Trim();
 
         return string.IsNullOrWhiteSpace(hint) ? title : $"{title}  ({hint.Trim()})";
+    }
+
+    /// <summary>
+    /// What follows the account's name when the player asked for the
+    /// phone's state in the title: the battery, the heat and the lag, then
+    /// how long the window has been open. The battery is left out until it
+    /// has been read; the heat and the lag only show while there is some,
+    /// on the thresholds the panel uses.
+    /// </summary>
+    public static string BuildTitleStatus(
+        BatteryReading? battery, ThermalReading? heat, bool lagging, TimeSpan played)
+    {
+        List<string> parts = [];
+
+        if (battery is not null)
+        {
+            parts.Add(Strings.Format(battery.Charging ? "TitleBatteryCharging" : "TitleBattery", battery.Percent));
+        }
+
+        if (heat is { IsThrottling: true })
+        {
+            parts.Add(Strings.Get(heat.Status >= ThermalReading.Severe ? "TitleHeatHot" : "TitleHeatWarm"));
+        }
+
+        if (lagging)
+        {
+            parts.Add(Strings.Get("TitleLag"));
+        }
+
+        parts.Add(SessionClock.Describe(played));
+
+        return string.Join(" · ", parts);
     }
 
     /// <summary>Launch arguments for a mirroring session.</summary>

@@ -1923,6 +1923,68 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // reading on screen.
         _minutes = minutes;
         _strains = strains;
+
+        await RetitleWithStatusAsync(serials).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Battery and heat last read for the windows' title, by the serial
+    /// <see cref="Routable" /> gives.
+    /// </summary>
+    private volatile IReadOnlyDictionary<string, (BatteryReading? Battery, ThermalReading? Heat)> _titleReadings =
+        new Dictionary<string, (BatteryReading? Battery, ThermalReading? Heat)>();
+
+    /// <summary>
+    /// Rereads the battery and the heat, then rewrites the windows' title,
+    /// when the player asked for the phone's state there.
+    ///
+    /// **From this background round and not from the panel's sweep**: the
+    /// sweep stops while the panel is hidden, which is while the player
+    /// plays. Both readings are cached a minute by discovery, so this costs
+    /// two adb calls per phone and per minute at most, and nothing when the
+    /// option is off.
+    /// </summary>
+    private async Task RetitleWithStatusAsync(IReadOnlyList<string> serials)
+    {
+        try
+        {
+            var settings = await _settings.GetAsync(CancellationToken.None).ConfigureAwait(false);
+
+            if (!settings.TitleShowsStatus)
+            {
+                return;
+            }
+
+            Dictionary<string, (BatteryReading? Battery, ThermalReading? Heat)> readings = new(StringComparer.Ordinal);
+
+            foreach (var serial in serials)
+            {
+                readings[serial] = (
+                    await _devices.GetBatteryAsync(serial).ConfigureAwait(false),
+                    await _devices.GetThermalAsync(serial).ConfigureAwait(false));
+            }
+
+            _titleReadings = readings;
+
+            _ = await RefreshWindowTitlesAsync().ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            LogTitleStatusFailure(exception);
+        }
+    }
+
+    /// <summary>What a session's title says of its phone, after the account's name.</summary>
+    private string StatusOf(ScrcpySession session)
+    {
+        var serial = Routable(session.Target);
+        var (battery, heat) = _titleReadings.GetValueOrDefault(serial);
+
+        return ScrcpyCommandBuilder.BuildTitleStatus(
+            battery,
+            heat,
+            _strains.GetValueOrDefault(serial)?.Describe() is not null,
+            DateTimeOffset.UtcNow - session.StartedUtc);
     }
 
     /// <summary>
@@ -3410,18 +3472,29 @@ public sealed partial class GameLauncher : IAsyncDisposable
         var hint = await BuildTitleHintAsync(cancellationToken).ConfigureAwait(false);
         var settings = await _settings.GetAsync(cancellationToken).ConfigureAwait(false);
 
+        // A tool's window is not a game and has no play time to tell.
+        string? Status(ScrcpySession session) =>
+            settings.TitleShowsStatus && !session.Target.IsTransient ? StatusOf(session) : null;
+
         await OnUiAsync(() =>
         {
             if (_tabs is { } frame)
             {
                 frame.ShortcutReminder = hint;
+
+                foreach (var session in _sessions.ActiveSessions.Where(s => s.IsAlive))
+                {
+                    frame.Restate(session.Target.Key, Status(session));
+                }
             }
         }).ConfigureAwait(false);
 
         return _windows.Retitle(
             _sessions.ActiveSessions,
             session => ScrcpyCommandBuilder.BuildWindowTitle(
-                CurrentName(session, settings),
+                Status(session) is { } status
+                    ? $"{CurrentName(session, settings)} · {status}"
+                    : CurrentName(session, settings),
                 session.Target.IsTransient ? null : hint,
                 branded: !session.Target.IsTransient));
     }
@@ -4621,6 +4694,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "Le nouveau nom n'a pas pu être posé sur les fenêtres ouvertes.")]
     private partial void LogRenameFailure(Exception exception);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "L'état du téléphone n'a pas pu être posé dans le titre des fenêtres.")]
+    private partial void LogTitleStatusFailure(Exception exception);
 
     [LoggerMessage(
         Level = LogLevel.Warning,

@@ -760,6 +760,30 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     }
 
     /// <summary>
+    /// True when the game windows carry the battery and the play time in
+    /// their title. Applied to the open windows at once, not at the next
+    /// launch.
+    /// </summary>
+    [ObservableProperty]
+    private bool _titleShowsStatus;
+
+    partial void OnTitleShowsStatusChanged(bool value)
+    {
+        if (_loading)
+        {
+            return;
+        }
+
+        _ = ApplyTitleStatusAsync(value);
+    }
+
+    private async Task ApplyTitleStatusAsync(bool value)
+    {
+        await SaveAsync(settings => settings.TitleShowsStatus = value).ConfigureAwait(true);
+        _ = await _launcher.RefreshWindowTitlesAsync().ConfigureAwait(true);
+    }
+
+    /// <summary>
     /// True when the phone's own screen goes dark while its accounts
     /// play on the PC. A scrcpy startup argument, so the open windows
     /// are reopened to apply it, as for the sound.
@@ -898,6 +922,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             UpdatesAutomatic = settings.UpdatesAutomatic;
             StopAppOnClose = settings.StopAppOnClose;
             TurnScreenOff = settings.TurnScreenOff;
+            TitleShowsStatus = settings.TitleShowsStatus;
             SimulatedPhysicalKeyboard = settings.SimulatedPhysicalKeyboard;
             SimulatedPhysicalMouse = settings.SimulatedPhysicalMouse;
             Language = settings.Language;

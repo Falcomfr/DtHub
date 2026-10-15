@@ -1,4 +1,5 @@
 ﻿using DtHub.Core;
+using DtHub.Core.Devices;
 using DtHub.Core.Scrcpy;
 
 namespace DtHub.Tests.Scrcpy;
@@ -467,5 +468,41 @@ public class ScrcpyCommandBuilderTests
         var arguments = ScrcpyCommandBuilder.BuildListEncodersArguments("USB0001");
 
         Assert.Equal(["--serial=USB0001", "--list-encoders"], arguments);
+    }
+
+    [Fact]
+    public void Le_statut_du_titre_donne_la_batterie_puis_le_temps_de_jeu()
+    {
+        Assert.Equal(
+            "batterie 64 % · 1 h 12",
+            ScrcpyCommandBuilder.BuildTitleStatus(
+                new BatteryReading(64, false, null), new ThermalReading(0, null), false, TimeSpan.FromMinutes(72)));
+        Assert.Equal(
+            "batterie 64 % en charge · 42 min",
+            ScrcpyCommandBuilder.BuildTitleStatus(new BatteryReading(64, true, null), null, false, TimeSpan.FromMinutes(42)));
+    }
+
+    [Fact]
+    public void Le_statut_du_titre_sans_batterie_lue_donne_le_temps_seul()
+    {
+        Assert.Equal("ouvert à l'instant", ScrcpyCommandBuilder.BuildTitleStatus(null, null, false, TimeSpan.Zero));
+    }
+
+    [Fact]
+    public void Le_statut_du_titre_ne_parle_de_chauffe_et_de_lag_que_lorsqu_il_y_en_a()
+    {
+        var battery = new BatteryReading(64, false, null);
+
+        Assert.Equal(
+            "batterie 64 % · chauffe · lag · 42 min",
+            ScrcpyCommandBuilder.BuildTitleStatus(
+                battery, new ThermalReading(ThermalReading.Throttling, null), true, TimeSpan.FromMinutes(42)));
+        Assert.Equal(
+            "batterie 64 % · surchauffe · 42 min",
+            ScrcpyCommandBuilder.BuildTitleStatus(
+                battery, new ThermalReading(ThermalReading.Severe, null), false, TimeSpan.FromMinutes(42)));
+        Assert.Equal(
+            "batterie 64 % · 42 min",
+            ScrcpyCommandBuilder.BuildTitleStatus(battery, new ThermalReading(1, null), false, TimeSpan.FromMinutes(42)));
     }
 }
