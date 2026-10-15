@@ -1,5 +1,6 @@
 ﻿using System.IO;
 
+using DtHub.Core.Dofus;
 using DtHub.Core.Localization;
 using DtHub.Core.Storage;
 
@@ -72,8 +73,15 @@ public sealed partial class WebViewEnvironment(IAppPaths paths, ILogger<WebViewE
             // on a French Windows got them in French. That language alone,
             // with no English fallback: DofusRoom answers in English to any
             // list holding "en", even last (measured 2026-10-15).
+            //
+            // The ad hosts resolve to nothing, for every window. Refusing
+            // their requests was not enough: the engine still opened a
+            // connection ahead of them, and Bitdefender flagged it as
+            // phishing in the DT portal on 2026-10-15, with every request
+            // refused in the log.
             AdditionalBrowserArguments =
-                $"--disk-cache-size={CacheBytes} --accept-lang={Strings.Spoken.TwoLetterISOLanguageName}",
+                $"--disk-cache-size={CacheBytes} --accept-lang={Strings.Spoken.TwoLetterISOLanguageName} "
+                + $"--host-resolver-rules=\"{string.Join(',', DofusTouchMap.BlockedAdHosts.Select(h => $"MAP {h} ~NOTFOUND,MAP *.{h} ~NOTFOUND"))}\"",
             Language = Strings.Spoken.Name,
         };
 
