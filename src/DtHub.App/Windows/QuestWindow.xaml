@@ -1091,27 +1091,32 @@
                          row: the root's counts, a zone's level range, an
                          achievement's tally. Hidden when empty, since an
                          empty block still claims its margin. -->
-                    <!-- Two columns shared by every row of the list, so a
-                         zone's "1 in progress" and "1/12" stand under the
-                         next zone's whatever their lengths. -->
+                    <TextBlock Text="{Binding Detail}"
+                               VerticalAlignment="Center"
+                               Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
+                               Visibility="{Binding Detail,
+                                                    Converter={StaticResource EmptyToVisibility},
+                                                    ConverterParameter=inverse}" />
+
+                    <!-- A zone's progress, in two columns shared by the
+                         zones alone: "1 in progress" and "1/12" stand under
+                         the next zone's, and the paths' "16 chemins" does
+                         not widen them. -->
                     <Grid VerticalAlignment="Center"
-                          Visibility="{Binding Detail,
+                          Visibility="{Binding Tally,
                                                Converter={StaticResource EmptyToVisibility},
                                                ConverterParameter=inverse}">
                       <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" SharedSizeGroup="ListStarted" />
-                        <ColumnDefinition Width="Auto" SharedSizeGroup="ListDetail" />
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="ZoneStarted" />
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="ZoneDone" />
                       </Grid.ColumnDefinitions>
 
-                      <TextBlock Grid.Column="0" Text="{Binding Started}" Margin="0,0,16,0"
+                      <TextBlock Grid.Column="0" Text="{Binding Tally.Started}" Margin="0,0,10,0"
                                  HorizontalAlignment="Right" VerticalAlignment="Center"
                                  Foreground="{DynamicResource AccentBrush}"
-                                 FontSize="{StaticResource FontSmall}"
-                                 Visibility="{Binding Started,
-                                                      Converter={StaticResource EmptyToVisibility},
-                                                      ConverterParameter=inverse}" />
+                                 FontSize="{StaticResource FontSmall}" />
 
-                      <TextBlock Grid.Column="1" Text="{Binding Detail}"
+                      <TextBlock Grid.Column="1" Text="{Binding Tally.Done}"
                                  HorizontalAlignment="Right" VerticalAlignment="Center"
                                  Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" />
                     </Grid>

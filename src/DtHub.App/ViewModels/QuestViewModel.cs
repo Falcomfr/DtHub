@@ -718,13 +718,10 @@ public sealed partial class QuestViewModel : ObservableObject
 
                     // The count follows the filters, the columns say how far
                     // the character got in the whole zone.
-                    var tally = QuestTracking.ZoneProgress(Tracker.Progress, [.. quests.Select(q => q.Id).Distinct()]);
-
                     Nodes.Add(branch with
                     {
                         Label = filtering ? $"{_tree.NameOf(branch.Id)} ({QuestTree.Text(shown)})" : branch.Label,
-                        Detail = tally?.Done,
-                        Started = tally?.Started,
+                        Tally = QuestTracking.ZoneProgress(Tracker.Progress, [.. quests.Select(q => q.Id).Distinct()]),
                     });
                 }
             }

@@ -124,7 +124,7 @@ public sealed record QuestNode(
     bool Spaced = false,
     DungeonFacts? Facts = null,
     QuestStatus Status = QuestStatus.NotStarted,
-    string? Started = null)
+    ZoneTally? Tally = null)
 {
     /// <summary>
     /// Neither unmade branches nor subheadings are clickable.
