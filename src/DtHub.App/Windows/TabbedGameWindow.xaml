@@ -18,7 +18,7 @@
 
          La barre entière reçoit les dépôts : lâcher après le dernier onglet
          range en fin de liste, là où il fallait viser un onglet. -->
-    <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}"
+    <Border x:Name="Strip" Grid.Row="0" Background="{DynamicResource SurfaceBrush}"
             BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1"
             AllowDrop="True" DragOver="OnStripDragOver" Drop="OnStripDrop"
             DragLeave="OnStripDragLeave">

@@ -435,6 +435,11 @@ public partial class TabbedGameWindow : Window
 
         _fullscreen = on;
 
+        // The tab bar goes too: left in place, it took its height off the
+        // game, which kept its shape and showed black bars on both sides.
+        // Ctrl+Tab still switches tabs without it.
+        Strip.Visibility = on ? Visibility.Collapsed : Visibility.Visible;
+
         if (on)
         {
             // Where we came from, kept here and not with the caller: it is the
@@ -461,6 +466,10 @@ public partial class TabbedGameWindow : Window
         {
             _windows.MoveWindow(Handle, target);
         }
+
+        // The bar's height must be in the measures Fit and Place read now,
+        // not at the next layout pass.
+        UpdateLayout();
 
         if (Items.FirstOrDefault(t => t.IsSelected) is not { } tab)
         {
