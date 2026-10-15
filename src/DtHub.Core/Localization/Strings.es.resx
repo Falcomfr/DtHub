@@ -99,7 +99,7 @@
     <value>En cuadrícula</value>
   </data>
   <data name="GridTip" xml:space="preserve">
-    <value>Colocar cuatro ventanas en cuadrícula, cada una en un cuarto de la pantalla, en el orden de la lista. A partir de cuatro, las siguientes se apilan en la última casilla.</value>
+    <value>Colocar las ventanas en cuadrícula, cada una en un cuarto de la pantalla, en el orden de la lista. A partir de cuatro, las siguientes se apilan en la última casilla.</value>
   </data>
   <data name="Guides" xml:space="preserve">
     <value>Guías</value>
@@ -1147,7 +1147,7 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
     <value>Coloca dos ventanas una al lado de la otra, cada una en una mitad de la pantalla. La ventana activa va a la derecha.</value>
   </data>
   <data name="ActionGridDetail" xml:space="preserve">
-    <value>Coloca cuatro ventanas en cuadrícula, cada una en un cuarto de la pantalla, en el orden de la lista. A partir de cuatro, las siguientes se apilan en la última casilla.</value>
+    <value>Coloca las ventanas en cuadrícula, cada una en un cuarto de la pantalla, en el orden de la lista. A partir de cuatro, las siguientes se apilan en la última casilla.</value>
   </data>
   <data name="ActionToggleGuidesDetail" xml:space="preserve">
     <value>Muestra u oculta las guías, que permanecen encima de las ventanas de juego. Misiones, mazmorras, incursiones, guaridas y rutas, de papycha.fr, en francés.</value>

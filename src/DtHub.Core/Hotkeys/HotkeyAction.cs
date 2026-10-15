@@ -24,7 +24,7 @@ public enum HotkeyAction
     /// <summary>Two windows, each on half the screen.</summary>
     Tile,
 
-    /// <summary>Four windows, each on a quarter of the screen.</summary>
+    /// <summary>Windows in a grid, each on a quarter of the screen.</summary>
     Grid,
 
     /// <summary>Show or hide quest tracking.</summary>
