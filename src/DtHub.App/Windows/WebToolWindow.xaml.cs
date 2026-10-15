@@ -23,6 +23,18 @@ public partial class WebToolWindow : Window
     /// <summary>The share of the work area the map takes the first time.</summary>
     private const double MapShare = 0.65;
 
+    /// <summary>Lomitall's first height: wanted large by the project owner (2026-10-14).</summary>
+    private const double LomitallHeightShare = 0.85;
+
+    /// <summary>
+    /// Lomitall's first width: its page stops at 1280 pixels (max-w-7xl)
+    /// and centres itself, so 85 % of a wide screen left two empty bands.
+    /// Its top bar, though, is 1357 pixels wide in that 1280 and overflows
+    /// to the right: measured on 2026-10-14, the search field ends inside
+    /// the page from a 1458 pixel view. Hence 1480 with the frame.
+    /// </summary>
+    private const double LomitallWidth = 1480;
+
     /// <summary>
     /// Calcofus's first width: its narrow layout, measured readable at 460
     /// pixels on 2026-10-11, leaves the game the rest of the screen.
@@ -82,6 +94,7 @@ public partial class WebToolWindow : Window
         WebTool.Map => WindowPlacements.Map,
         WebTool.Calcofus => WindowPlacements.Calcofus,
         WebTool.PapychaTracker => WindowPlacements.PapychaQuests,
+        WebTool.Lomitall => WindowPlacements.Lomitall,
         _ => WindowPlacements.DofusRoom,
     };
 
@@ -90,7 +103,16 @@ public partial class WebToolWindow : Window
         WebTool.Map => DofusTouchMap.Address,
         WebTool.Calcofus => Calcofus.Address,
         WebTool.PapychaTracker => PapychaSite.TrackerUrl,
+        WebTool.Lomitall => Lomitall.Address,
         _ => DofusRoom.Address,
+    };
+
+    private bool IsOwnPage(string url) => Tool switch
+    {
+        WebTool.Calcofus => Calcofus.IsOwnPage(url),
+        WebTool.Lomitall => Lomitall.IsOwnPage(url),
+        WebTool.PapychaTracker => PapychaSite.Owns(url),
+        _ => DofusRoom.IsOwnPage(url),
     };
 
     private async Task OpenAsync()
@@ -128,6 +150,12 @@ public partial class WebToolWindow : Window
             {
                 await View.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(DofusRoom.TouchOnlyScript).ConfigureAwait(true);
                 View.CoreWebView2.Navigate(DofusRoom.Address);
+                return;
+            }
+
+            if (Tool == WebTool.Lomitall)
+            {
+                View.CoreWebView2.Navigate(Lomitall.Address);
                 return;
             }
 
@@ -311,8 +339,8 @@ public partial class WebToolWindow : Window
 
     /// <summary>
     /// A link out of the tool, to Discord, Twitch, a stuff library or a
-    /// player's profile, goes to the browser: the narrow window is for the
-    /// tool alone.
+    /// player's profile, goes to the browser: the window is for the tool
+    /// alone. Lomitall's links to the other tools leave the same way.
     /// </summary>
     private void OnToolNavigating(object? sender, CoreWebView2NavigationStartingEventArgs e)
     {
@@ -326,14 +354,7 @@ public partial class WebToolWindow : Window
             return;
         }
 
-        var own = Tool switch
-        {
-            WebTool.Calcofus => Calcofus.IsOwnPage(e.Uri),
-            WebTool.PapychaTracker => PapychaSite.Owns(e.Uri),
-            _ => DofusRoom.IsOwnPage(e.Uri),
-        };
-
-        if (!own)
+        if (!IsOwnPage(e.Uri))
         {
             e.Cancel = true;
             _dialogs.OpenUrl(e.Uri);
@@ -374,6 +395,7 @@ public partial class WebToolWindow : Window
             WebTool.Map => "ToolMapName",
             WebTool.Calcofus => "ToolCalcofusName",
             WebTool.PapychaTracker => ShowsQuests ? "TrackerWindowTitle" : "TrackerSignInTitle",
+            WebTool.Lomitall => "ToolLomitallName",
             _ => "ToolDofusRoomName",
         });
         Donate.Visibility = Tool == WebTool.Map ? Visibility.Visible : Visibility.Collapsed;
@@ -406,10 +428,10 @@ public partial class WebToolWindow : Window
     {
         var area = SystemParameters.WorkArea;
 
-        if (Tool == WebTool.Map)
+        if (Tool is WebTool.Map or WebTool.Lomitall)
         {
-            Width = area.Width * MapShare;
-            Height = area.Height * MapShare;
+            Width = Tool == WebTool.Map ? area.Width * MapShare : Math.Min(LomitallWidth, area.Width);
+            Height = area.Height * (Tool == WebTool.Map ? MapShare : LomitallHeightShare);
             Left = area.Left + ((area.Width - Width) / 2);
             Top = area.Top + ((area.Height - Height) / 2);
             return;

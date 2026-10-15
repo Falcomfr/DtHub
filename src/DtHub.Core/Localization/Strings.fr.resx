@@ -92,6 +92,9 @@
   <data name="GuidesTip" xml:space="preserve">
     <value>Ouvrir les guides, qui restent au-dessus des fenêtres de jeu. Quêtes, donjons, raids, tanières et chemins, de papycha.fr.</value>
   </data>
+  <data name="GuidesSource" xml:space="preserve">
+    <value>Papycha.fr</value>
+  </data>
   <data name="Quit" xml:space="preserve">
     <value>Quitter</value>
   </data>
@@ -2355,6 +2358,15 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   </data>
   <data name="ToolDofusBookLine" xml:space="preserve">
     <value>Créateur et bibliothèque de stuffs. S'ouvre dans le navigateur.</value>
+  </data>
+  <data name="ToolLomitallName" xml:space="preserve">
+    <value>Lomitall.fr</value>
+  </data>
+  <data name="ToolLomitallLine" xml:space="preserve">
+    <value>Portail DT</value>
+  </data>
+  <data name="LomitallTip" xml:space="preserve">
+    <value>Ouvrir lomitall.fr dans une grande fenêtre : guides, outils, classes, stuffs et donjons de DOFUS Touch.</value>
   </data>
   <data name="CheckAdbDriverUnusable" xml:space="preserve">
     <value>Le téléphone propose bien son débogage, mais le pilote que Windows lui a donné ne le rend pas à adb, souvent celui d'un logiciel du constructeur comme HiSuite. Quittez d'abord ce logiciel, puis :

@@ -1236,6 +1236,10 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// <summary>Requested from the tool button, same reason.</summary>
     public event EventHandler? AlmanaxRequested;
 
+    /// <summary>Opens Lomitall's portal, from its button beside the guides.</summary>
+    [RelayCommand]
+    private void Portal() => WebToolRequested?.Invoke(this, WebTool.Lomitall);
+
     /// <summary>Requested from the DOFUS Touch tools menu: a web tool's window.</summary>
     public event EventHandler<WebTool>? WebToolRequested;
 

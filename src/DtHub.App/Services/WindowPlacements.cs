@@ -49,6 +49,9 @@ public sealed class WindowPlacements(IWindowController windows, SettingsService 
     /// </summary>
     public const string PapychaQuests = "papychaquests";
 
+    /// <summary>Lomitall's portal.</summary>
+    public const string Lomitall = "lomitall";
+
     /// <summary>The settings panel.</summary>
     public const string Configurator = "configurator";
 

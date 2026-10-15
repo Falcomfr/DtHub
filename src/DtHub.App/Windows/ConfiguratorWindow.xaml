@@ -133,7 +133,7 @@
       </Thumb>
 
       <!-- Bottom bar: tools on the left, quit on the right. -->
-      <Border DockPanel.Dock="Bottom" Padding="10,8,10,4"
+      <Border DockPanel.Dock="Bottom" Padding="10,5,10,1"
               Background="{StaticResource BrushedPanelBrush}"
               BorderBrush="{DynamicResource BevelBrush}" BorderThickness="0,1,0,0">
         <Grid>
@@ -155,15 +155,19 @@
                and it was the most conspicuous thing on a window footer
                that only wants to go unnoticed. The shortcuts are
                listed in the tab dedicated to them, and the tooltip
-               says what each button does. -->
-          <StackPanel Grid.Column="0" Orientation="Horizontal"
-                      VerticalAlignment="Center" HorizontalAlignment="Left"
-                      Margin="0,0,10,0">
+               says what each button does.
 
-            <Border Background="{StaticResource KeyFaceBrush}"
+               The keys wrap rather than run under "Quit": with Lomitall's
+               key the row fills a 440 unit window, and the window can be
+               narrower, or show the two arranging keys. -->
+          <WrapPanel Grid.Column="0" Orientation="Horizontal"
+                      VerticalAlignment="Center" HorizontalAlignment="Left"
+                      Margin="0,0,2,0">
+
+            <Border Margin="0,3,8,3" Background="{StaticResource KeyFaceBrush}"
                     BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
                     CornerRadius="{StaticResource RadiusKey}">
-              <Button Style="{StaticResource GroupKey}"
+              <Button Style="{StaticResource GroupKey}" Padding="7,3"
                       ToolTip="{loc:T GuidesTip}"
                       Command="{Binding QuestsCommand}">
                 <StackPanel Orientation="Horizontal">
@@ -173,10 +177,39 @@
                        out: it carries DOFUS Touch's registered logo,
                        which no agreement from papycha can grant us. See
                        THIRD-PARTY-NOTICES.md. -->
-                  <Image Source="/assets/papycha.png" Width="16" Height="16"
-                         Margin="0,0,6,0" VerticalAlignment="Center"
+                  <Image Source="/assets/papycha.png" Width="20" Height="20"
+                         Margin="0,0,7,0" VerticalAlignment="Center"
                          RenderOptions.BitmapScalingMode="HighQuality" />
-                  <TextBlock Text="{loc:T Guides}" VerticalAlignment="Center" />
+                  <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="{loc:T Guides}" FontWeight="SemiBold" />
+                    <TextBlock Text="{loc:T GuidesSource}" Margin="0,-2,0,0"
+                               FontSize="{StaticResource FontTiny}"
+                               Foreground="{DynamicResource TextMutedBrush}" />
+                  </StackPanel>
+                </StackPanel>
+              </Button>
+            </Border>
+
+            <!-- Lomitall's portal at the guides' right, as asked
+                 (2026-10-14), with the site's own logo: see
+                 THIRD-PARTY-NOTICES.md. -->
+            <Border Margin="0,3,8,3"
+                    Background="{StaticResource KeyFaceBrush}"
+                    BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
+                    CornerRadius="{StaticResource RadiusKey}">
+              <Button Style="{StaticResource GroupKey}" Padding="7,3"
+                      ToolTip="{loc:T LomitallTip}"
+                      Command="{Binding PortalCommand}">
+                <StackPanel Orientation="Horizontal">
+                  <Image Source="/assets/lomitall.png" Width="20" Height="20"
+                         Margin="0,0,7,0" VerticalAlignment="Center"
+                         RenderOptions.BitmapScalingMode="HighQuality" />
+                  <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="{loc:T ToolLomitallLine}" FontWeight="SemiBold" />
+                    <TextBlock Text="{loc:T ToolLomitallName}" Margin="0,-2,0,0"
+                               FontSize="{StaticResource FontTiny}"
+                               Foreground="{DynamicResource TextMutedBrush}" />
+                  </StackPanel>
                 </StackPanel>
               </Button>
             </Border>
@@ -186,7 +219,7 @@
                  arranging that follows. A drawn calendar rather than a
                  logo: the page comes from Ankama, none of whose
                  branding we display. -->
-            <Border Margin="8,0,0,0"
+            <Border Margin="0,3,8,3"
                     Background="{StaticResource KeyFaceBrush}"
                     BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
                     CornerRadius="{StaticResource RadiusKey}">
@@ -194,12 +227,12 @@
                       ToolTip="{loc:T AlmanaxTip}"
                       Command="{Binding AlmanaxCommand}">
                 <StackPanel Orientation="Horizontal">
-                  <Path Width="16" Height="16" Stretch="None" Margin="0,0,6,0"
+                  <Path Width="16" Height="16" Stretch="None" Margin="2,0,9,0"
                         VerticalAlignment="Center" StrokeLineJoin="Round"
                         StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                         Stroke="{DynamicResource TextBrush}" StrokeThickness="1.3"
                         Data="M 3,4.5 H 13 V 13.5 H 3 Z M 3,7.5 H 13 M 6,3 V 6 M 10,3 V 6" />
-                  <TextBlock Text="{loc:T Almanax}" VerticalAlignment="Center" />
+                  <TextBlock Text="{loc:T Almanax}" FontWeight="SemiBold" VerticalAlignment="Center" />
                 </StackPanel>
               </Button>
             </Border>
@@ -210,7 +243,7 @@
                  on a key nothing else says where it leads. Discord's brand
                  guidelines allow it for linking to a server, see
                  THIRD-PARTY-NOTICES.md. -->
-            <Border Margin="8,0,0,0"
+            <Border Margin="0,3,8,3"
                     Background="{StaticResource KeyFaceBrush}"
                     BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
                     CornerRadius="{StaticResource RadiusKey}">
@@ -230,7 +263,7 @@
                  frame, and pressing these buttons did nothing. No text:
                  their icon says what they do, and the window footer
                  gets some breathing room. -->
-            <Border Margin="8,0,0,0"
+            <Border Margin="0,3,8,3"
                     Background="{StaticResource KeyFaceBrush}"
                     BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
                     CornerRadius="{StaticResource RadiusKey}"
@@ -261,7 +294,7 @@
               </StackPanel>
             </Border>
 
-          </StackPanel>
+          </WrapPanel>
 
           <Button Grid.Column="1" Content="{loc:T Quit}" Click="OnQuit"
                   VerticalAlignment="Center"
