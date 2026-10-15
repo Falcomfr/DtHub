@@ -2,6 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:loc="clr-namespace:DtHub.App.Localization"
+        xmlns:papycha="clr-namespace:DtHub.Core.Papycha;assembly=DtHub.Core"
         xmlns:wv="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         Title="{loc:T Guides}"
         PreviewMouseDown="OnWindowPressed"
@@ -26,6 +27,11 @@
         <!-- The field takes up the full width: the quest count that used
              to cut into it didn't say anything worth reading twice. -->
         <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+
           <!-- The right padding is wider than the others: it reserves
                room for the cross, which sits above the field. It's set
                to half the width wanted, since the field applies its
@@ -50,6 +56,23 @@
                                        ConverterParameter=inverse}">
             <Path Style="{StaticResource RowGlyph}" Data="M 4,4 L 11,11 M 11,4 L 4,11" />
           </Button>
+
+          <!-- Only where they act: a list of quests, once linked, and no
+               search under way, since a search is never filtered. -->
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="6,0,0,0"
+                      Visibility="{Binding ShowsFilters,
+                                           Converter={StaticResource BoolToVisibility}}">
+            <ToggleButton Style="{StaticResource OutlineToggle}" Padding="8,3"
+                          Background="Transparent"
+                          BorderBrush="{DynamicResource BorderBrush}"
+                          Content="{loc:T FilterToDo}"
+                          IsChecked="{Binding FilterToDo, Mode=TwoWay}" />
+            <ToggleButton Style="{StaticResource OutlineToggle}" Padding="8,3" Margin="4,0,0,0"
+                          Background="Transparent"
+                          BorderBrush="{DynamicResource BorderBrush}"
+                          Content="{loc:T FilterAvailable}"
+                          IsChecked="{Binding FilterAvailable, Mode=TwoWay}" />
+          </StackPanel>
         </Grid>
 
         <!-- Only when there's something to say: an indexing in progress,
@@ -67,6 +90,193 @@
       </StackPanel>
     </Border>
 
+    <!-- The player's Papycha tracker: the link when there is none, the
+         character and the menu once linked. The strip disappears while
+         nothing is known and nothing is to be said; a player who never
+         linked sees only the link button. -->
+    <Border DockPanel.Dock="Top" Padding="10,6" DataContext="{Binding Tracker}"
+            BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1">
+      <Border.Style>
+        <Style TargetType="Border">
+          <Style.Triggers>
+            <MultiDataTrigger>
+              <MultiDataTrigger.Conditions>
+                <Condition Binding="{Binding IsLinked}" Value="False" />
+                <Condition Binding="{Binding ShowsLinkButton}" Value="False" />
+                <Condition Binding="{Binding Notice}" Value="" />
+              </MultiDataTrigger.Conditions>
+              <Setter Property="Visibility" Value="Collapsed" />
+            </MultiDataTrigger>
+          </Style.Triggers>
+        </Style>
+      </Border.Style>
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+          <ComboBox ItemsSource="{Binding Characters}" SelectedItem="{Binding SelectedCharacter}"
+                    MinWidth="150" Margin="0,0,10,0"
+                    Visibility="{Binding HasSeveralCharacters, Converter={StaticResource BoolToVisibility}}">
+            <ComboBox.ItemTemplate>
+              <DataTemplate>
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="{Binding Name}" />
+                  <TextBlock Text="{Binding Level, StringFormat=' ({0})'}"
+                             Style="{StaticResource Muted}" />
+                </StackPanel>
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+
+          <!-- One character only: a dropdown with a single entry would
+               promise a choice that does not exist. Empty when not linked. -->
+          <TextBlock Text="{Binding SelectedCharacter.Name}" FontWeight="SemiBold"
+                     VerticalAlignment="Center" Margin="0,0,10,0"
+                     Visibility="{Binding HasSeveralCharacters,
+                                          Converter={StaticResource InverseBoolToVisibility}}" />
+
+          <TextBlock Text="{loc:T TrackerPitch}" Style="{StaticResource Muted}"
+                     FontSize="{StaticResource FontSmall}" VerticalAlignment="Center"
+                     TextWrapping="Wrap"
+                     Visibility="{Binding ShowsPitch, Converter={StaticResource BoolToVisibility}}" />
+
+          <TextBlock Text="{Binding Notice}" Style="{StaticResource Muted}"
+                     FontSize="{StaticResource FontSmall}" VerticalAlignment="Center"
+                     TextWrapping="Wrap"
+                     Visibility="{Binding Notice, Converter={StaticResource EmptyToVisibility},
+                                          ConverterParameter=inverse}" />
+        </StackPanel>
+
+        <Button Grid.Column="1" Style="{StaticResource OutlineButton}" Padding="8,3"
+                VerticalAlignment="Center" Click="OnLinkTracker"
+                Content="{loc:T TrackerLink}"
+                Visibility="{Binding ShowsLinkButton, Converter={StaticResource BoolToVisibility}}" />
+
+        <Grid Grid.Column="1" VerticalAlignment="Center"
+              Visibility="{Binding IsLinked, Converter={StaticResource BoolToVisibility}}">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+
+          <!-- The shown quest's status on the player's tracker, next to the
+               other tracker controls. Only while a quest is shown. -->
+          <!-- Only while a guide is on screen: in the list or a search, the
+               buttons would speak of a quest no longer shown. -->
+          <Border VerticalAlignment="Center"
+                  Visibility="{Binding DataContext.ShowsQuestChrome,
+                                       RelativeSource={RelativeSource AncestorType=Window},
+                                       Converter={StaticResource BoolToVisibility}}">
+            <StackPanel Orientation="Horizontal" Margin="0,0,12,0" VerticalAlignment="Center"
+                        Visibility="{Binding ShowsQuestStatus, Converter={StaticResource BoolToVisibility}}">
+              <TextBlock Text="{Binding CurrentStatusLabel}" Style="{StaticResource Muted}"
+                         FontSize="{StaticResource FontSmall}" VerticalAlignment="Center"
+                         Margin="0,0,10,0" />
+  
+              <Button Padding="8,2" VerticalAlignment="Center" Click="OnMarkDone"
+                      IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}">
+                <Button.Style>
+                  <Style TargetType="Button" BasedOn="{StaticResource OutlineButton}">
+                    <Setter Property="Content" Value="{loc:T QuestStatusCompleted}" />
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding HighlightsDone}" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                      </DataTrigger>
+                      <DataTrigger Binding="{Binding IsDone}" Value="True">
+                        <Setter Property="Content" Value="{loc:T TrackerDone}" />
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </Button.Style>
+              </Button>
+  
+              <Grid Margin="4,0,0,0" VerticalAlignment="Center">
+                <ToggleButton x:Name="StatusMenuToggle" Style="{StaticResource OutlineToggle}"
+                              Padding="7,2" Background="Transparent"
+                              BorderBrush="{DynamicResource BorderBrush}"
+                              ToolTip="{loc:T QuestStatusMenuTip}"
+                              IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}">
+                  <Path Width="8" Height="5" Stretch="None" StrokeLineJoin="Round"
+                        StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                        Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.4"
+                        Data="M 0.7,0.7 L 4,4 L 7.3,0.7" />
+                </ToggleButton>
+                <Popup IsOpen="{Binding IsChecked, ElementName=StatusMenuToggle, Mode=TwoWay}"
+                       StaysOpen="False" Placement="Bottom"
+                       PlacementTarget="{Binding ElementName=StatusMenuToggle}"
+                       AllowsTransparency="True" PopupAnimation="Fade">
+                  <Border Background="{DynamicResource SurfaceBrush}"
+                          BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                          CornerRadius="{StaticResource Radius}" Margin="0,4,0,0" Padding="6">
+                    <StackPanel>
+                      <Button Style="{StaticResource OutlineButton}" Padding="8,5" Margin="0,1"
+                              HorizontalContentAlignment="Left" Background="Transparent"
+                              BorderBrush="Transparent" Click="OnPickStatus"
+                              Tag="{x:Static papycha:QuestStatus.NotStarted}"
+                              Content="{loc:T QuestStatusNotStarted}" />
+                      <Button Style="{StaticResource OutlineButton}" Padding="8,5" Margin="0,1"
+                              HorizontalContentAlignment="Left" Background="Transparent"
+                              BorderBrush="Transparent" Click="OnPickStatus"
+                              Tag="{x:Static papycha:QuestStatus.InProgress}"
+                              Content="{loc:T QuestStatusInProgress}" />
+                      <Button Style="{StaticResource OutlineButton}" Padding="8,5" Margin="0,1"
+                              HorizontalContentAlignment="Left" Background="Transparent"
+                              BorderBrush="Transparent" Click="OnPickStatus"
+                              Tag="{x:Static papycha:QuestStatus.Completed}"
+                              Content="{loc:T QuestStatusCompleted}" />
+                      <Button Style="{StaticResource OutlineButton}" Padding="8,5" Margin="0,1"
+                              HorizontalContentAlignment="Left" Background="Transparent"
+                              BorderBrush="Transparent" Click="OnPickStatus"
+                              Tag="{x:Static papycha:QuestStatus.Blocked}"
+                              Content="{loc:T QuestStatusBlocked}" />
+                      <Button Style="{StaticResource OutlineButton}" Padding="8,5" Margin="0,1"
+                              HorizontalContentAlignment="Left" Background="Transparent"
+                              BorderBrush="Transparent" Click="OnPickStatus"
+                              Tag="{x:Static papycha:QuestStatus.Ignored}"
+                              Content="{loc:T QuestStatusIgnored}" />
+                    </StackPanel>
+                  </Border>
+                </Popup>
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <Button Grid.Column="1" Style="{StaticResource OutlineButton}" Padding="8,3" Margin="0,0,8,0"
+                  VerticalAlignment="Center" Click="OnOpenTracker"
+                  Content="{loc:T TrackerMyQuests}" />
+
+          <ToggleButton x:Name="TrackerMenuToggle" Grid.Column="2" Style="{StaticResource OutlineToggle}"
+                        Padding="8,2" Background="Transparent"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        ToolTip="{loc:T TrackerMenuTip}">
+            <Path Width="12" Height="4" Stretch="None" StrokeStartLineCap="Round"
+                  StrokeEndLineCap="Round" Stroke="{DynamicResource TextMutedBrush}"
+                  StrokeThickness="2" Data="M 1,2 H 1.1 M 6,2 H 6.1 M 11,2 H 11.1" />
+          </ToggleButton>
+          <Popup IsOpen="{Binding IsChecked, ElementName=TrackerMenuToggle, Mode=TwoWay}"
+                 StaysOpen="False" Placement="Bottom"
+                 PlacementTarget="{Binding ElementName=TrackerMenuToggle}"
+                 AllowsTransparency="True" PopupAnimation="Fade">
+            <Border Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                    CornerRadius="{StaticResource Radius}" Margin="0,4,0,0" Padding="6">
+              <StackPanel>
+                <Button Style="{StaticResource OutlineButton}" Padding="8,5" Margin="0,1"
+                        HorizontalContentAlignment="Left" Background="Transparent"
+                        BorderBrush="Transparent" Click="OnUnlinkTracker"
+                        Content="{loc:T TrackerUnlink}" />
+              </StackPanel>
+            </Border>
+          </Popup>
+        </Grid>
+      </Grid>
+    </Border>
+
     <!-- Banner for the open quest: its name, its place within the
          achievement, and the step arrows. It disappears when the list
          opens, so the list can take up the full height: you don't
@@ -74,208 +284,81 @@
     <Border DockPanel.Dock="Top" Padding="10,6"
             BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1"
             Visibility="{Binding ShowsQuestChrome, Converter={StaticResource BoolToVisibility}}">
-      <StackPanel>
-        <Grid>
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-          </Grid.ColumnDefinitions>
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
 
-          <!-- Going back where you came from. A curved arrow rather than
-               a chevron: the chevrons on the row below point to the
-               previous and next step, and two left-pointing arrows in
-               the same banner wouldn't say the same thing. -->
-          <Button Grid.Column="0" Style="{StaticResource IconButton}"
-                  Margin="0,0,4,0" VerticalAlignment="Center"
-                  Click="OnGoBackPage"
-                  ToolTip="{loc:T BackToPreviousPageTip}"
-                  Visibility="{Binding CanGoBackPage,
-                                       Converter={StaticResource BoolToVisibility}}">
-            <Path Style="{StaticResource RowGlyph}"
-                  Data="M 3.5,6 L 7,2.5 M 3.5,6 L 7,9.5
-                        M 3.5,6 H 9.5 C 12,6 12.5,7.6 12.5,9.6 V 12.5" />
-          </Button>
+        <!-- Going back where you came from. A curved arrow rather than
+             a chevron: the chevrons on the row below point to the
+             previous and next step, and two left-pointing arrows in
+             the same banner wouldn't say the same thing. -->
+        <Button Grid.Column="0" Style="{StaticResource IconButton}"
+                Margin="0,0,4,0" VerticalAlignment="Center"
+                Click="OnGoBackPage"
+                ToolTip="{loc:T BackToPreviousPageTip}"
+                Visibility="{Binding CanGoBackPage,
+                                     Converter={StaticResource BoolToVisibility}}">
+          <Path Style="{StaticResource RowGlyph}"
+                Data="M 3.5,6 L 7,2.5 M 3.5,6 L 7,9.5
+                      M 3.5,6 H 9.5 C 12,6 12.5,7.6 12.5,9.6 V 12.5" />
+        </Button>
 
-          <!-- The achievement line wasn't declared as spacing, but it
-               acted as one: fifteen pixels of light grey above the
-               title. More than half of quests don't have one, and the
-               title then ended up touching the divider, especially
-               since the page below allows itself twelve pixels of
-               margin. The block therefore gives back a bit of room
-               when the line collapses, without pretending to replace
-               missing text.
+        <!-- The achievement line wasn't declared as spacing, but it
+             acted as one: fifteen pixels of light grey above the
+             title. More than half of quests don't have one, and the
+             title then ended up touching the divider, especially
+             since the page below allows itself twelve pixels of
+             margin. The block therefore gives back a bit of room
+             when the line collapses, without pretending to replace
+             missing text.
 
-               The trigger reads the line's visibility rather than the
-               string itself: it's the same notion of emptiness as the
-               converter, including for a null or blank text, and the
-               two cannot diverge. -->
-          <StackPanel Grid.Column="1">
-            <StackPanel.Style>
-              <Style TargetType="StackPanel">
-                <Style.Triggers>
-                  <DataTrigger Binding="{Binding Visibility, ElementName=HeaderSeries}" Value="Collapsed">
-                    <Setter Property="Margin" Value="0,4" />
-                  </DataTrigger>
-                </Style.Triggers>
-              </Style>
-            </StackPanel.Style>
+             The trigger reads the line's visibility rather than the
+             string itself: it's the same notion of emptiness as the
+             converter, including for a null or blank text, and the
+             two cannot diverge. -->
+        <StackPanel Grid.Column="1">
+          <StackPanel.Style>
+            <Style TargetType="StackPanel">
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding Visibility, ElementName=HeaderSeries}" Value="Collapsed">
+                  <Setter Property="Margin" Value="0,4" />
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </StackPanel.Style>
 
-            <TextBlock x:Name="HeaderSeries"
-                       Text="{Binding ChainText}" Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
-                       Visibility="{Binding ChainText, Converter={StaticResource EmptyToVisibility},
-                                            ConverterParameter=inverse}" />
+          <TextBlock x:Name="HeaderSeries"
+                     Text="{Binding ChainText}" Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
+                     Visibility="{Binding ChainText, Converter={StaticResource EmptyToVisibility},
+                                          ConverterParameter=inverse}" />
 
-            <TextBlock Text="{Binding QuestTitle}" FontWeight="SemiBold"
-                       TextTrimming="CharacterEllipsis" />
-          </StackPanel>
-        </Grid>
+          <TextBlock Text="{Binding QuestTitle}" FontWeight="SemiBold"
+                     TextTrimming="CharacterEllipsis" />
 
-        <!-- The steps: two arrows, the rank, and what there is to do. -->
-        <Grid Margin="0,6,0,0"
-              Visibility="{Binding ShowsSteps, Converter={StaticResource BoolToVisibility}}">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-          </Grid.ColumnDefinitions>
+        </StackPanel>
 
-          <Button Grid.Column="0" Style="{StaticResource IconButton}"
+        <!-- The step arrows, on the title's row: the site's intro block,
+             shown again at the top of the guide, now says where the
+             quest starts, and a second row only cost height. -->
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="8,0,0,0"
+                    VerticalAlignment="Center"
+                    Visibility="{Binding ShowsSteps, Converter={StaticResource BoolToVisibility}}">
+          <Button Style="{StaticResource IconButton}"
                   IsEnabled="{Binding CanGoPreviousStep}" Click="OnPreviousStep"
                   ToolTip="{loc:T PreviousStepTip}">
             <Path Style="{StaticResource RowGlyph}" Data="M 9,3 L 5,7.5 L 9,12" />
           </Button>
 
-          <Button Grid.Column="1" Style="{StaticResource IconButton}"
+          <Button Style="{StaticResource IconButton}"
                   IsEnabled="{Binding CanGoNextStep}" Click="OnNextStep"
                   ToolTip="{loc:T NextStepTip}">
             <Path Style="{StaticResource RowGlyph}" Data="M 6,3 L 10,7.5 L 6,12" />
           </Button>
-
-          <!-- The rank unfolds the list of steps. The two arrows only
-               move one at a time: going back to the third step of a
-               guide with twelve of them took nine clicks, and nothing
-               said what you'd find along the way. The rank used to be
-               just text, and nothing hinted there was something else
-               to do here. -->
-          <Grid Grid.Column="2" Margin="4,0,10,0">
-            <!-- The rank in plain text when there's only one step: the
-                 chip would unfold a list with a single item, which led
-                 nowhere. -->
-            <TextBlock VerticalAlignment="Center" Text="{Binding StepText}"
-                       Margin="7,0,0,0" FontFamily="{StaticResource MonoFont}" FontSize="{StaticResource FontSmall}"
-                       Foreground="{DynamicResource AccentBrush}"
-                       Visibility="{Binding CanPickStep,
-                                            Converter={StaticResource InverseBoolToVisibility}}" />
-
-            <ToggleButton x:Name="StepsToggle" Style="{StaticResource OutlineToggle}"
-                          Padding="7,2" VerticalAlignment="Center"
-                          Background="Transparent"
-                          BorderBrush="{DynamicResource BorderBrush}"
-                          ToolTip="{loc:T PickStepTip}"
-                          Visibility="{Binding CanPickStep,
-                                               Converter={StaticResource BoolToVisibility}}">
-              <StackPanel Orientation="Horizontal">
-                <TextBlock Text="{Binding StepText}" VerticalAlignment="Center"
-                           FontFamily="{StaticResource MonoFont}" FontSize="{StaticResource FontSmall}"
-                           Foreground="{DynamicResource AccentBrush}" />
-                <Path Width="8" Height="5" Stretch="None" Margin="6,1,0,0"
-                      VerticalAlignment="Center" StrokeLineJoin="Round"
-                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                      Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.4"
-                      Data="M 0.7,0.7 L 4,4 L 7.3,0.7" />
-              </StackPanel>
-            </ToggleButton>
-
-            <Popup IsOpen="{Binding IsChecked, ElementName=StepsToggle, Mode=TwoWay}" StaysOpen="False"
-                   Placement="Bottom" PlacementTarget="{Binding ElementName=StepsToggle}"
-                   AllowsTransparency="True" PopupAnimation="Fade">
-              <Border Background="{DynamicResource SurfaceBrush}" Width="400"
-                      BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
-                      CornerRadius="{StaticResource Radius}" Margin="0,4,0,0" Padding="6">
-                <!-- A twenty-step guide doesn't fit all at once: the list
-                     scrolls rather than running off the screen. -->
-                <ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto">
-                  <ItemsControl ItemsSource="{Binding Steps}">
-                    <ItemsControl.ItemTemplate>
-                      <DataTemplate>
-                        <Button Padding="8,5" Margin="0,1" Click="OnPickStep">
-                          <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource OutlineButton}">
-                              <Setter Property="Background" Value="Transparent" />
-                              <Setter Property="BorderBrush" Value="Transparent" />
-                              <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsCurrent}" Value="True">
-                                  <Setter Property="Background"
-                                          Value="{DynamicResource AccentSoftBrush}" />
-                                  <Setter Property="BorderBrush"
-                                          Value="{DynamicResource AccentBrush}" />
-                                </DataTrigger>
-                              </Style.Triggers>
-                            </Style>
-                          </Button.Style>
-                          <Grid>
-                            <Grid.ColumnDefinitions>
-                              <ColumnDefinition Width="26" />
-                              <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Text="{Binding Rank}" VerticalAlignment="Top"
-                                       FontFamily="{StaticResource MonoFont}" FontSize="{StaticResource FontSmall}"
-                                       Foreground="{DynamicResource AccentBrush}" />
-
-                            <!-- Most often empty: only a section title is
-                                 written here. The row keeps its height
-                                 and its clickable area through the
-                                 button's fill. -->
-                            <TextBlock Grid.Column="1" Text="{Binding Label}"
-                                       TextWrapping="Wrap" Style="{StaticResource Muted}"
-                                       Visibility="{Binding Label,
-                                           Converter={StaticResource EmptyToVisibility},
-                                           ConverterParameter=inverse}" />
-                          </Grid>
-                        </Button>
-                      </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                  </ItemsControl>
-                </ScrollViewer>
-              </Border>
-            </Popup>
-          </Grid>
-
-          <!-- The row stays during loading so the banner doesn't jump in
-               height; it used to show nothing but two greyed-out
-               arrows there, which read like a broken page. It now says
-               what it's waiting for. -->
-          <TextBlock Grid.Column="3" VerticalAlignment="Center"
-                     FontSize="{StaticResource FontSmall}"
-                     TextTrimming="CharacterEllipsis"
-                     ToolTip="{Binding StepDetail}">
-            <TextBlock.Style>
-              <Style TargetType="TextBlock" BasedOn="{StaticResource Muted}">
-                <Setter Property="Text" Value="{Binding StepDetail}" />
-
-                <Style.Triggers>
-                  <!-- Nothing to say, nothing to show: the rank is enough
-                       on its own. The visibility is set here and not on
-                       the element, since a local value overrides any
-                       style trigger. -->
-                  <DataTrigger Binding="{Binding StepDetail}" Value="">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                  </DataTrigger>
-
-                  <!-- Last, so it wins: the waiting state is shown even
-                       when the step has nothing to display. -->
-                  <DataTrigger Binding="{Binding IsLoadingPage}" Value="True">
-                    <Setter Property="Text" Value="{loc:T LoadingPage}" />
-                    <Setter Property="Visibility" Value="Visible" />
-                  </DataTrigger>
-                </Style.Triggers>
-              </Style>
-            </TextBlock.Style>
-          </TextBlock>
-        </Grid>
-      </StackPanel>
+        </StackPanel>
+      </Grid>
     </Border>
 
     <!-- The source, always credited, and access to the real browser -->
@@ -293,15 +376,62 @@
              whose work is displayed, it doesn't read as a grey
              mention. It's allowed to be truncated: the two buttons
              take priority over it in a narrow window. -->
-        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-          <Image Source="/assets/papycha.png" Width="14" Height="14" Margin="0,0,5,0"
-                 VerticalAlignment="Center"
-                 RenderOptions.BitmapScalingMode="HighQuality" />
-          <TextBlock VerticalAlignment="Center" FontSize="{StaticResource FontSmall}"
-                     TextTrimming="CharacterEllipsis"
-                     Foreground="{DynamicResource AccentBrush}"
-                     Text="{loc:T PapychaGuides}" />
-        </StackPanel>
+        <DockPanel Grid.Column="0" LastChildFill="True">
+          <!-- The tracker's offers, left of the report button: the bar at
+               the top had no room left for them. The credit gives way. -->
+          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center"
+                      Margin="8,0,8,0" DataContext="{Binding Tracker}">
+              <!-- Offered after "next quest": leaving a quest is not always
+                   finishing it, so it is asked, never written on its own. -->
+              <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                          Visibility="{Binding ShowsFinishOffer, Converter={StaticResource BoolToVisibility}}">
+                <TextBlock Text="{Binding FinishOffer}" VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis" MaxWidth="320" Margin="0,0,8,0" />
+                <Button Style="{StaticResource OutlineButton}" Padding="8,2" Margin="0,0,4,0"
+                        Background="{DynamicResource AccentSoftBrush}"
+                        BorderBrush="{DynamicResource AccentBrush}"
+                        Click="OnAcceptFinish" Content="{loc:T TrackerYes}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}" />
+                <Button Style="{StaticResource OutlineButton}" Padding="8,2"
+                        Click="OnDismissFinish" Content="{loc:T TrackerNo}" />
+              </StackPanel>
+
+              <!-- After "Terminée": the account's other characters still to
+                   finish it, one click each or all at once. Ignored, it writes
+                   nothing and goes with the next quest shown. -->
+              <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0"
+                          Visibility="{Binding ShowsOthers, Converter={StaticResource BoolToVisibility}}">
+                <TextBlock Text="{loc:T TrackerAlsoFor}" Style="{StaticResource Muted}"
+                           VerticalAlignment="Center" Margin="0,0,6,0" />
+                <ItemsControl ItemsSource="{Binding OthersToFinish}" VerticalAlignment="Center">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <StackPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Button Style="{StaticResource OutlineButton}" Padding="8,2" Margin="0,0,4,0"
+                              Content="{Binding Name}" Tag="{Binding}" Click="OnFinishForOther" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Button Style="{StaticResource OutlineButton}" Padding="8,2"
+                        Click="OnFinishForAll" Content="{loc:T TrackerAllCharacters}"
+                        Visibility="{Binding ShowsAllOthers, Converter={StaticResource BoolToVisibility}}" />
+              </StackPanel>
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <Image Source="/assets/papycha.png" Width="14" Height="14" Margin="0,0,5,0"
+                   VerticalAlignment="Center"
+                   RenderOptions.BitmapScalingMode="HighQuality" />
+            <TextBlock VerticalAlignment="Center" FontSize="{StaticResource FontSmall}"
+                       TextTrimming="CharacterEllipsis"
+                       Foreground="{DynamicResource AccentBrush}"
+                       Text="{loc:T PapychaGuides}" />
+          </StackPanel>
+        </DockPanel>
 
         <!-- The report button carries the accent colours, at rest and
              not only on hover: it's the action people look for in this
@@ -790,6 +920,25 @@
                                                     Converter={StaticResource EmptyToVisibility},
                                                     ConverterParameter=inverse}" />
 
+                    <!-- The tracker's mark: a check for a finished
+                         quest, a dot for one in progress. Hidden, not
+                         collapsed, on an unmarked quest row so every
+                         quest label starts at the same place; collapsed
+                         on rows that are not quests. -->
+                    <Path x:Name="Marque" DockPanel.Dock="Left" Width="12" Height="12"
+                          Margin="0,0,6,0" VerticalAlignment="Center" Stretch="None"
+                          Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                          StrokeLineJoin="Round" Visibility="Hidden" />
+
+                    <!-- The tracker's status in words, in a column of its
+                         own at the right of the name so the statuses of a
+                         section line up. Collapsed while nothing is
+                         tracked for the quest. -->
+                    <TextBlock x:Name="Statut" DockPanel.Dock="Right" Margin="10,0,0,0"
+                               VerticalAlignment="Center" Style="{StaticResource Muted}"
+                               FontSize="{StaticResource FontSmall}" Visibility="Collapsed" />
+
                     <TextBlock x:Name="Libelle" Text="{Binding Label}"
                                TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                   </DockPanel>
@@ -1273,6 +1422,42 @@
                                    a 1.15,1.55 0 1 0 -2.3,0 Z
                                    M 11.1,7 a 1.15,1.55 0 1 0 2.3,0
                                    a 1.15,1.55 0 1 0 -2.3,0 Z" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Quest}" Value="{x:Null}">
+                    <Setter TargetName="Marque" Property="Visibility" Value="Collapsed" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Status}" Value="Completed">
+                    <Setter TargetName="Marque" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Marque" Property="Data" Value="M 2,6.5 L 5,9.5 L 10.5,3" />
+                    <Setter TargetName="Statut" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Statut" Property="Text" Value="{loc:T QuestStatusCompleted}" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Status}" Value="InProgress">
+                    <Setter TargetName="Marque" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Marque" Property="Fill"
+                            Value="{DynamicResource AccentBrush}" />
+                    <Setter TargetName="Marque" Property="Data"
+                            Value="M 3.5,6 A 2.5,2.5 0 1 0 8.5,6 A 2.5,2.5 0 1 0 3.5,6 Z" />
+                    <Setter TargetName="Statut" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Statut" Property="Text" Value="{loc:T QuestStatusInProgress}" />
+                    <Setter TargetName="Statut" Property="Foreground"
+                            Value="{DynamicResource AccentBrush}" />
+                  </DataTrigger>
+
+                  <!-- Blocked or ignored: still there, but out of the way. -->
+                  <DataTrigger Binding="{Binding Status}" Value="Blocked">
+                    <Setter TargetName="Ligne" Property="Opacity" Value="0.5" />
+                    <Setter TargetName="Statut" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Statut" Property="Text" Value="{loc:T QuestStatusBlocked}" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Status}" Value="Ignored">
+                    <Setter TargetName="Ligne" Property="Opacity" Value="0.5" />
+                    <Setter TargetName="Statut" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Statut" Property="Text" Value="{loc:T QuestStatusIgnored}" />
                   </DataTrigger>
                 </DataTemplate.Triggers>
               </DataTemplate>

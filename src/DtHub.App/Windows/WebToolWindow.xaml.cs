@@ -1,9 +1,11 @@
 ﻿using System.IO;
+using System.Text.Json;
 using System.Windows;
 
 using DtHub.App.Services;
 using DtHub.Core.Dofus;
 using DtHub.Core.Localization;
+using DtHub.Core.Papycha;
 using DtHub.Core.Settings;
 
 using Microsoft.Web.WebView2.Core;
@@ -36,6 +38,21 @@ public partial class WebToolWindow : Window
     /// </summary>
     private const double DofusRoomWidth = 600;
 
+    /// <summary>
+    /// The Papycha sign-in window: two cards and a button, at the width the
+    /// site lays them out for, tall enough for the help unfolded.
+    /// </summary>
+    private const double SignInWidth = 560;
+
+    private const double SignInHeight = 820;
+
+    /// <summary>
+    /// The player's quests: the dashboard's header, tabs and a list of the
+    /// quests in progress, which rarely runs long. The tools' share of the
+    /// screen left its lower third empty on a large screen.
+    /// </summary>
+    private const double QuestsHeight = 960;
+
     private readonly WindowPlacements _placements;
     private readonly SettingsService _settings;
     private readonly WebViewEnvironment _engine;
@@ -64,6 +81,7 @@ public partial class WebToolWindow : Window
     {
         WebTool.Map => WindowPlacements.Map,
         WebTool.Calcofus => WindowPlacements.Calcofus,
+        WebTool.PapychaTracker => WindowPlacements.PapychaQuests,
         _ => WindowPlacements.DofusRoom,
     };
 
@@ -71,6 +89,7 @@ public partial class WebToolWindow : Window
     {
         WebTool.Map => DofusTouchMap.Address,
         WebTool.Calcofus => Calcofus.Address,
+        WebTool.PapychaTracker => PapychaSite.TrackerUrl,
         _ => DofusRoom.Address,
     };
 
@@ -99,6 +118,12 @@ public partial class WebToolWindow : Window
 
             View.CoreWebView2.NavigationStarting += OnToolNavigating;
 
+            if (Tool == WebTool.PapychaTracker)
+            {
+                await OpenTrackerAsync().ConfigureAwait(true);
+                return;
+            }
+
             if (Tool == WebTool.DofusRoom)
             {
                 await View.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(DofusRoom.TouchOnlyScript).ConfigureAwait(true);
@@ -114,6 +139,129 @@ public partial class WebToolWindow : Window
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
             Log.Warning(exception, "L'outil web {Outil} n'a pas pu s'ouvrir.", Tool);
+        }
+    }
+
+    /// <summary>
+    /// For the Papycha tracker: true opens on the player's quests, false on
+    /// signing in. Set before the window is shown.
+    /// </summary>
+    public bool ShowsQuests { get; set; }
+
+    /// <summary>A guide of the site picked in the tracker, for the guides window to open.</summary>
+    public event EventHandler<string>? GuideRequested;
+
+    /// <summary>
+    /// The character the tracker shows: DT Hub's choice at opening, then
+    /// whatever either side picks. Set before the window is shown.
+    /// </summary>
+    public string? TrackerCharacterId { get; set; }
+
+    /// <summary>A character picked on the site, for DT Hub's bar to follow.</summary>
+    public event EventHandler<string>? CharacterPicked;
+
+    /// <summary>
+    /// Shows another character, picked in DT Hub's bar: written where the
+    /// site looks for it, and the page reloaded.
+    /// </summary>
+    public async Task ShowCharacterAsync(string id)
+    {
+        if (id == TrackerCharacterId || View.CoreWebView2 is not { } engine)
+        {
+            return;
+        }
+
+        TrackerCharacterId = id;
+
+        try
+        {
+            await engine.ExecuteScriptAsync(
+                "localStorage.setItem('pqt_active_character'," + JsonSerializer.Serialize(id) + ");location.reload();")
+                .ConfigureAwait(true);
+        }
+        catch (Exception exception) when (exception is InvalidOperationException
+            or System.Runtime.InteropServices.COMException or ObjectDisposedException)
+        {
+            // The window closing under the call: nothing left to show.
+            Log.Warning(exception, "Le personnage n'a pas pu être montré dans le suivi Papycha.");
+        }
+    }
+
+    private void OnTrackerMessage(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+    {
+        string payload;
+
+        try
+        {
+            payload = e.TryGetWebMessageAsString();
+        }
+        catch (ArgumentException)
+        {
+            // Not text: not the tracker's message.
+            return;
+        }
+
+        if (TrackerCharacterMessage.Parse(payload) is { } id && id != TrackerCharacterId)
+        {
+            TrackerCharacterId = id;
+            CharacterPicked?.Invoke(this, id);
+        }
+    }
+
+    /// <summary>
+    /// The tracker page, framed down to its own content. To sign in, the
+    /// player types their phrase there, and only the cookie the site then sets
+    /// is looked for. The value at opening is remembered, because a lost link
+    /// leaves a stale cookie in the profile: a new phrase is a cookie with
+    /// another value. Opened on the quests, the value stays the same and the
+    /// window stays open.
+    /// </summary>
+    private async Task OpenTrackerAsync()
+    {
+        _openingCookie = await TrackerCookieValueAsync().ConfigureAwait(true);
+        await View.CoreWebView2
+            .AddScriptToExecuteOnDocumentCreatedAsync(QuestBridge.Script(framingOnly: true))
+            .ConfigureAwait(true);
+        await View.CoreWebView2
+            .AddScriptToExecuteOnDocumentCreatedAsync(QuestBridge.TrackerScript(ShowsQuests, TrackerCharacterId))
+            .ConfigureAwait(true);
+
+        if (ShowsQuests)
+        {
+            View.CoreWebView2.WebMessageReceived += OnTrackerMessage;
+        }
+        View.CoreWebView2.NavigationCompleted += OnTrackerNavigated;
+
+        // The quests are on the site's home page once signed in; the tracker
+        // page only manages the account.
+        View.CoreWebView2.Navigate(ShowsQuests ? PapychaSite.Root : PapychaSite.TrackerUrl);
+    }
+
+    private string? _openingCookie;
+
+    private async Task<string?> TrackerCookieValueAsync() =>
+        (await View.CoreWebView2.CookieManager.GetCookiesAsync(PapychaSite.Root).ConfigureAwait(true))
+        .FirstOrDefault(cookie => cookie.Name == PapychaSite.TrackerCookie)?.Value;
+
+    private async void OnTrackerNavigated(object? sender, CoreWebView2NavigationCompletedEventArgs e)
+    {
+        try
+        {
+            var current = await TrackerCookieValueAsync().ConfigureAwait(true);
+
+            if (current is not null && current != _openingCookie)
+            {
+                View.CoreWebView2.NavigationCompleted -= OnTrackerNavigated;
+
+                // Linked: the window's job is done. Its owner reads the
+                // tracker again on Closed, which also covers a plain close.
+                Close();
+            }
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // An async void handler must not throw; the next navigation checks again.
+            Log.Warning(exception, "Le cookie du suivi Papycha n'a pas pu être lu.");
         }
     }
 
@@ -168,7 +316,24 @@ public partial class WebToolWindow : Window
     /// </summary>
     private void OnToolNavigating(object? sender, CoreWebView2NavigationStartingEventArgs e)
     {
-        if (!(Tool == WebTool.Calcofus ? Calcofus.IsOwnPage(e.Uri) : DofusRoom.IsOwnPage(e.Uri)))
+        // A guide picked in the tracker reads in the guides window, with its
+        // steps and its status, not squeezed into this one.
+        if (Tool == WebTool.PapychaTracker && PapychaSite.Owns(e.Uri) && !PapychaSite.IsTrackerPage(e.Uri))
+        {
+            e.Cancel = true;
+            GuideRequested?.Invoke(this, e.Uri);
+
+            return;
+        }
+
+        var own = Tool switch
+        {
+            WebTool.Calcofus => Calcofus.IsOwnPage(e.Uri),
+            WebTool.PapychaTracker => PapychaSite.Owns(e.Uri),
+            _ => DofusRoom.IsOwnPage(e.Uri),
+        };
+
+        if (!own)
         {
             e.Cancel = true;
             _dialogs.OpenUrl(e.Uri);
@@ -208,11 +373,19 @@ public partial class WebToolWindow : Window
         {
             WebTool.Map => "ToolMapName",
             WebTool.Calcofus => "ToolCalcofusName",
+            WebTool.PapychaTracker => ShowsQuests ? "TrackerWindowTitle" : "TrackerSignInTitle",
             _ => "ToolDofusRoomName",
         });
         Donate.Visibility = Tool == WebTool.Map ? Visibility.Visible : Visibility.Collapsed;
 
         base.OnSourceInitialized(e);
+
+        if (!Remembers)
+        {
+            PlaceSignIn();
+
+            return;
+        }
 
         try
         {
@@ -244,16 +417,49 @@ public partial class WebToolWindow : Window
 
         // Against the right edge, where it covers the least of a game
         // window centred or docked on the left.
-        Width = Math.Min(Tool == WebTool.Calcofus ? CalcofusWidth : DofusRoomWidth, area.Width);
-        Height = area.Height * CalcofusHeightShare;
+        var width = Tool switch
+        {
+            WebTool.Calcofus => CalcofusWidth,
+            _ => DofusRoomWidth,
+        };
+
+        Width = Math.Min(width, area.Width);
+        Height = Tool == WebTool.PapychaTracker
+            ? Math.Min(QuestsHeight, area.Height * CalcofusHeightShare)
+            : area.Height * CalcofusHeightShare;
         Left = area.Right - Width;
         Top = area.Top + ((area.Height - Height) / 2);
+    }
+
+    /// <summary>
+    /// False for the Papycha sign-in, a window opened once: its size is set,
+    /// never remembered.
+    /// </summary>
+    private bool Remembers => Tool != WebTool.PapychaTracker || ShowsQuests;
+
+    /// <summary>Centred on the guides window that opened it, or on the screen.</summary>
+    private void PlaceSignIn()
+    {
+        var area = SystemParameters.WorkArea;
+
+        Width = Math.Min(SignInWidth, area.Width);
+        Height = Math.Min(SignInHeight, area.Height);
+
+        var centre = Owner is { } owner
+            ? new Point(owner.Left + (owner.ActualWidth / 2), owner.Top + (owner.ActualHeight / 2))
+            : new Point(area.Left + (area.Width / 2), area.Top + (area.Height / 2));
+
+        Left = Math.Clamp(centre.X - (Width / 2), area.Left, area.Right - Width);
+        Top = Math.Clamp(centre.Y - (Height / 2), area.Top, area.Bottom - Height);
     }
 
     /// <summary>Remembered here: the handle is gone by OnClosed.</summary>
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
-        _ = _placements.SaveAsync(this, PlacementKey);
+        if (Remembers)
+        {
+            _ = _placements.SaveAsync(this, PlacementKey);
+        }
 
         base.OnClosing(e);
     }

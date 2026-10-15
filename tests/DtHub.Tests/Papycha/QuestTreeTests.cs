@@ -201,4 +201,43 @@ public class QuestTreeTests
         Assert.Equal(Strings.Get("Section"), tree.NameOf(987654));
     }
 
+    private static QuestNode Row(int id, bool inSuccess) =>
+        new(QuestNodeKind.Quest, $"q{id}", Quest: new QuestSummary { Id = id, Title = $"q{id}" }, InSuccess: inSuccess);
+
+    private static QuestNode Heading(string name) => new(QuestNodeKind.Success, name);
+
+    private static readonly QuestNode[] Planned =
+    [
+        Row(1, false),
+        Heading("A"),
+        Row(2, true),
+        Row(3, true),
+        Row(4, false),
+        Heading("B"),
+        Row(5, true),
+    ];
+
+    [Fact]
+    public void Un_filtre_retire_des_lignes_sans_deplacer_les_autres()
+    {
+        var kept = QuestTree.Keep(Planned, q => q.Id != 2);
+
+        Assert.Equal(["q1", "A", "q3", "q4", "B", "q5"], kept.Select(n => n.Label));
+    }
+
+    [Fact]
+    public void Un_succes_vide_par_le_filtre_perd_son_entete()
+    {
+        var kept = QuestTree.Keep(Planned, q => q.Id is not (2 or 3 or 5));
+
+        Assert.Equal(["q1", "q4"], kept.Select(n => n.Label));
+    }
+
+    [Fact]
+    public void Sans_filtre_la_liste_reste_identique()
+    {
+        var kept = QuestTree.Keep(Planned, _ => true);
+
+        Assert.Equal(Planned.Select(n => n.Label), kept.Select(n => n.Label));
+    }
 }

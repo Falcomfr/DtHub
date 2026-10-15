@@ -1494,6 +1494,37 @@ public sealed class SettingsService : IDisposable
             },
             cancellationToken);
 
+    /// <summary>Remembers the Papycha character chosen in the guides window.</summary>
+    public Task SetPapychaCharacterAsync(string id, CancellationToken cancellationToken = default) =>
+        UpdateIfChangedAsync(
+            settings =>
+            {
+                if (settings.PapychaCharacterId == id)
+                {
+                    return false;
+                }
+
+                settings.PapychaCharacterId = id;
+                return true;
+            },
+            cancellationToken);
+
+    /// <summary>Remembers the "to do" and "available" quest list filters.</summary>
+    public Task SetQuestFiltersAsync(bool toDo, bool available, CancellationToken cancellationToken = default) =>
+        UpdateIfChangedAsync(
+            settings =>
+            {
+                if (settings.QuestFilterToDo == toDo && settings.QuestFilterAvailable == available)
+                {
+                    return false;
+                }
+
+                settings.QuestFilterToDo = toDo;
+                settings.QuestFilterAvailable = available;
+                return true;
+            },
+            cancellationToken);
+
     /// <summary>
     /// Remembers where a window was. A placement with no size is not
     /// saved: that is what a window that was never shown returns.

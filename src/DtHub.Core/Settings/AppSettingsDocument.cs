@@ -114,6 +114,24 @@ public sealed class AppSettingsDocument
     public int LastQuestStep { get; set; }
 
     /// <summary>
+    /// The Papycha character picked in the guides window, so the quest
+    /// tracker opens on the same one next time. Empty until one is chosen.
+    /// </summary>
+    public string PapychaCharacterId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// True when the quest list is filtered to the quests still "to do",
+    /// so the choice survives closing the window.
+    /// </summary>
+    public bool QuestFilterToDo { get; set; }
+
+    /// <summary>
+    /// True when the quest list is filtered to the quests "available" now,
+    /// so the choice survives closing the window.
+    /// </summary>
+    public bool QuestFilterAvailable { get; set; }
+
+    /// <summary>
     /// True when the application updates itself: it downloads the release
     /// in the background and installs it on exit, never in the middle of
     /// a session. Unchecked, it only reports that a new version exists.

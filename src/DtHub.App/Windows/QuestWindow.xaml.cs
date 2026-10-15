@@ -6,6 +6,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using DtHub.App.Services;
 using DtHub.App.ViewModels;
+using DtHub.Core.Dofus;
 using DtHub.Core.Localization;
 using DtHub.Core.Papycha;
 using DtHub.Core.Settings;
@@ -27,6 +28,13 @@ public partial class QuestWindow : Window
     private readonly SettingsService _settings;
     private readonly WebViewEnvironment _engine;
     private readonly IDialogService _dialogs;
+    private readonly Func<WebToolWindow> _trackerWindow;
+
+    /// <summary>The linking window while it is open: one at a time.</summary>
+    private WebToolWindow? _linking;
+
+    /// <summary>The step the page was resumed at, 0 when none.</summary>
+    private int _resumedStep;
 
     public QuestWindow(
         QuestViewModel viewModel,
@@ -34,6 +42,7 @@ public partial class QuestWindow : Window
         SettingsService settings,
         WebViewEnvironment engine,
         IDialogService dialogs,
+        Func<WebToolWindow> trackerWindow,
         ILogger<QuestWindow> logger)
     {
         InitializeComponent();
@@ -43,8 +52,21 @@ public partial class QuestWindow : Window
         _settings = settings;
         _engine = engine;
         _dialogs = dialogs;
+        _trackerWindow = trackerWindow;
         _logger = logger;
         DataContext = viewModel;
+
+        // A character picked in the bar is shown in the tracker window too,
+        // when it is open on the player's quests.
+        viewModel.Tracker.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(QuestTrackerViewModel.SelectedCharacter)
+                && _linking is { IsLoaded: true, ShowsQuests: true } window
+                && viewModel.Tracker.SelectedCharacter is { } character)
+            {
+                _ = window.ShowCharacterAsync(character.Id);
+            }
+        };
 
         // The rendering engine keeps six processes and half a gigabyte
         // when the window is hidden, which is the case most of the time:
@@ -73,6 +95,14 @@ public partial class QuestWindow : Window
 
         Show();
         Activate();
+
+        // The tracker is read each time the window shows, not only when a
+        // page opens: the list alone needs the link and the marks, and a
+        // status may have changed elsewhere since. Queued below the
+        // Loaded-priority wake-up of OnVisibilityChanged, so the cookie is
+        // never asked of an engine still asleep.
+        _ = Dispatcher.BeginInvoke(
+            DispatcherPriority.Background, () => _ = PrepareOnShowAsync());
 
         // The cursor in the search box, and the list expanded: this
         // window is opened to find a quest, never to look at emptiness.
@@ -105,6 +135,7 @@ public partial class QuestWindow : Window
         if (string.IsNullOrWhiteSpace(url) || !_viewModel.TryFollowUrl(url))
         {
             _viewModel.OpenList();
+            _ = PrepareOnShowAsync();
 
             return;
         }
@@ -118,7 +149,12 @@ public partial class QuestWindow : Window
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
             _viewModel.ReportViewFailure(exception);
+
+            return;
         }
+
+        // Prepared already: this only reads the tracker, as any show does.
+        _ = PrepareOnShowAsync();
     }
 
     /// <summary>
@@ -295,12 +331,57 @@ public partial class QuestWindow : Window
     }
 
     /// <summary>
+    /// What every show does: prepare the engine, then read the tracker. The
+    /// read waits for the preparation, which hands the view model its cookie.
+    /// </summary>
+    private async Task PrepareOnShowAsync()
+    {
+        try
+        {
+            await PrepareAsync().ConfigureAwait(true);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // No engine: the list still works, the page cannot show.
+            _viewModel.ReportViewFailure(exception);
+
+            return;
+        }
+
+        await _viewModel.Tracker.RefreshOnShowAsync().ConfigureAwait(true);
+    }
+
+    /// <summary>One preparation for the window's life: later calls share it.</summary>
+    private async Task PrepareAsync()
+    {
+        var task = _preparing ??= PrepareCoreAsync();
+
+        try
+        {
+            await task.ConfigureAwait(true);
+        }
+        catch
+        {
+            // A failed preparation is dropped so the next attempt starts
+            // again, unless a newer one already replaced it.
+            if (ReferenceEquals(_preparing, task))
+            {
+                _preparing = null;
+            }
+
+            throw;
+        }
+    }
+
+    private Task? _preparing;
+
+    /// <summary>
     /// Starts the engine and installs the bridge in it, only once.
     ///
     /// The script is set before any document loads: set afterward, it
     /// would let the site's own look show through for an instant.
     /// </summary>
-    private async Task PrepareAsync()
+    private async Task PrepareCoreAsync()
     {
         // The environment tells the engine where to write and how much
         // to keep. Without it, it puts its cache next to the executable
@@ -345,6 +426,24 @@ public partial class QuestWindow : Window
         await View.CoreWebView2
             .AddScriptToExecuteOnDocumentCreatedAsync(QuestBridge.Script())
             .ConfigureAwait(true);
+
+        // The tracker cookie lives in this WebView's profile: the view
+        // model reads and clears it through the engine, never sees the
+        // access phrase.
+        var cookies = View.CoreWebView2.CookieManager;
+
+        _viewModel.Tracker.CookieSource = async () =>
+        {
+            var found = await cookies.GetCookiesAsync(PapychaSite.Root).ConfigureAwait(true);
+
+            return found.FirstOrDefault(c => c.Name == PapychaSite.TrackerCookie)?.Value;
+        };
+        _viewModel.Tracker.ForgetCookie = () =>
+        {
+            cookies.DeleteCookies(PapychaSite.TrackerCookie, PapychaSite.Root);
+
+            return Task.CompletedTask;
+        };
     }
 
     /// <summary>
@@ -451,13 +550,20 @@ public partial class QuestWindow : Window
                 _viewModel.SetPage(
                     message.Intro,
                     message.Chain,
-                    message.Steps,
-                    message.Departure);
+                    message.Steps);
                 ResumeStep();
                 break;
 
             case QuestBridgeMessage.Step:
                 _viewModel.SetStep(message.Index);
+
+                // A late step of the previous page (inertial scroll) must not
+                // start the quest now being loaded.
+                if (!_viewModel.IsLoadingPage)
+                {
+                    _ = _viewModel.Tracker.OnStepAsync(message.Index, _viewModel.StepCount, _resumedStep, deliberate: false);
+                }
+
                 break;
 
 
@@ -476,11 +582,88 @@ public partial class QuestWindow : Window
         var step = _pendingStep;
 
         _pendingStep = 0;
+        _resumedStep = 0;
 
         if (step > 0 && step < _viewModel.StepCount)
         {
+            _resumedStep = step;
             GoToStep(step);
         }
+    }
+
+    private void OnLinkTracker(object sender, RoutedEventArgs e) => OpenTrackerWindow(quests: false);
+
+    private void OnOpenTracker(object sender, RoutedEventArgs e) => OpenTrackerWindow(quests: true);
+
+    private void OnUnlinkTracker(object sender, RoutedEventArgs e)
+    {
+        TrackerMenuToggle.IsChecked = false;
+
+        // UnlinkAsync contains its own failures.
+        _ = _viewModel.Tracker.UnlinkAsync();
+    }
+
+    /// <summary>
+    /// Writes "completed", or once it is, opens the status menu: writing it
+    /// again would change nothing, the menu is how to undo it.
+    /// </summary>
+    private void OnMarkDone(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel.Tracker.IsDone)
+        {
+            StatusMenuToggle.IsChecked = true;
+
+            return;
+        }
+
+        _ = _viewModel.Tracker.SetStatusAsync(QuestStatus.Completed);
+    }
+
+    private void OnPickStatus(object sender, RoutedEventArgs e)
+    {
+        StatusMenuToggle.IsChecked = false;
+
+        if (((FrameworkElement)sender).Tag is QuestStatus status)
+        {
+            // SetStatusAsync contains its own failures.
+            _ = _viewModel.Tracker.SetStatusAsync(status);
+        }
+    }
+
+    /// <summary>
+    /// Opens the tracker page, one window at a time: to sign in, or on the
+    /// player's quests. Signing in, the window closes itself when a new
+    /// cookie appears; whatever closes it, the tracker is read again, since
+    /// the player may have changed statuses there.
+    /// </summary>
+    private void OpenTrackerWindow(bool quests)
+    {
+        if (_linking is { IsLoaded: true })
+        {
+            _linking.Activate();
+
+            return;
+        }
+
+        var window = _trackerWindow();
+
+        window.Owner = this;
+        window.Tool = WebTool.PapychaTracker;
+        window.ShowsQuests = quests;
+        window.TrackerCharacterId = _viewModel.Tracker.SelectedCharacter?.Id;
+        window.CharacterPicked += (_, id) => _viewModel.Tracker.PickCharacter(id);
+        window.GuideRequested += (_, url) =>
+        {
+            Route(url);
+            Activate();
+        };
+        window.Closed += (_, _) =>
+        {
+            _linking = null;
+            _ = _viewModel.Tracker.RefreshAsync();
+        };
+        _linking = window;
+        window.Show();
     }
 
     /// <summary>
@@ -560,24 +743,19 @@ public partial class QuestWindow : Window
                 .ConfigureAwait(true);
 
             _viewModel.SetStep(index);
+
+            // The bridge posts no Step message for a requested jump, so the
+            // tracker hears of it here. A move reported by both paths is
+            // counted once: OnStepAsync starts a quest at most once. Not
+            // while a page loads: the step belongs to the one leaving.
+            if (!_viewModel.IsLoadingPage)
+            {
+                _ = _viewModel.Tracker.OnStepAsync(index, _viewModel.StepCount, _resumedStep, deliberate: true);
+            }
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
             _viewModel.ReportViewFailure(exception);
-        }
-    }
-
-    /// <summary>
-    /// A step chosen from the list: it is navigated to, and the list
-    /// closes.
-    /// </summary>
-    private void OnPickStep(object sender, RoutedEventArgs e)
-    {
-        StepsToggle.IsChecked = false;
-
-        if ((sender as FrameworkElement)?.DataContext is ViewModels.QuestStepRowViewModel row)
-        {
-            GoToStep(row.Index);
         }
     }
 
@@ -913,10 +1091,35 @@ public partial class QuestWindow : Window
     {
         if ((sender as FrameworkElement)?.Tag is QuestLink link)
         {
+            // Moving on to the next quest often means this one is done, not
+            // always: it is offered, never written on its own.
+            var left = link == _viewModel.NextQuest ? _viewModel.CurrentQuest : null;
+
             _viewModel.Follow(link);
             NavigateTo(link.Url);
+
+            if (left is not null)
+            {
+                _viewModel.Tracker.OfferToFinish(left.Id, left.Title);
+            }
         }
     }
+
+    // AcceptFinishOfferAsync contains its own failures, like every write.
+    private void OnAcceptFinish(object sender, RoutedEventArgs e) => _ = _viewModel.Tracker.AcceptFinishOfferAsync();
+
+    private void OnDismissFinish(object sender, RoutedEventArgs e) => _viewModel.Tracker.DismissFinishOffer();
+
+    // Both contain their own failures, like every write.
+    private void OnFinishForOther(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is TrackerCharacter character)
+        {
+            _ = _viewModel.Tracker.FinishForAsync(character);
+        }
+    }
+
+    private void OnFinishForAll(object sender, RoutedEventArgs e) => _ = _viewModel.Tracker.FinishForAllAsync();
 
     private bool _indexingReported;
 

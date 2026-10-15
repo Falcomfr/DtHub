@@ -13,7 +13,6 @@ public sealed class QuestBridgeMessageTests
               "kind": "loaded",
               "intro": "<div>Départ</div>",
               "chain": "<div>Succès</div>",
-              "departure": true,
               "steps": [
                 { "text": "Parler à Amayiro", "title": false },
                 { "text": "Aller au Bois", "title": false }
@@ -25,7 +24,6 @@ public sealed class QuestBridgeMessageTests
         Assert.Equal(QuestBridgeMessage.Loaded, message.Kind);
         Assert.Equal("<div>Départ</div>", message.Intro);
         Assert.Equal("<div>Succès</div>", message.Chain);
-        Assert.True(message.Departure);
 
         Assert.Equal(
             [new QuestStep("Parler à Amayiro", false), new QuestStep("Aller au Bois", false)],
@@ -121,7 +119,6 @@ public sealed class QuestBridgeMessageTests
         Assert.NotNull(message);
         Assert.Null(message.Intro);
         Assert.Null(message.Chain);
-        Assert.False(message.Departure);
         Assert.Empty(message.Steps);
     }
 
@@ -177,12 +174,11 @@ public sealed class QuestBridgeMessageTests
     public void IgnoreLesChampsDuMauvaisType()
     {
         var message = QuestBridgeMessage.Parse(
-            """{"kind":"loaded","intro":12,"chain":[],"departure":"oui","steps":"une"}""");
+            """{"kind":"loaded","intro":12,"chain":[],"steps":"une"}""");
 
         Assert.NotNull(message);
         Assert.Null(message.Intro);
         Assert.Null(message.Chain);
-        Assert.False(message.Departure);
         Assert.Empty(message.Steps);
     }
 

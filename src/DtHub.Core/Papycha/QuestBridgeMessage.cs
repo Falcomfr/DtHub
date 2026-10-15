@@ -39,11 +39,6 @@ public sealed record QuestBridgeMessage
     /// <summary>Each step, with its nature.</summary>
     public IReadOnlyList<QuestStep> Steps { get; init; } = [];
 
-    /// <summary>
-    /// True when the first step is indeed the quest's starting point.
-    /// </summary>
-    public bool Departure { get; init; }
-
     /// <summary>Rank of the step reached.</summary>
     public int Index { get; init; }
 
@@ -107,7 +102,6 @@ public sealed record QuestBridgeMessage
                 Intro = Text(root, "intro"),
                 Chain = Text(root, "chain"),
                 Steps = Lines(root),
-                Departure = Flag(root, "departure"),
             };
         }
     }

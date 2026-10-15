@@ -14,8 +14,7 @@ namespace DtHub.Core.Papycha;
 ///
 /// The decision sits here and not in the view model because this
 /// is the only layer the tests reach, the test project targeting
-/// net10.0 while the application targets net10.0-windows. Same
-/// reason as <see cref="QuestStepLabel" />.
+/// net10.0 while the application targets net10.0-windows.
 /// </summary>
 public static class QuestIndexingLabel
 {

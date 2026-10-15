@@ -6,6 +6,9 @@ using CommunityToolkit.Mvvm.Input;
 using DtHub.App.Services;
 using DtHub.Core.Localization;
 using DtHub.Core.Papycha;
+using DtHub.Core.Settings;
+
+using Serilog;
 
 namespace DtHub.App.ViewModels;
 
@@ -16,13 +19,27 @@ public sealed partial class QuestViewModel : ObservableObject
 {
     private readonly QuestCatalogService _catalog;
     private readonly IDialogService _dialogs;
+    private readonly SettingsService _settings;
 
-    public QuestViewModel(QuestCatalogService catalog, IDialogService dialogs)
+    public QuestViewModel(QuestCatalogService catalog, IDialogService dialogs, QuestTrackerViewModel tracker, SettingsService settings)
     {
+        Tracker = tracker;
+        _settings = settings;
+        tracker.ProgressChanged += (_, _) => RedrawAfterRead();
+        tracker.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(QuestTrackerViewModel.IsLinked))
+            {
+                OnPropertyChanged(nameof(ShowsFilters));
+            }
+        };
         _catalog = catalog;
         _tree = new QuestTree(catalog, _sectionCounts);
         _dialogs = dialogs;
     }
+
+    /// <summary>The player's Papycha tracker, laid over the open quest.</summary>
+    public QuestTrackerViewModel Tracker { get; }
 
     /// <summary>
     /// What the dropdown list shows at this moment: the branches, the quests
@@ -42,12 +59,93 @@ public sealed partial class QuestViewModel : ObservableObject
     public int StepCount => _steps.Count;
 
     /// <summary>Places in the list the rows the tree builds.</summary>
-    private void AddBySuccess(IReadOnlyList<QuestSummary> quests)
+    private void AddBySuccess(IEnumerable<QuestSummary> quests)
     {
-        foreach (var node in _tree.BySuccess(quests))
+        // Ordered on the whole section, filtered afterwards: a filter removes
+        // rows, it never moves the ones left.
+        foreach (var node in QuestTree.Keep(_tree.BySuccess([.. quests]), Passes))
         {
-            Nodes.Add(node);
+            Nodes.Add(Marked(node));
         }
+    }
+
+    /// <summary>Lays the tracker's status over a quest row; other rows pass through.</summary>
+    private QuestNode Marked(QuestNode node) =>
+        node.Quest is { } quest ? node with { Status = QuestTracking.StatusOf(Tracker.Progress, quest.Id) } : node;
+
+    private bool Passes(QuestSummary quest) =>
+        QuestTracking.Passes(Tracker.Progress, quest.Id, FilterToDo, FilterAvailable);
+
+    /// <summary>The "to do" filter of the list, remembered.</summary>
+    [ObservableProperty]
+    private bool _filterToDo;
+
+    /// <summary>The "available" filter of the list, remembered.</summary>
+    [ObservableProperty]
+    private bool _filterAvailable;
+
+    partial void OnFilterToDoChanged(bool value) => FiltersChanged();
+
+    partial void OnFilterAvailableChanged(bool value) => FiltersChanged();
+
+    /// <summary>True while the remembered filters are put back: nothing to redraw or save.</summary>
+    private bool _loadingFilters;
+
+    private void FiltersChanged()
+    {
+        if (_loadingFilters)
+        {
+            return;
+        }
+
+        Redraw();
+        _ = _settings.SetQuestFiltersAsync(FilterToDo, FilterAvailable);
+    }
+
+    /// <summary>
+    /// Redraws after a tracker read. The read runs in a refresh nobody
+    /// awaits: a failure here would vanish with that task, so it is logged.
+    /// </summary>
+    private void RedrawAfterRead()
+    {
+        try
+        {
+            Redraw();
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Log.Warning(exception, "Suivi Papycha : la liste des guides n'a pas pu être redessinée.");
+        }
+    }
+
+    /// <summary>
+    /// Draws the open level again after the marks or the filters changed.
+    /// Before the first display it does nothing.
+    /// </summary>
+    private void Redraw()
+    {
+        // The root always has rows, so an empty root means never shown; an
+        // empty deeper level is a filter's doing and must come back.
+        if (_section == 0 && Nodes.Count == 0)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(Query))
+        {
+            // "Suivantes" comes from the tracker: once it is gone (unlinked,
+            // lost, unreadable) the level has nothing left to hold.
+            ShowSection(_section == QuestTree.NextSection && !NextQuests().Any()
+                ? QuestTree.RootSection
+                : _section);
+        }
+        else
+        {
+            ShowSearch(Query);
+        }
+
+        // Keeps the highlight on the open guide through the redraw.
+        SelectCurrent();
     }
 
     /// <summary>Open section, or zero at the root.</summary>
@@ -55,6 +153,9 @@ public sealed partial class QuestViewModel : ObservableObject
 
     /// <summary>The displayed quest, when there is one.</summary>
     private QuestSummary? _current;
+
+    /// <summary>The displayed quest, when there is one.</summary>
+    public QuestSummary? CurrentQuest => _current;
 
     /// <summary>The displayed dungeon, when it is one.</summary>
     private DungeonSummary? _currentDungeon;
@@ -88,6 +189,7 @@ public sealed partial class QuestViewModel : ObservableObject
     private string? _anchorUrl;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsFilters))]
     private string _query = string.Empty;
 
     /// <summary>
@@ -181,6 +283,7 @@ public sealed partial class QuestViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(CanReport))]
     [NotifyPropertyChangedFor(nameof(CanCloseList))]
     [NotifyPropertyChangedFor(nameof(ShowsSiteSearch))]
+    [NotifyPropertyChangedFor(nameof(ShowsFilters))]
     private bool _isListOpen;
 
     /// <summary>
@@ -221,6 +324,13 @@ public sealed partial class QuestViewModel : ObservableObject
     public bool ShowsQuestChrome => HasQuest && !IsListOpen;
 
     /// <summary>
+    /// The "to do" and "available" filters: only where they act, the lists of
+    /// quests, linked and not searching. A search is never filtered, and a
+    /// guide has nothing to filter.
+    /// </summary>
+    public bool ShowsFilters => Tracker.IsLinked && IsListOpen && Query.Length == 0;
+
+    /// <summary>
     /// True if closing the list leads somewhere.
     ///
     /// The cross gives back the place to the guide we were reading. With no
@@ -255,12 +365,10 @@ public sealed partial class QuestViewModel : ObservableObject
     public bool ShowsLoader => IsLoadingPage && !IsListOpen;
 
     /// <summary>
-    /// True when the step row should be visible.
+    /// True when the step arrows should be visible.
     ///
-    /// It holds its place during loading, when the steps are not yet known:
-    /// without this the banner used to lose a row and then get it back,
-    /// jumping at every quest change. What it shows then is the start, which
-    /// comes from the metadata and does not wait for the page.
+    /// They hold their place during loading, greyed out, when the steps are
+    /// not yet known: the title would otherwise shift at every quest change.
     /// </summary>
     public bool ShowsSteps => HasSteps || IsLoadingPage;
 
@@ -280,6 +388,12 @@ public sealed partial class QuestViewModel : ObservableObject
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         var before = QuestTally.Of(_catalog.Catalog);
+
+        var saved = await _settings.GetAsync(cancellationToken).ConfigureAwait(true);
+        _loadingFilters = true;
+        FilterToDo = saved.QuestFilterToDo;
+        FilterAvailable = saved.QuestFilterAvailable;
+        _loadingFilters = false;
 
         IsBusy = true;
 
@@ -555,11 +669,66 @@ public sealed partial class QuestViewModel : ObservableObject
             Breadcrumb = Strings.Get("QuestAreaCrumb");
             SetBack(target: 0);
 
+            // With a filter on, a zone with nothing left to show would open
+            // onto an empty list.
+            var filtering = Tracker.Progress is not null && (FilterToDo || FilterAvailable);
+            var next = NextQuests().ToList();
+
+            if (next.Count > 0 && (!filtering || next.Any(Passes)))
+            {
+                Nodes.Add(new QuestNode(
+                    QuestNodeKind.Branch,
+                    Strings.Get("NextQuests"),
+                    QuestTree.Nombre(next.Count),
+                    Id: QuestTree.NextSection,
+                    Glyph: QuestNodeGlyph.Family));
+            }
+
             Nodes.Add(_tree.PathBranch(PathSide.Quests, QuestTree.QuestPathSection));
+
+            // A subheading is held back until a branch after it survives.
+            QuestNode? header = null;
 
             foreach (var branch in _tree.Branches())
             {
-                Nodes.Add(branch);
+                if (branch.Kind != QuestNodeKind.Branch)
+                {
+                    if (branch.Kind == QuestNodeKind.Header && filtering)
+                    {
+                        header = branch;
+                    }
+                    else
+                    {
+                        Nodes.Add(branch);
+                    }
+
+                    continue;
+                }
+
+                if (!filtering || _catalog.InSection(branch.Id).Any(Passes))
+                {
+                    if (header is not null)
+                    {
+                        Nodes.Add(header);
+                        header = null;
+                    }
+
+                    Nodes.Add(branch);
+                }
+            }
+
+            return;
+        }
+
+        if (section == QuestTree.NextSection)
+        {
+            Breadcrumb = Strings.Get("QuestAreaCrumb") + Separator + Strings.Get("NextQuests");
+            SetBack(target: QuestTree.RootSection);
+
+            // The site's order, not DT Hub's: these are its suggestions.
+            foreach (var quest in NextQuests().Where(Passes))
+            {
+                Nodes.Add(Marked(_tree.NodeOf(quest)));
             }
 
             return;
@@ -569,6 +738,19 @@ public sealed partial class QuestViewModel : ObservableObject
         SetBack(target: QuestTree.RootSection);
 
         AddBySuccess(_catalog.InSection(section));
+    }
+
+    /// <summary>The catalogue quests the site suggests next, in its order.</summary>
+    private IEnumerable<QuestSummary> NextQuests()
+    {
+        if (Tracker.Progress is not { } progress)
+        {
+            return [];
+        }
+
+        var byId = _catalog.Catalog.Quests.ToLookup(q => q.Id);
+
+        return progress.Next.Distinct().SelectMany(id => byId[id].Take(1));
     }
 
     /// <summary>
@@ -692,7 +874,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
                 foreach (var quest in quests)
                 {
-                    Nodes.Add(_tree.NodeOf(quest) with { InSuccess = true });
+                    Nodes.Add(Marked(_tree.NodeOf(quest) with { InSuccess = true }));
                 }
             }
         }
@@ -737,7 +919,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
             foreach (var quest in found.Quests)
             {
-                Nodes.Add(_tree.NodeOf(quest));
+                Nodes.Add(Marked(_tree.NodeOf(quest)));
             }
         }
 
@@ -816,6 +998,8 @@ public sealed partial class QuestViewModel : ObservableObject
     {
         ArgumentNullException.ThrowIfNull(quest);
 
+        Tracker.ShowQuest(quest.Id);
+
         _current = quest;
         _currentDungeon = null;
         _currentPath = null;
@@ -828,19 +1012,12 @@ public sealed partial class QuestViewModel : ObservableObject
         QuestTitle = quest.Title;
         HasQuest = true;
 
-        _start = QuestStepSummary.OfStart(quest.StartPosition, quest.StartPerson);
-        _startsAtDeparture = false;
-
         SetNeighbours(quest);
 
         // The next page is not loaded yet: keeping the previous one's steps
-        // would show an objective that no longer has anything to do with it.
-        // The start, however, is already known and holds the row in the
-        // meantime.
+        // would let the arrows walk a guide that is no longer shown.
         ResetSteps([]);
         SetStep(-1);
-
-        StepDetail = _start ?? string.Empty;
     }
 
     /// <summary>
@@ -856,6 +1033,8 @@ public sealed partial class QuestViewModel : ObservableObject
     {
         ArgumentNullException.ThrowIfNull(dungeon);
 
+        Tracker.ShowQuest(null);
+
         _current = null;
         _currentDungeon = dungeon;
         _currentPath = null;
@@ -869,9 +1048,6 @@ public sealed partial class QuestViewModel : ObservableObject
         QuestTitle = dungeon.Title;
         HasQuest = true;
 
-        _start = QuestStepSummary.OfStart(dungeon.Position, dungeon.Person);
-        _startsAtDeparture = false;
-
         ChainText = dungeon.Key.Length > 0 ? dungeon.Key : string.Empty;
         ChainStep = string.Empty;
         PreviousQuest = null;
@@ -879,8 +1055,6 @@ public sealed partial class QuestViewModel : ObservableObject
 
         ResetSteps([]);
         SetStep(-1);
-
-        StepDetail = _start ?? string.Empty;
     }
 
     /// <summary>
@@ -894,6 +1068,8 @@ public sealed partial class QuestViewModel : ObservableObject
     public void SetCurrent(PathSummary path, bool anchor = true)
     {
         ArgumentNullException.ThrowIfNull(path);
+
+        Tracker.ShowQuest(null);
 
         _current = null;
         _currentDungeon = null;
@@ -910,9 +1086,6 @@ public sealed partial class QuestViewModel : ObservableObject
         QuestTitle = path.Title;
         HasQuest = true;
 
-        _start = null;
-        _startsAtDeparture = false;
-
         ChainText = Strings.Get("Path");
         ChainStep = string.Empty;
         PreviousQuest = null;
@@ -920,8 +1093,6 @@ public sealed partial class QuestViewModel : ObservableObject
 
         ResetSteps([]);
         SetStep(-1);
-
-        StepDetail = string.Empty;
     }
 
     /// <summary>
@@ -1032,36 +1203,8 @@ public sealed partial class QuestViewModel : ObservableObject
     /// <summary>Steps found in the open page.</summary>
     private IReadOnlyList<QuestStep> _steps = [];
 
-    /// <summary>
-    /// The guide's steps, as picked from the list the rank unrolls. The two
-    /// arrows only move one at a time.
-    /// </summary>
-    public System.Collections.ObjectModel.ObservableCollection<QuestStepRowViewModel> Steps { get; } = [];
-
-    /// <summary>
-    /// Shortcut for the first step, composed from the metadata of the open
-    /// quest. Null when the site says neither where nor with whom it is
-    /// started.
-    /// </summary>
-    private string? _start;
-
-    /// <summary>
-    /// True when the first step is the quest's start and not a paragraph of
-    /// the guide. The bridge announces it, because only it can see whether the
-    /// page carries a start block.
-    /// </summary>
-    private bool _startsAtDeparture;
-
     [ObservableProperty]
     private int _stepIndex = -1;
-
-    /// <summary>"Step 3 / 7", or nothing when the page has no step.</summary>
-    [ObservableProperty]
-    private string _stepText = string.Empty;
-
-    /// <summary>What there is to do at this step, in one line.</summary>
-    [ObservableProperty]
-    private string _stepDetail = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsSteps))]
@@ -1093,12 +1236,9 @@ public sealed partial class QuestViewModel : ObservableObject
     public void SetPage(
         string? introHtml,
         string? chainHtml,
-        IReadOnlyList<QuestStep> steps,
-        bool startsAtDeparture = false)
+        IReadOnlyList<QuestStep> steps)
     {
         ArgumentNullException.ThrowIfNull(steps);
-
-        _startsAtDeparture = startsAtDeparture;
 
         var facts = QuestPageParser.ParseFacts(introHtml);
         var chain = QuestPageParser.ParseChain(chainHtml);
@@ -1156,7 +1296,7 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Scrolling has changed step, or the user has picked one.
+    /// Scrolling or an arrow has changed step.
     /// </summary>
     public void SetStep(int index)
     {
@@ -1164,77 +1304,17 @@ public sealed partial class QuestViewModel : ObservableObject
 
         var total = _steps.Count;
 
-        StepText = index >= 0 && index < total ? StepRank(index) : string.Empty;
-
-        StepDetail = index >= 0 && index < total ? StepLabel(index) : string.Empty;
-
-        foreach (var row in Steps)
-        {
-            row.IsCurrent = row.Index == index;
-        }
-
         CanGoPreviousStep = index > 0;
         CanGoNextStep = index >= 0 && index < total - 1;
     }
 
     /// <summary>
-    /// What is written next to a step's rank. The decision is in the core,
-    /// where it is put to the test; only the rank's computation is left here.
-    /// </summary>
-    private string StepLabel(int index) =>
-        QuestStepLabel.For(_steps[index], IsDeparture(index), _start);
-
-    /// <summary>
-    /// The rank as it reads: "Step 2 / 5", or "Start" for the launch, which is
-    /// not a step of the journey and so is not counted.
-    /// </summary>
-    private string StepRank(int index) =>
-        QuestStepLabel.Numbering(index, _steps.Count, HasDeparture) is { } numbering
-            ? Strings.Format("StepOfTotal", numbering.Rank, numbering.Total)
-            : Strings.Get("StepStart");
-
-    /// <summary>
-    /// The number alone, for the list's narrow column. The start has none: its
-    /// row is recognisable by what it says, "Rendez-vous en…", and writing
-    /// "Start" in twenty-six pixels was impossible.
-    /// </summary>
-    private string StepNumber(int index) =>
-        QuestStepLabel.Numbering(index, _steps.Count, HasDeparture) is { } numbering
-            ? numbering.Rank.ToString(System.Globalization.CultureInfo.InvariantCulture)
-            : string.Empty;
-
-    /// <summary>True when the first rendered step is the launch.</summary>
-    private bool HasDeparture => _steps.Count > 0 && IsDeparture(0);
-
-    private bool IsDeparture(int index) =>
-        QuestStepLabel.IsDeparture(_steps[index], index == 0, _startsAtDeparture);
-
-    /// <summary>
-    /// True when there is something to choose from: starting at two steps.
-    ///
-    /// On a guide with a single step, the badge used to unroll a list of one
-    /// item, which led nowhere.
-    /// </summary>
-    public bool CanPickStep => _steps.Count > 1;
-
-    /// <summary>
-    /// Resets the steps, and the list where they are picked, together.
-    ///
-    /// A single door for both: the list and the count used to contradict each
-    /// other as soon as one code path forgot one of the two lines.
+    /// Resets the steps and their count together.
     /// </summary>
     private void ResetSteps(IReadOnlyList<QuestStep> steps)
     {
         _steps = steps;
         HasSteps = steps.Count > 0;
-        OnPropertyChanged(nameof(CanPickStep));
-
-        Steps.Clear();
-
-        for (var index = 0; index < steps.Count; index++)
-        {
-            Steps.Add(new QuestStepRowViewModel(index, StepNumber(index), StepLabel(index)));
-        }
     }
 
     /// <summary>
@@ -1267,6 +1347,7 @@ public sealed partial class QuestViewModel : ObservableObject
         // were in the same case, and were the last to be let through: the
         // page's own sequence was weighed against the rank of a quest we had
         // already left.
+        Tracker.ShowQuest(null);
         _current = null;
         _currentDungeon = null;
         _currentPath = null;
@@ -1279,8 +1360,6 @@ public sealed partial class QuestViewModel : ObservableObject
         HasQuest = true;
         IsListOpen = false;
 
-        _start = null;
-        _startsAtDeparture = false;
         ResetSteps([]);
         PreviousQuest = null;
         NextQuest = null;
@@ -1435,6 +1514,7 @@ public sealed partial class QuestViewModel : ObservableObject
     {
         ArgumentNullException.ThrowIfNull(exception);
 
+        Tracker.ShowQuest(null);
         HasQuest = false;
         IsLoadingPage = false;
         Placeholder =

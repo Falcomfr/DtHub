@@ -22,7 +22,7 @@
 /// nothing after it.
 ///
 /// Here rather than in the window, for the same reason as
-/// <see cref="QuestStepLabel"/> and <see cref="QuestNeighbourhood"/>:
+/// <see cref="QuestNeighbourhood"/>:
 /// the test project targets net10.0 while the application targets
 /// net10.0-windows, so a rule left in the window is a rule nothing
 /// proves.

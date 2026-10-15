@@ -933,9 +933,6 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
   <data name="QuestSearchPlaceholder" xml:space="preserve">
     <value>Busca una misión, una zona, un logro, una mazmorra o un camino</value>
   </data>
-  <data name="LoadingPage" xml:space="preserve">
-    <value>Cargando la página…</value>
-  </data>
   <data name="ClearSearchTip" xml:space="preserve">
     <value>Vaciar la búsqueda</value>
   </data>
@@ -947,9 +944,6 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
   </data>
   <data name="NextStepTip" xml:space="preserve">
     <value>Paso siguiente. La página se coloca en él.</value>
-  </data>
-  <data name="PickStepTip" xml:space="preserve">
-    <value>Elegir un paso. La página se coloca en él.</value>
   </data>
   <data name="ReportErrorTip" xml:space="preserve">
     <value>Informar de un error a papycha.fr en esta página. El formulario del sitio se abre con la zona y la misión ya anotadas, y no se envía nada hasta que pulses.</value>
@@ -1680,12 +1674,6 @@ El resto de la aplicación funciona sin él.</value>
   <data name="SiteDownCached" xml:space="preserve">
     <value>El sitio no ha respondido; lista en caché.</value>
   </data>
-  <data name="StepStart" xml:space="preserve">
-    <value>Inicio</value>
-  </data>
-  <data name="StepOfTotal" xml:space="preserve">
-    <value>Paso {0} / {1}</value>
-  </data>
   <data name="StepShort" xml:space="preserve">
     <value>Paso {0}/{1}</value>
   </data>
@@ -2272,6 +2260,87 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="ToolDofusRoomLine" xml:space="preserve">
     <value>Las líneas de visión de los mapas de combate de DOFUS Touch.</value>
   </data>
+  <data name="TrackerLink" xml:space="preserve">
+    <value>Inicia sesión en el seguimiento de misiones de Papycha</value>
+  </data>
+  <data name="TrackerLost" xml:space="preserve">
+    <value>Seguimiento de Papycha desconectado</value>
+  </data>
+  <data name="TrackerUnreadable" xml:space="preserve">
+    <value>Seguimiento de Papycha ilegible por ahora</value>
+  </data>
+  <data name="TrackerUnlink" xml:space="preserve">
+    <value>Desvincular</value>
+  </data>
+  <data name="TrackerMyQuests" xml:space="preserve">
+    <value>Mis misiones</value>
+  </data>
+  <data name="TrackerSignInTitle" xml:space="preserve">
+    <value>Inicia sesión en Papycha</value>
+  </data>
+  <data name="TrackerCreateAccount" xml:space="preserve">
+    <value>Crea una cuenta</value>
+  </data>
+  <data name="TrackerBackToSignIn" xml:space="preserve">
+    <value>Ya tengo una frase</value>
+  </data>
+  <data name="TrackerHelpTitle" xml:space="preserve">
+    <value>¿Dónde encuentro mi frase?</value>
+  </data>
+  <data name="TrackerHelpSite" xml:space="preserve">
+    <value>En papycha.fr, en «Mon espace de suivi», bajo «Phrase d’accès complète», desde un navegador o un móvil donde ya hayas iniciado sesión.</value>
+  </data>
+  <data name="TrackerHelpLink" xml:space="preserve">
+    <value>En tu enlace para compartir: es el texto después de «pqt_share=».</value>
+  </data>
+  <data name="TrackerHelpMail" xml:space="preserve">
+    <value>Si no, recíbela por correo aquí abajo.</value>
+  </data>
+  <data name="TrackerPitch" xml:space="preserve">
+    <value>Sigue tus misiones en curso y terminadas con tu cuenta de Papycha.</value>
+  </data>
+  <data name="TrackerFinishOffer" xml:space="preserve">
+    <value>¿Marcar «{0}» como terminada?</value>
+  </data>
+  <data name="TrackerYes" xml:space="preserve">
+    <value>Sí</value>
+  </data>
+  <data name="TrackerNo" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="TrackerAlsoFor" xml:space="preserve">
+    <value>También para:</value>
+  </data>
+  <data name="TrackerAllCharacters" xml:space="preserve">
+    <value>Todos</value>
+  </data>
+  <data name="TrackerWindowTitle" xml:space="preserve">
+    <value>Mi seguimiento de Papycha</value>
+  </data>
+  <data name="QuestStatusNotStarted" xml:space="preserve">
+    <value>Sin empezar</value>
+  </data>
+  <data name="QuestStatusInProgress" xml:space="preserve">
+    <value>En curso</value>
+  </data>
+  <data name="QuestStatusCompleted" xml:space="preserve">
+    <value>Terminada</value>
+  </data>
+  <data name="QuestStatusBlocked" xml:space="preserve">
+    <value>Bloqueada</value>
+  </data>
+  <data name="QuestStatusIgnored" xml:space="preserve">
+    <value>Ignorada</value>
+  </data>
+  <data name="TrackerDone" xml:space="preserve">
+    <value>Terminada ✓</value>
+  </data>
+  <data name="TrackerMenuTip" xml:space="preserve">
+    <value>Opciones del seguimiento de Papycha</value>
+  </data>
+  <data name="QuestStatusMenuTip" xml:space="preserve">
+    <value>Elige otro estado</value>
+  </data>
   <data name="PartnerNoDeviceShort" xml:space="preserve">
     <value>Ningún dispositivo</value>
   </data>
@@ -2334,5 +2403,14 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   </data>
   <data name="MuteBatteryAlertHeader" xml:space="preserve">
     <value>¿Este ajuste no existe en tu dispositivo?</value>
+  </data>
+  <data name="FilterToDo" xml:space="preserve">
+    <value>Por hacer</value>
+  </data>
+  <data name="FilterAvailable" xml:space="preserve">
+    <value>Accesibles</value>
+  </data>
+  <data name="NextQuests" xml:space="preserve">
+    <value>Siguientes</value>
   </data>
 </root>

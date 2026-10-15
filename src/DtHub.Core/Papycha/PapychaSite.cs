@@ -24,6 +24,15 @@ public static class PapychaSite
     /// <summary>Root of the site.</summary>
     public const string Root = "https://" + Host + "/";
 
+    /// <summary>Quest tracker page of the linked player.</summary>
+    public const string TrackerUrl = Root + "suivi-quetes/";
+
+    /// <summary>WordPress AJAX endpoint the tracker talks to.</summary>
+    public const string AjaxUrl = Root + "wp-admin/admin-ajax.php";
+
+    /// <summary>Cookie holding the player's tracker code.</summary>
+    public const string TrackerCookie = "papycha_tracker_code_v2";
+
     /// <summary>
     /// Search URL of the site for this text, or <c>null</c> when
     /// there is nothing to search for.
@@ -43,6 +52,23 @@ public static class PapychaSite
         var wanted = (query ?? string.Empty).Trim();
 
         return wanted.Length == 0 ? null : Root + "?s=" + Uri.EscapeDataString(wanted);
+    }
+
+    /// <summary>
+    /// True for the pages of the player's tracker: the home page, where the
+    /// signed-in dashboard lives, and the tracker page, which signs in and
+    /// manages the account. Any other page of the site is a guide.
+    /// </summary>
+    public static bool IsTrackerPage(string? url)
+    {
+        if (!Owns(url))
+        {
+            return false;
+        }
+
+        var path = new Uri(url!.Trim()).AbsolutePath.TrimEnd('/');
+
+        return path.Length == 0 || path.Equals("/suivi-quetes", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

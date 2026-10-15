@@ -1585,4 +1585,32 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.False(await _service.IsBatteryAlertMutedAsync("TAB11", "DOFUS Touch", CancellationToken.None));
         Assert.False(await _service.UnmuteBatteryAlertsAsync(CancellationToken.None));
     }
+
+    [Fact]
+    public async Task Le_personnage_Papycha_choisi_se_relit()
+    {
+        Assert.Equal(string.Empty, (await _service.GetAsync()).PapychaCharacterId);
+
+        await _service.SetPapychaCharacterAsync("perso-42");
+
+        Assert.Equal("perso-42", (await _service.GetAsync()).PapychaCharacterId);
+    }
+
+    [Fact]
+    public async Task Les_filtres_de_quetes_se_relisent()
+    {
+        await _service.SetQuestFiltersAsync(toDo: true, available: true);
+
+        var document = await _service.GetAsync();
+
+        Assert.True(document.QuestFilterToDo);
+        Assert.True(document.QuestFilterAvailable);
+
+        await _service.SetQuestFiltersAsync(toDo: false, available: true);
+
+        document = await _service.GetAsync();
+
+        Assert.False(document.QuestFilterToDo);
+        Assert.True(document.QuestFilterAvailable);
+    }
 }

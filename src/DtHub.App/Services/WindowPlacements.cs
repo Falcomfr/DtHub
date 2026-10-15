@@ -43,6 +43,12 @@ public sealed class WindowPlacements(IWindowController windows, SettingsService 
     /// <summary>The Touch maps of DofusRoom's Insightroom.</summary>
     public const string DofusRoom = "dofusroom";
 
+    /// <summary>
+    /// The player's quests on Papycha. The sign-in window has no place of its
+    /// own: it is opened once, centred on the guides.
+    /// </summary>
+    public const string PapychaQuests = "papychaquests";
+
     /// <summary>The settings panel.</summary>
     public const string Configurator = "configurator";
 
