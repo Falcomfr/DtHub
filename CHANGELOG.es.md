@@ -10,13 +10,17 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
-## [Unreleased]
+## [0.8.18] - 2026-10-15
 
 ### Añadido
 
 - Si enciendes la pantalla del teléfono durante el juego, para una llamada o un
   mensaje, una línea bajo el teléfono permite volver a apagarla, igual que
   Ctrl + E desde una ventana de juego.
+- «En cuadrícula» coloca cuatro ventanas de juego en los cuatro cuartos de
+  la pantalla, también con Ctrl + G.
+- Una opción muestra la batería, el calentamiento, el lag y el tiempo de
+  juego en el título de cada ventana de juego.
 
 ## [0.8.17] - 2026-10-15
 
