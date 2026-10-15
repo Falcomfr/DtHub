@@ -2449,6 +2449,12 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="FilterAvailable" xml:space="preserve">
     <value>Accesibles</value>
   </data>
+  <data name="FilterToDoTip" xml:space="preserve">
+    <value>Oculta las misiones terminadas o ignoradas. Quedan las no empezadas o en curso, aunque todavía no puedas lanzarlas.</value>
+  </data>
+  <data name="FilterAvailableTip" xml:space="preserve">
+    <value>Solo deja las misiones que tu personaje puede lanzar ahora, según Papycha: nivel y misiones anteriores hechas. Con «Por hacer», lo que puedes hacer ya.</value>
+  </data>
   <data name="NextQuests" xml:space="preserve">
     <value>Siguientes</value>
   </data>

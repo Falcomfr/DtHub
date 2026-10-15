@@ -2449,6 +2449,12 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="FilterAvailable" xml:space="preserve">
     <value>Available</value>
   </data>
+  <data name="FilterToDoTip" xml:space="preserve">
+    <value>Hides the quests done or ignored. Those not started or in progress stay, even if you cannot start them yet.</value>
+  </data>
+  <data name="FilterAvailableTip" xml:space="preserve">
+    <value>Keeps only the quests your character can start now, according to Papycha: level and earlier quests done. With “To do”, what you can do right away.</value>
+  </data>
   <data name="NextQuests" xml:space="preserve">
     <value>Next</value>
   </data>
