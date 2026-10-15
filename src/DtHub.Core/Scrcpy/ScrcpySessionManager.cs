@@ -469,16 +469,26 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                 return;
             }
 
-            _screenKeepers[deviceId] = keeper;
-
-            await AwaitScreenOffAsync(keeper, cancellationToken).ConfigureAwait(false);
-
-            // The account it was started for may have closed meanwhile,
-            // and its release found nothing to stop yet.
-            if (!HasLiveSessionOn(deviceId, except: null))
+            // **Kept only once the screen is off.** Kept before, it made
+            // HoldsScreenOff true while the screen still read lit, for about
+            // a second: a panel sweep falling there brought back the line
+            // the click had just hidden. Every release waits on this lock,
+            // so none can miss it.
+            try
             {
-                _ = _screenKeepers.TryRemove(deviceId, out _);
-                await StopScreenKeeperAsync(keeper).ConfigureAwait(false);
+                await AwaitScreenOffAsync(keeper, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                // The account it was started for may have closed meanwhile.
+                if (HasLiveSessionOn(deviceId, except: null))
+                {
+                    _screenKeepers[deviceId] = keeper;
+                }
+                else
+                {
+                    await StopScreenKeeperAsync(keeper).ConfigureAwait(false);
+                }
             }
         }
         finally

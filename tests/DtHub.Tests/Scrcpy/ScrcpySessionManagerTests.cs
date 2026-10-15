@@ -408,6 +408,39 @@ public class ScrcpySessionManagerTests
     }
 
     [Fact]
+    public async Task Un_ecran_en_train_d_etre_reeteint_n_est_pas_tenu_eteint_avant_la_confirmation()
+    {
+        // The panel's sweep asks the phone in this gap: the screen still
+        // reads lit, and the line it had just hidden came back.
+        var second = new FakeProcessSession(10);
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(9).Emit(ScreenOffLine))
+            .Prepare(second);
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        await manager.StartAsync(Target(), DarkScreen, null, CancellationToken.None);
+
+        Assert.True(manager.HoldsScreenOff("MATERIEL123"));
+
+        var again = manager.TurnScreenOffAgainAsync("MATERIEL123", "USB0001", CancellationToken.None);
+
+        for (var i = 0; i < 100 && !launcher.Started.Contains(second); i++)
+        {
+            await Task.Delay(20);
+        }
+
+        Assert.Contains(second, launcher.Started);
+        Assert.False(manager.HoldsScreenOff("MATERIEL123"));
+
+        second.Emit(ScreenOffLine);
+        await again;
+
+        Assert.True(manager.HoldsScreenOff("MATERIEL123"));
+    }
+
+    [Fact]
     public async Task Reeteindre_sans_gardien_en_demarre_un()
     {
         // The setting was ticked after the account opened.
