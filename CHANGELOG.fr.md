@@ -11,6 +11,18 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.8.17] - 2026-10-15
+
+### Modifié
+
+- Les fenêtres de jeu et les onglets affichent le nom du compte seul, sans
+  « DT Hub » devant.
+
+### Corrigé
+
+- Dans un onglet, l'icône d'un compte sans couleur revient contre le bord
+  gauche.
+
 ## [0.8.16] - 2026-10-15
 
 ### Ajouté

@@ -17,6 +17,18 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.8.17] - 2026-10-15
+
+### Changed
+
+- Game windows and tabs show the account's name alone, without "DT Hub" in
+  front.
+
+### Fixed
+
+- In a tab, the icon of an account without a colour sits against the left
+  edge again.
+
 ## [0.8.16] - 2026-10-15
 
 ### Added

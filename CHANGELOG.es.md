@@ -10,6 +10,18 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.8.17] - 2026-10-15
+
+### Cambiado
+
+- Las ventanas de juego y las pestañas muestran solo el nombre de la cuenta,
+  sin «DT Hub» delante.
+
+### Corregido
+
+- En una pestaña, el icono de una cuenta sin color vuelve a pegarse al borde
+  izquierdo.
+
 ## [0.8.16] - 2026-10-15
 
 ### Añadido
