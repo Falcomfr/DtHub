@@ -1,4 +1,7 @@
-﻿using DtHub.Core.Storage;
+﻿using System.Globalization;
+
+using DtHub.Core.Localization;
+using DtHub.Core.Storage;
 
 namespace DtHub.Core.Settings;
 
@@ -174,6 +177,17 @@ public sealed record QualityProfile(
     /// decides, which is always the case for the three tiers.
     /// </summary>
     public int LayoutHeight { get; init; }
+
+    /// <summary>
+    /// What the tier sets, in one line for its tooltip: the definition, the
+    /// frame rate, and the bitrate of a full window at the 16:9 the panel
+    /// already counts with.
+    /// </summary>
+    public string Describe() => Strings.Format(
+        "QualityValues",
+        MaximumDisplayHeight,
+        MaxFps,
+        (BitrateFor(MaximumDisplayHeight * 16 / 9, MaximumDisplayHeight) / 1000.0).ToString("0.#", CultureInfo.CurrentCulture));
 
     /// <summary>
     /// Bitrate to request for a given resolution, in kb/s.

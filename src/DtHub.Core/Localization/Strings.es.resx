@@ -158,6 +158,9 @@
   <data name="QualityCustomTip" xml:space="preserve">
     <value>Ajustar tú mismo la resolución, la cadencia, el detalle de imagen y el códec. Los tres niveles siguen siendo el camino habitual: este es para quien ya sabe lo que quiere.</value>
   </data>
+  <data name="QualityValues" xml:space="preserve">
+    <value>{0} p máx. · {1} fps · unos {2} Mb/s por ventana</value>
+  </data>
   <data name="FineSettingsHeading" xml:space="preserve">
     <value>AJUSTES FINOS</value>
   </data>
@@ -226,6 +229,9 @@
   </data>
   <data name="ZoomCloseTip" xml:space="preserve">
     <value>El mínimo terreno posible, la interfaz del juego lo más grande. Cómodo en una ventana pequeña. En una ventana de más de 2300 píxeles de alto, este nivel se acerca al anterior: la densidad pedida llega a su techo.</value>
+  </data>
+  <data name="ZoomValues" xml:space="preserve">
+    <value>{0} ppp en {1} p</value>
   </data>
   <data name="ReopenNotice" xml:space="preserve">
     <value>Las ventanas abiertas se reabren para aplicar el cambio.</value>

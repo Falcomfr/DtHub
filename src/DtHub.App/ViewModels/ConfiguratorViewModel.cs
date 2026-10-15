@@ -341,6 +341,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsCustomQuality))]
     [NotifyPropertyChangedFor(nameof(ZoomReplacedByDensity))]
+    [NotifyPropertyChangedFor(nameof(ZoomTips))]
     private StreamQuality _quality = StreamQuality.Medium;
 
     /// <summary>
@@ -358,6 +359,8 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(DensityText))]
     [NotifyPropertyChangedFor(nameof(DensityChoices))]
     [NotifyPropertyChangedFor(nameof(DensityDetail))]
+    [NotifyPropertyChangedFor(nameof(QualityTips))]
+    [NotifyPropertyChangedFor(nameof(ZoomTips))]
     private int _customHeight = 1080;
 
     /// <summary>
@@ -370,6 +373,48 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(DensityDetail))]
     [NotifyPropertyChangedFor(nameof(ZoomReplacedByDensity))]
     private int _customLayoutHeight;
+
+    /// <summary>
+    /// Each quality tier's tooltip, by tier name: its text, then what it
+    /// sets. The custom tier's line follows the fine settings.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> QualityTips => new Dictionary<string, string>
+    {
+        [nameof(StreamQuality.Low)] = Tip("QualityLowTip", QualityProfile.For(StreamQuality.Low).Describe()),
+        [nameof(StreamQuality.Medium)] = Tip("QualityMediumTip", QualityProfile.For(StreamQuality.Medium).Describe()),
+        [nameof(StreamQuality.Maximum)] = Tip("QualityHighTip", QualityProfile.For(StreamQuality.Maximum).Describe()),
+        [nameof(StreamQuality.Custom)] = Tip("QualityCustomTip", QualityProfile.For(StreamQuality.Custom, CurrentCustom).Describe()),
+    };
+
+    /// <summary>
+    /// Each distance's tooltip, by tier name: its text, then its density at
+    /// the chosen quality's definition.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> ZoomTips
+    {
+        get
+        {
+            var height = QualityProfile.For(Quality, CurrentCustom).MaximumDisplayHeight;
+
+            return new Dictionary<string, string>
+            {
+                [nameof(GameZoom.Widest)] = Tip("ZoomVeryFarTip", ZoomProfile.Describe(GameZoom.Widest, height)),
+                [nameof(GameZoom.Wide)] = Tip("ZoomFarTip", ZoomProfile.Describe(GameZoom.Wide, height)),
+                [nameof(GameZoom.SlightlyWide)] = Tip("ZoomSlightlyFarTip", ZoomProfile.Describe(GameZoom.SlightlyWide, height)),
+                [nameof(GameZoom.Normal)] = Tip("ZoomNormalTip", ZoomProfile.Describe(GameZoom.Normal, height)),
+                [nameof(GameZoom.Close)] = Tip("ZoomCloseTip", ZoomProfile.Describe(GameZoom.Close, height)),
+            };
+        }
+    }
+
+    private CustomQuality CurrentCustom => new()
+    {
+        MaximumDisplayHeight = CustomHeight,
+        MaxFps = CustomFps,
+        BitsPerPixel = CustomBitsPerPixel,
+    };
+
+    private static string Tip(string key, string values) => $"{Strings.Get(key)}\n\n{values}";
 
     /// <summary>The layouts offered, from the widest distance to the closest.</summary>
     private static readonly (int Layout, string? TierKey)[] SuggestedLayouts =
@@ -432,6 +477,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BitrateSummary))]
     [NotifyPropertyChangedFor(nameof(LinkSummary))]
+    [NotifyPropertyChangedFor(nameof(QualityTips))]
     private int _customFps = 60;
 
     /// <summary>
@@ -445,6 +491,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BitrateSummary))]
     [NotifyPropertyChangedFor(nameof(LinkSummary))]
+    [NotifyPropertyChangedFor(nameof(QualityTips))]
     private double _customBitsPerPixel = 0.09;
 
     /// <summary>

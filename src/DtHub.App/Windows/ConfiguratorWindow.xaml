@@ -470,21 +470,21 @@
                   <WrapPanel Margin="0,0,0,5">
                     <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="{loc:T QualityLow}"
                                  Margin="0,0,5,0"
-                                 ToolTip="{loc:T QualityLowTip}"
+                                 ToolTip="{Binding QualityTips[Low]}"
                                  IsChecked="{Binding Quality, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Low}" />
                     <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="{loc:T QualityMedium}"
                                  Margin="0,0,5,0"
-                                 ToolTip="{loc:T QualityMediumTip}"
+                                 ToolTip="{Binding QualityTips[Medium]}"
                                  IsChecked="{Binding Quality, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Medium}" />
                     <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="{loc:T QualityHigh}"
                                  Margin="0,0,5,0"
-                                 ToolTip="{loc:T QualityHighTip}"
+                                 ToolTip="{Binding QualityTips[Maximum]}"
                                  IsChecked="{Binding Quality, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Maximum}" />
                     <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="{loc:T QualityCustom}"
-                                 ToolTip="{loc:T QualityCustomTip}"
+                                 ToolTip="{Binding QualityTips[Custom]}"
                                  IsChecked="{Binding Quality, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Custom}" />
                   </WrapPanel>
@@ -636,26 +636,26 @@
                   <WrapPanel Margin="0,0,0,5">
                     <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="{loc:T ZoomVeryFar}"
                                  Margin="0,0,5,0"
-                                 ToolTip="{loc:T ZoomVeryFarTip}"
+                                 ToolTip="{Binding ZoomTips[Widest]}"
                                  IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Widest}" />
                     <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="{loc:T ZoomFar}"
                                  Margin="0,0,5,0"
-                                 ToolTip="{loc:T ZoomFarTip}"
+                                 ToolTip="{Binding ZoomTips[Wide]}"
                                  IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Wide}" />
                     <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="{loc:T ZoomSlightlyFar}"
                                  Margin="0,0,5,0"
-                                 ToolTip="{loc:T ZoomSlightlyFarTip}"
+                                 ToolTip="{Binding ZoomTips[SlightlyWide]}"
                                  IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=SlightlyWide}" />
                     <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="{loc:T ZoomNormal}"
                                  Margin="0,0,5,0"
-                                 ToolTip="{loc:T ZoomNormalTip}"
+                                 ToolTip="{Binding ZoomTips[Normal]}"
                                  IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Normal}" />
                     <RadioButton Style="{StaticResource Tab}" GroupName="Zoom" Content="{loc:T ZoomClose}"
-                                 ToolTip="{loc:T ZoomCloseTip}"
+                                 ToolTip="{Binding ZoomTips[Close]}"
                                  IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Close}" />
                   </WrapPanel>

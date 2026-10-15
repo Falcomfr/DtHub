@@ -130,4 +130,27 @@ public sealed class QualityProfileTests
         // ... but bits per pixel of the same order of magnitude.
         Assert.True(basse.BitsPerPixel >= maximale.BitsPerPixel * 0.6);
     }
+
+    [Fact]
+    public void Un_palier_dit_ce_qu_il_regle()
+    {
+        // Shown when hovering the tier: the definition, the frame rate and
+        // the bitrate of a full 16:9 window, 1920 x 1080 x 30 x 0.09.
+        var ligne = QualityProfile.For(StreamQuality.Medium).Describe();
+
+        Assert.Contains("1080", ligne, StringComparison.Ordinal);
+        Assert.Contains("30", ligne, StringComparison.Ordinal);
+        Assert.Contains(5.6.ToString("0.#", System.Globalization.CultureInfo.CurrentCulture), ligne, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Le_palier_personnalise_dit_ce_qui_y_est_regle()
+    {
+        var ligne = QualityProfile.For(
+            StreamQuality.Custom,
+            new CustomQuality { MaximumDisplayHeight = 1440, MaxFps = 120 }).Describe();
+
+        Assert.Contains("1440", ligne, StringComparison.Ordinal);
+        Assert.Contains("120", ligne, StringComparison.Ordinal);
+    }
 }

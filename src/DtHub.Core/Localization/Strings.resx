@@ -158,6 +158,9 @@
   <data name="QualityCustomTip" xml:space="preserve">
     <value>Set the resolution, the frame rate, the image detail and the codec yourself. The three tiers remain the ordinary route: this one is for whoever already knows what they want.</value>
   </data>
+  <data name="QualityValues" xml:space="preserve">
+    <value>{0}p max · {1} fps · about {2} Mb/s per window</value>
+  </data>
   <data name="FineSettingsHeading" xml:space="preserve">
     <value>FINE SETTINGS</value>
   </data>
@@ -226,6 +229,9 @@
   </data>
   <data name="ZoomCloseTip" xml:space="preserve">
     <value>The least ground possible, the game interface at its largest. Comfortable on a small window. On a window over 2300 pixels tall, this tier draws close to the previous one: the density asked for hits its ceiling there.</value>
+  </data>
+  <data name="ZoomValues" xml:space="preserve">
+    <value>{0} dpi at {1}p</value>
   </data>
   <data name="ReopenNotice" xml:space="preserve">
     <value>Open windows reopen to take the change.</value>

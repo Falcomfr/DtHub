@@ -158,6 +158,9 @@
   <data name="QualityCustomTip" xml:space="preserve">
     <value>Régler soi-même la définition, la cadence, la finesse d'image et le codec. Les trois paliers restent le chemin ordinaire : celui-ci sert à qui sait déjà ce qu'il veut.</value>
   </data>
+  <data name="QualityValues" xml:space="preserve">
+    <value>{0} p max · {1} ips · environ {2} Mb/s par fenêtre</value>
+  </data>
   <data name="FineSettingsHeading" xml:space="preserve">
     <value>RÉGLAGES FINS</value>
   </data>
@@ -226,6 +229,9 @@
   </data>
   <data name="ZoomCloseTip" xml:space="preserve">
     <value>Le moins de terrain possible, l'interface du jeu la plus grande. Confortable sur une petite fenêtre. Sur une fenêtre de plus de 2300 pixels de haut, ce palier se rapproche du précédent : la densité demandée y touche son plafond.</value>
+  </data>
+  <data name="ZoomValues" xml:space="preserve">
+    <value>{0} ppp en {1} p</value>
   </data>
   <data name="ReopenNotice" xml:space="preserve">
     <value>Les fenêtres ouvertes se rouvrent pour prendre le changement.</value>

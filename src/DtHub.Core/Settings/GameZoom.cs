@@ -1,4 +1,5 @@
-﻿using DtHub.Core.Scrcpy;
+﻿using DtHub.Core.Localization;
+using DtHub.Core.Scrcpy;
 using DtHub.Core.Storage;
 
 namespace DtHub.Core.Settings;
@@ -107,6 +108,13 @@ public static class ZoomProfile
             ScrcpyOptions.MinDisplayDpi,
             ScrcpyOptions.MaxDisplayDpi);
     }
+
+    /// <summary>
+    /// What the tier sets, in one line for its tooltip: its density at the
+    /// quality's definition.
+    /// </summary>
+    public static string Describe(GameZoom zoom, int displayHeight) =>
+        Strings.Format("ZoomValues", DpiFor(displayHeight, zoom), displayHeight);
 
     /// <summary>
     /// The layout height a density gives at a display height: how a DPI

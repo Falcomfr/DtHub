@@ -109,4 +109,14 @@ public class ZoomProfileTests
         Assert.Equal(688, profile.LayoutHeight);
         Assert.Equal(0, QualityProfile.For(StreamQuality.Maximum).LayoutHeight);
     }
+
+    [Fact]
+    public void Une_distance_dit_sa_densite_a_la_definition_de_la_qualite()
+    {
+        // Shown when hovering the tier: the density follows the quality's
+        // definition, so the same distance reads differently in 1440.
+        Assert.Contains("216", ZoomProfile.Describe(GameZoom.SlightlyWide, 1080), StringComparison.Ordinal);
+        Assert.Contains("288", ZoomProfile.Describe(GameZoom.SlightlyWide, 1440), StringComparison.Ordinal);
+        Assert.Contains("1440", ZoomProfile.Describe(GameZoom.SlightlyWide, 1440), StringComparison.Ordinal);
+    }
 }
