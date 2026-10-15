@@ -93,7 +93,7 @@
     <value>Guías</value>
   </data>
   <data name="GuidesTip" xml:space="preserve">
-    <value>Abrir las guías, que permanecen encima de las ventanas de juego. Misiones, mazmorras, incursiones, guaridas y rutas, de papycha.fr.</value>
+    <value>Abrir las guías, que permanecen encima de las ventanas de juego. Misiones, mazmorras, incursiones, guaridas y rutas, de papycha.fr, en francés.</value>
   </data>
   <data name="GuidesSource" xml:space="preserve">
     <value>Papycha.fr</value>
@@ -1132,7 +1132,7 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
     <value>Coloca dos ventanas una al lado de la otra, cada una en una mitad de la pantalla. La ventana activa va a la derecha.</value>
   </data>
   <data name="ActionToggleGuidesDetail" xml:space="preserve">
-    <value>Muestra u oculta las guías, que permanecen encima de las ventanas de juego. Misiones, mazmorras, incursiones, guaridas y rutas, de papycha.fr.</value>
+    <value>Muestra u oculta las guías, que permanecen encima de las ventanas de juego. Misiones, mazmorras, incursiones, guaridas y rutas, de papycha.fr, en francés.</value>
   </data>
   <data name="ActionSize1Detail" xml:space="preserve">
     <value>El más pequeño de los cuatro tamaños, ajustables con el control.</value>
@@ -2276,7 +2276,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Calcofus</value>
   </data>
   <data name="ToolCalcofusLine" xml:space="preserve">
-    <value>Calculadoras de daño: invocaciones, bombas, hechizos, empuje, placaje y huida, retirada de PA y PM.</value>
+    <value>Calculadoras de daño, en francés: invocaciones, bombas, hechizos, empuje, placaje y huida, retirada de PA y PM.</value>
   </data>
   <data name="ToolDofusRoomName" xml:space="preserve">
     <value>DofusRoom</value>
@@ -2387,7 +2387,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Portal DT</value>
   </data>
   <data name="LomitallTip" xml:space="preserve">
-    <value>Abrir lomitall.fr en una ventana grande: guías, herramientas, clases, equipamientos y mazmorras de DOFUS Touch.</value>
+    <value>Abrir lomitall.fr en una ventana grande: guías, herramientas, clases, equipamientos y mazmorras de DOFUS Touch. El sitio está en francés.</value>
   </data>
   <data name="CheckAdbDriverUnusable" xml:space="preserve">
     <value>El teléfono ofrece su depuración, pero el controlador que Windows le dio no se la pasa a adb, a menudo el de un programa del fabricante como HiSuite. Cierra primero ese programa y luego:

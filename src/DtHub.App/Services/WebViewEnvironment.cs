@@ -67,7 +67,14 @@ public sealed partial class WebViewEnvironment(IAppPaths paths, ILogger<WebViewE
 
         var options = new CoreWebView2EnvironmentOptions
         {
-            AdditionalBrowserArguments = $"--disk-cache-size={CacheBytes}",
+            // The pages hear DT Hub's language, not Windows': the map and
+            // DofusRoom pick theirs from it, and a player who chose Spanish
+            // on a French Windows got them in French. That language alone,
+            // with no English fallback: DofusRoom answers in English to any
+            // list holding "en", even last (measured 2026-10-15).
+            AdditionalBrowserArguments =
+                $"--disk-cache-size={CacheBytes} --accept-lang={Strings.Spoken.TwoLetterISOLanguageName}",
+            Language = Strings.Spoken.Name,
         };
 
         return await CoreWebView2Environment

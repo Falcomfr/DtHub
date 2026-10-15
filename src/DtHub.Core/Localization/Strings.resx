@@ -93,7 +93,7 @@
     <value>Guides</value>
   </data>
   <data name="GuidesTip" xml:space="preserve">
-    <value>Open the guides, which stay above the game windows. Quests, dungeons, raids, lairs and paths, from papycha.fr.</value>
+    <value>Open the guides, which stay above the game windows. Quests, dungeons, raids, lairs and paths, from papycha.fr, in French.</value>
   </data>
   <data name="GuidesSource" xml:space="preserve">
     <value>Papycha.fr</value>
@@ -1132,7 +1132,7 @@ On a {0} device, the manual copy goes through: {1}.</value>
     <value>Lays two windows side by side, each on one half of the screen. The active window goes to the right.</value>
   </data>
   <data name="ActionToggleGuidesDetail" xml:space="preserve">
-    <value>Shows or hides the guides, which stay above the game windows. Quests, dungeons, raids, lairs and paths, from papycha.fr.</value>
+    <value>Shows or hides the guides, which stay above the game windows. Quests, dungeons, raids, lairs and paths, from papycha.fr, in French.</value>
   </data>
   <data name="ActionSize1Detail" xml:space="preserve">
     <value>The smallest of the four sizes, adjustable with the slider.</value>
@@ -2276,7 +2276,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>Calcofus</value>
   </data>
   <data name="ToolCalcofusLine" xml:space="preserve">
-    <value>Damage calculators: summons, bombs, spells, pushback, lock and dodge, AP and MP reduction.</value>
+    <value>Damage calculators, in French: summons, bombs, spells, pushback, lock and dodge, AP and MP reduction.</value>
   </data>
   <data name="ToolDofusRoomName" xml:space="preserve">
     <value>DofusRoom</value>
@@ -2387,7 +2387,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>DT portal</value>
   </data>
   <data name="LomitallTip" xml:space="preserve">
-    <value>Open lomitall.fr in a large window: DOFUS Touch guides, tools, classes, stuffs and dungeons.</value>
+    <value>Open lomitall.fr in a large window: DOFUS Touch guides, tools, classes, stuffs and dungeons. The site is in French.</value>
   </data>
   <data name="CheckAdbDriverUnusable" xml:space="preserve">
     <value>The phone does offer its debugging, but the driver Windows gave it does not hand it to adb, often a maker's suite such as HiSuite. Quit that software first, then:
