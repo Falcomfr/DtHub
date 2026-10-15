@@ -30,6 +30,10 @@ public class PanelPowerTests
         Assert.True(PanelPower.IsLit(Eteint.Replace("powerMode=Off", "powerMode=On", StringComparison.Ordinal)));
 
     [Fact]
+    public void Un_mode_suivi_de_son_numero_se_lit_aussi() =>
+        Assert.True(PanelPower.IsLit(Eteint.Replace("powerMode=Off", "powerMode=On (2)", StringComparison.Ordinal)));
+
+    [Fact]
     public void L_ecran_toujours_allume_d_une_veille_ne_compte_pas_comme_allume() =>
         Assert.False(PanelPower.IsLit(Eteint.Replace("powerMode=Off", "powerMode=Doze", StringComparison.Ordinal)));
 

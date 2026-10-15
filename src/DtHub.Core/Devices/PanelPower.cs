@@ -52,9 +52,11 @@ public static class PanelPower
                 continue;
             }
 
+            // The first word only: some versions follow the mode with its
+            // number, "powerMode=On (2)".
             if (physical && line.StartsWith("powerMode=", StringComparison.Ordinal))
             {
-                lit = lit == true || line == "powerMode=On";
+                lit = lit == true || line["powerMode=".Length..].Split(' ')[0] == "On";
             }
         }
 

@@ -1313,15 +1313,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
     }
 
     /// <summary>
-    /// The phone's plus button: choose which of its applications the list
-    /// shows, or ask for a new account.
-    ///
-    /// Both live behind the same button because both answer "I want
-    /// another line here", and the window keeps them visibly apart: one
-    /// installs nothing, the other creates a profile on the phone.
-    /// </summary>
-    /// <summary>
-    /// Switches the phone's screen off again. The button goes at once: the
+    /// Switches the phone's screen off again. The line goes at once: the
     /// next sweep would take a few seconds to say the screen is dark.
     /// </summary>
     [RelayCommand]
@@ -1337,6 +1329,14 @@ public sealed partial class InstanceListViewModel : ObservableObject
         await _launcher.TurnPanelOffAsync(device.DeviceId).ConfigureAwait(true);
     }
 
+    /// <summary>
+    /// The phone's plus button: choose which of its applications the list
+    /// shows, or ask for a new account.
+    ///
+    /// Both live behind the same button because both answer "I want
+    /// another line here", and the window keeps them visibly apart: one
+    /// installs nothing, the other creates a profile on the phone.
+    /// </summary>
     [RelayCommand]
     private async Task ManageAppsAsync(DeviceGroupViewModel? device)
     {

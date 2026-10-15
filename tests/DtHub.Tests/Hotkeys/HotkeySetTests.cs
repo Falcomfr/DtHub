@@ -184,6 +184,25 @@ public class HotkeySetTests
     }
 
     [Fact]
+    public void Un_ctrl_e_deja_donne_le_garde_et_l_extinction_reste_sans_raccourci()
+    {
+        // Settings saved before the action existed, by a player who had
+        // given Ctrl+E to another one.
+        var set = HotkeySet.FromBindings(
+        [
+            new HotkeyBinding
+            {
+                Action = HotkeyAction.Rearrange,
+                VirtualKey = VirtualKeys.E,
+                Modifiers = HotkeyModifiers.Control,
+            },
+        ]);
+
+        Assert.Equal("Ctrl + E", set.For(HotkeyAction.Rearrange)!.DisplayText);
+        Assert.False(set.For(HotkeyAction.ScreenOff)!.IsAssigned);
+    }
+
+    [Fact]
     public void Un_raccourci_valide_remplace_l_ancien()
     {
         var set = HotkeySet.Default.With(

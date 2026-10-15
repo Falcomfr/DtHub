@@ -408,6 +408,26 @@ public class ScrcpySessionManagerTests
     }
 
     [Fact]
+    public async Task Reeteindre_sans_gardien_en_demarre_un()
+    {
+        // The setting was ticked after the account opened.
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(9).Emit(ScreenOffLine));
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        await manager.StartAsync(Target(), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        Assert.False(manager.HoldsScreenOff("MATERIEL123"));
+
+        await manager.TurnScreenOffAgainAsync("MATERIEL123", "USB0001", CancellationToken.None);
+
+        Assert.Single(launcher.Requests, IsScreenKeeper);
+        Assert.True(manager.HoldsScreenOff("MATERIEL123"));
+    }
+
+    [Fact]
     public async Task Reeteindre_un_telephone_sans_compte_ouvert_ne_lance_rien()
     {
         var launcher = new FakeProcessLauncher();

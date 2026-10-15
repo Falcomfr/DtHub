@@ -159,8 +159,12 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     /// The windowless session holding each phone's screen off, by device
     /// identifier. See <see cref="ScrcpyCommandBuilder.BuildScreenOffArguments" />
     /// for why it is one per phone and not an option of every session.
+    ///
+    /// Concurrent only so that <see cref="HoldsScreenOff" /> can read it
+    /// without the lock: every change still happens under it.
     /// </summary>
-    private readonly Dictionary<string, IProcessSession> _screenKeepers = new(StringComparer.Ordinal);
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, IProcessSession> _screenKeepers =
+        new(StringComparer.Ordinal);
 
     private readonly SemaphoreSlim _screenKeepersLock = new(1, 1);
 
@@ -359,6 +363,14 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     }
 
     /// <summary>
+    /// True while a screen-off session holds this phone's screen off: only
+    /// then is a lit screen one the player lit, and not one still waiting
+    /// for its first account to finish opening.
+    /// </summary>
+    public bool HoldsScreenOff(string deviceId) =>
+        _screenKeepers.TryGetValue(deviceId, out var keeper) && !keeper.HasExited;
+
+    /// <summary>
     /// Switches the phone's screen off again, once the player has lit it
     /// up to use the phone: scrcpy switches it off when it starts and never
     /// again. Nothing happens on a phone with no account open.
@@ -427,7 +439,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                 // Died on its own, a Wi-Fi drop for instance, while the
                 // game sessions lived on, or replaced on request: released
                 // before the new one starts.
-                _ = _screenKeepers.Remove(deviceId);
+                _ = _screenKeepers.TryRemove(deviceId, out _);
                 await StopScreenKeeperAsync(running).ConfigureAwait(false);
             }
 
@@ -465,7 +477,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             // and its release found nothing to stop yet.
             if (!HasLiveSessionOn(deviceId, except: null))
             {
-                _ = _screenKeepers.Remove(deviceId);
+                _ = _screenKeepers.TryRemove(deviceId, out _);
                 await StopScreenKeeperAsync(keeper).ConfigureAwait(false);
             }
         }
@@ -552,7 +564,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             // meanwhile could find this screen-off session running, keep
             // it, and see it killed a moment later.
             if (HasLiveSessionOn(deviceId, except: ending)
-                || !_screenKeepers.Remove(deviceId, out keeper))
+                || !_screenKeepers.TryRemove(deviceId, out keeper))
             {
                 return;
             }
