@@ -122,11 +122,13 @@
                     Visibility="{Binding HasSeveralCharacters, Converter={StaticResource BoolToVisibility}}">
             <ComboBox.ItemTemplate>
               <DataTemplate>
-                <StackPanel Orientation="Horizontal">
-                  <TextBlock Text="{Binding Name}" />
-                  <TextBlock Text="{Binding Level, StringFormat=' ({0})'}"
-                             Style="{StaticResource Muted}" />
-                </StackPanel>
+                <!-- One line of text, two runs: as two blocks, the level's
+                     own font sat off the name's baseline. -->
+                <TextBlock>
+                  <Run Text="{Binding Name, Mode=OneWay}" />
+                  <Run Text="{Binding Level, Mode=OneWay, StringFormat=' ({0})'}"
+                       Foreground="{DynamicResource TextMutedBrush}" />
+                </TextBlock>
               </DataTemplate>
             </ComboBox.ItemTemplate>
           </ComboBox>
