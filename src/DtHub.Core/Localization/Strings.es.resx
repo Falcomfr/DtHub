@@ -504,10 +504,10 @@
     <value>Bloquear esta ventana en su sitio. Ya no se moverá al apilar, al poner lado a lado ni al cambiar de tamaño, y el teclado no se detendrá en ella. Las demás ventanas se colocan sin ella. Si la cuenta está en el marco con pestañas, una sola pestaña bloqueada congela todo el marco.</value>
   </data>
   <data name="PhoneFormat" xml:space="preserve">
-    <value>Corregir un juego desplazado</value>
+    <value>Formato del teléfono (si el juego se desplaza)</value>
   </data>
   <data name="PhoneFormatTip" xml:space="preserve">
-    <value>El juego toma el formato de la pantalla de tu teléfono o tableta en lugar del de la PC, con franjas alrededor. Márcalo si el juego se ve desplazado, con una franja negra, o cortado en tu pantalla. Se aplica la próxima vez que se abra la ventana.</value>
+    <value>Déjalo sin marcar en la mayoría de los casos. Márcalo solo si el juego se ve desplazado, cortado o con una franja negra a un lado en tu pantalla (visto con una Galaxy Tab en una pantalla ultrapanorámica). El juego toma entonces el formato de tu teléfono o tableta: si tu pantalla tiene otro formato, aparecen franjas negras alrededor. Se aplica la próxima vez que se abra la ventana.</value>
   </data>
   <data name="TabbedTip" xml:space="preserve">
     <value>Abrir esta cuenta en el marco con pestañas. Vuelve a hacer clic para devolverle su ventana libre.</value>

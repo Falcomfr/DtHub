@@ -504,10 +504,10 @@
     <value>Lock this window in its place. It will no longer move on a stack, a side-by-side or a size change, and the keyboard will not stop on it. The other windows arrange themselves without it. If the account sits in the tabbed frame, one locked tab freezes the whole frame.</value>
   </data>
   <data name="PhoneFormat" xml:space="preserve">
-    <value>Fix a shifted game</value>
+    <value>Phone's ratio (if the game is shifted)</value>
   </data>
   <data name="PhoneFormatTip" xml:space="preserve">
-    <value>The game takes the ratio of your phone or tablet's own screen rather than the PC screen's, with bands around it. Tick it if the game shows shifted, with a black band, or cut off on your screen. Applies the next time the window opens.</value>
+    <value>Leave it unticked in most cases. Tick it only if the game shows shifted, cut off or with a black band on one side on your screen (seen with a Galaxy Tab on an ultra-wide screen). The game then takes the ratio of your phone or tablet: if your screen has another ratio, black bands appear around it. Applies the next time the window opens.</value>
   </data>
   <data name="TabbedTip" xml:space="preserve">
     <value>Open this account in the tabbed frame. Click again to give it back its own free window.</value>

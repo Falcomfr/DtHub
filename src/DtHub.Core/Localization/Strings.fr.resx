@@ -504,10 +504,10 @@
     <value>Verrouiller cette fenêtre à sa place. Elle ne bougera plus lors d'un empilement, d'une mise côte à côte ou d'un changement de taille, et le parcours au clavier ne s'y arrêtera pas. Les autres fenêtres se placent sans elle. Si le compte est logé dans le cadre à onglets, un seul onglet verrouillé fige le cadre entier.</value>
   </data>
   <data name="PhoneFormat" xml:space="preserve">
-    <value>Corriger un jeu décalé</value>
+    <value>Format du téléphone (si jeu décalé)</value>
   </data>
   <data name="PhoneFormatTip" xml:space="preserve">
-    <value>Le jeu prend le format de l'écran de votre téléphone ou tablette plutôt que celui du PC, avec des bandes autour. À cocher si le jeu s'affiche décalé, avec une bande noire, ou coupé sur votre écran. S'applique à la prochaine ouverture de la fenêtre.</value>
+    <value>À laisser décoché dans la plupart des cas. À cocher seulement si le jeu s'affiche décalé, coupé ou avec une bande noire d'un côté sur votre écran (vu avec une Galaxy Tab sur un écran ultra-large). Le jeu prend alors le format de votre téléphone ou tablette : si votre écran a un autre format, des bandes noires apparaissent autour. S'applique à la prochaine ouverture de la fenêtre.</value>
   </data>
   <data name="TabbedTip" xml:space="preserve">
     <value>Ouvrir ce compte dans le cadre à onglets. Recliquez pour lui rendre sa fenêtre libre.</value>
