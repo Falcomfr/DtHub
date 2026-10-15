@@ -270,7 +270,7 @@
     <value>Éteindre l'écran du téléphone pendant le jeu</value>
   </data>
   <data name="TurnScreenOffTip" xml:space="preserve">
-    <value>L'écran du téléphone s'éteint dès qu'une fenêtre de jeu s'ouvre, et le jeu continue sur le PC. Le téléphone chauffe moins et sa batterie tient plus longtemps. L'écran se rallume quand le dernier compte se ferme.</value>
+    <value>L'écran du téléphone s'éteint dès qu'une fenêtre de jeu s'ouvre, et le jeu continue sur le PC. Le téléphone chauffe moins et sa batterie tient plus longtemps. L'écran se rallume quand le dernier compte se ferme. Si vous le rallumez pour utiliser le téléphone, un bouton à côté du téléphone le rééteint.</value>
   </data>
   <data name="AppPickerTitle" xml:space="preserve">
     <value>Applications de {0}</value>
@@ -1122,6 +1122,9 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
   <data name="ActionFullscreen" xml:space="preserve">
     <value>Plein écran</value>
   </data>
+  <data name="ActionScreenOff" xml:space="preserve">
+    <value>Éteindre l'écran du téléphone</value>
+  </data>
   <data name="ActionToggleSettingsDetail" xml:space="preserve">
     <value>Montre ou cache cette fenêtre. Les fenêtres de jeu restent ouvertes, et le rappel de cette combinaison figure dans leur titre.</value>
   </data>
@@ -1154,6 +1157,18 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
   </data>
   <data name="ActionFullscreenDetail" xml:space="preserve">
     <value>Couvre l'écran entier, sans bordure. Appuyer à nouveau en sort et rend à chaque fenêtre la place qu'elle avait.</value>
+  </data>
+  <data name="ActionScreenOffDetail" xml:space="preserve">
+    <value>Rééteint l'écran des téléphones rallumés pour un appel ou un message, le jeu continue. Ne sert que si « Éteindre l'écran du téléphone pendant le jeu » est coché.</value>
+  </data>
+  <data name="PanelLit" xml:space="preserve">
+    <value>L'écran du téléphone est allumé.</value>
+  </data>
+  <data name="TurnScreenOffNow" xml:space="preserve">
+    <value>Éteindre</value>
+  </data>
+  <data name="TurnScreenOffNowTip" xml:space="preserve">
+    <value>Éteint l'écran du téléphone, le jeu continue.</value>
   </data>
   <data name="ActionQuitDetail" xml:space="preserve">
     <value>Ferme l'application et toutes les fenêtres de jeu.</value>

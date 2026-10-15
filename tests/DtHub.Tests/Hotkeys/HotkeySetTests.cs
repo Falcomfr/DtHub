@@ -13,6 +13,7 @@ public class HotkeySetTests
         Assert.Equal("Ctrl + Tab", set.For(HotkeyAction.NextInstance)!.DisplayText);
         Assert.Equal("Ctrl + Maj + Tab", set.For(HotkeyAction.PreviousInstance)!.DisplayText);
         Assert.Equal("Ctrl + R", set.For(HotkeyAction.Rearrange)!.DisplayText);
+        Assert.Equal("Ctrl + E", set.For(HotkeyAction.ScreenOff)!.DisplayText);
         Assert.Equal("Ctrl + 0", set.For(HotkeyAction.Quit)!.DisplayText);
     }
 

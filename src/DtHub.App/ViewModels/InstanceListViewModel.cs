@@ -41,6 +41,25 @@ public sealed partial class InstanceListViewModel : ObservableObject
         // no longer existed.
         _launcher.SessionChanged += OnSessionChanged;
         _launcher.DeviceBusyChanged += OnDeviceBusyChanged;
+        _launcher.LitPanelsChanged += OnLitPanelsChanged;
+    }
+
+    private void OnLitPanelsChanged(object? sender, EventArgs args)
+    {
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+
+        if (dispatcher is null)
+        {
+            return;
+        }
+
+        _ = dispatcher.BeginInvoke(() =>
+        {
+            foreach (var view in _devices.Values)
+            {
+                view.IsPanelLit = _launcher.LitPanels.Contains(view.Serial);
+            }
+        });
     }
 
     private void OnSessionChanged(object? sender, Core.Scrcpy.ScrcpySession session)
@@ -836,6 +855,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
             view.SetProblems(found?.Text, found?.Serious ?? false, found?.Helps ?? []);
             view.SetNeedsPairing(_launcher.NeedsPairing.Contains(device.Id));
+            view.IsPanelLit = _launcher.LitPanels.Contains(device.Serial);
         }
 
     }
@@ -1300,6 +1320,23 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// another line here", and the window keeps them visibly apart: one
     /// installs nothing, the other creates a profile on the phone.
     /// </summary>
+    /// <summary>
+    /// Switches the phone's screen off again. The button goes at once: the
+    /// next sweep would take a few seconds to say the screen is dark.
+    /// </summary>
+    [RelayCommand]
+    private async Task TurnPanelOffAsync(DeviceGroupViewModel? device)
+    {
+        if (device is null)
+        {
+            return;
+        }
+
+        device.IsPanelLit = false;
+
+        await _launcher.TurnPanelOffAsync(device.DeviceId).ConfigureAwait(true);
+    }
+
     [RelayCommand]
     private async Task ManageAppsAsync(DeviceGroupViewModel? device)
     {

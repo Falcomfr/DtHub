@@ -382,6 +382,44 @@ public class ScrcpySessionManagerTests
     }
 
     [Fact]
+    public async Task Un_ecran_rallume_par_le_joueur_est_reeteint_par_un_nouveau_gardien()
+    {
+        var first = new FakeProcessSession(9).Emit(ScreenOffLine);
+        var second = new FakeProcessSession(10).Emit(ScreenOffLine);
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(first)
+            .Prepare(second);
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var session = await manager.StartAsync(Target(), DarkScreen, null, CancellationToken.None);
+
+        // Still alive: scrcpy switches the panel off once and never again.
+        await manager.TurnScreenOffAgainAsync("MATERIEL123", "USB0001", CancellationToken.None);
+
+        Assert.True(first.WasKilled);
+        Assert.False(second.WasKilled);
+        Assert.Equal(2, launcher.Requests.Count(IsScreenKeeper));
+
+        await manager.StopAsync(session.Id, CancellationToken.None);
+
+        Assert.True(second.WasKilled);
+    }
+
+    [Fact]
+    public async Task Reeteindre_un_telephone_sans_compte_ouvert_ne_lance_rien()
+    {
+        var launcher = new FakeProcessLauncher();
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        await manager.TurnScreenOffAgainAsync("MATERIEL123", "USB0001", CancellationToken.None);
+
+        Assert.Empty(launcher.Requests);
+    }
+
+    [Fact]
     public async Task Une_session_fermee_isolement_laisse_les_autres_ouvertes()
     {
         var first = new FakeProcessSession(1).Emit(NewDisplayLine);

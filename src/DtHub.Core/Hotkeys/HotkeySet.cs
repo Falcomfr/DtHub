@@ -35,6 +35,10 @@ public sealed class HotkeySet
         [HotkeyAction.Size3] = Bind(HotkeyAction.Size3, VirtualKeys.D3, HotkeyModifiers.Control),
         [HotkeyAction.Size4] = Bind(HotkeyAction.Size4, VirtualKeys.D4, HotkeyModifiers.Control),
         [HotkeyAction.Fullscreen] = Bind(HotkeyAction.Fullscreen, VirtualKeys.D5, HotkeyModifiers.Control),
+
+        // E for "éteindre". A player who already gave it to another action
+        // keeps it there: the new action is left without a shortcut.
+        [HotkeyAction.ScreenOff] = Bind(HotkeyAction.ScreenOff, VirtualKeys.E, HotkeyModifiers.Control),
         [HotkeyAction.Quit] = Bind(HotkeyAction.Quit, VirtualKeys.D0, HotkeyModifiers.Control),
     });
 

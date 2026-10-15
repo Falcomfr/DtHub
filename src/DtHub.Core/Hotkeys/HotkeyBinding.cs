@@ -107,6 +107,7 @@ public sealed record HotkeyBinding
         HotkeyAction.Size3 => Strings.Get("ActionSize3"),
         HotkeyAction.Size4 => Strings.Get("ActionSize4"),
         HotkeyAction.Fullscreen => Strings.Get("ActionFullscreen"),
+        HotkeyAction.ScreenOff => Strings.Get("ActionScreenOff"),
         HotkeyAction.Quit => Strings.Get("Quit"),
         _ => action.ToString(),
     };
@@ -130,6 +131,7 @@ public sealed record HotkeyBinding
         HotkeyAction.Size3 => Strings.Get("ActionSize3Detail"),
         HotkeyAction.Size4 => Strings.Get("ActionSize4Detail"),
         HotkeyAction.Fullscreen => Strings.Get("ActionFullscreenDetail"),
+        HotkeyAction.ScreenOff => Strings.Get("ActionScreenOffDetail"),
         HotkeyAction.Quit => Strings.Get("ActionQuitDetail"),
 
         _ => string.Empty,

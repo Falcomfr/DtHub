@@ -10,6 +10,14 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Añadido
+
+- Si enciendes la pantalla del teléfono durante el juego, para una llamada o un
+  mensaje, una línea bajo el teléfono permite volver a apagarla, igual que
+  Ctrl + E desde una ventana de juego.
+
 ## [0.8.16] - 2026-10-15
 
 ### Añadido

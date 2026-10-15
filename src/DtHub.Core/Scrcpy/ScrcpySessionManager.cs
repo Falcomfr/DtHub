@@ -359,14 +359,55 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Starts the phone's screen-off session, unless it already runs.
+    /// Switches the phone's screen off again, once the player has lit it
+    /// up to use the phone: scrcpy switches it off when it starts and never
+    /// again. Nothing happens on a phone with no account open.
+    ///
+    /// The running screen-off session is replaced, not asked: it has no
+    /// window to send its shortcut to. Killing it lights the screen, which
+    /// is already lit. On a dark screen it would flash for a second, so the
+    /// caller only asks for a lit one.
+    /// </summary>
+    public async Task TurnScreenOffAgainAsync(
+        string deviceId,
+        string serial,
+        CancellationToken cancellationToken = default)
+    {
+        if (!HasLiveSessionOn(deviceId, except: null))
+        {
+            return;
+        }
+
+        string scrcpyPath;
+        string adbPath;
+
+        try
+        {
+            scrcpyPath = await _scrcpy.GetScrcpyPathAsync(cancellationToken).ConfigureAwait(false);
+            adbPath = await _adbLocator.GetAdbPathAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is DependencyProvisioningException or Adb.AdbException)
+        {
+            // Both were found to open the account: missing now, the screen
+            // stays lit, as when the screen-off session fails to start.
+            return;
+        }
+
+        await HoldScreenOffAsync(deviceId, serial, scrcpyPath, adbPath, cancellationToken, replace: true)
+            .ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Starts the phone's screen-off session, unless it already runs and
+    /// <paramref name="replace" /> is false.
     /// </summary>
     private async Task HoldScreenOffAsync(
         string deviceId,
         string serial,
         string scrcpyPath,
         string adbPath,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool replace = false)
     {
         // ponytail: one lock for every phone, held until the screen is off
         // (under a second measured, ScreenOffTimeout at worst). A phone that
@@ -378,13 +419,14 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         {
             if (_screenKeepers.TryGetValue(deviceId, out var running))
             {
-                if (!running.HasExited)
+                if (!running.HasExited && !replace)
                 {
                     return;
                 }
 
                 // Died on its own, a Wi-Fi drop for instance, while the
-                // game sessions lived on: released before it is replaced.
+                // game sessions lived on, or replaced on request: released
+                // before the new one starts.
                 _ = _screenKeepers.Remove(deviceId);
                 await StopScreenKeeperAsync(running).ConfigureAwait(false);
             }

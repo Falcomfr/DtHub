@@ -1413,6 +1413,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             .Distinct(StringComparer.Ordinal)
             .ToList();
 
+        await RefreshLitPanelsAsync(playing, cancellationToken).ConfigureAwait(false);
+
         // **Every connected phone, and not only those playing.** The
         // shortcut used to stop at the phones carrying a window as
         // soon as there was one, and the findings of the others were
@@ -1779,6 +1781,116 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _pcBusy = Math.Min(_pcMinute, minute);
         _pcMinute = minute;
         _pcTimes = (idle, total);
+    }
+
+    /// <summary>
+    /// The serials of the playing phones whose screen the player lit up
+    /// again while DT Hub holds it off, read by the panel to show its
+    /// button. Empty when the setting is off.
+    /// </summary>
+    public IReadOnlySet<string> LitPanels { get; private set; } = new HashSet<string>(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Fired once a screen was switched off, from any thread: the button
+    /// goes at once, by the shortcut as by a click, not at the next sweep.
+    /// </summary>
+    public event EventHandler? LitPanelsChanged;
+
+    /// <summary>
+    /// Moved on before and after each screen is switched off. A sweep that
+    /// read the phones meanwhile would bring the button back with a reading
+    /// from before, for the length of a sweep: its answer is dropped.
+    /// </summary>
+    private int _panelGeneration;
+
+    /// <summary>
+    /// Asked at the panel's pace, and only while it shows: the button is
+    /// the only thing waiting on the answer, and the shortcut asks for
+    /// itself.
+    /// </summary>
+    private async Task RefreshLitPanelsAsync(IReadOnlyList<string> playing, CancellationToken cancellationToken)
+    {
+        var generation = Volatile.Read(ref _panelGeneration);
+
+        HashSet<string> lit = new(StringComparer.Ordinal);
+
+        if ((await _settings.GetAsync(cancellationToken).ConfigureAwait(false)).TurnScreenOff)
+        {
+            foreach (var serial in playing)
+            {
+                if (await IsPanelLitOrUnknownAsync(serial, cancellationToken).ConfigureAwait(false))
+                {
+                    _ = lit.Add(serial);
+                }
+            }
+        }
+
+        if (generation == Volatile.Read(ref _panelGeneration))
+        {
+            LitPanels = lit;
+        }
+    }
+
+    /// <summary>
+    /// A phone that does not say counts as lit: switching off a dark screen
+    /// costs it a one-second flash, never offering to leaves a lit one lit
+    /// for the whole session.
+    /// </summary>
+    private async Task<bool> IsPanelLitOrUnknownAsync(string serial, CancellationToken cancellationToken) =>
+        await _devices.IsPanelLitAsync(serial, cancellationToken).ConfigureAwait(false) != false;
+
+    /// <summary>
+    /// Switches off again the screen of a phone the player lit up, see
+    /// <see cref="ScrcpySessionManager.TurnScreenOffAgainAsync" />.
+    /// </summary>
+    public async Task TurnPanelOffAsync(string deviceId, CancellationToken cancellationToken = default)
+    {
+        var serial = _sessions.ActiveSessions
+            .Where(s => s.IsAlive && string.Equals(s.Target.DeviceId, deviceId, StringComparison.Ordinal))
+            .Select(s => Routable(s.Target))
+            .FirstOrDefault();
+
+        if (serial is null)
+        {
+            return;
+        }
+
+        _ = Interlocked.Increment(ref _panelGeneration);
+
+        await _sessions.TurnScreenOffAgainAsync(deviceId, serial, cancellationToken).ConfigureAwait(false);
+
+        _ = Interlocked.Increment(ref _panelGeneration);
+
+        LitPanels = new HashSet<string>(LitPanels.Where(s => s != serial), StringComparer.Ordinal);
+
+        LitPanelsChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// The shortcut's action: every playing phone whose screen is lit. Asked
+    /// now rather than read from <see cref="LitPanels" />, which the panel
+    /// only refreshes while it shows.
+    /// </summary>
+    private async Task TurnLitPanelsOffAsync()
+    {
+        if (!(await _settings.GetAsync().ConfigureAwait(false)).TurnScreenOff)
+        {
+            return;
+        }
+
+        var phones = _sessions.ActiveSessions
+            .Where(s => s.IsAlive)
+            .GroupBy(s => s.Target.DeviceId, StringComparer.Ordinal)
+            .Select(g => (DeviceId: g.Key, Serial: Routable(g.First().Target)))
+            .ToList();
+
+        foreach (var (deviceId, serial) in phones)
+        {
+            if (await IsPanelLitOrUnknownAsync(serial, CancellationToken.None).ConfigureAwait(false))
+            {
+                await TurnPanelOffAsync(deviceId).ConfigureAwait(false);
+            }
+        }
     }
 
     /// <summary>Wi-Fi latency spikes per device, fed by <see cref="SampleInBackground" />.</summary>
@@ -4391,6 +4503,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
                 case HotkeyAction.Fullscreen:
                     await ToggleFullscreenAsync().ConfigureAwait(false);
+                    break;
+
+                case HotkeyAction.ScreenOff:
+                    await TurnLitPanelsOffAsync().ConfigureAwait(false);
                     break;
 
                 case HotkeyAction.Quit:
