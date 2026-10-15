@@ -11,6 +11,19 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.8.13] - 2026-10-15
+
+### Corrigé
+
+- La fenêtre du Portail DT ne déclenche plus d'alerte Bitdefender : ses
+  publicités sont refusées, comme sur la carte.
+- Le niveau du personnage est aligné sur son nom dans les guides.
+
+### Modifié
+
+- « Où trouver ma phrase ? » mène directement à votre page de suivi Papycha
+  et dit exactement quoi copier.
+
 ## [0.8.12] - 2026-10-15
 
 ### Corrigé

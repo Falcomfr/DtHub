@@ -17,6 +17,19 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.8.13] - 2026-10-15
+
+### Fixed
+
+- The DT portal window no longer sets off Bitdefender: its ads are refused,
+  as on the map.
+- The character's level lines up with its name in the guides.
+
+### Changed
+
+- "Where do I find my phrase?" links straight to your Papycha tracking page
+  and says exactly what to copy.
+
 ## [0.8.12] - 2026-10-15
 
 ### Fixed

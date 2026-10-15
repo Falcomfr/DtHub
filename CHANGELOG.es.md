@@ -10,6 +10,19 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.8.13] - 2026-10-15
+
+### Corregido
+
+- La ventana del Portal DT ya no dispara la alerta de Bitdefender: sus
+  anuncios se rechazan, como en el mapa.
+- El nivel del personaje queda alineado con su nombre en las guías.
+
+### Cambiado
+
+- «¿Dónde encuentro mi frase?» lleva directamente a tu página de seguimiento
+  de Papycha y dice exactamente qué copiar.
+
 ## [0.8.12] - 2026-10-15
 
 ### Corregido
