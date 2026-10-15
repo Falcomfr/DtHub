@@ -3422,8 +3422,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             _sessions.ActiveSessions,
             session => ScrcpyCommandBuilder.BuildWindowTitle(
                 CurrentName(session, settings),
-                session.Target.IsTransient ? null : hint,
-                branded: !session.Target.IsTransient));
+                session.Target.IsTransient ? null : hint));
     }
 
 

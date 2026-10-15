@@ -313,23 +313,15 @@ public class ScrcpyCommandBuilderTests
     }
 
     [Fact]
-    public void Le_titre_de_fenetre_prefixe_le_nom_choisi_par_celui_du_produit()
+    public void Le_titre_de_fenetre_est_le_nom_choisi_seul()
     {
-        // The product name only appears there: in the taskbar, to
-        // recognize the game's windows among the others.
-        Assert.Equal($"{ProductInfo.Name} XSpace", ScrcpyCommandBuilder.BuildWindowTitle("XSpace"));
-        Assert.Equal($"{ProductInfo.Name} Enutrof", ScrcpyCommandBuilder.BuildWindowTitle("  Enutrof  "));
-    }
-
-    [Fact]
-    public void Une_fenetre_d_outil_porte_son_seul_nom()
-    {
-        // DTStuff and OcrApp are not the game: their window says their name,
-        // as the app does on the phone.
-        Assert.Equal("DTStuff", ScrcpyCommandBuilder.BuildWindowTitle("DTStuff", branded: false));
+        // The product name would only take room in the taskbar, where the
+        // icon already says it: the account's name is what tells windows apart.
+        Assert.Equal("XSpace", ScrcpyCommandBuilder.BuildWindowTitle("XSpace"));
+        Assert.Equal("Enutrof", ScrcpyCommandBuilder.BuildWindowTitle("  Enutrof  "));
         Assert.Equal(
             "Play Store  (fermez cette fenêtre)",
-            ScrcpyCommandBuilder.BuildWindowTitle("Play Store", "fermez cette fenêtre", branded: false));
+            ScrcpyCommandBuilder.BuildWindowTitle("Play Store", "fermez cette fenêtre"));
     }
 
     [Fact]
@@ -354,14 +346,14 @@ public class ScrcpyCommandBuilderTests
         // The windows overlap and look alike: the reminder can be read
         // above the image, without opening anything.
         Assert.Equal(
-            $"{ProductInfo.Name} XSpace  (Ctrl + Tab : fenêtre suivante)",
+            "XSpace  (Ctrl + Tab : fenêtre suivante)",
             ScrcpyCommandBuilder.BuildWindowTitle("XSpace", "Ctrl + Tab : fenêtre suivante"));
     }
 
     [Fact]
     public void Sans_raccourci_le_titre_reste_le_nom_seul()
     {
-        Assert.Equal($"{ProductInfo.Name} XSpace", ScrcpyCommandBuilder.BuildWindowTitle("XSpace", "   "));
+        Assert.Equal("XSpace", ScrcpyCommandBuilder.BuildWindowTitle("XSpace", "   "));
     }
 
     [Fact]

@@ -98,8 +98,8 @@ public class ScrcpySessionManagerTests
 
         // No technical identifier in the title: this is what the user will
         // read in their taskbar.
-        Assert.Equal($"{ProductInfo.Name} Principal", first.WindowTitle);
-        Assert.Equal($"{ProductInfo.Name} XSpace", second.WindowTitle);
+        Assert.Equal("Principal", first.WindowTitle);
+        Assert.Equal("XSpace", second.WindowTitle);
         Assert.DoesNotContain(first.Id, first.WindowTitle, StringComparison.Ordinal);
     }
 

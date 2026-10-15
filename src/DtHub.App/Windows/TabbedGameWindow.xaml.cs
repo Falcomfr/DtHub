@@ -707,8 +707,8 @@ public partial class TabbedGameWindow : Window
     private void Retitle()
     {
         var title = Items.FirstOrDefault(t => t.IsSelected) is { } tab
-            ? $"{Core.ProductInfo.Name}  ·  {tab.Title}"
-            : $"{Core.ProductInfo.Name}  ·  onglets";
+            ? tab.Title
+            : Core.ProductInfo.Name;
 
         // The free windows' format, see ScrcpyCommandBuilder.BuildWindowTitle.
         Title = string.IsNullOrWhiteSpace(_reminder) ? title : $"{title}  ({_reminder.Trim()})";
