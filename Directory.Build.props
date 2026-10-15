@@ -28,7 +28,7 @@
   </PropertyGroup>
 
   <PropertyGroup Label="Version">
-    <VersionPrefix>0.8.14</VersionPrefix>
+    <VersionPrefix>0.8.15</VersionPrefix>
   </PropertyGroup>
 
   <PropertyGroup Label="Language">

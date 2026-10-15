@@ -10,6 +10,14 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.8.15] - 2026-10-15
+
+### Corregido
+
+- Bitdefender ya no señala los anuncios del mapa mostrado en el Portal DT:
+  sus dominios quedan inaccesibles desde todas las ventanas de DT Hub.
+- Los campos de la vinculación muestran un ejemplo de lo que hay que escribir.
+
 ## [0.8.14] - 2026-10-15
 
 ### Añadido

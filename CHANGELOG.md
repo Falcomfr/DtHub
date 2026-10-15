@@ -17,6 +17,14 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.8.15] - 2026-10-15
+
+### Fixed
+
+- Bitdefender no longer flags the ads of the map shown inside the DT portal:
+  their domains are now unreachable from every DT Hub window.
+- The pairing fields show an example of what to type.
+
 ## [0.8.14] - 2026-10-15
 
 ### Added

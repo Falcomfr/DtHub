@@ -11,6 +11,15 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.8.15] - 2026-10-15
+
+### Corrigé
+
+- Bitdefender ne signale plus les publicités de la carte affichée dans le
+  Portail DT : leurs domaines sont désormais injoignables depuis toutes les
+  fenêtres de DT Hub.
+- Les champs de l'association montrent un exemple de ce qu'il faut saisir.
+
 ## [0.8.14] - 2026-10-15
 
 ### Ajouté
