@@ -122,6 +122,18 @@
 
         var list = document.createElement('ul');
 
+        // The account page, in the player's own browser where they are
+        // signed in: target=_blank sends it there, this window being the
+        // one that is not.
+        var first = document.createElement('li');
+        var link = document.createElement('a');
+        link.href = TEXT.open.url;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.textContent = TEXT.open.label;
+        first.appendChild(link);
+        list.appendChild(first);
+
         TEXT.help.forEach(function (line) {
             var item = document.createElement('li');
             item.textContent = line;

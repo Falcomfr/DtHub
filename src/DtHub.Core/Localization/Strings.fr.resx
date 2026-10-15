@@ -2311,8 +2311,11 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="TrackerHelpTitle" xml:space="preserve">
     <value>Où trouver ma phrase ?</value>
   </data>
+  <data name="TrackerHelpOpen" xml:space="preserve">
+    <value>Ouvrir papycha.fr/suivi-quetes/ dans votre navigateur, là où vous êtes déjà connecté.</value>
+  </data>
   <data name="TrackerHelpSite" xml:space="preserve">
-    <value>Sur papycha.fr, dans « Mon espace de suivi », sous « Phrase d’accès complète », depuis un navigateur ou un téléphone où vous êtes déjà connecté.</value>
+    <value>Sur cette page, sous « Phrase d’accès complète », copiez toute la phrase en gras, par exemple « Pépite la vaillante gardienne du Bouftou Royal », et collez-la ici.</value>
   </data>
   <data name="TrackerHelpLink" xml:space="preserve">
     <value>Dans votre lien de partage : c’est le texte après « pqt_share= ».</value>

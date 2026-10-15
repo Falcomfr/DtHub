@@ -2311,8 +2311,11 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="TrackerHelpTitle" xml:space="preserve">
     <value>Where do I find my phrase?</value>
   </data>
+  <data name="TrackerHelpOpen" xml:space="preserve">
+    <value>Open papycha.fr/suivi-quetes/ in your browser, where you are already signed in.</value>
+  </data>
   <data name="TrackerHelpSite" xml:space="preserve">
-    <value>On papycha.fr, in “Mon espace de suivi”, under “Phrase d’accès complète”, from a browser or phone where you are already signed in.</value>
+    <value>On that page, under “Phrase d’accès complète”, copy the whole phrase in bold, for example “Pépite la vaillante gardienne du Bouftou Royal”, and paste it here.</value>
   </data>
   <data name="TrackerHelpLink" xml:space="preserve">
     <value>In your share link: it is the text after “pqt_share=”.</value>

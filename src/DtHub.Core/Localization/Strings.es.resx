@@ -2311,8 +2311,11 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="TrackerHelpTitle" xml:space="preserve">
     <value>¿Dónde encuentro mi frase?</value>
   </data>
+  <data name="TrackerHelpOpen" xml:space="preserve">
+    <value>Abre papycha.fr/suivi-quetes/ en tu navegador, donde ya has iniciado sesión.</value>
+  </data>
   <data name="TrackerHelpSite" xml:space="preserve">
-    <value>En papycha.fr, en «Mon espace de suivi», bajo «Phrase d’accès complète», desde un navegador o un móvil donde ya hayas iniciado sesión.</value>
+    <value>En esa página, bajo «Phrase d’accès complète», copia la frase entera en negrita, por ejemplo «Pépite la vaillante gardienne du Bouftou Royal», y pégala aquí.</value>
   </data>
   <data name="TrackerHelpLink" xml:space="preserve">
     <value>En tu enlace para compartir: es el texto después de «pqt_share=».</value>

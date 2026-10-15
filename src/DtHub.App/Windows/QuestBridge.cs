@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Text.Json;
 
 using DtHub.Core.Localization;
+using DtHub.Core.Papycha;
 
 namespace DtHub.App.Windows;
 
@@ -67,6 +68,7 @@ internal static class QuestBridge
                     create = Strings.Get("TrackerCreateAccount"),
                     back = Strings.Get("TrackerBackToSignIn"),
                     helpTitle = Strings.Get("TrackerHelpTitle"),
+                    open = new { label = Strings.Get("TrackerHelpOpen"), url = PapychaSite.TrackerUrl },
                     help = new[]
                     {
                         Strings.Get("TrackerHelpSite"),
