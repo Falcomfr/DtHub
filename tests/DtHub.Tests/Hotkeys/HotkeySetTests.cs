@@ -13,6 +13,7 @@ public class HotkeySetTests
         Assert.Equal("Ctrl + Tab", set.For(HotkeyAction.NextInstance)!.DisplayText);
         Assert.Equal("Ctrl + Maj + Tab", set.For(HotkeyAction.PreviousInstance)!.DisplayText);
         Assert.Equal("Ctrl + R", set.For(HotkeyAction.Rearrange)!.DisplayText);
+        Assert.Equal("Ctrl + E", set.For(HotkeyAction.ScreenOff)!.DisplayText);
         Assert.Equal("Ctrl + 0", set.For(HotkeyAction.Quit)!.DisplayText);
     }
 
@@ -198,6 +199,25 @@ public class HotkeySetTests
 
         Assert.NotEqual(
             (VirtualKeys.V, HotkeyModifiers.Control), (repris.VirtualKey, repris.Modifiers));
+    }
+
+    [Fact]
+    public void Un_ctrl_e_deja_donne_le_garde_et_l_extinction_reste_sans_raccourci()
+    {
+        // Settings saved before the action existed, by a player who had
+        // given Ctrl+E to another one.
+        var set = HotkeySet.FromBindings(
+        [
+            new HotkeyBinding
+            {
+                Action = HotkeyAction.Rearrange,
+                VirtualKey = VirtualKeys.E,
+                Modifiers = HotkeyModifiers.Control,
+            },
+        ]);
+
+        Assert.Equal("Ctrl + E", set.For(HotkeyAction.Rearrange)!.DisplayText);
+        Assert.False(set.For(HotkeyAction.ScreenOff)!.IsAssigned);
     }
 
     [Fact]

@@ -30,6 +30,7 @@ under its mDNS name, and appeared only once in the list.
 | Anchoring the game block and placing the configurator | DONE |
 | The twelve keyboard shortcuts, three contexts each | DONE |
 | Phone screen held off while two accounts play, closing one keeps it off | DONE |
+| Screen lit by the player switched off again, by the line under the phone and by Ctrl + E, games running on | DONE |
 | Another application shown from the + window, opened in its own window, removed by the bin | DONE |
 
 ## Core

@@ -11,6 +11,14 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Ajouté
+
+- Quand vous rallumez l'écran du téléphone pendant le jeu, pour un appel ou un
+  message, une ligne sous le téléphone permet de le rééteindre, comme Ctrl + E
+  depuis une fenêtre de jeu.
+
 ## [0.8.17] - 2026-10-15
 
 ### Modifié

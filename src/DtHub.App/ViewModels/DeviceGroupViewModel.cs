@@ -41,6 +41,14 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     [ObservableProperty]
     private bool _isBusy;
 
+    /// <summary>
+    /// True while the phone's own screen is lit although DT Hub holds it
+    /// off: the player picked it up, for a call for instance. Shows the
+    /// button that switches it off again.
+    /// </summary>
+    [ObservableProperty]
+    private bool _isPanelLit;
+
     [ObservableProperty]
     private AdbDeviceState _state = AdbDeviceState.Offline;
 

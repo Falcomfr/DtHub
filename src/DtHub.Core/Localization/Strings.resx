@@ -276,7 +276,7 @@
     <value>Turn the phone's screen off while playing</value>
   </data>
   <data name="TurnScreenOffTip" xml:space="preserve">
-    <value>The phone's screen goes dark as soon as a game window opens, and the game keeps running on the PC. The phone heats up less and its battery lasts longer. The screen comes back on when the last account closes.</value>
+    <value>The phone's screen goes dark as soon as a game window opens, and the game keeps running on the PC. The phone heats up less and its battery lasts longer. The screen comes back on when the last account closes. If you light it up to use the phone, a button next to the phone switches it off again.</value>
   </data>
   <data name="AppPickerTitle" xml:space="preserve">
     <value>Applications on {0}</value>
@@ -1128,6 +1128,9 @@ On a {0} device, the manual copy goes through: {1}.</value>
   <data name="ActionFullscreen" xml:space="preserve">
     <value>Full screen</value>
   </data>
+  <data name="ActionScreenOff" xml:space="preserve">
+    <value>Phone screen off</value>
+  </data>
   <data name="ActionToggleSettingsDetail" xml:space="preserve">
     <value>Shows or hides this window. The game windows stay open, and this combination is recalled in their title.</value>
   </data>
@@ -1163,6 +1166,18 @@ On a {0} device, the manual copy goes through: {1}.</value>
   </data>
   <data name="ActionFullscreenDetail" xml:space="preserve">
     <value>Covers the whole screen, with no border. Pressing it again leaves it and gives each window the place it had.</value>
+  </data>
+  <data name="ActionScreenOffDetail" xml:space="preserve">
+    <value>Switches off again the screen of the phones lit up for a call or a message, while the game keeps running. Only used when "Turn the phone's screen off while playing" is on.</value>
+  </data>
+  <data name="PanelLit" xml:space="preserve">
+    <value>The phone's screen is on.</value>
+  </data>
+  <data name="TurnScreenOffNow" xml:space="preserve">
+    <value>Turn off</value>
+  </data>
+  <data name="TurnScreenOffNowTip" xml:space="preserve">
+    <value>Switches the phone's screen off, the game keeps running.</value>
   </data>
   <data name="ActionQuitDetail" xml:space="preserve">
     <value>Closes the application and all the game windows.</value>

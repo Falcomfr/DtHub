@@ -10390,3 +10390,31 @@ l'écran, comme la Galaxy Tab S10 Ultra en 21:9. `wm size` n'est lu que pour
 ces comptes. Le reste de la 0.8.10 demeure : un palier garde son nombre de
 pixels, le repli encodeur tient dans 1920 de large, une fenêtre trop haute
 cède sur sa largeur.
+
+## D198 - Rééteindre l'écran que le joueur a rallumé
+
+Signalé le 15/10/2026 : sur un Galaxy S25 Ultra, Android 16, l'écran rallumé
+pour répondre à un appel ne se rendort plus, délai de 15 s ou de 5 min, tant
+que DT Hub tourne. « Laisser activé » y est décoché et verrouillé par une
+règle d'administration. Le 13T Pro, lui, se rendort seul au bout de son
+délai, jeu en cours, appel compris : la cause n'est pas reproduite. Piste
+probable : One UI laisse l'activité simulée par `--keep-active` sur l'écran
+virtuel tenir aussi l'écran du téléphone éveillé, ce qu'Android 13 et plus
+évite ailleurs en mettant l'écran virtuel dans son propre groupe.
+
+Le gardien n'éteint la dalle qu'une fois. On le remplace donc sur demande,
+par un lien sous le téléphone ou par Ctrl + E : il n'a pas de fenêtre à qui
+envoyer son propre raccourci. Le tuer rallume l'écran, déjà allumé ; sur un
+écran éteint ce serait un éclair d'une seconde, d'où l'état lu avant.
+
+L'état vient de `dumpsys SurfaceFlinger --displays`, seules les sections
+« Display » comptant (l'écran virtuel de scrcpy y figure, toujours allumé).
+L'état de veille d'Android ne dit rien : la dalle est éteinte dans son dos.
+Mesuré en jeu sur le 13T Pro, lu deux fois par seconde : 21,0 % d'images en
+retard contre 21,4 % sans.
+
+La ligne n'apparaît que sur un écran lu allumé dont DT Hub tient l'extinction ;
+une réponse incomprise, un Android plus ancien peut-être, ne l'affiche pas.
+Ctrl + E, demandé, agit aussi sur une réponse incomprise. Un bouton encadré
+dans l'en-tête, puis un symbole marche/arrêt, ont été essayés et écartés :
+trop larges, pas compris.

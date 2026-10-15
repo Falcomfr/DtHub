@@ -46,6 +46,12 @@ public enum HotkeyAction
     Fullscreen,
 
     /// <summary>
+    /// Switch off again the screen of the phones the player lit up, when
+    /// "Turn the phone's screen off while playing" is on.
+    /// </summary>
+    ScreenOff,
+
+    /// <summary>
     /// Quit the application, including the game windows. Closing the
     /// windows without quitting had no use of its own: leaving them
     /// closed amounted to quitting, without remembering the state.

@@ -276,7 +276,7 @@
     <value>Apagar la pantalla del teléfono mientras se juega</value>
   </data>
   <data name="TurnScreenOffTip" xml:space="preserve">
-    <value>La pantalla del teléfono se apaga en cuanto se abre una ventana de juego, y el juego sigue en el PC. El teléfono se calienta menos y su batería dura más. La pantalla vuelve a encenderse cuando se cierra la última cuenta.</value>
+    <value>La pantalla del teléfono se apaga en cuanto se abre una ventana de juego, y el juego sigue en el PC. El teléfono se calienta menos y su batería dura más. La pantalla vuelve a encenderse cuando se cierra la última cuenta. Si la enciendes para usar el teléfono, un botón junto al teléfono vuelve a apagarla.</value>
   </data>
   <data name="AppPickerTitle" xml:space="preserve">
     <value>Aplicaciones de {0}</value>
@@ -1128,6 +1128,9 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
   <data name="ActionFullscreen" xml:space="preserve">
     <value>Pantalla completa</value>
   </data>
+  <data name="ActionScreenOff" xml:space="preserve">
+    <value>Apagar la pantalla del teléfono</value>
+  </data>
   <data name="ActionToggleSettingsDetail" xml:space="preserve">
     <value>Muestra u oculta esta ventana. Las ventanas de juego siguen abiertas, y esta combinación se recuerda en su título.</value>
   </data>
@@ -1163,6 +1166,18 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
   </data>
   <data name="ActionFullscreenDetail" xml:space="preserve">
     <value>Cubre la pantalla entera, sin borde. Al pulsarlo otra vez, sale y cada ventana recupera el sitio que tenía.</value>
+  </data>
+  <data name="ActionScreenOffDetail" xml:space="preserve">
+    <value>Vuelve a apagar la pantalla de los teléfonos encendidos para una llamada o un mensaje, y el juego sigue. Solo sirve si «Apagar la pantalla del teléfono mientras se juega» está marcado.</value>
+  </data>
+  <data name="PanelLit" xml:space="preserve">
+    <value>La pantalla del teléfono está encendida.</value>
+  </data>
+  <data name="TurnScreenOffNow" xml:space="preserve">
+    <value>Apagar</value>
+  </data>
+  <data name="TurnScreenOffNowTip" xml:space="preserve">
+    <value>Apaga la pantalla del teléfono, y el juego sigue.</value>
   </data>
   <data name="ActionQuitDetail" xml:space="preserve">
     <value>Cierra la aplicación y todas las ventanas de juego.</value>

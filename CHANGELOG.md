@@ -17,6 +17,14 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Added
+
+- When you light the phone's screen up while playing, for a call or a message,
+  a line under the phone switches it off again, as does Ctrl + E from a game
+  window.
+
 ## [0.8.17] - 2026-10-15
 
 ### Changed

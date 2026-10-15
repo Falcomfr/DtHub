@@ -1413,6 +1413,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             .Distinct(StringComparer.Ordinal)
             .ToList();
 
+        await RefreshLitPanelsAsync(discovery, cancellationToken).ConfigureAwait(false);
+
         // **Every connected phone, and not only those playing.** The
         // shortcut used to stop at the phones carrying a window as
         // soon as there was one, and the findings of the others were
@@ -1779,6 +1781,153 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _pcBusy = Math.Min(_pcMinute, minute);
         _pcMinute = minute;
         _pcTimes = (idle, total);
+    }
+
+    /// <summary>
+    /// The serials of the playing phones whose screen the player lit up
+    /// again while DT Hub holds it off, read by the panel to show its line.
+    /// Empty when the setting is off. Replaced whole, under
+    /// <see cref="_litPanelsLock" />, never changed in place.
+    /// </summary>
+    public IReadOnlySet<string> LitPanels { get; private set; } = new HashSet<string>(StringComparer.Ordinal);
+
+    private readonly Lock _litPanelsLock = new();
+
+    /// <summary>
+    /// Fired when a screen starts being switched off, from any thread: the
+    /// line goes at once, by the shortcut as by a click, not at the next
+    /// sweep.
+    /// </summary>
+    public event EventHandler? LitPanelsChanged;
+
+    /// <summary>
+    /// Moved on before and after each screen is switched off. A sweep that
+    /// read the phones meanwhile saw the screen the old screen-off session
+    /// lit up as it died, and would bring the line back: its answer is
+    /// dropped.
+    /// </summary>
+    private int _panelGeneration;
+
+    /// <summary>
+    /// The phones whose screen is being switched off. A second press in that
+    /// second finds the screen lit by the old screen-off session's death, and
+    /// would replace the new one on a screen it had just darkened.
+    /// </summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, byte> _switchingOff =
+        new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Asked at the panel's pace, and only while it shows: the line is the
+    /// only thing waiting on the answer, and the shortcut asks for itself.
+    ///
+    /// Only the phones whose screen DT Hub holds off: during an account's
+    /// first opening the screen is lit and the session that will switch it
+    /// off is not started yet. And only a screen seen lit: on a phone whose
+    /// answer is not understood, an older Android perhaps, the line would
+    /// stay for the whole session.
+    /// </summary>
+    private async Task RefreshLitPanelsAsync(DeviceDiscoveryResult discovery, CancellationToken cancellationToken)
+    {
+        var generation = Volatile.Read(ref _panelGeneration);
+
+        HashSet<string> lit = new(StringComparer.Ordinal);
+
+        if ((await _settings.GetAsync(cancellationToken).ConfigureAwait(false)).TurnScreenOff)
+        {
+            var held = _sessions.ActiveSessions
+                .Where(s => s.IsAlive && _sessions.HoldsScreenOff(s.Target.DeviceId))
+                .Select(s => discovery.Devices.FirstOrDefault(d => d.IsConnected && d.Id == s.Target.DeviceId)?.Serial
+                    ?? s.Target.Serial)
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+
+            foreach (var serial in held)
+            {
+                if (await _devices.IsPanelLitAsync(serial, cancellationToken).ConfigureAwait(false) == true)
+                {
+                    _ = lit.Add(serial);
+                }
+            }
+        }
+
+        lock (_litPanelsLock)
+        {
+            if (generation == _panelGeneration)
+            {
+                LitPanels = lit;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Switches off again the screen of a phone the player lit up, see
+    /// <see cref="ScrcpySessionManager.TurnScreenOffAgainAsync" />.
+    /// </summary>
+    public async Task TurnPanelOffAsync(string deviceId, CancellationToken cancellationToken = default)
+    {
+        var serial = _sessions.ActiveSessions
+            .Where(s => s.IsAlive && string.Equals(s.Target.DeviceId, deviceId, StringComparison.Ordinal))
+            .Select(s => Routable(s.Target))
+            .FirstOrDefault();
+
+        if (serial is null || !_switchingOff.TryAdd(deviceId, 0))
+        {
+            return;
+        }
+
+        try
+        {
+            lock (_litPanelsLock)
+            {
+                _panelGeneration++;
+                LitPanels = new HashSet<string>(LitPanels.Where(s => s != serial), StringComparer.Ordinal);
+            }
+
+            LitPanelsChanged?.Invoke(this, EventArgs.Empty);
+
+            await _sessions.TurnScreenOffAgainAsync(deviceId, serial, cancellationToken).ConfigureAwait(false);
+
+            lock (_litPanelsLock)
+            {
+                _panelGeneration++;
+            }
+        }
+        finally
+        {
+            _ = _switchingOff.TryRemove(deviceId, out _);
+        }
+    }
+
+    /// <summary>
+    /// The shortcut's action: every playing phone whose screen is lit. Asked
+    /// now rather than read from <see cref="LitPanels" />, which the panel
+    /// only refreshes while it shows.
+    ///
+    /// A phone that does not say counts as lit here, unlike for the line:
+    /// the player asked, and the worst is a one-second flash on a dark
+    /// screen.
+    /// </summary>
+    private async Task TurnLitPanelsOffAsync()
+    {
+        if (!(await _settings.GetAsync().ConfigureAwait(false)).TurnScreenOff)
+        {
+            return;
+        }
+
+        var phones = _sessions.ActiveSessions
+            .Where(s => s.IsAlive)
+            .GroupBy(s => s.Target.DeviceId, StringComparer.Ordinal)
+            .Select(g => (DeviceId: g.Key, Serial: Routable(g.First().Target)))
+            .Where(p => !_switchingOff.ContainsKey(p.DeviceId))
+            .ToList();
+
+        foreach (var (deviceId, serial) in phones)
+        {
+            if (await _devices.IsPanelLitAsync(serial).ConfigureAwait(false) != false)
+            {
+                await TurnPanelOffAsync(deviceId).ConfigureAwait(false);
+            }
+        }
     }
 
     /// <summary>Wi-Fi latency spikes per device, fed by <see cref="SampleInBackground" />.</summary>
@@ -4460,6 +4609,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
                 case HotkeyAction.Fullscreen:
                     await ToggleFullscreenAsync().ConfigureAwait(false);
+                    break;
+
+                case HotkeyAction.ScreenOff:
+                    await TurnLitPanelsOffAsync().ConfigureAwait(false);
                     break;
 
                 case HotkeyAction.Quit:

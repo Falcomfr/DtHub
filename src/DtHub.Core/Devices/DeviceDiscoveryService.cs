@@ -315,6 +315,36 @@ public sealed class DeviceDiscoveryService : IDisposable
     }
 
     /// <summary>
+    /// Is the phone's own screen lit, see <see cref="PanelPower" />, or
+    /// <c>null</c> if the device says nothing.
+    ///
+    /// Not cached: the caller only asks for phones whose screen DT Hub
+    /// holds off, at its own pace, and a button shown a few seconds after
+    /// the screen went dark again would switch off nothing.
+    /// </summary>
+    public async Task<bool?> IsPanelLitAsync(
+        string serial,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(serial))
+        {
+            return null;
+        }
+
+        try
+        {
+            return PanelPower.IsLit(await _adb
+                .ShellAsync(serial, PanelPower.Command, cancellationToken: cancellationToken)
+                .ConfigureAwait(false));
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // Same silence taken deliberately as for the other side probes.
+            return null;
+        }
+    }
+
+    /// <summary>
     /// Last trust verdict for the display, per device.
     ///
     /// Kept for a long time: this flag says what the device is capable of, and

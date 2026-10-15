@@ -288,6 +288,32 @@
                         Click="OnProblemHelp" />
               </Grid>
 
+              <!-- The phone's screen lit again although DT Hub holds it
+                   off, after a call for instance, and the way to switch it
+                   off. A line under the name like the findings above, and
+                   only then: a framed button in the header took too much
+                   room, and a power symbol was not understood. -->
+              <StackPanel Orientation="Horizontal" Margin="16,0,0,4">
+                <StackPanel.Visibility>
+                  <MultiBinding Converter="{StaticResource AllTrue}">
+                    <Binding Path="ShowDeviceHeader" />
+                    <Binding Path="ShowActions" RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                    <Binding Path="Device.IsPanelLit" />
+                  </MultiBinding>
+                </StackPanel.Visibility>
+
+                <TextBlock Text="{loc:T PanelLit}"
+                           FontFamily="{StaticResource UiFont}" FontSize="{StaticResource FontSmall}"
+                           Foreground="{DynamicResource TextMutedBrush}" />
+
+                <Button Style="{StaticResource LinkButton}" Content="{loc:T TurnScreenOffNow}"
+                        Margin="8,0,0,0" FontSize="{StaticResource FontSmall}"
+                        ToolTip="{loc:T TurnScreenOffNowTip}"
+                        Command="{Binding DataContext.TurnPanelOffCommand,
+                                          RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        CommandParameter="{Binding Device}" />
+              </StackPanel>
+
               <!-- Drop surface: the row and its two markers, nothing else. -->
               <StackPanel AllowDrop="True"
                           Opacity="{Binding IsDragging, Converter={StaticResource DraggedOpacity}}"
