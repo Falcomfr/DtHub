@@ -1168,7 +1168,7 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
     <value>Couvre l'écran entier, sans bordure. Appuyer à nouveau en sort et rend à chaque fenêtre la place qu'elle avait.</value>
   </data>
   <data name="ActionScreenOffDetail" xml:space="preserve">
-    <value>Rééteint l'écran des téléphones rallumés pour un appel ou un message, le jeu continue. Ne sert que si « Éteindre l'écran du téléphone pendant le jeu » est coché.</value>
+    <value>Éteint l'écran du téléphone de la fenêtre de jeu, ou de tous les téléphones depuis une autre fenêtre DT Hub, le jeu continue.</value>
   </data>
   <data name="PanelLit" xml:space="preserve">
     <value>L'écran du téléphone est allumé.</value>

@@ -1168,7 +1168,7 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
     <value>Cubre la pantalla entera, sin borde. Al pulsarlo otra vez, sale y cada ventana recupera el sitio que tenía.</value>
   </data>
   <data name="ActionScreenOffDetail" xml:space="preserve">
-    <value>Vuelve a apagar la pantalla de los teléfonos encendidos para una llamada o un mensaje, y el juego sigue. Solo sirve si «Apagar la pantalla del teléfono mientras se juega» está marcado.</value>
+    <value>Apaga la pantalla del teléfono de la ventana de juego, o de todos los teléfonos desde otra ventana de DT Hub, y el juego sigue.</value>
   </data>
   <data name="PanelLit" xml:space="preserve">
     <value>La pantalla del teléfono está encendida.</value>

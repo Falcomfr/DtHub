@@ -1899,9 +1899,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// The shortcut's action: every playing phone whose screen is lit. Asked
-    /// now rather than read from <see cref="LitPanels" />, which the panel
-    /// only refreshes while it shows.
+    /// The shortcut's action: the phone of the game in front, the free
+    /// window or the frame's shown tab, and every playing phone when the
+    /// keyboard is in another of DT Hub's windows (asked on 2026-10-15).
+    /// Lit screens only, asked now rather than read from
+    /// <see cref="LitPanels" />, which the panel only refreshes while it
+    /// shows.
+    ///
+    /// **Whether or not the setting holds the screen off.** It used to do
+    /// nothing at all without it, silently, and the player who pressed it
+    /// could not tell why.
     ///
     /// A phone that does not say counts as lit here, unlike for the line:
     /// the player asked, and the worst is a one-second flash on a dark
@@ -1909,13 +1916,22 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private async Task TurnLitPanelsOffAsync()
     {
-        if (!(await _settings.GetAsync().ConfigureAwait(false)).TurnScreenOff)
+        var foreground = _windows.Controller.GetForegroundWindow();
+        string? shown = null;
+
+        // A housed window is a child of the frame, never in front itself.
+        if (_tabs is { Handle: not 0 } frame && foreground == frame.Handle)
         {
-            return;
+            await OnUiAsync(() => shown = frame.Items.FirstOrDefault(t => t.IsSelected)?.Key).ConfigureAwait(false);
         }
 
-        var phones = _sessions.ActiveSessions
-            .Where(s => s.IsAlive)
+        var alive = _sessions.ActiveSessions.Where(s => s.IsAlive).ToList();
+        var front = alive.FirstOrDefault(s =>
+            (foreground != 0 && s.WindowHandle == foreground)
+            || string.Equals(s.Target.Key, shown, StringComparison.Ordinal));
+
+        var phones = alive
+            .Where(s => front is null || string.Equals(s.Target.DeviceId, front.Target.DeviceId, StringComparison.Ordinal))
             .GroupBy(s => s.Target.DeviceId, StringComparer.Ordinal)
             .Select(g => (DeviceId: g.Key, Serial: Routable(g.First().Target)))
             .Where(p => !_switchingOff.ContainsKey(p.DeviceId))

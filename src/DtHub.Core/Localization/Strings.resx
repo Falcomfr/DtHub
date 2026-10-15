@@ -1168,7 +1168,7 @@ On a {0} device, the manual copy goes through: {1}.</value>
     <value>Covers the whole screen, with no border. Pressing it again leaves it and gives each window the place it had.</value>
   </data>
   <data name="ActionScreenOffDetail" xml:space="preserve">
-    <value>Switches off again the screen of the phones lit up for a call or a message, while the game keeps running. Only used when "Turn the phone's screen off while playing" is on.</value>
+    <value>Switches off the screen of the game window's phone, or of every phone from another DT Hub window, while the game keeps running.</value>
   </data>
   <data name="PanelLit" xml:space="preserve">
     <value>The phone's screen is on.</value>
