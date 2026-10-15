@@ -737,6 +737,12 @@
                           IsChecked="{Binding TurnScreenOff}"
                           ToolTip="{loc:T TurnScreenOffTip}" />
 
+                <!-- Next to the screen going dark: a dark phone is one whose
+                     battery nobody sees any more. -->
+                <CheckBox Content="{loc:T TitleShowsStatus}" Margin="0,0,0,8"
+                          IsChecked="{Binding TitleShowsStatus}"
+                          ToolTip="{loc:T TitleShowsStatusTip}" />
+
                 <!-- Placed with the sound and stopping the game: it too
                      describes what happens to the phone. The layout's
                      trap is stated under the checkbox, not in a

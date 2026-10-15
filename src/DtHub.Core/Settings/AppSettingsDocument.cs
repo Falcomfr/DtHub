@@ -191,6 +191,13 @@ public sealed class AppSettingsDocument
     public bool TurnScreenOff { get; set; }
 
     /// <summary>
+    /// True if each game window says its phone's battery and how long it
+    /// has been open, after the account's name. False by default: the
+    /// title is the account's name, and a longer one is for whoever asks.
+    /// </summary>
+    public bool TitleShowsStatus { get; set; }
+
+    /// <summary>
     /// True if the keyboard is presented to the phone as a physical
     /// keyboard plugged in, rather than injected through the Android API.
     ///

@@ -228,6 +228,21 @@ public partial class TabbedGameWindow : Window
     }
 
     /// <summary>
+    /// Changes what the frame's title says of a tab's phone. Has no effect
+    /// if this account is not in the frame, like renaming.
+    /// </summary>
+    public void Restate(string key, string? status)
+    {
+        if (Find(key) is not { } tab || tab.Status == status)
+        {
+            return;
+        }
+
+        tab.Status = status;
+        Retitle();
+    }
+
+    /// <summary>
     /// Changes the mark of a tab that is already housed. Has no effect
     /// if this account is not in the frame, like renaming.
     /// </summary>
@@ -707,7 +722,9 @@ public partial class TabbedGameWindow : Window
     private void Retitle()
     {
         var title = Items.FirstOrDefault(t => t.IsSelected) is { } tab
-            ? tab.Title
+            ? tab.Status is { } status
+                ? $"{tab.Title} · {status}"
+                : tab.Title
             : Core.ProductInfo.Name;
 
         // The free windows' format, see ScrcpyCommandBuilder.BuildWindowTitle.

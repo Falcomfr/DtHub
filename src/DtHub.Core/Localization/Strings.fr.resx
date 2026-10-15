@@ -1485,6 +1485,27 @@ Le détail se trouve dans les journaux :
   <data name="TitleHintNextWindow" xml:space="preserve">
     <value>{0} : fenêtre suivante</value>
   </data>
+  <data name="TitleBattery" xml:space="preserve">
+    <value>batterie {0} %</value>
+  </data>
+  <data name="TitleBatteryCharging" xml:space="preserve">
+    <value>batterie {0} % en charge</value>
+  </data>
+  <data name="TitleHeatWarm" xml:space="preserve">
+    <value>chauffe</value>
+  </data>
+  <data name="TitleHeatHot" xml:space="preserve">
+    <value>surchauffe</value>
+  </data>
+  <data name="TitleLag" xml:space="preserve">
+    <value>lag</value>
+  </data>
+  <data name="TitleShowsStatus" xml:space="preserve">
+    <value>Afficher l'état du téléphone et le temps de jeu dans le titre des fenêtres</value>
+  </data>
+  <data name="TitleShowsStatusTip" xml:space="preserve">
+    <value>Chaque fenêtre de jeu indique la batterie de son téléphone, la chauffe et le lag quand il y en a, et depuis combien de temps elle est ouverte, à côté du nom du compte. Mis à jour toutes les trente secondes environ.</value>
+  </data>
   <data name="FolderDoesNotExistYet" xml:space="preserve">
     <value>Le dossier n'existe pas encore :
 {0}</value>

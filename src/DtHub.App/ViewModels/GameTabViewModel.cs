@@ -51,6 +51,12 @@ public sealed partial class GameTabViewModel : ObservableObject
     [ObservableProperty]
     private string _title;
 
+    /// <summary>
+    /// What the frame's title says of the phone while this tab shows,
+    /// or <c>null</c> when the player did not ask for it.
+    /// </summary>
+    public string? Status { get; set; }
+
     [ObservableProperty]
     private string? _iconPath;
 

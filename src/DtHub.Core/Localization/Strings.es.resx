@@ -1485,6 +1485,27 @@ El detalle está en los registros:
   <data name="TitleHintNextWindow" xml:space="preserve">
     <value>{0}: ventana siguiente</value>
   </data>
+  <data name="TitleBattery" xml:space="preserve">
+    <value>batería {0} %</value>
+  </data>
+  <data name="TitleBatteryCharging" xml:space="preserve">
+    <value>batería {0} % cargando</value>
+  </data>
+  <data name="TitleHeatWarm" xml:space="preserve">
+    <value>calentándose</value>
+  </data>
+  <data name="TitleHeatHot" xml:space="preserve">
+    <value>sobrecalentado</value>
+  </data>
+  <data name="TitleLag" xml:space="preserve">
+    <value>lag</value>
+  </data>
+  <data name="TitleShowsStatus" xml:space="preserve">
+    <value>Mostrar el estado del teléfono y el tiempo de juego en el título de las ventanas</value>
+  </data>
+  <data name="TitleShowsStatusTip" xml:space="preserve">
+    <value>Cada ventana de juego indica la batería de su teléfono, el calentamiento y el lag cuando los hay, y cuánto tiempo lleva abierta, junto al nombre de la cuenta. Se actualiza cada treinta segundos aproximadamente.</value>
+  </data>
   <data name="FolderDoesNotExistYet" xml:space="preserve">
     <value>La carpeta aún no existe:
 {0}</value>
