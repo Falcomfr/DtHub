@@ -23,6 +23,7 @@ public sealed class HotkeySet
             HotkeyAction.PreviousInstance, VirtualKeys.Tab, HotkeyModifiers.Control | HotkeyModifiers.Shift),
         [HotkeyAction.Rearrange] = Bind(HotkeyAction.Rearrange, VirtualKeys.R, HotkeyModifiers.Control),
         [HotkeyAction.Tile] = Bind(HotkeyAction.Tile, VirtualKeys.T, HotkeyModifiers.Control),
+        [HotkeyAction.Grid] = Bind(HotkeyAction.Grid, VirtualKeys.G, HotkeyModifiers.Control),
         [HotkeyAction.Quests] = Bind(HotkeyAction.Quests, VirtualKeys.Q, HotkeyModifiers.Control),
 
         // Ctrl+M and not Ctrl+A: these shortcuts are registered with

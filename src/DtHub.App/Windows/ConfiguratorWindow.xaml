@@ -279,6 +279,19 @@
                         Data="M 2,2.6 H 13 V 12.4 H 2 Z M 7.5,2.6 V 12.4" />
                 </Button>
 
+                <!-- The same screen cut in four. Below four windows a
+                     grid leaves empty cells, so the button withdraws. -->
+                <Border Width="1" Margin="0,6" Background="{DynamicResource BorderBrush}"
+                        Visibility="{Binding CanGrid, Converter={StaticResource BoolToVisibility}}" />
+
+                <Button Style="{StaticResource GroupKey}"
+                        ToolTip="{loc:T GridTip}"
+                        Command="{Binding GridCommand}"
+                        Visibility="{Binding CanGrid, Converter={StaticResource BoolToVisibility}}">
+                  <Path Style="{StaticResource RowGlyph}" VerticalAlignment="Center"
+                        Data="M 2,2.6 H 13 V 12.4 H 2 Z M 7.5,2.6 V 12.4 M 2,7.5 H 13" />
+                </Button>
+
               </StackPanel>
             </Border>
 

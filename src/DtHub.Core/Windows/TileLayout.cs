@@ -1,7 +1,7 @@
 ﻿namespace DtHub.Core.Windows;
 
 /// <summary>
-/// Splitting the screen into two halves, for side-by-side tiling.
+/// Splitting the screen into halves or quarters, for tiling.
 ///
 /// Pulled out of <see cref="WindowManagerService"/> so the tabbed
 /// frame can be tiled like a game window: the service only knows
@@ -50,6 +50,58 @@ public static class TileLayout
             onRight ? work.X + half : work.X,
             work.Y + ((work.Height - height) / 2),
             half,
+            height);
+    }
+
+    /// <summary>
+    /// The quarter of the screen that goes to one window, read left
+    /// to right then top to bottom. Beyond the fourth, every window
+    /// lands on the last cell.
+    ///
+    /// Unlike the half, a quarter is too low for a landscape game:
+    /// the width gives way to the aspect ratio rather than leaving
+    /// black bands, and each window leans toward the centre so the
+    /// four stay together.
+    /// </summary>
+    /// <param name="work">Usable area of the targeted screen.</param>
+    /// <param name="index">Position in the list, from zero.</param>
+    /// <param name="aspectRatio">
+    /// Aspect ratio of the source, zero if unknown.
+    /// </param>
+    /// <param name="chrome">
+    /// Frame chrome size, borders and bars included.
+    /// </param>
+    public static ScreenRect Quarter(
+        ScreenRect work,
+        int index,
+        double aspectRatio,
+        (int Width, int Height) chrome)
+    {
+        var cell = Math.Min(index, 3);
+        var right = cell % 2 == 1;
+        var bottom = cell >= 2;
+
+        var cellWidth = work.Width / 2;
+        var cellHeight = work.Height / 2;
+
+        var width = cellWidth;
+        var height = cellHeight;
+
+        if (aspectRatio > 0)
+        {
+            height = (int)Math.Round((cellWidth - chrome.Width) / aspectRatio) + chrome.Height;
+
+            if (height > cellHeight)
+            {
+                height = cellHeight;
+                width = (int)Math.Round((cellHeight - chrome.Height) * aspectRatio) + chrome.Width;
+            }
+        }
+
+        return new ScreenRect(
+            right ? work.X + cellWidth : work.X + cellWidth - width,
+            bottom ? work.Y + cellHeight : work.Y + cellHeight - height,
+            width,
             height);
     }
 }

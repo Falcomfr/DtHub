@@ -1279,4 +1279,41 @@ public class WindowManagerServiceTests
         Assert.Equal(work.X, desktop.GetWindowRect(sessions[0].WindowHandle)!.Value.X);
     }
 
+    [Fact]
+    public async Task La_grille_range_quatre_fenetres_dans_l_ordre_de_la_liste()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(4);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        Assert.Equal(4, await service.GridAsync(sessions, cancellationToken: CancellationToken.None));
+
+        var rects = sessions.Select(s => desktop.GetWindowRect(s.WindowHandle)!.Value).ToList();
+
+        Assert.True(rects[0].Right <= rects[1].X);
+        Assert.True(rects[0].Bottom <= rects[2].Y);
+        Assert.Equal(rects[1].X, rects[3].X);
+        Assert.Equal(rects[2].Y, rects[3].Y);
+    }
+
+    [Fact]
+    public async Task La_grille_laisse_libre_la_case_du_cadre()
+    {
+        // The tabbed frame is not a session: the launcher gives it its
+        // cell, and no game window may land on top of it.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(3);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        var work = FakeWindowController.PrimaryMonitor.WorkArea;
+
+        await service.GridAsync(sessions, frameCell: 0, CancellationToken.None);
+
+        var first = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+        var second = desktop.GetWindowRect(sessions[1].WindowHandle)!.Value;
+
+        Assert.True(first.X >= work.CenterX && first.Bottom <= work.CenterY);
+        Assert.True(second.Right <= work.CenterX && second.Y >= work.CenterY);
+    }
 }

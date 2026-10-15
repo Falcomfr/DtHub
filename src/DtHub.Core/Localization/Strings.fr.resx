@@ -95,6 +95,12 @@
   <data name="SideBySideTip" xml:space="preserve">
     <value>Ranger deux fenêtres côte à côte, chacune sur une moitié de l'écran. La fenêtre active va à droite.</value>
   </data>
+  <data name="Grid" xml:space="preserve">
+    <value>En grille</value>
+  </data>
+  <data name="GridTip" xml:space="preserve">
+    <value>Ranger quatre fenêtres en grille, chacune sur un quart de l'écran, dans l'ordre de la liste. Au-delà de quatre, les suivantes s'empilent sur la dernière case.</value>
+  </data>
   <data name="Guides" xml:space="preserve">
     <value>Guides</value>
   </data>
@@ -1136,6 +1142,9 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
   </data>
   <data name="ActionTileDetail" xml:space="preserve">
     <value>Range deux fenêtres côte à côte, chacune sur une moitié de l'écran. La fenêtre active va à droite.</value>
+  </data>
+  <data name="ActionGridDetail" xml:space="preserve">
+    <value>Range quatre fenêtres en grille, chacune sur un quart de l'écran, dans l'ordre de la liste. Au-delà de quatre, les suivantes s'empilent sur la dernière case.</value>
   </data>
   <data name="ActionToggleGuidesDetail" xml:space="preserve">
     <value>Montre ou cache les guides, qui restent au-dessus des fenêtres de jeu. Quêtes, donjons, raids, tanières et chemins, de papycha.fr.</value>

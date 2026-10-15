@@ -1205,6 +1205,78 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
+    /// Places the windows in a grid, each on a quarter of the screen,
+    /// in the order of the list. Beyond four, they stack on the last
+    /// cell.
+    ///
+    /// The screen is the one of the active window, as for side by
+    /// side tiling.
+    /// </summary>
+    /// <param name="frameCell">
+    /// The cell the tabbed frame takes, skipped here: the frame is
+    /// not a session, and is placed by whoever owns it.
+    /// </param>
+    /// <returns>Number of windows placed.</returns>
+    public async Task<int> GridAsync(
+        IReadOnlyList<ScrcpySession> sessions,
+        int? frameCell = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(sessions);
+
+        var alive = sessions.Where(s => s.IsAlive).ToList();
+        var monitors = _controller.GetMonitors();
+
+        if (alive.Count == 0 || monitors.Count == 0)
+        {
+            return 0;
+        }
+
+        var foreground = _controller.GetForegroundWindow();
+
+        var active = alive.Find(s => s.WindowHandle != 0 && s.WindowHandle == foreground)
+            ?? alive.Find(s => string.Equals(s.Id, _lastActive, StringComparison.Ordinal))
+            ?? alive[0];
+
+        var activeHandle = await ResolveWindowAsync(active, cancellationToken).ConfigureAwait(false);
+
+        var reference = activeHandle != 0 && _controller.GetWindowRect(activeHandle) is { } known && !known.IsEmpty
+            ? WindowLayoutCalculator.ChooseMonitor(monitors, known.CenterX, known.CenterY)
+            : WindowLayoutCalculator.ChooseMonitor(monitors, preferredDeviceName: null);
+
+        var work = UsableArea(reference);
+
+        var placed = 0;
+        var cell = 0;
+
+        foreach (var session in alive)
+        {
+            var handle = await ResolveWindowAsync(session, cancellationToken).ConfigureAwait(false);
+
+            if (handle == 0)
+            {
+                continue;
+            }
+
+            if (cell == frameCell)
+            {
+                cell++;
+            }
+
+            _controller.SetBorderless(handle, borderless: false);
+
+            var rect = TileLayout.Quarter(work, cell, session.SourceAspectRatio, MeasureChrome(handle));
+
+            _controller.MoveWindow(handle, rect);
+            _lastSeen[session.Id] = rect;
+            placed++;
+            cell++;
+        }
+
+        return placed;
+    }
+
+    /// <summary>
     /// Remembers which game window is in the foreground.
     ///
     /// Called continuously: by the time of the rearrangement it is
