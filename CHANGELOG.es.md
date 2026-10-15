@@ -10,6 +10,19 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.8.16] - 2026-10-15
+
+### Añadido
+
+- «Todas las versiones», en Novedades, abre las notas de cada versión en
+  GitHub, en el idioma de la aplicación.
+
+### Cambiado
+
+- La casilla de cuenta «Corregir un juego desplazado» pasa a ser «Formato
+  del teléfono (si el juego se desplaza)», y su descripción dice dejarla sin
+  marcar en la mayoría de los casos.
+
 ## [0.8.15] - 2026-10-15
 
 ### Corregido

@@ -17,6 +17,19 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.8.16] - 2026-10-15
+
+### Added
+
+- "All versions", in What's new, opens every version's notes on GitHub, in
+  the application's language.
+
+### Changed
+
+- The per-account box "Fix a shifted game" becomes "Phone's ratio (if the
+  game is shifted)", and its tooltip says to leave it unticked in most
+  cases.
+
 ## [0.8.15] - 2026-10-15
 
 ### Fixed

@@ -11,6 +11,19 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.8.16] - 2026-10-15
+
+### Ajouté
+
+- « Toutes les versions », dans Nouveautés, ouvre les notes de chaque version
+  sur GitHub, dans la langue de l'application.
+
+### Modifié
+
+- La case de compte « Corriger un jeu décalé » devient « Format du téléphone
+  (si jeu décalé) », et son info-bulle dit de la laisser décochée dans la
+  plupart des cas.
+
 ## [0.8.15] - 2026-10-15
 
 ### Corrigé
