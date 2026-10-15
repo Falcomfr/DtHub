@@ -297,8 +297,11 @@
 
           </WrapPanel>
 
+          <!-- Bottom: when the arranging buttons wrap onto a second
+               line, Quit shares it with them instead of floating
+               between the two. -->
           <Button Grid.Column="1" Content="{loc:T Quit}" Click="OnQuit"
-                  VerticalAlignment="Center"
+                  VerticalAlignment="Bottom" Margin="0,0,0,3"
                   ToolTip="{loc:T QuitTip}" />
         </Grid>
       </Border>
