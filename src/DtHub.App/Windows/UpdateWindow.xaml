@@ -16,10 +16,13 @@
                  Text="{Binding Lead}" />
     </StackPanel>
 
-    <Border DockPanel.Dock="Bottom" Margin="0,14,0,0">
-      <Button Content="{loc:T Close}" HorizontalAlignment="Right" MinWidth="110" Click="OnClose"
+    <DockPanel DockPanel.Dock="Bottom" Margin="0,14,0,0">
+      <Button DockPanel.Dock="Right" Content="{loc:T Close}" MinWidth="110" Click="OnClose"
               IsCancel="True" />
-    </Border>
+      <Button Style="{StaticResource LinkButton}" Content="{loc:T AllVersions}"
+              HorizontalAlignment="Left" VerticalAlignment="Center"
+              ToolTip="{loc:T AllVersionsTip}" Click="OnAllVersions" />
+    </DockPanel>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                   Padding="0,0,10,0">

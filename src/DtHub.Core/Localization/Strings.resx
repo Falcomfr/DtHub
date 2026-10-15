@@ -77,6 +77,12 @@
   <data name="WhatsNew" xml:space="preserve">
     <value>What's new</value>
   </data>
+  <data name="AllVersions" xml:space="preserve">
+    <value>All versions</value>
+  </data>
+  <data name="AllVersionsTip" xml:space="preserve">
+    <value>Every version’s notes, on GitHub.</value>
+  </data>
   <data name="WhatsNewTip" xml:space="preserve">
     <value>Read what this version brings</value>
   </data>

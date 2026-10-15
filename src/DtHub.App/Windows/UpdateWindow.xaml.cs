@@ -1,5 +1,11 @@
 ﻿using System.Windows;
 
+using DtHub.App.Services;
+using DtHub.Core.Localization;
+using DtHub.Core.Updates;
+
+using Microsoft.Extensions.DependencyInjection;
+
 namespace DtHub.App.Windows;
 
 /// <summary>
@@ -15,4 +21,8 @@ public partial class UpdateWindow : Window
     }
 
     private void OnClose(object sender, RoutedEventArgs e) => Close();
+
+    private void OnAllVersions(object sender, RoutedEventArgs e) =>
+        AppHost.Services.GetRequiredService<IDialogService>()
+            .OpenUrl(ReleaseNotes.ChangelogUrl(Strings.Spoken.TwoLetterISOLanguageName));
 }

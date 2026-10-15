@@ -43,4 +43,13 @@ public sealed class ReleaseNotesTests
         Assert.Empty(ReleaseNotes.Readable(null));
         Assert.Empty(ReleaseNotes.Readable("   \n  \n"));
     }
+
+    [Theory]
+    [InlineData("fr", "https://github.com/Falcomfr/DtHub/blob/main/CHANGELOG.fr.md")]
+    [InlineData("es", "https://github.com/Falcomfr/DtHub/blob/main/CHANGELOG.es.md")]
+    [InlineData("en", "https://github.com/Falcomfr/DtHub/blob/main/CHANGELOG.md")]
+    [InlineData("de", "https://github.com/Falcomfr/DtHub/blob/main/CHANGELOG.md")]
+    [InlineData(null, "https://github.com/Falcomfr/DtHub/blob/main/CHANGELOG.md")]
+    public void Le_journal_de_toutes_les_versions_est_dans_la_langue_de_l_appli(string? language, string url) =>
+        Assert.Equal(url, ReleaseNotes.ChangelogUrl(language));
 }

@@ -15,6 +15,19 @@ namespace DtHub.Core.Updates;
 public static partial class ReleaseNotes
 {
     /// <summary>The note, stripped of its markup.</summary>
+    /// <summary>
+    /// Every version's notes, in the application's language: the changelog
+    /// the release notes are cut from, translated in French and Spanish.
+    /// The releases page would show them in English only.
+    /// </summary>
+    public static string ChangelogUrl(string? language) =>
+        $"{ProductInfo.RepositoryUrl}/blob/main/CHANGELOG{language?.ToLowerInvariant() switch
+        {
+            "fr" => ".fr",
+            "es" => ".es",
+            _ => string.Empty,
+        }}.md";
+
     public static string Readable(string? notes)
     {
         if (string.IsNullOrWhiteSpace(notes))
