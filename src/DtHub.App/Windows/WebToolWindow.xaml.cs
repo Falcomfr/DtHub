@@ -122,18 +122,22 @@ public partial class WebToolWindow : Window
             await View.EnsureCoreWebView2Async(await _engine.GetAsync().ConfigureAwait(true)).ConfigureAwait(true);
             View.CoreWebView2.NewWindowRequested += OnNewWindowRequested;
 
+            // Every tool, not the map alone: lomitall.fr serves the same
+            // Adsterra ads, and Bitdefender stopped one in its window on
+            // 2026-10-15.
+            foreach (var host in DofusTouchMap.BlockedAdHosts)
+            {
+                // Workers included: Adsterra's push ads run in one.
+                View.CoreWebView2.AddWebResourceRequestedFilter(
+                    $"*{host}/*",
+                    CoreWebView2WebResourceContext.All,
+                    CoreWebView2WebResourceRequestSourceKinds.All);
+            }
+
+            View.CoreWebView2.WebResourceRequested += OnAdRequest;
+
             if (Tool == WebTool.Map)
             {
-                foreach (var host in DofusTouchMap.BlockedAdHosts)
-                {
-                    // Workers included: Adsterra's push ads run in one.
-                    View.CoreWebView2.AddWebResourceRequestedFilter(
-                        $"*{host}/*",
-                        CoreWebView2WebResourceContext.All,
-                        CoreWebView2WebResourceRequestSourceKinds.All);
-                }
-
-                View.CoreWebView2.WebResourceRequested += OnMapRequest;
                 View.CoreWebView2.Navigate(DofusTouchMap.Address);
                 return;
             }
@@ -294,16 +298,16 @@ public partial class WebToolWindow : Window
     }
 
     /// <summary>
-    /// The map's ads, refused before they leave the PC: no request, nothing
+    /// The tools' ads, refused before they leave the PC: no request, nothing
     /// for an antivirus to stop. The filter is a wildcard, so the host is
     /// checked again exactly.
     /// </summary>
-    private void OnMapRequest(object? sender, CoreWebView2WebResourceRequestedEventArgs e)
+    private void OnAdRequest(object? sender, CoreWebView2WebResourceRequestedEventArgs e)
     {
         if (DofusTouchMap.IsBlockedAd(e.Request.Uri))
         {
             e.Response = View.CoreWebView2.Environment.CreateWebResourceResponse(null, 403, "Blocked", string.Empty);
-            Log.Information("Carte : publicité refusée ({Hote}).", new Uri(e.Request.Uri).Host);
+            Log.Information("{Outil} : publicité refusée ({Hote}).", Tool, new Uri(e.Request.Uri).Host);
         }
     }
 
@@ -318,7 +322,7 @@ public partial class WebToolWindow : Window
     /// target="_blank", which the engine would otherwise open in a window of
     /// its own, outside any control: the system browser takes it.
     ///
-    /// Except the map's ads. Refused inside the window, a pop-under could
+    /// Except the tools' ads. Refused inside the window, a pop-under could
     /// still reach the system browser this way. Bitdefender stopped
     /// highperformanceformat.com as phishing on 11/10/2026, path not
     /// established: see D192.
@@ -329,7 +333,7 @@ public partial class WebToolWindow : Window
 
         if (DofusTouchMap.IsBlockedAd(e.Uri))
         {
-            Log.Information("Carte : fenêtre publicitaire refusée ({Hote}).", new Uri(e.Uri).Host);
+            Log.Information("{Outil} : fenêtre publicitaire refusée ({Hote}).", Tool, new Uri(e.Uri).Host);
 
             return;
         }
