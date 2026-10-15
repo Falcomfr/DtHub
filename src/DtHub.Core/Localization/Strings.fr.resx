@@ -1718,6 +1718,9 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="LevelSpanOf" xml:space="preserve">
     <value>niveau {0} (sur {1})</value>
   </data>
+  <data name="ZoneInProgress" xml:space="preserve">
+    <value>{0} en cours</value>
+  </data>
   <data name="AndroidTooOld" xml:space="preserve">
     <value>cet appareil est en {0}, or ouvrir une fenêtre de jeu demande {1} ou plus récent.</value>
   </data>

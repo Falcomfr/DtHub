@@ -745,7 +745,7 @@
             </StackPanel>
           </Button>
 
-          <ListBox x:Name="NodeList" ItemsSource="{Binding Nodes}"
+          <ListBox x:Name="NodeList" ItemsSource="{Binding Nodes}" Grid.IsSharedSizeScope="True"
                    SelectedItem="{Binding SelectedNode, Mode=TwoWay}"
                    Background="Transparent" BorderThickness="0"
                    HorizontalContentAlignment="Stretch"
@@ -1091,12 +1091,30 @@
                          row: the root's counts, a zone's level range, an
                          achievement's tally. Hidden when empty, since an
                          empty block still claims its margin. -->
-                    <TextBlock Text="{Binding Detail}"
-                               VerticalAlignment="Center"
-                               Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
-                               Visibility="{Binding Detail,
-                                                    Converter={StaticResource EmptyToVisibility},
-                                                    ConverterParameter=inverse}" />
+                    <!-- Two columns shared by every row of the list, so a
+                         zone's "1 in progress" and "1/12" stand under the
+                         next zone's whatever their lengths. -->
+                    <Grid VerticalAlignment="Center"
+                          Visibility="{Binding Detail,
+                                               Converter={StaticResource EmptyToVisibility},
+                                               ConverterParameter=inverse}">
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="ListStarted" />
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="ListDetail" />
+                      </Grid.ColumnDefinitions>
+
+                      <TextBlock Grid.Column="0" Text="{Binding Started}" Margin="0,0,16,0"
+                                 HorizontalAlignment="Right" VerticalAlignment="Center"
+                                 Foreground="{DynamicResource AccentBrush}"
+                                 FontSize="{StaticResource FontSmall}"
+                                 Visibility="{Binding Started,
+                                                      Converter={StaticResource EmptyToVisibility},
+                                                      ConverterParameter=inverse}" />
+
+                      <TextBlock Grid.Column="1" Text="{Binding Detail}"
+                                 HorizontalAlignment="Right" VerticalAlignment="Center"
+                                 Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" />
+                    </Grid>
 
                     <!-- A lock: what keeps the quest closed. A key had
                          been tried first; its ring and its diagonal

@@ -1,4 +1,8 @@
-﻿namespace DtHub.Core.Papycha;
+﻿using System.Globalization;
+
+using DtHub.Core.Localization;
+
+namespace DtHub.Core.Papycha;
 
 /// <summary>
 /// The rules that lay the player's tracker over the guides list. Pure, so
@@ -23,6 +27,28 @@ public static class QuestTracking
         }
 
         return progress.Statuses.TryGetValue(questId, out var status) ? status : QuestStatus.NotStarted;
+    }
+
+    /// <summary>
+    /// A zone's progress in the quest areas, in the place of its levels:
+    /// "12/57" done, and "3 in progress" only when something is started. Two
+    /// parts, so the list lays them in two aligned columns. Null without a
+    /// linked tracker, the columns then stay empty.
+    /// </summary>
+    public static ZoneTally? ZoneProgress(TrackerProgress? progress, IReadOnlyCollection<int> questIds)
+    {
+        ArgumentNullException.ThrowIfNull(questIds);
+
+        if (progress is null)
+        {
+            return null;
+        }
+
+        var done = questIds.Count(id => StatusOf(progress, id) == QuestStatus.Completed);
+        var started = questIds.Count(id => StatusOf(progress, id) == QuestStatus.InProgress);
+        return new ZoneTally(
+            string.Create(CultureInfo.CurrentCulture, $"{done}/{questIds.Count}"),
+            started > 0 ? Strings.Format("ZoneInProgress", started) : null);
     }
 
     /// <summary>
@@ -81,3 +107,6 @@ public static class QuestTracking
         ?? characters.FirstOrDefault(c => c.Id == activeId)
         ?? (characters.Count > 0 ? characters[0] : null);
 }
+
+/// <summary>A zone's progress: done over total, and what is started.</summary>
+public sealed record ZoneTally(string Done, string? Started);

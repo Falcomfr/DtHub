@@ -123,7 +123,8 @@ public sealed record QuestNode(
     bool InSuccess = false,
     bool Spaced = false,
     DungeonFacts? Facts = null,
-    QuestStatus Status = QuestStatus.NotStarted)
+    QuestStatus Status = QuestStatus.NotStarted,
+    string? Started = null)
 {
     /// <summary>
     /// Neither unmade branches nor subheadings are clickable.

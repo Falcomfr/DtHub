@@ -112,4 +112,37 @@ public class QuestTrackingTests
     public void OthersToFinish_is_empty_with_one_character() =>
         Assert.Empty(QuestTracking.OthersToFinish(
             Account with { Characters = [new("a", "Falcom", 190)] }, "a", 8));
+
+    private static readonly TrackerProgress Zone = new(
+        new Dictionary<int, QuestStatus>
+        {
+            [1] = QuestStatus.InProgress,
+            [2] = QuestStatus.InProgress,
+            [3] = QuestStatus.Ignored,
+        },
+        new HashSet<int> { 4, 5 },
+        new HashSet<int>(),
+        []);
+
+    [Fact]
+    public void ZoneProgress_says_done_over_total_and_what_is_started()
+    {
+        var tally = QuestTracking.ZoneProgress(Zone, [1, 2, 3, 4, 5, 6]);
+
+        Assert.Equal("2/6", tally?.Done);
+        Assert.StartsWith("2 ", tally?.Started, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ZoneProgress_leaves_out_in_progress_when_none_is()
+    {
+        var tally = QuestTracking.ZoneProgress(Zone, [4, 5]);
+
+        Assert.Equal("2/2", tally?.Done);
+        Assert.Null(tally?.Started);
+    }
+
+    [Fact]
+    public void ZoneProgress_is_null_without_a_tracker() =>
+        Assert.Null(QuestTracking.ZoneProgress(null, [1, 2]));
 }

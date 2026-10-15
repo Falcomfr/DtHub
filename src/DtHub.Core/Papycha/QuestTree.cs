@@ -221,7 +221,10 @@ public sealed class QuestTree
             yield return new QuestNode(
                 QuestNodeKind.Branch,
                 $"{QuestZoneOrder.DisplayName(zone.Name)} ({_sectionCounts[zone.Id]})",
-                QuestLevelRange.Of(_catalog.InSection(zone.Id)),
+
+                // No level range: across a whole zone it said little ("niveau
+                // 1 - 179 (sur 7)"). The tracker's progress takes the column,
+                // laid on by the guides window.
                 Id: zone.Id,
                 Glyph: GlyphOf(zone.Name),
                 Spaced: next is not null
