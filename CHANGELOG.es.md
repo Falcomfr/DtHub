@@ -10,6 +10,31 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.8.12] - 2026-10-15
+
+### Corregido
+
+- La pantalla completa (Ctrl+5) en modo pestañas cubre toda la pantalla, sin
+  barra de pestañas ni franjas negras.
+- El mapa y DofusRoom se abren en el idioma de DT Hub y no en el de Windows;
+  las herramientas que solo existen en francés lo indican.
+
+### Añadido
+
+- Seguimiento de misiones de Papycha en las guías: vincula tu seguimiento,
+  una misión pasa a «en curso» cuando sigues sus etapas, se marca terminada
+  con un clic, y la lista muestra el estado de cada misión con filtros.
+- «Mis misiones» abre tu panel de Papycha.
+- Un botón «Portal DT» abre lomitall.fr en una ventana de DT Hub.
+- Un botón junto a la cruz minimiza el panel; Ctrl+P lo hace volver.
+- La distancia «Algo lejana», entre Lejana y Normal.
+- Al pasar el ratón, una calidad o una distancia muestra lo que ajusta:
+  definición, imágenes por segundo, tasa de bits, densidad.
+
+### Cambiado
+
+- El botón de Discord pasa a la fila de herramientas de DOFUS Touch.
+
 ## [0.8.11] - 2026-10-14
 
 ### Corregido

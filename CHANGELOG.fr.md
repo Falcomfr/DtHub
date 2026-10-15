@@ -11,6 +11,31 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.8.12] - 2026-10-15
+
+### Corrigé
+
+- Le plein écran (Ctrl+5) en mode onglets couvre tout l'écran, sans barre
+  d'onglets ni bandes noires.
+- La carte et DofusRoom s'ouvrent dans la langue de DT Hub et non plus dans
+  celle de Windows ; les outils qui n'existent qu'en français le signalent.
+
+### Ajouté
+
+- Suivi des quêtes Papycha dans les guides : reliez votre suivi, une quête
+  passe « en cours » quand vous suivez ses étapes, se marque terminée en un
+  clic, et la liste montre l'état de chaque quête avec des filtres.
+- « Mes quêtes » ouvre votre tableau de bord Papycha.
+- Un bouton « Portail DT » ouvre lomitall.fr dans une fenêtre DT Hub.
+- Un bouton à côté de la croix réduit le panneau ; Ctrl+P le fait revenir.
+- La distance « Un peu éloignée », entre Éloignée et Normale.
+- Au survol, une qualité ou une distance affiche ce qu'elle règle :
+  définition, images par seconde, débit, densité.
+
+### Modifié
+
+- Le bouton Discord passe sur la ligne des outils DOFUS Touch.
+
 ## [0.8.11] - 2026-10-14
 
 ### Corrigé

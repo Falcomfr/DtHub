@@ -17,6 +17,31 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.8.12] - 2026-10-15
+
+### Fixed
+
+- Full screen (Ctrl+5) in tabbed mode covers the whole screen, without the
+  tab bar or black bands.
+- The map and DofusRoom open in DT Hub's language rather than Windows'; the
+  tools that exist only in French say so.
+
+### Added
+
+- Papycha quest tracking in the guides: link your tracker, a quest turns "in
+  progress" as you follow its steps, is marked done in one click, and the
+  list shows each quest's status with filters.
+- "My quests" opens your Papycha dashboard.
+- A "DT portal" key opens lomitall.fr in a DT Hub window.
+- A key beside the panel's cross minimizes it; Ctrl+P brings it back.
+- A "Slightly far" distance, between far and normal.
+- Hovering a quality or a distance shows what it sets: definition, frame
+  rate, bitrate, density.
+
+### Changed
+
+- The Discord key moves to the DOFUS Touch tools row.
+
 ## [0.8.11] - 2026-10-14
 
 ### Fixed
