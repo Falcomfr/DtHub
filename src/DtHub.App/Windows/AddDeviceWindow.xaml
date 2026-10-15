@@ -71,7 +71,8 @@
                    FontSize="{StaticResource FontSmall}" Margin="2,0,0,4" />
         <TextBox Text="{Binding PairingAddress, UpdateSourceTrigger=PropertyChanged}"
                  Width="220" HorizontalAlignment="Left"
-                 FontSize="{StaticResource FontLarge}" />
+                 FontSize="{StaticResource FontLarge}"
+                 Tag="{loc:T PairingAddressExample}" />
       </StackPanel>
 
       <StackPanel Orientation="Horizontal"
@@ -79,7 +80,8 @@
         <TextBox x:Name="Code" Text="{Binding PairingCode, UpdateSourceTrigger=PropertyChanged}"
                  Width="150" Margin="0,0,8,0" FontSize="{StaticResource FontLarge}"
                  KeyDown="OnCodeKey"
-                 ToolTip="{loc:T PairingCodeTip}" />
+                 ToolTip="{loc:T PairingCodeTip}"
+                 Tag="{loc:T PairingCodeExample}" />
         <Button Content="{loc:T Pair}" Style="{StaticResource PrimaryButton}"
                 Command="{Binding PairCommand}" IsEnabled="{Binding CanPair}" />
       </StackPanel>
@@ -92,7 +94,8 @@
         <TextBox Text="{Binding ConnectPort, UpdateSourceTrigger=PropertyChanged}"
                  Width="150" Margin="0,0,8,0" FontSize="{StaticResource FontLarge}"
                  KeyDown="OnPortKey"
-                 ToolTip="{loc:T PortTip}" />
+                 ToolTip="{loc:T PortTip}"
+                 Tag="{loc:T PairingPortExample}" />
         <Button Content="{loc:T Connect}" Style="{StaticResource PrimaryButton}"
                 Command="{Binding ConnectCommand}" IsEnabled="{Binding CanConnect}" />
       </StackPanel>

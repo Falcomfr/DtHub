@@ -1320,6 +1320,15 @@ On a {0} device, the manual copy goes through: {1}.</value>
   <data name="PairingAddressLabel" xml:space="preserve">
     <value>IP address and port shown on the phone</value>
   </data>
+  <data name="PairingAddressExample" xml:space="preserve">
+    <value>e.g. 192.168.1.25:37145</value>
+  </data>
+  <data name="PairingCodeExample" xml:space="preserve">
+    <value>e.g. 123456</value>
+  </data>
+  <data name="PairingPortExample" xml:space="preserve">
+    <value>e.g. 37145</value>
+  </data>
   <data name="PairedAndConnected" xml:space="preserve">
     <value>Phone paired and connected.</value>
   </data>
