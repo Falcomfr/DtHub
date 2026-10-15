@@ -3121,6 +3121,72 @@ public sealed partial class GameLauncher : IAsyncDisposable
         });
 
     /// <summary>
+    /// Lays the windows out in a grid, in the order of the list. The
+    /// frame counts as one window and takes the cell of its first
+    /// housed account.
+    /// </summary>
+    public async Task<int> GridAsync(CancellationToken cancellationToken = default)
+    {
+        await _arranging.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            var sessions = ManagedSessions;
+            var frame = ArrangeableCount > 1 ? MovableFrame : null;
+            int? frameCell = null;
+
+            if (frame is not null)
+            {
+                var before = 0;
+
+                foreach (var session in _sessions.ActiveSessions)
+                {
+                    if (_tabbed.Contains(session.Target.Key))
+                    {
+                        frameCell = before;
+                        break;
+                    }
+
+                    if (sessions.Contains(session))
+                    {
+                        before++;
+                    }
+                }
+            }
+
+            var placed = await _windows
+                .GridAsync(sessions, frameCell, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (frame is not null && frameCell is { } cell)
+            {
+                // ponytail: the frame takes its quarter on its own screen, as
+                // side by side does; one shared screen if several are used.
+                await OnUiAsync(() =>
+                {
+                    frame.SetFullscreen(false, default);
+
+                    if (frame.Chassis is { } chassis && _windows.WorkAreaFor(frame.Handle) is { } work)
+                    {
+                        frame.ApplyRect(
+                            TileLayout.Quarter(work, cell, frame.SelectedAspect ?? 0, chassis));
+                    }
+                }).ConfigureAwait(false);
+
+                placed++;
+            }
+
+            await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+
+            return placed;
+        }
+        finally
+        {
+            _ = _arranging.Release();
+        }
+    }
+
+    /// <summary>
     /// Stacks the windows onto the active one, or onto the first
     /// one. This is what the rearrange shortcut does, and the button
     /// on the bottom bar: a window is placed wherever wanted, the
@@ -4362,6 +4428,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
                 case HotkeyAction.Tile:
                     await TileAsync().ConfigureAwait(false);
+                    break;
+
+                case HotkeyAction.Grid:
+                    await GridAsync().ConfigureAwait(false);
                     break;
 
                 case HotkeyAction.Quests:

@@ -17,6 +17,24 @@ public class HotkeySetTests
     }
 
     [Fact]
+    public void La_grille_se_lance_par_ctrl_g_juste_apres_le_cote_a_cote()
+    {
+        var set = HotkeySet.Default;
+        var actions = set.Bindings.Select(b => b.Action).ToList();
+
+        Assert.Equal("Ctrl + G", set.For(HotkeyAction.Grid)!.DisplayText);
+        Assert.Equal(actions.IndexOf(HotkeyAction.Tile) + 1, actions.IndexOf(HotkeyAction.Grid));
+    }
+
+    [Fact]
+    public void Un_fichier_d_avant_la_grille_la_recoit_par_defaut()
+    {
+        var anciens = HotkeySet.Default.Bindings.Where(b => b.Action != HotkeyAction.Grid);
+
+        Assert.Equal("Ctrl + G", HotkeySet.FromBindings(anciens).For(HotkeyAction.Grid)!.DisplayText);
+    }
+
+    [Fact]
     public void Toutes_les_actions_ont_un_raccourci_par_defaut()
     {
         var set = HotkeySet.Default;

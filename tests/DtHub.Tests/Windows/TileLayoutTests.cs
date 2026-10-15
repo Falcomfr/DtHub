@@ -72,4 +72,50 @@ public class TileLayoutTests
         Assert.Equal(1920, gauche.X);
         Assert.Equal(1920 + 1280, droite.X);
     }
+
+    [Fact]
+    public void Les_quatre_cases_se_lisent_de_gauche_a_droite_puis_de_haut_en_bas()
+    {
+        Assert.Equal(new ScreenRect(0, 0, 960, 520), TileLayout.Quarter(Work, 0, 0, (16, 48)));
+        Assert.Equal(new ScreenRect(960, 0, 960, 520), TileLayout.Quarter(Work, 1, 0, (16, 48)));
+        Assert.Equal(new ScreenRect(0, 520, 960, 520), TileLayout.Quarter(Work, 2, 0, (16, 48)));
+        Assert.Equal(new ScreenRect(960, 520, 960, 520), TileLayout.Quarter(Work, 3, 0, (16, 48)));
+    }
+
+    [Fact]
+    public void Au_dela_de_quatre_les_fenetres_s_empilent_sur_la_derniere_case()
+    {
+        Assert.Equal(
+            TileLayout.Quarter(Work, 3, 16.0 / 9.0, (16, 48)),
+            TileLayout.Quarter(Work, 5, 16.0 / 9.0, (16, 48)));
+    }
+
+    [Fact]
+    public void Une_case_trop_basse_retrecit_la_largeur_au_rapport_de_l_image()
+    {
+        // A 16:9 game on a quarter of a 1920 x 1040 area wants more
+        // height than the quarter has: the width gives way, and no
+        // black band appears on the sides.
+        var chrome = (Width: 16, Height: 48);
+        var rect = TileLayout.Quarter(Work, 0, 16.0 / 9.0, chrome);
+
+        var client = new ScreenRect(0, 0, rect.Width - chrome.Width, rect.Height - chrome.Height);
+
+        Assert.Equal(520, rect.Height);
+        Assert.True(rect.Width < 960);
+        Assert.Equal(16.0 / 9.0, client.AspectRatio, 2);
+    }
+
+    [Fact]
+    public void Les_quatre_fenetres_se_serrent_au_centre_de_l_ecran()
+    {
+        var cases = Enumerable.Range(0, 4)
+            .Select(i => TileLayout.Quarter(Work, i, 16.0 / 9.0, (16, 48)))
+            .ToList();
+
+        Assert.Equal(960, cases[0].Right);
+        Assert.Equal(960, cases[1].X);
+        Assert.Equal(520, cases[0].Bottom);
+        Assert.Equal(520, cases[2].Y);
+    }
 }

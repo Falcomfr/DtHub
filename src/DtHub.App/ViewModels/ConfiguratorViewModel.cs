@@ -235,9 +235,15 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// </summary>
     public bool CanArrange => _launcher.ArrangeableCount > 1;
 
+    /// <summary>The grid only appears from four windows on.</summary>
+    public bool CanGrid => _launcher.ArrangeableCount >= 4;
+
     private void OnArrangeableChanged(object? sender, EventArgs e) =>
-        System.Windows.Application.Current?.Dispatcher.InvokeAsync(
-            () => OnPropertyChanged(nameof(CanArrange)));
+        System.Windows.Application.Current?.Dispatcher.InvokeAsync(() =>
+        {
+            OnPropertyChanged(nameof(CanArrange));
+            OnPropertyChanged(nameof(CanGrid));
+        });
 
     /// <summary>
     /// A window opened or closed: what the binding carries has
@@ -253,6 +259,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             OnPropertyChanged(nameof(LinkSummary));
             OnPropertyChanged(nameof(DisplayFitSummary));
             OnPropertyChanged(nameof(CanArrange));
+            OnPropertyChanged(nameof(CanGrid));
 
             // The input verdict is settled when the first window
             // opens, so this is where the remedy can appear.
@@ -1215,6 +1222,20 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     private async Task TileAsync()
     {
         var placed = await _launcher.TileAsync().ConfigureAwait(true);
+
+        if (placed == 0)
+        {
+            Instances.ShowBanner(Strings.Get("NothingToTile"));
+        }
+    }
+
+    /// <summary>
+    /// Places the windows in a grid, in the order of the list.
+    /// </summary>
+    [RelayCommand]
+    private async Task GridAsync()
+    {
+        var placed = await _launcher.GridAsync().ConfigureAwait(true);
 
         if (placed == 0)
         {
