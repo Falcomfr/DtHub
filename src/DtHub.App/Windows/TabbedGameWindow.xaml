@@ -64,12 +64,12 @@
                        what a multi-account player needs; the active tab's
                        underline takes the colour too, further down.
 
-                       Opacity and not visibility, so an unmarked account
-                       indents like a marked one. -->
+                       Collapsed when the account has none: kept as an
+                       invisible gap, it pushed the icon off the tab's left. -->
                   <Border Width="4" CornerRadius="2" Margin="0,2,7,2"
                           VerticalAlignment="Stretch"
                           Background="{Binding ColourBrushKey, Converter={StaticResource KeyToBrush}}"
-                          Opacity="{Binding HasColour, Converter={StaticResource BoolToOpacity}}" />
+                          Visibility="{Binding HasColour, Converter={StaticResource BoolToVisibility}}" />
 
                   <Image Width="16" Height="16" Margin="0,0,6,0" Stretch="Uniform"
                          RenderOptions.BitmapScalingMode="HighQuality"
