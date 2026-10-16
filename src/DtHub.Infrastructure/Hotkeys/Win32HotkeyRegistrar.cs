@@ -51,6 +51,8 @@ public sealed partial class Win32HotkeyRegistrar : IHotkeyRegistrar
 
     public event EventHandler<nint>? ForegroundWindowChanged;
 
+    public event EventHandler<nint>? MouseCaptured;
+
     public bool IsEnabled => _enabled;
 
     public async Task<IReadOnlyList<HotkeyAction>> ApplyAsync(HotkeySet hotkeys)
@@ -122,6 +124,12 @@ public sealed partial class Win32HotkeyRegistrar : IHotkeyRegistrar
                     _ = UnhookWinEvent(_winEventHook);
                     _winEventHook = 0;
                 }
+
+                if (_captureHook != 0)
+                {
+                    _ = UnhookWinEvent(_captureHook);
+                    _captureHook = 0;
+                }
             });
 
             _ = PostThreadMessage(_threadId, WmQuit, 0, 0);
@@ -144,6 +152,14 @@ public sealed partial class Win32HotkeyRegistrar : IHotkeyRegistrar
         _foregroundCallback = OnForegroundChanged;
         _winEventHook = SetWinEventHook(
             EventSystemForeground, EventSystemForeground, 0, _foregroundCallback, 0, 0, WinEventOutOfContext);
+
+        // Same kind of hook, for the window that takes the mouse: scrcpy
+        // does so on every button press (measured 2026-10-16), and that is
+        // all a sleeping phone needs to be woken. Neither position nor
+        // button passes through it.
+        _captureCallback = OnMouseCaptured;
+        _captureHook = SetWinEventHook(
+            EventSystemCaptureStart, EventSystemCaptureStart, 0, _captureCallback, 0, 0, WinEventOutOfContext);
 
         _ready.TrySetResult();
 
@@ -179,6 +195,10 @@ public sealed partial class Win32HotkeyRegistrar : IHotkeyRegistrar
     private void OnForegroundChanged(
         nint hook, uint eventType, nint window, int objectId, int childId, uint thread, uint time) =>
         ForegroundWindowChanged?.Invoke(this, window);
+
+    private void OnMouseCaptured(
+        nint hook, uint eventType, nint window, int objectId, int childId, uint thread, uint time) =>
+        MouseCaptured?.Invoke(this, window);
 
     private List<HotkeyAction> RegisterAllCore()
     {
@@ -283,12 +303,17 @@ public sealed partial class Win32HotkeyRegistrar : IHotkeyRegistrar
     // release it while Windows holds the pointer.
     private WinEventProc? _foregroundCallback;
 
+    private WinEventProc? _captureCallback;
+
+    private nint _captureHook;
+
     private const uint WmQuit = 0x0012;
     private const uint WmHotkey = 0x0312;
     private const uint WmRunPending = 0x0400 + 1;
     private const uint ModNoRepeat = 0x4000;
     private const uint PmNoRemove = 0x0000;
     private const uint EventSystemForeground = 0x0003;
+    private const uint EventSystemCaptureStart = 0x0008;
     private const uint WinEventOutOfContext = 0x0000;
 
     [StructLayout(LayoutKind.Sequential)]

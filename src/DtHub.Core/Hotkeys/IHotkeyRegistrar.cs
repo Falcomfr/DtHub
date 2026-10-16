@@ -17,6 +17,12 @@ public interface IHotkeyRegistrar : IDisposable
     /// </summary>
     event EventHandler<nint>? ForegroundWindowChanged;
 
+    /// <summary>
+    /// Fired when a window takes the mouse, which a game window does on
+    /// each press of a button: the click itself is not seen.
+    /// </summary>
+    event EventHandler<nint>? MouseCaptured;
+
     /// <summary>True if the hotkeys are currently registered.</summary>
     bool IsEnabled { get; }
 
