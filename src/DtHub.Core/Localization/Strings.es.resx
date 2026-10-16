@@ -1989,7 +1989,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>la aplicación Island de Play Store, que crea un perfil de trabajo donde clonar el juego</value>
   </data>
   <data name="BrandSamsungCloneNote" xml:space="preserve">
-    <value>Samsung cierra la Carpeta segura al PC, incluso desbloqueada: DT Hub no puede abrir el juego allí. « Dual Messenger » solo duplica aplicaciones de mensajería. Island crea un perfil de trabajo, que DT Hub abre como las demás cuentas.</value>
+    <value>Samsung cierra la Carpeta segura al PC, incluso desbloqueada: DT Hub no puede abrir el juego allí. « Dual Messenger » solo duplica aplicaciones de mensajería. Island crea un perfil de trabajo, que DT Hub abre como las demás cuentas. Para una cuenta más, una aplicación de clonación de terceros con anuncios como Parallel Space también funciona: muéstrala desde « Mostrar una aplicación ya instalada », y luego inicia DOFUS Touch dentro de ella. Si el inicio de sesión se queda bloqueado en una página de Chrome, toca los tres puntos y ábrela en Chrome.</value>
   </data>
   <data name="BrandSamsungBatteryFeature" xml:space="preserve">
     <value>Permitir actividad en segundo plano</value>
@@ -2342,7 +2342,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>{0}: desbloquea la Carpeta segura, el juego está en ella y DT Hub no lo ve mientras está cerrada. Sus cuentas aparecen aquí unos segundos después. Para que no se vuelva a bloquear en pleno juego: {1}  ›  «Bloqueo automático de Carpeta segura», elige la opción más larga. Si no aparece nada una vez desbloqueada, Samsung bloquea el acceso desde un PC en este teléfono: instala el juego fuera de la Carpeta segura.</value>
   </data>
   <data name="SecureFolderForbidden" xml:space="preserve">
-    <value>{0}: Samsung no deja que un PC acceda a la Carpeta segura en este teléfono, ni siquiera desbloqueada, así que DT Hub no puede abrir el juego allí. Instala esta cuenta fuera de la Carpeta segura, por ejemplo en un perfil de trabajo creado con la aplicación Island de Play Store: DT Hub lo abre como las demás cuentas.</value>
+    <value>{0}: Samsung no deja que un PC acceda a la Carpeta segura en este teléfono, ni siquiera desbloqueada, así que DT Hub no puede abrir el juego allí. Instala esta cuenta fuera de la Carpeta segura, por ejemplo en un perfil de trabajo creado con la aplicación Island de Play Store: DT Hub lo abre como las demás cuentas. Para una cuenta más, una aplicación de clonación de terceros con anuncios como Parallel Space también funciona: muéstrala desde « Mostrar una aplicación ya instalada », y luego inicia DOFUS Touch dentro de ella. Si el inicio de sesión se queda bloqueado en una página de Chrome, toca los tres puntos y ábrela en Chrome.</value>
   </data>
   <data name="SecureFolderLocked" xml:space="preserve">
     <value>{0}: la Carpeta segura se ha bloqueado, desbloquéala para recuperar sus cuentas. Vuelven unos segundos después. Para que no se vuelva a bloquear en pleno juego: {1}  ›  «Bloqueo automático de Carpeta segura», elige la opción más larga.</value>
