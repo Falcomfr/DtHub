@@ -235,8 +235,11 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// </summary>
     public bool CanArrange => _launcher.ArrangeableCount > 1;
 
-    /// <summary>The grid only appears from four windows on.</summary>
-    public bool CanGrid => _launcher.ArrangeableCount >= 4;
+    /// <summary>
+    /// The grid appears from three windows on: below that, side by
+    /// side already does the job.
+    /// </summary>
+    public bool CanGrid => _launcher.ArrangeableCount >= 3;
 
     private void OnArrangeableChanged(object? sender, EventArgs e) =>
         System.Windows.Application.Current?.Dispatcher.InvokeAsync(() =>

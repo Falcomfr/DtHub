@@ -99,7 +99,7 @@
     <value>Grid</value>
   </data>
   <data name="GridTip" xml:space="preserve">
-    <value>Lay four windows out in a grid, each on a quarter of the screen, in the order of the list. Beyond four, the next ones stack on the last cell.</value>
+    <value>Lay the windows out in a grid, each on a quarter of the screen, in the order of the list. Beyond four, the next ones stack on the last cell.</value>
   </data>
   <data name="Guides" xml:space="preserve">
     <value>Guides</value>
@@ -1147,7 +1147,7 @@ On a {0} device, the manual copy goes through: {1}.</value>
     <value>Lays two windows side by side, each on one half of the screen. The active window goes to the right.</value>
   </data>
   <data name="ActionGridDetail" xml:space="preserve">
-    <value>Lays four windows out in a grid, each on a quarter of the screen, in the order of the list. Beyond four, the next ones stack on the last cell.</value>
+    <value>Lays the windows out in a grid, each on a quarter of the screen, in the order of the list. Beyond four, the next ones stack on the last cell.</value>
   </data>
   <data name="ActionToggleGuidesDetail" xml:space="preserve">
     <value>Shows or hides the guides, which stay above the game windows. Quests, dungeons, raids, lairs and paths, from papycha.fr, in French.</value>
