@@ -17,6 +17,24 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.8.19] - 2026-10-16
+
+### Added
+
+- Each tab carries a cross that closes its account alone.
+
+### Changed
+
+- Ctrl + E switches the phone's screen off even when "Turn the phone's screen
+  off while playing" is unticked: the phone of the game in front, or every
+  phone from another DT Hub window.
+- "Grid" shows from three game windows on.
+
+### Fixed
+
+- After "Turn off", the line saying the phone's screen is lit no longer
+  comes back for a few seconds.
+
 ## [0.8.18] - 2026-10-15
 
 ### Added

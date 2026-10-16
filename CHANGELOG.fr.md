@@ -11,6 +11,24 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.8.19] - 2026-10-16
+
+### Ajouté
+
+- Chaque onglet porte une croix qui ferme son compte seul.
+
+### Modifié
+
+- Ctrl + E éteint l'écran du téléphone même quand « Éteindre l'écran du
+  téléphone pendant le jeu » est décoché : celui du jeu au premier plan, ou
+  tous les téléphones depuis une autre fenêtre DT Hub.
+- « En grille » apparaît dès trois fenêtres de jeu.
+
+### Corrigé
+
+- Après « Éteindre », la ligne qui dit que l'écran du téléphone est allumé ne
+  revient plus quelques secondes.
+
 ## [0.8.18] - 2026-10-15
 
 ### Ajouté

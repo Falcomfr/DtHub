@@ -10,6 +10,24 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.8.19] - 2026-10-16
+
+### Añadido
+
+- Cada pestaña lleva una cruz que cierra solo su cuenta.
+
+### Cambiado
+
+- Ctrl + E apaga la pantalla del teléfono aunque «Apagar la pantalla del
+  teléfono mientras se juega» esté desmarcado: la del juego en primer plano, o
+  la de todos los teléfonos desde otra ventana de DT Hub.
+- «En cuadrícula» aparece a partir de tres ventanas de juego.
+
+### Corregido
+
+- Tras «Apagar», la línea que indica que la pantalla del teléfono está
+  encendida ya no vuelve durante unos segundos.
+
 ## [0.8.18] - 2026-10-15
 
 ### Añadido
