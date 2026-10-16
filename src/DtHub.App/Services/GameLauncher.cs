@@ -413,6 +413,23 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private void OnSessionChanged(object? sender, ScrcpySession session)
     {
+        // An account opening or closing shifts the keys of the lines after
+        // it, in the titles and on the tabs.
+        if (!_closing)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    _ = await RefreshWindowTitlesAsync().ConfigureAwait(false);
+                }
+                catch (Exception exception) when (exception is not OutOfMemoryException)
+                {
+                    LogTitleStatusFailure(exception);
+                }
+            });
+        }
+
         // The window is back: the recovery notice no longer has a
         // reason to exist. The attempt count, though, survives, and
         // that is deliberate: a link that flickers must eventually
@@ -2790,6 +2807,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // docking, because a window that has just joined the frame
             // no longer has a frame of its own to carry it.
             await OnUiAsync(() => RefreshWindowColours()).ConfigureAwait(false);
+
+            // Now that the windows have their handle: the key of each
+            // account goes into its title.
+            _ = await RefreshWindowTitlesAsync(cancellationToken).ConfigureAwait(false);
         }
 
         // What has just opened will reopen at the next launch. Only
@@ -3686,6 +3707,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         var hotkeys = await _settings.GetHotkeysAsync(cancellationToken).ConfigureAwait(false);
 
+        _hotkeySet = hotkeys;
+
         // The reminder written into the windows' title follows the
         // key combination. This is where it must happen: the editor
         // reloads through this path, whichever window opened it.
@@ -3712,6 +3735,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             if (_tabs is { } frame)
             {
                 frame.ShortcutReminder = hint;
+                frame.ShowAccountKeys(AccountKeyOf);
 
                 foreach (var session in _sessions.ActiveSessions.Where(s => s.IsAlive))
                 {
@@ -3726,7 +3750,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 Status(session) is { } status
                     ? $"{CurrentName(session, settings)} · {status}"
                     : CurrentName(session, settings),
-                session.Target.IsTransient ? null : hint));
+                session.Target.IsTransient ? null : hint,
+                AccountKeyOf(session.Target.Key)));
     }
 
 
@@ -4083,6 +4108,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _sessions.OrderKey = session =>
             ranks.TryGetValue(session.Target.Key, out var rank) ? rank : int.MaxValue;
 
+        // Every reorder ends here, and moves the keys with the lines.
+        _ = await RefreshWindowTitlesAsync(cancellationToken).ConfigureAwait(false);
+
         // After the reread, not before: whatever is listening will
         // then read the right set. This is where "set aside" and
         // "housed in a tab" take effect for everything else.
@@ -4254,6 +4282,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 AccountTints.KeyFor(_launched.GetValueOrDefault(session.Target.Key)?.Colour));
 
             frame.Reorder(order);
+            frame.ShowAccountKeys(AccountKeyOf);
         }).ConfigureAwait(false);
     }
 
@@ -4625,6 +4654,23 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
+    /// The key that brings this open account forward, as its row and tab
+    /// show it, or <c>null</c> when it is closed or has none.
+    /// </summary>
+    public string? AccountKeyOf(string key) =>
+        _hotkeySet?.AccountKeyText(
+            AccountSessions().FindIndex(s => string.Equals(s.Target.Key, key, StringComparison.Ordinal)));
+
+    /// <summary>The shortcuts last applied, for the badges.</summary>
+    private volatile HotkeySet? _hotkeySet;
+
+    /// <summary>
+    /// The open accounts, one per line of the list: windows opened in
+    /// passing are not accounts.
+    /// </summary>
+    private List<ScrcpySession> AccountSessions() => [.. ActiveSessions.Where(s => !s.Target.IsTransient)];
+
+    /// <summary>
     /// Brings forward the open account on this line of the list, counted
     /// from zero: its tab when the frame houses it, its window otherwise.
     /// Locked windows count, unlike for Ctrl+Tab: the lock keeps a window
@@ -4633,7 +4679,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private async Task FocusAccountAsync(int line)
     {
-        if (ActiveSessions.Where(s => !s.Target.IsTransient).ElementAtOrDefault(line) is not { } session)
+        if (AccountSessions().ElementAtOrDefault(line) is not { } session)
         {
             return;
         }

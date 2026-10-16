@@ -72,6 +72,14 @@
                           Background="{Binding ColourBrushKey, Converter={StaticResource KeyToBrush}}"
                           Visibility="{Binding HasColour, Converter={StaticResource BoolToVisibility}}" />
 
+                  <!-- The key that brings this tab forward, the same badge as
+                       the account's row in the panel. -->
+                  <TextBlock Margin="0,0,5,0" VerticalAlignment="Center"
+                             Text="{Binding AccountKey}" Style="{StaticResource Muted}"
+                             FontSize="{StaticResource FontTiny}"
+                             Visibility="{Binding AccountKey, Converter={StaticResource EmptyToVisibility},
+                                                  ConverterParameter=inverse}" />
+
                   <Image Width="16" Height="16" Margin="0,0,6,0" Stretch="Uniform"
                          RenderOptions.BitmapScalingMode="HighQuality"
                          Source="{Binding IconPath, Converter={StaticResource IconPath}}" />

@@ -352,6 +352,15 @@ public class ScrcpyCommandBuilderTests
     }
 
     [Fact]
+    public void Le_titre_commence_par_la_touche_du_compte()
+    {
+        Assert.Equal(
+            "[F2] XSpace  (Ctrl + Tab : fenêtre suivante)",
+            ScrcpyCommandBuilder.BuildWindowTitle("XSpace", "Ctrl + Tab : fenêtre suivante", "F2"));
+        Assert.Equal("XSpace", ScrcpyCommandBuilder.BuildWindowTitle("XSpace", null, null));
+    }
+
+    [Fact]
     public void Sans_raccourci_le_titre_reste_le_nom_seul()
     {
         Assert.Equal("XSpace", ScrcpyCommandBuilder.BuildWindowTitle("XSpace", "   "));

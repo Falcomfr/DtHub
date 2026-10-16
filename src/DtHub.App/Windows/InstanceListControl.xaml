@@ -456,11 +456,25 @@
                        state you keep watch on, and the row is already
                        full. Nothing appears as long as there is nothing
                        to say, the value being null rather than empty. -->
-                  <Image Grid.Column="4" Width="20" Height="20" Margin="0,0,7,0"
-                         VerticalAlignment="Center" Stretch="Uniform"
-                         RenderOptions.BitmapScalingMode="HighQuality"
-                         ToolTip="{Binding PlaytimeLabel}"
-                         Source="{Binding IconPath, Converter={StaticResource IconPath}}" />
+                  <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- The key that brings this account forward, F1 for the
+                         first open line. Opacity and not visibility, like the
+                         colour mark: a window opening must not push the name. -->
+                    <TextBlock MinWidth="14" Margin="0,0,4,0" VerticalAlignment="Center"
+                               Text="{Binding AccountKey}" Style="{StaticResource Muted}"
+                               FontSize="{StaticResource FontTiny}"
+                               ToolTip="{loc:T ActionAccountDetail}"
+                               Opacity="{Binding HasAccountKey, Converter={StaticResource BoolToOpacity}}"
+                               Visibility="{Binding ShowActions,
+                                                    RelativeSource={RelativeSource AncestorType=UserControl},
+                                                    Converter={StaticResource BoolToVisibility}}" />
+
+                    <Image Width="20" Height="20" Margin="0,0,7,0"
+                           VerticalAlignment="Center" Stretch="Uniform"
+                           RenderOptions.BitmapScalingMode="HighQuality"
+                           ToolTip="{Binding PlaytimeLabel}"
+                           Source="{Binding IconPath, Converter={StaticResource IconPath}}" />
+                  </StackPanel>
 
                   <StackPanel Grid.Column="5" VerticalAlignment="Center">
                     <TextBox Text="{Binding Name, UpdateSourceTrigger=LostFocus}" AllowDrop="False"

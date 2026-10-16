@@ -20,9 +20,18 @@ public static class ScrcpyCommandBuilder
     /// </summary>
     /// <param name="name">The account's name, or the tool's.</param>
     /// <param name="hint">What follows in brackets, the shortcuts most often.</param>
-    public static string BuildWindowTitle(string? name, string? hint = null)
+    /// <param name="accountKey">
+    /// The key that brings this account forward, "F1", put first and kept
+    /// short: it is what a player reads to pick the window.
+    /// </param>
+    public static string BuildWindowTitle(string? name, string? hint = null, string? accountKey = null)
     {
         var title = string.IsNullOrWhiteSpace(name) ? DtHub.Core.ProductInfo.Name : name.Trim();
+
+        if (!string.IsNullOrWhiteSpace(accountKey))
+        {
+            title = $"[{accountKey.Trim()}] {title}";
+        }
 
         return string.IsNullOrWhiteSpace(hint) ? title : $"{title}  ({hint.Trim()})";
     }

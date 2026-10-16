@@ -173,6 +173,17 @@ public partial class TabbedGameWindow : Window
         }
     }
 
+    /// <summary>Writes on each tab the key that brings its account forward.</summary>
+    public void ShowAccountKeys(Func<string, string?> keyOf)
+    {
+        ArgumentNullException.ThrowIfNull(keyOf);
+
+        foreach (var tab in Items)
+        {
+            tab.AccountKey = keyOf(tab.Key);
+        }
+    }
+
     /// <summary>
     /// Sorts the tabs in this order, that of the accounts list.
     /// </summary>

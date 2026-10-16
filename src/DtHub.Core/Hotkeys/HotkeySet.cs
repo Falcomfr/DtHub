@@ -66,6 +66,16 @@ public sealed class HotkeySet
     public HotkeyBinding? For(HotkeyAction action) =>
         _bindings.TryGetValue(action, out var binding) ? binding : null;
 
+    /// <summary>
+    /// The key that reaches the open account on this line, counted from
+    /// zero, as the badge of its row and tab shows it. <c>null</c> past
+    /// the eighth line or when the player removed the key.
+    /// </summary>
+    public string? AccountKeyText(int line) =>
+        line is >= 0 and < 8 && For(HotkeyAction.Account1 + line) is { IsAssigned: true } binding
+            ? binding.DisplayText
+            : null;
+
     /// <summary>Action triggered by a combination, or <c>null</c>.</summary>
     public HotkeyAction? Resolve(int virtualKey, HotkeyModifiers modifiers) =>
         _bindings.Values

@@ -1066,6 +1066,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         {
             row.Activity = ActivityOf(row.Instance);
             row.TickSession(_launcher.SessionStartedUtc(row.Instance));
+            row.AccountKey = _launcher.AccountKeyOf(row.Key);
         }
     }
 

@@ -134,6 +134,17 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     public string Key => Instance.Key;
 
     /// <summary>
+    /// The key that brings this account forward while it is open, "F1" by
+    /// default, or <c>null</c> when it is closed or has none.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasAccountKey))]
+    private string? _accountKey;
+
+    /// <summary>True when the row shows its key.</summary>
+    public bool HasAccountKey => AccountKey is not null;
+
+    /// <summary>
     /// True if this account opens in the tabbed frame.
     ///
     /// Toggling neither opens nor closes anything: it is the same window that

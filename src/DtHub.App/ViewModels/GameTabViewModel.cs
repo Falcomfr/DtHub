@@ -61,6 +61,14 @@ public sealed partial class GameTabViewModel : ObservableObject
     private string? _iconPath;
 
     /// <summary>
+    /// The key that brings this account forward, "F1" by default, or
+    /// <c>null</c> when it has none. Shown on the tab so that the keys are
+    /// learned where they are used.
+    /// </summary>
+    [ObservableProperty]
+    private string? _accountKey;
+
+    /// <summary>
     /// True for the tab shown. Only one is at a time: the other
     /// windows are hidden, not destroyed, so that returning to them
     /// is instant.

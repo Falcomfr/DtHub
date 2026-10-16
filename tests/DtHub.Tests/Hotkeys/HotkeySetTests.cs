@@ -50,6 +50,20 @@ public class HotkeySetTests
     }
 
     [Fact]
+    public void La_pastille_d_une_ligne_dit_la_touche_configuree_ou_rien()
+    {
+        var set = HotkeySet.Default
+            .With(HotkeyAction.Account2, VirtualKeys.D2, HotkeyModifiers.Control | HotkeyModifiers.Shift)
+            .Without(HotkeyAction.Account3);
+
+        Assert.Equal("F1", set.AccountKeyText(0));
+        Assert.Equal("Ctrl + Maj + 2", set.AccountKeyText(1));
+        Assert.Null(set.AccountKeyText(2));
+        Assert.Null(set.AccountKeyText(8));
+        Assert.Null(set.AccountKeyText(-1));
+    }
+
+    [Fact]
     public void Un_fichier_d_avant_les_touches_f_les_recoit_sauf_celle_deja_prise()
     {
         var anciens = HotkeySet.Default.Bindings
