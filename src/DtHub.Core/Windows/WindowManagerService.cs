@@ -1,4 +1,6 @@
-﻿using DtHub.Core.Scrcpy;
+﻿using System.Collections.Concurrent;
+
+using DtHub.Core.Scrcpy;
 using DtHub.Core.Settings;
 
 namespace DtHub.Core.Windows;
@@ -27,8 +29,12 @@ public sealed class WindowManagerService
     /// <summary>
     /// Last size seen per session, so a correction is made only once
     /// the gesture is finished.
+    ///
+    /// Concurrent, like the full screen memory: the window watch writes it
+    /// from the UI timer while a shortcut's arrangement writes it from the
+    /// thread pool.
     /// </summary>
-    private readonly Dictionary<string, ScreenRect> _lastSeen = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, ScreenRect> _lastSeen = new(StringComparer.Ordinal);
 
     /// <summary>
     /// Last game window to have been in the foreground.
@@ -47,7 +53,7 @@ public sealed class WindowManagerService
     /// memory, coming back started from the full screen rectangle and
     /// stacked them all in the same spot.
     /// </summary>
-    private readonly Dictionary<string, ScreenRect> _beforeFullscreen = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, ScreenRect> _beforeFullscreen = new(StringComparer.Ordinal);
 
     /// <summary>Size in force before switching to full screen.</summary>
     private int _percentBeforeFullscreen = 100;

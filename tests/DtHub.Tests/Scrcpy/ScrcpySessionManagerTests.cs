@@ -1114,4 +1114,62 @@ public class ScrcpySessionManagerTests
 
         Assert.Empty(appLauncher.ForceStops);
     }
+
+    [Fact]
+    public async Task Une_fenetre_fermee_pendant_son_ouverture_ne_revit_pas_et_n_abandonne_pas_le_jeu()
+    {
+        // Audit of 2026-10-16: the window closed by hand while it was being
+        // placed, the read loop concluded Stopped, then the launch went on,
+        // opened the game and set the session back to Running. A dead window
+        // passed for open forever, and the game stayed on the phone.
+        var process = new FakeProcessSession().Emit(NewDisplayLine);
+        var launcher = new FakeProcessLauncher().Prepare(process);
+        var appLauncher = new FakeAppLauncher();
+
+        await using var manager = Manager(launcher, appLauncher);
+        manager.StopAppOnClose = true;
+
+        var stopped = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        manager.SessionChanged += (_, s) =>
+        {
+            if (s.State == ScrcpySessionState.Stopped)
+            {
+                stopped.TrySetResult();
+            }
+        };
+
+        manager.PrepareWindow = async (_, _, token) =>
+        {
+            process.Exit(0);
+            await stopped.Task.WaitAsync(TimeSpan.FromSeconds(5), token);
+        };
+
+        var launchedBeforeLastStop = false;
+        appLauncher.OnForceStop = () => launchedBeforeLastStop = appLauncher.Calls.Count > 0;
+
+        var session = await manager.StartAsync(Target(), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        Assert.Equal(ScrcpySessionState.Stopped, session.State);
+        Assert.False(session.IsAlive);
+        Assert.True(launchedBeforeLastStop, "le jeu lancé après la fermeture doit être arrêté");
+    }
+
+    [Fact]
+    public async Task Un_scrcpy_parti_sans_ouvrir_d_afficheur_reste_un_echec_annonce()
+    {
+        // Review of 2026-10-16: with Stopped made final, the read loop's
+        // Stopped came first and the "no display" failure after it was
+        // dropped. The person clicked Open and nothing said why.
+        var process = new FakeProcessSession();
+        process.Exit(0);
+
+        var launcher = new FakeProcessLauncher().Prepare(process);
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var session = await manager.StartAsync(Target(), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        Assert.Equal(ScrcpySessionState.Failed, session.State);
+        Assert.False(string.IsNullOrEmpty(session.FailureMessage));
+    }
 }

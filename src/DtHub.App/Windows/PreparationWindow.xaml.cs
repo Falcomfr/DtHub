@@ -127,6 +127,14 @@ public partial class PreparationWindow : Window
                 Report(row, exception.Message);
                 return;
             }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                // A download timing out arrives as a cancellation, let
+                // through on purpose by the provisioner: unseen here, the
+                // row spun forever with neither Retry nor Skip.
+                Report(row, exception.Message);
+                return;
+            }
 
             row.IsBusy = false;
             row.Fraction = 1;

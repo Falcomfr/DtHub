@@ -174,10 +174,11 @@ public sealed partial class Win32WindowController : IWindowController
         }
 
         // A minimized window would ignore the move: it is restored first,
-        // without stealing its focus.
+        // without stealing its focus. SW_RESTORE activates, which handed the
+        // keyboard to each minimized window an arrangement moved.
         if (IsIconic(handle))
         {
-            _ = ShowWindow(handle, ShowWindowRestore);
+            _ = ShowWindow(handle, SwShowNoActivate);
         }
 
         var flags = SwpNoActivate;
@@ -357,7 +358,16 @@ public sealed partial class Win32WindowController : IWindowController
         // matters: changing the style before attaching avoids a flicker
         // of a frameless main window.
         _ = SetWindowLong(child, GwlStyle, (style & ~(WsPopup | WsCaption | WsThickFrame)) | WsChild);
-        _ = SetParent(child, host);
+
+        // A window dying during the attach, or refused: it would otherwise
+        // stay a frameless top-level window with WS_CHILD, counted as docked.
+        if (SetParent(child, host) == 0)
+        {
+            _ = SetWindowLong(child, GwlStyle, style);
+            _ = _docked.Remove(child);
+            return false;
+        }
+
         _ = SetWindowPos(child, 0, 0, 0, 0, 0, SwpNoMove | SwpNoSize | SwpNoZOrder | SwpFrameChanged | SwpNoActivate);
 
         return true;
@@ -375,8 +385,12 @@ public sealed partial class Win32WindowController : IWindowController
             return false;
         }
 
+        // The style of before, but the visibility of now: a hidden tab
+        // taken out to be closed came back on screen with the old WS_VISIBLE.
+        var visible = GetWindowLong(child, GwlStyle) & WsVisible;
+
         _ = SetParent(child, before.Parent);
-        _ = SetWindowLong(child, GwlStyle, before.Style);
+        _ = SetWindowLong(child, GwlStyle, (before.Style & ~WsVisible) | visible);
 
         // The geometry is restored last: set before the style, it would
         // be overridden by the frame's return.
@@ -442,6 +456,7 @@ public sealed partial class Win32WindowController : IWindowController
     private const int WsThickFrame = 0x00040000;
     private const int WsPopup = unchecked((int)0x80000000);
     private const int WsChild = 0x40000000;
+    private const int WsVisible = 0x10000000;
     private const int SwHide = 0;
     private const int SwShowNoActivate = 4;
     private const int ShowWindowRestore = 9;

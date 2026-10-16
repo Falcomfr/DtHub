@@ -20,6 +20,7 @@ public partial class AddDeviceWindow : Window
 {
     private readonly AddDeviceViewModel _viewModel;
     private readonly DispatcherTimer _poll = new() { Interval = TimeSpan.FromSeconds(2) };
+    private bool _scanning;
 
     public AddDeviceWindow(AddDeviceViewModel viewModel)
     {
@@ -44,6 +45,16 @@ public partial class AddDeviceWindow : Window
         // window where the pairing code is typed.
         _poll.Tick += async (_, _) =>
         {
+            // One search at a time: adb can take twenty seconds to answer,
+            // forty-five while its server starts, and the ticks stacked up
+            // as many adb processes whose late answers overwrote fresh ones.
+            if (_scanning)
+            {
+                return;
+            }
+
+            _scanning = true;
+
             try
             {
                 await _viewModel.ScanAsync(CancellationToken.None).ConfigureAwait(true);
@@ -51,6 +62,10 @@ public partial class AddDeviceWindow : Window
             catch (Exception exception) when (exception is not OutOfMemoryException)
             {
                 Log.Warning(exception, "La recherche de téléphones a échoué.");
+            }
+            finally
+            {
+                _scanning = false;
             }
         };
     }

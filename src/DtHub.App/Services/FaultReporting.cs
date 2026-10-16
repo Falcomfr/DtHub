@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Runtime.InteropServices;
+using System.Windows;
 using System.Windows.Threading;
 
 using DtHub.App.Windows;
@@ -64,8 +65,146 @@ internal sealed class FaultReporting
         // The interface stays alive: a display error must not close
         // the game windows.
         e.Handled = true;
-        Show(e.Exception, Strings.Get("UnexpectedError"));
+
+        // Where it was thrown rather than what it says: a message carrying
+        // an index, a handle or a path made each occurrence a new fault.
+        // Three frames, not the throwing method alone, which is often a
+        // shared helper that two unrelated faults go through.
+        var signature = $"{e.Exception.GetType().FullName} @ "
+            + (e.Exception.StackTrace is { } trace
+                ? string.Join(" | ", trace.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Take(3))
+                : e.Exception.Message);
+
+        // Once per fault and per session. A fault that comes back on every
+        // layout pass or every tick of a timer opened its report again as
+        // soon as it was closed, and wrote its whole trace twice a second
+        // for as long as the report stayed open, until the log rolled over
+        // and took the previous days with it. Same during shutdown: a
+        // report there held Windows' own shutdown behind it.
+        if (_pending || Quiet || !_reported.Add(signature))
+        {
+            var count = _repeats[signature] = _repeats.GetValueOrDefault(signature) + 1;
+
+            if (count <= RepeatsLogged)
+            {
+                Log.Error(e.Exception, "Faute pendant un signalement ou répétée ({Count}) : {Signature}", count, signature);
+                Note(e.Exception, Strings.Get("UnexpectedError"));
+            }
+
+            return;
+        }
+
+        // Never opened from here. The fault can arrive while WPF has
+        // suspended its dispatcher, in a layout pass: the window then
+        // fails, and the system box's loop raises the same fault again.
+        // In 0.8.19 that stacked one window every half second. One
+        // report at a time, once the dispatcher is free.
+        _pending = true;
+        var exception = e.Exception;
+
+        // The exception's own trace stops at WPF's window procedure;
+        // the one of this moment goes on to the code that pumped, the
+        // only name a report can carry for that fault.
+        Log.Error("Pile au moment de la faute :\n{Stack}", Environment.StackTrace);
+
+        var report = e.Dispatcher.BeginInvoke(() =>
+        {
+            try
+            {
+                // Queued just before the application began closing: a
+                // modal report now would hold the shutdown behind it.
+                if (!Quiet)
+                {
+                    Show(exception, Strings.Get("UnexpectedError"));
+                }
+                else
+                {
+                    // Show is what logs it: skipped, the fault itself would
+                    // leave only the stack line above.
+                    Log.Fatal(exception, "{Headline}", Strings.Get("UnexpectedError"));
+                    Note(exception, Strings.Get("UnexpectedError"));
+                }
+            }
+            catch (Exception failure) when (failure is not OutOfMemoryException)
+            {
+                // Caught here: escaping, it came back through this very
+                // handler, which opened a new report, which failed again.
+                Log.Error(failure, "Le signalement lui-même a échoué.");
+            }
+            finally
+            {
+                _pending = false;
+            }
+        });
+
+        // The same fault swallows the message that makes the dispatcher
+        // run its queue, and WPF never posts it again: nothing would
+        // run, this report included, until a key is pressed. We post it
+        // ourselves until the report has started.
+        var thread = GetCurrentThreadId();
+
+        _ = Task.Run(async () =>
+        {
+            while (report.Status == DispatcherOperationStatus.Pending)
+            {
+                await Task.Delay(500).ConfigureAwait(false);
+                RunQueue(thread);
+            }
+        });
     }
+
+    private volatile bool _pending;
+
+    /// <summary>
+    /// True once the application is closing: faults are then only logged,
+    /// a report would hold the shutdown behind it.
+    /// </summary>
+    public bool Quiet { get; set; }
+
+    /// <summary>The faults that have had their report, this session.</summary>
+    private readonly HashSet<string> _reported = new(StringComparer.Ordinal);
+
+    private readonly Dictionary<string, int> _repeats = new(StringComparer.Ordinal);
+
+    /// <summary>How many repeats of one fault the log keeps.</summary>
+    private const int RepeatsLogged = 20;
+
+    /// <summary>
+    /// Posts to the dispatcher's hidden window of <paramref name="thread"/>
+    /// the message that makes it run its queue. The name is WPF's own.
+    /// </summary>
+    private static void RunQueue(uint thread)
+    {
+        var message = RegisterWindowMessage("DispatcherProcessQueue");
+
+        for (var window = FindWindowEx(MessageOnly, 0, null, null);
+            window != 0;
+            window = FindWindowEx(MessageOnly, window, null, null))
+        {
+            if (GetWindowThreadProcessId(window, out _) == thread)
+            {
+                _ = PostMessage(window, message, 0, 0);
+            }
+        }
+    }
+
+    private const nint MessageOnly = -3;
+
+    // DllImport and not LibraryImport, for the reason given in DarkTitleBar.
+    [DllImport("kernel32.dll")]
+    private static extern uint GetCurrentThreadId();
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern nint FindWindowEx(nint parent, nint after, string? className, string? title);
+
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(nint window, out uint process);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern uint RegisterWindowMessage(string name);
+
+    [DllImport("user32.dll")]
+    private static extern bool PostMessage(nint window, uint message, nint wParam, nint lParam);
 
     /// <summary>
     /// A fault that nobody caught. The process stops afterward:
@@ -88,9 +227,11 @@ internal sealed class FaultReporting
     /// </summary>
     private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
+        // Observed first: this runs on the finalizer thread, where anything
+        // escaping from what follows would end the process.
+        e.SetObserved();
         Log.Error(e.Exception, "Exception de tâche non observée.");
         Note(e.Exception, "Exception de tâche non observée.");
-        e.SetObserved();
     }
 
     /// <summary>
@@ -100,11 +241,18 @@ internal sealed class FaultReporting
     /// </summary>
     public void Note(Exception exception, string headline)
     {
-        if (_services() is { } services
-            && services.GetService<DiagnosticReporter>() is { } reporter
-            && Application.Current is { } application)
+        try
         {
-            application.Dispatcher.InvokeAsync(() => reporter.Note(exception, headline));
+            if (_services() is { } services
+                && services.GetService<DiagnosticReporter>() is { } reporter
+                && Application.Current is { } application)
+            {
+                application.Dispatcher.InvokeAsync(() => reporter.Note(exception, headline));
+            }
+        }
+        catch (ObjectDisposedException)
+        {
+            // The host is gone, at the very end of shutdown: the log has it.
         }
     }
 
@@ -141,10 +289,16 @@ internal sealed class FaultReporting
                 && services.GetService<IDialogService>() is { } dialogs
                 && logs is { Length: > 0 })
             {
+                var owner = _owner();
+
+                // Above everything when no panel carries it: modal, it
+                // disables the tabbed frame and its games, and it used to
+                // open behind them, leaving nothing to click.
                 new ProblemWindow(dialogs, headline, reporter.Compose(headline, exception), exception.Message)
                 {
                     Logs = logs,
-                    Owner = _owner(),
+                    Owner = owner,
+                    Topmost = owner is null,
                 }.ShowDialog();
 
                 return;

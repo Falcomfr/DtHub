@@ -800,14 +800,18 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     /// stopping. A game that survives is an inconvenience; a
     /// shutdown that freezes is an outage.
     /// </summary>
-    private async Task StopAppOnDeviceAsync(ScrcpySession session, CancellationToken cancellationToken)
+    /// <returns>True if a game of ours was stopped.</returns>
+    private async Task<bool> StopAppOnDeviceAsync(ScrcpySession session, CancellationToken cancellationToken)
     {
         if (!StopsAppOnClose(session) || !session.ClaimAppStop())
         {
-            return;
+            return false;
         }
 
+        var ours = session.AppLaunchedByUs;
         await ForceStopGameAsync(session, cancellationToken).ConfigureAwait(false);
+
+        return ours;
     }
 
     /// <summary>
@@ -1210,6 +1214,18 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             return;
         }
 
+        // The window may have closed while the game was opening: the read
+        // loop then stopped nothing, the game was not ours yet.
+        if (!session.IsAlive)
+        {
+            if (StopsAppOnClose(session))
+            {
+                await ForceStopGameAsync(session, CancellationToken.None).ConfigureAwait(false);
+            }
+
+            return;
+        }
+
         Transition(session, ScrcpySessionState.Running);
     }
 
@@ -1274,7 +1290,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         // only the channel went quiet. The voluntary close is
         // already handled by StopAsync, and the single-use claim
         // prevents the double round trip.
-        await StopAppOnDeviceAsync(session, CancellationToken.None).ConfigureAwait(false);
+        var stopped = await StopAppOnDeviceAsync(session, CancellationToken.None).ConfigureAwait(false);
 
         var exitCode = session.Process.ExitCode ?? -1;
 
@@ -1289,6 +1305,14 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         else
         {
             Fail(session, session.FailureMessage);
+        }
+
+        // The game may have been launched between the stop above and the
+        // state change: the launch then saw a live session and left it.
+        // Once the state is final, whichever comes second stops it.
+        if (!stopped && !session.StopRequested && session.AppLaunchedByUs && StopsAppOnClose(session))
+        {
+            await ForceStopGameAsync(session, CancellationToken.None).ConfigureAwait(false);
         }
 
         // The window closed by hand and the unplugged phone pass only
@@ -1336,7 +1360,13 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             session.EverRan = true;
         }
 
-        if (session.State == state)
+        // Final states: a launch finishing after the window closed would
+        // otherwise bring a dead session back to Running. Stopped may still
+        // turn Failed: a display that never opened is said after the read
+        // loop has already concluded Stopped, and silenced it showed nothing.
+        if (session.State == state
+            || session.State == ScrcpySessionState.Failed
+            || (session.State == ScrcpySessionState.Stopped && state != ScrcpySessionState.Failed))
         {
             return;
         }

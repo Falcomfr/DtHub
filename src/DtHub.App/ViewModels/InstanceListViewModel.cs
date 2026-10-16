@@ -1566,6 +1566,11 @@ public sealed partial class InstanceListViewModel : ObservableObject
             // next sweep.
             InvalidateInstances();
         }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // As for the quality: said in the banner, not in a fault report.
+            ShowBanner(exception.Message);
+        }
         finally
         {
             row.IsEnabledPending = false;
@@ -1588,6 +1593,11 @@ public sealed partial class InstanceListViewModel : ObservableObject
             // The launcher rereads the list of set-aside ones at the
             // next placement.
             await _launcher.RefreshRanksAsync().ConfigureAwait(true);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // As for the quality: said in the banner, not in a fault report.
+            ShowBanner(exception.Message);
         }
         finally
         {

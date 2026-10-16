@@ -30,7 +30,7 @@ public sealed partial class Win32HotkeyRegistrar : IHotkeyRegistrar
     private uint _threadId;
     private nint _winEventHook;
     private int _nextId = 1;
-    private bool _enabled;
+    private volatile bool _enabled;
     private bool _disposed;
 
     public Win32HotkeyRegistrar(ILogger<Win32HotkeyRegistrar> logger)
@@ -61,13 +61,17 @@ public sealed partial class Win32HotkeyRegistrar : IHotkeyRegistrar
 
         _hotkeys = hotkeys;
 
-        if (!_enabled)
-        {
-            return [];
-        }
-
+        // Decided on the hotkey thread, where every change runs in turn:
+        // read here, the flag could be switched off between the reading and
+        // the registering, and the shortcuts then stayed taken from every
+        // other program with the flag saying they were not.
         return await PostAsync(() =>
         {
+            if (!_enabled)
+            {
+                return (IReadOnlyList<HotkeyAction>)[];
+            }
+
             UnregisterAllCore();
             return RegisterAllCore();
         }).ConfigureAwait(false);
@@ -77,15 +81,17 @@ public sealed partial class Win32HotkeyRegistrar : IHotkeyRegistrar
     {
         await _ready.Task.ConfigureAwait(false);
 
-        if (_enabled == enabled)
-        {
-            return;
-        }
-
-        _enabled = enabled;
-
+        // Same reason: two calls racing each registered everything, the
+        // second failing on its own shortcuts as if another program held them.
         await PostAsync(() =>
         {
+            if (_enabled == enabled)
+            {
+                return (IReadOnlyList<HotkeyAction>)[];
+            }
+
+            _enabled = enabled;
+
             if (enabled)
             {
                 return RegisterAllCore();

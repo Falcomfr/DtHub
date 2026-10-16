@@ -1,4 +1,6 @@
-﻿using DtHub.Core.Adb;
+﻿using System.Collections.Concurrent;
+
+using DtHub.Core.Adb;
 using DtHub.Core.Devices;
 using DtHub.Core.Dofus;
 using DtHub.Core.Guidance;
@@ -75,10 +77,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     private string? _iconDirectory;
 
-    /// <summary>
-    /// True during a deliberate close: no need to log its detail.
-    /// </summary>
-    private bool _closing;
 
     public GameLauncher(
         ScrcpySessionManager sessions,
@@ -278,7 +276,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// window drops. The session only carries a target, not the
     /// original instance.
     /// </summary>
-    private readonly Dictionary<string, DofusInstance> _launched = new(StringComparer.Ordinal);
+    //
+    // Concurrent, like the recovery tables below: written by the launch,
+    // the settings and every read loop, a phone dropping its Wi-Fi ends
+    // all its accounts' loops at once.
+    private readonly ConcurrentDictionary<string, DofusInstance> _launched = new(StringComparer.Ordinal);
 
     /// <summary>
     /// The distance each window was opened with.
@@ -293,7 +295,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// <summary>
     /// Recovery attempts per instance, and time of the last one.
     /// </summary>
-    private readonly Dictionary<string, (int Count, DateTimeOffset Last)> _recoveries =
+    private readonly ConcurrentDictionary<string, (int Count, DateTimeOffset Last)> _recoveries =
         new(StringComparer.Ordinal);
 
     /// <summary>
@@ -324,7 +326,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _recovering.TryGetValue(key, out var notice)
         && notice.IsLiveAt(DateTimeOffset.UtcNow, RecoveryNoticeLife);
 
-    private readonly Dictionary<string, TimedNotice> _recovering = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, TimedNotice> _recovering = new(StringComparer.Ordinal);
 
     /// <summary>
     /// The device and the moment of the current recovery notice.
@@ -414,11 +416,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private void OnSessionChanged(object? sender, ScrcpySession session)
     {
         // An account opening or closing shifts the keys of the lines after
-        // it, in the titles and on the tabs.
-        if (!_closing)
+        // it, in the titles and on the tabs. Not for a deliberate close,
+        // as before; and one refresh per burst: a launch or a phone dropping
+        // moves several sessions at once, and each event started its own.
+        if (!session.StopRequested && Interlocked.Exchange(ref _retitleQueued, 1) == 0)
         {
             _ = Task.Run(async () =>
             {
+                await Task.Delay(RetitleDelay).ConfigureAwait(false);
+                _ = Interlocked.Exchange(ref _retitleQueued, 0);
+
                 try
                 {
                     _ = await RefreshWindowTitlesAsync().ConfigureAwait(false);
@@ -437,10 +444,23 @@ public sealed partial class GameLauncher : IAsyncDisposable
         if (session.State == ScrcpySessionState.Running)
         {
             _recovery = default;
-            _ = _recovering.Remove(session.Target.Key);
+            _ = _recovering.TryRemove(session.Target.Key, out _);
         }
 
-        if (session.IsAlive || _closing)
+        if (session.IsAlive)
+        {
+            return;
+        }
+
+        // Before the deliberate close is set aside: closing a window from
+        // DT Hub, a tab's cross or quitting, is the most common end, and
+        // it used to count no time at all.
+        CountPlaytime(session);
+
+        // Each session's own mark, not a flag for the whole launcher: the
+        // flag also silenced a window dying on another phone while one was
+        // being closed here, which was then neither logged nor reopened.
+        if (session.StopRequested)
         {
             return;
         }
@@ -450,8 +470,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
             session.State.ToString(),
             session.FailureMessage ?? "aucun message",
             string.Join(Environment.NewLine, session.RecentOutput));
-
-        CountPlaytime(session);
 
         // Before concluding that nothing is left: a window we are
         // about to reopen is not a lost window. Without this
@@ -507,7 +525,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
                 // Given up is the opposite of recovering: the row must
                 // stop promising a window that is not coming.
-                _ = _recovering.Remove(key);
+                _ = _recovering.TryRemove(key, out _);
 
                 LogRecoveryGaveUp(instance.DisplayName, already);
             }
@@ -530,8 +548,20 @@ public sealed partial class GameLauncher : IAsyncDisposable
         return true;
     }
 
+    private int _retitleQueued;
+
+    private static readonly TimeSpan RetitleDelay = TimeSpan.FromMilliseconds(200);
+
     /// <summary>Sessions whose playtime has already been counted.</summary>
     private readonly HashSet<string> _counted = new(StringComparer.Ordinal);
+
+    private bool CountOnce(string sessionId)
+    {
+        lock (_counted)
+        {
+            return _counted.Add(sessionId);
+        }
+    }
 
     /// <summary>
     /// Adds to the account the time its window stayed open.
@@ -545,7 +575,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private void CountPlaytime(ScrcpySession session)
     {
-        if (!session.EverRan || session.Target.IsTransient || !_counted.Add(session.Id))
+        if (!session.EverRan || session.Target.IsTransient || !CountOnce(session.Id))
         {
             return;
         }
@@ -557,8 +587,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
             return;
         }
 
-        _ = _settings.AddPlaytimeAsync(session.Target.Key, seconds);
+        _playtimeWrites.Add(_settings.AddPlaytimeAsync(session.Target.Key, seconds));
     }
+
+    /// <summary>
+    /// Playtime writes still running. Quitting closes every window at
+    /// once, and its writes were left to finish on their own while the
+    /// application went away: CloseAllAsync waits for them.
+    /// </summary>
+    private readonly ConcurrentBag<Task> _playtimeWrites = [];
 
     /// <summary>Video encoders known per device, once asked for.</summary>
     private readonly Dictionary<string, IReadOnlyList<VideoEncoder>> _encoders = new(StringComparer.Ordinal);
@@ -803,6 +840,26 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     public async Task<IReadOnlyList<DofusInstance>> RefreshInstancesAsync(
         CancellationToken cancellationToken = default)
+    {
+        // One sweep at a time: the panel's poll, the launch and a reopening
+        // overlapped at startup, and the discovery keeps its scan in shared
+        // fields that one sweep cleared while the other was forgetting the
+        // profiles it no longer saw.
+        await _sweeping.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            return await SweepInstancesAsync(cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _ = _sweeping.Release();
+        }
+    }
+
+    private readonly SemaphoreSlim _sweeping = new(1, 1);
+
+    private async Task<IReadOnlyList<DofusInstance>> SweepInstancesAsync(CancellationToken cancellationToken)
     {
         var settings = await _settings.GetAsync(cancellationToken).ConfigureAwait(false);
         _instances.PackageName = settings.PackageName;
@@ -1237,6 +1294,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     /// <summary>The passing windows being opened, by key.</summary>
     private readonly HashSet<string> _openingPassing = new(StringComparer.Ordinal);
+
+    /// <summary>Game accounts between their check and their registration.</summary>
+    private readonly HashSet<string> _openingGames = new(StringComparer.Ordinal);
 
     /// <summary>
     /// The tools' sweep beside the accounts' one, never two at a time: a
@@ -2703,54 +2763,84 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 };
             }
 
-            var session = await _sessions.StartAsync(
-                target, display, placement, cancellationToken).ConfigureAwait(false);
-
-            // Video encoders announce a maximum resolution, which
-            // varies from one device to another: a modest tablet may
-            // cap at 1280x720 where a recent phone goes up to 8K.
-            // Rather than give up, we step down through the fallback
-            // tiers.
-            //
-            // Only for refusals a lower resolution can fix: an
-            // unplugged phone will stay unplugged, and every attempt
-            // costs the full wait.
-            while (session.State == ScrcpySessionState.Failed
-                && ScrcpyOutputParser.CanRetrySmaller(session.FailureKind)
-                && DisplayLadder.Below(
-                       display.VirtualDisplayHeight,
-                       display.VirtualDisplayWidth,
-                       display.VirtualDisplayHeight) is { } smaller)
+            // Reserved until the session is registered: two openings of the
+            // same account, the startup's and a click on its row, both
+            // passed IsOpen while waiting for the phone, and the second
+            // window turned the first one gray.
+            lock (_openingGames)
             {
-                LogDisplayFallback(instance.DisplayName, display.VirtualDisplayHeight, smaller.Height);
-
-                display = display with
+                if (IsOpen(instance) || !_openingGames.Add(instance.Key))
                 {
-                    VirtualDisplayWidth = smaller.Width,
-                    VirtualDisplayHeight = smaller.Height,
-                    VirtualDisplayDpi = ZoomProfile.DpiFor(smaller.Height, zoom, layoutHeight),
-                    // Never above the bitrate already chosen: with the
-                    // sharper image, it follows the window, not the
-                    // display, and the smaller display would raise it.
-                    VideoBitrateKbps = Math.Min(
-                        display.VideoBitrateKbps,
-                        quality.BitrateFor(smaller.Width, smaller.Height)),
-                };
-
-                session = await _sessions.StartAsync(
-                    target, display, placement, cancellationToken).ConfigureAwait(false);
+                    continue;
+                }
             }
 
-            if (session.State == ScrcpySessionState.Failed)
-            {
-                problems.Add($"{instance.DisplayName} : {session.FailureMessage}");
+            ScrcpySession session;
 
-                // Without scrcpy's output, a refusal boils down to
-                // "the session could not open", which helps no one.
-                LogSessionFailure(
-                    instance.DisplayName,
-                    session.CommandLine,
-                    string.Join(Environment.NewLine, session.RecentOutput));
+            try
+            {
+                session = await _sessions.StartAsync(
+                    target, display, placement, cancellationToken).ConfigureAwait(false);
+
+                // Video encoders announce a maximum resolution, which
+                // varies from one device to another: a modest tablet may
+                // cap at 1280x720 where a recent phone goes up to 8K.
+                // Rather than give up, we step down through the fallback
+                // tiers.
+                //
+                // Only for refusals a lower resolution can fix: an
+                // unplugged phone will stay unplugged, and every attempt
+                // costs the full wait.
+                while (session.State == ScrcpySessionState.Failed
+                    && ScrcpyOutputParser.CanRetrySmaller(session.FailureKind)
+                    && DisplayLadder.Below(
+                           display.VirtualDisplayHeight,
+                           display.VirtualDisplayWidth,
+                           display.VirtualDisplayHeight) is { } smaller)
+                {
+                    LogDisplayFallback(instance.DisplayName, display.VirtualDisplayHeight, smaller.Height);
+
+                    display = display with
+                    {
+                        VirtualDisplayWidth = smaller.Width,
+                        VirtualDisplayHeight = smaller.Height,
+                        VirtualDisplayDpi = ZoomProfile.DpiFor(smaller.Height, zoom, layoutHeight),
+                        // Never above the bitrate already chosen: with the
+                        // sharper image, it follows the window, not the
+                        // display, and the smaller display would raise it.
+                        VideoBitrateKbps = Math.Min(
+                            display.VideoBitrateKbps,
+                            quality.BitrateFor(smaller.Width, smaller.Height)),
+                    };
+
+                    session = await _sessions.StartAsync(
+                        target, display, placement, cancellationToken).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                lock (_openingGames)
+                {
+                    _ = _openingGames.Remove(instance.Key);
+                }
+            }
+
+            // Not alive rather than failed: a window closed while its game
+            // was opening comes back Stopped, and counted as opened it was
+            // placed, housed and set back to enabled over the user's close.
+            if (!session.IsAlive)
+            {
+                if (session.State == ScrcpySessionState.Failed)
+                {
+                    problems.Add($"{instance.DisplayName} : {session.FailureMessage}");
+
+                    // Without scrcpy's output, a refusal boils down to
+                    // "the session could not open", which helps no one.
+                    LogSessionFailure(
+                        instance.DisplayName,
+                        session.CommandLine,
+                        string.Join(Environment.NewLine, session.RecentOutput));
+                }
 
                 continue;
             }
@@ -2892,8 +2982,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// <summary>
     /// Says the last game window is gone when a deliberate close leaves none.
     ///
-    /// StopSessionAsync raises the closing flag so that a window we close on
-    /// purpose is not taken for a game that died. That is right for recovery,
+    /// A window we close on purpose carries StopRequested so that it is not
+    /// taken for a game that died. That is right for recovery,
     /// but it also swallowed the one signal that tells the application nothing
     /// is left, and that signal is what makes it quit rather than survive with
     /// an empty screen.
@@ -2918,23 +3008,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// <summary>
     /// Stops a session without affecting the next launch.
     ///
-    /// The flag keeps closing the last session from also closing
-    /// the application: it is us doing the closing, not the game
-    /// dying.
+    /// The session's StopRequested mark keeps closing the last one from
+    /// also closing the application: it is us doing the closing, not the
+    /// game dying.
     /// </summary>
     private async Task StopSessionAsync(ScrcpySession session, CancellationToken cancellationToken)
     {
-        _closing = true;
-
-        try
-        {
-            await _sessions.StopAsync(session.Id, cancellationToken).ConfigureAwait(false);
-            _sessions.PruneFinished();
-        }
-        finally
-        {
-            _closing = false;
-        }
+        await _sessions.StopAsync(session.Id, cancellationToken).ConfigureAwait(false);
+        _sessions.PruneFinished();
 
         // The tab goes with the session. Leaving it made the frame
         // believe the account was still there, and reopening that
@@ -3130,17 +3211,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             var remembered = await _settings.GetWindowRectsAsync(cancellationToken).ConfigureAwait(false);
 
-            _closing = true;
-
-            try
-            {
-                await _sessions.StopAllAsync(cancellationToken).ConfigureAwait(false);
-                _sessions.PruneFinished();
-            }
-            finally
-            {
-                _closing = false;
-            }
+            await _sessions.StopAllAsync(cancellationToken).ConfigureAwait(false);
+            _sessions.PruneFinished();
 
             // Targets carry the identity of a session, not of an
             // instance: it is the up to date instance list that
@@ -3178,17 +3250,17 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // Geometry is captured while the windows still exist.
         await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
 
-        _closing = true;
+        await _sessions.StopAllAsync(cancellationToken).ConfigureAwait(false);
+        _sessions.PruneFinished();
 
         try
         {
-            await _sessions.StopAllAsync(cancellationToken).ConfigureAwait(false);
-            _sessions.PruneFinished();
+            await Task.WhenAll(_playtimeWrites).ConfigureAwait(false);
         }
-        finally
+        catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            _closing = false;
-
+            // Information only: a lost count must not hold the close.
+            LogPlaytimeFailure(exception);
         }
 
         // See StopSessionAsync: the frame must not keep a tab on a
@@ -5023,6 +5095,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "L'état du téléphone n'a pas pu être posé dans le titre des fenêtres.")]
     private partial void LogTitleStatusFailure(Exception exception);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "Le temps de jeu n'a pas pu être enregistré à la fermeture.")]
+    private partial void LogPlaytimeFailure(Exception exception);
 
     [LoggerMessage(
         Level = LogLevel.Warning,

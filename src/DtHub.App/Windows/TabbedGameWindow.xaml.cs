@@ -124,7 +124,9 @@ public partial class TabbedGameWindow : Window
 
         _windows.Undock(tab.Window);
 
-        if (tab.IsSelected && Items.Count > 0)
+        // Not while the frame closes: each tab taken out showed the next one,
+        // on screen and refitted, only to take it out in turn.
+        if (tab.IsSelected && Items.Count > 0 && !_closing)
         {
             Select(Items[0]);
         }
@@ -749,6 +751,19 @@ public partial class TabbedGameWindow : Window
 
     private void OnTabPressed(object sender, MouseButtonEventArgs e)
     {
+        // A press on the cross is not the start of a drag: a slide of a few
+        // pixels used to carry the tab away, and the account stayed open.
+        for (var node = e.OriginalSource as DependencyObject;
+            node is not null && !ReferenceEquals(node, sender);
+            node = node is Visual ? VisualTreeHelper.GetParent(node) : LogicalTreeHelper.GetParent(node))
+        {
+            if (node is System.Windows.Controls.Button)
+            {
+                _pressed = null;
+                return;
+            }
+        }
+
         _pressed = (sender as FrameworkElement)?.DataContext as GameTabViewModel;
         _origin = e.GetPosition(this);
     }

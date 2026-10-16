@@ -789,8 +789,17 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
     private async Task ApplyTitleStatusAsync(bool value)
     {
-        await SaveAsync(settings => settings.TitleShowsStatus = value).ConfigureAwait(true);
-        _ = await _launcher.RefreshWindowTitlesAsync().ConfigureAwait(true);
+        // Fire and forget from the setter: a fault here was only ever
+        // seen by the garbage collector.
+        try
+        {
+            await SaveAsync(settings => settings.TitleShowsStatus = value).ConfigureAwait(true);
+            _ = await _launcher.RefreshWindowTitlesAsync().ConfigureAwait(true);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Instances.ShowBanner(exception.Message);
+        }
     }
 
     /// <summary>
@@ -1580,7 +1589,18 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// </summary>
     private async Task ApplyStartupSettingAsync(Func<Task> write)
     {
-        await write().ConfigureAwait(true);
+        // Fire and forget from the setter, like the title's: a write or a
+        // reopen that threw left the switch on a value never saved, or the
+        // windows closed with none back, and said nothing.
+        try
+        {
+            await write().ConfigureAwait(true);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Instances.ShowBanner(exception.Message);
+            return;
+        }
 
         IsReopening = true;
 
@@ -1595,6 +1615,10 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
                     _dialogs.ShowWarning(string.Join(Environment.NewLine, report.Problems));
                 }
             }).ConfigureAwait(true);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Instances.ShowBanner(exception.Message);
         }
         finally
         {

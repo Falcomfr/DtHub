@@ -527,6 +527,7 @@ public partial class App : Application, IDisposable
         // The shutdown follows, and with it the same trap as in
         // RequestQuitAsync.
         _quitting = true;
+        _faults.Quiet = true;
 
         var frame = new DispatcherFrame();
 
@@ -562,12 +563,20 @@ public partial class App : Application, IDisposable
         // just saved here. Measured on 2026-10-10: quitting with the
         // panel shown brought it back hidden at the next launch.
         _quitting = true;
+        _faults.Quiet = true;
 
         // Quitting from the panel or via the shortcut: its state at
-        // that moment is what counts.
-        await SaveSessionStateAsync(_configurator?.IsVisible == true).ConfigureAwait(true);
-
-        Shutdown();
+        // that moment is what counts. Shutdown in all cases: a save that
+        // threw used to leave Quit doing nothing, with the panel already
+        // set to quitting and no longer hiding.
+        try
+        {
+            await SaveSessionStateAsync(_configurator?.IsVisible == true).ConfigureAwait(true);
+        }
+        finally
+        {
+            Shutdown();
+        }
     }
 
     /// <summary>
@@ -728,6 +737,7 @@ public partial class App : Application, IDisposable
         }
 
         _quitting = true;
+        _faults.Quiet = true;
 
         Log.Information("Plus aucune fenêtre ni panneau : arrêt.");
 
@@ -767,7 +777,7 @@ public partial class App : Application, IDisposable
 
         _wakeRegistration = ThreadPool.RegisterWaitForSingleObject(
             _wake,
-            (_, _) => Dispatcher.Invoke(RevealConfigurator),
+            (_, _) => Dispatcher.BeginInvoke(RevealConfigurator),
             state: null,
             millisecondsTimeOutInterval: Timeout.Infinite,
             executeOnlyOnce: false);
@@ -805,7 +815,10 @@ public partial class App : Application, IDisposable
     /// </summary>
     private void RevealConfigurator()
     {
-        if (_configurator is null)
+        // A relaunch while this one is closing: the panel may already be
+        // closed, and showing it again threw on the waking thread, which
+        // ended the process in the middle of its shutdown.
+        if (_configurator is null || _quitting)
         {
             return;
         }
@@ -958,11 +971,18 @@ public partial class App : Application, IDisposable
     /// fail as long as the connection has not come back, and would
     /// burn an attempt for nothing.
     /// </summary>
-    private static async Task RecoverAsync(GameLauncher launcher, RecoveryRequest request)
+    private async Task RecoverAsync(GameLauncher launcher, RecoveryRequest request)
     {
         try
         {
             await Task.Delay(request.Delay).ConfigureAwait(true);
+
+            // Closing meanwhile: the window reopened now would outlive the
+            // close that had already gone past it, an orphan on screen.
+            if (_quitting)
+            {
+                return;
+            }
 
             LogLaunchProblems(
                 "La réouverture",
@@ -1097,6 +1117,9 @@ public partial class App : Application, IDisposable
     /// </summary>
     protected override void OnExit(ExitEventArgs e)
     {
+        _quitting = true;
+        _faults.Quiet = true;
+
         var frame = new DispatcherFrame();
         var limit = new DispatcherTimer(
             ShutdownLimit, DispatcherPriority.Send, (_, _) => frame.Continue = false, Dispatcher);

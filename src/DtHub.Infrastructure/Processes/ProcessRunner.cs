@@ -280,7 +280,10 @@ public sealed class ProcessRunner : IProcessRunner
         {
             if (!process.HasExited)
             {
-                process.Kill(entireProcessTree: true);
+                // Without the tree, as in ProcessSession: a client that
+                // timed out may have started the ADB server, shared by
+                // every window, and killing it cut them all.
+                process.Kill(entireProcessTree: false);
             }
         }
         catch (InvalidOperationException)

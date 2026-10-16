@@ -155,14 +155,16 @@ public sealed class IconPathToImageConverter : IValueConverter
 
             return image;
         }
-        catch (Exception exception)
-            when (exception is IOException or UnauthorizedAccessException
-                      or NotSupportedException or UriFormatException)
+        catch (Exception exception) when (exception is not OutOfMemoryException)
         {
             // Silence is intentional: a converter that throws breaks
             // the binding and leaves the row empty without saying
             // anything. The icon is a comfort, its absence shows on
             // screen, and the file comes from our own cache.
+            //
+            // Everything, not a list: a truncated PNG throws
+            // FileFormatException, which the list missed. Thrown during
+            // layout and never cached, it came back on every pass.
             return null;
         }
     }

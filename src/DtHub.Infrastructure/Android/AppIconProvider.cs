@@ -277,7 +277,12 @@ public sealed partial class AppIconProvider : IAppIconProvider
             var file = FileFor(key);
 
             Directory.CreateDirectory(Path.GetDirectoryName(file)!);
-            File.WriteAllBytes(file, content);
+
+            // Through a temporary file: killed mid-write, the application
+            // left a truncated icon that every later launch read back.
+            var partial = file + ".part";
+            File.WriteAllBytes(partial, content);
+            File.Move(partial, file, overwrite: true);
 
             return file;
         }
