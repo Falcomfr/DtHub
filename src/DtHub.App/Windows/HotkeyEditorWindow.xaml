@@ -75,25 +75,26 @@
             </DataTemplate>
 
             <DataTemplate DataType="{x:Type vm:HotkeySeriesViewModel}">
-              <!-- The summary laid over the header, in the keys' column: an
-                   expander's header does not stretch. The hidden button keeps
-                   the column of the rows' own Edit buttons. -->
-              <Grid Margin="0,4">
-                <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="*" />
-                  <ColumnDefinition Width="190" />
-                  <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <Expander Grid.ColumnSpan="3" IsExpanded="{Binding IsExpanded}" Header="{Binding Label}">
-                  <ItemsControl ItemsSource="{Binding Rows}" Margin="22,2,0,0" />
-                </Expander>
-
-                <TextBlock Grid.Column="1" Text="{Binding Summary}" FontFamily="{StaticResource MonoFont}"
-                           TextAlignment="Center" VerticalAlignment="Top" Margin="8,4,8,0"
-                           IsHitTestVisible="False" Foreground="{DynamicResource TextMutedBrush}" />
-                <Button Grid.Column="2" Content="{loc:T Edit}" Visibility="Hidden" VerticalAlignment="Top" />
-              </Grid>
+              <Expander Style="{StaticResource SeriesExpander}" Margin="0,4"
+                        IsExpanded="{Binding IsExpanded}">
+                <Expander.Header>
+                  <!-- The hidden button keeps the column of the rows' own
+                       Edit buttons, so the summary sits over their keys. -->
+                  <Grid Background="Transparent">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*" />
+                      <ColumnDefinition Width="190" />
+                      <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="{Binding Label}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{Binding Summary}" FontFamily="{StaticResource MonoFont}"
+                               TextAlignment="Center" VerticalAlignment="Center" Margin="8,0"
+                               Foreground="{DynamicResource TextMutedBrush}" />
+                    <Button Grid.Column="2" Content="{loc:T Edit}" Visibility="Hidden" />
+                  </Grid>
+                </Expander.Header>
+                <ItemsControl ItemsSource="{Binding Rows}" />
+              </Expander>
             </DataTemplate>
           </ItemsControl.Resources>
 

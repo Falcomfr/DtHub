@@ -378,35 +378,37 @@
                       </DataTemplate>
 
                       <DataTemplate DataType="{x:Type vm:HotkeySeriesViewModel}">
-                        <!-- The summary laid over the header, in the keys' column: an
-                             expander's header does not stretch, and inside it the
-                             keys stuck to the label. -->
-                        <Grid Margin="0,2">
-                          <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                          </Grid.ColumnDefinitions>
+                        <Expander Style="{StaticResource SeriesExpander}" Margin="0,2"
+                                  IsExpanded="{Binding IsExpanded}">
+                          <Expander.Header>
+                            <Grid Background="Transparent">
+                              <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                              </Grid.ColumnDefinitions>
 
-                          <Expander Grid.ColumnSpan="2" IsExpanded="{Binding IsExpanded}"
-                                    Header="{Binding Label}">
-                            <ItemsControl ItemsSource="{Binding Rows}" Margin="22,2,0,0" />
-                          </Expander>
+                              <TextBlock Grid.Column="0" Text="{Binding Label}" VerticalAlignment="Center"
+                                         TextTrimming="CharacterEllipsis" Margin="0,0,8,0" />
 
-                          <Border Grid.Column="1" VerticalAlignment="Top" Margin="8,1,0,0"
-                                  IsHitTestVisible="False" CornerRadius="{StaticResource Radius}" Padding="7,2"
-                                  Background="{DynamicResource SurfaceAltBrush}"
-                                  BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}">
-                            <TextBlock Text="{Binding Summary}" FontSize="{StaticResource FontBody}"
-                                       FontFamily="{StaticResource MonoFont}" />
-                          </Border>
-                        </Grid>
+                              <Border Grid.Column="1" CornerRadius="{StaticResource Radius}" Padding="7,2"
+                                      Background="{DynamicResource SurfaceAltBrush}"
+                                      BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}">
+                                <TextBlock Text="{Binding Summary}" FontSize="{StaticResource FontBody}"
+                                           FontFamily="{StaticResource MonoFont}" />
+                              </Border>
+                            </Grid>
+                          </Expander.Header>
+
+                          <ItemsControl ItemsSource="{Binding Rows}" />
+                        </Expander>
                       </DataTemplate>
                     </ItemsControl.Resources>
 
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>
-                        <StackPanel Margin="0,0,0,10">
-                          <TextBlock Text="{Binding Title}" Style="{StaticResource SectionLabel}" />
+                        <StackPanel Margin="0,0,0,6">
+                          <TextBlock Text="{Binding Title}" Style="{StaticResource SectionLabel}"
+                                     Margin="0,0,0,3" />
                           <ItemsControl ItemsSource="{Binding Entries}" />
                         </StackPanel>
                       </DataTemplate>

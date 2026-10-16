@@ -1159,6 +1159,72 @@
     </Setter>
   </Style>
 
+  <!-- A series of shortcuts folded into one line: accounts 1 to 8, sizes
+       1 to 4. Windows' expander drew a white bubble, out of place among
+       the rows (2026-10-16): here the whole line is the toggle, with the
+       thin chevron of the drop-down lists turning a quarter, and the
+       unfolded rows hang off a thin line. The header stretches, so the
+       key sits in the same column as on the other rows. -->
+  <Style x:Key="SeriesExpander" TargetType="Expander">
+    <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Expander">
+          <StackPanel>
+            <ToggleButton Content="{TemplateBinding Header}" Cursor="Hand"
+                          FocusVisualStyle="{StaticResource FocusRing}"
+                          IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+              <ToggleButton.Template>
+                <ControlTemplate TargetType="ToggleButton">
+                  <Border x:Name="Back" Background="Transparent" CornerRadius="{StaticResource Radius}">
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                      </Grid.ColumnDefinitions>
+                      <Path x:Name="Chevron" Data="M 0 0 L 4 4 L 0 8" Width="8" Height="8"
+                            Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.4"
+                            StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                            Margin="3,0,9,0" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                        <Path.RenderTransform>
+                          <RotateTransform Angle="0" />
+                        </Path.RenderTransform>
+                      </Path>
+                      <ContentPresenter Grid.Column="1" VerticalAlignment="Center" />
+                    </Grid>
+                  </Border>
+                  <ControlTemplate.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                      <Setter TargetName="Chevron" Property="RenderTransform">
+                        <Setter.Value>
+                          <RotateTransform Angle="90" />
+                        </Setter.Value>
+                      </Setter>
+                    </Trigger>
+                    <Trigger Property="IsMouseOver" Value="True">
+                      <Setter TargetName="Back" Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+                      <Setter TargetName="Chevron" Property="Stroke" Value="{DynamicResource TextBrush}" />
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </ToggleButton.Template>
+            </ToggleButton>
+
+            <Border x:Name="Body" Visibility="Collapsed" Margin="6,2,0,2" Padding="13,0,0,0"
+                    BorderThickness="1,0,0,0" BorderBrush="{DynamicResource BorderBrush}">
+              <ContentPresenter />
+            </Border>
+          </StackPanel>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsExpanded" Value="True">
+              <Setter TargetName="Body" Property="Visibility" Value="Visible" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
   <Style x:Key="RowGlyph" TargetType="Path">
     <Setter Property="Stroke" Value="{Binding Foreground,
                                               RelativeSource={RelativeSource AncestorType=Button}}" />
