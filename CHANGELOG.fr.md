@@ -11,7 +11,7 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
-## [Unreleased]
+## [0.8.21] - 2026-10-16
 
 ### Modifié
 
