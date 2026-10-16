@@ -93,7 +93,7 @@ public partial class TabbedGameWindow : Window
 
     /// <summary>
     /// Raised when the frame closes, with the accounts it was
-    /// housing.
+    /// housing, or when a tab's cross closes its account alone.
     /// </summary>
     public event EventHandler<IReadOnlyList<string>>? CloseRequested;
 
@@ -740,6 +740,30 @@ public partial class TabbedGameWindow : Window
     {
         _pressed = (sender as FrameworkElement)?.DataContext as GameTabViewModel;
         _origin = e.GetPosition(this);
+    }
+
+    /// <summary>
+    /// The tab's cross: closes that account the way closing the frame does.
+    /// The last tab closes the frame itself, which is the same gesture and
+    /// also remembers where the frame stood.
+    /// </summary>
+    private void OnTabClose(object sender, RoutedEventArgs e)
+    {
+        _pressed = null;
+
+        if ((sender as FrameworkElement)?.DataContext is not GameTabViewModel tab)
+        {
+            return;
+        }
+
+        if (Items.Count == 1)
+        {
+            Close();
+            return;
+        }
+
+        Detach(tab.Key, reveal: false);
+        CloseRequested?.Invoke(this, [tab.Key]);
     }
 
     private void OnTabMoved(object sender, MouseEventArgs e)
