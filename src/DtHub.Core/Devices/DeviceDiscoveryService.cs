@@ -331,18 +331,40 @@ public sealed class DeviceDiscoveryService : IDisposable
             return null;
         }
 
+        string dump;
+
         try
         {
-            return PanelPower.IsLit(await _adb
+            dump = await _adb
                 .ShellAsync(serial, PanelPower.Command, cancellationToken: cancellationToken)
-                .ConfigureAwait(false));
+                .ConfigureAwait(false);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
             // Same silence taken deliberately as for the other side probes.
             return null;
         }
+
+        var lit = PanelPower.IsLit(dump);
+
+        if (lit is null && !string.IsNullOrWhiteSpace(dump) && _unreadPanels.TryAdd(serial, 0))
+        {
+            PanelUnread?.Invoke(serial, dump);
+        }
+
+        return lit;
     }
+
+    /// <summary>
+    /// A phone's screen answer that <see cref="PanelPower" /> did not
+    /// understand, raised once per phone, for the log: two Galaxy S25 never
+    /// showed the "Switch off" line (2026-10-16), and the format of One UI's
+    /// answer was never seen.
+    /// </summary>
+    public event Action<string, string>? PanelUnread;
+
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, byte> _unreadPanels =
+        new(StringComparer.Ordinal);
 
     /// <summary>
     /// Last trust verdict for the display, per device.

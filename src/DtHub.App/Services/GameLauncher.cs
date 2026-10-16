@@ -114,6 +114,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // all: the window vanished and the log stayed silent.
         _sessions.SessionChanged += OnSessionChanged;
 
+        // Two Galaxy S25 never showed the "Switch off" line: their
+        // screen answer goes to the log, once per phone, to be read.
+        _devices.PanelUnread += LogPanelUnread;
+
         // Whether to stop the game on close is decided at the moment
         // of closing, not at launch: without this subscription,
         // unchecking the box mid session would have changed nothing
@@ -4894,6 +4898,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
             LogHotkeyFailure(exception);
         }
     }
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "État de l'écran de {Serial} incompris, la ligne « Éteindre » ne s'affichera pas. Réponse du téléphone :\n{Dump}")]
+    private partial void LogPanelUnread(string serial, string dump);
 
     [LoggerMessage(
         Level = LogLevel.Information,
