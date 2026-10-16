@@ -16,7 +16,30 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 ### Ajouté
 
 - F1 à F8 mettent au premier plan le compte de cette ligne de la liste, dans
-  son onglet s'il est dans le cadre. Modifiables dans Raccourcis.
+  son onglet s'il est dans le cadre. Sa touche s'affiche dans le titre de la
+  fenêtre et à côté du compte. Modifiables dans Raccourcis.
+
+### Corrigé
+
+- Une erreur inattendue n'ouvre plus une nouvelle fenêtre toutes les demi-
+  secondes : un seul signalement, et DT Hub reste utilisable derrière.
+- Le temps de jeu compte maintenant les fenêtres fermées depuis DT Hub : croix
+  d'un onglet, raccourci, Quitter.
+- Une fenêtre fermée pendant son ouverture ne reste plus indiquée comme
+  ouverte, et son jeu ne continue plus de tourner sur le téléphone.
+- Un même compte ne peut plus s'ouvrir deux fois quand on le lance pendant le
+  démarrage.
+- Un téléphone lent à répondre ne ferme plus toutes les fenêtres de jeu.
+- Fermer le cadre à onglets ne fait plus apparaître les onglets cachés, et un
+  léger glissé sur la croix d'un onglet ferme le compte au lieu de déplacer
+  l'onglet.
+- Ranger les fenêtres ne donne plus le clavier à chaque fenêtre réduite.
+- Une icône de compte abîmée ne provoque plus d'erreurs à répétition.
+- Quitter ferme toujours DT Hub, et le relancer pendant sa fermeture ne le
+  fait plus planter.
+- Un réglage qui n'a pas pu être enregistré le dit maintenant dans le bandeau.
+- Après un téléchargement trop long, la fenêtre des outils propose de nouveau
+  « Réessayer » et « Continuer sans ».
 
 ## [0.8.19] - 2026-10-16
 

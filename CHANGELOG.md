@@ -22,7 +22,28 @@ belongs in the commits and in `docs/DECISIONS.md`.
 ### Added
 
 - F1 to F8 bring forward the account on that line of the accounts list, in its
-  tab when it is in the frame. They can be changed in Shortcuts.
+  tab when it is in the frame. Its key shows in the window's title and beside
+  the account. They can be changed in Shortcuts.
+
+### Fixed
+
+- An unexpected error no longer opens a new window every half second: one
+  report, and DT Hub stays usable behind it.
+- Playtime now counts the windows closed from DT Hub: a tab's cross, a
+  shortcut, Quit.
+- A window closed while it was opening no longer stays listed as open, and its
+  game no longer keeps running on the phone.
+- The same account can no longer open twice when clicked during startup.
+- A phone slow to answer no longer closes every game window.
+- Closing the tabbed frame no longer flashes the hidden tabs, and a slight slide
+  on a tab's cross closes the account instead of moving the tab.
+- Arranging the windows no longer hands the keyboard to each minimised one.
+- A damaged account icon no longer causes repeated errors.
+- Quit always closes DT Hub, and relaunching it while it closes no longer
+  makes it crash.
+- A setting that fails to save now says so in the banner.
+- After a download timeout, the tools window offers "Try again" and "Continue
+  without" again.
 
 ## [0.8.19] - 2026-10-16
 

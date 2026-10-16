@@ -15,7 +15,30 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 ### Añadido
 
 - F1 a F8 ponen en primer plano la cuenta de esa línea de la lista, en su
-  pestaña si está en el marco. Se cambian en Atajos.
+  pestaña si está en el marco. Su tecla aparece en el título de la ventana y
+  junto a la cuenta. Se cambian en Atajos.
+
+### Corregido
+
+- Un error inesperado ya no abre una ventana nueva cada medio segundo: un solo
+  informe, y DT Hub sigue usable detrás.
+- El tiempo de juego ahora cuenta las ventanas cerradas desde DT Hub: la cruz
+  de una pestaña, un atajo, Salir.
+- Una ventana cerrada mientras se abría ya no sigue marcada como abierta, y su
+  juego ya no sigue funcionando en el teléfono.
+- Una misma cuenta ya no puede abrirse dos veces al lanzarla durante el
+  arranque.
+- Un teléfono lento en responder ya no cierra todas las ventanas de juego.
+- Cerrar el marco de pestañas ya no hace aparecer las pestañas ocultas, y un
+  ligero deslizamiento sobre la cruz de una pestaña cierra la cuenta en lugar
+  de mover la pestaña.
+- Ordenar las ventanas ya no le da el teclado a cada ventana minimizada.
+- Un icono de cuenta dañado ya no provoca errores repetidos.
+- Salir siempre cierra DT Hub, y relanzarlo mientras se cierra ya no lo hace
+  fallar.
+- Un ajuste que no se pudo guardar ahora lo dice en la banda.
+- Tras una descarga demasiado larga, la ventana de las herramientas vuelve a
+  ofrecer «Reintentar» y «Continuar sin».
 
 ## [0.8.19] - 2026-10-16
 
