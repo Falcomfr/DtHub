@@ -4625,6 +4625,42 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
+    /// Brings forward the open account on this line of the list, counted
+    /// from zero: its tab when the frame houses it, its window otherwise.
+    /// Locked windows count, unlike for Ctrl+Tab: the lock keeps a window
+    /// from moving, not from being reached on purpose. The tabs follow the
+    /// list's order, so a single count holds in both modes.
+    /// </summary>
+    private async Task FocusAccountAsync(int line)
+    {
+        if (ActiveSessions.Where(s => !s.Target.IsTransient).ElementAtOrDefault(line) is not { } session)
+        {
+            return;
+        }
+
+        var housed = false;
+
+        if (_tabs is { } frame && frame.Handle != 0)
+        {
+            await OnUiAsync(() =>
+            {
+                housed = frame.Holds(session.Target.Key);
+
+                if (housed)
+                {
+                    _ = frame.Activate();
+                    frame.Show(session.Target.Key);
+                }
+            }).ConfigureAwait(false);
+        }
+
+        if (!housed)
+        {
+            _ = _windows.Focus(session);
+        }
+    }
+
+    /// <summary>
     /// Lets the UI declare its own windows, so that the shortcuts
     /// also work from the configurator.
     /// </summary>
@@ -4658,6 +4694,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
                         _windows.FocusPrevious(ManagedSessions);
                     }
 
+                    break;
+
+                case >= HotkeyAction.Account1 and <= HotkeyAction.Account8:
+                    await FocusAccountAsync(action - HotkeyAction.Account1).ConfigureAwait(false);
                     break;
 
                 case HotkeyAction.Rearrange:

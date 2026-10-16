@@ -18,6 +18,27 @@ public enum HotkeyAction
     /// <summary>Go back to the previous instance.</summary>
     PreviousInstance,
 
+    /// <summary>
+    /// The account on the first line of the accounts list, in its tab when
+    /// it is housed in the frame. The eight are contiguous: the launcher
+    /// reads the line as the distance from <see cref="Account1"/>.
+    /// </summary>
+    Account1,
+
+    Account2,
+
+    Account3,
+
+    Account4,
+
+    Account5,
+
+    Account6,
+
+    Account7,
+
+    Account8,
+
     /// <summary>Put all windows back in place.</summary>
     Rearrange,
 

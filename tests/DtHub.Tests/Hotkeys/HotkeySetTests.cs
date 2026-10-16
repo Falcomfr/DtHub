@@ -36,6 +36,36 @@ public class HotkeySetTests
     }
 
     [Fact]
+    public void Les_touches_f1_a_f8_vont_aux_huit_premiers_comptes_de_la_liste()
+    {
+        var set = HotkeySet.Default;
+
+        for (var i = 0; i < 8; i++)
+        {
+            var action = HotkeyAction.Account1 + i;
+
+            Assert.Equal($"F{i + 1}", set.For(action)!.DisplayText);
+            Assert.Contains($"{i + 1}", HotkeyBinding.DescribeAction(action), StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    public void Un_fichier_d_avant_les_touches_f_les_recoit_sauf_celle_deja_prise()
+    {
+        var anciens = HotkeySet.Default.Bindings
+            .Where(b => b.Action is < HotkeyAction.Account1 or > HotkeyAction.Account8)
+            .Select(b => b.Action == HotkeyAction.Rearrange
+                ? new HotkeyBinding { Action = b.Action, VirtualKey = VirtualKeys.F1 + 2, Modifiers = HotkeyModifiers.None }
+                : b);
+
+        var set = HotkeySet.FromBindings(anciens);
+
+        Assert.Equal("F1", set.For(HotkeyAction.Account1)!.DisplayText);
+        Assert.Equal("F3", set.For(HotkeyAction.Rearrange)!.DisplayText);
+        Assert.False(set.For(HotkeyAction.Account3)!.IsAssigned);
+    }
+
+    [Fact]
     public void Toutes_les_actions_ont_un_raccourci_par_defaut()
     {
         var set = HotkeySet.Default;

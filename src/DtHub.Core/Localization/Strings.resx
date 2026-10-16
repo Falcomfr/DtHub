@@ -1113,6 +1113,12 @@ On a {0} device, the manual copy goes through: {1}.</value>
   <data name="ActionToggleGuides" xml:space="preserve">
     <value>Show or hide the guides</value>
   </data>
+  <data name="ActionAccount" xml:space="preserve">
+    <value>Account {0} in the list</value>
+  </data>
+  <data name="ActionAccountDetail" xml:space="preserve">
+    <value>Brings forward the account on this line of the list, in its tab when it is housed in the tabbed frame. A locked window counts too.</value>
+  </data>
   <data name="ActionSize1" xml:space="preserve">
     <value>Size 1</value>
   </data>

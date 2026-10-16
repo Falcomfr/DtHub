@@ -173,6 +173,7 @@ port changes after a reboot.
 | `Ctrl+P` | Show or hide the configurator |
 | `Ctrl+Tab` | Next instance, or next tab when the frame is focused |
 | `Ctrl+Shift+Tab` | Previous instance, or previous tab |
+| `F1` … `F8` | The account on that line of the list, in its tab when it is in the frame |
 | `Ctrl+R` | Put every window back in place |
 | `Ctrl+T` | Tile the windows side by side |
 | `Ctrl+1` … `Ctrl+4` | Resize every window to one of four steps |

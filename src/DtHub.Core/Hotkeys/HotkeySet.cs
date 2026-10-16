@@ -21,6 +21,17 @@ public sealed class HotkeySet
             HotkeyAction.NextInstance, VirtualKeys.Tab, HotkeyModifiers.Control),
         [HotkeyAction.PreviousInstance] = Bind(
             HotkeyAction.PreviousInstance, VirtualKeys.Tab, HotkeyModifiers.Control | HotkeyModifiers.Shift),
+
+        // F1 to F8 alone, asked by a player on 2026-10-16. Armed only while
+        // a DT Hub window is in front, like every shortcut here.
+        [HotkeyAction.Account1] = Bind(HotkeyAction.Account1, VirtualKeys.F1, HotkeyModifiers.None),
+        [HotkeyAction.Account2] = Bind(HotkeyAction.Account2, VirtualKeys.F1 + 1, HotkeyModifiers.None),
+        [HotkeyAction.Account3] = Bind(HotkeyAction.Account3, VirtualKeys.F1 + 2, HotkeyModifiers.None),
+        [HotkeyAction.Account4] = Bind(HotkeyAction.Account4, VirtualKeys.F1 + 3, HotkeyModifiers.None),
+        [HotkeyAction.Account5] = Bind(HotkeyAction.Account5, VirtualKeys.F5, HotkeyModifiers.None),
+        [HotkeyAction.Account6] = Bind(HotkeyAction.Account6, VirtualKeys.F5 + 1, HotkeyModifiers.None),
+        [HotkeyAction.Account7] = Bind(HotkeyAction.Account7, VirtualKeys.F5 + 2, HotkeyModifiers.None),
+        [HotkeyAction.Account8] = Bind(HotkeyAction.Account8, VirtualKeys.F5 + 3, HotkeyModifiers.None),
         [HotkeyAction.Rearrange] = Bind(HotkeyAction.Rearrange, VirtualKeys.R, HotkeyModifiers.Control),
         [HotkeyAction.Tile] = Bind(HotkeyAction.Tile, VirtualKeys.T, HotkeyModifiers.Control),
         [HotkeyAction.Grid] = Bind(HotkeyAction.Grid, VirtualKeys.G, HotkeyModifiers.Control),

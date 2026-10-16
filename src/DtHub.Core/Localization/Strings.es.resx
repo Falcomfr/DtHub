@@ -1113,6 +1113,12 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
   <data name="ActionToggleGuides" xml:space="preserve">
     <value>Mostrar u ocultar las guías</value>
   </data>
+  <data name="ActionAccount" xml:space="preserve">
+    <value>Cuenta {0} de la lista</value>
+  </data>
+  <data name="ActionAccountDetail" xml:space="preserve">
+    <value>Pone en primer plano la cuenta de esta línea de la lista, en su pestaña si está alojada en el marco con pestañas. Una ventana bloqueada también cuenta.</value>
+  </data>
   <data name="ActionSize1" xml:space="preserve">
     <value>Tamaño 1</value>
   </data>

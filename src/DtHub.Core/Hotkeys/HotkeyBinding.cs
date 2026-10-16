@@ -98,6 +98,8 @@ public sealed record HotkeyBinding
         HotkeyAction.ToggleConfigurator => Strings.Get("ActionToggleSettings"),
         HotkeyAction.NextInstance => Strings.Get("ActionNextWindow"),
         HotkeyAction.PreviousInstance => Strings.Get("ActionPreviousWindow"),
+        >= HotkeyAction.Account1 and <= HotkeyAction.Account8 =>
+            Strings.Format("ActionAccount", action - HotkeyAction.Account1 + 1),
         HotkeyAction.Rearrange => Strings.Get("ActionStackWindows"),
         HotkeyAction.Tile => Strings.Get("SideBySide"),
         HotkeyAction.Grid => Strings.Get("Grid"),
@@ -123,6 +125,7 @@ public sealed record HotkeyBinding
         HotkeyAction.ToggleConfigurator => Strings.Get("ActionToggleSettingsDetail"),
         HotkeyAction.NextInstance => Strings.Get("ActionNextWindowDetail"),
         HotkeyAction.PreviousInstance => Strings.Get("ActionPreviousWindowDetail"),
+        >= HotkeyAction.Account1 and <= HotkeyAction.Account8 => Strings.Get("ActionAccountDetail"),
         HotkeyAction.Rearrange => Strings.Get("ActionStackWindowsDetail"),
         HotkeyAction.Tile => Strings.Get("ActionTileDetail"),
         HotkeyAction.Grid => Strings.Get("ActionGridDetail"),
