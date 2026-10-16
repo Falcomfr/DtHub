@@ -17,6 +17,13 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.8.20] - 2026-10-16
+
+### Added
+
+- F1 to F8 bring forward the account on that line of the accounts list, in its
+  tab when it is in the frame. They can be changed in Shortcuts.
+
 ## [0.8.19] - 2026-10-16
 
 ### Added

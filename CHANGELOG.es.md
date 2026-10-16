@@ -10,6 +10,13 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.8.20] - 2026-10-16
+
+### Añadido
+
+- F1 a F8 ponen en primer plano la cuenta de esa línea de la lista, en su
+  pestaña si está en el marco. Se cambian en Atajos.
+
 ## [0.8.19] - 2026-10-16
 
 ### Añadido

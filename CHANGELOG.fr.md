@@ -11,6 +11,13 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.8.20] - 2026-10-16
+
+### Ajouté
+
+- F1 à F8 mettent au premier plan le compte de cette ligne de la liste, dans
+  son onglet s'il est dans le cadre. Modifiables dans Raccourcis.
+
 ## [0.8.19] - 2026-10-16
 
 ### Ajouté
