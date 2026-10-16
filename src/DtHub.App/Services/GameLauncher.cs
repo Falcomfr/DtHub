@@ -416,9 +416,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private void OnSessionChanged(object? sender, ScrcpySession session)
     {
         // An account opening or closing shifts the keys of the lines after
-        // it, in the titles and on the tabs. Not for a deliberate close,
-        // as before; and one refresh per burst: a launch or a phone dropping
-        // moves several sessions at once, and each event started its own.
+        // it, in the titles and on the tabs. A deliberate close refreshes
+        // from StopSessionAsync, not from here, which would also retitle
+        // every window while quitting; and one refresh per burst: a launch
+        // or a phone dropping moves several sessions at once.
         if (!session.StopRequested && Interlocked.Exchange(ref _retitleQueued, 1) == 0)
         {
             _ = Task.Run(async () =>
@@ -3024,6 +3025,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
         if (_tabs is not null)
         {
             await OnUiAsync(() => _tabs?.Detach(session.Target.Key)).ConfigureAwait(false);
+        }
+
+        // The accounts after it move up a line, and their key with it. The
+        // session events leave a deliberate close aside, so that quitting
+        // does not retitle every window on its way out: this one is the
+        // close of one account, where the keys do shift.
+        try
+        {
+            _ = await RefreshWindowTitlesAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            LogTitleStatusFailure(exception);
         }
     }
 
