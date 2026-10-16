@@ -28,7 +28,7 @@ public sealed partial class HotkeyEditorViewModel : ObservableObject
         _launcher = launcher;
     }
 
-    public ObservableCollection<HotkeyRowViewModel> Rows { get; } = [];
+    public ObservableCollection<HotkeySectionViewModel> Sections { get; } = [];
 
     [ObservableProperty]
     private HotkeyRowViewModel? _capturingRow;
@@ -133,10 +133,19 @@ public sealed partial class HotkeyEditorViewModel : ObservableObject
 
     private void Rebuild()
     {
-        Rows.Clear();
-        foreach (var binding in _hotkeys.Bindings)
+        // The series unfolded stay so: a key just changed in one would
+        // otherwise fold it away under the cursor.
+        var expanded = Sections
+            .SelectMany(s => s.Entries)
+            .OfType<HotkeySeriesViewModel>()
+            .Where(s => s.IsExpanded)
+            .Select(s => s.First)
+            .ToHashSet();
+
+        Sections.Clear();
+        foreach (var section in HotkeySectionViewModel.Build(_hotkeys, expanded))
         {
-            Rows.Add(new HotkeyRowViewModel(binding));
+            Sections.Add(section);
         }
     }
 

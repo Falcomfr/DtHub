@@ -1116,6 +1116,24 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
   <data name="ActionAccount" xml:space="preserve">
     <value>Compte {0} de la liste</value>
   </data>
+  <data name="HotkeySectionSwitching" xml:space="preserve">
+    <value>Passer d'un compte à l'autre</value>
+  </data>
+  <data name="HotkeySectionArranging" xml:space="preserve">
+    <value>Ranger les fenêtres</value>
+  </data>
+  <data name="HotkeySectionApplication" xml:space="preserve">
+    <value>DT Hub</value>
+  </data>
+  <data name="HotkeySeriesAccounts" xml:space="preserve">
+    <value>Comptes 1 à {0} de la liste</value>
+  </data>
+  <data name="HotkeySeriesSizes" xml:space="preserve">
+    <value>Tailles 1 à {0}</value>
+  </data>
+  <data name="HotkeySeriesCustom" xml:space="preserve">
+    <value>Touches personnalisées</value>
+  </data>
   <data name="ActionAccountDetail" xml:space="preserve">
     <value>Met au premier plan le compte de cette ligne de la liste, dans son onglet s'il est logé dans le cadre à onglets. Une fenêtre verrouillée compte aussi.</value>
   </data>

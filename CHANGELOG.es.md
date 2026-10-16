@@ -10,6 +10,13 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Cambiado
+
+- Los atajos se agrupan en tres partes, y las cuentas 1 a 8 y los tamaños 1 a
+  4 caben cada uno en una línea que se despliega.
+
 ## [0.8.20] - 2026-10-16
 
 ### Añadido

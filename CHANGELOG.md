@@ -17,6 +17,13 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Changed
+
+- Shortcuts are grouped in three sections, and accounts 1 to 8 and sizes 1 to
+  4 each fold into one line.
+
 ## [0.8.20] - 2026-10-16
 
 ### Added

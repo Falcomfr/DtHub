@@ -710,7 +710,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
     // Shortcuts tab, read only
 
-    public ObservableCollection<HotkeyRowViewModel> Hotkeys { get; } = [];
+    public ObservableCollection<HotkeySectionViewModel> Hotkeys { get; } = [];
 
     // Miscellaneous
 
@@ -969,9 +969,9 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         var hotkeys = await _settings.GetHotkeysAsync(cancellationToken).ConfigureAwait(true);
 
         Hotkeys.Clear();
-        foreach (var binding in hotkeys.Bindings)
+        foreach (var section in HotkeySectionViewModel.Build(hotkeys))
         {
-            Hotkeys.Add(new HotkeyRowViewModel(binding));
+            Hotkeys.Add(section);
         }
 
         ToggleShortcutText = hotkeys.For(HotkeyAction.ToggleConfigurator)?.DisplayText ?? "Ctrl + P";

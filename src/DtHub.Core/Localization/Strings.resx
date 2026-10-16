@@ -1116,6 +1116,24 @@ On a {0} device, the manual copy goes through: {1}.</value>
   <data name="ActionAccount" xml:space="preserve">
     <value>Account {0} in the list</value>
   </data>
+  <data name="HotkeySectionSwitching" xml:space="preserve">
+    <value>Going from one account to another</value>
+  </data>
+  <data name="HotkeySectionArranging" xml:space="preserve">
+    <value>Arranging the windows</value>
+  </data>
+  <data name="HotkeySectionApplication" xml:space="preserve">
+    <value>DT Hub</value>
+  </data>
+  <data name="HotkeySeriesAccounts" xml:space="preserve">
+    <value>Accounts 1 to {0} in the list</value>
+  </data>
+  <data name="HotkeySeriesSizes" xml:space="preserve">
+    <value>Sizes 1 to {0}</value>
+  </data>
+  <data name="HotkeySeriesCustom" xml:space="preserve">
+    <value>Custom keys</value>
+  </data>
   <data name="ActionAccountDetail" xml:space="preserve">
     <value>Brings forward the account on this line of the list, in its tab when it is housed in the tabbed frame. A locked window counts too.</value>
   </data>

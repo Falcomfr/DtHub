@@ -1116,6 +1116,24 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
   <data name="ActionAccount" xml:space="preserve">
     <value>Cuenta {0} de la lista</value>
   </data>
+  <data name="HotkeySectionSwitching" xml:space="preserve">
+    <value>Pasar de una cuenta a otra</value>
+  </data>
+  <data name="HotkeySectionArranging" xml:space="preserve">
+    <value>Ordenar las ventanas</value>
+  </data>
+  <data name="HotkeySectionApplication" xml:space="preserve">
+    <value>DT Hub</value>
+  </data>
+  <data name="HotkeySeriesAccounts" xml:space="preserve">
+    <value>Cuentas 1 a {0} de la lista</value>
+  </data>
+  <data name="HotkeySeriesSizes" xml:space="preserve">
+    <value>Tamaños 1 a {0}</value>
+  </data>
+  <data name="HotkeySeriesCustom" xml:space="preserve">
+    <value>Teclas personalizadas</value>
+  </data>
   <data name="ActionAccountDetail" xml:space="preserve">
     <value>Pone en primer plano la cuenta de esta línea de la lista, en su pestaña si está alojada en el marco con pestañas. Una ventana bloqueada también cuenta.</value>
   </data>
