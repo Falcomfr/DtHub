@@ -2659,6 +2659,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 continue;
             }
 
+            _sdks[instance.DeviceId] = device.SdkVersion;
+
             remembered.TryGetValue(instance.Key, out var stored);
 
             // The game at its phone's own screen ratio when the account asks
@@ -4042,6 +4044,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         _hotkeys.HotkeyPressed -= OnHotkeyPressed;
         _hotkeys.ForegroundWindowChanged -= OnForegroundChanged;
+        _hotkeys.MouseCaptured -= OnMouseCaptured;
 
         await _sessions.DisposeAsync().ConfigureAwait(false);
     }
@@ -4604,9 +4607,101 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         _hotkeys.HotkeyPressed += OnHotkeyPressed;
         _hotkeys.ForegroundWindowChanged += OnForegroundChanged;
+        _hotkeys.MouseCaptured += OnMouseCaptured;
 
         await ReloadHotkeysAsync(cancellationToken).ConfigureAwait(false);
         await _hotkeys.SetEnabledAsync(true).ConfigureAwait(false);
+    }
+
+    /// <summary>Each phone's API level, known from its last launch.</summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, int?> _sdks =
+        new(StringComparer.Ordinal);
+
+    /// <summary>When each phone was last asked whether it sleeps.</summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, long> _sleepAsked =
+        new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// One question per phone at most this often, however fast the clicks
+    /// come: a phone that fell asleep is woken within fifteen seconds of
+    /// clicking, and at the first click after a quiet spell that long.
+    /// </summary>
+    private static readonly TimeSpan SleepAskInterval = TimeSpan.FromSeconds(15);
+
+    /// <summary>
+    /// A click in a game window whose phone sleeps wakes the phone up: on
+    /// some phones, see <see cref="PhoneSleep" />, a sleeping phone drops
+    /// every click while its image keeps coming. That click is lost, the
+    /// next ones arrive.
+    ///
+    /// Only for the Android versions concerned: elsewhere, nothing is asked
+    /// and nothing changes. The screen DT Hub held off is switched off again
+    /// once the phone is awake.
+    /// </summary>
+    private async void OnMouseCaptured(object? sender, nint window)
+    {
+        try
+        {
+            // Every window on the desktop that takes the mouse comes through
+            // here: the filter must cost nothing.
+            var session = window == 0
+                ? null
+                : _sessions.ActiveSessions.FirstOrDefault(s => s.IsAlive && s.WindowHandle == window);
+
+            if (session is null
+                || !_sdks.TryGetValue(session.Target.DeviceId, out var sdk)
+                || !PhoneSleep.DropsClicksWhenAsleep(sdk))
+            {
+                return;
+            }
+
+            var deviceId = session.Target.DeviceId;
+            var now = Environment.TickCount64;
+
+            if (_sleepAsked.TryGetValue(deviceId, out var asked)
+                && now - asked < (long)SleepAskInterval.TotalMilliseconds)
+            {
+                return;
+            }
+
+            _sleepAsked[deviceId] = now;
+
+            // Off the hotkey thread before adb starts: the shortcuts and the
+            // foreground watch wait on it.
+            await Task.Yield();
+
+            var serial = Routable(session.Target);
+
+            if (await _devices.IsAsleepAsync(serial).ConfigureAwait(false) != true
+                || !await _devices.WakeAsync(serial).ConfigureAwait(false))
+            {
+                return;
+            }
+
+            LogPhoneWoken(deviceId);
+
+            if (!_sessions.HoldsScreenOff(deviceId))
+            {
+                return;
+            }
+
+            // Switched off again only once lit: on a dark screen, replacing
+            // the screen-off session would flash it for nothing.
+            for (var attempt = 0; attempt < 8; attempt++)
+            {
+                await Task.Delay(250).ConfigureAwait(false);
+
+                if (await _devices.IsPanelLitAsync(serial).ConfigureAwait(false) == true)
+                {
+                    await TurnPanelOffAsync(deviceId).ConfigureAwait(false);
+                    return;
+                }
+            }
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            LogWakeFailure(exception);
+        }
     }
 
     /// <summary>
@@ -5109,6 +5204,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "L'état du téléphone n'a pas pu être posé dans le titre des fenêtres.")]
     private partial void LogTitleStatusFailure(Exception exception);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Téléphone {device} endormi au clic : réveillé.")]
+    private partial void LogPhoneWoken(string device);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Le réveil d'un téléphone endormi a échoué.")]
+    private partial void LogWakeFailure(Exception exception);
 
     [LoggerMessage(
         Level = LogLevel.Warning,

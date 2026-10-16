@@ -345,6 +345,61 @@ public sealed class DeviceDiscoveryService : IDisposable
     }
 
     /// <summary>
+    /// Is the phone asleep, see <see cref="PhoneSleep" />, or <c>null</c> if
+    /// the device says nothing. Not cached, for the same reason as the panel.
+    /// </summary>
+    public async Task<bool?> IsAsleepAsync(
+        string serial,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(serial))
+        {
+            return null;
+        }
+
+        try
+        {
+            return PhoneSleep.IsAsleep(await _adb
+                .ShellAsync(serial, PhoneSleep.Command, cancellationToken: cancellationToken)
+                .ConfigureAwait(false));
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // Same silence taken deliberately as for the other side probes.
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Wakes the phone up, as its power button would. True if the phone
+    /// took the command.
+    /// </summary>
+    public async Task<bool> WakeAsync(
+        string serial,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(serial))
+        {
+            return false;
+        }
+
+        try
+        {
+            _ = await _adb
+                .ShellAsync(serial, ["input", "keyevent", "KEYCODE_WAKEUP"], cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            return true;
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // Said by the false: the click stays lost, as it was before,
+            // and the next one asks again.
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Last trust verdict for the display, per device.
     ///
     /// Kept for a long time: this flag says what the device is capable of, and
