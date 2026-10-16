@@ -676,4 +676,39 @@ public class DeviceDiscoveryServiceTests
 
         Assert.True(await service.IsBatteryExemptAsync("USB0001", "com.makeintouch.dtstuff"));
     }
+
+    [Fact]
+    public async Task Une_reponse_d_ecran_incomprise_est_signalee_une_fois_par_telephone()
+    {
+        // Two Galaxy S25 never showed the "Switch off" line: their answer
+        // has to reach the log to be read.
+        var adb = new FakeAdbClient()
+            .WithShell("dumpsys SurfaceFlinger --displays", "Ecran 1\n    mode=allume");
+
+        using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry());
+        List<(string Serial, string Dump)> signales = [];
+        service.PanelUnread += (serial, dump) => signales.Add((serial, dump));
+
+        Assert.Null(await service.IsPanelLitAsync("USB0001"));
+        Assert.Null(await service.IsPanelLitAsync("USB0001"));
+        Assert.Null(await service.IsPanelLitAsync("USB0002"));
+
+        Assert.Equal(
+            [("USB0001", "Ecran 1\n    mode=allume"), ("USB0002", "Ecran 1\n    mode=allume")],
+            signales);
+    }
+
+    [Fact]
+    public async Task Une_reponse_d_ecran_comprise_n_est_pas_signalee()
+    {
+        var adb = new FakeAdbClient()
+            .WithShell("dumpsys SurfaceFlinger --displays", "Display 1\n    powerMode=On");
+
+        using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry());
+        var signales = 0;
+        service.PanelUnread += (_, _) => signales++;
+
+        Assert.True(await service.IsPanelLitAsync("USB0001"));
+        Assert.Equal(0, signales);
+    }
 }
