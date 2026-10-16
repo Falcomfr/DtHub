@@ -1989,7 +1989,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>the Island app from the Play Store, which makes a work profile to clone the game into</value>
   </data>
   <data name="BrandSamsungCloneNote" xml:space="preserve">
-    <value>Samsung keeps the Secure Folder closed to a PC, even unlocked: DT Hub cannot open the game there. Dual Messenger only duplicates messaging apps. Island makes a work profile, which DT Hub opens like the other accounts.</value>
+    <value>Samsung keeps the Secure Folder closed to a PC, even unlocked: DT Hub cannot open the game there. Dual Messenger only duplicates messaging apps. Island makes a work profile, which DT Hub opens like the other accounts. If the login stays stuck in Island, clone Chrome into the work profile too. For one more account, a third-party cloning app with ads such as Parallel Space also works: show it from “Show an application already installed”, then start DOFUS Touch inside it. If the login stays stuck on a Chrome page, tap the three dots and open it in Chrome.</value>
   </data>
   <data name="BrandSamsungBatteryFeature" xml:space="preserve">
     <value>Allow background activity</value>
@@ -2342,7 +2342,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>{0}: unlock the Secure Folder, the game is in it and DT Hub cannot see it while it is closed. Its accounts show up here a few seconds later. So it does not lock again mid-game: {1}  ›  "Auto lock Secure Folder", pick the longest option. If nothing shows once unlocked, Samsung blocks access from a PC on this phone: install the game outside the Secure Folder.</value>
   </data>
   <data name="SecureFolderForbidden" xml:space="preserve">
-    <value>{0}: Samsung does not let a PC into the Secure Folder on this phone, even unlocked, so DT Hub cannot open the game there. Install this account outside the Secure Folder, for instance in a work profile made with the Island app from the Play Store: DT Hub opens it like the other accounts.</value>
+    <value>{0}: Samsung does not let a PC into the Secure Folder on this phone, even unlocked, so DT Hub cannot open the game there. Install this account outside the Secure Folder, for instance in a work profile made with the Island app from the Play Store: DT Hub opens it like the other accounts. If the login stays stuck in Island, clone Chrome into the work profile too. For one more account, a third-party cloning app with ads such as Parallel Space also works: show it from “Show an application already installed”, then start DOFUS Touch inside it. If the login stays stuck on a Chrome page, tap the three dots and open it in Chrome.</value>
   </data>
   <data name="SecureFolderLocked" xml:space="preserve">
     <value>{0}: the Secure Folder has locked, unlock it to get its accounts back. They return a few seconds later. So it does not lock again mid-game: {1}  ›  "Auto lock Secure Folder", pick the longest option.</value>
