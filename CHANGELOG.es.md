@@ -10,6 +10,18 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.8.22] - 2026-10-16
+
+### Cambiado
+
+- La ayuda sobre la Carpeta segura de Samsung cubre también un inicio de
+  sesión bloqueado en Island, y Parallel Space para una cuenta más.
+
+### Corregido
+
+- En Android 14 y anteriores, un clic en un juego cuyo teléfono se durmió
+  despierta el teléfono, y los clics siguientes vuelven a llegar.
+
 ## [0.8.21] - 2026-10-16
 
 ### Cambiado

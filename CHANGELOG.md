@@ -17,6 +17,18 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.8.22] - 2026-10-16
+
+### Changed
+
+- The Samsung Secure Folder help also covers a login stuck in Island, and
+  Parallel Space for one more account.
+
+### Fixed
+
+- On Android 14 and older, a click in a game whose phone fell asleep wakes the
+  phone up, and the next clicks get through again.
+
 ## [0.8.21] - 2026-10-16
 
 ### Changed

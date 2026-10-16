@@ -11,6 +11,18 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.8.22] - 2026-10-16
+
+### Modifié
+
+- L'aide sur le Dossier sécurisé Samsung couvre aussi une connexion bloquée
+  dans Island, et Parallel Space pour un compte de plus.
+
+### Corrigé
+
+- Sous Android 14 et moins, un clic dans un jeu dont le téléphone s'est
+  endormi réveille le téléphone, et les clics suivants passent de nouveau.
+
 ## [0.8.21] - 2026-10-16
 
 ### Modifié
