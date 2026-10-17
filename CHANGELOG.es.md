@@ -10,7 +10,7 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
-## [Unreleased]
+## [0.9.0] - 2026-10-17
 
 ### Añadido
 
@@ -23,16 +23,10 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 ### Cambiado
 
 - La pantalla completa pasa primero entre los atajos de las ventanas.
-
 - Los encabezados de logros de las guías ya no muestran un rango de niveles:
   el sitio lo da para muy pocas misiones.
 - Los caminos de misiones encabezan la zona a la que llevan, y el camino de
   una mazmorra queda justo encima de ella.
-
-### Corregido
-
-- Las guías de misiones vuelven a llenarse para los jugadores nuevos, y las
-  misiones que el sitio añade llegan solas.
 
 ## [0.8.22] - 2026-10-16
 

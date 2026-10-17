@@ -11,7 +11,7 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
-## [Unreleased]
+## [0.9.0] - 2026-10-17
 
 ### Ajouté
 
@@ -23,16 +23,10 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 ### Modifié
 
 - Le plein écran passe en tête des raccourcis des fenêtres.
-
 - Les intertitres de succès des guides n'affichent plus de fourchette de
   niveaux : le site en donne pour trop peu de quêtes.
 - Les chemins de quêtes ouvrent la zone où ils mènent, et le chemin d'un
   donjon se range juste avant lui.
-
-### Corrigé
-
-- Les guides de quêtes se remplissent de nouveau pour les nouveaux joueurs,
-  et les quêtes que le site ajoute arrivent toutes seules.
 
 ## [0.8.22] - 2026-10-16
 

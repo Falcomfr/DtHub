@@ -17,7 +17,7 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
-## [Unreleased]
+## [0.9.0] - 2026-10-17
 
 ### Added
 
@@ -29,16 +29,10 @@ belongs in the commits and in `docs/DECISIONS.md`.
 ### Changed
 
 - Fullscreen comes first among the window shortcuts.
-
 - Achievement headings in the guide lists no longer show a level range: the
   site gives a level for too few quests.
 - Quest paths head the zone they lead to, and a dungeon's path sits right
   above it.
-
-### Fixed
-
-- The quest guides fill again for new players, and quests the site adds
-  arrive by themselves.
 
 ## [0.8.22] - 2026-10-16
 
