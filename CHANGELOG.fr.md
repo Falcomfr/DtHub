@@ -17,6 +17,8 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 - La ligne d'un compte garde sa hauteur quand sa fenêtre s'ouvre : les
   lignes du dessous ne sautent plus.
+- Un compte déplacé prend sa nouvelle place dans la liste dès qu'on le
+  lâche, même plusieurs fois de suite.
 
 ## [0.9.0] - 2026-10-17
 

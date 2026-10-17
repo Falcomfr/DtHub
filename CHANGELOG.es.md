@@ -16,6 +16,8 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 
 - La línea de una cuenta conserva su altura al abrirse su ventana: las
   líneas de abajo ya no saltan.
+- Una cuenta arrastrada ocupa su nuevo lugar en la lista en cuanto se
+  suelta, incluso varias veces seguidas.
 
 ## [0.9.0] - 2026-10-17
 

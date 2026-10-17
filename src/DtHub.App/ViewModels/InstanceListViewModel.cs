@@ -964,18 +964,54 @@ public sealed partial class InstanceListViewModel : ObservableObject
             return;
         }
 
+        // The row moves on screen the instant it is dropped, by the same
+        // rule as the settings (InstanceOrdering.MoveInstance). Everything
+        // below can wait: the sweep holds the list for its whole pass,
+        // phones' health included, measured at 2.2 seconds, and a row
+        // that waited for it made every drop in a series feel stuck.
+        var from = Rows.IndexOf(dragged);
+        var to = Rows.IndexOf(onto);
+
+        if (from >= 0 && to >= 0)
+        {
+            var destination = above ? to : to + 1;
+
+            if (from < destination)
+            {
+                destination--;
+            }
+
+            if (destination != from)
+            {
+                Rows.Move(from, destination);
+                RefreshDeviceHeaders();
+            }
+        }
+
         if (await _settings.MoveInstanceAsync(dragged.Key, onto.Key, above).ConfigureAwait(true))
         {
-            // The discovery cache carries the old order: keeping it
-            // would bring the row back to its place under the cursor. Any
-            // write to the settings must invalidate it.
-            InvalidateInstances();
+            // The discovery cache carries the old order: keeping it as is
+            // would bring the row back to its place under the cursor. It
+            // is sorted again rather than dropped: dropping it sent the
+            // sweep back to the phones, measured at 2.9 seconds, before
+            // the row moved, and a move changes no account, only ranks.
+            // The count still moves, so a sweep in flight does not keep
+            // the old order.
+            var ranks = await _settings.GetInstanceRanksAsync().ConfigureAwait(true);
+
+            if (_instances is { } held)
+            {
+                _instances = [.. held.OrderBy(i => ranks.GetValueOrDefault(i.Key, int.MaxValue))];
+            }
+
+            _invalidations++;
 
             // The order of the list drives the order of the windows:
             // without this, moving a row only changed the keyboard path.
             await _launcher.RefreshRanksAsync().ConfigureAwait(true);
 
-            await RefreshAsync().ConfigureAwait(true);
+            // The F keys follow the lines.
+            RefreshRunningState();
 
             // The open windows are reopened in the new order.
             //
@@ -986,6 +1022,10 @@ public sealed partial class InstanceListViewModel : ObservableObject
             // asked for.
             await _launcher.ReopenAsync().ConfigureAwait(true);
             await _launcher.ApplyWindowOrderAsync().ConfigureAwait(true);
+
+            // Last, and only to settle: a sweep in flight at the drop
+            // may have shown the old order back.
+            await RefreshAsync().ConfigureAwait(true);
         }
     }
 

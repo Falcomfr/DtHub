@@ -23,6 +23,8 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 - An account's line keeps its height when its window opens: the lines
   below no longer jump.
+- A dragged account takes its new place in the list the moment it is
+  dropped, even several times in a row.
 
 ## [0.9.0] - 2026-10-17
 
