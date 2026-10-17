@@ -3543,6 +3543,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 placed++;
             }
 
+            if (placed > 0)
+            {
+                await LeaveFullscreenStateAsync(cancellationToken).ConfigureAwait(false);
+            }
+
             await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
 
             return placed;
@@ -3620,6 +3625,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 }).ConfigureAwait(false);
 
                 placed++;
+            }
+
+            if (placed > 0)
+            {
+                await LeaveFullscreenStateAsync(cancellationToken).ConfigureAwait(false);
             }
 
             await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
@@ -3713,6 +3723,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private async Task<int> ArrangeCoreAsync(CancellationToken cancellationToken)
     {
         await ApplyWindowSettingsAsync(cancellationToken).ConfigureAwait(false);
+
+        // Before placing: the placement reads the size, and in full
+        // screen it stacked every window back over the whole screen.
+        if (ManagedSessions.Count > 0 || MovableFrame is not null)
+        {
+            await LeaveFullscreenStateAsync(cancellationToken).ConfigureAwait(false);
+        }
 
         var moved = await _windows.ArrangeAsync(ManagedSessions, cancellationToken)
             .ConfigureAwait(false);
@@ -3953,6 +3970,21 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// Arms Escape or gives it back to the game, only when that changes:
     /// the slider and the foreground watcher call this all the time.
     /// </summary>
+    /// <summary>
+    /// Drops full screen for a command that places the windows
+    /// itself, and remembers the size from before as the current one.
+    /// </summary>
+    private async Task LeaveFullscreenStateAsync(CancellationToken cancellationToken)
+    {
+        if (!_windows.LeaveFullscreenState())
+        {
+            return;
+        }
+
+        await _settings.SaveCustomSizePercentAsync(_windows.SizePercent, cancellationToken).ConfigureAwait(false);
+        await ArmEscapeAsync().ConfigureAwait(false);
+    }
+
     private Task ArmEscapeAsync()
     {
         lock (_escapeLock)
