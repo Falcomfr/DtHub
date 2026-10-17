@@ -64,9 +64,9 @@ not use their name or logos as part of its own identity.
 - Copyright: Copyright (C) 1997-2026 Sam Lantinga
 - Licence: zlib
 
-DT Hub embeds a build of SDL release-3.4.12 with one patch, so that a game
+DT Hub embeds a build of SDL release-3.4.18 with one patch, so that a game
 window docked in a tab receives text input, and writes it over the
-`SDL3.dll` of scrcpy 4.1. This is an altered version, not the original
+`SDL3.dll` of scrcpy 5.0.1. This is an altered version, not the original
 software. The patch, the reason for it, the rebuild procedure and SDL's
 licence are in `third_party/sdl/`.
 

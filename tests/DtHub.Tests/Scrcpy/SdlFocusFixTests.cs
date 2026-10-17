@@ -33,7 +33,7 @@ public sealed class SdlFocusFixTests : IDisposable
         new SdlFocusFix(
                 Convert.ToHexStringLower(SHA256.HashData(Original)),
                 Fixed,
-                runner ?? new FakeProcessRunner().Respond("--version", " - SDL: 3.4.12 / 3.4.12"),
+                runner ?? new FakeProcessRunner().Respond("--version", " - SDL: 3.4.18 / 3.4.18"),
                 NullLogger<SdlFocusFix>.Instance)
             .ApplyAsync(Path.Combine(_root, "scrcpy.exe"));
 

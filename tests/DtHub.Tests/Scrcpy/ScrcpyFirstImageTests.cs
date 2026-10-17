@@ -13,6 +13,8 @@ public sealed class ScrcpyFirstImageTests
     [InlineData("INFO: Texture: 1920x1080")]
     [InlineData("INFO: Texture: 1600x896")]
     [InlineData("Texture: 720x1600")]
+    // scrcpy 5 décodant sur la carte graphique.
+    [InlineData("INFO: Texture (D3D11VA): 1920x1080")]
     public void La_ligne_de_texture_annonce_la_premiere_image(string ligne)
     {
         Assert.True(ScrcpyOutputParser.IsFirstImage(ligne));

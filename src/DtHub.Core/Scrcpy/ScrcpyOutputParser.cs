@@ -264,6 +264,10 @@ public static partial class ScrcpyOutputParser
     /// happen seconds before anything is drawn: a window that stayed
     /// black for half a minute left no trace at all, so a slow game
     /// could not be told from a stream that never arrived.
+    ///
+    /// scrcpy 5 names the hardware path in it, "Texture (D3D11VA):
+    /// 1920x1080" (interop_d3d11va.c), and keeps the plain line for
+    /// software decoding.
     /// </summary>
     public static bool IsFirstImage(string? line) =>
         !string.IsNullOrWhiteSpace(line) && FirstImage().IsMatch(line);
@@ -274,6 +278,6 @@ public static partial class ScrcpyOutputParser
     [GeneratedRegex(@"New display: (\d+)x(\d+)/", RegexOptions.IgnoreCase)]
     private static partial Regex NewDisplaySize();
 
-    [GeneratedRegex(@"\bTexture:\s*\d+x\d+", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"\bTexture(?: \([^)]*\))?:\s*\d+x\d+", RegexOptions.IgnoreCase)]
     private static partial Regex FirstImage();
 }

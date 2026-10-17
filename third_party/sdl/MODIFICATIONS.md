@@ -1,7 +1,9 @@
 # Modifications made to SDL
 
-**Status as of 2026-10-04: one patch, on SDL release-3.4.12, the version
-scrcpy 4.1 ships.**
+**Status as of 2026-10-17: one patch, on SDL release-3.4.18, the version
+scrcpy 5.0.1 ships.** The patch was first written on 3.4.12 for scrcpy 4.1
+(2026-10-04); `SDL_windowsevents.c` is byte for byte the same in 3.4.18, so
+it applies unchanged.
 
 ## The need
 
@@ -26,23 +28,23 @@ check: https://github.com/libsdl-org/SDL/issues/13777.
 
 - `0001-focus-embedded-child-window.patch`: the patch, the only altered
   source being `src/video/windows/SDL_windowsevents.c`.
-- `SDL3.dll`: the build tested on 2026-10-04, embedded in
+- `SDL3.dll`: the 3.4.18 build of 2026-10-17, embedded in
   `DtHub.Infrastructure`. `SdlFocusFix` writes it over scrcpy's own
-  `SDL3.dll`, and only over the one of scrcpy 4.1, recognised by its
+  `SDL3.dll`, and only over the one of scrcpy 5.0.1, recognised by its
   SHA-256. It then runs `scrcpy --version`, which loads SDL, and puts the
   original back if scrcpy no longer starts.
 - `LICENSE.txt`: SDL's zlib licence.
 
 ## Rebuilding
 
-Source: https://github.com/libsdl-org/SDL/archive/refs/tags/release-3.4.12.tar.gz,
-SHA-256 `b68381f06a7580e63400b3b6eb547ec57d8c3ebde70f9f40e0aba530ba05da27`,
+Source: https://github.com/libsdl-org/SDL/archive/refs/tags/release-3.4.18.tar.gz,
+SHA-256 `c4b08b950bd29d83caae0ab8d884298d27046a9d30700fb42841c50992665c90`,
 the same archive and options as scrcpy's `app/deps/sdl.sh`. Built with
 llvm-mingw 20260922 (UCRT), CMake and Ninja:
 
 ```bash
-tar xzf release-3.4.12.tar.gz
-cd SDL-release-3.4.12
+tar xzf release-3.4.18.tar.gz
+cd SDL-release-3.4.18
 patch -p1 < 0001-focus-embedded-child-window.patch
 CFLAGS=-O2 cmake -S . -B build -G Ninja -DCMAKE_SYSTEM_NAME=Windows \
   -DCMAKE_C_COMPILER=x86_64-w64-mingw32-clang \

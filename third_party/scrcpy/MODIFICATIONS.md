@@ -1,6 +1,6 @@
 # Modifications made to scrcpy
 
-**Status as of 2026-08-29, scrcpy v4.1: no modification.**
+**Status as of 2026-10-17, scrcpy v5.0.1: no modification.**
 
 DT Hub uses scrcpy as published by the upstream project. The official
 archive is downloaded, its checksum verified, and extracted without altering
