@@ -119,7 +119,7 @@ public class ScrcpyCommandBuilderTests
         var arguments = ScrcpyCommandBuilder.BuildScreenOffArguments("USB0001");
 
         Assert.Equal(
-            ["--serial=USB0001", "--no-video", "--no-audio", "--no-window", "--turn-screen-off"],
+            ["--serial=USB0001", "--no-video", "--no-audio", "--no-window", "--no-clipboard-autosync", "--turn-screen-off"],
             arguments);
     }
 
@@ -240,6 +240,29 @@ public class ScrcpyCommandBuilderTests
 
         Assert.Contains("--audio-source=playback", arguments);
         Assert.DoesNotContain("--no-audio", arguments);
+    }
+
+    [Fact]
+    public void Une_fenetre_de_jeu_ne_laisse_pas_de_nettoyeur_sur_le_telephone()
+    {
+        // Measured on the 13T Pro on 2026-10-17: each game session's CleanUp
+        // process held 44 MB of private memory, on a phone already reclaiming
+        // with kswapd0, for nothing: a game window changes none of the
+        // settings it restores.
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments("USB0001", "T", ScrcpyOptions.Default);
+
+        Assert.Contains("--no-cleanup", arguments);
+    }
+
+    [Fact]
+    public void La_session_qui_eteint_l_ecran_garde_son_nettoyeur_et_ne_suit_pas_le_presse_papiers()
+    {
+        // Its CleanUp is what lights the screen back when it dies. Its
+        // clipboard listener, though, only doubled every copy.
+        var arguments = ScrcpyCommandBuilder.BuildScreenOffArguments("USB0001");
+
+        Assert.DoesNotContain("--no-cleanup", arguments);
+        Assert.Contains("--no-clipboard-autosync", arguments);
     }
 
     [Theory]

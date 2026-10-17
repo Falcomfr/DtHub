@@ -2462,8 +2462,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // a minute while playing. It is spaced out in that case,
             // not removed: it also catches a phone paired long ago
             // that starts announcing itself again.
+            //
+            // A phone gone for over a day does not count as missing here:
+            // one paired a month ago and left in a drawer forced the scan on
+            // every pass. It is still found by its own announcement, at the
+            // idle pace, and asked at its last address now and then below.
+            var now = DateTimeOffset.UtcNow;
+            var awake = known.Where(d => !DeviceDormancy.IsDormant(d.LastSeenUtc, now)).ToList();
+
             var whole = known.Count > 0
-                && known.All(d => live.Devices.Any(l =>
+                && awake.All(d => live.Devices.Any(l =>
                     l.IsConnected && string.Equals(l.Id, d.Id, StringComparison.Ordinal)));
 
             var opened = new AnnouncedConnections([], []);
@@ -2498,7 +2506,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     .Select(d => d.Id)
                     .ToHashSet(StringComparer.Ordinal);
 
-                var missing = known.Where(d => !connected.Contains(d.Id)).ToList();
+                // Dormant phones only every few minutes: each costs an adb
+                // connect with a five-second deadline the sweep waits on.
+                var dormantDue = now - _lastDormantAttempt >= DeviceDormancy.RetryEvery;
+
+                var missing = known
+                    .Where(d => !connected.Contains(d.Id))
+                    .Where(d => dormantDue || !DeviceDormancy.IsDormant(d.LastSeenUtc, now))
+                    .ToList();
+
+                if (dormantDue && missing.Any(d => DeviceDormancy.IsDormant(d.LastSeenUtc, now)))
+                {
+                    _lastDormantAttempt = now;
+                }
 
                 if (missing.Count > 0)
                 {
@@ -2577,6 +2597,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private static readonly TimeSpan IdleScanInterval = TimeSpan.FromSeconds(30);
 
     private DateTimeOffset _lastAnnouncedScan = DateTimeOffset.MinValue;
+
+    private DateTimeOffset _lastDormantAttempt = DateTimeOffset.MinValue;
 
     private DateTimeOffset _lastReconnectAttempt = DateTimeOffset.MinValue;
 

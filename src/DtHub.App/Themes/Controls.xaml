@@ -1304,34 +1304,11 @@
                matches the arc's, seven: without it, it's eight, and
                the blue misses the grey by a full pixel. -->
           <Viewbox Stretch="Uniform">
-            <!-- The animation targets the element that carries the
-                 trigger, unnamed.
-
-                 The rule is narrower than it looks, and worth stating
-                 precisely: an EventTrigger written on an element inside
-                 a template, as here, resolves against the outer scope
-                 and cannot name anything in the template. A
-                 ControlTemplate.Triggers entry does see it, which is how
-                 the spinner and the tabs' underline both target a named
-                 element. Getting the two confused cost a crash on every
-                 row displayed. -->
             <Grid Width="16" Height="16" Background="Transparent"
                   RenderTransformOrigin="0.5,0.5">
               <Grid.RenderTransform>
-                <RotateTransform Angle="0" />
+                <RotateTransform x:Name="Turn" Angle="0" />
               </Grid.RenderTransform>
-
-              <Grid.Triggers>
-                <EventTrigger RoutedEvent="Loaded">
-                  <BeginStoryboard>
-                    <Storyboard>
-                      <DoubleAnimation
-                          Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
-                          From="0" To="360" Duration="0:0:1" RepeatBehavior="Forever" />
-                    </Storyboard>
-                  </BeginStoryboard>
-                </EventTrigger>
-              </Grid.Triggers>
 
               <Ellipse Margin="1" Stroke="{DynamicResource BorderBrush}" StrokeThickness="2" />
               <Path Stroke="{DynamicResource AccentBrush}" StrokeThickness="2"
@@ -1339,6 +1316,30 @@
                     Data="M 8 1 A 7 7 0 0 1 15 8" />
             </Grid>
           </Viewbox>
+
+          <!-- Turning only while it shows, as the spinner does. Started on
+               Loaded it turned forever, collapsed or not, once per account
+               row: an animation running keeps WPF drawing the window at the
+               screen's rate for the whole evening. A ControlTemplate trigger
+               can name the transform, which an EventTrigger on an element
+               of the template cannot. -->
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsVisible" Value="True">
+              <Trigger.EnterActions>
+                <BeginStoryboard x:Name="Spin">
+                  <Storyboard>
+                    <DoubleAnimation Storyboard.TargetName="Turn"
+                                     Storyboard.TargetProperty="Angle"
+                                     From="0" To="360" Duration="0:0:1"
+                                     RepeatBehavior="Forever" />
+                  </Storyboard>
+                </BeginStoryboard>
+              </Trigger.EnterActions>
+              <Trigger.ExitActions>
+                <StopStoryboard BeginStoryboardName="Spin" />
+              </Trigger.ExitActions>
+            </Trigger>
+          </ControlTemplate.Triggers>
         </ControlTemplate>
       </Setter.Value>
     </Setter>

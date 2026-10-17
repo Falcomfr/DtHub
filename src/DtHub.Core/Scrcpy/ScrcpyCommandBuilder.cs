@@ -190,6 +190,15 @@ public static class ScrcpyCommandBuilder
             arguments.Add("--no-clipboard-autosync");
         }
 
+        // **Measured on the 13T Pro on 2026-10-17**: scrcpy leaves beside each
+        // server a CleanUp process, 44 MB of private memory each, on a phone
+        // already reclaiming memory with kswapd0. It restores at the end what
+        // the session changed: show touches, stay awake, screen timeout, IME
+        // policy, screen power. A game window changes none of them; the
+        // screen is held off by its own session, which keeps its CleanUp to
+        // light it back. Read in the v4.1 server, CleanUp.java.
+        arguments.Add("--no-cleanup");
+
         if (sanitized.KeepDeviceAwake)
         {
             arguments.Add("--keep-active");
@@ -280,6 +289,10 @@ public static class ScrcpyCommandBuilder
             "--no-video",
             "--no-audio",
             "--no-window",
+
+            // Its clipboard listener only set every copy once more on the
+            // phone, on top of the game windows'.
+            "--no-clipboard-autosync",
             "--turn-screen-off",
         ];
     }
