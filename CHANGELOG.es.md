@@ -17,6 +17,11 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 - Las misiones repetibles muestran su ritmo en las listas de guías: diaria,
   semanal, repetible o de temporada.
 
+### Cambiado
+
+- Los encabezados de logros de las guías ya no muestran un rango de niveles:
+  el sitio lo da para muy pocas misiones.
+
 ### Corregido
 
 - Las guías de misiones vuelven a llenarse para los jugadores nuevos, y las

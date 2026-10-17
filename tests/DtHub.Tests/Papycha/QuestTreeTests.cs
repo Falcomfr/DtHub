@@ -143,6 +143,30 @@ public class QuestTreeTests
     }
 
     [Fact]
+    public async Task Un_intertitre_de_succes_ne_porte_pas_de_niveau()
+    {
+        // The site gives a level for 103 quests out of 762: a range drawn from
+        // so few says more about the gaps than about the achievement.
+        var client = new FakePapychaClient()
+            .WithQuest(1, "Première", 18).AtLevel(20)
+            .WithQuest(2, "Deuxième", 18).AtLevel(60)
+            .WithSection(18, "Astrub");
+        client.KnownQuests.AddRange(
+        [
+            new QuestSummary { Id = 1, Title = "Première", SectionIds = [18], SuccessName = "Devenir une légende" },
+            new QuestSummary { Id = 2, Title = "Deuxième", SectionIds = [18], SuccessName = "Devenir une légende" },
+        ]);
+
+        var (tree, _) = await BuildAsync(client);
+        var service = new QuestCatalogService(client, new InMemoryDocumentStore<QuestCatalogDocument>(), client);
+        var catalog = await service.GetAsync(null, CancellationToken.None);
+
+        var titre = tree.BySuccess(catalog.Quests).First(n => n.Kind == QuestNodeKind.Success);
+
+        Assert.Null(titre.Detail);
+    }
+
+    [Fact]
     public async Task Une_quete_hors_succes_reste_au_ras_de_la_marge()
     {
         var client = new FakePapychaClient()

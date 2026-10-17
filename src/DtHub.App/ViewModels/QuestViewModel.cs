@@ -878,7 +878,6 @@ public sealed partial class QuestViewModel : ObservableObject
                 Nodes.Add(new QuestNode(
                     QuestNodeKind.Success,
                     $"{success} ({quests.Count})",
-                    QuestLevelRange.Of(quests),
                     Glyph: QuestNodeGlyph.Success));
 
                 foreach (var quest in quests)

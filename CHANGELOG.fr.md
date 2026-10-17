@@ -18,6 +18,11 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - Les quêtes répétables affichent leur rythme dans les listes des guides :
   quotidienne, hebdomadaire, répétable ou saisonnière.
 
+### Modifié
+
+- Les intertitres de succès des guides n'affichent plus de fourchette de
+  niveaux : le site en donne pour trop peu de quêtes.
+
 ### Corrigé
 
 - Les guides de quêtes se remplissent de nouveau pour les nouveaux joueurs,

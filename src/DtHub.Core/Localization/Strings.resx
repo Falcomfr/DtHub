@@ -1796,12 +1796,6 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="LevelRange" xml:space="preserve">
     <value>Level {0} to {1}</value>
   </data>
-  <data name="LevelSpan" xml:space="preserve">
-    <value>level {0}</value>
-  </data>
-  <data name="LevelSpanOf" xml:space="preserve">
-    <value>level {0} (out of {1})</value>
-  </data>
   <data name="ZoneInProgress" xml:space="preserve">
     <value>{0} in progress</value>
   </data>

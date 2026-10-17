@@ -264,7 +264,6 @@ public sealed class QuestTree
                     block.IsContinuation
                         ? $"{block.SuccessName} ({Strings.Get("SeriesContinued")})"
                         : $"{block.SuccessName} ({Text(total[block.SuccessName])})",
-                    QuestLevelRange.Of(block.Quests),
                     Glyph: QuestNodeGlyph.Success);
             }
 
