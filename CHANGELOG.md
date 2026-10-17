@@ -17,6 +17,13 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Fixed
+
+- An account's line keeps its height when its window opens: the lines
+  below no longer jump.
+
 ## [0.9.0] - 2026-10-17
 
 ### Added

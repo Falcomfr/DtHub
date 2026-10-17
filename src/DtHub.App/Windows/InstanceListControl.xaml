@@ -482,19 +482,15 @@
                              Style="{StaticResource InlineEdit}"
                              ToolTip="{loc:T RenameTip}" />
 
-                    <!-- What this account is doing, and failing that,
-                         which profile it came from. One line, never two:
-                         the slot was already here and stood empty unless
-                         the account had been renamed, which is most of
-                         the time.
+                    <!-- What this account is doing. One line, never two.
 
-                         Filling it always, rather than only while a
-                         window is open, is what stops the row from
-                         growing by a line the moment one opens. The
-                         profile still shows after a rename, because at
-                         that point it is the only way to tell which is
-                         which; without one it would repeat the name
-                         just above.
+                         Never collapsed, even when there is nothing to
+                         say: an empty TextBlock still takes its line, and
+                         that is what stops the row from growing the
+                         moment a window opens. The profile used to fill
+                         it at rest; since it was dropped on 2026-10-11,
+                         collapsing the empty line made every launch
+                         push the rows below.
 
                          The brush is bound locally rather than through
                          a style setter: a Setter cannot carry a
@@ -503,10 +499,7 @@
                     <TextBlock Text="{Binding StatusLine}" Style="{StaticResource Muted}"
                                Foreground="{Binding StatusLineBrushKey,
                                                     Converter={StaticResource KeyToBrush}}"
-                               FontSize="{StaticResource FontTiny}" Margin="2,1,0,0"
-                               Visibility="{Binding StatusLine,
-                                                    Converter={StaticResource EmptyToVisibility},
-                                                    ConverterParameter=inverse}" />
+                               FontSize="{StaticResource FontTiny}" Margin="2,1,0,0" />
                   </StackPanel>
 
                   <!-- The buttons alone tell the instance's state:

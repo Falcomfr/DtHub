@@ -10,6 +10,13 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Corregido
+
+- La línea de una cuenta conserva su altura al abrirse su ventana: las
+  líneas de abajo ya no saltan.
+
 ## [0.9.0] - 2026-10-17
 
 ### Añadido

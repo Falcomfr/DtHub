@@ -11,6 +11,13 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Corrigé
+
+- La ligne d'un compte garde sa hauteur quand sa fenêtre s'ouvre : les
+  lignes du dessous ne sautent plus.
+
 ## [0.9.0] - 2026-10-17
 
 ### Ajouté
