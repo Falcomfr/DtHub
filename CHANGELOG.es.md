@@ -23,7 +23,7 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
   el sitio lo da para muy pocas misiones.
 
 - Los caminos de misiones encabezan la zona a la que llevan, y el camino de
-  una mazmorra queda justo debajo de ella.
+  una mazmorra queda justo encima de ella.
 
 ### Corregido
 

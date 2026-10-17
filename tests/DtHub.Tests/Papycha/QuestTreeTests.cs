@@ -160,7 +160,7 @@ public class QuestTreeTests
     }
 
     [Fact]
-    public async Task Un_donjon_est_suivi_de_la_ligne_de_son_chemin()
+    public async Task Un_donjon_est_precede_de_la_ligne_de_son_chemin()
     {
         // A row of the list, so that the list finds it again once the path
         // is open, and named after the dungeon so that it reads as its own.
@@ -172,8 +172,9 @@ public class QuestTreeTests
         var (tree, _) = await BuildAsync(client);
         var rows = tree.DungeonNodes().Where(n => n.Kind != QuestNodeKind.Header).ToList();
 
-        Assert.Equal([1, 5744, 0], rows.Select(r => r.Dungeon?.Id ?? 0));
-        var path = rows[2];
+        // The path comes first: it is followed before the dungeon is entered.
+        Assert.Equal([1, 0, 5744], rows.Select(r => r.Dungeon?.Id ?? 0));
+        var path = rows[1];
         Assert.Equal(5739, path.Path?.Id);
         Assert.True(path.Nested);
         Assert.Equal(Strings.Format("PathTo", "Canopée du Kimbo"), path.Label);

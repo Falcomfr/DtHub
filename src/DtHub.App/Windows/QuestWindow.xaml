@@ -1266,11 +1266,11 @@
                     <Setter TargetName="Libelle" Property="Margin" Value="9,3,0,3" />
                   </DataTrigger>
 
-                  <!-- A dungeon's path, under its dungeon: its road moves to
+                  <!-- A dungeon's path, above its dungeon: its road moves to
                        where the dungeon names start, past the level column
                        (22 wide, 10 of gap), and its label follows the road
                        (15 wide, 6 of gap). Left in the glyph column, the road
-                       read as heading the dungeon below. -->
+                       read as a row of its own. -->
                   <DataTrigger Binding="{Binding Nested}" Value="True">
                     <Setter TargetName="Nature" Property="Grid.Column" Value="1" />
                     <Setter TargetName="Nature" Property="HorizontalAlignment" Value="Left" />

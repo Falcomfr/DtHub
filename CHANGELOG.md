@@ -30,7 +30,7 @@ belongs in the commits and in `docs/DECISIONS.md`.
   site gives a level for too few quests.
 
 - Quest paths head the zone they lead to, and a dungeon's path sits right
-  under it.
+  above it.
 
 ### Fixed
 

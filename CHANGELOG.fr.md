@@ -24,7 +24,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
   niveaux : le site en donne pour trop peu de quêtes.
 
 - Les chemins de quêtes ouvrent la zone où ils mènent, et le chemin d'un
-  donjon se range juste sous lui.
+  donjon se range juste avant lui.
 
 ### Corrigé
 

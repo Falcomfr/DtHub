@@ -133,8 +133,9 @@ public sealed class QuestTree
         Glyph: QuestNodeGlyph.Route);
 
     /// <summary>
-    /// Each dungeon row followed by the row of the path that leads to it,
-    /// named after the dungeon and aligned on the dungeon names.
+    /// Each dungeon row preceded by the row of the path that leads to it,
+    /// named after the dungeon and aligned on the dungeon names: the path is
+    /// followed before the dungeon is entered.
     ///
     /// A row of the list and not a link on the dungeon's row: a link alone
     /// left the path out of the list, which could no longer show where one
@@ -152,21 +153,19 @@ public sealed class QuestTree
 
         foreach (var row in rows)
         {
-            yield return row;
-
-            if (row.Dungeon is null)
+            if (row.Dungeon is { } dungeon)
             {
-                continue;
-            }
-
-            foreach (var path in paths[row.Dungeon.Id])
-            {
-                yield return NodeOf(path) with
+                foreach (var path in paths[dungeon.Id])
                 {
-                    Label = Strings.Format("PathTo", row.Dungeon.Title),
-                    Nested = true,
-                };
+                    yield return NodeOf(path) with
+                    {
+                        Label = Strings.Format("PathTo", dungeon.Title),
+                        Nested = true,
+                    };
+                }
             }
+
+            yield return row;
         }
     }
 
