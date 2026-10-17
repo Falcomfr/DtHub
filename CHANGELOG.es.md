@@ -34,9 +34,6 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 
 ### Corregido
 
-- La pestaña Guías vuelve a llenarse, también para un jugador nuevo: DT Hub
-  lee la API pública de Papycha y conserva las misiones, logros y secciones
-  que ya conocía.
 - Una misión nueva de Papycha se clasifica en la sección correcta, y ya no
   en «Autres quêtes».
 - La línea de una cuenta conserva su altura al abrirse su ventana: las

@@ -40,8 +40,6 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 ### Fixed
 
-- The Guides tab fills again, for a new player too: DT Hub reads Papycha's
-  public API and keeps the quests, achievements and sections it already knew.
 - A new quest from Papycha is filed in the right section, no longer in
   "Autres quêtes".
 - An account's line keeps its height when its window opens: the lines
