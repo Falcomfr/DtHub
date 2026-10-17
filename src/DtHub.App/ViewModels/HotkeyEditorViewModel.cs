@@ -76,6 +76,23 @@ public sealed partial class HotkeyEditorViewModel : ObservableObject
         CapturingRow = null;
     }
 
+    /// <summary>Leaves the action with no shortcut, asked on 2026-10-17.</summary>
+    [RelayCommand]
+    private async Task ClearAsync(HotkeyRowViewModel? row)
+    {
+        if (row is null)
+        {
+            return;
+        }
+
+        CancelCapture();
+
+        _hotkeys = _hotkeys.Without(row.Action);
+        Rebuild();
+
+        await SaveAsync(CancellationToken.None).ConfigureAwait(true);
+    }
+
     [RelayCommand]
     private async Task RestoreDefaultsAsync(CancellationToken cancellationToken)
     {

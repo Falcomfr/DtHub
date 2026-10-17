@@ -241,11 +241,15 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// </summary>
     public bool CanGrid => _launcher.ArrangeableCount >= 3;
 
+    /// <summary>Fullscreen has a use from the first window on.</summary>
+    public bool CanFullscreen => _launcher.ArrangeableCount >= 1;
+
     private void OnArrangeableChanged(object? sender, EventArgs e) =>
         System.Windows.Application.Current?.Dispatcher.InvokeAsync(() =>
         {
             OnPropertyChanged(nameof(CanArrange));
             OnPropertyChanged(nameof(CanGrid));
+            OnPropertyChanged(nameof(CanFullscreen));
         });
 
     /// <summary>
@@ -263,6 +267,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             OnPropertyChanged(nameof(DisplayFitSummary));
             OnPropertyChanged(nameof(CanArrange));
             OnPropertyChanged(nameof(CanGrid));
+            OnPropertyChanged(nameof(CanFullscreen));
 
             // The input verdict is settled when the first window
             // opens, so this is where the remedy can appear.
@@ -1251,6 +1256,10 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             Instances.ShowBanner(Strings.Get("NothingToRearrange"));
         }
     }
+
+    /// <summary>The panel's twin of the fullscreen shortcut, asked on 2026-10-17.</summary>
+    [RelayCommand]
+    private async Task FullscreenAsync() => await _launcher.ToggleFullscreenAsync().ConfigureAwait(true);
 
     /// <summary>
     /// Places the windows side by side, the active one on the right.

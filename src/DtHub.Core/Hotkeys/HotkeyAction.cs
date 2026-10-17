@@ -78,6 +78,13 @@ public enum HotkeyAction
     /// closed amounted to quitting, without remembering the state.
     /// </summary>
     Quit,
+
+    /// <summary>
+    /// Escape, only while in fullscreen: leaves it as a second Ctrl+5
+    /// would (2026-10-17). Not edited nor saved, see
+    /// <see cref="HotkeySet.WhileFullscreen"/>.
+    /// </summary>
+    LeaveFullscreen,
 }
 
 /// <summary>Modifier keys, combinable.</summary>

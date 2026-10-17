@@ -30,6 +30,9 @@ public sealed partial class HotkeyRowViewModel : ObservableObject
 
     public string ShortcutText => IsCapturing ? Strings.Get("HotkeyPressNew") : Binding.DisplayText;
 
+    /// <summary>The box holds a key, which the cross can remove.</summary>
+    public bool IsAssigned => Binding.IsAssigned;
+
     public bool HasError => !string.IsNullOrWhiteSpace(Error);
 
     /// <summary>
@@ -53,6 +56,7 @@ public sealed partial class HotkeyRowViewModel : ObservableObject
     partial void OnBindingChanged(HotkeyBinding value)
     {
         OnPropertyChanged(nameof(ShortcutText));
+        OnPropertyChanged(nameof(IsAssigned));
         OnPropertyChanged(nameof(TakesKeyFromGame));
         OnPropertyChanged(nameof(BareKeyNotice));
     }

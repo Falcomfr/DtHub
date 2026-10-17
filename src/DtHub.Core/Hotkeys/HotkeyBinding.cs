@@ -112,6 +112,7 @@ public sealed record HotkeyBinding
         HotkeyAction.Fullscreen => Strings.Get("ActionFullscreen"),
         HotkeyAction.ScreenOff => Strings.Get("ActionScreenOff"),
         HotkeyAction.Quit => Strings.Get("Quit"),
+        HotkeyAction.LeaveFullscreen => Strings.Get("ActionLeaveFullscreen"),
         _ => action.ToString(),
     };
 
@@ -138,6 +139,7 @@ public sealed record HotkeyBinding
         HotkeyAction.Fullscreen => Strings.Get("ActionFullscreenDetail"),
         HotkeyAction.ScreenOff => Strings.Get("ActionScreenOffDetail"),
         HotkeyAction.Quit => Strings.Get("ActionQuitDetail"),
+        HotkeyAction.LeaveFullscreen => Strings.Get("ActionLeaveFullscreenDetail"),
 
         _ => string.Empty,
     };

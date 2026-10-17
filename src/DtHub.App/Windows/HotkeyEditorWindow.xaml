@@ -42,11 +42,12 @@
         <ItemsControl ItemsSource="{Binding Sections}">
           <ItemsControl.Resources>
             <DataTemplate DataType="{x:Type vm:HotkeyRowViewModel}">
-              <StackPanel Margin="0,4">
+              <StackPanel Margin="0,2">
                 <Grid>
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="190" />
+                    <ColumnDefinition Width="30" />
                     <ColumnDefinition Width="Auto" />
                   </Grid.ColumnDefinitions>
 
@@ -58,7 +59,18 @@
                     <TextBlock Text="{Binding ShortcutText}" FontFamily="{StaticResource MonoFont}" TextAlignment="Center" />
                   </Border>
 
-                  <Button Grid.Column="2" Content="{loc:T Edit}"
+                  <!-- Empties the box, asked on 2026-10-17. Its column keeps
+                       its width without it, so the boxes stay aligned. -->
+                  <Button Grid.Column="2" Style="{StaticResource DangerIconButton}" HorizontalAlignment="Left"
+                          ToolTip="{loc:T HotkeyClearTip}"
+                          Visibility="{Binding IsAssigned, Converter={StaticResource BoolToVisibility}}"
+                          Command="{Binding DataContext.ClearCommand,
+                                            RelativeSource={RelativeSource AncestorType=Window}}"
+                          CommandParameter="{Binding}">
+                    <Path Style="{StaticResource RowGlyph}" Data="M 4.5,4.5 L 10.5,10.5 M 10.5,4.5 L 4.5,10.5" />
+                  </Button>
+
+                  <Button Grid.Column="3" Content="{loc:T Edit}"
                           Command="{Binding DataContext.BeginCaptureCommand,
                                             RelativeSource={RelativeSource AncestorType=Window}}"
                           CommandParameter="{Binding}" />
@@ -75,7 +87,7 @@
             </DataTemplate>
 
             <DataTemplate DataType="{x:Type vm:HotkeySeriesViewModel}">
-              <Expander Style="{StaticResource SeriesExpander}" Margin="0,4"
+              <Expander Style="{StaticResource SeriesExpander}" Margin="0,2"
                         IsExpanded="{Binding IsExpanded}">
                 <Expander.Header>
                   <!-- The hidden button keeps the column of the rows' own
@@ -84,13 +96,14 @@
                     <Grid.ColumnDefinitions>
                       <ColumnDefinition Width="*" />
                       <ColumnDefinition Width="190" />
+                      <ColumnDefinition Width="30" />
                       <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="{Binding Label}" VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1" Text="{Binding Summary}" FontFamily="{StaticResource MonoFont}"
                                TextAlignment="Center" VerticalAlignment="Center" Margin="8,0"
                                Foreground="{DynamicResource TextMutedBrush}" />
-                    <Button Grid.Column="2" Content="{loc:T Edit}" Visibility="Hidden" />
+                    <Button Grid.Column="3" Content="{loc:T Edit}" Visibility="Hidden" />
                   </Grid>
                 </Expander.Header>
                 <ItemsControl ItemsSource="{Binding Rows}" />
@@ -100,7 +113,7 @@
 
           <ItemsControl.ItemTemplate>
             <DataTemplate>
-              <StackPanel Margin="0,0,0,12">
+              <StackPanel Margin="0,0,0,20">
                 <TextBlock Text="{Binding Title}" Style="{StaticResource SectionLabel}" />
                 <ItemsControl ItemsSource="{Binding Entries}" />
               </StackPanel>

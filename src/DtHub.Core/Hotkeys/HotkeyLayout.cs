@@ -36,11 +36,11 @@ public static class HotkeyLayout
         ]),
         (HotkeySection.Arranging,
         [
+            [HotkeyAction.Fullscreen],
             [HotkeyAction.Rearrange],
             [HotkeyAction.Tile],
             [HotkeyAction.Grid],
             Run(HotkeyAction.Size1, HotkeyAction.Size4),
-            [HotkeyAction.Fullscreen],
         ]),
         (HotkeySection.Application,
         [

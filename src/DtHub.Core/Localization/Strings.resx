@@ -1189,7 +1189,7 @@ On a {0} device, the manual copy goes through: {1}.</value>
     <value>The largest of the four sizes. It covers the usable area of the screen, taskbar excluded: this is not full screen.</value>
   </data>
   <data name="ActionFullscreenDetail" xml:space="preserve">
-    <value>Covers the whole screen, with no border. Pressing it again leaves it and gives each window the place it had.</value>
+    <value>Covers the whole screen, with no border. Pressing it again, or Esc, leaves it and gives each window the place it had. While in fullscreen, Esc no longer reaches the game.</value>
   </data>
   <data name="ActionScreenOffDetail" xml:space="preserve">
     <value>Switches off the screen of the game window's phone, or of every phone from another DT Hub window, while the game keeps running.</value>
@@ -1202,6 +1202,15 @@ On a {0} device, the manual copy goes through: {1}.</value>
   </data>
   <data name="TurnScreenOffNowTip" xml:space="preserve">
     <value>Switches the phone's screen off, the game keeps running.</value>
+  </data>
+  <data name="ActionLeaveFullscreen" xml:space="preserve">
+    <value>Leave fullscreen</value>
+  </data>
+  <data name="ActionLeaveFullscreenDetail" xml:space="preserve">
+    <value>Esc, only while in fullscreen: leaves it like a second press on the fullscreen shortcut.</value>
+  </data>
+  <data name="HotkeyClearTip" xml:space="preserve">
+    <value>Remove this shortcut</value>
   </data>
   <data name="ActionQuitDetail" xml:space="preserve">
     <value>Closes the application and all the game windows.</value>

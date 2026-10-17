@@ -3665,6 +3665,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
         }
 
+        await ArmEscapeAsync().ConfigureAwait(false);
+
         return moved;
     }
 
@@ -3689,7 +3691,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// pressing it again stayed stuck, with the slider as the only way
     /// out.
     /// </summary>
-    public async Task ToggleFullscreenAsync(CancellationToken cancellationToken = default)
+    public async Task ToggleFullscreenAsync(
+        bool leaveOnly = false,
+        CancellationToken cancellationToken = default)
     {
         await _arranging.WaitAsync(cancellationToken).ConfigureAwait(false);
 
@@ -3700,7 +3704,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 _ = await ApplyPercentAsync(_windows.PercentBeforeFullscreen, cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
             }
-            else
+            else if (!leaveOnly)
             {
                 _ = await ApplySizeCoreAsync(_windows.Presets.FullscreenIndex, cancellationToken)
                     .ConfigureAwait(false);
@@ -3732,6 +3736,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
         await ResizeFrameAsync(sizeIndex >= _windows.Presets.FullscreenIndex).ConfigureAwait(false);
 
         await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+
+        await ArmEscapeAsync().ConfigureAwait(false);
 
         return moved;
     }
@@ -3806,7 +3812,54 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // reloads through this path, whichever window opened it.
         await RefreshWindowTitlesAsync(cancellationToken).ConfigureAwait(false);
 
-        return await _hotkeys.ApplyAsync(hotkeys).ConfigureAwait(false);
+        Task<IReadOnlyList<HotkeyAction>> applying;
+
+        lock (_escapeLock)
+        {
+            _escapeArmed = WantsEscape;
+            applying = _hotkeys.ApplyAsync(hotkeys.WhileFullscreen(_escapeArmed));
+        }
+
+        return await applying.ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Escape leaves fullscreen only from a game window or the frame: the
+    /// panel, the guides and the Almanax stay above a fullscreen game and
+    /// use Escape themselves.
+    /// </summary>
+    private bool WantsEscape => _windows.IsFullscreen && _gameInFront;
+
+    /// <summary>A game window or the frame is in the foreground.</summary>
+    private volatile bool _gameInFront;
+
+    /// <summary>Whether Escape is armed, under <see cref="_escapeLock"/>.</summary>
+    private bool _escapeArmed;
+
+    /// <summary>
+    /// The registrar keeps the last set handed to it: deciding and handing
+    /// over in one step keeps a slider notch and a Ctrl+5 from leaving
+    /// Escape armed with the flag saying it is not.
+    /// </summary>
+    private readonly Lock _escapeLock = new();
+
+    /// <summary>
+    /// Arms Escape or gives it back to the game, only when that changes:
+    /// the slider and the foreground watcher call this all the time.
+    /// </summary>
+    private Task ArmEscapeAsync()
+    {
+        lock (_escapeLock)
+        {
+            if (WantsEscape == _escapeArmed || _hotkeySet is not { } hotkeys)
+            {
+                return Task.CompletedTask;
+            }
+
+            _escapeArmed = WantsEscape;
+
+            return _hotkeys.ApplyAsync(hotkeys.WhileFullscreen(_escapeArmed));
+        }
     }
 
     /// <summary>
@@ -4598,6 +4651,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
             await _windows.ApplyPercentAsync([], settings.CustomSizePercent, cancellationToken)
                 .ConfigureAwait(false);
         }
+
+        // The hotkeys were armed before this size was read, at startup.
+        await ArmEscapeAsync().ConfigureAwait(false);
     }
 
     private async Task EnsureHotkeysAsync(CancellationToken cancellationToken)
@@ -4768,6 +4824,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
                 LogHotkeyScope(mine ? "actifs" : "en veille", window);
             }
+
+            _gameInFront = mine && OwnsWindow?.Invoke(window) != true;
+            await ArmEscapeAsync().ConfigureAwait(false);
 
             await _hotkeys.SetEnabledAsync(mine).ConfigureAwait(false);
         }
@@ -4969,6 +5028,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
                 case HotkeyAction.Fullscreen:
                     await ToggleFullscreenAsync().ConfigureAwait(false);
+                    break;
+
+                case HotkeyAction.LeaveFullscreen:
+                    await ToggleFullscreenAsync(leaveOnly: true).ConfigureAwait(false);
                     break;
 
                 case HotkeyAction.ScreenOff:

@@ -1189,7 +1189,7 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
     <value>El mayor de los cuatro tamaños. Cubre la zona útil de la pantalla, sin la barra de tareas: no es pantalla completa.</value>
   </data>
   <data name="ActionFullscreenDetail" xml:space="preserve">
-    <value>Cubre la pantalla entera, sin borde. Al pulsarlo otra vez, sale y cada ventana recupera el sitio que tenía.</value>
+    <value>Cubre la pantalla entera, sin borde. Al pulsarlo otra vez, o Esc, sale y cada ventana recupera el sitio que tenía. En pantalla completa, Esc ya no llega al juego.</value>
   </data>
   <data name="ActionScreenOffDetail" xml:space="preserve">
     <value>Apaga la pantalla del teléfono de la ventana de juego, o de todos los teléfonos desde otra ventana de DT Hub, y el juego sigue.</value>
@@ -1202,6 +1202,15 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
   </data>
   <data name="TurnScreenOffNowTip" xml:space="preserve">
     <value>Apaga la pantalla del teléfono, y el juego sigue.</value>
+  </data>
+  <data name="ActionLeaveFullscreen" xml:space="preserve">
+    <value>Salir de pantalla completa</value>
+  </data>
+  <data name="ActionLeaveFullscreenDetail" xml:space="preserve">
+    <value>Esc, solo en pantalla completa: sale de ella como una segunda pulsación del atajo de pantalla completa.</value>
+  </data>
+  <data name="HotkeyClearTip" xml:space="preserve">
+    <value>Quitar este atajo</value>
   </data>
   <data name="ActionQuitDetail" xml:space="preserve">
     <value>Cierra la aplicación y todas las ventanas de juego.</value>
