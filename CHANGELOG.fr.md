@@ -11,6 +11,13 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Modifié
+
+- Brancher ou débrancher le chargeur s'affiche en quelques secondes, dans le
+  panneau comme dans le titre des fenêtres.
+
 ## [0.9.0] - 2026-10-17
 
 ### Ajouté
