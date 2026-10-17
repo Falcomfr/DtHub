@@ -72,6 +72,19 @@ public sealed class DeviceRegistryTests : IDisposable
     }
 
     [Fact]
+    public async Task Une_horloge_remise_a_l_heure_fait_reculer_la_date()
+    {
+        // A PC clock running ahead, then set right: kept in the future, the
+        // date would have held a long-gone phone out of its dormancy.
+        var ahead = new DateTimeOffset(2026, 10, 17, 18, 0, 0, TimeSpan.Zero);
+
+        await _registry.UpsertAsync(Device() with { LastSeenUtc = ahead }, CancellationToken.None);
+        await _registry.UpsertAsync(Device() with { LastSeenUtc = ahead.AddHours(-6) }, CancellationToken.None);
+
+        Assert.Equal(ahead.AddHours(-6), Assert.Single(await _registry.GetKnownAsync(CancellationToken.None)).LastSeenUtc);
+    }
+
+    [Fact]
     public async Task Un_registre_neuf_est_vide()
     {
         Assert.Empty(await _registry.GetKnownAsync(CancellationToken.None));

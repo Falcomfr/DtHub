@@ -103,6 +103,7 @@ public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
                 // reads it finer than a day.
                 if (previous.LastSeenUtc is { } before
                     && stored.LastSeenUtc is { } now
+                    && now >= before
                     && now - before < TimeSpan.FromMinutes(1))
                 {
                     stored.LastSeenUtc = before;

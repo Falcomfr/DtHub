@@ -2151,6 +2151,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         foreach (var gone in _pings.Keys.Where(k => !phones.Contains(k, StringComparer.Ordinal)))
         {
             _ = _pings.TryRemove(gone, out _);
+            _spiky.Remove(gone);
         }
 
         var strainDue = _sinceStrain is null || _sinceStrain.Elapsed >= StrainInterval;
