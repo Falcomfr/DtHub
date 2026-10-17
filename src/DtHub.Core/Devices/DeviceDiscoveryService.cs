@@ -158,8 +158,11 @@ public sealed class DeviceDiscoveryService : IDisposable
         return cut;
     }
 
-    /// <summary>Last thermal reading per device, with its age.</summary>
-    private readonly Dictionary<string, (ThermalReading? Reading, System.Diagnostics.Stopwatch Vu)> _heat =
+    /// <summary>
+    /// Last thermal reading per device, with its age. Concurrent, like the
+    /// battery: the panel's sweep and the title's round ask at the same time.
+    /// </summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, (ThermalReading? Reading, System.Diagnostics.Stopwatch Vu)> _heat =
         new(StringComparer.Ordinal);
 
     /// <summary>
@@ -561,18 +564,23 @@ public sealed class DeviceDiscoveryService : IDisposable
         }
     }
 
-    /// <summary>Last battery level read per device, with its age.</summary>
-    private readonly Dictionary<string, (BatteryReading? Reading, System.Diagnostics.Stopwatch Vu)> _battery =
+    /// <summary>
+    /// Last battery level read per device, with its age. Concurrent: the
+    /// panel's sweep and the title's round, five seconds apart each, ask
+    /// at the same time.
+    /// </summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, (BatteryReading? Reading, System.Diagnostics.Stopwatch Vu)> _battery =
         new(StringComparer.Ordinal);
 
     /// <summary>
     /// How long a battery reading stays valid.
     ///
-    /// The same one minute as heat, and for the same reason: a battery does
-    /// not lose ten percent in ten seconds, and the question costs a shell
-    /// round trip on every scan.
+    /// Five seconds and not a minute: the level moves slowly, but the
+    /// charger is plugged in or out in an instant, and the player looks
+    /// for the change right away. Measured over Wi-Fi on 17/10/2026, the
+    /// question takes 80 ms from the PC, 10 ms of it on the phone.
     /// </summary>
-    private static readonly TimeSpan BatteryFreshness = TimeSpan.FromMinutes(1);
+    private static readonly TimeSpan BatteryFreshness = TimeSpan.FromSeconds(5);
 
     /// <summary>
     /// What the device says about its battery, or <c>null</c> if it says

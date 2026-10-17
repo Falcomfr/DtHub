@@ -2062,6 +2062,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     private System.Diagnostics.Stopwatch? _sinceStrain;
 
+    private readonly System.Diagnostics.Stopwatch _sinceTitle = System.Diagnostics.Stopwatch.StartNew();
+
+    /// <summary>
+    /// Time between two battery readings for the title, the same five
+    /// seconds discovery keeps one: a charger plugged in shows within that.
+    /// The title is only rewritten when what it says changed.
+    /// </summary>
+    private static readonly TimeSpan TitleInterval = TimeSpan.FromSeconds(5);
+
     /// <summary>1 while a round of phone readings is under way.</summary>
     private int _sampling;
 
@@ -2122,31 +2131,43 @@ public sealed partial class GameLauncher : IAsyncDisposable
             _ = _pings.TryRemove(gone, out _);
         }
 
-        if (_sinceStrain is null || _sinceStrain.Elapsed >= StrainInterval)
+        var strainDue = _sinceStrain is null || _sinceStrain.Elapsed >= StrainInterval;
+
+        // Off the interface thread, which starts adb otherwise, and never
+        // two at once: a phone slow to answer would have the next round
+        // read the same counters concurrently. A strain round that finds a
+        // title round under way waits for the next tick, not thirty seconds.
+        if ((strainDue || _sinceTitle.Elapsed >= TitleInterval) && Interlocked.Exchange(ref _sampling, 1) == 0)
         {
-            _sinceStrain = System.Diagnostics.Stopwatch.StartNew();
+            _sinceTitle.Restart();
 
-            SamplePc();
-
-            // Off the interface thread, which starts adb otherwise, and never
-            // two at once: a phone slow to answer would have the next round
-            // read the same counters concurrently.
-            if (Interlocked.Exchange(ref _sampling, 1) == 0)
+            if (strainDue)
             {
-                IReadOnlyList<string> serials = phones;
+                _sinceStrain = System.Diagnostics.Stopwatch.StartNew();
 
-                _ = Task.Run(async () =>
+                SamplePc();
+            }
+
+            IReadOnlyList<string> serials = phones;
+
+            _ = Task.Run(async () =>
+            {
+                try
                 {
-                    try
+                    if (strainDue)
                     {
                         await SampleStrainsAsync(serials).ConfigureAwait(false);
                     }
-                    finally
-                    {
-                        _ = Interlocked.Exchange(ref _sampling, 0);
-                    }
-                });
-            }
+
+                    // Rewritten on every strain round regardless: the lag
+                    // and the play time only change there.
+                    await RetitleWithStatusAsync(serials, strainDue).ConfigureAwait(false);
+                }
+                finally
+                {
+                    _ = Interlocked.Exchange(ref _sampling, 0);
+                }
+            });
         }
     }
 
@@ -2192,8 +2213,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // reading on screen.
         _minutes = minutes;
         _strains = strains;
-
-        await RetitleWithStatusAsync(serials).ConfigureAwait(false);
     }
 
     /// <summary>Silent readings in a row, by serial.</summary>
@@ -2271,11 +2290,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
     ///
     /// **From this background round and not from the panel's sweep**: the
     /// sweep stops while the panel is hidden, which is while the player
-    /// plays. Both readings are cached a minute by discovery, so this costs
-    /// two adb calls per phone and per minute at most, and nothing when the
-    /// option is off.
+    /// plays. Discovery caches the battery five seconds and the heat thirty,
+    /// so this costs two adb calls per phone and per round at most, and
+    /// nothing when the option is off.
+    ///
+    /// The windows are only retitled when the battery or heat they show
+    /// changed, or when <paramref name="always" /> asks it.
     /// </summary>
-    private async Task RetitleWithStatusAsync(IReadOnlyList<string> serials)
+    private async Task RetitleWithStatusAsync(IReadOnlyList<string> serials, bool always)
     {
         try
         {
@@ -2295,15 +2317,33 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     await _devices.GetThermalAsync(serial).ConfigureAwait(false));
             }
 
+            var before = _titleReadings;
+
             _titleReadings = readings;
 
-            _ = await RefreshWindowTitlesAsync().ConfigureAwait(false);
+            if (always || !SameShown(before, readings))
+            {
+                _ = await RefreshWindowTitlesAsync().ConfigureAwait(false);
+            }
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
             LogTitleStatusFailure(exception);
         }
     }
+
+    /// <summary>
+    /// True when two sets of readings would put the same battery and heat in
+    /// the titles: the temperature to the tenth moves on every reading and
+    /// must not have every window rewritten.
+    /// </summary>
+    private static bool SameShown(
+        IReadOnlyDictionary<string, (BatteryReading? Battery, ThermalReading? Heat)> before,
+        IReadOnlyDictionary<string, (BatteryReading? Battery, ThermalReading? Heat)> after) =>
+        before.Count == after.Count
+        && after.All(pair => before.TryGetValue(pair.Key, out var old)
+            && ScrcpyCommandBuilder.BuildTitleStatus(old.Battery, old.Heat, false, TimeSpan.Zero)
+                == ScrcpyCommandBuilder.BuildTitleStatus(pair.Value.Battery, pair.Value.Heat, false, TimeSpan.Zero));
 
     /// <summary>What a session's title says of its phone, after the account's name.</summary>
     private string StatusOf(ScrcpySession session)
