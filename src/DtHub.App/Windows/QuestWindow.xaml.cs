@@ -50,6 +50,7 @@ public partial class QuestWindow : Window
         if (PageTranslator.Offers(PageTranslation.French))
         {
             Translate.Visibility = Visibility.Visible;
+            OpenPage.Visibility = Visibility.Collapsed;
         }
 
         _viewModel = viewModel;

@@ -463,13 +463,20 @@
           </StackPanel>
         </Button>
 
-        <!-- Only on a page in another language than ours: see PageTranslation. -->
+        <!-- Only on a site in another language than ours, where it takes the
+             place of the untranslated page: see PageTranslation. -->
         <Button x:Name="Translate" Grid.Column="2" Style="{StaticResource OutlineButton}"
-                Margin="0,0,6,0" Padding="9,5" FontSize="{StaticResource FontBody}"
-                Content="{loc:T Translate}" ToolTip="{loc:T TranslateTip}"
-                Visibility="Collapsed" Click="OnTranslate" />
+                Padding="9,5" FontSize="{StaticResource FontBody}"
+                ToolTip="{loc:T TranslateTip}"
+                Visibility="Collapsed" Click="OnTranslate">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="{loc:T Translate}" VerticalAlignment="Center" />
+            <Path Style="{StaticResource RowGlyph}" Margin="6,0,0,0" VerticalAlignment="Center"
+                  Data="M 7,3.5 H 3.5 V 12.5 H 12.5 V 9 M 9.5,3.5 H 12.5 V 6.5 M 12.5,3.5 L 7.8,8.2" />
+          </StackPanel>
+        </Button>
 
-        <Button Grid.Column="3" Style="{StaticResource IconButton}"
+        <Button x:Name="OpenPage" Grid.Column="3" Style="{StaticResource IconButton}"
                 ToolTip="{loc:T OpenCurrentPageTip}"
                 Click="OnOpenInBrowser">
           <Path Style="{StaticResource RowGlyph}"

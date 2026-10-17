@@ -10534,6 +10534,10 @@ scripts de cadrage et le filtre anti-publicité qui évite les alertes
 antivirus, et Papycha a donné son accord pour son site, pas pour sa copie.
 La page ne part chez Google que sur le clic du joueur.
 
+**Il prend la place de « Ouvrir dans le navigateur ».** Les deux mènent au
+navigateur ; à la demande du joueur (17/10/2026), le bouton Traduire porte
+l'icône d'ouverture externe et cache celui qui ouvrirait la page non traduite.
+
 **La langue de l'application est `Strings.Spoken`, pas `CurrentUICulture`.**
 Premier essai, appli en anglais sur un Windows français : « page fr-FR,
 appli fr », pas de bouton. `CurrentUICulture` retombe sur la langue de Windows

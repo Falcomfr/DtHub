@@ -19,11 +19,18 @@
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
         <Button x:Name="Donate" Content="{loc:T ToolMapDonate}" Style="{StaticResource OutlineButton}"
                 Padding="10,3" Margin="0,0,6,0" Visibility="Collapsed" Click="OnDonate" />
-        <!-- Only on a page in another language than ours: see PageTranslation. -->
-        <Button x:Name="Translate" Content="{loc:T Translate}" ToolTip="{loc:T TranslateTip}"
-                Style="{StaticResource OutlineButton}" Padding="10,3" Margin="0,0,6,0"
-                Visibility="Collapsed" Click="OnTranslate" />
-        <Button Content="{loc:T OpenInBrowser}" Style="{StaticResource OutlineButton}"
+        <!-- Only on a site in another language than ours, where it takes the
+             place of the untranslated page: see PageTranslation. -->
+        <Button x:Name="Translate" ToolTip="{loc:T TranslateTip}"
+                Style="{StaticResource OutlineButton}" Padding="10,3"
+                Visibility="Collapsed" Click="OnTranslate">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="{loc:T Translate}" VerticalAlignment="Center" />
+            <Path Style="{StaticResource RowGlyph}" Margin="6,0,0,0" VerticalAlignment="Center"
+                  Data="M 7,3.5 H 3.5 V 12.5 H 12.5 V 9 M 9.5,3.5 H 12.5 V 6.5 M 12.5,3.5 L 7.8,8.2" />
+          </StackPanel>
+        </Button>
+        <Button x:Name="OpenPage" Content="{loc:T OpenInBrowser}" Style="{StaticResource OutlineButton}"
                 Padding="10,3" Click="OnOpenInBrowser" />
       </StackPanel>
     </Border>

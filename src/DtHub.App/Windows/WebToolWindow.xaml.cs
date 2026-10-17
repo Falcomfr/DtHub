@@ -123,6 +123,7 @@ public partial class WebToolWindow : Window
         if (PageTranslator.Offers(SiteLanguage))
         {
             Translate.Visibility = Visibility.Visible;
+            OpenPage.Visibility = Visibility.Collapsed;
         }
 
         try
