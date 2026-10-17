@@ -538,6 +538,32 @@ public class ScrcpySessionManagerTests
     }
 
     [Fact]
+    public async Task Tout_fermer_ne_lance_aucun_son()
+    {
+        // Closing everything, quitting or reopening all stopped the accounts
+        // one by one: the one carrying the sound, closed first, handed it to
+        // a windowless session that the next close killed, a server push per
+        // phone eating into the eight seconds given to quitting. The order
+        // of the sessions is the dictionary's, hence several rounds.
+        for (var round = 0; round < 8; round++)
+        {
+            var launcher = new FakeProcessLauncher()
+                .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+                .Prepare(new FakeProcessSession(2).Emit(NewDisplayLine))
+                .Prepare(new FakeProcessSession(9).Emit(ServerLine));
+
+            await using var manager = Manager(launcher, new FakeAppLauncher());
+
+            await manager.StartAsync(Target(0), WithSound, null, CancellationToken.None);
+            await manager.StartAsync(Target(999), WithSound with { AudioEnabled = false }, null, CancellationToken.None);
+
+            await manager.StopAllAsync(CancellationToken.None);
+
+            Assert.DoesNotContain(launcher.Requests, IsSoundKeeper);
+        }
+    }
+
+    [Fact]
     public async Task Fermer_un_compte_sans_le_son_ou_le_dernier_ne_lance_aucun_son()
     {
         var launcher = new FakeProcessLauncher()

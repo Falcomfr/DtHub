@@ -667,7 +667,16 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         {
             _ = _soundKeepers.TryGetValue(deviceId, out var running);
 
-            if (!HasLiveSessionOn(deviceId, except: ending))
+            // An account being closed as well, by Close all or Quit, keeps
+            // nobody listening: handing the sound on would push a server to
+            // the phone for the next close to kill.
+            var staying = _sessions.Values.Any(s =>
+                !ReferenceEquals(s, ending)
+                && s.IsAlive
+                && !s.StopRequested
+                && string.Equals(s.Target.DeviceId, deviceId, StringComparison.Ordinal));
+
+            if (!staying)
             {
                 if (running is not null && _soundKeepers.TryRemove(deviceId, out _))
                 {
@@ -1139,9 +1148,16 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     /// </summary>
     public async Task StopAllAsync(CancellationToken cancellationToken = default)
     {
-        var running = _sessions.Values.Where(s => s.IsAlive).Select(s => s.Id).ToList();
+        var running = _sessions.Values.Where(s => s.IsAlive).ToList();
 
-        foreach (var id in running)
+        // All marked first, so that the account carrying the sound, closed
+        // before the others, does not hand it to them. See PassSoundOnAsync.
+        foreach (var session in running)
+        {
+            session.StopRequested = true;
+        }
+
+        foreach (var id in running.Select(s => s.Id))
         {
             await StopAsync(id, cancellationToken).ConfigureAwait(false);
         }
