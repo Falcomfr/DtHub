@@ -155,16 +155,42 @@ public class QuestCatalogMergeTests
     }
 
     [Fact]
-    public void Une_quete_nouvelle_n_est_rangee_que_sous_sa_rubrique_la_plus_petite()
+    public void Une_quete_nouvelle_va_sous_la_rubrique_que_ses_voisines_de_zone_occupent()
     {
+        // The API's zones are a taxonomy of their own: "Cité d'Astrub" is 2635,
+        // never a section id of the catalog. The quests already known teach
+        // where each zone belongs.
         var baseline = Baseline(Known(1, "A", 18), Known(2, "B", 18), Known(3, "C", 25));
 
-        var merged = Merge(baseline, [FromApi(4, "Nouvelle", 18, 25)]);
+        var merged = Merge(
+            baseline,
+            [
+                FromApi(1, "A", 18, 2635),
+                FromApi(2, "B", 18, 2635),
+                FromApi(3, "C", 25, 869),
+                FromApi(4, "Les Bellaphones", 2589, 2635),
+            ]);
 
         var added = merged.Quests.Single(q => q.Id == 4);
-        Assert.Equal([25], added.SectionIds);
-        Assert.Equal(25, added.SectionId);
-        Assert.Equal(2, merged.Sections.Single(s => s.Id == 18).Count);
+        Assert.Equal([18], added.SectionIds);
+        Assert.Equal(18, added.SectionId);
+    }
+
+    [Fact]
+    public void Une_quete_nouvelle_va_sous_la_rubrique_enfant_plutot_que_sa_parente()
+    {
+        // A quest from Astrub also carries "Amakna", its parent. The child is
+        // the precise one, even though Amakna counts fewer quests of its own
+        // once the catalog is arranged.
+        var baseline = new QuestCatalogDocument
+        {
+            Quests = [Known(1, "A", 25)],
+            Sections = [Section(25, "Amakna", 16), Section(18, "Astrub", 57) with { Parent = 25 }],
+        };
+
+        var merged = Merge(baseline, [FromApi(2, "Nouvelle", 25, 18)]);
+
+        Assert.Equal([18], merged.Quests.Single(q => q.Id == 2).SectionIds);
     }
 
     [Fact]

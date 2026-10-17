@@ -232,6 +232,7 @@ public sealed class QuestCatalogService : IDisposable
 
             _current = document;
             LastIndexing = chrono.Elapsed;
+            LastFailure = null;
 
             return document;
         }

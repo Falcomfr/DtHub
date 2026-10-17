@@ -10441,8 +10441,13 @@ ou à défaut le catalogue du 11/10 embarqué dans l'exécutable ; l'API
 rafraîchit ce qu'elle remplit (titre, adresse, niveau, départ) et ajoute ce
 qui est nouveau, sans jamais retirer ni effacer une valeur par un champ vide.
 Les identifiants concordent : 757 quêtes sur 762, les 84 lieux et les 22
-chemins, mesuré le 17/10. Une quête nouvelle va sous sa seule rubrique la
-plus précise que la base connaît, sinon « Autres quêtes ». Les prérequis de
+chemins, mesuré le 17/10. Une quête nouvelle va sous une seule rubrique,
+celle que ses voisines occupent : les zones de l'API ont leurs propres
+identifiants (2635 pour la Cité d'Astrub) et ses rubriques ignorent celles
+faites main, donc chaque quête connue des deux côtés vote, par ses
+identifiants dans l'API, pour ses rubriques. Les Bellaphones vont ainsi sous
+Astrub. Sans vote, la rubrique qu'elle nomme, l'enfant avant le parent ; sinon
+« Autres quêtes ». Les prérequis de
 la base l'emportent : ceux de l'API ne servent qu'à combler un vide, la même
 quête s'écrivant des deux côtés avec ou sans point final.
 

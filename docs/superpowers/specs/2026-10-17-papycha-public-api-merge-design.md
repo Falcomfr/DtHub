@@ -78,12 +78,17 @@ Quests, matched by `Id`:
   when the base has none. Merging both would duplicate the same quest under
   two spellings ("Le réveil par la force." and "Le réveil par la force").
 - **only in the API**: added, under one section only, as the closed
-  indexing did for categories: among its API `section` and `zone` ids that
-  exist in the base's sections (the API section ids are the WordPress
-  category ids the base already uses), the least populated, the root
-  category 7 not counting. A quest from Astrub also carries "Amakna", and
-  filing it under both would count it and show it twice. None found: the
-  "Autres quêtes" catch-all (`-1`), created if the base does not have it.
+  indexing did for categories. The API's zone ids are a taxonomy of their
+  own (2635 "Cité d'Astrub") and its sections never name the hand-kept
+  ones, so the place is learned from the quests both sides know: each of
+  their API section and zone ids votes for the sections they sit in, and
+  the new quest takes the section its ids gather the most votes for (root
+  category 7 not counting, ties by id). With no vote, the base sections it
+  names directly, a child before its parent: a quest from Astrub also
+  carries "Amakna". Nothing known: the "Autres quêtes" catch-all (`-1`),
+  created if the base does not have it. Revised after the branch review:
+  matching ids alone would have filed 15 % of the known quests in the
+  catch-all, and the least populated section was often the parent.
   Prerequisites: the API's access conditions, then the names of its
   previous quests. No achievement: the field is locked.
 - **only in the base**: kept untouched.

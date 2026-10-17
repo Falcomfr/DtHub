@@ -53,8 +53,7 @@ public static class QuestCatalogMerge
         ArgumentNullException.ThrowIfNull(dungeons);
         ArgumentNullException.ThrowIfNull(paths);
 
-        var known = baseline.Sections.ToDictionary(s => s.Id, s => s.Count);
-        var mergedQuests = MergeQuests(baseline.Quests, quests, known);
+        var mergedQuests = MergeQuests(baseline.Quests, quests, baseline.Sections);
         var sections = Count(baseline.Sections, mergedQuests);
         var mergedDungeons = MergeDungeons(baseline.Dungeons, dungeons);
 
@@ -75,9 +74,11 @@ public static class QuestCatalogMerge
     private static List<QuestSummary> MergeQuests(
         List<QuestSummary> baseline,
         IReadOnlyList<QuestSummary> api,
-        Dictionary<int, int> knownSections)
+        List<QuestSection> sections)
     {
         var fresh = api.GroupBy(q => q.Id).ToDictionary(g => g.Key, g => g.First());
+        var votes = Votes(baseline, fresh);
+        var known = sections.GroupBy(s => s.Id).ToDictionary(g => g.Key, g => g.First());
         List<QuestSummary> merged = new(baseline.Count + api.Count);
 
         foreach (var quest in baseline)
@@ -87,7 +88,7 @@ public static class QuestCatalogMerge
 
         foreach (var quest in api.Where(q => fresh.Remove(q.Id)))
         {
-            var section = Place(quest, knownSections);
+            var section = Place(quest, votes, known);
 
             merged.Add(quest with { SectionId = section, SectionIds = [section] });
         }
@@ -144,19 +145,82 @@ public static class QuestCatalogMerge
     }
 
     /// <summary>
-    /// The one section a new quest is filed under: the least populated of
-    /// those the catalog knows among its sections and zones, since it is the
-    /// most precise. A quest from Astrub also carries "Amakna", and filing it
-    /// under both would count it and show it twice. None known: the
-    /// catch-all.
+    /// Where each of the API's section and zone ids leads in the catalog,
+    /// learned from the quests both know: for each id, how many of them sit
+    /// in each section.
+    ///
+    /// The API's zones are a taxonomy of their own, "Cité d'Astrub" is 2635,
+    /// and its sections never name the hand-kept ones, "Quêtes du Krosmoz" or
+    /// "Île de Nowel": matched by id alone, fifteen quests in a hundred would
+    /// fall into the catch-all. Measured on 2026-10-17, the quests of zone
+    /// 2635 sit in Astrub twenty-six times, in the Krosmoz six.
     /// </summary>
-    private static int Place(QuestSummary quest, Dictionary<int, int> knownSections) =>
-        quest.Categories
-            .Where(c => c != RootCategory && knownSections.ContainsKey(c))
-            .OrderBy(c => knownSections[c])
-            .ThenBy(c => c)
+    private static Dictionary<int, Dictionary<int, int>> Votes(
+        List<QuestSummary> baseline,
+        Dictionary<int, QuestSummary> api)
+    {
+        Dictionary<int, Dictionary<int, int>> votes = [];
+
+        foreach (var known in baseline)
+        {
+            if (!api.TryGetValue(known.Id, out var fresh))
+            {
+                continue;
+            }
+
+            foreach (var id in fresh.Categories.Where(c => c != RootCategory).Distinct())
+            {
+                if (!votes.TryGetValue(id, out var tally))
+                {
+                    votes[id] = tally = [];
+                }
+
+                foreach (var section in known.SectionIds.Where(s => s != OtherSectionId))
+                {
+                    tally[section] = tally.GetValueOrDefault(section) + 1;
+                }
+            }
+        }
+
+        return votes;
+    }
+
+    /// <summary>
+    /// The one section a new quest is filed under: the one its neighbours
+    /// occupy most, by its section and zone ids. With no neighbour, the
+    /// sections it names directly, a child before its parent: a quest from
+    /// Astrub also carries "Amakna", and filing it under both would count it
+    /// and show it twice. Nothing known: the catch-all.
+    /// </summary>
+    private static int Place(
+        QuestSummary quest,
+        Dictionary<int, Dictionary<int, int>> votes,
+        Dictionary<int, QuestSection> known)
+    {
+        List<int> ids = [.. quest.Categories.Where(c => c != RootCategory).Distinct()];
+        Dictionary<int, int> tally = [];
+
+        foreach (var id in ids)
+        {
+            foreach (var (section, count) in votes.GetValueOrDefault(id, []))
+            {
+                tally[section] = tally.GetValueOrDefault(section) + count;
+            }
+        }
+
+        if (tally.Count > 0)
+        {
+            return tally.OrderByDescending(p => p.Value).ThenBy(p => p.Key).First().Key;
+        }
+
+        List<int> direct = [.. ids.Where(known.ContainsKey)];
+
+        return direct
+            .Where(c => !direct.Any(other => known[other].Parent == c))
+            .Order()
             .Select(c => (int?)c)
             .FirstOrDefault() ?? OtherSectionId;
+    }
 
     private static List<DungeonSummary> MergeDungeons(
         IReadOnlyList<DungeonSummary> baseline,

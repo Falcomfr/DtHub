@@ -85,6 +85,22 @@ public class QuestCatalogServiceTests
     }
 
     [Fact]
+    public async Task Une_lecture_reussie_efface_la_panne_precedente()
+    {
+        var (service, client, _) = Build();
+        using var _2 = service;
+
+        client.Failure = new HttpRequestException("le site ne répond pas");
+        await service.RefreshAsync(cancellationToken: CancellationToken.None);
+
+        client.Failure = null;
+        await service.RefreshAsync(cancellationToken: CancellationToken.None);
+
+        // The window would otherwise keep saying the site is down.
+        Assert.Null(service.LastFailure);
+    }
+
+    [Fact]
     public async Task La_recherche_ignore_les_accents_et_les_apostrophes()
     {
         var (service, _, _) = Build();
