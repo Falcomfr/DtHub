@@ -17,12 +17,15 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 - Les quêtes répétables affichent leur rythme dans les listes des guides :
   quotidienne, hebdomadaire, répétable ou saisonnière.
+- En plein écran, Échap en sort, et le panneau gagne un bouton plein écran.
+- Chaque raccourci a une croix pour le laisser sans touche.
 
 ### Modifié
 
+- Le plein écran passe en tête des raccourcis des fenêtres.
+
 - Les intertitres de succès des guides n'affichent plus de fourchette de
   niveaux : le site en donne pour trop peu de quêtes.
-
 - Les chemins de quêtes ouvrent la zone où ils mènent, et le chemin d'un
   donjon se range juste avant lui.
 

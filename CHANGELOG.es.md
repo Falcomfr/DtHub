@@ -16,12 +16,16 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 
 - Las misiones repetibles muestran su ritmo en las listas de guías: diaria,
   semanal, repetible o de temporada.
+- En pantalla completa, Esc sale de ella, y el panel gana un botón de
+  pantalla completa.
+- Cada atajo tiene una cruz para dejarlo sin tecla.
 
 ### Cambiado
 
+- La pantalla completa pasa primero entre los atajos de las ventanas.
+
 - Los encabezados de logros de las guías ya no muestran un rango de niveles:
   el sitio lo da para muy pocas misiones.
-
 - Los caminos de misiones encabezan la zona a la que llevan, y el camino de
   una mazmorra queda justo encima de ella.
 

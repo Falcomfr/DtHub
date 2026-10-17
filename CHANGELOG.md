@@ -23,12 +23,15 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 - Repeatable quests show their rhythm in the guide lists: daily, weekly,
   repeatable or seasonal.
+- In fullscreen, Esc leaves it, and the panel gets a fullscreen button.
+- Each shortcut has a cross that leaves it without a key.
 
 ### Changed
 
+- Fullscreen comes first among the window shortcuts.
+
 - Achievement headings in the guide lists no longer show a level range: the
   site gives a level for too few quests.
-
 - Quest paths head the zone they lead to, and a dungeon's path sits right
   above it.
 
