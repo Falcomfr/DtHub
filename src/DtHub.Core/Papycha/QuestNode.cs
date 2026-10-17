@@ -110,6 +110,9 @@ public enum QuestNodeGlyph
 /// What the player's tracker says of the quest, shown on the row and never
 /// used to order it. Not started when no tracker is linked.
 /// </param>
+/// <param name="Access">
+/// The path that leads to a dungeon, linked from the dungeon's own row.
+/// </param>
 public sealed record QuestNode(
     QuestNodeKind Kind,
     string Label,
@@ -124,7 +127,8 @@ public sealed record QuestNode(
     bool Spaced = false,
     DungeonFacts? Facts = null,
     QuestStatus Status = QuestStatus.NotStarted,
-    ZoneTally? Tally = null)
+    ZoneTally? Tally = null,
+    PathSummary? Access = null)
 {
     /// <summary>
     /// Neither unmade branches nor subheadings are clickable.

@@ -160,21 +160,45 @@ public class QuestTreeTests
     }
 
     [Fact]
-    public async Task Un_donjon_est_suivi_de_son_chemin_en_retrait()
+    public async Task Un_donjon_porte_le_lien_vers_son_chemin_sur_sa_propre_ligne()
     {
+        // A row of its own under the dungeon did not read as belonging to
+        // it: the link sits on the dungeon's row.
         var client = new FakePapychaClient().WithQuest(1, "Q", 18).WithSection(18, "Astrub");
         client.Dungeons.Add(new DungeonSummary { Id = 5744, Kind = DungeonKind.Dungeon, Title = "Canopée du Kimbo", Level = 60 });
+        client.Dungeons.Add(new DungeonSummary { Id = 1, Kind = DungeonKind.Dungeon, Title = "Blops", Level = 60 });
         client.Paths.Add(new PathSummary { Id = 5739, Title = "Canopée du Kimbo", Url = "https://papycha.fr/k/" });
 
         var (tree, _) = await BuildAsync(client);
         var rows = tree.DungeonNodes().Where(n => n.Kind != QuestNodeKind.Header).ToList();
 
         Assert.Equal(2, rows.Count);
-        Assert.Equal(5744, rows[0].Dungeon?.Id);
-        Assert.Equal(5739, rows[1].Path?.Id);
-        Assert.True(rows[1].InSuccess);
-        Assert.Equal(Strings.Get("AccessPath"), rows[1].Label);
+        Assert.Equal(5739, rows.Single(r => r.Dungeon?.Id == 5744).Access?.Id);
+        Assert.Null(rows.Single(r => r.Dungeon?.Id == 1).Access);
         Assert.Empty(tree.Paths(PathSide.Dungeons));
+    }
+
+    [Fact]
+    public async Task Un_chemin_ouvert_ramene_la_liste_la_ou_il_est_affiche()
+    {
+        // Opening a path, then the list again, used to land on the Paths
+        // branch, whatever list the path had been picked from.
+        var client = new FakePapychaClient().WithQuest(1, "Q", 131).WithSection(131, "Île d'Otomaï");
+        client.Dungeons.Add(new DungeonSummary { Id = 5744, Kind = DungeonKind.Dungeon, Title = "Canopée du Kimbo", Level = 60 });
+        client.Paths.Add(new PathSummary { Id = 3711, Title = "Aller sur l’Île d’Otomaï" });
+        client.Paths.Add(new PathSummary { Id = 7247, Title = "Chouque" });
+        client.Paths.Add(new PathSummary { Id = 5739, Title = "Canopée du Kimbo" });
+        client.Paths.Add(new PathSummary { Id = 1601, Title = "du donjon du Skeunk" });
+
+        var (tree, _) = await BuildAsync(client);
+        PathSummary Path(int id) => tree.Paths(PathSide.Quests).Concat(tree.Paths(PathSide.Dungeons)).Concat(tree.PathsIn(131))
+            .Concat(tree.DungeonNodes().Select(n => n.Access).OfType<PathSummary>())
+            .First(p => p.Id == id);
+
+        Assert.Equal(131, tree.SectionOf(Path(3711)));
+        Assert.Equal(QuestTree.QuestPathSection, tree.SectionOf(Path(7247)));
+        Assert.Equal(QuestTree.DungeonSection, tree.SectionOf(Path(5739)));
+        Assert.Equal(QuestTree.DungeonPathSection, tree.SectionOf(Path(1601)));
     }
 
     [Fact]

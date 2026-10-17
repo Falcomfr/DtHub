@@ -1102,9 +1102,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
         if (anchor)
         {
-            Anchor(
-                path.Side == PathSide.Dungeons ? QuestTree.DungeonPathSection : QuestTree.QuestPathSection,
-                path.Url);
+            Anchor(_tree.SectionOf(path), path.Url);
         }
         CurrentUrl = path.Url;
         QuestTitle = path.Title;

@@ -133,9 +133,9 @@ public sealed class QuestTree
         Glyph: QuestNodeGlyph.Route);
 
     /// <summary>
-    /// Each dungeon row followed by its path, indented under it like an
-    /// achievement's quests: the path's title only repeats the dungeon's
-    /// name, so the row says what it is instead.
+    /// Each dungeon row carrying the path that leads to it, as a link on the
+    /// row itself. A row of its own under the dungeon was tried first: it did
+    /// not read as belonging to it.
     /// </summary>
     public IEnumerable<QuestNode> WithPaths(IEnumerable<QuestNode> rows)
     {
@@ -145,27 +145,31 @@ public sealed class QuestTree
             .Where(p => p.Side == PathSide.Dungeons)
             .Select(p => (Path: p, Dungeon: PathOf(p)))
             .Where(pair => pair.Dungeon is not null)
-            .ToLookup(pair => pair.Dungeon!.Id, pair => pair.Path);
+            .GroupBy(pair => pair.Dungeon!.Id)
+            .ToDictionary(g => g.Key, g => g.First().Path);
 
-        foreach (var row in rows)
+        return rows.Select(row => row.Dungeon is { } dungeon && paths.TryGetValue(dungeon.Id, out var path)
+            ? row with { Access = path }
+            : row);
+    }
+
+    /// <summary>
+    /// The list a path is shown in, which the list returns to once the path
+    /// is open: its zone, its dungeon's list, or the Paths branch for one
+    /// nothing takes.
+    /// </summary>
+    public int SectionOf(PathSummary path)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+
+        if (path.Side == PathSide.Dungeons)
         {
-            yield return row;
-
-            if (row.Dungeon is null)
-            {
-                continue;
-            }
-
-            foreach (var path in paths[row.Dungeon.Id])
-            {
-                yield return new QuestNode(
-                    QuestNodeKind.Quest,
-                    Strings.Get("AccessPath"),
-                    Path: path,
-                    Glyph: QuestNodeGlyph.Route,
-                    InSuccess: true);
-            }
+            return PathOf(path) is { } dungeon ? SectionOf(dungeon) : DungeonPathSection;
         }
+
+        var zone = PathTarget.ZoneOf(path, _catalog.Catalog.Sections);
+
+        return zone != 0 ? zone : QuestPathSection;
     }
 
     private DungeonSummary? PathOf(PathSummary path) =>
