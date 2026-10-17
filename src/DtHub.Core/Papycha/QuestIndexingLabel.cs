@@ -31,7 +31,6 @@ public static class QuestIndexingLabel
         QuestIndexingPhase.Quests when progress.Total > 0 =>
             Strings.Format("IndexingQuests", progress.Loaded, progress.Total),
         QuestIndexingPhase.Quests => Strings.Get("Indexing"),
-        QuestIndexingPhase.Sections => Strings.Get("IndexingSections"),
         QuestIndexingPhase.Dungeons => Strings.Get("IndexingDungeons"),
         QuestIndexingPhase.Paths => Strings.Get("IndexingPaths"),
         QuestIndexingPhase.Arranging => Strings.Get("IndexingArranging"),

@@ -896,6 +896,27 @@
                              Fill="{DynamicResource BorderBrush}"
                              Visibility="Collapsed" />
 
+                  <!-- The bracket that ties a dungeon's path to the dungeon
+                       below it, at the very start of the rows, two pixels
+                       thick in the dividers' colour: visible without
+                       competing with the road. The road's own colour was
+                       tried and drew too much attention. The path's row draws its upper arm, the
+                       dungeon's row its lower arm; each stops at its own
+                       row's edge, three pixels past the row's margin, so
+                       nothing has to overflow into the neighbour. -->
+                  <Grid Grid.Column="0" Width="8" HorizontalAlignment="Right" Margin="0,0,2,0">
+                    <Grid.RowDefinitions>
+                      <RowDefinition />
+                      <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Border x:Name="CrochetHaut" Grid.Row="1" Margin="0,0,0,-3"
+                            BorderThickness="2,2,0,0" BorderBrush="{DynamicResource BorderBrush}"
+                            SnapsToDevicePixels="True" Visibility="Collapsed" />
+                    <Border x:Name="CrochetBas" Grid.Row="0" Margin="0,-3,0,0"
+                            BorderThickness="2,0,0,2" BorderBrush="{DynamicResource BorderBrush}"
+                            SnapsToDevicePixels="True" Visibility="Collapsed" />
+                  </Grid>
+
                   <Path x:Name="Nature" Grid.Column="0" VerticalAlignment="Center"
                         Visibility="Collapsed">
                     <Path.Style>
@@ -1264,6 +1285,23 @@
                     <Setter TargetName="Trait" Property="Visibility" Value="Visible" />
                     <Setter TargetName="Ligne" Property="Margin" Value="0" />
                     <Setter TargetName="Libelle" Property="Margin" Value="9,3,0,3" />
+                  </DataTrigger>
+
+                  <!-- A dungeon's path, above its dungeon: its road takes
+                       the place of the level, right-aligned in the level
+                       column (22 wide) like the numbers, and its label
+                       starts where the dungeon names do (32). Left in the
+                       glyph column, the road read as a row of its own. -->
+                  <DataTrigger Binding="{Binding Nested}" Value="True">
+                    <Setter TargetName="Nature" Property="Grid.Column" Value="1" />
+                    <Setter TargetName="Nature" Property="HorizontalAlignment" Value="Left" />
+                    <Setter TargetName="Nature" Property="Margin" Value="7,0,0,0" />
+                    <Setter TargetName="Libelle" Property="Margin" Value="32,0,0,0" />
+                    <Setter TargetName="CrochetHaut" Property="Visibility" Value="Visible" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding AfterPath}" Value="True">
+                    <Setter TargetName="CrochetBas" Property="Visibility" Value="Visible" />
                   </DataTrigger>
 
                   <!-- The break's blank space, placed on the row before

@@ -4,7 +4,7 @@
     <Project Path="src/DtHub.Core/DtHub.Core.csproj" />
     <Project Path="src/DtHub.Infrastructure/DtHub.Infrastructure.csproj" />
   </Folder>
-  <!-- The launcher and the nine probes are in the solution so that they are
+  <!-- The launcher and the seven probes are in the solution so that they are
        at least built: outside it, sonde-icone rotted with nobody watching the
        day IAdbLocator changed. That is the reasoning of D49, applied to the
        five that were still waiting for it, and to the launcher the desktop
@@ -16,10 +16,8 @@
     <Project Path="build/sonde-icone/sonde-icone.csproj" />
     <Project Path="build/sonde-papycha/sonde-papycha.csproj" />
     <Project Path="build/sonde-pont/sonde-pont.csproj" />
-    <Project Path="build/sonde-rang/sonde-rang.csproj" />
     <Project Path="build/sonde-reglages/sonde-reglages.csproj" />
     <Project Path="build/sonde-usb/sonde-usb.csproj" />
-    <Project Path="build/sonde-voisines/sonde-voisines.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/DtHub.Tests/DtHub.Tests.csproj" />

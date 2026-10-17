@@ -270,20 +270,29 @@ no Ankama graphical resource enters this repository.
 
 ## Quest data from papycha.fr
 
-- Source: https://papycha.fr
-- File: `assets/quest-successes.json`, embedded in the executable
-- Recorded on 2026-08-30 by `build/extract-successes.py`
+- Source: https://papycha.fr, read through its public content API
+  (`wp-json/papycha-public/v1/`), whose usage policy is at
+  https://papycha.fr/utilisation-contenus-api/
+- File: `assets/papycha-catalog.json`, embedded in the executable
+- Recorded on 2026-10-11 by DT Hub's own indexing, the last read through
+  the site's WordPress API before it closed
+- Embedded with papycha.fr's authorization, obtained on 2026-10-17, as a
+  local copy that serves when the site's API is unavailable or lacks an
+  entry
 
-**This file is not covered by DT Hub's MIT licence.** It contains 719
-entries indexed by page address, carrying the name of the achievement a
-quest belongs to, its rank, and the titles of the prerequisite quests.
-These are titles of works from the DOFUS Touch game, and above all a
-progression structure that papycha.fr established through editorial
-work that belongs to them.
+**This file is not covered by DT Hub's MIT licence.** It holds the quest
+catalog as papycha.fr arranges it: 782 quest titles and page addresses,
+the sections they are filed under and their order, the achievement each
+quest belongs to and its place in it, starting positions and characters,
+prerequisites, and the site's 93 dungeons, raids and lairs and 22 paths
+with their level, key and soul stone. These are titles of works from the
+DOFUS Touch game, and above all an organisation that papycha.fr
+established through editorial work that belongs to them.
 
 No quest text, no description, no walkthrough is reproduced: the file
-only serves to know in which order to read the site's pages, and the
-application always points back to the site for the content itself.
+only serves to list, search and order the site's pages, and the
+application always opens the site for the content itself. The guides
+window is titled after papycha.fr.
 
 DT Hub is not affiliated with papycha.fr or with Ankama. Anyone reusing
 this repository under the MIT licence must treat this file separately

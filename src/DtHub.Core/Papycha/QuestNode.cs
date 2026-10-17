@@ -79,7 +79,7 @@ public enum QuestNodeGlyph
 /// <param name="Kind">What the click will trigger.</param>
 /// <param name="Label">Displayed text.</param>
 /// <param name="Detail">
-/// Detail on the right: a number of quests, a level.
+/// Detail on the right: a number of quests, a quest's rhythm.
 /// </param>
 /// <param name="Id">Identifier of the section, when it is one.</param>
 /// <param name="Glyph">The icon that announces the row's nature.</param>
@@ -110,6 +110,15 @@ public enum QuestNodeGlyph
 /// What the player's tracker says of the quest, shown on the row and never
 /// used to order it. Not started when no tracker is linked.
 /// </param>
+/// <param name="Nested">
+/// True for a dungeon's path, listed under its dungeon: its label starts
+/// where the dungeon names do, so that it reads as belonging to the row
+/// above.
+/// </param>
+/// <param name="AfterPath">
+/// True for a dungeon whose path heads it: the row closes the bracket the
+/// path's row opens, so that the two read as one.
+/// </param>
 public sealed record QuestNode(
     QuestNodeKind Kind,
     string Label,
@@ -124,7 +133,9 @@ public sealed record QuestNode(
     bool Spaced = false,
     DungeonFacts? Facts = null,
     QuestStatus Status = QuestStatus.NotStarted,
-    ZoneTally? Tally = null)
+    ZoneTally? Tally = null,
+    bool Nested = false,
+    bool AfterPath = false)
 {
     /// <summary>
     /// Neither unmade branches nor subheadings are clickable.

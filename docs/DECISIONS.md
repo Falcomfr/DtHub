@@ -10418,3 +10418,57 @@ une réponse incomprise, un Android plus ancien peut-être, ne l'affiche pas.
 Ctrl + E, demandé, agit aussi sur une réponse incomprise. Un bouton encadré
 dans l'en-tête, puis un symbole marche/arrêt, ont été essayés et écartés :
 trop larges, pas compris.
+
+## D199 - Le catalogue lit l'API publique de papycha et la fusionne sur ce qu'il a
+
+Le 12/10/2026, papycha.fr a fermé `wp-json/wp/v2` (401
+`papycha_rest_authentication_required`). Tout le catalogue passait par là :
+quêtes, pages de rubriques faites main, corps des donjons, chemins. Depuis,
+un joueur installé vivait sur un cache figé et un nouveau joueur avait un
+onglet Guides vide. Le site a ouvert à la place `papycha-public/v1`, sans
+authentification.
+
+Cette API est plus pauvre que ce que DT Hub construisait : 762 quêtes contre
+782 (les 15 « Dévotion à… », le Foulard de Kohrog et des pages [Guide] et
+[Succès] manquent), 84 lieux contre 93 (deux raids, six tanières, Dark Vlad),
+pas de rubriques faites main ni de leur ordre, succès et PNJ de départ
+verrouillés. Reconstruire le catalogue sur elle seule aurait retiré tout cela
+à tout le monde, et la politique du site interdit de le reconstituer en
+lisant ses pages.
+
+D'où la fusion par identifiant (`QuestCatalogMerge`) : la base est le cache,
+ou à défaut le catalogue du 11/10 embarqué dans l'exécutable ; l'API
+rafraîchit ce qu'elle remplit (titre, adresse, niveau, départ) et ajoute ce
+qui est nouveau, sans jamais retirer ni effacer une valeur par un champ vide.
+Les identifiants concordent : 757 quêtes sur 762, les 84 lieux et les 22
+chemins, mesuré le 17/10. Une quête nouvelle va sous une seule rubrique,
+celle que ses voisines occupent : les zones de l'API ont leurs propres
+identifiants (2635 pour la Cité d'Astrub) et ses rubriques ignorent celles
+faites main, donc chaque quête connue des deux côtés vote, par ses
+identifiants dans l'API, pour ses rubriques. Les Bellaphones vont ainsi sous
+Astrub. Sans vote, la rubrique qu'elle nomme, l'enfant avant le parent ; sinon
+« Autres quêtes ». Les prérequis de
+la base l'emportent : ceux de l'API ne servent qu'à combler un vide, la même
+quête s'écrivant des deux côtés avec ou sans point final.
+
+La copie locale est embarquée avec l'autorisation de papycha.fr, obtenue le
+17/10/2026 par l'utilisateur auprès de Sebastopolde. La date annoncée par
+`/status` remplace les empreintes par catégorie : une requête, et le cache
+d'un joueur qui met à jour diffère forcément, d'où une seule fusion. Huit
+requêtes pour les quêtes au lieu d'une cinquantaine.
+
+Partent avec `wp/v2` : le rangement par pages de rubriques, la carte des
+succès et son script d'extraction (le catalogue embarqué porte déjà tout ce
+qu'elle donnait), les analyseurs de pages, `sonde-rang`, `sonde-voisines` et
+`audit-etapes.mjs`. La sonde de livraison vérifie désormais l'API publique ;
+les contrôles de forme des pages de guide, qui lisaient le corps des
+articles, disparaissent avec elle.
+
+**Complété le 17/10/2026 : le rythme des quêtes répétables.** L'API donne un
+champ `recurrence` (73 quotidiennes, 7 hebdomadaires, 22 répétables, 4
+saisonnières sur 762). Il s'affiche en étiquette à droite de la ligne, dans la
+colonne de détail jusque-là vide pour les quêtes. Une quête de la rubrique
+« Quêtes répétables » (682) sans rythme dans l'API est dite « Répétable » :
+95 seulement des 128 le portent. Le catalogue embarqué reçoit les rythmes du
+jour et le schéma passe à 17, sans quoi un cache déjà fusionné aurait dit
+toutes les quêtes « faites une fois » jusqu'au prochain changement du site.

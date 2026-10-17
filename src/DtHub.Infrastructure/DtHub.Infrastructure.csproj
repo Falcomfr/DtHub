@@ -19,12 +19,11 @@
          share exactly the same file. -->
     <EmbeddedResource Include="..\..\build\dependencies.json" LogicalName="DtHub.Infrastructure.dependencies.json" />
 
-    <!-- Quest -> achievement map recorded from papycha by
-         build/extract-successes.py. Embedded rather than read on each
-         indexing pass: the achievement is only readable in the intro
-         block of each quest, which costs thirteen megabytes, for
-         information that only changes when the game is updated. -->
-    <EmbeddedResource Include="..\..\assets\quest-successes.json" LogicalName="DtHub.Infrastructure.quest-successes.json" />
+    <!-- The quest catalog as DT Hub indexed it on 2026-10-11, the last read
+         through wp/v2. The base a new player starts from before the public
+         API is merged over it. Embedded with Papycha's authorization, see
+         THIRD-PARTY-NOTICES.md. -->
+    <EmbeddedResource Include="..\..\assets\papycha-catalog.json" LogicalName="DtHub.Infrastructure.papycha-catalog.json" />
 
     <!-- SDL patched so that a window docked in a tab receives text input.
          See third_party/sdl/MODIFICATIONS.md. -->

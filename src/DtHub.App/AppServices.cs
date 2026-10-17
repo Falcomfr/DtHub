@@ -105,7 +105,7 @@ public static class AppServices
         services.AddSingleton<WebViewEnvironment>();
         services.AddSingleton<IShortcutWriter, Win32ShortcutWriter>();
 
-        services.AddSingleton<IQuestSuccessSeed, EmbeddedQuestSuccessSeed>();
+        services.AddSingleton<IQuestCatalogSnapshot, EmbeddedQuestCatalogSnapshot>();
         services.AddSingleton<QuestCatalogService>();
         services.AddSingleton<IAdbLocator, AdbLocator>();
         services.AddSingleton<SdlFocusFix>();

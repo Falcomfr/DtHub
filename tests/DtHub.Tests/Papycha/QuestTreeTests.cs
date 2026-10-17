@@ -16,7 +16,7 @@ public class QuestTreeTests
     private static async Task<(QuestTree Tree, Dictionary<int, int> Counts)> BuildAsync(
         FakePapychaClient client)
     {
-        var service = new QuestCatalogService(client, new InMemoryDocumentStore<QuestCatalogDocument>());
+        var service = new QuestCatalogService(client, new InMemoryDocumentStore<QuestCatalogDocument>(), client);
         var catalog = await service.GetAsync(null, CancellationToken.None);
 
         Dictionary<int, int> counts = [];
@@ -98,17 +98,35 @@ public class QuestTreeTests
     }
 
     [Fact]
+    public async Task Une_ligne_de_quete_porte_son_rythme_a_droite()
+    {
+        var (tree, _) = await BuildAsync(new FakePapychaClient()
+            .WithQuest(1, "Adoption éphémère", 18)
+            .WithSection(18, "Astrub"));
+
+        var row = tree.NodeOf(new QuestSummary { Id = 1, Title = "Adoption éphémère", Recurrence = QuestRecurrence.Daily });
+
+        Assert.Equal(Strings.Get("RecurrenceDaily"), row.Detail);
+    }
+
+    [Fact]
     public async Task Les_quetes_d_un_succes_arrivent_sous_leur_intertitre()
     {
         var client = new FakePapychaClient()
             .WithQuest(1, "Première", 18)
             .WithQuest(2, "Deuxième", 18)
-            .WithSection(18, "Astrub")
-            .WithPage("Astrub", "https://papycha.fr/astrub", 1, 2)
-            .WithSuccess("Devenir une légende", 1, 2);
+            .WithSection(18, "Astrub");
+
+        // The achievement comes from the catalog DT Hub already knows: the
+        // site's API keeps it locked, and the merge must not lose it.
+        client.KnownQuests.AddRange(
+        [
+            new QuestSummary { Id = 1, Title = "Première", SectionIds = [18], SuccessName = "Devenir une légende" },
+            new QuestSummary { Id = 2, Title = "Deuxième", SectionIds = [18], SuccessName = "Devenir une légende" },
+        ]);
 
         var (tree, _) = await BuildAsync(client);
-        var service = new QuestCatalogService(client, new InMemoryDocumentStore<QuestCatalogDocument>());
+        var service = new QuestCatalogService(client, new InMemoryDocumentStore<QuestCatalogDocument>(), client);
         var catalog = await service.GetAsync(null, CancellationToken.None);
 
         var lignes = tree.BySuccess(catalog.Quests).ToList();
@@ -125,6 +143,98 @@ public class QuestTreeTests
     }
 
     [Fact]
+    public async Task Une_zone_recoit_les_chemins_que_son_nom_designe()
+    {
+        var client = new FakePapychaClient()
+            .WithQuest(1, "Une quête d'Otomaï", 131)
+            .WithSection(131, "Île d'Otomaï");
+        client.Paths.Add(new PathSummary { Id = 3711, Title = "Aller sur l’Île d’Otomaï", Url = "https://papycha.fr/o/" });
+        client.Paths.Add(new PathSummary { Id = 7247, Title = "Chouque", Url = "https://papycha.fr/c/" });
+
+        var (tree, _) = await BuildAsync(client);
+
+        Assert.Equal(3711, Assert.Single(tree.PathsIn(131)).Id);
+
+        // The branch keeps only the paths no zone takes.
+        Assert.Equal(7247, Assert.Single(tree.Paths(PathSide.Quests)).Id);
+    }
+
+    [Fact]
+    public async Task Un_donjon_est_precede_de_la_ligne_de_son_chemin()
+    {
+        // A row of the list, so that the list finds it again once the path
+        // is open, and named after the dungeon so that it reads as its own.
+        var client = new FakePapychaClient().WithQuest(1, "Q", 18).WithSection(18, "Astrub");
+        client.Dungeons.Add(new DungeonSummary { Id = 5744, Kind = DungeonKind.Dungeon, Title = "Canopée du Kimbo", Level = 60 });
+        client.Dungeons.Add(new DungeonSummary { Id = 1, Kind = DungeonKind.Dungeon, Title = "Blops", Level = 60 });
+        client.Paths.Add(new PathSummary { Id = 5739, Title = "Canopée du Kimbo", Url = "https://papycha.fr/k/" });
+
+        var (tree, _) = await BuildAsync(client);
+        var rows = tree.DungeonNodes().Where(n => n.Kind != QuestNodeKind.Header).ToList();
+
+        // The path comes first: it is followed before the dungeon is entered.
+        Assert.Equal([1, 0, 5744], rows.Select(r => r.Dungeon?.Id ?? 0));
+        var path = rows[1];
+        Assert.Equal(5739, path.Path?.Id);
+        Assert.True(path.Nested);
+        Assert.Equal(Strings.Format("PathTo", "Canopée du Kimbo"), path.Label);
+        Assert.Equal("https://papycha.fr/k/", path.Url);
+        Assert.Empty(tree.Paths(PathSide.Dungeons));
+
+        // The dungeon knows a path heads it, which closes the bracket
+        // drawn from the path down to it.
+        Assert.True(rows[2].AfterPath);
+        Assert.False(rows[0].AfterPath);
+    }
+
+    [Fact]
+    public async Task Un_chemin_ouvert_ramene_la_liste_la_ou_il_est_affiche()
+    {
+        // Opening a path, then the list again, used to land on the Paths
+        // branch, whatever list the path had been picked from.
+        var client = new FakePapychaClient().WithQuest(1, "Q", 131).WithSection(131, "Île d'Otomaï");
+        client.Dungeons.Add(new DungeonSummary { Id = 5744, Kind = DungeonKind.Dungeon, Title = "Canopée du Kimbo", Level = 60 });
+        client.Paths.Add(new PathSummary { Id = 3711, Title = "Aller sur l’Île d’Otomaï" });
+        client.Paths.Add(new PathSummary { Id = 7247, Title = "Chouque" });
+        client.Paths.Add(new PathSummary { Id = 5739, Title = "Canopée du Kimbo" });
+        client.Paths.Add(new PathSummary { Id = 1601, Title = "du donjon du Skeunk" });
+
+        var (tree, _) = await BuildAsync(client);
+        PathSummary Path(int id) => tree.Paths(PathSide.Quests).Concat(tree.Paths(PathSide.Dungeons)).Concat(tree.PathsIn(131))
+            .Concat(tree.DungeonNodes().Select(n => n.Path).OfType<PathSummary>())
+            .First(p => p.Id == id);
+
+        Assert.Equal(131, tree.SectionOf(Path(3711)));
+        Assert.Equal(QuestTree.QuestPathSection, tree.SectionOf(Path(7247)));
+        Assert.Equal(QuestTree.DungeonSection, tree.SectionOf(Path(5739)));
+        Assert.Equal(QuestTree.DungeonPathSection, tree.SectionOf(Path(1601)));
+    }
+
+    [Fact]
+    public async Task Un_intertitre_de_succes_ne_porte_pas_de_niveau()
+    {
+        // The site gives a level for 103 quests out of 762: a range drawn from
+        // so few says more about the gaps than about the achievement.
+        var client = new FakePapychaClient()
+            .WithQuest(1, "Première", 18).AtLevel(20)
+            .WithQuest(2, "Deuxième", 18).AtLevel(60)
+            .WithSection(18, "Astrub");
+        client.KnownQuests.AddRange(
+        [
+            new QuestSummary { Id = 1, Title = "Première", SectionIds = [18], SuccessName = "Devenir une légende" },
+            new QuestSummary { Id = 2, Title = "Deuxième", SectionIds = [18], SuccessName = "Devenir une légende" },
+        ]);
+
+        var (tree, _) = await BuildAsync(client);
+        var service = new QuestCatalogService(client, new InMemoryDocumentStore<QuestCatalogDocument>(), client);
+        var catalog = await service.GetAsync(null, CancellationToken.None);
+
+        var titre = tree.BySuccess(catalog.Quests).First(n => n.Kind == QuestNodeKind.Success);
+
+        Assert.Null(titre.Detail);
+    }
+
+    [Fact]
     public async Task Une_quete_hors_succes_reste_au_ras_de_la_marge()
     {
         var client = new FakePapychaClient()
@@ -132,7 +242,7 @@ public class QuestTreeTests
             .WithSection(18, "Astrub");
 
         var (tree, _) = await BuildAsync(client);
-        var service = new QuestCatalogService(client, new InMemoryDocumentStore<QuestCatalogDocument>());
+        var service = new QuestCatalogService(client, new InMemoryDocumentStore<QuestCatalogDocument>(), client);
         var catalog = await service.GetAsync(null, CancellationToken.None);
 
         var lignes = tree.BySuccess(catalog.Quests).ToList();
@@ -149,7 +259,7 @@ public class QuestTreeTests
             .WithSection(18, "Astrub");
 
         var (tree, _) = await BuildAsync(client);
-        var service = new QuestCatalogService(client, new InMemoryDocumentStore<QuestCatalogDocument>());
+        var service = new QuestCatalogService(client, new InMemoryDocumentStore<QuestCatalogDocument>(), client);
         var catalog = await service.GetAsync(null, CancellationToken.None);
 
         var ligne = tree.NodeOf(catalog.Quests[0]);

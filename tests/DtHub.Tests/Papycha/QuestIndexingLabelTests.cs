@@ -25,7 +25,6 @@ public class QuestIndexingLabelTests
         // would be worse than nothing.
         foreach (var phase in new[]
         {
-            QuestIndexingPhase.Sections,
             QuestIndexingPhase.Dungeons,
             QuestIndexingPhase.Paths,
             QuestIndexingPhase.Arranging,
@@ -46,7 +45,6 @@ public class QuestIndexingLabelTests
         var phases = new[]
         {
             QuestIndexingPhase.Quests,
-            QuestIndexingPhase.Sections,
             QuestIndexingPhase.Dungeons,
             QuestIndexingPhase.Paths,
             QuestIndexingPhase.Arranging,

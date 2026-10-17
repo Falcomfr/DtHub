@@ -1796,12 +1796,6 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="LevelRange" xml:space="preserve">
     <value>Level {0} to {1}</value>
   </data>
-  <data name="LevelSpan" xml:space="preserve">
-    <value>level {0}</value>
-  </data>
-  <data name="LevelSpanOf" xml:space="preserve">
-    <value>level {0} (out of {1})</value>
-  </data>
   <data name="ZoneInProgress" xml:space="preserve">
     <value>{0} in progress</value>
   </data>
@@ -2137,9 +2131,6 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   </data>
   <data name="IndexingQuests" xml:space="preserve">
     <value>Reading quests {0} / {1}</value>
-  </data>
-  <data name="IndexingSections" xml:space="preserve">
-    <value>Reading sections…</value>
   </data>
   <data name="IndexingDungeons" xml:space="preserve">
     <value>Reading dungeons…</value>
@@ -2541,5 +2532,20 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   </data>
   <data name="NextQuests" xml:space="preserve">
     <value>Next</value>
+  </data>
+  <data name="RecurrenceDaily" xml:space="preserve">
+    <value>Daily</value>
+  </data>
+  <data name="RecurrenceWeekly" xml:space="preserve">
+    <value>Weekly</value>
+  </data>
+  <data name="RecurrenceRepeatable" xml:space="preserve">
+    <value>Repeatable</value>
+  </data>
+  <data name="RecurrenceSeasonal" xml:space="preserve">
+    <value>Seasonal</value>
+  </data>
+  <data name="PathTo" xml:space="preserve">
+    <value>Path to {0}</value>
   </data>
 </root>

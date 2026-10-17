@@ -10,6 +10,26 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Añadido
+
+- Las misiones repetibles muestran su ritmo en las listas de guías: diaria,
+  semanal, repetible o de temporada.
+
+### Cambiado
+
+- Los encabezados de logros de las guías ya no muestran un rango de niveles:
+  el sitio lo da para muy pocas misiones.
+
+- Los caminos de misiones encabezan la zona a la que llevan, y el camino de
+  una mazmorra queda justo encima de ella.
+
+### Corregido
+
+- Las guías de misiones vuelven a llenarse para los jugadores nuevos, y las
+  misiones que el sitio añade llegan solas.
+
 ## [0.8.22] - 2026-10-16
 
 ### Cambiado
