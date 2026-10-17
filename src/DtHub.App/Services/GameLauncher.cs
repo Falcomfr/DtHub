@@ -3812,28 +3812,54 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // reloads through this path, whichever window opened it.
         await RefreshWindowTitlesAsync(cancellationToken).ConfigureAwait(false);
 
-        _escapeArmed = _windows.IsFullscreen;
+        Task<IReadOnlyList<HotkeyAction>> applying;
 
-        return await _hotkeys.ApplyAsync(hotkeys.WhileFullscreen(_escapeArmed)).ConfigureAwait(false);
-    }
-
-    /// <summary>Whether Escape is armed to leave fullscreen.</summary>
-    private volatile bool _escapeArmed;
-
-    /// <summary>
-    /// Arms Escape on entering fullscreen and gives it back to the game on
-    /// leaving, only when that changes: the slider calls this at every notch.
-    /// </summary>
-    private async Task ArmEscapeAsync()
-    {
-        if (_windows.IsFullscreen == _escapeArmed || _hotkeySet is not { } hotkeys)
+        lock (_escapeLock)
         {
-            return;
+            _escapeArmed = WantsEscape;
+            applying = _hotkeys.ApplyAsync(hotkeys.WhileFullscreen(_escapeArmed));
         }
 
-        _escapeArmed = _windows.IsFullscreen;
+        return await applying.ConfigureAwait(false);
+    }
 
-        _ = await _hotkeys.ApplyAsync(hotkeys.WhileFullscreen(_escapeArmed)).ConfigureAwait(false);
+    /// <summary>
+    /// Escape leaves fullscreen only from a game window or the frame: the
+    /// panel, the guides and the Almanax stay above a fullscreen game and
+    /// use Escape themselves.
+    /// </summary>
+    private bool WantsEscape => _windows.IsFullscreen && _gameInFront;
+
+    /// <summary>A game window or the frame is in the foreground.</summary>
+    private volatile bool _gameInFront;
+
+    /// <summary>Whether Escape is armed, under <see cref="_escapeLock"/>.</summary>
+    private bool _escapeArmed;
+
+    /// <summary>
+    /// The registrar keeps the last set handed to it: deciding and handing
+    /// over in one step keeps a slider notch and a Ctrl+5 from leaving
+    /// Escape armed with the flag saying it is not.
+    /// </summary>
+    private readonly Lock _escapeLock = new();
+
+    /// <summary>
+    /// Arms Escape or gives it back to the game, only when that changes:
+    /// the slider and the foreground watcher call this all the time.
+    /// </summary>
+    private Task ArmEscapeAsync()
+    {
+        lock (_escapeLock)
+        {
+            if (WantsEscape == _escapeArmed || _hotkeySet is not { } hotkeys)
+            {
+                return Task.CompletedTask;
+            }
+
+            _escapeArmed = WantsEscape;
+
+            return _hotkeys.ApplyAsync(hotkeys.WhileFullscreen(_escapeArmed));
+        }
     }
 
     /// <summary>
@@ -4798,6 +4824,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
                 LogHotkeyScope(mine ? "actifs" : "en veille", window);
             }
+
+            _gameInFront = mine && OwnsWindow?.Invoke(window) != true;
+            await ArmEscapeAsync().ConfigureAwait(false);
 
             await _hotkeys.SetEnabledAsync(mine).ConfigureAwait(false);
         }

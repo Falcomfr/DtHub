@@ -384,6 +384,18 @@ public class HotkeySetTests
     }
 
     [Fact]
+    public void Quitter_le_plein_ecran_ecrit_dans_le_fichier_est_ignore()
+    {
+        // Kept, it would hold Escape away from the game at all times.
+        var bindings = new[]
+        {
+            new HotkeyBinding { Action = HotkeyAction.LeaveFullscreen, VirtualKey = VirtualKeys.Escape },
+        };
+
+        Assert.Null(HotkeySet.FromBindings(bindings).Resolve(VirtualKeys.Escape, HotkeyModifiers.None));
+    }
+
+    [Fact]
     public void Echap_donne_a_une_action_par_le_joueur_lui_reste_en_plein_ecran()
     {
         var set = HotkeySet.Default.With(HotkeyAction.Quests, VirtualKeys.Escape, HotkeyModifiers.None);
