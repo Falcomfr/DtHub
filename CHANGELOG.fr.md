@@ -11,12 +11,35 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
-## [Unreleased]
+## [0.9.1] - 2026-10-17
+
+### Ajouté
+
+- Quand un téléphone dessine le jeu en résolution réduite, un bandeau nomme
+  le compte et dit que le flou vient d'un réglage du téléphone, pas de DT Hub.
+- Le journal note les pics de latence Wi-Fi vers chaque téléphone, pour
+  distinguer un lag du réseau d'un lag du téléphone.
 
 ### Modifié
 
+- L'image des fenêtres de jeu est décodée par la carte graphique du PC
+  (scrcpy 5.0.1) : environ quatre fois moins de processeur par fenêtre.
+- Une petite fenêtre de jeu est dessinée en 1080 au minimum, et reste nette.
+- Le bouton plein écran se place à côté de Quitter ; empiler, côte à côte et
+  la grille s'ouvrent par la petite flèche à côté, dès deux fenêtres.
 - Brancher ou débrancher le chargeur s'affiche en quelques secondes, dans le
   panneau comme dans le titre des fenêtres.
+- Le survol de la souris sur un jeu n'est plus envoyé au téléphone, et le
+  clavier d'Android ne s'ouvre plus sur le jeu (Android 12 et suivants).
+
+### Corrigé
+
+- Fermer la fenêtre qui portait le son d'un téléphone ne coupe plus le son
+  des autres comptes de ce téléphone sur le PC.
+- Côte à côte, la grille et empiler sortent proprement du plein écran :
+  Échap, le Ctrl+5 suivant et la place des fenêtres remarchent.
+- Un téléphone sous Android 11 n'ajoute plus un avertissement de mémoire au
+  journal toutes les trente secondes.
 
 ## [0.9.0] - 2026-10-17
 

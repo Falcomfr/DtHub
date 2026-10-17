@@ -10,12 +10,36 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
-## [Unreleased]
+## [0.9.1] - 2026-10-17
+
+### Añadido
+
+- Cuando un teléfono dibuja el juego a resolución reducida, un aviso nombra
+  la cuenta y dice que el desenfoque viene de un ajuste del teléfono, no de
+  DT Hub.
+- El registro anota los picos de latencia Wi-Fi hacia cada teléfono, para
+  distinguir un lag de la red de uno del teléfono.
 
 ### Cambiado
 
+- La imagen de las ventanas de juego la decodifica la tarjeta gráfica del PC
+  (scrcpy 5.0.1): unas cuatro veces menos procesador por ventana.
+- Una ventana de juego pequeña se dibuja a 1080 como mínimo, y se ve nítida.
+- El botón de pantalla completa queda junto a Salir; apilar, lado a lado y la
+  cuadrícula se abren con la flechita de al lado, desde dos ventanas.
 - Conectar o desconectar el cargador se ve en pocos segundos, en el panel y
   en el título de las ventanas.
+- El paso del ratón sobre un juego ya no llega al teléfono, y el teclado de
+  Android ya no se abre sobre el juego (Android 12 y posteriores).
+
+### Corregido
+
+- Cerrar la ventana que llevaba el sonido de un teléfono ya no silencia las
+  demás cuentas de ese teléfono en el PC.
+- Lado a lado, la cuadrícula y apilar salen bien de la pantalla completa:
+  Esc, el siguiente Ctrl+5 y el lugar de las ventanas vuelven a funcionar.
+- Un teléfono con Android 11 ya no añade un aviso de memoria al registro cada
+  treinta segundos.
 
 ## [0.9.0] - 2026-10-17
 

@@ -17,12 +17,35 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
-## [Unreleased]
+## [0.9.1] - 2026-10-17
+
+### Added
+
+- When a phone draws the game at a reduced resolution, a banner names the
+  account and says the blur comes from a phone setting, not from DT Hub.
+- The log notes Wi-Fi lag spikes towards each phone, to tell a network lag
+  from a phone one.
 
 ### Changed
 
+- Game windows are decoded by the PC's graphics card (scrcpy 5.0.1): about
+  four times less processor per window.
+- A small game window is drawn at 1080 at the least, and stays sharp.
+- The fullscreen button sits beside Quit; stacking, side by side and the grid
+  open from the small arrow next to it, from two windows on.
 - Plugging the charger in or out shows within a few seconds, in the panel
   and in the windows' title.
+- The mouse hovering over a game no longer reaches the phone, and Android's
+  own keyboard no longer opens on the game (Android 12 and later).
+
+### Fixed
+
+- Closing the window that carried a phone's sound no longer silences the
+  other accounts of that phone on the PC.
+- Side by side, the grid and stacking leave fullscreen cleanly: Esc, the next
+  Ctrl+5 and the windows' places behave again.
+- An Android 11 phone no longer adds a memory warning to the log every thirty
+  seconds.
 
 ## [0.9.0] - 2026-10-17
 
