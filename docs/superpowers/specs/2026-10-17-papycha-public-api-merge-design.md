@@ -77,11 +77,13 @@ Quests, matched by `Id`:
   in the form the tracker filter already reads); the API's list is used only
   when the base has none. Merging both would duplicate the same quest under
   two spellings ("Le réveil par la force." and "Le réveil par la force").
-- **only in the API**: added. Its sections are its API `section` and `zone`
-  ids that exist among the base's sections (the API section ids are the
-  WordPress category ids the base already uses), the root category 7 not
-  counting. None found: the "Autres quêtes" catch-all (`-1`), created if the
-  base does not have it. `SectionId` is the smallest of them, as today.
+- **only in the API**: added, under one section only, as the closed
+  indexing did for categories: among its API `section` and `zone` ids that
+  exist in the base's sections (the API section ids are the WordPress
+  category ids the base already uses), the least populated, the root
+  category 7 not counting. A quest from Astrub also carries "Amakna", and
+  filing it under both would count it and show it twice. None found: the
+  "Autres quêtes" catch-all (`-1`), created if the base does not have it.
   Prerequisites: the API's access conditions, then the names of its
   previous quests. No achievement: the field is locked.
 - **only in the base**: kept untouched.

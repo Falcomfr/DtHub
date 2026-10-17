@@ -73,23 +73,14 @@ public sealed class QuestCatalogDocument
     public DateTimeOffset? IndexedUtc { get; set; }
 
     /// <summary>
-    /// What the site announced at the time of this read: date of the
-    /// last modified article, and total number of articles. Comparing
-    /// them to what it announces today says whether it has changed,
-    /// for the price of one request. Absent from an older catalog,
-    /// which counts as "unknown" and triggers a reread, just once.
+    /// What the site's API announced as its last update at the time of this
+    /// read. Comparing it to what it announces today says whether it has
+    /// changed, for the price of one request. A catalog read through the
+    /// closed WordPress API carries a date of another meaning, and the one
+    /// shipped with the application carries none: both differ from what the
+    /// API announces and trigger one read.
     /// </summary>
     public DateTimeOffset? SiteModifiedUtc { get; set; }
-
-    /// <inheritdoc cref="SiteModifiedUtc" />
-    public int SitePosts { get; set; }
-
-    /// <summary>
-    /// What each category read announced at that time. Empty in an
-    /// older catalog, which counts as "unknown" and triggers a reread,
-    /// just once.
-    /// </summary>
-    public List<CategoryStamp> SiteCategories { get; set; } = [];
 
     public List<QuestSummary> Quests { get; set; } = [];
 

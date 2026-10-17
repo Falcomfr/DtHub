@@ -5,8 +5,12 @@ namespace DtHub.Tests.Fakes;
 /// <summary>
 /// Simulated site client. The test project must never touch the
 /// network: everything the catalog can do is verified here.
+///
+/// It also stands for the catalog shipped with the application: the
+/// sections it is given are the ones DT Hub already knows, which the
+/// API's quests are filed under.
 /// </summary>
-public sealed class FakePapychaClient : IPapychaClient
+public sealed class FakePapychaClient : IPapychaClient, IQuestCatalogSnapshot
 {
     private readonly List<QuestSummary> _quests = [];
     private readonly List<QuestSection> _sections = [];
@@ -17,7 +21,7 @@ public sealed class FakePapychaClient : IPapychaClient
     public Exception? Failure { get; set; }
 
     /// <summary>
-    /// Number of indexing requests made, to verify the cache.
+    /// Number of reads of the quest list, to verify the cache.
     /// </summary>
     public int Calls { get; private set; }
 
@@ -43,6 +47,7 @@ public sealed class FakePapychaClient : IPapychaClient
         return this;
     }
 
+    /// <summary>A section of the catalog DT Hub already knows.</summary>
     public FakePapychaClient WithSection(int id, string name, int count = 1)
     {
         _sections.Add(new QuestSection
@@ -88,82 +93,6 @@ public sealed class FakePapychaClient : IPapychaClient
         return Task.FromResult(Stamp);
     }
 
-    /// <summary>What the sentinel will read, category by category.</summary>
-    public List<CategoryStamp> CategoryStamps { get; } = [];
-
-    public Task<IReadOnlyList<CategoryStamp>> GetCategoryStampsAsync(
-        CancellationToken cancellationToken = default)
-    {
-        StampCalls++;
-
-        return Task.FromResult<IReadOnlyList<CategoryStamp>>(CategoryStamps);
-    }
-
-    public Task<IReadOnlyList<QuestSection>> GetSectionsAsync(CancellationToken cancellationToken = default) =>
-        Task.FromResult<IReadOnlyList<QuestSection>>(_sections);
-
-
-    private readonly List<QuestPageSection> _pages = [];
-
-    /// <summary>
-    /// Section maintained by hand on the site, with the quests it
-    /// lists.
-    /// </summary>
-    public FakePapychaClient WithPage(string name, string url, params int[] questIds)
-    {
-        _pages.Add(new QuestPageSection
-        {
-            Name = name,
-            Url = url,
-            QuestUrls = [.. questIds.Select(Address)],
-        });
-
-        return this;
-    }
-
-    /// <summary>
-    /// Achievement announced by a subheading of the last section
-    /// added.
-    /// </summary>
-    public FakePapychaClient WithSuccess(string name, params int[] questIds) =>
-        WithHeading(name, isSuccess: true, questIds);
-
-    /// <summary>
-    /// Bold subheading that the site has not marked "[Succès]". It
-    /// does not attach any quest to an achievement, but it does
-    /// group them.
-    /// </summary>
-    public FakePapychaClient WithHeading(string name, params int[] questIds) =>
-        WithHeading(name, isSuccess: false, questIds);
-
-    private FakePapychaClient WithHeading(string name, bool isSuccess, int[] questIds)
-    {
-        var page = _pages[^1];
-
-        _pages[^1] = page with
-        {
-            QuestUrls = [.. page.QuestUrls.Union(questIds.Select(Address), StringComparer.Ordinal)],
-            Groups =
-            [
-                .. page.Groups,
-                new QuestPageGroup
-                {
-                    Name = name,
-                    IsSuccess = isSuccess,
-                    QuestUrls = [.. questIds.Select(Address)],
-                },
-            ],
-        };
-
-        return this;
-    }
-
-    private static string Address(int id) => $"https://exemple.invalid/quete-{id}";
-
-    public Task<IReadOnlyList<QuestPageSection>> GetPageSectionsAsync(
-        CancellationToken cancellationToken = default) =>
-        Task.FromResult<IReadOnlyList<QuestPageSection>>(_pages);
-
     /// <summary>Dungeons returned by the fake client.</summary>
     public List<DungeonSummary> Dungeons { get; } = [];
 
@@ -175,7 +104,23 @@ public sealed class FakePapychaClient : IPapychaClient
     public List<PathSummary> Paths { get; } = [];
 
     public Task<IReadOnlyList<PathSummary>> GetPathsAsync(
-        IReadOnlyList<string> dungeonTitles,
         CancellationToken cancellationToken = default) =>
         Task.FromResult<IReadOnlyList<PathSummary>>(Paths);
+
+    /// <summary>Quests the shipped catalog already holds.</summary>
+    public List<QuestSummary> KnownQuests { get; } = [];
+
+    /// <summary>How many times the shipped catalog was read.</summary>
+    public int SnapshotLoads { get; private set; }
+
+    public QuestCatalogDocument Load()
+    {
+        SnapshotLoads++;
+
+        return new QuestCatalogDocument
+        {
+            Quests = [.. KnownQuests],
+            Sections = [.. _sections],
+        };
+    }
 }

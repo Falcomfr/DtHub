@@ -2138,9 +2138,6 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="IndexingQuests" xml:space="preserve">
     <value>Reading quests {0} / {1}</value>
   </data>
-  <data name="IndexingSections" xml:space="preserve">
-    <value>Reading sections…</value>
-  </data>
   <data name="IndexingDungeons" xml:space="preserve">
     <value>Reading dungeons…</value>
   </data>

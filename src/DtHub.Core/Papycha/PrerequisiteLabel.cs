@@ -22,10 +22,11 @@ namespace DtHub.Core.Papycha;
 /// the only edge leading to the following achievement being carried
 /// by an achievement label.
 ///
-/// The rule is the same as the one in the extraction script,
-/// <c>build/extract-successes.py</c>, function <c>sans_marque</c>.
-/// Until now it only lived on the Python side, which did not copy
-/// its result into the file: the application had no way to know it.
+/// The rule was also that of the extraction script,
+/// <c>build/extract-successes.py</c>, function <c>sans_marque</c>,
+/// which only lived on the Python side and did not copy its result
+/// into the file. The script left with the site's closed WordPress
+/// API on 2026-10-17: the rule now lives here alone.
 /// </summary>
 public static partial class PrerequisiteLabel
 {

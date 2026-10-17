@@ -53,7 +53,7 @@ public static class QuestCatalogMerge
         ArgumentNullException.ThrowIfNull(dungeons);
         ArgumentNullException.ThrowIfNull(paths);
 
-        var known = baseline.Sections.Select(s => s.Id).ToHashSet();
+        var known = baseline.Sections.ToDictionary(s => s.Id, s => s.Count);
         var mergedQuests = MergeQuests(baseline.Quests, quests, known);
         var sections = Count(baseline.Sections, mergedQuests);
         var mergedDungeons = MergeDungeons(baseline.Dungeons, dungeons);
@@ -63,7 +63,7 @@ public static class QuestCatalogMerge
             SchemaVersion = baseline.SchemaVersion,
             IndexedUtc = now,
             SiteModifiedUtc = siteModified,
-            Quests = PlaceNewcomers(mergedQuests, sections, baseline.Quests),
+            Quests = mergedQuests,
             Sections = sections,
             Dungeons = mergedDungeons,
             Paths = MergePaths(baseline.Paths, paths, mergedDungeons),
@@ -75,7 +75,7 @@ public static class QuestCatalogMerge
     private static List<QuestSummary> MergeQuests(
         List<QuestSummary> baseline,
         IReadOnlyList<QuestSummary> api,
-        HashSet<int> knownSections)
+        Dictionary<int, int> knownSections)
     {
         var fresh = api.GroupBy(q => q.Id).ToDictionary(g => g.Key, g => g.First());
         List<QuestSummary> merged = new(baseline.Count + api.Count);
@@ -85,16 +85,11 @@ public static class QuestCatalogMerge
             merged.Add(fresh.Remove(quest.Id, out var update) ? Refresh(quest, update) : quest);
         }
 
-        foreach (var quest in api.Where(q => fresh.ContainsKey(q.Id)))
+        foreach (var quest in api.Where(q => fresh.Remove(q.Id)))
         {
-            List<int> mine = [.. quest.Categories.Where(c => c != RootCategory && knownSections.Contains(c)).Distinct()];
+            var section = Place(quest, knownSections);
 
-            merged.Add(quest with
-            {
-                SectionIds = mine.Count > 0 ? mine : [OtherSectionId],
-            });
-
-            fresh.Remove(quest.Id);
+            merged.Add(quest with { SectionId = section, SectionIds = [section] });
         }
 
         return merged;
@@ -149,30 +144,19 @@ public static class QuestCatalogMerge
     }
 
     /// <summary>
-    /// A new quest is placed, in a search list, by the smallest of its
-    /// sections: "Astrub" situates better than "Quêtes principales".
+    /// The one section a new quest is filed under: the least populated of
+    /// those the catalog knows among its sections and zones, since it is the
+    /// most precise. A quest from Astrub also carries "Amakna", and filing it
+    /// under both would count it and show it twice. None known: the
+    /// catch-all.
     /// </summary>
-    private static List<QuestSummary> PlaceNewcomers(
-        List<QuestSummary> quests,
-        List<QuestSection> sections,
-        IReadOnlyList<QuestSummary> baseline)
-    {
-        var size = sections.ToDictionary(s => s.Id, s => s.Count);
-        var old = baseline.Select(q => q.Id).ToHashSet();
-
-        return
-        [
-            .. quests.Select(q => old.Contains(q.Id)
-                ? q
-                : q with
-                {
-                    SectionId = q.SectionIds
-                        .OrderBy(id => size.GetValueOrDefault(id, int.MaxValue))
-                        .ThenBy(id => id)
-                        .First(),
-                }),
-        ];
-    }
+    private static int Place(QuestSummary quest, Dictionary<int, int> knownSections) =>
+        quest.Categories
+            .Where(c => c != RootCategory && knownSections.ContainsKey(c))
+            .OrderBy(c => knownSections[c])
+            .ThenBy(c => c)
+            .Select(c => (int?)c)
+            .FirstOrDefault() ?? OtherSectionId;
 
     private static List<DungeonSummary> MergeDungeons(
         IReadOnlyList<DungeonSummary> baseline,

@@ -2138,9 +2138,6 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="IndexingQuests" xml:space="preserve">
     <value>Leyendo misiones {0} / {1}</value>
   </data>
-  <data name="IndexingSections" xml:space="preserve">
-    <value>Leyendo secciones…</value>
-  </data>
   <data name="IndexingDungeons" xml:space="preserve">
     <value>Leyendo mazmorras…</value>
   </data>

@@ -16,7 +16,7 @@ public class QuestTreeTests
     private static async Task<(QuestTree Tree, Dictionary<int, int> Counts)> BuildAsync(
         FakePapychaClient client)
     {
-        var service = new QuestCatalogService(client, new InMemoryDocumentStore<QuestCatalogDocument>());
+        var service = new QuestCatalogService(client, new InMemoryDocumentStore<QuestCatalogDocument>(), client);
         var catalog = await service.GetAsync(null, CancellationToken.None);
 
         Dictionary<int, int> counts = [];
@@ -103,12 +103,18 @@ public class QuestTreeTests
         var client = new FakePapychaClient()
             .WithQuest(1, "Première", 18)
             .WithQuest(2, "Deuxième", 18)
-            .WithSection(18, "Astrub")
-            .WithPage("Astrub", "https://papycha.fr/astrub", 1, 2)
-            .WithSuccess("Devenir une légende", 1, 2);
+            .WithSection(18, "Astrub");
+
+        // The achievement comes from the catalog DT Hub already knows: the
+        // site's API keeps it locked, and the merge must not lose it.
+        client.KnownQuests.AddRange(
+        [
+            new QuestSummary { Id = 1, Title = "Première", SectionIds = [18], SuccessName = "Devenir une légende" },
+            new QuestSummary { Id = 2, Title = "Deuxième", SectionIds = [18], SuccessName = "Devenir une légende" },
+        ]);
 
         var (tree, _) = await BuildAsync(client);
-        var service = new QuestCatalogService(client, new InMemoryDocumentStore<QuestCatalogDocument>());
+        var service = new QuestCatalogService(client, new InMemoryDocumentStore<QuestCatalogDocument>(), client);
         var catalog = await service.GetAsync(null, CancellationToken.None);
 
         var lignes = tree.BySuccess(catalog.Quests).ToList();
@@ -132,7 +138,7 @@ public class QuestTreeTests
             .WithSection(18, "Astrub");
 
         var (tree, _) = await BuildAsync(client);
-        var service = new QuestCatalogService(client, new InMemoryDocumentStore<QuestCatalogDocument>());
+        var service = new QuestCatalogService(client, new InMemoryDocumentStore<QuestCatalogDocument>(), client);
         var catalog = await service.GetAsync(null, CancellationToken.None);
 
         var lignes = tree.BySuccess(catalog.Quests).ToList();
@@ -149,7 +155,7 @@ public class QuestTreeTests
             .WithSection(18, "Astrub");
 
         var (tree, _) = await BuildAsync(client);
-        var service = new QuestCatalogService(client, new InMemoryDocumentStore<QuestCatalogDocument>());
+        var service = new QuestCatalogService(client, new InMemoryDocumentStore<QuestCatalogDocument>(), client);
         var catalog = await service.GetAsync(null, CancellationToken.None);
 
         var ligne = tree.NodeOf(catalog.Quests[0]);

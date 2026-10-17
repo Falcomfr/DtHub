@@ -155,15 +155,16 @@ public class QuestCatalogMergeTests
     }
 
     [Fact]
-    public void Une_quete_nouvelle_prend_pour_rubrique_principale_la_plus_petite()
+    public void Une_quete_nouvelle_n_est_rangee_que_sous_sa_rubrique_la_plus_petite()
     {
         var baseline = Baseline(Known(1, "A", 18), Known(2, "B", 18), Known(3, "C", 25));
 
         var merged = Merge(baseline, [FromApi(4, "Nouvelle", 18, 25)]);
 
         var added = merged.Quests.Single(q => q.Id == 4);
-        Assert.Equal([18, 25], added.SectionIds);
+        Assert.Equal([25], added.SectionIds);
         Assert.Equal(25, added.SectionId);
+        Assert.Equal(2, merged.Sections.Single(s => s.Id == 18).Count);
     }
 
     [Fact]
