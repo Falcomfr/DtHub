@@ -172,7 +172,7 @@
                       VerticalAlignment="Center" HorizontalAlignment="Left"
                       Margin="0,0,2,0">
 
-            <Border Margin="0,3,8,3" Background="{StaticResource KeyFaceBrush}"
+            <Border x:Name="GuidesKey" Margin="0,3,8,3" Background="{StaticResource KeyFaceBrush}"
                     BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
                     CornerRadius="{StaticResource RadiusKey}">
               <Button Style="{StaticResource GroupKey}" Padding="7,3"
@@ -227,7 +227,7 @@
                  arranging that follows. A drawn calendar rather than a
                  logo: the page comes from Ankama, none of whose
                  branding we display. -->
-            <Border Margin="0,3,0,3"
+            <Border Margin="0,3,8,3"
                     Background="{StaticResource KeyFaceBrush}"
                     BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
                     CornerRadius="{StaticResource RadiusKey}">
@@ -315,8 +315,10 @@
 
           <!-- Bottom: when the arranging buttons wrap onto a second
                line, Quit shares it with them instead of floating
-               between the two. -->
+               between the two. As tall as the keys, which it fell
+               short of (2026-10-17). -->
           <Button Grid.Column="1" Content="{loc:T Quit}" Click="OnQuit"
+                  Height="{Binding ActualHeight, ElementName=GuidesKey}"
                   VerticalAlignment="Bottom" Margin="0,0,0,3"
                   ToolTip="{loc:T QuitTip}" />
         </Grid>
