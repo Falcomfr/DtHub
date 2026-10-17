@@ -429,6 +429,12 @@ public partial class ConfiguratorWindow : Window
     }
 
 
+    /// <summary>Stacking, side by side and the grid, under the fullscreen key.</summary>
+    private void OnArrangeMenu(object sender, RoutedEventArgs e) => ArrangeMenu.IsOpen = true;
+
+    /// <summary>The command runs on its own: the menu only has to close.</summary>
+    private void OnArrangeChosen(object sender, RoutedEventArgs e) => ArrangeMenu.IsOpen = false;
+
     private static readonly Duration PartnerOpening = TimeSpan.FromMilliseconds(180);
     private static readonly Duration PartnerClosing = TimeSpan.FromMilliseconds(130);
 

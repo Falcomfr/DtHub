@@ -573,6 +573,27 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
+    /// Leaves full screen without moving anything, back at the size
+    /// from before. For side by side, the grid and stacking, which
+    /// place the windows themselves: they used to leave the state
+    /// at full screen, so Escape stayed captured and the next
+    /// Ctrl+5 left full screen instead of entering it.
+    /// </summary>
+    /// <returns>True if full screen was on.</returns>
+    public bool LeaveFullscreenState()
+    {
+        if (!IsFullscreen)
+        {
+            return false;
+        }
+
+        CustomSizePercent = _percentBeforeFullscreen;
+        _beforeFullscreen.Clear();
+
+        return true;
+    }
+
+    /// <summary>
     /// Leaves full screen and gives each window back the place it
     /// had, scaled if the requested size is not the one from before.
     /// </summary>

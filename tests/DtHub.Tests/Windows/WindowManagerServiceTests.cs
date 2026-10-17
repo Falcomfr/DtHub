@@ -251,6 +251,28 @@ public class WindowManagerServiceTests
     }
 
     [Fact]
+    public async Task Ranger_depuis_le_plein_ecran_revient_a_la_taille_d_avant_sans_bouger()
+    {
+        // Side by side, the grid or stacking place the windows
+        // themselves: leaving full screen must only drop the state,
+        // or Escape stayed captured and Ctrl+5 left instead of
+        // entering.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.ApplyPercentAsync(sessions, 75, CancellationToken.None);
+        await service.ApplySizeAsync(sessions, service.Presets.FullscreenIndex, CancellationToken.None);
+
+        Assert.True(service.LeaveFullscreenState());
+
+        Assert.False(service.IsFullscreen);
+        Assert.Equal(75, service.SizePercent);
+        Assert.Equal(FakeWindowController.PrimaryMonitor.Bounds, desktop.GetWindowRect(sessions[0].WindowHandle));
+        Assert.False(service.LeaveFullscreenState());
+    }
+
+    [Fact]
     public async Task Un_plein_ecran_remis_au_demarrage_ressort_a_la_taille_par_defaut()
     {
         // Saved in the settings, full screen comes back before any

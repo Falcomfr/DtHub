@@ -101,6 +101,9 @@
   <data name="GridTip" xml:space="preserve">
     <value>Lay the windows out in a grid, each on a quarter of the screen, in the order of the list. Beyond four, the next ones stack on the last cell.</value>
   </data>
+  <data name="ArrangeMenuTip" xml:space="preserve">
+    <value>Arrange the windows: stack, side by side or grid</value>
+  </data>
   <data name="Guides" xml:space="preserve">
     <value>Guides</value>
   </data>
