@@ -101,6 +101,9 @@
   <data name="GridTip" xml:space="preserve">
     <value>Colocar las ventanas en cuadrícula, cada una en un cuarto de la pantalla, en el orden de la lista. A partir de cuatro, las siguientes se apilan en la última casilla.</value>
   </data>
+  <data name="ArrangeMenuTip" xml:space="preserve">
+    <value>Ordenar las ventanas: apilar, lado a lado o en cuadrícula</value>
+  </data>
   <data name="Guides" xml:space="preserve">
     <value>Guías</value>
   </data>

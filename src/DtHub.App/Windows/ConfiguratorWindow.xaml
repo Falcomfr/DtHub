@@ -167,15 +167,15 @@
 
                The keys wrap rather than run under "Quit": with Lomitall's
                key the row fills a 440 unit window, and the window can be
-               narrower, or show the two arranging keys. -->
+               narrower. -->
           <WrapPanel Grid.Column="0" Orientation="Horizontal"
                       VerticalAlignment="Center" HorizontalAlignment="Left"
                       Margin="0,0,2,0">
 
-            <Border x:Name="GuidesKey" Margin="0,3,8,3" Background="{StaticResource KeyFaceBrush}"
+            <Border x:Name="GuidesKey" Margin="0,3,6,3" Background="{StaticResource KeyFaceBrush}"
                     BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
                     CornerRadius="{StaticResource RadiusKey}">
-              <Button Style="{StaticResource GroupKey}" Padding="7,3"
+              <Button Style="{StaticResource GroupKey}" Padding="5,3"
                       ToolTip="{loc:T GuidesTip}"
                       Command="{Binding QuestsCommand}">
                 <StackPanel Orientation="Horizontal">
@@ -186,7 +186,7 @@
                        which no agreement from papycha can grant us. See
                        THIRD-PARTY-NOTICES.md. -->
                   <Image Source="/assets/papycha.png" Width="20" Height="20"
-                         Margin="0,0,7,0" VerticalAlignment="Center"
+                         Margin="0,0,5,0" VerticalAlignment="Center"
                          RenderOptions.BitmapScalingMode="HighQuality" />
                   <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="{loc:T Guides}" FontWeight="SemiBold" />
@@ -201,16 +201,16 @@
             <!-- Lomitall's portal at the guides' right, as asked
                  (2026-10-14), with the site's own logo: see
                  THIRD-PARTY-NOTICES.md. -->
-            <Border Margin="0,3,8,3"
+            <Border Margin="0,3,6,3"
                     Background="{StaticResource KeyFaceBrush}"
                     BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
                     CornerRadius="{StaticResource RadiusKey}">
-              <Button Style="{StaticResource GroupKey}" Padding="7,3"
+              <Button Style="{StaticResource GroupKey}" Padding="5,3"
                       ToolTip="{loc:T LomitallTip}"
                       Command="{Binding PortalCommand}">
                 <StackPanel Orientation="Horizontal">
                   <Image Source="/assets/lomitall.png" Width="20" Height="20"
-                         Margin="0,0,7,0" VerticalAlignment="Center"
+                         Margin="0,0,5,0" VerticalAlignment="Center"
                          RenderOptions.BitmapScalingMode="HighQuality" />
                   <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="{loc:T ToolLomitallLine}" FontWeight="SemiBold" />
@@ -227,7 +227,7 @@
                  arranging that follows. A drawn calendar rather than a
                  logo: the page comes from Ankama, none of whose
                  branding we display. -->
-            <Border Margin="0,3,8,3"
+            <Border Margin="0,3,6,3"
                     Background="{StaticResource KeyFaceBrush}"
                     BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
                     CornerRadius="{StaticResource RadiusKey}">
@@ -235,7 +235,7 @@
                       ToolTip="{loc:T AlmanaxTip}"
                       Command="{Binding AlmanaxCommand}">
                 <StackPanel Orientation="Horizontal">
-                  <Path Width="16" Height="16" Stretch="None" Margin="2,0,9,0"
+                  <Path Width="16" Height="16" Stretch="None" Margin="1,0,6,0"
                         VerticalAlignment="Center" StrokeLineJoin="Round"
                         StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                         Stroke="{DynamicResource TextBrush}" StrokeThickness="1.3"
@@ -245,22 +245,23 @@
               </Button>
             </Border>
 
+          </WrapPanel>
 
-            <!-- Arranging only appears when there's something to arrange:
-                 at least two windows, one for fullscreen, and only when
-                 placements can move. A single window, or two docked in the tabbed
-                 frame, and pressing these buttons did nothing. No text:
-                 their icon says what they do, and the window footer
-                 gets some breathing room. -->
-            <Border Margin="0,3,8,3"
+          <!-- Fullscreen always left of Quit (2026-10-17): it used to
+               move with the arranging keys, which come and go with the
+               number of windows. Stacking, side by side and the grid
+               now sit in its menu, which only appears when there's
+               something to arrange: at least two windows, and only when
+               placements can move. A single window, or two docked in
+               the tabbed frame, and they did nothing. -->
+          <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+            <Border Margin="0,3,6,0"
+                    Height="{Binding ActualHeight, ElementName=GuidesKey}"
                     Background="{StaticResource KeyFaceBrush}"
                     BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
                     CornerRadius="{StaticResource RadiusKey}"
                     Visibility="{Binding CanFullscreen, Converter={StaticResource BoolToVisibility}}">
               <StackPanel Orientation="Horizontal">
-
-                <!-- Fullscreen first, the most used (2026-10-17). It has a
-                     use with a single window, the others from two. -->
                 <Button Style="{StaticResource GroupKey}"
                         ToolTip="{loc:T ActionFullscreenDetail}"
                         Command="{Binding FullscreenCommand}">
@@ -271,56 +272,90 @@
                 <Border Width="1" Margin="0,6" Background="{DynamicResource BorderBrush}"
                         Visibility="{Binding CanArrange, Converter={StaticResource BoolToVisibility}}" />
 
-                <Button Style="{StaticResource GroupKey}"
-                        ToolTip="{loc:T StackTip}"
-                        Command="{Binding RearrangeCommand}"
+                <Button x:Name="ArrangeMenuKey" Style="{StaticResource GroupKey}" Padding="4,6"
+                        ToolTip="{loc:T ArrangeMenuTip}"
+                        Click="OnArrangeMenu"
                         Visibility="{Binding CanArrange, Converter={StaticResource BoolToVisibility}}">
-                  <!-- Two overlapping windows: that's exactly what the
-                       action does, and no glyph said it clearly. -->
-                  <Path Style="{StaticResource RowGlyph}" VerticalAlignment="Center"
-                        Data="M 1.8,2.2 H 10.2 V 8.4 H 1.8 Z M 4.8,6.6 H 13.2 V 12.8 H 4.8 Z" />
+                  <Path Width="9" Height="5" Stretch="None" StrokeLineJoin="Round"
+                        Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.5"
+                        StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                        Data="M 0.8,4.2 L 4.5,0.8 L 8.2,4.2" />
                 </Button>
-
-                <Border Width="1" Margin="0,6" Background="{DynamicResource BorderBrush}"
-                        Visibility="{Binding CanArrange, Converter={StaticResource BoolToVisibility}}" />
-
-                <Button Style="{StaticResource GroupKey}"
-                        ToolTip="{loc:T SideBySideTip}"
-                        Command="{Binding TileCommand}"
-                        Visibility="{Binding CanArrange, Converter={StaticResource BoolToVisibility}}">
-                  <!-- One window split in two: the two separate panels
-                       filled in with their own stroke at this size, and
-                       the icon turned into two blank blocks. -->
-                  <Path Style="{StaticResource RowGlyph}" VerticalAlignment="Center"
-                        Data="M 2,2.6 H 13 V 12.4 H 2 Z M 7.5,2.6 V 12.4" />
-                </Button>
-
-                <!-- The same screen cut in four. Below three windows
-                     side by side does the job, so the button withdraws. -->
-                <Border Width="1" Margin="0,6" Background="{DynamicResource BorderBrush}"
-                        Visibility="{Binding CanGrid, Converter={StaticResource BoolToVisibility}}" />
-
-                <Button Style="{StaticResource GroupKey}"
-                        ToolTip="{loc:T GridTip}"
-                        Command="{Binding GridCommand}"
-                        Visibility="{Binding CanGrid, Converter={StaticResource BoolToVisibility}}">
-                  <Path Style="{StaticResource RowGlyph}" VerticalAlignment="Center"
-                        Data="M 2,2.6 H 13 V 12.4 H 2 Z M 7.5,2.6 V 12.4 M 2,7.5 H 13" />
-                </Button>
-
               </StackPanel>
             </Border>
 
-          </WrapPanel>
+            <!-- As tall as the keys, which it fell short of (2026-10-17). -->
+            <Button Content="{loc:T Quit}" Click="OnQuit"
+                    Height="{Binding ActualHeight, ElementName=GuidesKey}"
+                    Margin="0,3,0,0"
+                    ToolTip="{loc:T QuitTip}" />
+          </StackPanel>
 
-          <!-- Bottom: when the arranging buttons wrap onto a second
-               line, Quit shares it with them instead of floating
-               between the two. As tall as the keys, which it fell
-               short of (2026-10-17). -->
-          <Button Grid.Column="1" Content="{loc:T Quit}" Click="OnQuit"
-                  Height="{Binding ActualHeight, ElementName=GuidesKey}"
-                  VerticalAlignment="Bottom" Margin="0,0,0,3"
-                  ToolTip="{loc:T QuitTip}" />
+          <!-- Opens upwards, over the list. The labels share one width
+               so that the icons line up on the left. -->
+          <Popup x:Name="ArrangeMenu" PlacementTarget="{Binding ElementName=ArrangeMenuKey}"
+                 Placement="Top" VerticalOffset="-4" StaysOpen="False"
+                 AllowsTransparency="True" PopupAnimation="Fade">
+            <Border Margin="8" Padding="4" Grid.IsSharedSizeScope="True"
+                    Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BevelBrush}" BorderThickness="1"
+                    CornerRadius="{StaticResource Radius}">
+              <Border.Effect>
+                <DropShadowEffect BlurRadius="14" ShadowDepth="2" Opacity="0.35" />
+              </Border.Effect>
+              <StackPanel>
+                <Button Style="{StaticResource GroupKey}" Padding="8,5"
+                        ToolTip="{loc:T StackTip}"
+                        Command="{Binding RearrangeCommand}" Click="OnArrangeChosen">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="Auto" SharedSizeGroup="ArrangeLabel" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal">
+                      <!-- Two overlapping windows: that's exactly what the
+                           action does, and no glyph said it clearly. -->
+                      <Path Style="{StaticResource RowGlyph}" VerticalAlignment="Center"
+                            Data="M 1.8,2.2 H 10.2 V 8.4 H 1.8 Z M 4.8,6.6 H 13.2 V 12.8 H 4.8 Z" />
+                      <TextBlock Text="{loc:T ActionStackWindows}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Grid>
+                </Button>
+
+                <Button Style="{StaticResource GroupKey}" Padding="8,5"
+                        ToolTip="{loc:T SideBySideTip}"
+                        Command="{Binding TileCommand}" Click="OnArrangeChosen">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="Auto" SharedSizeGroup="ArrangeLabel" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal">
+                      <Path Style="{StaticResource RowGlyph}" VerticalAlignment="Center"
+                            Data="M 2,2.6 H 13 V 12.4 H 2 Z M 7.5,2.6 V 12.4" />
+                      <TextBlock Text="{loc:T SideBySide}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Grid>
+                </Button>
+
+                <!-- Below three windows side by side does the job, so
+                     the grid withdraws. -->
+                <Button Style="{StaticResource GroupKey}" Padding="8,5"
+                        ToolTip="{loc:T GridTip}"
+                        Command="{Binding GridCommand}" Click="OnArrangeChosen"
+                        Visibility="{Binding CanGrid, Converter={StaticResource BoolToVisibility}}">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="Auto" SharedSizeGroup="ArrangeLabel" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal">
+                      <Path Style="{StaticResource RowGlyph}" VerticalAlignment="Center"
+                            Data="M 2,2.6 H 13 V 12.4 H 2 Z M 7.5,2.6 V 12.4 M 2,7.5 H 13" />
+                      <TextBlock Text="{loc:T Grid}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Grid>
+                </Button>
+              </StackPanel>
+            </Border>
+          </Popup>
         </Grid>
       </Border>
 

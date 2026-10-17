@@ -101,6 +101,9 @@
   <data name="GridTip" xml:space="preserve">
     <value>Ranger les fenêtres en grille, chacune sur un quart de l'écran, dans l'ordre de la liste. Au-delà de quatre, les suivantes s'empilent sur la dernière case.</value>
   </data>
+  <data name="ArrangeMenuTip" xml:space="preserve">
+    <value>Ranger les fenêtres : empiler, côte à côte ou en grille</value>
+  </data>
   <data name="Guides" xml:space="preserve">
     <value>Guides</value>
   </data>
