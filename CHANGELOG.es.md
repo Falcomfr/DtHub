@@ -10,6 +10,13 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Cambiado
+
+- Conectar o desconectar el cargador se ve en pocos segundos, en el panel y
+  en el título de las ventanas.
+
 ## [0.9.0] - 2026-10-17
 
 ### Añadido

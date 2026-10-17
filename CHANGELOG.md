@@ -17,6 +17,13 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Changed
+
+- Plugging the charger in or out shows within a few seconds, in the panel
+  and in the windows' title.
+
 ## [0.9.0] - 2026-10-17
 
 ### Added
