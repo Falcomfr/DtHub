@@ -199,6 +199,17 @@ public static class ScrcpyCommandBuilder
         // light it back. Read in the v4.1 server, CleanUp.java.
         arguments.Add("--no-cleanup");
 
+        // A left click or drag already reaches the phone as a finger; only
+        // the hover went as a mouse (SOURCE_MOUSE in the v4.1 server's
+        // Controller), which made the game's Chrome behave as on a computer:
+        // a drag selected text and left a panel shifted (2026-10-03). Nothing
+        // in a touch game uses hover.
+        arguments.Add("--no-mouse-hover");
+
+        // Typing goes through scrcpy's own injection, not Android's keyboard,
+        // which otherwise inflated on the dark main panel for nothing.
+        arguments.Add("--display-ime-policy=hide");
+
         if (sanitized.KeepDeviceAwake)
         {
             arguments.Add("--keep-active");
