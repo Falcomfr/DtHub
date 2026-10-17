@@ -180,6 +180,11 @@ public class QuestTreeTests
         Assert.Equal(Strings.Format("PathTo", "Canopée du Kimbo"), path.Label);
         Assert.Equal("https://papycha.fr/k/", path.Url);
         Assert.Empty(tree.Paths(PathSide.Dungeons));
+
+        // The dungeon knows a path heads it, which closes the bracket
+        // drawn from the path down to it.
+        Assert.True(rows[2].AfterPath);
+        Assert.False(rows[0].AfterPath);
     }
 
     [Fact]

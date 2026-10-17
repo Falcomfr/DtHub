@@ -115,6 +115,10 @@ public enum QuestNodeGlyph
 /// where the dungeon names do, so that it reads as belonging to the row
 /// above.
 /// </param>
+/// <param name="AfterPath">
+/// True for a dungeon whose path heads it: the row closes the bracket the
+/// path's row opens, so that the two read as one.
+/// </param>
 public sealed record QuestNode(
     QuestNodeKind Kind,
     string Label,
@@ -130,7 +134,8 @@ public sealed record QuestNode(
     DungeonFacts? Facts = null,
     QuestStatus Status = QuestStatus.NotStarted,
     ZoneTally? Tally = null,
-    bool Nested = false)
+    bool Nested = false,
+    bool AfterPath = false)
 {
     /// <summary>
     /// Neither unmade branches nor subheadings are clickable.

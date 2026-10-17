@@ -153,19 +153,22 @@ public sealed class QuestTree
 
         foreach (var row in rows)
         {
-            if (row.Dungeon is { } dungeon)
+            if (row.Dungeon is not { } dungeon || !paths.Contains(dungeon.Id))
             {
-                foreach (var path in paths[dungeon.Id])
-                {
-                    yield return NodeOf(path) with
-                    {
-                        Label = Strings.Format("PathTo", dungeon.Title),
-                        Nested = true,
-                    };
-                }
+                yield return row;
+                continue;
             }
 
-            yield return row;
+            foreach (var path in paths[dungeon.Id])
+            {
+                yield return NodeOf(path) with
+                {
+                    Label = Strings.Format("PathTo", dungeon.Title),
+                    Nested = true,
+                };
+            }
+
+            yield return row with { AfterPath = true };
         }
     }
 
