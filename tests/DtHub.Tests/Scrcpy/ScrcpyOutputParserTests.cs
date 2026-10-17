@@ -170,6 +170,22 @@ public class ScrcpyOutputParserTests
     }
 
     [Theory]
+    [InlineData("ERROR: Could not create D3D11VA device: Generic error in an external library")]
+    [InlineData("ERROR: D3D11VA: SDL did not expose its Direct3D 11 device")]
+    [InlineData("ERROR: D3D11VA: the Direct3D 11 device is single-threaded")]
+    [InlineData("ERROR: d3d11va cannot decode this stream")]
+    public void Un_decodage_materiel_refuse_n_est_pas_une_fin(string line)
+    {
+        // scrcpy 5, hwdec.c: without the option, a PC that cannot decode on
+        // its graphics card writes one of these, then "Hardware decoding
+        // unavailable; using software decoding" (scrcpy.c), and the session
+        // goes on. Taken for a refusal, closing the window by hand would
+        // have reopened it, as the audio lines once did.
+        Assert.True(ScrcpyOutputParser.IsError(line));
+        Assert.False(ScrcpyOutputParser.IsFatal(line));
+    }
+
+    [Theory]
     [InlineData("WARN: Frame skipped")]
     [InlineData("WARN: Demuxer error")]
     [InlineData("INFO: New display: 800x600/240 (id=33)")]

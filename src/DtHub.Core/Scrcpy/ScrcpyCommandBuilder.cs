@@ -160,12 +160,12 @@ public static class ScrcpyCommandBuilder
         // the hover went as a mouse (SOURCE_MOUSE in the v4.1 server's
         // Controller), which made the game's Chrome behave as on a computer:
         // a drag selected text and left a panel shifted (2026-10-03). Nothing
-        // in a touch game uses hover.
-        arguments.Add("--no-mouse-hover");
-
-        // Typing goes through scrcpy's own injection, not Android's keyboard,
-        // which otherwise inflated on the dark main panel for nothing.
-        arguments.Add("--display-ime-policy=hide");
+        // in a touch game uses hover. Only with the SDK mouse: scrcpy refuses
+        // to start with it otherwise (cli.c).
+        if (sanitized.MouseMode == ScrcpyMouseMode.Sdk)
+        {
+            arguments.Add("--no-mouse-hover");
+        }
 
         if (sanitized.KeepDeviceAwake)
         {
@@ -210,6 +210,11 @@ public static class ScrcpyCommandBuilder
             {
                 arguments.Add("--no-vd-system-decorations");
             }
+
+            // Typing goes through scrcpy's own injection, not Android's
+            // keyboard, which otherwise inflated on the dark main panel for
+            // nothing. scrcpy takes it for a secondary display only.
+            arguments.Add("--display-ime-policy=hide");
         }
 
         if (windowPosition is { } placement)

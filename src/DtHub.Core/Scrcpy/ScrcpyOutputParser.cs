@@ -123,7 +123,7 @@ public static partial class ScrcpyOutputParser
     /// </summary>
     public static bool IsFatal(string? line)
     {
-        if (IsAudio(line))
+        if (IsAudio(line) || IsHardwareDecoding(line))
         {
             return false;
         }
@@ -140,6 +140,16 @@ public static partial class ScrcpyOutputParser
 
         return line.Contains("device disconnected", StringComparison.OrdinalIgnoreCase);
     }
+
+    /// <summary>
+    /// True on scrcpy 5's complaints about decoding on the graphics card
+    /// (hwdec.c). Without the option, it falls back on the processor and the
+    /// session goes on: "Hardware decoding unavailable; using software
+    /// decoding" (scrcpy.c).
+    /// </summary>
+    private static bool IsHardwareDecoding(string? line) =>
+        !string.IsNullOrWhiteSpace(line)
+        && line.Contains("D3D11VA", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// True if the line speaks about sound and nothing else.

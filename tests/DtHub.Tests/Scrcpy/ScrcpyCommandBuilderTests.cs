@@ -263,6 +263,28 @@ public class ScrcpyCommandBuilderTests
     }
 
     [Fact]
+    public void La_souris_simulee_garde_son_survol()
+    {
+        // scrcpy refuses to start with --no-mouse-hover outside --mouse=sdk
+        // ("--no-mouse-over is specific to --mouse=sdk", cli.c): a player
+        // who ticked the simulated mouse would have had no window at all.
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001", "T", ScrcpyOptions.Default with { MouseMode = ScrcpyMouseMode.Uhid });
+
+        Assert.DoesNotContain("--no-mouse-hover", arguments);
+    }
+
+    [Fact]
+    public void Sans_afficheur_virtuel_la_regle_du_clavier_n_est_pas_passee()
+    {
+        // scrcpy accepts --display-ime-policy only with a secondary display.
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001", "T", ScrcpyOptions.Default with { UseVirtualDisplay = false });
+
+        Assert.DoesNotContain("--display-ime-policy=hide", arguments);
+    }
+
+    [Fact]
     public void Une_fenetre_de_jeu_ne_laisse_pas_de_nettoyeur_sur_le_telephone()
     {
         // Measured on the 13T Pro on 2026-10-17: each game session's CleanUp
