@@ -137,7 +137,12 @@ public sealed partial class JsonDocumentStore<T> : IDocumentStore<T>, IDisposabl
             // every four to six seconds and settings.json every thirty while
             // the panel showed, most of the time unchanged (2026-10-17). Each
             // write is a new file and a rename, which the antivirus scans.
-            if (json == _lastWritten && File.Exists(FilePath))
+            //
+            // Compared with the file itself rather than with what this store
+            // last wrote: a restore or a hand edit in between would otherwise
+            // have had its replacement skipped.
+            if (File.Exists(FilePath)
+                && await File.ReadAllTextAsync(FilePath, cancellationToken).ConfigureAwait(false) == json)
             {
                 return;
             }
@@ -150,16 +155,12 @@ public sealed partial class JsonDocumentStore<T> : IDocumentStore<T>, IDisposabl
             // either the old one or the new one, never a mix of the
             // two.
             File.Move(temporary, FilePath, overwrite: true);
-            _lastWritten = json;
         }
         finally
         {
             _gate.Release();
         }
     }
-
-    /// <summary>What this store last wrote, to skip a write that changes nothing.</summary>
-    private string? _lastWritten;
 
     public void Dispose() => _gate.Dispose();
 

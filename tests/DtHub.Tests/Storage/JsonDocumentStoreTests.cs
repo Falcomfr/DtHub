@@ -77,6 +77,20 @@ public sealed class JsonDocumentStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task Un_fichier_change_par_ailleurs_est_bien_remplace()
+    {
+        using var store = Store();
+        var document = new Reglages { Nom = "Jeux" };
+
+        await store.SaveAsync(document, CancellationToken.None);
+        await File.WriteAllTextAsync(Path0, """{ "nom": "modifié à la main" }""");
+
+        await store.SaveAsync(document, CancellationToken.None);
+
+        Assert.Equal("Jeux", (await store.LoadAsync(CancellationToken.None)).Nom);
+    }
+
+    [Fact]
     public async Task Un_document_change_est_reecrit()
     {
         using var store = Store();
