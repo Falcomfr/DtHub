@@ -22,6 +22,29 @@ public sealed class DisplayLadderTests
     }
 
     [Fact]
+    public void Une_petite_fenetre_est_rendue_au_moins_en_1080()
+    {
+        // Reported on 2026-10-17: a 960x570 window, rendered at 952x536,
+        // looked blurry at its own size. Rendered at 1080 and shrunk by the
+        // PC, as "Sharper image" does, it was sharp.
+        var (width, height) = DisplayLadder.For(550, 3840, 2160, minimumHeight: DisplayLadder.MinimumHeight);
+
+        Assert.Equal(1080, height);
+        Assert.Equal(1920, width);
+    }
+
+    [Fact]
+    public void Le_plancher_ne_depasse_ni_la_qualite_ni_l_ecran()
+    {
+        // A mule set to the light tier keeps its ceiling.
+        var (_, light) = DisplayLadder.For(550, 3840, 2160, maximumHeight: 720, minimumHeight: DisplayLadder.MinimumHeight);
+        var (_, small) = DisplayLadder.For(550, 1366, 768, minimumHeight: DisplayLadder.MinimumHeight);
+
+        Assert.Equal(720, light);
+        Assert.Equal(768, small);
+    }
+
+    [Fact]
     public void Une_fenetre_plein_ecran_recoit_la_definition_de_l_ecran()
     {
         var (width, height) = DisplayLadder.For(2130, 3840, 2160);

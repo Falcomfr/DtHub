@@ -54,6 +54,18 @@ public static class DisplayLadder
     public static readonly int[] FallbackHeights = [1080, 720];
 
     /// <summary>
+    /// Height a game window is rendered at the least, within its quality and
+    /// its screen.
+    ///
+    /// **Seen on 2026-10-17**: a 960x570 window rendered at 952x536 looked
+    /// blurry at its own size, its text a few pixels tall, its colour at half
+    /// resolution. Rendered at 1080 and shrunk by the PC, the way "Sharper
+    /// image" does, it was sharp at the same bitrate. The interface keeps its
+    /// size, the density following the height (ZoomProfile.DpiFor).
+    /// </summary>
+    public const int MinimumHeight = 1080;
+
+    /// <summary>
     /// Fallback resolution below a given height, at the requested
     /// aspect ratio, or <c>null</c> if there is nothing more modest
     /// left to try.
@@ -117,6 +129,9 @@ public static class DisplayLadder
     /// window of its own size. Rendered twice as large and shrunk by the
     /// PC, the colour arrives at the window's resolution. The screen and
     /// the tier still cap it.
+    ///
+    /// <paramref name="minimumHeight"/> renders a small window as a larger
+    /// one, see <see cref="MinimumHeight"/>; the screen and the tier cap it too.
     /// </summary>
     public static (int Width, int Height) For(
         int clientHeight,
@@ -124,12 +139,15 @@ public static class DisplayLadder
         int screenHeight,
         int maximumHeight = int.MaxValue,
         bool sharpImage = false,
-        double phoneAspect = 0)
+        double phoneAspect = 0,
+        int minimumHeight = 0)
     {
         if (sharpImage)
         {
             clientHeight *= 2;
         }
+
+        clientHeight = Math.Max(clientHeight, minimumHeight);
 
         if (screenWidth <= 0 || screenHeight <= 0)
         {

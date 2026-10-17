@@ -4298,17 +4298,17 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
 
         var (width, height) = DisplayLadder.For(
-            window.Height, screen.Width, screen.Height, quality.MaximumDisplayHeight, _sharpImage, phoneAspect);
+            window.Height, screen.Width, screen.Height, quality.MaximumDisplayHeight, _sharpImage, phoneAspect,
+            DisplayLadder.MinimumHeight);
 
-        // The sharper image is paid for in pixels, not in bits. Measured
-        // when it was made: at the bitrate of the window's own size, the
-        // red text is already as sharp as the white. Following the doubled
-        // size instead multiplied the bitrate by up to two and a half,
-        // 9.5 to 24.3 Mb/s on the 13T Pro in the high tier, per account,
-        // and the players said it lagged.
-        var (bitrateWidth, bitrateHeight) = _sharpImage
-            ? DisplayLadder.For(window.Height, screen.Width, screen.Height, quality.MaximumDisplayHeight, phoneAspect: phoneAspect)
-            : (width, height);
+        // The sharper image and the small window's floor are paid for in
+        // pixels, not in bits. Measured when it was made: at the bitrate of
+        // the window's own size, the red text is already as sharp as the
+        // white. Following the doubled size instead multiplied the bitrate
+        // by up to two and a half, 9.5 to 24.3 Mb/s on the 13T Pro in the
+        // high tier, per account, and the players said it lagged.
+        var (bitrateWidth, bitrateHeight) =
+            DisplayLadder.For(window.Height, screen.Width, screen.Height, quality.MaximumDisplayHeight, phoneAspect: phoneAspect);
 
         // Density is derived from the chosen resolution: leaving it
         // fixed made the game's zoom vary with the window's size,
