@@ -43,6 +43,11 @@ public partial class QuestPageWindow : Window
         _engine = engine;
 
         InitializeComponent();
+
+        if (PageTranslator.Offers(PageTranslation.French))
+        {
+            Translate.Visibility = Visibility.Visible;
+        }
     }
 
     /// <summary>
@@ -324,6 +329,8 @@ public partial class QuestPageWindow : Window
     }
 
     private void OnOpenInBrowser(object sender, RoutedEventArgs e) => _dialogs.OpenUrl(_url);
+
+    private void OnTranslate(object sender, RoutedEventArgs e) => _dialogs.OpenUrl(PageTranslator.AddressFor(_url));
 
     // The only style being removed: the maximize button of the report
     // window.

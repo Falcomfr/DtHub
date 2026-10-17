@@ -17,6 +17,19 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Added
+
+- A Translate button on the guides, the DT Portal and Calcofus, which are
+  only in French: the page opens in your browser, translated into the
+  application's language.
+
+### Fixed
+
+- In English or Spanish on a French Windows, the Almanax shows its
+  offering, bonus and days in the application's language.
+
 ## [0.9.2] - 2026-10-17
 
 ### Fixed

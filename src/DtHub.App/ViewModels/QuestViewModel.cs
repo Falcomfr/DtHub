@@ -1586,6 +1586,17 @@ public sealed partial class QuestViewModel : ObservableObject
         }
     }
 
+    /// <summary>The same page, translated into the application's language: see PageTranslation.</summary>
+    public void OpenTranslated()
+    {
+        var url = Browsed() ?? CurrentUrl;
+
+        if (!string.IsNullOrWhiteSpace(url))
+        {
+            _dialogs.OpenUrl(PageTranslator.AddressFor(url));
+        }
+    }
+
     /// <summary>
     /// What is needed to report an error on what is in front of us: the page,
     /// and the marker to carry into the site's form.

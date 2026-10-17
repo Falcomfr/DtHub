@@ -24,6 +24,7 @@
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
 
         <TextBlock Grid.Column="0" VerticalAlignment="Center"
@@ -31,7 +32,13 @@
                    TextTrimming="CharacterEllipsis"
                    Text="{loc:T PapychaGuides}" />
 
-        <Button Grid.Column="1" Content="{loc:T OpenInBrowser}"
+        <!-- Only on a page in another language than ours: see PageTranslation. -->
+        <Button x:Name="Translate" Grid.Column="1" Content="{loc:T Translate}"
+                Style="{StaticResource QuietButton}" Margin="0,0,6,0"
+                ToolTip="{loc:T TranslateTip}" Visibility="Collapsed"
+                Click="OnTranslate" />
+
+        <Button Grid.Column="2" Content="{loc:T OpenInBrowser}"
                 Style="{StaticResource QuietButton}"
                 ToolTip="{loc:T OpenThisPageTip}"
                 Click="OnOpenInBrowser" />

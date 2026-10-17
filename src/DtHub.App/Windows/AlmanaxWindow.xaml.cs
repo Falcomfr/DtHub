@@ -4,6 +4,7 @@ using System.Windows;
 using DtHub.App.Services;
 using DtHub.App.ViewModels;
 using DtHub.Core.Almanax;
+using DtHub.Core.Localization;
 using DtHub.Core.Settings;
 using Microsoft.Web.WebView2.Core;
 using Serilog;
@@ -179,7 +180,7 @@ public partial class AlmanaxWindow : Window
             await PrepareWeekViewAsync().ConfigureAwait(true);
 
             WeekView.CoreWebView2.Navigate(
-                AlmanaxCalendar.WeekUrlFor(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName));
+                AlmanaxCalendar.WeekUrlFor(Strings.Spoken.TwoLetterISOLanguageName));
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
@@ -296,7 +297,7 @@ public partial class AlmanaxWindow : Window
         try
         {
             WeekView.CoreWebView2.Navigate(
-                AlmanaxCalendar.UrlFor(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, date));
+                AlmanaxCalendar.UrlFor(Strings.Spoken.TwoLetterISOLanguageName, date));
 
             day = await _batchWait.Task.WaitAsync(TimeSpan.FromSeconds(20), cancellationToken).ConfigureAwait(true);
         }
@@ -351,7 +352,7 @@ public partial class AlmanaxWindow : Window
         {
             await PrepareAsync().ConfigureAwait(true);
 
-            _url = AlmanaxCalendar.UrlFor(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, date);
+            _url = AlmanaxCalendar.UrlFor(Strings.Spoken.TwoLetterISOLanguageName, date);
 
             View.CoreWebView2.Navigate(_url);
         }
@@ -471,5 +472,5 @@ public partial class AlmanaxWindow : Window
     private void OnOpenInBrowser(object sender, RoutedEventArgs e) =>
         _dialogs.OpenUrl(_url.Length > 0
             ? _url
-            : AlmanaxCalendar.UrlFor(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, _wanted));
+            : AlmanaxCalendar.UrlFor(Strings.Spoken.TwoLetterISOLanguageName, _wanted));
 }

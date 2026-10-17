@@ -47,6 +47,11 @@ public partial class QuestWindow : Window
     {
         InitializeComponent();
 
+        if (PageTranslator.Offers(PageTranslation.French))
+        {
+            Translate.Visibility = Visibility.Visible;
+        }
+
         _viewModel = viewModel;
         _placements = placements;
         _settings = settings;
@@ -174,6 +179,8 @@ public partial class QuestWindow : Window
     private int _pendingStep;
 
     private void OnOpenInBrowser(object sender, RoutedEventArgs e) => _viewModel.OpenInBrowser();
+
+    private void OnTranslate(object sender, RoutedEventArgs e) => _viewModel.OpenTranslated();
 
     private void OnSearchOnSite(object sender, RoutedEventArgs e) => _viewModel.OpenSiteSearch();
 

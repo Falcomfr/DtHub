@@ -858,6 +858,12 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
   <data name="OpenCurrentPageTip" xml:space="preserve">
     <value>Ouvrir la page courante dans votre navigateur habituel, sur le site d'origine</value>
   </data>
+  <data name="Translate" xml:space="preserve">
+    <value>Traduire</value>
+  </data>
+  <data name="TranslateTip" xml:space="preserve">
+    <value>Ouvre cette page dans votre navigateur, traduite dans la langue de l'application par Google Traduction. Le site n'existe que dans une autre langue.</value>
+  </data>
   <data name="SearchOnSite" xml:space="preserve">
     <value>Chercher « {0} » sur papycha.fr</value>
   </data>

@@ -11,6 +11,19 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Ajouté
+
+- Un bouton Traduire sur les guides, le Portail DT et Calcofus quand ils ne
+  sont pas dans la langue de l'application : la page s'ouvre dans votre
+  navigateur, traduite dans cette langue.
+
+### Corrigé
+
+- En anglais ou en espagnol sur un Windows français, l'Almanax affiche son
+  offrande, son bonus et ses jours dans la langue de l'application.
+
 ## [0.9.2] - 2026-10-17
 
 ### Corrigé

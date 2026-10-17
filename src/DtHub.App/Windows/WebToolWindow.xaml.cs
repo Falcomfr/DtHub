@@ -115,8 +115,16 @@ public partial class WebToolWindow : Window
         _ => DofusRoom.IsOwnPage(url),
     };
 
+    /// <summary>The map and DofusRoom open in our language; the other three only exist in French.</summary>
+    private string? SiteLanguage => Tool is WebTool.Map or WebTool.DofusRoom ? null : PageTranslation.French;
+
     private async Task OpenAsync()
     {
+        if (PageTranslator.Offers(SiteLanguage))
+        {
+            Translate.Visibility = Visibility.Visible;
+        }
+
         try
         {
             await View.EnsureCoreWebView2Async(await _engine.GetAsync().ConfigureAwait(true)).ConfigureAwait(true);
@@ -317,6 +325,11 @@ public partial class WebToolWindow : Window
             : HomeAddress);
 
     private void OnDonate(object sender, RoutedEventArgs e) => _dialogs.OpenUrl(DofusTouchMap.DonationAddress);
+
+    private void OnTranslate(object sender, RoutedEventArgs e) =>
+        _dialogs.OpenUrl(PageTranslator.AddressFor(View.CoreWebView2?.Source is { Length: > 0 } page
+            ? page
+            : HomeAddress));
 
     /// <summary>
     /// target="_blank", which the engine would otherwise open in a window of

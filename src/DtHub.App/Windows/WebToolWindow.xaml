@@ -19,6 +19,10 @@
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
         <Button x:Name="Donate" Content="{loc:T ToolMapDonate}" Style="{StaticResource OutlineButton}"
                 Padding="10,3" Margin="0,0,6,0" Visibility="Collapsed" Click="OnDonate" />
+        <!-- Only on a page in another language than ours: see PageTranslation. -->
+        <Button x:Name="Translate" Content="{loc:T Translate}" ToolTip="{loc:T TranslateTip}"
+                Style="{StaticResource OutlineButton}" Padding="10,3" Margin="0,0,6,0"
+                Visibility="Collapsed" Click="OnTranslate" />
         <Button Content="{loc:T OpenInBrowser}" Style="{StaticResource OutlineButton}"
                 Padding="10,3" Click="OnOpenInBrowser" />
       </StackPanel>

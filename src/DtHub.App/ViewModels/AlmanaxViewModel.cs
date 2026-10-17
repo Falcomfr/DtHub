@@ -18,10 +18,14 @@ namespace DtHub.App.ViewModels;
 /// from it, so that day names follow the application's language rather
 /// than Windows' region: someone who chose English wants "Thu", not
 /// "jeu."
+///
+/// Derived from the language chosen, <see cref="Strings.Spoken" />:
+/// CurrentUICulture itself falls back to Windows' outside the startup
+/// context, and an English Almanax on a French Windows said "jeu.".
 /// </summary>
 internal static class DisplayCulture
 {
-    public static CultureInfo Current => CultureInfo.GetCultureInfo(CultureInfo.CurrentUICulture.Name);
+    public static CultureInfo Current => CultureInfo.GetCultureInfo(Strings.Spoken.Name);
 }
 
 /// <summary>A day of the strip, as it is shown and chosen.</summary>

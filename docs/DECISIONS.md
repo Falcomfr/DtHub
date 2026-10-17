@@ -10509,3 +10509,35 @@ reste dans la liste.
 Écartée en même temps : arrêter les serveurs scrcpy orphelins. Tuer le client
 de force arrête son serveur en moins de 4 s (mesuré sur le Mi 9T Pro), et 16
 jours de journaux n'en montrent aucun resté en vie.
+
+## D201 - Traduire dans le navigateur, et la langue choisie lue au bon endroit
+
+**2026-10-17 - Acceptée, vérifiée dans l'application**
+
+Papycha, lomitall.fr et Calcofus n'existent qu'en français (Papycha n'a
+aucune autre version). Un bouton « Traduire » s'affiche dans la barre des
+guides, des pages ouvertes depuis un guide et des outils web, seulement quand
+la langue du site diffère de celle de l'application. La carte et DofusRoom,
+servies dans notre langue, ne l'ont jamais.
+
+**La langue du site est connue, pas lue dans la page.** Premier essai avec
+`document.documentElement.lang` : juste pour Papycha (`fr-FR`) et lomitall.fr
+(`fr`), faux pour Calcofus, en français, qui déclare `lang="en"` (vérifié le
+17/10/2026) : pas de bouton en anglais, un bouton inutile en français. Les
+infobulles disaient déjà « in French » de ces trois sites.
+
+**Dans le navigateur, pas dans la fenêtre.** Le bouton ouvre
+`translate.google.com/translate?sl=auto&tl=<langue>&u=<page>` dans le
+navigateur du joueur. Le relais de Google dans la fenêtre (`translate.goog`)
+a été écarté : il change de domaine, donc perd le cookie du suivi Papycha, les
+scripts de cadrage et le filtre anti-publicité qui évite les alertes
+antivirus, et Papycha a donné son accord pour son site, pas pour sa copie.
+La page ne part chez Google que sur le clic du joueur.
+
+**La langue de l'application est `Strings.Spoken`, pas `CurrentUICulture`.**
+Premier essai, appli en anglais sur un Windows français : « page fr-FR,
+appli fr », pas de bouton. `CurrentUICulture` retombe sur la langue de Windows
+hors du contexte de démarrage (voir `App.ApplyLanguage`). Le même défaut
+servait l'Almanax en français et ses jours en « sam., dim. » dans une
+application en anglais : `AlmanaxWindow` et `DisplayCulture` lisent désormais
+`Strings.Spoken`, et l'Almanax s'affiche en anglais (vérifié le 17/10/2026).

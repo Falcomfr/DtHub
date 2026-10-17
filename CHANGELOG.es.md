@@ -10,6 +10,19 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Añadido
+
+- Un botón Traducir en las guías, el Portal DT y Calcofus, que solo existen
+  en francés: la página se abre en tu navegador, traducida al idioma de la
+  aplicación.
+
+### Corregido
+
+- En inglés o en español con un Windows en francés, el Almanax muestra su
+  ofrenda, su bonificación y sus días en el idioma de la aplicación.
+
 ## [0.9.2] - 2026-10-17
 
 ### Corregido
