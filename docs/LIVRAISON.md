@@ -20,8 +20,8 @@ nothing is shown.
 ## Ship it
 
 0. Run the probe: `dotnet run --project build/sonde-papycha`. It queries
-   the real site and returns 1 if the application no longer finds what it
-   assumes to be there. A legitimate discrepancy is reblessed with
+   papycha's public API and returns 1 if the catalog merge no longer finds
+   what it assumes to be there. A legitimate discrepancy is reblessed with
    `-- --benir`.
 1. Bump the version in `Directory.Build.props`, field `VersionPrefix`.
 2. Close the `## [Unreleased]` section in the three changelogs,

@@ -10,6 +10,13 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Corregido
+
+- Las guías de misiones vuelven a llenarse para los jugadores nuevos, y las
+  misiones que el sitio añade llegan solas.
+
 ## [0.8.22] - 2026-10-16
 
 ### Cambiado

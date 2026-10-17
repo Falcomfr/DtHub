@@ -11,6 +11,13 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Corrigé
+
+- Les guides de quêtes se remplissent de nouveau pour les nouveaux joueurs,
+  et les quêtes que le site ajoute arrivent toutes seules.
+
 ## [0.8.22] - 2026-10-16
 
 ### Modifié

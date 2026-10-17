@@ -73,6 +73,7 @@ under its mDNS name, and appeared only once in the list.
 | Incident report, redacted, to copy and send | DONE |
 | Interface in English, French and Spanish, including brand sheets | DONE |
 | Quest tracking backed by papycha.fr, in its own window | DONE |
+| Quest catalog from papycha's public API, merged over the embedded catalog | DONE |
 | Keyboard: Enter and Escape on dialog boxes | DONE |
 | Per-account state, session time and status line on the row | DONE |
 | Band of device vitals pinned under the account list | DONE |

@@ -69,26 +69,12 @@ dotnet.exe test tests/DtHub.Tests/DtHub.Tests.csproj -c Release \
   --collect:"XPlat Code Coverage" --results-directory "$TEMP/dthub-cov"
 
 python3 build/make-icon.py                  # regenerate assets/app.ico
-python3 build/extract-successes.py           # collect papycha's achievement map
 
-# Check that the site still reads as the application assumes. Returns 1 when
-# it differs from build/sonde-papycha/reference.json. Run it before shipping.
+# Check that papycha's public API still serves what the catalog merge assumes.
+# Returns 1 when it differs from build/sonde-papycha/reference.json. Run it
+# before shipping.
 dotnet.exe run --project build/sonde-papycha
 dotnet.exe run --project build/sonde-papycha -- --benir   # accept the new reading
-
-# What the bridge keeps as steps, across the 782 guides. It does not carry the
-# rule: it cuts the block out of quest-bridge.js and runs it as it is, so its
-# numbers are the ones the window will show. Node is a development tool, the
-# application does not depend on it.
-node build/sonde-papycha/audit-etapes.mjs
-node build/sonde-papycha/audit-etapes.mjs "découverte d'un destin"   # one quest only
-
-# What the application offers as a neighbouring quest, against the progression
-# block the site publishes at the foot of an article. Diagnostic, with no
-# reference reading: it queries the site every time.
-dotnet.exe run --project build/sonde-voisines
-dotnet.exe run --project build/sonde-voisines -- --lister     # name the differences
-dotnet.exe run --project build/sonde-voisines -- "chevalier"  # one quest only
 
 # Who holds the keyboard, and which windows are housed in the frame. Used to
 # check the tabbed mode: a docked window can never be in the foreground, and
@@ -219,7 +205,7 @@ server for the whole machine. A test verifies this.
   user's cache: that is what every application manager does, nothing
   is copied or distributed. Citing quest and achievement titles to
   know in what order to read a guide's pages, which is what
-  `assets/quest-successes.json` does, described and carved out of
+  `assets/papycha-catalog.json` does, described and carved out of
   the MIT license's scope in `THIRD-PARTY-NOTICES.md`. Showing
   screenshots of the application running in its documentation, where
   the game it displays inevitably appears.

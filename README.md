@@ -277,11 +277,11 @@ before the rule. Conventions are set out in
 DT Hub is released under the [MIT licence](LICENSE). Third party components
 keep their own, listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
-One file is not covered by that licence: `assets/quest-successes.json` is a
-table of quest and achievement titles compiled by [papycha.fr](https://papycha.fr),
-which keeps its own rights over it. DT Hub uses it only to know in which order
-to open the site's own pages, and always sends you to the site for the guides
-themselves.
+One file is not covered by that licence: `assets/papycha-catalog.json` is the
+quest catalog of [papycha.fr](https://papycha.fr), titles, sections and
+achievements, which the site keeps its own rights over and lets DT Hub ship as
+a fallback. DT Hub uses it only to list and order the site's own pages, and
+always sends you to the site for the guides themselves.
 
 ## Not affiliated
 
