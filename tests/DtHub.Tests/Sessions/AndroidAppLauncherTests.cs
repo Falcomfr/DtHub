@@ -387,6 +387,25 @@ public class AndroidAppLauncherTests
     }
 
     [Fact]
+    public void Un_jeu_agrandi_par_le_telephone_est_rendu_en_resolution_reduite()
+    {
+        // A player's Galaxy S25 Ultra on 2026-10-17: one copy of the game blurry
+        // under DT Hub as under TabDesk, its display the same as the others'.
+        const string joueur = "mode=fullscreen, cadre (0, 0, 1920, 1080), fenêtre frame=[0,0][1920,1080], "
+            + "couche bounds={0,0,1080,1920} toDisplayTransform={ scale x=1.3333 y=1.3333 }";
+
+        Assert.Equal(1.3333, AndroidAppLauncher.Upscale(joueur));
+    }
+
+    [Fact]
+    public void Une_fenetre_reduite_ou_sans_transformation_n_est_pas_agrandie()
+    {
+        // The Xiaomi floating window shrunk by scaling, and a plain layer.
+        Assert.Null(AndroidAppLauncher.Upscale("couche bounds={0,0,637.092,1519.58} toDisplayTransform={ scale x=0.5899 y=0.5899 }"));
+        Assert.Null(AndroidAppLauncher.Upscale("couche bounds={0,0,1080,1920}"));
+    }
+
+    [Fact]
     public void Ce_qui_manque_est_marque_d_un_point_d_interrogation() =>
         Assert.Equal(
             "mode=?, cadre ?, fenêtre ?, couche ?",

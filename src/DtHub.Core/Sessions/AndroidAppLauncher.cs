@@ -394,6 +394,25 @@ public sealed partial class AndroidAppLauncher : IAppLauncher
         return $"mode={mode}, cadre {bounds}, fenêtre {frame ?? "?"}, couche {geometry ?? "?"}";
     }
 
+    /// <summary>
+    /// How much the phone enlarges the game's layer, read from the line of
+    /// <see cref="GameWindowState" />, or <c>null</c> when it does not. Above
+    /// one, the game draws smaller than its display and the phone stretches
+    /// it: a reduced resolution set on the phone, 1.3333 on a player's
+    /// Galaxy S25 Ultra on 2026-10-17, blurry under TabDesk too. A Xiaomi
+    /// floating window shrunk by scaling stays below one.
+    /// </summary>
+    public static double? Upscale(string windowState)
+    {
+        var match = ScalePattern().Match(windowState);
+
+        return match.Success
+            && double.TryParse(match.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var scale)
+            && scale > 1.01
+                ? scale
+                : null;
+    }
+
     /// <summary>The line after "Layer [n]" that gives its on-screen geometry.</summary>
     private static string? LayerGeometry(string layers, string number)
     {
@@ -494,6 +513,9 @@ public sealed partial class AndroidAppLauncher : IAppLauncher
 
     [GeneratedRegex(@"mSurface=Surface\(name=[^)]*#(\d+)\)")]
     private static partial Regex SurfacePattern();
+
+    [GeneratedRegex(@"toDisplayTransform=\{ scale x=([0-9.]+)")]
+    private static partial Regex ScalePattern();
 
     // The transform is only written when there is one.
     [GeneratedRegex(@"\bbounds=\{[^}]*\}(?: toDisplayTransform=\{[^}]*\})?")]

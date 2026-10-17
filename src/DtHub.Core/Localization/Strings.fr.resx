@@ -604,6 +604,9 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
   <data name="SessionRecoveryGaveUp" xml:space="preserve">
     <value>{0} n'a pas pu être rouvert après plusieurs tentatives. Vérifiez le téléphone, puis relancez-le vous-même.</value>
   </data>
+  <data name="ReducedRender" xml:space="preserve">
+    <value>{0} : le téléphone fait tourner le jeu en résolution réduite ({1} %), d'où une image floue. Cela vient d'un réglage du téléphone, comme le mode jeu de cette copie de l'application, pas de DT Hub.</value>
+  </data>
   <data name="GameLeftRunning" xml:space="preserve">
     <value>{0} s'est fermé, mais le jeu tourne encore sur le téléphone : il est resté injoignable. Arrêtez-le depuis le téléphone.</value>
   </data>

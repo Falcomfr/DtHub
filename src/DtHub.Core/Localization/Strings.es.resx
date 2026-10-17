@@ -604,6 +604,9 @@ Cruza las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
   <data name="SessionRecoveryGaveUp" xml:space="preserve">
     <value>{0} no pudo reabrirse tras varios intentos. Revisa el teléfono y vuelve a lanzarlo tú mismo.</value>
   </data>
+  <data name="ReducedRender" xml:space="preserve">
+    <value>{0}: el teléfono ejecuta el juego a una resolución reducida ({1} %), de ahí la imagen borrosa. Viene de un ajuste del teléfono, como el modo de juego de esta copia de la aplicación, no de DT Hub.</value>
+  </data>
   <data name="GameLeftRunning" xml:space="preserve">
     <value>{0} se cerró, pero el juego sigue abierto en el teléfono: no se pudo contactar. Ciérralo desde el teléfono.</value>
   </data>

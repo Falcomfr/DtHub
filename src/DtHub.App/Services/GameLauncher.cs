@@ -386,6 +386,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private static readonly TimeSpan StopFailedNoticeLife = TimeSpan.FromSeconds(45);
 
     /// <summary>
+    /// The account the phone runs at a reduced resolution, or <c>null</c>.
+    /// Said in the banner, since nothing in DT Hub can fix it and the player
+    /// would otherwise look for it there.
+    /// </summary>
+    public string? ReducedRenderNotice =>
+        _reducedRender.IsLiveAt(DateTimeOffset.UtcNow, ReducedRenderNoticeLife) ? _reducedRender.Text : null;
+
+    private TimedNotice _reducedRender;
+
+    /// <summary>Long enough to be read, and acted on, on the phone.</summary>
+    private static readonly TimeSpan ReducedRenderNoticeLife = TimeSpan.FromMinutes(2);
+
+    /// <summary>
     /// Drops the recovery notice when the phone it promises a window
     /// on has gone away.
     ///
@@ -1171,6 +1184,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             _windowStates[session.Id] = $"{session.DisplayName} ({DisplaySize(session)}) : {state}";
             LogGameWindow(session.DisplayName, DisplaySize(session), state);
+
+            if (AndroidAppLauncher.Upscale(state) is { } scale)
+            {
+                var percent = (int)Math.Round(100 / scale);
+
+                _reducedRender = TimedNotice.Raised(
+                    Strings.Format("ReducedRender", session.Target.DisplayName, percent), DateTimeOffset.UtcNow);
+                LogReducedRender(session.DisplayName, percent);
+            }
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
@@ -5191,6 +5213,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Information,
         Message = "{Window} : le jeu sur son afficheur {Display} ; {State}")]
     private partial void LogGameWindow(string window, string display, string state);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "{Window} : le téléphone dessine le jeu à {Percent} % de son afficheur puis l'agrandit, d'où une image floue. Réglage du téléphone (mode jeu de cette copie), pas de DT Hub.")]
+    private partial void LogReducedRender(string window, int percent);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "{Window} : le signal qui garde l'app éveillée n'est pas passé : {Reason}")]
     private partial void LogKeepAwakeFailed(string window, string reason);

@@ -838,6 +838,13 @@ public sealed partial class InstanceListViewModel : ObservableObject
             lines.Add(BannerLine.Of(left));
         }
 
+        // The blur the phone adds to a copy of the game: nothing else on
+        // screen says it does not come from DT Hub.
+        if (_launcher.ReducedRenderNotice is { Length: > 0 } reduced)
+        {
+            lines.Add(BannerLine.Of(reduced));
+        }
+
         _health = lines;
         Render();
 
