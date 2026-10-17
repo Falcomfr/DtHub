@@ -22,7 +22,12 @@ namespace DtHub.Core.Devices;
 /// <param name="GameProcesses">Game processes running, every Android profile.</param>
 /// <param name="GamePlayers">The game's active audio players.</param>
 /// <param name="Captured">An active capture by the shell, which is scrcpy's.</param>
-public sealed partial record GameSound(int GameProcesses, int GamePlayers, bool Captured)
+/// <param name="MediaVolume">
+/// The media volume on the phone's speaker, 0 to 15, or <c>null</c> unread.
+/// At 12:30 on 2026-10-17 the game was silent on the PC and the phone alike,
+/// and this volume sat at 0, with no one saying they had touched it.
+/// </param>
+public sealed partial record GameSound(int GameProcesses, int GamePlayers, bool Captured, int? MediaVolume = null)
 {
     /// <summary>The uid of adb's shell, the one scrcpy's server runs under.</summary>
     private const int ShellUid = 2000;
@@ -32,7 +37,8 @@ public sealed partial record GameSound(int GameProcesses, int GamePlayers, bool 
     /// </summary>
     public const string Command =
         "for p in $(pidof " + DofusPackages.DofusTouch + "); do stat -c %u /proc/$p; done; "
-        + "echo players; dumpsys media.audio_policy | grep -E 'uid [0-9]+; State: Active'";
+        + "echo players; dumpsys media.audio_policy | grep -E 'uid [0-9]+; State: Active'; "
+        + "echo volume; settings get system volume_music_speaker";
 
     /// <summary>A game running and not one of its players active.</summary>
     public bool IsSilent => GameProcesses > 0 && GamePlayers == 0;
@@ -71,7 +77,16 @@ public sealed partial record GameSound(int GameProcesses, int GamePlayers, bool 
         HashSet<int> players = [];
         var captured = false;
 
-        foreach (var line in lines[(marker + 1)..])
+        var volumeMarker = Array.IndexOf(lines, "volume", marker + 1);
+        var playersEnd = volumeMarker < 0 ? lines.Length : volumeMarker;
+
+        int? volume = volumeMarker >= 0
+            && volumeMarker + 1 < lines.Length
+            && int.TryParse(lines[volumeMarker + 1], NumberStyles.None, CultureInfo.InvariantCulture, out var level)
+                ? level
+                : null;
+
+        foreach (var line in lines[(marker + 1)..playersEnd])
         {
             if (Player().Match(line) is not { Success: true } match)
             {
@@ -91,7 +106,7 @@ public sealed partial record GameSound(int GameProcesses, int GamePlayers, bool 
             }
         }
 
-        return new GameSound(lines[..marker].Count(l => int.TryParse(l, out _)), players.Count, captured);
+        return new GameSound(lines[..marker].Count(l => int.TryParse(l, out _)), players.Count, captured, volume);
     }
 
     [GeneratedRegex(@"Port ID: (\d+); Session ID: \d+; uid (\d+); State: Active")]

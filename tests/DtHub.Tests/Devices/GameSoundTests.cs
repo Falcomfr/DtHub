@@ -71,6 +71,32 @@ public class GameSoundTests
     }
 
     [Fact]
+    public void Le_volume_media_du_telephone_se_lit_a_la_suite()
+    {
+        // Read on 2026-10-17 at 12:30, the game silent on the PC and the
+        // phone alike: the phone's media volume sat at 0 on its speaker.
+        var sound = GameSound.Parse("""
+            10475
+            players
+                  1. Port ID: 245; Session ID: 1553; uid 2000; State: Active
+            volume
+            0
+            """)!;
+
+        Assert.Equal(0, sound.MediaVolume);
+        Assert.True(sound.IsSilent);
+        Assert.True(sound.Captured);
+    }
+
+    [Fact]
+    public void Un_volume_illisible_reste_inconnu()
+    {
+        var sound = GameSound.Parse(Playing)!;
+
+        Assert.Null(sound.MediaVolume);
+    }
+
+    [Fact]
     public void Une_reponse_sans_la_liste_ne_dit_rien()
     {
         Assert.Null(GameSound.Parse("sh: dumpsys: not found"));

@@ -2223,7 +2223,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         if (Count(_silentReadings, serial, sound.IsSilent) == SoundReadingsBeforeWarning)
         {
-            LogGameSilent(serial, sound.GameProcesses, sound.Captured);
+            LogGameSilent(serial, sound.GameProcesses, sound.Captured, sound.MediaVolume?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "?");
         }
 
         var carried = _sessions.ActiveSessions.Any(s =>
@@ -5395,8 +5395,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     [LoggerMessage(
         Level = LogLevel.Warning,
-        Message = "Le jeu ne joue plus aucun son sur l'appareil {serial} depuis au moins une minute : {processes} jeu(x) ouvert(s), capture du son pour le PC {captured}.")]
-    private partial void LogGameSilent(string serial, int processes, bool captured);
+        Message = "Le jeu ne joue plus aucun son sur l'appareil {serial} depuis au moins une minute : {processes} jeu(x) ouvert(s), capture du son pour le PC {captured}, volume média du téléphone {volume}/15.")]
+    private partial void LogGameSilent(string serial, int processes, bool captured, string volume);
 
     [LoggerMessage(
         Level = LogLevel.Warning,
