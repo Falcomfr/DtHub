@@ -17,6 +17,13 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Fixed
+
+- The game's sound no longer cuts out on a busy Wi-Fi: it keeps a reserve of
+  its own, as the image does.
+
 ## [0.9.0] - 2026-10-17
 
 ### Added

@@ -2181,6 +2181,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     Math.Round(strain.ReclaimCore * 100),
                     Math.Round(strain.Uptime.TotalDays, 1));
             }
+
+            if (await _devices.GetGameSoundAsync(serial).ConfigureAwait(false) is { } sound)
+            {
+                WatchSound(serial, sound);
+            }
         }
 
         // Rebuilt whole: a phone no longer playing must not keep its last
@@ -2189,6 +2194,68 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _strains = strains;
 
         await RetitleWithStatusAsync(serials).ConfigureAwait(false);
+    }
+
+    /// <summary>Silent readings in a row, by serial.</summary>
+    private readonly Dictionary<string, int> _silentReadings = new(StringComparer.Ordinal);
+
+    /// <summary>Readings in a row where the game played and nothing took it for the PC.</summary>
+    private readonly Dictionary<string, int> _uncapturedReadings = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Three readings, a minute at least: a loading screen is silent too,
+    /// and one silent reading is not a lost sound.
+    /// </summary>
+    private const int SoundReadingsBeforeWarning = 3;
+
+    /// <summary>
+    /// Writes in the log the moment the game's sound goes, and the moment it
+    /// comes back.
+    ///
+    /// **Why.** The player lost the sound now and then, on the PC and on the
+    /// phone alike, and relaunching DT Hub brought it back (2026-10-16). The
+    /// moment it went was recorded nowhere, and the lines around it are what
+    /// says why: a reconnection, a window reopened, the screen turned off.
+    /// Nothing is shown: a game whose sound the player turned off in its own
+    /// options is silent too.
+    /// </summary>
+    private void WatchSound(string serial, GameSound sound)
+    {
+        if (Count(_silentReadings, serial, sound.IsSilent) == SoundReadingsBeforeWarning)
+        {
+            LogGameSilent(serial, sound.GameProcesses, sound.Captured);
+        }
+
+        var carried = _sessions.ActiveSessions.Any(s =>
+            s.IsAlive && s.CarriesAudio && string.Equals(Routable(s.Target), serial, StringComparison.Ordinal));
+
+        if (Count(_uncapturedReadings, serial, carried && sound.GamePlayers > 0 && !sound.Captured)
+            == SoundReadingsBeforeWarning)
+        {
+            LogSoundNotCaptured(serial, sound.GamePlayers);
+        }
+    }
+
+    /// <summary>
+    /// Counts the readings in a row where <paramref name="lost" /> holds, and
+    /// says in the log when it stops holding after a warning.
+    /// </summary>
+    private int Count(Dictionary<string, int> readings, string serial, bool lost)
+    {
+        var before = readings.GetValueOrDefault(serial);
+
+        if (!lost)
+        {
+            if (before >= SoundReadingsBeforeWarning)
+            {
+                LogSoundBack(serial);
+            }
+
+            _ = readings.Remove(serial);
+            return 0;
+        }
+
+        return readings[serial] = before + 1;
     }
 
     /// <summary>
@@ -5303,6 +5370,21 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "L'état du téléphone n'a pas pu être posé dans le titre des fenêtres.")]
     private partial void LogTitleStatusFailure(Exception exception);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "Le jeu ne joue plus aucun son sur l'appareil {serial} depuis au moins une minute : {processes} jeu(x) ouvert(s), capture du son pour le PC {captured}.")]
+    private partial void LogGameSilent(string serial, int processes, bool captured);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "Le jeu joue du son sur l'appareil {serial} ({players} lecteur(s)) mais plus rien ne le capte pour le PC depuis au moins une minute.")]
+    private partial void LogSoundNotCaptured(string serial, int players);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Le son du jeu est revenu sur l'appareil {serial}.")]
+    private partial void LogSoundBack(string serial);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Téléphone {device} endormi au clic : réveillé.")]
     private partial void LogPhoneWoken(string device);

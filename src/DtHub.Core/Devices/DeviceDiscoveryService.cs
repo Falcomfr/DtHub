@@ -730,6 +730,32 @@ public sealed class DeviceDiscoveryService : IDisposable
     }
 
     /// <summary>
+    /// Whether the game is playing sound and scrcpy is taking it, or
+    /// <c>null</c> if the phone does not say.
+    /// </summary>
+    public async Task<GameSound?> GetGameSoundAsync(
+        string serial,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(serial))
+        {
+            return null;
+        }
+
+        try
+        {
+            return GameSound.Parse(await _adb
+                .ShellAsync(serial, [GameSound.Command], cancellationToken: cancellationToken)
+                .ConfigureAwait(false));
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // Same silence taken deliberately as for the other side probes.
+            return null;
+        }
+    }
+
+    /// <summary>
     /// What the device says about its free space, or <c>null</c> if it says
     /// nothing.
     /// </summary>

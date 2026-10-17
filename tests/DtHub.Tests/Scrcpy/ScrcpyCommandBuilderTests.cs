@@ -243,6 +243,31 @@ public class ScrcpyCommandBuilderTests
     }
 
     [Theory]
+    [InlineData(36)]
+    [InlineData(30)]
+    public void Le_son_garde_deux_cents_millisecondes_de_reserve(int sdk)
+    {
+        // Heard on 2026-10-17, the 13T Pro on a Wi-Fi resending a third of
+        // its packets: with scrcpy's 50 ms the sound cut out several times a
+        // minute on the PC, with 200 ms not once over the same minute.
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001",
+            "T",
+            ScrcpyOptions.Default with { AudioEnabled = true, DeviceSdkVersion = sdk });
+
+        Assert.Contains("--audio-buffer=200", arguments);
+    }
+
+    [Fact]
+    public void Sans_son_la_reserve_ne_parait_pas()
+    {
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001", "T", ScrcpyOptions.Default with { AudioEnabled = false });
+
+        Assert.DoesNotContain(arguments, a => a.StartsWith("--audio-buffer", StringComparison.Ordinal));
+    }
+
+    [Theory]
     [InlineData(30)]
     [InlineData(32)]
     [InlineData(null)]
